@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-page_alloc-store-updated-page-migratetype-to-avoid-misusing-stale-value-fix.patch added to -mm tree
-Date: Mon, 17 Nov 2014 13:53:41 -0800
-Message-ID: <546a6e65.4ZuMJZC6zlJOTBNw%akpm@linux-foundation.org>
+Subject: + mm-remove-the-useless-gfp-in-__memcg_kmem_get_cache.patch added to -mm tree
+Date: Mon, 17 Nov 2014 13:55:36 -0800
+Message-ID: <546a6ed8.uLcylC9eSbVEIBVF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51426 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51430 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751621AbaKQVxn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Nov 2014 16:53:43 -0500
+	with ESMTP id S1751547AbaKQVzh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Nov 2014 16:55:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, riel@redhat.com, vbabka@suse.cz, weijie.yang@samsung.com, mm-commits@vger.kernel.org
+To: zhenzhang.zhang@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-page_alloc-store-updated-page-migratetype-to-avoid-misusing-stale-value-fix
+     Subject: mm/memcontrol.c: remove the unused arg in __memcg_kmem_get_cache()
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-store-updated-page-migratetype-to-avoid-misusing-stale-value-fix.patch
+     mm-remove-the-useless-gfp-in-__memcg_kmem_get_cache.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-store-updated-page-migratetype-to-avoid-misusing-stale-value-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-remove-the-useless-gfp-in-__memcg_kmem_get_cache.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-store-updated-page-migratetype-to-avoid-misusing-stale-value-fix.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-the-useless-gfp-in-__memcg_kmem_get_cache.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,82 +38,57 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-page_alloc-store-updated-page-migratetype-to-avoid-misusing-stale-value-fix
+From: Zhang Zhen <zhenzhang.zhang@huawei.com>
+Subject: mm/memcontrol.c: remove the unused arg in __memcg_kmem_get_cache()
 
-fix comment
+The gfp was passed in but never used in this function.
 
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Weijie Yang <weijie.yang@samsung.com>
+Signed-off-by: Zhang Zhen <zhenzhang.zhang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_isolation.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/memcontrol.h |    4 ++--
+ mm/memcontrol.c            |    3 +--
+ 2 files changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN mm/page_isolation.c~mm-page_alloc-store-updated-page-migratetype-to-avoid-misusing-stale-value-fix mm/page_isolation.c
---- a/mm/page_isolation.c~mm-page_alloc-store-updated-page-migratetype-to-avoid-misusing-stale-value-fix
-+++ a/mm/page_isolation.c
-@@ -227,7 +227,7 @@ __test_page_isolated_in_pageblock(unsign
- 		if (PageBuddy(page)) {
- 			/*
- 			 * Use a WARN_ON_ONCE to catch a potential undetected
--			 * race between isolatation and free pages, even if
-+			 * race between isolation and pages freeing, even though
- 			 * we try to avoid this issue.
- 			 */
- 			WARN_ON_ONCE(get_freepage_migratetype(page) !=
+diff -puN include/linux/memcontrol.h~mm-remove-the-useless-gfp-in-__memcg_kmem_get_cache include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~mm-remove-the-useless-gfp-in-__memcg_kmem_get_cache
++++ a/include/linux/memcontrol.h
+@@ -401,7 +401,7 @@ int memcg_cache_id(struct mem_cgroup *me
+ void memcg_update_array_size(int num_groups);
+ 
+ struct kmem_cache *
+-__memcg_kmem_get_cache(struct kmem_cache *cachep, gfp_t gfp);
++__memcg_kmem_get_cache(struct kmem_cache *cachep);
+ 
+ int __memcg_charge_slab(struct kmem_cache *cachep, gfp_t gfp, int order);
+ void __memcg_uncharge_slab(struct kmem_cache *cachep, int order);
+@@ -492,7 +492,7 @@ memcg_kmem_get_cache(struct kmem_cache *
+ 	if (unlikely(fatal_signal_pending(current)))
+ 		return cachep;
+ 
+-	return __memcg_kmem_get_cache(cachep, gfp);
++	return __memcg_kmem_get_cache(cachep);
+ }
+ #else
+ #define for_each_memcg_cache_index(_idx)	\
+diff -puN mm/memcontrol.c~mm-remove-the-useless-gfp-in-__memcg_kmem_get_cache mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-remove-the-useless-gfp-in-__memcg_kmem_get_cache
++++ a/mm/memcontrol.c
+@@ -2804,8 +2804,7 @@ void __memcg_uncharge_slab(struct kmem_c
+  * Can't be called in interrupt context or from kernel threads.
+  * This function needs to be called with rcu_read_lock() held.
+  */
+-struct kmem_cache *__memcg_kmem_get_cache(struct kmem_cache *cachep,
+-					  gfp_t gfp)
++struct kmem_cache *__memcg_kmem_get_cache(struct kmem_cache *cachep)
+ {
+ 	struct mem_cgroup *memcg;
+ 	struct kmem_cache *memcg_cachep;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from zhenzhang.zhang@huawei.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
-ocfs2-free-inode-when-i_count-becomes-zero.patch
-ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
-mm.patch
-slab-improve-checking-for-invalid-gfp_flags.patch
-mm-memcontrol-lockless-page-counters-fix.patch
-mm-memcontrol-lockless-page-counters-fix-fix.patch
-kernel-res_counter-remove-the-unused-api-fix.patch
-mm-compaction-simplify-deferred-compaction-fix.patch
-mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
-mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix.patch
-mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
-mm-mincore-add-hwpoison-page-handle-checkpatch-fixes.patch
-mm-page_alloc-store-updated-page-migratetype-to-avoid-misusing-stale-value-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
-fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user.patch
-init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails-checkpatch-fixes.patch
-rtc-omap-add-support-for-pmic_power_en-v3-fix.patch
-drivers-rtc-rtc-sirfsocc-add-alarm_irq_enable-support-fix.patch
-syscallsx86-implement-execveat-system-call-fix.patch
-sysctl-terminate-strings-also-on-r-fix.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
-ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
-linux-next.patch
-linux-next-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-cma-make-kmemleak-ignore-cma-regions.patch
-lib-show_mem-this-patch-adds-cma-reserved-infromation-fix.patch
-tools-testing-selftests-makefile-alphasort-the-targets-list.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-debugging-keep-track-of-page-owners.patch
-debugging-keep-track-of-page-owners-fix.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
+memory-hotplug-remove-redundant-call-of-page_to_pfn.patch
+mm-remove-the-useless-gfp-in-__memcg_kmem_get_cache.patch
 
