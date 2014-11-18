@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + exit-reparent-introduce-find_alive_thread.patch added to -mm
- tree
-Date: Tue, 18 Nov 2014 13:50:09 -0800
-Message-ID: <546bbf11.r4pei2UxQ9fUYcl4%akpm@linux-foundation.org>
+Subject: + zsmalloc-fix-zs_init-cpu-notifier-error-handling.patch added to -mm tree
+Date: Tue, 18 Nov 2014 14:13:07 -0800
+Message-ID: <546bc473.MdH7kb2uSeOPa6ql%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36877 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37222 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753300AbaKRVuK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Nov 2014 16:50:10 -0500
+	with ESMTP id S1753796AbaKRWNI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Nov 2014 17:13:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, atomlin@redhat.com, ebiederm@xmission.com, kay@vrfy.org, lennart@poettering.net, stalexan@redhat.com, mm-commits@vger.kernel.org
+To: sergey.senozhatsky@gmail.com, minchan@kernel.org, ngupta@vflare.org, opensource.ganesh@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: exit: reparent: introduce find_alive_thread()
+     Subject: zsmalloc: fix zs_init cpu notifier error handling
 has been added to the -mm tree.  Its filename is
-     exit-reparent-introduce-find_alive_thread.patch
+     zsmalloc-fix-zs_init-cpu-notifier-error-handling.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/exit-reparent-introduce-find_alive_thread.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zsmalloc-fix-zs_init-cpu-notifier-error-handling.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/exit-reparent-introduce-find_alive_thread.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/zsmalloc-fix-zs_init-cpu-notifier-error-handling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,124 +38,105 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: exit: reparent: introduce find_alive_thread()
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: zsmalloc: fix zs_init cpu notifier error handling
 
-Add the new simple helper to factor out the for_each_thread() code in
-find_child_reaper() and find_new_reaper().  It can also simplify the
-potential PF_EXITING -> exit_state change, plus perhaps we can change this
-code to take SIGNAL_GROUP_EXIT into account.
+Mahendran Ganesh reported that zpool-enabled zsmalloc should not call
+zpool_unregister_driver() from zs_init() if cpu notifier registration has
+failed, because error handling is performed before we register the driver
+via zpool_register_driver() call.
 
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Aaron Tomlin <atomlin@redhat.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Kay Sievers <kay@vrfy.org>
-Cc: Lennart Poettering <lennart@poettering.net>
-Cc: Sterling Alexander <stalexan@redhat.com>
+Factor out cpu notifier registration and unregistration code and fix
+zs_init() error handling.
+
+link: http://lkml.iu.edu//hypermail/linux/kernel/1411.1/04156.html
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Reported-by: Mahendran Ganesh <opensource.ganesh@gmail.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |   32 +++++++++++++++++++-------------
- 1 file changed, 19 insertions(+), 13 deletions(-)
+ mm/zsmalloc.c |   37 +++++++++++++++++++++++--------------
+ 1 file changed, 23 insertions(+), 14 deletions(-)
 
-diff -puN kernel/exit.c~exit-reparent-introduce-find_alive_thread kernel/exit.c
---- a/kernel/exit.c~exit-reparent-introduce-find_alive_thread
-+++ a/kernel/exit.c
-@@ -462,6 +462,17 @@ static void exit_mm(struct task_struct *
- 	clear_thread_flag(TIF_MEMDIE);
+diff -puN mm/zsmalloc.c~zsmalloc-fix-zs_init-cpu-notifier-error-handling mm/zsmalloc.c
+--- a/mm/zsmalloc.c~zsmalloc-fix-zs_init-cpu-notifier-error-handling
++++ a/mm/zsmalloc.c
+@@ -881,14 +881,10 @@ static struct notifier_block zs_cpu_nb =
+ 	.notifier_call = zs_cpu_notifier
+ };
+ 
+-static void zs_exit(void)
++static void zs_unregister_cpu_notifier(void)
+ {
+ 	int cpu;
+ 
+-#ifdef CONFIG_ZPOOL
+-	zpool_unregister_driver(&zs_zpool_driver);
+-#endif
+-
+ 	cpu_notifier_register_begin();
+ 
+ 	for_each_online_cpu(cpu)
+@@ -898,7 +894,7 @@ static void zs_exit(void)
+ 	cpu_notifier_register_done();
  }
  
-+static struct task_struct *find_alive_thread(struct task_struct *p)
+-static int zs_init(void)
++static int zs_register_cpu_notifier(void)
+ {
+ 	int cpu, ret;
+ 
+@@ -907,22 +903,35 @@ static int zs_init(void)
+ 	__register_cpu_notifier(&zs_cpu_nb);
+ 	for_each_online_cpu(cpu) {
+ 		ret = zs_cpu_notifier(NULL, CPU_UP_PREPARE, (void *)(long)cpu);
+-		if (notifier_to_errno(ret)) {
+-			cpu_notifier_register_done();
+-			goto fail;
+-		}
++		if (notifier_to_errno(ret))
++			break;
+ 	}
+ 
+ 	cpu_notifier_register_done();
++	return notifier_to_errno(ret);
++}
+ 
++static void zs_exit(void)
 +{
-+	struct task_struct *t;
-+
-+	for_each_thread(p, t) {
-+		if (!(t->flags & PF_EXITING))
-+			return t;
-+	}
-+	return NULL;
+ #ifdef CONFIG_ZPOOL
+-	zpool_register_driver(&zs_zpool_driver);
++	zpool_unregister_driver(&zs_zpool_driver);
+ #endif
++	zs_unregister_cpu_notifier();
 +}
 +
- static struct task_struct *find_child_reaper(struct task_struct *father)
- 	__releases(&tasklist_lock)
- 	__acquires(&tasklist_lock)
-@@ -472,9 +483,8 @@ static struct task_struct *find_child_re
- 	if (likely(reaper != father))
- 		return reaper;
++static int zs_init(void)
++{
++	int ret = zs_register_cpu_notifier();
  
--	for_each_thread(father, reaper) {
--		if (reaper->flags & PF_EXITING)
--			continue;
-+	reaper = find_alive_thread(father);
-+	if (reaper) {
- 		pid_ns->child_reaper = reaper;
- 		return reaper;
- 	}
-@@ -500,16 +510,13 @@ static struct task_struct *find_child_re
- static struct task_struct *find_new_reaper(struct task_struct *father,
- 					   struct task_struct *child_reaper)
- {
--	struct task_struct *thread;
-+	struct task_struct *thread, *reaper;
++	if (ret) {
++		zs_unregister_cpu_notifier();
++		return ret;
++	}
++
++#ifdef CONFIG_ZPOOL
++	zpool_register_driver(&zs_zpool_driver);
++#endif
+ 	return 0;
+-fail:
+-	zs_exit();
+-	return notifier_to_errno(ret);
+ }
  
--	for_each_thread(father, thread) {
--		if (thread->flags & PF_EXITING)
--			continue;
-+	thread = find_alive_thread(father);
-+	if (thread)
- 		return thread;
--	}
- 
- 	if (father->signal->has_child_subreaper) {
--		struct task_struct *reaper;
- 		/*
- 		 * Find the first ->is_child_subreaper ancestor in our pid_ns.
- 		 * We start from father to ensure we can not look into another
-@@ -523,10 +530,9 @@ static struct task_struct *find_new_reap
- 				break;
- 			if (!reaper->signal->is_child_subreaper)
- 				continue;
--			for_each_thread(reaper, thread) {
--				if (!(thread->flags & PF_EXITING))
--					return thread;
--			}
-+			thread = find_alive_thread(reaper);
-+			if (thread)
-+				return thread;
- 		}
- 	}
- 
+ static unsigned int get_maxobj_per_zspage(int size, int pages_per_zspage)
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
 
-mmfs-introduce-helpers-around-the-i_mmap_mutex.patch
-mm-use-new-helper-functions-around-the-i_mmap_mutex.patch
-mm-convert-i_mmap_mutex-to-rwsem.patch
-mm-rmap-share-the-i_mmap_rwsem.patch
-uprobes-share-the-i_mmap_rwsem.patch
-mm-xip-share-the-i_mmap_rwsem.patch
-mm-memory-failure-share-the-i_mmap_rwsem.patch
-mm-nommu-share-the-i_mmap_rwsem.patch
-mm-memoryc-share-the-i_mmap_rwsem.patch
-remove-unnecessary-is_valid_nodemask.patch
-proc-task_state-read-cred-group_info-outside-of-task_lock.patch
-proc-task_state-deuglify-the-max_fds-calculation.patch
-proc-task_state-move-the-main-seq_printf-outside-of-rcu_read_lock.patch
-proc-task_state-ptrace_parent-doesnt-need-pid_alive-check.patch
-sched_show_task-fix-unsafe-usage-of-real_parent.patch
-exit-reparent-use-ptrace_entry-rather-than-sibling-for-exit_dead-tasks.patch
-exit-reparent-cleanup-the-changing-of-parent.patch
-exit-reparent-cleanup-the-changing-of-parent-fix.patch
-exit-reparent-cleanup-the-usage-of-reparent_leader.patch
-exit-ptrace-shift-reap-dead-code-from-exit_ptrace-to-forget_original_parent.patch
-usermodehelper-dont-use-clone_vfork-for-____call_usermodehelper.patch
-usermodehelper-kill-the-kmod_thread_locker-logic.patch
-exit-reparent-fix-the-dead-parent-pr_set_child_subreaper-reparenting.patch
-exit-reparent-fix-the-cross-namespace-pr_set_child_subreaper-reparenting.patch
-exit-reparent-s-while_each_thread-for_each_thread-in-find_new_reaper.patch
-exit-reparent-document-the-has_child_subreaper-checks.patch
-exit-reparent-introduce-find_child_reaper.patch
-exit-reparent-introduce-find_alive_thread.patch
-linux-next.patch
+zsmalloc-merge-size_class-to-reduce-fragmentation.patch
+zsmalloc-fix-zs_init-cpu-notifier-error-handling.patch
+zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix.patch
 
