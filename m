@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix-2.patch
- added to -mm tree
-Date: Tue, 18 Nov 2014 15:04:49 -0800
-Message-ID: <546bd091.6+VELMikrYuEYCPA%akpm@linux-foundation.org>
+Subject: + zram-implement-rw_page-operation-of-zram-fix-2.patch added to
+ -mm tree
+Date: Tue, 18 Nov 2014 15:24:14 -0800
+Message-ID: <546bd51e.AMCDPn0qv7GCSOEN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37690 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37951 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755632AbaKRXEv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Nov 2014 18:04:51 -0500
+	with ESMTP id S1755273AbaKRXYQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Nov 2014 18:24:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, minchan@kernel.org, ngupta@vflare.org, opensource.ganesh@gmail.com, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
+To: minchan@kernel.org, jmarchan@redhat.com, karam.lee@lge.com, ngupta@vflare.org, sergey.senozhatsky@gmail.com, seungho1.park@lge.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix-2
+     Subject: zram: rely on the bi_end_io for zram_rw_page fails
 has been added to the -mm tree.  Its filename is
-     zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix-2.patch
+     zram-implement-rw_page-operation-of-zram-fix-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zram-implement-rw_page-operation-of-zram-fix-2.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix-2.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/zram-implement-rw_page-operation-of-zram-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,81 +39,83 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix-2
+From: Minchan Kim <minchan@kernel.org>
+Subject: zram: rely on the bi_end_io for zram_rw_page fails
 
-squash bogus gcc warning
+When I tested zram, I found processes got segfaulted.  The reason was
+zram_rw_page doesn't make the page dirty again when swap write failed, and
+even it doesn't return error by [1].
 
-Cc: Mahendran Ganesh <opensource.ganesh@gmail.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Nitin Gupta <ngupta@vflare.org>
+If error by zram internal happens, zram_rw_page should return non-zero
+without calling page_endio.  It causes resubmit the IO with bio so that it
+ends up calling bio->bi_end_io.
+
+The reason is zram could be used for a block device for FS and swap, which
+they uses different bio complete callback, which works differently.  So,
+we should rely on the bio I/O complete handler rather than zram_bvec_rw
+itself in case of I/O fail.
+
+This patch fixes the segfault issue as well one [1]'s mentioned
+
+[1] zram: make rw_page opeartion return 0
+
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Cc: Karam Lee <karam.lee@lge.com>
 Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Jerome Marchand <jmarchan@redhat.com>
+Cc: Nitin Gupta <ngupta@vflare.org>
+Cc: <seungho1.park@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/block/zram/zram_drv.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN mm/zsmalloc.c~zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix-2 mm/zsmalloc.c
---- a/mm/zsmalloc.c~zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix-2
-+++ a/mm/zsmalloc.c
-@@ -896,7 +896,7 @@ static void zs_unregister_cpu_notifier(v
+diff -puN drivers/block/zram/zram_drv.c~zram-implement-rw_page-operation-of-zram-fix-2 drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-implement-rw_page-operation-of-zram-fix-2
++++ a/drivers/block/zram/zram_drv.c
+@@ -978,12 +978,10 @@ static int zram_rw_page(struct block_dev
+ out_unlock:
+ 	up_read(&zram->init_lock);
+ out:
+-	page_endio(page, rw, err);
++	if (unlikely(err))
++		return err;
  
- static int zs_register_cpu_notifier(void)
- {
--	int cpu, ret;
-+	int cpu, uninitialized_var(ret);
- 
- 	cpu_notifier_register_begin();
+-	/*
+-	 * Return 0 prevents I/O fallback trial caused by rw_page fail
+-	 * and upper layer can handle this IO error via page error.
+-	 */
++	page_endio(page, rw, 0);
+ 	return 0;
+ }
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
-ocfs2-free-inode-when-i_count-becomes-zero.patch
-ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
-mm.patch
-slab-improve-checking-for-invalid-gfp_flags.patch
-mm-memcontrol-lockless-page-counters-fix.patch
-mm-memcontrol-lockless-page-counters-fix-fix.patch
-kernel-res_counter-remove-the-unused-api-fix.patch
-mm-compaction-simplify-deferred-compaction-fix.patch
-mm-compaction-always-update-cached-scanner-positions-fix-checkpatch-fixes.patch
-mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
-mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix.patch
-mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
-mm-mincore-add-hwpoison-page-handle-checkpatch-fixes.patch
+mm-frontswap-invalidate-expired-data-on-a-dup-store-failure.patch
+mm-compaction-pass-classzone_idx-and-alloc_flags-to-watermark-checking.patch
+mm-compaction-pass-classzone_idx-and-alloc_flags-to-watermark-checking-fix.patch
+mm-compaction-simplify-deferred-compaction.patch
+mm-compaction-defer-only-on-compact_complete.patch
+mm-compaction-always-update-cached-scanner-positions.patch
+mm-compaction-always-update-cached-scanner-positions-fix.patch
+mm-compaction-more-focused-lru-and-pcplists-draining.patch
+mm-page_isolation-check-pfn-validity-before-access.patch
+mm-page_alloc-store-updated-page-migratetype-to-avoid-misusing-stale-value.patch
 mm-page_alloc-store-updated-page-migratetype-to-avoid-misusing-stale-value-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+zsmalloc-merge-size_class-to-reduce-fragmentation.patch
+zram-remove-bio-parameter-from-zram_bvec_rw.patch
+zram-change-parameter-from-vaild_io_request.patch
+zram-implement-rw_page-operation-of-zram.patch
+zram-implement-rw_page-operation-of-zram-fix.patch
+zram-implement-rw_page-operation-of-zram-fix-2.patch
+zram-implement-rw_page-operation-of-zram-fix-2-cleanup.patch
+zsmalloc-fix-zs_init-cpu-notifier-error-handling.patch
 zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix-2.patch
 zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
-fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user.patch
-init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails-checkpatch-fixes.patch
-rtc-omap-add-support-for-pmic_power_en-v3-fix.patch
-drivers-rtc-rtc-sirfsocc-add-alarm_irq_enable-support-fix.patch
-exit-wait-cleanup-the-ptrace_reparented-checks-fix.patch
-sysctl-terminate-strings-also-on-r-fix.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
-ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
-linux-next.patch
-linux-next-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-cma-make-kmemleak-ignore-cma-regions.patch
-lib-show_mem-this-patch-adds-cma-reserved-infromation-fix.patch
-tools-testing-selftests-makefile-alphasort-the-targets-list.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
+mm-zswap-add-__init-to-some-functions-in-zswap.patch
 debugging-keep-track-of-page-owners.patch
-debugging-keep-track-of-page-owners-fix.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
+page-owners-correct-page-order-when-to-free-page.patch
 
