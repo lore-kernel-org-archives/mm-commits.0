@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-zram-correct-zram_zero-flag-bit-position.patch added to -mm
- tree
-Date: Tue, 18 Nov 2014 15:45:37 -0800
-Message-ID: <546bda21.aIcDIq8f2W98Y0dq%akpm@linux-foundation.org>
+Subject: + shmdt-use-i_size_read-instead-of-i_size.patch added to -mm tree
+Date: Tue, 18 Nov 2014 15:47:15 -0800
+Message-ID: <546bda83.RWiFuPuVoTnJMhPl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38085 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38089 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932258AbaKRXpi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Nov 2014 18:45:38 -0500
+	with ESMTP id S932181AbaKRXrQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Nov 2014 18:47:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: opensource.ganesh@gmail.com, minchan@kernel.org, ngupta@vflare.org, sergey.senozhatsky@gmail.com, weijie.yang@samsung.com, mm-commits@vger.kernel.org
+To: dave.hansen@linux.intel.com, davidlohr@hp.com, manfred@colorfullife.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/zram: correct ZRAM_ZERO flag bit position
+     Subject: shmdt: use i_size_read() instead of ->i_size
 has been added to the -mm tree.  Its filename is
-     mm-zram-correct-zram_zero-flag-bit-position.patch
+     shmdt-use-i_size_read-instead-of-i_size.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-zram-correct-zram_zero-flag-bit-position.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/shmdt-use-i_size_read-instead-of-i_size.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/mm-zram-correct-zram_zero-flag-bit-position.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/shmdt-use-i_size_read-instead-of-i_size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,51 +38,54 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mahendran Ganesh <opensource.ganesh@gmail.com>
-Subject: mm/zram: correct ZRAM_ZERO flag bit position
+From: Dave Hansen <dave.hansen@linux.intel.com>
+Subject: shmdt: use i_size_read() instead of ->i_size
 
-In struct zram_table_entry, the element *value* contains obj size and obj
-zram flags.  Bit 0 to bit (ZRAM_FLAG_SHIFT - 1) represent obj size, and
-bit ZRAM_FLAG_SHIFT to the highest bit of unsigned long represent obj
-zram_flags.  So the first zram flag(ZRAM_ZERO) should be from
-ZRAM_FLAG_SHIFT instead of (ZRAM_FLAG_SHIFT + 1).
+Andrew Morton noted
 
-This patch fixes this cosmetic issue.
+	http://lkml.kernel.org/r/20141104142027.a7a0d010772d84560b445f59@linux-foundation.org
 
-Also fix a typo, "page in now accessed" -> "page is now accessed"
+that the shmdt uses inode->i_size outside of i_mutex being held.
+There is one more case in shm.c in shm_destroy().  This converts
+both users over to use i_size_read().
 
-Signed-off-by: Mahendran Ganesh <opensource.ganesh@gmail.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Weijie Yang <weijie.yang@samsung.com>
-Acked-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Nitin Gupta <ngupta@vflare.org>
+Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Cc: Davidlohr Bueso <davidlohr@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ ipc/shm.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/block/zram/zram_drv.h~mm-zram-correct-zram_zero-flag-bit-position drivers/block/zram/zram_drv.h
---- a/drivers/block/zram/zram_drv.h~mm-zram-correct-zram_zero-flag-bit-position
-+++ a/drivers/block/zram/zram_drv.h
-@@ -66,8 +66,8 @@ static const size_t max_zpage_size = PAG
- /* Flags for zram pages (table[page_no].value) */
- enum zram_pageflags {
- 	/* Page consists entirely of zeros */
--	ZRAM_ZERO = ZRAM_FLAG_SHIFT + 1,
--	ZRAM_ACCESS,	/* page in now accessed */
-+	ZRAM_ZERO = ZRAM_FLAG_SHIFT,
-+	ZRAM_ACCESS,	/* page is now accessed */
- 
- 	__NR_ZRAM_PAGEFLAGS,
- };
+diff -puN ipc/shm.c~shmdt-use-i_size_read-instead-of-i_size ipc/shm.c
+--- a/ipc/shm.c~shmdt-use-i_size_read-instead-of-i_size
++++ a/ipc/shm.c
+@@ -219,7 +219,8 @@ static void shm_destroy(struct ipc_names
+ 	if (!is_file_hugepages(shm_file))
+ 		shmem_lock(shm_file, 0, shp->mlock_user);
+ 	else if (shp->mlock_user)
+-		user_shm_unlock(file_inode(shm_file)->i_size, shp->mlock_user);
++		user_shm_unlock(i_size_read(file_inode(shm_file)),
++				shp->mlock_user);
+ 	fput(shm_file);
+ 	ipc_rcu_putref(shp, shm_rcu_free);
+ }
+@@ -1280,7 +1281,7 @@ SYSCALL_DEFINE1(shmdt, char __user *, sh
+ 			 * in the range we are unmapping.
+ 			 */
+ 			file = vma->vm_file;
+-			size = file_inode(file)->i_size;
++			size = i_size_read(file_inode(vma->vm_file));
+ 			do_munmap(mm, vma->vm_start, vma->vm_end - vma->vm_start);
+ 			/*
+ 			 * We discovered the size of the shm segment, so
 _
 
-Patches currently in -mm which might be from opensource.ganesh@gmail.com are
+Patches currently in -mm which might be from dave.hansen@linux.intel.com are
 
-zsmalloc-fix-zs_init-cpu-notifier-error-handling.patch
-zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix-2.patch
-zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix.patch
-mm-zram-correct-zram_zero-flag-bit-position.patch
-mm-zswap-add-__init-to-some-functions-in-zswap.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+mm-fix-overly-aggressive-shmdt-when-calls-span-multiple-segments.patch
+shmdt-use-i_size_read-instead-of-i_size.patch
 
