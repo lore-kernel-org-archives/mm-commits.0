@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-frontswap-invalidate-expired-data-on-a-dup-store-failure.patch added to
- -mm tree
-Date: Tue, 18 Nov 2014 13:41:14 -0800
-Message-ID: <546bbcfa.DRfRa8weU7Z4elOu%akpm__41706.9128285677$1416346894$gmane$org@linux-foundation.org>
+Subject: + printk-drop-logbuf_cpu-volatile-qualifier.patch added to -mm
+ tree
+Date: Tue, 18 Nov 2014 13:44:58 -0800
+Message-ID: <546bbdda.0jSYcm359BHHMhbH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36747 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36841 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754178AbaKRVlP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Nov 2014 16:41:15 -0500
+	with ESMTP id S932165AbaKRVo7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Nov 2014 16:44:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: weijie.yang@samsung.com, bob.liu@oracle.com, ddstreet@ieee.org, konrad.wilk@oracle.com, minchan@kernel.org, sjennings@variantweb.net, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: elder@linaro.org, bobby.prani@gmail.com, jack@suse.cz, joe@perches.com, mcgrof@suse.com, pmladek@suse.cz, rostedt@goodmis.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: frontswap: invalidate expired data on a dup-store failure
+     Subject: printk: drop logbuf_cpu volatile qualifier
 has been added to the -mm tree.  Its filename is
-     mm-frontswap-invalidate-expired-data-on-a-dup-store-failure.patch
+     printk-drop-logbuf_cpu-volatile-qualifier.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-frontswap-invalidate-expired-data-on-a-dup-store-failure.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/printk-drop-logbuf_cpu-volatile-qualifier.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/mm-frontswap-invalidate-expired-data-on-a-dup-store-failure.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/printk-drop-logbuf_cpu-volatile-qualifier.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,58 +39,64 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Weijie Yang <weijie.yang@samsung.com>
-Subject: mm: frontswap: invalidate expired data on a dup-store failure
+From: Alex Elder <elder@linaro.org>
+Subject: printk: drop logbuf_cpu volatile qualifier
 
-If a frontswap dup-store failed, it should invalidate the expired page
-in the backend, or it could trigger some data corruption issue.
-Such as:
-1. use zswap as the frontswap backend with writeback feature
-2. store a swap page(version_1) to entry A, success
-3. dup-store a newer page(version_2) to the same entry A, fail
-4. use __swap_writepage() write version_2 page to swapfile, success
-5. zswap do shrink, writeback version_1 page to swapfile
-6. version_2 page is overwrited by version_1, data corrupt.
+Pranith Kumar posted a patch in which removed the "volatile"
+qualifier for the "logbuf_cpu" variable in vprintk_emit().
+    https://lkml.org/lkml/2014/11/13/894
+In his patch, he used ACCESS_ONCE() for all references to
+that symbol to provide whatever protection was intended.
 
-This patch fixes this issue by invalidating expired data immediately
-when meet a dup-store failure.
+There was some discussion that followed, and in the end
+Stephen Rostedt concluded that not only was "volatile" not
+needed, neither was it required to use ACCESS_ONCE().  I
+offered an elaborate description that concluded Stephen
+was right, and Pranith asked me to submit an alternative
+patch.  And this is it.
 
-Signed-off-by: Weijie Yang <weijie.yang@samsung.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Seth Jennings <sjennings@variantweb.net>
-Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Bob Liu <bob.liu@oracle.com>
-Cc: <stable@vger.kernel.org>
+The basic reason "volatile" is not needed is that "logbuf_cpu" has
+static storage duration, and vprintk_emit() is an exported
+interface.  This means that the value of logbuf_cpu must be read
+from memory the first time it is used in a particular call of
+vprintk_emit().  The variable's value is read only once in that
+function, when it's read it'll be the copy from memory (or cache).
+
+In addition, the value of "logbuf_cpu" is only ever written under
+protection of a spinlock.  So the value that is read is the "real"
+value (and not an out-of-date cached one).  If its value is not
+UINT_MAX, it is the current CPU's processor id, and it will have
+been last written by the running CPU.
+
+Signed-off-by: Alex Elder <elder@linaro.org>
+Reported-by: Pranith Kumar <bobby.prani@gmail.com>
+Suggested-by: Stephen Rostet <rostedt@goodmis.org>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Petr Mladek <pmladek@suse.cz>
+Cc: Luis R. Rodriguez <mcgrof@suse.com>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/frontswap.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ kernel/printk/printk.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/frontswap.c~mm-frontswap-invalidate-expired-data-on-a-dup-store-failure mm/frontswap.c
---- a/mm/frontswap.c~mm-frontswap-invalidate-expired-data-on-a-dup-store-failure
-+++ a/mm/frontswap.c
-@@ -244,8 +244,10 @@ int __frontswap_store(struct page *page)
- 		  the (older) page from frontswap
- 		 */
- 		inc_frontswap_failed_stores();
--		if (dup)
-+		if (dup) {
- 			__frontswap_clear(sis, offset);
-+			frontswap_ops->invalidate_page(type, offset);
-+		}
- 	}
- 	if (frontswap_writethrough_enabled)
- 		/* report failure so swap also writes to swap device */
+diff -puN kernel/printk/printk.c~printk-drop-logbuf_cpu-volatile-qualifier kernel/printk/printk.c
+--- a/kernel/printk/printk.c~printk-drop-logbuf_cpu-volatile-qualifier
++++ a/kernel/printk/printk.c
+@@ -1624,7 +1624,7 @@ asmlinkage int vprintk_emit(int facility
+ 	int printed_len = 0;
+ 	bool in_sched = false;
+ 	/* cpu currently holding logbuf_lock in this function */
+-	static volatile unsigned int logbuf_cpu = UINT_MAX;
++	static unsigned int logbuf_cpu = UINT_MAX;
+ 
+ 	if (level == LOGLEVEL_SCHED) {
+ 		level = LOGLEVEL_DEFAULT;
 _
 
-Patches currently in -mm which might be from weijie.yang@samsung.com are
+Patches currently in -mm which might be from elder@linaro.org are
 
-mm-frontswap-invalidate-expired-data-on-a-dup-store-failure.patch
-mm-page_isolation-check-pfn-validity-before-access.patch
-mm-mincore-add-hwpoison-page-handle.patch
-mm-mincore-add-hwpoison-page-handle-checkpatch-fixes.patch
-mm-page_alloc-store-updated-page-migratetype-to-avoid-misusing-stale-value.patch
-mm-page_alloc-store-updated-page-migratetype-to-avoid-misusing-stale-value-fix.patch
+printk-drop-logbuf_cpu-volatile-qualifier.patch
+linux-next.patch
 
