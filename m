@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + exit-reparent-cleanup-the-changing-of-parent-fix.patch added to -mm tree
-Date: Tue, 18 Nov 2014 13:23:42 -0800
-Message-ID: <546bb8de.U/VE771U8yBLAbGX%akpm@linux-foundation.org>
+Subject: +
+ mm-frontswap-invalidate-expired-data-on-a-dup-store-failure.patch added to
+ -mm tree
+Date: Tue, 18 Nov 2014 13:41:14 -0800
+Message-ID: <546bbcfa.DRfRa8weU7Z4elOu%akpm__41706.9128285677$1416346894$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36455 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36747 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932110AbaKRVXn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Nov 2014 16:23:43 -0500
+	with ESMTP id S1754178AbaKRVlP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Nov 2014 16:41:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.carpenter@oracle.com, oleg@redhat.com, mm-commits@vger.kernel.org
+To: weijie.yang@samsung.com, bob.liu@oracle.com, ddstreet@ieee.org, konrad.wilk@oracle.com, minchan@kernel.org, sjennings@variantweb.net, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: exit: silence a bogus static checker warning
+     Subject: mm: frontswap: invalidate expired data on a dup-store failure
 has been added to the -mm tree.  Its filename is
-     exit-reparent-cleanup-the-changing-of-parent-fix.patch
+     mm-frontswap-invalidate-expired-data-on-a-dup-store-failure.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/exit-reparent-cleanup-the-changing-of-parent-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-frontswap-invalidate-expired-data-on-a-dup-store-failure.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/exit-reparent-cleanup-the-changing-of-parent-fix.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/mm-frontswap-invalidate-expired-data-on-a-dup-store-failure.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,51 +40,58 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: exit: silence a bogus static checker warning
+From: Weijie Yang <weijie.yang@samsung.com>
+Subject: mm: frontswap: invalidate expired data on a dup-store failure
 
-Smatch complains about this:
+If a frontswap dup-store failed, it should invalidate the expired page
+in the backend, or it could trigger some data corruption issue.
+Such as:
+1. use zswap as the frontswap backend with writeback feature
+2. store a swap page(version_1) to entry A, success
+3. dup-store a newer page(version_2) to the same entry A, fail
+4. use __swap_writepage() write version_2 page to swapfile, success
+5. zswap do shrink, writeback version_1 page to swapfile
+6. version_2 page is overwrited by version_1, data corrupt.
 
-	kernel/exit.c:543 forget_original_parent()
-	warn: add some parenthesis here?
+This patch fixes this issue by invalidating expired data immediately
+when meet a dup-store failure.
 
-I don't normally advocate changing the code to make the static checker
-happy but these are normally precedence bugs so I think it's ok to put
-parenthesis so it's clear the code is deliberate.
-
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
+Signed-off-by: Weijie Yang <weijie.yang@samsung.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Seth Jennings <sjennings@variantweb.net>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Bob Liu <bob.liu@oracle.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/frontswap.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN kernel/exit.c~exit-reparent-cleanup-the-changing-of-parent-fix kernel/exit.c
---- a/kernel/exit.c~exit-reparent-cleanup-the-changing-of-parent-fix
-+++ a/kernel/exit.c
-@@ -571,7 +571,7 @@ static void forget_original_parent(struc
- 	list_for_each_entry_safe(p, n, &father->children, sibling) {
- 		for_each_thread(p, t) {
- 			t->real_parent = reaper;
--			BUG_ON(!t->ptrace != (t->parent == father));
-+			BUG_ON((!t->ptrace) != (t->parent == father));
- 			if (likely(!t->ptrace))
- 				t->parent = t->real_parent;
- 			if (t->pdeath_signal)
+diff -puN mm/frontswap.c~mm-frontswap-invalidate-expired-data-on-a-dup-store-failure mm/frontswap.c
+--- a/mm/frontswap.c~mm-frontswap-invalidate-expired-data-on-a-dup-store-failure
++++ a/mm/frontswap.c
+@@ -244,8 +244,10 @@ int __frontswap_store(struct page *page)
+ 		  the (older) page from frontswap
+ 		 */
+ 		inc_frontswap_failed_stores();
+-		if (dup)
++		if (dup) {
+ 			__frontswap_clear(sis, offset);
++			frontswap_ops->invalidate_page(type, offset);
++		}
+ 	}
+ 	if (frontswap_writethrough_enabled)
+ 		/* report failure so swap also writes to swap device */
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from weijie.yang@samsung.com are
 
-ocfs2-fix-an-off-by-one-bug_on-statement.patch
-exit-reparent-cleanup-the-changing-of-parent-fix.patch
-checkpatch-add-strict-pointer-comparison-to-null-test.patch
-rtc-pcf8563-remove-leftover-code.patch
-rtc-pcf8563-fix-write-of-invalid-bits-to-st2-reg.patch
-rtc-pcf8563-fix-wrong-time-from-read_alarm.patch
-rtc-pcf8563-handle-consequeces-of-lacking-second-alarm-reg.patch
-rtc-pcf8563-save-battery-power.patch
-rtc-pcf8563-clear-expired-alarm-at-boot-time.patch
-decompress_bunzip2-off-by-one-in-get_next_block.patch
-linux-next.patch
+mm-frontswap-invalidate-expired-data-on-a-dup-store-failure.patch
+mm-page_isolation-check-pfn-validity-before-access.patch
+mm-mincore-add-hwpoison-page-handle.patch
+mm-mincore-add-hwpoison-page-handle-checkpatch-fixes.patch
+mm-page_alloc-store-updated-page-migratetype-to-avoid-misusing-stale-value.patch
+mm-page_alloc-store-updated-page-migratetype-to-avoid-misusing-stale-value-fix.patch
 
