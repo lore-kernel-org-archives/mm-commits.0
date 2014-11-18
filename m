@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + zsmalloc-fix-zs_init-cpu-notifier-error-handling.patch added to -mm tree
-Date: Tue, 18 Nov 2014 14:13:07 -0800
-Message-ID: <546bc473.MdH7kb2uSeOPa6ql%akpm@linux-foundation.org>
+Subject: + zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix.patch
+ added to -mm tree
+Date: Tue, 18 Nov 2014 14:13:09 -0800
+Message-ID: <546bc475.gavp0FgOwmCR/2YY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37222 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37226 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753796AbaKRWNI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Nov 2014 17:13:08 -0500
+	with ESMTP id S1753796AbaKRWNK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Nov 2014 17:13:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sergey.senozhatsky@gmail.com, minchan@kernel.org, ngupta@vflare.org, opensource.ganesh@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, minchan@kernel.org, ngupta@vflare.org, opensource.ganesh@gmail.com, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: fix zs_init cpu notifier error handling
+     Subject: zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix
 has been added to the -mm tree.  Its filename is
-     zsmalloc-fix-zs_init-cpu-notifier-error-handling.patch
+     zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zsmalloc-fix-zs_init-cpu-notifier-error-handling.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/zsmalloc-fix-zs_init-cpu-notifier-error-handling.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,105 +39,87 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: zsmalloc: fix zs_init cpu notifier error handling
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix
 
-Mahendran Ganesh reported that zpool-enabled zsmalloc should not call
-zpool_unregister_driver() from zs_init() if cpu notifier registration has
-failed, because error handling is performed before we register the driver
-via zpool_register_driver() call.
+use __init and __exit
 
-Factor out cpu notifier registration and unregistration code and fix
-zs_init() error handling.
-
-link: http://lkml.iu.edu//hypermail/linux/kernel/1411.1/04156.html
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Reported-by: Mahendran Ganesh <opensource.ganesh@gmail.com>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Nitin Gupta <ngupta@vflare.org>
+Cc: Mahendran Ganesh <opensource.ganesh@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |   37 +++++++++++++++++++++++--------------
- 1 file changed, 23 insertions(+), 14 deletions(-)
+ mm/zsmalloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/zsmalloc.c~zsmalloc-fix-zs_init-cpu-notifier-error-handling mm/zsmalloc.c
---- a/mm/zsmalloc.c~zsmalloc-fix-zs_init-cpu-notifier-error-handling
+diff -puN mm/zsmalloc.c~zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix mm/zsmalloc.c
+--- a/mm/zsmalloc.c~zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix
 +++ a/mm/zsmalloc.c
-@@ -881,14 +881,10 @@ static struct notifier_block zs_cpu_nb =
- 	.notifier_call = zs_cpu_notifier
- };
+@@ -911,7 +911,7 @@ static int zs_register_cpu_notifier(void
+ 	return notifier_to_errno(ret);
+ }
  
 -static void zs_exit(void)
-+static void zs_unregister_cpu_notifier(void)
++static void __exit zs_exit(void)
  {
- 	int cpu;
- 
--#ifdef CONFIG_ZPOOL
--	zpool_unregister_driver(&zs_zpool_driver);
--#endif
--
- 	cpu_notifier_register_begin();
- 
- 	for_each_online_cpu(cpu)
-@@ -898,7 +894,7 @@ static void zs_exit(void)
- 	cpu_notifier_register_done();
+ #ifdef CONFIG_ZPOOL
+ 	zpool_unregister_driver(&zs_zpool_driver);
+@@ -919,7 +919,7 @@ static void zs_exit(void)
+ 	zs_unregister_cpu_notifier();
  }
  
 -static int zs_init(void)
-+static int zs_register_cpu_notifier(void)
++static int __init zs_init(void)
  {
- 	int cpu, ret;
+ 	int ret = zs_register_cpu_notifier();
  
-@@ -907,22 +903,35 @@ static int zs_init(void)
- 	__register_cpu_notifier(&zs_cpu_nb);
- 	for_each_online_cpu(cpu) {
- 		ret = zs_cpu_notifier(NULL, CPU_UP_PREPARE, (void *)(long)cpu);
--		if (notifier_to_errno(ret)) {
--			cpu_notifier_register_done();
--			goto fail;
--		}
-+		if (notifier_to_errno(ret))
-+			break;
- 	}
- 
- 	cpu_notifier_register_done();
-+	return notifier_to_errno(ret);
-+}
- 
-+static void zs_exit(void)
-+{
- #ifdef CONFIG_ZPOOL
--	zpool_register_driver(&zs_zpool_driver);
-+	zpool_unregister_driver(&zs_zpool_driver);
- #endif
-+	zs_unregister_cpu_notifier();
-+}
-+
-+static int zs_init(void)
-+{
-+	int ret = zs_register_cpu_notifier();
- 
-+	if (ret) {
-+		zs_unregister_cpu_notifier();
-+		return ret;
-+	}
-+
-+#ifdef CONFIG_ZPOOL
-+	zpool_register_driver(&zs_zpool_driver);
-+#endif
- 	return 0;
--fail:
--	zs_exit();
--	return notifier_to_errno(ret);
- }
- 
- static unsigned int get_maxobj_per_zspage(int size, int pages_per_zspage)
 _
 
-Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-zsmalloc-merge-size_class-to-reduce-fragmentation.patch
-zsmalloc-fix-zs_init-cpu-notifier-error-handling.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
+ocfs2-free-inode-when-i_count-becomes-zero.patch
+ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
+mm.patch
+slab-improve-checking-for-invalid-gfp_flags.patch
+mm-memcontrol-lockless-page-counters-fix.patch
+mm-memcontrol-lockless-page-counters-fix-fix.patch
+kernel-res_counter-remove-the-unused-api-fix.patch
+mm-compaction-simplify-deferred-compaction-fix.patch
+mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
+mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix.patch
+mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
+mm-mincore-add-hwpoison-page-handle-checkpatch-fixes.patch
+mm-page_alloc-store-updated-page-migratetype-to-avoid-misusing-stale-value-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
 zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
+fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user.patch
+init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails-checkpatch-fixes.patch
+rtc-omap-add-support-for-pmic_power_en-v3-fix.patch
+drivers-rtc-rtc-sirfsocc-add-alarm_irq_enable-support-fix.patch
+sysctl-terminate-strings-also-on-r-fix.patch
+ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
+ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
+ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
+linux-next.patch
+linux-next-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mm-cma-make-kmemleak-ignore-cma-regions.patch
+lib-show_mem-this-patch-adds-cma-reserved-infromation-fix.patch
+tools-testing-selftests-makefile-alphasort-the-targets-list.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+debugging-keep-track-of-page-owners.patch
+debugging-keep-track-of-page-owners-fix.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
