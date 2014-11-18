@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + dma-debug-prevent-early-callers-from-crashing.patch added to
+Subject: + exit-wait-cleanup-the-ptrace_reparented-checks.patch added to
  -mm tree
-Date: Tue, 18 Nov 2014 14:42:59 -0800
-Message-ID: <546bcb73.WrvTvygU8q44ILmS%akpm@linux-foundation.org>
+Date: Tue, 18 Nov 2014 14:47:39 -0800
+Message-ID: <546bcc8b.heMicSHm6wg/Jxla%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37561 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37572 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932620AbaKRWnA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Nov 2014 17:43:00 -0500
+	with ESMTP id S1754183AbaKRWrl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Nov 2014 17:47:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: f.fainelli@gmail.com, computersforpeace@gmail.com, dan.j.williams@intel.com, horia.geanta@freescale.com, jkosina@suse.cz, mm-commits@vger.kernel.org
+To: oleg@redhat.com, atomlin@redhat.com, ebiederm@xmission.com, riel@redhat.com, stalexan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dma-debug: prevent early callers from crashing
+     Subject: exit: wait: cleanup the ptrace_reparented() checks
 has been added to the -mm tree.  Its filename is
-     dma-debug-prevent-early-callers-from-crashing.patch
+     exit-wait-cleanup-the-ptrace_reparented-checks.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/dma-debug-prevent-early-callers-from-crashing.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/exit-wait-cleanup-the-ptrace_reparented-checks.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/dma-debug-prevent-early-callers-from-crashing.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/exit-wait-cleanup-the-ptrace_reparented-checks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,89 +39,103 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Florian Fainelli <f.fainelli@gmail.com>
-Subject: dma-debug: prevent early callers from crashing
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: exit: wait: cleanup the ptrace_reparented() checks
 
-dma_debug_init() is called by architecture specific code at different
-levels, but typically as a fs_initcall due to the debugfs initialization. 
-Some platforms may have early callers of the DMA-API, running prior to the
-fs_initcall() level, which is not much of an issue unless
-CONFIG_DMA_API_DEBUG is set.  Whe the DMA-API debugging facilities are
-turned on a caller will go through:
+Now that EXIT_DEAD is the terminal state we can kill "int traced" variable
+and check "state == EXIT_DEAD" instead to cleanup the code.  In
+particular, this way it is clear that the check obviously doesn't need
+tasklist_lock.
 
-debug_dma_map_{single,page}
-	-> dma_mapping_error (inline function usually)
-		-> debug_dma_mapping_error
-			-> get_hash_bucket
+Also fix the type of "unsigned long state", "long" was always wrong
+although this doesn't matter because cmpxchg/xchg uses typeof(*ptr).
 
-Calling get_hash_bucket() returns a valid hash value since we hash on high
-bits of the dma_addr cookie, but we will grab an unitialized spinlock,
-which typically won't crash but produce a warning, the real crash will
-however happen during the bucket list traversal because the list has not
-been initialized yet.
-
-An obvious solution is of course to move some of the offenders to run
-after the fs_initcall level, but since this might not always be an option,
-we add a flag "dma_debug_initialized" which is set to false by default,
-and set to true once dma_debug_init() has had a chance to run.
-
-The dma_debug_disabled() helper function previously introduced just needs
-to check for dma_debug_initialized to allow the caller to proceed or not.
-
-Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Jiri Kosina <jkosina@suse.cz>
-Cc: Horia Geanta <horia.geanta@freescale.com>
-Cc: Brian Norris <computersforpeace@gmail.com>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Aaron Tomlin <atomlin@redhat.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Sterling Alexander <stalexan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/dma-debug.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ kernel/exit.c |   14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
 
-diff -puN lib/dma-debug.c~dma-debug-prevent-early-callers-from-crashing lib/dma-debug.c
---- a/lib/dma-debug.c~dma-debug-prevent-early-callers-from-crashing
-+++ a/lib/dma-debug.c
-@@ -102,9 +102,12 @@ static DEFINE_SPINLOCK(free_entries_lock
- /* Global disable flag - will be set in case of an error */
- static u32 global_disable __read_mostly;
- 
-+/* Early initialization disable flag, set at the end of dma_debug_init */
-+static bool dma_debug_initialized __read_mostly;
-+
- static inline bool dma_debug_disabled(void)
+diff -puN kernel/exit.c~exit-wait-cleanup-the-ptrace_reparented-checks kernel/exit.c
+--- a/kernel/exit.c~exit-wait-cleanup-the-ptrace_reparented-checks
++++ a/kernel/exit.c
+@@ -973,8 +973,7 @@ static int wait_noreap_copyout(struct wa
+  */
+ static int wait_task_zombie(struct wait_opts *wo, struct task_struct *p)
  {
--	return global_disable;
-+	return global_disable || !dma_debug_initialized;
- }
- 
- /* Global error count */
-@@ -999,7 +1002,10 @@ void dma_debug_init(u32 num_entries)
- {
- 	int i;
- 
--	if (dma_debug_disabled())
-+	/* Do not use dma_debug_initialized here, since we really want to be
-+	 * called to set dma_debug_initialized
-+	 */
-+	if (global_disable)
- 		return;
- 
- 	for (i = 0; i < HASH_SIZE; ++i) {
-@@ -1026,6 +1032,8 @@ void dma_debug_init(u32 num_entries)
- 
- 	nr_total_entries = num_free_entries;
- 
-+	dma_debug_initialized = true;
+-	unsigned long state;
+-	int retval, status, traced;
++	int state, retval, status;
+ 	pid_t pid = task_pid_vnr(p);
+ 	uid_t uid = from_kuid_munged(current_user_ns(), task_uid(p));
+ 	struct siginfo __user *infop;
+@@ -997,19 +996,18 @@ static int wait_task_zombie(struct wait_
+ 		}
+ 		return wait_noreap_copyout(wo, p, pid, uid, why, status);
+ 	}
+-
+-	traced = ptrace_reparented(p);
+ 	/*
+ 	 * Move the task's state to DEAD/TRACE, only one thread can do this.
+ 	 */
+-	state = traced && thread_group_leader(p) ? EXIT_TRACE : EXIT_DEAD;
++	state = ptrace_reparented(p) && thread_group_leader(p) ?
++		EXIT_TRACE : EXIT_DEAD;
+ 	if (cmpxchg(&p->exit_state, EXIT_ZOMBIE, state) != EXIT_ZOMBIE)
+ 		return 0;
 +
- 	pr_info("DMA-API: debugging enabled by kernel config\n");
- }
- 
+ 	/*
+-	 * It can be ptraced but not reparented, check
+-	 * thread_group_leader() to filter out sub-threads.
++	 * Check thread_group_leader() to exclude the traced sub-threads.
+ 	 */
+-	if (likely(!traced) && thread_group_leader(p)) {
++	if (state == EXIT_DEAD && thread_group_leader(p)) {
+ 		struct signal_struct *psig;
+ 		struct signal_struct *sig;
+ 		unsigned long maxrss;
 _
 
-Patches currently in -mm which might be from f.fainelli@gmail.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-dma-debug-introduce-dma_debug_disabled.patch
-dma-debug-prevent-early-callers-from-crashing.patch
+mmfs-introduce-helpers-around-the-i_mmap_mutex.patch
+mm-use-new-helper-functions-around-the-i_mmap_mutex.patch
+mm-convert-i_mmap_mutex-to-rwsem.patch
+mm-rmap-share-the-i_mmap_rwsem.patch
+uprobes-share-the-i_mmap_rwsem.patch
+mm-xip-share-the-i_mmap_rwsem.patch
+mm-memory-failure-share-the-i_mmap_rwsem.patch
+mm-nommu-share-the-i_mmap_rwsem.patch
+mm-memoryc-share-the-i_mmap_rwsem.patch
+remove-unnecessary-is_valid_nodemask.patch
+proc-task_state-read-cred-group_info-outside-of-task_lock.patch
+proc-task_state-deuglify-the-max_fds-calculation.patch
+proc-task_state-move-the-main-seq_printf-outside-of-rcu_read_lock.patch
+proc-task_state-ptrace_parent-doesnt-need-pid_alive-check.patch
+sched_show_task-fix-unsafe-usage-of-real_parent.patch
+exit-reparent-use-ptrace_entry-rather-than-sibling-for-exit_dead-tasks.patch
+exit-reparent-cleanup-the-changing-of-parent.patch
+exit-reparent-cleanup-the-changing-of-parent-fix.patch
+exit-reparent-cleanup-the-usage-of-reparent_leader.patch
+exit-ptrace-shift-reap-dead-code-from-exit_ptrace-to-forget_original_parent.patch
+usermodehelper-dont-use-clone_vfork-for-____call_usermodehelper.patch
+usermodehelper-kill-the-kmod_thread_locker-logic.patch
+exit-wait-cleanup-the-ptrace_reparented-checks.patch
+exit-wait-cleanup-the-ptrace_reparented-checks-fix.patch
+exit-wait-dont-use-zombie-real_parent.patch
+exit-wait-drop-tasklist_lock-before-psig-c-accounting.patch
+exit-release_task-fix-the-comment-about-group-leader-accounting.patch
+exit-proc-dont-try-to-flush-proc-tgid-task-tgid.patch
+exit-reparent-fix-the-dead-parent-pr_set_child_subreaper-reparenting.patch
+exit-reparent-fix-the-cross-namespace-pr_set_child_subreaper-reparenting.patch
+exit-reparent-s-while_each_thread-for_each_thread-in-find_new_reaper.patch
+exit-reparent-document-the-has_child_subreaper-checks.patch
+exit-reparent-introduce-find_child_reaper.patch
+exit-reparent-introduce-find_alive_thread.patch
 linux-next.patch
 
