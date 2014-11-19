@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmpressurec-fix-race-in-vmpressure_work_fn.patch added to
- -mm tree
-Date: Wed, 19 Nov 2014 13:21:55 -0800
-Message-ID: <546d09f3.Cq2ccSjGwAFZLwN4%akpm@linux-foundation.org>
+Subject: + mm-vmpressurec-fix-race-in-vmpressure_work_fn-fix.patch added
+ to -mm tree
+Date: Wed, 19 Nov 2014 13:27:32 -0800
+Message-ID: <546d0b44.KllDQrsOuTtOFrTm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57742 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57756 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932388AbaKSVV4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Nov 2014 16:21:56 -0500
+	with ESMTP id S933611AbaKSV1d (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Nov 2014 16:27:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, anton.vorontsov@linaro.org, ji_ang@163.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, anton.vorontsov@linaro.org, ji_ang@163.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmpressure.c: fix race in vmpressure_work_fn()
+     Subject: mm-vmpressurec-fix-race-in-vmpressure_work_fn-fix
 has been added to the -mm tree.  Its filename is
-     mm-vmpressurec-fix-race-in-vmpressure_work_fn.patch
+     mm-vmpressurec-fix-race-in-vmpressure_work_fn-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmpressurec-fix-race-in-vmpressure_work_fn.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmpressurec-fix-race-in-vmpressure_work_fn-fix.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmpressurec-fix-race-in-vmpressure_work_fn.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmpressurec-fix-race-in-vmpressure_work_fn-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,47 +40,36 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm/vmpressure.c: fix race in vmpressure_work_fn()
+Subject: mm-vmpressurec-fix-race-in-vmpressure_work_fn-fix
 
-In some android devices, there will be a "divide by zero" exception. 
-vmpr->scanned could be zero before spin_lock(&vmpr->sr_lock).
+neater
 
-Addresses https://bugzilla.kernel.org/show_bug.cgi?id=88051
-
-Reported-by: ji_ang <ji_ang@163.com>
 Cc: Anton Vorontsov <anton.vorontsov@linaro.org>
-Cc: <stable@vger.kernel.org>
+Cc: ji_ang <ji_ang@163.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmpressure.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/vmpressure.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmpressure.c~mm-vmpressurec-fix-race-in-vmpressure_work_fn mm/vmpressure.c
---- a/mm/vmpressure.c~mm-vmpressurec-fix-race-in-vmpressure_work_fn
+diff -puN mm/vmpressure.c~mm-vmpressurec-fix-race-in-vmpressure_work_fn-fix mm/vmpressure.c
+--- a/mm/vmpressure.c~mm-vmpressurec-fix-race-in-vmpressure_work_fn-fix
 +++ a/mm/vmpressure.c
-@@ -165,6 +165,7 @@ static void vmpressure_work_fn(struct wo
- 	unsigned long scanned;
- 	unsigned long reclaimed;
- 
-+	spin_lock(&vmpr->sr_lock);
- 	/*
- 	 * Several contexts might be calling vmpressure(), so it is
- 	 * possible that the work was rescheduled again before the old
-@@ -173,10 +174,11 @@ static void vmpressure_work_fn(struct wo
+@@ -174,12 +174,12 @@ static void vmpressure_work_fn(struct wo
  	 * here. No need for any locks here since we don't care if
  	 * vmpr->reclaimed is in sync.
  	 */
--	if (!vmpr->scanned)
-+	if (!vmpr->scanned) {
-+		spin_unlock(&vmpr->sr_lock);
+-	if (!vmpr->scanned) {
++	scanned = vmpr->scanned;
++	if (!scanned) {
+ 		spin_unlock(&vmpr->sr_lock);
  		return;
-+	}
+ 	}
  
--	spin_lock(&vmpr->sr_lock);
- 	scanned = vmpr->scanned;
+-	scanned = vmpr->scanned;
  	reclaimed = vmpr->reclaimed;
  	vmpr->scanned = 0;
+ 	vmpr->reclaimed = 0;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -132,4 +121,5 @@ journal_add_journal_head-debug-fix.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
 mutex-subsystem-synchro-test-module.patch
 slab-leaks3-default-y.patch
+mm-vmpressurec-fix-race-in-vmpressure_work_fn-fix.patch
 
