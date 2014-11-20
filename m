@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- checkpatch-add-ability-to-fix-coalesce-string-fragments-on-multiple-lines.patch added to -mm tree
-Date: Thu, 20 Nov 2014 14:31:30 -0800
-Message-ID: <546e6bc2.tGxavEqNVhCa3R3R%akpm@linux-foundation.org>
+Subject: + exit-reparent-avoid-find_new_reaper-if-no-children.patch added
+ to -mm tree
+Date: Thu, 20 Nov 2014 14:41:21 -0800
+Message-ID: <546e6e11.X3NJJf2eESjJPMke%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47448 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47580 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757687AbaKTWbb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Nov 2014 17:31:31 -0500
+	with ESMTP id S1756141AbaKTWlX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Nov 2014 17:41:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, apw@canonical.com, dan.carpenter@oracle.com, mm-commits@vger.kernel.org
+To: oleg@redhat.com, atomlin@redhat.com, ebiederm@xmission.com, stalexan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add ability to --fix (coalesce) string fragments on multiple lines
+     Subject: exit: reparent: avoid find_new_reaper() if no children
 has been added to the -mm tree.  Its filename is
-     checkpatch-add-ability-to-fix-coalesce-string-fragments-on-multiple-lines.patch
+     exit-reparent-avoid-find_new_reaper-if-no-children.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-ability-to-fix-coalesce-string-fragments-on-multiple-lines.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/exit-reparent-avoid-find_new_reaper-if-no-children.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-ability-to-fix-coalesce-string-fragments-on-multiple-lines.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/exit-reparent-avoid-find_new_reaper-if-no-children.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,223 +39,130 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add ability to --fix (coalesce) string fragments on multiple lines
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: exit: reparent: avoid find_new_reaper() if no children
 
-Add --fix option to coalesce string fragments.
+Now that pid_ns logic was isolated we can change forget_original_parent()
+to return right after find_child_reaper() when father->children is empty,
+there is nothing to reparent in this case.
 
-This does not coalesce string fragments that have newline terminations or
-are otherwise exempted.
+In particular this avoids find_alive_thread() and this can help if the
+whole process exits and it has a lot of PF_EXITING threads at the start of
+the thread list, this can easily lead to O(nr_threads ** 2) iterations.
 
-Other miscellanea:
+Trivial test case (tested under KVM, 2 CPUs):
 
-o move all the string tests together.
-o fix get_quoted_string function for tab characters
-o fix concatination typo
+	static void *tfunc(void *arg)
+	{
+		pause();
+		return NULL;
+	}
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Andy Whitcroft <apw@canonical.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
+	static int child(unsigned int nt)
+	{
+		pthread_t pt;
+
+		while (nt--)
+			assert(pthread_create(&pt, NULL, tfunc, NULL) == 0);
+
+		pthread_kill(pt, SIGTRAP);
+		pause();
+		return 0;
+	}
+
+	int main(int argc, const char *argv[])
+	{
+		int stat;
+		unsigned int nf = atoi(argv[1]);
+		unsigned int nt = atoi(argv[2]);
+
+		while (nf--) {
+			if (!fork())
+				return child(nt);
+
+			wait(&stat);
+			assert(stat == SIGTRAP);
+		}
+
+		return 0;
+	}
+
+$ time ./test 16 16536 shows:
+
+		real		user		sys
+	-	5m37.628s	0m4.437s	8m5.560s
+	+	0m50.032s	0m7.130s	1m4.927s
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Aaron Tomlin <atomlin@redhat.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Sterling Alexander <stalexan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |  115 ++++++++++++++++++++++++----------------
- 1 file changed, 69 insertions(+), 46 deletions(-)
+ kernel/exit.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-ability-to-fix-coalesce-string-fragments-on-multiple-lines scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-ability-to-fix-coalesce-string-fragments-on-multiple-lines
-+++ a/scripts/checkpatch.pl
-@@ -946,7 +946,7 @@ sub sanitise_line {
- sub get_quoted_string {
- 	my ($line, $rawline) = @_;
+diff -puN kernel/exit.c~exit-reparent-avoid-find_new_reaper-if-no-children kernel/exit.c
+--- a/kernel/exit.c~exit-reparent-avoid-find_new_reaper-if-no-children
++++ a/kernel/exit.c
+@@ -571,6 +571,8 @@ static void forget_original_parent(struc
  
--	return "" if ($line !~ m/(\"[X]+\")/g);
-+	return "" if ($line !~ m/(\"[X\t]+\")/g);
- 	return substr($rawline, $-[0], $+[0] - $-[0]);
- }
+ 	/* Can drop and reacquire tasklist_lock */
+ 	reaper = find_child_reaper(father);
++	if (list_empty(&father->children))
++		goto unlock;
  
-@@ -1847,6 +1847,7 @@ sub process {
- 	my $non_utf8_charset = 0;
+ 	reaper = find_new_reaper(father, reaper);
+ 	list_for_each_entry(p, &father->children, sibling) {
+@@ -591,6 +593,7 @@ static void forget_original_parent(struc
+ 			reparent_leader(father, p, &dead_children);
+ 	}
+ 	list_splice_tail_init(&father->children, &reaper->children);
++ unlock:
+ 	write_unlock_irq(&tasklist_lock);
  
- 	my $last_blank_line = 0;
-+	my $last_coalesced_string_linenr = -1;
- 
- 	our @report = ();
- 	our $cnt_lines = 0;
-@@ -2413,33 +2414,6 @@ sub process {
- 			     "line over $max_line_length characters\n" . $herecurr);
- 		}
- 
--# Check for user-visible strings broken across lines, which breaks the ability
--# to grep for the string.  Make exceptions when the previous string ends in a
--# newline (multiple lines in one string constant) or '\t', '\r', ';', or '{'
--# (common in inline assembly) or is a octal \123 or hexadecimal \xaf value
--		if ($line =~ /^\+\s*"/ &&
--		    $prevline =~ /"\s*$/ &&
--		    $prevrawline !~ /(?:\\(?:[ntr]|[0-7]{1,3}|x[0-9a-fA-F]{1,2})|;\s*|\{\s*)"\s*$/) {
--			WARN("SPLIT_STRING",
--			     "quoted string split across lines\n" . $hereprev);
--		}
--
--# check for missing a space in a string concatination
--		if ($prevrawline =~ /[^\\]\w"$/ && $rawline =~ /^\+[\t ]+"\w/) {
--			WARN('MISSING_SPACE',
--			     "break quoted strings at a space character\n" . $hereprev);
--		}
--
--# check for spaces before a quoted newline
--		if ($rawline =~ /^.*\".*\s\\n/) {
--			if (WARN("QUOTED_WHITESPACE_BEFORE_NEWLINE",
--				 "unnecessary whitespace before a quoted newline\n" . $herecurr) &&
--			    $fix) {
--				$fixed[$fixlinenr] =~ s/^(\+.*\".*)\s+\\n/$1\\n/;
--			}
--
--		}
--
- # check for adding lines without a newline.
- 		if ($line =~ /^\+/ && defined $lines[$linenr] && $lines[$linenr] =~ /^\\ No newline at end of file/) {
- 			WARN("MISSING_EOF_NEWLINE",
-@@ -4458,6 +4432,55 @@ sub process {
- 			     "Use of volatile is usually wrong: see Documentation/volatile-considered-harmful.txt\n" . $herecurr);
- 		}
- 
-+# Check for user-visible strings broken across lines, which breaks the ability
-+# to grep for the string.  Make exceptions when the previous string ends in a
-+# newline (multiple lines in one string constant) or '\t', '\r', ';', or '{'
-+# (common in inline assembly) or is a octal \123 or hexadecimal \xaf value
-+		if ($line =~ /^\+\s*"[X\t]*"/ &&
-+		    $prevline =~ /"\s*$/ &&
-+		    $prevrawline !~ /(?:\\(?:[ntr]|[0-7]{1,3}|x[0-9a-fA-F]{1,2})|;\s*|\{\s*)"\s*$/) {
-+			if (WARN("SPLIT_STRING",
-+				 "quoted string split across lines\n" . $hereprev) &&
-+				     $fix &&
-+				     $prevrawline =~ /^\+.*"\s*$/ &&
-+				     $last_coalesced_string_linenr != $linenr - 1) {
-+				my $extracted_string = get_quoted_string($line, $rawline);
-+				my $comma_close = "";
-+				if ($rawline =~ /\Q$extracted_string\E(\s*\)\s*;\s*$|\s*,\s*)/) {
-+					$comma_close = $1;
-+				}
-+
-+				fix_delete_line($fixlinenr - 1, $prevrawline);
-+				fix_delete_line($fixlinenr, $rawline);
-+				my $fixedline = $prevrawline;
-+				$fixedline =~ s/"\s*$//;
-+				$fixedline .= substr($extracted_string, 1) . trim($comma_close);
-+				fix_insert_line($fixlinenr - 1, $fixedline);
-+				$fixedline = $rawline;
-+				$fixedline =~ s/\Q$extracted_string\E\Q$comma_close\E//;
-+				if ($fixedline !~ /\+\s*$/) {
-+					fix_insert_line($fixlinenr, $fixedline);
-+				}
-+				$last_coalesced_string_linenr = $linenr;
-+			}
-+		}
-+
-+# check for missing a space in a string concatenation
-+		if ($prevrawline =~ /[^\\]\w"$/ && $rawline =~ /^\+[\t ]+"\w/) {
-+			WARN('MISSING_SPACE',
-+			     "break quoted strings at a space character\n" . $hereprev);
-+		}
-+
-+# check for spaces before a quoted newline
-+		if ($rawline =~ /^.*\".*\s\\n/) {
-+			if (WARN("QUOTED_WHITESPACE_BEFORE_NEWLINE",
-+				 "unnecessary whitespace before a quoted newline\n" . $herecurr) &&
-+			    $fix) {
-+				$fixed[$fixlinenr] =~ s/^(\+.*\".*)\s+\\n/$1\\n/;
-+			}
-+
-+		}
-+
- # concatenated string without spaces between elements
- 		if ($line =~ /"X+"[A-Z_]+/ || $line =~ /[A-Z_]+"X+"/) {
- 			CHK("CONCATENATED_STRING",
-@@ -4470,6 +4493,24 @@ sub process {
- 			     "Consecutive strings are generally better as a single string\n" . $herecurr);
- 		}
- 
-+# check for %L{u,d,i} in strings
-+		my $string;
-+		while ($line =~ /(?:^|")([X\t]*)(?:"|$)/g) {
-+			$string = substr($rawline, $-[1], $+[1] - $-[1]);
-+			$string =~ s/%%/__/g;
-+			if ($string =~ /(?<!%)%L[udi]/) {
-+				WARN("PRINTF_L",
-+				     "\%Ld/%Lu are not-standard C, use %lld/%llu\n" . $herecurr);
-+				last;
-+			}
-+		}
-+
-+# check for line continuations in quoted strings with odd counts of "
-+		if ($rawline =~ /\\$/ && $rawline =~ tr/"/"/ % 2) {
-+			WARN("LINE_CONTINUATIONS",
-+			     "Avoid line continuations in quoted strings\n" . $herecurr);
-+		}
-+
- # warn about #if 0
- 		if ($line =~ /^.\s*\#\s*if\s+0\b/) {
- 			CHK("REDUNDANT_CODE",
-@@ -4754,12 +4795,6 @@ sub process {
- 			}
- 		}
- 
--# check for line continuations in quoted strings with odd counts of "
--		if ($rawline =~ /\\$/ && $rawline =~ tr/"/"/ % 2) {
--			WARN("LINE_CONTINUATIONS",
--			     "Avoid line continuations in quoted strings\n" . $herecurr);
--		}
--
- # check for struct spinlock declarations
- 		if ($line =~ /^.\s*\bstruct\s+spinlock\s+\w+\s*;/) {
- 			WARN("USE_SPINLOCK_T",
-@@ -5169,18 +5204,6 @@ sub process {
- 			      "#define of '$1' is wrong - use Kconfig variables or standard guards instead\n" . $herecurr);
- 		}
- 
--# check for %L{u,d,i} in strings
--		my $string;
--		while ($line =~ /(?:^|")([X\t]*)(?:"|$)/g) {
--			$string = substr($rawline, $-[1], $+[1] - $-[1]);
--			$string =~ s/%%/__/g;
--			if ($string =~ /(?<!%)%L[udi]/) {
--				WARN("PRINTF_L",
--				     "\%Ld/%Lu are not-standard C, use %lld/%llu\n" . $herecurr);
--				last;
--			}
--		}
--
- # whine mightly about in_atomic
- 		if ($line =~ /\bin_atomic\s*\(/) {
- 			if ($realfile =~ m@^drivers/@) {
+ 	list_for_each_entry_safe(p, n, &dead_children, ptrace_entry) {
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-printk-remove-used-once-early_vprintk.patch
-tile-neaten-early_printk-uses.patch
-tile-use-pr_warn-instead-of-pr_warning.patch
-printk-add-and-use-loglevel_level-defines-for-kern_level-equivalents.patch
-printk-drop-logbuf_cpu-volatile-qualifier.patch
-maintainers-update-ivtv-mailing-lists-as-subscriber-only.patch
-mm-utilc-add-kstrimdup.patch
-checkpatch-add-an-error-test-for-no-space-before-comma.patch
-checkpatch-add-error-on-use-of-attributeweak-or-__weak-declarations.patch
-checkpatch-improve-test-for-no-space-after-cast.patch
-checkpatch-improve-warning-message-for-needless-if-case.patch
-checkpatch-fix-use-via-symlink-make-missing-spelling-file-non-fatal.patch
-checkpatch-try-to-avoid-mask-and-shift-errors.patch
-checkpatch-reduce-maintainers-update-message-frequency.patch
-checkpatch-add-strict-test-for-function-pointer-calling-style.patch
-checkpatch-allow-certain-si-units-with-three-characters.patch
-checkpatch-add-strict-preference-for-defines-using-bitfoo.patch
-checkpatch-add-test-for-consecutive-string-fragments.patch
-checkpatch-add-strict-pointer-comparison-to-null-test.patch
-checkpatch-add-ability-to-fix-coalesce-string-fragments-on-multiple-lines.patch
-binfmt_misc-add-comments-debug-logs.patch
-binfmt_misc-clean-up-code-style-a-bit.patch
-fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user.patch
-fs-affs-amigaffsc-use-va_format-instead-of-buffer-vnsprintf.patch
+mmfs-introduce-helpers-around-the-i_mmap_mutex.patch
+mm-use-new-helper-functions-around-the-i_mmap_mutex.patch
+mm-convert-i_mmap_mutex-to-rwsem.patch
+mm-rmap-share-the-i_mmap_rwsem.patch
+uprobes-share-the-i_mmap_rwsem.patch
+mm-xip-share-the-i_mmap_rwsem.patch
+mm-memory-failure-share-the-i_mmap_rwsem.patch
+mm-nommu-share-the-i_mmap_rwsem.patch
+mm-memoryc-share-the-i_mmap_rwsem.patch
+remove-unnecessary-is_valid_nodemask.patch
+proc-task_state-read-cred-group_info-outside-of-task_lock.patch
+proc-task_state-deuglify-the-max_fds-calculation.patch
+proc-task_state-move-the-main-seq_printf-outside-of-rcu_read_lock.patch
+proc-task_state-ptrace_parent-doesnt-need-pid_alive-check.patch
+sched_show_task-fix-unsafe-usage-of-real_parent.patch
+exit-reparent-use-ptrace_entry-rather-than-sibling-for-exit_dead-tasks.patch
+exit-reparent-cleanup-the-changing-of-parent.patch
+exit-reparent-cleanup-the-changing-of-parent-fix.patch
+exit-reparent-cleanup-the-usage-of-reparent_leader.patch
+exit-ptrace-shift-reap-dead-code-from-exit_ptrace-to-forget_original_parent.patch
+usermodehelper-dont-use-clone_vfork-for-____call_usermodehelper.patch
+usermodehelper-kill-the-kmod_thread_locker-logic.patch
+exit-wait-cleanup-the-ptrace_reparented-checks.patch
+exit-wait-cleanup-the-ptrace_reparented-checks-fix.patch
+exit-wait-dont-use-zombie-real_parent.patch
+exit-wait-drop-tasklist_lock-before-psig-c-accounting.patch
+exit-release_task-fix-the-comment-about-group-leader-accounting.patch
+exit-proc-dont-try-to-flush-proc-tgid-task-tgid.patch
+exit-reparent-fix-the-dead-parent-pr_set_child_subreaper-reparenting.patch
+exit-reparent-fix-the-cross-namespace-pr_set_child_subreaper-reparenting.patch
+exit-reparent-s-while_each_thread-for_each_thread-in-find_new_reaper.patch
+exit-reparent-document-the-has_child_subreaper-checks.patch
+exit-reparent-introduce-find_child_reaper.patch
+exit-reparent-introduce-find_alive_thread.patch
+exit-reparent-avoid-find_new_reaper-if-no-children.patch
+exit-reparent-call-forget_original_parent-under-tasklist_lock.patch
+exit-exit_notify-re-use-dead-list-to-autoreap-current.patch
 linux-next.patch
 
