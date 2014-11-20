@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + exit-reparent-avoid-find_new_reaper-if-no-children.patch added
- to -mm tree
-Date: Thu, 20 Nov 2014 14:41:21 -0800
-Message-ID: <546e6e11.X3NJJf2eESjJPMke%akpm@linux-foundation.org>
+Subject: + exit-exit_notify-re-use-dead-list-to-autoreap-current.patch
+ added to -mm tree
+Date: Thu, 20 Nov 2014 14:41:25 -0800
+Message-ID: <546e6e15.WLBrUQxTLmbZkVLH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47580 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47587 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756141AbaKTWlX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Nov 2014 17:41:23 -0500
+	with ESMTP id S1756745AbaKTWl0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Nov 2014 17:41:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@redhat.com, atomlin@redhat.com, ebiederm@xmission.com, stalexan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: exit: reparent: avoid find_new_reaper() if no children
+     Subject: exit: exit_notify: re-use "dead" list to autoreap current
 has been added to the -mm tree.  Its filename is
-     exit-reparent-avoid-find_new_reaper-if-no-children.patch
+     exit-exit_notify-re-use-dead-list-to-autoreap-current.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/exit-reparent-avoid-find_new_reaper-if-no-children.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/exit-exit_notify-re-use-dead-list-to-autoreap-current.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/exit-reparent-avoid-find_new_reaper-if-no-children.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/exit-exit_notify-re-use-dead-list-to-autoreap-current.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,58 +40,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: exit: reparent: avoid find_new_reaper() if no children
+Subject: exit: exit_notify: re-use "dead" list to autoreap current
 
-Now that pid_ns logic was isolated we can change forget_original_parent()
-to return right after find_child_reaper() when father->children is empty,
-there is nothing to reparent in this case.
-
-In particular this avoids find_alive_thread() and this can help if the
-whole process exits and it has a lot of PF_EXITING threads at the start of
-the thread list, this can easily lead to O(nr_threads ** 2) iterations.
-
-Trivial test case (tested under KVM, 2 CPUs):
-
-	static void *tfunc(void *arg)
-	{
-		pause();
-		return NULL;
-	}
-
-	static int child(unsigned int nt)
-	{
-		pthread_t pt;
-
-		while (nt--)
-			assert(pthread_create(&pt, NULL, tfunc, NULL) == 0);
-
-		pthread_kill(pt, SIGTRAP);
-		pause();
-		return 0;
-	}
-
-	int main(int argc, const char *argv[])
-	{
-		int stat;
-		unsigned int nf = atoi(argv[1]);
-		unsigned int nt = atoi(argv[2]);
-
-		while (nf--) {
-			if (!fork())
-				return child(nt);
-
-			wait(&stat);
-			assert(stat == SIGTRAP);
-		}
-
-		return 0;
-	}
-
-$ time ./test 16 16536 shows:
-
-		real		user		sys
-	-	5m37.628s	0m4.437s	8m5.560s
-	+	0m50.032s	0m7.130s	1m4.927s
+After the previous change we can add just the exiting EXIT_DEAD task to
+the "dead" list and remove another release_task(tsk).
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Aaron Tomlin <atomlin@redhat.com>
@@ -100,29 +52,32 @@ Cc: Sterling Alexander <stalexan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    3 +++
- 1 file changed, 3 insertions(+)
+ kernel/exit.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN kernel/exit.c~exit-reparent-avoid-find_new_reaper-if-no-children kernel/exit.c
---- a/kernel/exit.c~exit-reparent-avoid-find_new_reaper-if-no-children
+diff -puN kernel/exit.c~exit-exit_notify-re-use-dead-list-to-autoreap-current kernel/exit.c
+--- a/kernel/exit.c~exit-exit_notify-re-use-dead-list-to-autoreap-current
 +++ a/kernel/exit.c
-@@ -571,6 +571,8 @@ static void forget_original_parent(struc
- 
- 	/* Can drop and reacquire tasklist_lock */
- 	reaper = find_child_reaper(father);
-+	if (list_empty(&father->children))
-+		goto unlock;
- 
- 	reaper = find_new_reaper(father, reaper);
- 	list_for_each_entry(p, &father->children, sibling) {
-@@ -591,6 +593,7 @@ static void forget_original_parent(struc
- 			reparent_leader(father, p, &dead_children);
+@@ -632,6 +632,8 @@ static void exit_notify(struct task_stru
  	}
- 	list_splice_tail_init(&father->children, &reaper->children);
-+ unlock:
- 	write_unlock_irq(&tasklist_lock);
  
- 	list_for_each_entry_safe(p, n, &dead_children, ptrace_entry) {
+ 	tsk->exit_state = autoreap ? EXIT_DEAD : EXIT_ZOMBIE;
++	if (tsk->exit_state == EXIT_DEAD)
++		list_add(&tsk->ptrace_entry, &dead);
+ 
+ 	/* mt-exec, de_thread() is waiting for group leader */
+ 	if (unlikely(tsk->signal->notify_count < 0))
+@@ -642,10 +644,6 @@ static void exit_notify(struct task_stru
+ 		list_del_init(&p->ptrace_entry);
+ 		release_task(p);
+ 	}
+-
+-	/* If the process is dead, release it - nobody will wait for it */
+-	if (autoreap)
+-		release_task(tsk);
+ }
+ 
+ #ifdef CONFIG_DEBUG_STACK_USAGE
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
