@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
 Subject: + drivers-input-evdevc-dont-kfree-a-vmalloc-address.patch added
  to -mm tree
-Date: Thu, 20 Nov 2014 15:14:54 -0800
-Message-ID: <546e75ee.PdBvGk/yFSr5ybYC%akpm__25425.9849586107$1416525310$gmane$org@linux-foundation.org>
+Date: Thu, 20 Nov 2014 15:16:40 -0800
+Message-ID: <546e7658.zhQmHtxGdqInl4uL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48229 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48238 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756600AbaKTXOz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Nov 2014 18:14:55 -0500
+	with ESMTP id S1756063AbaKTXQl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Nov 2014 18:16:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, casteyde.christian@free.fr, dmitry.torokhov@gmail.com, rydberg@euromail.se, stable@vger.kernel.org, mm-commits@vger.kernel.org
@@ -46,7 +46,7 @@ If kzalloc() failed and then evdev_open_device() fails, evdev_open() will
 pass a vmalloc'ed pointer to kfree.
 
 This might fix https://bugzilla.kernel.org/show_bug.cgi?id=88401, where
-there was a crash in vfree().
+there was a crash in kfree().
 
 Reported-by: Christian Casteyde <casteyde.christian@free.fr>
 Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
