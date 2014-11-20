@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- exit-reparent-call-forget_original_parent-under-tasklist_lock.patch added
+Subject: + drivers-input-evdevc-dont-kfree-a-vmalloc-address.patch added
  to -mm tree
-Date: Thu, 20 Nov 2014 14:41:23 -0800
-Message-ID: <546e6e13.TRtOxEXMGTDYTpvO%akpm@linux-foundation.org>
+Date: Thu, 20 Nov 2014 15:14:54 -0800
+Message-ID: <546e75ee.PdBvGk/yFSr5ybYC%akpm__25425.9849586107$1416525310$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47584 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48229 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756745AbaKTWlY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Nov 2014 17:41:24 -0500
+	with ESMTP id S1756600AbaKTXOz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Nov 2014 18:14:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, atomlin@redhat.com, ebiederm@xmission.com, stalexan@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, casteyde.christian@free.fr, dmitry.torokhov@gmail.com, rydberg@euromail.se, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: exit: reparent: call forget_original_parent() under tasklist_lock
+     Subject: drivers/input/evdev.c: don't kfree() a vmalloc address
 has been added to the -mm tree.  Its filename is
-     exit-reparent-call-forget_original_parent-under-tasklist_lock.patch
+     drivers-input-evdevc-dont-kfree-a-vmalloc-address.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/exit-reparent-call-forget_original_parent-under-tasklist_lock.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-input-evdevc-dont-kfree-a-vmalloc-address.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/exit-reparent-call-forget_original_parent-under-tasklist_lock.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/drivers-input-evdevc-dont-kfree-a-vmalloc-address.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,160 +39,89 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: exit: reparent: call forget_original_parent() under tasklist_lock
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/input/evdev.c: don't kfree() a vmalloc address
 
-Shift "release dead children" loop from forget_original_parent() to its
-caller, exit_notify().  It is safe to reap them even if our parent reaps
-us right after we drop tasklist_lock, those children no longer have any
-connection to the exiting task.
+If kzalloc() failed and then evdev_open_device() fails, evdev_open() will
+pass a vmalloc'ed pointer to kfree.
 
-And this allows us to avoid write_lock_irq(tasklist_lock) right after it
-was released by forget_original_parent(), we can simply call it with
-tasklist_lock held.
+This might fix https://bugzilla.kernel.org/show_bug.cgi?id=88401, where
+there was a crash in vfree().
 
-While at it, move the comment about forget_original_parent() up to
-this function.
-
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Aaron Tomlin <atomlin@redhat.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Sterling Alexander <stalexan@redhat.com>
+Reported-by: Christian Casteyde <casteyde.christian@free.fr>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Henrik Rydberg <rydberg@euromail.se>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |   47 +++++++++++++++++++++++------------------------
- 1 file changed, 23 insertions(+), 24 deletions(-)
+ drivers/input/evdev.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/exit.c~exit-reparent-call-forget_original_parent-under-tasklist_lock kernel/exit.c
---- a/kernel/exit.c~exit-reparent-call-forget_original_parent-under-tasklist_lock
-+++ a/kernel/exit.c
-@@ -560,19 +560,26 @@ static void reparent_leader(struct task_
- 	kill_orphaned_pgrp(p, father);
+diff -puN drivers/input/evdev.c~drivers-input-evdevc-dont-kfree-a-vmalloc-address drivers/input/evdev.c
+--- a/drivers/input/evdev.c~drivers-input-evdevc-dont-kfree-a-vmalloc-address
++++ a/drivers/input/evdev.c
+@@ -421,7 +421,7 @@ static int evdev_open(struct inode *inod
+ 
+  err_free_client:
+ 	evdev_detach_client(evdev, client);
+-	kfree(client);
++	kvfree(client);
+ 	return error;
  }
  
--static void forget_original_parent(struct task_struct *father)
-+/*
-+ * This does two things:
-+ *
-+ * A.  Make init inherit all the child processes
-+ * B.  Check to see if any process groups have become orphaned
-+ *	as a result of our exiting, and if they have any stopped
-+ *	jobs, send them a SIGHUP and then a SIGCONT.  (POSIX 3.2.2.2)
-+ */
-+static void forget_original_parent(struct task_struct *father,
-+					struct list_head *dead)
- {
--	struct task_struct *p, *t, *n, *reaper;
--	LIST_HEAD(dead_children);
-+	struct task_struct *p, *t, *reaper;
- 
--	write_lock_irq(&tasklist_lock);
- 	if (unlikely(!list_empty(&father->ptraced)))
--		exit_ptrace(father, &dead_children);
-+		exit_ptrace(father, dead);
- 
- 	/* Can drop and reacquire tasklist_lock */
- 	reaper = find_child_reaper(father);
- 	if (list_empty(&father->children))
--		goto unlock;
-+		return;
- 
- 	reaper = find_new_reaper(father, reaper);
- 	list_for_each_entry(p, &father->children, sibling) {
-@@ -590,16 +597,9 @@ static void forget_original_parent(struc
- 		 * notify anyone anything has happened.
- 		 */
- 		if (!same_thread_group(reaper, father))
--			reparent_leader(father, p, &dead_children);
-+			reparent_leader(father, p, dead);
- 	}
- 	list_splice_tail_init(&father->children, &reaper->children);
-- unlock:
--	write_unlock_irq(&tasklist_lock);
--
--	list_for_each_entry_safe(p, n, &dead_children, ptrace_entry) {
--		list_del_init(&p->ptrace_entry);
--		release_task(p);
--	}
- }
- 
- /*
-@@ -609,18 +609,12 @@ static void forget_original_parent(struc
- static void exit_notify(struct task_struct *tsk, int group_dead)
- {
- 	bool autoreap;
--
--	/*
--	 * This does two things:
--	 *
--	 * A.  Make init inherit all the child processes
--	 * B.  Check to see if any process groups have become orphaned
--	 *	as a result of our exiting, and if they have any stopped
--	 *	jobs, send them a SIGHUP and then a SIGCONT.  (POSIX 3.2.2.2)
--	 */
--	forget_original_parent(tsk);
-+	struct task_struct *p, *n;
-+	LIST_HEAD(dead);
- 
- 	write_lock_irq(&tasklist_lock);
-+	forget_original_parent(tsk, &dead);
-+
- 	if (group_dead)
- 		kill_orphaned_pgrp(tsk->group_leader, NULL);
- 
-@@ -644,6 +638,11 @@ static void exit_notify(struct task_stru
- 		wake_up_process(tsk->signal->group_exit_task);
- 	write_unlock_irq(&tasklist_lock);
- 
-+	list_for_each_entry_safe(p, n, &dead, ptrace_entry) {
-+		list_del_init(&p->ptrace_entry);
-+		release_task(p);
-+	}
-+
- 	/* If the process is dead, release it - nobody will wait for it */
- 	if (autoreap)
- 		release_task(tsk);
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mmfs-introduce-helpers-around-the-i_mmap_mutex.patch
-mm-use-new-helper-functions-around-the-i_mmap_mutex.patch
-mm-convert-i_mmap_mutex-to-rwsem.patch
-mm-rmap-share-the-i_mmap_rwsem.patch
-uprobes-share-the-i_mmap_rwsem.patch
-mm-xip-share-the-i_mmap_rwsem.patch
-mm-memory-failure-share-the-i_mmap_rwsem.patch
-mm-nommu-share-the-i_mmap_rwsem.patch
-mm-memoryc-share-the-i_mmap_rwsem.patch
-remove-unnecessary-is_valid_nodemask.patch
-proc-task_state-read-cred-group_info-outside-of-task_lock.patch
-proc-task_state-deuglify-the-max_fds-calculation.patch
-proc-task_state-move-the-main-seq_printf-outside-of-rcu_read_lock.patch
-proc-task_state-ptrace_parent-doesnt-need-pid_alive-check.patch
-sched_show_task-fix-unsafe-usage-of-real_parent.patch
-exit-reparent-use-ptrace_entry-rather-than-sibling-for-exit_dead-tasks.patch
-exit-reparent-cleanup-the-changing-of-parent.patch
-exit-reparent-cleanup-the-changing-of-parent-fix.patch
-exit-reparent-cleanup-the-usage-of-reparent_leader.patch
-exit-ptrace-shift-reap-dead-code-from-exit_ptrace-to-forget_original_parent.patch
-usermodehelper-dont-use-clone_vfork-for-____call_usermodehelper.patch
-usermodehelper-kill-the-kmod_thread_locker-logic.patch
-exit-wait-cleanup-the-ptrace_reparented-checks.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+mm-vmpressurec-fix-race-in-vmpressure_work_fn.patch
+mm-vmpressurec-fix-race-in-vmpressure_work_fn-fix.patch
+drivers-input-evdevc-dont-kfree-a-vmalloc-address.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
+ocfs2-free-inode-when-i_count-becomes-zero.patch
+ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
+mm.patch
+slab-improve-checking-for-invalid-gfp_flags.patch
+mm-memcontrol-lockless-page-counters-fix.patch
+mm-memcontrol-lockless-page-counters-fix-fix.patch
+kernel-res_counter-remove-the-unused-api-fix.patch
+mm-compaction-simplify-deferred-compaction-fix.patch
+mm-compaction-always-update-cached-scanner-positions-fix-checkpatch-fixes.patch
+mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
+mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix.patch
+mm-fix-huge-zero-page-accounting-in-smaps-report-fix-2-fix.patch
+mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
+mm-mincore-add-hwpoison-page-handle-checkpatch-fixes.patch
+mm-page_alloc-store-updated-page-migratetype-to-avoid-misusing-stale-value-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix-2.patch
+zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
+fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user.patch
+init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails-checkpatch-fixes.patch
+rtc-omap-add-support-for-pmic_power_en-v3-fix.patch
+drivers-rtc-rtc-sirfsocc-add-alarm_irq_enable-support-fix.patch
 exit-wait-cleanup-the-ptrace_reparented-checks-fix.patch
-exit-wait-dont-use-zombie-real_parent.patch
-exit-wait-drop-tasklist_lock-before-psig-c-accounting.patch
-exit-release_task-fix-the-comment-about-group-leader-accounting.patch
-exit-proc-dont-try-to-flush-proc-tgid-task-tgid.patch
-exit-reparent-fix-the-dead-parent-pr_set_child_subreaper-reparenting.patch
-exit-reparent-fix-the-cross-namespace-pr_set_child_subreaper-reparenting.patch
-exit-reparent-s-while_each_thread-for_each_thread-in-find_new_reaper.patch
-exit-reparent-document-the-has_child_subreaper-checks.patch
-exit-reparent-introduce-find_child_reaper.patch
-exit-reparent-introduce-find_alive_thread.patch
-exit-reparent-avoid-find_new_reaper-if-no-children.patch
-exit-reparent-call-forget_original_parent-under-tasklist_lock.patch
-exit-exit_notify-re-use-dead-list-to-autoreap-current.patch
+sysctl-terminate-strings-also-on-r-fix.patch
+ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
+ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
+ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
 linux-next.patch
+linux-next-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mm-cma-make-kmemleak-ignore-cma-regions.patch
+lib-show_mem-this-patch-adds-cma-reserved-infromation-fix.patch
+tools-testing-selftests-makefile-alphasort-the-targets-list.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+debugging-keep-track-of-page-owners.patch
+debugging-keep-track-of-page-owners-fix.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
