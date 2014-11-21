@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-add-pmd_-for-thp.patch added to -mm tree
-Date: Fri, 21 Nov 2014 15:50:18 -0800
-Message-ID: <546fcfba.UBI9/N83gvhqyWUO%akpm@linux-foundation.org>
+Subject: + arm-add-pmd_mkclean-for-thp.patch added to -mm tree
+Date: Fri, 21 Nov 2014 15:50:20 -0800
+Message-ID: <546fcfbc.eU7W3+9L+5gI0PJI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58396 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58399 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751170AbaKUXuT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Nov 2014 18:50:19 -0500
+	with ESMTP id S1751170AbaKUXuV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Nov 2014 18:50:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc: add pmd_[dirty|mkclean] for THP
+     Subject: arm: add pmd_mkclean for THP
 has been added to the -mm tree.  Its filename is
-     powerpc-add-pmd_-for-thp.patch
+     arm-add-pmd_mkclean-for-thp.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-add-pmd_-for-thp.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arm-add-pmd_mkclean-for-thp.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-add-pmd_-for-thp.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/arm-add-pmd_mkclean-for-thp.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,36 +39,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Minchan Kim <minchan@kernel.org>
-Subject: powerpc: add pmd_[dirty|mkclean] for THP
+Subject: arm: add pmd_mkclean for THP
 
 MADV_FREE needs pmd_dirty and pmd_mkclean for detecting recent overwrite
 of the contents since MADV_FREE syscall is called for THP page.
 
-This patch adds pmd_dirty and pmd_mkclean for THP page MADV_FREE
-support.
+This patch adds pmd_mkclean for THP page MADV_FREE support.
 
 Signed-off-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/pgtable-ppc64.h |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/arm/include/asm/pgtable-3level.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/powerpc/include/asm/pgtable-ppc64.h~powerpc-add-pmd_-for-thp arch/powerpc/include/asm/pgtable-ppc64.h
---- a/arch/powerpc/include/asm/pgtable-ppc64.h~powerpc-add-pmd_-for-thp
-+++ a/arch/powerpc/include/asm/pgtable-ppc64.h
-@@ -469,9 +469,11 @@ static inline pte_t *pmdp_ptep(pmd_t *pm
- #define pmd_pfn(pmd)		pte_pfn(pmd_pte(pmd))
- #define pmd_dirty(pmd)		pte_dirty(pmd_pte(pmd))
- #define pmd_young(pmd)		pte_young(pmd_pte(pmd))
-+#define pmd_dirty(pmd)		pte_dirty(pmd_pte(pmd))
- #define pmd_mkold(pmd)		pte_pmd(pte_mkold(pmd_pte(pmd)))
- #define pmd_wrprotect(pmd)	pte_pmd(pte_wrprotect(pmd_pte(pmd)))
- #define pmd_mkdirty(pmd)	pte_pmd(pte_mkdirty(pmd_pte(pmd)))
-+#define pmd_mkclean(pmd)	pte_pmd(pte_mkclean(pmd_pte(pmd)))
- #define pmd_mkyoung(pmd)	pte_pmd(pte_mkyoung(pmd_pte(pmd)))
- #define pmd_mkwrite(pmd)	pte_pmd(pte_mkwrite(pmd_pte(pmd)))
+diff -puN arch/arm/include/asm/pgtable-3level.h~arm-add-pmd_mkclean-for-thp arch/arm/include/asm/pgtable-3level.h
+--- a/arch/arm/include/asm/pgtable-3level.h~arm-add-pmd_mkclean-for-thp
++++ a/arch/arm/include/asm/pgtable-3level.h
+@@ -249,6 +249,7 @@ PMD_BIT_FUNC(mkold,	&= ~PMD_SECT_AF);
+ PMD_BIT_FUNC(mksplitting, |= L_PMD_SECT_SPLITTING);
+ PMD_BIT_FUNC(mkwrite,   &= ~L_PMD_SECT_RDONLY);
+ PMD_BIT_FUNC(mkdirty,   |= L_PMD_SECT_DIRTY);
++PMD_BIT_FUNC(mkclean,   &= ~L_PMD_SECT_DIRTY);
+ PMD_BIT_FUNC(mkyoung,   |= PMD_SECT_AF);
  
+ #define pmd_mkhuge(pmd)		(__pmd(pmd_val(pmd) & ~PMD_TABLE_BIT))
 _
 
 Patches currently in -mm which might be from minchan@kernel.org are
