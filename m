@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + sparc-add-pmd_-for-thp.patch added to -mm tree
-Date: Fri, 21 Nov 2014 15:50:16 -0800
-Message-ID: <546fcfb8.DrbdGZkk3C+/7XPt%akpm@linux-foundation.org>
+Subject: + powerpc-add-pmd_-for-thp.patch added to -mm tree
+Date: Fri, 21 Nov 2014 15:50:18 -0800
+Message-ID: <546fcfba.UBI9/N83gvhqyWUO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58395 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58396 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751170AbaKUXuR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Nov 2014 18:50:17 -0500
+	with ESMTP id S1751170AbaKUXuT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Nov 2014 18:50:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sparc: add pmd_[dirty|mkclean] for THP
+     Subject: powerpc: add pmd_[dirty|mkclean] for THP
 has been added to the -mm tree.  Its filename is
-     sparc-add-pmd_-for-thp.patch
+     powerpc-add-pmd_-for-thp.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sparc-add-pmd_-for-thp.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-add-pmd_-for-thp.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/sparc-add-pmd_-for-thp.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-add-pmd_-for-thp.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,7 +39,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Minchan Kim <minchan@kernel.org>
-Subject: sparc: add pmd_[dirty|mkclean] for THP
+Subject: powerpc: add pmd_[dirty|mkclean] for THP
 
 MADV_FREE needs pmd_dirty and pmd_mkclean for detecting recent overwrite
 of the contents since MADV_FREE syscall is called for THP page.
@@ -51,42 +51,24 @@ Signed-off-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/include/asm/pgtable_64.h |   16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ arch/powerpc/include/asm/pgtable-ppc64.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/sparc/include/asm/pgtable_64.h~sparc-add-pmd_-for-thp arch/sparc/include/asm/pgtable_64.h
---- a/arch/sparc/include/asm/pgtable_64.h~sparc-add-pmd_-for-thp
-+++ a/arch/sparc/include/asm/pgtable_64.h
-@@ -681,6 +681,13 @@ static inline unsigned long pmd_young(pm
- 	return pte_young(pte);
- }
+diff -puN arch/powerpc/include/asm/pgtable-ppc64.h~powerpc-add-pmd_-for-thp arch/powerpc/include/asm/pgtable-ppc64.h
+--- a/arch/powerpc/include/asm/pgtable-ppc64.h~powerpc-add-pmd_-for-thp
++++ a/arch/powerpc/include/asm/pgtable-ppc64.h
+@@ -469,9 +469,11 @@ static inline pte_t *pmdp_ptep(pmd_t *pm
+ #define pmd_pfn(pmd)		pte_pfn(pmd_pte(pmd))
+ #define pmd_dirty(pmd)		pte_dirty(pmd_pte(pmd))
+ #define pmd_young(pmd)		pte_young(pmd_pte(pmd))
++#define pmd_dirty(pmd)		pte_dirty(pmd_pte(pmd))
+ #define pmd_mkold(pmd)		pte_pmd(pte_mkold(pmd_pte(pmd)))
+ #define pmd_wrprotect(pmd)	pte_pmd(pte_wrprotect(pmd_pte(pmd)))
+ #define pmd_mkdirty(pmd)	pte_pmd(pte_mkdirty(pmd_pte(pmd)))
++#define pmd_mkclean(pmd)	pte_pmd(pte_mkclean(pmd_pte(pmd)))
+ #define pmd_mkyoung(pmd)	pte_pmd(pte_mkyoung(pmd_pte(pmd)))
+ #define pmd_mkwrite(pmd)	pte_pmd(pte_mkwrite(pmd_pte(pmd)))
  
-+static inline int pmd_dirty(pmd_t pmd)
-+{
-+	pte_t pte = __pte(pmd_val(pmd));
-+
-+	return pte_dirty(pte);
-+}
-+
- static inline unsigned long pmd_write(pmd_t pmd)
- {
- 	pte_t pte = __pte(pmd_val(pmd));
-@@ -730,6 +737,15 @@ static inline pmd_t pmd_mkdirty(pmd_t pm
- 
- 	return __pmd(pte_val(pte));
- }
-+
-+static inline pmd_t pmd_mkclean(pmd_t pmd)
-+{
-+	pte_t pte = __pte(pmd_val(pmd));
-+
-+	pte = pte_mkclean(pte);
-+
-+	return __pmd(pte_val(pte));
-+}
- 
- static inline pmd_t pmd_mkyoung(pmd_t pmd)
- {
 _
 
 Patches currently in -mm which might be from minchan@kernel.org are
