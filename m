@@ -1,163 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: [merged] iommu-amd-use-new-invalidate_range-mmu-notifier.patch
- removed from -mm tree
-Date: Fri, 21 Nov 2014 12:33:27 -0800
-Message-ID: <546fa197.qd5jX4lgtINoZCfQ%akpm@linux-foundation.org>
+Subject: +
+ ipcsem-block-sem_lock-on-sma-lock-during-sma-initialization.patch added to
+ -mm tree
+Date: Fri, 21 Nov 2014 14:32:52 -0800
+Message-ID: <546fbd94.rpKYHSW5pMY+z6W4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57090 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58094 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751530AbaKUUd2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Nov 2014 15:33:28 -0500
+	with ESMTP id S1752100AbaKUWcx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Nov 2014 17:32:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jroedel@suse.de, Jay.Cornwall@amd.com, Suravee.Suthikulpanit@amd.com, a.p.zijlstra@chello.nl, aarcange@redhat.com, dwmw2@infradead.org, hughd@google.com, jbarnes@virtuousgeek.org, jglisse@redhat.com, jweiner@redhat.com, mgorman@suse.de, oded.gabbay@amd.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: riel@redhat.com, aquini@redhat.com, dave@stgolabs.net, manfred@colorfullife.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: iommu/amd: use new invalidate_range mmu-notifier
-has been removed from the -mm tree.  Its filename was
-     iommu-amd-use-new-invalidate_range-mmu-notifier.patch
+     Subject: ipc,sem block sem_lock on sma->lock during sma initialization
+has been added to the -mm tree.  Its filename is
+     ipcsem-block-sem_lock-on-sma-lock-during-sma-initialization.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/ipcsem-block-sem_lock-on-sma-lock-during-sma-initialization.patch
+		echo and later at
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/ipcsem-block-sem_lock-on-sma-lock-during-sma-initialization.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-=46rom: Joerg Roedel <jroedel@suse.de>
-Subject: iommu/amd: use new invalidate_range mmu-notifier
+From: Rik van Riel <riel@redhat.com>
+Subject: ipc,sem block sem_lock on sma->lock during sma initialization
 
-Make use of the new invalidate_range mmu_notifier call-back and remove =
-the
-old logic of assigning an empty page-table between invalidate_range_sta=
-rt
-and invalidate_range_end.
+When manipulating just one semaphore with semop, sem_lock only takes that
+single semaphore's lock.  This creates a problem during initialization of
+the semaphore array, when the data structures used by sem_lock have not
+been set up yet.  The sma->lock is already held by newary, and we just
+have to make sure everything else waits on that lock during
+initialization.
 
-Signed-off-by: Joerg Roedel <jroedel@suse.de>
-Tested-by: Oded Gabbay <oded.gabbay@amd.com>
-Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
-Reviewed-by: J=E9r=F4me Glisse <jglisse@redhat.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Johannes Weiner <jweiner@redhat.com>
-Cc: Jay Cornwall <Jay.Cornwall@amd.com>
-Cc: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Luckily it is easy to make sem_lock wait on the sma->lock, by pretending
+there is a complex operation in progress while the sma is being
+initialized.
+
+The newary function already zeroes sma->complex_count before unlocking the
+sma->lock.
+
+Signed-off-by: Rik van Riel <riel@redhat.com>
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Acked-by: Rafael Aquini <aquini@redhat.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/iommu/amd_iommu_v2.c |   61 ++++-----------------------------
- 1 file changed, 9 insertions(+), 52 deletions(-)
+ ipc/sem.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/iommu/amd_iommu_v2.c~iommu-amd-use-new-invalidate_ran=
-ge-mmu-notifier drivers/iommu/amd_iommu_v2.c
---- a/drivers/iommu/amd_iommu_v2.c~iommu-amd-use-new-invalidate_range-m=
-mu-notifier
-+++ a/drivers/iommu/amd_iommu_v2.c
-@@ -92,13 +92,6 @@ static spinlock_t state_lock;
-=20
- static struct workqueue_struct *iommu_wq;
-=20
--/*
-- * Empty page table - Used between
-- * mmu_notifier_invalidate_range_start and
-- * mmu_notifier_invalidate_range_end
-- */
--static u64 *empty_page_table;
--
- static void free_pasid_states(struct device_state *dev_state);
-=20
- static u16 device_id(struct pci_dev *pdev)
-@@ -418,46 +411,21 @@ static void mn_invalidate_page(struct mm
- 	__mn_flush_page(mn, address);
- }
-=20
--static void mn_invalidate_range_start(struct mmu_notifier *mn,
--				      struct mm_struct *mm,
--				      unsigned long start, unsigned long end)
--{
--	struct pasid_state *pasid_state;
--	struct device_state *dev_state;
--	unsigned long flags;
--
--	pasid_state =3D mn_to_state(mn);
--	dev_state   =3D pasid_state->device_state;
--
--	spin_lock_irqsave(&pasid_state->lock, flags);
--	if (pasid_state->mmu_notifier_count =3D=3D 0) {
--		amd_iommu_domain_set_gcr3(dev_state->domain,
--					  pasid_state->pasid,
--					  __pa(empty_page_table));
--	}
--	pasid_state->mmu_notifier_count +=3D 1;
--	spin_unlock_irqrestore(&pasid_state->lock, flags);
--}
--
--static void mn_invalidate_range_end(struct mmu_notifier *mn,
--				    struct mm_struct *mm,
--				    unsigned long start, unsigned long end)
-+static void mn_invalidate_range(struct mmu_notifier *mn,
-+				struct mm_struct *mm,
-+				unsigned long start, unsigned long end)
- {
- 	struct pasid_state *pasid_state;
- 	struct device_state *dev_state;
--	unsigned long flags;
-=20
- 	pasid_state =3D mn_to_state(mn);
- 	dev_state   =3D pasid_state->device_state;
-=20
--	spin_lock_irqsave(&pasid_state->lock, flags);
--	pasid_state->mmu_notifier_count -=3D 1;
--	if (pasid_state->mmu_notifier_count =3D=3D 0) {
--		amd_iommu_domain_set_gcr3(dev_state->domain,
--					  pasid_state->pasid,
--					  __pa(pasid_state->mm->pgd));
--	}
--	spin_unlock_irqrestore(&pasid_state->lock, flags);
-+	if ((start ^ (end - 1)) < PAGE_SIZE)
-+		amd_iommu_flush_page(dev_state->domain, pasid_state->pasid,
-+				     start);
-+	else
-+		amd_iommu_flush_tlb(dev_state->domain, pasid_state->pasid);
- }
-=20
- static void mn_release(struct mmu_notifier *mn, struct mm_struct *mm)
-@@ -482,8 +450,7 @@ static struct mmu_notifier_ops iommu_mn
- 	.release		=3D mn_release,
- 	.clear_flush_young      =3D mn_clear_flush_young,
- 	.invalidate_page        =3D mn_invalidate_page,
--	.invalidate_range_start =3D mn_invalidate_range_start,
--	.invalidate_range_end   =3D mn_invalidate_range_end,
-+	.invalidate_range       =3D mn_invalidate_range,
- };
-=20
- static void set_pri_tag_status(struct pasid_state *pasid_state,
-@@ -954,18 +921,10 @@ static int __init amd_iommu_v2_init(void
- 	if (iommu_wq =3D=3D NULL)
- 		goto out;
-=20
--	ret =3D -ENOMEM;
--	empty_page_table =3D (u64 *)get_zeroed_page(GFP_KERNEL);
--	if (empty_page_table =3D=3D NULL)
--		goto out_destroy_wq;
--
- 	amd_iommu_register_ppr_notifier(&ppr_nb);
-=20
- 	return 0;
-=20
--out_destroy_wq:
--	destroy_workqueue(iommu_wq);
--
- out:
- 	return ret;
- }
-@@ -999,8 +958,6 @@ static void __exit amd_iommu_v2_exit(voi
+diff -puN ipc/sem.c~ipcsem-block-sem_lock-on-sma-lock-during-sma-initialization ipc/sem.c
+--- a/ipc/sem.c~ipcsem-block-sem_lock-on-sma-lock-during-sma-initialization
++++ a/ipc/sem.c
+@@ -507,6 +507,9 @@ static int newary(struct ipc_namespace *
+ 		return retval;
  	}
-=20
- 	destroy_workqueue(iommu_wq);
+ 
++	/* Ensures sem_lock waits on &sma->lock until sma is ready. */
++	sma->complex_count = 1;
++
+ 	id = ipc_addid(&sem_ids(ns), &sma->sem_perm, ns->sc_semmni);
+ 	if (id < 0) {
+ 		ipc_rcu_putref(sma, sem_rcu_free);
+_
+
+Patches currently in -mm which might be from riel@redhat.com are
+
+mm-do-not-overwrite-reserved-pages-counter-at-show_mem.patch
+ipcsem-block-sem_lock-on-sma-lock-during-sma-initialization.patch
+mm-introduce-single-zone-pcplists-drain.patch
+mm-page_isolation-drain-single-zone-pcplists.patch
+mm-cma-drain-single-zone-pcplists.patch
+mm-memory_hotplug-failure-drain-single-zone-pcplists.patch
+mm-compaction-pass-classzone_idx-and-alloc_flags-to-watermark-checking.patch
+mm-compaction-pass-classzone_idx-and-alloc_flags-to-watermark-checking-fix.patch
+mm-compaction-simplify-deferred-compaction.patch
+mm-compaction-defer-only-on-compact_complete.patch
+mm-compaction-always-update-cached-scanner-positions.patch
+mm-compaction-always-update-cached-scanner-positions-fix.patch
+mm-compaction-more-focused-lru-and-pcplists-draining.patch
+mm-compaction-more-focused-lru-and-pcplists-draining-fix.patch
+mm-fix-a-spelling-mistake.patch
+mmfs-introduce-helpers-around-the-i_mmap_mutex.patch
+mm-use-new-helper-functions-around-the-i_mmap_mutex.patch
+mm-convert-i_mmap_mutex-to-rwsem.patch
+mm-rmap-share-the-i_mmap_rwsem.patch
+uprobes-share-the-i_mmap_rwsem.patch
+mm-xip-share-the-i_mmap_rwsem.patch
+mm-memory-failure-share-the-i_mmap_rwsem.patch
+mm-nommu-share-the-i_mmap_rwsem.patch
+mm-memoryc-share-the-i_mmap_rwsem.patch
+mm-mincore-add-hwpoison-page-handle.patch
+hugetlb-fix-hugepages=-entry-in-kernel-parameterstxt.patch
+hugetlb-alloc_bootmem_huge_page-use-is_aligned.patch
+hugetlb-hugetlb_register_all_nodes-add-__init-marker.patch
+mm-page_alloc-store-updated-page-migratetype-to-avoid-misusing-stale-value.patch
+mm-page_alloc-store-updated-page-migratetype-to-avoid-misusing-stale-value-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+exit-wait-cleanup-the-ptrace_reparented-checks.patch
+exit-wait-cleanup-the-ptrace_reparented-checks-fix.patch
+exit-wait-dont-use-zombie-real_parent.patch
+exit-wait-drop-tasklist_lock-before-psig-c-accounting.patch
+exit-release_task-fix-the-comment-about-group-leader-accounting.patch
+exit-proc-dont-try-to-flush-proc-tgid-task-tgid.patch
+linux-next.patch
+
