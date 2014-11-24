@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: +
- stacktrace-introduce-snprint_stack_trace-for-buffer-output.patch added to
- -mm tree
-Date: Mon, 24 Nov 2014 14:58:35 -0800
-Message-ID: <5473b81b.4u/RDmeZLlrMNLQS%akpm@linux-foundation.org>
+Subject: + rtc-ds1374-add-watchdog-support.patch added to -mm tree
+Date: Mon, 24 Nov 2014 15:20:53 -0800
+Message-ID: <5473bd55.Si91VbY2ymxBx82l%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56643 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56884 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751345AbaKXW6N (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 24 Nov 2014 17:58:13 -0500
+	with ESMTP id S1750772AbaKXXUb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 24 Nov 2014 18:20:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, dave@sr71.net, hannes@cmpxchg.org, jungsoo.son@lge.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org
+To: san@rosetechnology.dk, a.zummo@towertech.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: stacktrace: introduce snprint_stack_trace for buffer output
+     Subject: drivers/rtc/rtc-ds1374.c: add watchdog support
 has been added to the -mm tree.  Its filename is
-     stacktrace-introduce-snprint_stack_trace-for-buffer-output.patch
+     rtc-ds1374-add-watchdog-support.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/stacktrace-introduce-snprint_stack_trace-for-buffer-output.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rtc-ds1374-add-watchdog-su=
+pport.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/stacktrace-introduce-snprint_stack_trace-for-buffer-output.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/rtc-ds1374-add-watchdo=
+g-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,155 +34,425 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: stacktrace: introduce snprint_stack_trace for buffer output
+=46rom: S=F8ren Andersen <san@rosetechnology.dk>
+Subject: drivers/rtc/rtc-ds1374.c: add watchdog support
 
-Current stacktrace only have the function for console output.  page_owner
-that will be introduced in following patch needs to print the output of
-stacktrace into the buffer for our own output format so so new function,
-snprint_stack_trace(), is needed.
+Add support for the watchdog functionality of the DS1374 rtc.  Based on
+the m41t80 watchdog functionality Note: watchdog uses the same register=
+s
+as alarm.
 
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Dave Hansen <dave@sr71.net>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Jungsoo Son <jungsoo.son@lge.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Signed-off-by: Soeren Andersen <san@rosetechnology.dk>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/stacktrace.h |    5 +++++
- kernel/stacktrace.c        |   32 ++++++++++++++++++++++++++++++++
- 2 files changed, 37 insertions(+)
+ drivers/rtc/Kconfig      |    8 +
+ drivers/rtc/rtc-ds1374.c |  283 +++++++++++++++++++++++++++++++++++++
+ 2 files changed, 291 insertions(+)
 
-diff -puN include/linux/stacktrace.h~stacktrace-introduce-snprint_stack_trace-for-buffer-output include/linux/stacktrace.h
---- a/include/linux/stacktrace.h~stacktrace-introduce-snprint_stack_trace-for-buffer-output
-+++ a/include/linux/stacktrace.h
-@@ -1,6 +1,8 @@
- #ifndef __LINUX_STACKTRACE_H
- #define __LINUX_STACKTRACE_H
- 
-+#include <linux/types.h>
+diff -puN drivers/rtc/Kconfig~rtc-ds1374-add-watchdog-support drivers/r=
+tc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-ds1374-add-watchdog-support
++++ a/drivers/rtc/Kconfig
+@@ -192,6 +192,14 @@ config RTC_DRV_DS1374
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called rtc-ds1374.
+=20
++config RTC_DRV_DS1374_WDT
++	bool "Dallas/Maxim DS1374 watchdog timer"
++	depends on RTC_DRV_DS1374
++	help
++	  If you say Y here you will get support for the
++	  watchdog timer in the Dallas Semiconductor DS1374
++	  real-time clock chips.
 +
- struct task_struct;
- struct pt_regs;
- 
-@@ -20,6 +22,8 @@ extern void save_stack_trace_tsk(struct 
- 				struct stack_trace *trace);
- 
- extern void print_stack_trace(struct stack_trace *trace, int spaces);
-+extern int snprint_stack_trace(char *buf, size_t size,
-+			struct stack_trace *trace, int spaces);
- 
- #ifdef CONFIG_USER_STACKTRACE_SUPPORT
- extern void save_stack_trace_user(struct stack_trace *trace);
-@@ -32,6 +36,7 @@ extern void save_stack_trace_user(struct
- # define save_stack_trace_tsk(tsk, trace)		do { } while (0)
- # define save_stack_trace_user(trace)			do { } while (0)
- # define print_stack_trace(trace, spaces)		do { } while (0)
-+# define snprint_stack_trace(buf, size, trace, spaces)	do { } while (0)
- #endif
- 
- #endif
-diff -puN kernel/stacktrace.c~stacktrace-introduce-snprint_stack_trace-for-buffer-output kernel/stacktrace.c
---- a/kernel/stacktrace.c~stacktrace-introduce-snprint_stack_trace-for-buffer-output
-+++ a/kernel/stacktrace.c
-@@ -25,6 +25,38 @@ void print_stack_trace(struct stack_trac
+ config RTC_DRV_DS1672
+ 	tristate "Dallas/Maxim DS1672"
+ 	help
+diff -puN drivers/rtc/rtc-ds1374.c~rtc-ds1374-add-watchdog-support driv=
+ers/rtc/rtc-ds1374.c
+--- a/drivers/rtc/rtc-ds1374.c~rtc-ds1374-add-watchdog-support
++++ a/drivers/rtc/rtc-ds1374.c
+@@ -4,6 +4,7 @@
+  * Based on code by Randy Vinson <rvinson@mvista.com>,
+  * which was based on the m41t00.c by Mark Greer <mgreer@mvista.com>.
+  *
++ * Copyright (C) 2014 Rose Technology
+  * Copyright (C) 2006-2007 Freescale Semiconductor
+  *
+  * 2005 (c) MontaVista Software, Inc. This file is licensed under
+@@ -26,6 +27,13 @@
+ #include <linux/workqueue.h>
+ #include <linux/slab.h>
+ #include <linux/pm.h>
++#ifdef CONFIG_RTC_DRV_DS1374_WDT
++#include <linux/fs.h>
++#include <linux/ioctl.h>
++#include <linux/miscdevice.h>
++#include <linux/reboot.h>
++#include <linux/watchdog.h>
++#endif
+=20
+ #define DS1374_REG_TOD0		0x00 /* Time of Day */
+ #define DS1374_REG_TOD1		0x01
+@@ -49,6 +57,14 @@ static const struct i2c_device_id ds1374
+ };
+ MODULE_DEVICE_TABLE(i2c, ds1374_id);
+=20
++#ifdef CONFIG_OF
++static const struct of_device_id ds1374_of_match[] =3D {
++	{ .compatible =3D "dallas,ds1374" },
++	{ }
++};
++MODULE_DEVICE_TABLE(of, ds1374_of_match);
++#endif
++
+ struct ds1374 {
+ 	struct i2c_client *client;
+ 	struct rtc_device *rtc;
+@@ -162,6 +178,7 @@ static int ds1374_set_time(struct device
+ 	return ds1374_write_rtc(client, itime, DS1374_REG_TOD0, 4);
  }
- EXPORT_SYMBOL_GPL(print_stack_trace);
- 
-+int snprint_stack_trace(char *buf, size_t size,
-+			struct stack_trace *trace, int spaces)
+=20
++#ifndef CONFIG_RTC_DRV_DS1374_WDT
+ /* The ds1374 has a decrementer for an alarm, rather than a comparator=
+=2E
+  * If the time of day is changed, then the alarm will need to be
+  * reset.
+@@ -263,6 +280,7 @@ out:
+ 	mutex_unlock(&ds1374->mutex);
+ 	return ret;
+ }
++#endif
+=20
+ static irqreturn_t ds1374_irq(int irq, void *dev_id)
+ {
+@@ -307,6 +325,7 @@ unlock:
+ 	mutex_unlock(&ds1374->mutex);
+ }
+=20
++#ifndef CONFIG_RTC_DRV_DS1374_WDT
+ static int ds1374_alarm_irq_enable(struct device *dev, unsigned int en=
+abled)
+ {
+ 	struct i2c_client *client =3D to_i2c_client(dev);
+@@ -331,15 +350,258 @@ out:
+ 	mutex_unlock(&ds1374->mutex);
+ 	return ret;
+ }
++#endif
+=20
+ static const struct rtc_class_ops ds1374_rtc_ops =3D {
+ 	.read_time =3D ds1374_read_time,
+ 	.set_time =3D ds1374_set_time,
++#ifndef CONFIG_RTC_DRV_DS1374_WDT
+ 	.read_alarm =3D ds1374_read_alarm,
+ 	.set_alarm =3D ds1374_set_alarm,
+ 	.alarm_irq_enable =3D ds1374_alarm_irq_enable,
++#endif
++};
++
++#ifdef CONFIG_RTC_DRV_DS1374_WDT
++/*
++ *********************************************************************=
+********
++ *
++ * Watchdog Driver
++ *
++ *********************************************************************=
+********
++ */
++static struct i2c_client *save_client;
++/* Default margin */
++#define WD_TIMO 131762
++
++#define DRV_NAME "DS1374 Watchdog"
++
++static int wdt_margin =3D WD_TIMO;
++static unsigned long wdt_is_open;
++module_param(wdt_margin, int, 0);
++MODULE_PARM_DESC(wdt_margin, "Watchdog timeout in seconds (default 32s=
+)");
++
++static const struct watchdog_info ds1374_wdt_info =3D {
++	.identity       =3D "DS1374 WTD",
++	.options        =3D WDIOF_SETTIMEOUT | WDIOF_KEEPALIVEPING |
++						WDIOF_MAGICCLOSE,
++};
++
++static int ds1374_wdt_settimeout(unsigned int timeout)
 +{
-+	int i;
-+	unsigned long ip;
-+	int generated;
-+	int total = 0;
++	int ret =3D -ENOIOCTLCMD;
++	int cr;
 +
-+	if (WARN_ON(!trace->entries))
-+		return 0;
++	ret =3D cr =3D i2c_smbus_read_byte_data(save_client, DS1374_REG_CR);
++	if (ret < 0)
++		goto out;
 +
-+	for (i = 0; i < trace->nr_entries; i++) {
-+		ip = trace->entries[i];
-+		generated = snprintf(buf, size, "%*c[<%p>] %pS\n",
-+				1 + spaces, ' ', (void *) ip, (void *) ip);
++	/* Disable any existing watchdog/alarm before setting the new one */
++	cr &=3D ~DS1374_REG_CR_WACE;
 +
-+		total += generated;
++	ret =3D i2c_smbus_write_byte_data(save_client, DS1374_REG_CR, cr);
++	if (ret < 0)
++		goto out;
 +
-+		/* Assume that generated isn't a negative number */
-+		if (generated >= size) {
-+			buf += size;
-+			size = 0;
-+		} else {
-+			buf += generated;
-+			size -= generated;
-+		}
++	/* Set new watchdog time */
++	ret =3D ds1374_write_rtc(save_client, timeout, DS1374_REG_WDALM0, 3);
++	if (ret) {
++		pr_info("rtc-ds1374 - couldn't set new watchdog time\n");
++		goto out;
 +	}
 +
-+	return total;
-+}
-+EXPORT_SYMBOL_GPL(snprint_stack_trace);
++	/* Enable watchdog timer */
++	cr |=3D DS1374_REG_CR_WACE | DS1374_REG_CR_WDALM;
++	cr &=3D ~DS1374_REG_CR_AIE;
 +
- /*
-  * Architectures that do not implement save_stack_trace_tsk or
-  * save_stack_trace_regs get this weak alias and a once-per-bootup warning
++	ret =3D i2c_smbus_write_byte_data(save_client, DS1374_REG_CR, cr);
++	if (ret < 0)
++		goto out;
++
++	return 0;
++out:
++	return ret;
++}
++
++
++/*
++ * Reload the watchdog timer.  (ie, pat the watchdog)
++ */
++static void ds1374_wdt_ping(void)
++{
++	u32 val;
++	int ret =3D 0;
++
++	ret =3D ds1374_read_rtc(save_client, &val, DS1374_REG_WDALM0, 3);
++	if (ret)
++		pr_info("WD TICK FAIL!!!!!!!!!! %i\n", ret);
++}
++
++static void ds1374_wdt_disable(void)
++{
++	int ret =3D -ENOIOCTLCMD;
++	int cr;
++
++	cr =3D i2c_smbus_read_byte_data(save_client, DS1374_REG_CR);
++	/* Disable watchdog timer */
++	cr &=3D ~DS1374_REG_CR_WACE;
++
++	ret =3D i2c_smbus_write_byte_data(save_client, DS1374_REG_CR, cr);
++}
++
++/*
++ * Watchdog device is opened, and watchdog starts running.
++ */
++static int ds1374_wdt_open(struct inode *inode, struct file *file)
++{
++	struct ds1374 *ds1374 =3D i2c_get_clientdata(save_client);
++
++	if (MINOR(inode->i_rdev) =3D=3D WATCHDOG_MINOR) {
++		mutex_lock(&ds1374->mutex);
++		if (test_and_set_bit(0, &wdt_is_open))
++			return -EBUSY;
++		/*
++		 *      Activate
++		 */
++		wdt_is_open =3D 1;
++		mutex_unlock(&ds1374->mutex);
++		return nonseekable_open(inode, file);
++	}
++	return -ENODEV;
++}
++
++/*
++ * Close the watchdog device.
++ */
++static int ds1374_wdt_release(struct inode *inode, struct file *file)
++{
++	if (MINOR(inode->i_rdev) =3D=3D WATCHDOG_MINOR)
++		clear_bit(0, &wdt_is_open);
++
++	return 0;
++}
++
++/*
++ * Pat the watchdog whenever device is written to.
++ */
++static ssize_t ds1374_wdt_write(struct file *file, const char __user *=
+data,
++				size_t len, loff_t *ppos)
++{
++	if (len) {
++		ds1374_wdt_ping();
++		return 1;
++	}
++	return 0;
++}
++
++static ssize_t ds1374_wdt_read(struct file *file, char __user *data,
++				size_t len, loff_t *ppos)
++{
++	return 0;
++}
++
++/*
++ * Handle commands from user-space.
++ */
++static long ds1374_wdt_ioctl(struct file *file, unsigned int cmd,
++							unsigned long arg)
++{
++	int new_margin, options;
++
++	switch (cmd) {
++	case WDIOC_GETSUPPORT:
++		return copy_to_user((struct watchdog_info __user *)arg,
++		&ds1374_wdt_info, sizeof(ds1374_wdt_info)) ? -EFAULT : 0;
++
++	case WDIOC_GETSTATUS:
++	case WDIOC_GETBOOTSTATUS:
++		return put_user(0, (int __user *)arg);
++	case WDIOC_KEEPALIVE:
++		ds1374_wdt_ping();
++		return 0;
++	case WDIOC_SETTIMEOUT:
++		if (get_user(new_margin, (int __user *)arg))
++			return -EFAULT;
++
++		if (new_margin < 1 || new_margin > 16777216)
++			return -EINVAL;
++
++		wdt_margin =3D new_margin;
++		ds1374_wdt_settimeout(new_margin);
++		ds1374_wdt_ping();
++		/* Fall */
++	case WDIOC_GETTIMEOUT:
++		return put_user(wdt_margin, (int __user *)arg);
++	case WDIOC_SETOPTIONS:
++		if (copy_from_user(&options, (int __user *)arg, sizeof(int)))
++			return -EFAULT;
++
++		if (options & WDIOS_DISABLECARD) {
++			pr_info("rtc-ds1374: disable watchdog\n");
++			ds1374_wdt_disable();
++		}
++
++		if (options & WDIOS_ENABLECARD) {
++			pr_info("rtc-ds1374: enable watchdog\n");
++			ds1374_wdt_settimeout(wdt_margin);
++			ds1374_wdt_ping();
++		}
++
++		return -EINVAL;
++	}
++	return -ENOTTY;
++}
++
++static long ds1374_wdt_unlocked_ioctl(struct file *file, unsigned int =
+cmd,
++			unsigned long arg)
++{
++	int ret;
++	struct ds1374 *ds1374 =3D i2c_get_clientdata(save_client);
++
++	mutex_lock(&ds1374->mutex);
++	ret =3D ds1374_wdt_ioctl(file, cmd, arg);
++	mutex_unlock(&ds1374->mutex);
++
++	return ret;
++}
++
++static int ds1374_wdt_notify_sys(struct notifier_block *this,
++			unsigned long code, void *unused)
++{
++	if (code =3D=3D SYS_DOWN || code =3D=3D SYS_HALT)
++		/* Disable Watchdog */
++		ds1374_wdt_disable();
++	return NOTIFY_DONE;
++}
++
++static const struct file_operations ds1374_wdt_fops =3D {
++	.owner			=3D THIS_MODULE,
++	.read			=3D ds1374_wdt_read,
++	.unlocked_ioctl		=3D ds1374_wdt_unlocked_ioctl,
++	.write			=3D ds1374_wdt_write,
++	.open                   =3D ds1374_wdt_open,
++	.release                =3D ds1374_wdt_release,
++	.llseek			=3D no_llseek,
++};
++
++static struct miscdevice ds1374_miscdev =3D {
++	.minor          =3D WATCHDOG_MINOR,
++	.name           =3D "watchdog",
++	.fops           =3D &ds1374_wdt_fops,
++};
++
++static struct notifier_block ds1374_wdt_notifier =3D {
++	.notifier_call =3D ds1374_wdt_notify_sys,
+ };
+=20
++#endif /*CONFIG_RTC_DRV_DS1374_WDT*/
++/*
++ *********************************************************************=
+********
++ *
++ *	Driver Interface
++ *
++ *********************************************************************=
+********
++ */
+ static int ds1374_probe(struct i2c_client *client,
+ 			const struct i2c_device_id *id)
+ {
+@@ -378,12 +640,33 @@ static int ds1374_probe(struct i2c_clien
+ 		return PTR_ERR(ds1374->rtc);
+ 	}
+=20
++#ifdef CONFIG_RTC_DRV_DS1374_WDT
++	save_client =3D client;
++	ret =3D misc_register(&ds1374_miscdev);
++	if (ret)
++		return ret;
++	ret =3D register_reboot_notifier(&ds1374_wdt_notifier);
++	if (ret) {
++		misc_deregister(&ds1374_miscdev);
++		return ret;
++	}
++	ds1374_wdt_settimeout(131072);
++#endif
++
+ 	return 0;
+ }
+=20
+ static int ds1374_remove(struct i2c_client *client)
+ {
+ 	struct ds1374 *ds1374 =3D i2c_get_clientdata(client);
++#ifdef CONFIG_RTC_DRV_DS1374_WDT
++	int res;
++
++	res =3D misc_deregister(&ds1374_miscdev);
++	if (!res)
++		ds1374_miscdev.parent =3D NULL;
++	unregister_reboot_notifier(&ds1374_wdt_notifier);
++#endif
+=20
+ 	if (client->irq > 0) {
+ 		mutex_lock(&ds1374->mutex);
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from san@rosetechnology.dk are
 
-mm-slab-slub-coding-style-whitespaces-and-tabs-mixture.patch
-slab-print-slabinfo-header-in-seq-show.patch
-mm-slab-reverse-iteration-on-find_mergeable.patch
-mm-slub-fix-format-mismatches-in-slab_err-callers.patch
-slab-improve-checking-for-invalid-gfp_flags.patch
-slab-replace-smp_read_barrier_depends-with-lockless_dereference.patch
-mm-introduce-single-zone-pcplists-drain.patch
-mm-page_isolation-drain-single-zone-pcplists.patch
-mm-cma-drain-single-zone-pcplists.patch
-mm-memory_hotplug-failure-drain-single-zone-pcplists.patch
-mm-compaction-pass-classzone_idx-and-alloc_flags-to-watermark-checking.patch
-mm-compaction-pass-classzone_idx-and-alloc_flags-to-watermark-checking-fix.patch
-mm-compaction-simplify-deferred-compaction.patch
-mm-compaction-defer-only-on-compact_complete.patch
-mm-compaction-always-update-cached-scanner-positions.patch
-mm-compaction-always-update-cached-scanner-positions-fix.patch
-mm-compaction-more-focused-lru-and-pcplists-draining.patch
-mm-compaction-more-focused-lru-and-pcplists-draining-fix.patch
-memcg-use-generic-slab-iterators-for-showing-slabinfo.patch
-mm-embed-the-memcg-pointer-directly-into-struct-page.patch
-mm-embed-the-memcg-pointer-directly-into-struct-page-fix.patch
-mm-page_cgroup-rename-file-to-mm-swap_cgroupc.patch
-mm-move-page-mem_cgroup-bad-page-handling-into-generic-code.patch
-mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix.patch
-mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix-2.patch
-lib-bitmap-added-alignment-offset-for-bitmap_find_next_zero_area.patch
-mm-cma-align-to-physical-address-not-cma-region-position.patch
-mm-debug-pagealloc-cleanup-page-guard-code.patch
-mm-page_alloc-store-updated-page-migratetype-to-avoid-misusing-stale-value.patch
-mm-page_alloc-store-updated-page-migratetype-to-avoid-misusing-stale-value-fix.patch
-include-linux-kmemleakh-needs-slabh.patch
-mm-page_ext-resurrect-struct-page-extending-code-for-debugging.patch
-mm-debug-pagealloc-prepare-boottime-configurable-on-off.patch
-mm-debug-pagealloc-make-debug-pagealloc-boottime-configurable.patch
-mm-nommu-use-alloc_pages_exact-rather-than-its-own-implementation.patch
-stacktrace-introduce-snprint_stack_trace-for-buffer-output.patch
-mm-page_owner-keep-track-of-page-owners.patch
-mm-page_owner-correct-owner-information-for-early-allocated-pages.patch
-documentation-add-new-page_owner-document.patch
-zsmalloc-merge-size_class-to-reduce-fragmentation.patch
-slab-fix-cpuset-check-in-fallback_alloc.patch
-slub-fix-cpuset-check-in-get_any_partial.patch
-mm-cma-make-kmemleak-ignore-cma-regions.patch
-mm-cma-split-cma-reserved-in-dmesg-log.patch
-fs-proc-include-cma-info-in-proc-meminfo.patch
-page-owners-correct-page-order-when-to-free-page.patch
+rtc-ds1374-add-watchdog-support.patch
+linux-next.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
