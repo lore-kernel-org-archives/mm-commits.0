@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-page_owner-correct-owner-information-for-early-allocated-pages.patch
+ mm-nommu-use-alloc_pages_exact-rather-than-its-own-implementation.patch
  added to -mm tree
-Date: Mon, 24 Nov 2014 14:58:41 -0800
-Message-ID: <5473b821.YZg9jOeZ7SVZXbJ0%akpm@linux-foundation.org>
+Date: Mon, 24 Nov 2014 14:58:33 -0800
+Message-ID: <5473b819.RPa775nUN+StqMi6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56661 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56637 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751342AbaKXW6T (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 24 Nov 2014 17:58:19 -0500
+	with ESMTP id S1751309AbaKXW6L (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 24 Nov 2014 17:58:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: iamjoonsoo.kim@lge.com, dave@sr71.net, hannes@cmpxchg.org, jungsoo.son@lge.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_owner: correct owner information for early allocated pages
+     Subject: mm/nommu: use alloc_pages_exact() rather than it's own implementation
 has been added to the -mm tree.  Its filename is
-     mm-page_owner-correct-owner-information-for-early-allocated-pages.patch
+     mm-nommu-use-alloc_pages_exact-rather-than-its-own-implementation.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_owner-correct-owner-information-for-early-allocated-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-nommu-use-alloc_pages_exact-rather-than-its-own-implementation.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_owner-correct-owner-information-for-early-allocated-pages.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/mm-nommu-use-alloc_pages_exact-rather-than-its-own-implementation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,22 +41,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/page_owner: correct owner information for early allocated pages
+Subject: mm/nommu: use alloc_pages_exact() rather than it's own implementation
 
-Extended memory to store page owner information is initialized some time
-later than that page allocator starts.  Until initialization, many pages
-can be allocated and they have no owner information.  This make debugging
-using page owner harder, so some fixup will be helpful.
+do_mmap_private() in nommu.c try to allocate physically contiguous pages
+with arbitrary size in some cases and we now have good abstract function
+to do exactly same thing, alloc_pages_exact().  So, change to use it.
 
-This patch fixes up this situation by setting fake owner information
-immediately after page extension is initialized.  Information doesn't tell
-the right owner, but, at least, it can tell whether page is allocated or
-not, more correctly.
-
-On my testing, this patch catches 13343 early allocated pages, although
-they are mostly allocated from page extension feature.  Anyway, after
-then, there is no page left that it is allocated and has no page owner
-flag.
+There is no functional change.  This is the preparation step for support
+page owner feature accurately.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Mel Gorman <mgorman@suse.de>
@@ -70,133 +62,66 @@ Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |   93 +++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 91 insertions(+), 2 deletions(-)
+ mm/nommu.c |   33 +++++++++++----------------------
+ 1 file changed, 11 insertions(+), 22 deletions(-)
 
-diff -puN mm/page_owner.c~mm-page_owner-correct-owner-information-for-early-allocated-pages mm/page_owner.c
---- a/mm/page_owner.c~mm-page_owner-correct-owner-information-for-early-allocated-pages
-+++ a/mm/page_owner.c
-@@ -10,6 +10,8 @@
- static bool page_owner_disabled = true;
- bool page_owner_inited __read_mostly;
- 
-+static void init_early_allocated_pages(void);
-+
- static int early_page_owner_param(char *buf)
+diff -puN mm/nommu.c~mm-nommu-use-alloc_pages_exact-rather-than-its-own-implementation mm/nommu.c
+--- a/mm/nommu.c~mm-nommu-use-alloc_pages_exact-rather-than-its-own-implementation
++++ a/mm/nommu.c
+@@ -1149,8 +1149,7 @@ static int do_mmap_private(struct vm_are
+ 			   unsigned long len,
+ 			   unsigned long capabilities)
  {
- 	if (!buf)
-@@ -36,6 +38,7 @@ static void init_page_owner(void)
- 		return;
+-	struct page *pages;
+-	unsigned long total, point, n;
++	unsigned long total, point;
+ 	void *base;
+ 	int ret, order;
  
- 	page_owner_inited = true;
-+	init_early_allocated_pages();
- }
+@@ -1182,33 +1181,23 @@ static int do_mmap_private(struct vm_are
+ 	order = get_order(len);
+ 	kdebug("alloc order %d for %lx", order, len);
  
- struct page_ext_operations page_owner_ops = {
-@@ -184,8 +187,8 @@ read_page_owner(struct file *file, char 
- 		page_ext = lookup_page_ext(page);
+-	pages = alloc_pages(GFP_KERNEL, order);
+-	if (!pages)
+-		goto enomem;
+-
+ 	total = 1 << order;
+-	atomic_long_add(total, &mmap_pages_allocated);
+-
+ 	point = len >> PAGE_SHIFT;
  
- 		/*
--		 * Pages allocated before initialization of page_owner are
--		 * non-buddy and have no page_owner info.
-+		 * Some pages could be missed by concurrent allocation or free,
-+		 * because we don't hold the zone lock.
- 		 */
- 		if (!test_bit(PAGE_EXT_OWNER, &page_ext->flags))
- 			continue;
-@@ -199,6 +202,92 @@ read_page_owner(struct file *file, char 
- 	return 0;
- }
+-	/* we allocated a power-of-2 sized page set, so we may want to trim off
+-	 * the excess */
++	/* we don't want to allocate a power-of-2 sized page set */
+ 	if (sysctl_nr_trim_pages && total - point >= sysctl_nr_trim_pages) {
+-		while (total > point) {
+-			order = ilog2(total - point);
+-			n = 1 << order;
+-			kdebug("shave %lu/%lu @%lu", n, total - point, total);
+-			atomic_long_sub(n, &mmap_pages_allocated);
+-			total -= n;
+-			set_page_refcounted(pages + total);
+-			__free_pages(pages + total, order);
+-		}
++		total = point;
++		kdebug("try to alloc exact %lu pages", total);
++		base = alloc_pages_exact(len, GFP_KERNEL);
++	} else {
++		base = __get_free_pages(GFP_KERNEL, order);
+ 	}
  
-+static void init_pages_in_zone(pg_data_t *pgdat, struct zone *zone)
-+{
-+	struct page *page;
-+	struct page_ext *page_ext;
-+	unsigned long pfn = zone->zone_start_pfn, block_end_pfn;
-+	unsigned long end_pfn = pfn + zone->spanned_pages;
-+	unsigned long count = 0;
+-	for (point = 1; point < total; point++)
+-		set_page_refcounted(&pages[point]);
++	if (!base)
++		goto enomem;
 +
-+	/* Scan block by block. First and last block may be incomplete */
-+	pfn = zone->zone_start_pfn;
-+
-+	/*
-+	 * Walk the zone in pageblock_nr_pages steps. If a page block spans
-+	 * a zone boundary, it will be double counted between zones. This does
-+	 * not matter as the mixed block count will still be correct
-+	 */
-+	for (; pfn < end_pfn; ) {
-+		if (!pfn_valid(pfn)) {
-+			pfn = ALIGN(pfn + 1, MAX_ORDER_NR_PAGES);
-+			continue;
-+		}
-+
-+		block_end_pfn = ALIGN(pfn + 1, pageblock_nr_pages);
-+		block_end_pfn = min(block_end_pfn, end_pfn);
-+
-+		page = pfn_to_page(pfn);
-+
-+		for (; pfn < block_end_pfn; pfn++) {
-+			if (!pfn_valid_within(pfn))
-+				continue;
-+
-+			page = pfn_to_page(pfn);
-+
-+			/*
-+			 * We are safe to check buddy flag and order, because
-+			 * this is init stage and only single thread runs.
-+			 */
-+			if (PageBuddy(page)) {
-+				pfn += (1UL << page_order(page)) - 1;
-+				continue;
-+			}
-+
-+			if (PageReserved(page))
-+				continue;
-+
-+			page_ext = lookup_page_ext(page);
-+
-+			/* Maybe overraping zone */
-+			if (test_bit(PAGE_EXT_OWNER, &page_ext->flags))
-+				continue;
-+
-+			/* Found early allocated page */
-+			set_page_owner(page, 0, 0);
-+			count++;
-+		}
-+	}
-+
-+	pr_info("Node %d, zone %8s: page owner found early allocated %lu pages\n",
-+		pgdat->node_id, zone->name, count);
-+}
-+
-+static void init_zones_in_node(pg_data_t *pgdat)
-+{
-+	struct zone *zone;
-+	struct zone *node_zones = pgdat->node_zones;
-+	unsigned long flags;
-+
-+	for (zone = node_zones; zone - node_zones < MAX_NR_ZONES; ++zone) {
-+		if (!populated_zone(zone))
-+			continue;
-+
-+		spin_lock_irqsave(&zone->lock, flags);
-+		init_pages_in_zone(pgdat, zone);
-+		spin_unlock_irqrestore(&zone->lock, flags);
-+	}
-+}
-+
-+static void init_early_allocated_pages(void)
-+{
-+	pg_data_t *pgdat;
-+
-+	drain_all_pages(NULL);
-+	for_each_online_pgdat(pgdat)
-+		init_zones_in_node(pgdat);
-+}
-+
- static const struct file_operations proc_page_owner_operations = {
- 	.read		= read_page_owner,
- };
++	atomic_long_add(total, &mmap_pages_allocated);
+ 
+-	base = page_address(pages);
+ 	region->vm_flags = vma->vm_flags |= VM_MAPPED_COPY;
+ 	region->vm_start = (unsigned long) base;
+ 	region->vm_end   = region->vm_start + len;
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
