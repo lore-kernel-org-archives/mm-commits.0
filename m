@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- exit-reparent-fix-update-the-comments-in-zap_pid_ns_processes.patch added
- to -mm tree
-Date: Mon, 24 Nov 2014 13:21:31 -0800
-Message-ID: <5473a15b.NQa2KryfVwdBjSZt%akpm@linux-foundation.org>
+ exit-pidns-alloc_pid-leaks-pid_namespace-if-child_reaper-is-exiting.patch
+ added to -mm tree
+Date: Mon, 24 Nov 2014 13:21:33 -0800
+Message-ID: <5473a15d.F7Lu1RMkVzQEoUPe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55951 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55957 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750726AbaKXVVJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 24 Nov 2014 16:21:09 -0500
+	with ESMTP id S1750726AbaKXVVL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 24 Nov 2014 16:21:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@redhat.com, atomlin@redhat.com, ebiederm@xmission.com, serge.hallyn@ubuntu.com, stalexan@redhat.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: exit: reparent: fix/update the comments in zap_pid_ns_processes()
+     Subject: exit: pidns: alloc_pid() leaks pid_namespace if child_reaper is exiting
 has been added to the -mm tree.  Its filename is
-     exit-reparent-fix-update-the-comments-in-zap_pid_ns_processes.patch
+     exit-pidns-alloc_pid-leaks-pid_namespace-if-child_reaper-is-exiting.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/exit-reparent-fix-update-the-comments-in-zap_pid_ns_processes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/exit-pidns-alloc_pid-leaks-pid_namespace-if-child_reaper-is-exiting.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/exit-reparent-fix-update-the-comments-in-zap_pid_ns_processes.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/exit-pidns-alloc_pid-leaks-pid_namespace-if-child_reaper-is-exiting.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,21 +41,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: exit: reparent: fix/update the comments in zap_pid_ns_processes()
+Subject: exit: pidns: alloc_pid() leaks pid_namespace if child_reaper is exiting
 
-The comments in zap_pid_ns_processes() are simply wrong, we need
-to explain how this code actually works.
+alloc_pid() does get_pid_ns() beforehand but forgets to put_pid_ns() if it
+fails because disable_pid_allocation() was called by the exiting
+child_reaper.  We can move get_pid_ns() down to successful return.
 
-1. "Ignore SIGCHLD" looks like optimization but it is not, we also
-   need this for correctness.
-
-2. The comment above sys_wait4() could be more clear.
-
-3. The comment about TASK_DEAD children is outdated. Contrary to
-   what it says we do not need to make sure they all go away.
-
-   At the same time, we do need to wait for nr_hashed == init_pids,
-   but the reason is quite different and not obvious.
+While at it, simplify/cleanup the "goto out" mess, no need to confuse the
+success/error return paths.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Aaron Tomlin <atomlin@redhat.com>
@@ -66,55 +59,40 @@ Cc: Sterling Alexander <stalexan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/pid_namespace.c |   23 +++++++++++++++++++----
- 1 file changed, 19 insertions(+), 4 deletions(-)
+ kernel/pid.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN kernel/pid_namespace.c~exit-reparent-fix-update-the-comments-in-zap_pid_ns_processes kernel/pid_namespace.c
---- a/kernel/pid_namespace.c~exit-reparent-fix-update-the-comments-in-zap_pid_ns_processes
-+++ a/kernel/pid_namespace.c
-@@ -190,7 +190,11 @@ void zap_pid_ns_processes(struct pid_nam
- 	/* Don't allow any more processes into the pid namespace */
- 	disable_pid_allocation(pid_ns);
- 
--	/* Ignore SIGCHLD causing any terminated children to autoreap */
-+	/*
-+	 * Ignore SIGCHLD causing any terminated children to autoreap.
-+	 * This speeds up the namespace shutdown, plus see the comment
-+	 * below.
-+	 */
- 	spin_lock_irq(&me->sighand->siglock);
- 	me->sighand->action[SIGCHLD - 1].sa.sa_handler = SIG_IGN;
- 	spin_unlock_irq(&me->sighand->siglock);
-@@ -223,15 +227,26 @@ void zap_pid_ns_processes(struct pid_nam
+diff -puN kernel/pid.c~exit-pidns-alloc_pid-leaks-pid_namespace-if-child_reaper-is-exiting kernel/pid.c
+--- a/kernel/pid.c~exit-pidns-alloc_pid-leaks-pid_namespace-if-child_reaper-is-exiting
++++ a/kernel/pid.c
+@@ -320,7 +320,6 @@ struct pid *alloc_pid(struct pid_namespa
+ 			goto out_free;
  	}
- 	read_unlock(&tasklist_lock);
  
--	/* Firstly reap the EXIT_ZOMBIE children we may have. */
-+	/* Reap the EXIT_ZOMBIE children we had before we ignored SIGCHLD */
- 	do {
- 		clear_thread_flag(TIF_SIGPENDING);
- 		rc = sys_wait4(-1, NULL, __WALL, NULL);
- 	} while (rc != -ECHILD);
+-	get_pid_ns(ns);
+ 	atomic_set(&pid->count, 1);
+ 	for (type = 0; type < PIDTYPE_MAX; ++type)
+ 		INIT_HLIST_HEAD(&pid->tasks[type]);
+@@ -336,7 +335,7 @@ struct pid *alloc_pid(struct pid_namespa
+ 	}
+ 	spin_unlock_irq(&pidmap_lock);
  
- 	/*
--	 * sys_wait4() above can't reap the TASK_DEAD children.
--	 * Make sure they all go away, see free_pid().
-+	 * sys_wait4() above can't reap the TASK_DEAD children but we do not
-+	 * really care, we could reparent them to the global init. We could
-+	 * exit and reap ->child_reaper even if it is not the last thread in
-+	 * this pid_ns, free_pid(nr_hashed == 0) calls proc_cleanup_work(),
-+	 * pid_ns can not go away until proc_kill_sb() drops the reference.
-+	 *
-+	 * But this namespace can also have other tasks injected by setns().
-+	 * Again, we do not really need to wait until they are all reaped,
-+	 * but they can be reparented to us and thus we need to ensure that
-+	 * pid->child_reaper is valid until they all go away.
-+	 *
-+	 * We rely on ignored SIGCHLD, an injected zombie must be autoreaped
-+	 * if reparented.
- 	 */
- 	for (;;) {
- 		set_current_state(TASK_UNINTERRUPTIBLE);
+-out:
++	get_pid_ns(ns);
+ 	return pid;
+ 
+ out_unlock:
+@@ -346,8 +345,8 @@ out_free:
+ 		free_pidmap(pid->numbers + i);
+ 
+ 	kmem_cache_free(ns->pid_cachep, pid);
+-	pid = NULL;
+-	goto out;
++out:
++	return NULL;
+ }
+ 
+ void disable_pid_allocation(struct pid_namespace *ns)
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
