@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-nommu-use-alloc_pages_exact-rather-than-its-own-implementation.patch
- added to -mm tree
-Date: Mon, 24 Nov 2014 14:58:33 -0800
-Message-ID: <5473b819.RPa775nUN+StqMi6%akpm@linux-foundation.org>
+ stacktrace-introduce-snprint_stack_trace-for-buffer-output.patch added to
+ -mm tree
+Date: Mon, 24 Nov 2014 14:58:35 -0800
+Message-ID: <5473b81b.4u/RDmeZLlrMNLQS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56637 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56643 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751309AbaKXW6L (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 24 Nov 2014 17:58:11 -0500
+	with ESMTP id S1751345AbaKXW6N (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 24 Nov 2014 17:58:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: iamjoonsoo.kim@lge.com, dave@sr71.net, hannes@cmpxchg.org, jungsoo.son@lge.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/nommu: use alloc_pages_exact() rather than it's own implementation
+     Subject: stacktrace: introduce snprint_stack_trace for buffer output
 has been added to the -mm tree.  Its filename is
-     mm-nommu-use-alloc_pages_exact-rather-than-its-own-implementation.patch
+     stacktrace-introduce-snprint_stack_trace-for-buffer-output.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-nommu-use-alloc_pages_exact-rather-than-its-own-implementation.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/stacktrace-introduce-snprint_stack_trace-for-buffer-output.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/mm-nommu-use-alloc_pages_exact-rather-than-its-own-implementation.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/stacktrace-introduce-snprint_stack_trace-for-buffer-output.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,14 +41,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/nommu: use alloc_pages_exact() rather than it's own implementation
+Subject: stacktrace: introduce snprint_stack_trace for buffer output
 
-do_mmap_private() in nommu.c try to allocate physically contiguous pages
-with arbitrary size in some cases and we now have good abstract function
-to do exactly same thing, alloc_pages_exact().  So, change to use it.
-
-There is no functional change.  This is the preparation step for support
-page owner feature accurately.
+Current stacktrace only have the function for console output.  page_owner
+that will be introduced in following patch needs to print the output of
+stacktrace into the buffer for our own output format so so new function,
+snprint_stack_trace(), is needed.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Mel Gorman <mgorman@suse.de>
@@ -62,66 +60,81 @@ Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nommu.c |   33 +++++++++++----------------------
- 1 file changed, 11 insertions(+), 22 deletions(-)
+ include/linux/stacktrace.h |    5 +++++
+ kernel/stacktrace.c        |   32 ++++++++++++++++++++++++++++++++
+ 2 files changed, 37 insertions(+)
 
-diff -puN mm/nommu.c~mm-nommu-use-alloc_pages_exact-rather-than-its-own-implementation mm/nommu.c
---- a/mm/nommu.c~mm-nommu-use-alloc_pages_exact-rather-than-its-own-implementation
-+++ a/mm/nommu.c
-@@ -1149,8 +1149,7 @@ static int do_mmap_private(struct vm_are
- 			   unsigned long len,
- 			   unsigned long capabilities)
- {
--	struct page *pages;
--	unsigned long total, point, n;
-+	unsigned long total, point;
- 	void *base;
- 	int ret, order;
+diff -puN include/linux/stacktrace.h~stacktrace-introduce-snprint_stack_trace-for-buffer-output include/linux/stacktrace.h
+--- a/include/linux/stacktrace.h~stacktrace-introduce-snprint_stack_trace-for-buffer-output
++++ a/include/linux/stacktrace.h
+@@ -1,6 +1,8 @@
+ #ifndef __LINUX_STACKTRACE_H
+ #define __LINUX_STACKTRACE_H
  
-@@ -1182,33 +1181,23 @@ static int do_mmap_private(struct vm_are
- 	order = get_order(len);
- 	kdebug("alloc order %d for %lx", order, len);
- 
--	pages = alloc_pages(GFP_KERNEL, order);
--	if (!pages)
--		goto enomem;
--
- 	total = 1 << order;
--	atomic_long_add(total, &mmap_pages_allocated);
--
- 	point = len >> PAGE_SHIFT;
- 
--	/* we allocated a power-of-2 sized page set, so we may want to trim off
--	 * the excess */
-+	/* we don't want to allocate a power-of-2 sized page set */
- 	if (sysctl_nr_trim_pages && total - point >= sysctl_nr_trim_pages) {
--		while (total > point) {
--			order = ilog2(total - point);
--			n = 1 << order;
--			kdebug("shave %lu/%lu @%lu", n, total - point, total);
--			atomic_long_sub(n, &mmap_pages_allocated);
--			total -= n;
--			set_page_refcounted(pages + total);
--			__free_pages(pages + total, order);
--		}
-+		total = point;
-+		kdebug("try to alloc exact %lu pages", total);
-+		base = alloc_pages_exact(len, GFP_KERNEL);
-+	} else {
-+		base = __get_free_pages(GFP_KERNEL, order);
- 	}
- 
--	for (point = 1; point < total; point++)
--		set_page_refcounted(&pages[point]);
-+	if (!base)
-+		goto enomem;
++#include <linux/types.h>
 +
-+	atomic_long_add(total, &mmap_pages_allocated);
+ struct task_struct;
+ struct pt_regs;
  
--	base = page_address(pages);
- 	region->vm_flags = vma->vm_flags |= VM_MAPPED_COPY;
- 	region->vm_start = (unsigned long) base;
- 	region->vm_end   = region->vm_start + len;
+@@ -20,6 +22,8 @@ extern void save_stack_trace_tsk(struct 
+ 				struct stack_trace *trace);
+ 
+ extern void print_stack_trace(struct stack_trace *trace, int spaces);
++extern int snprint_stack_trace(char *buf, size_t size,
++			struct stack_trace *trace, int spaces);
+ 
+ #ifdef CONFIG_USER_STACKTRACE_SUPPORT
+ extern void save_stack_trace_user(struct stack_trace *trace);
+@@ -32,6 +36,7 @@ extern void save_stack_trace_user(struct
+ # define save_stack_trace_tsk(tsk, trace)		do { } while (0)
+ # define save_stack_trace_user(trace)			do { } while (0)
+ # define print_stack_trace(trace, spaces)		do { } while (0)
++# define snprint_stack_trace(buf, size, trace, spaces)	do { } while (0)
+ #endif
+ 
+ #endif
+diff -puN kernel/stacktrace.c~stacktrace-introduce-snprint_stack_trace-for-buffer-output kernel/stacktrace.c
+--- a/kernel/stacktrace.c~stacktrace-introduce-snprint_stack_trace-for-buffer-output
++++ a/kernel/stacktrace.c
+@@ -25,6 +25,38 @@ void print_stack_trace(struct stack_trac
+ }
+ EXPORT_SYMBOL_GPL(print_stack_trace);
+ 
++int snprint_stack_trace(char *buf, size_t size,
++			struct stack_trace *trace, int spaces)
++{
++	int i;
++	unsigned long ip;
++	int generated;
++	int total = 0;
++
++	if (WARN_ON(!trace->entries))
++		return 0;
++
++	for (i = 0; i < trace->nr_entries; i++) {
++		ip = trace->entries[i];
++		generated = snprintf(buf, size, "%*c[<%p>] %pS\n",
++				1 + spaces, ' ', (void *) ip, (void *) ip);
++
++		total += generated;
++
++		/* Assume that generated isn't a negative number */
++		if (generated >= size) {
++			buf += size;
++			size = 0;
++		} else {
++			buf += generated;
++			size -= generated;
++		}
++	}
++
++	return total;
++}
++EXPORT_SYMBOL_GPL(snprint_stack_trace);
++
+ /*
+  * Architectures that do not implement save_stack_trace_tsk or
+  * save_stack_trace_regs get this weak alias and a once-per-bootup warning
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
