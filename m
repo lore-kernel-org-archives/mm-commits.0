@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-zsmalloc-avoid-duplicate-assignment-of-prev_class.patch
- added to -mm tree
-Date: Mon, 24 Nov 2014 13:09:12 -0800
-Message-ID: <54739e78.FX5h0Hvrh4wSJYWQ%akpm@linux-foundation.org>
+Subject: +
+ exit-reparent-fix-update-the-comments-in-zap_pid_ns_processes.patch added
+ to -mm tree
+Date: Mon, 24 Nov 2014 13:21:31 -0800
+Message-ID: <5473a15b.NQa2KryfVwdBjSZt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55837 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55951 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750793AbaKXVIu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 24 Nov 2014 16:08:50 -0500
+	with ESMTP id S1750726AbaKXVVJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 24 Nov 2014 16:21:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: opensource.ganesh@gmail.com, ddstreet@ieee.org, iamjoonsoo.kim@lge.com, minchan@kernel.org, ngupta@vflare.org, mm-commits@vger.kernel.org
+To: oleg@redhat.com, atomlin@redhat.com, ebiederm@xmission.com, serge.hallyn@ubuntu.com, stalexan@redhat.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/zsmalloc: avoid duplicate assignment of prev_class
+     Subject: exit: reparent: fix/update the comments in zap_pid_ns_processes()
 has been added to the -mm tree.  Its filename is
-     mm-zsmalloc-avoid-duplicate-assignment-of-prev_class.patch
+     exit-reparent-fix-update-the-comments-in-zap_pid_ns_processes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-zsmalloc-avoid-duplicate-assignment-of-prev_class.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/exit-reparent-fix-update-the-comments-in-zap_pid_ns_processes.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/mm-zsmalloc-avoid-duplicate-assignment-of-prev_class.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/exit-reparent-fix-update-the-comments-in-zap_pid_ns_processes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,67 +40,123 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mahendran Ganesh <opensource.ganesh@gmail.com>
-Subject: mm/zsmalloc: avoid duplicate assignment of prev_class
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: exit: reparent: fix/update the comments in zap_pid_ns_processes()
 
-In zs_create_pool(), prev_class is assigned (ZS_SIZE_CLASSES - 1) times. 
-And the prev_class only references to the previous size_class.  So we do
-not need unnecessary assignement.
+The comments in zap_pid_ns_processes() are simply wrong, we need
+to explain how this code actually works.
 
-This patch assigns *prev_class* when a new size_class structure is
-allocated and uses prev_class to check whether the first class has been
-allocated.
+1. "Ignore SIGCHLD" looks like optimization but it is not, we also
+   need this for correctness.
 
-Signed-off-by: Mahendran Ganesh <opensource.ganesh@gmail.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Cc: Nitin Gupta <ngupta@vflare.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Dan Streetman <ddstreet@ieee.org>
+2. The comment above sys_wait4() could be more clear.
+
+3. The comment about TASK_DEAD children is outdated. Contrary to
+   what it says we do not need to make sure they all go away.
+
+   At the same time, we do need to wait for nr_hashed == init_pids,
+   but the reason is quite different and not obvious.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Aaron Tomlin <atomlin@redhat.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Serge Hallyn <serge.hallyn@ubuntu.com>
+Cc: Sterling Alexander <stalexan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ kernel/pid_namespace.c |   23 +++++++++++++++++++----
+ 1 file changed, 19 insertions(+), 4 deletions(-)
 
-diff -puN mm/zsmalloc.c~mm-zsmalloc-avoid-duplicate-assignment-of-prev_class mm/zsmalloc.c
---- a/mm/zsmalloc.c~mm-zsmalloc-avoid-duplicate-assignment-of-prev_class
-+++ a/mm/zsmalloc.c
-@@ -980,7 +980,7 @@ struct zs_pool *zs_create_pool(gfp_t fla
- 		int size;
- 		int pages_per_zspage;
- 		struct size_class *class;
--		struct size_class *prev_class;
-+		struct size_class *prev_class = NULL;
+diff -puN kernel/pid_namespace.c~exit-reparent-fix-update-the-comments-in-zap_pid_ns_processes kernel/pid_namespace.c
+--- a/kernel/pid_namespace.c~exit-reparent-fix-update-the-comments-in-zap_pid_ns_processes
++++ a/kernel/pid_namespace.c
+@@ -190,7 +190,11 @@ void zap_pid_ns_processes(struct pid_nam
+ 	/* Don't allow any more processes into the pid namespace */
+ 	disable_pid_allocation(pid_ns);
  
- 		size = ZS_MIN_ALLOC_SIZE + i * ZS_SIZE_CLASS_DELTA;
- 		if (size > ZS_MAX_ALLOC_SIZE)
-@@ -996,8 +996,7 @@ struct zs_pool *zs_create_pool(gfp_t fla
- 		 * characteristics. So, we makes size_class point to
- 		 * previous size_class if possible.
- 		 */
--		if (i < ZS_SIZE_CLASSES - 1) {
--			prev_class = pool->size_class[i + 1];
-+		if (prev_class) {
- 			if (can_merge(prev_class, size, pages_per_zspage)) {
- 				pool->size_class[i] = prev_class;
- 				continue;
-@@ -1013,6 +1012,8 @@ struct zs_pool *zs_create_pool(gfp_t fla
- 		class->pages_per_zspage = pages_per_zspage;
- 		spin_lock_init(&class->lock);
- 		pool->size_class[i] = class;
-+
-+		prev_class = class;
+-	/* Ignore SIGCHLD causing any terminated children to autoreap */
++	/*
++	 * Ignore SIGCHLD causing any terminated children to autoreap.
++	 * This speeds up the namespace shutdown, plus see the comment
++	 * below.
++	 */
+ 	spin_lock_irq(&me->sighand->siglock);
+ 	me->sighand->action[SIGCHLD - 1].sa.sa_handler = SIG_IGN;
+ 	spin_unlock_irq(&me->sighand->siglock);
+@@ -223,15 +227,26 @@ void zap_pid_ns_processes(struct pid_nam
  	}
+ 	read_unlock(&tasklist_lock);
  
- 	pool->flags = flags;
+-	/* Firstly reap the EXIT_ZOMBIE children we may have. */
++	/* Reap the EXIT_ZOMBIE children we had before we ignored SIGCHLD */
+ 	do {
+ 		clear_thread_flag(TIF_SIGPENDING);
+ 		rc = sys_wait4(-1, NULL, __WALL, NULL);
+ 	} while (rc != -ECHILD);
+ 
+ 	/*
+-	 * sys_wait4() above can't reap the TASK_DEAD children.
+-	 * Make sure they all go away, see free_pid().
++	 * sys_wait4() above can't reap the TASK_DEAD children but we do not
++	 * really care, we could reparent them to the global init. We could
++	 * exit and reap ->child_reaper even if it is not the last thread in
++	 * this pid_ns, free_pid(nr_hashed == 0) calls proc_cleanup_work(),
++	 * pid_ns can not go away until proc_kill_sb() drops the reference.
++	 *
++	 * But this namespace can also have other tasks injected by setns().
++	 * Again, we do not really need to wait until they are all reaped,
++	 * but they can be reparented to us and thus we need to ensure that
++	 * pid->child_reaper is valid until they all go away.
++	 *
++	 * We rely on ignored SIGCHLD, an injected zombie must be autoreaped
++	 * if reparented.
+ 	 */
+ 	for (;;) {
+ 		set_current_state(TASK_UNINTERRUPTIBLE);
 _
 
-Patches currently in -mm which might be from opensource.ganesh@gmail.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-zsmalloc-fix-zs_init-cpu-notifier-error-handling.patch
-zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix-2.patch
-zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix.patch
-mm-zsmalloc-avoid-duplicate-assignment-of-prev_class.patch
-mm-zram-correct-zram_zero-flag-bit-position.patch
-mm-zswap-add-__init-to-some-functions-in-zswap.patch
+mmfs-introduce-helpers-around-the-i_mmap_mutex.patch
+mm-use-new-helper-functions-around-the-i_mmap_mutex.patch
+mm-convert-i_mmap_mutex-to-rwsem.patch
+mm-rmap-share-the-i_mmap_rwsem.patch
+uprobes-share-the-i_mmap_rwsem.patch
+mm-xip-share-the-i_mmap_rwsem.patch
+mm-memory-failure-share-the-i_mmap_rwsem.patch
+mm-nommu-share-the-i_mmap_rwsem.patch
+mm-memoryc-share-the-i_mmap_rwsem.patch
+remove-unnecessary-is_valid_nodemask.patch
+proc-task_state-read-cred-group_info-outside-of-task_lock.patch
+proc-task_state-deuglify-the-max_fds-calculation.patch
+proc-task_state-move-the-main-seq_printf-outside-of-rcu_read_lock.patch
+proc-task_state-ptrace_parent-doesnt-need-pid_alive-check.patch
+sched_show_task-fix-unsafe-usage-of-real_parent.patch
+exit-reparent-use-ptrace_entry-rather-than-sibling-for-exit_dead-tasks.patch
+exit-reparent-cleanup-the-changing-of-parent.patch
+exit-reparent-cleanup-the-changing-of-parent-fix.patch
+exit-reparent-cleanup-the-usage-of-reparent_leader.patch
+exit-ptrace-shift-reap-dead-code-from-exit_ptrace-to-forget_original_parent.patch
+usermodehelper-dont-use-clone_vfork-for-____call_usermodehelper.patch
+usermodehelper-kill-the-kmod_thread_locker-logic.patch
+exit-wait-cleanup-the-ptrace_reparented-checks.patch
+exit-wait-cleanup-the-ptrace_reparented-checks-fix.patch
+exit-wait-dont-use-zombie-real_parent.patch
+exit-wait-drop-tasklist_lock-before-psig-c-accounting.patch
+exit-release_task-fix-the-comment-about-group-leader-accounting.patch
+exit-proc-dont-try-to-flush-proc-tgid-task-tgid.patch
+exit-reparent-fix-the-dead-parent-pr_set_child_subreaper-reparenting.patch
+exit-reparent-fix-the-cross-namespace-pr_set_child_subreaper-reparenting.patch
+exit-reparent-s-while_each_thread-for_each_thread-in-find_new_reaper.patch
+exit-reparent-document-the-has_child_subreaper-checks.patch
+exit-reparent-introduce-find_child_reaper.patch
+exit-reparent-introduce-find_alive_thread.patch
+exit-reparent-avoid-find_new_reaper-if-no-children.patch
+exit-reparent-call-forget_original_parent-under-tasklist_lock.patch
+exit-exit_notify-re-use-dead-list-to-autoreap-current.patch
+exit-reparent-fix-update-the-comments-in-zap_pid_ns_processes.patch
+exit-pidns-alloc_pid-leaks-pid_namespace-if-child_reaper-is-exiting.patch
+linux-next.patch
 
