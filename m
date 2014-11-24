@@ -1,111 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: + sparc-hook-up-execveat-system-call-v10.patch added to -mm tree
-Date: Mon, 24 Nov 2014 14:12:25 -0800
-Message-ID: <5473ad49.ixVlXaohvgEOUPnK%akpm@linux-foundation.org>
+Subject: [nacked]
+ exit-reparent-fix-update-the-comments-in-zap_pid_ns_processes-fix.patch
+ removed from -mm tree
+Date: Mon, 24 Nov 2014 14:21:44 -0800
+Message-ID: <5473af78.3r0WhQiQJmNcFwUP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56274 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56387 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750929AbaKXWMD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 24 Nov 2014 17:12:03 -0500
+	with ESMTP id S1751342AbaKXWVV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 24 Nov 2014 17:21:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: drysdale@google.com, davem@davemloft.net, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, oleg@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sparc-hook-up-execveat-system-call-v10
-has been added to the -mm tree.  Its filename is
-     sparc-hook-up-execveat-system-call-v10.patch
+     Subject: exit-reparent-fix-update-the-comments-in-zap_pid_ns_processes-fix
+has been removed from the -mm tree.  Its filename was
+     exit-reparent-fix-update-the-comments-in-zap_pid_ns_processes-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sparc-hook-up-execveat-system-call-v10.patch
-		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/sparc-hook-up-execveat-system-call-v10.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-From: David Drysdale <drysdale@google.com>
-Subject: sparc-hook-up-execveat-system-call-v10
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: exit-reparent-fix-update-the-comments-in-zap_pid_ns_processes-fix
 
-Add sparc syscall wrappers and use correct sparc 32b compatibility
-function [Stephen Rothwell, David S.  Miller]
+tweak comment, per Oleg
 
-Signed-off-by: David Drysdale <drysdale@google.com>
-Acked-by: David S. Miller <davem@davemloft.net>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/kernel/syscalls.S   |   10 ++++++++++
- arch/sparc/kernel/systbls_64.S |    4 ++--
- 2 files changed, 12 insertions(+), 2 deletions(-)
+ kernel/pid_namespace.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/sparc/kernel/syscalls.S~sparc-hook-up-execveat-system-call-v10 arch/sparc/kernel/syscalls.S
---- a/arch/sparc/kernel/syscalls.S~sparc-hook-up-execveat-system-call-v10
-+++ a/arch/sparc/kernel/syscalls.S
-@@ -6,6 +6,11 @@ sys64_execve:
- 	jmpl	%g1, %g0
- 	 flushw
- 
-+sys64_execveat:
-+	set	sys_execveat, %g1
-+	jmpl	%g1, %g0
-+	 flushw
-+
- #ifdef CONFIG_COMPAT
- sunos_execv:
- 	mov	%g0, %o2
-@@ -13,6 +18,11 @@ sys32_execve:
- 	set	compat_sys_execve, %g1
- 	jmpl	%g1, %g0
- 	 flushw
-+
-+sys32_execveat:
-+	set	compat_sys_execveat, %g1
-+	jmpl	%g1, %g0
-+	 flushw
- #endif
- 
- 	.align	32
-diff -puN arch/sparc/kernel/systbls_64.S~sparc-hook-up-execveat-system-call-v10 arch/sparc/kernel/systbls_64.S
---- a/arch/sparc/kernel/systbls_64.S~sparc-hook-up-execveat-system-call-v10
-+++ a/arch/sparc/kernel/systbls_64.S
-@@ -88,7 +88,7 @@ sys_call_table32:
- 	.word sys_syncfs, compat_sys_sendmmsg, sys_setns, compat_sys_process_vm_readv, compat_sys_process_vm_writev
- /*340*/	.word sys_kern_features, sys_kcmp, sys_finit_module, sys_sched_setattr, sys_sched_getattr
- 	.word sys32_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
--/*350*/	.word sys_execveat
-+/*350*/	.word sys32_execveat
- 
- #endif /* CONFIG_COMPAT */
- 
-@@ -168,4 +168,4 @@ sys_call_table:
- 	.word sys_syncfs, sys_sendmmsg, sys_setns, sys_process_vm_readv, sys_process_vm_writev
- /*340*/	.word sys_kern_features, sys_kcmp, sys_finit_module, sys_sched_setattr, sys_sched_getattr
- 	.word sys_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
--/*350*/	.word sys_execveat
-+/*350*/	.word sys64_execveat
+diff -puN kernel/pid_namespace.c~exit-reparent-fix-update-the-comments-in-zap_pid_ns_processes-fix kernel/pid_namespace.c
+--- a/kernel/pid_namespace.c~exit-reparent-fix-update-the-comments-in-zap_pid_ns_processes-fix
++++ a/kernel/pid_namespace.c
+@@ -240,10 +240,10 @@ void zap_pid_ns_processes(struct pid_nam
+ 	 * this pid_ns, free_pid(nr_hashed == 0) calls proc_cleanup_work(),
+ 	 * pid_ns can not go away until proc_kill_sb() drops the reference.
+ 	 *
+-	 * But this namespace can also have other tasks injected by setns().
+-	 * Again, we do not really need to wait until they are all reaped,
+-	 * but they can be reparented to us and thus we need to ensure that
+-	 * pid->child_reaper is valid until they all go away.
++	 * But this namespace can also have other tasks injected by setns() +
++	 * fork().  Again, we do not really need to wait until they are all
++	 * reaped, but they can be reparented to us and thus we need to ensure
++	 * that pid->child_reaper is valid until they all go away.
+ 	 *
+ 	 * We rely on ignored SIGCHLD, an injected zombie must be autoreaped
+ 	 * if reparented.
 _
 
-Patches currently in -mm which might be from drysdale@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-syscalls-implement-execveat-system-call.patch
-x86-hook-up-execveat-system-call.patch
-syscalls-add-selftest-for-execveat2.patch
-sparc-hook-up-execveat-system-call.patch
-sparc-hook-up-execveat-system-call-v10.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+mm-vmpressurec-fix-race-in-vmpressure_work_fn.patch
+mm-vmpressurec-fix-race-in-vmpressure_work_fn-fix.patch
+drivers-input-evdevc-dont-kfree-a-vmalloc-address.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
+ocfs2-free-inode-when-i_count-becomes-zero.patch
+ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
+mm.patch
+slab-improve-checking-for-invalid-gfp_flags.patch
+mm-memcontrol-lockless-page-counters-fix.patch
+mm-memcontrol-lockless-page-counters-fix-fix.patch
+kernel-res_counter-remove-the-unused-api-fix.patch
+mm-compaction-simplify-deferred-compaction-fix.patch
+mm-compaction-always-update-cached-scanner-positions-fix-checkpatch-fixes.patch
+mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
+mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix.patch
+mm-fix-huge-zero-page-accounting-in-smaps-report-fix-2-fix.patch
+mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
+mm-mincore-add-hwpoison-page-handle-checkpatch-fixes.patch
+mm-page_alloc-store-updated-page-migratetype-to-avoid-misusing-stale-value-fix.patch
+include-linux-kmemleakh-needs-slabh.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix-2.patch
+zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
+fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user.patch
+init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails-checkpatch-fixes.patch
+rtc-omap-add-support-for-pmic_power_en-v3-fix.patch
+drivers-rtc-rtc-sirfsocc-add-alarm_irq_enable-support-fix.patch
+exit-wait-cleanup-the-ptrace_reparented-checks-fix.patch
+sysctl-terminate-strings-also-on-r-fix.patch
+ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
+ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
+ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
+linux-next.patch
+linux-next-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mm-cma-make-kmemleak-ignore-cma-regions.patch
+lib-show_mem-this-patch-adds-cma-reserved-infromation-fix.patch
+tools-testing-selftests-makefile-alphasort-the-targets-list.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+debugging-keep-track-of-page-owners.patch
+debugging-keep-track-of-page-owners-fix.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
