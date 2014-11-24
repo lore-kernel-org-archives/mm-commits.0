@@ -1,114 +1,147 @@
 From: akpm@linux-foundation.org
 Subject: [nacked]
- exit-reparent-fix-update-the-comments-in-zap_pid_ns_processes-fix.patch
- removed from -mm tree
-Date: Mon, 24 Nov 2014 14:21:44 -0800
-Message-ID: <5473af78.3r0WhQiQJmNcFwUP%akpm@linux-foundation.org>
+ exit-reparent-fix-update-the-comments-in-zap_pid_ns_processes.patch removed from -mm tree
+Date: Mon, 24 Nov 2014 14:21:41 -0800
+Message-ID: <5473af75.vIl60BFu83RkhSpy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56387 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56382 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751342AbaKXWVV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 24 Nov 2014 17:21:21 -0500
+	with ESMTP id S1750791AbaKXWVT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 24 Nov 2014 17:21:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, oleg@redhat.com, mm-commits@vger.kernel.org
+To: oleg@redhat.com, atomlin@redhat.com, ebiederm@xmission.com, serge.hallyn@ubuntu.com, stalexan@redhat.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: exit-reparent-fix-update-the-comments-in-zap_pid_ns_processes-fix
+     Subject: exit: reparent: fix/update the comments in zap_pid_ns_processes()
 has been removed from the -mm tree.  Its filename was
-     exit-reparent-fix-update-the-comments-in-zap_pid_ns_processes-fix.patch
+     exit-reparent-fix-update-the-comments-in-zap_pid_ns_processes.patch
 
 This patch was dropped because it was nacked
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: exit-reparent-fix-update-the-comments-in-zap_pid_ns_processes-fix
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: exit: reparent: fix/update the comments in zap_pid_ns_processes()
 
-tweak comment, per Oleg
+The comments in zap_pid_ns_processes() are simply wrong, we need
+to explain how this code actually works.
 
-Cc: Oleg Nesterov <oleg@redhat.com>
+1. "Ignore SIGCHLD" looks like optimization but it is not, we also
+   need this for correctness.
+
+2. The comment above sys_wait4() could be more clear.
+
+3. The comment about TASK_DEAD children is outdated. Contrary to
+   what it says we do not need to make sure they all go away.
+
+   At the same time, we do need to wait for nr_hashed == init_pids,
+   but the reason is quite different and not obvious.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Aaron Tomlin <atomlin@redhat.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Serge Hallyn <serge.hallyn@ubuntu.com>
+Cc: Sterling Alexander <stalexan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/pid_namespace.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ kernel/pid_namespace.c |   23 +++++++++++++++++++----
+ 1 file changed, 19 insertions(+), 4 deletions(-)
 
-diff -puN kernel/pid_namespace.c~exit-reparent-fix-update-the-comments-in-zap_pid_ns_processes-fix kernel/pid_namespace.c
---- a/kernel/pid_namespace.c~exit-reparent-fix-update-the-comments-in-zap_pid_ns_processes-fix
+diff -puN kernel/pid_namespace.c~exit-reparent-fix-update-the-comments-in-zap_pid_ns_processes kernel/pid_namespace.c
+--- a/kernel/pid_namespace.c~exit-reparent-fix-update-the-comments-in-zap_pid_ns_processes
 +++ a/kernel/pid_namespace.c
-@@ -240,10 +240,10 @@ void zap_pid_ns_processes(struct pid_nam
- 	 * this pid_ns, free_pid(nr_hashed == 0) calls proc_cleanup_work(),
- 	 * pid_ns can not go away until proc_kill_sb() drops the reference.
- 	 *
--	 * But this namespace can also have other tasks injected by setns().
--	 * Again, we do not really need to wait until they are all reaped,
--	 * but they can be reparented to us and thus we need to ensure that
--	 * pid->child_reaper is valid until they all go away.
-+	 * But this namespace can also have other tasks injected by setns() +
-+	 * fork().  Again, we do not really need to wait until they are all
-+	 * reaped, but they can be reparented to us and thus we need to ensure
-+	 * that pid->child_reaper is valid until they all go away.
- 	 *
- 	 * We rely on ignored SIGCHLD, an injected zombie must be autoreaped
- 	 * if reparented.
+@@ -190,7 +190,11 @@ void zap_pid_ns_processes(struct pid_nam
+ 	/* Don't allow any more processes into the pid namespace */
+ 	disable_pid_allocation(pid_ns);
+ 
+-	/* Ignore SIGCHLD causing any terminated children to autoreap */
++	/*
++	 * Ignore SIGCHLD causing any terminated children to autoreap.
++	 * This speeds up the namespace shutdown, plus see the comment
++	 * below.
++	 */
+ 	spin_lock_irq(&me->sighand->siglock);
+ 	me->sighand->action[SIGCHLD - 1].sa.sa_handler = SIG_IGN;
+ 	spin_unlock_irq(&me->sighand->siglock);
+@@ -223,15 +227,26 @@ void zap_pid_ns_processes(struct pid_nam
+ 	}
+ 	read_unlock(&tasklist_lock);
+ 
+-	/* Firstly reap the EXIT_ZOMBIE children we may have. */
++	/* Reap the EXIT_ZOMBIE children we had before we ignored SIGCHLD */
+ 	do {
+ 		clear_thread_flag(TIF_SIGPENDING);
+ 		rc = sys_wait4(-1, NULL, __WALL, NULL);
+ 	} while (rc != -ECHILD);
+ 
+ 	/*
+-	 * sys_wait4() above can't reap the TASK_DEAD children.
+-	 * Make sure they all go away, see free_pid().
++	 * sys_wait4() above can't reap the TASK_DEAD children but we do not
++	 * really care, we could reparent them to the global init. We could
++	 * exit and reap ->child_reaper even if it is not the last thread in
++	 * this pid_ns, free_pid(nr_hashed == 0) calls proc_cleanup_work(),
++	 * pid_ns can not go away until proc_kill_sb() drops the reference.
++	 *
++	 * But this namespace can also have other tasks injected by setns().
++	 * Again, we do not really need to wait until they are all reaped,
++	 * but they can be reparented to us and thus we need to ensure that
++	 * pid->child_reaper is valid until they all go away.
++	 *
++	 * We rely on ignored SIGCHLD, an injected zombie must be autoreaped
++	 * if reparented.
+ 	 */
+ 	for (;;) {
+ 		set_current_state(TASK_UNINTERRUPTIBLE);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-mm-vmpressurec-fix-race-in-vmpressure_work_fn.patch
-mm-vmpressurec-fix-race-in-vmpressure_work_fn-fix.patch
-drivers-input-evdevc-dont-kfree-a-vmalloc-address.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
-ocfs2-free-inode-when-i_count-becomes-zero.patch
-ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
-mm.patch
-slab-improve-checking-for-invalid-gfp_flags.patch
-mm-memcontrol-lockless-page-counters-fix.patch
-mm-memcontrol-lockless-page-counters-fix-fix.patch
-kernel-res_counter-remove-the-unused-api-fix.patch
-mm-compaction-simplify-deferred-compaction-fix.patch
-mm-compaction-always-update-cached-scanner-positions-fix-checkpatch-fixes.patch
-mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
-mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix.patch
-mm-fix-huge-zero-page-accounting-in-smaps-report-fix-2-fix.patch
-mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
-mm-mincore-add-hwpoison-page-handle-checkpatch-fixes.patch
-mm-page_alloc-store-updated-page-migratetype-to-avoid-misusing-stale-value-fix.patch
-include-linux-kmemleakh-needs-slabh.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix-2.patch
-zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
-fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user.patch
-init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails-checkpatch-fixes.patch
-rtc-omap-add-support-for-pmic_power_en-v3-fix.patch
-drivers-rtc-rtc-sirfsocc-add-alarm_irq_enable-support-fix.patch
+mmfs-introduce-helpers-around-the-i_mmap_mutex.patch
+mm-use-new-helper-functions-around-the-i_mmap_mutex.patch
+mm-convert-i_mmap_mutex-to-rwsem.patch
+mm-rmap-share-the-i_mmap_rwsem.patch
+uprobes-share-the-i_mmap_rwsem.patch
+mm-xip-share-the-i_mmap_rwsem.patch
+mm-memory-failure-share-the-i_mmap_rwsem.patch
+mm-nommu-share-the-i_mmap_rwsem.patch
+mm-memoryc-share-the-i_mmap_rwsem.patch
+remove-unnecessary-is_valid_nodemask.patch
+proc-task_state-read-cred-group_info-outside-of-task_lock.patch
+proc-task_state-deuglify-the-max_fds-calculation.patch
+proc-task_state-move-the-main-seq_printf-outside-of-rcu_read_lock.patch
+proc-task_state-ptrace_parent-doesnt-need-pid_alive-check.patch
+sched_show_task-fix-unsafe-usage-of-real_parent.patch
+exit-reparent-use-ptrace_entry-rather-than-sibling-for-exit_dead-tasks.patch
+exit-reparent-cleanup-the-changing-of-parent.patch
+exit-reparent-cleanup-the-changing-of-parent-fix.patch
+exit-reparent-cleanup-the-usage-of-reparent_leader.patch
+exit-ptrace-shift-reap-dead-code-from-exit_ptrace-to-forget_original_parent.patch
+usermodehelper-dont-use-clone_vfork-for-____call_usermodehelper.patch
+usermodehelper-kill-the-kmod_thread_locker-logic.patch
+exit-wait-cleanup-the-ptrace_reparented-checks.patch
 exit-wait-cleanup-the-ptrace_reparented-checks-fix.patch
-sysctl-terminate-strings-also-on-r-fix.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
-ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
+exit-wait-dont-use-zombie-real_parent.patch
+exit-wait-drop-tasklist_lock-before-psig-c-accounting.patch
+exit-release_task-fix-the-comment-about-group-leader-accounting.patch
+exit-proc-dont-try-to-flush-proc-tgid-task-tgid.patch
+exit-reparent-fix-the-dead-parent-pr_set_child_subreaper-reparenting.patch
+exit-reparent-fix-the-cross-namespace-pr_set_child_subreaper-reparenting.patch
+exit-reparent-s-while_each_thread-for_each_thread-in-find_new_reaper.patch
+exit-reparent-document-the-has_child_subreaper-checks.patch
+exit-reparent-introduce-find_child_reaper.patch
+exit-reparent-introduce-find_alive_thread.patch
+exit-reparent-avoid-find_new_reaper-if-no-children.patch
+exit-reparent-call-forget_original_parent-under-tasklist_lock.patch
+exit-exit_notify-re-use-dead-list-to-autoreap-current.patch
+exit-reparent-fix-update-the-comments-in-zap_pid_ns_processes-fix.patch
+exit-pidns-alloc_pid-leaks-pid_namespace-if-child_reaper-is-exiting.patch
 linux-next.patch
-linux-next-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-cma-make-kmemleak-ignore-cma-regions.patch
-lib-show_mem-this-patch-adds-cma-reserved-infromation-fix.patch
-tools-testing-selftests-makefile-alphasort-the-targets-list.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-debugging-keep-track-of-page-owners.patch
-debugging-keep-track-of-page-owners-fix.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
 
