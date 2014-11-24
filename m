@@ -1,237 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: + mm-dont-split-thp-page-when-syscall-is-called.patch added to
- -mm tree
-Date: Fri, 21 Nov 2014 15:50:24 -0800
-Message-ID: <546fcfc0./zxmDA09Oukrz1CL%akpm@linux-foundation.org>
+Subject: [alternative-merged]
+ ipcsem-block-sem_lock-on-sma-lock-during-sma-initialization.patch removed
+ from -mm tree
+Date: Mon, 24 Nov 2014 12:46:30 -0800
+Message-ID: <54739926.vkPQa8lTddm+OH9I%akpm__25976.0150373497$1416861993$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58402 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55453 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751170AbaKUXuZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Nov 2014 18:50:25 -0500
+	with ESMTP id S1751160AbaKXUqJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 24 Nov 2014 15:46:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, mm-commits@vger.kernel.org
+To: riel@redhat.com, aquini@redhat.com, dave@stgolabs.net, manfred@colorfullife.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: don't split THP page when syscall is called
-has been added to the -mm tree.  Its filename is
-     mm-dont-split-thp-page-when-syscall-is-called.patch
+     Subject: ipc,sem block sem_lock on sma->lock during sma initialization
+has been removed from the -mm tree.  Its filename was
+     ipcsem-block-sem_lock-on-sma-lock-during-sma-initialization.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-dont-split-thp-page-when-syscall-is-called.patch
-		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/mm-dont-split-thp-page-when-syscall-is-called.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm: don't split THP page when syscall is called
+From: Rik van Riel <riel@redhat.com>
+Subject: ipc,sem block sem_lock on sma->lock during sma initialization
 
-We don't need to split THP page when MADV_FREE syscall is called.  It
-could be done when VM decide really frees it so we could avoid unnecessary
-THP split.
+When manipulating just one semaphore with semop, sem_lock only takes that
+single semaphore's lock.  This creates a problem during initialization of
+the semaphore array, when the data structures used by sem_lock have not
+been set up yet.  The sma->lock is already held by newary, and we just
+have to make sure everything else waits on that lock during
+initialization.
 
-Signed-off-by: Minchan Kim <minchan@kernel.org>
+Luckily it is easy to make sem_lock wait on the sma->lock, by pretending
+there is a complex operation in progress while the sma is being
+initialized.
+
+The newary function already zeroes sma->complex_count before unlocking the
+sma->lock.
+
+The reason the bug took almost two years to get noticed is that it takes
+one task doing a semop on a semaphore in an array that is still getting
+instantiated by newary (getsem) from another task.  This results in a NULL
+pointer dereference in spin_lock() from sem_lock().
+
+In other words, if you try to use a semaphore array before getsem returns,
+you can oops the task that calls semop.
+
+It should not cause any damage to long-living kernel data structures.
+
+Signed-off-by: Rik van Riel <riel@redhat.com>
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Acked-by: Rafael Aquini <aquini@redhat.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    4 ++++
- mm/huge_memory.c        |   35 +++++++++++++++++++++++++++++++++++
- mm/madvise.c            |   21 ++++++++++++++++++++-
- mm/rmap.c               |    8 ++++++--
- mm/vmscan.c             |   28 ++++++++++++++++++----------
- 5 files changed, 83 insertions(+), 13 deletions(-)
+ ipc/sem.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN include/linux/huge_mm.h~mm-dont-split-thp-page-when-syscall-is-called include/linux/huge_mm.h
---- a/include/linux/huge_mm.h~mm-dont-split-thp-page-when-syscall-is-called
-+++ a/include/linux/huge_mm.h
-@@ -19,6 +19,9 @@ extern struct page *follow_trans_huge_pm
- 					  unsigned long addr,
- 					  pmd_t *pmd,
- 					  unsigned int flags);
-+extern int madvise_free_huge_pmd(struct mmu_gather *tlb,
-+			struct vm_area_struct *vma,
-+			pmd_t *pmd, unsigned long addr);
- extern int zap_huge_pmd(struct mmu_gather *tlb,
- 			struct vm_area_struct *vma,
- 			pmd_t *pmd, unsigned long addr);
-@@ -56,6 +59,7 @@ extern pmd_t *page_check_address_pmd(str
- 				     unsigned long address,
- 				     enum page_check_address_pmd_flag flag,
- 				     spinlock_t **ptl);
-+extern int pmd_freeable(pmd_t pmd);
- 
- #define HPAGE_PMD_ORDER (HPAGE_PMD_SHIFT-PAGE_SHIFT)
- #define HPAGE_PMD_NR (1<<HPAGE_PMD_ORDER)
-diff -puN mm/huge_memory.c~mm-dont-split-thp-page-when-syscall-is-called mm/huge_memory.c
---- a/mm/huge_memory.c~mm-dont-split-thp-page-when-syscall-is-called
-+++ a/mm/huge_memory.c
-@@ -1383,6 +1383,36 @@ out:
- 	return 0;
- }
- 
-+int madvise_free_huge_pmd(struct mmu_gather *tlb, struct vm_area_struct *vma,
-+		 pmd_t *pmd, unsigned long addr)
-+
-+{
-+	spinlock_t *ptl;
-+	struct mm_struct *mm = tlb->mm;
-+	int ret = 1;
-+
-+	if (pmd_trans_huge_lock(pmd, vma, &ptl) == 1) {
-+		struct page *page;
-+		pmd_t orig_pmd;
-+
-+		orig_pmd = pmdp_get_and_clear(mm, addr, pmd);
-+
-+		/* No hugepage in swapcache */
-+		page = pmd_page(orig_pmd);
-+		VM_BUG_ON_PAGE(PageSwapCache(page), page);
-+
-+		orig_pmd = pmd_mkold(orig_pmd);
-+		orig_pmd = pmd_mkclean(orig_pmd);
-+
-+		set_pmd_at(mm, addr, pmd, orig_pmd);
-+		tlb_remove_pmd_tlb_entry(tlb, pmd, addr);
-+		spin_unlock(ptl);
-+		ret = 0;
-+	}
-+
-+	return ret;
-+}
-+
- int zap_huge_pmd(struct mmu_gather *tlb, struct vm_area_struct *vma,
- 		 pmd_t *pmd, unsigned long addr)
- {
-@@ -1619,6 +1649,11 @@ unlock:
- 	return NULL;
- }
- 
-+int pmd_freeable(pmd_t pmd)
-+{
-+	return !pmd_dirty(pmd);
-+}
-+
- static int __split_huge_page_splitting(struct page *page,
- 				       struct vm_area_struct *vma,
- 				       unsigned long address)
-diff -puN mm/madvise.c~mm-dont-split-thp-page-when-syscall-is-called mm/madvise.c
---- a/mm/madvise.c~mm-dont-split-thp-page-when-syscall-is-called
-+++ a/mm/madvise.c
-@@ -271,8 +271,26 @@ static int madvise_free_pte_range(pmd_t
- 	spinlock_t *ptl;
- 	pte_t *pte, ptent;
- 	struct page *page;
-+	unsigned long next;
-+
-+	next = pmd_addr_end(addr, end);
-+	if (pmd_trans_huge(*pmd)) {
-+		if (next - addr != HPAGE_PMD_SIZE) {
-+#ifdef CONFIG_DEBUG_VM
-+			if (!rwsem_is_locked(&mm->mmap_sem)) {
-+				pr_err("%s: mmap_sem is unlocked! addr=0x%lx end=0x%lx vma->vm_start=0x%lx vma->vm_end=0x%lx\n",
-+					__func__, addr, end,
-+					vma->vm_start,
-+					vma->vm_end);
-+				BUG();
-+			}
-+#endif
-+			split_huge_page_pmd(vma, addr, pmd);
-+		} else if (!madvise_free_huge_pmd(tlb, vma, pmd, addr))
-+			goto next;
-+		/* fall through */
-+	}
- 
--	split_huge_page_pmd(vma, addr, pmd);
- 	if (pmd_trans_unstable(pmd))
- 		return 0;
- 
-@@ -316,6 +334,7 @@ static int madvise_free_pte_range(pmd_t
+diff -puN ipc/sem.c~ipcsem-block-sem_lock-on-sma-lock-during-sma-initialization ipc/sem.c
+--- a/ipc/sem.c~ipcsem-block-sem_lock-on-sma-lock-during-sma-initialization
++++ a/ipc/sem.c
+@@ -507,6 +507,9 @@ static int newary(struct ipc_namespace *
+ 		return retval;
  	}
- 	arch_leave_lazy_mmu_mode();
- 	pte_unmap_unlock(pte - 1, ptl);
-+next:
- 	cond_resched();
- 	return 0;
- }
-diff -puN mm/rmap.c~mm-dont-split-thp-page-when-syscall-is-called mm/rmap.c
---- a/mm/rmap.c~mm-dont-split-thp-page-when-syscall-is-called
-+++ a/mm/rmap.c
-@@ -704,9 +704,13 @@ static int page_referenced_one(struct pa
- 			referenced++;
  
- 		/*
--		 * In this implmentation, MADV_FREE doesn't support THP free
-+		 * Use pmd_freeable instead of raw pmd_dirty because in some
-+		 * of architecture, pmd_dirty is not defined unless
-+		 * CONFIG_TRANSPARNTE_HUGE is enabled
- 		 */
--		dirty++;
-+		if (!pmd_freeable(*pmd))
-+			dirty++;
++	/* Ensures sem_lock waits on &sma->lock until sma is ready. */
++	sma->complex_count = 1;
 +
- 		spin_unlock(ptl);
- 	} else {
- 		pte_t *pte;
-diff -puN mm/vmscan.c~mm-dont-split-thp-page-when-syscall-is-called mm/vmscan.c
---- a/mm/vmscan.c~mm-dont-split-thp-page-when-syscall-is-called
-+++ a/mm/vmscan.c
-@@ -976,17 +976,25 @@ static unsigned long shrink_page_list(st
- 		 * Anonymous process memory has backing store?
- 		 * Try to allocate it some swap space here.
- 		 */
--		if (PageAnon(page) && !PageSwapCache(page) && !freeable) {
--			if (!(sc->gfp_mask & __GFP_IO))
--				goto keep_locked;
--			if (!add_to_swap(page, page_list))
--				goto activate_locked;
--			may_enter_fs = 1;
--
--			/* Adding to swap updated mapping */
--			mapping = page_mapping(page);
-+		if (PageAnon(page) && !PageSwapCache(page)) {
-+			if (!freeable) {
-+				if (!(sc->gfp_mask & __GFP_IO))
-+					goto keep_locked;
-+				if (!add_to_swap(page, page_list))
-+					goto activate_locked;
-+				may_enter_fs = 1;
-+				/* Adding to swap updated mapping */
-+				mapping = page_mapping(page);
-+			} else {
-+				if (likely(!PageTransHuge(page)))
-+					goto unmap;
-+				/* try_to_unmap isn't aware of THP page */
-+				if (unlikely(split_huge_page_to_list(page,
-+								page_list)))
-+					goto keep_locked;
-+			}
- 		}
--
-+unmap:
- 		/*
- 		 * The page is mapped into the page tables of one or more
- 		 * processes. Try to unmap it here.
+ 	id = ipc_addid(&sem_ids(ns), &sma->sem_perm, ns->sc_semmni);
+ 	if (id < 0) {
+ 		ipc_rcu_putref(sma, sem_rcu_free);
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from riel@redhat.com are
 
-mm-frontswap-invalidate-expired-data-on-a-dup-store-failure.patch
+mm-do-not-overwrite-reserved-pages-counter-at-show_mem.patch
+mm-introduce-single-zone-pcplists-drain.patch
+mm-page_isolation-drain-single-zone-pcplists.patch
+mm-cma-drain-single-zone-pcplists.patch
+mm-memory_hotplug-failure-drain-single-zone-pcplists.patch
 mm-compaction-pass-classzone_idx-and-alloc_flags-to-watermark-checking.patch
 mm-compaction-pass-classzone_idx-and-alloc_flags-to-watermark-checking-fix.patch
 mm-compaction-simplify-deferred-compaction.patch
@@ -240,30 +94,29 @@ mm-compaction-always-update-cached-scanner-positions.patch
 mm-compaction-always-update-cached-scanner-positions-fix.patch
 mm-compaction-more-focused-lru-and-pcplists-draining.patch
 mm-compaction-more-focused-lru-and-pcplists-draining-fix.patch
-mm-page_isolation-check-pfn-validity-before-access.patch
+mm-fix-a-spelling-mistake.patch
+mmfs-introduce-helpers-around-the-i_mmap_mutex.patch
+mm-use-new-helper-functions-around-the-i_mmap_mutex.patch
+mm-convert-i_mmap_mutex-to-rwsem.patch
+mm-rmap-share-the-i_mmap_rwsem.patch
+uprobes-share-the-i_mmap_rwsem.patch
+mm-xip-share-the-i_mmap_rwsem.patch
+mm-memory-failure-share-the-i_mmap_rwsem.patch
+mm-nommu-share-the-i_mmap_rwsem.patch
+mm-memoryc-share-the-i_mmap_rwsem.patch
+mm-mincore-add-hwpoison-page-handle.patch
+hugetlb-fix-hugepages=-entry-in-kernel-parameterstxt.patch
+hugetlb-alloc_bootmem_huge_page-use-is_aligned.patch
+hugetlb-hugetlb_register_all_nodes-add-__init-marker.patch
 mm-page_alloc-store-updated-page-migratetype-to-avoid-misusing-stale-value.patch
 mm-page_alloc-store-updated-page-migratetype-to-avoid-misusing-stale-value-fix.patch
-mm-support-madvisemadv_free.patch
-x86-add-pmd_-for-thp.patch
-sparc-add-pmd_-for-thp.patch
-powerpc-add-pmd_-for-thp.patch
-arm-add-pmd_mkclean-for-thp.patch
-arm64-add-pmd_-for-thp.patch
-mm-dont-split-thp-page-when-syscall-is-called.patch
-zsmalloc-merge-size_class-to-reduce-fragmentation.patch
-zram-remove-bio-parameter-from-zram_bvec_rw.patch
-zram-change-parameter-from-vaild_io_request.patch
-zram-implement-rw_page-operation-of-zram.patch
-zram-implement-rw_page-operation-of-zram-fix.patch
-zram-implement-rw_page-operation-of-zram-fix-2.patch
-zram-implement-rw_page-operation-of-zram-fix-2-cleanup.patch
-zram-implement-rw_page-operation-of-zram-fix-3.patch
-zsmalloc-fix-zs_init-cpu-notifier-error-handling.patch
-zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix-2.patch
-zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix.patch
-zsmalloc-correct-fragile-_atomic-use.patch
-mm-zram-correct-zram_zero-flag-bit-position.patch
-mm-zswap-add-__init-to-some-functions-in-zswap.patch
-debugging-keep-track-of-page-owners.patch
-page-owners-correct-page-order-when-to-free-page.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+exit-wait-cleanup-the-ptrace_reparented-checks.patch
+exit-wait-cleanup-the-ptrace_reparented-checks-fix.patch
+exit-wait-dont-use-zombie-real_parent.patch
+exit-wait-drop-tasklist_lock-before-psig-c-accounting.patch
+exit-release_task-fix-the-comment-about-group-leader-accounting.patch
+exit-proc-dont-try-to-flush-proc-tgid-task-tgid.patch
+linux-next.patch
 
