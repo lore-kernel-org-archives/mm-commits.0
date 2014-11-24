@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-add-new-page_owner-document.patch added to -mm
- tree
-Date: Mon, 24 Nov 2014 14:58:43 -0800
-Message-ID: <5473b823.0sBZoJpZ3b4uE97k%akpm@linux-foundation.org>
+Subject: +
+ mm-page_owner-correct-owner-information-for-early-allocated-pages.patch
+ added to -mm tree
+Date: Mon, 24 Nov 2014 14:58:41 -0800
+Message-ID: <5473b821.YZg9jOeZ7SVZXbJ0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56669 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56661 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750774AbaKXW6V (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 24 Nov 2014 17:58:21 -0500
+	with ESMTP id S1751342AbaKXW6T (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 24 Nov 2014 17:58:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: iamjoonsoo.kim@lge.com, dave@sr71.net, hannes@cmpxchg.org, jungsoo.son@lge.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Documentation: add new page_owner document
+     Subject: mm/page_owner: correct owner information for early allocated pages
 has been added to the -mm tree.  Its filename is
-     documentation-add-new-page_owner-document.patch
+     mm-page_owner-correct-owner-information-for-early-allocated-pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/documentation-add-new-page_owner-document.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_owner-correct-owner-information-for-early-allocated-pages.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/documentation-add-new-page_owner-document.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_owner-correct-owner-information-for-early-allocated-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,12 +41,22 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: Documentation: add new page_owner document
+Subject: mm/page_owner: correct owner information for early allocated pages
 
-page owner is for the tracking about who allocated each page.  This
-document explains what is the page owner feature and what is the merit of
-it.  And, simple HOW-TO is also explained.  See the document for detailed
-information.
+Extended memory to store page owner information is initialized some time
+later than that page allocator starts.  Until initialization, many pages
+can be allocated and they have no owner information.  This make debugging
+using page owner harder, so some fixup will be helpful.
+
+This patch fixes up this situation by setting fake owner information
+immediately after page extension is initialized.  Information doesn't tell
+the right owner, but, at least, it can tell whether page is allocated or
+not, more correctly.
+
+On my testing, this patch catches 13343 early allocated pages, although
+they are mostly allocated from page extension feature.  Anyway, after
+then, there is no page left that it is allocated and has no page owner
+flag.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Mel Gorman <mgorman@suse.de>
@@ -59,94 +70,133 @@ Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/page_owner.txt |   81 ++++++++++++++++++++++++++++++
- 1 file changed, 81 insertions(+)
+ mm/page_owner.c |   93 +++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 91 insertions(+), 2 deletions(-)
 
-diff -puN /dev/null Documentation/vm/page_owner.txt
---- /dev/null
-+++ a/Documentation/vm/page_owner.txt
-@@ -0,0 +1,81 @@
-+page owner: Tracking about who allocated each page
-+-----------------------------------------------------------
+diff -puN mm/page_owner.c~mm-page_owner-correct-owner-information-for-early-allocated-pages mm/page_owner.c
+--- a/mm/page_owner.c~mm-page_owner-correct-owner-information-for-early-allocated-pages
++++ a/mm/page_owner.c
+@@ -10,6 +10,8 @@
+ static bool page_owner_disabled = true;
+ bool page_owner_inited __read_mostly;
+ 
++static void init_early_allocated_pages(void);
 +
-+* Introduction
+ static int early_page_owner_param(char *buf)
+ {
+ 	if (!buf)
+@@ -36,6 +38,7 @@ static void init_page_owner(void)
+ 		return;
+ 
+ 	page_owner_inited = true;
++	init_early_allocated_pages();
+ }
+ 
+ struct page_ext_operations page_owner_ops = {
+@@ -184,8 +187,8 @@ read_page_owner(struct file *file, char 
+ 		page_ext = lookup_page_ext(page);
+ 
+ 		/*
+-		 * Pages allocated before initialization of page_owner are
+-		 * non-buddy and have no page_owner info.
++		 * Some pages could be missed by concurrent allocation or free,
++		 * because we don't hold the zone lock.
+ 		 */
+ 		if (!test_bit(PAGE_EXT_OWNER, &page_ext->flags))
+ 			continue;
+@@ -199,6 +202,92 @@ read_page_owner(struct file *file, char 
+ 	return 0;
+ }
+ 
++static void init_pages_in_zone(pg_data_t *pgdat, struct zone *zone)
++{
++	struct page *page;
++	struct page_ext *page_ext;
++	unsigned long pfn = zone->zone_start_pfn, block_end_pfn;
++	unsigned long end_pfn = pfn + zone->spanned_pages;
++	unsigned long count = 0;
 +
-+page owner is for the tracking about who allocated each page.
-+It can be used to debug memory leak or to find a memory hogger.
-+When allocation happens, information about allocation such as call stack
-+and order of pages is stored into certain storage for each page.
-+When we need to know about status of all pages, we can get and analyze
-+this information.
++	/* Scan block by block. First and last block may be incomplete */
++	pfn = zone->zone_start_pfn;
 +
-+Although we already have tracepoint for tracing page allocation/free,
-+using it for analyzing who allocate each page is rather complex. We need
-+to enlarge the trace buffer for preventing overlapping until userspace
-+program launched. And, launched program continually dump out the trace
-+buffer for later analysis and it would change system behviour with more
-+possibility rather than just keeping it in memory, so bad for debugging.
++	/*
++	 * Walk the zone in pageblock_nr_pages steps. If a page block spans
++	 * a zone boundary, it will be double counted between zones. This does
++	 * not matter as the mixed block count will still be correct
++	 */
++	for (; pfn < end_pfn; ) {
++		if (!pfn_valid(pfn)) {
++			pfn = ALIGN(pfn + 1, MAX_ORDER_NR_PAGES);
++			continue;
++		}
 +
-+page owner can also be used for various purposes. For example, accurate
-+fragmentation statistics can be obtained through gfp flag information of
-+each page. It is already implemented and activated if page owner is
-+enabled. Other usages are more than welcome.
++		block_end_pfn = ALIGN(pfn + 1, pageblock_nr_pages);
++		block_end_pfn = min(block_end_pfn, end_pfn);
 +
-+page owner is disabled in default. So, if you'd like to use it, you need
-+to add "page_owner=on" into your boot cmdline. If the kernel is built
-+with page owner and page owner is disabled in runtime due to no enabling
-+boot option, runtime overhead is marginal. If disabled in runtime, it
-+doesn't require memory to store owner information, so there is no runtime
-+memory overhead. And, page owner inserts just two unlikely branches into
-+the page allocator hotpath and if it returns false then allocation is
-+done like as the kernel without page owner. These two unlikely branches
-+would not affect to allocation performance. Following is the kernel's
-+code size change due to this facility.
++		page = pfn_to_page(pfn);
 +
-+- Without page owner
-+   text    data     bss     dec     hex filename
-+  40662    1493     644   42799    a72f mm/page_alloc.o
++		for (; pfn < block_end_pfn; pfn++) {
++			if (!pfn_valid_within(pfn))
++				continue;
 +
-+- With page owner
-+   text    data     bss     dec     hex filename
-+  40892    1493     644   43029    a815 mm/page_alloc.o
-+   1427      24       8    1459     5b3 mm/page_ext.o
-+   2722      50       0    2772     ad4 mm/page_owner.o
++			page = pfn_to_page(pfn);
 +
-+Although, roughly, 4 KB code is added in total, page_alloc.o increase by
-+230 bytes and only half of it is in hotpath. Building the kernel with
-+page owner and turning it on if needed would be great option to debug
-+kernel memory problem.
++			/*
++			 * We are safe to check buddy flag and order, because
++			 * this is init stage and only single thread runs.
++			 */
++			if (PageBuddy(page)) {
++				pfn += (1UL << page_order(page)) - 1;
++				continue;
++			}
 +
-+There is one notice that is caused by implementation detail. page owner
-+stores information into the memory from struct page extension. This memory
-+is initialized some time later than that page allocator starts in sparse
-+memory system, so, until initialization, many pages can be allocated and
-+they would have no owner information. To fix it up, these early allocated
-+pages are investigated and marked as allocated in initialization phase.
-+Although it doesn't mean that they have the right owner information,
-+at least, we can tell whether the page is allocated or not,
-+more accurately. On 2GB memory x86-64 VM box, 13343 early allocated pages
-+are catched and marked, although they are mostly allocated from struct
-+page extension feature. Anyway, after that, no page is left in
-+un-tracking state.
++			if (PageReserved(page))
++				continue;
 +
-+* Usage
++			page_ext = lookup_page_ext(page);
 +
-+1) Build user-space helper
-+	cd tools/vm
-+	make page_owner_sort
++			/* Maybe overraping zone */
++			if (test_bit(PAGE_EXT_OWNER, &page_ext->flags))
++				continue;
 +
-+2) Enable page owner
-+	Add "page_owner=on" to boot cmdline.
++			/* Found early allocated page */
++			set_page_owner(page, 0, 0);
++			count++;
++		}
++	}
 +
-+3) Do the job what you want to debug
++	pr_info("Node %d, zone %8s: page owner found early allocated %lu pages\n",
++		pgdat->node_id, zone->name, count);
++}
 +
-+4) Analyze information from page owner
-+	cat /sys/kernel/debug/page_owner > page_owner_full.txt
-+	grep -v ^PFN page_owner_full.txt > page_owner.txt
-+	./page_owner_sort page_owner.txt sorted_page_owner.txt
++static void init_zones_in_node(pg_data_t *pgdat)
++{
++	struct zone *zone;
++	struct zone *node_zones = pgdat->node_zones;
++	unsigned long flags;
 +
-+	See the result about who allocated each page
-+	in the sorted_page_owner.txt.
++	for (zone = node_zones; zone - node_zones < MAX_NR_ZONES; ++zone) {
++		if (!populated_zone(zone))
++			continue;
++
++		spin_lock_irqsave(&zone->lock, flags);
++		init_pages_in_zone(pgdat, zone);
++		spin_unlock_irqrestore(&zone->lock, flags);
++	}
++}
++
++static void init_early_allocated_pages(void)
++{
++	pg_data_t *pgdat;
++
++	drain_all_pages(NULL);
++	for_each_online_pgdat(pgdat)
++		init_zones_in_node(pgdat);
++}
++
+ static const struct file_operations proc_page_owner_operations = {
+ 	.read		= read_page_owner,
+ };
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
