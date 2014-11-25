@@ -1,32 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-isl12057-add-support-for-century-bit.patch added to -mm tree
-Date: Tue, 25 Nov 2014 13:30:27 -0800
-Message-ID: <5474f4f3.mMGx6Rx38ubX0iMh%akpm@linux-foundation.org>
+Subject: + rtc-rtc-isl12057-fix-isil-vs-isl-naming-for-intersil.patch
+ added to -mm tree
+Date: Tue, 25 Nov 2014 13:30:31 -0800
+Message-ID: <5474f4f7.EmSmd523vUJWKS1w%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50011 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50029 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750782AbaKYVa3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Nov 2014 16:30:29 -0500
+	with ESMTP id S1751071AbaKYVac (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Nov 2014 16:30:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: arno@natisbad.org, a.zummo@towertech.it, broonie@kernel.org, grant.likely@linaro.org, linus.walleij@linaro.org, mark.rutland@arm.com, peter.huewe@infineon.com, treding@nvidia.com, uwe@kleine-koenig.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-isl12057.c: add support for century bit
+     Subject: drivers/rtc/rtc-isl12057.c: fix isil vs isl naming for in=
+tersil
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-isl12057-add-support-for-century-bit.patch
+     rtc-rtc-isl12057-fix-isil-vs-isl-naming-for-intersil.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rtc-rtc-isl12057-add-suppo=
-rt-for-century-bit.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rtc-rtc-isl12057-fix-isil-=
+vs-isl-naming-for-intersil.patch
 		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/rtc-rtc-isl12057-add-s=
-upport-for-century-bit.patch
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/rtc-rtc-isl12057-fix-i=
+sil-vs-isl-naming-for-intersil.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,24 +44,27 @@ there every 3-4 working days
 
 ------------------------------------------------------
 =46rom: Arnaud Ebalard <arno@natisbad.org>
-Subject: drivers/rtc/rtc-isl12057.c: add support for century bit
+Subject: drivers/rtc/rtc-isl12057.c: fix isil vs isl naming for intersi=
+l
 
-The month register of ISL12057 RTC chip includes a century bit which
-reports overflow of year register from 99 to 0.  This bit can also be
-written, which allows using it to extend the time interval the chip can
-support from 99 to 199 years.
+When Intersil ISL12057 driver was introduced by commit 70e123373c05 ("r=
+tc:
+Add support for Intersil ISL12057 I2C RTC chip"), the vendor prefix 'is=
+l'
+was used instead of the expected 'isil' (Intersil NASDAQ symbol).=20
+Recently, a patch from Philip Zabel (7a6540ca856a, "ARM: mvebu: Change
+vendor prefix for Intersil Corporation to isil") fixed that prefix in
+ReadyNAS devices .dts files (AFAICT, the only users).
 
-This patch adds support for century overflow bit in tm to regs and regs=
- to
-tm helpers in ISL12057 driver.
+That patch completes that work to change the remaining values in:
 
-This was tested by putting a device 100 years in the future (using a
-specific kernel due to the inability of userland tools such as date or
-hwclock to pass year 2038), rebooting on a kernel w/ this patch applied
-and verifying the device was still 100 years in the future.
+ - Intersil ISL12057 driver (compatible string) and also associated
+   Documentation/devicetree/bindings/i2c/trivial-devices.txt file
+   to reflect the changes introduced by previous commit from Philip
+ - Documentation/devicetree/bindings/vendor-prefixes.txt files to
+   avoid future mistakes
 
 Signed-off-by: Arnaud Ebalard <arno@natisbad.org>
-Suggested-by: Uwe Kleine-K=F6nig <uwe@kleine-koenig.org>
 Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
 Cc: Peter Huewe <peter.huewe@infineon.com>
@@ -67,68 +72,63 @@ Cc: Linus Walleij <linus.walleij@linaro.org>
 Cc: Thierry Reding <treding@nvidia.com>
 Cc: Mark Brown <broonie@kernel.org>
 Cc: Grant Likely <grant.likely@linaro.org>
+Cc: Uwe Kleine-K=F6nig <uwe@kleine-koenig.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-isl12057.c |   20 ++++++++++++++++----
- 1 file changed, 16 insertions(+), 4 deletions(-)
+ Documentation/devicetree/bindings/i2c/trivial-devices.txt |    2 +-
+ Documentation/devicetree/bindings/vendor-prefixes.txt     |    2 +-
+ drivers/rtc/rtc-isl12057.c                                |    3 ++-
+ 3 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/rtc/rtc-isl12057.c~rtc-rtc-isl12057-add-support-for-c=
-entury-bit drivers/rtc/rtc-isl12057.c
---- a/drivers/rtc/rtc-isl12057.c~rtc-rtc-isl12057-add-support-for-centu=
-ry-bit
+diff -puN Documentation/devicetree/bindings/i2c/trivial-devices.txt~rtc=
+-rtc-isl12057-fix-isil-vs-isl-naming-for-intersil Documentation/devicet=
+ree/bindings/i2c/trivial-devices.txt
+--- a/Documentation/devicetree/bindings/i2c/trivial-devices.txt~rtc-rtc=
+-isl12057-fix-isil-vs-isl-naming-for-intersil
++++ a/Documentation/devicetree/bindings/i2c/trivial-devices.txt
+@@ -55,7 +55,7 @@ fsl,sgtl5000		SGTL5000: Ultra Low-Power
+ gmt,g751		G751: Digital Temperature Sensor and Thermal Watchdog with T=
+wo-Wire Interface
+ infineon,slb9635tt	Infineon SLB9635 (Soft-) I2C TPM (old protocol, max=
+ 100khz)
+ infineon,slb9645tt	Infineon SLB9645 I2C TPM (new protocol, max 400khz)
+-isl,isl12057		Intersil ISL12057 I2C RTC Chip
++isil,isl12057		Intersil ISL12057 I2C RTC Chip
+ maxim,ds1050		5 Bit Programmable, Pulse-Width Modulator
+ maxim,max1237		Low-Power, 4-/12-Channel, 2-Wire Serial, 12-Bit ADCs
+ maxim,max6625		9-Bit/12-Bit Temperature Sensors with I=C2=B2C-Compatib=
+le Serial Interface
+diff -puN Documentation/devicetree/bindings/vendor-prefixes.txt~rtc-rtc=
+-isl12057-fix-isil-vs-isl-naming-for-intersil Documentation/devicetree/=
+bindings/vendor-prefixes.txt
+--- a/Documentation/devicetree/bindings/vendor-prefixes.txt~rtc-rtc-isl=
+12057-fix-isil-vs-isl-naming-for-intersil
++++ a/Documentation/devicetree/bindings/vendor-prefixes.txt
+@@ -78,7 +78,7 @@ innolux	Innolux Corporation
+ intel	Intel Corporation
+ intercontrol	Inter Control Group
+ isee	ISEE 2007 S.L.
+-isl	Intersil
++isil	Intersil
+ karo	Ka-Ro electronics GmbH
+ keymile	Keymile GmbH
+ lacie	LaCie
+diff -puN drivers/rtc/rtc-isl12057.c~rtc-rtc-isl12057-fix-isil-vs-isl-n=
+aming-for-intersil drivers/rtc/rtc-isl12057.c
+--- a/drivers/rtc/rtc-isl12057.c~rtc-rtc-isl12057-fix-isil-vs-isl-namin=
+g-for-intersil
 +++ a/drivers/rtc/rtc-isl12057.c
-@@ -41,6 +41,7 @@
- #define ISL12057_REG_RTC_DW	0x03	/* Day of the Week */
- #define ISL12057_REG_RTC_DT	0x04	/* Date */
- #define ISL12057_REG_RTC_MO	0x05	/* Month */
-+#define ISL12057_REG_RTC_MO_CEN	BIT(7)	/* Century bit */
- #define ISL12057_REG_RTC_YR	0x06	/* Year */
- #define ISL12057_RTC_SEC_LEN	7
+@@ -310,7 +310,8 @@ static int isl12057_probe(struct i2c_cli
 =20
-@@ -99,24 +100,35 @@ static void isl12057_rtc_regs_to_tm(stru
- 	tm->tm_wday =3D bcd2bin(regs[ISL12057_REG_RTC_DW]) - 1; /* starts at =
-1 */
- 	tm->tm_mon  =3D bcd2bin(regs[ISL12057_REG_RTC_MO] & 0x1f) - 1; /* dit=
-to */
- 	tm->tm_year =3D bcd2bin(regs[ISL12057_REG_RTC_YR]) + 100;
-+
-+	/* Check if years register has overflown from 99 to 00 */
-+	if (regs[ISL12057_REG_RTC_MO] & ISL12057_REG_RTC_MO_CEN)
-+		tm->tm_year +=3D 100;
- }
-=20
- static int isl12057_rtc_tm_to_regs(u8 *regs, struct rtc_time *tm)
- {
-+	u8 century_bit;
-+
- 	/*
- 	 * The clock has an 8 bit wide bcd-coded register for the year.
-+	 * It also has a century bit encoded in MO flag which provides
-+	 * information about overflow of year register from 99 to 00.
- 	 * tm_year is an offset from 1900 and we are interested in the
--	 * 2000-2099 range, so any value less than 100 is invalid.
-+	 * 2000-2199 range, so any value less than 100 or larger than
-+	 * 299 is invalid.
- 	 */
--	if (tm->tm_year < 100)
-+	if (tm->tm_year < 100 || tm->tm_year > 299)
- 		return -EINVAL;
-=20
-+	century_bit =3D (tm->tm_year > 199) ? ISL12057_REG_RTC_MO_CEN : 0;
-+
- 	regs[ISL12057_REG_RTC_SC] =3D bin2bcd(tm->tm_sec);
- 	regs[ISL12057_REG_RTC_MN] =3D bin2bcd(tm->tm_min);
- 	regs[ISL12057_REG_RTC_HR] =3D bin2bcd(tm->tm_hour); /* 24-hour format=
- */
- 	regs[ISL12057_REG_RTC_DT] =3D bin2bcd(tm->tm_mday);
--	regs[ISL12057_REG_RTC_MO] =3D bin2bcd(tm->tm_mon + 1);
--	regs[ISL12057_REG_RTC_YR] =3D bin2bcd(tm->tm_year - 100);
-+	regs[ISL12057_REG_RTC_MO] =3D bin2bcd(tm->tm_mon + 1) | century_bit;
-+	regs[ISL12057_REG_RTC_YR] =3D bin2bcd(tm->tm_year % 100);
- 	regs[ISL12057_REG_RTC_DW] =3D bin2bcd(tm->tm_wday + 1);
-=20
- 	return 0;
+ #ifdef CONFIG_OF
+ static const struct of_device_id isl12057_dt_match[] =3D {
+-	{ .compatible =3D "isl,isl12057" },
++	{ .compatible =3D "isl,isl12057" },  /* obsolete */
++	{ .compatible =3D "isil,isl12057" },
+ 	{ },
+ };
+ #endif
 _
 
 Patches currently in -mm which might be from arno@natisbad.org are
