@@ -1,121 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: + mmvmacache-count-number-of-system-wide-flushes.patch added to
- -mm tree
-Date: Tue, 25 Nov 2014 13:46:32 -0800
-Message-ID: <5474f8b8.oC3HFF3LACbl/CGI%akpm@linux-foundation.org>
+Subject: [alternative-merged]
+ page-owners-correct-page-order-when-to-free-page.patch removed from -mm
+ tree
+Date: Tue, 25 Nov 2014 13:55:03 -0800
+Message-ID: <5474fab7.MgLzK0Y+/gkybHPL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50715 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50812 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750913AbaKYVqd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Nov 2014 16:46:33 -0500
+	with ESMTP id S1751196AbaKYVzF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Nov 2014 16:55:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave@stgolabs.net, dbueso@suse.de, mm-commits@vger.kernel.org
+To: jungsoo.son@lge.com, iamjoonsoo.kim@lge.com, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,vmacache: count number of system-wide flushes
-has been added to the -mm tree.  Its filename is
-     mmvmacache-count-number-of-system-wide-flushes.patch
+     Subject: page owners: correct page->order when to free page
+has been removed from the -mm tree.  Its filename was
+     page-owners-correct-page-order-when-to-free-page.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mmvmacache-count-number-of-system-wide-flushes.patch
-		echo and later at
-		echo  http://ozlabs.org/~akpm/mmotm/broken-out/mmvmacache-count-number-of-system-wide-flushes.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: mm,vmacache: count number of system-wide flushes
+From: Jungsoo Son <jungsoo.son@lge.com>
+Subject: page owners: correct page->order when to free page
 
-These flushes deal with sequence number overflows, such as for long lived
-threads.  These are rare, but interesting from a debugging PoV.  As such,
-display the number of flushes when vmacache debugging is enabled.
+When I use PAGE_OWNER in mmotm tree, I found a problem that mismatches the
+number of allocated pages.  When I investigate, the problem is that
+set_page_order is called for only a head page if freed page is merged to a
+higher order page in the buddy allocator so tail pages of the higher order
+page couldn't be reset to page->order = -1.
 
-Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+It means when we do 'cat /proc/page-owner', it could show wrong
+information.
+
+So page->order should be set to -1 for all the tail pages as well as the
+first page before buddy allocator merges them.
+
+This patch is for clearing page->order of all the tail pages in
+free_pages_prepare() when to free page.
+
+Signed-off-by: Jungsoo Son <jungsoo.son@lge.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vm_event_item.h |    1 +
- mm/vmacache.c                 |    2 ++
- mm/vmstat.c                   |    1 +
- 3 files changed, 4 insertions(+)
+ mm/page_alloc.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN include/linux/vm_event_item.h~mmvmacache-count-number-of-system-wide-flushes include/linux/vm_event_item.h
---- a/include/linux/vm_event_item.h~mmvmacache-count-number-of-system-wide-flushes
-+++ a/include/linux/vm_event_item.h
-@@ -91,6 +91,7 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- #ifdef CONFIG_DEBUG_VM_VMACACHE
- 		VMACACHE_FIND_CALLS,
- 		VMACACHE_FIND_HITS,
-+		VMACACHE_FULL_FLUSHES,
- #endif
- 		NR_VM_EVENT_ITEMS
- };
-diff -puN mm/vmacache.c~mmvmacache-count-number-of-system-wide-flushes mm/vmacache.c
---- a/mm/vmacache.c~mmvmacache-count-number-of-system-wide-flushes
-+++ a/mm/vmacache.c
-@@ -17,6 +17,8 @@ void vmacache_flush_all(struct mm_struct
- {
- 	struct task_struct *g, *p;
+diff -puN mm/page_alloc.c~page-owners-correct-page-order-when-to-free-page mm/page_alloc.c
+--- a/mm/page_alloc.c~page-owners-correct-page-order-when-to-free-page
++++ a/mm/page_alloc.c
+@@ -766,6 +766,13 @@ static bool free_pages_prepare(struct pa
+ 	if (bad)
+ 		return false;
  
-+	count_vm_vmacache_event(VMACACHE_FULL_FLUSHES);
++#ifdef CONFIG_PAGE_OWNER
++	for (i = 0; i < (1 << order); i++) {
++		struct page *p = (page + i);
++		p->order = -1;
++	}
++#endif
 +
- 	/*
- 	 * Single threaded tasks need not iterate the entire
- 	 * list of process. We can avoid the flushing as well
-diff -puN mm/vmstat.c~mmvmacache-count-number-of-system-wide-flushes mm/vmstat.c
---- a/mm/vmstat.c~mmvmacache-count-number-of-system-wide-flushes
-+++ a/mm/vmstat.c
-@@ -901,6 +901,7 @@ const char * const vmstat_text[] = {
- #ifdef CONFIG_DEBUG_VM_VMACACHE
- 	"vmacache_find_calls",
- 	"vmacache_find_hits",
-+	"vmacache_full_flushes",
- #endif
- #endif /* CONFIG_VM_EVENTS_COUNTERS */
- };
+ 	if (!PageHighMem(page)) {
+ 		debug_check_no_locks_freed(page_address(page),
+ 					   PAGE_SIZE << order);
 _
 
-Patches currently in -mm which might be from dave@stgolabs.net are
+Patches currently in -mm which might be from jungsoo.son@lge.com are
 
-ipc-semc-fully-initialize-sem_array-before-making-it-visible.patch
-mmfs-introduce-helpers-around-the-i_mmap_mutex.patch
-mm-use-new-helper-functions-around-the-i_mmap_mutex.patch
-mm-convert-i_mmap_mutex-to-rwsem.patch
-mm-convert-i_mmap_mutex-to-rwsem-fix.patch
-mm-rmap-share-the-i_mmap_rwsem.patch
-uprobes-share-the-i_mmap_rwsem.patch
-mm-xip-share-the-i_mmap_rwsem.patch
-mm-memory-failure-share-the-i_mmap_rwsem.patch
-mm-nommu-share-the-i_mmap_rwsem.patch
-mm-memoryc-share-the-i_mmap_rwsem.patch
-mm-rmap-calculate-page-offset-when-needed.patch
-hugetlb-fix-hugepages=-entry-in-kernel-parameterstxt.patch
-hugetlb-alloc_bootmem_huge_page-use-is_aligned.patch
-hugetlb-hugetlb_register_all_nodes-add-__init-marker.patch
-mmvmacache-count-number-of-system-wide-flushes.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
-ipc-semc-increase-semmsl-semmni-semopm.patch
-ipc-msg-increase-msgmni-remove-scaling.patch
-ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
-mm-fix-overly-aggressive-shmdt-when-calls-span-multiple-segments.patch
-shmdt-use-i_size_read-instead-of-i_size.patch
-linux-next.patch
+mm-page_ext-resurrect-struct-page-extending-code-for-debugging.patch
+mm-debug-pagealloc-prepare-boottime-configurable-on-off.patch
+mm-debug-pagealloc-make-debug-pagealloc-boottime-configurable.patch
+mm-nommu-use-alloc_pages_exact-rather-than-its-own-implementation.patch
+stacktrace-introduce-snprint_stack_trace-for-buffer-output.patch
+mm-page_owner-keep-track-of-page-owners.patch
+mm-page_owner-correct-owner-information-for-early-allocated-pages.patch
+documentation-add-new-page_owner-document.patch
 
