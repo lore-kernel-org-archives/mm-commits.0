@@ -1,119 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged]
- debugging-keep-track-of-page-owners-fix.patch removed from -mm tree
-Date: Tue, 25 Nov 2014 12:28:11 -0800
-Message-ID: <5474e65b.8jZL5/IqlqcJMh0b%akpm@linux-foundation.org>
+Subject: + rtc-rtc-isl12057-fix-masking-of-register-values.patch added to
+ -mm tree
+Date: Tue, 25 Nov 2014 13:30:25 -0800
+Message-ID: <5474f4f1.VZ3Vir5kAQ/W1WNb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49563 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49998 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750994AbaKYU2M (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Nov 2014 15:28:12 -0500
+	with ESMTP id S1750782AbaKYVa1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Nov 2014 16:30:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: arno@natisbad.org, a.zummo@towertech.it, broonie@kernel.org, grant.likely@linaro.org, linus.walleij@linaro.org, mark.rutland@arm.com, peter.huewe@infineon.com, treding@nvidia.com, uwe@kleine-koenig.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: debugging-keep-track-of-page-owners-fix
-has been removed from the -mm tree.  Its filename was
-     debugging-keep-track-of-page-owners-fix.patch
+     Subject: drivers/rtc/rtc-isl12057.c: fix masking of register value=
+s
+has been added to the -mm tree.  Its filename is
+     rtc-rtc-isl12057-fix-masking-of-register-values.patch
 
-This patch was dropped because an alternative patch was merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/rtc-rtc-isl12057-fix-maski=
+ng-of-register-values.patch
+		echo and later at
+		echo  http://ozlabs.org/~akpm/mmotm/broken-out/rtc-rtc-isl12057-fix-m=
+asking-of-register-values.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: debugging-keep-track-of-page-owners-fix
+=46rom: Arnaud Ebalard <arno@natisbad.org>
+Subject: drivers/rtc/rtc-isl12057.c: fix masking of register values
 
+When Intersil ISL12057 support was added by commit 70e123373c05 ("rtc: =
+Add
+support for Intersil ISL12057 I2C RTC chip"), two masks for time regist=
+ers
+values imported from the device were either wrong or omitted, leading t=
+o
+additional bits from those registers to impact read values:
 
+ - mask for hour register value when reading it in AM/PM mode. As
+   AM/PM mode is not the usual mode used by the driver, this error
+   would only have an impact on an externally configured RTC hour
+   later read by the driver.
+ - mask for month value. The lack of masking would provide an
+   erroneous value if century bit is set.
 
+This patch fixes those two masks.
+
+=46ixes: 70e123373c05 ("rtc: Add support for Intersil ISL12057 I2C RTC =
+chip")
+Signed-off-by: Arnaud Ebalard <arno@natisbad.org>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Peter Huewe <peter.huewe@infineon.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: Thierry Reding <treding@nvidia.com>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Grant Likely <grant.likely@linaro.org>
+Cc: Uwe Kleine-K=F6nig <uwe@kleine-koenig.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/pageowner.c |    2 +-
- mm/vmstat.c    |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/rtc/rtc-isl12057.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/pageowner.c~debugging-keep-track-of-page-owners-fix mm/pageowner.c
---- a/mm/pageowner.c~debugging-keep-track-of-page-owners-fix
-+++ a/mm/pageowner.c
-@@ -95,7 +95,7 @@ read_page_owner(struct file *file, char
- 
- 	/* Print information relevant to grouping pages by mobility */
- 	blocktype = get_pageblock_migratetype(page);
--	pagetype  = allocflags_to_migratetype(page->gfp_mask);
-+	pagetype  = gfpflags_to_migratetype(page->gfp_mask);
- 	ret += snprintf(kbuf+ret, count-ret,
- 			"PFN %lu Block %lu type %d %s "
- 			"Flags %s%s%s%s%s%s%s%s%s%s%s%s\n",
-diff -puN mm/vmstat.c~debugging-keep-track-of-page-owners-fix mm/vmstat.c
---- a/mm/vmstat.c~debugging-keep-track-of-page-owners-fix
-+++ a/mm/vmstat.c
-@@ -1070,7 +1070,7 @@ static void pagetypeinfo_showmixedcount_
- 			if (page->order < 0)
- 				continue;
- 
--			pagetype = allocflags_to_migratetype(page->gfp_mask);
-+			pagetype = gfpflags_to_migratetype(page->gfp_mask);
- 			if (pagetype != mtype) {
- 				if (is_migrate_cma(pagetype))
- 					count[MIGRATE_MOVABLE]++;
+diff -puN drivers/rtc/rtc-isl12057.c~rtc-rtc-isl12057-fix-masking-of-re=
+gister-values drivers/rtc/rtc-isl12057.c
+--- a/drivers/rtc/rtc-isl12057.c~rtc-rtc-isl12057-fix-masking-of-regist=
+er-values
++++ a/drivers/rtc/rtc-isl12057.c
+@@ -88,7 +88,7 @@ static void isl12057_rtc_regs_to_tm(stru
+ 	tm->tm_min =3D bcd2bin(regs[ISL12057_REG_RTC_MN]);
+=20
+ 	if (regs[ISL12057_REG_RTC_HR] & ISL12057_REG_RTC_HR_MIL) { /* AM/PM *=
+/
+-		tm->tm_hour =3D bcd2bin(regs[ISL12057_REG_RTC_HR] & 0x0f);
++		tm->tm_hour =3D bcd2bin(regs[ISL12057_REG_RTC_HR] & 0x1f);
+ 		if (regs[ISL12057_REG_RTC_HR] & ISL12057_REG_RTC_HR_PM)
+ 			tm->tm_hour +=3D 12;
+ 	} else {					    /* 24 hour mode */
+@@ -97,7 +97,7 @@ static void isl12057_rtc_regs_to_tm(stru
+=20
+ 	tm->tm_mday =3D bcd2bin(regs[ISL12057_REG_RTC_DT]);
+ 	tm->tm_wday =3D bcd2bin(regs[ISL12057_REG_RTC_DW]) - 1; /* starts at =
+1 */
+-	tm->tm_mon  =3D bcd2bin(regs[ISL12057_REG_RTC_MO]) - 1; /* starts at =
+1 */
++	tm->tm_mon  =3D bcd2bin(regs[ISL12057_REG_RTC_MO] & 0x1f) - 1; /* dit=
+to */
+ 	tm->tm_year =3D bcd2bin(regs[ISL12057_REG_RTC_YR]) + 100;
+ }
+=20
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from arno@natisbad.org are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-mm-vmpressurec-fix-race-in-vmpressure_work_fn.patch
-mm-vmpressurec-fix-race-in-vmpressure_work_fn-fix.patch
-drivers-input-evdevc-dont-kfree-a-vmalloc-address.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
-ocfs2-free-inode-when-i_count-becomes-zero.patch
-ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
-mm.patch
-slab-improve-checking-for-invalid-gfp_flags.patch
-mm-memcontrol-lockless-page-counters-fix.patch
-mm-memcontrol-lockless-page-counters-fix-fix.patch
-kernel-res_counter-remove-the-unused-api-fix.patch
-mm-compaction-simplify-deferred-compaction-fix.patch
-mm-compaction-always-update-cached-scanner-positions-fix-checkpatch-fixes.patch
-mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
-mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix.patch
-mm-fix-huge-zero-page-accounting-in-smaps-report-fix-2-fix.patch
-mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
-mm-mincore-add-hwpoison-page-handle-checkpatch-fixes.patch
-mm-page_alloc-store-updated-page-migratetype-to-avoid-misusing-stale-value-fix.patch
-include-linux-kmemleakh-needs-slabh.patch
-mm-page_owner-keep-track-of-page-owners.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix-2.patch
-zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
-fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user.patch
-init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails-checkpatch-fixes.patch
-rtc-omap-add-support-for-pmic_power_en-v3-fix.patch
-drivers-rtc-rtc-sirfsocc-add-alarm_irq_enable-support-fix.patch
-rtc-ds1374-add-watchdog-support-checkpatch-fixes.patch
-exit-wait-cleanup-the-ptrace_reparented-checks-fix.patch
-sysctl-terminate-strings-also-on-r-fix.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
-ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
+rtc-rtc-isl12057-fix-masking-of-register-values.patch
+rtc-rtc-isl12057-add-support-for-century-bit.patch
+rtc-rtc-isl12057-add-proper-handling-of-oscillator-failure-bit.patch
+rtc-rtc-isl12057-fix-isil-vs-isl-naming-for-intersil.patch
+rtc-rtc-isl12057-report-error-code-upon-failure-in-dev_err-calls.patch
+rtc-rtc-isl12057-add-alarm-support-to-intersil-isl12057-rtc-driver.patc=
+h
 linux-next.patch
-linux-next-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-cma-make-kmemleak-ignore-cma-regions.patch
-lib-show_mem-this-patch-adds-cma-reserved-infromation-fix.patch
-tools-testing-selftests-makefile-alphasort-the-targets-list.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
