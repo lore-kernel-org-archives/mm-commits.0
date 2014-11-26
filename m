@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + fat-fix-oops-on-corrupted-vfat-fs.patch added to -mm tree
-Date: Wed, 26 Nov 2014 14:28:34 -0800
-Message-ID: <54765412.5cSSD+fxMKQxhwSB%akpm@linux-foundation.org>
+Subject: + mm-oom-remove-gfp-helper-function.patch added to -mm tree
+Date: Wed, 26 Nov 2014 14:30:01 -0800
+Message-ID: <54765469.KYqNb18xsIIb44g8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43916 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43994 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752465AbaKZW2f (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Nov 2014 17:28:35 -0500
+	with ESMTP id S1751484AbaKZWaC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Nov 2014 17:30:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hirofumi@mail.parknet.co.jp, stable@vger.kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fat: Fix oops on corrupted vfat fs
+     Subject: mm, oom: remove gfp helper function
 has been added to the -mm tree.  Its filename is
-     fat-fix-oops-on-corrupted-vfat-fs.patch
+     mm-oom-remove-gfp-helper-function.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fat-fix-oops-on-corrupted-vfat-fs.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom-remove-gfp-helper-function.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fat-fix-oops-on-corrupted-vfat-fs.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom-remove-gfp-helper-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,100 +38,99 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Subject: fat: Fix oops on corrupted vfat fs
+From: David Rientjes <rientjes@google.com>
+Subject: mm, oom: remove gfp helper function
 
-a) don't bother with ->d_time for positives - we only check it for negatives
-anyway.
-b) make sure to set it at unlink and rmdir time - at *that* point soon-to-be
-negative dentry matches then-current directory contents
-c) don't go into renaming of old alias in vfat_lookup() unless it has
-the same parent (which it will, unless we are seeing corrupted image)
+Commit b9921ecdee66 ("mm: add a helper function to check may oom
+condition") was added because the gfp criteria for oom killing was checked
+in both the page allocator and memcg.
 
-[hirofumi@mail.parknet.co.jp: make change minimum, don't call d_move() for dir]
-Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
-Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Cc: <stable@vger.kernel.org>	[3.17.x]
+That was true for about nine months, but then commit 0029e19ebf84 ("mm:
+memcontrol: remove explicit OOM parameter in charge path") removed the
+memcg usecase.
+
+Fold the implementation into its only caller.
+
+Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/namei_vfat.c |   20 +++++++++++---------
- 1 file changed, 11 insertions(+), 9 deletions(-)
+ include/linux/oom.h |    5 -----
+ mm/page_alloc.c     |    2 +-
+ 2 files changed, 1 insertion(+), 6 deletions(-)
 
-diff -puN fs/fat/namei_vfat.c~fat-fix-oops-on-corrupted-vfat-fs fs/fat/namei_vfat.c
---- a/fs/fat/namei_vfat.c~fat-fix-oops-on-corrupted-vfat-fs
-+++ a/fs/fat/namei_vfat.c
-@@ -736,7 +736,12 @@ static struct dentry *vfat_lookup(struct
- 	}
+diff -puN include/linux/oom.h~mm-oom-remove-gfp-helper-function include/linux/oom.h
+--- a/include/linux/oom.h~mm-oom-remove-gfp-helper-function
++++ a/include/linux/oom.h
+@@ -85,11 +85,6 @@ static inline void oom_killer_enable(voi
+ 	oom_killer_disabled = false;
+ }
  
- 	alias = d_find_alias(inode);
--	if (alias && !vfat_d_anon_disconn(alias)) {
-+	/*
-+	 * Checking "alias->d_parent == dentry->d_parent" to make sure
-+	 * FS is not corrupted (especially double linked dir).
-+	 */
-+	if (alias && alias->d_parent == dentry->d_parent &&
-+	    !vfat_d_anon_disconn(alias)) {
- 		/*
- 		 * This inode has non anonymous-DCACHE_DISCONNECTED
- 		 * dentry. This means, the user did ->lookup() by an
-@@ -755,12 +760,9 @@ static struct dentry *vfat_lookup(struct
- 
- out:
- 	mutex_unlock(&MSDOS_SB(sb)->s_lock);
--	dentry->d_time = dentry->d_parent->d_inode->i_version;
--	dentry = d_splice_alias(inode, dentry);
--	if (dentry)
--		dentry->d_time = dentry->d_parent->d_inode->i_version;
--	return dentry;
+-static inline bool oom_gfp_allowed(gfp_t gfp_mask)
+-{
+-	return (gfp_mask & __GFP_FS) && !(gfp_mask & __GFP_NORETRY);
+-}
 -
-+	if (!inode)
-+		dentry->d_time = dir->i_version;
-+	return d_splice_alias(inode, dentry);
- error:
- 	mutex_unlock(&MSDOS_SB(sb)->s_lock);
- 	return ERR_PTR(err);
-@@ -793,7 +795,6 @@ static int vfat_create(struct inode *dir
- 	inode->i_mtime = inode->i_atime = inode->i_ctime = ts;
- 	/* timestamp is already written, so mark_inode_dirty() is unneeded. */
+ extern struct task_struct *find_lock_task_mm(struct task_struct *p);
  
--	dentry->d_time = dentry->d_parent->d_inode->i_version;
- 	d_instantiate(dentry, inode);
- out:
- 	mutex_unlock(&MSDOS_SB(sb)->s_lock);
-@@ -824,6 +825,7 @@ static int vfat_rmdir(struct inode *dir,
- 	clear_nlink(inode);
- 	inode->i_mtime = inode->i_atime = CURRENT_TIME_SEC;
- 	fat_detach(inode);
-+	dentry->d_time = dir->i_version;
- out:
- 	mutex_unlock(&MSDOS_SB(sb)->s_lock);
- 
-@@ -849,6 +851,7 @@ static int vfat_unlink(struct inode *dir
- 	clear_nlink(inode);
- 	inode->i_mtime = inode->i_atime = CURRENT_TIME_SEC;
- 	fat_detach(inode);
-+	dentry->d_time = dir->i_version;
- out:
- 	mutex_unlock(&MSDOS_SB(sb)->s_lock);
- 
-@@ -889,7 +892,6 @@ static int vfat_mkdir(struct inode *dir,
- 	inode->i_mtime = inode->i_atime = inode->i_ctime = ts;
- 	/* timestamp is already written, so mark_inode_dirty() is unneeded. */
- 
--	dentry->d_time = dentry->d_parent->d_inode->i_version;
- 	d_instantiate(dentry, inode);
- 
- 	mutex_unlock(&MSDOS_SB(sb)->s_lock);
+ /* sysctls */
+diff -puN mm/page_alloc.c~mm-oom-remove-gfp-helper-function mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-oom-remove-gfp-helper-function
++++ a/mm/page_alloc.c
+@@ -2789,7 +2789,7 @@ rebalance:
+ 	 * running out of options and have to consider going OOM
+ 	 */
+ 	if (!did_some_progress) {
+-		if (oom_gfp_allowed(gfp_mask)) {
++		if ((gfp_mask & __GFP_FS) && !(gfp_mask & __GFP_NORETRY)) {
+ 			if (oom_killer_disabled)
+ 				goto nopage;
+ 			/* Coredumps can quickly deplete all memory reserves */
 _
 
-Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
+Patches currently in -mm which might be from rientjes@google.com are
 
-fat-fix-oops-on-corrupted-vfat-fs.patch
-fat-add-fat_fallocate-operation.patch
-fat-skip-cluster-allocation-on-fallocated-region.patch
-fat-permit-to-return-phy-block-number-by-fibmap-in-fallocated-region.patch
-documentation-filesystems-vfattxt-update-the-limitation-for-fat-fallocate.patch
-fat-fix-data-past-eof-resulting-from-fsx-testsuite.patch
-fat-fix-data-past-eof-resulting-from-fsx-testsuite-v2.patch
+mm-slab-slub-coding-style-whitespaces-and-tabs-mixture.patch
+slab-print-slabinfo-header-in-seq-show.patch
+mm-slab-reverse-iteration-on-find_mergeable.patch
+mm-slub-fix-format-mismatches-in-slab_err-callers.patch
+slab-improve-checking-for-invalid-gfp_flags.patch
+slab-replace-smp_read_barrier_depends-with-lockless_dereference.patch
+mm-memcontrol-lockless-page-counters.patch
+mm-hugetlb_cgroup-convert-to-lockless-page-counters.patch
+kernel-res_counter-remove-the-unused-api.patch
+kernel-res_counter-remove-the-unused-api-fix.patch
+mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting.patch
+mm-memcontrol-take-a-css-reference-for-each-charged-page.patch
+mm-memcontrol-remove-obsolete-kmemcg-pinning-tricks.patch
+mm-memcontrol-continue-cache-reclaim-from-offlined-groups.patch
+mm-memcontrol-remove-synchroneous-stock-draining-code.patch
+mm-verify-compound-order-when-freeing-a-page.patch
+mm-compaction-pass-classzone_idx-and-alloc_flags-to-watermark-checking.patch
+mm-compaction-pass-classzone_idx-and-alloc_flags-to-watermark-checking-fix.patch
+mm-compaction-simplify-deferred-compaction.patch
+mm-compaction-defer-only-on-compact_complete.patch
+mm-compaction-always-update-cached-scanner-positions.patch
+mm-compaction-always-update-cached-scanner-positions-fix.patch
+mm-compaction-more-focused-lru-and-pcplists-draining.patch
+mm-compaction-more-focused-lru-and-pcplists-draining-fix.patch
+mm-numa-balancing-rearrange-kconfig-entry.patch
+memcg-use-generic-slab-iterators-for-showing-slabinfo.patch
+mm-hugetlb-fix-__unmap_hugepage_range.patch
+hugetlb-fix-hugepages=-entry-in-kernel-parameterstxt.patch
+hugetlb-alloc_bootmem_huge_page-use-is_aligned.patch
+hugetlb-hugetlb_register_all_nodes-add-__init-marker.patch
+memory-hotplug-remove-redundant-call-of-page_to_pfn.patch
+mm-gfp-escalatedly-define-gfp_highuser-and-gfp_highuser_movable.patch
+fs-seq_file-fallback-to-vmalloc-instead-of-oom-kill-processes.patch
+fs-seq_file-fallback-to-vmalloc-instead-of-oom-kill-processes-fix.patch
+mm-oom-remove-gfp-helper-function.patch
+mm-utilc-add-kstrimdup.patch
+sysctl-terminate-strings-also-on-r.patch
+sysctl-terminate-strings-also-on-r-fix.patch
+linux-next.patch
+slab-fix-cpuset-check-in-fallback_alloc.patch
+slub-fix-cpuset-check-in-get_any_partial.patch
+lib-show_mem-this-patch-adds-cma-reserved-infromation.patch
+lib-show_mem-this-patch-adds-cma-reserved-infromation-fix.patch
 
