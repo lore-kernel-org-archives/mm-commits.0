@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-anon_vma_clone-error-treatment.patch added to -mm tree
-Date: Wed, 26 Nov 2014 14:35:16 -0800
-Message-ID: <547655a4.JgF0Dhnt58j+haZB%akpm@linux-foundation.org>
+Subject: + drivers-staging-media-makefile-fix-build.patch added to -mm
+ tree
+Date: Wed, 26 Nov 2014 14:41:06 -0800
+Message-ID: <54765702.G9tZKCLK55SYdIcX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44014 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44040 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750811AbaKZWfS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Nov 2014 17:35:18 -0500
+	with ESMTP id S1752749AbaKZWlH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Nov 2014 17:41:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.forrest@ssec.wisc.edu, aarcange@redhat.com, hughd@google.com, koct9i@gmail.com, riel@redhat.com, tim@edgecast.com, vbabka@suse.cz, walken@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, gregkh@linuxfoundation.org, mchehab@osg.samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix anon_vma_clone() error treatment
+     Subject: drivers/staging/media/Makefile: fix build
 has been added to the -mm tree.  Its filename is
-     mm-fix-anon_vma_clone-error-treatment.patch
+     drivers-staging-media-makefile-fix-build.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-anon_vma_clone-error-treatment.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-staging-media-makefile-fix-build.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-anon_vma_clone-error-treatment.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-staging-media-makefile-fix-build.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,91 +39,89 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Daniel Forrest <dan.forrest@ssec.wisc.edu>
-Subject: mm: fix anon_vma_clone() error treatment
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/staging/media/Makefile: fix build
 
-Andrew Morton noticed that the error return from anon_vma_clone() was
-being dropped and replaced with -ENOMEM (which is not itself a bug because
-the only error return value from anon_vma_clone() is -ENOMEM).
+`make mrproper':
 
-I did an audit of callers of anon_vma_clone() and discovered an actual bug
-where the error return was being lost.  In __split_vma(), between Linux
-3.11 and 3.12 the code was changed so the err variable is used before the
-call to anon_vma_clone() and the default initial value of -ENOMEM is
-overwritten.  So a failure of anon_vma_clone() will return success since
-err at this point is now zero.
+./scripts/Makefile.clean:17: drivers/staging/media/omap24xx/Makefile: No such file or directory
 
-Below is a patch which fixes this bug and also propagates the error return
-value from anon_vma_clone() in all cases.
-
-Signed-off-by: Daniel Forrest <dan.forrest@ssec.wisc.edu>
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Tim Hartrick <tim@edgecast.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   10 +++++++---
- mm/rmap.c |    6 ++++--
- 2 files changed, 11 insertions(+), 5 deletions(-)
+ drivers/staging/media/Makefile |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/mmap.c~mm-fix-anon_vma_clone-error-treatment mm/mmap.c
---- a/mm/mmap.c~mm-fix-anon_vma_clone-error-treatment
-+++ a/mm/mmap.c
-@@ -776,8 +776,11 @@ again:			remove_next = 1 + (end > next->
- 		 * shrinking vma had, to cover any anon pages imported.
- 		 */
- 		if (exporter && exporter->anon_vma && !importer->anon_vma) {
--			if (anon_vma_clone(importer, exporter))
--				return -ENOMEM;
-+			int error;
-+
-+			error = anon_vma_clone(importer, exporter);
-+			if (error)
-+				return error;
- 			importer->anon_vma = exporter->anon_vma;
- 		}
- 	}
-@@ -2471,7 +2474,8 @@ static int __split_vma(struct mm_struct
- 	if (err)
- 		goto out_free_vma;
+diff -puN drivers/staging/media/Makefile~drivers-staging-media-makefile-fix-build drivers/staging/media/Makefile
+--- a/drivers/staging/media/Makefile~drivers-staging-media-makefile-fix-build
++++ a/drivers/staging/media/Makefile
+@@ -4,7 +4,6 @@ obj-$(CONFIG_LIRC_STAGING)	+= lirc/
+ obj-$(CONFIG_VIDEO_DT3155)	+= dt3155v4l/
+ obj-$(CONFIG_VIDEO_DM365_VPFE)	+= davinci_vpfe/
+ obj-$(CONFIG_VIDEO_OMAP4)	+= omap4iss/
+-obj-$(CONFIG_VIDEO_TCM825X)     += omap24xx/
+ obj-$(CONFIG_DVB_MN88472)       += mn88472/
+ obj-$(CONFIG_DVB_MN88473)       += mn88473/
  
--	if (anon_vma_clone(new, vma))
-+	err = anon_vma_clone(new, vma);
-+	if (err)
- 		goto out_free_mpol;
- 
- 	if (new->vm_file)
-diff -puN mm/rmap.c~mm-fix-anon_vma_clone-error-treatment mm/rmap.c
---- a/mm/rmap.c~mm-fix-anon_vma_clone-error-treatment
-+++ a/mm/rmap.c
-@@ -274,6 +274,7 @@ int anon_vma_fork(struct vm_area_struct
- {
- 	struct anon_vma_chain *avc;
- 	struct anon_vma *anon_vma;
-+	int error;
- 
- 	/* Don't bother if the parent process has no anon_vma here. */
- 	if (!pvma->anon_vma)
-@@ -283,8 +284,9 @@ int anon_vma_fork(struct vm_area_struct
- 	 * First, attach the new VMA to the parent VMA's anon_vmas,
- 	 * so rmap can find non-COWed pages in child processes.
- 	 */
--	if (anon_vma_clone(vma, pvma))
--		return -ENOMEM;
-+	error = anon_vma_clone(vma, pvma);
-+	if (error)
-+		return error;
- 
- 	/* Then add our own anon_vma. */
- 	anon_vma = anon_vma_alloc();
 _
 
-Patches currently in -mm which might be from dan.forrest@ssec.wisc.edu are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-fix-anon_vma_clone-error-treatment.patch
+origin.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+mm-vmpressurec-fix-race-in-vmpressure_work_fn.patch
+mm-vmpressurec-fix-race-in-vmpressure_work_fn-fix.patch
+drivers-input-evdevc-dont-kfree-a-vmalloc-address.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
+ocfs2-free-inode-when-i_count-becomes-zero.patch
+ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
+mm.patch
+slab-improve-checking-for-invalid-gfp_flags.patch
+mm-memcontrol-lockless-page-counters-fix.patch
+mm-memcontrol-lockless-page-counters-fix-fix.patch
+kernel-res_counter-remove-the-unused-api-fix.patch
+mm-compaction-simplify-deferred-compaction-fix.patch
+mm-compaction-always-update-cached-scanner-positions-fix-checkpatch-fixes.patch
+mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
+mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix.patch
+mm-fix-huge-zero-page-accounting-in-smaps-report-fix-2-fix.patch
+mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
+mm-mincore-add-hwpoison-page-handle-checkpatch-fixes.patch
+mm-page_alloc-store-updated-page-migratetype-to-avoid-misusing-stale-value-fix.patch
+include-linux-kmemleakh-needs-slabh.patch
+mm-page_owner-keep-track-of-page-owners.patch
+fs-seq_file-fallback-to-vmalloc-instead-of-oom-kill-processes-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix-2.patch
+zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
+fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user.patch
+init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails-checkpatch-fixes.patch
+rtc-omap-add-support-for-pmic_power_en-v3-fix.patch
+drivers-rtc-rtc-sirfsocc-add-alarm_irq_enable-support-fix.patch
+rtc-ds1374-add-watchdog-support-checkpatch-fixes.patch
+exit-wait-cleanup-the-ptrace_reparented-checks-fix.patch
+sysctl-terminate-strings-also-on-r-fix.patch
+ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
+ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
+ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
+linux-next.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+drivers-staging-media-makefile-fix-build.patch
+mm-cma-make-kmemleak-ignore-cma-regions.patch
+lib-show_mem-this-patch-adds-cma-reserved-infromation-fix.patch
+tools-testing-selftests-makefile-alphasort-the-targets-list.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
