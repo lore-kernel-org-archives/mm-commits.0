@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-staging-media-makefile-fix-build.patch added to -mm
- tree
-Date: Wed, 26 Nov 2014 14:41:06 -0800
-Message-ID: <54765702.G9tZKCLK55SYdIcX%akpm@linux-foundation.org>
+Subject: + x86-add-pmd_-for-thp-fix.patch added to -mm tree
+Date: Wed, 26 Nov 2014 14:50:36 -0800
+Message-ID: <5476593c.POdn0MBd3LUHXbdi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44040 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44066 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752749AbaKZWlH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Nov 2014 17:41:07 -0500
+	with ESMTP id S1751415AbaKZWuh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Nov 2014 17:50:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, gregkh@linuxfoundation.org, mchehab@osg.samsung.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/staging/media/Makefile: fix build
+     Subject: x86-add-pmd_-for-thp-fix
 has been added to the -mm tree.  Its filename is
-     drivers-staging-media-makefile-fix-build.patch
+     x86-add-pmd_-for-thp-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-staging-media-makefile-fix-build.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/x86-add-pmd_-for-thp-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-staging-media-makefile-fix-build.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/x86-add-pmd_-for-thp-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,31 +39,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/staging/media/Makefile: fix build
+Subject: x86-add-pmd_-for-thp-fix
 
-`make mrproper':
+mm-fix-huge-zero-page-accounting-in-smaps-report.patch also added pmd_dirty()
 
-./scripts/Makefile.clean:17: drivers/staging/media/omap24xx/Makefile: No such file or directory
-
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/media/Makefile |    1 -
- 1 file changed, 1 deletion(-)
+ arch/x86/include/asm/pgtable.h |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN drivers/staging/media/Makefile~drivers-staging-media-makefile-fix-build drivers/staging/media/Makefile
---- a/drivers/staging/media/Makefile~drivers-staging-media-makefile-fix-build
-+++ a/drivers/staging/media/Makefile
-@@ -4,7 +4,6 @@ obj-$(CONFIG_LIRC_STAGING)	+= lirc/
- obj-$(CONFIG_VIDEO_DT3155)	+= dt3155v4l/
- obj-$(CONFIG_VIDEO_DM365_VPFE)	+= davinci_vpfe/
- obj-$(CONFIG_VIDEO_OMAP4)	+= omap4iss/
--obj-$(CONFIG_VIDEO_TCM825X)     += omap24xx/
- obj-$(CONFIG_DVB_MN88472)       += mn88472/
- obj-$(CONFIG_DVB_MN88473)       += mn88473/
+diff -puN arch/x86/include/asm/pgtable.h~x86-add-pmd_-for-thp-fix arch/x86/include/asm/pgtable.h
+--- a/arch/x86/include/asm/pgtable.h~x86-add-pmd_-for-thp-fix
++++ a/arch/x86/include/asm/pgtable.h
+@@ -109,11 +109,6 @@ static inline int pmd_young(pmd_t pmd)
+ 	return pmd_flags(pmd) & _PAGE_ACCESSED;
+ }
  
+-static inline int pmd_dirty(pmd_t pmd)
+-{
+-	return pmd_flags(pmd) & _PAGE_DIRTY;
+-}
+-
+ static inline int pte_write(pte_t pte)
+ {
+ 	return pte_flags(pte) & _PAGE_RW;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -93,6 +93,7 @@ mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
 mm-mincore-add-hwpoison-page-handle-checkpatch-fixes.patch
 mm-page_alloc-store-updated-page-migratetype-to-avoid-misusing-stale-value-fix.patch
 include-linux-kmemleakh-needs-slabh.patch
+x86-add-pmd_-for-thp-fix.patch
 mm-page_owner-keep-track-of-page-owners.patch
 fs-seq_file-fallback-to-vmalloc-instead-of-oom-kill-processes-fix.patch
 mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
