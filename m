@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- fs-seq_file-fallback-to-vmalloc-instead-of-oom-kill-processes.patch added
- to -mm tree
-Date: Wed, 26 Nov 2014 14:24:22 -0800
-Message-ID: <54765316.IoFH7P1l6/+0Bwm4%akpm@linux-foundation.org>
+ fs-seq_file-fallback-to-vmalloc-instead-of-oom-kill-processes-fix.patch
+ added to -mm tree
+Date: Wed, 26 Nov 2014 14:24:24 -0800
+Message-ID: <54765318.kYdKZPqpIEecAmdF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43826 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43828 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751634AbaKZWYX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Nov 2014 17:24:23 -0500
+	with ESMTP id S1751975AbaKZWYZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Nov 2014 17:24:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, hch@infradead.org, heiko.carstens@de.ibm.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs, seq_file: fallback to vmalloc instead of oom kill processes
+     Subject: fs-seq_file-fallback-to-vmalloc-instead-of-oom-kill-processes-fix
 has been added to the -mm tree.  Its filename is
-     fs-seq_file-fallback-to-vmalloc-instead-of-oom-kill-processes.patch
+     fs-seq_file-fallback-to-vmalloc-instead-of-oom-kill-processes-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-seq_file-fallback-to-vmalloc-instead-of-oom-kill-processes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-seq_file-fallback-to-vmalloc-instead-of-oom-kill-processes-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-seq_file-fallback-to-vmalloc-instead-of-oom-kill-processes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-seq_file-fallback-to-vmalloc-instead-of-oom-kill-processes-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,95 +40,88 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: fs, seq_file: fallback to vmalloc instead of oom kill processes
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fs-seq_file-fallback-to-vmalloc-instead-of-oom-kill-processes-fix
 
-Since commit 058504edd026 ("fs/seq_file: fallback to vmalloc allocation"),
-seq_buf_alloc() falls back to vmalloc() when the kmalloc() for contiguous
-memory fails.  This was done to address order-4 slab allocations for
-reading /proc/stat on large machines and noticed because
-PAGE_ALLOC_COSTLY_ORDER < 4, so there is no infinite loop in the page
-allocator when allocating new slab for such high-order allocations.
+add comment
 
-Contiguous memory isn't necessary for caller of seq_buf_alloc(), however. 
-Other GFP_KERNEL high-order allocations that are <=
-PAGE_ALLOC_COSTLY_ORDER will simply loop forever in the page allocator and
-oom kill processes as a result.
-
-We don't want to kill processes so that we can allocate contiguous memory
-in situations when contiguous memory isn't necessary.
-
-This patch does the kmalloc() allocation with __GFP_NORETRY for high-order
-allocations.  This still utilizes memory compaction and direct reclaim in
-the allocation path, the only difference is that it will fail immediately
-instead of oom kill processes when out of memory.
-
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/seq_file.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/seq_file.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN fs/seq_file.c~fs-seq_file-fallback-to-vmalloc-instead-of-oom-kill-processes fs/seq_file.c
---- a/fs/seq_file.c~fs-seq_file-fallback-to-vmalloc-instead-of-oom-kill-processes
+diff -puN fs/seq_file.c~fs-seq_file-fallback-to-vmalloc-instead-of-oom-kill-processes-fix fs/seq_file.c
+--- a/fs/seq_file.c~fs-seq_file-fallback-to-vmalloc-instead-of-oom-kill-processes-fix
 +++ a/fs/seq_file.c
-@@ -36,7 +36,7 @@ static void *seq_buf_alloc(unsigned long
+@@ -36,6 +36,10 @@ static void *seq_buf_alloc(unsigned long
  {
  	void *buf;
  
--	buf = kmalloc(size, GFP_KERNEL | __GFP_NOWARN);
-+	buf = kmalloc(size, GFP_KERNEL | __GFP_NORETRY | __GFP_NOWARN);
++	/*
++	 * __GFP_NORETRY to avoid oom-killings with high-order allocations -
++	 * it's better to fall back to vmalloc() than to kill things.
++	 */
+ 	buf = kmalloc(size, GFP_KERNEL | __GFP_NORETRY | __GFP_NOWARN);
  	if (!buf && size > PAGE_SIZE)
  		buf = vmalloc(size);
- 	return buf;
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-slab-slub-coding-style-whitespaces-and-tabs-mixture.patch
-slab-print-slabinfo-header-in-seq-show.patch
-mm-slab-reverse-iteration-on-find_mergeable.patch
-mm-slub-fix-format-mismatches-in-slab_err-callers.patch
+origin.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+mm-vmpressurec-fix-race-in-vmpressure_work_fn.patch
+mm-vmpressurec-fix-race-in-vmpressure_work_fn-fix.patch
+drivers-input-evdevc-dont-kfree-a-vmalloc-address.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
+ocfs2-free-inode-when-i_count-becomes-zero.patch
+ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
+mm.patch
 slab-improve-checking-for-invalid-gfp_flags.patch
-slab-replace-smp_read_barrier_depends-with-lockless_dereference.patch
-mm-memcontrol-lockless-page-counters.patch
-mm-hugetlb_cgroup-convert-to-lockless-page-counters.patch
-kernel-res_counter-remove-the-unused-api.patch
+mm-memcontrol-lockless-page-counters-fix.patch
+mm-memcontrol-lockless-page-counters-fix-fix.patch
 kernel-res_counter-remove-the-unused-api-fix.patch
-mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting.patch
-mm-memcontrol-take-a-css-reference-for-each-charged-page.patch
-mm-memcontrol-remove-obsolete-kmemcg-pinning-tricks.patch
-mm-memcontrol-continue-cache-reclaim-from-offlined-groups.patch
-mm-memcontrol-remove-synchroneous-stock-draining-code.patch
-mm-verify-compound-order-when-freeing-a-page.patch
-mm-compaction-pass-classzone_idx-and-alloc_flags-to-watermark-checking.patch
-mm-compaction-pass-classzone_idx-and-alloc_flags-to-watermark-checking-fix.patch
-mm-compaction-simplify-deferred-compaction.patch
-mm-compaction-defer-only-on-compact_complete.patch
-mm-compaction-always-update-cached-scanner-positions.patch
-mm-compaction-always-update-cached-scanner-positions-fix.patch
-mm-compaction-more-focused-lru-and-pcplists-draining.patch
-mm-compaction-more-focused-lru-and-pcplists-draining-fix.patch
-mm-numa-balancing-rearrange-kconfig-entry.patch
-memcg-use-generic-slab-iterators-for-showing-slabinfo.patch
-mm-hugetlb-fix-__unmap_hugepage_range.patch
-hugetlb-fix-hugepages=-entry-in-kernel-parameterstxt.patch
-hugetlb-alloc_bootmem_huge_page-use-is_aligned.patch
-hugetlb-hugetlb_register_all_nodes-add-__init-marker.patch
-memory-hotplug-remove-redundant-call-of-page_to_pfn.patch
-mm-gfp-escalatedly-define-gfp_highuser-and-gfp_highuser_movable.patch
-fs-seq_file-fallback-to-vmalloc-instead-of-oom-kill-processes.patch
+mm-compaction-simplify-deferred-compaction-fix.patch
+mm-compaction-always-update-cached-scanner-positions-fix-checkpatch-fixes.patch
+mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
+mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix.patch
+mm-fix-huge-zero-page-accounting-in-smaps-report-fix-2-fix.patch
+mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
+mm-mincore-add-hwpoison-page-handle-checkpatch-fixes.patch
+mm-page_alloc-store-updated-page-migratetype-to-avoid-misusing-stale-value-fix.patch
+include-linux-kmemleakh-needs-slabh.patch
+mm-page_owner-keep-track-of-page-owners.patch
 fs-seq_file-fallback-to-vmalloc-instead-of-oom-kill-processes-fix.patch
-mm-utilc-add-kstrimdup.patch
-sysctl-terminate-strings-also-on-r.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix-2.patch
+zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
+fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user.patch
+init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails-checkpatch-fixes.patch
+rtc-omap-add-support-for-pmic_power_en-v3-fix.patch
+drivers-rtc-rtc-sirfsocc-add-alarm_irq_enable-support-fix.patch
+rtc-ds1374-add-watchdog-support-checkpatch-fixes.patch
+exit-wait-cleanup-the-ptrace_reparented-checks-fix.patch
 sysctl-terminate-strings-also-on-r-fix.patch
+ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
+ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
+ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
 linux-next.patch
-slab-fix-cpuset-check-in-fallback_alloc.patch
-slub-fix-cpuset-check-in-get_any_partial.patch
-lib-show_mem-this-patch-adds-cma-reserved-infromation.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mm-cma-make-kmemleak-ignore-cma-regions.patch
 lib-show_mem-this-patch-adds-cma-reserved-infromation-fix.patch
+tools-testing-selftests-makefile-alphasort-the-targets-list.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
