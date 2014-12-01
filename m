@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-zsmalloc-support-allocating-obj-with-size-of-zs_max_alloc_size-fix.patch added to -mm tree
-Date: Mon, 01 Dec 2014 14:49:47 -0800
-Message-ID: <547cf08b.LqMNUObz9oGSM3nK%akpm@linux-foundation.org>
+Subject: + mm-zsmalloc-avoid-duplicate-assignment-of-prev_class-fix.patch
+ added to -mm tree
+Date: Mon, 01 Dec 2014 14:49:51 -0800
+Message-ID: <547cf08f.Kj4lbALUsP0KUR3B%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51874 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51881 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932559AbaLAWtt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Dec 2014 17:49:49 -0500
+	with ESMTP id S932559AbaLAWtw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Dec 2014 17:49:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, fengguang.wu@intel.com, ngupta@vflare.org, opensource.ganesh@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ddstreet@ieee.org, fengguang.wu@intel.com, minchan@kernel.org, ngupta@vflare.org, opensource.ganesh@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-zsmalloc-support-allocating-obj-with-size-of-zs_max_alloc_size-fix
+     Subject: mm-zsmalloc-avoid-duplicate-assignment-of-prev_class-fix
 has been added to the -mm tree.  Its filename is
-     mm-zsmalloc-support-allocating-obj-with-size-of-zs_max_alloc_size-fix.patch
+     mm-zsmalloc-avoid-duplicate-assignment-of-prev_class-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-zsmalloc-support-allocating-obj-with-size-of-zs_max_alloc_size-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-zsmalloc-avoid-duplicate-assignment-of-prev_class-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zsmalloc-support-allocating-obj-with-size-of-zs_max_alloc_size-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zsmalloc-avoid-duplicate-assignment-of-prev_class-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,28 +40,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-zsmalloc-support-allocating-obj-with-size-of-zs_max_alloc_size-fix
+Subject: mm-zsmalloc-avoid-duplicate-assignment-of-prev_class-fix
 
-restore ZS_SIZE_CLASSES to fix bisectability
+remove now-unused ZS_SIZE_CLASSES
 
-Cc: Mahendran Ganesh <opensource.ganesh@gmail.com>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Ganesh Mahendran <opensource.ganesh@gmail.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Cc: Nitin Gupta <ngupta@vflare.org>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+Reported-by: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/zsmalloc.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN mm/zsmalloc.c~mm-zsmalloc-support-allocating-obj-with-size-of-zs_max_alloc_size-fix mm/zsmalloc.c
---- a/mm/zsmalloc.c~mm-zsmalloc-support-allocating-obj-with-size-of-zs_max_alloc_size-fix
+diff -puN mm/zsmalloc.c~mm-zsmalloc-avoid-duplicate-assignment-of-prev_class-fix mm/zsmalloc.c
+--- a/mm/zsmalloc.c~mm-zsmalloc-avoid-duplicate-assignment-of-prev_class-fix
 +++ a/mm/zsmalloc.c
-@@ -155,6 +155,8 @@
+@@ -155,8 +155,6 @@
   *  (reason above)
   */
  #define ZS_SIZE_CLASS_DELTA	(PAGE_SIZE >> 8)
-+#define ZS_SIZE_CLASSES		((ZS_MAX_ALLOC_SIZE - ZS_MIN_ALLOC_SIZE) / \
-+					ZS_SIZE_CLASS_DELTA + 1)
+-#define ZS_SIZE_CLASSES		((ZS_MAX_ALLOC_SIZE - ZS_MIN_ALLOC_SIZE) / \
+-					ZS_SIZE_CLASS_DELTA + 1)
  
  /*
   * We do not maintain any list for completely empty or full pages
