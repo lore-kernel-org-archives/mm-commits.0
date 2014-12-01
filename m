@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-zsmalloc-avoid-duplicate-assignment-of-prev_class-fix.patch
- added to -mm tree
-Date: Mon, 01 Dec 2014 14:49:51 -0800
-Message-ID: <547cf08f.Kj4lbALUsP0KUR3B%akpm@linux-foundation.org>
+Subject: +
+ mm-nommu-use-alloc_pages_exact-rather-than-its-own-implementation-fix.patch added to -mm tree
+Date: Mon, 01 Dec 2014 15:09:07 -0800
+Message-ID: <547cf513.3fbsAKbKwPtlT8Aq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51881 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52082 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932559AbaLAWtw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Dec 2014 17:49:52 -0500
+	with ESMTP id S932684AbaLAXJI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Dec 2014 18:09:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ddstreet@ieee.org, fengguang.wu@intel.com, minchan@kernel.org, ngupta@vflare.org, opensource.ganesh@gmail.com, mm-commits@vger.kernel.org
+To: iamjoonsoo.kim@lge.com, fengguang.wu@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-zsmalloc-avoid-duplicate-assignment-of-prev_class-fix
+     Subject: mm-nommu-use-alloc_pages_exact-rather-than-its-own-implementation-fix
 has been added to the -mm tree.  Its filename is
-     mm-zsmalloc-avoid-duplicate-assignment-of-prev_class-fix.patch
+     mm-nommu-use-alloc_pages_exact-rather-than-its-own-implementation-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-zsmalloc-avoid-duplicate-assignment-of-prev_class-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-nommu-use-alloc_pages_exact-rather-than-its-own-implementation-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zsmalloc-avoid-duplicate-assignment-of-prev_class-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-nommu-use-alloc_pages_exact-rather-than-its-own-implementation-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,91 +39,86 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-zsmalloc-avoid-duplicate-assignment-of-prev_class-fix
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: mm-nommu-use-alloc_pages_exact-rather-than-its-own-implementation-fix
 
-remove now-unused ZS_SIZE_CLASSES
+Fix following warning from 0-day kernel test infrastructure.
 
-Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: Ganesh Mahendran <opensource.ganesh@gmail.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Nitin Gupta <ngupta@vflare.org>
+  make.cross ARCH=m32r
+
+All warnings:
+
+   mm/nommu.c: In function 'do_mmap_private':
+>> mm/nommu.c:1193:8: warning: assignment makes pointer (snip)...
+      base = __get_free_pages(GFP_KERNEL, order);
+           ^
+
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Reported-by: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/nommu.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/zsmalloc.c~mm-zsmalloc-avoid-duplicate-assignment-of-prev_class-fix mm/zsmalloc.c
---- a/mm/zsmalloc.c~mm-zsmalloc-avoid-duplicate-assignment-of-prev_class-fix
-+++ a/mm/zsmalloc.c
-@@ -155,8 +155,6 @@
-  *  (reason above)
-  */
- #define ZS_SIZE_CLASS_DELTA	(PAGE_SIZE >> 8)
--#define ZS_SIZE_CLASSES		((ZS_MAX_ALLOC_SIZE - ZS_MIN_ALLOC_SIZE) / \
--					ZS_SIZE_CLASS_DELTA + 1)
+diff -puN mm/nommu.c~mm-nommu-use-alloc_pages_exact-rather-than-its-own-implementation-fix mm/nommu.c
+--- a/mm/nommu.c~mm-nommu-use-alloc_pages_exact-rather-than-its-own-implementation-fix
++++ a/mm/nommu.c
+@@ -1190,7 +1190,7 @@ static int do_mmap_private(struct vm_are
+ 		kdebug("try to alloc exact %lu pages", total);
+ 		base = alloc_pages_exact(len, GFP_KERNEL);
+ 	} else {
+-		base = __get_free_pages(GFP_KERNEL, order);
++		base = (void *)__get_free_pages(GFP_KERNEL, order);
+ 	}
  
- /*
-  * We do not maintain any list for completely empty or full pages
+ 	if (!base)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-mm-vmpressurec-fix-race-in-vmpressure_work_fn.patch
-mm-vmpressurec-fix-race-in-vmpressure_work_fn-fix.patch
-drivers-input-evdevc-dont-kfree-a-vmalloc-address.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
-ocfs2-free-inode-when-i_count-becomes-zero.patch
-ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
-mm.patch
+mm-slab-slub-coding-style-whitespaces-and-tabs-mixture.patch
+slab-print-slabinfo-header-in-seq-show.patch
+mm-slab-reverse-iteration-on-find_mergeable.patch
+mm-slub-fix-format-mismatches-in-slab_err-callers.patch
 slab-improve-checking-for-invalid-gfp_flags.patch
-mm-memcontrol-lockless-page-counters-fix.patch
-mm-memcontrol-lockless-page-counters-fix-fix.patch
-kernel-res_counter-remove-the-unused-api-fix.patch
-mm-compaction-simplify-deferred-compaction-fix.patch
-mm-compaction-always-update-cached-scanner-positions-fix-checkpatch-fixes.patch
-mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
-mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix.patch
-mm-fix-huge-zero-page-accounting-in-smaps-report-fix-2-fix.patch
-mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
-mm-mincore-add-hwpoison-page-handle-checkpatch-fixes.patch
+slab-replace-smp_read_barrier_depends-with-lockless_dereference.patch
+mm-introduce-single-zone-pcplists-drain.patch
+mm-page_isolation-drain-single-zone-pcplists.patch
+mm-cma-drain-single-zone-pcplists.patch
+mm-memory_hotplug-failure-drain-single-zone-pcplists.patch
+mm-compaction-pass-classzone_idx-and-alloc_flags-to-watermark-checking.patch
+mm-compaction-pass-classzone_idx-and-alloc_flags-to-watermark-checking-fix.patch
+mm-compaction-simplify-deferred-compaction.patch
+mm-compaction-defer-only-on-compact_complete.patch
+mm-compaction-always-update-cached-scanner-positions.patch
+mm-compaction-always-update-cached-scanner-positions-fix.patch
+mm-compaction-more-focused-lru-and-pcplists-draining.patch
+mm-compaction-more-focused-lru-and-pcplists-draining-fix.patch
+memcg-use-generic-slab-iterators-for-showing-slabinfo.patch
+mm-embed-the-memcg-pointer-directly-into-struct-page.patch
+mm-embed-the-memcg-pointer-directly-into-struct-page-fix.patch
+mm-page_cgroup-rename-file-to-mm-swap_cgroupc.patch
+mm-move-page-mem_cgroup-bad-page-handling-into-generic-code.patch
+mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix.patch
+mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix-2.patch
+lib-bitmap-added-alignment-offset-for-bitmap_find_next_zero_area.patch
+mm-cma-align-to-physical-address-not-cma-region-position.patch
+mm-debug-pagealloc-cleanup-page-guard-code.patch
 include-linux-kmemleakh-needs-slabh.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
+mm-page_ext-resurrect-struct-page-extending-code-for-debugging.patch
+mm-debug-pagealloc-prepare-boottime-configurable-on-off.patch
+mm-debug-pagealloc-make-debug-pagealloc-boottime-configurable.patch
+mm-nommu-use-alloc_pages_exact-rather-than-its-own-implementation.patch
+mm-nommu-use-alloc_pages_exact-rather-than-its-own-implementation-fix.patch
+stacktrace-introduce-snprint_stack_trace-for-buffer-output.patch
 mm-page_owner-keep-track-of-page-owners.patch
-fs-seq_file-fallback-to-vmalloc-instead-of-oom-kill-processes-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix-2.patch
-zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix.patch
-mm-zsmalloc-support-allocating-obj-with-size-of-zs_max_alloc_size-fix.patch
-mm-zsmalloc-avoid-duplicate-assignment-of-prev_class-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
-fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user.patch
-init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails-checkpatch-fixes.patch
-rtc-omap-add-support-for-pmic_power_en-v3-fix.patch
-drivers-rtc-rtc-sirfsocc-add-alarm_irq_enable-support-fix.patch
-rtc-ds1374-add-watchdog-support-checkpatch-fixes.patch
-exit-wait-cleanup-the-ptrace_reparented-checks-fix.patch
-sysctl-terminate-strings-also-on-r-fix.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
-ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
-linux-next.patch
-linux-next-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
+mm-page_owner-correct-owner-information-for-early-allocated-pages.patch
+documentation-add-new-page_owner-document.patch
+zsmalloc-merge-size_class-to-reduce-fragmentation.patch
+slab-fix-cpuset-check-in-fallback_alloc.patch
+slub-fix-cpuset-check-in-get_any_partial.patch
 mm-cma-make-kmemleak-ignore-cma-regions.patch
-lib-show_mem-this-patch-adds-cma-reserved-infromation-fix.patch
-tools-testing-selftests-makefile-alphasort-the-targets-list.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
+mm-cma-split-cma-reserved-in-dmesg-log.patch
+fs-proc-include-cma-info-in-proc-meminfo.patch
 
