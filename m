@@ -1,56 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-staging-media-makefile-fix-build.patch removed
- from -mm tree
-Date: Mon, 01 Dec 2014 13:07:53 -0800
-Message-ID: <547cd8a9.hB0JLhR1xsSge52P%akpm@linux-foundation.org>
+Subject: + sparc-add-pmd_-for-thp-fix.patch added to -mm tree
+Date: Mon, 01 Dec 2014 13:37:50 -0800
+Message-ID: <547cdfae.UIyF1IGGX2EJjNF2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50517 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50664 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932112AbaLAVHy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Dec 2014 16:07:54 -0500
+	with ESMTP id S1751274AbaLAVhv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Dec 2014 16:37:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, gregkh@linuxfoundation.org, mchehab@osg.samsung.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, fengguang.wu@intel.com, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/staging/media/Makefile: fix build
-has been removed from the -mm tree.  Its filename was
-     drivers-staging-media-makefile-fix-build.patch
+     Subject: sparc-add-pmd_-for-thp-fix
+has been added to the -mm tree.  Its filename is
+     sparc-add-pmd_-for-thp-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/sparc-add-pmd_-for-thp-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/sparc-add-pmd_-for-thp-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/staging/media/Makefile: fix build
+Subject: sparc-add-pmd_-for-thp-fix
 
-`make mrproper':
+mm-fix-huge-zero-page-accounting-in-smaps-report.patch already added
+pmd-dirty()
 
-./scripts/Makefile.clean:17: drivers/staging/media/omap24xx/Makefile: No such file or directory
-
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Reported-by: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/media/Makefile |    1 -
- 1 file changed, 1 deletion(-)
+ arch/sparc/include/asm/pgtable_64.h |    7 -------
+ 1 file changed, 7 deletions(-)
 
-diff -puN drivers/staging/media/Makefile~drivers-staging-media-makefile-fix-build drivers/staging/media/Makefile
---- a/drivers/staging/media/Makefile~drivers-staging-media-makefile-fix-build
-+++ a/drivers/staging/media/Makefile
-@@ -4,7 +4,6 @@ obj-$(CONFIG_LIRC_STAGING)	+= lirc/
- obj-$(CONFIG_VIDEO_DT3155)	+= dt3155v4l/
- obj-$(CONFIG_VIDEO_DM365_VPFE)	+= davinci_vpfe/
- obj-$(CONFIG_VIDEO_OMAP4)	+= omap4iss/
--obj-$(CONFIG_VIDEO_TCM825X)     += omap24xx/
- obj-$(CONFIG_DVB_MN88472)       += mn88472/
- obj-$(CONFIG_DVB_MN88473)       += mn88473/
+diff -puN arch/sparc/include/asm/pgtable_64.h~sparc-add-pmd_-for-thp-fix arch/sparc/include/asm/pgtable_64.h
+--- a/arch/sparc/include/asm/pgtable_64.h~sparc-add-pmd_-for-thp-fix
++++ a/arch/sparc/include/asm/pgtable_64.h
+@@ -681,13 +681,6 @@ static inline unsigned long pmd_young(pm
+ 	return pte_young(pte);
+ }
  
+-static inline int pmd_dirty(pmd_t pmd)
+-{
+-	pte_t pte = __pte(pmd_val(pmd));
+-
+-	return pte_dirty(pte);
+-}
+-
+ static inline unsigned long pmd_write(pmd_t pmd)
+ {
+ 	pte_t pte = __pte(pmd_val(pmd));
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -78,6 +96,7 @@ mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
 mm-mincore-add-hwpoison-page-handle-checkpatch-fixes.patch
 include-linux-kmemleakh-needs-slabh.patch
 x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
 mm-page_owner-keep-track-of-page-owners.patch
 fs-seq_file-fallback-to-vmalloc-instead-of-oom-kill-processes-fix.patch
 mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
