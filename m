@@ -1,97 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] rtc-ds1307-add-device-tree-support.patch removed from -mm tree
-Date: Fri, 28 Nov 2014 08:09:55 -0800
-Message-ID: <54789e53.FJ9Y+6/mdnp+7AMp%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Mon, 01 Dec 2014 13:03:48 -0800
+Message-ID: <547cd7b4.GGZ54PGCCUmt79Wx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51919 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50508 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751953AbaK1QJf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 28 Nov 2014 11:09:35 -0500
+	with ESMTP id S932158AbaLAVDu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Dec 2014 16:03:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tomas@novotny.cz, a.zummo@towertech.it, grant.likely@linaro.org, robh+dt@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: ds1307: add device tree support
+     Subject: linux-next-git-rejects
 has been removed from the -mm tree.  Its filename was
-     rtc-ds1307-add-device-tree-support.patch
+     linux-next-git-rejects.patch
 
-This patch was dropped because it was withdrawn
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Tomas Novotny <tomas@novotny.cz>
-Subject: rtc: ds1307: add device tree support
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-Note that alarm interrupt and trickle charger are not handled (I have no
-hardware with these features).
-
-Only the "common" compatible string for that driver (maxim,ds1307) is
-documented, so checkpatch complains for the rest.  If it is better to
-document every compatible, I will post a new series with documentation
-files pointing to the maxim,ds1307.txt.
-
-Signed-off-by: Tomas Novotny <tomas@novotny.cz>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Grant Likely <grant.likely@linaro.org>
-Cc: Rob Herring <robh+dt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1307.c |   22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ fs/nfsd/nfsd.h |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN drivers/rtc/rtc-ds1307.c~rtc-ds1307-add-device-tree-support drivers/rtc/rtc-ds1307.c
---- a/drivers/rtc/rtc-ds1307.c~rtc-ds1307-add-device-tree-support
-+++ a/drivers/rtc/rtc-ds1307.c
-@@ -18,6 +18,7 @@
- #include <linux/string.h>
- #include <linux/rtc.h>
- #include <linux/bcd.h>
-+#include <linux/of.h>
- #include <linux/rtc/ds1307.h>
+diff -puN fs/nfsd/nfsd.h~linux-next-git-rejects fs/nfsd/nfsd.h
+--- a/fs/nfsd/nfsd.h~linux-next-git-rejects
++++ a/fs/nfsd/nfsd.h
+@@ -342,11 +342,7 @@ void		nfsd_lockd_shutdown(void);
  
- /*
-@@ -1242,10 +1243,31 @@ static int ds1307_remove(struct i2c_clie
- 	return 0;
- }
+ #define NFSD4_2_SUPPORTED_ATTRS_WORD2 \
+ 	(NFSD4_1_SUPPORTED_ATTRS_WORD2 | \
+-<<<<<<< HEAD
+-	NFSD4_2_SECURITY_ATTRS)
+-=======
+ 	FATTR4_WORD2_CHANGE_ATTR_TYPE | NFSD4_2_SECURITY_ATTRS)
+->>>>>>> linux-next/akpm-base
  
-+#ifdef CONFIG_OF
-+static const struct of_device_id ds1307_driver_dt_ids[] = {
-+	/* driver_data are passed through ds1307_id */
-+	{ .compatible = "maxim,ds1307" },
-+	{ .compatible = "maxim,ds1337" },
-+	{ .compatible = "maxim,ds1338" },
-+	{ .compatible = "maxim,ds1339" },
-+	{ .compatible = "maxim,ds1388" },
-+	{ .compatible = "maxim,ds1340" },
-+	{ .compatible = "maxim,ds3231" },
-+	{ .compatible = "st,m41t00" },
-+	{ .compatible = "microchip,mcp7940x" },
-+	{ .compatible = "microchip,mcp7941x" },
-+	{ .compatible = "pericom,pt7c4338" },
-+	{ .compatible = "epson,rx8025" },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(of, ds1307_driver_dt_ids);
-+#endif
-+
- static struct i2c_driver ds1307_driver = {
- 	.driver = {
- 		.name	= "rtc-ds1307",
- 		.owner	= THIS_MODULE,
-+		.of_match_table	= of_match_ptr(ds1307_driver_dt_ids),
- 	},
- 	.probe		= ds1307_probe,
- 	.remove		= ds1307_remove,
+ static inline u32 nfsd_suppattrs0(u32 minorversion)
+ {
 _
 
-Patches currently in -mm which might be from tomas@novotny.cz are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-rtc-ds1307-add-support-for-mcp7940x-chips.patch
-of-add-vendor-prefix-for-pericom-technology.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+mm-vmpressurec-fix-race-in-vmpressure_work_fn.patch
+mm-vmpressurec-fix-race-in-vmpressure_work_fn-fix.patch
+drivers-input-evdevc-dont-kfree-a-vmalloc-address.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
+ocfs2-free-inode-when-i_count-becomes-zero.patch
+ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
+mm.patch
+slab-improve-checking-for-invalid-gfp_flags.patch
+mm-memcontrol-lockless-page-counters-fix.patch
+mm-memcontrol-lockless-page-counters-fix-fix.patch
+kernel-res_counter-remove-the-unused-api-fix.patch
+mm-compaction-simplify-deferred-compaction-fix.patch
+mm-compaction-always-update-cached-scanner-positions-fix-checkpatch-fixes.patch
+mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
+mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix.patch
+mm-fix-huge-zero-page-accounting-in-smaps-report-fix-2-fix.patch
+mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
+mm-mincore-add-hwpoison-page-handle-checkpatch-fixes.patch
+include-linux-kmemleakh-needs-slabh.patch
+x86-add-pmd_-for-thp-fix.patch
+mm-page_owner-keep-track-of-page-owners.patch
+fs-seq_file-fallback-to-vmalloc-instead-of-oom-kill-processes-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix-2.patch
+zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
+fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user.patch
+init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails-checkpatch-fixes.patch
+rtc-omap-add-support-for-pmic_power_en-v3-fix.patch
+drivers-rtc-rtc-sirfsocc-add-alarm_irq_enable-support-fix.patch
+rtc-ds1374-add-watchdog-support-checkpatch-fixes.patch
+exit-wait-cleanup-the-ptrace_reparented-checks-fix.patch
+sysctl-terminate-strings-also-on-r-fix.patch
+ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
+ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
+ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
+linux-next.patch
+linux-next-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+drivers-staging-media-makefile-fix-build.patch
+mm-cma-make-kmemleak-ignore-cma-regions.patch
+lib-show_mem-this-patch-adds-cma-reserved-infromation-fix.patch
+tools-testing-selftests-makefile-alphasort-the-targets-list.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
