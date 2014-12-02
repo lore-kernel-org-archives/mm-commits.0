@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + slab-fix-nodeid-bounds-check-for-non-contiguous-node-ids.patch
- added to -mm tree
-Date: Tue, 02 Dec 2014 14:27:33 -0800
-Message-ID: <547e3cd5.xcENGsE1bYvrvZTt%akpm@linux-foundation.org>
+Subject: + mm-zsmalloc-allocate-exactly-size-of-struct-zs_pool.patch added to -mm tree
+Date: Tue, 02 Dec 2014 14:46:30 -0800
+Message-ID: <547e4146.QloAocsLM/seETHY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42749 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43002 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932550AbaLBW1e (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2014 17:27:34 -0500
+	with ESMTP id S932984AbaLBWqb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2014 17:46:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: paulus@samba.org, cl@linux.com, iamjoonsoo.kim@lge.com, isimatu.yasuaki@jp.fujitsu.com, penberg@kernel.org, rientjes@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: opensource.ganesh@gmail.com, ddstreet@ieee.org, minchan@kernel.org, ngupta@vflare.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slab: fix nodeid bounds check for non-contiguous node IDs
+     Subject: mm/zsmalloc: allocate exactly size of struct zs_pool
 has been added to the -mm tree.  Its filename is
-     slab-fix-nodeid-bounds-check-for-non-contiguous-node-ids.patch
+     mm-zsmalloc-allocate-exactly-size-of-struct-zs_pool.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/slab-fix-nodeid-bounds-check-for-non-contiguous-node-ids.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-zsmalloc-allocate-exactly-size-of-struct-zs_pool.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/slab-fix-nodeid-bounds-check-for-non-contiguous-node-ids.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zsmalloc-allocate-exactly-size-of-struct-zs_pool.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,84 +38,54 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Paul Mackerras <paulus@samba.org>
-Subject: slab: fix nodeid bounds check for non-contiguous node IDs
+From: Ganesh Mahendran <opensource.ganesh@gmail.com>
+Subject: mm/zsmalloc: allocate exactly size of struct zs_pool
 
-The bounds check for nodeid in ____cache_alloc_node gives false positives
-on machines where the node IDs are not contiguous, leading to a panic at
-boot time.  For example, on a POWER8 machine the node IDs are typically 0,
-1, 16 and 17.  This means that num_online_nodes() returns 4, so when
-____cache_alloc_node is called with nodeid = 16 the VM_BUG_ON triggers,
-like this:
+In zs_create_pool(), we allocate memory more then sizeof(struct zs_pool)
+  ovhd_size = roundup(sizeof(*pool), PAGE_SIZE);
 
-kernel BUG at /home/paulus/kernel/kvm/mm/slab.c:3079!
-Oops: Exception in kernel mode, sig: 5 [#1]
-SMP NR_CPUS=1024 NUMA PowerNV
-Modules linked in:
-CPU: 0 PID: 0 Comm: swapper Not tainted 3.18.0-rc5-kvm+ #17
-task: c0000000013ba230 ti: c000000001494000 task.ti: c000000001494000
-NIP: c000000000264f6c LR: c000000000264f5c CTR: 0000000000000000
-REGS: c0000000014979a0 TRAP: 0700   Not tainted  (3.18.0-rc5-kvm+)
-MSR: 9000000002021032 <SF,HV,VEC,ME,IR,DR,RI>  CR: 28000448  XER: 20000000
-CFAR: c00000000047e978 SOFTE: 0
-GPR00: c000000000264f5c c000000001497c20 c000000001499d48 0000000000000004
-GPR04: 0000000000000100 0000000000000010 0000000000000068 ffffffffffffffff
-GPR08: 0000000000000000 0000000000000001 00000000082d0000 c000000000cca5a8
-GPR12: 0000000048000448 c00000000fda0000 000001003bd44ff0 0000000010020578
-GPR16: 000001003bd44ff8 000001003bd45000 0000000000000001 0000000000000000
-GPR20: 0000000000000000 0000000000000000 0000000000000000 0000000000000010
-GPR24: c000000ffe000080 c000000000c824ec 0000000000000068 c000000ffe000080
-GPR28: 0000000000000010 c000000ffe000080 0000000000000010 0000000000000000
-NIP [c000000000264f6c] .____cache_alloc_node+0x6c/0x270
-LR [c000000000264f5c] .____cache_alloc_node+0x5c/0x270
-Call Trace:
-[c000000001497c20] [c000000000264f5c] .____cache_alloc_node+0x5c/0x270 (unreliable)
-[c000000001497cf0] [c00000000026552c] .kmem_cache_alloc_node_trace+0xdc/0x360
-[c000000001497dc0] [c000000000c824ec] .init_list+0x3c/0x128
-[c000000001497e50] [c000000000c827b4] .kmem_cache_init+0x1dc/0x258
-[c000000001497ef0] [c000000000c54090] .start_kernel+0x2a0/0x568
-[c000000001497f90] [c000000000008c6c] start_here_common+0x20/0xa8
-Instruction dump:
-7c7d1b78 7c962378 4bda4e91 60000000 3c620004 38800100 386370d8 48219959
-60000000 7f83e000 7d301026 5529effe <0b090000> 393c0010 79291f24 7d3d4a14
+This patch allocate memory of exactly needed size.
 
-To fix this, we instead compare the nodeid with MAX_NUMNODES, and
-additionally make sure it isn't negative (since nodeid is an int).  The
-check is there mainly to protect the array dereference in the get_node()
-call in the next line, and the array being dereferenced is of size
-MAX_NUMNODES.  If the nodeid is in range but invalid (for example if the
-node is off-line), the BUG_ON in the next line will catch that.
-
-Fixes: 14e50c6a9bc2 ("mm: slab: Verify the nodeid passed to ____cache_alloc_node")
-Signed-off-by: Paul Mackerras <paulus@samba.org>
-Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Reviewed-by: Pekka Enberg <penberg@kernel.org>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Ganesh Mahendran <opensource.ganesh@gmail.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
+Cc: Dan Streetman <ddstreet@ieee.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/zsmalloc.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN mm/slab.c~slab-fix-nodeid-bounds-check-for-non-contiguous-node-ids mm/slab.c
---- a/mm/slab.c~slab-fix-nodeid-bounds-check-for-non-contiguous-node-ids
-+++ a/mm/slab.c
-@@ -3076,7 +3076,7 @@ static void *____cache_alloc_node(struct
- 	void *obj;
- 	int x;
+diff -puN mm/zsmalloc.c~mm-zsmalloc-allocate-exactly-size-of-struct-zs_pool mm/zsmalloc.c
+--- a/mm/zsmalloc.c~mm-zsmalloc-allocate-exactly-size-of-struct-zs_pool
++++ a/mm/zsmalloc.c
+@@ -979,12 +979,11 @@ static bool can_merge(struct size_class
+  */
+ struct zs_pool *zs_create_pool(gfp_t flags)
+ {
+-	int i, ovhd_size;
++	int i;
+ 	struct zs_pool *pool;
+ 	struct size_class *prev_class = NULL;
  
--	VM_BUG_ON(nodeid > num_online_nodes());
-+	VM_BUG_ON(nodeid < 0 || nodeid >= MAX_NUMNODES);
- 	n = get_node(cachep, nodeid);
- 	BUG_ON(!n);
+-	ovhd_size = roundup(sizeof(*pool), PAGE_SIZE);
+-	pool = kzalloc(ovhd_size, GFP_KERNEL);
++	pool = kzalloc(sizeof(*pool), GFP_KERNEL);
+ 	if (!pool)
+ 		return NULL;
  
 _
 
-Patches currently in -mm which might be from paulus@samba.org are
+Patches currently in -mm which might be from opensource.ganesh@gmail.com are
 
-slab-fix-nodeid-bounds-check-for-non-contiguous-node-ids.patch
-linux-next.patch
+zsmalloc-fix-zs_init-cpu-notifier-error-handling.patch
+zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix-2.patch
+zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix.patch
+mm-zsmalloc-support-allocating-obj-with-size-of-zs_max_alloc_size.patch
+mm-zsmalloc-support-allocating-obj-with-size-of-zs_max_alloc_size-fix.patch
+mm-zram-correct-zram_zero-flag-bit-position.patch
+mm-zsmalloc-avoid-duplicate-assignment-of-prev_class.patch
+mm-zsmalloc-avoid-duplicate-assignment-of-prev_class-fix.patch
+mm-zsmalloc-allocate-exactly-size-of-struct-zs_pool.patch
+mm-zswap-add-__init-to-some-functions-in-zswap.patch
 
