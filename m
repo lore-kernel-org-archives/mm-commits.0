@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + nilfs2-avoid-duplicate-segment-construction-for-fsync.patch
- added to -mm tree
-Date: Tue, 02 Dec 2014 14:08:16 -0800
-Message-ID: <547e3850.IFf4gEd7hXZTtGOd%akpm@linux-foundation.org>
+Subject: + nilfs2-fix-the-nilfs_iget-vs-nilfs_new_inode-races.patch added
+ to -mm tree
+Date: Tue, 02 Dec 2014 14:08:20 -0800
+Message-ID: <547e3854.0jQnLGnVXs5oz9Jz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42442 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42449 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932980AbaLBWIR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2014 17:08:17 -0500
+	with ESMTP id S932980AbaLBWIV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2014 17:08:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andreas.rohner@gmx.net, konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
+To: konishi.ryusuke@lab.ntt.co.jp, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: avoid duplicate segment construction for fsync()
+     Subject: nilfs2: fix the nilfs_iget() vs. nilfs_new_inode() races
 has been added to the -mm tree.  Its filename is
-     nilfs2-avoid-duplicate-segment-construction-for-fsync.patch
+     nilfs2-fix-the-nilfs_iget-vs-nilfs_new_inode-races.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/nilfs2-avoid-duplicate-segment-construction-for-fsync.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/nilfs2-fix-the-nilfs_iget-vs-nilfs_new_inode-races.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-avoid-duplicate-segment-construction-for-fsync.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-fix-the-nilfs_iget-vs-nilfs_new_inode-races.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,63 +39,181 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andreas Rohner <andreas.rohner@gmx.net>
-Subject: nilfs2: avoid duplicate segment construction for fsync()
+From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Subject: nilfs2: fix the nilfs_iget() vs. nilfs_new_inode() races
 
-This patch removes filemap_write_and_wait_range() from nilfs_sync_file(),
-because it triggers a data segment construction by calling
-nilfs_writepages() with WB_SYNC_ALL.  A data segment construction does not
-remove the inode from the i_dirty list and it does not clear the
-NILFS_I_DIRTY flag.  Therefore nilfs_inode_dirty() still returns true,
-which leads to an unnecessary duplicate segment construction in
-nilfs_sync_file().
+same story as in commit 41080b5a2401133 ("nfsd race fixes: ext2") (similar
+ext2 fix) except that nilfs2 needs to use insert_inode_locked4() instead
+of insert_inode_locked() and a bug of a check for dead inodes needs to be
+fixed.
 
-A call to filemap_write_and_wait_range() is not needed, because NILFS2
-does not rely on the generic writeback mechanisms.  Instead it implements
-its own mechanism to collect all dirty pages and write them into segments.
- It is more efficient to initiate the segment construction directly in
-nilfs_sync_file() without the detour over filemap_write_and_wait_range().
+If nilfs_iget() is called from nfsd after nilfs_new_inode() calls
+insert_inode_locked4(), nilfs_iget() will wait for unlock_new_inode() at
+the end of nilfs_mkdir()/nilfs_create()/etc to unlock the inode.
 
-Additionally the lock of i_mutex is not needed, because all code blocks
-that are protected by i_mutex are also protected by a NILFS transaction:
+If nilfs_iget() is called before nilfs_new_inode() calls
+insert_inode_locked4(), it will create an in-core inode and read its data
+from the on-disk inode.  But, nilfs_iget() will find i_nlink equals zero
+and fail at nilfs_read_inode_common(), which will lead it to call
+iget_failed() and cleanly fail.
 
-Function                i_mutex     nilfs_transaction
-------------------------------------------------------
-nilfs_ioctl_setflags:   yes         yes
-nilfs_fiemap:           yes         no
-nilfs_write_begin:      yes         yes
-nilfs_write_end:        yes         yes
-nilfs_lookup:           yes         no
-nilfs_create:           yes         yes
-nilfs_link:             yes         yes
-nilfs_mknod:            yes         yes
-nilfs_symlink:          yes         yes
-nilfs_mkdir:            yes         yes
-nilfs_unlink:           yes         yes
-nilfs_rmdir:            yes         yes
-nilfs_rename:           yes         yes
-nilfs_setattr:          yes         yes
+However, this sanity check doesn't work as expected for reused on-disk
+inodes because they leave a non-zero value in i_mode field and it hinders
+the test of i_nlink.  This patch also fixes the issue by removing the test
+on i_mode that nilfs2 doesn't need.
 
-For nilfs_lookup() i_mutex is held for the parent directory, to protect it
-from modification.  The segment construction does not modify directory
-inodes, so no lock is needed.
-
-nilfs_fiemap() reads the block layout on the disk, by using
-nilfs_bmap_lookup_contig(). This is already protected by bmap->b_sem.
-
-Signed-off-by: Andreas Rohner <andreas.rohner@gmx.net>
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/file.c |   10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+ fs/nilfs2/inode.c |   32 ++++++++++++++++++++++++--------
+ fs/nilfs2/namei.c |   15 ++++++++++++---
+ 2 files changed, 36 insertions(+), 11 deletions(-)
 
-diff -puN fs/nilfs2/file.c~nilfs2-avoid-duplicate-segment-construction-for-fsync fs/nilfs2/file.c
---- a/fs/nilfs2/file.c~nilfs2-avoid-duplicate-segment-construction-for-fsync
-+++ a/fs/nilfs2/file.c
-@@ -39,21 +39,15 @@ int nilfs_sync_file(struct file *file, l
- 	 */
- 	struct the_nilfs *nilfs;
- 	struct inode *inode = file->f_mapping->host;
--	int err;
+diff -puN fs/nilfs2/inode.c~nilfs2-fix-the-nilfs_iget-vs-nilfs_new_inode-races fs/nilfs2/inode.c
+--- a/fs/nilfs2/inode.c~nilfs2-fix-the-nilfs_iget-vs-nilfs_new_inode-races
++++ a/fs/nilfs2/inode.c
+@@ -49,6 +49,8 @@ struct nilfs_iget_args {
+ 	int for_gc;
+ };
+ 
++static int nilfs_iget_test(struct inode *inode, void *opaque);
++
+ void nilfs_inode_add_blocks(struct inode *inode, int n)
+ {
+ 	struct nilfs_root *root = NILFS_I(inode)->i_root;
+@@ -348,6 +350,17 @@ const struct address_space_operations ni
+ 	.is_partially_uptodate  = block_is_partially_uptodate,
+ };
+ 
++static int nilfs_insert_inode_locked(struct inode *inode,
++				     struct nilfs_root *root,
++				     unsigned long ino)
++{
++	struct nilfs_iget_args args = {
++		.ino = ino, .root = root, .cno = 0, .for_gc = 0
++	};
++
++	return insert_inode_locked4(inode, ino, nilfs_iget_test, &args);
++}
++
+ struct inode *nilfs_new_inode(struct inode *dir, umode_t mode)
+ {
+ 	struct super_block *sb = dir->i_sb;
+@@ -383,7 +396,7 @@ struct inode *nilfs_new_inode(struct ino
+ 	if (S_ISREG(mode) || S_ISDIR(mode) || S_ISLNK(mode)) {
+ 		err = nilfs_bmap_read(ii->i_bmap, NULL);
+ 		if (err < 0)
+-			goto failed_bmap;
++			goto failed_after_creation;
+ 
+ 		set_bit(NILFS_I_BMAP, &ii->i_state);
+ 		/* No lock is needed; iget() ensures it. */
+@@ -399,21 +412,24 @@ struct inode *nilfs_new_inode(struct ino
+ 	spin_lock(&nilfs->ns_next_gen_lock);
+ 	inode->i_generation = nilfs->ns_next_generation++;
+ 	spin_unlock(&nilfs->ns_next_gen_lock);
+-	insert_inode_hash(inode);
++	if (nilfs_insert_inode_locked(inode, root, ino) < 0) {
++		err = -EIO;
++		goto failed_after_creation;
++	}
+ 
+ 	err = nilfs_init_acl(inode, dir);
+ 	if (unlikely(err))
+-		goto failed_acl; /* never occur. When supporting
++		goto failed_after_creation; /* never occur. When supporting
+ 				    nilfs_init_acl(), proper cancellation of
+ 				    above jobs should be considered */
+ 
+ 	return inode;
+ 
+- failed_acl:
+- failed_bmap:
++ failed_after_creation:
+ 	clear_nlink(inode);
++	unlock_new_inode(inode);
+ 	iput(inode);  /* raw_inode will be deleted through
+-			 generic_delete_inode() */
++			 nilfs_evict_inode() */
+ 	goto failed;
+ 
+  failed_ifile_create_inode:
+@@ -461,8 +477,8 @@ int nilfs_read_inode_common(struct inode
+ 	inode->i_atime.tv_nsec = le32_to_cpu(raw_inode->i_mtime_nsec);
+ 	inode->i_ctime.tv_nsec = le32_to_cpu(raw_inode->i_ctime_nsec);
+ 	inode->i_mtime.tv_nsec = le32_to_cpu(raw_inode->i_mtime_nsec);
+-	if (inode->i_nlink == 0 && inode->i_mode == 0)
+-		return -EINVAL; /* this inode is deleted */
++	if (inode->i_nlink == 0)
++		return -ESTALE; /* this inode is deleted */
+ 
+ 	inode->i_blocks = le64_to_cpu(raw_inode->i_blocks);
+ 	ii->i_flags = le32_to_cpu(raw_inode->i_flags);
+diff -puN fs/nilfs2/namei.c~nilfs2-fix-the-nilfs_iget-vs-nilfs_new_inode-races fs/nilfs2/namei.c
+--- a/fs/nilfs2/namei.c~nilfs2-fix-the-nilfs_iget-vs-nilfs_new_inode-races
++++ a/fs/nilfs2/namei.c
+@@ -51,9 +51,11 @@ static inline int nilfs_add_nondir(struc
+ 	int err = nilfs_add_link(dentry, inode);
+ 	if (!err) {
+ 		d_instantiate(dentry, inode);
++		unlock_new_inode(inode);
+ 		return 0;
+ 	}
+ 	inode_dec_link_count(inode);
++	unlock_new_inode(inode);
+ 	iput(inode);
+ 	return err;
+ }
+@@ -182,6 +184,7 @@ out:
+ out_fail:
+ 	drop_nlink(inode);
+ 	nilfs_mark_inode_dirty(inode);
++	unlock_new_inode(inode);
+ 	iput(inode);
+ 	goto out;
+ }
+@@ -201,11 +204,15 @@ static int nilfs_link(struct dentry *old
+ 	inode_inc_link_count(inode);
+ 	ihold(inode);
+ 
+-	err = nilfs_add_nondir(dentry, inode);
+-	if (!err)
++	err = nilfs_add_link(dentry, inode);
++	if (!err) {
++		d_instantiate(dentry, inode);
+ 		err = nilfs_transaction_commit(dir->i_sb);
+-	else
++	} else {
++		inode_dec_link_count(inode);
++		iput(inode);
+ 		nilfs_transaction_abort(dir->i_sb);
++	}
+ 
+ 	return err;
+ }
+@@ -243,6 +250,7 @@ static int nilfs_mkdir(struct inode *dir
+ 
+ 	nilfs_mark_inode_dirty(inode);
+ 	d_instantiate(dentry, inode);
++	unlock_new_inode(inode);
+ out:
+ 	if (!err)
+ 		err = nilfs_transaction_commit(dir->i_sb);
+@@ -255,6 +263,7 @@ out_fail:
+ 	drop_nlink(inode);
+ 	drop_nlink(inode);
+ 	nilfs_mark_inode_dirty(inode);
++	unlock_new_inode(inode);
+ 	iput(inode);
+ out_dir:
+ 	drop_nlink(dir);
+_
+
+Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
+
+nilfs2-avoid-duplicate-segment-construction-for-fsync.patch
+nilfs2-deletion-of-an-unnecessary-check-before-the-function-call-iput.patch
+nilfs2-fix-the-nilfs_iget-vs-nilfs_new_inode-races.patch
+
