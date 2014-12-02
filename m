@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-dont-split-thp-page-when-syscall-is-called-fix-2.patch added to -mm tree
-Date: Mon, 01 Dec 2014 16:28:20 -0800
-Message-ID: <547d07a4.dzXotHxM7W4rGQw5%akpm@linux-foundation.org>
+Subject: + oom-dont-assume-that-a-coredumping-thread-will-exit-soon.patch
+ added to -mm tree
+Date: Mon, 01 Dec 2014 16:34:43 -0800
+Message-ID: <547d0923.Hum+3MtnI/VaJdLj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52644 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52807 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753077AbaLBA2V (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Dec 2014 19:28:21 -0500
+	with ESMTP id S1754026AbaLBAeo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Dec 2014 19:34:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: oleg@redhat.com, mhocko@suse.cz, rientjes@google.com, rjw@rjwysocki.net, tj@kernel.org, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove lock validation check for MADV_FREE
+     Subject: oom: don't assume that a coredumping thread will exit soon
 has been added to the -mm tree.  Its filename is
-     mm-dont-split-thp-page-when-syscall-is-called-fix-2.patch
+     oom-dont-assume-that-a-coredumping-thread-will-exit-soon.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-dont-split-thp-page-when-syscall-is-called-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/oom-dont-assume-that-a-coredumping-thread-will-exit-soon.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-dont-split-thp-page-when-syscall-is-called-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/oom-dont-assume-that-a-coredumping-thread-will-exit-soon.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,95 +39,121 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm: remove lock validation check for MADV_FREE
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: oom: don't assume that a coredumping thread will exit soon
 
-Currently, madvise_free_pte_range is called only madvise path which
-already holds an mmap_sem so it's pointless to add the lock validation
-check.
+oom_kill.c assumes that PF_EXITING task should exit and free the memory
+soon.  This is wrong in many ways and one important case is the coredump. 
+A task can sleep in exit_mm() "forever" while the coredumping sub-thread
+can need more memory.
 
-Signed-off-by: Minchan Kim <minchan@kernel.org>
+Change the PF_EXITING checks to take SIGNAL_GROUP_COREDUMP into account,
+we add the new trivial helper for that.
+
+Note: this is only the first step, this patch doesn't try to solve other
+problems.  For example it doesn't try to clear the wrongly set TIF_MEMDIE
+(SIGNAL_GROUP_COREDUMP check is obviously racy), fatal_signal_pending()
+can be false positive, etc.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Cong Wang <xiyou.wangcong@gmail.com>
+Cc: David Rientjes <rientjes@google.com>
 Cc: Michal Hocko <mhocko@suse.cz>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |   13 ++-----------
- 1 file changed, 2 insertions(+), 11 deletions(-)
+ mm/oom_kill.c |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-diff -puN mm/madvise.c~mm-dont-split-thp-page-when-syscall-is-called-fix-2 mm/madvise.c
---- a/mm/madvise.c~mm-dont-split-thp-page-when-syscall-is-called-fix-2
-+++ a/mm/madvise.c
-@@ -275,18 +275,9 @@ static int madvise_free_pte_range(pmd_t
+diff -puN mm/oom_kill.c~oom-dont-assume-that-a-coredumping-thread-will-exit-soon mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-dont-assume-that-a-coredumping-thread-will-exit-soon
++++ a/mm/oom_kill.c
+@@ -254,6 +254,12 @@ static enum oom_constraint constrained_a
+ }
+ #endif
  
- 	next = pmd_addr_end(addr, end);
- 	if (pmd_trans_huge(*pmd)) {
--		if (next - addr != HPAGE_PMD_SIZE) {
--#ifdef CONFIG_DEBUG_VM
--			if (!rwsem_is_locked(&mm->mmap_sem)) {
--				pr_err("%s: mmap_sem is unlocked! addr=0x%lx end=0x%lx vma->vm_start=0x%lx vma->vm_end=0x%lx\n",
--					__func__, addr, end,
--					vma->vm_start,
--					vma->vm_end);
--				BUG();
--			}
--#endif
-+		if (next - addr != HPAGE_PMD_SIZE)
- 			split_huge_page_pmd(vma, addr, pmd);
--		} else if (!madvise_free_huge_pmd(tlb, vma, pmd, addr))
-+		else if (!madvise_free_huge_pmd(tlb, vma, pmd, addr))
- 			goto next;
- 		/* fall through */
++static inline bool task_will_free_mem(struct task_struct *task)
++{
++	return (task->flags & PF_EXITING) &&
++		!(task->signal->flags & SIGNAL_GROUP_COREDUMP);
++}
++
+ enum oom_scan_t oom_scan_process_thread(struct task_struct *task,
+ 		unsigned long totalpages, const nodemask_t *nodemask,
+ 		bool force_kill)
+@@ -281,7 +287,7 @@ enum oom_scan_t oom_scan_process_thread(
+ 	if (oom_task_origin(task))
+ 		return OOM_SCAN_SELECT;
+ 
+-	if (task->flags & PF_EXITING && !force_kill) {
++	if (task_will_free_mem(task) && !force_kill) {
+ 		/*
+ 		 * If this task is not being ptraced on exit, then wait for it
+ 		 * to finish before killing some other task unnecessarily.
+@@ -443,7 +449,7 @@ void oom_kill_process(struct task_struct
+ 	 * If the task is already exiting, don't alarm the sysadmin or kill
+ 	 * its children or threads, just set TIF_MEMDIE so it can die quickly
+ 	 */
+-	if (p->flags & PF_EXITING) {
++	if (task_will_free_mem(p)) {
+ 		set_tsk_thread_flag(p, TIF_MEMDIE);
+ 		put_task_struct(p);
+ 		return;
+@@ -649,7 +655,7 @@ void out_of_memory(struct zonelist *zone
+ 	 * select it.  The goal is to allow it to allocate so that it may
+ 	 * quickly exit and free its memory.
+ 	 */
+-	if (fatal_signal_pending(current) || current->flags & PF_EXITING) {
++	if (fatal_signal_pending(current) || task_will_free_mem(current)) {
+ 		set_thread_flag(TIF_MEMDIE);
+ 		return;
  	}
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-mm-frontswap-invalidate-expired-data-on-a-dup-store-failure.patch
-mm-compaction-pass-classzone_idx-and-alloc_flags-to-watermark-checking.patch
-mm-compaction-pass-classzone_idx-and-alloc_flags-to-watermark-checking-fix.patch
-mm-compaction-simplify-deferred-compaction.patch
-mm-compaction-defer-only-on-compact_complete.patch
-mm-compaction-always-update-cached-scanner-positions.patch
-mm-compaction-always-update-cached-scanner-positions-fix.patch
-mm-compaction-more-focused-lru-and-pcplists-draining.patch
-mm-compaction-more-focused-lru-and-pcplists-draining-fix.patch
-mm-page_isolation-check-pfn-validity-before-access.patch
-mm-support-madvisemadv_free.patch
-mm-support-madvisemadv_free-fix.patch
-x86-add-pmd_-for-thp.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp.patch
-sparc-add-pmd_-for-thp-fix.patch
-powerpc-add-pmd_-for-thp.patch
-arm-add-pmd_mkclean-for-thp.patch
-arm64-add-pmd_-for-thp.patch
-mm-dont-split-thp-page-when-syscall-is-called.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-2.patch
-mm-page_ext-resurrect-struct-page-extending-code-for-debugging.patch
-mm-debug-pagealloc-prepare-boottime-configurable-on-off.patch
-mm-debug-pagealloc-make-debug-pagealloc-boottime-configurable.patch
-mm-debug-pagealloc-make-debug-pagealloc-boottime-configurable-fix.patch
-mm-nommu-use-alloc_pages_exact-rather-than-its-own-implementation.patch
-stacktrace-introduce-snprint_stack_trace-for-buffer-output.patch
-mm-page_owner-keep-track-of-page-owners.patch
-mm-page_owner-correct-owner-information-for-early-allocated-pages.patch
-documentation-add-new-page_owner-document.patch
-zsmalloc-merge-size_class-to-reduce-fragmentation.patch
-zram-remove-bio-parameter-from-zram_bvec_rw.patch
-zram-change-parameter-from-vaild_io_request.patch
-zram-implement-rw_page-operation-of-zram.patch
-zram-implement-rw_page-operation-of-zram-fix.patch
-zram-implement-rw_page-operation-of-zram-fix-2.patch
-zram-implement-rw_page-operation-of-zram-fix-2-cleanup.patch
-zram-implement-rw_page-operation-of-zram-fix-3.patch
-zsmalloc-fix-zs_init-cpu-notifier-error-handling.patch
-zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix-2.patch
-zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix.patch
-zsmalloc-correct-fragile-_atomic-use.patch
-mm-zsmalloc-support-allocating-obj-with-size-of-zs_max_alloc_size.patch
-mm-zram-correct-zram_zero-flag-bit-position.patch
-mm-zsmalloc-avoid-duplicate-assignment-of-prev_class.patch
-mm-zsmalloc-avoid-duplicate-assignment-of-prev_class-fix.patch
-mm-zswap-add-__init-to-some-functions-in-zswap.patch
+mmfs-introduce-helpers-around-the-i_mmap_mutex.patch
+mm-use-new-helper-functions-around-the-i_mmap_mutex.patch
+mm-convert-i_mmap_mutex-to-rwsem.patch
+mm-rmap-share-the-i_mmap_rwsem.patch
+uprobes-share-the-i_mmap_rwsem.patch
+mm-xip-share-the-i_mmap_rwsem.patch
+mm-memory-failure-share-the-i_mmap_rwsem.patch
+mm-nommu-share-the-i_mmap_rwsem.patch
+mm-memoryc-share-the-i_mmap_rwsem.patch
+remove-unnecessary-is_valid_nodemask.patch
+oom-dont-assume-that-a-coredumping-thread-will-exit-soon.patch
+oom-kill-the-insufficient-and-no-longer-needed-pt_trace_exit-check.patch
+proc-task_state-read-cred-group_info-outside-of-task_lock.patch
+proc-task_state-deuglify-the-max_fds-calculation.patch
+proc-task_state-move-the-main-seq_printf-outside-of-rcu_read_lock.patch
+proc-task_state-ptrace_parent-doesnt-need-pid_alive-check.patch
+sched_show_task-fix-unsafe-usage-of-real_parent.patch
+exit-reparent-use-ptrace_entry-rather-than-sibling-for-exit_dead-tasks.patch
+exit-reparent-cleanup-the-changing-of-parent.patch
+exit-reparent-cleanup-the-changing-of-parent-fix.patch
+exit-reparent-cleanup-the-usage-of-reparent_leader.patch
+exit-ptrace-shift-reap-dead-code-from-exit_ptrace-to-forget_original_parent.patch
+usermodehelper-dont-use-clone_vfork-for-____call_usermodehelper.patch
+usermodehelper-kill-the-kmod_thread_locker-logic.patch
+exit-wait-cleanup-the-ptrace_reparented-checks.patch
+exit-wait-cleanup-the-ptrace_reparented-checks-fix.patch
+exit-wait-dont-use-zombie-real_parent.patch
+exit-wait-drop-tasklist_lock-before-psig-c-accounting.patch
+exit-release_task-fix-the-comment-about-group-leader-accounting.patch
+exit-proc-dont-try-to-flush-proc-tgid-task-tgid.patch
+exit-reparent-fix-the-dead-parent-pr_set_child_subreaper-reparenting.patch
+exit-reparent-fix-the-cross-namespace-pr_set_child_subreaper-reparenting.patch
+exit-reparent-s-while_each_thread-for_each_thread-in-find_new_reaper.patch
+exit-reparent-document-the-has_child_subreaper-checks.patch
+exit-reparent-introduce-find_child_reaper.patch
+exit-reparent-introduce-find_alive_thread.patch
+exit-reparent-avoid-find_new_reaper-if-no-children.patch
+exit-reparent-call-forget_original_parent-under-tasklist_lock.patch
+exit-exit_notify-re-use-dead-list-to-autoreap-current.patch
+exit-pidns-alloc_pid-leaks-pid_namespace-if-child_reaper-is-exiting.patch
+exit-pidns-fix-update-the-comments-in-zap_pid_ns_processes.patch
+linux-next.patch
 
