@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + ia64-update-comment-that-references-__get_cpu_var.patch added
+Subject: + update-local_opstxt-to-reflect-this_cpu-operations.patch added
  to -mm tree
-Date: Tue, 02 Dec 2014 13:27:55 -0800
-Message-ID: <547e2edb.GoAIxprywD0k0oQ9%akpm@linux-foundation.org>
+Date: Tue, 02 Dec 2014 13:27:53 -0800
+Message-ID: <547e2ed9.p0kf1Y4VPJwbsVGB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41962 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41958 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932844AbaLBV14 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2014 16:27:56 -0500
+	with ESMTP id S932844AbaLBV1y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2014 16:27:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cl@linux.com, fenghua.yu@intel.com, tj@kernel.org, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: cl@linux.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ia64: percpu: update comment that references __get_cpu_var
+     Subject: percpu: update local_ops.txt to reflect this_cpu operations
 has been added to the -mm tree.  Its filename is
-     ia64-update-comment-that-references-__get_cpu_var.patch
+     update-local_opstxt-to-reflect-this_cpu-operations.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ia64-update-comment-that-references-__get_cpu_var.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/update-local_opstxt-to-reflect-this_cpu-operations.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ia64-update-comment-that-references-__get_cpu_var.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/update-local_opstxt-to-reflect-this_cpu-operations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,34 +40,57 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Lameter <cl@linux.com>
-Subject: ia64: percpu: update comment that references __get_cpu_var
+Subject: percpu: update local_ops.txt to reflect this_cpu operations
 
-__get_cpu_var was removed. Update the comments.
+Update the documentation to reflect changes due to the availability of
+this_cpu operations.
 
 Signed-off-by: Christoph Lameter <cl@linux.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
 Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/include/asm/percpu.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/local_ops.txt |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-diff -puN arch/ia64/include/asm/percpu.h~ia64-update-comment-that-references-__get_cpu_var arch/ia64/include/asm/percpu.h
---- a/arch/ia64/include/asm/percpu.h~ia64-update-comment-that-references-__get_cpu_var
-+++ a/arch/ia64/include/asm/percpu.h
-@@ -35,8 +35,8 @@ extern void *per_cpu_init(void);
+diff -puN Documentation/local_ops.txt~update-local_opstxt-to-reflect-this_cpu-operations Documentation/local_ops.txt
+--- a/Documentation/local_ops.txt~update-local_opstxt-to-reflect-this_cpu-operations
++++ a/Documentation/local_ops.txt
+@@ -8,6 +8,11 @@ to implement them for any given architec
+ properly. It also stresses on the precautions that must be taken when reading
+ those local variables across CPUs when the order of memory writes matters.
  
- /*
-  * Be extremely careful when taking the address of this variable!  Due to virtual
-- * remapping, it is different from the canonical address returned by __get_cpu_var(var)!
-- * On the positive side, using __ia64_per_cpu_var() instead of __get_cpu_var() is slightly
-+ * remapping, it is different from the canonical address returned by this_cpu_ptr(&var)!
-+ * On the positive side, using __ia64_per_cpu_var() instead of this_cpu_ptr() is slightly
-  * more efficient.
-  */
- #define __ia64_per_cpu_var(var) (*({					\
++Note that local_t based operations are not recommended for general kernel use.
++Please use the this_cpu operations instead unless there is really a special purpose.
++Most uses of local_t in the kernel have been replaced by this_cpu operations.
++this_cpu operations combine the relocation with the local_t like semantics in
++a single instruction and yield more compact and faster executing code.
+ 
+ 
+ * Purpose of local atomic operations
+@@ -87,10 +92,10 @@ the per cpu variable. For instance :
+ 	local_inc(&get_cpu_var(counters));
+ 	put_cpu_var(counters);
+ 
+-If you are already in a preemption-safe context, you can directly use
+-__get_cpu_var() instead.
++If you are already in a preemption-safe context, you can use
++this_cpu_ptr() instead.
+ 
+-	local_inc(&__get_cpu_var(counters));
++	local_inc(this_cpu_ptr(&counters));
+ 
+ 
+ 
+@@ -134,7 +139,7 @@ static void test_each(void *info)
+ {
+ 	/* Increment the counter from a non preemptible context */
+ 	printk("Increment on cpu %d\n", smp_processor_id());
+-	local_inc(&__get_cpu_var(counters));
++	local_inc(this_cpu_ptr(&counters));
+ 
+ 	/* This is what incrementing the variable would look like within a
+ 	 * preemptible context (it disables preemption) :
 _
 
 Patches currently in -mm which might be from cl@linux.com are
