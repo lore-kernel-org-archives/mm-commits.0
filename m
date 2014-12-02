@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + nilfs2-fix-the-nilfs_iget-vs-nilfs_new_inode-races.patch added
- to -mm tree
-Date: Tue, 02 Dec 2014 14:08:20 -0800
-Message-ID: <547e3854.0jQnLGnVXs5oz9Jz%akpm@linux-foundation.org>
+Subject: + lib-genallocc-export-devm_gen_pool_create-for-modules.patch
+ added to -mm tree
+Date: Tue, 02 Dec 2014 14:14:32 -0800
+Message-ID: <547e39c8.TYOLhZCo0H8SvZWI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42449 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42601 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932980AbaLBWIV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2014 17:08:21 -0500
+	with ESMTP id S932832AbaLBWOe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2014 17:14:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: konishi.ryusuke@lab.ntt.co.jp, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: michal.simek@xilinx.com, catalin.marinas@arm.com, lauraa@codeaurora.org, olof@lixom.net, p.zabel@pengutronix.de, prabhakar.csengg@gmail.com, vladimir_zapolskiy@mentor.com, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: fix the nilfs_iget() vs. nilfs_new_inode() races
+     Subject: lib/genalloc.c: export devm_gen_pool_create() for modules
 has been added to the -mm tree.  Its filename is
-     nilfs2-fix-the-nilfs_iget-vs-nilfs_new_inode-races.patch
+     lib-genallocc-export-devm_gen_pool_create-for-modules.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/nilfs2-fix-the-nilfs_iget-vs-nilfs_new_inode-races.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-genallocc-export-devm_gen_pool_create-for-modules.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-fix-the-nilfs_iget-vs-nilfs_new_inode-races.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-genallocc-export-devm_gen_pool_create-for-modules.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,181 +39,40 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Subject: nilfs2: fix the nilfs_iget() vs. nilfs_new_inode() races
+From: Michal Simek <michal.simek@xilinx.com>
+Subject: lib/genalloc.c: export devm_gen_pool_create() for modules
 
-same story as in commit 41080b5a2401133 ("nfsd race fixes: ext2") (similar
-ext2 fix) except that nilfs2 needs to use insert_inode_locked4() instead
-of insert_inode_locked() and a bug of a check for dead inodes needs to be
-fixed.
+Modules can use this function for creating pool.
 
-If nilfs_iget() is called from nfsd after nilfs_new_inode() calls
-insert_inode_locked4(), nilfs_iget() will wait for unlock_new_inode() at
-the end of nilfs_mkdir()/nilfs_create()/etc to unlock the inode.
-
-If nilfs_iget() is called before nilfs_new_inode() calls
-insert_inode_locked4(), it will create an in-core inode and read its data
-from the on-disk inode.  But, nilfs_iget() will find i_nlink equals zero
-and fail at nilfs_read_inode_common(), which will lead it to call
-iget_failed() and cleanly fail.
-
-However, this sanity check doesn't work as expected for reused on-disk
-inodes because they leave a non-zero value in i_mode field and it hinders
-the test of i_nlink.  This patch also fixes the issue by removing the test
-on i_mode that nilfs2 doesn't need.
-
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Michal Simek <michal.simek@xilinx.com>
+Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Cc: Laura Abbott <lauraa@codeaurora.org>
+Cc: Olof Johansson <olof@lixom.net>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/inode.c |   32 ++++++++++++++++++++++++--------
- fs/nilfs2/namei.c |   15 ++++++++++++---
- 2 files changed, 36 insertions(+), 11 deletions(-)
+ lib/genalloc.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/nilfs2/inode.c~nilfs2-fix-the-nilfs_iget-vs-nilfs_new_inode-races fs/nilfs2/inode.c
---- a/fs/nilfs2/inode.c~nilfs2-fix-the-nilfs_iget-vs-nilfs_new_inode-races
-+++ a/fs/nilfs2/inode.c
-@@ -49,6 +49,8 @@ struct nilfs_iget_args {
- 	int for_gc;
- };
+diff -puN lib/genalloc.c~lib-genallocc-export-devm_gen_pool_create-for-modules lib/genalloc.c
+--- a/lib/genalloc.c~lib-genallocc-export-devm_gen_pool_create-for-modules
++++ a/lib/genalloc.c
+@@ -598,6 +598,7 @@ struct gen_pool *devm_gen_pool_create(st
  
-+static int nilfs_iget_test(struct inode *inode, void *opaque);
-+
- void nilfs_inode_add_blocks(struct inode *inode, int n)
- {
- 	struct nilfs_root *root = NILFS_I(inode)->i_root;
-@@ -348,6 +350,17 @@ const struct address_space_operations ni
- 	.is_partially_uptodate  = block_is_partially_uptodate,
- };
- 
-+static int nilfs_insert_inode_locked(struct inode *inode,
-+				     struct nilfs_root *root,
-+				     unsigned long ino)
-+{
-+	struct nilfs_iget_args args = {
-+		.ino = ino, .root = root, .cno = 0, .for_gc = 0
-+	};
-+
-+	return insert_inode_locked4(inode, ino, nilfs_iget_test, &args);
-+}
-+
- struct inode *nilfs_new_inode(struct inode *dir, umode_t mode)
- {
- 	struct super_block *sb = dir->i_sb;
-@@ -383,7 +396,7 @@ struct inode *nilfs_new_inode(struct ino
- 	if (S_ISREG(mode) || S_ISDIR(mode) || S_ISLNK(mode)) {
- 		err = nilfs_bmap_read(ii->i_bmap, NULL);
- 		if (err < 0)
--			goto failed_bmap;
-+			goto failed_after_creation;
- 
- 		set_bit(NILFS_I_BMAP, &ii->i_state);
- 		/* No lock is needed; iget() ensures it. */
-@@ -399,21 +412,24 @@ struct inode *nilfs_new_inode(struct ino
- 	spin_lock(&nilfs->ns_next_gen_lock);
- 	inode->i_generation = nilfs->ns_next_generation++;
- 	spin_unlock(&nilfs->ns_next_gen_lock);
--	insert_inode_hash(inode);
-+	if (nilfs_insert_inode_locked(inode, root, ino) < 0) {
-+		err = -EIO;
-+		goto failed_after_creation;
-+	}
- 
- 	err = nilfs_init_acl(inode, dir);
- 	if (unlikely(err))
--		goto failed_acl; /* never occur. When supporting
-+		goto failed_after_creation; /* never occur. When supporting
- 				    nilfs_init_acl(), proper cancellation of
- 				    above jobs should be considered */
- 
- 	return inode;
- 
-- failed_acl:
-- failed_bmap:
-+ failed_after_creation:
- 	clear_nlink(inode);
-+	unlock_new_inode(inode);
- 	iput(inode);  /* raw_inode will be deleted through
--			 generic_delete_inode() */
-+			 nilfs_evict_inode() */
- 	goto failed;
- 
-  failed_ifile_create_inode:
-@@ -461,8 +477,8 @@ int nilfs_read_inode_common(struct inode
- 	inode->i_atime.tv_nsec = le32_to_cpu(raw_inode->i_mtime_nsec);
- 	inode->i_ctime.tv_nsec = le32_to_cpu(raw_inode->i_ctime_nsec);
- 	inode->i_mtime.tv_nsec = le32_to_cpu(raw_inode->i_mtime_nsec);
--	if (inode->i_nlink == 0 && inode->i_mode == 0)
--		return -EINVAL; /* this inode is deleted */
-+	if (inode->i_nlink == 0)
-+		return -ESTALE; /* this inode is deleted */
- 
- 	inode->i_blocks = le64_to_cpu(raw_inode->i_blocks);
- 	ii->i_flags = le32_to_cpu(raw_inode->i_flags);
-diff -puN fs/nilfs2/namei.c~nilfs2-fix-the-nilfs_iget-vs-nilfs_new_inode-races fs/nilfs2/namei.c
---- a/fs/nilfs2/namei.c~nilfs2-fix-the-nilfs_iget-vs-nilfs_new_inode-races
-+++ a/fs/nilfs2/namei.c
-@@ -51,9 +51,11 @@ static inline int nilfs_add_nondir(struc
- 	int err = nilfs_add_link(dentry, inode);
- 	if (!err) {
- 		d_instantiate(dentry, inode);
-+		unlock_new_inode(inode);
- 		return 0;
- 	}
- 	inode_dec_link_count(inode);
-+	unlock_new_inode(inode);
- 	iput(inode);
- 	return err;
+ 	return pool;
  }
-@@ -182,6 +184,7 @@ out:
- out_fail:
- 	drop_nlink(inode);
- 	nilfs_mark_inode_dirty(inode);
-+	unlock_new_inode(inode);
- 	iput(inode);
- 	goto out;
- }
-@@ -201,11 +204,15 @@ static int nilfs_link(struct dentry *old
- 	inode_inc_link_count(inode);
- 	ihold(inode);
++EXPORT_SYMBOL(devm_gen_pool_create);
  
--	err = nilfs_add_nondir(dentry, inode);
--	if (!err)
-+	err = nilfs_add_link(dentry, inode);
-+	if (!err) {
-+		d_instantiate(dentry, inode);
- 		err = nilfs_transaction_commit(dir->i_sb);
--	else
-+	} else {
-+		inode_dec_link_count(inode);
-+		iput(inode);
- 		nilfs_transaction_abort(dir->i_sb);
-+	}
- 
- 	return err;
- }
-@@ -243,6 +250,7 @@ static int nilfs_mkdir(struct inode *dir
- 
- 	nilfs_mark_inode_dirty(inode);
- 	d_instantiate(dentry, inode);
-+	unlock_new_inode(inode);
- out:
- 	if (!err)
- 		err = nilfs_transaction_commit(dir->i_sb);
-@@ -255,6 +263,7 @@ out_fail:
- 	drop_nlink(inode);
- 	drop_nlink(inode);
- 	nilfs_mark_inode_dirty(inode);
-+	unlock_new_inode(inode);
- 	iput(inode);
- out_dir:
- 	drop_nlink(dir);
+ /**
+  * dev_get_gen_pool - Obtain the gen_pool (if any) for a device
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
+Patches currently in -mm which might be from michal.simek@xilinx.com are
 
-nilfs2-avoid-duplicate-segment-construction-for-fsync.patch
-nilfs2-deletion-of-an-unnecessary-check-before-the-function-call-iput.patch
-nilfs2-fix-the-nilfs_iget-vs-nilfs_new_inode-races.patch
+lib-genallocc-export-devm_gen_pool_create-for-modules.patch
+linux-next.patch
 
