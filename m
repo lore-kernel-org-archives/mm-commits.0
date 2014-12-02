@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + fix-memory-ordering-bug-in-mm-vmallocc.patch added to -mm tree
-Date: Tue, 02 Dec 2014 13:01:28 -0800
-Message-ID: <547e28a8.hpkypphIafxJ2pCl%akpm@linux-foundation.org>
+Subject: + remove-__get_cpu_var-and-__raw_get_cpu_var-macros.patch added
+ to -mm tree
+Date: Tue, 02 Dec 2014 13:27:51 -0800
+Message-ID: <547e2ed7.yzBGvnwLCcTagE40%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41654 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41954 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932365AbaLBVB3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2014 16:01:29 -0500
+	with ESMTP id S932844AbaLBV1w (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Dec 2014 16:27:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dvyukov@google.com, edumazet@google.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org
+To: cl@linux.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmalloc.c: fix memory ordering bug
+     Subject: percpu: remove __get_cpu_var and __raw_get_cpu_var macros
 has been added to the -mm tree.  Its filename is
-     fix-memory-ordering-bug-in-mm-vmallocc.patch
+     remove-__get_cpu_var-and-__raw_get_cpu_var-macros.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fix-memory-ordering-bug-in-mm-vmallocc.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/remove-__get_cpu_var-and-__raw_get_cpu_var-macros.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fix-memory-ordering-bug-in-mm-vmallocc.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/remove-__get_cpu_var-and-__raw_get_cpu_var-macros.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,39 +39,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dmitry Vyukov <dvyukov@google.com>
-Subject: mm/vmalloc.c: fix memory ordering bug
+From: Christoph Lameter <cl@linux.com>
+Subject: percpu: remove __get_cpu_var and __raw_get_cpu_var macros
 
-Read memory barriers must follow the read operations.
+No user is left in the kernel source tree.  Therefore we can drop the
+definitions.
 
-Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
-Cc: Eric Dumazet <edumazet@google.com>
-Acked-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+This is the final merge of the transition away from __get_cpu_var.  After
+this patch the kernel will not build if anyone uses __get_cpu_var.
+
+Signed-off-by: Christoph Lameter <cl@linux.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/percpu-defs.h |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN mm/vmalloc.c~fix-memory-ordering-bug-in-mm-vmallocc mm/vmalloc.c
---- a/mm/vmalloc.c~fix-memory-ordering-bug-in-mm-vmallocc
-+++ a/mm/vmalloc.c
-@@ -2574,10 +2574,10 @@ static void show_numa_info(struct seq_fi
- 		if (!counters)
- 			return;
+diff -puN include/linux/percpu-defs.h~remove-__get_cpu_var-and-__raw_get_cpu_var-macros include/linux/percpu-defs.h
+--- a/include/linux/percpu-defs.h~remove-__get_cpu_var-and-__raw_get_cpu_var-macros
++++ a/include/linux/percpu-defs.h
+@@ -254,8 +254,6 @@ do {									\
+ #endif	/* CONFIG_SMP */
  
--		/* Pair with smp_wmb() in clear_vm_uninitialized_flag() */
--		smp_rmb();
- 		if (v->flags & VM_UNINITIALIZED)
- 			return;
-+		/* Pair with smp_wmb() in clear_vm_uninitialized_flag() */
-+		smp_rmb();
+ #define per_cpu(var, cpu)	(*per_cpu_ptr(&(var), cpu))
+-#define __raw_get_cpu_var(var)	(*raw_cpu_ptr(&(var)))
+-#define __get_cpu_var(var)	(*this_cpu_ptr(&(var)))
  
- 		memset(counters, 0, nr_node_ids * sizeof(unsigned int));
- 
+ /*
+  * Must be an lvalue. Since @var must be a simple identifier,
 _
 
-Patches currently in -mm which might be from dvyukov@google.com are
+Patches currently in -mm which might be from cl@linux.com are
 
-fix-memory-ordering-bug-in-mm-vmallocc.patch
+origin.patch
+mm-slab-slub-coding-style-whitespaces-and-tabs-mixture.patch
+slab-print-slabinfo-header-in-seq-show.patch
+mm-slab-reverse-iteration-on-find_mergeable.patch
+mm-slub-fix-format-mismatches-in-slab_err-callers.patch
+slab-improve-checking-for-invalid-gfp_flags.patch
+slab-replace-smp_read_barrier_depends-with-lockless_dereference.patch
+mm-compaction-pass-classzone_idx-and-alloc_flags-to-watermark-checking.patch
+mm-compaction-pass-classzone_idx-and-alloc_flags-to-watermark-checking-fix.patch
+mm-compaction-simplify-deferred-compaction.patch
+mm-compaction-defer-only-on-compact_complete.patch
+mm-compaction-always-update-cached-scanner-positions.patch
+mm-compaction-always-update-cached-scanner-positions-fix.patch
+mm-compaction-more-focused-lru-and-pcplists-draining.patch
+mm-compaction-more-focused-lru-and-pcplists-draining-fix.patch
+memcg-use-generic-slab-iterators-for-showing-slabinfo.patch
+linux-next.patch
+slab-fix-cpuset-check-in-fallback_alloc.patch
+slub-fix-cpuset-check-in-get_any_partial.patch
+remove-__get_cpu_var-and-__raw_get_cpu_var-macros.patch
+update-local_opstxt-to-reflect-this_cpu-operations.patch
+ia64-update-comment-that-references-__get_cpu_var.patch
+parisc-update-comments-refereing-to-__get_cpu_var.patch
 
