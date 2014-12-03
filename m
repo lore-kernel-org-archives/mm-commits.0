@@ -1,108 +1,156 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- slab-fix-nodeid-bounds-check-for-non-contiguous-node-ids.patch removed from -mm tree
-Date: Wed, 03 Dec 2014 13:29:53 -0800
-Message-ID: <547f80d1.RTzjp1ZchdjtMTlk%akpm@linux-foundation.org>
+Subject: +
+ oom-dont-assume-that-a-coredumping-thread-will-exit-soon-v2.patch added to
+ -mm tree
+Date: Wed, 03 Dec 2014 13:58:19 -0800
+Message-ID: <547f877b.fQOo7k9rg4nbNnze%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56818 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56956 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751088AbaLCV3y (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2014 16:29:54 -0500
+	with ESMTP id S1750991AbaLCV6U (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2014 16:58:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: paulus@samba.org, cl@linux.com, iamjoonsoo.kim@lge.com, isimatu.yasuaki@jp.fujitsu.com, penberg@kernel.org, rientjes@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: oleg@redhat.com, mhocko@suse.cz, rientjes@google.com, rjw@rjwysocki.net, tj@kernel.org, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slab: fix nodeid bounds check for non-contiguous node IDs
-has been removed from the -mm tree.  Its filename was
-     slab-fix-nodeid-bounds-check-for-non-contiguous-node-ids.patch
+     Subject: oom-dont-assume-that-a-coredumping-thread-will-exit-soon-v2
+has been added to the -mm tree.  Its filename is
+     oom-dont-assume-that-a-coredumping-thread-will-exit-soon-v2.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/oom-dont-assume-that-a-coredumping-thread-will-exit-soon-v2.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/oom-dont-assume-that-a-coredumping-thread-will-exit-soon-v2.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Paul Mackerras <paulus@samba.org>
-Subject: slab: fix nodeid bounds check for non-contiguous node IDs
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: oom-dont-assume-that-a-coredumping-thread-will-exit-soon-v2
 
-The bounds check for nodeid in ____cache_alloc_node gives false positives
-on machines where the node IDs are not contiguous, leading to a panic at
-boot time.  For example, on a POWER8 machine the node IDs are typically 0,
-1, 16 and 17.  This means that num_online_nodes() returns 4, so when
-____cache_alloc_node is called with nodeid = 16 the VM_BUG_ON triggers,
-like this:
+The patch is basically the same, but as Michal pointed out
+mem_cgroup_out_of_memory() can use the new helper too, it can face the
+same problems.
 
-kernel BUG at /home/paulus/kernel/kvm/mm/slab.c:3079!
-Oops: Exception in kernel mode, sig: 5 [#1]
-SMP NR_CPUS=1024 NUMA PowerNV
-Modules linked in:
-CPU: 0 PID: 0 Comm: swapper Not tainted 3.18.0-rc5-kvm+ #17
-task: c0000000013ba230 ti: c000000001494000 task.ti: c000000001494000
-NIP: c000000000264f6c LR: c000000000264f5c CTR: 0000000000000000
-REGS: c0000000014979a0 TRAP: 0700   Not tainted  (3.18.0-rc5-kvm+)
-MSR: 9000000002021032 <SF,HV,VEC,ME,IR,DR,RI>  CR: 28000448  XER: 20000000
-CFAR: c00000000047e978 SOFTE: 0
-GPR00: c000000000264f5c c000000001497c20 c000000001499d48 0000000000000004
-GPR04: 0000000000000100 0000000000000010 0000000000000068 ffffffffffffffff
-GPR08: 0000000000000000 0000000000000001 00000000082d0000 c000000000cca5a8
-GPR12: 0000000048000448 c00000000fda0000 000001003bd44ff0 0000000010020578
-GPR16: 000001003bd44ff8 000001003bd45000 0000000000000001 0000000000000000
-GPR20: 0000000000000000 0000000000000000 0000000000000000 0000000000000010
-GPR24: c000000ffe000080 c000000000c824ec 0000000000000068 c000000ffe000080
-GPR28: 0000000000000010 c000000ffe000080 0000000000000010 0000000000000000
-NIP [c000000000264f6c] .____cache_alloc_node+0x6c/0x270
-LR [c000000000264f5c] .____cache_alloc_node+0x5c/0x270
-Call Trace:
-[c000000001497c20] [c000000000264f5c] .____cache_alloc_node+0x5c/0x270 (unreliable)
-[c000000001497cf0] [c00000000026552c] .kmem_cache_alloc_node_trace+0xdc/0x360
-[c000000001497dc0] [c000000000c824ec] .init_list+0x3c/0x128
-[c000000001497e50] [c000000000c827b4] .kmem_cache_init+0x1dc/0x258
-[c000000001497ef0] [c000000000c54090] .start_kernel+0x2a0/0x568
-[c000000001497f90] [c000000000008c6c] start_here_common+0x20/0xa8
-Instruction dump:
-7c7d1b78 7c962378 4bda4e91 60000000 3c620004 38800100 386370d8 48219959
-60000000 7f83e000 7d301026 5529effe <0b090000> 393c0010 79291f24 7d3d4a14
-
-To fix this, we instead compare the nodeid with MAX_NUMNODES, and
-additionally make sure it isn't negative (since nodeid is an int).  The
-check is there mainly to protect the array dereference in the get_node()
-call in the next line, and the array being dereferenced is of size
-MAX_NUMNODES.  If the nodeid is in range but invalid (for example if the
-node is off-line), the BUG_ON in the next line will catch that.
-
-Fixes: 14e50c6a9bc2 ("mm: slab: Verify the nodeid passed to ____cache_alloc_node")
-Signed-off-by: Paul Mackerras <paulus@samba.org>
-Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Reviewed-by: Pekka Enberg <penberg@kernel.org>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Cong Wang <xiyou.wangcong@gmail.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/oom.h |    6 ++++++
+ mm/memcontrol.c     |    2 +-
+ mm/oom_kill.c       |    6 ------
+ 3 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN mm/slab.c~slab-fix-nodeid-bounds-check-for-non-contiguous-node-ids mm/slab.c
---- a/mm/slab.c~slab-fix-nodeid-bounds-check-for-non-contiguous-node-ids
-+++ a/mm/slab.c
-@@ -3076,7 +3076,7 @@ static void *____cache_alloc_node(struct
- 	void *obj;
- 	int x;
+diff -puN include/linux/oom.h~oom-dont-assume-that-a-coredumping-thread-will-exit-soon-v2 include/linux/oom.h
+--- a/include/linux/oom.h~oom-dont-assume-that-a-coredumping-thread-will-exit-soon-v2
++++ a/include/linux/oom.h
+@@ -87,6 +87,12 @@ static inline void oom_killer_enable(voi
  
--	VM_BUG_ON(nodeid > num_online_nodes());
-+	VM_BUG_ON(nodeid < 0 || nodeid >= MAX_NUMNODES);
- 	n = get_node(cachep, nodeid);
- 	BUG_ON(!n);
+ extern struct task_struct *find_lock_task_mm(struct task_struct *p);
  
++static inline bool task_will_free_mem(struct task_struct *task)
++{
++	return (task->flags & PF_EXITING) &&
++		!(task->signal->flags & SIGNAL_GROUP_COREDUMP);
++}
++
+ /* sysctls */
+ extern int sysctl_oom_dump_tasks;
+ extern int sysctl_oom_kill_allocating_task;
+diff -puN mm/memcontrol.c~oom-dont-assume-that-a-coredumping-thread-will-exit-soon-v2 mm/memcontrol.c
+--- a/mm/memcontrol.c~oom-dont-assume-that-a-coredumping-thread-will-exit-soon-v2
++++ a/mm/memcontrol.c
+@@ -1559,7 +1559,7 @@ static void mem_cgroup_out_of_memory(str
+ 	 * select it.  The goal is to allow it to allocate so that it may
+ 	 * quickly exit and free its memory.
+ 	 */
+-	if (fatal_signal_pending(current) || current->flags & PF_EXITING) {
++	if (fatal_signal_pending(current) || task_will_free_mem(current)) {
+ 		set_thread_flag(TIF_MEMDIE);
+ 		return;
+ 	}
+diff -puN mm/oom_kill.c~oom-dont-assume-that-a-coredumping-thread-will-exit-soon-v2 mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-dont-assume-that-a-coredumping-thread-will-exit-soon-v2
++++ a/mm/oom_kill.c
+@@ -254,12 +254,6 @@ static enum oom_constraint constrained_a
+ }
+ #endif
+ 
+-static inline bool task_will_free_mem(struct task_struct *task)
+-{
+-	return (task->flags & PF_EXITING) &&
+-		!(task->signal->flags & SIGNAL_GROUP_COREDUMP);
+-}
+-
+ enum oom_scan_t oom_scan_process_thread(struct task_struct *task,
+ 		unsigned long totalpages, const nodemask_t *nodemask,
+ 		bool force_kill)
 _
 
-Patches currently in -mm which might be from paulus@samba.org are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-origin.patch
+mmfs-introduce-helpers-around-the-i_mmap_mutex.patch
+mm-use-new-helper-functions-around-the-i_mmap_mutex.patch
+mm-convert-i_mmap_mutex-to-rwsem.patch
+mm-rmap-share-the-i_mmap_rwsem.patch
+uprobes-share-the-i_mmap_rwsem.patch
+mm-xip-share-the-i_mmap_rwsem.patch
+mm-memory-failure-share-the-i_mmap_rwsem.patch
+mm-nommu-share-the-i_mmap_rwsem.patch
+mm-memoryc-share-the-i_mmap_rwsem.patch
+remove-unnecessary-is_valid_nodemask.patch
+oom-dont-assume-that-a-coredumping-thread-will-exit-soon.patch
+oom-dont-assume-that-a-coredumping-thread-will-exit-soon-v2.patch
+oom-dont-assume-that-a-coredumping-thread-will-exit-soon-v2-fix.patch
+oom-kill-the-insufficient-and-no-longer-needed-pt_trace_exit-check.patch
+proc-task_state-read-cred-group_info-outside-of-task_lock.patch
+proc-task_state-deuglify-the-max_fds-calculation.patch
+proc-task_state-move-the-main-seq_printf-outside-of-rcu_read_lock.patch
+proc-task_state-ptrace_parent-doesnt-need-pid_alive-check.patch
+sched_show_task-fix-unsafe-usage-of-real_parent.patch
+exit-reparent-use-ptrace_entry-rather-than-sibling-for-exit_dead-tasks.patch
+exit-reparent-cleanup-the-changing-of-parent.patch
+exit-reparent-cleanup-the-changing-of-parent-fix.patch
+exit-reparent-cleanup-the-usage-of-reparent_leader.patch
+exit-ptrace-shift-reap-dead-code-from-exit_ptrace-to-forget_original_parent.patch
+usermodehelper-dont-use-clone_vfork-for-____call_usermodehelper.patch
+usermodehelper-kill-the-kmod_thread_locker-logic.patch
+exit-wait-cleanup-the-ptrace_reparented-checks.patch
+exit-wait-cleanup-the-ptrace_reparented-checks-fix.patch
+exit-wait-dont-use-zombie-real_parent.patch
+exit-wait-drop-tasklist_lock-before-psig-c-accounting.patch
+exit-release_task-fix-the-comment-about-group-leader-accounting.patch
+exit-proc-dont-try-to-flush-proc-tgid-task-tgid.patch
+exit-reparent-fix-the-dead-parent-pr_set_child_subreaper-reparenting.patch
+exit-reparent-fix-the-cross-namespace-pr_set_child_subreaper-reparenting.patch
+exit-reparent-s-while_each_thread-for_each_thread-in-find_new_reaper.patch
+exit-reparent-document-the-has_child_subreaper-checks.patch
+exit-reparent-introduce-find_child_reaper.patch
+exit-reparent-introduce-find_alive_thread.patch
+exit-reparent-avoid-find_new_reaper-if-no-children.patch
+exit-reparent-call-forget_original_parent-under-tasklist_lock.patch
+exit-exit_notify-re-use-dead-list-to-autoreap-current.patch
+exit-pidns-alloc_pid-leaks-pid_namespace-if-child_reaper-is-exiting.patch
+exit-pidns-fix-update-the-comments-in-zap_pid_ns_processes.patch
 linux-next.patch
 
