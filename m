@@ -1,97 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- ipc-semc-fully-initialize-sem_array-before-making-it-visible.patch removed
- from -mm tree
-Date: Wed, 03 Dec 2014 13:29:40 -0800
-Message-ID: <547f80c4.2djbUQSA1Swa8RZ+%akpm@linux-foundation.org>
+Subject: [merged] drivers-input-evdevc-dont-kfree-a-vmalloc-address.patch
+ removed from -mm tree
+Date: Wed, 03 Dec 2014 13:29:38 -0800
+Message-ID: <547f80c2.AJf2+Pb4sfSTv8GZ%akpm__8220.92120438374$1417642195$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56790 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56786 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751088AbaLCV3l (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2014 16:29:41 -0500
+	with ESMTP id S1751088AbaLCV3j (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2014 16:29:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: manfred@colorfullife.com, aquini@redhat.com, dave@stgolabs.net, riel@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, casteyde.christian@free.fr, dmitry.torokhov@gmail.com, rydberg@euromail.se, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc/sem.c: fully initialize sem_array before making it visible
+     Subject: drivers/input/evdev.c: don't kfree() a vmalloc address
 has been removed from the -mm tree.  Its filename was
-     ipc-semc-fully-initialize-sem_array-before-making-it-visible.patch
+     drivers-input-evdevc-dont-kfree-a-vmalloc-address.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Manfred Spraul <manfred@colorfullife.com>
-Subject: ipc/sem.c: fully initialize sem_array before making it visible
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/input/evdev.c: don't kfree() a vmalloc address
 
-ipc_addid() makes a new ipc identifier visible to everyone.  New objects
-start as locked, so that the caller can complete the initialization after
-the call.  Within struct sem_array, at least sma->sem_base and
-sma->sem_nsems are accessed without any locks, therefore this approach
-doesn't work.
+If kzalloc() failed and then evdev_open_device() fails, evdev_open() will
+pass a vmalloc'ed pointer to kfree.
 
-Thus: Move the ipc_addid() to the end of the initialization.
+This might fix https://bugzilla.kernel.org/show_bug.cgi?id=88401, where
+there was a crash in kfree().
 
-Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
-Reported-by: Rik van Riel <riel@redhat.com>
-Acked-by: Rik van Riel <riel@redhat.com>
-Acked-by: Davidlohr Bueso <dave@stgolabs.net>
-Acked-by: Rafael Aquini <aquini@redhat.com>
+Reported-by: Christian Casteyde <casteyde.christian@free.fr>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Henrik Rydberg <rydberg@euromail.se>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ drivers/input/evdev.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN ipc/sem.c~ipc-semc-fully-initialize-sem_array-before-making-it-visible ipc/sem.c
---- a/ipc/sem.c~ipc-semc-fully-initialize-sem_array-before-making-it-visible
-+++ a/ipc/sem.c
-@@ -507,13 +507,6 @@ static int newary(struct ipc_namespace *
- 		return retval;
- 	}
+diff -puN drivers/input/evdev.c~drivers-input-evdevc-dont-kfree-a-vmalloc-address drivers/input/evdev.c
+--- a/drivers/input/evdev.c~drivers-input-evdevc-dont-kfree-a-vmalloc-address
++++ a/drivers/input/evdev.c
+@@ -421,7 +421,7 @@ static int evdev_open(struct inode *inod
  
--	id = ipc_addid(&sem_ids(ns), &sma->sem_perm, ns->sc_semmni);
--	if (id < 0) {
--		ipc_rcu_putref(sma, sem_rcu_free);
--		return id;
--	}
--	ns->used_sems += nsems;
--
- 	sma->sem_base = (struct sem *) &sma[1];
- 
- 	for (i = 0; i < nsems; i++) {
-@@ -528,6 +521,14 @@ static int newary(struct ipc_namespace *
- 	INIT_LIST_HEAD(&sma->list_id);
- 	sma->sem_nsems = nsems;
- 	sma->sem_ctime = get_seconds();
-+
-+	id = ipc_addid(&sem_ids(ns), &sma->sem_perm, ns->sc_semmni);
-+	if (id < 0) {
-+		ipc_rcu_putref(sma, sem_rcu_free);
-+		return id;
-+	}
-+	ns->used_sems += nsems;
-+
- 	sem_unlock(sma, -1);
- 	rcu_read_unlock();
+  err_free_client:
+ 	evdev_detach_client(evdev, client);
+-	kfree(client);
++	kvfree(client);
+ 	return error;
+ }
  
 _
 
-Patches currently in -mm which might be from manfred@colorfullife.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
+ocfs2-free-inode-when-i_count-becomes-zero.patch
+ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
+mm.patch
+slab-improve-checking-for-invalid-gfp_flags.patch
+mm-memcontrol-lockless-page-counters-fix.patch
+mm-memcontrol-lockless-page-counters-fix-fix.patch
+kernel-res_counter-remove-the-unused-api-fix.patch
+mm-compaction-simplify-deferred-compaction-fix.patch
+mm-compaction-always-update-cached-scanner-positions-fix-checkpatch-fixes.patch
+mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
+mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix.patch
+mm-fix-huge-zero-page-accounting-in-smaps-report-fix-2-fix.patch
+mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
+mm-mincore-add-hwpoison-page-handle-checkpatch-fixes.patch
+include-linux-kmemleakh-needs-slabh.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-page_owner-keep-track-of-page-owners.patch
+fs-seq_file-fallback-to-vmalloc-instead-of-oom-kill-processes-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix-2.patch
+zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix.patch
+mm-zsmalloc-support-allocating-obj-with-size-of-zs_max_alloc_size-fix.patch
+mm-zsmalloc-avoid-duplicate-assignment-of-prev_class-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
+fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user.patch
+init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails-checkpatch-fixes.patch
+rtc-omap-add-support-for-pmic_power_en-v3-fix.patch
+drivers-rtc-rtc-sirfsocc-add-alarm_irq_enable-support-fix.patch
+rtc-ds1374-add-watchdog-support-checkpatch-fixes.patch
+exit-wait-cleanup-the-ptrace_reparented-checks-fix.patch
+sysctl-terminate-strings-also-on-r-fix.patch
 ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
 ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
-ipc-semc-increase-semmsl-semmni-semopm.patch
-ipc-msg-increase-msgmni-remove-scaling.patch
 ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
-mm-fix-overly-aggressive-shmdt-when-calls-span-multiple-segments.patch
-shmdt-use-i_size_read-instead-of-i_size.patch
+linux-next.patch
+linux-next-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mm-cma-make-kmemleak-ignore-cma-regions.patch
+lib-show_mem-this-patch-adds-cma-reserved-infromation-fix.patch
+tools-testing-selftests-makefile-alphasort-the-targets-list.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
 slab-leaks3-default-y.patch
 
