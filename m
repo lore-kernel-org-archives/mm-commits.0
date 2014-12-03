@@ -1,117 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-fix-anon_vma_clone-error-treatment.patch removed from -mm tree
-Date: Wed, 03 Dec 2014 13:29:47 -0800
-Message-ID: <547f80cb.pZPY4a0MX7MpTYXu%akpm@linux-foundation.org>
+Subject: [merged] fat-fix-oops-on-corrupted-vfat-fs.patch removed from -mm tree
+Date: Wed, 03 Dec 2014 13:29:43 -0800
+Message-ID: <547f80c7.Axt/oL+w3TyPeKwk%akpm__2367.46081286601$1417642197$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56803 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56793 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751405AbaLCV3s (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2014 16:29:48 -0500
+	with ESMTP id S1751088AbaLCV3o (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2014 16:29:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.forrest@ssec.wisc.edu, aarcange@redhat.com, hughd@google.com, koct9i@gmail.com, mhocko@suse.cz, riel@redhat.com, stable@vger.kernel.org, tim@edgecast.com, vbabka@suse.cz, walken@google.com, mm-commits@vger.kernel.org
+To: viro@zeniv.linux.org.uk, hirofumi@mail.parknet.co.jp, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix anon_vma_clone() error treatment
+     Subject: fat: fix oops on corrupted vfat fs
 has been removed from the -mm tree.  Its filename was
-     mm-fix-anon_vma_clone-error-treatment.patch
+     fat-fix-oops-on-corrupted-vfat-fs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Daniel Forrest <dan.forrest@ssec.wisc.edu>
-Subject: mm: fix anon_vma_clone() error treatment
+From: Al Viro <viro@zeniv.linux.org.uk>
+Subject: fat: fix oops on corrupted vfat fs
 
-Andrew Morton noticed that the error return from anon_vma_clone() was
-being dropped and replaced with -ENOMEM (which is not itself a bug because
-the only error return value from anon_vma_clone() is -ENOMEM).
+a) don't bother with ->d_time for positives - we only check it for
+   negatives anyway.
 
-I did an audit of callers of anon_vma_clone() and discovered an actual bug
-where the error return was being lost.  In __split_vma(), between Linux
-3.11 and 3.12 the code was changed so the err variable is used before the
-call to anon_vma_clone() and the default initial value of -ENOMEM is
-overwritten.  So a failure of anon_vma_clone() will return success since
-err at this point is now zero.
+b) make sure to set it at unlink and rmdir time - at *that* point
+   soon-to-be negative dentry matches then-current directory contents
 
-Below is a patch which fixes this bug and also propagates the error return
-value from anon_vma_clone() in all cases.
+c) don't go into renaming of old alias in vfat_lookup() unless it
+   has the same parent (which it will, unless we are seeing corrupted
+   image)
 
-Fixes: ef0855d334e1 ("mm: mempolicy: turn vma_set_policy() into vma_dup_policy()")
-Signed-off-by: Daniel Forrest <dan.forrest@ssec.wisc.edu>
-Reviewed-by: Michal Hocko <mhocko@suse.cz>
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Tim Hartrick <tim@edgecast.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: <stable@vger.kernel.org>	[3.12+]
+[hirofumi@mail.parknet.co.jp: make change minimum, don't call d_move() for dir]
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: <stable@vger.kernel.org>	[3.17.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   10 +++++++---
- mm/rmap.c |    6 ++++--
- 2 files changed, 11 insertions(+), 5 deletions(-)
+ fs/fat/namei_vfat.c |   20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
 
-diff -puN mm/mmap.c~mm-fix-anon_vma_clone-error-treatment mm/mmap.c
---- a/mm/mmap.c~mm-fix-anon_vma_clone-error-treatment
-+++ a/mm/mmap.c
-@@ -776,8 +776,11 @@ again:			remove_next = 1 + (end > next->
- 		 * shrinking vma had, to cover any anon pages imported.
- 		 */
- 		if (exporter && exporter->anon_vma && !importer->anon_vma) {
--			if (anon_vma_clone(importer, exporter))
--				return -ENOMEM;
-+			int error;
-+
-+			error = anon_vma_clone(importer, exporter);
-+			if (error)
-+				return error;
- 			importer->anon_vma = exporter->anon_vma;
- 		}
+diff -puN fs/fat/namei_vfat.c~fat-fix-oops-on-corrupted-vfat-fs fs/fat/namei_vfat.c
+--- a/fs/fat/namei_vfat.c~fat-fix-oops-on-corrupted-vfat-fs
++++ a/fs/fat/namei_vfat.c
+@@ -736,7 +736,12 @@ static struct dentry *vfat_lookup(struct
  	}
-@@ -2469,7 +2472,8 @@ static int __split_vma(struct mm_struct
- 	if (err)
- 		goto out_free_vma;
  
--	if (anon_vma_clone(new, vma))
-+	err = anon_vma_clone(new, vma);
-+	if (err)
- 		goto out_free_mpol;
+ 	alias = d_find_alias(inode);
+-	if (alias && !vfat_d_anon_disconn(alias)) {
++	/*
++	 * Checking "alias->d_parent == dentry->d_parent" to make sure
++	 * FS is not corrupted (especially double linked dir).
++	 */
++	if (alias && alias->d_parent == dentry->d_parent &&
++	    !vfat_d_anon_disconn(alias)) {
+ 		/*
+ 		 * This inode has non anonymous-DCACHE_DISCONNECTED
+ 		 * dentry. This means, the user did ->lookup() by an
+@@ -755,12 +760,9 @@ static struct dentry *vfat_lookup(struct
  
- 	if (new->vm_file)
-diff -puN mm/rmap.c~mm-fix-anon_vma_clone-error-treatment mm/rmap.c
---- a/mm/rmap.c~mm-fix-anon_vma_clone-error-treatment
-+++ a/mm/rmap.c
-@@ -274,6 +274,7 @@ int anon_vma_fork(struct vm_area_struct
- {
- 	struct anon_vma_chain *avc;
- 	struct anon_vma *anon_vma;
-+	int error;
+ out:
+ 	mutex_unlock(&MSDOS_SB(sb)->s_lock);
+-	dentry->d_time = dentry->d_parent->d_inode->i_version;
+-	dentry = d_splice_alias(inode, dentry);
+-	if (dentry)
+-		dentry->d_time = dentry->d_parent->d_inode->i_version;
+-	return dentry;
+-
++	if (!inode)
++		dentry->d_time = dir->i_version;
++	return d_splice_alias(inode, dentry);
+ error:
+ 	mutex_unlock(&MSDOS_SB(sb)->s_lock);
+ 	return ERR_PTR(err);
+@@ -793,7 +795,6 @@ static int vfat_create(struct inode *dir
+ 	inode->i_mtime = inode->i_atime = inode->i_ctime = ts;
+ 	/* timestamp is already written, so mark_inode_dirty() is unneeded. */
  
- 	/* Don't bother if the parent process has no anon_vma here. */
- 	if (!pvma->anon_vma)
-@@ -283,8 +284,9 @@ int anon_vma_fork(struct vm_area_struct
- 	 * First, attach the new VMA to the parent VMA's anon_vmas,
- 	 * so rmap can find non-COWed pages in child processes.
- 	 */
--	if (anon_vma_clone(vma, pvma))
--		return -ENOMEM;
-+	error = anon_vma_clone(vma, pvma);
-+	if (error)
-+		return error;
+-	dentry->d_time = dentry->d_parent->d_inode->i_version;
+ 	d_instantiate(dentry, inode);
+ out:
+ 	mutex_unlock(&MSDOS_SB(sb)->s_lock);
+@@ -824,6 +825,7 @@ static int vfat_rmdir(struct inode *dir,
+ 	clear_nlink(inode);
+ 	inode->i_mtime = inode->i_atime = CURRENT_TIME_SEC;
+ 	fat_detach(inode);
++	dentry->d_time = dir->i_version;
+ out:
+ 	mutex_unlock(&MSDOS_SB(sb)->s_lock);
  
- 	/* Then add our own anon_vma. */
- 	anon_vma = anon_vma_alloc();
+@@ -849,6 +851,7 @@ static int vfat_unlink(struct inode *dir
+ 	clear_nlink(inode);
+ 	inode->i_mtime = inode->i_atime = CURRENT_TIME_SEC;
+ 	fat_detach(inode);
++	dentry->d_time = dir->i_version;
+ out:
+ 	mutex_unlock(&MSDOS_SB(sb)->s_lock);
+ 
+@@ -889,7 +892,6 @@ static int vfat_mkdir(struct inode *dir,
+ 	inode->i_mtime = inode->i_atime = inode->i_ctime = ts;
+ 	/* timestamp is already written, so mark_inode_dirty() is unneeded. */
+ 
+-	dentry->d_time = dentry->d_parent->d_inode->i_version;
+ 	d_instantiate(dentry, inode);
+ 
+ 	mutex_unlock(&MSDOS_SB(sb)->s_lock);
 _
 
-Patches currently in -mm which might be from dan.forrest@ssec.wisc.edu are
+Patches currently in -mm which might be from viro@zeniv.linux.org.uk are
 
 origin.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
+char_dev-remove-pointless-assignment-from-__register_chrdev_region.patch
+fs-seq_file-fallback-to-vmalloc-instead-of-oom-kill-processes.patch
+procfs-fix-error-handling-of-proc_register.patch
+ia64-trivial-replace-get_unused_fd-by-get_unused_fd_flags0.patch
+ppc-cell-trivial-replace-get_unused_fd-by-get_unused_fd_flags0.patch
+binfmt_misc-trivial-replace-get_unused_fd-by-get_unused_fd_flags0.patch
+file-trivial-replace-get_unused_fd-by-get_unused_fd_flags0.patch
+file-remove-get_unused_fd-macro.patch
+binfmt_misc-add-comments-debug-logs.patch
+binfmt_misc-clean-up-code-style-a-bit.patch
+nilfs2-fix-the-nilfs_iget-vs-nilfs_new_inode-races.patch
+syscalls-implement-execveat-system-call.patch
+x86-hook-up-execveat-system-call.patch
+syscalls-add-selftest-for-execveat2.patch
+fs-affs-filec-adding-support-to-o_direct.patch
+linux-next.patch
+fallocate-create-fan_modify-and-in_modify-events.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
