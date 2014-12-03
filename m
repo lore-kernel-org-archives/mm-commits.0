@@ -1,116 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-input-evdevc-dont-kfree-a-vmalloc-address.patch
- removed from -mm tree
-Date: Wed, 03 Dec 2014 13:29:38 -0800
-Message-ID: <547f80c2.AJf2+Pb4sfSTv8GZ%akpm__8220.92120438374$1417642195$gmane$org@linux-foundation.org>
+Subject: [merged]
+ mm-frontswap-invalidate-expired-data-on-a-dup-store-failure.patch removed
+ from -mm tree
+Date: Wed, 03 Dec 2014 13:29:33 -0800
+Message-ID: <547f80bd.R8DIygsLJdYIB0qw%akpm__25934.3062797145$1417642195$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56786 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56780 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751088AbaLCV3j (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2014 16:29:39 -0500
+	with ESMTP id S1751088AbaLCV3e (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2014 16:29:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, casteyde.christian@free.fr, dmitry.torokhov@gmail.com, rydberg@euromail.se, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: weijie.yang@samsung.com, bob.liu@oracle.com, ddstreet@ieee.org, konrad.wilk@oracle.com, minchan@kernel.org, sjennings@variantweb.net, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/input/evdev.c: don't kfree() a vmalloc address
+     Subject: mm: frontswap: invalidate expired data on a dup-store failure
 has been removed from the -mm tree.  Its filename was
-     drivers-input-evdevc-dont-kfree-a-vmalloc-address.patch
+     mm-frontswap-invalidate-expired-data-on-a-dup-store-failure.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/input/evdev.c: don't kfree() a vmalloc address
+From: Weijie Yang <weijie.yang@samsung.com>
+Subject: mm: frontswap: invalidate expired data on a dup-store failure
 
-If kzalloc() failed and then evdev_open_device() fails, evdev_open() will
-pass a vmalloc'ed pointer to kfree.
+If a frontswap dup-store failed, it should invalidate the expired page
+in the backend, or it could trigger some data corruption issue.
+Such as:
+1. use zswap as the frontswap backend with writeback feature
+2. store a swap page(version_1) to entry A, success
+3. dup-store a newer page(version_2) to the same entry A, fail
+4. use __swap_writepage() write version_2 page to swapfile, success
+5. zswap do shrink, writeback version_1 page to swapfile
+6. version_2 page is overwrited by version_1, data corrupt.
 
-This might fix https://bugzilla.kernel.org/show_bug.cgi?id=88401, where
-there was a crash in kfree().
+This patch fixes this issue by invalidating expired data immediately
+when meet a dup-store failure.
 
-Reported-by: Christian Casteyde <casteyde.christian@free.fr>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Henrik Rydberg <rydberg@euromail.se>
+Signed-off-by: Weijie Yang <weijie.yang@samsung.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Seth Jennings <sjennings@variantweb.net>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Bob Liu <bob.liu@oracle.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/evdev.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/frontswap.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/input/evdev.c~drivers-input-evdevc-dont-kfree-a-vmalloc-address drivers/input/evdev.c
---- a/drivers/input/evdev.c~drivers-input-evdevc-dont-kfree-a-vmalloc-address
-+++ a/drivers/input/evdev.c
-@@ -421,7 +421,7 @@ static int evdev_open(struct inode *inod
- 
-  err_free_client:
- 	evdev_detach_client(evdev, client);
--	kfree(client);
-+	kvfree(client);
- 	return error;
- }
- 
+diff -puN mm/frontswap.c~mm-frontswap-invalidate-expired-data-on-a-dup-store-failure mm/frontswap.c
+--- a/mm/frontswap.c~mm-frontswap-invalidate-expired-data-on-a-dup-store-failure
++++ a/mm/frontswap.c
+@@ -244,8 +244,10 @@ int __frontswap_store(struct page *page)
+ 		  the (older) page from frontswap
+ 		 */
+ 		inc_frontswap_failed_stores();
+-		if (dup)
++		if (dup) {
+ 			__frontswap_clear(sis, offset);
++			frontswap_ops->invalidate_page(type, offset);
++		}
+ 	}
+ 	if (frontswap_writethrough_enabled)
+ 		/* report failure so swap also writes to swap device */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from weijie.yang@samsung.com are
 
 origin.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
-ocfs2-free-inode-when-i_count-becomes-zero.patch
-ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
-mm.patch
-slab-improve-checking-for-invalid-gfp_flags.patch
-mm-memcontrol-lockless-page-counters-fix.patch
-mm-memcontrol-lockless-page-counters-fix-fix.patch
-kernel-res_counter-remove-the-unused-api-fix.patch
-mm-compaction-simplify-deferred-compaction-fix.patch
-mm-compaction-always-update-cached-scanner-positions-fix-checkpatch-fixes.patch
-mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
-mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix.patch
-mm-fix-huge-zero-page-accounting-in-smaps-report-fix-2-fix.patch
-mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
+mm-page_isolation-check-pfn-validity-before-access.patch
+mm-mincore-add-hwpoison-page-handle.patch
 mm-mincore-add-hwpoison-page-handle-checkpatch-fixes.patch
-include-linux-kmemleakh-needs-slabh.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mm-page_owner-keep-track-of-page-owners.patch
-fs-seq_file-fallback-to-vmalloc-instead-of-oom-kill-processes-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix-2.patch
-zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix.patch
-mm-zsmalloc-support-allocating-obj-with-size-of-zs_max_alloc_size-fix.patch
-mm-zsmalloc-avoid-duplicate-assignment-of-prev_class-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
-fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user.patch
-init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails-checkpatch-fixes.patch
-rtc-omap-add-support-for-pmic_power_en-v3-fix.patch
-drivers-rtc-rtc-sirfsocc-add-alarm_irq_enable-support-fix.patch
-rtc-ds1374-add-watchdog-support-checkpatch-fixes.patch
-exit-wait-cleanup-the-ptrace_reparented-checks-fix.patch
-sysctl-terminate-strings-also-on-r-fix.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
-ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
-linux-next.patch
-linux-next-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-cma-make-kmemleak-ignore-cma-regions.patch
-lib-show_mem-this-patch-adds-cma-reserved-infromation-fix.patch
-tools-testing-selftests-makefile-alphasort-the-targets-list.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
+mm-zram-correct-zram_zero-flag-bit-position.patch
 
