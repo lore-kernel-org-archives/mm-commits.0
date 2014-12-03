@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-implement-ocfs2_direct_io_write-fix.patch added to -mm
- tree
-Date: Wed, 03 Dec 2014 14:02:16 -0800
-Message-ID: <547f8868.2Y+p8HIEThyWhsst%akpm@linux-foundation.org>
+Subject: + cgroups-documentation-fix-wrong-cgroupfs-paths.patch added to
+ -mm tree
+Date: Wed, 03 Dec 2014 14:49:37 -0800
+Message-ID: <547f9381.Ie0MTCJpRxVUWrSp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56968 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57351 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752032AbaLCWCR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2014 17:02:17 -0500
+	with ESMTP id S1751088AbaLCWti (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2014 17:49:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joseph.qi@huawei.com, alex.chen@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, wangww631@huawei.com, xuejiufei@huawei.com, mm-commits@vger.kernel.org
+To: sj38.park@gmail.com, corbet@lwn.net, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix brelse warning if ocfs2_direct_IO_get_blocks failed
+     Subject: cgroups: documentation: fix wrong cgroupfs paths
 has been added to the -mm tree.  Its filename is
-     ocfs2-implement-ocfs2_direct_io_write-fix.patch
+     cgroups-documentation-fix-wrong-cgroupfs-paths.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-implement-ocfs2_direct_io_write-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/cgroups-documentation-fix-wrong-cgroupfs-paths.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-implement-ocfs2_direct_io_write-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/cgroups-documentation-fix-wrong-cgroupfs-paths.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,53 +39,42 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@huawei.com>
-Subject: ocfs2: fix brelse warning if ocfs2_direct_IO_get_blocks failed
+From: SeongJae Park <sj38.park@gmail.com>
+Subject: cgroups: documentation: fix wrong cgroupfs paths
 
-In ocfs2_direct_IO_write, if ocfs2_direct_IO_get_blocks failed, the
-di_bh will be used again in unlikely branch, and this will hit a warning
-"VFS: brelse: Trying to free free buffer" when jbd2 do checkpoint.
-Fix this issue by setting di_bh to NULL after brelse.
+Few paths used as example to describe cgroupfs usage have been wrong from
+f6e07d38078e ("Documentation: update cgroupfs mount point") by mistake. 
+This patch fixes those trivial wrong paths.
 
-Reported-by: alex chen <alex.chen@huawei.com>
-Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
-Reviewed-by: joyce.xue <xuejiufei@huawei.com>
-Cc: Weiwei Wang <wangww631@huawei.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
+Signed-off-by: SeongJae Park <sj38.park@gmail.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/aops.c |    1 +
- 1 file changed, 1 insertion(+)
+ Documentation/cgroups/cgroups.txt |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/ocfs2/aops.c~ocfs2-implement-ocfs2_direct_io_write-fix fs/ocfs2/aops.c
---- a/fs/ocfs2/aops.c~ocfs2-implement-ocfs2_direct_io_write-fix
-+++ a/fs/ocfs2/aops.c
-@@ -692,6 +692,7 @@ static ssize_t ocfs2_direct_IO_write(str
+diff -puN Documentation/cgroups/cgroups.txt~cgroups-documentation-fix-wrong-cgroupfs-paths Documentation/cgroups/cgroups.txt
+--- a/Documentation/cgroups/cgroups.txt~cgroups-documentation-fix-wrong-cgroupfs-paths
++++ a/Documentation/cgroups/cgroups.txt
+@@ -312,10 +312,10 @@ the "cpuset" cgroup subsystem, the steps
+  2) mkdir /sys/fs/cgroup/cpuset
+  3) mount -t cgroup -ocpuset cpuset /sys/fs/cgroup/cpuset
+  4) Create the new cgroup by doing mkdir's and write's (or echo's) in
+-    the /sys/fs/cgroup virtual file system.
++    the /sys/fs/cgroup/cpuset virtual file system.
+  5) Start a task that will be the "founding father" of the new job.
+  6) Attach that task to the new cgroup by writing its PID to the
+-    /sys/fs/cgroup/cpuset/tasks file for that cgroup.
++    /sys/fs/cgroup/cpuset tasks file for that cgroup.
+  7) fork, exec or clone the job tasks from this founding father task.
  
- 		ocfs2_inode_unlock(inode, 1);
- 		brelse(di_bh);
-+		di_bh = NULL;
- 	}
- 
- 	written = __blockdev_direct_IO(WRITE, iocb, inode, inode->i_sb->s_bdev,
+ For example, the following sequence of commands will setup a cgroup
 _
 
-Patches currently in -mm which might be from joseph.qi@huawei.com are
+Patches currently in -mm which might be from sj38.park@gmail.com are
 
-ocfs2-dlm-let-sender-retry-if-dlm_dispatch_assert_master-failed-with-enomem.patch
-o2dlm-fix-a-race-between-purge-and-master-query.patch
-ocfs2-fix-error-handling-when-creating-debugfs-root-in-ocfs2_init.patch
-ocfs2-dlm-fix-race-between-dispatched_work-and-dlm_lockres_grab_inflight_worker.patch
-ocfs2-eliminate-the-static-flag-of-some-functions.patch
-ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir.patch
-ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
-ocfs2-add-orphan-recovery-types-in-ocfs2_recover_orphans.patch
-ocfs2-implement-ocfs2_direct_io_write.patch
-ocfs2-implement-ocfs2_direct_io_write-fix.patch
-ocfs2-allocate-blocks-in-ocfs2_direct_io_get_blocks.patch
-ocfs2-do-not-fallback-to-buffer-i-o-write-if-appending.patch
-ocfs2-do-not-fallback-to-buffer-i-o-write-if-fill-holes.patch
-ocfs2-fix-leftover-orphan-entry-caused-by-append-o_direct-write-crash.patch
+cgroups-documentation-fix-wrong-cgroupfs-paths.patch
+cgroups-documentation-fix-trivial-typos-and-wrong-paragraph-numberings.patch
 
