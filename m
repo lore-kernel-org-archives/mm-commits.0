@@ -1,140 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fat-fix-oops-on-corrupted-vfat-fs.patch removed from -mm tree
-Date: Wed, 03 Dec 2014 13:29:43 -0800
-Message-ID: <547f80c7.Axt/oL+w3TyPeKwk%akpm__2367.46081286601$1417642197$gmane$org@linux-foundation.org>
+Subject: [merged] mm-fix-swapoff-hang-after-page-migration-and-fork.patch
+ removed from -mm tree
+Date: Wed, 03 Dec 2014 13:29:45 -0800
+Message-ID: <547f80c9.Rz1AlTVndtAzR2j1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56793 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56796 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751088AbaLCV3o (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2014 16:29:44 -0500
+	with ESMTP id S1751088AbaLCV3q (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2014 16:29:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: viro@zeniv.linux.org.uk, hirofumi@mail.parknet.co.jp, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: hughd@google.com, kelleynnn@gmail.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fat: fix oops on corrupted vfat fs
+     Subject: mm: fix swapoff hang after page migration and fork
 has been removed from the -mm tree.  Its filename was
-     fat-fix-oops-on-corrupted-vfat-fs.patch
+     mm-fix-swapoff-hang-after-page-migration-and-fork.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Al Viro <viro@zeniv.linux.org.uk>
-Subject: fat: fix oops on corrupted vfat fs
+From: Hugh Dickins <hughd@google.com>
+Subject: mm: fix swapoff hang after page migration and fork
 
-a) don't bother with ->d_time for positives - we only check it for
-   negatives anyway.
+I've been seeing swapoff hangs in recent testing: it's cycling around
+trying unsuccessfully to find an mm for some remaining pages of swap.
 
-b) make sure to set it at unlink and rmdir time - at *that* point
-   soon-to-be negative dentry matches then-current directory contents
+I have been exercising swap and page migration more heavily recently, and
+now notice a long-standing error in copy_one_pte(): it's trying to add
+dst_mm to swapoff's mmlist when it finds a swap entry, but is doing so
+even when it's a migration entry or an hwpoison entry.
 
-c) don't go into renaming of old alias in vfat_lookup() unless it
-   has the same parent (which it will, unless we are seeing corrupted
-   image)
+Which wouldn't matter much, except it adds dst_mm next to src_mm, assuming
+src_mm is already on the mmlist: which may not be so.  Then if pages are
+later swapped out from dst_mm, swapoff won't be able to find where to
+replace them.
 
-[hirofumi@mail.parknet.co.jp: make change minimum, don't call d_move() for dir]
-Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
-Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Cc: <stable@vger.kernel.org>	[3.17.x]
+There's already a !non_swap_entry() test for stats: move that up before
+the swap_duplicate() and the addition to mmlist.
+
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Kelley Nielsen <kelleynnn@gmail.com>
+Cc: <stable@vger.kernel.org>	[2.6.18+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/namei_vfat.c |   20 +++++++++++---------
- 1 file changed, 11 insertions(+), 9 deletions(-)
+ mm/memory.c |   24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN fs/fat/namei_vfat.c~fat-fix-oops-on-corrupted-vfat-fs fs/fat/namei_vfat.c
---- a/fs/fat/namei_vfat.c~fat-fix-oops-on-corrupted-vfat-fs
-+++ a/fs/fat/namei_vfat.c
-@@ -736,7 +736,12 @@ static struct dentry *vfat_lookup(struct
- 	}
+diff -puN mm/memory.c~mm-fix-swapoff-hang-after-page-migration-and-fork mm/memory.c
+--- a/mm/memory.c~mm-fix-swapoff-hang-after-page-migration-and-fork
++++ a/mm/memory.c
+@@ -815,20 +815,20 @@ copy_one_pte(struct mm_struct *dst_mm, s
+ 		if (!pte_file(pte)) {
+ 			swp_entry_t entry = pte_to_swp_entry(pte);
  
- 	alias = d_find_alias(inode);
--	if (alias && !vfat_d_anon_disconn(alias)) {
-+	/*
-+	 * Checking "alias->d_parent == dentry->d_parent" to make sure
-+	 * FS is not corrupted (especially double linked dir).
-+	 */
-+	if (alias && alias->d_parent == dentry->d_parent &&
-+	    !vfat_d_anon_disconn(alias)) {
- 		/*
- 		 * This inode has non anonymous-DCACHE_DISCONNECTED
- 		 * dentry. This means, the user did ->lookup() by an
-@@ -755,12 +760,9 @@ static struct dentry *vfat_lookup(struct
+-			if (swap_duplicate(entry) < 0)
+-				return entry.val;
++			if (likely(!non_swap_entry(entry))) {
++				if (swap_duplicate(entry) < 0)
++					return entry.val;
  
- out:
- 	mutex_unlock(&MSDOS_SB(sb)->s_lock);
--	dentry->d_time = dentry->d_parent->d_inode->i_version;
--	dentry = d_splice_alias(inode, dentry);
--	if (dentry)
--		dentry->d_time = dentry->d_parent->d_inode->i_version;
--	return dentry;
--
-+	if (!inode)
-+		dentry->d_time = dir->i_version;
-+	return d_splice_alias(inode, dentry);
- error:
- 	mutex_unlock(&MSDOS_SB(sb)->s_lock);
- 	return ERR_PTR(err);
-@@ -793,7 +795,6 @@ static int vfat_create(struct inode *dir
- 	inode->i_mtime = inode->i_atime = inode->i_ctime = ts;
- 	/* timestamp is already written, so mark_inode_dirty() is unneeded. */
+-			/* make sure dst_mm is on swapoff's mmlist. */
+-			if (unlikely(list_empty(&dst_mm->mmlist))) {
+-				spin_lock(&mmlist_lock);
+-				if (list_empty(&dst_mm->mmlist))
+-					list_add(&dst_mm->mmlist,
+-						 &src_mm->mmlist);
+-				spin_unlock(&mmlist_lock);
+-			}
+-			if (likely(!non_swap_entry(entry)))
++				/* make sure dst_mm is on swapoff's mmlist. */
++				if (unlikely(list_empty(&dst_mm->mmlist))) {
++					spin_lock(&mmlist_lock);
++					if (list_empty(&dst_mm->mmlist))
++						list_add(&dst_mm->mmlist,
++							 &src_mm->mmlist);
++					spin_unlock(&mmlist_lock);
++				}
+ 				rss[MM_SWAPENTS]++;
+-			else if (is_migration_entry(entry)) {
++			} else if (is_migration_entry(entry)) {
+ 				page = migration_entry_to_page(entry);
  
--	dentry->d_time = dentry->d_parent->d_inode->i_version;
- 	d_instantiate(dentry, inode);
- out:
- 	mutex_unlock(&MSDOS_SB(sb)->s_lock);
-@@ -824,6 +825,7 @@ static int vfat_rmdir(struct inode *dir,
- 	clear_nlink(inode);
- 	inode->i_mtime = inode->i_atime = CURRENT_TIME_SEC;
- 	fat_detach(inode);
-+	dentry->d_time = dir->i_version;
- out:
- 	mutex_unlock(&MSDOS_SB(sb)->s_lock);
- 
-@@ -849,6 +851,7 @@ static int vfat_unlink(struct inode *dir
- 	clear_nlink(inode);
- 	inode->i_mtime = inode->i_atime = CURRENT_TIME_SEC;
- 	fat_detach(inode);
-+	dentry->d_time = dir->i_version;
- out:
- 	mutex_unlock(&MSDOS_SB(sb)->s_lock);
- 
-@@ -889,7 +892,6 @@ static int vfat_mkdir(struct inode *dir,
- 	inode->i_mtime = inode->i_atime = inode->i_ctime = ts;
- 	/* timestamp is already written, so mark_inode_dirty() is unneeded. */
- 
--	dentry->d_time = dentry->d_parent->d_inode->i_version;
- 	d_instantiate(dentry, inode);
- 
- 	mutex_unlock(&MSDOS_SB(sb)->s_lock);
+ 				if (PageAnon(page))
 _
 
-Patches currently in -mm which might be from viro@zeniv.linux.org.uk are
+Patches currently in -mm which might be from hughd@google.com are
 
 origin.patch
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
-char_dev-remove-pointless-assignment-from-__register_chrdev_region.patch
-fs-seq_file-fallback-to-vmalloc-instead-of-oom-kill-processes.patch
-procfs-fix-error-handling-of-proc_register.patch
-ia64-trivial-replace-get_unused_fd-by-get_unused_fd_flags0.patch
-ppc-cell-trivial-replace-get_unused_fd-by-get_unused_fd_flags0.patch
-binfmt_misc-trivial-replace-get_unused_fd-by-get_unused_fd_flags0.patch
-file-trivial-replace-get_unused_fd-by-get_unused_fd_flags0.patch
-file-remove-get_unused_fd-macro.patch
-binfmt_misc-add-comments-debug-logs.patch
-binfmt_misc-clean-up-code-style-a-bit.patch
-nilfs2-fix-the-nilfs_iget-vs-nilfs_new_inode-races.patch
-syscalls-implement-execveat-system-call.patch
-x86-hook-up-execveat-system-call.patch
-syscalls-add-selftest-for-execveat2.patch
-fs-affs-filec-adding-support-to-o_direct.patch
+mm-vmscan-count-only-dirty-pages-as-congested.patch
+mm-memcontrol-update-mem_cgroup_page_lruvec-documentation.patch
+mm-memcontrol-clarify-migration-where-old-page-is-uncharged.patch
+mm-memcontrol-uncharge-pages-on-swapout.patch
+mm-memcontrol-uncharge-pages-on-swapout-fix.patch
+mm-memcontrol-remove-unnecessary-pcg_memsw-memoryswap-charge-flag.patch
+mm-memcontrol-remove-unnecessary-pcg_mem-memory-charge-flag.patch
+mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag.patch
+mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
+mmfs-introduce-helpers-around-the-i_mmap_mutex.patch
+mm-use-new-helper-functions-around-the-i_mmap_mutex.patch
+mm-convert-i_mmap_mutex-to-rwsem.patch
+mm-rmap-share-the-i_mmap_rwsem.patch
+uprobes-share-the-i_mmap_rwsem.patch
+mm-xip-share-the-i_mmap_rwsem.patch
+mm-memory-failure-share-the-i_mmap_rwsem.patch
+mm-nommu-share-the-i_mmap_rwsem.patch
+mm-memoryc-share-the-i_mmap_rwsem.patch
+mm-mincore-add-hwpoison-page-handle.patch
+ksm-replace-smp_read_barrier_depends-with-lockless_dereference.patch
+mm-unmapped-page-migration-avoid-unmapremap-overhead.patch
 linux-next.patch
-fallocate-create-fan_modify-and-in_modify-events.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
 
