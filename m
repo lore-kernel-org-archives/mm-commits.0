@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-fadvise-document-the-fadvisefadv_dontneed-behaviour-for-partial-pages.patch added to -mm tree
-Date: Wed, 03 Dec 2014 15:26:50 -0800
-Message-ID: <547f9c3a.zk/KBIaHV71KvkYm%akpm@linux-foundation.org>
+Subject: + mm-memcontrol-fix-defined-but-not-used-compiler-warning.patch
+ added to -mm tree
+Date: Wed, 03 Dec 2014 15:27:46 -0800
+Message-ID: <547f9c72.6t+99qVfyiJusV7+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57520 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57523 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752274AbaLCX0v (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2014 18:26:51 -0500
+	with ESMTP id S1751197AbaLCX1r (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2014 18:27:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, mtk.manpages@gmail.com, mm-commits@vger.kernel.org
+To: michele.curti@gmail.com, hannes@cmpxchg.org, mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fadvise: document the fadvise(FADV_DONTNEED) behaviour for partial pages
+     Subject: mm/memcontrol.c: fix defined but not used compiler warning
 has been added to the -mm tree.  Its filename is
-     mm-fadvise-document-the-fadvisefadv_dontneed-behaviour-for-partial-pages.patch
+     mm-memcontrol-fix-defined-but-not-used-compiler-warning.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fadvise-document-the-fadvisefadv_dontneed-behaviour-for-partial-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-fix-defined-but-not-used-compiler-warning.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fadvise-document-the-fadvisefadv_dontneed-behaviour-for-partial-pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-fix-defined-but-not-used-compiler-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,84 +39,43 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: fadvise: document the fadvise(FADV_DONTNEED) behaviour for partial pages
+From: Michele Curti <michele.curti@gmail.com>
+Subject: mm/memcontrol.c: fix defined but not used compiler warning
 
-A random seek IO benchmark appeared to regress because of a change to
-readahead but the real problem was the benchmark.  To ensure the IO
-request accesssed disk, it used fadvise(FADV_DONTNEED) on a block boundary
-(512K) but the hint is ignored by the kernel.  This is correct but not
-necessarily obvious behaviour.  As much as I dislike comment patches, the
-explanation for this behaviour predates current git history.  Clarify why
-it behaves like this in case someone "fixes" fadvise or readahead for the
-wrong reasons.
+test_mem_cgroup_node_reclaimable() is used only when MAX_NUMNODES > 1, so
+move it into the compiler if statement
 
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Signed-off-by: Michele Curti <michele.curti@gmail.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/fadvise.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/fadvise.c~mm-fadvise-document-the-fadvisefadv_dontneed-behaviour-for-partial-pages mm/fadvise.c
---- a/mm/fadvise.c~mm-fadvise-document-the-fadvisefadv_dontneed-behaviour-for-partial-pages
-+++ a/mm/fadvise.c
-@@ -117,7 +117,11 @@ SYSCALL_DEFINE4(fadvise64_64, int, fd, l
- 			__filemap_fdatawrite_range(mapping, offset, endbyte,
- 						   WB_SYNC_NONE);
+diff -puN mm/memcontrol.c~mm-memcontrol-fix-defined-but-not-used-compiler-warning mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-fix-defined-but-not-used-compiler-warning
++++ a/mm/memcontrol.c
+@@ -1615,6 +1615,7 @@ static void mem_cgroup_out_of_memory(str
+ 	oom_kill_process(chosen, gfp_mask, order, points, totalpages, memcg,
+ 			 NULL, "Memory cgroup out of memory");
+ }
++#if MAX_NUMNODES > 1
  
--		/* First and last FULL page! */
-+		/*
-+		 * First and last FULL page! Partial pages are deliberately
-+		 * preserved on the expectation that it is better to preserve
-+		 * needed memory than to discard unneeded memory.
-+		 */
- 		start_index = (offset+(PAGE_CACHE_SIZE-1)) >> PAGE_CACHE_SHIFT;
- 		end_index = (endbyte >> PAGE_CACHE_SHIFT);
+ /**
+  * test_mem_cgroup_node_reclaimable
+@@ -1638,7 +1639,6 @@ static bool test_mem_cgroup_node_reclaim
+ 	return false;
  
+ }
+-#if MAX_NUMNODES > 1
+ 
+ /*
+  * Always updating the nodemask is not very good - even if we have an empty
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from michele.curti@gmail.com are
 
-mm-introduce-single-zone-pcplists-drain.patch
-mm-page_isolation-drain-single-zone-pcplists.patch
-mm-cma-drain-single-zone-pcplists.patch
-mm-memory_hotplug-failure-drain-single-zone-pcplists.patch
-mm-vmscan-count-only-dirty-pages-as-congested.patch
-mm-compaction-pass-classzone_idx-and-alloc_flags-to-watermark-checking.patch
-mm-compaction-pass-classzone_idx-and-alloc_flags-to-watermark-checking-fix.patch
-mm-compaction-simplify-deferred-compaction.patch
-mm-compaction-defer-only-on-compact_complete.patch
-mm-compaction-always-update-cached-scanner-positions.patch
-mm-compaction-always-update-cached-scanner-positions-fix.patch
-mm-compaction-more-focused-lru-and-pcplists-draining.patch
-mm-compaction-more-focused-lru-and-pcplists-draining-fix.patch
-mm-numa-balancing-rearrange-kconfig-entry.patch
-mm-hugetlb-correct-bit-shift-in-hstate_sizelog.patch
-mmfs-introduce-helpers-around-the-i_mmap_mutex.patch
-mm-use-new-helper-functions-around-the-i_mmap_mutex.patch
-mm-convert-i_mmap_mutex-to-rwsem.patch
-mm-rmap-share-the-i_mmap_rwsem.patch
-uprobes-share-the-i_mmap_rwsem.patch
-mm-xip-share-the-i_mmap_rwsem.patch
-mm-memory-failure-share-the-i_mmap_rwsem.patch
-mm-nommu-share-the-i_mmap_rwsem.patch
-mm-memoryc-share-the-i_mmap_rwsem.patch
-mm-page_ext-resurrect-struct-page-extending-code-for-debugging.patch
-mm-page_ext-resurrect-struct-page-extending-code-for-debugging-fix.patch
-mm-debug-pagealloc-prepare-boottime-configurable-on-off.patch
-mm-debug-pagealloc-make-debug-pagealloc-boottime-configurable.patch
-mm-debug-pagealloc-make-debug-pagealloc-boottime-configurable-fix.patch
-mm-nommu-use-alloc_pages_exact-rather-than-its-own-implementation.patch
-stacktrace-introduce-snprint_stack_trace-for-buffer-output.patch
-mm-page_owner-keep-track-of-page-owners.patch
-mm-page_owner-correct-owner-information-for-early-allocated-pages.patch
-documentation-add-new-page_owner-document.patch
-mm-fadvise-document-the-fadvisefadv_dontneed-behaviour-for-partial-pages.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-linux-next.patch
-lib-show_mem-this-patch-adds-cma-reserved-infromation.patch
-lib-show_mem-this-patch-adds-cma-reserved-infromation-fix.patch
+mm-memcontrol-fix-defined-but-not-used-compiler-warning.patch
 
