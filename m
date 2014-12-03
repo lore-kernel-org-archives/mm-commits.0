@@ -1,120 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-fix-swapoff-hang-after-page-migration-and-fork.patch
- removed from -mm tree
-Date: Wed, 03 Dec 2014 13:29:45 -0800
-Message-ID: <547f80c9.Rz1AlTVndtAzR2j1%akpm@linux-foundation.org>
+Subject: [merged]
+ lib-genallocc-export-devm_gen_pool_create-for-modules.patch removed from
+ -mm tree
+Date: Wed, 03 Dec 2014 13:29:50 -0800
+Message-ID: <547f80ce.Tx44vBZrHPsslmFm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56796 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56807 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751088AbaLCV3q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2014 16:29:46 -0500
+	with ESMTP id S1751088AbaLCV3v (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Dec 2014 16:29:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, kelleynnn@gmail.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: michal.simek@xilinx.com, catalin.marinas@arm.com, lauraa@codeaurora.org, olof@lixom.net, p.zabel@pengutronix.de, prabhakar.csengg@gmail.com, vladimir_zapolskiy@mentor.com, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix swapoff hang after page migration and fork
+     Subject: lib/genalloc.c: export devm_gen_pool_create() for modules
 has been removed from the -mm tree.  Its filename was
-     mm-fix-swapoff-hang-after-page-migration-and-fork.patch
+     lib-genallocc-export-devm_gen_pool_create-for-modules.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm: fix swapoff hang after page migration and fork
+From: Michal Simek <michal.simek@xilinx.com>
+Subject: lib/genalloc.c: export devm_gen_pool_create() for modules
 
-I've been seeing swapoff hangs in recent testing: it's cycling around
-trying unsuccessfully to find an mm for some remaining pages of swap.
+Modules can use this function for creating pool.
 
-I have been exercising swap and page migration more heavily recently, and
-now notice a long-standing error in copy_one_pte(): it's trying to add
-dst_mm to swapoff's mmlist when it finds a swap entry, but is doing so
-even when it's a migration entry or an hwpoison entry.
-
-Which wouldn't matter much, except it adds dst_mm next to src_mm, assuming
-src_mm is already on the mmlist: which may not be so.  Then if pages are
-later swapped out from dst_mm, swapoff won't be able to find where to
-replace them.
-
-There's already a !non_swap_entry() test for stats: move that up before
-the swap_duplicate() and the addition to mmlist.
-
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Kelley Nielsen <kelleynnn@gmail.com>
-Cc: <stable@vger.kernel.org>	[2.6.18+]
+Signed-off-by: Michal Simek <michal.simek@xilinx.com>
+Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Cc: Laura Abbott <lauraa@codeaurora.org>
+Cc: Olof Johansson <olof@lixom.net>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+ lib/genalloc.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/memory.c~mm-fix-swapoff-hang-after-page-migration-and-fork mm/memory.c
---- a/mm/memory.c~mm-fix-swapoff-hang-after-page-migration-and-fork
-+++ a/mm/memory.c
-@@ -815,20 +815,20 @@ copy_one_pte(struct mm_struct *dst_mm, s
- 		if (!pte_file(pte)) {
- 			swp_entry_t entry = pte_to_swp_entry(pte);
+diff -puN lib/genalloc.c~lib-genallocc-export-devm_gen_pool_create-for-modules lib/genalloc.c
+--- a/lib/genalloc.c~lib-genallocc-export-devm_gen_pool_create-for-modules
++++ a/lib/genalloc.c
+@@ -598,6 +598,7 @@ struct gen_pool *devm_gen_pool_create(st
  
--			if (swap_duplicate(entry) < 0)
--				return entry.val;
-+			if (likely(!non_swap_entry(entry))) {
-+				if (swap_duplicate(entry) < 0)
-+					return entry.val;
+ 	return pool;
+ }
++EXPORT_SYMBOL(devm_gen_pool_create);
  
--			/* make sure dst_mm is on swapoff's mmlist. */
--			if (unlikely(list_empty(&dst_mm->mmlist))) {
--				spin_lock(&mmlist_lock);
--				if (list_empty(&dst_mm->mmlist))
--					list_add(&dst_mm->mmlist,
--						 &src_mm->mmlist);
--				spin_unlock(&mmlist_lock);
--			}
--			if (likely(!non_swap_entry(entry)))
-+				/* make sure dst_mm is on swapoff's mmlist. */
-+				if (unlikely(list_empty(&dst_mm->mmlist))) {
-+					spin_lock(&mmlist_lock);
-+					if (list_empty(&dst_mm->mmlist))
-+						list_add(&dst_mm->mmlist,
-+							 &src_mm->mmlist);
-+					spin_unlock(&mmlist_lock);
-+				}
- 				rss[MM_SWAPENTS]++;
--			else if (is_migration_entry(entry)) {
-+			} else if (is_migration_entry(entry)) {
- 				page = migration_entry_to_page(entry);
- 
- 				if (PageAnon(page))
+ /**
+  * dev_get_gen_pool - Obtain the gen_pool (if any) for a device
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from michal.simek@xilinx.com are
 
 origin.patch
-mm-vmscan-count-only-dirty-pages-as-congested.patch
-mm-memcontrol-update-mem_cgroup_page_lruvec-documentation.patch
-mm-memcontrol-clarify-migration-where-old-page-is-uncharged.patch
-mm-memcontrol-uncharge-pages-on-swapout.patch
-mm-memcontrol-uncharge-pages-on-swapout-fix.patch
-mm-memcontrol-remove-unnecessary-pcg_memsw-memoryswap-charge-flag.patch
-mm-memcontrol-remove-unnecessary-pcg_mem-memory-charge-flag.patch
-mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag.patch
-mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
-mmfs-introduce-helpers-around-the-i_mmap_mutex.patch
-mm-use-new-helper-functions-around-the-i_mmap_mutex.patch
-mm-convert-i_mmap_mutex-to-rwsem.patch
-mm-rmap-share-the-i_mmap_rwsem.patch
-uprobes-share-the-i_mmap_rwsem.patch
-mm-xip-share-the-i_mmap_rwsem.patch
-mm-memory-failure-share-the-i_mmap_rwsem.patch
-mm-nommu-share-the-i_mmap_rwsem.patch
-mm-memoryc-share-the-i_mmap_rwsem.patch
-mm-mincore-add-hwpoison-page-handle.patch
-ksm-replace-smp_read_barrier_depends-with-lockless_dereference.patch
-mm-unmapped-page-migration-avoid-unmapremap-overhead.patch
 linux-next.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
 
