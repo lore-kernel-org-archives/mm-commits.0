@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + uapi-fix-to-export-linux-vm_socketsh.patch added to -mm tree
-Date: Thu, 04 Dec 2014 14:41:26 -0800
-Message-ID: <5480e316.wxQuHgwugzTz2CDG%akpm@linux-foundation.org>
+Subject: +
+ drivers-rtc-rtc-sirfsocc-move-hardware-initilization-earlier-in-probe.patch added to -mm tree
+Date: Thu, 04 Dec 2014 15:24:58 -0800
+Message-ID: <5480ed4a.n1f4EQeFAsU2s7TS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41967 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42192 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933107AbaLDWl2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Dec 2014 17:41:28 -0500
+	with ESMTP id S1753069AbaLDXY7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Dec 2014 18:24:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yamada.m@jp.panasonic.com, davem@davemloft.net, stephen@networkplumber.org, mm-commits@vger.kernel.org
+To: guo.zeng@csr.com, Baohua.Song@csr.com, a.zummo@towertech.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: uapi: fix to export linux/vm_sockets.h
+     Subject: drivers/rtc/rtc-sirfsoc.c: move hardware initilization earlier in probe
 has been added to the -mm tree.  Its filename is
-     uapi-fix-to-export-linux-vm_socketsh.patch
+     drivers-rtc-rtc-sirfsocc-move-hardware-initilization-earlier-in-probe.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/uapi-fix-to-export-linux-vm_socketsh.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-rtc-rtc-sirfsocc-move-hardware-initilization-earlier-in-probe.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/uapi-fix-to-export-linux-vm_socketsh.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-rtc-rtc-sirfsocc-move-hardware-initilization-earlier-in-probe.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,37 +39,34 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Masahiro Yamada <yamada.m@jp.panasonic.com>
-Subject: uapi: fix to export linux/vm_sockets.h
+From: Guo Zeng <guo.zeng@csr.com>
+Subject: drivers/rtc/rtc-sirfsoc.c: move hardware initilization earlier in probe
 
-A typo "header=y" was introduced by commit 7071cf7fc435 ("uapi: add
-missing network related headers to kbuild").
+Move rtc register to be later than hardware initilization.  the reason is
+that devm_rtc_device_register() will do read_time() which is a callback
+accessing hardware.  this sometimes causes hang in the hardware related
+callback.
 
-Signed-off-by: Masahiro Yamada <yamada.m@jp.panasonic.com>
-Cc: Stephen Hemminger <stephen@networkplumber.org>
-Cc: David Miller <davem@davemloft.net>
+Signed-off-by: Guo Zeng <guo.zeng@csr.com>
+Signed-off-by: Barry Song <Baohua.Song@csr.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/linux/Kbuild |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-sirfsoc.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN include/uapi/linux/Kbuild~uapi-fix-to-export-linux-vm_socketsh include/uapi/linux/Kbuild
---- a/include/uapi/linux/Kbuild~uapi-fix-to-export-linux-vm_socketsh
-+++ a/include/uapi/linux/Kbuild
-@@ -432,7 +432,7 @@ header-y += virtio_net.h
- header-y += virtio_pci.h
- header-y += virtio_ring.h
- header-y += virtio_rng.h
--header=y += vm_sockets.h
-+header-y += vm_sockets.h
- header-y += vt.h
- header-y += wait.h
- header-y += wanrouter.h
-_
-
-Patches currently in -mm which might be from yamada.m@jp.panasonic.com are
-
-uapi-fix-to-export-linux-vm_socketsh.patch
-linux-next.patch
-
+diff -puN drivers/rtc/rtc-sirfsoc.c~drivers-rtc-rtc-sirfsocc-move-hardware-initilization-earlier-in-probe drivers/rtc/rtc-sirfsoc.c
+--- a/drivers/rtc/rtc-sirfsoc.c~drivers-rtc-rtc-sirfsocc-move-hardware-initilization-earlier-in-probe
++++ a/drivers/rtc/rtc-sirfsoc.c
+@@ -286,14 +286,6 @@ static int sirfsoc_rtc_probe(struct plat
+ 	rtc_div = ((32768 / RTC_HZ) / 2) - 1;
+ 	sirfsoc_rtc_iobrg_writel(rtc_div, rtcdrv->rtc_base + RTC_DIV);
+ 
+-	rtcdrv->rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
+-			&sirfsoc_rtc_ops, THIS_MODULE);
+-	if (IS_ERR(rtcdrv->rtc)) {
+-		err = PTR_ERR(rtcdrv->rtc);
+-		dev_err(&pdev->dev, "can't register RTC device\n");
+-		return err;
+-	}
