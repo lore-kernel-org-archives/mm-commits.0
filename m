@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + sh-off-by-one-bug_on-in-setup_bootmem_node.patch added to -mm
- tree
-Date: Thu, 04 Dec 2014 15:50:33 -0800
-Message-ID: <5480f349.PKGrE436Ic5Bqzio%akpm@linux-foundation.org>
+Subject: + drivers-rtc-rtc-snvs-add-clock-support.patch added to -mm tree
+Date: Thu, 04 Dec 2014 16:12:18 -0800
+Message-ID: <5480f862.q0PYhRTFB6mPdPCf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42428 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42820 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933119AbaLDXue (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Dec 2014 18:50:34 -0500
+	with ESMTP id S933454AbaLEAMT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Dec 2014 19:12:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.carpenter@oracle.com, geert+renesas@glider.be, lethal@linux-sh.org, mm-commits@vger.kernel.org
+To: maitysanchayan@gmail.com, a.zummo@towertech.it, shawn.guo@linaro.org, stefan@agner.ch, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sh: off by one BUG_ON() in setup_bootmem_node()
+     Subject: drivers/rtc/rtc-snvs: add clock support
 has been added to the -mm tree.  Its filename is
-     sh-off-by-one-bug_on-in-setup_bootmem_node.patch
+     drivers-rtc-rtc-snvs-add-clock-support.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sh-off-by-one-bug_on-in-setup_bootmem_node.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-rtc-rtc-snvs-add-clock-support.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sh-off-by-one-bug_on-in-setup_bootmem_node.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-rtc-rtc-snvs-add-clock-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,53 +38,124 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: sh: off by one BUG_ON() in setup_bootmem_node()
+From: Sanchayan Maity <maitysanchayan@gmail.com>
+Subject: drivers/rtc/rtc-snvs: add clock support
 
-This off by one bug is harmless but it upsets the static checkers and the
-code is obvious so it doesn't hurt to fix it.  The Smatch warning is:
+Add clock enable and disable support for the SNVS peripheral, which is
+required for using the RTC within the SNVS block.
 
-	arch/sh/mm/numa.c:47 setup_bootmem_node()
-	error: buffer overflow 'node_data' 1024 <= 1024
+The clock is not strictly enforced, as this would break the i.MX devices. 
+The clocking for the i.MX devices seems to be enabled elsewhere and
+enabling RTC SNVS for Vybrid results in a crash.  This patch adds the
+clock support but also makes it optional so Vybrid platform can use the
+clock if defined while making sure not to break i.MX.
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Acked-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Signed-off-by: Sanchayan Maity <maitysanchayan@gmail.com>
+Cc: Shawn Guo <shawn.guo@linaro.org>
+Acked-by: Stefan Agner <stefan@agner.ch>
+Acked-by: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/mm/numa.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-snvs.c |   34 ++++++++++++++++++++++++++++++++--
+ 1 file changed, 32 insertions(+), 2 deletions(-)
 
-diff -puN arch/sh/mm/numa.c~sh-off-by-one-bug_on-in-setup_bootmem_node arch/sh/mm/numa.c
---- a/arch/sh/mm/numa.c~sh-off-by-one-bug_on-in-setup_bootmem_node
-+++ a/arch/sh/mm/numa.c
-@@ -31,7 +31,7 @@ void __init setup_bootmem_node(int nid,
- 	unsigned long bootmem_paddr;
+diff -puN drivers/rtc/rtc-snvs.c~drivers-rtc-rtc-snvs-add-clock-support drivers/rtc/rtc-snvs.c
+--- a/drivers/rtc/rtc-snvs.c~drivers-rtc-rtc-snvs-add-clock-support
++++ a/drivers/rtc/rtc-snvs.c
+@@ -17,6 +17,7 @@
+ #include <linux/of_device.h>
+ #include <linux/platform_device.h>
+ #include <linux/rtc.h>
++#include <linux/clk.h>
  
- 	/* Don't allow bogus node assignment */
--	BUG_ON(nid > MAX_NUMNODES || nid <= 0);
-+	BUG_ON(nid >= MAX_NUMNODES || nid <= 0);
+ /* These register offsets are relative to LP (Low Power) range */
+ #define SNVS_LPCR		0x04
+@@ -39,6 +40,7 @@ struct snvs_rtc_data {
+ 	void __iomem *ioaddr;
+ 	int irq;
+ 	spinlock_t lock;
++	struct clk *clk;
+ };
  
- 	start_pfn = start >> PAGE_SHIFT;
- 	end_pfn = end >> PAGE_SHIFT;
+ static u32 rtc_read_lp_counter(void __iomem *ioaddr)
+@@ -260,6 +262,18 @@ static int snvs_rtc_probe(struct platfor
+ 	if (data->irq < 0)
+ 		return data->irq;
+ 
++	data->clk = devm_clk_get(&pdev->dev, "snvs-rtc");
++	if (IS_ERR(data->clk)) {
++		data->clk = NULL;
++	} else {
++		ret = clk_prepare_enable(data->clk);
++		if (ret) {
++			dev_err(&pdev->dev,
++				"Could not prepare or enable the snvs clock\n");
++			return ret;
++		}
++	}
++
+ 	platform_set_drvdata(pdev, data);
+ 
+ 	spin_lock_init(&data->lock);
+@@ -280,7 +294,7 @@ static int snvs_rtc_probe(struct platfor
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "failed to request irq %d: %d\n",
+ 			data->irq, ret);
+-		return ret;
++		goto error_rtc_device_register;
+ 	}
+ 
+ 	data->rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
+@@ -288,10 +302,16 @@ static int snvs_rtc_probe(struct platfor
+ 	if (IS_ERR(data->rtc)) {
+ 		ret = PTR_ERR(data->rtc);
+ 		dev_err(&pdev->dev, "failed to register rtc: %d\n", ret);
+-		return ret;
++		goto error_rtc_device_register;
+ 	}
+ 
+ 	return 0;
++
++error_rtc_device_register:
++	if (data->clk)
++		clk_disable_unprepare(data->clk);
++
++	return ret;
+ }
+ 
+ #ifdef CONFIG_PM_SLEEP
+@@ -302,16 +322,26 @@ static int snvs_rtc_suspend(struct devic
+ 	if (device_may_wakeup(dev))
+ 		enable_irq_wake(data->irq);
+ 
++	if (data->clk)
++		clk_disable_unprepare(data->clk);
++
+ 	return 0;
+ }
+ 
+ static int snvs_rtc_resume(struct device *dev)
+ {
+ 	struct snvs_rtc_data *data = dev_get_drvdata(dev);
++	int ret;
+ 
+ 	if (device_may_wakeup(dev))
+ 		disable_irq_wake(data->irq);
+ 
++	if (data->clk) {
++		ret = clk_prepare_enable(data->clk);
++		if (ret)
++			return ret;
++	}
++
+ 	return 0;
+ }
+ #endif
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from maitysanchayan@gmail.com are
 
-sh-off-by-one-bug_on-in-setup_bootmem_node.patch
-ocfs2-fix-an-off-by-one-bug_on-statement.patch
-ocfs2-remove-bogus-null-check-in-ocfs2_move_extents.patch
-ocfs2-remove-unneeded-null-check.patch
-exit-reparent-cleanup-the-changing-of-parent-fix.patch
-checkpatch-add-strict-pointer-comparison-to-null-test.patch
-checkpatch-add-ability-to-fix-coalesce-string-fragments-on-multiple-lines.patch
-rtc-pcf8563-remove-leftover-code.patch
-rtc-pcf8563-fix-write-of-invalid-bits-to-st2-reg.patch
-rtc-pcf8563-fix-wrong-time-from-read_alarm.patch
-rtc-pcf8563-handle-consequeces-of-lacking-second-alarm-reg.patch
-rtc-pcf8563-save-battery-power.patch
-rtc-pcf8563-clear-expired-alarm-at-boot-time.patch
-decompress_bunzip2-off-by-one-in-get_next_block.patch
+drivers-rtc-rtc-snvs-add-clock-support.patch
 linux-next.patch
 
