@@ -1,260 +1,280 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Fri, 05 Dec 2014 12:56:09 -0800
-Message-ID: <54821be9.Di3v9MG5bE9ZZDvj%akpm@linux-foundation.org>
+Subject: +
+ mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath.patch
+ added to -mm tree
+Date: Fri, 05 Dec 2014 14:38:05 -0800
+Message-ID: <548233cd.hm9kNS9SzUMMltvs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52778 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53685 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750779AbaLEU4K (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Dec 2014 15:56:10 -0500
+	with ESMTP id S1751023AbaLEWiG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Dec 2014 17:38:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, mhocko@suse.cz, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     Subject: mm: page_alloc: embed OOM killing naturally into allocation slowpath
+has been added to the -mm tree.  Its filename is
+     mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: page_alloc: embed OOM killing naturally into allocation slowpath
 
+The OOM killing invocation does a lot of duplicative checks against the
+task's allocation context.  Rework it to take advantage of the existing
+checks in the allocator slowpath.
+
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/nouveau/nouveau_drm.c |  124 ------------------------
- drivers/gpu/drm/radeon/radeon_cs.c    |    6 -
- 2 files changed, 130 deletions(-)
+ include/linux/oom.h |    5 --
+ mm/page_alloc.c     |   80 ++++++++++++++++++------------------------
+ 2 files changed, 35 insertions(+), 50 deletions(-)
 
-diff -puN drivers/gpu/drm/nouveau/nouveau_drm.c~linux-next-git-rejects drivers/gpu/drm/nouveau/nouveau_drm.c
---- a/drivers/gpu/drm/nouveau/nouveau_drm.c~linux-next-git-rejects
-+++ a/drivers/gpu/drm/nouveau/nouveau_drm.c
-@@ -613,29 +613,6 @@ fail_display:
- 	return ret;
+diff -puN include/linux/oom.h~mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath include/linux/oom.h
+--- a/include/linux/oom.h~mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath
++++ a/include/linux/oom.h
+@@ -85,11 +85,6 @@ static inline void oom_killer_enable(voi
+ 	oom_killer_disabled = false;
  }
  
--<<<<<<< HEAD
--int nouveau_pmops_suspend(struct device *dev)
+-static inline bool oom_gfp_allowed(gfp_t gfp_mask)
 -{
--	struct pci_dev *pdev = to_pci_dev(dev);
--	struct drm_device *drm_dev = pci_get_drvdata(pdev);
--	int ret;
--
--	if (drm_dev->switch_power_state == DRM_SWITCH_POWER_OFF ||
--	    drm_dev->switch_power_state == DRM_SWITCH_POWER_DYNAMIC_OFF)
--		return 0;
--
--	ret = nouveau_do_suspend(drm_dev, false);
--	if (ret)
--		return ret;
--
--	pci_save_state(pdev);
--	pci_disable_device(pdev);
--	pci_set_power_state(pdev, PCI_D3hot);
--	return 0;
+-	return (gfp_mask & __GFP_FS) && !(gfp_mask & __GFP_NORETRY);
 -}
 -
--=======
-->>>>>>> linux-next/akpm-base
- static int
- nouveau_do_resume(struct drm_device *dev, bool runtime)
+ extern struct task_struct *find_lock_task_mm(struct task_struct *p);
+ 
+ /* sysctls */
+diff -puN mm/page_alloc.c~mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath
++++ a/mm/page_alloc.c
+@@ -2331,12 +2331,21 @@ static inline struct page *
+ __alloc_pages_may_oom(gfp_t gfp_mask, unsigned int order,
+ 	struct zonelist *zonelist, enum zone_type high_zoneidx,
+ 	nodemask_t *nodemask, struct zone *preferred_zone,
+-	int classzone_idx, int migratetype)
++	int classzone_idx, int migratetype, unsigned long *did_some_progress)
  {
-@@ -1034,107 +1011,6 @@ nouveau_drm_pci_table[] = {
- 	{}
- };
+ 	struct page *page;
  
--<<<<<<< HEAD
--static int nouveau_pmops_runtime_suspend(struct device *dev)
--{
--	struct pci_dev *pdev = to_pci_dev(dev);
--	struct drm_device *drm_dev = pci_get_drvdata(pdev);
--	int ret;
--
--	if (nouveau_runtime_pm == 0) {
--		pm_runtime_forbid(dev);
--		return -EBUSY;
--	}
--
--	/* are we optimus enabled? */
--	if (nouveau_runtime_pm == -1 && !nouveau_is_optimus() && !nouveau_is_v1_dsm()) {
--		DRM_DEBUG_DRIVER("failing to power off - not optimus\n");
--		pm_runtime_forbid(dev);
--		return -EBUSY;
--	}
--
--	nv_debug_level(SILENT);
--	drm_kms_helper_poll_disable(drm_dev);
--	vga_switcheroo_set_dynamic_switch(pdev, VGA_SWITCHEROO_OFF);
--	nouveau_switcheroo_optimus_dsm();
--	ret = nouveau_do_suspend(drm_dev, true);
--	pci_save_state(pdev);
--	pci_disable_device(pdev);
--	pci_ignore_hotplug(pdev);
--	pci_set_power_state(pdev, PCI_D3cold);
--	drm_dev->switch_power_state = DRM_SWITCH_POWER_DYNAMIC_OFF;
--	return ret;
--}
--
--static int nouveau_pmops_runtime_resume(struct device *dev)
--{
--	struct pci_dev *pdev = to_pci_dev(dev);
--	struct drm_device *drm_dev = pci_get_drvdata(pdev);
--	struct nvif_device *device = &nouveau_drm(drm_dev)->device;
--	int ret;
--
--	if (nouveau_runtime_pm == 0)
--		return -EINVAL;
--
--	pci_set_power_state(pdev, PCI_D0);
--	pci_restore_state(pdev);
--	ret = pci_enable_device(pdev);
--	if (ret)
--		return ret;
--	pci_set_master(pdev);
--
--	ret = nouveau_do_resume(drm_dev, true);
--	drm_kms_helper_poll_enable(drm_dev);
--	/* do magic */
--	nvif_mask(device, 0x88488, (1 << 25), (1 << 25));
--	vga_switcheroo_set_dynamic_switch(pdev, VGA_SWITCHEROO_ON);
--	drm_dev->switch_power_state = DRM_SWITCH_POWER_ON;
--	nv_debug_level(NORMAL);
--	return ret;
--}
--
--static int nouveau_pmops_runtime_idle(struct device *dev)
--{
--	struct pci_dev *pdev = to_pci_dev(dev);
--	struct drm_device *drm_dev = pci_get_drvdata(pdev);
--	struct nouveau_drm *drm = nouveau_drm(drm_dev);
--	struct drm_crtc *crtc;
--
--	if (nouveau_runtime_pm == 0) {
--		pm_runtime_forbid(dev);
--		return -EBUSY;
--	}
--
--	/* are we optimus enabled? */
--	if (nouveau_runtime_pm == -1 && !nouveau_is_optimus() && !nouveau_is_v1_dsm()) {
--		DRM_DEBUG_DRIVER("failing to power off - not optimus\n");
--		pm_runtime_forbid(dev);
--		return -EBUSY;
--	}
--
--	/* if we have a hdmi audio device - make sure it has a driver loaded */
--	if (drm->hdmi_device) {
--		if (!drm->hdmi_device->driver) {
--			DRM_DEBUG_DRIVER("failing to power off - no HDMI audio driver loaded\n");
--			pm_runtime_mark_last_busy(dev);
--			return -EBUSY;
--		}
--	}
--
--	list_for_each_entry(crtc, &drm->dev->mode_config.crtc_list, head) {
--		if (crtc->enabled) {
--			DRM_DEBUG_DRIVER("failing to power off - crtc active\n");
--			return -EBUSY;
--		}
--	}
--	pm_runtime_mark_last_busy(dev);
--	pm_runtime_autosuspend(dev);
--	/* we don't want the main rpm_idle to call suspend - we want to autosuspend */
--	return 1;
--}
--
--=======
-->>>>>>> linux-next/akpm-base
- static void nouveau_display_options(void)
- {
- 	DRM_DEBUG_DRIVER("Loading Nouveau with parameters:\n");
-diff -puN drivers/gpu/drm/radeon/radeon_cs.c~linux-next-git-rejects drivers/gpu/drm/radeon/radeon_cs.c
---- a/drivers/gpu/drm/radeon/radeon_cs.c~linux-next-git-rejects
-+++ a/drivers/gpu/drm/radeon/radeon_cs.c
-@@ -257,11 +257,6 @@ static int radeon_cs_sync_rings(struct r
- 	list_for_each_entry(reloc, &p->validated, tv.head) {
- 		struct reservation_object *resv;
- 
--<<<<<<< HEAD
--		resv = reloc->robj->tbo.resv;
--		r = radeon_semaphore_sync_resv(p->rdev, p->ib.semaphore, resv,
--					       reloc->tv.shared);
--=======
- 		if (!p->relocs[i].robj)
- 			continue;
- 
-@@ -269,7 +264,6 @@ static int radeon_cs_sync_rings(struct r
- 		r = radeon_sync_resv(p->rdev, &p->ib.sync, resv,
- 				     p->relocs[i].tv.shared);
- 
-->>>>>>> linux-next/akpm-base
- 		if (r)
- 			return r;
+-	/* Acquire the per-zone oom lock for each zone */
++	*did_some_progress = 0;
++
++	if (oom_killer_disabled)
++		return NULL;
++
++	/*
++	 * Acquire the per-zone oom lock for each zone.  If that
++	 * fails, somebody else is making progress for us.
++	 */
+ 	if (!oom_zonelist_trylock(zonelist, gfp_mask)) {
++		*did_some_progress = 1;
+ 		schedule_timeout_uninterruptible(1);
+ 		return NULL;
  	}
+@@ -2362,12 +2371,18 @@ __alloc_pages_may_oom(gfp_t gfp_mask, un
+ 		goto out;
+ 
+ 	if (!(gfp_mask & __GFP_NOFAIL)) {
++		/* Coredumps can quickly deplete all memory reserves */
++		if (current->flags & PF_DUMPCORE)
++			goto out;
+ 		/* The OOM killer will not help higher order allocs */
+ 		if (order > PAGE_ALLOC_COSTLY_ORDER)
+ 			goto out;
+ 		/* The OOM killer does not needlessly kill tasks for lowmem */
+ 		if (high_zoneidx < ZONE_NORMAL)
+ 			goto out;
++		/* The OOM killer does not compensate for light reclaim */
++		if (!(gfp_mask & __GFP_FS))
++			goto out;
+ 		/*
+ 		 * GFP_THISNODE contains __GFP_NORETRY and we never hit this.
+ 		 * Sanity check for bare calls of __GFP_THISNODE, not real OOM.
+@@ -2380,7 +2395,7 @@ __alloc_pages_may_oom(gfp_t gfp_mask, un
+ 	}
+ 	/* Exhausted what can be done so it's blamo time */
+ 	out_of_memory(zonelist, gfp_mask, order, nodemask, false);
+-
++	*did_some_progress = 1;
+ out:
+ 	oom_zonelist_unlock(zonelist, gfp_mask);
+ 	return page;
+@@ -2657,7 +2672,6 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
+ 	    (gfp_mask & GFP_THISNODE) == GFP_THISNODE)
+ 		goto nopage;
+ 
+-restart:
+ 	if (!(gfp_mask & __GFP_NO_KSWAPD))
+ 		wake_all_kswapds(order, zonelist, high_zoneidx,
+ 				preferred_zone, nodemask);
+@@ -2787,51 +2801,27 @@ rebalance:
+ 	if (page)
+ 		goto got_pg;
+ 
+-	/*
+-	 * If we failed to make any progress reclaiming, then we are
+-	 * running out of options and have to consider going OOM
+-	 */
+-	if (!did_some_progress) {
+-		if (oom_gfp_allowed(gfp_mask)) {
+-			if (oom_killer_disabled)
+-				goto nopage;
+-			/* Coredumps can quickly deplete all memory reserves */
+-			if ((current->flags & PF_DUMPCORE) &&
+-			    !(gfp_mask & __GFP_NOFAIL))
+-				goto nopage;
+-			page = __alloc_pages_may_oom(gfp_mask, order,
+-					zonelist, high_zoneidx,
+-					nodemask, preferred_zone,
+-					classzone_idx, migratetype);
+-			if (page)
+-				goto got_pg;
+-
+-			if (!(gfp_mask & __GFP_NOFAIL)) {
+-				/*
+-				 * The oom killer is not called for high-order
+-				 * allocations that may fail, so if no progress
+-				 * is being made, there are no other options and
+-				 * retrying is unlikely to help.
+-				 */
+-				if (order > PAGE_ALLOC_COSTLY_ORDER)
+-					goto nopage;
+-				/*
+-				 * The oom killer is not called for lowmem
+-				 * allocations to prevent needlessly killing
+-				 * innocent tasks.
+-				 */
+-				if (high_zoneidx < ZONE_NORMAL)
+-					goto nopage;
+-			}
+-
+-			goto restart;
+-		}
+-	}
+-
+ 	/* Check if we should retry the allocation */
+ 	pages_reclaimed += did_some_progress;
+ 	if (should_alloc_retry(gfp_mask, order, did_some_progress,
+ 						pages_reclaimed)) {
++		/*
++		 * If we fail to make progress by freeing individual
++		 * pages, but the allocation wants us to keep going,
++		 * start OOM killing tasks.
++		 */
++		if (!did_some_progress) {
++			page = __alloc_pages_may_oom(gfp_mask, order, zonelist,
++						high_zoneidx, nodemask,
++						preferred_zone, classzone_idx,
++						migratetype,&did_some_progress);
++			if (page)
++				goto got_pg;
++			if (!did_some_progress) {
++				BUG_ON(gfp_mask & __GFP_NOFAIL);
++				goto nopage;
++			}
++		}
+ 		/* Wait for some write requests to complete then retry */
+ 		wait_iff_congested(preferred_zone, BLK_RW_ASYNC, HZ/50);
+ 		goto rebalance;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-origin.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
-ocfs2-free-inode-when-i_count-becomes-zero.patch
-ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
-mm.patch
-slab-improve-checking-for-invalid-gfp_flags.patch
+slab-print-slabinfo-header-in-seq-show.patch
+mm-memcontrol-lockless-page-counters.patch
 mm-memcontrol-lockless-page-counters-fix.patch
 mm-memcontrol-lockless-page-counters-fix-fix.patch
+mm-memcontrol-lockless-page-counters-fix-2.patch
+mm-hugetlb_cgroup-convert-to-lockless-page-counters.patch
+kernel-res_counter-remove-the-unused-api.patch
 kernel-res_counter-remove-the-unused-api-fix.patch
-mm-compaction-simplify-deferred-compaction-fix.patch
-mm-compaction-always-update-cached-scanner-positions-fix-checkpatch-fixes.patch
+kernel-res_counter-remove-the-unused-api-fix-2.patch
+mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting.patch
+mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting-fix.patch
+mm-memcontrol-take-a-css-reference-for-each-charged-page.patch
+mm-memcontrol-remove-obsolete-kmemcg-pinning-tricks.patch
+mm-memcontrol-continue-cache-reclaim-from-offlined-groups.patch
+mm-memcontrol-remove-synchroneous-stock-draining-code.patch
+mm-vmscan-count-only-dirty-pages-as-congested.patch
+memcg-simplify-unreclaimable-groups-handling-in-soft-limit-reclaim.patch
+mm-memcontrol-update-mem_cgroup_page_lruvec-documentation.patch
+mm-memcontrol-clarify-migration-where-old-page-is-uncharged.patch
+memcg-remove-activate_kmem_mutex.patch
+mm-memcontrol-micro-optimize-mem_cgroup_split_huge_fixup.patch
+mm-memcontrol-uncharge-pages-on-swapout.patch
+mm-memcontrol-uncharge-pages-on-swapout-fix.patch
+mm-memcontrol-remove-unnecessary-pcg_memsw-memoryswap-charge-flag.patch
+mm-memcontrol-remove-unnecessary-pcg_mem-memory-charge-flag.patch
+mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag.patch
 mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
+mm-memcontrol-inline-memcg-move_lock-locking.patch
+mm-memcontrol-dont-pass-a-null-memcg-to-mem_cgroup_end_move.patch
+mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move.patch
 mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix.patch
-mm-fix-huge-zero-page-accounting-in-smaps-report-fix-2-fix.patch
+memcg-remove-mem_cgroup_reclaimable-check-from-soft-reclaim.patch
+memcg-use-generic-slab-iterators-for-showing-slabinfo.patch
+mm-memcontrol-shorten-the-page-statistics-update-slowpath.patch
+mm-memcontrol-remove-bogus-null-check-after-mem_cgroup_from_task.patch
+mm-memcontrol-pull-the-null-check-from-__mem_cgroup_same_or_subtree.patch
+mm-memcontrol-drop-bogus-rcu-locking-from-mem_cgroup_same_or_subtree.patch
+mm-memcg-fix-potential-undefined-when-for-page-stat-accounting.patch
+mm-memcontrol-remove-stale-page_cgroup_lock-comment.patch
+mm-embed-the-memcg-pointer-directly-into-struct-page.patch
+mm-embed-the-memcg-pointer-directly-into-struct-page-fix.patch
+mm-page_cgroup-rename-file-to-mm-swap_cgroupc.patch
+mm-move-page-mem_cgroup-bad-page-handling-into-generic-code.patch
+mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix.patch
+mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix-2.patch
+memcg-__mem_cgroup_free-remove-stale-disarm_static_keys-comment.patch
+memcg-dont-check-mm-in-__memcg_kmem_get_cachenewpage_charge.patch
+memcg-do-not-abuse-memcg_kmem_skip_account.patch
 mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
-mm-mincore-add-hwpoison-page-handle-checkpatch-fixes.patch
-include-linux-kmemleakh-needs-slabh.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
+mm-mincore-add-hwpoison-page-handle.patch
+memcg-zap-kmem_account_flags.patch
+memcg-only-check-memcg_kmem_skip_account-in-__memcg_kmem_get_cache.patch
+memcg-turn-memcg_kmem_skip_account-into-a-bit-field.patch
+mm-move-swp_entry_t-definition-to-include-linux-mm_typesh.patch
+mm-gfp-escalatedly-define-gfp_highuser-and-gfp_highuser_movable.patch
+mm-page_ext-resurrect-struct-page-extending-code-for-debugging.patch
+mm-page_ext-resurrect-struct-page-extending-code-for-debugging-fix.patch
+mm-debug-pagealloc-prepare-boottime-configurable-on-off.patch
+mm-debug-pagealloc-make-debug-pagealloc-boottime-configurable.patch
+mm-debug-pagealloc-make-debug-pagealloc-boottime-configurable-fix.patch
+mm-nommu-use-alloc_pages_exact-rather-than-its-own-implementation.patch
+stacktrace-introduce-snprint_stack_trace-for-buffer-output.patch
 mm-page_owner-keep-track-of-page-owners.patch
-fs-seq_file-fallback-to-vmalloc-instead-of-oom-kill-processes-fix.patch
-oom-dont-assume-that-a-coredumping-thread-will-exit-soon-v2-fix.patch
-mm-memcontrol-fix-defined-but-not-used-compiler-warning-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix-2.patch
-zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix.patch
-mm-zsmalloc-support-allocating-obj-with-size-of-zs_max_alloc_size-fix.patch
-mm-zsmalloc-avoid-duplicate-assignment-of-prev_class-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
-fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user.patch
-init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails-checkpatch-fixes.patch
-rtc-omap-add-support-for-pmic_power_en-v3-fix.patch
-drivers-rtc-rtc-sirfsocc-add-alarm_irq_enable-support-fix.patch
-rtc-ds1374-add-watchdog-support-checkpatch-fixes.patch
-exit-wait-cleanup-the-ptrace_reparented-checks-fix.patch
-sysctl-terminate-strings-also-on-r-fix.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
-ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
-linux-next.patch
-linux-next-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-cma-make-kmemleak-ignore-cma-regions.patch
-lib-show_mem-this-patch-adds-cma-reserved-infromation-fix.patch
-tools-testing-selftests-makefile-alphasort-the-targets-list.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
+mm-page_owner-correct-owner-information-for-early-allocated-pages.patch
+documentation-add-new-page_owner-document.patch
+mm-vmscan-invoke-slab-shrinkers-from-shrink_zone.patch
+mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath.patch
+mm-oom-remove-gfp-helper-function.patch
+mm-memcontrol-fix-defined-but-not-used-compiler-warning.patch
 
