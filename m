@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-cma-fix-boot-regression-due-to-physical-address-of-high_memory-fix.patch added to -mm tree
-Date: Tue, 09 Dec 2014 13:00:06 -0800
-Message-ID: <548762d6.iOTpXTQGOfdIF72M%akpm@linux-foundation.org>
+Subject: + lib-lcmc-lcmn0=lcm0n-is-0-not-n.patch added to -mm tree
+Date: Tue, 09 Dec 2014 13:58:32 -0800
+Message-ID: <54877088.kDKf3KOZJwUzMNAC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42351 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42721 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751088AbaLIVAH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Dec 2014 16:00:07 -0500
+	with ESMTP id S1752441AbaLIV6d (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Dec 2014 16:58:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, iamjoonsoo.kim@lge.com, m.szyprowski@samsung.com, mingo@kernel.org, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, martin.petersen@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-cma-fix-boot-regression-due-to-physical-address-of-high_memory-fix
+     Subject: lib/lcm.c: lcm(n,0)=lcm(0,n) is 0, not n
 has been added to the -mm tree.  Its filename is
-     mm-cma-fix-boot-regression-due-to-physical-address-of-high_memory-fix.patch
+     lib-lcmc-lcmn0=lcm0n-is-0-not-n.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-cma-fix-boot-regression-due-to-physical-address-of-high_memory-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-lcmc-lcmn0%3Dlcm0n-is-0-not-n.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-cma-fix-boot-regression-due-to-physical-address-of-high_memory-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-lcmc-lcmn0%3Dlcm0n-is-0-not-n.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,99 +38,25 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-cma-fix-boot-regression-due-to-physical-address-of-high_memory-fix
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: lib/lcm.c: lcm(n,0)=lcm(0,n) is 0, not n
 
-tweak comment
+Return the mathematically correct answer when an argument is 0.
 
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Martin K. Petersen <martin.petersen@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ lib/lcm.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN mm/cma.c~mm-cma-fix-boot-regression-due-to-physical-address-of-high_memory-fix mm/cma.c
---- a/mm/cma.c~mm-cma-fix-boot-regression-due-to-physical-address-of-high_memory-fix
-+++ a/mm/cma.c
-@@ -220,12 +220,11 @@ int __init cma_declare_contiguous(phys_a
- 
- #ifdef CONFIG_X86
- 	/*
--	 * high_memory isn't direct mapped memory so retrieving it's
--	 * physical address isn't appropriate. But, it would be useful
--	 * to check physical address of highmem boundary so it's
--	 * justfiable to get physical address from it. In x86, there is
--	 * a validation check for this case, so following workaround is
--	 * needed to avoid it.
-+	 * high_memory isn't direct mapped memory so retrieving its physical
-+	 * address isn't appropriate.  But it would be useful to check the
-+	 * physical address of the highmem boundary so it's justfiable to get
-+	 * the physical address from it.  On x86 there is a validation check for
-+	 * this case, so the following workaround is needed to avoid it.
- 	 */
- 	highmem_start = __pa_nodebug(high_memory);
- #else
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-mm-cma-fix-boot-regression-due-to-physical-address-of-high_memory-fix.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
-ocfs2-free-inode-when-i_count-becomes-zero.patch
-ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
-mm.patch
-slab-improve-checking-for-invalid-gfp_flags.patch
-mm-memcontrol-lockless-page-counters-fix.patch
-mm-memcontrol-lockless-page-counters-fix-fix.patch
-kernel-res_counter-remove-the-unused-api-fix.patch
-mm-compaction-simplify-deferred-compaction-fix.patch
-mm-compaction-always-update-cached-scanner-positions-fix-checkpatch-fixes.patch
-mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
-mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix.patch
-mm-fix-huge-zero-page-accounting-in-smaps-report-fix-2-fix.patch
-mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
-mm-mincore-add-hwpoison-page-handle-checkpatch-fixes.patch
-include-linux-kmemleakh-needs-slabh.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mm-page_owner-keep-track-of-page-owners.patch
-fs-seq_file-fallback-to-vmalloc-instead-of-oom-kill-processes-fix.patch
-oom-dont-assume-that-a-coredumping-thread-will-exit-soon-v2-fix.patch
-mm-memcontrol-fix-defined-but-not-used-compiler-warning-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix-2.patch
-zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix.patch
-mm-zsmalloc-support-allocating-obj-with-size-of-zs_max_alloc_size-fix.patch
-mm-zsmalloc-avoid-duplicate-assignment-of-prev_class-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
-fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user.patch
-init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails-checkpatch-fixes.patch
-rtc-omap-add-support-for-pmic_power_en-v3-fix.patch
-drivers-rtc-rtc-sirfsocc-add-alarm_irq_enable-support-fix.patch
-rtc-ds1374-add-watchdog-support-checkpatch-fixes.patch
-exit-wait-cleanup-the-ptrace_reparented-checks-fix.patch
-sysctl-terminate-strings-also-on-r-fix.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
-ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
-linux-next.patch
-linux-next-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-cma-make-kmemleak-ignore-cma-regions.patch
-lib-show_mem-this-patch-adds-cma-reserved-infromation-fix.patch
-tools-testing-selftests-makefile-alphasort-the-targets-list.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-
+diff -puN lib/lcm.c~lib-lcmc-lcmn0=lcm0n-is-0-not-n lib/lcm.c
+--- a/lib/lcm.c~lib-lcmc-lcmn0=lcm0n-is-0-not-n
++++ a/lib/lcm.c
+@@ -8,9 +8,7 @@ unsigned long lcm(unsigned long a, unsig
+ {
+ 	if (a && b)
+ 		return (a / gcd(a, b)) * b;
+-	else if (b)
+-		return b;
