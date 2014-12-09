@@ -2,20 +2,20 @@ From: akpm@linux-foundation.org
 Subject: +
  mm-fix-invalid-use-of-pfn_valid_within-in-test_pages_in_a_zone.patch added
  to -mm tree
-Date: Tue, 09 Dec 2014 14:19:52 -0800
-Message-ID: <54877588.EyzcqgJlP3k7ws08%akpm@linux-foundation.org>
+Date: Tue, 09 Dec 2014 14:20:07 -0800
+Message-ID: <54877597.FVGg3SpcUnBKK7dG%akpm__11125.5235191949$1418163621$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42844 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42868 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752640AbaLIWTx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Dec 2014 17:19:53 -0500
+	with ESMTP id S1753291AbaLIWUI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Dec 2014 17:20:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jcuster@sgi.com, kamezawa.hiroyu@jp.fujitsu.com, rja@sgi.com, mm-commits@vger.kernel.org
+To: jcuster@sgi.com, kamezawa.hiroyu@jp.fujitsu.com, rja@sgi.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
@@ -59,6 +59,7 @@ independently of CONFIG_HOLES_IN_ZONE.
 Signed-off-by: James Custer <jcuster@sgi.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Russ Anderson <rja@sgi.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
