@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-snvs-fix-suspend-resume.patch added to -mm tree
-Date: Tue, 09 Dec 2014 14:43:04 -0800
-Message-ID: <54877af8.USjbIhY9i8L4bEdW%akpm@linux-foundation.org>
+Subject: +
+ rtc-refine-rtc_timer_do_work-to-consider-other-set-alarm-failures.patch
+ added to -mm tree
+Date: Tue, 09 Dec 2014 15:05:06 -0800
+Message-ID: <54878022.FNk6kZB0kju//Fdu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43030 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43533 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751595AbaLIWnF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Dec 2014 17:43:05 -0500
+	with ESMTP id S1753239AbaLIXFH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Dec 2014 18:05:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: maitysanchayan@gmail.com, a.zummo@towertech.it, shawn.guo@linaro.org, stefan@agner.ch, mm-commits@vger.kernel.org
+To: pang.xunlei@linaro.org, a.zummo@towertech.it, arnd.bergmann@linaro.org, john.stultz@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-snvs: fix suspend/resume
+     Subject: rtc: refine rtc_timer_do_work() to consider other set alarm failures
 has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-snvs-fix-suspend-resume.patch
+     rtc-refine-rtc_timer_do_work-to-consider-other-set-alarm-failures.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-rtc-rtc-snvs-fix-suspend-resume.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rtc-refine-rtc_timer_do_work-to-consider-other-set-alarm-failures.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-rtc-rtc-snvs-fix-suspend-resume.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-refine-rtc_timer_do_work-to-consider-other-set-alarm-failures.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,55 +40,64 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sanchayan Maity <maitysanchayan@gmail.com>
-Subject: drivers/rtc/rtc-snvs: fix suspend/resume
+From: Xunlei Pang <pang.xunlei@linaro.org>
+Subject: rtc: refine rtc_timer_do_work() to consider other set alarm failures
 
-The alarm interrupt handler also reads registers which are part of SNVS
-and need clocks enabled.  However, the resume function is called after
-IRQ's have been enabled, hence this leads to a abort:
+rtc_timer_do_work() only judges -ETIME failure of__rtc_set_alarm(), but
+doesn't handle other failures like -EIO, -EBUSY, etc.
 
-[   90.755222] Unhandled fault: external abort on non-linefetch (0x1008)
-at 0x908c604c
-[   90.762892] Internal error: : 1008 [#1] ARM
-[   90.767082] Modules linked in:
-[   90.770174] CPU: 0 PID: 421 Comm: sh Not tainted 3.18.0-rc5-00135-g0689c67-dirty #1592
-[   90.778100] task: 8e03e800 ti: 8cad8000 task.ti: 8cad8000
-[   90.783530] PC is at snvs_rtc_irq_handler+0x14/0x74
-[   90.788424] LR is at handle_irq_event_percpu+0x3c/0x144
+If there is a failure other than -ETIME, the next rtc_timer will stay in
+the timerqueue.  Then later rtc_timers will be enqueued directly because
+they have a later expires time, so the alarm irq will never be programmed.
 
-Fix this by using the .{suspend/resume}_noirq callbacks instead of
-.{suspend/resume} .
+When such failures happen, this patch will retry __rtc_set_alarm(), if
+still can't program the alarm time, it will remove current rtc_timer from
+timerqueue and fetch next one, thus preventing it from affecting other rtc
+timers.
 
-Signed-off-by: Sanchayan Maity <maitysanchayan@gmail.com>
-Cc: Shawn Guo <shawn.guo@linaro.org>
-Cc: Stefan Agner <stefan@agner.ch>
+Signed-off-by: Xunlei Pang <pang.xunlei@linaro.org>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: John Stultz <john.stultz@linaro.org>
+Cc: Arnd Bergmann <arnd.bergmann@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-snvs.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/rtc/interface.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff -puN drivers/rtc/rtc-snvs.c~drivers-rtc-rtc-snvs-fix-suspend-resume drivers/rtc/rtc-snvs.c
---- a/drivers/rtc/rtc-snvs.c~drivers-rtc-rtc-snvs-fix-suspend-resume
-+++ a/drivers/rtc/rtc-snvs.c
-@@ -346,7 +346,10 @@ static int snvs_rtc_resume(struct device
- }
- #endif
+diff -puN drivers/rtc/interface.c~rtc-refine-rtc_timer_do_work-to-consider-other-set-alarm-failures drivers/rtc/interface.c
+--- a/drivers/rtc/interface.c~rtc-refine-rtc_timer_do_work-to-consider-other-set-alarm-failures
++++ a/drivers/rtc/interface.c
+@@ -899,11 +899,24 @@ again:
+ 	if (next) {
+ 		struct rtc_wkalrm alarm;
+ 		int err;
++		int retry = 3;
++
+ 		alarm.time = rtc_ktime_to_tm(next->expires);
+ 		alarm.enabled = 1;
++reprogram:
+ 		err = __rtc_set_alarm(rtc, &alarm);
+ 		if (err == -ETIME)
+ 			goto again;
++		else if (err) {
++			if (retry-- > 0)
++				goto reprogram;
++
++			timer = container_of(next, struct rtc_timer, node);
++			timerqueue_del(&rtc->timerqueue, &timer->node);
++			timer->enabled = 0;
++			dev_err(&rtc->dev, "__rtc_set_alarm: err=%d\n", err);
++			goto again;
++		}
+ 	} else
+ 		rtc_alarm_disable(rtc);
  
--static SIMPLE_DEV_PM_OPS(snvs_rtc_pm_ops, snvs_rtc_suspend, snvs_rtc_resume);
-+static const struct dev_pm_ops snvs_rtc_pm_ops = {
-+	.suspend_noirq = snvs_rtc_suspend,
-+	.resume_noirq = snvs_rtc_resume,
-+};
- 
- static const struct of_device_id snvs_dt_ids[] = {
- 	{ .compatible = "fsl,sec-v4.0-mon-rtc-lp", },
 _
 
-Patches currently in -mm which might be from maitysanchayan@gmail.com are
+Patches currently in -mm which might be from pang.xunlei@linaro.org are
 
-drivers-rtc-rtc-snvs-add-clock-support.patch
-drivers-rtc-rtc-snvs-fix-suspend-resume.patch
+rtc-ab8500-set-uie_unsupported-flag.patch
+rtc-refine-rtc_timer_do_work-to-consider-other-set-alarm-failures.patch
 linux-next.patch
 
