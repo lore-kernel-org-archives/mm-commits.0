@@ -1,119 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- mm-compaction-more-focused-lru-and-pcplists-draining-fix.patch removed from -mm tree
-Date: Wed, 10 Dec 2014 15:15:58 -0800
-Message-ID: <5488d42e.xpwC1Uhx9LOyn7hx%akpm@linux-foundation.org>
+Subject: [folded-merged] mm-memcontrol-uncharge-pages-on-swapout-fix.patch removed from -mm tree
+Date: Wed, 10 Dec 2014 15:16:16 -0800
+Message-ID: <5488d440.PQqT+ZNLzxPsrJvh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58234 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58240 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758166AbaLJXP7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Dec 2014 18:15:59 -0500
+	with ESMTP id S1757519AbaLJXQS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Dec 2014 18:16:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, cl@linux.com, iamjoonsoo.kim@lge.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-compaction-more-focused-lru-and-pcplists-draining-fix
+     Subject: mm: memcontrol: uncharge pages on swapout fix
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-more-focused-lru-and-pcplists-draining-fix.patch
+     mm-memcontrol-uncharge-pages-on-swapout-fix.patch
 
-This patch was dropped because it was folded into mm-compaction-more-focused-lru-and-pcplists-draining.patch
+This patch was dropped because it was folded into mm-memcontrol-uncharge-pages-on-swapout.patch
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm-compaction-more-focused-lru-and-pcplists-draining-fix
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memcontrol: uncharge pages on swapout fix
 
-As Joonsoo Kim pointed out, last_migrate_pfn was reset to 0 by mistake at
-each iteration in compact_zone().  This mistake could result in fail to
-recognize immediately draining points for orders smaller than pageblock. 
-Joonsoo has also suggested an improvement to detecting cc->order aligned
-block where migration might have occurred - before this fix, some of the
-drain opportunities might have been missed.
+Vladimir notes:
 
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
+> > +   local_irq_disable();
+> > +   mem_cgroup_charge_statistics(memcg, page, -1);
+> > +   memcg_check_events(memcg, page);
+> > +   local_irq_enable();
+>
+> AFAICT mem_cgroup_swapout() is called under mapping->tree_lock with irqs
+> disabled, so we should use irq_save/restore here.
+
+Simply remove the irq-disabling altogether and rely on the caller
+holding the mapping->tree_lock for now.
+
+Reported-by: Vladimir Davydov <vdavydov@parallels.com>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Vladimir Davydov <vdavydov@parallels.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   24 +++++++++++++-----------
- 1 file changed, 13 insertions(+), 11 deletions(-)
+ mm/memcontrol.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-more-focused-lru-and-pcplists-draining-fix mm/compaction.c
---- a/mm/compaction.c~mm-compaction-more-focused-lru-and-pcplists-draining-fix
-+++ a/mm/compaction.c
-@@ -1158,6 +1158,7 @@ static int compact_zone(struct zone *zon
- 	unsigned long end_pfn = zone_end_pfn(zone);
- 	const int migratetype = gfpflags_to_migratetype(cc->gfp_mask);
- 	const bool sync = cc->mode != MIGRATE_ASYNC;
-+	unsigned long last_migrated_pfn = 0;
+diff -puN mm/memcontrol.c~mm-memcontrol-uncharge-pages-on-swapout-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-uncharge-pages-on-swapout-fix
++++ a/mm/memcontrol.c
+@@ -5805,10 +5805,11 @@ void mem_cgroup_swapout(struct page *pag
+ 	if (!mem_cgroup_is_root(memcg))
+ 		page_counter_uncharge(&memcg->memory, 1);
  
- 	ret = compaction_suitable(zone, cc->order, cc->alloc_flags,
- 							cc->classzone_idx);
-@@ -1203,7 +1204,7 @@ static int compact_zone(struct zone *zon
- 	while ((ret = compact_finished(zone, cc, migratetype)) ==
- 						COMPACT_CONTINUE) {
- 		int err;
--		unsigned long last_migrated_pfn = 0;
-+		unsigned long isolate_start_pfn = cc->migrate_pfn;
+-	local_irq_disable();
++	/* XXX: caller holds IRQ-safe mapping->tree_lock */
++	VM_BUG_ON(!irqs_disabled());
++
+ 	mem_cgroup_charge_statistics(memcg, page, -1);
+ 	memcg_check_events(memcg, page);
+-	local_irq_enable();
+ }
  
- 		switch (isolate_migratepages(zone, cc)) {
- 		case ISOLATE_ABORT:
-@@ -1244,21 +1245,22 @@ static int compact_zone(struct zone *zon
- 		}
- 
- 		/*
--		 * Record where we have freed pages by migration and not yet
--		 * flushed them to buddy allocator. Subtract 1, because often
--		 * we finish a pageblock and migrate_pfn points to the first
--		 * page* of the next one. In that case we want the drain below
--		 * to happen immediately.
-+		 * Record where we could have freed pages by migration and not
-+		 * yet flushed them to buddy allocator. We use the pfn that
-+		 * isolate_migratepages() started from in this loop iteration
-+		 * - this is the lowest page that could have been isolated and
-+		 * then freed by migration.
- 		 */
- 		if (!last_migrated_pfn)
--			last_migrated_pfn = cc->migrate_pfn - 1;
-+			last_migrated_pfn = isolate_start_pfn;
- 
- check_drain:
- 		/*
--		 * Have we moved away from the previous cc->order aligned block
--		 * where we migrated from? If yes, flush the pages that were
--		 * freed, so that they can merge and compact_finished() can
--		 * detect immediately if allocation should succeed.
-+		 * Has the migration scanner moved away from the previous
-+		 * cc->order aligned block where we migrated from? If yes,
-+		 * flush the pages that were freed, so that they can merge and
-+		 * compact_finished() can detect immediately if allocation
-+		 * would succeed.
- 		 */
- 		if (cc->order > 0 && last_migrated_pfn) {
- 			int cpu;
+ /**
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-mm-introduce-single-zone-pcplists-drain.patch
-mm-page_isolation-drain-single-zone-pcplists.patch
-mm-cma-drain-single-zone-pcplists.patch
-mm-memory_hotplug-failure-drain-single-zone-pcplists.patch
-mm-compaction-pass-classzone_idx-and-alloc_flags-to-watermark-checking.patch
-mm-compaction-simplify-deferred-compaction.patch
-mm-compaction-defer-only-on-compact_complete.patch
-mm-compaction-always-update-cached-scanner-positions.patch
-mm-compaction-more-focused-lru-and-pcplists-draining.patch
+slab-print-slabinfo-header-in-seq-show.patch
+mm-memcontrol-lockless-page-counters.patch
+mm-hugetlb_cgroup-convert-to-lockless-page-counters.patch
+kernel-res_counter-remove-the-unused-api.patch
+mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting.patch
+mm-memcontrol-take-a-css-reference-for-each-charged-page.patch
+mm-memcontrol-remove-obsolete-kmemcg-pinning-tricks.patch
+mm-memcontrol-continue-cache-reclaim-from-offlined-groups.patch
+mm-memcontrol-remove-synchroneous-stock-draining-code.patch
+mm-vmscan-count-only-dirty-pages-as-congested.patch
+memcg-simplify-unreclaimable-groups-handling-in-soft-limit-reclaim.patch
+mm-memcontrol-update-mem_cgroup_page_lruvec-documentation.patch
+mm-memcontrol-clarify-migration-where-old-page-is-uncharged.patch
+memcg-remove-activate_kmem_mutex.patch
+mm-memcontrol-micro-optimize-mem_cgroup_split_huge_fixup.patch
+mm-memcontrol-uncharge-pages-on-swapout.patch
+mm-memcontrol-remove-unnecessary-pcg_memsw-memoryswap-charge-flag.patch
+mm-memcontrol-remove-unnecessary-pcg_mem-memory-charge-flag.patch
+mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag.patch
+mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
+mm-memcontrol-inline-memcg-move_lock-locking.patch
+mm-memcontrol-dont-pass-a-null-memcg-to-mem_cgroup_end_move.patch
+mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move.patch
+mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix.patch
+memcg-remove-mem_cgroup_reclaimable-check-from-soft-reclaim.patch
+memcg-use-generic-slab-iterators-for-showing-slabinfo.patch
+mm-memcontrol-shorten-the-page-statistics-update-slowpath.patch
+mm-memcontrol-remove-bogus-null-check-after-mem_cgroup_from_task.patch
+mm-memcontrol-pull-the-null-check-from-__mem_cgroup_same_or_subtree.patch
+mm-memcontrol-drop-bogus-rcu-locking-from-mem_cgroup_same_or_subtree.patch
+mm-memcg-fix-potential-undefined-when-for-page-stat-accounting.patch
+mm-memcontrol-remove-stale-page_cgroup_lock-comment.patch
+mm-embed-the-memcg-pointer-directly-into-struct-page.patch
+mm-embed-the-memcg-pointer-directly-into-struct-page-fix.patch
+mm-page_cgroup-rename-file-to-mm-swap_cgroupc.patch
+mm-move-page-mem_cgroup-bad-page-handling-into-generic-code.patch
+mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix.patch
+mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix-2.patch
 
