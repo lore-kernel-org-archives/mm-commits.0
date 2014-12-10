@@ -1,86 +1,70 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix.patch
- removed from -mm tree
-Date: Wed, 10 Dec 2014 15:17:11 -0800
-Message-ID: <5488d477.UhnC4K5ClLM/17r+%akpm@linux-foundation.org>
+ mm-fix-huge-zero-page-accounting-in-smaps-report-fix.patch removed from -mm tree
+Date: Wed, 10 Dec 2014 15:17:34 -0800
+Message-ID: <5488d48e.DHKCaoM708qR2lom%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58250 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58253 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757519AbaLJXRM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Dec 2014 18:17:12 -0500
+	with ESMTP id S1758156AbaLJXRf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Dec 2014 18:17:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, mhocko@suse.cz, vdavydov@parallels.com, mm-commits@vger.kernel.org
+To: kirill@shutemov.name, fengguang.wu@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix
+     Subject: mm-fix-huge-zero-page-accounting-in-smaps-report-fix
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix.patch
+     mm-fix-huge-zero-page-accounting-in-smaps-report-fix.patch
 
-This patch was dropped because it was folded into mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move.patch
+This patch was dropped because it was folded into mm-fix-huge-zero-page-accounting-in-smaps-report.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix
+From: "Kirill A. Shutemov" <kirill@shutemov.name>
+Subject: mm-fix-huge-zero-page-accounting-in-smaps-report-fix
 
-forgot to refresh...
+Return type should be 'unsigned long'.
 
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Vladimir Davydov <vdavydov@parallels.com>
+Andrew, please fold this into the patch:
+
+Reported-by: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/sparc/include/asm/pgtable_64.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix
-+++ a/mm/memcontrol.c
-@@ -5406,7 +5406,7 @@ static void mem_cgroup_clear_mc(void)
- 	mc.to = NULL;
- 	spin_unlock(&mc.lock);
- 
--	atomic_dec(&memcg->moving_account);
-+	atomic_dec(&from->moving_account);
+diff -puN arch/sparc/include/asm/pgtable_64.h~mm-fix-huge-zero-page-accounting-in-smaps-report-fix arch/sparc/include/asm/pgtable_64.h
+--- a/arch/sparc/include/asm/pgtable_64.h~mm-fix-huge-zero-page-accounting-in-smaps-report-fix
++++ a/arch/sparc/include/asm/pgtable_64.h
+@@ -667,7 +667,7 @@ static inline unsigned long pmd_pfn(pmd_
  }
  
- static int mem_cgroup_can_attach(struct cgroup_subsys_state *css,
-@@ -5446,7 +5446,7 @@ static int mem_cgroup_can_attach(struct
- 			 * its pages to another memcg.  Then wait for
- 			 * already started RCU-only updates to finish.
- 			 */
--			atomic_inc(&memcg->moving_account);
-+			atomic_inc(&from->moving_account);
- 			synchronize_rcu();
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-static inline pmd_t pmd_dirty(pmd_t pmd)
++static inline unsigned long pmd_dirty(pmd_t pmd)
+ {
+ 	pte_t pte = __pte(pmd_val(pmd));
  
- 			spin_lock(&mc.lock);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kirill@shutemov.name are
 
 origin.patch
-mm-cma-fix-boot-regression-due-to-physical-address-of-high_memory.patch
-slab-improve-checking-for-invalid-gfp_flags.patch
-mm-memcontrol-lockless-page-counters.patch
-kernel-res_counter-remove-the-unused-api.patch
-mm-compaction-simplify-deferred-compaction.patch
-mm-compaction-always-update-cached-scanner-positions.patch
-mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag.patch
-mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move.patch
+mm-verify-compound-order-when-freeing-a-page.patch
+thp-do-not-mark-zero-page-pmd-write-protected-explicitly.patch
+mm-fix-huge-zero-page-accounting-in-smaps-report.patch
+mm-fix-huge-zero-page-accounting-in-smaps-report-fix-2.patch
 mm-fix-huge-zero-page-accounting-in-smaps-report-fix-2-fix.patch
-fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
-fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user.patch
-init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails-checkpatch-fixes.patch
-rtc-omap-add-support-for-pmic_power_en-v3-fix.patch
-drivers-rtc-rtc-sirfsocc-add-alarm_irq_enable-support-fix.patch
-rtc-ds1374-add-watchdog-support-fix.patch
-rtc-ds1374-add-watchdog-support-checkpatch-fixes.patch
-exit-wait-cleanup-the-ptrace_reparented-checks-fix.patch
+mm-embed-the-memcg-pointer-directly-into-struct-page.patch
+mm-embed-the-memcg-pointer-directly-into-struct-page-fix.patch
+mm-page_cgroup-rename-file-to-mm-swap_cgroupc.patch
+mm-move-page-mem_cgroup-bad-page-handling-into-generic-code.patch
+mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix.patch
+mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix-2.patch
 
