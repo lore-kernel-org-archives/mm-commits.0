@@ -1,87 +1,119 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-compaction-always-update-cached-scanner-positions-fix-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 10 Dec 2014 15:15:28 -0800
-Message-ID: <5488d410.tjQxV6WniTn1e5c0%akpm@linux-foundation.org>
+ mm-compaction-more-focused-lru-and-pcplists-draining-fix.patch removed from -mm tree
+Date: Wed, 10 Dec 2014 15:15:58 -0800
+Message-ID: <5488d42e.xpwC1Uhx9LOyn7hx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58226 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58234 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758166AbaLJXP3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Dec 2014 18:15:29 -0500
+	with ESMTP id S1758166AbaLJXP7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Dec 2014 18:15:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, cl@linux.com, iamjoonsoo.kim@lge.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-compaction-always-update-cached-scanner-positions-fix-checkpatch-fixes
+     Subject: mm-compaction-more-focused-lru-and-pcplists-draining-fix
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-always-update-cached-scanner-positions-fix-checkpatch-fixes.patch
+     mm-compaction-more-focused-lru-and-pcplists-draining-fix.patch
 
-This patch was dropped because it was folded into mm-compaction-always-update-cached-scanner-positions.patch
+This patch was dropped because it was folded into mm-compaction-more-focused-lru-and-pcplists-draining.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-compaction-always-update-cached-scanner-positions-fix-checkpatch-fixes
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm-compaction-more-focused-lru-and-pcplists-draining-fix
 
-WARNING: Missing a blank line after declarations
-#65: FILE: mm/compaction.c:1243:
-+		unsigned long free_pfn = release_freepages(&cc->freepages);
-+		cc->nr_freepages = 0;
+As Joonsoo Kim pointed out, last_migrate_pfn was reset to 0 by mistake at
+each iteration in compact_zone().  This mistake could result in fail to
+recognize immediately draining points for orders smaller than pageblock. 
+Joonsoo has also suggested an improvement to detecting cc->order aligned
+block where migration might have occurred - before this fix, some of the
+drain opportunities might have been missed.
 
-total: 0 errors, 1 warnings, 47 lines checked
-
-./patches/mm-compaction-always-update-cached-scanner-positions-fix.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/compaction.c |   24 +++++++++++++-----------
+ 1 file changed, 13 insertions(+), 11 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-always-update-cached-scanner-positions-fix-checkpatch-fixes mm/compaction.c
---- a/mm/compaction.c~mm-compaction-always-update-cached-scanner-positions-fix-checkpatch-fixes
+diff -puN mm/compaction.c~mm-compaction-more-focused-lru-and-pcplists-draining-fix mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-more-focused-lru-and-pcplists-draining-fix
 +++ a/mm/compaction.c
-@@ -1245,8 +1245,8 @@ out:
- 	 */
- 	if (cc->nr_freepages > 0) {
- 		unsigned long free_pfn = release_freepages(&cc->freepages);
--		cc->nr_freepages = 0;
+@@ -1158,6 +1158,7 @@ static int compact_zone(struct zone *zon
+ 	unsigned long end_pfn = zone_end_pfn(zone);
+ 	const int migratetype = gfpflags_to_migratetype(cc->gfp_mask);
+ 	const bool sync = cc->mode != MIGRATE_ASYNC;
++	unsigned long last_migrated_pfn = 0;
  
-+		cc->nr_freepages = 0;
- 		VM_BUG_ON(free_pfn == 0);
- 		/* The cached pfn is always the first in a pageblock */
- 		free_pfn &= ~(pageblock_nr_pages-1);
+ 	ret = compaction_suitable(zone, cc->order, cc->alloc_flags,
+ 							cc->classzone_idx);
+@@ -1203,7 +1204,7 @@ static int compact_zone(struct zone *zon
+ 	while ((ret = compact_finished(zone, cc, migratetype)) ==
+ 						COMPACT_CONTINUE) {
+ 		int err;
+-		unsigned long last_migrated_pfn = 0;
++		unsigned long isolate_start_pfn = cc->migrate_pfn;
+ 
+ 		switch (isolate_migratepages(zone, cc)) {
+ 		case ISOLATE_ABORT:
+@@ -1244,21 +1245,22 @@ static int compact_zone(struct zone *zon
+ 		}
+ 
+ 		/*
+-		 * Record where we have freed pages by migration and not yet
+-		 * flushed them to buddy allocator. Subtract 1, because often
+-		 * we finish a pageblock and migrate_pfn points to the first
+-		 * page* of the next one. In that case we want the drain below
+-		 * to happen immediately.
++		 * Record where we could have freed pages by migration and not
++		 * yet flushed them to buddy allocator. We use the pfn that
++		 * isolate_migratepages() started from in this loop iteration
++		 * - this is the lowest page that could have been isolated and
++		 * then freed by migration.
+ 		 */
+ 		if (!last_migrated_pfn)
+-			last_migrated_pfn = cc->migrate_pfn - 1;
++			last_migrated_pfn = isolate_start_pfn;
+ 
+ check_drain:
+ 		/*
+-		 * Have we moved away from the previous cc->order aligned block
+-		 * where we migrated from? If yes, flush the pages that were
+-		 * freed, so that they can merge and compact_finished() can
+-		 * detect immediately if allocation should succeed.
++		 * Has the migration scanner moved away from the previous
++		 * cc->order aligned block where we migrated from? If yes,
++		 * flush the pages that were freed, so that they can merge and
++		 * compact_finished() can detect immediately if allocation
++		 * would succeed.
+ 		 */
+ 		if (cc->order > 0 && last_migrated_pfn) {
+ 			int cpu;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-origin.patch
-mm-cma-fix-boot-regression-due-to-physical-address-of-high_memory.patch
-slab-improve-checking-for-invalid-gfp_flags.patch
-mm-memcontrol-lockless-page-counters.patch
-kernel-res_counter-remove-the-unused-api.patch
+mm-introduce-single-zone-pcplists-drain.patch
+mm-page_isolation-drain-single-zone-pcplists.patch
+mm-cma-drain-single-zone-pcplists.patch
+mm-memory_hotplug-failure-drain-single-zone-pcplists.patch
+mm-compaction-pass-classzone_idx-and-alloc_flags-to-watermark-checking.patch
 mm-compaction-simplify-deferred-compaction.patch
+mm-compaction-defer-only-on-compact_complete.patch
 mm-compaction-always-update-cached-scanner-positions.patch
-mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
-mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix.patch
-mm-fix-huge-zero-page-accounting-in-smaps-report-fix-2-fix.patch
-fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
-fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user.patch
-init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails-checkpatch-fixes.patch
-rtc-omap-add-support-for-pmic_power_en-v3-fix.patch
-drivers-rtc-rtc-sirfsocc-add-alarm_irq_enable-support-fix.patch
-rtc-ds1374-add-watchdog-support-fix.patch
-rtc-ds1374-add-watchdog-support-checkpatch-fixes.patch
-exit-wait-cleanup-the-ptrace_reparented-checks-fix.patch
+mm-compaction-more-focused-lru-and-pcplists-draining.patch
 
