@@ -1,70 +1,67 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- kernel-res_counter-remove-the-unused-api-fix-2.patch removed from -mm tree
-Date: Wed, 10 Dec 2014 15:13:08 -0800
-Message-ID: <5488d384.cCe1TzJs2lSRz4OY%akpm@linux-foundation.org>
+ mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting-fix.patch
+ removed from -mm tree
+Date: Wed, 10 Dec 2014 15:13:59 -0800
+Message-ID: <5488d3b7.ZNZkoOeEVDsIGqgs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58198 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58201 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756847AbaLJXNJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Dec 2014 18:13:09 -0500
+	with ESMTP id S1758371AbaLJXOB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Dec 2014 18:14:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.cz, hannes@cmpxchg.org, pebolle@tiscali.nl, mm-commits@vger.kernel.org
+To: mhocko@suse.cz, hannes@cmpxchg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel-res_counter-remove-the-unused-api-fix-2
+     Subject: mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting-fix
 has been removed from the -mm tree.  Its filename was
-     kernel-res_counter-remove-the-unused-api-fix-2.patch
+     mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting-fix.patch
 
-This patch was dropped because it was folded into kernel-res_counter-remove-the-unused-api.patch
+This patch was dropped because it was folded into mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting.patch
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.cz>
-Subject: kernel-res_counter-remove-the-unused-api-fix-2
+Subject: mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting-fix
 
-ditch the last remainings of res_counter
+Make sure that the cached reference is always released.
 
-Reported-by: Paul Bolle <pebolle@tiscali.nl>
 Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/memory.txt |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ mm/memcontrol.c |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/cgroups/memory.txt~kernel-res_counter-remove-the-unused-api-fix-2 Documentation/cgroups/memory.txt
---- a/Documentation/cgroups/memory.txt~kernel-res_counter-remove-the-unused-api-fix-2
-+++ a/Documentation/cgroups/memory.txt
-@@ -116,16 +116,16 @@ The memory controller is the first contr
+diff -puN mm/memcontrol.c~mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting-fix
++++ a/mm/memcontrol.c
+@@ -1165,9 +1165,17 @@ struct mem_cgroup *mem_cgroup_iter(struc
+ 	}
  
- 2.1. Design
+ 	if (reclaim) {
+-		if (cmpxchg(&iter->position, pos, memcg) == pos && memcg)
+-			css_get(&memcg->css);
++		if (cmpxchg(&iter->position, pos, memcg) == pos) {
++			if (memcg)
++				css_get(&memcg->css);
++			if (pos)
++				css_put(&pos->css);
++		}
  
--The core of the design is a counter called the res_counter. The res_counter
--tracks the current memory usage and limit of the group of processes associated
--with the controller. Each cgroup has a memory controller specific data
--structure (mem_cgroup) associated with it.
-+The core of the design is a counter called the page_counter. The
-+page_counter tracks the current memory usage and limit of the group of
-+processes associated with the controller. Each cgroup has a memory controller
-+specific data structure (mem_cgroup) associated with it.
++		/*
++		 * pairs with css_tryget when dereferencing iter->position
++		 * above.
++		 */
+ 		if (pos)
+ 			css_put(&pos->css);
  
- 2.2. Accounting
- 
- 		+--------------------+
--		|  mem_cgroup     |
--		|  (res_counter)     |
-+		|  mem_cgroup        |
-+		|  (page_counter)    |
- 		+--------------------+
- 		 /            ^      \
- 		/             |       \
 _
 
 Patches currently in -mm which might be from mhocko@suse.cz are
@@ -75,7 +72,6 @@ mm-memcontrol-lockless-page-counters.patch
 mm-hugetlb_cgroup-convert-to-lockless-page-counters.patch
 kernel-res_counter-remove-the-unused-api.patch
 mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting.patch
-mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting-fix.patch
 mm-memcontrol-take-a-css-reference-for-each-charged-page.patch
 mm-memcontrol-remove-obsolete-kmemcg-pinning-tricks.patch
 mm-memcontrol-continue-cache-reclaim-from-offlined-groups.patch
