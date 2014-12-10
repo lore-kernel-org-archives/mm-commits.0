@@ -1,109 +1,110 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting-fix.patch
- removed from -mm tree
-Date: Wed, 10 Dec 2014 15:13:59 -0800
-Message-ID: <5488d3b7.ZNZkoOeEVDsIGqgs%akpm@linux-foundation.org>
+ mm-compaction-pass-classzone_idx-and-alloc_flags-to-watermark-checking-fix.patch removed from -mm tree
+Date: Wed, 10 Dec 2014 15:14:37 -0800
+Message-ID: <5488d3dd.GlK9HTdO3LSTFxFg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58201 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58210 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758371AbaLJXOB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Dec 2014 18:14:01 -0500
+	with ESMTP id S1758395AbaLJXOi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Dec 2014 18:14:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.cz, hannes@cmpxchg.org, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, cl@linux.com, iamjoonsoo.kim@lge.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting-fix
+     Subject: mm-compaction-pass-classzone_idx-and-alloc_flags-to-watermark-checking-fix
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting-fix.patch
+     mm-compaction-pass-classzone_idx-and-alloc_flags-to-watermark-checking-fix.patch
 
-This patch was dropped because it was folded into mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting.patch
+This patch was dropped because it was folded into mm-compaction-pass-classzone_idx-and-alloc_flags-to-watermark-checking.patch
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting-fix
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm-compaction-pass-classzone_idx-and-alloc_flags-to-watermark-checking-fix
 
-Make sure that the cached reference is always released.
+This patch-fix changes zone watermark checking in compaction_suitable() as
+we discussed with Joonsoo Kim.  First, it moves up the watermark check for
+answering the question "does the zone need compaction at all?".  Before
+this change, the check is preceded by a check that answers the question
+"does the zone have enough free pages to succeed compaction".  So it might
+happen that there is already a high-order page available, but not enough
+pages for performing the compaction (which assumes extra pages for the
+migrations).  Before the patch, compaction_suitable() would return
+COMPACT_SKIPPED which means "compaction cannot succeed, reclaim more",
+after this change it returns COMPACT_PARTIAL which means "compaction not
+needed, try allocating".
 
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Second, the check for answering "can the compaction succeed?" now also
+includes classzone_idx and alloc_flags parameters.  This prevents starting
+compaction that would not lead to successful allocation due to not having
+enough free pages.  The addition of extra pages for migration is left in
+the check.  Although these are temporary allocations and thus should not
+be affected by alloc_flags and classzone_idx, it only matters when we are
+close to the watermark, where it does not hurt to be a bit pessimistic.
+
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ mm/compaction.c |   21 +++++++++++++--------
+ 1 file changed, 13 insertions(+), 8 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting-fix mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting-fix
-+++ a/mm/memcontrol.c
-@@ -1165,9 +1165,17 @@ struct mem_cgroup *mem_cgroup_iter(struc
- 	}
+diff -puN mm/compaction.c~mm-compaction-pass-classzone_idx-and-alloc_flags-to-watermark-checking-fix mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-pass-classzone_idx-and-alloc_flags-to-watermark-checking-fix
++++ a/mm/compaction.c
+@@ -1127,21 +1127,30 @@ unsigned long compaction_suitable(struct
+ 	if (order == -1)
+ 		return COMPACT_CONTINUE;
  
- 	if (reclaim) {
--		if (cmpxchg(&iter->position, pos, memcg) == pos && memcg)
--			css_get(&memcg->css);
-+		if (cmpxchg(&iter->position, pos, memcg) == pos) {
-+			if (memcg)
-+				css_get(&memcg->css);
-+			if (pos)
-+				css_put(&pos->css);
-+		}
++	watermark = low_wmark_pages(zone);
++	/*
++	 * If watermarks for high-order allocation are already met, there
++	 * should be no need for compaction at all.
++	 */
++	if (zone_watermark_ok(zone, order, watermark, classzone_idx,
++								alloc_flags))
++		return COMPACT_PARTIAL;
++
+ 	/*
+ 	 * Watermarks for order-0 must be met for compaction. Note the 2UL.
+ 	 * This is because during migration, copies of pages need to be
+ 	 * allocated and for a short time, the footprint is higher
+ 	 */
+-	watermark = low_wmark_pages(zone) + (2UL << order);
+-	if (!zone_watermark_ok(zone, 0, watermark, 0, 0))
++	watermark += (2UL << order);
++	if (!zone_watermark_ok(zone, 0, watermark, classzone_idx, alloc_flags))
+ 		return COMPACT_SKIPPED;
  
-+		/*
-+		 * pairs with css_tryget when dereferencing iter->position
-+		 * above.
-+		 */
- 		if (pos)
- 			css_put(&pos->css);
+ 	/*
+ 	 * fragmentation index determines if allocation failures are due to
+ 	 * low memory or external fragmentation
+ 	 *
+-	 * index of -1000 implies allocations might succeed depending on
+-	 * watermarks
++	 * index of -1000 would imply allocations might succeed depending on
++	 * watermarks, but we already failed the high-order watermark check
+ 	 * index towards 0 implies failure is due to lack of memory
+ 	 * index towards 1000 implies failure is due to fragmentation
+ 	 *
+@@ -1151,10 +1160,6 @@ unsigned long compaction_suitable(struct
+ 	if (fragindex >= 0 && fragindex <= sysctl_extfrag_threshold)
+ 		return COMPACT_SKIPPED;
  
-_
-
-Patches currently in -mm which might be from mhocko@suse.cz are
-
-origin.patch
-slab-print-slabinfo-header-in-seq-show.patch
-mm-memcontrol-lockless-page-counters.patch
-mm-hugetlb_cgroup-convert-to-lockless-page-counters.patch
-kernel-res_counter-remove-the-unused-api.patch
-mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting.patch
-mm-memcontrol-take-a-css-reference-for-each-charged-page.patch
-mm-memcontrol-remove-obsolete-kmemcg-pinning-tricks.patch
-mm-memcontrol-continue-cache-reclaim-from-offlined-groups.patch
-mm-memcontrol-remove-synchroneous-stock-draining-code.patch
-memcg-simplify-unreclaimable-groups-handling-in-soft-limit-reclaim.patch
-mm-memcontrol-update-mem_cgroup_page_lruvec-documentation.patch
-mm-memcontrol-clarify-migration-where-old-page-is-uncharged.patch
-memcg-remove-activate_kmem_mutex.patch
-mm-memcontrol-micro-optimize-mem_cgroup_split_huge_fixup.patch
-mm-memcontrol-uncharge-pages-on-swapout.patch
-mm-memcontrol-uncharge-pages-on-swapout-fix.patch
-mm-memcontrol-remove-unnecessary-pcg_memsw-memoryswap-charge-flag.patch
-mm-memcontrol-remove-unnecessary-pcg_mem-memory-charge-flag.patch
-mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag.patch
-mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
-mm-memcontrol-inline-memcg-move_lock-locking.patch
-mm-memcontrol-dont-pass-a-null-memcg-to-mem_cgroup_end_move.patch
-mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move.patch
-mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix.patch
-memcg-remove-mem_cgroup_reclaimable-check-from-soft-reclaim.patch
-memcg-use-generic-slab-iterators-for-showing-slabinfo.patch
-mm-memcontrol-shorten-the-page-statistics-update-slowpath.patch
-mm-memcontrol-remove-bogus-null-check-after-mem_cgroup_from_task.patch
-mm-memcontrol-pull-the-null-check-from-__mem_cgroup_same_or_subtree.patch
-mm-memcontrol-drop-bogus-rcu-locking-from-mem_cgroup_same_or_subtree.patch
-mm-memcg-fix-potential-undefined-when-for-page-stat-accounting.patch
-mm-hugetlb-fix-__unmap_hugepage_range.patch
-mm-memcontrol-remove-stale-page_cgroup_lock-comment.patch
-mm-embed-the-memcg-pointer-directly-into-struct-page.patch
-mm-embed-the-memcg-pointer-directly-into-struct-page-fix.patch
-mm-page_cgroup-rename-file-to-mm-swap_cgroupc.patch
-mm-move-page-mem_cgroup-bad-page-handling-into-generic-code.patch
-mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix.patch
-mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix-2.patch
-
+-	if (fragindex == -1000 && zone_watermark_ok(zone, order, watermark,
+-	    classzone_idx, alloc_flags))
+-		return COMPACT_PARTIAL;
