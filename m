@@ -1,67 +1,59 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- rtc-ds1374-add-watchdog-support-checkpatch-fixes.patch removed from -mm
+ exit-wait-cleanup-the-ptrace_reparented-checks-fix.patch removed from -mm
  tree
-Date: Wed, 10 Dec 2014 15:22:48 -0800
-Message-ID: <5488d5c8.NLsmYqpy4yQZ4Arz%akpm@linux-foundation.org>
+Date: Wed, 10 Dec 2014 15:23:38 -0800
+Message-ID: <5488d5fa.sVuH69mP+QjNQ/vf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58492 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58546 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932354AbaLJXWt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Dec 2014 18:22:49 -0500
+	with ESMTP id S932354AbaLJXXj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Dec 2014 18:23:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.zummo@towertech.it, san@rosetechnology.dk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, atomlin@redhat.com, ebiederm@xmission.com, oleg@redhat.com, riel@redhat.com, stalexan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc-ds1374-add-watchdog-support-checkpatch-fixes
+     Subject: exit-wait-cleanup-the-ptrace_reparented-checks-fix
 has been removed from the -mm tree.  Its filename was
-     rtc-ds1374-add-watchdog-support-checkpatch-fixes.patch
+     exit-wait-cleanup-the-ptrace_reparented-checks-fix.patch
 
-This patch was dropped because it was folded into rtc-ds1374-add-watchdog-support.patch
+This patch was dropped because it was folded into exit-wait-cleanup-the-ptrace_reparented-checks.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: rtc-ds1374-add-watchdog-support-checkpatch-fixes
+Subject: exit-wait-cleanup-the-ptrace_reparented-checks-fix
 
-WARNING: Possible switch case/default not preceeded by break or fallthrough comment
-#283: FILE: drivers/rtc/rtc-ds1374.c:533:
-+	case WDIOC_GETTIMEOUT:
+don't make me google the C Operator Precedence table
 
-total: 0 errors, 2 warnings, 360 lines checked
-
-./patches/rtc-ds1374-add-watchdog-support.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Soeren Andersen <san@rosetechnology.dk>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Aaron Tomlin <atomlin@redhat.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Sterling Alexander <stalexan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1374.c |    2 +-
+ kernel/exit.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-ds1374.c~rtc-ds1374-add-watchdog-support-checkpatch-fixes drivers/rtc/rtc-ds1374.c
---- a/drivers/rtc/rtc-ds1374.c~rtc-ds1374-add-watchdog-support-checkpatch-fixes
-+++ a/drivers/rtc/rtc-ds1374.c
-@@ -529,7 +529,7 @@ static long ds1374_wdt_ioctl(struct file
- 		wdt_margin = new_margin;
- 		ds1374_wdt_settimeout(new_margin);
- 		ds1374_wdt_ping();
--		/* Fall */
-+		/* fallthrough */
- 	case WDIOC_GETTIMEOUT:
- 		return put_user(wdt_margin, (int __user *)arg);
- 	case WDIOC_SETOPTIONS:
+diff -puN kernel/exit.c~exit-wait-cleanup-the-ptrace_reparented-checks-fix kernel/exit.c
+--- a/kernel/exit.c~exit-wait-cleanup-the-ptrace_reparented-checks-fix
++++ a/kernel/exit.c
+@@ -999,7 +999,7 @@ static int wait_task_zombie(struct wait_
+ 	/*
+ 	 * Move the task's state to DEAD/TRACE, only one thread can do this.
+ 	 */
+-	state = ptrace_reparented(p) && thread_group_leader(p) ?
++	state = (ptrace_reparented(p) && thread_group_leader(p)) ?
+ 		EXIT_TRACE : EXIT_DEAD;
+ 	if (cmpxchg(&p->exit_state, EXIT_ZOMBIE, state) != EXIT_ZOMBIE)
+ 		return 0;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -81,5 +73,5 @@ init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails.patch
 rtc-omap-add-support-for-pmic_power_en.patch
 drivers-rtc-rtc-sirfsocc-add-alarm_irq_enable-support.patch
 rtc-ds1374-add-watchdog-support.patch
-exit-wait-cleanup-the-ptrace_reparented-checks-fix.patch
+exit-wait-cleanup-the-ptrace_reparented-checks.patch
 
