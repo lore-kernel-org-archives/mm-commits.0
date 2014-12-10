@@ -1,86 +1,105 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-fix-huge-zero-page-accounting-in-smaps-report-fix-2-fix.patch removed
- from -mm tree
-Date: Wed, 10 Dec 2014 15:17:40 -0800
-Message-ID: <5488d494.wgFXzWsZkINPkUaF%akpm@linux-foundation.org>
+ mm-embed-the-memcg-pointer-directly-into-struct-page-fix.patch removed from -mm tree
+Date: Wed, 10 Dec 2014 15:18:20 -0800
+Message-ID: <5488d4bc.Frh7MhhSoO3EcPGf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58259 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58267 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758156AbaLJXRl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Dec 2014 18:17:41 -0500
+	with ESMTP id S1758270AbaLJXSV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Dec 2014 18:18:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, fengguang.wu@intel.com, kirill@shutemov.name, mm-commits@vger.kernel.org
+To: mhocko@suse.cz, davem@davemloft.net, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, kamezawa.hiroyu@jp.fujitsu.com, kirill@shutemov.name, tj@kernel.org, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-fix-huge-zero-page-accounting-in-smaps-report-fix-2-fix
+     Subject: mm-embed-the-memcg-pointer-directly-into-struct-page-fix
 has been removed from the -mm tree.  Its filename was
-     mm-fix-huge-zero-page-accounting-in-smaps-report-fix-2-fix.patch
+     mm-embed-the-memcg-pointer-directly-into-struct-page-fix.patch
 
-This patch was dropped because it was folded into mm-fix-huge-zero-page-accounting-in-smaps-report.patch
+This patch was dropped because it was folded into mm-embed-the-memcg-pointer-directly-into-struct-page.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-fix-huge-zero-page-accounting-in-smaps-report-fix-2-fix
+From: Michal Hocko <mhocko@suse.cz>
+Subject: mm-embed-the-memcg-pointer-directly-into-struct-page-fix
 
-use do_div to fix 32-bit build
+Documentation/cgroups/memory.txt is outdate even more hopelessly than
+before. It deserves a complete rewrite but I guess something like the
+following should be added in the meantime to prepare potential readers
+about the trap.
 
-fs/built-in.o: In function `smaps_account':
-task_mmu.c:(.text+0x943a3): undefined reference to `__udivdi3'
-
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vladimir Davydov <vdavydov@parallels.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Vladimir Davydov <vdavydov@parallels.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ Documentation/cgroups/memory.txt |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN fs/proc/task_mmu.c~mm-fix-huge-zero-page-accounting-in-smaps-report-fix-2-fix fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~mm-fix-huge-zero-page-accounting-in-smaps-report-fix-2-fix
-+++ a/fs/proc/task_mmu.c
-@@ -461,11 +461,15 @@ static void smaps_account(struct mem_siz
- 		mss->referenced += size;
- 	mapcount = page_mapcount(page);
- 	if (mapcount >= 2) {
-+		u64 pss_delta;
+diff -puN Documentation/cgroups/memory.txt~mm-embed-the-memcg-pointer-directly-into-struct-page-fix Documentation/cgroups/memory.txt
+--- a/Documentation/cgroups/memory.txt~mm-embed-the-memcg-pointer-directly-into-struct-page-fix
++++ a/Documentation/cgroups/memory.txt
+@@ -1,5 +1,10 @@
+ Memory Resource Controller
+ 
++NOTE: This document is hopelessly outdated and it asks for a complete
++      rewrite. It still contains a useful information so we are keeping it
++      here but make sure to check the current code if you need a deeper
++      understanding.
 +
- 		if (dirty || PageDirty(page))
- 			mss->shared_dirty += size;
- 		else
- 			mss->shared_clean += size;
--		mss->pss += ((u64)size << PSS_SHIFT) / mapcount;
-+		pss_delta = (u64)size << PSS_SHIFT;
-+		do_div(pss_delta, mapcount);
-+		mss->pss += pss_delta;
- 	} else {
- 		if (dirty || PageDirty(page))
- 			mss->private_dirty += size;
+ NOTE: The Memory Resource Controller has generically been referred to as the
+       memory controller in this document. Do not confuse memory controller
+       used here with the memory controller that is used in hardware.
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
 origin.patch
-mm-cma-fix-boot-regression-due-to-physical-address-of-high_memory.patch
-slab-improve-checking-for-invalid-gfp_flags.patch
+slab-print-slabinfo-header-in-seq-show.patch
 mm-memcontrol-lockless-page-counters.patch
+mm-hugetlb_cgroup-convert-to-lockless-page-counters.patch
 kernel-res_counter-remove-the-unused-api.patch
-mm-compaction-simplify-deferred-compaction.patch
-mm-compaction-always-update-cached-scanner-positions.patch
+mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting.patch
+mm-memcontrol-take-a-css-reference-for-each-charged-page.patch
+mm-memcontrol-remove-obsolete-kmemcg-pinning-tricks.patch
+mm-memcontrol-continue-cache-reclaim-from-offlined-groups.patch
+mm-memcontrol-remove-synchroneous-stock-draining-code.patch
+memcg-simplify-unreclaimable-groups-handling-in-soft-limit-reclaim.patch
+mm-memcontrol-update-mem_cgroup_page_lruvec-documentation.patch
+mm-memcontrol-clarify-migration-where-old-page-is-uncharged.patch
+memcg-remove-activate_kmem_mutex.patch
+mm-memcontrol-micro-optimize-mem_cgroup_split_huge_fixup.patch
+mm-memcontrol-uncharge-pages-on-swapout.patch
+mm-memcontrol-remove-unnecessary-pcg_memsw-memoryswap-charge-flag.patch
+mm-memcontrol-remove-unnecessary-pcg_mem-memory-charge-flag.patch
 mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag.patch
-mm-fix-huge-zero-page-accounting-in-smaps-report.patch
-fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
-fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user.patch
-init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails-checkpatch-fixes.patch
-rtc-omap-add-support-for-pmic_power_en-v3-fix.patch
-drivers-rtc-rtc-sirfsocc-add-alarm_irq_enable-support-fix.patch
-rtc-ds1374-add-watchdog-support-fix.patch
-rtc-ds1374-add-watchdog-support-checkpatch-fixes.patch
-exit-wait-cleanup-the-ptrace_reparented-checks-fix.patch
+mm-memcontrol-inline-memcg-move_lock-locking.patch
+mm-memcontrol-dont-pass-a-null-memcg-to-mem_cgroup_end_move.patch
+mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move.patch
+memcg-remove-mem_cgroup_reclaimable-check-from-soft-reclaim.patch
+memcg-use-generic-slab-iterators-for-showing-slabinfo.patch
+mm-memcontrol-shorten-the-page-statistics-update-slowpath.patch
+mm-memcontrol-remove-bogus-null-check-after-mem_cgroup_from_task.patch
+mm-memcontrol-pull-the-null-check-from-__mem_cgroup_same_or_subtree.patch
+mm-memcontrol-drop-bogus-rcu-locking-from-mem_cgroup_same_or_subtree.patch
+mm-memcg-fix-potential-undefined-when-for-page-stat-accounting.patch
+mm-hugetlb-fix-__unmap_hugepage_range.patch
+mm-memcontrol-remove-stale-page_cgroup_lock-comment.patch
+mm-embed-the-memcg-pointer-directly-into-struct-page.patch
+mm-page_cgroup-rename-file-to-mm-swap_cgroupc.patch
+mm-move-page-mem_cgroup-bad-page-handling-into-generic-code.patch
+mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix.patch
+mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix-2.patch
 
