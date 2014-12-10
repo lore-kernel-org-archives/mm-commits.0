@@ -1,70 +1,59 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-fix-huge-zero-page-accounting-in-smaps-report-fix.patch removed from -mm tree
-Date: Wed, 10 Dec 2014 15:17:34 -0800
-Message-ID: <5488d48e.DHKCaoM708qR2lom%akpm@linux-foundation.org>
+ mm-fix-huge-zero-page-accounting-in-smaps-report-fix-2.patch removed from
+ -mm tree
+Date: Wed, 10 Dec 2014 15:17:37 -0800
+Message-ID: <5488d491.PI+lXFtRAPvlht4A%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58253 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58256 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758156AbaLJXRf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Dec 2014 18:17:35 -0500
+	with ESMTP id S1758156AbaLJXRi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Dec 2014 18:17:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill@shutemov.name, fengguang.wu@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-fix-huge-zero-page-accounting-in-smaps-report-fix
+     Subject: mm-fix-huge-zero-page-accounting-in-smaps-report-fix-2
 has been removed from the -mm tree.  Its filename was
-     mm-fix-huge-zero-page-accounting-in-smaps-report-fix.patch
+     mm-fix-huge-zero-page-accounting-in-smaps-report-fix-2.patch
 
 This patch was dropped because it was folded into mm-fix-huge-zero-page-accounting-in-smaps-report.patch
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill@shutemov.name>
-Subject: mm-fix-huge-zero-page-accounting-in-smaps-report-fix
+Subject: mm-fix-huge-zero-page-accounting-in-smaps-report-fix-2
 
-Return type should be 'unsigned long'.
-
-Andrew, please fold this into the patch:
+fs/proc/task_mmu.c:474 smaps_account() warn: should 'size << 12' be a 64 bit type?
 
 Reported-by: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/include/asm/pgtable_64.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/task_mmu.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN arch/sparc/include/asm/pgtable_64.h~mm-fix-huge-zero-page-accounting-in-smaps-report-fix arch/sparc/include/asm/pgtable_64.h
---- a/arch/sparc/include/asm/pgtable_64.h~mm-fix-huge-zero-page-accounting-in-smaps-report-fix
-+++ a/arch/sparc/include/asm/pgtable_64.h
-@@ -667,7 +667,7 @@ static inline unsigned long pmd_pfn(pmd_
+diff -puN fs/proc/task_mmu.c~mm-fix-huge-zero-page-accounting-in-smaps-report-fix-2 fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~mm-fix-huge-zero-page-accounting-in-smaps-report-fix-2
++++ a/fs/proc/task_mmu.c
+@@ -465,17 +465,16 @@ static void smaps_account(struct mem_siz
+ 			mss->shared_dirty += size;
+ 		else
+ 			mss->shared_clean += size;
+-		mss->pss += (size << PSS_SHIFT) / mapcount;
++		mss->pss += ((u64)size << PSS_SHIFT) / mapcount;
+ 	} else {
+ 		if (dirty || PageDirty(page))
+ 			mss->private_dirty += size;
+ 		else
+ 			mss->private_clean += size;
+-		mss->pss += (size << PSS_SHIFT);
++		mss->pss += (u64)size << PSS_SHIFT;
+ 	}
  }
  
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
--static inline pmd_t pmd_dirty(pmd_t pmd)
-+static inline unsigned long pmd_dirty(pmd_t pmd)
- {
- 	pte_t pte = __pte(pmd_val(pmd));
- 
-_
-
-Patches currently in -mm which might be from kirill@shutemov.name are
-
-origin.patch
-mm-verify-compound-order-when-freeing-a-page.patch
-thp-do-not-mark-zero-page-pmd-write-protected-explicitly.patch
-mm-fix-huge-zero-page-accounting-in-smaps-report.patch
-mm-fix-huge-zero-page-accounting-in-smaps-report-fix-2.patch
-mm-fix-huge-zero-page-accounting-in-smaps-report-fix-2-fix.patch
-mm-embed-the-memcg-pointer-directly-into-struct-page.patch
-mm-embed-the-memcg-pointer-directly-into-struct-page-fix.patch
-mm-page_cgroup-rename-file-to-mm-swap_cgroupc.patch
-mm-move-page-mem_cgroup-bad-page-handling-into-generic-code.patch
-mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix.patch
-mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix-2.patch
-
