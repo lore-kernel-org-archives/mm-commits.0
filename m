@@ -1,108 +1,84 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix-2.patch
- removed from -mm tree
-Date: Wed, 10 Dec 2014 15:19:02 -0800
-Message-ID: <5488d4e6.aIo59NCxehA2ABeG%akpm@linux-foundation.org>
+ fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch removed from -mm
+ tree
+Date: Wed, 10 Dec 2014 15:19:22 -0800
+Message-ID: <5488d4fa.5fzfjiqtcACJt+Cx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58293 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58295 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758159AbaLJXTD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Dec 2014 18:19:03 -0500
+	with ESMTP id S1758169AbaLJXTX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Dec 2014 18:19:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, davem@davemloft.net, iamjoonsoo.kim@lge.com, kamezawa.hiroyu@jp.fujitsu.com, kirill@shutemov.name, mhocko@suse.cz, tj@kernel.org, vdavydov@parallels.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davem@davemloft.net, ebiederm@xmission.com, nicolas.dichtel@6wind.com, thierry.herbelot@6wind.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix-2
+     Subject: fs-proc-use-a-rb-tree-for-the-directory-entries-fix
 has been removed from the -mm tree.  Its filename was
-     mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix-2.patch
+     fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
 
-This patch was dropped because it was folded into mm-move-page-mem_cgroup-bad-page-handling-into-generic-code.patch
+This patch was dropped because it was folded into fs-proc-use-a-rb-tree-for-the-directory-entries.patch
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix-2
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fs-proc-use-a-rb-tree-for-the-directory-entries-fix
 
-Remove obsolete memory saving recommendations from the MEMCG Kconfig
-help text.
+initialise proc_root.subdir at compile time
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Vladimir Davydov <vdavydov@parallels.com>
-Cc: David Miller <davem@davemloft.net>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Thierry Herbelot <thierry.herbelot@6wind.com>
+Acked-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |   12 ------------
- 1 file changed, 12 deletions(-)
+ fs/proc/root.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN init/Kconfig~mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix-2 init/Kconfig
---- a/init/Kconfig~mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix-2
-+++ a/init/Kconfig
-@@ -990,18 +990,6 @@ config MEMCG
- 	  Provides a memory resource controller that manages both anonymous
- 	  memory and page cache. (See Documentation/cgroups/memory.txt)
+diff -puN fs/proc/root.c~fs-proc-use-a-rb-tree-for-the-directory-entries-fix fs/proc/root.c
+--- a/fs/proc/root.c~fs-proc-use-a-rb-tree-for-the-directory-entries-fix
++++ a/fs/proc/root.c
+@@ -166,7 +166,6 @@ void __init proc_root_init(void)
+ {
+ 	int err;
  
--	  Note that setting this option increases fixed memory overhead
--	  associated with each page of memory in the system. By this,
--	  8(16)bytes/PAGE_SIZE on 32(64)bit system will be occupied by memory
--	  usage tracking struct at boot. Total amount of this is printed out
--	  at boot.
--
--	  Only enable when you're ok with these trade offs and really
--	  sure you need the memory resource controller. Even when you enable
--	  this, you can set "cgroup_disable=memory" at your boot option to
--	  disable memory resource controller and you can avoid overheads.
--	  (and lose benefits of memory resource controller)
--
- config MEMCG_SWAP
- 	bool "Memory Resource Controller Swap Extension"
- 	depends on MEMCG && SWAP
+-	proc_root.subdir = RB_ROOT;
+ 	proc_init_inodecache();
+ 	err = register_filesystem(&proc_fs_type);
+ 	if (err)
+@@ -252,6 +251,7 @@ struct proc_dir_entry proc_root = {
+ 	.proc_iops	= &proc_root_inode_operations, 
+ 	.proc_fops	= &proc_root_operations,
+ 	.parent		= &proc_root,
++	.subdir		= RB_ROOT,
+ 	.name		= "/proc",
+ };
+ 
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-slab-print-slabinfo-header-in-seq-show.patch
+origin.patch
+mm-cma-fix-boot-regression-due-to-physical-address-of-high_memory.patch
+slab-improve-checking-for-invalid-gfp_flags.patch
 mm-memcontrol-lockless-page-counters.patch
-mm-hugetlb_cgroup-convert-to-lockless-page-counters.patch
 kernel-res_counter-remove-the-unused-api.patch
-mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting.patch
-mm-memcontrol-take-a-css-reference-for-each-charged-page.patch
-mm-memcontrol-remove-obsolete-kmemcg-pinning-tricks.patch
-mm-memcontrol-continue-cache-reclaim-from-offlined-groups.patch
-mm-memcontrol-remove-synchroneous-stock-draining-code.patch
-mm-vmscan-count-only-dirty-pages-as-congested.patch
-memcg-simplify-unreclaimable-groups-handling-in-soft-limit-reclaim.patch
-mm-memcontrol-update-mem_cgroup_page_lruvec-documentation.patch
-mm-memcontrol-clarify-migration-where-old-page-is-uncharged.patch
-memcg-remove-activate_kmem_mutex.patch
-mm-memcontrol-micro-optimize-mem_cgroup_split_huge_fixup.patch
-mm-memcontrol-uncharge-pages-on-swapout.patch
-mm-memcontrol-remove-unnecessary-pcg_memsw-memoryswap-charge-flag.patch
-mm-memcontrol-remove-unnecessary-pcg_mem-memory-charge-flag.patch
+mm-compaction-simplify-deferred-compaction.patch
+mm-compaction-always-update-cached-scanner-positions.patch
 mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag.patch
-mm-memcontrol-inline-memcg-move_lock-locking.patch
-mm-memcontrol-dont-pass-a-null-memcg-to-mem_cgroup_end_move.patch
-mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move.patch
-memcg-remove-mem_cgroup_reclaimable-check-from-soft-reclaim.patch
-memcg-use-generic-slab-iterators-for-showing-slabinfo.patch
-mm-memcontrol-shorten-the-page-statistics-update-slowpath.patch
-mm-memcontrol-remove-bogus-null-check-after-mem_cgroup_from_task.patch
-mm-memcontrol-pull-the-null-check-from-__mem_cgroup_same_or_subtree.patch
-mm-memcontrol-drop-bogus-rcu-locking-from-mem_cgroup_same_or_subtree.patch
-mm-memcg-fix-potential-undefined-when-for-page-stat-accounting.patch
-mm-memcontrol-remove-stale-page_cgroup_lock-comment.patch
-mm-embed-the-memcg-pointer-directly-into-struct-page.patch
-mm-page_cgroup-rename-file-to-mm-swap_cgroupc.patch
-mm-move-page-mem_cgroup-bad-page-handling-into-generic-code.patch
+mm-fix-huge-zero-page-accounting-in-smaps-report.patch
+fs-proc-use-a-rb-tree-for-the-directory-entries.patch
+fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user.patch
+init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails-checkpatch-fixes.patch
+rtc-omap-add-support-for-pmic_power_en-v3-fix.patch
+drivers-rtc-rtc-sirfsocc-add-alarm_irq_enable-support-fix.patch
+rtc-ds1374-add-watchdog-support-fix.patch
+rtc-ds1374-add-watchdog-support-checkpatch-fixes.patch
+exit-wait-cleanup-the-ptrace_reparented-checks-fix.patch
 
