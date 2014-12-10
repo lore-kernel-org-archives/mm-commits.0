@@ -1,16 +1,16 @@
 From: akpm@linux-foundation.org
 Subject: + rtc-ds1374-add-watchdog-support-fix.patch added to -mm tree
-Date: Tue, 09 Dec 2014 16:10:41 -0800
-Message-ID: <54878f81.3D+xHRu7VsGDHeNI%akpm@linux-foundation.org>
+Date: Tue, 09 Dec 2014 16:10:54 -0800
+Message-ID: <54878f8e.KREcjD4tzmYCqKAO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43948 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43955 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751625AbaLJAKm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Dec 2014 19:10:42 -0500
+	with ESMTP id S1751642AbaLJAKz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Dec 2014 19:10:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, a.zummo@towertech.it, dan.carpenter@oracle.com, san@rosetechnology.dk, mm-commits@vger.kernel.org
@@ -49,7 +49,7 @@ don't forget mutex_unlock() in ds1374_wdt_open() error path
 Cc: Alessandro Zummo <a.zummo@towertech.it>
 Cc: Soeren Andersen <san@rosetechnology.dk>
 Cc: S=F8ren Andersen <san@rosetechnology.dk>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
