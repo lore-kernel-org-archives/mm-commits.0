@@ -1,114 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-memcontrol-uncharge-pages-on-swapout-fix.patch removed from -mm tree
-Date: Wed, 10 Dec 2014 15:16:16 -0800
-Message-ID: <5488d440.PQqT+ZNLzxPsrJvh%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch removed from -mm tree
+Date: Wed, 10 Dec 2014 15:16:43 -0800
+Message-ID: <5488d45b.eewu/5ljdOE5BF5V%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58240 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58248 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757519AbaLJXQS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Dec 2014 18:16:18 -0500
+	with ESMTP id S1757519AbaLJXQo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Dec 2014 18:16:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, vdavydov@parallels.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, hughd@google.com, mhocko@suse.cz, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: uncharge pages on swapout fix
+     Subject: mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-uncharge-pages-on-swapout-fix.patch
+     mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
 
-This patch was dropped because it was folded into mm-memcontrol-uncharge-pages-on-swapout.patch
+This patch was dropped because it was folded into mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag.patch
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: uncharge pages on swapout fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix
 
-Vladimir notes:
+remove unneeded initialization of `memcg', per Michal
 
-> > +   local_irq_disable();
-> > +   mem_cgroup_charge_statistics(memcg, page, -1);
-> > +   memcg_check_events(memcg, page);
-> > +   local_irq_enable();
->
-> AFAICT mem_cgroup_swapout() is called under mapping->tree_lock with irqs
-> disabled, so we should use irq_save/restore here.
-
-Simply remove the irq-disabling altogether and rely on the caller
-holding the mapping->tree_lock for now.
-
-Reported-by: Vladimir Davydov <vdavydov@parallels.com>
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Vladimir Davydov <vdavydov@parallels.com>
 Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@suse.cz>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Vladimir Davydov <vdavydov@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/memcontrol.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-uncharge-pages-on-swapout-fix mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-uncharge-pages-on-swapout-fix
+diff -puN mm/memcontrol.c~mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix
 +++ a/mm/memcontrol.c
-@@ -5805,10 +5805,11 @@ void mem_cgroup_swapout(struct page *pag
- 	if (!mem_cgroup_is_root(memcg))
- 		page_counter_uncharge(&memcg->memory, 1);
- 
--	local_irq_disable();
-+	/* XXX: caller holds IRQ-safe mapping->tree_lock */
-+	VM_BUG_ON(!irqs_disabled());
-+
- 	mem_cgroup_charge_statistics(memcg, page, -1);
- 	memcg_check_events(memcg, page);
--	local_irq_enable();
- }
- 
- /**
+@@ -2523,7 +2523,7 @@ static struct mem_cgroup *mem_cgroup_loo
+  */
+ struct mem_cgroup *try_get_mem_cgroup_from_page(struct page *page)
+ {
+-	struct mem_cgroup *memcg = NULL;
++	struct mem_cgroup *memcg;
+ 	struct page_cgroup *pc;
+ 	unsigned short id;
+ 	swp_entry_t ent;
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-slab-print-slabinfo-header-in-seq-show.patch
+origin.patch
+mm-cma-fix-boot-regression-due-to-physical-address-of-high_memory.patch
+slab-improve-checking-for-invalid-gfp_flags.patch
 mm-memcontrol-lockless-page-counters.patch
-mm-hugetlb_cgroup-convert-to-lockless-page-counters.patch
 kernel-res_counter-remove-the-unused-api.patch
-mm-memcontrol-convert-reclaim-iterator-to-simple-css-refcounting.patch
-mm-memcontrol-take-a-css-reference-for-each-charged-page.patch
-mm-memcontrol-remove-obsolete-kmemcg-pinning-tricks.patch
-mm-memcontrol-continue-cache-reclaim-from-offlined-groups.patch
-mm-memcontrol-remove-synchroneous-stock-draining-code.patch
-mm-vmscan-count-only-dirty-pages-as-congested.patch
-memcg-simplify-unreclaimable-groups-handling-in-soft-limit-reclaim.patch
-mm-memcontrol-update-mem_cgroup_page_lruvec-documentation.patch
-mm-memcontrol-clarify-migration-where-old-page-is-uncharged.patch
-memcg-remove-activate_kmem_mutex.patch
-mm-memcontrol-micro-optimize-mem_cgroup_split_huge_fixup.patch
-mm-memcontrol-uncharge-pages-on-swapout.patch
-mm-memcontrol-remove-unnecessary-pcg_memsw-memoryswap-charge-flag.patch
-mm-memcontrol-remove-unnecessary-pcg_mem-memory-charge-flag.patch
+mm-compaction-simplify-deferred-compaction.patch
+mm-compaction-always-update-cached-scanner-positions.patch
 mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag.patch
-mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
-mm-memcontrol-inline-memcg-move_lock-locking.patch
-mm-memcontrol-dont-pass-a-null-memcg-to-mem_cgroup_end_move.patch
-mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move.patch
 mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix.patch
-memcg-remove-mem_cgroup_reclaimable-check-from-soft-reclaim.patch
-memcg-use-generic-slab-iterators-for-showing-slabinfo.patch
-mm-memcontrol-shorten-the-page-statistics-update-slowpath.patch
-mm-memcontrol-remove-bogus-null-check-after-mem_cgroup_from_task.patch
-mm-memcontrol-pull-the-null-check-from-__mem_cgroup_same_or_subtree.patch
-mm-memcontrol-drop-bogus-rcu-locking-from-mem_cgroup_same_or_subtree.patch
-mm-memcg-fix-potential-undefined-when-for-page-stat-accounting.patch
-mm-memcontrol-remove-stale-page_cgroup_lock-comment.patch
-mm-embed-the-memcg-pointer-directly-into-struct-page.patch
-mm-embed-the-memcg-pointer-directly-into-struct-page-fix.patch
-mm-page_cgroup-rename-file-to-mm-swap_cgroupc.patch
-mm-move-page-mem_cgroup-bad-page-handling-into-generic-code.patch
-mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix.patch
-mm-move-page-mem_cgroup-bad-page-handling-into-generic-code-fix-2.patch
+mm-fix-huge-zero-page-accounting-in-smaps-report-fix-2-fix.patch
+fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
+fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user.patch
+init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails-checkpatch-fixes.patch
+rtc-omap-add-support-for-pmic_power_en-v3-fix.patch
+drivers-rtc-rtc-sirfsocc-add-alarm_irq_enable-support-fix.patch
+rtc-ds1374-add-watchdog-support-fix.patch
+rtc-ds1374-add-watchdog-support-checkpatch-fixes.patch
+exit-wait-cleanup-the-ptrace_reparented-checks-fix.patch
 
