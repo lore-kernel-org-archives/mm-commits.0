@@ -1,96 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: + fs-hfs-fix-comparison-bug-in-hfs_cat_keycmp.patch added to -mm
- tree
-Date: Wed, 10 Dec 2014 13:51:07 -0800
-Message-ID: <5488c04b.qTCuqYxNf3di4fo7%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ mm-cma-fix-boot-regression-due-to-physical-address-of-high_memory-fix.patch removed from -mm tree
+Date: Wed, 10 Dec 2014 15:11:17 -0800
+Message-ID: <5488d315.umbNZNqmbwp/uXKt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57334 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58052 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932855AbaLJVvI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Dec 2014 16:51:08 -0500
+	with ESMTP id S1758319AbaLJXLS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Dec 2014 18:11:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, slava@dubeyko.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, iamjoonsoo.kim@lge.com, m.szyprowski@samsung.com, mingo@kernel.org, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/hfs/catalog.c: fix comparison bug in hfs_cat_keycmp
-has been added to the -mm tree.  Its filename is
-     fs-hfs-fix-comparison-bug-in-hfs_cat_keycmp.patch
+     Subject: mm-cma-fix-boot-regression-due-to-physical-address-of-high_memory-fix
+has been removed from the -mm tree.  Its filename was
+     mm-cma-fix-boot-regression-due-to-physical-address-of-high_memory-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-hfs-fix-comparison-bug-in-hfs_cat_keycmp.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-hfs-fix-comparison-bug-in-hfs_cat_keycmp.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mm-cma-fix-boot-regression-due-to-physical-address-of-high_memory.patch
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: fs/hfs/catalog.c: fix comparison bug in hfs_cat_keycmp
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-cma-fix-boot-regression-due-to-physical-address-of-high_memory-fix
 
-Relying on the sign (after casting to int) of the difference of two
-quantities for comparison is usually wrong.  For example, should a-b turn
-out to be 2^31, the return value of cmp(a,b) is -2^31; but that would also
-be the return value from cmp(b, a).  So a compares less than b and b
-compares less than a.  One can also easily find three values a,b,c such
-that a compares less than b, b compares less than c, but a does not
-compare less than c.
+tweak comment
 
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Reviewed-by: Vyacheslav Dubeyko <slava@dubeyko.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfs/catalog.c |   14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ mm/cma.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN fs/hfs/catalog.c~fs-hfs-fix-comparison-bug-in-hfs_cat_keycmp fs/hfs/catalog.c
---- a/fs/hfs/catalog.c~fs-hfs-fix-comparison-bug-in-hfs_cat_keycmp
-+++ a/fs/hfs/catalog.c
-@@ -162,14 +162,16 @@ err2:
-  */
- int hfs_cat_keycmp(const btree_key *key1, const btree_key *key2)
- {
--	int retval;
-+	__be32 k1p, k2p;
+diff -puN mm/cma.c~mm-cma-fix-boot-regression-due-to-physical-address-of-high_memory-fix mm/cma.c
+--- a/mm/cma.c~mm-cma-fix-boot-regression-due-to-physical-address-of-high_memory-fix
++++ a/mm/cma.c
+@@ -220,12 +220,11 @@ int __init cma_declare_contiguous(phys_a
  
--	retval = be32_to_cpu(key1->cat.ParID) - be32_to_cpu(key2->cat.ParID);
--	if (!retval)
--		retval = hfs_strcmp(key1->cat.CName.name, key1->cat.CName.len,
--				    key2->cat.CName.name, key2->cat.CName.len);
-+	k1p = key1->cat.ParID;
-+	k2p = key2->cat.ParID;
- 
--	return retval;
-+	if (k1p != k2p)
-+		return be32_to_cpu(k1p) < be32_to_cpu(k2p) ? -1 : 1;
-+
-+	return hfs_strcmp(key1->cat.CName.name, key1->cat.CName.len,
-+			  key2->cat.CName.name, key2->cat.CName.len);
- }
- 
- /* Try to get a catalog entry for given catalog id */
+ #ifdef CONFIG_X86
+ 	/*
+-	 * high_memory isn't direct mapped memory so retrieving it's
+-	 * physical address isn't appropriate. But, it would be useful
+-	 * to check physical address of highmem boundary so it's
+-	 * justfiable to get physical address from it. In x86, there is
+-	 * a validation check for this case, so following workaround is
+-	 * needed to avoid it.
++	 * high_memory isn't direct mapped memory so retrieving its physical
++	 * address isn't appropriate.  But it would be useful to check the
++	 * physical address of the highmem boundary so it's justfiable to get
++	 * the physical address from it.  On x86 there is a validation check for
++	 * this case, so the following workaround is needed to avoid it.
+ 	 */
+ 	highmem_start = __pa_nodebug(high_memory);
+ #else
 _
 
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-lib-lcmc-ensure-correct-result-whenever-it-fits.patch
-lib-lcmc-lcmn0=lcm0n-is-0-not-n.patch
-fs-hfs-fix-comparison-bug-in-hfs_cat_keycmp.patch
-linux-next.patch
+mm-cma-fix-boot-regression-due-to-physical-address-of-high_memory.patch
+slab-improve-checking-for-invalid-gfp_flags.patch
+mm-memcontrol-lockless-page-counters-fix.patch
+mm-memcontrol-lockless-page-counters-fix-fix.patch
+kernel-res_counter-remove-the-unused-api-fix.patch
+mm-compaction-simplify-deferred-compaction-fix.patch
+mm-compaction-always-update-cached-scanner-positions-fix-checkpatch-fixes.patch
+mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag-fix.patch
+mm-memcontrol-fold-mem_cgroup_start_move-mem_cgroup_end_move-fix.patch
+mm-fix-huge-zero-page-accounting-in-smaps-report-fix-2-fix.patch
+fs-proc-use-a-rb-tree-for-the-directory-entries-fix.patch
+fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user.patch
+init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails-checkpatch-fixes.patch
+rtc-omap-add-support-for-pmic_power_en-v3-fix.patch
+drivers-rtc-rtc-sirfsocc-add-alarm_irq_enable-support-fix.patch
+rtc-ds1374-add-watchdog-support-fix.patch
+rtc-ds1374-add-watchdog-support-checkpatch-fixes.patch
+exit-wait-cleanup-the-ptrace_reparented-checks-fix.patch
 
