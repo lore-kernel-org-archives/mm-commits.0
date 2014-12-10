@@ -1,66 +1,61 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-cma-fix-boot-regression-due-to-physical-address-of-high_memory-fix.patch removed from -mm tree
-Date: Wed, 10 Dec 2014 15:11:17 -0800
-Message-ID: <5488d315.umbNZNqmbwp/uXKt%akpm@linux-foundation.org>
+ mm-memcontrol-lockless-page-counters-fix-fix.patch removed from -mm tree
+Date: Wed, 10 Dec 2014 15:12:20 -0800
+Message-ID: <5488d354.OGttL4aP7XbRysWG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58052 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58182 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758319AbaLJXLS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Dec 2014 18:11:18 -0500
+	with ESMTP id S1758460AbaLJXMV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Dec 2014 18:12:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, iamjoonsoo.kim@lge.com, m.szyprowski@samsung.com, mingo@kernel.org, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-cma-fix-boot-regression-due-to-physical-address-of-high_memory-fix
+     Subject: [patch] mm-memcontrol-lockless-page-counters-fix
 has been removed from the -mm tree.  Its filename was
-     mm-cma-fix-boot-regression-due-to-physical-address-of-high_memory-fix.patch
+     mm-memcontrol-lockless-page-counters-fix-fix.patch
 
-This patch was dropped because it was folded into mm-cma-fix-boot-regression-due-to-physical-address-of-high_memory.patch
+This patch was dropped because it was folded into mm-memcontrol-lockless-page-counters.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-cma-fix-boot-regression-due-to-physical-address-of-high_memory-fix
+Subject: [patch] mm-memcontrol-lockless-page-counters-fix
 
-tweak comment
+add includes for WARN_ON_ONCE, memparse, strncmp, and PAGE_SIZE
 
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ mm/page_counter.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN mm/cma.c~mm-cma-fix-boot-regression-due-to-physical-address-of-high_memory-fix mm/cma.c
---- a/mm/cma.c~mm-cma-fix-boot-regression-due-to-physical-address-of-high_memory-fix
-+++ a/mm/cma.c
-@@ -220,12 +220,11 @@ int __init cma_declare_contiguous(phys_a
+diff -puN mm/page_counter.c~mm-memcontrol-lockless-page-counters-fix-fix mm/page_counter.c
+--- a/mm/page_counter.c~mm-memcontrol-lockless-page-counters-fix-fix
++++ a/mm/page_counter.c
+@@ -4,11 +4,13 @@
+  * Copyright (C) 2014 Red Hat, Inc., Johannes Weiner
+  */
  
- #ifdef CONFIG_X86
- 	/*
--	 * high_memory isn't direct mapped memory so retrieving it's
--	 * physical address isn't appropriate. But, it would be useful
--	 * to check physical address of highmem boundary so it's
--	 * justfiable to get physical address from it. In x86, there is
--	 * a validation check for this case, so following workaround is
--	 * needed to avoid it.
-+	 * high_memory isn't direct mapped memory so retrieving its physical
-+	 * address isn't appropriate.  But it would be useful to check the
-+	 * physical address of the highmem boundary so it's justfiable to get
-+	 * the physical address from it.  On x86 there is a validation check for
-+	 * this case, so the following workaround is needed to avoid it.
- 	 */
- 	highmem_start = __pa_nodebug(high_memory);
- #else
+-#include <linux/kernel.h>
+-#include <linux/bug.h>
+ #include <linux/page_counter.h>
+ #include <linux/atomic.h>
++#include <linux/kernel.h>
++#include <linux/string.h>
+ #include <linux/sched.h>
++#include <linux/bug.h>
++#include <asm/page.h>
+ 
+ /**
+  * page_counter_cancel - take pages out of the local counter
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -68,8 +63,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 mm-cma-fix-boot-regression-due-to-physical-address-of-high_memory.patch
 slab-improve-checking-for-invalid-gfp_flags.patch
-mm-memcontrol-lockless-page-counters-fix.patch
-mm-memcontrol-lockless-page-counters-fix-fix.patch
+mm-memcontrol-lockless-page-counters.patch
 kernel-res_counter-remove-the-unused-api-fix.patch
 mm-compaction-simplify-deferred-compaction-fix.patch
 mm-compaction-always-update-cached-scanner-positions-fix-checkpatch-fixes.patch
