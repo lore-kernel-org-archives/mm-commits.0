@@ -1,64 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- ia64-trivial-replace-get_unused_fd-by-get_unused_fd_flags0.patch removed
- from -mm tree
-Date: Thu, 11 Dec 2014 10:58:29 -0800
-Message-ID: <5489e955.F0Gs5r+O8lLtWYaT%akpm@linux-foundation.org>
+Subject: [merged] printk-remove-used-once-early_vprintk.patch removed from -mm tree
+Date: Thu, 11 Dec 2014 10:58:42 -0800
+Message-ID: <5489e962.qGNO02152OZqYo7e%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45522 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45545 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758526AbaLKS6a (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:58:30 -0500
+	with ESMTP id S1758526AbaLKS6n (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:58:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ydroneaud@opteya.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: joe@perches.com, cmetcalf@tilera.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ia64: replace get_unused_fd() with get_unused_fd_flags(0)
+     Subject: printk: remove used-once early_vprintk
 has been removed from the -mm tree.  Its filename was
-     ia64-trivial-replace-get_unused_fd-by-get_unused_fd_flags0.patch
+     printk-remove-used-once-early_vprintk.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yann Droneaud <ydroneaud@opteya.com>
-Subject: ia64: replace get_unused_fd() with get_unused_fd_flags(0)
+From: Joe Perches <joe@perches.com>
+Subject: printk: remove used-once early_vprintk
 
-This patch replaces calls to get_unused_fd() with equivalent call to
-get_unused_fd_flags(0) to preserve current behavor for existing code.
+Eliminate the unlikely possibility of message interleaving for
+early_printk/early_vprintk use.
 
-In a further patch, get_unused_fd() will be removed so that new code start
-using get_unused_fd_flags(), with the hope O_CLOEXEC could be used, either
-by default or choosen by userspace.
+early_vprintk can be done via the %pV extension so remove this unnecessary
+function and change early_printk to have the equivalent vprintk code.
 
-Signed-off-by: Yann Droneaud <ydroneaud@opteya.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+All uses of early_printk already end with a newline so also remove the
+unnecessary newline from the early_printk function.
+
+Signed-off-by: Joe Perches <joe@perches.com>
+Acked-by: Chris Metcalf <cmetcalf@tilera.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/perfmon.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/tile/kernel/early_printk.c |   19 +++++++++++++------
+ include/linux/printk.h          |    1 -
+ kernel/printk/printk.c          |   19 ++++++++-----------
+ 3 files changed, 21 insertions(+), 18 deletions(-)
 
-diff -puN arch/ia64/kernel/perfmon.c~ia64-trivial-replace-get_unused_fd-by-get_unused_fd_flags0 arch/ia64/kernel/perfmon.c
---- a/arch/ia64/kernel/perfmon.c~ia64-trivial-replace-get_unused_fd-by-get_unused_fd_flags0
-+++ a/arch/ia64/kernel/perfmon.c
-@@ -2662,7 +2662,7 @@ pfm_context_create(pfm_context_t *ctx, v
+diff -puN arch/tile/kernel/early_printk.c~printk-remove-used-once-early_vprintk arch/tile/kernel/early_printk.c
+--- a/arch/tile/kernel/early_printk.c~printk-remove-used-once-early_vprintk
++++ a/arch/tile/kernel/early_printk.c
+@@ -43,13 +43,20 @@ static struct console early_hv_console =
  
- 	ret = -ENOMEM;
+ void early_panic(const char *fmt, ...)
+ {
+-	va_list ap;
++	struct va_format vaf;
++	va_list args;
++
+ 	arch_local_irq_disable_all();
+-	va_start(ap, fmt);
+-	early_printk("Kernel panic - not syncing: ");
+-	early_vprintk(fmt, ap);
+-	early_printk("\n");
+-	va_end(ap);
++
++	va_start(args, fmt);
++
++	vaf.fmt = fmt;
++	vaf.va = &args;
++
++	early_printk("Kernel panic - not syncing: %pV", &vaf);
++
++	va_end(args);
++
+ 	dump_stack();
+ 	hv_halt();
+ }
+diff -puN include/linux/printk.h~printk-remove-used-once-early_vprintk include/linux/printk.h
+--- a/include/linux/printk.h~printk-remove-used-once-early_vprintk
++++ a/include/linux/printk.h
+@@ -118,7 +118,6 @@ int no_printk(const char *fmt, ...)
+ #ifdef CONFIG_EARLY_PRINTK
+ extern asmlinkage __printf(1, 2)
+ void early_printk(const char *fmt, ...);
+-void early_vprintk(const char *fmt, va_list ap);
+ #else
+ static inline __printf(1, 2) __cold
+ void early_printk(const char *s, ...) { }
+diff -puN kernel/printk/printk.c~printk-remove-used-once-early_vprintk kernel/printk/printk.c
+--- a/kernel/printk/printk.c~printk-remove-used-once-early_vprintk
++++ a/kernel/printk/printk.c
+@@ -1881,23 +1881,20 @@ static size_t cont_print_text(char *text
+ #ifdef CONFIG_EARLY_PRINTK
+ struct console *early_console;
  
--	fd = get_unused_fd();
-+	fd = get_unused_fd_flags(0);
- 	if (fd < 0)
- 		return fd;
+-void early_vprintk(const char *fmt, va_list ap)
+-{
+-	if (early_console) {
+-		char buf[512];
+-		int n = vscnprintf(buf, sizeof(buf), fmt, ap);
+-
+-		early_console->write(early_console, buf, n);
+-	}
+-}
+-
+ asmlinkage __visible void early_printk(const char *fmt, ...)
+ {
+ 	va_list ap;
++	char buf[512];
++	int n;
++
++	if (!early_console)
++		return;
+ 
+ 	va_start(ap, fmt);
+-	early_vprintk(fmt, ap);
++	n = vscnprintf(buf, sizeof(buf), fmt, ap);
+ 	va_end(ap);
++
++	early_console->write(early_console, buf, n);
+ }
+ #endif
  
 _
 
-Patches currently in -mm which might be from ydroneaud@opteya.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
+mm-utilc-add-kstrimdup.patch
+fs-affs-amigaffsc-use-va_format-instead-of-buffer-vnsprintf.patch
+linux-next.patch
 
