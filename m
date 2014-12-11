@@ -1,38 +1,40 @@
 From: akpm@linux-foundation.org
-Subject: [merged] proc-task_state-deuglify-the-max_fds-calculation.patch
- removed from -mm tree
-Date: Thu, 11 Dec 2014 10:58:05 -0800
-Message-ID: <5489e93d.TioVI2WN2b40/PgE%akpm@linux-foundation.org>
+Subject: [merged]
+ proc-task_state-ptrace_parent-doesnt-need-pid_alive-check.patch removed
+ from -mm tree
+Date: Thu, 11 Dec 2014 10:58:11 -0800
+Message-ID: <5489e943.TYfXpyhLYUf/g72A%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45474 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45489 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758505AbaLKS6G (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:58:06 -0500
+	with ESMTP id S1757775AbaLKS6M (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:58:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@redhat.com, adobriyan@gmail.com, atomlin@redhat.com, ebiederm@xmission.com, peterz@infradead.org, roland@hack.frob.com, stalexan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: task_state: deuglify the max_fds calculation
+     Subject: proc: task_state: ptrace_parent() doesn't need pid_alive() check
 has been removed from the -mm tree.  Its filename was
-     proc-task_state-deuglify-the-max_fds-calculation.patch
+     proc-task_state-ptrace_parent-doesnt-need-pid_alive-check.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: proc: task_state: deuglify the max_fds calculation
+Subject: proc: task_state: ptrace_parent() doesn't need pid_alive() check
 
-1. The usage of fdt looks very ugly, it can't be NULL if ->files is
-   not NULL. We can use "unsigned int max_fds" instead.
+p->ptrace != 0 means that release_task(p) was not called, so pid_alive()
+buys nothing and we can remove this check.  Other callers already use it
+directly without additional checks.
 
-2. This also allows to move seq_printf(max_fds) outside of task_lock()
-   and join it with the previous seq_printf(). See also the next patch.
+Note: with or without this patch ptrace_parent() can return the pointer to
+the freed task, this will be explained/fixed later.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Aaron Tomlin <atomlin@redhat.com>
@@ -44,65 +46,38 @@ Cc: Roland McGrath <roland@hack.frob.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c |   23 +++++++++++------------
- 1 file changed, 11 insertions(+), 12 deletions(-)
+ fs/proc/array.c |   13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN fs/proc/array.c~proc-task_state-deuglify-the-max_fds-calculation fs/proc/array.c
---- a/fs/proc/array.c~proc-task_state-deuglify-the-max_fds-calculation
+diff -puN fs/proc/array.c~proc-task_state-ptrace_parent-doesnt-need-pid_alive-check fs/proc/array.c
+--- a/fs/proc/array.c~proc-task_state-ptrace_parent-doesnt-need-pid_alive-check
 +++ a/fs/proc/array.c
-@@ -157,9 +157,9 @@ static inline void task_state(struct seq
+@@ -157,19 +157,18 @@ static inline void task_state(struct seq
  	struct user_namespace *user_ns = seq_user_ns(m);
  	struct group_info *group_info;
  	int g;
--	struct fdtable *fdt = NULL;
++	struct task_struct *tracer;
  	const struct cred *cred;
- 	pid_t ppid, tpid;
-+	unsigned int max_fds = 0;
+-	pid_t ppid, tpid, tgid, ngid;
++	pid_t ppid, tpid = 0, tgid, ngid;
+ 	unsigned int max_fds = 0;
  
  	rcu_read_lock();
  	ppid = pid_alive(p) ?
-@@ -171,6 +171,12 @@ static inline void task_state(struct seq
- 			tpid = task_pid_nr_ns(tracer, ns);
- 	}
- 	cred = get_task_cred(p);
+ 		task_tgid_nr_ns(rcu_dereference(p->real_parent), ns) : 0;
+-	tpid = 0;
+-	if (pid_alive(p)) {
+-		struct task_struct *tracer = ptrace_parent(p);
+-		if (tracer)
+-			tpid = task_pid_nr_ns(tracer, ns);
+-	}
 +
-+	task_lock(p);
-+	if (p->files)
-+		max_fds = files_fdtable(p->files)->max_fds;
-+	task_unlock(p);
-+
- 	seq_printf(m,
- 		"State:\t%s\n"
- 		"Tgid:\t%d\n"
-@@ -179,7 +185,8 @@ static inline void task_state(struct seq
- 		"PPid:\t%d\n"
- 		"TracerPid:\t%d\n"
- 		"Uid:\t%d\t%d\t%d\t%d\n"
--		"Gid:\t%d\t%d\t%d\t%d\n",
-+		"Gid:\t%d\t%d\t%d\t%d\n"
-+		"FDSize:\t%d\nGroups:\t",
- 		get_task_state(p),
- 		task_tgid_nr_ns(p, ns),
- 		task_numa_group_id(p),
-@@ -192,16 +199,8 @@ static inline void task_state(struct seq
- 		from_kgid_munged(user_ns, cred->gid),
- 		from_kgid_munged(user_ns, cred->egid),
- 		from_kgid_munged(user_ns, cred->sgid),
--		from_kgid_munged(user_ns, cred->fsgid));
--
--	task_lock(p);
--	if (p->files)
--		fdt = files_fdtable(p->files);
--	seq_printf(m,
--		"FDSize:\t%d\n"
--		"Groups:\t",
--		fdt ? fdt->max_fds : 0);
--	task_unlock(p);
-+		from_kgid_munged(user_ns, cred->fsgid),
-+		max_fds);
- 	rcu_read_unlock();
++	tracer = ptrace_parent(p);
++	if (tracer)
++		tpid = task_pid_nr_ns(tracer, ns);
  
- 	group_info = cred->group_info;
+ 	tgid = task_tgid_nr_ns(p, ns);
+ 	ngid = task_numa_group_id(p);
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
