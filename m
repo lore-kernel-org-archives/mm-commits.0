@@ -1,87 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged] o2dlm-fix-a-race-between-purge-and-master-query.patch
- removed from -mm tree
-Date: Thu, 11 Dec 2014 10:55:16 -0800
-Message-ID: <5489e894.Kp7b7hjj3WqfUZWK%akpm@linux-foundation.org>
+Subject: [merged] ocfs2-o2net-fix-connect-expired.patch removed from -mm
+ tree
+Date: Thu, 11 Dec 2014 10:55:18 -0800
+Message-ID: <5489e896.WPPuIVXCyFVD2M1H%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44975 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44977 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758404AbaLKSzR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:55:17 -0500
+	with ESMTP id S1758399AbaLKSzT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:55:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: srinivas.eeda@oracle.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.com, wen.gang.wang@oracle.com, mm-commits@vger.kernel.org
+To: junxiao.bi@oracle.com, jlbec@evilplan.org, mfasheh@suse.com, srinivas.eeda@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: o2dlm: fix a race between purge and master query
+     Subject: ocfs2: o2net: fix connect expired
 has been removed from the -mm tree.  Its filename was
-     o2dlm-fix-a-race-between-purge-and-master-query.patch
+     ocfs2-o2net-fix-connect-expired.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Srinivas Eeda <srinivas.eeda@oracle.com>
-Subject: ocfs2: o2dlm: fix a race between purge and master query
+From: Junxiao Bi <junxiao.bi@oracle.com>
+Subject: ocfs2: o2net: fix connect expired
 
-Node A sends master query request to node B which is the master.  At this
-time lockres happens to be on purgelist.  dlm_master_request_handler gets
-the dlm spinlock, finds the resource and releases the dlm spin lock. 
-Right at this dlm_thread on this node could purge the lockres. 
-dlm_master_request_handler can then acquire lockres spinlock and reply to
-Node A that node B is the master even though lockres on node B is purged.
+Set nn_persistent_error to -ENOTCONN will stop reconnect since the
+"stop" condition in o2net_start_connect() will be true.
 
-The above scenario will now make node A falsely think node B is the master
-which is inconsistent.  Further if another node C tries to master the same
-resource, every node will respond they are not the master.  Node C then
-masters the resource and sends assert master to all nodes.  This will now
-make node A crash with the following message.
+stop = (nn->nn_sc ||
+		(nn->nn_persistent_error &&
+		(nn->nn_persistent_error != -ENOTCONN || timeout == 0)));
 
-dlm_assert_master_handler:1831 ERROR: DIE! Mastery assert from 9, but current
-owner is 10!
+This will make connection never be established if the first connection
+request is lost.
 
-Signed-off-by: Srinivas Eeda <srinivas.eeda@oracle.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
+Set nn_persistent_error to 0 when connect expired to fix this.  With
+this changes, dlm will not be waken up when connect expired, this is OK
+since dlm depends on network, dlm can do nothing in this case if waken
+up.  Let it wait there for network recover and connect built again to
+continue.
+
+Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
+Reviewed-by: Srinivas Eeda <srinivas.eeda@oracle.com>
 Cc: Joel Becker <jlbec@evilplan.org>
-Reviewed-by: Wengang Wang <wen.gang.wang@oracle.com>
-Tested-by: Joseph Qi <joseph.qi@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmmaster.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ fs/ocfs2/cluster/tcp.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/dlm/dlmmaster.c~o2dlm-fix-a-race-between-purge-and-master-query fs/ocfs2/dlm/dlmmaster.c
---- a/fs/ocfs2/dlm/dlmmaster.c~o2dlm-fix-a-race-between-purge-and-master-query
-+++ a/fs/ocfs2/dlm/dlmmaster.c
-@@ -1460,6 +1460,18 @@ way_up_top:
+diff -puN fs/ocfs2/cluster/tcp.c~ocfs2-o2net-fix-connect-expired fs/ocfs2/cluster/tcp.c
+--- a/fs/ocfs2/cluster/tcp.c~ocfs2-o2net-fix-connect-expired
++++ a/fs/ocfs2/cluster/tcp.c
+@@ -1736,7 +1736,7 @@ static void o2net_connect_expired(struct
+ 		     o2net_idle_timeout() / 1000,
+ 		     o2net_idle_timeout() % 1000);
  
- 		/* take care of the easy cases up front */
- 		spin_lock(&res->spinlock);
-+
-+		/*
-+		 * Right after dlm spinlock was released, dlm_thread could have
-+		 * purged the lockres. Check if lockres got unhashed. If so
-+		 * start over.
-+		 */
-+		if (hlist_unhashed(&res->hash_node)) {
-+			spin_unlock(&res->spinlock);
-+			dlm_lockres_put(res);
-+			goto way_up_top;
-+		}
-+
- 		if (res->state & (DLM_LOCK_RES_RECOVERING|
- 				  DLM_LOCK_RES_MIGRATING)) {
- 			spin_unlock(&res->spinlock);
+-		o2net_set_nn_state(nn, NULL, 0, -ENOTCONN);
++		o2net_set_nn_state(nn, NULL, 0, 0);
+ 	}
+ 	spin_unlock(&nn->nn_lock);
+ }
 _
 
-Patches currently in -mm which might be from srinivas.eeda@oracle.com are
+Patches currently in -mm which might be from junxiao.bi@oracle.com are
 
 origin.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
+ocfs2-reflink-fix-slow-unlink-for-refcounted-file.patch
+ocfs2-fix-journal-commit-deadlock.patch
 
