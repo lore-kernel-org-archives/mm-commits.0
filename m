@@ -1,112 +1,68 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-memcontrol-shorten-the-page-statistics-update-slowpath.patch removed
- from -mm tree
-Date: Thu, 11 Dec 2014 10:57:25 -0800
-Message-ID: <5489e915.wvKLbRgJt5RfVQET%akpm@linux-foundation.org>
+ mm-memcontrol-remove-bogus-null-check-after-mem_cgroup_from_task.patch
+ removed from -mm tree
+Date: Thu, 11 Dec 2014 10:57:27 -0800
+Message-ID: <5489e917.BedSLUtZzq1TQ2EJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45392 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45396 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755889AbaLKS50 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:57:26 -0500
+	with ESMTP id S1758125AbaLKS52 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:57:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@cmpxchg.org, mhocko@suse.cz, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: shorten the page statistics update slowpath
+     Subject: mm: memcontrol: remove bogus NULL check after mem_cgroup_from_task()
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-shorten-the-page-statistics-update-slowpath.patch
+     mm-memcontrol-remove-bogus-null-check-after-mem_cgroup_from_task.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: shorten the page statistics update slowpath
+Subject: mm: memcontrol: remove bogus NULL check after mem_cgroup_from_task()
 
-While moving charges from one memcg to another, page stat updates must
-acquire the old memcg's move_lock to prevent double accounting.  That
-situation is denoted by an increased memcg->move_accounting.  However, the
-charge moving code declares this way too early for now, even before
-summing up the RSS and pre-allocating destination charges.
-
-Shorten this slowpath mode by increasing memcg->move_accounting only right
-before walking the task's address space with the intention of actually
-moving the pages.
+That function acts like a typecast - unless NULL is passed in, no NULL can
+come out.  task_in_mem_cgroup() callers don't pass NULL tasks.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.cz>
 Reviewed-by: Vladimir Davydov <vdavydov@parallels.com>
+Acked-by: Michal Hocko <mhocko@suse.cz
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   21 ++++++++-------------
- 1 file changed, 8 insertions(+), 13 deletions(-)
+ mm/memcontrol.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-shorten-the-page-statistics-update-slowpath mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-shorten-the-page-statistics-update-slowpath
+diff -puN mm/memcontrol.c~mm-memcontrol-remove-bogus-null-check-after-mem_cgroup_from_task mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-remove-bogus-null-check-after-mem_cgroup_from_task
 +++ a/mm/memcontrol.c
-@@ -5333,8 +5333,6 @@ static void __mem_cgroup_clear_mc(void)
- 
- static void mem_cgroup_clear_mc(void)
+@@ -1356,7 +1356,7 @@ static bool mem_cgroup_same_or_subtree(c
+ bool task_in_mem_cgroup(struct task_struct *task,
+ 			const struct mem_cgroup *memcg)
  {
--	struct mem_cgroup *from = mc.from;
--
- 	/*
- 	 * we must clear moving_task before waking up waiters at the end of
- 	 * task migration.
-@@ -5345,8 +5343,6 @@ static void mem_cgroup_clear_mc(void)
- 	mc.from = NULL;
- 	mc.to = NULL;
- 	spin_unlock(&mc.lock);
--
--	atomic_dec(&from->moving_account);
- }
+-	struct mem_cgroup *curr = NULL;
++	struct mem_cgroup *curr;
+ 	struct task_struct *p;
+ 	bool ret;
  
- static int mem_cgroup_can_attach(struct cgroup_subsys_state *css,
-@@ -5380,15 +5376,6 @@ static int mem_cgroup_can_attach(struct
- 			VM_BUG_ON(mc.moved_charge);
- 			VM_BUG_ON(mc.moved_swap);
- 
--			/*
--			 * Signal mem_cgroup_begin_page_stat() to take
--			 * the memcg's move_lock while we're moving
--			 * its pages to another memcg.  Then wait for
--			 * already started RCU-only updates to finish.
--			 */
--			atomic_inc(&from->moving_account);
--			synchronize_rcu();
--
- 			spin_lock(&mc.lock);
- 			mc.from = from;
- 			mc.to = memcg;
-@@ -5520,6 +5507,13 @@ static void mem_cgroup_move_charge(struc
- 	struct vm_area_struct *vma;
- 
- 	lru_add_drain_all();
-+	/*
-+	 * Signal mem_cgroup_begin_page_stat() to take the memcg's
-+	 * move_lock while we're moving its pages to another memcg.
-+	 * Then wait for already started RCU-only updates to finish.
-+	 */
-+	atomic_inc(&mc.from->moving_account);
-+	synchronize_rcu();
- retry:
- 	if (unlikely(!down_read_trylock(&mm->mmap_sem))) {
- 		/*
-@@ -5552,6 +5546,7 @@ retry:
- 			break;
+@@ -1372,8 +1372,7 @@ bool task_in_mem_cgroup(struct task_stru
+ 		 */
+ 		rcu_read_lock();
+ 		curr = mem_cgroup_from_task(task);
+-		if (curr)
+-			css_get(&curr->css);
++		css_get(&curr->css);
+ 		rcu_read_unlock();
  	}
- 	up_read(&mm->mmap_sem);
-+	atomic_dec(&mc.from->moving_account);
- }
- 
- static void mem_cgroup_move_task(struct cgroup_subsys_state *css,
+ 	/*
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
