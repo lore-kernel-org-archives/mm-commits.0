@@ -1,79 +1,164 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- ocfs2-fix-error-handling-when-creating-debugfs-root-in-ocfs2_init.patch
- removed from -mm tree
-Date: Thu, 11 Dec 2014 10:55:22 -0800
-Message-ID: <5489e89a.WW3yOpmyCUznYBlx%akpm@linux-foundation.org>
+ ocfs2-do-not-set-ocfs2_lock_upconvert_finishing-if-nonblocking-lock-can-not-be-granted-at-once.patch removed from -mm tree
+Date: Thu, 11 Dec 2014 10:55:24 -0800
+Message-ID: <5489e89c.eJ7FbcEGAGJ0+mjp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44984 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44990 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758436AbaLKSzX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:55:23 -0500
+	with ESMTP id S1758451AbaLKSzZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:55:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.com, mm-commits@vger.kernel.org
+To: xuejiufei@huawei.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix error handling when creating debugfs root in ocfs2_init()
+     Subject: ocfs2: do not set OCFS2_LOCK_UPCONVERT_FINISHING if nonblocking lock can not be granted at once
 has been removed from the -mm tree.  Its filename was
-     ocfs2-fix-error-handling-when-creating-debugfs-root-in-ocfs2_init.patch
+     ocfs2-do-not-set-ocfs2_lock_upconvert_finishing-if-nonblocking-lock-can-not-be-granted-at-once.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: ocfs2: fix error handling when creating debugfs root in ocfs2_init()
+From: Xue jiufei <xuejiufei@huawei.com>
+Subject: ocfs2: do not set OCFS2_LOCK_UPCONVERT_FINISHING if nonblocking lock can not be granted at once
 
-Error handling if creation of root of debugfs in ocfs2_init() fails is
-broken.  Although error code is set we fail to exit ocfs2_init() with
-error and thus initialization ends with success.  Later when mounting a
-filesystem, ocfs2 debugfs entries end up being created in the root of
-debugfs filesystem which is confusing.
+ocfs2_readpages() use nonblocking flag to avoid page lock inversion.  It
+will trigger cluster hang because that flag OCFS2_LOCK_UPCONVERT_FINISHING
+is not cleared if nonblocking lock cannot be granted at once.  The flag
+would prevent dc thread from downconverting.  So other nodes cannot
+acheive this lockres for ever.
 
-Fix the error handling to bail out.
+So we should not set OCFS2_LOCK_UPCONVERT_FINISHING when receiving ast if
+nonblocking lock had already returned.
 
-Coverity id: 1227009.
-
-Signed-off-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
+Signed-off-by: joyce.xue <xuejiufei@huawei.com>
+Reviewed-by: Junxiao Bi <junxiao.bi@oracle.com>
 Cc: Mark Fasheh <mfasheh@suse.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/super.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/ocfs2/dlmglue.c |   37 +++++++++++++++++++++++++++++++------
+ fs/ocfs2/ocfs2.h   |    6 ++++++
+ 2 files changed, 37 insertions(+), 6 deletions(-)
 
-diff -puN fs/ocfs2/super.c~ocfs2-fix-error-handling-when-creating-debugfs-root-in-ocfs2_init fs/ocfs2/super.c
---- a/fs/ocfs2/super.c~ocfs2-fix-error-handling-when-creating-debugfs-root-in-ocfs2_init
-+++ a/fs/ocfs2/super.c
-@@ -1622,8 +1622,9 @@ static int __init ocfs2_init(void)
+diff -puN fs/ocfs2/dlmglue.c~ocfs2-do-not-set-ocfs2_lock_upconvert_finishing-if-nonblocking-lock-can-not-be-granted-at-once fs/ocfs2/dlmglue.c
+--- a/fs/ocfs2/dlmglue.c~ocfs2-do-not-set-ocfs2_lock_upconvert_finishing-if-nonblocking-lock-can-not-be-granted-at-once
++++ a/fs/ocfs2/dlmglue.c
+@@ -861,8 +861,13 @@ static inline void ocfs2_generic_handle_
+ 	 * We set the OCFS2_LOCK_UPCONVERT_FINISHING flag before clearing
+ 	 * the OCFS2_LOCK_BUSY flag to prevent the dc thread from
+ 	 * downconverting the lock before the upconvert has fully completed.
++	 * Do not prevent the dc thread from downconverting if NONBLOCK lock
++	 * had already returned.
+ 	 */
+-	lockres_or_flags(lockres, OCFS2_LOCK_UPCONVERT_FINISHING);
++	if (!(lockres->l_flags & OCFS2_LOCK_NONBLOCK_FINISHED))
++		lockres_or_flags(lockres, OCFS2_LOCK_UPCONVERT_FINISHING);
++	else
++		lockres_clear_flags(lockres, OCFS2_LOCK_NONBLOCK_FINISHED);
  
- 	ocfs2_debugfs_root = debugfs_create_dir("ocfs2", NULL);
- 	if (!ocfs2_debugfs_root) {
--		status = -EFAULT;
-+		status = -ENOMEM;
- 		mlog(ML_ERROR, "Unable to create ocfs2 debugfs root.\n");
-+		goto out4;
+ 	lockres_clear_flags(lockres, OCFS2_LOCK_BUSY);
+ }
+@@ -1324,13 +1329,12 @@ static void lockres_add_mask_waiter(stru
+ 
+ /* returns 0 if the mw that was removed was already satisfied, -EBUSY
+  * if the mask still hadn't reached its goal */
+-static int lockres_remove_mask_waiter(struct ocfs2_lock_res *lockres,
++static int __lockres_remove_mask_waiter(struct ocfs2_lock_res *lockres,
+ 				      struct ocfs2_mask_waiter *mw)
+ {
+-	unsigned long flags;
+ 	int ret = 0;
+ 
+-	spin_lock_irqsave(&lockres->l_lock, flags);
++	assert_spin_locked(&lockres->l_lock);
+ 	if (!list_empty(&mw->mw_item)) {
+ 		if ((lockres->l_flags & mw->mw_mask) != mw->mw_goal)
+ 			ret = -EBUSY;
+@@ -1338,6 +1342,18 @@ static int lockres_remove_mask_waiter(st
+ 		list_del_init(&mw->mw_item);
+ 		init_completion(&mw->mw_complete);
  	}
++
++	return ret;
++}
++
++static int lockres_remove_mask_waiter(struct ocfs2_lock_res *lockres,
++				      struct ocfs2_mask_waiter *mw)
++{
++	unsigned long flags;
++	int ret = 0;
++
++	spin_lock_irqsave(&lockres->l_lock, flags);
++	ret = __lockres_remove_mask_waiter(lockres, mw);
+ 	spin_unlock_irqrestore(&lockres->l_lock, flags);
  
- 	ocfs2_set_locking_protocol();
+ 	return ret;
+@@ -1373,6 +1389,7 @@ static int __ocfs2_cluster_lock(struct o
+ 	unsigned long flags;
+ 	unsigned int gen;
+ 	int noqueue_attempted = 0;
++	int dlm_locked = 0;
+ 
+ 	ocfs2_init_mask_waiter(&mw);
+ 
+@@ -1481,6 +1498,7 @@ again:
+ 			ocfs2_recover_from_dlm_error(lockres, 1);
+ 			goto out;
+ 		}
++		dlm_locked = 1;
+ 
+ 		mlog(0, "lock %s, successful return from ocfs2_dlm_lock\n",
+ 		     lockres->l_name);
+@@ -1514,10 +1532,17 @@ out:
+ 	if (wait && arg_flags & OCFS2_LOCK_NONBLOCK &&
+ 	    mw.mw_mask & (OCFS2_LOCK_BUSY|OCFS2_LOCK_BLOCKED)) {
+ 		wait = 0;
+-		if (lockres_remove_mask_waiter(lockres, &mw))
++		spin_lock_irqsave(&lockres->l_lock, flags);
++		if (__lockres_remove_mask_waiter(lockres, &mw)) {
++			if (dlm_locked)
++				lockres_or_flags(lockres,
++					OCFS2_LOCK_NONBLOCK_FINISHED);
++			spin_unlock_irqrestore(&lockres->l_lock, flags);
+ 			ret = -EAGAIN;
+-		else
++		} else {
++			spin_unlock_irqrestore(&lockres->l_lock, flags);
+ 			goto again;
++		}
+ 	}
+ 	if (wait) {
+ 		ret = ocfs2_wait_for_mask(&mw);
+diff -puN fs/ocfs2/ocfs2.h~ocfs2-do-not-set-ocfs2_lock_upconvert_finishing-if-nonblocking-lock-can-not-be-granted-at-once fs/ocfs2/ocfs2.h
+--- a/fs/ocfs2/ocfs2.h~ocfs2-do-not-set-ocfs2_lock_upconvert_finishing-if-nonblocking-lock-can-not-be-granted-at-once
++++ a/fs/ocfs2/ocfs2.h
+@@ -144,6 +144,12 @@ enum ocfs2_unlock_action {
+ 						     * before the upconvert
+ 						     * has completed */
+ 
++#define OCFS2_LOCK_NONBLOCK_FINISHED (0x00001000) /* NONBLOCK cluster
++						   * lock has already
++						   * returned, do not block
++						   * dc thread from
++						   * downconverting */
++
+ struct ocfs2_lock_res_ops;
+ 
+ typedef void (*ocfs2_lock_callback)(int status, unsigned long data);
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from xuejiufei@huawei.com are
 
 origin.patch
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
-befs-remove-dead-code.patch
-linux-next.patch
-fallocate-create-fan_modify-and-in_modify-events.patch
-fsnotify-unify-inode-and-mount-marks-handling.patch
-fsnotify-remove-destroy_list-from-fsnotify_mark.patch
-mm-add-strictlimit-knob-v2.patch
+ocfs2-free-inode-when-i_count-becomes-zero.patch
+ocfs2-dlm-fix-race-between-dispatched_work-and-dlm_lockres_grab_inflight_worker.patch
+ocfs2-implement-ocfs2_direct_io_write-fix.patch
 
