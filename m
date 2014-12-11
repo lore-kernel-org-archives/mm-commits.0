@@ -1,202 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: [merged] nilfs2-fix-the-nilfs_iget-vs-nilfs_new_inode-races.patch removed from -mm tree
-Date: Thu, 11 Dec 2014 11:08:00 -0800
-Message-ID: <5489eb90.jtW52jDGf2XoQplV%akpm@linux-foundation.org>
+Subject: [merged]
+ usermodehelper-dont-use-clone_vfork-for-____call_usermodehelper.patch
+ removed from -mm tree
+Date: Thu, 11 Dec 2014 11:08:04 -0800
+Message-ID: <5489eb94.5OFd0YRb76LlVV80%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46050 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46055 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756919AbaLKTIB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 14:08:01 -0500
+	with ESMTP id S1758579AbaLKTIF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 14:08:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: konishi.ryusuke@lab.ntt.co.jp, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: oleg@redhat.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: fix the nilfs_iget() vs. nilfs_new_inode() races
+     Subject: usermodehelper: don't use CLONE_VFORK for ____call_usermodehelper()
 has been removed from the -mm tree.  Its filename was
-     nilfs2-fix-the-nilfs_iget-vs-nilfs_new_inode-races.patch
+     usermodehelper-dont-use-clone_vfork-for-____call_usermodehelper.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Subject: nilfs2: fix the nilfs_iget() vs. nilfs_new_inode() races
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: usermodehelper: don't use CLONE_VFORK for ____call_usermodehelper()
 
-same story as in commit 41080b5a2401133 ("nfsd race fixes: ext2") (similar
-ext2 fix) except that nilfs2 needs to use insert_inode_locked4() instead
-of insert_inode_locked() and a bug of a check for dead inodes needs to be
-fixed.
+After "kernel/kmod: fix use-after-free of the sub_infostructure"
+CLONE_VFORK in __call_usermodehelper() buys nothing, we rely on on
+umh_complete() in ____call_usermodehelper() anyway.
 
-If nilfs_iget() is called from nfsd after nilfs_new_inode() calls
-insert_inode_locked4(), nilfs_iget() will wait for unlock_new_inode() at
-the end of nilfs_mkdir()/nilfs_create()/etc to unlock the inode.
+Remove it.  This also eliminates the unnecessary sleep/wakeup in the
+likely case, and this allows the next change.
 
-If nilfs_iget() is called before nilfs_new_inode() calls
-insert_inode_locked4(), it will create an in-core inode and read its data
-from the on-disk inode.  But, nilfs_iget() will find i_nlink equals zero
-and fail at nilfs_read_inode_common(), which will lead it to call
-iget_failed() and cleanly fail.
+While at it, kill the "int wait" locals in ____call_usermodehelper() and
+__call_usermodehelper(), they can safely use sub_info->wait.
 
-However, this sanity check doesn't work as expected for reused on-disk
-inodes because they leave a non-zero value in i_mode field and it hinders
-the test of i_nlink.  This patch also fixes the issue by removing the test
-on i_mode that nilfs2 doesn't need.
-
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/inode.c |   32 ++++++++++++++++++++++++--------
- fs/nilfs2/namei.c |   15 ++++++++++++---
- 2 files changed, 36 insertions(+), 11 deletions(-)
+ kernel/kmod.c |   12 +++---------
+ 1 file changed, 3 insertions(+), 9 deletions(-)
 
-diff -puN fs/nilfs2/inode.c~nilfs2-fix-the-nilfs_iget-vs-nilfs_new_inode-races fs/nilfs2/inode.c
---- a/fs/nilfs2/inode.c~nilfs2-fix-the-nilfs_iget-vs-nilfs_new_inode-races
-+++ a/fs/nilfs2/inode.c
-@@ -49,6 +49,8 @@ struct nilfs_iget_args {
- 	int for_gc;
- };
- 
-+static int nilfs_iget_test(struct inode *inode, void *opaque);
-+
- void nilfs_inode_add_blocks(struct inode *inode, int n)
+diff -puN kernel/kmod.c~usermodehelper-dont-use-clone_vfork-for-____call_usermodehelper kernel/kmod.c
+--- a/kernel/kmod.c~usermodehelper-dont-use-clone_vfork-for-____call_usermodehelper
++++ a/kernel/kmod.c
+@@ -223,7 +223,6 @@ static void umh_complete(struct subproce
+ static int ____call_usermodehelper(void *data)
  {
- 	struct nilfs_root *root = NILFS_I(inode)->i_root;
-@@ -348,6 +350,17 @@ const struct address_space_operations ni
- 	.is_partially_uptodate  = block_is_partially_uptodate,
- };
+ 	struct subprocess_info *sub_info = data;
+-	int wait = sub_info->wait & ~UMH_KILLABLE;
+ 	struct cred *new;
+ 	int retval;
  
-+static int nilfs_insert_inode_locked(struct inode *inode,
-+				     struct nilfs_root *root,
-+				     unsigned long ino)
-+{
-+	struct nilfs_iget_args args = {
-+		.ino = ino, .root = root, .cno = 0, .for_gc = 0
-+	};
-+
-+	return insert_inode_locked4(inode, ino, nilfs_iget_test, &args);
-+}
-+
- struct inode *nilfs_new_inode(struct inode *dir, umode_t mode)
- {
- 	struct super_block *sb = dir->i_sb;
-@@ -383,7 +396,7 @@ struct inode *nilfs_new_inode(struct ino
- 	if (S_ISREG(mode) || S_ISDIR(mode) || S_ISLNK(mode)) {
- 		err = nilfs_bmap_read(ii->i_bmap, NULL);
- 		if (err < 0)
--			goto failed_bmap;
-+			goto failed_after_creation;
- 
- 		set_bit(NILFS_I_BMAP, &ii->i_state);
- 		/* No lock is needed; iget() ensures it. */
-@@ -399,21 +412,24 @@ struct inode *nilfs_new_inode(struct ino
- 	spin_lock(&nilfs->ns_next_gen_lock);
- 	inode->i_generation = nilfs->ns_next_generation++;
- 	spin_unlock(&nilfs->ns_next_gen_lock);
--	insert_inode_hash(inode);
-+	if (nilfs_insert_inode_locked(inode, root, ino) < 0) {
-+		err = -EIO;
-+		goto failed_after_creation;
-+	}
- 
- 	err = nilfs_init_acl(inode, dir);
- 	if (unlikely(err))
--		goto failed_acl; /* never occur. When supporting
-+		goto failed_after_creation; /* never occur. When supporting
- 				    nilfs_init_acl(), proper cancellation of
- 				    above jobs should be considered */
- 
- 	return inode;
- 
-- failed_acl:
-- failed_bmap:
-+ failed_after_creation:
- 	clear_nlink(inode);
-+	unlock_new_inode(inode);
- 	iput(inode);  /* raw_inode will be deleted through
--			 generic_delete_inode() */
-+			 nilfs_evict_inode() */
- 	goto failed;
- 
-  failed_ifile_create_inode:
-@@ -461,8 +477,8 @@ int nilfs_read_inode_common(struct inode
- 	inode->i_atime.tv_nsec = le32_to_cpu(raw_inode->i_mtime_nsec);
- 	inode->i_ctime.tv_nsec = le32_to_cpu(raw_inode->i_ctime_nsec);
- 	inode->i_mtime.tv_nsec = le32_to_cpu(raw_inode->i_mtime_nsec);
--	if (inode->i_nlink == 0 && inode->i_mode == 0)
--		return -EINVAL; /* this inode is deleted */
-+	if (inode->i_nlink == 0)
-+		return -ESTALE; /* this inode is deleted */
- 
- 	inode->i_blocks = le64_to_cpu(raw_inode->i_blocks);
- 	ii->i_flags = le32_to_cpu(raw_inode->i_flags);
-diff -puN fs/nilfs2/namei.c~nilfs2-fix-the-nilfs_iget-vs-nilfs_new_inode-races fs/nilfs2/namei.c
---- a/fs/nilfs2/namei.c~nilfs2-fix-the-nilfs_iget-vs-nilfs_new_inode-races
-+++ a/fs/nilfs2/namei.c
-@@ -51,9 +51,11 @@ static inline int nilfs_add_nondir(struc
- 	int err = nilfs_add_link(dentry, inode);
- 	if (!err) {
- 		d_instantiate(dentry, inode);
-+		unlock_new_inode(inode);
- 		return 0;
- 	}
- 	inode_dec_link_count(inode);
-+	unlock_new_inode(inode);
- 	iput(inode);
- 	return err;
- }
-@@ -182,6 +184,7 @@ out:
- out_fail:
- 	drop_nlink(inode);
- 	nilfs_mark_inode_dirty(inode);
-+	unlock_new_inode(inode);
- 	iput(inode);
- 	goto out;
- }
-@@ -201,11 +204,15 @@ static int nilfs_link(struct dentry *old
- 	inode_inc_link_count(inode);
- 	ihold(inode);
- 
--	err = nilfs_add_nondir(dentry, inode);
--	if (!err)
-+	err = nilfs_add_link(dentry, inode);
-+	if (!err) {
-+		d_instantiate(dentry, inode);
- 		err = nilfs_transaction_commit(dir->i_sb);
--	else
-+	} else {
-+		inode_dec_link_count(inode);
-+		iput(inode);
- 		nilfs_transaction_abort(dir->i_sb);
-+	}
- 
- 	return err;
- }
-@@ -243,6 +250,7 @@ static int nilfs_mkdir(struct inode *dir
- 
- 	nilfs_mark_inode_dirty(inode);
- 	d_instantiate(dentry, inode);
-+	unlock_new_inode(inode);
+@@ -267,7 +266,7 @@ static int ____call_usermodehelper(void
  out:
- 	if (!err)
- 		err = nilfs_transaction_commit(dir->i_sb);
-@@ -255,6 +263,7 @@ out_fail:
- 	drop_nlink(inode);
- 	drop_nlink(inode);
- 	nilfs_mark_inode_dirty(inode);
-+	unlock_new_inode(inode);
- 	iput(inode);
- out_dir:
- 	drop_nlink(dir);
+ 	sub_info->retval = retval;
+ 	/* wait_for_helper() will call umh_complete if UHM_WAIT_PROC. */
+-	if (wait != UMH_WAIT_PROC)
++	if (!(sub_info->wait & UMH_WAIT_PROC))
+ 		umh_complete(sub_info);
+ 	if (!retval)
+ 		return 0;
+@@ -323,18 +322,13 @@ static void __call_usermodehelper(struct
+ {
+ 	struct subprocess_info *sub_info =
+ 		container_of(work, struct subprocess_info, work);
+-	int wait = sub_info->wait & ~UMH_KILLABLE;
+ 	pid_t pid;
+ 
+-	/* CLONE_VFORK: wait until the usermode helper has execve'd
+-	 * successfully We need the data structures to stay around
+-	 * until that is done.  */
+-	if (wait == UMH_WAIT_PROC)
++	if (sub_info->wait & UMH_WAIT_PROC)
+ 		pid = kernel_thread(wait_for_helper, sub_info,
+ 				    CLONE_FS | CLONE_FILES | SIGCHLD);
+ 	else {
+-		pid = kernel_thread(call_helper, sub_info,
+-				    CLONE_VFORK | SIGCHLD);
++		pid = kernel_thread(call_helper, sub_info, SIGCHLD);
+ 		/* Worker thread stopped blocking khelper thread. */
+ 		kmod_thread_locker = NULL;
+ 	}
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 origin.patch
+mmfs-introduce-helpers-around-the-i_mmap_mutex.patch
+mm-use-new-helper-functions-around-the-i_mmap_mutex.patch
+mm-convert-i_mmap_mutex-to-rwsem.patch
+mm-rmap-share-the-i_mmap_rwsem.patch
+uprobes-share-the-i_mmap_rwsem.patch
+mm-xip-share-the-i_mmap_rwsem.patch
+mm-memory-failure-share-the-i_mmap_rwsem.patch
+mm-nommu-share-the-i_mmap_rwsem.patch
+mm-memoryc-share-the-i_mmap_rwsem.patch
+remove-unnecessary-is_valid_nodemask.patch
+oom-dont-assume-that-a-coredumping-thread-will-exit-soon.patch
+oom-dont-assume-that-a-coredumping-thread-will-exit-soon-v2.patch
+oom-dont-assume-that-a-coredumping-thread-will-exit-soon-v2-fix.patch
+oom-kill-the-insufficient-and-no-longer-needed-pt_trace_exit-check.patch
+linux-next.patch
+all-arches-signal-move-restart_block-to-struct-task_struct.patch
 
