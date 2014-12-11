@@ -1,99 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-slab-reverse-iteration-on-find_mergeable.patch
+Subject: [merged] slab-improve-checking-for-invalid-gfp_flags.patch
  removed from -mm tree
-Date: Thu, 11 Dec 2014 10:55:41 -0800
-Message-ID: <5489e8ad.PMLBeGXZTfmbaaLO%akpm@linux-foundation.org>
+Date: Thu, 11 Dec 2014 10:55:45 -0800
+Message-ID: <5489e8b1.uHHNCGW2Ztyd46NJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45027 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45039 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758507AbaLKSzm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:55:42 -0500
+	with ESMTP id S1758537AbaLKSzq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:55:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, cl@linux.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slab: reverse iteration on find_mergeable()
+     Subject: slab: improve checking for invalid gfp_flags
 has been removed from the -mm tree.  Its filename was
-     mm-slab-reverse-iteration-on-find_mergeable.patch
+     slab-improve-checking-for-invalid-gfp_flags.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/slab: reverse iteration on find_mergeable()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: slab: improve checking for invalid gfp_flags
 
-Unlike SLUB, sometimes, object isn't started at the beginning of the slab
-in the SLAB.  This causes the unalignment problem when after slab merging
-is supported by commit 12220dea07f1 ("mm/slab: support slab merge"). 
-Alignment mismatch check is introduced ("mm/slab: fix unalignment problem
-on Malta with EVA due to slab merge") to prevent merge in this case.
+The code goes BUG, but doesn't tell us which bits were unexpectedly set. 
+Print that out.
 
-This causes undesirable result that merging happens between infrequently
-used kmem_caches if there are kmem_caches with same size and is 256 bytes,
-are merged into pool_workqueue rather than kmalloc-256, because
-kmem_caches for kmalloc are at the tail of the list.
-
-To prevent this situation, this patch reverses iteration order in
-find_mergeable() to find frequently used kmem_caches.  This change helps
-to merge kmem_cache to frequently used kmem_caches, such as kmalloc
-kmem_caches.
-
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Acked-by: Christoph Lameter <cl@linux.com>
+Cc: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab_common.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/slab.c |    5 ++++-
+ mm/slub.c |    5 ++++-
+ 2 files changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN mm/slab_common.c~mm-slab-reverse-iteration-on-find_mergeable mm/slab_common.c
---- a/mm/slab_common.c~mm-slab-reverse-iteration-on-find_mergeable
-+++ a/mm/slab_common.c
-@@ -240,7 +240,7 @@ struct kmem_cache *find_mergeable(size_t
- 	size = ALIGN(size, align);
- 	flags = kmem_cache_flags(size, flags, name, NULL);
+diff -puN mm/slab.c~slab-improve-checking-for-invalid-gfp_flags mm/slab.c
+--- a/mm/slab.c~slab-improve-checking-for-invalid-gfp_flags
++++ a/mm/slab.c
+@@ -2590,7 +2590,10 @@ static int cache_grow(struct kmem_cache
+ 	 * Be lazy and only check for valid flags here,  keeping it out of the
+ 	 * critical path in kmem_cache_alloc().
+ 	 */
+-	BUG_ON(flags & GFP_SLAB_BUG_MASK);
++	if (unlikely(flags & GFP_SLAB_BUG_MASK)) {
++		pr_emerg("gfp: %u\n", flags & GFP_SLAB_BUG_MASK);
++		BUG();
++	}
+ 	local_flags = flags & (GFP_CONSTRAINT_MASK|GFP_RECLAIM_MASK);
  
--	list_for_each_entry(s, &slab_caches, list) {
-+	list_for_each_entry_reverse(s, &slab_caches, list) {
- 		if (slab_unmergeable(s))
- 			continue;
+ 	/* Take the node list lock to change the colour_next on this node */
+diff -puN mm/slub.c~slab-improve-checking-for-invalid-gfp_flags mm/slub.c
+--- a/mm/slub.c~slab-improve-checking-for-invalid-gfp_flags
++++ a/mm/slub.c
+@@ -1377,7 +1377,10 @@ static struct page *new_slab(struct kmem
+ 	int order;
+ 	int idx;
  
+-	BUG_ON(flags & GFP_SLAB_BUG_MASK);
++	if (unlikely(flags & GFP_SLAB_BUG_MASK)) {
++		pr_emerg("gfp: %u\n", flags & GFP_SLAB_BUG_MASK);
++		BUG();
++	}
+ 
+ 	page = allocate_slab(s,
+ 		flags & (GFP_RECLAIM_MASK | GFP_CONSTRAINT_MASK), node);
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-lib-bitmap-added-alignment-offset-for-bitmap_find_next_zero_area.patch
-mm-cma-align-to-physical-address-not-cma-region-position.patch
-mm-debug-pagealloc-cleanup-page-guard-code.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
+ocfs2-free-inode-when-i_count-becomes-zero.patch
+ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
+mm.patch
+mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
+mm-mincore-add-hwpoison-page-handle-checkpatch-fixes.patch
 include-linux-kmemleakh-needs-slabh.patch
-mm-page_ext-resurrect-struct-page-extending-code-for-debugging.patch
-mm-page_ext-resurrect-struct-page-extending-code-for-debugging-fix.patch
-mm-debug-pagealloc-prepare-boottime-configurable-on-off.patch
-mm-debug-pagealloc-make-debug-pagealloc-boottime-configurable.patch
-mm-debug-pagealloc-make-debug-pagealloc-boottime-configurable-fix.patch
-mm-nommu-use-alloc_pages_exact-rather-than-its-own-implementation.patch
-mm-nommu-use-alloc_pages_exact-rather-than-its-own-implementation-fix.patch
-stacktrace-introduce-snprint_stack_trace-for-buffer-output.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
 mm-page_owner-keep-track-of-page-owners.patch
-mm-page_owner-correct-owner-information-for-early-allocated-pages.patch
-documentation-add-new-page_owner-document.patch
-fix-memory-ordering-bug-in-mm-vmallocc.patch
-memcg-fix-possible-use-after-free-in-memcg_kmem_get_cache.patch
-zsmalloc-merge-size_class-to-reduce-fragmentation.patch
+fs-seq_file-fallback-to-vmalloc-instead-of-oom-kill-processes-fix.patch
+oom-dont-assume-that-a-coredumping-thread-will-exit-soon-v2-fix.patch
+mm-memcontrol-fix-defined-but-not-used-compiler-warning-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix-2.patch
+zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix.patch
+mm-zsmalloc-support-allocating-obj-with-size-of-zs_max_alloc_size-fix.patch
+mm-zsmalloc-avoid-duplicate-assignment-of-prev_class-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+sysctl-terminate-strings-also-on-r-fix.patch
+ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
+ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
+ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
 linux-next.patch
-slab-fix-cpuset-check-in-fallback_alloc.patch
-slub-fix-cpuset-check-in-get_any_partial.patch
+linux-next-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
 mm-cma-make-kmemleak-ignore-cma-regions.patch
-mm-cma-split-cma-reserved-in-dmesg-log.patch
-fs-proc-include-cma-info-in-proc-meminfo.patch
+lib-show_mem-this-patch-adds-cma-reserved-infromation-fix.patch
+tools-testing-selftests-makefile-alphasort-the-targets-list.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
