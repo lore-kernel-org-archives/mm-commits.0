@@ -1,65 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- maintainers-update-ivtv-mailing-lists-as-subscriber-only.patch removed from -mm tree
-Date: Thu, 11 Dec 2014 11:05:14 -0800
-Message-ID: <5489eaea.AalLEbCz872qLaDe%akpm@linux-foundation.org>
+Subject: [merged] checkpatch-improve-test-for-no-space-after-cast.patch
+ removed from -mm tree
+Date: Thu, 11 Dec 2014 11:05:24 -0800
+Message-ID: <5489eaf4.5bksfaJH81DkrDUp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45655 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45669 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751253AbaLKTFP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 14:05:15 -0500
+	with ESMTP id S1750814AbaLKTFZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 14:05:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, awalls@md.metrocast.net, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: joe@perches.com, kvalo@qca.qualcomm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: update ivtv mailing lists as subscriber-only
+     Subject: checkpatch: improve test for no space after cast
 has been removed from the -mm tree.  Its filename was
-     maintainers-update-ivtv-mailing-lists-as-subscriber-only.patch
+     checkpatch-improve-test-for-no-space-after-cast.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: update ivtv mailing lists as subscriber-only
+Subject: checkpatch: improve test for no space after cast
 
-Mark these as subscriber-only mailing lists.
+sizeof(foo) is not a cast, allow a space after it.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Andy Walls <awalls@md.metrocast.net>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Tested-by: Kalle Valo <kvalo@qca.qualcomm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ scripts/checkpatch.pl |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-update-ivtv-mailing-lists-as-subscriber-only MAINTAINERS
---- a/MAINTAINERS~maintainers-update-ivtv-mailing-lists-as-subscriber-only
-+++ a/MAINTAINERS
-@@ -2723,7 +2723,7 @@ F:	drivers/net/wireless/cw1200/
+diff -puN scripts/checkpatch.pl~checkpatch-improve-test-for-no-space-after-cast scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-improve-test-for-no-space-after-cast
++++ a/scripts/checkpatch.pl
+@@ -2515,7 +2515,8 @@ sub process {
+ 			}
+ 		}
  
- CX18 VIDEO4LINUX DRIVER
- M:	Andy Walls <awalls@md.metrocast.net>
--L:	ivtv-devel@ivtvdriver.org (moderated for non-subscribers)
-+L:	ivtv-devel@ivtvdriver.org (subscribers-only)
- L:	linux-media@vger.kernel.org
- T:	git git://linuxtv.org/media_tree.git
- W:	http://linuxtv.org
-@@ -5209,7 +5209,7 @@ F:	drivers/media/tuners/it913x*
- 
- IVTV VIDEO4LINUX DRIVER
- M:	Andy Walls <awalls@md.metrocast.net>
--L:	ivtv-devel@ivtvdriver.org (moderated for non-subscribers)
-+L:	ivtv-devel@ivtvdriver.org (subscribers-only)
- L:	linux-media@vger.kernel.org
- T:	git git://linuxtv.org/media_tree.git
- W:	http://www.ivtvdriver.org
+-		if ($line =~ /^\+.*\(\s*$Type\s*\)[ \t]+(?!$Assignment|$Arithmetic|{)/) {
++		if ($line =~ /^\+.*(\w+\s*)?\(\s*$Type\s*\)[ \t]+(?!$Assignment|$Arithmetic|[,;\({\[\<\>])/ &&
++		    (!defined($1) || $1 !~ /sizeof\s*/)) {
+ 			if (CHK("SPACING",
+ 				"No space is necessary after a cast\n" . $herecurr) &&
+ 			    $fix) {
 _
 
 Patches currently in -mm which might be from joe@perches.com are
