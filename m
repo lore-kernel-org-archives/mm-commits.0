@@ -1,40 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- rtc-omap-silence-bogus-power-up-reset-message-at-probe.patch removed from
- -mm tree
-Date: Thu, 11 Dec 2014 11:06:39 -0800
-Message-ID: <5489eb3f.t59D2LQxcDIP3pbN%akpm@linux-foundation.org>
+Subject: [merged] rtc-omap-add-helper-to-read-32-bit-registers.patch
+ removed from -mm tree
+Date: Thu, 11 Dec 2014 11:06:45 -0800
+Message-ID: <5489eb45.utAOoRhnmDXd4dmA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45831 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45848 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758476AbaLKTGk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 14:06:40 -0500
+	with ESMTP id S1756081AbaLKTGq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 14:06:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: johan@kernel.org, a.zummo@towertech.it, balbi@ti.com, bcousson@baylibre.com, j-keerthy@ti.com, linux@roeck-us.net, lokeshvutla@ti.com, nsekhar@ti.com, t-kristo@ti.com, tony@atomide.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: omap: silence bogus power-up reset message at probe
+     Subject: rtc: omap: add helper to read 32-bit registers
 has been removed from the -mm tree.  Its filename was
-     rtc-omap-silence-bogus-power-up-reset-message-at-probe.patch
+     rtc-omap-add-helper-to-read-32-bit-registers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Johan Hovold <johan@kernel.org>
-Subject: rtc: omap: silence bogus power-up reset message at probe
+Subject: rtc: omap: add helper to read 32-bit registers
 
-Some legacy RTC IP revisions has a power-up reset flag in the status
-register that later revisions lack.
-
-As this flag is always read back as set on later revisions (or is
-overloaded with a different flag), make sure to only clear the flag and
-print the info message on legacy platforms.
+Add helper to read full register width.
 
 Signed-off-by: Johan Hovold <johan@kernel.org>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
@@ -49,60 +43,24 @@ Tested-by: Felipe Balbi <balbi@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-omap.c |   19 +++++++++++++------
- 1 file changed, 13 insertions(+), 6 deletions(-)
+ drivers/rtc/rtc-omap.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN drivers/rtc/rtc-omap.c~rtc-omap-silence-bogus-power-up-reset-message-at-probe drivers/rtc/rtc-omap.c
---- a/drivers/rtc/rtc-omap.c~rtc-omap-silence-bogus-power-up-reset-message-at-probe
+diff -puN drivers/rtc/rtc-omap.c~rtc-omap-add-helper-to-read-32-bit-registers drivers/rtc/rtc-omap.c
+--- a/drivers/rtc/rtc-omap.c~rtc-omap-add-helper-to-read-32-bit-registers
 +++ a/drivers/rtc/rtc-omap.c
-@@ -106,6 +106,7 @@ struct omap_rtc_device_type {
- 	bool has_32kclk_en;
- 	bool has_kicker;
- 	bool has_irqwakeen;
-+	bool has_power_up_reset;
- };
+@@ -123,6 +123,11 @@ static inline u8 rtc_read(struct omap_rt
+ 	return readb(rtc->base + reg);
+ }
  
- struct omap_rtc {
-@@ -346,6 +347,7 @@ static struct rtc_class_ops omap_rtc_ops
- };
- 
- static const struct omap_rtc_device_type omap_rtc_default_type = {
-+	.has_power_up_reset = true,
- };
- 
- static const struct omap_rtc_device_type omap_rtc_am3352_type = {
-@@ -391,7 +393,7 @@ static int __init omap_rtc_probe(struct
++static inline u32 rtc_readl(struct omap_rtc *rtc, unsigned int reg)
++{
++	return readl(rtc->base + reg);
++}
++
+ static inline void rtc_write(struct omap_rtc *rtc, unsigned int reg, u8 val)
  {
- 	struct omap_rtc		*rtc;
- 	struct resource		*res;
--	u8			reg, new_ctrl;
-+	u8			reg, mask, new_ctrl;
- 	const struct platform_device_id *id_entry;
- 	const struct of_device_id *of_id;
- 	int ret;
-@@ -448,12 +450,17 @@ static int __init omap_rtc_probe(struct
- 
- 	/* clear old status */
- 	reg = rtc_read(rtc, OMAP_RTC_STATUS_REG);
--	if (reg & (u8) OMAP_RTC_STATUS_POWER_UP) {
--		dev_info(&pdev->dev, "RTC power up reset detected\n");
--		rtc_write(rtc, OMAP_RTC_STATUS_REG, OMAP_RTC_STATUS_POWER_UP);
-+
-+	mask = OMAP_RTC_STATUS_ALARM;
-+
-+	if (rtc->type->has_power_up_reset) {
-+		mask |= OMAP_RTC_STATUS_POWER_UP;
-+		if (reg & OMAP_RTC_STATUS_POWER_UP)
-+			dev_info(&pdev->dev, "RTC power up reset detected\n");
- 	}
--	if (reg & (u8) OMAP_RTC_STATUS_ALARM)
--		rtc_write(rtc, OMAP_RTC_STATUS_REG, OMAP_RTC_STATUS_ALARM);
-+
-+	if (reg & mask)
-+		rtc_write(rtc, OMAP_RTC_STATUS_REG, reg & mask);
- 
- 	/* On boards with split power, RTC_ON_NOFF won't reset the RTC */
- 	reg = rtc_read(rtc, OMAP_RTC_CTRL_REG);
+ 	writeb(val, rtc->base + reg);
 _
 
 Patches currently in -mm which might be from johan@kernel.org are
