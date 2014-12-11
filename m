@@ -1,91 +1,70 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- checkpatch-add-strict-test-for-function-pointer-calling-style.patch removed from -mm tree
-Date: Thu, 11 Dec 2014 11:05:35 -0800
-Message-ID: <5489eaff.7kNYQeyFskZbSkqA%akpm@linux-foundation.org>
+ checkpatch-allow-certain-si-units-with-three-characters.patch removed from
+ -mm tree
+Date: Thu, 11 Dec 2014 11:05:37 -0800
+Message-ID: <5489eb01.ZXvvLK3a84mVqB7O%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45684 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45688 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753247AbaLKTFg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 14:05:36 -0500
+	with ESMTP id S1757031AbaLKTFi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 14:05:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, peter@hurleysoftware.com, mm-commits@vger.kernel.org
+To: jwerner@chromium.org, apw@canonical.com, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: Add --strict test for function pointer calling style
+     Subject: checkpatch: allow certain SI units with three characters
 has been removed from the -mm tree.  Its filename was
-     checkpatch-add-strict-test-for-function-pointer-calling-style.patch
+     checkpatch-allow-certain-si-units-with-three-characters.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: Add --strict test for function pointer calling style
+From: Julius Werner <jwerner@chromium.org>
+Subject: checkpatch: allow certain SI units with three characters
 
-Peter Hurley wrote:
+Checkpatch flags CamelCase identifiers in strict mode, but it has a
+feature to ignore parts with only two characters to allow for SI units
+like mV or uA.  Unfortunately, not all SI units fit in two characters, and
+not all are lower case followed by upper case.
 
-The use of older function ptr calling style, (*fn)(), makes static
-analysis more error-prone; replace with modern fn() style.
+This patch adds hardcoded detection for frequency and 1024-based size
+units (Hz/KHz/MHz/GHz/THz and KiB/MiB/GiB/TiB), since allowing any three
+character combinations might be too lenient.  The list can later be
+expanded as needed.
 
-So make checkpatch emit a --strict test for that condition.
-
-Update the unnecessary parentheses test for dereferencing
-objects at the same time and create a $fix mechanism too.
-
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Peter Hurley <peter@hurleysoftware.com>
+Signed-off-by: Julius Werner <jwerner@chromium.org>
+Acked-by: Joe Perches <joe@perches.com>
+Cc: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   24 +++++++++++++++++++++---
- 1 file changed, 21 insertions(+), 3 deletions(-)
+ scripts/checkpatch.pl |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-strict-test-for-function-pointer-calling-style scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-strict-test-for-function-pointer-calling-style
+diff -puN scripts/checkpatch.pl~checkpatch-allow-certain-si-units-with-three-characters scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-allow-certain-si-units-with-three-characters
 +++ a/scripts/checkpatch.pl
-@@ -3844,9 +3844,27 @@ sub process {
- # ie: &(foo->bar) should be &foo->bar and *(foo->bar) should be *foo->bar
- 
- 		while ($line =~ /(?:[^&]&\s*|\*)\(\s*($Ident\s*(?:$Member\s*)+)\s*\)/g) {
--			CHK("UNNECESSARY_PARENTHESES",
--			    "Unnecessary parentheses around $1\n" . $herecurr);
--		    }
-+			my $var = $1;
-+			if (CHK("UNNECESSARY_PARENTHESES",
-+				"Unnecessary parentheses around $var\n" . $herecurr) &&
-+			    $fix) {
-+				$fixed[$fixlinenr] =~ s/\(\s*\Q$var\E\s*\)/$var/;
-+			}
-+		}
-+
-+# check for unnecessary parentheses around function pointer uses
-+# ie: (foo->bar)(); should be foo->bar();
-+# but not "if (foo->bar) (" to avoid some false positives
-+		if ($line =~ /(\bif\s*|)(\(\s*$Ident\s*(?:$Member\s*)+\))[ \t]*\(/ && $1 !~ /^if/) {
-+			my $var = $2;
-+			if (CHK("UNNECESSARY_PARENTHESES",
-+				"Unnecessary parentheses around function pointer $var\n" . $herecurr) &&
-+			    $fix) {
-+				my $var2 = deparenthesize($var);
-+				$var2 =~ s/\s//g;
-+				$fixed[$fixlinenr] =~ s/\Q$var\E/$var2/;
-+			}
-+		}
- 
- #goto labels aren't indented, allow a single space however
- 		if ($line=~/^.\s+[A-Za-z\d_]+:(?![0-9]+)/ and
+@@ -4104,7 +4104,9 @@ sub process {
+ #Ignore Page<foo> variants
+ 			    $var !~ /^(?:Clear|Set|TestClear|TestSet|)Page[A-Z]/ &&
+ #Ignore SI style variants like nS, mV and dB (ie: max_uV, regulator_min_uA_show)
+-			    $var !~ /^(?:[a-z_]*?)_?[a-z][A-Z](?:_[a-z_]+)?$/) {
++			    $var !~ /^(?:[a-z_]*?)_?[a-z][A-Z](?:_[a-z_]+)?$/ &&
++#Ignore some three character SI units explicitly, like MiB and KHz
++			    $var !~ /^(?:[a-z_]*?)_?(?:[KMGT]iB|[KMGT]?Hz)(?:_[a-z_]+)?$/) {
+ 				while ($var =~ m{($Ident)}g) {
+ 					my $word = $1;
+ 					next if ($word !~ /[A-Z][a-z]|[a-z][A-Z]/);
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from jwerner@chromium.org are
 
 origin.patch
-mm-utilc-add-kstrimdup.patch
-fs-affs-amigaffsc-use-va_format-instead-of-buffer-vnsprintf.patch
-linux-next.patch
 
