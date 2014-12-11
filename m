@@ -1,64 +1,87 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- nilfs2-deletion-of-an-unnecessary-check-before-the-function-call-iput.patch removed from -mm tree
-Date: Thu, 11 Dec 2014 11:07:58 -0800
-Message-ID: <5489eb8e.SiyqNTN4axpX0Err%akpm@linux-foundation.org>
+ rtc-refine-rtc_timer_do_work-to-consider-other-set-alarm-failures.patch
+ removed from -mm tree
+Date: Thu, 11 Dec 2014 11:07:54 -0800
+Message-ID: <5489eb8a.H5RSETwmeYbGcfev%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46046 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46038 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756919AbaLKTH7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 14:07:59 -0500
+	with ESMTP id S1756919AbaLKTHz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 14:07:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: elfring@users.sourceforge.net, konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
+To: pang.xunlei@linaro.org, a.zummo@towertech.it, arnd.bergmann@linaro.org, john.stultz@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: deletion of an unnecessary check before the function call "iput"
+     Subject: rtc: refine rtc_timer_do_work() to consider other set alarm failures
 has been removed from the -mm tree.  Its filename was
-     nilfs2-deletion-of-an-unnecessary-check-before-the-function-call-iput.patch
+     rtc-refine-rtc_timer_do_work-to-consider-other-set-alarm-failures.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Markus Elfring <elfring@users.sourceforge.net>
-Subject: nilfs2: deletion of an unnecessary check before the function call "iput"
+From: Xunlei Pang <pang.xunlei@linaro.org>
+Subject: rtc: refine rtc_timer_do_work() to consider other set alarm failures
 
-The iput() function tests whether its argument is NULL and then returns
-immediately.  Thus the test around the call is not needed.
+rtc_timer_do_work() only judges -ETIME failure of__rtc_set_alarm(), but
+doesn't handle other failures like -EIO, -EBUSY, etc.
 
-This issue was detected by using the Coccinelle software.
+If there is a failure other than -ETIME, the next rtc_timer will stay in
+the timerqueue.  Then later rtc_timers will be enqueued directly because
+they have a later expires time, so the alarm irq will never be programmed.
 
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+When such failures happen, this patch will retry __rtc_set_alarm(), if
+still can't program the alarm time, it will remove current rtc_timer from
+timerqueue and fetch next one, thus preventing it from affecting other rtc
+timers.
+
+Signed-off-by: Xunlei Pang <pang.xunlei@linaro.org>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: John Stultz <john.stultz@linaro.org>
+Cc: Arnd Bergmann <arnd.bergmann@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/the_nilfs.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/rtc/interface.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff -puN fs/nilfs2/the_nilfs.c~nilfs2-deletion-of-an-unnecessary-check-before-the-function-call-iput fs/nilfs2/the_nilfs.c
---- a/fs/nilfs2/the_nilfs.c~nilfs2-deletion-of-an-unnecessary-check-before-the-function-call-iput
-+++ a/fs/nilfs2/the_nilfs.c
-@@ -808,8 +808,7 @@ void nilfs_put_root(struct nilfs_root *r
- 		spin_lock(&nilfs->ns_cptree_lock);
- 		rb_erase(&root->rb_node, &nilfs->ns_cptree);
- 		spin_unlock(&nilfs->ns_cptree_lock);
--		if (root->ifile)
--			iput(root->ifile);
-+		iput(root->ifile);
+diff -puN drivers/rtc/interface.c~rtc-refine-rtc_timer_do_work-to-consider-other-set-alarm-failures drivers/rtc/interface.c
+--- a/drivers/rtc/interface.c~rtc-refine-rtc_timer_do_work-to-consider-other-set-alarm-failures
++++ a/drivers/rtc/interface.c
+@@ -899,11 +899,24 @@ again:
+ 	if (next) {
+ 		struct rtc_wkalrm alarm;
+ 		int err;
++		int retry = 3;
++
+ 		alarm.time = rtc_ktime_to_tm(next->expires);
+ 		alarm.enabled = 1;
++reprogram:
+ 		err = __rtc_set_alarm(rtc, &alarm);
+ 		if (err == -ETIME)
+ 			goto again;
++		else if (err) {
++			if (retry-- > 0)
++				goto reprogram;
++
++			timer = container_of(next, struct rtc_timer, node);
++			timerqueue_del(&rtc->timerqueue, &timer->node);
++			timer->enabled = 0;
++			dev_err(&rtc->dev, "__rtc_set_alarm: err=%d\n", err);
++			goto again;
++		}
+ 	} else
+ 		rtc_alarm_disable(rtc);
  
- 		kfree(root);
- 	}
 _
 
-Patches currently in -mm which might be from elfring@users.sourceforge.net are
+Patches currently in -mm which might be from pang.xunlei@linaro.org are
 
 origin.patch
-mm-zswap-deletion-of-an-unnecessary-check-before-the-function-call-free_percpu.patch
-linux-next.patch
 
