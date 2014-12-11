@@ -1,93 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-memcontrol-uncharge-pages-on-swapout.patch removed
+Subject: [merged]
+ mm-memcontrol-remove-unnecessary-pcg_mem-memory-charge-flag.patch removed
  from -mm tree
-Date: Thu, 11 Dec 2014 10:57:01 -0800
-Message-ID: <5489e8fd.1s0SCCcRoeuBBiOL%akpm@linux-foundation.org>
+Date: Thu, 11 Dec 2014 10:57:05 -0800
+Message-ID: <5489e901.+RRH8TnUk1BD7euv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45325 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45345 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757031AbaLKS5C (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:57:02 -0500
+	with ESMTP id S1756097AbaLKS5G (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:57:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@cmpxchg.org, hughd@google.com, kamezawa.hiroyu@jp.fujitsu.com, mhocko@suse.cz, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: uncharge pages on swapout
+     Subject: mm: memcontrol: remove unnecessary PCG_MEM memory charge flag
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-uncharge-pages-on-swapout.patch
+     mm-memcontrol-remove-unnecessary-pcg_mem-memory-charge-flag.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: uncharge pages on swapout
+Subject: mm: memcontrol: remove unnecessary PCG_MEM memory charge flag
 
-This series gets rid of the remaining page_cgroup flags, thus cutting the
-memcg per-page overhead down to one pointer.
-
-
-This patch (of 4):
-
-mem_cgroup_swapout() is called with exclusive access to the page at the
-end of the page's lifetime.  Instead of clearing the PCG_MEMSW flag and
-deferring the uncharge, just do it right away.  This allows follow-up
-patches to simplify the uncharge code.
+PCG_MEM is a remnant from an earlier version of 0a31bc97c80c ("mm:
+memcontrol: rewrite uncharge API"), used to tell whether migration cleared
+a charge while leaving pc->mem_cgroup valid and PCG_USED set.  But in the
+final version, mem_cgroup_migrate() directly uncharges the source page,
+rendering this distinction unnecessary.  Remove it.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Hugh Dickins <hughd@google.com>
 Acked-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: Vladimir Davydov <vdavydov@parallels.com>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Reviewed-by: Vladimir Davydov <vdavydov@parallels.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   18 ++++++++++++++----
- 1 file changed, 14 insertions(+), 4 deletions(-)
+ include/linux/page_cgroup.h |    1 -
+ mm/memcontrol.c             |    4 +---
+ 2 files changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-uncharge-pages-on-swapout mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-uncharge-pages-on-swapout
-+++ a/mm/memcontrol.c
-@@ -5777,6 +5777,7 @@ static void __init enable_swap_cgroup(vo
-  */
- void mem_cgroup_swapout(struct page *page, swp_entry_t entry)
- {
-+	struct mem_cgroup *memcg;
- 	struct page_cgroup *pc;
- 	unsigned short oldid;
+diff -puN include/linux/page_cgroup.h~mm-memcontrol-remove-unnecessary-pcg_mem-memory-charge-flag include/linux/page_cgroup.h
+--- a/include/linux/page_cgroup.h~mm-memcontrol-remove-unnecessary-pcg_mem-memory-charge-flag
++++ a/include/linux/page_cgroup.h
+@@ -4,7 +4,6 @@
+ enum {
+ 	/* flags for mem_cgroup */
+ 	PCG_USED = 0x01,	/* This page is charged to a memcg */
+-	PCG_MEM = 0x02,		/* This page holds a memory charge */
+ };
  
-@@ -5793,13 +5794,22 @@ void mem_cgroup_swapout(struct page *pag
+ struct pglist_data;
+diff -puN mm/memcontrol.c~mm-memcontrol-remove-unnecessary-pcg_mem-memory-charge-flag mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-remove-unnecessary-pcg_mem-memory-charge-flag
++++ a/mm/memcontrol.c
+@@ -2614,7 +2614,7 @@ static void commit_charge(struct page *p
+ 	 *   have the page locked
+ 	 */
+ 	pc->mem_cgroup = memcg;
+-	pc->flags = PCG_USED | PCG_MEM;
++	pc->flags = PCG_USED;
+ 
+ 	if (lrucare)
+ 		unlock_page_lru(page, isolated);
+@@ -6156,8 +6156,6 @@ void mem_cgroup_migrate(struct page *old
+ 	if (!PageCgroupUsed(pc))
  		return;
  
- 	VM_BUG_ON_PAGE(!(pc->flags & PCG_MEMSW), page);
-+	memcg = pc->mem_cgroup;
+-	VM_BUG_ON_PAGE(!(pc->flags & PCG_MEM), oldpage);
+-
+ 	if (lrucare)
+ 		lock_page_lru(oldpage, &isolated);
  
--	oldid = swap_cgroup_record(entry, mem_cgroup_id(pc->mem_cgroup));
-+	oldid = swap_cgroup_record(entry, mem_cgroup_id(memcg));
- 	VM_BUG_ON_PAGE(oldid, page);
-+	mem_cgroup_swap_statistics(memcg, true);
- 
--	pc->flags &= ~PCG_MEMSW;
--	css_get(&pc->mem_cgroup->css);
--	mem_cgroup_swap_statistics(pc->mem_cgroup, true);
-+	pc->flags = 0;
-+
-+	if (!mem_cgroup_is_root(memcg))
-+		page_counter_uncharge(&memcg->memory, 1);
-+
-+	/* XXX: caller holds IRQ-safe mapping->tree_lock */
-+	VM_BUG_ON(!irqs_disabled());
-+
-+	mem_cgroup_charge_statistics(memcg, page, -1);
-+	memcg_check_events(memcg, page);
- }
- 
- /**
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
