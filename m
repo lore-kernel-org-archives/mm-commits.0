@@ -1,345 +1,130 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-ds1307-add-support-for-mcp7940x-chips.patch removed
- from -mm tree
-Date: Thu, 11 Dec 2014 11:07:29 -0800
-Message-ID: <5489eb71.lhWyYZR1w7+lcXzp%akpm@linux-foundation.org>
+Subject: [merged] rtc-rtc-isl12057-add-support-for-century-bit.patch
+ removed from -mm tree
+Date: Thu, 11 Dec 2014 11:07:36 -0800
+Message-ID: <5489eb78.FyTkvhZlLDg+SnMT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45963 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45992 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758078AbaLKTHa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 14:07:30 -0500
+	with ESMTP id S1758078AbaLKTHh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 14:07:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tomas@novotny.cz, a.zummo@towertech.it, grant.likely@linaro.org, robh+dt@kernel.org, mm-commits@vger.kernel.org
+To: arno@natisbad.org, a.zummo@towertech.it, broonie@kernel.org, grant.likely@linaro.org, linus.walleij@linaro.org, mark.rutland@arm.com, peter.huewe@infineon.com, treding@nvidia.com, uwe@kleine-koenig.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: ds1307: add support for mcp7940x chips
+     Subject: drivers/rtc/rtc-isl12057.c: add support for century bit
 has been removed from the -mm tree.  Its filename was
-     rtc-ds1307-add-support-for-mcp7940x-chips.patch
+     rtc-rtc-isl12057-add-support-for-century-bit.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
 ------------------------------------------------------
-From: Tomas Novotny <tomas@novotny.cz>
-Subject: rtc: ds1307: add support for mcp7940x chips
+=46rom: Arnaud Ebalard <arno@natisbad.org>
+Subject: drivers/rtc/rtc-isl12057.c: add support for century bit
 
-MCP7940x is same RTC as MCP7941x.  The difference is that MCP7941x chips
-contain additional EEPROM on a different i2c address.
+The month register of ISL12057 RTC chip includes a century bit which
+reports overflow of year register from 99 to 0.  This bit can also be
+written, which allows using it to extend the time interval the chip can
+support from 99 to 199 years.
 
-DS1307 driver already supports MCP7941x, so just add a new i2c device id
-and rename functions and defines accordingly.
+This patch adds support for century overflow bit in tm to regs and regs=
+ to
+tm helpers in ISL12057 driver.
 
-Signed-off-by: Tomas Novotny <tomas@novotny.cz>
+This was tested by putting a device 100 years in the future (using a
+specific kernel due to the inability of userland tools such as date or
+hwclock to pass year 2038), rebooting on a kernel w/ this patch applied
+and verifying the device was still 100 years in the future.
+
+Signed-off-by: Arnaud Ebalard <arno@natisbad.org>
+Suggested-by: Uwe Kleine-K=F6nig <uwe@kleine-koenig.org>
+Acked-by: Uwe Kleine-K=F6nig <uwe@kleine-koenig.org>
+Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Peter Huewe <peter.huewe@infineon.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: Thierry Reding <treding@nvidia.com>
+Cc: Mark Brown <broonie@kernel.org>
 Cc: Grant Likely <grant.likely@linaro.org>
-Cc: Rob Herring <robh+dt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1307.c |  125 ++++++++++++++++++-------------------
- 1 file changed, 63 insertions(+), 62 deletions(-)
+ drivers/rtc/rtc-isl12057.c |   20 ++++++++++++++++----
+ 1 file changed, 16 insertions(+), 4 deletions(-)
 
-diff -puN drivers/rtc/rtc-ds1307.c~rtc-ds1307-add-support-for-mcp7940x-chips drivers/rtc/rtc-ds1307.c
---- a/drivers/rtc/rtc-ds1307.c~rtc-ds1307-add-support-for-mcp7940x-chips
-+++ a/drivers/rtc/rtc-ds1307.c
-@@ -35,7 +35,7 @@ enum ds_type {
- 	ds_1388,
- 	ds_3231,
- 	m41t00,
--	mcp7941x,
-+	mcp794xx,
- 	rx_8025,
- 	last_ds_type /* always last */
- 	/* rs5c372 too?  different address... */
-@@ -46,7 +46,7 @@ enum ds_type {
- #define DS1307_REG_SECS		0x00	/* 00-59 */
- #	define DS1307_BIT_CH		0x80
- #	define DS1340_BIT_nEOSC		0x80
--#	define MCP7941X_BIT_ST		0x80
-+#	define MCP794XX_BIT_ST		0x80
- #define DS1307_REG_MIN		0x01	/* 00-59 */
- #define DS1307_REG_HOUR		0x02	/* 00-23, or 1-12{am,pm} */
- #	define DS1307_BIT_12HR		0x40	/* in REG_HOUR */
-@@ -54,7 +54,7 @@ enum ds_type {
- #	define DS1340_BIT_CENTURY_EN	0x80	/* in REG_HOUR */
- #	define DS1340_BIT_CENTURY	0x40	/* in REG_HOUR */
- #define DS1307_REG_WDAY		0x03	/* 01-07 */
--#	define MCP7941X_BIT_VBATEN	0x08
-+#	define MCP794XX_BIT_VBATEN	0x08
- #define DS1307_REG_MDAY		0x04	/* 01-31 */
- #define DS1307_REG_MONTH	0x05	/* 01-12 */
- #	define DS1337_BIT_CENTURY	0x80	/* in REG_MONTH */
-@@ -159,7 +159,7 @@ static struct chip_desc chips[last_ds_ty
- 	[ds_3231] = {
- 		.alarm		= 1,
- 	},
--	[mcp7941x] = {
-+	[mcp794xx] = {
- 		.alarm		= 1,
- 		/* this is battery backed SRAM */
- 		.nvram_offset	= 0x20,
-@@ -176,7 +176,8 @@ static const struct i2c_device_id ds1307
- 	{ "ds1340", ds_1340 },
- 	{ "ds3231", ds_3231 },
- 	{ "m41t00", m41t00 },
--	{ "mcp7941x", mcp7941x },
-+	{ "mcp7940x", mcp794xx },
-+	{ "mcp7941x", mcp794xx },
- 	{ "pt7c4338", ds_1307 },
- 	{ "rx8025", rx_8025 },
- 	{ }
-@@ -439,14 +440,14 @@ static int ds1307_set_time(struct device
- 		buf[DS1307_REG_HOUR] |= DS1340_BIT_CENTURY_EN
- 				| DS1340_BIT_CENTURY;
- 		break;
--	case mcp7941x:
-+	case mcp794xx:
- 		/*
- 		 * these bits were cleared when preparing the date/time
- 		 * values and need to be set again before writing the
- 		 * buffer out to the device.
- 		 */
--		buf[DS1307_REG_SECS] |= MCP7941X_BIT_ST;
--		buf[DS1307_REG_WDAY] |= MCP7941X_BIT_VBATEN;
-+		buf[DS1307_REG_SECS] |= MCP794XX_BIT_ST;
-+		buf[DS1307_REG_WDAY] |= MCP794XX_BIT_VBATEN;
- 		break;
- 	default:
- 		break;
-@@ -614,26 +615,26 @@ static const struct rtc_class_ops ds13xx
- /*----------------------------------------------------------------------*/
- 
- /*
-- * Alarm support for mcp7941x devices.
-+ * Alarm support for mcp794xx devices.
-  */
- 
--#define MCP7941X_REG_CONTROL		0x07
--#	define MCP7941X_BIT_ALM0_EN	0x10
--#	define MCP7941X_BIT_ALM1_EN	0x20
--#define MCP7941X_REG_ALARM0_BASE	0x0a
--#define MCP7941X_REG_ALARM0_CTRL	0x0d
--#define MCP7941X_REG_ALARM1_BASE	0x11
--#define MCP7941X_REG_ALARM1_CTRL	0x14
--#	define MCP7941X_BIT_ALMX_IF	(1 << 3)
--#	define MCP7941X_BIT_ALMX_C0	(1 << 4)
--#	define MCP7941X_BIT_ALMX_C1	(1 << 5)
--#	define MCP7941X_BIT_ALMX_C2	(1 << 6)
--#	define MCP7941X_BIT_ALMX_POL	(1 << 7)
--#	define MCP7941X_MSK_ALMX_MATCH	(MCP7941X_BIT_ALMX_C0 | \
--					 MCP7941X_BIT_ALMX_C1 | \
--					 MCP7941X_BIT_ALMX_C2)
-+#define MCP794XX_REG_CONTROL		0x07
-+#	define MCP794XX_BIT_ALM0_EN	0x10
-+#	define MCP794XX_BIT_ALM1_EN	0x20
-+#define MCP794XX_REG_ALARM0_BASE	0x0a
-+#define MCP794XX_REG_ALARM0_CTRL	0x0d
-+#define MCP794XX_REG_ALARM1_BASE	0x11
-+#define MCP794XX_REG_ALARM1_CTRL	0x14
-+#	define MCP794XX_BIT_ALMX_IF	(1 << 3)
-+#	define MCP794XX_BIT_ALMX_C0	(1 << 4)
-+#	define MCP794XX_BIT_ALMX_C1	(1 << 5)
-+#	define MCP794XX_BIT_ALMX_C2	(1 << 6)
-+#	define MCP794XX_BIT_ALMX_POL	(1 << 7)
-+#	define MCP794XX_MSK_ALMX_MATCH	(MCP794XX_BIT_ALMX_C0 | \
-+					 MCP794XX_BIT_ALMX_C1 | \
-+					 MCP794XX_BIT_ALMX_C2)
- 
--static void mcp7941x_work(struct work_struct *work)
-+static void mcp794xx_work(struct work_struct *work)
- {
- 	struct ds1307 *ds1307 = container_of(work, struct ds1307, work);
- 	struct i2c_client *client = ds1307->client;
-@@ -642,22 +643,22 @@ static void mcp7941x_work(struct work_st
- 	mutex_lock(&ds1307->rtc->ops_lock);
- 
- 	/* Check and clear alarm 0 interrupt flag. */
--	reg = i2c_smbus_read_byte_data(client, MCP7941X_REG_ALARM0_CTRL);
-+	reg = i2c_smbus_read_byte_data(client, MCP794XX_REG_ALARM0_CTRL);
- 	if (reg < 0)
- 		goto out;
--	if (!(reg & MCP7941X_BIT_ALMX_IF))
-+	if (!(reg & MCP794XX_BIT_ALMX_IF))
- 		goto out;
--	reg &= ~MCP7941X_BIT_ALMX_IF;
--	ret = i2c_smbus_write_byte_data(client, MCP7941X_REG_ALARM0_CTRL, reg);
-+	reg &= ~MCP794XX_BIT_ALMX_IF;
-+	ret = i2c_smbus_write_byte_data(client, MCP794XX_REG_ALARM0_CTRL, reg);
- 	if (ret < 0)
- 		goto out;
- 
- 	/* Disable alarm 0. */
--	reg = i2c_smbus_read_byte_data(client, MCP7941X_REG_CONTROL);
-+	reg = i2c_smbus_read_byte_data(client, MCP794XX_REG_CONTROL);
- 	if (reg < 0)
- 		goto out;
--	reg &= ~MCP7941X_BIT_ALM0_EN;
--	ret = i2c_smbus_write_byte_data(client, MCP7941X_REG_CONTROL, reg);
-+	reg &= ~MCP794XX_BIT_ALM0_EN;
-+	ret = i2c_smbus_write_byte_data(client, MCP794XX_REG_CONTROL, reg);
- 	if (ret < 0)
- 		goto out;
- 
-@@ -669,7 +670,7 @@ out:
- 	mutex_unlock(&ds1307->rtc->ops_lock);
+diff -puN drivers/rtc/rtc-isl12057.c~rtc-rtc-isl12057-add-support-for-c=
+entury-bit drivers/rtc/rtc-isl12057.c
+--- a/drivers/rtc/rtc-isl12057.c~rtc-rtc-isl12057-add-support-for-centu=
+ry-bit
++++ a/drivers/rtc/rtc-isl12057.c
+@@ -41,6 +41,7 @@
+ #define ISL12057_REG_RTC_DW	0x03	/* Day of the Week */
+ #define ISL12057_REG_RTC_DT	0x04	/* Date */
+ #define ISL12057_REG_RTC_MO	0x05	/* Month */
++#define ISL12057_REG_RTC_MO_CEN	BIT(7)	/* Century bit */
+ #define ISL12057_REG_RTC_YR	0x06	/* Year */
+ #define ISL12057_RTC_SEC_LEN	7
+=20
+@@ -99,24 +100,35 @@ static void isl12057_rtc_regs_to_tm(stru
+ 	tm->tm_wday =3D bcd2bin(regs[ISL12057_REG_RTC_DW]) - 1; /* starts at =
+1 */
+ 	tm->tm_mon  =3D bcd2bin(regs[ISL12057_REG_RTC_MO] & 0x1f) - 1; /* dit=
+to */
+ 	tm->tm_year =3D bcd2bin(regs[ISL12057_REG_RTC_YR]) + 100;
++
++	/* Check if years register has overflown from 99 to 00 */
++	if (regs[ISL12057_REG_RTC_MO] & ISL12057_REG_RTC_MO_CEN)
++		tm->tm_year +=3D 100;
  }
- 
--static int mcp7941x_read_alarm(struct device *dev, struct rtc_wkalrm *t)
-+static int mcp794xx_read_alarm(struct device *dev, struct rtc_wkalrm *t)
+=20
+ static int isl12057_rtc_tm_to_regs(u8 *regs, struct rtc_time *tm)
  {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct ds1307 *ds1307 = i2c_get_clientdata(client);
-@@ -680,11 +681,11 @@ static int mcp7941x_read_alarm(struct de
++	u8 century_bit;
++
+ 	/*
+ 	 * The clock has an 8 bit wide bcd-coded register for the year.
++	 * It also has a century bit encoded in MO flag which provides
++	 * information about overflow of year register from 99 to 00.
+ 	 * tm_year is an offset from 1900 and we are interested in the
+-	 * 2000-2099 range, so any value less than 100 is invalid.
++	 * 2000-2199 range, so any value less than 100 or larger than
++	 * 299 is invalid.
+ 	 */
+-	if (tm->tm_year < 100)
++	if (tm->tm_year < 100 || tm->tm_year > 299)
  		return -EINVAL;
- 
- 	/* Read control and alarm 0 registers. */
--	ret = ds1307->read_block_data(client, MCP7941X_REG_CONTROL, 10, regs);
-+	ret = ds1307->read_block_data(client, MCP794XX_REG_CONTROL, 10, regs);
- 	if (ret < 0)
- 		return ret;
- 
--	t->enabled = !!(regs[0] & MCP7941X_BIT_ALM0_EN);
-+	t->enabled = !!(regs[0] & MCP794XX_BIT_ALM0_EN);
- 
- 	/* Report alarm 0 time assuming 24-hour and day-of-month modes. */
- 	t->time.tm_sec = bcd2bin(ds1307->regs[3] & 0x7f);
-@@ -701,14 +702,14 @@ static int mcp7941x_read_alarm(struct de
- 		"enabled=%d polarity=%d irq=%d match=%d\n", __func__,
- 		t->time.tm_sec, t->time.tm_min, t->time.tm_hour,
- 		t->time.tm_wday, t->time.tm_mday, t->time.tm_mon, t->enabled,
--		!!(ds1307->regs[6] & MCP7941X_BIT_ALMX_POL),
--		!!(ds1307->regs[6] & MCP7941X_BIT_ALMX_IF),
--		(ds1307->regs[6] & MCP7941X_MSK_ALMX_MATCH) >> 4);
-+		!!(ds1307->regs[6] & MCP794XX_BIT_ALMX_POL),
-+		!!(ds1307->regs[6] & MCP794XX_BIT_ALMX_IF),
-+		(ds1307->regs[6] & MCP794XX_MSK_ALMX_MATCH) >> 4);
- 
+=20
++	century_bit =3D (tm->tm_year > 199) ? ISL12057_REG_RTC_MO_CEN : 0;
++
+ 	regs[ISL12057_REG_RTC_SC] =3D bin2bcd(tm->tm_sec);
+ 	regs[ISL12057_REG_RTC_MN] =3D bin2bcd(tm->tm_min);
+ 	regs[ISL12057_REG_RTC_HR] =3D bin2bcd(tm->tm_hour); /* 24-hour format=
+ */
+ 	regs[ISL12057_REG_RTC_DT] =3D bin2bcd(tm->tm_mday);
+-	regs[ISL12057_REG_RTC_MO] =3D bin2bcd(tm->tm_mon + 1);
+-	regs[ISL12057_REG_RTC_YR] =3D bin2bcd(tm->tm_year - 100);
++	regs[ISL12057_REG_RTC_MO] =3D bin2bcd(tm->tm_mon + 1) | century_bit;
++	regs[ISL12057_REG_RTC_YR] =3D bin2bcd(tm->tm_year % 100);
+ 	regs[ISL12057_REG_RTC_DW] =3D bin2bcd(tm->tm_wday + 1);
+=20
  	return 0;
- }
- 
--static int mcp7941x_set_alarm(struct device *dev, struct rtc_wkalrm *t)
-+static int mcp794xx_set_alarm(struct device *dev, struct rtc_wkalrm *t)
- {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct ds1307 *ds1307 = i2c_get_clientdata(client);
-@@ -725,7 +726,7 @@ static int mcp7941x_set_alarm(struct dev
- 		t->enabled, t->pending);
- 
- 	/* Read control and alarm 0 registers. */
--	ret = ds1307->read_block_data(client, MCP7941X_REG_CONTROL, 10, regs);
-+	ret = ds1307->read_block_data(client, MCP794XX_REG_CONTROL, 10, regs);
- 	if (ret < 0)
- 		return ret;
- 
-@@ -738,23 +739,23 @@ static int mcp7941x_set_alarm(struct dev
- 	regs[8] = bin2bcd(t->time.tm_mon) + 1;
- 
- 	/* Clear the alarm 0 interrupt flag. */
--	regs[6] &= ~MCP7941X_BIT_ALMX_IF;
-+	regs[6] &= ~MCP794XX_BIT_ALMX_IF;
- 	/* Set alarm match: second, minute, hour, day, date, month. */
--	regs[6] |= MCP7941X_MSK_ALMX_MATCH;
-+	regs[6] |= MCP794XX_MSK_ALMX_MATCH;
- 
- 	if (t->enabled)
--		regs[0] |= MCP7941X_BIT_ALM0_EN;
-+		regs[0] |= MCP794XX_BIT_ALM0_EN;
- 	else
--		regs[0] &= ~MCP7941X_BIT_ALM0_EN;
-+		regs[0] &= ~MCP794XX_BIT_ALM0_EN;
- 
--	ret = ds1307->write_block_data(client, MCP7941X_REG_CONTROL, 10, regs);
-+	ret = ds1307->write_block_data(client, MCP794XX_REG_CONTROL, 10, regs);
- 	if (ret < 0)
- 		return ret;
- 
- 	return 0;
- }
- 
--static int mcp7941x_alarm_irq_enable(struct device *dev, unsigned int enabled)
-+static int mcp794xx_alarm_irq_enable(struct device *dev, unsigned int enabled)
- {
- 	struct i2c_client *client = to_i2c_client(dev);
- 	struct ds1307 *ds1307 = i2c_get_clientdata(client);
-@@ -763,24 +764,24 @@ static int mcp7941x_alarm_irq_enable(str
- 	if (!test_bit(HAS_ALARM, &ds1307->flags))
- 		return -EINVAL;
- 
--	reg = i2c_smbus_read_byte_data(client, MCP7941X_REG_CONTROL);
-+	reg = i2c_smbus_read_byte_data(client, MCP794XX_REG_CONTROL);
- 	if (reg < 0)
- 		return reg;
- 
- 	if (enabled)
--		reg |= MCP7941X_BIT_ALM0_EN;
-+		reg |= MCP794XX_BIT_ALM0_EN;
- 	else
--		reg &= ~MCP7941X_BIT_ALM0_EN;
-+		reg &= ~MCP794XX_BIT_ALM0_EN;
- 
--	return i2c_smbus_write_byte_data(client, MCP7941X_REG_CONTROL, reg);
-+	return i2c_smbus_write_byte_data(client, MCP794XX_REG_CONTROL, reg);
- }
- 
--static const struct rtc_class_ops mcp7941x_rtc_ops = {
-+static const struct rtc_class_ops mcp794xx_rtc_ops = {
- 	.read_time	= ds1307_get_time,
- 	.set_time	= ds1307_set_time,
--	.read_alarm	= mcp7941x_read_alarm,
--	.set_alarm	= mcp7941x_set_alarm,
--	.alarm_irq_enable = mcp7941x_alarm_irq_enable,
-+	.read_alarm	= mcp794xx_read_alarm,
-+	.set_alarm	= mcp794xx_set_alarm,
-+	.alarm_irq_enable = mcp794xx_alarm_irq_enable,
- };
- 
- /*----------------------------------------------------------------------*/
-@@ -1049,10 +1050,10 @@ static int ds1307_probe(struct i2c_clien
- 	case ds_1388:
- 		ds1307->offset = 1; /* Seconds starts at 1 */
- 		break;
--	case mcp7941x:
--		rtc_ops = &mcp7941x_rtc_ops;
-+	case mcp794xx:
-+		rtc_ops = &mcp794xx_rtc_ops;
- 		if (ds1307->client->irq > 0 && chip->alarm) {
--			INIT_WORK(&ds1307->work, mcp7941x_work);
-+			INIT_WORK(&ds1307->work, mcp794xx_work);
- 			want_irq = true;
- 		}
- 		break;
-@@ -1117,18 +1118,18 @@ read_rtc:
- 			dev_warn(&client->dev, "SET TIME!\n");
- 		}
- 		break;
--	case mcp7941x:
-+	case mcp794xx:
- 		/* make sure that the backup battery is enabled */
--		if (!(ds1307->regs[DS1307_REG_WDAY] & MCP7941X_BIT_VBATEN)) {
-+		if (!(ds1307->regs[DS1307_REG_WDAY] & MCP794XX_BIT_VBATEN)) {
- 			i2c_smbus_write_byte_data(client, DS1307_REG_WDAY,
- 					ds1307->regs[DS1307_REG_WDAY]
--					| MCP7941X_BIT_VBATEN);
-+					| MCP794XX_BIT_VBATEN);
- 		}
- 
- 		/* clock halted?  turn it on, so clock can tick. */
--		if (!(tmp & MCP7941X_BIT_ST)) {
-+		if (!(tmp & MCP794XX_BIT_ST)) {
- 			i2c_smbus_write_byte_data(client, DS1307_REG_SECS,
--					MCP7941X_BIT_ST);
-+					MCP794XX_BIT_ST);
- 			dev_warn(&client->dev, "SET TIME!\n");
- 			goto read_rtc;
- 		}
 _
 
-Patches currently in -mm which might be from tomas@novotny.cz are
+Patches currently in -mm which might be from arno@natisbad.org are
 
 origin.patch
+rtc-rtc-isl12057-add-alarm-support-to-intersil-isl12057-rtc-driver.patc=
+h
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
