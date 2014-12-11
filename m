@@ -1,71 +1,99 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- char_dev-remove-pointless-assignment-from-__register_chrdev_region.patch
- removed from -mm tree
-Date: Thu, 11 Dec 2014 10:55:33 -0800
-Message-ID: <5489e8a5.dzzANL81qSKqGxLl%akpm@linux-foundation.org>
+ mm-slab-slub-coding-style-whitespaces-and-tabs-mixture.patch removed from
+ -mm tree
+Date: Thu, 11 Dec 2014 10:55:35 -0800
+Message-ID: <5489e8a7.YV/C0XADPrFbPnAt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45002 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45005 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754049AbaLKSze (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:55:34 -0500
+	with ESMTP id S1758507AbaLKSzg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:55:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: lqymgt@gmail.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/char_dev.c: remove pointless assignment from __register_chrdev_region()
+     Subject: mm: slab/slub: coding style: whitespaces and tabs mixture
 has been removed from the -mm tree.  Its filename was
-     char_dev-remove-pointless-assignment-from-__register_chrdev_region.patch
+     mm-slab-slub-coding-style-whitespaces-and-tabs-mixture.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: fs/char_dev.c: remove pointless assignment from __register_chrdev_region()
+From: LQYMGT <lqymgt@gmail.com>
+Subject: mm: slab/slub: coding style: whitespaces and tabs mixture
 
-At one place we assign major number we found to ret.  That assignment is
-then never used and actually doesn't make any sense given how the code is
-currently structured (the assignment comes from pre-git times).  Just
-remove it.
+Some code in mm/slab.c and mm/slub.c use whitespaces in indent.
+Clean them up.
 
-Coverity id: 1226852.
-
-Signed-off-by: Jan Kara <jack@suse.cz>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: LQYMGT <lqymgt@gmail.com>
+Acked-by: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/char_dev.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/slab.c |   10 +++++-----
+ mm/slub.c |   10 +++++-----
+ 2 files changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN fs/char_dev.c~char_dev-remove-pointless-assignment-from-__register_chrdev_region fs/char_dev.c
---- a/fs/char_dev.c~char_dev-remove-pointless-assignment-from-__register_chrdev_region
-+++ a/fs/char_dev.c
-@@ -117,7 +117,6 @@ __register_chrdev_region(unsigned int ma
- 			goto out;
- 		}
- 		major = i;
--		ret = major;
- 	}
+diff -puN mm/slab.c~mm-slab-slub-coding-style-whitespaces-and-tabs-mixture mm/slab.c
+--- a/mm/slab.c~mm-slab-slub-coding-style-whitespaces-and-tabs-mixture
++++ a/mm/slab.c
+@@ -3580,11 +3580,11 @@ static int alloc_kmem_cache_node(struct
  
- 	cd->major = major;
+ 	for_each_online_node(node) {
+ 
+-                if (use_alien_caches) {
+-                        new_alien = alloc_alien_cache(node, cachep->limit, gfp);
+-                        if (!new_alien)
+-                                goto fail;
+-                }
++		if (use_alien_caches) {
++			new_alien = alloc_alien_cache(node, cachep->limit, gfp);
++			if (!new_alien)
++				goto fail;
++		}
+ 
+ 		new_shared = NULL;
+ 		if (cachep->shared) {
+diff -puN mm/slub.c~mm-slab-slub-coding-style-whitespaces-and-tabs-mixture mm/slub.c
+--- a/mm/slub.c~mm-slab-slub-coding-style-whitespaces-and-tabs-mixture
++++ a/mm/slub.c
+@@ -2554,7 +2554,7 @@ static void __slab_free(struct kmem_cach
+ 
+ 			} else { /* Needs to be taken off a list */
+ 
+-	                        n = get_node(s, page_to_nid(page));
++				n = get_node(s, page_to_nid(page));
+ 				/*
+ 				 * Speculatively acquire the list_lock.
+ 				 * If the cmpxchg does not succeed then we may
+@@ -2587,10 +2587,10 @@ static void __slab_free(struct kmem_cach
+ 		 * The list lock was not taken therefore no list
+ 		 * activity can be necessary.
+ 		 */
+-                if (was_frozen)
+-                        stat(s, FREE_FROZEN);
+-                return;
+-        }
++		if (was_frozen)
++			stat(s, FREE_FROZEN);
++		return;
++	}
+ 
+ 	if (unlikely(!new.inuse && n->nr_partial >= s->min_partial))
+ 		goto slab_empty;
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from lqymgt@gmail.com are
 
 origin.patch
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
-befs-remove-dead-code.patch
-linux-next.patch
-fallocate-create-fan_modify-and-in_modify-events.patch
-fsnotify-unify-inode-and-mount-marks-handling.patch
-fsnotify-remove-destroy_list-from-fsnotify_mark.patch
-mm-add-strictlimit-knob-v2.patch
 
