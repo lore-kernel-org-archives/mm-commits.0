@@ -1,83 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- proc-task_state-ptrace_parent-doesnt-need-pid_alive-check.patch removed
- from -mm tree
-Date: Thu, 11 Dec 2014 10:58:11 -0800
-Message-ID: <5489e943.TYfXpyhLYUf/g72A%akpm@linux-foundation.org>
+Subject: [merged] sched_show_task-fix-unsafe-usage-of-real_parent.patch
+ removed from -mm tree
+Date: Thu, 11 Dec 2014 10:58:14 -0800
+Message-ID: <5489e946.lOUa4C8mz6oycrM7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45489 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45494 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757775AbaLKS6M (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:58:12 -0500
+	with ESMTP id S1757777AbaLKS6P (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:58:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@redhat.com, adobriyan@gmail.com, atomlin@redhat.com, ebiederm@xmission.com, peterz@infradead.org, roland@hack.frob.com, stalexan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: task_state: ptrace_parent() doesn't need pid_alive() check
+     Subject: sched_show_task: fix unsafe usage of ->real_parent
 has been removed from the -mm tree.  Its filename was
-     proc-task_state-ptrace_parent-doesnt-need-pid_alive-check.patch
+     sched_show_task-fix-unsafe-usage-of-real_parent.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: proc: task_state: ptrace_parent() doesn't need pid_alive() check
+Subject: sched_show_task: fix unsafe usage of ->real_parent
 
-p->ptrace != 0 means that release_task(p) was not called, so pid_alive()
-buys nothing and we can remove this check.  Other callers already use it
-directly without additional checks.
+rcu_read_lock() can not protect p->real_parent if release_task(p) was
+already called, change sched_show_task() to check pis_alive() like other
+users do.
 
-Note: with or without this patch ptrace_parent() can return the pointer to
-the freed task, this will be explained/fixed later.
+Note: we need some helpers to cleanup the code like this.  And it seems
+that that the usage of cpu_curr(cpu) in dump_cpu_task() is not safe too.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Aaron Tomlin <atomlin@redhat.com>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>,
 Cc: Sterling Alexander <stalexan@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
+Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 Cc: Roland McGrath <roland@hack.frob.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c |   13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ kernel/sched/core.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN fs/proc/array.c~proc-task_state-ptrace_parent-doesnt-need-pid_alive-check fs/proc/array.c
---- a/fs/proc/array.c~proc-task_state-ptrace_parent-doesnt-need-pid_alive-check
-+++ a/fs/proc/array.c
-@@ -157,19 +157,18 @@ static inline void task_state(struct seq
- 	struct user_namespace *user_ns = seq_user_ns(m);
- 	struct group_info *group_info;
- 	int g;
-+	struct task_struct *tracer;
- 	const struct cred *cred;
--	pid_t ppid, tpid, tgid, ngid;
-+	pid_t ppid, tpid = 0, tgid, ngid;
- 	unsigned int max_fds = 0;
- 
+diff -puN kernel/sched/core.c~sched_show_task-fix-unsafe-usage-of-real_parent kernel/sched/core.c
+--- a/kernel/sched/core.c~sched_show_task-fix-unsafe-usage-of-real_parent
++++ a/kernel/sched/core.c
+@@ -4527,8 +4527,10 @@ void sched_show_task(struct task_struct
+ #ifdef CONFIG_DEBUG_STACK_USAGE
+ 	free = stack_not_used(p);
+ #endif
++	ppid = 0;
  	rcu_read_lock();
- 	ppid = pid_alive(p) ?
- 		task_tgid_nr_ns(rcu_dereference(p->real_parent), ns) : 0;
--	tpid = 0;
--	if (pid_alive(p)) {
--		struct task_struct *tracer = ptrace_parent(p);
--		if (tracer)
--			tpid = task_pid_nr_ns(tracer, ns);
--	}
-+
-+	tracer = ptrace_parent(p);
-+	if (tracer)
-+		tpid = task_pid_nr_ns(tracer, ns);
- 
- 	tgid = task_tgid_nr_ns(p, ns);
- 	ngid = task_numa_group_id(p);
+-	ppid = task_pid_nr(rcu_dereference(p->real_parent));
++	if (pid_alive(p))
++		ppid = task_pid_nr(rcu_dereference(p->real_parent));
+ 	rcu_read_unlock();
+ 	printk(KERN_CONT "%5lu %5d %6d 0x%08lx\n", free,
+ 		task_pid_nr(p), ppid,
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
