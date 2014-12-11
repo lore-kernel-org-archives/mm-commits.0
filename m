@@ -1,88 +1,64 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- nilfs2-avoid-duplicate-segment-construction-for-fsync.patch removed from
- -mm tree
-Date: Thu, 11 Dec 2014 11:07:56 -0800
-Message-ID: <5489eb8c.+7tHMYJXJnYch4+j%akpm@linux-foundation.org>
+ nilfs2-deletion-of-an-unnecessary-check-before-the-function-call-iput.patch removed from -mm tree
+Date: Thu, 11 Dec 2014 11:07:58 -0800
+Message-ID: <5489eb8e.SiyqNTN4axpX0Err%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46042 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46046 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756919AbaLKTH5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 14:07:57 -0500
+	with ESMTP id S1756919AbaLKTH7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 14:07:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andreas.rohner@gmx.net, konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
+To: elfring@users.sourceforge.net, konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: avoid duplicate segment construction for fsync()
+     Subject: nilfs2: deletion of an unnecessary check before the function call "iput"
 has been removed from the -mm tree.  Its filename was
-     nilfs2-avoid-duplicate-segment-construction-for-fsync.patch
+     nilfs2-deletion-of-an-unnecessary-check-before-the-function-call-iput.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andreas Rohner <andreas.rohner@gmx.net>
-Subject: nilfs2: avoid duplicate segment construction for fsync()
+From: Markus Elfring <elfring@users.sourceforge.net>
+Subject: nilfs2: deletion of an unnecessary check before the function call "iput"
 
-This patch removes filemap_write_and_wait_range() from nilfs_sync_file(),
-because it triggers a data segment construction by calling
-nilfs_writepages() with WB_SYNC_ALL.  A data segment construction does not
-remove the inode from the i_dirty list and it does not clear the
-NILFS_I_DIRTY flag.  Therefore nilfs_inode_dirty() still returns true,
-which leads to an unnecessary duplicate segment construction in
-nilfs_sync_file().
+The iput() function tests whether its argument is NULL and then returns
+immediately.  Thus the test around the call is not needed.
 
-A call to filemap_write_and_wait_range() is not needed, because NILFS2
-does not rely on the generic writeback mechanisms.  Instead it implements
-its own mechanism to collect all dirty pages and write them into segments.
- It is more efficient to initiate the segment construction directly in
-nilfs_sync_file() without the detour over filemap_write_and_wait_range().
+This issue was detected by using the Coccinelle software.
 
-Additionally the lock of i_mutex is not needed, because all code blocks
-that are protected by i_mutex are also protected by a NILFS transaction:
-
-Function                i_mutex     nilfs_transaction
-------------------------------------------------------
-nilfs_ioctl_setflags:   yes         yes
-nilfs_fiemap:           yes         no
-nilfs_write_begin:      yes         yes
-nilfs_write_end:        yes         yes
-nilfs_lookup:           yes         no
-nilfs_create:           yes         yes
-nilfs_link:             yes         yes
-nilfs_mknod:            yes         yes
-nilfs_symlink:          yes         yes
-nilfs_mkdir:            yes         yes
-nilfs_unlink:           yes         yes
-nilfs_rmdir:            yes         yes
-nilfs_rename:           yes         yes
-nilfs_setattr:          yes         yes
-
-For nilfs_lookup() i_mutex is held for the parent directory, to protect it
-from modification.  The segment construction does not modify directory
-inodes, so no lock is needed.
-
-nilfs_fiemap() reads the block layout on the disk, by using
-nilfs_bmap_lookup_contig(). This is already protected by bmap->b_sem.
-
-Signed-off-by: Andreas Rohner <andreas.rohner@gmx.net>
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/file.c |   10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+ fs/nilfs2/the_nilfs.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/nilfs2/file.c~nilfs2-avoid-duplicate-segment-construction-for-fsync fs/nilfs2/file.c
---- a/fs/nilfs2/file.c~nilfs2-avoid-duplicate-segment-construction-for-fsync
-+++ a/fs/nilfs2/file.c
-@@ -39,21 +39,15 @@ int nilfs_sync_file(struct file *file, l
- 	 */
- 	struct the_nilfs *nilfs;
- 	struct inode *inode = file->f_mapping->host;
--	int err;
+diff -puN fs/nilfs2/the_nilfs.c~nilfs2-deletion-of-an-unnecessary-check-before-the-function-call-iput fs/nilfs2/the_nilfs.c
+--- a/fs/nilfs2/the_nilfs.c~nilfs2-deletion-of-an-unnecessary-check-before-the-function-call-iput
++++ a/fs/nilfs2/the_nilfs.c
+@@ -808,8 +808,7 @@ void nilfs_put_root(struct nilfs_root *r
+ 		spin_lock(&nilfs->ns_cptree_lock);
+ 		rb_erase(&root->rb_node, &nilfs->ns_cptree);
+ 		spin_unlock(&nilfs->ns_cptree_lock);
+-		if (root->ifile)
+-			iput(root->ifile);
++		iput(root->ifile);
+ 
+ 		kfree(root);
+ 	}
+_
+
+Patches currently in -mm which might be from elfring@users.sourceforge.net are
+
+origin.patch
+mm-zswap-deletion-of-an-unnecessary-check-before-the-function-call-free_percpu.patch
+linux-next.patch
+
