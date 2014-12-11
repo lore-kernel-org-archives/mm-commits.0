@@ -1,106 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-memory_hotplug-failure-drain-single-zone-pcplists.patch removed from -mm tree
-Date: Thu, 11 Dec 2014 10:56:23 -0800
-Message-ID: <5489e8d7.XSNaitZB1PnjTFRP%akpm@linux-foundation.org>
+Subject: [merged] cma-make-default-cma-area-size-zero-for-x86.patch
+ removed from -mm tree
+Date: Thu, 11 Dec 2014 10:56:26 -0800
+Message-ID: <5489e8da.KjWriwlWxclmoJX/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45152 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45162 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757813AbaLKS4Y (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:56:24 -0500
+	with ESMTP id S1757813AbaLKS41 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:56:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, isimatu.yasuaki@jp.fujitsu.com, m.szyprowski@samsung.com, mgorman@suse.de, mina86@mina86.com, n-horiguchi@ah.jp.nec.com, qiuxishi@huawei.com, riel@redhat.com, vdavydov@parallels.com, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, andi@firstfloor.org, cebbert.lkml@gmail.com, ddutile@redhat.com, dwmw2@infradead.org, hpa@zytor.com, jdelvare@suse.de, konrad.wilk@oracle.com, m.szyprowski@samsung.com, mingo@redhat.com, peter@hurleysoftware.com, tglx@linutronix.de, yinghai@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, memory_hotplug/failure: drain single zone pcplists
+     Subject: cma: make default CMA area size zero for x86
 has been removed from the -mm tree.  Its filename was
-     mm-memory_hotplug-failure-drain-single-zone-pcplists.patch
+     cma-make-default-cma-area-size-zero-for-x86.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, memory_hotplug/failure: drain single zone pcplists
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: cma: make default CMA area size zero for x86
 
-Memory hotplug and failure mechanisms have several places where pcplists
-are drained so that pages are returned to the buddy allocator and can be
-e.g.  prepared for offlining.  This is always done in the context of a
-single zone, we can reduce the pcplists drain to the single zone, which is
-now possible.
+This makes CMA memory area size zero for x86 in default configuration
+(doesn't change on the other architectures).  If default CMA size is zero,
+DMA_CMA is disabled.  It can be enabled by passing cma= to the kernel.
 
-The change should make memory offlining due to hotremove or failure faster
-and not disturbing unrelated pcplists anymore.
+This makes less impact on x86.  Because there is no mainline driver that
+requires it for x86, and Peter Hurley reported the performance regression,
+as this is trying to drive _all_ dma mapping allocations through a _very_
+small window.
 
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Vladimir Davydov <vdavydov@parallels.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Reported-by: Peter Hurley <peter@hurleysoftware.com>
+Cc: Peter Hurley <peter@hurleysoftware.com>
+Cc: Chuck Ebbert <cebbert.lkml@gmail.com>
+Cc: Jean Delvare <jdelvare@suse.de>
+Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Don Dutile <ddutile@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Yinghai Lu <yinghai@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    4 ++--
- mm/memory_hotplug.c |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/base/Kconfig |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN mm/memory-failure.c~mm-memory_hotplug-failure-drain-single-zone-pcplists mm/memory-failure.c
---- a/mm/memory-failure.c~mm-memory_hotplug-failure-drain-single-zone-pcplists
-+++ a/mm/memory-failure.c
-@@ -233,7 +233,7 @@ void shake_page(struct page *p, int acce
- 		lru_add_drain_all();
- 		if (PageLRU(p))
- 			return;
--		drain_all_pages(NULL);
-+		drain_all_pages(page_zone(p));
- 		if (PageLRU(p) || is_free_buddy_page(p))
- 			return;
- 	}
-@@ -1661,7 +1661,7 @@ static int __soft_offline_page(struct pa
- 			if (!is_free_buddy_page(page))
- 				lru_add_drain_all();
- 			if (!is_free_buddy_page(page))
--				drain_all_pages(NULL);
-+				drain_all_pages(page_zone(page));
- 			SetPageHWPoison(page);
- 			if (!is_free_buddy_page(page))
- 				pr_info("soft offline: %#lx: page leaked\n",
-diff -puN mm/memory_hotplug.c~mm-memory_hotplug-failure-drain-single-zone-pcplists mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory_hotplug-failure-drain-single-zone-pcplists
-+++ a/mm/memory_hotplug.c
-@@ -1725,7 +1725,7 @@ repeat:
- 	if (drain) {
- 		lru_add_drain_all();
- 		cond_resched();
--		drain_all_pages(NULL);
-+		drain_all_pages(zone);
- 	}
+diff -puN drivers/base/Kconfig~cma-make-default-cma-area-size-zero-for-x86 drivers/base/Kconfig
+--- a/drivers/base/Kconfig~cma-make-default-cma-area-size-zero-for-x86
++++ a/drivers/base/Kconfig
+@@ -267,18 +267,24 @@ comment "Default contiguous memory area
+ config CMA_SIZE_MBYTES
+ 	int "Size in Mega Bytes"
+ 	depends on !CMA_SIZE_SEL_PERCENTAGE
++	default 0 if X86
+ 	default 16
+ 	help
+ 	  Defines the size (in MiB) of the default memory area for Contiguous
+-	  Memory Allocator.
++	  Memory Allocator.  If the size of 0 is selected, CMA is disabled by
++	  default, but it can be enabled by passing cma=size[MG] to the kernel.
++
  
- 	pfn = scan_movable_pages(start_pfn, end_pfn);
-@@ -1747,7 +1747,7 @@ repeat:
- 	lru_add_drain_all();
- 	yield();
- 	/* drain pcp pages, this is synchronous. */
--	drain_all_pages(NULL);
-+	drain_all_pages(zone);
- 	/*
- 	 * dissolve free hugepages in the memory block before doing offlining
- 	 * actually in order to make hugetlbfs's object counting consistent.
+ config CMA_SIZE_PERCENTAGE
+ 	int "Percentage of total memory"
+ 	depends on !CMA_SIZE_SEL_MBYTES
++	default 0 if X86
+ 	default 10
+ 	help
+ 	  Defines the size of the default memory area for Contiguous Memory
+ 	  Allocator as a percentage of the total memory in the system.
++	  If 0 percent is selected, CMA is disabled by default, but it can be
++	  enabled by passing cma=size[MG] to the kernel.
+ 
+ choice
+ 	prompt "Selected region size"
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 origin.patch
-mm-debug-pagealloc-cleanup-page-guard-code.patch
+ratelimit-add-initialization-macro.patch
+fault-inject-add-ratelimit-option-v2.patch
+linux-next.patch
 
