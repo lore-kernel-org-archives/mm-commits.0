@@ -1,637 +1,180 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-page_cgroup-rename-file-to-mm-swap_cgroupc.patch
- removed from -mm tree
-Date: Thu, 11 Dec 2014 10:57:49 -0800
-Message-ID: <5489e92d./kZ/4L5I38wpSKnB%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-move-page-mem_cgroup-bad-page-handling-into-generic-code.patch removed
+ from -mm tree
+Date: Thu, 11 Dec 2014 10:57:52 -0800
+Message-ID: <5489e930.YlQw1B6KI3a9+eVY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45444 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45451 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758490AbaLKS5u (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:57:50 -0500
+	with ESMTP id S1758490AbaLKS5x (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:57:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@cmpxchg.org, davem@davemloft.net, iamjoonsoo.kim@lge.com, kamezawa.hiroyu@jp.fujitsu.com, kirill@shutemov.name, mhocko@suse.cz, tj@kernel.org, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: page_cgroup: rename file to mm/swap_cgroup.c
+     Subject: mm: move page->mem_cgroup bad page handling into generic code
 has been removed from the -mm tree.  Its filename was
-     mm-page_cgroup-rename-file-to-mm-swap_cgroupc.patch
+     mm-move-page-mem_cgroup-bad-page-handling-into-generic-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: page_cgroup: rename file to mm/swap_cgroup.c
+Subject: mm: move page->mem_cgroup bad page handling into generic code
 
-Now that the external page_cgroup data structure and its lookup is gone,
-the only code remaining in there is swap slot accounting.
-
-Rename it and move the conditional compilation into mm/Makefile.
+Now that the external page_cgroup data structure and its lookup is
+gone, let the generic bad_page() check for page->mem_cgroup sanity.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: Michal Hocko <mhocko@suse.cz>
 Acked-by: Vladimir Davydov <vdavydov@parallels.com>
 Acked-by: David S. Miller <davem@davemloft.net>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
 Cc: Tejun Heo <tj@kernel.org>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS                 |    2 
- include/linux/page_cgroup.h |   40 ------
- include/linux/swap_cgroup.h |   42 ++++++
- mm/Makefile                 |    3 
- mm/memcontrol.c             |    2 
- mm/page_cgroup.c            |  211 ----------------------------------
- mm/swap_cgroup.c            |  208 +++++++++++++++++++++++++++++++++
- mm/swap_state.c             |    1 
- mm/swapfile.c               |    2 
- 9 files changed, 255 insertions(+), 256 deletions(-)
+ include/linux/memcontrol.h |   17 -----------------
+ init/Kconfig               |   12 ------------
+ mm/debug.c                 |    5 ++++-
+ mm/memcontrol.c            |   15 ---------------
+ mm/page_alloc.c            |   12 ++++++++----
+ 5 files changed, 12 insertions(+), 49 deletions(-)
 
-diff -puN MAINTAINERS~mm-page_cgroup-rename-file-to-mm-swap_cgroupc MAINTAINERS
---- a/MAINTAINERS~mm-page_cgroup-rename-file-to-mm-swap_cgroupc
-+++ a/MAINTAINERS
-@@ -2606,7 +2606,7 @@ L:	cgroups@vger.kernel.org
- L:	linux-mm@kvack.org
- S:	Maintained
- F:	mm/memcontrol.c
--F:	mm/page_cgroup.c
-+F:	mm/swap_cgroup.c
+diff -puN include/linux/memcontrol.h~mm-move-page-mem_cgroup-bad-page-handling-into-generic-code include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~mm-move-page-mem_cgroup-bad-page-handling-into-generic-code
++++ a/include/linux/memcontrol.h
+@@ -173,10 +173,6 @@ static inline void mem_cgroup_count_vm_e
+ void mem_cgroup_split_huge_fixup(struct page *head);
+ #endif
  
- CORETEMP HARDWARE MONITORING DRIVER
- M:	Fenghua Yu <fenghua.yu@intel.com>
-diff -puN include/linux/page_cgroup.h~mm-page_cgroup-rename-file-to-mm-swap_cgroupc /dev/null
---- a/include/linux/page_cgroup.h
-+++ /dev/null
-@@ -1,40 +0,0 @@
--#ifndef __LINUX_PAGE_CGROUP_H
--#define __LINUX_PAGE_CGROUP_H
--
--#include <linux/swap.h>
--
--#ifdef CONFIG_MEMCG_SWAP
--extern unsigned short swap_cgroup_cmpxchg(swp_entry_t ent,
--					unsigned short old, unsigned short new);
--extern unsigned short swap_cgroup_record(swp_entry_t ent, unsigned short id);
--extern unsigned short lookup_swap_cgroup_id(swp_entry_t ent);
--extern int swap_cgroup_swapon(int type, unsigned long max_pages);
--extern void swap_cgroup_swapoff(int type);
--#else
--
--static inline
--unsigned short swap_cgroup_record(swp_entry_t ent, unsigned short id)
--{
--	return 0;
--}
--
--static inline
--unsigned short lookup_swap_cgroup_id(swp_entry_t ent)
--{
--	return 0;
--}
--
--static inline int
--swap_cgroup_swapon(int type, unsigned long max_pages)
--{
--	return 0;
--}
--
--static inline void swap_cgroup_swapoff(int type)
--{
--	return;
--}
--
--#endif /* CONFIG_MEMCG_SWAP */
--
--#endif /* __LINUX_PAGE_CGROUP_H */
-diff -puN /dev/null include/linux/swap_cgroup.h
---- /dev/null
-+++ a/include/linux/swap_cgroup.h
-@@ -0,0 +1,42 @@
-+#ifndef __LINUX_SWAP_CGROUP_H
-+#define __LINUX_SWAP_CGROUP_H
-+
-+#include <linux/swap.h>
-+
-+#ifdef CONFIG_MEMCG_SWAP
-+
-+extern unsigned short swap_cgroup_cmpxchg(swp_entry_t ent,
-+					unsigned short old, unsigned short new);
-+extern unsigned short swap_cgroup_record(swp_entry_t ent, unsigned short id);
-+extern unsigned short lookup_swap_cgroup_id(swp_entry_t ent);
-+extern int swap_cgroup_swapon(int type, unsigned long max_pages);
-+extern void swap_cgroup_swapoff(int type);
-+
-+#else
-+
-+static inline
-+unsigned short swap_cgroup_record(swp_entry_t ent, unsigned short id)
-+{
-+	return 0;
-+}
-+
-+static inline
-+unsigned short lookup_swap_cgroup_id(swp_entry_t ent)
-+{
-+	return 0;
-+}
-+
-+static inline int
-+swap_cgroup_swapon(int type, unsigned long max_pages)
-+{
-+	return 0;
-+}
-+
-+static inline void swap_cgroup_swapoff(int type)
-+{
-+	return;
-+}
-+
-+#endif /* CONFIG_MEMCG_SWAP */
-+
-+#endif /* __LINUX_SWAP_CGROUP_H */
-diff -puN mm/Makefile~mm-page_cgroup-rename-file-to-mm-swap_cgroupc mm/Makefile
---- a/mm/Makefile~mm-page_cgroup-rename-file-to-mm-swap_cgroupc
-+++ a/mm/Makefile
-@@ -56,7 +56,8 @@ obj-$(CONFIG_MIGRATION) += migrate.o
- obj-$(CONFIG_QUICKLIST) += quicklist.o
- obj-$(CONFIG_TRANSPARENT_HUGEPAGE) += huge_memory.o
- obj-$(CONFIG_PAGE_COUNTER) += page_counter.o
--obj-$(CONFIG_MEMCG) += memcontrol.o page_cgroup.o vmpressure.o
-+obj-$(CONFIG_MEMCG) += memcontrol.o vmpressure.o
-+obj-$(CONFIG_MEMCG_SWAP) += swap_cgroup.o
- obj-$(CONFIG_CGROUP_HUGETLB) += hugetlb_cgroup.o
- obj-$(CONFIG_MEMORY_FAILURE) += memory-failure.o
- obj-$(CONFIG_HWPOISON_INJECT) += hwpoison-inject.o
-diff -puN mm/memcontrol.c~mm-page_cgroup-rename-file-to-mm-swap_cgroupc mm/memcontrol.c
---- a/mm/memcontrol.c~mm-page_cgroup-rename-file-to-mm-swap_cgroupc
-+++ a/mm/memcontrol.c
-@@ -51,7 +51,7 @@
- #include <linux/seq_file.h>
- #include <linux/vmpressure.h>
- #include <linux/mm_inline.h>
--#include <linux/page_cgroup.h>
-+#include <linux/swap_cgroup.h>
- #include <linux/cpu.h>
- #include <linux/oom.h>
- #include <linux/lockdep.h>
-diff -puN mm/page_cgroup.c~mm-page_cgroup-rename-file-to-mm-swap_cgroupc /dev/null
---- a/mm/page_cgroup.c
-+++ /dev/null
-@@ -1,211 +0,0 @@
--#include <linux/mm.h>
--#include <linux/page_cgroup.h>
--#include <linux/vmalloc.h>
--#include <linux/swapops.h>
--
--#ifdef CONFIG_MEMCG_SWAP
--
--static DEFINE_MUTEX(swap_cgroup_mutex);
--struct swap_cgroup_ctrl {
--	struct page **map;
--	unsigned long length;
--	spinlock_t	lock;
--};
--
--static struct swap_cgroup_ctrl swap_cgroup_ctrl[MAX_SWAPFILES];
--
--struct swap_cgroup {
--	unsigned short		id;
--};
--#define SC_PER_PAGE	(PAGE_SIZE/sizeof(struct swap_cgroup))
--
--/*
-- * SwapCgroup implements "lookup" and "exchange" operations.
-- * In typical usage, this swap_cgroup is accessed via memcg's charge/uncharge
-- * against SwapCache. At swap_free(), this is accessed directly from swap.
-- *
-- * This means,
-- *  - we have no race in "exchange" when we're accessed via SwapCache because
-- *    SwapCache(and its swp_entry) is under lock.
-- *  - When called via swap_free(), there is no user of this entry and no race.
-- * Then, we don't need lock around "exchange".
-- *
-- * TODO: we can push these buffers out to HIGHMEM.
-- */
--
--/*
-- * allocate buffer for swap_cgroup.
-- */
--static int swap_cgroup_prepare(int type)
--{
--	struct page *page;
--	struct swap_cgroup_ctrl *ctrl;
--	unsigned long idx, max;
--
--	ctrl = &swap_cgroup_ctrl[type];
--
--	for (idx = 0; idx < ctrl->length; idx++) {
--		page = alloc_page(GFP_KERNEL | __GFP_ZERO);
--		if (!page)
--			goto not_enough_page;
--		ctrl->map[idx] = page;
--	}
--	return 0;
--not_enough_page:
--	max = idx;
--	for (idx = 0; idx < max; idx++)
--		__free_page(ctrl->map[idx]);
--
--	return -ENOMEM;
--}
--
--static struct swap_cgroup *lookup_swap_cgroup(swp_entry_t ent,
--					struct swap_cgroup_ctrl **ctrlp)
--{
--	pgoff_t offset = swp_offset(ent);
--	struct swap_cgroup_ctrl *ctrl;
--	struct page *mappage;
--	struct swap_cgroup *sc;
--
--	ctrl = &swap_cgroup_ctrl[swp_type(ent)];
--	if (ctrlp)
--		*ctrlp = ctrl;
--
--	mappage = ctrl->map[offset / SC_PER_PAGE];
--	sc = page_address(mappage);
--	return sc + offset % SC_PER_PAGE;
--}
--
--/**
-- * swap_cgroup_cmpxchg - cmpxchg mem_cgroup's id for this swp_entry.
-- * @ent: swap entry to be cmpxchged
-- * @old: old id
-- * @new: new id
-- *
-- * Returns old id at success, 0 at failure.
-- * (There is no mem_cgroup using 0 as its id)
-- */
--unsigned short swap_cgroup_cmpxchg(swp_entry_t ent,
--					unsigned short old, unsigned short new)
--{
--	struct swap_cgroup_ctrl *ctrl;
--	struct swap_cgroup *sc;
--	unsigned long flags;
--	unsigned short retval;
--
--	sc = lookup_swap_cgroup(ent, &ctrl);
--
--	spin_lock_irqsave(&ctrl->lock, flags);
--	retval = sc->id;
--	if (retval == old)
--		sc->id = new;
--	else
--		retval = 0;
--	spin_unlock_irqrestore(&ctrl->lock, flags);
--	return retval;
--}
--
--/**
-- * swap_cgroup_record - record mem_cgroup for this swp_entry.
-- * @ent: swap entry to be recorded into
-- * @id: mem_cgroup to be recorded
-- *
-- * Returns old value at success, 0 at failure.
-- * (Of course, old value can be 0.)
-- */
--unsigned short swap_cgroup_record(swp_entry_t ent, unsigned short id)
--{
--	struct swap_cgroup_ctrl *ctrl;
--	struct swap_cgroup *sc;
--	unsigned short old;
--	unsigned long flags;
--
--	sc = lookup_swap_cgroup(ent, &ctrl);
--
--	spin_lock_irqsave(&ctrl->lock, flags);
--	old = sc->id;
--	sc->id = id;
--	spin_unlock_irqrestore(&ctrl->lock, flags);
--
--	return old;
--}
--
--/**
-- * lookup_swap_cgroup_id - lookup mem_cgroup id tied to swap entry
-- * @ent: swap entry to be looked up.
-- *
-- * Returns ID of mem_cgroup at success. 0 at failure. (0 is invalid ID)
-- */
--unsigned short lookup_swap_cgroup_id(swp_entry_t ent)
--{
--	return lookup_swap_cgroup(ent, NULL)->id;
--}
--
--int swap_cgroup_swapon(int type, unsigned long max_pages)
--{
--	void *array;
--	unsigned long array_size;
--	unsigned long length;
--	struct swap_cgroup_ctrl *ctrl;
--
--	if (!do_swap_account)
--		return 0;
--
--	length = DIV_ROUND_UP(max_pages, SC_PER_PAGE);
--	array_size = length * sizeof(void *);
--
--	array = vzalloc(array_size);
--	if (!array)
--		goto nomem;
--
--	ctrl = &swap_cgroup_ctrl[type];
--	mutex_lock(&swap_cgroup_mutex);
--	ctrl->length = length;
--	ctrl->map = array;
--	spin_lock_init(&ctrl->lock);
--	if (swap_cgroup_prepare(type)) {
--		/* memory shortage */
--		ctrl->map = NULL;
--		ctrl->length = 0;
--		mutex_unlock(&swap_cgroup_mutex);
--		vfree(array);
--		goto nomem;
--	}
--	mutex_unlock(&swap_cgroup_mutex);
--
--	return 0;
--nomem:
--	printk(KERN_INFO "couldn't allocate enough memory for swap_cgroup.\n");
--	printk(KERN_INFO
--		"swap_cgroup can be disabled by swapaccount=0 boot option\n");
--	return -ENOMEM;
--}
--
--void swap_cgroup_swapoff(int type)
--{
--	struct page **map;
--	unsigned long i, length;
--	struct swap_cgroup_ctrl *ctrl;
--
--	if (!do_swap_account)
--		return;
--
--	mutex_lock(&swap_cgroup_mutex);
--	ctrl = &swap_cgroup_ctrl[type];
--	map = ctrl->map;
--	length = ctrl->length;
--	ctrl->map = NULL;
--	ctrl->length = 0;
--	mutex_unlock(&swap_cgroup_mutex);
--
--	if (map) {
--		for (i = 0; i < length; i++) {
--			struct page *page = map[i];
--			if (page)
--				__free_page(page);
--		}
--		vfree(map);
--	}
--}
--
+-#ifdef CONFIG_DEBUG_VM
+-bool mem_cgroup_bad_page_check(struct page *page);
+-void mem_cgroup_print_bad_page(struct page *page);
 -#endif
-diff -puN /dev/null mm/swap_cgroup.c
---- /dev/null
-+++ a/mm/swap_cgroup.c
-@@ -0,0 +1,208 @@
-+#include <linux/swap_cgroup.h>
-+#include <linux/vmalloc.h>
-+#include <linux/mm.h>
-+
-+#include <linux/swapops.h> /* depends on mm.h include */
-+
-+static DEFINE_MUTEX(swap_cgroup_mutex);
-+struct swap_cgroup_ctrl {
-+	struct page **map;
-+	unsigned long length;
-+	spinlock_t	lock;
-+};
-+
-+static struct swap_cgroup_ctrl swap_cgroup_ctrl[MAX_SWAPFILES];
-+
-+struct swap_cgroup {
-+	unsigned short		id;
-+};
-+#define SC_PER_PAGE	(PAGE_SIZE/sizeof(struct swap_cgroup))
-+
-+/*
-+ * SwapCgroup implements "lookup" and "exchange" operations.
-+ * In typical usage, this swap_cgroup is accessed via memcg's charge/uncharge
-+ * against SwapCache. At swap_free(), this is accessed directly from swap.
-+ *
-+ * This means,
-+ *  - we have no race in "exchange" when we're accessed via SwapCache because
-+ *    SwapCache(and its swp_entry) is under lock.
-+ *  - When called via swap_free(), there is no user of this entry and no race.
-+ * Then, we don't need lock around "exchange".
-+ *
-+ * TODO: we can push these buffers out to HIGHMEM.
-+ */
-+
-+/*
-+ * allocate buffer for swap_cgroup.
-+ */
-+static int swap_cgroup_prepare(int type)
-+{
-+	struct page *page;
-+	struct swap_cgroup_ctrl *ctrl;
-+	unsigned long idx, max;
-+
-+	ctrl = &swap_cgroup_ctrl[type];
-+
-+	for (idx = 0; idx < ctrl->length; idx++) {
-+		page = alloc_page(GFP_KERNEL | __GFP_ZERO);
-+		if (!page)
-+			goto not_enough_page;
-+		ctrl->map[idx] = page;
-+	}
-+	return 0;
-+not_enough_page:
-+	max = idx;
-+	for (idx = 0; idx < max; idx++)
-+		__free_page(ctrl->map[idx]);
-+
-+	return -ENOMEM;
-+}
-+
-+static struct swap_cgroup *lookup_swap_cgroup(swp_entry_t ent,
-+					struct swap_cgroup_ctrl **ctrlp)
-+{
-+	pgoff_t offset = swp_offset(ent);
-+	struct swap_cgroup_ctrl *ctrl;
-+	struct page *mappage;
-+	struct swap_cgroup *sc;
-+
-+	ctrl = &swap_cgroup_ctrl[swp_type(ent)];
-+	if (ctrlp)
-+		*ctrlp = ctrl;
-+
-+	mappage = ctrl->map[offset / SC_PER_PAGE];
-+	sc = page_address(mappage);
-+	return sc + offset % SC_PER_PAGE;
-+}
-+
-+/**
-+ * swap_cgroup_cmpxchg - cmpxchg mem_cgroup's id for this swp_entry.
-+ * @ent: swap entry to be cmpxchged
-+ * @old: old id
-+ * @new: new id
-+ *
-+ * Returns old id at success, 0 at failure.
-+ * (There is no mem_cgroup using 0 as its id)
-+ */
-+unsigned short swap_cgroup_cmpxchg(swp_entry_t ent,
-+					unsigned short old, unsigned short new)
-+{
-+	struct swap_cgroup_ctrl *ctrl;
-+	struct swap_cgroup *sc;
-+	unsigned long flags;
-+	unsigned short retval;
-+
-+	sc = lookup_swap_cgroup(ent, &ctrl);
-+
-+	spin_lock_irqsave(&ctrl->lock, flags);
-+	retval = sc->id;
-+	if (retval == old)
-+		sc->id = new;
-+	else
-+		retval = 0;
-+	spin_unlock_irqrestore(&ctrl->lock, flags);
-+	return retval;
-+}
-+
-+/**
-+ * swap_cgroup_record - record mem_cgroup for this swp_entry.
-+ * @ent: swap entry to be recorded into
-+ * @id: mem_cgroup to be recorded
-+ *
-+ * Returns old value at success, 0 at failure.
-+ * (Of course, old value can be 0.)
-+ */
-+unsigned short swap_cgroup_record(swp_entry_t ent, unsigned short id)
-+{
-+	struct swap_cgroup_ctrl *ctrl;
-+	struct swap_cgroup *sc;
-+	unsigned short old;
-+	unsigned long flags;
-+
-+	sc = lookup_swap_cgroup(ent, &ctrl);
-+
-+	spin_lock_irqsave(&ctrl->lock, flags);
-+	old = sc->id;
-+	sc->id = id;
-+	spin_unlock_irqrestore(&ctrl->lock, flags);
-+
-+	return old;
-+}
-+
-+/**
-+ * lookup_swap_cgroup_id - lookup mem_cgroup id tied to swap entry
-+ * @ent: swap entry to be looked up.
-+ *
-+ * Returns ID of mem_cgroup at success. 0 at failure. (0 is invalid ID)
-+ */
-+unsigned short lookup_swap_cgroup_id(swp_entry_t ent)
-+{
-+	return lookup_swap_cgroup(ent, NULL)->id;
-+}
-+
-+int swap_cgroup_swapon(int type, unsigned long max_pages)
-+{
-+	void *array;
-+	unsigned long array_size;
-+	unsigned long length;
-+	struct swap_cgroup_ctrl *ctrl;
-+
-+	if (!do_swap_account)
-+		return 0;
-+
-+	length = DIV_ROUND_UP(max_pages, SC_PER_PAGE);
-+	array_size = length * sizeof(void *);
-+
-+	array = vzalloc(array_size);
-+	if (!array)
-+		goto nomem;
-+
-+	ctrl = &swap_cgroup_ctrl[type];
-+	mutex_lock(&swap_cgroup_mutex);
-+	ctrl->length = length;
-+	ctrl->map = array;
-+	spin_lock_init(&ctrl->lock);
-+	if (swap_cgroup_prepare(type)) {
-+		/* memory shortage */
-+		ctrl->map = NULL;
-+		ctrl->length = 0;
-+		mutex_unlock(&swap_cgroup_mutex);
-+		vfree(array);
-+		goto nomem;
-+	}
-+	mutex_unlock(&swap_cgroup_mutex);
-+
-+	return 0;
-+nomem:
-+	printk(KERN_INFO "couldn't allocate enough memory for swap_cgroup.\n");
-+	printk(KERN_INFO
-+		"swap_cgroup can be disabled by swapaccount=0 boot option\n");
-+	return -ENOMEM;
-+}
-+
-+void swap_cgroup_swapoff(int type)
-+{
-+	struct page **map;
-+	unsigned long i, length;
-+	struct swap_cgroup_ctrl *ctrl;
-+
-+	if (!do_swap_account)
-+		return;
-+
-+	mutex_lock(&swap_cgroup_mutex);
-+	ctrl = &swap_cgroup_ctrl[type];
-+	map = ctrl->map;
-+	length = ctrl->length;
-+	ctrl->map = NULL;
-+	ctrl->length = 0;
-+	mutex_unlock(&swap_cgroup_mutex);
-+
-+	if (map) {
-+		for (i = 0; i < length; i++) {
-+			struct page *page = map[i];
-+			if (page)
-+				__free_page(page);
-+		}
-+		vfree(map);
-+	}
-+}
-diff -puN mm/swap_state.c~mm-page_cgroup-rename-file-to-mm-swap_cgroupc mm/swap_state.c
---- a/mm/swap_state.c~mm-page_cgroup-rename-file-to-mm-swap_cgroupc
-+++ a/mm/swap_state.c
-@@ -17,7 +17,6 @@
- #include <linux/blkdev.h>
- #include <linux/pagevec.h>
- #include <linux/migrate.h>
--#include <linux/page_cgroup.h>
+ #else /* CONFIG_MEMCG */
+ struct mem_cgroup;
  
- #include <asm/pgtable.h>
+@@ -346,19 +342,6 @@ void mem_cgroup_count_vm_event(struct mm
+ }
+ #endif /* CONFIG_MEMCG */
  
-diff -puN mm/swapfile.c~mm-page_cgroup-rename-file-to-mm-swap_cgroupc mm/swapfile.c
---- a/mm/swapfile.c~mm-page_cgroup-rename-file-to-mm-swap_cgroupc
-+++ a/mm/swapfile.c
-@@ -38,7 +38,7 @@
- #include <asm/pgtable.h>
- #include <asm/tlbflush.h>
- #include <linux/swapops.h>
--#include <linux/page_cgroup.h>
-+#include <linux/swap_cgroup.h>
+-#if !defined(CONFIG_MEMCG) || !defined(CONFIG_DEBUG_VM)
+-static inline bool
+-mem_cgroup_bad_page_check(struct page *page)
+-{
+-	return false;
+-}
+-
+-static inline void
+-mem_cgroup_print_bad_page(struct page *page)
+-{
+-}
+-#endif
+-
+ enum {
+ 	UNDER_LIMIT,
+ 	SOFT_LIMIT,
+diff -puN init/Kconfig~mm-move-page-mem_cgroup-bad-page-handling-into-generic-code init/Kconfig
+--- a/init/Kconfig~mm-move-page-mem_cgroup-bad-page-handling-into-generic-code
++++ a/init/Kconfig
+@@ -983,18 +983,6 @@ config MEMCG
+ 	  Provides a memory resource controller that manages both anonymous
+ 	  memory and page cache. (See Documentation/cgroups/memory.txt)
  
- static bool swap_count_continued(struct swap_info_struct *, pgoff_t,
- 				 unsigned char);
+-	  Note that setting this option increases fixed memory overhead
+-	  associated with each page of memory in the system. By this,
+-	  8(16)bytes/PAGE_SIZE on 32(64)bit system will be occupied by memory
+-	  usage tracking struct at boot. Total amount of this is printed out
+-	  at boot.
+-
+-	  Only enable when you're ok with these trade offs and really
+-	  sure you need the memory resource controller. Even when you enable
+-	  this, you can set "cgroup_disable=memory" at your boot option to
+-	  disable memory resource controller and you can avoid overheads.
+-	  (and lose benefits of memory resource controller)
+-
+ config MEMCG_SWAP
+ 	bool "Memory Resource Controller Swap Extension"
+ 	depends on MEMCG && SWAP
+diff -puN mm/debug.c~mm-move-page-mem_cgroup-bad-page-handling-into-generic-code mm/debug.c
+--- a/mm/debug.c~mm-move-page-mem_cgroup-bad-page-handling-into-generic-code
++++ a/mm/debug.c
+@@ -95,7 +95,10 @@ void dump_page_badflags(struct page *pag
+ 		dump_flags(page->flags & badflags,
+ 				pageflag_names, ARRAY_SIZE(pageflag_names));
+ 	}
+-	mem_cgroup_print_bad_page(page);
++#ifdef CONFIG_MEMCG
++	if (page->mem_cgroup)
++		pr_alert("page->mem_cgroup:%p\n", page->mem_cgroup);
++#endif
+ }
+ 
+ void dump_page(struct page *page, const char *reason)
+diff -puN mm/memcontrol.c~mm-move-page-mem_cgroup-bad-page-handling-into-generic-code mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-move-page-mem_cgroup-bad-page-handling-into-generic-code
++++ a/mm/memcontrol.c
+@@ -3157,21 +3157,6 @@ static inline int mem_cgroup_move_swap_a
+ }
+ #endif
+ 
+-#ifdef CONFIG_DEBUG_VM
+-bool mem_cgroup_bad_page_check(struct page *page)
+-{
+-	if (mem_cgroup_disabled())
+-		return false;
+-
+-	return page->mem_cgroup != NULL;
+-}
+-
+-void mem_cgroup_print_bad_page(struct page *page)
+-{
+-	pr_alert("page->mem_cgroup:%p\n", page->mem_cgroup);
+-}
+-#endif
+-
+ static DEFINE_MUTEX(memcg_limit_mutex);
+ 
+ static int mem_cgroup_resize_limit(struct mem_cgroup *memcg,
+diff -puN mm/page_alloc.c~mm-move-page-mem_cgroup-bad-page-handling-into-generic-code mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-move-page-mem_cgroup-bad-page-handling-into-generic-code
++++ a/mm/page_alloc.c
+@@ -640,8 +640,10 @@ static inline int free_pages_check(struc
+ 		bad_reason = "PAGE_FLAGS_CHECK_AT_FREE flag(s) set";
+ 		bad_flags = PAGE_FLAGS_CHECK_AT_FREE;
+ 	}
+-	if (unlikely(mem_cgroup_bad_page_check(page)))
+-		bad_reason = "cgroup check failed";
++#ifdef CONFIG_MEMCG
++	if (unlikely(page->mem_cgroup))
++		bad_reason = "page still charged to cgroup";
++#endif
+ 	if (unlikely(bad_reason)) {
+ 		bad_page(page, bad_reason, bad_flags);
+ 		return 1;
+@@ -900,8 +902,10 @@ static inline int check_new_page(struct
+ 		bad_reason = "PAGE_FLAGS_CHECK_AT_PREP flag set";
+ 		bad_flags = PAGE_FLAGS_CHECK_AT_PREP;
+ 	}
+-	if (unlikely(mem_cgroup_bad_page_check(page)))
+-		bad_reason = "cgroup check failed";
++#ifdef CONFIG_MEMCG
++	if (unlikely(page->mem_cgroup))
++		bad_reason = "page still charged to cgroup";
++#endif
+ 	if (unlikely(bad_reason)) {
+ 		bad_page(page, bad_reason, bad_flags);
+ 		return 1;
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
