@@ -1,43 +1,40 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- usermodehelper-dont-use-clone_vfork-for-____call_usermodehelper.patch
+Subject: [merged] usermodehelper-kill-the-kmod_thread_locker-logic.patch
  removed from -mm tree
-Date: Thu, 11 Dec 2014 11:08:04 -0800
-Message-ID: <5489eb94.5OFd0YRb76LlVV80%akpm@linux-foundation.org>
+Date: Thu, 11 Dec 2014 11:08:06 -0800
+Message-ID: <5489eb96.gvOHp8srtOcfrYoH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46055 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46058 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758579AbaLKTIF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 14:08:05 -0500
+	with ESMTP id S1758579AbaLKTIH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 14:08:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@redhat.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: usermodehelper: don't use CLONE_VFORK for ____call_usermodehelper()
+     Subject: usermodehelper: kill the kmod_thread_locker logic
 has been removed from the -mm tree.  Its filename was
-     usermodehelper-dont-use-clone_vfork-for-____call_usermodehelper.patch
+     usermodehelper-kill-the-kmod_thread_locker-logic.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: usermodehelper: don't use CLONE_VFORK for ____call_usermodehelper()
+Subject: usermodehelper: kill the kmod_thread_locker logic
 
-After "kernel/kmod: fix use-after-free of the sub_infostructure"
-CLONE_VFORK in __call_usermodehelper() buys nothing, we rely on on
-umh_complete() in ____call_usermodehelper() anyway.
+Now that we do not call kernel_thread(CLONE_VFORK) from the worker thread
+we can not deadlock if do_execve() in turn triggers another
+call_usermodehelper(), we can remove the kmod_thread_locker code.
 
-Remove it.  This also eliminates the unnecessary sleep/wakeup in the
-likely case, and this allows the next change.
-
-While at it, kill the "int wait" locals in ____call_usermodehelper() and
-__call_usermodehelper(), they can safely use sub_info->wait.
+Note: we should probably kill khelper_wq and simply use one of the global
+workqueues, say, system_unbound_wq, this special wq for umh buys nothing
+nowadays.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
@@ -45,50 +42,73 @@ Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kmod.c |   12 +++---------
- 1 file changed, 3 insertions(+), 9 deletions(-)
+ kernel/kmod.c |   33 +++------------------------------
+ 1 file changed, 3 insertions(+), 30 deletions(-)
 
-diff -puN kernel/kmod.c~usermodehelper-dont-use-clone_vfork-for-____call_usermodehelper kernel/kmod.c
---- a/kernel/kmod.c~usermodehelper-dont-use-clone_vfork-for-____call_usermodehelper
+diff -puN kernel/kmod.c~usermodehelper-kill-the-kmod_thread_locker-logic kernel/kmod.c
+--- a/kernel/kmod.c~usermodehelper-kill-the-kmod_thread_locker-logic
 +++ a/kernel/kmod.c
-@@ -223,7 +223,6 @@ static void umh_complete(struct subproce
- static int ____call_usermodehelper(void *data)
- {
- 	struct subprocess_info *sub_info = data;
--	int wait = sub_info->wait & ~UMH_KILLABLE;
- 	struct cred *new;
- 	int retval;
+@@ -47,13 +47,6 @@ extern int max_threads;
  
-@@ -267,7 +266,7 @@ static int ____call_usermodehelper(void
- out:
- 	sub_info->retval = retval;
- 	/* wait_for_helper() will call umh_complete if UHM_WAIT_PROC. */
--	if (wait != UMH_WAIT_PROC)
-+	if (!(sub_info->wait & UMH_WAIT_PROC))
- 		umh_complete(sub_info);
- 	if (!retval)
- 		return 0;
-@@ -323,18 +322,13 @@ static void __call_usermodehelper(struct
- {
- 	struct subprocess_info *sub_info =
- 		container_of(work, struct subprocess_info, work);
--	int wait = sub_info->wait & ~UMH_KILLABLE;
- 	pid_t pid;
+ static struct workqueue_struct *khelper_wq;
  
--	/* CLONE_VFORK: wait until the usermode helper has execve'd
--	 * successfully We need the data structures to stay around
--	 * until that is done.  */
--	if (wait == UMH_WAIT_PROC)
-+	if (sub_info->wait & UMH_WAIT_PROC)
+-/*
+- * kmod_thread_locker is used for deadlock avoidance.  There is no explicit
+- * locking to protect this global - it is private to the singleton khelper
+- * thread and should only ever be modified by that thread.
+- */
+-static const struct task_struct *kmod_thread_locker;
+-
+ #define CAP_BSET	(void *)1
+ #define CAP_PI		(void *)2
+ 
+@@ -273,13 +266,6 @@ out:
+ 	do_exit(0);
+ }
+ 
+-static int call_helper(void *data)
+-{
+-	/* Worker thread started blocking khelper thread. */
+-	kmod_thread_locker = current;
+-	return ____call_usermodehelper(data);
+-}
+-
+ /* Keventd can't block, but this (a child) can. */
+ static int wait_for_helper(void *data)
+ {
+@@ -327,11 +313,9 @@ static void __call_usermodehelper(struct
+ 	if (sub_info->wait & UMH_WAIT_PROC)
  		pid = kernel_thread(wait_for_helper, sub_info,
  				    CLONE_FS | CLONE_FILES | SIGCHLD);
- 	else {
--		pid = kernel_thread(call_helper, sub_info,
--				    CLONE_VFORK | SIGCHLD);
-+		pid = kernel_thread(call_helper, sub_info, SIGCHLD);
- 		/* Worker thread stopped blocking khelper thread. */
- 		kmod_thread_locker = NULL;
+-	else {
+-		pid = kernel_thread(call_helper, sub_info, SIGCHLD);
+-		/* Worker thread stopped blocking khelper thread. */
+-		kmod_thread_locker = NULL;
+-	}
++	else
++		pid = kernel_thread(____call_usermodehelper, sub_info,
++				    SIGCHLD);
+ 
+ 	if (pid < 0) {
+ 		sub_info->retval = pid;
+@@ -565,17 +549,6 @@ int call_usermodehelper_exec(struct subp
+ 		goto out;
  	}
+ 	/*
+-	 * Worker thread must not wait for khelper thread at below
+-	 * wait_for_completion() if the thread was created with CLONE_VFORK
+-	 * flag, for khelper thread is already waiting for the thread at
+-	 * wait_for_completion() in do_fork().
+-	 */
+-	if (wait != UMH_NO_WAIT && current == kmod_thread_locker) {
+-		retval = -EBUSY;
+-		goto out;
+-	}
+-
+-	/*
+ 	 * Set the completion pointer only if there is a waiter.
+ 	 * This makes it possible to use umh_complete to free
+ 	 * the data structure in case of UMH_NO_WAIT.
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
