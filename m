@@ -1,209 +1,409 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-move-page-mem_cgroup-bad-page-handling-into-generic-code.patch removed
- from -mm tree
-Date: Thu, 11 Dec 2014 10:57:52 -0800
-Message-ID: <5489e930.YlQw1B6KI3a9+eVY%akpm@linux-foundation.org>
+Subject: [merged] fs-proc-use-a-rb-tree-for-the-directory-entries.patch
+ removed from -mm tree
+Date: Thu, 11 Dec 2014 10:57:55 -0800
+Message-ID: <5489e933.Pn7SAiLUN2JvZ2Uu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45451 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45455 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758490AbaLKS5x (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:57:53 -0500
+	with ESMTP id S1758490AbaLKS54 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:57:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, davem@davemloft.net, iamjoonsoo.kim@lge.com, kamezawa.hiroyu@jp.fujitsu.com, kirill@shutemov.name, mhocko@suse.cz, tj@kernel.org, vdavydov@parallels.com, mm-commits@vger.kernel.org
+To: nicolas.dichtel@6wind.com, davem@davemloft.net, ebiederm@xmission.com, thierry.herbelot@6wind.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: move page->mem_cgroup bad page handling into generic code
+     Subject: fs/proc: use a rb tree for the directory entries
 has been removed from the -mm tree.  Its filename was
-     mm-move-page-mem_cgroup-bad-page-handling-into-generic-code.patch
+     fs-proc-use-a-rb-tree-for-the-directory-entries.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: move page->mem_cgroup bad page handling into generic code
+From: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Subject: fs/proc: use a rb tree for the directory entries
 
-Now that the external page_cgroup data structure and its lookup is
-gone, let the generic bad_page() check for page->mem_cgroup sanity.
+When a lot of netdevices are created, one of the bottleneck is the
+creation of proc entries.  This serie aims to accelerate this part.
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: Vladimir Davydov <vdavydov@parallels.com>
+The current implementation for the directories in /proc is using a single
+linked list.  This is slow when handling directories with large numbers of
+entries (eg netdevice-related entries when lots of tunnels are opened).
+
+This patch replaces this linked list by a red-black tree.
+
+Here are some numbers:
+
+dummy30000.batch contains 30 000 times 'link add type dummy'.
+
+Before the patch:
+$ time ip -b dummy30000.batch
+real	2m31.950s
+user	0m0.440s
+sys	2m21.440s
+$ time rmmod dummy
+real	1m35.764s
+user	0m0.000s
+sys	1m24.088s
+
+After the patch:
+$ time ip -b dummy30000.batch
+real	2m0.874s
+user	0m0.448s
+sys	1m49.720s
+$ time rmmod dummy
+real	1m13.988s
+user	0m0.000s
+sys	1m1.008s
+
+The idea of improving this part was suggested by Thierry Herbelot.
+
+[akpm@linux-foundation.org: initialise proc_root.subdir at compile time]
+Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
 Acked-by: David S. Miller <davem@davemloft.net>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Thierry Herbelot <thierry.herbelot@6wind.com>.
+Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   17 -----------------
- init/Kconfig               |   12 ------------
- mm/debug.c                 |    5 ++++-
- mm/memcontrol.c            |   15 ---------------
- mm/page_alloc.c            |   12 ++++++++----
- 5 files changed, 12 insertions(+), 49 deletions(-)
+ fs/proc/generic.c  |  164 +++++++++++++++++++++++++++----------------
+ fs/proc/internal.h |   11 +-
+ fs/proc/proc_net.c |    1 
+ fs/proc/root.c     |    1 
+ 4 files changed, 113 insertions(+), 64 deletions(-)
 
-diff -puN include/linux/memcontrol.h~mm-move-page-mem_cgroup-bad-page-handling-into-generic-code include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~mm-move-page-mem_cgroup-bad-page-handling-into-generic-code
-+++ a/include/linux/memcontrol.h
-@@ -173,10 +173,6 @@ static inline void mem_cgroup_count_vm_e
- void mem_cgroup_split_huge_fixup(struct page *head);
- #endif
+diff -puN fs/proc/generic.c~fs-proc-use-a-rb-tree-for-the-directory-entries fs/proc/generic.c
+--- a/fs/proc/generic.c~fs-proc-use-a-rb-tree-for-the-directory-entries
++++ a/fs/proc/generic.c
+@@ -31,9 +31,81 @@ static DEFINE_SPINLOCK(proc_subdir_lock)
  
--#ifdef CONFIG_DEBUG_VM
--bool mem_cgroup_bad_page_check(struct page *page);
--void mem_cgroup_print_bad_page(struct page *page);
--#endif
- #else /* CONFIG_MEMCG */
- struct mem_cgroup;
- 
-@@ -346,19 +342,6 @@ void mem_cgroup_count_vm_event(struct mm
+ static int proc_match(unsigned int len, const char *name, struct proc_dir_entry *de)
+ {
+-	if (de->namelen != len)
+-		return 0;
+-	return !memcmp(name, de->name, len);
++	if (len < de->namelen)
++		return -1;
++	if (len > de->namelen)
++		return 1;
++
++	return memcmp(name, de->name, len);
++}
++
++static struct proc_dir_entry *pde_subdir_first(struct proc_dir_entry *dir)
++{
++	struct rb_node *node = rb_first(&dir->subdir);
++
++	if (node == NULL)
++		return NULL;
++
++	return rb_entry(node, struct proc_dir_entry, subdir_node);
++}
++
++static struct proc_dir_entry *pde_subdir_next(struct proc_dir_entry *dir)
++{
++	struct rb_node *node = rb_next(&dir->subdir_node);
++
++	if (node == NULL)
++		return NULL;
++
++	return rb_entry(node, struct proc_dir_entry, subdir_node);
++}
++
++static struct proc_dir_entry *pde_subdir_find(struct proc_dir_entry *dir,
++					      const char *name,
++					      unsigned int len)
++{
++	struct rb_node *node = dir->subdir.rb_node;
++
++	while (node) {
++		struct proc_dir_entry *de = container_of(node,
++							 struct proc_dir_entry,
++							 subdir_node);
++		int result = proc_match(len, name, de);
++
++		if (result < 0)
++			node = node->rb_left;
++		else if (result > 0)
++			node = node->rb_right;
++		else
++			return de;
++	}
++	return NULL;
++}
++
++static bool pde_subdir_insert(struct proc_dir_entry *dir,
++			      struct proc_dir_entry *de)
++{
++	struct rb_root *root = &dir->subdir;
++	struct rb_node **new = &root->rb_node, *parent = NULL;
++
++	/* Figure out where to put new node */
++	while (*new) {
++		struct proc_dir_entry *this =
++			container_of(*new, struct proc_dir_entry, subdir_node);
++		int result = proc_match(de->namelen, de->name, this);
++
++		parent = *new;
++		if (result < 0)
++			new = &(*new)->rb_left;
++		else if (result > 0)
++			new = &(*new)->rb_right;
++		else
++			return false;
++	}
++
++	/* Add new node and rebalance tree. */
++	rb_link_node(&de->subdir_node, parent, new);
++	rb_insert_color(&de->subdir_node, root);
++	return true;
  }
- #endif /* CONFIG_MEMCG */
  
--#if !defined(CONFIG_MEMCG) || !defined(CONFIG_DEBUG_VM)
--static inline bool
--mem_cgroup_bad_page_check(struct page *page)
--{
--	return false;
--}
--
--static inline void
--mem_cgroup_print_bad_page(struct page *page)
--{
--}
--#endif
--
- enum {
- 	UNDER_LIMIT,
- 	SOFT_LIMIT,
-diff -puN init/Kconfig~mm-move-page-mem_cgroup-bad-page-handling-into-generic-code init/Kconfig
---- a/init/Kconfig~mm-move-page-mem_cgroup-bad-page-handling-into-generic-code
-+++ a/init/Kconfig
-@@ -983,18 +983,6 @@ config MEMCG
- 	  Provides a memory resource controller that manages both anonymous
- 	  memory and page cache. (See Documentation/cgroups/memory.txt)
+ static int proc_notify_change(struct dentry *dentry, struct iattr *iattr)
+@@ -92,10 +164,7 @@ static int __xlate_proc_name(const char
+ 			break;
  
--	  Note that setting this option increases fixed memory overhead
--	  associated with each page of memory in the system. By this,
--	  8(16)bytes/PAGE_SIZE on 32(64)bit system will be occupied by memory
--	  usage tracking struct at boot. Total amount of this is printed out
--	  at boot.
--
--	  Only enable when you're ok with these trade offs and really
--	  sure you need the memory resource controller. Even when you enable
--	  this, you can set "cgroup_disable=memory" at your boot option to
--	  disable memory resource controller and you can avoid overheads.
--	  (and lose benefits of memory resource controller)
--
- config MEMCG_SWAP
- 	bool "Memory Resource Controller Swap Extension"
- 	depends on MEMCG && SWAP
-diff -puN mm/debug.c~mm-move-page-mem_cgroup-bad-page-handling-into-generic-code mm/debug.c
---- a/mm/debug.c~mm-move-page-mem_cgroup-bad-page-handling-into-generic-code
-+++ a/mm/debug.c
-@@ -95,7 +95,10 @@ void dump_page_badflags(struct page *pag
- 		dump_flags(page->flags & badflags,
- 				pageflag_names, ARRAY_SIZE(pageflag_names));
+ 		len = next - cp;
+-		for (de = de->subdir; de ; de = de->next) {
+-			if (proc_match(len, cp, de))
+-				break;
+-		}
++		de = pde_subdir_find(de, cp, len);
+ 		if (!de) {
+ 			WARN(1, "name '%s'\n", name);
+ 			return -ENOENT;
+@@ -183,19 +252,16 @@ struct dentry *proc_lookup_de(struct pro
+ 	struct inode *inode;
+ 
+ 	spin_lock(&proc_subdir_lock);
+-	for (de = de->subdir; de ; de = de->next) {
+-		if (de->namelen != dentry->d_name.len)
+-			continue;
+-		if (!memcmp(dentry->d_name.name, de->name, de->namelen)) {
+-			pde_get(de);
+-			spin_unlock(&proc_subdir_lock);
+-			inode = proc_get_inode(dir->i_sb, de);
+-			if (!inode)
+-				return ERR_PTR(-ENOMEM);
+-			d_set_d_op(dentry, &simple_dentry_operations);
+-			d_add(dentry, inode);
+-			return NULL;
+-		}
++	de = pde_subdir_find(de, dentry->d_name.name, dentry->d_name.len);
++	if (de) {
++		pde_get(de);
++		spin_unlock(&proc_subdir_lock);
++		inode = proc_get_inode(dir->i_sb, de);
++		if (!inode)
++			return ERR_PTR(-ENOMEM);
++		d_set_d_op(dentry, &simple_dentry_operations);
++		d_add(dentry, inode);
++		return NULL;
  	}
--	mem_cgroup_print_bad_page(page);
-+#ifdef CONFIG_MEMCG
-+	if (page->mem_cgroup)
-+		pr_alert("page->mem_cgroup:%p\n", page->mem_cgroup);
-+#endif
+ 	spin_unlock(&proc_subdir_lock);
+ 	return ERR_PTR(-ENOENT);
+@@ -225,7 +291,7 @@ int proc_readdir_de(struct proc_dir_entr
+ 		return 0;
+ 
+ 	spin_lock(&proc_subdir_lock);
+-	de = de->subdir;
++	de = pde_subdir_first(de);
+ 	i = ctx->pos - 2;
+ 	for (;;) {
+ 		if (!de) {
+@@ -234,7 +300,7 @@ int proc_readdir_de(struct proc_dir_entr
+ 		}
+ 		if (!i)
+ 			break;
+-		de = de->next;
++		de = pde_subdir_next(de);
+ 		i--;
+ 	}
+ 
+@@ -249,7 +315,7 @@ int proc_readdir_de(struct proc_dir_entr
+ 		}
+ 		spin_lock(&proc_subdir_lock);
+ 		ctx->pos++;
+-		next = de->next;
++		next = pde_subdir_next(de);
+ 		pde_put(de);
+ 		de = next;
+ 	} while (de);
+@@ -286,9 +352,8 @@ static const struct inode_operations pro
+ 
+ static int proc_register(struct proc_dir_entry * dir, struct proc_dir_entry * dp)
+ {
+-	struct proc_dir_entry *tmp;
+ 	int ret;
+-	
++
+ 	ret = proc_alloc_inum(&dp->low_ino);
+ 	if (ret)
+ 		return ret;
+@@ -308,17 +373,10 @@ static int proc_register(struct proc_dir
+ 	}
+ 
+ 	spin_lock(&proc_subdir_lock);
+-
+-	for (tmp = dir->subdir; tmp; tmp = tmp->next)
+-		if (strcmp(tmp->name, dp->name) == 0) {
+-			WARN(1, "proc_dir_entry '%s/%s' already registered\n",
+-				dir->name, dp->name);
+-			break;
+-		}
+-
+-	dp->next = dir->subdir;
+ 	dp->parent = dir;
+-	dir->subdir = dp;
++	if (pde_subdir_insert(dir, dp) == false)
++		WARN(1, "proc_dir_entry '%s/%s' already registered\n",
++		     dir->name, dp->name);
+ 	spin_unlock(&proc_subdir_lock);
+ 
+ 	return 0;
+@@ -354,6 +412,7 @@ static struct proc_dir_entry *__proc_cre
+ 	ent->namelen = qstr.len;
+ 	ent->mode = mode;
+ 	ent->nlink = nlink;
++	ent->subdir = RB_ROOT;
+ 	atomic_set(&ent->count, 1);
+ 	spin_lock_init(&ent->pde_unload_lock);
+ 	INIT_LIST_HEAD(&ent->pde_openers);
+@@ -485,7 +544,6 @@ void pde_put(struct proc_dir_entry *pde)
+  */
+ void remove_proc_entry(const char *name, struct proc_dir_entry *parent)
+ {
+-	struct proc_dir_entry **p;
+ 	struct proc_dir_entry *de = NULL;
+ 	const char *fn = name;
+ 	unsigned int len;
+@@ -497,14 +555,9 @@ void remove_proc_entry(const char *name,
+ 	}
+ 	len = strlen(fn);
+ 
+-	for (p = &parent->subdir; *p; p=&(*p)->next ) {
+-		if (proc_match(len, fn, *p)) {
+-			de = *p;
+-			*p = de->next;
+-			de->next = NULL;
+-			break;
+-		}
+-	}
++	de = pde_subdir_find(parent, fn, len);
++	if (de)
++		rb_erase(&de->subdir_node, &parent->subdir);
+ 	spin_unlock(&proc_subdir_lock);
+ 	if (!de) {
+ 		WARN(1, "name '%s'\n", name);
+@@ -516,16 +569,15 @@ void remove_proc_entry(const char *name,
+ 	if (S_ISDIR(de->mode))
+ 		parent->nlink--;
+ 	de->nlink = 0;
+-	WARN(de->subdir, "%s: removing non-empty directory "
+-			 "'%s/%s', leaking at least '%s'\n", __func__,
+-			 de->parent->name, de->name, de->subdir->name);
++	WARN(pde_subdir_first(de),
++	     "%s: removing non-empty directory '%s/%s', leaking at least '%s'\n",
++	     __func__, de->parent->name, de->name, pde_subdir_first(de)->name);
+ 	pde_put(de);
  }
+ EXPORT_SYMBOL(remove_proc_entry);
  
- void dump_page(struct page *page, const char *reason)
-diff -puN mm/memcontrol.c~mm-move-page-mem_cgroup-bad-page-handling-into-generic-code mm/memcontrol.c
---- a/mm/memcontrol.c~mm-move-page-mem_cgroup-bad-page-handling-into-generic-code
-+++ a/mm/memcontrol.c
-@@ -3157,21 +3157,6 @@ static inline int mem_cgroup_move_swap_a
- }
- #endif
- 
--#ifdef CONFIG_DEBUG_VM
--bool mem_cgroup_bad_page_check(struct page *page)
--{
--	if (mem_cgroup_disabled())
--		return false;
--
--	return page->mem_cgroup != NULL;
--}
--
--void mem_cgroup_print_bad_page(struct page *page)
--{
--	pr_alert("page->mem_cgroup:%p\n", page->mem_cgroup);
--}
--#endif
--
- static DEFINE_MUTEX(memcg_limit_mutex);
- 
- static int mem_cgroup_resize_limit(struct mem_cgroup *memcg,
-diff -puN mm/page_alloc.c~mm-move-page-mem_cgroup-bad-page-handling-into-generic-code mm/page_alloc.c
---- a/mm/page_alloc.c~mm-move-page-mem_cgroup-bad-page-handling-into-generic-code
-+++ a/mm/page_alloc.c
-@@ -640,8 +640,10 @@ static inline int free_pages_check(struc
- 		bad_reason = "PAGE_FLAGS_CHECK_AT_FREE flag(s) set";
- 		bad_flags = PAGE_FLAGS_CHECK_AT_FREE;
+ int remove_proc_subtree(const char *name, struct proc_dir_entry *parent)
+ {
+-	struct proc_dir_entry **p;
+ 	struct proc_dir_entry *root = NULL, *de, *next;
+ 	const char *fn = name;
+ 	unsigned int len;
+@@ -537,24 +589,18 @@ int remove_proc_subtree(const char *name
  	}
--	if (unlikely(mem_cgroup_bad_page_check(page)))
--		bad_reason = "cgroup check failed";
-+#ifdef CONFIG_MEMCG
-+	if (unlikely(page->mem_cgroup))
-+		bad_reason = "page still charged to cgroup";
-+#endif
- 	if (unlikely(bad_reason)) {
- 		bad_page(page, bad_reason, bad_flags);
- 		return 1;
-@@ -900,8 +902,10 @@ static inline int check_new_page(struct
- 		bad_reason = "PAGE_FLAGS_CHECK_AT_PREP flag set";
- 		bad_flags = PAGE_FLAGS_CHECK_AT_PREP;
+ 	len = strlen(fn);
+ 
+-	for (p = &parent->subdir; *p; p=&(*p)->next ) {
+-		if (proc_match(len, fn, *p)) {
+-			root = *p;
+-			*p = root->next;
+-			root->next = NULL;
+-			break;
+-		}
+-	}
++	root = pde_subdir_find(parent, fn, len);
+ 	if (!root) {
+ 		spin_unlock(&proc_subdir_lock);
+ 		return -ENOENT;
  	}
--	if (unlikely(mem_cgroup_bad_page_check(page)))
--		bad_reason = "cgroup check failed";
-+#ifdef CONFIG_MEMCG
-+	if (unlikely(page->mem_cgroup))
-+		bad_reason = "page still charged to cgroup";
-+#endif
- 	if (unlikely(bad_reason)) {
- 		bad_page(page, bad_reason, bad_flags);
- 		return 1;
++	rb_erase(&root->subdir_node, &parent->subdir);
++
+ 	de = root;
+ 	while (1) {
+-		next = de->subdir;
++		next = pde_subdir_first(de);
+ 		if (next) {
+-			de->subdir = next->next;
+-			next->next = NULL;
++			rb_erase(&next->subdir_node, &de->subdir);
+ 			de = next;
+ 			continue;
+ 		}
+diff -puN fs/proc/internal.h~fs-proc-use-a-rb-tree-for-the-directory-entries fs/proc/internal.h
+--- a/fs/proc/internal.h~fs-proc-use-a-rb-tree-for-the-directory-entries
++++ a/fs/proc/internal.h
+@@ -24,10 +24,9 @@ struct mempolicy;
+  * tree) of these proc_dir_entries, so that we can dynamically
+  * add new files to /proc.
+  *
+- * The "next" pointer creates a linked list of one /proc directory,
+- * while parent/subdir create the directory structure (every
+- * /proc file has a parent, but "subdir" is NULL for all
+- * non-directory entries).
++ * parent/subdir are used for the directory structure (every /proc file has a
++ * parent, but "subdir" is empty for all non-directory entries).
++ * subdir_node is used to build the rb tree "subdir" of the parent.
+  */
+ struct proc_dir_entry {
+ 	unsigned int low_ino;
+@@ -38,7 +37,9 @@ struct proc_dir_entry {
+ 	loff_t size;
+ 	const struct inode_operations *proc_iops;
+ 	const struct file_operations *proc_fops;
+-	struct proc_dir_entry *next, *parent, *subdir;
++	struct proc_dir_entry *parent;
++	struct rb_root subdir;
++	struct rb_node subdir_node;
+ 	void *data;
+ 	atomic_t count;		/* use count */
+ 	atomic_t in_use;	/* number of callers into module in progress; */
+diff -puN fs/proc/proc_net.c~fs-proc-use-a-rb-tree-for-the-directory-entries fs/proc/proc_net.c
+--- a/fs/proc/proc_net.c~fs-proc-use-a-rb-tree-for-the-directory-entries
++++ a/fs/proc/proc_net.c
+@@ -192,6 +192,7 @@ static __net_init int proc_net_ns_init(s
+ 	if (!netd)
+ 		goto out;
+ 
++	netd->subdir = RB_ROOT;
+ 	netd->data = net;
+ 	netd->nlink = 2;
+ 	netd->namelen = 3;
+diff -puN fs/proc/root.c~fs-proc-use-a-rb-tree-for-the-directory-entries fs/proc/root.c
+--- a/fs/proc/root.c~fs-proc-use-a-rb-tree-for-the-directory-entries
++++ a/fs/proc/root.c
+@@ -251,6 +251,7 @@ struct proc_dir_entry proc_root = {
+ 	.proc_iops	= &proc_root_inode_operations, 
+ 	.proc_fops	= &proc_root_operations,
+ 	.parent		= &proc_root,
++	.subdir		= RB_ROOT,
+ 	.name		= "/proc",
+ };
+ 
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from nicolas.dichtel@6wind.com are
 
 origin.patch
-memcg-__mem_cgroup_free-remove-stale-disarm_static_keys-comment.patch
-memcg-dont-check-mm-in-__memcg_kmem_get_cachenewpage_charge.patch
-memcg-do-not-abuse-memcg_kmem_skip_account.patch
-mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
-mm-mincore-add-hwpoison-page-handle.patch
-memcg-zap-kmem_account_flags.patch
-memcg-only-check-memcg_kmem_skip_account-in-__memcg_kmem_get_cache.patch
-memcg-turn-memcg_kmem_skip_account-into-a-bit-field.patch
-mm-move-swp_entry_t-definition-to-include-linux-mm_typesh.patch
-mm-gfp-escalatedly-define-gfp_highuser-and-gfp_highuser_movable.patch
-mm-page_ext-resurrect-struct-page-extending-code-for-debugging.patch
-mm-page_ext-resurrect-struct-page-extending-code-for-debugging-fix.patch
-mm-debug-pagealloc-prepare-boottime-configurable-on-off.patch
-mm-debug-pagealloc-make-debug-pagealloc-boottime-configurable.patch
-mm-debug-pagealloc-make-debug-pagealloc-boottime-configurable-fix.patch
-mm-nommu-use-alloc_pages_exact-rather-than-its-own-implementation.patch
-stacktrace-introduce-snprint_stack_trace-for-buffer-output.patch
-mm-page_owner-keep-track-of-page-owners.patch
-mm-page_owner-correct-owner-information-for-early-allocated-pages.patch
-documentation-add-new-page_owner-document.patch
-mm-vmscan-invoke-slab-shrinkers-from-shrink_zone.patch
-mm-vmscan-invoke-slab-shrinkers-from-shrink_zone-fix.patch
-mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath.patch
-mm-memcontrol-fix-defined-but-not-used-compiler-warning.patch
-memcg-fix-possible-use-after-free-in-memcg_kmem_get_cache.patch
-mm-memcontrolc-cleaning-up-function-that-are-not-used-anywhere.patch
+linux-next.patch
 
