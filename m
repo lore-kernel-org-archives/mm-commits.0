@@ -1,162 +1,116 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- fs-binfmt_elfc-fix-internal-inconsistency-relating-to-vma-dump-size.patch
+ init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails.patch
  removed from -mm tree
-Date: Thu, 11 Dec 2014 11:05:54 -0800
-Message-ID: <5489eb12.H21auOybQdjXSbcP%akpm@linux-foundation.org>
+Date: Thu, 11 Dec 2014 11:05:56 -0800
+Message-ID: <5489eb14.L2iAQhP/O+UUfLL+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45715 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45724 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757777AbaLKTFz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 14:05:55 -0500
+	with ESMTP id S1757507AbaLKTF5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 14:05:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: js07.lee@gmail.com, mm-commits@vger.kernel.org
+To: luto@amacapital.net, cebbert.lkml@gmail.com, frowand.list@gmail.com, josh@joshtriplett.org, rdunlap@infradead.org, rob@landley.net, rusty@rustcorp.com.au, shuah.kh@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/binfmt_elf.c: fix internal inconsistency relating to vma dump size
+     Subject: init: allow CONFIG_INIT_FALLBACK=n to disable defaults if init= fails
 has been removed from the -mm tree.  Its filename was
-     fs-binfmt_elfc-fix-internal-inconsistency-relating-to-vma-dump-size.patch
+     init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jungseung Lee <js07.lee@gmail.com>
-Subject: fs/binfmt_elf.c: fix internal inconsistency relating to vma dump size
+From: Andy Lutomirski <luto@amacapital.net>
+Subject: init: allow CONFIG_INIT_FALLBACK=n to disable defaults if init= fails
 
-vma_dump_size() has been used several times on actual dumper and it is
-supposed to return the same value for the same vma.  But vma_dump_size()
-could return different values for same vma.
+If a user puts init=/whatever on the command line and /whatever can't be
+run, then the kernel will try a few default options before giving up.  If
+init=/whatever came from a bootloader prompt, then this is unexpected but
+probably harmless.  On the other hand, if it comes from a script (e.g.  a
+tool like virtme or perhaps a future kselftest script), then the fallbacks
+are likely to exist, but they'll do the wrong thing.  For example, they
+might unexpectedly invoke systemd.
 
-The known problem case is concurrent shared memory removal.  If a vma is
-used for a shared memory and that shared memory is removed between writing
-program header and dumping vma memory, this will result in a dump file
-which is internally consistent.
+This adds a config option CONFIG_INIT_FALLBACK.  If unset, then a failure
+to run the specified init= process be fatal.
 
-To fix the problem, we set baseline to get dump size and store the size
-into vma_filesz and always use the same vma dump size which is stored in
-vma_filsz.  The consistnecy with reality is not actually guranteed, but
-it's tolerable since that is fully consistent with base line.
+The tentative plan is to remove CONFIG_INIT_FALLBACK for 3.20.
 
-Signed-off-by: Jungseung Lee <js07.lee@gmail.com>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Andy Lutomirski <luto@amacapital.net>
+Cc: Rob Landley <rob@landley.net>
+Cc: Chuck Ebbert <cebbert.lkml@gmail.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Shuah Khan <shuah.kh@samsung.com>
+Cc: Frank Rowand <frowand.list@gmail.com>
+Cc: Josh Triplett <josh@joshtriplett.org>
+Acked-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |   40 ++++++++++++++++++++++------------------
- 1 file changed, 22 insertions(+), 18 deletions(-)
+ init/Kconfig |   16 ++++++++++++++++
+ init/main.c  |    7 ++++++-
+ 2 files changed, 22 insertions(+), 1 deletion(-)
 
-diff -puN fs/binfmt_elf.c~fs-binfmt_elfc-fix-internal-inconsistency-relating-to-vma-dump-size fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~fs-binfmt_elfc-fix-internal-inconsistency-relating-to-vma-dump-size
-+++ a/fs/binfmt_elf.c
-@@ -1994,18 +1994,6 @@ static void fill_extnum_info(struct elfh
- 	shdr4extnum->sh_info = segs;
- }
+diff -puN init/Kconfig~init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails init/Kconfig
+--- a/init/Kconfig~init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails
++++ a/init/Kconfig
+@@ -1280,6 +1280,22 @@ source "usr/Kconfig"
  
--static size_t elf_core_vma_data_size(struct vm_area_struct *gate_vma,
--				     unsigned long mm_flags)
--{
--	struct vm_area_struct *vma;
--	size_t size = 0;
--
--	for (vma = first_vma(current, gate_vma); vma != NULL;
--	     vma = next_vma(vma, gate_vma))
--		size += vma_dump_size(vma, mm_flags);
--	return size;
--}
--
- /*
-  * Actual dumper
-  *
-@@ -2017,7 +2005,8 @@ static int elf_core_dump(struct coredump
- {
- 	int has_dumped = 0;
- 	mm_segment_t fs;
--	int segs;
-+	int segs, i;
-+	size_t vma_data_size = 0;
- 	struct vm_area_struct *vma, *gate_vma;
- 	struct elfhdr *elf = NULL;
- 	loff_t offset = 0, dataoff;
-@@ -2026,6 +2015,7 @@ static int elf_core_dump(struct coredump
- 	struct elf_shdr *shdr4extnum = NULL;
- 	Elf_Half e_phnum;
- 	elf_addr_t e_shoff;
-+	elf_addr_t *vma_filesz = NULL;
+ endif
  
- 	/*
- 	 * We no longer stop all VM operations.
-@@ -2093,7 +2083,20 @@ static int elf_core_dump(struct coredump
- 
- 	dataoff = offset = roundup(offset, ELF_EXEC_PAGESIZE);
- 
--	offset += elf_core_vma_data_size(gate_vma, cprm->mm_flags);
-+	vma_filesz = kmalloc_array(segs - 1, sizeof(*vma_filesz), GFP_KERNEL);
-+	if (!vma_filesz)
-+		goto end_coredump;
++config INIT_FALLBACK
++	bool "Fall back to defaults if init= parameter is bad"
++	default y
++	help
++	  If enabled, the kernel will try the default init binaries if an
++	  explicit request from the init= parameter fails.
 +
-+	for (i = 0, vma = first_vma(current, gate_vma); vma != NULL;
-+			vma = next_vma(vma, gate_vma)) {
-+		unsigned long dump_size;
++	  This can have unexpected effects.  For example, booting
++	  with init=/sbin/kiosk_app will run /sbin/init or even /bin/sh
++	  if /sbin/kiosk_app cannot be executed.
 +
-+		dump_size = vma_dump_size(vma, cprm->mm_flags);
-+		vma_filesz[i++] = dump_size;
-+		vma_data_size += dump_size;
-+	}
++	  The default value of Y is consistent with historical behavior.
++	  Selecting N is likely to be more appropriate for most uses,
++	  especially on kiosks and on kernels that are intended to be
++	  run under the control of a script.
 +
-+	offset += vma_data_size;
- 	offset += elf_core_extra_data_size();
- 	e_shoff = offset;
- 
-@@ -2113,7 +2116,7 @@ static int elf_core_dump(struct coredump
- 		goto end_coredump;
- 
- 	/* Write program headers for segments dump */
--	for (vma = first_vma(current, gate_vma); vma != NULL;
-+	for (i = 0, vma = first_vma(current, gate_vma); vma != NULL;
- 			vma = next_vma(vma, gate_vma)) {
- 		struct elf_phdr phdr;
- 
-@@ -2121,7 +2124,7 @@ static int elf_core_dump(struct coredump
- 		phdr.p_offset = offset;
- 		phdr.p_vaddr = vma->vm_start;
- 		phdr.p_paddr = 0;
--		phdr.p_filesz = vma_dump_size(vma, cprm->mm_flags);
-+		phdr.p_filesz = vma_filesz[i++];
- 		phdr.p_memsz = vma->vm_end - vma->vm_start;
- 		offset += phdr.p_filesz;
- 		phdr.p_flags = vma->vm_flags & VM_READ ? PF_R : 0;
-@@ -2149,12 +2152,12 @@ static int elf_core_dump(struct coredump
- 	if (!dump_skip(cprm, dataoff - cprm->written))
- 		goto end_coredump;
- 
--	for (vma = first_vma(current, gate_vma); vma != NULL;
-+	for (i = 0, vma = first_vma(current, gate_vma); vma != NULL;
- 			vma = next_vma(vma, gate_vma)) {
- 		unsigned long addr;
- 		unsigned long end;
- 
--		end = vma->vm_start + vma_dump_size(vma, cprm->mm_flags);
-+		end = vma->vm_start + vma_filesz[i++];
- 
- 		for (addr = vma->vm_start; addr < end; addr += PAGE_SIZE) {
- 			struct page *page;
-@@ -2187,6 +2190,7 @@ end_coredump:
- cleanup:
- 	free_note_info(&info);
- 	kfree(shdr4extnum);
-+	kfree(vma_filesz);
- 	kfree(phdr4note);
- 	kfree(elf);
- out:
+ config CC_OPTIMIZE_FOR_SIZE
+ 	bool "Optimize for size"
+ 	help
+diff -puN init/main.c~init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails init/main.c
+--- a/init/main.c~init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails
++++ a/init/main.c
+@@ -952,8 +952,13 @@ static int __ref kernel_init(void *unuse
+ 		ret = run_init_process(execute_command);
+ 		if (!ret)
+ 			return 0;
++#ifndef CONFIG_INIT_FALLBACK
++		panic("Requested init %s failed (error %d).",
++		      execute_command, ret);
++#else
+ 		pr_err("Failed to execute %s (error %d).  Attempting defaults...\n",
+-			execute_command, ret);
++		       execute_command, ret);
++#endif
+ 	}
+ 	if (!try_to_run_init_process("/sbin/init") ||
+ 	    !try_to_run_init_process("/etc/init") ||
 _
 
-Patches currently in -mm which might be from js07.lee@gmail.com are
+Patches currently in -mm which might be from luto@amacapital.net are
 
 origin.patch
+init-remove-config_init_fallback.patch
+syscalls-implement-execveat-system-call.patch
+x86-hook-up-execveat-system-call.patch
+syscalls-add-selftest-for-execveat2.patch
 linux-next.patch
+all-arches-signal-move-restart_block-to-struct-task_struct.patch
 
