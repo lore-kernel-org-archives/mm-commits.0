@@ -1,86 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-pcf8563-clear-expired-alarm-at-boot-time.patch
- removed from -mm tree
-Date: Thu, 11 Dec 2014 11:07:20 -0800
-Message-ID: <5489eb68.Q4XjHfX909AC+RdT%akpm@linux-foundation.org>
+Subject: [merged]
+ drivers-rtc-rtc-sirfsocc-add-alarm_irq_enable-support.patch removed from
+ -mm tree
+Date: Thu, 11 Dec 2014 11:07:23 -0800
+Message-ID: <5489eb6b.0szfjtuk10dBZOkA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45942 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45950 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750814AbaLKTHV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 14:07:21 -0500
+	with ESMTP id S1750814AbaLKTHY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 14:07:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jan.kardell@telliq.com, a.zummo@towertech.it, dan.carpenter@oracle.com, grant.likely@linaro.org, robh+dt@kernel.org, vdonnefort@gmail.com, mm-commits@vger.kernel.org
+To: hao.liu@csr.com, Baohua.Song@csr.com, a.zummo@towertech.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: pcf8563: clear expired alarm at boot time
+     Subject: drivers/rtc/rtc-sirfsoc.c: add alarm_irq_enable support
 has been removed from the -mm tree.  Its filename was
-     rtc-pcf8563-clear-expired-alarm-at-boot-time.patch
+     drivers-rtc-rtc-sirfsocc-add-alarm_irq_enable-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jan Kardell <jan.kardell@telliq.com>
-Subject: rtc: pcf8563: clear expired alarm at boot time
+From: hao liu <hao.liu@csr.com>
+Subject: drivers/rtc/rtc-sirfsoc.c: add alarm_irq_enable support
 
-In case the card is woken up of the rtc alarm, the
-devm_rtc_device_register function detects it as a pending alarm about a
-month in the future.  Fix this by clearing the alarm in module probe.
+Add missed alarm_irq_enable() callback for CSR SiRFSoC RTCs.
 
-Signed-off-by: Jan Kardell <jan.kardell@telliq.com>
+[akpm@linux-foundation.org: remove unneeded cast]
+Signed-off-by: hao liu <hao.liu@csr.com>
+Signed-off-by: Barry Song <Baohua.Song@csr.com>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Grant Likely <grant.likely@linaro.org>
-Cc: Rob Herring <robh+dt@kernel.org>
-Cc: Vincent Donnefort <vdonnefort@gmail.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pcf8563.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ drivers/rtc/rtc-sirfsoc.c |   27 ++++++++++++++++++++++++++-
+ 1 file changed, 26 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-pcf8563.c~rtc-pcf8563-clear-expired-alarm-at-boot-time drivers/rtc/rtc-pcf8563.c
---- a/drivers/rtc/rtc-pcf8563.c~rtc-pcf8563-clear-expired-alarm-at-boot-time
-+++ a/drivers/rtc/rtc-pcf8563.c
-@@ -396,6 +396,7 @@ static int pcf8563_rtc_set_alarm(struct
- 
- static int pcf8563_irq_enable(struct device *dev, unsigned int enabled)
- {
-+	dev_dbg(dev, "%s: en=%d\n", __func__, enabled);
- 	return pcf8563_set_alarm_mode(to_i2c_client(dev), !!enabled);
+diff -puN drivers/rtc/rtc-sirfsoc.c~drivers-rtc-rtc-sirfsocc-add-alarm_irq_enable-support drivers/rtc/rtc-sirfsoc.c
+--- a/drivers/rtc/rtc-sirfsoc.c~drivers-rtc-rtc-sirfsocc-add-alarm_irq_enable-support
++++ a/drivers/rtc/rtc-sirfsoc.c
+@@ -209,12 +209,37 @@ static int sirfsoc_rtc_ioctl(struct devi
+ 	}
  }
  
-@@ -414,6 +415,7 @@ static int pcf8563_probe(struct i2c_clie
- 	struct pcf8563 *pcf8563;
- 	int err;
- 	unsigned char buf;
-+	unsigned char alm_pending;
- 
- 	dev_dbg(&client->dev, "%s\n", __func__);
- 
-@@ -439,6 +441,14 @@ static int pcf8563_probe(struct i2c_clie
- 		return err;
- 	}
- 
-+	err = pcf8563_get_alarm_mode(client, NULL, &alm_pending);
-+	if (err < 0) {
-+		dev_err(&client->dev, "%s: read error\n", __func__);
-+		return err;
-+	}
-+	if (alm_pending)
-+		pcf8563_set_alarm_mode(client, 0);
++static int sirfsoc_rtc_alarm_irq_enable(struct device *dev,
++		unsigned int enabled)
++{
++	unsigned long rtc_status_reg = 0x0;
++	struct sirfsoc_rtc_drv *rtcdrv;
 +
- 	pcf8563->rtc = devm_rtc_device_register(&client->dev,
- 				pcf8563_driver.driver.name,
- 				&pcf8563_rtc_ops, THIS_MODULE);
++	rtcdrv = dev_get_drvdata(dev);
++
++	local_irq_disable();
++
++	rtc_status_reg = sirfsoc_rtc_iobrg_readl(
++				rtcdrv->rtc_base + RTC_STATUS);
++	if (enabled)
++		rtc_status_reg |= SIRFSOC_RTC_AL0E;
++	else
++		rtc_status_reg &= ~SIRFSOC_RTC_AL0E;
++
++	sirfsoc_rtc_iobrg_writel(rtc_status_reg, rtcdrv->rtc_base + RTC_STATUS);
++	local_irq_enable();
++
++	return 0;
++
++}
++
+ static const struct rtc_class_ops sirfsoc_rtc_ops = {
+ 	.read_time = sirfsoc_rtc_read_time,
+ 	.set_time = sirfsoc_rtc_set_time,
+ 	.read_alarm = sirfsoc_rtc_read_alarm,
+ 	.set_alarm = sirfsoc_rtc_set_alarm,
+-	.ioctl = sirfsoc_rtc_ioctl
++	.ioctl = sirfsoc_rtc_ioctl,
++	.alarm_irq_enable = sirfsoc_rtc_alarm_irq_enable
+ };
+ 
+ static irqreturn_t sirfsoc_rtc_irq_handler(int irq, void *pdata)
 _
 
-Patches currently in -mm which might be from jan.kardell@telliq.com are
+Patches currently in -mm which might be from hao.liu@csr.com are
 
 origin.patch
 
