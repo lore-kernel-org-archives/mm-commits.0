@@ -1,198 +1,279 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-memcg-fix-potential-undefined-when-for-page-stat-accounting.patch
+Subject: [merged] mm-fix-huge-zero-page-accounting-in-smaps-report.patch
  removed from -mm tree
-Date: Thu, 11 Dec 2014 10:57:35 -0800
-Message-ID: <5489e91f.zFCDHQ43JmJeUc1x%akpm@linux-foundation.org>
+Date: Thu, 11 Dec 2014 10:57:33 -0800
+Message-ID: <5489e91d.TKDxjUY7QvfUKpN5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45410 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45408 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757867AbaLKS5g (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:57:36 -0500
+	with ESMTP id S1758406AbaLKS5e (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:57:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.cz, hannes@cmpxchg.org, sasha.levin@oracle.com, mm-commits@vger.kernel.org
+To: kirill@shutemov.name, fengguang.wu@intel.com, yfw.kernel@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, memcg: fix potential undefined behaviour in page stat accounting
+     Subject: mm: fix huge zero page accounting in smaps report
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-fix-potential-undefined-when-for-page-stat-accounting.patch
+     mm-fix-huge-zero-page-accounting-in-smaps-report.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: mm, memcg: fix potential undefined behaviour in page stat accounting
+From: "Kirill A. Shutemov" <kirill@shutemov.name>
+Subject: mm: fix huge zero page accounting in smaps report
 
-Since d7365e783edb (mm: memcontrol: fix missed end-writeback page
-accounting) mem_cgroup_end_page_stat consumes locked and flags variables
-directly rather than via pointers which might trigger C undefined behavior
-as those variables are initialized only in the slow path of
-mem_cgroup_begin_page_stat.
+As a small zero page, huge zero page should not be accounted in smaps
+report as normal page.
 
-Although mem_cgroup_end_page_stat handles parameters correctly and touches
-them only when they hold a sensible value it is caller which loads a
-potentially uninitialized value which then might allow compiler to do
-crazy things.
+For small pages we rely on vm_normal_page() to filter out zero page, but
+vm_normal_page() is not designed to handle pmds.  We only get here due
+hackish cast pmd to pte in smaps_pte_range() -- pte and pmd format is not
+necessary compatible on each and every architecture.
 
-I haven't seen any warning from gcc and it seems that the current version
-(4.9) doesn't exploit this type undefined behavior but Sasha has reported
-the following:
+Let's add separate codepath to handle pmds.  follow_trans_huge_pmd() will
+detect huge zero page for us.
 
-[   26.868116] ================================================================================
-[   26.870376] UBSan: Undefined behaviour in mm/rmap.c:1084:2
-[   26.871792] load of value 255 is not a valid value for type '_Bool'
-[   26.873256] CPU: 4 PID: 8304 Comm: rngd Not tainted 3.18.0-rc2-next-20141029-sasha-00039-g77ed13d-dirty #1427
-[   26.875636]  ffff8800cac17ff0 0000000000000000 0000000000000000 ffff880069ffbb28
-[   26.877611]  ffffffffaf010c16 0000000000000037 ffffffffb1c0d050 ffff880069ffbb38
-[   26.879140]  ffffffffa6e97899 ffff880069ffbbb8 ffffffffa6e97cc7 ffff880069ffbbb8
-[   26.880765] Call Trace:
-[   26.881185] dump_stack (lib/dump_stack.c:52)
-[   26.882755] ubsan_epilogue (lib/ubsan.c:159)
-[   26.883555] __ubsan_handle_load_invalid_value (lib/ubsan.c:482)
-[   26.884492] ? mem_cgroup_begin_page_stat (mm/memcontrol.c:1962)
-[   26.885441] ? unmap_page_range (./arch/x86/include/asm/paravirt.h:694 mm/memory.c:1091 mm/memory.c:1258 mm/memory.c:1279 mm/memory.c:1303)
-[   26.886242] page_remove_rmap (mm/rmap.c:1084 mm/rmap.c:1096)
-[   26.886922] unmap_page_range (./arch/x86/include/asm/atomic.h:27 include/linux/mm.h:463 mm/memory.c:1146 mm/memory.c:1258 mm/memory.c:1279 mm/memory.c:1303)
-[   26.887824] unmap_single_vma (mm/memory.c:1348)
-[   26.888582] unmap_vmas (mm/memory.c:1377 (discriminator 3))
-[   26.889430] exit_mmap (mm/mmap.c:2837)
-[   26.890060] mmput (kernel/fork.c:659)
-[   26.890656] do_exit (./arch/x86/include/asm/thread_info.h:168 kernel/exit.c:462 kernel/exit.c:747)
-[   26.891359] ? __this_cpu_preempt_check (lib/smp_processor_id.c:63)
-[   26.892287] ? trace_hardirqs_on_caller (kernel/locking/lockdep.c:2559 kernel/locking/lockdep.c:2601)
-[   26.893107] ? syscall_trace_enter_phase2 (arch/x86/kernel/ptrace.c:1598 (discriminator 2))
-[   26.893974] do_group_exit (include/linux/sched.h:775 kernel/exit.c:873)
-[   26.894695] SyS_exit_group (kernel/exit.c:901)
-[   26.895433] tracesys_phase2 (arch/x86/kernel/entry_64.S:529)
-[   26.896134] ================================================================================
+We would need pmd_dirty() helper to do this properly.  The patch adds it
+to THP-enabled architectures which don't yet have one.
 
-Fix this by using pointer parameters for both locked and flags and be more
-robust for future compiler changes even though the current code is
-implemented correctly.
-
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Reported-by: Sasha Levin <sasha.levin@oracle.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+[akpm@linux-foundation.org: use do_div to fix 32-bit build]
+Signed-off-by: "Kirill A. Shutemov" <kirill@shutemov.name>
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+Tested-by: Fengwei Yin <yfw.kernel@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    6 +++---
- mm/memcontrol.c            |    8 ++++----
- mm/page-writeback.c        |    4 ++--
- mm/rmap.c                  |    4 ++--
- 4 files changed, 11 insertions(+), 11 deletions(-)
+ arch/arm64/include/asm/pgtable.h         |    1 
+ arch/powerpc/include/asm/pgtable-ppc64.h |    1 
+ arch/sparc/include/asm/pgtable_64.h      |    7 +
+ arch/x86/include/asm/pgtable.h           |    5 +
+ fs/proc/task_mmu.c                       |  104 +++++++++++++--------
+ 5 files changed, 82 insertions(+), 36 deletions(-)
 
-diff -puN include/linux/memcontrol.h~mm-memcg-fix-potential-undefined-when-for-page-stat-accounting include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~mm-memcg-fix-potential-undefined-when-for-page-stat-accounting
-+++ a/include/linux/memcontrol.h
-@@ -141,8 +141,8 @@ static inline bool mem_cgroup_disabled(v
+diff -puN arch/arm64/include/asm/pgtable.h~mm-fix-huge-zero-page-accounting-in-smaps-report arch/arm64/include/asm/pgtable.h
+--- a/arch/arm64/include/asm/pgtable.h~mm-fix-huge-zero-page-accounting-in-smaps-report
++++ a/arch/arm64/include/asm/pgtable.h
+@@ -279,6 +279,7 @@ void pmdp_splitting_flush(struct vm_area
+ #endif /* CONFIG_HAVE_RCU_TABLE_FREE */
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
  
- struct mem_cgroup *mem_cgroup_begin_page_stat(struct page *page, bool *locked,
- 					      unsigned long *flags);
--void mem_cgroup_end_page_stat(struct mem_cgroup *memcg, bool locked,
--			      unsigned long flags);
-+void mem_cgroup_end_page_stat(struct mem_cgroup *memcg, bool *locked,
-+			      unsigned long *flags);
- void mem_cgroup_update_page_stat(struct mem_cgroup *memcg,
- 				 enum mem_cgroup_stat_index idx, int val);
- 
-@@ -297,7 +297,7 @@ static inline struct mem_cgroup *mem_cgr
++#define pmd_dirty(pmd)		pte_dirty(pmd_pte(pmd))
+ #define pmd_young(pmd)		pte_young(pmd_pte(pmd))
+ #define pmd_wrprotect(pmd)	pte_pmd(pte_wrprotect(pmd_pte(pmd)))
+ #define pmd_mksplitting(pmd)	pte_pmd(pte_mkspecial(pmd_pte(pmd)))
+diff -puN arch/powerpc/include/asm/pgtable-ppc64.h~mm-fix-huge-zero-page-accounting-in-smaps-report arch/powerpc/include/asm/pgtable-ppc64.h
+--- a/arch/powerpc/include/asm/pgtable-ppc64.h~mm-fix-huge-zero-page-accounting-in-smaps-report
++++ a/arch/powerpc/include/asm/pgtable-ppc64.h
+@@ -467,6 +467,7 @@ static inline pte_t *pmdp_ptep(pmd_t *pm
  }
  
- static inline void mem_cgroup_end_page_stat(struct mem_cgroup *memcg,
--					bool locked, unsigned long flags)
-+					bool *locked, unsigned long *flags)
+ #define pmd_pfn(pmd)		pte_pfn(pmd_pte(pmd))
++#define pmd_dirty(pmd)		pte_dirty(pmd_pte(pmd))
+ #define pmd_young(pmd)		pte_young(pmd_pte(pmd))
+ #define pmd_mkold(pmd)		pte_pmd(pte_mkold(pmd_pte(pmd)))
+ #define pmd_wrprotect(pmd)	pte_pmd(pte_wrprotect(pmd_pte(pmd)))
+diff -puN arch/sparc/include/asm/pgtable_64.h~mm-fix-huge-zero-page-accounting-in-smaps-report arch/sparc/include/asm/pgtable_64.h
+--- a/arch/sparc/include/asm/pgtable_64.h~mm-fix-huge-zero-page-accounting-in-smaps-report
++++ a/arch/sparc/include/asm/pgtable_64.h
+@@ -667,6 +667,13 @@ static inline unsigned long pmd_pfn(pmd_
+ }
+ 
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
++static inline unsigned long pmd_dirty(pmd_t pmd)
++{
++	pte_t pte = __pte(pmd_val(pmd));
++
++	return pte_dirty(pte);
++}
++
+ static inline unsigned long pmd_young(pmd_t pmd)
  {
+ 	pte_t pte = __pte(pmd_val(pmd));
+diff -puN arch/x86/include/asm/pgtable.h~mm-fix-huge-zero-page-accounting-in-smaps-report arch/x86/include/asm/pgtable.h
+--- a/arch/x86/include/asm/pgtable.h~mm-fix-huge-zero-page-accounting-in-smaps-report
++++ a/arch/x86/include/asm/pgtable.h
+@@ -99,6 +99,11 @@ static inline int pte_young(pte_t pte)
+ 	return pte_flags(pte) & _PAGE_ACCESSED;
  }
  
-diff -puN mm/memcontrol.c~mm-memcg-fix-potential-undefined-when-for-page-stat-accounting mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcg-fix-potential-undefined-when-for-page-stat-accounting
-+++ a/mm/memcontrol.c
-@@ -2053,11 +2053,11 @@ again:
-  * @locked: value received from mem_cgroup_begin_page_stat()
-  * @flags: value received from mem_cgroup_begin_page_stat()
-  */
--void mem_cgroup_end_page_stat(struct mem_cgroup *memcg, bool locked,
--			      unsigned long flags)
-+void mem_cgroup_end_page_stat(struct mem_cgroup *memcg, bool *locked,
-+			      unsigned long *flags)
++static inline int pmd_dirty(pmd_t pmd)
++{
++	return pmd_flags(pmd) & _PAGE_DIRTY;
++}
++
+ static inline int pmd_young(pmd_t pmd)
  {
--	if (memcg && locked)
--		spin_unlock_irqrestore(&memcg->move_lock, flags);
-+	if (memcg && *locked)
-+		spin_unlock_irqrestore(&memcg->move_lock, *flags);
+ 	return pmd_flags(pmd) & _PAGE_ACCESSED;
+diff -puN fs/proc/task_mmu.c~mm-fix-huge-zero-page-accounting-in-smaps-report fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~mm-fix-huge-zero-page-accounting-in-smaps-report
++++ a/fs/proc/task_mmu.c
+@@ -447,58 +447,91 @@ struct mem_size_stats {
+ 	u64 pss;
+ };
  
- 	rcu_read_unlock();
- }
-diff -puN mm/page-writeback.c~mm-memcg-fix-potential-undefined-when-for-page-stat-accounting mm/page-writeback.c
---- a/mm/page-writeback.c~mm-memcg-fix-potential-undefined-when-for-page-stat-accounting
-+++ a/mm/page-writeback.c
-@@ -2357,7 +2357,7 @@ int test_clear_page_writeback(struct pag
- 		dec_zone_page_state(page, NR_WRITEBACK);
- 		inc_zone_page_state(page, NR_WRITTEN);
++static void smaps_account(struct mem_size_stats *mss, struct page *page,
++		unsigned long size, bool young, bool dirty)
++{
++	int mapcount;
+ 
+-static void smaps_pte_entry(pte_t ptent, unsigned long addr,
+-		unsigned long ptent_size, struct mm_walk *walk)
++	if (PageAnon(page))
++		mss->anonymous += size;
++
++	mss->resident += size;
++	/* Accumulate the size in pages that have been accessed. */
++	if (young || PageReferenced(page))
++		mss->referenced += size;
++	mapcount = page_mapcount(page);
++	if (mapcount >= 2) {
++		u64 pss_delta;
++
++		if (dirty || PageDirty(page))
++			mss->shared_dirty += size;
++		else
++			mss->shared_clean += size;
++		pss_delta = (u64)size << PSS_SHIFT;
++		do_div(pss_delta, mapcount);
++		mss->pss += pss_delta;
++	} else {
++		if (dirty || PageDirty(page))
++			mss->private_dirty += size;
++		else
++			mss->private_clean += size;
++		mss->pss += (u64)size << PSS_SHIFT;
++	}
++}
++
++static void smaps_pte_entry(pte_t *pte, unsigned long addr,
++		struct mm_walk *walk)
+ {
+ 	struct mem_size_stats *mss = walk->private;
+ 	struct vm_area_struct *vma = mss->vma;
+ 	pgoff_t pgoff = linear_page_index(vma, addr);
+ 	struct page *page = NULL;
+-	int mapcount;
+ 
+-	if (pte_present(ptent)) {
+-		page = vm_normal_page(vma, addr, ptent);
+-	} else if (is_swap_pte(ptent)) {
+-		swp_entry_t swpent = pte_to_swp_entry(ptent);
++	if (pte_present(*pte)) {
++		page = vm_normal_page(vma, addr, *pte);
++	} else if (is_swap_pte(*pte)) {
++		swp_entry_t swpent = pte_to_swp_entry(*pte);
+ 
+ 		if (!non_swap_entry(swpent))
+-			mss->swap += ptent_size;
++			mss->swap += PAGE_SIZE;
+ 		else if (is_migration_entry(swpent))
+ 			page = migration_entry_to_page(swpent);
+-	} else if (pte_file(ptent)) {
+-		if (pte_to_pgoff(ptent) != pgoff)
+-			mss->nonlinear += ptent_size;
++	} else if (pte_file(*pte)) {
++		if (pte_to_pgoff(*pte) != pgoff)
++			mss->nonlinear += PAGE_SIZE;
  	}
--	mem_cgroup_end_page_stat(memcg, locked, memcg_flags);
-+	mem_cgroup_end_page_stat(memcg, &locked, &memcg_flags);
- 	return ret;
- }
  
-@@ -2399,7 +2399,7 @@ int __test_set_page_writeback(struct pag
- 		mem_cgroup_inc_page_stat(memcg, MEM_CGROUP_STAT_WRITEBACK);
- 		inc_zone_page_state(page, NR_WRITEBACK);
+ 	if (!page)
+ 		return;
+ 
+-	if (PageAnon(page))
+-		mss->anonymous += ptent_size;
+-
+ 	if (page->index != pgoff)
+-		mss->nonlinear += ptent_size;
++		mss->nonlinear += PAGE_SIZE;
+ 
+-	mss->resident += ptent_size;
+-	/* Accumulate the size in pages that have been accessed. */
+-	if (pte_young(ptent) || PageReferenced(page))
+-		mss->referenced += ptent_size;
+-	mapcount = page_mapcount(page);
+-	if (mapcount >= 2) {
+-		if (pte_dirty(ptent) || PageDirty(page))
+-			mss->shared_dirty += ptent_size;
+-		else
+-			mss->shared_clean += ptent_size;
+-		mss->pss += (ptent_size << PSS_SHIFT) / mapcount;
+-	} else {
+-		if (pte_dirty(ptent) || PageDirty(page))
+-			mss->private_dirty += ptent_size;
+-		else
+-			mss->private_clean += ptent_size;
+-		mss->pss += (ptent_size << PSS_SHIFT);
+-	}
++	smaps_account(mss, page, PAGE_SIZE, pte_young(*pte), pte_dirty(*pte));
++}
++
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++static void smaps_pmd_entry(pmd_t *pmd, unsigned long addr,
++		struct mm_walk *walk)
++{
++	struct mem_size_stats *mss = walk->private;
++	struct vm_area_struct *vma = mss->vma;
++	struct page *page;
++
++	/* FOLL_DUMP will return -EFAULT on huge zero page */
++	page = follow_trans_huge_pmd(vma, addr, pmd, FOLL_DUMP);
++	if (IS_ERR_OR_NULL(page))
++		return;
++	mss->anonymous_thp += HPAGE_PMD_SIZE;
++	smaps_account(mss, page, HPAGE_PMD_SIZE,
++			pmd_young(*pmd), pmd_dirty(*pmd));
++}
++#else
++static void smaps_pmd_entry(pmd_t *pmd, unsigned long addr,
++		struct mm_walk *walk)
++{
+ }
++#endif
+ 
+ static int smaps_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
+ 			   struct mm_walk *walk)
+@@ -509,9 +542,8 @@ static int smaps_pte_range(pmd_t *pmd, u
+ 	spinlock_t *ptl;
+ 
+ 	if (pmd_trans_huge_lock(pmd, vma, &ptl) == 1) {
+-		smaps_pte_entry(*(pte_t *)pmd, addr, HPAGE_PMD_SIZE, walk);
++		smaps_pmd_entry(pmd, addr, walk);
+ 		spin_unlock(ptl);
+-		mss->anonymous_thp += HPAGE_PMD_SIZE;
+ 		return 0;
  	}
--	mem_cgroup_end_page_stat(memcg, locked, memcg_flags);
-+	mem_cgroup_end_page_stat(memcg, &locked, &memcg_flags);
- 	return ret;
  
- }
-diff -puN mm/rmap.c~mm-memcg-fix-potential-undefined-when-for-page-stat-accounting mm/rmap.c
---- a/mm/rmap.c~mm-memcg-fix-potential-undefined-when-for-page-stat-accounting
-+++ a/mm/rmap.c
-@@ -1053,7 +1053,7 @@ void page_add_file_rmap(struct page *pag
- 		__inc_zone_page_state(page, NR_FILE_MAPPED);
- 		mem_cgroup_inc_page_stat(memcg, MEM_CGROUP_STAT_FILE_MAPPED);
- 	}
--	mem_cgroup_end_page_stat(memcg, locked, flags);
-+	mem_cgroup_end_page_stat(memcg, &locked, &flags);
- }
- 
- static void page_remove_file_rmap(struct page *page)
-@@ -1083,7 +1083,7 @@ static void page_remove_file_rmap(struct
- 	if (unlikely(PageMlocked(page)))
- 		clear_page_mlock(page);
- out:
--	mem_cgroup_end_page_stat(memcg, locked, flags);
-+	mem_cgroup_end_page_stat(memcg, &locked, &flags);
- }
- 
- /**
+@@ -524,7 +556,7 @@ static int smaps_pte_range(pmd_t *pmd, u
+ 	 */
+ 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
+ 	for (; addr != end; pte++, addr += PAGE_SIZE)
+-		smaps_pte_entry(*pte, addr, PAGE_SIZE, walk);
++		smaps_pte_entry(pte, addr, walk);
+ 	pte_unmap_unlock(pte - 1, ptl);
+ 	cond_resched();
+ 	return 0;
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from kirill@shutemov.name are
 
 origin.patch
-memcg-__mem_cgroup_free-remove-stale-disarm_static_keys-comment.patch
-memcg-dont-check-mm-in-__memcg_kmem_get_cachenewpage_charge.patch
-memcg-do-not-abuse-memcg_kmem_skip_account.patch
-mm-page_isolation-check-pfn-validity-before-access.patch
-memcg-zap-kmem_account_flags.patch
-memcg-only-check-memcg_kmem_skip_account-in-__memcg_kmem_get_cache.patch
-memcg-turn-memcg_kmem_skip_account-into-a-bit-field.patch
-mm-support-madvisemadv_free.patch
-mm-dont-split-thp-page-when-syscall-is-called.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-2.patch
-mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath.patch
-oom-dont-assume-that-a-coredumping-thread-will-exit-soon.patch
-oom-dont-assume-that-a-coredumping-thread-will-exit-soon-v2.patch
-oom-dont-assume-that-a-coredumping-thread-will-exit-soon-v2-fix.patch
-oom-kill-the-insufficient-and-no-longer-needed-pt_trace_exit-check.patch
-mm-memcontrol-fix-defined-but-not-used-compiler-warning.patch
-memcg-fix-possible-use-after-free-in-memcg_kmem_get_cache.patch
-mm-memcontrolc-cleaning-up-function-that-are-not-used-anywhere.patch
+mmfs-introduce-helpers-around-the-i_mmap_mutex.patch
+mm-use-new-helper-functions-around-the-i_mmap_mutex.patch
+mm-convert-i_mmap_mutex-to-rwsem.patch
+mm-rmap-share-the-i_mmap_rwsem.patch
+uprobes-share-the-i_mmap_rwsem.patch
+mm-xip-share-the-i_mmap_rwsem.patch
+mm-memory-failure-share-the-i_mmap_rwsem.patch
+mm-nommu-share-the-i_mmap_rwsem.patch
+mm-memoryc-share-the-i_mmap_rwsem.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+linux-next.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
 
