@@ -1,112 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [merged] dma-debug-prevent-early-callers-from-crashing.patch
- removed from -mm tree
-Date: Thu, 11 Dec 2014 10:54:59 -0800
-Message-ID: <5489e883.QQRVWdMceje2PT9z%akpm@linux-foundation.org>
+Subject: [merged] sh-off-by-one-bug_on-in-setup_bootmem_node.patch removed from -mm tree
+Date: Thu, 11 Dec 2014 10:55:04 -0800
+Message-ID: <5489e888.PCQDzRr4DfnsBVAt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44938 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44945 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756360AbaLKSzB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:55:01 -0500
+	with ESMTP id S1756095AbaLKSzF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:55:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: f.fainelli@gmail.com, computersforpeace@gmail.com, dan.j.williams@intel.com, horia.geanta@freescale.com, jkosina@suse.cz, mm-commits@vger.kernel.org
+To: dan.carpenter@oracle.com, geert+renesas@glider.be, lethal@linux-sh.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dma-debug: prevent early callers from crashing
+     Subject: sh: off by one BUG_ON() in setup_bootmem_node()
 has been removed from the -mm tree.  Its filename was
-     dma-debug-prevent-early-callers-from-crashing.patch
+     sh-off-by-one-bug_on-in-setup_bootmem_node.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Florian Fainelli <f.fainelli@gmail.com>
-Subject: dma-debug: prevent early callers from crashing
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: sh: off by one BUG_ON() in setup_bootmem_node()
 
-dma_debug_init() is called by architecture specific code at different
-levels, but typically as a fs_initcall due to the debugfs initialization. 
-Some platforms may have early callers of the DMA-API, running prior to the
-fs_initcall() level, which is not much of an issue unless
-CONFIG_DMA_API_DEBUG is set.  When the DMA-API debugging facilities are
-turned on a caller will go through:
+This off by one bug is harmless but it upsets the static checkers and the
+code is obvious so it doesn't hurt to fix it.  The Smatch warning is:
 
-debug_dma_map_{single,page}
-	-> dma_mapping_error (inline function usually)
-		-> debug_dma_mapping_error
-			-> get_hash_bucket
+	arch/sh/mm/numa.c:47 setup_bootmem_node()
+	error: buffer overflow 'node_data' 1024 <= 1024
 
-Calling get_hash_bucket() returns a valid hash value since we hash on high
-bits of the dma_addr cookie, but we will grab an unitialized spinlock,
-which typically won't crash but produce a warning, the real crash will
-however happen during the bucket list traversal because the list has not
-been initialized yet.
-
-An obvious solution is of course to move some of the offenders to run
-after the fs_initcall level, but since this might not always be an option,
-we add a flag "dma_debug_initialized" which is set to false by default,
-and set to true once dma_debug_init() has had a chance to run.
-
-The dma_debug_disabled() helper function previously introduced just needs
-to check for dma_debug_initialized to allow the caller to proceed or not.
-
-Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Jiri Kosina <jkosina@suse.cz>
-Cc: Horia Geanta <horia.geanta@freescale.com>
-Cc: Brian Norris <computersforpeace@gmail.com>
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Acked-by: Geert Uytterhoeven <geert+renesas@glider.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/dma-debug.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ arch/sh/mm/numa.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/dma-debug.c~dma-debug-prevent-early-callers-from-crashing lib/dma-debug.c
---- a/lib/dma-debug.c~dma-debug-prevent-early-callers-from-crashing
-+++ a/lib/dma-debug.c
-@@ -102,9 +102,12 @@ static DEFINE_SPINLOCK(free_entries_lock
- /* Global disable flag - will be set in case of an error */
- static u32 global_disable __read_mostly;
+diff -puN arch/sh/mm/numa.c~sh-off-by-one-bug_on-in-setup_bootmem_node arch/sh/mm/numa.c
+--- a/arch/sh/mm/numa.c~sh-off-by-one-bug_on-in-setup_bootmem_node
++++ a/arch/sh/mm/numa.c
+@@ -31,7 +31,7 @@ void __init setup_bootmem_node(int nid,
+ 	unsigned long bootmem_paddr;
  
-+/* Early initialization disable flag, set at the end of dma_debug_init */
-+static bool dma_debug_initialized __read_mostly;
-+
- static inline bool dma_debug_disabled(void)
- {
--	return global_disable;
-+	return global_disable || !dma_debug_initialized;
- }
+ 	/* Don't allow bogus node assignment */
+-	BUG_ON(nid > MAX_NUMNODES || nid <= 0);
++	BUG_ON(nid >= MAX_NUMNODES || nid <= 0);
  
- /* Global error count */
-@@ -999,7 +1002,10 @@ void dma_debug_init(u32 num_entries)
- {
- 	int i;
- 
--	if (dma_debug_disabled())
-+	/* Do not use dma_debug_initialized here, since we really want to be
-+	 * called to set dma_debug_initialized
-+	 */
-+	if (global_disable)
- 		return;
- 
- 	for (i = 0; i < HASH_SIZE; ++i) {
-@@ -1026,6 +1032,8 @@ void dma_debug_init(u32 num_entries)
- 
- 	nr_total_entries = num_free_entries;
- 
-+	dma_debug_initialized = true;
-+
- 	pr_info("DMA-API: debugging enabled by kernel config\n");
- }
- 
+ 	start_pfn = start >> PAGE_SHIFT;
+ 	end_pfn = end >> PAGE_SHIFT;
 _
 
-Patches currently in -mm which might be from f.fainelli@gmail.com are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
 origin.patch
+decompress_bunzip2-off-by-one-in-get_next_block.patch
 linux-next.patch
 
