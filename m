@@ -1,35 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-omap-enable-wake-up-from-power-off.patch removed
- from -mm tree
-Date: Thu, 11 Dec 2014 11:06:51 -0800
-Message-ID: <5489eb4b.qt4HvdZmKtAbayfP%akpm@linux-foundation.org>
+Subject: [merged] rtc-omap-add-copyright-entry.patch removed from -mm tree
+Date: Thu, 11 Dec 2014 11:06:57 -0800
+Message-ID: <5489eb51.ssxmMQ2tmlSL+1RX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45865 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45881 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756420AbaLKTGw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 14:06:52 -0500
+	with ESMTP id S1756969AbaLKTG6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 14:06:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: johan@kernel.org, a.zummo@towertech.it, balbi@ti.com, bcousson@baylibre.com, j-keerthy@ti.com, linux@roeck-us.net, lokeshvutla@ti.com, nsekhar@ti.com, t-kristo@ti.com, tony@atomide.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: omap: enable wake-up from power off
+     Subject: rtc: omap: add copyright entry
 has been removed from the -mm tree.  Its filename was
-     rtc-omap-enable-wake-up-from-power-off.patch
+     rtc-omap-add-copyright-entry.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Johan Hovold <johan@kernel.org>
-Subject: rtc: omap: enable wake-up from power off
+Subject: rtc: omap: add copyright entry
 
-The ALARM interrupt must not be disabled during shutdown in order to be
-able to power up the system using an RTC alarm.
+Add myself to the list of copyright holders.
 
 Signed-off-by: Johan Hovold <johan@kernel.org>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
@@ -44,29 +42,20 @@ Tested-by: Felipe Balbi <balbi@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-omap.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ drivers/rtc/rtc-omap.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/rtc/rtc-omap.c~rtc-omap-enable-wake-up-from-power-off drivers/rtc/rtc-omap.c
---- a/drivers/rtc/rtc-omap.c~rtc-omap-enable-wake-up-from-power-off
+diff -puN drivers/rtc/rtc-omap.c~rtc-omap-add-copyright-entry drivers/rtc/rtc-omap.c
+--- a/drivers/rtc/rtc-omap.c~rtc-omap-add-copyright-entry
 +++ a/drivers/rtc/rtc-omap.c
-@@ -694,8 +694,15 @@ static SIMPLE_DEV_PM_OPS(omap_rtc_pm_ops
- static void omap_rtc_shutdown(struct platform_device *pdev)
- {
- 	struct omap_rtc *rtc = platform_get_drvdata(pdev);
-+	u8 mask;
- 
--	rtc_write(rtc, OMAP_RTC_INTERRUPTS_REG, 0);
-+	/*
-+	 * Keep the ALARM interrupt enabled to allow the system to power up on
-+	 * alarm events.
-+	 */
-+	mask = rtc_read(rtc, OMAP_RTC_INTERRUPTS_REG);
-+	mask &= OMAP_RTC_INTERRUPTS_IT_ALARM;
-+	rtc_write(rtc, OMAP_RTC_INTERRUPTS_REG, mask);
- }
- 
- static struct platform_driver omap_rtc_driver = {
+@@ -5,6 +5,7 @@
+  * Author: George G. Davis <gdavis@mvista.com> or <source@mvista.com>
+  *
+  * Copyright (C) 2006 David Brownell (new RTC framework)
++ * Copyright (C) 2014 Johan Hovold <johan@kernel.org>
+  *
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License
 _
 
 Patches currently in -mm which might be from johan@kernel.org are
