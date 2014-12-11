@@ -1,86 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [merged] printk-drop-logbuf_cpu-volatile-qualifier.patch removed
- from -mm tree
-Date: Thu, 11 Dec 2014 11:05:11 -0800
-Message-ID: <5489eae7.ySTEMClrAhCYE2F6%akpm@linux-foundation.org>
+Subject: [merged]
+ checkpatch-add-an-error-test-for-no-space-before-comma.patch removed from
+ -mm tree
+Date: Thu, 11 Dec 2014 11:05:20 -0800
+Message-ID: <5489eaf0.TgrKGlFbqbZwm2vJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45651 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45664 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751253AbaLKTFM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 14:05:12 -0500
+	with ESMTP id S1755883AbaLKTFV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 14:05:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: elder@linaro.org, bobby.prani@gmail.com, jack@suse.cz, joe@perches.com, mcgrof@suse.com, pmladek@suse.cz, rostedt@goodmis.org, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: printk: drop logbuf_cpu volatile qualifier
+     Subject: checkpatch: add an error test for no space before comma
 has been removed from the -mm tree.  Its filename was
-     printk-drop-logbuf_cpu-volatile-qualifier.patch
+     checkpatch-add-an-error-test-for-no-space-before-comma.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alex Elder <elder@linaro.org>
-Subject: printk: drop logbuf_cpu volatile qualifier
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: add an error test for no space before comma
 
-Pranith Kumar posted a patch in which removed the "volatile"
-qualifier for the "logbuf_cpu" variable in vprintk_emit().
-    https://lkml.org/lkml/2014/11/13/894
-In his patch, he used ACCESS_ONCE() for all references to
-that symbol to provide whatever protection was intended.
+Using code like:
 
-There was some discussion that followed, and in the end Steven Rostedt
-concluded that not only was "volatile" not needed, neither was it
-required to use ACCESS_ONCE().  I offered an elaborate description that
-concluded Steven was right, and Pranith asked me to submit an
-alternative patch.  And this is it.
+	int foo , bar;
 
-The basic reason "volatile" is not needed is that "logbuf_cpu" has
-static storage duration, and vprintk_emit() is an exported
-interface.  This means that the value of logbuf_cpu must be read
-from memory the first time it is used in a particular call of
-vprintk_emit().  The variable's value is read only once in that
-function, when it's read it'll be the copy from memory (or cache).
+is not preferred to:
 
-In addition, the value of "logbuf_cpu" is only ever written under
-protection of a spinlock.  So the value that is read is the "real"
-value (and not an out-of-date cached one).  If its value is not
-UINT_MAX, it is the current CPU's processor id, and it will have
-been last written by the running CPU.
+	int foo, bar;
 
-Signed-off-by: Alex Elder <elder@linaro.org>
-Reported-by: Pranith Kumar <bobby.prani@gmail.com>
-Suggested-by: Steven Rostedt <rostedt@goodmis.org>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Petr Mladek <pmladek@suse.cz>
-Cc: Luis R. Rodriguez <mcgrof@suse.com>
-Cc: Joe Perches <joe@perches.com>
+so emit an error on this style.
+
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/printk.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |   23 +++++++++++++++++++++--
+ 1 file changed, 21 insertions(+), 2 deletions(-)
 
-diff -puN kernel/printk/printk.c~printk-drop-logbuf_cpu-volatile-qualifier kernel/printk/printk.c
---- a/kernel/printk/printk.c~printk-drop-logbuf_cpu-volatile-qualifier
-+++ a/kernel/printk/printk.c
-@@ -1624,7 +1624,7 @@ asmlinkage int vprintk_emit(int facility
- 	int printed_len = 0;
- 	bool in_sched = false;
- 	/* cpu currently holding logbuf_lock in this function */
--	static volatile unsigned int logbuf_cpu = UINT_MAX;
-+	static unsigned int logbuf_cpu = UINT_MAX;
+diff -puN scripts/checkpatch.pl~checkpatch-add-an-error-test-for-no-space-before-comma scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-an-error-test-for-no-space-before-comma
++++ a/scripts/checkpatch.pl
+@@ -3563,14 +3563,33 @@ sub process {
+ 						}
+ 					}
  
- 	if (level == LOGLEVEL_SCHED) {
- 		level = LOGLEVEL_DEFAULT;
+-				# , must have a space on the right.
++				# , must not have a space before and must have a space on the right.
+ 				} elsif ($op eq ',') {
++					my $rtrim_before = 0;
++					my $space_after = 0;
++					if ($ctx =~ /Wx./) {
++						if (ERROR("SPACING",
++							  "space prohibited before that '$op' $at\n" . $hereptr)) {
++							$line_fixed = 1;
++							$rtrim_before = 1;
++						}
++					}
+ 					if ($ctx !~ /.x[WEC]/ && $cc !~ /^}/) {
+ 						if (ERROR("SPACING",
+ 							  "space required after that '$op' $at\n" . $hereptr)) {
+-							$good = $fix_elements[$n] . trim($fix_elements[$n + 1]) . " ";
+ 							$line_fixed = 1;
+ 							$last_after = $n;
++							$space_after = 1;
++						}
++					}
++					if ($rtrim_before || $space_after) {
++						if ($rtrim_before) {
++							$good = rtrim($fix_elements[$n]) . trim($fix_elements[$n + 1]);
++						} else {
++							$good = $fix_elements[$n] . trim($fix_elements[$n + 1]);
++						}
++						if ($space_after) {
++							$good .= " ";
+ 						}
+ 					}
+ 
 _
 
-Patches currently in -mm which might be from elder@linaro.org are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
+mm-utilc-add-kstrimdup.patch
+fs-affs-amigaffsc-use-va_format-instead-of-buffer-vnsprintf.patch
+linux-next.patch
 
