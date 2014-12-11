@@ -1,68 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sched_show_task-fix-unsafe-usage-of-real_parent.patch
+Subject: [merged]
+ proc-task_state-move-the-main-seq_printf-outside-of-rcu_read_lock.patch
  removed from -mm tree
-Date: Thu, 11 Dec 2014 10:58:14 -0800
-Message-ID: <5489e946.lOUa4C8mz6oycrM7%akpm@linux-foundation.org>
+Date: Thu, 11 Dec 2014 10:58:08 -0800
+Message-ID: <5489e940.K+3iEL29N1UZlG8+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45494 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45482 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757777AbaLKS6P (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:58:15 -0500
+	with ESMTP id S1758505AbaLKS6J (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:58:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, adobriyan@gmail.com, atomlin@redhat.com, ebiederm@xmission.com, peterz@infradead.org, roland@hack.frob.com, stalexan@redhat.com, mm-commits@vger.kernel.org
+To: oleg@redhat.com, adobriyan@gmail.com, atomlin@redhat.com, ebiederm@xmission.com, paulmck@linux.vnet.ibm.com, peterz@infradead.org, roland@hack.frob.com, stalexan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sched_show_task: fix unsafe usage of ->real_parent
+     Subject: proc: task_state: move the main seq_printf() outside of rcu_read_lock()
 has been removed from the -mm tree.  Its filename was
-     sched_show_task-fix-unsafe-usage-of-real_parent.patch
+     proc-task_state-move-the-main-seq_printf-outside-of-rcu_read_lock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: sched_show_task: fix unsafe usage of ->real_parent
+Subject: proc: task_state: move the main seq_printf() outside of rcu_read_lock()
 
-rcu_read_lock() can not protect p->real_parent if release_task(p) was
-already called, change sched_show_task() to check pis_alive() like other
-users do.
-
-Note: we need some helpers to cleanup the code like this.  And it seems
-that that the usage of cpu_curr(cpu) in dump_cpu_task() is not safe too.
+task_state() does seq_printf() under rcu_read_lock(), but this is only
+needed for task_tgid_nr_ns() and task_numa_group_id().  We can calculate
+tgid/ngid and drop rcu lock.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Aaron Tomlin <atomlin@redhat.com>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>,
 Cc: Sterling Alexander <stalexan@redhat.com>
-Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Roland McGrath <roland@hack.frob.com>
+Reviewed-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched/core.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ fs/proc/array.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN kernel/sched/core.c~sched_show_task-fix-unsafe-usage-of-real_parent kernel/sched/core.c
---- a/kernel/sched/core.c~sched_show_task-fix-unsafe-usage-of-real_parent
-+++ a/kernel/sched/core.c
-@@ -4527,8 +4527,10 @@ void sched_show_task(struct task_struct
- #ifdef CONFIG_DEBUG_STACK_USAGE
- 	free = stack_not_used(p);
- #endif
-+	ppid = 0;
+diff -puN fs/proc/array.c~proc-task_state-move-the-main-seq_printf-outside-of-rcu_read_lock fs/proc/array.c
+--- a/fs/proc/array.c~proc-task_state-move-the-main-seq_printf-outside-of-rcu_read_lock
++++ a/fs/proc/array.c
+@@ -158,7 +158,7 @@ static inline void task_state(struct seq
+ 	struct group_info *group_info;
+ 	int g;
+ 	const struct cred *cred;
+-	pid_t ppid, tpid;
++	pid_t ppid, tpid, tgid, ngid;
+ 	unsigned int max_fds = 0;
+ 
  	rcu_read_lock();
--	ppid = task_pid_nr(rcu_dereference(p->real_parent));
-+	if (pid_alive(p))
-+		ppid = task_pid_nr(rcu_dereference(p->real_parent));
- 	rcu_read_unlock();
- 	printk(KERN_CONT "%5lu %5d %6d 0x%08lx\n", free,
- 		task_pid_nr(p), ppid,
+@@ -170,12 +170,16 @@ static inline void task_state(struct seq
+ 		if (tracer)
+ 			tpid = task_pid_nr_ns(tracer, ns);
+ 	}
++
++	tgid = task_tgid_nr_ns(p, ns);
++	ngid = task_numa_group_id(p);
+ 	cred = get_task_cred(p);
+ 
+ 	task_lock(p);
+ 	if (p->files)
+ 		max_fds = files_fdtable(p->files)->max_fds;
+ 	task_unlock(p);
++	rcu_read_unlock();
+ 
+ 	seq_printf(m,
+ 		"State:\t%s\n"
+@@ -188,10 +192,7 @@ static inline void task_state(struct seq
+ 		"Gid:\t%d\t%d\t%d\t%d\n"
+ 		"FDSize:\t%d\nGroups:\t",
+ 		get_task_state(p),
+-		task_tgid_nr_ns(p, ns),
+-		task_numa_group_id(p),
+-		pid_nr_ns(pid, ns),
+-		ppid, tpid,
++		tgid, ngid, pid_nr_ns(pid, ns), ppid, tpid,
+ 		from_kuid_munged(user_ns, cred->uid),
+ 		from_kuid_munged(user_ns, cred->euid),
+ 		from_kuid_munged(user_ns, cred->suid),
+@@ -201,7 +202,6 @@ static inline void task_state(struct seq
+ 		from_kgid_munged(user_ns, cred->sgid),
+ 		from_kgid_munged(user_ns, cred->fsgid),
+ 		max_fds);
+-	rcu_read_unlock();
+ 
+ 	group_info = cred->group_info;
+ 	for (g = 0; g < group_info->ngroups; g++)
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
