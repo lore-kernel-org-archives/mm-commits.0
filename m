@@ -1,101 +1,74 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- ocfs2-dlm-let-sender-retry-if-dlm_dispatch_assert_master-failed-with-enomem.patch removed from -mm tree
-Date: Thu, 11 Dec 2014 10:55:06 -0800
-Message-ID: <5489e88a.NgL0Ucwt8Dys23fV%akpm@linux-foundation.org>
+ fs-cifs-smb2filec-replace-countsize-kzalloc-by-kcalloc.patch removed from
+ -mm tree
+Date: Thu, 11 Dec 2014 10:54:55 -0800
+Message-ID: <5489e87f.Pb91ldKbkruVymh0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44949 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44928 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755110AbaLKSzH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:55:07 -0500
+	with ESMTP id S1755618AbaLKSy4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:54:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joseph.qi@huawei.com, alex.chen@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
+To: fabf@skynet.be, sfrench@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2/dlm: let sender retry if dlm_dispatch_assert_master failed with -ENOMEM
+     Subject: fs/cifs/smb2file.c: replace count*size kzalloc by kcalloc
 has been removed from the -mm tree.  Its filename was
-     ocfs2-dlm-let-sender-retry-if-dlm_dispatch_assert_master-failed-with-enomem.patch
+     fs-cifs-smb2filec-replace-countsize-kzalloc-by-kcalloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@huawei.com>
-Subject: ocfs2/dlm: let sender retry if dlm_dispatch_assert_master failed with -ENOMEM
+From: Fabian Frederick <fabf@skynet.be>
+Subject: fs/cifs/smb2file.c: replace count*size kzalloc by kcalloc
 
-Do not BUG() if GFP_ATOMIC allocation fails in dlm_dispatch_assert_master.
-Instead, return -ENOMEM to the sender and then retry.
+kcalloc manages count*sizeof overflow.
 
-Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
-Reviewed-by: Alex Chen <alex.chen@huawei.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: Steve French <sfrench@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmrecovery.c |   18 +++++++++++++-----
- 1 file changed, 13 insertions(+), 5 deletions(-)
+ fs/cifs/smb2file.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/ocfs2/dlm/dlmrecovery.c~ocfs2-dlm-let-sender-retry-if-dlm_dispatch_assert_master-failed-with-enomem fs/ocfs2/dlm/dlmrecovery.c
---- a/fs/ocfs2/dlm/dlmrecovery.c~ocfs2-dlm-let-sender-retry-if-dlm_dispatch_assert_master-failed-with-enomem
-+++ a/fs/ocfs2/dlm/dlmrecovery.c
-@@ -1656,14 +1656,18 @@ int dlm_do_master_requery(struct dlm_ctx
- 	req.namelen = res->lockname.len;
- 	memcpy(req.name, res->lockname.name, res->lockname.len);
+diff -puN fs/cifs/smb2file.c~fs-cifs-smb2filec-replace-countsize-kzalloc-by-kcalloc fs/cifs/smb2file.c
+--- a/fs/cifs/smb2file.c~fs-cifs-smb2filec-replace-countsize-kzalloc-by-kcalloc
++++ a/fs/cifs/smb2file.c
+@@ -111,7 +111,7 @@ smb2_unlock_range(struct cifsFileInfo *c
+ 		return -EINVAL;
  
-+resend:
- 	ret = o2net_send_message(DLM_MASTER_REQUERY_MSG, dlm->key,
- 				 &req, sizeof(req), nodenum, &status);
--	/* XXX: negative status not handled properly here. */
- 	if (ret < 0)
- 		mlog(ML_ERROR, "Error %d when sending message %u (key "
- 		     "0x%x) to node %u\n", ret, DLM_MASTER_REQUERY_MSG,
- 		     dlm->key, nodenum);
--	else {
-+	else if (status == -ENOMEM) {
-+		mlog_errno(status);
-+		msleep(50);
-+		goto resend;
-+	} else {
- 		BUG_ON(status < 0);
- 		BUG_ON(status > DLM_LOCK_RES_OWNER_UNKNOWN);
- 		*real_master = (u8) (status & 0xff);
-@@ -1705,9 +1709,13 @@ int dlm_master_requery_handler(struct o2
- 			int ret = dlm_dispatch_assert_master(dlm, res,
- 							     0, 0, flags);
- 			if (ret < 0) {
--				mlog_errno(-ENOMEM);
--				/* retry!? */
--				BUG();
-+				mlog_errno(ret);
-+				spin_unlock(&res->spinlock);
-+				dlm_lockres_put(res);
-+				spin_unlock(&dlm->spinlock);
-+				dlm_put(dlm);
-+				/* sender will take care of this and retry */
-+				return ret;
- 			} else
- 				__dlm_lockres_grab_inflight_worker(dlm, res);
- 			spin_unlock(&res->spinlock);
+ 	max_num = max_buf / sizeof(struct smb2_lock_element);
+-	buf = kzalloc(max_num * sizeof(struct smb2_lock_element), GFP_KERNEL);
++	buf = kcalloc(max_num, sizeof(struct smb2_lock_element), GFP_KERNEL);
+ 	if (!buf)
+ 		return -ENOMEM;
+ 
+@@ -247,7 +247,7 @@ smb2_push_mandatory_locks(struct cifsFil
+ 	}
+ 
+ 	max_num = max_buf / sizeof(struct smb2_lock_element);
+-	buf = kzalloc(max_num * sizeof(struct smb2_lock_element), GFP_KERNEL);
++	buf = kcalloc(max_num, sizeof(struct smb2_lock_element), GFP_KERNEL);
+ 	if (!buf) {
+ 		free_xid(xid);
+ 		return -ENOMEM;
 _
 
-Patches currently in -mm which might be from joseph.qi@huawei.com are
+Patches currently in -mm which might be from fabf@skynet.be are
 
 origin.patch
-ocfs2-dlm-fix-race-between-dispatched_work-and-dlm_lockres_grab_inflight_worker.patch
-ocfs2-eliminate-the-static-flag-of-some-functions.patch
-ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir.patch
-ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
-ocfs2-add-orphan-recovery-types-in-ocfs2_recover_orphans.patch
-ocfs2-implement-ocfs2_direct_io_write.patch
-ocfs2-implement-ocfs2_direct_io_write-fix.patch
-ocfs2-allocate-blocks-in-ocfs2_direct_io_get_blocks.patch
-ocfs2-do-not-fallback-to-buffer-i-o-write-if-appending.patch
-ocfs2-do-not-fallback-to-buffer-i-o-write-if-fill-holes.patch
-ocfs2-fix-leftover-orphan-entry-caused-by-append-o_direct-write-crash.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+fs-affs-filec-forward-declaration-clean-up.patch
+fs-affs-amigaffsc-use-va_format-instead-of-buffer-vnsprintf.patch
+fs-affs-filec-adding-support-to-o_direct.patch
+fs-affs-filec-remove-obsolete-pagesize-check.patch
+linux-next.patch
 
