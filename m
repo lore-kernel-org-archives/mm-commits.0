@@ -1,77 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- exit-wait-cleanup-the-ptrace_reparented-checks-fix.patch removed from -mm
- tree
-Date: Wed, 10 Dec 2014 15:23:38 -0800
-Message-ID: <5488d5fa.sVuH69mP+QjNQ/vf%akpm@linux-foundation.org>
+Subject: [merged]
+ ocfs2-dlm-let-sender-retry-if-dlm_dispatch_assert_master-failed-with-enomem.patch removed from -mm tree
+Date: Thu, 11 Dec 2014 10:55:06 -0800
+Message-ID: <5489e88a.NgL0Ucwt8Dys23fV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58546 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44949 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932354AbaLJXXj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Dec 2014 18:23:39 -0500
+	with ESMTP id S1755110AbaLKSzH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:55:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, atomlin@redhat.com, ebiederm@xmission.com, oleg@redhat.com, riel@redhat.com, stalexan@redhat.com, mm-commits@vger.kernel.org
+To: joseph.qi@huawei.com, alex.chen@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: exit-wait-cleanup-the-ptrace_reparented-checks-fix
+     Subject: ocfs2/dlm: let sender retry if dlm_dispatch_assert_master failed with -ENOMEM
 has been removed from the -mm tree.  Its filename was
-     exit-wait-cleanup-the-ptrace_reparented-checks-fix.patch
+     ocfs2-dlm-let-sender-retry-if-dlm_dispatch_assert_master-failed-with-enomem.patch
 
-This patch was dropped because it was folded into exit-wait-cleanup-the-ptrace_reparented-checks.patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: exit-wait-cleanup-the-ptrace_reparented-checks-fix
+From: Joseph Qi <joseph.qi@huawei.com>
+Subject: ocfs2/dlm: let sender retry if dlm_dispatch_assert_master failed with -ENOMEM
 
-don't make me google the C Operator Precedence table
+Do not BUG() if GFP_ATOMIC allocation fails in dlm_dispatch_assert_master.
+Instead, return -ENOMEM to the sender and then retry.
 
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Aaron Tomlin <atomlin@redhat.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Sterling Alexander <stalexan@redhat.com>
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
+Reviewed-by: Alex Chen <alex.chen@huawei.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ocfs2/dlm/dlmrecovery.c |   18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
-diff -puN kernel/exit.c~exit-wait-cleanup-the-ptrace_reparented-checks-fix kernel/exit.c
---- a/kernel/exit.c~exit-wait-cleanup-the-ptrace_reparented-checks-fix
-+++ a/kernel/exit.c
-@@ -999,7 +999,7 @@ static int wait_task_zombie(struct wait_
- 	/*
- 	 * Move the task's state to DEAD/TRACE, only one thread can do this.
- 	 */
--	state = ptrace_reparented(p) && thread_group_leader(p) ?
-+	state = (ptrace_reparented(p) && thread_group_leader(p)) ?
- 		EXIT_TRACE : EXIT_DEAD;
- 	if (cmpxchg(&p->exit_state, EXIT_ZOMBIE, state) != EXIT_ZOMBIE)
- 		return 0;
+diff -puN fs/ocfs2/dlm/dlmrecovery.c~ocfs2-dlm-let-sender-retry-if-dlm_dispatch_assert_master-failed-with-enomem fs/ocfs2/dlm/dlmrecovery.c
+--- a/fs/ocfs2/dlm/dlmrecovery.c~ocfs2-dlm-let-sender-retry-if-dlm_dispatch_assert_master-failed-with-enomem
++++ a/fs/ocfs2/dlm/dlmrecovery.c
+@@ -1656,14 +1656,18 @@ int dlm_do_master_requery(struct dlm_ctx
+ 	req.namelen = res->lockname.len;
+ 	memcpy(req.name, res->lockname.name, res->lockname.len);
+ 
++resend:
+ 	ret = o2net_send_message(DLM_MASTER_REQUERY_MSG, dlm->key,
+ 				 &req, sizeof(req), nodenum, &status);
+-	/* XXX: negative status not handled properly here. */
+ 	if (ret < 0)
+ 		mlog(ML_ERROR, "Error %d when sending message %u (key "
+ 		     "0x%x) to node %u\n", ret, DLM_MASTER_REQUERY_MSG,
+ 		     dlm->key, nodenum);
+-	else {
++	else if (status == -ENOMEM) {
++		mlog_errno(status);
++		msleep(50);
++		goto resend;
++	} else {
+ 		BUG_ON(status < 0);
+ 		BUG_ON(status > DLM_LOCK_RES_OWNER_UNKNOWN);
+ 		*real_master = (u8) (status & 0xff);
+@@ -1705,9 +1709,13 @@ int dlm_master_requery_handler(struct o2
+ 			int ret = dlm_dispatch_assert_master(dlm, res,
+ 							     0, 0, flags);
+ 			if (ret < 0) {
+-				mlog_errno(-ENOMEM);
+-				/* retry!? */
+-				BUG();
++				mlog_errno(ret);
++				spin_unlock(&res->spinlock);
++				dlm_lockres_put(res);
++				spin_unlock(&dlm->spinlock);
++				dlm_put(dlm);
++				/* sender will take care of this and retry */
++				return ret;
+ 			} else
+ 				__dlm_lockres_grab_inflight_worker(dlm, res);
+ 			spin_unlock(&res->spinlock);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from joseph.qi@huawei.com are
 
 origin.patch
-mm-cma-fix-boot-regression-due-to-physical-address-of-high_memory.patch
-slab-improve-checking-for-invalid-gfp_flags.patch
-mm-memcontrol-lockless-page-counters.patch
-kernel-res_counter-remove-the-unused-api.patch
-mm-compaction-simplify-deferred-compaction.patch
-mm-compaction-always-update-cached-scanner-positions.patch
-mm-memcontrol-remove-unnecessary-pcg_used-pc-mem_cgroup-valid-flag.patch
-mm-fix-huge-zero-page-accounting-in-smaps-report.patch
-fs-proc-use-a-rb-tree-for-the-directory-entries.patch
-fs-binfmt_miscc-use-gfp_kernel-instead-of-gfp_user.patch
-init-allow-config_init_fallback=n-to-disable-defaults-if-init=-fails.patch
-rtc-omap-add-support-for-pmic_power_en.patch
-drivers-rtc-rtc-sirfsocc-add-alarm_irq_enable-support.patch
-rtc-ds1374-add-watchdog-support.patch
-exit-wait-cleanup-the-ptrace_reparented-checks.patch
+ocfs2-dlm-fix-race-between-dispatched_work-and-dlm_lockres_grab_inflight_worker.patch
+ocfs2-eliminate-the-static-flag-of-some-functions.patch
+ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir.patch
+ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
+ocfs2-add-orphan-recovery-types-in-ocfs2_recover_orphans.patch
+ocfs2-implement-ocfs2_direct_io_write.patch
+ocfs2-implement-ocfs2_direct_io_write-fix.patch
+ocfs2-allocate-blocks-in-ocfs2_direct_io_get_blocks.patch
+ocfs2-do-not-fallback-to-buffer-i-o-write-if-appending.patch
+ocfs2-do-not-fallback-to-buffer-i-o-write-if-fill-holes.patch
+ocfs2-fix-leftover-orphan-entry-caused-by-append-o_direct-write-crash.patch
 
