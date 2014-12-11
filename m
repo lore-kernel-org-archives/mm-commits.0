@@ -1,55 +1,40 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-omap-fix-clock-source-configuration.patch removed
+Subject: [merged] rtc-omap-fix-interrupt-disable-at-probe.patch removed
  from -mm tree
-Date: Thu, 11 Dec 2014 11:06:06 -0800
-Message-ID: <5489eb1e.ENt6UX7Q1kgjEl2D%akpm@linux-foundation.org>
+Date: Thu, 11 Dec 2014 11:06:12 -0800
+Message-ID: <5489eb24.Z/0hjltHeycHDhyQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45742 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45762 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758231AbaLKTGH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 14:06:07 -0500
+	with ESMTP id S1758327AbaLKTGN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 14:06:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: johan@kernel.org, a.zummo@towertech.it, balbi@ti.com, bcousson@baylibre.com, j-keerthy@ti.com, linux@roeck-us.net, lokeshvutla@ti.com, nsekhar@ti.com, stable@vger.kernel.org, t-kristo@ti.com, tony@atomide.com, mm-commits@vger.kernel.org
+To: johan@kernel.org, a.zummo@towertech.it, balbi@ti.com, bcousson@baylibre.com, j-keerthy@ti.com, linux@roeck-us.net, lokeshvutla@ti.com, nsekhar@ti.com, t-kristo@ti.com, tony@atomide.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: omap: fix clock-source configuration
+     Subject: rtc: omap: fix interrupt disable at probe
 has been removed from the -mm tree.  Its filename was
-     rtc-omap-fix-clock-source-configuration.patch
+     rtc-omap-fix-interrupt-disable-at-probe.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Johan Hovold <johan@kernel.org>
-Subject: rtc: omap: fix clock-source configuration
+Subject: rtc: omap: fix interrupt disable at probe
 
-This series fixes a few issues with the omap rtc-driver, cleans up a bit,
-adds device abstraction, and finally adds support for the PMIC control
-feature found in some revisions of this RTC IP block.
+Use writel instead of writeb when disabling interrupts at probe as
+ALARM2 is not cleared otherwise on some IP-block revisions (e.g.
+AM3352).
 
-Ultimately, this allows for powering off the Beaglebone and waking it up
-again on RTC alarms.
+Note that the driver currently never enables the ALARM2 interrupt.
 
-
-
-This patch (of 20):
-
-Make sure not to reset the clock-source configuration when enabling the
-32kHz clock mux.
-
-Until the clock source can be configured through device tree we must not
-overwrite settings made by the bootloader (e.g.  clock-source selection).
-
-Fixes: cd914bba03d8 ("drivers/rtc/rtc-omap.c: add support for enabling
-32khz clock")
 Signed-off-by: Johan Hovold <johan@kernel.org>
-Reviewed-by: Felipe Balbi <balbi@ti.com>
-Tested-by: Felipe Balbi <balbi@ti.com>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
 Cc: Tony Lindgren <tony@atomide.com>
 Cc: Benot Cousson <bcousson@baylibre.com>
@@ -58,29 +43,32 @@ Cc: Guenter Roeck <linux@roeck-us.net>
 Cc: Sekhar Nori <nsekhar@ti.com>
 Cc: Tero Kristo <t-kristo@ti.com>
 Cc: Keerthy J <j-keerthy@ti.com>
-Cc: <stable@vger.kernel.org>
+Tested-by: Felipe Balbi <balbi@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-omap.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/rtc/rtc-omap.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN drivers/rtc/rtc-omap.c~rtc-omap-fix-clock-source-configuration drivers/rtc/rtc-omap.c
---- a/drivers/rtc/rtc-omap.c~rtc-omap-fix-clock-source-configuration
+diff -puN drivers/rtc/rtc-omap.c~rtc-omap-fix-interrupt-disable-at-probe drivers/rtc/rtc-omap.c
+--- a/drivers/rtc/rtc-omap.c~rtc-omap-fix-interrupt-disable-at-probe
 +++ a/drivers/rtc/rtc-omap.c
-@@ -431,8 +431,10 @@ static int __init omap_rtc_probe(struct
- 	rtc_write(0, OMAP_RTC_INTERRUPTS_REG);
+@@ -427,10 +427,12 @@ static int __init omap_rtc_probe(struct
+ 	}
+ 	platform_set_drvdata(pdev, rtc);
+ 
+-	/* clear pending irqs, and set 1/second periodic,
+-	 * which we'll use instead of update irqs
++	/*
++	 * disable interrupts
++	 *
++	 * NOTE: ALARM2 is not cleared on AM3352 if rtc_write (writeb) is used
+ 	 */
+-	rtc_write(0, OMAP_RTC_INTERRUPTS_REG);
++	rtc_writel(0, OMAP_RTC_INTERRUPTS_REG);
  
  	/* enable RTC functional clock */
--	if (id_entry->driver_data & OMAP_RTC_HAS_32KCLK_EN)
--		rtc_writel(OMAP_RTC_OSC_32KCLK_EN, OMAP_RTC_OSC_REG);
-+	if (id_entry->driver_data & OMAP_RTC_HAS_32KCLK_EN) {
-+		reg = rtc_read(OMAP_RTC_OSC_REG);
-+		rtc_writel(reg | OMAP_RTC_OSC_32KCLK_EN, OMAP_RTC_OSC_REG);
-+	}
- 
- 	/* clear old status */
- 	reg = rtc_read(OMAP_RTC_STATUS_REG);
+ 	if (id_entry->driver_data & OMAP_RTC_HAS_32KCLK_EN) {
 _
 
 Patches currently in -mm which might be from johan@kernel.org are
