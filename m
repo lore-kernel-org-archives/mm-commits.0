@@ -1,91 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- drivers-rtc-rtc-sirfsocc-add-alarm_irq_enable-support.patch removed from
- -mm tree
-Date: Thu, 11 Dec 2014 11:07:23 -0800
-Message-ID: <5489eb6b.0szfjtuk10dBZOkA%akpm@linux-foundation.org>
+Subject: [merged] rtc-pcf8563-fix-write-of-invalid-bits-to-st2-reg.patch
+ removed from -mm tree
+Date: Thu, 11 Dec 2014 11:07:08 -0800
+Message-ID: <5489eb5c.cmqnW2TcG1qfafiL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45950 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45910 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750814AbaLKTHY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 14:07:24 -0500
+	with ESMTP id S1758517AbaLKTHJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 14:07:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hao.liu@csr.com, Baohua.Song@csr.com, a.zummo@towertech.it, mm-commits@vger.kernel.org
+To: jan.kardell@telliq.com, a.zummo@towertech.it, dan.carpenter@oracle.com, grant.likely@linaro.org, robh+dt@kernel.org, vdonnefort@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-sirfsoc.c: add alarm_irq_enable support
+     Subject: rtc: pcf8563: fix write of invalid bits to ST2 reg
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-sirfsocc-add-alarm_irq_enable-support.patch
+     rtc-pcf8563-fix-write-of-invalid-bits-to-st2-reg.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: hao liu <hao.liu@csr.com>
-Subject: drivers/rtc/rtc-sirfsoc.c: add alarm_irq_enable support
+From: Jan Kardell <jan.kardell@telliq.com>
+Subject: rtc: pcf8563: fix write of invalid bits to ST2 reg
 
-Add missed alarm_irq_enable() callback for CSR SiRFSoC RTCs.
+The NXP datasheet says:
+"Bits labeled as N should always be written with logic 0."
 
-[akpm@linux-foundation.org: remove unneeded cast]
-Signed-off-by: hao liu <hao.liu@csr.com>
-Signed-off-by: Barry Song <Baohua.Song@csr.com>
+At least one of those bits is sometime read as a 1, therfore violating
+this rule.  To fix this we mask away those bits.
+
+Signed-off-by: Jan Kardell <jan.kardell@telliq.com>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Grant Likely <grant.likely@linaro.org>
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: Vincent Donnefort <vdonnefort@gmail.com>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-sirfsoc.c |   27 ++++++++++++++++++++++++++-
- 1 file changed, 26 insertions(+), 1 deletion(-)
+ drivers/rtc/rtc-pcf8563.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-sirfsoc.c~drivers-rtc-rtc-sirfsocc-add-alarm_irq_enable-support drivers/rtc/rtc-sirfsoc.c
---- a/drivers/rtc/rtc-sirfsoc.c~drivers-rtc-rtc-sirfsocc-add-alarm_irq_enable-support
-+++ a/drivers/rtc/rtc-sirfsoc.c
-@@ -209,12 +209,37 @@ static int sirfsoc_rtc_ioctl(struct devi
- 	}
- }
+diff -puN drivers/rtc/rtc-pcf8563.c~rtc-pcf8563-fix-write-of-invalid-bits-to-st2-reg drivers/rtc/rtc-pcf8563.c
+--- a/drivers/rtc/rtc-pcf8563.c~rtc-pcf8563-fix-write-of-invalid-bits-to-st2-reg
++++ a/drivers/rtc/rtc-pcf8563.c
+@@ -28,6 +28,7 @@
+ #define PCF8563_REG_ST2		0x01
+ #define PCF8563_BIT_AIE		(1 << 1)
+ #define PCF8563_BIT_AF		(1 << 3)
++#define PCF8563_BITS_ST2_N	(7 << 5)
  
-+static int sirfsoc_rtc_alarm_irq_enable(struct device *dev,
-+		unsigned int enabled)
-+{
-+	unsigned long rtc_status_reg = 0x0;
-+	struct sirfsoc_rtc_drv *rtcdrv;
-+
-+	rtcdrv = dev_get_drvdata(dev);
-+
-+	local_irq_disable();
-+
-+	rtc_status_reg = sirfsoc_rtc_iobrg_readl(
-+				rtcdrv->rtc_base + RTC_STATUS);
-+	if (enabled)
-+		rtc_status_reg |= SIRFSOC_RTC_AL0E;
-+	else
-+		rtc_status_reg &= ~SIRFSOC_RTC_AL0E;
-+
-+	sirfsoc_rtc_iobrg_writel(rtc_status_reg, rtcdrv->rtc_base + RTC_STATUS);
-+	local_irq_enable();
-+
-+	return 0;
-+
-+}
-+
- static const struct rtc_class_ops sirfsoc_rtc_ops = {
- 	.read_time = sirfsoc_rtc_read_time,
- 	.set_time = sirfsoc_rtc_set_time,
- 	.read_alarm = sirfsoc_rtc_read_alarm,
- 	.set_alarm = sirfsoc_rtc_set_alarm,
--	.ioctl = sirfsoc_rtc_ioctl
-+	.ioctl = sirfsoc_rtc_ioctl,
-+	.alarm_irq_enable = sirfsoc_rtc_alarm_irq_enable
- };
+ #define PCF8563_REG_SC		0x02 /* datetime */
+ #define PCF8563_REG_MN		0x03
+@@ -130,7 +131,7 @@ static int pcf8563_set_alarm_mode(struct
+ 	else
+ 		buf &= ~PCF8563_BIT_AIE;
  
- static irqreturn_t sirfsoc_rtc_irq_handler(int irq, void *pdata)
+-	buf &= ~PCF8563_BIT_AF;
++	buf &= ~(PCF8563_BIT_AF | PCF8563_BITS_ST2_N);
+ 
+ 	err = pcf8563_write_block_data(client, PCF8563_REG_ST2, 1, &buf);
+ 	if (err < 0) {
 _
 
-Patches currently in -mm which might be from hao.liu@csr.com are
+Patches currently in -mm which might be from jan.kardell@telliq.com are
 
 origin.patch
 
