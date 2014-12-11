@@ -1,76 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ocfs2-o2net-fix-connect-expired.patch removed from -mm
- tree
-Date: Thu, 11 Dec 2014 10:55:18 -0800
-Message-ID: <5489e896.WPPuIVXCyFVD2M1H%akpm@linux-foundation.org>
+Subject: [merged]
+ char_dev-remove-pointless-assignment-from-__register_chrdev_region.patch
+ removed from -mm tree
+Date: Thu, 11 Dec 2014 10:55:33 -0800
+Message-ID: <5489e8a5.dzzANL81qSKqGxLl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44977 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45002 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758399AbaLKSzT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:55:19 -0500
+	with ESMTP id S1754049AbaLKSze (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:55:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: junxiao.bi@oracle.com, jlbec@evilplan.org, mfasheh@suse.com, srinivas.eeda@oracle.com, mm-commits@vger.kernel.org
+To: jack@suse.cz, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: o2net: fix connect expired
+     Subject: fs/char_dev.c: remove pointless assignment from __register_chrdev_region()
 has been removed from the -mm tree.  Its filename was
-     ocfs2-o2net-fix-connect-expired.patch
+     char_dev-remove-pointless-assignment-from-__register_chrdev_region.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Junxiao Bi <junxiao.bi@oracle.com>
-Subject: ocfs2: o2net: fix connect expired
+From: Jan Kara <jack@suse.cz>
+Subject: fs/char_dev.c: remove pointless assignment from __register_chrdev_region()
 
-Set nn_persistent_error to -ENOTCONN will stop reconnect since the
-"stop" condition in o2net_start_connect() will be true.
+At one place we assign major number we found to ret.  That assignment is
+then never used and actually doesn't make any sense given how the code is
+currently structured (the assignment comes from pre-git times).  Just
+remove it.
 
-stop = (nn->nn_sc ||
-		(nn->nn_persistent_error &&
-		(nn->nn_persistent_error != -ENOTCONN || timeout == 0)));
+Coverity id: 1226852.
 
-This will make connection never be established if the first connection
-request is lost.
-
-Set nn_persistent_error to 0 when connect expired to fix this.  With
-this changes, dlm will not be waken up when connect expired, this is OK
-since dlm depends on network, dlm can do nothing in this case if waken
-up.  Let it wait there for network recover and connect built again to
-continue.
-
-Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
-Reviewed-by: Srinivas Eeda <srinivas.eeda@oracle.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/cluster/tcp.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/char_dev.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN fs/ocfs2/cluster/tcp.c~ocfs2-o2net-fix-connect-expired fs/ocfs2/cluster/tcp.c
---- a/fs/ocfs2/cluster/tcp.c~ocfs2-o2net-fix-connect-expired
-+++ a/fs/ocfs2/cluster/tcp.c
-@@ -1736,7 +1736,7 @@ static void o2net_connect_expired(struct
- 		     o2net_idle_timeout() / 1000,
- 		     o2net_idle_timeout() % 1000);
- 
--		o2net_set_nn_state(nn, NULL, 0, -ENOTCONN);
-+		o2net_set_nn_state(nn, NULL, 0, 0);
+diff -puN fs/char_dev.c~char_dev-remove-pointless-assignment-from-__register_chrdev_region fs/char_dev.c
+--- a/fs/char_dev.c~char_dev-remove-pointless-assignment-from-__register_chrdev_region
++++ a/fs/char_dev.c
+@@ -117,7 +117,6 @@ __register_chrdev_region(unsigned int ma
+ 			goto out;
+ 		}
+ 		major = i;
+-		ret = major;
  	}
- 	spin_unlock(&nn->nn_lock);
- }
+ 
+ 	cd->major = major;
 _
 
-Patches currently in -mm which might be from junxiao.bi@oracle.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
 origin.patch
-ocfs2-reflink-fix-slow-unlink-for-refcounted-file.patch
-ocfs2-fix-journal-commit-deadlock.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
+befs-remove-dead-code.patch
+linux-next.patch
+fallocate-create-fan_modify-and-in_modify-events.patch
+fsnotify-unify-inode-and-mount-marks-handling.patch
+fsnotify-remove-destroy_list-from-fsnotify_mark.patch
+mm-add-strictlimit-knob-v2.patch
 
