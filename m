@@ -1,83 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-numa-balancing-rearrange-kconfig-entry.patch removed
- from -mm tree
-Date: Thu, 11 Dec 2014 10:56:49 -0800
-Message-ID: <5489e8f1.1PXqz+1rG1hukOGs%akpm@linux-foundation.org>
+Subject: [merged]
+ memcg-simplify-unreclaimable-groups-handling-in-soft-limit-reclaim.patch
+ removed from -mm tree
+Date: Thu, 11 Dec 2014 10:56:51 -0800
+Message-ID: <5489e8f3.U8lmSuF744/q6aex%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45228 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45233 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756360AbaLKS4u (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:56:50 -0500
+	with ESMTP id S1756644AbaLKS4w (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:56:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.vnet.ibm.com, mgorman@suse.de, rientjes@google.com, mm-commits@vger.kernel.org
+To: vdavydov@parallels.com, hannes@cmpxchg.org, mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/numa balancing: rearrange Kconfig entry
+     Subject: memcg: simplify unreclaimable groups handling in soft limit reclaim
 has been removed from the -mm tree.  Its filename was
-     mm-numa-balancing-rearrange-kconfig-entry.patch
+     memcg-simplify-unreclaimable-groups-handling-in-soft-limit-reclaim.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: mm/numa balancing: rearrange Kconfig entry
+From: Vladimir Davydov <vdavydov@parallels.com>
+Subject: memcg: simplify unreclaimable groups handling in soft limit reclaim
 
-Add the default enable config option after the NUMA_BALANCING option so
-that it appears related in the nconfig interface.
+If we fail to reclaim anything from a cgroup during a soft reclaim pass
+we want to get the next largest cgroup exceeding its soft limit. To
+achieve this, we should obviously remove the current group from the tree
+and then pick the largest group. Currently we have a weird loop instead.
+Let's simplify it.
 
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Mel Gorman <mgorman@suse.de>
+Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ mm/memcontrol.c |   26 ++++----------------------
+ 1 file changed, 4 insertions(+), 22 deletions(-)
 
-diff -puN init/Kconfig~mm-numa-balancing-rearrange-kconfig-entry init/Kconfig
---- a/init/Kconfig~mm-numa-balancing-rearrange-kconfig-entry
-+++ a/init/Kconfig
-@@ -893,14 +893,6 @@ config ARCH_SUPPORTS_INT128
- config ARCH_WANT_NUMA_VARIABLE_LOCALITY
- 	bool
+diff -puN mm/memcontrol.c~memcg-simplify-unreclaimable-groups-handling-in-soft-limit-reclaim mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-simplify-unreclaimable-groups-handling-in-soft-limit-reclaim
++++ a/mm/memcontrol.c
+@@ -3518,34 +3518,16 @@ unsigned long mem_cgroup_soft_limit_recl
+ 		nr_reclaimed += reclaimed;
+ 		*total_scanned += nr_scanned;
+ 		spin_lock_irq(&mctz->lock);
++		__mem_cgroup_remove_exceeded(mz, mctz);
  
--config NUMA_BALANCING_DEFAULT_ENABLED
--	bool "Automatically enable NUMA aware memory/task placement"
--	default y
--	depends on NUMA_BALANCING
--	help
--	  If set, automatic NUMA balancing will be enabled if running on a NUMA
--	  machine.
--
- config NUMA_BALANCING
- 	bool "Memory placement aware NUMA scheduler"
- 	depends on ARCH_SUPPORTS_NUMA_BALANCING
-@@ -913,6 +905,14 @@ config NUMA_BALANCING
- 
- 	  This system will be inactive on UMA systems.
- 
-+config NUMA_BALANCING_DEFAULT_ENABLED
-+	bool "Automatically enable NUMA aware memory/task placement"
-+	default y
-+	depends on NUMA_BALANCING
-+	help
-+	  If set, automatic NUMA balancing will be enabled if running on a NUMA
-+	  machine.
+ 		/*
+ 		 * If we failed to reclaim anything from this memory cgroup
+ 		 * it is time to move on to the next cgroup
+ 		 */
+ 		next_mz = NULL;
+-		if (!reclaimed) {
+-			do {
+-				/*
+-				 * Loop until we find yet another one.
+-				 *
+-				 * By the time we get the soft_limit lock
+-				 * again, someone might have aded the
+-				 * group back on the RB tree. Iterate to
+-				 * make sure we get a different mem.
+-				 * mem_cgroup_largest_soft_limit_node returns
+-				 * NULL if no other cgroup is present on
+-				 * the tree
+-				 */
+-				next_mz =
+-				__mem_cgroup_largest_soft_limit_node(mctz);
+-				if (next_mz == mz)
+-					css_put(&next_mz->memcg->css);
+-				else /* next_mz == NULL or other memcg */
+-					break;
+-			} while (1);
+-		}
+-		__mem_cgroup_remove_exceeded(mz, mctz);
++		if (!reclaimed)
++			next_mz = __mem_cgroup_largest_soft_limit_node(mctz);
 +
- menuconfig CGROUPS
- 	boolean "Control Group support"
- 	select KERNFS
+ 		excess = soft_limit_excess(mz->memcg);
+ 		/*
+ 		 * One school of thought says that we should not add
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from vdavydov@parallels.com are
 
 origin.patch
+memcg-__mem_cgroup_free-remove-stale-disarm_static_keys-comment.patch
+memcg-dont-check-mm-in-__memcg_kmem_get_cachenewpage_charge.patch
+memcg-do-not-abuse-memcg_kmem_skip_account.patch
+memcg-zap-kmem_account_flags.patch
+memcg-only-check-memcg_kmem_skip_account-in-__memcg_kmem_get_cache.patch
+memcg-turn-memcg_kmem_skip_account-into-a-bit-field.patch
+mm-vmscan-invoke-slab-shrinkers-from-shrink_zone.patch
+mm-vmscan-invoke-slab-shrinkers-from-shrink_zone-fix.patch
+memcg-fix-possible-use-after-free-in-memcg_kmem_get_cache.patch
 linux-next.patch
-mm-cma-make-kmemleak-ignore-cma-regions.patch
+slab-fix-cpuset-check-in-fallback_alloc.patch
+slub-fix-cpuset-check-in-get_any_partial.patch
 
