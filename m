@@ -1,70 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [merged] remove-filesize-checks-for-sync-i-o-journal-commit.patch removed from -mm tree
-Date: Thu, 11 Dec 2014 10:55:20 -0800
-Message-ID: <5489e898.8fti5pxL3eM74IsV%akpm@linux-foundation.org>
+Subject: [merged] ocfs2-remove-unneeded-null-check.patch removed from -mm
+ tree
+Date: Thu, 11 Dec 2014 10:55:31 -0800
+Message-ID: <5489e8a3.I6cr5aLxYsgoXfs/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44981 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44997 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757733AbaLKSzV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:55:21 -0500
+	with ESMTP id S1754049AbaLKSzc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:55:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rgoldwyn@suse.de, jlbec@evilplan.org, mfasheh@suse.de, mm-commits@vger.kernel.org
+To: dan.carpenter@oracle.com, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: remove filesize checks for sync I/O journal commit
+     Subject: ocfs2: remove unneeded NULL check
 has been removed from the -mm tree.  Its filename was
-     remove-filesize-checks-for-sync-i-o-journal-commit.patch
+     ocfs2-remove-unneeded-null-check.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Goldwyn Rodrigues <rgoldwyn@suse.de>
-Subject: ocfs2: remove filesize checks for sync I/O journal commit
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: ocfs2: remove unneeded NULL check
 
-Filesize is not a good indication that the file needs to be synced.
-An example where this breaks is:
- 1. Open the file in O_SYNC|O_RDWR
- 2. Read a small portion of the file (say 64 bytes)
- 3. Lseek to starting of the file
- 4. Write 64 bytes
+In 1faf289454b9 ("ocfs2_dlm: disallow a domain join if node maps
+mismatch") we introduced a new earlier NULL check so this one is not
+needed.  Also static checkers complain because we dereference it first and
+then check for NULL.
 
-If the node crashes, it is not written out to disk because this was not
-committed in the journal and the other node which reads the file after
-recovery reads stale data (even if the write on the other node was
-successful)
-
-Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.de>
-Reviewed-by: Mark Fasheh <mfasheh@suse.de>
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/file.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ fs/ocfs2/dlm/dlmdomain.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/file.c~remove-filesize-checks-for-sync-i-o-journal-commit fs/ocfs2/file.c
---- a/fs/ocfs2/file.c~remove-filesize-checks-for-sync-i-o-journal-commit
-+++ a/fs/ocfs2/file.c
-@@ -2381,9 +2381,7 @@ out_dio:
- 		if (ret < 0)
- 			written = ret;
+diff -puN fs/ocfs2/dlm/dlmdomain.c~ocfs2-remove-unneeded-null-check fs/ocfs2/dlm/dlmdomain.c
+--- a/fs/ocfs2/dlm/dlmdomain.c~ocfs2-remove-unneeded-null-check
++++ a/fs/ocfs2/dlm/dlmdomain.c
+@@ -877,7 +877,7 @@ static int dlm_query_join_handler(struct
+ 	 * to be put in someone's domain map.
+ 	 * Also, explicitly disallow joining at certain troublesome
+ 	 * times (ie. during recovery). */
+-	if (dlm && dlm->dlm_state != DLM_CTXT_LEAVING) {
++	if (dlm->dlm_state != DLM_CTXT_LEAVING) {
+ 		int bit = query->node_idx;
+ 		spin_lock(&dlm->spinlock);
  
--		if (!ret && ((old_size != i_size_read(inode)) ||
--			     (old_clusters != OCFS2_I(inode)->ip_clusters) ||
--			     has_refcount)) {
-+		if (!ret) {
- 			ret = jbd2_journal_force_commit(osb->journal->j_journal);
- 			if (ret < 0)
- 				written = ret;
 _
 
-Patches currently in -mm which might be from rgoldwyn@suse.de are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
 origin.patch
+decompress_bunzip2-off-by-one-in-get_next_block.patch
+linux-next.patch
 
