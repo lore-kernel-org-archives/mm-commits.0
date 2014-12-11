@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- exit-release_task-fix-the-comment-about-group-leader-accounting.patch
+Subject: [merged] exit-proc-dont-try-to-flush-proc-tgid-task-tgid.patch
  removed from -mm tree
-Date: Thu, 11 Dec 2014 11:08:17 -0800
-Message-ID: <5489eba1.52YC/SsVBlMTl4c5%akpm@linux-foundation.org>
+Date: Thu, 11 Dec 2014 11:08:19 -0800
+Message-ID: <5489eba3.bX80pM8TkwhsnI3y%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46072 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46076 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753269AbaLKTIS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 14:08:18 -0500
+	with ESMTP id S1758182AbaLKTIU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 14:08:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@redhat.com, atomlin@redhat.com, ebiederm@xmission.com, riel@redhat.com, stalexan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: exit: release_task: fix the comment about group leader accounting
+     Subject: exit: proc: don't try to flush /proc/tgid/task/tgid
 has been removed from the -mm tree.  Its filename was
-     exit-release_task-fix-the-comment-about-group-leader-accounting.patch
+     exit-proc-dont-try-to-flush-proc-tgid-task-tgid.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: exit: release_task: fix the comment about group leader accounting
+Subject: exit: proc: don't try to flush /proc/tgid/task/tgid
 
-Contrary to what the comment in __exit_signal() says we do account the
-group leader. Fix this and explain why.
+proc_flush_task_mnt() always tries to flush task/pid, but this is
+pointless if we reap the leader. d_invalidate() is recursive, and
+if nothing else the next d_hash_and_lookup(tgid) should fail anyway.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Aaron Tomlin <atomlin@redhat.com>
@@ -40,30 +40,22 @@ Cc: Sterling Alexander <stalexan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |   11 ++++-------
- 1 file changed, 4 insertions(+), 7 deletions(-)
+ fs/proc/base.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN kernel/exit.c~exit-release_task-fix-the-comment-about-group-leader-accounting kernel/exit.c
---- a/kernel/exit.c~exit-release_task-fix-the-comment-about-group-leader-accounting
-+++ a/kernel/exit.c
-@@ -118,13 +118,10 @@ static void __exit_signal(struct task_st
+diff -puN fs/proc/base.c~exit-proc-dont-try-to-flush-proc-tgid-task-tgid fs/proc/base.c
+--- a/fs/proc/base.c~exit-proc-dont-try-to-flush-proc-tgid-task-tgid
++++ a/fs/proc/base.c
+@@ -2618,6 +2618,9 @@ static void proc_flush_task_mnt(struct v
+ 		dput(dentry);
  	}
  
- 	/*
--	 * Accumulate here the counters for all threads but the group leader
--	 * as they die, so they can be added into the process-wide totals
--	 * when those are taken.  The group leader stays around as a zombie as
--	 * long as there are other threads.  When it gets reaped, the exit.c
--	 * code will add its counts into these totals.  We won't ever get here
--	 * for the group leader, since it will have been the last reference on
--	 * the signal_struct.
-+	 * Accumulate here the counters for all threads as they die. We could
-+	 * skip the group leader because it is the last user of signal_struct,
-+	 * but we want to avoid the race with thread_group_cputime() which can
-+	 * see the empty ->thread_head list.
- 	 */
- 	task_cputime(tsk, &utime, &stime);
- 	write_seqlock(&sig->stats_lock);
++	if (pid == tgid)
++		return;
++
+ 	name.name = buf;
+ 	name.len = snprintf(buf, sizeof(buf), "%d", tgid);
+ 	leader = d_hash_and_lookup(mnt->mnt_root, &name);
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
