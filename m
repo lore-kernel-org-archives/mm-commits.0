@@ -1,150 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-compaction-simplify-deferred-compaction.patch removed from -mm tree
-Date: Thu, 11 Dec 2014 10:56:37 -0800
-Message-ID: <5489e8e5.FWDPIvMImMxL/tmn%akpm@linux-foundation.org>
+Subject: [merged] mm-compaction-defer-only-on-compact_complete.patch
+ removed from -mm tree
+Date: Thu, 11 Dec 2014 10:56:40 -0800
+Message-ID: <5489e8e8.+jvUgrqOq9eq5K2p%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45195 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45205 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751381AbaLKS4i (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:56:38 -0500
+	with ESMTP id S1755055AbaLKS4l (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:56:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vbabka@suse.cz, cl@linux.com, iamjoonsoo.kim@lge.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, compaction: simplify deferred compaction
+     Subject: mm, compaction: defer only on COMPACT_COMPLETE
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-simplify-deferred-compaction.patch
+     mm-compaction-defer-only-on-compact_complete.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, compaction: simplify deferred compaction
+Subject: mm, compaction: defer only on COMPACT_COMPLETE
 
-Since commit 53853e2d2bfb7 ("mm, compaction: defer each zone individually
-instead of preferred zone"), compaction is deferred for each zone where
-sync direct compaction fails, and reset where it succeeds.  However, it
-was observed that for DMA zone compaction often appeared to succeed while
-subsequent allocation attempt would not, due to different outcome of
-watermark check.  In order to properly defer compaction in this zone, the
-candidate zone has to be passed back to __alloc_pages_direct_compact() and
-compaction deferred in the zone after the allocation attempt fails.
+Deferred compaction is employed to avoid compacting zone where sync direct
+compaction has recently failed.  As such, it makes sense to only defer
+when a full zone was scanned, which is when compact_zone returns with
+COMPACT_COMPLETE.  It's less useful to defer when compact_zone returns
+with apparent success (COMPACT_PARTIAL), followed by a watermark check
+failure, which can happen due to parallel allocation activity.  It also
+does not make much sense to defer compaction which was completely skipped
+(COMPACT_SKIP) for being unsuitable in the first place.
 
-The large source of mismatch between watermark check in compaction and
-allocation was the lack of alloc_flags and classzone_idx values in
-compaction, which has been fixed in the previous patch.  So with this
-problem fixed, we can simplify the code by removing the candidate_zone
-parameter and deferring in __alloc_pages_direct_compact().
+This patch therefore makes deferred compaction trigger only when
+COMPACT_COMPLETE is returned from compact_zone().  Results of
+stress-highalloc becnmark show the difference is within measurement error,
+so the issue is rather cosmetic.
 
-After this patch, the compaction activity during stress-highalloc
-benchmark is still somewhat increased, but it's negligible compared to the
-increase that occurred without the better watermark checking.  This
-suggests that it is still possible to apparently succeed in compaction but
-fail to allocate, possibly due to parallel allocation activity.
-
-[akpm@linux-foundation.org: fix build]
-Suggested-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Mel Gorman <mgorman@suse.de>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Michal Nazarewicz <mina86@mina86.com>
 Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Christoph Lameter <cl@linux.com>
-Cc: Rik van Riel <riel@redhat.com>
+Acked-by: Rik van Riel <riel@redhat.com>
 Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compaction.h |    6 ++----
- mm/compaction.c            |    5 +----
- mm/page_alloc.c            |   12 +-----------
- 3 files changed, 4 insertions(+), 19 deletions(-)
+ mm/compaction.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/compaction.h~mm-compaction-simplify-deferred-compaction include/linux/compaction.h
---- a/include/linux/compaction.h~mm-compaction-simplify-deferred-compaction
-+++ a/include/linux/compaction.h
-@@ -33,8 +33,7 @@ extern int fragmentation_index(struct zo
- extern unsigned long try_to_compact_pages(struct zonelist *zonelist,
- 			int order, gfp_t gfp_mask, nodemask_t *mask,
- 			enum migrate_mode mode, int *contended,
--			int alloc_flags, int classzone_idx,
--			struct zone **candidate_zone);
-+			int alloc_flags, int classzone_idx);
- extern void compact_pgdat(pg_data_t *pgdat, int order);
- extern void reset_isolation_suitable(pg_data_t *pgdat);
- extern unsigned long compaction_suitable(struct zone *zone, int order,
-@@ -105,8 +104,7 @@ static inline bool compaction_restarting
- static inline unsigned long try_to_compact_pages(struct zonelist *zonelist,
- 			int order, gfp_t gfp_mask, nodemask_t *nodemask,
- 			enum migrate_mode mode, int *contended,
--			int alloc_flags, int classzone_idx,
--			struct zone **candidate_zone)
-+			int alloc_flags, int classzone_idx)
- {
- 	return COMPACT_CONTINUE;
- }
-diff -puN mm/compaction.c~mm-compaction-simplify-deferred-compaction mm/compaction.c
---- a/mm/compaction.c~mm-compaction-simplify-deferred-compaction
+diff -puN mm/compaction.c~mm-compaction-defer-only-on-compact_complete mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-defer-only-on-compact_complete
 +++ a/mm/compaction.c
-@@ -1298,15 +1298,13 @@ int sysctl_extfrag_threshold = 500;
-  * @mode: The migration mode for async, sync light, or sync migration
-  * @contended: Return value that determines if compaction was aborted due to
-  *	       need_resched() or lock contention
-- * @candidate_zone: Return the zone where we think allocation should succeed
-  *
-  * This is the main entry point for direct page compaction.
-  */
- unsigned long try_to_compact_pages(struct zonelist *zonelist,
- 			int order, gfp_t gfp_mask, nodemask_t *nodemask,
- 			enum migrate_mode mode, int *contended,
--			int alloc_flags, int classzone_idx,
--			struct zone **candidate_zone)
-+			int alloc_flags, int classzone_idx)
- {
- 	enum zone_type high_zoneidx = gfp_zone(gfp_mask);
- 	int may_enter_fs = gfp_mask & __GFP_FS;
-@@ -1343,7 +1341,6 @@ unsigned long try_to_compact_pages(struc
- 		/* If a normal allocation would succeed, stop compacting */
- 		if (zone_watermark_ok(zone, order, low_wmark_pages(zone),
- 					classzone_idx, alloc_flags)) {
--			*candidate_zone = zone;
+@@ -1362,7 +1362,7 @@ unsigned long try_to_compact_pages(struc
+ 			goto break_loop;
+ 		}
+ 
+-		if (mode != MIGRATE_ASYNC) {
++		if (mode != MIGRATE_ASYNC && status == COMPACT_COMPLETE) {
  			/*
- 			 * We think the allocation will succeed in this zone,
- 			 * but it is not certain, hence the false. The caller
-diff -puN mm/page_alloc.c~mm-compaction-simplify-deferred-compaction mm/page_alloc.c
---- a/mm/page_alloc.c~mm-compaction-simplify-deferred-compaction
-+++ a/mm/page_alloc.c
-@@ -2330,7 +2330,6 @@ __alloc_pages_direct_compact(gfp_t gfp_m
- 	int classzone_idx, int migratetype, enum migrate_mode mode,
- 	int *contended_compaction, bool *deferred_compaction)
- {
--	struct zone *last_compact_zone = NULL;
- 	unsigned long compact_result;
- 	struct page *page;
- 
-@@ -2341,8 +2340,7 @@ __alloc_pages_direct_compact(gfp_t gfp_m
- 	compact_result = try_to_compact_pages(zonelist, order, gfp_mask,
- 						nodemask, mode,
- 						contended_compaction,
--						alloc_flags, classzone_idx,
--						&last_compact_zone);
-+						alloc_flags, classzone_idx);
- 	current->flags &= ~PF_MEMALLOC;
- 
- 	switch (compact_result) {
-@@ -2380,14 +2378,6 @@ __alloc_pages_direct_compact(gfp_t gfp_m
- 	}
- 
- 	/*
--	 * last_compact_zone is where try_to_compact_pages thought allocation
--	 * should succeed, so it did not defer compaction. But here we know
--	 * that it didn't succeed, so we do the defer.
--	 */
--	if (last_compact_zone && mode != MIGRATE_ASYNC)
--		defer_compaction(last_compact_zone, order);
+ 			 * We think that allocation won't succeed in this zone
+ 			 * so we defer compaction there. If it ends up
+_
+
+Patches currently in -mm which might be from vbabka@suse.cz are
+
+origin.patch
+mm-debug-pagealloc-cleanup-page-guard-code.patch
+
