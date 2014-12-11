@@ -1,59 +1,70 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- drivers-rtc-rtc-sirfsocc-move-hardware-initilization-earlier-in-probe.patch removed from -mm tree
-Date: Thu, 11 Dec 2014 11:06:02 -0800
-Message-ID: <5489eb1a.MVdjMpaj9I5i54at%akpm@linux-foundation.org>
+ drivers-rtc-interfacec-check-the-validation-of-rtc_time-in-__rtc_read_time.patch removed from -mm tree
+Date: Thu, 11 Dec 2014 11:06:04 -0800
+Message-ID: <5489eb1c.dzaSwnBBro4SOn55%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45728 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45732 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758231AbaLKTGD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 14:06:03 -0500
+	with ESMTP id S1758127AbaLKTGF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 14:06:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: guo.zeng@csr.com, Baohua.Song@csr.com, a.zummo@towertech.it, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: ciogenis@gmail.com, a.zummo@towertech.it, hyogi.gim@lge.com, john.stultz@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-sirfsoc.c: move hardware initilization earlier in probe
+     Subject: drivers/rtc/interface.c: check the validation of rtc_time in __rtc_read_time
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-sirfsocc-move-hardware-initilization-earlier-in-probe.patch
+     drivers-rtc-interfacec-check-the-validation-of-rtc_time-in-__rtc_read_time.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Guo Zeng <guo.zeng@csr.com>
-Subject: drivers/rtc/rtc-sirfsoc.c: move hardware initilization earlier in probe
+From: Hyogi Gim <ciogenis@gmail.com>
+Subject: drivers/rtc/interface.c: check the validation of rtc_time in __rtc_read_time
 
-Move rtc register to be later than hardware initialization.  The reason is
-that devm_rtc_device_register() will do read_time() which is a callback
-accessing hardware.  This sometimes causes a hang in the hardware related
-callback.
+Some rtc devices always return '0' when rtc_class_ops.read_time is called.
+So if rtc_time isn't verified in callback, rtc interface cannot know
+whether rtc_time is valid.
 
-Signed-off-by: Guo Zeng <guo.zeng@csr.com>
-Signed-off-by: Barry Song <Baohua.Song@csr.com>
+Check rtc_time by using 'rtc_valid_tm' in '__rtc_read_time'.  And add the
+message for debugging.
+
+Signed-off-by: Hyogi Gim <hyogi.gim@lge.com>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: <stable@vger.kernel.org>
+Cc: John Stultz <john.stultz@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-sirfsoc.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ drivers/rtc/interface.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN drivers/rtc/rtc-sirfsoc.c~drivers-rtc-rtc-sirfsocc-move-hardware-initilization-earlier-in-probe drivers/rtc/rtc-sirfsoc.c
---- a/drivers/rtc/rtc-sirfsoc.c~drivers-rtc-rtc-sirfsocc-move-hardware-initilization-earlier-in-probe
-+++ a/drivers/rtc/rtc-sirfsoc.c
-@@ -286,14 +286,6 @@ static int sirfsoc_rtc_probe(struct plat
- 	rtc_div = ((32768 / RTC_HZ) / 2) - 1;
- 	sirfsoc_rtc_iobrg_writel(rtc_div, rtcdrv->rtc_base + RTC_DIV);
- 
--	rtcdrv->rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
--			&sirfsoc_rtc_ops, THIS_MODULE);
--	if (IS_ERR(rtcdrv->rtc)) {
--		err = PTR_ERR(rtcdrv->rtc);
--		dev_err(&pdev->dev, "can't register RTC device\n");
--		return err;
--	}
+diff -puN drivers/rtc/interface.c~drivers-rtc-interfacec-check-the-validation-of-rtc_time-in-__rtc_read_time drivers/rtc/interface.c
+--- a/drivers/rtc/interface.c~drivers-rtc-interfacec-check-the-validation-of-rtc_time-in-__rtc_read_time
++++ a/drivers/rtc/interface.c
+@@ -30,6 +30,14 @@ static int __rtc_read_time(struct rtc_de
+ 	else {
+ 		memset(tm, 0, sizeof(struct rtc_time));
+ 		err = rtc->ops->read_time(rtc->dev.parent, tm);
++		if (err < 0) {
++			dev_err(&rtc->dev, "read_time: fail to read\n");
++			return err;
++		}
++
++		err = rtc_valid_tm(tm);
++		if (err < 0)
++			dev_err(&rtc->dev, "read_time: rtc_time isn't valid\n");
+ 	}
+ 	return err;
+ }
+_
+
+Patches currently in -mm which might be from ciogenis@gmail.com are
+
+origin.patch
+
