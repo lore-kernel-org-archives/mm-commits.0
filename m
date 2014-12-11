@@ -1,61 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [merged] exit-proc-dont-try-to-flush-proc-tgid-task-tgid.patch
+Subject: [merged]
+ exit-reparent-fix-the-dead-parent-pr_set_child_subreaper-reparenting.patch
  removed from -mm tree
-Date: Thu, 11 Dec 2014 11:08:19 -0800
-Message-ID: <5489eba3.bX80pM8TkwhsnI3y%akpm@linux-foundation.org>
+Date: Thu, 11 Dec 2014 11:08:22 -0800
+Message-ID: <5489eba6.XmWgQzHza8nmgK1s%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46076 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46078 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758182AbaLKTIU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 14:08:20 -0500
+	with ESMTP id S1758451AbaLKTIX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 14:08:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, atomlin@redhat.com, ebiederm@xmission.com, riel@redhat.com, stalexan@redhat.com, mm-commits@vger.kernel.org
+To: oleg@redhat.com, atomlin@redhat.com, ebiederm@xmission.com, kay@vrfy.org, lennart@poettering.net, stalexan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: exit: proc: don't try to flush /proc/tgid/task/tgid
+     Subject: exit: reparent: fix the dead-parent PR_SET_CHILD_SUBREAPER reparenting
 has been removed from the -mm tree.  Its filename was
-     exit-proc-dont-try-to-flush-proc-tgid-task-tgid.patch
+     exit-reparent-fix-the-dead-parent-pr_set_child_subreaper-reparenting.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: exit: proc: don't try to flush /proc/tgid/task/tgid
+Subject: exit: reparent: fix the dead-parent PR_SET_CHILD_SUBREAPER reparenting
 
-proc_flush_task_mnt() always tries to flush task/pid, but this is
-pointless if we reap the leader. d_invalidate() is recursive, and
-if nothing else the next d_hash_and_lookup(tgid) should fail anyway.
+The ->has_child_subreaper code in find_new_reaper() finds alive "thread"
+but returns another "reaper" thread which can be dead.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Aaron Tomlin <atomlin@redhat.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Rik van Riel <riel@redhat.com>
+Cc: Kay Sievers <kay@vrfy.org>
+Cc: Lennart Poettering <lennart@poettering.net>
 Cc: Sterling Alexander <stalexan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |    3 +++
- 1 file changed, 3 insertions(+)
+ kernel/exit.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc/base.c~exit-proc-dont-try-to-flush-proc-tgid-task-tgid fs/proc/base.c
---- a/fs/proc/base.c~exit-proc-dont-try-to-flush-proc-tgid-task-tgid
-+++ a/fs/proc/base.c
-@@ -2618,6 +2618,9 @@ static void proc_flush_task_mnt(struct v
- 		dput(dentry);
+diff -puN kernel/exit.c~exit-reparent-fix-the-dead-parent-pr_set_child_subreaper-reparenting kernel/exit.c
+--- a/kernel/exit.c~exit-reparent-fix-the-dead-parent-pr_set_child_subreaper-reparenting
++++ a/kernel/exit.c
+@@ -512,7 +512,7 @@ static struct task_struct *find_new_reap
+ 			thread = reaper;
+ 			do {
+ 				if (!(thread->flags & PF_EXITING))
+-					return reaper;
++					return thread;
+ 			} while_each_thread(reaper, thread);
+ 		}
  	}
- 
-+	if (pid == tgid)
-+		return;
-+
- 	name.name = buf;
- 	name.len = snprintf(buf, sizeof(buf), "%d", tgid);
- 	leader = d_hash_and_lookup(mnt->mnt_root, &name);
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
