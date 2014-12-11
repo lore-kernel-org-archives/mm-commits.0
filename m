@@ -1,76 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- ocfs2-report-error-from-o2hb_do_disk_heartbeat-to-user.patch removed from
- -mm tree
-Date: Thu, 11 Dec 2014 10:55:14 -0800
-Message-ID: <5489e892.AbnEmSR9iuQ2vCVN%akpm@linux-foundation.org>
+Subject: [merged] ocfs2-do-not-set-filesystem-readonly-if-link-down.patch
+ removed from -mm tree
+Date: Thu, 11 Dec 2014 10:55:27 -0800
+Message-ID: <5489e89f.NM3OqM2gbVtT/HWI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44971 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44991 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757045AbaLKSzP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:55:15 -0500
+	with ESMTP id S1758450AbaLKSz2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:55:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
+To: jiangyiwen@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: report error from o2hb_do_disk_heartbeat() to user
+     Subject: ocfs2: do not set filesystem readonly if link down
 has been removed from the -mm tree.  Its filename was
-     ocfs2-report-error-from-o2hb_do_disk_heartbeat-to-user.patch
+     ocfs2-do-not-set-filesystem-readonly-if-link-down.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: ocfs2: report error from o2hb_do_disk_heartbeat() to user
+From: jiangyiwen <jiangyiwen@huawei.com>
+Subject: ocfs2: do not set filesystem readonly if link down
 
-Report return value of o2hb_do_disk_heartbeat() as a part of ML_HEARTBEAT
-message so that we know whether a heartbeat actually happened or not. 
-This also makes assigned but otherwise unused 'ret' variable used.
+Do not set the filesystem readonly if the storage link is down.  In this
+case, metadata is not corrupted and only -EIO is returned.  And if it is
+indeed corrupted metadata, it has already called ocfs2_error() in
+ocfs2_validate_inode_block().
 
-Coverity id: 1227053.
-
-Signed-off-by: Jan Kara <jack@suse.cz>
-Cc: Mark Fasheh <mfasheh@suse.com>
+Signed-off-by: Yiwen Jiang <jiangyiwen@huawei.com>
 Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/cluster/heartbeat.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/ocfs2/aops.c |    2 +-
+ fs/ocfs2/dir.c  |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/ocfs2/cluster/heartbeat.c~ocfs2-report-error-from-o2hb_do_disk_heartbeat-to-user fs/ocfs2/cluster/heartbeat.c
---- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-report-error-from-o2hb_do_disk_heartbeat-to-user
-+++ a/fs/ocfs2/cluster/heartbeat.c
-@@ -1127,10 +1127,10 @@ static int o2hb_thread(void *data)
- 		elapsed_msec = o2hb_elapsed_msecs(&before_hb, &after_hb);
- 
- 		mlog(ML_HEARTBEAT,
--		     "start = %lu.%lu, end = %lu.%lu, msec = %u\n",
-+		     "start = %lu.%lu, end = %lu.%lu, msec = %u, ret = %d\n",
- 		     before_hb.tv_sec, (unsigned long) before_hb.tv_usec,
- 		     after_hb.tv_sec, (unsigned long) after_hb.tv_usec,
--		     elapsed_msec);
-+		     elapsed_msec, ret);
- 
- 		if (!kthread_should_stop() &&
- 		    elapsed_msec < reg->hr_timeout_ms) {
+diff -puN fs/ocfs2/aops.c~ocfs2-do-not-set-filesystem-readonly-if-link-down fs/ocfs2/aops.c
+--- a/fs/ocfs2/aops.c~ocfs2-do-not-set-filesystem-readonly-if-link-down
++++ a/fs/ocfs2/aops.c
+@@ -1251,7 +1251,7 @@ static int ocfs2_write_cluster(struct ad
+ 	ret = ocfs2_extent_map_get_blocks(inode, v_blkno, &p_blkno, NULL,
+ 					  NULL);
+ 	if (ret < 0) {
+-		ocfs2_error(inode->i_sb, "Corrupting extend for inode %llu, "
++		mlog(ML_ERROR, "Get physical blkno failed for inode %llu, "
+ 			    "at logical block %llu",
+ 			    (unsigned long long)OCFS2_I(inode)->ip_blkno,
+ 			    (unsigned long long)v_blkno);
+diff -puN fs/ocfs2/dir.c~ocfs2-do-not-set-filesystem-readonly-if-link-down fs/ocfs2/dir.c
+--- a/fs/ocfs2/dir.c~ocfs2-do-not-set-filesystem-readonly-if-link-down
++++ a/fs/ocfs2/dir.c
+@@ -744,7 +744,7 @@ restart:
+ 		if (ocfs2_read_dir_block(dir, block, &bh, 0)) {
+ 			/* read error, skip block & hope for the best.
+ 			 * ocfs2_read_dir_block() has released the bh. */
+-			ocfs2_error(dir->i_sb, "reading directory %llu, "
++			mlog(ML_ERROR, "reading directory %llu, "
+ 				    "offset %lu\n",
+ 				    (unsigned long long)OCFS2_I(dir)->ip_blkno,
+ 				    block);
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from jiangyiwen@huawei.com are
 
 origin.patch
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
-befs-remove-dead-code.patch
-linux-next.patch
-fallocate-create-fan_modify-and-in_modify-events.patch
-fsnotify-unify-inode-and-mount-marks-handling.patch
-fsnotify-remove-destroy_list-from-fsnotify_mark.patch
-mm-add-strictlimit-knob-v2.patch
+ocfs2-avoid-access-invalid-address-when-read-o2dlm-debug-messages.patch
+ocfs2-avoid-access-invalid-address-when-read-o2dlm-debug-messages-v2.patch
 
