@@ -1,106 +1,93 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- memcg-simplify-unreclaimable-groups-handling-in-soft-limit-reclaim.patch
- removed from -mm tree
-Date: Thu, 11 Dec 2014 10:56:51 -0800
-Message-ID: <5489e8f3.U8lmSuF744/q6aex%akpm@linux-foundation.org>
+ mm-memcontrol-clarify-migration-where-old-page-is-uncharged.patch removed
+ from -mm tree
+Date: Thu, 11 Dec 2014 10:56:55 -0800
+Message-ID: <5489e8f7.i0T3HusM6ohsoWvu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45233 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45241 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756644AbaLKS4w (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:56:52 -0500
+	with ESMTP id S1757857AbaLKS44 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:56:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@parallels.com, hannes@cmpxchg.org, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, hughd@google.com, mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: simplify unreclaimable groups handling in soft limit reclaim
+     Subject: mm: memcontrol: clarify migration where old page is uncharged
 has been removed from the -mm tree.  Its filename was
-     memcg-simplify-unreclaimable-groups-handling-in-soft-limit-reclaim.patch
+     mm-memcontrol-clarify-migration-where-old-page-is-uncharged.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: memcg: simplify unreclaimable groups handling in soft limit reclaim
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memcontrol: clarify migration where old page is uncharged
 
-If we fail to reclaim anything from a cgroup during a soft reclaim pass
-we want to get the next largest cgroup exceeding its soft limit. To
-achieve this, we should obviously remove the current group from the tree
-and then pick the largest group. Currently we have a weird loop instead.
-Let's simplify it.
+Better explain re-entrant migration when compaction races with reclaim,
+and also mention swapcache readahead pages as possible uncharged migration
+sources.
 
-Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Hugh Dickins <hughd@google.com>
 Acked-by: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   26 ++++----------------------
- 1 file changed, 4 insertions(+), 22 deletions(-)
+ mm/memcontrol.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memcg-simplify-unreclaimable-groups-handling-in-soft-limit-reclaim mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-simplify-unreclaimable-groups-handling-in-soft-limit-reclaim
+diff -puN mm/memcontrol.c~mm-memcontrol-clarify-migration-where-old-page-is-uncharged mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-clarify-migration-where-old-page-is-uncharged
 +++ a/mm/memcontrol.c
-@@ -3518,34 +3518,16 @@ unsigned long mem_cgroup_soft_limit_recl
- 		nr_reclaimed += reclaimed;
- 		*total_scanned += nr_scanned;
- 		spin_lock_irq(&mctz->lock);
-+		__mem_cgroup_remove_exceeded(mz, mctz);
+@@ -6157,7 +6157,12 @@ void mem_cgroup_migrate(struct page *old
+ 	if (PageCgroupUsed(pc))
+ 		return;
  
- 		/*
- 		 * If we failed to reclaim anything from this memory cgroup
- 		 * it is time to move on to the next cgroup
- 		 */
- 		next_mz = NULL;
--		if (!reclaimed) {
--			do {
--				/*
--				 * Loop until we find yet another one.
--				 *
--				 * By the time we get the soft_limit lock
--				 * again, someone might have aded the
--				 * group back on the RB tree. Iterate to
--				 * make sure we get a different mem.
--				 * mem_cgroup_largest_soft_limit_node returns
--				 * NULL if no other cgroup is present on
--				 * the tree
--				 */
--				next_mz =
--				__mem_cgroup_largest_soft_limit_node(mctz);
--				if (next_mz == mz)
--					css_put(&next_mz->memcg->css);
--				else /* next_mz == NULL or other memcg */
--					break;
--			} while (1);
--		}
--		__mem_cgroup_remove_exceeded(mz, mctz);
-+		if (!reclaimed)
-+			next_mz = __mem_cgroup_largest_soft_limit_node(mctz);
-+
- 		excess = soft_limit_excess(mz->memcg);
- 		/*
- 		 * One school of thought says that we should not add
+-	/* Re-entrant migration: old page already uncharged? */
++	/*
++	 * Swapcache readahead pages can get migrated before being
++	 * charged, and migration from compaction can happen to an
++	 * uncharged page when the PFN walker finds a page that
++	 * reclaim just put back on the LRU but has not released yet.
++	 */
+ 	pc = lookup_page_cgroup(oldpage);
+ 	if (!PageCgroupUsed(pc))
+ 		return;
 _
 
-Patches currently in -mm which might be from vdavydov@parallels.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 origin.patch
 memcg-__mem_cgroup_free-remove-stale-disarm_static_keys-comment.patch
 memcg-dont-check-mm-in-__memcg_kmem_get_cachenewpage_charge.patch
 memcg-do-not-abuse-memcg_kmem_skip_account.patch
+mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
+mm-mincore-add-hwpoison-page-handle.patch
 memcg-zap-kmem_account_flags.patch
 memcg-only-check-memcg_kmem_skip_account-in-__memcg_kmem_get_cache.patch
 memcg-turn-memcg_kmem_skip_account-into-a-bit-field.patch
+mm-move-swp_entry_t-definition-to-include-linux-mm_typesh.patch
+mm-gfp-escalatedly-define-gfp_highuser-and-gfp_highuser_movable.patch
+mm-page_ext-resurrect-struct-page-extending-code-for-debugging.patch
+mm-page_ext-resurrect-struct-page-extending-code-for-debugging-fix.patch
+mm-debug-pagealloc-prepare-boottime-configurable-on-off.patch
+mm-debug-pagealloc-make-debug-pagealloc-boottime-configurable.patch
+mm-debug-pagealloc-make-debug-pagealloc-boottime-configurable-fix.patch
+mm-nommu-use-alloc_pages_exact-rather-than-its-own-implementation.patch
+stacktrace-introduce-snprint_stack_trace-for-buffer-output.patch
+mm-page_owner-keep-track-of-page-owners.patch
+mm-page_owner-correct-owner-information-for-early-allocated-pages.patch
+documentation-add-new-page_owner-document.patch
 mm-vmscan-invoke-slab-shrinkers-from-shrink_zone.patch
 mm-vmscan-invoke-slab-shrinkers-from-shrink_zone-fix.patch
+mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath.patch
+mm-memcontrol-fix-defined-but-not-used-compiler-warning.patch
 memcg-fix-possible-use-after-free-in-memcg_kmem_get_cache.patch
-linux-next.patch
-slab-fix-cpuset-check-in-fallback_alloc.patch
-slub-fix-cpuset-check-in-get_any_partial.patch
+mm-memcontrolc-cleaning-up-function-that-are-not-used-anywhere.patch
 
