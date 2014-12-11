@@ -1,68 +1,80 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-memcontrol-remove-bogus-null-check-after-mem_cgroup_from_task.patch
+ mm-memcontrol-pull-the-null-check-from-__mem_cgroup_same_or_subtree.patch
  removed from -mm tree
-Date: Thu, 11 Dec 2014 10:57:27 -0800
-Message-ID: <5489e917.BedSLUtZzq1TQ2EJ%akpm@linux-foundation.org>
+Date: Thu, 11 Dec 2014 10:57:29 -0800
+Message-ID: <5489e919.nxYHi3XCahe90s3r%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45396 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45399 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758125AbaLKS52 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:57:28 -0500
+	with ESMTP id S1758125AbaLKS5a (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:57:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@cmpxchg.org, mhocko@suse.cz, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: remove bogus NULL check after mem_cgroup_from_task()
+     Subject: mm: memcontrol: pull the NULL check from __mem_cgroup_same_or_subtree()
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-remove-bogus-null-check-after-mem_cgroup_from_task.patch
+     mm-memcontrol-pull-the-null-check-from-__mem_cgroup_same_or_subtree.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: remove bogus NULL check after mem_cgroup_from_task()
+Subject: mm: memcontrol: pull the NULL check from __mem_cgroup_same_or_subtree()
 
-That function acts like a typecast - unless NULL is passed in, no NULL can
-come out.  task_in_mem_cgroup() callers don't pass NULL tasks.
+The NULL in mm_match_cgroup() comes from a possibly exiting mm->owner.  It
+makes a lot more sense to check where it's looked up, rather than check
+for it in __mem_cgroup_same_or_subtree() where it's unexpected.
+
+No other callsite passes NULL to __mem_cgroup_same_or_subtree().
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Reviewed-by: Vladimir Davydov <vdavydov@parallels.com>
-Acked-by: Michal Hocko <mhocko@suse.cz
+Acked-by: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ include/linux/memcontrol.h |    5 +++--
+ mm/memcontrol.c            |    2 +-
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-remove-bogus-null-check-after-mem_cgroup_from_task mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-remove-bogus-null-check-after-mem_cgroup_from_task
-+++ a/mm/memcontrol.c
-@@ -1356,7 +1356,7 @@ static bool mem_cgroup_same_or_subtree(c
- bool task_in_mem_cgroup(struct task_struct *task,
- 			const struct mem_cgroup *memcg)
+diff -puN include/linux/memcontrol.h~mm-memcontrol-pull-the-null-check-from-__mem_cgroup_same_or_subtree include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~mm-memcontrol-pull-the-null-check-from-__mem_cgroup_same_or_subtree
++++ a/include/linux/memcontrol.h
+@@ -83,11 +83,12 @@ static inline
+ bool mm_match_cgroup(const struct mm_struct *mm, const struct mem_cgroup *memcg)
  {
--	struct mem_cgroup *curr = NULL;
-+	struct mem_cgroup *curr;
- 	struct task_struct *p;
- 	bool ret;
+ 	struct mem_cgroup *task_memcg;
+-	bool match;
++	bool match = false;
  
-@@ -1372,8 +1372,7 @@ bool task_in_mem_cgroup(struct task_stru
- 		 */
- 		rcu_read_lock();
- 		curr = mem_cgroup_from_task(task);
--		if (curr)
--			css_get(&curr->css);
-+		css_get(&curr->css);
- 		rcu_read_unlock();
- 	}
- 	/*
+ 	rcu_read_lock();
+ 	task_memcg = mem_cgroup_from_task(rcu_dereference(mm->owner));
+-	match = __mem_cgroup_same_or_subtree(memcg, task_memcg);
++	if (task_memcg)
++		match = __mem_cgroup_same_or_subtree(memcg, task_memcg);
+ 	rcu_read_unlock();
+ 	return match;
+ }
+diff -puN mm/memcontrol.c~mm-memcontrol-pull-the-null-check-from-__mem_cgroup_same_or_subtree mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-pull-the-null-check-from-__mem_cgroup_same_or_subtree
++++ a/mm/memcontrol.c
+@@ -1337,7 +1337,7 @@ bool __mem_cgroup_same_or_subtree(const
+ {
+ 	if (root_memcg == memcg)
+ 		return true;
+-	if (!root_memcg->use_hierarchy || !memcg)
++	if (!root_memcg->use_hierarchy)
+ 		return false;
+ 	return cgroup_is_descendant(memcg->css.cgroup, root_memcg->css.cgroup);
+ }
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
