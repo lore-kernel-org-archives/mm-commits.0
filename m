@@ -1,118 +1,153 @@
 From: akpm@linux-foundation.org
-Subject: [merged] slab-improve-checking-for-invalid-gfp_flags.patch
- removed from -mm tree
-Date: Thu, 11 Dec 2014 10:55:45 -0800
-Message-ID: <5489e8b1.uHHNCGW2Ztyd46NJ%akpm@linux-foundation.org>
+Subject: [merged] slab-print-slabinfo-header-in-seq-show.patch removed
+ from -mm tree
+Date: Thu, 11 Dec 2014 10:55:38 -0800
+Message-ID: <5489e8aa.MRlccAVcfgPDoEFN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45039 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45019 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758537AbaLKSzq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:55:46 -0500
+	with ESMTP id S1758507AbaLKSzj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 13:55:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: vdavydov@parallels.com, cl@linux.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@suse.cz, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slab: improve checking for invalid gfp_flags
+     Subject: slab: print slabinfo header in seq show
 has been removed from the -mm tree.  Its filename was
-     slab-improve-checking-for-invalid-gfp_flags.patch
+     slab-print-slabinfo-header-in-seq-show.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: slab: improve checking for invalid gfp_flags
+From: Vladimir Davydov <vdavydov@parallels.com>
+Subject: slab: print slabinfo header in seq show
 
-The code goes BUG, but doesn't tell us which bits were unexpectedly set. 
-Print that out.
+Currently we print the slabinfo header in the seq start method, which
+makes it unusable for showing leaks, so we have leaks_show, which does
+practically the same as s_show except it doesn't show the header. 
+However, we can print the header in the seq show method - we only need to
+check if the current element is the first on the list.  This will allow us
+to use the same set of seq iterators for both leaks and slabinfo
+reporting, which is nice.
 
+Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    5 ++++-
- mm/slub.c |    5 ++++-
- 2 files changed, 8 insertions(+), 2 deletions(-)
+ mm/slab.c        |    8 +-------
+ mm/slab.h        |    1 +
+ mm/slab_common.c |   15 ++++++---------
+ 3 files changed, 8 insertions(+), 16 deletions(-)
 
-diff -puN mm/slab.c~slab-improve-checking-for-invalid-gfp_flags mm/slab.c
---- a/mm/slab.c~slab-improve-checking-for-invalid-gfp_flags
+diff -puN mm/slab.c~slab-print-slabinfo-header-in-seq-show mm/slab.c
+--- a/mm/slab.c~slab-print-slabinfo-header-in-seq-show
 +++ a/mm/slab.c
-@@ -2590,7 +2590,10 @@ static int cache_grow(struct kmem_cache
- 	 * Be lazy and only check for valid flags here,  keeping it out of the
- 	 * critical path in kmem_cache_alloc().
- 	 */
--	BUG_ON(flags & GFP_SLAB_BUG_MASK);
-+	if (unlikely(flags & GFP_SLAB_BUG_MASK)) {
-+		pr_emerg("gfp: %u\n", flags & GFP_SLAB_BUG_MASK);
-+		BUG();
-+	}
- 	local_flags = flags & (GFP_CONSTRAINT_MASK|GFP_RECLAIM_MASK);
+@@ -4043,12 +4043,6 @@ ssize_t slabinfo_write(struct file *file
  
- 	/* Take the node list lock to change the colour_next on this node */
-diff -puN mm/slub.c~slab-improve-checking-for-invalid-gfp_flags mm/slub.c
---- a/mm/slub.c~slab-improve-checking-for-invalid-gfp_flags
-+++ a/mm/slub.c
-@@ -1377,7 +1377,10 @@ static struct page *new_slab(struct kmem
- 	int order;
- 	int idx;
+ #ifdef CONFIG_DEBUG_SLAB_LEAK
  
--	BUG_ON(flags & GFP_SLAB_BUG_MASK);
-+	if (unlikely(flags & GFP_SLAB_BUG_MASK)) {
-+		pr_emerg("gfp: %u\n", flags & GFP_SLAB_BUG_MASK);
-+		BUG();
-+	}
+-static void *leaks_start(struct seq_file *m, loff_t *pos)
+-{
+-	mutex_lock(&slab_mutex);
+-	return seq_list_start(&slab_caches, *pos);
+-}
+-
+ static inline int add_caller(unsigned long *n, unsigned long v)
+ {
+ 	unsigned long *p;
+@@ -4170,7 +4164,7 @@ static int leaks_show(struct seq_file *m
+ }
  
- 	page = allocate_slab(s,
- 		flags & (GFP_RECLAIM_MASK | GFP_CONSTRAINT_MASK), node);
+ static const struct seq_operations slabstats_op = {
+-	.start = leaks_start,
++	.start = slab_start,
+ 	.next = slab_next,
+ 	.stop = slab_stop,
+ 	.show = leaks_show,
+diff -puN mm/slab.h~slab-print-slabinfo-header-in-seq-show mm/slab.h
+--- a/mm/slab.h~slab-print-slabinfo-header-in-seq-show
++++ a/mm/slab.h
+@@ -357,6 +357,7 @@ static inline struct kmem_cache_node *ge
+ 
+ #endif
+ 
++void *slab_start(struct seq_file *m, loff_t *pos);
+ void *slab_next(struct seq_file *m, void *p, loff_t *pos);
+ void slab_stop(struct seq_file *m, void *p);
+ 
+diff -puN mm/slab_common.c~slab-print-slabinfo-header-in-seq-show mm/slab_common.c
+--- a/mm/slab_common.c~slab-print-slabinfo-header-in-seq-show
++++ a/mm/slab_common.c
+@@ -834,14 +834,9 @@ void print_slabinfo_header(struct seq_fi
+ 	seq_putc(m, '\n');
+ }
+ 
+-static void *s_start(struct seq_file *m, loff_t *pos)
++void *slab_start(struct seq_file *m, loff_t *pos)
+ {
+-	loff_t n = *pos;
+-
+ 	mutex_lock(&slab_mutex);
+-	if (!n)
+-		print_slabinfo_header(m);
+-
+ 	return seq_list_start(&slab_caches, *pos);
+ }
+ 
+@@ -903,10 +898,12 @@ int cache_show(struct kmem_cache *s, str
+ 	return 0;
+ }
+ 
+-static int s_show(struct seq_file *m, void *p)
++static int slab_show(struct seq_file *m, void *p)
+ {
+ 	struct kmem_cache *s = list_entry(p, struct kmem_cache, list);
+ 
++	if (p == slab_caches.next)
++		print_slabinfo_header(m);
+ 	if (!is_root_cache(s))
+ 		return 0;
+ 	return cache_show(s, m);
+@@ -926,10 +923,10 @@ static int s_show(struct seq_file *m, vo
+  * + further values on SMP and with statistics enabled
+  */
+ static const struct seq_operations slabinfo_op = {
+-	.start = s_start,
++	.start = slab_start,
+ 	.next = slab_next,
+ 	.stop = slab_stop,
+-	.show = s_show,
++	.show = slab_show,
+ };
+ 
+ static int slabinfo_open(struct inode *inode, struct file *file)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vdavydov@parallels.com are
 
 origin.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
-ocfs2-free-inode-when-i_count-becomes-zero.patch
-ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
-mm.patch
-mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
-mm-mincore-add-hwpoison-page-handle-checkpatch-fixes.patch
-include-linux-kmemleakh-needs-slabh.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mm-page_owner-keep-track-of-page-owners.patch
-fs-seq_file-fallback-to-vmalloc-instead-of-oom-kill-processes-fix.patch
-oom-dont-assume-that-a-coredumping-thread-will-exit-soon-v2-fix.patch
-mm-memcontrol-fix-defined-but-not-used-compiler-warning-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix-2.patch
-zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix.patch
-mm-zsmalloc-support-allocating-obj-with-size-of-zs_max_alloc_size-fix.patch
-mm-zsmalloc-avoid-duplicate-assignment-of-prev_class-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-sysctl-terminate-strings-also-on-r-fix.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
-ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
+memcg-__mem_cgroup_free-remove-stale-disarm_static_keys-comment.patch
+memcg-dont-check-mm-in-__memcg_kmem_get_cachenewpage_charge.patch
+memcg-do-not-abuse-memcg_kmem_skip_account.patch
+memcg-zap-kmem_account_flags.patch
+memcg-only-check-memcg_kmem_skip_account-in-__memcg_kmem_get_cache.patch
+memcg-turn-memcg_kmem_skip_account-into-a-bit-field.patch
+mm-vmscan-invoke-slab-shrinkers-from-shrink_zone.patch
+mm-vmscan-invoke-slab-shrinkers-from-shrink_zone-fix.patch
+memcg-fix-possible-use-after-free-in-memcg_kmem_get_cache.patch
 linux-next.patch
-linux-next-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-cma-make-kmemleak-ignore-cma-regions.patch
-lib-show_mem-this-patch-adds-cma-reserved-infromation-fix.patch
-tools-testing-selftests-makefile-alphasort-the-targets-list.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
+slab-fix-cpuset-check-in-fallback_alloc.patch
+slub-fix-cpuset-check-in-get_any_partial.patch
 
