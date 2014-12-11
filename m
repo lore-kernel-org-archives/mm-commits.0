@@ -1,70 +1,66 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- exit-exit_notify-re-use-dead-list-to-autoreap-current.patch removed from
- -mm tree
-Date: Thu, 11 Dec 2014 11:08:45 -0800
-Message-ID: <5489ebbd.B84PaLfqJTRMtqaV%akpm@linux-foundation.org>
+ exit-pidns-alloc_pid-leaks-pid_namespace-if-child_reaper-is-exiting.patch
+ removed from -mm tree
+Date: Thu, 11 Dec 2014 11:08:48 -0800
+Message-ID: <5489ebc0.Ml81eDZsE2kRsLcS%akpm__47608.014525804$1418324941$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46117 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46119 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758311AbaLKTIq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 14:08:46 -0500
+	with ESMTP id S1758399AbaLKTIt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 14:08:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, atomlin@redhat.com, ebiederm@xmission.com, stalexan@redhat.com, mm-commits@vger.kernel.org
+To: oleg@redhat.com, atomlin@redhat.com, ebiederm@xmission.com, serge.hallyn@ubuntu.com, stable@vger.kernel.org, stalexan@redhat.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: exit: exit_notify: re-use "dead" list to autoreap current
+     Subject: exit: pidns: alloc_pid() leaks pid_namespace if child_reaper is exiting
 has been removed from the -mm tree.  Its filename was
-     exit-exit_notify-re-use-dead-list-to-autoreap-current.patch
+     exit-pidns-alloc_pid-leaks-pid_namespace-if-child_reaper-is-exiting.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: exit: exit_notify: re-use "dead" list to autoreap current
+Subject: exit: pidns: alloc_pid() leaks pid_namespace if child_reaper is exiting
 
-After the previous change we can add just the exiting EXIT_DEAD task to
-the "dead" list and remove another release_task(tsk).
+alloc_pid() does get_pid_ns() beforehand but forgets to put_pid_ns() if it
+fails because disable_pid_allocation() was called by the exiting
+child_reaper.
+
+We could simply move get_pid_ns() down to successful return, but this fix
+tries to be as trivial as possible.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Reviewed-by: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Aaron Tomlin <atomlin@redhat.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Serge Hallyn <serge.hallyn@ubuntu.com>
 Cc: Sterling Alexander <stalexan@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ kernel/pid.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN kernel/exit.c~exit-exit_notify-re-use-dead-list-to-autoreap-current kernel/exit.c
---- a/kernel/exit.c~exit-exit_notify-re-use-dead-list-to-autoreap-current
-+++ a/kernel/exit.c
-@@ -632,6 +632,8 @@ static void exit_notify(struct task_stru
- 	}
+diff -puN kernel/pid.c~exit-pidns-alloc_pid-leaks-pid_namespace-if-child_reaper-is-exiting kernel/pid.c
+--- a/kernel/pid.c~exit-pidns-alloc_pid-leaks-pid_namespace-if-child_reaper-is-exiting
++++ a/kernel/pid.c
+@@ -341,6 +341,8 @@ out:
  
- 	tsk->exit_state = autoreap ? EXIT_DEAD : EXIT_ZOMBIE;
-+	if (tsk->exit_state == EXIT_DEAD)
-+		list_add(&tsk->ptrace_entry, &dead);
- 
- 	/* mt-exec, de_thread() is waiting for group leader */
- 	if (unlikely(tsk->signal->notify_count < 0))
-@@ -642,10 +644,6 @@ static void exit_notify(struct task_stru
- 		list_del_init(&p->ptrace_entry);
- 		release_task(p);
- 	}
--
--	/* If the process is dead, release it - nobody will wait for it */
--	if (autoreap)
--		release_task(tsk);
- }
- 
- #ifdef CONFIG_DEBUG_STACK_USAGE
+ out_unlock:
+ 	spin_unlock_irq(&pidmap_lock);
++	put_pid_ns(ns);
++
+ out_free:
+ 	while (++i <= ns->level)
+ 		free_pidmap(pid->numbers + i);
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
