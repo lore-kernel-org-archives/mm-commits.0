@@ -1,90 +1,65 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- checkpatch-add-an-error-test-for-no-space-before-comma.patch removed from
- -mm tree
-Date: Thu, 11 Dec 2014 11:05:20 -0800
-Message-ID: <5489eaf0.TgrKGlFbqbZwm2vJ%akpm@linux-foundation.org>
+ maintainers-update-ivtv-mailing-lists-as-subscriber-only.patch removed from -mm tree
+Date: Thu, 11 Dec 2014 11:05:14 -0800
+Message-ID: <5489eaea.AalLEbCz872qLaDe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45664 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45655 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755883AbaLKTFV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 14:05:21 -0500
+	with ESMTP id S1751253AbaLKTFP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Dec 2014 14:05:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: joe@perches.com, awalls@md.metrocast.net, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add an error test for no space before comma
+     Subject: MAINTAINERS: update ivtv mailing lists as subscriber-only
 has been removed from the -mm tree.  Its filename was
-     checkpatch-add-an-error-test-for-no-space-before-comma.patch
+     maintainers-update-ivtv-mailing-lists-as-subscriber-only.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add an error test for no space before comma
+Subject: MAINTAINERS: update ivtv mailing lists as subscriber-only
 
-Using code like:
-
-	int foo , bar;
-
-is not preferred to:
-
-	int foo, bar;
-
-so emit an error on this style.
+Mark these as subscriber-only mailing lists.
 
 Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Andy Walls <awalls@md.metrocast.net>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   23 +++++++++++++++++++++--
- 1 file changed, 21 insertions(+), 2 deletions(-)
+ MAINTAINERS |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-an-error-test-for-no-space-before-comma scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-an-error-test-for-no-space-before-comma
-+++ a/scripts/checkpatch.pl
-@@ -3563,14 +3563,33 @@ sub process {
- 						}
- 					}
+diff -puN MAINTAINERS~maintainers-update-ivtv-mailing-lists-as-subscriber-only MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-ivtv-mailing-lists-as-subscriber-only
++++ a/MAINTAINERS
+@@ -2723,7 +2723,7 @@ F:	drivers/net/wireless/cw1200/
  
--				# , must have a space on the right.
-+				# , must not have a space before and must have a space on the right.
- 				} elsif ($op eq ',') {
-+					my $rtrim_before = 0;
-+					my $space_after = 0;
-+					if ($ctx =~ /Wx./) {
-+						if (ERROR("SPACING",
-+							  "space prohibited before that '$op' $at\n" . $hereptr)) {
-+							$line_fixed = 1;
-+							$rtrim_before = 1;
-+						}
-+					}
- 					if ($ctx !~ /.x[WEC]/ && $cc !~ /^}/) {
- 						if (ERROR("SPACING",
- 							  "space required after that '$op' $at\n" . $hereptr)) {
--							$good = $fix_elements[$n] . trim($fix_elements[$n + 1]) . " ";
- 							$line_fixed = 1;
- 							$last_after = $n;
-+							$space_after = 1;
-+						}
-+					}
-+					if ($rtrim_before || $space_after) {
-+						if ($rtrim_before) {
-+							$good = rtrim($fix_elements[$n]) . trim($fix_elements[$n + 1]);
-+						} else {
-+							$good = $fix_elements[$n] . trim($fix_elements[$n + 1]);
-+						}
-+						if ($space_after) {
-+							$good .= " ";
- 						}
- 					}
+ CX18 VIDEO4LINUX DRIVER
+ M:	Andy Walls <awalls@md.metrocast.net>
+-L:	ivtv-devel@ivtvdriver.org (moderated for non-subscribers)
++L:	ivtv-devel@ivtvdriver.org (subscribers-only)
+ L:	linux-media@vger.kernel.org
+ T:	git git://linuxtv.org/media_tree.git
+ W:	http://linuxtv.org
+@@ -5209,7 +5209,7 @@ F:	drivers/media/tuners/it913x*
  
+ IVTV VIDEO4LINUX DRIVER
+ M:	Andy Walls <awalls@md.metrocast.net>
+-L:	ivtv-devel@ivtvdriver.org (moderated for non-subscribers)
++L:	ivtv-devel@ivtvdriver.org (subscribers-only)
+ L:	linux-media@vger.kernel.org
+ T:	git git://linuxtv.org/media_tree.git
+ W:	http://www.ivtvdriver.org
 _
 
 Patches currently in -mm which might be from joe@perches.com are
