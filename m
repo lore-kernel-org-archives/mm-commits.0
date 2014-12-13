@@ -1,85 +1,97 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-nommu-use-alloc_pages_exact-rather-than-its-own-implementation-fix.patch removed from -mm tree
-Date: Fri, 12 Dec 2014 16:40:57 -0800
-Message-ID: <548b8b19.wczowgD4MhJe3t0G%akpm@linux-foundation.org>
+ mm-vmscan-invoke-slab-shrinkers-from-shrink_zone-fix.patch removed from -mm tree
+Date: Fri, 12 Dec 2014 16:41:15 -0800
+Message-ID: <548b8b2b.OTUqBaPKH85JE9LD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38376 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38380 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751034AbaLMAk6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 12 Dec 2014 19:40:58 -0500
+	with ESMTP id S1751034AbaLMAlQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 12 Dec 2014 19:41:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, fengguang.wu@intel.com, mm-commits@vger.kernel.org
+To: vdavydov@parallels.com, david@fromorbit.com, hannes@cmpxchg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-nommu-use-alloc_pages_exact-rather-than-its-own-implementation-fix
+     Subject: mm: vmscan: shrink_zones: assure class zone is populated
 has been removed from the -mm tree.  Its filename was
-     mm-nommu-use-alloc_pages_exact-rather-than-its-own-implementation-fix.patch
+     mm-vmscan-invoke-slab-shrinkers-from-shrink_zone-fix.patch
 
-This patch was dropped because it was folded into mm-nommu-use-alloc_pages_exact-rather-than-its-own-implementation.patch
+This patch was dropped because it was folded into mm-vmscan-invoke-slab-shrinkers-from-shrink_zone.patch
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm-nommu-use-alloc_pages_exact-rather-than-its-own-implementation-fix
+From: Vladimir Davydov <vdavydov@parallels.com>
+Subject: mm: vmscan: shrink_zones: assure class zone is populated
 
-Fix following warning from 0-day kernel test infrastructure.
+Since commit 5df87d36a45e ("mm: vmscan: invoke slab shrinkers from
+shrink_zone()") slab shrinkers are invoked from shrink_zone.  Since slab
+shrinkers lack the notion of memory zones, we only call slab shrinkers
+after scanning the highest zone suitable for allocation (class zone). 
+However, class zone can be empty.  E.g.  if an x86_64 host has less than
+4G of RAM, it will have only ZONE_DMA and ZONE_DMA32 populated while the
+class zone for most allocations, ZONE_NORMAL, will be empty.  As a result,
+slab caches will not be scanned at all from the direct reclaim path, which
+may result in premature OOM killer invocations.
 
-  make.cross ARCH=m32r
+Let's take the highest *populated* zone suitable for allocation for the
+class zone to fix this issue.
 
-All warnings:
-
-   mm/nommu.c: In function 'do_mmap_private':
->> mm/nommu.c:1193:8: warning: assignment makes pointer (snip)...
-      base = __get_free_pages(GFP_KERNEL, order);
-           ^
-
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Reported-by: Wu Fengguang <fengguang.wu@intel.com>
+Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Dave Chinner <david@fromorbit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nommu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmscan.c |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff -puN mm/nommu.c~mm-nommu-use-alloc_pages_exact-rather-than-its-own-implementation-fix mm/nommu.c
---- a/mm/nommu.c~mm-nommu-use-alloc_pages_exact-rather-than-its-own-implementation-fix
-+++ a/mm/nommu.c
-@@ -1190,7 +1190,7 @@ static int do_mmap_private(struct vm_are
- 		kdebug("try to alloc exact %lu pages", total);
- 		base = alloc_pages_exact(len, GFP_KERNEL);
- 	} else {
--		base = __get_free_pages(GFP_KERNEL, order);
-+		base = (void *)__get_free_pages(GFP_KERNEL, order);
- 	}
+diff -puN mm/vmscan.c~mm-vmscan-invoke-slab-shrinkers-from-shrink_zone-fix mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-invoke-slab-shrinkers-from-shrink_zone-fix
++++ a/mm/vmscan.c
+@@ -2454,8 +2454,16 @@ static bool shrink_zones(struct zonelist
  
- 	if (!base)
+ 	for_each_zone_zonelist_nodemask(zone, z, zonelist,
+ 					requested_highidx, sc->nodemask) {
++		enum zone_type classzone_idx;
++
+ 		if (!populated_zone(zone))
+ 			continue;
++
++		classzone_idx = requested_highidx;
++		while (!populated_zone(zone->zone_pgdat->node_zones +
++							classzone_idx))
++			classzone_idx--;
++
+ 		/*
+ 		 * Take care memory controller reclaiming has small influence
+ 		 * to global LRU.
+@@ -2502,7 +2510,7 @@ static bool shrink_zones(struct zonelist
+ 			/* need some check for avoid more shrink_zone() */
+ 		}
+ 
+-		if (shrink_zone(zone, sc, zone_idx(zone) == requested_highidx))
++		if (shrink_zone(zone, sc, zone_idx(zone) == classzone_idx))
+ 			reclaimable = true;
+ 
+ 		if (global_reclaim(sc) &&
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from vdavydov@parallels.com are
 
 origin.patch
-lib-bitmap-added-alignment-offset-for-bitmap_find_next_zero_area.patch
-mm-cma-align-to-physical-address-not-cma-region-position.patch
-mm-debug-pagealloc-cleanup-page-guard-code.patch
-include-linux-kmemleakh-needs-slabh.patch
-mm-page_ext-resurrect-struct-page-extending-code-for-debugging.patch
-mm-debug-pagealloc-prepare-boottime-configurable-on-off.patch
-mm-debug-pagealloc-make-debug-pagealloc-boottime-configurable.patch
-mm-nommu-use-alloc_pages_exact-rather-than-its-own-implementation.patch
-stacktrace-introduce-snprint_stack_trace-for-buffer-output.patch
-mm-page_owner-keep-track-of-page-owners.patch
-mm-page_owner-correct-owner-information-for-early-allocated-pages.patch
-documentation-add-new-page_owner-document.patch
-fix-memory-ordering-bug-in-mm-vmallocc.patch
+memcg-__mem_cgroup_free-remove-stale-disarm_static_keys-comment.patch
+memcg-dont-check-mm-in-__memcg_kmem_get_cachenewpage_charge.patch
+memcg-do-not-abuse-memcg_kmem_skip_account.patch
+memcg-zap-kmem_account_flags.patch
+memcg-only-check-memcg_kmem_skip_account-in-__memcg_kmem_get_cache.patch
+memcg-turn-memcg_kmem_skip_account-into-a-bit-field.patch
+mm-vmscan-invoke-slab-shrinkers-from-shrink_zone.patch
 memcg-fix-possible-use-after-free-in-memcg_kmem_get_cache.patch
-zsmalloc-merge-size_class-to-reduce-fragmentation.patch
 slab-fix-cpuset-check-in-fallback_alloc.patch
 slub-fix-cpuset-check-in-get_any_partial.patch
-mm-cma-make-kmemleak-ignore-cma-regions.patch
 
