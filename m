@@ -1,116 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-page_ext-resurrect-struct-page-extending-code-for-debugging-fix.patch
+ mm-debug-pagealloc-make-debug-pagealloc-boottime-configurable-fix.patch
  removed from -mm tree
-Date: Fri, 12 Dec 2014 16:40:18 -0800
-Message-ID: <548b8af2.C5C2/TDin0Wyv+V6%akpm@linux-foundation.org>
+Date: Fri, 12 Dec 2014 16:40:45 -0800
+Message-ID: <548b8b0d.vnVshn+Tj9TOh/MA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38362 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38373 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751034AbaLMAkT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 12 Dec 2014 19:40:19 -0500
+	with ESMTP id S1751034AbaLMAkq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 12 Dec 2014 19:40:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, dave@sr71.net, fengguang.wu@intel.com, hannes@cmpxchg.org, jungsoo.son@lge.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org
+To: iamjoonsoo.kim@lge.com, dave@sr71.net, hannes@cmpxchg.org, jungsoo.son@lge.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_ext: reserve more space in case of unaligned node range
+     Subject: mm-debug-pagealloc-make-debug-pagealloc-boottime-configurable-fix
 has been removed from the -mm tree.  Its filename was
-     mm-page_ext-resurrect-struct-page-extending-code-for-debugging-fix.patch
+     mm-debug-pagealloc-make-debug-pagealloc-boottime-configurable-fix.patch
 
-This patch was dropped because it was folded into mm-page_ext-resurrect-struct-page-extending-code-for-debugging.patch
+This patch was dropped because it was folded into mm-debug-pagealloc-make-debug-pagealloc-boottime-configurable.patch
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/page_ext: reserve more space in case of unaligned node range
+Subject: mm-debug-pagealloc-make-debug-pagealloc-boottime-configurable-fix
 
-When page allocator's buddy algorithm checks buddy's status, checked page
-could be in invalid range.  In this case, lookup_page_ext() will return
-invalid address and it results in invalid address defereference problem. 
-For example, if node_start_pfn is 1 and page with pfn 1 is freed to page
-allocator, page_is_buddy() would check the page with pfn 0.  In page_ext
-code, offset would be calculated by pfn - node_start_pfn, so, 0 - 1 = -1. 
-This causes following problem reported by Fengguang.
-
-[    0.480155] BUG: unable to handle kernel
-[    0.480155] BUG: unable to handle kernel paging requestpaging request at d26bdffc
- at d26bdffc
-[    0.481566] IP:
-[    0.481566] IP: [<c110bc7a>] free_one_page+0x31a/0x3e0
- [<c110bc7a>] free_one_page+0x31a/0x3e0
-[    0.482801] *pdpt = 0000000001866001
-[    0.482801] *pdpt = 0000000001866001 *pde = 0000000012584067 *pde = 0000000012584067 *pte = 80000000126bd060 *pte = 80000000126bd060
-[    0.483333] Oops: 0000 [#1]
-[    0.483333] Oops: 0000 [#1] SMP SMP DEBUG_PAGEALLOCDEBUG_PAGEALLOC
-snip...
-[    0.483333] Call Trace:
-[    0.483333] Call Trace:
-[    0.483333]  [<c110bdec>] __free_pages_ok+0xac/0xf0
-[    0.483333]  [<c110bdec>] __free_pages_ok+0xac/0xf0
-[    0.483333]  [<c110c769>] __free_pages+0x19/0x30
-[    0.483333]  [<c110c769>] __free_pages+0x19/0x30
-[    0.483333]  [<c1144ca5>] kfree+0x75/0xf0
-[    0.483333]  [<c1144ca5>] kfree+0x75/0xf0
-[    0.483333]  [<c111b595>] ? kvfree+0x45/0x50
-[    0.483333]  [<c111b595>] ? kvfree+0x45/0x50
-[    0.483333]  [<c111b595>] kvfree+0x45/0x50
-[    0.483333]  [<c111b595>] kvfree+0x45/0x50
-[    0.483333]  [<c134bb73>] rhashtable_expand+0x1b3/0x1e0
-[    0.483333]  [<c134bb73>] rhashtable_expand+0x1b3/0x1e0
-[    0.483333]  [<c17fc9f9>] test_rht_init+0x173/0x2e8
-[    0.483333]  [<c17fc9f9>] test_rht_init+0x173/0x2e8
-[    0.483333]  [<c134b750>] ? jhash2+0xe0/0xe0
-[    0.483333]  [<c134b750>] ? jhash2+0xe0/0xe0
-[    0.483333]  [<c134b790>] ? rhashtable_hashfn+0x20/0x20
-[    0.483333]  [<c134b790>] ? rhashtable_hashfn+0x20/0x20
-[    0.483333]  [<c134b7b0>] ? rht_grow_above_75+0x20/0x20
-[    0.483333]  [<c134b7b0>] ? rht_grow_above_75+0x20/0x20
-[    0.483333]  [<c134b7d0>] ? rht_shrink_below_30+0x20/0x20
-[    0.483333]  [<c134b7d0>] ? rht_shrink_below_30+0x20/0x20
-[    0.483333]  [<c134b750>] ? jhash2+0xe0/0xe0
-[    0.483333]  [<c134b750>] ? jhash2+0xe0/0xe0
-[    0.483333]  [<c134b790>] ? rhashtable_hashfn+0x20/0x20
-[    0.483333]  [<c134b790>] ? rhashtable_hashfn+0x20/0x20
-[    0.483333]  [<c134b7b0>] ? rht_grow_above_75+0x20/0x20
-[    0.483333]  [<c134b7b0>] ? rht_grow_above_75+0x20/0x20
-[    0.483333]  [<c134b7d0>] ? rht_shrink_below_30+0x20/0x20
-[    0.483333]  [<c134b7d0>] ? rht_shrink_below_30+0x20/0x20
-[    0.483333]  [<c17fc886>] ? test_rht_lookup+0x8f/0x8f
-[    0.483333]  [<c17fc886>] ? test_rht_lookup+0x8f/0x8f
-[    0.483333]  [<c1000486>] do_one_initcall+0xc6/0x210
-[    0.483333]  [<c1000486>] do_one_initcall+0xc6/0x210
-[    0.483333]  [<c17fc886>] ? test_rht_lookup+0x8f/0x8f
-[    0.483333]  [<c17fc886>] ? test_rht_lookup+0x8f/0x8f
-[    0.483333]  [<c17d0505>] ? repair_env_string+0x12/0x54
-[    0.483333]  [<c17d0505>] ? repair_env_string+0x12/0x54
-[    0.483333]  [<c17d0cf3>] kernel_init_freeable+0x193/0x213
-[    0.483333]  [<c17d0cf3>] kernel_init_freeable+0x193/0x213
-[    0.483333]  [<c1512500>] kernel_init+0x10/0xf0
-[    0.483333]  [<c1512500>] kernel_init+0x10/0xf0
-[    0.483333]  [<c151c5c1>] ret_from_kernel_thread+0x21/0x30
-[    0.483333]  [<c151c5c1>] ret_from_kernel_thread+0x21/0x30
-[    0.483333]  [<c15124f0>] ? rest_init+0xb0/0xb0
-[    0.483333]  [<c15124f0>] ? rest_init+0xb0/0xb0
-snip...
-[    0.483333] EIP: [<c110bc7a>]
-[    0.483333] EIP: [<c110bc7a>] free_one_page+0x31a/0x3e0free_one_page+0x31a/0x3e0 SS:ESP 0068:c0041de0
- SS:ESP 0068:c0041de0
-[    0.483333] CR2: 00000000d26bdffc
-[    0.483333] CR2: 00000000d26bdffc
-[    0.483333] ---[ end trace 7648e12f817ef2ad ]---
-[    0.483333] ---[ end trace 7648e12f817ef2ad ]---
-
-This case is already handled in case of struct page by considering
-alignment of node_start_pfn. So, this patch follows that way to fix this
-situation.
+v4: makes debug-pagealloc disabled in default
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Reported-by: Fengguang Wu <fengguang.wu@intel.com>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Minchan Kim <minchan@kernel.org>
@@ -122,38 +43,72 @@ Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_ext.c |   12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ Documentation/kernel-parameters.txt |   17 +++++++++--------
+ mm/page_alloc.c                     |   12 ++++++++----
+ 2 files changed, 17 insertions(+), 12 deletions(-)
 
-diff -puN mm/page_ext.c~mm-page_ext-resurrect-struct-page-extending-code-for-debugging-fix mm/page_ext.c
---- a/mm/page_ext.c~mm-page_ext-resurrect-struct-page-extending-code-for-debugging-fix
-+++ a/mm/page_ext.c
-@@ -104,7 +104,8 @@ struct page_ext *lookup_page_ext(struct
- 	if (unlikely(!base))
- 		return NULL;
- #endif
--	offset = pfn - NODE_DATA(page_to_nid(page))->node_start_pfn;
-+	offset = pfn - round_down(node_start_pfn(page_to_nid(page)),
-+					MAX_ORDER_NR_PAGES);
- 	return base + offset;
- }
+diff -puN Documentation/kernel-parameters.txt~mm-debug-pagealloc-make-debug-pagealloc-boottime-configurable-fix Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~mm-debug-pagealloc-make-debug-pagealloc-boottime-configurable-fix
++++ a/Documentation/kernel-parameters.txt
+@@ -829,6 +829,15 @@ bytes respectively. Such letter suffixes
+ 			CONFIG_DEBUG_PAGEALLOC, hence this option will not help
+ 			tracking down these problems.
  
-@@ -118,6 +119,15 @@ static int __init alloc_node_page_ext(in
- 	if (!nr_pages)
- 		return 0;
- 
-+	/*
-+	 * Need extra space if node range is not aligned with
-+	 * MAX_ORDER_NR_PAGES. When page allocator's buddy algorithm
-+	 * checks buddy's status, range could be out of exact node range.
-+	 */
-+	if (!IS_ALIGNED(node_start_pfn(nid), MAX_ORDER_NR_PAGES) ||
-+		!IS_ALIGNED(node_end_pfn(nid), MAX_ORDER_NR_PAGES))
-+		nr_pages += MAX_ORDER_NR_PAGES;
++	debug_pagealloc=
++			[KNL] When CONFIG_DEBUG_PAGEALLOC is set, this
++			parameter enables the feature at boot time. In
++			default, it is disabled. We can avoid allocating huge
++			chunk of memory for debug pagealloc if we don't enable
++			it at boot time and the system will work mostly same
++			with the kernel built without CONFIG_DEBUG_PAGEALLOC.
++			on: enable the feature
 +
- 	table_size = sizeof(struct page_ext) * nr_pages;
+ 	debugpat	[X86] Enable PAT debugging
  
- 	base = memblock_virt_alloc_try_nid_nopanic(
+ 	decnet.addr=	[HW,NET]
+@@ -858,14 +867,6 @@ bytes respectively. Such letter suffixes
+ 			causing system reset or hang due to sending
+ 			INIT from AP to BSP.
+ 
+-	disable_debug_pagealloc
+-			[KNL] When CONFIG_DEBUG_PAGEALLOC is set, this
+-			parameter allows user to disable it at boot time.
+-			With this parameter, we can avoid allocating huge
+-			chunk of memory for debug pagealloc and then
+-			the system will work mostly same with the kernel
+-			built without CONFIG_DEBUG_PAGEALLOC.
+-
+ 	disable_ddw     [PPC/PSERIES]
+ 			Disable Dynamic DMA Window support. Use this if
+ 			to workaround buggy firmware.
+diff -puN mm/page_alloc.c~mm-debug-pagealloc-make-debug-pagealloc-boottime-configurable-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-debug-pagealloc-make-debug-pagealloc-boottime-configurable-fix
++++ a/mm/page_alloc.c
+@@ -425,16 +425,20 @@ static inline void prep_zero_page(struct
+ 
+ #ifdef CONFIG_DEBUG_PAGEALLOC
+ unsigned int _debug_guardpage_minorder;
+-bool _debug_pagealloc_enabled __read_mostly = true;
++bool _debug_pagealloc_enabled __read_mostly;
+ bool _debug_guardpage_enabled __read_mostly;
+ 
+-static int __init early_disable_debug_pagealloc(char *buf)
++static int __init early_debug_pagealloc(char *buf)
+ {
+-	_debug_pagealloc_enabled = false;
++	if (!buf)
++		return -EINVAL;
++
++	if (strcmp(buf, "on") == 0)
++		_debug_pagealloc_enabled = true;
+ 
+ 	return 0;
+ }
+-early_param("disable_debug_pagealloc", early_disable_debug_pagealloc);
++early_param("debug_pagealloc", early_debug_pagealloc);
+ 
+ static bool need_debug_guardpage(void)
+ {
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
@@ -166,7 +121,6 @@ include-linux-kmemleakh-needs-slabh.patch
 mm-page_ext-resurrect-struct-page-extending-code-for-debugging.patch
 mm-debug-pagealloc-prepare-boottime-configurable-on-off.patch
 mm-debug-pagealloc-make-debug-pagealloc-boottime-configurable.patch
-mm-debug-pagealloc-make-debug-pagealloc-boottime-configurable-fix.patch
 mm-nommu-use-alloc_pages_exact-rather-than-its-own-implementation.patch
 mm-nommu-use-alloc_pages_exact-rather-than-its-own-implementation-fix.patch
 stacktrace-introduce-snprint_stack_trace-for-buffer-output.patch
