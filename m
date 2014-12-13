@@ -1,51 +1,38 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- zram-implement-rw_page-operation-of-zram-fix-2.patch removed from -mm tree
-Date: Fri, 12 Dec 2014 16:43:19 -0800
-Message-ID: <548b8ba7.jL7MbTO1IkG7SV+U%akpm@linux-foundation.org>
+ zram-implement-rw_page-operation-of-zram-fix-2-cleanup.patch removed from
+ -mm tree
+Date: Fri, 12 Dec 2014 16:43:22 -0800
+Message-ID: <548b8baa.Rwv2Riv95XzLWEE4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38409 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38414 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932220AbaLMAnU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 12 Dec 2014 19:43:20 -0500
+	with ESMTP id S932220AbaLMAnX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 12 Dec 2014 19:43:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, jmarchan@redhat.com, karam.lee@lge.com, ngupta@vflare.org, sergey.senozhatsky@gmail.com, seungho1.park@lge.com, mm-commits@vger.kernel.org
+To: sergey.senozhatsky@gmail.com, jmarchan@redhat.com, karam.lee@lge.com, minchan@kernel.org, ngupta@vflare.org, seungho1.park@lge.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: rely on the bi_end_io for zram_rw_page fails
+     Subject: zram-implement-rw_page-operation-of-zram-fix-2-cleanup
 has been removed from the -mm tree.  Its filename was
-     zram-implement-rw_page-operation-of-zram-fix-2.patch
+     zram-implement-rw_page-operation-of-zram-fix-2-cleanup.patch
 
 This patch was dropped because it was folded into zram-implement-rw_page-operation-of-zram.patch
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: zram: rely on the bi_end_io for zram_rw_page fails
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: zram-implement-rw_page-operation-of-zram-fix-2-cleanup
 
-When I tested zram, I found processes got segfaulted.  The reason was
-zram_rw_page doesn't make the page dirty again when swap write failed, and
-even it doesn't return error by [1].
+code cleanup
 
-If error by zram internal happens, zram_rw_page should return non-zero
-without calling page_endio.  It causes resubmit the IO with bio so that it
-ends up calling bio->bi_end_io.
-
-The reason is zram could be used for a block device for FS and swap, which
-they uses different bio complete callback, which works differently.  So,
-we should rely on the bio I/O complete handler rather than zram_bvec_rw
-itself in case of I/O fail.
-
-This patch fixes the segfault issue as well one [1]'s mentioned
-
-[1] zram: make rw_page opeartion return 0
-
-Signed-off-by: Minchan Kim <minchan@kernel.org>
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Cc: Karam Lee <karam.lee@lge.com>
 Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Cc: Jerome Marchand <jmarchan@redhat.com>
@@ -54,56 +41,29 @@ Cc: <seungho1.park@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ drivers/block/zram/zram_drv.c |   13 ++++---------
+ 1 file changed, 4 insertions(+), 9 deletions(-)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-implement-rw_page-operation-of-zram-fix-2 drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-implement-rw_page-operation-of-zram-fix-2
+diff -puN drivers/block/zram/zram_drv.c~zram-implement-rw_page-operation-of-zram-fix-2-cleanup drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-implement-rw_page-operation-of-zram-fix-2-cleanup
 +++ a/drivers/block/zram/zram_drv.c
-@@ -978,12 +978,10 @@ static int zram_rw_page(struct block_dev
+@@ -956,8 +956,7 @@ static int zram_rw_page(struct block_dev
+ 	zram = bdev->bd_disk->private_data;
+ 	if (!valid_io_request(zram, sector, PAGE_SIZE)) {
+ 		atomic64_inc(&zram->stats.invalid_io);
+-		err = -EINVAL;
+-		goto out;
++		return -EINVAL;
+ 	}
+ 
+ 	down_read(&zram->init_lock);
+@@ -974,15 +973,11 @@ static int zram_rw_page(struct block_dev
+ 	bv.bv_offset = 0;
+ 
+ 	err = zram_bvec_rw(zram, &bv, index, offset, rw);
+-
  out_unlock:
  	up_read(&zram->init_lock);
- out:
--	page_endio(page, rw, err);
-+	if (unlikely(err))
-+		return err;
- 
--	/*
--	 * Return 0 prevents I/O fallback trial caused by rw_page fail
--	 * and upper layer can handle this IO error via page error.
--	 */
-+	page_endio(page, rw, 0);
- 	return 0;
- }
- 
-_
-
-Patches currently in -mm which might be from minchan@kernel.org are
-
-origin.patch
-mm-page_ext-resurrect-struct-page-extending-code-for-debugging.patch
-mm-debug-pagealloc-prepare-boottime-configurable-on-off.patch
-mm-debug-pagealloc-make-debug-pagealloc-boottime-configurable.patch
-mm-nommu-use-alloc_pages_exact-rather-than-its-own-implementation.patch
-stacktrace-introduce-snprint_stack_trace-for-buffer-output.patch
-mm-page_owner-keep-track-of-page-owners.patch
-mm-page_owner-correct-owner-information-for-early-allocated-pages.patch
-documentation-add-new-page_owner-document.patch
-zsmalloc-merge-size_class-to-reduce-fragmentation.patch
-zram-remove-bio-parameter-from-zram_bvec_rw.patch
-zram-change-parameter-from-vaild_io_request.patch
-zram-implement-rw_page-operation-of-zram.patch
-zram-implement-rw_page-operation-of-zram-fix-2-cleanup.patch
-zram-implement-rw_page-operation-of-zram-fix-3.patch
-zsmalloc-fix-zs_init-cpu-notifier-error-handling.patch
-zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix-2.patch
-zsmalloc-fix-zs_init-cpu-notifier-error-handling-fix.patch
-zsmalloc-correct-fragile-_atomic-use.patch
-mm-zsmalloc-support-allocating-obj-with-size-of-zs_max_alloc_size.patch
-mm-zram-correct-zram_zero-flag-bit-position.patch
-mm-zsmalloc-avoid-duplicate-assignment-of-prev_class.patch
-mm-zsmalloc-avoid-duplicate-assignment-of-prev_class-fix.patch
-mm-zsmalloc-allocate-exactly-size-of-struct-zs_pool.patch
-zram-use-device_attr_-to-define-zram-sys-device-attribute.patch
-mm-zswap-add-__init-to-some-functions-in-zswap.patch
-
+-out:
+-	if (unlikely(err))
+-		return err;
