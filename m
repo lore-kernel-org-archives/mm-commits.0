@@ -1,74 +1,78 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-zsmalloc-avoid-duplicate-assignment-of-prev_class-fix.patch removed from -mm tree
-Date: Fri, 12 Dec 2014 16:45:43 -0800
-Message-ID: <548b8c37.VxF7DtZ8hMHiNy2I%akpm@linux-foundation.org>
+ fat-fix-data-past-eof-resulting-from-fsx-testsuite-v2.patch removed from
+ -mm tree
+Date: Fri, 12 Dec 2014 16:46:13 -0800
+Message-ID: <548b8c55.DJTlWoRQrNA1+nPx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38435 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38441 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932295AbaLMApo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 12 Dec 2014 19:45:44 -0500
+	with ESMTP id S932295AbaLMAqO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 12 Dec 2014 19:46:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ddstreet@ieee.org, fengguang.wu@intel.com, minchan@kernel.org, ngupta@vflare.org, opensource.ganesh@gmail.com, mm-commits@vger.kernel.org
+To: namjae.jeon@samsung.com, a.sahrawat@samsung.com, hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-zsmalloc-avoid-duplicate-assignment-of-prev_class-fix
+     Subject: fat-fix-data-past-eof-resulting-from-fsx-testsuite-v2
 has been removed from the -mm tree.  Its filename was
-     mm-zsmalloc-avoid-duplicate-assignment-of-prev_class-fix.patch
+     fat-fix-data-past-eof-resulting-from-fsx-testsuite-v2.patch
 
-This patch was dropped because it was folded into mm-zsmalloc-avoid-duplicate-assignment-of-prev_class.patch
+This patch was dropped because it was folded into fat-fix-data-past-eof-resulting-from-fsx-testsuite.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-zsmalloc-avoid-duplicate-assignment-of-prev_class-fix
+From: Namjae Jeon <namjae.jeon@samsung.com>
+Subject: fat-fix-data-past-eof-resulting-from-fsx-testsuite-v2
 
-remove now-unused ZS_SIZE_CLASSES
-
-Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: Ganesh Mahendran <opensource.ganesh@gmail.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Nitin Gupta <ngupta@vflare.org>
-Reported-by: Wu Fengguang <fengguang.wu@intel.com>
+Signed-off-by: Namjae Jeon <namjae.jeon@samsung.com>
+Signed-off-by: Amit Sahrawat <a.sahrawat@samsung.com>
+Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    2 --
- 1 file changed, 2 deletions(-)
+ fs/fat/file.c  |    5 +++--
+ fs/fat/inode.c |    2 +-
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN mm/zsmalloc.c~mm-zsmalloc-avoid-duplicate-assignment-of-prev_class-fix mm/zsmalloc.c
---- a/mm/zsmalloc.c~mm-zsmalloc-avoid-duplicate-assignment-of-prev_class-fix
-+++ a/mm/zsmalloc.c
-@@ -155,8 +155,6 @@
-  *  (reason above)
-  */
- #define ZS_SIZE_CLASS_DELTA	(PAGE_SIZE >> 8)
--#define ZS_SIZE_CLASSES		((ZS_MAX_ALLOC_SIZE - ZS_MIN_ALLOC_SIZE) / \
--					ZS_SIZE_CLASS_DELTA + 1)
+diff -puN fs/fat/file.c~fat-fix-data-past-eof-resulting-from-fsx-testsuite-v2 fs/fat/file.c
+--- a/fs/fat/file.c~fat-fix-data-past-eof-resulting-from-fsx-testsuite-v2
++++ a/fs/fat/file.c
+@@ -505,11 +505,12 @@ int fat_setattr(struct dentry *dentry, s
+ 	}
  
+ 	if (attr->ia_valid & ATTR_SIZE) {
++		error = fat_block_truncate_page(inode, attr->ia_size);
++		if (error)
++			goto out;
+ 		down_write(&MSDOS_I(inode)->truncate_lock);
+ 		truncate_setsize(inode, attr->ia_size);
+ 		fat_truncate_blocks(inode, attr->ia_size);
+-		if (inode->i_size & (inode->i_sb->s_blocksize - 1))
+-			fat_block_truncate_page(inode, inode->i_size);
+ 		up_write(&MSDOS_I(inode)->truncate_lock);
+ 	}
+ 
+diff -puN fs/fat/inode.c~fat-fix-data-past-eof-resulting-from-fsx-testsuite-v2 fs/fat/inode.c
+--- a/fs/fat/inode.c~fat-fix-data-past-eof-resulting-from-fsx-testsuite-v2
++++ a/fs/fat/inode.c
+@@ -334,7 +334,7 @@ static sector_t _fat_bmap(struct address
  /*
-  * We do not maintain any list for completely empty or full pages
+  * fat_block_truncate_page() zeroes out a mapping from file offset `from'
+  * up to the end of the block which corresponds to `from'.
+- * This is required during truncate to physically zero out the tail end
++ * This is required during truncate to physically zeroout the tail end
+  * of that block so it doesn't yield old data if the file is later grown.
+  * Also, avoid causing failure from fsx for cases of "data past EOF"
+  */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from namjae.jeon@samsung.com are
 
 origin.patch
-mm-mincore-add-hwpoison-page-handle.patch
-include-linux-kmemleakh-needs-slabh.patch
-mm-page_owner-keep-track-of-page-owners.patch
-fs-seq_file-fallback-to-vmalloc-instead-of-oom-kill-processes.patch
-oom-dont-assume-that-a-coredumping-thread-will-exit-soon.patch
-mm-memcontrol-fix-defined-but-not-used-compiler-warning.patch
-zsmalloc-fix-zs_init-cpu-notifier-error-handling.patch
-mm-zsmalloc-support-allocating-obj-with-size-of-zs_max_alloc_size.patch
-mm-zsmalloc-avoid-duplicate-assignment-of-prev_class.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
-ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
-mm-cma-make-kmemleak-ignore-cma-regions.patch
+fat-fix-data-past-eof-resulting-from-fsx-testsuite.patch
 
