@@ -1,97 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] sparc-hook-up-execveat-system-call-v10.patch
- removed from -mm tree
-Date: Fri, 12 Dec 2014 16:46:31 -0800
-Message-ID: <548b8c67.vp3kwB8px+ivQENo%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch removed
+ from -mm tree
+Date: Fri, 12 Dec 2014 16:47:02 -0800
+Message-ID: <548b8c86.mQtPj42rzxOLTpL1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38445 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38451 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932295AbaLMAqc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 12 Dec 2014 19:46:32 -0500
+	with ESMTP id S932295AbaLMArD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 12 Dec 2014 19:47:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: drysdale@google.com, davem@davemloft.net, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aquini@redhat.com, dave@stgolabs.net, manfred@colorfullife.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sparc-hook-up-execveat-system-call-v10
+     Subject: ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix
 has been removed from the -mm tree.  Its filename was
-     sparc-hook-up-execveat-system-call-v10.patch
+     ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
 
-This patch was dropped because it was folded into sparc-hook-up-execveat-system-call.patch
+This patch was dropped because it was folded into ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb.patch
 
 ------------------------------------------------------
-From: David Drysdale <drysdale@google.com>
-Subject: sparc-hook-up-execveat-system-call-v10
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix
 
-Add sparc syscall wrappers and use correct sparc 32b compatibility
-function [Stephen Rothwell, David S.  Miller]
+update sem_lock() comment, from Davidlohr
 
-Signed-off-by: David Drysdale <drysdale@google.com>
-Acked-by: David S. Miller <davem@davemloft.net>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Cc: Rafael Aquini <aquini@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/kernel/syscalls.S   |   10 ++++++++++
- arch/sparc/kernel/systbls_64.S |    4 ++--
- 2 files changed, 12 insertions(+), 2 deletions(-)
+ ipc/sem.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN arch/sparc/kernel/syscalls.S~sparc-hook-up-execveat-system-call-v10 arch/sparc/kernel/syscalls.S
---- a/arch/sparc/kernel/syscalls.S~sparc-hook-up-execveat-system-call-v10
-+++ a/arch/sparc/kernel/syscalls.S
-@@ -6,6 +6,11 @@ sys64_execve:
- 	jmpl	%g1, %g0
- 	 flushw
+diff -puN ipc/sem.c~ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix ipc/sem.c
+--- a/ipc/sem.c~ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix
++++ a/ipc/sem.c
+@@ -327,10 +327,11 @@ static inline int sem_lock(struct sem_ar
+ 		/* Then check that the global lock is free */
+ 		if (!spin_is_locked(&sma->sem_perm.lock)) {
+ 			/*
+-			 * The next test must happen after the test for
+-			 * sem_perm.lock, otherwise we can race with another
+-			 * thread that does
+-			 *	complex_count++;spin_unlock(sem_perm.lock);
++			 * The ipc object lock check must be visible on all
++			 * cores before rechecking the complex count.  Otherwise
++			 * we can race with  another thread that does:
++			 * 	complex_count++++;
++			 * 	spin_unlock(sem_perm.lock);
+ 			 */
+ 			smp_rmb();
  
-+sys64_execveat:
-+	set	sys_execveat, %g1
-+	jmpl	%g1, %g0
-+	 flushw
-+
- #ifdef CONFIG_COMPAT
- sunos_execv:
- 	mov	%g0, %o2
-@@ -13,6 +18,11 @@ sys32_execve:
- 	set	compat_sys_execve, %g1
- 	jmpl	%g1, %g0
- 	 flushw
-+
-+sys32_execveat:
-+	set	compat_sys_execveat, %g1
-+	jmpl	%g1, %g0
-+	 flushw
- #endif
- 
- 	.align	32
-diff -puN arch/sparc/kernel/systbls_64.S~sparc-hook-up-execveat-system-call-v10 arch/sparc/kernel/systbls_64.S
---- a/arch/sparc/kernel/systbls_64.S~sparc-hook-up-execveat-system-call-v10
-+++ a/arch/sparc/kernel/systbls_64.S
-@@ -88,7 +88,7 @@ sys_call_table32:
- 	.word sys_syncfs, compat_sys_sendmmsg, sys_setns, compat_sys_process_vm_readv, compat_sys_process_vm_writev
- /*340*/	.word sys_kern_features, sys_kcmp, sys_finit_module, sys_sched_setattr, sys_sched_getattr
- 	.word sys32_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
--/*350*/	.word sys_execveat
-+/*350*/	.word sys32_execveat
- 
- #endif /* CONFIG_COMPAT */
- 
-@@ -168,4 +168,4 @@ sys_call_table:
- 	.word sys_syncfs, sys_sendmmsg, sys_setns, sys_process_vm_readv, sys_process_vm_writev
- /*340*/	.word sys_kern_features, sys_kcmp, sys_finit_module, sys_sched_setattr, sys_sched_getattr
- 	.word sys_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
--/*350*/	.word sys_execveat
-+/*350*/	.word sys64_execveat
 _
 
-Patches currently in -mm which might be from drysdale@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-syscalls-implement-execveat-system-call.patch
-x86-hook-up-execveat-system-call.patch
-syscalls-add-selftest-for-execveat2.patch
-sparc-hook-up-execveat-system-call.patch
+origin.patch
+mm-mincore-add-hwpoison-page-handle.patch
+include-linux-kmemleakh-needs-slabh.patch
+mm-page_owner-keep-track-of-page-owners.patch
+fs-seq_file-fallback-to-vmalloc-instead-of-oom-kill-processes.patch
+oom-dont-assume-that-a-coredumping-thread-will-exit-soon.patch
+mm-memcontrol-fix-defined-but-not-used-compiler-warning.patch
+zsmalloc-fix-zs_init-cpu-notifier-error-handling.patch
+mm-zsmalloc-support-allocating-obj-with-size-of-zs_max_alloc_size.patch
+mm-zsmalloc-avoid-duplicate-assignment-of-prev_class.patch
+ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb.patch
+ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
+ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
+mm-cma-make-kmemleak-ignore-cma-regions.patch
 
