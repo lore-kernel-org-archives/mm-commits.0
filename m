@@ -1,76 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-update-xiubos-email-address.patch added to -mm tree
-Date: Fri, 12 Dec 2014 14:18:57 -0800
-Message-ID: <548b69d1.l8V/hr38AmC39FBm%akpm@linux-foundation.org>
+Subject: [folded-merged] mm-convert-i_mmap_mutex-to-rwsem-fix.patch
+ removed from -mm tree
+Date: Fri, 12 Dec 2014 16:38:38 -0800
+Message-ID: <548b8a8e.dDiGU/7zJD+6p7vR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34599 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38276 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751089AbaLLWS6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 12 Dec 2014 17:18:58 -0500
+	with ESMTP id S1751034AbaLMAij (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 12 Dec 2014 19:38:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Li.Xiubo@freescale.com, nicoleotsuka@gmail.com, timur@tabi.org, tiwai@suse.de, mm-commits@vger.kernel.org
+To: sfr@canb.auug.org.au, dave@stgolabs.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: update Xiubo's email address
-has been added to the -mm tree.  Its filename is
-     maintainers-update-xiubos-email-address.patch
+     Subject: mm: convert i_mmap_mutex to rwsem fix
+has been removed from the -mm tree.  Its filename was
+     mm-convert-i_mmap_mutex-to-rwsem-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-xiubos-email-address.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-xiubos-email-address.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mm-convert-i_mmap_mutex-to-rwsem.patch
 
 ------------------------------------------------------
-From: Xiubo Li <Li.Xiubo@freescale.com>
-Subject: MAINTAINERS: update Xiubo's email address
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: mm: convert i_mmap_mutex to rwsem fix
 
-My current email address will be gone shortly, update my email to be a
-gmail one.
-
-Signed-off-by: Xiubo Li <Li.Xiubo@freescale.com>
-Cc: Timur Tabi <timur@tabi.org>
-Cc: Nicolin Chen <nicoleotsuka@gmail.com>
-Cc: Takashi Iwai <tiwai@suse.de>
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/fremap.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-update-xiubos-email-address MAINTAINERS
---- a/MAINTAINERS~maintainers-update-xiubos-email-address
-+++ a/MAINTAINERS
-@@ -4037,7 +4037,7 @@ F:	drivers/tty/serial/ucc_uart.c
- FREESCALE SOC SOUND DRIVERS
- M:	Timur Tabi <timur@tabi.org>
- M:	Nicolin Chen <nicoleotsuka@gmail.com>
--M:	Xiubo Li <Li.Xiubo@freescale.com>
-+M:	Xiubo Li <Xiubo.Lee@gmail.com>
- L:	alsa-devel@alsa-project.org (moderated for non-subscribers)
- L:	linuxppc-dev@lists.ozlabs.org
- S:	Maintained
+diff -puN mm/fremap.c~mm-convert-i_mmap_mutex-to-rwsem-fix mm/fremap.c
+--- a/mm/fremap.c~mm-convert-i_mmap_mutex-to-rwsem-fix
++++ a/mm/fremap.c
+@@ -238,13 +238,13 @@ get_write_lock:
+ 			}
+ 			goto out_freed;
+ 		}
+-		mutex_lock(&mapping->i_mmap_mutex);
++		i_mmap_lock_write(mapping);
+ 		flush_dcache_mmap_lock(mapping);
+ 		vma->vm_flags |= VM_NONLINEAR;
+ 		vma_interval_tree_remove(vma, &mapping->i_mmap);
+ 		vma_nonlinear_insert(vma, &mapping->i_mmap_nonlinear);
+ 		flush_dcache_mmap_unlock(mapping);
+-		mutex_unlock(&mapping->i_mmap_mutex);
++		i_mmap_unlock_write(mapping);
+ 	}
+ 
+ 	if (vma->vm_flags & VM_LOCKED) {
 _
 
-Patches currently in -mm which might be from Li.Xiubo@freescale.com are
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
 
 origin.patch
-maintainers-update-xiubos-email-address.patch
-linux-next.patch
+mm-convert-i_mmap_mutex-to-rwsem.patch
+sparc-hook-up-execveat-system-call-v10.patch
+gcov-enable-gcov_profile_all-from-arch-kconfigs.patch
+mm-cma-make-kmemleak-ignore-cma-regions.patch
 
