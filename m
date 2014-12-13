@@ -1,35 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch removed
- from -mm tree
-Date: Fri, 12 Dec 2014 16:47:02 -0800
-Message-ID: <548b8c86.mQtPj42rzxOLTpL1%akpm@linux-foundation.org>
+ ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch removed from -mm tree
+Date: Fri, 12 Dec 2014 16:47:05 -0800
+Message-ID: <548b8c89.ZeAE3wPYDCFT66YA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38451 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38455 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932295AbaLMArD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 12 Dec 2014 19:47:03 -0500
+	with ESMTP id S932295AbaLMArG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 12 Dec 2014 19:47:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, aquini@redhat.com, dave@stgolabs.net, manfred@colorfullife.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix
+     Subject: ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix
 has been removed from the -mm tree.  Its filename was
-     ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix.patch
+     ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
 
 This patch was dropped because it was folded into ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix
-
-update sem_lock() comment, from Davidlohr
+Subject: ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix
 
 Cc: Davidlohr Bueso <dave@stgolabs.net>
 Cc: Manfred Spraul <manfred@colorfullife.com>
@@ -37,25 +34,20 @@ Cc: Rafael Aquini <aquini@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ ipc/sem.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN ipc/sem.c~ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix ipc/sem.c
---- a/ipc/sem.c~ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix
+diff -puN ipc/sem.c~ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix ipc/sem.c
+--- a/ipc/sem.c~ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix
 +++ a/ipc/sem.c
-@@ -327,10 +327,11 @@ static inline int sem_lock(struct sem_ar
- 		/* Then check that the global lock is free */
- 		if (!spin_is_locked(&sma->sem_perm.lock)) {
- 			/*
--			 * The next test must happen after the test for
--			 * sem_perm.lock, otherwise we can race with another
--			 * thread that does
--			 *	complex_count++;spin_unlock(sem_perm.lock);
-+			 * The ipc object lock check must be visible on all
-+			 * cores before rechecking the complex count.  Otherwise
-+			 * we can race with  another thread that does:
-+			 * 	complex_count++++;
-+			 * 	spin_unlock(sem_perm.lock);
+@@ -330,8 +330,8 @@ static inline int sem_lock(struct sem_ar
+ 			 * The ipc object lock check must be visible on all
+ 			 * cores before rechecking the complex count.  Otherwise
+ 			 * we can race with  another thread that does:
+-			 * 	complex_count++++;
+-			 * 	spin_unlock(sem_perm.lock);
++			 *	complex_count++;
++			 *	spin_unlock(sem_perm.lock);
  			 */
  			smp_rmb();
  
@@ -74,7 +66,6 @@ zsmalloc-fix-zs_init-cpu-notifier-error-handling.patch
 mm-zsmalloc-support-allocating-obj-with-size-of-zs_max_alloc_size.patch
 mm-zsmalloc-avoid-duplicate-assignment-of-prev_class.patch
 ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb-fix-fix.patch
 ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
 mm-cma-make-kmemleak-ignore-cma-regions.patch
 
