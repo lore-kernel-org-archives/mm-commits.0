@@ -1,122 +1,177 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fat-fix-data-past-eof-resulting-from-fsx-testsuite.patch removed from -mm tree
-Date: Sat, 13 Dec 2014 20:09:14 -0800
-Message-ID: <548d0d6a.IQanI6wYV4p9oSyj%akpm@linux-foundation.org>
+Subject: [merged] x86-hook-up-execveat-system-call.patch removed from -mm
+ tree
+Date: Sat, 13 Dec 2014 20:09:21 -0800
+Message-ID: <548d0d71.F1FxYdNov0H+Abir%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47807 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47834 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753224AbaLNEJH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 13 Dec 2014 23:09:07 -0500
+	with ESMTP id S1752936AbaLNEJO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 13 Dec 2014 23:09:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: namjae.jeon@samsung.com, a.sahrawat@samsung.com, hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
+To: drysdale@google.com, arnd@arndb.de, dalias@aerifal.cx, ebiederm@xmission.com, hch@infradead.org, hpa@zytor.com, keescook@chromium.org, luto@amacapital.net, meredydd@senatehouse.org, mingo@redhat.com, mtk.manpages@gmail.com, shuah.kh@samsung.com, tglx@linutronix.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fat: fix data past EOF resulting from fsx testsuite
+     Subject: x86: hook up execveat system call
 has been removed from the -mm tree.  Its filename was
-     fat-fix-data-past-eof-resulting-from-fsx-testsuite.patch
+     x86-hook-up-execveat-system-call.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Namjae Jeon <namjae.jeon@samsung.com>
-Subject: fat: fix data past EOF resulting from fsx testsuite
+From: David Drysdale <drysdale@google.com>
+Subject: x86: hook up execveat system call
 
-When running FSX with direct I/O mode, fsx resulted in DATA past EOF issues.
+Hook up x86-64, i386 and x32 ABIs.
 
-fsx ./file2 -Z -r 4096 -w 4096
-...
-..
-truncating to largest ever: 0x907c
-fallocating to largest ever: 0x11137
-truncating to largest ever: 0x2c6fe
-truncating to largest ever: 0x2cfdf
-fallocating to largest ever: 0x40000
-Mapped Read: non-zero data past EOF (0x18628) page offset 0x629 is 0x2a4e
-...
-..
-
-The reason being, it is doing a truncate down, but the zeroing does not
-happen on the last block boundary when offset is not aligned.  Even though
-it calls truncate_setsize()->truncate_inode_pages()->
-truncate_inode_pages_range() and considers the partial zeroout but it
-retrieves the page using find_lock_page() - which only looks the page in
-the cache.  So, zeroing out does not happen in case of direct IO.
-
-Make a truncate page based around block_truncate_page for FAT filesystem
-and invoke that helper to zerout in case the offset is not aligned with
-the blocksize.
-
-Signed-off-by: Namjae Jeon <namjae.jeon@samsung.com>
-Signed-off-by: Amit Sahrawat <a.sahrawat@samsung.com>
-Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Signed-off-by: David Drysdale <drysdale@google.com>
+Cc: Meredydd Luff <meredydd@senatehouse.org>
+Cc: Shuah Khan <shuah.kh@samsung.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Rich Felker <dalias@aerifal.cx>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/fat.h   |    1 +
- fs/fat/file.c  |    3 +++
- fs/fat/inode.c |   12 ++++++++++++
- 3 files changed, 16 insertions(+)
+ arch/x86/ia32/audit.c            |    1 +
+ arch/x86/ia32/ia32entry.S        |    1 +
+ arch/x86/kernel/audit_64.c       |    1 +
+ arch/x86/kernel/entry_64.S       |   28 ++++++++++++++++++++++++++++
+ arch/x86/syscalls/syscall_32.tbl |    1 +
+ arch/x86/syscalls/syscall_64.tbl |    2 ++
+ arch/x86/um/sys_call_table_64.c  |    1 +
+ 7 files changed, 35 insertions(+)
 
-diff -puN fs/fat/fat.h~fat-fix-data-past-eof-resulting-from-fsx-testsuite fs/fat/fat.h
---- a/fs/fat/fat.h~fat-fix-data-past-eof-resulting-from-fsx-testsuite
-+++ a/fs/fat/fat.h
-@@ -370,6 +370,7 @@ extern int fat_file_fsync(struct file *f
- 			  int datasync);
+diff -puN arch/x86/ia32/audit.c~x86-hook-up-execveat-system-call arch/x86/ia32/audit.c
+--- a/arch/x86/ia32/audit.c~x86-hook-up-execveat-system-call
++++ a/arch/x86/ia32/audit.c
+@@ -35,6 +35,7 @@ int ia32_classify_syscall(unsigned sysca
+ 	case __NR_socketcall:
+ 		return 4;
+ 	case __NR_execve:
++	case __NR_execveat:
+ 		return 5;
+ 	default:
+ 		return 1;
+diff -puN arch/x86/ia32/ia32entry.S~x86-hook-up-execveat-system-call arch/x86/ia32/ia32entry.S
+--- a/arch/x86/ia32/ia32entry.S~x86-hook-up-execveat-system-call
++++ a/arch/x86/ia32/ia32entry.S
+@@ -480,6 +480,7 @@ GLOBAL(\label)
+ 	PTREGSCALL stub32_rt_sigreturn, sys32_rt_sigreturn
+ 	PTREGSCALL stub32_sigreturn, sys32_sigreturn
+ 	PTREGSCALL stub32_execve, compat_sys_execve
++	PTREGSCALL stub32_execveat, compat_sys_execveat
+ 	PTREGSCALL stub32_fork, sys_fork
+ 	PTREGSCALL stub32_vfork, sys_vfork
  
- /* fat/inode.c */
-+extern int fat_block_truncate_page(struct inode *inode, loff_t from);
- extern void fat_attach(struct inode *inode, loff_t i_pos);
- extern void fat_detach(struct inode *inode);
- extern struct inode *fat_iget(struct super_block *sb, loff_t i_pos);
-diff -puN fs/fat/file.c~fat-fix-data-past-eof-resulting-from-fsx-testsuite fs/fat/file.c
---- a/fs/fat/file.c~fat-fix-data-past-eof-resulting-from-fsx-testsuite
-+++ a/fs/fat/file.c
-@@ -443,6 +443,9 @@ int fat_setattr(struct dentry *dentry, s
- 	}
+diff -puN arch/x86/kernel/audit_64.c~x86-hook-up-execveat-system-call arch/x86/kernel/audit_64.c
+--- a/arch/x86/kernel/audit_64.c~x86-hook-up-execveat-system-call
++++ a/arch/x86/kernel/audit_64.c
+@@ -50,6 +50,7 @@ int audit_classify_syscall(int abi, unsi
+ 	case __NR_openat:
+ 		return 3;
+ 	case __NR_execve:
++	case __NR_execveat:
+ 		return 5;
+ 	default:
+ 		return 0;
+diff -puN arch/x86/kernel/entry_64.S~x86-hook-up-execveat-system-call arch/x86/kernel/entry_64.S
+--- a/arch/x86/kernel/entry_64.S~x86-hook-up-execveat-system-call
++++ a/arch/x86/kernel/entry_64.S
+@@ -652,6 +652,20 @@ ENTRY(stub_execve)
+ 	CFI_ENDPROC
+ END(stub_execve)
  
- 	if (attr->ia_valid & ATTR_SIZE) {
-+		error = fat_block_truncate_page(inode, attr->ia_size);
-+		if (error)
-+			goto out;
- 		down_write(&MSDOS_I(inode)->truncate_lock);
- 		truncate_setsize(inode, attr->ia_size);
- 		fat_truncate_blocks(inode, attr->ia_size);
-diff -puN fs/fat/inode.c~fat-fix-data-past-eof-resulting-from-fsx-testsuite fs/fat/inode.c
---- a/fs/fat/inode.c~fat-fix-data-past-eof-resulting-from-fsx-testsuite
-+++ a/fs/fat/inode.c
-@@ -294,6 +294,18 @@ static sector_t _fat_bmap(struct address
- 	return blocknr;
- }
- 
-+/*
-+ * fat_block_truncate_page() zeroes out a mapping from file offset `from'
-+ * up to the end of the block which corresponds to `from'.
-+ * This is required during truncate to physically zeroout the tail end
-+ * of that block so it doesn't yield old data if the file is later grown.
-+ * Also, avoid causing failure from fsx for cases of "data past EOF"
-+ */
-+int fat_block_truncate_page(struct inode *inode, loff_t from)
-+{
-+	return block_truncate_page(inode->i_mapping, from, fat_get_block);
-+}
++ENTRY(stub_execveat)
++	CFI_STARTPROC
++	addq $8, %rsp
++	PARTIAL_FRAME 0
++	SAVE_REST
++	FIXUP_TOP_OF_STACK %r11
++	call sys_execveat
++	RESTORE_TOP_OF_STACK %r11
++	movq %rax,RAX(%rsp)
++	RESTORE_REST
++	jmp int_ret_from_sys_call
++	CFI_ENDPROC
++END(stub_execveat)
 +
- static const struct address_space_operations fat_aops = {
- 	.readpage	= fat_readpage,
- 	.readpages	= fat_readpages,
+ /*
+  * sigreturn is special because it needs to restore all registers on return.
+  * This cannot be done with SYSRET, so use the IRET return path instead.
+@@ -697,6 +711,20 @@ ENTRY(stub_x32_execve)
+ 	CFI_ENDPROC
+ END(stub_x32_execve)
+ 
++ENTRY(stub_x32_execveat)
++	CFI_STARTPROC
++	addq $8, %rsp
++	PARTIAL_FRAME 0
++	SAVE_REST
++	FIXUP_TOP_OF_STACK %r11
++	call compat_sys_execveat
++	RESTORE_TOP_OF_STACK %r11
++	movq %rax,RAX(%rsp)
++	RESTORE_REST
++	jmp int_ret_from_sys_call
++	CFI_ENDPROC
++END(stub_x32_execveat)
++
+ #endif
+ 
+ /*
+diff -puN arch/x86/syscalls/syscall_32.tbl~x86-hook-up-execveat-system-call arch/x86/syscalls/syscall_32.tbl
+--- a/arch/x86/syscalls/syscall_32.tbl~x86-hook-up-execveat-system-call
++++ a/arch/x86/syscalls/syscall_32.tbl
+@@ -364,3 +364,4 @@
+ 355	i386	getrandom		sys_getrandom
+ 356	i386	memfd_create		sys_memfd_create
+ 357	i386	bpf			sys_bpf
++358	i386	execveat		sys_execveat			stub32_execveat
+diff -puN arch/x86/syscalls/syscall_64.tbl~x86-hook-up-execveat-system-call arch/x86/syscalls/syscall_64.tbl
+--- a/arch/x86/syscalls/syscall_64.tbl~x86-hook-up-execveat-system-call
++++ a/arch/x86/syscalls/syscall_64.tbl
+@@ -328,6 +328,7 @@
+ 319	common	memfd_create		sys_memfd_create
+ 320	common	kexec_file_load		sys_kexec_file_load
+ 321	common	bpf			sys_bpf
++322	64	execveat		stub_execveat
+ 
+ #
+ # x32-specific system call numbers start at 512 to avoid cache impact
+@@ -366,3 +367,4 @@
+ 542	x32	getsockopt		compat_sys_getsockopt
+ 543	x32	io_setup		compat_sys_io_setup
+ 544	x32	io_submit		compat_sys_io_submit
++545	x32	execveat		stub_x32_execveat
+diff -puN arch/x86/um/sys_call_table_64.c~x86-hook-up-execveat-system-call arch/x86/um/sys_call_table_64.c
+--- a/arch/x86/um/sys_call_table_64.c~x86-hook-up-execveat-system-call
++++ a/arch/x86/um/sys_call_table_64.c
+@@ -31,6 +31,7 @@
+ #define stub_fork sys_fork
+ #define stub_vfork sys_vfork
+ #define stub_execve sys_execve
++#define stub_execveat sys_execveat
+ #define stub_rt_sigreturn sys_rt_sigreturn
+ 
+ #define __SYSCALL_COMMON(nr, sym, compat) __SYSCALL_64(nr, sym, compat)
 _
 
-Patches currently in -mm which might be from namjae.jeon@samsung.com are
+Patches currently in -mm which might be from drysdale@google.com are
 
 origin.patch
-fat-add-fat_fallocate-operation.patch
-fat-skip-cluster-allocation-on-fallocated-region.patch
-fat-permit-to-return-phy-block-number-by-fibmap-in-fallocated-region.patch
-documentation-filesystems-vfattxt-update-the-limitation-for-fat-fallocate.patch
-linux-next.patch
 
