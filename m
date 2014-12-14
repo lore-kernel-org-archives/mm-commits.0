@@ -1,133 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- make-initrd-compression-algorithm-selection-not-expert.patch removed from
+Subject: [merged] fault-inject-add-ratelimit-option-v2.patch removed from
  -mm tree
-Date: Sat, 13 Dec 2014 20:09:56 -0800
-Message-ID: <548d0d94.fgbEfuqjb6aEMn98%akpm@linux-foundation.org>
+Date: Sat, 13 Dec 2014 20:09:53 -0800
+Message-ID: <548d0d91.Qz36175u0Tw046ku%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47885 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47881 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752569AbaLNEJs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 13 Dec 2014 23:09:48 -0500
+	with ESMTP id S1752569AbaLNEJp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 13 Dec 2014 23:09:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ak@linux.intel.com, mm-commits@vger.kernel.org
+To: dmonakhov@openvz.org, akinobu.mita@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: usr/Kconfig: make initrd compression algorithm selection not expert
+     Subject: fault-inject: add ratelimit option
 has been removed from the -mm tree.  Its filename was
-     make-initrd-compression-algorithm-selection-not-expert.patch
+     fault-inject-add-ratelimit-option-v2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andi Kleen <ak@linux.intel.com>
-Subject: usr/Kconfig: make initrd compression algorithm selection not expert
+From: Dmitry Monakhov <dmonakhov@openvz.org>
+Subject: fault-inject: add ratelimit option
 
-The kernel has support for (nearly) every compression algorithm known to
-man, each to handle some particular microscopic niche.
+Current debug levels are not optimal.  Especially if one want to provoke
+big numbers of faults(broken device simulator) then any verbose level will
+produce giant numbers of identical logging messages.  Let's add ratelimit
+parameter for that purpose.
 
-Unfortunately all of these always get compiled in if you want to support
-INITRDs, and can be only disabled when CONFIG_EXPERT is set.
-
-I don't see why I need to set EXPERT just to properly configure the initrd
-compression algorithms, and not always include every possible algorithm
-
-Usually the initrd is just compressed with gzip anyways, at least that's
-true on all distributions I use.
-
-Remove the dependencies for initrd compression on CONFIG_EXPERT.
-
-Make the various options just default y, which should be good enough to
-not break any previous configuration.
-
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Signed-off-by: Dmitry Monakhov <dmonakhov@openvz.org>
+Acked-by: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- usr/Kconfig |   24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+ include/linux/fault-inject.h |   17 +++++++++++------
+ lib/fault-inject.c           |   21 +++++++++++++++++----
+ 2 files changed, 28 insertions(+), 10 deletions(-)
 
-diff -puN usr/Kconfig~make-initrd-compression-algorithm-selection-not-expert usr/Kconfig
---- a/usr/Kconfig~make-initrd-compression-algorithm-selection-not-expert
-+++ a/usr/Kconfig
-@@ -46,17 +46,17 @@ config INITRAMFS_ROOT_GID
- 	  If you are not sure, leave it set to "0".
+diff -puN include/linux/fault-inject.h~fault-inject-add-ratelimit-option-v2 include/linux/fault-inject.h
+--- a/include/linux/fault-inject.h~fault-inject-add-ratelimit-option-v2
++++ a/include/linux/fault-inject.h
+@@ -5,6 +5,7 @@
  
- config RD_GZIP
--	bool "Support initial ramdisks compressed using gzip" if EXPERT
--	default y
-+	bool "Support initial ramdisks compressed using gzip"
- 	depends on BLK_DEV_INITRD
-+	default y
- 	select DECOMPRESS_GZIP
- 	help
- 	  Support loading of a gzip encoded initial ramdisk or cpio buffer.
- 	  If unsure, say Y.
+ #include <linux/types.h>
+ #include <linux/debugfs.h>
++#include <linux/ratelimit.h>
+ #include <linux/atomic.h>
  
- config RD_BZIP2
--	bool "Support initial ramdisks compressed using bzip2" if EXPERT
--	default !EXPERT
-+	bool "Support initial ramdisks compressed using bzip2"
-+	default y
- 	depends on BLK_DEV_INITRD
- 	select DECOMPRESS_BZIP2
- 	help
-@@ -64,8 +64,8 @@ config RD_BZIP2
- 	  If unsure, say N.
+ /*
+@@ -25,14 +26,18 @@ struct fault_attr {
+ 	unsigned long reject_end;
  
- config RD_LZMA
--	bool "Support initial ramdisks compressed using LZMA" if EXPERT
--	default !EXPERT
-+	bool "Support initial ramdisks compressed using LZMA"
-+	default y
- 	depends on BLK_DEV_INITRD
- 	select DECOMPRESS_LZMA
- 	help
-@@ -73,17 +73,17 @@ config RD_LZMA
- 	  If unsure, say N.
+ 	unsigned long count;
++	struct ratelimit_state ratelimit_state;
++	struct dentry *dname;
+ };
  
- config RD_XZ
--	bool "Support initial ramdisks compressed using XZ" if EXPERT
--	default !EXPERT
-+	bool "Support initial ramdisks compressed using XZ"
- 	depends on BLK_DEV_INITRD
-+	default y
- 	select DECOMPRESS_XZ
- 	help
- 	  Support loading of a XZ encoded initial ramdisk or cpio buffer.
- 	  If unsure, say N.
+-#define FAULT_ATTR_INITIALIZER {				\
+-		.interval = 1,					\
+-		.times = ATOMIC_INIT(1),			\
+-		.require_end = ULONG_MAX,			\
+-		.stacktrace_depth = 32,				\
+-		.verbose = 2,					\
++#define FAULT_ATTR_INITIALIZER {					\
++		.interval = 1,						\
++		.times = ATOMIC_INIT(1),				\
++		.require_end = ULONG_MAX,				\
++		.stacktrace_depth = 32,					\
++		.ratelimit_state = RATELIMIT_STATE_INIT_DISABLED,	\
++		.verbose = 2,						\
++		.dname = NULL,						\
+ 	}
  
- config RD_LZO
--	bool "Support initial ramdisks compressed using LZO" if EXPERT
--	default !EXPERT
-+	bool "Support initial ramdisks compressed using LZO"
-+	default y
- 	depends on BLK_DEV_INITRD
- 	select DECOMPRESS_LZO
- 	help
-@@ -91,8 +91,8 @@ config RD_LZO
- 	  If unsure, say N.
+ #define DECLARE_FAULT_ATTR(name) struct fault_attr name = FAULT_ATTR_INITIALIZER
+diff -puN lib/fault-inject.c~fault-inject-add-ratelimit-option-v2 lib/fault-inject.c
+--- a/lib/fault-inject.c~fault-inject-add-ratelimit-option-v2
++++ a/lib/fault-inject.c
+@@ -40,10 +40,16 @@ EXPORT_SYMBOL_GPL(setup_fault_attr);
  
- config RD_LZ4
--	bool "Support initial ramdisks compressed using LZ4" if EXPERT
--	default !EXPERT
-+	bool "Support initial ramdisks compressed using LZ4"
-+	default y
- 	depends on BLK_DEV_INITRD
- 	select DECOMPRESS_LZ4
- 	help
+ static void fail_dump(struct fault_attr *attr)
+ {
+-	if (attr->verbose > 0)
+-		printk(KERN_NOTICE "FAULT_INJECTION: forcing a failure\n");
+-	if (attr->verbose > 1)
+-		dump_stack();
++	if (attr->verbose > 0 && __ratelimit(&attr->ratelimit_state)) {
++		printk(KERN_NOTICE "FAULT_INJECTION: forcing a failure.\n"
++		       "name %pd, interval %lu, probability %lu, "
++		       "space %d, times %d\n", attr->dname,
++		       attr->probability, attr->interval,
++		       atomic_read(&attr->space),
++		       atomic_read(&attr->times));
++		if (attr->verbose > 1)
++			dump_stack();
++	}
+ }
+ 
+ #define atomic_dec_not_zero(v)		atomic_add_unless((v), -1, 0)
+@@ -202,6 +208,12 @@ struct dentry *fault_create_debugfs_attr
+ 		goto fail;
+ 	if (!debugfs_create_ul("verbose", mode, dir, &attr->verbose))
+ 		goto fail;
++	if (!debugfs_create_u32("verbose_ratelimit_interval_ms", mode, dir,
++				&attr->ratelimit_state.interval))
++		goto fail;
++	if (!debugfs_create_u32("verbose_ratelimit_burst", mode, dir,
++				&attr->ratelimit_state.burst))
++		goto fail;
+ 	if (!debugfs_create_bool("task-filter", mode, dir, &attr->task_filter))
+ 		goto fail;
+ 
+@@ -222,6 +234,7 @@ struct dentry *fault_create_debugfs_attr
+ 
+ #endif /* CONFIG_FAULT_INJECTION_STACKTRACE_FILTER */
+ 
++	attr->dname = dget(dir);
+ 	return dir;
+ fail:
+ 	debugfs_remove_recursive(dir);
 _
 
-Patches currently in -mm which might be from ak@linux.intel.com are
+Patches currently in -mm which might be from dmonakhov@openvz.org are
 
 origin.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
 linux-next.patch
 
