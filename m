@@ -1,49 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-affs-filec-remove-obsolete-pagesize-check.patch
- removed from -mm tree
-Date: Sat, 13 Dec 2014 20:09:47 -0800
-Message-ID: <548d0d8b.iFU4fh4JcONCD0FX%akpm@linux-foundation.org>
+Subject: [merged] ratelimit-add-initialization-macro.patch removed from
+ -mm tree
+Date: Sat, 13 Dec 2014 20:09:50 -0800
+Message-ID: <548d0d8e.kJC8Wv7FR6tazEg9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47877 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47878 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752984AbaLNEJj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 13 Dec 2014 23:09:39 -0500
+	with ESMTP id S1752569AbaLNEJm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 13 Dec 2014 23:09:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, mm-commits@vger.kernel.org
+To: dmonakhov@openvz.org, akinobu.mita@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/affs/file.c: remove obsolete pagesize check
+     Subject: ratelimit: add initialization macro
 has been removed from the -mm tree.  Its filename was
-     fs-affs-filec-remove-obsolete-pagesize-check.patch
+     ratelimit-add-initialization-macro.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/affs/file.c: remove obsolete pagesize check
+From: Dmitry Monakhov <dmonakhov@openvz.org>
+Subject: ratelimit: add initialization macro
 
-linux kernel doesn't manage page sizes below 4kb.
-
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Signed-off-by: Dmitry Monakhov <dmonakhov@openvz.org>
+Cc: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/affs/file.c |    4 ----
- 1 file changed, 4 deletions(-)
+ include/linux/ratelimit.h |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-diff -puN fs/affs/file.c~fs-affs-filec-remove-obsolete-pagesize-check fs/affs/file.c
---- a/fs/affs/file.c~fs-affs-filec-remove-obsolete-pagesize-check
-+++ a/fs/affs/file.c
-@@ -15,10 +15,6 @@
- #include <linux/aio.h>
- #include "affs.h"
+diff -puN include/linux/ratelimit.h~ratelimit-add-initialization-macro include/linux/ratelimit.h
+--- a/include/linux/ratelimit.h~ratelimit-add-initialization-macro
++++ a/include/linux/ratelimit.h
+@@ -17,14 +17,20 @@ struct ratelimit_state {
+ 	unsigned long	begin;
+ };
  
--#if PAGE_SIZE < 4096
--#error PAGE_SIZE must be at least 4096
--#endif
+-#define DEFINE_RATELIMIT_STATE(name, interval_init, burst_init)		\
+-									\
+-	struct ratelimit_state name = {					\
++#define RATELIMIT_STATE_INIT(name, interval_init, burst_init) {		\
+ 		.lock		= __RAW_SPIN_LOCK_UNLOCKED(name.lock),	\
+ 		.interval	= interval_init,			\
+ 		.burst		= burst_init,				\
+ 	}
+ 
++#define RATELIMIT_STATE_INIT_DISABLED					\
++	RATELIMIT_STATE_INIT(ratelimit_state, 0, DEFAULT_RATELIMIT_BURST)
++
++#define DEFINE_RATELIMIT_STATE(name, interval_init, burst_init)		\
++									\
++	struct ratelimit_state name =					\
++		RATELIMIT_STATE_INIT(name, interval_init, burst_init)	\
++
+ static inline void ratelimit_state_init(struct ratelimit_state *rs,
+ 					int interval, int burst)
+ {
+_
+
+Patches currently in -mm which might be from dmonakhov@openvz.org are
+
+origin.patch
+linux-next.patch
+
