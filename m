@@ -1,81 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [merged] include-linux-kmemleakh-needs-slabh.patch removed from
- -mm tree
-Date: Sat, 13 Dec 2014 20:07:35 -0800
-Message-ID: <548d0d07.83OdkE3hvML1eAo6%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-gfp-escalatedly-define-gfp_highuser-and-gfp_highuser_movable.patch
+ removed from -mm tree
+Date: Sat, 13 Dec 2014 20:07:37 -0800
+Message-ID: <548d0d09.YI2CS1snai5fTqN8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47604 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47606 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753031AbaLNEH1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 13 Dec 2014 23:07:27 -0500
+	with ESMTP id S1753034AbaLNEH3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 13 Dec 2014 23:07:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org
+To: nasa4836@gmail.com, hannes@cmpxchg.org, jianyu.zhan@emc.com, kirill.shutemov@linux.intel.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/kmemleak.h: needs slab.h
+     Subject: mm, gfp: escalatedly define GFP_HIGHUSER and GFP_HIGHUSER_MOVABLE
 has been removed from the -mm tree.  Its filename was
-     include-linux-kmemleakh-needs-slabh.patch
+     mm-gfp-escalatedly-define-gfp_highuser-and-gfp_highuser_movable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: include/linux/kmemleak.h: needs slab.h
+From: Jianyu Zhan <nasa4836@gmail.com>
+Subject: mm, gfp: escalatedly define GFP_HIGHUSER and GFP_HIGHUSER_MOVABLE
 
-include/linux/kmemleak.h: In function 'kmemleak_alloc_recursive':
-include/linux/kmemleak.h:43: error: 'SLAB_NOLEAKTRACE' undeclared (first use in this function)
+GFP_USER, GFP_HIGHUSER and GFP_HIGHUSER_MOVABLE are escalatedly confined
+defined, also implied by their names:
 
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+GFP_USER                                  = GFP_USER
+GFP_USER + __GFP_HIGHMEM                  = GFP_HIGHUSER
+GFP_USER + __GFP_HIGHMEM + __GFP_MOVABLE  = GFP_HIGHUSER_MOVABLE
+
+So just make GFP_HIGHUSER and GFP_HIGHUSER_MOVABLE escalatedly defined to
+reflect this fact.  It also makes the definition clear and texturally warn
+on any furture break-up of this escalated relastionship.
+
+Signed-off-by: Jianyu Zhan <jianyu.zhan@emc.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kmemleak.h |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/gfp.h |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/kmemleak.h~include-linux-kmemleakh-needs-slabh include/linux/kmemleak.h
---- a/include/linux/kmemleak.h~include-linux-kmemleakh-needs-slabh
-+++ a/include/linux/kmemleak.h
-@@ -21,6 +21,8 @@
- #ifndef __KMEMLEAK_H
- #define __KMEMLEAK_H
- 
-+#include <linux/slab.h>
-+
- #ifdef CONFIG_DEBUG_KMEMLEAK
- 
- extern void kmemleak_init(void) __ref;
+diff -puN include/linux/gfp.h~mm-gfp-escalatedly-define-gfp_highuser-and-gfp_highuser_movable include/linux/gfp.h
+--- a/include/linux/gfp.h~mm-gfp-escalatedly-define-gfp_highuser-and-gfp_highuser_movable
++++ a/include/linux/gfp.h
+@@ -110,11 +110,8 @@ struct vm_area_struct;
+ #define GFP_TEMPORARY	(__GFP_WAIT | __GFP_IO | __GFP_FS | \
+ 			 __GFP_RECLAIMABLE)
+ #define GFP_USER	(__GFP_WAIT | __GFP_IO | __GFP_FS | __GFP_HARDWALL)
+-#define GFP_HIGHUSER	(__GFP_WAIT | __GFP_IO | __GFP_FS | __GFP_HARDWALL | \
+-			 __GFP_HIGHMEM)
+-#define GFP_HIGHUSER_MOVABLE	(__GFP_WAIT | __GFP_IO | __GFP_FS | \
+-				 __GFP_HARDWALL | __GFP_HIGHMEM | \
+-				 __GFP_MOVABLE)
++#define GFP_HIGHUSER	(GFP_USER | __GFP_HIGHMEM)
++#define GFP_HIGHUSER_MOVABLE	(GFP_HIGHUSER | __GFP_MOVABLE)
+ #define GFP_IOFS	(__GFP_IO | __GFP_FS)
+ #define GFP_TRANSHUGE	(GFP_HIGHUSER_MOVABLE | __GFP_COMP | \
+ 			 __GFP_NOMEMALLOC | __GFP_NORETRY | __GFP_NOWARN | \
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from nasa4836@gmail.com are
 
 origin.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
-ocfs2-free-inode-when-i_count-becomes-zero.patch
-ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
-mm.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-sysctl-terminate-strings-also-on-r-fix.patch
-linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-lib-show_mem-this-patch-adds-cma-reserved-infromation-fix.patch
-tools-testing-selftests-makefile-alphasort-the-targets-list.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
 
