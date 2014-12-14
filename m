@@ -1,113 +1,155 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sparc-hook-up-execveat-system-call.patch removed from
- -mm tree
-Date: Sat, 13 Dec 2014 20:09:30 -0800
-Message-ID: <548d0d7a.GrmET1elDZ0eDcX9%akpm@linux-foundation.org>
+Subject: [merged] gcov-enable-gcov_profile_all-from-arch-kconfigs.patch
+ removed from -mm tree
+Date: Sat, 13 Dec 2014 20:09:36 -0800
+Message-ID: <548d0d80.Hvbg0wJwQ0tIDlCk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47855 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47863 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752942AbaLNEJX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 13 Dec 2014 23:09:23 -0500
+	with ESMTP id S1752959AbaLNEJ2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 13 Dec 2014 23:09:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: drysdale@google.com, davem@davemloft.net, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: riku.voipio@linaro.org, oberpar@linux.vnet.ibm.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sparc: hook up execveat system call
+     Subject: gcov: enable GCOV_PROFILE_ALL from ARCH Kconfigs
 has been removed from the -mm tree.  Its filename was
-     sparc-hook-up-execveat-system-call.patch
+     gcov-enable-gcov_profile_all-from-arch-kconfigs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Drysdale <drysdale@google.com>
-Subject: sparc: hook up execveat system call
+From: Riku Voipio <riku.voipio@linaro.org>
+Subject: gcov: enable GCOV_PROFILE_ALL from ARCH Kconfigs
 
-Signed-off-by: David Drysdale <drysdale@google.com>
-Acked-by: David S. Miller <davem@davemloft.net>
+Following the suggestions from Andrew Morton and Stephen Rothwell,
+Dont expand the ARCH list in kernel/gcov/Kconfig. Instead,
+define a ARCH_HAS_GCOV_PROFILE_ALL bool which architectures
+can enable.
+
+set ARCH_HAS_GCOV_PROFILE_ALL on Architectures where it was
+previously allowed + ARM64 which I tested.
+
+Signed-off-by: Riku Voipio <riku.voipio@linaro.org>
+Cc: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
 Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/include/uapi/asm/unistd.h |    3 ++-
- arch/sparc/kernel/syscalls.S         |   10 ++++++++++
- arch/sparc/kernel/systbls_32.S       |    1 +
- arch/sparc/kernel/systbls_64.S       |    2 ++
- 4 files changed, 15 insertions(+), 1 deletion(-)
+ arch/arm/Kconfig        |    1 +
+ arch/arm64/Kconfig      |    1 +
+ arch/microblaze/Kconfig |    1 +
+ arch/powerpc/Kconfig    |    1 +
+ arch/s390/Kconfig       |    1 +
+ arch/sh/Kconfig         |    1 +
+ arch/x86/Kconfig        |    1 +
+ kernel/gcov/Kconfig     |    5 ++++-
+ 8 files changed, 11 insertions(+), 1 deletion(-)
 
-diff -puN arch/sparc/include/uapi/asm/unistd.h~sparc-hook-up-execveat-system-call arch/sparc/include/uapi/asm/unistd.h
---- a/arch/sparc/include/uapi/asm/unistd.h~sparc-hook-up-execveat-system-call
-+++ a/arch/sparc/include/uapi/asm/unistd.h
-@@ -415,8 +415,9 @@
- #define __NR_getrandom		347
- #define __NR_memfd_create	348
- #define __NR_bpf		349
-+#define __NR_execveat		350
+diff -puN arch/arm/Kconfig~gcov-enable-gcov_profile_all-from-arch-kconfigs arch/arm/Kconfig
+--- a/arch/arm/Kconfig~gcov-enable-gcov_profile_all-from-arch-kconfigs
++++ a/arch/arm/Kconfig
+@@ -5,6 +5,7 @@ config ARM
+ 	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
+ 	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
+ 	select ARCH_HAVE_CUSTOM_GPIO_H
++	select ARCH_HAS_GCOV_PROFILE_ALL
+ 	select ARCH_MIGHT_HAVE_PC_PARPORT
+ 	select ARCH_SUPPORTS_ATOMIC_RMW
+ 	select ARCH_USE_BUILTIN_BSWAP
+diff -puN arch/arm64/Kconfig~gcov-enable-gcov_profile_all-from-arch-kconfigs arch/arm64/Kconfig
+--- a/arch/arm64/Kconfig~gcov-enable-gcov_profile_all-from-arch-kconfigs
++++ a/arch/arm64/Kconfig
+@@ -2,6 +2,7 @@ config ARM64
+ 	def_bool y
+ 	select ARCH_BINFMT_ELF_RANDOMIZE_PIE
+ 	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
++	select ARCH_HAS_GCOV_PROFILE_ALL
+ 	select ARCH_HAS_SG_CHAIN
+ 	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
+ 	select ARCH_USE_CMPXCHG_LOCKREF
+diff -puN arch/microblaze/Kconfig~gcov-enable-gcov_profile_all-from-arch-kconfigs arch/microblaze/Kconfig
+--- a/arch/microblaze/Kconfig~gcov-enable-gcov_profile_all-from-arch-kconfigs
++++ a/arch/microblaze/Kconfig
+@@ -1,5 +1,6 @@
+ config MICROBLAZE
+ 	def_bool y
++	select ARCH_HAS_GCOV_PROFILE_ALL
+ 	select ARCH_MIGHT_HAVE_PC_PARPORT
+ 	select ARCH_WANT_IPC_PARSE_VERSION
+ 	select ARCH_WANT_OPTIONAL_GPIOLIB
+diff -puN arch/powerpc/Kconfig~gcov-enable-gcov_profile_all-from-arch-kconfigs arch/powerpc/Kconfig
+--- a/arch/powerpc/Kconfig~gcov-enable-gcov_profile_all-from-arch-kconfigs
++++ a/arch/powerpc/Kconfig
+@@ -129,6 +129,7 @@ config PPC
+ 	select HAVE_BPF_JIT if PPC64
+ 	select HAVE_ARCH_JUMP_LABEL
+ 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
++	select ARCH_HAS_GCOV_PROFILE_ALL
+ 	select GENERIC_SMP_IDLE_THREAD
+ 	select GENERIC_CMOS_UPDATE
+ 	select GENERIC_TIME_VSYSCALL_OLD
+diff -puN arch/s390/Kconfig~gcov-enable-gcov_profile_all-from-arch-kconfigs arch/s390/Kconfig
+--- a/arch/s390/Kconfig~gcov-enable-gcov_profile_all-from-arch-kconfigs
++++ a/arch/s390/Kconfig
+@@ -65,6 +65,7 @@ config S390
+ 	def_bool y
+ 	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
+ 	select ARCH_HAS_DEBUG_STRICT_USER_COPY_CHECKS
++	select ARCH_HAS_GCOV_PROFILE_ALL
+ 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
+ 	select ARCH_INLINE_READ_LOCK
+ 	select ARCH_INLINE_READ_LOCK_BH
+diff -puN arch/sh/Kconfig~gcov-enable-gcov_profile_all-from-arch-kconfigs arch/sh/Kconfig
+--- a/arch/sh/Kconfig~gcov-enable-gcov_profile_all-from-arch-kconfigs
++++ a/arch/sh/Kconfig
+@@ -16,6 +16,7 @@ config SUPERH
+ 	select HAVE_DEBUG_BUGVERBOSE
+ 	select ARCH_HAVE_CUSTOM_GPIO_H
+ 	select ARCH_HAVE_NMI_SAFE_CMPXCHG if (GUSA_RB || CPU_SH4A)
++	select ARCH_HAS_GCOV_PROFILE_ALL
+ 	select PERF_USE_VMALLOC
+ 	select HAVE_DEBUG_KMEMLEAK
+ 	select HAVE_KERNEL_GZIP
+diff -puN arch/x86/Kconfig~gcov-enable-gcov_profile_all-from-arch-kconfigs arch/x86/Kconfig
+--- a/arch/x86/Kconfig~gcov-enable-gcov_profile_all-from-arch-kconfigs
++++ a/arch/x86/Kconfig
+@@ -24,6 +24,7 @@ config X86
+ 	select ARCH_MIGHT_HAVE_ACPI_PDC if ACPI
+ 	select ARCH_HAS_DEBUG_STRICT_USER_COPY_CHECKS
+ 	select ARCH_HAS_FAST_MULTIPLIER
++	select ARCH_HAS_GCOV_PROFILE_ALL
+ 	select ARCH_MIGHT_HAVE_PC_PARPORT
+ 	select ARCH_MIGHT_HAVE_PC_SERIO
+ 	select HAVE_AOUT if X86_32
+diff -puN kernel/gcov/Kconfig~gcov-enable-gcov_profile_all-from-arch-kconfigs kernel/gcov/Kconfig
+--- a/kernel/gcov/Kconfig~gcov-enable-gcov_profile_all-from-arch-kconfigs
++++ a/kernel/gcov/Kconfig
+@@ -32,10 +32,13 @@ config GCOV_KERNEL
+ 	Note that the debugfs filesystem has to be mounted to access
+ 	profiling data.
  
--#define NR_syscalls		350
-+#define NR_syscalls		351
- 
- /* Bitmask values returned from kern_features system call.  */
- #define KERN_FEATURE_MIXED_MODE_STACK	0x00000001
-diff -puN arch/sparc/kernel/syscalls.S~sparc-hook-up-execveat-system-call arch/sparc/kernel/syscalls.S
---- a/arch/sparc/kernel/syscalls.S~sparc-hook-up-execveat-system-call
-+++ a/arch/sparc/kernel/syscalls.S
-@@ -6,6 +6,11 @@ sys64_execve:
- 	jmpl	%g1, %g0
- 	 flushw
- 
-+sys64_execveat:
-+	set	sys_execveat, %g1
-+	jmpl	%g1, %g0
-+	 flushw
++config ARCH_HAS_GCOV_PROFILE_ALL
++	def_bool n
 +
- #ifdef CONFIG_COMPAT
- sunos_execv:
- 	mov	%g0, %o2
-@@ -13,6 +18,11 @@ sys32_execve:
- 	set	compat_sys_execve, %g1
- 	jmpl	%g1, %g0
- 	 flushw
-+
-+sys32_execveat:
-+	set	compat_sys_execveat, %g1
-+	jmpl	%g1, %g0
-+	 flushw
- #endif
- 
- 	.align	32
-diff -puN arch/sparc/kernel/systbls_32.S~sparc-hook-up-execveat-system-call arch/sparc/kernel/systbls_32.S
---- a/arch/sparc/kernel/systbls_32.S~sparc-hook-up-execveat-system-call
-+++ a/arch/sparc/kernel/systbls_32.S
-@@ -87,3 +87,4 @@ sys_call_table:
- /*335*/	.long sys_syncfs, sys_sendmmsg, sys_setns, sys_process_vm_readv, sys_process_vm_writev
- /*340*/	.long sys_ni_syscall, sys_kcmp, sys_finit_module, sys_sched_setattr, sys_sched_getattr
- /*345*/	.long sys_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
-+/*350*/	.long sys_execveat
-diff -puN arch/sparc/kernel/systbls_64.S~sparc-hook-up-execveat-system-call arch/sparc/kernel/systbls_64.S
---- a/arch/sparc/kernel/systbls_64.S~sparc-hook-up-execveat-system-call
-+++ a/arch/sparc/kernel/systbls_64.S
-@@ -88,6 +88,7 @@ sys_call_table32:
- 	.word sys_syncfs, compat_sys_sendmmsg, sys_setns, compat_sys_process_vm_readv, compat_sys_process_vm_writev
- /*340*/	.word sys_kern_features, sys_kcmp, sys_finit_module, sys_sched_setattr, sys_sched_getattr
- 	.word sys32_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
-+/*350*/	.word sys32_execveat
- 
- #endif /* CONFIG_COMPAT */
- 
-@@ -167,3 +168,4 @@ sys_call_table:
- 	.word sys_syncfs, sys_sendmmsg, sys_setns, sys_process_vm_readv, sys_process_vm_writev
- /*340*/	.word sys_kern_features, sys_kcmp, sys_finit_module, sys_sched_setattr, sys_sched_getattr
- 	.word sys_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
-+/*350*/	.word sys64_execveat
+ config GCOV_PROFILE_ALL
+ 	bool "Profile entire Kernel"
+ 	depends on GCOV_KERNEL
+-	depends on SUPERH || S390 || X86 || PPC || MICROBLAZE || ARM || ARM64
++	depends on ARCH_HAS_GCOV_PROFILE_ALL
+ 	default n
+ 	---help---
+ 	This options activates profiling for the entire kernel.
 _
 
-Patches currently in -mm which might be from drysdale@google.com are
+Patches currently in -mm which might be from riku.voipio@linaro.org are
 
 origin.patch
+linux-next.patch
 
