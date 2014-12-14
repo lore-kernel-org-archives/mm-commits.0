@@ -1,40 +1,54 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-debug-pagealloc-make-debug-pagealloc-boottime-configurable.patch removed from -mm tree
-Date: Sat, 13 Dec 2014 20:07:46 -0800
-Message-ID: <548d0d12.inkKvdr0E+X/oMIq%akpm@linux-foundation.org>
+ mm-debug-pagealloc-prepare-boottime-configurable-on-off.patch removed from
+ -mm tree
+Date: Sat, 13 Dec 2014 20:07:43 -0800
+Message-ID: <548d0d0f.pKwSVqd+769Wk4sz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47634 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47626 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753052AbaLNEHi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 13 Dec 2014 23:07:38 -0500
+	with ESMTP id S1753043AbaLNEHf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 13 Dec 2014 23:07:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: iamjoonsoo.kim@lge.com, dave@sr71.net, hannes@cmpxchg.org, jungsoo.son@lge.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/debug-pagealloc: make debug-pagealloc boottime configurable
+     Subject: mm/debug-pagealloc: prepare boottime configurable on/off
 has been removed from the -mm tree.  Its filename was
-     mm-debug-pagealloc-make-debug-pagealloc-boottime-configurable.patch
+     mm-debug-pagealloc-prepare-boottime-configurable-on-off.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/debug-pagealloc: make debug-pagealloc boottime configurable
+Subject: mm/debug-pagealloc: prepare boottime configurable on/off
 
-Now, we have prepared to avoid using debug-pagealloc in boottime.  So
-introduce new kernel-parameter to disable debug-pagealloc in boottime, and
-makes related functions to be disabled in this case.
+Until now, debug-pagealloc needs extra flags in struct page, so we need to
+recompile whole source code when we decide to use it.  This is really
+painful, because it takes some time to recompile and sometimes rebuild is
+not possible due to third party module depending on struct page.  So, we
+can't use this good feature in many cases.
 
-Only non-intuitive part is change of guard page functions.  Because guard
-page is effective only if debug-pagealloc is enabled, turning off
-according to debug-pagealloc is reasonable thing to do.
+Now, we have the page extension feature that allows us to insert extra
+flags to outside of struct page.  This gets rid of third party module
+issue mentioned above.  And, this allows us to determine if we need extra
+memory for this page extension in boottime.  With these property, we can
+avoid using debug-pagealloc in boottime with low computational overhead in
+the kernel built with CONFIG_DEBUG_PAGEALLOC.  This will help our
+development process greatly.
+
+This patch is the preparation step to achive above goal.  debug-pagealloc
+originally uses extra field of struct page, but, after this patch, it will
+use field of struct page_ext.  Because memory for page_ext is allocated
+later than initialization of page allocator in CONFIG_SPARSEMEM, we should
+disable debug-pagealloc feature temporarily until initialization of
+page_ext.  This patch implements this.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Mel Gorman <mgorman@suse.de>
@@ -48,192 +62,320 @@ Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    9 +++++++++
- arch/powerpc/mm/hash_utils_64.c     |    2 +-
- arch/powerpc/mm/pgtable_32.c        |    2 +-
- arch/s390/mm/pageattr.c             |    2 +-
- arch/sparc/mm/init_64.c             |    2 +-
- arch/x86/mm/pageattr.c              |    2 +-
- include/linux/mm.h                  |   17 ++++++++++++++++-
- mm/debug-pagealloc.c                |    8 +++++++-
- mm/page_alloc.c                     |   20 ++++++++++++++++++++
- 9 files changed, 57 insertions(+), 7 deletions(-)
+ include/linux/mm.h               |   19 +++++++++++++-
+ include/linux/mm_types.h         |    4 ---
+ include/linux/page-debug-flags.h |   32 ------------------------
+ include/linux/page_ext.h         |   15 +++++++++++
+ mm/Kconfig.debug                 |    1 
+ mm/debug-pagealloc.c             |   37 +++++++++++++++++++++++++---
+ mm/page_alloc.c                  |   38 ++++++++++++++++++++++++++---
+ mm/page_ext.c                    |    4 +++
+ 8 files changed, 106 insertions(+), 44 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~mm-debug-pagealloc-make-debug-pagealloc-boottime-configurable Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~mm-debug-pagealloc-make-debug-pagealloc-boottime-configurable
-+++ a/Documentation/kernel-parameters.txt
-@@ -829,6 +829,15 @@ bytes respectively. Such letter suffixes
- 			CONFIG_DEBUG_PAGEALLOC, hence this option will not help
- 			tracking down these problems.
- 
-+	debug_pagealloc=
-+			[KNL] When CONFIG_DEBUG_PAGEALLOC is set, this
-+			parameter enables the feature at boot time. In
-+			default, it is disabled. We can avoid allocating huge
-+			chunk of memory for debug pagealloc if we don't enable
-+			it at boot time and the system will work mostly same
-+			with the kernel built without CONFIG_DEBUG_PAGEALLOC.
-+			on: enable the feature
-+
- 	debugpat	[X86] Enable PAT debugging
- 
- 	decnet.addr=	[HW,NET]
-diff -puN arch/powerpc/mm/hash_utils_64.c~mm-debug-pagealloc-make-debug-pagealloc-boottime-configurable arch/powerpc/mm/hash_utils_64.c
---- a/arch/powerpc/mm/hash_utils_64.c~mm-debug-pagealloc-make-debug-pagealloc-boottime-configurable
-+++ a/arch/powerpc/mm/hash_utils_64.c
-@@ -1514,7 +1514,7 @@ static void kernel_unmap_linear_page(uns
- 			       mmu_kernel_ssize, 0);
- }
- 
--void kernel_map_pages(struct page *page, int numpages, int enable)
-+void __kernel_map_pages(struct page *page, int numpages, int enable)
- {
- 	unsigned long flags, vaddr, lmi;
- 	int i;
-diff -puN arch/powerpc/mm/pgtable_32.c~mm-debug-pagealloc-make-debug-pagealloc-boottime-configurable arch/powerpc/mm/pgtable_32.c
---- a/arch/powerpc/mm/pgtable_32.c~mm-debug-pagealloc-make-debug-pagealloc-boottime-configurable
-+++ a/arch/powerpc/mm/pgtable_32.c
-@@ -429,7 +429,7 @@ static int change_page_attr(struct page
- }
- 
- 
--void kernel_map_pages(struct page *page, int numpages, int enable)
-+void __kernel_map_pages(struct page *page, int numpages, int enable)
- {
- 	if (PageHighMem(page))
- 		return;
-diff -puN arch/s390/mm/pageattr.c~mm-debug-pagealloc-make-debug-pagealloc-boottime-configurable arch/s390/mm/pageattr.c
---- a/arch/s390/mm/pageattr.c~mm-debug-pagealloc-make-debug-pagealloc-boottime-configurable
-+++ a/arch/s390/mm/pageattr.c
-@@ -120,7 +120,7 @@ static void ipte_range(pte_t *pte, unsig
- 	}
- }
- 
--void kernel_map_pages(struct page *page, int numpages, int enable)
-+void __kernel_map_pages(struct page *page, int numpages, int enable)
- {
- 	unsigned long address;
- 	int nr, i, j;
-diff -puN arch/sparc/mm/init_64.c~mm-debug-pagealloc-make-debug-pagealloc-boottime-configurable arch/sparc/mm/init_64.c
---- a/arch/sparc/mm/init_64.c~mm-debug-pagealloc-make-debug-pagealloc-boottime-configurable
-+++ a/arch/sparc/mm/init_64.c
-@@ -1621,7 +1621,7 @@ static void __init kernel_physical_mappi
- }
- 
- #ifdef CONFIG_DEBUG_PAGEALLOC
--void kernel_map_pages(struct page *page, int numpages, int enable)
-+void __kernel_map_pages(struct page *page, int numpages, int enable)
- {
- 	unsigned long phys_start = page_to_pfn(page) << PAGE_SHIFT;
- 	unsigned long phys_end = phys_start + (numpages * PAGE_SIZE);
-diff -puN arch/x86/mm/pageattr.c~mm-debug-pagealloc-make-debug-pagealloc-boottime-configurable arch/x86/mm/pageattr.c
---- a/arch/x86/mm/pageattr.c~mm-debug-pagealloc-make-debug-pagealloc-boottime-configurable
-+++ a/arch/x86/mm/pageattr.c
-@@ -1817,7 +1817,7 @@ static int __set_pages_np(struct page *p
- 	return __change_page_attr_set_clr(&cpa, 0);
- }
- 
--void kernel_map_pages(struct page *page, int numpages, int enable)
-+void __kernel_map_pages(struct page *page, int numpages, int enable)
- {
- 	if (PageHighMem(page))
- 		return;
-diff -puN include/linux/mm.h~mm-debug-pagealloc-make-debug-pagealloc-boottime-configurable include/linux/mm.h
---- a/include/linux/mm.h~mm-debug-pagealloc-make-debug-pagealloc-boottime-configurable
+diff -puN include/linux/mm.h~mm-debug-pagealloc-prepare-boottime-configurable-on-off include/linux/mm.h
+--- a/include/linux/mm.h~mm-debug-pagealloc-prepare-boottime-configurable-on-off
 +++ a/include/linux/mm.h
-@@ -2061,7 +2061,22 @@ static inline void vm_stat_account(struc
- #endif /* CONFIG_PROC_FS */
+@@ -19,6 +19,7 @@
+ #include <linux/bit_spinlock.h>
+ #include <linux/shrinker.h>
+ #include <linux/resource.h>
++#include <linux/page_ext.h>
  
+ struct mempolicy;
+ struct anon_vma;
+@@ -2155,20 +2156,36 @@ extern void copy_user_huge_page(struct p
+ 				unsigned int pages_per_huge_page);
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE || CONFIG_HUGETLBFS */
+ 
++extern struct page_ext_operations debug_guardpage_ops;
++extern struct page_ext_operations page_poisoning_ops;
++
  #ifdef CONFIG_DEBUG_PAGEALLOC
--extern void kernel_map_pages(struct page *page, int numpages, int enable);
-+extern bool _debug_pagealloc_enabled;
-+extern void __kernel_map_pages(struct page *page, int numpages, int enable);
-+
-+static inline bool debug_pagealloc_enabled(void)
-+{
-+	return _debug_pagealloc_enabled;
-+}
-+
-+static inline void
-+kernel_map_pages(struct page *page, int numpages, int enable)
-+{
-+	if (!debug_pagealloc_enabled())
-+		return;
-+
-+	__kernel_map_pages(page, numpages, enable);
-+}
- #ifdef CONFIG_HIBERNATION
- extern bool kernel_page_present(struct page *page);
- #endif /* CONFIG_HIBERNATION */
-diff -puN mm/debug-pagealloc.c~mm-debug-pagealloc-make-debug-pagealloc-boottime-configurable mm/debug-pagealloc.c
---- a/mm/debug-pagealloc.c~mm-debug-pagealloc-make-debug-pagealloc-boottime-configurable
-+++ a/mm/debug-pagealloc.c
-@@ -10,11 +10,17 @@ static bool page_poisoning_enabled __rea
+ extern unsigned int _debug_guardpage_minorder;
++extern bool _debug_guardpage_enabled;
  
- static bool need_page_poisoning(void)
+ static inline unsigned int debug_guardpage_minorder(void)
  {
-+	if (!debug_pagealloc_enabled())
+ 	return _debug_guardpage_minorder;
+ }
+ 
++static inline bool debug_guardpage_enabled(void)
++{
++	return _debug_guardpage_enabled;
++}
++
+ static inline bool page_is_guard(struct page *page)
+ {
+-	return test_bit(PAGE_DEBUG_FLAG_GUARD, &page->debug_flags);
++	struct page_ext *page_ext;
++
++	if (!debug_guardpage_enabled())
 +		return false;
 +
- 	return true;
++	page_ext = lookup_page_ext(page);
++	return test_bit(PAGE_EXT_DEBUG_GUARD, &page_ext->flags);
+ }
+ #else
+ static inline unsigned int debug_guardpage_minorder(void) { return 0; }
++static inline bool debug_guardpage_enabled(void) { return false; }
+ static inline bool page_is_guard(struct page *page) { return false; }
+ #endif /* CONFIG_DEBUG_PAGEALLOC */
+ 
+diff -puN include/linux/mm_types.h~mm-debug-pagealloc-prepare-boottime-configurable-on-off include/linux/mm_types.h
+--- a/include/linux/mm_types.h~mm-debug-pagealloc-prepare-boottime-configurable-on-off
++++ a/include/linux/mm_types.h
+@@ -10,7 +10,6 @@
+ #include <linux/rwsem.h>
+ #include <linux/completion.h>
+ #include <linux/cpumask.h>
+-#include <linux/page-debug-flags.h>
+ #include <linux/uprobes.h>
+ #include <linux/page-flags-layout.h>
+ #include <asm/page.h>
+@@ -186,9 +185,6 @@ struct page {
+ 	void *virtual;			/* Kernel virtual address (NULL if
+ 					   not kmapped, ie. highmem) */
+ #endif /* WANT_PAGE_VIRTUAL */
+-#ifdef CONFIG_WANT_PAGE_DEBUG_FLAGS
+-	unsigned long debug_flags;	/* Use atomic bitops on this */
+-#endif
+ 
+ #ifdef CONFIG_KMEMCHECK
+ 	/*
+diff -puN include/linux/page-debug-flags.h~mm-debug-pagealloc-prepare-boottime-configurable-on-off /dev/null
+--- a/include/linux/page-debug-flags.h
++++ /dev/null
+@@ -1,32 +0,0 @@
+-#ifndef LINUX_PAGE_DEBUG_FLAGS_H
+-#define  LINUX_PAGE_DEBUG_FLAGS_H
+-
+-/*
+- * page->debug_flags bits:
+- *
+- * PAGE_DEBUG_FLAG_POISON is set for poisoned pages. This is used to
+- * implement generic debug pagealloc feature. The pages are filled with
+- * poison patterns and set this flag after free_pages(). The poisoned
+- * pages are verified whether the patterns are not corrupted and clear
+- * the flag before alloc_pages().
+- */
+-
+-enum page_debug_flags {
+-	PAGE_DEBUG_FLAG_POISON,		/* Page is poisoned */
+-	PAGE_DEBUG_FLAG_GUARD,
+-};
+-
+-/*
+- * Ensure that CONFIG_WANT_PAGE_DEBUG_FLAGS reliably
+- * gets turned off when no debug features are enabling it!
+- */
+-
+-#ifdef CONFIG_WANT_PAGE_DEBUG_FLAGS
+-#if !defined(CONFIG_PAGE_POISONING) && \
+-    !defined(CONFIG_PAGE_GUARD) \
+-/* && !defined(CONFIG_PAGE_DEBUG_SOMETHING_ELSE) && ... */
+-#error WANT_PAGE_DEBUG_FLAGS is turned on with no debug features!
+-#endif
+-#endif /* CONFIG_WANT_PAGE_DEBUG_FLAGS */
+-
+-#endif /* LINUX_PAGE_DEBUG_FLAGS_H */
+diff -puN include/linux/page_ext.h~mm-debug-pagealloc-prepare-boottime-configurable-on-off include/linux/page_ext.h
+--- a/include/linux/page_ext.h~mm-debug-pagealloc-prepare-boottime-configurable-on-off
++++ a/include/linux/page_ext.h
+@@ -10,6 +10,21 @@ struct page_ext_operations {
+ #ifdef CONFIG_PAGE_EXTENSION
+ 
+ /*
++ * page_ext->flags bits:
++ *
++ * PAGE_EXT_DEBUG_POISON is set for poisoned pages. This is used to
++ * implement generic debug pagealloc feature. The pages are filled with
++ * poison patterns and set this flag after free_pages(). The poisoned
++ * pages are verified whether the patterns are not corrupted and clear
++ * the flag before alloc_pages().
++ */
++
++enum page_ext_flags {
++	PAGE_EXT_DEBUG_POISON,		/* Page is poisoned */
++	PAGE_EXT_DEBUG_GUARD,
++};
++
++/*
+  * Page Extension can be considered as an extended mem_map.
+  * A page_ext page is associated with every page descriptor. The
+  * page_ext helps us add more information about the page.
+diff -puN mm/Kconfig.debug~mm-debug-pagealloc-prepare-boottime-configurable-on-off mm/Kconfig.debug
+--- a/mm/Kconfig.debug~mm-debug-pagealloc-prepare-boottime-configurable-on-off
++++ a/mm/Kconfig.debug
+@@ -12,6 +12,7 @@ config DEBUG_PAGEALLOC
+ 	depends on DEBUG_KERNEL
+ 	depends on !HIBERNATION || ARCH_SUPPORTS_DEBUG_PAGEALLOC && !PPC && !SPARC
+ 	depends on !KMEMCHECK
++	select PAGE_EXTENSION
+ 	select PAGE_POISONING if !ARCH_SUPPORTS_DEBUG_PAGEALLOC
+ 	select PAGE_GUARD if ARCH_SUPPORTS_DEBUG_PAGEALLOC
+ 	---help---
+diff -puN mm/debug-pagealloc.c~mm-debug-pagealloc-prepare-boottime-configurable-on-off mm/debug-pagealloc.c
+--- a/mm/debug-pagealloc.c~mm-debug-pagealloc-prepare-boottime-configurable-on-off
++++ a/mm/debug-pagealloc.c
+@@ -2,23 +2,49 @@
+ #include <linux/string.h>
+ #include <linux/mm.h>
+ #include <linux/highmem.h>
+-#include <linux/page-debug-flags.h>
++#include <linux/page_ext.h>
+ #include <linux/poison.h>
+ #include <linux/ratelimit.h>
+ 
++static bool page_poisoning_enabled __read_mostly;
++
++static bool need_page_poisoning(void)
++{
++	return true;
++}
++
++static void init_page_poisoning(void)
++{
++	page_poisoning_enabled = true;
++}
++
++struct page_ext_operations page_poisoning_ops = {
++	.need = need_page_poisoning,
++	.init = init_page_poisoning,
++};
++
+ static inline void set_page_poison(struct page *page)
+ {
+-	__set_bit(PAGE_DEBUG_FLAG_POISON, &page->debug_flags);
++	struct page_ext *page_ext;
++
++	page_ext = lookup_page_ext(page);
++	__set_bit(PAGE_EXT_DEBUG_POISON, &page_ext->flags);
  }
  
- static void init_page_poisoning(void)
+ static inline void clear_page_poison(struct page *page)
  {
-+	if (!debug_pagealloc_enabled())
+-	__clear_bit(PAGE_DEBUG_FLAG_POISON, &page->debug_flags);
++	struct page_ext *page_ext;
++
++	page_ext = lookup_page_ext(page);
++	__clear_bit(PAGE_EXT_DEBUG_POISON, &page_ext->flags);
+ }
+ 
+ static inline bool page_poison(struct page *page)
+ {
+-	return test_bit(PAGE_DEBUG_FLAG_POISON, &page->debug_flags);
++	struct page_ext *page_ext;
++
++	page_ext = lookup_page_ext(page);
++	return test_bit(PAGE_EXT_DEBUG_POISON, &page_ext->flags);
+ }
+ 
+ static void poison_page(struct page *page)
+@@ -95,6 +121,9 @@ static void unpoison_pages(struct page *
+ 
+ void kernel_map_pages(struct page *page, int numpages, int enable)
+ {
++	if (!page_poisoning_enabled)
 +		return;
 +
- 	page_poisoning_enabled = true;
- }
- 
-@@ -119,7 +125,7 @@ static void unpoison_pages(struct page *
- 		unpoison_page(page + i);
- }
- 
--void kernel_map_pages(struct page *page, int numpages, int enable)
-+void __kernel_map_pages(struct page *page, int numpages, int enable)
- {
- 	if (!page_poisoning_enabled)
- 		return;
-diff -puN mm/page_alloc.c~mm-debug-pagealloc-make-debug-pagealloc-boottime-configurable mm/page_alloc.c
---- a/mm/page_alloc.c~mm-debug-pagealloc-make-debug-pagealloc-boottime-configurable
+ 	if (enable)
+ 		unpoison_pages(page, numpages);
+ 	else
+diff -puN mm/page_alloc.c~mm-debug-pagealloc-prepare-boottime-configurable-on-off mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-debug-pagealloc-prepare-boottime-configurable-on-off
 +++ a/mm/page_alloc.c
-@@ -425,15 +425,35 @@ static inline void prep_zero_page(struct
+@@ -56,7 +56,7 @@
+ #include <linux/prefetch.h>
+ #include <linux/mm_inline.h>
+ #include <linux/migrate.h>
+-#include <linux/page-debug-flags.h>
++#include <linux/page_ext.h>
+ #include <linux/hugetlb.h>
+ #include <linux/sched/rt.h>
+ 
+@@ -425,6 +425,22 @@ static inline void prep_zero_page(struct
  
  #ifdef CONFIG_DEBUG_PAGEALLOC
  unsigned int _debug_guardpage_minorder;
-+bool _debug_pagealloc_enabled __read_mostly;
- bool _debug_guardpage_enabled __read_mostly;
- 
-+static int __init early_debug_pagealloc(char *buf)
++bool _debug_guardpage_enabled __read_mostly;
++
++static bool need_debug_guardpage(void)
 +{
-+	if (!buf)
-+		return -EINVAL;
-+
-+	if (strcmp(buf, "on") == 0)
-+		_debug_pagealloc_enabled = true;
-+
-+	return 0;
++	return true;
 +}
-+early_param("debug_pagealloc", early_debug_pagealloc);
 +
- static bool need_debug_guardpage(void)
- {
-+	/* If we don't use debug_pagealloc, we don't need guard page */
-+	if (!debug_pagealloc_enabled())
-+		return false;
++static void init_debug_guardpage(void)
++{
++	_debug_guardpage_enabled = true;
++}
 +
- 	return true;
- }
++struct page_ext_operations debug_guardpage_ops = {
++	.need = need_debug_guardpage,
++	.init = init_debug_guardpage,
++};
  
- static void init_debug_guardpage(void)
+ static int __init debug_guardpage_minorder_setup(char *buf)
  {
-+	if (!debug_pagealloc_enabled())
+@@ -443,7 +459,14 @@ __setup("debug_guardpage_minorder=", deb
+ static inline void set_page_guard(struct zone *zone, struct page *page,
+ 				unsigned int order, int migratetype)
+ {
+-	__set_bit(PAGE_DEBUG_FLAG_GUARD, &page->debug_flags);
++	struct page_ext *page_ext;
++
++	if (!debug_guardpage_enabled())
 +		return;
 +
- 	_debug_guardpage_enabled = true;
++	page_ext = lookup_page_ext(page);
++	__set_bit(PAGE_EXT_DEBUG_GUARD, &page_ext->flags);
++
+ 	INIT_LIST_HEAD(&page->lru);
+ 	set_page_private(page, order);
+ 	/* Guard pages are not available for any usage */
+@@ -453,12 +476,20 @@ static inline void set_page_guard(struct
+ static inline void clear_page_guard(struct zone *zone, struct page *page,
+ 				unsigned int order, int migratetype)
+ {
+-	__clear_bit(PAGE_DEBUG_FLAG_GUARD, &page->debug_flags);
++	struct page_ext *page_ext;
++
++	if (!debug_guardpage_enabled())
++		return;
++
++	page_ext = lookup_page_ext(page);
++	__clear_bit(PAGE_EXT_DEBUG_GUARD, &page_ext->flags);
++
+ 	set_page_private(page, 0);
+ 	if (!is_migrate_isolate(migratetype))
+ 		__mod_zone_freepage_state(zone, (1 << order), migratetype);
  }
+ #else
++struct page_ext_operations debug_guardpage_ops = { NULL, };
+ static inline void set_page_guard(struct zone *zone, struct page *page,
+ 				unsigned int order, int migratetype) {}
+ static inline void clear_page_guard(struct zone *zone, struct page *page,
+@@ -869,6 +900,7 @@ static inline void expand(struct zone *z
+ 		VM_BUG_ON_PAGE(bad_range(zone, &page[size]), &page[size]);
  
+ 		if (IS_ENABLED(CONFIG_DEBUG_PAGEALLOC) &&
++			debug_guardpage_enabled() &&
+ 			high < debug_guardpage_minorder()) {
+ 			/*
+ 			 * Mark as guard pages (or page), that will allow to
+diff -puN mm/page_ext.c~mm-debug-pagealloc-prepare-boottime-configurable-on-off mm/page_ext.c
+--- a/mm/page_ext.c~mm-debug-pagealloc-prepare-boottime-configurable-on-off
++++ a/mm/page_ext.c
+@@ -51,6 +51,10 @@
+  */
+ 
+ static struct page_ext_operations *page_ext_ops[] = {
++	&debug_guardpage_ops,
++#ifdef CONFIG_PAGE_POISONING
++	&page_poisoning_ops,
++#endif
+ };
+ 
+ static unsigned long total_usage;
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
