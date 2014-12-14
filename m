@@ -1,134 +1,183 @@
 From: akpm@linux-foundation.org
-Subject: [merged] zram-implement-rw_page-operation-of-zram.patch removed
- from -mm tree
-Date: Sat, 13 Dec 2014 20:08:42 -0800
-Message-ID: <548d0d4a.zT23Xwq5XIjuEPcu%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-zsmalloc-support-allocating-obj-with-size-of-zs_max_alloc_size.patch
+ removed from -mm tree
+Date: Sat, 13 Dec 2014 20:08:51 -0800
+Message-ID: <548d0d53.V4C2APgFPD/+TXyq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47753 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47768 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752833AbaLNEIe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 13 Dec 2014 23:08:34 -0500
+	with ESMTP id S1752877AbaLNEIn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 13 Dec 2014 23:08:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: karam.lee@lge.com, jmarchan@redhat.com, matthew.r.wilcox@intel.com, minchan@kernel.org, ngupta@vflare.org, sergey.senozhatsky@gmail.com, seungho1.park@lge.com, mm-commits@vger.kernel.org
+To: opensource.ganesh@gmail.com, minchan@kernel.org, ngupta@vflare.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: implement rw_page operation of zram
+     Subject: mm/zsmalloc: support allocating obj with size of ZS_MAX_ALLOC_SIZE
 has been removed from the -mm tree.  Its filename was
-     zram-implement-rw_page-operation-of-zram.patch
+     mm-zsmalloc-support-allocating-obj-with-size-of-zs_max_alloc_size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "karam.lee" <karam.lee@lge.com>
-Subject: zram: implement rw_page operation of zram
+From: Mahendran Ganesh <opensource.ganesh@gmail.com>
+Subject: mm/zsmalloc: support allocating obj with size of ZS_MAX_ALLOC_SIZE
 
-This patch implements rw_page operation for zram block device.
+I sent a patch [1] for unnecessary check in zsmalloc.  And Minchan Kim
+found zsmalloc even does not support allocating an obj with the size of
+ZS_MAX_ALLOC_SIZE in some situations.
 
-I implemented the feature in zram and tested it.  Test bed was the G2, LG
-electronic mobile device, whtich has msm8974 processor and 2GB memory.
+For example:
+   In system with 64KB PAGE_SIZE and 32 bit of physical addr. Then:
+   ZS_MIN_ALLOC_SIZE is 32 bytes which is calculated by:
+      MAX(32, (ZS_MAX_PAGES_PER_ZSPAGE << PAGE_SHIFT >> OBJ_INDEX_BITS))
+   ZS_MAX_ALLOC_SIZE is 64KB(in current code, is PAGE_SIZE)
+   ZS_SIZE_CLASS_DELTA is 256 bytes
+   So, ZS_SIZE_CLASSES = (ZS_MAX_ALLOC_SIZE - ZS_MIN_ALLOC_SIZE) /
+                          ZS_SIZE_CLASS_DELTA + 1
+                       = 256
 
-With a memory allocation test program consuming memory, the system
-generates swap.
+   In zs_create_pool(), the max size obj which can be allocated will be:
+      ZS_MIN_ALLOC_SIZE + i * ZS_SIZE_CLASS_DELTA = 32 + 255*256 = 65312
 
-Operating time of swap_write_page() was measured.
+   We can see that 65312 < 65536 (ZS_MAX_ALLOC_SIZE). So we can NOT
+   allocate objs with size ZS_MAX_ALLOC_SIZE(65536) which we promise upper
+   users we can do.
 
---------------------------------------------------
-|             |   operating time   | improvement |
-|             |  (20 runs average) |             |
---------------------------------------------------
-|with patch   |    1061.15 us      |    +2.4%    |
---------------------------------------------------
-|without patch|    1087.35 us      |             |
---------------------------------------------------
+ [1]  http://lkml.iu.edu/hypermail/linux/kernel/1411.2/03835.html
+ [2]  http://lkml.iu.edu/hypermail/linux/kernel/1411.2/04534.html
 
-Each test(with paged_io,with BIO) result set shows normal distribution and
-has equal variance.  I mean the two values are valid result to compare.  I
-can say operation with paged I/O(without BIO) is faster 2.4% with
-confidence level 95%.
+This patch fixes this issue by dynamiclly calculating zs_size_classes when
+module is loaded, allocates buffer with size ZS_MAX_ALLOC_SIZE.  Then the
+max obj(size is ZS_MAX_ALLOC_SIZE) can be stored in it.
 
-[minchan@kernel.org: make rw_page opeartion return 0]
-[minchan@kernel.org: rely on the bi_end_io for zram_rw_page fails]
-[sergey.senozhatsky@gmail.com: code cleanup]
-[minchan@kernel.org: add comment]
-Signed-off-by: karam.lee <karam.lee@lge.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Jerome Marchand <jmarchan@redhat.com>
-Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
+[akpm@linux-foundation.org: restore ZS_SIZE_CLASSES to fix bisectability]
+Signed-off-by: Mahendran Ganesh <opensource.ganesh@gmail.com>
+Suggested-by: Minchan Kim <minchan@kernel.org>
 Cc: Nitin Gupta <ngupta@vflare.org>
-Cc: <seungho1.park@lge.com>
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   44 ++++++++++++++++++++++++++++++++
- 1 file changed, 44 insertions(+)
+ mm/zsmalloc.c |   38 ++++++++++++++++++++++++++++++++------
+ 1 file changed, 32 insertions(+), 6 deletions(-)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-implement-rw_page-operation-of-zram drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-implement-rw_page-operation-of-zram
-+++ a/drivers/block/zram/zram_drv.c
-@@ -945,8 +945,52 @@ static void zram_slot_free_notify(struct
- 	atomic64_inc(&zram->stats.notify_free);
- }
- 
-+static int zram_rw_page(struct block_device *bdev, sector_t sector,
-+		       struct page *page, int rw)
-+{
-+	int offset, err;
-+	u32 index;
-+	struct zram *zram;
-+	struct bio_vec bv;
-+
-+	zram = bdev->bd_disk->private_data;
-+	if (!valid_io_request(zram, sector, PAGE_SIZE)) {
-+		atomic64_inc(&zram->stats.invalid_io);
-+		return -EINVAL;
-+	}
-+
-+	down_read(&zram->init_lock);
-+	if (unlikely(!init_done(zram))) {
-+		err = -EIO;
-+		goto out_unlock;
-+	}
-+
-+	index = sector >> SECTORS_PER_PAGE_SHIFT;
-+	offset = sector & (SECTORS_PER_PAGE - 1) << SECTOR_SHIFT;
-+
-+	bv.bv_page = page;
-+	bv.bv_len = PAGE_SIZE;
-+	bv.bv_offset = 0;
-+
-+	err = zram_bvec_rw(zram, &bv, index, offset, rw);
-+out_unlock:
-+	up_read(&zram->init_lock);
-+	/*
-+	 * If I/O fails, just return error(ie, non-zero) without
-+	 * calling page_endio.
-+	 * It causes resubmit the I/O with bio request by upper functions
-+	 * of rw_page(e.g., swap_readpage, __swap_writepage) and
-+	 * bio->bi_end_io does things to handle the error
-+	 * (e.g., SetPageError, set_page_dirty and extra works).
-+	 */
-+	if (err == 0)
-+		page_endio(page, rw, 0);
-+	return err;
-+}
-+
- static const struct block_device_operations zram_devops = {
- 	.swap_slot_free_notify = zram_slot_free_notify,
-+	.rw_page = zram_rw_page,
- 	.owner = THIS_MODULE
+diff -puN mm/zsmalloc.c~mm-zsmalloc-support-allocating-obj-with-size-of-zs_max_alloc_size mm/zsmalloc.c
+--- a/mm/zsmalloc.c~mm-zsmalloc-support-allocating-obj-with-size-of-zs_max_alloc_size
++++ a/mm/zsmalloc.c
+@@ -171,6 +171,11 @@ enum fullness_group {
  };
  
+ /*
++ * number of size_classes
++ */
++static int zs_size_classes;
++
++/*
+  * We assign a page to ZS_ALMOST_EMPTY fullness group when:
+  *	n <= N / f, where
+  * n = number of allocated objects
+@@ -214,7 +219,7 @@ struct link_free {
+ };
+ 
+ struct zs_pool {
+-	struct size_class *size_class[ZS_SIZE_CLASSES];
++	struct size_class **size_class;
+ 
+ 	gfp_t flags;	/* allocation flags used when growing pool */
+ 	atomic_long_t pages_allocated;
+@@ -785,7 +790,7 @@ static inline int __zs_cpu_up(struct map
+ 	 */
+ 	if (area->vm_buf)
+ 		return 0;
+-	area->vm_buf = (char *)__get_free_page(GFP_KERNEL);
++	area->vm_buf = kmalloc(ZS_MAX_ALLOC_SIZE, GFP_KERNEL);
+ 	if (!area->vm_buf)
+ 		return -ENOMEM;
+ 	return 0;
+@@ -793,8 +798,7 @@ static inline int __zs_cpu_up(struct map
+ 
+ static inline void __zs_cpu_down(struct mapping_area *area)
+ {
+-	if (area->vm_buf)
+-		free_page((unsigned long)area->vm_buf);
++	kfree(area->vm_buf);
+ 	area->vm_buf = NULL;
+ }
+ 
+@@ -912,6 +916,17 @@ static int zs_register_cpu_notifier(void
+ 	return notifier_to_errno(ret);
+ }
+ 
++static void init_zs_size_classes(void)
++{
++	int nr;
++
++	nr = (ZS_MAX_ALLOC_SIZE - ZS_MIN_ALLOC_SIZE) / ZS_SIZE_CLASS_DELTA + 1;
++	if ((ZS_MAX_ALLOC_SIZE - ZS_MIN_ALLOC_SIZE) % ZS_SIZE_CLASS_DELTA)
++		nr += 1;
++
++	zs_size_classes = nr;
++}
++
+ static void __exit zs_exit(void)
+ {
+ #ifdef CONFIG_ZPOOL
+@@ -929,6 +944,8 @@ static int __init zs_init(void)
+ 		return ret;
+ 	}
+ 
++	init_zs_size_classes();
++
+ #ifdef CONFIG_ZPOOL
+ 	zpool_register_driver(&zs_zpool_driver);
+ #endif
+@@ -972,11 +989,18 @@ struct zs_pool *zs_create_pool(gfp_t fla
+ 	if (!pool)
+ 		return NULL;
+ 
++	pool->size_class = kcalloc(zs_size_classes, sizeof(struct size_class *),
++			GFP_KERNEL);
++	if (!pool->size_class) {
++		kfree(pool);
++		return NULL;
++	}
++
+ 	/*
+ 	 * Iterate reversly, because, size of size_class that we want to use
+ 	 * for merging should be larger or equal to current size.
+ 	 */
+-	for (i = ZS_SIZE_CLASSES - 1; i >= 0; i--) {
++	for (i = zs_size_classes - 1; i >= 0; i--) {
+ 		int size;
+ 		int pages_per_zspage;
+ 		struct size_class *class;
+@@ -1029,7 +1053,7 @@ void zs_destroy_pool(struct zs_pool *poo
+ {
+ 	int i;
+ 
+-	for (i = 0; i < ZS_SIZE_CLASSES; i++) {
++	for (i = 0; i < zs_size_classes; i++) {
+ 		int fg;
+ 		struct size_class *class = pool->size_class[i];
+ 
+@@ -1047,6 +1071,8 @@ void zs_destroy_pool(struct zs_pool *poo
+ 		}
+ 		kfree(class);
+ 	}
++
++	kfree(pool->size_class);
+ 	kfree(pool);
+ }
+ EXPORT_SYMBOL_GPL(zs_destroy_pool);
 _
 
-Patches currently in -mm which might be from karam.lee@lge.com are
+Patches currently in -mm which might be from opensource.ganesh@gmail.com are
 
 origin.patch
 
