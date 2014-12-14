@@ -1,64 +1,73 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- hugetlb-hugetlb_register_all_nodes-add-__init-marker.patch removed from -mm tree
-Date: Sat, 13 Dec 2014 20:07:20 -0800
-Message-ID: <548d0cf8.1la0M1cCo2qUHwML%akpm@linux-foundation.org>
+ mm-export-find_extend_vma-and-handle_mm_fault-for-driver-use.patch removed
+ from -mm tree
+Date: Sat, 13 Dec 2014 20:07:23 -0800
+Message-ID: <548d0cfb.T6GXLYploZMqj4Pl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47581 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47585 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752434AbaLNEHM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 13 Dec 2014 23:07:12 -0500
+	with ESMTP id S1753000AbaLNEHP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 13 Dec 2014 23:07:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lcapitulino@redhat.com, andi@firstfloor.org, dave@stgolabs.net, isimatu.yasuaki@jp.fujitsu.com, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, yinghai@kernel.org, mm-commits@vger.kernel.org
+To: jbarnes@virtuousgeek.org, jroedel@suse.de, oded.gabbay@amd.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: hugetlb_register_all_nodes(): add __init marker
+     Subject: mm: export find_extend_vma() and handle_mm_fault() for driver use
 has been removed from the -mm tree.  Its filename was
-     hugetlb-hugetlb_register_all_nodes-add-__init-marker.patch
+     mm-export-find_extend_vma-and-handle_mm_fault-for-driver-use.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Luiz Capitulino <lcapitulino@redhat.com>
-Subject: hugetlb: hugetlb_register_all_nodes(): add __init marker
+From: Jesse Barnes <jbarnes@virtuousgeek.org>
+Subject: mm: export find_extend_vma() and handle_mm_fault() for driver use
 
-This function is only called during initialization.
+This lets drivers like the AMD IOMMUv2 driver handle faults a bit more
+simply, rather than doing tricks with page refs and get_user_pages().
 
-Signed-off-by: Luiz Capitulino <lcapitulino@redhat.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Signed-off-by: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Oded Gabbay <oded.gabbay@amd.com>
+Cc: Joerg Roedel <jroedel@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory.c |    1 +
+ mm/mmap.c   |    2 ++
+ 2 files changed, 3 insertions(+)
 
-diff -puN mm/hugetlb.c~hugetlb-hugetlb_register_all_nodes-add-__init-marker mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-hugetlb_register_all_nodes-add-__init-marker
-+++ a/mm/hugetlb.c
-@@ -2083,7 +2083,7 @@ static void hugetlb_register_node(struct
-  * devices of nodes that have memory.  All on-line nodes should have
-  * registered their associated device by this time.
-  */
--static void hugetlb_register_all_nodes(void)
-+static void __init hugetlb_register_all_nodes(void)
- {
- 	int nid;
+diff -puN mm/memory.c~mm-export-find_extend_vma-and-handle_mm_fault-for-driver-use mm/memory.c
+--- a/mm/memory.c~mm-export-find_extend_vma-and-handle_mm_fault-for-driver-use
++++ a/mm/memory.c
+@@ -3365,6 +3365,7 @@ int handle_mm_fault(struct mm_struct *mm
  
+ 	return ret;
+ }
++EXPORT_SYMBOL_GPL(handle_mm_fault);
+ 
+ #ifndef __PAGETABLE_PUD_FOLDED
+ /*
+diff -puN mm/mmap.c~mm-export-find_extend_vma-and-handle_mm_fault-for-driver-use mm/mmap.c
+--- a/mm/mmap.c~mm-export-find_extend_vma-and-handle_mm_fault-for-driver-use
++++ a/mm/mmap.c
+@@ -2362,6 +2362,8 @@ find_extend_vma(struct mm_struct *mm, un
+ }
+ #endif
+ 
++EXPORT_SYMBOL_GPL(find_extend_vma);
++
+ /*
+  * Ok - we have the memory areas we should free on the vma list,
+  * so release them, and do the vma updates.
 _
 
-Patches currently in -mm which might be from lcapitulino@redhat.com are
+Patches currently in -mm which might be from jbarnes@virtuousgeek.org are
 
 origin.patch
 linux-next.patch
