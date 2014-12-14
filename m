@@ -1,63 +1,98 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- lib-consistency-of-compress-formats-for-kernel-image.patch removed from -mm tree
-Date: Sat, 13 Dec 2014 20:10:02 -0800
-Message-ID: <548d0d9a.RN0U86dPDepdR54W%akpm@linux-foundation.org>
+ ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb.patch removed from
+ -mm tree
+Date: Sat, 13 Dec 2014 20:10:05 -0800
+Message-ID: <548d0d9d.vG7RNajrPQIeOLXw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47892 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47893 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752615AbaLNEJy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 13 Dec 2014 23:09:54 -0500
+	with ESMTP id S1753031AbaLNEJ5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 13 Dec 2014 23:09:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matia.kim@lge.com, mm-commits@vger.kernel.org
+To: manfred@colorfullife.com, aquini@redhat.com, dave@stgolabs.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/decompress.c: consistency of compress formats for kernel image
+     Subject: ipc/sem.c: change memory barrier in sem_lock() to smp_rmb()
 has been removed from the -mm tree.  Its filename was
-     lib-consistency-of-compress-formats-for-kernel-image.patch
+     ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Haesung Kim <matia.kim@lge.com>
-Subject: lib/decompress.c: consistency of compress formats for kernel image
+From: Manfred Spraul <manfred@colorfullife.com>
+Subject: ipc/sem.c: change memory barrier in sem_lock() to smp_rmb()
 
-Magic number of compress formats for kernel image is defined by two bytes.
- These numbers are written in hexadecimal number, nevertheless magic
-number for only gunzip is written in octal number.  The formats should be
-consistent for readability.  Therefore, magic numbers for gunzip are also
-defined by hexadecimal number.
+When I fixed bugs in the sem_lock() logic, I was more conservative than
+necessary.  Therefore it is safe to replace the smp_mb() with smp_rmb(). 
+And: With smp_rmb(), semop() syscalls are up to 10% faster.
 
-Signed-off-by: Haesung Kim <matia.kim@lge.com>
+The race we must protect against is:
+
+	sem->lock is free
+	sma->complex_count = 0
+	sma->sem_perm.lock held by thread B
+
+thread A:
+
+A: spin_lock(&sem->lock)
+
+			B: sma->complex_count++; (now 1)
+			B: spin_unlock(&sma->sem_perm.lock);
+
+A: spin_is_locked(&sma->sem_perm.lock);
+A: XXXXX memory barrier
+A: if (sma->complex_count == 0)
+
+Thread A must read the increased complex_count value, i.e. the read must
+not be reordered with the read of sem_perm.lock done by spin_is_locked().
+
+Since it's about ordering of reads, smp_rmb() is sufficient.
+
+[akpm@linux-foundation.org: update sem_lock() comment, from Davidlohr]
+Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
+Reviewed-by: Davidlohr Bueso <dave@stgolabs.net>
+Acked-by: Rafael Aquini <aquini@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/decompress.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ ipc/sem.c |   13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
 
-diff -puN lib/decompress.c~lib-consistency-of-compress-formats-for-kernel-image lib/decompress.c
---- a/lib/decompress.c~lib-consistency-of-compress-formats-for-kernel-image
-+++ a/lib/decompress.c
-@@ -44,8 +44,8 @@ struct compress_format {
- };
+diff -puN ipc/sem.c~ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb ipc/sem.c
+--- a/ipc/sem.c~ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb
++++ a/ipc/sem.c
+@@ -326,10 +326,17 @@ static inline int sem_lock(struct sem_ar
  
- static const struct compress_format compressed_formats[] __initconst = {
--	{ {037, 0213}, "gzip", gunzip },
--	{ {037, 0236}, "gzip", gunzip },
-+	{ {0x1f, 0x8b}, "gzip", gunzip },
-+	{ {0x1f, 0x9e}, "gzip", gunzip },
- 	{ {0x42, 0x5a}, "bzip2", bunzip2 },
- 	{ {0x5d, 0x00}, "lzma", unlzma },
- 	{ {0xfd, 0x37}, "xz", unxz },
+ 		/* Then check that the global lock is free */
+ 		if (!spin_is_locked(&sma->sem_perm.lock)) {
+-			/* spin_is_locked() is not a memory barrier */
+-			smp_mb();
++			/*
++			 * The ipc object lock check must be visible on all
++			 * cores before rechecking the complex count.  Otherwise
++			 * we can race with  another thread that does:
++			 *	complex_count++;
++			 *	spin_unlock(sem_perm.lock);
++			 */
++			smp_rmb();
+ 
+-			/* Now repeat the test of complex_count:
++			/*
++			 * Now repeat the test of complex_count:
+ 			 * It can't change anymore until we drop sem->lock.
+ 			 * Thus: if is now 0, then it will stay 0.
+ 			 */
 _
 
-Patches currently in -mm which might be from matia.kim@lge.com are
+Patches currently in -mm which might be from manfred@colorfullife.com are
 
 origin.patch
+slab-leaks3-default-y.patch
 
