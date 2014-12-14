@@ -1,74 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-mincore-add-hwpoison-page-handle.patch removed from
- -mm tree
-Date: Sat, 13 Dec 2014 20:07:06 -0800
-Message-ID: <548d0cea.QOIHsFVeVBA6qymT%akpm@linux-foundation.org>
+Subject: [merged] memcg-zap-kmem_account_flags.patch removed from -mm tree
+Date: Sat, 13 Dec 2014 20:07:09 -0800
+Message-ID: <548d0ced.6cOY7L1QNJat0Opq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47544 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47551 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752948AbaLNEG6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 13 Dec 2014 23:06:58 -0500
+	with ESMTP id S1752959AbaLNEHB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 13 Dec 2014 23:07:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: weijie.yang@samsung.com, hannes@cmpxchg.org, hughd@google.com, mgorman@suse.com, n-horiguchi@ah.jp.nec.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: vdavydov@parallels.com, hannes@cmpxchg.org, mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: mincore: add hwpoison page handle
+     Subject: memcg: zap kmem_account_flags
 has been removed from the -mm tree.  Its filename was
-     mm-mincore-add-hwpoison-page-handle.patch
+     memcg-zap-kmem_account_flags.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Weijie Yang <weijie.yang@samsung.com>
-Subject: mm: mincore: add hwpoison page handle
+From: Vladimir Davydov <vdavydov@parallels.com>
+Subject: memcg: zap kmem_account_flags
 
-When the encountered pte is a swap entry, the current code handles two
-cases: migration and normal swapentry, but we have a third case: hwpoison
-page.
+The only such flag is KMEM_ACCOUNTED_ACTIVE, but it's set iff
+mem_cgroup->kmemcg_id is initialized, so we can check kmemcg_id instead of
+having a separate flags field.
 
-This patch adds hwpoison page handle, consider hwpoison page incore as
-same as migration.
-
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Weijie Yang <weijie.yang@samsung.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mgorman@suse.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Rik van Riel <riel@redhat.com>
-Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mincore.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ mm/memcontrol.c |   31 ++++++++++---------------------
+ 1 file changed, 10 insertions(+), 21 deletions(-)
 
-diff -puN mm/mincore.c~mm-mincore-add-hwpoison-page-handle mm/mincore.c
---- a/mm/mincore.c~mm-mincore-add-hwpoison-page-handle
-+++ a/mm/mincore.c
-@@ -137,8 +137,11 @@ static void mincore_pte_range(struct vm_
- 		} else { /* pte is a swap entry */
- 			swp_entry_t entry = pte_to_swp_entry(pte);
+diff -puN mm/memcontrol.c~memcg-zap-kmem_account_flags mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-zap-kmem_account_flags
++++ a/mm/memcontrol.c
+@@ -296,7 +296,6 @@ struct mem_cgroup {
+ 	 * Should the accounting and control be hierarchical, per subtree?
+ 	 */
+ 	bool use_hierarchy;
+-	unsigned long kmem_account_flags; /* See KMEM_ACCOUNTED_*, below */
  
--			if (is_migration_entry(entry)) {
--				/* migration entries are always uptodate */
-+			if (non_swap_entry(entry)) {
-+				/*
-+				 * migration or hwpoison entries are always
-+				 * uptodate
-+				 */
- 				*vec = 1;
- 			} else {
- #ifdef CONFIG_SWAP
+ 	bool		oom_lock;
+ 	atomic_t	under_oom;
+@@ -366,22 +365,11 @@ struct mem_cgroup {
+ 	/* WARNING: nodeinfo must be the last member here */
+ };
+ 
+-/* internal only representation about the status of kmem accounting. */
+-enum {
+-	KMEM_ACCOUNTED_ACTIVE, /* accounted by this cgroup itself */
+-};
+-
+ #ifdef CONFIG_MEMCG_KMEM
+-static inline void memcg_kmem_set_active(struct mem_cgroup *memcg)
+-{
+-	set_bit(KMEM_ACCOUNTED_ACTIVE, &memcg->kmem_account_flags);
+-}
+-
+ static bool memcg_kmem_is_active(struct mem_cgroup *memcg)
+ {
+-	return test_bit(KMEM_ACCOUNTED_ACTIVE, &memcg->kmem_account_flags);
++	return memcg->kmemcg_id >= 0;
+ }
+-
+ #endif
+ 
+ /* Stuffs for move charges at task migration. */
+@@ -3564,23 +3552,21 @@ static int memcg_activate_kmem(struct me
+ 		goto out;
+ 	}
+ 
+-	memcg->kmemcg_id = memcg_id;
+-	INIT_LIST_HEAD(&memcg->memcg_slab_caches);
+-
+ 	/*
+-	 * We couldn't have accounted to this cgroup, because it hasn't got the
+-	 * active bit set yet, so this should succeed.
++	 * We couldn't have accounted to this cgroup, because it hasn't got
++	 * activated yet, so this should succeed.
+ 	 */
+ 	err = page_counter_limit(&memcg->kmem, nr_pages);
+ 	VM_BUG_ON(err);
+ 
+ 	static_key_slow_inc(&memcg_kmem_enabled_key);
+ 	/*
+-	 * Setting the active bit after enabling static branching will
++	 * A memory cgroup is considered kmem-active as soon as it gets
++	 * kmemcg_id. Setting the id after enabling static branching will
+ 	 * guarantee no one starts accounting before all call sites are
+ 	 * patched.
+ 	 */
+-	memcg_kmem_set_active(memcg);
++	memcg->kmemcg_id = memcg_id;
+ out:
+ 	return err;
+ }
+@@ -4252,7 +4238,6 @@ static int memcg_init_kmem(struct mem_cg
+ {
+ 	int ret;
+ 
+-	memcg->kmemcg_id = -1;
+ 	ret = memcg_propagate_kmem(memcg);
+ 	if (ret)
+ 		return ret;
+@@ -4786,6 +4771,10 @@ mem_cgroup_css_alloc(struct cgroup_subsy
+ 	vmpressure_init(&memcg->vmpressure);
+ 	INIT_LIST_HEAD(&memcg->event_list);
+ 	spin_lock_init(&memcg->event_list_lock);
++#ifdef CONFIG_MEMCG_KMEM
++	memcg->kmemcg_id = -1;
++	INIT_LIST_HEAD(&memcg->memcg_slab_caches);
++#endif
+ 
+ 	return &memcg->css;
+ 
 _
 
-Patches currently in -mm which might be from weijie.yang@samsung.com are
+Patches currently in -mm which might be from vdavydov@parallels.com are
 
 origin.patch
-mm-page_isolation-check-pfn-validity-before-access.patch
+linux-next.patch
 
