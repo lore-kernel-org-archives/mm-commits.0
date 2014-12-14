@@ -1,155 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: [merged] gcov-enable-gcov_profile_all-from-arch-kconfigs.patch
- removed from -mm tree
-Date: Sat, 13 Dec 2014 20:09:36 -0800
-Message-ID: <548d0d80.Hvbg0wJwQ0tIDlCk%akpm@linux-foundation.org>
+Subject: [merged] fs-affs-filec-forward-declaration-clean-up.patch removed from -mm tree
+Date: Sat, 13 Dec 2014 20:09:39 -0800
+Message-ID: <548d0d83.TmsLMO2SBuXfN0u/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47863 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47868 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752959AbaLNEJ2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 13 Dec 2014 23:09:28 -0500
+	with ESMTP id S1751475AbaLNEJb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 13 Dec 2014 23:09:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: riku.voipio@linaro.org, oberpar@linux.vnet.ibm.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: fabf@skynet.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: gcov: enable GCOV_PROFILE_ALL from ARCH Kconfigs
+     Subject: fs/affs/file.c: forward declaration clean-up
 has been removed from the -mm tree.  Its filename was
-     gcov-enable-gcov_profile_all-from-arch-kconfigs.patch
+     fs-affs-filec-forward-declaration-clean-up.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Riku Voipio <riku.voipio@linaro.org>
-Subject: gcov: enable GCOV_PROFILE_ALL from ARCH Kconfigs
+From: Fabian Frederick <fabf@skynet.be>
+Subject: fs/affs/file.c: forward declaration clean-up
 
-Following the suggestions from Andrew Morton and Stephen Rothwell,
-Dont expand the ARCH list in kernel/gcov/Kconfig. Instead,
-define a ARCH_HAS_GCOV_PROFILE_ALL bool which architectures
-can enable.
+-Move file_operations to avoid forward declarations.
 
-set ARCH_HAS_GCOV_PROFILE_ALL on Architectures where it was
-previously allowed + ARM64 which I tested.
+-Remove unused declarations.
 
-Signed-off-by: Riku Voipio <riku.voipio@linaro.org>
-Cc: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/Kconfig        |    1 +
- arch/arm64/Kconfig      |    1 +
- arch/microblaze/Kconfig |    1 +
- arch/powerpc/Kconfig    |    1 +
- arch/s390/Kconfig       |    1 +
- arch/sh/Kconfig         |    1 +
- arch/x86/Kconfig        |    1 +
- kernel/gcov/Kconfig     |    5 ++++-
- 8 files changed, 11 insertions(+), 1 deletion(-)
+ fs/affs/file.c |   38 ++++++++++++++++----------------------
+ 1 file changed, 16 insertions(+), 22 deletions(-)
 
-diff -puN arch/arm/Kconfig~gcov-enable-gcov_profile_all-from-arch-kconfigs arch/arm/Kconfig
---- a/arch/arm/Kconfig~gcov-enable-gcov_profile_all-from-arch-kconfigs
-+++ a/arch/arm/Kconfig
-@@ -5,6 +5,7 @@ config ARM
- 	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
- 	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
- 	select ARCH_HAVE_CUSTOM_GPIO_H
-+	select ARCH_HAS_GCOV_PROFILE_ALL
- 	select ARCH_MIGHT_HAVE_PC_PARPORT
- 	select ARCH_SUPPORTS_ATOMIC_RMW
- 	select ARCH_USE_BUILTIN_BSWAP
-diff -puN arch/arm64/Kconfig~gcov-enable-gcov_profile_all-from-arch-kconfigs arch/arm64/Kconfig
---- a/arch/arm64/Kconfig~gcov-enable-gcov_profile_all-from-arch-kconfigs
-+++ a/arch/arm64/Kconfig
-@@ -2,6 +2,7 @@ config ARM64
- 	def_bool y
- 	select ARCH_BINFMT_ELF_RANDOMIZE_PIE
- 	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
-+	select ARCH_HAS_GCOV_PROFILE_ALL
- 	select ARCH_HAS_SG_CHAIN
- 	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
- 	select ARCH_USE_CMPXCHG_LOCKREF
-diff -puN arch/microblaze/Kconfig~gcov-enable-gcov_profile_all-from-arch-kconfigs arch/microblaze/Kconfig
---- a/arch/microblaze/Kconfig~gcov-enable-gcov_profile_all-from-arch-kconfigs
-+++ a/arch/microblaze/Kconfig
-@@ -1,5 +1,6 @@
- config MICROBLAZE
- 	def_bool y
-+	select ARCH_HAS_GCOV_PROFILE_ALL
- 	select ARCH_MIGHT_HAVE_PC_PARPORT
- 	select ARCH_WANT_IPC_PARSE_VERSION
- 	select ARCH_WANT_OPTIONAL_GPIOLIB
-diff -puN arch/powerpc/Kconfig~gcov-enable-gcov_profile_all-from-arch-kconfigs arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~gcov-enable-gcov_profile_all-from-arch-kconfigs
-+++ a/arch/powerpc/Kconfig
-@@ -129,6 +129,7 @@ config PPC
- 	select HAVE_BPF_JIT if PPC64
- 	select HAVE_ARCH_JUMP_LABEL
- 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
-+	select ARCH_HAS_GCOV_PROFILE_ALL
- 	select GENERIC_SMP_IDLE_THREAD
- 	select GENERIC_CMOS_UPDATE
- 	select GENERIC_TIME_VSYSCALL_OLD
-diff -puN arch/s390/Kconfig~gcov-enable-gcov_profile_all-from-arch-kconfigs arch/s390/Kconfig
---- a/arch/s390/Kconfig~gcov-enable-gcov_profile_all-from-arch-kconfigs
-+++ a/arch/s390/Kconfig
-@@ -65,6 +65,7 @@ config S390
- 	def_bool y
- 	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
- 	select ARCH_HAS_DEBUG_STRICT_USER_COPY_CHECKS
-+	select ARCH_HAS_GCOV_PROFILE_ALL
- 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
- 	select ARCH_INLINE_READ_LOCK
- 	select ARCH_INLINE_READ_LOCK_BH
-diff -puN arch/sh/Kconfig~gcov-enable-gcov_profile_all-from-arch-kconfigs arch/sh/Kconfig
---- a/arch/sh/Kconfig~gcov-enable-gcov_profile_all-from-arch-kconfigs
-+++ a/arch/sh/Kconfig
-@@ -16,6 +16,7 @@ config SUPERH
- 	select HAVE_DEBUG_BUGVERBOSE
- 	select ARCH_HAVE_CUSTOM_GPIO_H
- 	select ARCH_HAVE_NMI_SAFE_CMPXCHG if (GUSA_RB || CPU_SH4A)
-+	select ARCH_HAS_GCOV_PROFILE_ALL
- 	select PERF_USE_VMALLOC
- 	select HAVE_DEBUG_KMEMLEAK
- 	select HAVE_KERNEL_GZIP
-diff -puN arch/x86/Kconfig~gcov-enable-gcov_profile_all-from-arch-kconfigs arch/x86/Kconfig
---- a/arch/x86/Kconfig~gcov-enable-gcov_profile_all-from-arch-kconfigs
-+++ a/arch/x86/Kconfig
-@@ -24,6 +24,7 @@ config X86
- 	select ARCH_MIGHT_HAVE_ACPI_PDC if ACPI
- 	select ARCH_HAS_DEBUG_STRICT_USER_COPY_CHECKS
- 	select ARCH_HAS_FAST_MULTIPLIER
-+	select ARCH_HAS_GCOV_PROFILE_ALL
- 	select ARCH_MIGHT_HAVE_PC_PARPORT
- 	select ARCH_MIGHT_HAVE_PC_SERIO
- 	select HAVE_AOUT if X86_32
-diff -puN kernel/gcov/Kconfig~gcov-enable-gcov_profile_all-from-arch-kconfigs kernel/gcov/Kconfig
---- a/kernel/gcov/Kconfig~gcov-enable-gcov_profile_all-from-arch-kconfigs
-+++ a/kernel/gcov/Kconfig
-@@ -32,10 +32,13 @@ config GCOV_KERNEL
- 	Note that the debugfs filesystem has to be mounted to access
- 	profiling data.
+diff -puN fs/affs/file.c~fs-affs-filec-forward-declaration-clean-up fs/affs/file.c
+--- a/fs/affs/file.c~fs-affs-filec-forward-declaration-clean-up
++++ a/fs/affs/file.c
+@@ -18,29 +18,7 @@
+ #error PAGE_SIZE must be at least 4096
+ #endif
  
-+config ARCH_HAS_GCOV_PROFILE_ALL
-+	def_bool n
+-static int affs_grow_extcache(struct inode *inode, u32 lc_idx);
+-static struct buffer_head *affs_alloc_extblock(struct inode *inode, struct buffer_head *bh, u32 ext);
+-static inline struct buffer_head *affs_get_extblock(struct inode *inode, u32 ext);
+ static struct buffer_head *affs_get_extblock_slow(struct inode *inode, u32 ext);
+-static int affs_file_open(struct inode *inode, struct file *filp);
+-static int affs_file_release(struct inode *inode, struct file *filp);
+-
+-const struct file_operations affs_file_operations = {
+-	.llseek		= generic_file_llseek,
+-	.read		= new_sync_read,
+-	.read_iter	= generic_file_read_iter,
+-	.write		= new_sync_write,
+-	.write_iter	= generic_file_write_iter,
+-	.mmap		= generic_file_mmap,
+-	.open		= affs_file_open,
+-	.release	= affs_file_release,
+-	.fsync		= affs_file_fsync,
+-	.splice_read	= generic_file_splice_read,
+-};
+-
+-const struct inode_operations affs_file_inode_operations = {
+-	.setattr	= affs_notify_change,
+-};
+ 
+ static int
+ affs_file_open(struct inode *inode, struct file *filp)
+@@ -961,3 +939,19 @@ int affs_file_fsync(struct file *filp, l
+ 	mutex_unlock(&inode->i_mutex);
+ 	return ret;
+ }
++const struct file_operations affs_file_operations = {
++	.llseek		= generic_file_llseek,
++	.read		= new_sync_read,
++	.read_iter	= generic_file_read_iter,
++	.write		= new_sync_write,
++	.write_iter	= generic_file_write_iter,
++	.mmap		= generic_file_mmap,
++	.open		= affs_file_open,
++	.release	= affs_file_release,
++	.fsync		= affs_file_fsync,
++	.splice_read	= generic_file_splice_read,
++};
 +
- config GCOV_PROFILE_ALL
- 	bool "Profile entire Kernel"
- 	depends on GCOV_KERNEL
--	depends on SUPERH || S390 || X86 || PPC || MICROBLAZE || ARM || ARM64
-+	depends on ARCH_HAS_GCOV_PROFILE_ALL
- 	default n
- 	---help---
- 	This options activates profiling for the entire kernel.
++const struct inode_operations affs_file_inode_operations = {
++	.setattr	= affs_notify_change,
++};
 _
 
-Patches currently in -mm which might be from riku.voipio@linaro.org are
+Patches currently in -mm which might be from fabf@skynet.be are
 
 origin.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
 linux-next.patch
 
