@@ -1,131 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: [merged] zsmalloc-fix-zs_init-cpu-notifier-error-handling.patch
- removed from -mm tree
-Date: Sat, 13 Dec 2014 20:08:45 -0800
-Message-ID: <548d0d4d.N1IORoFU676w71fa%akpm@linux-foundation.org>
+Subject: [merged] zsmalloc-correct-fragile-_atomic-use.patch removed from
+ -mm tree
+Date: Sat, 13 Dec 2014 20:08:48 -0800
+Message-ID: <548d0d50.7vl3FM2EvsrNFTR+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47757 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47763 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752860AbaLNEIh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 13 Dec 2014 23:08:37 -0500
+	with ESMTP id S1752860AbaLNEIl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 13 Dec 2014 23:08:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sergey.senozhatsky@gmail.com, minchan@kernel.org, ngupta@vflare.org, opensource.ganesh@gmail.com, mm-commits@vger.kernel.org
+To: minchan@kernel.org, ddstreet@ieee.org, jmarchan@redhat.com, ngupta@vflare.org, sergey.senozhatsky@gmail.com, sjennings@variantweb.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: fix zs_init cpu notifier error handling
+     Subject: zsmalloc: correct fragile [kmap|kunmap]_atomic use
 has been removed from the -mm tree.  Its filename was
-     zsmalloc-fix-zs_init-cpu-notifier-error-handling.patch
+     zsmalloc-correct-fragile-_atomic-use.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: zsmalloc: fix zs_init cpu notifier error handling
+From: Minchan Kim <minchan@kernel.org>
+Subject: zsmalloc: correct fragile [kmap|kunmap]_atomic use
 
-Mahendran Ganesh reported that zpool-enabled zsmalloc should not call
-zpool_unregister_driver() from zs_init() if cpu notifier registration has
-failed, because error handling is performed before we register the driver
-via zpool_register_driver() call.
+The kunmap_atomic should use virtual address getting by kmap_atomic. 
+However, some pieces of code in zsmalloc uses modified address, not the
+one got by kmap_atomic for kunmap_atomic.
 
-Factor out cpu notifier registration and unregistration code and fix
-zs_init() error handling.
+It's okay for working because zsmalloc modifies the address inner
+PAGE_SIZE bounday so it works with current kmap_atomic's implementation. 
+But it's still fragile with potential changing of kmap_atomic so let's
+correct it.
 
-link: http://lkml.iu.edu//hypermail/linux/kernel/1411.1/04156.html
-[akpm@linux-foundation.org: squash bogus gcc warning]
-[akpm@linux-foundation.org: use __init and __exit]
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Reported-by: Mahendran Ganesh <opensource.ganesh@gmail.com>
-Cc: Minchan Kim <minchan@kernel.org>
+I got a subtle bug when I implemented a new feature of zsmalloc
+(compaction) due to a link's mishandling (the link was over page
+boundary).  Although it was totally my mistake, it took a while to find
+the cause because an unpredictable kmapped address was unmapped causing an
+almost random crash.
+
+Signed-off-by: Minchan Kim <minchan@kernel.org>
 Cc: Nitin Gupta <ngupta@vflare.org>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Seth Jennings <sjennings@variantweb.net>
+Cc: Jerome Marchand <jmarchan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |   39 ++++++++++++++++++++++++---------------
- 1 file changed, 24 insertions(+), 15 deletions(-)
+ mm/zsmalloc.c |   21 ++++++++++++---------
+ 1 file changed, 12 insertions(+), 9 deletions(-)
 
-diff -puN mm/zsmalloc.c~zsmalloc-fix-zs_init-cpu-notifier-error-handling mm/zsmalloc.c
---- a/mm/zsmalloc.c~zsmalloc-fix-zs_init-cpu-notifier-error-handling
+diff -puN mm/zsmalloc.c~zsmalloc-correct-fragile-_atomic-use mm/zsmalloc.c
+--- a/mm/zsmalloc.c~zsmalloc-correct-fragile-_atomic-use
 +++ a/mm/zsmalloc.c
-@@ -881,14 +881,10 @@ static struct notifier_block zs_cpu_nb =
- 	.notifier_call = zs_cpu_notifier
- };
+@@ -629,6 +629,7 @@ static void init_zspage(struct page *fir
+ 		struct page *next_page;
+ 		struct link_free *link;
+ 		unsigned int i = 1;
++		void *vaddr;
  
--static void zs_exit(void)
-+static void zs_unregister_cpu_notifier(void)
- {
- 	int cpu;
+ 		/*
+ 		 * page->index stores offset of first object starting
+@@ -639,8 +640,8 @@ static void init_zspage(struct page *fir
+ 		if (page != first_page)
+ 			page->index = off;
  
--#ifdef CONFIG_ZPOOL
--	zpool_unregister_driver(&zs_zpool_driver);
--#endif
--
- 	cpu_notifier_register_begin();
+-		link = (struct link_free *)kmap_atomic(page) +
+-						off / sizeof(*link);
++		vaddr = kmap_atomic(page);
++		link = (struct link_free *)vaddr + off / sizeof(*link);
  
- 	for_each_online_cpu(cpu)
-@@ -898,31 +894,44 @@ static void zs_exit(void)
- 	cpu_notifier_register_done();
- }
- 
--static int zs_init(void)
-+static int zs_register_cpu_notifier(void)
- {
--	int cpu, ret;
-+	int cpu, uninitialized_var(ret);
- 
- 	cpu_notifier_register_begin();
- 
- 	__register_cpu_notifier(&zs_cpu_nb);
- 	for_each_online_cpu(cpu) {
- 		ret = zs_cpu_notifier(NULL, CPU_UP_PREPARE, (void *)(long)cpu);
--		if (notifier_to_errno(ret)) {
--			cpu_notifier_register_done();
--			goto fail;
--		}
-+		if (notifier_to_errno(ret))
-+			break;
+ 		while ((off += class->size) < PAGE_SIZE) {
+ 			link->next = obj_location_to_handle(page, i++);
+@@ -654,7 +655,7 @@ static void init_zspage(struct page *fir
+ 		 */
+ 		next_page = get_next_page(page);
+ 		link->next = obj_location_to_handle(next_page, 0);
+-		kunmap_atomic(link);
++		kunmap_atomic(vaddr);
+ 		page = next_page;
+ 		off %= PAGE_SIZE;
  	}
+@@ -1064,6 +1065,7 @@ unsigned long zs_malloc(struct zs_pool *
+ 	unsigned long obj;
+ 	struct link_free *link;
+ 	struct size_class *class;
++	void *vaddr;
  
- 	cpu_notifier_register_done();
-+	return notifier_to_errno(ret);
-+}
+ 	struct page *first_page, *m_page;
+ 	unsigned long m_objidx, m_offset;
+@@ -1092,11 +1094,11 @@ unsigned long zs_malloc(struct zs_pool *
+ 	obj_handle_to_location(obj, &m_page, &m_objidx);
+ 	m_offset = obj_idx_to_offset(m_page, m_objidx, class->size);
  
-+static void __exit zs_exit(void)
-+{
- #ifdef CONFIG_ZPOOL
--	zpool_register_driver(&zs_zpool_driver);
-+	zpool_unregister_driver(&zs_zpool_driver);
- #endif
-+	zs_unregister_cpu_notifier();
-+}
-+
-+static int __init zs_init(void)
-+{
-+	int ret = zs_register_cpu_notifier();
-+
-+	if (ret) {
-+		zs_unregister_cpu_notifier();
-+		return ret;
-+	}
+-	link = (struct link_free *)kmap_atomic(m_page) +
+-					m_offset / sizeof(*link);
++	vaddr = kmap_atomic(m_page);
++	link = (struct link_free *)vaddr + m_offset / sizeof(*link);
+ 	first_page->freelist = link->next;
+ 	memset(link, POISON_INUSE, sizeof(*link));
+-	kunmap_atomic(link);
++	kunmap_atomic(vaddr);
  
-+#ifdef CONFIG_ZPOOL
-+	zpool_register_driver(&zs_zpool_driver);
-+#endif
- 	return 0;
--fail:
--	zs_exit();
--	return notifier_to_errno(ret);
- }
+ 	first_page->inuse++;
+ 	/* Now move the zspage to another fullness group, if required */
+@@ -1112,6 +1114,7 @@ void zs_free(struct zs_pool *pool, unsig
+ 	struct link_free *link;
+ 	struct page *first_page, *f_page;
+ 	unsigned long f_objidx, f_offset;
++	void *vaddr;
  
- static unsigned int get_maxobj_per_zspage(int size, int pages_per_zspage)
+ 	int class_idx;
+ 	struct size_class *class;
+@@ -1130,10 +1133,10 @@ void zs_free(struct zs_pool *pool, unsig
+ 	spin_lock(&class->lock);
+ 
+ 	/* Insert this object in containing zspage's freelist */
+-	link = (struct link_free *)((unsigned char *)kmap_atomic(f_page)
+-							+ f_offset);
++	vaddr = kmap_atomic(f_page);
++	link = (struct link_free *)(vaddr + f_offset);
+ 	link->next = first_page->freelist;
+-	kunmap_atomic(link);
++	kunmap_atomic(vaddr);
+ 	first_page->freelist = (void *)obj;
+ 
+ 	first_page->inuse--;
 _
 
-Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
+Patches currently in -mm which might be from minchan@kernel.org are
 
 origin.patch
+mm-page_isolation-check-pfn-validity-before-access.patch
+mm-support-madvisemadv_free.patch
+mm-support-madvisemadv_free-fix.patch
+x86-add-pmd_-for-thp.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp.patch
+sparc-add-pmd_-for-thp-fix.patch
+powerpc-add-pmd_-for-thp.patch
+arm-add-pmd_mkclean-for-thp.patch
+arm64-add-pmd_-for-thp.patch
+mm-dont-split-thp-page-when-syscall-is-called.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-2.patch
 
