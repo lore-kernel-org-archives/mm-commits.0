@@ -1,150 +1,39 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mmfs-introduce-helpers-around-the-i_mmap_mutex.patch
- removed from -mm tree
-Date: Sat, 13 Dec 2014 20:06:20 -0800
-Message-ID: <548d0cbc.z68HvTC2DSSxKHc/%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-use-new-helper-functions-around-the-i_mmap_mutex.patch removed from -mm
+ tree
+Date: Sat, 13 Dec 2014 20:06:23 -0800
+Message-ID: <548d0cbf.2CBeNYneIR2MBqyb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47419 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47431 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751715AbaLNEGN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 13 Dec 2014 23:06:13 -0500
+	with ESMTP id S1751715AbaLNEGQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 13 Dec 2014 23:06:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: dave@stgolabs.net, dbueso@suse.de, hughd@google.com, kirill@shutemov.name, mgorman@suse.de, oleg@redhat.com, peterz@infradead.org, riel@redhat.com, srikar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,fs: introduce helpers around the i_mmap_mutex
+     Subject: mm: use new helper functions around the i_mmap_mutex
 has been removed from the -mm tree.  Its filename was
-     mmfs-introduce-helpers-around-the-i_mmap_mutex.patch
+     mm-use-new-helper-functions-around-the-i_mmap_mutex.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: mm,fs: introduce helpers around the i_mmap_mutex
+Subject: mm: use new helper functions around the i_mmap_mutex
 
-This series is a continuation of the conversion of the i_mmap_mutex to
-rwsem, following what we have for the anon memory counterpart.  With
-Hugh's feedback from the first iteration.
-
-Ultimately, the most obvious paths that require exclusive ownership of the
-lock is when we modify the VMA interval tree, via
-vma_interval_tree_insert() and vma_interval_tree_remove() families.  Cases
-such as unmapping, where the ptes content is changed but the tree remains
-untouched should make it safe to share the i_mmap_rwsem.
-
-As such, the code of course is straightforward, however the devil is very
-much in the details.  While its been tested on a number of workloads
-without anything exploding, I would not be surprised if there are some
-less documented/known assumptions about the lock that could suffer from
-these changes.  Or maybe I'm just missing something, but either way I
-believe its at the point where it could use more eyes and hopefully some
-time in linux-next.
-
-Because the lock type conversion is the heart of this patchset,
-its worth noting a few comparisons between mutex vs rwsem (xadd):
-
-  (i) Same size, no extra footprint.
-
-  (ii) Both have CONFIG_XXX_SPIN_ON_OWNER capabilities for
-       exclusive lock ownership.
-
-  (iii) Both can be slightly unfair wrt exclusive ownership, with
-        writer lock stealing properties, not necessarily respecting
-        FIFO order for granting the lock when contended.
-
-  (iv) Mutexes can be slightly faster than rwsems when
-       the lock is non-contended.
-
-  (v) Both suck at performance for debug (slowpaths), which
-      shouldn't matter anyway.
-
-Sharing the lock is obviously beneficial, and sem writer ownership is
-close enough to mutexes.  The biggest winner of these changes is
-migration.
-
-As for concrete numbers, the following performance results are for a
-4-socket 60-core IvyBridge-EX with 130Gb of RAM.
-
-Both alltests and disk (xfs+ramdisk) workloads of aim7 suite do quite well
-with this set, with a steady ~60% throughput (jpm) increase for alltests
-and up to ~30% for disk for high amounts of concurrency.  Lower counts of
-workload users (< 100) does not show much difference at all, so at least
-no regressions.
-
-                    3.18-rc1            3.18-rc1-i_mmap_rwsem
-alltests-100     17918.72 (  0.00%)    28417.97 ( 58.59%)
-alltests-200     16529.39 (  0.00%)    26807.92 ( 62.18%)
-alltests-300     16591.17 (  0.00%)    26878.08 ( 62.00%)
-alltests-400     16490.37 (  0.00%)    26664.63 ( 61.70%)
-alltests-500     16593.17 (  0.00%)    26433.72 ( 59.30%)
-alltests-600     16508.56 (  0.00%)    26409.20 ( 59.97%)
-alltests-700     16508.19 (  0.00%)    26298.58 ( 59.31%)
-alltests-800     16437.58 (  0.00%)    26433.02 ( 60.81%)
-alltests-900     16418.35 (  0.00%)    26241.61 ( 59.83%)
-alltests-1000    16369.00 (  0.00%)    26195.76 ( 60.03%)
-alltests-1100    16330.11 (  0.00%)    26133.46 ( 60.03%)
-alltests-1200    16341.30 (  0.00%)    26084.03 ( 59.62%)
-alltests-1300    16304.75 (  0.00%)    26024.74 ( 59.61%)
-alltests-1400    16231.08 (  0.00%)    25952.35 ( 59.89%)
-alltests-1500    16168.06 (  0.00%)    25850.58 ( 59.89%)
-alltests-1600    16142.56 (  0.00%)    25767.42 ( 59.62%)
-alltests-1700    16118.91 (  0.00%)    25689.58 ( 59.38%)
-alltests-1800    16068.06 (  0.00%)    25599.71 ( 59.32%)
-alltests-1900    16046.94 (  0.00%)    25525.92 ( 59.07%)
-alltests-2000    16007.26 (  0.00%)    25513.07 ( 59.38%)
-
-disk-100          7582.14 (  0.00%)     7257.48 ( -4.28%)
-disk-200          6962.44 (  0.00%)     7109.15 (  2.11%)
-disk-300          6435.93 (  0.00%)     6904.75 (  7.28%)
-disk-400          6370.84 (  0.00%)     6861.26 (  7.70%)
-disk-500          6353.42 (  0.00%)     6846.71 (  7.76%)
-disk-600          6368.82 (  0.00%)     6806.75 (  6.88%)
-disk-700          6331.37 (  0.00%)     6796.01 (  7.34%)
-disk-800          6324.22 (  0.00%)     6788.00 (  7.33%)
-disk-900          6253.52 (  0.00%)     6750.43 (  7.95%)
-disk-1000         6242.53 (  0.00%)     6855.11 (  9.81%)
-disk-1100         6234.75 (  0.00%)     6858.47 ( 10.00%)
-disk-1200         6312.76 (  0.00%)     6845.13 (  8.43%)
-disk-1300         6309.95 (  0.00%)     6834.51 (  8.31%)
-disk-1400         6171.76 (  0.00%)     6787.09 (  9.97%)
-disk-1500         6139.81 (  0.00%)     6761.09 ( 10.12%)
-disk-1600         4807.12 (  0.00%)     6725.33 ( 39.90%)
-disk-1700         4669.50 (  0.00%)     5985.38 ( 28.18%)
-disk-1800         4663.51 (  0.00%)     5972.99 ( 28.08%)
-disk-1900         4674.31 (  0.00%)     5949.94 ( 27.29%)
-disk-2000         4668.36 (  0.00%)     5834.93 ( 24.99%)
-
-In addition, a 67.5% increase in successfully migrated NUMA pages, thus
-improving node locality.
-
-The patch layout is simple but designed for bisection (in case reversion
-is needed if the changes break upstream) and easier review:
-
-o Patches 1-4 convert the i_mmap lock from mutex to rwsem.
-o Patches 5-10 share the lock in specific paths, each patch
-  details the rationale behind why it should be safe.
-
-This patchset has been tested with: postgres 9.4 (with brand new hugetlb
-support), hugetlbfs test suite (all tests pass, in fact more tests pass
-with these changes than with an upstream kernel), ltp, aim7 benchmarks,
-memcached and iozone with the -B option for mmap'ing.  *Untested* paths
-are nommu, memory-failure, uprobes and xip.
-
-
-This patch (of 8):
-
-Various parts of the kernel acquire and release this mutex, so add
-i_mmap_lock_write() and immap_unlock_write() helper functions that will
-encapsulate this logic.  The next patch will make use of these.
+Convert all open coded mutex_lock/unlock calls to the
+i_mmap_[lock/unlock]_write() helpers.
 
 Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
-Reviewed-by: Rik van Riel <riel@redhat.com>
+Acked-by: Rik van Riel <riel@redhat.com>
 Acked-by: "Kirill A. Shutemov" <kirill@shutemov.name>
 Acked-by: Hugh Dickins <hughd@google.com>
 Cc: Oleg Nesterov <oleg@redhat.com>
@@ -154,29 +43,364 @@ Acked-by: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fs.h |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ fs/hugetlbfs/inode.c    |    4 ++--
+ kernel/events/uprobes.c |    4 ++--
+ kernel/fork.c           |    4 ++--
+ mm/filemap_xip.c        |    4 ++--
+ mm/hugetlb.c            |   12 ++++++------
+ mm/memory-failure.c     |    4 ++--
+ mm/memory.c             |    8 ++++----
+ mm/mmap.c               |   14 +++++++-------
+ mm/mremap.c             |    4 ++--
+ mm/nommu.c              |   14 +++++++-------
+ mm/rmap.c               |    4 ++--
+ 11 files changed, 38 insertions(+), 38 deletions(-)
 
-diff -puN include/linux/fs.h~mmfs-introduce-helpers-around-the-i_mmap_mutex include/linux/fs.h
---- a/include/linux/fs.h~mmfs-introduce-helpers-around-the-i_mmap_mutex
-+++ a/include/linux/fs.h
-@@ -467,6 +467,16 @@ struct block_device {
+diff -puN fs/hugetlbfs/inode.c~mm-use-new-helper-functions-around-the-i_mmap_mutex fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~mm-use-new-helper-functions-around-the-i_mmap_mutex
++++ a/fs/hugetlbfs/inode.c
+@@ -412,10 +412,10 @@ static int hugetlb_vmtruncate(struct ino
+ 	pgoff = offset >> PAGE_SHIFT;
  
- int mapping_tagged(struct address_space *mapping, int tag);
+ 	i_size_write(inode, offset);
+-	mutex_lock(&mapping->i_mmap_mutex);
++	i_mmap_lock_write(mapping);
+ 	if (!RB_EMPTY_ROOT(&mapping->i_mmap))
+ 		hugetlb_vmtruncate_list(&mapping->i_mmap, pgoff);
+-	mutex_unlock(&mapping->i_mmap_mutex);
++	i_mmap_unlock_write(mapping);
+ 	truncate_hugepages(inode, offset);
+ 	return 0;
+ }
+diff -puN kernel/events/uprobes.c~mm-use-new-helper-functions-around-the-i_mmap_mutex kernel/events/uprobes.c
+--- a/kernel/events/uprobes.c~mm-use-new-helper-functions-around-the-i_mmap_mutex
++++ a/kernel/events/uprobes.c
+@@ -724,7 +724,7 @@ build_map_info(struct address_space *map
+ 	int more = 0;
  
-+static inline void i_mmap_lock_write(struct address_space *mapping)
-+{
-+	mutex_lock(&mapping->i_mmap_mutex);
-+}
-+
-+static inline void i_mmap_unlock_write(struct address_space *mapping)
-+{
-+	mutex_unlock(&mapping->i_mmap_mutex);
-+}
-+
+  again:
+-	mutex_lock(&mapping->i_mmap_mutex);
++	i_mmap_lock_write(mapping);
+ 	vma_interval_tree_foreach(vma, &mapping->i_mmap, pgoff, pgoff) {
+ 		if (!valid_vma(vma, is_register))
+ 			continue;
+@@ -755,7 +755,7 @@ build_map_info(struct address_space *map
+ 		info->mm = vma->vm_mm;
+ 		info->vaddr = offset_to_vaddr(vma, offset);
+ 	}
+-	mutex_unlock(&mapping->i_mmap_mutex);
++	i_mmap_unlock_write(mapping);
+ 
+ 	if (!more)
+ 		goto out;
+diff -puN kernel/fork.c~mm-use-new-helper-functions-around-the-i_mmap_mutex kernel/fork.c
+--- a/kernel/fork.c~mm-use-new-helper-functions-around-the-i_mmap_mutex
++++ a/kernel/fork.c
+@@ -433,7 +433,7 @@ static int dup_mmap(struct mm_struct *mm
+ 			get_file(file);
+ 			if (tmp->vm_flags & VM_DENYWRITE)
+ 				atomic_dec(&inode->i_writecount);
+-			mutex_lock(&mapping->i_mmap_mutex);
++			i_mmap_lock_write(mapping);
+ 			if (tmp->vm_flags & VM_SHARED)
+ 				atomic_inc(&mapping->i_mmap_writable);
+ 			flush_dcache_mmap_lock(mapping);
+@@ -445,7 +445,7 @@ static int dup_mmap(struct mm_struct *mm
+ 				vma_interval_tree_insert_after(tmp, mpnt,
+ 							&mapping->i_mmap);
+ 			flush_dcache_mmap_unlock(mapping);
+-			mutex_unlock(&mapping->i_mmap_mutex);
++			i_mmap_unlock_write(mapping);
+ 		}
+ 
+ 		/*
+diff -puN mm/filemap_xip.c~mm-use-new-helper-functions-around-the-i_mmap_mutex mm/filemap_xip.c
+--- a/mm/filemap_xip.c~mm-use-new-helper-functions-around-the-i_mmap_mutex
++++ a/mm/filemap_xip.c
+@@ -182,7 +182,7 @@ __xip_unmap (struct address_space * mapp
+ 		return;
+ 
+ retry:
+-	mutex_lock(&mapping->i_mmap_mutex);
++	i_mmap_lock_write(mapping);
+ 	vma_interval_tree_foreach(vma, &mapping->i_mmap, pgoff, pgoff) {
+ 		mm = vma->vm_mm;
+ 		address = vma->vm_start +
+@@ -202,7 +202,7 @@ retry:
+ 			page_cache_release(page);
+ 		}
+ 	}
+-	mutex_unlock(&mapping->i_mmap_mutex);
++	i_mmap_unlock_write(mapping);
+ 
+ 	if (locked) {
+ 		mutex_unlock(&xip_sparse_mutex);
+diff -puN mm/hugetlb.c~mm-use-new-helper-functions-around-the-i_mmap_mutex mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-use-new-helper-functions-around-the-i_mmap_mutex
++++ a/mm/hugetlb.c
+@@ -2774,7 +2774,7 @@ static void unmap_ref_private(struct mm_
+ 	 * this mapping should be shared between all the VMAs,
+ 	 * __unmap_hugepage_range() is called as the lock is already held
+ 	 */
+-	mutex_lock(&mapping->i_mmap_mutex);
++	i_mmap_lock_write(mapping);
+ 	vma_interval_tree_foreach(iter_vma, &mapping->i_mmap, pgoff, pgoff) {
+ 		/* Do not unmap the current VMA */
+ 		if (iter_vma == vma)
+@@ -2791,7 +2791,7 @@ static void unmap_ref_private(struct mm_
+ 			unmap_hugepage_range(iter_vma, address,
+ 					     address + huge_page_size(h), page);
+ 	}
+-	mutex_unlock(&mapping->i_mmap_mutex);
++	i_mmap_unlock_write(mapping);
+ }
+ 
  /*
-  * Might pages of this file be mapped into userspace?
-  */
+@@ -3348,7 +3348,7 @@ unsigned long hugetlb_change_protection(
+ 	flush_cache_range(vma, address, end);
+ 
+ 	mmu_notifier_invalidate_range_start(mm, start, end);
+-	mutex_lock(&vma->vm_file->f_mapping->i_mmap_mutex);
++	i_mmap_lock_write(vma->vm_file->f_mapping);
+ 	for (; address < end; address += huge_page_size(h)) {
+ 		spinlock_t *ptl;
+ 		ptep = huge_pte_offset(mm, address);
+@@ -3376,7 +3376,7 @@ unsigned long hugetlb_change_protection(
+ 	 * and that page table be reused and filled with junk.
+ 	 */
+ 	flush_tlb_range(vma, start, end);
+-	mutex_unlock(&vma->vm_file->f_mapping->i_mmap_mutex);
++	i_mmap_unlock_write(vma->vm_file->f_mapping);
+ 	mmu_notifier_invalidate_range_end(mm, start, end);
+ 
+ 	return pages << h->order;
+@@ -3544,7 +3544,7 @@ pte_t *huge_pmd_share(struct mm_struct *
+ 	if (!vma_shareable(vma, addr))
+ 		return (pte_t *)pmd_alloc(mm, pud, addr);
+ 
+-	mutex_lock(&mapping->i_mmap_mutex);
++	i_mmap_lock_write(mapping);
+ 	vma_interval_tree_foreach(svma, &mapping->i_mmap, idx, idx) {
+ 		if (svma == vma)
+ 			continue;
+@@ -3572,7 +3572,7 @@ pte_t *huge_pmd_share(struct mm_struct *
+ 	spin_unlock(ptl);
+ out:
+ 	pte = (pte_t *)pmd_alloc(mm, pud, addr);
+-	mutex_unlock(&mapping->i_mmap_mutex);
++	i_mmap_unlock_write(mapping);
+ 	return pte;
+ }
+ 
+diff -puN mm/memory-failure.c~mm-use-new-helper-functions-around-the-i_mmap_mutex mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-use-new-helper-functions-around-the-i_mmap_mutex
++++ a/mm/memory-failure.c
+@@ -466,7 +466,7 @@ static void collect_procs_file(struct pa
+ 	struct task_struct *tsk;
+ 	struct address_space *mapping = page->mapping;
+ 
+-	mutex_lock(&mapping->i_mmap_mutex);
++	i_mmap_lock_write(mapping);
+ 	read_lock(&tasklist_lock);
+ 	for_each_process(tsk) {
+ 		pgoff_t pgoff = page_to_pgoff(page);
+@@ -488,7 +488,7 @@ static void collect_procs_file(struct pa
+ 		}
+ 	}
+ 	read_unlock(&tasklist_lock);
+-	mutex_unlock(&mapping->i_mmap_mutex);
++	i_mmap_unlock_write(mapping);
+ }
+ 
+ /*
+diff -puN mm/memory.c~mm-use-new-helper-functions-around-the-i_mmap_mutex mm/memory.c
+--- a/mm/memory.c~mm-use-new-helper-functions-around-the-i_mmap_mutex
++++ a/mm/memory.c
+@@ -1326,9 +1326,9 @@ static void unmap_single_vma(struct mmu_
+ 			 * safe to do nothing in this case.
+ 			 */
+ 			if (vma->vm_file) {
+-				mutex_lock(&vma->vm_file->f_mapping->i_mmap_mutex);
++				i_mmap_lock_write(vma->vm_file->f_mapping);
+ 				__unmap_hugepage_range_final(tlb, vma, start, end, NULL);
+-				mutex_unlock(&vma->vm_file->f_mapping->i_mmap_mutex);
++				i_mmap_unlock_write(vma->vm_file->f_mapping);
+ 			}
+ 		} else
+ 			unmap_page_range(tlb, vma, start, end, details);
+@@ -2377,12 +2377,12 @@ void unmap_mapping_range(struct address_
+ 		details.last_index = ULONG_MAX;
+ 
+ 
+-	mutex_lock(&mapping->i_mmap_mutex);
++	i_mmap_lock_write(mapping);
+ 	if (unlikely(!RB_EMPTY_ROOT(&mapping->i_mmap)))
+ 		unmap_mapping_range_tree(&mapping->i_mmap, &details);
+ 	if (unlikely(!list_empty(&mapping->i_mmap_nonlinear)))
+ 		unmap_mapping_range_list(&mapping->i_mmap_nonlinear, &details);
+-	mutex_unlock(&mapping->i_mmap_mutex);
++	i_mmap_unlock_write(mapping);
+ }
+ EXPORT_SYMBOL(unmap_mapping_range);
+ 
+diff -puN mm/mmap.c~mm-use-new-helper-functions-around-the-i_mmap_mutex mm/mmap.c
+--- a/mm/mmap.c~mm-use-new-helper-functions-around-the-i_mmap_mutex
++++ a/mm/mmap.c
+@@ -260,9 +260,9 @@ void unlink_file_vma(struct vm_area_stru
+ 
+ 	if (file) {
+ 		struct address_space *mapping = file->f_mapping;
+-		mutex_lock(&mapping->i_mmap_mutex);
++		i_mmap_lock_write(mapping);
+ 		__remove_shared_vm_struct(vma, file, mapping);
+-		mutex_unlock(&mapping->i_mmap_mutex);
++		i_mmap_unlock_write(mapping);
+ 	}
+ }
+ 
+@@ -674,14 +674,14 @@ static void vma_link(struct mm_struct *m
+ 
+ 	if (vma->vm_file) {
+ 		mapping = vma->vm_file->f_mapping;
+-		mutex_lock(&mapping->i_mmap_mutex);
++		i_mmap_lock_write(mapping);
+ 	}
+ 
+ 	__vma_link(mm, vma, prev, rb_link, rb_parent);
+ 	__vma_link_file(vma);
+ 
+ 	if (mapping)
+-		mutex_unlock(&mapping->i_mmap_mutex);
++		i_mmap_unlock_write(mapping);
+ 
+ 	mm->map_count++;
+ 	validate_mm(mm);
+@@ -796,7 +796,7 @@ again:			remove_next = 1 + (end > next->
+ 							next->vm_end);
+ 		}
+ 
+-		mutex_lock(&mapping->i_mmap_mutex);
++		i_mmap_lock_write(mapping);
+ 		if (insert) {
+ 			/*
+ 			 * Put into interval tree now, so instantiated pages
+@@ -883,7 +883,7 @@ again:			remove_next = 1 + (end > next->
+ 		anon_vma_unlock_write(anon_vma);
+ 	}
+ 	if (mapping)
+-		mutex_unlock(&mapping->i_mmap_mutex);
++		i_mmap_unlock_write(mapping);
+ 
+ 	if (root) {
+ 		uprobe_mmap(vma);
+@@ -3182,7 +3182,7 @@ static void vm_unlock_mapping(struct add
+ 		 * AS_MM_ALL_LOCKS can't change to 0 from under us
+ 		 * because we hold the mm_all_locks_mutex.
+ 		 */
+-		mutex_unlock(&mapping->i_mmap_mutex);
++		i_mmap_unlock_write(mapping);
+ 		if (!test_and_clear_bit(AS_MM_ALL_LOCKS,
+ 					&mapping->flags))
+ 			BUG();
+diff -puN mm/mremap.c~mm-use-new-helper-functions-around-the-i_mmap_mutex mm/mremap.c
+--- a/mm/mremap.c~mm-use-new-helper-functions-around-the-i_mmap_mutex
++++ a/mm/mremap.c
+@@ -119,7 +119,7 @@ static void move_ptes(struct vm_area_str
+ 	if (need_rmap_locks) {
+ 		if (vma->vm_file) {
+ 			mapping = vma->vm_file->f_mapping;
+-			mutex_lock(&mapping->i_mmap_mutex);
++			i_mmap_lock_write(mapping);
+ 		}
+ 		if (vma->anon_vma) {
+ 			anon_vma = vma->anon_vma;
+@@ -156,7 +156,7 @@ static void move_ptes(struct vm_area_str
+ 	if (anon_vma)
+ 		anon_vma_unlock_write(anon_vma);
+ 	if (mapping)
+-		mutex_unlock(&mapping->i_mmap_mutex);
++		i_mmap_unlock_write(mapping);
+ }
+ 
+ #define LATENCY_LIMIT	(64 * PAGE_SIZE)
+diff -puN mm/nommu.c~mm-use-new-helper-functions-around-the-i_mmap_mutex mm/nommu.c
+--- a/mm/nommu.c~mm-use-new-helper-functions-around-the-i_mmap_mutex
++++ a/mm/nommu.c
+@@ -722,11 +722,11 @@ static void add_vma_to_mm(struct mm_stru
+ 	if (vma->vm_file) {
+ 		mapping = vma->vm_file->f_mapping;
+ 
+-		mutex_lock(&mapping->i_mmap_mutex);
++		i_mmap_lock_write(mapping);
+ 		flush_dcache_mmap_lock(mapping);
+ 		vma_interval_tree_insert(vma, &mapping->i_mmap);
+ 		flush_dcache_mmap_unlock(mapping);
+-		mutex_unlock(&mapping->i_mmap_mutex);
++		i_mmap_unlock_write(mapping);
+ 	}
+ 
+ 	/* add the VMA to the tree */
+@@ -795,11 +795,11 @@ static void delete_vma_from_mm(struct vm
+ 	if (vma->vm_file) {
+ 		mapping = vma->vm_file->f_mapping;
+ 
+-		mutex_lock(&mapping->i_mmap_mutex);
++		i_mmap_lock_write(mapping);
+ 		flush_dcache_mmap_lock(mapping);
+ 		vma_interval_tree_remove(vma, &mapping->i_mmap);
+ 		flush_dcache_mmap_unlock(mapping);
+-		mutex_unlock(&mapping->i_mmap_mutex);
++		i_mmap_unlock_write(mapping);
+ 	}
+ 
+ 	/* remove from the MM's tree and list */
+@@ -2094,14 +2094,14 @@ int nommu_shrink_inode_mappings(struct i
+ 	high = (size + PAGE_SIZE - 1) >> PAGE_SHIFT;
+ 
+ 	down_write(&nommu_region_sem);
+-	mutex_lock(&inode->i_mapping->i_mmap_mutex);
++	i_mmap_lock_write(inode->i_mapping);
+ 
+ 	/* search for VMAs that fall within the dead zone */
+ 	vma_interval_tree_foreach(vma, &inode->i_mapping->i_mmap, low, high) {
+ 		/* found one - only interested if it's shared out of the page
+ 		 * cache */
+ 		if (vma->vm_flags & VM_SHARED) {
+-			mutex_unlock(&inode->i_mapping->i_mmap_mutex);
++			i_mmap_unlock_write(inode->i_mapping);
+ 			up_write(&nommu_region_sem);
+ 			return -ETXTBSY; /* not quite true, but near enough */
+ 		}
+@@ -2129,7 +2129,7 @@ int nommu_shrink_inode_mappings(struct i
+ 		}
+ 	}
+ 
+-	mutex_unlock(&inode->i_mapping->i_mmap_mutex);
++	i_mmap_unlock_write(inode->i_mapping);
+ 	up_write(&nommu_region_sem);
+ 	return 0;
+ }
+diff -puN mm/rmap.c~mm-use-new-helper-functions-around-the-i_mmap_mutex mm/rmap.c
+--- a/mm/rmap.c~mm-use-new-helper-functions-around-the-i_mmap_mutex
++++ a/mm/rmap.c
+@@ -1690,7 +1690,7 @@ static int rmap_walk_file(struct page *p
+ 
+ 	if (!mapping)
+ 		return ret;
+-	mutex_lock(&mapping->i_mmap_mutex);
++	i_mmap_lock_write(mapping);
+ 	vma_interval_tree_foreach(vma, &mapping->i_mmap, pgoff, pgoff) {
+ 		unsigned long address = vma_address(page, vma);
+ 
+@@ -1713,7 +1713,7 @@ static int rmap_walk_file(struct page *p
+ 	ret = rwc->file_nonlinear(page, mapping, rwc->arg);
+ 
+ done:
+-	mutex_unlock(&mapping->i_mmap_mutex);
++	i_mmap_unlock_write(mapping);
+ 	return ret;
+ }
+ 
 _
 
 Patches currently in -mm which might be from dave@stgolabs.net are
