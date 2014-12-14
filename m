@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- memcg-__mem_cgroup_free-remove-stale-disarm_static_keys-comment.patch
- removed from -mm tree
-Date: Sat, 13 Dec 2014 20:06:53 -0800
-Message-ID: <548d0cdd.TjhXD/OPM2bxD28e%akpm@linux-foundation.org>
+ memcg-dont-check-mm-in-__memcg_kmem_get_cachenewpage_charge.patch removed
+ from -mm tree
+Date: Sat, 13 Dec 2014 20:06:55 -0800
+Message-ID: <548d0cdf.voqhS7AHOqt7ImHu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47515 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47521 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752909AbaLNEGp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 13 Dec 2014 23:06:45 -0500
+	with ESMTP id S1752920AbaLNEGr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 13 Dec 2014 23:06:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vdavydov@parallels.com, hannes@cmpxchg.org, mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: __mem_cgroup_free: remove stale disarm_static_keys comment
+     Subject: memcg: don't check mm in __memcg_kmem_{get_cache,newpage_charge}
 has been removed from the -mm tree.  Its filename was
-     memcg-__mem_cgroup_free-remove-stale-disarm_static_keys-comment.patch
+     memcg-dont-check-mm-in-__memcg_kmem_get_cachenewpage_charge.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: memcg: __mem_cgroup_free: remove stale disarm_static_keys comment
+Subject: memcg: don't check mm in __memcg_kmem_{get_cache,newpage_charge}
 
-cpuset code stopped using cgroup_lock in favor of cpuset_mutex long ago.
+We already assured the current task has mm in memcg_kmem_should_charge,
+no need to double check.
 
 Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -37,30 +38,30 @@ Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   11 -----------
- 1 file changed, 11 deletions(-)
+ mm/memcontrol.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-__mem_cgroup_free-remove-stale-disarm_static_keys-comment mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-__mem_cgroup_free-remove-stale-disarm_static_keys-comment
+diff -puN mm/memcontrol.c~memcg-dont-check-mm-in-__memcg_kmem_get_cachenewpage_charge mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-dont-check-mm-in-__memcg_kmem_get_cachenewpage_charge
 +++ a/mm/memcontrol.c
-@@ -4724,17 +4724,6 @@ static void __mem_cgroup_free(struct mem
+@@ -2856,7 +2856,7 @@ struct kmem_cache *__memcg_kmem_get_cach
+ 	VM_BUG_ON(!cachep->memcg_params);
+ 	VM_BUG_ON(!cachep->memcg_params->is_root_cache);
  
- 	free_percpu(memcg->stat);
+-	if (!current->mm || current->memcg_kmem_skip_account)
++	if (current->memcg_kmem_skip_account)
+ 		return cachep;
  
--	/*
--	 * We need to make sure that (at least for now), the jump label
--	 * destruction code runs outside of the cgroup lock. This is because
--	 * get_online_cpus(), which is called from the static_branch update,
--	 * can't be called inside the cgroup_lock. cpusets are the ones
--	 * enforcing this dependency, so if they ever change, we might as well.
--	 *
--	 * schedule_work() will guarantee this happens. Be careful if you need
--	 * to move this code around, and make sure it is outside
--	 * the cgroup_lock.
--	 */
- 	disarm_static_keys(memcg);
- 	kfree(memcg);
- }
+ 	rcu_read_lock();
+@@ -2942,7 +2942,7 @@ __memcg_kmem_newpage_charge(gfp_t gfp, s
+ 	 * allocations are extremely rare but can happen, for instance, for the
+ 	 * cache arrays. We bring this test here.
+ 	 */
+-	if (!current->mm || current->memcg_kmem_skip_account)
++	if (current->memcg_kmem_skip_account)
+ 		return true;
+ 
+ 	memcg = get_mem_cgroup_from_mm(current->mm);
 _
 
 Patches currently in -mm which might be from vdavydov@parallels.com are
