@@ -1,98 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-fix-overly-aggressive-shmdt-when-calls-span-multiple-segments.patch
- removed from -mm tree
-Date: Sat, 13 Dec 2014 20:10:14 -0800
-Message-ID: <548d0da6.Auw5ROWemhjHuWlm%akpm@linux-foundation.org>
+Subject: [merged] shmdt-use-i_size_read-instead-of-i_size.patch removed
+ from -mm tree
+Date: Sat, 13 Dec 2014 20:10:16 -0800
+Message-ID: <548d0da8.ag33J8sZWAN9Gl6C%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47907 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47911 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752492AbaLNEKG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 13 Dec 2014 23:10:06 -0500
+	with ESMTP id S1752962AbaLNEKI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 13 Dec 2014 23:10:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: dave.hansen@linux.intel.com, dave@stgolabs.net, manfred@colorfullife.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc/shm.c: fix overly aggressive shmdt() when calls span multiple segments
+     Subject: shmdt: use i_size_read() instead of ->i_size
 has been removed from the -mm tree.  Its filename was
-     mm-fix-overly-aggressive-shmdt-when-calls-span-multiple-segments.patch
+     shmdt-use-i_size_read-instead-of-i_size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Dave Hansen <dave.hansen@linux.intel.com>
-Subject: ipc/shm.c: fix overly aggressive shmdt() when calls span multiple segments
+Subject: shmdt: use i_size_read() instead of ->i_size
 
-This is a highly-contrived scenario.  But, a single shmdt() call can be
-induced in to unmapping memory from mulitple shm segments.  Example code
-is here:
+Andrew Morton noted
 
-	http://www.sr71.net/~dave/intel/shmfun.c
+	http://lkml.kernel.org/r/20141104142027.a7a0d010772d84560b445f59@linux-foundation.org
 
-The fix is pretty simple: Record the 'struct file' for the first VMA we
-encounter and then stick to it.  Decline to unmap anything not from the
-same file and thus the same segment.
-
-I found this by inspection and the odds of anyone hitting this in practice
-are pretty darn small.
-
-Lightly tested, but it's a pretty small patch.
+that the shmdt uses inode->i_size outside of i_mutex being held.
+There is one more case in shm.c in shm_destroy().  This converts
+both users over to use i_size_read().
 
 Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Manfred Spraul <manfred@colorfullife.com>
-Reviewed-by: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/shm.c |   18 +++++++++++++-----
- 1 file changed, 13 insertions(+), 5 deletions(-)
+ ipc/shm.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN ipc/shm.c~mm-fix-overly-aggressive-shmdt-when-calls-span-multiple-segments ipc/shm.c
---- a/ipc/shm.c~mm-fix-overly-aggressive-shmdt-when-calls-span-multiple-segments
+diff -puN ipc/shm.c~shmdt-use-i_size_read-instead-of-i_size ipc/shm.c
+--- a/ipc/shm.c~shmdt-use-i_size_read-instead-of-i_size
 +++ a/ipc/shm.c
-@@ -1229,6 +1229,7 @@ SYSCALL_DEFINE1(shmdt, char __user *, sh
- 	int retval = -EINVAL;
- #ifdef CONFIG_MMU
- 	loff_t size = 0;
-+	struct file *file;
- 	struct vm_area_struct *next;
- #endif
- 
-@@ -1245,7 +1246,8 @@ SYSCALL_DEFINE1(shmdt, char __user *, sh
- 	 *   started at address shmaddr. It records it's size and then unmaps
- 	 *   it.
- 	 * - Then it unmaps all shm vmas that started at shmaddr and that
--	 *   are within the initially determined size.
-+	 *   are within the initially determined size and that are from the
-+	 *   same shm segment from which we determined the size.
- 	 * Errors from do_munmap are ignored: the function only fails if
- 	 * it's called with invalid parameters or if it's called to unmap
- 	 * a part of a vma. Both calls in this function are for full vmas,
-@@ -1271,8 +1273,14 @@ SYSCALL_DEFINE1(shmdt, char __user *, sh
- 		if ((vma->vm_ops == &shm_vm_ops) &&
- 			(vma->vm_start - addr)/PAGE_SIZE == vma->vm_pgoff) {
- 
--
--			size = file_inode(vma->vm_file)->i_size;
-+			/*
-+			 * Record the file of the shm segment being
-+			 * unmapped.  With mremap(), someone could place
-+			 * page from another segment but with equal offsets
-+			 * in the range we are unmapping.
-+			 */
-+			file = vma->vm_file;
-+			size = file_inode(file)->i_size;
+@@ -219,7 +219,8 @@ static void shm_destroy(struct ipc_names
+ 	if (!is_file_hugepages(shm_file))
+ 		shmem_lock(shm_file, 0, shp->mlock_user);
+ 	else if (shp->mlock_user)
+-		user_shm_unlock(file_inode(shm_file)->i_size, shp->mlock_user);
++		user_shm_unlock(i_size_read(file_inode(shm_file)),
++				shp->mlock_user);
+ 	fput(shm_file);
+ 	ipc_rcu_putref(shp, shm_rcu_free);
+ }
+@@ -1280,7 +1281,7 @@ SYSCALL_DEFINE1(shmdt, char __user *, sh
+ 			 * in the range we are unmapping.
+ 			 */
+ 			file = vma->vm_file;
+-			size = file_inode(file)->i_size;
++			size = i_size_read(file_inode(vma->vm_file));
  			do_munmap(mm, vma->vm_start, vma->vm_end - vma->vm_start);
  			/*
  			 * We discovered the size of the shm segment, so
-@@ -1298,8 +1306,8 @@ SYSCALL_DEFINE1(shmdt, char __user *, sh
- 
- 		/* finding a matching vma now does not alter retval */
- 		if ((vma->vm_ops == &shm_vm_ops) &&
--			(vma->vm_start - addr)/PAGE_SIZE == vma->vm_pgoff)
+_
+
+Patches currently in -mm which might be from dave.hansen@linux.intel.com are
+
+origin.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+linux-next.patch
+
