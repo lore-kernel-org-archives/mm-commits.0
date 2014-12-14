@@ -1,81 +1,78 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-remove-the-useless-gfp-in-__memcg_kmem_get_cache.patch removed from -mm
- tree
-Date: Sat, 13 Dec 2014 20:07:33 -0800
-Message-ID: <548d0d05.oVLHHQ5rW6R9HGD6%akpm@linux-foundation.org>
+ mm-move-swp_entry_t-definition-to-include-linux-mm_typesh.patch removed
+ from -mm tree
+Date: Sat, 13 Dec 2014 20:07:30 -0800
+Message-ID: <548d0d02.Xyn4+qb3+W3o5xM1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47601 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47598 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753030AbaLNEHZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 13 Dec 2014 23:07:25 -0500
+	with ESMTP id S1751855AbaLNEHX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 13 Dec 2014 23:07:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zhenzhang.zhang@huawei.com, mm-commits@vger.kernel.org
+To: tj@kernel.org, hannes@cmpxchg.org, mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memcontrol.c: remove the unused arg in __memcg_kmem_get_cache()
+     Subject: mm: move swp_entry_t definition to include/linux/mm_types.h
 has been removed from the -mm tree.  Its filename was
-     mm-remove-the-useless-gfp-in-__memcg_kmem_get_cache.patch
+     mm-move-swp_entry_t-definition-to-include-linux-mm_typesh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Zhang Zhen <zhenzhang.zhang@huawei.com>
-Subject: mm/memcontrol.c: remove the unused arg in __memcg_kmem_get_cache()
+From: Tejun Heo <tj@kernel.org>
+Subject: mm: move swp_entry_t definition to include/linux/mm_types.h
 
-The gfp was passed in but never used in this function.
+swp_entry_t being defined in include/linux/swap.h instead of
+include/linux/mm_types.h causes cyclic include dependency later when
+include/linux/page_cgroup.h is included from writeback path.  Move the
+definition to include/linux/mm_types.h.
 
-Signed-off-by: Zhang Zhen <zhenzhang.zhang@huawei.com>
+While at it, reformat the comment above it.
+
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    4 ++--
- mm/memcontrol.c            |    3 +--
- 2 files changed, 3 insertions(+), 4 deletions(-)
+ include/linux/mm_types.h |    8 ++++++++
+ include/linux/swap.h     |    8 --------
+ 2 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/memcontrol.h~mm-remove-the-useless-gfp-in-__memcg_kmem_get_cache include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~mm-remove-the-useless-gfp-in-__memcg_kmem_get_cache
-+++ a/include/linux/memcontrol.h
-@@ -401,7 +401,7 @@ int memcg_cache_id(struct mem_cgroup *me
- void memcg_update_array_size(int num_groups);
+diff -puN include/linux/mm_types.h~mm-move-swp_entry_t-definition-to-include-linux-mm_typesh include/linux/mm_types.h
+--- a/include/linux/mm_types.h~mm-move-swp_entry_t-definition-to-include-linux-mm_typesh
++++ a/include/linux/mm_types.h
+@@ -534,4 +534,12 @@ enum tlb_flush_reason {
+ 	NR_TLB_FLUSH_REASONS,
+ };
  
- struct kmem_cache *
--__memcg_kmem_get_cache(struct kmem_cache *cachep, gfp_t gfp);
-+__memcg_kmem_get_cache(struct kmem_cache *cachep);
++ /*
++  * A swap entry has to fit into a "unsigned long", as the entry is hidden
++  * in the "index" field of the swapper address space.
++  */
++typedef struct {
++	unsigned long val;
++} swp_entry_t;
++
+ #endif /* _LINUX_MM_TYPES_H */
+diff -puN include/linux/swap.h~mm-move-swp_entry_t-definition-to-include-linux-mm_typesh include/linux/swap.h
+--- a/include/linux/swap.h~mm-move-swp_entry_t-definition-to-include-linux-mm_typesh
++++ a/include/linux/swap.h
+@@ -102,14 +102,6 @@ union swap_header {
+ 	} info;
+ };
  
- int __memcg_charge_slab(struct kmem_cache *cachep, gfp_t gfp, int order);
- void __memcg_uncharge_slab(struct kmem_cache *cachep, int order);
-@@ -492,7 +492,7 @@ memcg_kmem_get_cache(struct kmem_cache *
- 	if (unlikely(fatal_signal_pending(current)))
- 		return cachep;
- 
--	return __memcg_kmem_get_cache(cachep, gfp);
-+	return __memcg_kmem_get_cache(cachep);
- }
- #else
- #define for_each_memcg_cache_index(_idx)	\
-diff -puN mm/memcontrol.c~mm-remove-the-useless-gfp-in-__memcg_kmem_get_cache mm/memcontrol.c
---- a/mm/memcontrol.c~mm-remove-the-useless-gfp-in-__memcg_kmem_get_cache
-+++ a/mm/memcontrol.c
-@@ -2804,8 +2804,7 @@ void __memcg_uncharge_slab(struct kmem_c
-  * Can't be called in interrupt context or from kernel threads.
-  * This function needs to be called with rcu_read_lock() held.
-  */
--struct kmem_cache *__memcg_kmem_get_cache(struct kmem_cache *cachep,
--					  gfp_t gfp)
-+struct kmem_cache *__memcg_kmem_get_cache(struct kmem_cache *cachep)
- {
- 	struct mem_cgroup *memcg;
- 	struct kmem_cache *memcg_cachep;
-_
-
-Patches currently in -mm which might be from zhenzhang.zhang@huawei.com are
-
-origin.patch
-
+- /* A swap entry has to fit into a "unsigned long", as
+-  * the entry is hidden in the "index" field of the
+-  * swapper address space.
+-  */
+-typedef struct {
+-	unsigned long val;
+-} swp_entry_t;
