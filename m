@@ -1,69 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-do-not-abuse-memcg_kmem_skip_account.patch removed from -mm tree
-Date: Sat, 13 Dec 2014 20:06:57 -0800
-Message-ID: <548d0ce1.nyvyyqbKW62LOTK0%akpm@linux-foundation.org>
+Subject: [merged]
+ memblock-refactor-functions-to-set-clear-memblock_hotplug.patch removed
+ from -mm tree
+Date: Sat, 13 Dec 2014 20:06:59 -0800
+Message-ID: <548d0ce3.w4x2DYPMITNXtn4y%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47525 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47528 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752929AbaLNEGt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 13 Dec 2014 23:06:49 -0500
+	with ESMTP id S1752658AbaLNEGv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 13 Dec 2014 23:06:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@parallels.com, hannes@cmpxchg.org, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: tony.luck@intel.com, Emilian.Medve@freescale.com, grygorii.strashko@ti.com, phacht@linux.vnet.ibm.com, santosh.shilimkar@ti.com, tangchen@cn.fujitsu.com, yinghai@kernel.org, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: do not abuse memcg_kmem_skip_account
+     Subject: mm/memblock.c: refactor functions to set/clear MEMBLOCK_HOTPLUG
 has been removed from the -mm tree.  Its filename was
-     memcg-do-not-abuse-memcg_kmem_skip_account.patch
+     memblock-refactor-functions-to-set-clear-memblock_hotplug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: memcg: do not abuse memcg_kmem_skip_account
+From: Tony Luck <tony.luck@intel.com>
+Subject: mm/memblock.c: refactor functions to set/clear MEMBLOCK_HOTPLUG
 
-task_struct->memcg_kmem_skip_account was initially introduced to avoid
-recursion during kmem cache creation: memcg_kmem_get_cache, which is
-called by kmem_cache_alloc to determine the per-memcg cache to account
-allocation to, may issue lazy cache creation if the needed cache doesn't
-exist, which means issuing yet another kmem_cache_alloc.  We can't just
-pass a flag to the nested kmem_cache_alloc disabling kmem accounting,
-because there are hidden allocations, e.g.  in INIT_WORK.  So we
-introduced a flag on the task_struct, memcg_kmem_skip_account, making
-memcg_kmem_get_cache return immediately.
+There is a lot of duplication in the rubric around actually setting or
+clearing a mem region flag.  Create a new helper function to do this and
+reduce each of memblock_mark_hotplug() and memblock_clear_hotplug() to a
+single line.
 
-By its nature, the flag may also be used to disable accounting for
-allocations shared among different cgroups, and currently it is used this
-way in memcg_activate_kmem.  Using it like this looks like abusing it to
-me.  If we want to disable accounting for some allocations (which we will
-definitely want one day), we should either add GFP_NO_MEMCG or GFP_MEMCG
-flag in order to blacklist/whitelist some allocations.
+This will be useful if someone were to add a new mem region flag - which
+I hope to be doing some day soon. But it looks like a plausible cleanup
+even without that - so I'd like to get it out of the way now.
 
-For now, let's simply remove memcg_stop/resume_kmem_account from
-memcg_activate_kmem.
-
-Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
+Signed-off-by: Tony Luck <tony.luck@intel.com>
+Cc: Santosh Shilimkar <santosh.shilimkar@ti.com>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>
+Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Cc: Philipp Hachtmann <phacht@linux.vnet.ibm.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Emil Medve <Emilian.Medve@freescale.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    7 -------
- 1 file changed, 7 deletions(-)
+ mm/memblock.c |   43 ++++++++++++++++++++-----------------------
+ 1 file changed, 20 insertions(+), 23 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-do-not-abuse-memcg_kmem_skip_account mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-do-not-abuse-memcg_kmem_skip_account
-+++ a/mm/memcontrol.c
-@@ -3539,12 +3539,6 @@ static int memcg_activate_kmem(struct me
- 		return 0;
+diff -puN mm/memblock.c~memblock-refactor-functions-to-set-clear-memblock_hotplug mm/memblock.c
+--- a/mm/memblock.c~memblock-refactor-functions-to-set-clear-memblock_hotplug
++++ a/mm/memblock.c
+@@ -715,16 +715,13 @@ int __init_memblock memblock_reserve(phy
+ }
  
- 	/*
--	 * We are going to allocate memory for data shared by all memory
--	 * cgroups so let's stop accounting here.
--	 */
--	memcg_stop_kmem_account();
+ /**
+- * memblock_mark_hotplug - Mark hotpluggable memory with flag MEMBLOCK_HOTPLUG.
+- * @base: the base phys addr of the region
+- * @size: the size of the region
+  *
+- * This function isolates region [@base, @base + @size), and mark it with flag
+- * MEMBLOCK_HOTPLUG.
++ * This function isolates region [@base, @base + @size), and sets/clears flag
+  *
+  * Return 0 on succees, -errno on failure.
+  */
+-int __init_memblock memblock_mark_hotplug(phys_addr_t base, phys_addr_t size)
++static int __init_memblock memblock_setclr_flag(phys_addr_t base,
++				phys_addr_t size, int set, int flag)
+ {
+ 	struct memblock_type *type = &memblock.memory;
+ 	int i, ret, start_rgn, end_rgn;
+@@ -734,37 +731,37 @@ int __init_memblock memblock_mark_hotplu
+ 		return ret;
+ 
+ 	for (i = start_rgn; i < end_rgn; i++)
+-		memblock_set_region_flags(&type->regions[i], MEMBLOCK_HOTPLUG);
++		if (set)
++			memblock_set_region_flags(&type->regions[i], flag);
++		else
++			memblock_clear_region_flags(&type->regions[i], flag);
+ 
+ 	memblock_merge_regions(type);
+ 	return 0;
+ }
+ 
+ /**
+- * memblock_clear_hotplug - Clear flag MEMBLOCK_HOTPLUG for a specified region.
++ * memblock_mark_hotplug - Mark hotpluggable memory with flag MEMBLOCK_HOTPLUG.
+  * @base: the base phys addr of the region
+  * @size: the size of the region
+  *
+- * This function isolates region [@base, @base + @size), and clear flag
+- * MEMBLOCK_HOTPLUG for the isolated regions.
++ * Return 0 on succees, -errno on failure.
++ */
++int __init_memblock memblock_mark_hotplug(phys_addr_t base, phys_addr_t size)
++{
++	return memblock_setclr_flag(base, size, 1, MEMBLOCK_HOTPLUG);
++}
++
++/**
++ * memblock_clear_hotplug - Clear flag MEMBLOCK_HOTPLUG for a specified region.
++ * @base: the base phys addr of the region
++ * @size: the size of the region
+  *
+  * Return 0 on succees, -errno on failure.
+  */
+ int __init_memblock memblock_clear_hotplug(phys_addr_t base, phys_addr_t size)
+ {
+-	struct memblock_type *type = &memblock.memory;
+-	int i, ret, start_rgn, end_rgn;
+-
+-	ret = memblock_isolate_range(type, base, size, &start_rgn, &end_rgn);
+-	if (ret)
+-		return ret;
+-
+-	for (i = start_rgn; i < end_rgn; i++)
+-		memblock_clear_region_flags(&type->regions[i],
+-					    MEMBLOCK_HOTPLUG);
