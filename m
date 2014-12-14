@@ -1,91 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-cma-make-kmemleak-ignore-cma-regions.patch removed
- from -mm tree
-Date: Sat, 13 Dec 2014 20:10:25 -0800
-Message-ID: <548d0db1.ucfIRpD8iTZcgSYi%akpm@linux-foundation.org>
+Subject: [merged] fallocate-create-fan_modify-and-in_modify-events.patch
+ removed from -mm tree
+Date: Sat, 13 Dec 2014 20:10:28 -0800
+Message-ID: <548d0db4.NkySsrbhlekmi1JQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47933 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47942 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752963AbaLNEKS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 13 Dec 2014 23:10:18 -0500
+	with ESMTP id S1752981AbaLNEKV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 13 Dec 2014 23:10:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: treding@nvidia.com, aneesh.kumar@linux.vnet.ibm.com, catalin.marinas@arm.com, iamjoonsoo.kim@lge.com, m.szyprowski@samsung.com, mina86@mina86.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: xypron.glpk@gmx.de, david@fromorbit.com, eparis@parisplace.org, jack@suse.cz, john@johnmccutchan.com, mtk.manpages@gmail.com, rlove@rlove.org, tytso@mit.edu, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/cma: make kmemleak ignore CMA regions
+     Subject: fallocate: create FAN_MODIFY and IN_MODIFY events
 has been removed from the -mm tree.  Its filename was
-     mm-cma-make-kmemleak-ignore-cma-regions.patch
+     fallocate-create-fan_modify-and-in_modify-events.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Thierry Reding <treding@nvidia.com>
-Subject: mm/cma: make kmemleak ignore CMA regions
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Subject: fallocate: create FAN_MODIFY and IN_MODIFY events
 
-kmemleak will add allocations as objects to a pool.  The memory allocated
-for each object in this pool is periodically searched for pointers to
-other allocated objects.  This only works for memory that is mapped into
-the kernel's virtual address space, which happens not to be the case for
-most CMA regions.  
+The fanotify and the inotify API can be used to monitor changes of the
+file system.  System call fallocate() modifies files.  Hence it should
+trigger the corresponding fanotify (FAN_MODIFY) and inotify (IN_MODIFY)
+events.  The most interesting case is FALLOC_FL_COLLAPSE_RANGE because
+this value allows to create arbitrary file content from random data.
 
-Furthermore, CMA regions are typically used to store data transferred to
-or from a device and therefore don't contain pointers to other objects.
+This patch adds the missing call to fsnotify_modify().
 
-Without this, the kernel crashes on the first execution of the
-scan_gray_list() because it tries to access highmem.  Perhaps a more
-appropriate fix would be to reject any object that can't map to a kernel
-virtual address?
+The FAN_MODIFY and IN_MODIFY event will be created when fallocate()
+succeeds.  It will even be created if the file length remains unchanged,
+e.g.  when calling fanotify with flag FALLOC_FL_KEEP_SIZE.
 
-[akpm@linux-foundation.org: add comment]
-[akpm@linux-foundation.org: fix comment, per Catalin]
-[sfr@canb.auug.org.au: include linux/io.h for phys_to_virt()]
-Signed-off-by: Thierry Reding <treding@nvidia.com>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+This logic was primarily chosen to keep the coding simple.
+
+It resembles the logic of the write() system call.
+
+When we call write() we always create a FAN_MODIFY event, even in the case
+of overwriting with identical data.
+
+Events FAN_MODIFY and IN_MODIFY do not provide any guarantee that data was
+actually changed.
+
+Furthermore even if if the filesize remains unchanged, fallocate() may
+influence whether a subsequent write() will succeed and hence the
+fallocate() call may be considered a modification.
+
+The fallocate(2) man page teaches: After a successful call, subsequent
+writes into the range specified by offset and len are guaranteed not to
+fail because of lack of disk space.
+
+So calling fallocate(fd, FALLOC_FL_KEEP_SIZE, offset, len) may result in
+different outcomes of a subsequent write depending on the values of offset
+and len.
+
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Eric Paris <eparis@parisplace.org>
+Cc: John McCutchan <john@johnmccutchan.com>
+Cc: Robert Love <rlove@rlove.org>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: Dave Chinner <david@fromorbit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ fs/open.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff -puN mm/cma.c~mm-cma-make-kmemleak-ignore-cma-regions mm/cma.c
---- a/mm/cma.c~mm-cma-make-kmemleak-ignore-cma-regions
-+++ a/mm/cma.c
-@@ -33,6 +33,7 @@
- #include <linux/log2.h>
- #include <linux/cma.h>
- #include <linux/highmem.h>
-+#include <linux/io.h>
+diff -puN fs/open.c~fallocate-create-fan_modify-and-in_modify-events fs/open.c
+--- a/fs/open.c~fallocate-create-fan_modify-and-in_modify-events
++++ a/fs/open.c
+@@ -295,6 +295,17 @@ int do_fallocate(struct file *file, int
  
- struct cma {
- 	unsigned long	base_pfn;
-@@ -324,6 +325,11 @@ int __init cma_declare_contiguous(phys_a
- 			}
- 		}
- 
-+		/*
-+		 * kmemleak scans/reads tracked objects for pointers to other
-+		 * objects but this address isn't mapped and accessible
-+		 */
-+		kmemleak_ignore(phys_to_virt(addr));
- 		base = addr;
- 	}
- 
+ 	sb_start_write(inode->i_sb);
+ 	ret = file->f_op->fallocate(file, mode, offset, len);
++
++	/*
++	 * Create inotify and fanotify events.
++	 *
++	 * To keep the logic simple always create events if fallocate succeeds.
++	 * This implies that events are even created if the file size remains
++	 * unchanged, e.g. when using flag FALLOC_FL_KEEP_SIZE.
++	 */
++	if (ret == 0)
++		fsnotify_modify(file);
++
+ 	sb_end_write(inode->i_sb);
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from treding@nvidia.com are
+Patches currently in -mm which might be from xypron.glpk@gmx.de are
 
 origin.patch
-rtc-rtc-isl12057-add-alarm-support-to-intersil-isl12057-rtc-driver.patch
-linux-next.patch
 
