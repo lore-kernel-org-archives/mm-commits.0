@@ -1,83 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch removed from
- -mm tree
-Date: Fri, 12 Dec 2014 16:47:53 -0800
-Message-ID: <548b8cb9.IEIZTvFUtg0hoywK%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-rejects.patch removed from -mm tree
+Date: Sat, 13 Dec 2014 20:04:36 -0800
+Message-ID: <548d0c54.COnzdgFvXOCqUnoM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38460 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47400 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932295AbaLMAry (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 12 Dec 2014 19:47:54 -0500
+	with ESMTP id S1751683AbaLNEE3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 13 Dec 2014 23:04:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aquini@redhat.com, dave@stgolabs.net, manfred@colorfullife.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes
+     Subject: linux-next-rejects
 has been removed from the -mm tree.  Its filename was
-     ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes.patch
+     linux-next-rejects.patch
 
-This patch was dropped because it was folded into ipc-msg-increase-msgmni-remove-scaling.patch
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes
+Subject: linux-next-rejects
 
-WARNING: 'dependant' may be misspelled - perhaps 'dependent'?
-#134: FILE: include/uapi/linux/msg.h:66:
-+ * size. The optimal value is application dependant.
-
-total: 0 errors, 1 warnings, 378 lines checked
-
-./patches/ipc-msg-increase-msgmni-remove-scaling.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Cc: Rafael Aquini <aquini@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/linux/msg.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/hugetlb.c                     |    1 +
+ tools/testing/selftests/Makefile |    1 +
+ 2 files changed, 2 insertions(+)
 
-diff -puN include/uapi/linux/msg.h~ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes include/uapi/linux/msg.h
---- a/include/uapi/linux/msg.h~ipc-msg-increase-msgmni-remove-scaling-checkpatch-fixes
-+++ a/include/uapi/linux/msg.h
-@@ -63,7 +63,7 @@ struct msginfo {
-  * MSGMNB is the default size of a new message queue. Non-root tasks can
-  * decrease the size with msgctl(IPC_SET), root tasks
-  * (actually: CAP_SYS_RESOURCE) can both increase and decrease the queue
-- * size. The optimal value is application dependant.
-+ * size. The optimal value is application dependent.
-  * 16384 is used because it was always used (since 0.99.10)
-  *
-  * MAXMAX is the maximum size of an individual message, it's a global
+diff -puN mm/hugetlb.c~linux-next-rejects mm/hugetlb.c
+--- a/mm/hugetlb.c~linux-next-rejects
++++ a/mm/hugetlb.c
+@@ -3380,6 +3380,7 @@ unsigned long hugetlb_change_protection(
+ 	 * and that page table be reused and filled with junk.
+ 	 */
+ 	flush_tlb_range(vma, start, end);
++	mmu_notifier_invalidate_range(mm, start, end);
+ 	i_mmap_unlock_write(vma->vm_file->f_mapping);
+ 	mmu_notifier_invalidate_range_end(mm, start, end);
+ 
+diff -puN tools/testing/selftests/Makefile~linux-next-rejects tools/testing/selftests/Makefile
+--- a/tools/testing/selftests/Makefile~linux-next-rejects
++++ a/tools/testing/selftests/Makefile
+@@ -15,6 +15,7 @@ TARGETS += user
+ TARGETS += sysctl
+ TARGETS += firmware
+ TARGETS += ftrace
++TARGETS += size
+ TARGETS += exec
+ 
+ TARGETS_HOTPLUG = cpu-hotplug
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-mincore-add-hwpoison-page-handle.patch
-include-linux-kmemleakh-needs-slabh.patch
-mm-page_owner-keep-track-of-page-owners.patch
-fs-seq_file-fallback-to-vmalloc-instead-of-oom-kill-processes.patch
-oom-dont-assume-that-a-coredumping-thread-will-exit-soon.patch
-mm-memcontrol-fix-defined-but-not-used-compiler-warning.patch
-zsmalloc-fix-zs_init-cpu-notifier-error-handling.patch
-mm-zsmalloc-support-allocating-obj-with-size-of-zs_max_alloc_size.patch
-mm-zsmalloc-avoid-duplicate-assignment-of-prev_class.patch
-ipc-semc-chance-memory-barrier-in-sem_lock-to-smp_rmb.patch
-ipc-msg-increase-msgmni-remove-scaling.patch
-mm-cma-make-kmemleak-ignore-cma-regions.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
+ocfs2-free-inode-when-i_count-becomes-zero.patch
+ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
+mm.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+sysctl-terminate-strings-also-on-r-fix.patch
+linux-next.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+lib-show_mem-this-patch-adds-cma-reserved-infromation-fix.patch
+tools-testing-selftests-makefile-alphasort-the-targets-list.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
