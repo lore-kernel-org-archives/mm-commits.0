@@ -1,43 +1,39 @@
 From: akpm@linux-foundation.org
-Subject: [merged] zram-remove-bio-parameter-from-zram_bvec_rw.patch
+Subject: [merged] zram-change-parameter-from-vaild_io_request.patch
  removed from -mm tree
-Date: Sat, 13 Dec 2014 20:08:36 -0800
-Message-ID: <548d0d44.YeL18om6mjOOyRKN%akpm@linux-foundation.org>
+Date: Sat, 13 Dec 2014 20:08:39 -0800
+Message-ID: <548d0d47.zPH0Su5wA7tDsbIY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47740 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47747 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752833AbaLNEI2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 13 Dec 2014 23:08:28 -0500
+	with ESMTP id S1752833AbaLNEIb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 13 Dec 2014 23:08:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: karam.lee@lge.com, jmarchan@redhat.com, matthew.r.wilcox@intel.com, minchan@kernel.org, ngupta@vflare.org, seungho1.park@lge.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: remove bio parameter from zram_bvec_rw()
+     Subject: zram: change parameter from vaild_io_request()
 has been removed from the -mm tree.  Its filename was
-     zram-remove-bio-parameter-from-zram_bvec_rw.patch
+     zram-change-parameter-from-vaild_io_request.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "karam.lee" <karam.lee@lge.com>
-Subject: zram: remove bio parameter from zram_bvec_rw()
+Subject: zram: change parameter from vaild_io_request()
 
-Recently rw_page block device operation has been added.  This patchset
-implements rw_page operation for zram block device and does some clean-up.
+This patch changes parameter of valid_io_request for common usage.  The
+purpose of valid_io_request() is to determine if bio request is valid or
+not.
 
-
-This patch (of 3):
-
-Remove an unnecessary parameter(bio) from zram_bvec_rw() and
-zram_bvec_read().  zram_bvec_read() doesn't use a bio parameter, so remove
-it.  zram_bvec_rw() calls a read/write operation not using bio, so a rw
-parameter replaces a bio parameter.
+This patch use I/O start address and size instead of a BIO parameter for
+common usage.
 
 Signed-off-by: karam.lee <karam.lee@lge.com>
 Acked-by: Minchan Kim <minchan@kernel.org>
@@ -51,71 +47,45 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  drivers/block/zram/zram_drv.c |   16 ++++++++--------
  1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-remove-bio-parameter-from-zram_bvec_rw drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-remove-bio-parameter-from-zram_bvec_rw
+diff -puN drivers/block/zram/zram_drv.c~zram-change-parameter-from-vaild_io_request drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-change-parameter-from-vaild_io_request
 +++ a/drivers/block/zram/zram_drv.c
-@@ -453,7 +453,7 @@ static int zram_decompress_page(struct z
- }
- 
- static int zram_bvec_read(struct zram *zram, struct bio_vec *bvec,
--			  u32 index, int offset, struct bio *bio)
-+			  u32 index, int offset)
+@@ -287,19 +287,18 @@ static inline int is_partial_io(struct b
+ /*
+  * Check if request is within bounds and aligned on zram logical blocks.
+  */
+-static inline int valid_io_request(struct zram *zram, struct bio *bio)
++static inline int valid_io_request(struct zram *zram,
++		sector_t start, unsigned int size)
  {
- 	int ret;
- 	struct page *page;
-@@ -645,14 +645,13 @@ out:
- }
+-	u64 start, end, bound;
++	u64 end, bound;
  
- static int zram_bvec_rw(struct zram *zram, struct bio_vec *bvec, u32 index,
--			int offset, struct bio *bio)
-+			int offset, int rw)
- {
- 	int ret;
--	int rw = bio_data_dir(bio);
+ 	/* unaligned request */
+-	if (unlikely(bio->bi_iter.bi_sector &
+-		     (ZRAM_SECTOR_PER_LOGICAL_BLOCK - 1)))
++	if (unlikely(start & (ZRAM_SECTOR_PER_LOGICAL_BLOCK - 1)))
+ 		return 0;
+-	if (unlikely(bio->bi_iter.bi_size & (ZRAM_LOGICAL_BLOCK_SIZE - 1)))
++	if (unlikely(size & (ZRAM_LOGICAL_BLOCK_SIZE - 1)))
+ 		return 0;
  
- 	if (rw == READ) {
- 		atomic64_inc(&zram->stats.num_reads);
--		ret = zram_bvec_read(zram, bvec, index, offset, bio);
-+		ret = zram_bvec_read(zram, bvec, index, offset);
- 	} else {
- 		atomic64_inc(&zram->stats.num_writes);
- 		ret = zram_bvec_write(zram, bvec, index, offset);
-@@ -853,7 +852,7 @@ out:
+-	start = bio->bi_iter.bi_sector;
+-	end = start + (bio->bi_iter.bi_size >> SECTOR_SHIFT);
++	end = start + (size >> SECTOR_SHIFT);
+ 	bound = zram->disksize >> SECTOR_SHIFT;
+ 	/* out of range range */
+ 	if (unlikely(start >= bound || end > bound || start > end))
+@@ -915,7 +914,8 @@ static void zram_make_request(struct req
+ 	if (unlikely(!init_done(zram)))
+ 		goto error;
  
- static void __zram_make_request(struct zram *zram, struct bio *bio)
- {
--	int offset;
-+	int offset, rw;
- 	u32 index;
- 	struct bio_vec bvec;
- 	struct bvec_iter iter;
-@@ -868,6 +867,7 @@ static void __zram_make_request(struct z
- 		return;
+-	if (!valid_io_request(zram, bio)) {
++	if (!valid_io_request(zram, bio->bi_iter.bi_sector,
++					bio->bi_iter.bi_size)) {
+ 		atomic64_inc(&zram->stats.invalid_io);
+ 		goto error;
  	}
- 
-+	rw = bio_data_dir(bio);
- 	bio_for_each_segment(bvec, bio, iter) {
- 		int max_transfer_size = PAGE_SIZE - offset;
- 
-@@ -882,15 +882,15 @@ static void __zram_make_request(struct z
- 			bv.bv_len = max_transfer_size;
- 			bv.bv_offset = bvec.bv_offset;
- 
--			if (zram_bvec_rw(zram, &bv, index, offset, bio) < 0)
-+			if (zram_bvec_rw(zram, &bv, index, offset, rw) < 0)
- 				goto out;
- 
- 			bv.bv_len = bvec.bv_len - max_transfer_size;
- 			bv.bv_offset += max_transfer_size;
--			if (zram_bvec_rw(zram, &bv, index + 1, 0, bio) < 0)
-+			if (zram_bvec_rw(zram, &bv, index + 1, 0, rw) < 0)
- 				goto out;
- 		} else
--			if (zram_bvec_rw(zram, &bvec, index, offset, bio) < 0)
-+			if (zram_bvec_rw(zram, &bvec, index, offset, rw) < 0)
- 				goto out;
- 
- 		update_position(&index, &offset, &bvec);
 _
 
 Patches currently in -mm which might be from karam.lee@lge.com are
