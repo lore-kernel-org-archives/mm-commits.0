@@ -1,87 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch removed from -mm tree
-Date: Mon, 15 Dec 2014 14:28:28 -0800
-Message-ID: <548f608c.kJgQa1zECXkhkfN2%akpm@linux-foundation.org>
+Subject: [folded-merged] ocfs2-implement-ocfs2_direct_io_write-fix.patch
+ removed from -mm tree
+Date: Mon, 15 Dec 2014 14:28:54 -0800
+Message-ID: <548f60a6.CI5J53lsgde4sVaW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43351 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43402 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750873AbaLOW23 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 15 Dec 2014 17:28:29 -0500
+	with ESMTP id S1750892AbaLOW2z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 15 Dec 2014 17:28:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, fengguang.wu@intel.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.com, wangww631@huawei.com, mm-commits@vger.kernel.org
+To: joseph.qi@huawei.com, alex.chen@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, wangww631@huawei.com, xuejiufei@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix
+     Subject: ocfs2: fix brelse warning if ocfs2_direct_IO_get_blocks failed
 has been removed from the -mm tree.  Its filename was
-     ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
+     ocfs2-implement-ocfs2_direct_io_write-fix.patch
 
-This patch was dropped because it was folded into ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir.patch
+This patch was dropped because it was folded into ocfs2-implement-ocfs2_direct_io_write.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix
+From: Joseph Qi <joseph.qi@huawei.com>
+Subject: ocfs2: fix brelse warning if ocfs2_direct_IO_get_blocks failed
 
-fix warning
+In ocfs2_direct_IO_write, if ocfs2_direct_IO_get_blocks failed, the
+di_bh will be used again in unlikely branch, and this will hit a warning
+"VFS: brelse: Trying to free free buffer" when jbd2 do checkpoint.
+Fix this issue by setting di_bh to NULL after brelse.
 
-fs/ocfs2/namei.c:2767:31: warning: suggest parentheses around operand of '!' or change '&' to '&&' or '!' to '~' [-Wparentheses]
-
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Joseph Qi <joseph.qi@huawei.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
+Reported-by: alex chen <alex.chen@huawei.com>
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
+Reviewed-by: joyce.xue <xuejiufei@huawei.com>
 Cc: Weiwei Wang <wangww631@huawei.com>
-Reported-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/namei.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ocfs2/aops.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/ocfs2/namei.c~ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix fs/ocfs2/namei.c
---- a/fs/ocfs2/namei.c~ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix
-+++ a/fs/ocfs2/namei.c
-@@ -2764,7 +2764,7 @@ int ocfs2_del_inode_from_orphan(struct o
- 		goto bail_unlock_orphan;
+diff -puN fs/ocfs2/aops.c~ocfs2-implement-ocfs2_direct_io_write-fix fs/ocfs2/aops.c
+--- a/fs/ocfs2/aops.c~ocfs2-implement-ocfs2_direct_io_write-fix
++++ a/fs/ocfs2/aops.c
+@@ -692,6 +692,7 @@ static ssize_t ocfs2_direct_IO_write(str
+ 
+ 		ocfs2_inode_unlock(inode, 1);
+ 		brelse(di_bh);
++		di_bh = NULL;
  	}
  
--	BUG_ON(!di->i_flags & cpu_to_le32(OCFS2_DIO_ORPHANED_FL));
-+	BUG_ON(!(di->i_flags & cpu_to_le32(OCFS2_DIO_ORPHANED_FL)));
- 
- 	/* Only delete entry if OCFS2_ORPHANED_FL not set, or
- 	 * there are two entries added */
+ 	written = __blockdev_direct_IO(WRITE, iocb, inode, inode->i_sb->s_bdev,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from joseph.qi@huawei.com are
 
 origin.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper.patch
-ocfs2-free-inode-when-i_count-becomes-zero.patch
+ocfs2-dlm-fix-race-between-dispatched_work-and-dlm_lockres_grab_inflight_worker.patch
+ocfs2-eliminate-the-static-flag-of-some-functions.patch
 ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir.patch
-mm.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-sysctl-terminate-strings-also-on-r-fix.patch
-linux-next.patch
-linux-next-git-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-lib-show_mem-this-patch-adds-cma-reserved-infromation-fix.patch
-tools-testing-selftests-makefile-alphasort-the-targets-list.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
+ocfs2-add-orphan-recovery-types-in-ocfs2_recover_orphans.patch
+ocfs2-implement-ocfs2_direct_io_write.patch
+ocfs2-allocate-blocks-in-ocfs2_direct_io_get_blocks.patch
+ocfs2-do-not-fallback-to-buffer-i-o-write-if-appending.patch
+ocfs2-do-not-fallback-to-buffer-i-o-write-if-fill-holes.patch
+ocfs2-fix-leftover-orphan-entry-caused-by-append-o_direct-write-crash.patch
 
