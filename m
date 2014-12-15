@@ -1,61 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- lib-show_mem-this-patch-adds-cma-reserved-infromation-fix.patch removed
- from -mm tree
-Date: Mon, 15 Dec 2014 15:29:04 -0800
-Message-ID: <548f6ec0.SzEwirpsM85UKbns%akpm@linux-foundation.org>
+Subject: +
+ mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask-fix.patch
+ added to -mm tree
+Date: Mon, 15 Dec 2014 15:44:13 -0800
+Message-ID: <548f724d.rLF4o0UL2DnVscix%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43939 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44038 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751202AbaLOX3F (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 15 Dec 2014 18:29:05 -0500
+	with ESMTP id S1751028AbaLOXoO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 15 Dec 2014 18:44:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, mgorman@suse.de, pintu.k@samsung.com, qiuxishi@huawei.com, rientjes@google.com, vishnu.ps@samsung.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, isimatu.yasuaki@jp.fujitsu.com, mel@csn.ul.ie, ming.lei@canonical.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib-show_mem-this-patch-adds-cma-reserved-infromation-fix
-has been removed from the -mm tree.  Its filename was
-     lib-show_mem-this-patch-adds-cma-reserved-infromation-fix.patch
+     Subject: mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask-fix
+has been added to the -mm tree.  Its filename is
+     mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask-fix.patch
 
-This patch was dropped because it was folded into lib-show_mem-this-patch-adds-cma-reserved-infromation.patch
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib-show_mem-this-patch-adds-cma-reserved-infromation-fix
+Subject: mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask-fix
 
-remove hopefully-unneeded ifdefs
+pass the correct mask (the mask we actually used) into trace_mm_page_alloc()
 
-Cc: David Rientjes <rientjes@google.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Pintu Kumar <pintu.k@samsung.com>
-Cc: Vishnu Pratap Singh <vishnu.ps@samsung.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Ming Lei <ming.lei@canonical.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/show_mem.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/page_alloc.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN lib/show_mem.c~lib-show_mem-this-patch-adds-cma-reserved-infromation-fix lib/show_mem.c
---- a/lib/show_mem.c~lib-show_mem-this-patch-adds-cma-reserved-infromation-fix
-+++ a/lib/show_mem.c
-@@ -8,9 +8,7 @@
- #include <linux/mm.h>
- #include <linux/nmi.h>
- #include <linux/quicklist.h>
--#ifdef CONFIG_CMA
- #include <linux/cma.h>
--#endif
+diff -puN mm/page_alloc.c~mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask-fix
++++ a/mm/page_alloc.c
+@@ -2877,6 +2877,7 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
+ 	unsigned int cpuset_mems_cookie;
+ 	int alloc_flags = ALLOC_WMARK_LOW|ALLOC_CPUSET|ALLOC_FAIR;
+ 	int classzone_idx;
++	gfp_t mask;
  
- void show_mem(unsigned int filter)
- {
+ 	gfp_mask &= gfp_allowed_mask;
+ 
+@@ -2910,23 +2911,24 @@ retry_cpuset:
+ 	classzone_idx = zonelist_zone_idx(preferred_zoneref);
+ 
+ 	/* First allocation attempt */
+-	page = get_page_from_freelist(gfp_mask|__GFP_HARDWALL, nodemask, order,
+-			zonelist, high_zoneidx, alloc_flags,
+-			preferred_zone, classzone_idx, migratetype);
++	mask = gfp_mask|__GFP_HARDWALL;
++	page = get_page_from_freelist(mask, nodemask, order, zonelist,
++			high_zoneidx, alloc_flags, preferred_zone,
++			classzone_idx, migratetype);
+ 	if (unlikely(!page)) {
+ 		/*
+ 		 * Runtime PM, block IO and its error handling path
+ 		 * can deadlock because I/O on the device might not
+ 		 * complete.
+ 		 */
+-		gfp_t mask = memalloc_noio_flags(gfp_mask);
++		mask = memalloc_noio_flags(gfp_mask);
+ 
+ 		page = __alloc_pages_slowpath(mask, order,
+ 				zonelist, high_zoneidx, nodemask,
+ 				preferred_zone, classzone_idx, migratetype);
+ 	}
+ 
+-	trace_mm_page_alloc(page, order, gfp_mask, migratetype);
++	trace_mm_page_alloc(page, order, mask, migratetype);
+ 
+ out:
+ 	/*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -71,6 +111,7 @@ ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir.patch
 mm.patch
 mm-replace-remap_file_pages-syscall-with-emulation.patch
 mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
+mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask-fix.patch
 mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
 x86-add-pmd_-for-thp-fix.patch
 sparc-add-pmd_-for-thp-fix.patch
