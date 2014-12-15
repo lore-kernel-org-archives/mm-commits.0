@@ -1,131 +1,96 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- input-route-kbd-leds-through-the-generic-leds-layer-fix-3.patch removed
- from -mm tree
-Date: Mon, 15 Dec 2014 14:25:25 -0800
-Message-ID: <548f5fd5.lkeQLIIfAPO/pHIw%akpm@linux-foundation.org>
+ o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 15 Dec 2014 14:27:35 -0800
+Message-ID: <548f6057.cbB/T88zziUi4p4b%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43328 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43336 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750953AbaLOWZ0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 15 Dec 2014 17:25:26 -0500
+	with ESMTP id S1750822AbaLOW1g (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 15 Dec 2014 17:27:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: samuel.thibault@ens-lyon.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jlbec@evilplan.org, mfasheh@suse.com, srinivas.eeda@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Merge input leds init/exit into input module init/exit
+     Subject: o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     input-route-kbd-leds-through-the-generic-leds-layer-fix-3.patch
+     o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into input-route-kbd-leds-through-the-generic-leds-layer.patch
+This patch was dropped because it was folded into o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper.patch
 
 ------------------------------------------------------
-From: Samuel Thibault <samuel.thibault@ens-lyon.org>
-Subject: Merge input leds init/exit into input module init/exit
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes
 
-Now that input/leds.c is compiled into the input.ko module in the mm
-tree, its init and exit function must be called by input.ko's init and
-exit functions, instead of duplicating the module init/exit hooks, which
-leads to the following build error when input is built as a module:
+WARNING: else is not generally useful after a break or return
+#47: FILE: fs/ocfs2/dlm/dlmast.c:392:
++				break;
++			else
 
-leds.c:(.init.text+0x0): multiple definition of `init_module'
-leds.c:(.exit.text+0x0): multiple definition of `cleanup_module'
+total: 0 errors, 1 warnings, 15 lines checked
 
-This also adds a proper clean of the vt_led_work queues in the exit
-function.
+./patches/o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper.patch has style problems, please review.
 
-Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Srinivas Eeda <srinivas.eeda@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/input.c |    3 +++
- drivers/input/leds.c  |   16 ++++++----------
- include/linux/input.h |    7 +++++++
- 3 files changed, 16 insertions(+), 10 deletions(-)
+ fs/ocfs2/dlm/dlmast.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/input/input.c~input-route-kbd-leds-through-the-generic-leds-layer-fix-3 drivers/input/input.c
---- a/drivers/input/input.c~input-route-kbd-leds-through-the-generic-leds-layer-fix-3
-+++ a/drivers/input/input.c
-@@ -2428,6 +2428,8 @@ static int __init input_init(void)
- 		goto fail2;
+diff -puN fs/ocfs2/dlm/dlmast.c~o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes fs/ocfs2/dlm/dlmast.c
+--- a/fs/ocfs2/dlm/dlmast.c~o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper-checkpatch-fixes
++++ a/fs/ocfs2/dlm/dlmast.c
+@@ -389,8 +389,7 @@ int dlm_proxy_ast_handler(struct o2net_m
+ 		if (lock->ml.cookie == cookie) {
+ 			if (lock->unlock_pending)
+ 				break;
+-			else
+-				goto do_ast;
++			goto do_ast;
+ 		}
  	}
  
-+	input_led_init();
-+
- 	return 0;
- 
-  fail2:	input_proc_exit();
-@@ -2437,6 +2439,7 @@ static int __init input_init(void)
- 
- static void __exit input_exit(void)
- {
-+	input_led_exit();
- 	input_proc_exit();
- 	unregister_chrdev_region(MKDEV(INPUT_MAJOR, 0),
- 				 INPUT_MAX_CHAR_DEVICES);
-diff -puN drivers/input/leds.c~input-route-kbd-leds-through-the-generic-leds-layer-fix-3 drivers/input/leds.c
---- a/drivers/input/leds.c~input-route-kbd-leds-through-the-generic-leds-layer-fix-3
-+++ a/drivers/input/leds.c
-@@ -255,22 +255,18 @@ void input_led_disconnect(struct input_d
- 	mutex_unlock(&vt_led_registered_lock);
- }
- 
--static int __init input_led_init(void)
-+void __init input_led_init(void)
- {
- 	unsigned i;
- 
- 	for (i = 0; i < LED_CNT; i++)
- 		INIT_WORK(&vt_led_work[i], vt_led_cb);
--
--	return 0;
- }
- 
--static void __exit input_led_exit(void)
-+void __exit input_led_exit(void)
- {
--}
-+	unsigned i;
- 
--MODULE_LICENSE("GPL");
--MODULE_DESCRIPTION("User LED support for input layer");
--MODULE_AUTHOR("Samuel Thibault <samuel.thibault@ens-lyon.org>");
--module_init(input_led_init);
--module_exit(input_led_exit);
-+	for (i = 0; i < LED_CNT; i++)
-+		cancel_work_sync(&vt_led_work[i]);
-+}
-diff -puN include/linux/input.h~input-route-kbd-leds-through-the-generic-leds-layer-fix-3 include/linux/input.h
---- a/include/linux/input.h~input-route-kbd-leds-through-the-generic-leds-layer-fix-3
-+++ a/include/linux/input.h
-@@ -536,11 +536,18 @@ int input_ff_create_memless(struct input
- 
- #ifdef CONFIG_INPUT_LEDS
- 
-+void input_led_init(void);
-+void input_led_exit(void);
-+
- int input_led_connect(struct input_dev *dev);
- void input_led_disconnect(struct input_dev *dev);
- 
- #else
- 
-+static inline void input_led_init(void) { }
-+
-+static inline void input_led_exit(void) { }
-+
- static inline int input_led_connect(struct input_dev *dev)
- {
- 	return 0;
 _
 
-Patches currently in -mm which might be from samuel.thibault@ens-lyon.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
 input-route-kbd-leds-through-the-generic-leds-layer.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper.patch
+ocfs2-free-inode-when-i_count-becomes-zero.patch
+ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
+mm.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+sysctl-terminate-strings-also-on-r-fix.patch
+linux-next.patch
+linux-next-git-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+lib-show_mem-this-patch-adds-cma-reserved-infromation-fix.patch
+tools-testing-selftests-makefile-alphasort-the-targets-list.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
