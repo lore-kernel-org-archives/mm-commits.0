@@ -1,73 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] ocfs2-implement-ocfs2_direct_io_write-fix.patch
- removed from -mm tree
-Date: Mon, 15 Dec 2014 14:28:54 -0800
-Message-ID: <548f60a6.CI5J53lsgde4sVaW%akpm@linux-foundation.org>
+Subject: +
+ exit-fix-race-between-wait_consider_task-and-wait_task_zombie.patch added
+ to -mm tree
+Date: Mon, 15 Dec 2014 15:19:01 -0800
+Message-ID: <548f6c65.opOPrSp7HxpzChMC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43402 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43835 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750892AbaLOW2z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 15 Dec 2014 17:28:55 -0500
+	with ESMTP id S1751101AbaLOXTC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 15 Dec 2014 18:19:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joseph.qi@huawei.com, alex.chen@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, wangww631@huawei.com, xuejiufei@huawei.com, mm-commits@vger.kernel.org
+To: oleg@redhat.com, el@laramies.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix brelse warning if ocfs2_direct_IO_get_blocks failed
-has been removed from the -mm tree.  Its filename was
-     ocfs2-implement-ocfs2_direct_io_write-fix.patch
+     Subject: exit: fix race between wait_consider_task() and wait_task_zombie()
+has been added to the -mm tree.  Its filename is
+     exit-fix-race-between-wait_consider_task-and-wait_task_zombie.patch
 
-This patch was dropped because it was folded into ocfs2-implement-ocfs2_direct_io_write.patch
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/exit-fix-race-between-wait_consider_task-and-wait_task_zombie.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/exit-fix-race-between-wait_consider_task-and-wait_task_zombie.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@huawei.com>
-Subject: ocfs2: fix brelse warning if ocfs2_direct_IO_get_blocks failed
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: exit: fix race between wait_consider_task() and wait_task_zombie()
 
-In ocfs2_direct_IO_write, if ocfs2_direct_IO_get_blocks failed, the
-di_bh will be used again in unlikely branch, and this will hit a warning
-"VFS: brelse: Trying to free free buffer" when jbd2 do checkpoint.
-Fix this issue by setting di_bh to NULL after brelse.
+wait_consider_task() checks EXIT_ZOMBIE after EXIT_DEAD/EXIT_TRACE and
+both checks can fail if we race with EXIT_ZOMBIE -> EXIT_DEAD/EXIT_TRACE
+change in between, gcc needs to reload p->exit_state after
+security_task_wait().  In this case ->notask_error will be wrongly cleared
+and do_wait() can hang forever if it was the last eligible child.
 
-Reported-by: alex chen <alex.chen@huawei.com>
-Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
-Reviewed-by: joyce.xue <xuejiufei@huawei.com>
-Cc: Weiwei Wang <wangww631@huawei.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
+Many thanks to Arne who carefully investigated the problem.
+
+Note: this bug is very old but it was pure theoretical until b3ab03160dfa
+"wait: completely ignore the EXIT_DEAD tasks".  Before this commit "-O2"
+was probably enough to guarantee that compiler won't read ->exit_state
+twice.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Reported-by: Arne Goedeke <el@laramies.com>
+Tested-by: Arne Goedeke <el@laramies.com>
+Cc: <stable@vger.kernel.org>	[3.15+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/aops.c |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/exit.c |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-diff -puN fs/ocfs2/aops.c~ocfs2-implement-ocfs2_direct_io_write-fix fs/ocfs2/aops.c
---- a/fs/ocfs2/aops.c~ocfs2-implement-ocfs2_direct_io_write-fix
-+++ a/fs/ocfs2/aops.c
-@@ -692,6 +692,7 @@ static ssize_t ocfs2_direct_IO_write(str
+diff -puN kernel/exit.c~exit-fix-race-between-wait_consider_task-and-wait_task_zombie kernel/exit.c
+--- a/kernel/exit.c~exit-fix-race-between-wait_consider_task-and-wait_task_zombie
++++ a/kernel/exit.c
+@@ -1287,9 +1287,15 @@ static int wait_task_continued(struct wa
+ static int wait_consider_task(struct wait_opts *wo, int ptrace,
+ 				struct task_struct *p)
+ {
++	/*
++	 * We can race with wait_task_zombie() from another thread.
++	 * Ensure that EXIT_ZOMBIE -> EXIT_DEAD/EXIT_TRACE transition
++	 * can't confuse the checks below.
++	 */
++	int exit_state = ACCESS_ONCE(p->exit_state);
+ 	int ret;
  
- 		ocfs2_inode_unlock(inode, 1);
- 		brelse(di_bh);
-+		di_bh = NULL;
+-	if (unlikely(p->exit_state == EXIT_DEAD))
++	if (unlikely(exit_state == EXIT_DEAD))
+ 		return 0;
+ 
+ 	ret = eligible_child(wo, p);
+@@ -1310,7 +1316,7 @@ static int wait_consider_task(struct wai
+ 		return 0;
  	}
  
- 	written = __blockdev_direct_IO(WRITE, iocb, inode, inode->i_sb->s_bdev,
+-	if (unlikely(p->exit_state == EXIT_TRACE)) {
++	if (unlikely(exit_state == EXIT_TRACE)) {
+ 		/*
+ 		 * ptrace == 0 means we are the natural parent. In this case
+ 		 * we should clear notask_error, debugger will notify us.
+@@ -1337,7 +1343,7 @@ static int wait_consider_task(struct wai
+ 	}
+ 
+ 	/* slay zombie? */
+-	if (p->exit_state == EXIT_ZOMBIE) {
++	if (exit_state == EXIT_ZOMBIE) {
+ 		/* we don't reap group leaders with subthreads */
+ 		if (!delay_group_leader(p)) {
+ 			/*
 _
 
-Patches currently in -mm which might be from joseph.qi@huawei.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 origin.patch
-ocfs2-dlm-fix-race-between-dispatched_work-and-dlm_lockres_grab_inflight_worker.patch
-ocfs2-eliminate-the-static-flag-of-some-functions.patch
-ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir.patch
-ocfs2-add-orphan-recovery-types-in-ocfs2_recover_orphans.patch
-ocfs2-implement-ocfs2_direct_io_write.patch
-ocfs2-allocate-blocks-in-ocfs2_direct_io_get_blocks.patch
-ocfs2-do-not-fallback-to-buffer-i-o-write-if-appending.patch
-ocfs2-do-not-fallback-to-buffer-i-o-write-if-fill-holes.patch
-ocfs2-fix-leftover-orphan-entry-caused-by-append-o_direct-write-crash.patch
+remove-unnecessary-is_valid_nodemask.patch
+exit-fix-race-between-wait_consider_task-and-wait_task_zombie.patch
+linux-next.patch
+all-arches-signal-move-restart_block-to-struct-task_struct.patch
 
