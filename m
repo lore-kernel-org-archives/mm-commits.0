@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mailmap-santosh-shilimkar-has-moved.patch added to -mm tree
-Date: Tue, 16 Dec 2014 13:53:45 -0800
-Message-ID: <5490a9e9.LyYNZnpUOgqoCMpN%akpm@linux-foundation.org>
+Subject: +
+ all-arches-signal-move-restart_block-to-struct-task_struct-fix.patch added
+ to -mm tree
+Date: Tue, 16 Dec 2014 15:52:35 -0800
+Message-ID: <5490c5c3.siP/stO8jjNdqs/k%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56247 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57117 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751066AbaLPVxq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Dec 2014 16:53:46 -0500
+	with ESMTP id S1751263AbaLPXwg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Dec 2014 18:52:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ssantosh@kernel.org, joe@perches.com, santosh.shilimkar@oracle.com, mm-commits@vger.kernel.org
+To: james.hogan@imgtec.com, linux@roeck-us.net, luto@amacapital.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: .mailmap: Santosh Shilimkar has moved
+     Subject: metag: align thread_info::supervisor_stack
 has been added to the -mm tree.  Its filename is
-     mailmap-santosh-shilimkar-has-moved.patch
+     all-arches-signal-move-restart_block-to-struct-task_struct-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mailmap-santosh-shilimkar-=
-has-moved.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/all-arches-signal-move-restart_block-to-struct-task_struct-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mailmap-santosh-shilimkar-=
-has-moved.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/all-arches-signal-move-restart_block-to-struct-task_struct-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,52 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-=46rom: Santosh Shilimkar <ssantosh@kernel.org>
-Subject: .mailmap: Santosh Shilimkar has moved
+From: James Hogan <james.hogan@imgtec.com>
+Subject: metag: align thread_info::supervisor_stack
 
-Add my new email address along with kernel.org email id
+Commit a82be12232dc ("all arches, signal: move restart_block to struct
+task_struct") removed restart_block from struct thread_info which was the
+only thing keeping supervisor_stack and the struct as a whole 64-bit
+aligned.  This resulted in the initial stack pointer not being 64-bit
+aligned, so when arguments are saved to the stack with a 64-bit SETL
+instruction the values are corrupted resulting in a pretty early
+unserviced memory fault in printk.
 
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Signed-off-by: Santosh Shilimkar <ssantosh@kernel.org>
-Cc: Joe Perches <joe@perches.com>
+This is fixed by explicitly aligning supervisor_stack to 8 bytes.
+
+Fixes: a82be12232dc ("all arches, signal: move restart_block to struct task_struct")
+Reported-by: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: James Hogan <james.hogan@imgtec.com>
+Cc: Andy Lutomirski <luto@amacapital.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/metag/include/asm/thread_info.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN .mailmap~mailmap-santosh-shilimkar-has-moved .mailmap
---- a/.mailmap~mailmap-santosh-shilimkar-has-moved
-+++ a/.mailmap
-@@ -102,6 +102,8 @@ Rudolf Marek <R.Marek@sh.cvut.cz>
- Rui Saraiva <rmps@joel.ist.utl.pt>
- Sachin P Sant <ssant@in.ibm.com>
- Sam Ravnborg <sam@mars.ravnborg.org>
-+Santosh Shilimkar <ssantosh@kernel.org>
-+Santosh Shilimkar <santosh.shilimkar@oracle.org>
- Sascha Hauer <s.hauer@pengutronix.de>
- S.=C3=87a=C4=9Flar Onur <caglar@pardus.org.tr>
- Shiraz Hashim <shiraz.linux.kernel@gmail.com> <shiraz.hashim@st.com>
+diff -puN arch/metag/include/asm/thread_info.h~all-arches-signal-move-restart_block-to-struct-task_struct-fix arch/metag/include/asm/thread_info.h
+--- a/arch/metag/include/asm/thread_info.h~all-arches-signal-move-restart_block-to-struct-task_struct-fix
++++ a/arch/metag/include/asm/thread_info.h
+@@ -36,7 +36,7 @@ struct thread_info {
+ 
+ 	mm_segment_t addr_limit;	/* thread address space */
+ 
+-	u8 supervisor_stack[0];
++	u8 supervisor_stack[0] __aligned(8);
+ };
+ 
+ #else /* !__ASSEMBLY__ */
 _
 
-Patches currently in -mm which might be from ssantosh@kernel.org are
+Patches currently in -mm which might be from james.hogan@imgtec.com are
 
 origin.patch
-mailmap-santosh-shilimkar-has-moved.patch
-linux-next.patch
+all-arches-signal-move-restart_block-to-struct-task_struct.patch
+all-arches-signal-move-restart_block-to-struct-task_struct-fix.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
