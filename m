@@ -1,85 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: +
- all-arches-signal-move-restart_block-to-struct-task_struct-fix.patch added
- to -mm tree
-Date: Tue, 16 Dec 2014 15:52:35 -0800
-Message-ID: <5490c5c3.siP/stO8jjNdqs/k%akpm@linux-foundation.org>
+Subject: [nacked] ocfs2-free-inode-when-i_count-becomes-zero.patch removed from -mm tree
+Date: Tue, 16 Dec 2014 15:53:28 -0800
+Message-ID: <5490c5f8.iPgvxNJW9v97DU72%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57117 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57120 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751263AbaLPXwg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Dec 2014 18:52:36 -0500
+	with ESMTP id S1751494AbaLPXx3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Dec 2014 18:53:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: james.hogan@imgtec.com, linux@roeck-us.net, luto@amacapital.net, mm-commits@vger.kernel.org
+To: xuejiufei@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: metag: align thread_info::supervisor_stack
-has been added to the -mm tree.  Its filename is
-     all-arches-signal-move-restart_block-to-struct-task_struct-fix.patch
+     Subject: ocfs2: free inode when i_count becomes zero
+has been removed from the -mm tree.  Its filename was
+     ocfs2-free-inode-when-i_count-becomes-zero.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/all-arches-signal-move-restart_block-to-struct-task_struct-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/all-arches-signal-move-restart_block-to-struct-task_struct-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-From: James Hogan <james.hogan@imgtec.com>
-Subject: metag: align thread_info::supervisor_stack
+From: Xue jiufei <xuejiufei@huawei.com>
+Subject: ocfs2: free inode when i_count becomes zero
 
-Commit a82be12232dc ("all arches, signal: move restart_block to struct
-task_struct") removed restart_block from struct thread_info which was the
-only thing keeping supervisor_stack and the struct as a whole 64-bit
-aligned.  This resulted in the initial stack pointer not being 64-bit
-aligned, so when arguments are saved to the stack with a 64-bit SETL
-instruction the values are corrupted resulting in a pretty early
-unserviced memory fault in printk.
+Disk inode deletion may be heavily delayed when one node unlink a file
+after the same dentry is freed on another node(say N1) because of memory
+shrink but inode is left in memory.  This inode can only be freed while N1
+doing the orphan scan work.
 
-This is fixed by explicitly aligning supervisor_stack to 8 bytes.
+However, N1 may skip orphan scan for several times because other nodes may
+do the work earlier.  In our tests, it may take 1 hour on 4 nodes cluster
+and this will cause bad user experience.  So we think the inode should be
+freed when i_count becomes zero to avoid such circumstances.
 
-Fixes: a82be12232dc ("all arches, signal: move restart_block to struct task_struct")
-Reported-by: Guenter Roeck <linux@roeck-us.net>
-Signed-off-by: James Hogan <james.hogan@imgtec.com>
-Cc: Andy Lutomirski <luto@amacapital.net>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: joyce.xue <xuejiufei@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/metag/include/asm/thread_info.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ocfs2/inode.c |   10 +---------
+ 1 file changed, 1 insertion(+), 9 deletions(-)
 
-diff -puN arch/metag/include/asm/thread_info.h~all-arches-signal-move-restart_block-to-struct-task_struct-fix arch/metag/include/asm/thread_info.h
---- a/arch/metag/include/asm/thread_info.h~all-arches-signal-move-restart_block-to-struct-task_struct-fix
-+++ a/arch/metag/include/asm/thread_info.h
-@@ -36,7 +36,7 @@ struct thread_info {
- 
- 	mm_segment_t addr_limit;	/* thread address space */
- 
--	u8 supervisor_stack[0];
-+	u8 supervisor_stack[0] __aligned(8);
- };
- 
- #else /* !__ASSEMBLY__ */
-_
-
-Patches currently in -mm which might be from james.hogan@imgtec.com are
-
-origin.patch
-all-arches-signal-move-restart_block-to-struct-task_struct.patch
-all-arches-signal-move-restart_block-to-struct-task_struct-fix.patch
-
+diff -puN fs/ocfs2/inode.c~ocfs2-free-inode-when-i_count-becomes-zero fs/ocfs2/inode.c
+--- a/fs/ocfs2/inode.c~ocfs2-free-inode-when-i_count-becomes-zero
++++ a/fs/ocfs2/inode.c
+@@ -1191,17 +1191,9 @@ void ocfs2_evict_inode(struct inode *ino
+ int ocfs2_drop_inode(struct inode *inode)
+ {
+ 	struct ocfs2_inode_info *oi = OCFS2_I(inode);
+-	int res;
+-
+ 	trace_ocfs2_drop_inode((unsigned long long)oi->ip_blkno,
+ 				inode->i_nlink, oi->ip_flags);
+-
+-	if (oi->ip_flags & OCFS2_INODE_MAYBE_ORPHANED)
+-		res = 1;
+-	else
+-		res = generic_drop_inode(inode);
