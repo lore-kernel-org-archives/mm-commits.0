@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath-update.patch added to -mm tree
-Date: Tue, 16 Dec 2014 15:56:56 -0800
-Message-ID: <5490c6c8.lmz7vYU/2yF/A7/+%akpm@linux-foundation.org>
+Subject: + ocfs2-remove-bogus-check-in-dlm_process_recovery_data.patch
+ added to -mm tree
+Date: Wed, 17 Dec 2014 13:07:49 -0800
+Message-ID: <5491f0a5.1FRylU/kr5KFiJZr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57128 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42194 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750811AbaLPX45 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Dec 2014 18:56:57 -0500
+	with ESMTP id S1750999AbaLQVHu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Dec 2014 16:07:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, mhocko@suse.cz, rientjes@google.com, mm-commits@vger.kernel.org
+To: joseph.qi@huawei.com, alex.chen@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath-update
+     Subject: ocfs2: remove bogus check in dlm_process_recovery_data
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath-update.patch
+     ocfs2-remove-bogus-check-in-dlm_process_recovery_data.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath-update.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-remove-bogus-check-in-dlm_process_recovery_data.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath-update.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-remove-bogus-check-in-dlm_process_recovery_data.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,57 +39,52 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath-update
+From: Joseph Qi <joseph.qi@huawei.com>
+Subject: ocfs2: remove bogus check in dlm_process_recovery_data
 
-Here is an updated version of this patch with a more detailed changelog.
+In dlm_process_recovery_data, only when dlm_new_lock failed the ret will
+be set to -ENOMEM.  And in this case, newlock is definitely NULL.  So test
+newlock is meaningless, remove it.
 
-The OOM killing invocation does a lot of duplicative checks against
-the task's allocation context.  Rework it to take advantage of the
-existing checks in the allocator slowpath.
-
-The OOM killer is invoked when the allocator is unable to reclaim any
-pages but the allocation has to keep looping.  Instead of having a
-check for __GFP_NORETRY hidden in oom_gfp_allowed(), just move the OOM
-invocation to the true branch of should_alloc_retry().  The __GFP_FS
-check from oom_gfp_allowed() can then be moved into the OOM avoidance
-branch in __alloc_pages_may_oom(), along with the PF_DUMPCORE test.
-
-__alloc_pages_may_oom() can then signal to the caller whether the OOM
-killer was invoked, instead of requiring it to duplicate the order and
-high_zoneidx checks to guess this when deciding whether to continue.
-
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
+Reviewed-by: Alex Chen <alex.chen@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ fs/ocfs2/dlm/dlmrecovery.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath-update mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath-update
-+++ a/mm/page_alloc.c
-@@ -2818,10 +2818,8 @@ rebalance:
- 						migratetype,&did_some_progress);
- 			if (page)
- 				goto got_pg;
--			if (!did_some_progress) {
--				BUG_ON(gfp_mask & __GFP_NOFAIL);
-+			if (!did_some_progress)
- 				goto nopage;
--			}
- 		}
- 		/* Wait for some write requests to complete then retry */
- 		wait_iff_congested(preferred_zone, BLK_RW_ASYNC, HZ/50);
+diff -puN fs/ocfs2/dlm/dlmrecovery.c~ocfs2-remove-bogus-check-in-dlm_process_recovery_data fs/ocfs2/dlm/dlmrecovery.c
+--- a/fs/ocfs2/dlm/dlmrecovery.c~ocfs2-remove-bogus-check-in-dlm_process_recovery_data
++++ a/fs/ocfs2/dlm/dlmrecovery.c
+@@ -2023,11 +2023,8 @@ leave:
+ 	dlm_lockres_drop_inflight_ref(dlm, res);
+ 	spin_unlock(&res->spinlock);
+ 
+-	if (ret < 0) {
++	if (ret < 0)
+ 		mlog_errno(ret);
+-		if (newlock)
+-			dlm_lock_put(newlock);
+-	}
+ 
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from joseph.qi@huawei.com are
 
 origin.patch
-mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath.patch
-mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath-update.patch
-mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
-mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask-fix.patch
+ocfs2-dlm-fix-race-between-dispatched_work-and-dlm_lockres_grab_inflight_worker.patch
+ocfs2-remove-bogus-check-in-dlm_process_recovery_data.patch
+ocfs2-eliminate-the-static-flag-of-some-functions.patch
+ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir.patch
+ocfs2-add-orphan-recovery-types-in-ocfs2_recover_orphans.patch
+ocfs2-implement-ocfs2_direct_io_write.patch
+ocfs2-allocate-blocks-in-ocfs2_direct_io_get_blocks.patch
+ocfs2-do-not-fallback-to-buffer-i-o-write-if-appending.patch
+ocfs2-do-not-fallback-to-buffer-i-o-write-if-fill-holes.patch
+ocfs2-fix-leftover-orphan-entry-caused-by-append-o_direct-write-crash.patch
 
