@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
 Subject: +
- staging-iio-isl29028-deprecate-use-of-isl-in-compatible-string-for-isil.patch added to -mm tree
-Date: Wed, 17 Dec 2014 14:18:37 -0800
-Message-ID: <5492013d.0v0Da0Q7Mk6eiOhc%akpm@linux-foundation.org>
+ arm-dts-zynq-update-isl9305-compatible-string-to-use-isil-vendor-prefix.patch added to -mm tree
+Date: Wed, 17 Dec 2014 14:18:44 -0800
+Message-ID: <54920144.vkfuTynVtZ9V+QjZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43165 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43202 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751724AbaLQWSj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Dec 2014 17:18:39 -0500
+	with ESMTP id S1751570AbaLQWSp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Dec 2014 17:18:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: arno@natisbad.org, a.zummo@towertech.it, arnd@arndb.de, broonie@kernel.org, darshanapadmadas@gmail.com, galak@codeaurora.org, gnurou@gmail.com, grant.likely@linaro.org, ijc+devicetree@hellion.org.uk, jason@lakedaemon.net, jgunthorpe@obsidianresearch.com, linus.walleij@linaro.org, linux@arm.linux.org.uk, linux@roeck-us.net, mark.rutland@arm.com, pawel.moll@arm.com, peter.huewe@infineon.com, rob@landley.net, robh+dt@kernel.org, swarren@wwwdotorg.org, thierry.reding@gmail.com, uwe@kleine-koenig.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: staging: iio: isl29028: deprecate use of isl in compatibl=
-e string for isil
+     Subject: arm: dts: zynq: update isl9305 compatible string to use i=
+sil vendor prefix
 has been added to the -mm tree.  Its filename is
-     staging-iio-isl29028-deprecate-use-of-isl-in-compatible-string-for=
--isil.patch
+     arm-dts-zynq-update-isl9305-compatible-string-to-use-isil-vendor-p=
+refix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/staging-iio-isl29028-depre=
-cate-use-of-isl-in-compatible-string-for-isil.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arm-dts-zynq-update-isl930=
+5-compatible-string-to-use-isil-vendor-prefix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/staging-iio-isl29028-depre=
-cate-use-of-isl-in-compatible-string-for-isil.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arm-dts-zynq-update-isl930=
+5-compatible-string-to-use-isil-vendor-prefix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,8 +45,8 @@ there every 3-4 working days
 
 ------------------------------------------------------
 =46rom: Arnaud Ebalard <arno@natisbad.org>
-Subject: staging: iio: isl29028: deprecate use of isl in compatible str=
-ing for isil
+Subject: arm: dts: zynq: update isl9305 compatible string to use isil v=
+endor prefix
 
 "isil" and "isl" prefixes are used at various locations inside the kern=
 el
@@ -55,8 +55,12 @@ ng
 those locations were "isl" is used in compatible strings to use the now
 expected "isil" prefix instead (NASDAQ symbol for Intersil and most use=
 d
-version).  The old compatible string is kept for backward compatibility=
-=2E
+version).
+
+Note: isl9305 is an I2C device so the patch does not in fact currently
+depend on the introduction of "isil"-based compatible string in isl9305
+driver (provided by another patch) because I2C core does not check the
+prefix yet.
 
 Signed-off-by: Arnaud Ebalard <arno@natisbad.org>
 Cc: Rob Herring <robh+dt@kernel.org>
@@ -84,27 +88,24 @@ Cc: Uwe Kleine-K=F6nig <uwe@kleine-koenig.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/iio/light/isl29028.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/boot/dts/zynq-parallella.dts |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/staging/iio/light/isl29028.c~staging-iio-isl29028-dep=
-recate-use-of-isl-in-compatible-string-for-isil drivers/staging/iio/lig=
-ht/isl29028.c
---- a/drivers/staging/iio/light/isl29028.c~staging-iio-isl29028-depreca=
-te-use-of-isl-in-compatible-string-for-isil
-+++ a/drivers/staging/iio/light/isl29028.c
-@@ -537,8 +537,8 @@ static const struct i2c_device_id isl290
- MODULE_DEVICE_TABLE(i2c, isl29028_id);
+diff -puN arch/arm/boot/dts/zynq-parallella.dts~arm-dts-zynq-update-isl=
+9305-compatible-string-to-use-isil-vendor-prefix arch/arm/boot/dts/zynq=
+-parallella.dts
+--- a/arch/arm/boot/dts/zynq-parallella.dts~arm-dts-zynq-update-isl9305=
+-compatible-string-to-use-isil-vendor-prefix
++++ a/arch/arm/boot/dts/zynq-parallella.dts
+@@ -58,7 +58,7 @@
+ 	status =3D "okay";
 =20
- static const struct of_device_id isl29028_of_match[] =3D {
--	{ .compatible =3D "isl,isl29028", },
--	{ .compatible =3D "isil,isl29028", },/* deprecated, don't use */
-+	{ .compatible =3D "isl,isl29028", }, /* for backward compat., don't u=
-se */
-+	{ .compatible =3D "isil,isl29028", },
- 	{ },
- };
- MODULE_DEVICE_TABLE(of, isl29028_of_match);
+ 	isl9305: isl9305@68 {
+-		compatible =3D "isl,isl9305";
++		compatible =3D "isil,isl9305";
+ 		reg =3D <0x68>;
+=20
+ 		regulators {
 _
 
 Patches currently in -mm which might be from arno@natisbad.org are
