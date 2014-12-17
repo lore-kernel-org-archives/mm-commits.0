@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-remove-bogus-check-in-dlm_process_recovery_data.patch
- added to -mm tree
-Date: Wed, 17 Dec 2014 13:07:49 -0800
-Message-ID: <5491f0a5.1FRylU/kr5KFiJZr%akpm@linux-foundation.org>
+Subject: + mm-prevent-endless-growth-of-anon_vma-hierarchy-fix.patch added to -mm tree
+Date: Wed, 17 Dec 2014 13:13:24 -0800
+Message-ID: <5491f1f4.IQQC+NsdfJTKLyvb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42194 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42301 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750999AbaLQVHu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Dec 2014 16:07:50 -0500
+	with ESMTP id S1750999AbaLQVN0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Dec 2014 16:13:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joseph.qi@huawei.com, alex.chen@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, koct9i@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: remove bogus check in dlm_process_recovery_data
+     Subject: mm-prevent-endless-growth-of-anon_vma-hierarchy-fix
 has been added to the -mm tree.  Its filename is
-     ocfs2-remove-bogus-check-in-dlm_process_recovery_data.patch
+     mm-prevent-endless-growth-of-anon_vma-hierarchy-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-remove-bogus-check-in-dlm_process_recovery_data.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-prevent-endless-growth-of-anon_vma-hierarchy-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-remove-bogus-check-in-dlm_process_recovery_data.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-prevent-endless-growth-of-anon_vma-hierarchy-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,52 +38,63 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@huawei.com>
-Subject: ocfs2: remove bogus check in dlm_process_recovery_data
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-prevent-endless-growth-of-anon_vma-hierarchy-fix
 
-In dlm_process_recovery_data, only when dlm_new_lock failed the ret will
-be set to -ENOMEM.  And in this case, newlock is definitely NULL.  So test
-newlock is meaningless, remove it.
+fix typo, per Rik
 
-Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
-Reviewed-by: Alex Chen <alex.chen@huawei.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmrecovery.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ mm/rmap.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN fs/ocfs2/dlm/dlmrecovery.c~ocfs2-remove-bogus-check-in-dlm_process_recovery_data fs/ocfs2/dlm/dlmrecovery.c
---- a/fs/ocfs2/dlm/dlmrecovery.c~ocfs2-remove-bogus-check-in-dlm_process_recovery_data
-+++ a/fs/ocfs2/dlm/dlmrecovery.c
-@@ -2023,11 +2023,8 @@ leave:
- 	dlm_lockres_drop_inflight_ref(dlm, res);
- 	spin_unlock(&res->spinlock);
- 
--	if (ret < 0) {
-+	if (ret < 0)
- 		mlog_errno(ret);
--		if (newlock)
--			dlm_lock_put(newlock);
--	}
- 
- 	return ret;
- }
+diff -puN mm/rmap.c~mm-prevent-endless-growth-of-anon_vma-hierarchy-fix mm/rmap.c
+--- a/mm/rmap.c~mm-prevent-endless-growth-of-anon_vma-hierarchy-fix
++++ a/mm/rmap.c
+@@ -244,9 +244,10 @@ static inline void unlock_anon_vma_root(
+  * If dst->anon_vma is NULL this function tries to find and reuse existing
+  * anon_vma which has no vmas and only one child anon_vma. This prevents
+  * degradation of anon_vma hierarchy to endless linear chain in case of
+- * constantly forking task. In other hand anon_vma with more than one child
+- * isn't reused even if was no alive vma, thus rmap walker has a good chance
+- * to avoid scanning whole hieraryhy when it searches where page is mapped.
++ * constantly forking task. On the other hand, an anon_vma with more than one
++ * child isn't reused even if there was no alive vma, thus rmap walker has a
++ * good chance of avoiding scanning the whole hierarchy when it searches where
++ * page is mapped.
+  */
+ int anon_vma_clone(struct vm_area_struct *dst, struct vm_area_struct *src)
+ {
 _
 
-Patches currently in -mm which might be from joseph.qi@huawei.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-ocfs2-dlm-fix-race-between-dispatched_work-and-dlm_lockres_grab_inflight_worker.patch
-ocfs2-remove-bogus-check-in-dlm_process_recovery_data.patch
-ocfs2-eliminate-the-static-flag-of-some-functions.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+lib-show_mem-this-patch-adds-cma-reserved-infromation.patch
+mailmap-update-akpm-osdlorg.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
+mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask-fix.patch
+mm-prevent-endless-growth-of-anon_vma-hierarchy-fix.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper.patch
 ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir.patch
-ocfs2-add-orphan-recovery-types-in-ocfs2_recover_orphans.patch
-ocfs2-implement-ocfs2_direct_io_write.patch
-ocfs2-allocate-blocks-in-ocfs2_direct_io_get_blocks.patch
-ocfs2-do-not-fallback-to-buffer-i-o-write-if-appending.patch
-ocfs2-do-not-fallback-to-buffer-i-o-write-if-fill-holes.patch
-ocfs2-fix-leftover-orphan-entry-caused-by-append-o_direct-write-crash.patch
+mm.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+linux-next.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+tools-testing-selftests-makefile-alphasort-the-targets-list.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
