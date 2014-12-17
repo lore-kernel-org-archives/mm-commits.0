@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + kexec-remove-never-used-member-destination-in-kimage.patch
- added to -mm tree
-Date: Wed, 17 Dec 2014 14:32:12 -0800
-Message-ID: <5492046c.fAYPCGQHi3kuEGP9%akpm@linux-foundation.org>
+Subject: + vmcore-fix-pt_note-n_namesz-n_descsz-overflow-issue.patch added to -mm tree
+Date: Wed, 17 Dec 2014 15:02:42 -0800
+Message-ID: <54920b92.uAh/+JC4NBUhLmFN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43383 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44212 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751066AbaLQWcN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Dec 2014 17:32:13 -0500
+	with ESMTP id S1750959AbaLQXCn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Dec 2014 18:02:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bhe@redhat.com, ebiederm@xmission.com, vgoyal@redhat.com, mm-commits@vger.kernel.org
+To: chaowang@redhat.com, anderson@redhat.com, bhe@redhat.com, fabf@skynet.be, greg.pearson@hp.com, paul.gortmaker@windriver.com, rashika.kheria@gmail.com, rwright@hp.com, vgoyal@redhat.com, vkuznets@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec: remove never used member destination  in kimage
+     Subject: vmcore: fix PT_NOTE n_namesz, n_descsz overflow issue
 has been added to the -mm tree.  Its filename is
-     kexec-remove-never-used-member-destination-in-kimage.patch
+     vmcore-fix-pt_note-n_namesz-n_descsz-overflow-issue.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kexec-remove-never-used-member-destination-in-kimage.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/vmcore-fix-pt_note-n_namesz-n_descsz-overflow-issue.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kexec-remove-never-used-member-destination-in-kimage.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/vmcore-fix-pt_note-n_namesz-n_descsz-overflow-issue.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,67 +38,72 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Baoquan He <bhe@redhat.com>
-Subject: kexec: remove never used member destination  in kimage
+From: WANG Chao <chaowang@redhat.com>
+Subject: vmcore: fix PT_NOTE n_namesz, n_descsz overflow issue
 
-struct kimage has a member destination which is used to store the real
-destination address of each page when load segment from user space buffer
-to kernel.  But we never retrieve the value stored in kimage->destination,
-so this member variable in kimage and its assignment operation are
-redundent code.
+When updating PT_NOTE header size (ie.  p_memsz), an overflow issue
+happens with the following bogus note entry:
 
-I guess for_each_kimage_entry just does the work that kimage->destination
-is expected to do.
+n_namesz = 0xFFFFFFFF
+n_descsz = 0x0
+n_type   = 0x0
 
-So in this patch just make a cleanup to remove it.
+This kind of note entry should be dropped during updating p_memsz.  But
+because n_namesz is 32bit, after (n_namesz + 3) & (~3), it's overflow to
+0x0, the note entry size looks sane and reserved.
 
-Signed-off-by: Baoquan He <bhe@redhat.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+When userspace (eg.  crash utility) is trying to access such bogus note,
+it could lead to an unexpected behavior (eg.  crash utility segment fault
+because it's reading bogus address).
+
+The source of bogus note hasn't been identified yet.  At least we could
+drop the bogus note so user space wouldn't be surprised.
+
+Signed-off-by: WANG Chao <chaowang@redhat.com>
+Cc: Dave Anderson <anderson@redhat.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Randy Wright <rwright@hp.com>
 Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
+Cc: Fabian Frederick <fabf@skynet.be>
+Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
+Cc: Rashika Kheria <rashika.kheria@gmail.com>
+Cc: Greg Pearson <greg.pearson@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kexec.h |    2 --
- kernel/kexec.c        |    4 ----
- 2 files changed, 6 deletions(-)
+ fs/proc/vmcore.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/kexec.h~kexec-remove-never-used-member-destination-in-kimage include/linux/kexec.h
---- a/include/linux/kexec.h~kexec-remove-never-used-member-destination-in-kimage
-+++ a/include/linux/kexec.h
-@@ -122,8 +122,6 @@ struct kimage {
- 	kimage_entry_t *entry;
- 	kimage_entry_t *last_entry;
- 
--	unsigned long destination;
--
- 	unsigned long start;
- 	struct page *control_code_page;
- 	struct page *swap_page;
-diff -puN kernel/kexec.c~kexec-remove-never-used-member-destination-in-kimage kernel/kexec.c
---- a/kernel/kexec.c~kexec-remove-never-used-member-destination-in-kimage
-+++ a/kernel/kexec.c
-@@ -856,8 +856,6 @@ static int kimage_set_destination(struct
- 
- 	destination &= PAGE_MASK;
- 	result = kimage_add_entry(image, destination | IND_DESTINATION);
--	if (result == 0)
--		image->destination = destination;
- 
- 	return result;
- }
-@@ -869,8 +867,6 @@ static int kimage_add_page(struct kimage
- 
- 	page &= PAGE_MASK;
- 	result = kimage_add_entry(image, page | IND_SOURCE);
--	if (result == 0)
--		image->destination += PAGE_SIZE;
- 
- 	return result;
- }
+diff -puN fs/proc/vmcore.c~vmcore-fix-pt_note-n_namesz-n_descsz-overflow-issue fs/proc/vmcore.c
+--- a/fs/proc/vmcore.c~vmcore-fix-pt_note-n_namesz-n_descsz-overflow-issue
++++ a/fs/proc/vmcore.c
+@@ -546,8 +546,8 @@ static int __init update_note_header_siz
+ 		nhdr_ptr = notes_section;
+ 		while (nhdr_ptr->n_namesz != 0) {
+ 			sz = sizeof(Elf64_Nhdr) +
+-				((nhdr_ptr->n_namesz + 3) & ~3) +
+-				((nhdr_ptr->n_descsz + 3) & ~3);
++				(((u64)nhdr_ptr->n_namesz + 3) & ~3) +
++				(((u64)nhdr_ptr->n_descsz + 3) & ~3);
+ 			if ((real_sz + sz) > max_sz) {
+ 				pr_warn("Warning: Exceeded p_memsz, dropping PT_NOTE entry n_namesz=0x%x, n_descsz=0x%x\n",
+ 					nhdr_ptr->n_namesz, nhdr_ptr->n_descsz);
+@@ -732,8 +732,8 @@ static int __init update_note_header_siz
+ 		nhdr_ptr = notes_section;
+ 		while (nhdr_ptr->n_namesz != 0) {
+ 			sz = sizeof(Elf32_Nhdr) +
+-				((nhdr_ptr->n_namesz + 3) & ~3) +
+-				((nhdr_ptr->n_descsz + 3) & ~3);
++				(((u64)nhdr_ptr->n_namesz + 3) & ~3) +
++				(((u64)nhdr_ptr->n_descsz + 3) & ~3);
+ 			if ((real_sz + sz) > max_sz) {
+ 				pr_warn("Warning: Exceeded p_memsz, dropping PT_NOTE entry n_namesz=0x%x, n_descsz=0x%x\n",
+ 					nhdr_ptr->n_namesz, nhdr_ptr->n_descsz);
 _
 
-Patches currently in -mm which might be from bhe@redhat.com are
+Patches currently in -mm which might be from chaowang@redhat.com are
 
-kexec-remove-never-used-member-destination-in-kimage.patch
-linux-next.patch
+origin.patch
+vmcore-fix-pt_note-n_namesz-n_descsz-overflow-issue.patch
 
