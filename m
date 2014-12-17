@@ -1,36 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- regulator-isl9305-deprecate-use-of-isl-in-compatible-string-for-isil.patch
- added to -mm tree
-Date: Wed, 17 Dec 2014 14:18:40 -0800
-Message-ID: <54920140.VhwiJTeLbPNlWjNs%akpm@linux-foundation.org>
+ task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss.patch added to -mm tree
+Date: Wed, 17 Dec 2014 14:31:16 -0800
+Message-ID: <54920434.NJD1TmQKfelxSVlH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43182 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43375 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751724AbaLQWSm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Dec 2014 17:18:42 -0500
+	with ESMTP id S1750990AbaLQWbR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Dec 2014 17:31:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arno@natisbad.org, a.zummo@towertech.it, arnd@arndb.de, broonie@kernel.org, darshanapadmadas@gmail.com, galak@codeaurora.org, gnurou@gmail.com, grant.likely@linaro.org, ijc+devicetree@hellion.org.uk, jason@lakedaemon.net, jgunthorpe@obsidianresearch.com, linus.walleij@linaro.org, linux@arm.linux.org.uk, linux@roeck-us.net, mark.rutland@arm.com, pawel.moll@arm.com, peter.huewe@infineon.com, rob@landley.net, robh+dt@kernel.org, swarren@wwwdotorg.org, thierry.reding@gmail.com, uwe@kleine-koenig.org, mm-commits@vger.kernel.org
+To: petrcermak@chromium.org, bhelgaas@google.com, primiano@chromium.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: regulator: isl9305: deprecate use of isl in compatible st=
-ring for isil
+     Subject: fs/proc/task_mmu.c: add user-space support for resetting mm->hiwater_rss (peak RSS)
 has been added to the -mm tree.  Its filename is
-     regulator-isl9305-deprecate-use-of-isl-in-compatible-string-for-is=
-il.patch
+     task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/regulator-isl9305-deprecat=
-e-use-of-isl-in-compatible-string-for-isil.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/regulator-isl9305-deprecat=
-e-use-of-isl-in-compatible-string-for-isil.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,130 +33,106 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-=46rom: Arnaud Ebalard <arno@natisbad.org>
-Subject: regulator: isl9305: deprecate use of isl in compatible string =
-for isil
+From: Petr Cermak <petrcermak@chromium.org>
+Subject: fs/proc/task_mmu.c: add user-space support for resetting mm->hiwater_rss (peak RSS)
 
-"isil" and "isl" prefixes are used at various locations inside the kern=
-el
-to reference Intersil corporation.  This patch is part of a series fixi=
-ng
-those locations were "isl" is used in compatible strings to use the now
-expected "isil" prefix instead (NASDAQ symbol for Intersil and most use=
-d
-version).  The old compatible string is kept for backward compatibility=
-=2E
+Peak resident size of a process can be reset back to the process's current
+rss value by writing "5" to /proc/pid/clear_refs.  The driving use-case
+for this would be getting the peak RSS value, which can be retrieved from
+the VmHWM field in /proc/pid/status, per benchmark iteration or test
+scenario.
 
-Signed-off-by: Arnaud Ebalard <arno@natisbad.org>
-Cc: Rob Herring <robh+dt@kernel.org>
-Cc: Pawel Moll <pawel.moll@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
-Cc: Kumar Gala <galak@codeaurora.org>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Thierry Reding <thierry.reding@gmail.com>
-Cc: Alexandre Courbot <gnurou@gmail.com>
-Cc: Uwe Kleine-Knig <uwe@kleine-koenig.org>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Peter Huewe <peter.huewe@infineon.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>
-Cc: Mark Brown <broonie@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Darshana Padmadas <darshanapadmadas@gmail.com>
-Cc: Grant Likely <grant.likely@linaro.org>
-Cc: Rob Landley <rob@landley.net>
-Cc: Jason Cooper <jason@lakedaemon.net>
-Cc: Guenter Roeck <linux@roeck-us.net>
-Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: Uwe Kleine-K=F6nig <uwe@kleine-koenig.org>
+Signed-off-by: Petr Cermak <petrcermak@chromium.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Primiano Tucci <primiano@chromium.org>
+Cc: Petr Cermak <petrcermak@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/devicetree/bindings/regulator/isl9305.txt |    4 ++--
- drivers/regulator/isl9305.c                             |    6 ++++--
- 2 files changed, 6 insertions(+), 4 deletions(-)
+ Documentation/filesystems/proc.txt |    3 +++
+ fs/proc/task_mmu.c                 |   15 ++++++++++++++-
+ include/linux/mm.h                 |    5 +++++
+ 3 files changed, 22 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/devicetree/bindings/regulator/isl9305.txt~regul=
-ator-isl9305-deprecate-use-of-isl-in-compatible-string-for-isil Documen=
-tation/devicetree/bindings/regulator/isl9305.txt
---- a/Documentation/devicetree/bindings/regulator/isl9305.txt~regulator=
--isl9305-deprecate-use-of-isl-in-compatible-string-for-isil
-+++ a/Documentation/devicetree/bindings/regulator/isl9305.txt
-@@ -2,7 +2,7 @@ Intersil ISL9305/ISL9305H voltage regula
-=20
- Required properties:
-=20
--- compatible: "isl,isl9305" or "isl,isl9305h"
-+- compatible: "isil,isl9305" or "isil,isl9305h"
- - reg: I2C slave address, usually 0x68.
- - regulators: A node that houses a sub-node for each regulator within =
-the
-   device. Each sub-node is identified using the node's name, with vali=
-d
-@@ -19,7 +19,7 @@ Optional properties:
- Example
-=20
- 	pmic: isl9305@68 {
--		compatible =3D "isl,isl9305";
-+		compatible =3D "isil,isl9305";
- 		reg =3D <0x68>;
-=20
- 		VINDCD1-supply =3D <&system_power>;
-diff -puN drivers/regulator/isl9305.c~regulator-isl9305-deprecate-use-o=
-f-isl-in-compatible-string-for-isil drivers/regulator/isl9305.c
---- a/drivers/regulator/isl9305.c~regulator-isl9305-deprecate-use-of-is=
-l-in-compatible-string-for-isil
-+++ a/drivers/regulator/isl9305.c
-@@ -177,8 +177,10 @@ static int isl9305_i2c_probe(struct i2c_
-=20
- #ifdef CONFIG_OF
- static const struct of_device_id isl9305_dt_ids[] =3D {
--	{ .compatible =3D "isl,isl9305" },
--	{ .compatible =3D "isl,isl9305h" },
-+	{ .compatible =3D "isl,isl9305" }, /* for backward compat., don't use=
- */
-+	{ .compatible =3D "isil,isl9305" },
-+	{ .compatible =3D "isl,isl9305h" }, /* for backward compat., don't us=
-e */
-+	{ .compatible =3D "isil,isl9305h" },
- 	{},
+diff -puN Documentation/filesystems/proc.txt~task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss
++++ a/Documentation/filesystems/proc.txt
+@@ -488,6 +488,9 @@ To clear the bits for the file mapped pa
+ To clear the soft-dirty bit
+     > echo 4 > /proc/PID/clear_refs
+ 
++To reset the peak resident set size ("high water mark")
++    > echo 5 > /proc/PID/clear_refs
++
+ Any other value written to /proc/PID/clear_refs will have no effect.
+ 
+ The /proc/pid/pagemap gives the PFN, which can be used to find the pageflags
+diff -puN fs/proc/task_mmu.c~task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss
++++ a/fs/proc/task_mmu.c
+@@ -747,6 +747,7 @@ enum clear_refs_types {
+ 	CLEAR_REFS_ANON,
+ 	CLEAR_REFS_MAPPED,
+ 	CLEAR_REFS_SOFT_DIRTY,
++	CLEAR_REFS_MM_HIWATER_RSS,
+ 	CLEAR_REFS_LAST,
  };
- #endif
+ 
+@@ -855,6 +856,17 @@ static ssize_t clear_refs_write(struct f
+ 	if (!mm)
+ 		goto out_task;
+ 
++	if (type == CLEAR_REFS_MM_HIWATER_RSS) {
++		/*
++		 * Writing 5 to /proc/pid/clear_refs resets the peak resident
++		 * set size.
++		 */
++		down_write(&mm->mmap_sem);
++		reset_mm_hiwater_rss(mm);
++		up_write(&mm->mmap_sem);
++		goto out_mm;
++	}
++
+ 	struct clear_refs_private cp = {
+ 		.type = type,
+ 	};
+@@ -904,8 +916,9 @@ static ssize_t clear_refs_write(struct f
+ 		mmu_notifier_invalidate_range_end(mm, 0, -1);
+ 	flush_tlb_mm(mm);
+ 	up_read(&mm->mmap_sem);
+-	mmput(mm);
+ 
++out_mm:
++	mmput(mm);
+ out_task:
+ 	put_task_struct(task);
+ 
+diff -puN include/linux/mm.h~task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss include/linux/mm.h
+--- a/include/linux/mm.h~task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss
++++ a/include/linux/mm.h
+@@ -1368,6 +1368,11 @@ static inline void update_hiwater_vm(str
+ 		mm->hiwater_vm = mm->total_vm;
+ }
+ 
++static inline void reset_mm_hiwater_rss(struct mm_struct *mm)
++{
++	mm->hiwater_rss = get_mm_rss(mm);
++}
++
+ static inline void setmax_mm_hiwater_rss(unsigned long *maxrss,
+ 					 struct mm_struct *mm)
+ {
 _
 
-Patches currently in -mm which might be from arno@natisbad.org are
+Patches currently in -mm which might be from petrcermak@chromium.org are
 
-origin.patch
-rtc-rtc-isl12057-add-alarm-support-to-intersil-isl12057-rtc-driver.patc=
-h
-rtc-rtc-isl12057-add-alarm-support-to-intersil-isl12057-rtc-driver-upda=
-te.patch
-rtc-rtc-isl12057-add-isilirq2-can-wakeup-machine-property-for-in-tree-u=
-sers.patch
-arm-mvebu-isl12057-rtc-chip-can-now-wake-up-rn102-rn102-and-rn2120.patc=
-h
-dt-bindings-use-isil-prefix-for-intersil.patch
-rtc-isl12022-deprecate-use-of-isl-in-compatible-string-for-isil.patch
-rtc-isl12057-deprecate-use-of-isl-in-compatible-string-for-isil.patch
-staging-iio-isl29028-deprecate-use-of-isl-in-compatible-string-for-isil=
-=2Epatch
-regulator-isl9305-deprecate-use-of-isl-in-compatible-string-for-isil.pa=
-tch
-arm-dts-zynq-update-isl9305-compatible-string-to-use-isil-vendor-prefix=
-=2Epatch
-arm-dts-tegra-update-isl29028-compatible-string-to-use-isil-vendor-pref=
-ix.patch
+task_mmu-reduce-excessive-indentation-in-clear_refs_write.patch
+task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss.patch
+task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss-fix.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
