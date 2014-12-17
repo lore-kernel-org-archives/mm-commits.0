@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + rbtree-fix-typo-in-comment.patch added to -mm tree
-Date: Wed, 17 Dec 2014 13:23:37 -0800
-Message-ID: <5491f459.VDWIxAIbFouxUOES%akpm@linux-foundation.org>
+Subject: + mm-memory-remove-vm_file-check-on-shared-writable-vmas.patch
+ added to -mm tree
+Date: Wed, 17 Dec 2014 13:34:57 -0800
+Message-ID: <5491f701.NR64VYY9h7JBCBe1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42499 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42568 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750995AbaLQVXi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Dec 2014 16:23:38 -0500
+	with ESMTP id S1751035AbaLQVe6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Dec 2014 16:34:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: john@jjdev.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, jack@suse.cz, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/rbtree.c: fix typo in comment
+     Subject: mm: memory: remove ->vm_file check on shared writable vmas
 has been added to the -mm tree.  Its filename is
-     rbtree-fix-typo-in-comment.patch
+     mm-memory-remove-vm_file-check-on-shared-writable-vmas.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rbtree-fix-typo-in-comment.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory-remove-vm_file-check-on-shared-writable-vmas.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rbtree-fix-typo-in-comment.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory-remove-vm_file-check-on-shared-writable-vmas.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,32 +39,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: John de la Garza <john@jjdev.com>
-Subject: lib/rbtree.c: fix typo in comment
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memory: remove ->vm_file check on shared writable vmas
 
-Signed-off-by: John de la Garza <john@jjdev.com>
+Shared anonymous mmaps are implemented with shmem files, so all VMAs with
+shared writable semantics also have an underlying backing file.
+
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rbtree.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/rbtree.h~rbtree-fix-typo-in-comment include/linux/rbtree.h
---- a/include/linux/rbtree.h~rbtree-fix-typo-in-comment
-+++ a/include/linux/rbtree.h
-@@ -51,7 +51,7 @@ struct rb_root {
+diff -puN mm/memory.c~mm-memory-remove-vm_file-check-on-shared-writable-vmas mm/memory.c
+--- a/mm/memory.c~mm-memory-remove-vm_file-check-on-shared-writable-vmas
++++ a/mm/memory.c
+@@ -2155,9 +2155,7 @@ reuse:
+ 				balance_dirty_pages_ratelimited(mapping);
+ 			}
  
- #define RB_EMPTY_ROOT(root)  ((root)->rb_node == NULL)
+-			/* file_update_time outside page_lock */
+-			if (vma->vm_file)
+-				file_update_time(vma->vm_file);
++			file_update_time(vma->vm_file);
+ 		}
+ 		put_page(dirty_page);
+ 		if (page_mkwrite) {
+@@ -3019,8 +3017,7 @@ static int do_shared_fault(struct mm_str
+ 		balance_dirty_pages_ratelimited(mapping);
+ 	}
  
--/* 'empty' nodes are nodes that are known not to be inserted in an rbree */
-+/* 'empty' nodes are nodes that are known not to be inserted in an rbtree */
- #define RB_EMPTY_NODE(node)  \
- 	((node)->__rb_parent_color == (unsigned long)(node))
- #define RB_CLEAR_NODE(node)  \
+-	/* file_update_time outside page_lock */
+-	if (vma->vm_file && !vma->vm_ops->page_mkwrite)
++	if (!vma->vm_ops->page_mkwrite)
+ 		file_update_time(vma->vm_file);
+ 
+ 	return ret;
 _
 
-Patches currently in -mm which might be from john@jjdev.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 origin.patch
-rbtree-fix-typo-in-comment.patch
+mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath.patch
+mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath-update.patch
+mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath-fix.patch
+mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
+mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask-fix.patch
+mm-protect-set_page_dirty-from-ongoing-truncation.patch
+mm-memory-remove-vm_file-check-on-shared-writable-vmas.patch
+mm-memory-merge-shared-writable-dirtying-branches-in-do_wp_page.patch
 
