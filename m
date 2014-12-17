@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
 Subject: +
- rtc-isl12057-deprecate-use-of-isl-in-compatible-string-for-isil.patch added to -mm tree
-Date: Wed, 17 Dec 2014 14:18:34 -0800
-Message-ID: <5492013a.le1/DBkMmmAwbwR4%akpm@linux-foundation.org>
+ staging-iio-isl29028-deprecate-use-of-isl-in-compatible-string-for-isil.patch added to -mm tree
+Date: Wed, 17 Dec 2014 14:18:37 -0800
+Message-ID: <5492013d.0v0Da0Q7Mk6eiOhc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43146 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43165 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751724AbaLQWSg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Dec 2014 17:18:36 -0500
+	with ESMTP id S1751724AbaLQWSj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Dec 2014 17:18:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: arno@natisbad.org, a.zummo@towertech.it, arnd@arndb.de, broonie@kernel.org, darshanapadmadas@gmail.com, galak@codeaurora.org, gnurou@gmail.com, grant.likely@linaro.org, ijc+devicetree@hellion.org.uk, jason@lakedaemon.net, jgunthorpe@obsidianresearch.com, linus.walleij@linaro.org, linux@arm.linux.org.uk, linux@roeck-us.net, mark.rutland@arm.com, pawel.moll@arm.com, peter.huewe@infineon.com, rob@landley.net, robh+dt@kernel.org, swarren@wwwdotorg.org, thierry.reding@gmail.com, uwe@kleine-koenig.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: isl12057: deprecate use of isl in compatible string =
-for isil
+     Subject: staging: iio: isl29028: deprecate use of isl in compatibl=
+e string for isil
 has been added to the -mm tree.  Its filename is
-     rtc-isl12057-deprecate-use-of-isl-in-compatible-string-for-isil.pa=
-tch
+     staging-iio-isl29028-deprecate-use-of-isl-in-compatible-string-for=
+-isil.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rtc-isl12057-deprecate-use=
--of-isl-in-compatible-string-for-isil.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/staging-iio-isl29028-depre=
+cate-use-of-isl-in-compatible-string-for-isil.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-isl12057-deprecate-use=
--of-isl-in-compatible-string-for-isil.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/staging-iio-isl29028-depre=
+cate-use-of-isl-in-compatible-string-for-isil.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,8 +45,8 @@ there every 3-4 working days
 
 ------------------------------------------------------
 =46rom: Arnaud Ebalard <arno@natisbad.org>
-Subject: rtc: isl12057: deprecate use of isl in compatible string for i=
-sil
+Subject: staging: iio: isl29028: deprecate use of isl in compatible str=
+ing for isil
 
 "isil" and "isl" prefixes are used at various locations inside the kern=
 el
@@ -84,25 +84,27 @@ Cc: Uwe Kleine-K=F6nig <uwe@kleine-koenig.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-isl12057.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/staging/iio/light/isl29028.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-isl12057.c~rtc-isl12057-deprecate-use-of-isl-=
-in-compatible-string-for-isil drivers/rtc/rtc-isl12057.c
---- a/drivers/rtc/rtc-isl12057.c~rtc-isl12057-deprecate-use-of-isl-in-c=
-ompatible-string-for-isil
-+++ a/drivers/rtc/rtc-isl12057.c
-@@ -644,7 +644,8 @@ static SIMPLE_DEV_PM_OPS(isl12057_rtc_pm
+diff -puN drivers/staging/iio/light/isl29028.c~staging-iio-isl29028-dep=
+recate-use-of-isl-in-compatible-string-for-isil drivers/staging/iio/lig=
+ht/isl29028.c
+--- a/drivers/staging/iio/light/isl29028.c~staging-iio-isl29028-depreca=
+te-use-of-isl-in-compatible-string-for-isil
++++ a/drivers/staging/iio/light/isl29028.c
+@@ -537,8 +537,8 @@ static const struct i2c_device_id isl290
+ MODULE_DEVICE_TABLE(i2c, isl29028_id);
 =20
- #ifdef CONFIG_OF
- static const struct of_device_id isl12057_dt_match[] =3D {
--	{ .compatible =3D "isl,isl12057" },
-+	{ .compatible =3D "isl,isl12057" }, /* for backward compat., don't us=
-e */
-+	{ .compatible =3D "isil,isl12057" },
+ static const struct of_device_id isl29028_of_match[] =3D {
+-	{ .compatible =3D "isl,isl29028", },
+-	{ .compatible =3D "isil,isl29028", },/* deprecated, don't use */
++	{ .compatible =3D "isl,isl29028", }, /* for backward compat., don't u=
+se */
++	{ .compatible =3D "isil,isl29028", },
  	{ },
  };
- #endif
+ MODULE_DEVICE_TABLE(of, isl29028_of_match);
 _
 
 Patches currently in -mm which might be from arno@natisbad.org are
