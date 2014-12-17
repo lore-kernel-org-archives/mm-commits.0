@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-prevent-endless-growth-of-anon_vma-hierarchy-fix.patch added to -mm tree
-Date: Wed, 17 Dec 2014 13:13:24 -0800
-Message-ID: <5491f1f4.IQQC+NsdfJTKLyvb%akpm@linux-foundation.org>
+Subject: + mm-prevent-endless-growth-of-anon_vma-hierarchy.patch added to
+ -mm tree
+Date: Wed, 17 Dec 2014 13:13:22 -0800
+Message-ID: <5491f1f2.eE4l8sblpVF4eK/Y%akpm__15884.2460522012$1418850821$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42301 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42297 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750999AbaLQVN0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Dec 2014 16:13:26 -0500
+	with ESMTP id S1750999AbaLQVNX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Dec 2014 16:13:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, koct9i@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: koct9i@gmail.com, dan.forrest@ssec.wisc.edu, mhocko@suse.cz, riel@redhat.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-prevent-endless-growth-of-anon_vma-hierarchy-fix
+     Subject: mm: prevent endless growth of anon_vma hierarchy
 has been added to the -mm tree.  Its filename is
-     mm-prevent-endless-growth-of-anon_vma-hierarchy-fix.patch
+     mm-prevent-endless-growth-of-anon_vma-hierarchy.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-prevent-endless-growth-of-anon_vma-hierarchy-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-prevent-endless-growth-of-anon_vma-hierarchy.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-prevent-endless-growth-of-anon_vma-hierarchy-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-prevent-endless-growth-of-anon_vma-hierarchy.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,63 +39,183 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-prevent-endless-growth-of-anon_vma-hierarchy-fix
+From: Konstantin Khlebnikov <koct9i@gmail.com>
+Subject: mm: prevent endless growth of anon_vma hierarchy
 
-fix typo, per Rik
+Constantly forking task causes unlimited grow of anon_vma chain.  Each
+next child allocates new level of anon_vmas and links vma to all previous
+levels because pages might be inherited from any level.
 
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>
-Cc: Rik van Riel <riel@redhat.com>
+This patch adds heuristic which decides to reuse existing anon_vma instead
+of forking new one.  It adds counter anon_vma->degree which counts linked
+vmas and directly descending anon_vmas and reuses anon_vma if counter is
+lower than two.  As a result each anon_vma has either vma or at least two
+descending anon_vmas.  In such trees half of nodes are leafs with alive
+vmas, thus count of anon_vmas is no more than two times bigger than count
+of vmas.  This heuristic reuses anon_vmas as few as possible because each
+reuse adds false aliasing among vmas and rmap walker ought to scan more
+ptes when it searches where page is might be mapped.
+
+Link: http://lkml.kernel.org/r/20120816024610.GA5350@evergreen.ssec.wisc.edu
+Fixes: 5beb49305251 ("mm: change anon_vma linking to fix multi-process server scalability issue")
+Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
+Reported-by: Daniel Forrest <dan.forrest@ssec.wisc.edu>
+Tested-by: Michal Hocko <mhocko@suse.cz>
+Reviewed-by: Michal Hocko <mhocko@suse.cz>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Cc: <stable@vger.kernel.org>	[2.6.34+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ include/linux/rmap.h |   10 ++++++++++
+ mm/rmap.c            |   41 ++++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 50 insertions(+), 1 deletion(-)
 
-diff -puN mm/rmap.c~mm-prevent-endless-growth-of-anon_vma-hierarchy-fix mm/rmap.c
---- a/mm/rmap.c~mm-prevent-endless-growth-of-anon_vma-hierarchy-fix
+diff -puN include/linux/rmap.h~mm-prevent-endless-growth-of-anon_vma-hierarchy include/linux/rmap.h
+--- a/include/linux/rmap.h~mm-prevent-endless-growth-of-anon_vma-hierarchy
++++ a/include/linux/rmap.h
+@@ -37,6 +37,16 @@ struct anon_vma {
+ 	atomic_t refcount;
+ 
+ 	/*
++	 * Count of child anon_vmas and VMAs which points to this anon_vma.
++	 *
++	 * This counter is used for making decision about reusing anon_vma
++	 * instead of forking new one. See comments in function anon_vma_clone.
++	 */
++	unsigned degree;
++
++	struct anon_vma *parent;	/* Parent of this anon_vma */
++
++	/*
+ 	 * NOTE: the LSB of the rb_root.rb_node is set by
+ 	 * mm_take_all_locks() _after_ taking the above lock. So the
+ 	 * rb_root must only be read/written after taking the above lock
+diff -puN mm/rmap.c~mm-prevent-endless-growth-of-anon_vma-hierarchy mm/rmap.c
+--- a/mm/rmap.c~mm-prevent-endless-growth-of-anon_vma-hierarchy
 +++ a/mm/rmap.c
-@@ -244,9 +244,10 @@ static inline void unlock_anon_vma_root(
-  * If dst->anon_vma is NULL this function tries to find and reuse existing
-  * anon_vma which has no vmas and only one child anon_vma. This prevents
-  * degradation of anon_vma hierarchy to endless linear chain in case of
-- * constantly forking task. In other hand anon_vma with more than one child
-- * isn't reused even if was no alive vma, thus rmap walker has a good chance
-- * to avoid scanning whole hieraryhy when it searches where page is mapped.
-+ * constantly forking task. On the other hand, an anon_vma with more than one
-+ * child isn't reused even if there was no alive vma, thus rmap walker has a
-+ * good chance of avoiding scanning the whole hierarchy when it searches where
-+ * page is mapped.
+@@ -72,6 +72,8 @@ static inline struct anon_vma *anon_vma_
+ 	anon_vma = kmem_cache_alloc(anon_vma_cachep, GFP_KERNEL);
+ 	if (anon_vma) {
+ 		atomic_set(&anon_vma->refcount, 1);
++		anon_vma->degree = 1;	/* Reference for first vma */
++		anon_vma->parent = anon_vma;
+ 		/*
+ 		 * Initialise the anon_vma root to point to itself. If called
+ 		 * from fork, the root will be reset to the parents anon_vma.
+@@ -188,6 +190,8 @@ int anon_vma_prepare(struct vm_area_stru
+ 		if (likely(!vma->anon_vma)) {
+ 			vma->anon_vma = anon_vma;
+ 			anon_vma_chain_link(vma, avc, anon_vma);
++			/* vma reference or self-parent link for new root */
++			anon_vma->degree++;
+ 			allocated = NULL;
+ 			avc = NULL;
+ 		}
+@@ -236,6 +240,13 @@ static inline void unlock_anon_vma_root(
+ /*
+  * Attach the anon_vmas from src to dst.
+  * Returns 0 on success, -ENOMEM on failure.
++ *
++ * If dst->anon_vma is NULL this function tries to find and reuse existing
++ * anon_vma which has no vmas and only one child anon_vma. This prevents
++ * degradation of anon_vma hierarchy to endless linear chain in case of
++ * constantly forking task. In other hand anon_vma with more than one child
++ * isn't reused even if was no alive vma, thus rmap walker has a good chance
++ * to avoid scanning whole hieraryhy when it searches where page is mapped.
   */
  int anon_vma_clone(struct vm_area_struct *dst, struct vm_area_struct *src)
  {
+@@ -256,7 +267,21 @@ int anon_vma_clone(struct vm_area_struct
+ 		anon_vma = pavc->anon_vma;
+ 		root = lock_anon_vma_root(root, anon_vma);
+ 		anon_vma_chain_link(dst, avc, anon_vma);
++
++		/*
++		 * Reuse existing anon_vma if its degree lower than two,
++		 * that means it has no vma and only one anon_vma child.
++		 *
++		 * Do not chose parent anon_vma, otherwise first child
++		 * will always reuse it. Root anon_vma is never reused:
++		 * it has self-parent reference and at least one child.
++		 */
++		if (!dst->anon_vma && anon_vma != src->anon_vma &&
++				anon_vma->degree < 2)
++			dst->anon_vma = anon_vma;
+ 	}
++	if (dst->anon_vma)
++		dst->anon_vma->degree++;
+ 	unlock_anon_vma_root(root);
+ 	return 0;
+ 
+@@ -280,6 +305,9 @@ int anon_vma_fork(struct vm_area_struct
+ 	if (!pvma->anon_vma)
+ 		return 0;
+ 
++	/* Drop inherited anon_vma, we'll reuse existing or allocate new. */
++	vma->anon_vma = NULL;
++
+ 	/*
+ 	 * First, attach the new VMA to the parent VMA's anon_vmas,
+ 	 * so rmap can find non-COWed pages in child processes.
+@@ -288,6 +316,10 @@ int anon_vma_fork(struct vm_area_struct
+ 	if (error)
+ 		return error;
+ 
++	/* An existing anon_vma has been reused, all done then. */
++	if (vma->anon_vma)
++		return 0;
++
+ 	/* Then add our own anon_vma. */
+ 	anon_vma = anon_vma_alloc();
+ 	if (!anon_vma)
+@@ -301,6 +333,7 @@ int anon_vma_fork(struct vm_area_struct
+ 	 * lock any of the anon_vmas in this anon_vma tree.
+ 	 */
+ 	anon_vma->root = pvma->anon_vma->root;
++	anon_vma->parent = pvma->anon_vma;
+ 	/*
+ 	 * With refcounts, an anon_vma can stay around longer than the
+ 	 * process it belongs to. The root anon_vma needs to be pinned until
+@@ -311,6 +344,7 @@ int anon_vma_fork(struct vm_area_struct
+ 	vma->anon_vma = anon_vma;
+ 	anon_vma_lock_write(anon_vma);
+ 	anon_vma_chain_link(vma, avc, anon_vma);
++	anon_vma->parent->degree++;
+ 	anon_vma_unlock_write(anon_vma);
+ 
+ 	return 0;
+@@ -341,12 +375,16 @@ void unlink_anon_vmas(struct vm_area_str
+ 		 * Leave empty anon_vmas on the list - we'll need
+ 		 * to free them outside the lock.
+ 		 */
+-		if (RB_EMPTY_ROOT(&anon_vma->rb_root))
++		if (RB_EMPTY_ROOT(&anon_vma->rb_root)) {
++			anon_vma->parent->degree--;
+ 			continue;
++		}
+ 
+ 		list_del(&avc->same_vma);
+ 		anon_vma_chain_free(avc);
+ 	}
++	if (vma->anon_vma)
++		vma->anon_vma->degree--;
+ 	unlock_anon_vma_root(root);
+ 
+ 	/*
+@@ -357,6 +395,7 @@ void unlink_anon_vmas(struct vm_area_str
+ 	list_for_each_entry_safe(avc, next, &vma->anon_vma_chain, same_vma) {
+ 		struct anon_vma *anon_vma = avc->anon_vma;
+ 
++		BUG_ON(anon_vma->degree);
+ 		put_anon_vma(anon_vma);
+ 
+ 		list_del(&avc->same_vma);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from koct9i@gmail.com are
 
 origin.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-lib-show_mem-this-patch-adds-cma-reserved-infromation.patch
-mailmap-update-akpm-osdlorg.patch
-mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
-mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
-mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask-fix.patch
+mm-prevent-endless-growth-of-anon_vma-hierarchy.patch
 mm-prevent-endless-growth-of-anon_vma-hierarchy-fix.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper.patch
-ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir.patch
-mm.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-tools-testing-selftests-makefile-alphasort-the-targets-list.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
 
