@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-prevent-endless-growth-of-anon_vma-hierarchy.patch added to
- -mm tree
-Date: Wed, 17 Dec 2014 13:13:22 -0800
-Message-ID: <5491f1f2.eE4l8sblpVF4eK/Y%akpm__15884.2460522012$1418850821$gmane$org@linux-foundation.org>
+Subject: +
+ mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath-fix.patch added to -mm tree
+Date: Wed, 17 Dec 2014 13:15:19 -0800
+Message-ID: <5491f267.VYnADS65k88hB5zz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42297 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42308 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750999AbaLQVNX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Dec 2014 16:13:23 -0500
+	with ESMTP id S1751247AbaLQVPV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Dec 2014 16:15:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: koct9i@gmail.com, dan.forrest@ssec.wisc.edu, mhocko@suse.cz, riel@redhat.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, mhocko@suse.cz, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: prevent endless growth of anon_vma hierarchy
+     Subject: mm: page_alloc: embed OOM killing naturally into allocation slowpath fix
 has been added to the -mm tree.  Its filename is
-     mm-prevent-endless-growth-of-anon_vma-hierarchy.patch
+     mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-prevent-endless-growth-of-anon_vma-hierarchy.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-prevent-endless-growth-of-anon_vma-hierarchy.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,183 +39,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <koct9i@gmail.com>
-Subject: mm: prevent endless growth of anon_vma hierarchy
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: page_alloc: embed OOM killing naturally into allocation slowpath fix
 
-Constantly forking task causes unlimited grow of anon_vma chain.  Each
-next child allocates new level of anon_vmas and links vma to all previous
-levels because pages might be inherited from any level.
+When retrying the allocation after potentially invoking OOM, make sure
+the alloc flags are recalculated, as they have to consider TIF_MEMDIE.
 
-This patch adds heuristic which decides to reuse existing anon_vma instead
-of forking new one.  It adds counter anon_vma->degree which counts linked
-vmas and directly descending anon_vmas and reuses anon_vma if counter is
-lower than two.  As a result each anon_vma has either vma or at least two
-descending anon_vmas.  In such trees half of nodes are leafs with alive
-vmas, thus count of anon_vmas is no more than two times bigger than count
-of vmas.  This heuristic reuses anon_vmas as few as possible because each
-reuse adds false aliasing among vmas and rmap walker ought to scan more
-ptes when it searches where page is might be mapped.
+Restore the original restart label, but rename it to 'retry' to match
+the should_alloc_retry() it depends on.
 
-Link: http://lkml.kernel.org/r/20120816024610.GA5350@evergreen.ssec.wisc.edu
-Fixes: 5beb49305251 ("mm: change anon_vma linking to fix multi-process server scalability issue")
-Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
-Reported-by: Daniel Forrest <dan.forrest@ssec.wisc.edu>
-Tested-by: Michal Hocko <mhocko@suse.cz>
-Reviewed-by: Michal Hocko <mhocko@suse.cz>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Cc: <stable@vger.kernel.org>	[2.6.34+]
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |   10 ++++++++++
- mm/rmap.c            |   41 ++++++++++++++++++++++++++++++++++++++++-
- 2 files changed, 50 insertions(+), 1 deletion(-)
+ mm/page_alloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/rmap.h~mm-prevent-endless-growth-of-anon_vma-hierarchy include/linux/rmap.h
---- a/include/linux/rmap.h~mm-prevent-endless-growth-of-anon_vma-hierarchy
-+++ a/include/linux/rmap.h
-@@ -37,6 +37,16 @@ struct anon_vma {
- 	atomic_t refcount;
+diff -puN mm/page_alloc.c~mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath-fix
++++ a/mm/page_alloc.c
+@@ -2673,6 +2673,7 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
+ 	    (gfp_mask & GFP_THISNODE) == GFP_THISNODE)
+ 		goto nopage;
  
- 	/*
-+	 * Count of child anon_vmas and VMAs which points to this anon_vma.
-+	 *
-+	 * This counter is used for making decision about reusing anon_vma
-+	 * instead of forking new one. See comments in function anon_vma_clone.
-+	 */
-+	unsigned degree;
-+
-+	struct anon_vma *parent;	/* Parent of this anon_vma */
-+
-+	/*
- 	 * NOTE: the LSB of the rb_root.rb_node is set by
- 	 * mm_take_all_locks() _after_ taking the above lock. So the
- 	 * rb_root must only be read/written after taking the above lock
-diff -puN mm/rmap.c~mm-prevent-endless-growth-of-anon_vma-hierarchy mm/rmap.c
---- a/mm/rmap.c~mm-prevent-endless-growth-of-anon_vma-hierarchy
-+++ a/mm/rmap.c
-@@ -72,6 +72,8 @@ static inline struct anon_vma *anon_vma_
- 	anon_vma = kmem_cache_alloc(anon_vma_cachep, GFP_KERNEL);
- 	if (anon_vma) {
- 		atomic_set(&anon_vma->refcount, 1);
-+		anon_vma->degree = 1;	/* Reference for first vma */
-+		anon_vma->parent = anon_vma;
- 		/*
- 		 * Initialise the anon_vma root to point to itself. If called
- 		 * from fork, the root will be reset to the parents anon_vma.
-@@ -188,6 +190,8 @@ int anon_vma_prepare(struct vm_area_stru
- 		if (likely(!vma->anon_vma)) {
- 			vma->anon_vma = anon_vma;
- 			anon_vma_chain_link(vma, avc, anon_vma);
-+			/* vma reference or self-parent link for new root */
-+			anon_vma->degree++;
- 			allocated = NULL;
- 			avc = NULL;
++retry:
+ 	if (!(gfp_mask & __GFP_NO_KSWAPD))
+ 		wake_all_kswapds(order, zonelist, high_zoneidx,
+ 				preferred_zone, nodemask);
+@@ -2695,7 +2696,6 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
+ 		classzone_idx = zonelist_zone_idx(preferred_zoneref);
+ 	}
+ 
+-rebalance:
+ 	/* This is the last chance, in general, before the goto nopage. */
+ 	page = get_page_from_freelist(gfp_mask, nodemask, order, zonelist,
+ 			high_zoneidx, alloc_flags & ~ALLOC_NO_WATERMARKS,
+@@ -2823,7 +2823,7 @@ rebalance:
  		}
-@@ -236,6 +240,13 @@ static inline void unlock_anon_vma_root(
- /*
-  * Attach the anon_vmas from src to dst.
-  * Returns 0 on success, -ENOMEM on failure.
-+ *
-+ * If dst->anon_vma is NULL this function tries to find and reuse existing
-+ * anon_vma which has no vmas and only one child anon_vma. This prevents
-+ * degradation of anon_vma hierarchy to endless linear chain in case of
-+ * constantly forking task. In other hand anon_vma with more than one child
-+ * isn't reused even if was no alive vma, thus rmap walker has a good chance
-+ * to avoid scanning whole hieraryhy when it searches where page is mapped.
-  */
- int anon_vma_clone(struct vm_area_struct *dst, struct vm_area_struct *src)
- {
-@@ -256,7 +267,21 @@ int anon_vma_clone(struct vm_area_struct
- 		anon_vma = pavc->anon_vma;
- 		root = lock_anon_vma_root(root, anon_vma);
- 		anon_vma_chain_link(dst, avc, anon_vma);
-+
-+		/*
-+		 * Reuse existing anon_vma if its degree lower than two,
-+		 * that means it has no vma and only one anon_vma child.
-+		 *
-+		 * Do not chose parent anon_vma, otherwise first child
-+		 * will always reuse it. Root anon_vma is never reused:
-+		 * it has self-parent reference and at least one child.
-+		 */
-+		if (!dst->anon_vma && anon_vma != src->anon_vma &&
-+				anon_vma->degree < 2)
-+			dst->anon_vma = anon_vma;
- 	}
-+	if (dst->anon_vma)
-+		dst->anon_vma->degree++;
- 	unlock_anon_vma_root(root);
- 	return 0;
- 
-@@ -280,6 +305,9 @@ int anon_vma_fork(struct vm_area_struct
- 	if (!pvma->anon_vma)
- 		return 0;
- 
-+	/* Drop inherited anon_vma, we'll reuse existing or allocate new. */
-+	vma->anon_vma = NULL;
-+
- 	/*
- 	 * First, attach the new VMA to the parent VMA's anon_vmas,
- 	 * so rmap can find non-COWed pages in child processes.
-@@ -288,6 +316,10 @@ int anon_vma_fork(struct vm_area_struct
- 	if (error)
- 		return error;
- 
-+	/* An existing anon_vma has been reused, all done then. */
-+	if (vma->anon_vma)
-+		return 0;
-+
- 	/* Then add our own anon_vma. */
- 	anon_vma = anon_vma_alloc();
- 	if (!anon_vma)
-@@ -301,6 +333,7 @@ int anon_vma_fork(struct vm_area_struct
- 	 * lock any of the anon_vmas in this anon_vma tree.
- 	 */
- 	anon_vma->root = pvma->anon_vma->root;
-+	anon_vma->parent = pvma->anon_vma;
- 	/*
- 	 * With refcounts, an anon_vma can stay around longer than the
- 	 * process it belongs to. The root anon_vma needs to be pinned until
-@@ -311,6 +344,7 @@ int anon_vma_fork(struct vm_area_struct
- 	vma->anon_vma = anon_vma;
- 	anon_vma_lock_write(anon_vma);
- 	anon_vma_chain_link(vma, avc, anon_vma);
-+	anon_vma->parent->degree++;
- 	anon_vma_unlock_write(anon_vma);
- 
- 	return 0;
-@@ -341,12 +375,16 @@ void unlink_anon_vmas(struct vm_area_str
- 		 * Leave empty anon_vmas on the list - we'll need
- 		 * to free them outside the lock.
- 		 */
--		if (RB_EMPTY_ROOT(&anon_vma->rb_root))
-+		if (RB_EMPTY_ROOT(&anon_vma->rb_root)) {
-+			anon_vma->parent->degree--;
- 			continue;
-+		}
- 
- 		list_del(&avc->same_vma);
- 		anon_vma_chain_free(avc);
- 	}
-+	if (vma->anon_vma)
-+		vma->anon_vma->degree--;
- 	unlock_anon_vma_root(root);
- 
- 	/*
-@@ -357,6 +395,7 @@ void unlink_anon_vmas(struct vm_area_str
- 	list_for_each_entry_safe(avc, next, &vma->anon_vma_chain, same_vma) {
- 		struct anon_vma *anon_vma = avc->anon_vma;
- 
-+		BUG_ON(anon_vma->degree);
- 		put_anon_vma(anon_vma);
- 
- 		list_del(&avc->same_vma);
+ 		/* Wait for some write requests to complete then retry */
+ 		wait_iff_congested(preferred_zone, BLK_RW_ASYNC, HZ/50);
+-		goto rebalance;
++		goto retry;
+ 	} else {
+ 		/*
+ 		 * High-order allocations do not necessarily loop after
 _
 
-Patches currently in -mm which might be from koct9i@gmail.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 origin.patch
-mm-prevent-endless-growth-of-anon_vma-hierarchy.patch
-mm-prevent-endless-growth-of-anon_vma-hierarchy-fix.patch
+mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath.patch
+mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath-update.patch
+mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath-fix.patch
+mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
+mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask-fix.patch
 
