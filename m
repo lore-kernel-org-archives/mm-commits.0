@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- lib-bitmap-make-the-bits-parameter-of-bitmap_remap-unsigned.patch added to
+ lib-bitmap-update-bitmap_onto-to-unsigned-checkpatch-fixes.patch added to
  -mm tree
-Date: Thu, 18 Dec 2014 14:29:55 -0800
-Message-ID: <54935563.ssVOmcJIcTx/bW8o%akpm@linux-foundation.org>
+Date: Thu, 18 Dec 2014 14:30:48 -0800
+Message-ID: <54935598.4RX0rvRWC3a56aG4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57414 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57417 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751892AbaLRW34 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Dec 2014 17:29:56 -0500
+	with ESMTP id S1751556AbaLRWat (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Dec 2014 17:30:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/bitmap.c: make the bits parameter of bitmap_remap unsigned
+     Subject: lib-bitmap-update-bitmap_onto-to-unsigned-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     lib-bitmap-make-the-bits-parameter-of-bitmap_remap-unsigned.patch
+     lib-bitmap-update-bitmap_onto-to-unsigned-checkpatch-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-bitmap-make-the-bits-parameter-of-bitmap_remap-unsigned.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-bitmap-update-bitmap_onto-to-unsigned-checkpatch-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-bitmap-make-the-bits-parameter-of-bitmap_remap-unsigned.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-bitmap-update-bitmap_onto-to-unsigned-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,92 +40,70 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/bitmap.c: make the bits parameter of bitmap_remap unsigned
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lib-bitmap-update-bitmap_onto-to-unsigned-checkpatch-fixes
 
-Make the nbits parameter unsigned for consistency with most other
-bitmap_* functions, and pull the test of empty dst out of the loop.
+WARNING: please, no space before tabs
+#38: FILE: lib/bitmap.c:1011:
++^Iunsigned int n, m;       ^I/* same meaning as in above comment */$
 
-And rename it to nbits, both for consistency with other bitmap_*
-functions.
+total: 0 errors, 1 warnings, 19 lines checked
 
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+./patches/lib-bitmap-update-bitmap_onto-to-unsigned.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bitmap.h |    2 +-
- lib/bitmap.c           |   16 ++++++++--------
- 2 files changed, 9 insertions(+), 9 deletions(-)
+ lib/bitmap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/bitmap.h~lib-bitmap-make-the-bits-parameter-of-bitmap_remap-unsigned include/linux/bitmap.h
---- a/include/linux/bitmap.h~lib-bitmap-make-the-bits-parameter-of-bitmap_remap-unsigned
-+++ a/include/linux/bitmap.h
-@@ -160,7 +160,7 @@ extern int bitmap_parselist(const char *
- extern int bitmap_parselist_user(const char __user *ubuf, unsigned int ulen,
- 			unsigned long *dst, int nbits);
- extern void bitmap_remap(unsigned long *dst, const unsigned long *src,
--		const unsigned long *old, const unsigned long *new, int bits);
-+		const unsigned long *old, const unsigned long *new, unsigned int nbits);
- extern int bitmap_bitremap(int oldbit,
- 		const unsigned long *old, const unsigned long *new, int bits);
- extern void bitmap_onto(unsigned long *dst, const unsigned long *orig,
-diff -puN lib/bitmap.c~lib-bitmap-make-the-bits-parameter-of-bitmap_remap-unsigned lib/bitmap.c
---- a/lib/bitmap.c~lib-bitmap-make-the-bits-parameter-of-bitmap_remap-unsigned
+diff -puN lib/bitmap.c~lib-bitmap-update-bitmap_onto-to-unsigned-checkpatch-fixes lib/bitmap.c
+--- a/lib/bitmap.c~lib-bitmap-update-bitmap_onto-to-unsigned-checkpatch-fixes
 +++ a/lib/bitmap.c
-@@ -803,7 +803,7 @@ unsigned int bitmap_ord_to_pos(const uns
-  *	@src: subset to be remapped
-  *	@old: defines domain of map
-  *	@new: defines range of map
-- *	@bits: number of bits in each of these bitmaps
-+ *	@nbits: number of bits in each of these bitmaps
-  *
-  * Let @old and @new define a mapping of bit positions, such that
-  * whatever position is held by the n-th set bit in @old is mapped
-@@ -831,22 +831,22 @@ unsigned int bitmap_ord_to_pos(const uns
-  */
- void bitmap_remap(unsigned long *dst, const unsigned long *src,
- 		const unsigned long *old, const unsigned long *new,
--		int bits)
-+		unsigned int nbits)
+@@ -1008,7 +1008,7 @@ EXPORT_SYMBOL(bitmap_bitremap);
+ void bitmap_onto(unsigned long *dst, const unsigned long *orig,
+ 			const unsigned long *relmap, unsigned int bits)
  {
--	int oldbit, w;
-+	unsigned int oldbit, w;
+-	unsigned int n, m;       	/* same meaning as in above comment */
++	unsigned int n, m;	/* same meaning as in above comment */
  
- 	if (dst == src)		/* following doesn't handle inplace remaps */
+ 	if (dst == orig)	/* following doesn't handle inplace mappings */
  		return;
--	bitmap_zero(dst, bits);
-+	bitmap_zero(dst, nbits);
- 
--	w = bitmap_weight(new, bits);
--	for_each_set_bit(oldbit, src, bits) {
--	     	int n = bitmap_pos_to_ord(old, oldbit, bits);
-+	w = bitmap_weight(new, nbits);
-+	for_each_set_bit(oldbit, src, nbits) {
-+		int n = bitmap_pos_to_ord(old, oldbit, nbits);
- 
- 		if (n < 0 || w == 0)
- 			set_bit(oldbit, dst);	/* identity map */
- 		else
--			set_bit(bitmap_ord_to_pos(new, n % w, bits), dst);
-+			set_bit(bitmap_ord_to_pos(new, n % w, nbits), dst);
- 	}
- }
- EXPORT_SYMBOL(bitmap_remap);
 _
 
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-lib-string_get_size-remove-redundant-prefixes.patch
-lib-string_get_size-use-32-bit-arithmetic-when-possible.patch
-lib-string_get_size-return-void.patch
-lib-bitmap-more-signed-unsigned-conversions.patch
-linux-nodemaskh-update-bitmap-wrappers-to-take-unsigned-int.patch
-linux-cpumaskh-update-bitmap-wrappers-to-take-unsigned-int.patch
-lib-bitmap-update-bitmap_onto-to-unsigned.patch
-lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned.patch
-lib-bitmap-simplify-bitmap_pos_to_ord.patch
-lib-bitmap-simplify-bitmap_ord_to_pos.patch
-lib-bitmap-make-the-bits-parameter-of-bitmap_remap-unsigned.patch
-checkpatch-emit-an-error-when-using-predefined-timestamp-macros.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+lib-show_mem-this-patch-adds-cma-reserved-infromation.patch
+mailmap-update-akpm-osdlorg.patch
+mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+tools-testing-selftests-makefile-alphasort-the-targets-list.patch
+mm-prevent-endless-growth-of-anon_vma-hierarchy-fix.patch
+mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper.patch
+ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir.patch
+mm.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss-fix.patch
+lib-bitmap-update-bitmap_onto-to-unsigned-checkpatch-fixes.patch
+linux-next.patch
+linux-next-git-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
