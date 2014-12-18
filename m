@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- checkpatch-emit-an-error-when-using-predefined-timestamp-macros.patch added to -mm tree
-Date: Thu, 18 Dec 2014 14:24:44 -0800
-Message-ID: <5493542c.MCdt35aXYlzNQWeB%akpm@linux-foundation.org>
+Subject: + lib-bitmap-more-signed-unsigned-conversions.patch added to -mm
+ tree
+Date: Thu, 18 Dec 2014 14:29:41 -0800
+Message-ID: <54935555.vPK0GoqHehA3pzA1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57368 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57401 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751733AbaLRWYp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Dec 2014 17:24:45 -0500
+	with ESMTP id S1751125AbaLRW3m (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Dec 2014 17:29:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: emit an error when using predefined timestamp macros
+     Subject: lib/bitmap.c: more signed->unsigned conversions
 has been added to the -mm tree.  Its filename is
-     checkpatch-emit-an-error-when-using-predefined-timestamp-macros.patch
+     lib-bitmap-more-signed-unsigned-conversions.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-emit-an-error-when-using-predefined-timestamp-macros.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-bitmap-more-signed-unsigned-conversions.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-emit-an-error-when-using-predefined-timestamp-macros.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-bitmap-more-signed-unsigned-conversions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,50 +39,78 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: emit an error when using predefined timestamp macros
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: lib/bitmap.c: more signed->unsigned conversions
 
-Since commit fe7c36c7bde1 ("Makefile: Build with -Werror=date-time if
-the compiler supports it"), use of __DATE__, __TIME__, and __TIMESTAMP__
-has not been allowed.
+For consistency with the other bitmap_* functions, also make the nbits
+parameter of bitmap_zero, bitmap_fill and bitmap_copy unsigned.
 
-As this test is gcc version specific (> 4.9), it hasn't prevented a few
-new uses from creeping into the kernel sources.
-
-Make checkpatch complain about them.
-
-Signed-off-by: Joe Perches <joe@perches.com>
-Original-patch-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    6 ++++++
- 1 file changed, 6 insertions(+)
+ include/linux/bitmap.h |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-emit-an-error-when-using-predefined-timestamp-macros scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-emit-an-error-when-using-predefined-timestamp-macros
-+++ a/scripts/checkpatch.pl
-@@ -5089,6 +5089,12 @@ sub process {
- 			}
- 		}
+diff -puN include/linux/bitmap.h~lib-bitmap-more-signed-unsigned-conversions include/linux/bitmap.h
+--- a/include/linux/bitmap.h~lib-bitmap-more-signed-unsigned-conversions
++++ a/include/linux/bitmap.h
+@@ -185,33 +185,33 @@ extern int bitmap_print_to_pagebuf(bool
+ #define small_const_nbits(nbits) \
+ 	(__builtin_constant_p(nbits) && (nbits) <= BITS_PER_LONG)
  
-+# check for uses of __DATE__, __TIME__, __TIMESTAMP__
-+		while ($line =~ /\b(__(?:DATE|TIME|TIMESTAMP)__)\b/g) {
-+			ERROR("DATE_TIME",
-+			      "Use of the '$1' macro makes the build non-deterministic\n" . $herecurr);
-+		}
-+
- # check for use of yield()
- 		if ($line =~ /\byield\s*\(\s*\)/) {
- 			WARN("YIELD",
+-static inline void bitmap_zero(unsigned long *dst, int nbits)
++static inline void bitmap_zero(unsigned long *dst, unsigned int nbits)
+ {
+ 	if (small_const_nbits(nbits))
+ 		*dst = 0UL;
+ 	else {
+-		int len = BITS_TO_LONGS(nbits) * sizeof(unsigned long);
++		unsigned int len = BITS_TO_LONGS(nbits) * sizeof(unsigned long);
+ 		memset(dst, 0, len);
+ 	}
+ }
+ 
+-static inline void bitmap_fill(unsigned long *dst, int nbits)
++static inline void bitmap_fill(unsigned long *dst, unsigned int nbits)
+ {
+-	size_t nlongs = BITS_TO_LONGS(nbits);
++	unsigned int nlongs = BITS_TO_LONGS(nbits);
+ 	if (!small_const_nbits(nbits)) {
+-		int len = (nlongs - 1) * sizeof(unsigned long);
++		unsigned int len = (nlongs - 1) * sizeof(unsigned long);
+ 		memset(dst, 0xff,  len);
+ 	}
+ 	dst[nlongs - 1] = BITMAP_LAST_WORD_MASK(nbits);
+ }
+ 
+ static inline void bitmap_copy(unsigned long *dst, const unsigned long *src,
+-			int nbits)
++			unsigned int nbits)
+ {
+ 	if (small_const_nbits(nbits))
+ 		*dst = *src;
+ 	else {
+-		int len = BITS_TO_LONGS(nbits) * sizeof(unsigned long);
++		unsigned int len = BITS_TO_LONGS(nbits) * sizeof(unsigned long);
+ 		memcpy(dst, src, len);
+ 	}
+ }
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
 
 origin.patch
-mailmap-santosh-shilimkar-has-moved.patch
-mm-utilc-add-kstrimdup.patch
+lib-string_get_size-remove-redundant-prefixes.patch
+lib-string_get_size-use-32-bit-arithmetic-when-possible.patch
+lib-string_get_size-return-void.patch
+lib-bitmap-more-signed-unsigned-conversions.patch
+linux-nodemaskh-update-bitmap-wrappers-to-take-unsigned-int.patch
+linux-cpumaskh-update-bitmap-wrappers-to-take-unsigned-int.patch
+lib-bitmap-update-bitmap_onto-to-unsigned.patch
+lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned.patch
+lib-bitmap-simplify-bitmap_pos_to_ord.patch
+lib-bitmap-simplify-bitmap_ord_to_pos.patch
+lib-bitmap-make-the-bits-parameter-of-bitmap_remap-unsigned.patch
 checkpatch-emit-an-error-when-using-predefined-timestamp-macros.patch
-linux-next.patch
 
