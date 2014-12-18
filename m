@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-zap-memcg_slab_caches-and-memcg_slab_mutex.patch added to -mm tree
-Date: Thu, 18 Dec 2014 14:12:33 -0800
-Message-ID: <54935151.6c275SXcC+mi2p86%akpm@linux-foundation.org>
+Subject: +
+ checkpatch-emit-an-error-when-using-predefined-timestamp-macros.patch added to -mm tree
+Date: Thu, 18 Dec 2014 14:24:44 -0800
+Message-ID: <5493542c.MCdt35aXYlzNQWeB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56967 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57368 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751621AbaLRWMe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Dec 2014 17:12:34 -0500
+	with ESMTP id S1751733AbaLRWYp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Dec 2014 17:24:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@parallels.com, cl@linux.com, hannes@cmpxchg.org, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: joe@perches.com, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: zap memcg_slab_caches and memcg_slab_mutex
+     Subject: checkpatch: emit an error when using predefined timestamp macros
 has been added to the -mm tree.  Its filename is
-     memcg-zap-memcg_slab_caches-and-memcg_slab_mutex.patch
+     checkpatch-emit-an-error-when-using-predefined-timestamp-macros.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-zap-memcg_slab_caches-and-memcg_slab_mutex.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-emit-an-error-when-using-predefined-timestamp-macros.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-zap-memcg_slab_caches-and-memcg_slab_mutex.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-emit-an-error-when-using-predefined-timestamp-macros.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,560 +39,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: memcg: zap memcg_slab_caches and memcg_slab_mutex
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: emit an error when using predefined timestamp macros
 
-mem_cgroup->memcg_slab_caches is a list of kmem caches corresponding to
-the given cgroup.  Currently, it is only used on css free in order to
-destroy all caches corresponding to the memory cgroup being freed.  The
-list is protected by memcg_slab_mutex.  The mutex is also used to protect
-kmem_cache->memcg_params->memcg_caches arrays and synchronizes
-kmem_cache_destroy vs memcg_unregister_all_caches.
+Since commit fe7c36c7bde1 ("Makefile: Build with -Werror=date-time if
+the compiler supports it"), use of __DATE__, __TIME__, and __TIMESTAMP__
+has not been allowed.
 
-However, we can perfectly get on without these two.  To destroy all caches
-corresponding to a memory cgroup, we can walk over the global list of kmem
-caches, slab_caches, and we can do all the synchronization stuff using the
-slab_mutex instead of the memcg_slab_mutex.  This patch therefore gets rid
-of the memcg_slab_caches and memcg_slab_mutex.
+As this test is gcc version specific (> 4.9), it hasn't prevented a few
+new uses from creeping into the kernel sources.
 
-Apart from this nice cleanup, it also:
+Make checkpatch complain about them.
 
- - assures that rcu_barrier() is called once at max when a root cache is
-   destroyed or a memory cgroup is freed, no matter how many caches have
-   SLAB_DESTROY_BY_RCU flag set;
+Signed-off-by: Joe Perches <joe@perches.com>
+Original-patch-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 
- - fixes the race between kmem_cache_destroy and kmem_cache_create that
-   exists, because memcg_cleanup_cache_params, which is called from
-   kmem_cache_destroy after checking that kmem_cache->refcount=0,
-   releases the slab_mutex, which gives kmem_cache_create a chance to
-   make an alias to a cache doomed to be destroyed.
-
-Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Acked-by: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    2 
- include/linux/slab.h       |    6 -
- mm/memcontrol.c            |  156 +++--------------------------------
- mm/slab_common.c           |  142 +++++++++++++++++++++++--------
- 4 files changed, 120 insertions(+), 186 deletions(-)
+ scripts/checkpatch.pl |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN include/linux/memcontrol.h~memcg-zap-memcg_slab_caches-and-memcg_slab_mutex include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-zap-memcg_slab_caches-and-memcg_slab_mutex
-+++ a/include/linux/memcontrol.h
-@@ -407,8 +407,6 @@ int memcg_charge_kmem(struct mem_cgroup
- 		      unsigned long nr_pages);
- void memcg_uncharge_kmem(struct mem_cgroup *memcg, unsigned long nr_pages);
+diff -puN scripts/checkpatch.pl~checkpatch-emit-an-error-when-using-predefined-timestamp-macros scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-emit-an-error-when-using-predefined-timestamp-macros
++++ a/scripts/checkpatch.pl
+@@ -5089,6 +5089,12 @@ sub process {
+ 			}
+ 		}
  
--int __memcg_cleanup_cache_params(struct kmem_cache *s);
--
- /**
-  * memcg_kmem_newpage_charge: verify if a new kmem allocation is allowed.
-  * @gfp: the gfp allocation flags.
-diff -puN include/linux/slab.h~memcg-zap-memcg_slab_caches-and-memcg_slab_mutex include/linux/slab.h
---- a/include/linux/slab.h~memcg-zap-memcg_slab_caches-and-memcg_slab_mutex
-+++ a/include/linux/slab.h
-@@ -116,8 +116,8 @@ struct kmem_cache *kmem_cache_create(con
- 			unsigned long,
- 			void (*)(void *));
- #ifdef CONFIG_MEMCG_KMEM
--struct kmem_cache *memcg_create_kmem_cache(struct mem_cgroup *,
--					   struct kmem_cache *);
-+void memcg_create_kmem_cache(struct mem_cgroup *, struct kmem_cache *);
-+void memcg_destroy_kmem_caches(struct mem_cgroup *);
- #endif
- void kmem_cache_destroy(struct kmem_cache *);
- int kmem_cache_shrink(struct kmem_cache *);
-@@ -490,7 +490,6 @@ static __always_inline void *kmalloc_nod
-  * Child caches will hold extra metadata needed for its operation. Fields are:
-  *
-  * @memcg: pointer to the memcg this cache belongs to
-- * @list: list_head for the list of all caches in this memcg
-  * @root_cache: pointer to the global, root cache, this cache was derived from
-  */
- struct memcg_cache_params {
-@@ -502,7 +501,6 @@ struct memcg_cache_params {
- 		};
- 		struct {
- 			struct mem_cgroup *memcg;
--			struct list_head list;
- 			struct kmem_cache *root_cache;
- 		};
- 	};
-diff -puN mm/memcontrol.c~memcg-zap-memcg_slab_caches-and-memcg_slab_mutex mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-zap-memcg_slab_caches-and-memcg_slab_mutex
-+++ a/mm/memcontrol.c
-@@ -343,9 +343,6 @@ struct mem_cgroup {
- 	struct cg_proto tcp_mem;
- #endif
- #if defined(CONFIG_MEMCG_KMEM)
--	/* analogous to slab_common's slab_caches list, but per-memcg;
--	 * protected by memcg_slab_mutex */
--	struct list_head memcg_slab_caches;
-         /* Index in the kmem_cache->memcg_params->memcg_caches array */
- 	int kmemcg_id;
- #endif
-@@ -2476,25 +2473,6 @@ static void commit_charge(struct page *p
- }
- 
- #ifdef CONFIG_MEMCG_KMEM
--/*
-- * The memcg_slab_mutex is held whenever a per memcg kmem cache is created or
-- * destroyed. It protects memcg_caches arrays and memcg_slab_caches lists.
-- */
--static DEFINE_MUTEX(memcg_slab_mutex);
--
--/*
-- * This is a bit cumbersome, but it is rarely used and avoids a backpointer
-- * in the memcg_cache_params struct.
-- */
--static struct kmem_cache *memcg_params_to_cache(struct memcg_cache_params *p)
--{
--	struct kmem_cache *cachep;
--
--	VM_BUG_ON(p->is_root_cache);
--	cachep = p->root_cache;
--	return cache_from_memcg_idx(cachep, memcg_cache_id(p->memcg));
--}
--
- int memcg_charge_kmem(struct mem_cgroup *memcg, gfp_t gfp,
- 		      unsigned long nr_pages)
- {
-@@ -2578,10 +2556,7 @@ static int memcg_alloc_cache_id(void)
- 	else if (size > MEMCG_CACHES_MAX_SIZE)
- 		size = MEMCG_CACHES_MAX_SIZE;
- 
--	mutex_lock(&memcg_slab_mutex);
- 	err = memcg_update_all_caches(size);
--	mutex_unlock(&memcg_slab_mutex);
--
- 	if (err) {
- 		ida_simple_remove(&kmem_limited_groups, id);
- 		return err;
-@@ -2604,120 +2579,20 @@ void memcg_update_array_size(int num)
- 	memcg_limited_groups_array_size = num;
- }
- 
--static void memcg_register_cache(struct mem_cgroup *memcg,
--				 struct kmem_cache *root_cache)
--{
--	struct kmem_cache *cachep;
--	int id;
--
--	lockdep_assert_held(&memcg_slab_mutex);
--
--	id = memcg_cache_id(memcg);
--
--	/*
--	 * Since per-memcg caches are created asynchronously on first
--	 * allocation (see memcg_kmem_get_cache()), several threads can try to
--	 * create the same cache, but only one of them may succeed.
--	 */
--	if (cache_from_memcg_idx(root_cache, id))
--		return;
--
--	cachep = memcg_create_kmem_cache(memcg, root_cache);
--	/*
--	 * If we could not create a memcg cache, do not complain, because
--	 * that's not critical at all as we can always proceed with the root
--	 * cache.
--	 */
--	if (!cachep)
--		return;
--
--	list_add(&cachep->memcg_params->list, &memcg->memcg_slab_caches);
--
--	/*
--	 * Since readers won't lock (see cache_from_memcg_idx()), we need a
--	 * barrier here to ensure nobody will see the kmem_cache partially
--	 * initialized.
--	 */
--	smp_wmb();
--
--	BUG_ON(root_cache->memcg_params->memcg_caches[id]);
--	root_cache->memcg_params->memcg_caches[id] = cachep;
--}
--
--static void memcg_unregister_cache(struct kmem_cache *cachep)
--{
--	struct kmem_cache *root_cache;
--	struct mem_cgroup *memcg;
--	int id;
--
--	lockdep_assert_held(&memcg_slab_mutex);
--
--	BUG_ON(is_root_cache(cachep));
--
--	root_cache = cachep->memcg_params->root_cache;
--	memcg = cachep->memcg_params->memcg;
--	id = memcg_cache_id(memcg);
--
--	BUG_ON(root_cache->memcg_params->memcg_caches[id] != cachep);
--	root_cache->memcg_params->memcg_caches[id] = NULL;
--
--	list_del(&cachep->memcg_params->list);
--
--	kmem_cache_destroy(cachep);
--}
--
--int __memcg_cleanup_cache_params(struct kmem_cache *s)
--{
--	struct kmem_cache *c;
--	int i, failed = 0;
--
--	mutex_lock(&memcg_slab_mutex);
--	for_each_memcg_cache_index(i) {
--		c = cache_from_memcg_idx(s, i);
--		if (!c)
--			continue;
--
--		memcg_unregister_cache(c);
--
--		if (cache_from_memcg_idx(s, i))
--			failed++;
--	}
--	mutex_unlock(&memcg_slab_mutex);
--	return failed;
--}
--
--static void memcg_unregister_all_caches(struct mem_cgroup *memcg)
--{
--	struct kmem_cache *cachep;
--	struct memcg_cache_params *params, *tmp;
--
--	if (!memcg_kmem_is_active(memcg))
--		return;
--
--	mutex_lock(&memcg_slab_mutex);
--	list_for_each_entry_safe(params, tmp, &memcg->memcg_slab_caches, list) {
--		cachep = memcg_params_to_cache(params);
--		memcg_unregister_cache(cachep);
--	}
--	mutex_unlock(&memcg_slab_mutex);
--}
--
--struct memcg_register_cache_work {
-+struct memcg_kmem_cache_create_work {
- 	struct mem_cgroup *memcg;
- 	struct kmem_cache *cachep;
- 	struct work_struct work;
- };
- 
--static void memcg_register_cache_func(struct work_struct *w)
-+static void memcg_kmem_cache_create_func(struct work_struct *w)
- {
--	struct memcg_register_cache_work *cw =
--		container_of(w, struct memcg_register_cache_work, work);
-+	struct memcg_kmem_cache_create_work *cw =
-+		container_of(w, struct memcg_kmem_cache_create_work, work);
- 	struct mem_cgroup *memcg = cw->memcg;
- 	struct kmem_cache *cachep = cw->cachep;
- 
--	mutex_lock(&memcg_slab_mutex);
--	memcg_register_cache(memcg, cachep);
--	mutex_unlock(&memcg_slab_mutex);
-+	memcg_create_kmem_cache(memcg, cachep);
- 
- 	css_put(&memcg->css);
- 	kfree(cw);
-@@ -2726,10 +2601,10 @@ static void memcg_register_cache_func(st
- /*
-  * Enqueue the creation of a per-memcg kmem_cache.
-  */
--static void __memcg_schedule_register_cache(struct mem_cgroup *memcg,
--					    struct kmem_cache *cachep)
-+static void __memcg_schedule_kmem_cache_create(struct mem_cgroup *memcg,
-+					       struct kmem_cache *cachep)
- {
--	struct memcg_register_cache_work *cw;
-+	struct memcg_kmem_cache_create_work *cw;
- 
- 	cw = kmalloc(sizeof(*cw), GFP_NOWAIT);
- 	if (!cw)
-@@ -2739,18 +2614,18 @@ static void __memcg_schedule_register_ca
- 
- 	cw->memcg = memcg;
- 	cw->cachep = cachep;
-+	INIT_WORK(&cw->work, memcg_kmem_cache_create_func);
- 
--	INIT_WORK(&cw->work, memcg_register_cache_func);
- 	schedule_work(&cw->work);
- }
- 
--static void memcg_schedule_register_cache(struct mem_cgroup *memcg,
--					  struct kmem_cache *cachep)
-+static void memcg_schedule_kmem_cache_create(struct mem_cgroup *memcg,
-+					     struct kmem_cache *cachep)
- {
- 	/*
- 	 * We need to stop accounting when we kmalloc, because if the
- 	 * corresponding kmalloc cache is not yet created, the first allocation
--	 * in __memcg_schedule_register_cache will recurse.
-+	 * in __memcg_schedule_kmem_cache_create will recurse.
- 	 *
- 	 * However, it is better to enclose the whole function. Depending on
- 	 * the debugging options enabled, INIT_WORK(), for instance, can
-@@ -2759,7 +2634,7 @@ static void memcg_schedule_register_cach
- 	 * the safest choice is to do it like this, wrapping the whole function.
- 	 */
- 	current->memcg_kmem_skip_account = 1;
--	__memcg_schedule_register_cache(memcg, cachep);
-+	__memcg_schedule_kmem_cache_create(memcg, cachep);
- 	current->memcg_kmem_skip_account = 0;
- }
- 
-@@ -2807,7 +2682,7 @@ struct kmem_cache *__memcg_kmem_get_cach
- 	 * could happen with the slab_mutex held. So it's better to
- 	 * defer everything.
- 	 */
--	memcg_schedule_register_cache(memcg, cachep);
-+	memcg_schedule_kmem_cache_create(memcg, cachep);
- out:
- 	css_put(&memcg->css);
- 	return cachep;
-@@ -4148,7 +4023,7 @@ static int memcg_init_kmem(struct mem_cg
- 
- static void memcg_destroy_kmem(struct mem_cgroup *memcg)
- {
--	memcg_unregister_all_caches(memcg);
-+	memcg_destroy_kmem_caches(memcg);
- 	mem_cgroup_sockets_destroy(memcg);
- }
- #else
-@@ -4675,7 +4550,6 @@ mem_cgroup_css_alloc(struct cgroup_subsy
- 	spin_lock_init(&memcg->event_list_lock);
- #ifdef CONFIG_MEMCG_KMEM
- 	memcg->kmemcg_id = -1;
--	INIT_LIST_HEAD(&memcg->memcg_slab_caches);
- #endif
- 
- 	return &memcg->css;
-diff -puN mm/slab_common.c~memcg-zap-memcg_slab_caches-and-memcg_slab_mutex mm/slab_common.c
---- a/mm/slab_common.c~memcg-zap-memcg_slab_caches-and-memcg_slab_mutex
-+++ a/mm/slab_common.c
-@@ -425,6 +425,49 @@ out_unlock:
- }
- EXPORT_SYMBOL(kmem_cache_create);
- 
-+static int do_kmem_cache_shutdown(struct kmem_cache *s,
-+		struct list_head *release, bool *need_rcu_barrier)
-+{
-+	if (__kmem_cache_shutdown(s) != 0) {
-+		printk(KERN_ERR "kmem_cache_destroy %s: "
-+		       "Slab cache still has objects\n", s->name);
-+		dump_stack();
-+		return -EBUSY;
-+	}
++# check for uses of __DATE__, __TIME__, __TIMESTAMP__
++		while ($line =~ /\b(__(?:DATE|TIME|TIMESTAMP)__)\b/g) {
++			ERROR("DATE_TIME",
++			      "Use of the '$1' macro makes the build non-deterministic\n" . $herecurr);
++		}
 +
-+	if (s->flags & SLAB_DESTROY_BY_RCU)
-+		*need_rcu_barrier = true;
-+
-+#ifdef CONFIG_MEMCG_KMEM
-+	if (!is_root_cache(s)) {
-+		struct kmem_cache *root_cache = s->memcg_params->root_cache;
-+		int memcg_id = memcg_cache_id(s->memcg_params->memcg);
-+
-+		BUG_ON(root_cache->memcg_params->memcg_caches[memcg_id] != s);
-+		root_cache->memcg_params->memcg_caches[memcg_id] = NULL;
-+	}
-+#endif
-+	list_move(&s->list, release);
-+	return 0;
-+}
-+
-+static void do_kmem_cache_release(struct list_head *release,
-+				  bool need_rcu_barrier)
-+{
-+	struct kmem_cache *s, *s2;
-+
-+	if (need_rcu_barrier)
-+		rcu_barrier();
-+
-+	list_for_each_entry_safe(s, s2, release, list) {
-+#ifdef SLAB_SUPPORTS_SYSFS
-+		sysfs_slab_remove(s);
-+#else
-+		slab_kmem_cache_release(s);
-+#endif
-+	}
-+}
-+
- #ifdef CONFIG_MEMCG_KMEM
- /*
-  * memcg_create_kmem_cache - Create a cache for a memory cgroup.
-@@ -435,10 +478,11 @@ EXPORT_SYMBOL(kmem_cache_create);
-  * requests going from @memcg to @root_cache. The new cache inherits properties
-  * from its parent.
-  */
--struct kmem_cache *memcg_create_kmem_cache(struct mem_cgroup *memcg,
--					   struct kmem_cache *root_cache)
-+void memcg_create_kmem_cache(struct mem_cgroup *memcg,
-+			     struct kmem_cache *root_cache)
- {
- 	static char memcg_name_buf[NAME_MAX + 1]; /* protected by slab_mutex */
-+	int memcg_id = memcg_cache_id(memcg);
- 	struct kmem_cache *s = NULL;
- 	char *cache_name;
- 
-@@ -447,6 +491,14 @@ struct kmem_cache *memcg_create_kmem_cac
- 
- 	mutex_lock(&slab_mutex);
- 
-+	/*
-+	 * Since per-memcg caches are created asynchronously on first
-+	 * allocation (see memcg_kmem_get_cache()), several threads can try to
-+	 * create the same cache, but only one of them may succeed.
-+	 */
-+	if (cache_from_memcg_idx(root_cache, memcg_id))
-+		goto out_unlock;
-+
- 	cgroup_name(mem_cgroup_css(memcg)->cgroup,
- 		    memcg_name_buf, sizeof(memcg_name_buf));
- 	cache_name = kasprintf(GFP_KERNEL, "%s(%d:%s)", root_cache->name,
-@@ -458,49 +510,73 @@ struct kmem_cache *memcg_create_kmem_cac
- 				 root_cache->size, root_cache->align,
- 				 root_cache->flags, root_cache->ctor,
- 				 memcg, root_cache);
-+	/*
-+	 * If we could not create a memcg cache, do not complain, because
-+	 * that's not critical at all as we can always proceed with the root
-+	 * cache.
-+	 */
- 	if (IS_ERR(s)) {
- 		kfree(cache_name);
--		s = NULL;
-+		goto out_unlock;
- 	}
- 
-+	/*
-+	 * Since readers won't lock (see cache_from_memcg_idx()), we need a
-+	 * barrier here to ensure nobody will see the kmem_cache partially
-+	 * initialized.
-+	 */
-+	smp_wmb();
-+	root_cache->memcg_params->memcg_caches[memcg_id] = s;
-+
- out_unlock:
- 	mutex_unlock(&slab_mutex);
- 
- 	put_online_mems();
- 	put_online_cpus();
--
--	return s;
- }
- 
--static int memcg_cleanup_cache_params(struct kmem_cache *s)
-+void memcg_destroy_kmem_caches(struct mem_cgroup *memcg)
- {
--	int rc;
-+	LIST_HEAD(release);
-+	bool need_rcu_barrier = false;
-+	struct kmem_cache *s, *s2;
- 
--	if (!s->memcg_params ||
--	    !s->memcg_params->is_root_cache)
--		return 0;
-+	get_online_cpus();
-+	get_online_mems();
- 
--	mutex_unlock(&slab_mutex);
--	rc = __memcg_cleanup_cache_params(s);
- 	mutex_lock(&slab_mutex);
-+	list_for_each_entry_safe(s, s2, &slab_caches, list) {
-+		if (is_root_cache(s) || s->memcg_params->memcg != memcg)
-+			continue;
-+		/*
-+		 * The cgroup is about to be freed and therefore has no charges
-+		 * left. Hence, all its caches must be empty by now.
-+		 */
-+		BUG_ON(do_kmem_cache_shutdown(s, &release, &need_rcu_barrier));
-+	}
-+	mutex_unlock(&slab_mutex);
- 
--	return rc;
--}
--#else
--static int memcg_cleanup_cache_params(struct kmem_cache *s)
--{
--	return 0;
-+	put_online_mems();
-+	put_online_cpus();
-+
-+	do_kmem_cache_release(&release, need_rcu_barrier);
- }
- #endif /* CONFIG_MEMCG_KMEM */
- 
- void slab_kmem_cache_release(struct kmem_cache *s)
- {
-+	memcg_free_cache_params(s);
- 	kfree(s->name);
- 	kmem_cache_free(kmem_cache, s);
- }
- 
- void kmem_cache_destroy(struct kmem_cache *s)
- {
-+	int i;
-+	LIST_HEAD(release);
-+	bool need_rcu_barrier = false;
-+	bool busy = false;
-+
- 	get_online_cpus();
- 	get_online_mems();
- 
-@@ -510,35 +586,23 @@ void kmem_cache_destroy(struct kmem_cach
- 	if (s->refcount)
- 		goto out_unlock;
- 
--	if (memcg_cleanup_cache_params(s) != 0)
--		goto out_unlock;
-+	for_each_memcg_cache_index(i) {
-+		struct kmem_cache *c = cache_from_memcg_idx(s, i);
- 
--	if (__kmem_cache_shutdown(s) != 0) {
--		printk(KERN_ERR "kmem_cache_destroy %s: "
--		       "Slab cache still has objects\n", s->name);
--		dump_stack();
--		goto out_unlock;
-+		if (c && do_kmem_cache_shutdown(c, &release, &need_rcu_barrier))
-+			busy = true;
- 	}
- 
--	list_del(&s->list);
--
--	mutex_unlock(&slab_mutex);
--	if (s->flags & SLAB_DESTROY_BY_RCU)
--		rcu_barrier();
--
--	memcg_free_cache_params(s);
--#ifdef SLAB_SUPPORTS_SYSFS
--	sysfs_slab_remove(s);
--#else
--	slab_kmem_cache_release(s);
--#endif
--	goto out;
-+	if (!busy)
-+		do_kmem_cache_shutdown(s, &release, &need_rcu_barrier);
- 
- out_unlock:
- 	mutex_unlock(&slab_mutex);
--out:
-+
- 	put_online_mems();
- 	put_online_cpus();
-+
-+	do_kmem_cache_release(&release, need_rcu_barrier);
- }
- EXPORT_SYMBOL(kmem_cache_destroy);
- 
+ # check for use of yield()
+ 		if ($line =~ /\byield\s*\(\s*\)/) {
+ 			WARN("YIELD",
 _
 
-Patches currently in -mm which might be from vdavydov@parallels.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
-memcg-zap-__memcg_chargeuncharge_slab.patch
-memcg-zap-memcg_name-argument-of-memcg_create_kmem_cache.patch
-memcg-zap-memcg_slab_caches-and-memcg_slab_mutex.patch
+mailmap-santosh-shilimkar-has-moved.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-emit-an-error-when-using-predefined-timestamp-macros.patch
+linux-next.patch
 
