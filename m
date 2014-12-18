@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + lib-string_get_size-return-void.patch added to -mm tree
-Date: Thu, 18 Dec 2014 13:46:41 -0800
-Message-ID: <54934b41.waeG+qNjv2+FcexB%akpm@linux-foundation.org>
+Subject: + jffs2-bugfix-of-summary-length.patch added to -mm tree
+Date: Thu, 18 Dec 2014 13:50:38 -0800
+Message-ID: <54934c2e.HlcSz6W0A+iQucys%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56817 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56907 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751481AbaLRVqm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Dec 2014 16:46:42 -0500
+	with ESMTP id S1751247AbaLRVuj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Dec 2014 16:50:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
+To: chenjie6@huawei.com, dwmw2@infradead.org, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: libstring_helpers.c:string_get_size(): return void
+     Subject: jffs2: fix handling of corrupted summary length
 has been added to the -mm tree.  Its filename is
-     lib-string_get_size-return-void.patch
+     jffs2-bugfix-of-summary-length.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-string_get_size-return-void.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/jffs2-bugfix-of-summary-length.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-string_get_size-return-void.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/jffs2-bugfix-of-summary-length.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,57 +38,79 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: libstring_helpers.c:string_get_size(): return void
+From: Chen Jie <chenjie6@huawei.com>
+Subject: jffs2: fix handling of corrupted summary length
 
-string_get_size() was documented to return an error, but in fact always
-returned 0.  Since the output always fits in 9 bytes, just document that
-and let callers do what they do now: pass a small stack buffer and ignore
-the return value.
+sm->offset maybe wrong but magic maybe right, the offset do not have CRC.
 
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Badness at c00c7580 [verbose debug info unavailable]
+NIP: c00c7580 LR: c00c718c CTR: 00000014
+REGS: df07bb40 TRAP: 0700   Not tainted  (2.6.34.13-WR4.3.0.0_standard)
+MSR: 00029000 <EE,ME,CE>  CR: 22084f84  XER: 00000000
+TASK = df84d6e0[908] 'mount' THREAD: df07a000
+GPR00: 00000001 df07bbf0 df84d6e0 00000000 00000001 00000000 df07bb58 00000041
+GPR08: 00000041 c0638860 00000000 00000010 22084f88 100636c8 df814ff8 00000000
+GPR16: df84d6e0 dfa558cc c05adb90 00000048 c0452d30 00000000 000240d0 000040d0
+GPR24: 00000014 c05ae734 c05be2e0 00000000 00000001 00000000 00000000 c05ae730
+NIP [c00c7580] __alloc_pages_nodemask+0x4d0/0x638
+LR [c00c718c] __alloc_pages_nodemask+0xdc/0x638
+Call Trace:
+[df07bbf0] [c00c718c] __alloc_pages_nodemask+0xdc/0x638 (unreliable)
+[df07bc90] [c00c7708] __get_free_pages+0x20/0x48
+[df07bca0] [c00f4a40] __kmalloc+0x15c/0x1ec
+[df07bcd0] [c01fc880] jffs2_scan_medium+0xa58/0x14d0
+[df07bd70] [c01ff38c] jffs2_do_mount_fs+0x1f4/0x6b4
+[df07bdb0] [c020144c] jffs2_do_fill_super+0xa8/0x260
+[df07bdd0] [c020230c] jffs2_fill_super+0x104/0x184
+[df07be00] [c0335814] get_sb_mtd_aux+0x9c/0xec
+[df07be20] [c033596c] get_sb_mtd+0x84/0x1e8
+[df07be60] [c0201ed0] jffs2_get_sb+0x1c/0x2c
+[df07be70] [c0103898] vfs_kern_mount+0x78/0x1e8
+[df07bea0] [c0103a58] do_kern_mount+0x40/0x100
+[df07bec0] [c011fe90] do_mount+0x240/0x890
+[df07bf10] [c0120570] sys_mount+0x90/0xd8
+[df07bf40] [c00110d8] ret_from_syscall+0x0/0x4
+=== Exception: c01 at 0xff61a34
+    LR = 0x100135f0
+Instruction dump:
+38800005 38600000 48010f41 4bfffe1c 4bfc2d15 4bfffe8c 72e90200 4082fc28
+3d20c064 39298860 8809000d 68000001 <0f000000> 2f800000 419efc0c 38000001
+mount: mounting /dev/mtdblock3 on /common failed: Input/output error
+
+Signed-off-by: Chen Jie <chenjie6@huawei.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/string_helpers.h |    4 ++--
- lib/string_helpers.c           |   10 ++++------
- 2 files changed, 6 insertions(+), 8 deletions(-)
+ fs/jffs2/scan.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN include/linux/string_helpers.h~lib-string_get_size-return-void include/linux/string_helpers.h
---- a/include/linux/string_helpers.h~lib-string_get_size-return-void
-+++ a/include/linux/string_helpers.h
-@@ -10,8 +10,8 @@ enum string_size_units {
- 	STRING_UNITS_2,		/* use binary powers of 2^10 */
- };
+diff -puN fs/jffs2/scan.c~jffs2-bugfix-of-summary-length fs/jffs2/scan.c
+--- a/fs/jffs2/scan.c~jffs2-bugfix-of-summary-length
++++ a/fs/jffs2/scan.c
+@@ -510,6 +510,10 @@ static int jffs2_scan_eraseblock (struct
+ 				sumlen = c->sector_size - je32_to_cpu(sm->offset);
+ 				sumptr = buf + buf_size - sumlen;
  
--int string_get_size(u64 size, enum string_size_units units,
--		    char *buf, int len);
-+void string_get_size(u64 size, enum string_size_units units,
-+		     char *buf, int len);
++				/* sm->offset maybe wrong but MAGIC maybe right */
++				if (sumlen > c->sector_size)
++					goto full_scan;
++
+ 				/* Now, make sure the summary itself is available */
+ 				if (sumlen > buf_size) {
+ 					/* Need to kmalloc for this. */
+@@ -544,6 +548,7 @@ static int jffs2_scan_eraseblock (struct
+ 		}
+ 	}
  
- #define UNESCAPE_SPACE		0x01
- #define UNESCAPE_OCTAL		0x02
-diff -puN lib/string_helpers.c~lib-string_get_size-return-void lib/string_helpers.c
---- a/lib/string_helpers.c~lib-string_get_size-return-void
-+++ a/lib/string_helpers.c
-@@ -20,12 +20,12 @@
-  * @len:	length of buffer
-  *
-  * This function returns a string formatted to 3 significant figures
-- * giving the size in the required units.  Returns 0 on success or
-- * error on failure.  @buf is always zero terminated.
-+ * giving the size in the required units.  @buf should have room for
-+ * at least 9 bytes and will always be zero terminated.
-  *
-  */
--int string_get_size(u64 size, const enum string_size_units units,
--		    char *buf, int len)
-+void string_get_size(u64 size, const enum string_size_units units,
-+		     char *buf, int len)
- {
- 	static const char *const units_10[] = {
- 		"B", "kB", "MB", "GB", "TB", "PB", "EB"
-@@ -67,8 +67,6 @@ int string_get_size(u64 size, const enum
++full_scan:
+ 	buf_ofs = jeb->offset;
  
- 	snprintf(buf, len, "%u%s %s", (u32)size,
- 		 tmp, units_str[units][i]);
+ 	if (!buf_size) {
+_
+
+Patches currently in -mm which might be from chenjie6@huawei.com are
+
+jffs2-bugfix-of-summary-length.patch
+
