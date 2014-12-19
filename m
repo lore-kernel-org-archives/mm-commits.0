@@ -1,109 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ocfs2-fix-journal-commit-deadlock.patch removed from -mm tree
-Date: Fri, 19 Dec 2014 12:36:58 -0800
-Message-ID: <54948c6a.WHYODHIuXqzcZ5Rt%akpm@linux-foundation.org>
+Subject: [merged]
+ tools-testing-selftests-makefile-alphasort-the-targets-list.patch removed
+ from -mm tree
+Date: Fri, 19 Dec 2014 12:37:02 -0800
+Message-ID: <54948c6e.Ozl4brQfZQyPxhiy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42363 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42371 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751833AbaLSUg7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Dec 2014 15:36:59 -0500
+	with ESMTP id S1752422AbaLSUhD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Dec 2014 15:37:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: junxiao.bi@oracle.com, jlbec@evilplan.org, mfasheh@suse.de, stable@vger.kernel.org, wen.gang.wang@oracle.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, shuah.kh@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix journal commit deadlock
+     Subject: tools/testing/selftests/Makefile: alphasort the TARGETS list
 has been removed from the -mm tree.  Its filename was
-     ocfs2-fix-journal-commit-deadlock.patch
+     tools-testing-selftests-makefile-alphasort-the-targets-list.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Junxiao Bi <junxiao.bi@oracle.com>
-Subject: ocfs2: fix journal commit deadlock
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: tools/testing/selftests/Makefile: alphasort the TARGETS list
 
-For buffer write, page lock will be got in write_begin and released in
-write_end, in ocfs2_write_end_nolock(), before it unlock the page in
-ocfs2_free_write_ctxt(), it calls ocfs2_run_deallocs(), this will ask for
-the read lock of journal->j_trans_barrier.  Holding page lock and ask for
-journal->j_trans_barrier breaks the locking order.
+This list is supposed to be sorted, to reduce patch collisions.
 
-This will cause a deadlock with journal commit threads, ocfs2cmt will get
-write lock of journal->j_trans_barrier first, then it wakes up kjournald2
-to do the commit work, at last it waits until done.  To commit journal,
-kjournald2 needs flushing data first, it needs get the cache page lock.
-
-Since some ocfs2 cluster locks are holding by write process, this
-deadlock may hung the whole cluster.
-
-unlock pages before ocfs2_run_deallocs() can fix the locking order, also
-put unlock before ocfs2_commit_trans() to make page lock is unlocked
-before j_trans_barrier to preserve unlocking order.
-
-Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
-Reviewed-by: Wengang Wang <wen.gang.wang@oracle.com>
-Cc: <stable@vger.kernel.org>
-Reviewed-by: Mark Fasheh <mfasheh@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Shuah Khan <shuah.kh@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/aops.c |   16 ++++++++++++++--
- 1 file changed, 14 insertions(+), 2 deletions(-)
+ tools/testing/selftests/Makefile |   17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
-diff -puN fs/ocfs2/aops.c~ocfs2-fix-journal-commit-deadlock fs/ocfs2/aops.c
---- a/fs/ocfs2/aops.c~ocfs2-fix-journal-commit-deadlock
-+++ a/fs/ocfs2/aops.c
-@@ -894,7 +894,7 @@ void ocfs2_unlock_and_free_pages(struct
- 	}
- }
+diff -puN tools/testing/selftests/Makefile~tools-testing-selftests-makefile-alphasort-the-targets-list tools/testing/selftests/Makefile
+--- a/tools/testing/selftests/Makefile~tools-testing-selftests-makefile-alphasort-the-targets-list
++++ a/tools/testing/selftests/Makefile
+@@ -1,22 +1,23 @@
+ TARGETS = breakpoints
+ TARGETS += cpu-hotplug
+ TARGETS += efivarfs
++TARGETS += exec
++TARGETS += firmware
++TARGETS += ftrace
+ TARGETS += kcmp
+ TARGETS += memfd
+ TARGETS += memory-hotplug
+-TARGETS += mqueue
+ TARGETS += mount
++TARGETS += mqueue
+ TARGETS += net
++TARGETS += powerpc
+ TARGETS += ptrace
++TARGETS += size
++TARGETS += sysctl
+ TARGETS += timers
+-TARGETS += vm
+-TARGETS += powerpc
+ TARGETS += user
+-TARGETS += sysctl
+-TARGETS += firmware
+-TARGETS += ftrace
+-TARGETS += exec
+-TARGETS += size
++TARGETS += vm
++#Please keep the TARGETS list alphabetically sorted
  
--static void ocfs2_free_write_ctxt(struct ocfs2_write_ctxt *wc)
-+static void ocfs2_unlock_pages(struct ocfs2_write_ctxt *wc)
- {
- 	int i;
- 
-@@ -915,7 +915,11 @@ static void ocfs2_free_write_ctxt(struct
- 		page_cache_release(wc->w_target_page);
- 	}
- 	ocfs2_unlock_and_free_pages(wc->w_pages, wc->w_num_pages);
-+}
- 
-+static void ocfs2_free_write_ctxt(struct ocfs2_write_ctxt *wc)
-+{
-+	ocfs2_unlock_pages(wc);
- 	brelse(wc->w_di_bh);
- 	kfree(wc);
- }
-@@ -2042,11 +2046,19 @@ out_write_size:
- 	ocfs2_update_inode_fsync_trans(handle, inode, 1);
- 	ocfs2_journal_dirty(handle, wc->w_di_bh);
- 
-+	/* unlock pages before dealloc since it needs acquiring j_trans_barrier
-+	 * lock, or it will cause a deadlock since journal commit threads holds
-+	 * this lock and will ask for the page lock when flushing the data.
-+	 * put it here to preserve the unlock order.
-+	 */
-+	ocfs2_unlock_pages(wc);
-+
- 	ocfs2_commit_trans(osb, handle);
- 
- 	ocfs2_run_deallocs(osb, &wc->w_dealloc);
- 
--	ocfs2_free_write_ctxt(wc);
-+	brelse(wc->w_di_bh);
-+	kfree(wc);
- 
- 	return copied;
- }
+ TARGETS_HOTPLUG = cpu-hotplug
+ TARGETS_HOTPLUG += memory-hotplug
 _
 
-Patches currently in -mm which might be from junxiao.bi@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+mm-prevent-endless-growth-of-anon_vma-hierarchy-fix.patch
+mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper.patch
+ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir.patch
+mm.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss-fix.patch
+lib-bitmap-update-bitmap_onto-to-unsigned-checkpatch-fixes.patch
+linux-next.patch
+linux-next-git-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
