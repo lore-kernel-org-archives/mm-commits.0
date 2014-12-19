@@ -1,93 +1,172 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch removed from
- -mm tree
-Date: Fri, 19 Dec 2014 12:36:50 -0800
-Message-ID: <54948c62.3n20fX+4FiJ/geGN%akpm@linux-foundation.org>
+Subject: [merged] ocfs2-reflink-fix-slow-unlink-for-refcounted-file.patch
+ removed from -mm tree
+Date: Fri, 19 Dec 2014 12:36:53 -0800
+Message-ID: <54948c65.wu2H5rYIDFDNeZ50%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42351 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42354 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751833AbaLSUgv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Dec 2014 15:36:51 -0500
+	with ESMTP id S1751833AbaLSUgy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Dec 2014 15:36:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@linux.intel.com, dave.hansen@linux.intel.com, kirill@shutemov.name, lliubbo@gmail.com, matthew.r.wilcox@intel.com, mgorman@suse.de, n-horiguchi@ah.jp.nec.com, riel@redhat.com, sasha.levin@oracle.com, mm-commits@vger.kernel.org
+To: junxiao.bi@oracle.com, jlbec@evilplan.org, mfasheh@suse.de, wen.gang.wang@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory.c:do_shared_fault(): add comment
+     Subject: ocfs2: reflink: fix slow unlink for refcounted file
 has been removed from the -mm tree.  Its filename was
-     mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
+     ocfs2-reflink-fix-slow-unlink-for-refcounted-file.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm/memory.c:do_shared_fault(): add comment
+From: Junxiao Bi <junxiao.bi@oracle.com>
+Subject: ocfs2: reflink: fix slow unlink for refcounted file
 
-Belatedly document the changes in f0c6d4d295e4ea ("mm: introduce
-do_shared_fault() and drop do_fault()").
+When running ocfs2 test suite multiple nodes reflink stress test, for a 4
+nodes cluster, every unlink() for refcounted file needs about 700s.
 
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Bob Liu <lliubbo@gmail.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Sasha Levin <sasha.levin@oracle.com>
+The slow unlink is caused by the contention of refcount tree lock since
+all nodes are unlink files using the same refcount tree.  When the
+unlinking file have many extents(over 1600 in our test), most of the
+extents has refcounted flag set.  In ocfs2_commit_truncate(), it will
+execute the following call trace for every extents.  This means it needs
+get and released refcount tree lock about 1600 times.  And when several
+nodes are do this at the same time, the performance will be very low.
+
+ocfs2_remove_btree_range()
+----ocfs2_lock_refcount_tree()
+------ocfs2_refcount_lock()
+--------__ocfs2_cluster_lock()
+
+ocfs2_refcount_lock() is costly, move it to ocfs2_commit_truncate() to do
+lock/unlock once can improve a lot performance.
+
+Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Wengang <wen.gang.wang@oracle.com>
+Reviewed-by: Mark Fasheh <mfasheh@suse.de>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ fs/ocfs2/alloc.c |   28 +++++++++++++++++++++-------
+ fs/ocfs2/alloc.h |    2 +-
+ fs/ocfs2/dir.c   |    2 +-
+ fs/ocfs2/file.c  |    2 +-
+ 4 files changed, 24 insertions(+), 10 deletions(-)
 
-diff -puN mm/memory.c~mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix mm/memory.c
---- a/mm/memory.c~mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix
-+++ a/mm/memory.c
-@@ -2996,6 +2996,12 @@ static int do_shared_fault(struct mm_str
+diff -puN fs/ocfs2/alloc.c~ocfs2-reflink-fix-slow-unlink-for-refcounted-file fs/ocfs2/alloc.c
+--- a/fs/ocfs2/alloc.c~ocfs2-reflink-fix-slow-unlink-for-refcounted-file
++++ a/fs/ocfs2/alloc.c
+@@ -5662,7 +5662,7 @@ int ocfs2_remove_btree_range(struct inod
+ 			     struct ocfs2_extent_tree *et,
+ 			     u32 cpos, u32 phys_cpos, u32 len, int flags,
+ 			     struct ocfs2_cached_dealloc_ctxt *dealloc,
+-			     u64 refcount_loc)
++			     u64 refcount_loc, bool refcount_tree_locked)
+ {
+ 	int ret, credits = 0, extra_blocks = 0;
+ 	u64 phys_blkno = ocfs2_clusters_to_blocks(inode->i_sb, phys_cpos);
+@@ -5676,11 +5676,13 @@ int ocfs2_remove_btree_range(struct inod
+ 		BUG_ON(!(OCFS2_I(inode)->ip_dyn_features &
+ 			 OCFS2_HAS_REFCOUNT_FL));
  
- 	if (set_page_dirty(fault_page))
- 		dirtied = 1;
-+	/*
-+	 * Take a local copy of the address_space - page.mapping may be zeroed
-+	 * by truncate after unlock_page().   The address_space itself remains
-+	 * pinned by vma->vm_file's reference.  We rely on unlock_page()'s
-+	 * release semantics to prevent the compiler from undoing this copying.
-+	 */
- 	mapping = fault_page->mapping;
- 	unlock_page(fault_page);
- 	if ((dirtied || vma->vm_ops->page_mkwrite) && mapping) {
+-		ret = ocfs2_lock_refcount_tree(osb, refcount_loc, 1,
+-					       &ref_tree, NULL);
+-		if (ret) {
+-			mlog_errno(ret);
+-			goto bail;
++		if (!refcount_tree_locked) {
++			ret = ocfs2_lock_refcount_tree(osb, refcount_loc, 1,
++						       &ref_tree, NULL);
++			if (ret) {
++				mlog_errno(ret);
++				goto bail;
++			}
+ 		}
+ 
+ 		ret = ocfs2_prepare_refcount_change_for_del(inode,
+@@ -7021,6 +7023,7 @@ int ocfs2_commit_truncate(struct ocfs2_s
+ 	u64 refcount_loc = le64_to_cpu(di->i_refcount_loc);
+ 	struct ocfs2_extent_tree et;
+ 	struct ocfs2_cached_dealloc_ctxt dealloc;
++	struct ocfs2_refcount_tree *ref_tree = NULL;
+ 
+ 	ocfs2_init_dinode_extent_tree(&et, INODE_CACHE(inode), di_bh);
+ 	ocfs2_init_dealloc_ctxt(&dealloc);
+@@ -7130,9 +7133,18 @@ start:
+ 
+ 	phys_cpos = ocfs2_blocks_to_clusters(inode->i_sb, blkno);
+ 
++	if ((flags & OCFS2_EXT_REFCOUNTED) && trunc_len && !ref_tree) {
++		status = ocfs2_lock_refcount_tree(osb, refcount_loc, 1,
++				&ref_tree, NULL);
++		if (status) {
++			mlog_errno(status);
++			goto bail;
++		}
++	}
++
+ 	status = ocfs2_remove_btree_range(inode, &et, trunc_cpos,
+ 					  phys_cpos, trunc_len, flags, &dealloc,
+-					  refcount_loc);
++					  refcount_loc, true);
+ 	if (status < 0) {
+ 		mlog_errno(status);
+ 		goto bail;
+@@ -7147,6 +7159,8 @@ start:
+ 	goto start;
+ 
+ bail:
++	if (ref_tree)
++		ocfs2_unlock_refcount_tree(osb, ref_tree, 1);
+ 
+ 	ocfs2_schedule_truncate_log_flush(osb, 1);
+ 
+diff -puN fs/ocfs2/alloc.h~ocfs2-reflink-fix-slow-unlink-for-refcounted-file fs/ocfs2/alloc.h
+--- a/fs/ocfs2/alloc.h~ocfs2-reflink-fix-slow-unlink-for-refcounted-file
++++ a/fs/ocfs2/alloc.h
+@@ -142,7 +142,7 @@ int ocfs2_remove_btree_range(struct inod
+ 			     struct ocfs2_extent_tree *et,
+ 			     u32 cpos, u32 phys_cpos, u32 len, int flags,
+ 			     struct ocfs2_cached_dealloc_ctxt *dealloc,
+-			     u64 refcount_loc);
++			     u64 refcount_loc, bool refcount_tree_locked);
+ 
+ int ocfs2_num_free_extents(struct ocfs2_super *osb,
+ 			   struct ocfs2_extent_tree *et);
+diff -puN fs/ocfs2/dir.c~ocfs2-reflink-fix-slow-unlink-for-refcounted-file fs/ocfs2/dir.c
+--- a/fs/ocfs2/dir.c~ocfs2-reflink-fix-slow-unlink-for-refcounted-file
++++ a/fs/ocfs2/dir.c
+@@ -4479,7 +4479,7 @@ int ocfs2_dx_dir_truncate(struct inode *
+ 		p_cpos = ocfs2_blocks_to_clusters(dir->i_sb, blkno);
+ 
+ 		ret = ocfs2_remove_btree_range(dir, &et, cpos, p_cpos, clen, 0,
+-					       &dealloc, 0);
++					       &dealloc, 0, false);
+ 		if (ret) {
+ 			mlog_errno(ret);
+ 			goto out;
+diff -puN fs/ocfs2/file.c~ocfs2-reflink-fix-slow-unlink-for-refcounted-file fs/ocfs2/file.c
+--- a/fs/ocfs2/file.c~ocfs2-reflink-fix-slow-unlink-for-refcounted-file
++++ a/fs/ocfs2/file.c
+@@ -1803,7 +1803,7 @@ static int ocfs2_remove_inode_range(stru
+ 
+ 		ret = ocfs2_remove_btree_range(inode, &et, trunc_cpos,
+ 					       phys_cpos, trunc_len, flags,
+-					       &dealloc, refcount_loc);
++					       &dealloc, refcount_loc, false);
+ 		if (ret < 0) {
+ 			mlog_errno(ret);
+ 			goto out;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from junxiao.bi@oracle.com are
 
 origin.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-mm-prevent-endless-growth-of-anon_vma-hierarchy-fix.patch
-mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper.patch
-ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir.patch
-mm.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss-fix.patch
-lib-bitmap-update-bitmap_onto-to-unsigned-checkpatch-fixes.patch
-linux-next.patch
-linux-next-git-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
 
