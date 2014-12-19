@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- documentation-filesystems-vfattxt-update-the-limitation-for-fat-fallocate.patch added to -mm tree
-Date: Fri, 19 Dec 2014 15:30:37 -0800
-Message-ID: <5494b51d.R39v4DIt78M6F/WF%akpm@linux-foundation.org>
+Subject: + mm-add-vm_bug_on_page-for-page_mapcount.patch added to -mm tree
+Date: Fri, 19 Dec 2014 15:34:49 -0800
+Message-ID: <5494b619.aoSVIoSEZo7YqXk8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43973 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43995 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751792AbaLSXai (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Dec 2014 18:30:38 -0500
+	with ESMTP id S1751365AbaLSXeu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Dec 2014 18:34:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: namjae.jeon@samsung.com, a.sahrawat@samsung.com, hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
+To: Yalin.Wang@sonymobile.com, kirill.shutemov@linux.intel.com, yalin.wang@sonymobile.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Documentation/filesystems/vfat.txt: update the limitation for fat fallocate
+     Subject: mm: add VM_BUG_ON_PAGE() to page_mapcount()
 has been added to the -mm tree.  Its filename is
-     documentation-filesystems-vfattxt-update-the-limitation-for-fat-fallocate.patch
+     mm-add-vm_bug_on_page-for-page_mapcount.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/documentation-filesystems-vfattxt-update-the-limitation-for-fat-fallocate.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-add-vm_bug_on_page-for-page_mapcount.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/documentation-filesystems-vfattxt-update-the-limitation-for-fat-fallocate.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-add-vm_bug_on_page-for-page_mapcount.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,47 +38,25 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Namjae Jeon <namjae.jeon@samsung.com>
-Subject: Documentation/filesystems/vfat.txt: update the limitation for fat fallocate
+From: "Wang, Yalin" <Yalin.Wang@sonymobile.com>
+Subject: mm: add VM_BUG_ON_PAGE() to page_mapcount()
 
-Update the limitation for fat fallocate.
+Add VM_BUG_ON_PAGE() for slab pages.  _mapcount is an union with slab
+struct in struct page, so we must avoid accessing _mapcount if this page
+is a slab page.  Also remove the unneeded bracket.
 
-Signed-off-by: Namjae Jeon <namjae.jeon@samsung.com>
-Signed-off-by: Amit Sahrawat <a.sahrawat@samsung.com>
-Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Signed-off-by: Yalin Wang <yalin.wang@sonymobile.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/vfat.txt |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ 0 files changed
 
-diff -puN Documentation/filesystems/vfat.txt~documentation-filesystems-vfattxt-update-the-limitation-for-fat-fallocate Documentation/filesystems/vfat.txt
---- a/Documentation/filesystems/vfat.txt~documentation-filesystems-vfattxt-update-the-limitation-for-fat-fallocate
-+++ a/Documentation/filesystems/vfat.txt
-@@ -180,6 +180,16 @@ dos1xfloppy  -- If set, use a fallback d
- 
- <bool>: 0,1,yes,no,true,false
- 
-+LIMITATION
-+---------------------------------------------------------------------
-+* The fallocated region of file is discarded at umount/evict time
-+  when using fallocate with FALLOC_FL_KEEP_SIZE.
-+  So, User should assume that fallocated region can be discarded at
-+  last close if there is memory pressure resulting in eviction of
-+  the inode from the memory. As a result, for any dependency on
-+  the fallocated region, user should make sure to recheck fallocate
-+  after reopening the file.
-+
- TODO
- ----------------------------------------------------------------------
- * Need to get rid of the raw scanning stuff.  Instead, always use
+diff -puN /dev/null /dev/null
 _
 
-Patches currently in -mm which might be from namjae.jeon@samsung.com are
+Patches currently in -mm which might be from Yalin.Wang@sonymobile.com are
 
 origin.patch
-fat-add-fat_fallocate-operation.patch
-fat-skip-cluster-allocation-on-fallocated-region.patch
-fat-permit-to-return-phy-block-number-by-fibmap-in-fallocated-region.patch
-documentation-filesystems-vfattxt-update-the-limitation-for-fat-fallocate.patch
+mm-add-vm_bug_on_page-for-page_mapcount.patch
 
