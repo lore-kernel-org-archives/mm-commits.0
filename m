@@ -1,82 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: [merged] remove-unnecessary-is_valid_nodemask.patch removed from
- -mm tree
-Date: Fri, 19 Dec 2014 12:36:31 -0800
-Message-ID: <54948c4f.vbn6SUOXcsZgJmI2%akpm@linux-foundation.org>
+Subject: [merged] fs-proc-include-cma-info-in-proc-meminfo.patch removed
+ from -mm tree
+Date: Fri, 19 Dec 2014 12:36:40 -0800
+Message-ID: <54948c58.WpfZtQvs208Nszp2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42317 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42333 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751491AbaLSUgd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Dec 2014 15:36:33 -0500
+	with ESMTP id S1751833AbaLSUgl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Dec 2014 15:36:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zzhsuny@gmail.com, mel@csn.ul.ie, oleg@redhat.com, mm-commits@vger.kernel.org
+To: pintu.k@samsung.com, aquini@redhat.com, iamjoonsoo.kim@lge.com, jmarchan@redhat.com, m.szyprowski@samsung.com, mina86@mina86.com, vishnu.ps@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mempolicy.c: remove unnecessary is_valid_nodemask()
+     Subject: fs/proc/meminfo.c: include cma info in proc/meminfo
 has been removed from the -mm tree.  Its filename was
-     remove-unnecessary-is_valid_nodemask.patch
+     fs-proc-include-cma-info-in-proc-meminfo.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Zhihui Zhang <zzhsuny@gmail.com>
-Subject: mm/mempolicy.c: remove unnecessary is_valid_nodemask()
+From: Pintu Kumar <pintu.k@samsung.com>
+Subject: fs/proc/meminfo.c: include cma info in proc/meminfo
 
-When nodes is true, nsc->mask2 has already been filtered by nsc->mask1,
-which has already factored in node_states[N_MEMORY].
+This patch include CMA info (CMATotal, CMAFree) in /proc/meminfo. 
+Currently, in a CMA enabled system, if somebody wants to know the total
+CMA size declared, there is no way to tell, other than the dmesg or
+/var/log/messages logs.
 
-Signed-off-by: Zhihui Zhang <zzhsuny@gmail.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Oleg Nesterov <oleg@redhat.com>
+With this patch we are showing the CMA info as part of meminfo, so that it
+can be determined at any point of time.  This will be populated only when
+CMA is enabled.
+
+Below is the sample output from a ARM based device with RAM:512MB and CMA:16MB.
+
+MemTotal:         471172 kB
+MemFree:          111712 kB
+MemAvailable:     271172 kB
+.
+.
+.
+CmaTotal:          16384 kB
+CmaFree:            6144 kB
+
+This patch also fix below checkpatch errors that were found during these changes.
+
+ERROR: space required after that ',' (ctx:ExV)
+199: FILE: fs/proc/meminfo.c:199:
++       ,atomic_long_read(&num_poisoned_pages) << (PAGE_SHIFT - 10)
+        ^
+
+ERROR: space required after that ',' (ctx:ExV)
+202: FILE: fs/proc/meminfo.c:202:
++       ,K(global_page_state(NR_ANON_TRANSPARENT_HUGEPAGES) *
+        ^
+
+ERROR: space required after that ',' (ctx:ExV)
+206: FILE: fs/proc/meminfo.c:206:
++       ,K(totalcma_pages)
+        ^
+
+total: 3 errors, 0 warnings, 2 checks, 236 lines checked
+
+Signed-off-by: Pintu Kumar <pintu.k@samsung.com>
+Signed-off-by: Vishnu Pratap Singh <vishnu.ps@samsung.com>
+Acked-by: Michal Nazarewicz <mina86@mina86.com>
+Cc: Rafael Aquini <aquini@redhat.com>
+Cc: Jerome Marchand <jmarchan@redhat.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+ fs/proc/meminfo.c |   15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
-diff -puN mm/mempolicy.c~remove-unnecessary-is_valid_nodemask mm/mempolicy.c
---- a/mm/mempolicy.c~remove-unnecessary-is_valid_nodemask
-+++ a/mm/mempolicy.c
-@@ -162,12 +162,6 @@ static const struct mempolicy_operations
- 			enum mpol_rebind_step step);
- } mpol_ops[MPOL_MAX];
+diff -puN fs/proc/meminfo.c~fs-proc-include-cma-info-in-proc-meminfo fs/proc/meminfo.c
+--- a/fs/proc/meminfo.c~fs-proc-include-cma-info-in-proc-meminfo
++++ a/fs/proc/meminfo.c
+@@ -12,6 +12,9 @@
+ #include <linux/vmstat.h>
+ #include <linux/atomic.h>
+ #include <linux/vmalloc.h>
++#ifdef CONFIG_CMA
++#include <linux/cma.h>
++#endif
+ #include <asm/page.h>
+ #include <asm/pgtable.h>
+ #include "internal.h"
+@@ -138,6 +141,10 @@ static int meminfo_proc_show(struct seq_
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 		"AnonHugePages:  %8lu kB\n"
+ #endif
++#ifdef CONFIG_CMA
++		"CmaTotal:       %8lu kB\n"
++		"CmaFree:        %8lu kB\n"
++#endif
+ 		,
+ 		K(i.totalram),
+ 		K(i.freeram),
+@@ -187,12 +194,16 @@ static int meminfo_proc_show(struct seq_
+ 		vmi.used >> 10,
+ 		vmi.largest_chunk >> 10
+ #ifdef CONFIG_MEMORY_FAILURE
+-		,atomic_long_read(&num_poisoned_pages) << (PAGE_SHIFT - 10)
++		, atomic_long_read(&num_poisoned_pages) << (PAGE_SHIFT - 10)
+ #endif
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-		,K(global_page_state(NR_ANON_TRANSPARENT_HUGEPAGES) *
++		, K(global_page_state(NR_ANON_TRANSPARENT_HUGEPAGES) *
+ 		   HPAGE_PMD_NR)
+ #endif
++#ifdef CONFIG_CMA
++		, K(totalcma_pages)
++		, K(global_page_state(NR_FREE_CMA_PAGES))
++#endif
+ 		);
  
--/* Check that the nodemask contains at least one populated zone */
--static int is_valid_nodemask(const nodemask_t *nodemask)
--{
--	return nodes_intersects(*nodemask, node_states[N_MEMORY]);
--}
--
- static inline int mpol_store_user_nodemask(const struct mempolicy *pol)
- {
- 	return pol->flags & MPOL_MODE_FLAGS;
-@@ -202,7 +196,7 @@ static int mpol_new_preferred(struct mem
- 
- static int mpol_new_bind(struct mempolicy *pol, const nodemask_t *nodes)
- {
--	if (!is_valid_nodemask(nodes))
-+	if (nodes_empty(*nodes))
- 		return -EINVAL;
- 	pol->v.nodes = *nodes;
- 	return 0;
-@@ -234,7 +228,7 @@ static int mpol_set_nodemask(struct memp
- 		nodes = NULL;	/* explicit local allocation */
- 	else {
- 		if (pol->flags & MPOL_F_RELATIVE_NODES)
--			mpol_relative_nodemask(&nsc->mask2, nodes,&nsc->mask1);
-+			mpol_relative_nodemask(&nsc->mask2, nodes, &nsc->mask1);
- 		else
- 			nodes_and(nsc->mask2, *nodes, nsc->mask1);
- 
+ 	hugetlb_report_meminfo(m);
 _
 
-Patches currently in -mm which might be from zzhsuny@gmail.com are
+Patches currently in -mm which might be from pintu.k@samsung.com are
 
 origin.patch
 
