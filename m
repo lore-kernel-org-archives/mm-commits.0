@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- ocfs2-fix-the-wrong-directory-passed-to-ocfs2_lookup_ino_from_name-when-link-file.patch added to -mm tree
-Date: Fri, 19 Dec 2014 14:16:07 -0800
-Message-ID: <5494a3a7.ESw7STHHMzWcl+3Y%akpm@linux-foundation.org>
+Subject: + maintainers-update-rydbergs-addresses.patch added to -mm tree
+Date: Fri, 19 Dec 2014 14:17:13 -0800
+Message-ID: <5494a3e9.gyF/ZAhWc+IvmUgJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43129 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43133 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751448AbaLSWQI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Dec 2014 17:16:08 -0500
+	with ESMTP id S1751448AbaLSWRO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Dec 2014 17:17:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xuejiufei@huawei.com, aron@ubit.hu, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
+To: rydberg@bitmath.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix the wrong directory passed to ocfs2_lookup_ino_from_name() when link file
+     Subject: MAINTAINERS: update rydberg's addresses
 has been added to the -mm tree.  Its filename is
-     ocfs2-fix-the-wrong-directory-passed-to-ocfs2_lookup_ino_from_name-when-link-file.patch
+     maintainers-update-rydbergs-addresses.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-the-wrong-directory-passed-to-ocfs2_lookup_ino_from_name-when-link-file.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-rydbergs-addresses.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-the-wrong-directory-passed-to-ocfs2_lookup_ino_from_name-when-link-file.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-rydbergs-addresses.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,152 +38,71 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Xue jiufei <xuejiufei@huawei.com>
-Subject: ocfs2: fix the wrong directory passed to ocfs2_lookup_ino_from_name() when link file
+From: Henrik Rydberg <rydberg@bitmath.org>
+Subject: MAINTAINERS: update rydberg's addresses
 
-In ocfs2_link(), parent directory inode passed to function
-ocfs2_lookup_ino_from_name() is wrong.  Parameter dir is the parent of
-new_dentry not old_dentry.  We should get old_dir from old_dentry and
-lookup old_dentry in old_dir in case another node remove the old dentry.
+My ISP finally gave up on the old mail address, so I am moving things over
+to bitmath.org instead.  Also change the status fields to better reflect
+reality.
 
-Signed-off-by: joyce.xue <xuejiufei@huawei.com>
-Reported-by: Szabo Aron - UBIT <aron@ubit.hu>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+Signed-off-by: Henrik Rydberg <rydberg@bitmath.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/namei.c |   43 +++++++++++++++++++++++++++++++++++--------
- 1 file changed, 35 insertions(+), 8 deletions(-)
+ .mailmap    |    1 +
+ MAINTAINERS |   12 ++++++------
+ 2 files changed, 7 insertions(+), 6 deletions(-)
 
-diff -puN fs/ocfs2/namei.c~ocfs2-fix-the-wrong-directory-passed-to-ocfs2_lookup_ino_from_name-when-link-file fs/ocfs2/namei.c
---- a/fs/ocfs2/namei.c~ocfs2-fix-the-wrong-directory-passed-to-ocfs2_lookup_ino_from_name-when-link-file
-+++ a/fs/ocfs2/namei.c
-@@ -94,6 +94,14 @@ static int ocfs2_create_symlink_data(str
- 				     struct inode *inode,
- 				     const char *symname);
+diff -puN .mailmap~maintainers-update-rydbergs-addresses .mailmap
+--- a/.mailmap~maintainers-update-rydbergs-addresses
++++ a/.mailmap
+@@ -51,6 +51,7 @@ Greg Kroah-Hartman <gregkh@suse.de>
+ Greg Kroah-Hartman <greg@kroah.com>
+ Henk Vergonet <Henk.Vergonet@gmail.com>
+ Henrik Kretzschmar <henne@nachtwindheim.de>
++Henrik Rydberg <rydberg@bitmath.org>
+ Herbert Xu <herbert@gondor.apana.org.au>
+ Jacob Shin <Jacob.Shin@amd.com>
+ James Bottomley <jejb@mulgrave.(none)>
+diff -puN MAINTAINERS~maintainers-update-rydbergs-addresses MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-rydbergs-addresses
++++ a/MAINTAINERS
+@@ -724,15 +724,15 @@ F:	include/uapi/linux/apm_bios.h
+ F:	drivers/char/apm-emulation.c
  
-+static int ocfs2_double_lock(struct ocfs2_super *osb,
-+			     struct buffer_head **bh1,
-+			     struct inode *inode1,
-+			     struct buffer_head **bh2,
-+			     struct inode *inode2,
-+			     int rename);
-+
-+static void ocfs2_double_unlock(struct inode *inode1, struct inode *inode2);
- /* An orphan dir name is an 8 byte value, printed as a hex string */
- #define OCFS2_ORPHAN_NAMELEN ((int)(2 * sizeof(u64)))
+ APPLE BCM5974 MULTITOUCH DRIVER
+-M:	Henrik Rydberg <rydberg@euromail.se>
++M:	Henrik Rydberg <rydberg@bitmath.org>
+ L:	linux-input@vger.kernel.org
+-S:	Maintained
++S:	Odd fixes
+ F:	drivers/input/mouse/bcm5974.c
  
-@@ -678,8 +686,10 @@ static int ocfs2_link(struct dentry *old
- {
- 	handle_t *handle;
- 	struct inode *inode = old_dentry->d_inode;
-+	struct inode *old_dir = old_dentry->d_parent->d_inode;
- 	int err;
- 	struct buffer_head *fe_bh = NULL;
-+	struct buffer_head *old_dir_bh = NULL;
- 	struct buffer_head *parent_fe_bh = NULL;
- 	struct ocfs2_dinode *fe = NULL;
- 	struct ocfs2_super *osb = OCFS2_SB(dir->i_sb);
-@@ -696,19 +706,33 @@ static int ocfs2_link(struct dentry *old
+ APPLE SMC DRIVER
+-M:	Henrik Rydberg <rydberg@euromail.se>
++M:	Henrik Rydberg <rydberg@bitmath.org>
+ L:	lm-sensors@lm-sensors.org
+-S:	Maintained
++S:	Odd fixes
+ F:	drivers/hwmon/applesmc.c
  
- 	dquot_initialize(dir);
+ APPLETALK NETWORK LAYER
+@@ -4939,10 +4939,10 @@ F:	include/uapi/linux/input.h
+ F:	include/linux/input/
  
--	err = ocfs2_inode_lock_nested(dir, &parent_fe_bh, 1, OI_LS_PARENT);
-+	err = ocfs2_double_lock(osb, &old_dir_bh, old_dir,
-+			&parent_fe_bh, dir, 0);
- 	if (err < 0) {
- 		if (err != -ENOENT)
- 			mlog_errno(err);
- 		return err;
- 	}
- 
-+	/* make sure both dirs have bhs
-+	 * get an extra ref on old_dir_bh if old==new */
-+	if (!parent_fe_bh) {
-+		if (old_dir_bh) {
-+			parent_fe_bh = old_dir_bh;
-+			get_bh(parent_fe_bh);
-+		} else {
-+			mlog(ML_ERROR, "%s: no old_dir_bh!\n", osb->uuid_str);
-+			err = -EIO;
-+			goto out;
-+		}
-+	}
-+
- 	if (!dir->i_nlink) {
- 		err = -ENOENT;
- 		goto out;
- 	}
- 
--	err = ocfs2_lookup_ino_from_name(dir, old_dentry->d_name.name,
-+	err = ocfs2_lookup_ino_from_name(old_dir, old_dentry->d_name.name,
- 			old_dentry->d_name.len, &old_de_ino);
- 	if (err) {
- 		err = -ENOENT;
-@@ -801,10 +825,11 @@ out_unlock_inode:
- 	ocfs2_inode_unlock(inode, 1);
- 
- out:
--	ocfs2_inode_unlock(dir, 1);
-+	ocfs2_double_unlock(old_dir, dir);
- 
- 	brelse(fe_bh);
- 	brelse(parent_fe_bh);
-+	brelse(old_dir_bh);
- 
- 	ocfs2_free_dir_lookup_result(&lookup);
- 
-@@ -1072,14 +1097,15 @@ static int ocfs2_check_if_ancestor(struc
- }
- 
- /*
-- * The only place this should be used is rename!
-+ * The only place this should be used is rename and link!
-  * if they have the same id, then the 1st one is the only one locked.
-  */
- static int ocfs2_double_lock(struct ocfs2_super *osb,
- 			     struct buffer_head **bh1,
- 			     struct inode *inode1,
- 			     struct buffer_head **bh2,
--			     struct inode *inode2)
-+			     struct inode *inode2,
-+			     int rename)
- {
- 	int status;
- 	int inode1_is_ancestor, inode2_is_ancestor;
-@@ -1127,7 +1153,7 @@ static int ocfs2_double_lock(struct ocfs
- 		}
- 		/* lock id2 */
- 		status = ocfs2_inode_lock_nested(inode2, bh2, 1,
--						 OI_LS_RENAME1);
-+				rename == 1 ? OI_LS_RENAME1 : OI_LS_PARENT);
- 		if (status < 0) {
- 			if (status != -ENOENT)
- 				mlog_errno(status);
-@@ -1136,7 +1162,8 @@ static int ocfs2_double_lock(struct ocfs
- 	}
- 
- 	/* lock id1 */
--	status = ocfs2_inode_lock_nested(inode1, bh1, 1, OI_LS_RENAME2);
-+	status = ocfs2_inode_lock_nested(inode1, bh1, 1,
-+			rename == 1 ?  OI_LS_RENAME2 : OI_LS_PARENT);
- 	if (status < 0) {
- 		/*
- 		 * An error return must mean that no cluster locks
-@@ -1252,7 +1279,7 @@ static int ocfs2_rename(struct inode *ol
- 
- 	/* if old and new are the same, this'll just do one lock. */
- 	status = ocfs2_double_lock(osb, &old_dir_bh, old_dir,
--				   &new_dir_bh, new_dir);
-+				   &new_dir_bh, new_dir, 1);
- 	if (status < 0) {
- 		mlog_errno(status);
- 		goto bail;
+ INPUT MULTITOUCH (MT) PROTOCOL
+-M:	Henrik Rydberg <rydberg@euromail.se>
++M:	Henrik Rydberg <rydberg@bitmath.org>
+ L:	linux-input@vger.kernel.org
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/rydberg/input-mt.git
+-S:	Maintained
++S:	Odd fixes
+ F:	Documentation/input/multi-touch-protocol.txt
+ F:	drivers/input/input-mt.c
+ K:	\b(ABS|SYN)_MT_
 _
 
-Patches currently in -mm which might be from xuejiufei@huawei.com are
+Patches currently in -mm which might be from rydberg@bitmath.org are
 
-origin.patch
-ocfs2-fix-the-wrong-directory-passed-to-ocfs2_lookup_ino_from_name-when-link-file.patch
+maintainers-update-rydbergs-addresses.patch
 
