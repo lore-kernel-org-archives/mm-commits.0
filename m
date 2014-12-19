@@ -1,106 +1,93 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- ocfs2-dlm-fix-race-between-dispatched_work-and-dlm_lockres_grab_inflight_worker.patch removed from -mm tree
-Date: Fri, 19 Dec 2014 12:36:55 -0800
-Message-ID: <54948c67.8NYiXRmHVjKlWYQw%akpm@linux-foundation.org>
+ mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch removed from
+ -mm tree
+Date: Fri, 19 Dec 2014 12:36:50 -0800
+Message-ID: <54948c62.3n20fX+4FiJ/geGN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42359 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42351 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751833AbaLSUg4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Dec 2014 15:36:56 -0500
+	with ESMTP id S1751833AbaLSUgv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Dec 2014 15:36:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joseph.qi@huawei.com, jlbec@evilplan.org, mfasheh@suse.de, xuejiufei@huawei.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@linux.intel.com, dave.hansen@linux.intel.com, kirill@shutemov.name, lliubbo@gmail.com, matthew.r.wilcox@intel.com, mgorman@suse.de, n-horiguchi@ah.jp.nec.com, riel@redhat.com, sasha.levin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2/dlm: fix race between dispatched_work and dlm_lockres_grab_inflight_worker
+     Subject: mm/memory.c:do_shared_fault(): add comment
 has been removed from the -mm tree.  Its filename was
-     ocfs2-dlm-fix-race-between-dispatched_work-and-dlm_lockres_grab_inflight_worker.patch
+     mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@huawei.com>
-Subject: ocfs2/dlm: fix race between dispatched_work and dlm_lockres_grab_inflight_worker
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm/memory.c:do_shared_fault(): add comment
 
-ac4fef4d23ed ("ocfs2/dlm: do not purge lockres that is queued for assert
-master") may have the following possible race case:
+Belatedly document the changes in f0c6d4d295e4ea ("mm: introduce
+do_shared_fault() and drop do_fault()").
 
-dlm_dispatch_assert_master       dlm_wq
-========================================================================
-queue_work(dlm->quedlm_worker,
-	&dlm->dispatched_work);
-                                 dispatch work,
-				 dlm_lockres_drop_inflight_worker
-				 *BUG_ON(res->inflight_assert_workers == 0)*
-dlm_lockres_grab_inflight_worker
-inflight_assert_workers++
-
-So ensure inflight_assert_workers to be increased first.
-
-Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
-Signed-off-by: Xue jiufei <xuejiufei@huawei.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Reviewed-by: Mark Fasheh <mfasheh@suse.de>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Bob Liu <lliubbo@gmail.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Sasha Levin <sasha.levin@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmmaster.c |   12 +++---------
- 1 file changed, 3 insertions(+), 9 deletions(-)
+ mm/memory.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-fix-race-between-dispatched_work-and-dlm_lockres_grab_inflight_worker fs/ocfs2/dlm/dlmmaster.c
---- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-fix-race-between-dispatched_work-and-dlm_lockres_grab_inflight_worker
-+++ a/fs/ocfs2/dlm/dlmmaster.c
-@@ -695,14 +695,6 @@ void __dlm_lockres_grab_inflight_worker(
- 			res->inflight_assert_workers);
- }
+diff -puN mm/memory.c~mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix mm/memory.c
+--- a/mm/memory.c~mm-introduce-do_shared_fault-and-drop-do_fault-fix-fix
++++ a/mm/memory.c
+@@ -2996,6 +2996,12 @@ static int do_shared_fault(struct mm_str
  
--static void dlm_lockres_grab_inflight_worker(struct dlm_ctxt *dlm,
--		struct dlm_lock_resource *res)
--{
--	spin_lock(&res->spinlock);
--	__dlm_lockres_grab_inflight_worker(dlm, res);
--	spin_unlock(&res->spinlock);
--}
--
- static void __dlm_lockres_drop_inflight_worker(struct dlm_ctxt *dlm,
- 		struct dlm_lock_resource *res)
- {
-@@ -1646,6 +1638,7 @@ send_response:
- 		}
- 		mlog(0, "%u is the owner of %.*s, cleaning everyone else\n",
- 			     dlm->node_num, res->lockname.len, res->lockname.name);
-+		spin_lock(&res->spinlock);
- 		ret = dlm_dispatch_assert_master(dlm, res, 0, request->node_idx,
- 						 DLM_ASSERT_MASTER_MLE_CLEANUP);
- 		if (ret < 0) {
-@@ -1653,7 +1646,8 @@ send_response:
- 			response = DLM_MASTER_RESP_ERROR;
- 			dlm_lockres_put(res);
- 		} else
--			dlm_lockres_grab_inflight_worker(dlm, res);
-+			__dlm_lockres_grab_inflight_worker(dlm, res);
-+		spin_unlock(&res->spinlock);
- 	} else {
- 		if (res)
- 			dlm_lockres_put(res);
+ 	if (set_page_dirty(fault_page))
+ 		dirtied = 1;
++	/*
++	 * Take a local copy of the address_space - page.mapping may be zeroed
++	 * by truncate after unlock_page().   The address_space itself remains
++	 * pinned by vma->vm_file's reference.  We rely on unlock_page()'s
++	 * release semantics to prevent the compiler from undoing this copying.
++	 */
+ 	mapping = fault_page->mapping;
+ 	unlock_page(fault_page);
+ 	if ((dirtied || vma->vm_ops->page_mkwrite) && mapping) {
 _
 
-Patches currently in -mm which might be from joseph.qi@huawei.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-ocfs2-remove-bogus-check-in-dlm_process_recovery_data.patch
-ocfs2-eliminate-the-static-flag-of-some-functions.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+mm-prevent-endless-growth-of-anon_vma-hierarchy-fix.patch
+mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper.patch
 ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir.patch
-ocfs2-add-orphan-recovery-types-in-ocfs2_recover_orphans.patch
-ocfs2-implement-ocfs2_direct_io_write.patch
-ocfs2-allocate-blocks-in-ocfs2_direct_io_get_blocks.patch
-ocfs2-do-not-fallback-to-buffer-i-o-write-if-appending.patch
-ocfs2-do-not-fallback-to-buffer-i-o-write-if-fill-holes.patch
-ocfs2-fix-leftover-orphan-entry-caused-by-append-o_direct-write-crash.patch
+mm.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss-fix.patch
+lib-bitmap-update-bitmap_onto-to-unsigned-checkpatch-fixes.patch
+linux-next.patch
+linux-next-git-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
