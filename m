@@ -1,16 +1,16 @@
 From: akpm@linux-foundation.org
 Subject: + mm-add-vm_bug_on_page-for-page_mapcount.patch added to -mm tree
-Date: Fri, 19 Dec 2014 15:34:49 -0800
-Message-ID: <5494b619.aoSVIoSEZo7YqXk8%akpm@linux-foundation.org>
+Date: Fri, 19 Dec 2014 15:36:51 -0800
+Message-ID: <5494b693.hJpxnSMAEmnp8N0m%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43995 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44055 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751365AbaLSXeu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Dec 2014 18:34:50 -0500
+	with ESMTP id S1751355AbaLSXgw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Dec 2014 18:36:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: Yalin.Wang@sonymobile.com, kirill.shutemov@linux.intel.com, yalin.wang@sonymobile.com, mm-commits@vger.kernel.org
@@ -50,9 +50,22 @@ Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- 0 files changed
+ include/linux/mm.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN /dev/null /dev/null
+diff -puN include/linux/mm.h~mm-add-vm_bug_on_page-for-page_mapcount include/linux/mm.h
+--- a/include/linux/mm.h~mm-add-vm_bug_on_page-for-page_mapcount
++++ a/include/linux/mm.h
+@@ -467,7 +467,8 @@ static inline void page_mapcount_reset(s
+ 
+ static inline int page_mapcount(struct page *page)
+ {
+-	return atomic_read(&(page)->_mapcount) + 1;
++	VM_BUG_ON_PAGE(PageSlab(page), page);
++	return atomic_read(&page->_mapcount) + 1;
+ }
+ 
+ static inline int page_count(struct page *page)
 _
 
 Patches currently in -mm which might be from Yalin.Wang@sonymobile.com are
