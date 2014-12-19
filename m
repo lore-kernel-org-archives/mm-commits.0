@@ -1,387 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hfsplus-fix-longname-handling.patch removed from -mm
- tree
-Date: Fri, 19 Dec 2014 12:36:34 -0800
-Message-ID: <54948c52.OHvuigtOC7Qx9TGq%akpm@linux-foundation.org>
+Subject: [merged] mm-cma-split-cma-reserved-in-dmesg-log.patch removed
+ from -mm tree
+Date: Fri, 19 Dec 2014 12:36:37 -0800
+Message-ID: <54948c55.dLfNcHU5yXpjx7JR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42320 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42325 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751833AbaLSUgf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Dec 2014 15:36:35 -0500
+	with ESMTP id S1751833AbaLSUgi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Dec 2014 15:36:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sougata@tuxera.com, hch@lst.de, slava@dubeyko.com, mm-commits@vger.kernel.org
+To: pintu.k@samsung.com, aquini@redhat.com, iamjoonsoo.kim@lge.com, jmarchan@redhat.com, m.szyprowski@samsung.com, mina86@mina86.com, vishnu.ps@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hfsplus: fix longname handling
+     Subject: mm: cma: split cma-reserved in dmesg log
 has been removed from the -mm tree.  Its filename was
-     hfsplus-fix-longname-handling.patch
+     mm-cma-split-cma-reserved-in-dmesg-log.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sougata Santra <sougata@tuxera.com>
-Subject: hfsplus: fix longname handling
+From: Pintu Kumar <pintu.k@samsung.com>
+Subject: mm: cma: split cma-reserved in dmesg log
 
-Longname is not correctly handled by hfsplus driver.  If an attempt to
-create a longname(>255) file/directory is made, it succeeds by creating a
-file/directory with HFSPLUS_MAX_STRLEN and incorrect catalog key.  Thus
-leaving the volume in an inconsistent state.  This patch fixes this issue.
+When the system boots up, in the dmesg logs we can see the memory
+statistics along with total reserved as below.  Memory: 458840k/458840k
+available, 65448k reserved, 0K highmem
 
-Although lookup is always called first to create a negative entry, so just
-doing a check in lookup would probably fix this issue.  I choose to
-propagate error to other iops as well.
+When CMA is enabled, still the total reserved memory remains the same. 
+However, the CMA memory is not considered as reserved.  But, when we see
+/proc/meminfo, the CMA memory is part of free memory.  This creates
+confusion.  This patch corrects the problem by properly subtracting the
+CMA reserved memory from the total reserved memory in dmesg logs.
 
-Please NOTE: I have factored out hfsplus_cat_build_key_with_cnid from
-hfsplus_cat_build_key, to avoid unncessary branching.
+Below is the dmesg snapshot from an arm based device with 512MB RAM and
+12MB single CMA region.
 
-Thanks a lot.
+Before this change:
+Memory: 458840k/458840k available, 65448k reserved, 0K highmem
 
-TEST:
-------
-dir="TEST_DIR"
-cdir=`pwd`
-name255="_123456789_123456789_123456789_123456789_123456789_123456789\
-_123456789_123456789_123456789_123456789_123456789_123456789_123456789\
-_123456789_123456789_123456789_123456789_123456789_123456789_123456789\
-_123456789_123456789_123456789_123456789_123456789_1234"
-name256="${name255}5"
+After this change:
+Memory: 458840k/458840k available, 53160k reserved, 12288k cma-reserved, 0K highmem
 
-mkdir $dir
-cd $dir
-touch $name255
-rm -f $name255
-touch $name256
-ls -la
-cd $cdir
-rm -rf $dir
-
-
-RESULT:
--------
-[sougata@ultrabook tmp]$ cdir=`pwd`
-[sougata@ultrabook tmp]$ 
-name255="_123456789_123456789_123456789_123456789_123456789_123456789\
- > _123456789_123456789_123456789_123456789_123456789_123456789_123456789\
- > _123456789_123456789_123456789_123456789_123456789_123456789_123456789\
- > _123456789_123456789_123456789_123456789_123456789_1234"
-[sougata@ultrabook tmp]$ name256="${name255}5"
-[sougata@ultrabook tmp]$
-[sougata@ultrabook tmp]$ mkdir $dir
-[sougata@ultrabook tmp]$ cd $dir
-[sougata@ultrabook TEST_DIR]$ touch $name255
-[sougata@ultrabook TEST_DIR]$ rm -f $name255
-[sougata@ultrabook TEST_DIR]$ touch $name256
-[sougata@ultrabook TEST_DIR]$ ls -la
-ls: cannot access 
-_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_1234:
-No such file or directory
-total 0
-drwxrwxr-x 1 sougata sougata 3 Feb 20 19:56 .
-drwxrwxrwx 1 root    root    6 Feb 20 19:56 ..
--????????? ? ?       ?       ?            ? 
-_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_1234
-[sougata@ultrabook TEST_DIR]$ cd $cdir
-[sougata@ultrabook tmp]$ rm -rf $dir
-rm: cannot remove `TEST_DIR': Directory not empty
-
-
-
--ENAMETOOLONG returned from hfsplus_asc2uni was not propaged to iops. 
-This allowed hfsplus to create files/directories with HFSPLUS_MAX_STRLEN
-and incorrect keys, leaving the FS in an inconsistent state.  This patch
-fixes this issue.
-
-Signed-off-by: Sougata Santra <sougata@tuxera.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Cc: Vyacheslav Dubeyko <slava@dubeyko.com>
+Signed-off-by: Pintu Kumar <pintu.k@samsung.com>
+Signed-off-by: Vishnu Pratap Singh <vishnu.ps@samsung.com>
+Acked-by: Michal Nazarewicz <mina86@mina86.com>
+Cc: Rafael Aquini <aquini@redhat.com>
+Cc: Jerome Marchand <jmarchan@redhat.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/catalog.c    |   89 +++++++++++++++++++++++++++-----------
- fs/hfsplus/dir.c        |   11 +++-
- fs/hfsplus/hfsplus_fs.h |    4 +
- fs/hfsplus/super.c      |    4 +
- 4 files changed, 79 insertions(+), 29 deletions(-)
+ include/linux/cma.h |    1 +
+ mm/cma.c            |    1 +
+ mm/page_alloc.c     |    6 ++++--
+ 3 files changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN fs/hfsplus/catalog.c~hfsplus-fix-longname-handling fs/hfsplus/catalog.c
---- a/fs/hfsplus/catalog.c~hfsplus-fix-longname-handling
-+++ a/fs/hfsplus/catalog.c
-@@ -38,21 +38,30 @@ int hfsplus_cat_bin_cmp_key(const hfsplu
- 	return hfsplus_strcmp(&k1->cat.name, &k2->cat.name);
- }
+diff -puN include/linux/cma.h~mm-cma-split-cma-reserved-in-dmesg-log include/linux/cma.h
+--- a/include/linux/cma.h~mm-cma-split-cma-reserved-in-dmesg-log
++++ a/include/linux/cma.h
+@@ -15,6 +15,7 @@
  
--void hfsplus_cat_build_key(struct super_block *sb, hfsplus_btree_key *key,
--			   u32 parent, struct qstr *str)
-+/* Generates key for catalog file/folders record. */
-+int hfsplus_cat_build_key(struct super_block *sb,
-+		hfsplus_btree_key *key, u32 parent, struct qstr *str)
- {
--	int len;
-+	int len, err;
+ struct cma;
  
- 	key->cat.parent = cpu_to_be32(parent);
--	if (str) {
--		hfsplus_asc2uni(sb, &key->cat.name, HFSPLUS_MAX_STRLEN,
--					str->name, str->len);
--		len = be16_to_cpu(key->cat.name.length);
--	} else {
--		key->cat.name.length = 0;
--		len = 0;
--	}
-+	err = hfsplus_asc2uni(sb, &key->cat.name, HFSPLUS_MAX_STRLEN,
-+			str->name, str->len);
-+	if (unlikely(err < 0))
-+		return err;
-+
-+	len = be16_to_cpu(key->cat.name.length);
- 	key->key_len = cpu_to_be16(6 + 2 * len);
-+	return 0;
-+}
-+
-+/* Generates key for catalog thread record. */
-+void hfsplus_cat_build_key_with_cnid(struct super_block *sb,
-+			hfsplus_btree_key *key, u32 parent)
-+{
-+	key->cat.parent = cpu_to_be32(parent);
-+	key->cat.name.length = 0;
-+	key->key_len = cpu_to_be16(6);
- }
++extern unsigned long totalcma_pages;
+ extern phys_addr_t cma_get_base(struct cma *cma);
+ extern unsigned long cma_get_size(struct cma *cma);
  
- static void hfsplus_cat_build_key_uni(hfsplus_btree_key *key, u32 parent,
-@@ -167,11 +176,16 @@ static int hfsplus_fill_cat_thread(struc
- 				   hfsplus_cat_entry *entry, int type,
- 				   u32 parentid, struct qstr *str)
- {
-+	int err;
-+
- 	entry->type = cpu_to_be16(type);
- 	entry->thread.reserved = 0;
- 	entry->thread.parentID = cpu_to_be32(parentid);
--	hfsplus_asc2uni(sb, &entry->thread.nodeName, HFSPLUS_MAX_STRLEN,
-+	err = hfsplus_asc2uni(sb, &entry->thread.nodeName, HFSPLUS_MAX_STRLEN,
- 				str->name, str->len);
-+	if (unlikely(err < 0))
-+		return err;
-+
- 	return 10 + be16_to_cpu(entry->thread.nodeName.length) * 2;
- }
+diff -puN mm/cma.c~mm-cma-split-cma-reserved-in-dmesg-log mm/cma.c
+--- a/mm/cma.c~mm-cma-split-cma-reserved-in-dmesg-log
++++ a/mm/cma.c
+@@ -337,6 +337,7 @@ int __init cma_declare_contiguous(phys_a
+ 	if (ret)
+ 		goto err;
  
-@@ -183,7 +197,7 @@ int hfsplus_find_cat(struct super_block
- 	int err;
- 	u16 type;
- 
--	hfsplus_cat_build_key(sb, fd->search_key, cnid, NULL);
-+	hfsplus_cat_build_key_with_cnid(sb, fd->search_key, cnid);
- 	err = hfs_brec_read(fd, &tmp, sizeof(hfsplus_cat_entry));
- 	if (err)
- 		return err;
-@@ -250,11 +264,16 @@ int hfsplus_create_cat(u32 cnid, struct
- 	if (err)
- 		return err;
- 
--	hfsplus_cat_build_key(sb, fd.search_key, cnid, NULL);
-+	hfsplus_cat_build_key_with_cnid(sb, fd.search_key, cnid);
- 	entry_size = hfsplus_fill_cat_thread(sb, &entry,
- 		S_ISDIR(inode->i_mode) ?
- 			HFSPLUS_FOLDER_THREAD : HFSPLUS_FILE_THREAD,
- 		dir->i_ino, str);
-+	if (unlikely(entry_size < 0)) {
-+		err = entry_size;
-+		goto err2;
-+	}
-+
- 	err = hfs_brec_find(&fd, hfs_find_rec_by_key);
- 	if (err != -ENOENT) {
- 		if (!err)
-@@ -265,7 +284,10 @@ int hfsplus_create_cat(u32 cnid, struct
- 	if (err)
- 		goto err2;
- 
--	hfsplus_cat_build_key(sb, fd.search_key, dir->i_ino, str);
-+	err = hfsplus_cat_build_key(sb, fd.search_key, dir->i_ino, str);
-+	if (unlikely(err))
-+		goto err1;
-+
- 	entry_size = hfsplus_cat_build_record(&entry, cnid, inode);
- 	err = hfs_brec_find(&fd, hfs_find_rec_by_key);
- 	if (err != -ENOENT) {
-@@ -288,7 +310,7 @@ int hfsplus_create_cat(u32 cnid, struct
++	totalcma_pages += (size / PAGE_SIZE);
+ 	pr_info("Reserved %ld MiB at %pa\n", (unsigned long)size / SZ_1M,
+ 		&base);
  	return 0;
+diff -puN mm/page_alloc.c~mm-cma-split-cma-reserved-in-dmesg-log mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-cma-split-cma-reserved-in-dmesg-log
++++ a/mm/page_alloc.c
+@@ -111,6 +111,7 @@ static DEFINE_SPINLOCK(managed_page_coun
  
- err1:
--	hfsplus_cat_build_key(sb, fd.search_key, cnid, NULL);
-+	hfsplus_cat_build_key_with_cnid(sb, fd.search_key, cnid);
- 	if (!hfs_brec_find(&fd, hfs_find_rec_by_key))
- 		hfs_brec_remove(&fd);
- err2:
-@@ -313,7 +335,7 @@ int hfsplus_delete_cat(u32 cnid, struct
- 	if (!str) {
- 		int len;
+ unsigned long totalram_pages __read_mostly;
+ unsigned long totalreserve_pages __read_mostly;
++unsigned long totalcma_pages __read_mostly;
+ /*
+  * When calculating the number of globally allowed dirty pages, there
+  * is a certain number of per-zone reserves that should not be
+@@ -5586,7 +5587,7 @@ void __init mem_init_print_info(const ch
  
--		hfsplus_cat_build_key(sb, fd.search_key, cnid, NULL);
-+		hfsplus_cat_build_key_with_cnid(sb, fd.search_key, cnid);
- 		err = hfs_brec_find(&fd, hfs_find_rec_by_key);
- 		if (err)
- 			goto out;
-@@ -329,7 +351,9 @@ int hfsplus_delete_cat(u32 cnid, struct
- 			off + 2, len);
- 		fd.search_key->key_len = cpu_to_be16(6 + len);
- 	} else
--		hfsplus_cat_build_key(sb, fd.search_key, dir->i_ino, str);
-+		err = hfsplus_cat_build_key(sb, fd.search_key, dir->i_ino, str);
-+		if (unlikely(err))
-+			goto out;
- 
- 	err = hfs_brec_find(&fd, hfs_find_rec_by_key);
- 	if (err)
-@@ -360,7 +384,7 @@ int hfsplus_delete_cat(u32 cnid, struct
- 	if (err)
- 		goto out;
- 
--	hfsplus_cat_build_key(sb, fd.search_key, cnid, NULL);
-+	hfsplus_cat_build_key_with_cnid(sb, fd.search_key, cnid);
- 	err = hfs_brec_find(&fd, hfs_find_rec_by_key);
- 	if (err)
- 		goto out;
-@@ -405,7 +429,11 @@ int hfsplus_rename_cat(u32 cnid,
- 	dst_fd = src_fd;
- 
- 	/* find the old dir entry and read the data */
--	hfsplus_cat_build_key(sb, src_fd.search_key, src_dir->i_ino, src_name);
-+	err = hfsplus_cat_build_key(sb, src_fd.search_key,
-+			src_dir->i_ino, src_name);
-+	if (unlikely(err))
-+		goto out;
-+
- 	err = hfs_brec_find(&src_fd, hfs_find_rec_by_key);
- 	if (err)
- 		goto out;
-@@ -419,7 +447,11 @@ int hfsplus_rename_cat(u32 cnid,
- 	type = be16_to_cpu(entry.type);
- 
- 	/* create new dir entry with the data from the old entry */
--	hfsplus_cat_build_key(sb, dst_fd.search_key, dst_dir->i_ino, dst_name);
-+	err = hfsplus_cat_build_key(sb, dst_fd.search_key,
-+			dst_dir->i_ino, dst_name);
-+	if (unlikely(err))
-+		goto out;
-+
- 	err = hfs_brec_find(&dst_fd, hfs_find_rec_by_key);
- 	if (err != -ENOENT) {
- 		if (!err)
-@@ -436,7 +468,11 @@ int hfsplus_rename_cat(u32 cnid,
- 	dst_dir->i_mtime = dst_dir->i_ctime = CURRENT_TIME_SEC;
- 
- 	/* finally remove the old entry */
--	hfsplus_cat_build_key(sb, src_fd.search_key, src_dir->i_ino, src_name);
-+	err = hfsplus_cat_build_key(sb, src_fd.search_key,
-+			src_dir->i_ino, src_name);
-+	if (unlikely(err))
-+		goto out;
-+
- 	err = hfs_brec_find(&src_fd, hfs_find_rec_by_key);
- 	if (err)
- 		goto out;
-@@ -449,7 +485,7 @@ int hfsplus_rename_cat(u32 cnid,
- 	src_dir->i_mtime = src_dir->i_ctime = CURRENT_TIME_SEC;
- 
- 	/* remove old thread entry */
--	hfsplus_cat_build_key(sb, src_fd.search_key, cnid, NULL);
-+	hfsplus_cat_build_key_with_cnid(sb, src_fd.search_key, cnid);
- 	err = hfs_brec_find(&src_fd, hfs_find_rec_by_key);
- 	if (err)
- 		goto out;
-@@ -459,9 +495,14 @@ int hfsplus_rename_cat(u32 cnid,
- 		goto out;
- 
- 	/* create new thread entry */
--	hfsplus_cat_build_key(sb, dst_fd.search_key, cnid, NULL);
-+	hfsplus_cat_build_key_with_cnid(sb, dst_fd.search_key, cnid);
- 	entry_size = hfsplus_fill_cat_thread(sb, &entry, type,
- 		dst_dir->i_ino, dst_name);
-+	if (unlikely(entry_size < 0)) {
-+		err = entry_size;
-+		goto out;
-+	}
-+
- 	err = hfs_brec_find(&dst_fd, hfs_find_rec_by_key);
- 	if (err != -ENOENT) {
- 		if (!err)
-diff -puN fs/hfsplus/dir.c~hfsplus-fix-longname-handling fs/hfsplus/dir.c
---- a/fs/hfsplus/dir.c~hfsplus-fix-longname-handling
-+++ a/fs/hfsplus/dir.c
-@@ -44,7 +44,10 @@ static struct dentry *hfsplus_lookup(str
- 	err = hfs_find_init(HFSPLUS_SB(sb)->cat_tree, &fd);
- 	if (err)
- 		return ERR_PTR(err);
--	hfsplus_cat_build_key(sb, fd.search_key, dir->i_ino, &dentry->d_name);
-+	err = hfsplus_cat_build_key(sb, fd.search_key, dir->i_ino,
-+			&dentry->d_name);
-+	if (unlikely(err < 0))
-+		goto fail;
- again:
- 	err = hfs_brec_read(&fd, &entry, sizeof(entry));
- 	if (err) {
-@@ -97,9 +100,11 @@ again:
- 					be32_to_cpu(entry.file.permissions.dev);
- 				str.len = sprintf(name, "iNode%d", linkid);
- 				str.name = name;
--				hfsplus_cat_build_key(sb, fd.search_key,
-+				err = hfsplus_cat_build_key(sb, fd.search_key,
- 					HFSPLUS_SB(sb)->hidden_dir->i_ino,
- 					&str);
-+				if (unlikely(err < 0))
-+					goto fail;
- 				goto again;
- 			}
- 		} else if (!dentry->d_fsdata)
-@@ -145,7 +150,7 @@ static int hfsplus_readdir(struct file *
- 		err = -ENOMEM;
- 		goto out;
- 	}
--	hfsplus_cat_build_key(sb, fd.search_key, inode->i_ino, NULL);
-+	hfsplus_cat_build_key_with_cnid(sb, fd.search_key, inode->i_ino);
- 	err = hfs_brec_find(&fd, hfs_find_rec_by_key);
- 	if (err)
- 		goto out;
-diff -puN fs/hfsplus/hfsplus_fs.h~hfsplus-fix-longname-handling fs/hfsplus/hfsplus_fs.h
---- a/fs/hfsplus/hfsplus_fs.h~hfsplus-fix-longname-handling
-+++ a/fs/hfsplus/hfsplus_fs.h
-@@ -443,8 +443,10 @@ int hfsplus_cat_case_cmp_key(const hfspl
- 			     const hfsplus_btree_key *k2);
- int hfsplus_cat_bin_cmp_key(const hfsplus_btree_key *k1,
- 			    const hfsplus_btree_key *k2);
--void hfsplus_cat_build_key(struct super_block *sb, hfsplus_btree_key *key,
-+int hfsplus_cat_build_key(struct super_block *sb, hfsplus_btree_key *key,
- 			   u32 parent, struct qstr *str);
-+void hfsplus_cat_build_key_with_cnid(struct super_block *sb,
-+				     hfsplus_btree_key *key, u32 parent);
- void hfsplus_cat_set_perms(struct inode *inode, struct hfsplus_perm *perms);
- int hfsplus_find_cat(struct super_block *sb, u32 cnid,
- 		     struct hfs_find_data *fd);
-diff -puN fs/hfsplus/super.c~hfsplus-fix-longname-handling fs/hfsplus/super.c
---- a/fs/hfsplus/super.c~hfsplus-fix-longname-handling
-+++ a/fs/hfsplus/super.c
-@@ -515,7 +515,9 @@ static int hfsplus_fill_super(struct sup
- 	err = hfs_find_init(sbi->cat_tree, &fd);
- 	if (err)
- 		goto out_put_root;
--	hfsplus_cat_build_key(sb, fd.search_key, HFSPLUS_ROOT_CNID, &str);
-+	err = hfsplus_cat_build_key(sb, fd.search_key, HFSPLUS_ROOT_CNID, &str);
-+	if (unlikely(err < 0))
-+		goto out_put_root;
- 	if (!hfs_brec_read(&fd, &entry, sizeof(entry))) {
- 		hfs_find_exit(&fd);
- 		if (entry.type != cpu_to_be16(HFSPLUS_FOLDER))
+ 	pr_info("Memory: %luK/%luK available "
+ 	       "(%luK kernel code, %luK rwdata, %luK rodata, "
+-	       "%luK init, %luK bss, %luK reserved"
++	       "%luK init, %luK bss, %luK reserved, %luK cma-reserved"
+ #ifdef	CONFIG_HIGHMEM
+ 	       ", %luK highmem"
+ #endif
+@@ -5594,7 +5595,8 @@ void __init mem_init_print_info(const ch
+ 	       nr_free_pages() << (PAGE_SHIFT-10), physpages << (PAGE_SHIFT-10),
+ 	       codesize >> 10, datasize >> 10, rosize >> 10,
+ 	       (init_data_size + init_code_size) >> 10, bss_size >> 10,
+-	       (physpages - totalram_pages) << (PAGE_SHIFT-10),
++	       (physpages - totalram_pages - totalcma_pages) << (PAGE_SHIFT-10),
++	       totalcma_pages << (PAGE_SHIFT-10),
+ #ifdef	CONFIG_HIGHMEM
+ 	       totalhigh_pages << (PAGE_SHIFT-10),
+ #endif
 _
 
-Patches currently in -mm which might be from sougata@tuxera.com are
+Patches currently in -mm which might be from pintu.k@samsung.com are
 
 origin.patch
 
