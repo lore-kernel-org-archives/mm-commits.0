@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-char-mem-simplify-devkmem-configuration.patch added to
+Subject: + drivers-char-mem-simplify-devport-configuration.patch added to
  -mm tree
-Date: Fri, 19 Dec 2014 16:24:41 -0800
-Message-ID: <5494c1c9.paBKR/Q09EwnTRtG%akpm@linux-foundation.org>
+Date: Fri, 19 Dec 2014 16:24:43 -0800
+Message-ID: <5494c1cb.HJ3l4dmMheJLG7G3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44355 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44357 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751842AbaLTAYm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Dec 2014 19:24:42 -0500
+	with ESMTP id S1752087AbaLTAYo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Dec 2014 19:24:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: robert.ward114@googlemail.com, arnd@arndb.de, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/char/mem.c: simplify DEVKMEM configuration
+     Subject: drivers/char/mem.c: simplify DEVPORT configuration
 has been added to the -mm tree.  Its filename is
-     drivers-char-mem-simplify-devkmem-configuration.patch
+     drivers-char-mem-simplify-devport-configuration.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-char-mem-simplify-devkmem-configuration.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-char-mem-simplify-devport-configuration.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-char-mem-simplify-devkmem-configuration.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-char-mem-simplify-devport-configuration.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,10 +40,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rob Ward <robert.ward114@googlemail.com>
-Subject: drivers/char/mem.c: simplify DEVKMEM configuration
+Subject: drivers/char/mem.c: simplify DEVPORT configuration
 
-Simplify the use of CONFIG_DEVKMEM by making the kmem_fops
-so that it is __maybe_unused.
+Simplify the use of CONFIG_DEVPORT by making the port_fops
+so that it includes __maybe_unused.
 
 This enabled the multiple #ifdef's used for this structure
 to be removed and brings it in line with the use of CONFIG_DEVMEM
@@ -56,56 +56,44 @@ Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mem.c |    8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+ drivers/char/mem.c |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN drivers/char/mem.c~drivers-char-mem-simplify-devkmem-configuration drivers/char/mem.c
---- a/drivers/char/mem.c~drivers-char-mem-simplify-devkmem-configuration
+diff -puN drivers/char/mem.c~drivers-char-mem-simplify-devport-configuration drivers/char/mem.c
+--- a/drivers/char/mem.c~drivers-char-mem-simplify-devport-configuration
 +++ a/drivers/char/mem.c
-@@ -341,7 +341,6 @@ static int mmap_mem(struct file *file, s
- 	return 0;
- }
- 
--#ifdef CONFIG_DEVKMEM
- static int mmap_kmem(struct file *file, struct vm_area_struct *vma)
- {
- 	unsigned long pfn;
-@@ -362,9 +361,7 @@ static int mmap_kmem(struct file *file,
- 	vma->vm_pgoff = pfn;
- 	return mmap_mem(file, vma);
- }
--#endif
- 
--#ifdef CONFIG_DEVKMEM
- /*
-  * This function reads the *virtual* memory as seen by the kernel.
-  */
-@@ -544,7 +541,6 @@ static ssize_t write_kmem(struct file *f
- 	*ppos = p;
+@@ -542,7 +542,6 @@ static ssize_t write_kmem(struct file *f
  	return virtr + wrote ? : err;
  }
--#endif
  
- #ifdef CONFIG_DEVPORT
+-#ifdef CONFIG_DEVPORT
  static ssize_t read_port(struct file *file, char __user *buf,
-@@ -724,8 +720,7 @@ static const struct file_operations __ma
- 	.get_unmapped_area = get_unmapped_area_mem,
+ 			 size_t count, loff_t *ppos)
+ {
+@@ -583,7 +582,6 @@ static ssize_t write_port(struct file *f
+ 	*ppos = i;
+ 	return tmp-buf;
+ }
+-#endif
+ 
+ static ssize_t read_null(struct file *file, char __user *buf,
+ 			 size_t count, loff_t *ppos)
+@@ -738,14 +736,12 @@ static const struct file_operations null
+ 	.splice_write	= splice_write_null,
  };
  
--#ifdef CONFIG_DEVKMEM
--static const struct file_operations kmem_fops = {
-+static const struct file_operations __maybe_unused kmem_fops = {
+-#ifdef CONFIG_DEVPORT
+-static const struct file_operations port_fops = {
++static const struct file_operations __maybe_unused port_fops = {
  	.llseek		= memory_lseek,
- 	.read		= read_kmem,
- 	.write		= write_kmem,
-@@ -733,7 +728,6 @@ static const struct file_operations kmem
- 	.open		= open_kmem,
- 	.get_unmapped_area = get_unmapped_area_mem,
+ 	.read		= read_port,
+ 	.write		= write_port,
+ 	.open		= open_port,
  };
 -#endif
  
- static const struct file_operations null_fops = {
- 	.llseek		= null_lseek,
+ static const struct file_operations zero_fops = {
+ 	.llseek		= zero_lseek,
 _
 
 Patches currently in -mm which might be from robert.ward114@googlemail.com are
