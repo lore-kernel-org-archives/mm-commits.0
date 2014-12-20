@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- fanotify-dont-recalculate-a-marks-mask-if-only-the-ignored-mask-changed-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 19 Dec 2014 16:36:54 -0800
-Message-ID: <5494c4a6.0XlaGRi7chobvC1b%akpm@linux-foundation.org>
+ fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask-checkpatch-fixes.patch added to -mm tree
+Date: Fri, 19 Dec 2014 16:41:19 -0800
+Message-ID: <5494c5af.7V+lpr5rGvtjVvHi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44466 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44478 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752639AbaLTAgz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Dec 2014 19:36:55 -0500
+	with ESMTP id S1751880AbaLTAlU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Dec 2014 19:41:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, LinoSanfilippo@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fanotify-dont-recalculate-a-marks-mask-if-only-the-ignored-mask-changed-checkpatch-fixes
+     Subject: fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     fanotify-dont-recalculate-a-marks-mask-if-only-the-ignored-mask-changed-checkpatch-fixes.patch
+     fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask-checkpatch-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fanotify-dont-recalculate-a-marks-mask-if-only-the-ignored-mask-changed-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask-checkpatch-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fanotify-dont-recalculate-a-marks-mask-if-only-the-ignored-mask-changed-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,16 +40,21 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fanotify-dont-recalculate-a-marks-mask-if-only-the-ignored-mask-changed-checkpatch-fixes
+Subject: fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask-checkpatch-fixes
 
 WARNING: Missing a blank line after declarations
-#34: FILE: fs/notify/fanotify/fanotify_user.c:498:
-+		__u32 tmask = fsn_mark->ignored_mask & ~mask;
-+		fsnotify_set_mark_ignored_mask_locked(fsn_mark, tmask);
+#48: FILE: fs/notify/fanotify/fanotify_user.c:495:
++		__u32 tmask = fsn_mark->mask & ~mask;
++		if (flags & FAN_MARK_ONDIR)
 
-total: 0 errors, 1 warnings, 18 lines checked
+WARNING: Missing a blank line after declarations
+#67: FILE: fs/notify/fanotify/fanotify_user.c:579:
++		__u32 tmask = fsn_mark->mask | mask;
++		if (flags & FAN_MARK_ONDIR)
 
-./patches/fanotify-dont-recalculate-a-marks-mask-if-only-the-ignored-mask-changed.patch has style problems, please review.
+total: 0 errors, 2 warnings, 54 lines checked
+
+./patches/fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask.patch has style problems, please review.
 
 If any of these errors are false positives, please report
 them to the maintainer, see CHECKPATCH in MAINTAINERS.
@@ -60,20 +65,29 @@ Cc: Lino Sanfilippo <LinoSanfilippo@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/fanotify/fanotify_user.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/notify/fanotify/fanotify_user.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/notify/fanotify/fanotify_user.c~fanotify-dont-recalculate-a-marks-mask-if-only-the-ignored-mask-changed-checkpatch-fixes fs/notify/fanotify/fanotify_user.c
---- a/fs/notify/fanotify/fanotify_user.c~fanotify-dont-recalculate-a-marks-mask-if-only-the-ignored-mask-changed-checkpatch-fixes
+diff -puN fs/notify/fanotify/fanotify.c~fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask-checkpatch-fixes fs/notify/fanotify/fanotify.c
+diff -puN fs/notify/fanotify/fanotify_user.c~fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask-checkpatch-fixes fs/notify/fanotify/fanotify_user.c
+--- a/fs/notify/fanotify/fanotify_user.c~fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask-checkpatch-fixes
 +++ a/fs/notify/fanotify/fanotify_user.c
-@@ -495,6 +495,7 @@ static __u32 fanotify_mark_remove_from_m
- 		fsnotify_set_mark_mask_locked(fsn_mark, (oldmask & ~mask));
- 	} else {
- 		__u32 tmask = fsn_mark->ignored_mask & ~mask;
+@@ -492,6 +492,7 @@ static __u32 fanotify_mark_remove_from_m
+ 	spin_lock(&fsn_mark->lock);
+ 	if (!(flags & FAN_MARK_IGNORED_MASK)) {
+ 		__u32 tmask = fsn_mark->mask & ~mask;
 +
- 		fsnotify_set_mark_ignored_mask_locked(fsn_mark, tmask);
- 	}
- 	*destroy = !(fsn_mark->mask | fsn_mark->ignored_mask);
+ 		if (flags & FAN_MARK_ONDIR)
+ 			tmask &= ~FAN_ONDIR;
+ 
+@@ -576,6 +577,7 @@ static __u32 fanotify_mark_add_to_mask(s
+ 	spin_lock(&fsn_mark->lock);
+ 	if (!(flags & FAN_MARK_IGNORED_MASK)) {
+ 		__u32 tmask = fsn_mark->mask | mask;
++
+ 		if (flags & FAN_MARK_ONDIR)
+ 			tmask |= FAN_ONDIR;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
