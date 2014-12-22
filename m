@@ -1,98 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: +
- fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 19 Dec 2014 16:41:19 -0800
-Message-ID: <5494c5af.7V+lpr5rGvtjVvHi%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Mon, 22 Dec 2014 11:23:03 -0800
+Message-ID: <54986f97.nro5O2mYeazuc1Ho%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44478 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36800 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751880AbaLTAlU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Dec 2014 19:41:20 -0500
+	with ESMTP id S1754598AbaLVTXE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 22 Dec 2014 14:23:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, LinoSanfilippo@gmx.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask-checkpatch-fixes
-has been added to the -mm tree.  Its filename is
-     fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask-checkpatch-fixes.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask-checkpatch-fixes.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask-checkpatch-fixes.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask-checkpatch-fixes
+Subject: linux-next-git-rejects
 
-WARNING: Missing a blank line after declarations
-#48: FILE: fs/notify/fanotify/fanotify_user.c:495:
-+		__u32 tmask = fsn_mark->mask & ~mask;
-+		if (flags & FAN_MARK_ONDIR)
-
-WARNING: Missing a blank line after declarations
-#67: FILE: fs/notify/fanotify/fanotify_user.c:579:
-+		__u32 tmask = fsn_mark->mask | mask;
-+		if (flags & FAN_MARK_ONDIR)
-
-total: 0 errors, 2 warnings, 54 lines checked
-
-./patches/fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Lino Sanfilippo <LinoSanfilippo@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/fanotify/fanotify_user.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/virtio/virtio_pci_common.c |    8 --------
+ 1 file changed, 8 deletions(-)
 
-diff -puN fs/notify/fanotify/fanotify.c~fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask-checkpatch-fixes fs/notify/fanotify/fanotify.c
-diff -puN fs/notify/fanotify/fanotify_user.c~fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask-checkpatch-fixes fs/notify/fanotify/fanotify_user.c
---- a/fs/notify/fanotify/fanotify_user.c~fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask-checkpatch-fixes
-+++ a/fs/notify/fanotify/fanotify_user.c
-@@ -492,6 +492,7 @@ static __u32 fanotify_mark_remove_from_m
- 	spin_lock(&fsn_mark->lock);
- 	if (!(flags & FAN_MARK_IGNORED_MASK)) {
- 		__u32 tmask = fsn_mark->mask & ~mask;
-+
- 		if (flags & FAN_MARK_ONDIR)
- 			tmask &= ~FAN_ONDIR;
+diff -puN drivers/virtio/virtio_pci_common.c~linux-next-git-rejects drivers/virtio/virtio_pci_common.c
+--- a/drivers/virtio/virtio_pci_common.c~linux-next-git-rejects
++++ a/drivers/virtio/virtio_pci_common.c
+@@ -494,11 +494,3 @@ static struct pci_driver virtio_pci_driv
+ };
  
-@@ -576,6 +577,7 @@ static __u32 fanotify_mark_add_to_mask(s
- 	spin_lock(&fsn_mark->lock);
- 	if (!(flags & FAN_MARK_IGNORED_MASK)) {
- 		__u32 tmask = fsn_mark->mask | mask;
-+
- 		if (flags & FAN_MARK_ONDIR)
- 			tmask |= FAN_ONDIR;
- 
+ module_pci_driver(virtio_pci_driver);
+-<<<<<<< HEAD
+-
+-MODULE_AUTHOR("Anthony Liguori <aliguori@us.ibm.com>");
+-MODULE_DESCRIPTION("virtio-pci");
+-MODULE_LICENSE("GPL");
+-MODULE_VERSION("1");
+-=======
+->>>>>>> linux-next/akpm-base
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-origin.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 mm-prevent-endless-growth-of-anon_vma-hierarchy-fix.patch
@@ -110,7 +69,6 @@ do_shared_fault-check-that-mmap_sem-is-held.patch
 task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss-fix.patch
 lib-bitmap-update-bitmap_onto-to-unsigned-checkpatch-fixes.patch
 linux-next.patch
-linux-next-git-rejects.patch
 drivers-gpio-gpio-zevioc-fix-build.patch
 journal_add_journal_head-debug.patch
 journal_add_journal_head-debug-fix.patch
