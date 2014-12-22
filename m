@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-remove-unnecessary-else-in-ocfs2_set_acl.patch added to
- -mm tree
-Date: Mon, 22 Dec 2014 13:07:22 -0800
-Message-ID: <5498880a.UNTIG50KosMq1032%akpm@linux-foundation.org>
+Subject: + printk-correct-timeout-comment-neaten-module_parm_desc.patch
+ added to -mm tree
+Date: Mon, 22 Dec 2014 13:20:40 -0800
+Message-ID: <54988b28.1Rjr69v2je80R/ao%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37333 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37437 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755294AbaLVVHX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 22 Dec 2014 16:07:23 -0500
+	with ESMTP id S1754869AbaLVVUl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 22 Dec 2014 16:20:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: remove unnecessary else in ocfs2_set_acl()
+     Subject: printk: correct timeout comment, neaten MODULE_PARM_DESC
 has been added to the -mm tree.  Its filename is
-     ocfs2-remove-unnecessary-else-in-ocfs2_set_acl.patch
+     printk-correct-timeout-comment-neaten-module_parm_desc.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-remove-unnecessary-else-in-ocfs2_set_acl.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/printk-correct-timeout-comment-neaten-module_parm_desc.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-remove-unnecessary-else-in-ocfs2_set_acl.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/printk-correct-timeout-comment-neaten-module_parm_desc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,52 +39,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: ocfs2: remove unnecessary else in ocfs2_set_acl()
+From: Joe Perches <joe@perches.com>
+Subject: printk: correct timeout comment, neaten MODULE_PARM_DESC
 
-else is unnecessary after return.
+Neaten the MODULE_PARAM_DESC message.
+Use 30 seconds in the comment for the zap console locks timeout.
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/acl.c |   14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+ kernel/printk/printk.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN fs/ocfs2/acl.c~ocfs2-remove-unnecessary-else-in-ocfs2_set_acl fs/ocfs2/acl.c
---- a/fs/ocfs2/acl.c~ocfs2-remove-unnecessary-else-in-ocfs2_set_acl
-+++ a/fs/ocfs2/acl.c
-@@ -245,16 +245,14 @@ int ocfs2_set_acl(handle_t *handle,
- 			ret = posix_acl_equiv_mode(acl, &mode);
- 			if (ret < 0)
- 				return ret;
--			else {
--				if (ret == 0)
--					acl = NULL;
+diff -puN kernel/printk/printk.c~printk-correct-timeout-comment-neaten-module_parm_desc kernel/printk/printk.c
+--- a/kernel/printk/printk.c~printk-correct-timeout-comment-neaten-module_parm_desc
++++ a/kernel/printk/printk.c
+@@ -935,8 +935,8 @@ static int __init ignore_loglevel_setup(
  
--				ret = ocfs2_acl_set_mode(inode, di_bh,
--							 handle, mode);
--				if (ret)
--					return ret;
-+			if (ret == 0)
-+				acl = NULL;
+ early_param("ignore_loglevel", ignore_loglevel_setup);
+ module_param(ignore_loglevel, bool, S_IRUGO | S_IWUSR);
+-MODULE_PARM_DESC(ignore_loglevel, "ignore loglevel setting, to"
+-	"print all kernel messages to the console.");
++MODULE_PARM_DESC(ignore_loglevel,
++		 "ignore loglevel setting (prints all kernel messages to the console)");
  
--			}
-+			ret = ocfs2_acl_set_mode(inode, di_bh,
-+						 handle, mode);
-+			if (ret)
-+				return ret;
- 		}
- 		break;
- 	case ACL_TYPE_DEFAULT:
+ #ifdef CONFIG_BOOT_PRINTK_DELAY
+ 
+@@ -1419,16 +1419,16 @@ static void call_console_drivers(int lev
+ }
+ 
+ /*
+- * Zap console related locks when oopsing. Only zap at most once
+- * every 10 seconds, to leave time for slow consoles to print a
+- * full oops.
++ * Zap console related locks when oopsing.
++ * To leave time for slow consoles to print a full oops,
++ * only zap at most once every 30 seconds.
+  */
+ static void zap_locks(void)
+ {
+ 	static unsigned long oops_timestamp;
+ 
+ 	if (time_after_eq(jiffies, oops_timestamp) &&
+-			!time_after(jiffies, oops_timestamp + 30 * HZ))
++	    !time_after(jiffies, oops_timestamp + 30 * HZ))
+ 		return;
+ 
+ 	oops_timestamp = jiffies;
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from joe@perches.com are
 
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-ocfs2-remove-unnecessary-else-in-ocfs2_set_acl.patch
-vmcore-fix-pt_note-n_namesz-n_descsz-overflow-issue.patch
+printk-correct-timeout-comment-neaten-module_parm_desc.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-emit-an-error-when-using-predefined-timestamp-macros.patch
 linux-next.patch
 
