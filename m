@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + printk-correct-timeout-comment-neaten-module_parm_desc.patch
- added to -mm tree
-Date: Mon, 22 Dec 2014 13:20:40 -0800
-Message-ID: <54988b28.1Rjr69v2je80R/ao%akpm@linux-foundation.org>
+Subject: + fs-affs-fix-casting-in-printed-messages.patch added to -mm tree
+Date: Mon, 22 Dec 2014 13:27:20 -0800
+Message-ID: <54988cb8.krW37dPsepPaPX0z%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37437 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37453 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754869AbaLVVUl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 22 Dec 2014 16:20:41 -0500
+	with ESMTP id S1754888AbaLVV1V (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 22 Dec 2014 16:27:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: geert@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: printk: correct timeout comment, neaten MODULE_PARM_DESC
+     Subject: fs/affs: fix casting in printed messages
 has been added to the -mm tree.  Its filename is
-     printk-correct-timeout-comment-neaten-module_parm_desc.patch
+     fs-affs-fix-casting-in-printed-messages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/printk-correct-timeout-comment-neaten-module_parm_desc.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-affs-fix-casting-in-printed-messages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/printk-correct-timeout-comment-neaten-module_parm_desc.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-affs-fix-casting-in-printed-messages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,60 +38,257 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: printk: correct timeout comment, neaten MODULE_PARM_DESC
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: fs/affs: fix casting in printed messages
 
-Neaten the MODULE_PARAM_DESC message.
-Use 30 seconds in the comment for the zap console locks timeout.
+  - "inode.i_ino" is "unsigned long",
+  - "loff_t" is always "unsigned long long",
+  - "sector_t" should be cast to "unsigned long long" for printing,
+  - "u32" should not be cast to "unsigned int" for printing.
 
-Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/printk.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ fs/affs/amigaffs.c |    6 +++---
+ fs/affs/dir.c      |    8 +++-----
+ fs/affs/file.c     |   36 ++++++++++++++++++------------------
+ fs/affs/inode.c    |    5 ++---
+ fs/affs/namei.c    |   18 +++++++-----------
+ 5 files changed, 33 insertions(+), 40 deletions(-)
 
-diff -puN kernel/printk/printk.c~printk-correct-timeout-comment-neaten-module_parm_desc kernel/printk/printk.c
---- a/kernel/printk/printk.c~printk-correct-timeout-comment-neaten-module_parm_desc
-+++ a/kernel/printk/printk.c
-@@ -935,8 +935,8 @@ static int __init ignore_loglevel_setup(
+diff -puN fs/affs/amigaffs.c~fs-affs-fix-casting-in-printed-messages fs/affs/amigaffs.c
+--- a/fs/affs/amigaffs.c~fs-affs-fix-casting-in-printed-messages
++++ a/fs/affs/amigaffs.c
+@@ -30,7 +30,7 @@ affs_insert_hash(struct inode *dir, stru
+ 	ino = bh->b_blocknr;
+ 	offset = affs_hash_name(sb, AFFS_TAIL(sb, bh)->name + 1, AFFS_TAIL(sb, bh)->name[0]);
  
- early_param("ignore_loglevel", ignore_loglevel_setup);
- module_param(ignore_loglevel, bool, S_IRUGO | S_IWUSR);
--MODULE_PARM_DESC(ignore_loglevel, "ignore loglevel setting, to"
--	"print all kernel messages to the console.");
-+MODULE_PARM_DESC(ignore_loglevel,
-+		 "ignore loglevel setting (prints all kernel messages to the console)");
+-	pr_debug("%s(dir=%u, ino=%d)\n", __func__, (u32)dir->i_ino, ino);
++	pr_debug("%s(dir=%lu, ino=%d)\n", __func__, dir->i_ino, ino);
  
- #ifdef CONFIG_BOOT_PRINTK_DELAY
+ 	dir_bh = affs_bread(sb, dir->i_ino);
+ 	if (!dir_bh)
+@@ -80,8 +80,8 @@ affs_remove_hash(struct inode *dir, stru
+ 	sb = dir->i_sb;
+ 	rem_ino = rem_bh->b_blocknr;
+ 	offset = affs_hash_name(sb, AFFS_TAIL(sb, rem_bh)->name+1, AFFS_TAIL(sb, rem_bh)->name[0]);
+-	pr_debug("%s(dir=%d, ino=%d, hashval=%d)\n",
+-		 __func__, (u32)dir->i_ino, rem_ino, offset);
++	pr_debug("%s(dir=%lu, ino=%d, hashval=%d)\n", __func__, dir->i_ino,
++		 rem_ino, offset);
  
-@@ -1419,16 +1419,16 @@ static void call_console_drivers(int lev
- }
+ 	bh = affs_bread(sb, dir->i_ino);
+ 	if (!bh)
+diff -puN fs/affs/dir.c~fs-affs-fix-casting-in-printed-messages fs/affs/dir.c
+--- a/fs/affs/dir.c~fs-affs-fix-casting-in-printed-messages
++++ a/fs/affs/dir.c
+@@ -54,8 +54,7 @@ affs_readdir(struct file *file, struct d
+ 	u32			 ino;
+ 	int			 error = 0;
  
- /*
-- * Zap console related locks when oopsing. Only zap at most once
-- * every 10 seconds, to leave time for slow consoles to print a
-- * full oops.
-+ * Zap console related locks when oopsing.
-+ * To leave time for slow consoles to print a full oops,
-+ * only zap at most once every 30 seconds.
-  */
- static void zap_locks(void)
- {
- 	static unsigned long oops_timestamp;
+-	pr_debug("%s(ino=%lu,f_pos=%lx)\n",
+-		 __func__, inode->i_ino, (unsigned long)ctx->pos);
++	pr_debug("%s(ino=%lu,f_pos=%llx)\n", __func__, inode->i_ino, ctx->pos);
  
- 	if (time_after_eq(jiffies, oops_timestamp) &&
--			!time_after(jiffies, oops_timestamp + 30 * HZ))
-+	    !time_after(jiffies, oops_timestamp + 30 * HZ))
+ 	if (ctx->pos < 2) {
+ 		file->private_data = (void *)0;
+@@ -117,9 +116,8 @@ inside:
+ 
+ 			namelen = min(AFFS_TAIL(sb, fh_bh)->name[0], (u8)30);
+ 			name = AFFS_TAIL(sb, fh_bh)->name + 1;
+-			pr_debug("readdir(): dir_emit(\"%.*s\", "
+-				 "ino=%u), hash=%d, f_pos=%x\n",
+-				 namelen, name, ino, hash_pos, (u32)ctx->pos);
++			pr_debug("readdir(): dir_emit(\"%.*s\", ino=%u), hash=%d, f_pos=%llx\n",
++				 namelen, name, ino, hash_pos, ctx->pos);
+ 
+ 			if (!dir_emit(ctx, name, namelen, ino, DT_UNKNOWN))
+ 				goto done;
+diff -puN fs/affs/file.c~fs-affs-fix-casting-in-printed-messages fs/affs/file.c
+--- a/fs/affs/file.c~fs-affs-fix-casting-in-printed-messages
++++ a/fs/affs/file.c
+@@ -299,8 +299,8 @@ affs_get_block(struct inode *inode, sect
+ 	struct buffer_head	*ext_bh;
+ 	u32			 ext;
+ 
+-	pr_debug("%s(%u, %lu)\n",
+-		 __func__, (u32)inode->i_ino, (unsigned long)block);
++	pr_debug("%s(%lu, %llu)\n", __func__, inode->i_ino,
++		 (unsigned long long)block);
+ 
+ 	BUG_ON(block > (sector_t)0x7fffffffUL);
+ 
+@@ -330,8 +330,9 @@ affs_get_block(struct inode *inode, sect
+ 
+ 		/* store new block */
+ 		if (bh_result->b_blocknr)
+-			affs_warning(sb, "get_block", "block already set (%lx)",
+-				     (unsigned long)bh_result->b_blocknr);
++			affs_warning(sb, "get_block",
++				     "block already set (%llx)",
++				     (unsigned long long)bh_result->b_blocknr);
+ 		AFFS_BLOCK(sb, ext_bh, block) = cpu_to_be32(blocknr);
+ 		AFFS_HEAD(ext_bh)->block_count = cpu_to_be32(block + 1);
+ 		affs_adjust_checksum(ext_bh, blocknr - bh_result->b_blocknr + 1);
+@@ -353,8 +354,8 @@ affs_get_block(struct inode *inode, sect
+ 	return 0;
+ 
+ err_big:
+-	affs_error(inode->i_sb, "get_block", "strange block request %d",
+-		   (int)block);
++	affs_error(inode->i_sb, "get_block", "strange block request %llu",
++		   (unsigned long long)block);
+ 	return -EIO;
+ err_ext:
+ 	// unlock cache
+@@ -503,7 +504,7 @@ affs_do_readpage_ofs(struct page *page,
+ 	u32 bidx, boff, bsize;
+ 	u32 tmp;
+ 
+-	pr_debug("%s(%u, %ld, 0, %d)\n", __func__, (u32)inode->i_ino,
++	pr_debug("%s(%lu, %ld, 0, %d)\n", __func__, inode->i_ino,
+ 		 page->index, to);
+ 	BUG_ON(to > PAGE_CACHE_SIZE);
+ 	kmap(page);
+@@ -539,7 +540,7 @@ affs_extent_file_ofs(struct inode *inode
+ 	u32 size, bsize;
+ 	u32 tmp;
+ 
+-	pr_debug("%s(%u, %d)\n", __func__, (u32)inode->i_ino, newsize);
++	pr_debug("%s(%lu, %d)\n", __func__, inode->i_ino, newsize);
+ 	bsize = AFFS_SB(sb)->s_data_blksize;
+ 	bh = NULL;
+ 	size = AFFS_I(inode)->mmu_private;
+@@ -608,7 +609,7 @@ affs_readpage_ofs(struct file *file, str
+ 	u32 to;
+ 	int err;
+ 
+-	pr_debug("%s(%u, %ld)\n", __func__, (u32)inode->i_ino, page->index);
++	pr_debug("%s(%lu, %ld)\n", __func__, inode->i_ino, page->index);
+ 	to = PAGE_CACHE_SIZE;
+ 	if (((page->index + 1) << PAGE_CACHE_SHIFT) > inode->i_size) {
+ 		to = inode->i_size & ~PAGE_CACHE_MASK;
+@@ -631,8 +632,8 @@ static int affs_write_begin_ofs(struct f
+ 	pgoff_t index;
+ 	int err = 0;
+ 
+-	pr_debug("%s(%u, %llu, %llu)\n", __func__, (u32)inode->i_ino,
+-		 (unsigned long long)pos, (unsigned long long)pos + len);
++	pr_debug("%s(%lu, %llu, %llu)\n", __func__, inode->i_ino, pos,
++		 pos + len);
+ 	if (pos > AFFS_I(inode)->mmu_private) {
+ 		/* XXX: this probably leaves a too-big i_size in case of
+ 		 * failure. Should really be updating i_size at write_end time
+@@ -681,9 +682,8 @@ static int affs_write_end_ofs(struct fil
+ 	 * due to write_begin.
+ 	 */
+ 
+-	pr_debug("%s(%u, %llu, %llu)\n",
+-		 __func__, (u32)inode->i_ino, (unsigned long long)pos,
+-		(unsigned long long)pos + len);
++	pr_debug("%s(%lu, %llu, %llu)\n", __func__, inode->i_ino, pos,
++		 pos + len);
+ 	bsize = AFFS_SB(sb)->s_data_blksize;
+ 	data = page_address(page);
+ 
+@@ -831,8 +831,8 @@ affs_truncate(struct inode *inode)
+ 	struct buffer_head *ext_bh;
+ 	int i;
+ 
+-	pr_debug("truncate(inode=%d, oldsize=%u, newsize=%u)\n",
+-		 (u32)inode->i_ino, (u32)AFFS_I(inode)->mmu_private, (u32)inode->i_size);
++	pr_debug("truncate(inode=%lu, oldsize=%llu, newsize=%llu)\n",
++		 inode->i_ino, AFFS_I(inode)->mmu_private, inode->i_size);
+ 
+ 	last_blk = 0;
+ 	ext = 0;
+@@ -863,7 +863,7 @@ affs_truncate(struct inode *inode)
+ 	if (IS_ERR(ext_bh)) {
+ 		affs_warning(sb, "truncate",
+ 			     "unexpected read error for ext block %u (%ld)",
+-			     (unsigned int)ext, PTR_ERR(ext_bh));
++			     ext, PTR_ERR(ext_bh));
  		return;
+ 	}
+ 	if (AFFS_I(inode)->i_lc) {
+@@ -911,7 +911,7 @@ affs_truncate(struct inode *inode)
+ 			if (IS_ERR(bh)) {
+ 				affs_warning(sb, "truncate",
+ 					     "unexpected read error for last block %u (%ld)",
+-					     (unsigned int)ext, PTR_ERR(bh));
++					     ext, PTR_ERR(bh));
+ 				return;
+ 			}
+ 			tmp = be32_to_cpu(AFFS_DATA_HEAD(bh)->next);
+diff -puN fs/affs/inode.c~fs-affs-fix-casting-in-printed-messages fs/affs/inode.c
+--- a/fs/affs/inode.c~fs-affs-fix-casting-in-printed-messages
++++ a/fs/affs/inode.c
+@@ -348,9 +348,8 @@ affs_add_entry(struct inode *dir, struct
+ 	u32 block = 0;
+ 	int retval;
  
- 	oops_timestamp = jiffies;
+-	pr_debug("%s(dir=%u, inode=%u, \"%pd\", type=%d)\n",
+-		 __func__, (u32)dir->i_ino,
+-	         (u32)inode->i_ino, dentry, type);
++	pr_debug("%s(dir=%lu, inode=%lu, \"%pd\", type=%d)\n", __func__,
++		 dir->i_ino, inode->i_ino, dentry, type);
+ 
+ 	retval = -EIO;
+ 	bh = affs_bread(sb, inode->i_ino);
+diff -puN fs/affs/namei.c~fs-affs-fix-casting-in-printed-messages fs/affs/namei.c
+--- a/fs/affs/namei.c~fs-affs-fix-casting-in-printed-messages
++++ a/fs/affs/namei.c
+@@ -248,9 +248,8 @@ affs_lookup(struct inode *dir, struct de
+ int
+ affs_unlink(struct inode *dir, struct dentry *dentry)
+ {
+-	pr_debug("%s(dir=%d, %lu \"%pd\")\n",
+-		 __func__, (u32)dir->i_ino, dentry->d_inode->i_ino,
+-		dentry);
++	pr_debug("%s(dir=%lu, %lu \"%pd\")\n", __func__, dir->i_ino,
++		 dentry->d_inode->i_ino, dentry);
+ 
+ 	return affs_remove_header(dentry);
+ }
+@@ -317,9 +316,8 @@ affs_mkdir(struct inode *dir, struct den
+ int
+ affs_rmdir(struct inode *dir, struct dentry *dentry)
+ {
+-	pr_debug("%s(dir=%u, %lu \"%pd\")\n",
+-		__func__, (u32)dir->i_ino, dentry->d_inode->i_ino,
+-		 dentry);
++	pr_debug("%s(dir=%lu, %lu \"%pd\")\n", __func__, dir->i_ino,
++		 dentry->d_inode->i_ino, dentry);
+ 
+ 	return affs_remove_header(dentry);
+ }
+@@ -404,8 +402,7 @@ affs_link(struct dentry *old_dentry, str
+ {
+ 	struct inode *inode = old_dentry->d_inode;
+ 
+-	pr_debug("%s(%u, %u, \"%pd\")\n",
+-		 __func__, (u32)inode->i_ino, (u32)dir->i_ino,
++	pr_debug("%s(%lu, %lu, \"%pd\")\n", __func__, inode->i_ino, dir->i_ino,
+ 		 dentry);
+ 
+ 	return affs_add_entry(dir, inode, dentry, ST_LINKFILE);
+@@ -419,9 +416,8 @@ affs_rename(struct inode *old_dir, struc
+ 	struct buffer_head *bh = NULL;
+ 	int retval;
+ 
+-	pr_debug("%s(old=%u,\"%pd\" to new=%u,\"%pd\")\n",
+-		 __func__, (u32)old_dir->i_ino, old_dentry,
+-		 (u32)new_dir->i_ino, new_dentry);
++	pr_debug("%s(old=%lu,\"%pd\" to new=%lu,\"%pd\")\n", __func__,
++		 old_dir->i_ino, old_dentry, new_dir->i_ino, new_dentry);
+ 
+ 	retval = affs_check_name(new_dentry->d_name.name,
+ 				 new_dentry->d_name.len,
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
-printk-correct-timeout-comment-neaten-module_parm_desc.patch
-mm-utilc-add-kstrimdup.patch
-checkpatch-emit-an-error-when-using-predefined-timestamp-macros.patch
-linux-next.patch
+all-arches-signal-move-restart_block-to-struct-task_struct.patch
+fs-affs-fix-casting-in-printed-messages.patch
 
