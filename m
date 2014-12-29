@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + hexdump-introduce-test-suite.patch added to -mm tree
-Date: Mon, 29 Dec 2014 14:15:52 -0800
-Message-ID: <54a1d298.w9pLVju1uwYrGyN6%akpm@linux-foundation.org>
+Subject: + hexdump-makes-it-return-amount-of-bytes-placed-in-buffer.patch
+ added to -mm tree
+Date: Mon, 29 Dec 2014 14:15:58 -0800
+Message-ID: <54a1d29e.SR0pL5t3umM809g7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56269 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56275 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751425AbaL2WPx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Dec 2014 17:15:53 -0500
+	with ESMTP id S1751529AbaL2WP7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Dec 2014 17:15:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: andriy.shevchenko@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hexdump: introduce test suite
+     Subject: hexdump: makes it return number of bytes placed in buffer
 has been added to the -mm tree.  Its filename is
-     hexdump-introduce-test-suite.patch
+     hexdump-makes-it-return-amount-of-bytes-placed-in-buffer.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hexdump-introduce-test-suite.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/hexdump-makes-it-return-amount-of-bytes-placed-in-buffer.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hexdump-introduce-test-suite.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/hexdump-makes-it-return-amount-of-bytes-placed-in-buffer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,193 +40,226 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: hexdump: introduce test suite
+Subject: hexdump: makes it return number of bytes placed in buffer
 
-Test different scenarios of function calls located in lib/hexdump.c.
+This patch makes hexdump return the number of bytes placed in the buffer
+excluding trailing NUL.  In the case of overflow it returns the desired
+amount of bytes to produce the entire dump.  Thus, it mimics snprintf().
 
-Currently hex_dump_to_buffer() is only tested and test data is provided
-for little endian CPUs.
+This will be useful for users that would like to repeat with a bigger
+buffer.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug  |    3 
- lib/Makefile       |    4 -
- lib/test-hexdump.c |  135 +++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 141 insertions(+), 1 deletion(-)
+ include/linux/printk.h |    6 +--
+ lib/hexdump.c          |   73 +++++++++++++++++++++++++++++----------
+ lib/test-hexdump.c     |   45 ++++++++++++++++++++++++
+ 3 files changed, 103 insertions(+), 21 deletions(-)
 
-diff -puN lib/Kconfig.debug~hexdump-introduce-test-suite lib/Kconfig.debug
---- a/lib/Kconfig.debug~hexdump-introduce-test-suite
-+++ a/lib/Kconfig.debug
-@@ -1579,6 +1579,9 @@ config ASYNC_RAID6_TEST
+diff -puN include/linux/printk.h~hexdump-makes-it-return-amount-of-bytes-placed-in-buffer include/linux/printk.h
+--- a/include/linux/printk.h~hexdump-makes-it-return-amount-of-bytes-placed-in-buffer
++++ a/include/linux/printk.h
+@@ -408,9 +408,9 @@ enum {
+ 	DUMP_PREFIX_ADDRESS,
+ 	DUMP_PREFIX_OFFSET
+ };
+-extern void hex_dump_to_buffer(const void *buf, size_t len,
+-			       int rowsize, int groupsize,
+-			       char *linebuf, size_t linebuflen, bool ascii);
++extern int hex_dump_to_buffer(const void *buf, size_t len, int rowsize,
++			      int groupsize, char *linebuf, size_t linebuflen,
++			      bool ascii);
+ #ifdef CONFIG_PRINTK
+ extern void print_hex_dump(const char *level, const char *prefix_str,
+ 			   int prefix_type, int rowsize, int groupsize,
+diff -puN lib/hexdump.c~hexdump-makes-it-return-amount-of-bytes-placed-in-buffer lib/hexdump.c
+--- a/lib/hexdump.c~hexdump-makes-it-return-amount-of-bytes-placed-in-buffer
++++ a/lib/hexdump.c
+@@ -97,22 +97,26 @@ EXPORT_SYMBOL(bin2hex);
+  *
+  * example output buffer:
+  * 40 41 42 43 44 45 46 47 48 49 4a 4b 4c 4d 4e 4f  @ABCDEFGHIJKLMNO
++ *
++ * Return:
++ * The amount of bytes placed in the buffer without terminating NUL. If the
++ * output was truncated, then the return value is the number of bytes
++ * (excluding the terminating NUL) which would have been written to the final
++ * string if enough space had been available.
+  */
+-void hex_dump_to_buffer(const void *buf, size_t len, int rowsize,
+-			int groupsize, char *linebuf, size_t linebuflen,
+-			bool ascii)
++int hex_dump_to_buffer(const void *buf, size_t len, int rowsize, int groupsize,
++		       char *linebuf, size_t linebuflen, bool ascii)
+ {
+ 	const u8 *ptr = buf;
+ 	int ngroups;
+ 	u8 ch;
+ 	int j, lx = 0;
+ 	int ascii_column;
++	int ret;
  
- 	  If unsure, say N.
+ 	if (rowsize != 16 && rowsize != 32)
+ 		rowsize = 16;
  
-+config TEST_HEXDUMP
-+	tristate "Test functions located in the hexdump module at runtime"
+-	if (!len)
+-		goto nil;
+ 	if (len > rowsize)		/* limit to one line at a time */
+ 		len = rowsize;
+ 	if (!is_power_of_2(groupsize) || groupsize > 8)
+@@ -122,27 +126,50 @@ void hex_dump_to_buffer(const void *buf,
+ 
+ 	ngroups = len / groupsize;
+ 	ascii_column = rowsize * 2 + rowsize / groupsize + 1;
 +
- config TEST_STRING_HELPERS
- 	tristate "Test functions located in the string_helpers module at runtime"
++	if (!linebuflen)
++		goto overflow1;
++
++	if (!len)
++		goto nil;
++
+ 	if (groupsize == 8) {
+ 		const u64 *ptr8 = buf;
  
-diff -puN lib/Makefile~hexdump-introduce-test-suite lib/Makefile
---- a/lib/Makefile~hexdump-introduce-test-suite
-+++ a/lib/Makefile
-@@ -23,12 +23,14 @@ lib-y	+= kobject.o klist.o
- obj-y	+= lockref.o
+-		for (j = 0; j < ngroups; j++)
+-			lx += scnprintf(linebuf + lx, linebuflen - lx,
+-					"%s%16.16llx", j ? " " : "",
+-					(unsigned long long)*(ptr8 + j));
++		for (j = 0; j < ngroups; j++) {
++			ret = snprintf(linebuf + lx, linebuflen - lx,
++				       "%s%16.16llx", j ? " " : "",
++				       (unsigned long long)*(ptr8 + j));
++			if (ret >= linebuflen - lx)
++				goto overflow1;
++			lx += ret;
++		}
+ 	} else if (groupsize == 4) {
+ 		const u32 *ptr4 = buf;
  
- obj-y += bcd.o div64.o sort.o parser.o halfmd4.o debug_locks.o random32.o \
--	 bust_spinlocks.o hexdump.o kasprintf.o bitmap.o scatterlist.o \
-+	 bust_spinlocks.o kasprintf.o bitmap.o scatterlist.o \
- 	 gcd.o lcm.o list_sort.o uuid.o flex_array.o iovec.o clz_ctz.o \
- 	 bsearch.o find_last_bit.o find_next_bit.o llist.o memweight.o kfifo.o \
- 	 percpu-refcount.o percpu_ida.o rhashtable.o reciprocal_div.o
- obj-y += string_helpers.o
- obj-$(CONFIG_TEST_STRING_HELPERS) += test-string_helpers.o
-+obj-y += hexdump.o
-+obj-$(CONFIG_TEST_HEXDUMP) += test-hexdump.o
- obj-y += kstrtox.o
- obj-$(CONFIG_TEST_KSTRTOX) += test-kstrtox.o
- obj-$(CONFIG_TEST_LKM) += test_module.o
-diff -puN /dev/null lib/test-hexdump.c
---- /dev/null
+-		for (j = 0; j < ngroups; j++)
+-			lx += scnprintf(linebuf + lx, linebuflen - lx,
+-					"%s%8.8x", j ? " " : "", *(ptr4 + j));
++		for (j = 0; j < ngroups; j++) {
++			ret = snprintf(linebuf + lx, linebuflen - lx,
++				       "%s%8.8x", j ? " " : "",
++				       *(ptr4 + j));
++			if (ret >= linebuflen - lx)
++				goto overflow1;
++			lx += ret;
++		}
+ 	} else if (groupsize == 2) {
+ 		const u16 *ptr2 = buf;
+ 
+-		for (j = 0; j < ngroups; j++)
+-			lx += scnprintf(linebuf + lx, linebuflen - lx,
+-					"%s%4.4x", j ? " " : "", *(ptr2 + j));
++		for (j = 0; j < ngroups; j++) {
++			ret = snprintf(linebuf + lx, linebuflen - lx,
++				       "%s%4.4x", j ? " " : "",
++				       *(ptr2 + j));
++			if (ret >= linebuflen - lx)
++				goto overflow1;
++			lx += ret;
++		}
+ 	} else {
+-		for (j = 0; (j < len) && (lx + 3) <= linebuflen; j++) {
++		for (j = 0; j < len; j++) {
++			if (linebuflen < lx + 3)
++				goto overflow2;
+ 			ch = ptr[j];
+ 			linebuf[lx++] = hex_asc_hi(ch);
+ 			linebuf[lx++] = hex_asc_lo(ch);
+@@ -154,14 +181,24 @@ void hex_dump_to_buffer(const void *buf,
+ 	if (!ascii)
+ 		goto nil;
+ 
+-	while (lx < (linebuflen - 1) && lx < ascii_column)
++	while (lx < ascii_column) {
++		if (linebuflen < lx + 2)
++			goto overflow2;
+ 		linebuf[lx++] = ' ';
+-	for (j = 0; (j < len) && (lx + 2) < linebuflen; j++) {
++	}
++	for (j = 0; j < len; j++) {
++		if (linebuflen < lx + 2)
++			goto overflow2;
+ 		ch = ptr[j];
+ 		linebuf[lx++] = (isascii(ch) && isprint(ch)) ? ch : '.';
+ 	}
+ nil:
++	linebuf[lx] = '\0';
++	return lx;
++overflow2:
+ 	linebuf[lx++] = '\0';
++overflow1:
++	return ascii ? ascii_column + len : (groupsize * 2 + 1) * ngroups - 1;
+ }
+ EXPORT_SYMBOL(hex_dump_to_buffer);
+ 
+diff -puN lib/test-hexdump.c~hexdump-makes-it-return-amount-of-bytes-placed-in-buffer lib/test-hexdump.c
+--- a/lib/test-hexdump.c~hexdump-makes-it-return-amount-of-bytes-placed-in-buffer
 +++ a/lib/test-hexdump.c
-@@ -0,0 +1,135 @@
-+/*
-+ * Test cases for lib/hexdump.c module.
-+ */
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
-+#include <linux/init.h>
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/random.h>
-+#include <linux/string.h>
-+
-+static const unsigned char data_b[] = {
-+	'\xbe', '\x32', '\xdb', '\x7b', '\x0a', '\x18', '\x93', '\xb2',	/* 00 - 07 */
-+	'\x70', '\xba', '\xc4', '\x24', '\x7d', '\x83', '\x34', '\x9b',	/* 08 - 0f */
-+	'\xa6', '\x9c', '\x31', '\xad', '\x9c', '\x0f', '\xac', '\xe9',	/* 10 - 17 */
-+	'\x4c', '\xd1', '\x19', '\x99', '\x43', '\xb1', '\xaf', '\x0c',	/* 18 - 1f */
-+};
-+
-+static const unsigned char data_a[] = ".2.{....p..$}.4...1.....L...C...";
-+
-+static const char *test_data_1_le[] __initconst = {
-+	"be", "32", "db", "7b", "0a", "18", "93", "b2",
-+	"70", "ba", "c4", "24", "7d", "83", "34", "9b",
-+	"a6", "9c", "31", "ad", "9c", "0f", "ac", "e9",
-+	"4c", "d1", "19", "99", "43", "b1", "af", "0c",
-+};
-+
-+static const char *test_data_2_le[] __initconst = {
-+	"32be", "7bdb", "180a", "b293",
-+	"ba70", "24c4", "837d", "9b34",
-+	"9ca6", "ad31", "0f9c", "e9ac",
-+	"d14c", "9919", "b143", "0caf",
-+};
-+
-+static const char *test_data_4_le[] __initconst = {
-+	"7bdb32be", "b293180a", "24c4ba70", "9b34837d",
-+	"ad319ca6", "e9ac0f9c", "9919d14c", "0cafb143",
-+};
-+
-+static const char *test_data_8_le[] __initconst = {
-+	"b293180a7bdb32be", "9b34837d24c4ba70",
-+	"e9ac0f9cad319ca6", "0cafb1439919d14c",
-+};
-+
-+static void __init test_hexdump(size_t len, int rowsize, int groupsize,
-+				bool ascii)
+@@ -114,6 +114,45 @@ static void __init test_hexdump_set(int
+ 	test_hexdump(len, rowsize, 1, ascii);
+ }
+ 
++static void __init test_hexdump_overflow(bool ascii)
 +{
-+	char test[32 * 3 + 2 + 32 + 1];
-+	char real[32 * 3 + 2 + 32 + 1];
-+	char *p;
-+	const char **result;
-+	size_t l = len;
-+	int gs = groupsize, rs = rowsize;
-+	unsigned int i;
++	char buf[56];
++	const char *t = test_data_1_le[0];
++	size_t l = get_random_int() % sizeof(buf);
++	bool a;
++	int e, r;
 +
-+	hex_dump_to_buffer(data_b, l, rs, gs, real, sizeof(real), ascii);
++	memset(buf, ' ', sizeof(buf));
 +
-+	if (rs != 16 && rs != 32)
-+		rs = 16;
++	r = hex_dump_to_buffer(data_b, 1, 16, 1, buf, l, ascii);
 +
-+	if (l > rs)
-+		l = rs;
-+
-+	if (!is_power_of_2(gs) || gs > 8 || (len % gs != 0))
-+		gs = 1;
-+
-+	if (gs == 8)
-+		result = test_data_8_le;
-+	else if (gs == 4)
-+		result = test_data_4_le;
-+	else if (gs == 2)
-+		result = test_data_2_le;
++	if (ascii)
++		e = 50;
 +	else
-+		result = test_data_1_le;
++		e = 2;
++	buf[e + 2] = '\0';
 +
-+	memset(test, ' ', sizeof(test));
-+
-+	/* hex dump */
-+	p = test;
-+	for (i = 0; i < l / gs; i++) {
-+		const char *q = *result++;
-+		size_t amount = strlen(q);
-+
-+		strncpy(p, q, amount);
-+		p += amount + 1;
-+	}
-+	if (i)
-+		p--;
-+
-+	/* ASCII part */
-+	if (ascii) {
-+		p = test + rs * 2 + rs / gs + 1;
-+		strncpy(p, data_a, l);
-+		p += l;
++	if (!l) {
++		a = r == e && buf[0] == ' ';
++	} else if (l < 3) {
++		a = r == e && buf[0] == '\0';
++	} else if (l < 4) {
++		a = r == e && !strcmp(buf, t);
++	} else if (ascii) {
++		if (l < 51)
++			a = r == e && buf[l - 1] == '\0' && buf[l - 2] == ' ';
++		else
++			a = r == e && buf[50] == '\0' && buf[49] == '.';
++	} else {
++		a = r == e && buf[e] == '\0';
 +	}
 +
-+	*p = '\0';
-+
-+	if (strcmp(test, real)) {
-+		pr_err("Len: %zu row: %d group: %d\n", len, rowsize, groupsize);
-+		pr_err("Result: '%s'\n", real);
-+		pr_err("Expect: '%s'\n", test);
++	if (!a) {
++		pr_err("Len: %zu rc: %zu strlen: %zu\n", l, r, strlen(buf));
++		pr_err("Result: '%s'\n", buf);
 +	}
 +}
 +
-+static void __init test_hexdump_set(int rowsize, bool ascii)
-+{
-+	size_t d = min_t(size_t, sizeof(data_b), rowsize);
-+	size_t len = get_random_int() % d + 1;
-+
-+	test_hexdump(len, rowsize, 4, ascii);
-+	test_hexdump(len, rowsize, 2, ascii);
-+	test_hexdump(len, rowsize, 8, ascii);
-+	test_hexdump(len, rowsize, 1, ascii);
-+}
-+
-+static int __init test_hexdump_init(void)
-+{
-+	unsigned int i;
-+	int rowsize;
-+
-+	pr_info("Running tests...\n");
-+
-+	rowsize = (get_random_int() % 2 + 1) * 16;
+ static int __init test_hexdump_init(void)
+ {
+ 	unsigned int i;
+@@ -129,6 +168,12 @@ static int __init test_hexdump_init(void
+ 	for (i = 0; i < 16; i++)
+ 		test_hexdump_set(rowsize, true);
+ 
 +	for (i = 0; i < 16; i++)
-+		test_hexdump_set(rowsize, false);
++		test_hexdump_overflow(false);
 +
-+	rowsize = (get_random_int() % 2 + 1) * 16;
 +	for (i = 0; i < 16; i++)
-+		test_hexdump_set(rowsize, true);
++		test_hexdump_overflow(true);
 +
-+	return -EINVAL;
-+}
-+module_init(test_hexdump_init);
-+MODULE_LICENSE("Dual BSD/GPL");
+ 	return -EINVAL;
+ }
+ module_init(test_hexdump_init);
 _
 
 Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
