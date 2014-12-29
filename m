@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + oom-make-sure-that-tif_memdie-is-set-under-task_lock.patch
- added to -mm tree
-Date: Mon, 29 Dec 2014 13:58:23 -0800
-Message-ID: <54a1ce7f.OtD7oC2jKf1jS0oa%akpm@linux-foundation.org>
+Subject: + mm-zpool-add-name-argument-to-create-zpool.patch added to -mm
+ tree
+Date: Mon, 29 Dec 2014 14:02:47 -0800
+Message-ID: <54a1cf87.wThLUdspJHcTw1qA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56155 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56162 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752362AbaL2V6Y (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Dec 2014 16:58:24 -0500
+	with ESMTP id S1750833AbaL2WCs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Dec 2014 17:02:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.cz, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, mm-commits@vger.kernel.org
+To: opensource.ganesh@gmail.com, ddstreet@ieee.org, minchan@kernel.org, ngupta@vflare.org, sjennings@variantweb.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: oom: make sure that TIF_MEMDIE is set under task_lock
+     Subject: mm/zpool: add name argument to create zpool
 has been added to the -mm tree.  Its filename is
-     oom-make-sure-that-tif_memdie-is-set-under-task_lock.patch
+     mm-zpool-add-name-argument-to-create-zpool.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/oom-make-sure-that-tif_memdie-is-set-under-task_lock.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-zpool-add-name-argument-to-create-zpool.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/oom-make-sure-that-tif_memdie-is-set-under-task_lock.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zpool-add-name-argument-to-create-zpool.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,89 +39,196 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: oom: make sure that TIF_MEMDIE is set under task_lock
+From: Ganesh Mahendran <opensource.ganesh@gmail.com>
+Subject: mm/zpool: add name argument to create zpool
 
-OOM killer tries to exclude tasks which do not have mm_struct associated
-because killing such a task wouldn't help much.  The OOM victim gets
-TIF_MEMDIE set to disable OOM killer while the current victim releases the
-memory and then enables the OOM killer again by dropping the flag.
+Currently the underlay of zpool: zsmalloc/zbud, do not know who creates
+them.  There is not a method to let zsmalloc/zbud find which caller they
+belong to.
 
-oom_kill_process is currently prone to a race condition when the OOM
-victim is already exiting and TIF_MEMDIE is set after the task releases
-its address space.  This might theoretically lead to OOM livelock if the
-OOM victim blocks on an allocation later during exiting because it
-wouldn't kill any other process and the exiting one won't be able to exit.
- The situation is highly unlikely because the OOM victim is expected to
-release some memory which should help to sort out OOM situation.
+Now we want to add statistics collection in zsmalloc.  We need to name the
+debugfs dir for each pool created.  The way suggested by Minchan Kim is to
+use a name passed by caller(such as zram) to create the zsmalloc pool.
 
-Fix this by checking task->mm and setting TIF_MEMDIE flag under task_lock
-which will serialize the OOM killer with exit_mm which sets task->mm to
-NULL.  Setting the flag for current is not necessary because check and set
-is not racy.
+    /sys/kernel/debug/zsmalloc/zram0
 
-Reported-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
+This patch adds an argument `name' to zs_create_pool() and other related
+functions.
+
+Signed-off-by: Ganesh Mahendran <opensource.ganesh@gmail.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Cc: Seth Jennings <sjennings@variantweb.net>
+Cc: Nitin Gupta <ngupta@vflare.org>
+Cc: Dan Streetman <ddstreet@ieee.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ drivers/block/zram/zram_drv.c |    8 +++++---
+ include/linux/zpool.h         |    5 +++--
+ include/linux/zsmalloc.h      |    2 +-
+ mm/zbud.c                     |    3 ++-
+ mm/zpool.c                    |    6 ++++--
+ mm/zsmalloc.c                 |    6 +++---
+ mm/zswap.c                    |    5 +++--
+ 7 files changed, 21 insertions(+), 14 deletions(-)
 
-diff -puN mm/oom_kill.c~oom-make-sure-that-tif_memdie-is-set-under-task_lock mm/oom_kill.c
---- a/mm/oom_kill.c~oom-make-sure-that-tif_memdie-is-set-under-task_lock
-+++ a/mm/oom_kill.c
-@@ -438,11 +438,14 @@ void oom_kill_process(struct task_struct
- 	 * If the task is already exiting, don't alarm the sysadmin or kill
- 	 * its children or threads, just set TIF_MEMDIE so it can die quickly
- 	 */
--	if (task_will_free_mem(p)) {
-+	task_lock(p);
-+	if (p->mm && task_will_free_mem(p)) {
- 		set_tsk_thread_flag(p, TIF_MEMDIE);
-+		task_unlock(p);
- 		put_task_struct(p);
- 		return;
- 	}
-+	task_unlock(p);
- 
- 	if (__ratelimit(&oom_rs))
- 		dump_header(p, gfp_mask, order, memcg, nodemask);
-@@ -492,6 +495,7 @@ void oom_kill_process(struct task_struct
- 
- 	/* mm cannot safely be dereferenced after task_unlock(victim) */
- 	mm = victim->mm;
-+	set_tsk_thread_flag(victim, TIF_MEMDIE);
- 	pr_err("Killed process %d (%s) total-vm:%lukB, anon-rss:%lukB, file-rss:%lukB\n",
- 		task_pid_nr(victim), victim->comm, K(victim->mm->total_vm),
- 		K(get_mm_counter(victim->mm, MM_ANONPAGES)),
-@@ -522,7 +526,6 @@ void oom_kill_process(struct task_struct
- 		}
- 	rcu_read_unlock();
- 
--	set_tsk_thread_flag(victim, TIF_MEMDIE);
- 	do_send_sig_info(SIGKILL, SEND_SIG_FORCED, victim, true);
- 	put_task_struct(victim);
+diff -puN drivers/block/zram/zram_drv.c~mm-zpool-add-name-argument-to-create-zpool drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~mm-zpool-add-name-argument-to-create-zpool
++++ a/drivers/block/zram/zram_drv.c
+@@ -314,9 +314,10 @@ static void zram_meta_free(struct zram_m
+ 	kfree(meta);
  }
+ 
+-static struct zram_meta *zram_meta_alloc(u64 disksize)
++static struct zram_meta *zram_meta_alloc(int device_id, u64 disksize)
+ {
+ 	size_t num_pages;
++	char pool_name[8];
+ 	struct zram_meta *meta = kmalloc(sizeof(*meta), GFP_KERNEL);
+ 	if (!meta)
+ 		goto out;
+@@ -328,7 +329,8 @@ static struct zram_meta *zram_meta_alloc
+ 		goto free_meta;
+ 	}
+ 
+-	meta->mem_pool = zs_create_pool(GFP_NOIO | __GFP_HIGHMEM);
++	snprintf(pool_name, sizeof(pool_name), "zram%d", device_id);
++	meta->mem_pool = zs_create_pool(pool_name, GFP_NOIO | __GFP_HIGHMEM);
+ 	if (!meta->mem_pool) {
+ 		pr_err("Error creating memory pool\n");
+ 		goto free_table;
+@@ -765,7 +767,7 @@ static ssize_t disksize_store(struct dev
+ 		return -EINVAL;
+ 
+ 	disksize = PAGE_ALIGN(disksize);
+-	meta = zram_meta_alloc(disksize);
++	meta = zram_meta_alloc(zram->disk->first_minor, disksize);
+ 	if (!meta)
+ 		return -ENOMEM;
+ 
+diff -puN include/linux/zpool.h~mm-zpool-add-name-argument-to-create-zpool include/linux/zpool.h
+--- a/include/linux/zpool.h~mm-zpool-add-name-argument-to-create-zpool
++++ a/include/linux/zpool.h
+@@ -36,7 +36,8 @@ enum zpool_mapmode {
+ 	ZPOOL_MM_DEFAULT = ZPOOL_MM_RW
+ };
+ 
+-struct zpool *zpool_create_pool(char *type, gfp_t gfp, struct zpool_ops *ops);
++struct zpool *zpool_create_pool(char *type, char *name,
++			gfp_t gfp, struct zpool_ops *ops);
+ 
+ char *zpool_get_type(struct zpool *pool);
+ 
+@@ -80,7 +81,7 @@ struct zpool_driver {
+ 	atomic_t refcount;
+ 	struct list_head list;
+ 
+-	void *(*create)(gfp_t gfp, struct zpool_ops *ops);
++	void *(*create)(char *name, gfp_t gfp, struct zpool_ops *ops);
+ 	void (*destroy)(void *pool);
+ 
+ 	int (*malloc)(void *pool, size_t size, gfp_t gfp,
+diff -puN include/linux/zsmalloc.h~mm-zpool-add-name-argument-to-create-zpool include/linux/zsmalloc.h
+--- a/include/linux/zsmalloc.h~mm-zpool-add-name-argument-to-create-zpool
++++ a/include/linux/zsmalloc.h
+@@ -36,7 +36,7 @@ enum zs_mapmode {
+ 
+ struct zs_pool;
+ 
+-struct zs_pool *zs_create_pool(gfp_t flags);
++struct zs_pool *zs_create_pool(char *name, gfp_t flags);
+ void zs_destroy_pool(struct zs_pool *pool);
+ 
+ unsigned long zs_malloc(struct zs_pool *pool, size_t size);
+diff -puN mm/zbud.c~mm-zpool-add-name-argument-to-create-zpool mm/zbud.c
+--- a/mm/zbud.c~mm-zpool-add-name-argument-to-create-zpool
++++ a/mm/zbud.c
+@@ -130,7 +130,8 @@ static struct zbud_ops zbud_zpool_ops =
+ 	.evict =	zbud_zpool_evict
+ };
+ 
+-static void *zbud_zpool_create(gfp_t gfp, struct zpool_ops *zpool_ops)
++static void *zbud_zpool_create(char *name, gfp_t gfp,
++			struct zpool_ops *zpool_ops)
+ {
+ 	return zbud_create_pool(gfp, zpool_ops ? &zbud_zpool_ops : NULL);
+ }
+diff -puN mm/zpool.c~mm-zpool-add-name-argument-to-create-zpool mm/zpool.c
+--- a/mm/zpool.c~mm-zpool-add-name-argument-to-create-zpool
++++ a/mm/zpool.c
+@@ -129,6 +129,7 @@ static void zpool_put_driver(struct zpoo
+ /**
+  * zpool_create_pool() - Create a new zpool
+  * @type	The type of the zpool to create (e.g. zbud, zsmalloc)
++ * @name	The name of the zpool (e.g. zram0, zswap)
+  * @gfp		The GFP flags to use when allocating the pool.
+  * @ops		The optional ops callback.
+  *
+@@ -140,7 +141,8 @@ static void zpool_put_driver(struct zpoo
+  *
+  * Returns: New zpool on success, NULL on failure.
+  */
+-struct zpool *zpool_create_pool(char *type, gfp_t gfp, struct zpool_ops *ops)
++struct zpool *zpool_create_pool(char *type, char *name, gfp_t gfp,
++		struct zpool_ops *ops)
+ {
+ 	struct zpool_driver *driver;
+ 	struct zpool *zpool;
+@@ -168,7 +170,7 @@ struct zpool *zpool_create_pool(char *ty
+ 
+ 	zpool->type = driver->type;
+ 	zpool->driver = driver;
+-	zpool->pool = driver->create(gfp, ops);
++	zpool->pool = driver->create(name, gfp, ops);
+ 	zpool->ops = ops;
+ 
+ 	if (!zpool->pool) {
+diff -puN mm/zsmalloc.c~mm-zpool-add-name-argument-to-create-zpool mm/zsmalloc.c
+--- a/mm/zsmalloc.c~mm-zpool-add-name-argument-to-create-zpool
++++ a/mm/zsmalloc.c
+@@ -246,9 +246,9 @@ struct mapping_area {
+ 
+ #ifdef CONFIG_ZPOOL
+ 
+-static void *zs_zpool_create(gfp_t gfp, struct zpool_ops *zpool_ops)
++static void *zs_zpool_create(char *name, gfp_t gfp, struct zpool_ops *zpool_ops)
+ {
+-	return zs_create_pool(gfp);
++	return zs_create_pool(name, gfp);
+ }
+ 
+ static void zs_zpool_destroy(void *pool)
+@@ -1148,7 +1148,7 @@ EXPORT_SYMBOL_GPL(zs_free);
+  * On success, a pointer to the newly created pool is returned,
+  * otherwise NULL.
+  */
+-struct zs_pool *zs_create_pool(gfp_t flags)
++struct zs_pool *zs_create_pool(char *name, gfp_t flags)
+ {
+ 	int i;
+ 	struct zs_pool *pool;
+diff -puN mm/zswap.c~mm-zpool-add-name-argument-to-create-zpool mm/zswap.c
+--- a/mm/zswap.c~mm-zpool-add-name-argument-to-create-zpool
++++ a/mm/zswap.c
+@@ -906,11 +906,12 @@ static int __init init_zswap(void)
+ 
+ 	pr_info("loading zswap\n");
+ 
+-	zswap_pool = zpool_create_pool(zswap_zpool_type, gfp, &zswap_zpool_ops);
++	zswap_pool = zpool_create_pool(zswap_zpool_type, "zswap", gfp,
++					&zswap_zpool_ops);
+ 	if (!zswap_pool && strcmp(zswap_zpool_type, ZSWAP_ZPOOL_DEFAULT)) {
+ 		pr_info("%s zpool not available\n", zswap_zpool_type);
+ 		zswap_zpool_type = ZSWAP_ZPOOL_DEFAULT;
+-		zswap_pool = zpool_create_pool(zswap_zpool_type, gfp,
++		zswap_pool = zpool_create_pool(zswap_zpool_type, "zswap", gfp,
+ 					&zswap_zpool_ops);
+ 	}
+ 	if (!zswap_pool) {
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from opensource.ganesh@gmail.com are
 
-mm-prevent-endless-growth-of-anon_vma-hierarchy.patch
-memcg-fix-destination-cgroup-leak-on-task-charges-migration.patch
-mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath.patch
-mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath-update.patch
-mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath-fix.patch
-memcg-zap-__memcg_chargeuncharge_slab.patch
-memcg-zap-memcg_name-argument-of-memcg_create_kmem_cache.patch
-memcg-zap-memcg_slab_caches-and-memcg_slab_mutex.patch
-mm-get-rid-of-radix-tree-gfp-mask-for-pagecache_get_page-was-re-how-to-handle-tif_memdie-stalls.patch
-oom-dont-count-on-mm-less-current-process.patch
-oom-make-sure-that-tif_memdie-is-set-under-task_lock.patch
-mm-page_isolation-check-pfn-validity-before-access.patch
-mm-support-madvisemadv_free.patch
-mm-dont-split-thp-page-when-syscall-is-called.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-2.patch
+mm-zpool-add-name-argument-to-create-zpool.patch
+mm-zsmalloc-add-statistics-support.patch
 
