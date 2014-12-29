@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + hexdump-makes-it-return-amount-of-bytes-placed-in-buffer.patch
- added to -mm tree
-Date: Mon, 29 Dec 2014 14:15:58 -0800
-Message-ID: <54a1d29e.SR0pL5t3umM809g7%akpm@linux-foundation.org>
+Subject: + hexdump-fix-ascii-column-for-the-tail-of-a-dump.patch added to
+ -mm tree
+Date: Mon, 29 Dec 2014 14:15:54 -0800
+Message-ID: <54a1d29a.07OiIpN3QIHmljO0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56275 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56271 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751529AbaL2WP7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Dec 2014 17:15:59 -0500
+	with ESMTP id S1751529AbaL2WPz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Dec 2014 17:15:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: andriy.shevchenko@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hexdump: makes it return number of bytes placed in buffer
+     Subject: hexdump: fix ascii column for the tail of a dump
 has been added to the -mm tree.  Its filename is
-     hexdump-makes-it-return-amount-of-bytes-placed-in-buffer.patch
+     hexdump-fix-ascii-column-for-the-tail-of-a-dump.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hexdump-makes-it-return-amount-of-bytes-placed-in-buffer.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/hexdump-fix-ascii-column-for-the-tail-of-a-dump.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hexdump-makes-it-return-amount-of-bytes-placed-in-buffer.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/hexdump-fix-ascii-column-for-the-tail-of-a-dump.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,226 +40,63 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: hexdump: makes it return number of bytes placed in buffer
+Subject: hexdump: fix ascii column for the tail of a dump
 
-This patch makes hexdump return the number of bytes placed in the buffer
-excluding trailing NUL.  In the case of overflow it returns the desired
-amount of bytes to produce the entire dump.  Thus, it mimics snprintf().
+In the current implementation we have a floating ascii column in the tail
+of the dump.
 
-This will be useful for users that would like to repeat with a bigger
-buffer.
+For example, for row size equal to 16 the ascii column as in following
+table
+
+group size \ length	8	12	16
+	1		50	50	50
+	2		22	32	42
+	4		20	29	38
+	8		19	-	36
+
+This patch makes it the same independently of amount of bytes dumped.
+
+The change is safe since all current users, which use ASCII part of the
+dump, rely on the group size equal to 1.  The patch doesn't change
+behaviour for such group size (see the table above).
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/printk.h |    6 +--
- lib/hexdump.c          |   73 +++++++++++++++++++++++++++++----------
- lib/test-hexdump.c     |   45 ++++++++++++++++++++++++
- 3 files changed, 103 insertions(+), 21 deletions(-)
+ lib/hexdump.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/printk.h~hexdump-makes-it-return-amount-of-bytes-placed-in-buffer include/linux/printk.h
---- a/include/linux/printk.h~hexdump-makes-it-return-amount-of-bytes-placed-in-buffer
-+++ a/include/linux/printk.h
-@@ -408,9 +408,9 @@ enum {
- 	DUMP_PREFIX_ADDRESS,
- 	DUMP_PREFIX_OFFSET
- };
--extern void hex_dump_to_buffer(const void *buf, size_t len,
--			       int rowsize, int groupsize,
--			       char *linebuf, size_t linebuflen, bool ascii);
-+extern int hex_dump_to_buffer(const void *buf, size_t len, int rowsize,
-+			      int groupsize, char *linebuf, size_t linebuflen,
-+			      bool ascii);
- #ifdef CONFIG_PRINTK
- extern void print_hex_dump(const char *level, const char *prefix_str,
- 			   int prefix_type, int rowsize, int groupsize,
-diff -puN lib/hexdump.c~hexdump-makes-it-return-amount-of-bytes-placed-in-buffer lib/hexdump.c
---- a/lib/hexdump.c~hexdump-makes-it-return-amount-of-bytes-placed-in-buffer
+diff -puN lib/hexdump.c~hexdump-fix-ascii-column-for-the-tail-of-a-dump lib/hexdump.c
+--- a/lib/hexdump.c~hexdump-fix-ascii-column-for-the-tail-of-a-dump
 +++ a/lib/hexdump.c
-@@ -97,22 +97,26 @@ EXPORT_SYMBOL(bin2hex);
-  *
-  * example output buffer:
-  * 40 41 42 43 44 45 46 47 48 49 4a 4b 4c 4d 4e 4f  @ABCDEFGHIJKLMNO
-+ *
-+ * Return:
-+ * The amount of bytes placed in the buffer without terminating NUL. If the
-+ * output was truncated, then the return value is the number of bytes
-+ * (excluding the terminating NUL) which would have been written to the final
-+ * string if enough space had been available.
-  */
--void hex_dump_to_buffer(const void *buf, size_t len, int rowsize,
--			int groupsize, char *linebuf, size_t linebuflen,
--			bool ascii)
-+int hex_dump_to_buffer(const void *buf, size_t len, int rowsize, int groupsize,
-+		       char *linebuf, size_t linebuflen, bool ascii)
- {
- 	const u8 *ptr = buf;
- 	int ngroups;
- 	u8 ch;
- 	int j, lx = 0;
- 	int ascii_column;
-+	int ret;
- 
- 	if (rowsize != 16 && rowsize != 32)
- 		rowsize = 16;
- 
--	if (!len)
--		goto nil;
- 	if (len > rowsize)		/* limit to one line at a time */
- 		len = rowsize;
- 	if (!is_power_of_2(groupsize) || groupsize > 8)
-@@ -122,27 +126,50 @@ void hex_dump_to_buffer(const void *buf,
- 
- 	ngroups = len / groupsize;
- 	ascii_column = rowsize * 2 + rowsize / groupsize + 1;
-+
-+	if (!linebuflen)
-+		goto overflow1;
-+
-+	if (!len)
-+		goto nil;
-+
- 	if (groupsize == 8) {
- 		const u64 *ptr8 = buf;
- 
--		for (j = 0; j < ngroups; j++)
--			lx += scnprintf(linebuf + lx, linebuflen - lx,
--					"%s%16.16llx", j ? " " : "",
--					(unsigned long long)*(ptr8 + j));
-+		for (j = 0; j < ngroups; j++) {
-+			ret = snprintf(linebuf + lx, linebuflen - lx,
-+				       "%s%16.16llx", j ? " " : "",
-+				       (unsigned long long)*(ptr8 + j));
-+			if (ret >= linebuflen - lx)
-+				goto overflow1;
-+			lx += ret;
-+		}
- 	} else if (groupsize == 4) {
- 		const u32 *ptr4 = buf;
- 
--		for (j = 0; j < ngroups; j++)
--			lx += scnprintf(linebuf + lx, linebuflen - lx,
--					"%s%8.8x", j ? " " : "", *(ptr4 + j));
-+		for (j = 0; j < ngroups; j++) {
-+			ret = snprintf(linebuf + lx, linebuflen - lx,
-+				       "%s%8.8x", j ? " " : "",
-+				       *(ptr4 + j));
-+			if (ret >= linebuflen - lx)
-+				goto overflow1;
-+			lx += ret;
-+		}
- 	} else if (groupsize == 2) {
- 		const u16 *ptr2 = buf;
- 
--		for (j = 0; j < ngroups; j++)
--			lx += scnprintf(linebuf + lx, linebuflen - lx,
--					"%s%4.4x", j ? " " : "", *(ptr2 + j));
-+		for (j = 0; j < ngroups; j++) {
-+			ret = snprintf(linebuf + lx, linebuflen - lx,
-+				       "%s%4.4x", j ? " " : "",
-+				       *(ptr2 + j));
-+			if (ret >= linebuflen - lx)
-+				goto overflow1;
-+			lx += ret;
-+		}
- 	} else {
--		for (j = 0; (j < len) && (lx + 3) <= linebuflen; j++) {
-+		for (j = 0; j < len; j++) {
-+			if (linebuflen < lx + 3)
-+				goto overflow2;
- 			ch = ptr[j];
- 			linebuf[lx++] = hex_asc_hi(ch);
- 			linebuf[lx++] = hex_asc_lo(ch);
-@@ -154,14 +181,24 @@ void hex_dump_to_buffer(const void *buf,
- 	if (!ascii)
- 		goto nil;
- 
--	while (lx < (linebuflen - 1) && lx < ascii_column)
-+	while (lx < ascii_column) {
-+		if (linebuflen < lx + 2)
-+			goto overflow2;
- 		linebuf[lx++] = ' ';
--	for (j = 0; (j < len) && (lx + 2) < linebuflen; j++) {
-+	}
-+	for (j = 0; j < len; j++) {
-+		if (linebuflen < lx + 2)
-+			goto overflow2;
- 		ch = ptr[j];
- 		linebuf[lx++] = (isascii(ch) && isprint(ch)) ? ch : '.';
+@@ -126,7 +126,7 @@ void hex_dump_to_buffer(const void *buf,
+ 			lx += scnprintf(linebuf + lx, linebuflen - lx,
+ 					"%s%16.16llx", j ? " " : "",
+ 					(unsigned long long)*(ptr8 + j));
+-		ascii_column = 17 * ngroups + 2;
++		ascii_column = rowsize * 2 + rowsize / 8 + 2;
+ 		break;
  	}
- nil:
-+	linebuf[lx] = '\0';
-+	return lx;
-+overflow2:
- 	linebuf[lx++] = '\0';
-+overflow1:
-+	return ascii ? ascii_column + len : (groupsize * 2 + 1) * ngroups - 1;
- }
- EXPORT_SYMBOL(hex_dump_to_buffer);
  
-diff -puN lib/test-hexdump.c~hexdump-makes-it-return-amount-of-bytes-placed-in-buffer lib/test-hexdump.c
---- a/lib/test-hexdump.c~hexdump-makes-it-return-amount-of-bytes-placed-in-buffer
-+++ a/lib/test-hexdump.c
-@@ -114,6 +114,45 @@ static void __init test_hexdump_set(int
- 	test_hexdump(len, rowsize, 1, ascii);
- }
+@@ -137,7 +137,7 @@ void hex_dump_to_buffer(const void *buf,
+ 		for (j = 0; j < ngroups; j++)
+ 			lx += scnprintf(linebuf + lx, linebuflen - lx,
+ 					"%s%8.8x", j ? " " : "", *(ptr4 + j));
+-		ascii_column = 9 * ngroups + 2;
++		ascii_column = rowsize * 2 + rowsize / 4 + 2;
+ 		break;
+ 	}
  
-+static void __init test_hexdump_overflow(bool ascii)
-+{
-+	char buf[56];
-+	const char *t = test_data_1_le[0];
-+	size_t l = get_random_int() % sizeof(buf);
-+	bool a;
-+	int e, r;
-+
-+	memset(buf, ' ', sizeof(buf));
-+
-+	r = hex_dump_to_buffer(data_b, 1, 16, 1, buf, l, ascii);
-+
-+	if (ascii)
-+		e = 50;
-+	else
-+		e = 2;
-+	buf[e + 2] = '\0';
-+
-+	if (!l) {
-+		a = r == e && buf[0] == ' ';
-+	} else if (l < 3) {
-+		a = r == e && buf[0] == '\0';
-+	} else if (l < 4) {
-+		a = r == e && !strcmp(buf, t);
-+	} else if (ascii) {
-+		if (l < 51)
-+			a = r == e && buf[l - 1] == '\0' && buf[l - 2] == ' ';
-+		else
-+			a = r == e && buf[50] == '\0' && buf[49] == '.';
-+	} else {
-+		a = r == e && buf[e] == '\0';
-+	}
-+
-+	if (!a) {
-+		pr_err("Len: %zu rc: %zu strlen: %zu\n", l, r, strlen(buf));
-+		pr_err("Result: '%s'\n", buf);
-+	}
-+}
-+
- static int __init test_hexdump_init(void)
- {
- 	unsigned int i;
-@@ -129,6 +168,12 @@ static int __init test_hexdump_init(void
- 	for (i = 0; i < 16; i++)
- 		test_hexdump_set(rowsize, true);
+@@ -148,7 +148,7 @@ void hex_dump_to_buffer(const void *buf,
+ 		for (j = 0; j < ngroups; j++)
+ 			lx += scnprintf(linebuf + lx, linebuflen - lx,
+ 					"%s%4.4x", j ? " " : "", *(ptr2 + j));
+-		ascii_column = 5 * ngroups + 2;
++		ascii_column = rowsize * 2 + rowsize / 2 + 2;
+ 		break;
+ 	}
  
-+	for (i = 0; i < 16; i++)
-+		test_hexdump_overflow(false);
-+
-+	for (i = 0; i < 16; i++)
-+		test_hexdump_overflow(true);
-+
- 	return -EINVAL;
- }
- module_init(test_hexdump_init);
 _
 
 Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
