@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + lib-list_sortc-rearrange-includes.patch added to -mm tree
-Date: Fri, 02 Jan 2015 14:56:33 -0800
-Message-ID: <54a72221.+IvcLsBsojnh2t4u%akpm@linux-foundation.org>
+Subject: + lib-genallocc-remove-redundant-include.patch added to -mm tree
+Date: Fri, 02 Jan 2015 14:56:31 -0800
+Message-ID: <54a7221f.cDlwp7JnYz1rFi8o%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34123 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34121 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752309AbbABW4e (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jan 2015 17:56:34 -0500
+	with ESMTP id S1752309AbbABW4c (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jan 2015 17:56:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/list_sort.c: rearrange includes
+     Subject: lib/genalloc.c: remove redundant include
 has been added to the -mm tree.  Its filename is
-     lib-list_sortc-rearrange-includes.patch
+     lib-genallocc-remove-redundant-include.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-list_sortc-rearrange-includes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-genallocc-remove-redundant-include.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-list_sortc-rearrange-includes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-genallocc-remove-redundant-include.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,57 +39,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/list_sort.c: rearrange includes
+Subject: lib/genalloc.c: remove redundant include
 
-Memory allocation only happens in the self test, just as random numbers
-are only used there.  So move the inclusion of slab.h inside the
-CONFIG_TEST_LIST_SORT.
-
-We don't need module.h and all of the stuff it carries with it, so replace
-with export.h and compiler.h.  Unfortunately, the ARRAY_SIZE macro from
-kernel.h requires the user to ensure bug.h is also included (for
-BUILD_BUG_ON_ZERO, used by __must_be_array).  We used to get that through
-some maze of nested includes, but just include it explicitly.
-
-linux/string.h is then only included implicitly through
-kernel.h->printk.h->dynamic_debug.h, but only if !CONFIG_DYNAMIC_DEBUG, so
-just include it explicitly (for memset).
-
-objdump -d says the generated code is the same, and wc -l says that
-lib/.list_sort.o.cmd went from 579 to 165 lines.
+Removing this include produces byte-identical output, and thus removes a
+false dependency.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/list_sort.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ lib/genalloc.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN lib/list_sort.c~lib-list_sortc-rearrange-includes lib/list_sort.c
---- a/lib/list_sort.c~lib-list_sortc-rearrange-includes
-+++ a/lib/list_sort.c
-@@ -2,9 +2,11 @@
- #define pr_fmt(fmt) "list_sort_test: " fmt
+diff -puN lib/genalloc.c~lib-genallocc-remove-redundant-include lib/genalloc.c
+--- a/lib/genalloc.c~lib-genallocc-remove-redundant-include
++++ a/lib/genalloc.c
+@@ -34,7 +34,6 @@
+ #include <linux/rculist.h>
+ #include <linux/interrupt.h>
+ #include <linux/genalloc.h>
+-#include <linux/of_address.h>
+ #include <linux/of_device.h>
  
- #include <linux/kernel.h>
--#include <linux/module.h>
-+#include <linux/bug.h>
-+#include <linux/compiler.h>
-+#include <linux/export.h>
-+#include <linux/string.h>
- #include <linux/list_sort.h>
--#include <linux/slab.h>
- #include <linux/list.h>
- 
- #define MAX_LIST_LENGTH_BITS 20
-@@ -146,6 +148,7 @@ EXPORT_SYMBOL(list_sort);
- 
- #ifdef CONFIG_TEST_LIST_SORT
- 
-+#include <linux/slab.h>
- #include <linux/random.h>
- 
- /*
+ static inline size_t chunk_size(const struct gen_pool_chunk *chunk)
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
