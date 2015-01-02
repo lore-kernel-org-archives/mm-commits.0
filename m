@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + lib-sortc-move-include-inside-if-0.patch added to -mm tree
-Date: Fri, 02 Jan 2015 14:56:49 -0800
-Message-ID: <54a72231.7QGprJakprhfO4Ws%akpm@linux-foundation.org>
+Subject: + lib-percpu_idac-remove-redundant-includes.patch added to -mm
+ tree
+Date: Fri, 02 Jan 2015 14:56:55 -0800
+Message-ID: <54a72237.pGBo05vokwjA8q5G%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34139 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34145 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752524AbbABW4u (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jan 2015 17:56:50 -0500
+	with ESMTP id S1752524AbbABW44 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jan 2015 17:56:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/sort.c: move include inside #if 0
+     Subject: lib/percpu_ida.c: remove redundant includes
 has been added to the -mm tree.  Its filename is
-     lib-sortc-move-include-inside-if-0.patch
+     lib-percpu_idac-remove-redundant-includes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-sortc-move-include-inside-if-0.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-percpu_idac-remove-redundant-includes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-sortc-move-include-inside-if-0.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-percpu_idac-remove-redundant-includes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,39 +40,38 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/sort.c: move include inside #if 0
+Subject: lib/percpu_ida.c: remove redundant includes
 
-The sort function and its helpers don't do memory allocation, so the
-slab.h include is redundant.  Move it inside the #if 0 protecting the
-self-test, similar to how it is done in lib/list_sort.c.  This removes
-over 450 lines from the generated dependency file.
+These three #includes seem to be completely redundant: Removing them
+yields identical objdump -d output for each of {allyes,allno,def}config,
+and neither included file end up in the generated dependency file through
+some recursive include.  In total, about 50 lines are eliminated from
+.percpu.o.cmd.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/sort.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/percpu_ida.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN lib/sort.c~lib-sortc-move-include-inside-if-0 lib/sort.c
---- a/lib/sort.c~lib-sortc-move-include-inside-if-0
-+++ a/lib/sort.c
-@@ -7,7 +7,6 @@
- #include <linux/types.h>
+diff -puN lib/percpu_ida.c~lib-percpu_idac-remove-redundant-includes lib/percpu_ida.c
+--- a/lib/percpu_ida.c~lib-percpu_idac-remove-redundant-includes
++++ a/lib/percpu_ida.c
+@@ -19,13 +19,10 @@
+ #include <linux/bug.h>
+ #include <linux/err.h>
  #include <linux/export.h>
- #include <linux/sort.h>
+-#include <linux/hardirq.h>
+-#include <linux/idr.h>
+ #include <linux/init.h>
+ #include <linux/kernel.h>
+ #include <linux/percpu.h>
+ #include <linux/sched.h>
 -#include <linux/slab.h>
- 
- static void u32_swap(void *a, void *b, int size)
- {
-@@ -85,6 +84,7 @@ void sort(void *base, size_t num, size_t
- EXPORT_SYMBOL(sort);
- 
- #if 0
-+#include <linux/slab.h>
- /* a simple boot-time regression test */
- 
- int cmpint(const void *a, const void *b)
+ #include <linux/string.h>
+ #include <linux/spinlock.h>
+ #include <linux/percpu_ida.h>
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
