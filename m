@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + lib-llistc-remove-redundant-include.patch added to -mm tree
-Date: Fri, 02 Jan 2015 14:56:37 -0800
-Message-ID: <54a72225.N1ywNMgX3ZkFgJzm%akpm@linux-foundation.org>
+Subject: + lib-radix-treec-change-to-simpler-include.patch added to -mm
+ tree
+Date: Fri, 02 Jan 2015 14:56:45 -0800
+Message-ID: <54a7222d.hG/xCGWnwQUpfI/2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34127 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34135 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752524AbbABW4i (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jan 2015 17:56:38 -0500
+	with ESMTP id S1752524AbbABW4q (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jan 2015 17:56:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/llist.c: remove redundant include
+     Subject: lib/radix-tree.c: change to simpler include
 has been added to the -mm tree.  Its filename is
-     lib-llistc-remove-redundant-include.patch
+     lib-radix-treec-change-to-simpler-include.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-llistc-remove-redundant-include.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-radix-treec-change-to-simpler-include.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-llistc-remove-redundant-include.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-radix-treec-change-to-simpler-include.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,30 +40,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/llist.c: remove redundant include
+Subject: lib/radix-tree.c: change to simpler include
 
-This file doesn't seem to use anything provided by linux/interrupt.h or
-anything recursively included through that.  Removing it produces
-byte-identical output, while reducing .llist.o.cmd from 541 to 156 lines.
+The comment helpfully explains why hardirq.h is included, but since
+2d4b84739f0a ("hardirq: Split preempt count mask definitions")
+in_interrupt() has been provided by preempt_mask.h.  Use that instead,
+saving around 40 lines in the generated dependency file.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/llist.c |    1 -
- 1 file changed, 1 deletion(-)
+ lib/radix-tree.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/llist.c~lib-llistc-remove-redundant-include lib/llist.c
---- a/lib/llist.c~lib-llistc-remove-redundant-include
-+++ a/lib/llist.c
-@@ -24,7 +24,6 @@
-  */
- #include <linux/kernel.h>
- #include <linux/export.h>
--#include <linux/interrupt.h>
- #include <linux/llist.h>
+diff -puN lib/radix-tree.c~lib-radix-treec-change-to-simpler-include lib/radix-tree.c
+--- a/lib/radix-tree.c~lib-radix-treec-change-to-simpler-include
++++ a/lib/radix-tree.c
+@@ -33,7 +33,7 @@
+ #include <linux/string.h>
+ #include <linux/bitops.h>
+ #include <linux/rcupdate.h>
+-#include <linux/hardirq.h>		/* in_interrupt() */
++#include <linux/preempt_mask.h>		/* in_interrupt() */
  
  
+ /*
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
