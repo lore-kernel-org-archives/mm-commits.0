@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + lib-plistc-remove-redundant-include.patch added to -mm tree
-Date: Fri, 02 Jan 2015 14:56:43 -0800
-Message-ID: <54a7222b.1AreTyEXYF1ZI3r1%akpm@linux-foundation.org>
+Subject: + lib-nlattrc-remove-redundant-include.patch added to -mm tree
+Date: Fri, 02 Jan 2015 14:56:41 -0800
+Message-ID: <54a72229.GGNI9uOzpBCkvN7a%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34133 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34131 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752524AbbABW4o (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jan 2015 17:56:44 -0500
+	with ESMTP id S1752558AbbABW4n (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jan 2015 17:56:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/plist.c: remove redundant include
+     Subject: lib/nlattr.c: remove redundant include
 has been added to the -mm tree.  Its filename is
-     lib-plistc-remove-redundant-include.patch
+     lib-nlattrc-remove-redundant-include.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-plistc-remove-redundant-include.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-nlattrc-remove-redundant-include.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-plistc-remove-redundant-include.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-nlattrc-remove-redundant-include.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,31 +39,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/plist.c: remove redundant include
+Subject: lib/nlattr.c: remove redundant include
 
-Removing the include of linux/spinlock.h produces byte-identical output
-for {allno,def}config, and identical objdump -d output for allyesconfig. 
-In the former two cases, more than a 100 lines are eliminated from the
-generated dependency file.
+nlattr.c doesn't seem to rely on anything from netdevice.h.  Removing it
+yields identical objdump -d output for each of {allyes,allno,def}config,
+and eliminates more than 200 lines from the generated dependency file.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/plist.c |    1 -
+ lib/nlattr.c |    1 -
  1 file changed, 1 deletion(-)
 
-diff -puN lib/plist.c~lib-plistc-remove-redundant-include lib/plist.c
---- a/lib/plist.c~lib-plistc-remove-redundant-include
-+++ a/lib/plist.c
-@@ -25,7 +25,6 @@
- 
- #include <linux/bug.h>
- #include <linux/plist.h>
--#include <linux/spinlock.h>
- 
- #ifdef CONFIG_DEBUG_PI_LIST
- 
+diff -puN lib/nlattr.c~lib-nlattrc-remove-redundant-include lib/nlattr.c
+--- a/lib/nlattr.c~lib-nlattrc-remove-redundant-include
++++ a/lib/nlattr.c
+@@ -9,7 +9,6 @@
+ #include <linux/kernel.h>
+ #include <linux/errno.h>
+ #include <linux/jiffies.h>
+-#include <linux/netdevice.h>
+ #include <linux/skbuff.h>
+ #include <linux/string.h>
+ #include <linux/types.h>
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
