@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + lib-kobject_ueventc-remove-redundant-include.patch added to -mm tree
-Date: Fri, 02 Jan 2015 14:56:39 -0800
-Message-ID: <54a72227.op8p2toiVfq1en2G%akpm@linux-foundation.org>
+Subject: + lib-llistc-remove-redundant-include.patch added to -mm tree
+Date: Fri, 02 Jan 2015 14:56:37 -0800
+Message-ID: <54a72225.N1ywNMgX3ZkFgJzm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34129 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34127 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752309AbbABW4k (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jan 2015 17:56:40 -0500
+	with ESMTP id S1752524AbbABW4i (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jan 2015 17:56:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/kobject_uevent.c: remove redundant include
+     Subject: lib/llist.c: remove redundant include
 has been added to the -mm tree.  Its filename is
-     lib-kobject_ueventc-remove-redundant-include.patch
+     lib-llistc-remove-redundant-include.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-kobject_ueventc-remove-redundant-include.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-llistc-remove-redundant-include.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-kobject_ueventc-remove-redundant-include.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-llistc-remove-redundant-include.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,30 +39,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/kobject_uevent.c: remove redundant include
+Subject: lib/llist.c: remove redundant include
 
-The file doesn't seem to use anything from linux/user_namespace.h, and
-removing it yields byte-identical object code and strictly fewer
-dependencies in the .cmd file.
+This file doesn't seem to use anything provided by linux/interrupt.h or
+anything recursively included through that.  Removing it produces
+byte-identical output, while reducing .llist.o.cmd from 541 to 156 lines.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/kobject_uevent.c |    1 -
+ lib/llist.c |    1 -
  1 file changed, 1 deletion(-)
 
-diff -puN lib/kobject_uevent.c~lib-kobject_ueventc-remove-redundant-include lib/kobject_uevent.c
---- a/lib/kobject_uevent.c~lib-kobject_ueventc-remove-redundant-include
-+++ a/lib/kobject_uevent.c
-@@ -20,7 +20,6 @@
+diff -puN lib/llist.c~lib-llistc-remove-redundant-include lib/llist.c
+--- a/lib/llist.c~lib-llistc-remove-redundant-include
++++ a/lib/llist.c
+@@ -24,7 +24,6 @@
+  */
+ #include <linux/kernel.h>
  #include <linux/export.h>
- #include <linux/kmod.h>
- #include <linux/slab.h>
--#include <linux/user_namespace.h>
- #include <linux/socket.h>
- #include <linux/skbuff.h>
- #include <linux/netlink.h>
+-#include <linux/interrupt.h>
+ #include <linux/llist.h>
+ 
+ 
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
