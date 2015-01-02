@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + lib-percpu_idac-remove-redundant-includes.patch added to -mm
- tree
-Date: Fri, 02 Jan 2015 14:56:55 -0800
-Message-ID: <54a72237.pGBo05vokwjA8q5G%akpm@linux-foundation.org>
+Subject: + lib-strncpy_from_userc-replace-moduleh-include.patch added to
+ -mm tree
+Date: Fri, 02 Jan 2015 14:56:53 -0800
+Message-ID: <54a72235.pN1/uJ4UTggd3Yy+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34145 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34143 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752524AbbABW44 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jan 2015 17:56:56 -0500
+	with ESMTP id S1752524AbbABW4y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jan 2015 17:56:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/percpu_ida.c: remove redundant includes
+     Subject: lib/strncpy_from_user.c: replace module.h include
 has been added to the -mm tree.  Its filename is
-     lib-percpu_idac-remove-redundant-includes.patch
+     lib-strncpy_from_userc-replace-moduleh-include.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-percpu_idac-remove-redundant-includes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-strncpy_from_userc-replace-moduleh-include.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-percpu_idac-remove-redundant-includes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-strncpy_from_userc-replace-moduleh-include.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,38 +40,28 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/percpu_ida.c: remove redundant includes
+Subject: lib/strncpy_from_user.c: replace module.h include
 
-These three #includes seem to be completely redundant: Removing them
-yields identical objdump -d output for each of {allyes,allno,def}config,
-and neither included file end up in the generated dependency file through
-some recursive include.  In total, about 50 lines are eliminated from
-.percpu.o.cmd.
+strncpy_from_user.c only needs EXPORT_SYMBOL, so just include compiler.h
+and export.h instead of the whole module.h machinery.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/percpu_ida.c |    3 ---
- 1 file changed, 3 deletions(-)
+ lib/strncpy_from_user.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN lib/percpu_ida.c~lib-percpu_idac-remove-redundant-includes lib/percpu_ida.c
---- a/lib/percpu_ida.c~lib-percpu_idac-remove-redundant-includes
-+++ a/lib/percpu_ida.c
-@@ -19,13 +19,10 @@
- #include <linux/bug.h>
- #include <linux/err.h>
- #include <linux/export.h>
--#include <linux/hardirq.h>
--#include <linux/idr.h>
- #include <linux/init.h>
+diff -puN lib/strncpy_from_user.c~lib-strncpy_from_userc-replace-moduleh-include lib/strncpy_from_user.c
+--- a/lib/strncpy_from_user.c~lib-strncpy_from_userc-replace-moduleh-include
++++ a/lib/strncpy_from_user.c
+@@ -1,4 +1,5 @@
+-#include <linux/module.h>
++#include <linux/compiler.h>
++#include <linux/export.h>
+ #include <linux/uaccess.h>
  #include <linux/kernel.h>
- #include <linux/percpu.h>
- #include <linux/sched.h>
--#include <linux/slab.h>
- #include <linux/string.h>
- #include <linux/spinlock.h>
- #include <linux/percpu_ida.h>
+ #include <linux/errno.h>
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
