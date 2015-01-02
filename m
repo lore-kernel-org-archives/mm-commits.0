@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + lib-strncpy_from_userc-replace-moduleh-include.patch added to
- -mm tree
-Date: Fri, 02 Jan 2015 14:56:53 -0800
-Message-ID: <54a72235.pN1/uJ4UTggd3Yy+%akpm@linux-foundation.org>
+Subject: + lib-lcmc-replace-include.patch added to -mm tree
+Date: Fri, 02 Jan 2015 14:56:57 -0800
+Message-ID: <54a72239.JQo+yKDP2HEK844M%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34143 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34147 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752524AbbABW4y (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jan 2015 17:56:54 -0500
+	with ESMTP id S1752524AbbABW46 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jan 2015 17:56:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/strncpy_from_user.c: replace module.h include
+     Subject: lib/lcm.c: replace include
 has been added to the -mm tree.  Its filename is
-     lib-strncpy_from_userc-replace-moduleh-include.patch
+     lib-lcmc-replace-include.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-strncpy_from_userc-replace-moduleh-include.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-lcmc-replace-include.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-strncpy_from_userc-replace-moduleh-include.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-lcmc-replace-include.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,28 +39,28 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/strncpy_from_user.c: replace module.h include
+Subject: lib/lcm.c: replace include
 
-strncpy_from_user.c only needs EXPORT_SYMBOL, so just include compiler.h
-and export.h instead of the whole module.h machinery.
+We don't need all the stuff kernel.h pulls in; just compiler.h since
+export.h doesn't do necessary #includes.  This removes more than 100
+dependencies.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/strncpy_from_user.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ lib/lcm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/strncpy_from_user.c~lib-strncpy_from_userc-replace-moduleh-include lib/strncpy_from_user.c
---- a/lib/strncpy_from_user.c~lib-strncpy_from_userc-replace-moduleh-include
-+++ a/lib/strncpy_from_user.c
-@@ -1,4 +1,5 @@
--#include <linux/module.h>
+diff -puN lib/lcm.c~lib-lcmc-replace-include lib/lcm.c
+--- a/lib/lcm.c~lib-lcmc-replace-include
++++ a/lib/lcm.c
+@@ -1,4 +1,4 @@
+-#include <linux/kernel.h>
 +#include <linux/compiler.h>
-+#include <linux/export.h>
- #include <linux/uaccess.h>
- #include <linux/kernel.h>
- #include <linux/errno.h>
+ #include <linux/gcd.h>
+ #include <linux/export.h>
+ #include <linux/lcm.h>
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
