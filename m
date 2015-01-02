@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + lib-lcmc-replace-include.patch added to -mm tree
-Date: Fri, 02 Jan 2015 14:56:57 -0800
-Message-ID: <54a72239.JQo+yKDP2HEK844M%akpm@linux-foundation.org>
+Subject: + lib-bitmapc-elide-bitmap_copy_le-on-little-endian.patch added
+ to -mm tree
+Date: Fri, 02 Jan 2015 15:16:50 -0800
+Message-ID: <54a726e2.miUzFoSXu1y1NM5Q%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34147 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34248 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752524AbbABW46 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jan 2015 17:56:58 -0500
+	with ESMTP id S1752309AbbABXQv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jan 2015 18:16:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/lcm.c: replace include
+     Subject: lib/bitmap.c: elide bitmap_copy_le on little-endian
 has been added to the -mm tree.  Its filename is
-     lib-lcmc-replace-include.patch
+     lib-bitmapc-elide-bitmap_copy_le-on-little-endian.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-lcmc-replace-include.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-bitmapc-elide-bitmap_copy_le-on-little-endian.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-lcmc-replace-include.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-bitmapc-elide-bitmap_copy_le-on-little-endian.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,28 +40,50 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/lcm.c: replace include
+Subject: lib/bitmap.c: elide bitmap_copy_le on little-endian
 
-We don't need all the stuff kernel.h pulls in; just compiler.h since
-export.h doesn't do necessary #includes.  This removes more than 100
-dependencies.
+On little-endian, there's no reason to have an extra, presumably less
+efficient, way of copying a bitmap.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/lcm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/bitmap.h |    4 ++++
+ lib/bitmap.c           |    2 ++
+ 2 files changed, 6 insertions(+)
 
-diff -puN lib/lcm.c~lib-lcmc-replace-include lib/lcm.c
---- a/lib/lcm.c~lib-lcmc-replace-include
-+++ a/lib/lcm.c
-@@ -1,4 +1,4 @@
--#include <linux/kernel.h>
-+#include <linux/compiler.h>
- #include <linux/gcd.h>
- #include <linux/export.h>
- #include <linux/lcm.h>
+diff -puN include/linux/bitmap.h~lib-bitmapc-elide-bitmap_copy_le-on-little-endian include/linux/bitmap.h
+--- a/include/linux/bitmap.h~lib-bitmapc-elide-bitmap_copy_le-on-little-endian
++++ a/include/linux/bitmap.h
+@@ -170,7 +170,11 @@ extern void bitmap_fold(unsigned long *d
+ extern int bitmap_find_free_region(unsigned long *bitmap, unsigned int bits, int order);
+ extern void bitmap_release_region(unsigned long *bitmap, unsigned int pos, int order);
+ extern int bitmap_allocate_region(unsigned long *bitmap, unsigned int pos, int order);
++#ifdef __BIG_ENDIAN
+ extern void bitmap_copy_le(unsigned long *dst, const unsigned long *src, unsigned int nbits);
++#else
++#define bitmap_copy_le bitmap_copy
++#endif
+ extern unsigned int bitmap_ord_to_pos(const unsigned long *bitmap, unsigned int ord, unsigned int nbits);
+ extern int bitmap_print_to_pagebuf(bool list, char *buf,
+ 				   const unsigned long *maskp, int nmaskbits);
+diff -puN lib/bitmap.c~lib-bitmapc-elide-bitmap_copy_le-on-little-endian lib/bitmap.c
+--- a/lib/bitmap.c~lib-bitmapc-elide-bitmap_copy_le-on-little-endian
++++ a/lib/bitmap.c
+@@ -1191,6 +1191,7 @@ EXPORT_SYMBOL(bitmap_allocate_region);
+  *
+  * Require nbits % BITS_PER_LONG == 0.
+  */
++#ifdef __BIG_ENDIAN
+ void bitmap_copy_le(unsigned long *dst, const unsigned long *src, unsigned int nbits)
+ {
+ 	unsigned int i;
+@@ -1203,3 +1204,4 @@ void bitmap_copy_le(unsigned long *dst,
+ 	}
+ }
+ EXPORT_SYMBOL(bitmap_copy_le);
++#endif
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
@@ -97,6 +120,8 @@ lib-stmp_devicec-replace-moduleh-include.patch
 lib-strncpy_from_userc-replace-moduleh-include.patch
 lib-percpu_idac-remove-redundant-includes.patch
 lib-lcmc-replace-include.patch
+lib-bitmapc-change-prototype-of-bitmap_copy_le.patch
+lib-bitmapc-elide-bitmap_copy_le-on-little-endian.patch
 checkpatch-emit-an-error-when-using-predefined-timestamp-macros.patch
 linux-next.patch
 
