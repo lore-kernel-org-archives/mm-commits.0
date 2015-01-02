@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + lib-interval_treec-simplify-includes.patch added to -mm tree
-Date: Fri, 02 Jan 2015 14:56:21 -0800
-Message-ID: <54a72215.8YSAe9wCqgjUDAHQ%akpm@linux-foundation.org>
+Subject: + lib-dynamic_queue_limitsc-simplify-includes.patch added to -mm
+ tree
+Date: Fri, 02 Jan 2015 14:56:25 -0800
+Message-ID: <54a72219.ij2boBc38B8cMjUP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34111 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34115 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752207AbbABW4W (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jan 2015 17:56:22 -0500
+	with ESMTP id S1752309AbbABW40 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jan 2015 17:56:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/interval_tree.c: simplify includes
+     Subject: lib/dynamic_queue_limits.c: simplify includes
 has been added to the -mm tree.  Its filename is
-     lib-interval_treec-simplify-includes.patch
+     lib-dynamic_queue_limitsc-simplify-includes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-interval_treec-simplify-includes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-dynamic_queue_limitsc-simplify-includes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-interval_treec-simplify-includes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-dynamic_queue_limitsc-simplify-includes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,33 +40,38 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/interval_tree.c: simplify includes
+Subject: lib/dynamic_queue_limits.c: simplify includes
 
-The file uses nothing from init.h, and also doesn't need the full module.h
-machinery; export.h is sufficient.  The latter requires the user to ensure
-compiler.h is included, so do that explicitly instead of relying on some
-other header pulling it in.
+The file doesn't use anything from ctype.h.  Instead of module.h, just use
+export.h for EXPORT_SYMBOL.  The latter requires the user to include
+compiler.h, so do that explicitly instead of relying on some other header
+pulling it in.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/interval_tree.c |    4 ++--
+ lib/dynamic_queue_limits.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN lib/interval_tree.c~lib-interval_treec-simplify-includes lib/interval_tree.c
---- a/lib/interval_tree.c~lib-interval_treec-simplify-includes
-+++ a/lib/interval_tree.c
-@@ -1,7 +1,7 @@
--#include <linux/init.h>
- #include <linux/interval_tree.h>
- #include <linux/interval_tree_generic.h>
+diff -puN lib/dynamic_queue_limits.c~lib-dynamic_queue_limitsc-simplify-includes lib/dynamic_queue_limits.c
+--- a/lib/dynamic_queue_limits.c~lib-dynamic_queue_limitsc-simplify-includes
++++ a/lib/dynamic_queue_limits.c
+@@ -3,12 +3,12 @@
+  *
+  * Copyright (c) 2011, Tom Herbert <therbert@google.com>
+  */
 -#include <linux/module.h>
+ #include <linux/types.h>
+-#include <linux/ctype.h>
+ #include <linux/kernel.h>
+ #include <linux/jiffies.h>
+ #include <linux/dynamic_queue_limits.h>
 +#include <linux/compiler.h>
 +#include <linux/export.h>
  
- #define START(node) ((node)->start)
- #define LAST(node)  ((node)->last)
+ #define POSDIFF(A, B) ((int)((A) - (B)) > 0 ? (A) - (B) : 0)
+ #define AFTER_EQ(A, B) ((int)((A) - (B)) >= 0)
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
