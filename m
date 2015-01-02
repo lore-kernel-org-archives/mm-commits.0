@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + lib-halfmd4c-simplify-includes.patch added to -mm tree
-Date: Fri, 02 Jan 2015 14:56:27 -0800
-Message-ID: <54a7221b.o0opNEPHL3ObLDsM%akpm@linux-foundation.org>
+Subject: + lib-idrc-remove-redundant-include.patch added to -mm tree
+Date: Fri, 02 Jan 2015 14:56:29 -0800
+Message-ID: <54a7221d.dJcx2jKwwVd0O4II%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34117 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34119 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752309AbbABW42 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jan 2015 17:56:28 -0500
+	with ESMTP id S1752309AbbABW4a (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jan 2015 17:56:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/halfmd4.c: simplify includes
+     Subject: lib/idr.c: remove redundant include
 has been added to the -mm tree.  Its filename is
-     lib-halfmd4c-simplify-includes.patch
+     lib-idrc-remove-redundant-include.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-halfmd4c-simplify-includes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-idrc-remove-redundant-include.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-halfmd4c-simplify-includes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-idrc-remove-redundant-include.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,44 +39,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/halfmd4.c: simplify includes
+Subject: lib/idr.c: remove redundant include
 
-We only need EXPORT_SYMBOL, so compiler.h and export.h suffice.  This
-means linux/types.h is no longer implicitly included, so add an include of
-uapi/linux/types.h to linux/cryptohash.h for __u32.  Other users of
-cryptohash.h cannot be affected, since they must already have been
-including uapi/linux/types.h in order for gcc not to complain about
-unknown types.
+idr.c doesn't seem to use anything from hardirq.h (or anything included
+from that).  Removing it produces identical objdump -d output, and gives
+44 fewer lines in the .idr.o.cmd dependency file.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cryptohash.h |    2 ++
- lib/halfmd4.c              |    2 +-
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ lib/idr.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN include/linux/cryptohash.h~lib-halfmd4c-simplify-includes include/linux/cryptohash.h
---- a/include/linux/cryptohash.h~lib-halfmd4c-simplify-includes
-+++ a/include/linux/cryptohash.h
-@@ -1,6 +1,8 @@
- #ifndef __CRYPTOHASH_H
- #define __CRYPTOHASH_H
+diff -puN lib/idr.c~lib-idrc-remove-redundant-include lib/idr.c
+--- a/lib/idr.c~lib-idrc-remove-redundant-include
++++ a/lib/idr.c
+@@ -30,7 +30,6 @@
+ #include <linux/idr.h>
+ #include <linux/spinlock.h>
+ #include <linux/percpu.h>
+-#include <linux/hardirq.h>
  
-+#include <uapi/linux/types.h>
-+
- #define SHA_DIGEST_WORDS 5
- #define SHA_MESSAGE_BYTES (512 /*bits*/ / 8)
- #define SHA_WORKSPACE_WORDS 16
-diff -puN lib/halfmd4.c~lib-halfmd4c-simplify-includes lib/halfmd4.c
---- a/lib/halfmd4.c~lib-halfmd4c-simplify-includes
-+++ a/lib/halfmd4.c
-@@ -1,4 +1,4 @@
--#include <linux/kernel.h>
-+#include <linux/compiler.h>
- #include <linux/export.h>
- #include <linux/cryptohash.h>
- 
+ #define MAX_IDR_SHIFT		(sizeof(int) * 8 - 1)
+ #define MAX_IDR_BIT		(1U << MAX_IDR_SHIFT)
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
