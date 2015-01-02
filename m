@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + lib-genallocc-remove-redundant-include.patch added to -mm tree
-Date: Fri, 02 Jan 2015 14:56:31 -0800
-Message-ID: <54a7221f.cDlwp7JnYz1rFi8o%akpm@linux-foundation.org>
+Subject: + lib-md5c-simplify-include.patch added to -mm tree
+Date: Fri, 02 Jan 2015 14:56:35 -0800
+Message-ID: <54a72223./7wjaAtQK0DHcMHL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34121 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34125 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752309AbbABW4c (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jan 2015 17:56:32 -0500
+	with ESMTP id S1752309AbbABW4g (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jan 2015 17:56:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/genalloc.c: remove redundant include
+     Subject: lib/md5.c: simplify include
 has been added to the -mm tree.  Its filename is
-     lib-genallocc-remove-redundant-include.patch
+     lib-md5c-simplify-include.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-genallocc-remove-redundant-include.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-md5c-simplify-include.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-genallocc-remove-redundant-include.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-md5c-simplify-include.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,29 +39,27 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/genalloc.c: remove redundant include
+Subject: lib/md5.c: simplify include
 
-Removing this include produces byte-identical output, and thus removes a
-false dependency.
+md5.c doesn't use anything from kernel.h, except that that pulls in
+compiler.h, which is needed for the export.h to work.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/genalloc.c |    1 -
- 1 file changed, 1 deletion(-)
+ lib/md5.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/genalloc.c~lib-genallocc-remove-redundant-include lib/genalloc.c
---- a/lib/genalloc.c~lib-genallocc-remove-redundant-include
-+++ a/lib/genalloc.c
-@@ -34,7 +34,6 @@
- #include <linux/rculist.h>
- #include <linux/interrupt.h>
- #include <linux/genalloc.h>
--#include <linux/of_address.h>
- #include <linux/of_device.h>
+diff -puN lib/md5.c~lib-md5c-simplify-include lib/md5.c
+--- a/lib/md5.c~lib-md5c-simplify-include
++++ a/lib/md5.c
+@@ -1,4 +1,4 @@
+-#include <linux/kernel.h>
++#include <linux/compiler.h>
+ #include <linux/export.h>
+ #include <linux/cryptohash.h>
  
- static inline size_t chunk_size(const struct gen_pool_chunk *chunk)
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
