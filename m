@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + lib-radix-treec-change-to-simpler-include.patch added to -mm
- tree
-Date: Fri, 02 Jan 2015 14:56:45 -0800
-Message-ID: <54a7222d.hG/xCGWnwQUpfI/2%akpm@linux-foundation.org>
+Subject: + lib-plistc-remove-redundant-include.patch added to -mm tree
+Date: Fri, 02 Jan 2015 14:56:43 -0800
+Message-ID: <54a7222b.1AreTyEXYF1ZI3r1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34135 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34133 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752524AbbABW4q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jan 2015 17:56:46 -0500
+	with ESMTP id S1752524AbbABW4o (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Jan 2015 17:56:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/radix-tree.c: change to simpler include
+     Subject: lib/plist.c: remove redundant include
 has been added to the -mm tree.  Its filename is
-     lib-radix-treec-change-to-simpler-include.patch
+     lib-plistc-remove-redundant-include.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-radix-treec-change-to-simpler-include.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-plistc-remove-redundant-include.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-radix-treec-change-to-simpler-include.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-plistc-remove-redundant-include.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,32 +39,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/radix-tree.c: change to simpler include
+Subject: lib/plist.c: remove redundant include
 
-The comment helpfully explains why hardirq.h is included, but since
-2d4b84739f0a ("hardirq: Split preempt count mask definitions")
-in_interrupt() has been provided by preempt_mask.h.  Use that instead,
-saving around 40 lines in the generated dependency file.
+Removing the include of linux/spinlock.h produces byte-identical output
+for {allno,def}config, and identical objdump -d output for allyesconfig. 
+In the former two cases, more than a 100 lines are eliminated from the
+generated dependency file.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/radix-tree.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/plist.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN lib/radix-tree.c~lib-radix-treec-change-to-simpler-include lib/radix-tree.c
---- a/lib/radix-tree.c~lib-radix-treec-change-to-simpler-include
-+++ a/lib/radix-tree.c
-@@ -33,7 +33,7 @@
- #include <linux/string.h>
- #include <linux/bitops.h>
- #include <linux/rcupdate.h>
--#include <linux/hardirq.h>		/* in_interrupt() */
-+#include <linux/preempt_mask.h>		/* in_interrupt() */
+diff -puN lib/plist.c~lib-plistc-remove-redundant-include lib/plist.c
+--- a/lib/plist.c~lib-plistc-remove-redundant-include
++++ a/lib/plist.c
+@@ -25,7 +25,6 @@
  
+ #include <linux/bug.h>
+ #include <linux/plist.h>
+-#include <linux/spinlock.h>
  
- /*
+ #ifdef CONFIG_DEBUG_PI_LIST
+ 
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
