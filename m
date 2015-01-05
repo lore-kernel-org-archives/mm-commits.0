@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + lib-bitmap-eliminate-branch-in-__bitmap_shift_left.patch added
- to -mm tree
-Date: Mon, 05 Jan 2015 13:42:28 -0800
-Message-ID: <54ab0544.05s+/OpQg/TSdDFS%akpm@linux-foundation.org>
+Subject: + add-another-clock-for-use-with-the-soft-lockup-watchdog.patch
+ added to -mm tree
+Date: Mon, 05 Jan 2015 14:10:23 -0800
+Message-ID: <54ab0bcf.pECMIxGwoQybTLzO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58199 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58370 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754277AbbAEVm3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jan 2015 16:42:29 -0500
+	with ESMTP id S1753197AbbAEWKY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jan 2015 17:10:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
+To: cyrilbur@gmail.com, atomlin@redhat.com, benh@kernel.crashing.org, benzh@chromium.org, chaiw.fnst@cn.fujitsu.com, drjones@redhat.com, dzickus@redhat.com, fabf@skynet.be, mingo@kernel.org, mpe@ellerman.id.au, tglx@linutronix.de, uobergfe@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: bitmap: eliminate branch in __bitmap_shift_left
+     Subject: kernel/watchdog.c: add another clock for use with the soft lockup watchdog.
 has been added to the -mm tree.  Its filename is
-     lib-bitmap-eliminate-branch-in-__bitmap_shift_left.patch
+     add-another-clock-for-use-with-the-soft-lockup-watchdog.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-bitmap-eliminate-branch-in-__bitmap_shift_left.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/add-another-clock-for-use-with-the-soft-lockup-watchdog.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-bitmap-eliminate-branch-in-__bitmap_shift_left.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/add-another-clock-for-use-with-the-soft-lockup-watchdog.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,87 +39,100 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib: bitmap: eliminate branch in __bitmap_shift_left
+From: Cyril Bur <cyrilbur@gmail.com>
+Subject: kernel/watchdog.c: add another clock for use with the soft lockup watchdog.
 
-We can shift the bits from lower and upper into place before assembling
-dst[k + off]; moving the shift of lower into the branch where we already
-know that rem is non-zero allows us to remove a conditional.
+When the hypervisor pauses a virtualised kernel the kernel will observe a
+jump in timebase, this can cause spurious messages from the softlockup
+detector.
 
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Whilst these messages are harmless, they are accompanied with a stack
+trace which causes undue concern and more problematically the stack trace
+in the guest has nothing to do with the observed problem and can only be
+misleading.
+
+Futhermore, on POWER8 this is completely avoidable with the introduction
+of the Virtual Time Base (VTB) register.
+
+
+This patch (of 2):
+
+This permits the use of arch specific clocks for which virtualised kernels
+can use their notion of 'running' time, not the elpased wall time which
+will include host execution time.
+
+Signed-off-by: Cyril Bur <cyrilbur@gmail.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Andrew Jones <drjones@redhat.com>
+Cc: Don Zickus <dzickus@redhat.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Ulrich Obergfell <uobergfe@redhat.com>
+Cc: chai wen <chaiw.fnst@cn.fujitsu.com>
+Cc: Fabian Frederick <fabf@skynet.be>
+Cc: Aaron Tomlin <atomlin@redhat.com>
+Cc: Ben Zhang <benzh@chromium.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/bitmap.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ include/linux/sched.h |    1 +
+ kernel/sched/clock.c  |   14 ++++++++++++++
+ kernel/watchdog.c     |    2 +-
+ 3 files changed, 16 insertions(+), 1 deletion(-)
 
-diff -puN lib/bitmap.c~lib-bitmap-eliminate-branch-in-__bitmap_shift_left lib/bitmap.c
---- a/lib/bitmap.c~lib-bitmap-eliminate-branch-in-__bitmap_shift_left
-+++ a/lib/bitmap.c
-@@ -169,15 +169,14 @@ void __bitmap_shift_left(unsigned long *
- 		 * word below and make them the bottom rem bits of result.
- 		 */
- 		if (rem && k > 0)
--			lower = src[k - 1];
-+			lower = src[k - 1] >> (BITS_PER_LONG - rem);
- 		else
- 			lower = 0;
- 		upper = src[k];
- 		if (left && k == lim - 1)
- 			upper &= (1UL << left) - 1;
--		dst[k + off] = upper << rem;
--		if (rem)
--			dst[k + off] |= lower >> (BITS_PER_LONG - rem);
-+		upper <<= rem;
-+		dst[k + off] = lower | upper;
- 		if (left && k + off == lim - 1)
- 			dst[k + off] &= (1UL << left) - 1;
- 	}
+diff -puN include/linux/sched.h~add-another-clock-for-use-with-the-soft-lockup-watchdog include/linux/sched.h
+--- a/include/linux/sched.h~add-another-clock-for-use-with-the-soft-lockup-watchdog
++++ a/include/linux/sched.h
+@@ -2145,6 +2145,7 @@ extern unsigned long long notrace sched_
+  */
+ extern u64 cpu_clock(int cpu);
+ extern u64 local_clock(void);
++extern u64 running_clock(void);
+ extern u64 sched_clock_cpu(int cpu);
+ 
+ 
+diff -puN kernel/sched/clock.c~add-another-clock-for-use-with-the-soft-lockup-watchdog kernel/sched/clock.c
+--- a/kernel/sched/clock.c~add-another-clock-for-use-with-the-soft-lockup-watchdog
++++ a/kernel/sched/clock.c
+@@ -74,6 +74,20 @@ unsigned long long __weak sched_clock(vo
+ }
+ EXPORT_SYMBOL_GPL(sched_clock);
+ 
++/*
++ * Running clock - returns the time that has elapsed while a guest has been
++ * running.
++ * On a guest this value should be sched_clock minus the time the
++ * guest was suspended by the hypervisor (for any reason).
++ * On bare metal this function should return the same as sched_clock.
++ * Architectures and sub-architectures can override this.
++ */
++unsigned long long __weak running_clock(void)
++{
++	return sched_clock();
++}
++EXPORT_SYMBOL_GPL(running_clock);
++
+ __read_mostly int sched_clock_running;
+ 
+ #ifdef CONFIG_HAVE_UNSTABLE_SCHED_CLOCK
+diff -puN kernel/watchdog.c~add-another-clock-for-use-with-the-soft-lockup-watchdog kernel/watchdog.c
+--- a/kernel/watchdog.c~add-another-clock-for-use-with-the-soft-lockup-watchdog
++++ a/kernel/watchdog.c
+@@ -154,7 +154,7 @@ static int get_softlockup_thresh(void)
+  */
+ static unsigned long get_timestamp(void)
+ {
+-	return local_clock() >> 30LL;  /* 2^30 ~= 10^9 */
++	return running_clock() >> 30LL;  /* 2^30 ~= 10^9 */
+ }
+ 
+ static void set_sample_period(void)
 _
 
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
+Patches currently in -mm which might be from cyrilbur@gmail.com are
 
-lib-string_get_size-remove-redundant-prefixes.patch
-lib-string_get_size-use-32-bit-arithmetic-when-possible.patch
-lib-string_get_size-return-void.patch
-lib-bitmap-more-signed-unsigned-conversions.patch
-linux-nodemaskh-update-bitmap-wrappers-to-take-unsigned-int.patch
-linux-cpumaskh-update-bitmap-wrappers-to-take-unsigned-int.patch
-lib-bitmap-update-bitmap_onto-to-unsigned.patch
-lib-bitmap-update-bitmap_onto-to-unsigned-checkpatch-fixes.patch
-lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned.patch
-lib-bitmap-simplify-bitmap_pos_to_ord.patch
-lib-bitmap-simplify-bitmap_ord_to_pos.patch
-lib-bitmap-make-the-bits-parameter-of-bitmap_remap-unsigned.patch
-lib-remove-strnicmp.patch
-lib-interval_treec-simplify-includes.patch
-lib-sortc-use-simpler-includes.patch
-lib-dynamic_queue_limitsc-simplify-includes.patch
-lib-halfmd4c-simplify-includes.patch
-lib-idrc-remove-redundant-include.patch
-lib-genallocc-remove-redundant-include.patch
-lib-list_sortc-rearrange-includes.patch
-lib-md5c-simplify-include.patch
-lib-llistc-remove-redundant-include.patch
-lib-kobject_ueventc-remove-redundant-include.patch
-lib-nlattrc-remove-redundant-include.patch
-lib-plistc-remove-redundant-include.patch
-lib-radix-treec-change-to-simpler-include.patch
-lib-show_memc-remove-redundant-include.patch
-lib-sortc-move-include-inside-if-0.patch
-lib-stmp_devicec-replace-moduleh-include.patch
-lib-strncpy_from_userc-replace-moduleh-include.patch
-lib-percpu_idac-remove-redundant-includes.patch
-lib-lcmc-replace-include.patch
-lib-bitmapc-change-prototype-of-bitmap_copy_le.patch
-lib-bitmapc-elide-bitmap_copy_le-on-little-endian.patch
-lib-bitmap-change-bitmap_shift_right-to-take-unsigned-parameters.patch
-lib-bitmap-eliminate-branch-in-__bitmap_shift_right.patch
-lib-bitmap-remove-redundant-code-from-__bitmap_shift_right.patch
-lib-bitmap-yet-another-simplification-in-__bitmap_shift_right.patch
-lib-bitmap-change-bitmap_shift_left-to-take-unsigned-parameters.patch
-lib-bitmap-eliminate-branch-in-__bitmap_shift_left.patch
-lib-bitmap-remove-redundant-code-from-__bitmap_shift_left.patch
-checkpatch-emit-an-error-when-using-predefined-timestamp-macros.patch
-linux-next.patch
+add-another-clock-for-use-with-the-soft-lockup-watchdog.patch
+add-another-clock-for-use-with-the-soft-lockup-watchdog-fix.patch
+powerpc-add-running_clock-for-powerpc-to-prevent-spurious-softlockup-warnings.patch
 
