@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-imx-dryice-add-more-known-register-bits.patch added to -mm
- tree
-Date: Mon, 05 Jan 2015 13:38:55 -0800
-Message-ID: <54ab046f.RsZ0s/KZboHu549S%akpm@linux-foundation.org>
+Subject: +
+ lib-bitmap-change-bitmap_shift_left-to-take-unsigned-parameters.patch added to -mm tree
+Date: Mon, 05 Jan 2015 13:42:26 -0800
+Message-ID: <54ab0542.zLPePnS70pb0pFPD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58170 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58197 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751098AbbAEVi4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jan 2015 16:38:56 -0500
+	with ESMTP id S1754522AbbAEVm1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jan 2015 16:42:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jbe@pengutronix.de, a.zummo@towertech.it, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-imxdi.c: add more known register bits
+     Subject: lib: bitmap: change bitmap_shift_left to take unsigned parameters
 has been added to the -mm tree.  Its filename is
-     rtc-imx-dryice-add-more-known-register-bits.patch
+     lib-bitmap-change-bitmap_shift_left-to-take-unsigned-parameters.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rtc-imx-dryice-add-more-known-register-bits.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-bitmap-change-bitmap_shift_left-to-take-unsigned-parameters.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-imx-dryice-add-more-known-register-bits.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-bitmap-change-bitmap_shift_left-to-take-unsigned-parameters.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,92 +39,135 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Juergen Borleis <jbe@pengutronix.de>
-Subject: drivers/rtc/rtc-imxdi.c: add more known register bits
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: lib: bitmap: change bitmap_shift_left to take unsigned parameters
 
-Intended for monitoring and controlling the security features.  These bits
-are required to bring this unit back to live after a security violation
-event was detected.  The code to bring it back to live will follow after a
-vendor clearance.
+gcc can generate slightly better code for stuff like "nbits %
+BITS_PER_LONG" when it knows nbits is not negative.  Since negative size
+bitmaps or shift amounts don't make sense, change these parameters of
+bitmap_shift_right to unsigned.
 
-Signed-off-by: Juergen Borleis <jbe@pengutronix.de>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+If off >= lim (which requires shift >= nbits), k is initialized with a
+large positive value, but since I've let k continue to be signed, the loop
+will never run and dst will be zeroed as expected.  Inside the loop, k is
+guaranteed to be non-negative, so the fact that it is promoted to unsigned
+in the various expressions it appears in is harmless.
+
+Also use "shift" and "nbits" consistently for the parameter names.
+
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-imxdi.c |   44 ++++++++++++++++++++++++++++++++++----
- 1 file changed, 40 insertions(+), 4 deletions(-)
+ include/linux/bitmap.h |   12 ++++++------
+ lib/bitmap.c           |   11 ++++++-----
+ 2 files changed, 12 insertions(+), 11 deletions(-)
 
-diff -puN drivers/rtc/rtc-imxdi.c~rtc-imx-dryice-add-more-known-register-bits drivers/rtc/rtc-imxdi.c
---- a/drivers/rtc/rtc-imxdi.c~rtc-imx-dryice-add-more-known-register-bits
-+++ a/drivers/rtc/rtc-imxdi.c
-@@ -50,22 +50,58 @@
- #define DCAMR_UNSET  0xFFFFFFFF  /* doomsday - 1 sec */
+diff -puN include/linux/bitmap.h~lib-bitmap-change-bitmap_shift_left-to-take-unsigned-parameters include/linux/bitmap.h
+--- a/include/linux/bitmap.h~lib-bitmap-change-bitmap_shift_left-to-take-unsigned-parameters
++++ a/include/linux/bitmap.h
+@@ -98,8 +98,8 @@ extern void __bitmap_complement(unsigned
+ 			unsigned int nbits);
+ extern void __bitmap_shift_right(unsigned long *dst, const unsigned long *src,
+ 				unsigned int shift, unsigned int nbits);
+-extern void __bitmap_shift_left(unsigned long *dst,
+-                        const unsigned long *src, int shift, int bits);
++extern void __bitmap_shift_left(unsigned long *dst, const unsigned long *src,
++				unsigned int shift, unsigned int nbits);
+ extern int __bitmap_and(unsigned long *dst, const unsigned long *bitmap1,
+ 			const unsigned long *bitmap2, unsigned int nbits);
+ extern void __bitmap_or(unsigned long *dst, const unsigned long *bitmap1,
+@@ -322,13 +322,13 @@ static inline void bitmap_shift_right(un
+ 		__bitmap_shift_right(dst, src, shift, nbits);
+ }
  
- #define DCR       0x10           /* Control Reg */
-+#define DCR_TDCHL (1 << 30)      /* Tamper-detect configuration hard lock */
-+#define DCR_TDCSL (1 << 29)      /* Tamper-detect configuration soft lock */
-+#define DCR_KSSL  (1 << 27)      /* Key-select soft lock */
-+#define DCR_MCHL  (1 << 20)      /* Monotonic-counter hard lock */
-+#define DCR_MCSL  (1 << 19)      /* Monotonic-counter soft lock */
-+#define DCR_TCHL  (1 << 18)      /* Timer-counter hard lock */
-+#define DCR_TCSL  (1 << 17)      /* Timer-counter soft lock */
-+#define DCR_FSHL  (1 << 16)      /* Failure state hard lock */
- #define DCR_TCE   (1 << 3)       /* Time Counter Enable */
-+#define DCR_MCE   (1 << 2)       /* Monotonic Counter Enable */
+-static inline void bitmap_shift_left(unsigned long *dst,
+-			const unsigned long *src, int n, int nbits)
++static inline void bitmap_shift_left(unsigned long *dst, const unsigned long *src,
++				unsigned int shift, unsigned int nbits)
+ {
+ 	if (small_const_nbits(nbits))
+-		*dst = (*src << n) & BITMAP_LAST_WORD_MASK(nbits);
++		*dst = (*src << shift) & BITMAP_LAST_WORD_MASK(nbits);
+ 	else
+-		__bitmap_shift_left(dst, src, n, nbits);
++		__bitmap_shift_left(dst, src, shift, nbits);
+ }
  
- #define DSR       0x14           /* Status Reg */
--#define DSR_WBF   (1 << 10)      /* Write Busy Flag */
--#define DSR_WNF   (1 << 9)       /* Write Next Flag */
--#define DSR_WCF   (1 << 8)       /* Write Complete Flag */
-+#define DSR_WTD   (1 << 23)      /* Wire-mesh tamper detected */
-+#define DSR_ETBD  (1 << 22)      /* External tamper B detected */
-+#define DSR_ETAD  (1 << 21)      /* External tamper A detected */
-+#define DSR_EBD   (1 << 20)      /* External boot detected */
-+#define DSR_SAD   (1 << 19)      /* SCC alarm detected */
-+#define DSR_TTD   (1 << 18)      /* Temperatur tamper detected */
-+#define DSR_CTD   (1 << 17)      /* Clock tamper detected */
-+#define DSR_VTD   (1 << 16)      /* Voltage tamper detected */
-+#define DSR_WBF   (1 << 10)      /* Write Busy Flag (synchronous) */
-+#define DSR_WNF   (1 << 9)       /* Write Next Flag (synchronous) */
-+#define DSR_WCF   (1 << 8)       /* Write Complete Flag (synchronous)*/
- #define DSR_WEF   (1 << 7)       /* Write Error Flag */
- #define DSR_CAF   (1 << 4)       /* Clock Alarm Flag */
-+#define DSR_MCO   (1 << 3)       /* monotonic counter overflow */
-+#define DSR_TCO   (1 << 2)       /* time counter overflow */
- #define DSR_NVF   (1 << 1)       /* Non-Valid Flag */
- #define DSR_SVF   (1 << 0)       /* Security Violation Flag */
+ static inline int bitmap_parse(const char *buf, unsigned int buflen,
+diff -puN lib/bitmap.c~lib-bitmap-change-bitmap_shift_left-to-take-unsigned-parameters lib/bitmap.c
+--- a/lib/bitmap.c~lib-bitmap-change-bitmap_shift_left-to-take-unsigned-parameters
++++ a/lib/bitmap.c
+@@ -148,18 +148,19 @@ EXPORT_SYMBOL(__bitmap_shift_right);
+  *   @dst : destination bitmap
+  *   @src : source bitmap
+  *   @shift : shift by this many bits
+- *   @bits : bitmap size, in bits
++ *   @nbits : bitmap size, in bits
+  *
+  * Shifting left (multiplying) means moving bits in the LS -> MS
+  * direction.  Zeros are fed into the vacated LS bit positions
+  * and those MS bits shifted off the top are lost.
+  */
  
--#define DIER      0x18           /* Interrupt Enable Reg */
-+#define DIER      0x18           /* Interrupt Enable Reg (synchronous) */
- #define DIER_WNIE (1 << 9)       /* Write Next Interrupt Enable */
- #define DIER_WCIE (1 << 8)       /* Write Complete Interrupt Enable */
- #define DIER_WEIE (1 << 7)       /* Write Error Interrupt Enable */
- #define DIER_CAIE (1 << 4)       /* Clock Alarm Interrupt Enable */
-+#define DIER_SVIE (1 << 0)       /* Security-violation Interrupt Enable */
-+
-+#define DMCR      0x1c           /* DryIce Monotonic Counter Reg */
-+
-+#define DTCR      0x28           /* DryIce Tamper Configuration Reg */
-+#define DTCR_MOE  (1 << 9)       /* monotonic overflow enabled */
-+#define DTCR_TOE  (1 << 8)       /* time overflow enabled */
-+#define DTCR_WTE  (1 << 7)       /* wire-mesh tamper enabled */
-+#define DTCR_ETBE (1 << 6)       /* external B tamper enabled */
-+#define DTCR_ETAE (1 << 5)       /* external A tamper enabled */
-+#define DTCR_EBE  (1 << 4)       /* external boot tamper enabled */
-+#define DTCR_SAIE (1 << 3)       /* SCC enabled */
-+#define DTCR_TTE  (1 << 2)       /* temperature tamper enabled */
-+#define DTCR_CTE  (1 << 1)       /* clock tamper enabled */
-+#define DTCR_VTE  (1 << 0)       /* voltage tamper enabled */
-+
-+#define DGPR      0x3c           /* DryIce General Purpose Reg */
+-void __bitmap_shift_left(unsigned long *dst,
+-			const unsigned long *src, int shift, int bits)
++void __bitmap_shift_left(unsigned long *dst, const unsigned long *src,
++			unsigned int shift, unsigned int nbits)
+ {
+-	int k, lim = BITS_TO_LONGS(bits), left = bits % BITS_PER_LONG;
+-	int off = shift/BITS_PER_LONG, rem = shift % BITS_PER_LONG;
++	int k;
++	unsigned int lim = BITS_TO_LONGS(nbits), left = nbits % BITS_PER_LONG;
++	unsigned int off = shift/BITS_PER_LONG, rem = shift % BITS_PER_LONG;
+ 	for (k = lim - off - 1; k >= 0; --k) {
+ 		unsigned long upper, lower;
  
- /**
-  * struct imxdi_dev - private imxdi rtc data
 _
 
-Patches currently in -mm which might be from jbe@pengutronix.de are
+Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
 
-rtc-imx-dryice-trivial-clean-up-code.patch
-rtc-imx-dryice-add-more-known-register-bits.patch
+lib-string_get_size-remove-redundant-prefixes.patch
+lib-string_get_size-use-32-bit-arithmetic-when-possible.patch
+lib-string_get_size-return-void.patch
+lib-bitmap-more-signed-unsigned-conversions.patch
+linux-nodemaskh-update-bitmap-wrappers-to-take-unsigned-int.patch
+linux-cpumaskh-update-bitmap-wrappers-to-take-unsigned-int.patch
+lib-bitmap-update-bitmap_onto-to-unsigned.patch
+lib-bitmap-update-bitmap_onto-to-unsigned-checkpatch-fixes.patch
+lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned.patch
+lib-bitmap-simplify-bitmap_pos_to_ord.patch
+lib-bitmap-simplify-bitmap_ord_to_pos.patch
+lib-bitmap-make-the-bits-parameter-of-bitmap_remap-unsigned.patch
+lib-remove-strnicmp.patch
+lib-interval_treec-simplify-includes.patch
+lib-sortc-use-simpler-includes.patch
+lib-dynamic_queue_limitsc-simplify-includes.patch
+lib-halfmd4c-simplify-includes.patch
+lib-idrc-remove-redundant-include.patch
+lib-genallocc-remove-redundant-include.patch
+lib-list_sortc-rearrange-includes.patch
+lib-md5c-simplify-include.patch
+lib-llistc-remove-redundant-include.patch
+lib-kobject_ueventc-remove-redundant-include.patch
+lib-nlattrc-remove-redundant-include.patch
+lib-plistc-remove-redundant-include.patch
+lib-radix-treec-change-to-simpler-include.patch
+lib-show_memc-remove-redundant-include.patch
+lib-sortc-move-include-inside-if-0.patch
+lib-stmp_devicec-replace-moduleh-include.patch
+lib-strncpy_from_userc-replace-moduleh-include.patch
+lib-percpu_idac-remove-redundant-includes.patch
+lib-lcmc-replace-include.patch
+lib-bitmapc-change-prototype-of-bitmap_copy_le.patch
+lib-bitmapc-elide-bitmap_copy_le-on-little-endian.patch
+lib-bitmap-change-bitmap_shift_right-to-take-unsigned-parameters.patch
+lib-bitmap-eliminate-branch-in-__bitmap_shift_right.patch
+lib-bitmap-remove-redundant-code-from-__bitmap_shift_right.patch
+lib-bitmap-yet-another-simplification-in-__bitmap_shift_right.patch
+lib-bitmap-change-bitmap_shift_left-to-take-unsigned-parameters.patch
+lib-bitmap-eliminate-branch-in-__bitmap_shift_left.patch
+lib-bitmap-remove-redundant-code-from-__bitmap_shift_left.patch
+checkpatch-emit-an-error-when-using-predefined-timestamp-macros.patch
+linux-next.patch
 
