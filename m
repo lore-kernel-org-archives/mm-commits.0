@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- add-another-clock-for-use-with-the-soft-lockup-watchdog-fix.patch added to
- -mm tree
-Date: Mon, 05 Jan 2015 14:10:25 -0800
-Message-ID: <54ab0bd1.DKn3RMATGXyKLtOa%akpm@linux-foundation.org>
+Subject: + mm-debug-pagealloc-prepare-boottime-configurable-on-off.patch
+ added to -mm tree
+Date: Mon, 05 Jan 2015 14:19:54 -0800
+Message-ID: <54ab0e0a.swChEPMRun0dpPbF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58381 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58416 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753317AbbAEWK1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jan 2015 17:10:27 -0500
+	with ESMTP id S1753860AbbAEWTz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jan 2015 17:19:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, atomlin@redhat.com, benh@kernel.crashing.org, benzh@chromium.org, chaiw.fnst@cn.fujitsu.com, cyrilbur@gmail.com, drjones@redhat.com, dzickus@redhat.com, fabf@skynet.be, mingo@kernel.org, mpe@ellerman.id.au, tglx@linutronix.de, uobergfe@redhat.com, mm-commits@vger.kernel.org
+To: iamjoonsoo.kim@lge.com, dave@sr71.net, hannes@cmpxchg.org, jungsoo.son@lge.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, pebolle@tiscali.nl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: add-another-clock-for-use-with-the-soft-lockup-watchdog-fix
+     Subject: mm/debug_pagealloc: remove obsolete Kconfig options
 has been added to the -mm tree.  Its filename is
-     add-another-clock-for-use-with-the-soft-lockup-watchdog-fix.patch
+     mm-debug-pagealloc-prepare-boottime-configurable-on-off.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/add-another-clock-for-use-with-the-soft-lockup-watchdog-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-debug-pagealloc-prepare-boottime-configurable-on-off.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/add-another-clock-for-use-with-the-soft-lockup-watchdog-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-debug-pagealloc-prepare-boottime-configurable-on-off.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,70 +39,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: add-another-clock-for-use-with-the-soft-lockup-watchdog-fix
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: mm/debug_pagealloc: remove obsolete Kconfig options
 
-remove EXPORT_SYMBOL(running_clock)
+These are obsolete since commit "mm/debug-pagealloc: prepare boottime
+configurable" is merged. So, remove it.
 
-Cc: Aaron Tomlin <atomlin@redhat.com>
-Cc: Andrew Jones <drjones@redhat.com>
-Cc: Ben Zhang <benzh@chromium.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Cyril Bur <cyrilbur@gmail.com>
-Cc: Don Zickus <dzickus@redhat.com>
-Cc: Fabian Frederick <fabf@skynet.be>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ulrich Obergfell <uobergfe@redhat.com>
-Cc: chai wen <chaiw.fnst@cn.fujitsu.com>
+[pebolle@tiscali.nl: find obsolete Kconfig options]
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Paul Bolle <pebolle@tiscali.nl>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Dave Hansen <dave@sr71.net>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: Jungsoo Son <jungsoo.son@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched/clock.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/Kconfig.debug |    9 ---------
+ 1 file changed, 9 deletions(-)
 
-diff -puN kernel/sched/clock.c~add-another-clock-for-use-with-the-soft-lockup-watchdog-fix kernel/sched/clock.c
---- a/kernel/sched/clock.c~add-another-clock-for-use-with-the-soft-lockup-watchdog-fix
-+++ a/kernel/sched/clock.c
-@@ -86,7 +86,6 @@ unsigned long long __weak running_clock(
- {
- 	return sched_clock();
- }
--EXPORT_SYMBOL_GPL(running_clock);
+diff -puN mm/Kconfig.debug~mm-debug-pagealloc-prepare-boottime-configurable-on-off mm/Kconfig.debug
+--- a/mm/Kconfig.debug~mm-debug-pagealloc-prepare-boottime-configurable-on-off
++++ a/mm/Kconfig.debug
+@@ -14,7 +14,6 @@ config DEBUG_PAGEALLOC
+ 	depends on !KMEMCHECK
+ 	select PAGE_EXTENSION
+ 	select PAGE_POISONING if !ARCH_SUPPORTS_DEBUG_PAGEALLOC
+-	select PAGE_GUARD if ARCH_SUPPORTS_DEBUG_PAGEALLOC
+ 	---help---
+ 	  Unmap pages from the kernel linear mapping after free_pages().
+ 	  This results in a large slowdown, but helps to find certain types
+@@ -27,13 +26,5 @@ config DEBUG_PAGEALLOC
+ 	  that would result in incorrect warnings of memory corruption after
+ 	  a resume because free pages are not saved to the suspend image.
  
- __read_mostly int sched_clock_running;
- 
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-mm-prevent-endless-growth-of-anon_vma-hierarchy-fix.patch
-mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
-fanotify-dont-recalculate-a-marks-mask-if-only-the-ignored-mask-changed-checkpatch-fixes.patch
-fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper.patch
-ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir.patch
-add-another-clock-for-use-with-the-soft-lockup-watchdog-fix.patch
-mm.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-cma-fix-cmas-page-number-is-substructed-twice-in-__zone_watermark_ok-fix.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss-fix.patch
-lib-bitmap-update-bitmap_onto-to-unsigned-checkpatch-fixes.patch
-hexdump-makes-it-return-amount-of-bytes-placed-in-buffer-fix.patch
-fs-befs-linuxvfsc-remove-unnecessary-casting-fix.patch
-linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-
+-config WANT_PAGE_DEBUG_FLAGS
+-	bool
+-
+ config PAGE_POISONING
+ 	bool
+-	select WANT_PAGE_DEBUG_FLAGS
