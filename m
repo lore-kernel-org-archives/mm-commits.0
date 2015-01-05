@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- lib-bitmap-remove-redundant-code-from-__bitmap_shift_right.patch added to
- -mm tree
-Date: Mon, 05 Jan 2015 13:42:22 -0800
-Message-ID: <54ab053e.Zc3r3x1Xvd0Z5lR3%akpm@linux-foundation.org>
+ lib-bitmap-yet-another-simplification-in-__bitmap_shift_right.patch added
+ to -mm tree
+Date: Mon, 05 Jan 2015 13:42:24 -0800
+Message-ID: <54ab0540.moE8Vb4awgmDTv1I%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58193 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58195 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754481AbbAEVmX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jan 2015 16:42:23 -0500
+	with ESMTP id S1754481AbbAEVmZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Jan 2015 16:42:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: bitmap: remove redundant code from __bitmap_shift_right
+     Subject: lib: bitmap: yet another simplification in __bitmap_shift_right
 has been added to the -mm tree.  Its filename is
-     lib-bitmap-remove-redundant-code-from-__bitmap_shift_right.patch
+     lib-bitmap-yet-another-simplification-in-__bitmap_shift_right.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-bitmap-remove-redundant-code-from-__bitmap_shift_right.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-bitmap-yet-another-simplification-in-__bitmap_shift_right.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-bitmap-remove-redundant-code-from-__bitmap_shift_right.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-bitmap-yet-another-simplification-in-__bitmap_shift_right.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,33 +41,49 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib: bitmap: remove redundant code from __bitmap_shift_right
+Subject: lib: bitmap: yet another simplification in __bitmap_shift_right
 
-If the condition k==lim-1 is true, we must have off == 0 (otherwise, k
-could never become that big).  But in that case we have upper == 0 and
-hence dst[k] == (src[k] & mask) >> rem.  Since mask consists of a
-consecutive range of bits starting from the LSB, anding dst[k] with mask
-is a no-op.
+If left is 0, we can just let mask be ~0UL, so that anding with it is a
+no-op.  Conveniently, BITMAP_LAST_WORD_MASK provides precisely what we
+need, and we can eliminate left.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/bitmap.c |    2 --
- 1 file changed, 2 deletions(-)
+ lib/bitmap.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN lib/bitmap.c~lib-bitmap-remove-redundant-code-from-__bitmap_shift_right lib/bitmap.c
---- a/lib/bitmap.c~lib-bitmap-remove-redundant-code-from-__bitmap_shift_right
+diff -puN lib/bitmap.c~lib-bitmap-yet-another-simplification-in-__bitmap_shift_right lib/bitmap.c
+--- a/lib/bitmap.c~lib-bitmap-yet-another-simplification-in-__bitmap_shift_right
 +++ a/lib/bitmap.c
-@@ -136,8 +136,6 @@ void __bitmap_shift_right(unsigned long
+@@ -113,9 +113,9 @@ EXPORT_SYMBOL(__bitmap_complement);
+ void __bitmap_shift_right(unsigned long *dst, const unsigned long *src,
+ 			unsigned shift, unsigned nbits)
+ {
+-	unsigned k, lim = BITS_TO_LONGS(nbits), left = nbits % BITS_PER_LONG;
++	unsigned k, lim = BITS_TO_LONGS(nbits);
+ 	unsigned off = shift/BITS_PER_LONG, rem = shift % BITS_PER_LONG;
+-	unsigned long mask = (1UL << left) - 1;
++	unsigned long mask = BITMAP_LAST_WORD_MASK(nbits);
+ 	for (k = 0; off + k < lim; ++k) {
+ 		unsigned long upper, lower;
+ 
+@@ -127,12 +127,12 @@ void __bitmap_shift_right(unsigned long
+ 			upper = 0;
+ 		else {
+ 			upper = src[off + k + 1];
+-			if (off + k + 1 == lim - 1 && left)
++			if (off + k + 1 == lim - 1)
+ 				upper &= mask;
+ 			upper <<= (BITS_PER_LONG - rem);
+ 		}
+ 		lower = src[off + k];
+-		if (left && off + k == lim - 1)
++		if (off + k == lim - 1)
  			lower &= mask;
  		lower >>= rem;
  		dst[k] = lower | upper;
--		if (left && k == lim - 1)
--			dst[k] &= mask;
- 	}
- 	if (off)
- 		memset(&dst[lim - off], 0, off*sizeof(unsigned long));
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
