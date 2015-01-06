@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + avr32-drop-_page_file-and-pte_file-related-helpers.patch added
- to -mm tree
-Date: Tue, 06 Jan 2015 15:34:14 -0800
-Message-ID: <54ac70f6.YEhnBny9DuwLfail%akpm@linux-foundation.org>
+Subject: + mn10300-drop-_page_file-and-pte_file-related-helpers.patch
+ added to -mm tree
+Date: Tue, 06 Jan 2015 15:34:38 -0800
+Message-ID: <54ac710e.sg9VF2FvzAhD6oKz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44638 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44686 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752173AbbAFXeP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2015 18:34:15 -0500
+	with ESMTP id S1751609AbbAFXej (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2015 18:34:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, egtvedt@samfundet.no, hskinnemoen@gmail.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, dhowells@redhat.com, hughd@google.com, yasutake.koichi@jp.panasonic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: avr32: drop _PAGE_FILE and pte_file()-related helpers
+     Subject: mn10300: drop _PAGE_FILE and pte_file()-related helpers
 has been added to the -mm tree.  Its filename is
-     avr32-drop-_page_file-and-pte_file-related-helpers.patch
+     mn10300-drop-_page_file-and-pte_file-related-helpers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/avr32-drop-_page_file-and-pte_file-related-helpers.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mn10300-drop-_page_file-and-pte_file-related-helpers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/avr32-drop-_page_file-and-pte_file-related-helpers.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mn10300-drop-_page_file-and-pte_file-related-helpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,83 +40,66 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: avr32: drop _PAGE_FILE and pte_file()-related helpers
+Subject: mn10300: drop _PAGE_FILE and pte_file()-related helpers
 
 We've replaced remap_file_pages(2) implementation with emulation.  Nobody
 creates non-linear mapping anymore.
 
+This patch also increases the number of bits availble for swap offset.
+
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Haavard Skinnemoen <hskinnemoen@gmail.com>
-Acked-by: Hans-Christian Egtvedt <egtvedt@samfundet.no>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Koichi Yasutake <yasutake.koichi@jp.panasonic.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/avr32/include/asm/pgtable.h |   25 -------------------------
- 1 file changed, 25 deletions(-)
+ arch/mn10300/include/asm/pgtable.h |   17 +++--------------
+ 1 file changed, 3 insertions(+), 14 deletions(-)
 
-diff -puN arch/avr32/include/asm/pgtable.h~avr32-drop-_page_file-and-pte_file-related-helpers arch/avr32/include/asm/pgtable.h
---- a/arch/avr32/include/asm/pgtable.h~avr32-drop-_page_file-and-pte_file-related-helpers
-+++ a/arch/avr32/include/asm/pgtable.h
-@@ -86,9 +86,6 @@ extern struct page *empty_zero_page;
- #define _PAGE_BIT_PRESENT	10
- #define _PAGE_BIT_ACCESSED	11 /* software: page was accessed */
+diff -puN arch/mn10300/include/asm/pgtable.h~mn10300-drop-_page_file-and-pte_file-related-helpers arch/mn10300/include/asm/pgtable.h
+--- a/arch/mn10300/include/asm/pgtable.h~mn10300-drop-_page_file-and-pte_file-related-helpers
++++ a/arch/mn10300/include/asm/pgtable.h
+@@ -134,7 +134,6 @@ extern pte_t kernel_vmalloc_ptes[(VMALLO
+ #define _PAGE_NX		0			/* no-execute bit */
  
--/* The following flags are only valid when !PRESENT */
--#define _PAGE_BIT_FILE		0 /* software: pagecache or swap? */
+ /* If _PAGE_VALID is clear, we use these: */
+-#define _PAGE_FILE		xPTEL2_C	/* set:pagecache unset:swap */
+ #define _PAGE_PROTNONE		0x000		/* If not present */
+ 
+ #define __PAGE_PROT_UWAUX	0x010
+@@ -241,11 +240,6 @@ static inline int pte_young(pte_t pte)	{
+ static inline int pte_write(pte_t pte)	{ return pte_val(pte) & __PAGE_PROT_WRITE; }
+ static inline int pte_special(pte_t pte){ return 0; }
+ 
+-/*
+- * The following only works if pte_present() is not true.
+- */
+-static inline int pte_file(pte_t pte)	{ return pte_val(pte) & _PAGE_FILE; }
 -
- #define _PAGE_WT		(1 << _PAGE_BIT_WT)
- #define _PAGE_DIRTY		(1 << _PAGE_BIT_DIRTY)
- #define _PAGE_EXECUTE		(1 << _PAGE_BIT_EXECUTE)
-@@ -101,7 +98,6 @@ extern struct page *empty_zero_page;
- /* Software flags */
- #define _PAGE_ACCESSED		(1 << _PAGE_BIT_ACCESSED)
- #define _PAGE_PRESENT		(1 << _PAGE_BIT_PRESENT)
--#define _PAGE_FILE		(1 << _PAGE_BIT_FILE)
- 
- /*
-  * Page types, i.e. sizes. _PAGE_TYPE_NONE corresponds to what is
-@@ -210,14 +206,6 @@ static inline int pte_special(pte_t pte)
- 	return 0;
+ static inline pte_t pte_rdprotect(pte_t pte)
+ {
+ 	pte_val(pte) &= ~(__PAGE_PROT_USER|__PAGE_PROT_UWAUX); return pte;
+@@ -338,16 +332,11 @@ static inline int pte_exec_kernel(pte_t
+ 	return 1;
  }
  
--/*
-- * The following only work if pte_present() is not true.
-- */
--static inline int pte_file(pte_t pte)
--{
--	return pte_val(pte) & _PAGE_FILE;
--}
--
- /* Mutator functions for PTE bits */
- static inline pte_t pte_wrprotect(pte_t pte)
- {
-@@ -329,7 +317,6 @@ extern void update_mmu_cache(struct vm_a
-  * Encode and decode a swap entry
-  *
-  * Constraints:
-- *   _PAGE_FILE at bit 0
-  *   _PAGE_TYPE_* at bits 2-3 (for emulating _PAGE_PROTNONE)
-  *   _PAGE_PRESENT at bit 10
-  *
-@@ -346,18 +333,6 @@ extern void update_mmu_cache(struct vm_a
- #define __pte_to_swp_entry(pte)	((swp_entry_t) { pte_val(pte) })
- #define __swp_entry_to_pte(x)	((pte_t) { (x).val })
- 
--/*
-- * Encode and decode a nonlinear file mapping entry. We have to
-- * preserve _PAGE_FILE and _PAGE_PRESENT here. _PAGE_TYPE_* isn't
-- * necessary, since _PAGE_FILE implies !_PAGE_PROTNONE (?)
-- */
 -#define PTE_FILE_MAX_BITS	30
--#define pte_to_pgoff(pte)	(((pte_val(pte) >> 1) & 0x1ff)		\
--				 | ((pte_val(pte) >> 11) << 9))
--#define pgoff_to_pte(off)	((pte_t) { ((((off) & 0x1ff) << 1)	\
--					    | (((off) >> 9) << 11)	\
--					    | _PAGE_FILE) })
 -
- typedef pte_t *pte_addr_t;
+-#define pte_to_pgoff(pte)	(pte_val(pte) >> 2)
+-#define pgoff_to_pte(off)	__pte((off) << 2 | _PAGE_FILE)
+-
+ /* Encode and de-code a swap entry */
+-#define __swp_type(x)			(((x).val >> 2) & 0x3f)
+-#define __swp_offset(x)			((x).val >> 8)
++#define __swp_type(x)			(((x).val >> 1) & 0x3f)
++#define __swp_offset(x)			((x).val >> 7)
+ #define __swp_entry(type, offset) \
+-	((swp_entry_t) { ((type) << 2) | ((offset) << 8) })
++	((swp_entry_t) { ((type) << 1) | ((offset) << 7) })
+ #define __pte_to_swp_entry(pte)		((swp_entry_t) { pte_val(pte) })
+ #define __swp_entry_to_pte(x)		__pte((x).val)
  
- #define kern_addr_valid(addr)	(1)
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
