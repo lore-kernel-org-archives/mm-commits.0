@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + cris-drop-_page_file-and-pte_file-related-helpers.patch added
- to -mm tree
-Date: Tue, 06 Jan 2015 15:34:20 -0800
-Message-ID: <54ac70fc.Ghk1u3c7MzkOqi2F%akpm@linux-foundation.org>
+Subject: + openrisc-drop-_page_file-and-pte_file-related-helpers.patch
+ added to -mm tree
+Date: Tue, 06 Jan 2015 15:34:42 -0800
+Message-ID: <54ac7112.y4g3RL7N27kdmnZ6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44649 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44701 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752312AbbAFXeV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2015 18:34:21 -0500
+	with ESMTP id S1751667AbbAFXen (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2015 18:34:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, jesper.nilsson@axis.com, starvik@axis.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, jonas@southpole.se, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cris: drop _PAGE_FILE and pte_file()-related helpers
+     openrisc: drop _PAGE_FILE and pte_file()-related helpers
 has been added to the -mm tree.  Its filename is
-     cris-drop-_page_file-and-pte_file-related-helpers.patch
+     openrisc-drop-_page_file-and-pte_file-related-helpers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/cris-drop-_page_file-and-pte_file-related-helpers.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/openrisc-drop-_page_file-and-pte_file-related-helpers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/cris-drop-_page_file-and-pte_file-related-helpers.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/openrisc-drop-_page_file-and-pte_file-related-helpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,80 +39,71 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: cris: drop _PAGE_FILE and pte_file()-related helpers
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com> Subject:
+openrisc: drop _PAGE_FILE and pte_file()-related helpers
 
 We've replaced remap_file_pages(2) implementation with emulation.  Nobody
 creates non-linear mapping anymore.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Mikael Starvik <starvik@axis.com>
-Cc: Jesper Nilsson <jesper.nilsson@axis.com>
+Cc: Jonas Bonn <jonas@southpole.se>
+---
+
+index 37bf6a3ef8f4..18994ccb1185 100644
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/include/arch-v10/arch/mmu.h |    3 ---
- arch/cris/include/arch-v32/arch/mmu.h |    3 ---
- arch/cris/include/asm/pgtable.h       |    4 ----
- 3 files changed, 10 deletions(-)
+ arch/openrisc/include/asm/pgtable.h |    8 --------
+ arch/openrisc/kernel/head.S         |    5 -----
+ 2 files changed, 13 deletions(-)
 
-diff -puN arch/cris/include/arch-v10/arch/mmu.h~cris-drop-_page_file-and-pte_file-related-helpers arch/cris/include/arch-v10/arch/mmu.h
---- a/arch/cris/include/arch-v10/arch/mmu.h~cris-drop-_page_file-and-pte_file-related-helpers
-+++ a/arch/cris/include/arch-v10/arch/mmu.h
-@@ -58,7 +58,6 @@ typedef struct
- /* Bits the HW doesn't care about but the kernel uses them in SW */
+diff -puN arch/openrisc/include/asm/pgtable.h~openrisc-drop-_page_file-and-pte_file-related-helpers arch/openrisc/include/asm/pgtable.h
+--- a/arch/openrisc/include/asm/pgtable.h~openrisc-drop-_page_file-and-pte_file-related-helpers
++++ a/arch/openrisc/include/asm/pgtable.h
+@@ -125,7 +125,6 @@ extern void paging_init(void);
+ #define _PAGE_CC       0x001 /* software: pte contains a translation */
+ #define _PAGE_CI       0x002 /* cache inhibit          */
+ #define _PAGE_WBC      0x004 /* write back cache       */
+-#define _PAGE_FILE     0x004 /* set: pagecache, unset: swap (when !PRESENT) */
+ #define _PAGE_WOM      0x008 /* weakly ordered memory  */
  
- #define _PAGE_PRESENT   (1<<4)  /* page present in memory */
--#define _PAGE_FILE      (1<<5)  /* set: pagecache, unset: swap (when !PRESENT) */
- #define _PAGE_ACCESSED	(1<<5)  /* simulated in software using valid bit */
- #define _PAGE_MODIFIED	(1<<6)  /* simulated in software using we bit */
- #define _PAGE_READ      (1<<7)  /* read-enabled */
-@@ -105,6 +104,4 @@ typedef struct
- #define __S110	PAGE_SHARED
- #define __S111	PAGE_SHARED
+ #define _PAGE_A        0x010 /* accessed               */
+@@ -240,7 +239,6 @@ static inline int pte_write(pte_t pte) {
+ static inline int pte_exec(pte_t pte)  { return pte_val(pte) & _PAGE_EXEC; }
+ static inline int pte_dirty(pte_t pte) { return pte_val(pte) & _PAGE_DIRTY; }
+ static inline int pte_young(pte_t pte) { return pte_val(pte) & _PAGE_ACCESSED; }
+-static inline int pte_file(pte_t pte)  { return pte_val(pte) & _PAGE_FILE; }
+ static inline int pte_special(pte_t pte) { return 0; }
+ static inline pte_t pte_mkspecial(pte_t pte) { return pte; }
  
--#define PTE_FILE_MAX_BITS	26
+@@ -438,12 +436,6 @@ static inline void update_mmu_cache(stru
+ #define __pte_to_swp_entry(pte)		((swp_entry_t) { pte_val(pte) })
+ #define __swp_entry_to_pte(x)		((pte_t) { (x).val })
+ 
+-/* Encode and decode a nonlinear file mapping entry */
 -
- #endif
-diff -puN arch/cris/include/arch-v32/arch/mmu.h~cris-drop-_page_file-and-pte_file-related-helpers arch/cris/include/arch-v32/arch/mmu.h
---- a/arch/cris/include/arch-v32/arch/mmu.h~cris-drop-_page_file-and-pte_file-related-helpers
-+++ a/arch/cris/include/arch-v32/arch/mmu.h
-@@ -53,7 +53,6 @@ typedef struct
-  * software.
-  */
- #define _PAGE_PRESENT   (1 << 5)   /* Page is present in memory. */
--#define _PAGE_FILE      (1 << 6)   /* 1=pagecache, 0=swap (when !present) */
- #define _PAGE_ACCESSED  (1 << 6)   /* Simulated in software using valid bit. */
- #define _PAGE_MODIFIED  (1 << 7)   /* Simulated in software using we bit. */
- #define _PAGE_READ      (1 << 8)   /* Read enabled. */
-@@ -108,6 +107,4 @@ typedef struct
- #define __S110  PAGE_SHARED_EXEC
- #define __S111  PAGE_SHARED_EXEC
- 
--#define PTE_FILE_MAX_BITS	25
+-#define PTE_FILE_MAX_BITS               26
+-#define pte_to_pgoff(x)	                (pte_val(x) >> 6)
+-#define pgoff_to_pte(x)	                __pte(((x) << 6) | _PAGE_FILE)
 -
- #endif /* _ASM_CRIS_ARCH_MMU_H */
-diff -puN arch/cris/include/asm/pgtable.h~cris-drop-_page_file-and-pte_file-related-helpers arch/cris/include/asm/pgtable.h
---- a/arch/cris/include/asm/pgtable.h~cris-drop-_page_file-and-pte_file-related-helpers
-+++ a/arch/cris/include/asm/pgtable.h
-@@ -114,7 +114,6 @@ extern unsigned long empty_zero_page;
- static inline int pte_write(pte_t pte)          { return pte_val(pte) & _PAGE_WRITE; }
- static inline int pte_dirty(pte_t pte)          { return pte_val(pte) & _PAGE_MODIFIED; }
- static inline int pte_young(pte_t pte)          { return pte_val(pte) & _PAGE_ACCESSED; }
--static inline int pte_file(pte_t pte)           { return pte_val(pte) & _PAGE_FILE; }
- static inline int pte_special(pte_t pte)	{ return 0; }
+ #define kern_addr_valid(addr)           (1)
  
- static inline pte_t pte_wrprotect(pte_t pte)
-@@ -290,9 +289,6 @@ static inline void update_mmu_cache(stru
-  */
- #define pgtable_cache_init()   do { } while (0)
+ #include <asm-generic/pgtable.h>
+diff -puN arch/openrisc/kernel/head.S~openrisc-drop-_page_file-and-pte_file-related-helpers arch/openrisc/kernel/head.S
+--- a/arch/openrisc/kernel/head.S~openrisc-drop-_page_file-and-pte_file-related-helpers
++++ a/arch/openrisc/kernel/head.S
+@@ -754,11 +754,6 @@ _dc_enable:
  
--#define pte_to_pgoff(x)	(pte_val(x) >> 6)
--#define pgoff_to_pte(x)	__pte(((x) << 6) | _PAGE_FILE)
+ /* ===============================================[ page table masks ]=== */
+ 
+-/* bit 4 is used in hardware as write back cache bit. we never use this bit
+- * explicitly, so we can reuse it as _PAGE_FILE bit and mask it out when
+- * writing into hardware pte's
+- */
 -
- typedef pte_t *pte_addr_t;
+ #define DTLB_UP_CONVERT_MASK  0x3fa
+ #define ITLB_UP_CONVERT_MASK  0x3a
  
- #endif /* __ASSEMBLY__ */
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
