@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-drop-_page_file-and-pte_file-related-helpers.patch
- added to -mm tree
-Date: Tue, 06 Jan 2015 15:34:46 -0800
-Message-ID: <54ac7116.yIi0YW1Bl5lviZou%akpm@linux-foundation.org>
+Subject: + sh-drop-_page_file-and-pte_file-related-helpers.patch added to
+ -mm tree
+Date: Tue, 06 Jan 2015 15:34:52 -0800
+Message-ID: <54ac711c.OjDgRxj/7KVrT6Qe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44729 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44753 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751667AbbAFXer (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2015 18:34:47 -0500
+	with ESMTP id S1751667AbbAFXex (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2015 18:34:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, benh@kernel.crashing.org, mpe@ellerman.id.au, paulus@samba.org, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     powerpc: drop _PAGE_FILE and pte_file()-related helpers
+     Subject: sh: drop _PAGE_FILE and pte_file()-related helpers
 has been added to the -mm tree.  Its filename is
-     powerpc-drop-_page_file-and-pte_file-related-helpers.patch
+     sh-drop-_page_file-and-pte_file-related-helpers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-drop-_page_file-and-pte_file-related-helpers.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sh-drop-_page_file-and-pte_file-related-helpers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-drop-_page_file-and-pte_file-related-helpers.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sh-drop-_page_file-and-pte_file-related-helpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,208 +39,153 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com> Subject:
-powerpc: drop _PAGE_FILE and pte_file()-related helpers
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: sh: drop _PAGE_FILE and pte_file()-related helpers
 
 We've replaced remap_file_pages(2) implementation with emulation.  Nobody
 creates non-linear mapping anymore.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
----
-
-index 234e07c47803..c718bfd58bcb 100644
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/pgtable-ppc32.h |    9 ++-------
- arch/powerpc/include/asm/pgtable-ppc64.h |    5 +----
- arch/powerpc/include/asm/pgtable.h       |    1 -
- arch/powerpc/include/asm/pte-40x.h       |    1 -
- arch/powerpc/include/asm/pte-44x.h       |    5 -----
- arch/powerpc/include/asm/pte-8xx.h       |    1 -
- arch/powerpc/include/asm/pte-book3e.h    |    1 -
- arch/powerpc/include/asm/pte-fsl-booke.h |    3 ---
- arch/powerpc/include/asm/pte-hash32.h    |    1 -
- arch/powerpc/include/asm/pte-hash64.h    |    1 -
- arch/powerpc/mm/pgtable_64.c             |    2 +-
- 11 files changed, 4 insertions(+), 26 deletions(-)
+ arch/sh/include/asm/pgtable_32.h |   30 +++--------------------------
+ arch/sh/include/asm/pgtable_64.h |    9 --------
+ 2 files changed, 5 insertions(+), 34 deletions(-)
 
-diff -puN arch/powerpc/include/asm/pgtable-ppc32.h~powerpc-drop-_page_file-and-pte_file-related-helpers arch/powerpc/include/asm/pgtable-ppc32.h
---- a/arch/powerpc/include/asm/pgtable-ppc32.h~powerpc-drop-_page_file-and-pte_file-related-helpers
-+++ a/arch/powerpc/include/asm/pgtable-ppc32.h
-@@ -332,8 +332,8 @@ static inline void __ptep_set_access_fla
- /*
-  * Encode and decode a swap entry.
-  * Note that the bits we use in a PTE for representing a swap entry
-- * must not include the _PAGE_PRESENT bit, the _PAGE_FILE bit, or the
-- *_PAGE_HASHPTE bit (if used).  -- paulus
-+ * must not include the _PAGE_PRESENT bit or the _PAGE_HASHPTE bit (if used).
-+ *   -- paulus
+diff -puN arch/sh/include/asm/pgtable_32.h~sh-drop-_page_file-and-pte_file-related-helpers arch/sh/include/asm/pgtable_32.h
+--- a/arch/sh/include/asm/pgtable_32.h~sh-drop-_page_file-and-pte_file-related-helpers
++++ a/arch/sh/include/asm/pgtable_32.h
+@@ -26,8 +26,6 @@
+  *   and timing control which (together with bit 0) are moved into the
+  *   old-style PTEA on the parts that support it.
+  *
+- * XXX: Leave the _PAGE_FILE and _PAGE_WT overhaul for a rainy day.
+- *
+  * SH-X2 MMUs and extended PTEs
+  *
+  * SH-X2 supports an extended mode TLB with split data arrays due to the
+@@ -51,7 +49,6 @@
+ #define _PAGE_PRESENT	0x100		/* V-bit   : page is valid */
+ #define _PAGE_PROTNONE	0x200		/* software: if not present  */
+ #define _PAGE_ACCESSED	0x400		/* software: page referenced */
+-#define _PAGE_FILE	_PAGE_WT	/* software: pagecache or swap? */
+ #define _PAGE_SPECIAL	0x800		/* software: special page */
+ 
+ #define _PAGE_SZ_MASK	(_PAGE_SZ0 | _PAGE_SZ1)
+@@ -105,14 +102,13 @@ static inline unsigned long copy_ptea_at
+ /* Mask which drops unused bits from the PTEL value */
+ #if defined(CONFIG_CPU_SH3)
+ #define _PAGE_CLEAR_FLAGS	(_PAGE_PROTNONE | _PAGE_ACCESSED| \
+-				 _PAGE_FILE	| _PAGE_SZ1	| \
+-				 _PAGE_HW_SHARED)
++				  _PAGE_SZ1	| _PAGE_HW_SHARED)
+ #elif defined(CONFIG_X2TLB)
+ /* Get rid of the legacy PR/SZ bits when using extended mode */
+ #define _PAGE_CLEAR_FLAGS	(_PAGE_PROTNONE | _PAGE_ACCESSED | \
+-				 _PAGE_FILE | _PAGE_PR_MASK | _PAGE_SZ_MASK)
++				 _PAGE_PR_MASK | _PAGE_SZ_MASK)
+ #else
+-#define _PAGE_CLEAR_FLAGS	(_PAGE_PROTNONE | _PAGE_ACCESSED | _PAGE_FILE)
++#define _PAGE_CLEAR_FLAGS	(_PAGE_PROTNONE | _PAGE_ACCESSED)
+ #endif
+ 
+ #define _PAGE_FLAGS_HARDWARE_MASK	(phys_addr_mask() & ~(_PAGE_CLEAR_FLAGS))
+@@ -343,7 +339,6 @@ static inline void set_pte(pte_t *ptep,
+ #define pte_not_present(pte)	(!((pte).pte_low & _PAGE_PRESENT))
+ #define pte_dirty(pte)		((pte).pte_low & _PAGE_DIRTY)
+ #define pte_young(pte)		((pte).pte_low & _PAGE_ACCESSED)
+-#define pte_file(pte)		((pte).pte_low & _PAGE_FILE)
+ #define pte_special(pte)	((pte).pte_low & _PAGE_SPECIAL)
+ 
+ #ifdef CONFIG_X2TLB
+@@ -445,7 +440,6 @@ static inline pte_t pte_modify(pte_t pte
+  * Encode and de-code a swap entry
+  *
+  * Constraints:
+- *	_PAGE_FILE at bit 0
+  *	_PAGE_PRESENT at bit 8
+  *	_PAGE_PROTNONE at bit 9
+  *
+@@ -453,9 +447,7 @@ static inline pte_t pte_modify(pte_t pte
+  * swap offset into bits 10:30. For the 64-bit PTE case, we keep the
+  * preserved bits in the low 32-bits and use the upper 32 as the swap
+  * offset (along with a 5-bit type), following the same approach as x86
+- * PAE. This keeps the logic quite simple, and allows for a full 32
+- * PTE_FILE_MAX_BITS, as opposed to the 29-bits we're constrained with
+- * in the pte_low case.
++ * PAE. This keeps the logic quite simple.
+  *
+  * As is evident by the Alpha code, if we ever get a 64-bit unsigned
+  * long (swp_entry_t) to match up with the 64-bit PTEs, this all becomes
+@@ -471,13 +463,6 @@ static inline pte_t pte_modify(pte_t pte
+ #define __pte_to_swp_entry(pte)		((swp_entry_t){ (pte).pte_high })
+ #define __swp_entry_to_pte(x)		((pte_t){ 0, (x).val })
+ 
+-/*
+- * Encode and decode a nonlinear file mapping entry
+- */
+-#define pte_to_pgoff(pte)		((pte).pte_high)
+-#define pgoff_to_pte(off)		((pte_t) { _PAGE_FILE, (off) })
+-
+-#define PTE_FILE_MAX_BITS		32
+ #else
+ #define __swp_type(x)			((x).val & 0xff)
+ #define __swp_offset(x)			((x).val >> 10)
+@@ -485,13 +470,6 @@ static inline pte_t pte_modify(pte_t pte
+ 
+ #define __pte_to_swp_entry(pte)		((swp_entry_t) { pte_val(pte) >> 1 })
+ #define __swp_entry_to_pte(x)		((pte_t) { (x).val << 1 })
+-
+-/*
+- * Encode and decode a nonlinear file mapping entry
+- */
+-#define PTE_FILE_MAX_BITS	29
+-#define pte_to_pgoff(pte)	(pte_val(pte) >> 1)
+-#define pgoff_to_pte(off)	((pte_t) { ((off) << 1) | _PAGE_FILE })
+ #endif
+ 
+ #endif /* __ASSEMBLY__ */
+diff -puN arch/sh/include/asm/pgtable_64.h~sh-drop-_page_file-and-pte_file-related-helpers arch/sh/include/asm/pgtable_64.h
+--- a/arch/sh/include/asm/pgtable_64.h~sh-drop-_page_file-and-pte_file-related-helpers
++++ a/arch/sh/include/asm/pgtable_64.h
+@@ -107,7 +107,6 @@ static __inline__ void set_pte(pte_t *pt
+ #define _PAGE_DEVICE	0x001  /* CB0: if uncacheable, 1->device (i.e. no write-combining or reordering at bus level) */
+ #define _PAGE_CACHABLE	0x002  /* CB1: uncachable/cachable */
+ #define _PAGE_PRESENT	0x004  /* software: page referenced */
+-#define _PAGE_FILE	0x004  /* software: only when !present */
+ #define _PAGE_SIZE0	0x008  /* SZ0-bit : size of page */
+ #define _PAGE_SIZE1	0x010  /* SZ1-bit : size of page */
+ #define _PAGE_SHARED	0x020  /* software: reflects PTEH's SH */
+@@ -129,7 +128,7 @@ static __inline__ void set_pte(pte_t *pt
+ #define _PAGE_WIRED	_PAGE_EXT(0x001) /* software: wire the tlb entry */
+ #define _PAGE_SPECIAL	_PAGE_EXT(0x002)
+ 
+-#define _PAGE_CLEAR_FLAGS	(_PAGE_PRESENT | _PAGE_FILE | _PAGE_SHARED | \
++#define _PAGE_CLEAR_FLAGS	(_PAGE_PRESENT | _PAGE_SHARED | \
+ 				 _PAGE_DIRTY | _PAGE_ACCESSED | _PAGE_WIRED)
+ 
+ /* Mask which drops software flags */
+@@ -260,7 +259,6 @@ static __inline__ void set_pte(pte_t *pt
   */
- #define __swp_type(entry)		((entry).val & 0x1f)
- #define __swp_offset(entry)		((entry).val >> 5)
-@@ -341,11 +341,6 @@ static inline void __ptep_set_access_fla
- #define __pte_to_swp_entry(pte)		((swp_entry_t) { pte_val(pte) >> 3 })
- #define __swp_entry_to_pte(x)		((pte_t) { (x).val << 3 })
+ static inline int pte_dirty(pte_t pte)  { return pte_val(pte) & _PAGE_DIRTY; }
+ static inline int pte_young(pte_t pte)  { return pte_val(pte) & _PAGE_ACCESSED; }
+-static inline int pte_file(pte_t pte)   { return pte_val(pte) & _PAGE_FILE; }
+ static inline int pte_write(pte_t pte)  { return pte_val(pte) & _PAGE_WRITE; }
+ static inline int pte_special(pte_t pte){ return pte_val(pte) & _PAGE_SPECIAL; }
+ 
+@@ -304,11 +302,6 @@ static inline pte_t pte_modify(pte_t pte
+ #define __pte_to_swp_entry(pte)		((swp_entry_t) { pte_val(pte) })
+ #define __swp_entry_to_pte(x)		((pte_t) { (x).val })
  
 -/* Encode and decode a nonlinear file mapping entry */
--#define PTE_FILE_MAX_BITS	29
--#define pte_to_pgoff(pte)	(pte_val(pte) >> 3)
--#define pgoff_to_pte(off)	((pte_t) { ((off) << 3) | _PAGE_FILE })
+-#define PTE_FILE_MAX_BITS		29
+-#define pte_to_pgoff(pte)		(pte_val(pte))
+-#define pgoff_to_pte(off)		((pte_t) { (off) | _PAGE_FILE })
 -
- /*
-  * No page table caches to initialise
-  */
-diff -puN arch/powerpc/include/asm/pgtable-ppc64.h~powerpc-drop-_page_file-and-pte_file-related-helpers arch/powerpc/include/asm/pgtable-ppc64.h
---- a/arch/powerpc/include/asm/pgtable-ppc64.h~powerpc-drop-_page_file-and-pte_file-related-helpers
-+++ a/arch/powerpc/include/asm/pgtable-ppc64.h
-@@ -352,9 +352,6 @@ static inline void __ptep_set_access_fla
- #define __swp_entry(type, offset) ((swp_entry_t){((type)<< 1)|((offset)<<8)})
- #define __pte_to_swp_entry(pte)	((swp_entry_t){pte_val(pte) >> PTE_RPN_SHIFT})
- #define __swp_entry_to_pte(x)	((pte_t) { (x).val << PTE_RPN_SHIFT })
--#define pte_to_pgoff(pte)	(pte_val(pte) >> PTE_RPN_SHIFT)
--#define pgoff_to_pte(off)	((pte_t) {((off) << PTE_RPN_SHIFT)|_PAGE_FILE})
--#define PTE_FILE_MAX_BITS	(BITS_PER_LONG - PTE_RPN_SHIFT)
+ #endif /* !__ASSEMBLY__ */
  
- void pgtable_cache_add(unsigned shift, void (*ctor)(void *));
- void pgtable_cache_init(void);
-@@ -389,7 +386,7 @@ void pgtable_cache_init(void);
-  * The last three bits are intentionally left to zero. This memory location
-  * are also used as normal page PTE pointers. So if we have any pointers
-  * left around while we collapse a hugepage, we need to make sure
-- * _PAGE_PRESENT and _PAGE_FILE bits of that are zero when we look at them
-+ * _PAGE_PRESENT bit of that is zero when we look at them
-  */
- static inline unsigned int hpte_valid(unsigned char *hpte_slot_array, int index)
- {
-diff -puN arch/powerpc/include/asm/pgtable.h~powerpc-drop-_page_file-and-pte_file-related-helpers arch/powerpc/include/asm/pgtable.h
---- a/arch/powerpc/include/asm/pgtable.h~powerpc-drop-_page_file-and-pte_file-related-helpers
-+++ a/arch/powerpc/include/asm/pgtable.h
-@@ -33,7 +33,6 @@ struct mm_struct;
- static inline int pte_write(pte_t pte)		{ return pte_val(pte) & _PAGE_RW; }
- static inline int pte_dirty(pte_t pte)		{ return pte_val(pte) & _PAGE_DIRTY; }
- static inline int pte_young(pte_t pte)		{ return pte_val(pte) & _PAGE_ACCESSED; }
--static inline int pte_file(pte_t pte)		{ return pte_val(pte) & _PAGE_FILE; }
- static inline int pte_special(pte_t pte)	{ return pte_val(pte) & _PAGE_SPECIAL; }
- static inline int pte_none(pte_t pte)		{ return (pte_val(pte) & ~_PTE_NONE_MASK) == 0; }
- static inline pgprot_t pte_pgprot(pte_t pte)	{ return __pgprot(pte_val(pte) & PAGE_PROT_BITS); }
-diff -puN arch/powerpc/include/asm/pte-40x.h~powerpc-drop-_page_file-and-pte_file-related-helpers arch/powerpc/include/asm/pte-40x.h
---- a/arch/powerpc/include/asm/pte-40x.h~powerpc-drop-_page_file-and-pte_file-related-helpers
-+++ a/arch/powerpc/include/asm/pte-40x.h
-@@ -38,7 +38,6 @@
-  */
- 
- #define	_PAGE_GUARDED	0x001	/* G: page is guarded from prefetch */
--#define _PAGE_FILE	0x001	/* when !present: nonlinear file mapping */
- #define _PAGE_PRESENT	0x002	/* software: PTE contains a translation */
- #define	_PAGE_NO_CACHE	0x004	/* I: caching is inhibited */
- #define	_PAGE_WRITETHRU	0x008	/* W: caching is write-through */
-diff -puN arch/powerpc/include/asm/pte-44x.h~powerpc-drop-_page_file-and-pte_file-related-helpers arch/powerpc/include/asm/pte-44x.h
---- a/arch/powerpc/include/asm/pte-44x.h~powerpc-drop-_page_file-and-pte_file-related-helpers
-+++ a/arch/powerpc/include/asm/pte-44x.h
-@@ -44,9 +44,6 @@
-  *   - PRESENT *must* be in the bottom three bits because swap cache
-  *     entries use the top 29 bits for TLB2.
-  *
-- *   - FILE *must* be in the bottom three bits because swap cache
-- *     entries use the top 29 bits for TLB2.
-- *
-  *   - CACHE COHERENT bit (M) has no effect on original PPC440 cores,
-  *     because it doesn't support SMP. However, some later 460 variants
-  *     have -some- form of SMP support and so I keep the bit there for
-@@ -68,7 +65,6 @@
-  *
-  * There are three protection bits available for SWAP entry:
-  *	_PAGE_PRESENT
-- *	_PAGE_FILE
-  *	_PAGE_HASHPTE (if HW has)
-  *
-  * So those three bits have to be inside of 0-2nd LSB of PTE.
-@@ -77,7 +73,6 @@
- 
- #define _PAGE_PRESENT	0x00000001		/* S: PTE valid */
- #define _PAGE_RW	0x00000002		/* S: Write permission */
--#define _PAGE_FILE	0x00000004		/* S: nonlinear file mapping */
- #define _PAGE_EXEC	0x00000004		/* H: Execute permission */
- #define _PAGE_ACCESSED	0x00000008		/* S: Page referenced */
- #define _PAGE_DIRTY	0x00000010		/* S: Page dirty */
-diff -puN arch/powerpc/include/asm/pte-8xx.h~powerpc-drop-_page_file-and-pte_file-related-helpers arch/powerpc/include/asm/pte-8xx.h
---- a/arch/powerpc/include/asm/pte-8xx.h~powerpc-drop-_page_file-and-pte_file-related-helpers
-+++ a/arch/powerpc/include/asm/pte-8xx.h
-@@ -29,7 +29,6 @@
- 
- /* Definitions for 8xx embedded chips. */
- #define _PAGE_PRESENT	0x0001	/* Page is valid */
--#define _PAGE_FILE	0x0002	/* when !present: nonlinear file mapping */
- #define _PAGE_NO_CACHE	0x0002	/* I: cache inhibit */
- #define _PAGE_SHARED	0x0004	/* No ASID (context) compare */
- #define _PAGE_SPECIAL	0x0008	/* SW entry, forced to 0 by the TLB miss */
-diff -puN arch/powerpc/include/asm/pte-book3e.h~powerpc-drop-_page_file-and-pte_file-related-helpers arch/powerpc/include/asm/pte-book3e.h
---- a/arch/powerpc/include/asm/pte-book3e.h~powerpc-drop-_page_file-and-pte_file-related-helpers
-+++ a/arch/powerpc/include/asm/pte-book3e.h
-@@ -10,7 +10,6 @@
- 
- /* Architected bits */
- #define _PAGE_PRESENT	0x000001 /* software: pte contains a translation */
--#define _PAGE_FILE	0x000002 /* (!present only) software: pte holds file offset */
- #define _PAGE_SW1	0x000002
- #define _PAGE_BAP_SR	0x000004
- #define _PAGE_BAP_UR	0x000008
-diff -puN arch/powerpc/include/asm/pte-fsl-booke.h~powerpc-drop-_page_file-and-pte_file-related-helpers arch/powerpc/include/asm/pte-fsl-booke.h
---- a/arch/powerpc/include/asm/pte-fsl-booke.h~powerpc-drop-_page_file-and-pte_file-related-helpers
-+++ a/arch/powerpc/include/asm/pte-fsl-booke.h
-@@ -13,14 +13,11 @@
-    - PRESENT *must* be in the bottom three bits because swap cache
-      entries use the top 29 bits.
- 
--   - FILE *must* be in the bottom three bits because swap cache
--     entries use the top 29 bits.
- */
- 
- /* Definitions for FSL Book-E Cores */
- #define _PAGE_PRESENT	0x00001	/* S: PTE contains a translation */
- #define _PAGE_USER	0x00002	/* S: User page (maps to UR) */
--#define _PAGE_FILE	0x00002	/* S: when !present: nonlinear file mapping */
- #define _PAGE_RW	0x00004	/* S: Write permission (SW) */
- #define _PAGE_DIRTY	0x00008	/* S: Page dirty */
- #define _PAGE_EXEC	0x00010	/* H: SX permission */
-diff -puN arch/powerpc/include/asm/pte-hash32.h~powerpc-drop-_page_file-and-pte_file-related-helpers arch/powerpc/include/asm/pte-hash32.h
---- a/arch/powerpc/include/asm/pte-hash32.h~powerpc-drop-_page_file-and-pte_file-related-helpers
-+++ a/arch/powerpc/include/asm/pte-hash32.h
-@@ -18,7 +18,6 @@
- 
- #define _PAGE_PRESENT	0x001	/* software: pte contains a translation */
- #define _PAGE_HASHPTE	0x002	/* hash_page has made an HPTE for this pte */
--#define _PAGE_FILE	0x004	/* when !present: nonlinear file mapping */
- #define _PAGE_USER	0x004	/* usermode access allowed */
- #define _PAGE_GUARDED	0x008	/* G: prohibit speculative access */
- #define _PAGE_COHERENT	0x010	/* M: enforce memory coherence (SMP systems) */
-diff -puN arch/powerpc/include/asm/pte-hash64.h~powerpc-drop-_page_file-and-pte_file-related-helpers arch/powerpc/include/asm/pte-hash64.h
---- a/arch/powerpc/include/asm/pte-hash64.h~powerpc-drop-_page_file-and-pte_file-related-helpers
-+++ a/arch/powerpc/include/asm/pte-hash64.h
-@@ -16,7 +16,6 @@
-  */
- #define _PAGE_PRESENT		0x0001 /* software: pte contains a translation */
- #define _PAGE_USER		0x0002 /* matches one of the PP bits */
--#define _PAGE_FILE		0x0002 /* (!present only) software: pte holds file offset */
- #define _PAGE_EXEC		0x0004 /* No execute on POWER4 and newer (we invert) */
- #define _PAGE_GUARDED		0x0008
- /* We can derive Memory coherence from _PAGE_NO_CACHE */
-diff -puN arch/powerpc/mm/pgtable_64.c~powerpc-drop-_page_file-and-pte_file-related-helpers arch/powerpc/mm/pgtable_64.c
---- a/arch/powerpc/mm/pgtable_64.c~powerpc-drop-_page_file-and-pte_file-related-helpers
-+++ a/arch/powerpc/mm/pgtable_64.c
-@@ -781,7 +781,7 @@ pmd_t pfn_pmd(unsigned long pfn, pgprot_
- {
- 	pmd_t pmd;
- 	/*
--	 * For a valid pte, we would have _PAGE_PRESENT or _PAGE_FILE always
-+	 * For a valid pte, we would have _PAGE_PRESENT always
- 	 * set. We use this to check THP page at pmd level.
- 	 * leaf pte for huge page, bottom two bits != 00
- 	 */
+ #define pfn_pte(pfn, prot)	__pte(((pfn) << PAGE_SHIFT) | pgprot_val(prot))
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
