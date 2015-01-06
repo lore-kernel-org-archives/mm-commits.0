@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + metag-drop-_page_file-and-pte_file-related-helpers.patch added
- to -mm tree
-Date: Tue, 06 Jan 2015 15:34:32 -0800
-Message-ID: <54ac7108.Q7bGfiTkvWw10Cax%akpm@linux-foundation.org>
+Subject: + tile-drop-pte_file-related-helpers.patch added to -mm tree
+Date: Tue, 06 Jan 2015 15:34:56 -0800
+Message-ID: <54ac7120.Ai4kJwNBbnFgTOuv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44669 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44763 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752403AbbAFXed (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2015 18:34:33 -0500
+	with ESMTP id S1751667AbbAFXe5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2015 18:34:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, james.hogan@imgtec.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, cmetcalf@ezchip.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: metag: drop _PAGE_FILE and pte_file()-related helpers
+     Subject: tile: drop pte_file()-related helpers
 has been added to the -mm tree.  Its filename is
-     metag-drop-_page_file-and-pte_file-related-helpers.patch
+     tile-drop-pte_file-related-helpers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/metag-drop-_page_file-and-pte_file-related-helpers.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/tile-drop-pte_file-related-helpers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/metag-drop-_page_file-and-pte_file-related-helpers.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/tile-drop-pte_file-related-helpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,49 +39,55 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: metag: drop _PAGE_FILE and pte_file()-related helpers
+Subject: tile: drop pte_file()-related helpers
 
 We've replaced remap_file_pages(2) implementation with emulation.  Nobody
 creates non-linear mapping anymore.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: James Hogan <james.hogan@imgtec.com>
+Acked-by: Chris Metcalf <cmetcalf@ezchip.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/metag/include/asm/pgtable.h |    6 ------
- 1 file changed, 6 deletions(-)
+ arch/tile/include/asm/pgtable.h |   11 -----------
+ arch/tile/mm/homecache.c        |    4 ----
+ 2 files changed, 15 deletions(-)
 
-diff -puN arch/metag/include/asm/pgtable.h~metag-drop-_page_file-and-pte_file-related-helpers arch/metag/include/asm/pgtable.h
---- a/arch/metag/include/asm/pgtable.h~metag-drop-_page_file-and-pte_file-related-helpers
-+++ a/arch/metag/include/asm/pgtable.h
-@@ -47,7 +47,6 @@
-  */
- #define _PAGE_ACCESSED		_PAGE_ALWAYS_ZERO_1
- #define _PAGE_DIRTY		_PAGE_ALWAYS_ZERO_2
--#define _PAGE_FILE		_PAGE_ALWAYS_ZERO_3
- 
- /* Pages owned, and protected by, the kernel. */
- #define _PAGE_KERNEL		_PAGE_PRIV
-@@ -219,7 +218,6 @@ extern unsigned long empty_zero_page;
- static inline int pte_write(pte_t pte)   { return pte_val(pte) & _PAGE_WRITE; }
- static inline int pte_dirty(pte_t pte)   { return pte_val(pte) & _PAGE_DIRTY; }
- static inline int pte_young(pte_t pte)   { return pte_val(pte) & _PAGE_ACCESSED; }
--static inline int pte_file(pte_t pte)    { return pte_val(pte) & _PAGE_FILE; }
- static inline int pte_special(pte_t pte) { return 0; }
- 
- static inline pte_t pte_wrprotect(pte_t pte) { pte_val(pte) &= (~_PAGE_WRITE); return pte; }
-@@ -327,10 +325,6 @@ static inline void update_mmu_cache(stru
- #define __pte_to_swp_entry(pte)		((swp_entry_t) { pte_val(pte) })
- #define __swp_entry_to_pte(x)		((pte_t) { (x).val })
- 
--#define PTE_FILE_MAX_BITS	22
--#define pte_to_pgoff(x)		(pte_val(x) >> 10)
--#define pgoff_to_pte(x)		__pte(((x) << 10) | _PAGE_FILE)
--
- #define kern_addr_valid(addr)	(1)
+diff -puN arch/tile/include/asm/pgtable.h~tile-drop-pte_file-related-helpers arch/tile/include/asm/pgtable.h
+--- a/arch/tile/include/asm/pgtable.h~tile-drop-pte_file-related-helpers
++++ a/arch/tile/include/asm/pgtable.h
+@@ -285,17 +285,6 @@ extern void start_mm_caching(struct mm_s
+ extern void check_mm_caching(struct mm_struct *prev, struct mm_struct *next);
  
  /*
+- * Support non-linear file mappings (see sys_remap_file_pages).
+- * This is defined by CLIENT1 set but CLIENT0 and _PAGE_PRESENT clear, and the
+- * file offset in the 32 high bits.
+- */
+-#define _PAGE_FILE        HV_PTE_CLIENT1
+-#define PTE_FILE_MAX_BITS 32
+-#define pte_file(pte)     (hv_pte_get_client1(pte) && !hv_pte_get_client0(pte))
+-#define pte_to_pgoff(pte) ((pte).val >> 32)
+-#define pgoff_to_pte(off) ((pte_t) { (((long long)(off)) << 32) | _PAGE_FILE })
+-
+-/*
+  * Encode and de-code a swap entry (see <linux/swapops.h>).
+  * We put the swap file type+offset in the 32 high bits;
+  * I believe we can just leave the low bits clear.
+diff -puN arch/tile/mm/homecache.c~tile-drop-pte_file-related-helpers arch/tile/mm/homecache.c
+--- a/arch/tile/mm/homecache.c~tile-drop-pte_file-related-helpers
++++ a/arch/tile/mm/homecache.c
+@@ -263,10 +263,6 @@ static int pte_to_home(pte_t pte)
+ /* Update the home of a PTE if necessary (can also be used for a pgprot_t). */
+ pte_t pte_set_home(pte_t pte, int home)
+ {
+-	/* Check for non-linear file mapping "PTEs" and pass them through. */
+-	if (pte_file(pte))
+-		return pte;
+-
+ #if CHIP_HAS_MMIO()
+ 	/* Check for MMIO mappings and pass them through. */
+ 	if (hv_pte_get_mode(pte) == HV_PTE_MODE_MMIO)
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
