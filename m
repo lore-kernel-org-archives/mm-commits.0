@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + microblaze-drop-_page_file-and-pte_file-related-helpers.patch
- added to -mm tree
-Date: Tue, 06 Jan 2015 15:34:34 -0800
-Message-ID: <54ac710a.VOvdyFD86irm0lYy%akpm@linux-foundation.org>
+Subject: + um-drop-_page_file-and-pte_file-related-helpers.patch added to
+ -mm tree
+Date: Tue, 06 Jan 2015 15:34:58 -0800
+Message-ID: <54ac7122.7qMF4laB5zTMIxUu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44672 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44773 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752403AbbAFXef (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2015 18:34:35 -0500
+	with ESMTP id S1751667AbbAFXe7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2015 18:34:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, monstr@monstr.eu, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, jdike@addtoit.com, richard@nod.at, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: microblaze: drop _PAGE_FILE and pte_file()-related helpers
+     Subject: um: drop _PAGE_FILE and pte_file()-related helpers
 has been added to the -mm tree.  Its filename is
-     microblaze-drop-_page_file-and-pte_file-related-helpers.patch
+     um-drop-_page_file-and-pte_file-related-helpers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/microblaze-drop-_page_file-and-pte_file-related-helpers.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/um-drop-_page_file-and-pte_file-related-helpers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/microblaze-drop-_page_file-and-pte_file-related-helpers.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/um-drop-_page_file-and-pte_file-related-helpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,61 +40,94 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: microblaze: drop _PAGE_FILE and pte_file()-related helpers
+Subject: um: drop _PAGE_FILE and pte_file()-related helpers
 
 We've replaced remap_file_pages(2) implementation with emulation.  Nobody
 creates non-linear mapping anymore.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Michal Simek <monstr@monstr.eu>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Richard Weinberger <richard@nod.at>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/microblaze/include/asm/pgtable.h |   11 -----------
- 1 file changed, 11 deletions(-)
+ arch/um/include/asm/pgtable-2level.h |    9 ---------
+ arch/um/include/asm/pgtable-3level.h |   20 --------------------
+ arch/um/include/asm/pgtable.h        |    9 ---------
+ 3 files changed, 38 deletions(-)
 
-diff -puN arch/microblaze/include/asm/pgtable.h~microblaze-drop-_page_file-and-pte_file-related-helpers arch/microblaze/include/asm/pgtable.h
---- a/arch/microblaze/include/asm/pgtable.h~microblaze-drop-_page_file-and-pte_file-related-helpers
-+++ a/arch/microblaze/include/asm/pgtable.h
-@@ -40,10 +40,6 @@ extern int mem_init_done;
- #define __pte_to_swp_entry(pte)	((swp_entry_t) { pte_val(pte) })
- #define __swp_entry_to_pte(x)	((pte_t) { (x).val })
+diff -puN arch/um/include/asm/pgtable-2level.h~um-drop-_page_file-and-pte_file-related-helpers arch/um/include/asm/pgtable-2level.h
+--- a/arch/um/include/asm/pgtable-2level.h~um-drop-_page_file-and-pte_file-related-helpers
++++ a/arch/um/include/asm/pgtable-2level.h
+@@ -41,13 +41,4 @@ static inline void pgd_mkuptodate(pgd_t
+ #define pfn_pte(pfn, prot) __pte(pfn_to_phys(pfn) | pgprot_val(prot))
+ #define pfn_pmd(pfn, prot) __pmd(pfn_to_phys(pfn) | pgprot_val(prot))
  
--#ifndef __ASSEMBLY__
--static inline int pte_file(pte_t pte) { return 0; }
--#endif /* __ASSEMBLY__ */
+-/*
+- * Bits 0 through 4 are taken
+- */
+-#define PTE_FILE_MAX_BITS	27
 -
- #define ZERO_PAGE(vaddr)	({ BUG(); NULL; })
- 
- #define swapper_pg_dir ((pgd_t *) NULL)
-@@ -207,7 +203,6 @@ static inline pte_t pte_mkspecial(pte_t
- 
- /* Definitions for MicroBlaze. */
- #define	_PAGE_GUARDED	0x001	/* G: page is guarded from prefetch */
--#define _PAGE_FILE	0x001	/* when !present: nonlinear file mapping */
- #define _PAGE_PRESENT	0x002	/* software: PTE contains a translation */
- #define	_PAGE_NO_CACHE	0x004	/* I: caching is inhibited */
- #define	_PAGE_WRITETHRU	0x008	/* W: caching is write-through */
-@@ -337,7 +332,6 @@ static inline int pte_write(pte_t pte) {
- static inline int pte_exec(pte_t pte)  { return pte_val(pte) & _PAGE_EXEC; }
- static inline int pte_dirty(pte_t pte) { return pte_val(pte) & _PAGE_DIRTY; }
- static inline int pte_young(pte_t pte) { return pte_val(pte) & _PAGE_ACCESSED; }
--static inline int pte_file(pte_t pte)  { return pte_val(pte) & _PAGE_FILE; }
- 
- static inline void pte_uncache(pte_t pte) { pte_val(pte) |= _PAGE_NO_CACHE; }
- static inline void pte_cache(pte_t pte)   { pte_val(pte) &= ~_PAGE_NO_CACHE; }
-@@ -499,11 +493,6 @@ static inline pmd_t *pmd_offset(pgd_t *d
- 
- #define pte_unmap(pte)		kunmap_atomic(pte)
- 
--/* Encode and decode a nonlinear file mapping entry */
--#define PTE_FILE_MAX_BITS	29
--#define pte_to_pgoff(pte)	(pte_val(pte) >> 3)
--#define pgoff_to_pte(off)	((pte_t) { ((off) << 3) | _PAGE_FILE })
+-#define pte_to_pgoff(pte) (pte_val(pte) >> 5)
 -
- extern pgd_t swapper_pg_dir[PTRS_PER_PGD];
+-#define pgoff_to_pte(off) ((pte_t) { ((off) << 5) + _PAGE_FILE })
+-
+ #endif
+diff -puN arch/um/include/asm/pgtable-3level.h~um-drop-_page_file-and-pte_file-related-helpers arch/um/include/asm/pgtable-3level.h
+--- a/arch/um/include/asm/pgtable-3level.h~um-drop-_page_file-and-pte_file-related-helpers
++++ a/arch/um/include/asm/pgtable-3level.h
+@@ -112,25 +112,5 @@ static inline pmd_t pfn_pmd(pfn_t page_n
+ 	return __pmd((page_nr << PAGE_SHIFT) | pgprot_val(pgprot));
+ }
  
- /*
+-/*
+- * Bits 0 through 3 are taken in the low part of the pte,
+- * put the 32 bits of offset into the high part.
+- */
+-#define PTE_FILE_MAX_BITS	32
+-
+-#ifdef CONFIG_64BIT
+-
+-#define pte_to_pgoff(p) ((p).pte >> 32)
+-
+-#define pgoff_to_pte(off) ((pte_t) { ((off) << 32) | _PAGE_FILE })
+-
+-#else
+-
+-#define pte_to_pgoff(pte) ((pte).pte_high)
+-
+-#define pgoff_to_pte(off) ((pte_t) { _PAGE_FILE, (off) })
+-
+-#endif
+-
+ #endif
+ 
+diff -puN arch/um/include/asm/pgtable.h~um-drop-_page_file-and-pte_file-related-helpers arch/um/include/asm/pgtable.h
+--- a/arch/um/include/asm/pgtable.h~um-drop-_page_file-and-pte_file-related-helpers
++++ a/arch/um/include/asm/pgtable.h
+@@ -18,7 +18,6 @@
+ #define _PAGE_ACCESSED	0x080
+ #define _PAGE_DIRTY	0x100
+ /* If _PAGE_PRESENT is clear, we use these: */
+-#define _PAGE_FILE	0x008	/* nonlinear file mapping, saved PTE; unset:swap */
+ #define _PAGE_PROTNONE	0x010	/* if the user mapped it with PROT_NONE;
+ 				   pte_present gives true */
+ 
+@@ -151,14 +150,6 @@ static inline int pte_write(pte_t pte)
+ 	       !(pte_get_bits(pte, _PAGE_PROTNONE)));
+ }
+ 
+-/*
+- * The following only works if pte_present() is not true.
+- */
+-static inline int pte_file(pte_t pte)
+-{
+-	return pte_get_bits(pte, _PAGE_FILE);
+-}
+-
+ static inline int pte_dirty(pte_t pte)
+ {
+ 	return pte_get_bits(pte, _PAGE_DIRTY);
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
