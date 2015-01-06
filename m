@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + alpha-drop-_page_file-and-pte_file-related-helpers.patch added
+Subject: + score-drop-_page_file-and-pte_file-related-helpers.patch added
  to -mm tree
-Date: Tue, 06 Jan 2015 15:34:06 -0800
-Message-ID: <54ac70ee.dJJl9keGygHCMLft%akpm@linux-foundation.org>
+Date: Tue, 06 Jan 2015 15:34:50 -0800
+Message-ID: <54ac711a.u+w3peF1ldIJh0O7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44624 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44744 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752262AbbAFXeH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2015 18:34:07 -0500
+	with ESMTP id S1751667AbbAFXev (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2015 18:34:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, ink@jurassic.park.msu.ru, mattst88@gmail.com, rth@twiddle.net, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, lennox.wu@gmail.com, liqin.linux@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: alpha: drop _PAGE_FILE and pte_file()-related helpers
+     Subject: score: drop _PAGE_FILE and pte_file()-related helpers
 has been added to the -mm tree.  Its filename is
-     alpha-drop-_page_file-and-pte_file-related-helpers.patch
+     score-drop-_page_file-and-pte_file-related-helpers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/alpha-drop-_page_file-and-pte_file-related-helpers.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/score-drop-_page_file-and-pte_file-related-helpers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/alpha-drop-_page_file-and-pte_file-related-helpers.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/score-drop-_page_file-and-pte_file-related-helpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,52 +40,76 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: alpha: drop _PAGE_FILE and pte_file()-related helpers
+Subject: score: drop _PAGE_FILE and pte_file()-related helpers
 
-We've replaced remap_file_pages(2) implementation with emulation.  Nobody
-creates non-linear mapping anymore.
+We've replaced remap_file_pages(2) implementation with emulation.
+Nobody creates non-linear mapping anymore.
+
+This patch also increase number of bits availble for swap offset.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
+Cc: Chen Liqin <liqin.linux@gmail.com>
+Cc: Lennox Wu <lennox.wu@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/pgtable.h |    7 -------
- 1 file changed, 7 deletions(-)
+ arch/score/include/asm/pgtable-bits.h |    1 -
+ arch/score/include/asm/pgtable.h      |   18 ++----------------
+ 2 files changed, 2 insertions(+), 17 deletions(-)
 
-diff -puN arch/alpha/include/asm/pgtable.h~alpha-drop-_page_file-and-pte_file-related-helpers arch/alpha/include/asm/pgtable.h
---- a/arch/alpha/include/asm/pgtable.h~alpha-drop-_page_file-and-pte_file-related-helpers
-+++ a/arch/alpha/include/asm/pgtable.h
-@@ -73,7 +73,6 @@ struct vm_area_struct;
- /* .. and these are ours ... */
- #define _PAGE_DIRTY	0x20000
- #define _PAGE_ACCESSED	0x40000
--#define _PAGE_FILE	0x80000	/* set:pagecache, unset:swap */
+diff -puN arch/score/include/asm/pgtable-bits.h~score-drop-_page_file-and-pte_file-related-helpers arch/score/include/asm/pgtable-bits.h
+--- a/arch/score/include/asm/pgtable-bits.h~score-drop-_page_file-and-pte_file-related-helpers
++++ a/arch/score/include/asm/pgtable-bits.h
+@@ -6,7 +6,6 @@
+ #define _PAGE_WRITE			(1<<7)	/* implemented in software */
+ #define _PAGE_PRESENT			(1<<9)	/* implemented in software */
+ #define _PAGE_MODIFIED			(1<<10)	/* implemented in software */
+-#define _PAGE_FILE			(1<<10)
  
- /*
-  * NOTE! The "accessed" bit isn't necessarily exact:  it can be kept exactly
-@@ -268,7 +267,6 @@ extern inline void pgd_clear(pgd_t * pgd
- extern inline int pte_write(pte_t pte)		{ return !(pte_val(pte) & _PAGE_FOW); }
- extern inline int pte_dirty(pte_t pte)		{ return pte_val(pte) & _PAGE_DIRTY; }
- extern inline int pte_young(pte_t pte)		{ return pte_val(pte) & _PAGE_ACCESSED; }
--extern inline int pte_file(pte_t pte)		{ return pte_val(pte) & _PAGE_FILE; }
- extern inline int pte_special(pte_t pte)	{ return 0; }
+ #define _PAGE_GLOBAL			(1<<0)
+ #define _PAGE_VALID			(1<<1)
+diff -puN arch/score/include/asm/pgtable.h~score-drop-_page_file-and-pte_file-related-helpers arch/score/include/asm/pgtable.h
+--- a/arch/score/include/asm/pgtable.h~score-drop-_page_file-and-pte_file-related-helpers
++++ a/arch/score/include/asm/pgtable.h
+@@ -90,15 +90,6 @@ static inline void pmd_clear(pmd_t *pmdp
+ 	((pte_t *)page_address(pmd_page(*(dir))) + __pte_offset(address))
+ #define pte_unmap(pte) ((void)(pte))
  
- extern inline pte_t pte_wrprotect(pte_t pte)	{ pte_val(pte) |= _PAGE_FOW; return pte; }
-@@ -345,11 +343,6 @@ extern inline pte_t mk_swap_pte(unsigned
- #define __pte_to_swp_entry(pte)	((swp_entry_t) { pte_val(pte) })
- #define __swp_entry_to_pte(x)	((pte_t) { (x).val })
+-/*
+- * Bits 9(_PAGE_PRESENT) and 10(_PAGE_FILE)are taken,
+- * split up 30 bits of offset into this range:
+- */
+-#define PTE_FILE_MAX_BITS	30
+-#define pte_to_pgoff(_pte)		\
+-	(((_pte).pte & 0x1ff) | (((_pte).pte >> 11) << 9))
+-#define pgoff_to_pte(off)		\
+-	((pte_t) {((off) & 0x1ff) | (((off) >> 9) << 11) | _PAGE_FILE})
+ #define __pte_to_swp_entry(pte)		\
+ 	((swp_entry_t) { pte_val(pte)})
+ #define __swp_entry_to_pte(x)	((pte_t) {(x).val})
+@@ -169,8 +160,8 @@ static inline pgprot_t pgprot_noncached(
+ }
  
--#define pte_to_pgoff(pte)	(pte_val(pte) >> 32)
--#define pgoff_to_pte(off)	((pte_t) { ((off) << 32) | _PAGE_FILE })
+ #define __swp_type(x)		((x).val & 0x1f)
+-#define __swp_offset(x) 	((x).val >> 11)
+-#define __swp_entry(type, offset) ((swp_entry_t){(type) | ((offset) << 11)})
++#define __swp_offset(x) 	((x).val >> 10)
++#define __swp_entry(type, offset) ((swp_entry_t){(type) | ((offset) << 10)})
+ 
+ extern unsigned long empty_zero_page;
+ extern unsigned long zero_page_mask;
+@@ -198,11 +189,6 @@ static inline int pte_young(pte_t pte)
+ 	return pte_val(pte) & _PAGE_ACCESSED;
+ }
+ 
+-static inline int pte_file(pte_t pte)
+-{
+-	return pte_val(pte) & _PAGE_FILE;
+-}
 -
--#define PTE_FILE_MAX_BITS	32
--
- #ifndef CONFIG_DISCONTIGMEM
- #define kern_addr_valid(addr)	(1)
- #endif
+ #define pte_special(pte)	(0)
+ 
+ static inline pte_t pte_wrprotect(pte_t pte)
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
