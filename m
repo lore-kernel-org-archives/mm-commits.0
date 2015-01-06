@@ -1,100 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- powerpc-add-running_clock-for-powerpc-to-prevent-spurious-softlockup-warnings.patch removed from -mm tree
-Date: Tue, 06 Jan 2015 13:02:50 -0800
-Message-ID: <54ac4d7a.6XcZqhWD0/a6Kw9i%akpm@linux-foundation.org>
+Subject: + mm-memcontrol-track-move_lock-state-internally-fix.patch added
+ to -mm tree
+Date: Tue, 06 Jan 2015 13:46:31 -0800
+Message-ID: <54ac57b7.7+8So9OcjROSkQOX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42587 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42891 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750921AbbAFVCz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2015 16:02:55 -0500
+	with ESMTP id S1754201AbbAFVqc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2015 16:46:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cyrilbur@gmail.com, atomlin@redhat.com, benh@kernel.crashing.org, benzh@chromium.org, chaiw.fnst@cn.fujitsu.com, drjones@redhat.com, dzickus@redhat.com, fabf@skynet.be, mingo@kernel.org, mpe@ellerman.id.au, tglx@linutronix.de, uobergfe@redhat.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, fengguang.wu@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc: add running_clock for powerpc to prevent spurious softlockup warnings
-has been removed from the -mm tree.  Its filename was
-     powerpc-add-running_clock-for-powerpc-to-prevent-spurious-softlockup-warnings.patch
+     Subject: mm: memcontrol: track move_lock state internally fix
+has been added to the -mm tree.  Its filename is
+     mm-memcontrol-track-move_lock-state-internally-fix.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-track-move_lock-state-internally-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-track-move_lock-state-internally-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Cyril Bur <cyrilbur@gmail.com>
-Subject: powerpc: add running_clock for powerpc to prevent spurious softlockup warnings
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memcontrol: track move_lock state internally fix
 
-On POWER8 virtualised kernels the VTB register can be read to have a view
-of time that only increases while the guest is running.  This will prevent
-guests from seeing time jump if a guest is paused for significant amounts
-of time.
+Update the !CONFIG_MEMCG page stat dummy API.
 
-On POWER7 and below virtualised kernels stolen time is subtracted from
-sched_clock as a best effort approximation.  This will not eliminate
-spurious warnings in the case of a suspended guest but may reduce the
-occurrence in the case of softlockups due to host over commit.
-
-Bare metal kernels should avoid reading the VTB as KVM does not restore
-sane values when not executing.  sched_clock is returned in this case.
-
-Signed-off-by: Cyril Bur <cyrilbur@gmail.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Andrew Jones <drjones@redhat.com>
-Cc: Don Zickus <dzickus@redhat.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Ulrich Obergfell <uobergfe@redhat.com>
-Cc: chai wen <chaiw.fnst@cn.fujitsu.com>
-Cc: Fabian Frederick <fabf@skynet.be>
-Cc: Aaron Tomlin <atomlin@redhat.com>
-Cc: Ben Zhang <benzh@chromium.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/time.c |   24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+ include/linux/memcontrol.h |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN arch/powerpc/kernel/time.c~powerpc-add-running_clock-for-powerpc-to-prevent-spurious-softlockup-warnings arch/powerpc/kernel/time.c
---- a/arch/powerpc/kernel/time.c~powerpc-add-running_clock-for-powerpc-to-prevent-spurious-softlockup-warnings
-+++ a/arch/powerpc/kernel/time.c
-@@ -621,6 +621,30 @@ unsigned long long sched_clock(void)
- 	return mulhdu(get_tb() - boot_tb, tb_to_ns_scale) << tb_to_ns_shift;
+diff -puN include/linux/memcontrol.h~mm-memcontrol-track-move_lock-state-internally-fix include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~mm-memcontrol-track-move_lock-state-internally-fix
++++ a/include/linux/memcontrol.h
+@@ -283,14 +283,12 @@ mem_cgroup_print_oom_info(struct mem_cgr
+ {
  }
  
-+unsigned long long running_clock(void)
-+{
-+	/*
-+	 * Don't read the VTB as a host since KVM does not switch in host timebase
-+	 * into the VTB when it takes a guest off the CPU, reading the VTB would
-+	 * result in reading 'last switched out' guest VTB.
-+	 */
-+
-+	if (firmware_has_feature(FW_FEATURE_LPAR)) {
-+		if (cpu_has_feature(CPU_FTR_ARCH_207S))
-+			return mulhdu(get_vtb() - boot_tb, tb_to_ns_scale) << tb_to_ns_shift;
-+
-+		/* This is a next best approximation without a VTB. */
-+		return sched_clock() - cputime_to_nsecs(kcpustat_this_cpu->cpustat[CPUTIME_STEAL]);
-+	}
-+
-+	/*
-+	 * On a host which doesn't do any virtualisation TB *should* equal VTB so
-+	 * it makes no difference anyway.
-+	 */
-+
-+	return sched_clock();
-+}
-+
- static int __init get_freq(char *name, int cells, unsigned long *val)
+-static inline struct mem_cgroup *mem_cgroup_begin_page_stat(struct page *page,
+-					bool *locked, unsigned long *flags)
++static inline struct mem_cgroup *mem_cgroup_begin_page_stat(struct page *page)
  {
- 	struct device_node *cpu;
+ 	return NULL;
+ }
+ 
+-static inline void mem_cgroup_end_page_stat(struct mem_cgroup *memcg,
+-					bool *locked, unsigned long *flags)
++static inline void mem_cgroup_end_page_stat(struct mem_cgroup *memcg)
+ {
+ }
+ 
 _
 
-Patches currently in -mm which might be from cyrilbur@gmail.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
+mm-protect-set_page_dirty-from-ongoing-truncation.patch
+mm-debug-pagealloc-prepare-boottime-configurable-on-off.patch
+mm-memcontrol-switch-soft-limit-default-back-to-infinity.patch
+memcg-fix-destination-cgroup-leak-on-task-charges-migration.patch
+mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath.patch
+mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath-update.patch
+mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath-fix.patch
+mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
+mm-memory-remove-vm_file-check-on-shared-writable-vmas.patch
+mm-memory-merge-shared-writable-dirtying-branches-in-do_wp_page.patch
+mm-page_alloc-place-zone_id-check-before-vm_bug_on_page-check.patch
+memcg-zap-__memcg_chargeuncharge_slab.patch
+memcg-zap-memcg_name-argument-of-memcg_create_kmem_cache.patch
+memcg-zap-memcg_slab_caches-and-memcg_slab_mutex.patch
+mm-add-fields-for-compound-destructor-and-order-into-struct-page.patch
+swap-remove-unused-mem_cgroup_uncharge_swapcache-declaration.patch
+cma-fix-cmas-page-number-is-substructed-twice-in-__zone_watermark_ok.patch
+mm-memcontrol-track-move_lock-state-internally.patch
+mm-memcontrol-track-move_lock-state-internally-fix.patch
+fs-proc-task_mmu-show-page-size-in-proc-pid-numa_maps.patch
 
