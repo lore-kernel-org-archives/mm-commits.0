@@ -1,70 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: +
- lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned-fix.patch added to
- -mm tree
-Date: Tue, 06 Jan 2015 14:15:26 -0800
-Message-ID: <54ac5e7e.VeEC2YFj/W50x0HE%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ cma-fix-cmas-page-number-is-substructed-twice-in-__zone_watermark_ok-fix.patch removed from -mm tree
+Date: Tue, 06 Jan 2015 14:19:41 -0800
+Message-ID: <54ac5f7d.oNthes8As2v2RJJx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43368 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43706 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752802AbbAFWP1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2015 17:15:27 -0500
+	with ESMTP id S1751834AbbAFWTm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2015 17:19:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, fengguang.wu@intel.com, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, zhuhui@xiaomi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned-fix
-has been added to the -mm tree.  Its filename is
-     lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned-fix.patch
+     Subject: cma-fix-cmas-page-number-is-substructed-twice-in-__zone_watermark_ok-fix
+has been removed from the -mm tree.  Its filename was
+     cma-fix-cmas-page-number-is-substructed-twice-in-__zone_watermark_ok-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into cma-fix-cmas-page-number-is-substructed-twice-in-__zone_watermark_ok.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned-fix
+Subject: cma-fix-cmas-page-number-is-substructed-twice-in-__zone_watermark_ok-fix
 
-fix kerneldoc
+fix comment layout and spelling
 
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Reported-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Hui Zhu <zhuhui@xiaomi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/bitmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN lib/bitmap.c~lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned-fix lib/bitmap.c
---- a/lib/bitmap.c~lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned-fix
-+++ a/lib/bitmap.c
-@@ -1039,7 +1039,7 @@ EXPORT_SYMBOL(bitmap_onto);
-  *	@dst: resulting smaller bitmap
-  *	@orig: original larger bitmap
-  *	@sz: specified size
-- *	@bits: number of bits in each of these bitmaps
-+ *	@nbits: number of bits in each of these bitmaps
-  *
-  * For each bit oldbit in @orig, set bit oldbit mod @sz in @dst.
-  * Clear all other bits in @dst.  See further the comment and
+diff -puN mm/page_alloc.c~cma-fix-cmas-page-number-is-substructed-twice-in-__zone_watermark_ok-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~cma-fix-cmas-page-number-is-substructed-twice-in-__zone_watermark_ok-fix
++++ a/mm/page_alloc.c
+@@ -1839,10 +1839,12 @@ static bool __zone_watermark_ok(struct z
+ 		/* At the next order, this order's pages become unavailable */
+ 		free_pages -= z->free_area[o].nr_free << o;
+ 
+-		/* If CMA's page number of this order was substructed as part
+-		   of "zone_page_state(z, NR_FREE_CMA_PAGES)", subtracting
+-		   "z->free_area[o].nr_free << o" substructed CMA's page
+-		   number of this order again.  So add it back.  */
++		/*
++		 * If CMA's page number of this order was substracted as part
++		 * of "zone_page_state(z, NR_FREE_CMA_PAGES)", subtracting
++		 * "z->free_area[o].nr_free << o" subtracted CMA's page number
++		 * of this order again.  So add it back.
++		 */
+ 		if (IS_ENABLED(CONFIG_CMA) && free_cma)
+ 			free_pages += z->free_area[o].cma_nr_free << o;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -80,7 +72,7 @@ o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper.patch
 ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir.patch
 mm.patch
 mm-replace-remap_file_pages-syscall-with-emulation.patch
-cma-fix-cmas-page-number-is-substructed-twice-in-__zone_watermark_ok-fix.patch
+cma-fix-cmas-page-number-is-substructed-twice-in-__zone_watermark_ok.patch
 x86-add-pmd_-for-thp-fix.patch
 sparc-add-pmd_-for-thp-fix.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
