@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + s390-drop-pte_file-related-helpers.patch added to -mm tree
-Date: Tue, 06 Jan 2015 15:34:48 -0800
-Message-ID: <54ac7118.p30z7t2w2X5iD5dK%akpm@linux-foundation.org>
+Subject: + unicore32-drop-pte_file-related-helpers.patch added to -mm tree
+Date: Tue, 06 Jan 2015 15:35:00 -0800
+Message-ID: <54ac7124.RE0GsxT+oJ6zIjVb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44736 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44788 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751667AbbAFXet (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2015 18:34:49 -0500
+	with ESMTP id S1752412AbbAFXfB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2015 18:35:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, gxt@mprc.pku.edu.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: s390: drop pte_file()-related helpers
+     Subject: unicore32: drop pte_file()-related helpers
 has been added to the -mm tree.  Its filename is
-     s390-drop-pte_file-related-helpers.patch
+     unicore32-drop-pte_file-related-helpers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/s390-drop-pte_file-related-helpers.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/unicore32-drop-pte_file-related-helpers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/s390-drop-pte_file-related-helpers.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/unicore32-drop-pte_file-related-helpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,80 +39,55 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: s390: drop pte_file()-related helpers
+Subject: unicore32: drop pte_file()-related helpers
 
 We've replaced remap_file_pages(2) implementation with emulation.  Nobody
 creates non-linear mapping anymore.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Guan Xuetao <gxt@mprc.pku.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/pgtable.h |   29 ++++-------------------------
- 1 file changed, 4 insertions(+), 25 deletions(-)
+ arch/unicore32/include/asm/pgtable-hwdef.h |    1 -
+ arch/unicore32/include/asm/pgtable.h       |   14 --------------
+ 2 files changed, 15 deletions(-)
 
-diff -puN arch/s390/include/asm/pgtable.h~s390-drop-pte_file-related-helpers arch/s390/include/asm/pgtable.h
---- a/arch/s390/include/asm/pgtable.h~s390-drop-pte_file-related-helpers
-+++ a/arch/s390/include/asm/pgtable.h
-@@ -249,10 +249,10 @@ static inline int is_module_addr(void *a
- 				 _PAGE_YOUNG)
+diff -puN arch/unicore32/include/asm/pgtable-hwdef.h~unicore32-drop-pte_file-related-helpers arch/unicore32/include/asm/pgtable-hwdef.h
+--- a/arch/unicore32/include/asm/pgtable-hwdef.h~unicore32-drop-pte_file-related-helpers
++++ a/arch/unicore32/include/asm/pgtable-hwdef.h
+@@ -44,7 +44,6 @@
+ #define PTE_TYPE_INVALID	(3 << 0)
  
- /*
-- * handle_pte_fault uses pte_present, pte_none and pte_file to find out the
-- * pte type WITHOUT holding the page table lock. The _PAGE_PRESENT bit
-- * is used to distinguish present from not-present ptes. It is changed only
-- * with the page table lock held.
-+ * handle_pte_fault uses pte_present and pte_none to find out the pte type
-+ * WITHOUT holding the page table lock. The _PAGE_PRESENT bit is used to
-+ * distinguish present from not-present ptes. It is changed only with the page
-+ * table lock held.
-  *
-  * The following table gives the different possible bit combinations for
-  * the pte hardware and software bits in the last 12 bits of a pte:
-@@ -279,7 +279,6 @@ static inline int is_module_addr(void *a
-  *
-  * pte_present is true for the bit pattern .xx...xxxxx1, (pte & 0x001) == 0x001
-  * pte_none    is true for the bit pattern .10...xxxx00, (pte & 0x603) == 0x400
-- * pte_file    is true for the bit pattern .11...xxxxx0, (pte & 0x601) == 0x600
-  * pte_swap    is true for the bit pattern .10...xxxx10, (pte & 0x603) == 0x402
-  */
+ #define PTE_PRESENT		(1 << 2)
+-#define PTE_FILE		(1 << 3)	/* only when !PRESENT */
+ #define PTE_YOUNG		(1 << 3)
+ #define PTE_DIRTY		(1 << 4)
+ #define PTE_CACHEABLE		(1 << 5)
+diff -puN arch/unicore32/include/asm/pgtable.h~unicore32-drop-pte_file-related-helpers arch/unicore32/include/asm/pgtable.h
+--- a/arch/unicore32/include/asm/pgtable.h~unicore32-drop-pte_file-related-helpers
++++ a/arch/unicore32/include/asm/pgtable.h
+@@ -283,20 +283,6 @@ extern pgd_t swapper_pg_dir[PTRS_PER_PGD
+ #define MAX_SWAPFILES_CHECK()	\
+ 	BUILD_BUG_ON(MAX_SWAPFILES_SHIFT > __SWP_TYPE_BITS)
  
-@@ -671,13 +670,6 @@ static inline int pte_swap(pte_t pte)
- 		== (_PAGE_INVALID | _PAGE_TYPE);
- }
- 
--static inline int pte_file(pte_t pte)
--{
--	/* Bit pattern: (pte & 0x601) == 0x600 */
--	return (pte_val(pte) & (_PAGE_INVALID | _PAGE_PROTECT | _PAGE_PRESENT))
--		== (_PAGE_INVALID | _PAGE_PROTECT);
--}
+-/*
+- * Encode and decode a file entry.  File entries are stored in the Linux
+- * page tables as follows:
+- *
+- *   3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1
+- *   1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0
+- *   <----------------------- offset ----------------------> 1 0 0 0
+- */
+-#define pte_file(pte)		(pte_val(pte) & PTE_FILE)
+-#define pte_to_pgoff(x)		(pte_val(x) >> 4)
+-#define pgoff_to_pte(x)		__pte(((x) << 4) | PTE_FILE)
 -
- static inline int pte_special(pte_t pte)
- {
- 	return (pte_val(pte) & _PAGE_SPECIAL);
-@@ -1756,19 +1748,6 @@ static inline pte_t mk_swap_pte(unsigned
- #define __pte_to_swp_entry(pte)	((swp_entry_t) { pte_val(pte) })
- #define __swp_entry_to_pte(x)	((pte_t) { (x).val })
- 
--#ifndef CONFIG_64BIT
--# define PTE_FILE_MAX_BITS	26
--#else /* CONFIG_64BIT */
--# define PTE_FILE_MAX_BITS	59
--#endif /* CONFIG_64BIT */
+-#define PTE_FILE_MAX_BITS	28
 -
--#define pte_to_pgoff(__pte) \
--	((((__pte).pte >> 12) << 7) + (((__pte).pte >> 1) & 0x7f))
--
--#define pgoff_to_pte(__off) \
--	((pte_t) { ((((__off) & 0x7f) << 1) + (((__off) >> 7) << 12)) \
--		   | _PAGE_INVALID | _PAGE_PROTECT })
--
- #endif /* !__ASSEMBLY__ */
- 
- #define kern_addr_valid(addr)   (1)
+ /* Needs to be defined here and not in linux/mm.h, as it is arch dependent */
+ /* FIXME: this is not correct */
+ #define kern_addr_valid(addr)	(1)
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
