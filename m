@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + sparc-drop-pte_file-related-helpers.patch added to -mm tree
-Date: Tue, 06 Jan 2015 15:34:54 -0800
-Message-ID: <54ac711e.C/Eb0bjJQt94EdUB%akpm@linux-foundation.org>
+Subject: + hexagon-drop-_page_file-and-pte_file-related-helpers.patch
+ added to -mm tree
+Date: Tue, 06 Jan 2015 15:34:24 -0800
+Message-ID: <54ac7100.bjjvdFWn+VmOgdhr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44758 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44656 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751667AbbAFXez (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2015 18:34:55 -0500
+	with ESMTP id S1752370AbbAFXeZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2015 18:34:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, davem@davemloft.net, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, rkuo@codeaurora.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sparc: drop pte_file()-related helpers
+     Subject: hexagon: drop _PAGE_FILE and pte_file()-related helpers
 has been added to the -mm tree.  Its filename is
-     sparc-drop-pte_file-related-helpers.patch
+     hexagon-drop-_page_file-and-pte_file-related-helpers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sparc-drop-pte_file-related-helpers.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/hexagon-drop-_page_file-and-pte_file-related-helpers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sparc-drop-pte_file-related-helpers.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/hexagon-drop-_page_file-and-pte_file-related-helpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,7 +40,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: sparc: drop pte_file()-related helpers
+Subject: hexagon: drop _PAGE_FILE and pte_file()-related helpers
 
 We've replaced remap_file_pages(2) implementation with emulation.  Nobody
 creates non-linear mapping anymore.
@@ -47,167 +48,104 @@ creates non-linear mapping anymore.
 This patch also increase number of bits availble for swap offset.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: David S. Miller <davem@davemloft.net>
+Cc: Richard Kuo <rkuo@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/include/asm/pgtable_32.h |   24 ---------------
- arch/sparc/include/asm/pgtable_64.h |   40 --------------------------
- arch/sparc/include/asm/pgtsrmmu.h   |   14 +++------
- 3 files changed, 5 insertions(+), 73 deletions(-)
+ arch/hexagon/include/asm/pgtable.h |   60 +++++++--------------------
+ 1 file changed, 16 insertions(+), 44 deletions(-)
 
-diff -puN arch/sparc/include/asm/pgtable_32.h~sparc-drop-pte_file-related-helpers arch/sparc/include/asm/pgtable_32.h
---- a/arch/sparc/include/asm/pgtable_32.h~sparc-drop-pte_file-related-helpers
-+++ a/arch/sparc/include/asm/pgtable_32.h
-@@ -221,14 +221,6 @@ static inline int pte_young(pte_t pte)
- 	return pte_val(pte) & SRMMU_REF;
- }
- 
--/*
-- * The following only work if pte_present() is not true.
-- */
--static inline int pte_file(pte_t pte)
--{
--	return pte_val(pte) & SRMMU_FILE;
--}
--
- static inline int pte_special(pte_t pte)
- {
- 	return 0;
-@@ -375,22 +367,6 @@ static inline swp_entry_t __swp_entry(un
- #define __pte_to_swp_entry(pte)		((swp_entry_t) { pte_val(pte) })
- #define __swp_entry_to_pte(x)		((pte_t) { (x).val })
- 
--/* file-offset-in-pte helpers */
--static inline unsigned long pte_to_pgoff(pte_t pte)
--{
--	return pte_val(pte) >> SRMMU_PTE_FILE_SHIFT;
--}
--
--static inline pte_t pgoff_to_pte(unsigned long pgoff)
--{
--	return __pte((pgoff << SRMMU_PTE_FILE_SHIFT) | SRMMU_FILE);
--}
--
--/*
-- * This is made a constant because mm/fremap.c required a constant.
-- */
--#define PTE_FILE_MAX_BITS 24
--
- static inline unsigned long
- __get_phys (unsigned long addr)
- {
-diff -puN arch/sparc/include/asm/pgtable_64.h~sparc-drop-pte_file-related-helpers arch/sparc/include/asm/pgtable_64.h
---- a/arch/sparc/include/asm/pgtable_64.h~sparc-drop-pte_file-related-helpers
-+++ a/arch/sparc/include/asm/pgtable_64.h
-@@ -137,7 +137,6 @@ bool kern_addr_valid(unsigned long addr)
- #define _PAGE_SOFT_4U	  _AC(0x0000000000001F80,UL) /* Software bits:       */
- #define _PAGE_EXEC_4U	  _AC(0x0000000000001000,UL) /* Executable SW bit    */
- #define _PAGE_MODIFIED_4U _AC(0x0000000000000800,UL) /* Modified (dirty)     */
--#define _PAGE_FILE_4U	  _AC(0x0000000000000800,UL) /* Pagecache page       */
- #define _PAGE_ACCESSED_4U _AC(0x0000000000000400,UL) /* Accessed (ref'd)     */
- #define _PAGE_READ_4U	  _AC(0x0000000000000200,UL) /* Readable SW Bit      */
- #define _PAGE_WRITE_4U	  _AC(0x0000000000000100,UL) /* Writable SW Bit      */
-@@ -167,7 +166,6 @@ bool kern_addr_valid(unsigned long addr)
- #define _PAGE_EXEC_4V	  _AC(0x0000000000000080,UL) /* Executable Page      */
- #define _PAGE_W_4V	  _AC(0x0000000000000040,UL) /* Writable             */
- #define _PAGE_SOFT_4V	  _AC(0x0000000000000030,UL) /* Software bits        */
--#define _PAGE_FILE_4V	  _AC(0x0000000000000020,UL) /* Pagecache page       */
- #define _PAGE_PRESENT_4V  _AC(0x0000000000000010,UL) /* Present              */
- #define _PAGE_RESV_4V	  _AC(0x0000000000000008,UL) /* Reserved             */
- #define _PAGE_SZ16GB_4V	  _AC(0x0000000000000007,UL) /* 16GB Page            */
-@@ -332,22 +330,6 @@ static inline pmd_t pmd_modify(pmd_t pmd
- }
- #endif
- 
--static inline pte_t pgoff_to_pte(unsigned long off)
--{
--	off <<= PAGE_SHIFT;
--
--	__asm__ __volatile__(
--	"\n661:	or		%0, %2, %0\n"
--	"	.section	.sun4v_1insn_patch, \"ax\"\n"
--	"	.word		661b\n"
--	"	or		%0, %3, %0\n"
--	"	.previous\n"
--	: "=r" (off)
--	: "0" (off), "i" (_PAGE_FILE_4U), "i" (_PAGE_FILE_4V));
--
--	return __pte(off);
--}
--
- static inline pgprot_t pgprot_noncached(pgprot_t prot)
- {
- 	unsigned long val = pgprot_val(prot);
-@@ -609,22 +591,6 @@ static inline unsigned long pte_exec(pte
- 	return (pte_val(pte) & mask);
- }
- 
--static inline unsigned long pte_file(pte_t pte)
--{
--	unsigned long val = pte_val(pte);
--
--	__asm__ __volatile__(
--	"\n661:	and		%0, %2, %0\n"
--	"	.section	.sun4v_1insn_patch, \"ax\"\n"
--	"	.word		661b\n"
--	"	and		%0, %3, %0\n"
--	"	.previous\n"
--	: "=r" (val)
--	: "0" (val), "i" (_PAGE_FILE_4U), "i" (_PAGE_FILE_4V));
--
--	return val;
--}
--
- static inline unsigned long pte_present(pte_t pte)
- {
- 	unsigned long val = pte_val(pte);
-@@ -971,12 +937,6 @@ pgtable_t pgtable_trans_huge_withdraw(st
- #define __pte_to_swp_entry(pte)		((swp_entry_t) { pte_val(pte) })
- #define __swp_entry_to_pte(x)		((pte_t) { (x).val })
- 
--/* File offset in PTE support. */
--unsigned long pte_file(pte_t);
--#define pte_to_pgoff(pte)	(pte_val(pte) >> PAGE_SHIFT)
--pte_t pgoff_to_pte(unsigned long);
--#define PTE_FILE_MAX_BITS	(64UL - PAGE_SHIFT - 1UL)
--
- int page_in_phys_avail(unsigned long paddr);
+diff -puN arch/hexagon/include/asm/pgtable.h~hexagon-drop-_page_file-and-pte_file-related-helpers arch/hexagon/include/asm/pgtable.h
+--- a/arch/hexagon/include/asm/pgtable.h~hexagon-drop-_page_file-and-pte_file-related-helpers
++++ a/arch/hexagon/include/asm/pgtable.h
+@@ -62,13 +62,6 @@ extern unsigned long zero_page_mask;
+ #define _PAGE_ACCESSED	(1<<2)
  
  /*
-diff -puN arch/sparc/include/asm/pgtsrmmu.h~sparc-drop-pte_file-related-helpers arch/sparc/include/asm/pgtsrmmu.h
---- a/arch/sparc/include/asm/pgtsrmmu.h~sparc-drop-pte_file-related-helpers
-+++ a/arch/sparc/include/asm/pgtsrmmu.h
-@@ -80,10 +80,6 @@
- #define SRMMU_PRIV         0x1c
- #define SRMMU_PRIV_RDONLY  0x18
- 
--#define SRMMU_FILE         0x40	/* Implemented in software */
+- * _PAGE_FILE is only meaningful if _PAGE_PRESENT is false, while
+- * _PAGE_DIRTY is only meaningful if _PAGE_PRESENT is true.
+- * So we can overload the bit...
+- */
+-#define _PAGE_FILE	_PAGE_DIRTY /* set:  pagecache, unset = swap */
 -
--#define SRMMU_PTE_FILE_SHIFT     8	/* == 32-PTE_FILE_MAX_BITS */
--
- #define SRMMU_CHG_MASK    (0xffffff00 | SRMMU_REF | SRMMU_DIRTY)
+-/*
+  * For now, let's say that Valid and Present are the same thing.
+  * Alternatively, we could say that it's the "or" of R, W, and X
+  * permissions.
+@@ -456,57 +449,36 @@ static inline int pte_exec(pte_t pte)
+ #define pgtable_cache_init()    do { } while (0)
  
- /* SRMMU swap entry encoding
-@@ -94,13 +90,13 @@
-  * oooooooooooooooooootttttRRRRRRRR
-  * fedcba9876543210fedcba9876543210
+ /*
+- * Swap/file PTE definitions.  If _PAGE_PRESENT is zero, the rest of the
+- * PTE is interpreted as swap information.  Depending on the _PAGE_FILE
+- * bit, the remaining free bits are eitehr interpreted as a file offset
+- * or a swap type/offset tuple.  Rather than have the TLB fill handler
+- * test _PAGE_PRESENT, we're going to reserve the permissions bits
+- * and set them to all zeros for swap entries, which speeds up the
+- * miss handler at the cost of 3 bits of offset.  That trade-off can
+- * be revisited if necessary, but Hexagon processor architecture and
+- * target applications suggest a lot of TLB misses and not much swap space.
++ * Swap/file PTE definitions.  If _PAGE_PRESENT is zero, the rest of the PTE is
++ * interpreted as swap information.  The remaining free bits are interpreted as
++ * swap type/offset tuple.  Rather than have the TLB fill handler test
++ * _PAGE_PRESENT, we're going to reserve the permissions bits and set them to
++ * all zeros for swap entries, which speeds up the miss handler at the cost of
++ * 3 bits of offset.  That trade-off can be revisited if necessary, but Hexagon
++ * processor architecture and target applications suggest a lot of TLB misses
++ * and not much swap space.
   *
-- * The bottom 8 bits are reserved for protection and status bits, especially
-- * FILE and PRESENT.
-+ * The bottom 7 bits are reserved for protection and status bits, especially
-+ * PRESENT.
+  * Format of swap PTE:
+  *	bit	0:	Present (zero)
+- *	bit	1:	_PAGE_FILE (zero)
+- *	bits	2-6:	swap type (arch independent layer uses 5 bits max)
+- *	bits	7-9:	bits 2:0 of offset
+- *	bits 10-12:	effectively _PAGE_PROTNONE (all zero)
+- *	bits 13-31:  bits 21:3 of swap offset
+- *
+- * Format of file PTE:
+- *	bit	0:	Present (zero)
+- *	bit	1:	_PAGE_FILE (zero)
+- *	bits	2-9:	bits 7:0 of offset
+- *	bits 10-12:	effectively _PAGE_PROTNONE (all zero)
+- *	bits 13-31:  bits 26:8 of swap offset
++ *	bits	1-5:	swap type (arch independent layer uses 5 bits max)
++ *	bits	6-9:	bits 3:0 of offset
++ *	bits	10-12:	effectively _PAGE_PROTNONE (all zero)
++ *	bits	13-31:  bits 22:4 of swap offset
+  *
+  * The split offset makes some of the following macros a little gnarly,
+  * but there's plenty of precedent for this sort of thing.
   */
- #define SRMMU_SWP_TYPE_MASK	0x1f
--#define SRMMU_SWP_TYPE_SHIFT	SRMMU_PTE_FILE_SHIFT
--#define SRMMU_SWP_OFF_MASK	0x7ffff
--#define SRMMU_SWP_OFF_SHIFT	(SRMMU_PTE_FILE_SHIFT + 5)
-+#define SRMMU_SWP_TYPE_SHIFT	7
-+#define SRMMU_SWP_OFF_MASK	0xfffff
-+#define SRMMU_SWP_OFF_SHIFT	(SRMMU_SWP_TYPE_SHIFT + 5)
+-#define PTE_FILE_MAX_BITS     27
  
- /* Some day I will implement true fine grained access bits for
-  * user pages because the SRMMU gives us the capabilities to
+ /* Used for swap PTEs */
+-#define __swp_type(swp_pte)		(((swp_pte).val >> 2) & 0x1f)
++#define __swp_type(swp_pte)		(((swp_pte).val >> 1) & 0x1f)
+ 
+ #define __swp_offset(swp_pte) \
+-	((((swp_pte).val >> 7) & 0x7) | (((swp_pte).val >> 10) & 0x003ffff8))
++	((((swp_pte).val >> 6) & 0xf) | (((swp_pte).val >> 9) & 0x7ffff0))
+ 
+ #define __swp_entry(type, offset) \
+ 	((swp_entry_t)	{ \
+-		((type << 2) | \
+-		 ((offset & 0x3ffff8) << 10) | ((offset & 0x7) << 7)) })
+-
+-/* Used for file PTEs */
+-#define pte_file(pte) \
+-	((pte_val(pte) & (_PAGE_FILE | _PAGE_PRESENT)) == _PAGE_FILE)
+-
+-#define pte_to_pgoff(pte) \
+-	(((pte_val(pte) >> 2) & 0xff) | ((pte_val(pte) >> 5) & 0x07ffff00))
+-
+-#define pgoff_to_pte(off) \
+-	((pte_t) { ((((off) & 0x7ffff00) << 5) | (((off) & 0xff) << 2)\
+-	| _PAGE_FILE) })
++		((type << 1) | \
++		 ((offset & 0x7ffff0) << 9) | ((offset & 0xf) << 6)) })
+ 
+ /*  Oh boy.  There are a lot of possible arch overrides found in this file.  */
+ #include <asm-generic/pgtable.h>
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
