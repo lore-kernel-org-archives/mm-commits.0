@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub.patch added to -mm tree
-Date: Tue, 06 Jan 2015 15:33:54 -0800
-Message-ID: <54ac70e2.RpQIfC5v+iOytKzg%akpm@linux-foundation.org>
+Subject: + avr32-drop-_page_file-and-pte_file-related-helpers.patch added
+ to -mm tree
+Date: Tue, 06 Jan 2015 15:34:14 -0800
+Message-ID: <54ac70f6.YEhnBny9DuwLfail%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44611 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44638 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752184AbbAFXd4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2015 18:33:56 -0500
+	with ESMTP id S1752173AbbAFXeP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2015 18:34:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, egtvedt@samfundet.no, hskinnemoen@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: drop vm_ops->remap_pages and generic_file_remap_pages() stub
+     Subject: avr32: drop _PAGE_FILE and pte_file()-related helpers
 has been added to the -mm tree.  Its filename is
-     mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub.patch
+     avr32-drop-_page_file-and-pte_file-related-helpers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/avr32-drop-_page_file-and-pte_file-related-helpers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/avr32-drop-_page_file-and-pte_file-related-helpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,245 +40,83 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: drop vm_ops->remap_pages and generic_file_remap_pages() stub
+Subject: avr32: drop _PAGE_FILE and pte_file()-related helpers
 
-Nobody uses it anymore.
+We've replaced remap_file_pages(2) implementation with emulation.  Nobody
+creates non-linear mapping anymore.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Haavard Skinnemoen <hskinnemoen@gmail.com>
+Acked-by: Hans-Christian Egtvedt <egtvedt@samfundet.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/9p/vfs_file.c   |    2 --
- fs/btrfs/file.c    |    1 -
- fs/ceph/addr.c     |    1 -
- fs/cifs/file.c     |    1 -
- fs/ext4/file.c     |    1 -
- fs/f2fs/file.c     |    1 -
- fs/fuse/file.c     |    1 -
- fs/gfs2/file.c     |    1 -
- fs/nfs/file.c      |    1 -
- fs/nilfs2/file.c   |    1 -
- fs/ocfs2/mmap.c    |    1 -
- fs/ubifs/file.c    |    1 -
- fs/xfs/xfs_file.c  |    1 -
- include/linux/fs.h |    6 ------
- include/linux/mm.h |    3 ---
- mm/filemap.c       |    1 -
- mm/filemap_xip.c   |    1 -
- mm/shmem.c         |    1 -
- 18 files changed, 26 deletions(-)
+ arch/avr32/include/asm/pgtable.h |   25 -------------------------
+ 1 file changed, 25 deletions(-)
 
-diff -puN fs/9p/vfs_file.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub fs/9p/vfs_file.c
---- a/fs/9p/vfs_file.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub
-+++ a/fs/9p/vfs_file.c
-@@ -831,7 +831,6 @@ static const struct vm_operations_struct
- 	.fault = filemap_fault,
- 	.map_pages = filemap_map_pages,
- 	.page_mkwrite = v9fs_vm_page_mkwrite,
--	.remap_pages = generic_file_remap_pages,
- };
+diff -puN arch/avr32/include/asm/pgtable.h~avr32-drop-_page_file-and-pte_file-related-helpers arch/avr32/include/asm/pgtable.h
+--- a/arch/avr32/include/asm/pgtable.h~avr32-drop-_page_file-and-pte_file-related-helpers
++++ a/arch/avr32/include/asm/pgtable.h
+@@ -86,9 +86,6 @@ extern struct page *empty_zero_page;
+ #define _PAGE_BIT_PRESENT	10
+ #define _PAGE_BIT_ACCESSED	11 /* software: page was accessed */
  
- static const struct vm_operations_struct v9fs_mmap_file_vm_ops = {
-@@ -839,7 +838,6 @@ static const struct vm_operations_struct
- 	.fault = filemap_fault,
- 	.map_pages = filemap_map_pages,
- 	.page_mkwrite = v9fs_vm_page_mkwrite,
--	.remap_pages = generic_file_remap_pages,
- };
+-/* The following flags are only valid when !PRESENT */
+-#define _PAGE_BIT_FILE		0 /* software: pagecache or swap? */
+-
+ #define _PAGE_WT		(1 << _PAGE_BIT_WT)
+ #define _PAGE_DIRTY		(1 << _PAGE_BIT_DIRTY)
+ #define _PAGE_EXECUTE		(1 << _PAGE_BIT_EXECUTE)
+@@ -101,7 +98,6 @@ extern struct page *empty_zero_page;
+ /* Software flags */
+ #define _PAGE_ACCESSED		(1 << _PAGE_BIT_ACCESSED)
+ #define _PAGE_PRESENT		(1 << _PAGE_BIT_PRESENT)
+-#define _PAGE_FILE		(1 << _PAGE_BIT_FILE)
  
+ /*
+  * Page types, i.e. sizes. _PAGE_TYPE_NONE corresponds to what is
+@@ -210,14 +206,6 @@ static inline int pte_special(pte_t pte)
+ 	return 0;
+ }
  
-diff -puN fs/btrfs/file.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub fs/btrfs/file.c
---- a/fs/btrfs/file.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub
-+++ a/fs/btrfs/file.c
-@@ -2081,7 +2081,6 @@ static const struct vm_operations_struct
- 	.fault		= filemap_fault,
- 	.map_pages	= filemap_map_pages,
- 	.page_mkwrite	= btrfs_page_mkwrite,
--	.remap_pages	= generic_file_remap_pages,
- };
- 
- static int btrfs_file_mmap(struct file	*filp, struct vm_area_struct *vma)
-diff -puN fs/ceph/addr.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub fs/ceph/addr.c
---- a/fs/ceph/addr.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub
-+++ a/fs/ceph/addr.c
-@@ -1569,7 +1569,6 @@ out:
- static struct vm_operations_struct ceph_vmops = {
- 	.fault		= ceph_filemap_fault,
- 	.page_mkwrite	= ceph_page_mkwrite,
--	.remap_pages	= generic_file_remap_pages,
- };
- 
- int ceph_mmap(struct file *file, struct vm_area_struct *vma)
-diff -puN fs/cifs/file.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub fs/cifs/file.c
---- a/fs/cifs/file.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub
-+++ a/fs/cifs/file.c
-@@ -3244,7 +3244,6 @@ static struct vm_operations_struct cifs_
- 	.fault = filemap_fault,
- 	.map_pages = filemap_map_pages,
- 	.page_mkwrite = cifs_page_mkwrite,
--	.remap_pages = generic_file_remap_pages,
- };
- 
- int cifs_file_strict_mmap(struct file *file, struct vm_area_struct *vma)
-diff -puN fs/ext4/file.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub fs/ext4/file.c
---- a/fs/ext4/file.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub
-+++ a/fs/ext4/file.c
-@@ -195,7 +195,6 @@ static const struct vm_operations_struct
- 	.fault		= filemap_fault,
- 	.map_pages	= filemap_map_pages,
- 	.page_mkwrite   = ext4_page_mkwrite,
--	.remap_pages	= generic_file_remap_pages,
- };
- 
- static int ext4_file_mmap(struct file *file, struct vm_area_struct *vma)
-diff -puN fs/f2fs/file.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub fs/f2fs/file.c
---- a/fs/f2fs/file.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub
-+++ a/fs/f2fs/file.c
-@@ -92,7 +92,6 @@ static const struct vm_operations_struct
- 	.fault		= filemap_fault,
- 	.map_pages	= filemap_map_pages,
- 	.page_mkwrite	= f2fs_vm_page_mkwrite,
--	.remap_pages	= generic_file_remap_pages,
- };
- 
- static int get_parent_ino(struct inode *inode, nid_t *pino)
-diff -puN fs/fuse/file.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub fs/fuse/file.c
---- a/fs/fuse/file.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub
-+++ a/fs/fuse/file.c
-@@ -2062,7 +2062,6 @@ static const struct vm_operations_struct
- 	.fault		= filemap_fault,
- 	.map_pages	= filemap_map_pages,
- 	.page_mkwrite	= fuse_page_mkwrite,
--	.remap_pages	= generic_file_remap_pages,
- };
- 
- static int fuse_file_mmap(struct file *file, struct vm_area_struct *vma)
-diff -puN fs/gfs2/file.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub fs/gfs2/file.c
---- a/fs/gfs2/file.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub
-+++ a/fs/gfs2/file.c
-@@ -498,7 +498,6 @@ static const struct vm_operations_struct
- 	.fault = filemap_fault,
- 	.map_pages = filemap_map_pages,
- 	.page_mkwrite = gfs2_page_mkwrite,
--	.remap_pages = generic_file_remap_pages,
- };
- 
- /**
-diff -puN fs/nfs/file.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub fs/nfs/file.c
---- a/fs/nfs/file.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub
-+++ a/fs/nfs/file.c
-@@ -646,7 +646,6 @@ static const struct vm_operations_struct
- 	.fault = filemap_fault,
- 	.map_pages = filemap_map_pages,
- 	.page_mkwrite = nfs_vm_page_mkwrite,
--	.remap_pages = generic_file_remap_pages,
- };
- 
- static int nfs_need_sync_write(struct file *filp, struct inode *inode)
-diff -puN fs/nilfs2/file.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub fs/nilfs2/file.c
---- a/fs/nilfs2/file.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub
-+++ a/fs/nilfs2/file.c
-@@ -128,7 +128,6 @@ static const struct vm_operations_struct
- 	.fault		= filemap_fault,
- 	.map_pages	= filemap_map_pages,
- 	.page_mkwrite	= nilfs_page_mkwrite,
--	.remap_pages	= generic_file_remap_pages,
- };
- 
- static int nilfs_file_mmap(struct file *file, struct vm_area_struct *vma)
-diff -puN fs/ocfs2/mmap.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub fs/ocfs2/mmap.c
---- a/fs/ocfs2/mmap.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub
-+++ a/fs/ocfs2/mmap.c
-@@ -173,7 +173,6 @@ out:
- static const struct vm_operations_struct ocfs2_file_vm_ops = {
- 	.fault		= ocfs2_fault,
- 	.page_mkwrite	= ocfs2_page_mkwrite,
--	.remap_pages	= generic_file_remap_pages,
- };
- 
- int ocfs2_mmap(struct file *file, struct vm_area_struct *vma)
-diff -puN fs/ubifs/file.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub fs/ubifs/file.c
---- a/fs/ubifs/file.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub
-+++ a/fs/ubifs/file.c
-@@ -1536,7 +1536,6 @@ static const struct vm_operations_struct
- 	.fault        = filemap_fault,
- 	.map_pages = filemap_map_pages,
- 	.page_mkwrite = ubifs_vm_page_mkwrite,
--	.remap_pages = generic_file_remap_pages,
- };
- 
- static int ubifs_file_mmap(struct file *file, struct vm_area_struct *vma)
-diff -puN fs/xfs/xfs_file.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub fs/xfs/xfs_file.c
---- a/fs/xfs/xfs_file.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub
-+++ a/fs/xfs/xfs_file.c
-@@ -1384,5 +1384,4 @@ static const struct vm_operations_struct
- 	.fault		= filemap_fault,
- 	.map_pages	= filemap_map_pages,
- 	.page_mkwrite	= xfs_vm_page_mkwrite,
--	.remap_pages	= generic_file_remap_pages,
- };
-diff -puN include/linux/fs.h~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub include/linux/fs.h
---- a/include/linux/fs.h~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub
-+++ a/include/linux/fs.h
-@@ -2481,12 +2481,6 @@ extern int sb_min_blocksize(struct super
- 
- extern int generic_file_mmap(struct file *, struct vm_area_struct *);
- extern int generic_file_readonly_mmap(struct file *, struct vm_area_struct *);
--static inline int generic_file_remap_pages(struct vm_area_struct *vma,
--		unsigned long addr, unsigned long size, pgoff_t pgoff)
+-/*
+- * The following only work if pte_present() is not true.
+- */
+-static inline int pte_file(pte_t pte)
 -{
--	BUG();
--	return 0;
+-	return pte_val(pte) & _PAGE_FILE;
 -}
- int generic_write_checks(struct file *file, loff_t *pos, size_t *count, int isblk);
- extern ssize_t generic_file_read_iter(struct kiocb *, struct iov_iter *);
- extern ssize_t __generic_file_write_iter(struct kiocb *, struct iov_iter *);
-diff -puN include/linux/mm.h~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub include/linux/mm.h
---- a/include/linux/mm.h~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub
-+++ a/include/linux/mm.h
-@@ -285,9 +285,6 @@ struct vm_operations_struct {
- 	struct mempolicy *(*get_policy)(struct vm_area_struct *vma,
- 					unsigned long addr);
- #endif
--	/* called by sys_remap_file_pages() to populate non-linear mapping */
--	int (*remap_pages)(struct vm_area_struct *vma, unsigned long addr,
--			   unsigned long size, pgoff_t pgoff);
- };
+-
+ /* Mutator functions for PTE bits */
+ static inline pte_t pte_wrprotect(pte_t pte)
+ {
+@@ -329,7 +317,6 @@ extern void update_mmu_cache(struct vm_a
+  * Encode and decode a swap entry
+  *
+  * Constraints:
+- *   _PAGE_FILE at bit 0
+  *   _PAGE_TYPE_* at bits 2-3 (for emulating _PAGE_PROTNONE)
+  *   _PAGE_PRESENT at bit 10
+  *
+@@ -346,18 +333,6 @@ extern void update_mmu_cache(struct vm_a
+ #define __pte_to_swp_entry(pte)	((swp_entry_t) { pte_val(pte) })
+ #define __swp_entry_to_pte(x)	((pte_t) { (x).val })
  
- struct mmu_gather;
-diff -puN mm/filemap.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub mm/filemap.c
---- a/mm/filemap.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub
-+++ a/mm/filemap.c
-@@ -2087,7 +2087,6 @@ const struct vm_operations_struct generi
- 	.fault		= filemap_fault,
- 	.map_pages	= filemap_map_pages,
- 	.page_mkwrite	= filemap_page_mkwrite,
--	.remap_pages	= generic_file_remap_pages,
- };
+-/*
+- * Encode and decode a nonlinear file mapping entry. We have to
+- * preserve _PAGE_FILE and _PAGE_PRESENT here. _PAGE_TYPE_* isn't
+- * necessary, since _PAGE_FILE implies !_PAGE_PROTNONE (?)
+- */
+-#define PTE_FILE_MAX_BITS	30
+-#define pte_to_pgoff(pte)	(((pte_val(pte) >> 1) & 0x1ff)		\
+-				 | ((pte_val(pte) >> 11) << 9))
+-#define pgoff_to_pte(off)	((pte_t) { ((((off) & 0x1ff) << 1)	\
+-					    | (((off) >> 9) << 11)	\
+-					    | _PAGE_FILE) })
+-
+ typedef pte_t *pte_addr_t;
  
- /* This is used for a general mmap of a disk file */
-diff -puN mm/filemap_xip.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub mm/filemap_xip.c
---- a/mm/filemap_xip.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub
-+++ a/mm/filemap_xip.c
-@@ -301,7 +301,6 @@ out:
- static const struct vm_operations_struct xip_file_vm_ops = {
- 	.fault	= xip_file_fault,
- 	.page_mkwrite	= filemap_page_mkwrite,
--	.remap_pages = generic_file_remap_pages,
- };
- 
- int xip_file_mmap(struct file * file, struct vm_area_struct * vma)
-diff -puN mm/shmem.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub mm/shmem.c
---- a/mm/shmem.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub
-+++ a/mm/shmem.c
-@@ -3201,7 +3201,6 @@ static const struct vm_operations_struct
- 	.set_policy     = shmem_set_policy,
- 	.get_policy     = shmem_get_policy,
- #endif
--	.remap_pages	= generic_file_remap_pages,
- };
- 
- static struct dentry *shmem_mount(struct file_system_type *fs_type,
+ #define kern_addr_valid(addr)	(1)
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
