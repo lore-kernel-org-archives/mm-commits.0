@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mn10300-drop-_page_file-and-pte_file-related-helpers.patch
- added to -mm tree
-Date: Tue, 06 Jan 2015 15:34:38 -0800
-Message-ID: <54ac710e.sg9VF2FvzAhD6oKz%akpm@linux-foundation.org>
+Subject: + blackfin-drop-pte_file.patch added to -mm tree
+Date: Tue, 06 Jan 2015 15:34:16 -0800
+Message-ID: <54ac70f8.k3O3ual4fm0j9wJE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44686 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44642 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751609AbbAFXej (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2015 18:34:39 -0500
+	with ESMTP id S1752303AbbAFXeR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2015 18:34:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, dhowells@redhat.com, hughd@google.com, yasutake.koichi@jp.panasonic.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, realmz6@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mn10300: drop _PAGE_FILE and pte_file()-related helpers
+     Subject: blackfin: drop pte_file()
 has been added to the -mm tree.  Its filename is
-     mn10300-drop-_page_file-and-pte_file-related-helpers.patch
+     blackfin-drop-pte_file.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mn10300-drop-_page_file-and-pte_file-related-helpers.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/blackfin-drop-pte_file.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mn10300-drop-_page_file-and-pte_file-related-helpers.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/blackfin-drop-pte_file.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,65 +39,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mn10300: drop _PAGE_FILE and pte_file()-related helpers
+Subject: blackfin: drop pte_file()
 
 We've replaced remap_file_pages(2) implementation with emulation.  Nobody
 creates non-linear mapping anymore.
 
-This patch also increases the number of bits availble for swap offset.
-
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Koichi Yasutake <yasutake.koichi@jp.panasonic.com>
-Cc: Hugh Dickins <hughd@google.com>
+Cc: Steven Miao <realmz6@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mn10300/include/asm/pgtable.h |   17 +++--------------
- 1 file changed, 3 insertions(+), 14 deletions(-)
+ arch/blackfin/include/asm/pgtable.h |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN arch/mn10300/include/asm/pgtable.h~mn10300-drop-_page_file-and-pte_file-related-helpers arch/mn10300/include/asm/pgtable.h
---- a/arch/mn10300/include/asm/pgtable.h~mn10300-drop-_page_file-and-pte_file-related-helpers
-+++ a/arch/mn10300/include/asm/pgtable.h
-@@ -134,7 +134,6 @@ extern pte_t kernel_vmalloc_ptes[(VMALLO
- #define _PAGE_NX		0			/* no-execute bit */
+diff -puN arch/blackfin/include/asm/pgtable.h~blackfin-drop-pte_file arch/blackfin/include/asm/pgtable.h
+--- a/arch/blackfin/include/asm/pgtable.h~blackfin-drop-pte_file
++++ a/arch/blackfin/include/asm/pgtable.h
+@@ -45,11 +45,6 @@ extern void paging_init(void);
+ #define __pte_to_swp_entry(pte)	((swp_entry_t) { pte_val(pte) })
+ #define __swp_entry_to_pte(x)	((pte_t) { (x).val })
  
- /* If _PAGE_VALID is clear, we use these: */
--#define _PAGE_FILE		xPTEL2_C	/* set:pagecache unset:swap */
- #define _PAGE_PROTNONE		0x000		/* If not present */
- 
- #define __PAGE_PROT_UWAUX	0x010
-@@ -241,11 +240,6 @@ static inline int pte_young(pte_t pte)	{
- static inline int pte_write(pte_t pte)	{ return pte_val(pte) & __PAGE_PROT_WRITE; }
- static inline int pte_special(pte_t pte){ return 0; }
- 
--/*
-- * The following only works if pte_present() is not true.
-- */
--static inline int pte_file(pte_t pte)	{ return pte_val(pte) & _PAGE_FILE; }
+-static inline int pte_file(pte_t pte)
+-{
+-	return 0;
+-}
 -
- static inline pte_t pte_rdprotect(pte_t pte)
- {
- 	pte_val(pte) &= ~(__PAGE_PROT_USER|__PAGE_PROT_UWAUX); return pte;
-@@ -338,16 +332,11 @@ static inline int pte_exec_kernel(pte_t
- 	return 1;
- }
- 
--#define PTE_FILE_MAX_BITS	30
--
--#define pte_to_pgoff(pte)	(pte_val(pte) >> 2)
--#define pgoff_to_pte(off)	__pte((off) << 2 | _PAGE_FILE)
--
- /* Encode and de-code a swap entry */
--#define __swp_type(x)			(((x).val >> 2) & 0x3f)
--#define __swp_offset(x)			((x).val >> 8)
-+#define __swp_type(x)			(((x).val >> 1) & 0x3f)
-+#define __swp_offset(x)			((x).val >> 7)
- #define __swp_entry(type, offset) \
--	((swp_entry_t) { ((type) << 2) | ((offset) << 8) })
-+	((swp_entry_t) { ((type) << 1) | ((offset) << 7) })
- #define __pte_to_swp_entry(pte)		((swp_entry_t) { pte_val(pte) })
- #define __swp_entry_to_pte(x)		__pte((x).val)
+ #define set_pte(pteptr, pteval) (*(pteptr) = pteval)
+ #define set_pte_at(mm, addr, ptep, pteval) set_pte(ptep, pteval)
  
 _
 
