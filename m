@@ -1,70 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss-fix.patch removed from -mm tree
-Date: Tue, 06 Jan 2015 13:57:16 -0800
-Message-ID: <54ac5a3c.CltQrAK8rXc+k/hl%akpm@linux-foundation.org>
+Subject: +
+ lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned-fix.patch added to
+ -mm tree
+Date: Tue, 06 Jan 2015 14:15:26 -0800
+Message-ID: <54ac5e7e.VeEC2YFj/W50x0HE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42927 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43368 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753336AbbAFV5R (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2015 16:57:17 -0500
+	with ESMTP id S1752802AbbAFWP1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2015 17:15:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bhelgaas@google.com, petrcermak@chromium.org, primiano@chromium.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, fengguang.wu@intel.com, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss-fix
-has been removed from the -mm tree.  Its filename was
-     task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss-fix.patch
+     Subject: lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned-fix
+has been added to the -mm tree.  Its filename is
+     lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned-fix.patch
 
-This patch was dropped because it was folded into task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss.patch
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss-fix
+Subject: lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned-fix
 
-clarify behaviour in documentation
+fix kerneldoc
 
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Petr Cermak <petrcermak@chromium.org>
-Cc: Primiano Tucci <primiano@chromium.org>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Reported-by: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |    3 ++-
- fs/proc/task_mmu.c                 |    2 +-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ lib/bitmap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/filesystems/proc.txt~task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss-fix Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss-fix
-+++ a/Documentation/filesystems/proc.txt
-@@ -488,7 +488,8 @@ To clear the bits for the file mapped pa
- To clear the soft-dirty bit
-     > echo 4 > /proc/PID/clear_refs
- 
--To reset the peak resident set size ("high water mark")
-+To reset the peak resident set size ("high water mark") to the process's
-+current value:
-     > echo 5 > /proc/PID/clear_refs
- 
- Any other value written to /proc/PID/clear_refs will have no effect.
-diff -puN fs/proc/task_mmu.c~task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss-fix fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss-fix
-+++ a/fs/proc/task_mmu.c
-@@ -866,7 +866,7 @@ static ssize_t clear_refs_write(struct f
- 		if (type == CLEAR_REFS_MM_HIWATER_RSS) {
- 			/*
- 			 * Writing 5 to /proc/pid/clear_refs resets the peak
--			 * resident set size.
-+			 * resident set size to this mm's current rss value.
- 			 */
- 			down_write(&mm->mmap_sem);
- 			reset_mm_hiwater_rss(mm);
+diff -puN lib/bitmap.c~lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned-fix lib/bitmap.c
+--- a/lib/bitmap.c~lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned-fix
++++ a/lib/bitmap.c
+@@ -1039,7 +1039,7 @@ EXPORT_SYMBOL(bitmap_onto);
+  *	@dst: resulting smaller bitmap
+  *	@orig: original larger bitmap
+  *	@sz: specified size
+- *	@bits: number of bits in each of these bitmaps
++ *	@nbits: number of bits in each of these bitmaps
+  *
+  * For each bit oldbit in @orig, set bit oldbit mod @sz in @dst.
+  * Clear all other bits in @dst.  See further the comment and
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -86,6 +86,7 @@ sparc-add-pmd_-for-thp-fix.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
 task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss.patch
 lib-bitmap-update-bitmap_onto-to-unsigned-checkpatch-fixes.patch
+lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned-fix.patch
 hexdump-makes-it-return-amount-of-bytes-placed-in-buffer-fix.patch
 fs-befs-linuxvfsc-remove-unnecessary-casting-fix.patch
 linux-next.patch
