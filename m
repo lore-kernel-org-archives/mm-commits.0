@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-replace-vma-shareadlinear-with-vma-shared.patch added to -mm tree
-Date: Tue, 06 Jan 2015 15:34:00 -0800
-Message-ID: <54ac70e8.snR1iBm8B6CCO+gR%akpm@linux-foundation.org>
+Subject: + ia64-drop-_page_file-and-pte_file-related-helpers.patch added
+ to -mm tree
+Date: Tue, 06 Jan 2015 15:34:26 -0800
+Message-ID: <54ac7102.nV/kv0t9lFwC1Wje%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44617 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44659 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751973AbbAFXeB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2015 18:34:01 -0500
+	with ESMTP id S1752403AbbAFXe1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2015 18:34:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, fenghua.yu@intel.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: replace vma->sharead.linear with vma->shared
+     Subject: ia64: drop _PAGE_FILE and pte_file()-related helpers
 has been added to the -mm tree.  Its filename is
-     mm-replace-vma-shareadlinear-with-vma-shared.patch
+     ia64-drop-_page_file-and-pte_file-related-helpers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-replace-vma-shareadlinear-with-vma-shared.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ia64-drop-_page_file-and-pte_file-related-helpers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-replace-vma-shareadlinear-with-vma-shared.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ia64-drop-_page_file-and-pte_file-related-helpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,96 +40,76 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: replace vma->sharead.linear with vma->shared
+Subject: ia64: drop _PAGE_FILE and pte_file()-related helpers
 
-After removing vma->shared.nonlinear we have only one member of
-vma->shared union, which doesn't make much sense.
+We've replaced remap_file_pages(2) implementation with emulation.  Nobody
+creates non-linear mapping anymore.
 
-This patch drops the union and move struct vma->shared.linear to
-vma->shared.
+This patch also increase number of bits availble for swap offset.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |    8 +++-----
- mm/interval_tree.c       |   34 +++++++++++++++++-----------------
- 2 files changed, 20 insertions(+), 22 deletions(-)
+ arch/ia64/include/asm/pgtable.h |   25 +++++--------------------
+ 1 file changed, 5 insertions(+), 20 deletions(-)
 
-diff -puN include/linux/mm_types.h~mm-replace-vma-shareadlinear-with-vma-shared include/linux/mm_types.h
---- a/include/linux/mm_types.h~mm-replace-vma-shareadlinear-with-vma-shared
-+++ a/include/linux/mm_types.h
-@@ -275,11 +275,9 @@ struct vm_area_struct {
- 	 * For areas with an address space and backing store,
- 	 * linkage into the address_space->i_mmap interval tree.
- 	 */
--	union {
--		struct {
--			struct rb_node rb;
--			unsigned long rb_subtree_last;
--		} linear;
-+	struct {
-+		struct rb_node rb;
-+		unsigned long rb_subtree_last;
- 	} shared;
+diff -puN arch/ia64/include/asm/pgtable.h~ia64-drop-_page_file-and-pte_file-related-helpers arch/ia64/include/asm/pgtable.h
+--- a/arch/ia64/include/asm/pgtable.h~ia64-drop-_page_file-and-pte_file-related-helpers
++++ a/arch/ia64/include/asm/pgtable.h
+@@ -57,9 +57,6 @@
+ #define _PAGE_ED		(__IA64_UL(1) << 52)	/* exception deferral */
+ #define _PAGE_PROTNONE		(__IA64_UL(1) << 63)
  
- 	/*
-diff -puN mm/interval_tree.c~mm-replace-vma-shareadlinear-with-vma-shared mm/interval_tree.c
---- a/mm/interval_tree.c~mm-replace-vma-shareadlinear-with-vma-shared
-+++ a/mm/interval_tree.c
-@@ -21,8 +21,8 @@ static inline unsigned long vma_last_pgo
- 	return v->vm_pgoff + ((v->vm_end - v->vm_start) >> PAGE_SHIFT) - 1;
- }
+-/* Valid only for a PTE with the present bit cleared: */
+-#define _PAGE_FILE		(1 << 1)		/* see swap & file pte remarks below */
+-
+ #define _PFN_MASK		_PAGE_PPN_MASK
+ /* Mask of bits which may be changed by pte_modify(); the odd bits are there for _PAGE_PROTNONE */
+ #define _PAGE_CHG_MASK	(_PAGE_P | _PAGE_PROTNONE | _PAGE_PL_MASK | _PAGE_AR_MASK | _PAGE_ED)
+@@ -300,7 +297,6 @@ extern unsigned long VMALLOC_END;
+ #define pte_exec(pte)		((pte_val(pte) & _PAGE_AR_RX) != 0)
+ #define pte_dirty(pte)		((pte_val(pte) & _PAGE_D) != 0)
+ #define pte_young(pte)		((pte_val(pte) & _PAGE_A) != 0)
+-#define pte_file(pte)		((pte_val(pte) & _PAGE_FILE) != 0)
+ #define pte_special(pte)	0
  
--INTERVAL_TREE_DEFINE(struct vm_area_struct, shared.linear.rb,
--		     unsigned long, shared.linear.rb_subtree_last,
-+INTERVAL_TREE_DEFINE(struct vm_area_struct, shared.rb,
-+		     unsigned long, shared.rb_subtree_last,
- 		     vma_start_pgoff, vma_last_pgoff,, vma_interval_tree)
+ /*
+@@ -472,27 +468,16 @@ extern void paging_init (void);
+  *
+  * Format of swap pte:
+  *	bit   0   : present bit (must be zero)
+- *	bit   1   : _PAGE_FILE (must be zero)
+- *	bits  2- 8: swap-type
+- *	bits  9-62: swap offset
+- *	bit  63   : _PAGE_PROTNONE bit
+- *
+- * Format of file pte:
+- *	bit   0   : present bit (must be zero)
+- *	bit   1   : _PAGE_FILE (must be one)
+- *	bits  2-62: file_offset/PAGE_SIZE
++ *	bits  1- 7: swap-type
++ *	bits  8-62: swap offset
+  *	bit  63   : _PAGE_PROTNONE bit
+  */
+-#define __swp_type(entry)		(((entry).val >> 2) & 0x7f)
+-#define __swp_offset(entry)		(((entry).val << 1) >> 10)
+-#define __swp_entry(type,offset)	((swp_entry_t) { ((type) << 2) | ((long) (offset) << 9) })
++#define __swp_type(entry)		(((entry).val >> 1) & 0x7f)
++#define __swp_offset(entry)		(((entry).val << 1) >> 9)
++#define __swp_entry(type,offset)	((swp_entry_t) { ((type) << 1) | ((long) (offset) << 8) })
+ #define __pte_to_swp_entry(pte)		((swp_entry_t) { pte_val(pte) })
+ #define __swp_entry_to_pte(x)		((pte_t) { (x).val })
  
- /* Insert node immediately after prev in the interval tree */
-@@ -36,26 +36,26 @@ void vma_interval_tree_insert_after(stru
- 
- 	VM_BUG_ON_VMA(vma_start_pgoff(node) != vma_start_pgoff(prev), node);
- 
--	if (!prev->shared.linear.rb.rb_right) {
-+	if (!prev->shared.rb.rb_right) {
- 		parent = prev;
--		link = &prev->shared.linear.rb.rb_right;
-+		link = &prev->shared.rb.rb_right;
- 	} else {
--		parent = rb_entry(prev->shared.linear.rb.rb_right,
--				  struct vm_area_struct, shared.linear.rb);
--		if (parent->shared.linear.rb_subtree_last < last)
--			parent->shared.linear.rb_subtree_last = last;
--		while (parent->shared.linear.rb.rb_left) {
--			parent = rb_entry(parent->shared.linear.rb.rb_left,
--				struct vm_area_struct, shared.linear.rb);
--			if (parent->shared.linear.rb_subtree_last < last)
--				parent->shared.linear.rb_subtree_last = last;
-+		parent = rb_entry(prev->shared.rb.rb_right,
-+				  struct vm_area_struct, shared.rb);
-+		if (parent->shared.rb_subtree_last < last)
-+			parent->shared.rb_subtree_last = last;
-+		while (parent->shared.rb.rb_left) {
-+			parent = rb_entry(parent->shared.rb.rb_left,
-+				struct vm_area_struct, shared.rb);
-+			if (parent->shared.rb_subtree_last < last)
-+				parent->shared.rb_subtree_last = last;
- 		}
--		link = &parent->shared.linear.rb.rb_left;
-+		link = &parent->shared.rb.rb_left;
- 	}
- 
--	node->shared.linear.rb_subtree_last = last;
--	rb_link_node(&node->shared.linear.rb, &parent->shared.linear.rb, link);
--	rb_insert_augmented(&node->shared.linear.rb, root,
-+	node->shared.rb_subtree_last = last;
-+	rb_link_node(&node->shared.rb, &parent->shared.rb, link);
-+	rb_insert_augmented(&node->shared.rb, root,
- 			    &vma_interval_tree_augment);
- }
- 
+-#define PTE_FILE_MAX_BITS		61
+-#define pte_to_pgoff(pte)		((pte_val(pte) << 1) >> 3)
+-#define pgoff_to_pte(off)		((pte_t) { ((off) << 2) | _PAGE_FILE })
+-
+ /*
+  * ZERO_PAGE is a global shared page that is always zero: used
+  * for zero-mapped memory areas etc..
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
