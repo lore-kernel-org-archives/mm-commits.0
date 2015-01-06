@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + unicore32-drop-pte_file-related-helpers.patch added to -mm tree
-Date: Tue, 06 Jan 2015 15:35:00 -0800
-Message-ID: <54ac7124.RE0GsxT+oJ6zIjVb%akpm@linux-foundation.org>
+Subject: + c6x-drop-pte_file.patch added to -mm tree
+Date: Tue, 06 Jan 2015 15:34:18 -0800
+Message-ID: <54ac70fa.6PrOnAmDVmKm8/Qm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44788 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44645 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752412AbbAFXfB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2015 18:35:01 -0500
+	with ESMTP id S1752304AbbAFXeT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2015 18:34:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, gxt@mprc.pku.edu.cn, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, a-jacquiot@ti.com, msalter@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: unicore32: drop pte_file()-related helpers
+     Subject: c6x: drop pte_file()
 has been added to the -mm tree.  Its filename is
-     unicore32-drop-pte_file-related-helpers.patch
+     c6x-drop-pte_file.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/unicore32-drop-pte_file-related-helpers.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/c6x-drop-pte_file.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/unicore32-drop-pte_file-related-helpers.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/c6x-drop-pte_file.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,55 +39,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: unicore32: drop pte_file()-related helpers
+Subject: c6x: drop pte_file()
 
 We've replaced remap_file_pages(2) implementation with emulation.  Nobody
 creates non-linear mapping anymore.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Guan Xuetao <gxt@mprc.pku.edu.cn>
+Acked-by: Mark Salter <msalter@redhat.com>
+Cc: Aurelien Jacquiot <a-jacquiot@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/unicore32/include/asm/pgtable-hwdef.h |    1 -
- arch/unicore32/include/asm/pgtable.h       |   14 --------------
- 2 files changed, 15 deletions(-)
+ arch/c6x/include/asm/pgtable.h |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN arch/unicore32/include/asm/pgtable-hwdef.h~unicore32-drop-pte_file-related-helpers arch/unicore32/include/asm/pgtable-hwdef.h
---- a/arch/unicore32/include/asm/pgtable-hwdef.h~unicore32-drop-pte_file-related-helpers
-+++ a/arch/unicore32/include/asm/pgtable-hwdef.h
-@@ -44,7 +44,6 @@
- #define PTE_TYPE_INVALID	(3 << 0)
+diff -puN arch/c6x/include/asm/pgtable.h~c6x-drop-pte_file arch/c6x/include/asm/pgtable.h
+--- a/arch/c6x/include/asm/pgtable.h~c6x-drop-pte_file
++++ a/arch/c6x/include/asm/pgtable.h
+@@ -50,11 +50,6 @@ extern void paging_init(void);
+ #define __pte_to_swp_entry(pte)	((swp_entry_t) { pte_val(pte) })
+ #define __swp_entry_to_pte(x)	((pte_t) { (x).val })
  
- #define PTE_PRESENT		(1 << 2)
--#define PTE_FILE		(1 << 3)	/* only when !PRESENT */
- #define PTE_YOUNG		(1 << 3)
- #define PTE_DIRTY		(1 << 4)
- #define PTE_CACHEABLE		(1 << 5)
-diff -puN arch/unicore32/include/asm/pgtable.h~unicore32-drop-pte_file-related-helpers arch/unicore32/include/asm/pgtable.h
---- a/arch/unicore32/include/asm/pgtable.h~unicore32-drop-pte_file-related-helpers
-+++ a/arch/unicore32/include/asm/pgtable.h
-@@ -283,20 +283,6 @@ extern pgd_t swapper_pg_dir[PTRS_PER_PGD
- #define MAX_SWAPFILES_CHECK()	\
- 	BUILD_BUG_ON(MAX_SWAPFILES_SHIFT > __SWP_TYPE_BITS)
+-static inline int pte_file(pte_t pte)
+-{
+-	return 0;
+-}
+-
+ #define set_pte(pteptr, pteval) (*(pteptr) = pteval)
+ #define set_pte_at(mm, addr, ptep, pteval) set_pte(ptep, pteval)
  
--/*
-- * Encode and decode a file entry.  File entries are stored in the Linux
-- * page tables as follows:
-- *
-- *   3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1
-- *   1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0
-- *   <----------------------- offset ----------------------> 1 0 0 0
-- */
--#define pte_file(pte)		(pte_val(pte) & PTE_FILE)
--#define pte_to_pgoff(x)		(pte_val(x) >> 4)
--#define pgoff_to_pte(x)		__pte(((x) << 4) | PTE_FILE)
--
--#define PTE_FILE_MAX_BITS	28
--
- /* Needs to be defined here and not in linux/mm.h, as it is arch dependent */
- /* FIXME: this is not correct */
- #define kern_addr_valid(addr)	(1)
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
