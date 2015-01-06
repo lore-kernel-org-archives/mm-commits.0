@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + ia64-drop-_page_file-and-pte_file-related-helpers.patch added
+Subject: + mips-drop-_page_file-and-pte_file-related-helpers.patch added
  to -mm tree
-Date: Tue, 06 Jan 2015 15:34:26 -0800
-Message-ID: <54ac7102.nV/kv0t9lFwC1Wje%akpm@linux-foundation.org>
+Date: Tue, 06 Jan 2015 15:34:36 -0800
+Message-ID: <54ac710c.4fkV9huSVRho8zz0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44659 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44675 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752403AbbAFXe1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2015 18:34:27 -0500
+	with ESMTP id S1752403AbbAFXeh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2015 18:34:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, fenghua.yu@intel.com, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: kirill@shutemov.name, kirill.shutemov@linux.intel.com, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ia64: drop _PAGE_FILE and pte_file()-related helpers
+     Subject: mips: drop _PAGE_FILE and pte_file()-related helpers
 has been added to the -mm tree.  Its filename is
-     ia64-drop-_page_file-and-pte_file-related-helpers.patch
+     mips-drop-_page_file-and-pte_file-related-helpers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ia64-drop-_page_file-and-pte_file-related-helpers.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mips-drop-_page_file-and-pte_file-related-helpers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ia64-drop-_page_file-and-pte_file-related-helpers.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mips-drop-_page_file-and-pte_file-related-helpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,123 +39,180 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: ia64: drop _PAGE_FILE and pte_file()-related helpers
+From: "Kirill A. Shutemov" <kirill@shutemov.name>
+Subject: mips: drop _PAGE_FILE and pte_file()-related helpers
 
 We've replaced remap_file_pages(2) implementation with emulation.  Nobody
 creates non-linear mapping anymore.
 
-This patch also increase number of bits availble for swap offset.
-
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/include/asm/pgtable.h |   25 +++++--------------------
- 1 file changed, 5 insertions(+), 20 deletions(-)
+ arch/mips/include/asm/pgtable-32.h   |   36 -------------------------
+ arch/mips/include/asm/pgtable-64.h   |    9 ------
+ arch/mips/include/asm/pgtable-bits.h |    9 ------
+ arch/mips/include/asm/pgtable.h      |    2 -
+ 4 files changed, 56 deletions(-)
 
-diff -puN arch/ia64/include/asm/pgtable.h~ia64-drop-_page_file-and-pte_file-related-helpers arch/ia64/include/asm/pgtable.h
---- a/arch/ia64/include/asm/pgtable.h~ia64-drop-_page_file-and-pte_file-related-helpers
-+++ a/arch/ia64/include/asm/pgtable.h
-@@ -57,9 +57,6 @@
- #define _PAGE_ED		(__IA64_UL(1) << 52)	/* exception deferral */
- #define _PAGE_PROTNONE		(__IA64_UL(1) << 63)
- 
--/* Valid only for a PTE with the present bit cleared: */
--#define _PAGE_FILE		(1 << 1)		/* see swap & file pte remarks below */
--
- #define _PFN_MASK		_PAGE_PPN_MASK
- /* Mask of bits which may be changed by pte_modify(); the odd bits are there for _PAGE_PROTNONE */
- #define _PAGE_CHG_MASK	(_PAGE_P | _PAGE_PROTNONE | _PAGE_PL_MASK | _PAGE_AR_MASK | _PAGE_ED)
-@@ -300,7 +297,6 @@ extern unsigned long VMALLOC_END;
- #define pte_exec(pte)		((pte_val(pte) & _PAGE_AR_RX) != 0)
- #define pte_dirty(pte)		((pte_val(pte) & _PAGE_D) != 0)
- #define pte_young(pte)		((pte_val(pte) & _PAGE_A) != 0)
--#define pte_file(pte)		((pte_val(pte) & _PAGE_FILE) != 0)
- #define pte_special(pte)	0
- 
- /*
-@@ -472,27 +468,16 @@ extern void paging_init (void);
-  *
-  * Format of swap pte:
-  *	bit   0   : present bit (must be zero)
-- *	bit   1   : _PAGE_FILE (must be zero)
-- *	bits  2- 8: swap-type
-- *	bits  9-62: swap offset
-- *	bit  63   : _PAGE_PROTNONE bit
-- *
-- * Format of file pte:
-- *	bit   0   : present bit (must be zero)
-- *	bit   1   : _PAGE_FILE (must be one)
-- *	bits  2-62: file_offset/PAGE_SIZE
-+ *	bits  1- 7: swap-type
-+ *	bits  8-62: swap offset
-  *	bit  63   : _PAGE_PROTNONE bit
-  */
--#define __swp_type(entry)		(((entry).val >> 2) & 0x7f)
--#define __swp_offset(entry)		(((entry).val << 1) >> 10)
--#define __swp_entry(type,offset)	((swp_entry_t) { ((type) << 2) | ((long) (offset) << 9) })
-+#define __swp_type(entry)		(((entry).val >> 1) & 0x7f)
-+#define __swp_offset(entry)		(((entry).val << 1) >> 9)
-+#define __swp_entry(type,offset)	((swp_entry_t) { ((type) << 1) | ((long) (offset) << 8) })
+diff -puN arch/mips/include/asm/pgtable-32.h~mips-drop-_page_file-and-pte_file-related-helpers arch/mips/include/asm/pgtable-32.h
+--- a/arch/mips/include/asm/pgtable-32.h~mips-drop-_page_file-and-pte_file-related-helpers
++++ a/arch/mips/include/asm/pgtable-32.h
+@@ -161,22 +161,6 @@ pfn_pte(unsigned long pfn, pgprot_t prot
  #define __pte_to_swp_entry(pte)		((swp_entry_t) { pte_val(pte) })
  #define __swp_entry_to_pte(x)		((pte_t) { (x).val })
  
--#define PTE_FILE_MAX_BITS		61
--#define pte_to_pgoff(pte)		((pte_val(pte) << 1) >> 3)
--#define pgoff_to_pte(off)		((pte_t) { ((off) << 2) | _PAGE_FILE })
+-/*
+- * Encode and decode a nonlinear file mapping entry
+- */
+-#define pte_to_pgoff(_pte)		((((_pte).pte >> 1 ) & 0x07) | \
+-					 (((_pte).pte >> 2 ) & 0x38) | \
+-					 (((_pte).pte >> 10) <<	 6 ))
 -
+-#define pgoff_to_pte(off)		((pte_t) { (((off) & 0x07) << 1 ) | \
+-						   (((off) & 0x38) << 2 ) | \
+-						   (((off) >>  6 ) << 10) | \
+-						   _PAGE_FILE })
+-
+-/*
+- * Bits 0, 4, 8, and 9 are taken, split up 28 bits of offset into this range:
+- */
+-#define PTE_FILE_MAX_BITS		28
+ #else
+ 
+ #if defined(CONFIG_PHYS_ADDR_T_64BIT) && defined(CONFIG_CPU_MIPS32)
+@@ -188,13 +172,6 @@ pfn_pte(unsigned long pfn, pgprot_t prot
+ #define __pte_to_swp_entry(pte)		((swp_entry_t) { (pte).pte_high })
+ #define __swp_entry_to_pte(x)		((pte_t) { 0, (x).val })
+ 
+-/*
+- * Bits 0 and 1 of pte_high are taken, use the rest for the page offset...
+- */
+-#define pte_to_pgoff(_pte)		((_pte).pte_high >> 2)
+-#define pgoff_to_pte(off)		((pte_t) { _PAGE_FILE, (off) << 2 })
+-
+-#define PTE_FILE_MAX_BITS		30
+ #else
  /*
-  * ZERO_PAGE is a global shared page that is always zero: used
-  * for zero-mapped memory areas etc..
+  * Constraints:
+@@ -209,19 +186,6 @@ pfn_pte(unsigned long pfn, pgprot_t prot
+ #define __pte_to_swp_entry(pte)		((swp_entry_t) { pte_val(pte) })
+ #define __swp_entry_to_pte(x)		((pte_t) { (x).val })
+ 
+-/*
+- * Encode and decode a nonlinear file mapping entry
+- */
+-#define pte_to_pgoff(_pte)		((((_pte).pte >> 1) & 0x7) | \
+-					 (((_pte).pte >> 2) & 0x8) | \
+-					 (((_pte).pte >> 8) <<	4))
+-
+-#define pgoff_to_pte(off)		((pte_t) { (((off) & 0x7) << 1) | \
+-						   (((off) & 0x8) << 2) | \
+-						   (((off) >>  4) << 8) | \
+-						   _PAGE_FILE })
+-
+-#define PTE_FILE_MAX_BITS		28
+ #endif /* defined(CONFIG_PHYS_ADDR_T_64BIT) && defined(CONFIG_CPU_MIPS32) */
+ 
+ #endif /* defined(CONFIG_CPU_R3000) || defined(CONFIG_CPU_TX39XX) */
+diff -puN arch/mips/include/asm/pgtable-64.h~mips-drop-_page_file-and-pte_file-related-helpers arch/mips/include/asm/pgtable-64.h
+--- a/arch/mips/include/asm/pgtable-64.h~mips-drop-_page_file-and-pte_file-related-helpers
++++ a/arch/mips/include/asm/pgtable-64.h
+@@ -291,13 +291,4 @@ static inline pte_t mk_swap_pte(unsigned
+ #define __pte_to_swp_entry(pte) ((swp_entry_t) { pte_val(pte) })
+ #define __swp_entry_to_pte(x)	((pte_t) { (x).val })
+ 
+-/*
+- * Bits 0, 4, 6, and 7 are taken. Let's leave bits 1, 2, 3, and 5 alone to
+- * make things easier, and only use the upper 56 bits for the page offset...
+- */
+-#define PTE_FILE_MAX_BITS	56
+-
+-#define pte_to_pgoff(_pte)	((_pte).pte >> 8)
+-#define pgoff_to_pte(off)	((pte_t) { ((off) << 8) | _PAGE_FILE })
+-
+ #endif /* _ASM_PGTABLE_64_H */
+diff -puN arch/mips/include/asm/pgtable-bits.h~mips-drop-_page_file-and-pte_file-related-helpers arch/mips/include/asm/pgtable-bits.h
+--- a/arch/mips/include/asm/pgtable-bits.h~mips-drop-_page_file-and-pte_file-related-helpers
++++ a/arch/mips/include/asm/pgtable-bits.h
+@@ -48,8 +48,6 @@
+ 
+ /*
+  * The following bits are implemented in software
+- *
+- * _PAGE_FILE semantics: set:pagecache unset:swap
+  */
+ #define _PAGE_PRESENT_SHIFT	(_CACHE_SHIFT + 3)
+ #define _PAGE_PRESENT		(1 << _PAGE_PRESENT_SHIFT)
+@@ -64,7 +62,6 @@
+ 
+ #define _PAGE_SILENT_READ	_PAGE_VALID
+ #define _PAGE_SILENT_WRITE	_PAGE_DIRTY
+-#define _PAGE_FILE		_PAGE_MODIFIED
+ 
+ #define _PFN_SHIFT		(PAGE_SHIFT - 12 + _CACHE_SHIFT + 3)
+ 
+@@ -72,8 +69,6 @@
+ 
+ /*
+  * The following are implemented by software
+- *
+- * _PAGE_FILE semantics: set:pagecache unset:swap
+  */
+ #define _PAGE_PRESENT_SHIFT	0
+ #define _PAGE_PRESENT		(1 <<  _PAGE_PRESENT_SHIFT)
+@@ -85,8 +80,6 @@
+ #define _PAGE_ACCESSED		(1 <<  _PAGE_ACCESSED_SHIFT)
+ #define _PAGE_MODIFIED_SHIFT	4
+ #define _PAGE_MODIFIED		(1 <<  _PAGE_MODIFIED_SHIFT)
+-#define _PAGE_FILE_SHIFT	4
+-#define _PAGE_FILE		(1 <<  _PAGE_FILE_SHIFT)
+ 
+ /*
+  * And these are the hardware TLB bits
+@@ -116,7 +109,6 @@
+  * The following bits are implemented in software
+  *
+  * _PAGE_READ / _PAGE_READ_SHIFT should be unused if cpu_has_rixi.
+- * _PAGE_FILE semantics: set:pagecache unset:swap
+  */
+ #define _PAGE_PRESENT_SHIFT	(0)
+ #define _PAGE_PRESENT		(1 << _PAGE_PRESENT_SHIFT)
+@@ -128,7 +120,6 @@
+ #define _PAGE_ACCESSED		(1 << _PAGE_ACCESSED_SHIFT)
+ #define _PAGE_MODIFIED_SHIFT	(_PAGE_ACCESSED_SHIFT + 1)
+ #define _PAGE_MODIFIED		(1 << _PAGE_MODIFIED_SHIFT)
+-#define _PAGE_FILE		(_PAGE_MODIFIED)
+ 
+ #ifdef CONFIG_MIPS_HUGE_TLB_SUPPORT
+ /* huge tlb page */
+diff -puN arch/mips/include/asm/pgtable.h~mips-drop-_page_file-and-pte_file-related-helpers arch/mips/include/asm/pgtable.h
+--- a/arch/mips/include/asm/pgtable.h~mips-drop-_page_file-and-pte_file-related-helpers
++++ a/arch/mips/include/asm/pgtable.h
+@@ -231,7 +231,6 @@ extern pgd_t swapper_pg_dir[];
+ static inline int pte_write(pte_t pte)	{ return pte.pte_low & _PAGE_WRITE; }
+ static inline int pte_dirty(pte_t pte)	{ return pte.pte_low & _PAGE_MODIFIED; }
+ static inline int pte_young(pte_t pte)	{ return pte.pte_low & _PAGE_ACCESSED; }
+-static inline int pte_file(pte_t pte)	{ return pte.pte_low & _PAGE_FILE; }
+ 
+ static inline pte_t pte_wrprotect(pte_t pte)
+ {
+@@ -287,7 +286,6 @@ static inline pte_t pte_mkyoung(pte_t pt
+ static inline int pte_write(pte_t pte)	{ return pte_val(pte) & _PAGE_WRITE; }
+ static inline int pte_dirty(pte_t pte)	{ return pte_val(pte) & _PAGE_MODIFIED; }
+ static inline int pte_young(pte_t pte)	{ return pte_val(pte) & _PAGE_ACCESSED; }
+-static inline int pte_file(pte_t pte)	{ return pte_val(pte) & _PAGE_FILE; }
+ 
+ static inline pte_t pte_wrprotect(pte_t pte)
+ {
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from kirill@shutemov.name are
 
-mm-protect-set_page_dirty-from-ongoing-truncation.patch
 mm-replace-remap_file_pages-syscall-with-emulation.patch
-mm-drop-support-of-non-linear-mapping-from-unmap-zap-codepath.patch
-mm-drop-support-of-non-linear-mapping-from-fault-codepath.patch
-mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub.patch
-proc-drop-handling-non-linear-mappings.patch
-rmap-drop-support-of-non-linear-mappings.patch
-mm-replace-vma-shareadlinear-with-vma-shared.patch
-mm-remove-rest-usage-of-vm_nonlinear-and-pte_file.patch
-asm-generic-drop-unused-pte_file-helpers.patch
-alpha-drop-_page_file-and-pte_file-related-helpers.patch
-arc-drop-_page_file-and-pte_file-related-helpers.patch
-arm64-drop-pte_file-and-pte_file-related-helpers.patch
-arm-drop-l_pte_file-and-pte_file-related-helpers.patch
-avr32-drop-_page_file-and-pte_file-related-helpers.patch
-blackfin-drop-pte_file.patch
-c6x-drop-pte_file.patch
-cris-drop-_page_file-and-pte_file-related-helpers.patch
-frv-drop-_page_file-and-pte_file-related-helpers.patch
-hexagon-drop-_page_file-and-pte_file-related-helpers.patch
-ia64-drop-_page_file-and-pte_file-related-helpers.patch
-m32r-drop-_page_file-and-pte_file-related-helpers.patch
 m68k-drop-_page_file-and-pte_file-related-helpers.patch
-metag-drop-_page_file-and-pte_file-related-helpers.patch
-microblaze-drop-_page_file-and-pte_file-related-helpers.patch
 mips-drop-_page_file-and-pte_file-related-helpers.patch
-mn10300-drop-_page_file-and-pte_file-related-helpers.patch
-nios2-drop-_page_file-and-pte_file-related-helpers.patch
-openrisc-drop-_page_file-and-pte_file-related-helpers.patch
-parisc-drop-_page_file-and-pte_file-related-helpers.patch
-powerpc-drop-_page_file-and-pte_file-related-helpers.patch
-s390-drop-pte_file-related-helpers.patch
-score-drop-_page_file-and-pte_file-related-helpers.patch
-sh-drop-_page_file-and-pte_file-related-helpers.patch
-sparc-drop-pte_file-related-helpers.patch
-tile-drop-pte_file-related-helpers.patch
-um-drop-_page_file-and-pte_file-related-helpers.patch
-unicore32-drop-pte_file-related-helpers.patch
-x86-drop-_page_file-and-pte_file-related-helpers.patch
-xtensa-drop-_page_file-and-pte_file-related-helpers.patch
-mm-memory-remove-vm_file-check-on-shared-writable-vmas.patch
-mm-memory-merge-shared-writable-dirtying-branches-in-do_wp_page.patch
-mm-add-fields-for-compound-destructor-and-order-into-struct-page.patch
-mm-add-vm_bug_on_page-for-page_mapcount.patch
+mm-add-kpf_zero_page-flag-for-proc-kpageflags.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
 
