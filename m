@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-change-meminfo-cached-calculation-fix.patch added to -mm
- tree
-Date: Tue, 06 Jan 2015 16:44:04 -0800
-Message-ID: <54ac8154.JMQMs1cu6gibbCLV%akpm@linux-foundation.org>
+Subject: + lib-crc32-constify-crc32-lookup-table.patch added to -mm tree
+Date: Tue, 06 Jan 2015 16:53:31 -0800
+Message-ID: <54ac838b.5CJKXMowlHU9Kztf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45532 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45542 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756623AbbAGAoF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2015 19:44:05 -0500
+	with ESMTP id S1751845AbbAGAxc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Jan 2015 19:53:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, Yalin.Wang@sonymobile.com, hughd@google.com, yalin.wang@sonymobile.com, mm-commits@vger.kernel.org
+To: dborkman@redhat.com, jmario@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-change-meminfo-cached-calculation-fix
+     Subject: lib: crc32: constify crc32 lookup table
 has been added to the -mm tree.  Its filename is
-     mm-change-meminfo-cached-calculation-fix.patch
+     lib-crc32-constify-crc32-lookup-table.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-change-meminfo-cached-calculation-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-crc32-constify-crc32-lookup-table.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-change-meminfo-cached-calculation-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-crc32-constify-crc32-lookup-table.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,63 +38,78 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-change-meminfo-cached-calculation-fix
+From: Daniel Borkmann <dborkman@redhat.com>
+Subject: lib: crc32: constify crc32 lookup table
 
-update Documentation/filesystems/proc.txt
+Commit 8f243af42ade ("sections: fix const sections for crc32 table")
+removed the compile-time generated crc32 tables from the RO sections,
+because it conflicts with the definition of __cacheline_aligned which puts
+all such aligned data into .data..cacheline_aligned section optimized for
+wasting less space, and can cause alignment issues when used in
+combination with const with some gcc versions like 4.7.0 due to a gcc bug
+[1].
 
-Cc: "Wang, Yalin" <Yalin.Wang@sonymobile.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Yalin Wang <yalin.wang@sonymobile.com>
+Given that most gcc versions should have the fix by now, we can just use
+____cacheline_aligned, which only aligns the data but doesn't move it into
+specific sections as opposed to __cacheline_aligned.  In case of gcc
+versions having the mentioned bug, the alignment attribute will have no
+effect, but the data will still be made RO.
+
+After patch tables are in RO:
+
+$ nm -v lib/crc32.o | grep -1 -E "crc32c?table"
+0000000000000000 t arch_local_irq_enable
+0000000000000000 r crc32ctable_le
+0000000000000000 t crc32_exit
+--
+0000000000000960 t test_buf
+0000000000002000 r crc32table_be
+0000000000004000 r crc32table_le
+000000001d1056e5 A __crc_crc32_be
+
+  [1] https://gcc.gnu.org/bugzilla/show_bug.cgi?id=52181
+
+Signed-off-by: Daniel Borkmann <dborkman@redhat.com>
+Cc: Joe Mario <jmario@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/gen_crc32table.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/filesystems/proc.txt~mm-change-meminfo-cached-calculation-fix Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~mm-change-meminfo-cached-calculation-fix
-+++ a/Documentation/filesystems/proc.txt
-@@ -811,7 +811,7 @@ MemAvailable: An estimate of how much me
-      Buffers: Relatively temporary storage for raw disk blocks
-               shouldn't get tremendously large (20MB or so)
-       Cached: in-memory cache for files read from the disk (the
--              pagecache).  Doesn't include SwapCached
-+              pagecache).  Doesn't include SwapCached or Shmem.
-   SwapCached: Memory that once was swapped out, is swapped back in but
-               still also is in the swapfile (if memory is needed it
-               doesn't need to be swapped out AGAIN because it is already
+diff -puN lib/gen_crc32table.c~lib-crc32-constify-crc32-lookup-table lib/gen_crc32table.c
+--- a/lib/gen_crc32table.c~lib-crc32-constify-crc32-lookup-table
++++ a/lib/gen_crc32table.c
+@@ -109,7 +109,7 @@ int main(int argc, char** argv)
+ 
+ 	if (CRC_LE_BITS > 1) {
+ 		crc32init_le();
+-		printf("static u32 __cacheline_aligned "
++		printf("static const u32 ____cacheline_aligned "
+ 		       "crc32table_le[%d][%d] = {",
+ 		       LE_TABLE_ROWS, LE_TABLE_SIZE);
+ 		output_table(crc32table_le, LE_TABLE_ROWS,
+@@ -119,7 +119,7 @@ int main(int argc, char** argv)
+ 
+ 	if (CRC_BE_BITS > 1) {
+ 		crc32init_be();
+-		printf("static u32 __cacheline_aligned "
++		printf("static const u32 ____cacheline_aligned "
+ 		       "crc32table_be[%d][%d] = {",
+ 		       BE_TABLE_ROWS, BE_TABLE_SIZE);
+ 		output_table(crc32table_be, LE_TABLE_ROWS,
+@@ -128,7 +128,7 @@ int main(int argc, char** argv)
+ 	}
+ 	if (CRC_LE_BITS > 1) {
+ 		crc32cinit_le();
+-		printf("static u32 __cacheline_aligned "
++		printf("static const u32 ____cacheline_aligned "
+ 		       "crc32ctable_le[%d][%d] = {",
+ 		       LE_TABLE_ROWS, LE_TABLE_SIZE);
+ 		output_table(crc32ctable_le, LE_TABLE_ROWS,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dborkman@redhat.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-mm-prevent-endless-growth-of-anon_vma-hierarchy-fix.patch
-mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
-fanotify-dont-recalculate-a-marks-mask-if-only-the-ignored-mask-changed-checkpatch-fixes.patch
-fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper.patch
-ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir.patch
-mm.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-cma-fix-cmas-page-number-is-substructed-twice-in-__zone_watermark_ok.patch
-cma-fix-cmas-page-number-is-substructed-twice-in-__zone_watermark_ok-fix-2.patch
-mm-change-meminfo-cached-calculation-fix.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss.patch
-lib-bitmap-update-bitmap_onto-to-unsigned-checkpatch-fixes.patch
-lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned-fix.patch
-hexdump-makes-it-return-amount-of-bytes-placed-in-buffer-fix.patch
-fs-befs-linuxvfsc-remove-unnecessary-casting-fix.patch
-linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
+lib-crc32-constify-crc32-lookup-table.patch
 
