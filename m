@@ -1,239 +1,165 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- cma-fix-cmas-page-number-is-substructed-twice-in-__zone_watermark_ok-fix-2.patch removed from -mm tree
-Date: Wed, 07 Jan 2015 13:30:08 -0800
-Message-ID: <54ada560.wcPVLGnTaQh01NW0%akpm@linux-foundation.org>
+Subject: +
+ ocfs2-add-a-mount-option-journal_async_commit-on-ocfs2-filesystem.patch
+ added to -mm tree
+Date: Wed, 07 Jan 2015 13:31:46 -0800
+Message-ID: <54ada5c2.6q6CmfuHUehvnhDG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60141 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60147 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755096AbbAGVaJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2015 16:30:09 -0500
+	with ESMTP id S1754950AbbAGVbr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jan 2015 16:31:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, fengguang.wu@intel.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, isimatu.yasuaki@jp.fujitsu.com, liuweixing@xiaomi.com, mgorman@suse.de, riel@redhat.com, rientjes@google.com, sasha.levin@oracle.com, vbabka@suse.cz, zhuhui@xiaomi.com, mm-commits@vger.kernel.org
+To: alex.chen@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.com, wangww631@huawei.comm, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cma-fix-cmas-page-number-is-substructed-twice-in-__zone_watermark_ok-fix-2
-has been removed from the -mm tree.  Its filename was
-     cma-fix-cmas-page-number-is-substructed-twice-in-__zone_watermark_ok-fix-2.patch
+     Subject: ocfs2: add a mount option journal_async_commit on ocfs2 filesystem
+has been added to the -mm tree.  Its filename is
+     ocfs2-add-a-mount-option-journal_async_commit-on-ocfs2-filesystem.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-add-a-mount-option-journal_async_commit-on-ocfs2-filesystem.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-add-a-mount-option-journal_async_commit-on-ocfs2-filesystem.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: cma-fix-cmas-page-number-is-substructed-twice-in-__zone_watermark_ok-fix-2
+From: alex chen <alex.chen@huawei.com>
+Subject: ocfs2: add a mount option journal_async_commit on ocfs2 filesystem
 
-fix build with CONFIG_CMA=n
+Add a mount option to support JBD2 feature:
 
-Cc: David Rientjes <rientjes@google.com>
-Cc: Hui Zhu <zhuhui@xiaomi.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Sasha Levin <sasha.levin@oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Weixing Liu <liuweixing@xiaomi.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Reported-by: Wu Fengguang <fengguang.wu@intel.com>
+JBD2_FEATURE_INCOMPAT_ASYNC_COMMIT.  When this feature is opened, journal
+commit block can be written to disk without waiting for descriptor blocks,
+which can improve journal commit performance.  This option will enable
+'journal_checksum' internally.
+
+Using the fs_mark benchmark, using journal_async_commit shows a 50%
+improvement, the files per second go up from 215.2 to 317.5.
+
+test script:
+fs_mark  -d  /mnt/ocfs2/  -s  10240  -n  1000
+
+default:
+FSUse%        Count         Size    Files/sec     App Overhead
+     0         1000        10240        215.2            17878
+
+with journal_async_commit option:
+FSUse%        Count         Size    Files/sec     App Overhead
+     0         1000        10240        317.5            17881
+
+Signed-off-by: Alex Chen <alex.chen@huawei.com>
+Signed-off-by: Weiwei Wang <wangww631@huawei.comm>
+Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cma.h |   36 ++++++++++++++++++++++++++++++++++++
- mm/page_alloc.c     |   31 +++++++++++++++----------------
- 2 files changed, 51 insertions(+), 16 deletions(-)
+ Documentation/filesystems/ocfs2.txt |    4 ++++
+ fs/ocfs2/ocfs2.h                    |    2 ++
+ fs/ocfs2/super.c                    |   17 +++++++++++++++++
+ 3 files changed, 23 insertions(+)
 
-diff -puN include/linux/cma.h~cma-fix-cmas-page-number-is-substructed-twice-in-__zone_watermark_ok-fix-2 include/linux/cma.h
---- a/include/linux/cma.h~cma-fix-cmas-page-number-is-substructed-twice-in-__zone_watermark_ok-fix-2
-+++ a/include/linux/cma.h
-@@ -1,6 +1,8 @@
- #ifndef __CMA_H__
- #define __CMA_H__
+diff -puN Documentation/filesystems/ocfs2.txt~ocfs2-add-a-mount-option-journal_async_commit-on-ocfs2-filesystem Documentation/filesystems/ocfs2.txt
+--- a/Documentation/filesystems/ocfs2.txt~ocfs2-add-a-mount-option-journal_async_commit-on-ocfs2-filesystem
++++ a/Documentation/filesystems/ocfs2.txt
+@@ -100,3 +100,7 @@ coherency=full  (*)	Disallow concurrent
+ coherency=buffered	Allow concurrent O_DIRECT writes without EX lock among
+ 			nodes, which gains high performance at risk of getting
+ 			stale data on other nodes.
++journal_async_commit	Commit block can be written to disk without waiting
++			for descriptor blocks. If enabled older kernels cannot
++			mount the device. This will enable 'journal_checksum'
++			internally.
+diff -puN fs/ocfs2/ocfs2.h~ocfs2-add-a-mount-option-journal_async_commit-on-ocfs2-filesystem fs/ocfs2/ocfs2.h
+--- a/fs/ocfs2/ocfs2.h~ocfs2-add-a-mount-option-journal_async_commit-on-ocfs2-filesystem
++++ a/fs/ocfs2/ocfs2.h
+@@ -279,6 +279,8 @@ enum ocfs2_mount_options
+ 						     writes */
+ 	OCFS2_MOUNT_HB_NONE = 1 << 13, /* No heartbeat */
+ 	OCFS2_MOUNT_HB_GLOBAL = 1 << 14, /* Global heartbeat */
++
++	OCFS2_MOUNT_JOURNAL_ASYNC_COMMIT = 1 << 15,  /* Journal Async Commit */
+ };
  
-+#include <linux/mmzone.h>
+ #define OCFS2_OSB_SOFT_RO	0x0001
+diff -puN fs/ocfs2/super.c~ocfs2-add-a-mount-option-journal_async_commit-on-ocfs2-filesystem fs/ocfs2/super.c
+--- a/fs/ocfs2/super.c~ocfs2-add-a-mount-option-journal_async_commit-on-ocfs2-filesystem
++++ a/fs/ocfs2/super.c
+@@ -191,6 +191,7 @@ enum {
+ 	Opt_coherency_full,
+ 	Opt_resv_level,
+ 	Opt_dir_resv_level,
++	Opt_journal_async_commit,
+ 	Opt_err,
+ };
+ 
+@@ -222,6 +223,7 @@ static const match_table_t tokens = {
+ 	{Opt_coherency_full, "coherency=full"},
+ 	{Opt_resv_level, "resv_level=%u"},
+ 	{Opt_dir_resv_level, "dir_resv_level=%u"},
++	{Opt_journal_async_commit, "journal_async_commit"},
+ 	{Opt_err, NULL}
+ };
+ 
+@@ -1500,6 +1502,9 @@ static int ocfs2_parse_options(struct su
+ 			    option < OCFS2_MAX_RESV_LEVEL)
+ 				mopt->dir_resv_level = option;
+ 			break;
++		case Opt_journal_async_commit:
++			mopt->mount_opt |= OCFS2_MOUNT_JOURNAL_ASYNC_COMMIT;
++			break;
+ 		default:
+ 			mlog(ML_ERROR,
+ 			     "Unrecognized mount option \"%s\" "
+@@ -1606,6 +1611,9 @@ static int ocfs2_show_options(struct seq
+ 	if (osb->osb_dir_resv_level != osb->osb_resv_level)
+ 		seq_printf(s, ",dir_resv_level=%d", osb->osb_resv_level);
+ 
++	if (opts & OCFS2_MOUNT_JOURNAL_ASYNC_COMMIT)
++		seq_printf(s, ",journal_async_commit");
 +
- /*
-  * There is always at least global CMA area and a few optional
-  * areas configured in kernel .config.
-@@ -28,4 +30,38 @@ extern int cma_init_reserved_mem(phys_ad
- 					struct cma **res_cma);
- extern struct page *cma_alloc(struct cma *cma, int count, unsigned int align);
- extern bool cma_release(struct cma *cma, struct page *pages, int count);
-+
-+#ifdef CONFIG_CMA
-+static inline void cma_nr_free_add(int migratetype, struct free_area *area,
-+				   int delta)
-+{
-+	if (is_migrate_cma(migratetype))
-+		area->cma_nr_free += delta;
-+}
-+
-+static inline void cma_nr_free_inc(int migratetype, struct free_area *area)
-+{
-+	cma_nr_free_add(migratetype, area, 1);
-+}
-+
-+static inline void cma_nr_free_dec(int migratetype, struct free_area *area)
-+{
-+	cma_nr_free_add(migratetype, area, -1);
-+}
-+#else
-+static inline void cma_nr_free_add(int migratetype, struct free_area *area,
-+				   int delta)
-+{
-+}
-+
-+static inline void cma_nr_free_inc(int migratetype, struct free_area *area)
-+{
-+}
-+
-+static inline void cma_nr_free_dec(int migratetype, struct free_area *area)
-+{
-+}
-+#endif		/* CONFIG_CMA */
-+
-+
- #endif
-diff -puN mm/page_alloc.c~cma-fix-cmas-page-number-is-substructed-twice-in-__zone_watermark_ok-fix-2 mm/page_alloc.c
---- a/mm/page_alloc.c~cma-fix-cmas-page-number-is-substructed-twice-in-__zone_watermark_ok-fix-2
-+++ a/mm/page_alloc.c
-@@ -32,6 +32,8 @@
- #include <linux/slab.h>
- #include <linux/ratelimit.h>
- #include <linux/oom.h>
-+#include <linux/mmzone.h>
-+#include <linux/cma.h>
- #include <linux/notifier.h>
- #include <linux/topology.h>
- #include <linux/sysctl.h>
-@@ -650,8 +652,7 @@ static inline void __free_one_page(struc
- 		} else {
- 			list_del(&buddy->lru);
- 			zone->free_area[order].nr_free--;
--			if (is_migrate_cma(migratetype))
--				zone->free_area[order].cma_nr_free--;
-+			cma_nr_free_dec(migratetype, &zone->free_area[order]);
- 			rmv_page_order(buddy);
- 		}
- 		combined_idx = buddy_idx & page_idx;
-@@ -685,8 +686,7 @@ static inline void __free_one_page(struc
- 	list_add(&page->lru, &zone->free_area[order].free_list[migratetype]);
- out:
- 	zone->free_area[order].nr_free++;
--	if (is_migrate_cma(migratetype))
--		zone->free_area[order].cma_nr_free++;
-+	cma_nr_free_inc(migratetype, &zone->free_area[order]);
+ 	return 0;
  }
  
- static inline int free_pages_check(struct page *page)
-@@ -941,8 +941,7 @@ static inline void expand(struct zone *z
- 		}
- 		list_add(&page[size].lru, &area->free_list[migratetype]);
- 		area->nr_free++;
--		if (is_migrate_cma(migratetype))
--			area->cma_nr_free++;
-+		cma_nr_free_inc(migratetype, area);
- 		set_page_order(&page[size], high);
+@@ -2475,6 +2483,15 @@ static int ocfs2_check_volume(struct ocf
+ 		goto finally;
  	}
- }
-@@ -1026,8 +1025,7 @@ struct page *__rmqueue_smallest(struct z
- 		list_del(&page->lru);
- 		rmv_page_order(page);
- 		area->nr_free--;
--		if (is_migrate_cma(migratetype))
--			area->cma_nr_free--;
-+		cma_nr_free_dec(migratetype, area);
- 		expand(zone, page, order, current_order, area, migratetype);
- 		set_freepage_migratetype(page, migratetype);
- 		return page;
-@@ -1216,8 +1214,7 @@ __rmqueue_fallback(struct zone *zone, un
- 			page = list_entry(area->free_list[migratetype].next,
- 					struct page, lru);
- 			area->nr_free--;
--			if (is_migrate_cma(migratetype))
--				area->cma_nr_free--;
-+			cma_nr_free_dec(migratetype, area);
  
- 			new_type = try_to_steal_freepages(zone, page,
- 							  start_migratetype,
-@@ -1607,8 +1604,7 @@ int __isolate_free_page(struct page *pag
- 	/* Remove page from free list */
- 	list_del(&page->lru);
- 	zone->free_area[order].nr_free--;
--	if (is_migrate_cma(mt))
--		zone->free_area[order].cma_nr_free--;
-+	cma_nr_free_dec(mt, &zone->free_area[order]);
- 	rmv_page_order(page);
- 
- 	/* Set the pageblock if the isolated page is at least a pageblock */
-@@ -1845,9 +1841,10 @@ static bool __zone_watermark_ok(struct z
- 		 * "z->free_area[o].nr_free << o" subtracted CMA's page number
- 		 * of this order again.  So add it back.
- 		 */
--		if (IS_ENABLED(CONFIG_CMA) && free_cma)
-+#ifdef COFNIG_CMA
-+		if (free_cma)
- 			free_pages += z->free_area[o].cma_nr_free << o;
--
-+#endif
- 		/* Require fewer higher order pages to be free */
- 		min >>= 1;
- 
-@@ -4247,7 +4244,9 @@ static void __meminit zone_init_free_lis
- 	for_each_migratetype_order(order, t) {
- 		INIT_LIST_HEAD(&zone->free_area[order].free_list[t]);
- 		zone->free_area[order].nr_free = 0;
-+#ifdef CONFIG_CMA
- 		zone->free_area[order].cma_nr_free = 0;
-+#endif
- 	}
- }
- 
-@@ -6620,8 +6619,8 @@ __offline_isolated_pages(unsigned long s
- 		list_del(&page->lru);
- 		rmv_page_order(page);
- 		zone->free_area[order].nr_free--;
--		if (is_migrate_cma(get_pageblock_migratetype(page)))
--			zone->free_area[order].cma_nr_free--;
-+		cma_nr_free_dec(get_pageblock_migratetype(page),
-+				&zone->free_area[order]);
- 		for (i = 0; i < (1 << order); i++)
- 			SetPageReserved((page+i));
- 		pfn += (1 << order);
++	if (osb->s_mount_opt & OCFS2_MOUNT_JOURNAL_ASYNC_COMMIT)
++		jbd2_journal_set_features(osb->journal->j_journal,
++				JBD2_FEATURE_COMPAT_CHECKSUM, 0,
++				JBD2_FEATURE_INCOMPAT_ASYNC_COMMIT);
++	else
++		jbd2_journal_clear_features(osb->journal->j_journal,
++				JBD2_FEATURE_COMPAT_CHECKSUM, 0,
++				JBD2_FEATURE_INCOMPAT_ASYNC_COMMIT);
++
+ 	if (dirty) {
+ 		/* recover my local alloc if we didn't unmount cleanly. */
+ 		status = ocfs2_begin_local_alloc_recovery(osb,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from alex.chen@huawei.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-mm-prevent-endless-growth-of-anon_vma-hierarchy-fix.patch
-fanotify-dont-recalculate-a-marks-mask-if-only-the-ignored-mask-changed-checkpatch-fixes.patch
-fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper.patch
-ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir.patch
-mm.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-mm-change-meminfo-cached-calculation-fix.patch
-mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss.patch
-lib-bitmap-update-bitmap_onto-to-unsigned-checkpatch-fixes.patch
-lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned-fix.patch
-hexdump-makes-it-return-amount-of-bytes-placed-in-buffer-fix.patch
-fs-befs-linuxvfsc-remove-unnecessary-casting-fix.patch
-linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
+ocfs2-remove-bogus-check-in-dlm_process_recovery_data.patch
+ocfs2-add-a-mount-option-journal_async_commit-on-ocfs2-filesystem.patch
+ocfs2-implement-ocfs2_direct_io_write.patch
 
