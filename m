@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-numa-add-paranoid-check-around-pte_protnone_numa.patch added to -mm tree
-Date: Fri, 09 Jan 2015 14:59:18 -0800
-Message-ID: <54b05d46.yiAMLOkphVcEibW5%akpm@linux-foundation.org>
+Subject: +
+ mm-numa-avoid-unnecessary-tlb-flushes-when-setting-numa-hinting-entries.patch added to -mm tree
+Date: Fri, 09 Jan 2015 14:59:20 -0800
+Message-ID: <54b05d48.h7SooF9F0xlk1+Pi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38087 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38097 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753414AbbAIW7T (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jan 2015 17:59:19 -0500
+	with ESMTP id S1753414AbbAIW7V (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jan 2015 17:59:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mgorman@suse.de, aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, davej@redhat.com, hughd@google.com, kirill.shutemov@linux.intel.com, mingo@redhat.com, paulus@samba.org, riel@redhat.com, sasha.levin@oracle.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: numa: add paranoid check around pte_protnone_numa
+     Subject: mm: numa: avoid unnecessary TLB flushes when setting NUMA hinting entries
 has been added to the -mm tree.  Its filename is
-     mm-numa-add-paranoid-check-around-pte_protnone_numa.patch
+     mm-numa-avoid-unnecessary-tlb-flushes-when-setting-numa-hinting-entries.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-numa-add-paranoid-check-around-pte_protnone_numa.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-numa-avoid-unnecessary-tlb-flushes-when-setting-numa-hinting-entries.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-numa-add-paranoid-check-around-pte_protnone_numa.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-numa-avoid-unnecessary-tlb-flushes-when-setting-numa-hinting-entries.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,15 +40,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: numa: add paranoid check around pte_protnone_numa
+Subject: mm: numa: avoid unnecessary TLB flushes when setting NUMA hinting entries
 
-pte_protnone_numa is only safe to use after VMA checks for PROT_NONE are
-complete.  Treating a real PROT_NONE PTE as a NUMA hinting fault is going
-to result in strangeness so add a check for it.  BUG_ON looks like
-overkill but if this is hit then it's a serious bug that could result in
-corruption so do not even try recovering.  It would have been more
-comprehensive to check VMA flags in pte_protnone_numa but it would have
-made the API ugly just for a debugging check.
+If a PTE or PMD is already marked NUMA when scanning to mark entries for
+NUMA hinting then it is not necessary to update the entry and incur a TLB
+flush penalty.  Avoid the avoidhead where possible.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
@@ -63,36 +60,48 @@ Cc: Sasha Levin <sasha.levin@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    3 +++
- mm/memory.c      |    3 +++
- 2 files changed, 6 insertions(+)
+ mm/huge_memory.c |   14 ++++++++------
+ mm/mprotect.c    |    4 ++++
+ 2 files changed, 12 insertions(+), 6 deletions(-)
 
-diff -puN mm/huge_memory.c~mm-numa-add-paranoid-check-around-pte_protnone_numa mm/huge_memory.c
---- a/mm/huge_memory.c~mm-numa-add-paranoid-check-around-pte_protnone_numa
+diff -puN mm/huge_memory.c~mm-numa-avoid-unnecessary-tlb-flushes-when-setting-numa-hinting-entries mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-numa-avoid-unnecessary-tlb-flushes-when-setting-numa-hinting-entries
 +++ a/mm/huge_memory.c
-@@ -1268,6 +1268,9 @@ int do_huge_pmd_numa_page(struct mm_stru
- 	bool migrated = false;
- 	int flags = 0;
+@@ -1519,12 +1519,14 @@ int change_huge_pmd(struct vm_area_struc
+ 			return 0;
+ 		}
  
-+	/* A PROT_NONE fault should not end up here */
-+	BUG_ON(!(vma->vm_flags & (VM_READ | VM_EXEC | VM_WRITE)));
-+
- 	ptl = pmd_lock(mm, pmdp);
- 	if (unlikely(!pmd_same(pmd, *pmdp)))
- 		goto out_unlock;
-diff -puN mm/memory.c~mm-numa-add-paranoid-check-around-pte_protnone_numa mm/memory.c
---- a/mm/memory.c~mm-numa-add-paranoid-check-around-pte_protnone_numa
-+++ a/mm/memory.c
-@@ -3010,6 +3010,9 @@ static int do_numa_page(struct mm_struct
- 	bool migrated = false;
- 	int flags = 0;
+-		ret = 1;
+-		entry = pmdp_get_and_clear_notify(mm, addr, pmd);
+-		entry = pmd_modify(entry, newprot);
+-		ret = HPAGE_PMD_NR;
+-		set_pmd_at(mm, addr, pmd, entry);
+-		BUG_ON(pmd_write(entry));
++		if (!prot_numa || !pmd_protnone(*pmd)) {
++			ret = 1;
++			entry = pmdp_get_and_clear_notify(mm, addr, pmd);
++			entry = pmd_modify(entry, newprot);
++			ret = HPAGE_PMD_NR;
++			set_pmd_at(mm, addr, pmd, entry);
++			BUG_ON(pmd_write(entry));
++		}
+ 		spin_unlock(ptl);
+ 	}
  
-+	/* A PROT_NONE fault should not end up here */
-+	BUG_ON(!(vma->vm_flags & (VM_READ | VM_EXEC | VM_WRITE)));
+diff -puN mm/mprotect.c~mm-numa-avoid-unnecessary-tlb-flushes-when-setting-numa-hinting-entries mm/mprotect.c
+--- a/mm/mprotect.c~mm-numa-avoid-unnecessary-tlb-flushes-when-setting-numa-hinting-entries
++++ a/mm/mprotect.c
+@@ -86,6 +86,10 @@ static unsigned long change_pte_range(st
+ 				page = vm_normal_page(vma, addr, oldpte);
+ 				if (!page || PageKsm(page))
+ 					continue;
 +
- 	/*
- 	* The "pte" at this point cannot be used safely without
- 	* validation through pte_unmap_same(). It's of NUMA type but
++				/* Avoid TLB flush if possible */
++				if (pte_protnone(oldpte))
++					continue;
+ 			}
+ 
+ 			ptent = ptep_modify_prot_start(mm, addr, pte);
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
