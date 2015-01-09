@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-numa-do-not-dereference-pmd-outside-of-the-lock-during-numa-hinting-fault.patch added to -mm tree
-Date: Fri, 09 Jan 2015 14:59:01 -0800
-Message-ID: <54b05d35.rILFVxMySAufSGp1%akpm@linux-foundation.org>
+Subject: + mm-add-p-protnone-helpers-for-use-by-numa-balancing.patch added to -mm tree
+Date: Fri, 09 Jan 2015 14:59:04 -0800
+Message-ID: <54b05d38.MrXVx5Q1tKgoMPeN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37992 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38009 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752597AbbAIW7D (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jan 2015 17:59:03 -0500
+	with ESMTP id S1752597AbbAIW7F (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jan 2015 17:59:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mgorman@suse.de, aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, davej@redhat.com, hughd@google.com, kirill.shutemov@linux.intel.com, mingo@redhat.com, paulus@samba.org, riel@redhat.com, sasha.levin@oracle.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: numa: do not dereference pmd outside of the lock during NUMA hinting fault
+     Subject: mm: add p[te|md] protnone helpers for use by NUMA balancing
 has been added to the -mm tree.  Its filename is
-     mm-numa-do-not-dereference-pmd-outside-of-the-lock-during-numa-hinting-fault.patch
+     mm-add-p-protnone-helpers-for-use-by-numa-balancing.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-numa-do-not-dereference-pmd-outside-of-the-lock-during-numa-hinting-fault.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-add-p-protnone-helpers-for-use-by-numa-balancing.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-numa-do-not-dereference-pmd-outside-of-the-lock-during-numa-hinting-fault.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-add-p-protnone-helpers-for-use-by-numa-balancing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,174 +39,129 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: numa: do not dereference pmd outside of the lock during NUMA hinting fault
+Subject: mm: add p[te|md] protnone helpers for use by NUMA balancing
 
-Automatic NUMA balancing depends on being able to protect PTEs to trap a
-fault and gather reference locality information.  Very broadly speaking it
-would mark PTEs as not present and use another bit to distinguish between
-NUMA hinting faults and other types of faults.  It was universally loved
-by everybody and caused no problems whatsoever.  That last sentence might
-be a lie.
-
-This series is very heavily based on patches from Linus and Aneesh to
-replace the existing PTE/PMD NUMA helper functions with normal change
-protections.  I did alter and add parts of it but I consider them
-relatively minor contributions.  At their suggestion, acked-bys are in
-there but I've no problem converting them to Signed-off-by if requested.
-
-AFAIK, this has received no testing on ppc64 and I'm depending on Aneesh
-for that.  I tested trinity under kvm-tool and passed and ran a few other
-basic tests.  At the time of writing, only the short-lived tests have
-completed but testing of V2 indicated that long-term testing had no
-surprises.  In most cases I'm leaving out detail as it's not that
-interesting.
-
-specjbb single JVM: There was negligible performance difference in the
-	benchmark itself for short runs. However, system activity is
-	higher and interrupts are much higher over time -- possibly TLB
-	flushes. Migrations are also higher. Overall, this is more overhead
-	but considering the problems faced with the old approach I think
-	we just have to suck it up and find another way of reducing the
-	overhead.
-
-specjbb multi JVM: Negligible performance difference to the actual benchmark
-	but like the single JVM case, the system overhead is noticeably
-	higher.  Again, interrupts are a major factor.
-
-autonumabench: This was all over the place and about all that can be
-	reasonably concluded is that it's different but not necessarily
-	better or worse.
-
-autonumabench
-                                     3.18.0-rc5            3.18.0-rc5
-                                 mmotm-20141119         protnone-v3r3
-User    NUMA01               32380.24 (  0.00%)    21642.92 ( 33.16%)
-User    NUMA01_THEADLOCAL    22481.02 (  0.00%)    22283.22 (  0.88%)
-User    NUMA02                3137.00 (  0.00%)     3116.54 (  0.65%)
-User    NUMA02_SMT            1614.03 (  0.00%)     1543.53 (  4.37%)
-System  NUMA01                 322.97 (  0.00%)     1465.89 (-353.88%)
-System  NUMA01_THEADLOCAL       91.87 (  0.00%)       49.32 ( 46.32%)
-System  NUMA02                  37.83 (  0.00%)       14.61 ( 61.38%)
-System  NUMA02_SMT               7.36 (  0.00%)        7.45 ( -1.22%)
-Elapsed NUMA01                 716.63 (  0.00%)      599.29 ( 16.37%)
-Elapsed NUMA01_THEADLOCAL      553.98 (  0.00%)      539.94 (  2.53%)
-Elapsed NUMA02                  83.85 (  0.00%)       83.04 (  0.97%)
-Elapsed NUMA02_SMT              86.57 (  0.00%)       79.15 (  8.57%)
-CPU     NUMA01                4563.00 (  0.00%)     3855.00 ( 15.52%)
-CPU     NUMA01_THEADLOCAL     4074.00 (  0.00%)     4136.00 ( -1.52%)
-CPU     NUMA02                3785.00 (  0.00%)     3770.00 (  0.40%)
-CPU     NUMA02_SMT            1872.00 (  0.00%)     1959.00 ( -4.65%)
-
-System CPU usage of NUMA01 is worse but it's an adverse workload on this
-machine so I'm reluctant to conclude that it's a problem that matters.  On
-the other workloads that are sensible on this machine, system CPU usage is
-great.  Overall time to complete the benchmark is comparable
-
-          3.18.0-rc5  3.18.0-rc5
-        mmotm-20141119protnone-v3r3
-User        59612.50    48586.44
-System        460.22     1537.45
-Elapsed      1442.20     1304.29
-
-NUMA alloc hit                 5075182     5743353
-NUMA alloc miss                      0           0
-NUMA interleave hit                  0           0
-NUMA alloc local               5075174     5743339
-NUMA base PTE updates        637061448   443106883
-NUMA huge PMD updates          1243434      864747
-NUMA page range updates     1273699656   885857347
-NUMA hint faults               1658116     1214277
-NUMA hint local faults          959487      754113
-NUMA hint local percent             57          62
-NUMA pages migrated            5467056    61676398
-
-The NUMA pages migrated look terrible but when I looked at a graph of the
-activity over time I see that the massive spike in migration activity was
-during NUMA01.  This correlates with high system CPU usage and could be
-simply down to bad luck but any modifications that affect that workload
-would be related to scan rates and migrations, not the protection
-mechanism.  For all other workloads, migration activity was comparable.
-
-Overall, headline performance figures are comparable but the overhead is
-higher, mostly in interrupts.  To some extent, higher overhead from this
-approach was anticipated but not to this degree.  It's going to be
-necessary to reduce this again with a separate series in the future.  It's
-still worth going ahead with this series though as it's likely to avoid
-constant headaches with Xen and is probably easier to maintain.
-
-
-
-This patch (of 10):
-
-A transhuge NUMA hinting fault may find the page is migrating and should
-wait until migration completes.  The check is race-prone because the pmd
-is deferenced outside of the page lock and while the race is tiny, it'll
-be larger if the PMD is cleared while marking PMDs for hinting fault. 
-This patch closes the race.
+This is a preparatory patch that introduces protnone helpers for automatic
+NUMA balancing.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
+Acked-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Tested-by: Sasha Levin <sasha.levin@oracle.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Dave Jones <davej@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Kirill Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Paul Mackerras <paulus@samba.org>
 Cc: Rik van Riel <riel@redhat.com>
-Cc: Sasha Levin <sasha.levin@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/migrate.h |    4 ----
- mm/huge_memory.c        |    3 ++-
- mm/migrate.c            |    6 ------
- 3 files changed, 2 insertions(+), 11 deletions(-)
+ arch/powerpc/include/asm/pgtable.h |   16 ++++++++++++++++
+ arch/x86/include/asm/pgtable.h     |   16 ++++++++++++++++
+ include/asm-generic/pgtable.h      |   20 ++++++++++++++++++++
+ 3 files changed, 52 insertions(+)
 
-diff -puN include/linux/migrate.h~mm-numa-do-not-dereference-pmd-outside-of-the-lock-during-numa-hinting-fault include/linux/migrate.h
---- a/include/linux/migrate.h~mm-numa-do-not-dereference-pmd-outside-of-the-lock-during-numa-hinting-fault
-+++ a/include/linux/migrate.h
-@@ -67,7 +67,6 @@ static inline int migrate_huge_page_move
+diff -puN arch/powerpc/include/asm/pgtable.h~mm-add-p-protnone-helpers-for-use-by-numa-balancing arch/powerpc/include/asm/pgtable.h
+--- a/arch/powerpc/include/asm/pgtable.h~mm-add-p-protnone-helpers-for-use-by-numa-balancing
++++ a/arch/powerpc/include/asm/pgtable.h
+@@ -38,6 +38,22 @@ static inline int pte_none(pte_t pte)		{
+ static inline pgprot_t pte_pgprot(pte_t pte)	{ return __pgprot(pte_val(pte) & PAGE_PROT_BITS); }
  
  #ifdef CONFIG_NUMA_BALANCING
- extern bool pmd_trans_migrating(pmd_t pmd);
--extern void wait_migrate_huge_page(struct anon_vma *anon_vma, pmd_t *pmd);
- extern int migrate_misplaced_page(struct page *page,
- 				  struct vm_area_struct *vma, int node);
- extern bool migrate_ratelimited(int node);
-@@ -76,9 +75,6 @@ static inline bool pmd_trans_migrating(p
++/*
++ * These work without NUMA balancing but the kernel does not care. See the
++ * comment in include/asm-generic/pgtable.h . On powerpc, this will only
++ * work for user pages and always return true for kernel pages.
++ */
++static inline int pte_protnone(pte_t pte)
++{
++	return (pte_val(pte) &
++		(_PAGE_PRESENT | _PAGE_USER)) == _PAGE_PRESENT;
++}
++
++static inline int pmd_protnone(pmd_t pmd)
++{
++	return pte_protnone(pmd_pte(pmd));
++}
++
+ static inline int pte_present(pte_t pte)
  {
- 	return false;
- }
--static inline void wait_migrate_huge_page(struct anon_vma *anon_vma, pmd_t *pmd)
--{
--}
- static inline int migrate_misplaced_page(struct page *page,
- 					 struct vm_area_struct *vma, int node)
- {
-diff -puN mm/huge_memory.c~mm-numa-do-not-dereference-pmd-outside-of-the-lock-during-numa-hinting-fault mm/huge_memory.c
---- a/mm/huge_memory.c~mm-numa-do-not-dereference-pmd-outside-of-the-lock-during-numa-hinting-fault
-+++ a/mm/huge_memory.c
-@@ -1278,8 +1278,9 @@ int do_huge_pmd_numa_page(struct mm_stru
- 	 * check_same as the page may no longer be mapped.
- 	 */
- 	if (unlikely(pmd_trans_migrating(*pmdp))) {
-+		page = pmd_page(*pmdp);
- 		spin_unlock(ptl);
--		wait_migrate_huge_page(vma->anon_vma, pmdp);
-+		wait_on_page_locked(page);
- 		goto out;
- 	}
- 
-diff -puN mm/migrate.c~mm-numa-do-not-dereference-pmd-outside-of-the-lock-during-numa-hinting-fault mm/migrate.c
---- a/mm/migrate.c~mm-numa-do-not-dereference-pmd-outside-of-the-lock-during-numa-hinting-fault
-+++ a/mm/migrate.c
-@@ -1654,12 +1654,6 @@ bool pmd_trans_migrating(pmd_t pmd)
- 	return PageLocked(page);
+ 	return pte_val(pte) & _PAGE_NUMA_MASK;
+diff -puN arch/x86/include/asm/pgtable.h~mm-add-p-protnone-helpers-for-use-by-numa-balancing arch/x86/include/asm/pgtable.h
+--- a/arch/x86/include/asm/pgtable.h~mm-add-p-protnone-helpers-for-use-by-numa-balancing
++++ a/arch/x86/include/asm/pgtable.h
+@@ -483,6 +483,22 @@ static inline int pmd_present(pmd_t pmd)
+ 				 _PAGE_NUMA);
  }
  
--void wait_migrate_huge_page(struct anon_vma *anon_vma, pmd_t *pmd)
--{
--	struct page *page = pmd_page(*pmd);
--	wait_on_page_locked(page);
--}
++#ifdef CONFIG_NUMA_BALANCING
++/*
++ * These work without NUMA balancing but the kernel does not care. See the
++ * comment in include/asm-generic/pgtable.h
++ */
++static inline int pte_protnone(pte_t pte)
++{
++	return pte_flags(pte) & _PAGE_PROTNONE;
++}
++
++static inline int pmd_protnone(pmd_t pmd)
++{
++	return pmd_flags(pmd) & _PAGE_PROTNONE;
++}
++#endif /* CONFIG_NUMA_BALANCING */
++
+ static inline int pmd_none(pmd_t pmd)
+ {
+ 	/* Only check low word on 32-bit platforms, since it might be
+diff -puN include/asm-generic/pgtable.h~mm-add-p-protnone-helpers-for-use-by-numa-balancing include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~mm-add-p-protnone-helpers-for-use-by-numa-balancing
++++ a/include/asm-generic/pgtable.h
+@@ -673,6 +673,26 @@ static inline int pmd_trans_unstable(pmd
+ #endif
+ }
+ 
++#ifndef CONFIG_NUMA_BALANCING
++/*
++ * Technically a PTE can be PROTNONE even when not doing NUMA balancing but
++ * the only case the kernel cares is for NUMA balancing and is only ever set
++ * when the VMA is accessible. For PROT_NONE VMAs, the PTEs are not marked
++ * _PAGE_PROTNONE so by by default, implement the helper as "always no". It
++ * is the responsibility of the caller to distinguish between PROT_NONE
++ * protections and NUMA hinting fault protections.
++ */
++static inline int pte_protnone(pte_t pte)
++{
++	return 0;
++}
++
++static inline int pmd_protnone(pmd_t pmd)
++{
++	return 0;
++}
++#endif /* CONFIG_NUMA_BALANCING */
++
+ #ifdef CONFIG_NUMA_BALANCING
+ /*
+  * _PAGE_NUMA distinguishes between an unmapped page table entry, an entry that
+_
+
+Patches currently in -mm which might be from mgorman@suse.de are
+
+mm-debug-pagealloc-prepare-boottime-configurable-on-off.patch
+mm-vmscan-prevent-kswapd-livelock-due-to-pfmemalloc-throttled-process-being-killed.patch
+mm-page_alloc-place-zone_id-check-before-vm_bug_on_page-check.patch
+mm-vmscan-wake-up-all-pfmemalloc-throttled-processes-at-once.patch
+mm-numa-do-not-dereference-pmd-outside-of-the-lock-during-numa-hinting-fault.patch
+mm-add-p-protnone-helpers-for-use-by-numa-balancing.patch
+mm-convert-p_numa-users-to-p_protnone_numa.patch
+ppc64-add-paranoid-warnings-for-unexpected-dsisr_protfault.patch
+mm-convert-p_mknonnuma-and-remaining-page-table-manipulations.patch
+mm-remove-remaining-references-to-numa-hinting-bits-and-helpers.patch
+mm-numa-do-not-trap-faults-on-the-huge-zero-page.patch
+x86-mm-restore-original-pte_special-check.patch
+mm-numa-add-paranoid-check-around-pte_protnone_numa.patch
+mm-numa-avoid-unnecessary-tlb-flushes-when-setting-numa-hinting-entries.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+
