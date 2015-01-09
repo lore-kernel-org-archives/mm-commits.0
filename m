@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-hugetlb-fix-suboptimal-migration-hwpoisoned-entry-check.patch added to
- -mm tree
-Date: Fri, 09 Jan 2015 14:39:18 -0800
-Message-ID: <54b05896.qEZFm0fGL1uK4vwY%akpm@linux-foundation.org>
+ mm-numa-do-not-dereference-pmd-outside-of-the-lock-during-numa-hinting-fault.patch added to -mm tree
+Date: Fri, 09 Jan 2015 14:59:01 -0800
+Message-ID: <54b05d35.rILFVxMySAufSGp1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37829 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37992 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752259AbbAIWjT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jan 2015 17:39:19 -0500
+	with ESMTP id S1752597AbbAIW7D (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jan 2015 17:59:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: n-horiguchi@ah.jp.nec.com, aarcange@redhat.com, hannes@cmpxchg.org, hughd@google.com, james.hogan@imgtec.com, lcapitulino@redhat.com, lee.schermerhorn@hp.com, mel@csn.ul.ie, mhocko@suse.cz, nacc@linux.vnet.ibm.com, riel@redhat.com, rientjes@google.com, steve.capper@linaro.org, mm-commits@vger.kernel.org
+To: mgorman@suse.de, aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, davej@redhat.com, hughd@google.com, kirill.shutemov@linux.intel.com, mingo@redhat.com, paulus@samba.org, riel@redhat.com, sasha.levin@oracle.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: fix suboptimal migration/hwpoisoned entry check
+     Subject: mm: numa: do not dereference pmd outside of the lock during NUMA hinting fault
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-fix-suboptimal-migration-hwpoisoned-entry-check.patch
+     mm-numa-do-not-dereference-pmd-outside-of-the-lock-during-numa-hinting-fault.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-fix-suboptimal-migration-hwpoisoned-entry-check.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-numa-do-not-dereference-pmd-outside-of-the-lock-during-numa-hinting-fault.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-fix-suboptimal-migration-hwpoisoned-entry-check.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-numa-do-not-dereference-pmd-outside-of-the-lock-during-numa-hinting-fault.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,106 +39,175 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm/hugetlb: fix suboptimal migration/hwpoisoned entry check
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm: numa: do not dereference pmd outside of the lock during NUMA hinting fault
 
-Currently hugetlb_fault() checks at first whether pte of the faulted
-address is a migration or hwpoisoned entry, which means that we call
-huge_ptep_get() twice in single hugetlb_fault().  This is not optimized. 
-The reason of this approach is that without checking at first,
-huge_pte_alloc() can trigger BUG_ON() because pmd_huge() returned false
-for non-present hugetlb entry.
+Automatic NUMA balancing depends on being able to protect PTEs to trap a
+fault and gather reference locality information.  Very broadly speaking it
+would mark PTEs as not present and use another bit to distinguish between
+NUMA hinting faults and other types of faults.  It was universally loved
+by everybody and caused no problems whatsoever.  That last sentence might
+be a lie.
 
-With a previous patch in this series, pmd_huge() becomes to return true
-for non-present entry, so we no longer need this dirty workaround.  Let's
-move the checking code to the proper place.
+This series is very heavily based on patches from Linus and Aneesh to
+replace the existing PTE/PMD NUMA helper functions with normal change
+protections.  I did alter and add parts of it but I consider them
+relatively minor contributions.  At their suggestion, acked-bys are in
+there but I've no problem converting them to Signed-off-by if requested.
 
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+AFAIK, this has received no testing on ppc64 and I'm depending on Aneesh
+for that.  I tested trinity under kvm-tool and passed and ran a few other
+basic tests.  At the time of writing, only the short-lived tests have
+completed but testing of V2 indicated that long-term testing had no
+surprises.  In most cases I'm leaving out detail as it's not that
+interesting.
+
+specjbb single JVM: There was negligible performance difference in the
+	benchmark itself for short runs. However, system activity is
+	higher and interrupts are much higher over time -- possibly TLB
+	flushes. Migrations are also higher. Overall, this is more overhead
+	but considering the problems faced with the old approach I think
+	we just have to suck it up and find another way of reducing the
+	overhead.
+
+specjbb multi JVM: Negligible performance difference to the actual benchmark
+	but like the single JVM case, the system overhead is noticeably
+	higher.  Again, interrupts are a major factor.
+
+autonumabench: This was all over the place and about all that can be
+	reasonably concluded is that it's different but not necessarily
+	better or worse.
+
+autonumabench
+                                     3.18.0-rc5            3.18.0-rc5
+                                 mmotm-20141119         protnone-v3r3
+User    NUMA01               32380.24 (  0.00%)    21642.92 ( 33.16%)
+User    NUMA01_THEADLOCAL    22481.02 (  0.00%)    22283.22 (  0.88%)
+User    NUMA02                3137.00 (  0.00%)     3116.54 (  0.65%)
+User    NUMA02_SMT            1614.03 (  0.00%)     1543.53 (  4.37%)
+System  NUMA01                 322.97 (  0.00%)     1465.89 (-353.88%)
+System  NUMA01_THEADLOCAL       91.87 (  0.00%)       49.32 ( 46.32%)
+System  NUMA02                  37.83 (  0.00%)       14.61 ( 61.38%)
+System  NUMA02_SMT               7.36 (  0.00%)        7.45 ( -1.22%)
+Elapsed NUMA01                 716.63 (  0.00%)      599.29 ( 16.37%)
+Elapsed NUMA01_THEADLOCAL      553.98 (  0.00%)      539.94 (  2.53%)
+Elapsed NUMA02                  83.85 (  0.00%)       83.04 (  0.97%)
+Elapsed NUMA02_SMT              86.57 (  0.00%)       79.15 (  8.57%)
+CPU     NUMA01                4563.00 (  0.00%)     3855.00 ( 15.52%)
+CPU     NUMA01_THEADLOCAL     4074.00 (  0.00%)     4136.00 ( -1.52%)
+CPU     NUMA02                3785.00 (  0.00%)     3770.00 (  0.40%)
+CPU     NUMA02_SMT            1872.00 (  0.00%)     1959.00 ( -4.65%)
+
+System CPU usage of NUMA01 is worse but it's an adverse workload on this
+machine so I'm reluctant to conclude that it's a problem that matters.  On
+the other workloads that are sensible on this machine, system CPU usage is
+great.  Overall time to complete the benchmark is comparable
+
+          3.18.0-rc5  3.18.0-rc5
+        mmotm-20141119protnone-v3r3
+User        59612.50    48586.44
+System        460.22     1537.45
+Elapsed      1442.20     1304.29
+
+NUMA alloc hit                 5075182     5743353
+NUMA alloc miss                      0           0
+NUMA interleave hit                  0           0
+NUMA alloc local               5075174     5743339
+NUMA base PTE updates        637061448   443106883
+NUMA huge PMD updates          1243434      864747
+NUMA page range updates     1273699656   885857347
+NUMA hint faults               1658116     1214277
+NUMA hint local faults          959487      754113
+NUMA hint local percent             57          62
+NUMA pages migrated            5467056    61676398
+
+The NUMA pages migrated look terrible but when I looked at a graph of the
+activity over time I see that the massive spike in migration activity was
+during NUMA01.  This correlates with high system CPU usage and could be
+simply down to bad luck but any modifications that affect that workload
+would be related to scan rates and migrations, not the protection
+mechanism.  For all other workloads, migration activity was comparable.
+
+Overall, headline performance figures are comparable but the overhead is
+higher, mostly in interrupts.  To some extent, higher overhead from this
+approach was anticipated but not to this degree.  It's going to be
+necessary to reduce this again with a separate series in the future.  It's
+still worth going ahead with this series though as it's likely to avoid
+constant headaches with Xen and is probably easier to maintain.
+
+
+
+This patch (of 10):
+
+A transhuge NUMA hinting fault may find the page is migrating and should
+wait until migration completes.  The check is race-prone because the pmd
+is deferenced outside of the page lock and while the race is tiny, it'll
+be larger if the PMD is cleared while marking PMDs for hinting fault. 
+This patch closes the race.
+
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Dave Jones <davej@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: James Hogan <james.hogan@imgtec.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Kirill Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Cc: Rik van Riel <riel@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Luiz Capitulino <lcapitulino@redhat.com>
-Cc: Nishanth Aravamudan <nacc@linux.vnet.ibm.com>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Steve Capper <steve.capper@linaro.org>
+Cc: Sasha Levin <sasha.levin@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   26 +++++++++++---------------
- 1 file changed, 11 insertions(+), 15 deletions(-)
+ include/linux/migrate.h |    4 ----
+ mm/huge_memory.c        |    3 ++-
+ mm/migrate.c            |    6 ------
+ 3 files changed, 2 insertions(+), 11 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-fix-suboptimal-migration-hwpoisoned-entry-check mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-fix-suboptimal-migration-hwpoisoned-entry-check
-+++ a/mm/hugetlb.c
-@@ -3136,20 +3136,10 @@ int hugetlb_fault(struct mm_struct *mm,
- 	struct hstate *h = hstate_vma(vma);
- 	struct address_space *mapping;
- 	int need_wait_lock = 0;
-+	int need_wait_migration = 0;
+diff -puN include/linux/migrate.h~mm-numa-do-not-dereference-pmd-outside-of-the-lock-during-numa-hinting-fault include/linux/migrate.h
+--- a/include/linux/migrate.h~mm-numa-do-not-dereference-pmd-outside-of-the-lock-during-numa-hinting-fault
++++ a/include/linux/migrate.h
+@@ -67,7 +67,6 @@ static inline int migrate_huge_page_move
  
- 	address &= huge_page_mask(h);
- 
--	ptep = huge_pte_offset(mm, address);
--	if (ptep) {
--		entry = huge_ptep_get(ptep);
--		if (unlikely(is_hugetlb_entry_migration(entry))) {
--			migration_entry_wait_huge(vma, mm, ptep);
--			return 0;
--		} else if (unlikely(is_hugetlb_entry_hwpoisoned(entry)))
--			return VM_FAULT_HWPOISON_LARGE |
--				VM_FAULT_SET_HINDEX(hstate_index(h));
--	}
--
- 	ptep = huge_pte_alloc(mm, address, huge_page_size(h));
- 	if (!ptep)
- 		return VM_FAULT_OOM;
-@@ -3176,12 +3166,16 @@ int hugetlb_fault(struct mm_struct *mm,
- 	/*
- 	 * entry could be a migration/hwpoison entry at this point, so this
- 	 * check prevents the kernel from going below assuming that we have
--	 * a active hugepage in pagecache. This goto expects the 2nd page fault,
--	 * and is_hugetlb_entry_(migration|hwpoisoned) check will properly
--	 * handle it.
-+	 * a active hugepage in pagecache.
+ #ifdef CONFIG_NUMA_BALANCING
+ extern bool pmd_trans_migrating(pmd_t pmd);
+-extern void wait_migrate_huge_page(struct anon_vma *anon_vma, pmd_t *pmd);
+ extern int migrate_misplaced_page(struct page *page,
+ 				  struct vm_area_struct *vma, int node);
+ extern bool migrate_ratelimited(int node);
+@@ -76,9 +75,6 @@ static inline bool pmd_trans_migrating(p
+ {
+ 	return false;
+ }
+-static inline void wait_migrate_huge_page(struct anon_vma *anon_vma, pmd_t *pmd)
+-{
+-}
+ static inline int migrate_misplaced_page(struct page *page,
+ 					 struct vm_area_struct *vma, int node)
+ {
+diff -puN mm/huge_memory.c~mm-numa-do-not-dereference-pmd-outside-of-the-lock-during-numa-hinting-fault mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-numa-do-not-dereference-pmd-outside-of-the-lock-during-numa-hinting-fault
++++ a/mm/huge_memory.c
+@@ -1278,8 +1278,9 @@ int do_huge_pmd_numa_page(struct mm_stru
+ 	 * check_same as the page may no longer be mapped.
  	 */
--	if (!pte_present(entry))
-+	if (!pte_present(entry)) {
-+		if (is_hugetlb_entry_migration(entry))
-+			need_wait_migration = 1;
-+		else if (is_hugetlb_entry_hwpoisoned(entry))
-+			ret = VM_FAULT_HWPOISON_LARGE |
-+				VM_FAULT_SET_HINDEX(hstate_index(h));
- 		goto out_mutex;
-+	}
- 
- 	/*
- 	 * If we are going to COW the mapping later, we examine the pending
-@@ -3247,6 +3241,8 @@ out_ptl:
+ 	if (unlikely(pmd_trans_migrating(*pmdp))) {
++		page = pmd_page(*pmdp);
+ 		spin_unlock(ptl);
+-		wait_migrate_huge_page(vma->anon_vma, pmdp);
++		wait_on_page_locked(page);
+ 		goto out;
  	}
- out_mutex:
- 	mutex_unlock(&htlb_fault_mutex_table[hash]);
-+	if (need_wait_migration)
-+		migration_entry_wait_huge(vma, mm, ptep);
- 	/*
- 	 * Generally it's safe to hold refcount during waiting page lock. But
- 	 * here we just wait to defer the next page fault to avoid busy loop and
-_
-
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
-
-mm-add-kpf_zero_page-flag-for-proc-kpageflags.patch
-mm-hugetlb-reduce-arch-dependent-code-around-follow_huge_.patch
-mm-hugetlb-pmd_huge-returns-true-for-non-present-hugepage.patch
-mm-hugetlb-take-page-table-lock-in-follow_huge_pmd.patch
-mm-hugetlb-fix-getting-refcount-0-page-in-hugetlb_fault.patch
-mm-hugetlb-add-migration-hwpoisoned-entry-check-in-hugetlb_change_protection.patch
-mm-hugetlb-add-migration-entry-check-in-__unmap_hugepage_range.patch
-mm-hugetlb-fix-suboptimal-migration-hwpoisoned-entry-check.patch
-mm-hugetlb-cleanup-and-rename-is_hugetlb_entry_migrationhwpoisoned.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-
+ 
+diff -puN mm/migrate.c~mm-numa-do-not-dereference-pmd-outside-of-the-lock-during-numa-hinting-fault mm/migrate.c
+--- a/mm/migrate.c~mm-numa-do-not-dereference-pmd-outside-of-the-lock-during-numa-hinting-fault
++++ a/mm/migrate.c
+@@ -1654,12 +1654,6 @@ bool pmd_trans_migrating(pmd_t pmd)
+ 	return PageLocked(page);
+ }
+ 
+-void wait_migrate_huge_page(struct anon_vma *anon_vma, pmd_t *pmd)
+-{
+-	struct page *page = pmd_page(*pmd);
+-	wait_on_page_locked(page);
+-}
