@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-numa-avoid-unnecessary-tlb-flushes-when-setting-numa-hinting-entries.patch added to -mm tree
-Date: Fri, 09 Jan 2015 14:59:20 -0800
-Message-ID: <54b05d48.h7SooF9F0xlk1+Pi%akpm@linux-foundation.org>
+Subject: + eventfd-dont-take-the-spinlock-in-eventfd_poll.patch added to
+ -mm tree
+Date: Fri, 09 Jan 2015 15:26:41 -0800
+Message-ID: <54b063b1.tTCx/pApqIIpts91%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38097 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38327 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753414AbbAIW7V (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jan 2015 17:59:21 -0500
+	with ESMTP id S1752461AbbAIX0m (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jan 2015 18:26:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, davej@redhat.com, hughd@google.com, kirill.shutemov@linux.intel.com, mingo@redhat.com, paulus@samba.org, riel@redhat.com, sasha.levin@oracle.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
+To: clm@fb.com, davidel@xmailserver.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: numa: avoid unnecessary TLB flushes when setting NUMA hinting entries
+     Subject: eventfd: don't take the spinlock in eventfd_poll
 has been added to the -mm tree.  Its filename is
-     mm-numa-avoid-unnecessary-tlb-flushes-when-setting-numa-hinting-entries.patch
+     eventfd-dont-take-the-spinlock-in-eventfd_poll.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-numa-avoid-unnecessary-tlb-flushes-when-setting-numa-hinting-entries.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/eventfd-dont-take-the-spinlock-in-eventfd_poll.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-numa-avoid-unnecessary-tlb-flushes-when-setting-numa-hinting-entries.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/eventfd-dont-take-the-spinlock-in-eventfd_poll.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,86 +39,63 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: numa: avoid unnecessary TLB flushes when setting NUMA hinting entries
+From: Chris Mason <clm@fb.com>
+Subject: eventfd: don't take the spinlock in eventfd_poll
 
-If a PTE or PMD is already marked NUMA when scanning to mark entries for
-NUMA hinting then it is not necessary to update the entry and incur a TLB
-flush penalty.  Avoid the avoidhead where possible.
+The spinlock in eventfd_poll is trying to protect the count of events so
+it can decide if it should return POLLIN, POLLERR, or POLLOUT.  But,
+because of the way we drop the lock after calling poll_wait, and drop it
+again before returning, we have the same pile of races with the lock as we
+do with a single read of ctx->count().
 
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Dave Jones <davej@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Kirill Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Sasha Levin <sasha.levin@oracle.com>
+This replaces the lock with a read barrier and single read.
+
+eventfd_write does a single bump of ctx->count, so this should not add new
+races with adding events.  eventfd_read is similar, it will do a single
+decrement with the lock held, and so we're making the race with concurrent
+readers slightly larger.
+
+This spinlock is the top CPU user in kernel code during one of our
+workloads.  Removing it gives us a ~2% boost.
+
+Signed-off-by: Chris Mason <clm@fb.com>
+Cc: Davide Libenzi <davidel@xmailserver.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   14 ++++++++------
- mm/mprotect.c    |    4 ++++
- 2 files changed, 12 insertions(+), 6 deletions(-)
+ fs/eventfd.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN mm/huge_memory.c~mm-numa-avoid-unnecessary-tlb-flushes-when-setting-numa-hinting-entries mm/huge_memory.c
---- a/mm/huge_memory.c~mm-numa-avoid-unnecessary-tlb-flushes-when-setting-numa-hinting-entries
-+++ a/mm/huge_memory.c
-@@ -1519,12 +1519,14 @@ int change_huge_pmd(struct vm_area_struc
- 			return 0;
- 		}
+diff -puN fs/eventfd.c~eventfd-dont-take-the-spinlock-in-eventfd_poll fs/eventfd.c
+--- a/fs/eventfd.c~eventfd-dont-take-the-spinlock-in-eventfd_poll
++++ a/fs/eventfd.c
+@@ -119,17 +119,18 @@ static unsigned int eventfd_poll(struct
+ 	struct eventfd_ctx *ctx = file->private_data;
+ 	unsigned int events = 0;
+ 	unsigned long flags;
++	unsigned int count;
  
--		ret = 1;
--		entry = pmdp_get_and_clear_notify(mm, addr, pmd);
--		entry = pmd_modify(entry, newprot);
--		ret = HPAGE_PMD_NR;
--		set_pmd_at(mm, addr, pmd, entry);
--		BUG_ON(pmd_write(entry));
-+		if (!prot_numa || !pmd_protnone(*pmd)) {
-+			ret = 1;
-+			entry = pmdp_get_and_clear_notify(mm, addr, pmd);
-+			entry = pmd_modify(entry, newprot);
-+			ret = HPAGE_PMD_NR;
-+			set_pmd_at(mm, addr, pmd, entry);
-+			BUG_ON(pmd_write(entry));
-+		}
- 		spin_unlock(ptl);
- 	}
+ 	poll_wait(file, &ctx->wqh, wait);
++	smp_rmb();
++	count = ctx->count;
  
-diff -puN mm/mprotect.c~mm-numa-avoid-unnecessary-tlb-flushes-when-setting-numa-hinting-entries mm/mprotect.c
---- a/mm/mprotect.c~mm-numa-avoid-unnecessary-tlb-flushes-when-setting-numa-hinting-entries
-+++ a/mm/mprotect.c
-@@ -86,6 +86,10 @@ static unsigned long change_pte_range(st
- 				page = vm_normal_page(vma, addr, oldpte);
- 				if (!page || PageKsm(page))
- 					continue;
-+
-+				/* Avoid TLB flush if possible */
-+				if (pte_protnone(oldpte))
-+					continue;
- 			}
+-	spin_lock_irqsave(&ctx->wqh.lock, flags);
+-	if (ctx->count > 0)
++	if (count > 0)
+ 		events |= POLLIN;
+-	if (ctx->count == ULLONG_MAX)
++	if (count == ULLONG_MAX)
+ 		events |= POLLERR;
+-	if (ULLONG_MAX - 1 > ctx->count)
++	if (ULLONG_MAX - 1 > count)
+ 		events |= POLLOUT;
+-	spin_unlock_irqrestore(&ctx->wqh.lock, flags);
  
- 			ptent = ptep_modify_prot_start(mm, addr, pte);
+ 	return events;
+ }
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from clm@fb.com are
 
-mm-debug-pagealloc-prepare-boottime-configurable-on-off.patch
-mm-vmscan-prevent-kswapd-livelock-due-to-pfmemalloc-throttled-process-being-killed.patch
-mm-page_alloc-place-zone_id-check-before-vm_bug_on_page-check.patch
-mm-vmscan-wake-up-all-pfmemalloc-throttled-processes-at-once.patch
-mm-numa-do-not-dereference-pmd-outside-of-the-lock-during-numa-hinting-fault.patch
-mm-add-p-protnone-helpers-for-use-by-numa-balancing.patch
-mm-convert-p_numa-users-to-p_protnone_numa.patch
-ppc64-add-paranoid-warnings-for-unexpected-dsisr_protfault.patch
-mm-convert-p_mknonnuma-and-remaining-page-table-manipulations.patch
-mm-remove-remaining-references-to-numa-hinting-bits-and-helpers.patch
-mm-numa-do-not-trap-faults-on-the-huge-zero-page.patch
-x86-mm-restore-original-pte_special-check.patch
-mm-numa-add-paranoid-check-around-pte_protnone_numa.patch
-mm-numa-avoid-unnecessary-tlb-flushes-when-setting-numa-hinting-entries.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
+eventfd-dont-take-the-spinlock-in-eventfd_poll.patch
 
