@@ -1,101 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: + eventfd-dont-take-the-spinlock-in-eventfd_poll.patch added to
- -mm tree
-Date: Fri, 09 Jan 2015 15:26:41 -0800
-Message-ID: <54b063b1.tTCx/pApqIIpts91%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath-update.patch removed from -mm tree
+Date: Fri, 09 Jan 2015 15:31:03 -0800
+Message-ID: <54b064b7.+7vAT8vuiRH30Pmh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38327 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38417 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752461AbbAIX0m (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jan 2015 18:26:42 -0500
+	with ESMTP id S1752461AbbAIXbE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jan 2015 18:31:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clm@fb.com, davidel@xmailserver.org, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, mhocko@suse.cz, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: eventfd: don't take the spinlock in eventfd_poll
-has been added to the -mm tree.  Its filename is
-     eventfd-dont-take-the-spinlock-in-eventfd_poll.patch
+     Subject: mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath-update
+has been removed from the -mm tree.  Its filename was
+     mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath-update.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/eventfd-dont-take-the-spinlock-in-eventfd_poll.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/eventfd-dont-take-the-spinlock-in-eventfd_poll.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath.patch
 
 ------------------------------------------------------
-From: Chris Mason <clm@fb.com>
-Subject: eventfd: don't take the spinlock in eventfd_poll
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath-update
 
-The spinlock in eventfd_poll is trying to protect the count of events so
-it can decide if it should return POLLIN, POLLERR, or POLLOUT.  But,
-because of the way we drop the lock after calling poll_wait, and drop it
-again before returning, we have the same pile of races with the lock as we
-do with a single read of ctx->count().
+Here is an updated version of this patch with a more detailed changelog.
 
-This replaces the lock with a read barrier and single read.
+The OOM killing invocation does a lot of duplicative checks against
+the task's allocation context.  Rework it to take advantage of the
+existing checks in the allocator slowpath.
 
-eventfd_write does a single bump of ctx->count, so this should not add new
-races with adding events.  eventfd_read is similar, it will do a single
-decrement with the lock held, and so we're making the race with concurrent
-readers slightly larger.
+The OOM killer is invoked when the allocator is unable to reclaim any
+pages but the allocation has to keep looping.  Instead of having a
+check for __GFP_NORETRY hidden in oom_gfp_allowed(), just move the OOM
+invocation to the true branch of should_alloc_retry().  The __GFP_FS
+check from oom_gfp_allowed() can then be moved into the OOM avoidance
+branch in __alloc_pages_may_oom(), along with the PF_DUMPCORE test.
 
-This spinlock is the top CPU user in kernel code during one of our
-workloads.  Removing it gives us a ~2% boost.
+__alloc_pages_may_oom() can then signal to the caller whether the OOM
+killer was invoked, instead of requiring it to duplicate the order and
+high_zoneidx checks to guess this when deciding whether to continue.
 
-Signed-off-by: Chris Mason <clm@fb.com>
-Cc: Davide Libenzi <davidel@xmailserver.org>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventfd.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ mm/page_alloc.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN fs/eventfd.c~eventfd-dont-take-the-spinlock-in-eventfd_poll fs/eventfd.c
---- a/fs/eventfd.c~eventfd-dont-take-the-spinlock-in-eventfd_poll
-+++ a/fs/eventfd.c
-@@ -119,17 +119,18 @@ static unsigned int eventfd_poll(struct
- 	struct eventfd_ctx *ctx = file->private_data;
- 	unsigned int events = 0;
- 	unsigned long flags;
-+	unsigned int count;
- 
- 	poll_wait(file, &ctx->wqh, wait);
-+	smp_rmb();
-+	count = ctx->count;
- 
--	spin_lock_irqsave(&ctx->wqh.lock, flags);
--	if (ctx->count > 0)
-+	if (count > 0)
- 		events |= POLLIN;
--	if (ctx->count == ULLONG_MAX)
-+	if (count == ULLONG_MAX)
- 		events |= POLLERR;
--	if (ULLONG_MAX - 1 > ctx->count)
-+	if (ULLONG_MAX - 1 > count)
- 		events |= POLLOUT;
--	spin_unlock_irqrestore(&ctx->wqh.lock, flags);
- 
- 	return events;
- }
+diff -puN mm/page_alloc.c~mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath-update mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath-update
++++ a/mm/page_alloc.c
+@@ -2818,10 +2818,8 @@ rebalance:
+ 						migratetype,&did_some_progress);
+ 			if (page)
+ 				goto got_pg;
+-			if (!did_some_progress) {
+-				BUG_ON(gfp_mask & __GFP_NOFAIL);
++			if (!did_some_progress)
+ 				goto nopage;
+-			}
+ 		}
+ 		/* Wait for some write requests to complete then retry */
+ 		wait_iff_congested(preferred_zone, BLK_RW_ASYNC, HZ/50);
 _
 
-Patches currently in -mm which might be from clm@fb.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-eventfd-dont-take-the-spinlock-in-eventfd_poll.patch
+mm-protect-set_page_dirty-from-ongoing-truncation.patch
+mm-debug-pagealloc-prepare-boottime-configurable-on-off.patch
+mm-memcontrol-switch-soft-limit-default-back-to-infinity.patch
+memcg-fix-destination-cgroup-leak-on-task-charges-migration.patch
+mm-vmscan-prevent-kswapd-livelock-due-to-pfmemalloc-throttled-process-being-killed.patch
+mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath.patch
+mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath-fix.patch
+mm-memory-remove-vm_file-check-on-shared-writable-vmas.patch
+mm-memory-merge-shared-writable-dirtying-branches-in-do_wp_page.patch
+mm-page_alloc-place-zone_id-check-before-vm_bug_on_page-check.patch
+memcg-zap-__memcg_chargeuncharge_slab.patch
+memcg-zap-memcg_name-argument-of-memcg_create_kmem_cache.patch
+memcg-zap-memcg_slab_caches-and-memcg_slab_mutex.patch
+mm-add-fields-for-compound-destructor-and-order-into-struct-page.patch
+swap-remove-unused-mem_cgroup_uncharge_swapcache-declaration.patch
+mm-memcontrol-track-move_lock-state-internally.patch
+mm-memcontrol-track-move_lock-state-internally-fix.patch
+mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
+mm-vmscan-wake-up-all-pfmemalloc-throttled-processes-at-once.patch
+mm-hugetlb-reduce-arch-dependent-code-around-follow_huge_.patch
+mm-hugetlb-pmd_huge-returns-true-for-non-present-hugepage.patch
+mm-hugetlb-take-page-table-lock-in-follow_huge_pmd.patch
+mm-hugetlb-fix-getting-refcount-0-page-in-hugetlb_fault.patch
+mm-hugetlb-add-migration-hwpoisoned-entry-check-in-hugetlb_change_protection.patch
+mm-hugetlb-add-migration-entry-check-in-__unmap_hugepage_range.patch
+mm-hugetlb-fix-suboptimal-migration-hwpoisoned-entry-check.patch
+mm-hugetlb-cleanup-and-rename-is_hugetlb_entry_migrationhwpoisoned.patch
+fs-proc-task_mmu-show-page-size-in-proc-pid-numa_maps.patch
 
