@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-more-checks-on-free_pages_prepare-for-tail-pages-fix.patch
- added to -mm tree
-Date: Fri, 09 Jan 2015 16:24:29 -0800
-Message-ID: <54b0713d.xD3xC5Z1EoXINLbt%akpm@linux-foundation.org>
+Subject: + vmscan-force-scan-offline-memory-cgroups.patch added to -mm
+ tree
+Date: Fri, 09 Jan 2015 16:25:48 -0800
+Message-ID: <54b0718c.I28li6I56GJJQ+cy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38925 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38928 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751381AbbAJAYa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jan 2015 19:24:30 -0500
+	with ESMTP id S1751381AbbAJAZt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jan 2015 19:25:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aarcange@redhat.com, kirill.shutemov@linux.intel.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: vdavydov@parallels.com, hannes@cmpxchg.org, mhocko@suse.cz, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-more-checks-on-free_pages_prepare-for-tail-pages-fix
+     Subject: vmscan: force scan offline memory cgroups
 has been added to the -mm tree.  Its filename is
-     mm-more-checks-on-free_pages_prepare-for-tail-pages-fix.patch
+     vmscan-force-scan-offline-memory-cgroups.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-more-checks-on-free_pages_prepare-for-tail-pages-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/vmscan-force-scan-offline-memory-cgroups.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-more-checks-on-free_pages_prepare-for-tail-pages-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/vmscan-force-scan-offline-memory-cgroups.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,87 +39,120 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-more-checks-on-free_pages_prepare-for-tail-pages-fix
+From: Vladimir Davydov <vdavydov@parallels.com>
+Subject: vmscan: force scan offline memory cgroups
 
-Make it conditional on CONFIG_DEBUG_VM, make free_tail_pages_check()
-return void.
+Since commit b2052564e66d ("mm: memcontrol: continue cache reclaim from
+offlined groups") pages charged to a memory cgroup are not reparented when
+the cgroup is removed.  Instead, they are supposed to be reclaimed in a
+regular way, along with pages accounted to online memory cgroups.
 
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+However, an lruvec of an offline memory cgroup will sooner or later get so
+small that it will be scanned only at low scan priorities (see
+get_scan_count()).  Therefore, if there are enough reclaimable pages in
+big lruvecs, pages accounted to offline memory cgroups will never be
+scanned at all, wasting memory.
+
+Fix this by unconditionally forcing scanning dead lruvecs from kswapd.
+
+Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+ include/linux/memcontrol.h |    6 ++++++
+ mm/memcontrol.c            |   14 ++++++++++++++
+ mm/vmscan.c                |    8 ++++++--
+ 3 files changed, 26 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-more-checks-on-free_pages_prepare-for-tail-pages-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-more-checks-on-free_pages_prepare-for-tail-pages-fix
-+++ a/mm/page_alloc.c
-@@ -764,20 +764,26 @@ static void free_one_page(struct zone *z
- 	spin_unlock(&zone->lock);
+diff -puN include/linux/memcontrol.h~vmscan-force-scan-offline-memory-cgroups include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~vmscan-force-scan-offline-memory-cgroups
++++ a/include/linux/memcontrol.h
+@@ -102,6 +102,7 @@ void mem_cgroup_iter_break(struct mem_cg
+  * For memory reclaim.
+  */
+ int mem_cgroup_inactive_anon_is_low(struct lruvec *lruvec);
++bool mem_cgroup_lruvec_online(struct lruvec *lruvec);
+ int mem_cgroup_select_victim_node(struct mem_cgroup *memcg);
+ unsigned long mem_cgroup_get_lru_size(struct lruvec *lruvec, enum lru_list);
+ void mem_cgroup_update_lru_size(struct lruvec *, enum lru_list, int);
+@@ -266,6 +267,11 @@ mem_cgroup_inactive_anon_is_low(struct l
+ 	return 1;
  }
  
--static int free_tail_pages_check(struct page *head_page, struct page *page)
-+#ifdef CONFIG_DEBUG_VM
-+static void free_tail_pages_check(struct page *head_page, struct page *page)
- {
- 	if (!IS_ENABLED(CONFIG_DEBUG_VM))
--		return 0;
-+		return;
- 	if (unlikely(!PageTail(page))) {
- 		bad_page(page, "PageTail not set", 0);
--		return 1;
-+		return;
- 	}
- 	if (unlikely(page->first_page != head_page)) {
- 		bad_page(page, "first_page not consistent", 0);
--		return 1;
-+		return;
- 	}
--	return 0;
- }
-+#else
-+static inline void free_tail_pages_check(struct page *head_page,
-+					 struct page *page)
++bool mem_cgroup_lruvec_online(struct lruvec *lruvec)
 +{
++	return true;
 +}
-+#endif
- 
- static bool free_pages_prepare(struct page *page, unsigned int order)
++
+ static inline unsigned long
+ mem_cgroup_get_lru_size(struct lruvec *lruvec, enum lru_list lru)
  {
+diff -puN mm/memcontrol.c~vmscan-force-scan-offline-memory-cgroups mm/memcontrol.c
+--- a/mm/memcontrol.c~vmscan-force-scan-offline-memory-cgroups
++++ a/mm/memcontrol.c
+@@ -1379,6 +1379,20 @@ int mem_cgroup_inactive_anon_is_low(stru
+ 	return inactive * inactive_ratio < active;
+ }
+ 
++bool mem_cgroup_lruvec_online(struct lruvec *lruvec)
++{
++	struct mem_cgroup_per_zone *mz;
++	struct mem_cgroup *memcg;
++
++	if (mem_cgroup_disabled())
++		return true;
++
++	mz = container_of(lruvec, struct mem_cgroup_per_zone, lruvec);
++	memcg = mz->memcg;
++
++	return !!(memcg->css.flags & CSS_ONLINE);
++}
++
+ #define mem_cgroup_from_counter(counter, member)	\
+ 	container_of(counter, struct mem_cgroup, member)
+ 
+diff -puN mm/vmscan.c~vmscan-force-scan-offline-memory-cgroups mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-force-scan-offline-memory-cgroups
++++ a/mm/vmscan.c
+@@ -1941,8 +1941,12 @@ static void get_scan_count(struct lruvec
+ 	 * latencies, so it's better to scan a minimum amount there as
+ 	 * well.
+ 	 */
+-	if (current_is_kswapd() && !zone_reclaimable(zone))
+-		force_scan = true;
++	if (current_is_kswapd()) {
++		if (!zone_reclaimable(zone))
++			force_scan = true;
++		if (!mem_cgroup_lruvec_online(lruvec))
++			force_scan = true;
++	}
+ 	if (!global_reclaim(sc))
+ 		force_scan = true;
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vdavydov@parallels.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-mm-prevent-endless-growth-of-anon_vma-hierarchy.patch
-fanotify-dont-recalculate-a-marks-mask-if-only-the-ignored-mask-changed-checkpatch-fixes.patch
-fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper.patch
-ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir.patch
-mm.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
-mm-more-checks-on-free_pages_prepare-for-tail-pages-fix.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss.patch
-lib-bitmap-update-bitmap_onto-to-unsigned-checkpatch-fixes.patch
-lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned-fix.patch
-hexdump-makes-it-return-amount-of-bytes-placed-in-buffer-fix.patch
-fs-befs-linuxvfsc-remove-unnecessary-casting-fix.patch
-linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-livepatching-handle-ancient-compilers-with-more-grace-checkpatch-fixes.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
+mm-memcontrol-switch-soft-limit-default-back-to-infinity.patch
+memcg-fix-destination-cgroup-leak-on-task-charges-migration.patch
+mm-vmscan-prevent-kswapd-livelock-due-to-pfmemalloc-throttled-process-being-killed.patch
+memcg-zap-__memcg_chargeuncharge_slab.patch
+memcg-zap-memcg_name-argument-of-memcg_create_kmem_cache.patch
+memcg-zap-memcg_slab_caches-and-memcg_slab_mutex.patch
+swap-remove-unused-mem_cgroup_uncharge_swapcache-declaration.patch
+mm-memcontrol-track-move_lock-state-internally.patch
+mm-vmscan-wake-up-all-pfmemalloc-throttled-processes-at-once.patch
+list_lru-introduce-list_lru_shrink_countwalk.patch
+fs-consolidate-nrfree_cached_objects-args-in-shrink_control.patch
+vmscan-per-memory-cgroup-slab-shrinkers.patch
+memcg-rename-some-cache-id-related-variables.patch
+memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation.patch
+list_lru-get-rid-of-active_nodes.patch
+list_lru-organize-all-list_lrus-to-list.patch
+list_lru-introduce-per-memcg-lists.patch
+fs-make-shrinker-memcg-aware.patch
+vmscan-force-scan-offline-memory-cgroups.patch
 
