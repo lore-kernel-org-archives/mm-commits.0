@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_allocc-drop-dead-destroy_compound_page.patch added to
- -mm tree
-Date: Fri, 09 Jan 2015 16:24:25 -0800
-Message-ID: <54b07139.XW2GXFzp9Jc1+TDh%akpm@linux-foundation.org>
+Subject: + mm-more-checks-on-free_pages_prepare-for-tail-pages.patch added to -mm tree
+Date: Fri, 09 Jan 2015 16:24:27 -0800
+Message-ID: <54b0713b.eJf+3Ertgpd5xdnN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38917 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38921 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751381AbbAJAY1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jan 2015 19:24:27 -0500
+	with ESMTP id S1751381AbbAJAY2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jan 2015 19:24:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc.c: drop dead destroy_compound_page()
+     Subject: mm: more checks on free_pages_prepare() for tail pages
 has been added to the -mm tree.  Its filename is
-     mm-page_allocc-drop-dead-destroy_compound_page.patch
+     mm-more-checks-on-free_pages_prepare-for-tail-pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_allocc-drop-dead-destroy_compound_page.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-more-checks-on-free_pages_prepare-for-tail-pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_allocc-drop-dead-destroy_compound_page.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-more-checks-on-free_pages_prepare-for-tail-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,33 +39,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm/page_alloc.c: drop dead destroy_compound_page()
+Subject: mm: more checks on free_pages_prepare() for tail pages
 
-The only caller is __free_one_page(). By the time we should have
-page->flags to be cleared already:
+Although it was not called, destroy_compound_page() did some potentially
+useful checks.  Let's re-introduce them in free_pages_prepare(), where
+they can be acctually triggered.
 
- - for 0-order pages though PCP list:
-	free_hot_cold_page()
-		free_pages_prepare()
-			free_pages_check()
-				page->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
-		<put the page to PCP list>
-
-	free_pcppages_bulk()
-		page = <withdraw pages from PCP list>
-		__free_one_page(page)
-
- - for non-0-order pages:
-	__free_pages_ok()
-		free_pages_prepare()
-			free_pages_check()
-				page->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
-		free_one_page()
-			__free_one_page()
-
-So there's no way PageCompound() will return true in __free_one_page().
-Let's remove dead destroy_compound_page() and put assert for page->flags
-there instead.
+compound_order() assert is already in free_pages_prepare().  We have few
+checks for tail pages left.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
@@ -74,61 +54,57 @@ Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   35 +----------------------------------
- 1 file changed, 1 insertion(+), 34 deletions(-)
+ mm/page_alloc.c |   27 +++++++++++++++++++++++----
+ 1 file changed, 23 insertions(+), 4 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_allocc-drop-dead-destroy_compound_page mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_allocc-drop-dead-destroy_compound_page
+diff -puN mm/page_alloc.c~mm-more-checks-on-free_pages_prepare-for-tail-pages mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-more-checks-on-free_pages_prepare-for-tail-pages
 +++ a/mm/page_alloc.c
-@@ -381,36 +381,6 @@ void prep_compound_page(struct page *pag
- 	}
+@@ -764,21 +764,40 @@ static void free_one_page(struct zone *z
+ 	spin_unlock(&zone->lock);
  }
  
--/* update __split_huge_page_refcount if you change this function */
--static int destroy_compound_page(struct page *page, unsigned long order)
--{
--	int i;
--	int nr_pages = 1 << order;
--	int bad = 0;
--
--	if (unlikely(compound_order(page) != order)) {
--		bad_page(page, "wrong compound order", 0);
--		bad++;
--	}
--
--	__ClearPageHead(page);
--
--	for (i = 1; i < nr_pages; i++) {
--		struct page *p = page + i;
--
--		if (unlikely(!PageTail(p))) {
--			bad_page(page, "PageTail not set", 0);
--			bad++;
--		} else if (unlikely(p->first_page != page)) {
--			bad_page(page, "first_page not consistent", 0);
--			bad++;
--		}
--		__ClearPageTail(p);
--	}
--
--	return bad;
--}
--
- static inline void prep_zero_page(struct page *page, unsigned int order,
- 							gfp_t gfp_flags)
++static int free_tail_pages_check(struct page *head_page, struct page *page)
++{
++	if (!IS_ENABLED(CONFIG_DEBUG_VM))
++		return 0;
++	if (unlikely(!PageTail(page))) {
++		bad_page(page, "PageTail not set", 0);
++		return 1;
++	}
++	if (unlikely(page->first_page != head_page)) {
++		bad_page(page, "first_page not consistent", 0);
++		return 1;
++	}
++	return 0;
++}
++
+ static bool free_pages_prepare(struct page *page, unsigned int order)
  {
-@@ -613,10 +583,7 @@ static inline void __free_one_page(struc
- 	int max_order = MAX_ORDER;
+-	int i;
+-	int bad = 0;
++	bool compound = PageCompound(page);
++	int i, bad = 0;
  
- 	VM_BUG_ON(!zone_is_initialized(zone));
--
--	if (unlikely(PageCompound(page)))
--		if (unlikely(destroy_compound_page(page, order)))
--			return;
-+	VM_BUG_ON_PAGE(page->flags & PAGE_FLAGS_CHECK_AT_PREP, page);
+ 	VM_BUG_ON_PAGE(PageTail(page), page);
+-	VM_BUG_ON_PAGE(PageHead(page) && compound_order(page) != order, page);
++	VM_BUG_ON_PAGE(compound && compound_order(page) != order, page);
  
- 	VM_BUG_ON(migratetype == -1);
- 	if (is_migrate_isolate(migratetype)) {
+ 	trace_mm_page_free(page, order);
+ 	kmemcheck_free_shadow(page, order);
+ 
+ 	if (PageAnon(page))
+ 		page->mapping = NULL;
+-	for (i = 0; i < (1 << order); i++)
++	bad += free_pages_check(page);
++	for (i = 1; i < (1 << order); i++) {
++		if (compound)
++			free_tail_pages_check(page, page + i);
+ 		bad += free_pages_check(page + i);
++	}
+ 	if (bad)
+ 		return false;
+ 
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
