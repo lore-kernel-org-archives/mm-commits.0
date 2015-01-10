@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + lib-vsprintfc-improve-sanity-check-in-vsnprintf.patch added to
- -mm tree
-Date: Fri, 09 Jan 2015 16:16:48 -0800
-Message-ID: <54b06f70.ZUHvAdQ8PMth64va%akpm@linux-foundation.org>
+Subject: + lib-vsprintfc-dont-try-to-fix-pointer-wrap-around.patch added
+ to -mm tree
+Date: Fri, 09 Jan 2015 16:16:50 -0800
+Message-ID: <54b06f72.SRuudbAQqANZgbxI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38873 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38877 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751381AbbAJAQt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jan 2015 19:16:49 -0500
+	with ESMTP id S1751381AbbAJAQv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jan 2015 19:16:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@rasmusvillemoes.dk, jkosina@suse.cz, rdunlap@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/vsprintf.c: improve sanity check in vsnprintf()
+     Subject: lib/vsprintf.c: don't try to fix pointer wrap-around
 has been added to the -mm tree.  Its filename is
-     lib-vsprintfc-improve-sanity-check-in-vsnprintf.patch
+     lib-vsprintfc-dont-try-to-fix-pointer-wrap-around.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-vsprintfc-improve-sanity-check-in-vsnprintf.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-vsprintfc-dont-try-to-fix-pointer-wrap-around.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-vsprintfc-improve-sanity-check-in-vsnprintf.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-vsprintfc-dont-try-to-fix-pointer-wrap-around.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,12 +40,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/vsprintf.c: improve sanity check in vsnprintf()
+Subject: lib/vsprintf.c: don't try to fix pointer wrap-around
 
-On 64 bit, size may very well be huge even if bit 31 happens to be 0. 
-Somehow it doesn't feel right that one can pass a 5 GiB buffer but not a 3
-GiB one.  So cap at INT_MAX as was probably the intention all along.  This
-is also the made-up value passed by sprintf and vsprintf.
+Actual kernel buffers can't wrap into the user address space.  If someone
+manages to pass a buf/size combination that wraps, it is most likely due
+to a bug in the caller.  Instead of trying to fix it by using a smaller
+part of the buffer, bail out.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Cc: Jiri Kosina <jkosina@suse.cz>
@@ -53,21 +53,27 @@ Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/vsprintf.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN lib/vsprintf.c~lib-vsprintfc-improve-sanity-check-in-vsnprintf lib/vsprintf.c
---- a/lib/vsprintf.c~lib-vsprintfc-improve-sanity-check-in-vsnprintf
+diff -puN lib/vsprintf.c~lib-vsprintfc-dont-try-to-fix-pointer-wrap-around lib/vsprintf.c
+--- a/lib/vsprintf.c~lib-vsprintfc-dont-try-to-fix-pointer-wrap-around
 +++ a/lib/vsprintf.c
-@@ -1727,7 +1727,7 @@ int vsnprintf(char *buf, size_t size, co
- 
- 	/* Reject out-of-range values early.  Large positive sizes are
- 	   used for unknown buffer sizes. */
--	if (WARN_ON_ONCE((int) size < 0))
-+	if (WARN_ON_ONCE(size > INT_MAX))
- 		return 0;
- 
+@@ -1733,11 +1733,9 @@ int vsnprintf(char *buf, size_t size, co
  	str = buf;
+ 	end = buf + size;
+ 
+-	/* Make sure end is always >= buf */
+-	if (end < buf) {
+-		end = ((void *)-1);
+-		size = end - buf;
+-	}
++	/* Also bail out if buf+size wraps */
++	if (WARN_ON_ONCE(end < buf))
++		return 0;
+ 
+ 	while (*fmt) {
+ 		const char *old_fmt = fmt;
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
