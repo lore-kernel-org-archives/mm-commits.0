@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation.patch added to -mm tree
-Date: Fri, 09 Jan 2015 16:12:30 -0800
-Message-ID: <54b06e6e.zCmf8oLjAdY9dYN+%akpm@linux-foundation.org>
+Subject: + list_lru-organize-all-list_lrus-to-list.patch added to -mm tree
+Date: Fri, 09 Jan 2015 16:12:34 -0800
+Message-ID: <54b06e72.+Ogk7p/ZfHIxji1R%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38811 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38833 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751381AbbAJAMb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jan 2015 19:12:31 -0500
+	with ESMTP id S1753794AbbAJAMf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jan 2015 19:12:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vdavydov@parallels.com, cl@linux.com, david@fromorbit.com, glommer@gmail.com, gthelen@google.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@suse.cz, penberg@kernel.org, rientjes@google.com, tj@kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: add rwsem to synchronize against memcg_caches arrays relocation
+     Subject: list_lru: organize all list_lrus to list
 has been added to the -mm tree.  Its filename is
-     memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation.patch
+     list_lru-organize-all-list_lrus-to-list.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/list_lru-organize-all-list_lrus-to-list.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/list_lru-organize-all-list_lrus-to-list.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,26 +39,21 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: memcg: add rwsem to synchronize against memcg_caches arrays relocation
+Subject: list_lru: organize all list_lrus to list
 
-We need a stable value of memcg_nr_cache_ids in kmem_cache_create()
-(memcg_alloc_cache_params() wants it for root caches), where we only hold
-the slab_mutex and no memcg-related locks.  As a result, we have to update
-memcg_nr_cache_ids under the slab_mutex, which we can only take on the
-slab's side (see memcg_update_array_size).  This looks awkward and will
-become even worse when per-memcg list_lru is introduced, which also wants
-stable access to memcg_nr_cache_ids.
+To make list_lru memcg aware, we need all list_lrus to be kept on a list
+protected by a mutex, so that we could sleep while walking over the list.
 
-To get rid of this dependency between the memcg_nr_cache_ids and the
-slab_mutex, this patch introduces a special rwsem.  The rwsem is held for
-writing during memcg_caches arrays relocation and memcg_nr_cache_ids
-updates.  Therefore one can take it for reading to get a stable access to
-memcg_caches arrays and/or memcg_nr_cache_ids.
+Therefore after this change list_lru_destroy may sleep.  Fortunately,
+there is only one user that calls it from an atomic context - it's
+put_super - and we can easily fix it by calling list_lru_destroy before
+put_super in destroy_locked_super - anyway we don't longer need lrus by
+that time.
 
-Currently the semaphore is taken for reading only from kmem_cache_create,
-right before taking the slab_mutex, so right now there's no much point in
-using rwsem instead of mutex.  However, once list_lru is made per-memcg it
-will allow list_lru initializations to proceed concurrently.
+Another point that should be noted is that list_lru_destroy is allowed to
+be called on an uninitialized zeroed-out object, in which case it is a
+no-op.  Before this patch this was guaranteed by kfree, but now we need an
+explicit check there.
 
 Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
 Cc: Dave Chinner <david@fromorbit.com>
@@ -76,149 +70,99 @@ Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   12 ++++++++++--
- mm/memcontrol.c            |   29 +++++++++++++++++++----------
- mm/slab_common.c           |    9 ++++-----
- 3 files changed, 33 insertions(+), 17 deletions(-)
+ fs/super.c               |    8 ++++++++
+ include/linux/list_lru.h |    3 +++
+ mm/list_lru.c            |   34 ++++++++++++++++++++++++++++++++++
+ 3 files changed, 45 insertions(+)
 
-diff -puN include/linux/memcontrol.h~memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation
-+++ a/include/linux/memcontrol.h
-@@ -361,6 +361,8 @@ static inline void sock_release_memcg(st
- extern struct static_key memcg_kmem_enabled_key;
+diff -puN fs/super.c~list_lru-organize-all-list_lrus-to-list fs/super.c
+--- a/fs/super.c~list_lru-organize-all-list_lrus-to-list
++++ a/fs/super.c
+@@ -282,6 +282,14 @@ void deactivate_locked_super(struct supe
+ 		unregister_shrinker(&s->s_shrink);
+ 		fs->kill_sb(s);
  
- extern int memcg_nr_cache_ids;
-+extern void memcg_get_cache_ids(void);
-+extern void memcg_put_cache_ids(void);
++		/*
++		 * Since list_lru_destroy() may sleep, we cannot call it from
++		 * put_super(), where we hold the sb_lock. Therefore we destroy
++		 * the lru lists right now.
++		 */
++		list_lru_destroy(&s->s_dentry_lru);
++		list_lru_destroy(&s->s_inode_lru);
++
+ 		put_filesystem(fs);
+ 		put_super(s);
+ 	} else {
+diff -puN include/linux/list_lru.h~list_lru-organize-all-list_lrus-to-list include/linux/list_lru.h
+--- a/include/linux/list_lru.h~list_lru-organize-all-list_lrus-to-list
++++ a/include/linux/list_lru.h
+@@ -31,6 +31,9 @@ struct list_lru_node {
  
- /*
-  * Helper macro to loop through all memcg-specific caches. Callers must still
-@@ -396,8 +398,6 @@ void __memcg_kmem_uncharge_pages(struct
+ struct list_lru {
+ 	struct list_lru_node	*node;
++#ifdef CONFIG_MEMCG_KMEM
++	struct list_head	list;
++#endif
+ };
  
- int memcg_cache_id(struct mem_cgroup *memcg);
- 
--void memcg_update_array_size(int num_groups);
--
- struct kmem_cache *__memcg_kmem_get_cache(struct kmem_cache *cachep);
- void __memcg_kmem_put_cache(struct kmem_cache *cachep);
- 
-@@ -531,6 +531,14 @@ static inline int memcg_cache_id(struct
- 	return -1;
- }
- 
-+static inline void memcg_get_cache_ids(void)
+ void list_lru_destroy(struct list_lru *lru);
+diff -puN mm/list_lru.c~list_lru-organize-all-list_lrus-to-list mm/list_lru.c
+--- a/mm/list_lru.c~list_lru-organize-all-list_lrus-to-list
++++ a/mm/list_lru.c
+@@ -9,6 +9,34 @@
+ #include <linux/mm.h>
+ #include <linux/list_lru.h>
+ #include <linux/slab.h>
++#include <linux/mutex.h>
++
++#ifdef CONFIG_MEMCG_KMEM
++static LIST_HEAD(list_lrus);
++static DEFINE_MUTEX(list_lrus_mutex);
++
++static void list_lru_register(struct list_lru *lru)
++{
++	mutex_lock(&list_lrus_mutex);
++	list_add(&lru->list, &list_lrus);
++	mutex_unlock(&list_lrus_mutex);
++}
++
++static void list_lru_unregister(struct list_lru *lru)
++{
++	mutex_lock(&list_lrus_mutex);
++	list_del(&lru->list);
++	mutex_unlock(&list_lrus_mutex);
++}
++#else
++static void list_lru_register(struct list_lru *lru)
 +{
 +}
 +
-+static inline void memcg_put_cache_ids(void)
++static void list_lru_unregister(struct list_lru *lru)
 +{
 +}
-+
- static inline struct kmem_cache *
- memcg_kmem_get_cache(struct kmem_cache *cachep, gfp_t gfp)
++#endif /* CONFIG_MEMCG_KMEM */
+ 
+ bool list_lru_add(struct list_lru *lru, struct list_head *item)
  {
-diff -puN mm/memcontrol.c~memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation
-+++ a/mm/memcontrol.c
-@@ -570,6 +570,19 @@ static void disarm_sock_keys(struct mem_
- static DEFINE_IDA(memcg_cache_ida);
- int memcg_nr_cache_ids;
- 
-+/* Protects memcg_nr_cache_ids */
-+static DECLARE_RWSEM(memcg_cache_ids_sem);
-+
-+void memcg_get_cache_ids(void)
-+{
-+	down_read(&memcg_cache_ids_sem);
-+}
-+
-+void memcg_put_cache_ids(void)
-+{
-+	up_read(&memcg_cache_ids_sem);
-+}
-+
- /*
-  * MIN_SIZE is different than 1, because we would like to avoid going through
-  * the alloc/free process all the time. In a small machine, 4 kmem-limited
-@@ -2558,6 +2571,7 @@ static int memcg_alloc_cache_id(void)
- 	 * There's no space for the new id in memcg_caches arrays,
- 	 * so we have to grow them.
- 	 */
-+	down_write(&memcg_cache_ids_sem);
- 
- 	size = 2 * (id + 1);
- 	if (size < MEMCG_CACHES_MIN_SIZE)
-@@ -2566,6 +2580,11 @@ static int memcg_alloc_cache_id(void)
- 		size = MEMCG_CACHES_MAX_SIZE;
- 
- 	err = memcg_update_all_caches(size);
-+	if (!err)
-+		memcg_nr_cache_ids = size;
-+
-+	up_write(&memcg_cache_ids_sem);
-+
- 	if (err) {
- 		ida_simple_remove(&memcg_cache_ida, id);
- 		return err;
-@@ -2578,16 +2597,6 @@ static void memcg_free_cache_id(int id)
- 	ida_simple_remove(&memcg_cache_ida, id);
- }
- 
--/*
-- * We should update the current array size iff all caches updates succeed. This
-- * can only be done from the slab side. The slab mutex needs to be held when
-- * calling this.
-- */
--void memcg_update_array_size(int num)
--{
--	memcg_nr_cache_ids = num;
--}
--
- struct memcg_kmem_cache_create_work {
- 	struct mem_cgroup *memcg;
- 	struct kmem_cache *cachep;
-diff -puN mm/slab_common.c~memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation mm/slab_common.c
---- a/mm/slab_common.c~memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation
-+++ a/mm/slab_common.c
-@@ -169,8 +169,8 @@ int memcg_update_all_caches(int num_memc
- {
- 	struct kmem_cache *s;
- 	int ret = 0;
--	mutex_lock(&slab_mutex);
- 
-+	mutex_lock(&slab_mutex);
- 	list_for_each_entry(s, &slab_caches, list) {
- 		if (!is_root_cache(s))
- 			continue;
-@@ -181,11 +181,8 @@ int memcg_update_all_caches(int num_memc
- 		 * up to this point in an updated state.
- 		 */
- 		if (ret)
--			goto out;
-+			break;
+@@ -137,12 +165,18 @@ int list_lru_init_key(struct list_lru *l
+ 		INIT_LIST_HEAD(&lru->node[i].list);
+ 		lru->node[i].nr_items = 0;
  	}
--
--	memcg_update_array_size(num_memcgs);
--out:
- 	mutex_unlock(&slab_mutex);
- 	return ret;
++	list_lru_register(lru);
+ 	return 0;
  }
-@@ -369,6 +366,7 @@ kmem_cache_create(const char *name, size
+ EXPORT_SYMBOL_GPL(list_lru_init_key);
  
- 	get_online_cpus();
- 	get_online_mems();
-+	memcg_get_cache_ids();
- 
- 	mutex_lock(&slab_mutex);
- 
-@@ -407,6 +405,7 @@ kmem_cache_create(const char *name, size
- out_unlock:
- 	mutex_unlock(&slab_mutex);
- 
-+	memcg_put_cache_ids();
- 	put_online_mems();
- 	put_online_cpus();
- 
+ void list_lru_destroy(struct list_lru *lru)
+ {
++	/* Already destroyed or not yet initialized? */
++	if (!lru->node)
++		return;
++	list_lru_unregister(lru);
+ 	kfree(lru->node);
++	lru->node = NULL;
+ }
+ EXPORT_SYMBOL_GPL(list_lru_destroy);
 _
 
 Patches currently in -mm which might be from vdavydov@parallels.com are
