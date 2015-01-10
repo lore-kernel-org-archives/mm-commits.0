@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + list_lru-get-rid-of-active_nodes.patch added to -mm tree
-Date: Fri, 09 Jan 2015 16:12:32 -0800
-Message-ID: <54b06e70.v8Yvt7JRJErRq4dS%akpm@linux-foundation.org>
+Subject: +
+ memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation.patch added to -mm tree
+Date: Fri, 09 Jan 2015 16:12:30 -0800
+Message-ID: <54b06e6e.zCmf8oLjAdY9dYN+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38824 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38811 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751381AbbAJAMd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jan 2015 19:12:33 -0500
+	with ESMTP id S1751381AbbAJAMb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jan 2015 19:12:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vdavydov@parallels.com, cl@linux.com, david@fromorbit.com, glommer@gmail.com, gthelen@google.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@suse.cz, penberg@kernel.org, rientjes@google.com, tj@kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: list_lru: get rid of ->active_nodes
+     Subject: memcg: add rwsem to synchronize against memcg_caches arrays relocation
 has been added to the -mm tree.  Its filename is
-     list_lru-get-rid-of-active_nodes.patch
+     memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/list_lru-get-rid-of-active_nodes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/list_lru-get-rid-of-active_nodes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,13 +40,26 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: list_lru: get rid of ->active_nodes
+Subject: memcg: add rwsem to synchronize against memcg_caches arrays relocation
 
-The active_nodes mask allows us to skip empty nodes when walking over
-list_lru items from all nodes in list_lru_count/walk.  However, these
-functions are never called from hot paths, so it doesn't seem we need such
-kind of optimization there.  OTOH, removing the mask will make it easier
-to make list_lru per-memcg.
+We need a stable value of memcg_nr_cache_ids in kmem_cache_create()
+(memcg_alloc_cache_params() wants it for root caches), where we only hold
+the slab_mutex and no memcg-related locks.  As a result, we have to update
+memcg_nr_cache_ids under the slab_mutex, which we can only take on the
+slab's side (see memcg_update_array_size).  This looks awkward and will
+become even worse when per-memcg list_lru is introduced, which also wants
+stable access to memcg_nr_cache_ids.
+
+To get rid of this dependency between the memcg_nr_cache_ids and the
+slab_mutex, this patch introduces a special rwsem.  The rwsem is held for
+writing during memcg_caches arrays relocation and memcg_nr_cache_ids
+updates.  Therefore one can take it for reading to get a stable access to
+memcg_caches arrays and/or memcg_nr_cache_ids.
+
+Currently the semaphore is taken for reading only from kmem_cache_create,
+right before taking the slab_mutex, so right now there's no much point in
+using rwsem instead of mutex.  However, once list_lru is made per-memcg it
+will allow list_lru initializations to proceed concurrently.
 
 Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
 Cc: Dave Chinner <david@fromorbit.com>
@@ -62,80 +76,149 @@ Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/list_lru.h |    5 ++---
- mm/list_lru.c            |   10 +++-------
- 2 files changed, 5 insertions(+), 10 deletions(-)
+ include/linux/memcontrol.h |   12 ++++++++++--
+ mm/memcontrol.c            |   29 +++++++++++++++++++----------
+ mm/slab_common.c           |    9 ++++-----
+ 3 files changed, 33 insertions(+), 17 deletions(-)
 
-diff -puN include/linux/list_lru.h~list_lru-get-rid-of-active_nodes include/linux/list_lru.h
---- a/include/linux/list_lru.h~list_lru-get-rid-of-active_nodes
-+++ a/include/linux/list_lru.h
-@@ -31,7 +31,6 @@ struct list_lru_node {
+diff -puN include/linux/memcontrol.h~memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation
++++ a/include/linux/memcontrol.h
+@@ -361,6 +361,8 @@ static inline void sock_release_memcg(st
+ extern struct static_key memcg_kmem_enabled_key;
  
- struct list_lru {
- 	struct list_lru_node	*node;
--	nodemask_t		active_nodes;
- };
+ extern int memcg_nr_cache_ids;
++extern void memcg_get_cache_ids(void);
++extern void memcg_put_cache_ids(void);
  
- void list_lru_destroy(struct list_lru *lru);
-@@ -94,7 +93,7 @@ static inline unsigned long list_lru_cou
- 	long count = 0;
- 	int nid;
+ /*
+  * Helper macro to loop through all memcg-specific caches. Callers must still
+@@ -396,8 +398,6 @@ void __memcg_kmem_uncharge_pages(struct
  
--	for_each_node_mask(nid, lru->active_nodes)
-+	for_each_node_state(nid, N_NORMAL_MEMORY)
- 		count += list_lru_count_node(lru, nid);
+ int memcg_cache_id(struct mem_cgroup *memcg);
  
- 	return count;
-@@ -142,7 +141,7 @@ list_lru_walk(struct list_lru *lru, list
- 	long isolated = 0;
- 	int nid;
+-void memcg_update_array_size(int num_groups);
+-
+ struct kmem_cache *__memcg_kmem_get_cache(struct kmem_cache *cachep);
+ void __memcg_kmem_put_cache(struct kmem_cache *cachep);
  
--	for_each_node_mask(nid, lru->active_nodes) {
-+	for_each_node_state(nid, N_NORMAL_MEMORY) {
- 		isolated += list_lru_walk_node(lru, nid, isolate,
- 					       cb_arg, &nr_to_walk);
- 		if (nr_to_walk <= 0)
-diff -puN mm/list_lru.c~list_lru-get-rid-of-active_nodes mm/list_lru.c
---- a/mm/list_lru.c~list_lru-get-rid-of-active_nodes
-+++ a/mm/list_lru.c
-@@ -19,8 +19,7 @@ bool list_lru_add(struct list_lru *lru,
- 	WARN_ON_ONCE(nlru->nr_items < 0);
- 	if (list_empty(item)) {
- 		list_add_tail(item, &nlru->list);
--		if (nlru->nr_items++ == 0)
--			node_set(nid, lru->active_nodes);
-+		nlru->nr_items++;
- 		spin_unlock(&nlru->lock);
- 		return true;
+@@ -531,6 +531,14 @@ static inline int memcg_cache_id(struct
+ 	return -1;
+ }
+ 
++static inline void memcg_get_cache_ids(void)
++{
++}
++
++static inline void memcg_put_cache_ids(void)
++{
++}
++
+ static inline struct kmem_cache *
+ memcg_kmem_get_cache(struct kmem_cache *cachep, gfp_t gfp)
+ {
+diff -puN mm/memcontrol.c~memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation
++++ a/mm/memcontrol.c
+@@ -570,6 +570,19 @@ static void disarm_sock_keys(struct mem_
+ static DEFINE_IDA(memcg_cache_ida);
+ int memcg_nr_cache_ids;
+ 
++/* Protects memcg_nr_cache_ids */
++static DECLARE_RWSEM(memcg_cache_ids_sem);
++
++void memcg_get_cache_ids(void)
++{
++	down_read(&memcg_cache_ids_sem);
++}
++
++void memcg_put_cache_ids(void)
++{
++	up_read(&memcg_cache_ids_sem);
++}
++
+ /*
+  * MIN_SIZE is different than 1, because we would like to avoid going through
+  * the alloc/free process all the time. In a small machine, 4 kmem-limited
+@@ -2558,6 +2571,7 @@ static int memcg_alloc_cache_id(void)
+ 	 * There's no space for the new id in memcg_caches arrays,
+ 	 * so we have to grow them.
+ 	 */
++	down_write(&memcg_cache_ids_sem);
+ 
+ 	size = 2 * (id + 1);
+ 	if (size < MEMCG_CACHES_MIN_SIZE)
+@@ -2566,6 +2580,11 @@ static int memcg_alloc_cache_id(void)
+ 		size = MEMCG_CACHES_MAX_SIZE;
+ 
+ 	err = memcg_update_all_caches(size);
++	if (!err)
++		memcg_nr_cache_ids = size;
++
++	up_write(&memcg_cache_ids_sem);
++
+ 	if (err) {
+ 		ida_simple_remove(&memcg_cache_ida, id);
+ 		return err;
+@@ -2578,16 +2597,6 @@ static void memcg_free_cache_id(int id)
+ 	ida_simple_remove(&memcg_cache_ida, id);
+ }
+ 
+-/*
+- * We should update the current array size iff all caches updates succeed. This
+- * can only be done from the slab side. The slab mutex needs to be held when
+- * calling this.
+- */
+-void memcg_update_array_size(int num)
+-{
+-	memcg_nr_cache_ids = num;
+-}
+-
+ struct memcg_kmem_cache_create_work {
+ 	struct mem_cgroup *memcg;
+ 	struct kmem_cache *cachep;
+diff -puN mm/slab_common.c~memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation mm/slab_common.c
+--- a/mm/slab_common.c~memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation
++++ a/mm/slab_common.c
+@@ -169,8 +169,8 @@ int memcg_update_all_caches(int num_memc
+ {
+ 	struct kmem_cache *s;
+ 	int ret = 0;
+-	mutex_lock(&slab_mutex);
+ 
++	mutex_lock(&slab_mutex);
+ 	list_for_each_entry(s, &slab_caches, list) {
+ 		if (!is_root_cache(s))
+ 			continue;
+@@ -181,11 +181,8 @@ int memcg_update_all_caches(int num_memc
+ 		 * up to this point in an updated state.
+ 		 */
+ 		if (ret)
+-			goto out;
++			break;
  	}
-@@ -37,8 +36,7 @@ bool list_lru_del(struct list_lru *lru,
- 	spin_lock(&nlru->lock);
- 	if (!list_empty(item)) {
- 		list_del_init(item);
--		if (--nlru->nr_items == 0)
--			node_clear(nid, lru->active_nodes);
-+		nlru->nr_items--;
- 		WARN_ON_ONCE(nlru->nr_items < 0);
- 		spin_unlock(&nlru->lock);
- 		return true;
-@@ -90,8 +88,7 @@ restart:
- 		case LRU_REMOVED_RETRY:
- 			assert_spin_locked(&nlru->lock);
- 		case LRU_REMOVED:
--			if (--nlru->nr_items == 0)
--				node_clear(nid, lru->active_nodes);
-+			nlru->nr_items--;
- 			WARN_ON_ONCE(nlru->nr_items < 0);
- 			isolated++;
- 			/*
-@@ -133,7 +130,6 @@ int list_lru_init_key(struct list_lru *l
- 	if (!lru->node)
- 		return -ENOMEM;
+-
+-	memcg_update_array_size(num_memcgs);
+-out:
+ 	mutex_unlock(&slab_mutex);
+ 	return ret;
+ }
+@@ -369,6 +366,7 @@ kmem_cache_create(const char *name, size
  
--	nodes_clear(lru->active_nodes);
- 	for (i = 0; i < nr_node_ids; i++) {
- 		spin_lock_init(&lru->node[i].lock);
- 		if (key)
+ 	get_online_cpus();
+ 	get_online_mems();
++	memcg_get_cache_ids();
+ 
+ 	mutex_lock(&slab_mutex);
+ 
+@@ -407,6 +405,7 @@ kmem_cache_create(const char *name, size
+ out_unlock:
+ 	mutex_unlock(&slab_mutex);
+ 
++	memcg_put_cache_ids();
+ 	put_online_mems();
+ 	put_online_cpus();
+ 
 _
 
 Patches currently in -mm which might be from vdavydov@parallels.com are
