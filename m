@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- mm-page_allocc-drop-dead-destroy_compound_page.patch removed from -mm tree
-Date: Fri, 09 Jan 2015 16:17:46 -0800
-Message-ID: <54b06faa.TuI+Pkgc/fUWLKHg%akpm@linux-foundation.org>
+Subject: + mm-page_allocc-drop-dead-destroy_compound_page.patch added to
+ -mm tree
+Date: Fri, 09 Jan 2015 16:24:25 -0800
+Message-ID: <54b07139.XW2GXFzp9Jc1+TDh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38882 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38917 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751381AbbAJARr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jan 2015 19:17:47 -0500
+	with ESMTP id S1751381AbbAJAY1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jan 2015 19:24:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, vbabka@suse.cz, mm-commits@vger.kernel.org
@@ -19,10 +19,24 @@ To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, vbabka@suse.cz, mm-com
 
 The patch titled
      Subject: mm/page_alloc.c: drop dead destroy_compound_page()
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      mm-page_allocc-drop-dead-destroy_compound_page.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_allocc-drop-dead-destroy_compound_page.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_allocc-drop-dead-destroy_compound_page.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
@@ -178,4 +192,7 @@ mm-set-page-pfmemalloc-in-prep_new_page.patch
 mm-page_alloc-reduce-number-of-alloc_pages-functions-parameters.patch
 mm-reduce-try_to_compact_pages-parameters.patch
 mm-microoptimize-zonelist-operations.patch
+mm-page_allocc-drop-dead-destroy_compound_page.patch
+mm-more-checks-on-free_pages_prepare-for-tail-pages.patch
+mm-more-checks-on-free_pages_prepare-for-tail-pages-fix.patch
 
