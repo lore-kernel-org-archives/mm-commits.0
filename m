@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + lib-vsprintfc-consume-p-in-format_decode.patch added to -mm
- tree
-Date: Fri, 09 Jan 2015 16:16:46 -0800
-Message-ID: <54b06f6e.FU/1aM6YsgoRTfad%akpm@linux-foundation.org>
+Subject: + lib-vsprintfc-improve-sanity-check-in-vsnprintf.patch added to
+ -mm tree
+Date: Fri, 09 Jan 2015 16:16:48 -0800
+Message-ID: <54b06f70.ZUHvAdQ8PMth64va%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38869 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38873 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751381AbbAJAQr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jan 2015 19:16:47 -0500
+	with ESMTP id S1751381AbbAJAQt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jan 2015 19:16:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@rasmusvillemoes.dk, jkosina@suse.cz, rdunlap@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/vsprintf.c: consume 'p' in format_decode
+     Subject: lib/vsprintf.c: improve sanity check in vsnprintf()
 has been added to the -mm tree.  Its filename is
-     lib-vsprintfc-consume-p-in-format_decode.patch
+     lib-vsprintfc-improve-sanity-check-in-vsnprintf.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-vsprintfc-consume-p-in-format_decode.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-vsprintfc-improve-sanity-check-in-vsnprintf.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-vsprintfc-consume-p-in-format_decode.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-vsprintfc-improve-sanity-check-in-vsnprintf.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,12 +40,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/vsprintf.c: consume 'p' in format_decode
+Subject: lib/vsprintf.c: improve sanity check in vsnprintf()
 
-It seems a little simpler to consume the p from a %p specifier in
-format_decode, just as it is done for the surrounding %c, %s and %% cases.
-
-While there, delete a redundant and misplaced comment.
+On 64 bit, size may very well be huge even if bit 31 happens to be 0. 
+Somehow it doesn't feel right that one can pass a 5 GiB buffer but not a 3
+GiB one.  So cap at INT_MAX as was probably the intention all along.  This
+is also the made-up value passed by sprintf and vsprintf.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Cc: Jiri Kosina <jkosina@suse.cz>
@@ -53,40 +53,21 @@ Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ lib/vsprintf.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/vsprintf.c~lib-vsprintfc-consume-p-in-format_decode lib/vsprintf.c
---- a/lib/vsprintf.c~lib-vsprintfc-consume-p-in-format_decode
+diff -puN lib/vsprintf.c~lib-vsprintfc-improve-sanity-check-in-vsnprintf lib/vsprintf.c
+--- a/lib/vsprintf.c~lib-vsprintfc-improve-sanity-check-in-vsnprintf
 +++ a/lib/vsprintf.c
-@@ -1604,8 +1604,7 @@ qualifier:
+@@ -1727,7 +1727,7 @@ int vsnprintf(char *buf, size_t size, co
  
- 	case 'p':
- 		spec->type = FORMAT_TYPE_PTR;
--		return fmt - start;
--		/* skip alnum */
-+		return ++fmt - start;
+ 	/* Reject out-of-range values early.  Large positive sizes are
+ 	   used for unknown buffer sizes. */
+-	if (WARN_ON_ONCE((int) size < 0))
++	if (WARN_ON_ONCE(size > INT_MAX))
+ 		return 0;
  
- 	case '%':
- 		spec->type = FORMAT_TYPE_PERCENT_CHAR;
-@@ -1794,7 +1793,7 @@ int vsnprintf(char *buf, size_t size, co
- 			break;
- 
- 		case FORMAT_TYPE_PTR:
--			str = pointer(fmt+1, str, end, va_arg(args, void *),
-+			str = pointer(fmt, str, end, va_arg(args, void *),
- 				      spec);
- 			while (isalnum(*fmt))
- 				fmt++;
-@@ -2232,7 +2231,7 @@ int bstr_printf(char *buf, size_t size,
- 		}
- 
- 		case FORMAT_TYPE_PTR:
--			str = pointer(fmt+1, str, end, get_arg(void *), spec);
-+			str = pointer(fmt, str, end, get_arg(void *), spec);
- 			while (isalnum(*fmt))
- 				fmt++;
- 			break;
+ 	str = buf;
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
