@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + dax-add-dax_zero_page_range-fix.patch added to -mm tree
-Date: Mon, 12 Jan 2015 15:11:15 -0800
-Message-ID: <54b45493.0NeCYIbnAwH4YgNx%akpm@linux-foundation.org>
+Subject: + dax-replace-xip-documentation-with-dax-documentation.patch
+ added to -mm tree
+Date: Mon, 12 Jan 2015 15:10:56 -0800
+Message-ID: <54b45480.QkSIm5QdYzm6NC1S%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36361 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36264 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753850AbbALXLQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jan 2015 18:11:16 -0500
+	with ESMTP id S1753850AbbALXK5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jan 2015 18:10:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andreas.dilger@intel.com, axboe@kernel.dk, boaz@plexistor.com, david@fromorbit.com, hch@lst.de, jack@suse.cz, kirill.shutemov@linux.intel.com, mathieu.desnoyers@efficios.com, matthew.r.wilcox@intel.com, rdunlap@infradead.org, ross.zwisler@linux.intel.com, tytso@mit.edu, mm-commits@vger.kernel.org
+To: willy@linux.intel.com, andreas.dilger@intel.com, axboe@kernel.dk, boaz@plexistor.com, david@fromorbit.com, hch@lst.de, jack@suse.cz, kirill.shutemov@linux.intel.com, mathieu.desnoyers@efficios.com, rdunlap@infradead.org, ross.zwisler@linux.intel.com, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dax-add-dax_zero_page_range-fix
+     Subject: dax: replace XIP documentation with DAX documentation
 has been added to the -mm tree.  Its filename is
-     dax-add-dax_zero_page_range-fix.patch
+     dax-replace-xip-documentation-with-dax-documentation.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/dax-add-dax_zero_page_range-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/dax-replace-xip-documentation-with-dax-documentation.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/dax-add-dax_zero_page_range-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/dax-replace-xip-documentation-with-dax-documentation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,13 +39,15 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: dax-add-dax_zero_page_range-fix
+From: Matthew Wilcox <willy@linux.intel.com>
+Subject: dax: replace XIP documentation with DAX documentation
 
-fix typos in comments
+Based on the original XIP documentation, this documents the current state
+of affairs, and includes instructions on how users can enable DAX if their
+devices and kernel support it.
 
-Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
+Reviewed-by: Randy Dunlap <rdunlap@infradead.org>
 Cc: Andreas Dilger <andreas.dilger@intel.com>
 Cc: Boaz Harrosh <boaz@plexistor.com>
 Cc: Christoph Hellwig <hch@lst.de>
@@ -53,73 +56,192 @@ Cc: Jan Kara <jack@suse.cz>
 Cc: Jens Axboe <axboe@kernel.dk>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ Documentation/filesystems/00-INDEX |    5 -
+ Documentation/filesystems/dax.txt  |   89 +++++++++++++++++++++++++++
+ Documentation/filesystems/xip.txt  |   71 ---------------------
+ 3 files changed, 92 insertions(+), 73 deletions(-)
 
-diff -puN fs/dax.c~dax-add-dax_zero_page_range-fix fs/dax.c
---- a/fs/dax.c~dax-add-dax_zero_page_range-fix
-+++ a/fs/dax.c
-@@ -475,7 +475,7 @@ EXPORT_SYMBOL_GPL(dax_fault);
-  * block_truncate_page(), but we could go down to PAGE_SIZE if the filesystem
-  * took care of disposing of the unnecessary blocks.  Even if the filesystem
-  * block size is smaller than PAGE_SIZE, we have to zero the rest of the page
-- * since the file might be mmaped.
-+ * since the file might be mmapped.
-  */
- int dax_zero_page_range(struct inode *inode, loff_t from, unsigned length,
- 							get_block_t get_block)
-@@ -514,13 +514,13 @@ EXPORT_SYMBOL_GPL(dax_zero_page_range);
-  * @get_block: The filesystem method used to translate file offsets to blocks
-  *
-  * Similar to block_truncate_page(), this function can be called by a
-- * filesystem when it is truncating an DAX file to handle the partial page.
-+ * filesystem when it is truncating a DAX file to handle the partial page.
-  *
-  * We work in terms of PAGE_CACHE_SIZE here for commonality with
-  * block_truncate_page(), but we could go down to PAGE_SIZE if the filesystem
-  * took care of disposing of the unnecessary blocks.  Even if the filesystem
-  * block size is smaller than PAGE_SIZE, we have to zero the rest of the page
-- * since the file might be mmaped.
-+ * since the file might be mmapped.
-  */
- int dax_truncate_page(struct inode *inode, loff_t from, get_block_t get_block)
- {
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-fanotify-dont-recalculate-a-marks-mask-if-only-the-ignored-mask-changed-checkpatch-fixes.patch
-fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper.patch
-ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir.patch
-mm.patch
-mm-fix-xip-fault-vs-truncate-race-fix.patch
-mm-allow-page-fault-handlers-to-perform-the-cow-fix.patch
-daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix.patch
-dax-add-dax_zero_page_range-fix.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss.patch
-lib-bitmap-update-bitmap_onto-to-unsigned-checkpatch-fixes.patch
-lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned-fix.patch
-hexdump-makes-it-return-amount-of-bytes-placed-in-buffer-fix.patch
-fs-befs-linuxvfsc-remove-unnecessary-casting-fix.patch
-linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-
+diff -puN Documentation/filesystems/00-INDEX~dax-replace-xip-documentation-with-dax-documentation Documentation/filesystems/00-INDEX
+--- a/Documentation/filesystems/00-INDEX~dax-replace-xip-documentation-with-dax-documentation
++++ a/Documentation/filesystems/00-INDEX
+@@ -34,6 +34,9 @@ configfs/
+ 	- directory containing configfs documentation and example code.
+ cramfs.txt
+ 	- info on the cram filesystem for small storage (ROMs etc).
++dax.txt
++	- info on avoiding the page cache for files stored on CPU-addressable
++	  storage devices.
+ debugfs.txt
+ 	- info on the debugfs filesystem.
+ devpts.txt
+@@ -154,5 +157,3 @@ xfs-self-describing-metadata.txt
+ 	- info on XFS Self Describing Metadata.
+ xfs.txt
+ 	- info and mount options for the XFS filesystem.
+-xip.txt
+-	- info on execute-in-place for file mappings.
+diff -puN /dev/null Documentation/filesystems/dax.txt
+--- /dev/null
++++ a/Documentation/filesystems/dax.txt
+@@ -0,0 +1,89 @@
++Direct Access for files
++-----------------------
++
++Motivation
++----------
++
++The page cache is usually used to buffer reads and writes to files.
++It is also used to provide the pages which are mapped into userspace
++by a call to mmap.
++
++For block devices that are memory-like, the page cache pages would be
++unnecessary copies of the original storage.  The DAX code removes the
++extra copy by performing reads and writes directly to the storage device.
++For file mappings, the storage device is mapped directly into userspace.
++
++
++Usage
++-----
++
++If you have a block device which supports DAX, you can make a filesystem
++on it as usual.  When mounting it, use the -o dax option manually
++or add 'dax' to the options in /etc/fstab.
++
++
++Implementation Tips for Block Driver Writers
++--------------------------------------------
++
++To support DAX in your block driver, implement the 'direct_access'
++block device operation.  It is used to translate the sector number
++(expressed in units of 512-byte sectors) to a page frame number (pfn)
++that identifies the physical page for the memory.  It also returns a
++kernel virtual address that can be used to access the memory.
++
++The direct_access method takes a 'size' parameter that indicates the
++number of bytes being requested.  The function should return the number
++of bytes that can be contiguously accessed at that offset.  It may also
++return a negative errno if an error occurs.
++
++In order to support this method, the storage must be byte-accessible by
++the CPU at all times.  If your device uses paging techniques to expose
++a large amount of memory through a smaller window, then you cannot
++implement direct_access.  Equally, if your device can occasionally
++stall the CPU for an extended period, you should also not attempt to
++implement direct_access.
++
++These block devices may be used for inspiration:
++- axonram: Axon DDR2 device driver
++- brd: RAM backed block device driver
++- dcssblk: s390 dcss block device driver
++
++
++Implementation Tips for Filesystem Writers
++------------------------------------------
++
++Filesystem support consists of
++- adding support to mark inodes as being DAX by setting the S_DAX flag in
++  i_flags
++- implementing the direct_IO address space operation, and calling
++  dax_do_io() instead of blockdev_direct_IO() if S_DAX is set
++- implementing an mmap file operation for DAX files which sets the
++  VM_MIXEDMAP flag on the VMA, and setting the vm_ops to include handlers
++  for fault and page_mkwrite (which should probably call dax_fault() and
++  dax_mkwrite(), passing the appropriate get_block() callback)
++- calling dax_truncate_page() instead of block_truncate_page() for DAX files
++- ensuring that there is sufficient locking between reads, writes,
++  truncates and page faults
++
++The get_block() callback passed to the DAX functions may return
++uninitialised extents.  If it does, it must ensure that simultaneous
++calls to get_block() (for example by a page-fault racing with a read()
++or a write()) work correctly.
++
++These filesystems may be used for inspiration:
++- ext2: the second extended filesystem, see Documentation/filesystems/ext2.txt
++
++
++Shortcomings
++------------
++
++Even if the kernel or its modules are stored on a filesystem that supports
++DAX on a block device that supports DAX, they will still be copied into RAM.
++
++Calling get_user_pages() on a range of user memory that has been mmaped
++from a DAX file will fail as there are no 'struct page' to describe
++those pages.  This problem is being worked on.  That means that O_DIRECT
++reads/writes to those memory ranges from a non-DAX file will fail (note
++that O_DIRECT reads/writes _of a DAX file_ do work, it is the memory
++that is being accessed that is key here).  Other things that will not
++work include RDMA, sendfile() and splice().
+diff -puN Documentation/filesystems/xip.txt~dax-replace-xip-documentation-with-dax-documentation /dev/null
+--- a/Documentation/filesystems/xip.txt
++++ /dev/null
+@@ -1,71 +0,0 @@
+-Execute-in-place for file mappings
+-----------------------------------
+-
+-Motivation
+-----------
+-File mappings are performed by mapping page cache pages to userspace. In
+-addition, read&write type file operations also transfer data from/to the page
+-cache.
+-
+-For memory backed storage devices that use the block device interface, the page
+-cache pages are in fact copies of the original storage. Various approaches
+-exist to work around the need for an extra copy. The ramdisk driver for example
+-does read the data into the page cache, keeps a reference, and discards the
+-original data behind later on.
+-
+-Execute-in-place solves this issue the other way around: instead of keeping
+-data in the page cache, the need to have a page cache copy is eliminated
+-completely. With execute-in-place, read&write type operations are performed
+-directly from/to the memory backed storage device. For file mappings, the
+-storage device itself is mapped directly into userspace.
+-
+-This implementation was initially written for shared memory segments between
+-different virtual machines on s390 hardware to allow multiple machines to
+-share the same binaries and libraries.
+-
+-Implementation
+---------------
+-Execute-in-place is implemented in three steps: block device operation,
+-address space operation, and file operations.
+-
+-A block device operation named direct_access is used to translate the
+-block device sector number to a page frame number (pfn) that identifies
+-the physical page for the memory.  It also returns a kernel virtual
+-address that can be used to access the memory.
+-
+-The direct_access method takes a 'size' parameter that indicates the
+-number of bytes being requested.  The function should return the number
+-of bytes that can be contiguously accessed at that offset.  It may also
+-return a negative errno if an error occurs.
+-
+-The block device operation is optional, these block devices support it as of
+-today:
+-- dcssblk: s390 dcss block device driver
+-
+-An address space operation named get_xip_mem is used to retrieve references
+-to a page frame number and a kernel address. To obtain these values a reference
+-to an address_space is provided. This function assigns values to the kmem and
+-pfn parameters. The third argument indicates whether the function should allocate
+-blocks if needed.
+-
+-This address space operation is mutually exclusive with readpage&writepage that
+-do page cache read/write operations.
+-The following filesystems support it as of today:
+-- ext2: the second extended filesystem, see Documentation/filesystems/ext2.txt
+-
+-A set of file operations that do utilize get_xip_page can be found in
+-mm/filemap_xip.c . The following file operation implementations are provided:
+-- aio_read/aio_write
+-- readv/writev
+-- sendfile
+-
+-The generic file operations do_sync_read/do_sync_write can be used to implement
+-classic synchronous IO calls.
