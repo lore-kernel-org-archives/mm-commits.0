@@ -1,124 +1,112 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-memcontrol-switch-soft-limit-default-back-to-infinity.patch removed from -mm tree
-Date: Mon, 12 Jan 2015 11:33:27 -0800
-Message-ID: <54b42187.gmBufOrDjoOE4obD%akpm@linux-foundation.org>
+ vfs-renumber-fmode_nonotify-and-add-to-uniqueness-check.patch removed from
+ -mm tree
+Date: Mon, 12 Jan 2015 11:33:24 -0800
+Message-ID: <54b42184.+mBH9oLtOYgriH8i%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33753 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33735 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752748AbbALTd2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jan 2015 14:33:28 -0500
+	with ESMTP id S1754670AbbALTdZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jan 2015 14:33:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, mhocko@suse.cz, vdavydov@parallels.com, mm-commits@vger.kernel.org
+To: drysdale@google.com, arnd@arndb.de, davem@davemloft.net, eparis@redhat.com, jack@suse.cz, sfr@canb.auug.org.au, viro@zeniv.linux.org.uk, xypron.glpk@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: switch soft limit default back to infinity
+     Subject: vfs: renumber FMODE_NONOTIFY and add to uniqueness check
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-switch-soft-limit-default-back-to-infinity.patch
+     vfs-renumber-fmode_nonotify-and-add-to-uniqueness-check.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: switch soft limit default back to infinity
+From: David Drysdale <drysdale@google.com>
+Subject: vfs: renumber FMODE_NONOTIFY and add to uniqueness check
 
-3e32cb2e0a12 ("mm: memcontrol: lockless page counters") accidentally
-switched the soft limit default from infinity to zero, which turns all
-memcgs with even a single page into soft limit excessors and engages soft
-limit reclaim on all of them during global memory pressure.  This makes
-global reclaim generally more aggressive, but also inverts the meaning of
-existing soft limit configurations where unset soft limits are usually
-more generous than set ones.
+Fix clashing values for O_PATH and FMODE_NONOTIFY on sparc.  The clashing
+O_PATH value was added in 5229645bdc35f1cc43eb ("vfs: add nonconflicting
+values for O_PATH") but this can't be changed as it is user-visible.
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: Vladimir Davydov <vdavydov@parallels.com>
+FMODE_NONOTIFY is only used internally in the kernel, but it is in the
+same numbering space as the other O_* flags, as indicated by the comment
+at the top of include/uapi/asm-generic/fcntl.h (and its use in
+fs/notify/fanotify/fanotify_user.c).  So renumber it to avoid the clash.
+
+All of this has happened before (12ed2e36c98aec6c4155, "fanotify:
+FMODE_NONOTIFY and __O_SYNC in sparc conflict"), and all of this will
+happen again -- so update the uniqueness check in fcntl_init() to include
+__FMODE_NONOTIFY.
+
+Signed-off-by: David Drysdale <drysdale@google.com>
+Acked-by: David S. Miller <davem@davemloft.net>
+Acked-by: Jan Kara <jack@suse.cz>
+Cc: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Eric Paris <eparis@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ fs/fcntl.c                       |    5 +++--
+ include/linux/fs.h               |    2 +-
+ include/uapi/asm-generic/fcntl.h |    2 +-
+ 3 files changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-switch-soft-limit-default-back-to-infinity mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-switch-soft-limit-default-back-to-infinity
-+++ a/mm/memcontrol.c
-@@ -4679,6 +4679,7 @@ mem_cgroup_css_alloc(struct cgroup_subsy
- 	if (parent_css == NULL) {
- 		root_mem_cgroup = memcg;
- 		page_counter_init(&memcg->memory, NULL);
-+		memcg->soft_limit = PAGE_COUNTER_MAX;
- 		page_counter_init(&memcg->memsw, NULL);
- 		page_counter_init(&memcg->kmem, NULL);
- 	}
-@@ -4724,6 +4725,7 @@ mem_cgroup_css_online(struct cgroup_subs
+diff -puN fs/fcntl.c~vfs-renumber-fmode_nonotify-and-add-to-uniqueness-check fs/fcntl.c
+--- a/fs/fcntl.c~vfs-renumber-fmode_nonotify-and-add-to-uniqueness-check
++++ a/fs/fcntl.c
+@@ -740,14 +740,15 @@ static int __init fcntl_init(void)
+ 	 * Exceptions: O_NONBLOCK is a two bit define on parisc; O_NDELAY
+ 	 * is defined as O_NONBLOCK on some platforms and not on others.
+ 	 */
+-	BUILD_BUG_ON(20 - 1 /* for O_RDONLY being 0 */ != HWEIGHT32(
++	BUILD_BUG_ON(21 - 1 /* for O_RDONLY being 0 */ != HWEIGHT32(
+ 		O_RDONLY	| O_WRONLY	| O_RDWR	|
+ 		O_CREAT		| O_EXCL	| O_NOCTTY	|
+ 		O_TRUNC		| O_APPEND	| /* O_NONBLOCK	| */
+ 		__O_SYNC	| O_DSYNC	| FASYNC	|
+ 		O_DIRECT	| O_LARGEFILE	| O_DIRECTORY	|
+ 		O_NOFOLLOW	| O_NOATIME	| O_CLOEXEC	|
+-		__FMODE_EXEC	| O_PATH	| __O_TMPFILE
++		__FMODE_EXEC	| O_PATH	| __O_TMPFILE	|
++		__FMODE_NONOTIFY
+ 		));
  
- 	if (parent->use_hierarchy) {
- 		page_counter_init(&memcg->memory, &parent->memory);
-+		memcg->soft_limit = PAGE_COUNTER_MAX;
- 		page_counter_init(&memcg->memsw, &parent->memsw);
- 		page_counter_init(&memcg->kmem, &parent->kmem);
+ 	fasync_cache = kmem_cache_create("fasync_cache",
+diff -puN include/linux/fs.h~vfs-renumber-fmode_nonotify-and-add-to-uniqueness-check include/linux/fs.h
+--- a/include/linux/fs.h~vfs-renumber-fmode_nonotify-and-add-to-uniqueness-check
++++ a/include/linux/fs.h
+@@ -135,7 +135,7 @@ typedef void (dio_iodone_t)(struct kiocb
+ #define FMODE_CAN_WRITE         ((__force fmode_t)0x40000)
  
-@@ -4733,6 +4735,7 @@ mem_cgroup_css_online(struct cgroup_subs
- 		 */
- 	} else {
- 		page_counter_init(&memcg->memory, NULL);
-+		memcg->soft_limit = PAGE_COUNTER_MAX;
- 		page_counter_init(&memcg->memsw, NULL);
- 		page_counter_init(&memcg->kmem, NULL);
- 		/*
-@@ -4807,7 +4810,7 @@ static void mem_cgroup_css_reset(struct
- 	mem_cgroup_resize_limit(memcg, PAGE_COUNTER_MAX);
- 	mem_cgroup_resize_memsw_limit(memcg, PAGE_COUNTER_MAX);
- 	memcg_update_kmem_limit(memcg, PAGE_COUNTER_MAX);
--	memcg->soft_limit = 0;
-+	memcg->soft_limit = PAGE_COUNTER_MAX;
- }
+ /* File was opened by fanotify and shouldn't generate fanotify events */
+-#define FMODE_NONOTIFY		((__force fmode_t)0x1000000)
++#define FMODE_NONOTIFY		((__force fmode_t)0x4000000)
  
- #ifdef CONFIG_MMU
+ /*
+  * Flag for rw_copy_check_uvector and compat_rw_copy_check_uvector
+diff -puN include/uapi/asm-generic/fcntl.h~vfs-renumber-fmode_nonotify-and-add-to-uniqueness-check include/uapi/asm-generic/fcntl.h
+--- a/include/uapi/asm-generic/fcntl.h~vfs-renumber-fmode_nonotify-and-add-to-uniqueness-check
++++ a/include/uapi/asm-generic/fcntl.h
+@@ -5,7 +5,7 @@
+ 
+ /*
+  * FMODE_EXEC is 0x20
+- * FMODE_NONOTIFY is 0x1000000
++ * FMODE_NONOTIFY is 0x4000000
+  * These cannot be used by userspace O_* until internal and external open
+  * flags are split.
+  * -Eric Paris
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from drysdale@google.com are
 
-mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath.patch
-mm-memory-remove-vm_file-check-on-shared-writable-vmas.patch
-mm-memory-merge-shared-writable-dirtying-branches-in-do_wp_page.patch
-mm-page_alloc-place-zone_id-check-before-vm_bug_on_page-check.patch
-memcg-zap-__memcg_chargeuncharge_slab.patch
-memcg-zap-memcg_name-argument-of-memcg_create_kmem_cache.patch
-memcg-zap-memcg_slab_caches-and-memcg_slab_mutex.patch
-mm-add-fields-for-compound-destructor-and-order-into-struct-page.patch
-swap-remove-unused-mem_cgroup_uncharge_swapcache-declaration.patch
-mm-memcontrol-track-move_lock-state-internally.patch
-mm-memcontrol-track-move_lock-state-internally-fix.patch
-mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
-mm-vmscan-wake-up-all-pfmemalloc-throttled-processes-at-once.patch
-mm-hugetlb-reduce-arch-dependent-code-around-follow_huge_.patch
-mm-hugetlb-pmd_huge-returns-true-for-non-present-hugepage.patch
-mm-hugetlb-take-page-table-lock-in-follow_huge_pmd.patch
-mm-hugetlb-fix-getting-refcount-0-page-in-hugetlb_fault.patch
-mm-hugetlb-add-migration-hwpoisoned-entry-check-in-hugetlb_change_protection.patch
-mm-hugetlb-add-migration-entry-check-in-__unmap_hugepage_range.patch
-mm-hugetlb-fix-suboptimal-migration-hwpoisoned-entry-check.patch
-mm-hugetlb-cleanup-and-rename-is_hugetlb_entry_migrationhwpoisoned.patch
-mm-set-page-pfmemalloc-in-prep_new_page.patch
-mm-page_alloc-reduce-number-of-alloc_pages-functions-parameters.patch
-mm-reduce-try_to_compact_pages-parameters.patch
-mm-microoptimize-zonelist-operations.patch
-list_lru-introduce-list_lru_shrink_countwalk.patch
-fs-consolidate-nrfree_cached_objects-args-in-shrink_control.patch
-vmscan-per-memory-cgroup-slab-shrinkers.patch
-memcg-rename-some-cache-id-related-variables.patch
-memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation.patch
-list_lru-get-rid-of-active_nodes.patch
-list_lru-organize-all-list_lrus-to-list.patch
-list_lru-introduce-per-memcg-lists.patch
-fs-make-shrinker-memcg-aware.patch
-vmscan-force-scan-offline-memory-cgroups.patch
-fs-proc-task_mmu-show-page-size-in-proc-pid-numa_maps.patch
+linux-next.patch
 
