@@ -1,118 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- arm-dts-tegra-update-isl29028-compatible-string-to-use-isil-vendor-prefix.patch removed from -mm tree
-Date: Mon, 12 Jan 2015 11:33:38 -0800
-Message-ID: <54b42192.7LWp+5p5rfJuJbND%akpm@linux-foundation.org>
+Subject: [withdrawn]
+ mm-more-checks-on-free_pages_prepare-for-tail-pages-fix.patch removed from
+ -mm tree
+Date: Mon, 12 Jan 2015 12:23:11 -0800
+Message-ID: <54b42d2f.Zstsfu2Ubgtu8zvc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33776 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34300 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753513AbbALTdk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jan 2015 14:33:40 -0500
+	with ESMTP id S1751204AbbALUXM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jan 2015 15:23:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arno@natisbad.org, a.zummo@towertech.it, arnd@arndb.de, broonie@kernel.org, darshanapadmadas@gmail.com, galak@codeaurora.org, gnurou@gmail.com, grant.likely@linaro.org, ijc+devicetree@hellion.org.uk, jason@lakedaemon.net, jgunthorpe@obsidianresearch.com, linus.walleij@linaro.org, linux@arm.linux.org.uk, linux@roeck-us.net, mark.rutland@arm.com, pawel.moll@arm.com, peter.huewe@infineon.com, rob@landley.net, robh+dt@kernel.org, swarren@wwwdotorg.org, thierry.reding@gmail.com, uwe@kleine-koenig.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aarcange@redhat.com, kirill.shutemov@linux.intel.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm: dts: tegra: update isl29028 compatible string to use=
- isil vendor prefix
+     Subject: mm-more-checks-on-free_pages_prepare-for-tail-pages-fix
 has been removed from the -mm tree.  Its filename was
-     arm-dts-tegra-update-isl29028-compatible-string-to-use-isil-vendor=
--prefix.patch
+     mm-more-checks-on-free_pages_prepare-for-tail-pages-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-=46rom: Arnaud Ebalard <arno@natisbad.org>
-Subject: arm: dts: tegra: update isl29028 compatible string to use isil=
- vendor prefix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-more-checks-on-free_pages_prepare-for-tail-pages-fix
 
-"isil" and "isl" prefixes are used at various locations inside the kern=
-el
-to reference Intersil corporation.  This patch is part of a series fixi=
-ng
-those locations were "isl" is used in compatible strings to use the now
-expected "isil" prefix instead (NASDAQ symbol for Intersil and most use=
-d
-version).
+make free_tail_pages_check() return void
 
-Note: isl29028 is an I2C device so the patch does not in fact currently
-depend on the introduction of "isil"-based compatible string in isl2902=
-8
-driver because I2C core does not check the prefix yet.
-
-Signed-off-by: Arnaud Ebalard <arno@natisbad.org>
-Cc: Rob Herring <robh+dt@kernel.org>
-Cc: Pawel Moll <pawel.moll@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
-Cc: Kumar Gala <galak@codeaurora.org>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Thierry Reding <thierry.reding@gmail.com>
-Cc: Alexandre Courbot <gnurou@gmail.com>
-Cc: Uwe Kleine-Knig <uwe@kleine-koenig.org>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Peter Huewe <peter.huewe@infineon.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>
-Cc: Mark Brown <broonie@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Darshana Padmadas <darshanapadmadas@gmail.com>
-Cc: Grant Likely <grant.likely@linaro.org>
-Cc: Rob Landley <rob@landley.net>
-Cc: Jason Cooper <jason@lakedaemon.net>
-Cc: Guenter Roeck <linux@roeck-us.net>
-Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: Uwe Kleine-K=F6nig <uwe@kleine-koenig.org>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/boot/dts/tegra30-cardhu.dtsi |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN arch/arm/boot/dts/tegra30-cardhu.dtsi~arm-dts-tegra-update-is=
-l29028-compatible-string-to-use-isil-vendor-prefix arch/arm/boot/dts/te=
-gra30-cardhu.dtsi
---- a/arch/arm/boot/dts/tegra30-cardhu.dtsi~arm-dts-tegra-update-isl290=
-28-compatible-string-to-use-isil-vendor-prefix
-+++ a/arch/arm/boot/dts/tegra30-cardhu.dtsi
-@@ -189,7 +189,7 @@
-=20
- 		/* ALS and Proximity sensor */
- 		isl29028@44 {
--			compatible =3D "isl,isl29028";
-+			compatible =3D "isil,isl29028";
- 			reg =3D <0x44>;
- 			interrupt-parent =3D <&gpio>;
- 			interrupts =3D <TEGRA_GPIO(L, 0) IRQ_TYPE_LEVEL_HIGH>;
+diff -puN mm/page_alloc.c~mm-more-checks-on-free_pages_prepare-for-tail-pages-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-more-checks-on-free_pages_prepare-for-tail-pages-fix
++++ a/mm/page_alloc.c
+@@ -764,19 +764,18 @@ static void free_one_page(struct zone *z
+ 	spin_unlock(&zone->lock);
+ }
+ 
+-static int free_tail_pages_check(struct page *head_page, struct page *page)
++static void free_tail_pages_check(struct page *head_page, struct page *page)
+ {
+ 	if (!IS_ENABLED(CONFIG_DEBUG_VM))
+-		return 0;
++		return;
+ 	if (unlikely(!PageTail(page))) {
+ 		bad_page(page, "PageTail not set", 0);
+-		return 1;
++		return;
+ 	}
+ 	if (unlikely(page->first_page != head_page)) {
+ 		bad_page(page, "first_page not consistent", 0);
+-		return 1;
++		return;
+ 	}
+-	return 0;
+ }
+ 
+ static bool free_pages_prepare(struct page *page, unsigned int order)
 _
 
-Patches currently in -mm which might be from arno@natisbad.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-rtc-rtc-isl12057-add-alarm-support-to-intersil-isl12057-rtc-driver.patc=
-h
-rtc-rtc-isl12057-add-alarm-support-to-intersil-isl12057-rtc-driver-upda=
-te.patch
-rtc-rtc-isl12057-add-isilirq2-can-wakeup-machine-property-for-in-tree-u=
-sers.patch
-arm-mvebu-isl12057-rtc-chip-can-now-wake-up-rn102-rn102-and-rn2120.patc=
-h
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+fanotify-dont-recalculate-a-marks-mask-if-only-the-ignored-mask-changed-checkpatch-fixes.patch
+fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask-checkpatch-fixes.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper.patch
+ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir.patch
+mm.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss.patch
+lib-bitmap-update-bitmap_onto-to-unsigned-checkpatch-fixes.patch
+lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned-fix.patch
+hexdump-makes-it-return-amount-of-bytes-placed-in-buffer-fix.patch
+fs-befs-linuxvfsc-remove-unnecessary-casting-fix.patch
 linux-next.patch
-dt-bindings-use-isil-prefix-for-intersil.patch
-rtc-isl12022-deprecate-use-of-isl-in-compatible-string-for-isil.patch
-rtc-isl12057-deprecate-use-of-isl-in-compatible-string-for-isil.patch
-staging-iio-isl29028-deprecate-use-of-isl-in-compatible-string-for-isil=
-=2Epatch
-arm-dts-zynq-update-isl9305-compatible-string-to-use-isil-vendor-prefix=
-=2Epatch
+drivers-gpio-gpio-zevioc-fix-build.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
