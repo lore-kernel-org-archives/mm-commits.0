@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-xip-fault-vs-truncate-race.patch added to -mm tree
-Date: Mon, 12 Jan 2015 15:10:34 -0800
-Message-ID: <54b4546a.ky1xCUFTOgl9+3kd%akpm@linux-foundation.org>
+Subject: + mm-allow-page-fault-handlers-to-perform-the-cow.patch added to
+ -mm tree
+Date: Mon, 12 Jan 2015 15:10:38 -0800
+Message-ID: <54b4546e.dqbBR88YVl8PWITR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36158 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36186 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753624AbbALXKf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jan 2015 18:10:35 -0500
+	with ESMTP id S1753632AbbALXKk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jan 2015 18:10:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: matthew.r.wilcox@intel.com, andreas.dilger@intel.com, axboe@kernel.dk, boaz@plexistor.com, david@fromorbit.com, hch@lst.de, jack@suse.cz, kirill.shutemov@linux.intel.com, mathieu.desnoyers@efficios.com, rdunlap@infradead.org, ross.zwisler@linux.intel.com, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix XIP fault vs truncate race
+     Subject: mm: allow page fault handlers to perform the COW
 has been added to the -mm tree.  Its filename is
-     mm-fix-xip-fault-vs-truncate-race.patch
+     mm-allow-page-fault-handlers-to-perform-the-cow.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-xip-fault-vs-truncate-race.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-allow-page-fault-handlers-to-perform-the-cow.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-xip-fault-vs-truncate-race.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-allow-page-fault-handlers-to-perform-the-cow.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,143 +40,152 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Subject: mm: fix XIP fault vs truncate race
+Subject: mm: allow page fault handlers to perform the COW
 
-DAX is a replacement for the variation of XIP currently supported by the
-ext2 filesystem.  We have three different things in the tree called 'XIP',
-and the new focus is on access to data rather than executables, so a name
-change was in order.  DAX stands for Direct Access.  The X is for
-eXciting.
+Currently COW of an XIP file is done by first bringing in a read-only
+mapping, then retrying the fault and copying the page.  It is much more
+efficient to tell the fault handler that a COW is being attempted (by
+passing in the pre-allocated page in the vm_fault structure), and allow
+the handler to perform the COW operation itself.
 
-The new focus on data access has resulted in more careful attention to
-races that exist in the current XIP code, but are not hit by the use-case
-that it was designed for.  XIP's architecture worked fine for ext2, but
-DAX is architected to work with modern filsystems such as ext4 and XFS. 
-DAX is not intended for use with btrfs; the value that btrfs adds relies
-on manipulating data and writing data to different locations, while DAX's
-value is for write-in-place and keeping the kernel from touching the data.
-
-DAX was developed in order to support NV-DIMMs, but it's become clear that
-its usefuless extends beyond NV-DIMMs and there are several potential
-customers including the tracing machinery.  Other people want to place the
-kernel log in an area of memory, as long as they have a BIOS that does not
-clear DRAM on reboot.
-
-Patch 1 is a bug fix, probably worth including in 3.18.
-
-Patches 2 & 3 are infrastructure for DAX.
-
-Patches 4-8 replace the XIP code with its DAX equivalents, transforming
-ext2 to use the DAX code as we go.  Note that patch 10 is the
-Documentation patch.
-
-Patches 9-15 clean up after the XIP code, removing the infrastructure
-that is no longer needed and renaming various XIP things to DAX.
-Most of these patches were added after Jan found things he didn't
-like in an earlier version of the ext4 patch ... that had been copied
-from ext2.  So ext2 i being transformed to do things the same way that
-ext4 will later.  The ability to mount ext2 filesystems with the 'xip'
-option is retained, although the 'dax' option is now preferred.
-
-Patch 16 adds some DAX infrastructure to support ext4.
-
-Patch 17 adds DAX support to ext4.  It is broadly similar to ext2's DAX
-support, but it is more efficient than ext4's due to its support for
-unwritten extents.
-
-Patch 18 is another cleanup patch renaming XIP to DAX.
-
-
-My thanks to Mathieu Desnoyers for his reviews of the v11 patchset.  Most
-of the changes below were based on his feedback.
-
-
-
-This patch (of 18):
-
-Pagecache faults recheck i_size after taking the page lock to ensure that
-the fault didn't race against a truncate.  We don't have a page to lock in
-the XIP case, so use i_mmap_lock_read() instead.  It is locked in the
-truncate path in unmap_mapping_range() after updating i_size.  So while we
-hold it in the fault path, we are guaranteed that either i_size has
-already been updated in the truncate path, or that the truncate will
-subsequently call zap_page_range_single() and so remove the mapping we
-have just inserted.
-
-There is a window of time in which i_size has been reduced and the thread
-has a mapping to a page which will be removed from the file, but this is
-harmless as the page will not be allocated to a different purpose before
-the thread's access to it is revoked.
+The handler cannot insert the page itself if there is already a read-only
+mapping at that address, so allow the handler to return VM_FAULT_LOCKED
+and set the fault_page to be NULL.  This indicates to the MM code that the
+i_mmap_lock is held instead of the page lock.
 
 Signed-off-by: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
 Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reviewed-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 Cc: Andreas Dilger <andreas.dilger@intel.com>
 Cc: Boaz Harrosh <boaz@plexistor.com>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Dave Chinner <david@fromorbit.com>
+Cc: Jan Kara <jack@suse.cz>
 Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap_xip.c |   24 ++++++++++++++++++++++--
- 1 file changed, 22 insertions(+), 2 deletions(-)
+ include/linux/mm.h |    1 +
+ mm/memory.c        |   33 ++++++++++++++++++++++++---------
+ 2 files changed, 25 insertions(+), 9 deletions(-)
 
-diff -puN mm/filemap_xip.c~mm-fix-xip-fault-vs-truncate-race mm/filemap_xip.c
---- a/mm/filemap_xip.c~mm-fix-xip-fault-vs-truncate-race
-+++ a/mm/filemap_xip.c
-@@ -255,8 +255,17 @@ again:
- 		__xip_unmap(mapping, vmf->pgoff);
+diff -puN include/linux/mm.h~mm-allow-page-fault-handlers-to-perform-the-cow include/linux/mm.h
+--- a/include/linux/mm.h~mm-allow-page-fault-handlers-to-perform-the-cow
++++ a/include/linux/mm.h
+@@ -227,6 +227,7 @@ struct vm_fault {
+ 	pgoff_t pgoff;			/* Logical page offset based on vma */
+ 	void __user *virtual_address;	/* Faulting virtual address */
  
- found:
-+		/* We must recheck i_size under i_mmap_mutex */
-+		mutex_lock(&mapping->i_mmap_mutex);
-+		size = (i_size_read(inode) + PAGE_CACHE_SIZE - 1) >>
-+							PAGE_CACHE_SHIFT;
-+		if (unlikely(vmf->pgoff >= size)) {
-+			mutex_unlock(&mapping->i_mmap_mutex);
-+			return VM_FAULT_SIGBUS;
-+		}
- 		err = vm_insert_mixed(vma, (unsigned long)vmf->virtual_address,
- 							xip_pfn);
-+		mutex_unlock(&mapping->i_mmap_mutex);
- 		if (err == -ENOMEM)
- 			return VM_FAULT_OOM;
- 		/*
-@@ -280,16 +289,27 @@ found:
- 		}
- 		if (error != -ENODATA)
- 			goto out;
-+
-+		/* We must recheck i_size under i_mmap_mutex */
-+		mutex_lock(&mapping->i_mmap_mutex);
-+		size = (i_size_read(inode) + PAGE_CACHE_SIZE - 1) >>
-+							PAGE_CACHE_SHIFT;
-+		if (unlikely(vmf->pgoff >= size)) {
-+			ret = VM_FAULT_SIGBUS;
-+			goto unlock;
-+		}
- 		/* not shared and writable, use xip_sparse_page() */
- 		page = xip_sparse_page();
- 		if (!page)
--			goto out;
-+			goto unlock;
- 		err = vm_insert_page(vma, (unsigned long)vmf->virtual_address,
- 							page);
- 		if (err == -ENOMEM)
--			goto out;
-+			goto unlock;
++	struct page *cow_page;		/* Handler may choose to COW */
+ 	struct page *page;		/* ->fault handlers should return a
+ 					 * page here, unless VM_FAULT_NOPAGE
+ 					 * is set (which is also implied by
+diff -puN mm/memory.c~mm-allow-page-fault-handlers-to-perform-the-cow mm/memory.c
+--- a/mm/memory.c~mm-allow-page-fault-handlers-to-perform-the-cow
++++ a/mm/memory.c
+@@ -1995,6 +1995,7 @@ static int do_page_mkwrite(struct vm_are
+ 	vmf.pgoff = page->index;
+ 	vmf.flags = FAULT_FLAG_WRITE|FAULT_FLAG_MKWRITE;
+ 	vmf.page = page;
++	vmf.cow_page = NULL;
  
- 		ret = VM_FAULT_NOPAGE;
-+unlock:
-+		mutex_unlock(&mapping->i_mmap_mutex);
- out:
- 		write_seqcount_end(&xip_sparse_seq);
- 		mutex_unlock(&xip_sparse_mutex);
+ 	ret = vma->vm_ops->page_mkwrite(vma, &vmf);
+ 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE)))
+@@ -2701,7 +2702,8 @@ oom:
+  * See filemap_fault() and __lock_page_retry().
+  */
+ static int __do_fault(struct vm_area_struct *vma, unsigned long address,
+-		pgoff_t pgoff, unsigned int flags, struct page **page)
++			pgoff_t pgoff, unsigned int flags,
++			struct page *cow_page, struct page **page)
+ {
+ 	struct vm_fault vmf;
+ 	int ret;
+@@ -2710,10 +2712,13 @@ static int __do_fault(struct vm_area_str
+ 	vmf.pgoff = pgoff;
+ 	vmf.flags = flags;
+ 	vmf.page = NULL;
++	vmf.cow_page = cow_page;
+ 
+ 	ret = vma->vm_ops->fault(vma, &vmf);
+ 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
+ 		return ret;
++	if (!vmf.page)
++		goto out;
+ 
+ 	if (unlikely(PageHWPoison(vmf.page))) {
+ 		if (ret & VM_FAULT_LOCKED)
+@@ -2727,6 +2732,7 @@ static int __do_fault(struct vm_area_str
+ 	else
+ 		VM_BUG_ON_PAGE(!PageLocked(vmf.page), vmf.page);
+ 
++ out:
+ 	*page = vmf.page;
+ 	return ret;
+ }
+@@ -2900,7 +2906,7 @@ static int do_read_fault(struct mm_struc
+ 		pte_unmap_unlock(pte, ptl);
+ 	}
+ 
+-	ret = __do_fault(vma, address, pgoff, flags, &fault_page);
++	ret = __do_fault(vma, address, pgoff, flags, NULL, &fault_page);
+ 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
+ 		return ret;
+ 
+@@ -2940,26 +2946,35 @@ static int do_cow_fault(struct mm_struct
+ 		return VM_FAULT_OOM;
+ 	}
+ 
+-	ret = __do_fault(vma, address, pgoff, flags, &fault_page);
++	ret = __do_fault(vma, address, pgoff, flags, new_page, &fault_page);
+ 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
+ 		goto uncharge_out;
+ 
+-	copy_user_highpage(new_page, fault_page, address, vma);
++	if (fault_page)
++		copy_user_highpage(new_page, fault_page, address, vma);
+ 	__SetPageUptodate(new_page);
+ 
+ 	pte = pte_offset_map_lock(mm, pmd, address, &ptl);
+ 	if (unlikely(!pte_same(*pte, orig_pte))) {
+ 		pte_unmap_unlock(pte, ptl);
+-		unlock_page(fault_page);
+-		page_cache_release(fault_page);
++		if (fault_page) {
++			unlock_page(fault_page);
++			page_cache_release(fault_page);
++		} else {
++			mutex_unlock(&vma->vm_file->f_mapping->i_mmap_mutex);
++		}
+ 		goto uncharge_out;
+ 	}
+ 	do_set_pte(vma, address, new_page, pte, true, true);
+ 	mem_cgroup_commit_charge(new_page, memcg, false);
+ 	lru_cache_add_active_or_unevictable(new_page, vma);
+ 	pte_unmap_unlock(pte, ptl);
+-	unlock_page(fault_page);
+-	page_cache_release(fault_page);
++	if (fault_page) {
++		unlock_page(fault_page);
++		page_cache_release(fault_page);
++	} else {
++		mutex_unlock(&vma->vm_file->f_mapping->i_mmap_mutex);
++	}
+ 	return ret;
+ uncharge_out:
+ 	mem_cgroup_cancel_charge(new_page, memcg);
+@@ -2978,7 +2993,7 @@ static int do_shared_fault(struct mm_str
+ 	int dirtied = 0;
+ 	int ret, tmp;
+ 
+-	ret = __do_fault(vma, address, pgoff, flags, &fault_page);
++	ret = __do_fault(vma, address, pgoff, flags, NULL, &fault_page);
+ 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
+ 		return ret;
+ 
 _
 
 Patches currently in -mm which might be from matthew.r.wilcox@intel.com are
