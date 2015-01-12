@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + dax-replace-xip-documentation-with-dax-documentation.patch
- added to -mm tree
-Date: Mon, 12 Jan 2015 15:10:56 -0800
-Message-ID: <54b45480.QkSIm5QdYzm6NC1S%akpm@linux-foundation.org>
+Subject: + ext2-get-rid-of-most-mentions-of-xip-in-ext2.patch added to -mm tree
+Date: Mon, 12 Jan 2015 15:11:11 -0800
+Message-ID: <54b4548f.X6zUbiROuSfruGuT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36264 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36343 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753850AbbALXK5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jan 2015 18:10:57 -0500
+	with ESMTP id S1753249AbbALXLM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jan 2015 18:11:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: willy@linux.intel.com, andreas.dilger@intel.com, axboe@kernel.dk, boaz@plexistor.com, david@fromorbit.com, hch@lst.de, jack@suse.cz, kirill.shutemov@linux.intel.com, mathieu.desnoyers@efficios.com, rdunlap@infradead.org, ross.zwisler@linux.intel.com, tytso@mit.edu, mm-commits@vger.kernel.org
+To: matthew.r.wilcox@intel.com, andreas.dilger@intel.com, axboe@kernel.dk, boaz@plexistor.com, david@fromorbit.com, hch@lst.de, jack@suse.cz, kirill.shutemov@linux.intel.com, mathieu.desnoyers@efficios.com, rdunlap@infradead.org, ross.zwisler@linux.intel.com, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dax: replace XIP documentation with DAX documentation
+     Subject: ext2: get rid of most mentions of XIP in ext2
 has been added to the -mm tree.  Its filename is
-     dax-replace-xip-documentation-with-dax-documentation.patch
+     ext2-get-rid-of-most-mentions-of-xip-in-ext2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/dax-replace-xip-documentation-with-dax-documentation.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ext2-get-rid-of-most-mentions-of-xip-in-ext2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/dax-replace-xip-documentation-with-dax-documentation.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ext2-get-rid-of-most-mentions-of-xip-in-ext2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,15 +38,15 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Matthew Wilcox <willy@linux.intel.com>
-Subject: dax: replace XIP documentation with DAX documentation
+From: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Subject: ext2: get rid of most mentions of XIP in ext2
 
-Based on the original XIP documentation, this documents the current state
-of affairs, and includes instructions on how users can enable DAX if their
-devices and kernel support it.
+To help people transition, accept the 'xip' mount option (and report it in
+/proc/mounts), but print a message encouraging people to switch over to
+the 'dax' option.
 
-Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
-Reviewed-by: Randy Dunlap <rdunlap@infradead.org>
+Signed-off-by: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Reviewed-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 Cc: Andreas Dilger <andreas.dilger@intel.com>
 Cc: Boaz Harrosh <boaz@plexistor.com>
 Cc: Christoph Hellwig <hch@lst.de>
@@ -55,193 +54,243 @@ Cc: Dave Chinner <david@fromorbit.com>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Jens Axboe <axboe@kernel.dk>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/00-INDEX |    5 -
- Documentation/filesystems/dax.txt  |   89 +++++++++++++++++++++++++++
- Documentation/filesystems/xip.txt  |   71 ---------------------
- 3 files changed, 92 insertions(+), 73 deletions(-)
+ Documentation/filesystems/ext2.txt |    5 +++--
+ fs/ext2/ext2.h                     |   13 +++++++------
+ fs/ext2/file.c                     |    2 +-
+ fs/ext2/inode.c                    |    6 +++---
+ fs/ext2/namei.c                    |    8 ++++----
+ fs/ext2/super.c                    |   25 ++++++++++++++++---------
+ 6 files changed, 34 insertions(+), 25 deletions(-)
 
-diff -puN Documentation/filesystems/00-INDEX~dax-replace-xip-documentation-with-dax-documentation Documentation/filesystems/00-INDEX
---- a/Documentation/filesystems/00-INDEX~dax-replace-xip-documentation-with-dax-documentation
-+++ a/Documentation/filesystems/00-INDEX
-@@ -34,6 +34,9 @@ configfs/
- 	- directory containing configfs documentation and example code.
- cramfs.txt
- 	- info on the cram filesystem for small storage (ROMs etc).
-+dax.txt
-+	- info on avoiding the page cache for files stored on CPU-addressable
-+	  storage devices.
- debugfs.txt
- 	- info on the debugfs filesystem.
- devpts.txt
-@@ -154,5 +157,3 @@ xfs-self-describing-metadata.txt
- 	- info on XFS Self Describing Metadata.
- xfs.txt
- 	- info and mount options for the XFS filesystem.
--xip.txt
--	- info on execute-in-place for file mappings.
-diff -puN /dev/null Documentation/filesystems/dax.txt
---- /dev/null
-+++ a/Documentation/filesystems/dax.txt
-@@ -0,0 +1,89 @@
-+Direct Access for files
-+-----------------------
+diff -puN Documentation/filesystems/ext2.txt~ext2-get-rid-of-most-mentions-of-xip-in-ext2 Documentation/filesystems/ext2.txt
+--- a/Documentation/filesystems/ext2.txt~ext2-get-rid-of-most-mentions-of-xip-in-ext2
++++ a/Documentation/filesystems/ext2.txt
+@@ -20,6 +20,9 @@ minixdf				Makes `df' act like Minix.
+ check=none, nocheck	(*)	Don't do extra checking of bitmaps on mount
+ 				(check=normal and check=strict options removed)
+ 
++dax				Use direct access (no page cache).  See
++				Documentation/filesystems/dax.txt.
 +
-+Motivation
-+----------
-+
-+The page cache is usually used to buffer reads and writes to files.
-+It is also used to provide the pages which are mapped into userspace
-+by a call to mmap.
-+
-+For block devices that are memory-like, the page cache pages would be
-+unnecessary copies of the original storage.  The DAX code removes the
-+extra copy by performing reads and writes directly to the storage device.
-+For file mappings, the storage device is mapped directly into userspace.
-+
-+
-+Usage
-+-----
-+
-+If you have a block device which supports DAX, you can make a filesystem
-+on it as usual.  When mounting it, use the -o dax option manually
-+or add 'dax' to the options in /etc/fstab.
-+
-+
-+Implementation Tips for Block Driver Writers
-+--------------------------------------------
-+
-+To support DAX in your block driver, implement the 'direct_access'
-+block device operation.  It is used to translate the sector number
-+(expressed in units of 512-byte sectors) to a page frame number (pfn)
-+that identifies the physical page for the memory.  It also returns a
-+kernel virtual address that can be used to access the memory.
-+
-+The direct_access method takes a 'size' parameter that indicates the
-+number of bytes being requested.  The function should return the number
-+of bytes that can be contiguously accessed at that offset.  It may also
-+return a negative errno if an error occurs.
-+
-+In order to support this method, the storage must be byte-accessible by
-+the CPU at all times.  If your device uses paging techniques to expose
-+a large amount of memory through a smaller window, then you cannot
-+implement direct_access.  Equally, if your device can occasionally
-+stall the CPU for an extended period, you should also not attempt to
-+implement direct_access.
-+
-+These block devices may be used for inspiration:
-+- axonram: Axon DDR2 device driver
-+- brd: RAM backed block device driver
-+- dcssblk: s390 dcss block device driver
-+
-+
-+Implementation Tips for Filesystem Writers
-+------------------------------------------
-+
-+Filesystem support consists of
-+- adding support to mark inodes as being DAX by setting the S_DAX flag in
-+  i_flags
-+- implementing the direct_IO address space operation, and calling
-+  dax_do_io() instead of blockdev_direct_IO() if S_DAX is set
-+- implementing an mmap file operation for DAX files which sets the
-+  VM_MIXEDMAP flag on the VMA, and setting the vm_ops to include handlers
-+  for fault and page_mkwrite (which should probably call dax_fault() and
-+  dax_mkwrite(), passing the appropriate get_block() callback)
-+- calling dax_truncate_page() instead of block_truncate_page() for DAX files
-+- ensuring that there is sufficient locking between reads, writes,
-+  truncates and page faults
-+
-+The get_block() callback passed to the DAX functions may return
-+uninitialised extents.  If it does, it must ensure that simultaneous
-+calls to get_block() (for example by a page-fault racing with a read()
-+or a write()) work correctly.
-+
-+These filesystems may be used for inspiration:
-+- ext2: the second extended filesystem, see Documentation/filesystems/ext2.txt
-+
-+
-+Shortcomings
-+------------
-+
-+Even if the kernel or its modules are stored on a filesystem that supports
-+DAX on a block device that supports DAX, they will still be copied into RAM.
-+
-+Calling get_user_pages() on a range of user memory that has been mmaped
-+from a DAX file will fail as there are no 'struct page' to describe
-+those pages.  This problem is being worked on.  That means that O_DIRECT
-+reads/writes to those memory ranges from a non-DAX file will fail (note
-+that O_DIRECT reads/writes _of a DAX file_ do work, it is the memory
-+that is being accessed that is key here).  Other things that will not
-+work include RDMA, sendfile() and splice().
-diff -puN Documentation/filesystems/xip.txt~dax-replace-xip-documentation-with-dax-documentation /dev/null
---- a/Documentation/filesystems/xip.txt
-+++ /dev/null
-@@ -1,71 +0,0 @@
--Execute-in-place for file mappings
------------------------------------
+ debug				Extra debugging information is sent to the
+ 				kernel syslog.  Useful for developers.
+ 
+@@ -56,8 +59,6 @@ noacl				Don't support POSIX ACLs.
+ 
+ nobh				Do not attach buffer_heads to file pagecache.
+ 
+-xip				Use execute in place (no caching) if possible
 -
--Motivation
------------
--File mappings are performed by mapping page cache pages to userspace. In
--addition, read&write type file operations also transfer data from/to the page
--cache.
--
--For memory backed storage devices that use the block device interface, the page
--cache pages are in fact copies of the original storage. Various approaches
--exist to work around the need for an extra copy. The ramdisk driver for example
--does read the data into the page cache, keeps a reference, and discards the
--original data behind later on.
--
--Execute-in-place solves this issue the other way around: instead of keeping
--data in the page cache, the need to have a page cache copy is eliminated
--completely. With execute-in-place, read&write type operations are performed
--directly from/to the memory backed storage device. For file mappings, the
--storage device itself is mapped directly into userspace.
--
--This implementation was initially written for shared memory segments between
--different virtual machines on s390 hardware to allow multiple machines to
--share the same binaries and libraries.
--
--Implementation
----------------
--Execute-in-place is implemented in three steps: block device operation,
--address space operation, and file operations.
--
--A block device operation named direct_access is used to translate the
--block device sector number to a page frame number (pfn) that identifies
--the physical page for the memory.  It also returns a kernel virtual
--address that can be used to access the memory.
--
--The direct_access method takes a 'size' parameter that indicates the
--number of bytes being requested.  The function should return the number
--of bytes that can be contiguously accessed at that offset.  It may also
--return a negative errno if an error occurs.
--
--The block device operation is optional, these block devices support it as of
--today:
--- dcssblk: s390 dcss block device driver
--
--An address space operation named get_xip_mem is used to retrieve references
--to a page frame number and a kernel address. To obtain these values a reference
--to an address_space is provided. This function assigns values to the kmem and
--pfn parameters. The third argument indicates whether the function should allocate
--blocks if needed.
--
--This address space operation is mutually exclusive with readpage&writepage that
--do page cache read/write operations.
--The following filesystems support it as of today:
--- ext2: the second extended filesystem, see Documentation/filesystems/ext2.txt
--
--A set of file operations that do utilize get_xip_page can be found in
--mm/filemap_xip.c . The following file operation implementations are provided:
--- aio_read/aio_write
--- readv/writev
--- sendfile
--
--The generic file operations do_sync_read/do_sync_write can be used to implement
--classic synchronous IO calls.
+ grpquota,noquota,quota,usrquota	Quota options are silently ignored by ext2.
+ 
+ 
+diff -puN fs/ext2/ext2.h~ext2-get-rid-of-most-mentions-of-xip-in-ext2 fs/ext2/ext2.h
+--- a/fs/ext2/ext2.h~ext2-get-rid-of-most-mentions-of-xip-in-ext2
++++ a/fs/ext2/ext2.h
+@@ -380,14 +380,15 @@ struct ext2_inode {
+ #define EXT2_MOUNT_NO_UID32		0x000200  /* Disable 32-bit UIDs */
+ #define EXT2_MOUNT_XATTR_USER		0x004000  /* Extended user attributes */
+ #define EXT2_MOUNT_POSIX_ACL		0x008000  /* POSIX Access Control Lists */
+-#ifdef CONFIG_FS_DAX
+-#define EXT2_MOUNT_XIP			0x010000  /* Execute in place */
+-#else
+-#define EXT2_MOUNT_XIP			0
+-#endif
++#define EXT2_MOUNT_XIP			0x010000  /* Obsolete, use DAX */
+ #define EXT2_MOUNT_USRQUOTA		0x020000  /* user quota */
+ #define EXT2_MOUNT_GRPQUOTA		0x040000  /* group quota */
+ #define EXT2_MOUNT_RESERVATION		0x080000  /* Preallocation */
++#ifdef CONFIG_FS_DAX
++#define EXT2_MOUNT_DAX			0x100000  /* Direct Access */
++#else
++#define EXT2_MOUNT_DAX			0
++#endif
+ 
+ 
+ #define clear_opt(o, opt)		o &= ~EXT2_MOUNT_##opt
+@@ -792,7 +793,7 @@ extern int ext2_fsync(struct file *file,
+ 		      int datasync);
+ extern const struct inode_operations ext2_file_inode_operations;
+ extern const struct file_operations ext2_file_operations;
+-extern const struct file_operations ext2_xip_file_operations;
++extern const struct file_operations ext2_dax_file_operations;
+ 
+ /* inode.c */
+ extern const struct address_space_operations ext2_aops;
+diff -puN fs/ext2/file.c~ext2-get-rid-of-most-mentions-of-xip-in-ext2 fs/ext2/file.c
+--- a/fs/ext2/file.c~ext2-get-rid-of-most-mentions-of-xip-in-ext2
++++ a/fs/ext2/file.c
+@@ -110,7 +110,7 @@ const struct file_operations ext2_file_o
+ };
+ 
+ #ifdef CONFIG_FS_DAX
+-const struct file_operations ext2_xip_file_operations = {
++const struct file_operations ext2_dax_file_operations = {
+ 	.llseek		= generic_file_llseek,
+ 	.read		= new_sync_read,
+ 	.write		= new_sync_write,
+diff -puN fs/ext2/inode.c~ext2-get-rid-of-most-mentions-of-xip-in-ext2 fs/ext2/inode.c
+--- a/fs/ext2/inode.c~ext2-get-rid-of-most-mentions-of-xip-in-ext2
++++ a/fs/ext2/inode.c
+@@ -1286,7 +1286,7 @@ void ext2_set_inode_flags(struct inode *
+ 		inode->i_flags |= S_NOATIME;
+ 	if (flags & EXT2_DIRSYNC_FL)
+ 		inode->i_flags |= S_DIRSYNC;
+-	if (test_opt(inode->i_sb, XIP))
++	if (test_opt(inode->i_sb, DAX))
+ 		inode->i_flags |= S_DAX;
+ }
+ 
+@@ -1388,9 +1388,9 @@ struct inode *ext2_iget (struct super_bl
+ 
+ 	if (S_ISREG(inode->i_mode)) {
+ 		inode->i_op = &ext2_file_inode_operations;
+-		if (test_opt(inode->i_sb, XIP)) {
++		if (test_opt(inode->i_sb, DAX)) {
+ 			inode->i_mapping->a_ops = &ext2_aops;
+-			inode->i_fop = &ext2_xip_file_operations;
++			inode->i_fop = &ext2_dax_file_operations;
+ 		} else if (test_opt(inode->i_sb, NOBH)) {
+ 			inode->i_mapping->a_ops = &ext2_nobh_aops;
+ 			inode->i_fop = &ext2_file_operations;
+diff -puN fs/ext2/namei.c~ext2-get-rid-of-most-mentions-of-xip-in-ext2 fs/ext2/namei.c
+--- a/fs/ext2/namei.c~ext2-get-rid-of-most-mentions-of-xip-in-ext2
++++ a/fs/ext2/namei.c
+@@ -104,9 +104,9 @@ static int ext2_create (struct inode * d
+ 		return PTR_ERR(inode);
+ 
+ 	inode->i_op = &ext2_file_inode_operations;
+-	if (test_opt(inode->i_sb, XIP)) {
++	if (test_opt(inode->i_sb, DAX)) {
+ 		inode->i_mapping->a_ops = &ext2_aops;
+-		inode->i_fop = &ext2_xip_file_operations;
++		inode->i_fop = &ext2_dax_file_operations;
+ 	} else if (test_opt(inode->i_sb, NOBH)) {
+ 		inode->i_mapping->a_ops = &ext2_nobh_aops;
+ 		inode->i_fop = &ext2_file_operations;
+@@ -125,9 +125,9 @@ static int ext2_tmpfile(struct inode *di
+ 		return PTR_ERR(inode);
+ 
+ 	inode->i_op = &ext2_file_inode_operations;
+-	if (test_opt(inode->i_sb, XIP)) {
++	if (test_opt(inode->i_sb, DAX)) {
+ 		inode->i_mapping->a_ops = &ext2_aops;
+-		inode->i_fop = &ext2_xip_file_operations;
++		inode->i_fop = &ext2_dax_file_operations;
+ 	} else if (test_opt(inode->i_sb, NOBH)) {
+ 		inode->i_mapping->a_ops = &ext2_nobh_aops;
+ 		inode->i_fop = &ext2_file_operations;
+diff -puN fs/ext2/super.c~ext2-get-rid-of-most-mentions-of-xip-in-ext2 fs/ext2/super.c
+--- a/fs/ext2/super.c~ext2-get-rid-of-most-mentions-of-xip-in-ext2
++++ a/fs/ext2/super.c
+@@ -294,6 +294,8 @@ static int ext2_show_options(struct seq_
+ #ifdef CONFIG_FS_DAX
+ 	if (sbi->s_mount_opt & EXT2_MOUNT_XIP)
+ 		seq_puts(seq, ",xip");
++	if (sbi->s_mount_opt & EXT2_MOUNT_DAX)
++		seq_puts(seq, ",dax");
+ #endif
+ 
+ 	if (!test_opt(sb, RESERVATION))
+@@ -402,7 +404,7 @@ enum {
+ 	Opt_resgid, Opt_resuid, Opt_sb, Opt_err_cont, Opt_err_panic,
+ 	Opt_err_ro, Opt_nouid32, Opt_nocheck, Opt_debug,
+ 	Opt_oldalloc, Opt_orlov, Opt_nobh, Opt_user_xattr, Opt_nouser_xattr,
+-	Opt_acl, Opt_noacl, Opt_xip, Opt_ignore, Opt_err, Opt_quota,
++	Opt_acl, Opt_noacl, Opt_xip, Opt_dax, Opt_ignore, Opt_err, Opt_quota,
+ 	Opt_usrquota, Opt_grpquota, Opt_reservation, Opt_noreservation
+ };
+ 
+@@ -431,6 +433,7 @@ static const match_table_t tokens = {
+ 	{Opt_acl, "acl"},
+ 	{Opt_noacl, "noacl"},
+ 	{Opt_xip, "xip"},
++	{Opt_dax, "dax"},
+ 	{Opt_grpquota, "grpquota"},
+ 	{Opt_ignore, "noquota"},
+ 	{Opt_quota, "quota"},
+@@ -558,10 +561,14 @@ static int parse_options(char *options,
+ 			break;
+ #endif
+ 		case Opt_xip:
++			ext2_msg(sb, KERN_INFO, "use dax instead of xip");
++			set_opt(sbi->s_mount_opt, XIP);
++			/* Fall through */
++		case Opt_dax:
+ #ifdef CONFIG_FS_DAX
+-			set_opt (sbi->s_mount_opt, XIP);
++			set_opt(sbi->s_mount_opt, DAX);
+ #else
+-			ext2_msg(sb, KERN_INFO, "xip option not supported");
++			ext2_msg(sb, KERN_INFO, "dax option not supported");
+ #endif
+ 			break;
+ 
+@@ -905,15 +912,15 @@ static int ext2_fill_super(struct super_
+ 
+ 	blocksize = BLOCK_SIZE << le32_to_cpu(sbi->s_es->s_log_block_size);
+ 
+-	if (sbi->s_mount_opt & EXT2_MOUNT_XIP) {
++	if (sbi->s_mount_opt & EXT2_MOUNT_DAX) {
+ 		if (blocksize != PAGE_SIZE) {
+ 			ext2_msg(sb, KERN_ERR,
+-					"error: unsupported blocksize for xip");
++					"error: unsupported blocksize for dax");
+ 			goto failed_mount;
+ 		}
+ 		if (!sb->s_bdev->bd_disk->fops->direct_access) {
+ 			ext2_msg(sb, KERN_ERR,
+-					"error: device does not support xip");
++					"error: device does not support dax");
+ 			goto failed_mount;
+ 		}
+ 	}
+@@ -1286,10 +1293,10 @@ static int ext2_remount (struct super_bl
+ 		((sbi->s_mount_opt & EXT2_MOUNT_POSIX_ACL) ? MS_POSIXACL : 0);
+ 
+ 	es = sbi->s_es;
+-	if ((sbi->s_mount_opt ^ old_opts.s_mount_opt) & EXT2_MOUNT_XIP) {
++	if ((sbi->s_mount_opt ^ old_opts.s_mount_opt) & EXT2_MOUNT_DAX) {
+ 		ext2_msg(sb, KERN_WARNING, "warning: refusing change of "
+-			 "xip flag with busy inodes while remounting");
+-		sbi->s_mount_opt ^= EXT2_MOUNT_XIP;
++			 "dax flag with busy inodes while remounting");
++		sbi->s_mount_opt ^= EXT2_MOUNT_DAX;
+ 	}
+ 	if ((*flags & MS_RDONLY) == (sb->s_flags & MS_RDONLY)) {
+ 		spin_unlock(&sbi->s_lock);
+_
+
+Patches currently in -mm which might be from matthew.r.wilcox@intel.com are
+
+axonram-fix-bug-in-direct_access.patch
+block-change-direct_access-calling-convention.patch
+mm-fix-xip-fault-vs-truncate-race.patch
+mm-fix-xip-fault-vs-truncate-race-fix.patch
+mm-allow-page-fault-handlers-to-perform-the-cow.patch
+mm-allow-page-fault-handlers-to-perform-the-cow-fix.patch
+vfsext2-introduce-is_daxinode.patch
+daxext2-replace-xip-read-and-write-with-dax-i-o.patch
+daxext2-replace-ext2_clear_xip_target-with-dax_clear_blocks.patch
+daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler.patch
+daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix.patch
+daxext2-replace-xip_truncate_page-with-dax_truncate_page.patch
+vfs-remove-get_xip_mem.patch
+ext2-remove-ext2_xip_verify_sb.patch
+ext2-remove-ext2_use_xip.patch
+ext2-remove-xipc-and-xiph.patch
+vfsext2-remove-config_ext2_fs_xip-and-rename-config_fs_xip-to-config_fs_dax.patch
+ext2-remove-ext2_aops_xip.patch
+ext2-get-rid-of-most-mentions-of-xip-in-ext2.patch
+dax-add-dax_zero_page_range.patch
+dax-add-dax_zero_page_range-fix.patch
+ext4-add-dax-functionality.patch
+brd-rename-xip-to-dax.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+
