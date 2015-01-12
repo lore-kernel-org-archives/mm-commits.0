@@ -1,100 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn]
- mm-more-checks-on-free_pages_prepare-for-tail-pages-fix.patch removed from
- -mm tree
-Date: Mon, 12 Jan 2015 12:23:11 -0800
-Message-ID: <54b42d2f.Zstsfu2Ubgtu8zvc%akpm@linux-foundation.org>
+Subject: + mm-more-checks-on-free_pages_prepare-for-tail-pages-fix-2.patch added to -mm tree
+Date: Mon, 12 Jan 2015 12:24:32 -0800
+Message-ID: <54b42d80.gpRN3vgNWK2iucQG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34300 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34311 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751204AbbALUXM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jan 2015 15:23:12 -0500
+	with ESMTP id S1751187AbbALUYd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jan 2015 15:24:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aarcange@redhat.com, kirill.shutemov@linux.intel.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: kirill@shutemov.name, aarcange@redhat.com, kirill.shutemov@linux.intel.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-more-checks-on-free_pages_prepare-for-tail-pages-fix
-has been removed from the -mm tree.  Its filename was
-     mm-more-checks-on-free_pages_prepare-for-tail-pages-fix.patch
+     Subject: mm-more-checks-on-free_pages_prepare-for-tail-pages-fix-2
+has been added to the -mm tree.  Its filename is
+     mm-more-checks-on-free_pages_prepare-for-tail-pages-fix-2.patch
 
-This patch was dropped because it was withdrawn
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-more-checks-on-free_pages_prepare-for-tail-pages-fix-2.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-more-checks-on-free_pages_prepare-for-tail-pages-fix-2.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-more-checks-on-free_pages_prepare-for-tail-pages-fix
+From: "Kirill A. Shutemov" <kirill@shutemov.name>
+Subject: mm-more-checks-on-free_pages_prepare-for-tail-pages-fix-2
 
-make free_tail_pages_check() return void
+Oops. I wanted this return code to be accounted into 'bad' in
+free_pages_prepare() instead. Incremental patch:
 
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-more-checks-on-free_pages_prepare-for-tail-pages-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-more-checks-on-free_pages_prepare-for-tail-pages-fix
+diff -puN mm/page_alloc.c~mm-more-checks-on-free_pages_prepare-for-tail-pages-fix-2 mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-more-checks-on-free_pages_prepare-for-tail-pages-fix-2
 +++ a/mm/page_alloc.c
-@@ -764,19 +764,18 @@ static void free_one_page(struct zone *z
- 	spin_unlock(&zone->lock);
- }
- 
--static int free_tail_pages_check(struct page *head_page, struct page *page)
-+static void free_tail_pages_check(struct page *head_page, struct page *page)
- {
- 	if (!IS_ENABLED(CONFIG_DEBUG_VM))
--		return 0;
-+		return;
- 	if (unlikely(!PageTail(page))) {
- 		bad_page(page, "PageTail not set", 0);
--		return 1;
-+		return;
+@@ -795,7 +795,7 @@ static bool free_pages_prepare(struct pa
+ 	bad += free_pages_check(page);
+ 	for (i = 1; i < (1 << order); i++) {
+ 		if (compound)
+-			free_tail_pages_check(page, page + i);
++			bad += free_tail_pages_check(page, page + i);
+ 		bad += free_pages_check(page + i);
  	}
- 	if (unlikely(page->first_page != head_page)) {
- 		bad_page(page, "first_page not consistent", 0);
--		return 1;
-+		return;
- 	}
--	return 0;
- }
- 
- static bool free_pages_prepare(struct page *page, unsigned int order)
+ 	if (bad)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kirill@shutemov.name are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-fanotify-dont-recalculate-a-marks-mask-if-only-the-ignored-mask-changed-checkpatch-fixes.patch
-fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper.patch
-ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir.patch
-mm.patch
 mm-replace-remap_file_pages-syscall-with-emulation.patch
-mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
+m68k-drop-_page_file-and-pte_file-related-helpers.patch
+mips-drop-_page_file-and-pte_file-related-helpers.patch
+mm-add-kpf_zero_page-flag-for-proc-kpageflags.patch
+mm-more-checks-on-free_pages_prepare-for-tail-pages-fix-2.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
-task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss.patch
-lib-bitmap-update-bitmap_onto-to-unsigned-checkpatch-fixes.patch
-lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned-fix.patch
-hexdump-makes-it-return-amount-of-bytes-placed-in-buffer-fix.patch
-fs-befs-linuxvfsc-remove-unnecessary-casting-fix.patch
-linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
 
