@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-add-build_bug_on-for-string-tables.patch added to -mm
- tree
-Date: Mon, 12 Jan 2015 12:43:52 -0800
-Message-ID: <54b43208.+EvYoGUhEnAXGJy2%akpm@linux-foundation.org>
+Subject: + remove-recently-added-perl-build-requirement.patch added to -mm tree
+Date: Mon, 12 Jan 2015 12:45:20 -0800
+Message-ID: <54b43260.+8mUnf1Uw2NnHy9M%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34662 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34672 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752247AbbALUnx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jan 2015 15:43:53 -0500
+	with ESMTP id S1751257AbbALUpV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jan 2015 15:45:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gthelen@google.com, hannes@cmpxchg.org, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: rob@landley.net, anca.emanuel@gmail.com, eternal.n08@gmail.com, fengguang.wu@intel.com, keescook@chromium.org, stable@vger.kernel.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: add BUILD_BUG_ON() for string tables
+     Subject: remove recently added perl build requirement
 has been added to the -mm tree.  Its filename is
-     memcg-add-build_bug_on-for-string-tables.patch
+     remove-recently-added-perl-build-requirement.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-add-build_bug_on-for-string-tables.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/remove-recently-added-perl-build-requirement.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-add-build_bug_on-for-string-tables.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/remove-recently-added-perl-build-requirement.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,48 +38,86 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Greg Thelen <gthelen@google.com>
-Subject: memcg: add BUILD_BUG_ON() for string tables
+From: Rob Landley <rob@landley.net>
+Subject: remove recently added perl build requirement
 
-Use BUILD_BUG_ON() to compile assert that memcg string tables are in sync
-with corresponding enums.  There aren't currently any issues with these
-tables.  This is just defensive.
+Commit e6023367d779 ("x86, kaslr: Prevent .bss from overlaping initrd")
+added perl back to the kernel build dependencies in -rc6.
 
-Signed-off-by: Greg Thelen <gthelen@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
+Replace those 39 lines of perl with 4 lines of shell script.
+
+Note: checkpatch.pl isn't a build dependency, it's a development
+dependency (like bloat-o-meter being written in python or "make xconfig"
+needing QT).  Those aren't things you need to add to your cross compile
+environment to produce a binary.  Different category of dependency.
+
+For more history on the issue, see https://lkml.org/lkml/2013/2/27/18
+
+Signed-off-by: Rob Landley <rob@landley.net>
+Acked-by: Anca Emanuel <anca.emanuel@gmail.com>
+Cc: Fengguang Wu <fengguang.wu@intel.com>
+Cc: Junjie Mao <eternal.n08@gmail.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ arch/x86/boot/compressed/Makefile |    6 ++--
+ arch/x86/tools/calc_run_size.pl   |   39 ----------------------------
+ 2 files changed, 4 insertions(+), 41 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-add-build_bug_on-for-string-tables mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-add-build_bug_on-for-string-tables
-+++ a/mm/memcontrol.c
-@@ -3596,6 +3596,10 @@ static int memcg_stat_show(struct seq_fi
- 	struct mem_cgroup *mi;
- 	unsigned int i;
+diff -puN arch/x86/boot/compressed/Makefile~remove-recently-added-perl-build-requirement arch/x86/boot/compressed/Makefile
+--- a/arch/x86/boot/compressed/Makefile~remove-recently-added-perl-build-requirement
++++ a/arch/x86/boot/compressed/Makefile
+@@ -89,8 +89,10 @@ suffix-$(CONFIG_KERNEL_XZ)	:= xz
+ suffix-$(CONFIG_KERNEL_LZO) 	:= lzo
+ suffix-$(CONFIG_KERNEL_LZ4) 	:= lz4
  
-+	BUILD_BUG_ON(ARRAY_SIZE(mem_cgroup_stat_names) !=
-+		     MEM_CGROUP_STAT_NSTATS);
-+	BUILD_BUG_ON(ARRAY_SIZE(mem_cgroup_events_names) !=
-+		     MEM_CGROUP_EVENTS_NSTATS);
- 	BUILD_BUG_ON(ARRAY_SIZE(mem_cgroup_lru_names) != NR_LRU_LISTS);
+-RUN_SIZE = $(shell $(OBJDUMP) -h vmlinux | \
+-	     perl $(srctree)/arch/x86/tools/calc_run_size.pl)
++RUN_SIZE = $(shell NUM='\([0-9a-fA-F]*[ \t]*\)'; $(OBJDUMP) -h vmlinux | \
++sed -n 's/^[ \t0-9]*.b[sr][sk][ \t]*'"$$NUM$$NUM$$NUM$$NUM"'.*/\1\4/p' | \
++xargs | while read a b c d; do [ "$$b" != "$$d" ] && exit 1; \
++expr $$(printf "%d + %d + %d" 0x$$a 0x$$b 0x$$c); done)
+ quiet_cmd_mkpiggy = MKPIGGY $@
+       cmd_mkpiggy = $(obj)/mkpiggy $< $(RUN_SIZE) > $@ || ( rm -f $@ ; false )
  
- 	for (i = 0; i < MEM_CGROUP_STAT_NSTATS; i++) {
-_
-
-Patches currently in -mm which might be from gthelen@google.com are
-
-list_lru-introduce-list_lru_shrink_countwalk.patch
-fs-consolidate-nrfree_cached_objects-args-in-shrink_control.patch
-vmscan-per-memory-cgroup-slab-shrinkers.patch
-memcg-rename-some-cache-id-related-variables.patch
-memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation.patch
-list_lru-get-rid-of-active_nodes.patch
-list_lru-organize-all-list_lrus-to-list.patch
-list_lru-introduce-per-memcg-lists.patch
-fs-make-shrinker-memcg-aware.patch
-memcg-add-build_bug_on-for-string-tables.patch
-
+diff -puN arch/x86/tools/calc_run_size.pl~remove-recently-added-perl-build-requirement /dev/null
+--- a/arch/x86/tools/calc_run_size.pl
++++ /dev/null
+@@ -1,39 +0,0 @@
+-#!/usr/bin/perl
+-#
+-# Calculate the amount of space needed to run the kernel, including room for
+-# the .bss and .brk sections.
+-#
+-# Usage:
+-# objdump -h a.out | perl calc_run_size.pl
+-use strict;
+-
+-my $mem_size = 0;
+-my $file_offset = 0;
+-
+-my $sections=" *[0-9]+ \.(?:bss|brk) +";
+-while (<>) {
+-	if (/^$sections([0-9a-f]+) +(?:[0-9a-f]+ +){2}([0-9a-f]+)/) {
+-		my $size = hex($1);
+-		my $offset = hex($2);
+-		$mem_size += $size;
+-		if ($file_offset == 0) {
+-			$file_offset = $offset;
+-		} elsif ($file_offset != $offset) {
+-			# BFD linker shows the same file offset in ELF.
+-			# Gold linker shows them as consecutive.
+-			next if ($file_offset + $mem_size == $offset + $size);
+-
+-			printf STDERR "file_offset: 0x%lx\n", $file_offset;
+-			printf STDERR "mem_size: 0x%lx\n", $mem_size;
+-			printf STDERR "offset: 0x%lx\n", $offset;
+-			printf STDERR "size: 0x%lx\n", $size;
+-
+-			die ".bss and .brk are non-contiguous\n";
+-		}
+-	}
+-}
