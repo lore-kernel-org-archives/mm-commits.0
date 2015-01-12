@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-use-correct-format-specifiers-when-printing-address-ranges.patch added
- to -mm tree
-Date: Mon, 12 Jan 2015 15:26:43 -0800
-Message-ID: <54b45833.YvULJ4rJc8Q/Enb7%akpm@linux-foundation.org>
+ checkpatch-allow-comments-in-macros-tested-for-single-statements.patch
+ added to -mm tree
+Date: Mon, 12 Jan 2015 15:27:26 -0800
+Message-ID: <54b4585e.DxITJfHXQNDGO5GY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36740 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36742 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752406AbbALX0o (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jan 2015 18:26:44 -0500
+	with ESMTP id S1752406AbbALX11 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jan 2015 18:27:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jgross@suse.com, mm-commits@vger.kernel.org
+To: joe@perches.com, Valdis.Kletnieks@vt.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: use correct format specifiers when printing address ranges
+     Subject: checkpatch: Allow comments in macros tested for single statements
 has been added to the -mm tree.  Its filename is
-     mm-use-correct-format-specifiers-when-printing-address-ranges.patch
+     checkpatch-allow-comments-in-macros-tested-for-single-statements.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-use-correct-format-specifiers-when-printing-address-ranges.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-allow-comments-in-macros-tested-for-single-statements.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-use-correct-format-specifiers-when-printing-address-ranges.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-allow-comments-in-macros-tested-for-single-statements.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,72 +40,43 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Juergen Gross <jgross@suse.com>
-Subject: mm: use correct format specifiers when printing address ranges
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: Allow comments in macros tested for single statements
 
-Especially on 32 bit kernels memory node ranges are printed with 32 bit
-wide addresses only.  Use u64 types and %llx specifiers to print full
-width of addresses.
+Convert all the comments to spaces before testing for single statement
+macros.
 
-Signed-off-by: Juergen Gross <jgross@suse.com>
+Reported-by: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   20 +++++++++++---------
- 1 file changed, 11 insertions(+), 9 deletions(-)
+ scripts/checkpatch.pl |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/page_alloc.c~mm-use-correct-format-specifiers-when-printing-address-ranges mm/page_alloc.c
---- a/mm/page_alloc.c~mm-use-correct-format-specifiers-when-printing-address-ranges
-+++ a/mm/page_alloc.c
-@@ -4994,8 +4994,8 @@ void __paginginit free_area_init_node(in
- 	pgdat->node_start_pfn = node_start_pfn;
- #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
- 	get_pfn_range_for_nid(nid, &start_pfn, &end_pfn);
--	printk(KERN_INFO "Initmem setup node %d [mem %#010Lx-%#010Lx]\n", nid,
--			(u64) start_pfn << PAGE_SHIFT, (u64) (end_pfn << PAGE_SHIFT) - 1);
-+	pr_info("Initmem setup node %d [mem %#018Lx-%#018Lx]\n", nid,
-+		(u64)start_pfn << PAGE_SHIFT, ((u64)end_pfn << PAGE_SHIFT) - 1);
- #endif
- 	calculate_node_totalpages(pgdat, start_pfn, end_pfn,
- 				  zones_size, zholes_size);
-@@ -5367,9 +5367,10 @@ void __init free_area_init_nodes(unsigne
- 				arch_zone_highest_possible_pfn[i])
- 			pr_cont("empty\n");
- 		else
--			pr_cont("[mem %0#10lx-%0#10lx]\n",
--				arch_zone_lowest_possible_pfn[i] << PAGE_SHIFT,
--				(arch_zone_highest_possible_pfn[i]
-+			pr_cont("[mem %#018Lx-%#018Lx]\n",
-+				(u64)arch_zone_lowest_possible_pfn[i]
-+					<< PAGE_SHIFT,
-+				((u64)arch_zone_highest_possible_pfn[i]
- 					<< PAGE_SHIFT) - 1);
- 	}
+diff -puN scripts/checkpatch.pl~checkpatch-allow-comments-in-macros-tested-for-single-statements scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-allow-comments-in-macros-tested-for-single-statements
++++ a/scripts/checkpatch.pl
+@@ -4260,6 +4260,7 @@ sub process {
+ 			$ctx = $dstat;
  
-@@ -5377,15 +5378,16 @@ void __init free_area_init_nodes(unsigne
- 	pr_info("Movable zone start for each node\n");
- 	for (i = 0; i < MAX_NUMNODES; i++) {
- 		if (zone_movable_pfn[i])
--			pr_info("  Node %d: %#010lx\n", i,
--			       zone_movable_pfn[i] << PAGE_SHIFT);
-+			pr_info("  Node %d: %#018Lx\n", i,
-+			       (u64)zone_movable_pfn[i] << PAGE_SHIFT);
- 	}
+ 			$dstat =~ s/\\\n.//g;
++			$dstat =~ s/$;/ /g;
  
- 	/* Print out the early node map */
- 	pr_info("Early memory node ranges\n");
- 	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, &nid)
--		pr_info("  node %3d: [mem %#010lx-%#010lx]\n", nid,
--		       start_pfn << PAGE_SHIFT, (end_pfn << PAGE_SHIFT) - 1);
-+		pr_info("  node %3d: [mem %#018Lx-%#018Lx]\n", nid,
-+			(u64)start_pfn << PAGE_SHIFT,
-+			((u64)end_pfn << PAGE_SHIFT) - 1);
- 
- 	/* Initialise every node */
- 	mminit_verify_pageflags_layout();
+ 			if ($dstat =~ /^\+\s*#\s*define\s+$Ident\s*${balanced_parens}\s*do\s*{(.*)\s*}\s*while\s*\(\s*0\s*\)\s*([;\s]*)\s*$/) {
+ 				my $stmts = $2;
 _
 
-Patches currently in -mm which might be from jgross@suse.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-mm-use-correct-format-specifiers-when-printing-address-ranges.patch
+printk-correct-timeout-comment-neaten-module_parm_desc.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-emit-an-error-when-using-predefined-timestamp-macros.patch
+checkpatch-improve-octal-permissions-tests.patch
+checkpatch-ignore-__pure-attribute.patch
+checkpatch-fix-unnecessary_kern_level-false-positive.patch
+checkpatch-add-check-for-keyword-boolean-in-kconfig-definitions.patch
+checkpatch-allow-comments-in-macros-tested-for-single-statements.patch
+fs-ufs-superc-remove-unnecessary-casting.patch
+linux-next.patch
 
