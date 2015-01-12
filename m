@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + ext2-remove-xipc-and-xiph.patch added to -mm tree
-Date: Mon, 12 Jan 2015 15:11:04 -0800
-Message-ID: <54b45488.Nxy4YM/tCfqr6mjf%akpm@linux-foundation.org>
+Subject: + daxext2-replace-xip_truncate_page-with-dax_truncate_page.patch
+ added to -mm tree
+Date: Mon, 12 Jan 2015 15:10:54 -0800
+Message-ID: <54b4547e.Rk0zp8ynGnjTYfid%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36312 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36252 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752911AbbALXLF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jan 2015 18:11:05 -0500
+	with ESMTP id S1753819AbbALXKz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jan 2015 18:10:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: matthew.r.wilcox@intel.com, andreas.dilger@intel.com, axboe@kernel.dk, boaz@plexistor.com, david@fromorbit.com, hch@lst.de, jack@suse.cz, kirill.shutemov@linux.intel.com, mathieu.desnoyers@efficios.com, rdunlap@infradead.org, ross.zwisler@linux.intel.com, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ext2: remove xip.c and xip.h
+     Subject: dax,ext2: replace xip_truncate_page with dax_truncate_page
 has been added to the -mm tree.  Its filename is
-     ext2-remove-xipc-and-xiph.patch
+     daxext2-replace-xip_truncate_page-with-dax_truncate_page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ext2-remove-xipc-and-xiph.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/daxext2-replace-xip_truncate_page-with-dax_truncate_page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ext2-remove-xipc-and-xiph.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/daxext2-replace-xip_truncate_page-with-dax_truncate_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,9 +40,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Subject: ext2: remove xip.c and xip.h
+Subject: dax,ext2: replace xip_truncate_page with dax_truncate_page
 
-These files are now empty, so delete them
+It takes a get_block parameter just like nobh_truncate_page() and
+block_truncate_page()
 
 Signed-off-by: Matthew Wilcox <matthew.r.wilcox@intel.com>
 Reviewed-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
@@ -58,94 +60,145 @@ Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/Makefile |    1 -
- fs/ext2/inode.c  |    1 -
- fs/ext2/namei.c  |    1 -
- fs/ext2/super.c  |    1 -
- fs/ext2/xip.c    |   15 ---------------
- fs/ext2/xip.h    |   16 ----------------
- 6 files changed, 35 deletions(-)
+ fs/dax.c           |   44 +++++++++++++++++++++++++++++++++++++++++++
+ fs/ext2/inode.c    |    2 -
+ include/linux/fs.h |   10 ---------
+ mm/filemap_xip.c   |   40 ---------------------------------------
+ 4 files changed, 46 insertions(+), 50 deletions(-)
 
-diff -puN fs/ext2/Makefile~ext2-remove-xipc-and-xiph fs/ext2/Makefile
---- a/fs/ext2/Makefile~ext2-remove-xipc-and-xiph
-+++ a/fs/ext2/Makefile
-@@ -10,4 +10,3 @@ ext2-y := balloc.o dir.o file.o ialloc.o
- ext2-$(CONFIG_EXT2_FS_XATTR)	 += xattr.o xattr_user.o xattr_trusted.o
- ext2-$(CONFIG_EXT2_FS_POSIX_ACL) += acl.o
- ext2-$(CONFIG_EXT2_FS_SECURITY)	 += xattr_security.o
--ext2-$(CONFIG_EXT2_FS_XIP)	 += xip.o
-diff -puN fs/ext2/inode.c~ext2-remove-xipc-and-xiph fs/ext2/inode.c
---- a/fs/ext2/inode.c~ext2-remove-xipc-and-xiph
+diff -puN fs/dax.c~daxext2-replace-xip_truncate_page-with-dax_truncate_page fs/dax.c
+--- a/fs/dax.c~daxext2-replace-xip_truncate_page-with-dax_truncate_page
++++ a/fs/dax.c
+@@ -458,3 +458,47 @@ int dax_fault(struct vm_area_struct *vma
+ 	return result;
+ }
+ EXPORT_SYMBOL_GPL(dax_fault);
++
++/**
++ * dax_truncate_page - handle a partial page being truncated in a DAX file
++ * @inode: The file being truncated
++ * @from: The file offset that is being truncated to
++ * @get_block: The filesystem method used to translate file offsets to blocks
++ *
++ * Similar to block_truncate_page(), this function can be called by a
++ * filesystem when it is truncating an DAX file to handle the partial page.
++ *
++ * We work in terms of PAGE_CACHE_SIZE here for commonality with
++ * block_truncate_page(), but we could go down to PAGE_SIZE if the filesystem
++ * took care of disposing of the unnecessary blocks.  Even if the filesystem
++ * block size is smaller than PAGE_SIZE, we have to zero the rest of the page
++ * since the file might be mmaped.
++ */
++int dax_truncate_page(struct inode *inode, loff_t from, get_block_t get_block)
++{
++	struct buffer_head bh;
++	pgoff_t index = from >> PAGE_CACHE_SHIFT;
++	unsigned offset = from & (PAGE_CACHE_SIZE-1);
++	unsigned length = PAGE_CACHE_ALIGN(from) - from;
++	int err;
++
++	/* Block boundary? Nothing to do */
++	if (!length)
++		return 0;
++
++	memset(&bh, 0, sizeof(bh));
++	bh.b_size = PAGE_CACHE_SIZE;
++	err = get_block(inode, index, &bh, 0);
++	if (err < 0)
++		return err;
++	if (buffer_written(&bh)) {
++		void *addr;
++		err = dax_get_addr(&bh, &addr, inode->i_blkbits);
++		if (err < 0)
++			return err;
++		memset(addr + offset, 0, length);
++	}
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(dax_truncate_page);
+diff -puN fs/ext2/inode.c~daxext2-replace-xip_truncate_page-with-dax_truncate_page fs/ext2/inode.c
+--- a/fs/ext2/inode.c~daxext2-replace-xip_truncate_page-with-dax_truncate_page
 +++ a/fs/ext2/inode.c
-@@ -34,7 +34,6 @@
- #include <linux/aio.h>
- #include "ext2.h"
- #include "acl.h"
--#include "xip.h"
- #include "xattr.h"
+@@ -1210,7 +1210,7 @@ static int ext2_setsize(struct inode *in
+ 	inode_dio_wait(inode);
  
- static int __ext2_write_inode(struct inode *inode, int do_sync);
-diff -puN fs/ext2/namei.c~ext2-remove-xipc-and-xiph fs/ext2/namei.c
---- a/fs/ext2/namei.c~ext2-remove-xipc-and-xiph
-+++ a/fs/ext2/namei.c
-@@ -35,7 +35,6 @@
- #include "ext2.h"
- #include "xattr.h"
- #include "acl.h"
--#include "xip.h"
+ 	if (IS_DAX(inode))
+-		error = xip_truncate_page(inode->i_mapping, newsize);
++		error = dax_truncate_page(inode, newsize, ext2_get_block);
+ 	else if (test_opt(inode->i_sb, NOBH))
+ 		error = nobh_truncate_page(inode->i_mapping,
+ 				newsize, ext2_get_block);
+diff -puN include/linux/fs.h~daxext2-replace-xip_truncate_page-with-dax_truncate_page include/linux/fs.h
+--- a/include/linux/fs.h~daxext2-replace-xip_truncate_page-with-dax_truncate_page
++++ a/include/linux/fs.h
+@@ -2537,18 +2537,10 @@ extern int nonseekable_open(struct inode
+ ssize_t dax_do_io(int rw, struct kiocb *, struct inode *, struct iov_iter *,
+ 		loff_t, get_block_t, dio_iodone_t, int flags);
+ int dax_clear_blocks(struct inode *, sector_t block, long size);
++int dax_truncate_page(struct inode *, loff_t from, get_block_t);
+ int dax_fault(struct vm_area_struct *, struct vm_fault *, get_block_t);
+ #define dax_mkwrite(vma, vmf, gb)	dax_fault(vma, vmf, gb)
  
- static inline int ext2_add_nondir(struct dentry *dentry, struct inode *inode)
- {
-diff -puN fs/ext2/super.c~ext2-remove-xipc-and-xiph fs/ext2/super.c
---- a/fs/ext2/super.c~ext2-remove-xipc-and-xiph
-+++ a/fs/ext2/super.c
-@@ -35,7 +35,6 @@
- #include "ext2.h"
- #include "xattr.h"
- #include "acl.h"
--#include "xip.h"
- 
- static void ext2_sync_super(struct super_block *sb,
- 			    struct ext2_super_block *es, int wait);
-diff -puN fs/ext2/xip.c~ext2-remove-xipc-and-xiph /dev/null
---- a/fs/ext2/xip.c
-+++ /dev/null
-@@ -1,15 +0,0 @@
--/*
-- *  linux/fs/ext2/xip.c
-- *
-- * Copyright (C) 2005 IBM Corporation
-- * Author: Carsten Otte (cotte@de.ibm.com)
-- */
--
--#include <linux/mm.h>
--#include <linux/fs.h>
--#include <linux/genhd.h>
--#include <linux/buffer_head.h>
--#include <linux/blkdev.h>
--#include "ext2.h"
--#include "xip.h"
--
-diff -puN fs/ext2/xip.h~ext2-remove-xipc-and-xiph /dev/null
---- a/fs/ext2/xip.h
-+++ /dev/null
-@@ -1,16 +0,0 @@
--/*
-- *  linux/fs/ext2/xip.h
-- *
-- * Copyright (C) 2005 IBM Corporation
-- * Author: Carsten Otte (cotte@de.ibm.com)
-- */
--
--#ifdef CONFIG_EXT2_FS_XIP
--static inline int ext2_use_xip (struct super_block *sb)
--{
--	struct ext2_sb_info *sbi = EXT2_SB(sb);
--	return (sbi->s_mount_opt & EXT2_MOUNT_XIP);
--}
+-#ifdef CONFIG_FS_XIP
+-extern int xip_truncate_page(struct address_space *mapping, loff_t from);
 -#else
--#define ext2_use_xip(sb)			0
+-static inline int xip_truncate_page(struct address_space *mapping, loff_t from)
+-{
+-	return 0;
+-}
 -#endif
+-
+ #ifdef CONFIG_BLOCK
+ typedef void (dio_submit_t)(int rw, struct bio *bio, struct inode *inode,
+ 			    loff_t file_offset);
+diff -puN mm/filemap_xip.c~daxext2-replace-xip_truncate_page-with-dax_truncate_page mm/filemap_xip.c
+--- a/mm/filemap_xip.c~daxext2-replace-xip_truncate_page-with-dax_truncate_page
++++ a/mm/filemap_xip.c
+@@ -21,43 +21,3 @@
+ #include <asm/tlbflush.h>
+ #include <asm/io.h>
+ 
+-/*
+- * truncate a page used for execute in place
+- * functionality is analog to block_truncate_page but does use get_xip_mem
+- * to get the page instead of page cache
+- */
+-int
+-xip_truncate_page(struct address_space *mapping, loff_t from)
+-{
+-	pgoff_t index = from >> PAGE_CACHE_SHIFT;
+-	unsigned offset = from & (PAGE_CACHE_SIZE-1);
+-	unsigned blocksize;
+-	unsigned length;
+-	void *xip_mem;
+-	unsigned long xip_pfn;
+-	int err;
+-
+-	BUG_ON(!mapping->a_ops->get_xip_mem);
+-
+-	blocksize = 1 << mapping->host->i_blkbits;
+-	length = offset & (blocksize - 1);
+-
+-	/* Block boundary? Nothing to do */
+-	if (!length)
+-		return 0;
+-
+-	length = blocksize - length;
+-
+-	err = mapping->a_ops->get_xip_mem(mapping, index, 0,
+-						&xip_mem, &xip_pfn);
+-	if (unlikely(err)) {
+-		if (err == -ENODATA)
+-			/* Hole? No need to truncate */
+-			return 0;
+-		else
+-			return err;
+-	}
+-	memset(xip_mem + offset, 0, length);
+-	return 0;
+-}
+-EXPORT_SYMBOL_GPL(xip_truncate_page);
 _
 
 Patches currently in -mm which might be from matthew.r.wilcox@intel.com are
