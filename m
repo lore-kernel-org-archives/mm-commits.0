@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + ext2-remove-ext2_xip_verify_sb.patch added to -mm tree
-Date: Mon, 12 Jan 2015 15:11:00 -0800
-Message-ID: <54b45484.zzVa9mLUjnoRppqs%akpm@linux-foundation.org>
+Subject: + ext2-remove-xipc-and-xiph.patch added to -mm tree
+Date: Mon, 12 Jan 2015 15:11:04 -0800
+Message-ID: <54b45488.Nxy4YM/tCfqr6mjf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36294 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36312 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753685AbbALXLC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jan 2015 18:11:02 -0500
+	with ESMTP id S1752911AbbALXLF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jan 2015 18:11:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: matthew.r.wilcox@intel.com, andreas.dilger@intel.com, axboe@kernel.dk, boaz@plexistor.com, david@fromorbit.com, hch@lst.de, jack@suse.cz, kirill.shutemov@linux.intel.com, mathieu.desnoyers@efficios.com, rdunlap@infradead.org, ross.zwisler@linux.intel.com, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ext2: remove ext2_xip_verify_sb()
+     Subject: ext2: remove xip.c and xip.h
 has been added to the -mm tree.  Its filename is
-     ext2-remove-ext2_xip_verify_sb.patch
+     ext2-remove-xipc-and-xiph.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ext2-remove-ext2_xip_verify_sb.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ext2-remove-xipc-and-xiph.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ext2-remove-ext2_xip_verify_sb.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ext2-remove-xipc-and-xiph.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,17 +39,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Subject: ext2: remove ext2_xip_verify_sb()
+Subject: ext2: remove xip.c and xip.h
 
-Jan Kara pointed out that calling ext2_xip_verify_sb() in ext2_remount()
-doesn't make sense, since changing the XIP option on remount isn't
-allowed.  It also doesn't make sense to re-check whether blocksize is
-supported since it can't change between mounts.
-
-Replace the call to ext2_xip_verify_sb() in ext2_fill_super() with the
-equivalent check and delete the definition.
+These files are now empty, so delete them
 
 Signed-off-by: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Reviewed-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 Cc: Andreas Dilger <andreas.dilger@intel.com>
 Cc: Boaz Harrosh <boaz@plexistor.com>
 Cc: Christoph Hellwig <hch@lst.de>
@@ -57,122 +52,100 @@ Cc: Dave Chinner <david@fromorbit.com>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Jens Axboe <axboe@kernel.dk>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/super.c |   33 ++++++++++++---------------------
- fs/ext2/xip.c   |   12 ------------
- fs/ext2/xip.h   |    2 --
- 3 files changed, 12 insertions(+), 35 deletions(-)
+ fs/ext2/Makefile |    1 -
+ fs/ext2/inode.c  |    1 -
+ fs/ext2/namei.c  |    1 -
+ fs/ext2/super.c  |    1 -
+ fs/ext2/xip.c    |   15 ---------------
+ fs/ext2/xip.h    |   16 ----------------
+ 6 files changed, 35 deletions(-)
 
-diff -puN fs/ext2/super.c~ext2-remove-ext2_xip_verify_sb fs/ext2/super.c
---- a/fs/ext2/super.c~ext2-remove-ext2_xip_verify_sb
-+++ a/fs/ext2/super.c
-@@ -877,9 +877,6 @@ static int ext2_fill_super(struct super_
- 		((EXT2_SB(sb)->s_mount_opt & EXT2_MOUNT_POSIX_ACL) ?
- 		 MS_POSIXACL : 0);
- 
--	ext2_xip_verify_sb(sb); /* see if bdev supports xip, unset
--				    EXT2_MOUNT_XIP if not */
--
- 	if (le32_to_cpu(es->s_rev_level) == EXT2_GOOD_OLD_REV &&
- 	    (EXT2_HAS_COMPAT_FEATURE(sb, ~0U) ||
- 	     EXT2_HAS_RO_COMPAT_FEATURE(sb, ~0U) ||
-@@ -909,11 +906,17 @@ static int ext2_fill_super(struct super_
- 
- 	blocksize = BLOCK_SIZE << le32_to_cpu(sbi->s_es->s_log_block_size);
- 
--	if (ext2_use_xip(sb) && blocksize != PAGE_SIZE) {
--		if (!silent)
-+	if (sbi->s_mount_opt & EXT2_MOUNT_XIP) {
-+		if (blocksize != PAGE_SIZE) {
- 			ext2_msg(sb, KERN_ERR,
--				"error: unsupported blocksize for xip");
--		goto failed_mount;
-+					"error: unsupported blocksize for xip");
-+			goto failed_mount;
-+		}
-+		if (!sb->s_bdev->bd_disk->fops->direct_access) {
-+			ext2_msg(sb, KERN_ERR,
-+					"error: device does not support xip");
-+			goto failed_mount;
-+		}
- 	}
- 
- 	/* If the blocksize doesn't match, re-read the thing.. */
-@@ -1259,7 +1262,6 @@ static int ext2_remount (struct super_bl
- {
- 	struct ext2_sb_info * sbi = EXT2_SB(sb);
- 	struct ext2_super_block * es;
--	unsigned long old_mount_opt = sbi->s_mount_opt;
- 	struct ext2_mount_options old_opts;
- 	unsigned long old_sb_flags;
- 	int err;
-@@ -1284,22 +1286,11 @@ static int ext2_remount (struct super_bl
- 	sb->s_flags = (sb->s_flags & ~MS_POSIXACL) |
- 		((sbi->s_mount_opt & EXT2_MOUNT_POSIX_ACL) ? MS_POSIXACL : 0);
- 
--	ext2_xip_verify_sb(sb); /* see if bdev supports xip, unset
--				    EXT2_MOUNT_XIP if not */
--
--	if ((ext2_use_xip(sb)) && (sb->s_blocksize != PAGE_SIZE)) {
--		ext2_msg(sb, KERN_WARNING,
--			"warning: unsupported blocksize for xip");
--		err = -EINVAL;
--		goto restore_opts;
--	}
--
- 	es = sbi->s_es;
--	if ((sbi->s_mount_opt ^ old_mount_opt) & EXT2_MOUNT_XIP) {
-+	if ((sbi->s_mount_opt ^ old_opts.s_mount_opt) & EXT2_MOUNT_XIP) {
- 		ext2_msg(sb, KERN_WARNING, "warning: refusing change of "
- 			 "xip flag with busy inodes while remounting");
--		sbi->s_mount_opt &= ~EXT2_MOUNT_XIP;
--		sbi->s_mount_opt |= old_mount_opt & EXT2_MOUNT_XIP;
-+		sbi->s_mount_opt ^= EXT2_MOUNT_XIP;
- 	}
- 	if ((*flags & MS_RDONLY) == (sb->s_flags & MS_RDONLY)) {
- 		spin_unlock(&sbi->s_lock);
-diff -puN fs/ext2/xip.c~ext2-remove-ext2_xip_verify_sb fs/ext2/xip.c
---- a/fs/ext2/xip.c~ext2-remove-ext2_xip_verify_sb
-+++ a/fs/ext2/xip.c
-@@ -13,15 +13,3 @@
+diff -puN fs/ext2/Makefile~ext2-remove-xipc-and-xiph fs/ext2/Makefile
+--- a/fs/ext2/Makefile~ext2-remove-xipc-and-xiph
++++ a/fs/ext2/Makefile
+@@ -10,4 +10,3 @@ ext2-y := balloc.o dir.o file.o ialloc.o
+ ext2-$(CONFIG_EXT2_FS_XATTR)	 += xattr.o xattr_user.o xattr_trusted.o
+ ext2-$(CONFIG_EXT2_FS_POSIX_ACL) += acl.o
+ ext2-$(CONFIG_EXT2_FS_SECURITY)	 += xattr_security.o
+-ext2-$(CONFIG_EXT2_FS_XIP)	 += xip.o
+diff -puN fs/ext2/inode.c~ext2-remove-xipc-and-xiph fs/ext2/inode.c
+--- a/fs/ext2/inode.c~ext2-remove-xipc-and-xiph
++++ a/fs/ext2/inode.c
+@@ -34,7 +34,6 @@
+ #include <linux/aio.h>
  #include "ext2.h"
- #include "xip.h"
+ #include "acl.h"
+-#include "xip.h"
+ #include "xattr.h"
  
--void ext2_xip_verify_sb(struct super_block *sb)
+ static int __ext2_write_inode(struct inode *inode, int do_sync);
+diff -puN fs/ext2/namei.c~ext2-remove-xipc-and-xiph fs/ext2/namei.c
+--- a/fs/ext2/namei.c~ext2-remove-xipc-and-xiph
++++ a/fs/ext2/namei.c
+@@ -35,7 +35,6 @@
+ #include "ext2.h"
+ #include "xattr.h"
+ #include "acl.h"
+-#include "xip.h"
+ 
+ static inline int ext2_add_nondir(struct dentry *dentry, struct inode *inode)
+ {
+diff -puN fs/ext2/super.c~ext2-remove-xipc-and-xiph fs/ext2/super.c
+--- a/fs/ext2/super.c~ext2-remove-xipc-and-xiph
++++ a/fs/ext2/super.c
+@@ -35,7 +35,6 @@
+ #include "ext2.h"
+ #include "xattr.h"
+ #include "acl.h"
+-#include "xip.h"
+ 
+ static void ext2_sync_super(struct super_block *sb,
+ 			    struct ext2_super_block *es, int wait);
+diff -puN fs/ext2/xip.c~ext2-remove-xipc-and-xiph /dev/null
+--- a/fs/ext2/xip.c
++++ /dev/null
+@@ -1,15 +0,0 @@
+-/*
+- *  linux/fs/ext2/xip.c
+- *
+- * Copyright (C) 2005 IBM Corporation
+- * Author: Carsten Otte (cotte@de.ibm.com)
+- */
+-
+-#include <linux/mm.h>
+-#include <linux/fs.h>
+-#include <linux/genhd.h>
+-#include <linux/buffer_head.h>
+-#include <linux/blkdev.h>
+-#include "ext2.h"
+-#include "xip.h"
+-
+diff -puN fs/ext2/xip.h~ext2-remove-xipc-and-xiph /dev/null
+--- a/fs/ext2/xip.h
++++ /dev/null
+@@ -1,16 +0,0 @@
+-/*
+- *  linux/fs/ext2/xip.h
+- *
+- * Copyright (C) 2005 IBM Corporation
+- * Author: Carsten Otte (cotte@de.ibm.com)
+- */
+-
+-#ifdef CONFIG_EXT2_FS_XIP
+-static inline int ext2_use_xip (struct super_block *sb)
 -{
 -	struct ext2_sb_info *sbi = EXT2_SB(sb);
--
--	if ((sbi->s_mount_opt & EXT2_MOUNT_XIP) &&
--	    !sb->s_bdev->bd_disk->fops->direct_access) {
--		sbi->s_mount_opt &= (~EXT2_MOUNT_XIP);
--		ext2_msg(sb, KERN_WARNING,
--			     "warning: ignoring xip option - "
--			     "not supported by bdev");
--	}
+-	return (sbi->s_mount_opt & EXT2_MOUNT_XIP);
 -}
-diff -puN fs/ext2/xip.h~ext2-remove-ext2_xip_verify_sb fs/ext2/xip.h
---- a/fs/ext2/xip.h~ext2-remove-ext2_xip_verify_sb
-+++ a/fs/ext2/xip.h
-@@ -6,13 +6,11 @@
-  */
- 
- #ifdef CONFIG_EXT2_FS_XIP
--extern void ext2_xip_verify_sb (struct super_block *);
- static inline int ext2_use_xip (struct super_block *sb)
- {
- 	struct ext2_sb_info *sbi = EXT2_SB(sb);
- 	return (sbi->s_mount_opt & EXT2_MOUNT_XIP);
- }
- #else
--#define ext2_xip_verify_sb(sb)			do { } while (0)
- #define ext2_use_xip(sb)			0
- #endif
+-#else
+-#define ext2_use_xip(sb)			0
+-#endif
 _
 
 Patches currently in -mm which might be from matthew.r.wilcox@intel.com are
