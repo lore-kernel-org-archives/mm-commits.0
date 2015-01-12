@@ -1,191 +1,124 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- ocfs2-fix-the-wrong-directory-passed-to-ocfs2_lookup_ino_from_name-when-link-file.patch removed from -mm tree
-Date: Mon, 12 Jan 2015 11:33:20 -0800
-Message-ID: <54b42180.JFGUsRh1VGMGlPf1%akpm@linux-foundation.org>
+ mm-memcontrol-switch-soft-limit-default-back-to-infinity.patch removed from -mm tree
+Date: Mon, 12 Jan 2015 11:33:27 -0800
+Message-ID: <54b42187.gmBufOrDjoOE4obD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33726 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33753 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753463AbbALTdV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jan 2015 14:33:21 -0500
+	with ESMTP id S1752748AbbALTd2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jan 2015 14:33:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xuejiufei@huawei.com, aron@ubit.hu, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, mhocko@suse.cz, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix the wrong directory passed to ocfs2_lookup_ino_from_name() when link file
+     Subject: mm: memcontrol: switch soft limit default back to infinity
 has been removed from the -mm tree.  Its filename was
-     ocfs2-fix-the-wrong-directory-passed-to-ocfs2_lookup_ino_from_name-when-link-file.patch
+     mm-memcontrol-switch-soft-limit-default-back-to-infinity.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Xue jiufei <xuejiufei@huawei.com>
-Subject: ocfs2: fix the wrong directory passed to ocfs2_lookup_ino_from_name() when link file
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memcontrol: switch soft limit default back to infinity
 
-In ocfs2_link(), parent directory inode passed to function
-ocfs2_lookup_ino_from_name() is wrong.  Parameter dir is the parent of
-new_dentry not old_dentry.  We should get old_dir from old_dentry and
-lookup old_dentry in old_dir in case another node remove the old dentry.
+3e32cb2e0a12 ("mm: memcontrol: lockless page counters") accidentally
+switched the soft limit default from infinity to zero, which turns all
+memcgs with even a single page into soft limit excessors and engages soft
+limit reclaim on all of them during global memory pressure.  This makes
+global reclaim generally more aggressive, but also inverts the meaning of
+existing soft limit configurations where unset soft limits are usually
+more generous than set ones.
 
-With this change, hard linking works again, when paths are relative with
-at least one subdirectory.  This is how the problem was reproducable:
-
-# mkdir a
-# mkdir b
-# touch a/test
-# ln a/test b/test
-ln: failed to create hard link `b/test' => `a/test': No such file or 
-directory
-
-However when creating links in the same dir, it worked well.
-
-Now the link gets created.
-
-Fixes: 0e048316ff57 ("ocfs2: check existence of old dentry in ocfs2_link()")
-Signed-off-by: joyce.xue <xuejiufei@huawei.com>
-Reported-by: Szabo Aron - UBIT <aron@ubit.hu>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Tested-by: Aron Szabo <aron@ubit.hu>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: Vladimir Davydov <vdavydov@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/namei.c |   43 +++++++++++++++++++++++++++++++++++--------
- 1 file changed, 35 insertions(+), 8 deletions(-)
+ mm/memcontrol.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/namei.c~ocfs2-fix-the-wrong-directory-passed-to-ocfs2_lookup_ino_from_name-when-link-file fs/ocfs2/namei.c
---- a/fs/ocfs2/namei.c~ocfs2-fix-the-wrong-directory-passed-to-ocfs2_lookup_ino_from_name-when-link-file
-+++ a/fs/ocfs2/namei.c
-@@ -94,6 +94,14 @@ static int ocfs2_create_symlink_data(str
- 				     struct inode *inode,
- 				     const char *symname);
- 
-+static int ocfs2_double_lock(struct ocfs2_super *osb,
-+			     struct buffer_head **bh1,
-+			     struct inode *inode1,
-+			     struct buffer_head **bh2,
-+			     struct inode *inode2,
-+			     int rename);
-+
-+static void ocfs2_double_unlock(struct inode *inode1, struct inode *inode2);
- /* An orphan dir name is an 8 byte value, printed as a hex string */
- #define OCFS2_ORPHAN_NAMELEN ((int)(2 * sizeof(u64)))
- 
-@@ -678,8 +686,10 @@ static int ocfs2_link(struct dentry *old
- {
- 	handle_t *handle;
- 	struct inode *inode = old_dentry->d_inode;
-+	struct inode *old_dir = old_dentry->d_parent->d_inode;
- 	int err;
- 	struct buffer_head *fe_bh = NULL;
-+	struct buffer_head *old_dir_bh = NULL;
- 	struct buffer_head *parent_fe_bh = NULL;
- 	struct ocfs2_dinode *fe = NULL;
- 	struct ocfs2_super *osb = OCFS2_SB(dir->i_sb);
-@@ -696,19 +706,33 @@ static int ocfs2_link(struct dentry *old
- 
- 	dquot_initialize(dir);
- 
--	err = ocfs2_inode_lock_nested(dir, &parent_fe_bh, 1, OI_LS_PARENT);
-+	err = ocfs2_double_lock(osb, &old_dir_bh, old_dir,
-+			&parent_fe_bh, dir, 0);
- 	if (err < 0) {
- 		if (err != -ENOENT)
- 			mlog_errno(err);
- 		return err;
+diff -puN mm/memcontrol.c~mm-memcontrol-switch-soft-limit-default-back-to-infinity mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-switch-soft-limit-default-back-to-infinity
++++ a/mm/memcontrol.c
+@@ -4679,6 +4679,7 @@ mem_cgroup_css_alloc(struct cgroup_subsy
+ 	if (parent_css == NULL) {
+ 		root_mem_cgroup = memcg;
+ 		page_counter_init(&memcg->memory, NULL);
++		memcg->soft_limit = PAGE_COUNTER_MAX;
+ 		page_counter_init(&memcg->memsw, NULL);
+ 		page_counter_init(&memcg->kmem, NULL);
  	}
+@@ -4724,6 +4725,7 @@ mem_cgroup_css_online(struct cgroup_subs
  
-+	/* make sure both dirs have bhs
-+	 * get an extra ref on old_dir_bh if old==new */
-+	if (!parent_fe_bh) {
-+		if (old_dir_bh) {
-+			parent_fe_bh = old_dir_bh;
-+			get_bh(parent_fe_bh);
-+		} else {
-+			mlog(ML_ERROR, "%s: no old_dir_bh!\n", osb->uuid_str);
-+			err = -EIO;
-+			goto out;
-+		}
-+	}
-+
- 	if (!dir->i_nlink) {
- 		err = -ENOENT;
- 		goto out;
- 	}
+ 	if (parent->use_hierarchy) {
+ 		page_counter_init(&memcg->memory, &parent->memory);
++		memcg->soft_limit = PAGE_COUNTER_MAX;
+ 		page_counter_init(&memcg->memsw, &parent->memsw);
+ 		page_counter_init(&memcg->kmem, &parent->kmem);
  
--	err = ocfs2_lookup_ino_from_name(dir, old_dentry->d_name.name,
-+	err = ocfs2_lookup_ino_from_name(old_dir, old_dentry->d_name.name,
- 			old_dentry->d_name.len, &old_de_ino);
- 	if (err) {
- 		err = -ENOENT;
-@@ -801,10 +825,11 @@ out_unlock_inode:
- 	ocfs2_inode_unlock(inode, 1);
- 
- out:
--	ocfs2_inode_unlock(dir, 1);
-+	ocfs2_double_unlock(old_dir, dir);
- 
- 	brelse(fe_bh);
- 	brelse(parent_fe_bh);
-+	brelse(old_dir_bh);
- 
- 	ocfs2_free_dir_lookup_result(&lookup);
- 
-@@ -1072,14 +1097,15 @@ static int ocfs2_check_if_ancestor(struc
+@@ -4733,6 +4735,7 @@ mem_cgroup_css_online(struct cgroup_subs
+ 		 */
+ 	} else {
+ 		page_counter_init(&memcg->memory, NULL);
++		memcg->soft_limit = PAGE_COUNTER_MAX;
+ 		page_counter_init(&memcg->memsw, NULL);
+ 		page_counter_init(&memcg->kmem, NULL);
+ 		/*
+@@ -4807,7 +4810,7 @@ static void mem_cgroup_css_reset(struct
+ 	mem_cgroup_resize_limit(memcg, PAGE_COUNTER_MAX);
+ 	mem_cgroup_resize_memsw_limit(memcg, PAGE_COUNTER_MAX);
+ 	memcg_update_kmem_limit(memcg, PAGE_COUNTER_MAX);
+-	memcg->soft_limit = 0;
++	memcg->soft_limit = PAGE_COUNTER_MAX;
  }
  
- /*
-- * The only place this should be used is rename!
-+ * The only place this should be used is rename and link!
-  * if they have the same id, then the 1st one is the only one locked.
-  */
- static int ocfs2_double_lock(struct ocfs2_super *osb,
- 			     struct buffer_head **bh1,
- 			     struct inode *inode1,
- 			     struct buffer_head **bh2,
--			     struct inode *inode2)
-+			     struct inode *inode2,
-+			     int rename)
- {
- 	int status;
- 	int inode1_is_ancestor, inode2_is_ancestor;
-@@ -1127,7 +1153,7 @@ static int ocfs2_double_lock(struct ocfs
- 		}
- 		/* lock id2 */
- 		status = ocfs2_inode_lock_nested(inode2, bh2, 1,
--						 OI_LS_RENAME1);
-+				rename == 1 ? OI_LS_RENAME1 : OI_LS_PARENT);
- 		if (status < 0) {
- 			if (status != -ENOENT)
- 				mlog_errno(status);
-@@ -1136,7 +1162,8 @@ static int ocfs2_double_lock(struct ocfs
- 	}
- 
- 	/* lock id1 */
--	status = ocfs2_inode_lock_nested(inode1, bh1, 1, OI_LS_RENAME2);
-+	status = ocfs2_inode_lock_nested(inode1, bh1, 1,
-+			rename == 1 ?  OI_LS_RENAME2 : OI_LS_PARENT);
- 	if (status < 0) {
- 		/*
- 		 * An error return must mean that no cluster locks
-@@ -1252,7 +1279,7 @@ static int ocfs2_rename(struct inode *ol
- 
- 	/* if old and new are the same, this'll just do one lock. */
- 	status = ocfs2_double_lock(osb, &old_dir_bh, old_dir,
--				   &new_dir_bh, new_dir);
-+				   &new_dir_bh, new_dir, 1);
- 	if (status < 0) {
- 		mlog_errno(status);
- 		goto bail;
+ #ifdef CONFIG_MMU
 _
 
-Patches currently in -mm which might be from xuejiufei@huawei.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-ocfs2-dlm-add-missing-dlm_lock_put-when-recovery-master-down.patch
+mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath.patch
+mm-memory-remove-vm_file-check-on-shared-writable-vmas.patch
+mm-memory-merge-shared-writable-dirtying-branches-in-do_wp_page.patch
+mm-page_alloc-place-zone_id-check-before-vm_bug_on_page-check.patch
+memcg-zap-__memcg_chargeuncharge_slab.patch
+memcg-zap-memcg_name-argument-of-memcg_create_kmem_cache.patch
+memcg-zap-memcg_slab_caches-and-memcg_slab_mutex.patch
+mm-add-fields-for-compound-destructor-and-order-into-struct-page.patch
+swap-remove-unused-mem_cgroup_uncharge_swapcache-declaration.patch
+mm-memcontrol-track-move_lock-state-internally.patch
+mm-memcontrol-track-move_lock-state-internally-fix.patch
+mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
+mm-vmscan-wake-up-all-pfmemalloc-throttled-processes-at-once.patch
+mm-hugetlb-reduce-arch-dependent-code-around-follow_huge_.patch
+mm-hugetlb-pmd_huge-returns-true-for-non-present-hugepage.patch
+mm-hugetlb-take-page-table-lock-in-follow_huge_pmd.patch
+mm-hugetlb-fix-getting-refcount-0-page-in-hugetlb_fault.patch
+mm-hugetlb-add-migration-hwpoisoned-entry-check-in-hugetlb_change_protection.patch
+mm-hugetlb-add-migration-entry-check-in-__unmap_hugepage_range.patch
+mm-hugetlb-fix-suboptimal-migration-hwpoisoned-entry-check.patch
+mm-hugetlb-cleanup-and-rename-is_hugetlb_entry_migrationhwpoisoned.patch
+mm-set-page-pfmemalloc-in-prep_new_page.patch
+mm-page_alloc-reduce-number-of-alloc_pages-functions-parameters.patch
+mm-reduce-try_to_compact_pages-parameters.patch
+mm-microoptimize-zonelist-operations.patch
+list_lru-introduce-list_lru_shrink_countwalk.patch
+fs-consolidate-nrfree_cached_objects-args-in-shrink_control.patch
+vmscan-per-memory-cgroup-slab-shrinkers.patch
+memcg-rename-some-cache-id-related-variables.patch
+memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation.patch
+list_lru-get-rid-of-active_nodes.patch
+list_lru-organize-all-list_lrus-to-list.patch
+list_lru-introduce-per-memcg-lists.patch
+fs-make-shrinker-memcg-aware.patch
+vmscan-force-scan-offline-memory-cgroups.patch
+fs-proc-task_mmu-show-page-size-in-proc-pid-numa_maps.patch
 
