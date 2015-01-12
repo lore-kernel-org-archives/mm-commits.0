@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + linux-typesh-always-use-unsigned-long-for-pgoff_t.patch added
- to -mm tree
-Date: Mon, 12 Jan 2015 12:42:52 -0800
-Message-ID: <54b431cc.+CIo9/mn2KjN+BdH%akpm@linux-foundation.org>
+Subject: + memcg-add-build_bug_on-for-string-tables.patch added to -mm
+ tree
+Date: Mon, 12 Jan 2015 12:43:52 -0800
+Message-ID: <54b43208.+EvYoGUhEnAXGJy2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34548 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34662 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751996AbbALUmx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jan 2015 15:42:53 -0500
+	with ESMTP id S1752247AbbALUnx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jan 2015 15:43:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geert@linux-m68k.org, arnd@arndb.de, rdunlap@infradead.org, mm-commits@vger.kernel.org
+To: gthelen@google.com, hannes@cmpxchg.org, mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux/types.h: Always use unsigned long for pgoff_t
+     Subject: memcg: add BUILD_BUG_ON() for string tables
 has been added to the -mm tree.  Its filename is
-     linux-typesh-always-use-unsigned-long-for-pgoff_t.patch
+     memcg-add-build_bug_on-for-string-tables.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-typesh-always-use-unsigned-long-for-pgoff_t.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-add-build_bug_on-for-string-tables.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-typesh-always-use-unsigned-long-for-pgoff_t.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-add-build_bug_on-for-string-tables.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,46 +39,48 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: linux/types.h: Always use unsigned long for pgoff_t
+From: Greg Thelen <gthelen@google.com>
+Subject: memcg: add BUILD_BUG_ON() for string tables
 
-Everybody uses unsigned long for pgoff_t, and no ever overrode the
-definition of pgoff_t.  Keep it that way, and remove the option of
-overriding it.
+Use BUILD_BUG_ON() to compile assert that memcg string tables are in sync
+with corresponding enums.  There aren't currently any issues with these
+tables.  This is just defensive.
 
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Greg Thelen <gthelen@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/types.h |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ mm/memcontrol.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN include/linux/types.h~linux-typesh-always-use-unsigned-long-for-pgoff_t include/linux/types.h
---- a/include/linux/types.h~linux-typesh-always-use-unsigned-long-for-pgoff_t
-+++ a/include/linux/types.h
-@@ -135,12 +135,9 @@ typedef unsigned long blkcnt_t;
- #endif
+diff -puN mm/memcontrol.c~memcg-add-build_bug_on-for-string-tables mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-add-build_bug_on-for-string-tables
++++ a/mm/memcontrol.c
+@@ -3596,6 +3596,10 @@ static int memcg_stat_show(struct seq_fi
+ 	struct mem_cgroup *mi;
+ 	unsigned int i;
  
- /*
-- * The type of an index into the pagecache.  Use a #define so asm/types.h
-- * can override it.
-+ * The type of an index into the pagecache.
-  */
--#ifndef pgoff_t
- #define pgoff_t unsigned long
--#endif
++	BUILD_BUG_ON(ARRAY_SIZE(mem_cgroup_stat_names) !=
++		     MEM_CGROUP_STAT_NSTATS);
++	BUILD_BUG_ON(ARRAY_SIZE(mem_cgroup_events_names) !=
++		     MEM_CGROUP_EVENTS_NSTATS);
+ 	BUILD_BUG_ON(ARRAY_SIZE(mem_cgroup_lru_names) != NR_LRU_LISTS);
  
- /* A dma_addr_t can hold any valid DMA or bus address for the platform */
- #ifdef CONFIG_ARCH_DMA_ADDR_T_64BIT
+ 	for (i = 0; i < MEM_CGROUP_STAT_NSTATS; i++) {
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from gthelen@google.com are
 
-m68k-drop-_page_file-and-pte_file-related-helpers.patch
-all-arches-signal-move-restart_block-to-struct-task_struct.patch
-linux-typesh-always-use-unsigned-long-for-pgoff_t.patch
-fs-affs-fix-casting-in-printed-messages.patch
-linux-next.patch
+list_lru-introduce-list_lru_shrink_countwalk.patch
+fs-consolidate-nrfree_cached_objects-args-in-shrink_control.patch
+vmscan-per-memory-cgroup-slab-shrinkers.patch
+memcg-rename-some-cache-id-related-variables.patch
+memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation.patch
+list_lru-get-rid-of-active_nodes.patch
+list_lru-organize-all-list_lrus-to-list.patch
+list_lru-introduce-per-memcg-lists.patch
+fs-make-shrinker-memcg-aware.patch
+memcg-add-build_bug_on-for-string-tables.patch
 
