@@ -1,87 +1,230 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- memcg-fix-destination-cgroup-leak-on-task-charges-migration.patch removed
- from -mm tree
-Date: Mon, 12 Jan 2015 11:33:29 -0800
-Message-ID: <54b42189.IjGxF/AEf+eDf/j0%akpm@linux-foundation.org>
+Subject: [merged] mm-protect-set_page_dirty-from-ongoing-truncation.patch
+ removed from -mm tree
+Date: Mon, 12 Jan 2015 11:33:16 -0800
+Message-ID: <54b4217c.+wc9DRnJb1mkm7jO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33757 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33719 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754134AbbALTda (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jan 2015 14:33:30 -0500
+	with ESMTP id S1754089AbbALTdR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jan 2015 14:33:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@parallels.com, hannes@cmpxchg.org, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, jack@suse.cz, kirill.shutemov@linux.intel.com, stable@vger.kernel.org, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: fix destination cgroup leak on task charges migration
+     Subject: mm: protect set_page_dirty() from ongoing truncation
 has been removed from the -mm tree.  Its filename was
-     memcg-fix-destination-cgroup-leak-on-task-charges-migration.patch
+     mm-protect-set_page_dirty-from-ongoing-truncation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: memcg: fix destination cgroup leak on task charges migration
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: protect set_page_dirty() from ongoing truncation
 
-We are supposed to take one css reference per each memory page and per
-each swap entry accounted to a memory cgroup.  However, during task
-charges migration we take a reference to the destination cgroup twice per
-each swap entry: first in mem_cgroup_do_precharge()->try_charge() and then
-in mem_cgroup_move_swap_account(), permanently leaking the destination
-cgroup.
+Tejun, while reviewing the code, spotted the following race condition
+between the dirtying and truncation of a page:
 
-The hunk taking the second reference seems to be a leftover from the
-pre-00501b531c472 ("mm: memcontrol: rewrite charge API") era.  Remove it
-to fix the leak.
+__set_page_dirty_nobuffers()       __delete_from_page_cache()
+  if (TestSetPageDirty(page))
+                                     page->mapping = NULL
+				     if (PageDirty())
+				       dec_zone_page_state(page, NR_FILE_DIRTY);
+				       dec_bdi_stat(mapping->backing_dev_info, BDI_RECLAIMABLE);
+    if (page->mapping)
+      account_page_dirtied(page)
+        __inc_zone_page_state(page, NR_FILE_DIRTY);
+	__inc_bdi_stat(mapping->backing_dev_info, BDI_RECLAIMABLE);
 
-Fixes: e8ea14cc6ead (mm: memcontrol: take a css reference for each charged page)
-Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.cz>
+which results in an imbalance of NR_FILE_DIRTY and BDI_RECLAIMABLE.
+
+Dirtiers usually lock out truncation, either by holding the page lock
+directly, or in case of zap_pte_range(), by pinning the mapcount with the
+page table lock held.  The notable exception to this rule, though, is
+do_wp_page(), for which this race exists.  However, do_wp_page() already
+waits for a locked page to unlock before setting the dirty bit, in order
+to prevent a race where clear_page_dirty() misses the page bit in the
+presence of dirty ptes.  Upgrade that wait to a fully locked
+set_page_dirty() to also cover the situation explained above.
+
+Afterwards, the code in set_page_dirty() dealing with a truncation race is
+no longer needed.  Remove it.
+
+Reported-by: Tejun Heo <tj@kernel.org>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   12 ------------
- 1 file changed, 12 deletions(-)
+ include/linux/writeback.h |    1 
+ mm/memory.c               |   27 ++++++++++++++--------
+ mm/page-writeback.c       |   43 ++++++++++--------------------------
+ 3 files changed, 29 insertions(+), 42 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-fix-destination-cgroup-leak-on-task-charges-migration mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-destination-cgroup-leak-on-task-charges-migration
-+++ a/mm/memcontrol.c
-@@ -3043,18 +3043,6 @@ static int mem_cgroup_move_swap_account(
- 	if (swap_cgroup_cmpxchg(entry, old_id, new_id) == old_id) {
- 		mem_cgroup_swap_statistics(from, false);
- 		mem_cgroup_swap_statistics(to, true);
+diff -puN include/linux/writeback.h~mm-protect-set_page_dirty-from-ongoing-truncation include/linux/writeback.h
+--- a/include/linux/writeback.h~mm-protect-set_page_dirty-from-ongoing-truncation
++++ a/include/linux/writeback.h
+@@ -177,7 +177,6 @@ int write_cache_pages(struct address_spa
+ 		      struct writeback_control *wbc, writepage_t writepage,
+ 		      void *data);
+ int do_writepages(struct address_space *mapping, struct writeback_control *wbc);
+-void set_page_dirty_balance(struct page *page);
+ void writeback_set_ratelimit(void);
+ void tag_pages_for_writeback(struct address_space *mapping,
+ 			     pgoff_t start, pgoff_t end);
+diff -puN mm/memory.c~mm-protect-set_page_dirty-from-ongoing-truncation mm/memory.c
+--- a/mm/memory.c~mm-protect-set_page_dirty-from-ongoing-truncation
++++ a/mm/memory.c
+@@ -2137,17 +2137,24 @@ reuse:
+ 		if (!dirty_page)
+ 			return ret;
+ 
 -		/*
--		 * This function is only called from task migration context now.
--		 * It postpones page_counter and refcount handling till the end
--		 * of task migration(mem_cgroup_clear_mc()) for performance
--		 * improvement. But we cannot postpone css_get(to)  because if
--		 * the process that has been moved to @to does swap-in, the
--		 * refcount of @to might be decreased to 0.
+-		 * Yes, Virginia, this is actually required to prevent a race
+-		 * with clear_page_dirty_for_io() from clearing the page dirty
+-		 * bit after it clear all dirty ptes, but before a racing
+-		 * do_wp_page installs a dirty pte.
 -		 *
--		 * We are in attach() phase, so the cgroup is guaranteed to be
--		 * alive, so we can just call css_get().
+-		 * do_shared_fault is protected similarly.
 -		 */
--		css_get(&to->css);
- 		return 0;
- 	}
- 	return -EINVAL;
+ 		if (!page_mkwrite) {
+-			wait_on_page_locked(dirty_page);
+-			set_page_dirty_balance(dirty_page);
++			struct address_space *mapping;
++			int dirtied;
++
++			lock_page(dirty_page);
++			dirtied = set_page_dirty(dirty_page);
++			VM_BUG_ON_PAGE(PageAnon(dirty_page), dirty_page);
++			mapping = dirty_page->mapping;
++			unlock_page(dirty_page);
++
++			if (dirtied && mapping) {
++				/*
++				 * Some device drivers do not set page.mapping
++				 * but still dirty their pages
++				 */
++				balance_dirty_pages_ratelimited(mapping);
++			}
++
+ 			/* file_update_time outside page_lock */
+ 			if (vma->vm_file)
+ 				file_update_time(vma->vm_file);
+diff -puN mm/page-writeback.c~mm-protect-set_page_dirty-from-ongoing-truncation mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-protect-set_page_dirty-from-ongoing-truncation
++++ a/mm/page-writeback.c
+@@ -1541,16 +1541,6 @@ pause:
+ 		bdi_start_background_writeback(bdi);
+ }
+ 
+-void set_page_dirty_balance(struct page *page)
+-{
+-	if (set_page_dirty(page)) {
+-		struct address_space *mapping = page_mapping(page);
+-
+-		if (mapping)
+-			balance_dirty_pages_ratelimited(mapping);
+-	}
+-}
+-
+ static DEFINE_PER_CPU(int, bdp_ratelimits);
+ 
+ /*
+@@ -2123,32 +2113,25 @@ EXPORT_SYMBOL(account_page_dirtied);
+  * page dirty in that case, but not all the buffers.  This is a "bottom-up"
+  * dirtying, whereas __set_page_dirty_buffers() is a "top-down" dirtying.
+  *
+- * Most callers have locked the page, which pins the address_space in memory.
+- * But zap_pte_range() does not lock the page, however in that case the
+- * mapping is pinned by the vma's ->vm_file reference.
+- *
+- * We take care to handle the case where the page was truncated from the
+- * mapping by re-checking page_mapping() inside tree_lock.
++ * The caller must ensure this doesn't race with truncation.  Most will simply
++ * hold the page lock, but e.g. zap_pte_range() calls with the page mapped and
++ * the pte lock held, which also locks out truncation.
+  */
+ int __set_page_dirty_nobuffers(struct page *page)
+ {
+ 	if (!TestSetPageDirty(page)) {
+ 		struct address_space *mapping = page_mapping(page);
+-		struct address_space *mapping2;
+ 		unsigned long flags;
+ 
+ 		if (!mapping)
+ 			return 1;
+ 
+ 		spin_lock_irqsave(&mapping->tree_lock, flags);
+-		mapping2 = page_mapping(page);
+-		if (mapping2) { /* Race with truncate? */
+-			BUG_ON(mapping2 != mapping);
+-			WARN_ON_ONCE(!PagePrivate(page) && !PageUptodate(page));
+-			account_page_dirtied(page, mapping);
+-			radix_tree_tag_set(&mapping->page_tree,
+-				page_index(page), PAGECACHE_TAG_DIRTY);
+-		}
++		BUG_ON(page_mapping(page) != mapping);
++		WARN_ON_ONCE(!PagePrivate(page) && !PageUptodate(page));
++		account_page_dirtied(page, mapping);
++		radix_tree_tag_set(&mapping->page_tree, page_index(page),
++				   PAGECACHE_TAG_DIRTY);
+ 		spin_unlock_irqrestore(&mapping->tree_lock, flags);
+ 		if (mapping->host) {
+ 			/* !PageAnon && !swapper_space */
+@@ -2305,12 +2288,10 @@ int clear_page_dirty_for_io(struct page
+ 		/*
+ 		 * We carefully synchronise fault handlers against
+ 		 * installing a dirty pte and marking the page dirty
+-		 * at this point. We do this by having them hold the
+-		 * page lock at some point after installing their
+-		 * pte, but before marking the page dirty.
+-		 * Pages are always locked coming in here, so we get
+-		 * the desired exclusion. See mm/memory.c:do_wp_page()
+-		 * for more comments.
++		 * at this point.  We do this by having them hold the
++		 * page lock while dirtying the page, and pages are
++		 * always locked coming in here, so we get the desired
++		 * exclusion.
+ 		 */
+ 		if (TestClearPageDirty(page)) {
+ 			dec_zone_page_state(page, NR_FILE_DIRTY);
 _
 
-Patches currently in -mm which might be from vdavydov@parallels.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
+mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath.patch
+mm-memory-remove-vm_file-check-on-shared-writable-vmas.patch
+mm-memory-merge-shared-writable-dirtying-branches-in-do_wp_page.patch
+mm-page_alloc-place-zone_id-check-before-vm_bug_on_page-check.patch
 memcg-zap-__memcg_chargeuncharge_slab.patch
 memcg-zap-memcg_name-argument-of-memcg_create_kmem_cache.patch
 memcg-zap-memcg_slab_caches-and-memcg_slab_mutex.patch
+mm-add-fields-for-compound-destructor-and-order-into-struct-page.patch
 swap-remove-unused-mem_cgroup_uncharge_swapcache-declaration.patch
 mm-memcontrol-track-move_lock-state-internally.patch
+mm-memcontrol-track-move_lock-state-internally-fix.patch
+mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
 mm-vmscan-wake-up-all-pfmemalloc-throttled-processes-at-once.patch
+mm-hugetlb-reduce-arch-dependent-code-around-follow_huge_.patch
+mm-hugetlb-pmd_huge-returns-true-for-non-present-hugepage.patch
+mm-hugetlb-take-page-table-lock-in-follow_huge_pmd.patch
+mm-hugetlb-fix-getting-refcount-0-page-in-hugetlb_fault.patch
+mm-hugetlb-add-migration-hwpoisoned-entry-check-in-hugetlb_change_protection.patch
+mm-hugetlb-add-migration-entry-check-in-__unmap_hugepage_range.patch
+mm-hugetlb-fix-suboptimal-migration-hwpoisoned-entry-check.patch
+mm-hugetlb-cleanup-and-rename-is_hugetlb_entry_migrationhwpoisoned.patch
+mm-set-page-pfmemalloc-in-prep_new_page.patch
+mm-page_alloc-reduce-number-of-alloc_pages-functions-parameters.patch
+mm-reduce-try_to_compact_pages-parameters.patch
+mm-microoptimize-zonelist-operations.patch
 list_lru-introduce-list_lru_shrink_countwalk.patch
 fs-consolidate-nrfree_cached_objects-args-in-shrink_control.patch
 vmscan-per-memory-cgroup-slab-shrinkers.patch
@@ -92,4 +235,5 @@ list_lru-organize-all-list_lrus-to-list.patch
 list_lru-introduce-per-memcg-lists.patch
 fs-make-shrinker-memcg-aware.patch
 vmscan-force-scan-offline-memory-cgroups.patch
+fs-proc-task_mmu-show-page-size-in-proc-pid-numa_maps.patch
 
