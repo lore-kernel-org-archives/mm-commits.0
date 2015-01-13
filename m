@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-util-add-kstrdup_const.patch added to -mm tree
-Date: Tue, 13 Jan 2015 15:50:00 -0800
-Message-ID: <54b5af28.Nj6Mg125coFJtrCg%akpm@linux-foundation.org>
+Subject: + fs-shrinker-always-scan-at-least-one-object-of-each-type.patch
+ added to -mm tree
+Date: Tue, 13 Jan 2015 15:56:49 -0800
+Message-ID: <54b5b0c1.s8KK1rm/UUJ9j4vV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53440 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53459 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751160AbbAMXuB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Jan 2015 18:50:01 -0500
+	with ESMTP id S1751028AbbAMX4u (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Jan 2015 18:56:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: a.hajda@samsung.com, cl@linux.com, geert@linux-m68k.org, greg@kroah.com, iamjoonsoo.kim@lge.com, kyungmin.park@samsung.com, m.szyprowski@samsung.com, mturquette@linaro.org, penberg@kernel.org, rientjes@google.com, tj@kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: vdavydov@parallels.com, david@fromorbit.com, hannes@cmpxchg.org, mhocko@suse.cz, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/util: add kstrdup_const
+     Subject: fs: shrinker: always scan at least one object of each type
 has been added to the -mm tree.  Its filename is
-     mm-util-add-kstrdup_const.patch
+     fs-shrinker-always-scan-at-least-one-object-of-each-type.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-util-add-kstrdup_const.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-shrinker-always-scan-at-least-one-object-of-each-type.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-util-add-kstrdup_const.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-shrinker-always-scan-at-least-one-object-of-each-type.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,142 +39,78 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrzej Hajda <a.hajda@samsung.com>
-Subject: mm/util: add kstrdup_const
+From: Vladimir Davydov <vdavydov@parallels.com>
+Subject: fs: shrinker: always scan at least one object of each type
 
-kstrdup() is often used to duplicate strings where neither source neither
-destination will be ever modified.  In such case we can just reuse the
-source instead of duplicating it.  The problem is that we must be sure
-that the source is non-modifiable and its life-time is long enough.
+In super_cache_scan() we divide the number of objects of particular type
+by the total number of objects in order to distribute pressure among As a
+result, in some corner cases we can get nr_to_scan=0 even if there are
+some objects to reclaim, e.g.  dentries=1, inodes=1, fs_objects=1,
+nr_to_scan=1/3=0.
 
-I suspect the good candidates for such strings are strings located in
-kernel .rodata section, they cannot be modifed because the section is
-read-only and their life-time is equal to kernel life-time.
+This is unacceptable for per memcg kmem accounting, because this means
+that some objects may never get reclaimed after memcg death, preventing it
+from being freed.
 
-This small patchset proposes alternative version of kstrdup -
-kstrdup_const, which returns source string if it is located in .rodata
-otherwise it fallbacks to kstrdup.  To verify if the source is in .rodata
-function checks if the address is between sentinels __start_rodata,
-__end_rodata.  I guess it should work with all architectures.
+This patch therefore assures that super_cache_scan() will scan at least
+one object of each type if any.
 
-The main patch is accompanied by four patches constifying kstrdup for
-cases where situtation described above happens frequently.
-
-I have tested the patchset on mobile platform (exynos4210-trats) and it
-saves 3272 string allocations.  Since minimal allocation is 32 or 64 bytes
-depending on Kconfig options the patchset saves respectively about 100KB
-or 200KB of memory.
-
-
-This patch (of 5):
-
-Add an alternative version of kstrdup which returns pointer to constant
-char array.  The function checks if input string is in persistent and
-read-only memory section, if yes it returns the input string, otherwise it
-fallbacks to kstrdup.
-
-kstrdup_const is accompanied by kfree_const performing conditional memory
-deallocation of the string.
-
-Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Mike Turquette <mturquette@linaro.org>
+Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Greg KH <greg@kroah.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Dave Chinner <david@fromorbit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/string.h |    3 +++
- mm/util.c              |   38 ++++++++++++++++++++++++++++++++++++++
- 2 files changed, 41 insertions(+)
+ fs/super.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/string.h~mm-util-add-kstrdup_const include/linux/string.h
---- a/include/linux/string.h~mm-util-add-kstrdup_const
-+++ a/include/linux/string.h
-@@ -112,7 +112,10 @@ extern void * memchr(const void *,int,__
- #endif
- void *memchr_inv(const void *s, int c, size_t n);
+diff -puN fs/super.c~fs-shrinker-always-scan-at-least-one-object-of-each-type fs/super.c
+--- a/fs/super.c~fs-shrinker-always-scan-at-least-one-object-of-each-type
++++ a/fs/super.c
+@@ -92,13 +92,13 @@ static unsigned long super_cache_scan(st
+ 	 * prune the dcache first as the icache is pinned by it, then
+ 	 * prune the icache, followed by the filesystem specific caches
+ 	 */
+-	sc->nr_to_scan = dentries;
++	sc->nr_to_scan = dentries + 1;
+ 	freed = prune_dcache_sb(sb, sc);
+-	sc->nr_to_scan = inodes;
++	sc->nr_to_scan = inodes + 1;
+ 	freed += prune_icache_sb(sb, sc);
  
-+extern void kfree_const(const void *x);
-+
- extern char *kstrdup(const char *s, gfp_t gfp);
-+extern const char *kstrdup_const(const char *s, gfp_t gfp);
- extern char *kstrndup(const char *s, size_t len, gfp_t gfp);
- extern void *kmemdup(const void *src, size_t len, gfp_t gfp);
+ 	if (fs_objects) {
+-		sc->nr_to_scan = fs_objects;
++		sc->nr_to_scan = fs_objects + 1;
+ 		freed += sb->s_op->free_cached_objects(sb, sc);
+ 	}
  
-diff -puN mm/util.c~mm-util-add-kstrdup_const mm/util.c
---- a/mm/util.c~mm-util-add-kstrdup_const
-+++ a/mm/util.c
-@@ -12,10 +12,30 @@
- #include <linux/hugetlb.h>
- #include <linux/vmalloc.h>
- 
-+#include <asm/sections.h>
- #include <asm/uaccess.h>
- 
- #include "internal.h"
- 
-+static inline int is_kernel_rodata(unsigned long addr)
-+{
-+	return addr >= (unsigned long)__start_rodata &&
-+		addr < (unsigned long)__end_rodata;
-+}
-+
-+/**
-+ * kfree_const - conditionally free memory
-+ * @x: pointer to the memory
-+ *
-+ * Function calls kfree only if @x is not in .rodata section.
-+ */
-+void kfree_const(const void *x)
-+{
-+	if (!is_kernel_rodata((unsigned long)x))
-+		kfree(x);
-+}
-+EXPORT_SYMBOL(kfree_const);
-+
- /**
-  * kstrdup - allocate space for and copy an existing string
-  * @s: the string to duplicate
-@@ -38,6 +58,24 @@ char *kstrdup(const char *s, gfp_t gfp)
- EXPORT_SYMBOL(kstrdup);
- 
- /**
-+ * kstrdup_const - conditionally duplicate an existing const string
-+ * @s: the string to duplicate
-+ * @gfp: the GFP mask used in the kmalloc() call when allocating memory
-+ *
-+ * Function returns source string if it is in .rodata section otherwise it
-+ * fallbacks to kstrdup.
-+ * Strings allocated by kstrdup_const should be freed by kfree_const.
-+ */
-+const char *kstrdup_const(const char *s, gfp_t gfp)
-+{
-+	if (is_kernel_rodata((unsigned long)s))
-+		return s;
-+
-+	return kstrdup(s, gfp);
-+}
-+EXPORT_SYMBOL(kstrdup_const);
-+
-+/**
-  * kstrndup - allocate space for and copy an existing string
-  * @s: the string to duplicate
-  * @max: read at most @max chars from @s
 _
 
-Patches currently in -mm which might be from a.hajda@samsung.com are
+Patches currently in -mm which might be from vdavydov@parallels.com are
 
-mm-util-add-kstrdup_const.patch
-kernfs-convert-node-name-allocation-to-kstrdup_const.patch
-clk-convert-clock-name-allocations-to-kstrdup_const.patch
-mm-slab-convert-cache-name-allocations-to-kstrdup_const.patch
-fs-namespace-convert-devname-allocation-to-kstrdup_const.patch
+memcg-zap-__memcg_chargeuncharge_slab.patch
+memcg-zap-memcg_name-argument-of-memcg_create_kmem_cache.patch
+memcg-zap-memcg_slab_caches-and-memcg_slab_mutex.patch
+swap-remove-unused-mem_cgroup_uncharge_swapcache-declaration.patch
+mm-memcontrol-track-move_lock-state-internally.patch
+mm-vmscan-wake-up-all-pfmemalloc-throttled-processes-at-once.patch
+list_lru-introduce-list_lru_shrink_countwalk.patch
+fs-consolidate-nrfree_cached_objects-args-in-shrink_control.patch
+vmscan-per-memory-cgroup-slab-shrinkers.patch
+memcg-rename-some-cache-id-related-variables.patch
+memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation.patch
+list_lru-get-rid-of-active_nodes.patch
+list_lru-organize-all-list_lrus-to-list.patch
+list_lru-introduce-per-memcg-lists.patch
+fs-make-shrinker-memcg-aware.patch
+vmscan-force-scan-offline-memory-cgroups.patch
+mm-page_counter-pull-1-handling-out-of-page_counter_memparse.patch
+mm-memcontrol-default-hierarchy-interface-for-memory.patch
+mm-memcontrol-remove-unnecessary-soft-limit-tree-node-test.patch
+mm-memcontrol-consolidate-memory-controller-initialization.patch
+mm-memcontrol-consolidate-swap-controller-code.patch
+fs-shrinker-always-scan-at-least-one-object-of-each-type.patch
+fs-shrinker-always-scan-at-least-one-object-of-each-type-fix.patch
 
