@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-xattr-remove-unused-function.patch added to -mm tree
-Date: Mon, 12 Jan 2015 16:24:49 -0800
-Message-ID: <54b465d1.eUBjBr5egHJTDcYo%akpm@linux-foundation.org>
+Subject: + ocfs2-quota_local-remove-unused-function.patch added to -mm
+ tree
+Date: Mon, 12 Jan 2015 16:25:26 -0800
+Message-ID: <54b465f6.zjcABMkHU4WVrVFH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37602 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37608 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752449AbbAMAYu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jan 2015 19:24:50 -0500
+	with ESMTP id S1752158AbbAMAZ1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jan 2015 19:25:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: rickard_strandqvist@spectrumdigital.se, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: xattr: Remove unused function
+     Subject: ocfs2: quota_local: Remove unused function
 has been added to the -mm tree.  Its filename is
-     ocfs2-xattr-remove-unused-function.patch
+     ocfs2-quota_local-remove-unused-function.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-xattr-remove-unused-function.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-quota_local-remove-unused-function.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-xattr-remove-unused-function.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-quota_local-remove-unused-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,9 +40,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
-Subject: ocfs2: xattr: Remove unused function
+Subject: ocfs2: quota_local: Remove unused function
 
-Remove function ocfs2_xattr_bucket_get_val() that is not used anywhere.
+Remove ol_dqblk_file_block() that is not used anywhere.
 
 This was partially found by using a static code analysis program called
 cppcheck.
@@ -52,22 +53,18 @@ Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/xattr.c |   10 ----------
- 1 file changed, 10 deletions(-)
+ fs/ocfs2/quota_local.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN fs/ocfs2/xattr.c~ocfs2-xattr-remove-unused-function fs/ocfs2/xattr.c
---- a/fs/ocfs2/xattr.c~ocfs2-xattr-remove-unused-function
-+++ a/fs/ocfs2/xattr.c
-@@ -5334,16 +5334,6 @@ out:
- 	return ret;
+diff -puN fs/ocfs2/quota_local.c~ocfs2-quota_local-remove-unused-function fs/ocfs2/quota_local.c
+--- a/fs/ocfs2/quota_local.c~ocfs2-quota_local-remove-unused-function
++++ a/fs/ocfs2/quota_local.c
+@@ -73,12 +73,6 @@ static loff_t ol_dqblk_off(struct super_
+ 	       ol_dqblk_block_off(sb, c, off);
  }
  
--static inline char *ocfs2_xattr_bucket_get_val(struct inode *inode,
--					struct ocfs2_xattr_bucket *bucket,
--					int offs)
+-/* Compute block number from given offset */
+-static inline unsigned int ol_dqblk_file_block(struct super_block *sb, loff_t off)
 -{
--	int block_off = offs >> inode->i_sb->s_blocksize_bits;
--
--	offs = offs % inode->i_sb->s_blocksize;
--	return bucket_block(bucket, block_off) + offs;
+-	return off >> sb->s_blocksize_bits;
 -}
