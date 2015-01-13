@@ -1,94 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-add-likely-unlikely-comparison-misuse-test.patch
- added to -mm tree
-Date: Mon, 12 Jan 2015 16:27:08 -0800
-Message-ID: <54b4665c.cGPsWAGK8o4OFgdc%akpm@linux-foundation.org>
+Subject: [alternative-merged]
+ drivers-misc-ti-st-st_corec-fix-null-dereference-on-protocol-type-check.patch removed from -mm tree
+Date: Tue, 13 Jan 2015 14:08:51 -0800
+Message-ID: <54b59773.26aR9LxEXMkETbDZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37618 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52842 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752039AbbAMA1J (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jan 2015 19:27:09 -0500
+	with ESMTP id S1752786AbbAMWJC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Jan 2015 17:09:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, cj@linux.com, julia.lawall@lip6.fr, mm-commits@vger.kernel.org
+To: gustavo@padovan.org, gustavo.padovan@collabora.co.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add likely/unlikely comparison misuse test
-has been added to the -mm tree.  Its filename is
-     checkpatch-add-likely-unlikely-comparison-misuse-test.patch
+     Subject: drivers/misc/ti-st/st_core.c: fix NULL dereference on protocol type check
+has been removed from the -mm tree.  Its filename was
+     drivers-misc-ti-st-st_corec-fix-null-dereference-on-protocol-type-check.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-likely-unlikely-comparison-misuse-test.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-likely-unlikely-comparison-misuse-test.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add likely/unlikely comparison misuse test
+From: Gustavo Padovan <gustavo@padovan.org>
+Subject: drivers/misc/ti-st/st_core.c: fix NULL dereference on protocol type check
 
-Add a test for probably likely/unlikely misuses where the comparison is
-likely misplaced
+From: Gustavo Padovan <gustavo.padovan@collabora.co.uk>
 
-	if (likely(foo) > 0)
-vs
-	if (likely(foo > 0))
+If the type we receive is greater than ST_MAX_CHANNELS we can't rely on
+type as vector index since we would be accessing unknown memory when we use the type
+as index.
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Christoph Jaeger <cj@linux.com>
-Cc: Julia Lawall <julia.lawall@lip6.fr>
+ Unable to handle kernel NULL pointer dereference at virtual address 0000001b
+ pgd = c0004000
+ [0000001b] *pgd=00000000
+ Internal error: Oops: 17 [#1] PREEMPT SMP ARM
+ Modules linked in: btwilink wl12xx wlcore mac80211 cfg80211 rfcomm bnep bluo
+ CPU: 0    Tainted: G        W     (3.4.0+ #15)
+ PC is at st_int_recv+0x278/0x344
+ LR is at get_parent_ip+0x14/0x30
+ pc : [<c03b01a8>]    lr : [<c007273c>]    psr: 200f0193
+ sp : dc631ed0  ip : e3e21c24  fp : dc631f04
+ r10: 00000000  r9 : 600f0113  r8 : 0000003f
+ r7 : e3e21b14  r6 : 00000067  r5 : e2e49c1c  r4 : e3e21a80
+ r3 : 00000001  r2 : 00000001  r1 : 00000001  r0 : 600f0113
+ Flags: nzCv  IRQs off  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
+ Control: 10c5387d  Table: 9c50004a  DAC: 00000015
+
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/misc/ti-st/st_core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-likely-unlikely-comparison-misuse-test scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-likely-unlikely-comparison-misuse-test
-+++ a/scripts/checkpatch.pl
-@@ -5239,6 +5239,13 @@ sub process {
- 			      "#define of '$1' is wrong - use Kconfig variables or standard guards instead\n" . $herecurr);
- 		}
- 
-+# likely/unlikely comparisons similar to "(likely(foo) > 0)"
-+		if ($^V && $^V ge 5.10.0 &&
-+		    $line =~ /\b((?:un)?likely)\s*\(\s*$FuncArg\s*\)\s*$Compare/) {
-+			WARN("LIKELY_MISUSE",
-+			     "Using $1 should generally have parentheses around the comparison\n" . $herecurr);
-+		}
-+
- # whine mightly about in_atomic
- 		if ($line =~ /\bin_atomic\s*\(/) {
- 			if ($realfile =~ m@^drivers/@) {
+diff -puN drivers/misc/ti-st/st_core.c~drivers-misc-ti-st-st_corec-fix-null-dereference-on-protocol-type-check drivers/misc/ti-st/st_core.c
+--- a/drivers/misc/ti-st/st_core.c~drivers-misc-ti-st-st_corec-fix-null-dereference-on-protocol-type-check
++++ a/drivers/misc/ti-st/st_core.c
+@@ -343,7 +343,7 @@ void st_int_recv(void *disc_data,
+ 			/* Unknow packet? */
+ 		default:
+ 			type = *ptr;
+-			if (st_gdata->list[type] == NULL) {
++			if (type >= ST_MAX_CHANNELS || st_gdata->list[type] == NULL) {
+ 				pr_err("chip/interface misbehavior dropping"
+ 					" frame starting with 0x%02x", type);
+ 				goto done;
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from gustavo@padovan.org are
 
-printk-correct-timeout-comment-neaten-module_parm_desc.patch
-mm-utilc-add-kstrimdup.patch
-checkpatch-emit-an-error-when-using-predefined-timestamp-macros.patch
-checkpatch-improve-octal-permissions-tests.patch
-checkpatch-ignore-__pure-attribute.patch
-checkpatch-fix-unnecessary_kern_level-false-positive.patch
-checkpatch-add-check-for-keyword-boolean-in-kconfig-definitions.patch
-checkpatch-allow-comments-in-macros-tested-for-single-statements.patch
-checkpatch-update-git-commit-message.patch
-checkpatch-add-likely-unlikely-comparison-misuse-test.patch
-fs-ufs-superc-remove-unnecessary-casting.patch
-linux-next.patch
 
