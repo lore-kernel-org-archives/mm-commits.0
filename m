@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-memcontrol-consolidate-memory-controller-initialization.patch added to
+Subject: + mm-memcontrol-consolidate-swap-controller-code.patch added to
  -mm tree
-Date: Mon, 12 Jan 2015 16:21:48 -0800
-Message-ID: <54b4651c.ahFpz1U/v7ThLS0g%akpm@linux-foundation.org>
+Date: Mon, 12 Jan 2015 16:21:50 -0800
+Message-ID: <54b4651e.hXWB+qgqTvOPd5f0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37592 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37595 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752036AbbAMAVt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jan 2015 19:21:49 -0500
+	with ESMTP id S1752036AbbAMAVv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jan 2015 19:21:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@cmpxchg.org, mhocko@suse.cz, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: consolidate memory controller initialization
+     Subject: mm: memcontrol: consolidate swap controller code
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-consolidate-memory-controller-initialization.patch
+     mm-memcontrol-consolidate-swap-controller-code.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-consolidate-memory-controller-initialization.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-consolidate-swap-controller-code.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-consolidate-memory-controller-initialization.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-consolidate-swap-controller-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,10 +40,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: consolidate memory controller initialization
+Subject: mm: memcontrol: consolidate swap controller code
 
-The initialization code for the per-cpu charge stock and the soft
-limit tree is compact enough to inline it into mem_cgroup_init().
+The swap controller code is scattered all over the file.  Gather all
+the code that isn't directly needed by the memory controller at the
+end of the file in its own CONFIG_MEMCG_SWAP section.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@suse.cz>
@@ -52,92 +52,317 @@ Reviewed-by: Vladimir Davydov <vdavydov@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   57 +++++++++++++++++++---------------------------
- 1 file changed, 24 insertions(+), 33 deletions(-)
+ mm/memcontrol.c |  264 +++++++++++++++++++++-------------------------
+ 1 file changed, 125 insertions(+), 139 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-consolidate-memory-controller-initialization mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-consolidate-memory-controller-initialization
+diff -puN mm/memcontrol.c~mm-memcontrol-consolidate-swap-controller-code mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-consolidate-swap-controller-code
 +++ a/mm/memcontrol.c
-@@ -2163,17 +2163,6 @@ static void drain_local_stock(struct wor
- 	clear_bit(FLUSHING_CACHED_CHARGE, &stock->flags);
- }
+@@ -72,22 +72,13 @@ EXPORT_SYMBOL(memory_cgrp_subsys);
+ #define MEM_CGROUP_RECLAIM_RETRIES	5
+ static struct mem_cgroup *root_mem_cgroup __read_mostly;
  
--static void __init memcg_stock_init(void)
--{
--	int cpu;
++/* Whether the swap controller is active */
+ #ifdef CONFIG_MEMCG_SWAP
+-/* Turned on only when memory cgroup is enabled && really_do_swap_account = 1 */
+ int do_swap_account __read_mostly;
 -
--	for_each_possible_cpu(cpu) {
--		struct memcg_stock_pcp *stock =
--					&per_cpu(memcg_stock, cpu);
--		INIT_WORK(&stock->work, drain_local_stock);
+-/* for remember boot option*/
+-#ifdef CONFIG_MEMCG_SWAP_ENABLED
+-static int really_do_swap_account __initdata = 1;
+-#else
+-static int really_do_swap_account __initdata;
+-#endif
+-
+ #else
+ #define do_swap_account		0
+ #endif
+ 
+-
+ static const char * const mem_cgroup_stat_names[] = {
+ 	"cache",
+ 	"rss",
+@@ -4428,34 +4419,6 @@ static struct cftype mem_cgroup_legacy_f
+ 	{ },	/* terminate */
+ };
+ 
+-#ifdef CONFIG_MEMCG_SWAP
+-static struct cftype memsw_cgroup_files[] = {
+-	{
+-		.name = "memsw.usage_in_bytes",
+-		.private = MEMFILE_PRIVATE(_MEMSWAP, RES_USAGE),
+-		.read_u64 = mem_cgroup_read_u64,
+-	},
+-	{
+-		.name = "memsw.max_usage_in_bytes",
+-		.private = MEMFILE_PRIVATE(_MEMSWAP, RES_MAX_USAGE),
+-		.write = mem_cgroup_reset,
+-		.read_u64 = mem_cgroup_read_u64,
+-	},
+-	{
+-		.name = "memsw.limit_in_bytes",
+-		.private = MEMFILE_PRIVATE(_MEMSWAP, RES_LIMIT),
+-		.write = mem_cgroup_write,
+-		.read_u64 = mem_cgroup_read_u64,
+-	},
+-	{
+-		.name = "memsw.failcnt",
+-		.private = MEMFILE_PRIVATE(_MEMSWAP, RES_FAILCNT),
+-		.write = mem_cgroup_reset,
+-		.read_u64 = mem_cgroup_read_u64,
+-	},
+-	{ },	/* terminate */
+-};
+-#endif
+ static int alloc_mem_cgroup_per_zone_info(struct mem_cgroup *memcg, int node)
+ {
+ 	struct mem_cgroup_per_node *pn;
+@@ -5459,37 +5422,6 @@ struct cgroup_subsys memory_cgrp_subsys
+ 	.early_init = 0,
+ };
+ 
+-#ifdef CONFIG_MEMCG_SWAP
+-static int __init enable_swap_account(char *s)
+-{
+-	if (!strcmp(s, "1"))
+-		really_do_swap_account = 1;
+-	else if (!strcmp(s, "0"))
+-		really_do_swap_account = 0;
+-	return 1;
+-}
+-__setup("swapaccount=", enable_swap_account);
+-
+-static void __init memsw_file_init(void)
+-{
+-	WARN_ON(cgroup_add_legacy_cftypes(&memory_cgrp_subsys,
+-					  memsw_cgroup_files));
+-}
+-
+-static void __init enable_swap_cgroup(void)
+-{
+-	if (!mem_cgroup_disabled() && really_do_swap_account) {
+-		do_swap_account = 1;
+-		memsw_file_init();
 -	}
 -}
 -
- /*
-  * Cache charges(val) to local per_cpu area.
-  * This will be consumed by consume_stock() function, later.
-@@ -4562,26 +4551,6 @@ struct mem_cgroup *parent_mem_cgroup(str
- }
- EXPORT_SYMBOL(parent_mem_cgroup);
- 
--static void __init mem_cgroup_soft_limit_tree_init(void)
+-#else
+-static void __init enable_swap_cgroup(void)
 -{
--	struct mem_cgroup_tree_per_node *rtpn;
--	struct mem_cgroup_tree_per_zone *rtpz;
--	int node, zone;
+-}
+-#endif
 -
--	for_each_node(node) {
--		rtpn = kzalloc_node(sizeof(*rtpn), GFP_KERNEL, node);
--		BUG_ON(!rtpn);
+ /**
+  * mem_cgroup_events - count memory events against a cgroup
+  * @memcg: the memory cgroup
+@@ -5540,74 +5472,6 @@ bool mem_cgroup_low(struct mem_cgroup *r
+ 	return true;
+ }
+ 
+-#ifdef CONFIG_MEMCG_SWAP
+-/**
+- * mem_cgroup_swapout - transfer a memsw charge to swap
+- * @page: page whose memsw charge to transfer
+- * @entry: swap entry to move the charge to
+- *
+- * Transfer the memsw charge of @page to @entry.
+- */
+-void mem_cgroup_swapout(struct page *page, swp_entry_t entry)
+-{
+-	struct mem_cgroup *memcg;
+-	unsigned short oldid;
 -
--		soft_limit_tree.rb_tree_per_node[node] = rtpn;
+-	VM_BUG_ON_PAGE(PageLRU(page), page);
+-	VM_BUG_ON_PAGE(page_count(page), page);
 -
--		for (zone = 0; zone < MAX_NR_ZONES; zone++) {
--			rtpz = &rtpn->rb_tree_per_zone[zone];
--			rtpz->rb_root = RB_ROOT;
--			spin_lock_init(&rtpz->lock);
--		}
--	}
+-	if (!do_swap_account)
+-		return;
+-
+-	memcg = page->mem_cgroup;
+-
+-	/* Readahead page, never charged */
+-	if (!memcg)
+-		return;
+-
+-	oldid = swap_cgroup_record(entry, mem_cgroup_id(memcg));
+-	VM_BUG_ON_PAGE(oldid, page);
+-	mem_cgroup_swap_statistics(memcg, true);
+-
+-	page->mem_cgroup = NULL;
+-
+-	if (!mem_cgroup_is_root(memcg))
+-		page_counter_uncharge(&memcg->memory, 1);
+-
+-	/* XXX: caller holds IRQ-safe mapping->tree_lock */
+-	VM_BUG_ON(!irqs_disabled());
+-
+-	mem_cgroup_charge_statistics(memcg, page, -1);
+-	memcg_check_events(memcg, page);
 -}
 -
- static struct cgroup_subsys_state * __ref
- mem_cgroup_css_alloc(struct cgroup_subsys_state *parent_css)
- {
-@@ -5971,10 +5940,32 @@ void mem_cgroup_migrate(struct page *old
-  */
- static int __init mem_cgroup_init(void)
- {
-+	int cpu, nid;
-+
- 	hotcpu_notifier(memcg_cpu_hotplug_callback, 0);
-+
-+	for_each_possible_cpu(cpu)
-+		INIT_WORK(&per_cpu_ptr(&memcg_stock, cpu)->work,
-+			  drain_local_stock);
-+
-+	for_each_node(nid) {
-+		struct mem_cgroup_tree_per_node *rtpn;
-+		int zone;
-+
-+		rtpn = kzalloc_node(sizeof(*rtpn), GFP_KERNEL, nid);
-+
-+		for (zone = 0; zone < MAX_NR_ZONES; zone++) {
-+			struct mem_cgroup_tree_per_zone *rtpz;
-+
-+			rtpz = &rtpn->rb_tree_per_zone[zone];
-+			rtpz->rb_root = RB_ROOT;
-+			spin_lock_init(&rtpz->lock);
-+		}
-+		soft_limit_tree.rb_tree_per_node[nid] = rtpn;
-+	}
-+
- 	enable_swap_cgroup();
--	mem_cgroup_soft_limit_tree_init();
--	memcg_stock_init();
-+
+-/**
+- * mem_cgroup_uncharge_swap - uncharge a swap entry
+- * @entry: swap entry to uncharge
+- *
+- * Drop the memsw charge associated with @entry.
+- */
+-void mem_cgroup_uncharge_swap(swp_entry_t entry)
+-{
+-	struct mem_cgroup *memcg;
+-	unsigned short id;
+-
+-	if (!do_swap_account)
+-		return;
+-
+-	id = swap_cgroup_record(entry, 0);
+-	rcu_read_lock();
+-	memcg = mem_cgroup_lookup(id);
+-	if (memcg) {
+-		if (!mem_cgroup_is_root(memcg))
+-			page_counter_uncharge(&memcg->memsw, 1);
+-		mem_cgroup_swap_statistics(memcg, false);
+-		css_put(&memcg->css);
+-	}
+-	rcu_read_unlock();
+-}
+-#endif
+-
+ /**
+  * mem_cgroup_try_charge - try charging a page
+  * @page: page to charge
+@@ -5964,8 +5828,130 @@ static int __init mem_cgroup_init(void)
+ 		soft_limit_tree.rb_tree_per_node[nid] = rtpn;
+ 	}
+ 
+-	enable_swap_cgroup();
+-
  	return 0;
  }
  subsys_initcall(mem_cgroup_init);
++
++#ifdef CONFIG_MEMCG_SWAP
++/**
++ * mem_cgroup_swapout - transfer a memsw charge to swap
++ * @page: page whose memsw charge to transfer
++ * @entry: swap entry to move the charge to
++ *
++ * Transfer the memsw charge of @page to @entry.
++ */
++void mem_cgroup_swapout(struct page *page, swp_entry_t entry)
++{
++	struct mem_cgroup *memcg;
++	unsigned short oldid;
++
++	VM_BUG_ON_PAGE(PageLRU(page), page);
++	VM_BUG_ON_PAGE(page_count(page), page);
++
++	if (!do_swap_account)
++		return;
++
++	memcg = page->mem_cgroup;
++
++	/* Readahead page, never charged */
++	if (!memcg)
++		return;
++
++	oldid = swap_cgroup_record(entry, mem_cgroup_id(memcg));
++	VM_BUG_ON_PAGE(oldid, page);
++	mem_cgroup_swap_statistics(memcg, true);
++
++	page->mem_cgroup = NULL;
++
++	if (!mem_cgroup_is_root(memcg))
++		page_counter_uncharge(&memcg->memory, 1);
++
++	/* XXX: caller holds IRQ-safe mapping->tree_lock */
++	VM_BUG_ON(!irqs_disabled());
++
++	mem_cgroup_charge_statistics(memcg, page, -1);
++	memcg_check_events(memcg, page);
++}
++
++/**
++ * mem_cgroup_uncharge_swap - uncharge a swap entry
++ * @entry: swap entry to uncharge
++ *
++ * Drop the memsw charge associated with @entry.
++ */
++void mem_cgroup_uncharge_swap(swp_entry_t entry)
++{
++	struct mem_cgroup *memcg;
++	unsigned short id;
++
++	if (!do_swap_account)
++		return;
++
++	id = swap_cgroup_record(entry, 0);
++	rcu_read_lock();
++	memcg = mem_cgroup_lookup(id);
++	if (memcg) {
++		if (!mem_cgroup_is_root(memcg))
++			page_counter_uncharge(&memcg->memsw, 1);
++		mem_cgroup_swap_statistics(memcg, false);
++		css_put(&memcg->css);
++	}
++	rcu_read_unlock();
++}
++
++/* for remember boot option*/
++#ifdef CONFIG_MEMCG_SWAP_ENABLED
++static int really_do_swap_account __initdata = 1;
++#else
++static int really_do_swap_account __initdata;
++#endif
++
++static int __init enable_swap_account(char *s)
++{
++	if (!strcmp(s, "1"))
++		really_do_swap_account = 1;
++	else if (!strcmp(s, "0"))
++		really_do_swap_account = 0;
++	return 1;
++}
++__setup("swapaccount=", enable_swap_account);
++
++static struct cftype memsw_cgroup_files[] = {
++	{
++		.name = "memsw.usage_in_bytes",
++		.private = MEMFILE_PRIVATE(_MEMSWAP, RES_USAGE),
++		.read_u64 = mem_cgroup_read_u64,
++	},
++	{
++		.name = "memsw.max_usage_in_bytes",
++		.private = MEMFILE_PRIVATE(_MEMSWAP, RES_MAX_USAGE),
++		.write = mem_cgroup_reset,
++		.read_u64 = mem_cgroup_read_u64,
++	},
++	{
++		.name = "memsw.limit_in_bytes",
++		.private = MEMFILE_PRIVATE(_MEMSWAP, RES_LIMIT),
++		.write = mem_cgroup_write,
++		.read_u64 = mem_cgroup_read_u64,
++	},
++	{
++		.name = "memsw.failcnt",
++		.private = MEMFILE_PRIVATE(_MEMSWAP, RES_FAILCNT),
++		.write = mem_cgroup_reset,
++		.read_u64 = mem_cgroup_read_u64,
++	},
++	{ },	/* terminate */
++};
++
++static int __init mem_cgroup_swap_init(void)
++{
++	if (!mem_cgroup_disabled() && really_do_swap_account) {
++		do_swap_account = 1;
++		WARN_ON(cgroup_add_legacy_cftypes(&memory_cgrp_subsys,
++						  memsw_cgroup_files));
++	}
++	return 0;
++}
++subsys_initcall(mem_cgroup_swap_init);
++
++#endif /* CONFIG_MEMCG_SWAP */
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
