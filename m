@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + fs-shrinker-always-scan-at-least-one-object-of-each-type.patch
- added to -mm tree
-Date: Tue, 13 Jan 2015 15:56:49 -0800
-Message-ID: <54b5b0c1.s8KK1rm/UUJ9j4vV%akpm@linux-foundation.org>
+Subject: +
+ fs-shrinker-always-scan-at-least-one-object-of-each-type-fix.patch added to -mm tree
+Date: Tue, 13 Jan 2015 15:56:51 -0800
+Message-ID: <54b5b0c3.XMMu7qwXOu436DIm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53459 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53466 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751028AbbAMX4u (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Jan 2015 18:56:50 -0500
+	with ESMTP id S1751028AbbAMX4w (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Jan 2015 18:56:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@parallels.com, david@fromorbit.com, hannes@cmpxchg.org, mhocko@suse.cz, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, david@fromorbit.com, hannes@cmpxchg.org, mhocko@suse.cz, vdavydov@parallels.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs: shrinker: always scan at least one object of each type
+     Subject: fs-shrinker-always-scan-at-least-one-object-of-each-type-fix
 has been added to the -mm tree.  Its filename is
-     fs-shrinker-always-scan-at-least-one-object-of-each-type.patch
+     fs-shrinker-always-scan-at-least-one-object-of-each-type-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-shrinker-always-scan-at-least-one-object-of-each-type.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-shrinker-always-scan-at-least-one-object-of-each-type-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-shrinker-always-scan-at-least-one-object-of-each-type.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-shrinker-always-scan-at-least-one-object-of-each-type-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,78 +39,71 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: fs: shrinker: always scan at least one object of each type
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fs-shrinker-always-scan-at-least-one-object-of-each-type-fix
 
-In super_cache_scan() we divide the number of objects of particular type
-by the total number of objects in order to distribute pressure among As a
-result, in some corner cases we can get nr_to_scan=0 even if there are
-some objects to reclaim, e.g.  dentries=1, inodes=1, fs_objects=1,
-nr_to_scan=1/3=0.
+add comment
 
-This is unacceptable for per memcg kmem accounting, because this means
-that some objects may never get reclaimed after memcg death, preventing it
-from being freed.
-
-This patch therefore assures that super_cache_scan() will scan at least
-one object of each type if any.
-
-Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Dave Chinner <david@fromorbit.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Vladimir Davydov <vdavydov@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/super.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/super.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN fs/super.c~fs-shrinker-always-scan-at-least-one-object-of-each-type fs/super.c
---- a/fs/super.c~fs-shrinker-always-scan-at-least-one-object-of-each-type
+diff -puN fs/super.c~fs-shrinker-always-scan-at-least-one-object-of-each-type-fix fs/super.c
+--- a/fs/super.c~fs-shrinker-always-scan-at-least-one-object-of-each-type-fix
 +++ a/fs/super.c
-@@ -92,13 +92,13 @@ static unsigned long super_cache_scan(st
+@@ -91,6 +91,9 @@ static unsigned long super_cache_scan(st
+ 	/*
  	 * prune the dcache first as the icache is pinned by it, then
  	 * prune the icache, followed by the filesystem specific caches
++	 *
++	 * Ensure that we always scan at least one object - memcg kmem
++	 * accounting uses this to fully empty the caches.
  	 */
--	sc->nr_to_scan = dentries;
-+	sc->nr_to_scan = dentries + 1;
+ 	sc->nr_to_scan = dentries + 1;
  	freed = prune_dcache_sb(sb, sc);
--	sc->nr_to_scan = inodes;
-+	sc->nr_to_scan = inodes + 1;
- 	freed += prune_icache_sb(sb, sc);
- 
- 	if (fs_objects) {
--		sc->nr_to_scan = fs_objects;
-+		sc->nr_to_scan = fs_objects + 1;
- 		freed += sb->s_op->free_cached_objects(sb, sc);
- 	}
- 
 _
 
-Patches currently in -mm which might be from vdavydov@parallels.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-memcg-zap-__memcg_chargeuncharge_slab.patch
-memcg-zap-memcg_name-argument-of-memcg_create_kmem_cache.patch
-memcg-zap-memcg_slab_caches-and-memcg_slab_mutex.patch
-swap-remove-unused-mem_cgroup_uncharge_swapcache-declaration.patch
-mm-memcontrol-track-move_lock-state-internally.patch
-mm-vmscan-wake-up-all-pfmemalloc-throttled-processes-at-once.patch
-list_lru-introduce-list_lru_shrink_countwalk.patch
-fs-consolidate-nrfree_cached_objects-args-in-shrink_control.patch
-vmscan-per-memory-cgroup-slab-shrinkers.patch
-memcg-rename-some-cache-id-related-variables.patch
-memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation.patch
-list_lru-get-rid-of-active_nodes.patch
-list_lru-organize-all-list_lrus-to-list.patch
-list_lru-introduce-per-memcg-lists.patch
-fs-make-shrinker-memcg-aware.patch
-vmscan-force-scan-offline-memory-cgroups.patch
-mm-page_counter-pull-1-handling-out-of-page_counter_memparse.patch
-mm-memcontrol-default-hierarchy-interface-for-memory.patch
-mm-memcontrol-remove-unnecessary-soft-limit-tree-node-test.patch
-mm-memcontrol-consolidate-memory-controller-initialization.patch
-mm-memcontrol-consolidate-swap-controller-code.patch
-fs-shrinker-always-scan-at-least-one-object-of-each-type.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+fanotify-dont-recalculate-a-marks-mask-if-only-the-ignored-mask-changed-checkpatch-fixes.patch
+fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask-checkpatch-fixes.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper.patch
+ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir.patch
+mm.patch
+mm-fix-xip-fault-vs-truncate-race-fix.patch
+mm-fix-xip-fault-vs-truncate-race-fix-fix.patch
+mm-allow-page-fault-handlers-to-perform-the-cow-fix.patch
+mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix.patch
+daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix.patch
+daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-2.patch
+dax-add-dax_zero_page_range-fix.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
+mm-memcontrol-default-hierarchy-interface-for-memory-checkpatch-fixes.patch
 fs-shrinker-always-scan-at-least-one-object-of-each-type-fix.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss.patch
+lib-bitmap-update-bitmap_onto-to-unsigned-checkpatch-fixes.patch
+lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned-fix.patch
+hexdump-makes-it-return-amount-of-bytes-placed-in-buffer-fix.patch
+fs-befs-linuxvfsc-remove-unnecessary-casting-fix.patch
+linux-next.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
