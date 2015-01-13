@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-slab-convert-cache-name-allocations-to-kstrdup_const.patch
+Subject: + fs-namespace-convert-devname-allocation-to-kstrdup_const.patch
  added to -mm tree
-Date: Tue, 13 Jan 2015 15:49:30 -0800
-Message-ID: <54b5af0a.6idHeo/XODae8f3o%akpm@linux-foundation.org>
+Date: Tue, 13 Jan 2015 15:49:33 -0800
+Message-ID: <54b5af0d.hYCDu+Qq5/1d/Ng6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53421 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53429 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751951AbbAMXtc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Jan 2015 18:49:32 -0500
+	with ESMTP id S1751951AbbAMXte (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Jan 2015 18:49:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: a.hajda@samsung.com, cl@linux.com, geert@linux-m68k.org, greg@kroah.com, iamjoonsoo.kim@lge.com, kyungmin.park@samsung.com, m.szyprowski@samsung.com, mturquette@linaro.org, penberg@kernel.org, rientjes@google.com, tj@kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slab: convert cache name allocations to kstrdup_const
+     Subject: fs/namespace: convert devname allocation to kstrdup_const
 has been added to the -mm tree.  Its filename is
-     mm-slab-convert-cache-name-allocations-to-kstrdup_const.patch
+     fs-namespace-convert-devname-allocation-to-kstrdup_const.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-convert-cache-name-allocations-to-kstrdup_const.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-namespace-convert-devname-allocation-to-kstrdup_const.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-convert-cache-name-allocations-to-kstrdup_const.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-namespace-convert-devname-allocation-to-kstrdup_const.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,10 +40,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrzej Hajda <a.hajda@samsung.com>
-Subject: mm/slab: convert cache name allocations to kstrdup_const
+Subject: fs/namespace: convert devname allocation to kstrdup_const
 
-slab frequently performs duplication of strings located in read-only
-memory section.  Replacing kstrdup by kstrdup_const allows to avoid such
+VFS frequently performs duplication of strings located in read-only memory
+section.  Replacing kstrdup by kstrdup_const allows to avoid such
 operations.
 
 Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
@@ -61,39 +61,39 @@ Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab_common.c |    6 +++---
+ fs/namespace.c |    6 +++---
  1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/slab_common.c~mm-slab-convert-cache-name-allocations-to-kstrdup_const mm/slab_common.c
---- a/mm/slab_common.c~mm-slab-convert-cache-name-allocations-to-kstrdup_const
-+++ a/mm/slab_common.c
-@@ -388,7 +388,7 @@ kmem_cache_create(const char *name, size
- 	if (s)
- 		goto out_unlock;
+diff -puN fs/namespace.c~fs-namespace-convert-devname-allocation-to-kstrdup_const fs/namespace.c
+--- a/fs/namespace.c~fs-namespace-convert-devname-allocation-to-kstrdup_const
++++ a/fs/namespace.c
+@@ -201,7 +201,7 @@ static struct mount *alloc_vfsmnt(const
+ 			goto out_free_cache;
  
--	cache_name = kstrdup(name, GFP_KERNEL);
-+	cache_name = kstrdup_const(name, GFP_KERNEL);
- 	if (!cache_name) {
- 		err = -ENOMEM;
- 		goto out_unlock;
-@@ -399,7 +399,7 @@ kmem_cache_create(const char *name, size
- 				 flags, ctor, NULL, NULL);
- 	if (IS_ERR(s)) {
- 		err = PTR_ERR(s);
--		kfree(cache_name);
-+		kfree_const(cache_name);
- 	}
+ 		if (name) {
+-			mnt->mnt_devname = kstrdup(name, GFP_KERNEL);
++			mnt->mnt_devname = kstrdup_const(name, GFP_KERNEL);
+ 			if (!mnt->mnt_devname)
+ 				goto out_free_id;
+ 		}
+@@ -234,7 +234,7 @@ static struct mount *alloc_vfsmnt(const
  
- out_unlock:
-@@ -565,7 +565,7 @@ void memcg_destroy_kmem_caches(struct me
- void slab_kmem_cache_release(struct kmem_cache *s)
+ #ifdef CONFIG_SMP
+ out_free_devname:
+-	kfree(mnt->mnt_devname);
++	kfree_const(mnt->mnt_devname);
+ #endif
+ out_free_id:
+ 	mnt_free_id(mnt);
+@@ -568,7 +568,7 @@ int sb_prepare_remount_readonly(struct s
+ 
+ static void free_vfsmnt(struct mount *mnt)
  {
- 	memcg_free_cache_params(s);
--	kfree(s->name);
-+	kfree_const(s->name);
- 	kmem_cache_free(kmem_cache, s);
- }
- 
+-	kfree(mnt->mnt_devname);
++	kfree_const(mnt->mnt_devname);
+ #ifdef CONFIG_SMP
+ 	free_percpu(mnt->mnt_pcp);
+ #endif
 _
 
 Patches currently in -mm which might be from a.hajda@samsung.com are
