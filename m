@@ -1,47 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged]
- remove-recently-added-perl-build-requirement.patch removed from -mm tree
-Date: Tue, 13 Jan 2015 14:55:44 -0800
-Message-ID: <54b5a270.bYdj1CN/WhL3GwTL%akpm@linux-foundation.org>
+Subject: + x86-build-replace-perl-script-with-shell-script.patch added to
+ -mm tree
+Date: Tue, 13 Jan 2015 14:57:12 -0800
+Message-ID: <54b5a2c8.rRVwPSSNn/nW6qNh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53093 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53121 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753760AbbAMWzp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Jan 2015 17:55:45 -0500
+	with ESMTP id S1751494AbbAMW5N (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Jan 2015 17:57:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rob@landley.net, anca.emanuel@gmail.com, eternal.n08@gmail.com, fengguang.wu@intel.com, keescook@chromium.org, stable@vger.kernel.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: keescook@chromium.org, anca.emanuel@gmail.com, eternal.n08@gmail.com, fengguang.wu@intel.com, rob@landley.net, stable@vger.kernel.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: remove recently added perl build requirement
-has been removed from the -mm tree.  Its filename was
-     remove-recently-added-perl-build-requirement.patch
+     Subject: x86, build: replace Perl script with Shell script
+has been added to the -mm tree.  Its filename is
+     x86-build-replace-perl-script-with-shell-script.patch
 
-This patch was dropped because an alternative patch was merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/x86-build-replace-perl-script-with-shell-script.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/x86-build-replace-perl-script-with-shell-script.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Rob Landley <rob@landley.net>
-Subject: remove recently added perl build requirement
+From: Kees Cook <keescook@chromium.org>
+Subject: x86, build: replace Perl script with Shell script
 
 Commit e6023367d779 ("x86, kaslr: Prevent .bss from overlaping initrd")
-added perl back to the kernel build dependencies in -rc6.
+added Perl to the required build environment.  This reimplements in shell
+the Perl script used to find the size of the kernel with bss and brk
+added.
 
-Replace those 39 lines of perl with 4 lines of shell script.
-
-Note: checkpatch.pl isn't a build dependency, it's a development
-dependency (like bloat-o-meter being written in python or "make xconfig"
-needing QT).  Those aren't things you need to add to your cross compile
-environment to produce a binary.  Different category of dependency.
-
-For more history on the issue, see https://lkml.org/lkml/2013/2/27/18
-
-Signed-off-by: Rob Landley <rob@landley.net>
-Acked-by: Anca Emanuel <anca.emanuel@gmail.com>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Reported-by: Rob Landley <rob@landley.net>
+Acked-by: Rob Landley <rob@landley.net>
+Cc: Anca Emanuel <anca.emanuel@gmail.com>
 Cc: Fengguang Wu <fengguang.wu@intel.com>
 Cc: Junjie Mao <eternal.n08@gmail.com>
 Cc: Kees Cook <keescook@chromium.org>
@@ -50,27 +59,24 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/boot/compressed/Makefile |    6 ++--
- arch/x86/tools/calc_run_size.pl   |   39 ----------------------------
- 2 files changed, 4 insertions(+), 41 deletions(-)
+ arch/x86/boot/compressed/Makefile |    2 -
+ arch/x86/tools/calc_run_size.pl   |   39 --------------------------
+ arch/x86/tools/calc_run_size.sh   |   42 ++++++++++++++++++++++++++++
+ 3 files changed, 43 insertions(+), 40 deletions(-)
 
-diff -puN arch/x86/boot/compressed/Makefile~remove-recently-added-perl-build-requirement arch/x86/boot/compressed/Makefile
---- a/arch/x86/boot/compressed/Makefile~remove-recently-added-perl-build-requirement
+diff -puN arch/x86/boot/compressed/Makefile~x86-build-replace-perl-script-with-shell-script arch/x86/boot/compressed/Makefile
+--- a/arch/x86/boot/compressed/Makefile~x86-build-replace-perl-script-with-shell-script
 +++ a/arch/x86/boot/compressed/Makefile
-@@ -89,8 +89,10 @@ suffix-$(CONFIG_KERNEL_XZ)	:= xz
- suffix-$(CONFIG_KERNEL_LZO) 	:= lzo
+@@ -90,7 +90,7 @@ suffix-$(CONFIG_KERNEL_LZO) 	:= lzo
  suffix-$(CONFIG_KERNEL_LZ4) 	:= lz4
  
--RUN_SIZE = $(shell $(OBJDUMP) -h vmlinux | \
+ RUN_SIZE = $(shell $(OBJDUMP) -h vmlinux | \
 -	     perl $(srctree)/arch/x86/tools/calc_run_size.pl)
-+RUN_SIZE = $(shell NUM='\([0-9a-fA-F]*[ \t]*\)'; $(OBJDUMP) -h vmlinux | \
-+sed -n 's/^[ \t0-9]*.b[sr][sk][ \t]*'"$$NUM$$NUM$$NUM$$NUM"'.*/\1\4/p' | \
-+xargs | while read a b c d; do [ "$$b" != "$$d" ] && exit 1; \
-+expr $$(printf "%d + %d + %d" 0x$$a 0x$$b 0x$$c); done)
++	     $(CONFIG_SHELL) $(srctree)/arch/x86/tools/calc_run_size.sh)
  quiet_cmd_mkpiggy = MKPIGGY $@
        cmd_mkpiggy = $(obj)/mkpiggy $< $(RUN_SIZE) > $@ || ( rm -f $@ ; false )
  
-diff -puN arch/x86/tools/calc_run_size.pl~remove-recently-added-perl-build-requirement /dev/null
+diff -puN arch/x86/tools/calc_run_size.pl~x86-build-replace-perl-script-with-shell-script /dev/null
 --- a/arch/x86/tools/calc_run_size.pl
 +++ /dev/null
 @@ -1,39 +0,0 @@
@@ -108,3 +114,63 @@ diff -puN arch/x86/tools/calc_run_size.pl~remove-recently-added-perl-build-requi
 -		}
 -	}
 -}
+-
+-if ($file_offset == 0) {
+-	die "Never found .bss or .brk file offset\n";
+-}
+-printf("%d\n", $mem_size + $file_offset);
+diff -puN /dev/null arch/x86/tools/calc_run_size.sh
+--- /dev/null
++++ a/arch/x86/tools/calc_run_size.sh
+@@ -0,0 +1,42 @@
++#!/bin/sh
++#
++# Calculate the amount of space needed to run the kernel, including room for
++# the .bss and .brk sections.
++#
++# Usage:
++# objdump -h a.out | sh calc_run_size.sh
++
++NUM='\([0-9a-fA-F]*[ \t]*\)'
++OUT=$(sed -n 's/^[ \t0-9]*.b[sr][sk][ \t]*'"$NUM$NUM$NUM$NUM"'.*/\1\4/p')
++if [ -z "$OUT" ] ; then
++	echo "Never found .bss or .brk file offset" >&2
++	exit 1
++fi
++
++OUT=$(echo ${OUT# })
++sizeA=$(printf "%d" 0x${OUT%% *})
++OUT=${OUT#* }
++offsetA=$(printf "%d" 0x${OUT%% *})
++OUT=${OUT#* }
++sizeB=$(printf "%d" 0x${OUT%% *})
++OUT=${OUT#* }
++offsetB=$(printf "%d" 0x${OUT%% *})
++
++run_size=$(( $offsetA + $sizeA + $sizeB ))
++
++# BFD linker shows the same file offset in ELF.
++if [ "$offsetA" -ne "$offsetB" ] ; then
++	# Gold linker shows them as consecutive.
++	endB=$(( $offsetB + $sizeB ))
++	if [ "$endB" != "$run_size" ] ; then
++		printf "sizeA: 0x%x\n" $sizeA >&2
++		printf "offsetA: 0x%x\n" $offsetA >&2
++		printf "sizeB: 0x%x\n" $sizeB >&2
++		printf "offsetB: 0x%x\n" $offsetB >&2
++		echo ".bss and .brk are non-contiguous" >&2
++		exit 1
++	fi
++fi
++
++printf "%d\n" $run_size
++exit 0
+_
+
+Patches currently in -mm which might be from keescook@chromium.org are
+
+x86-build-replace-perl-script-with-shell-script.patch
+all-arches-signal-move-restart_block-to-struct-task_struct.patch
+lib-vsprintf-add-%pt-format-specifier.patch
+linux-next.patch
+
