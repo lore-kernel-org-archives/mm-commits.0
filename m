@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-memcontrol-remove-unnecessary-soft-limit-tree-node-test.patch added to
+ mm-memcontrol-consolidate-memory-controller-initialization.patch added to
  -mm tree
-Date: Mon, 12 Jan 2015 16:21:46 -0800
-Message-ID: <54b4651a.0VEuCa6y5589RXo6%akpm@linux-foundation.org>
+Date: Mon, 12 Jan 2015 16:21:48 -0800
+Message-ID: <54b4651c.ahFpz1U/v7ThLS0g%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37586 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37592 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752036AbbAMAVr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jan 2015 19:21:47 -0500
+	with ESMTP id S1752036AbbAMAVt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jan 2015 19:21:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@cmpxchg.org, mhocko@suse.cz, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: remove unnecessary soft limit tree node test
+     Subject: mm: memcontrol: consolidate memory controller initialization
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-remove-unnecessary-soft-limit-tree-node-test.patch
+     mm-memcontrol-consolidate-memory-controller-initialization.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-remove-unnecessary-soft-limit-tree-node-test.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-consolidate-memory-controller-initialization.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-remove-unnecessary-soft-limit-tree-node-test.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-consolidate-memory-controller-initialization.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,9 +41,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: remove unnecessary soft limit tree node test
+Subject: mm: memcontrol: consolidate memory controller initialization
 
-kzalloc_node() automatically falls back to nodes with suitable memory.
+The initialization code for the per-cpu charge stock and the soft
+limit tree is compact enough to inline it into mem_cgroup_init().
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@suse.cz>
@@ -51,28 +52,92 @@ Reviewed-by: Vladimir Davydov <vdavydov@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ mm/memcontrol.c |   57 +++++++++++++++++++---------------------------
+ 1 file changed, 24 insertions(+), 33 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-remove-unnecessary-soft-limit-tree-node-test mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-remove-unnecessary-soft-limit-tree-node-test
+diff -puN mm/memcontrol.c~mm-memcontrol-consolidate-memory-controller-initialization mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-consolidate-memory-controller-initialization
 +++ a/mm/memcontrol.c
-@@ -4566,13 +4566,10 @@ static void __init mem_cgroup_soft_limit
+@@ -2163,17 +2163,6 @@ static void drain_local_stock(struct wor
+ 	clear_bit(FLUSHING_CACHED_CHARGE, &stock->flags);
+ }
+ 
+-static void __init memcg_stock_init(void)
+-{
+-	int cpu;
+-
+-	for_each_possible_cpu(cpu) {
+-		struct memcg_stock_pcp *stock =
+-					&per_cpu(memcg_stock, cpu);
+-		INIT_WORK(&stock->work, drain_local_stock);
+-	}
+-}
+-
+ /*
+  * Cache charges(val) to local per_cpu area.
+  * This will be consumed by consume_stock() function, later.
+@@ -4562,26 +4551,6 @@ struct mem_cgroup *parent_mem_cgroup(str
+ }
+ EXPORT_SYMBOL(parent_mem_cgroup);
+ 
+-static void __init mem_cgroup_soft_limit_tree_init(void)
+-{
+-	struct mem_cgroup_tree_per_node *rtpn;
+-	struct mem_cgroup_tree_per_zone *rtpz;
+-	int node, zone;
+-
+-	for_each_node(node) {
+-		rtpn = kzalloc_node(sizeof(*rtpn), GFP_KERNEL, node);
+-		BUG_ON(!rtpn);
+-
+-		soft_limit_tree.rb_tree_per_node[node] = rtpn;
+-
+-		for (zone = 0; zone < MAX_NR_ZONES; zone++) {
+-			rtpz = &rtpn->rb_tree_per_zone[zone];
+-			rtpz->rb_root = RB_ROOT;
+-			spin_lock_init(&rtpz->lock);
+-		}
+-	}
+-}
+-
+ static struct cgroup_subsys_state * __ref
+ mem_cgroup_css_alloc(struct cgroup_subsys_state *parent_css)
  {
- 	struct mem_cgroup_tree_per_node *rtpn;
- 	struct mem_cgroup_tree_per_zone *rtpz;
--	int tmp, node, zone;
-+	int node, zone;
- 
- 	for_each_node(node) {
--		tmp = node;
--		if (!node_state(node, N_NORMAL_MEMORY))
--			tmp = -1;
--		rtpn = kzalloc_node(sizeof(*rtpn), GFP_KERNEL, tmp);
-+		rtpn = kzalloc_node(sizeof(*rtpn), GFP_KERNEL, node);
- 		BUG_ON(!rtpn);
- 
- 		soft_limit_tree.rb_tree_per_node[node] = rtpn;
+@@ -5971,10 +5940,32 @@ void mem_cgroup_migrate(struct page *old
+  */
+ static int __init mem_cgroup_init(void)
+ {
++	int cpu, nid;
++
+ 	hotcpu_notifier(memcg_cpu_hotplug_callback, 0);
++
++	for_each_possible_cpu(cpu)
++		INIT_WORK(&per_cpu_ptr(&memcg_stock, cpu)->work,
++			  drain_local_stock);
++
++	for_each_node(nid) {
++		struct mem_cgroup_tree_per_node *rtpn;
++		int zone;
++
++		rtpn = kzalloc_node(sizeof(*rtpn), GFP_KERNEL, nid);
++
++		for (zone = 0; zone < MAX_NR_ZONES; zone++) {
++			struct mem_cgroup_tree_per_zone *rtpz;
++
++			rtpz = &rtpn->rb_tree_per_zone[zone];
++			rtpz->rb_root = RB_ROOT;
++			spin_lock_init(&rtpz->lock);
++		}
++		soft_limit_tree.rb_tree_per_node[nid] = rtpn;
++	}
++
+ 	enable_swap_cgroup();
+-	mem_cgroup_soft_limit_tree_init();
+-	memcg_stock_init();
++
+ 	return 0;
+ }
+ subsys_initcall(mem_cgroup_init);
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
