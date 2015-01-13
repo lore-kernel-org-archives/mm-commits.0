@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + x86-build-replace-perl-script-with-shell-script.patch added to
- -mm tree
-Date: Tue, 13 Jan 2015 14:57:12 -0800
-Message-ID: <54b5a2c8.rRVwPSSNn/nW6qNh%akpm@linux-foundation.org>
+Subject: + kernfs-convert-node-name-allocation-to-kstrdup_const.patch
+ added to -mm tree
+Date: Tue, 13 Jan 2015 15:49:26 -0800
+Message-ID: <54b5af06.MrZ2niKjNcJx4QDD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53121 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53398 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751494AbbAMW5N (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Jan 2015 17:57:13 -0500
+	with ESMTP id S1751313AbbAMXt1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Jan 2015 18:49:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: keescook@chromium.org, anca.emanuel@gmail.com, eternal.n08@gmail.com, fengguang.wu@intel.com, rob@landley.net, stable@vger.kernel.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: a.hajda@samsung.com, cl@linux.com, geert@linux-m68k.org, greg@kroah.com, iamjoonsoo.kim@lge.com, kyungmin.park@samsung.com, m.szyprowski@samsung.com, mturquette@linaro.org, penberg@kernel.org, rientjes@google.com, tj@kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86, build: replace Perl script with Shell script
+     Subject: kernfs: convert node name allocation to kstrdup_const
 has been added to the -mm tree.  Its filename is
-     x86-build-replace-perl-script-with-shell-script.patch
+     kernfs-convert-node-name-allocation-to-kstrdup_const.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86-build-replace-perl-script-with-shell-script.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernfs-convert-node-name-allocation-to-kstrdup_const.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86-build-replace-perl-script-with-shell-script.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernfs-convert-node-name-allocation-to-kstrdup_const.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,138 +39,92 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: x86, build: replace Perl script with Shell script
+From: Andrzej Hajda <a.hajda@samsung.com>
+Subject: kernfs: convert node name allocation to kstrdup_const
 
-Commit e6023367d779 ("x86, kaslr: Prevent .bss from overlaping initrd")
-added Perl to the required build environment.  This reimplements in shell
-the Perl script used to find the size of the kernel with bss and brk
-added.
+sysfs frequently performs duplication of strings located in read-only
+memory section.  Replacing kstrdup by kstrdup_const allows to avoid such
+operations.
 
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Reported-by: Rob Landley <rob@landley.net>
-Acked-by: Rob Landley <rob@landley.net>
-Cc: Anca Emanuel <anca.emanuel@gmail.com>
-Cc: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Junjie Mao <eternal.n08@gmail.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Mike Turquette <mturquette@linaro.org>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Greg KH <greg@kroah.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/boot/compressed/Makefile |    2 -
- arch/x86/tools/calc_run_size.pl   |   39 --------------------------
- arch/x86/tools/calc_run_size.sh   |   42 ++++++++++++++++++++++++++++
- 3 files changed, 43 insertions(+), 40 deletions(-)
+ fs/kernfs/dir.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN arch/x86/boot/compressed/Makefile~x86-build-replace-perl-script-with-shell-script arch/x86/boot/compressed/Makefile
---- a/arch/x86/boot/compressed/Makefile~x86-build-replace-perl-script-with-shell-script
-+++ a/arch/x86/boot/compressed/Makefile
-@@ -90,7 +90,7 @@ suffix-$(CONFIG_KERNEL_LZO) 	:= lzo
- suffix-$(CONFIG_KERNEL_LZ4) 	:= lz4
+diff -puN fs/kernfs/dir.c~kernfs-convert-node-name-allocation-to-kstrdup_const fs/kernfs/dir.c
+--- a/fs/kernfs/dir.c~kernfs-convert-node-name-allocation-to-kstrdup_const
++++ a/fs/kernfs/dir.c
+@@ -408,7 +408,7 @@ void kernfs_put(struct kernfs_node *kn)
+ 	if (kernfs_type(kn) == KERNFS_LINK)
+ 		kernfs_put(kn->symlink.target_kn);
+ 	if (!(kn->flags & KERNFS_STATIC_NAME))
+-		kfree(kn->name);
++		kfree_const(kn->name);
+ 	if (kn->iattr) {
+ 		if (kn->iattr->ia_secdata)
+ 			security_release_secctx(kn->iattr->ia_secdata,
+@@ -502,12 +502,12 @@ static struct kernfs_node *__kernfs_new_
+ 					     const char *name, umode_t mode,
+ 					     unsigned flags)
+ {
+-	char *dup_name = NULL;
++	const char *dup_name = NULL;
+ 	struct kernfs_node *kn;
+ 	int ret;
  
- RUN_SIZE = $(shell $(OBJDUMP) -h vmlinux | \
--	     perl $(srctree)/arch/x86/tools/calc_run_size.pl)
-+	     $(CONFIG_SHELL) $(srctree)/arch/x86/tools/calc_run_size.sh)
- quiet_cmd_mkpiggy = MKPIGGY $@
-       cmd_mkpiggy = $(obj)/mkpiggy $< $(RUN_SIZE) > $@ || ( rm -f $@ ; false )
+ 	if (!(flags & KERNFS_STATIC_NAME)) {
+-		name = dup_name = kstrdup(name, GFP_KERNEL);
++		name = dup_name = kstrdup_const(name, GFP_KERNEL);
+ 		if (!name)
+ 			return NULL;
+ 	}
+@@ -534,7 +534,7 @@ static struct kernfs_node *__kernfs_new_
+  err_out2:
+ 	kmem_cache_free(kernfs_node_cache, kn);
+  err_out1:
+-	kfree(dup_name);
++	kfree_const(dup_name);
+ 	return NULL;
+ }
  
-diff -puN arch/x86/tools/calc_run_size.pl~x86-build-replace-perl-script-with-shell-script /dev/null
---- a/arch/x86/tools/calc_run_size.pl
-+++ /dev/null
-@@ -1,39 +0,0 @@
--#!/usr/bin/perl
--#
--# Calculate the amount of space needed to run the kernel, including room for
--# the .bss and .brk sections.
--#
--# Usage:
--# objdump -h a.out | perl calc_run_size.pl
--use strict;
--
--my $mem_size = 0;
--my $file_offset = 0;
--
--my $sections=" *[0-9]+ \.(?:bss|brk) +";
--while (<>) {
--	if (/^$sections([0-9a-f]+) +(?:[0-9a-f]+ +){2}([0-9a-f]+)/) {
--		my $size = hex($1);
--		my $offset = hex($2);
--		$mem_size += $size;
--		if ($file_offset == 0) {
--			$file_offset = $offset;
--		} elsif ($file_offset != $offset) {
--			# BFD linker shows the same file offset in ELF.
--			# Gold linker shows them as consecutive.
--			next if ($file_offset + $mem_size == $offset + $size);
--
--			printf STDERR "file_offset: 0x%lx\n", $file_offset;
--			printf STDERR "mem_size: 0x%lx\n", $mem_size;
--			printf STDERR "offset: 0x%lx\n", $offset;
--			printf STDERR "size: 0x%lx\n", $size;
--
--			die ".bss and .brk are non-contiguous\n";
--		}
--	}
--}
--
--if ($file_offset == 0) {
--	die "Never found .bss or .brk file offset\n";
--}
--printf("%d\n", $mem_size + $file_offset);
-diff -puN /dev/null arch/x86/tools/calc_run_size.sh
---- /dev/null
-+++ a/arch/x86/tools/calc_run_size.sh
-@@ -0,0 +1,42 @@
-+#!/bin/sh
-+#
-+# Calculate the amount of space needed to run the kernel, including room for
-+# the .bss and .brk sections.
-+#
-+# Usage:
-+# objdump -h a.out | sh calc_run_size.sh
-+
-+NUM='\([0-9a-fA-F]*[ \t]*\)'
-+OUT=$(sed -n 's/^[ \t0-9]*.b[sr][sk][ \t]*'"$NUM$NUM$NUM$NUM"'.*/\1\4/p')
-+if [ -z "$OUT" ] ; then
-+	echo "Never found .bss or .brk file offset" >&2
-+	exit 1
-+fi
-+
-+OUT=$(echo ${OUT# })
-+sizeA=$(printf "%d" 0x${OUT%% *})
-+OUT=${OUT#* }
-+offsetA=$(printf "%d" 0x${OUT%% *})
-+OUT=${OUT#* }
-+sizeB=$(printf "%d" 0x${OUT%% *})
-+OUT=${OUT#* }
-+offsetB=$(printf "%d" 0x${OUT%% *})
-+
-+run_size=$(( $offsetA + $sizeA + $sizeB ))
-+
-+# BFD linker shows the same file offset in ELF.
-+if [ "$offsetA" -ne "$offsetB" ] ; then
-+	# Gold linker shows them as consecutive.
-+	endB=$(( $offsetB + $sizeB ))
-+	if [ "$endB" != "$run_size" ] ; then
-+		printf "sizeA: 0x%x\n" $sizeA >&2
-+		printf "offsetA: 0x%x\n" $offsetA >&2
-+		printf "sizeB: 0x%x\n" $sizeB >&2
-+		printf "offsetB: 0x%x\n" $offsetB >&2
-+		echo ".bss and .brk are non-contiguous" >&2
-+		exit 1
-+	fi
-+fi
-+
-+printf "%d\n" $run_size
-+exit 0
+@@ -1260,7 +1260,7 @@ int kernfs_rename_ns(struct kernfs_node
+ 	/* rename kernfs_node */
+ 	if (strcmp(kn->name, new_name) != 0) {
+ 		error = -ENOMEM;
+-		new_name = kstrdup(new_name, GFP_KERNEL);
++		new_name = kstrdup_const(new_name, GFP_KERNEL);
+ 		if (!new_name)
+ 			goto out;
+ 	} else {
+@@ -1293,7 +1293,7 @@ int kernfs_rename_ns(struct kernfs_node
+ 	kernfs_link_sibling(kn);
+ 
+ 	kernfs_put(old_parent);
+-	kfree(old_name);
++	kfree_const(old_name);
+ 
+ 	error = 0;
+  out:
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from a.hajda@samsung.com are
 
-x86-build-replace-perl-script-with-shell-script.patch
-all-arches-signal-move-restart_block-to-struct-task_struct.patch
-lib-vsprintf-add-%pt-format-specifier.patch
-linux-next.patch
+mm-util-add-kstrdup_const.patch
+kernfs-convert-node-name-allocation-to-kstrdup_const.patch
+clk-convert-clock-name-allocations-to-kstrdup_const.patch
+mm-slab-convert-cache-name-allocations-to-kstrdup_const.patch
+fs-namespace-convert-devname-allocation-to-kstrdup_const.patch
 
