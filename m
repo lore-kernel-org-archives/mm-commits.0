@@ -1,76 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged]
- drivers-misc-ti-st-st_corec-fix-null-dereference-on-protocol-type-check.patch removed from -mm tree
-Date: Tue, 13 Jan 2015 14:08:51 -0800
-Message-ID: <54b59773.26aR9LxEXMkETbDZ%akpm@linux-foundation.org>
+Subject: [merged] drivers-char-mem-make-dev-mem-an-optional-device.patch
+ removed from -mm tree
+Date: Tue, 13 Jan 2015 14:09:50 -0800
+Message-ID: <54b597ae.at4cKpC8A6Ph5sqV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52842 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52847 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752786AbbAMWJC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Jan 2015 17:09:02 -0500
+	with ESMTP id S1752034AbbAMWJv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Jan 2015 17:09:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gustavo@padovan.org, gustavo.padovan@collabora.co.uk, mm-commits@vger.kernel.org
+To: robert.ward114@googlemail.com, arnd@arndb.de, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/misc/ti-st/st_core.c: fix NULL dereference on protocol type check
+     Subject: drivers/char/mem.c: make /dev/mem an optional device
 has been removed from the -mm tree.  Its filename was
-     drivers-misc-ti-st-st_corec-fix-null-dereference-on-protocol-type-check.patch
+     drivers-char-mem-make-dev-mem-an-optional-device.patch
 
-This patch was dropped because an alternative patch was merged
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Gustavo Padovan <gustavo@padovan.org>
-Subject: drivers/misc/ti-st/st_core.c: fix NULL dereference on protocol type check
+From: Rob Ward <robert.ward114@googlemail.com>
+Subject: drivers/char/mem.c: make /dev/mem an optional device
 
-From: Gustavo Padovan <gustavo.padovan@collabora.co.uk>
+Make the /dev/mem device optional using the CONFIG_DEVMEM option.
 
-If the type we receive is greater than ST_MAX_CHANNELS we can't rely on
-type as vector index since we would be accessing unknown memory when we use the type
-as index.
+This brings /dev/mem in line with /dev/kmem so it can de disabled. 
+Disabling /dev/mem is preferable on devices that do not require direct
+access to memory in order to improve security.  This is especially true on
+platforms where no restiction is placed on the areas of memory that can be
+accessed(for example mips) without custom modifcations to the kernel
+source.
 
- Unable to handle kernel NULL pointer dereference at virtual address 0000001b
- pgd = c0004000
- [0000001b] *pgd=00000000
- Internal error: Oops: 17 [#1] PREEMPT SMP ARM
- Modules linked in: btwilink wl12xx wlcore mac80211 cfg80211 rfcomm bnep bluo
- CPU: 0    Tainted: G        W     (3.4.0+ #15)
- PC is at st_int_recv+0x278/0x344
- LR is at get_parent_ip+0x14/0x30
- pc : [<c03b01a8>]    lr : [<c007273c>]    psr: 200f0193
- sp : dc631ed0  ip : e3e21c24  fp : dc631f04
- r10: 00000000  r9 : 600f0113  r8 : 0000003f
- r7 : e3e21b14  r6 : 00000067  r5 : e2e49c1c  r4 : e3e21a80
- r3 : 00000001  r2 : 00000001  r1 : 00000001  r0 : 600f0113
- Flags: nzCv  IRQs off  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
- Control: 10c5387d  Table: 9c50004a  DAC: 00000015
+The implementation of this functionality declares the mem_fops structure
+as __maybe_unused to eliminate the need for #ifdefs throughout the file.
 
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.co.uk>
+Follow up changes are present to change CONFIG_DEVKMEM and CONFIG_DEVPORT
+to use __maybe_unused.  This simplifies the code and make the
+implementations consistent.
+
+
+This patch (of 3):
+
+Adds Kconfig option CONFIG_DEVMEM that allows the /dev/mem device to be
+disabled.
+
+Option defaults to /dev/mem enabled.
+
+Signed-off-by: Rob Ward <robert.ward114@googlemail.com>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/ti-st/st_core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/Kconfig |    9 +++++++++
+ drivers/char/mem.c   |    4 +++-
+ 2 files changed, 12 insertions(+), 1 deletion(-)
 
-diff -puN drivers/misc/ti-st/st_core.c~drivers-misc-ti-st-st_corec-fix-null-dereference-on-protocol-type-check drivers/misc/ti-st/st_core.c
---- a/drivers/misc/ti-st/st_core.c~drivers-misc-ti-st-st_corec-fix-null-dereference-on-protocol-type-check
-+++ a/drivers/misc/ti-st/st_core.c
-@@ -343,7 +343,7 @@ void st_int_recv(void *disc_data,
- 			/* Unknow packet? */
- 		default:
- 			type = *ptr;
--			if (st_gdata->list[type] == NULL) {
-+			if (type >= ST_MAX_CHANNELS || st_gdata->list[type] == NULL) {
- 				pr_err("chip/interface misbehavior dropping"
- 					" frame starting with 0x%02x", type);
- 				goto done;
+diff -puN drivers/char/Kconfig~drivers-char-mem-make-dev-mem-an-optional-device drivers/char/Kconfig
+--- a/drivers/char/Kconfig~drivers-char-mem-make-dev-mem-an-optional-device
++++ a/drivers/char/Kconfig
+@@ -6,6 +6,15 @@ menu "Character devices"
+ 
+ source "drivers/tty/Kconfig"
+ 
++config DEVMEM
++	bool "/dev/mem virtual device support"
++	default y
++	help
++	  Say Y here if you want to support the /dev/mem device.
++	  The /dev/mem device is used to access areas of physical
++	  memory.
++	  When in doubt, say "Y".
++
+ config DEVKMEM
+ 	bool "/dev/kmem virtual device support"
+ 	default y
+diff -puN drivers/char/mem.c~drivers-char-mem-make-dev-mem-an-optional-device drivers/char/mem.c
+--- a/drivers/char/mem.c~drivers-char-mem-make-dev-mem-an-optional-device
++++ a/drivers/char/mem.c
+@@ -715,7 +715,7 @@ static int open_port(struct inode *inode
+ #define open_mem	open_port
+ #define open_kmem	open_mem
+ 
+-static const struct file_operations mem_fops = {
++static const struct file_operations __maybe_unused mem_fops = {
+ 	.llseek		= memory_lseek,
+ 	.read		= read_mem,
+ 	.write		= write_mem,
+@@ -785,7 +785,9 @@ static const struct memdev {
+ 	const struct file_operations *fops;
+ 	struct backing_dev_info *dev_info;
+ } devlist[] = {
++#ifdef CONFIG_DEVMEM
+ 	 [1] = { "mem", 0, &mem_fops, &directly_mappable_cdev_bdi },
++#endif
+ #ifdef CONFIG_DEVKMEM
+ 	 [2] = { "kmem", 0, &kmem_fops, &directly_mappable_cdev_bdi },
+ #endif
 _
 
-Patches currently in -mm which might be from gustavo@padovan.org are
+Patches currently in -mm which might be from robert.ward114@googlemail.com are
 
+linux-next.patch
 
