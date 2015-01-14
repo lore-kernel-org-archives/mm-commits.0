@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcontrol-default-hierarchy-interface-for-memory-fix.patch
- added to -mm tree
-Date: Tue, 13 Jan 2015 16:20:14 -0800
-Message-ID: <54b5b63e.hychPPzfIL7TS5nx%akpm@linux-foundation.org>
+Subject: + mm-memcontrol-fold-move_anon-and-move_file.patch added to -mm
+ tree
+Date: Tue, 13 Jan 2015 16:20:54 -0800
+Message-ID: <54b5b666.xQRbBwSB5koYzEay%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53900 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53908 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751971AbbANAUP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Jan 2015 19:20:15 -0500
+	with ESMTP id S1752292AbbANAUz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Jan 2015 19:20:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@cmpxchg.org, gthelen@google.com, mhocko@suse.cz, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: default hierarchy interface for memory fix
+     Subject: mm: memcontrol: fold move_anon() and move_file()
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-default-hierarchy-interface-for-memory-fix.patch
+     mm-memcontrol-fold-move_anon-and-move_file.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-default-hierarchy-interface-for-memory-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-fold-move_anon-and-move_file.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-default-hierarchy-interface-for-memory-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-fold-move_anon-and-move_file.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,10 +40,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: default hierarchy interface for memory fix
+Subject: mm: memcontrol: fold move_anon() and move_file()
 
-Document and rationalize where the default hierarchy interface differs
-from the traditional memory cgroups interface.
+Turn the move type enum into flags and give the flags field a shorter
+name.  Once that is done, move_anon() and move_file() are simple enough to
+just fold them into the callsites.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@suse.cz>
@@ -52,98 +53,137 @@ Cc: Greg Thelen <gthelen@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/unified-hierarchy.txt |   80 ++++++++++++++++++
- 1 file changed, 80 insertions(+)
+ mm/memcontrol.c |   49 ++++++++++++++++------------------------------
+ 1 file changed, 18 insertions(+), 31 deletions(-)
 
-diff -puN Documentation/cgroups/unified-hierarchy.txt~mm-memcontrol-default-hierarchy-interface-for-memory-fix Documentation/cgroups/unified-hierarchy.txt
---- a/Documentation/cgroups/unified-hierarchy.txt~mm-memcontrol-default-hierarchy-interface-for-memory-fix
-+++ a/Documentation/cgroups/unified-hierarchy.txt
-@@ -327,6 +327,86 @@ supported and the interface files "relea
- - use_hierarchy is on by default and the cgroup file for the flag is
-   not created.
+diff -puN mm/memcontrol.c~mm-memcontrol-fold-move_anon-and-move_file mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-fold-move_anon-and-move_file
++++ a/mm/memcontrol.c
+@@ -369,21 +369,18 @@ bool memcg_kmem_is_active(struct mem_cgr
  
-+- The original lower boundary, the soft limit, is defined as a limit
-+  that is per default unset.  As a result, the set of cgroups that
-+  global reclaim prefers is opt-in, rather than opt-out.  The costs
-+  for optimizing these mostly negative lookups are so high that the
-+  implementation, despite its enormous size, does not even provide the
-+  basic desirable behavior.  First off, the soft limit has no
-+  hierarchical meaning.  All configured groups are organized in a
-+  global rbtree and treated like equal peers, regardless where they
-+  are located in the hierarchy.  This makes subtree delegation
-+  impossible.  Second, the soft limit reclaim pass is so aggressive
-+  that it not just introduces high allocation latencies into the
-+  system, but also impacts system performance due to overreclaim, to
-+  the point where the feature becomes self-defeating.
-+
-+  The memory.low boundary on the other hand is a top-down allocated
-+  reserve.  A cgroup enjoys reclaim protection when it and all its
-+  ancestors are below their low boundaries, which makes delegation of
-+  subtrees possible.  Secondly, new cgroups have no reserve per
-+  default and in the common case most cgroups are eligible for the
-+  preferred reclaim pass.  This allows the new low boundary to be
-+  efficiently implemented with just a minor addition to the generic
-+  reclaim code, without the need for out-of-band data structures and
-+  reclaim passes.  Because the generic reclaim code considers all
-+  cgroups except for the ones running low in the preferred first
-+  reclaim pass, overreclaim of individual groups is eliminated as
-+  well, resulting in much better overall workload performance.
-+
-+- The original high boundary, the hard limit, is defined as a strict
-+  limit that can not budge, even if the OOM killer has to be called.
-+  But this generally goes against the goal of making the most out of
-+  the available memory.  The memory consumption of workloads varies
-+  during runtime, and that requires users to overcommit.  But doing
-+  that with a strict upper limit requires either a fairly accurate
-+  prediction of the working set size or adding slack to the limit.
-+  Since working set size estimation is hard and error prone, and
-+  getting it wrong results in OOM kills, most users tend to err on the
-+  side of a looser limit and end up wasting precious resources.
-+
-+  The memory.high boundary on the other hand can be set much more
-+  conservatively.  When hit, it throttles allocations by forcing them
-+  into direct reclaim to work off the excess, but it never invokes the
-+  OOM killer.  As a result, a high boundary that is chosen too
-+  aggressively will not terminate the processes, but instead it will
-+  lead to gradual performance degradation.  The user can monitor this
-+  and make corrections until the minimal memory footprint that still
-+  gives acceptable performance is found.
-+
-+  In extreme cases, with many concurrent allocations and a complete
-+  breakdown of reclaim progress within the group, the high boundary
-+  can be exceeded.  But even then it's mostly better to satisfy the
-+  allocation from the slack available in other groups or the rest of
-+  the system than killing the group.  Otherwise, memory.max is there
-+  to limit this type of spillover and ultimately contain buggy or even
-+  malicious applications.
-+
-+- The original control file names are unwieldy and inconsistent in
-+  many different ways.  For example, the upper boundary hit count is
-+  exported in the memory.failcnt file, but an OOM event count has to
-+  be manually counted by listening to memory.oom_control events, and
-+  lower boundary / soft limit events have to be counted by first
-+  setting a threshold for that value and then counting those events.
-+  Also, usage and limit files encode their units in the filename.
-+  That makes the filenames very long, even though this is not
-+  information that a user needs to be reminded of every time they type
-+  out those names.
-+
-+  To address these naming issues, as well as to signal clearly that
-+  the new interface carries a new configuration model, the naming
-+  conventions in it necessarily differ from the old interface.
-+
-+- The original limit files indicate the state of an unset limit with a
-+  Very High Number, and a configured limit can be unset by echoing -1
-+  into those files.  But that very high number is implementation and
-+  architecture dependent and not very descriptive.  And while -1 can
-+  be understood as an underflow into the highest possible value, -2 or
-+  -10M etc. do not work, so it's not consistent.
-+
-+  memory.low and memory.high will indicate "none" if the boundary is
-+  not configured, and a configured boundary can be unset by writing
-+  "none" into these files as well.
+ /* Stuffs for move charges at task migration. */
+ /*
+- * Types of charges to be moved. "move_charge_at_immitgrate" and
+- * "immigrate_flags" are treated as a left-shifted bitmap of these types.
++ * Types of charges to be moved.
+  */
+-enum move_type {
+-	MOVE_CHARGE_TYPE_ANON,	/* private anonymous page and swap of it */
+-	MOVE_CHARGE_TYPE_FILE,	/* file page(including tmpfs) and swap of it */
+-	NR_MOVE_TYPE,
+-};
++#define MOVE_ANON	0x1U
++#define MOVE_FILE	0x2U
++#define MOVE_MASK	0x3U
  
- 5. Planned Changes
+ /* "mc" and its members are protected by cgroup_mutex */
+ static struct move_charge_struct {
+ 	spinlock_t	  lock; /* for from, to */
+ 	struct mem_cgroup *from;
+ 	struct mem_cgroup *to;
+-	unsigned long immigrate_flags;
++	unsigned long flags;
+ 	unsigned long precharge;
+ 	unsigned long moved_charge;
+ 	unsigned long moved_swap;
+@@ -394,16 +391,6 @@ static struct move_charge_struct {
+ 	.waitq = __WAIT_QUEUE_HEAD_INITIALIZER(mc.waitq),
+ };
+ 
+-static bool move_anon(void)
+-{
+-	return test_bit(MOVE_CHARGE_TYPE_ANON, &mc.immigrate_flags);
+-}
+-
+-static bool move_file(void)
+-{
+-	return test_bit(MOVE_CHARGE_TYPE_FILE, &mc.immigrate_flags);
+-}
+-
+ /*
+  * Maximum loops in mem_cgroup_hierarchical_reclaim(), used for soft
+  * limit reclaim to prevent infinite loops, if they ever occur.
+@@ -3538,7 +3525,7 @@ static int mem_cgroup_move_charge_write(
+ {
+ 	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
+ 
+-	if (val >= (1 << NR_MOVE_TYPE))
++	if (val & ~MOVE_MASK)
+ 		return -EINVAL;
+ 
+ 	/*
+@@ -4815,12 +4802,12 @@ static struct page *mc_handle_present_pt
+ 	if (!page || !page_mapped(page))
+ 		return NULL;
+ 	if (PageAnon(page)) {
+-		/* we don't move shared anon */
+-		if (!move_anon())
++		if (!(mc.flags & MOVE_ANON))
+ 			return NULL;
+-	} else if (!move_file())
+-		/* we ignore mapcount for file pages */
+-		return NULL;
++	} else {
++		if (!(mc.flags & MOVE_FILE))
++			return NULL;
++	}
+ 	if (!get_page_unless_zero(page))
+ 		return NULL;
+ 
+@@ -4834,7 +4821,7 @@ static struct page *mc_handle_swap_pte(s
+ 	struct page *page = NULL;
+ 	swp_entry_t ent = pte_to_swp_entry(ptent);
+ 
+-	if (!move_anon() || non_swap_entry(ent))
++	if (!(mc.flags & MOVE_ANON) || non_swap_entry(ent))
+ 		return NULL;
+ 	/*
+ 	 * Because lookup_swap_cache() updates some statistics counter,
+@@ -4863,7 +4850,7 @@ static struct page *mc_handle_file_pte(s
+ 
+ 	if (!vma->vm_file) /* anonymous vma */
+ 		return NULL;
+-	if (!move_file())
++	if (!(mc.flags & MOVE_FILE))
+ 		return NULL;
+ 
+ 	mapping = vma->vm_file->f_mapping;
+@@ -4943,7 +4930,7 @@ static enum mc_target_type get_mctgt_typ
+ 
+ 	page = pmd_page(pmd);
+ 	VM_BUG_ON_PAGE(!page || !PageHead(page), page);
+-	if (!move_anon())
++	if (!(mc.flags & MOVE_ANON))
+ 		return ret;
+ 	if (page->mem_cgroup == mc.from) {
+ 		ret = MC_TARGET_PAGE;
+@@ -5085,15 +5072,15 @@ static int mem_cgroup_can_attach(struct
+ 	struct task_struct *p = cgroup_taskset_first(tset);
+ 	int ret = 0;
+ 	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
+-	unsigned long move_charge_at_immigrate;
++	unsigned long move_flags;
+ 
+ 	/*
+ 	 * We are now commited to this value whatever it is. Changes in this
+ 	 * tunable will only affect upcoming migrations, not the current one.
+ 	 * So we need to save it, and keep it going.
+ 	 */
+-	move_charge_at_immigrate  = memcg->move_charge_at_immigrate;
+-	if (move_charge_at_immigrate) {
++	move_flags = ACCESS_ONCE(memcg->move_charge_at_immigrate);
++	if (move_flags) {
+ 		struct mm_struct *mm;
+ 		struct mem_cgroup *from = mem_cgroup_from_task(p);
+ 
+@@ -5113,7 +5100,7 @@ static int mem_cgroup_can_attach(struct
+ 			spin_lock(&mc.lock);
+ 			mc.from = from;
+ 			mc.to = memcg;
+-			mc.immigrate_flags = move_charge_at_immigrate;
++			mc.flags = move_flags;
+ 			spin_unlock(&mc.lock);
+ 			/* We set mc.moving_task later */
  
 _
 
