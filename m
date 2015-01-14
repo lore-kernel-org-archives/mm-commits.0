@@ -1,30 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + kernfs-remove-kernfs_static_name.patch added to -mm tree
-Date: Wed, 14 Jan 2015 13:51:58 -0800
-Message-ID: <54b6e4fe.q8V/N9UTN42pGa2N%akpm@linux-foundation.org>
+Subject: + rtc-rk808-fix-the-rtc-time-reading-issue.patch added to -mm
+ tree
+Date: Wed, 14 Jan 2015 14:53:48 -0800
+Message-ID: <54b6f37c.VBXEBglXhIJ+ibMh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42660 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43212 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753772AbbANVv7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Jan 2015 16:51:59 -0500
+	with ESMTP id S1750965AbbANWxt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Jan 2015 17:53:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, a.hajda@samsung.com, mm-commits@vger.kernel.org
+To: zyw@rock-chips.com, a.zummo@towertech.it, dianders@chromium.org, heiko@sntech.de, sonnyrao@chromium.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernfs: remove KERNFS_STATIC_NAME
+     Subject: drivers/rtc/rtc-rk808.c: fix rtc time reading issue
 has been added to the -mm tree.  Its filename is
-     kernfs-remove-kernfs_static_name.patch
+     rtc-rk808-fix-the-rtc-time-reading-issue.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernfs-remove-kernfs_static_name.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rtc-rk808-fix-the-rtc-time=
+-reading-issue.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernfs-remove-kernfs_static_name.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-rk808-fix-the-rtc-time=
+-reading-issue.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -32,207 +35,81 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tejun Heo <tj@kernel.org>
-Subject: kernfs: remove KERNFS_STATIC_NAME
+=46rom: Chris Zhong <zyw@rock-chips.com>
+Subject: drivers/rtc/rtc-rk808.c: fix rtc time reading issue
 
-When a new kernfs node is created, KERNFS_STATIC_NAME is used to avoid
-making a separate copy of its name.  It's currently only used for sysfs
-attributes whose filenames are required to stay accessible and unchanged. 
-There are rare exceptions where these names are allocated and formatted
-dynamically but for the vast majority of cases they're consts in the
-rodata section.
+After we set the GET_TIME bit, the rtc time can't be read immediately. =
+ We
+should wait up to 31.25 us, about one cycle of 32khz.  Otherwise readin=
+g
+RTC time will return a old time.  If we clear the GET_TIME bit after
+setting, the time of i2c transfer is certainly more than 31.25us.
 
-Now that kernfs is converted to use kstrdup_const() and kfree_const(),
-there's little point in keeping KERNFS_STATIC_NAME around.  Remove it.
+Doug said:
 
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Andrzej Hajda <a.hajda@samsung.com>
+: I think we are safe.  At 400kHz (the max speed of this part) each bit=
+ can
+: be transferred no faster than 2.5us.  In order to do a valid i2c
+: transaction we need to _at least_ write the address of the device and=
+ the
+: data onto the bus, which is 16 bits.  16 * 2.5us =3D 40us.  That's ab=
+ove the
+: 31.25us
+
+Signed-off-by: Chris Zhong <zyw@rock-chips.com>
+Reviewed-by: Doug Anderson <dianders@chromium.org>
+Cc: Sonny Rao <sonnyrao@chromium.org>
+Cc: Heiko St=FCbner <heiko@sntech.de>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/kernfs/dir.c        |   20 ++++++++------------
- fs/kernfs/file.c       |    4 ----
- fs/sysfs/file.c        |    2 +-
- include/linux/kernfs.h |    7 ++-----
- kernel/cgroup.c        |    2 +-
- 5 files changed, 12 insertions(+), 23 deletions(-)
+ drivers/rtc/rtc-rk808.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN fs/kernfs/dir.c~kernfs-remove-kernfs_static_name fs/kernfs/dir.c
---- a/fs/kernfs/dir.c~kernfs-remove-kernfs_static_name
-+++ a/fs/kernfs/dir.c
-@@ -407,8 +407,9 @@ void kernfs_put(struct kernfs_node *kn)
- 
- 	if (kernfs_type(kn) == KERNFS_LINK)
- 		kernfs_put(kn->symlink.target_kn);
--	if (!(kn->flags & KERNFS_STATIC_NAME))
--		kfree_const(kn->name);
-+
-+	kfree_const(kn->name);
-+
- 	if (kn->iattr) {
- 		if (kn->iattr->ia_secdata)
- 			security_release_secctx(kn->iattr->ia_secdata,
-@@ -502,15 +503,12 @@ static struct kernfs_node *__kernfs_new_
- 					     const char *name, umode_t mode,
- 					     unsigned flags)
- {
--	const char *dup_name = NULL;
- 	struct kernfs_node *kn;
- 	int ret;
- 
--	if (!(flags & KERNFS_STATIC_NAME)) {
--		name = dup_name = kstrdup_const(name, GFP_KERNEL);
--		if (!name)
--			return NULL;
--	}
-+	name = kstrdup_const(name, GFP_KERNEL);
-+	if (!name)
-+		return NULL;
- 
- 	kn = kmem_cache_zalloc(kernfs_node_cache, GFP_KERNEL);
- 	if (!kn)
-@@ -534,7 +532,7 @@ static struct kernfs_node *__kernfs_new_
-  err_out2:
- 	kmem_cache_free(kernfs_node_cache, kn);
-  err_out1:
--	kfree_const(dup_name);
-+	kfree_const(name);
- 	return NULL;
- }
- 
-@@ -1281,9 +1279,7 @@ int kernfs_rename_ns(struct kernfs_node
- 
- 	kn->ns = new_ns;
- 	if (new_name) {
--		if (!(kn->flags & KERNFS_STATIC_NAME))
--			old_name = kn->name;
--		kn->flags &= ~KERNFS_STATIC_NAME;
-+		old_name = kn->name;
- 		kn->name = new_name;
+diff -puN drivers/rtc/rtc-rk808.c~rtc-rk808-fix-the-rtc-time-reading-is=
+sue drivers/rtc/rtc-rk808.c
+--- a/drivers/rtc/rtc-rk808.c~rtc-rk808-fix-the-rtc-time-reading-issue
++++ a/drivers/rtc/rtc-rk808.c
+@@ -67,15 +67,20 @@ static int rk808_rtc_readtime(struct dev
+ 	/* Force an update of the shadowed registers right now */
+ 	ret =3D regmap_update_bits(rk808->regmap, RK808_RTC_CTRL_REG,
+ 				 BIT_RTC_CTRL_REG_RTC_GET_TIME,
+-				 0);
++				 BIT_RTC_CTRL_REG_RTC_GET_TIME);
+ 	if (ret) {
+ 		dev_err(dev, "Failed to update bits rtc_ctrl: %d\n", ret);
+ 		return ret;
  	}
- 
-diff -puN fs/kernfs/file.c~kernfs-remove-kernfs_static_name fs/kernfs/file.c
---- a/fs/kernfs/file.c~kernfs-remove-kernfs_static_name
-+++ a/fs/kernfs/file.c
-@@ -901,7 +901,6 @@ const struct file_operations kernfs_file
-  * @ops: kernfs operations for the file
-  * @priv: private data for the file
-  * @ns: optional namespace tag of the file
-- * @name_is_static: don't copy file name
-  * @key: lockdep key for the file's active_ref, %NULL to disable lockdep
-  *
-  * Returns the created node on success, ERR_PTR() value on error.
-@@ -911,7 +910,6 @@ struct kernfs_node *__kernfs_create_file
- 					 umode_t mode, loff_t size,
- 					 const struct kernfs_ops *ops,
- 					 void *priv, const void *ns,
--					 bool name_is_static,
- 					 struct lock_class_key *key)
- {
- 	struct kernfs_node *kn;
-@@ -919,8 +917,6 @@ struct kernfs_node *__kernfs_create_file
- 	int rc;
- 
- 	flags = KERNFS_FILE;
--	if (name_is_static)
--		flags |= KERNFS_STATIC_NAME;
- 
- 	kn = kernfs_new_node(parent, name, (mode & S_IALLUGO) | S_IFREG, flags);
- 	if (!kn)
-diff -puN fs/sysfs/file.c~kernfs-remove-kernfs_static_name fs/sysfs/file.c
---- a/fs/sysfs/file.c~kernfs-remove-kernfs_static_name
-+++ a/fs/sysfs/file.c
-@@ -295,7 +295,7 @@ int sysfs_add_file_mode_ns(struct kernfs
- 		key = attr->key ?: (struct lock_class_key *)&attr->skey;
- #endif
- 	kn = __kernfs_create_file(parent, attr->name, mode & 0777, size, ops,
--				  (void *)attr, ns, true, key);
-+				  (void *)attr, ns, key);
- 	if (IS_ERR(kn)) {
- 		if (PTR_ERR(kn) == -EEXIST)
- 			sysfs_warn_dup(parent, attr->name);
-diff -puN include/linux/kernfs.h~kernfs-remove-kernfs_static_name include/linux/kernfs.h
---- a/include/linux/kernfs.h~kernfs-remove-kernfs_static_name
-+++ a/include/linux/kernfs.h
-@@ -43,7 +43,6 @@ enum kernfs_node_flag {
- 	KERNFS_HAS_SEQ_SHOW	= 0x0040,
- 	KERNFS_HAS_MMAP		= 0x0080,
- 	KERNFS_LOCKDEP		= 0x0100,
--	KERNFS_STATIC_NAME	= 0x0200,
- 	KERNFS_SUICIDAL		= 0x0400,
- 	KERNFS_SUICIDED		= 0x0800,
- };
-@@ -291,7 +290,6 @@ struct kernfs_node *__kernfs_create_file
- 					 umode_t mode, loff_t size,
- 					 const struct kernfs_ops *ops,
- 					 void *priv, const void *ns,
--					 bool name_is_static,
- 					 struct lock_class_key *key);
- struct kernfs_node *kernfs_create_link(struct kernfs_node *parent,
- 				       const char *name,
-@@ -369,8 +367,7 @@ kernfs_create_dir_ns(struct kernfs_node
- static inline struct kernfs_node *
- __kernfs_create_file(struct kernfs_node *parent, const char *name,
- 		     umode_t mode, loff_t size, const struct kernfs_ops *ops,
--		     void *priv, const void *ns, bool name_is_static,
--		     struct lock_class_key *key)
-+		     void *priv, const void *ns, struct lock_class_key *key)
- { return ERR_PTR(-ENOSYS); }
- 
- static inline struct kernfs_node *
-@@ -439,7 +436,7 @@ kernfs_create_file_ns(struct kernfs_node
- 	key = (struct lock_class_key *)&ops->lockdep_key;
- #endif
- 	return __kernfs_create_file(parent, name, mode, size, ops, priv, ns,
--				    false, key);
-+				    key);
- }
- 
- static inline struct kernfs_node *
-diff -puN kernel/cgroup.c~kernfs-remove-kernfs_static_name kernel/cgroup.c
---- a/kernel/cgroup.c~kernfs-remove-kernfs_static_name
-+++ a/kernel/cgroup.c
-@@ -3077,7 +3077,7 @@ static int cgroup_add_file(struct cgroup
- #endif
- 	kn = __kernfs_create_file(cgrp->kn, cgroup_file_name(cgrp, cft, name),
- 				  cgroup_file_mode(cft), 0, cft->kf_ops, cft,
--				  NULL, false, key);
-+				  NULL, key);
- 	if (IS_ERR(kn))
- 		return PTR_ERR(kn);
- 
+=20
++	/* After we set the GET_TIME bit, the rtc time couldn't be read
++	 * immediately, we should wait up to 31.25 us, about one cycle of
++	 * 32khz. If we clear the GET_TIME bit here, the time of i2c transfer
++	 * certainly more than 31.25us.
++	 */
+ 	ret =3D regmap_update_bits(rk808->regmap, RK808_RTC_CTRL_REG,
+ 				 BIT_RTC_CTRL_REG_RTC_GET_TIME,
+-				 BIT_RTC_CTRL_REG_RTC_GET_TIME);
++				 0);
+ 	if (ret) {
+ 		dev_err(dev, "Failed to update bits rtc_ctrl: %d\n", ret);
+ 		return ret;
 _
 
-Patches currently in -mm which might be from tj@kernel.org are
+Patches currently in -mm which might be from zyw@rock-chips.com are
 
-block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
-list_lru-introduce-list_lru_shrink_countwalk.patch
-fs-consolidate-nrfree_cached_objects-args-in-shrink_control.patch
-vmscan-per-memory-cgroup-slab-shrinkers.patch
-memcg-rename-some-cache-id-related-variables.patch
-memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation.patch
-list_lru-get-rid-of-active_nodes.patch
-list_lru-organize-all-list_lrus-to-list.patch
-list_lru-introduce-per-memcg-lists.patch
-fs-make-shrinker-memcg-aware.patch
-vmscan-force-scan-offline-memory-cgroups.patch
-oom-add-helpers-for-setting-and-clearing-tif_memdie.patch
-oom-thaw-the-oom-victim-if-it-is-frozen.patch
-pm-convert-printk-to-pr_-equivalent.patch
-sysrq-convert-printk-to-pr_-equivalent.patch
-oom-pm-make-oom-detection-in-the-freezer-path-raceless.patch
-fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
-mm-util-add-kstrdup_const.patch
-kernfs-convert-node-name-allocation-to-kstrdup_const.patch
-clk-convert-clock-name-allocations-to-kstrdup_const.patch
-mm-slab-convert-cache-name-allocations-to-kstrdup_const.patch
-fs-namespace-convert-devname-allocation-to-kstrdup_const.patch
-kernfs-remove-kernfs_static_name.patch
-linux-next.patch
+rtc-rk808-fix-the-rtc-time-reading-issue.patch
+rtc-rk808-fix-the-rtc-time-reading-issue-fix.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
