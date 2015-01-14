@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- fs-shrinker-always-scan-at-least-one-object-of-each-type-fix.patch added to -mm tree
-Date: Tue, 13 Jan 2015 15:56:51 -0800
-Message-ID: <54b5b0c3.XMMu7qwXOu436DIm%akpm@linux-foundation.org>
+Subject: + build-superh-without-config_expert.patch added to -mm tree
+Date: Tue, 13 Jan 2015 16:04:42 -0800
+Message-ID: <54b5b29a.9cQbDWi3xJHtVNNg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53466 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53556 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751028AbbAMX4w (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Jan 2015 18:56:52 -0500
+	with ESMTP id S1751271AbbANAEn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 13 Jan 2015 19:04:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, david@fromorbit.com, hannes@cmpxchg.org, mhocko@suse.cz, vdavydov@parallels.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: rob@landley.net, geert+renesas@glider.be, rdunlap@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs-shrinker-always-scan-at-least-one-object-of-each-type-fix
+     Subject: sh: build superh without CONFIG_EXPERT.
 has been added to the -mm tree.  Its filename is
-     fs-shrinker-always-scan-at-least-one-object-of-each-type-fix.patch
+     build-superh-without-config_expert.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-shrinker-always-scan-at-least-one-object-of-each-type-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/build-superh-without-config_expert.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-shrinker-always-scan-at-least-one-object-of-each-type-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/build-superh-without-config_expert.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,71 +38,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fs-shrinker-always-scan-at-least-one-object-of-each-type-fix
+From: Rob Landley <rob@landley.net>
+Subject: sh: build superh without CONFIG_EXPERT.
 
-add comment
+What sh4 actually wants is HAVE_PATA_PLATFORM, so select that instead.
 
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Vladimir Davydov <vdavydov@parallels.com>
+Signed-off-by: Rob Landley <rob@landley.net>
+Acked-by: Randy Dunlap <rdunlap@infradead.org>
+Acked-by: Geert Uytterhoeven <geert+renesas@glider.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/super.c |    3 +++
- 1 file changed, 3 insertions(+)
+ arch/sh/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/super.c~fs-shrinker-always-scan-at-least-one-object-of-each-type-fix fs/super.c
---- a/fs/super.c~fs-shrinker-always-scan-at-least-one-object-of-each-type-fix
-+++ a/fs/super.c
-@@ -91,6 +91,9 @@ static unsigned long super_cache_scan(st
- 	/*
- 	 * prune the dcache first as the icache is pinned by it, then
- 	 * prune the icache, followed by the filesystem specific caches
-+	 *
-+	 * Ensure that we always scan at least one object - memcg kmem
-+	 * accounting uses this to fully empty the caches.
- 	 */
- 	sc->nr_to_scan = dentries + 1;
- 	freed = prune_dcache_sb(sb, sc);
+diff -puN arch/sh/Kconfig~build-superh-without-config_expert arch/sh/Kconfig
+--- a/arch/sh/Kconfig~build-superh-without-config_expert
++++ a/arch/sh/Kconfig
+@@ -1,7 +1,7 @@
+ config SUPERH
+ 	def_bool y
+ 	select ARCH_MIGHT_HAVE_PC_PARPORT
+-	select EXPERT
++	select HAVE_PATA_PLATFORM
+ 	select CLKDEV_LOOKUP
+ 	select HAVE_IDE if HAS_IOPORT_MAP
+ 	select HAVE_MEMBLOCK
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rob@landley.net are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-fanotify-dont-recalculate-a-marks-mask-if-only-the-ignored-mask-changed-checkpatch-fixes.patch
-fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper.patch
-ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir.patch
-mm.patch
-mm-fix-xip-fault-vs-truncate-race-fix.patch
-mm-fix-xip-fault-vs-truncate-race-fix-fix.patch
-mm-allow-page-fault-handlers-to-perform-the-cow-fix.patch
-mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix.patch
-daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix.patch
-daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-2.patch
-dax-add-dax_zero_page_range-fix.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
-mm-memcontrol-default-hierarchy-interface-for-memory-checkpatch-fixes.patch
-fs-shrinker-always-scan-at-least-one-object-of-each-type-fix.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss.patch
-lib-bitmap-update-bitmap_onto-to-unsigned-checkpatch-fixes.patch
-lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned-fix.patch
-hexdump-makes-it-return-amount-of-bytes-placed-in-buffer-fix.patch
-fs-befs-linuxvfsc-remove-unnecessary-casting-fix.patch
+x86-build-replace-perl-script-with-shell-script.patch
+build-superh-without-config_expert.patch
+init-remove-config_init_fallback.patch
+rtc-rtc-isl12057-add-isilirq2-can-wakeup-machine-property-for-in-tree-users.patch
+arm-mvebu-isl12057-rtc-chip-can-now-wake-up-rn102-rn102-and-rn2120.patch
 linux-next.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
+dt-bindings-use-isil-prefix-for-intersil.patch
+rtc-isl12022-deprecate-use-of-isl-in-compatible-string-for-isil.patch
+rtc-isl12057-deprecate-use-of-isl-in-compatible-string-for-isil.patch
+staging-iio-isl29028-deprecate-use-of-isl-in-compatible-string-for-isil.patch
+arm-dts-zynq-update-isl9305-compatible-string-to-use-isil-vendor-prefix.patch
 
