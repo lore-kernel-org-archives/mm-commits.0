@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- rtc-rtc-ab-b5ze-s3-add-sub-minute-alarm-support.patch removed from -mm tree
-Date: Thu, 15 Jan 2015 14:09:44 -0800
-Message-ID: <54b83aa8.dPjgbO1JogLkfhHQ%akpm@linux-foundation.org>
+Subject: + rtc-rtc-ab-b5ze-s3-add-sub-minute-alarm-support.patch added to
+ -mm tree
+Date: Thu, 15 Jan 2015 14:10:54 -0800
+Message-ID: <54b83aee.0QAK18dRhEAJW/xP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59531 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59550 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752534AbbAOWJ5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Jan 2015 17:09:57 -0500
+	with ESMTP id S1752534AbbAOWLH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Jan 2015 17:11:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: arno@natisbad.org, a.zummo@towertech.it, arnd@arndb.de, broonie@kernel.org, galak@codeaurora.org, grant.likely@linaro.org, ijc+devicetree@hellion.org.uk, jason@lakedaemon.net, jgunthorpe@obsidianresearch.com, linus.walleij@linaro.org, linux@roeck-us.net, mark.rutland@arm.com, pawel.moll@arm.com, peter.huewe@infineon.com, rob@landley.net, robherring2@gmail.com, swarren@wwwdotorg.org, treding@nvidia.com, mm-commits@vger.kernel.org
@@ -19,10 +19,24 @@ To: arno@natisbad.org, a.zummo@towertech.it, arnd@arndb.de, broonie@kernel.org, 
 
 The patch titled
      Subject: rtc: rtc-ab-b5ze-s3: add sub-minute alarm support
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      rtc-rtc-ab-b5ze-s3-add-sub-minute-alarm-support.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/rtc-rtc-ab-b5ze-s3-add-sub-minute-alarm-support.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-rtc-ab-b5ze-s3-add-sub-minute-alarm-support.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Arnaud Ebalard <arno@natisbad.org>
@@ -59,8 +73,8 @@ Cc: Kumar Gala <galak@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ab-b5ze-s3.c |  319 ++++++++++++++++++++++++++++-----
- 1 file changed, 279 insertions(+), 40 deletions(-)
+ drivers/rtc/rtc-ab-b5ze-s3.c |  291 +++++++++++++++++++++++++++++----
+ 1 file changed, 262 insertions(+), 29 deletions(-)
 
 diff -puN drivers/rtc/rtc-ab-b5ze-s3.c~rtc-rtc-ab-b5ze-s3-add-sub-minute-alarm-support drivers/rtc/rtc-ab-b5ze-s3.c
 --- a/drivers/rtc/rtc-ab-b5ze-s3.c~rtc-rtc-ab-b5ze-s3-add-sub-minute-alarm-support
@@ -96,7 +110,7 @@ diff -puN drivers/rtc/rtc-ab-b5ze-s3.c~rtc-rtc-ab-b5ze-s3-add-sub-minute-alarm-s
  /*
   * Note: we only read, so regmap inner lock protection is sufficient, i.e.
   * we do not need driver's main lock protection.
-@@ -277,7 +294,92 @@ static int abb5zes3_rtc_set_time(struct 
+@@ -277,7 +294,92 @@ static int abb5zes3_rtc_set_time(struct
  	return ret;
  }
  
@@ -319,10 +333,10 @@ diff -puN drivers/rtc/rtc-ab-b5ze-s3.c~rtc-rtc-ab-b5ze-s3-add-sub-minute-alarm-s
 +
 +	/* Record currently configured alarm is a timer */
 +	data->timer_alarm = 1;
-+
+ 
 +	/* Enable or disable timer interrupt generation */
 +	ret = _abb5zes3_rtc_update_timer(dev, alarm->enabled);
- 
++
 +err:
  	return ret;
  }
@@ -437,65 +451,8 @@ diff -puN drivers/rtc/rtc-ab-b5ze-s3.c~rtc-rtc-ab-b5ze-s3-add-sub-minute-alarm-s
  	return handled;
  }
  
-@@ -655,24 +896,28 @@ static int abb5zes3_probe(struct i2c_cli
- 
- 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C |
- 				     I2C_FUNC_SMBUS_BYTE_DATA |
--				     I2C_FUNC_SMBUS_I2C_BLOCK))
--		return -ENODEV;
-+				     I2C_FUNC_SMBUS_I2C_BLOCK)) {
-+		ret = -ENODEV;
-+		goto out;
-+	}
- 
- 	regmap = devm_regmap_init_i2c(client, &abb5zes3_rtc_regmap_config);
- 	if (IS_ERR(regmap)) {
- 		ret = PTR_ERR(regmap);
- 		dev_err(dev, "%s: regmap allocation failed: %d\n",
- 			__func__, ret);
--		return ret;
-+		goto out;
- 	}
- 
- 	ret = abb5zes3_i2c_validate_chip(regmap);
- 	if (ret)
--		return ret;
-+		goto out;
- 
- 	data = devm_kzalloc(dev, sizeof(*data), GFP_KERNEL);
--	if (!data)
--		return -ENOMEM;
-+	if (!data) {
-+		ret = -ENOMEM;
-+		goto out;
-+	}
- 
- 	mutex_init(&data->lock);
- 	data->regmap = regmap;
-@@ -680,7 +925,7 @@ static int abb5zes3_probe(struct i2c_cli
- 
- 	ret = abb5zes3_rtc_check_setup(dev);
- 	if (ret)
--		return ret;
-+		goto out;
- 
- 	if (client->irq > 0) {
- 		ret = devm_request_threaded_irq(dev, client->irq, NULL,
-@@ -695,7 +940,7 @@ static int abb5zes3_probe(struct i2c_cli
- 		} else {
- 			dev_err(dev, "%s: irq %d unavailable (%d)\n",
- 				__func__, client->irq, ret);
--			return ret;
-+			goto out;
- 		}
- 	}
- 
-@@ -705,29 +950,23 @@ static int abb5zes3_probe(struct i2c_cli
- 	if (ret) {
- 		dev_err(dev, "%s: unable to register RTC device (%d)\n",
- 			__func__, ret);
--		goto err;
-+		goto out_deinit_wakeup;
+@@ -712,14 +953,6 @@ static int abb5zes3_probe(struct i2c_cli
+ 		goto err;
  	}
  
 -	/*
@@ -505,41 +462,3 @@ diff -puN drivers/rtc/rtc-ab-b5ze-s3.c~rtc-rtc-ab-b5ze-s3-add-sub-minute-alarm-s
 -	 * such a feature using one of the two timers the device provides.
 -	 */
 -	data->rtc->uie_unsupported = 1;
--
- 	/* Enable battery low detection interrupt if battery not already low */
- 	if (!data->battery_low && data->irq) {
- 		ret = _abb5zes3_rtc_battery_low_irq_enable(regmap, true);
- 		if (ret) {
- 			dev_err(dev, "%s: enabling battery low interrupt "
- 				"generation failed (%d)\n", __func__, ret);
--			goto err;
-+			goto out_deinit_wakeup;
- 		}
- 	}
- 
-+out:
- 	return ret;
--err:
-+
-+out_deinit_wakeup:
- 	device_init_wakeup(dev, false);
- 	return ret;
- }
-_
-
-Patches currently in -mm which might be from arno@natisbad.org are
-
-rtc-rtc-isl12057-add-alarm-support-to-intersil-isl12057-rtc-driver.patch
-rtc-rtc-isl12057-add-alarm-support-to-intersil-isl12057-rtc-driver-update.patch
-rtc-rtc-isl12057-add-isilirq2-can-wakeup-machine-property-for-in-tree-users.patch
-arm-mvebu-isl12057-rtc-chip-can-now-wake-up-rn102-rn102-and-rn2120.patch
-of-add-vendor-prefix-for-abracon-corporation.patch
-rtc-add-support-for-abracon-ab-rtcmc-32768khz-b5ze-s3-i2c-rtc-chip.patch
-rtc-add-support-for-abracon-ab-rtcmc-32768khz-b5ze-s3-i2c-rtc-chip-v2.patch
-linux-next.patch
-dt-bindings-use-isil-prefix-for-intersil.patch
-rtc-isl12022-deprecate-use-of-isl-in-compatible-string-for-isil.patch
-rtc-isl12057-deprecate-use-of-isl-in-compatible-string-for-isil.patch
-staging-iio-isl29028-deprecate-use-of-isl-in-compatible-string-for-isil.patch
-arm-dts-zynq-update-isl9305-compatible-string-to-use-isil-vendor-prefix.patch
-
