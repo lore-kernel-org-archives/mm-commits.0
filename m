@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmscan-fix-highidx-argument-type.patch added to -mm tree
-Date: Thu, 15 Jan 2015 14:49:26 -0800
-Message-ID: <54b843f6.bKeeLGhT41m9Gwxc%akpm@linux-foundation.org>
+Subject: +
+ page_writeback-put-account_page_redirty-after-set_page_dirty.patch added to -mm tree
+Date: Thu, 15 Jan 2015 15:01:11 -0800
+Message-ID: <54b846b7.R62nE6lRxn8tP9G/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59781 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59851 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932258AbbAOWt1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Jan 2015 17:49:27 -0500
+	with ESMTP id S1752941AbbAOXBM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Jan 2015 18:01:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mst@redhat.com, hannes@cmpxchg.org, mgorman@suse.de, mhocko@suse.cz, riel@redhat.com, suleiman@google.com, vbabka@suse.cz, vdavydov@parallels.com, mm-commits@vger.kernel.org
+To: khlebnikov@yandex-team.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmscan: fix highidx argument type
+     Subject: page_writeback: put account_page_redirty() after set_page_dirty()
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-fix-highidx-argument-type.patch
+     page_writeback-put-account_page_redirty-after-set_page_dirty.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-fix-highidx-argument-type.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/page_writeback-put-account_page_redirty-after-set_page_dirty.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-fix-highidx-argument-type.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/page_writeback-put-account_page_redirty-after-set_page_dirty.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,51 +39,54 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Michael S. Tsirkin" <mst@redhat.com>
-Subject: mm/vmscan: fix highidx argument type
+From: Konstantin Khebnikov <khlebnikov@yandex-team.ru>
+Subject: page_writeback: put account_page_redirty() after set_page_dirty()
 
-for_each_zone_zonelist_nodemask wants an enum zone_type argument, but is
-passed gfp_t:
+Helper account_page_redirty() fixes dirty pages counter for redirtied
+pages.  This patch puts it after dirtying and prevents temporary
+underflows of dirtied pages counters on zone/bdi and current->nr_dirtied.
 
-mm/vmscan.c:2658:9:    expected int enum zone_type [signed] highest_zoneidx
-mm/vmscan.c:2658:9:    got restricted gfp_t [usertype] gfp_mask
-mm/vmscan.c:2658:9: warning: incorrect type in argument 2 (different base types)
-mm/vmscan.c:2658:9:    expected int enum zone_type [signed] highest_zoneidx
-mm/vmscan.c:2658:9:    got restricted gfp_t [usertype] gfp_mask
-
-convert argument to the correct type.
-
-Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vladimir Davydov <vdavydov@parallels.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Suleiman Souhlal <suleiman@google.com>
+Signed-off-by: Konstantin Khebnikov <khlebnikov@yandex-team.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/btrfs/extent_io.c |    2 +-
+ mm/page-writeback.c  |    5 ++++-
+ 2 files changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-fix-highidx-argument-type mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-fix-highidx-argument-type
-+++ a/mm/vmscan.c
-@@ -2656,7 +2656,7 @@ static bool throttle_direct_reclaim(gfp_
- 	 * should make reasonable progress.
- 	 */
- 	for_each_zone_zonelist_nodemask(zone, z, zonelist,
--					gfp_mask, nodemask) {
-+					gfp_zone(gfp_mask), nodemask) {
- 		if (zone_idx(zone) > ZONE_NORMAL)
- 			continue;
+diff -puN fs/btrfs/extent_io.c~page_writeback-put-account_page_redirty-after-set_page_dirty fs/btrfs/extent_io.c
+--- a/fs/btrfs/extent_io.c~page_writeback-put-account_page_redirty-after-set_page_dirty
++++ a/fs/btrfs/extent_io.c
+@@ -1407,8 +1407,8 @@ int extent_range_redirty_for_io(struct i
+ 	while (index <= end_index) {
+ 		page = find_get_page(inode->i_mapping, index);
+ 		BUG_ON(!page); /* Pages should be in the extent_io_tree */
+-		account_page_redirty(page);
+ 		__set_page_dirty_nobuffers(page);
++		account_page_redirty(page);
+ 		page_cache_release(page);
+ 		index++;
+ 	}
+diff -puN mm/page-writeback.c~page_writeback-put-account_page_redirty-after-set_page_dirty mm/page-writeback.c
+--- a/mm/page-writeback.c~page_writeback-put-account_page_redirty-after-set_page_dirty
++++ a/mm/page-writeback.c
+@@ -2168,9 +2168,12 @@ EXPORT_SYMBOL(account_page_redirty);
+  */
+ int redirty_page_for_writepage(struct writeback_control *wbc, struct page *page)
+ {
++	int ret;
++
+ 	wbc->pages_skipped++;
++	ret = __set_page_dirty_nobuffers(page);
+ 	account_page_redirty(page);
+-	return __set_page_dirty_nobuffers(page);
++	return ret;
+ }
+ EXPORT_SYMBOL(redirty_page_for_writepage);
  
 _
 
-Patches currently in -mm which might be from mst@redhat.com are
+Patches currently in -mm which might be from khlebnikov@yandex-team.ru are
 
-origin.patch
-mm-vmscan-fix-highidx-argument-type.patch
-linux-next.patch
+page_writeback-put-account_page_redirty-after-set_page_dirty.patch
 
