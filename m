@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + page_writeback-cleanup-mess-around-cancel_dirty_page.patch
+Subject: +
+ mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated-fix.patch
  added to -mm tree
-Date: Thu, 15 Jan 2015 17:16:07 -0800
-Message-ID: <54b86657.emqe/Tcl7C5BhRiP%akpm@linux-foundation.org>
+Date: Thu, 15 Jan 2015 17:17:50 -0800
+Message-ID: <54b866be.fNGMRfCLKjPrjSLE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33052 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33099 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932072AbbAPBQU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Jan 2015 20:16:20 -0500
+	with ESMTP id S932477AbbAPBSC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Jan 2015 20:18:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khlebnikov@yandex-team.ru, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, mgorman@suse.de, mhocko@suse.cz, minchan@kernel.org, vdavydov@parallels.com, vinmenon@codeaurora.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     From: Konstantin Khebnikov <khlebnikov@yandex-team.ru>
+     Subject: mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated-fix
 has been added to the -mm tree.  Its filename is
-     page_writeback-cleanup-mess-around-cancel_dirty_page.patch
+     mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/page_writeback-cleanup-mess-around-cancel_dirty_page.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/page_writeback-cleanup-mess-around-cancel_dirty_page.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,230 +40,128 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Konstantin Khebnikov <khlebnikov@yandex-team.ru>
-Subject: page_writeback: cleanup mess around cancel_dirty_page()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated-fix
 
-This patch replaces cancel_dirty_page() with helper account_page_cleared()
-which only updates counters. It's called from delete_from_page_cache()
-and from try_to_free_buffers() (hack for ext3). Page is locked in both cases.
+Move the zone_page_state_snapshot() fallback logic into
+too_many_isolated(), so shrink_inactive_list() doesn't incorrectly call
+congestion_wait().
 
-Hugetlbfs has no dirty pages accounting, ClearPageDirty() is enough here.
-
-cancel_dirty_page() in nfs_wb_page_cancel() is redundant. This is helper
-for nfs_invalidate_page() and it's called only in case complete invalidation.
-
-Open-coded kludge at the end of __delete_from_page_cache() is redundant too.
-
-This mess was started in v2.6.20, after commit 3e67c09 ("truncate: clear page
-dirtiness before running try_to_free_buffers()") reverted back in v2.6.25
-by commit a2b3456 ("Fix dirty page accounting leak with ext3 data=journal").
-Custom fixes were introduced between them. NFS in in v2.6.23 in commit
-1b3b4a1 ("NFS: Fix a write request leak in nfs_invalidate_page()").
-Kludge __delete_from_page_cache() in v2.6.24, commit 3a692790 ("Do dirty
-page accounting when removing a page from the page cache").
-
-It seems safe to leave dirty flag set on truncated page, free_pages_check()
-will clear it before returning page into buddy allocator.
-
-Signed-off-by: Konstantin Khebnikov <khlebnikov@yandex-team.ru>
----
-
-index a260e99..ff5cab2 100644
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Vinayak Menon <vinmenon@codeaurora.org>
+Cc: Vladimir Davydov <vdavydov@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/lustre/lustre/include/linux/lustre_patchless_compat.h |    1 
- fs/buffer.c                                                           |    4 -
- fs/hugetlbfs/inode.c                                                  |    2 
- fs/nfs/write.c                                                        |    5 -
- include/linux/mm.h                                                    |    2 
- include/linux/page-flags.h                                            |    2 
- mm/filemap.c                                                          |   15 ----
- mm/page-writeback.c                                                   |   19 ++++++
- mm/truncate.c                                                         |   31 ----------
- 9 files changed, 27 insertions(+), 54 deletions(-)
+ mm/vmscan.c |   23 +++++++++++------------
+ 1 file changed, 11 insertions(+), 12 deletions(-)
 
-diff -puN drivers/staging/lustre/lustre/include/linux/lustre_patchless_compat.h~page_writeback-cleanup-mess-around-cancel_dirty_page drivers/staging/lustre/lustre/include/linux/lustre_patchless_compat.h
---- a/drivers/staging/lustre/lustre/include/linux/lustre_patchless_compat.h~page_writeback-cleanup-mess-around-cancel_dirty_page
-+++ a/drivers/staging/lustre/lustre/include/linux/lustre_patchless_compat.h
-@@ -55,7 +55,6 @@ truncate_complete_page(struct address_sp
- 	if (PagePrivate(page))
- 		page->mapping->a_ops->invalidatepage(page, 0, PAGE_CACHE_SIZE);
- 
--	cancel_dirty_page(page, PAGE_SIZE);
- 	ClearPageMappedToDisk(page);
- 	ll_delete_from_page_cache(page);
+diff -puN mm/vmscan.c~mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated-fix mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated-fix
++++ a/mm/vmscan.c
+@@ -1402,7 +1402,7 @@ int isolate_lru_page(struct page *page)
  }
-diff -puN fs/buffer.c~page_writeback-cleanup-mess-around-cancel_dirty_page fs/buffer.c
---- a/fs/buffer.c~page_writeback-cleanup-mess-around-cancel_dirty_page
-+++ a/fs/buffer.c
-@@ -3243,8 +3243,8 @@ int try_to_free_buffers(struct page *pag
- 	 * to synchronise against __set_page_dirty_buffers and prevent the
- 	 * dirty bit from being lost.
- 	 */
--	if (ret)
--		cancel_dirty_page(page, PAGE_CACHE_SIZE);
-+	if (ret && TestClearPageDirty(page))
-+		account_page_cleared(page, mapping);
- 	spin_unlock(&mapping->private_lock);
- out:
- 	if (buffers_to_free) {
-diff -puN fs/hugetlbfs/inode.c~page_writeback-cleanup-mess-around-cancel_dirty_page fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~page_writeback-cleanup-mess-around-cancel_dirty_page
-+++ a/fs/hugetlbfs/inode.c
-@@ -325,7 +325,7 @@ static int hugetlbfs_write_end(struct fi
  
- static void truncate_huge_page(struct page *page)
+ static int __too_many_isolated(struct zone *zone, int file,
+-	struct scan_control *sc, int safe)
++			       struct scan_control *sc, int safe)
  {
--	cancel_dirty_page(page, /* No IO accounting for huge pages? */0);
-+	ClearPageDirty(page);
- 	ClearPageUptodate(page);
- 	delete_from_page_cache(page);
+ 	unsigned long inactive, isolated;
+ 
+@@ -1435,7 +1435,7 @@ static int __too_many_isolated(struct zo
+  * unnecessary swapping, thrashing and OOM.
+  */
+ static int too_many_isolated(struct zone *zone, int file,
+-		struct scan_control *sc, int safe)
++			     struct scan_control *sc)
+ {
+ 	if (current_is_kswapd())
+ 		return 0;
+@@ -1443,12 +1443,14 @@ static int too_many_isolated(struct zone
+ 	if (!global_reclaim(sc))
+ 		return 0;
+ 
+-	if (unlikely(__too_many_isolated(zone, file, sc, 0))) {
+-		if (safe)
+-			return __too_many_isolated(zone, file, sc, safe);
+-		else
+-			return 1;
+-	}
++	/*
++	 * __too_many_isolated(safe=0) is fast but inaccurate, because it
++	 * doesn't account for the vm_stat_diff[] counters.  So if it looks
++	 * like too_many_isolated() is about to return true, fall back to the
++	 * slower, more accurate zone_page_state_snapshot().
++	 */
++	if (unlikely(__too_many_isolated(zone, file, sc, 0)))
++		return __too_many_isolated(zone, file, sc, 1);
+ 
+ 	return 0;
  }
-diff -puN fs/nfs/write.c~page_writeback-cleanup-mess-around-cancel_dirty_page fs/nfs/write.c
---- a/fs/nfs/write.c~page_writeback-cleanup-mess-around-cancel_dirty_page
-+++ a/fs/nfs/write.c
-@@ -1811,11 +1811,6 @@ int nfs_wb_page_cancel(struct inode *ino
- 		 * request from the inode / page_private pointer and
- 		 * release it */
- 		nfs_inode_remove_request(req);
--		/*
--		 * In case nfs_inode_remove_request has marked the
--		 * page as being dirty
--		 */
--		cancel_dirty_page(page, PAGE_CACHE_SIZE);
- 		nfs_unlock_and_release_request(req);
+@@ -1540,18 +1542,15 @@ shrink_inactive_list(unsigned long nr_to
+ 	unsigned long nr_immediate = 0;
+ 	isolate_mode_t isolate_mode = 0;
+ 	int file = is_file_lru(lru);
+-	int safe = 0;
+ 	struct zone *zone = lruvec_zone(lruvec);
+ 	struct zone_reclaim_stat *reclaim_stat = &lruvec->reclaim_stat;
+ 
+-	while (unlikely(too_many_isolated(zone, file, sc, safe))) {
++	while (unlikely(too_many_isolated(zone, file, sc))) {
+ 		congestion_wait(BLK_RW_ASYNC, HZ/10);
+ 
+ 		/* We are about to die and free our memory. Return now. */
+ 		if (fatal_signal_pending(current))
+ 			return SWAP_CLUSTER_MAX;
+-
+-		safe = 1;
  	}
  
-diff -puN include/linux/mm.h~page_writeback-cleanup-mess-around-cancel_dirty_page include/linux/mm.h
---- a/include/linux/mm.h~page_writeback-cleanup-mess-around-cancel_dirty_page
-+++ a/include/linux/mm.h
-@@ -1252,9 +1252,11 @@ int __set_page_dirty_no_writeback(struct
- int redirty_page_for_writepage(struct writeback_control *wbc,
- 				struct page *page);
- void account_page_dirtied(struct page *page, struct address_space *mapping);
-+void account_page_cleared(struct page *page, struct address_space *mapping);
- int set_page_dirty(struct page *page);
- int set_page_dirty_lock(struct page *page);
- int clear_page_dirty_for_io(struct page *page);
-+
- int get_cmdline(struct task_struct *task, char *buffer, int buflen);
- 
- /* Is the vma a continuation of the stack vma above it? */
-diff -puN include/linux/page-flags.h~page_writeback-cleanup-mess-around-cancel_dirty_page include/linux/page-flags.h
---- a/include/linux/page-flags.h~page_writeback-cleanup-mess-around-cancel_dirty_page
-+++ a/include/linux/page-flags.h
-@@ -323,8 +323,6 @@ static inline void SetPageUptodate(struc
- 
- CLEARPAGEFLAG(Uptodate, uptodate)
- 
--extern void cancel_dirty_page(struct page *page, unsigned int account_size);
--
- int test_clear_page_writeback(struct page *page);
- int __test_set_page_writeback(struct page *page, bool keep_write);
- 
-diff -puN mm/filemap.c~page_writeback-cleanup-mess-around-cancel_dirty_page mm/filemap.c
---- a/mm/filemap.c~page_writeback-cleanup-mess-around-cancel_dirty_page
-+++ a/mm/filemap.c
-@@ -201,18 +201,6 @@ void __delete_from_page_cache(struct pag
- 	if (PageSwapBacked(page))
- 		__dec_zone_page_state(page, NR_SHMEM);
- 	BUG_ON(page_mapped(page));
--
--	/*
--	 * Some filesystems seem to re-dirty the page even after
--	 * the VM has canceled the dirty bit (eg ext3 journaling).
--	 *
--	 * Fix it up by doing a final dirty accounting check after
--	 * having removed the page entirely.
--	 */
--	if (PageDirty(page) && mapping_cap_account_dirty(mapping)) {
--		dec_zone_page_state(page, NR_FILE_DIRTY);
--		dec_bdi_stat(mapping->backing_dev_info, BDI_RECLAIMABLE);
--	}
- }
- 
- /**
-@@ -230,6 +218,9 @@ void delete_from_page_cache(struct page
- 
- 	BUG_ON(!PageLocked(page));
- 
-+	if (PageDirty(page))
-+		account_page_cleared(page, mapping);
-+
- 	freepage = mapping->a_ops->freepage;
- 	spin_lock_irq(&mapping->tree_lock);
- 	__delete_from_page_cache(page, NULL);
-diff -puN mm/page-writeback.c~page_writeback-cleanup-mess-around-cancel_dirty_page mm/page-writeback.c
---- a/mm/page-writeback.c~page_writeback-cleanup-mess-around-cancel_dirty_page
-+++ a/mm/page-writeback.c
-@@ -2106,6 +2106,25 @@ void account_page_dirtied(struct page *p
- EXPORT_SYMBOL(account_page_dirtied);
- 
- /*
-+ * Helper function for deaccounting dirty page without doing writeback.
-+ * Doing this should *normally* only ever be done when a page
-+ * is truncated, and is not actually mapped anywhere at all. However,
-+ * fs/buffer.c does this when it notices that somebody has cleaned
-+ * out all the buffers on a page without actually doing it through
-+ * the VM. Can you say "ext3 is horribly ugly"? Tought you could.
-+ */
-+void account_page_cleared(struct page *page, struct address_space *mapping)
-+{
-+	if (mapping_cap_account_dirty(mapping)) {
-+		dec_zone_page_state(page, NR_FILE_DIRTY);
-+		dec_bdi_stat(mapping->backing_dev_info,
-+				BDI_RECLAIMABLE);
-+		task_io_account_cancelled_write(PAGE_CACHE_SIZE);
-+	}
-+}
-+EXPORT_SYMBOL(account_page_cleared);
-+
-+/*
-  * For address_spaces which do not use buffers.  Just tag the page as dirty in
-  * its radix tree.
-  *
-diff -puN mm/truncate.c~page_writeback-cleanup-mess-around-cancel_dirty_page mm/truncate.c
---- a/mm/truncate.c~page_writeback-cleanup-mess-around-cancel_dirty_page
-+++ a/mm/truncate.c
-@@ -93,35 +93,6 @@ void do_invalidatepage(struct page *page
- }
- 
- /*
-- * This cancels just the dirty bit on the kernel page itself, it
-- * does NOT actually remove dirty bits on any mmap's that may be
-- * around. It also leaves the page tagged dirty, so any sync
-- * activity will still find it on the dirty lists, and in particular,
-- * clear_page_dirty_for_io() will still look at the dirty bits in
-- * the VM.
-- *
-- * Doing this should *normally* only ever be done when a page
-- * is truncated, and is not actually mapped anywhere at all. However,
-- * fs/buffer.c does this when it notices that somebody has cleaned
-- * out all the buffers on a page without actually doing it through
-- * the VM. Can you say "ext3 is horribly ugly"? Tought you could.
-- */
--void cancel_dirty_page(struct page *page, unsigned int account_size)
--{
--	if (TestClearPageDirty(page)) {
--		struct address_space *mapping = page->mapping;
--		if (mapping && mapping_cap_account_dirty(mapping)) {
--			dec_zone_page_state(page, NR_FILE_DIRTY);
--			dec_bdi_stat(mapping->backing_dev_info,
--					BDI_RECLAIMABLE);
--			if (account_size)
--				task_io_account_cancelled_write(account_size);
--		}
--	}
--}
--EXPORT_SYMBOL(cancel_dirty_page);
--
--/*
-  * If truncate cannot remove the fs-private metadata from the page, the page
-  * becomes orphaned.  It will be left on the LRU and may even be mapped into
-  * user pagetables if we're racing with filemap_fault().
-@@ -140,8 +111,6 @@ truncate_complete_page(struct address_sp
- 	if (page_has_private(page))
- 		do_invalidatepage(page, 0, PAGE_CACHE_SIZE);
- 
--	cancel_dirty_page(page, PAGE_CACHE_SIZE);
+ 	lru_add_drain();
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+fanotify-dont-recalculate-a-marks-mask-if-only-the-ignored-mask-changed-checkpatch-fixes.patch
+fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask-checkpatch-fixes.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper.patch
+ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir.patch
+mm.patch
+mm-vmstatc-fix-cleanup-ifdefs.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
+vmscan-force-scan-offline-memory-cgroups-fix.patch
+mm-memcontrol-default-hierarchy-interface-for-memory-checkpatch-fixes.patch
+mm-memcontrol-fold-move_anon-and-move_file-fix.patch
+fs-shrinker-always-scan-at-least-one-object-of-each-type-fix.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss.patch
+lib-bitmap-update-bitmap_onto-to-unsigned-checkpatch-fixes.patch
+lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned-fix.patch
+hexdump-makes-it-return-amount-of-bytes-placed-in-buffer-fix.patch
+rtc-rk808-fix-the-rtc-time-reading-issue-fix.patch
+fs-befs-linuxvfsc-remove-unnecessary-casting-fix.patch
+linux-next.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mm-fix-xip-fault-vs-truncate-race-fix.patch
+mm-fix-xip-fault-vs-truncate-race-fix-fix.patch
+mm-allow-page-fault-handlers-to-perform-the-cow-fix.patch
+mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix.patch
+daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix.patch
+daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-2.patch
+dax-add-dax_zero_page_range-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated-fix.patch
+
