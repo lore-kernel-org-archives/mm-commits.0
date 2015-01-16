@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-compaction-more-trace-to-understand-when-why-compaction-start-finish.patch added to -mm tree
-Date: Thu, 15 Jan 2015 15:52:02 -0800
-Message-ID: <54b852a2.0yWH3w+N2N5RCO4y%akpm@linux-foundation.org>
+ mm-slub-optimize-alloc-free-fastpath-by-removing-preemption-on-off.patch
+ added to -mm tree
+Date: Thu, 15 Jan 2015 16:24:41 -0800
+Message-ID: <54b85a49.b6852aPc3Ij5taKD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60637 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60770 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751433AbbAOXwO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Jan 2015 18:52:14 -0500
+	with ESMTP id S1752054AbbAPAYy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Jan 2015 19:24:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, mgorman@suse.de, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: iamjoonsoo.kim@lge.com, brouer@redhat.com, cl@linux.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/compaction: more trace to understand when/why compaction start/finish
+     Subject: mm/slub: optimize alloc/free fastpath by removing preemption on/off
 has been added to the -mm tree.  Its filename is
-     mm-compaction-more-trace-to-understand-when-why-compaction-start-finish.patch
+     mm-slub-optimize-alloc-free-fastpath-by-removing-preemption-on-off.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-more-trace-to-understand-when-why-compaction-start-finish.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slub-optimize-alloc-free-fastpath-by-removing-preemption-on-off.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-more-trace-to-understand-when-why-compaction-start-finish.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-optimize-alloc-free-fastpath-by-removing-preemption-on-off.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,214 +41,178 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/compaction: more trace to understand when/why compaction start/finish
+Subject: mm/slub: optimize alloc/free fastpath by removing preemption on/off
 
-It is not well analyzed that when/why compaction start/finish or not. 
-With these new tracepoints, we can know much more about start/finish
-reason of compaction.  I can find following bug with these tracepoint.
+We had to insert a preempt enable/disable in the fastpath a while ago in
+order to guarantee that tid and kmem_cache_cpu are retrieved on the same
+cpu.  It is the problem only for CONFIG_PREEMPT in which scheduler can
+move the process to other cpu during retrieving data.
 
-http://www.spinics.net/lists/linux-mm/msg81582.html
+Now, I reach the solution to remove preempt enable/disable in the
+fastpath.  If tid is matched with kmem_cache_cpu's tid after tid and
+kmem_cache_cpu are retrieved by separate this_cpu operation, it means that
+they are retrieved on the same cpu.  If not matched, we just have to retry
+it.
+
+With this guarantee, preemption enable/disable isn't need at all even if
+CONFIG_PREEMPT, so this patch removes it.
+
+I saw roughly 5% win in a fast-path loop over kmem_cache_alloc/free
+in CONFIG_PREEMPT. (14.821 ns -> 14.049 ns)
+
+Below is the result of Christoph's slab_test reported by
+Jesper Dangaard Brouer.
+
+* Before
+
+ Single thread testing
+ =====================
+ 1. Kmalloc: Repeatedly allocate then free test
+ 10000 times kmalloc(8) -> 49 cycles kfree -> 62 cycles
+ 10000 times kmalloc(16) -> 48 cycles kfree -> 64 cycles
+ 10000 times kmalloc(32) -> 53 cycles kfree -> 70 cycles
+ 10000 times kmalloc(64) -> 64 cycles kfree -> 77 cycles
+ 10000 times kmalloc(128) -> 74 cycles kfree -> 84 cycles
+ 10000 times kmalloc(256) -> 84 cycles kfree -> 114 cycles
+ 10000 times kmalloc(512) -> 83 cycles kfree -> 116 cycles
+ 10000 times kmalloc(1024) -> 81 cycles kfree -> 120 cycles
+ 10000 times kmalloc(2048) -> 104 cycles kfree -> 136 cycles
+ 10000 times kmalloc(4096) -> 142 cycles kfree -> 165 cycles
+ 10000 times kmalloc(8192) -> 238 cycles kfree -> 226 cycles
+ 10000 times kmalloc(16384) -> 403 cycles kfree -> 264 cycles
+ 2. Kmalloc: alloc/free test
+ 10000 times kmalloc(8)/kfree -> 68 cycles
+ 10000 times kmalloc(16)/kfree -> 68 cycles
+ 10000 times kmalloc(32)/kfree -> 69 cycles
+ 10000 times kmalloc(64)/kfree -> 68 cycles
+ 10000 times kmalloc(128)/kfree -> 68 cycles
+ 10000 times kmalloc(256)/kfree -> 68 cycles
+ 10000 times kmalloc(512)/kfree -> 74 cycles
+ 10000 times kmalloc(1024)/kfree -> 75 cycles
+ 10000 times kmalloc(2048)/kfree -> 74 cycles
+ 10000 times kmalloc(4096)/kfree -> 74 cycles
+ 10000 times kmalloc(8192)/kfree -> 75 cycles
+ 10000 times kmalloc(16384)/kfree -> 510 cycles
+
+* After
+
+ Single thread testing
+ =====================
+ 1. Kmalloc: Repeatedly allocate then free test
+ 10000 times kmalloc(8) -> 46 cycles kfree -> 61 cycles
+ 10000 times kmalloc(16) -> 46 cycles kfree -> 63 cycles
+ 10000 times kmalloc(32) -> 49 cycles kfree -> 69 cycles
+ 10000 times kmalloc(64) -> 57 cycles kfree -> 76 cycles
+ 10000 times kmalloc(128) -> 66 cycles kfree -> 83 cycles
+ 10000 times kmalloc(256) -> 84 cycles kfree -> 110 cycles
+ 10000 times kmalloc(512) -> 77 cycles kfree -> 114 cycles
+ 10000 times kmalloc(1024) -> 80 cycles kfree -> 116 cycles
+ 10000 times kmalloc(2048) -> 102 cycles kfree -> 131 cycles
+ 10000 times kmalloc(4096) -> 135 cycles kfree -> 163 cycles
+ 10000 times kmalloc(8192) -> 238 cycles kfree -> 218 cycles
+ 10000 times kmalloc(16384) -> 399 cycles kfree -> 262 cycles
+ 2. Kmalloc: alloc/free test
+ 10000 times kmalloc(8)/kfree -> 65 cycles
+ 10000 times kmalloc(16)/kfree -> 66 cycles
+ 10000 times kmalloc(32)/kfree -> 65 cycles
+ 10000 times kmalloc(64)/kfree -> 66 cycles
+ 10000 times kmalloc(128)/kfree -> 66 cycles
+ 10000 times kmalloc(256)/kfree -> 71 cycles
+ 10000 times kmalloc(512)/kfree -> 72 cycles
+ 10000 times kmalloc(1024)/kfree -> 71 cycles
+ 10000 times kmalloc(2048)/kfree -> 71 cycles
+ 10000 times kmalloc(4096)/kfree -> 71 cycles
+ 10000 times kmalloc(8192)/kfree -> 65 cycles
+ 10000 times kmalloc(16384)/kfree -> 511 cycles
+
+Most of the results are better than before.
+
+Note that this change slightly worses performance in !CONFIG_PREEMPT,
+roughly 0.3%.  Implementing each case separately would help performance,
+but, since it's so marginal, I didn't do that.  This would help
+maintanance since we have same code for all cases.
+
+Change from v1: add comment about barrier() usage
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@suse.de>
+Acked-by: Christoph Lameter <cl@linux.com>
+Tested-by: Jesper Dangaard Brouer <brouer@redhat.com>
+Acked-by: Jesper Dangaard Brouer <brouer@redhat.com>
+Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compaction.h        |    3 +
- include/trace/events/compaction.h |   74 ++++++++++++++++++++++++++++
- mm/compaction.c                   |   38 ++++++++++++--
- 3 files changed, 111 insertions(+), 4 deletions(-)
+ mm/slub.c |   35 +++++++++++++++++++++++------------
+ 1 file changed, 23 insertions(+), 12 deletions(-)
 
-diff -puN include/linux/compaction.h~mm-compaction-more-trace-to-understand-when-why-compaction-start-finish include/linux/compaction.h
---- a/include/linux/compaction.h~mm-compaction-more-trace-to-understand-when-why-compaction-start-finish
-+++ a/include/linux/compaction.h
-@@ -12,6 +12,9 @@
- #define COMPACT_PARTIAL		3
- /* The full zone was compacted */
- #define COMPACT_COMPLETE	4
-+/* For more detailed tracepoint output */
-+#define COMPACT_NO_SUITABLE_PAGE	5
-+#define COMPACT_NOT_SUITABLE_ZONE	6
- /* When adding new state, please change compaction_status_string, too */
- 
- /* Used to signal whether compaction detected need_sched() or lock contention */
-diff -puN include/trace/events/compaction.h~mm-compaction-more-trace-to-understand-when-why-compaction-start-finish include/trace/events/compaction.h
---- a/include/trace/events/compaction.h~mm-compaction-more-trace-to-understand-when-why-compaction-start-finish
-+++ a/include/trace/events/compaction.h
-@@ -164,6 +164,80 @@ TRACE_EVENT(mm_compaction_end,
- 		compaction_status_string[__entry->status])
- );
- 
-+TRACE_EVENT(mm_compaction_try_to_compact_pages,
-+
-+	TP_PROTO(
-+		int order,
-+		gfp_t gfp_mask,
-+		enum migrate_mode mode),
-+
-+	TP_ARGS(order, gfp_mask, mode),
-+
-+	TP_STRUCT__entry(
-+		__field(int, order)
-+		__field(gfp_t, gfp_mask)
-+		__field(enum migrate_mode, mode)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->order = order;
-+		__entry->gfp_mask = gfp_mask;
-+		__entry->mode = mode;
-+	),
-+
-+	TP_printk("order=%d gfp_mask=0x%x mode=%d",
-+		__entry->order,
-+		__entry->gfp_mask,
-+		(int)__entry->mode)
-+);
-+
-+DECLARE_EVENT_CLASS(mm_compaction_suitable_template,
-+
-+	TP_PROTO(struct zone *zone,
-+		int order,
-+		int ret),
-+
-+	TP_ARGS(zone, order, ret),
-+
-+	TP_STRUCT__entry(
-+		__field(int, nid)
-+		__field(char *, name)
-+		__field(int, order)
-+		__field(int, ret)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->nid = zone_to_nid(zone);
-+		__entry->name = (char *)zone->name;
-+		__entry->order = order;
-+		__entry->ret = ret;
-+	),
-+
-+	TP_printk("node=%d zone=%-8s order=%d ret=%s",
-+		__entry->nid,
-+		__entry->name,
-+		__entry->order,
-+		compaction_status_string[__entry->ret])
-+);
-+
-+DEFINE_EVENT(mm_compaction_suitable_template, mm_compaction_finished,
-+
-+	TP_PROTO(struct zone *zone,
-+		int order,
-+		int ret),
-+
-+	TP_ARGS(zone, order, ret)
-+);
-+
-+DEFINE_EVENT(mm_compaction_suitable_template, mm_compaction_suitable,
-+
-+	TP_PROTO(struct zone *zone,
-+		int order,
-+		int ret),
-+
-+	TP_ARGS(zone, order, ret)
-+);
-+
- #endif /* _TRACE_COMPACTION_H */
- 
- /* This part must be outside protection */
-diff -puN mm/compaction.c~mm-compaction-more-trace-to-understand-when-why-compaction-start-finish mm/compaction.c
---- a/mm/compaction.c~mm-compaction-more-trace-to-understand-when-why-compaction-start-finish
-+++ a/mm/compaction.c
-@@ -25,6 +25,8 @@ char *compaction_status_string[] = {
- 	"continue",
- 	"partial",
- 	"complete",
-+	"no_suitable_page",
-+	"not_suitable_zone",
- };
- 
- static inline void count_compact_event(enum vm_event_item item)
-@@ -1048,7 +1050,7 @@ static isolate_migrate_t isolate_migrate
- 	return cc->nr_migratepages ? ISOLATE_SUCCESS : ISOLATE_NONE;
- }
- 
--static int compact_finished(struct zone *zone, struct compact_control *cc,
-+static int __compact_finished(struct zone *zone, struct compact_control *cc,
- 			    const int migratetype)
- {
- 	unsigned int order;
-@@ -1103,7 +1105,20 @@ static int compact_finished(struct zone
- 			return COMPACT_PARTIAL;
- 	}
- 
--	return COMPACT_CONTINUE;
-+	return COMPACT_NO_SUITABLE_PAGE;
-+}
-+
-+static int compact_finished(struct zone *zone, struct compact_control *cc,
-+			    const int migratetype)
-+{
-+	int ret;
-+
-+	ret = __compact_finished(zone, cc, migratetype);
-+	trace_mm_compaction_finished(zone, cc->order, ret);
-+	if (ret == COMPACT_NO_SUITABLE_PAGE)
-+		ret = COMPACT_CONTINUE;
-+
-+	return ret;
- }
- 
- /*
-@@ -1113,7 +1128,7 @@ static int compact_finished(struct zone
-  *   COMPACT_PARTIAL  - If the allocation would succeed without compaction
-  *   COMPACT_CONTINUE - If compaction should run now
-  */
--unsigned long compaction_suitable(struct zone *zone, int order,
-+static unsigned long __compaction_suitable(struct zone *zone, int order,
- 					int alloc_flags, int classzone_idx)
- {
- 	int fragindex;
-@@ -1157,11 +1172,24 @@ unsigned long compaction_suitable(struct
+diff -puN mm/slub.c~mm-slub-optimize-alloc-free-fastpath-by-removing-preemption-on-off mm/slub.c
+--- a/mm/slub.c~mm-slub-optimize-alloc-free-fastpath-by-removing-preemption-on-off
++++ a/mm/slub.c
+@@ -2398,13 +2398,24 @@ redo:
+ 	 * reading from one cpu area. That does not matter as long
+ 	 * as we end up on the original cpu again when doing the cmpxchg.
+ 	 *
+-	 * Preemption is disabled for the retrieval of the tid because that
+-	 * must occur from the current processor. We cannot allow rescheduling
+-	 * on a different processor between the determination of the pointer
+-	 * and the retrieval of the tid.
++	 * We should guarantee that tid and kmem_cache are retrieved on
++	 * the same cpu. It could be different if CONFIG_PREEMPT so we need
++	 * to check if it is matched or not.
  	 */
- 	fragindex = fragmentation_index(zone, order);
- 	if (fragindex >= 0 && fragindex <= sysctl_extfrag_threshold)
--		return COMPACT_SKIPPED;
-+		return COMPACT_NOT_SUITABLE_ZONE;
+-	preempt_disable();
+-	c = this_cpu_ptr(s->cpu_slab);
++	do {
++		tid = this_cpu_read(s->cpu_slab->tid);
++		c = this_cpu_ptr(s->cpu_slab);
++	} while (IS_ENABLED(CONFIG_PREEMPT) && unlikely(tid != c->tid));
++
++	/*
++	 * Irqless object alloc/free alogorithm used here depends on sequence
++	 * of fetching cpu_slab's data. tid should be fetched before anything
++	 * on c to guarantee that object and page associated with previous tid
++	 * won't be used with current tid. If we fetch tid first, object and
++	 * page could be one associated with next tid and our alloc/free
++	 * request will be failed. In this case, we will retry. So, no problem.
++	 */
++	barrier();
  
- 	return COMPACT_CONTINUE;
- }
+ 	/*
+ 	 * The transaction ids are globally unique per cpu and per operation on
+@@ -2412,8 +2423,6 @@ redo:
+ 	 * occurs on the right processor and that there was no operation on the
+ 	 * linked list in between.
+ 	 */
+-	tid = c->tid;
+-	preempt_enable();
  
-+unsigned long compaction_suitable(struct zone *zone, int order,
-+					int alloc_flags, int classzone_idx)
-+{
-+	unsigned long ret;
-+
-+	ret = __compaction_suitable(zone, order, alloc_flags, classzone_idx);
-+	trace_mm_compaction_suitable(zone, order, ret);
-+	if (ret == COMPACT_NOT_SUITABLE_ZONE)
-+		ret = COMPACT_SKIPPED;
-+
-+	return ret;
-+}
-+
- static int compact_zone(struct zone *zone, struct compact_control *cc)
- {
- 	int ret;
-@@ -1375,6 +1403,8 @@ unsigned long try_to_compact_pages(gfp_t
- 	if (!order || !may_enter_fs || !may_perform_io)
- 		return COMPACT_SKIPPED;
+ 	object = c->freelist;
+ 	page = c->page;
+@@ -2659,11 +2668,13 @@ redo:
+ 	 * data is retrieved via this pointer. If we are on the same cpu
+ 	 * during the cmpxchg then the free will succedd.
+ 	 */
+-	preempt_disable();
+-	c = this_cpu_ptr(s->cpu_slab);
++	do {
++		tid = this_cpu_read(s->cpu_slab->tid);
++		c = this_cpu_ptr(s->cpu_slab);
++	} while (IS_ENABLED(CONFIG_PREEMPT) && unlikely(tid != c->tid));
  
-+	trace_mm_compaction_try_to_compact_pages(order, gfp_mask, mode);
-+
- 	/* Compact each zone in the list */
- 	for_each_zone_zonelist_nodemask(zone, z, ac->zonelist, ac->high_zoneidx,
- 								ac->nodemask) {
+-	tid = c->tid;
+-	preempt_enable();
++	/* Same with comment on barrier() in slab_alloc_node() */
++	barrier();
+ 
+ 	if (likely(page == c->page)) {
+ 		set_freepointer(s, object, c->freelist);
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 
+mm-slub-optimize-alloc-free-fastpath-by-removing-preemption-on-off.patch
+mm-dont-use-compound_head-in-virt_to_head_page.patch
 mm-vmstatc-fix-cleanup-ifdefs.patch
 mm-set-page-pfmemalloc-in-prep_new_page.patch
 mm-page_alloc-reduce-number-of-alloc_pages-functions-parameters.patch
