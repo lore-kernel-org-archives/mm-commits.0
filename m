@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Fri, 16 Jan 2015 13:22:00 -0800
-Message-ID: <54b980f8.9lw/IRBddZV6iU+O%akpm@linux-foundation.org>
+Subject: +
+ mm-slab-convert-cache-name-allocations-to-kstrdup_const-fix.patch added to
+ -mm tree
+Date: Fri, 16 Jan 2015 13:45:18 -0800
+Message-ID: <54b9866e.CMUzPHI90IZmfgPP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47347 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47581 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755192AbbAPVWB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Jan 2015 16:22:01 -0500
+	with ESMTP id S1751535AbbAPVpU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Jan 2015 16:45:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.hajda@samsung.com, cl@linux.com, geert@linux-m68k.org, greg@kroah.com, iamjoonsoo.kim@lge.com, kyungmin.park@samsung.com, m.szyprowski@samsung.com, mturquette@linaro.org, penberg@kernel.org, rientjes@google.com, tj@kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: mm-slab-convert-cache-name-allocations-to-kstrdup_const-fix
 has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     mm-slab-convert-cache-name-allocations-to-kstrdup_const-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-convert-cache-name-allocations-to-kstrdup_const-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-convert-cache-name-allocations-to-kstrdup_const-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,63 +41,53 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+Subject: mm-slab-convert-cache-name-allocations-to-kstrdup_const-fix
 
+mm/slab_common.c:391: warning: assignment discards qualifiers from pointer target type
+
+make the handling of kmem_cache.name const-correct
+
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Andrzej Hajda <a.hajda@samsung.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Greg KH <greg@kroah.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Mike Turquette <mturquette@linaro.org>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/dwc2/gadget.c           |   10 ----------
- drivers/usb/gadget/udc/bdc/bdc_ep.c |    4 ----
- 2 files changed, 14 deletions(-)
+ mm/slab_common.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/usb/dwc2/gadget.c~linux-next-git-rejects drivers/usb/dwc2/gadget.c
---- a/drivers/usb/dwc2/gadget.c~linux-next-git-rejects
-+++ a/drivers/usb/dwc2/gadget.c
-@@ -2622,11 +2622,6 @@ static int s3c_hsotg_ep_disable_force(st
- 	epctrl_reg = dir_in ? DIEPCTL(index) : DOEPCTL(index);
+diff -puN mm/slab_common.c~mm-slab-convert-cache-name-allocations-to-kstrdup_const-fix mm/slab_common.c
+--- a/mm/slab_common.c~mm-slab-convert-cache-name-allocations-to-kstrdup_const-fix
++++ a/mm/slab_common.c
+@@ -293,8 +293,8 @@ unsigned long calculate_alignment(unsign
+ }
  
- 	spin_lock_irqsave(&hsotg->lock, flags);
--<<<<<<< HEAD
--	/* terminate all requests with shutdown */
--	kill_all_requests(hsotg, hs_ep, -ESHUTDOWN, force);
--=======
-->>>>>>> linux-next/akpm-base
+ static struct kmem_cache *
+-do_kmem_cache_create(char *name, size_t object_size, size_t size, size_t align,
+-		     unsigned long flags, void (*ctor)(void *),
++do_kmem_cache_create(const char *name, size_t object_size, size_t size,
++		     size_t align, unsigned long flags, void (*ctor)(void *),
+ 		     struct mem_cgroup *memcg, struct kmem_cache *root_cache)
+ {
+ 	struct kmem_cache *s;
+@@ -361,7 +361,7 @@ kmem_cache_create(const char *name, size
+ 		  unsigned long flags, void (*ctor)(void *))
+ {
+ 	struct kmem_cache *s;
+-	char *cache_name;
++	const char *cache_name;
+ 	int err;
  
- 	hsotg->fifo_map &= ~(1<<hs_ep->fifo_index);
- 	hs_ep->fifo_index = 0;
-@@ -2969,17 +2964,12 @@ static int s3c_hsotg_udc_stop(struct usb
- 	mutex_lock(&hsotg->init_mutex);
- 
- 	/* all endpoints should be shutdown */
--<<<<<<< HEAD
--	for (ep = 1; ep < hsotg->num_of_eps; ep++)
--		s3c_hsotg_ep_disable_force(&hsotg->eps[ep].ep, true);
--=======
- 	for (ep = 1; ep < hsotg->num_of_eps; ep++) {
- 		if (hsotg->eps_in[ep])
- 			s3c_hsotg_ep_disable_force(&hsotg->eps_in[ep]->ep, true);
- 		if (hsotg->eps_out[ep])
- 			s3c_hsotg_ep_disable_force(&hsotg->eps_out[ep]->ep, true);
- 	}
-->>>>>>> linux-next/akpm-base
- 
- 	spin_lock_irqsave(&hsotg->lock, flags);
- 
-diff -puN drivers/usb/gadget/udc/bdc/bdc_ep.c~linux-next-git-rejects drivers/usb/gadget/udc/bdc/bdc_ep.c
---- a/drivers/usb/gadget/udc/bdc/bdc_ep.c~linux-next-git-rejects
-+++ a/drivers/usb/gadget/udc/bdc/bdc_ep.c
-@@ -718,11 +718,7 @@ static int ep_queue(struct bdc_ep *ep, s
- 	struct bdc *bdc;
- 	int ret = 0;
- 
--<<<<<<< HEAD
--	if (!req || !ep || !ep->usb_ep.desc)
--=======
- 	if (!req || !ep->usb_ep.desc)
-->>>>>>> linux-next/akpm-base
- 		return -EINVAL;
- 
- 	bdc = ep->bdc;
+ 	get_online_cpus();
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -122,6 +114,7 @@ task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss.patch
 lib-bitmap-update-bitmap_onto-to-unsigned-checkpatch-fixes.patch
 lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned-fix.patch
 hexdump-makes-it-return-amount-of-bytes-placed-in-buffer-fix.patch
+mm-slab-convert-cache-name-allocations-to-kstrdup_const-fix.patch
 rtc-rk808-fix-the-rtc-time-reading-issue-fix.patch
 fs-befs-linuxvfsc-remove-unnecessary-casting-fix.patch
 linux-next.patch
