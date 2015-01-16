@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + jbd-drop-jbd_enosys-debug.patch added to -mm tree
-Date: Thu, 15 Jan 2015 16:26:55 -0800
-Message-ID: <54b85acf.Jwbi1lQettiF7ziN%akpm@linux-foundation.org>
+Subject: + ipcsem-use-current-state-helpers.patch added to -mm tree
+Date: Thu, 15 Jan 2015 16:26:52 -0800
+Message-ID: <54b85acc.hEY3XMgpdbwXiBx6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60778 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60774 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752714AbbAPA1K (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Jan 2015 19:27:10 -0500
+	with ESMTP id S1752054AbbAPA1J (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Jan 2015 19:27:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave@stgolabs.net, dbueso@suse.de, jack@suse.cz, mm-commits@vger.kernel.org
+To: dave@stgolabs.net, dbueso@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: jbd: drop jbd_ENOSYS debug
+     Subject: ipc,sem: use current->state helpers
 has been added to the -mm tree.  Its filename is
-     jbd-drop-jbd_enosys-debug.patch
+     ipcsem-use-current-state-helpers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/jbd-drop-jbd_enosys-debug.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipcsem-use-current-state-helpers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/jbd-drop-jbd_enosys-debug.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipcsem-use-current-state-helpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,51 +39,38 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: jbd: drop jbd_ENOSYS debug
+Subject: ipc,sem: use current->state helpers
 
-A quick search shows that there are no users, drop the macro for both jbd
-and jbd2.
+Call __set_current_state() instead of assigning the new state directly. 
+These interfaces also aid CONFIG_DEBUG_ATOMIC_SLEEP environments, keeping
+track of who changed the state.
 
 Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
-Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/jbd.h  |    9 ---------
- include/linux/jbd2.h |    9 ---------
- 2 files changed, 18 deletions(-)
+ ipc/sem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/jbd.h~jbd-drop-jbd_enosys-debug include/linux/jbd.h
---- a/include/linux/jbd.h~jbd-drop-jbd_enosys-debug
-+++ a/include/linux/jbd.h
-@@ -956,15 +956,6 @@ void __log_wait_for_space(journal_t *jou
- extern void	__journal_drop_transaction(journal_t *, transaction_t *);
- extern int	cleanup_journal_tail(journal_t *);
+diff -puN ipc/sem.c~ipcsem-use-current-state-helpers ipc/sem.c
+--- a/ipc/sem.c~ipcsem-use-current-state-helpers
++++ a/ipc/sem.c
+@@ -1941,7 +1941,7 @@ SYSCALL_DEFINE4(semtimedop, int, semid,
+ 	queue.sleeper = current;
  
--/* Debugging code only: */
--
--#define jbd_ENOSYS() \
--do {								           \
--	printk (KERN_ERR "JBD unimplemented function %s\n", __func__); \
--	current->state = TASK_UNINTERRUPTIBLE;			           \
--	schedule();						           \
--} while (1)
--
- /*
-  * is_journal_abort
-  *
-diff -puN include/linux/jbd2.h~jbd-drop-jbd_enosys-debug include/linux/jbd2.h
---- a/include/linux/jbd2.h~jbd-drop-jbd_enosys-debug
-+++ a/include/linux/jbd2.h
-@@ -1251,15 +1251,6 @@ void __jbd2_log_wait_for_space(journal_t
- extern void __jbd2_journal_drop_transaction(journal_t *, transaction_t *);
- extern int jbd2_cleanup_journal_tail(journal_t *);
+ sleep_again:
+-	current->state = TASK_INTERRUPTIBLE;
++	__set_current_state(TASK_INTERRUPTIBLE);
+ 	sem_unlock(sma, locknum);
+ 	rcu_read_unlock();
  
--/* Debugging code only: */
--
--#define jbd_ENOSYS() \
--do {								           \
--	printk (KERN_ERR "JBD unimplemented function %s\n", __func__); \
--	current->state = TASK_UNINTERRUPTIBLE;			           \
--	schedule();						           \
--} while (1)
+_
+
+Patches currently in -mm which might be from dave@stgolabs.net are
+
+origin.patch
+linux-next.patch
+ipcsem-use-current-state-helpers.patch
+jbd-drop-jbd_enosys-debug.patch
+signal-use-current-state-helpers.patch
+
