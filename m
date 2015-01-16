@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix-3.patch added to -mm tree
-Date: Fri, 16 Jan 2015 12:31:21 -0800
-Message-ID: <54b97519.ki9CMvWY3p0RKdnm%akpm@linux-foundation.org>
+Subject: +
+ daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-3.patch added to -mm tree
+Date: Fri, 16 Jan 2015 12:49:04 -0800
+Message-ID: <54b97940.Ec8BDTvhXPJKzUD5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46870 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47010 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932453AbbAPUbW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Jan 2015 15:31:22 -0500
+	with ESMTP id S1754125AbbAPUtF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Jan 2015 15:49:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, matthew.r.wilcox@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix-3
+     Subject: daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-3
 has been added to the -mm tree.  Its filename is
-     mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix-3.patch
+     daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-3.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix-3.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-3.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix-3.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,38 +40,28 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix-3
+Subject: daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-3
 
-bah
+remap_file_pages went away
 
 Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/ext2/file.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/memory.c~mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix-3 mm/memory.c
---- a/mm/memory.c~mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix-3
-+++ a/mm/memory.c
-@@ -2898,7 +2898,7 @@ static int do_cow_fault(struct mm_struct
- 			 * DAX doesn't have a page to lock, so it uses
- 			 * i_mmap_lock()
- 			 */
--			i_mmap_unlock_read(&vma->vm_file->f_mapping);
-+			i_mmap_unlock_read(vma->vm_file->f_mapping);
- 		}
- 		goto uncharge_out;
- 	}
-@@ -2914,7 +2914,7 @@ static int do_cow_fault(struct mm_struct
- 			 * DAX doesn't have a page to lock, so it uses
- 			 * i_mmap_lock()
- 			 */
--			i_mmap_unlock_read(&vma->vm_file->f_mapping);
-+			i_mmap_unlock_read(vma->vm_file->f_mapping);
- 	}
- 	return ret;
- uncharge_out:
+diff -puN fs/ext2/file.c~daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-3 fs/ext2/file.c
+--- a/fs/ext2/file.c~daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-3
++++ a/fs/ext2/file.c
+@@ -39,7 +39,6 @@ static int ext2_dax_mkwrite(struct vm_ar
+ static const struct vm_operations_struct ext2_dax_vm_ops = {
+ 	.fault		= ext2_dax_fault,
+ 	.page_mkwrite	= ext2_dax_mkwrite,
+-	.remap_pages	= generic_file_remap_pages,
+ };
+ 
+ static int ext2_file_mmap(struct file *file, struct vm_area_struct *vma)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -107,6 +98,7 @@ mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix-3.patch
 mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix.patch
 daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix.patch
 daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-2.patch
+daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-3.patch
 dax-add-dax_zero_page_range-fix.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
 journal_add_journal_head-debug.patch
