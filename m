@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + ext4-add-dax-functionality-fix.patch added to -mm tree
-Date: Fri, 16 Jan 2015 13:04:06 -0800
-Message-ID: <54b97cc6.QYewtb8W0LUD9L/2%akpm@linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Fri, 16 Jan 2015 13:22:00 -0800
+Message-ID: <54b980f8.9lw/IRBddZV6iU+O%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47135 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47347 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751581AbbAPVEI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Jan 2015 16:04:08 -0500
+	with ESMTP id S1755192AbbAPVWB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Jan 2015 16:22:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, matthew.r.wilcox@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ext4-add-dax-functionality-fix
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     ext4-add-dax-functionality-fix.patch
+     linux-next-git-rejects.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ext4-add-dax-functionality-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ext4-add-dax-functionality-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,32 +39,68 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ext4-add-dax-functionality-fix
+Subject: linux-next-git-rejects
 
-remap_pages went away
-
-Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/file.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/usb/dwc2/gadget.c           |   10 ----------
+ drivers/usb/gadget/udc/bdc/bdc_ep.c |    4 ----
+ 2 files changed, 14 deletions(-)
 
-diff -puN fs/ext4/file.c~ext4-add-dax-functionality-fix fs/ext4/file.c
---- a/fs/ext4/file.c~ext4-add-dax-functionality-fix
-+++ a/fs/ext4/file.c
-@@ -206,7 +206,6 @@ static int ext4_dax_mkwrite(struct vm_ar
- static const struct vm_operations_struct ext4_dax_vm_ops = {
- 	.fault		= ext4_dax_fault,
- 	.page_mkwrite	= ext4_dax_mkwrite,
--	.remap_pages	= generic_file_remap_pages,
- };
- #else
- #define ext4_dax_vm_ops	ext4_file_vm_ops
+diff -puN drivers/usb/dwc2/gadget.c~linux-next-git-rejects drivers/usb/dwc2/gadget.c
+--- a/drivers/usb/dwc2/gadget.c~linux-next-git-rejects
++++ a/drivers/usb/dwc2/gadget.c
+@@ -2622,11 +2622,6 @@ static int s3c_hsotg_ep_disable_force(st
+ 	epctrl_reg = dir_in ? DIEPCTL(index) : DOEPCTL(index);
+ 
+ 	spin_lock_irqsave(&hsotg->lock, flags);
+-<<<<<<< HEAD
+-	/* terminate all requests with shutdown */
+-	kill_all_requests(hsotg, hs_ep, -ESHUTDOWN, force);
+-=======
+->>>>>>> linux-next/akpm-base
+ 
+ 	hsotg->fifo_map &= ~(1<<hs_ep->fifo_index);
+ 	hs_ep->fifo_index = 0;
+@@ -2969,17 +2964,12 @@ static int s3c_hsotg_udc_stop(struct usb
+ 	mutex_lock(&hsotg->init_mutex);
+ 
+ 	/* all endpoints should be shutdown */
+-<<<<<<< HEAD
+-	for (ep = 1; ep < hsotg->num_of_eps; ep++)
+-		s3c_hsotg_ep_disable_force(&hsotg->eps[ep].ep, true);
+-=======
+ 	for (ep = 1; ep < hsotg->num_of_eps; ep++) {
+ 		if (hsotg->eps_in[ep])
+ 			s3c_hsotg_ep_disable_force(&hsotg->eps_in[ep]->ep, true);
+ 		if (hsotg->eps_out[ep])
+ 			s3c_hsotg_ep_disable_force(&hsotg->eps_out[ep]->ep, true);
+ 	}
+->>>>>>> linux-next/akpm-base
+ 
+ 	spin_lock_irqsave(&hsotg->lock, flags);
+ 
+diff -puN drivers/usb/gadget/udc/bdc/bdc_ep.c~linux-next-git-rejects drivers/usb/gadget/udc/bdc/bdc_ep.c
+--- a/drivers/usb/gadget/udc/bdc/bdc_ep.c~linux-next-git-rejects
++++ a/drivers/usb/gadget/udc/bdc/bdc_ep.c
+@@ -718,11 +718,7 @@ static int ep_queue(struct bdc_ep *ep, s
+ 	struct bdc *bdc;
+ 	int ret = 0;
+ 
+-<<<<<<< HEAD
+-	if (!req || !ep || !ep->usb_ep.desc)
+-=======
+ 	if (!req || !ep->usb_ep.desc)
+->>>>>>> linux-next/akpm-base
+ 		return -EINVAL;
+ 
+ 	bdc = ep->bdc;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 fanotify-dont-recalculate-a-marks-mask-if-only-the-ignored-mask-changed-checkpatch-fixes.patch
@@ -89,6 +125,7 @@ hexdump-makes-it-return-amount-of-bytes-placed-in-buffer-fix.patch
 rtc-rk808-fix-the-rtc-time-reading-issue-fix.patch
 fs-befs-linuxvfsc-remove-unnecessary-casting-fix.patch
 linux-next.patch
+linux-next-git-rejects.patch
 drivers-gpio-gpio-zevioc-fix-build.patch
 mm-fix-xip-fault-vs-truncate-race-fix.patch
 mm-fix-xip-fault-vs-truncate-race-fix-fix.patch
