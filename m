@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-3.patch added to -mm tree
-Date: Fri, 16 Jan 2015 12:49:04 -0800
-Message-ID: <54b97940.Ec8BDTvhXPJKzUD5%akpm@linux-foundation.org>
+Subject: + ext4-add-dax-functionality-fix.patch added to -mm tree
+Date: Fri, 16 Jan 2015 13:04:06 -0800
+Message-ID: <54b97cc6.QYewtb8W0LUD9L/2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47010 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47135 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754125AbbAPUtF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Jan 2015 15:49:05 -0500
+	with ESMTP id S1751581AbbAPVEI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Jan 2015 16:04:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, matthew.r.wilcox@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-3
+     Subject: ext4-add-dax-functionality-fix
 has been added to the -mm tree.  Its filename is
-     daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-3.patch
+     ext4-add-dax-functionality-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-3.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ext4-add-dax-functionality-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-3.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ext4-add-dax-functionality-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,28 +39,28 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-3
+Subject: ext4-add-dax-functionality-fix
 
-remap_file_pages went away
+remap_pages went away
 
 Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/file.c |    1 -
+ fs/ext4/file.c |    1 -
  1 file changed, 1 deletion(-)
 
-diff -puN fs/ext2/file.c~daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-3 fs/ext2/file.c
---- a/fs/ext2/file.c~daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-3
-+++ a/fs/ext2/file.c
-@@ -39,7 +39,6 @@ static int ext2_dax_mkwrite(struct vm_ar
- static const struct vm_operations_struct ext2_dax_vm_ops = {
- 	.fault		= ext2_dax_fault,
- 	.page_mkwrite	= ext2_dax_mkwrite,
+diff -puN fs/ext4/file.c~ext4-add-dax-functionality-fix fs/ext4/file.c
+--- a/fs/ext4/file.c~ext4-add-dax-functionality-fix
++++ a/fs/ext4/file.c
+@@ -206,7 +206,6 @@ static int ext4_dax_mkwrite(struct vm_ar
+ static const struct vm_operations_struct ext4_dax_vm_ops = {
+ 	.fault		= ext4_dax_fault,
+ 	.page_mkwrite	= ext4_dax_mkwrite,
 -	.remap_pages	= generic_file_remap_pages,
  };
- 
- static int ext2_file_mmap(struct file *file, struct vm_area_struct *vma)
+ #else
+ #define ext4_dax_vm_ops	ext4_file_vm_ops
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -100,6 +99,7 @@ daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix.p
 daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-2.patch
 daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-3.patch
 dax-add-dax_zero_page_range-fix.patch
+ext4-add-dax-functionality-fix.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
 journal_add_journal_head-debug.patch
 journal_add_journal_head-debug-fix.patch
