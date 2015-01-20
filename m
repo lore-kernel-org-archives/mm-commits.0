@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub-fix.patch
- added to -mm tree
-Date: Tue, 20 Jan 2015 14:05:49 -0800
-Message-ID: <54bed13d.YUt8nE4NG2hXkjWV%akpm@linux-foundation.org>
+Subject: + mm-vmstatc-fix-cleanup-ifdefs-fix.patch added to -mm tree
+Date: Tue, 20 Jan 2015 14:12:10 -0800
+Message-ID: <54bed2ba.Fx/Yv7oFDsb4SD/E%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47853 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47873 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750953AbbATWFu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Jan 2015 17:05:50 -0500
+	with ESMTP id S1751180AbbATWML (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Jan 2015 17:12:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, fengguang.wu@intel.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, fengguang.wu@intel.com, iamjoonsoo.kim@lge.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub-fix
+     Subject: mm-vmstatc-fix-cleanup-ifdefs-fix
 has been added to the -mm tree.  Its filename is
-     mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub-fix.patch
+     mm-vmstatc-fix-cleanup-ifdefs-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmstatc-fix-cleanup-ifdefs-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmstatc-fix-cleanup-ifdefs-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,29 +39,66 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub-fix
+Subject: mm-vmstatc-fix-cleanup-ifdefs-fix
 
-fix filemap_xip.c
+iterate, iterate
 
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Reported-by: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap_xip.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/vmstat.c |   30 +++++++++++++++++-------------
+ 1 file changed, 17 insertions(+), 13 deletions(-)
 
-diff -puN mm/filemap_xip.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub-fix mm/filemap_xip.c
---- a/mm/filemap_xip.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub-fix
-+++ a/mm/filemap_xip.c
-@@ -301,7 +301,6 @@ out:
- static const struct vm_operations_struct xip_file_vm_ops = {
- 	.fault	= xip_file_fault,
- 	.page_mkwrite	= filemap_page_mkwrite,
--	.remap_pages = generic_file_remap_pages,
- };
+diff -puN mm/vmstat.c~mm-vmstatc-fix-cleanup-ifdefs-fix mm/vmstat.c
+--- a/mm/vmstat.c~mm-vmstatc-fix-cleanup-ifdefs-fix
++++ a/mm/vmstat.c
+@@ -872,19 +872,8 @@ static void walk_zones_in_node(struct se
+ }
+ #endif
  
- int xip_file_mmap(struct file * file, struct vm_area_struct * vma)
+-#ifdef CONFIG_PROC_FS
+-static char * const migratetype_names[MIGRATE_TYPES] = {
+-	"Unmovable",
+-	"Reclaimable",
+-	"Movable",
+-	"Reserve",
+-#ifdef CONFIG_CMA
+-	"CMA",
+-#endif
+-#ifdef CONFIG_MEMORY_ISOLATION
+-	"Isolate",
+-#endif
+-};
++#if	defined(CONFIG_PROC_FS) || \
++	defined(CONFIG_DEBUG_FS) && defined(CONFIG_COMPACTION)
+ 
+ static void *frag_start(struct seq_file *m, loff_t *pos)
+ {
+@@ -909,6 +898,21 @@ static void *frag_next(struct seq_file *
+ static void frag_stop(struct seq_file *m, void *arg)
+ {
+ }
++#endif
++
++#ifdef CONFIG_PROC_FS
++static char * const migratetype_names[MIGRATE_TYPES] = {
++	"Unmovable",
++	"Reclaimable",
++	"Movable",
++	"Reserve",
++#ifdef CONFIG_CMA
++	"CMA",
++#endif
++#ifdef CONFIG_MEMORY_ISOLATION
++	"Isolate",
++#endif
++};
+ 
+ static void frag_show_print(struct seq_file *m, pg_data_t *pgdat,
+ 						struct zone *zone)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -77,6 +112,7 @@ o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper.patch
 ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir.patch
 mm.patch
 mm-vmstatc-fix-cleanup-ifdefs.patch
+mm-vmstatc-fix-cleanup-ifdefs-fix.patch
 mm-replace-remap_file_pages-syscall-with-emulation.patch
 mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub-fix.patch
 mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
