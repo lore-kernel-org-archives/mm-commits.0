@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-slub-optimize-alloc-free-fastpath-by-removing-preemption-on-off-v3.patch added to -mm tree
-Date: Tue, 20 Jan 2015 14:16:50 -0800
-Message-ID: <54bed3d2.C+2y31gT1QxbYkjJ%akpm@linux-foundation.org>
+Subject: + mm-dont-use-compound_head-in-virt_to_head_page-v3.patch added
+ to -mm tree
+Date: Tue, 20 Jan 2015 14:18:42 -0800
+Message-ID: <54bed442.v4E835PRBmv4Yxz2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47883 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47889 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751293AbbATWQv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Jan 2015 17:16:51 -0500
+	with ESMTP id S1751037AbbATWSo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Jan 2015 17:18:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: iamjoonsoo.kim@lge.com, brouer@redhat.com, cl@linux.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slub: optimize alloc/free fastpath by removing preemption on/off
+     Subject: mm: don't use compound_head() in virt_to_head_page()
 has been added to the -mm tree.  Its filename is
-     mm-slub-optimize-alloc-free-fastpath-by-removing-preemption-on-off-v3.patch
+     mm-dont-use-compound_head-in-virt_to_head_page-v3.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slub-optimize-alloc-free-fastpath-by-removing-preemption-on-off-v3.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-dont-use-compound_head-in-virt_to_head_page-v3.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-optimize-alloc-free-fastpath-by-removing-preemption-on-off-v3.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-dont-use-compound_head-in-virt_to_head_page-v3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,51 +40,63 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/slub: optimize alloc/free fastpath by removing preemption on/off
+Subject: mm: don't use compound_head() in virt_to_head_page()
 
-Change from v2:
-- use raw_cpu_ptr() rather than this_cpu_ptr() to avoid warning from
- preemption debug check since this is intended behaviour
-- fix typo alogorithm -> algorithm
+Change from v2: Add some code comments
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Acked-by: Christoph Lameter <cl@linux.com>
-Acked-by: Jesper Dangaard Brouer <brouer@redhat.com>
-Tested-by: Jesper Dangaard Brouer <brouer@redhat.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/mm.h |   17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
-diff -puN mm/slub.c~mm-slub-optimize-alloc-free-fastpath-by-removing-preemption-on-off-v3 mm/slub.c
---- a/mm/slub.c~mm-slub-optimize-alloc-free-fastpath-by-removing-preemption-on-off-v3
-+++ a/mm/slub.c
-@@ -2404,11 +2404,11 @@ redo:
- 	 */
- 	do {
- 		tid = this_cpu_read(s->cpu_slab->tid);
--		c = this_cpu_ptr(s->cpu_slab);
-+		c = raw_cpu_ptr(s->cpu_slab);
- 	} while (IS_ENABLED(CONFIG_PREEMPT) && unlikely(tid != c->tid));
+diff -puN include/linux/mm.h~mm-dont-use-compound_head-in-virt_to_head_page-v3 include/linux/mm.h
+--- a/include/linux/mm.h~mm-dont-use-compound_head-in-virt_to_head_page-v3
++++ a/include/linux/mm.h
+@@ -446,6 +446,12 @@ static inline struct page *compound_head
+ 	return tail;
+ }
  
- 	/*
--	 * Irqless object alloc/free alogorithm used here depends on sequence
-+	 * Irqless object alloc/free algorithm used here depends on sequence
- 	 * of fetching cpu_slab's data. tid should be fetched before anything
- 	 * on c to guarantee that object and page associated with previous tid
- 	 * won't be used with current tid. If we fetch tid first, object and
-@@ -2670,7 +2670,7 @@ redo:
- 	 */
- 	do {
- 		tid = this_cpu_read(s->cpu_slab->tid);
--		c = this_cpu_ptr(s->cpu_slab);
-+		c = raw_cpu_ptr(s->cpu_slab);
- 	} while (IS_ENABLED(CONFIG_PREEMPT) && unlikely(tid != c->tid));
++/*
++ * Since either compound page could be dismantled asynchronously in THP
++ * or we access asynchronously arbitrary positioned struct page, there
++ * would be tail flag race. To handle this race, we should call
++ * smp_rmb() before checking tail flag. compound_head_by_tail() did it.
++ */
+ static inline struct page *compound_head(struct page *page)
+ {
+ 	if (unlikely(PageTail(page)))
+@@ -453,6 +459,11 @@ static inline struct page *compound_head
+ 	return page;
+ }
  
- 	/* Same with comment on barrier() in slab_alloc_node() */
++/*
++ * If we access compound page synchronously such as access to
++ * allocated page, there is no need to handle tail flag race, so we can
++ * check tail flag directly without any synchronization primitive.
++ */
+ static inline struct page *compound_head_fast(struct page *page)
+ {
+ 	if (unlikely(PageTail(page)))
+@@ -539,6 +550,12 @@ static inline struct page *virt_to_head_
+ {
+ 	struct page *page = virt_to_page(x);
+ 
++	/*
++	 * We don't need to worry about synchronization of tail flag
++	 * when we call virt_to_head_page() since it is only called for
++	 * already allocated page and this page won't be freed until
++	 * this virt_to_head_page() is finished. So use _fast variant.
++	 */
+ 	return compound_head_fast(page);
+ }
+ 
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
@@ -92,6 +104,7 @@ Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 mm-slub-optimize-alloc-free-fastpath-by-removing-preemption-on-off.patch
 mm-slub-optimize-alloc-free-fastpath-by-removing-preemption-on-off-v3.patch
 mm-dont-use-compound_head-in-virt_to_head_page.patch
+mm-dont-use-compound_head-in-virt_to_head_page-v3.patch
 mm-vmstatc-fix-cleanup-ifdefs.patch
 mm-vmstatc-fix-cleanup-ifdefs-fix.patch
 mm-set-page-pfmemalloc-in-prep_new_page.patch
