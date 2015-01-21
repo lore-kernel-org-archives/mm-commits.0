@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-thp-allocate-transparent-hugepages-on-local-node.patch added to -mm tree
-Date: Tue, 20 Jan 2015 16:48:39 -0800
-Message-ID: <54bef767.gqwaYdGieJYVWyYn%akpm@linux-foundation.org>
+Subject: + mm-thp-allocate-transparent-hugepages-on-local-node-fix.patch
+ added to -mm tree
+Date: Tue, 20 Jan 2015 16:48:41 -0800
+Message-ID: <54bef769.qIbGSoB7eDClebkU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48820 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48831 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751602AbbAUAsk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Jan 2015 19:48:40 -0500
+	with ESMTP id S1751602AbbAUAsm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Jan 2015 19:48:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.vnet.ibm.com, aarcange@redhat.com, kirill.shutemov@linux.intel.com, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/thp: allocate transparent hugepages on local node
+     Subject: mm-thp-allocate-transparent-hugepages-on-local-node-fix
 has been added to the -mm tree.  Its filename is
-     mm-thp-allocate-transparent-hugepages-on-local-node.patch
+     mm-thp-allocate-transparent-hugepages-on-local-node-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-allocate-transparent-hugepages-on-local-node.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-allocate-transparent-hugepages-on-local-node-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-allocate-transparent-hugepages-on-local-node.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-allocate-transparent-hugepages-on-local-node-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,206 +39,100 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: mm/thp: allocate transparent hugepages on local node
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-thp-allocate-transparent-hugepages-on-local-node-fix
 
-This make sure that we try to allocate hugepages from local node if
-allowed by mempolicy.  If we can't, we fallback to small page allocation
-based on mempolicy.  This is based on the observation that allocating
-pages on local node is more beneficial than allocating hugepages on remote
-node.
+fix comment, add CONFIG_TRANSPARENT_HUGEPAGE dependency
 
-With this patch applied we may find transparent huge page allocation
-failures if the current node doesn't have enough freee hugepages.  Before
-this patch such failures result in us retrying the allocation on other
-nodes in the numa node mask.
-
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: David Rientjes <rientjes@google.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |    4 ++
- mm/huge_memory.c    |   24 +++++---------
- mm/mempolicy.c      |   70 ++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 83 insertions(+), 15 deletions(-)
+ mm/mempolicy.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/gfp.h~mm-thp-allocate-transparent-hugepages-on-local-node include/linux/gfp.h
---- a/include/linux/gfp.h~mm-thp-allocate-transparent-hugepages-on-local-node
-+++ a/include/linux/gfp.h
-@@ -335,11 +335,15 @@ alloc_pages(gfp_t gfp_mask, unsigned int
- extern struct page *alloc_pages_vma(gfp_t gfp_mask, int order,
- 			struct vm_area_struct *vma, unsigned long addr,
- 			int node);
-+extern struct page *alloc_hugepage_vma(gfp_t gfp, struct vm_area_struct *vma,
-+				       unsigned long addr, int order);
- #else
- #define alloc_pages(gfp_mask, order) \
- 		alloc_pages_node(numa_node_id(), gfp_mask, order)
- #define alloc_pages_vma(gfp_mask, order, vma, addr, node)	\
- 	alloc_pages(gfp_mask, order)
-+#define alloc_hugepage_vma(gfp_mask, vma, addr, order)	\
-+	alloc_pages(gfp_mask, order)
- #endif
- #define alloc_page(gfp_mask) alloc_pages(gfp_mask, 0)
- #define alloc_page_vma(gfp_mask, vma, addr)			\
-diff -puN mm/huge_memory.c~mm-thp-allocate-transparent-hugepages-on-local-node mm/huge_memory.c
---- a/mm/huge_memory.c~mm-thp-allocate-transparent-hugepages-on-local-node
-+++ a/mm/huge_memory.c
-@@ -761,15 +761,6 @@ static inline gfp_t alloc_hugepage_gfpma
- 	return (GFP_TRANSHUGE & ~(defrag ? 0 : __GFP_WAIT)) | extra_gfp;
- }
- 
--static inline struct page *alloc_hugepage_vma(int defrag,
--					      struct vm_area_struct *vma,
--					      unsigned long haddr, int nd,
--					      gfp_t extra_gfp)
--{
--	return alloc_pages_vma(alloc_hugepage_gfpmask(defrag, extra_gfp),
--			       HPAGE_PMD_ORDER, vma, haddr, nd);
--}
--
- /* Caller must hold page table lock. */
- static bool set_huge_zero_page(pgtable_t pgtable, struct mm_struct *mm,
- 		struct vm_area_struct *vma, unsigned long haddr, pmd_t *pmd,
-@@ -790,6 +781,7 @@ int do_huge_pmd_anonymous_page(struct mm
- 			       unsigned long address, pmd_t *pmd,
- 			       unsigned int flags)
- {
-+	gfp_t gfp;
- 	struct page *page;
- 	unsigned long haddr = address & HPAGE_PMD_MASK;
- 
-@@ -824,8 +816,8 @@ int do_huge_pmd_anonymous_page(struct mm
- 		}
- 		return 0;
- 	}
--	page = alloc_hugepage_vma(transparent_hugepage_defrag(vma),
--			vma, haddr, numa_node_id(), 0);
-+	gfp = alloc_hugepage_gfpmask(transparent_hugepage_defrag(vma), 0);
-+	page = alloc_hugepage_vma(gfp, vma, haddr, HPAGE_PMD_ORDER);
- 	if (unlikely(!page)) {
- 		count_vm_event(THP_FAULT_FALLBACK);
- 		return VM_FAULT_FALLBACK;
-@@ -1113,10 +1105,12 @@ int do_huge_pmd_wp_page(struct mm_struct
- 	spin_unlock(ptl);
- alloc:
- 	if (transparent_hugepage_enabled(vma) &&
--	    !transparent_hugepage_debug_cow())
--		new_page = alloc_hugepage_vma(transparent_hugepage_defrag(vma),
--					      vma, haddr, numa_node_id(), 0);
--	else
-+	    !transparent_hugepage_debug_cow()) {
-+		gfp_t gfp;
-+
-+		gfp = alloc_hugepage_gfpmask(transparent_hugepage_defrag(vma), 0);
-+		new_page = alloc_hugepage_vma(gfp, vma, haddr, HPAGE_PMD_ORDER);
-+	} else
- 		new_page = NULL;
- 
- 	if (unlikely(!new_page)) {
-diff -puN mm/mempolicy.c~mm-thp-allocate-transparent-hugepages-on-local-node mm/mempolicy.c
---- a/mm/mempolicy.c~mm-thp-allocate-transparent-hugepages-on-local-node
+diff -puN mm/mempolicy.c~mm-thp-allocate-transparent-hugepages-on-local-node-fix mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-thp-allocate-transparent-hugepages-on-local-node-fix
 +++ a/mm/mempolicy.c
-@@ -2031,6 +2031,76 @@ retry_cpuset:
+@@ -2030,6 +2030,7 @@ retry_cpuset:
+ 	return page;
  }
+ 
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ /**
+  * alloc_hugepage_vma: Allocate a hugepage for a VMA
+  * @gfp:
+@@ -2057,7 +2058,7 @@ retry_cpuset:
+  * all allocations for pages that will be mapped into
+  * user space. Returns NULL when no page can be allocated.
+  *
+- * Should be called with the mm_sem of the vma hold.
++ * Should be called with vma->vm_mm->mmap_sem held.
+  *
+  */
+ struct page *alloc_hugepage_vma(gfp_t gfp, struct vm_area_struct *vma,
+@@ -2099,6 +2100,7 @@ alloc_with_fallback:
+ 	 */
+ 	return alloc_pages_vma(gfp, order, vma, addr, node);
+ }
++#endif
  
  /**
-+ * alloc_hugepage_vma: Allocate a hugepage for a VMA
-+ * @gfp:
-+ *   %GFP_USER	  user allocation.
-+ *   %GFP_KERNEL  kernel allocations,
-+ *   %GFP_HIGHMEM highmem/user allocations,
-+ *   %GFP_FS	  allocation should not call back into a file system.
-+ *   %GFP_ATOMIC  don't sleep.
-+ *
-+ * @vma:   Pointer to VMA or NULL if not available.
-+ * @addr:  Virtual Address of the allocation. Must be inside the VMA.
-+ * @order: Order of the hugepage for gfp allocation.
-+ *
-+ * This functions allocate a huge page from the kernel page pool and applies
-+ * a NUMA policy associated with the VMA or the current process.
-+ * For policy other than %MPOL_INTERLEAVE, we make sure we allocate hugepage
-+ * only from the current node if the current node is part of the node mask.
-+ * If we can't allocate a hugepage we fail the allocation and don' try to fallback
-+ * to other nodes in the node mask. If the current node is not part of node mask
-+ * or if the NUMA policy is MPOL_INTERLEAVE we use the allocator that can
-+ * fallback to nodes in the policy node mask.
-+ *
-+ * When VMA is not NULL caller must hold down_read on the mmap_sem of the
-+ * mm_struct of the VMA to prevent it from going away. Should be used for
-+ * all allocations for pages that will be mapped into
-+ * user space. Returns NULL when no page can be allocated.
-+ *
-+ * Should be called with the mm_sem of the vma hold.
-+ *
-+ */
-+struct page *alloc_hugepage_vma(gfp_t gfp, struct vm_area_struct *vma,
-+				unsigned long addr, int order)
-+{
-+	struct page *page;
-+	nodemask_t *nmask;
-+	struct mempolicy *pol;
-+	int node = numa_node_id();
-+	unsigned int cpuset_mems_cookie;
-+
-+retry_cpuset:
-+	pol = get_vma_policy(vma, addr);
-+	cpuset_mems_cookie = read_mems_allowed_begin();
-+	/*
-+	 * For interleave policy, we don't worry about
-+	 * current node. Otherwise if current node is
-+	 * in nodemask, try to allocate hugepage from
-+	 * the current node. Don't fall back to other nodes
-+	 * for THP.
-+	 */
-+	if (unlikely(pol->mode == MPOL_INTERLEAVE))
-+		goto alloc_with_fallback;
-+	nmask = policy_nodemask(gfp, pol);
-+	if (!nmask || node_isset(node, *nmask)) {
-+		mpol_cond_put(pol);
-+		page = alloc_pages_exact_node(node, gfp, order);
-+		if (unlikely(!page &&
-+			     read_mems_allowed_retry(cpuset_mems_cookie)))
-+			goto retry_cpuset;
-+		return page;
-+	}
-+alloc_with_fallback:
-+	mpol_cond_put(pol);
-+	/*
-+	 * if current node is not part of node mask, try
-+	 * the allocation from any node, and we can do retry
-+	 * in that case.
-+	 */
-+	return alloc_pages_vma(gfp, order, vma, addr, node);
-+}
-+
-+/**
   * 	alloc_pages_current - Allocate pages.
-  *
-  *	@gfp:
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-numa-do-not-dereference-pmd-outside-of-the-lock-during-numa-hinting-fault.patch
-mm-add-p-protnone-helpers-for-use-by-numa-balancing.patch
-mm-convert-p_numa-users-to-p_protnone_numa.patch
-ppc64-add-paranoid-warnings-for-unexpected-dsisr_protfault.patch
-mm-convert-p_mknonnuma-and-remaining-page-table-manipulations.patch
-mm-remove-remaining-references-to-numa-hinting-bits-and-helpers.patch
-mm-numa-do-not-trap-faults-on-the-huge-zero-page.patch
-x86-mm-restore-original-pte_special-check.patch
-mm-numa-add-paranoid-check-around-pte_protnone_numa.patch
-mm-numa-avoid-unnecessary-tlb-flushes-when-setting-numa-hinting-entries.patch
-mm-set-page-pfmemalloc-in-prep_new_page.patch
-mm-page_alloc-reduce-number-of-alloc_pages-functions-parameters.patch
-mm-reduce-try_to_compact_pages-parameters.patch
-mm-microoptimize-zonelist-operations.patch
-mm-cma-fix-totalcma_pages-to-include-dt-defined-cma-regions.patch
-mm-thp-allocate-transparent-hugepages-on-local-node.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+fanotify-dont-recalculate-a-marks-mask-if-only-the-ignored-mask-changed-checkpatch-fixes.patch
+fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask-checkpatch-fixes.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper.patch
+ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir.patch
+mm.patch
+mm-vmstatc-fix-cleanup-ifdefs.patch
+mm-vmstatc-fix-cleanup-ifdefs-fix.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub-fix.patch
+mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
+vmscan-force-scan-offline-memory-cgroups-fix.patch
+mm-memcontrol-default-hierarchy-interface-for-memory.patch
+mm-memcontrol-fold-move_anon-and-move_file-fix.patch
+fs-shrinker-always-scan-at-least-one-object-of-each-type-fix.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated-fix.patch
 mm-thp-allocate-transparent-hugepages-on-local-node-fix.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss.patch
+lib-bitmap-update-bitmap_onto-to-unsigned-checkpatch-fixes.patch
+lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned-fix.patch
+hexdump-makes-it-return-amount-of-bytes-placed-in-buffer-fix.patch
+mm-slab-convert-cache-name-allocations-to-kstrdup_const-fix.patch
+rtc-rk808-fix-the-rtc-time-reading-issue-fix.patch
+fs-befs-linuxvfsc-remove-unnecessary-casting-fix.patch
+linux-next.patch
+linux-next-git-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mm-fix-xip-fault-vs-truncate-race-fix.patch
+mm-fix-xip-fault-vs-truncate-race-fix-fix.patch
+mm-allow-page-fault-handlers-to-perform-the-cow-fix.patch
+mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix-3.patch
+mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix.patch
+daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix.patch
+daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-2.patch
+daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-3.patch
+dax-add-dax_zero_page_range-fix.patch
+ext4-add-dax-functionality-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
