@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcontrol-default-hierarchy-interface-for-memory.patch
- added to -mm tree
-Date: Tue, 20 Jan 2015 16:23:15 -0800
-Message-ID: <54bef173.yzGFjAbrBsTBXGej%akpm@linux-foundation.org>
+Subject: + mm-thp-allocate-transparent-hugepages-on-local-node.patch added to -mm tree
+Date: Tue, 20 Jan 2015 16:48:39 -0800
+Message-ID: <54bef767.gqwaYdGieJYVWyYn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48647 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48820 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752053AbbAUAXQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Jan 2015 19:23:16 -0500
+	with ESMTP id S1751602AbbAUAsk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Jan 2015 19:48:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, gthelen@google.com, mhocko@suse.cz, vdavydov@parallels.com, mm-commits@vger.kernel.org
+To: aneesh.kumar@linux.vnet.ibm.com, aarcange@redhat.com, kirill.shutemov@linux.intel.com, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: default hierarchy interface for memory
+     Subject: mm/thp: allocate transparent hugepages on local node
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-default-hierarchy-interface-for-memory.patch
+     mm-thp-allocate-transparent-hugepages-on-local-node.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-default-hierarchy-interface-for-memory.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-allocate-transparent-hugepages-on-local-node.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-default-hierarchy-interface-for-memory.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-allocate-transparent-hugepages-on-local-node.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,737 +38,206 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: default hierarchy interface for memory
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Subject: mm/thp: allocate transparent hugepages on local node
 
-Introduce the basic control files to account, partition, and limit
-memory using cgroups in default hierarchy mode.
+This make sure that we try to allocate hugepages from local node if
+allowed by mempolicy.  If we can't, we fallback to small page allocation
+based on mempolicy.  This is based on the observation that allocating
+pages on local node is more beneficial than allocating hugepages on remote
+node.
 
-This interface versioning allows us to address fundamental design
-issues in the existing memory cgroup interface, further explained
-below.  The old interface will be maintained indefinitely, but a
-clearer model and improved workload performance should encourage
-existing users to switch over to the new one eventually.
+With this patch applied we may find transparent huge page allocation
+failures if the current node doesn't have enough freee hugepages.  Before
+this patch such failures result in us retrying the allocation on other
+nodes in the numa node mask.
 
-The control files are thus:
-
-  - memory.current shows the current consumption of the cgroup and its
-    descendants, in bytes.
-
-  - memory.low configures the lower end of the cgroup's expected
-    memory consumption range.  The kernel considers memory below that
-    boundary to be a reserve - the minimum that the workload needs in
-    order to make forward progress - and generally avoids reclaiming
-    it, unless there is an imminent risk of entering an OOM situation.
-
-  - memory.high configures the upper end of the cgroup's expected
-    memory consumption range.  A cgroup whose consumption grows beyond
-    this threshold is forced into direct reclaim, to work off the
-    excess and to throttle new allocations heavily, but is generally
-    allowed to continue and the OOM killer is not invoked.
-
-  - memory.max configures the hard maximum amount of memory that the
-    cgroup is allowed to consume before the OOM killer is invoked.
-
-  - memory.events shows event counters that indicate how often the
-    cgroup was reclaimed while below memory.low, how often it was
-    forced to reclaim excess beyond memory.high, how often it hit
-    memory.max, and how often it entered OOM due to memory.max.  This
-    allows users to identify configuration problems when observing a
-    degradation in workload performance.  An overcommitted system will
-    have an increased rate of low boundary breaches, whereas increased
-    rates of high limit breaches, maximum hits, or even OOM situations
-    will indicate internally overcommitted cgroups.
-
-For existing users of memory cgroups, the following deviations from
-the current interface are worth pointing out and explaining:
-
-  - The original lower boundary, the soft limit, is defined as a limit
-    that is per default unset.  As a result, the set of cgroups that
-    global reclaim prefers is opt-in, rather than opt-out.  The costs
-    for optimizing these mostly negative lookups are so high that the
-    implementation, despite its enormous size, does not even provide
-    the basic desirable behavior.  First off, the soft limit has no
-    hierarchical meaning.  All configured groups are organized in a
-    global rbtree and treated like equal peers, regardless where they
-    are located in the hierarchy.  This makes subtree delegation
-    impossible.  Second, the soft limit reclaim pass is so aggressive
-    that it not just introduces high allocation latencies into the
-    system, but also impacts system performance due to overreclaim, to
-    the point where the feature becomes self-defeating.
-
-    The memory.low boundary on the other hand is a top-down allocated
-    reserve.  A cgroup enjoys reclaim protection when it and all its
-    ancestors are below their low boundaries, which makes delegation
-    of subtrees possible.  Secondly, new cgroups have no reserve per
-    default and in the common case most cgroups are eligible for the
-    preferred reclaim pass.  This allows the new low boundary to be
-    efficiently implemented with just a minor addition to the generic
-    reclaim code, without the need for out-of-band data structures and
-    reclaim passes.  Because the generic reclaim code considers all
-    cgroups except for the ones running low in the preferred first
-    reclaim pass, overreclaim of individual groups is eliminated as
-    well, resulting in much better overall workload performance.
-
-  - The original high boundary, the hard limit, is defined as a strict
-    limit that can not budge, even if the OOM killer has to be called.
-    But this generally goes against the goal of making the most out of
-    the available memory.  The memory consumption of workloads varies
-    during runtime, and that requires users to overcommit.  But doing
-    that with a strict upper limit requires either a fairly accurate
-    prediction of the working set size or adding slack to the limit.
-    Since working set size estimation is hard and error prone, and
-    getting it wrong results in OOM kills, most users tend to err on
-    the side of a looser limit and end up wasting precious resources.
-
-    The memory.high boundary on the other hand can be set much more
-    conservatively.  When hit, it throttles allocations by forcing
-    them into direct reclaim to work off the excess, but it never
-    invokes the OOM killer.  As a result, a high boundary that is
-    chosen too aggressively will not terminate the processes, but
-    instead it will lead to gradual performance degradation.  The user
-    can monitor this and make corrections until the minimal memory
-    footprint that still gives acceptable performance is found.
-
-    In extreme cases, with many concurrent allocations and a complete
-    breakdown of reclaim progress within the group, the high boundary
-    can be exceeded.  But even then it's mostly better to satisfy the
-    allocation from the slack available in other groups or the rest of
-    the system than killing the group.  Otherwise, memory.max is there
-    to limit this type of spillover and ultimately contain buggy or
-    even malicious applications.
-
-  - The original control file names are unwieldy and inconsistent in
-    many different ways.  For example, the upper boundary hit count is
-    exported in the memory.failcnt file, but an OOM event count has to
-    be manually counted by listening to memory.oom_control events, and
-    lower boundary / soft limit events have to be counted by first
-    setting a threshold for that value and then counting those events.
-    Also, usage and limit files encode their units in the filename.
-    That makes the filenames very long, even though this is not
-    information that a user needs to be reminded of every time they
-    type out those names.
-
-    To address these naming issues, as well as to signal clearly that
-    the new interface carries a new configuration model, the naming
-    conventions in it necessarily differ from the old interface.
-
-  - The original limit files indicate the state of an unset limit with
-    a very high number, and a configured limit can be unset by echoing
-    -1 into those files.  But that very high number is implementation
-    and architecture dependent and not very descriptive.  And while -1
-    can be understood as an underflow into the highest possible value,
-    -2 or -10M etc. do not work, so it's not inconsistent.
-
-    memory.low, memory.high, and memory.max will use the string
-    "infinity" to indicate and set the highest possible value.
-
-[akpm@linux-foundation.org: use seq_puts() for basic strings]
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Cc: Vladimir Davydov <vdavydov@parallels.com>
-Cc: Greg Thelen <gthelen@google.com>
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/unified-hierarchy.txt |   79 ++++++
- include/linux/memcontrol.h                  |   32 ++
- mm/memcontrol.c                             |  229 +++++++++++++++++-
- mm/vmscan.c                                 |   22 +
- 4 files changed, 348 insertions(+), 14 deletions(-)
+ include/linux/gfp.h |    4 ++
+ mm/huge_memory.c    |   24 +++++---------
+ mm/mempolicy.c      |   70 ++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 83 insertions(+), 15 deletions(-)
 
-diff -puN Documentation/cgroups/unified-hierarchy.txt~mm-memcontrol-default-hierarchy-interface-for-memory Documentation/cgroups/unified-hierarchy.txt
---- a/Documentation/cgroups/unified-hierarchy.txt~mm-memcontrol-default-hierarchy-interface-for-memory
-+++ a/Documentation/cgroups/unified-hierarchy.txt
-@@ -327,6 +327,85 @@ supported and the interface files "relea
- - use_hierarchy is on by default and the cgroup file for the flag is
-   not created.
- 
-+- The original lower boundary, the soft limit, is defined as a limit
-+  that is per default unset.  As a result, the set of cgroups that
-+  global reclaim prefers is opt-in, rather than opt-out.  The costs
-+  for optimizing these mostly negative lookups are so high that the
-+  implementation, despite its enormous size, does not even provide the
-+  basic desirable behavior.  First off, the soft limit has no
-+  hierarchical meaning.  All configured groups are organized in a
-+  global rbtree and treated like equal peers, regardless where they
-+  are located in the hierarchy.  This makes subtree delegation
-+  impossible.  Second, the soft limit reclaim pass is so aggressive
-+  that it not just introduces high allocation latencies into the
-+  system, but also impacts system performance due to overreclaim, to
-+  the point where the feature becomes self-defeating.
-+
-+  The memory.low boundary on the other hand is a top-down allocated
-+  reserve.  A cgroup enjoys reclaim protection when it and all its
-+  ancestors are below their low boundaries, which makes delegation of
-+  subtrees possible.  Secondly, new cgroups have no reserve per
-+  default and in the common case most cgroups are eligible for the
-+  preferred reclaim pass.  This allows the new low boundary to be
-+  efficiently implemented with just a minor addition to the generic
-+  reclaim code, without the need for out-of-band data structures and
-+  reclaim passes.  Because the generic reclaim code considers all
-+  cgroups except for the ones running low in the preferred first
-+  reclaim pass, overreclaim of individual groups is eliminated as
-+  well, resulting in much better overall workload performance.
-+
-+- The original high boundary, the hard limit, is defined as a strict
-+  limit that can not budge, even if the OOM killer has to be called.
-+  But this generally goes against the goal of making the most out of
-+  the available memory.  The memory consumption of workloads varies
-+  during runtime, and that requires users to overcommit.  But doing
-+  that with a strict upper limit requires either a fairly accurate
-+  prediction of the working set size or adding slack to the limit.
-+  Since working set size estimation is hard and error prone, and
-+  getting it wrong results in OOM kills, most users tend to err on the
-+  side of a looser limit and end up wasting precious resources.
-+
-+  The memory.high boundary on the other hand can be set much more
-+  conservatively.  When hit, it throttles allocations by forcing them
-+  into direct reclaim to work off the excess, but it never invokes the
-+  OOM killer.  As a result, a high boundary that is chosen too
-+  aggressively will not terminate the processes, but instead it will
-+  lead to gradual performance degradation.  The user can monitor this
-+  and make corrections until the minimal memory footprint that still
-+  gives acceptable performance is found.
-+
-+  In extreme cases, with many concurrent allocations and a complete
-+  breakdown of reclaim progress within the group, the high boundary
-+  can be exceeded.  But even then it's mostly better to satisfy the
-+  allocation from the slack available in other groups or the rest of
-+  the system than killing the group.  Otherwise, memory.max is there
-+  to limit this type of spillover and ultimately contain buggy or even
-+  malicious applications.
-+
-+- The original control file names are unwieldy and inconsistent in
-+  many different ways.  For example, the upper boundary hit count is
-+  exported in the memory.failcnt file, but an OOM event count has to
-+  be manually counted by listening to memory.oom_control events, and
-+  lower boundary / soft limit events have to be counted by first
-+  setting a threshold for that value and then counting those events.
-+  Also, usage and limit files encode their units in the filename.
-+  That makes the filenames very long, even though this is not
-+  information that a user needs to be reminded of every time they type
-+  out those names.
-+
-+  To address these naming issues, as well as to signal clearly that
-+  the new interface carries a new configuration model, the naming
-+  conventions in it necessarily differ from the old interface.
-+
-+- The original limit files indicate the state of an unset limit with a
-+  Very High Number, and a configured limit can be unset by echoing -1
-+  into those files.  But that very high number is implementation and
-+  architecture dependent and not very descriptive.  And while -1 can
-+  be understood as an underflow into the highest possible value, -2 or
-+  -10M etc. do not work, so it's not consistent.
-+
-+  memory.low, memory.high, and memory.max will use the string
-+  "infinity" to indicate and set the highest possible value.
- 
- 5. Planned Changes
- 
-diff -puN include/linux/memcontrol.h~mm-memcontrol-default-hierarchy-interface-for-memory include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~mm-memcontrol-default-hierarchy-interface-for-memory
-+++ a/include/linux/memcontrol.h
-@@ -52,7 +52,27 @@ struct mem_cgroup_reclaim_cookie {
- 	unsigned int generation;
- };
- 
-+enum mem_cgroup_events_index {
-+	MEM_CGROUP_EVENTS_PGPGIN,	/* # of pages paged in */
-+	MEM_CGROUP_EVENTS_PGPGOUT,	/* # of pages paged out */
-+	MEM_CGROUP_EVENTS_PGFAULT,	/* # of page-faults */
-+	MEM_CGROUP_EVENTS_PGMAJFAULT,	/* # of major page-faults */
-+	MEM_CGROUP_EVENTS_NSTATS,
-+	/* default hierarchy events */
-+	MEMCG_LOW = MEM_CGROUP_EVENTS_NSTATS,
-+	MEMCG_HIGH,
-+	MEMCG_MAX,
-+	MEMCG_OOM,
-+	MEMCG_NR_EVENTS,
-+};
-+
- #ifdef CONFIG_MEMCG
-+void mem_cgroup_events(struct mem_cgroup *memcg,
-+		       enum mem_cgroup_events_index idx,
-+		       unsigned int nr);
-+
-+bool mem_cgroup_low(struct mem_cgroup *root, struct mem_cgroup *memcg);
-+
- int mem_cgroup_try_charge(struct page *page, struct mm_struct *mm,
- 			  gfp_t gfp_mask, struct mem_cgroup **memcgp);
- void mem_cgroup_commit_charge(struct page *page, struct mem_cgroup *memcg,
-@@ -175,6 +195,18 @@ void mem_cgroup_split_huge_fixup(struct
- #else /* CONFIG_MEMCG */
- struct mem_cgroup;
- 
-+static inline void mem_cgroup_events(struct mem_cgroup *memcg,
-+				     enum mem_cgroup_events_index idx,
-+				     unsigned int nr)
-+{
-+}
-+
-+static inline bool mem_cgroup_low(struct mem_cgroup *root,
-+				  struct mem_cgroup *memcg)
-+{
-+	return false;
-+}
-+
- static inline int mem_cgroup_try_charge(struct page *page, struct mm_struct *mm,
- 					gfp_t gfp_mask,
- 					struct mem_cgroup **memcgp)
-diff -puN mm/memcontrol.c~mm-memcontrol-default-hierarchy-interface-for-memory mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-default-hierarchy-interface-for-memory
-+++ a/mm/memcontrol.c
-@@ -97,14 +97,6 @@ static const char * const mem_cgroup_sta
- 	"swap",
- };
- 
--enum mem_cgroup_events_index {
--	MEM_CGROUP_EVENTS_PGPGIN,	/* # of pages paged in */
--	MEM_CGROUP_EVENTS_PGPGOUT,	/* # of pages paged out */
--	MEM_CGROUP_EVENTS_PGFAULT,	/* # of page-faults */
--	MEM_CGROUP_EVENTS_PGMAJFAULT,	/* # of major page-faults */
--	MEM_CGROUP_EVENTS_NSTATS,
--};
--
- static const char * const mem_cgroup_events_names[] = {
- 	"pgpgin",
- 	"pgpgout",
-@@ -138,7 +130,7 @@ enum mem_cgroup_events_target {
- 
- struct mem_cgroup_stat_cpu {
- 	long count[MEM_CGROUP_STAT_NSTATS];
--	unsigned long events[MEM_CGROUP_EVENTS_NSTATS];
-+	unsigned long events[MEMCG_NR_EVENTS];
- 	unsigned long nr_page_events;
- 	unsigned long targets[MEM_CGROUP_NTARGETS];
- };
-@@ -284,6 +276,10 @@ struct mem_cgroup {
- 	struct page_counter memsw;
- 	struct page_counter kmem;
- 
-+	/* Normal memory consumption range */
-+	unsigned long low;
-+	unsigned long high;
-+
- 	unsigned long soft_limit;
- 
- 	/* vmpressure notifications */
-@@ -2327,6 +2323,8 @@ retry:
- 	if (!(gfp_mask & __GFP_WAIT))
- 		goto nomem;
- 
-+	mem_cgroup_events(mem_over_limit, MEMCG_MAX, 1);
-+
- 	nr_reclaimed = try_to_free_mem_cgroup_pages(mem_over_limit, nr_pages,
- 						    gfp_mask, may_swap);
- 
-@@ -2368,6 +2366,8 @@ retry:
- 	if (fatal_signal_pending(current))
- 		goto bypass;
- 
-+	mem_cgroup_events(mem_over_limit, MEMCG_OOM, 1);
-+
- 	mem_cgroup_oom(mem_over_limit, gfp_mask, get_order(nr_pages));
- nomem:
- 	if (!(gfp_mask & __GFP_NOFAIL))
-@@ -2379,6 +2379,16 @@ done_restock:
- 	css_get_many(&memcg->css, batch);
- 	if (batch > nr_pages)
- 		refill_stock(memcg, batch - nr_pages);
-+	/*
-+	 * If the hierarchy is above the normal consumption range,
-+	 * make the charging task trim their excess contribution.
-+	 */
-+	do {
-+		if (page_counter_read(&memcg->memory) <= memcg->high)
-+			continue;
-+		mem_cgroup_events(memcg, MEMCG_HIGH, 1);
-+		try_to_free_mem_cgroup_pages(memcg, nr_pages, gfp_mask, true);
-+	} while ((memcg = parent_mem_cgroup(memcg)));
- done:
- 	return ret;
- }
-@@ -4304,7 +4314,7 @@ out_kfree:
- 	return ret;
- }
- 
--static struct cftype mem_cgroup_files[] = {
-+static struct cftype mem_cgroup_legacy_files[] = {
- 	{
- 		.name = "usage_in_bytes",
- 		.private = MEMFILE_PRIVATE(_MEM, RES_USAGE),
-@@ -4580,6 +4590,7 @@ mem_cgroup_css_alloc(struct cgroup_subsy
- 	if (parent_css == NULL) {
- 		root_mem_cgroup = memcg;
- 		page_counter_init(&memcg->memory, NULL);
-+		memcg->high = PAGE_COUNTER_MAX;
- 		memcg->soft_limit = PAGE_COUNTER_MAX;
- 		page_counter_init(&memcg->memsw, NULL);
- 		page_counter_init(&memcg->kmem, NULL);
-@@ -4625,6 +4636,7 @@ mem_cgroup_css_online(struct cgroup_subs
- 
- 	if (parent->use_hierarchy) {
- 		page_counter_init(&memcg->memory, &parent->memory);
-+		memcg->high = PAGE_COUNTER_MAX;
- 		memcg->soft_limit = PAGE_COUNTER_MAX;
- 		page_counter_init(&memcg->memsw, &parent->memsw);
- 		page_counter_init(&memcg->kmem, &parent->kmem);
-@@ -4635,6 +4647,7 @@ mem_cgroup_css_online(struct cgroup_subs
- 		 */
- 	} else {
- 		page_counter_init(&memcg->memory, NULL);
-+		memcg->high = PAGE_COUNTER_MAX;
- 		memcg->soft_limit = PAGE_COUNTER_MAX;
- 		page_counter_init(&memcg->memsw, NULL);
- 		page_counter_init(&memcg->kmem, NULL);
-@@ -4710,6 +4723,8 @@ static void mem_cgroup_css_reset(struct
- 	mem_cgroup_resize_limit(memcg, PAGE_COUNTER_MAX);
- 	mem_cgroup_resize_memsw_limit(memcg, PAGE_COUNTER_MAX);
- 	memcg_update_kmem_limit(memcg, PAGE_COUNTER_MAX);
-+	memcg->low = 0;
-+	memcg->high = PAGE_COUNTER_MAX;
- 	memcg->soft_limit = PAGE_COUNTER_MAX;
- }
- 
-@@ -5296,6 +5311,147 @@ static void mem_cgroup_bind(struct cgrou
- 		mem_cgroup_from_css(root_css)->use_hierarchy = true;
- }
- 
-+static u64 memory_current_read(struct cgroup_subsys_state *css,
-+			       struct cftype *cft)
-+{
-+	return mem_cgroup_usage(mem_cgroup_from_css(css), false);
-+}
-+
-+static int memory_low_show(struct seq_file *m, void *v)
-+{
-+	struct mem_cgroup *memcg = mem_cgroup_from_css(seq_css(m));
-+	unsigned long low = ACCESS_ONCE(memcg->low);
-+
-+	if (low == PAGE_COUNTER_MAX)
-+		seq_puts(m, "infinity\n");
-+	else
-+		seq_printf(m, "%llu\n", (u64)low * PAGE_SIZE);
-+
-+	return 0;
-+}
-+
-+static ssize_t memory_low_write(struct kernfs_open_file *of,
-+				char *buf, size_t nbytes, loff_t off)
-+{
-+	struct mem_cgroup *memcg = mem_cgroup_from_css(of_css(of));
-+	unsigned long low;
-+	int err;
-+
-+	buf = strstrip(buf);
-+	err = page_counter_memparse(buf, "infinity", &low);
-+	if (err)
-+		return err;
-+
-+	memcg->low = low;
-+
-+	return nbytes;
-+}
-+
-+static int memory_high_show(struct seq_file *m, void *v)
-+{
-+	struct mem_cgroup *memcg = mem_cgroup_from_css(seq_css(m));
-+	unsigned long high = ACCESS_ONCE(memcg->high);
-+
-+	if (high == PAGE_COUNTER_MAX)
-+		seq_puts(m, "infinity\n");
-+	else
-+		seq_printf(m, "%llu\n", (u64)high * PAGE_SIZE);
-+
-+	return 0;
-+}
-+
-+static ssize_t memory_high_write(struct kernfs_open_file *of,
-+				 char *buf, size_t nbytes, loff_t off)
-+{
-+	struct mem_cgroup *memcg = mem_cgroup_from_css(of_css(of));
-+	unsigned long high;
-+	int err;
-+
-+	buf = strstrip(buf);
-+	err = page_counter_memparse(buf, "infinity", &high);
-+	if (err)
-+		return err;
-+
-+	memcg->high = high;
-+
-+	return nbytes;
-+}
-+
-+static int memory_max_show(struct seq_file *m, void *v)
-+{
-+	struct mem_cgroup *memcg = mem_cgroup_from_css(seq_css(m));
-+	unsigned long max = ACCESS_ONCE(memcg->memory.limit);
-+
-+	if (max == PAGE_COUNTER_MAX)
-+		seq_puts(m, "infinity\n");
-+	else
-+		seq_printf(m, "%llu\n", (u64)max * PAGE_SIZE);
-+
-+	return 0;
-+}
-+
-+static ssize_t memory_max_write(struct kernfs_open_file *of,
-+				char *buf, size_t nbytes, loff_t off)
-+{
-+	struct mem_cgroup *memcg = mem_cgroup_from_css(of_css(of));
-+	unsigned long max;
-+	int err;
-+
-+	buf = strstrip(buf);
-+	err = page_counter_memparse(buf, "infinity", &max);
-+	if (err)
-+		return err;
-+
-+	err = mem_cgroup_resize_limit(memcg, max);
-+	if (err)
-+		return err;
-+
-+	return nbytes;
-+}
-+
-+static int memory_events_show(struct seq_file *m, void *v)
-+{
-+	struct mem_cgroup *memcg = mem_cgroup_from_css(seq_css(m));
-+
-+	seq_printf(m, "low %lu\n", mem_cgroup_read_events(memcg, MEMCG_LOW));
-+	seq_printf(m, "high %lu\n", mem_cgroup_read_events(memcg, MEMCG_HIGH));
-+	seq_printf(m, "max %lu\n", mem_cgroup_read_events(memcg, MEMCG_MAX));
-+	seq_printf(m, "oom %lu\n", mem_cgroup_read_events(memcg, MEMCG_OOM));
-+
-+	return 0;
-+}
-+
-+static struct cftype memory_files[] = {
-+	{
-+		.name = "current",
-+		.read_u64 = memory_current_read,
-+	},
-+	{
-+		.name = "low",
-+		.flags = CFTYPE_NOT_ON_ROOT,
-+		.seq_show = memory_low_show,
-+		.write = memory_low_write,
-+	},
-+	{
-+		.name = "high",
-+		.flags = CFTYPE_NOT_ON_ROOT,
-+		.seq_show = memory_high_show,
-+		.write = memory_high_write,
-+	},
-+	{
-+		.name = "max",
-+		.flags = CFTYPE_NOT_ON_ROOT,
-+		.seq_show = memory_max_show,
-+		.write = memory_max_write,
-+	},
-+	{
-+		.name = "events",
-+		.flags = CFTYPE_NOT_ON_ROOT,
-+		.seq_show = memory_events_show,
-+	},
-+	{ }	/* terminate */
-+};
-+
- struct cgroup_subsys memory_cgrp_subsys = {
- 	.css_alloc = mem_cgroup_css_alloc,
- 	.css_online = mem_cgroup_css_online,
-@@ -5306,7 +5462,8 @@ struct cgroup_subsys memory_cgrp_subsys
- 	.cancel_attach = mem_cgroup_cancel_attach,
- 	.attach = mem_cgroup_move_task,
- 	.bind = mem_cgroup_bind,
--	.legacy_cftypes = mem_cgroup_files,
-+	.dfl_cftypes = memory_files,
-+	.legacy_cftypes = mem_cgroup_legacy_files,
- 	.early_init = 0,
- };
- 
-@@ -5341,6 +5498,56 @@ static void __init enable_swap_cgroup(vo
- }
+diff -puN include/linux/gfp.h~mm-thp-allocate-transparent-hugepages-on-local-node include/linux/gfp.h
+--- a/include/linux/gfp.h~mm-thp-allocate-transparent-hugepages-on-local-node
++++ a/include/linux/gfp.h
+@@ -335,11 +335,15 @@ alloc_pages(gfp_t gfp_mask, unsigned int
+ extern struct page *alloc_pages_vma(gfp_t gfp_mask, int order,
+ 			struct vm_area_struct *vma, unsigned long addr,
+ 			int node);
++extern struct page *alloc_hugepage_vma(gfp_t gfp, struct vm_area_struct *vma,
++				       unsigned long addr, int order);
+ #else
+ #define alloc_pages(gfp_mask, order) \
+ 		alloc_pages_node(numa_node_id(), gfp_mask, order)
+ #define alloc_pages_vma(gfp_mask, order, vma, addr, node)	\
+ 	alloc_pages(gfp_mask, order)
++#define alloc_hugepage_vma(gfp_mask, vma, addr, order)	\
++	alloc_pages(gfp_mask, order)
  #endif
+ #define alloc_page(gfp_mask) alloc_pages(gfp_mask, 0)
+ #define alloc_page_vma(gfp_mask, vma, addr)			\
+diff -puN mm/huge_memory.c~mm-thp-allocate-transparent-hugepages-on-local-node mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-thp-allocate-transparent-hugepages-on-local-node
++++ a/mm/huge_memory.c
+@@ -761,15 +761,6 @@ static inline gfp_t alloc_hugepage_gfpma
+ 	return (GFP_TRANSHUGE & ~(defrag ? 0 : __GFP_WAIT)) | extra_gfp;
+ }
  
-+/**
-+ * mem_cgroup_events - count memory events against a cgroup
-+ * @memcg: the memory cgroup
-+ * @idx: the event index
-+ * @nr: the number of events to account for
-+ */
-+void mem_cgroup_events(struct mem_cgroup *memcg,
-+		       enum mem_cgroup_events_index idx,
-+		       unsigned int nr)
-+{
-+	this_cpu_add(memcg->stat->events[idx], nr);
-+}
-+
-+/**
-+ * mem_cgroup_low - check if memory consumption is below the normal range
-+ * @root: the highest ancestor to consider
-+ * @memcg: the memory cgroup to check
-+ *
-+ * Returns %true if memory consumption of @memcg, and that of all
-+ * configurable ancestors up to @root, is below the normal range.
-+ */
-+bool mem_cgroup_low(struct mem_cgroup *root, struct mem_cgroup *memcg)
-+{
-+	if (mem_cgroup_disabled())
-+		return false;
-+
-+	/*
-+	 * The toplevel group doesn't have a configurable range, so
-+	 * it's never low when looked at directly, and it is not
-+	 * considered an ancestor when assessing the hierarchy.
-+	 */
-+
-+	if (memcg == root_mem_cgroup)
-+		return false;
-+
-+	if (page_counter_read(&memcg->memory) > memcg->low)
-+		return false;
-+
-+	while (memcg != root) {
-+		memcg = parent_mem_cgroup(memcg);
-+
-+		if (memcg == root_mem_cgroup)
-+			break;
-+
-+		if (page_counter_read(&memcg->memory) > memcg->low)
-+			return false;
-+	}
-+	return true;
-+}
-+
- #ifdef CONFIG_MEMCG_SWAP
- /**
-  * mem_cgroup_swapout - transfer a memsw charge to swap
-diff -puN mm/vmscan.c~mm-memcontrol-default-hierarchy-interface-for-memory mm/vmscan.c
---- a/mm/vmscan.c~mm-memcontrol-default-hierarchy-interface-for-memory
-+++ a/mm/vmscan.c
-@@ -91,6 +91,9 @@ struct scan_control {
- 	/* Can pages be swapped as part of reclaim? */
- 	unsigned int may_swap:1;
- 
-+	/* Can cgroups be reclaimed below their normal consumption range? */
-+	unsigned int may_thrash:1;
-+
- 	unsigned int hibernation_mode:1;
- 
- 	/* One of the zones is ready for compaction */
-@@ -2333,6 +2336,12 @@ static bool shrink_zone(struct zone *zon
- 			struct lruvec *lruvec;
- 			int swappiness;
- 
-+			if (mem_cgroup_low(root, memcg)) {
-+				if (!sc->may_thrash)
-+					continue;
-+				mem_cgroup_events(memcg, MEMCG_LOW, 1);
-+			}
-+
- 			lruvec = mem_cgroup_zone_lruvec(zone, memcg);
- 			swappiness = mem_cgroup_swappiness(memcg);
- 			scanned = sc->nr_scanned;
-@@ -2360,8 +2369,7 @@ static bool shrink_zone(struct zone *zon
- 				mem_cgroup_iter_break(root, memcg);
- 				break;
- 			}
--			memcg = mem_cgroup_iter(root, memcg, &reclaim);
--		} while (memcg);
-+		} while ((memcg = mem_cgroup_iter(root, memcg, &reclaim)));
- 
- 		/*
- 		 * Shrink the slab caches in the same proportion that
-@@ -2559,10 +2567,11 @@ static bool shrink_zones(struct zonelist
- static unsigned long do_try_to_free_pages(struct zonelist *zonelist,
- 					  struct scan_control *sc)
- {
-+	int initial_priority = sc->priority;
- 	unsigned long total_scanned = 0;
- 	unsigned long writeback_threshold;
- 	bool zones_reclaimable;
+-static inline struct page *alloc_hugepage_vma(int defrag,
+-					      struct vm_area_struct *vma,
+-					      unsigned long haddr, int nd,
+-					      gfp_t extra_gfp)
+-{
+-	return alloc_pages_vma(alloc_hugepage_gfpmask(defrag, extra_gfp),
+-			       HPAGE_PMD_ORDER, vma, haddr, nd);
+-}
 -
-+retry:
- 	delayacct_freepages_start();
+ /* Caller must hold page table lock. */
+ static bool set_huge_zero_page(pgtable_t pgtable, struct mm_struct *mm,
+ 		struct vm_area_struct *vma, unsigned long haddr, pmd_t *pmd,
+@@ -790,6 +781,7 @@ int do_huge_pmd_anonymous_page(struct mm
+ 			       unsigned long address, pmd_t *pmd,
+ 			       unsigned int flags)
+ {
++	gfp_t gfp;
+ 	struct page *page;
+ 	unsigned long haddr = address & HPAGE_PMD_MASK;
  
- 	if (global_reclaim(sc))
-@@ -2612,6 +2621,13 @@ static unsigned long do_try_to_free_page
- 	if (sc->compaction_ready)
- 		return 1;
- 
-+	/* Untapped cgroup reserves?  Don't OOM, retry. */
-+	if (!sc->may_thrash) {
-+		sc->priority = initial_priority;
-+		sc->may_thrash = 1;
-+		goto retry;
-+	}
+@@ -824,8 +816,8 @@ int do_huge_pmd_anonymous_page(struct mm
+ 		}
+ 		return 0;
+ 	}
+-	page = alloc_hugepage_vma(transparent_hugepage_defrag(vma),
+-			vma, haddr, numa_node_id(), 0);
++	gfp = alloc_hugepage_gfpmask(transparent_hugepage_defrag(vma), 0);
++	page = alloc_hugepage_vma(gfp, vma, haddr, HPAGE_PMD_ORDER);
+ 	if (unlikely(!page)) {
+ 		count_vm_event(THP_FAULT_FALLBACK);
+ 		return VM_FAULT_FALLBACK;
+@@ -1113,10 +1105,12 @@ int do_huge_pmd_wp_page(struct mm_struct
+ 	spin_unlock(ptl);
+ alloc:
+ 	if (transparent_hugepage_enabled(vma) &&
+-	    !transparent_hugepage_debug_cow())
+-		new_page = alloc_hugepage_vma(transparent_hugepage_defrag(vma),
+-					      vma, haddr, numa_node_id(), 0);
+-	else
++	    !transparent_hugepage_debug_cow()) {
++		gfp_t gfp;
 +
- 	/* Any of the zones still reclaimable?  Don't OOM. */
- 	if (zones_reclaimable)
- 		return 1;
++		gfp = alloc_hugepage_gfpmask(transparent_hugepage_defrag(vma), 0);
++		new_page = alloc_hugepage_vma(gfp, vma, haddr, HPAGE_PMD_ORDER);
++	} else
+ 		new_page = NULL;
+ 
+ 	if (unlikely(!new_page)) {
+diff -puN mm/mempolicy.c~mm-thp-allocate-transparent-hugepages-on-local-node mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-thp-allocate-transparent-hugepages-on-local-node
++++ a/mm/mempolicy.c
+@@ -2031,6 +2031,76 @@ retry_cpuset:
+ }
+ 
+ /**
++ * alloc_hugepage_vma: Allocate a hugepage for a VMA
++ * @gfp:
++ *   %GFP_USER	  user allocation.
++ *   %GFP_KERNEL  kernel allocations,
++ *   %GFP_HIGHMEM highmem/user allocations,
++ *   %GFP_FS	  allocation should not call back into a file system.
++ *   %GFP_ATOMIC  don't sleep.
++ *
++ * @vma:   Pointer to VMA or NULL if not available.
++ * @addr:  Virtual Address of the allocation. Must be inside the VMA.
++ * @order: Order of the hugepage for gfp allocation.
++ *
++ * This functions allocate a huge page from the kernel page pool and applies
++ * a NUMA policy associated with the VMA or the current process.
++ * For policy other than %MPOL_INTERLEAVE, we make sure we allocate hugepage
++ * only from the current node if the current node is part of the node mask.
++ * If we can't allocate a hugepage we fail the allocation and don' try to fallback
++ * to other nodes in the node mask. If the current node is not part of node mask
++ * or if the NUMA policy is MPOL_INTERLEAVE we use the allocator that can
++ * fallback to nodes in the policy node mask.
++ *
++ * When VMA is not NULL caller must hold down_read on the mmap_sem of the
++ * mm_struct of the VMA to prevent it from going away. Should be used for
++ * all allocations for pages that will be mapped into
++ * user space. Returns NULL when no page can be allocated.
++ *
++ * Should be called with the mm_sem of the vma hold.
++ *
++ */
++struct page *alloc_hugepage_vma(gfp_t gfp, struct vm_area_struct *vma,
++				unsigned long addr, int order)
++{
++	struct page *page;
++	nodemask_t *nmask;
++	struct mempolicy *pol;
++	int node = numa_node_id();
++	unsigned int cpuset_mems_cookie;
++
++retry_cpuset:
++	pol = get_vma_policy(vma, addr);
++	cpuset_mems_cookie = read_mems_allowed_begin();
++	/*
++	 * For interleave policy, we don't worry about
++	 * current node. Otherwise if current node is
++	 * in nodemask, try to allocate hugepage from
++	 * the current node. Don't fall back to other nodes
++	 * for THP.
++	 */
++	if (unlikely(pol->mode == MPOL_INTERLEAVE))
++		goto alloc_with_fallback;
++	nmask = policy_nodemask(gfp, pol);
++	if (!nmask || node_isset(node, *nmask)) {
++		mpol_cond_put(pol);
++		page = alloc_pages_exact_node(node, gfp, order);
++		if (unlikely(!page &&
++			     read_mems_allowed_retry(cpuset_mems_cookie)))
++			goto retry_cpuset;
++		return page;
++	}
++alloc_with_fallback:
++	mpol_cond_put(pol);
++	/*
++	 * if current node is not part of node mask, try
++	 * the allocation from any node, and we can do retry
++	 * in that case.
++	 */
++	return alloc_pages_vma(gfp, order, vma, addr, node);
++}
++
++/**
+  * 	alloc_pages_current - Allocate pages.
+  *
+  *	@gfp:
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
-mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath.patch
-memcg-remove-extra-newlines-from-memcg-oom-kill-log.patch
-mm-vmscan-fix-highidx-argument-type.patch
-mm-memory-remove-vm_file-check-on-shared-writable-vmas.patch
-mm-memory-merge-shared-writable-dirtying-branches-in-do_wp_page.patch
-mm-page_alloc-place-zone_id-check-before-vm_bug_on_page-check.patch
-memcg-zap-__memcg_chargeuncharge_slab.patch
-memcg-zap-memcg_name-argument-of-memcg_create_kmem_cache.patch
-memcg-zap-memcg_slab_caches-and-memcg_slab_mutex.patch
-mm-add-fields-for-compound-destructor-and-order-into-struct-page.patch
-swap-remove-unused-mem_cgroup_uncharge_swapcache-declaration.patch
-mm-memcontrol-track-move_lock-state-internally.patch
-mm-memcontrol-track-move_lock-state-internally-fix.patch
-mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
-mm-vmscan-wake-up-all-pfmemalloc-throttled-processes-at-once.patch
-mm-hugetlb-reduce-arch-dependent-code-around-follow_huge_.patch
-mm-hugetlb-pmd_huge-returns-true-for-non-present-hugepage.patch
-mm-hugetlb-take-page-table-lock-in-follow_huge_pmd.patch
-mm-hugetlb-fix-getting-refcount-0-page-in-hugetlb_fault.patch
-mm-hugetlb-add-migration-hwpoisoned-entry-check-in-hugetlb_change_protection.patch
-mm-hugetlb-add-migration-entry-check-in-__unmap_hugepage_range.patch
-mm-hugetlb-fix-suboptimal-migration-hwpoisoned-entry-check.patch
-mm-hugetlb-cleanup-and-rename-is_hugetlb_entry_migrationhwpoisoned.patch
+mm-numa-do-not-dereference-pmd-outside-of-the-lock-during-numa-hinting-fault.patch
+mm-add-p-protnone-helpers-for-use-by-numa-balancing.patch
+mm-convert-p_numa-users-to-p_protnone_numa.patch
+ppc64-add-paranoid-warnings-for-unexpected-dsisr_protfault.patch
+mm-convert-p_mknonnuma-and-remaining-page-table-manipulations.patch
+mm-remove-remaining-references-to-numa-hinting-bits-and-helpers.patch
+mm-numa-do-not-trap-faults-on-the-huge-zero-page.patch
+x86-mm-restore-original-pte_special-check.patch
+mm-numa-add-paranoid-check-around-pte_protnone_numa.patch
+mm-numa-avoid-unnecessary-tlb-flushes-when-setting-numa-hinting-entries.patch
 mm-set-page-pfmemalloc-in-prep_new_page.patch
 mm-page_alloc-reduce-number-of-alloc_pages-functions-parameters.patch
 mm-reduce-try_to_compact_pages-parameters.patch
 mm-microoptimize-zonelist-operations.patch
-list_lru-introduce-list_lru_shrink_countwalk.patch
-fs-consolidate-nrfree_cached_objects-args-in-shrink_control.patch
-vmscan-per-memory-cgroup-slab-shrinkers.patch
-memcg-rename-some-cache-id-related-variables.patch
-memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation.patch
-list_lru-get-rid-of-active_nodes.patch
-list_lru-organize-all-list_lrus-to-list.patch
-list_lru-introduce-per-memcg-lists.patch
-fs-make-shrinker-memcg-aware.patch
-vmscan-force-scan-offline-memory-cgroups.patch
-vmscan-force-scan-offline-memory-cgroups-fix.patch
-memcg-add-build_bug_on-for-string-tables.patch
-mm-page_counter-pull-1-handling-out-of-page_counter_memparse.patch
-mm-memcontrol-default-hierarchy-interface-for-memory.patch
-mm-memcontrol-fold-move_anon-and-move_file.patch
-mm-memcontrol-fold-move_anon-and-move_file-fix.patch
-oom-add-helpers-for-setting-and-clearing-tif_memdie.patch
-oom-thaw-the-oom-victim-if-it-is-frozen.patch
-pm-convert-printk-to-pr_-equivalent.patch
-sysrq-convert-printk-to-pr_-equivalent.patch
-oom-pm-make-oom-detection-in-the-freezer-path-raceless.patch
-mm-memcontrol-remove-unnecessary-soft-limit-tree-node-test.patch
-mm-memcontrol-consolidate-memory-controller-initialization.patch
-mm-memcontrol-consolidate-swap-controller-code.patch
-fs-shrinker-always-scan-at-least-one-object-of-each-type.patch
-fs-shrinker-always-scan-at-least-one-object-of-each-type-fix.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated-fix.patch
-documentation-proc-add-proc-pid-numa_maps-interface-explanation-snippet.patch
-fs-proc-task_mmu-show-page-size-in-proc-pid-numa_maps.patch
-fs-proc-task_mmu-show-page-size-in-proc-pid-numa_maps-fix.patch
+mm-cma-fix-totalcma_pages-to-include-dt-defined-cma-regions.patch
+mm-thp-allocate-transparent-hugepages-on-local-node.patch
+mm-thp-allocate-transparent-hugepages-on-local-node-fix.patch
 
