@@ -1,139 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] mm-vmstatc-fix-cleanup-ifdefs-fix.patch
- removed from -mm tree
-Date: Wed, 21 Jan 2015 14:31:01 -0800
-Message-ID: <54c028a5.allsqUWhqHYEs4hi%akpm@linux-foundation.org>
+Subject: + mm-vmstatc-fix-cleanup-ifdefs-fix-2.patch added to -mm tree
+Date: Wed, 21 Jan 2015 14:32:00 -0800
+Message-ID: <54c028e0.PLEoBuxeEqAxLE1S%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38110 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38118 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751526AbbAUWbD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Jan 2015 17:31:03 -0500
+	with ESMTP id S1752277AbbAUWcB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Jan 2015 17:32:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, fengguang.wu@intel.com, iamjoonsoo.kim@lge.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
+To: axel.lin@ingics.com, iamjoonsoo.kim@lge.com, mel@csn.ul.ie, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-vmstatc-fix-cleanup-ifdefs-fix
-has been removed from the -mm tree.  Its filename was
-     mm-vmstatc-fix-cleanup-ifdefs-fix.patch
+     Subject: mm: vmstat: fix build error when !CONFIG_PROC_FS
+has been added to the -mm tree.  Its filename is
+     mm-vmstatc-fix-cleanup-ifdefs-fix-2.patch
 
-This patch was dropped because an alternative patch was merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmstatc-fix-cleanup-ifdefs-fix-2.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmstatc-fix-cleanup-ifdefs-fix-2.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-vmstatc-fix-cleanup-ifdefs-fix
+From: Axel Lin <axel.lin@ingics.com>
+Subject: mm: vmstat: fix build error when !CONFIG_PROC_FS
 
-iterate, iterate
+Fix build error when CONFIG_DEBUG_FS && CONFIG_COMPACTION && !CONFIG_PROC_FS:
 
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+  CC      mm/vmstat.o
+mm/vmstat.c:1607:11: error: 'frag_start' undeclared here (not in a function)
+mm/vmstat.c:1608:10: error: 'frag_next' undeclared here (not in a function)
+mm/vmstat.c:1609:10: error: 'frag_stop' undeclared here (not in a function)
+make[1]: *** [mm/vmstat.o] Error 1
+make: *** [mm] Error 2
+
+Signed-off-by: Axel Lin <axel.lin@ingics.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
-Reported-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Tested-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |   30 +++++++++++++++++-------------
- 1 file changed, 17 insertions(+), 13 deletions(-)
+ mm/vmstat.c |   48 ++++++++++++++++++++++++------------------------
+ 1 file changed, 24 insertions(+), 24 deletions(-)
 
-diff -puN mm/vmstat.c~mm-vmstatc-fix-cleanup-ifdefs-fix mm/vmstat.c
---- a/mm/vmstat.c~mm-vmstatc-fix-cleanup-ifdefs-fix
+diff -puN mm/vmstat.c~mm-vmstatc-fix-cleanup-ifdefs-fix-2 mm/vmstat.c
+--- a/mm/vmstat.c~mm-vmstatc-fix-cleanup-ifdefs-fix-2
 +++ a/mm/vmstat.c
-@@ -872,19 +872,8 @@ static void walk_zones_in_node(struct se
- }
- #endif
+@@ -852,6 +852,30 @@ const char * const vmstat_text[] = {
  
--#ifdef CONFIG_PROC_FS
--static char * const migratetype_names[MIGRATE_TYPES] = {
--	"Unmovable",
--	"Reclaimable",
--	"Movable",
--	"Reserve",
--#ifdef CONFIG_CMA
--	"CMA",
--#endif
--#ifdef CONFIG_MEMORY_ISOLATION
--	"Isolate",
--#endif
--};
-+#if	defined(CONFIG_PROC_FS) || \
-+	defined(CONFIG_DEBUG_FS) && defined(CONFIG_COMPACTION)
- 
- static void *frag_start(struct seq_file *m, loff_t *pos)
- {
-@@ -909,6 +898,21 @@ static void *frag_next(struct seq_file *
- static void frag_stop(struct seq_file *m, void *arg)
- {
- }
-+#endif
+ #if (defined(CONFIG_DEBUG_FS) && defined(CONFIG_COMPACTION)) || \
+      defined(CONFIG_PROC_FS)
++static void *frag_start(struct seq_file *m, loff_t *pos)
++{
++	pg_data_t *pgdat;
++	loff_t node = *pos;
 +
-+#ifdef CONFIG_PROC_FS
-+static char * const migratetype_names[MIGRATE_TYPES] = {
-+	"Unmovable",
-+	"Reclaimable",
-+	"Movable",
-+	"Reserve",
-+#ifdef CONFIG_CMA
-+	"CMA",
-+#endif
-+#ifdef CONFIG_MEMORY_ISOLATION
-+	"Isolate",
-+#endif
-+};
++	for (pgdat = first_online_pgdat();
++	     pgdat && node;
++	     pgdat = next_online_pgdat(pgdat))
++		--node;
++
++	return pgdat;
++}
++
++static void *frag_next(struct seq_file *m, void *arg, loff_t *pos)
++{
++	pg_data_t *pgdat = (pg_data_t *)arg;
++
++	(*pos)++;
++	return next_online_pgdat(pgdat);
++}
++
++static void frag_stop(struct seq_file *m, void *arg)
++{
++}
  
- static void frag_show_print(struct seq_file *m, pg_data_t *pgdat,
- 						struct zone *zone)
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-fanotify-dont-recalculate-a-marks-mask-if-only-the-ignored-mask-changed-checkpatch-fixes.patch
-fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper.patch
-ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir.patch
-mm.patch
-mm-vmstatc-fix-cleanup-ifdefs.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub-fix.patch
-mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
-vmscan-force-scan-offline-memory-cgroups-fix.patch
-mm-memcontrol-default-hierarchy-interface-for-memory.patch
-mm-memcontrol-fold-move_anon-and-move_file-fix.patch
-fs-shrinker-always-scan-at-least-one-object-of-each-type-fix.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated-fix.patch
-mm-thp-allocate-transparent-hugepages-on-local-node-fix.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss.patch
-lib-bitmap-update-bitmap_onto-to-unsigned-checkpatch-fixes.patch
-lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned-fix.patch
-hexdump-makes-it-return-amount-of-bytes-placed-in-buffer-fix.patch
-mm-slab-convert-cache-name-allocations-to-kstrdup_const-fix.patch
-rtc-rk808-fix-the-rtc-time-reading-issue-fix.patch
-fs-befs-linuxvfsc-remove-unnecessary-casting-fix.patch
-linux-next.patch
-linux-next-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-fix-xip-fault-vs-truncate-race-fix.patch
-mm-fix-xip-fault-vs-truncate-race-fix-fix.patch
-mm-allow-page-fault-handlers-to-perform-the-cow-fix.patch
-mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix-3.patch
-mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix.patch
-daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix.patch
-daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-2.patch
-daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-3.patch
-dax-add-dax_zero_page_range-fix.patch
-ext4-add-dax-functionality-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-
+ /* Walk all the zones in a node and print using a callback */
+ static void walk_zones_in_node(struct seq_file *m, pg_data_t *pgdat,
+@@ -886,30 +910,6 @@ static char * const migratetype_names[MI
+ #endif
+ };
+ 
+-static void *frag_start(struct seq_file *m, loff_t *pos)
+-{
+-	pg_data_t *pgdat;
+-	loff_t node = *pos;
+-	for (pgdat = first_online_pgdat();
+-	     pgdat && node;
+-	     pgdat = next_online_pgdat(pgdat))
+-		--node;
+-
+-	return pgdat;
+-}
+-
+-static void *frag_next(struct seq_file *m, void *arg, loff_t *pos)
+-{
+-	pg_data_t *pgdat = (pg_data_t *)arg;
+-
+-	(*pos)++;
+-	return next_online_pgdat(pgdat);
+-}
+-
+-static void frag_stop(struct seq_file *m, void *arg)
+-{
+-}
