@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-thp-allocate-transparent-hugepages-on-local-node-fix.patch
- added to -mm tree
-Date: Tue, 20 Jan 2015 16:48:41 -0800
-Message-ID: <54bef769.qIbGSoB7eDClebkU%akpm@linux-foundation.org>
+Subject: + linux-next-rejects.patch added to -mm tree
+Date: Wed, 21 Jan 2015 13:26:03 -0800
+Message-ID: <54c0196b.T6d/wk19fUaceRCK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48831 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37552 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751602AbbAUAsm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Jan 2015 19:48:42 -0500
+	with ESMTP id S1751999AbbAUV0F (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Jan 2015 16:26:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-thp-allocate-transparent-hugepages-on-local-node-fix
+     Subject: linux-next-rejects
 has been added to the -mm tree.  Its filename is
-     mm-thp-allocate-transparent-hugepages-on-local-node-fix.patch
+     linux-next-rejects.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-allocate-transparent-hugepages-on-local-node-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-rejects.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-allocate-transparent-hugepages-on-local-node-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,50 +39,26 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-thp-allocate-transparent-hugepages-on-local-node-fix
+Subject: linux-next-rejects
 
-fix comment, add CONFIG_TRANSPARENT_HUGEPAGE dependency
-
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/swap.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN mm/mempolicy.c~mm-thp-allocate-transparent-hugepages-on-local-node-fix mm/mempolicy.c
---- a/mm/mempolicy.c~mm-thp-allocate-transparent-hugepages-on-local-node-fix
-+++ a/mm/mempolicy.c
-@@ -2030,6 +2030,7 @@ retry_cpuset:
- 	return page;
- }
+diff -puN mm/swap.c~linux-next-rejects mm/swap.c
+--- a/mm/swap.c~linux-next-rejects
++++ a/mm/swap.c
+@@ -1138,8 +1138,6 @@ void __init swap_setup(void)
+ #ifdef CONFIG_SWAP
+ 	int i;
  
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
- /**
-  * alloc_hugepage_vma: Allocate a hugepage for a VMA
-  * @gfp:
-@@ -2057,7 +2058,7 @@ retry_cpuset:
-  * all allocations for pages that will be mapped into
-  * user space. Returns NULL when no page can be allocated.
-  *
-- * Should be called with the mm_sem of the vma hold.
-+ * Should be called with vma->vm_mm->mmap_sem held.
-  *
-  */
- struct page *alloc_hugepage_vma(gfp_t gfp, struct vm_area_struct *vma,
-@@ -2099,6 +2100,7 @@ alloc_with_fallback:
- 	 */
- 	return alloc_pages_vma(gfp, order, vma, addr, node);
- }
-+#endif
- 
- /**
-  * 	alloc_pages_current - Allocate pages.
+-	if (bdi_init(swapper_spaces[0].backing_dev_info))
+-		panic("Failed to init swap bdi");
+ 	for (i = 0; i < MAX_SWAPFILES; i++)
+ 		spin_lock_init(&swapper_spaces[i].tree_lock);
+ #endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -117,6 +92,7 @@ mm-slab-convert-cache-name-allocations-to-kstrdup_const-fix.patch
 rtc-rk808-fix-the-rtc-time-reading-issue-fix.patch
 fs-befs-linuxvfsc-remove-unnecessary-casting-fix.patch
 linux-next.patch
+linux-next-rejects.patch
 linux-next-git-rejects.patch
 drivers-gpio-gpio-zevioc-fix-build.patch
 mm-fix-xip-fault-vs-truncate-race-fix.patch
