@@ -1,64 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-rejects.patch added to -mm tree
-Date: Wed, 21 Jan 2015 13:26:03 -0800
-Message-ID: <54c0196b.T6d/wk19fUaceRCK%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Wed, 21 Jan 2015 13:26:15 -0800
+Message-ID: <54c01977.EPVt8s8lstfZE5ne%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37552 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37554 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751999AbbAUV0F (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Jan 2015 16:26:05 -0500
+	with ESMTP id S1751999AbbAUV0Q (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Jan 2015 16:26:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-rejects.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-rejects.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-rejects.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-rejects
+Subject: linux-next-git-rejects
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/ata/ahci_xgene.c       |   11 -----------
+ drivers/net/ethernet/ti/cpsw.c |   15 ---------------
+ 2 files changed, 26 deletions(-)
 
-diff -puN mm/swap.c~linux-next-rejects mm/swap.c
---- a/mm/swap.c~linux-next-rejects
-+++ a/mm/swap.c
-@@ -1138,8 +1138,6 @@ void __init swap_setup(void)
- #ifdef CONFIG_SWAP
- 	int i;
+diff -puN drivers/ata/ahci_xgene.c~linux-next-git-rejects drivers/ata/ahci_xgene.c
+--- a/drivers/ata/ahci_xgene.c~linux-next-git-rejects
++++ a/drivers/ata/ahci_xgene.c
+@@ -178,13 +178,6 @@ static int xgene_ahci_restart_engine(str
+  * xgene_ahci_qc_issue - Issue commands to the device
+  * @qc: Command to issue
+  *
+-<<<<<<< HEAD
+- * Due to Hardware errata for IDENTIFY DEVICE command and PACKET
+- * command of ATAPI protocol set, the controller cannot clear the BSY bit
+- * after receiving the PIO setup FIS. This results in the DMA state machine
+- * going into the CMFatalErrorUpdate state and locks up. By restarting the
+- * DMA engine, it removes the controller out of lock up state.
+-=======
+  * Due to Hardware errata for IDENTIFY DEVICE command, the controller cannot
+  * clear the BSY bit after receiving the PIO setup FIS. This results in the dma
+  * state machine goes into the CMFatalErrorUpdate state and locks up. By
+@@ -196,7 +189,6 @@ static int xgene_ahci_restart_engine(str
+  * a mismatch and results in command completion failure. The
+  * workaround is to write the pmp value to PxFBS.DEV field before issuing
+  * any command to PMP.
+->>>>>>> linux-next/akpm-base
+  */
+ static unsigned int xgene_ahci_qc_issue(struct ata_queued_cmd *qc)
+ {
+@@ -207,8 +199,6 @@ static unsigned int xgene_ahci_qc_issue(
+ 	u32 port_fbs;
+ 	void *port_mmio = ahci_port_base(ap);
  
--	if (bdi_init(swapper_spaces[0].backing_dev_info))
--		panic("Failed to init swap bdi");
- 	for (i = 0; i < MAX_SWAPFILES; i++)
- 		spin_lock_init(&swapper_spaces[i].tree_lock);
- #endif
+-<<<<<<< HEAD
+-=======
+ 	/*
+ 	 * Write the pmp value to PxFBS.DEV
+ 	 * for case of Port Mulitplier.
+@@ -220,7 +210,6 @@ static unsigned int xgene_ahci_qc_issue(
+ 		writel(port_fbs, port_mmio + PORT_FBS);
+ 	}
+ 
+->>>>>>> linux-next/akpm-base
+ 	if (unlikely((ctx->last_cmd[ap->port_no] == ATA_CMD_ID_ATA) ||
+ 	    (ctx->last_cmd[ap->port_no] == ATA_CMD_PACKET)))
+ 		xgene_ahci_restart_engine(ap);
+diff -puN drivers/net/ethernet/ti/cpsw.c~linux-next-git-rejects drivers/net/ethernet/ti/cpsw.c
+--- a/drivers/net/ethernet/ti/cpsw.c~linux-next-git-rejects
++++ a/drivers/net/ethernet/ti/cpsw.c
+@@ -1648,7 +1648,6 @@ static inline int cpsw_add_vlan_ale_entr
+ 
+ 	if (priv->data.dual_emac) {
+ 		port_mask = (1 << (priv->emac_port + 1)) | ALE_PORT_HOST;
+-<<<<<<< HEAD
+ 
+ 		if (priv->ndev->flags & IFF_ALLMULTI)
+ 			unreg_mcast_mask = port_mask;
+@@ -1661,20 +1660,6 @@ static inline int cpsw_add_vlan_ale_entr
+ 			unreg_mcast_mask = ALE_PORT_1 | ALE_PORT_2;
+ 	}
+ 
+-=======
+-
+-		if (priv->ndev->flags & IFF_ALLMULTI)
+-			unreg_mcast_mask = port_mask;
+-	} else {
+-		port_mask = ALE_ALL_PORTS;
+-
+-		if (priv->ndev->flags & IFF_ALLMULTI)
+-			unreg_mcast_mask = ALE_ALL_PORTS;
+-		else
+-			unreg_mcast_mask = ALE_PORT_1 | ALE_PORT_2;
+-	}
+-
+->>>>>>> linux-next/akpm-base
+ 	ret = cpsw_ale_add_vlan(priv->ale, vid, port_mask, 0, port_mask,
+ 				unreg_mcast_mask << priv->host_port);
+ 	if (ret != 0)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -93,7 +142,6 @@ rtc-rk808-fix-the-rtc-time-reading-issue-fix.patch
 fs-befs-linuxvfsc-remove-unnecessary-casting-fix.patch
 linux-next.patch
 linux-next-rejects.patch
-linux-next-git-rejects.patch
 drivers-gpio-gpio-zevioc-fix-build.patch
 mm-fix-xip-fault-vs-truncate-race-fix.patch
 mm-fix-xip-fault-vs-truncate-race-fix-fix.patch
