@@ -1,20 +1,20 @@
 From: akpm@linux-foundation.org
 Subject: + arm-define-__pagetable_pmd_folded-for-lpae.patch added to -mm
  tree
-Date: Wed, 21 Jan 2015 14:14:55 -0800
-Message-ID: <54c024df.cqRDaFM44zTu/tmY%akpm@linux-foundation.org>
+Date: Wed, 21 Jan 2015 14:15:58 -0800
+Message-ID: <54c0251e.kjbdlkj/K8ECtyYT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37897 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37912 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751702AbbAUWO5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Jan 2015 17:14:57 -0500
+	with ESMTP id S1751702AbbAUWP7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Jan 2015 17:15:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, balbi@ti.com, dave.hansen@linux.intel.com, festevam@gmail.com, gorcunov@openvz.org, hughd@google.com, k.kozlowski@samsung.com, linux@arm.linux.org.uk, nm@ti.com, peter.ujfalusi@ti.com, rientjes@google.com, xemul@openvz.org, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, balbi@ti.com, dave.hansen@linux.intel.com, festevam@gmail.com, geert+renesas@glider.be, gorcunov@openvz.org, horms@verge.net.au, hughd@google.com, k.kozlowski@samsung.com, linux@arm.linux.org.uk, nm@ti.com, peter.ujfalusi@ti.com, rientjes@google.com, xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
@@ -52,11 +52,13 @@ LPAE.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Reported-by: Nishanth Menon <nm@ti.com>
+Reported-by: Simon Horman <horms@verge.net.au>
 Tested-by: Fabio Estevam <festevam@gmail.com>
 Tested-by: Felipe Balbi <balbi@ti.com>
 Tested-by: Nishanth Menon <nm@ti.com>
 Tested-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
 Tested-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Tested-by: Geert Uytterhoeven <geert+renesas@glider.be>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Cyrill Gorcunov <gorcunov@openvz.org>
