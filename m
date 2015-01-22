@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-gup-use-get_user_pages_unlocked-within-get_user_pages_fast.patch added
- to -mm tree
-Date: Thu, 22 Jan 2015 15:12:12 -0800
-Message-ID: <54c183cc.+xt4pDsxWk6t6/w1%akpm@linux-foundation.org>
+Subject: + mm-gup-kvm-use-get_user_pages_unlocked.patch added to -mm tree
+Date: Thu, 22 Jan 2015 15:12:11 -0800
+Message-ID: <54c183cb.QjDPz1SB9A06oGm6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54781 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54776 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754574AbbAVXMa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Jan 2015 18:12:30 -0500
+	with ESMTP id S1753501AbbAVXM3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Jan 2015 18:12:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, andreslc@google.com, kirill.shutemov@linux.intel.com, pfeiner@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: gup: use get_user_pages_unlocked within get_user_pages_fast
+     Subject: mm: gup: kvm use get_user_pages_unlocked
 has been added to the -mm tree.  Its filename is
-     mm-gup-use-get_user_pages_unlocked-within-get_user_pages_fast.patch
+     mm-gup-kvm-use-get_user_pages_unlocked.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-gup-use-get_user_pages_unlocked-within-get_user_pages_fast.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-gup-kvm-use-get_user_pages_unlocked.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-use-get_user_pages_unlocked-within-get_user_pages_fast.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-kvm-use-get_user_pages_unlocked.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,145 +39,124 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: mm: gup: use get_user_pages_unlocked within get_user_pages_fast
+Subject: mm: gup: kvm use get_user_pages_unlocked
 
-This allows the get_user_pages_fast slow path to release the mmap_sem
-before blocking.
+Use the more generic get_user_pages_unlocked which has the additional
+benefit of passing FAULT_FLAG_ALLOW_RETRY at the very first page fault
+(which allows the first page fault in an unmapped area to be always able
+to block indefinitely by being allowed to release the mmap_sem).
 
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Reviewed-by: Andres Lagar-Cavilla <andreslc@google.com>
 Reviewed-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Andres Lagar-Cavilla <andreslc@google.com>
 Cc: Peter Feiner <pfeiner@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/mm/gup.c  |    8 +++-----
- arch/s390/mm/gup.c  |    6 ++----
- arch/sh/mm/gup.c    |    6 ++----
- arch/sparc/mm/gup.c |    6 ++----
- arch/x86/mm/gup.c   |    7 +++----
- mm/gup.c            |    6 ++----
- mm/util.c           |   10 ++--------
- 7 files changed, 16 insertions(+), 33 deletions(-)
+ include/linux/kvm_host.h |   11 --------
+ virt/kvm/async_pf.c      |    2 -
+ virt/kvm/kvm_main.c      |   50 ++-----------------------------------
+ 3 files changed, 5 insertions(+), 58 deletions(-)
 
-diff -puN arch/mips/mm/gup.c~mm-gup-use-get_user_pages_unlocked-within-get_user_pages_fast arch/mips/mm/gup.c
---- a/arch/mips/mm/gup.c~mm-gup-use-get_user_pages_unlocked-within-get_user_pages_fast
-+++ a/arch/mips/mm/gup.c
-@@ -301,11 +301,9 @@ slow_irqon:
- 	start += nr << PAGE_SHIFT;
- 	pages += nr;
+diff -puN include/linux/kvm_host.h~mm-gup-kvm-use-get_user_pages_unlocked include/linux/kvm_host.h
+--- a/include/linux/kvm_host.h~mm-gup-kvm-use-get_user_pages_unlocked
++++ a/include/linux/kvm_host.h
+@@ -200,17 +200,6 @@ int kvm_setup_async_pf(struct kvm_vcpu *
+ int kvm_async_pf_wakeup_all(struct kvm_vcpu *vcpu);
+ #endif
  
--	down_read(&mm->mmap_sem);
--	ret = get_user_pages(current, mm, start,
--				(end - start) >> PAGE_SHIFT,
--				write, 0, pages, NULL);
--	up_read(&mm->mmap_sem);
-+	ret = get_user_pages_unlocked(current, mm, start,
-+				      (end - start) >> PAGE_SHIFT,
-+				      write, 0, pages);
- 
- 	/* Have to be a bit careful with return values */
- 	if (nr > 0) {
-diff -puN arch/s390/mm/gup.c~mm-gup-use-get_user_pages_unlocked-within-get_user_pages_fast arch/s390/mm/gup.c
---- a/arch/s390/mm/gup.c~mm-gup-use-get_user_pages_unlocked-within-get_user_pages_fast
-+++ a/arch/s390/mm/gup.c
-@@ -235,10 +235,8 @@ int get_user_pages_fast(unsigned long st
- 	/* Try to get the remaining pages with get_user_pages */
- 	start += nr << PAGE_SHIFT;
- 	pages += nr;
--	down_read(&mm->mmap_sem);
--	ret = get_user_pages(current, mm, start,
--			     nr_pages - nr, write, 0, pages, NULL);
--	up_read(&mm->mmap_sem);
-+	ret = get_user_pages_unlocked(current, mm, start,
-+			     nr_pages - nr, write, 0, pages);
- 	/* Have to be a bit careful with return values */
- 	if (nr > 0)
- 		ret = (ret < 0) ? nr : ret + nr;
-diff -puN arch/sh/mm/gup.c~mm-gup-use-get_user_pages_unlocked-within-get_user_pages_fast arch/sh/mm/gup.c
---- a/arch/sh/mm/gup.c~mm-gup-use-get_user_pages_unlocked-within-get_user_pages_fast
-+++ a/arch/sh/mm/gup.c
-@@ -257,10 +257,8 @@ slow_irqon:
- 		start += nr << PAGE_SHIFT;
- 		pages += nr;
- 
--		down_read(&mm->mmap_sem);
--		ret = get_user_pages(current, mm, start,
--			(end - start) >> PAGE_SHIFT, write, 0, pages, NULL);
--		up_read(&mm->mmap_sem);
-+		ret = get_user_pages_unlocked(current, mm, start,
-+			(end - start) >> PAGE_SHIFT, write, 0, pages);
- 
- 		/* Have to be a bit careful with return values */
- 		if (nr > 0) {
-diff -puN arch/sparc/mm/gup.c~mm-gup-use-get_user_pages_unlocked-within-get_user_pages_fast arch/sparc/mm/gup.c
---- a/arch/sparc/mm/gup.c~mm-gup-use-get_user_pages_unlocked-within-get_user_pages_fast
-+++ a/arch/sparc/mm/gup.c
-@@ -249,10 +249,8 @@ slow:
- 		start += nr << PAGE_SHIFT;
- 		pages += nr;
- 
--		down_read(&mm->mmap_sem);
--		ret = get_user_pages(current, mm, start,
--			(end - start) >> PAGE_SHIFT, write, 0, pages, NULL);
--		up_read(&mm->mmap_sem);
-+		ret = get_user_pages_unlocked(current, mm, start,
-+			(end - start) >> PAGE_SHIFT, write, 0, pages);
- 
- 		/* Have to be a bit careful with return values */
- 		if (nr > 0) {
-diff -puN arch/x86/mm/gup.c~mm-gup-use-get_user_pages_unlocked-within-get_user_pages_fast arch/x86/mm/gup.c
---- a/arch/x86/mm/gup.c~mm-gup-use-get_user_pages_unlocked-within-get_user_pages_fast
-+++ a/arch/x86/mm/gup.c
-@@ -388,10 +388,9 @@ slow_irqon:
- 		start += nr << PAGE_SHIFT;
- 		pages += nr;
- 
--		down_read(&mm->mmap_sem);
--		ret = get_user_pages(current, mm, start,
--			(end - start) >> PAGE_SHIFT, write, 0, pages, NULL);
--		up_read(&mm->mmap_sem);
-+		ret = get_user_pages_unlocked(current, mm, start,
-+					      (end - start) >> PAGE_SHIFT,
-+					      write, 0, pages);
- 
- 		/* Have to be a bit careful with return values */
- 		if (nr > 0) {
-diff -puN mm/gup.c~mm-gup-use-get_user_pages_unlocked-within-get_user_pages_fast mm/gup.c
---- a/mm/gup.c~mm-gup-use-get_user_pages_unlocked-within-get_user_pages_fast
-+++ a/mm/gup.c
-@@ -1243,10 +1243,8 @@ int get_user_pages_fast(unsigned long st
- 		start += nr << PAGE_SHIFT;
- 		pages += nr;
- 
--		down_read(&mm->mmap_sem);
--		ret = get_user_pages(current, mm, start,
--				     nr_pages - nr, write, 0, pages, NULL);
--		up_read(&mm->mmap_sem);
-+		ret = get_user_pages_unlocked(current, mm, start,
-+					      nr_pages - nr, write, 0, pages);
- 
- 		/* Have to be a bit careful with return values */
- 		if (nr > 0) {
-diff -puN mm/util.c~mm-gup-use-get_user_pages_unlocked-within-get_user_pages_fast mm/util.c
---- a/mm/util.c~mm-gup-use-get_user_pages_unlocked-within-get_user_pages_fast
-+++ a/mm/util.c
-@@ -240,14 +240,8 @@ int __weak get_user_pages_fast(unsigned
- 				int nr_pages, int write, struct page **pages)
- {
- 	struct mm_struct *mm = current->mm;
--	int ret;
+-/*
+- * Carry out a gup that requires IO. Allow the mm to relinquish the mmap
+- * semaphore if the filemap/swap has to wait on a page lock. pagep == NULL
+- * controls whether we retry the gup one more time to completion in that case.
+- * Typically this is called after a FAULT_FLAG_RETRY_NOWAIT in the main tdp
+- * handler.
+- */
+-int kvm_get_user_page_io(struct task_struct *tsk, struct mm_struct *mm,
+-			 unsigned long addr, bool write_fault,
+-			 struct page **pagep);
 -
--	down_read(&mm->mmap_sem);
--	ret = get_user_pages(current, mm, start, nr_pages,
--					write, 0, pages, NULL);
--	up_read(&mm->mmap_sem);
--
--	return ret;
-+	return get_user_pages_unlocked(current, mm, start, nr_pages,
-+				       write, 0, pages);
+ enum {
+ 	OUTSIDE_GUEST_MODE,
+ 	IN_GUEST_MODE,
+diff -puN virt/kvm/async_pf.c~mm-gup-kvm-use-get_user_pages_unlocked virt/kvm/async_pf.c
+--- a/virt/kvm/async_pf.c~mm-gup-kvm-use-get_user_pages_unlocked
++++ a/virt/kvm/async_pf.c
+@@ -80,7 +80,7 @@ static void async_pf_execute(struct work
+ 
+ 	might_sleep();
+ 
+-	kvm_get_user_page_io(NULL, mm, addr, 1, NULL);
++	get_user_pages_unlocked(NULL, mm, addr, 1, 1, 0, NULL);
+ 	kvm_async_page_present_sync(vcpu, apf);
+ 
+ 	spin_lock(&vcpu->async_pf.lock);
+diff -puN virt/kvm/kvm_main.c~mm-gup-kvm-use-get_user_pages_unlocked virt/kvm/kvm_main.c
+--- a/virt/kvm/kvm_main.c~mm-gup-kvm-use-get_user_pages_unlocked
++++ a/virt/kvm/kvm_main.c
+@@ -1128,43 +1128,6 @@ static int get_user_page_nowait(struct t
+ 	return __get_user_pages(tsk, mm, start, 1, flags, page, NULL, NULL);
  }
- EXPORT_SYMBOL_GPL(get_user_pages_fast);
+ 
+-int kvm_get_user_page_io(struct task_struct *tsk, struct mm_struct *mm,
+-			 unsigned long addr, bool write_fault,
+-			 struct page **pagep)
+-{
+-	int npages;
+-	int locked = 1;
+-	int flags = FOLL_TOUCH | FOLL_HWPOISON |
+-		    (pagep ? FOLL_GET : 0) |
+-		    (write_fault ? FOLL_WRITE : 0);
+-
+-	/*
+-	 * If retrying the fault, we get here *not* having allowed the filemap
+-	 * to wait on the page lock. We should now allow waiting on the IO with
+-	 * the mmap semaphore released.
+-	 */
+-	down_read(&mm->mmap_sem);
+-	npages = __get_user_pages(tsk, mm, addr, 1, flags, pagep, NULL,
+-				  &locked);
+-	if (!locked) {
+-		VM_BUG_ON(npages);
+-
+-		if (!pagep)
+-			return 0;
+-
+-		/*
+-		 * The previous call has now waited on the IO. Now we can
+-		 * retry and complete. Pass TRIED to ensure we do not re
+-		 * schedule async IO (see e.g. filemap_fault).
+-		 */
+-		down_read(&mm->mmap_sem);
+-		npages = __get_user_pages(tsk, mm, addr, 1, flags | FOLL_TRIED,
+-					  pagep, NULL, NULL);
+-	}
+-	up_read(&mm->mmap_sem);
+-	return npages;
+-}
+-
+ static inline int check_user_page_hwpoison(unsigned long addr)
+ {
+ 	int rc, flags = FOLL_TOUCH | FOLL_HWPOISON | FOLL_WRITE;
+@@ -1227,15 +1190,10 @@ static int hva_to_pfn_slow(unsigned long
+ 		npages = get_user_page_nowait(current, current->mm,
+ 					      addr, write_fault, page);
+ 		up_read(&current->mm->mmap_sem);
+-	} else {
+-		/*
+-		 * By now we have tried gup_fast, and possibly async_pf, and we
+-		 * are certainly not atomic. Time to retry the gup, allowing
+-		 * mmap semaphore to be relinquished in the case of IO.
+-		 */
+-		npages = kvm_get_user_page_io(current, current->mm, addr,
+-					      write_fault, page);
+-	}
++	} else
++		npages = __get_user_pages_unlocked(current, current->mm, addr, 1,
++						   write_fault, 0, page,
++						   FOLL_TOUCH|FOLL_HWPOISON);
+ 	if (npages != 1)
+ 		return npages;
  
 _
 
