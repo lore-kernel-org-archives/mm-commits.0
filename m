@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + numa_maps-fix-typo-in-gather_hugetbl_stats.patch added to -mm
- tree
-Date: Thu, 22 Jan 2015 15:31:20 -0800
-Message-ID: <54c18848.cZsZx2aLEdsgm98v%akpm@linux-foundation.org>
+Subject: + pagemap-use-walk-vma-instead-of-calling-find_vma.patch added to -mm tree
+Date: Thu, 22 Jan 2015 15:31:18 -0800
+Message-ID: <54c18846.v6Ejl516Pv3yIcoT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54871 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54861 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754163AbbAVXbV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Jan 2015 18:31:21 -0500
+	with ESMTP id S1753695AbbAVXbT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Jan 2015 18:31:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: n-horiguchi@ah.jp.nec.com, aarcange@redhat.com, benh@kernel.crashing.org, dave.hansen@intel.com, gorcunov@openvz.org, kirill.shutemov@linux.intel.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: numa_maps: fix typo in gather_hugetbl_stats
+     Subject: pagemap: use walk->vma instead of calling find_vma()
 has been added to the -mm tree.  Its filename is
-     numa_maps-fix-typo-in-gather_hugetbl_stats.patch
+     pagemap-use-walk-vma-instead-of-calling-find_vma.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/numa_maps-fix-typo-in-gather_hugetbl_stats.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/pagemap-use-walk-vma-instead-of-calling-find_vma.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/numa_maps-fix-typo-in-gather_hugetbl_stats.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/pagemap-use-walk-vma-instead-of-calling-find_vma.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,55 +39,135 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: numa_maps: fix typo in gather_hugetbl_stats
+Subject: pagemap: use walk->vma instead of calling find_vma()
 
-Just doing s/gather_hugetbl_stats/gather_hugetlb_stats/g, this makes code
-grep-friendly.
+Page table walker has the information of the current vma in mm_walk, so we
+don't have to call find_vma() in each pagemap_(pte|hugetlb)_range() call
+any longer.  Currently pagemap_pte_range() does vma loop itself, so this
+patch reduces many lines of code.
+
+NULL-vma check is omitted because we assume that we never run these
+callbacks on any address outside vma.  And even if it were broken, NULL
+pointer dereference would be detected, so we can get enough information
+for debugging.
 
 Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Cyrill Gorcunov <gorcunov@openvz.org>
 Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Pavel Emelyanov <xemul@parallels.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/proc/task_mmu.c |   70 ++++++++++---------------------------------
+ 1 file changed, 17 insertions(+), 53 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~numa_maps-fix-typo-in-gather_hugetbl_stats fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~numa_maps-fix-typo-in-gather_hugetbl_stats
+diff -puN fs/proc/task_mmu.c~pagemap-use-walk-vma-instead-of-calling-find_vma fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~pagemap-use-walk-vma-instead-of-calling-find_vma
 +++ a/fs/proc/task_mmu.c
-@@ -1387,7 +1387,7 @@ static int gather_pte_stats(pmd_t *pmd,
- 	return 0;
- }
- #ifdef CONFIG_HUGETLB_PAGE
--static int gather_hugetbl_stats(pte_t *pte, unsigned long hmask,
-+static int gather_hugetlb_stats(pte_t *pte, unsigned long hmask,
- 		unsigned long addr, unsigned long end, struct mm_walk *walk)
+@@ -1047,15 +1047,13 @@ static inline void thp_pmd_to_pagemap_en
+ static int pagemap_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
+ 			     struct mm_walk *walk)
  {
- 	struct numa_maps *md;
-@@ -1406,7 +1406,7 @@ static int gather_hugetbl_stats(pte_t *p
- }
+-	struct vm_area_struct *vma;
++	struct vm_area_struct *vma = walk->vma;
+ 	struct pagemapread *pm = walk->private;
+ 	spinlock_t *ptl;
+ 	pte_t *pte;
+ 	int err = 0;
  
- #else
--static int gather_hugetbl_stats(pte_t *pte, unsigned long hmask,
-+static int gather_hugetlb_stats(pte_t *pte, unsigned long hmask,
- 		unsigned long addr, unsigned long end, struct mm_walk *walk)
+-	/* find the first VMA at or above 'addr' */
+-	vma = find_vma(walk->mm, addr);
+-	if (vma && pmd_trans_huge_lock(pmd, vma, &ptl) == 1) {
++	if (pmd_trans_huge_lock(pmd, vma, &ptl) == 1) {
+ 		int pmd_flags2;
+ 
+ 		if ((vma->vm_flags & VM_SOFTDIRTY) || pmd_soft_dirty(*pmd))
+@@ -1081,50 +1079,19 @@ static int pagemap_pte_range(pmd_t *pmd,
+ 	if (pmd_trans_unstable(pmd))
+ 		return 0;
+ 
+-	while (1) {
+-		/* End of address space hole, which we mark as non-present. */
+-		unsigned long hole_end;
+-
+-		if (vma)
+-			hole_end = min(end, vma->vm_start);
+-		else
+-			hole_end = end;
+-
+-		for (; addr < hole_end; addr += PAGE_SIZE) {
+-			pagemap_entry_t pme = make_pme(PM_NOT_PRESENT(pm->v2));
+-
+-			err = add_to_pagemap(addr, &pme, pm);
+-			if (err)
+-				return err;
+-		}
+-
+-		if (!vma || vma->vm_start >= end)
+-			break;
+-		/*
+-		 * We can't possibly be in a hugetlb VMA. In general,
+-		 * for a mm_walk with a pmd_entry and a hugetlb_entry,
+-		 * the pmd_entry can only be called on addresses in a
+-		 * hugetlb if the walk starts in a non-hugetlb VMA and
+-		 * spans a hugepage VMA. Since pagemap_read walks are
+-		 * PMD-sized and PMD-aligned, this will never be true.
+-		 */
+-		BUG_ON(is_vm_hugetlb_page(vma));
+-
+-		/* Addresses in the VMA. */
+-		for (; addr < min(end, vma->vm_end); addr += PAGE_SIZE) {
+-			pagemap_entry_t pme;
+-			pte = pte_offset_map(pmd, addr);
+-			pte_to_pagemap_entry(&pme, pm, vma, addr, *pte);
+-			pte_unmap(pte);
+-			err = add_to_pagemap(addr, &pme, pm);
+-			if (err)
+-				return err;
+-		}
+-
+-		if (addr == end)
+-			break;
+-
+-		vma = find_vma(walk->mm, addr);
++	/*
++	 * We can assume that @vma always points to a valid one and @end never
++	 * goes beyond vma->vm_end.
++	 */
++	for (; addr < end; addr += PAGE_SIZE) {
++		pagemap_entry_t pme;
++
++		pte = pte_offset_map(pmd, addr);
++		pte_to_pagemap_entry(&pme, pm, vma, addr, *pte);
++		pte_unmap(pte);
++		err = add_to_pagemap(addr, &pme, pm);
++		if (err)
++			return err;
+ 	}
+ 
+ 	cond_resched();
+@@ -1151,15 +1118,12 @@ static int pagemap_hugetlb_range(pte_t *
+ 				 struct mm_walk *walk)
  {
- 	return 0;
-@@ -1437,7 +1437,7 @@ static int show_numa_map(struct seq_file
+ 	struct pagemapread *pm = walk->private;
+-	struct vm_area_struct *vma;
++	struct vm_area_struct *vma = walk->vma;
+ 	int err = 0;
+ 	int flags2;
+ 	pagemap_entry_t pme;
  
- 	md->vma = vma;
- 
--	walk.hugetlb_entry = gather_hugetbl_stats;
-+	walk.hugetlb_entry = gather_hugetlb_stats;
- 	walk.pmd_entry = gather_pte_stats;
- 	walk.private = md;
- 	walk.mm = mm;
+-	vma = find_vma(walk->mm, addr);
+-	WARN_ON_ONCE(!vma);
+-
+-	if (vma && (vma->vm_flags & VM_SOFTDIRTY))
++	if (vma->vm_flags & VM_SOFTDIRTY)
+ 		flags2 = __PM_SOFT_DIRTY;
+ 	else
+ 		flags2 = 0;
 _
 
 Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
