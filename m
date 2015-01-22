@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + pagewalk-add-walk_page_vma.patch added to -mm tree
-Date: Thu, 22 Jan 2015 15:31:12 -0800
-Message-ID: <54c18840.SNvPVLeviXIAlr4s%akpm@linux-foundation.org>
+Subject: +
+ clear_refs-remove-clear_refs_private-vma-and-introduce-clear_refs_test_walk.patch added to -mm tree
+Date: Thu, 22 Jan 2015 15:31:16 -0800
+Message-ID: <54c18844.GiWIpwOtC0CB71hH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54841 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54856 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753695AbbAVXbN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Jan 2015 18:31:13 -0500
+	with ESMTP id S1753695AbbAVXbR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Jan 2015 18:31:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: n-horiguchi@ah.jp.nec.com, aarcange@redhat.com, benh@kernel.crashing.org, dave.hansen@intel.com, gorcunov@openvz.org, kirill.shutemov@linux.intel.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: pagewalk: add walk_page_vma()
+     Subject: clear_refs: remove clear_refs_private->vma and introduce clear_refs_test_walk()
 has been added to the -mm tree.  Its filename is
-     pagewalk-add-walk_page_vma.patch
+     clear_refs-remove-clear_refs_private-vma-and-introduce-clear_refs_test_walk.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/pagewalk-add-walk_page_vma.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/clear_refs-remove-clear_refs_private-vma-and-introduce-clear_refs_test_walk.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/pagewalk-add-walk_page_vma.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/clear_refs-remove-clear_refs_private-vma-and-introduce-clear_refs_test_walk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,10 +40,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: pagewalk: add walk_page_vma()
+Subject: clear_refs: remove clear_refs_private->vma and introduce clear_refs_test_walk()
 
-Introduce walk_page_vma(), which is useful for the callers which want to
-walk over a given vma.  It's used by later patches.
+clear_refs_write() has some prechecks to determine if we really walk over
+a given vma.  Now we have a test_walk() callback to filter vmas, so let's
+utilize it.
 
 Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
@@ -55,46 +57,93 @@ Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    1 +
- mm/pagewalk.c      |   18 ++++++++++++++++++
- 2 files changed, 19 insertions(+)
+ fs/proc/task_mmu.c |   46 ++++++++++++++++++++-----------------------
+ 1 file changed, 22 insertions(+), 24 deletions(-)
 
-diff -puN include/linux/mm.h~pagewalk-add-walk_page_vma include/linux/mm.h
---- a/include/linux/mm.h~pagewalk-add-walk_page_vma
-+++ a/include/linux/mm.h
-@@ -1192,6 +1192,7 @@ struct mm_walk {
+diff -puN fs/proc/task_mmu.c~clear_refs-remove-clear_refs_private-vma-and-introduce-clear_refs_test_walk fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~clear_refs-remove-clear_refs_private-vma-and-introduce-clear_refs_test_walk
++++ a/fs/proc/task_mmu.c
+@@ -736,7 +736,6 @@ enum clear_refs_types {
+ };
  
- int walk_page_range(unsigned long addr, unsigned long end,
- 		struct mm_walk *walk);
-+int walk_page_vma(struct vm_area_struct *vma, struct mm_walk *walk);
- void free_pgd_range(struct mmu_gather *tlb, unsigned long addr,
- 		unsigned long end, unsigned long floor, unsigned long ceiling);
- int copy_page_range(struct mm_struct *dst, struct mm_struct *src,
-diff -puN mm/pagewalk.c~pagewalk-add-walk_page_vma mm/pagewalk.c
---- a/mm/pagewalk.c~pagewalk-add-walk_page_vma
-+++ a/mm/pagewalk.c
-@@ -272,3 +272,21 @@ int walk_page_range(unsigned long start,
- 	} while (start = next, start < end);
- 	return err;
+ struct clear_refs_private {
+-	struct vm_area_struct *vma;
+ 	enum clear_refs_types type;
+ };
+ 
+@@ -767,7 +766,7 @@ static int clear_refs_pte_range(pmd_t *p
+ 				unsigned long end, struct mm_walk *walk)
+ {
+ 	struct clear_refs_private *cp = walk->private;
+-	struct vm_area_struct *vma = cp->vma;
++	struct vm_area_struct *vma = walk->vma;
+ 	pte_t *pte, ptent;
+ 	spinlock_t *ptl;
+ 	struct page *page;
+@@ -801,6 +800,25 @@ static int clear_refs_pte_range(pmd_t *p
+ 	return 0;
  }
-+
-+int walk_page_vma(struct vm_area_struct *vma, struct mm_walk *walk)
+ 
++static int clear_refs_test_walk(unsigned long start, unsigned long end,
++				struct mm_walk *walk)
 +{
-+	int err;
++	struct clear_refs_private *cp = walk->private;
++	struct vm_area_struct *vma = walk->vma;
 +
-+	if (!walk->mm)
-+		return -EINVAL;
-+
-+	VM_BUG_ON(!rwsem_is_locked(&walk->mm->mmap_sem));
-+	VM_BUG_ON(!vma);
-+	walk->vma = vma;
-+	err = walk_page_test(vma->vm_start, vma->vm_end, walk);
-+	if (err > 0)
-+		return 0;
-+	if (err < 0)
-+		return err;
-+	return __walk_page_range(vma->vm_start, vma->vm_end, walk);
++	/*
++	 * Writing 1 to /proc/pid/clear_refs affects all pages.
++	 * Writing 2 to /proc/pid/clear_refs only affects anonymous pages.
++	 * Writing 3 to /proc/pid/clear_refs only affects file mapped pages.
++	 * Writing 4 to /proc/pid/clear_refs affects all pages.
++	 */
++	if (cp->type == CLEAR_REFS_ANON && vma->vm_file)
++		return 1;
++	if (cp->type == CLEAR_REFS_MAPPED && !vma->vm_file)
++		return 1;
++	return 0;
 +}
++
+ static ssize_t clear_refs_write(struct file *file, const char __user *buf,
+ 				size_t count, loff_t *ppos)
+ {
+@@ -841,6 +859,7 @@ static ssize_t clear_refs_write(struct f
+ 		};
+ 		struct mm_walk clear_refs_walk = {
+ 			.pmd_entry = clear_refs_pte_range,
++			.test_walk = clear_refs_test_walk,
+ 			.mm = mm,
+ 			.private = &cp,
+ 		};
+@@ -860,28 +879,7 @@ static ssize_t clear_refs_write(struct f
+ 			}
+ 			mmu_notifier_invalidate_range_start(mm, 0, -1);
+ 		}
+-		for (vma = mm->mmap; vma; vma = vma->vm_next) {
+-			cp.vma = vma;
+-			if (is_vm_hugetlb_page(vma))
+-				continue;
+-			/*
+-			 * Writing 1 to /proc/pid/clear_refs affects all pages.
+-			 *
+-			 * Writing 2 to /proc/pid/clear_refs only affects
+-			 * Anonymous pages.
+-			 *
+-			 * Writing 3 to /proc/pid/clear_refs only affects file
+-			 * mapped pages.
+-			 *
+-			 * Writing 4 to /proc/pid/clear_refs affects all pages.
+-			 */
+-			if (type == CLEAR_REFS_ANON && vma->vm_file)
+-				continue;
+-			if (type == CLEAR_REFS_MAPPED && !vma->vm_file)
+-				continue;
+-			walk_page_range(vma->vm_start, vma->vm_end,
+-					&clear_refs_walk);
+-		}
++		walk_page_range(0, ~0UL, &clear_refs_walk);
+ 		if (type == CLEAR_REFS_SOFT_DIRTY)
+ 			mmu_notifier_invalidate_range_end(mm, 0, -1);
+ 		flush_tlb_mm(mm);
 _
 
 Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
