@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-gup-add-__get_user_pages_unlocked-to-customize-gup_flags.patch added to
- -mm tree
-Date: Thu, 22 Jan 2015 15:12:09 -0800
-Message-ID: <54c183c9.LklLqZitQxbCTrM4%akpm@linux-foundation.org>
+ mm-gup-add-get_user_pages_locked-and-get_user_pages_unlocked.patch added to -mm tree
+Date: Thu, 22 Jan 2015 15:12:10 -0800
+Message-ID: <54c183ca.NIIPPk6tu4LytdyF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54768 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54773 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753501AbbAVXM1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Jan 2015 18:12:27 -0500
+	with ESMTP id S1753501AbbAVXM2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Jan 2015 18:12:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, andreslc@google.com, kirill.shutemov@linux.intel.com, pfeiner@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: gup: add __get_user_pages_unlocked to customize gup_flags
+     Subject: mm: gup: add get_user_pages_locked and get_user_pages_unlocked
 has been added to the -mm tree.  Its filename is
-     mm-gup-add-__get_user_pages_unlocked-to-customize-gup_flags.patch
+     mm-gup-add-get_user_pages_locked-and-get_user_pages_unlocked.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-gup-add-__get_user_pages_unlocked-to-customize-gup_flags.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-gup-add-get_user_pages_locked-and-get_user_pages_unlocked.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-add-__get_user_pages_unlocked-to-customize-gup_flags.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-add-get_user_pages_locked-and-get_user_pages_unlocked.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,151 +40,351 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: mm: gup: add __get_user_pages_unlocked to customize gup_flags
+Subject: mm: gup: add get_user_pages_locked and get_user_pages_unlocked
 
-Some callers (like KVM) may want to set the gup_flags like FOLL_HWPOSION
-to get a proper -EHWPOSION retval instead of -EFAULT to take a more
-appropriate action if get_user_pages runs into a memory failure.
+FAULT_FOLL_ALLOW_RETRY allows the page fault to drop the mmap_sem for
+reading to reduce the mmap_sem contention (for writing), like while
+waiting for I/O completion.  The problem is that right now practically no
+get_user_pages call uses FAULT_FOLL_ALLOW_RETRY, so we're not leveraging
+that nifty feature.
+
+Andres fixed it for the KVM page fault.  However get_user_pages_fast
+remains uncovered, and 99% of other get_user_pages aren't using it either
+(the only exception being FOLL_NOWAIT in KVM which is really nonblocking
+and in fact it doesn't even release the mmap_sem).
+
+So this patchsets extends the optimization Andres did in the KVM page
+fault to the whole kernel.  It makes most important places (including
+gup_fast) to use FAULT_FOLL_ALLOW_RETRY to reduce the mmap_sem hold times
+during I/O.
+
+The only few places that remains uncovered are drivers like v4l and other
+exceptions that tends to work on their own memory and they're not working
+on random user memory (for example like O_DIRECT that uses gup_fast and is
+fully covered by this patch).
+
+A follow up patch should probably also add a printk_once warning to
+get_user_pages that should go obsolete and be phased out eventually.  The
+"vmas" parameter of get_user_pages makes it fundamentally incompatible
+with FAULT_FOLL_ALLOW_RETRY (vmas array becomes meaningless the moment the
+mmap_sem is released).  
+
+While this is just an optimization, this becomes an absolute requirement
+for the userfaultfd feature http://lwn.net/Articles/615086/ .
+
+The userfaultfd allows to block the page fault, and in order to do so I
+need to drop the mmap_sem first.  So this patch also ensures that all
+memory where userfaultfd could be registered by KVM, the very first fault
+(no matter if it is a regular page fault, or a get_user_pages) always has
+FAULT_FOLL_ALLOW_RETRY set.  Then the userfaultfd blocks and it is waken
+only when the pagetable is already mapped.  The second fault attempt after
+the wakeup doesn't need FAULT_FOLL_ALLOW_RETRY, so it's ok to retry
+without it.
+
+
+
+This patch (of 5):
+
+We can leverage the VM_FAULT_RETRY functionality in the page fault paths
+better by using either get_user_pages_locked or get_user_pages_unlocked.
+
+The former allows conversion of get_user_pages invocations that will have
+to pass a "&locked" parameter to know if the mmap_sem was dropped during
+the call.  Example from:
+
+    down_read(&mm->mmap_sem);
+    do_something()
+    get_user_pages(tsk, mm, ..., pages, NULL);
+    up_read(&mm->mmap_sem);
+
+to:
+
+    int locked = 1;
+    down_read(&mm->mmap_sem);
+    do_something()
+    get_user_pages_locked(tsk, mm, ..., pages, &locked);
+    if (locked)
+        up_read(&mm->mmap_sem);
+
+The latter is suitable only as a drop in replacement of the form:
+
+    down_read(&mm->mmap_sem);
+    get_user_pages(tsk, mm, ..., pages, NULL);
+    up_read(&mm->mmap_sem);
+
+into:
+
+    get_user_pages_unlocked(tsk, mm, ..., pages);
+
+Where tsk, mm, the intermediate "..." paramters and "pages" can be any
+value as before.  Just the last parameter of get_user_pages (vmas) must be
+NULL for get_user_pages_locked|unlocked to be usable (the latter original
+form wouldn't have been safe anyway if vmas wasn't null, for the former we
+just make it explicit by dropping the parameter).
+
+If vmas is not NULL these two methods cannot be used.
 
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Reviewed-by: Andres Lagar-Cavilla <andreslc@google.com>
+Reviewed-by: Peter Feiner <pfeiner@google.com>
 Reviewed-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Andres Lagar-Cavilla <andreslc@google.com>
-Cc: Peter Feiner <pfeiner@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    4 +++
- mm/gup.c           |   44 +++++++++++++++++++++++++++++++------------
- mm/nommu.c         |   16 ++++++++++++---
- 3 files changed, 49 insertions(+), 15 deletions(-)
+ include/linux/mm.h |    7 +
+ mm/gup.c           |  177 ++++++++++++++++++++++++++++++++++++++++---
+ mm/nommu.c         |   23 +++++
+ 3 files changed, 196 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/mm.h~mm-gup-add-__get_user_pages_unlocked-to-customize-gup_flags include/linux/mm.h
---- a/include/linux/mm.h~mm-gup-add-__get_user_pages_unlocked-to-customize-gup_flags
+diff -puN include/linux/mm.h~mm-gup-add-get_user_pages_locked-and-get_user_pages_unlocked include/linux/mm.h
+--- a/include/linux/mm.h~mm-gup-add-get_user_pages_locked-and-get_user_pages_unlocked
 +++ a/include/linux/mm.h
-@@ -1256,6 +1256,10 @@ long get_user_pages_locked(struct task_s
+@@ -1252,6 +1252,13 @@ long get_user_pages(struct task_struct *
  		    unsigned long start, unsigned long nr_pages,
  		    int write, int force, struct page **pages,
- 		    int *locked);
-+long __get_user_pages_unlocked(struct task_struct *tsk, struct mm_struct *mm,
-+			       unsigned long start, unsigned long nr_pages,
-+			       int write, int force, struct page **pages,
-+			       unsigned int gup_flags);
- long get_user_pages_unlocked(struct task_struct *tsk, struct mm_struct *mm,
- 		    unsigned long start, unsigned long nr_pages,
- 		    int write, int force, struct page **pages);
-diff -puN mm/gup.c~mm-gup-add-__get_user_pages_unlocked-to-customize-gup_flags mm/gup.c
---- a/mm/gup.c~mm-gup-add-__get_user_pages_unlocked-to-customize-gup_flags
+ 		    struct vm_area_struct **vmas);
++long get_user_pages_locked(struct task_struct *tsk, struct mm_struct *mm,
++		    unsigned long start, unsigned long nr_pages,
++		    int write, int force, struct page **pages,
++		    int *locked);
++long get_user_pages_unlocked(struct task_struct *tsk, struct mm_struct *mm,
++		    unsigned long start, unsigned long nr_pages,
++		    int write, int force, struct page **pages);
+ int get_user_pages_fast(unsigned long start, int nr_pages, int write,
+ 			struct page **pages);
+ struct kvec;
+diff -puN mm/gup.c~mm-gup-add-get_user_pages_locked-and-get_user_pages_unlocked mm/gup.c
+--- a/mm/gup.c~mm-gup-add-get_user_pages_locked-and-get_user_pages_unlocked
 +++ a/mm/gup.c
-@@ -582,9 +582,9 @@ static __always_inline long __get_user_p
- 						int write, int force,
- 						struct page **pages,
- 						struct vm_area_struct **vmas,
--						int *locked, bool notify_drop)
-+						int *locked, bool notify_drop,
-+						unsigned int flags)
- {
--	int flags = FOLL_TOUCH;
- 	long ret, pages_done;
- 	bool lock_dropped;
- 
-@@ -698,11 +698,37 @@ long get_user_pages_locked(struct task_s
- 			   int *locked)
- {
- 	return __get_user_pages_locked(tsk, mm, start, nr_pages, write, force,
--				       pages, NULL, locked, true);
-+				       pages, NULL, locked, true, FOLL_TOUCH);
+@@ -575,6 +575,165 @@ int fixup_user_fault(struct task_struct
+ 	return 0;
  }
- EXPORT_SYMBOL(get_user_pages_locked);
  
- /*
-+ * Same as get_user_pages_unlocked(...., FOLL_TOUCH) but it allows to
-+ * pass additional gup_flags as last parameter (like FOLL_HWPOISON).
++static __always_inline long __get_user_pages_locked(struct task_struct *tsk,
++						struct mm_struct *mm,
++						unsigned long start,
++						unsigned long nr_pages,
++						int write, int force,
++						struct page **pages,
++						struct vm_area_struct **vmas,
++						int *locked, bool notify_drop)
++{
++	int flags = FOLL_TOUCH;
++	long ret, pages_done;
++	bool lock_dropped;
++
++	if (locked) {
++		/* if VM_FAULT_RETRY can be returned, vmas become invalid */
++		BUG_ON(vmas);
++		/* check caller initialized locked */
++		BUG_ON(*locked != 1);
++	}
++
++	if (pages)
++		flags |= FOLL_GET;
++	if (write)
++		flags |= FOLL_WRITE;
++	if (force)
++		flags |= FOLL_FORCE;
++
++	pages_done = 0;
++	lock_dropped = false;
++	for (;;) {
++		ret = __get_user_pages(tsk, mm, start, nr_pages, flags, pages,
++				       vmas, locked);
++		if (!locked)
++			/* VM_FAULT_RETRY couldn't trigger, bypass */
++			return ret;
++
++		/* VM_FAULT_RETRY cannot return errors */
++		if (!*locked) {
++			BUG_ON(ret < 0);
++			BUG_ON(ret >= nr_pages);
++		}
++
++		if (!pages)
++			/* If it's a prefault don't insist harder */
++			return ret;
++
++		if (ret > 0) {
++			nr_pages -= ret;
++			pages_done += ret;
++			if (!nr_pages)
++				break;
++		}
++		if (*locked) {
++			/* VM_FAULT_RETRY didn't trigger */
++			if (!pages_done)
++				pages_done = ret;
++			break;
++		}
++		/* VM_FAULT_RETRY triggered, so seek to the faulting offset */
++		pages += ret;
++		start += ret << PAGE_SHIFT;
++
++		/*
++		 * Repeat on the address that fired VM_FAULT_RETRY
++		 * without FAULT_FLAG_ALLOW_RETRY but with
++		 * FAULT_FLAG_TRIED.
++		 */
++		*locked = 1;
++		lock_dropped = true;
++		down_read(&mm->mmap_sem);
++		ret = __get_user_pages(tsk, mm, start, 1, flags | FOLL_TRIED,
++				       pages, NULL, NULL);
++		if (ret != 1) {
++			BUG_ON(ret > 1);
++			if (!pages_done)
++				pages_done = ret;
++			break;
++		}
++		nr_pages--;
++		pages_done++;
++		if (!nr_pages)
++			break;
++		pages++;
++		start += PAGE_SIZE;
++	}
++	if (notify_drop && lock_dropped && *locked) {
++		/*
++		 * We must let the caller know we temporarily dropped the lock
++		 * and so the critical section protected by it was lost.
++		 */
++		up_read(&mm->mmap_sem);
++		*locked = 0;
++	}
++	return pages_done;
++}
++
++/*
++ * We can leverage the VM_FAULT_RETRY functionality in the page fault
++ * paths better by using either get_user_pages_locked() or
++ * get_user_pages_unlocked().
 + *
-+ * NOTE: here FOLL_TOUCH is not set implicitly and must be set by the
-+ * caller if required (just like with __get_user_pages). "FOLL_GET",
-+ * "FOLL_WRITE" and "FOLL_FORCE" are set implicitly as needed
-+ * according to the parameters "pages", "write", "force"
-+ * respectively.
++ * get_user_pages_locked() is suitable to replace the form:
++ *
++ *      down_read(&mm->mmap_sem);
++ *      do_something()
++ *      get_user_pages(tsk, mm, ..., pages, NULL);
++ *      up_read(&mm->mmap_sem);
++ *
++ *  to:
++ *
++ *      int locked = 1;
++ *      down_read(&mm->mmap_sem);
++ *      do_something()
++ *      get_user_pages_locked(tsk, mm, ..., pages, &locked);
++ *      if (locked)
++ *          up_read(&mm->mmap_sem);
 + */
-+__always_inline long __get_user_pages_unlocked(struct task_struct *tsk, struct mm_struct *mm,
-+					       unsigned long start, unsigned long nr_pages,
-+					       int write, int force, struct page **pages,
-+					       unsigned int gup_flags)
++long get_user_pages_locked(struct task_struct *tsk, struct mm_struct *mm,
++			   unsigned long start, unsigned long nr_pages,
++			   int write, int force, struct page **pages,
++			   int *locked)
++{
++	return __get_user_pages_locked(tsk, mm, start, nr_pages, write, force,
++				       pages, NULL, locked, true);
++}
++EXPORT_SYMBOL(get_user_pages_locked);
++
++/*
++ * get_user_pages_unlocked() is suitable to replace the form:
++ *
++ *      down_read(&mm->mmap_sem);
++ *      get_user_pages(tsk, mm, ..., pages, NULL);
++ *      up_read(&mm->mmap_sem);
++ *
++ *  with:
++ *
++ *      get_user_pages_unlocked(tsk, mm, ..., pages);
++ *
++ * It is functionally equivalent to get_user_pages_fast so
++ * get_user_pages_fast should be used instead, if the two parameters
++ * "tsk" and "mm" are respectively equal to current and current->mm,
++ * or if "force" shall be set to 1 (get_user_pages_fast misses the
++ * "force" parameter).
++ */
++long get_user_pages_unlocked(struct task_struct *tsk, struct mm_struct *mm,
++			     unsigned long start, unsigned long nr_pages,
++			     int write, int force, struct page **pages)
 +{
 +	long ret;
 +	int locked = 1;
 +	down_read(&mm->mmap_sem);
 +	ret = __get_user_pages_locked(tsk, mm, start, nr_pages, write, force,
-+				      pages, NULL, &locked, false, gup_flags);
++				      pages, NULL, &locked, false);
 +	if (locked)
 +		up_read(&mm->mmap_sem);
 +	return ret;
 +}
-+EXPORT_SYMBOL(__get_user_pages_unlocked);
++EXPORT_SYMBOL(get_user_pages_unlocked);
 +
-+/*
-  * get_user_pages_unlocked() is suitable to replace the form:
+ /*
+  * get_user_pages() - pin user pages in memory
+  * @tsk:	the task_struct to use for page fault accounting, or
+@@ -624,22 +783,18 @@ int fixup_user_fault(struct task_struct
+  * use the correct cache flushing APIs.
   *
-  *      down_read(&mm->mmap_sem);
-@@ -723,14 +749,8 @@ long get_user_pages_unlocked(struct task
- 			     unsigned long start, unsigned long nr_pages,
- 			     int write, int force, struct page **pages)
- {
--	long ret;
--	int locked = 1;
--	down_read(&mm->mmap_sem);
--	ret = __get_user_pages_locked(tsk, mm, start, nr_pages, write, force,
--				      pages, NULL, &locked, false);
--	if (locked)
--		up_read(&mm->mmap_sem);
--	return ret;
-+	return __get_user_pages_unlocked(tsk, mm, start, nr_pages, write,
-+					 force, pages, FOLL_TOUCH);
- }
- EXPORT_SYMBOL(get_user_pages_unlocked);
- 
-@@ -794,7 +814,7 @@ long get_user_pages(struct task_struct *
+  * See also get_user_pages_fast, for performance critical applications.
++ *
++ * get_user_pages should be phased out in favor of
++ * get_user_pages_locked|unlocked or get_user_pages_fast. Nothing
++ * should use get_user_pages because it cannot pass
++ * FAULT_FLAG_ALLOW_RETRY to handle_mm_fault.
+  */
+ long get_user_pages(struct task_struct *tsk, struct mm_struct *mm,
+ 		unsigned long start, unsigned long nr_pages, int write,
  		int force, struct page **pages, struct vm_area_struct **vmas)
  {
- 	return __get_user_pages_locked(tsk, mm, start, nr_pages, write, force,
--				       pages, vmas, NULL, false);
-+				       pages, vmas, NULL, false, FOLL_TOUCH);
+-	int flags = FOLL_TOUCH;
+-
+-	if (pages)
+-		flags |= FOLL_GET;
+-	if (write)
+-		flags |= FOLL_WRITE;
+-	if (force)
+-		flags |= FOLL_FORCE;
+-
+-	return __get_user_pages(tsk, mm, start, nr_pages, flags, pages, vmas,
+-				NULL);
++	return __get_user_pages_locked(tsk, mm, start, nr_pages, write, force,
++				       pages, vmas, NULL, false);
  }
  EXPORT_SYMBOL(get_user_pages);
  
-diff -puN mm/nommu.c~mm-gup-add-__get_user_pages_unlocked-to-customize-gup_flags mm/nommu.c
---- a/mm/nommu.c~mm-gup-add-__get_user_pages_unlocked-to-customize-gup_flags
+diff -puN mm/nommu.c~mm-gup-add-get_user_pages_locked-and-get_user_pages_unlocked mm/nommu.c
+--- a/mm/nommu.c~mm-gup-add-get_user_pages_locked-and-get_user_pages_unlocked
 +++ a/mm/nommu.c
-@@ -223,9 +223,10 @@ long get_user_pages_locked(struct task_s
+@@ -213,6 +213,29 @@ long get_user_pages(struct task_struct *
  }
- EXPORT_SYMBOL(get_user_pages_locked);
+ EXPORT_SYMBOL(get_user_pages);
  
--long get_user_pages_unlocked(struct task_struct *tsk, struct mm_struct *mm,
--			     unsigned long start, unsigned long nr_pages,
--			     int write, int force, struct page **pages)
-+long __get_user_pages_unlocked(struct task_struct *tsk, struct mm_struct *mm,
-+			       unsigned long start, unsigned long nr_pages,
-+			       int write, int force, struct page **pages,
-+			       unsigned int gup_flags)
- {
- 	long ret;
- 	down_read(&mm->mmap_sem);
-@@ -234,6 +235,15 @@ long get_user_pages_unlocked(struct task
- 	up_read(&mm->mmap_sem);
- 	return ret;
- }
-+EXPORT_SYMBOL(__get_user_pages_unlocked);
++long get_user_pages_locked(struct task_struct *tsk, struct mm_struct *mm,
++			   unsigned long start, unsigned long nr_pages,
++			   int write, int force, struct page **pages,
++			   int *locked)
++{
++	return get_user_pages(tsk, mm, start, nr_pages, write, force,
++			      pages, NULL);
++}
++EXPORT_SYMBOL(get_user_pages_locked);
 +
 +long get_user_pages_unlocked(struct task_struct *tsk, struct mm_struct *mm,
 +			     unsigned long start, unsigned long nr_pages,
 +			     int write, int force, struct page **pages)
 +{
-+	return __get_user_pages_unlocked(tsk, mm, start, nr_pages, write,
-+					 force, pages, 0);
++	long ret;
++	down_read(&mm->mmap_sem);
++	ret = get_user_pages(tsk, mm, start, nr_pages, write, force,
++			     pages, NULL);
++	up_read(&mm->mmap_sem);
++	return ret;
 +}
- EXPORT_SYMBOL(get_user_pages_unlocked);
- 
++EXPORT_SYMBOL(get_user_pages_unlocked);
++
  /**
+  * follow_pfn - look up PFN at a user virtual address
+  * @vma: memory mapping
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
