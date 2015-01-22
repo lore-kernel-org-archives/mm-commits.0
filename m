@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- ocfs2-remove-pointless-assignment-from-ocfs2_calc_refcount_meta_credits.patch added to -mm tree
-Date: Thu, 22 Jan 2015 12:03:28 -0800
-Message-ID: <54c15790.qfZbYdEEWlD4NARm%akpm@linux-foundation.org>
+Subject: + genalloc-check-result-of-devres_alloc.patch added to -mm tree
+Date: Thu, 22 Jan 2015 12:04:30 -0800
+Message-ID: <54c157ce.z+E4ALhd1KxheWEY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51406 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51409 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753514AbbAVUDq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Jan 2015 15:03:46 -0500
+	with ESMTP id S1752479AbbAVUEr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Jan 2015 15:04:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
+To: jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: remove pointless assignment from ocfs2_calc_refcount_meta_credits()
+     Subject: lib/genalloc.c: check result of devres_alloc()
 has been added to the -mm tree.  Its filename is
-     ocfs2-remove-pointless-assignment-from-ocfs2_calc_refcount_meta_credits.patch
+     genalloc-check-result-of-devres_alloc.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-remove-pointless-assignment-from-ocfs2_calc_refcount_meta_credits.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/genalloc-check-result-of-devres_alloc.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-remove-pointless-assignment-from-ocfs2_calc_refcount_meta_credits.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/genalloc-check-result-of-devres_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,33 +39,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jan Kara <jack@suse.cz>
-Subject: ocfs2: remove pointless assignment from ocfs2_calc_refcount_meta_credits()
+Subject: lib/genalloc.c: check result of devres_alloc()
 
-The assigned value is never used.
+devm_gen_pool_create() calls devres_alloc() and dereferences its result
+without checking whether devres_alloc() succeeded.  Check for error and
+bail out if it happened.
 
-Coverity-id 1226847.
+Coverity-id 1016493.
 
 Signed-off-by: Jan Kara <jack@suse.cz>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/refcounttree.c |    2 --
- 1 file changed, 2 deletions(-)
+ lib/genalloc.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/ocfs2/refcounttree.c~ocfs2-remove-pointless-assignment-from-ocfs2_calc_refcount_meta_credits fs/ocfs2/refcounttree.c
---- a/fs/ocfs2/refcounttree.c~ocfs2-remove-pointless-assignment-from-ocfs2_calc_refcount_meta_credits
-+++ a/fs/ocfs2/refcounttree.c
-@@ -2428,8 +2428,6 @@ static int ocfs2_calc_refcount_meta_cred
- 			get_bh(prev_bh);
- 		}
+diff -puN lib/genalloc.c~genalloc-check-result-of-devres_alloc lib/genalloc.c
+--- a/lib/genalloc.c~genalloc-check-result-of-devres_alloc
++++ a/lib/genalloc.c
+@@ -586,6 +586,8 @@ struct gen_pool *devm_gen_pool_create(st
+ 	struct gen_pool **ptr, *pool;
  
--		rb = (struct ocfs2_refcount_block *)ref_leaf_bh->b_data;
--
- 		trace_ocfs2_calc_refcount_meta_credits_iterate(
- 				recs_add, (unsigned long long)cpos, clusters,
- 				(unsigned long long)le64_to_cpu(rec.r_cpos),
+ 	ptr = devres_alloc(devm_gen_pool_release, sizeof(*ptr), GFP_KERNEL);
++	if (!ptr)
++		return NULL;
+ 
+ 	pool = gen_pool_create(min_alloc_order, nid);
+ 	if (pool) {
 _
 
 Patches currently in -mm which might be from jack@suse.cz are
@@ -79,6 +78,7 @@ ocfs2-remove-pointless-assignment-from-ocfs2_calc_refcount_meta_credits.patch
 mm-memory-remove-vm_file-check-on-shared-writable-vmas.patch
 mm-memory-merge-shared-writable-dirtying-branches-in-do_wp_page.patch
 fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
+genalloc-check-result-of-devres_alloc.patch
 fs-affs-filec-fix-direct-io-writes-beyond-eof.patch
 fs-affs-superc-destroy-sbi-mutex-in-affs_kill_sb.patch
 linux-next.patch
