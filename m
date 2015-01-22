@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-add-types-for-other-os-typedefs.patch added to -mm
- tree
-Date: Thu, 22 Jan 2015 11:52:11 -0800
-Message-ID: <54c154eb.YTTU+JuV52rJgvl3%akpm@linux-foundation.org>
+Subject: +
+ ocfs2-remove-pointless-assignment-from-ocfs2_calc_refcount_meta_credits.patch added to -mm tree
+Date: Thu, 22 Jan 2015 12:03:28 -0800
+Message-ID: <54c15790.qfZbYdEEWlD4NARm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50924 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51406 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753429AbbAVTw2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Jan 2015 14:52:28 -0500
+	with ESMTP id S1753514AbbAVUDq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Jan 2015 15:03:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: jack@suse.cz, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add types for other OS typedefs
+     Subject: ocfs2: remove pointless assignment from ocfs2_calc_refcount_meta_credits()
 has been added to the -mm tree.  Its filename is
-     checkpatch-add-types-for-other-os-typedefs.patch
+     ocfs2-remove-pointless-assignment-from-ocfs2_calc_refcount_meta_credits.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-types-for-other-os-typedefs.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-remove-pointless-assignment-from-ocfs2_calc_refcount_meta_credits.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-types-for-other-os-typedefs.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-remove-pointless-assignment-from-ocfs2_calc_refcount_meta_credits.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,89 +39,70 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add types for other OS typedefs
+From: Jan Kara <jack@suse.cz>
+Subject: ocfs2: remove pointless assignment from ocfs2_calc_refcount_meta_credits()
 
-bsd and sysv use different typedefs for unsigned types.
+The assigned value is never used.
 
-These are in types.h but not in checkpatch, so add them to checkpatch's
-ability to know types.
+Coverity-id 1226847.
 
-This can avoid false positives for code like:
-
-void foo(void)
-{
-	int x;
-	uint y;
-
-	[...];
-}
-
-where checkpatch incorrectly emits a warning for "missing a blank line
-after declarations".
-
-Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ fs/ocfs2/refcounttree.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-types-for-other-os-typedefs scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-types-for-other-os-typedefs
-+++ a/scripts/checkpatch.pl
-@@ -337,6 +337,11 @@ our $UTF8	= qr{
- 	| $NON_ASCII_UTF8
- }x;
+diff -puN fs/ocfs2/refcounttree.c~ocfs2-remove-pointless-assignment-from-ocfs2_calc_refcount_meta_credits fs/ocfs2/refcounttree.c
+--- a/fs/ocfs2/refcounttree.c~ocfs2-remove-pointless-assignment-from-ocfs2_calc_refcount_meta_credits
++++ a/fs/ocfs2/refcounttree.c
+@@ -2428,8 +2428,6 @@ static int ocfs2_calc_refcount_meta_cred
+ 			get_bh(prev_bh);
+ 		}
  
-+our $typeOtherOSTypedefs = qr{(?x:
-+	u_(?:char|short|int|long) |          # bsd
-+	u(?:nchar|short|int|long)            # sysv
-+)};
-+
- our $typeTypedefs = qr{(?x:
- 	(?:__)?(?:u|s|be|le)(?:8|16|32|64)|
- 	atomic_t
-@@ -473,6 +478,7 @@ sub build_types {
- 			(?:$Modifier\s+|const\s+)*
- 			(?:
- 				(?:typeof|__typeof__)\s*\([^\)]*\)|
-+				(?:$typeOtherOSTypedefs\b)|
- 				(?:$typeTypedefs\b)|
- 				(?:${all}\b)
- 			)
-@@ -490,6 +496,7 @@ sub build_types {
- 			(?:
- 				(?:typeof|__typeof__)\s*\([^\)]*\)|
- 				(?:$typeTypedefs\b)|
-+				(?:$typeOtherOSTypedefs\b)|
- 				(?:${allWithAttr}\b)
- 			)
- 			(?:\s+$Modifier|\s+const)*
-@@ -3124,6 +3131,7 @@ sub process {
- 		    $line !~ /\btypedef\s+$Type\s*\(\s*\*?$Ident\s*\)\s*\(/ &&
- 		    $line !~ /\btypedef\s+$Type\s+$Ident\s*\(/ &&
- 		    $line !~ /\b$typeTypedefs\b/ &&
-+		    $line !~ /\b$typeOtherOSTypedefs\b/ &&
- 		    $line !~ /\b__bitwise(?:__|)\b/) {
- 			WARN("NEW_TYPEDEFS",
- 			     "do not add new typedefs\n" . $herecurr);
+-		rb = (struct ocfs2_refcount_block *)ref_leaf_bh->b_data;
+-
+ 		trace_ocfs2_calc_refcount_meta_credits_iterate(
+ 				recs_add, (unsigned long long)cpos, clusters,
+ 				(unsigned long long)le64_to_cpu(rec.r_cpos),
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
-printk-correct-timeout-comment-neaten-module_parm_desc.patch
-mm-utilc-add-kstrimdup.patch
-checkpatch-emit-an-error-when-using-predefined-timestamp-macros.patch
-checkpatch-improve-octal-permissions-tests.patch
-checkpatch-ignore-__pure-attribute.patch
-checkpatch-fix-unnecessary_kern_level-false-positive.patch
-checkpatch-add-check-for-keyword-boolean-in-kconfig-definitions.patch
-checkpatch-allow-comments-in-macros-tested-for-single-statements.patch
-checkpatch-update-git-commit-message.patch
-checkpatch-add-likely-unlikely-comparison-misuse-test.patch
-checkpatch-add-ability-to-coalesce-commit-descriptions-on-multiple-lines.patch
-checkpatch-add-types-for-other-os-typedefs.patch
-fs-ufs-superc-remove-unnecessary-casting.patch
+fanotify-only-destroy-mark-when-both-mask-and-ignored_mask-are-cleared.patch
+fanotify-dont-recalculate-a-marks-mask-if-only-the-ignored-mask-changed.patch
+fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+ocfs2-remove-pointless-assignment-from-ocfs2_calc_refcount_meta_credits.patch
+mm-memory-remove-vm_file-check-on-shared-writable-vmas.patch
+mm-memory-merge-shared-writable-dirtying-branches-in-do_wp_page.patch
+fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
+fs-affs-filec-fix-direct-io-writes-beyond-eof.patch
+fs-affs-superc-destroy-sbi-mutex-in-affs_kill_sb.patch
 linux-next.patch
+mm-fix-xip-fault-vs-truncate-race.patch
+mm-fix-xip-fault-vs-truncate-race-fix.patch
+mm-allow-page-fault-handlers-to-perform-the-cow.patch
+mm-allow-page-fault-handlers-to-perform-the-cow-fix.patch
+vfsext2-introduce-is_daxinode.patch
+daxext2-replace-xip-read-and-write-with-dax-i-o.patch
+daxext2-replace-ext2_clear_xip_target-with-dax_clear_blocks.patch
+daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler.patch
+daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix.patch
+daxext2-replace-xip_truncate_page-with-dax_truncate_page.patch
+dax-replace-xip-documentation-with-dax-documentation.patch
+vfs-remove-get_xip_mem.patch
+ext2-remove-ext2_xip_verify_sb.patch
+ext2-remove-ext2_use_xip.patch
+ext2-remove-xipc-and-xiph.patch
+vfsext2-remove-config_ext2_fs_xip-and-rename-config_fs_xip-to-config_fs_dax.patch
+ext2-remove-ext2_aops_xip.patch
+ext2-get-rid-of-most-mentions-of-xip-in-ext2.patch
+dax-add-dax_zero_page_range.patch
+dax-add-dax_zero_page_range-fix.patch
+ext4-add-dax-functionality.patch
+brd-rename-xip-to-dax.patch
+mm-add-strictlimit-knob-v2.patch
 
