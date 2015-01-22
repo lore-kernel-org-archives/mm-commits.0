@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + smaps-remove-mem_size_stats-vma-and-use-walk_page_vma.patch
- added to -mm tree
-Date: Thu, 22 Jan 2015 15:31:14 -0800
-Message-ID: <54c18842.f40lUYb9h9HXXoU9%akpm@linux-foundation.org>
+Subject: + numa_maps-fix-typo-in-gather_hugetbl_stats.patch added to -mm
+ tree
+Date: Thu, 22 Jan 2015 15:31:20 -0800
+Message-ID: <54c18848.cZsZx2aLEdsgm98v%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54846 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54871 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753695AbbAVXbP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Jan 2015 18:31:15 -0500
+	with ESMTP id S1754163AbbAVXbV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Jan 2015 18:31:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: n-horiguchi@ah.jp.nec.com, aarcange@redhat.com, benh@kernel.crashing.org, dave.hansen@intel.com, gorcunov@openvz.org, kirill.shutemov@linux.intel.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: smaps: remove mem_size_stats->vma and use walk_page_vma()
+     Subject: numa_maps: fix typo in gather_hugetbl_stats
 has been added to the -mm tree.  Its filename is
-     smaps-remove-mem_size_stats-vma-and-use-walk_page_vma.patch
+     numa_maps-fix-typo-in-gather_hugetbl_stats.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/smaps-remove-mem_size_stats-vma-and-use-walk_page_vma.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/numa_maps-fix-typo-in-gather_hugetbl_stats.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/smaps-remove-mem_size_stats-vma-and-use-walk_page_vma.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/numa_maps-fix-typo-in-gather_hugetbl_stats.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,11 +40,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: smaps: remove mem_size_stats->vma and use walk_page_vma()
+Subject: numa_maps: fix typo in gather_hugetbl_stats
 
-pagewalk.c can handle vma in itself, so we don't have to pass vma via
-walk->private.  And show_smap() walks pages on vma basis, so using
-walk_page_vma() is preferable.
+Just doing s/gather_hugetbl_stats/gather_hugetlb_stats/g, this makes code
+grep-friendly.
 
 Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
@@ -57,60 +56,39 @@ Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+ fs/proc/task_mmu.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~smaps-remove-mem_size_stats-vma-and-use-walk_page_vma fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~smaps-remove-mem_size_stats-vma-and-use-walk_page_vma
+diff -puN fs/proc/task_mmu.c~numa_maps-fix-typo-in-gather_hugetbl_stats fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~numa_maps-fix-typo-in-gather_hugetbl_stats
 +++ a/fs/proc/task_mmu.c
-@@ -436,7 +436,6 @@ const struct file_operations proc_tid_ma
- 
- #ifdef CONFIG_PROC_PAGE_MONITOR
- struct mem_size_stats {
--	struct vm_area_struct *vma;
- 	unsigned long resident;
- 	unsigned long shared_clean;
- 	unsigned long shared_dirty;
-@@ -485,7 +484,7 @@ static void smaps_pte_entry(pte_t *pte,
- 		struct mm_walk *walk)
+@@ -1387,7 +1387,7 @@ static int gather_pte_stats(pmd_t *pmd,
+ 	return 0;
+ }
+ #ifdef CONFIG_HUGETLB_PAGE
+-static int gather_hugetbl_stats(pte_t *pte, unsigned long hmask,
++static int gather_hugetlb_stats(pte_t *pte, unsigned long hmask,
+ 		unsigned long addr, unsigned long end, struct mm_walk *walk)
  {
- 	struct mem_size_stats *mss = walk->private;
--	struct vm_area_struct *vma = mss->vma;
-+	struct vm_area_struct *vma = walk->vma;
- 	struct page *page = NULL;
+ 	struct numa_maps *md;
+@@ -1406,7 +1406,7 @@ static int gather_hugetbl_stats(pte_t *p
+ }
  
- 	if (pte_present(*pte)) {
-@@ -509,7 +508,7 @@ static void smaps_pmd_entry(pmd_t *pmd,
- 		struct mm_walk *walk)
+ #else
+-static int gather_hugetbl_stats(pte_t *pte, unsigned long hmask,
++static int gather_hugetlb_stats(pte_t *pte, unsigned long hmask,
+ 		unsigned long addr, unsigned long end, struct mm_walk *walk)
  {
- 	struct mem_size_stats *mss = walk->private;
--	struct vm_area_struct *vma = mss->vma;
-+	struct vm_area_struct *vma = walk->vma;
- 	struct page *page;
+ 	return 0;
+@@ -1437,7 +1437,7 @@ static int show_numa_map(struct seq_file
  
- 	/* FOLL_DUMP will return -EFAULT on huge zero page */
-@@ -530,8 +529,7 @@ static void smaps_pmd_entry(pmd_t *pmd,
- static int smaps_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
- 			   struct mm_walk *walk)
- {
--	struct mem_size_stats *mss = walk->private;
--	struct vm_area_struct *vma = mss->vma;
-+	struct vm_area_struct *vma = walk->vma;
- 	pte_t *pte;
- 	spinlock_t *ptl;
+ 	md->vma = vma;
  
-@@ -623,10 +621,8 @@ static int show_smap(struct seq_file *m,
- 	};
- 
- 	memset(&mss, 0, sizeof mss);
--	mss.vma = vma;
- 	/* mmap_sem is held in m_start */
--	if (vma->vm_mm && !is_vm_hugetlb_page(vma))
--		walk_page_range(vma->vm_start, vma->vm_end, &smaps_walk);
-+	walk_page_vma(vma, &smaps_walk);
- 
- 	show_map_vma(m, vma, is_pid);
- 
+-	walk.hugetlb_entry = gather_hugetbl_stats;
++	walk.hugetlb_entry = gather_hugetlb_stats;
+ 	walk.pmd_entry = gather_pte_stats;
+ 	walk.private = md;
+ 	walk.mm = mm;
 _
 
 Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
