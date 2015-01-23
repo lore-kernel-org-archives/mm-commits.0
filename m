@@ -1,131 +1,161 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- ocfs2-allocate-blocks-in-ocfs2_direct_io_get_blocks.patch removed from -mm
- tree
-Date: Thu, 22 Jan 2015 16:30:16 -0800
-Message-ID: <54c19618.ORJOO0dRhCc+MH8D%akpm@linux-foundation.org>
+ ocfs2-fix-leftover-orphan-entry-caused-by-append-o_direct-write-crash.patch removed from -mm tree
+Date: Thu, 22 Jan 2015 16:30:21 -0800
+Message-ID: <54c1961d.SyN6pKupXqyPYcmQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55354 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55364 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754784AbbAWAaR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Jan 2015 19:30:17 -0500
+	with ESMTP id S1754672AbbAWAaW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Jan 2015 19:30:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wangww631@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.com, mm-commits@vger.kernel.org
+To: joseph.qi@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, wangww631@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: allocate blocks in ocfs2_direct_IO_get_blocks
+     Subject: ocfs2: fix leftover orphan entry caused by append O_DIRECT write crash
 has been removed from the -mm tree.  Its filename was
-     ocfs2-allocate-blocks-in-ocfs2_direct_io_get_blocks.patch
+     ocfs2-fix-leftover-orphan-entry-caused-by-append-o_direct-write-crash.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Weiwei Wang <wangww631@huawei.com>
-Subject: ocfs2: allocate blocks in ocfs2_direct_IO_get_blocks
+From: Joseph Qi <joseph.qi@huawei.com>
+Subject: ocfs2: fix leftover orphan entry caused by append O_DIRECT write crash
 
-Allow blocks allocation in ocfs2_direct_IO_get_blocks.
+If one node has crashed with orphan entry leftover, another node which do
+append O_DIRECT write to the same file will override the
+i_dio_orphaned_slot.  Then the old entry won't be cleaned forever.  If
+this case happens, we let it wait for orphan recovery first.
 
-Signed-off-by: Weiwei Wang <wangww631@huawei.com>
 Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
+Cc: Weiwei Wang <wangww631@huawei.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Mark Fasheh <mfasheh@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/aops.c |   45 ++++++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 42 insertions(+), 3 deletions(-)
+ fs/ocfs2/inode.h   |    2 ++
+ fs/ocfs2/journal.c |    2 ++
+ fs/ocfs2/namei.c   |   37 +++++++++++++++++++++++++++++++++++--
+ fs/ocfs2/super.c   |    2 ++
+ 4 files changed, 41 insertions(+), 2 deletions(-)
 
-diff -puN fs/ocfs2/aops.c~ocfs2-allocate-blocks-in-ocfs2_direct_io_get_blocks fs/ocfs2/aops.c
---- a/fs/ocfs2/aops.c~ocfs2-allocate-blocks-in-ocfs2_direct_io_get_blocks
-+++ a/fs/ocfs2/aops.c
-@@ -510,18 +510,21 @@ bail:
-  *
-  * called like this: dio->get_blocks(dio->inode, fs_startblk,
-  * 					fs_count, map_bh, dio->rw == WRITE);
-- *
-- * Note that we never bother to allocate blocks here, and thus ignore the
-- * create argument.
-  */
- static int ocfs2_direct_IO_get_blocks(struct inode *inode, sector_t iblock,
- 				     struct buffer_head *bh_result, int create)
- {
- 	int ret;
-+	u32 cpos = 0;
-+	int alloc_locked = 0;
- 	u64 p_blkno, inode_blocks, contig_blocks;
- 	unsigned int ext_flags;
- 	unsigned char blocksize_bits = inode->i_sb->s_blocksize_bits;
- 	unsigned long max_blocks = bh_result->b_size >> inode->i_blkbits;
-+	unsigned long len = bh_result->b_size;
-+	unsigned int clusters_to_alloc = 0;
-+
-+	cpos = ocfs2_blocks_to_clusters(inode->i_sb, iblock);
+diff -puN fs/ocfs2/inode.h~ocfs2-fix-leftover-orphan-entry-caused-by-append-o_direct-write-crash fs/ocfs2/inode.h
+--- a/fs/ocfs2/inode.h~ocfs2-fix-leftover-orphan-entry-caused-by-append-o_direct-write-crash
++++ a/fs/ocfs2/inode.h
+@@ -81,6 +81,8 @@ struct ocfs2_inode_info
+ 	tid_t i_sync_tid;
+ 	tid_t i_datasync_tid;
  
- 	/* This function won't even be called if the request isn't all
- 	 * nicely aligned and of the right size, so there's no need
-@@ -543,6 +546,40 @@ static int ocfs2_direct_IO_get_blocks(st
- 	/* We should already CoW the refcounted extent in case of create. */
- 	BUG_ON(create && (ext_flags & OCFS2_EXT_REFCOUNTED));
++	wait_queue_head_t append_dio_wq;
++
+ 	struct dquot *i_dquot[MAXQUOTAS];
+ };
  
-+	/* allocate blocks if no p_blkno is found, and create == 1 */
-+	if (!p_blkno && create) {
-+		ret = ocfs2_inode_lock(inode, NULL, 1);
-+		if (ret < 0) {
-+			mlog_errno(ret);
-+			goto bail;
-+		}
+diff -puN fs/ocfs2/journal.c~ocfs2-fix-leftover-orphan-entry-caused-by-append-o_direct-write-crash fs/ocfs2/journal.c
+--- a/fs/ocfs2/journal.c~ocfs2-fix-leftover-orphan-entry-caused-by-append-o_direct-write-crash
++++ a/fs/ocfs2/journal.c
+@@ -2210,6 +2210,8 @@ static int ocfs2_recover_orphans(struct
+ 			ret = ocfs2_del_inode_from_orphan(osb, inode, 0, 0);
+ 			if (ret)
+ 				mlog_errno(ret);
 +
-+		alloc_locked = 1;
++			wake_up(&OCFS2_I(inode)->append_dio_wq);
+ 		} /* else if ORPHAN_NO_NEED_TRUNCATE, do nothing */
+ 
+ next:
+diff -puN fs/ocfs2/namei.c~ocfs2-fix-leftover-orphan-entry-caused-by-append-o_direct-write-crash fs/ocfs2/namei.c
+--- a/fs/ocfs2/namei.c~ocfs2-fix-leftover-orphan-entry-caused-by-append-o_direct-write-crash
++++ a/fs/ocfs2/namei.c
+@@ -2681,6 +2681,26 @@ leave:
+ 	return status;
+ }
+ 
++static int ocfs2_dio_orphan_recovered(struct inode *inode)
++{
++	int ret;
++	struct buffer_head *di_bh = NULL;
++	struct ocfs2_dinode *di = NULL;
 +
-+		/* fill hole, allocate blocks can't be larger than the size
-+		 * of the hole */
-+		clusters_to_alloc = ocfs2_clusters_for_bytes(inode->i_sb, len);
-+		if (clusters_to_alloc > contig_blocks)
-+			clusters_to_alloc = contig_blocks;
-+
-+		/* allocate extent and insert them into the extent tree */
-+		ret = ocfs2_extend_allocation(inode, cpos,
-+				clusters_to_alloc, 0);
-+		if (ret < 0) {
-+			mlog_errno(ret);
-+			goto bail;
-+		}
-+
-+		ret = ocfs2_extent_map_get_blocks(inode, iblock, &p_blkno,
-+				&contig_blocks, &ext_flags);
-+		if (ret < 0) {
-+			mlog(ML_ERROR, "get_blocks() failed iblock=%llu\n",
-+					(unsigned long long)iblock);
-+			ret = -EIO;
-+			goto bail;
-+		}
++	ret = ocfs2_inode_lock(inode, &di_bh, 1);
++	if (ret < 0) {
++		mlog_errno(ret);
++		return 0;
 +	}
 +
- 	/*
- 	 * get_more_blocks() expects us to describe a hole by clearing
- 	 * the mapped bit on bh_result().
-@@ -560,6 +597,8 @@ static int ocfs2_direct_IO_get_blocks(st
- 		contig_blocks = max_blocks;
- 	bh_result->b_size = contig_blocks << blocksize_bits;
- bail:
-+	if (alloc_locked)
++	di = (struct ocfs2_dinode *) di_bh->b_data;
++	ret = !(di->i_flags & cpu_to_le32(OCFS2_DIO_ORPHANED_FL));
++	ocfs2_inode_unlock(inode, 1);
++	brelse(di_bh);
++
++	return ret;
++}
++
+ int ocfs2_add_inode_to_orphan(struct ocfs2_super *osb,
+ 	struct inode *inode)
+ {
+@@ -2693,12 +2713,26 @@ int ocfs2_add_inode_to_orphan(struct ocf
+ 	struct ocfs2_dinode *di = NULL;
+ 	bool orphaned = false;
+ 
++restart:
+ 	status = ocfs2_inode_lock(inode, &di_bh, 1);
+ 	if (status < 0) {
+ 		mlog_errno(status);
+ 		goto bail;
+ 	}
+ 
++	di = (struct ocfs2_dinode *) di_bh->b_data;
++	/*
++	 * Another append dio crashed?
++	 * If so, wait for recovery first.
++	 */
++	if (unlikely(di->i_flags & cpu_to_le32(OCFS2_DIO_ORPHANED_FL))) {
 +		ocfs2_inode_unlock(inode, 1);
- 	return ret;
- }
++		brelse(di_bh);
++		wait_event_interruptible(OCFS2_I(inode)->append_dio_wq,
++				ocfs2_dio_orphan_recovered(inode));
++		goto restart;
++	}
++
+ 	status = ocfs2_dio_prepare_orphan_dir(osb, &orphan_dir_inode,
+ 			OCFS2_I(inode)->ip_blkno,
+ 			orphan_name,
+@@ -2711,8 +2745,7 @@ int ocfs2_add_inode_to_orphan(struct ocf
+ 				"orphan dir %llu.\n",
+ 				OCFS2_I(inode)->ip_blkno,
+ 				OCFS2_I(orphan_dir_inode)->ip_blkno);
+-		di = (struct ocfs2_dinode *) di_bh->b_data;
+-		if (!(di->i_flags & le32_to_cpu(OCFS2_ORPHANED_FL))) {
++		if (!(di->i_flags & cpu_to_le32(OCFS2_ORPHANED_FL))) {
+ 			mlog_errno(status);
+ 			goto bail_unlock_orphan;
+ 		}
+diff -puN fs/ocfs2/super.c~ocfs2-fix-leftover-orphan-entry-caused-by-append-o_direct-write-crash fs/ocfs2/super.c
+--- a/fs/ocfs2/super.c~ocfs2-fix-leftover-orphan-entry-caused-by-append-o_direct-write-crash
++++ a/fs/ocfs2/super.c
+@@ -1776,6 +1776,8 @@ static void ocfs2_inode_init_once(void *
+ 	ocfs2_lock_res_init_once(&oi->ip_inode_lockres);
+ 	ocfs2_lock_res_init_once(&oi->ip_open_lockres);
+ 
++	init_waitqueue_head(&oi->append_dio_wq);
++
+ 	ocfs2_metadata_cache_init(INODE_CACHE(&oi->vfs_inode),
+ 				  &ocfs2_inode_caching_ops);
  
 _
 
-Patches currently in -mm which might be from wangww631@huawei.com are
+Patches currently in -mm which might be from joseph.qi@huawei.com are
 
+ocfs2-fix-snprintf-format-specifier-in-dlmdebugc.patch
+ocfs2-fix-journal-commit-deadlock-in-ocfs2_convert_inline_data_to_extents.patch
 ocfs2-add-a-mount-option-journal_async_commit-on-ocfs2-filesystem.patch
-ocfs2-do-not-fallback-to-buffer-i-o-write-if-appending.patch
-ocfs2-do-not-fallback-to-buffer-i-o-write-if-fill-holes.patch
-ocfs2-fix-leftover-orphan-entry-caused-by-append-o_direct-write-crash.patch
+linux-next.patch
 ocfs2-implement-ocfs2_direct_io_write-fix.patch
 
