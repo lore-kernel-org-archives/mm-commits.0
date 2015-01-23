@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + cgroup-release-css-id-after-css_free.patch added to -mm tree
-Date: Fri, 23 Jan 2015 12:45:26 -0800
-Message-ID: <54c2b2e6.jqnrWZQOr2t8J3Ho%akpm@linux-foundation.org>
+Subject: + slab-use-css-id-for-naming-per-memcg-caches.patch added to -mm
+ tree
+Date: Fri, 23 Jan 2015 12:45:28 -0800
+Message-ID: <54c2b2e8.bJXYEiBJUosUy/pb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39792 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39798 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750840AbbAWUp1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jan 2015 15:45:27 -0500
+	with ESMTP id S1751614AbbAWUp3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jan 2015 15:45:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vdavydov@parallels.com, cl@linux.com, david@fromorbit.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@suse.cz, penberg@kernel.org, rientjes@google.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cgroup: release css->id after css_free
+     Subject: slab: use css id for naming per memcg caches
 has been added to the -mm tree.  Its filename is
-     cgroup-release-css-id-after-css_free.patch
+     slab-use-css-id-for-naming-per-memcg-caches.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/cgroup-release-css-id-after-css_free.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/slab-use-css-id-for-naming-per-memcg-caches.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/cgroup-release-css-id-after-css_free.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/slab-use-css-id-for-naming-per-memcg-caches.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,23 +40,21 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: cgroup: release css->id after css_free
+Subject: slab: use css id for naming per memcg caches
 
-Currently, we release css->id in css_release_work_fn, right before calling
-css_free callback, so that when css_free is called, the id may have
-already been reused for a new cgroup.
+Currently, we use mem_cgroup->kmemcg_id to guarantee kmem_cache->name
+uniqueness.  This is correct, because kmemcg_id is only released on css
+free after destroying all per memcg caches.
 
-I am going to use css->id to create unique names for per memcg kmem
-caches.  Since kmem caches are destroyed only on css_free, I need css->id
-to be freed after css_free was called to avoid name clashes.  This patch
-therefore moves css->id removal to css_free_work_fn.  To prevent
-css_from_id from returning a pointer to a stale css, it makes
-css_release_work_fn replace the css ptr at css_idr:css->id with NULL.
+However, I am going to change that and release kmemcg_id on css offline,
+because it is not wise to keep it for so long, wasting valuable entries of
+memcg_cache_params->memcg_caches arrays.  Therefore, to preserve cache
+name uniqueness, let us switch to css->id.
 
 Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@suse.cz>
-Acked-by: Tejun Heo <tj@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
@@ -64,44 +63,33 @@ Cc: Dave Chinner <david@fromorbit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ mm/slab_common.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN kernel/cgroup.c~cgroup-release-css-id-after-css_free kernel/cgroup.c
---- a/kernel/cgroup.c~cgroup-release-css-id-after-css_free
-+++ a/kernel/cgroup.c
-@@ -4373,16 +4373,20 @@ static void css_free_work_fn(struct work
+diff -puN mm/slab_common.c~slab-use-css-id-for-naming-per-memcg-caches mm/slab_common.c
+--- a/mm/slab_common.c~slab-use-css-id-for-naming-per-memcg-caches
++++ a/mm/slab_common.c
+@@ -487,6 +487,7 @@ void memcg_create_kmem_cache(struct mem_
+ 			     struct kmem_cache *root_cache)
  {
- 	struct cgroup_subsys_state *css =
- 		container_of(work, struct cgroup_subsys_state, destroy_work);
-+	struct cgroup_subsys *ss = css->ss;
- 	struct cgroup *cgrp = css->cgroup;
+ 	static char memcg_name_buf[NAME_MAX + 1]; /* protected by slab_mutex */
++	struct cgroup_subsys_state *css = mem_cgroup_css(memcg);
+ 	struct memcg_cache_array *arr;
+ 	struct kmem_cache *s = NULL;
+ 	char *cache_name;
+@@ -509,10 +510,9 @@ void memcg_create_kmem_cache(struct mem_
+ 	if (arr->entries[idx])
+ 		goto out_unlock;
  
- 	percpu_ref_exit(&css->refcnt);
+-	cgroup_name(mem_cgroup_css(memcg)->cgroup,
+-		    memcg_name_buf, sizeof(memcg_name_buf));
++	cgroup_name(css->cgroup, memcg_name_buf, sizeof(memcg_name_buf));
+ 	cache_name = kasprintf(GFP_KERNEL, "%s(%d:%s)", root_cache->name,
+-			       idx, memcg_name_buf);
++			       css->id, memcg_name_buf);
+ 	if (!cache_name)
+ 		goto out_unlock;
  
--	if (css->ss) {
-+	if (ss) {
- 		/* css free path */
-+		int id = css->id;
-+
- 		if (css->parent)
- 			css_put(css->parent);
- 
--		css->ss->css_free(css);
-+		ss->css_free(css);
-+		cgroup_idr_remove(&ss->css_idr, id);
- 		cgroup_put(cgrp);
- 	} else {
- 		/* cgroup free path */
-@@ -4434,7 +4438,7 @@ static void css_release_work_fn(struct w
- 
- 	if (ss) {
- 		/* css release path */
--		cgroup_idr_remove(&ss->css_idr, css->id);
-+		cgroup_idr_replace(&ss->css_idr, NULL, css->id);
- 		if (ss->css_released)
- 			ss->css_released(css);
- 	} else {
 _
 
 Patches currently in -mm which might be from vdavydov@parallels.com are
