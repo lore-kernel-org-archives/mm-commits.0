@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-free-memcg_caches-slot-on-css-offline.patch added to -mm
- tree
-Date: Fri, 23 Jan 2015 12:45:30 -0800
-Message-ID: <54c2b2ea.0OMNc+pTDZxWJgQ3%akpm@linux-foundation.org>
+Subject: +
+ memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline.patch added to
+ -mm tree
+Date: Fri, 23 Jan 2015 12:45:34 -0800
+Message-ID: <54c2b2ee.Oxo36XsjCbS7WNwb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39809 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39825 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751614AbbAWUpb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jan 2015 15:45:31 -0500
+	with ESMTP id S1750717AbbAWUpf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jan 2015 15:45:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vdavydov@parallels.com, cl@linux.com, david@fromorbit.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@suse.cz, penberg@kernel.org, rientjes@google.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: free memcg_caches slot on css offline
+     Subject: memcg: reparent list_lrus and free kmemcg_id on css offline
 has been added to the -mm tree.  Its filename is
-     memcg-free-memcg_caches-slot-on-css-offline.patch
+     memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-free-memcg_caches-slot-on-css-offline.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-free-memcg_caches-slot-on-css-offline.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,12 +41,19 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: memcg: free memcg_caches slot on css offline
+Subject: memcg: reparent list_lrus and free kmemcg_id on css offline
 
-We need to look up a kmem_cache in ->memcg_params.memcg_caches arrays only
-on allocations, so there is no need to have the array entries set until
-css free - we can clear them on css offline.  This will allow us to reuse
-array entries more efficiently and avoid costly array relocations.
+Now, the only reason to keep kmemcg_id till css free is list_lru, which
+uses it to distribute elements between per-memcg lists.  However, it can
+be easily sorted out - we only need to change kmemcg_id of an offline
+cgroup to its parent's id, making further list_lru_add()'s add elements to
+the parent's list, and then move all elements from the offline cgroup's
+list to the one of its parent.  It will work, because a racing
+list_lru_del() does not need to know the list it is deleting the element
+from.  It can decrement the wrong nr_items counter though, but the ongoing
+reparenting will fix it.  After list_lru reparenting is done we are free
+to release kmemcg_id saving a valuable slot in a per-memcg array for new
+cgroups.
 
 Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -59,217 +67,195 @@ Cc: Dave Chinner <david@fromorbit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slab.h |   10 +++++-----
- mm/memcontrol.c      |   38 ++++++++++++++++++++++++++++++++------
- mm/slab_common.c     |   39 ++++++++++++++++++++++++++++-----------
- 3 files changed, 65 insertions(+), 22 deletions(-)
+ include/linux/list_lru.h |    3 +-
+ mm/list_lru.c            |   46 ++++++++++++++++++++++++++++++++++---
+ mm/memcontrol.c          |   39 +++++++++++++++++++++++++++----
+ 3 files changed, 79 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/slab.h~memcg-free-memcg_caches-slot-on-css-offline include/linux/slab.h
---- a/include/linux/slab.h~memcg-free-memcg_caches-slot-on-css-offline
-+++ a/include/linux/slab.h
-@@ -115,13 +115,12 @@ int slab_is_available(void);
- struct kmem_cache *kmem_cache_create(const char *, size_t, size_t,
- 			unsigned long,
- 			void (*)(void *));
--#ifdef CONFIG_MEMCG_KMEM
--void memcg_create_kmem_cache(struct mem_cgroup *, struct kmem_cache *);
--void memcg_destroy_kmem_caches(struct mem_cgroup *);
--#endif
- void kmem_cache_destroy(struct kmem_cache *);
- int kmem_cache_shrink(struct kmem_cache *);
--void kmem_cache_free(struct kmem_cache *, void *);
+diff -puN include/linux/list_lru.h~memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline include/linux/list_lru.h
+--- a/include/linux/list_lru.h~memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline
++++ a/include/linux/list_lru.h
+@@ -26,7 +26,7 @@ enum lru_status {
+ 
+ struct list_lru_one {
+ 	struct list_head	list;
+-	/* kept as signed so we can catch imbalance bugs */
++	/* may become negative during memcg reparenting */
+ 	long			nr_items;
+ };
+ 
+@@ -62,6 +62,7 @@ int __list_lru_init(struct list_lru *lru
+ #define list_lru_init_memcg(lru)	__list_lru_init((lru), true, NULL)
+ 
+ int memcg_update_all_list_lrus(int num_memcgs);
++void memcg_drain_all_list_lrus(int src_idx, int dst_idx);
+ 
+ /**
+  * list_lru_add: add an element to the lru list's tail
+diff -puN mm/list_lru.c~memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline mm/list_lru.c
+--- a/mm/list_lru.c~memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline
++++ a/mm/list_lru.c
+@@ -100,7 +100,6 @@ bool list_lru_add(struct list_lru *lru,
+ 
+ 	spin_lock(&nlru->lock);
+ 	l = list_lru_from_kmem(nlru, item);
+-	WARN_ON_ONCE(l->nr_items < 0);
+ 	if (list_empty(item)) {
+ 		list_add_tail(item, &l->list);
+ 		l->nr_items++;
+@@ -123,7 +122,6 @@ bool list_lru_del(struct list_lru *lru,
+ 	if (!list_empty(item)) {
+ 		list_del_init(item);
+ 		l->nr_items--;
+-		WARN_ON_ONCE(l->nr_items < 0);
+ 		spin_unlock(&nlru->lock);
+ 		return true;
+ 	}
+@@ -156,7 +154,6 @@ static unsigned long __list_lru_count_on
+ 
+ 	spin_lock(&nlru->lock);
+ 	l = list_lru_from_memcg_idx(nlru, memcg_idx);
+-	WARN_ON_ONCE(l->nr_items < 0);
+ 	count = l->nr_items;
+ 	spin_unlock(&nlru->lock);
+ 
+@@ -458,6 +455,49 @@ fail:
+ 		memcg_cancel_update_list_lru(lru, old_size, new_size);
+ 	goto out;
+ }
 +
-+void memcg_create_kmem_cache(struct mem_cgroup *, struct kmem_cache *);
-+void memcg_deactivate_kmem_caches(struct mem_cgroup *);
-+void memcg_destroy_kmem_caches(struct mem_cgroup *);
- 
- /*
-  * Please use this macro to create slab caches. Simply specify the
-@@ -288,6 +287,7 @@ static __always_inline int kmalloc_index
- 
- void *__kmalloc(size_t size, gfp_t flags);
- void *kmem_cache_alloc(struct kmem_cache *, gfp_t flags);
-+void kmem_cache_free(struct kmem_cache *, void *);
- 
- #ifdef CONFIG_NUMA
- void *__kmalloc_node(size_t size, gfp_t flags, int node);
-diff -puN mm/memcontrol.c~memcg-free-memcg_caches-slot-on-css-offline mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-free-memcg_caches-slot-on-css-offline
++static void memcg_drain_list_lru_node(struct list_lru_node *nlru,
++				      int src_idx, int dst_idx)
++{
++	struct list_lru_one *src, *dst;
++
++	/*
++	 * Since list_lru_{add,del} may be called under an IRQ-safe lock,
++	 * we have to use IRQ-safe primitives here to avoid deadlock.
++	 */
++	spin_lock_irq(&nlru->lock);
++
++	src = list_lru_from_memcg_idx(nlru, src_idx);
++	dst = list_lru_from_memcg_idx(nlru, dst_idx);
++
++	list_splice_init(&src->list, &dst->list);
++	dst->nr_items += src->nr_items;
++	src->nr_items = 0;
++
++	spin_unlock_irq(&nlru->lock);
++}
++
++static void memcg_drain_list_lru(struct list_lru *lru,
++				 int src_idx, int dst_idx)
++{
++	int i;
++
++	if (!list_lru_memcg_aware(lru))
++		return;
++
++	for (i = 0; i < nr_node_ids; i++)
++		memcg_drain_list_lru_node(&lru->node[i], src_idx, dst_idx);
++}
++
++void memcg_drain_all_list_lrus(int src_idx, int dst_idx)
++{
++	struct list_lru *lru;
++
++	mutex_lock(&list_lrus_mutex);
++	list_for_each_entry(lru, &list_lrus, list)
++		memcg_drain_list_lru(lru, src_idx, dst_idx);
++	mutex_unlock(&list_lrus_mutex);
++}
+ #else
+ static int memcg_init_list_lru(struct list_lru *lru, bool memcg_aware)
+ {
+diff -puN mm/memcontrol.c~memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline
 +++ a/mm/memcontrol.c
 @@ -334,6 +334,7 @@ struct mem_cgroup {
  #if defined(CONFIG_MEMCG_KMEM)
          /* Index in the kmem_cache->memcg_params.memcg_caches array */
  	int kmemcg_id;
-+	bool kmem_acct_active;
++	bool kmem_acct_activated;
+ 	bool kmem_acct_active;
  #endif
  
- 	int last_scanned_node;
-@@ -354,7 +355,7 @@ struct mem_cgroup {
- #ifdef CONFIG_MEMCG_KMEM
- bool memcg_kmem_is_active(struct mem_cgroup *memcg)
- {
--	return memcg->kmemcg_id >= 0;
-+	return memcg->kmem_acct_active;
- }
- #endif
+@@ -582,14 +583,10 @@ void memcg_put_cache_ids(void)
+ struct static_key memcg_kmem_enabled_key;
+ EXPORT_SYMBOL(memcg_kmem_enabled_key);
  
-@@ -585,7 +586,7 @@ static void memcg_free_cache_id(int id);
- 
+-static void memcg_free_cache_id(int id);
+-
  static void disarm_kmem_keys(struct mem_cgroup *memcg)
  {
--	if (memcg_kmem_is_active(memcg)) {
-+	if (memcg->kmemcg_id >= 0) {
+-	if (memcg->kmemcg_id >= 0) {
++	if (memcg->kmem_acct_activated)
  		static_key_slow_dec(&memcg_kmem_enabled_key);
- 		memcg_free_cache_id(memcg->kmemcg_id);
- 	}
-@@ -2666,6 +2667,7 @@ struct kmem_cache *__memcg_kmem_get_cach
- {
- 	struct mem_cgroup *memcg;
- 	struct kmem_cache *memcg_cachep;
-+	int kmemcg_id;
- 
- 	VM_BUG_ON(!is_root_cache(cachep));
- 
-@@ -2673,10 +2675,11 @@ struct kmem_cache *__memcg_kmem_get_cach
- 		return cachep;
- 
- 	memcg = get_mem_cgroup_from_mm(current->mm);
--	if (!memcg_kmem_is_active(memcg))
-+	kmemcg_id = ACCESS_ONCE(memcg->kmemcg_id);
-+	if (kmemcg_id < 0)
- 		goto out;
- 
--	memcg_cachep = cache_from_memcg_idx(cachep, memcg_cache_id(memcg));
-+	memcg_cachep = cache_from_memcg_idx(cachep, kmemcg_id);
- 	if (likely(memcg_cachep))
- 		return memcg_cachep;
- 
-@@ -3318,8 +3321,8 @@ static int memcg_activate_kmem(struct me
- 	int err = 0;
+-		memcg_free_cache_id(memcg->kmemcg_id);
+-	}
+ 	/*
+ 	 * This check can't live in kmem destruction function,
+ 	 * since the charges will outlive the cgroup
+@@ -3322,6 +3319,7 @@ static int memcg_activate_kmem(struct me
  	int memcg_id;
  
--	if (memcg_kmem_is_active(memcg))
--		return 0;
-+	BUG_ON(memcg->kmemcg_id >= 0);
-+	BUG_ON(memcg->kmem_acct_active);
+ 	BUG_ON(memcg->kmemcg_id >= 0);
++	BUG_ON(memcg->kmem_acct_activated);
+ 	BUG_ON(memcg->kmem_acct_active);
  
  	/*
- 	 * For simplicity, we won't allow this to be disabled.  It also can't
-@@ -3362,6 +3365,7 @@ static int memcg_activate_kmem(struct me
+@@ -3365,6 +3363,7 @@ static int memcg_activate_kmem(struct me
  	 * patched.
  	 */
  	memcg->kmemcg_id = memcg_id;
-+	memcg->kmem_acct_active = true;
++	memcg->kmem_acct_activated = true;
+ 	memcg->kmem_acct_active = true;
  out:
  	return err;
- }
-@@ -4041,6 +4045,22 @@ static int memcg_init_kmem(struct mem_cg
- 	return mem_cgroup_sockets_init(memcg, ss);
- }
+@@ -4047,6 +4046,10 @@ static int memcg_init_kmem(struct mem_cg
  
-+static void memcg_deactivate_kmem(struct mem_cgroup *memcg)
-+{
-+	if (!memcg->kmem_acct_active)
-+		return;
+ static void memcg_deactivate_kmem(struct mem_cgroup *memcg)
+ {
++	struct cgroup_subsys_state *css;
++	struct mem_cgroup *parent, *child;
++	int kmemcg_id;
++
+ 	if (!memcg->kmem_acct_active)
+ 		return;
+ 
+@@ -4059,6 +4062,32 @@ static void memcg_deactivate_kmem(struct
+ 	memcg->kmem_acct_active = false;
+ 
+ 	memcg_deactivate_kmem_caches(memcg);
++
++	kmemcg_id = memcg->kmemcg_id;
++	BUG_ON(kmemcg_id < 0);
++
++	parent = parent_mem_cgroup(memcg);
++	if (!parent)
++		parent = root_mem_cgroup;
 +
 +	/*
-+	 * Clear the 'active' flag before clearing memcg_caches arrays entries.
-+	 * Since we take the slab_mutex in memcg_deactivate_kmem_caches(), it
-+	 * guarantees no cache will be created for this cgroup after we are
-+	 * done (see memcg_create_kmem_cache()).
++	 * Change kmemcg_id of this cgroup and all its descendants to the
++	 * parent's id, and then move all entries from this cgroup's list_lrus
++	 * to ones of the parent. After we have finished, all list_lrus
++	 * corresponding to this cgroup are guaranteed to remain empty. The
++	 * ordering is imposed by list_lru_node->lock taken by
++	 * memcg_drain_all_list_lrus().
 +	 */
-+	memcg->kmem_acct_active = false;
-+
-+	memcg_deactivate_kmem_caches(memcg);
-+}
-+
- static void memcg_destroy_kmem(struct mem_cgroup *memcg)
- {
- 	memcg_destroy_kmem_caches(memcg);
-@@ -4052,6 +4072,10 @@ static int memcg_init_kmem(struct mem_cg
- 	return 0;
- }
- 
-+static void memcg_deactivate_kmem(struct mem_cgroup *memcg)
-+{
-+}
-+
- static void memcg_destroy_kmem(struct mem_cgroup *memcg)
- {
- }
-@@ -4608,6 +4632,8 @@ static void mem_cgroup_css_offline(struc
- 	spin_unlock(&memcg->event_list_lock);
- 
- 	vmpressure_cleanup(&memcg->vmpressure);
-+
-+	memcg_deactivate_kmem(memcg);
- }
- 
- static void mem_cgroup_css_free(struct cgroup_subsys_state *css)
-diff -puN mm/slab_common.c~memcg-free-memcg_caches-slot-on-css-offline mm/slab_common.c
---- a/mm/slab_common.c~memcg-free-memcg_caches-slot-on-css-offline
-+++ a/mm/slab_common.c
-@@ -439,18 +439,8 @@ static int do_kmem_cache_shutdown(struct
- 		*need_rcu_barrier = true;
- 
- #ifdef CONFIG_MEMCG_KMEM
--	if (!is_root_cache(s)) {
--		int idx;
--		struct memcg_cache_array *arr;
--
--		idx = memcg_cache_id(s->memcg_params.memcg);
--		arr = rcu_dereference_protected(s->memcg_params.root_cache->
--						memcg_params.memcg_caches,
--						lockdep_is_held(&slab_mutex));
--		BUG_ON(arr->entries[idx] != s);
--		arr->entries[idx] = NULL;
-+	if (!is_root_cache(s))
- 		list_del(&s->memcg_params.list);
--	}
- #endif
- 	list_move(&s->list, release);
- 	return 0;
-@@ -498,6 +488,13 @@ void memcg_create_kmem_cache(struct mem_
- 
- 	mutex_lock(&slab_mutex);
- 
-+	/*
-+	 * The memory cgroup could have been deactivated while the cache
-+	 * creation work was pending.
-+	 */
-+	if (!memcg_kmem_is_active(memcg))
-+		goto out_unlock;
-+
- 	idx = memcg_cache_id(memcg);
- 	arr = rcu_dereference_protected(root_cache->memcg_params.memcg_caches,
- 					lockdep_is_held(&slab_mutex));
-@@ -547,6 +544,26 @@ out_unlock:
- 	put_online_cpus();
- }
- 
-+void memcg_deactivate_kmem_caches(struct mem_cgroup *memcg)
-+{
-+	int idx;
-+	struct memcg_cache_array *arr;
-+	struct kmem_cache *s;
-+
-+	idx = memcg_cache_id(memcg);
-+
-+	mutex_lock(&slab_mutex);
-+	list_for_each_entry(s, &slab_caches, list) {
-+		if (!is_root_cache(s))
-+			continue;
-+
-+		arr = rcu_dereference_protected(s->memcg_params.memcg_caches,
-+						lockdep_is_held(&slab_mutex));
-+		arr->entries[idx] = NULL;
++	css_for_each_descendant_pre(css, &memcg->css) {
++		child = mem_cgroup_from_css(css);
++		BUG_ON(child->kmemcg_id != kmemcg_id);
++		child->kmemcg_id = parent->kmemcg_id;
++		if (!memcg->use_hierarchy)
++			break;
 +	}
-+	mutex_unlock(&slab_mutex);
-+}
++	memcg_drain_all_list_lrus(kmemcg_id, parent->kmemcg_id);
 +
- void memcg_destroy_kmem_caches(struct mem_cgroup *memcg)
- {
- 	LIST_HEAD(release);
++	memcg_free_cache_id(kmemcg_id);
+ }
+ 
+ static void memcg_destroy_kmem(struct mem_cgroup *memcg)
 _
 
 Patches currently in -mm which might be from vdavydov@parallels.com are
