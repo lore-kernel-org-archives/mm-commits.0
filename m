@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline.patch added to
- -mm tree
-Date: Fri, 23 Jan 2015 12:45:34 -0800
-Message-ID: <54c2b2ee.Oxo36XsjCbS7WNwb%akpm@linux-foundation.org>
+Subject: + microblaze-define-__pagetable_pmd_folded.patch added to -mm
+ tree
+Date: Fri, 23 Jan 2015 13:53:07 -0800
+Message-ID: <54c2c2c3.pjcNAxAvPp2+6W7R%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39825 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40129 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750717AbbAWUpf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jan 2015 15:45:35 -0500
+	with ESMTP id S1750956AbbAWVxI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jan 2015 16:53:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@parallels.com, cl@linux.com, david@fromorbit.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@suse.cz, penberg@kernel.org, rientjes@google.com, tj@kernel.org, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, linux@roeck-us.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: reparent list_lrus and free kmemcg_id on css offline
+     Subject: microblaze: define __PAGETABLE_PMD_FOLDED
 has been added to the -mm tree.  Its filename is
-     memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline.patch
+     microblaze-define-__pagetable_pmd_folded.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/microblaze-define-__pagetable_pmd_folded.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/microblaze-define-__pagetable_pmd_folded.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,260 +39,148 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: memcg: reparent list_lrus and free kmemcg_id on css offline
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: microblaze: define __PAGETABLE_PMD_FOLDED
 
-Now, the only reason to keep kmemcg_id till css free is list_lru, which
-uses it to distribute elements between per-memcg lists.  However, it can
-be easily sorted out - we only need to change kmemcg_id of an offline
-cgroup to its parent's id, making further list_lru_add()'s add elements to
-the parent's list, and then move all elements from the offline cgroup's
-list to the one of its parent.  It will work, because a racing
-list_lru_del() does not need to know the list it is deleting the element
-from.  It can decrement the wrong nr_items counter though, but the ongoing
-reparenting will fix it.  After list_lru reparenting is done we are free
-to release kmemcg_id saving a valuable slot in a per-memcg array for new
-cgroups.
+Microblaze uses custom implementation of PMD folding, but doesn't define
+__PAGETABLE_PMD_FOLDED, which generic code expects to see.  Let's fix it.
 
-Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Dave Chinner <david@fromorbit.com>
+Defining __PAGETABLE_PMD_FOLDED will drop out unused __pmd_alloc().  It
+also fixes problems with recently-introduced pmd accounting.
+
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reported-by: Guenter Roeck <linux@roeck-us.net>
+Tested-by: Guenter Roeck <linux@roeck-us.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/list_lru.h |    3 +-
- mm/list_lru.c            |   46 ++++++++++++++++++++++++++++++++++---
- mm/memcontrol.c          |   39 +++++++++++++++++++++++++++----
- 3 files changed, 79 insertions(+), 9 deletions(-)
+ arch/microblaze/include/asm/pgtable.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN include/linux/list_lru.h~memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline include/linux/list_lru.h
---- a/include/linux/list_lru.h~memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline
-+++ a/include/linux/list_lru.h
-@@ -26,7 +26,7 @@ enum lru_status {
+diff -puN arch/microblaze/include/asm/pgtable.h~microblaze-define-__pagetable_pmd_folded arch/microblaze/include/asm/pgtable.h
+--- a/arch/microblaze/include/asm/pgtable.h~microblaze-define-__pagetable_pmd_folded
++++ a/arch/microblaze/include/asm/pgtable.h
+@@ -61,6 +61,8 @@ extern int mem_init_done;
  
- struct list_lru_one {
- 	struct list_head	list;
--	/* kept as signed so we can catch imbalance bugs */
-+	/* may become negative during memcg reparenting */
- 	long			nr_items;
- };
+ #include <asm-generic/4level-fixup.h>
  
-@@ -62,6 +62,7 @@ int __list_lru_init(struct list_lru *lru
- #define list_lru_init_memcg(lru)	__list_lru_init((lru), true, NULL)
++#define __PAGETABLE_PMD_FOLDED
++
+ #ifdef __KERNEL__
+ #ifndef __ASSEMBLY__
  
- int memcg_update_all_list_lrus(int num_memcgs);
-+void memcg_drain_all_list_lrus(int src_idx, int dst_idx);
- 
- /**
-  * list_lru_add: add an element to the lru list's tail
-diff -puN mm/list_lru.c~memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline mm/list_lru.c
---- a/mm/list_lru.c~memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline
-+++ a/mm/list_lru.c
-@@ -100,7 +100,6 @@ bool list_lru_add(struct list_lru *lru,
- 
- 	spin_lock(&nlru->lock);
- 	l = list_lru_from_kmem(nlru, item);
--	WARN_ON_ONCE(l->nr_items < 0);
- 	if (list_empty(item)) {
- 		list_add_tail(item, &l->list);
- 		l->nr_items++;
-@@ -123,7 +122,6 @@ bool list_lru_del(struct list_lru *lru,
- 	if (!list_empty(item)) {
- 		list_del_init(item);
- 		l->nr_items--;
--		WARN_ON_ONCE(l->nr_items < 0);
- 		spin_unlock(&nlru->lock);
- 		return true;
- 	}
-@@ -156,7 +154,6 @@ static unsigned long __list_lru_count_on
- 
- 	spin_lock(&nlru->lock);
- 	l = list_lru_from_memcg_idx(nlru, memcg_idx);
--	WARN_ON_ONCE(l->nr_items < 0);
- 	count = l->nr_items;
- 	spin_unlock(&nlru->lock);
- 
-@@ -458,6 +455,49 @@ fail:
- 		memcg_cancel_update_list_lru(lru, old_size, new_size);
- 	goto out;
- }
-+
-+static void memcg_drain_list_lru_node(struct list_lru_node *nlru,
-+				      int src_idx, int dst_idx)
-+{
-+	struct list_lru_one *src, *dst;
-+
-+	/*
-+	 * Since list_lru_{add,del} may be called under an IRQ-safe lock,
-+	 * we have to use IRQ-safe primitives here to avoid deadlock.
-+	 */
-+	spin_lock_irq(&nlru->lock);
-+
-+	src = list_lru_from_memcg_idx(nlru, src_idx);
-+	dst = list_lru_from_memcg_idx(nlru, dst_idx);
-+
-+	list_splice_init(&src->list, &dst->list);
-+	dst->nr_items += src->nr_items;
-+	src->nr_items = 0;
-+
-+	spin_unlock_irq(&nlru->lock);
-+}
-+
-+static void memcg_drain_list_lru(struct list_lru *lru,
-+				 int src_idx, int dst_idx)
-+{
-+	int i;
-+
-+	if (!list_lru_memcg_aware(lru))
-+		return;
-+
-+	for (i = 0; i < nr_node_ids; i++)
-+		memcg_drain_list_lru_node(&lru->node[i], src_idx, dst_idx);
-+}
-+
-+void memcg_drain_all_list_lrus(int src_idx, int dst_idx)
-+{
-+	struct list_lru *lru;
-+
-+	mutex_lock(&list_lrus_mutex);
-+	list_for_each_entry(lru, &list_lrus, list)
-+		memcg_drain_list_lru(lru, src_idx, dst_idx);
-+	mutex_unlock(&list_lrus_mutex);
-+}
- #else
- static int memcg_init_list_lru(struct list_lru *lru, bool memcg_aware)
- {
-diff -puN mm/memcontrol.c~memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline
-+++ a/mm/memcontrol.c
-@@ -334,6 +334,7 @@ struct mem_cgroup {
- #if defined(CONFIG_MEMCG_KMEM)
-         /* Index in the kmem_cache->memcg_params.memcg_caches array */
- 	int kmemcg_id;
-+	bool kmem_acct_activated;
- 	bool kmem_acct_active;
- #endif
- 
-@@ -582,14 +583,10 @@ void memcg_put_cache_ids(void)
- struct static_key memcg_kmem_enabled_key;
- EXPORT_SYMBOL(memcg_kmem_enabled_key);
- 
--static void memcg_free_cache_id(int id);
--
- static void disarm_kmem_keys(struct mem_cgroup *memcg)
- {
--	if (memcg->kmemcg_id >= 0) {
-+	if (memcg->kmem_acct_activated)
- 		static_key_slow_dec(&memcg_kmem_enabled_key);
--		memcg_free_cache_id(memcg->kmemcg_id);
--	}
- 	/*
- 	 * This check can't live in kmem destruction function,
- 	 * since the charges will outlive the cgroup
-@@ -3322,6 +3319,7 @@ static int memcg_activate_kmem(struct me
- 	int memcg_id;
- 
- 	BUG_ON(memcg->kmemcg_id >= 0);
-+	BUG_ON(memcg->kmem_acct_activated);
- 	BUG_ON(memcg->kmem_acct_active);
- 
- 	/*
-@@ -3365,6 +3363,7 @@ static int memcg_activate_kmem(struct me
- 	 * patched.
- 	 */
- 	memcg->kmemcg_id = memcg_id;
-+	memcg->kmem_acct_activated = true;
- 	memcg->kmem_acct_active = true;
- out:
- 	return err;
-@@ -4047,6 +4046,10 @@ static int memcg_init_kmem(struct mem_cg
- 
- static void memcg_deactivate_kmem(struct mem_cgroup *memcg)
- {
-+	struct cgroup_subsys_state *css;
-+	struct mem_cgroup *parent, *child;
-+	int kmemcg_id;
-+
- 	if (!memcg->kmem_acct_active)
- 		return;
- 
-@@ -4059,6 +4062,32 @@ static void memcg_deactivate_kmem(struct
- 	memcg->kmem_acct_active = false;
- 
- 	memcg_deactivate_kmem_caches(memcg);
-+
-+	kmemcg_id = memcg->kmemcg_id;
-+	BUG_ON(kmemcg_id < 0);
-+
-+	parent = parent_mem_cgroup(memcg);
-+	if (!parent)
-+		parent = root_mem_cgroup;
-+
-+	/*
-+	 * Change kmemcg_id of this cgroup and all its descendants to the
-+	 * parent's id, and then move all entries from this cgroup's list_lrus
-+	 * to ones of the parent. After we have finished, all list_lrus
-+	 * corresponding to this cgroup are guaranteed to remain empty. The
-+	 * ordering is imposed by list_lru_node->lock taken by
-+	 * memcg_drain_all_list_lrus().
-+	 */
-+	css_for_each_descendant_pre(css, &memcg->css) {
-+		child = mem_cgroup_from_css(css);
-+		BUG_ON(child->kmemcg_id != kmemcg_id);
-+		child->kmemcg_id = parent->kmemcg_id;
-+		if (!memcg->use_hierarchy)
-+			break;
-+	}
-+	memcg_drain_all_list_lrus(kmemcg_id, parent->kmemcg_id);
-+
-+	memcg_free_cache_id(kmemcg_id);
- }
- 
- static void memcg_destroy_kmem(struct mem_cgroup *memcg)
 _
 
-Patches currently in -mm which might be from vdavydov@parallels.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-mm-vmscan-fix-highidx-argument-type.patch
-memcg-zap-__memcg_chargeuncharge_slab.patch
-memcg-zap-memcg_name-argument-of-memcg_create_kmem_cache.patch
-memcg-zap-memcg_slab_caches-and-memcg_slab_mutex.patch
-swap-remove-unused-mem_cgroup_uncharge_swapcache-declaration.patch
-mm-memcontrol-track-move_lock-state-internally.patch
-mm-vmscan-wake-up-all-pfmemalloc-throttled-processes-at-once.patch
-list_lru-introduce-list_lru_shrink_countwalk.patch
-fs-consolidate-nrfree_cached_objects-args-in-shrink_control.patch
-vmscan-per-memory-cgroup-slab-shrinkers.patch
-memcg-rename-some-cache-id-related-variables.patch
-memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation.patch
-list_lru-get-rid-of-active_nodes.patch
-list_lru-organize-all-list_lrus-to-list.patch
-list_lru-introduce-per-memcg-lists.patch
-fs-make-shrinker-memcg-aware.patch
-vmscan-force-scan-offline-memory-cgroups.patch
-vmscan-force-scan-offline-memory-cgroups-fix.patch
-mm-page_counter-pull-1-handling-out-of-page_counter_memparse.patch
-mm-memcontrol-default-hierarchy-interface-for-memory.patch
-mm-memcontrol-fold-move_anon-and-move_file.patch
-mm-memcontrol-fold-move_anon-and-move_file-fix.patch
-mm-memcontrol-remove-unnecessary-soft-limit-tree-node-test.patch
-mm-memcontrol-consolidate-memory-controller-initialization.patch
-mm-memcontrol-consolidate-swap-controller-code.patch
-fs-shrinker-always-scan-at-least-one-object-of-each-type.patch
-fs-shrinker-always-scan-at-least-one-object-of-each-type-fix.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated-fix.patch
-slab-embed-memcg_cache_params-to-kmem_cache.patch
-slab-link-memcg-caches-of-the-same-kind-into-a-list.patch
-cgroup-release-css-id-after-css_free.patch
-slab-use-css-id-for-naming-per-memcg-caches.patch
-memcg-free-memcg_caches-slot-on-css-offline.patch
-list_lru-add-helpers-to-isolate-items.patch
-memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+mm-drop-support-of-non-linear-mapping-from-unmap-zap-codepath.patch
+mm-drop-support-of-non-linear-mapping-from-fault-codepath.patch
+mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub.patch
+mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub-fix.patch
+proc-drop-handling-non-linear-mappings.patch
+rmap-drop-support-of-non-linear-mappings.patch
+mm-replace-vma-shareadlinear-with-vma-shared.patch
+mm-remove-rest-usage-of-vm_nonlinear-and-pte_file.patch
+asm-generic-drop-unused-pte_file-helpers.patch
+alpha-drop-_page_file-and-pte_file-related-helpers.patch
+arc-drop-_page_file-and-pte_file-related-helpers.patch
+arc-drop-_page_file-and-pte_file-related-helpers-fix.patch
+arm64-drop-pte_file-and-pte_file-related-helpers.patch
+arm-drop-l_pte_file-and-pte_file-related-helpers.patch
+avr32-drop-_page_file-and-pte_file-related-helpers.patch
+blackfin-drop-pte_file.patch
+c6x-drop-pte_file.patch
+cris-drop-_page_file-and-pte_file-related-helpers.patch
+frv-drop-_page_file-and-pte_file-related-helpers.patch
+hexagon-drop-_page_file-and-pte_file-related-helpers.patch
+ia64-drop-_page_file-and-pte_file-related-helpers.patch
+m32r-drop-_page_file-and-pte_file-related-helpers.patch
+m68k-drop-_page_file-and-pte_file-related-helpers.patch
+metag-drop-_page_file-and-pte_file-related-helpers.patch
+microblaze-drop-_page_file-and-pte_file-related-helpers.patch
+mips-drop-_page_file-and-pte_file-related-helpers.patch
+mn10300-drop-_page_file-and-pte_file-related-helpers.patch
+nios2-drop-_page_file-and-pte_file-related-helpers.patch
+openrisc-drop-_page_file-and-pte_file-related-helpers.patch
+parisc-drop-_page_file-and-pte_file-related-helpers.patch
+powerpc-drop-_page_file-and-pte_file-related-helpers.patch
+s390-drop-pte_file-related-helpers.patch
+score-drop-_page_file-and-pte_file-related-helpers.patch
+sh-drop-_page_file-and-pte_file-related-helpers.patch
+sparc-drop-pte_file-related-helpers.patch
+tile-drop-pte_file-related-helpers.patch
+um-drop-_page_file-and-pte_file-related-helpers.patch
+unicore32-drop-pte_file-related-helpers.patch
+x86-drop-_page_file-and-pte_file-related-helpers.patch
+xtensa-drop-_page_file-and-pte_file-related-helpers.patch
+mm-memory-remove-vm_file-check-on-shared-writable-vmas.patch
+mm-memory-merge-shared-writable-dirtying-branches-in-do_wp_page.patch
+mm-add-fields-for-compound-destructor-and-order-into-struct-page.patch
+mm-add-vm_bug_on_page-for-page_mapcount.patch
+sparc32-fix-broken-set_pte.patch
+mm-numa-do-not-dereference-pmd-outside-of-the-lock-during-numa-hinting-fault.patch
+mm-add-p-protnone-helpers-for-use-by-numa-balancing.patch
+mm-convert-p_numa-users-to-p_protnone_numa.patch
+ppc64-add-paranoid-warnings-for-unexpected-dsisr_protfault.patch
+mm-convert-p_mknonnuma-and-remaining-page-table-manipulations.patch
+mm-remove-remaining-references-to-numa-hinting-bits-and-helpers.patch
+mm-numa-do-not-trap-faults-on-the-huge-zero-page.patch
+x86-mm-restore-original-pte_special-check.patch
+mm-numa-add-paranoid-check-around-pte_protnone_numa.patch
+mm-numa-avoid-unnecessary-tlb-flushes-when-setting-numa-hinting-entries.patch
+mm-set-page-pfmemalloc-in-prep_new_page.patch
+mm-page_alloc-reduce-number-of-alloc_pages-functions-parameters.patch
+mm-reduce-try_to_compact_pages-parameters.patch
+mm-microoptimize-zonelist-operations.patch
+mm-page_allocc-drop-dead-destroy_compound_page.patch
+mm-more-checks-on-free_pages_prepare-for-tail-pages.patch
+mm-more-checks-on-free_pages_prepare-for-tail-pages-fix-2.patch
+microblaze-define-__pagetable_pmd_folded.patch
+mm-make-first_user_address-unsigned-long-on-all-archs.patch
+mm-asm-generic-define-pud_shift-in-asm-generic-4level-fixuph.patch
+arm-define-__pagetable_pmd_folded-for-lpae.patch
+mm-account-pmd-page-tables-to-the-process.patch
+mm-thp-allocate-transparent-hugepages-on-local-node.patch
+mm-thp-allocate-transparent-hugepages-on-local-node-fix.patch
+mm-gup-add-get_user_pages_locked-and-get_user_pages_unlocked.patch
+mm-gup-add-__get_user_pages_unlocked-to-customize-gup_flags.patch
+mm-gup-use-get_user_pages_unlocked-within-get_user_pages_fast.patch
+mm-gup-use-get_user_pages_unlocked.patch
+mm-gup-kvm-use-get_user_pages_unlocked.patch
+mm-pagewalk-remove-pgd_entry-and-pud_entry.patch
+pagewalk-improve-vma-handling.patch
+pagewalk-add-walk_page_vma.patch
+smaps-remove-mem_size_stats-vma-and-use-walk_page_vma.patch
+clear_refs-remove-clear_refs_private-vma-and-introduce-clear_refs_test_walk.patch
+pagemap-use-walk-vma-instead-of-calling-find_vma.patch
+numa_maps-fix-typo-in-gather_hugetbl_stats.patch
+numa_maps-remove-numa_maps-vma.patch
+memcg-cleanup-preparation-for-page-table-walk.patch
+arch-powerpc-mm-subpage-protc-use-walk-vma-and-walk_page_vma.patch
+mempolicy-apply-page-table-walker-on-queue_pages_range.patch
+mm-proc-pid-clear_refs-avoid-split_huge_page.patch
+mincore-apply-page-table-walker-on-do_mincore.patch
+mm-fix-xip-fault-vs-truncate-race.patch
+mm-fix-xip-fault-vs-truncate-race-fix.patch
+mm-allow-page-fault-handlers-to-perform-the-cow.patch
+mm-allow-page-fault-handlers-to-perform-the-cow-fix.patch
+vfsext2-introduce-is_daxinode.patch
+daxext2-replace-xip-read-and-write-with-dax-i-o.patch
+daxext2-replace-ext2_clear_xip_target-with-dax_clear_blocks.patch
+daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler.patch
+daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix.patch
+daxext2-replace-xip_truncate_page-with-dax_truncate_page.patch
+dax-replace-xip-documentation-with-dax-documentation.patch
+vfs-remove-get_xip_mem.patch
+ext2-remove-ext2_xip_verify_sb.patch
+ext2-remove-ext2_use_xip.patch
+ext2-remove-xipc-and-xiph.patch
+vfsext2-remove-config_ext2_fs_xip-and-rename-config_fs_xip-to-config_fs_dax.patch
+ext2-remove-ext2_aops_xip.patch
+ext2-get-rid-of-most-mentions-of-xip-in-ext2.patch
+dax-add-dax_zero_page_range.patch
+dax-add-dax_zero_page_range-fix.patch
+ext4-add-dax-functionality.patch
+brd-rename-xip-to-dax.patch
 
