@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-more-aggressive-page-stealing-for-unmovable-allocations.patch added to
- -mm tree
-Date: Fri, 23 Jan 2015 14:54:57 -0800
-Message-ID: <54c2d141.+CLITojiGiEWUZvW%akpm@linux-foundation.org>
+ mm-when-stealing-freepages-also-take-pages-created-by-splitting-buddy-page.patch added to -mm tree
+Date: Fri, 23 Jan 2015 14:54:52 -0800
+Message-ID: <54c2d13c.O3yrqn6VK1WupaKC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41544 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41518 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751995AbbAWWy6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jan 2015 17:54:58 -0500
+	with ESMTP id S1751995AbbAWWyy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jan 2015 17:54:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, aneesh.kumar@linux.vnet.ibm.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, kosaki.motohiro@jp.fujitsu.com, mgorman@suse.de, mhocko@suse.cz, minchan@kernel.org, riel@redhat.com, rientjes@google.com, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, aneesh.kumar@linux.vnet.ibm.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, kosaki.motohiro@jp.fujitsu.com, mgorman@suse.de, mhocko@suse.cz, minchan@kernel.org, riel@redhat.com, rientjes@google.com, stable@vger.kernel.org, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: more aggressive page stealing for UNMOVABLE allocations
+     Subject: mm: when stealing freepages, also take pages created by splitting buddy page
 has been added to the -mm tree.  Its filename is
-     mm-more-aggressive-page-stealing-for-unmovable-allocations.patch
+     mm-when-stealing-freepages-also-take-pages-created-by-splitting-buddy-page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-more-aggressive-page-stealing-for-unmovable-allocations.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-when-stealing-freepages-also-take-pages-created-by-splitting-buddy-page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-more-aggressive-page-stealing-for-unmovable-allocations.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-when-stealing-freepages-also-take-pages-created-by-splitting-buddy-page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,39 +40,286 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm: more aggressive page stealing for UNMOVABLE allocations
+Subject: mm: when stealing freepages, also take pages created by splitting buddy page
 
-When allocation falls back to stealing free pages of another migratetype,
-it can decide to steal extra pages, or even the whole pageblock in order
-to reduce fragmentation, which could happen if further allocation
-fallbacks pick a different pageblock.  In try_to_steal_freepages(), one of
-the situations where extra pages are stolen happens when we are trying to
-allocate a MIGRATE_RECLAIMABLE page.
+When studying page stealing, I noticed some weird looking decisions in
+try_to_steal_freepages().  The first I assume is a bug (Patch 1), the
+following two patches were driven by evaluation.
 
-However, MIGRATE_UNMOVABLE allocations are not treated the same way,
-although spreading such allocation over multiple fallback pageblocks is
-arguably even worse than it is for RECLAIMABLE allocations.  To minimize
-fragmentation, we should minimize the number of such fallbacks, and thus
-steal as much as is possible from each fallback pageblock.
+Testing was done with stress-highalloc of mmtests, using the
+mm_page_alloc_extfrag tracepoint and postprocessing to get counts of how
+often page stealing occurs for individual migratetypes, and what
+migratetypes are used for fallbacks.  Arguably, the worst case of page
+stealing is when UNMOVABLE allocation steals from MOVABLE pageblock. 
+RECLAIMABLE allocation stealing from MOVABLE allocation is also not ideal,
+so the goal is to minimize these two cases.
 
-Note that in theory this might put more pressure on movable pageblocks and
-cause movable allocations to steal back from unmovable pageblocks. 
-However, movable allocations are not as aggressive with stealing, and do
-not cause permanent fragmentation, so the tradeoff is reasonable, and
-evaluation seems to support the change.
+The evaluation of v2 wasn't always clear win and Joonsoo questioned the
+results.  Here I used different baseline which includes RFC compaction
+improvements from [1].  I found that the compaction improvements reduce
+variability of stress-highalloc, so there's less noise in the data.
 
-This patch thus adds a check for MIGRATE_UNMOVABLE to the decision to
-steal extra free pages.  When evaluating with stress-highalloc from
-mmtests, this has reduced the number of MIGRATE_UNMOVABLE fallbacks to
-roughly 1/6.  The number of these fallbacks stealing from MIGRATE_MOVABLE
-block is reduced to 1/3.  There was no observation of growing number of
-unmovable pageblocks over time, and also not of increased movable
-allocation fallbacks.
+First, let's look at stress-highalloc configured to do sync compaction,
+and how these patches reduce page stealing events during the test.  First
+column is after fresh reboot, other two are reiterations of test without
+reboot.  That was all accumulater over 5 re-iterations (so the benchmark
+was run 5x3 times with 5 fresh restarts).
 
+
+Baseline:
+
+                                                   3.19-rc4        3.19-rc4        3.19-rc4
+                                                  5-nothp-1       5-nothp-2       5-nothp-3
+Page alloc extfrag event                               10264225     8702233    10244125
+Extfrag fragmenting                                    10263271     8701552    10243473
+Extfrag fragmenting for unmovable                         13595       17616       15960
+Extfrag fragmenting unmovable placed with movable          7989       12193        8447
+Extfrag fragmenting for reclaimable                         658        1840        1817
+Extfrag fragmenting reclaimable placed with movable         558        1677        1679
+Extfrag fragmenting for movable                        10249018     8682096    10225696
+
+
+With Patch 1:
+                                                   3.19-rc4        3.19-rc4        3.19-rc4
+                                                  6-nothp-1       6-nothp-2       6-nothp-3
+Page alloc extfrag event                               11834954     9877523     9774860
+Extfrag fragmenting                                    11833993     9876880     9774245
+Extfrag fragmenting for unmovable                          7342       16129       11712
+Extfrag fragmenting unmovable placed with movable          4191       10547        6270
+Extfrag fragmenting for reclaimable                         373        1130         923
+Extfrag fragmenting reclaimable placed with movable         302         906         738
+Extfrag fragmenting for movable                        11826278     9859621     9761610
+
+With Patch 2:
+                                                   3.19-rc4        3.19-rc4        3.19-rc4
+                                                  7-nothp-1       7-nothp-2       7-nothp-3
+Page alloc extfrag event                                4725990     3668793     3807436
+Extfrag fragmenting                                     4725104     3668252     3806898
+Extfrag fragmenting for unmovable                          6678        7974        7281
+Extfrag fragmenting unmovable placed with movable          2051        3829        4017
+Extfrag fragmenting for reclaimable                         429        1208        1278
+Extfrag fragmenting reclaimable placed with movable         369         976        1034
+Extfrag fragmenting for movable                         4717997     3659070     3798339
+
+
+With Patch 3:
+                                                   3.19-rc4        3.19-rc4        3.19-rc4
+                                                  8-nothp-1       8-nothp-2       8-nothp-3
+Page alloc extfrag event                                5016183     4700142     3850633
+Extfrag fragmenting                                     5015325     4699613     3850072
+Extfrag fragmenting for unmovable                          1312        3154        3088
+Extfrag fragmenting unmovable placed with movable          1115        2777        2714
+Extfrag fragmenting for reclaimable                         437        1193        1097
+Extfrag fragmenting reclaimable placed with movable         330         969         879
+Extfrag fragmenting for movable                         5013576     4695266     3845887
+
+In v2 we've seen apparent regression with Patch 1 for unmovable events,
+this is now gone, suggesting it was indeed noise.  Here, each patch
+improves the situation for unmovable events.  Reclaimable is improved by
+patch 1 and then either the same modulo noise, or perhaps sligtly worse -
+a small price for unmovable improvements, IMHO.  The number of movable
+allocations falling back to other migratetypes is most noisy, but it's
+reduced to half at Patch 2 nevertheless.  These are least critical as
+compaction can move them around.
+
+If we look at success rates, the patches don't affect them, that didn't change.
+
+Baseline:
+                             3.19-rc4              3.19-rc4              3.19-rc4
+                            5-nothp-1             5-nothp-2             5-nothp-3
+Success 1 Min         49.00 (  0.00%)       42.00 ( 14.29%)       41.00 ( 16.33%)
+Success 1 Mean        51.00 (  0.00%)       45.00 ( 11.76%)       42.60 ( 16.47%)
+Success 1 Max         55.00 (  0.00%)       51.00 (  7.27%)       46.00 ( 16.36%)
+Success 2 Min         53.00 (  0.00%)       47.00 ( 11.32%)       44.00 ( 16.98%)
+Success 2 Mean        59.60 (  0.00%)       50.80 ( 14.77%)       48.20 ( 19.13%)
+Success 2 Max         64.00 (  0.00%)       56.00 ( 12.50%)       52.00 ( 18.75%)
+Success 3 Min         84.00 (  0.00%)       82.00 (  2.38%)       78.00 (  7.14%)
+Success 3 Mean        85.60 (  0.00%)       82.80 (  3.27%)       79.40 (  7.24%)
+Success 3 Max         86.00 (  0.00%)       83.00 (  3.49%)       80.00 (  6.98%)
+
+Patch 1:
+                             3.19-rc4              3.19-rc4              3.19-rc4
+                            6-nothp-1             6-nothp-2             6-nothp-3
+Success 1 Min         49.00 (  0.00%)       44.00 ( 10.20%)       44.00 ( 10.20%)
+Success 1 Mean        51.80 (  0.00%)       46.00 ( 11.20%)       45.80 ( 11.58%)
+Success 1 Max         54.00 (  0.00%)       49.00 (  9.26%)       49.00 (  9.26%)
+Success 2 Min         58.00 (  0.00%)       49.00 ( 15.52%)       48.00 ( 17.24%)
+Success 2 Mean        60.40 (  0.00%)       51.80 ( 14.24%)       50.80 ( 15.89%)
+Success 2 Max         63.00 (  0.00%)       54.00 ( 14.29%)       55.00 ( 12.70%)
+Success 3 Min         84.00 (  0.00%)       81.00 (  3.57%)       79.00 (  5.95%)
+Success 3 Mean        85.00 (  0.00%)       81.60 (  4.00%)       79.80 (  6.12%)
+Success 3 Max         86.00 (  0.00%)       82.00 (  4.65%)       82.00 (  4.65%)
+
+Patch 2:
+
+                             3.19-rc4              3.19-rc4              3.19-rc4
+                            7-nothp-1             7-nothp-2             7-nothp-3
+Success 1 Min         50.00 (  0.00%)       44.00 ( 12.00%)       39.00 ( 22.00%)
+Success 1 Mean        52.80 (  0.00%)       45.60 ( 13.64%)       42.40 ( 19.70%)
+Success 1 Max         55.00 (  0.00%)       46.00 ( 16.36%)       47.00 ( 14.55%)
+Success 2 Min         52.00 (  0.00%)       48.00 (  7.69%)       45.00 ( 13.46%)
+Success 2 Mean        53.40 (  0.00%)       49.80 (  6.74%)       48.80 (  8.61%)
+Success 2 Max         57.00 (  0.00%)       52.00 (  8.77%)       52.00 (  8.77%)
+Success 3 Min         84.00 (  0.00%)       81.00 (  3.57%)       79.00 (  5.95%)
+Success 3 Mean        85.00 (  0.00%)       82.40 (  3.06%)       79.60 (  6.35%)
+Success 3 Max         86.00 (  0.00%)       83.00 (  3.49%)       80.00 (  6.98%)
+
+Patch 3:
+                             3.19-rc4              3.19-rc4              3.19-rc4
+                            8-nothp-1             8-nothp-2             8-nothp-3
+Success 1 Min         46.00 (  0.00%)       44.00 (  4.35%)       42.00 (  8.70%)
+Success 1 Mean        50.20 (  0.00%)       45.60 (  9.16%)       44.00 ( 12.35%)
+Success 1 Max         52.00 (  0.00%)       47.00 (  9.62%)       47.00 (  9.62%)
+Success 2 Min         53.00 (  0.00%)       49.00 (  7.55%)       48.00 (  9.43%)
+Success 2 Mean        55.80 (  0.00%)       50.60 (  9.32%)       49.00 ( 12.19%)
+Success 2 Max         59.00 (  0.00%)       52.00 ( 11.86%)       51.00 ( 13.56%)
+Success 3 Min         84.00 (  0.00%)       80.00 (  4.76%)       79.00 (  5.95%)
+Success 3 Mean        85.40 (  0.00%)       81.60 (  4.45%)       80.40 (  5.85%)
+Success 3 Max         87.00 (  0.00%)       83.00 (  4.60%)       82.00 (  5.75%)
+
+While there's no improvement here, I consider reduced fragmentation events
+to be worth on its own.  Patch 2 also seems to reduce scanning for free
+pages, and migrations in compaction, suggesting it has somewhat less work
+to do:
+
+Patch 1:
+
+Compaction stalls                 4153        3959        3978
+Compaction success                1523        1441        1446
+Compaction failures               2630        2517        2531
+Page migrate success           4600827     4943120     5104348
+Page migrate failure             19763       16656       17806
+Compaction pages isolated      9597640    10305617    10653541
+Compaction migrate scanned    77828948    86533283    87137064
+Compaction free scanned      517758295   521312840   521462251
+Compaction cost                   5503        5932        6110
+
+Patch 2:
+
+Compaction stalls                 3800        3450        3518
+Compaction success                1421        1316        1317
+Compaction failures               2379        2134        2201
+Page migrate success           4160421     4502708     4752148
+Page migrate failure             19705       14340       14911
+Compaction pages isolated      8731983     9382374     9910043
+Compaction migrate scanned    98362797    96349194    98609686
+Compaction free scanned      496512560   469502017   480442545
+Compaction cost                   5173        5526        5811
+
+As with v2, /proc/pagetypeinfo appears unaffected with respect to numbers
+of unmovable and reclaimable pageblocks.
+
+Configuring the benchmark to allocate like THP page fault (i.e.  no sync
+compaction) gives much noisier results for iterations 2 and 3 after
+reboot.  This is not so surprising given how [1] offers lower improvements
+in this scenario due to less restarts after deferred compaction which
+would change compaction pivot.
+
+Baseline:
+                                                   3.19-rc4        3.19-rc4        3.19-rc4
+                                                    5-thp-1         5-thp-2         5-thp-3
+Page alloc extfrag event                                8148965     6227815     6646741
+Extfrag fragmenting                                     8147872     6227130     6646117
+Extfrag fragmenting for unmovable                         10324       12942       15975
+Extfrag fragmenting unmovable placed with movable          5972        8495       10907
+Extfrag fragmenting for reclaimable                         601        1707        2210
+Extfrag fragmenting reclaimable placed with movable         520        1570        2000
+Extfrag fragmenting for movable                         8136947     6212481     6627932
+
+Patch 1:
+                                                   3.19-rc4        3.19-rc4        3.19-rc4
+                                                    6-thp-1         6-thp-2         6-thp-3
+Page alloc extfrag event                                8345457     7574471     7020419
+Extfrag fragmenting                                     8343546     7573777     7019718
+Extfrag fragmenting for unmovable                         10256       18535       30716
+Extfrag fragmenting unmovable placed with movable          6893       11726       22181
+Extfrag fragmenting for reclaimable                         465        1208        1023
+Extfrag fragmenting reclaimable placed with movable         353         996         843
+Extfrag fragmenting for movable                         8332825     7554034     6987979
+
+Patch 2:
+                                                   3.19-rc4        3.19-rc4        3.19-rc4
+                                                    7-thp-1         7-thp-2         7-thp-3
+Page alloc extfrag event                                3512847     3020756     2891625
+Extfrag fragmenting                                     3511940     3020185     2891059
+Extfrag fragmenting for unmovable                          9017        6892        6191
+Extfrag fragmenting unmovable placed with movable          1524        3053        2435
+Extfrag fragmenting for reclaimable                         445        1081        1160
+Extfrag fragmenting reclaimable placed with movable         375         918         986
+Extfrag fragmenting for movable                         3502478     3012212     2883708
+
+Patch 3:
+                                                   3.19-rc4        3.19-rc4        3.19-rc4
+                                                    8-thp-1         8-thp-2         8-thp-3
+Page alloc extfrag event                                3181699     3082881     2674164
+Extfrag fragmenting                                     3180812     3082303     2673611
+Extfrag fragmenting for unmovable                          1201        4031        4040
+Extfrag fragmenting unmovable placed with movable           974        3611        3645
+Extfrag fragmenting for reclaimable                         478        1165        1294
+Extfrag fragmenting reclaimable placed with movable         387         985        1030
+Extfrag fragmenting for movable                         3179133     3077107     2668277
+
+The improvements for first iteration are clear, the rest is much noisier
+and can appear like regression for Patch 1.  Anyway, patch 2 rectifies it.
+
+Allocation success rates are again unaffected so there's no point in
+making this e-mail any longer.
+
+[1] http://marc.info/?l=linux-mm&m=142166196321125&w=2
+
+
+
+This patch (of 3):
+
+When __rmqueue_fallback() is called to allocate a page of order X, it will
+find a page of order Y >= X of a fallback migratetype, which is different
+from the desired migratetype.  With the help of try_to_steal_freepages(),
+it may change the migratetype (to the desired one) also of:
+
+1) all currently free pages in the pageblock containing the fallback page
+2) the fallback pageblock itself
+3) buddy pages created by splitting the fallback page (when Y > X)
+
+These decisions take the order Y into account, as well as the desired
+migratetype, with the goal of preventing multiple fallback allocations
+that could e.g.  distribute UNMOVABLE allocations among multiple
+pageblocks.
+
+Originally, decision for 1) has implied the decision for 3).  Commit
+47118af076f6 ("mm: mmzone: MIGRATE_CMA migration type added") changed that
+(probably unintentionally) so that the buddy pages in case 3) are always
+changed to the desired migratetype, except for CMA pageblocks.
+
+Commit fef903efcf0c ("mm/page_allo.c: restructure free-page stealing code
+and fix a bug") did some refactoring and added a comment that the case of
+3) is intended.  Commit 0cbef29a7821 ("mm: __rmqueue_fallback() should
+respect pageblock type") removed the comment and tried to restore the
+original behavior where 1) implies 3), but due to the previous
+refactoring, the result is instead that only 2) implies 3) - and the
+conditions for 2) are less frequently met than conditions for 1).  This
+may increase fragmentation in situations where the code decides to steal
+all free pages from the pageblock (case 1)), but then gives back the buddy
+pages produced by splitting.
+
+This patch restores the original intended logic where 1) implies 3). 
+During testing with stress-highalloc from mmtests, this has shown to
+decrease the number of events where UNMOVABLE and RECLAIMABLE allocations
+steal from MOVABLE pageblocks, which can lead to permanent fragmentation. 
+In some cases it has increased the number of events when MOVABLE
+allocations steal from UNMOVABLE or RECLAIMABLE pageblocks, but these are
+fixable by sync compaction and thus less harmful.
+
+Note that evaluation has shown that the behavior introduced by
+47118af076f6 for buddy pages in case 3) is actually even better than the
+original logic, so the following patch will introduce it properly once
+again.  For stable backports of this patch it makes thus sense to only fix
+versions containing 0cbef29a7821.
+
+[iamjoonsoo.kim@lge.com: tracepoint fix]
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: Mel Gorman <mgorman@suse.de>
 Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Cc: Minchan Kim <minchan@kernel.org>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Rik van Riel <riel@redhat.com>
 Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
@@ -82,47 +328,79 @@ Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Michal Hocko <mhocko@suse.cz>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: <stable@vger.kernel.org>	[3.13+ containing 0cbef29a7821]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   18 ++++++++++++++----
- 1 file changed, 14 insertions(+), 4 deletions(-)
+ include/trace/events/kmem.h |    7 ++++---
+ mm/page_alloc.c             |   12 +++++-------
+ 2 files changed, 9 insertions(+), 10 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-more-aggressive-page-stealing-for-unmovable-allocations mm/page_alloc.c
---- a/mm/page_alloc.c~mm-more-aggressive-page-stealing-for-unmovable-allocations
+diff -puN include/trace/events/kmem.h~mm-when-stealing-freepages-also-take-pages-created-by-splitting-buddy-page include/trace/events/kmem.h
+--- a/include/trace/events/kmem.h~mm-when-stealing-freepages-also-take-pages-created-by-splitting-buddy-page
++++ a/include/trace/events/kmem.h
+@@ -268,11 +268,11 @@ TRACE_EVENT(mm_page_alloc_extfrag,
+ 
+ 	TP_PROTO(struct page *page,
+ 		int alloc_order, int fallback_order,
+-		int alloc_migratetype, int fallback_migratetype, int new_migratetype),
++		int alloc_migratetype, int fallback_migratetype),
+ 
+ 	TP_ARGS(page,
+ 		alloc_order, fallback_order,
+-		alloc_migratetype, fallback_migratetype, new_migratetype),
++		alloc_migratetype, fallback_migratetype),
+ 
+ 	TP_STRUCT__entry(
+ 		__field(	struct page *,	page			)
+@@ -289,7 +289,8 @@ TRACE_EVENT(mm_page_alloc_extfrag,
+ 		__entry->fallback_order		= fallback_order;
+ 		__entry->alloc_migratetype	= alloc_migratetype;
+ 		__entry->fallback_migratetype	= fallback_migratetype;
+-		__entry->change_ownership	= (new_migratetype == alloc_migratetype);
++		__entry->change_ownership	= (alloc_migratetype ==
++					get_pageblock_migratetype(page));
+ 	),
+ 
+ 	TP_printk("page=%p pfn=%lu alloc_order=%d fallback_order=%d pageblock_order=%d alloc_migratetype=%d fallback_migratetype=%d fragmenting=%d change_ownership=%d",
+diff -puN mm/page_alloc.c~mm-when-stealing-freepages-also-take-pages-created-by-splitting-buddy-page mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-when-stealing-freepages-also-take-pages-created-by-splitting-buddy-page
 +++ a/mm/page_alloc.c
-@@ -1123,10 +1123,19 @@ static void change_pageblock_range(struc
- }
- 
- /*
-- * If breaking a large block of pages, move all free pages to the preferred
-- * allocation list. If falling back for a reclaimable kernel allocation, be
-- * more aggressive about taking ownership of free pages. If we claim more than
-- * half of the pageblock, change pageblock's migratetype as well.
-+ * When we are falling back to another migratetype during allocation, try to
-+ * steal extra free pages from the same pageblocks to satisfy further
-+ * allocations, instead of polluting multiple pageblocks.
-+ *
-+ * If we are stealing a relatively large buddy page, it is likely there will
-+ * be more free pages in the pageblock, so try to steal them all. For
-+ * reclaimable and unmovable allocations, we steal regardless of page size,
-+ * as fragmentation caused by those allocations polluting movable pageblocks
-+ * is worse than movable allocations stealing from unmovable and reclaimable
-+ * pageblocks.
-+ *
-+ * If we claim more than half of the pageblock, change pageblock's migratetype
-+ * as well.
+@@ -1131,8 +1131,8 @@ static void change_pageblock_range(struc
+  * nor move CMA pages to different free lists. We don't want unmovable pages
+  * to be allocated from MIGRATE_CMA areas.
+  *
+- * Returns the new migratetype of the pageblock (or the same old migratetype
+- * if it was unchanged).
++ * Returns the allocation migratetype if free pages were stolen, or the
++ * fallback migratetype if it was decided not to steal.
   */
- static void try_to_steal_freepages(struct zone *zone, struct page *page,
+ static int try_to_steal_freepages(struct zone *zone, struct page *page,
  				  int start_type, int fallback_type)
-@@ -1141,6 +1150,7 @@ static void try_to_steal_freepages(struc
+@@ -1163,12 +1163,10 @@ static int try_to_steal_freepages(struct
  
- 	if (current_order >= pageblock_order / 2 ||
- 	    start_type == MIGRATE_RECLAIMABLE ||
-+	    start_type == MIGRATE_UNMOVABLE ||
- 	    page_group_by_mobility_disabled) {
- 		int pages;
+ 		/* Claim the whole block if over half of it is free */
+ 		if (pages >= (1 << (pageblock_order-1)) ||
+-				page_group_by_mobility_disabled) {
+-
++				page_group_by_mobility_disabled)
+ 			set_pageblock_migratetype(page, start_type);
+-			return start_type;
+-		}
  
++		return start_type;
+ 	}
+ 
+ 	return fallback_type;
+@@ -1220,7 +1218,7 @@ __rmqueue_fallback(struct zone *zone, un
+ 			set_freepage_migratetype(page, new_type);
+ 
+ 			trace_mm_page_alloc_extfrag(page, order, current_order,
+-				start_migratetype, migratetype, new_type);
++				start_migratetype, migratetype);
+ 
+ 			return page;
+ 		}
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
