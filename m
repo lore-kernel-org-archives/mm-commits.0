@@ -1,158 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-set-append-dio-as-a-ro-compat-feature.patch added to -mm
- tree
-Date: Thu, 22 Jan 2015 16:35:47 -0800
-Message-ID: <54c19763.6w7sTx1CdexyXPK+%akpm@linux-foundation.org>
+Subject: [obsolete] viro-fix.patch removed from -mm tree
+Date: Fri, 23 Jan 2015 12:25:58 -0800
+Message-ID: <54c2ae56.IcvTlC1oIRpnYFmd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55424 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39641 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754430AbbAWAfs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Jan 2015 19:35:48 -0500
+	with ESMTP id S1754600AbbAWUZ7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jan 2015 15:25:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joseph.qi@huawei.com, alex.chen@huawei.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@suse.com, wangww631@huawei.com, xuejiufei@huawei.com, mm-commits@vger.kernel.org
+To: viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: set append dio as a ro compat feature
-has been added to the -mm tree.  Its filename is
-     ocfs2-set-append-dio-as-a-ro-compat-feature.patch
+     Subject: Re: linux-next: Tree for Jan 20 -- Kernel panic - Unable to mount root fs
+has been removed from the -mm tree.  Its filename was
+     viro-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-set-append-dio-as-a-ro-compat-feature.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-set-append-dio-as-a-ro-compat-feature.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@huawei.com>
-Subject: ocfs2: set append dio as a ro compat feature
+From: Al Viro <viro@ZenIV.linux.org.uk>
+Subject: Re: linux-next: Tree for Jan 20 -- Kernel panic - Unable to mount root fs
 
-Intruduce a bit OCFS2_FEATURE_RO_COMPAT_APPEND_DIO and check it in
-write flow. If the bit is not set, fall back to the old way.
-
-Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
-Cc: Weiwei Wang <wangww631@huawei.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Xuejiufei <xuejiufei@huawei.com>
-Cc: alex chen <alex.chen@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/file.c     |   17 ++++++++++++++++-
- fs/ocfs2/ocfs2.h    |    8 ++++++++
- fs/ocfs2/ocfs2_fs.h |    8 +++++++-
- 3 files changed, 31 insertions(+), 2 deletions(-)
+ fs/namei.c |   34 +++++++++++++++++++++++++++++-----
+ 1 file changed, 29 insertions(+), 5 deletions(-)
 
-diff -puN fs/ocfs2/file.c~ocfs2-set-append-dio-as-a-ro-compat-feature fs/ocfs2/file.c
---- a/fs/ocfs2/file.c~ocfs2-set-append-dio-as-a-ro-compat-feature
-+++ a/fs/ocfs2/file.c
-@@ -2213,6 +2213,15 @@ static int ocfs2_prepare_inode_for_write
- 		}
- 
- 		/*
-+		 * Fallback to old way if the feature bit is not set.
-+		 */
-+		if (end > i_size_read(inode) &&
-+				!ocfs2_supports_append_dio(osb)) {
-+			*direct_io = 0;
-+			break;
-+		}
+diff -puN fs/namei.c~viro-fix fs/namei.c
+--- a/fs/namei.c~viro-fix
++++ a/fs/namei.c
+@@ -2056,13 +2056,22 @@ static int do_path_lookup(int dfd, const
+ /* does lookup, returns the object with parent locked */
+ struct dentry *kern_path_locked(const char *name, struct path *path)
+ {
++	struct filename *filename = getname_kernel(name);
+ 	struct nameidata nd;
+ 	struct dentry *d;
+-	int err = do_path_lookup(AT_FDCWD, name, LOOKUP_PARENT, &nd);
+-	if (err)
++	int err;
 +
-+		/*
- 		 * We don't fill holes during direct io, so
- 		 * check for them here. If any are found, the
- 		 * caller will have to retake some cluster
-@@ -2220,7 +2229,13 @@ static int ocfs2_prepare_inode_for_write
- 		 */
- 		ret = ocfs2_check_range_for_holes(inode, saved_pos, count);
- 		if (ret == 1) {
--			*direct_io = 0;
-+			/*
-+			 * Fallback to old way if the feature bit is not set.
-+			 * Otherwise try dio first and then complete the rest
-+			 * request through buffer io.
-+			 */
-+			if (!ocfs2_supports_append_dio(osb))
-+				*direct_io = 0;
- 			ret = 0;
- 		} else if (ret < 0)
- 			mlog_errno(ret);
-diff -puN fs/ocfs2/ocfs2.h~ocfs2-set-append-dio-as-a-ro-compat-feature fs/ocfs2/ocfs2.h
---- a/fs/ocfs2/ocfs2.h~ocfs2-set-append-dio-as-a-ro-compat-feature
-+++ a/fs/ocfs2/ocfs2.h
-@@ -500,6 +500,14 @@ static inline int ocfs2_writes_unwritten
- 	return 0;
++	if (IS_ERR(filename))
++		return ERR_CAST(filename);
++
++	err = filename_lookup(AT_FDCWD, filename, LOOKUP_PARENT, &nd);
++	if (err) {
++		putname(filename);
+ 		return ERR_PTR(err);
++	}
+ 	if (nd.last_type != LAST_NORM) {
+ 		path_put(&nd.path);
++		putname(filename);
+ 		return ERR_PTR(-EINVAL);
+ 	}
+ 	mutex_lock_nested(&nd.path.dentry->d_inode->i_mutex, I_MUTEX_PARENT);
+@@ -2070,9 +2079,11 @@ struct dentry *kern_path_locked(const ch
+ 	if (IS_ERR(d)) {
+ 		mutex_unlock(&nd.path.dentry->d_inode->i_mutex);
+ 		path_put(&nd.path);
++		putname(filename);
+ 		return d;
+ 	}
+ 	*path = nd.path;
++	putname(filename);
+ 	return d;
  }
  
-+static inline int ocfs2_supports_append_dio(struct ocfs2_super *osb)
-+{
-+	if (osb->s_feature_ro_compat & OCFS2_FEATURE_RO_COMPAT_APPEND_DIO)
-+		return 1;
-+	return 0;
-+}
-+
-+
- static inline int ocfs2_supports_inline_data(struct ocfs2_super *osb)
+@@ -3314,7 +3325,7 @@ struct file *do_file_open_root(struct de
+ 	return file;
+ }
+ 
+-struct dentry *kern_path_create(int dfd, const char *pathname,
++static struct dentry *filename_create(int dfd, struct filename *name,
+ 				struct path *path, unsigned int lookup_flags)
  {
- 	if (osb->s_feature_incompat & OCFS2_FEATURE_INCOMPAT_INLINE_DATA)
-diff -puN fs/ocfs2/ocfs2_fs.h~ocfs2-set-append-dio-as-a-ro-compat-feature fs/ocfs2/ocfs2_fs.h
---- a/fs/ocfs2/ocfs2_fs.h~ocfs2-set-append-dio-as-a-ro-compat-feature
-+++ a/fs/ocfs2/ocfs2_fs.h
-@@ -105,7 +105,8 @@
- 					 | OCFS2_FEATURE_INCOMPAT_CLUSTERINFO)
- #define OCFS2_FEATURE_RO_COMPAT_SUPP	(OCFS2_FEATURE_RO_COMPAT_UNWRITTEN \
- 					 | OCFS2_FEATURE_RO_COMPAT_USRQUOTA \
--					 | OCFS2_FEATURE_RO_COMPAT_GRPQUOTA)
-+					 | OCFS2_FEATURE_RO_COMPAT_GRPQUOTA \
-+					 | OCFS2_FEATURE_RO_COMPAT_APPEND_DIO)
+ 	struct dentry *dentry = ERR_PTR(-EEXIST);
+@@ -3329,7 +3340,7 @@ struct dentry *kern_path_create(int dfd,
+ 	 */
+ 	lookup_flags &= LOOKUP_REVAL;
  
- /*
-  * Heartbeat-only devices are missing journals and other files.  The
-@@ -199,6 +200,11 @@
- #define OCFS2_FEATURE_RO_COMPAT_USRQUOTA	0x0002
- #define OCFS2_FEATURE_RO_COMPAT_GRPQUOTA	0x0004
+-	error = do_path_lookup(dfd, pathname, LOOKUP_PARENT|lookup_flags, &nd);
++	error = filename_lookup(dfd, name, LOOKUP_PARENT|lookup_flags, &nd);
+ 	if (error)
+ 		return ERR_PTR(error);
  
-+/*
-+ * Append Direct IO support
-+ */
-+#define OCFS2_FEATURE_RO_COMPAT_APPEND_DIO	0x0008
+@@ -3383,6 +3394,19 @@ out:
+ 	path_put(&nd.path);
+ 	return dentry;
+ }
 +
- /* The byte offset of the first backup block will be 1G.
-  * The following will be 4G, 16G, 64G, 256G and 1T.
-  */
++struct dentry *kern_path_create(int dfd, const char *pathname,
++				struct path *path, unsigned int lookup_flags)
++{
++	struct filename *filename = getname_kernel(pathname);
++	struct dentry *res = ERR_CAST(filename);
++
++	if (!IS_ERR(filename)) {
++		res = filename_create(dfd, filename, path, lookup_flags);
++		putname(filename);
++	}
++	return res;
++}
+ EXPORT_SYMBOL(kern_path_create);
+ 
+ void done_path_create(struct path *path, struct dentry *dentry)
+@@ -3401,7 +3425,7 @@ struct dentry *user_path_create(int dfd,
+ 	struct dentry *res;
+ 	if (IS_ERR(tmp))
+ 		return ERR_CAST(tmp);
+-	res = kern_path_create(dfd, tmp->name, path, lookup_flags);
++	res = filename_create(dfd, tmp, path, lookup_flags);
+ 	putname(tmp);
+ 	return res;
+ }
 _
 
-Patches currently in -mm which might be from joseph.qi@huawei.com are
+Patches currently in -mm which might be from viro@ZenIV.linux.org.uk are
 
-ocfs2-fix-snprintf-format-specifier-in-dlmdebugc.patch
-ocfs2-fix-journal-commit-deadlock-in-ocfs2_convert_inline_data_to_extents.patch
-ocfs2-add-a-mount-option-journal_async_commit-on-ocfs2-filesystem.patch
 linux-next.patch
-ocfs2-prepare-some-interfaces-used-in-append-direct-io.patch
-ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir.patch
-ocfs2-add-orphan-recovery-types-in-ocfs2_recover_orphans.patch
-ocfs2-implement-ocfs2_direct_io_write.patch
-ocfs2-implement-ocfs2_direct_io_write-fix.patch
-ocfs2-allocate-blocks-in-ocfs2_direct_io_get_blocks.patch
-ocfs2-do-not-fallback-to-buffer-i-o-write-if-appending.patch
-ocfs2-complete-the-rest-request-through-buffer-io.patch
-ocfs2-wait-for-orphan-recovery-first-once-append-o_direct-write-crash.patch
-ocfs2-set-append-dio-as-a-ro-compat-feature.patch
+mutex-subsystem-synchro-test-module.patch
 
