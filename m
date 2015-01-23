@@ -1,420 +1,171 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete]
- revert-mm-pagewalk-call-pte_hole-for-vm_pfnmap-during-walk_page_range.patch removed from -mm tree
-Date: Fri, 23 Jan 2015 12:43:00 -0800
-Message-ID: <54c2b254.SWmE5sjetj3ismfU%akpm@linux-foundation.org>
+Subject: +
+ mm-pagewalk-fix-misbehavior-of-walk_page_range-for-vmavm_pfnmap-re-pagewalk-improve-vma-handling.patch added to -mm tree
+Date: Fri, 23 Jan 2015 12:44:24 -0800
+Message-ID: <54c2b2a8.Ptz9o60d3nxB4Nct%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39680 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39764 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751018AbbAWUnB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jan 2015 15:43:01 -0500
+	with ESMTP id S1750840AbbAWUoZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jan 2015 15:44:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aarcange@redhat.com, benh@kernel.crashing.org, dave.hansen@intel.com, gorcunov@openvz.org, kirill.shutemov@linux.intel.com, n-horiguchi@ah.jp.nec.com, xemul@parallels.com, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, shashim@codeaurora.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: revert-mm-pagewalk-call-pte_hole-for-vm_pfnmap-during-walk_page_range
-has been removed from the -mm tree.  Its filename was
-     revert-mm-pagewalk-call-pte_hole-for-vm_pfnmap-during-walk_page_range.patch
+     Subject: mm: pagewalk: fix misbehavior of walk_page_range for vma(VM_PFNMAP)
+has been added to the -mm tree.  Its filename is
+     mm-pagewalk-fix-misbehavior-of-walk_page_range-for-vmavm_pfnmap-re-pagewalk-improve-vma-handling.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-pagewalk-fix-misbehavior-of-walk_page_range-for-vmavm_pfnmap-re-pagewalk-improve-vma-handling.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-pagewalk-fix-misbehavior-of-walk_page_range-for-vmavm_pfnmap-re-pagewalk-improve-vma-handling.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: revert-mm-pagewalk-call-pte_hole-for-vm_pfnmap-during-walk_page_range
-
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: pagewalk: improve vma handling
+Subject: mm: pagewalk: fix misbehavior of walk_page_range for vma(VM_PFNMAP)
 
-Current implementation of page table walker has a fundamental problem in
-vma handling, which started when we tried to handle vma(VM_HUGETLB). 
-Because it's done in pgd loop, considering vma boundary makes code
-complicated and bug-prone.
+walk_page_range() silently skips vma having VM_PFNMAP set, which leads to
+undesirable behaviour at client end (who called walk_page_range).  For
+example for pagemap_read(), when no callbacks are called against VM_PFNMAP
+vma, pagemap_read() may prepare pagemap data for next virtual address
+range at wrong index.  That could confuse and/or break userspace
+applications.
 
-From the users viewpoint, some user checks some vma-related condition to
-determine whether the user really does page walk over the vma.
-
-In order to solve these, this patch moves vma check outside pgd loop and
-introduce a new callback ->test_walk().
+This patch avoid this misbehavior caused by vma(VM_PFNMAP) like follows:
+- for pagemap_read() which has its own ->pte_hole(), call the ->pte_hole()
+  over vma(VM_PFNMAP),
+- for clear_refs and queue_pages which have their own ->tests_walk,
+  just return 1 and skip vma(VM_PFNMAP). This is no problem because
+  these are not interested in hole regions,
+- for other callers, just skip the vma(VM_PFNMAP) as a default behavior.
 
 Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Pavel Emelyanov <xemul@parallels.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Shiraz Hashim <shashim@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   15 ++-
- mm/pagewalk.c      |  206 ++++++++++++++++++++++++-------------------
- 2 files changed, 129 insertions(+), 92 deletions(-)
+ fs/proc/task_mmu.c |    3 +++
+ mm/mempolicy.c     |    3 +++
+ mm/pagewalk.c      |   21 +++++++++++++--------
+ 3 files changed, 19 insertions(+), 8 deletions(-)
 
-diff -puN mm/pagewalk.c~revert-mm-pagewalk-call-pte_hole-for-vm_pfnmap-during-walk_page_range mm/pagewalk.c
---- a/mm/pagewalk.c~revert-mm-pagewalk-call-pte_hole-for-vm_pfnmap-during-walk_page_range
-+++ a/mm/pagewalk.c
-@@ -59,7 +59,7 @@ again:
- 			continue;
+diff -puN fs/proc/task_mmu.c~mm-pagewalk-fix-misbehavior-of-walk_page_range-for-vmavm_pfnmap-re-pagewalk-improve-vma-handling fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~mm-pagewalk-fix-misbehavior-of-walk_page_range-for-vmavm_pfnmap-re-pagewalk-improve-vma-handling
++++ a/fs/proc/task_mmu.c
+@@ -806,6 +806,9 @@ static int clear_refs_test_walk(unsigned
+ 	struct clear_refs_private *cp = walk->private;
+ 	struct vm_area_struct *vma = walk->vma;
  
- 		split_huge_page_pmd_mm(walk->mm, addr, pmd);
--		if (pmd_none_or_trans_huge_or_clear_bad(pmd))
-+		if (pmd_trans_unstable(pmd))
- 			goto again;
- 		err = walk_pte_range(pmd, addr, next, walk);
- 		if (err)
-@@ -95,6 +95,32 @@ static int walk_pud_range(pgd_t *pgd, un
- 	return err;
- }
- 
-+static int walk_pgd_range(unsigned long addr, unsigned long end,
-+			  struct mm_walk *walk)
-+{
-+	pgd_t *pgd;
-+	unsigned long next;
-+	int err = 0;
-+
-+	pgd = pgd_offset(walk->mm, addr);
-+	do {
-+		next = pgd_addr_end(addr, end);
-+		if (pgd_none_or_clear_bad(pgd)) {
-+			if (walk->pte_hole)
-+				err = walk->pte_hole(addr, next, walk);
-+			if (err)
-+				break;
-+			continue;
-+		}
-+		if (walk->pmd_entry || walk->pte_entry)
-+			err = walk_pud_range(pgd, addr, next, walk);
-+		if (err)
-+			break;
-+	} while (pgd++, addr = next, addr != end);
-+
-+	return err;
-+}
-+
- #ifdef CONFIG_HUGETLB_PAGE
- static unsigned long hugetlb_entry_end(struct hstate *h, unsigned long addr,
- 				       unsigned long end)
-@@ -103,10 +129,10 @@ static unsigned long hugetlb_entry_end(s
- 	return boundary < end ? boundary : end;
- }
- 
--static int walk_hugetlb_range(struct vm_area_struct *vma,
--			      unsigned long addr, unsigned long end,
-+static int walk_hugetlb_range(unsigned long addr, unsigned long end,
- 			      struct mm_walk *walk)
- {
-+	struct vm_area_struct *vma = walk->vma;
- 	struct hstate *h = hstate_vma(vma);
- 	unsigned long next;
- 	unsigned long hmask = huge_page_mask(h);
-@@ -119,15 +145,14 @@ static int walk_hugetlb_range(struct vm_
- 		if (pte && walk->hugetlb_entry)
- 			err = walk->hugetlb_entry(pte, hmask, addr, next, walk);
- 		if (err)
--			return err;
-+			break;
- 	} while (addr = next, addr != end);
- 
--	return 0;
-+	return err;
- }
- 
- #else /* CONFIG_HUGETLB_PAGE */
--static int walk_hugetlb_range(struct vm_area_struct *vma,
--			      unsigned long addr, unsigned long end,
-+static int walk_hugetlb_range(unsigned long addr, unsigned long end,
- 			      struct mm_walk *walk)
- {
- 	return 0;
-@@ -135,112 +160,115 @@ static int walk_hugetlb_range(struct vm_
- 
- #endif /* CONFIG_HUGETLB_PAGE */
- 
-+/*
-+ * Decide whether we really walk over the current vma on [@start, @end)
-+ * or skip it via the returned value. Return 0 if we do walk over the
-+ * current vma, and return 1 if we skip the vma. Negative values means
-+ * error, where we abort the current walk.
-+ *
-+ * Default check (only VM_PFNMAP check for now) is used when the caller
-+ * doesn't define test_walk() callback.
-+ */
-+static int walk_page_test(unsigned long start, unsigned long end,
-+			struct mm_walk *walk)
-+{
-+	struct vm_area_struct *vma = walk->vma;
- 
-+	if (walk->test_walk)
-+		return walk->test_walk(start, end, walk);
-+
-+	/*
-+	 * Do not walk over vma(VM_PFNMAP), because we have no valid struct
-+	 * page backing a VM_PFNMAP range. See also commit a9ff785e4437.
-+	 */
 +	if (vma->vm_flags & VM_PFNMAP)
 +		return 1;
-+	return 0;
-+}
 +
-+static int __walk_page_range(unsigned long start, unsigned long end,
-+			struct mm_walk *walk)
-+{
-+	int err = 0;
-+	struct vm_area_struct *vma = walk->vma;
+ 	/*
+ 	 * Writing 1 to /proc/pid/clear_refs affects all pages.
+ 	 * Writing 2 to /proc/pid/clear_refs only affects anonymous pages.
+diff -puN mm/mempolicy.c~mm-pagewalk-fix-misbehavior-of-walk_page_range-for-vmavm_pfnmap-re-pagewalk-improve-vma-handling mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-pagewalk-fix-misbehavior-of-walk_page_range-for-vmavm_pfnmap-re-pagewalk-improve-vma-handling
++++ a/mm/mempolicy.c
+@@ -591,6 +591,9 @@ static int queue_pages_test_walk(unsigne
+ 	unsigned long endvma = vma->vm_end;
+ 	unsigned long flags = qp->flags;
+ 
++	if (vma->vm_flags & VM_PFNMAP)
++		return 1;
 +
-+	if (vma && is_vm_hugetlb_page(vma)) {
-+		if (walk->hugetlb_entry)
-+			err = walk_hugetlb_range(start, end, walk);
-+	} else
-+		err = walk_pgd_range(start, end, walk);
-+
-+	return err;
-+}
- 
- /**
-- * walk_page_range - walk a memory map's page tables with a callback
-- * @addr: starting address
-- * @end: ending address
-- * @walk: set of callbacks to invoke for each level of the tree
-+ * walk_page_range - walk page table with caller specific callbacks
-  *
-- * Recursively walk the page table for the memory area in a VMA,
-- * calling supplied callbacks. Callbacks are called in-order (first
-- * PGD, first PUD, first PMD, first PTE, second PTE... second PMD,
-- * etc.). If lower-level callbacks are omitted, walking depth is reduced.
-+ * Recursively walk the page table tree of the process represented by @walk->mm
-+ * within the virtual address range [@start, @end). During walking, we can do
-+ * some caller-specific works for each entry, by setting up pmd_entry(),
-+ * pte_entry(), and/or hugetlb_entry(). If you don't set up for some of these
-+ * callbacks, the associated entries/pages are just ignored.
-+ * The return values of these callbacks are commonly defined like below:
-+ *  - 0  : succeeded to handle the current entry, and if you don't reach the
-+ *         end address yet, continue to walk.
-+ *  - >0 : succeeded to handle the current entry, and return to the caller
-+ *         with caller specific value.
-+ *  - <0 : failed to handle the current entry, and return to the caller
-+ *         with error code.
-  *
-- * Each callback receives an entry pointer and the start and end of the
-- * associated range, and a copy of the original mm_walk for access to
-- * the ->private or ->mm fields.
-+ * Before starting to walk page table, some callers want to check whether
-+ * they really want to walk over the current vma, typically by checking
-+ * its vm_flags. walk_page_test() and @walk->test_walk() are used for this
-+ * purpose.
-  *
-- * Usually no locks are taken, but splitting transparent huge page may
-- * take page table lock. And the bottom level iterator will map PTE
-- * directories from highmem if necessary.
-+ * struct mm_walk keeps current values of some common data like vma and pmd,
-+ * which are useful for the access from callbacks. If you want to pass some
-+ * caller-specific data to callbacks, @walk->private should be helpful.
-  *
-- * If any callback returns a non-zero value, the walk is aborted and
-- * the return value is propagated back to the caller. Otherwise 0 is returned.
-- *
-- * walk->mm->mmap_sem must be held for at least read if walk->hugetlb_entry
-- * is !NULL.
-+ * Locking:
-+ *   Callers of walk_page_range() and walk_page_vma() should hold
-+ *   @walk->mm->mmap_sem, because these function traverse vma list and/or
-+ *   access to vma's data.
-  */
--int walk_page_range(unsigned long addr, unsigned long end,
-+int walk_page_range(unsigned long start, unsigned long end,
- 		    struct mm_walk *walk)
- {
--	pgd_t *pgd;
--	unsigned long next;
- 	int err = 0;
-+	unsigned long next;
-+	struct vm_area_struct *vma;
- 
--	if (addr >= end)
--		return err;
-+	if (start >= end)
-+		return -EINVAL;
- 
- 	if (!walk->mm)
- 		return -EINVAL;
- 
- 	VM_BUG_ON_MM(!rwsem_is_locked(&walk->mm->mmap_sem), walk->mm);
- 
--	pgd = pgd_offset(walk->mm, addr);
-+	vma = find_vma(walk->mm, start);
+ 	if (endvma > end)
+ 		endvma = end;
+ 	if (vma->vm_start > start)
+diff -puN mm/pagewalk.c~mm-pagewalk-fix-misbehavior-of-walk_page_range-for-vmavm_pfnmap-re-pagewalk-improve-vma-handling mm/pagewalk.c
+--- a/mm/pagewalk.c~mm-pagewalk-fix-misbehavior-of-walk_page_range-for-vmavm_pfnmap-re-pagewalk-improve-vma-handling
++++ a/mm/pagewalk.c
+@@ -35,7 +35,7 @@ static int walk_pmd_range(pud_t *pud, un
  	do {
--		struct vm_area_struct *vma = NULL;
--
--		next = pgd_addr_end(addr, end);
-+		if (!vma) { /* after the last vma */
-+			walk->vma = NULL;
-+			next = end;
-+		} else if (start < vma->vm_start) { /* outside vma */
-+			walk->vma = NULL;
-+			next = min(end, vma->vm_start);
-+		} else { /* inside vma */
-+			walk->vma = vma;
-+			next = min(end, vma->vm_end);
-+			vma = vma->vm_next;
- 
--		/*
--		 * This function was not intended to be vma based.
--		 * But there are vma special cases to be handled:
--		 * - hugetlb vma's
--		 * - VM_PFNMAP vma's
--		 */
--		vma = find_vma(walk->mm, addr);
--		if (vma) {
--			/*
--			 * There are no page structures backing a VM_PFNMAP
--			 * range, so do not allow split_huge_page_pmd().
--			 */
--			if ((vma->vm_start <= addr) &&
--			    (vma->vm_flags & VM_PFNMAP)) {
--				if (walk->pte_hole)
--					err = walk->pte_hole(addr, next, walk);
--				if (err)
--					break;
--				pgd = pgd_offset(walk->mm, next);
--				continue;
--			}
--			/*
--			 * Handle hugetlb vma individually because pagetable
--			 * walk for the hugetlb page is dependent on the
--			 * architecture and we can't handled it in the same
--			 * manner as non-huge pages.
--			 */
--			if (walk->hugetlb_entry && (vma->vm_start <= addr) &&
--			    is_vm_hugetlb_page(vma)) {
--				if (vma->vm_end < next)
--					next = vma->vm_end;
--				/*
--				 * Hugepage is very tightly coupled with vma,
--				 * so walk through hugetlb entries within a
--				 * given vma.
--				 */
--				err = walk_hugetlb_range(vma, addr, next, walk);
--				if (err)
--					break;
--				pgd = pgd_offset(walk->mm, next);
-+			err = walk_page_test(start, next, walk);
-+			if (err > 0)
- 				continue;
--			}
--		}
--
--		if (pgd_none_or_clear_bad(pgd)) {
--			if (walk->pte_hole)
--				err = walk->pte_hole(addr, next, walk);
--			if (err)
-+			if (err < 0)
- 				break;
--			pgd++;
--			continue;
- 		}
--		if (walk->pmd_entry || walk->pte_entry)
--			err = walk_pud_range(pgd, addr, next, walk);
-+		if (walk->vma || walk->pte_hole)
-+			err = __walk_page_range(start, next, walk);
- 		if (err)
- 			break;
--		pgd++;
--	} while (addr = next, addr < end);
--
-+	} while (start = next, start < end);
- 	return err;
- }
-diff -puN include/linux/mm.h~revert-mm-pagewalk-call-pte_hole-for-vm_pfnmap-during-walk_page_range include/linux/mm.h
---- a/include/linux/mm.h~revert-mm-pagewalk-call-pte_hole-for-vm_pfnmap-during-walk_page_range
-+++ a/include/linux/mm.h
-@@ -1162,10 +1162,16 @@ void unmap_vmas(struct mmu_gather *tlb,
-  * @pte_entry: if set, called for each non-empty PTE (4th-level) entry
-  * @pte_hole: if set, called for each hole at all levels
-  * @hugetlb_entry: if set, called for each hugetlb entry
-- *		   *Caution*: The caller must hold mmap_sem() if @hugetlb_entry
-- * 			      is used.
-+ * @test_walk: caller specific callback function to determine whether
-+ *             we walk over the current vma or not. A positive returned
-+ *             value means "do page table walk over the current vma,"
-+ *             and a negative one means "abort current page table walk
-+ *             right now." 0 means "skip the current vma."
-+ * @mm:        mm_struct representing the target process of page table walk
-+ * @vma:       vma currently walked (NULL if walking outside vmas)
-+ * @private:   private data for callbacks' usage
-  *
-- * (see walk_page_range for more details)
-+ * (see the comment on walk_page_range() for more details)
+ again:
+ 		next = pmd_addr_end(addr, end);
+-		if (pmd_none(*pmd)) {
++		if (pmd_none(*pmd) || !walk->vma) {
+ 			if (walk->pte_hole)
+ 				err = walk->pte_hole(addr, next, walk);
+ 			if (err)
+@@ -165,9 +165,6 @@ static int walk_hugetlb_range(unsigned l
+  * or skip it via the returned value. Return 0 if we do walk over the
+  * current vma, and return 1 if we skip the vma. Negative values means
+  * error, where we abort the current walk.
+- *
+- * Default check (only VM_PFNMAP check for now) is used when the caller
+- * doesn't define test_walk() callback.
   */
- struct mm_walk {
- 	int (*pmd_entry)(pmd_t *pmd, unsigned long addr,
-@@ -1177,7 +1183,10 @@ struct mm_walk {
- 	int (*hugetlb_entry)(pte_t *pte, unsigned long hmask,
- 			     unsigned long addr, unsigned long next,
- 			     struct mm_walk *walk);
-+	int (*test_walk)(unsigned long addr, unsigned long next,
-+			struct mm_walk *walk);
- 	struct mm_struct *mm;
-+	struct vm_area_struct *vma;
- 	void *private;
- };
+ static int walk_page_test(unsigned long start, unsigned long end,
+ 			struct mm_walk *walk)
+@@ -178,11 +175,19 @@ static int walk_page_test(unsigned long
+ 		return walk->test_walk(start, end, walk);
+ 
+ 	/*
+-	 * Do not walk over vma(VM_PFNMAP), because we have no valid struct
+-	 * page backing a VM_PFNMAP range. See also commit a9ff785e4437.
++	 * vma(VM_PFNMAP) doesn't have any valid struct pages behind VM_PFNMAP
++	 * range, so we don't walk over it as we do for normal vmas. However,
++	 * Some callers are interested in handling hole range and they don't
++	 * want to just ignore any single address range. Such users certainly
++	 * define their ->pte_hole() callbacks, so let's delegate them to handle
++	 * vma(VM_PFNMAP).
+ 	 */
+-	if (vma->vm_flags & VM_PFNMAP)
+-		return 1;
++	if (vma->vm_flags & VM_PFNMAP) {
++		int err = 1;
++		if (walk->pte_hole)
++			err = walk->pte_hole(start, end, walk);
++		return err ? err : 1;
++	}
+ 	return 0;
+ }
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-fanotify-dont-recalculate-a-marks-mask-if-only-the-ignored-mask-changed-checkpatch-fixes.patch
-fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper.patch
-mm.patch
-mm-vmstatc-fix-cleanup-ifdefs.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub-fix.patch
-mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
-vmscan-force-scan-offline-memory-cgroups-fix.patch
-mm-memcontrol-default-hierarchy-interface-for-memory.patch
-mm-memcontrol-fold-move_anon-and-move_file-fix.patch
-fs-shrinker-always-scan-at-least-one-object-of-each-type-fix.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated-fix.patch
-mm-thp-allocate-transparent-hugepages-on-local-node-fix.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss.patch
-lib-bitmap-update-bitmap_onto-to-unsigned-checkpatch-fixes.patch
-lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned-fix.patch
-hexdump-makes-it-return-amount-of-bytes-placed-in-buffer-fix.patch
-mm-slab-convert-cache-name-allocations-to-kstrdup_const-fix.patch
-rtc-rk808-fix-the-rtc-time-reading-issue-fix.patch
-fs-befs-linuxvfsc-remove-unnecessary-casting-fix.patch
-linux-next.patch
-linux-next-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-fix-xip-fault-vs-truncate-race-fix.patch
-mm-fix-xip-fault-vs-truncate-race-fix-fix.patch
-mm-allow-page-fault-handlers-to-perform-the-cow-fix.patch
-mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix-3.patch
-mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix.patch
-daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix.patch
-daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-2.patch
-daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-3.patch
-dax-add-dax_zero_page_range-fix.patch
-ext4-add-dax-functionality-fix.patch
-ocfs2-implement-ocfs2_direct_io_write-fix.patch
+mm-pagewalk-call-pte_hole-for-vm_pfnmap-during-walk_page_range.patch
+mm-add-kpf_zero_page-flag-for-proc-kpageflags.patch
+mm-hugetlb-reduce-arch-dependent-code-around-follow_huge_.patch
+mm-hugetlb-pmd_huge-returns-true-for-non-present-hugepage.patch
+mm-hugetlb-take-page-table-lock-in-follow_huge_pmd.patch
+mm-hugetlb-fix-getting-refcount-0-page-in-hugetlb_fault.patch
+mm-hugetlb-add-migration-hwpoisoned-entry-check-in-hugetlb_change_protection.patch
+mm-hugetlb-add-migration-entry-check-in-__unmap_hugepage_range.patch
+mm-hugetlb-fix-suboptimal-migration-hwpoisoned-entry-check.patch
+mm-hugetlb-cleanup-and-rename-is_hugetlb_entry_migrationhwpoisoned.patch
+mm-pagewalk-remove-pgd_entry-and-pud_entry.patch
+pagewalk-improve-vma-handling.patch
+pagewalk-add-walk_page_vma.patch
+smaps-remove-mem_size_stats-vma-and-use-walk_page_vma.patch
+clear_refs-remove-clear_refs_private-vma-and-introduce-clear_refs_test_walk.patch
+pagemap-use-walk-vma-instead-of-calling-find_vma.patch
+numa_maps-fix-typo-in-gather_hugetbl_stats.patch
+numa_maps-remove-numa_maps-vma.patch
+memcg-cleanup-preparation-for-page-table-walk.patch
+arch-powerpc-mm-subpage-protc-use-walk-vma-and-walk_page_vma.patch
+mempolicy-apply-page-table-walker-on-queue_pages_range.patch
+mm-pagewalk-fix-misbehavior-of-walk_page_range-for-vmavm_pfnmap-re-pagewalk-improve-vma-handling.patch
+mm-proc-pid-clear_refs-avoid-split_huge_page.patch
+mincore-apply-page-table-walker-on-do_mincore.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
 
