@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcontrol-simplify-soft-limit-tree-init-code.patch added to -mm tree
-Date: Fri, 23 Jan 2015 14:38:02 -0800
-Message-ID: <54c2cd4a.MOZKhX41Wi/CFCLq%akpm@linux-foundation.org>
+Subject: + mm-always-steal-split-buddies-in-fallback-allocations.patch
+ added to -mm tree
+Date: Fri, 23 Jan 2015 14:54:55 -0800
+Message-ID: <54c2d13f.RPoVg2OhnnMUJ4AA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41400 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41532 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751095AbbAWWiD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jan 2015 17:38:03 -0500
+	with ESMTP id S1751995AbbAWWy4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jan 2015 17:54:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, cl@linux-foundation.org, linux@roeck-us.net, mhocko@suse.cz, vdavydov@parallels.com, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, aneesh.kumar@linux.vnet.ibm.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, kosaki.motohiro@jp.fujitsu.com, mgorman@suse.de, mhocko@suse.cz, minchan@kernel.org, riel@redhat.com, rientjes@google.com, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: simplify soft limit tree init code
+     Subject: mm: always steal split buddies in fallback allocations
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-simplify-soft-limit-tree-init-code.patch
+     mm-always-steal-split-buddies-in-fallback-allocations.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-simplify-soft-limit-tree-init-code.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-always-steal-split-buddies-in-fallback-allocations.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-simplify-soft-limit-tree-init-code.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-always-steal-split-buddies-in-fallback-allocations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,137 +39,202 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: simplify soft limit tree init code
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm: always steal split buddies in fallback allocations
 
-- No need to test the node for N_MEMORY.  node_online() is enough for
-  node fallback to work in slab, use NUMA_NO_NODE for everything else.
+When allocation falls back to another migratetype, it will steal a page
+with highest available order, and (depending on this order and desired
+migratetype), it might also steal the rest of free pages from the same
+pageblock.
 
-- Remove the BUG_ON() for allocation failure.  A NULL pointer crash is
-  just as descriptive, and the absent return value check is obvious.
+Given the preference of highest available order, it is likely that it will
+be higher than the desired order, and result in the stolen buddy page
+being split.  The remaining pages after split are currently stolen only
+when the rest of the free pages are stolen.  This can however lead to
+situations where for MOVABLE allocations we split e.g.  order-4 fallback
+UNMOVABLE page, but steal only order-0 page.  Then on the next MOVABLE
+allocation (which may be batched to fill the pcplists) we split another
+order-3 or higher page, etc.  By stealing all pages that we have split, we
+can avoid further stealing.
 
-- Move local variables to the inner-most blocks.
+This patch therefore adjusts the page stealing so that buddy pages created
+by split are always stolen.  This has effect only on MOVABLE allocations,
+as RECLAIMABLE and UNMOVABLE allocations already always do that in
+addition to stealing the rest of free pages from the pageblock.  The
+change also allows to simplify try_to_steal_freepages() and factor out CMA
+handling.
 
-- Point to the tree structure after its initialized, not before, it's
-  just more logical that way.
+According to Mel, it has been intended since the beginning that buddy
+pages after split would be stolen always, but it doesn't seem like it was
+ever the case until commit 47118af076f6 ("mm: mmzone: MIGRATE_CMA
+migration type added").  The commit has unintentionally introduced this
+behavior, but was reverted by commit 0cbef29a7821 ("mm:
+__rmqueue_fallback() should respect pageblock type").  Neither included
+evaluation.
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+My evaluation with stress-highalloc from mmtests shows about 2.5x
+reduction of page stealing events for MOVABLE allocations, without
+affecting the page stealing events for other allocation migratetypes.
+
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Vladimir Davydov <vdavydov@parallels.com>
-Cc: Guenter Roeck <linux@roeck-us.net>
-Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
+ mm/page_alloc.c |   62 +++++++++++++++++++++-------------------------
+ 1 file changed, 29 insertions(+), 33 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-simplify-soft-limit-tree-init-code mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-simplify-soft-limit-tree-init-code
-+++ a/mm/memcontrol.c
-@@ -4537,24 +4537,23 @@ EXPORT_SYMBOL(parent_mem_cgroup);
- 
- static void __init mem_cgroup_soft_limit_tree_init(void)
+diff -puN mm/page_alloc.c~mm-always-steal-split-buddies-in-fallback-allocations mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-always-steal-split-buddies-in-fallback-allocations
++++ a/mm/page_alloc.c
+@@ -1125,33 +1125,18 @@ static void change_pageblock_range(struc
+ /*
+  * If breaking a large block of pages, move all free pages to the preferred
+  * allocation list. If falling back for a reclaimable kernel allocation, be
+- * more aggressive about taking ownership of free pages.
+- *
+- * On the other hand, never change migration type of MIGRATE_CMA pageblocks
+- * nor move CMA pages to different free lists. We don't want unmovable pages
+- * to be allocated from MIGRATE_CMA areas.
+- *
+- * Returns the allocation migratetype if free pages were stolen, or the
+- * fallback migratetype if it was decided not to steal.
++ * more aggressive about taking ownership of free pages. If we claim more than
++ * half of the pageblock, change pageblock's migratetype as well.
+  */
+-static int try_to_steal_freepages(struct zone *zone, struct page *page,
++static void try_to_steal_freepages(struct zone *zone, struct page *page,
+ 				  int start_type, int fallback_type)
  {
--	struct mem_cgroup_tree_per_node *rtpn;
--	struct mem_cgroup_tree_per_zone *rtpz;
--	int tmp, node, zone;
-+	int node;
+ 	int current_order = page_order(page);
  
- 	for_each_node(node) {
--		tmp = node;
--		if (!node_state(node, N_NORMAL_MEMORY))
--			tmp = -1;
--		rtpn = kzalloc_node(sizeof(*rtpn), GFP_KERNEL, tmp);
--		BUG_ON(!rtpn);
-+		struct mem_cgroup_tree_per_node *rtpn;
-+		int zone;
- 
--		soft_limit_tree.rb_tree_per_node[node] = rtpn;
-+		rtpn = kzalloc_node(sizeof(*rtpn), GFP_KERNEL,
-+				    node_online(node) ? node : NUMA_NO_NODE);
- 
- 		for (zone = 0; zone < MAX_NR_ZONES; zone++) {
-+			struct mem_cgroup_tree_per_zone *rtpz;
-+
- 			rtpz = &rtpn->rb_tree_per_zone[zone];
- 			rtpz->rb_root = RB_ROOT;
- 			spin_lock_init(&rtpz->lock);
- 		}
-+		soft_limit_tree.rb_tree_per_node[node] = rtpn;
+-	/*
+-	 * When borrowing from MIGRATE_CMA, we need to release the excess
+-	 * buddy pages to CMA itself. We also ensure the freepage_migratetype
+-	 * is set to CMA so it is returned to the correct freelist in case
+-	 * the page ends up being not actually allocated from the pcp lists.
+-	 */
+-	if (is_migrate_cma(fallback_type))
+-		return fallback_type;
+-
+ 	/* Take ownership for orders >= pageblock_order */
+ 	if (current_order >= pageblock_order) {
+ 		change_pageblock_range(page, current_order, start_type);
+-		return start_type;
++		return;
  	}
+ 
+ 	if (current_order >= pageblock_order / 2 ||
+@@ -1165,11 +1150,7 @@ static int try_to_steal_freepages(struct
+ 		if (pages >= (1 << (pageblock_order-1)) ||
+ 				page_group_by_mobility_disabled)
+ 			set_pageblock_migratetype(page, start_type);
+-
+-		return start_type;
+ 	}
+-
+-	return fallback_type;
  }
  
+ /* Remove an element from the buddy allocator from the fallback list */
+@@ -1179,14 +1160,15 @@ __rmqueue_fallback(struct zone *zone, un
+ 	struct free_area *area;
+ 	unsigned int current_order;
+ 	struct page *page;
+-	int migratetype, new_type, i;
+ 
+ 	/* Find the largest possible block of pages in the other list */
+ 	for (current_order = MAX_ORDER-1;
+ 				current_order >= order && current_order <= MAX_ORDER-1;
+ 				--current_order) {
++		int i;
+ 		for (i = 0;; i++) {
+-			migratetype = fallbacks[start_migratetype][i];
++			int migratetype = fallbacks[start_migratetype][i];
++			int buddy_type = start_migratetype;
+ 
+ 			/* MIGRATE_RESERVE handled later if necessary */
+ 			if (migratetype == MIGRATE_RESERVE)
+@@ -1200,22 +1182,36 @@ __rmqueue_fallback(struct zone *zone, un
+ 					struct page, lru);
+ 			area->nr_free--;
+ 
+-			new_type = try_to_steal_freepages(zone, page,
+-							  start_migratetype,
+-							  migratetype);
++			if (!is_migrate_cma(migratetype)) {
++				try_to_steal_freepages(zone, page,
++							start_migratetype,
++							migratetype);
++			} else {
++				/*
++				 * When borrowing from MIGRATE_CMA, we need to
++				 * release the excess buddy pages to CMA
++				 * itself, and we do not try to steal extra
++				 * free pages.
++				 */
++				buddy_type = migratetype;
++			}
+ 
+ 			/* Remove the page from the freelists */
+ 			list_del(&page->lru);
+ 			rmv_page_order(page);
+ 
+ 			expand(zone, page, order, current_order, area,
+-			       new_type);
+-			/* The freepage_migratetype may differ from pageblock's
++					buddy_type);
++
++			/*
++			 * The freepage_migratetype may differ from pageblock's
+ 			 * migratetype depending on the decisions in
+-			 * try_to_steal_freepages. This is OK as long as it does
+-			 * not differ for MIGRATE_CMA type.
++			 * try_to_steal_freepages(). This is OK as long as it
++			 * does not differ for MIGRATE_CMA pageblocks. For CMA
++			 * we need to make sure unallocated pages flushed from
++			 * pcp lists are returned to the correct freelist.
+ 			 */
+-			set_freepage_migratetype(page, new_type);
++			set_freepage_migratetype(page, buddy_type);
+ 
+ 			trace_mm_page_alloc_extfrag(page, order, current_order,
+ 				start_migratetype, migratetype);
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath.patch
-memcg-remove-extra-newlines-from-memcg-oom-kill-log.patch
 mm-vmscan-fix-highidx-argument-type.patch
-mm-memory-remove-vm_file-check-on-shared-writable-vmas.patch
-mm-memory-merge-shared-writable-dirtying-branches-in-do_wp_page.patch
-mm-page_alloc-place-zone_id-check-before-vm_bug_on_page-check.patch
-memcg-zap-__memcg_chargeuncharge_slab.patch
-memcg-zap-memcg_name-argument-of-memcg_create_kmem_cache.patch
-memcg-zap-memcg_slab_caches-and-memcg_slab_mutex.patch
-mm-add-fields-for-compound-destructor-and-order-into-struct-page.patch
-swap-remove-unused-mem_cgroup_uncharge_swapcache-declaration.patch
-mm-memcontrol-track-move_lock-state-internally.patch
-mm-memcontrol-track-move_lock-state-internally-fix.patch
+mm-dont-offset-memmap-for-flatmem.patch
 mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
 mm-vmscan-wake-up-all-pfmemalloc-throttled-processes-at-once.patch
-mm-hugetlb-reduce-arch-dependent-code-around-follow_huge_.patch
-mm-hugetlb-pmd_huge-returns-true-for-non-present-hugepage.patch
-mm-hugetlb-take-page-table-lock-in-follow_huge_pmd.patch
-mm-hugetlb-fix-getting-refcount-0-page-in-hugetlb_fault.patch
-mm-hugetlb-add-migration-hwpoisoned-entry-check-in-hugetlb_change_protection.patch
-mm-hugetlb-add-migration-entry-check-in-__unmap_hugepage_range.patch
-mm-hugetlb-fix-suboptimal-migration-hwpoisoned-entry-check.patch
-mm-hugetlb-cleanup-and-rename-is_hugetlb_entry_migrationhwpoisoned.patch
 mm-set-page-pfmemalloc-in-prep_new_page.patch
 mm-page_alloc-reduce-number-of-alloc_pages-functions-parameters.patch
 mm-reduce-try_to_compact_pages-parameters.patch
 mm-microoptimize-zonelist-operations.patch
-list_lru-introduce-list_lru_shrink_countwalk.patch
-fs-consolidate-nrfree_cached_objects-args-in-shrink_control.patch
-vmscan-per-memory-cgroup-slab-shrinkers.patch
-memcg-rename-some-cache-id-related-variables.patch
-memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation.patch
-list_lru-get-rid-of-active_nodes.patch
-list_lru-organize-all-list_lrus-to-list.patch
-list_lru-introduce-per-memcg-lists.patch
-fs-make-shrinker-memcg-aware.patch
-vmscan-force-scan-offline-memory-cgroups.patch
-vmscan-force-scan-offline-memory-cgroups-fix.patch
-memcg-add-build_bug_on-for-string-tables.patch
-mm-page_counter-pull-1-handling-out-of-page_counter_memparse.patch
-mm-memcontrol-default-hierarchy-interface-for-memory.patch
-mm-memcontrol-fold-move_anon-and-move_file.patch
-mm-memcontrol-fold-move_anon-and-move_file-fix.patch
-oom-add-helpers-for-setting-and-clearing-tif_memdie.patch
-oom-thaw-the-oom-victim-if-it-is-frozen.patch
-pm-convert-printk-to-pr_-equivalent.patch
-sysrq-convert-printk-to-pr_-equivalent.patch
-oom-pm-make-oom-detection-in-the-freezer-path-raceless.patch
-mm-memcontrol-simplify-soft-limit-tree-init-code.patch
-mm-memcontrol-consolidate-memory-controller-initialization.patch
-mm-memcontrol-consolidate-swap-controller-code.patch
-fs-shrinker-always-scan-at-least-one-object-of-each-type.patch
-fs-shrinker-always-scan-at-least-one-object-of-each-type-fix.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated-fix.patch
-memcg-cleanup-preparation-for-page-table-walk.patch
-mincore-apply-page-table-walker-on-do_mincore.patch
-slab-embed-memcg_cache_params-to-kmem_cache.patch
-slab-link-memcg-caches-of-the-same-kind-into-a-list.patch
-cgroup-release-css-id-after-css_free.patch
-slab-use-css-id-for-naming-per-memcg-caches.patch
-memcg-free-memcg_caches-slot-on-css-offline.patch
-list_lru-add-helpers-to-isolate-items.patch
-memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline.patch
-documentation-proc-add-proc-pid-numa_maps-interface-explanation-snippet.patch
-fs-proc-task_mmu-show-page-size-in-proc-pid-numa_maps.patch
-fs-proc-task_mmu-show-page-size-in-proc-pid-numa_maps-fix.patch
-linux-next.patch
+mm-page_allocc-drop-dead-destroy_compound_page.patch
+mm-more-checks-on-free_pages_prepare-for-tail-pages.patch
+mm-more-checks-on-free_pages_prepare-for-tail-pages-fix-2.patch
+mm-compaction-change-tracepoint-format-from-decimal-to-hexadecimal.patch
+mm-compaction-enhance-tracepoint-output-for-compaction-begin-end.patch
+mm-compaction-enhance-tracepoint-output-for-compaction-begin-end-v4.patch
+mm-compaction-print-current-range-where-compaction-work.patch
+mm-compaction-more-trace-to-understand-when-why-compaction-start-finish.patch
+mm-compaction-add-tracepoint-to-observe-behaviour-of-compaction-defer.patch
+mm-compaction-add-tracepoint-to-observe-behaviour-of-compaction-defer-v4.patch
+mm-thp-allocate-transparent-hugepages-on-local-node.patch
+mm-thp-allocate-transparent-hugepages-on-local-node-fix.patch
+mm-when-stealing-freepages-also-take-pages-created-by-splitting-buddy-page.patch
+mm-always-steal-split-buddies-in-fallback-allocations.patch
+mm-more-aggressive-page-stealing-for-unmovable-allocations.patch
 
