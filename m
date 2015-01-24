@@ -1,431 +1,506 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-when-stealing-freepages-also-take-pages-created-by-splitting-buddy-page.patch added to -mm tree
-Date: Fri, 23 Jan 2015 14:54:52 -0800
-Message-ID: <54c2d13c.O3yrqn6VK1WupaKC%akpm@linux-foundation.org>
+Subject: mmotm 2015-01-23-16-19 uploaded
+Date: Fri, 23 Jan 2015 16:19:40 -0800
+Message-ID: <54c2e51c.VbfIg4TfoWD0Qi0z%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41518 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42679 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751995AbbAWWyy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jan 2015 17:54:54 -0500
+	with ESMTP id S1754553AbbAXATl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jan 2015 19:19:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, aneesh.kumar@linux.vnet.ibm.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, kosaki.motohiro@jp.fujitsu.com, mgorman@suse.de, mhocko@suse.cz, minchan@kernel.org, riel@redhat.com, rientjes@google.com, stable@vger.kernel.org, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-next@vger.kernel.org, sfr@canb.auug.org.au, mhocko@suse.cz
+
+The mm-of-the-moment snapshot 2015-01-23-16-19 has been uploaded to
+
+   http://www.ozlabs.org/~akpm/mmotm/
+
+mmotm-readme.txt says
+
+README for mm-of-the-moment:
+
+http://www.ozlabs.org/~akpm/mmotm/
+
+This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
+more than once a week.
+
+You will need quilt to apply these patches to the latest Linus release (3.x
+or 3.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
+http://ozlabs.org/~akpm/mmotm/series
+
+The file broken-out.tar.gz contains two datestamp files: .DATE and
+.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
+followed by the base kernel version against which this patch series is to
+be applied.
+
+This tree is partially included in linux-next.  To see which patches are
+included in linux-next, consult the `series' file.  Only the patches
+within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
+linux-next.
+
+A git tree which contains the memory management portion of this tree is
+maintained at git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
+by Michal Hocko.  It contains the patches which are between the
+"#NEXT_PATCHES_START mm" and "#NEXT_PATCHES_END" markers, from the series
+file, http://www.ozlabs.org/~akpm/mmotm/series.
 
 
-The patch titled
-     Subject: mm: when stealing freepages, also take pages created by splitting buddy page
-has been added to the -mm tree.  Its filename is
-     mm-when-stealing-freepages-also-take-pages-created-by-splitting-buddy-page.patch
+A full copy of the full kernel tree with the linux-next and mmotm patches
+already applied is available through git within an hour of the mmotm
+release.  Individual mmotm releases are tagged.  The master branch always
+points to the latest release, so it's constantly rebasing.
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-when-stealing-freepages-also-take-pages-created-by-splitting-buddy-page.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-when-stealing-freepages-also-take-pages-created-by-splitting-buddy-page.patch
+http://git.cmpxchg.org/?p=linux-mmotm.git;a=summary
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+To develop on top of mmotm git:
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+  $ git remote add mmotm git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
+  $ git remote update mmotm
+  $ git checkout -b topic mmotm/master
+  <make changes, commit>
+  $ git send-email mmotm/master.. [...]
 
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+To rebase a branch with older patches to a new mmotm release:
 
-------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm: when stealing freepages, also take pages created by splitting buddy page
-
-When studying page stealing, I noticed some weird looking decisions in
-try_to_steal_freepages().  The first I assume is a bug (Patch 1), the
-following two patches were driven by evaluation.
-
-Testing was done with stress-highalloc of mmtests, using the
-mm_page_alloc_extfrag tracepoint and postprocessing to get counts of how
-often page stealing occurs for individual migratetypes, and what
-migratetypes are used for fallbacks.  Arguably, the worst case of page
-stealing is when UNMOVABLE allocation steals from MOVABLE pageblock. 
-RECLAIMABLE allocation stealing from MOVABLE allocation is also not ideal,
-so the goal is to minimize these two cases.
-
-The evaluation of v2 wasn't always clear win and Joonsoo questioned the
-results.  Here I used different baseline which includes RFC compaction
-improvements from [1].  I found that the compaction improvements reduce
-variability of stress-highalloc, so there's less noise in the data.
-
-First, let's look at stress-highalloc configured to do sync compaction,
-and how these patches reduce page stealing events during the test.  First
-column is after fresh reboot, other two are reiterations of test without
-reboot.  That was all accumulater over 5 re-iterations (so the benchmark
-was run 5x3 times with 5 fresh restarts).
-
-
-Baseline:
-
-                                                   3.19-rc4        3.19-rc4        3.19-rc4
-                                                  5-nothp-1       5-nothp-2       5-nothp-3
-Page alloc extfrag event                               10264225     8702233    10244125
-Extfrag fragmenting                                    10263271     8701552    10243473
-Extfrag fragmenting for unmovable                         13595       17616       15960
-Extfrag fragmenting unmovable placed with movable          7989       12193        8447
-Extfrag fragmenting for reclaimable                         658        1840        1817
-Extfrag fragmenting reclaimable placed with movable         558        1677        1679
-Extfrag fragmenting for movable                        10249018     8682096    10225696
-
-
-With Patch 1:
-                                                   3.19-rc4        3.19-rc4        3.19-rc4
-                                                  6-nothp-1       6-nothp-2       6-nothp-3
-Page alloc extfrag event                               11834954     9877523     9774860
-Extfrag fragmenting                                    11833993     9876880     9774245
-Extfrag fragmenting for unmovable                          7342       16129       11712
-Extfrag fragmenting unmovable placed with movable          4191       10547        6270
-Extfrag fragmenting for reclaimable                         373        1130         923
-Extfrag fragmenting reclaimable placed with movable         302         906         738
-Extfrag fragmenting for movable                        11826278     9859621     9761610
-
-With Patch 2:
-                                                   3.19-rc4        3.19-rc4        3.19-rc4
-                                                  7-nothp-1       7-nothp-2       7-nothp-3
-Page alloc extfrag event                                4725990     3668793     3807436
-Extfrag fragmenting                                     4725104     3668252     3806898
-Extfrag fragmenting for unmovable                          6678        7974        7281
-Extfrag fragmenting unmovable placed with movable          2051        3829        4017
-Extfrag fragmenting for reclaimable                         429        1208        1278
-Extfrag fragmenting reclaimable placed with movable         369         976        1034
-Extfrag fragmenting for movable                         4717997     3659070     3798339
-
-
-With Patch 3:
-                                                   3.19-rc4        3.19-rc4        3.19-rc4
-                                                  8-nothp-1       8-nothp-2       8-nothp-3
-Page alloc extfrag event                                5016183     4700142     3850633
-Extfrag fragmenting                                     5015325     4699613     3850072
-Extfrag fragmenting for unmovable                          1312        3154        3088
-Extfrag fragmenting unmovable placed with movable          1115        2777        2714
-Extfrag fragmenting for reclaimable                         437        1193        1097
-Extfrag fragmenting reclaimable placed with movable         330         969         879
-Extfrag fragmenting for movable                         5013576     4695266     3845887
-
-In v2 we've seen apparent regression with Patch 1 for unmovable events,
-this is now gone, suggesting it was indeed noise.  Here, each patch
-improves the situation for unmovable events.  Reclaimable is improved by
-patch 1 and then either the same modulo noise, or perhaps sligtly worse -
-a small price for unmovable improvements, IMHO.  The number of movable
-allocations falling back to other migratetypes is most noisy, but it's
-reduced to half at Patch 2 nevertheless.  These are least critical as
-compaction can move them around.
-
-If we look at success rates, the patches don't affect them, that didn't change.
-
-Baseline:
-                             3.19-rc4              3.19-rc4              3.19-rc4
-                            5-nothp-1             5-nothp-2             5-nothp-3
-Success 1 Min         49.00 (  0.00%)       42.00 ( 14.29%)       41.00 ( 16.33%)
-Success 1 Mean        51.00 (  0.00%)       45.00 ( 11.76%)       42.60 ( 16.47%)
-Success 1 Max         55.00 (  0.00%)       51.00 (  7.27%)       46.00 ( 16.36%)
-Success 2 Min         53.00 (  0.00%)       47.00 ( 11.32%)       44.00 ( 16.98%)
-Success 2 Mean        59.60 (  0.00%)       50.80 ( 14.77%)       48.20 ( 19.13%)
-Success 2 Max         64.00 (  0.00%)       56.00 ( 12.50%)       52.00 ( 18.75%)
-Success 3 Min         84.00 (  0.00%)       82.00 (  2.38%)       78.00 (  7.14%)
-Success 3 Mean        85.60 (  0.00%)       82.80 (  3.27%)       79.40 (  7.24%)
-Success 3 Max         86.00 (  0.00%)       83.00 (  3.49%)       80.00 (  6.98%)
-
-Patch 1:
-                             3.19-rc4              3.19-rc4              3.19-rc4
-                            6-nothp-1             6-nothp-2             6-nothp-3
-Success 1 Min         49.00 (  0.00%)       44.00 ( 10.20%)       44.00 ( 10.20%)
-Success 1 Mean        51.80 (  0.00%)       46.00 ( 11.20%)       45.80 ( 11.58%)
-Success 1 Max         54.00 (  0.00%)       49.00 (  9.26%)       49.00 (  9.26%)
-Success 2 Min         58.00 (  0.00%)       49.00 ( 15.52%)       48.00 ( 17.24%)
-Success 2 Mean        60.40 (  0.00%)       51.80 ( 14.24%)       50.80 ( 15.89%)
-Success 2 Max         63.00 (  0.00%)       54.00 ( 14.29%)       55.00 ( 12.70%)
-Success 3 Min         84.00 (  0.00%)       81.00 (  3.57%)       79.00 (  5.95%)
-Success 3 Mean        85.00 (  0.00%)       81.60 (  4.00%)       79.80 (  6.12%)
-Success 3 Max         86.00 (  0.00%)       82.00 (  4.65%)       82.00 (  4.65%)
-
-Patch 2:
-
-                             3.19-rc4              3.19-rc4              3.19-rc4
-                            7-nothp-1             7-nothp-2             7-nothp-3
-Success 1 Min         50.00 (  0.00%)       44.00 ( 12.00%)       39.00 ( 22.00%)
-Success 1 Mean        52.80 (  0.00%)       45.60 ( 13.64%)       42.40 ( 19.70%)
-Success 1 Max         55.00 (  0.00%)       46.00 ( 16.36%)       47.00 ( 14.55%)
-Success 2 Min         52.00 (  0.00%)       48.00 (  7.69%)       45.00 ( 13.46%)
-Success 2 Mean        53.40 (  0.00%)       49.80 (  6.74%)       48.80 (  8.61%)
-Success 2 Max         57.00 (  0.00%)       52.00 (  8.77%)       52.00 (  8.77%)
-Success 3 Min         84.00 (  0.00%)       81.00 (  3.57%)       79.00 (  5.95%)
-Success 3 Mean        85.00 (  0.00%)       82.40 (  3.06%)       79.60 (  6.35%)
-Success 3 Max         86.00 (  0.00%)       83.00 (  3.49%)       80.00 (  6.98%)
-
-Patch 3:
-                             3.19-rc4              3.19-rc4              3.19-rc4
-                            8-nothp-1             8-nothp-2             8-nothp-3
-Success 1 Min         46.00 (  0.00%)       44.00 (  4.35%)       42.00 (  8.70%)
-Success 1 Mean        50.20 (  0.00%)       45.60 (  9.16%)       44.00 ( 12.35%)
-Success 1 Max         52.00 (  0.00%)       47.00 (  9.62%)       47.00 (  9.62%)
-Success 2 Min         53.00 (  0.00%)       49.00 (  7.55%)       48.00 (  9.43%)
-Success 2 Mean        55.80 (  0.00%)       50.60 (  9.32%)       49.00 ( 12.19%)
-Success 2 Max         59.00 (  0.00%)       52.00 ( 11.86%)       51.00 ( 13.56%)
-Success 3 Min         84.00 (  0.00%)       80.00 (  4.76%)       79.00 (  5.95%)
-Success 3 Mean        85.40 (  0.00%)       81.60 (  4.45%)       80.40 (  5.85%)
-Success 3 Max         87.00 (  0.00%)       83.00 (  4.60%)       82.00 (  5.75%)
-
-While there's no improvement here, I consider reduced fragmentation events
-to be worth on its own.  Patch 2 also seems to reduce scanning for free
-pages, and migrations in compaction, suggesting it has somewhat less work
-to do:
-
-Patch 1:
-
-Compaction stalls                 4153        3959        3978
-Compaction success                1523        1441        1446
-Compaction failures               2630        2517        2531
-Page migrate success           4600827     4943120     5104348
-Page migrate failure             19763       16656       17806
-Compaction pages isolated      9597640    10305617    10653541
-Compaction migrate scanned    77828948    86533283    87137064
-Compaction free scanned      517758295   521312840   521462251
-Compaction cost                   5503        5932        6110
-
-Patch 2:
-
-Compaction stalls                 3800        3450        3518
-Compaction success                1421        1316        1317
-Compaction failures               2379        2134        2201
-Page migrate success           4160421     4502708     4752148
-Page migrate failure             19705       14340       14911
-Compaction pages isolated      8731983     9382374     9910043
-Compaction migrate scanned    98362797    96349194    98609686
-Compaction free scanned      496512560   469502017   480442545
-Compaction cost                   5173        5526        5811
-
-As with v2, /proc/pagetypeinfo appears unaffected with respect to numbers
-of unmovable and reclaimable pageblocks.
-
-Configuring the benchmark to allocate like THP page fault (i.e.  no sync
-compaction) gives much noisier results for iterations 2 and 3 after
-reboot.  This is not so surprising given how [1] offers lower improvements
-in this scenario due to less restarts after deferred compaction which
-would change compaction pivot.
-
-Baseline:
-                                                   3.19-rc4        3.19-rc4        3.19-rc4
-                                                    5-thp-1         5-thp-2         5-thp-3
-Page alloc extfrag event                                8148965     6227815     6646741
-Extfrag fragmenting                                     8147872     6227130     6646117
-Extfrag fragmenting for unmovable                         10324       12942       15975
-Extfrag fragmenting unmovable placed with movable          5972        8495       10907
-Extfrag fragmenting for reclaimable                         601        1707        2210
-Extfrag fragmenting reclaimable placed with movable         520        1570        2000
-Extfrag fragmenting for movable                         8136947     6212481     6627932
-
-Patch 1:
-                                                   3.19-rc4        3.19-rc4        3.19-rc4
-                                                    6-thp-1         6-thp-2         6-thp-3
-Page alloc extfrag event                                8345457     7574471     7020419
-Extfrag fragmenting                                     8343546     7573777     7019718
-Extfrag fragmenting for unmovable                         10256       18535       30716
-Extfrag fragmenting unmovable placed with movable          6893       11726       22181
-Extfrag fragmenting for reclaimable                         465        1208        1023
-Extfrag fragmenting reclaimable placed with movable         353         996         843
-Extfrag fragmenting for movable                         8332825     7554034     6987979
-
-Patch 2:
-                                                   3.19-rc4        3.19-rc4        3.19-rc4
-                                                    7-thp-1         7-thp-2         7-thp-3
-Page alloc extfrag event                                3512847     3020756     2891625
-Extfrag fragmenting                                     3511940     3020185     2891059
-Extfrag fragmenting for unmovable                          9017        6892        6191
-Extfrag fragmenting unmovable placed with movable          1524        3053        2435
-Extfrag fragmenting for reclaimable                         445        1081        1160
-Extfrag fragmenting reclaimable placed with movable         375         918         986
-Extfrag fragmenting for movable                         3502478     3012212     2883708
-
-Patch 3:
-                                                   3.19-rc4        3.19-rc4        3.19-rc4
-                                                    8-thp-1         8-thp-2         8-thp-3
-Page alloc extfrag event                                3181699     3082881     2674164
-Extfrag fragmenting                                     3180812     3082303     2673611
-Extfrag fragmenting for unmovable                          1201        4031        4040
-Extfrag fragmenting unmovable placed with movable           974        3611        3645
-Extfrag fragmenting for reclaimable                         478        1165        1294
-Extfrag fragmenting reclaimable placed with movable         387         985        1030
-Extfrag fragmenting for movable                         3179133     3077107     2668277
-
-The improvements for first iteration are clear, the rest is much noisier
-and can appear like regression for Patch 1.  Anyway, patch 2 rectifies it.
-
-Allocation success rates are again unaffected so there's no point in
-making this e-mail any longer.
-
-[1] http://marc.info/?l=linux-mm&m=142166196321125&w=2
+  $ git remote update mmotm
+  $ git rebase --onto mmotm/master <topic base> topic
 
 
 
-This patch (of 3):
 
-When __rmqueue_fallback() is called to allocate a page of order X, it will
-find a page of order Y >= X of a fallback migratetype, which is different
-from the desired migratetype.  With the help of try_to_steal_freepages(),
-it may change the migratetype (to the desired one) also of:
+The directory http://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
+contains daily snapshots of the -mm tree.  It is updated more frequently
+than mmotm, and is untested.
 
-1) all currently free pages in the pageblock containing the fallback page
-2) the fallback pageblock itself
-3) buddy pages created by splitting the fallback page (when Y > X)
+A git copy of this tree is available at
 
-These decisions take the order Y into account, as well as the desired
-migratetype, with the goal of preventing multiple fallback allocations
-that could e.g.  distribute UNMOVABLE allocations among multiple
-pageblocks.
+	http://git.cmpxchg.org/?p=linux-mmots.git;a=summary
 
-Originally, decision for 1) has implied the decision for 3).  Commit
-47118af076f6 ("mm: mmzone: MIGRATE_CMA migration type added") changed that
-(probably unintentionally) so that the buddy pages in case 3) are always
-changed to the desired migratetype, except for CMA pageblocks.
+and use of this tree is similar to
+http://git.cmpxchg.org/?p=linux-mmotm.git, described above.
 
-Commit fef903efcf0c ("mm/page_allo.c: restructure free-page stealing code
-and fix a bug") did some refactoring and added a comment that the case of
-3) is intended.  Commit 0cbef29a7821 ("mm: __rmqueue_fallback() should
-respect pageblock type") removed the comment and tried to restore the
-original behavior where 1) implies 3), but due to the previous
-refactoring, the result is instead that only 2) implies 3) - and the
-conditions for 2) are less frequently met than conditions for 1).  This
-may increase fragmentation in situations where the code decides to steal
-all free pages from the pageblock (case 1)), but then gives back the buddy
-pages produced by splitting.
 
-This patch restores the original intended logic where 1) implies 3). 
-During testing with stress-highalloc from mmtests, this has shown to
-decrease the number of events where UNMOVABLE and RECLAIMABLE allocations
-steal from MOVABLE pageblocks, which can lead to permanent fragmentation. 
-In some cases it has increased the number of events when MOVABLE
-allocations steal from UNMOVABLE or RECLAIMABLE pageblocks, but these are
-fixable by sync compaction and thus less harmful.
+This mmotm tree contains the following patches against 3.19-rc5:
+(patches marked "*" will be included in linux-next)
 
-Note that evaluation has shown that the behavior introduced by
-47118af076f6 for buddy pages in case 3) is actually even better than the
-original logic, so the following patch will introduce it properly once
-again.  For stable backports of this patch it makes thus sense to only fix
-versions containing 0cbef29a7821.
-
-[iamjoonsoo.kim@lge.com: tracepoint fix]
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: <stable@vger.kernel.org>	[3.13+ containing 0cbef29a7821]
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- include/trace/events/kmem.h |    7 ++++---
- mm/page_alloc.c             |   12 +++++-------
- 2 files changed, 9 insertions(+), 10 deletions(-)
-
-diff -puN include/trace/events/kmem.h~mm-when-stealing-freepages-also-take-pages-created-by-splitting-buddy-page include/trace/events/kmem.h
---- a/include/trace/events/kmem.h~mm-when-stealing-freepages-also-take-pages-created-by-splitting-buddy-page
-+++ a/include/trace/events/kmem.h
-@@ -268,11 +268,11 @@ TRACE_EVENT(mm_page_alloc_extfrag,
- 
- 	TP_PROTO(struct page *page,
- 		int alloc_order, int fallback_order,
--		int alloc_migratetype, int fallback_migratetype, int new_migratetype),
-+		int alloc_migratetype, int fallback_migratetype),
- 
- 	TP_ARGS(page,
- 		alloc_order, fallback_order,
--		alloc_migratetype, fallback_migratetype, new_migratetype),
-+		alloc_migratetype, fallback_migratetype),
- 
- 	TP_STRUCT__entry(
- 		__field(	struct page *,	page			)
-@@ -289,7 +289,8 @@ TRACE_EVENT(mm_page_alloc_extfrag,
- 		__entry->fallback_order		= fallback_order;
- 		__entry->alloc_migratetype	= alloc_migratetype;
- 		__entry->fallback_migratetype	= fallback_migratetype;
--		__entry->change_ownership	= (new_migratetype == alloc_migratetype);
-+		__entry->change_ownership	= (alloc_migratetype ==
-+					get_pageblock_migratetype(page));
- 	),
- 
- 	TP_printk("page=%p pfn=%lu alloc_order=%d fallback_order=%d pageblock_order=%d alloc_migratetype=%d fallback_migratetype=%d fragmenting=%d change_ownership=%d",
-diff -puN mm/page_alloc.c~mm-when-stealing-freepages-also-take-pages-created-by-splitting-buddy-page mm/page_alloc.c
---- a/mm/page_alloc.c~mm-when-stealing-freepages-also-take-pages-created-by-splitting-buddy-page
-+++ a/mm/page_alloc.c
-@@ -1131,8 +1131,8 @@ static void change_pageblock_range(struc
-  * nor move CMA pages to different free lists. We don't want unmovable pages
-  * to be allocated from MIGRATE_CMA areas.
-  *
-- * Returns the new migratetype of the pageblock (or the same old migratetype
-- * if it was unchanged).
-+ * Returns the allocation migratetype if free pages were stolen, or the
-+ * fallback migratetype if it was decided not to steal.
-  */
- static int try_to_steal_freepages(struct zone *zone, struct page *page,
- 				  int start_type, int fallback_type)
-@@ -1163,12 +1163,10 @@ static int try_to_steal_freepages(struct
- 
- 		/* Claim the whole block if over half of it is free */
- 		if (pages >= (1 << (pageblock_order-1)) ||
--				page_group_by_mobility_disabled) {
--
-+				page_group_by_mobility_disabled)
- 			set_pageblock_migratetype(page, start_type);
--			return start_type;
--		}
- 
-+		return start_type;
- 	}
- 
- 	return fallback_type;
-@@ -1220,7 +1218,7 @@ __rmqueue_fallback(struct zone *zone, un
- 			set_freepage_migratetype(page, new_type);
- 
- 			trace_mm_page_alloc_extfrag(page, order, current_order,
--				start_migratetype, migratetype, new_type);
-+				start_migratetype, migratetype);
- 
- 			return page;
- 		}
-_
-
-Patches currently in -mm which might be from vbabka@suse.cz are
-
-mm-vmscan-fix-highidx-argument-type.patch
-mm-dont-offset-memmap-for-flatmem.patch
-mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
-mm-vmscan-wake-up-all-pfmemalloc-throttled-processes-at-once.patch
-mm-set-page-pfmemalloc-in-prep_new_page.patch
-mm-page_alloc-reduce-number-of-alloc_pages-functions-parameters.patch
-mm-reduce-try_to_compact_pages-parameters.patch
-mm-microoptimize-zonelist-operations.patch
-mm-page_allocc-drop-dead-destroy_compound_page.patch
-mm-more-checks-on-free_pages_prepare-for-tail-pages.patch
-mm-more-checks-on-free_pages_prepare-for-tail-pages-fix-2.patch
-mm-compaction-change-tracepoint-format-from-decimal-to-hexadecimal.patch
-mm-compaction-enhance-tracepoint-output-for-compaction-begin-end.patch
-mm-compaction-enhance-tracepoint-output-for-compaction-begin-end-v4.patch
-mm-compaction-print-current-range-where-compaction-work.patch
-mm-compaction-more-trace-to-understand-when-why-compaction-start-finish.patch
-mm-compaction-add-tracepoint-to-observe-behaviour-of-compaction-defer.patch
-mm-compaction-add-tracepoint-to-observe-behaviour-of-compaction-defer-v4.patch
-mm-thp-allocate-transparent-hugepages-on-local-node.patch
-mm-thp-allocate-transparent-hugepages-on-local-node-fix.patch
-mm-when-stealing-freepages-also-take-pages-created-by-splitting-buddy-page.patch
-mm-always-steal-split-buddies-in-fallback-allocations.patch
-mm-more-aggressive-page-stealing-for-unmovable-allocations.patch
-
+  origin.patch
+  i-need-old-gcc.patch
+  arch-alpha-kernel-systblss-remove-debug-check.patch
+* mm-page_alloc-embed-oom-killing-naturally-into-allocation-slowpath.patch
+* x86-build-replace-perl-script-with-shell-script.patch
+* memcg-remove-extra-newlines-from-memcg-oom-kill-log.patch
+* mm-vmscan-fix-highidx-argument-type.patch
+* printk-add-dummy-routine-for-when-config_printk=n.patch
+* rtc-s5m-terminate-s5m_rtc_id-array-with-empty-element.patch
+* mm-dont-offset-memmap-for-flatmem.patch
+* mm-pagewalk-call-pte_hole-for-vm_pfnmap-during-walk_page_range.patch
+* jffs2-bugfix-of-summary-length.patch
+* fanotify-only-destroy-mark-when-both-mask-and-ignored_mask-are-cleared.patch
+* fanotify-dont-recalculate-a-marks-mask-if-only-the-ignored-mask-changed.patch
+* fanotify-dont-recalculate-a-marks-mask-if-only-the-ignored-mask-changed-checkpatch-fixes.patch
+* fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask.patch
+* fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask-checkpatch-fixes.patch
+* input-route-kbd-leds-through-the-generic-leds-layer.patch
+* build-superh-without-config_expert.patch
+* fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+* ocfs2-dlm-add-missing-dlm_lock_put-when-recovery-master-down.patch
+* ocfs2-remove-unnecessary-else-in-ocfs2_set_acl.patch
+* ocfs2-fix-uninitialized-variable-access.patch
+* ocfs2-fix-wrong-comment.patch
+* ocfs2-fix-snprintf-format-specifier-in-dlmdebugc.patch
+* ocfs2-xattr-remove-unused-function.patch
+* ocfs2-quota_local-remove-unused-function.patch
+* ocfs2-dlm-dlmdomain-remove-unused-function.patch
+* ocfs2-fix-journal-commit-deadlock-in-ocfs2_convert_inline_data_to_extents.patch
+* ocfs2-add-a-mount-option-journal_async_commit-on-ocfs2-filesystem.patch
+* ocfs2-remove-pointless-assignment-from-ocfs2_calc_refcount_meta_credits.patch
+* ocfs2-o2net-silence-uninitialized-variable-warning.patch
+* o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper.patch
+* ocfs2-call-ocfs2_journal_access_di-before-ocfs2_journal_dirty-in-ocfs2_write_end_nolock.patch
+* ocfs2-avoid-access-invalid-address-when-read-o2dlm-debug-messages.patch
+* block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
+* fs-make-generic_block_fiemap-sig-tolerant.patch
+* fs-make-generic_block_fiemap-sig-tolerant-fix.patch
+  mm.patch
+* mm-slub-optimize-alloc-free-fastpath-by-removing-preemption-on-off.patch
+* mm-slub-optimize-alloc-free-fastpath-by-removing-preemption-on-off-v3.patch
+* mm-dont-use-compound_head-in-virt_to_head_page.patch
+* mm-dont-use-compound_head-in-virt_to_head_page-v3.patch
+* mm-slub-fix-typo.patch
+* mm-vmstatc-fix-cleanup-ifdefs.patch
+* mm-vmstatc-fix-cleanup-ifdefs-fix-2.patch
+* mm-replace-remap_file_pages-syscall-with-emulation.patch
+* mm-drop-support-of-non-linear-mapping-from-unmap-zap-codepath.patch
+* mm-drop-support-of-non-linear-mapping-from-fault-codepath.patch
+* mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub.patch
+* mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub-fix.patch
+* proc-drop-handling-non-linear-mappings.patch
+* rmap-drop-support-of-non-linear-mappings.patch
+* mm-replace-vma-shareadlinear-with-vma-shared.patch
+* mm-remove-rest-usage-of-vm_nonlinear-and-pte_file.patch
+* asm-generic-drop-unused-pte_file-helpers.patch
+* alpha-drop-_page_file-and-pte_file-related-helpers.patch
+* arc-drop-_page_file-and-pte_file-related-helpers.patch
+* arc-drop-_page_file-and-pte_file-related-helpers-fix.patch
+* arm64-drop-pte_file-and-pte_file-related-helpers.patch
+* arm-drop-l_pte_file-and-pte_file-related-helpers.patch
+* avr32-drop-_page_file-and-pte_file-related-helpers.patch
+* blackfin-drop-pte_file.patch
+* c6x-drop-pte_file.patch
+* cris-drop-_page_file-and-pte_file-related-helpers.patch
+* frv-drop-_page_file-and-pte_file-related-helpers.patch
+* hexagon-drop-_page_file-and-pte_file-related-helpers.patch
+* ia64-drop-_page_file-and-pte_file-related-helpers.patch
+* m32r-drop-_page_file-and-pte_file-related-helpers.patch
+* m68k-drop-_page_file-and-pte_file-related-helpers.patch
+* metag-drop-_page_file-and-pte_file-related-helpers.patch
+* microblaze-drop-_page_file-and-pte_file-related-helpers.patch
+* mips-drop-_page_file-and-pte_file-related-helpers.patch
+* mn10300-drop-_page_file-and-pte_file-related-helpers.patch
+* nios2-drop-_page_file-and-pte_file-related-helpers.patch
+* openrisc-drop-_page_file-and-pte_file-related-helpers.patch
+* parisc-drop-_page_file-and-pte_file-related-helpers.patch
+* powerpc-drop-_page_file-and-pte_file-related-helpers.patch
+* s390-drop-pte_file-related-helpers.patch
+* score-drop-_page_file-and-pte_file-related-helpers.patch
+* sh-drop-_page_file-and-pte_file-related-helpers.patch
+* sparc-drop-pte_file-related-helpers.patch
+* tile-drop-pte_file-related-helpers.patch
+* um-drop-_page_file-and-pte_file-related-helpers.patch
+* unicore32-drop-pte_file-related-helpers.patch
+* x86-drop-_page_file-and-pte_file-related-helpers.patch
+* xtensa-drop-_page_file-and-pte_file-related-helpers.patch
+* mm-memory-remove-vm_file-check-on-shared-writable-vmas.patch
+* mm-memory-merge-shared-writable-dirtying-branches-in-do_wp_page.patch
+* hugetlb-sysctl-pass-extra1-=-null-rather-then-extra1-=-zero.patch
+* mm-hugetlb-fix-type-of-hugetlb_treat_as_movable-variable.patch
+* mm-page_alloc-place-zone_id-check-before-vm_bug_on_page-check.patch
+* memcg-zap-__memcg_chargeuncharge_slab.patch
+* memcg-zap-memcg_name-argument-of-memcg_create_kmem_cache.patch
+* memcg-zap-memcg_slab_caches-and-memcg_slab_mutex.patch
+* mm-add-fields-for-compound-destructor-and-order-into-struct-page.patch
+* mm-add-vm_bug_on_page-for-page_mapcount.patch
+* mm-add-kpf_zero_page-flag-for-proc-kpageflags.patch
+* oom-dont-count-on-mm-less-current-process.patch
+* oom-make-sure-that-tif_memdie-is-set-under-task_lock.patch
+* swap-remove-unused-mem_cgroup_uncharge_swapcache-declaration.patch
+* mm-memcontrol-track-move_lock-state-internally.patch
+* mm-memcontrol-track-move_lock-state-internally-fix.patch
+* mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
+* kmemcheck-move-hook-into-__alloc_pages_nodemask-for-the-page-allocator.patch
+* mm-fix-a-typo-of-migrate_reserve-in-comment.patch
+* mm-vmscan-wake-up-all-pfmemalloc-throttled-processes-at-once.patch
+* mm-hugetlb-reduce-arch-dependent-code-around-follow_huge_.patch
+* mm-hugetlb-reduce-arch-dependent-code-around-follow_huge_-fix.patch
+* mm-hugetlb-pmd_huge-returns-true-for-non-present-hugepage.patch
+* mm-hugetlb-take-page-table-lock-in-follow_huge_pmd.patch
+* mm-hugetlb-fix-getting-refcount-0-page-in-hugetlb_fault.patch
+* mm-hugetlb-add-migration-hwpoisoned-entry-check-in-hugetlb_change_protection.patch
+* mm-hugetlb-add-migration-entry-check-in-__unmap_hugepage_range.patch
+* mm-hugetlb-fix-suboptimal-migration-hwpoisoned-entry-check.patch
+* mm-hugetlb-cleanup-and-rename-is_hugetlb_entry_migrationhwpoisoned.patch
+* sparc32-fix-broken-set_pte.patch
+* mm-numa-do-not-dereference-pmd-outside-of-the-lock-during-numa-hinting-fault.patch
+* mm-add-p-protnone-helpers-for-use-by-numa-balancing.patch
+* mm-convert-p_numa-users-to-p_protnone_numa.patch
+* ppc64-add-paranoid-warnings-for-unexpected-dsisr_protfault.patch
+* mm-convert-p_mknonnuma-and-remaining-page-table-manipulations.patch
+* mm-remove-remaining-references-to-numa-hinting-bits-and-helpers.patch
+* mm-numa-do-not-trap-faults-on-the-huge-zero-page.patch
+* x86-mm-restore-original-pte_special-check.patch
+* mm-numa-add-paranoid-check-around-pte_protnone_numa.patch
+* mm-numa-avoid-unnecessary-tlb-flushes-when-setting-numa-hinting-entries.patch
+* mm-set-page-pfmemalloc-in-prep_new_page.patch
+* mm-page_alloc-reduce-number-of-alloc_pages-functions-parameters.patch
+* mm-reduce-try_to_compact_pages-parameters.patch
+* mm-microoptimize-zonelist-operations.patch
+* list_lru-introduce-list_lru_shrink_countwalk.patch
+* fs-consolidate-nrfree_cached_objects-args-in-shrink_control.patch
+* vmscan-per-memory-cgroup-slab-shrinkers.patch
+* memcg-rename-some-cache-id-related-variables.patch
+* memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation.patch
+* list_lru-get-rid-of-active_nodes.patch
+* list_lru-organize-all-list_lrus-to-list.patch
+* list_lru-introduce-per-memcg-lists.patch
+* fs-make-shrinker-memcg-aware.patch
+* mm-page_allocc-drop-dead-destroy_compound_page.patch
+* mm-more-checks-on-free_pages_prepare-for-tail-pages.patch
+* mm-more-checks-on-free_pages_prepare-for-tail-pages-fix-2.patch
+* vmscan-force-scan-offline-memory-cgroups.patch
+* vmscan-force-scan-offline-memory-cgroups-fix.patch
+* memcg-add-build_bug_on-for-string-tables.patch
+* mm-use-correct-format-specifiers-when-printing-address-ranges.patch
+* mm-page_counter-pull-1-handling-out-of-page_counter_memparse.patch
+* mm-memcontrol-default-hierarchy-interface-for-memory.patch
+* mm-memcontrol-fold-move_anon-and-move_file.patch
+* mm-memcontrol-fold-move_anon-and-move_file-fix.patch
+* oom-add-helpers-for-setting-and-clearing-tif_memdie.patch
+* oom-thaw-the-oom-victim-if-it-is-frozen.patch
+* pm-convert-printk-to-pr_-equivalent.patch
+* sysrq-convert-printk-to-pr_-equivalent.patch
+* oom-pm-make-oom-detection-in-the-freezer-path-raceless.patch
+* mm-cma-fix-totalcma_pages-to-include-dt-defined-cma-regions.patch
+* mm-memcontrol-simplify-soft-limit-tree-init-code.patch
+* mm-memcontrol-consolidate-memory-controller-initialization.patch
+* mm-memcontrol-consolidate-swap-controller-code.patch
+* fs-shrinker-always-scan-at-least-one-object-of-each-type.patch
+* fs-shrinker-always-scan-at-least-one-object-of-each-type-fix.patch
+* mm-pagemap-limit-scan-to-virtual-region-being-asked.patch
+* microblaze-define-__pagetable_pmd_folded.patch
+* mm-make-first_user_address-unsigned-long-on-all-archs.patch
+* mm-asm-generic-define-pud_shift-in-asm-generic-4level-fixuph.patch
+* arm-define-__pagetable_pmd_folded-for-lpae.patch
+* mm-account-pmd-page-tables-to-the-process.patch
+* page_writeback-put-account_page_redirty-after-set_page_dirty.patch
+* mm-compaction-change-tracepoint-format-from-decimal-to-hexadecimal.patch
+* mm-compaction-enhance-tracepoint-output-for-compaction-begin-end.patch
+* mm-compaction-enhance-tracepoint-output-for-compaction-begin-end-v4.patch
+* mm-compaction-print-current-range-where-compaction-work.patch
+* mm-compaction-more-trace-to-understand-when-why-compaction-start-finish.patch
+* mm-compaction-add-tracepoint-to-observe-behaviour-of-compaction-defer.patch
+* mm-compaction-add-tracepoint-to-observe-behaviour-of-compaction-defer-v4.patch
+* mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+* mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated-fix.patch
+* mm-thp-allocate-transparent-hugepages-on-local-node.patch
+* mm-thp-allocate-transparent-hugepages-on-local-node-fix.patch
+* mm-gup-add-get_user_pages_locked-and-get_user_pages_unlocked.patch
+* mm-gup-add-__get_user_pages_unlocked-to-customize-gup_flags.patch
+* mm-gup-use-get_user_pages_unlocked-within-get_user_pages_fast.patch
+* mm-gup-use-get_user_pages_unlocked.patch
+* mm-gup-kvm-use-get_user_pages_unlocked.patch
+* mm-pagewalk-remove-pgd_entry-and-pud_entry.patch
+* pagewalk-improve-vma-handling.patch
+* pagewalk-add-walk_page_vma.patch
+* smaps-remove-mem_size_stats-vma-and-use-walk_page_vma.patch
+* clear_refs-remove-clear_refs_private-vma-and-introduce-clear_refs_test_walk.patch
+* pagemap-use-walk-vma-instead-of-calling-find_vma.patch
+* numa_maps-fix-typo-in-gather_hugetbl_stats.patch
+* numa_maps-remove-numa_maps-vma.patch
+* memcg-cleanup-preparation-for-page-table-walk.patch
+* arch-powerpc-mm-subpage-protc-use-walk-vma-and-walk_page_vma.patch
+* mempolicy-apply-page-table-walker-on-queue_pages_range.patch
+* mm-pagewalk-fix-misbehavior-of-walk_page_range-for-vmavm_pfnmap-re-pagewalk-improve-vma-handling.patch
+* mm-proc-pid-clear_refs-avoid-split_huge_page.patch
+* mincore-apply-page-table-walker-on-do_mincore.patch
+* slab-embed-memcg_cache_params-to-kmem_cache.patch
+* slab-link-memcg-caches-of-the-same-kind-into-a-list.patch
+* cgroup-release-css-id-after-css_free.patch
+* slab-use-css-id-for-naming-per-memcg-caches.patch
+* memcg-free-memcg_caches-slot-on-css-offline.patch
+* list_lru-add-helpers-to-isolate-items.patch
+* memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline.patch
+* mm-when-stealing-freepages-also-take-pages-created-by-splitting-buddy-page.patch
+* mm-always-steal-split-buddies-in-fallback-allocations.patch
+* mm-more-aggressive-page-stealing-for-unmovable-allocations.patch
+* mm-page_isolation-check-pfn-validity-before-access.patch
+* mm-fix-invalid-use-of-pfn_valid_within-in-test_pages_in_a_zone.patch
+* fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
+* mm-support-madvisemadv_free.patch
+* mm-support-madvisemadv_free-fix.patch
+* x86-add-pmd_-for-thp.patch
+* x86-add-pmd_-for-thp-fix.patch
+* sparc-add-pmd_-for-thp.patch
+* sparc-add-pmd_-for-thp-fix.patch
+* powerpc-add-pmd_-for-thp.patch
+* arm-add-pmd_mkclean-for-thp.patch
+* arm64-add-pmd_-for-thp.patch
+* mm-dont-split-thp-page-when-syscall-is-called.patch
+* mm-dont-split-thp-page-when-syscall-is-called-fix.patch
+* mm-dont-split-thp-page-when-syscall-is-called-fix-2.patch
+* zram-clean-up-zram_meta_alloc.patch
+* mm-zpool-add-name-argument-to-create-zpool.patch
+* mm-zsmalloc-add-statistics-support.patch
+* arch-frv-mm-extablec-remove-unused-function.patch
+* task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss.patch
+* fs-proc-use-the-pde-to-to-get-proc_dir_entry.patch
+* documentation-proc-add-proc-pid-numa_maps-interface-explanation-snippet.patch
+* fs-proc-task_mmu-show-page-size-in-proc-pid-numa_maps.patch
+* fs-proc-task_mmu-show-page-size-in-proc-pid-numa_maps-fix.patch
+* fs-proc-arrayc-convert-to-use-string_escape_str.patch
+* all-arches-signal-move-restart_block-to-struct-task_struct.patch
+* all-arches-signal-move-restart_block-to-struct-task_struct-fix.patch
+* linux-typesh-always-use-unsigned-long-for-pgoff_t.patch
+* printk-correct-timeout-comment-neaten-module_parm_desc.patch
+* lib-vsprintfc-consume-p-in-format_decode.patch
+* lib-vsprintfc-improve-sanity-check-in-vsnprintf.patch
+* lib-vsprintfc-replace-while-with-do-while-in-skip_atoi.patch
+* lib-vsprintf-add-%pt-format-specifier.patch
+* lib-string_get_size-remove-redundant-prefixes.patch
+* lib-string_get_size-use-32-bit-arithmetic-when-possible.patch
+* lib-string_get_size-return-void.patch
+* lib-bitmap-more-signed-unsigned-conversions.patch
+* linux-nodemaskh-update-bitmap-wrappers-to-take-unsigned-int.patch
+* linux-cpumaskh-update-bitmap-wrappers-to-take-unsigned-int.patch
+* lib-bitmap-update-bitmap_onto-to-unsigned.patch
+* lib-bitmap-update-bitmap_onto-to-unsigned-checkpatch-fixes.patch
+* lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned.patch
+* lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned-fix.patch
+* lib-bitmap-simplify-bitmap_pos_to_ord.patch
+* lib-bitmap-simplify-bitmap_ord_to_pos.patch
+* lib-bitmap-make-the-bits-parameter-of-bitmap_remap-unsigned.patch
+* lib-remove-strnicmp.patch
+* lib-genallocc-fix-the-end-addr-check-in-addr_in_gen_pool.patch
+* hexdump-introduce-test-suite.patch
+* hexdump-fix-ascii-column-for-the-tail-of-a-dump.patch
+* hexdump-do-few-calculations-ahead.patch
+* hexdump-makes-it-return-amount-of-bytes-placed-in-buffer.patch
+* hexdump-makes-it-return-amount-of-bytes-placed-in-buffer-fix.patch
+* lib-interval_treec-simplify-includes.patch
+* lib-sortc-use-simpler-includes.patch
+* lib-dynamic_queue_limitsc-simplify-includes.patch
+* lib-halfmd4c-simplify-includes.patch
+* lib-idrc-remove-redundant-include.patch
+* lib-genallocc-remove-redundant-include.patch
+* lib-list_sortc-rearrange-includes.patch
+* lib-md5c-simplify-include.patch
+* lib-llistc-remove-redundant-include.patch
+* lib-kobject_ueventc-remove-redundant-include.patch
+* lib-nlattrc-remove-redundant-include.patch
+* lib-plistc-remove-redundant-include.patch
+* lib-radix-treec-change-to-simpler-include.patch
+* lib-show_memc-remove-redundant-include.patch
+* lib-sortc-move-include-inside-if-0.patch
+* lib-stmp_devicec-replace-moduleh-include.patch
+* lib-strncpy_from_userc-replace-moduleh-include.patch
+* lib-percpu_idac-remove-redundant-includes.patch
+* lib-lcmc-replace-include.patch
+* lib-bitmapc-change-prototype-of-bitmap_copy_le.patch
+* lib-bitmapc-elide-bitmap_copy_le-on-little-endian.patch
+* lib-bitmap-change-bitmap_shift_right-to-take-unsigned-parameters.patch
+* lib-bitmap-eliminate-branch-in-__bitmap_shift_right.patch
+* lib-bitmap-remove-redundant-code-from-__bitmap_shift_right.patch
+* lib-bitmap-yet-another-simplification-in-__bitmap_shift_right.patch
+* lib-bitmap-change-bitmap_shift_left-to-take-unsigned-parameters.patch
+* lib-bitmap-eliminate-branch-in-__bitmap_shift_left.patch
+* lib-bitmap-remove-redundant-code-from-__bitmap_shift_left.patch
+* lib-crc32-constify-crc32-lookup-table.patch
+* mm-util-add-kstrdup_const.patch
+* kernfs-convert-node-name-allocation-to-kstrdup_const.patch
+* kernfs-remove-kernfs_static_name.patch
+* clk-convert-clock-name-allocations-to-kstrdup_const.patch
+* mm-slab-convert-cache-name-allocations-to-kstrdup_const.patch
+* mm-slab-convert-cache-name-allocations-to-kstrdup_const-fix.patch
+* fs-namespace-convert-devname-allocation-to-kstrdup_const.patch
+* lib-stringc-improve-strrchr.patch
+* genalloc-check-result-of-devres_alloc.patch
+* mm-utilc-add-kstrimdup.patch
+* lib-add-crc64-ecma-module.patch
+* checkpatch-emit-an-error-when-using-predefined-timestamp-macros.patch
+* checkpatch-improve-octal-permissions-tests.patch
+* checkpatch-ignore-__pure-attribute.patch
+* checkpatch-fix-unnecessary_kern_level-false-positive.patch
+* checkpatch-add-check-for-keyword-boolean-in-kconfig-definitions.patch
+* checkpatch-allow-comments-in-macros-tested-for-single-statements.patch
+* checkpatch-update-git-commit-message.patch
+* checkpatch-add-likely-unlikely-comparison-misuse-test.patch
+* checkpatch-add-ability-to-coalesce-commit-descriptions-on-multiple-lines.patch
+* checkpatch-add-types-for-other-os-typedefs.patch
+* init-remove-config_init_fallback.patch
+* rtc-rtc-pfc2123-add-support-for-devicetree.patch
+* drivers-rtc-interfacec-check-the-error-after-__rtc_read_time.patch
+* rtc-rtc-isl12057-add-alarm-support-to-intersil-isl12057-rtc-driver.patch
+* rtc-rtc-isl12057-add-alarm-support-to-intersil-isl12057-rtc-driver-update.patch
+* rtc-rtc-isl12057-add-isilirq2-can-wakeup-machine-property-for-in-tree-users.patch
+* arm-mvebu-isl12057-rtc-chip-can-now-wake-up-rn102-rn102-and-rn2120.patch
+* rtc-imx-dryice-trivial-clean-up-code.patch
+* rtc-imx-dryice-add-more-known-register-bits.patch
+* rtc-at91sam9-constify-struct-regmap_config.patch
+* rtc-isl12057-constify-struct-regmap_config.patch
+* rtc-rk808-fix-the-rtc-time-reading-issue.patch
+* rtc-rk808-fix-the-rtc-time-reading-issue-fix.patch
+* of-add-vendor-prefix-for-abracon-corporation.patch
+* rtc-add-support-for-abracon-ab-rtcmc-32768khz-b5ze-s3-i2c-rtc-chip.patch
+* rtc-add-support-for-abracon-ab-rtcmc-32768khz-b5ze-s3-i2c-rtc-chip-v2.patch
+* rtc-rtc-ab-b5ze-s3-add-sub-minute-alarm-support.patch
+* rtc-restore-alarm-after-resume.patch
+* fs-befs-linuxvfsc-remove-unnecessary-casting.patch
+* fs-befs-linuxvfsc-remove-unnecessary-casting-fix.patch
+* fs-coda-dirc-forward-declaration-clean-up.patch
+* fs-ufs-superc-remove-unnecessary-casting.patch
+* fs-reiserfs-inodec-replace-0-by-null-for-pointers.patch
+* fs-fat-use-msdos_sb-macro-to-get-msdos_sb_info.patch
+* fat-add-fat_fallocate-operation.patch
+* fat-skip-cluster-allocation-on-fallocated-region.patch
+* fat-permit-to-return-phy-block-number-by-fibmap-in-fallocated-region.patch
+* documentation-filesystems-vfattxt-update-the-limitation-for-fat-fallocate.patch
+* ptrace-remove-linux-compath-inclusion-under-config_compat.patch
+* signal-use-current-state-helpers.patch
+* kexec-remove-never-used-member-destination-in-kimage.patch
+* kexec-fix-a-typo-in-comment.patch
+* kexec-fix-make-headers_check.patch
+* kexec-simplify-conditional.patch
+* kexec-add-bit-definitions-for-kimage-entry-flags.patch
+* kexec-add-ind_flags-macro.patch
+* vmcore-fix-pt_note-n_namesz-n_descsz-overflow-issue.patch
+* kdump-vmcoreinfo-report-actual-value-of-phys_base.patch
+* rbtree-fix-typo-in-comment.patch
+* eventfd-dont-take-the-spinlock-in-eventfd_poll.patch
+* fs-affs-fix-casting-in-printed-messages.patch
+* fs-affs-filec-replace-if-bug-by-bug_on.patch
+* fs-affs-filec-fix-direct-io-writes-beyond-eof.patch
+* fs-affs-superc-destroy-sbi-mutex-in-affs_kill_sb.patch
+* ipcsem-use-current-state-helpers.patch
+  linux-next.patch
+  linux-next-rejects.patch
+* drivers-gpio-gpio-zevioc-fix-build.patch
+* rtc-isl12022-deprecate-use-of-isl-in-compatible-string-for-isil.patch
+* rtc-isl12057-deprecate-use-of-isl-in-compatible-string-for-isil.patch
+* staging-iio-isl29028-deprecate-use-of-isl-in-compatible-string-for-isil.patch
+* arm-dts-zynq-update-isl9305-compatible-string-to-use-isil-vendor-prefix.patch
+* maintainers-add-git-url-entry-for-uio.patch
+* mm-fix-xip-fault-vs-truncate-race.patch
+* mm-fix-xip-fault-vs-truncate-race-fix.patch
+* mm-fix-xip-fault-vs-truncate-race-fix-fix.patch
+* mm-allow-page-fault-handlers-to-perform-the-cow.patch
+* mm-allow-page-fault-handlers-to-perform-the-cow-fix.patch
+* mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix-3.patch
+* mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix.patch
+* vfsext2-introduce-is_daxinode.patch
+* daxext2-replace-xip-read-and-write-with-dax-i-o.patch
+* daxext2-replace-ext2_clear_xip_target-with-dax_clear_blocks.patch
+* daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler.patch
+* daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix.patch
+* daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-2.patch
+* daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-3.patch
+* daxext2-replace-xip_truncate_page-with-dax_truncate_page.patch
+* dax-replace-xip-documentation-with-dax-documentation.patch
+* vfs-remove-get_xip_mem.patch
+* ext2-remove-ext2_xip_verify_sb.patch
+* ext2-remove-ext2_use_xip.patch
+* ext2-remove-xipc-and-xiph.patch
+* vfsext2-remove-config_ext2_fs_xip-and-rename-config_fs_xip-to-config_fs_dax.patch
+* ext2-remove-ext2_aops_xip.patch
+* ext2-get-rid-of-most-mentions-of-xip-in-ext2.patch
+* dax-add-dax_zero_page_range.patch
+* dax-add-dax_zero_page_range-fix.patch
+* ext4-add-dax-functionality.patch
+* ext4-add-dax-functionality-fix.patch
+* brd-rename-xip-to-dax.patch
+* maintainers-fixed-spelling-mistake-removed-trailing-ws.patch
+* ocfs2-prepare-some-interfaces-used-in-append-direct-io.patch
+* ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir.patch
+* ocfs2-add-orphan-recovery-types-in-ocfs2_recover_orphans.patch
+* ocfs2-implement-ocfs2_direct_io_write.patch
+* ocfs2-implement-ocfs2_direct_io_write-fix.patch
+* ocfs2-allocate-blocks-in-ocfs2_direct_io_get_blocks.patch
+* ocfs2-do-not-fallback-to-buffer-i-o-write-if-appending.patch
+* ocfs2-complete-the-rest-request-through-buffer-io.patch
+* ocfs2-wait-for-orphan-recovery-first-once-append-o_direct-write-crash.patch
+* ocfs2-set-append-dio-as-a-ro-compat-feature.patch
+* w1-call-put_device-if-device_register-fails.patch
+* mm-add-strictlimit-knob-v2.patch
+  do_shared_fault-check-that-mmap_sem-is-held.patch
+  make-sure-nobodys-leaking-resources.patch
+  journal_add_journal_head-debug.patch
+  journal_add_journal_head-debug-fix.patch
+  releasing-resources-with-children.patch
+  make-frame_pointer-default=y.patch
+  kernel-forkc-export-kernel_thread-to-modules.patch
+  mutex-subsystem-synchro-test-module.patch
+  slab-leaks3-default-y.patch
+  add-debugging-aid-for-memory-initialisation-problems.patch
+  workaround-for-a-pci-restoring-bug.patch
