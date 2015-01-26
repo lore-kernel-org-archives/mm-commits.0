@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- drivers-base-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch added to -mm tree
-Date: Mon, 26 Jan 2015 15:07:28 -0800
-Message-ID: <54c6c8b0.LrDgEdg79YTpFsp1%akpm@linux-foundation.org>
+ input-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch added to -mm tree
+Date: Mon, 26 Jan 2015 15:07:22 -0800
+Message-ID: <54c6c8aa.HxKwG20vCWNjII0n%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46172 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46163 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754291AbbAZXH3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jan 2015 18:07:29 -0500
+	with ESMTP id S1757199AbbAZXHX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jan 2015 18:07:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, gregkh@linuxfoundation.org, mm-commits@vger.kernel.org
+To: tj@kernel.org, dmitry.torokhov@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/base: use %*pb[l] to print bitmaps including cpumasks and nodemasks
+     Subject: input: use %*pb[l] to print bitmaps including cpumasks and nodemasks
 has been added to the -mm tree.  Its filename is
-     drivers-base-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+     input-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-base-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/input-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-base-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/input-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,7 +40,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: drivers/base: use %*pb[l] to print bitmaps including cpumasks and nodemasks
+Subject: input: use %*pb[l] to print bitmaps including cpumasks and nodemasks
 
 printk and friends can now formap bitmaps using '%*pb[l]'.  cpumask
 and nodemask also provide cpumask_pr_args() and nodemask_pr_args()
@@ -56,39 +56,40 @@ This patch is dependent on the following two patches.
  cpumask, nodemask: implement cpumask/nodemask_pr_args()
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/cpu.c  |    2 +-
- drivers/base/node.c |    3 ++-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ drivers/input/keyboard/atkbd.c     |    4 ++--
+ drivers/input/keyboard/gpio_keys.c |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/base/cpu.c~drivers-base-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks drivers/base/cpu.c
---- a/drivers/base/cpu.c~drivers-base-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
-+++ a/drivers/base/cpu.c
-@@ -245,7 +245,7 @@ static ssize_t print_cpus_offline(struct
- 	if (!alloc_cpumask_var(&offline, GFP_KERNEL))
- 		return -ENOMEM;
- 	cpumask_andnot(offline, cpu_possible_mask, cpu_online_mask);
--	n = cpulist_scnprintf(buf, len, offline);
-+	n = scnprintf(buf, len, "%*pbl", cpumask_pr_args(offline));
- 	free_cpumask_var(offline);
+diff -puN drivers/input/keyboard/atkbd.c~input-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks drivers/input/keyboard/atkbd.c
+--- a/drivers/input/keyboard/atkbd.c~input-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
++++ a/drivers/input/keyboard/atkbd.c
+@@ -1399,8 +1399,8 @@ static ssize_t atkbd_set_extra(struct at
  
- 	/* display offline cpus >= nr_cpu_ids */
-diff -puN drivers/base/node.c~drivers-base-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks drivers/base/node.c
---- a/drivers/base/node.c~drivers-base-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
-+++ a/drivers/base/node.c
-@@ -605,7 +605,8 @@ static ssize_t print_nodes_state(enum no
+ static ssize_t atkbd_show_force_release(struct atkbd *atkbd, char *buf)
  {
- 	int n;
+-	size_t len = bitmap_scnlistprintf(buf, PAGE_SIZE - 2,
+-			atkbd->force_release_mask, ATKBD_KEYMAP_SIZE);
++	size_t len = scnprintf(buf, PAGE_SIZE - 1, "%*pbl",
++			       ATKBD_KEYMAP_SIZE, atkbd->force_release_mask);
  
--	n = nodelist_scnprintf(buf, PAGE_SIZE-2, node_states[state]);
-+	n = scnprintf(buf, PAGE_SIZE - 1, "%*pbl",
-+		      nodemask_pr_args(&node_states[state]));
- 	buf[n++] = '\n';
- 	buf[n] = '\0';
- 	return n;
+ 	buf[len++] = '\n';
+ 	buf[len] = '\0';
+diff -puN drivers/input/keyboard/gpio_keys.c~input-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks drivers/input/keyboard/gpio_keys.c
+--- a/drivers/input/keyboard/gpio_keys.c~input-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
++++ a/drivers/input/keyboard/gpio_keys.c
+@@ -190,7 +190,7 @@ static ssize_t gpio_keys_attr_show_helpe
+ 		__set_bit(bdata->button->code, bits);
+ 	}
+ 
+-	ret = bitmap_scnlistprintf(buf, PAGE_SIZE - 2, bits, n_events);
++	ret = scnprintf(buf, PAGE_SIZE - 1, "%*pbl", n_events, bits);
+ 	buf[ret++] = '\n';
+ 	buf[ret] = '\0';
+ 
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
