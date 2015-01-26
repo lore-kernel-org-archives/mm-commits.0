@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + slab-embed-memcg_cache_params-to-kmem_cache-fix.patch added to
- -mm tree
-Date: Mon, 26 Jan 2015 12:10:35 -0800
-Message-ID: <54c69f3b.bh3ZC45GBMX8ib8C%akpm@linux-foundation.org>
+Subject: +
+ mm-compaction-enhance-tracepoint-output-for-compaction-begin-end-v4-fix.patch added to -mm tree
+Date: Mon, 26 Jan 2015 12:12:29 -0800
+Message-ID: <54c69fad.Idgs/MZ5YSQG/lrT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44188 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44198 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752749AbbAZUKg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jan 2015 15:10:36 -0500
+	with ESMTP id S1752749AbbAZUMa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jan 2015 15:12:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@parallels.com, dan.carpenter@oracle.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dan.carpenter@oracle.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slab: update_memcg_params: explicitly check that old array != NULL
+     Subject: mm-compaction-enhance-tracepoint-output-for-compaction-begin-end-v4-fix
 has been added to the -mm tree.  Its filename is
-     slab-embed-memcg_cache_params-to-kmem_cache-fix.patch
+     mm-compaction-enhance-tracepoint-output-for-compaction-begin-end-v4-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/slab-embed-memcg_cache_params-to-kmem_cache-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-enhance-tracepoint-output-for-compaction-begin-end-v4-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/slab-embed-memcg_cache_params-to-kmem_cache-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-enhance-tracepoint-output-for-compaction-begin-end-v4-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,88 +39,81 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: slab: update_memcg_params: explicitly check that old array != NULL
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-compaction-enhance-tracepoint-output-for-compaction-begin-end-v4-fix
 
-mm/slab_common.c:166 update_memcg_params() warn: variable dereferenced before check 'old' (see line 162)
+fix sparse warning
 
-This warning is false-positive, because @old equals NULL iff
-@memcg_nr_cache_ids equals 0. Moreover, this function had been acting in
-exactly the same fashion before it was reworked by the culprit. Anyways,
-let's add an explicit check if @old is not NULL before passing it to
-@memcpy() to make static analysis tools happy.
-
-Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
 Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab_common.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ mm/compaction.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slab_common.c~slab-embed-memcg_cache_params-to-kmem_cache-fix mm/slab_common.c
---- a/mm/slab_common.c~slab-embed-memcg_cache_params-to-kmem_cache-fix
-+++ a/mm/slab_common.c
-@@ -152,15 +152,16 @@ static int update_memcg_params(struct km
- 	if (!is_root_cache(s))
- 		return 0;
+diff -puN include/linux/compaction.h~mm-compaction-enhance-tracepoint-output-for-compaction-begin-end-v4-fix include/linux/compaction.h
+diff -puN mm/compaction.c~mm-compaction-enhance-tracepoint-output-for-compaction-begin-end-v4-fix mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-enhance-tracepoint-output-for-compaction-begin-end-v4-fix
++++ a/mm/compaction.c
+@@ -35,7 +35,7 @@ static inline void count_compact_events(
  
--	old = rcu_dereference_protected(s->memcg_params.memcg_caches,
--					lockdep_is_held(&slab_mutex));
- 	new = kzalloc(sizeof(struct memcg_cache_array) +
- 		      new_array_size * sizeof(void *), GFP_KERNEL);
- 	if (!new)
- 		return -ENOMEM;
- 
--	memcpy(new->entries, old->entries,
--	       memcg_nr_cache_ids * sizeof(void *));
-+	old = rcu_dereference_protected(s->memcg_params.memcg_caches,
-+					lockdep_is_held(&slab_mutex));
-+	if (old)
-+		memcpy(new->entries, old->entries,
-+		       memcg_nr_cache_ids * sizeof(void *));
- 
- 	rcu_assign_pointer(s->memcg_params.memcg_caches, new);
- 	if (old)
+ #if defined CONFIG_COMPACTION || defined CONFIG_CMA
+ #ifdef CONFIG_TRACEPOINTS
+-static const char const *compaction_status_string[] = {
++static const char *const compaction_status_string[] = {
+ 	"deferred",
+ 	"skipped",
+ 	"continue",
 _
 
-Patches currently in -mm which might be from vdavydov@parallels.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-vmscan-fix-highidx-argument-type.patch
-memcg-zap-__memcg_chargeuncharge_slab.patch
-memcg-zap-memcg_name-argument-of-memcg_create_kmem_cache.patch
-memcg-zap-memcg_slab_caches-and-memcg_slab_mutex.patch
-swap-remove-unused-mem_cgroup_uncharge_swapcache-declaration.patch
-mm-memcontrol-track-move_lock-state-internally.patch
-mm-vmscan-wake-up-all-pfmemalloc-throttled-processes-at-once.patch
-list_lru-introduce-list_lru_shrink_countwalk.patch
-fs-consolidate-nrfree_cached_objects-args-in-shrink_control.patch
-vmscan-per-memory-cgroup-slab-shrinkers.patch
-memcg-rename-some-cache-id-related-variables.patch
-memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation.patch
-list_lru-get-rid-of-active_nodes.patch
-list_lru-organize-all-list_lrus-to-list.patch
-list_lru-introduce-per-memcg-lists.patch
-fs-make-shrinker-memcg-aware.patch
-vmscan-force-scan-offline-memory-cgroups.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+fanotify-dont-recalculate-a-marks-mask-if-only-the-ignored-mask-changed-checkpatch-fixes.patch
+fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask-checkpatch-fixes.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper.patch
+mm.patch
+mm-vmstatc-fix-cleanup-ifdefs.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub-fix.patch
+mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
 vmscan-force-scan-offline-memory-cgroups-fix.patch
-mm-page_counter-pull-1-handling-out-of-page_counter_memparse.patch
 mm-memcontrol-default-hierarchy-interface-for-memory.patch
-mm-memcontrol-fold-move_anon-and-move_file.patch
 mm-memcontrol-fold-move_anon-and-move_file-fix.patch
-mm-memcontrol-simplify-soft-limit-tree-init-code.patch
-mm-memcontrol-consolidate-memory-controller-initialization.patch
-mm-memcontrol-consolidate-swap-controller-code.patch
-fs-shrinker-always-scan-at-least-one-object-of-each-type.patch
 fs-shrinker-always-scan-at-least-one-object-of-each-type-fix.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+mm-compaction-enhance-tracepoint-output-for-compaction-begin-end-v4-fix.patch
 mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated-fix.patch
-slab-embed-memcg_cache_params-to-kmem_cache.patch
-slab-embed-memcg_cache_params-to-kmem_cache-fix.patch
-slab-link-memcg-caches-of-the-same-kind-into-a-list.patch
-cgroup-release-css-id-after-css_free.patch
-slab-use-css-id-for-naming-per-memcg-caches.patch
-memcg-free-memcg_caches-slot-on-css-offline.patch
-list_lru-add-helpers-to-isolate-items.patch
-memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline.patch
+mm-thp-allocate-transparent-hugepages-on-local-node-fix.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss.patch
+lib-bitmap-update-bitmap_onto-to-unsigned-checkpatch-fixes.patch
+lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned-fix.patch
+hexdump-makes-it-return-amount-of-bytes-placed-in-buffer-fix.patch
+mm-slab-convert-cache-name-allocations-to-kstrdup_const-fix.patch
+rtc-rk808-fix-the-rtc-time-reading-issue-fix.patch
+fs-befs-linuxvfsc-remove-unnecessary-casting-fix.patch
+linux-next.patch
+linux-next-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mm-fix-xip-fault-vs-truncate-race-fix.patch
+mm-fix-xip-fault-vs-truncate-race-fix-fix.patch
+mm-allow-page-fault-handlers-to-perform-the-cow-fix.patch
+mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix-3.patch
+mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix.patch
+daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix.patch
+daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-2.patch
+daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-3.patch
+dax-add-dax_zero_page_range-fix.patch
+ext4-add-dax-functionality-fix.patch
+ocfs2-implement-ocfs2_direct_io_write-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
