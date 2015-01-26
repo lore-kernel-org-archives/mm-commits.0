@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch added to -mm tree
-Date: Mon, 26 Jan 2015 15:07:32 -0800
-Message-ID: <54c6c8b4.O7BzFejv5aSBv8vZ%akpm@linux-foundation.org>
+ irq-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch added
+ to -mm tree
+Date: Mon, 26 Jan 2015 15:07:38 -0800
+Message-ID: <54c6c8ba.fKrBy8kdzOoWr1P/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46178 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46186 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754291AbbAZXHd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jan 2015 18:07:33 -0500
+	with ESMTP id S1754291AbbAZXHj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jan 2015 18:07:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, mm-commits@vger.kernel.org
+To: tj@kernel.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: use %*pb[l] to print bitmaps including cpumasks and nodemasks
+     Subject: irq: use %*pb[l] to print bitmaps including cpumasks and nodemasks
 has been added to the -mm tree.  Its filename is
-     mm-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+     irq-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/irq-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/irq-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,7 +41,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: mm: use %*pb[l] to print bitmaps including cpumasks and nodemasks
+Subject: irq: use %*pb[l] to print bitmaps including cpumasks and nodemasks
 
 printk and friends can now formap bitmaps using '%*pb[l]'.  cpumask
 and nodemask also provide cpumask_pr_args() and nodemask_pr_args()
@@ -53,27 +54,49 @@ This patch is dependent on the following two patches.
  cpumask, nodemask: implement cpumask/nodemask_pr_args()
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ kernel/irq/proc.c |   11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
-diff -puN mm/mempolicy.c~mm-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks mm/mempolicy.c
---- a/mm/mempolicy.c~mm-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
-+++ a/mm/mempolicy.c
-@@ -2869,8 +2869,7 @@ void mpol_to_str(char *buffer, int maxle
- 			p += snprintf(p, buffer + maxlen - p, "relative");
- 	}
- 
--	if (!nodes_empty(nodes)) {
--		p += snprintf(p, buffer + maxlen - p, ":");
--	 	p += nodelist_scnprintf(p, buffer + maxlen - p, nodes);
--	}
-+	if (!nodes_empty(nodes))
-+		p += scnprintf(p, buffer + maxlen - p, ":%*pbl",
-+			       nodemask_pr_args(&nodes));
+diff -puN kernel/irq/proc.c~irq-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks kernel/irq/proc.c
+--- a/kernel/irq/proc.c~irq-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
++++ a/kernel/irq/proc.c
+@@ -46,10 +46,9 @@ static int show_irq_affinity(int type, s
+ 		mask = desc->pending_mask;
+ #endif
+ 	if (type)
+-		seq_cpumask_list(m, mask);
++		seq_printf(m, "%*pbl\n", cpumask_pr_args(mask));
+ 	else
+-		seq_cpumask(m, mask);
+-	seq_putc(m, '\n');
++		seq_printf(m, "%*pb\n", cpumask_pr_args(mask));
+ 	return 0;
  }
+ 
+@@ -67,8 +66,7 @@ static int irq_affinity_hint_proc_show(s
+ 		cpumask_copy(mask, desc->affinity_hint);
+ 	raw_spin_unlock_irqrestore(&desc->lock, flags);
+ 
+-	seq_cpumask(m, mask);
+-	seq_putc(m, '\n');
++	seq_printf(m, "%*pb\n", cpumask_pr_args(mask));
+ 	free_cpumask_var(mask);
+ 
+ 	return 0;
+@@ -186,8 +184,7 @@ static const struct file_operations irq_
+ 
+ static int default_affinity_show(struct seq_file *m, void *v)
+ {
+-	seq_cpumask(m, irq_default_affinity);
+-	seq_putc(m, '\n');
++	seq_printf(m, "%*pb\n", cpumask_pr_args(irq_default_affinity));
+ 	return 0;
+ }
+ 
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
