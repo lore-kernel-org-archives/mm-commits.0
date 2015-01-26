@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- time-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch added
- to -mm tree
-Date: Mon, 26 Jan 2015 15:07:10 -0800
-Message-ID: <54c6c89e.LN5K4/i9d2JWAonB%akpm@linux-foundation.org>
+ tracing-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+ added to -mm tree
+Date: Mon, 26 Jan 2015 15:07:16 -0800
+Message-ID: <54c6c8a4.M8CyRkIuf6Sf5bS2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46145 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46153 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754054AbbAZXHL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jan 2015 18:07:11 -0500
+	with ESMTP id S1757197AbbAZXHR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jan 2015 18:07:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: tj@kernel.org, mingo@redhat.com, rostedt@goodmis.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: time: use %*pb[l] to print bitmaps including cpumasks and nodemasks
+     Subject: tracing: use %*pb[l] to print bitmaps including cpumasks and nodemasks
 has been added to the -mm tree.  Its filename is
-     time-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+     tracing-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/time-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/tracing-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/time-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/tracing-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,7 +41,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: time: use %*pb[l] to print bitmaps including cpumasks and nodemasks
+Subject: tracing: use %*pb[l] to print bitmaps including cpumasks and nodemasks
 
 printk and friends can now formap bitmaps using '%*pb[l]'.  cpumask
 and nodemask also provide cpumask_pr_args() and nodemask_pr_args()
@@ -54,41 +54,46 @@ This patch is dependent on the following two patches.
  cpumask, nodemask: implement cpumask/nodemask_pr_args()
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Ingo Molnar <mingo@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/tick-sched.c |   11 ++---------
- 1 file changed, 2 insertions(+), 9 deletions(-)
+ kernel/trace/trace.c     |    6 +++---
+ kernel/trace/trace_seq.c |    2 +-
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN kernel/time/tick-sched.c~time-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks kernel/time/tick-sched.c
---- a/kernel/time/tick-sched.c~time-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
-+++ a/kernel/time/tick-sched.c
-@@ -326,13 +326,6 @@ static int tick_nohz_cpu_down_callback(s
- 	return NOTIFY_OK;
- }
+diff -puN kernel/trace/trace.c~tracing-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks kernel/trace/trace.c
+--- a/kernel/trace/trace.c~tracing-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
++++ a/kernel/trace/trace.c
+@@ -3352,12 +3352,12 @@ tracing_cpumask_read(struct file *filp,
  
--/*
-- * Worst case string length in chunks of CPU range seems 2 steps
-- * separations: 0,2,4,6,...
-- * This is NR_CPUS + sizeof('\0')
-- */
--static char __initdata nohz_full_buf[NR_CPUS + 1];
--
- static int tick_nohz_init_all(void)
- {
- 	int err = -1;
-@@ -393,8 +386,8 @@ void __init tick_nohz_init(void)
- 		context_tracking_cpu_set(cpu);
+ 	mutex_lock(&tracing_cpumask_update_lock);
  
- 	cpu_notifier(tick_nohz_cpu_down_callback, 0);
--	cpulist_scnprintf(nohz_full_buf, sizeof(nohz_full_buf), tick_nohz_full_mask);
--	pr_info("NO_HZ: Full dynticks CPUs: %s.\n", nohz_full_buf);
-+	pr_info("NO_HZ: Full dynticks CPUs: %*pbl.\n",
-+		cpumask_pr_args(tick_nohz_full_mask));
- }
- #endif
+-	len = cpumask_scnprintf(mask_str, count, tr->tracing_cpumask);
+-	if (count - len < 2) {
++	len = snprintf(mask_str, count, "%*pb\n",
++		       cpumask_pr_args(tr->tracing_cpumask));
++	if (len >= count) {
+ 		count = -EINVAL;
+ 		goto out_err;
+ 	}
+-	len += sprintf(mask_str + len, "\n");
+ 	count = simple_read_from_buffer(ubuf, count, ppos, mask_str, NR_CPUS+1);
  
+ out_err:
+diff -puN kernel/trace/trace_seq.c~tracing-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks kernel/trace/trace_seq.c
+--- a/kernel/trace/trace_seq.c~tracing-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
++++ a/kernel/trace/trace_seq.c
+@@ -120,7 +120,7 @@ void trace_seq_bitmask(struct trace_seq
+ 
+ 	__trace_seq_init(s);
+ 
+-	seq_buf_bitmask(&s->seq, maskp, nmaskbits);
++	seq_buf_printf(&s->seq, "%*pb", nmaskbits, maskp);
+ 
+ 	if (unlikely(seq_buf_has_overflowed(&s->seq))) {
+ 		s->seq.len = save_len;
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
