@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- slub-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch added
+ net-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch added
  to -mm tree
-Date: Mon, 26 Jan 2015 15:07:30 -0800
-Message-ID: <54c6c8b2.yhFX3KQKBi3C8579%akpm@linux-foundation.org>
+Date: Mon, 26 Jan 2015 15:07:18 -0800
+Message-ID: <54c6c8a6.OL5I7HCbYkkD/85I%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46176 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46158 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754291AbbAZXHb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jan 2015 18:07:31 -0500
+	with ESMTP id S1757197AbbAZXHT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jan 2015 18:07:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, cl@linux.com, penberg@kernel.org, mm-commits@vger.kernel.org
+To: tj@kernel.org, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slub: use %*pb[l] to print bitmaps including cpumasks and nodemasks
+     Subject: net: use %*pb[l] to print bitmaps including cpumasks and nodemasks
 has been added to the -mm tree.  Its filename is
-     slub-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+     net-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/slub-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/net-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/slub-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/net-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,16 +41,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: slub: use %*pb[l] to print bitmaps including cpumasks and nodemasks
+Subject: net: use %*pb[l] to print bitmaps including cpumasks and nodemasks
 
 printk and friends can now formap bitmaps using '%*pb[l]'.  cpumask
 and nodemask also provide cpumask_pr_args() and nodemask_pr_args()
 respectively which can be used to generate the two printf arguments
 necessary to format the specified cpu/nodemask.
-
-* This is an equivalent conversion but the whole function should be
-  converted to use scnprinf famiily of functions rather than
-  performing custom output length predictions in multiple places.
 
 This patch is dependent on the following two patches.
 
@@ -58,46 +54,88 @@ This patch is dependent on the following two patches.
  cpumask, nodemask: implement cpumask/nodemask_pr_args()
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Acked-by: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   20 ++++++++------------
- 1 file changed, 8 insertions(+), 12 deletions(-)
+ net/core/net-sysfs.c       |   28 +++++++---------------------
+ net/core/sysctl_net_core.c |    2 +-
+ 2 files changed, 8 insertions(+), 22 deletions(-)
 
-diff -puN mm/slub.c~slub-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks mm/slub.c
---- a/mm/slub.c~slub-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
-+++ a/mm/slub.c
-@@ -4076,20 +4076,16 @@ static int list_locations(struct kmem_ca
+diff -puN net/core/net-sysfs.c~net-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks net/core/net-sysfs.c
+--- a/net/core/net-sysfs.c~net-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
++++ a/net/core/net-sysfs.c
+@@ -614,8 +614,7 @@ static ssize_t show_rps_map(struct netde
+ {
+ 	struct rps_map *map;
+ 	cpumask_var_t mask;
+-	size_t len = 0;
+-	int i;
++	int i, len;
  
- 		if (num_online_cpus() > 1 &&
- 				!cpumask_empty(to_cpumask(l->cpus)) &&
--				len < PAGE_SIZE - 60) {
--			len += sprintf(buf + len, " cpus=");
--			len += cpulist_scnprintf(buf + len,
--						 PAGE_SIZE - len - 50,
--						 to_cpumask(l->cpus));
--		}
-+				len < PAGE_SIZE - 60)
-+			len += scnprintf(buf + len, PAGE_SIZE - len - 50,
-+					 " cpus=%*pbl",
-+					 cpumask_pr_args(to_cpumask(l->cpus)));
+ 	if (!zalloc_cpumask_var(&mask, GFP_KERNEL))
+ 		return -ENOMEM;
+@@ -626,17 +625,11 @@ static ssize_t show_rps_map(struct netde
+ 		for (i = 0; i < map->len; i++)
+ 			cpumask_set_cpu(map->cpus[i], mask);
  
- 		if (nr_online_nodes > 1 && !nodes_empty(l->nodes) &&
--				len < PAGE_SIZE - 60) {
--			len += sprintf(buf + len, " nodes=");
--			len += nodelist_scnprintf(buf + len,
--						  PAGE_SIZE - len - 50,
--						  l->nodes);
--		}
-+				len < PAGE_SIZE - 60)
-+			len += scnprintf(buf + len, PAGE_SIZE - len - 50,
-+					 " nodes=%*pbl",
-+					 nodemask_pr_args(&l->nodes));
+-	len += cpumask_scnprintf(buf + len, PAGE_SIZE, mask);
+-	if (PAGE_SIZE - len < 3) {
+-		rcu_read_unlock();
+-		free_cpumask_var(mask);
+-		return -EINVAL;
+-	}
++	len = snprintf(buf, PAGE_SIZE, "%*pb\n", cpumask_pr_args(mask));
+ 	rcu_read_unlock();
+-
+ 	free_cpumask_var(mask);
+-	len += sprintf(buf + len, "\n");
+-	return len;
++
++	return len < PAGE_SIZE ? len : -EINVAL;
+ }
  
- 		len += sprintf(buf + len, "\n");
+ static ssize_t store_rps_map(struct netdev_rx_queue *queue,
+@@ -1090,8 +1083,7 @@ static ssize_t show_xps_map(struct netde
+ 	struct xps_dev_maps *dev_maps;
+ 	cpumask_var_t mask;
+ 	unsigned long index;
+-	size_t len = 0;
+-	int i;
++	int i, len;
+ 
+ 	if (!zalloc_cpumask_var(&mask, GFP_KERNEL))
+ 		return -ENOMEM;
+@@ -1117,15 +1109,9 @@ static ssize_t show_xps_map(struct netde
  	}
+ 	rcu_read_unlock();
+ 
+-	len += cpumask_scnprintf(buf + len, PAGE_SIZE, mask);
+-	if (PAGE_SIZE - len < 3) {
+-		free_cpumask_var(mask);
+-		return -EINVAL;
+-	}
+-
++	len = snprintf(buf, PAGE_SIZE, "%*pb\n", cpumask_pr_args(mask));
+ 	free_cpumask_var(mask);
+-	len += sprintf(buf + len, "\n");
+-	return len;
++	return len < PAGE_SIZE ? len : -EINVAL;
+ }
+ 
+ static ssize_t store_xps_map(struct netdev_queue *queue,
+diff -puN net/core/sysctl_net_core.c~net-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks net/core/sysctl_net_core.c
+--- a/net/core/sysctl_net_core.c~net-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
++++ a/net/core/sysctl_net_core.c
+@@ -155,7 +155,7 @@ write_unlock:
+ 		rcu_read_unlock();
+ 
+ 		len = min(sizeof(kbuf) - 1, *lenp);
+-		len = cpumask_scnprintf(kbuf, len, mask);
++		len = scnprintf(kbuf, len, "%*pb", cpumask_pr_args(mask));
+ 		if (!len) {
+ 			*lenp = 0;
+ 			goto done;
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
