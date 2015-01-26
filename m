@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- ia64-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch added
+ arm-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch added
  to -mm tree
-Date: Mon, 26 Jan 2015 15:06:58 -0800
-Message-ID: <54c6c892.4clcRT0SOrT76doE%akpm@linux-foundation.org>
+Date: Mon, 26 Jan 2015 15:07:02 -0800
+Message-ID: <54c6c896.2riO/bRxma/bmw1+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46123 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46131 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755890AbbAZXG7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jan 2015 18:06:59 -0500
+	with ESMTP id S1756464AbbAZXHD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jan 2015 18:07:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, fenghua.yu@intel.com, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: tj@kernel.org, linux@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ia64: use %*pb[l] to print bitmaps including cpumasks and nodemasks
+     Subject: arm: use %*pb[l] to print bitmaps including cpumasks and nodemasks
 has been added to the -mm tree.  Its filename is
-     ia64-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+     arm-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ia64-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arm-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ia64-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arm-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,12 +41,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: ia64: use %*pb[l] to print bitmaps including cpumasks and nodemasks
+Subject: arm: use %*pb[l] to print bitmaps including cpumasks and nodemasks
 
 printk and friends can now formap bitmaps using '%*pb[l]'.  cpumask
 and nodemask also provide cpumask_pr_args() and nodemask_pr_args()
 respectively which can be used to generate the two printf arguments
 necessary to format the specified cpu/nodemask.
+
+* Line termination only requires one extra space at the end of the
+  buffer.  Use PAGE_SIZE - 1 instead of PAGE_SIZE - 2 when formatting.
 
 This patch is dependent on the following two patches.
 
@@ -54,34 +57,27 @@ This patch is dependent on the following two patches.
  cpumask, nodemask: implement cpumask/nodemask_pr_args()
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Russell King <linux@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/topology.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/bus/arm-cci.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/ia64/kernel/topology.c~ia64-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks arch/ia64/kernel/topology.c
---- a/arch/ia64/kernel/topology.c~ia64-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
-+++ a/arch/ia64/kernel/topology.c
-@@ -217,14 +217,12 @@ static ssize_t show_number_of_sets(struc
- 
- static ssize_t show_shared_cpu_map(struct cache_info *this_leaf, char *buf)
+diff -puN drivers/bus/arm-cci.c~arm-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks drivers/bus/arm-cci.c
+--- a/drivers/bus/arm-cci.c~arm-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
++++ a/drivers/bus/arm-cci.c
+@@ -806,8 +806,8 @@ static int cci_pmu_event_init(struct per
+ static ssize_t pmu_attr_cpumask_show(struct device *dev,
+ 				     struct device_attribute *attr, char *buf)
  {
--	ssize_t	len;
- 	cpumask_t shared_cpu_map;
- 
- 	cpumask_and(&shared_cpu_map,
- 				&this_leaf->shared_cpu_map, cpu_online_mask);
--	len = cpumask_scnprintf(buf, NR_CPUS+1, &shared_cpu_map);
--	len += sprintf(buf+len, "\n");
--	return len;
-+	return scnprintf(buf, PAGE_SIZE, "%*pb\n",
-+			 cpumask_pr_args(&shared_cpu_map));
- }
- 
- static ssize_t show_type(struct cache_info *this_leaf, char *buf)
+-	int n = cpulist_scnprintf(buf, PAGE_SIZE - 2, &pmu->cpus);
+-
++	int n = scnprintf(buf, PAGE_SIZE - 1, "%*pbl",
++			  cpumask_pr_args(&pmu->cpus));
+ 	buf[n++] = '\n';
+ 	buf[n] = '\0';
+ 	return n;
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
