@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + sh-eliminate-unused-irq_reg_readlwritel-accessors.patch added
- to -mm tree
-Date: Mon, 26 Jan 2015 14:40:32 -0800
-Message-ID: <54c6c260.6J2McH29q/aLWLmx%akpm@linux-foundation.org>
+Subject: +
+ bitmap-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+ added to -mm tree
+Date: Mon, 26 Jan 2015 15:06:48 -0800
+Message-ID: <54c6c888.fMN35IntRKdeOzH4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45992 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46110 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932167AbbAZWkd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jan 2015 17:40:33 -0500
+	with ESMTP id S1753431AbbAZXGt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jan 2015 18:06:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cernekee@gmail.com, geert+renesas@glider.be, jason@lakedaemon.net, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sh: eliminate unused irq_reg_{readl,writel} accessors
+     Subject: bitmap: use %*pb[l] to print bitmaps including cpumasks and nodemasks
 has been added to the -mm tree.  Its filename is
-     sh-eliminate-unused-irq_reg_readlwritel-accessors.patch
+     bitmap-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sh-eliminate-unused-irq_reg_readlwritel-accessors.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/bitmap-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sh-eliminate-unused-irq_reg_readlwritel-accessors.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/bitmap-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,45 +40,106 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kevin Cernekee <cernekee@gmail.com>
-Subject: sh: eliminate unused irq_reg_{readl,writel} accessors
+From: Tejun Heo <tj@kernel.org>
+Subject: bitmap: use %*pb[l] to print bitmaps including cpumasks and nodemasks
 
-Defining these macros way down in arch/sh/.../irq.c doesn't cause
-kernel/irq/generic-chip.c to use them.  As far as I can tell this code has
-no effect.
+printk and friends can now formap bitmaps using '%*pb[l]'.  cpumask
+and nodemask also provide cpumask_pr_args() and nodemask_pr_args()
+respectively which can be used to generate the two printf arguments
+necessary to format the specified cpu/nodemask.
 
-Fixes: 332fd7c4fef5f3b1 ("genirq: Generic chip: Change irq_reg_{readl,writel} arguments")
-Signed-off-by: Kevin Cernekee <cernekee@gmail.com>
-Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
-Tested-by: Geert Uytterhoeven <geert+renesas@glider.be> (cpp/asm comparison)
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Jason Cooper <jason@lakedaemon.net>
+This patch is dependent on the following two patches.
+
+ lib/vsprintf: implement bitmap printing through '%*pb[l]'
+ cpumask, nodemask: implement cpumask/nodemask_pr_args()
+
+Signed-off-by: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/boards/mach-se/7343/irq.c |    3 ---
- arch/sh/boards/mach-se/7722/irq.c |    3 ---
- 2 files changed, 6 deletions(-)
+ lib/bitmap.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/sh/boards/mach-se/7343/irq.c~sh-eliminate-unused-irq_reg_readlwritel-accessors arch/sh/boards/mach-se/7343/irq.c
---- a/arch/sh/boards/mach-se/7343/irq.c~sh-eliminate-unused-irq_reg_readlwritel-accessors
-+++ a/arch/sh/boards/mach-se/7343/irq.c
-@@ -14,9 +14,6 @@
- #define DRV_NAME "SE7343-FPGA"
- #define pr_fmt(fmt) DRV_NAME ": " fmt
+diff -puN lib/bitmap.c~bitmap-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks lib/bitmap.c
+--- a/lib/bitmap.c~bitmap-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
++++ a/lib/bitmap.c
+@@ -541,8 +541,8 @@ int bitmap_print_to_pagebuf(bool list, c
+ 	int n = 0;
  
--#define irq_reg_readl	ioread16
--#define irq_reg_writel	iowrite16
--
- #include <linux/init.h>
- #include <linux/irq.h>
- #include <linux/interrupt.h>
-diff -puN arch/sh/boards/mach-se/7722/irq.c~sh-eliminate-unused-irq_reg_readlwritel-accessors arch/sh/boards/mach-se/7722/irq.c
---- a/arch/sh/boards/mach-se/7722/irq.c~sh-eliminate-unused-irq_reg_readlwritel-accessors
-+++ a/arch/sh/boards/mach-se/7722/irq.c
-@@ -11,9 +11,6 @@
- #define DRV_NAME "SE7722-FPGA"
- #define pr_fmt(fmt) DRV_NAME ": " fmt
- 
--#define irq_reg_readl	ioread16
--#define irq_reg_writel	iowrite16
+ 	if (len > 1) {
+-		n = list ? bitmap_scnlistprintf(buf, len, maskp, nmaskbits) :
+-			   bitmap_scnprintf(buf, len, maskp, nmaskbits);
++		n = list ? scnprintf(buf, len, "%*pbl", nmaskbits, maskp) :
++			   scnprintf(buf, len, "%*pb", nmaskbits, maskp);
+ 		buf[n++] = '\n';
+ 		buf[n] = '\0';
+ 	}
+_
+
+Patches currently in -mm which might be from tj@kernel.org are
+
+block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
+list_lru-introduce-list_lru_shrink_countwalk.patch
+fs-consolidate-nrfree_cached_objects-args-in-shrink_control.patch
+vmscan-per-memory-cgroup-slab-shrinkers.patch
+memcg-rename-some-cache-id-related-variables.patch
+memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation.patch
+list_lru-get-rid-of-active_nodes.patch
+list_lru-organize-all-list_lrus-to-list.patch
+list_lru-introduce-per-memcg-lists.patch
+fs-make-shrinker-memcg-aware.patch
+vmscan-force-scan-offline-memory-cgroups.patch
+vmscan-force-scan-offline-memory-cgroups-fix.patch
+oom-add-helpers-for-setting-and-clearing-tif_memdie.patch
+oom-thaw-the-oom-victim-if-it-is-frozen.patch
+pm-convert-printk-to-pr_-equivalent.patch
+sysrq-convert-printk-to-pr_-equivalent.patch
+oom-pm-make-oom-detection-in-the-freezer-path-raceless.patch
+slab-embed-memcg_cache_params-to-kmem_cache.patch
+slab-link-memcg-caches-of-the-same-kind-into-a-list.patch
+cgroup-release-css-id-after-css_free.patch
+slab-use-css-id-for-naming-per-memcg-caches.patch
+memcg-free-memcg_caches-slot-on-css-offline.patch
+list_lru-add-helpers-to-isolate-items.patch
+memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline.patch
+fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
+mm-util-add-kstrdup_const.patch
+kernfs-convert-node-name-allocation-to-kstrdup_const.patch
+kernfs-remove-kernfs_static_name.patch
+clk-convert-clock-name-allocations-to-kstrdup_const.patch
+mm-slab-convert-cache-name-allocations-to-kstrdup_const.patch
+mm-slab-convert-cache-name-allocations-to-kstrdup_const-fix.patch
+fs-namespace-convert-devname-allocation-to-kstrdup_const.patch
+cpumask-always-use-nr_cpu_ids-in-formatting-and-parsing-functions.patch
+lib-vsprintf-implement-bitmap-printing-through-%pb.patch
+cpumask-nodemask-implement-cpumask-nodemask_pr_args.patch
+bitmap-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+mips-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+powerpc-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+tile-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+x86-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+ia64-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+xtensa-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+arm-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+cpuset-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+rcu-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+sched-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+time-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+percpu-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+workqueue-use-%pb-to-format-bitmaps-including-cpumasks-and-nodemasks.patch
+tracing-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+net-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+wireless-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+input-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+scsi-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+usb-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+drivers-base-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+slub-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+mm-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+padata-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+proc-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+irq-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+profile-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+bitmap-cpumask-nodemask-remove-dedicated-formatting-functions.patch
+linux-next.patch
+
