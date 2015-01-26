@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- rcu-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch added
- to -mm tree
-Date: Mon, 26 Jan 2015 15:07:06 -0800
-Message-ID: <54c6c89a.gGGgqet+cd0/89TN%akpm@linux-foundation.org>
+ workqueue-use-%pb-to-format-bitmaps-including-cpumasks-and-nodemasks.patch
+ added to -mm tree
+Date: Mon, 26 Jan 2015 15:07:14 -0800
+Message-ID: <54c6c8a2.oKcgAo+EsBz5e4LK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46137 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46150 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755890AbbAZXHH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jan 2015 18:07:07 -0500
+	with ESMTP id S1754054AbbAZXHP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jan 2015 18:07:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, paulmck@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rcu: use %*pb[l] to print bitmaps including cpumasks and nodemasks
+     Subject: workqueue: use %*pb[l] to format bitmaps including cpumasks and nodemasks
 has been added to the -mm tree.  Its filename is
-     rcu-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+     workqueue-use-%pb-to-format-bitmaps-including-cpumasks-and-nodemasks.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rcu-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/workqueue-use-%25pb-to-format-bitmaps-including-cpumasks-and-nodemasks.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rcu-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/workqueue-use-%25pb-to-format-bitmaps-including-cpumasks-and-nodemasks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,7 +41,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: rcu: use %*pb[l] to print bitmaps including cpumasks and nodemasks
+Subject: workqueue: use %*pb[l] to format bitmaps including cpumasks and nodemasks
 
 printk and friends can now formap bitmaps using '%*pb[l]'.  cpumask
 and nodemask also provide cpumask_pr_args() and nodemask_pr_args()
@@ -54,34 +54,27 @@ This patch is dependent on the following two patches.
  cpumask, nodemask: implement cpumask/nodemask_pr_args()
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/rcu/tree_plugin.h |    5 ++---
+ kernel/workqueue.c |    5 ++---
  1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN kernel/rcu/tree_plugin.h~rcu-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks kernel/rcu/tree_plugin.h
---- a/kernel/rcu/tree_plugin.h~rcu-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
-+++ a/kernel/rcu/tree_plugin.h
-@@ -53,7 +53,6 @@ DEFINE_PER_CPU(char, rcu_cpu_has_work);
- static cpumask_var_t rcu_nocb_mask; /* CPUs to have callbacks offloaded. */
- static bool have_rcu_nocb_mask;	    /* Was rcu_nocb_mask allocated? */
- static bool __read_mostly rcu_nocb_poll;    /* Offload kthread are to poll. */
--static char __initdata nocb_buf[NR_CPUS * 5];
- #endif /* #ifdef CONFIG_RCU_NOCB_CPU */
+diff -puN kernel/workqueue.c~workqueue-use-%pb-to-format-bitmaps-including-cpumasks-and-nodemasks kernel/workqueue.c
+--- a/kernel/workqueue.c~workqueue-use-%pb-to-format-bitmaps-including-cpumasks-and-nodemasks
++++ a/kernel/workqueue.c
+@@ -3083,10 +3083,9 @@ static ssize_t wq_cpumask_show(struct de
+ 	int written;
  
- /*
-@@ -2513,8 +2512,8 @@ void __init rcu_init_nohz(void)
- 		cpumask_and(rcu_nocb_mask, cpu_possible_mask,
- 			    rcu_nocb_mask);
- 	}
--	cpulist_scnprintf(nocb_buf, sizeof(nocb_buf), rcu_nocb_mask);
--	pr_info("\tOffload RCU callbacks from CPUs: %s.\n", nocb_buf);
-+	pr_info("\tOffload RCU callbacks from CPUs: %*pbl.\n",
-+		cpumask_pr_args(rcu_nocb_mask));
- 	if (rcu_nocb_poll)
- 		pr_info("\tPoll for callbacks from no-CBs CPUs.\n");
+ 	mutex_lock(&wq->mutex);
+-	written = cpumask_scnprintf(buf, PAGE_SIZE, wq->unbound_attrs->cpumask);
++	written = scnprintf(buf, PAGE_SIZE, "%*pb\n",
++			    cpumask_pr_args(wq->unbound_attrs->cpumask));
+ 	mutex_unlock(&wq->mutex);
+-
+-	written += scnprintf(buf + written, PAGE_SIZE - written, "\n");
+ 	return written;
+ }
  
 _
 
