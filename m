@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- powerpc-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
- added to -mm tree
-Date: Mon, 26 Jan 2015 15:06:52 -0800
-Message-ID: <54c6c88c.KhjdonW/vCGaQfma%akpm@linux-foundation.org>
+ mips-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch added
+ to -mm tree
+Date: Mon, 26 Jan 2015 15:06:50 -0800
+Message-ID: <54c6c88a.2XAhmtmKA+0inMc3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46115 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46112 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753431AbbAZXGx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jan 2015 18:06:53 -0500
+	with ESMTP id S1753431AbbAZXGv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jan 2015 18:06:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, benh@kernel.crashing.org, mm-commits@vger.kernel.org
+To: tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc: use %*pb[l] to print bitmaps including cpumasks and nodemasks
+     Subject: mips: use %*pb[l] to print bitmaps including cpumasks and nodemasks
 has been added to the -mm tree.  Its filename is
-     powerpc-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+     mips-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mips-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mips-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,14 +41,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: powerpc: use %*pb[l] to print bitmaps including cpumasks and nodemasks
+Subject: mips: use %*pb[l] to print bitmaps including cpumasks and nodemasks
 
 printk and friends can now formap bitmaps using '%*pb[l]'.  cpumask
 and nodemask also provide cpumask_pr_args() and nodemask_pr_args()
 respectively which can be used to generate the two printf arguments
 necessary to format the specified cpu/nodemask.
-
-* Spurious if (len > 1) test dropped from shared_cpu_map_show().
 
 This patch is dependent on the following two patches.
 
@@ -56,76 +54,55 @@ This patch is dependent on the following two patches.
  cpumask, nodemask: implement cpumask/nodemask_pr_args()
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/cacheinfo.c     |   15 ++++++---------
- arch/powerpc/sysdev/xics/ics-opal.c |    6 ++----
- arch/powerpc/sysdev/xics/ics-rtas.c |    7 ++-----
- 3 files changed, 10 insertions(+), 18 deletions(-)
+ arch/mips/netlogic/common/smp.c |   13 +++++--------
+ 1 file changed, 5 insertions(+), 8 deletions(-)
 
-diff -puN arch/powerpc/kernel/cacheinfo.c~powerpc-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks arch/powerpc/kernel/cacheinfo.c
---- a/arch/powerpc/kernel/cacheinfo.c~powerpc-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
-+++ a/arch/powerpc/kernel/cacheinfo.c
-@@ -607,19 +607,16 @@ static ssize_t shared_cpu_map_show(struc
+diff -puN arch/mips/netlogic/common/smp.c~mips-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks arch/mips/netlogic/common/smp.c
+--- a/arch/mips/netlogic/common/smp.c~mips-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
++++ a/arch/mips/netlogic/common/smp.c
+@@ -162,7 +162,6 @@ void __init nlm_smp_setup(void)
+ 	unsigned int boot_cpu;
+ 	int num_cpus, i, ncore, node;
+ 	volatile u32 *cpu_ready = nlm_get_boot_data(BOOT_CPU_READY);
+-	char buf[64];
+ 
+ 	boot_cpu = hard_smp_processor_id();
+ 	cpumask_clear(&phys_cpu_present_mask);
+@@ -189,10 +188,10 @@ void __init nlm_smp_setup(void)
+ 		}
+ 	}
+ 
+-	cpumask_scnprintf(buf, ARRAY_SIZE(buf), &phys_cpu_present_mask);
+-	pr_info("Physical CPU mask: %s\n", buf);
+-	cpumask_scnprintf(buf, ARRAY_SIZE(buf), cpu_possible_mask);
+-	pr_info("Possible CPU mask: %s\n", buf);
++	pr_info("Physical CPU mask: %*pb\n",
++		cpumask_pr_args(&phys_cpu_present_mask));
++	pr_info("Possible CPU mask: %*pb\n",
++		cpumask_pr_args(cpu_possible_mask));
+ 
+ 	/* check with the cores we have woken up */
+ 	for (ncore = 0, i = 0; i < NLM_NR_NODES; i++)
+@@ -209,7 +208,6 @@ static int nlm_parse_cpumask(cpumask_t *
  {
- 	struct cache_index_dir *index;
- 	struct cache *cache;
--	int len;
--	int n = 0;
-+	int ret;
+ 	uint32_t core0_thr_mask, core_thr_mask;
+ 	int threadmode, i, j;
+-	char buf[64];
  
- 	index = kobj_to_cache_index_dir(k);
- 	cache = index->cache;
--	len = PAGE_SIZE - 2;
+ 	core0_thr_mask = 0;
+ 	for (i = 0; i < NLM_THREADS_PER_CORE; i++)
+@@ -244,8 +242,7 @@ static int nlm_parse_cpumask(cpumask_t *
+ 	return threadmode;
  
--	if (len > 1) {
--		n = cpumask_scnprintf(buf, len, &cache->shared_cpu_map);
--		buf[n++] = '\n';
--		buf[n] = '\0';
--	}
--	return n;
-+	ret = scnprintf(buf, PAGE_SIZE - 1, "%*pb\n",
-+			cpumask_pr_args(&cache->shared_cpu_map));
-+	buf[ret++] = '\n';
-+	buf[ret] = '\0';
-+	return ret;
+ unsupp:
+-	cpumask_scnprintf(buf, ARRAY_SIZE(buf), wakeup_mask);
+-	panic("Unsupported CPU mask %s", buf);
++	panic("Unsupported CPU mask %*pb", cpumask_pr_args(wakeup_mask));
+ 	return 0;
  }
- 
- static struct kobj_attribute cache_shared_cpu_map_attr =
-diff -puN arch/powerpc/sysdev/xics/ics-opal.c~powerpc-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks arch/powerpc/sysdev/xics/ics-opal.c
---- a/arch/powerpc/sysdev/xics/ics-opal.c~powerpc-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
-+++ a/arch/powerpc/sysdev/xics/ics-opal.c
-@@ -131,10 +131,8 @@ static int ics_opal_set_affinity(struct
- 
- 	wanted_server = xics_get_irq_server(d->irq, cpumask, 1);
- 	if (wanted_server < 0) {
--		char cpulist[128];
--		cpumask_scnprintf(cpulist, sizeof(cpulist), cpumask);
--		pr_warning("%s: No online cpus in the mask %s for irq %d\n",
--			   __func__, cpulist, d->irq);
-+		pr_warning("%s: No online cpus in the mask %*pb for irq %d\n",
-+			   __func__, cpumask_pr_args(cpumask), d->irq);
- 		return -1;
- 	}
- 	server = ics_opal_mangle_server(wanted_server);
-diff -puN arch/powerpc/sysdev/xics/ics-rtas.c~powerpc-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks arch/powerpc/sysdev/xics/ics-rtas.c
---- a/arch/powerpc/sysdev/xics/ics-rtas.c~powerpc-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
-+++ a/arch/powerpc/sysdev/xics/ics-rtas.c
-@@ -140,11 +140,8 @@ static int ics_rtas_set_affinity(struct
- 
- 	irq_server = xics_get_irq_server(d->irq, cpumask, 1);
- 	if (irq_server == -1) {
--		char cpulist[128];
--		cpumask_scnprintf(cpulist, sizeof(cpulist), cpumask);
--		printk(KERN_WARNING
--			"%s: No online cpus in the mask %s for irq %d\n",
--			__func__, cpulist, d->irq);
-+		pr_warning("%s: No online cpus in the mask %*pb for irq %d\n",
-+			   __func__, cpumask_pr_args(cpumask), d->irq);
- 		return -1;
- 	}
  
 _
 
