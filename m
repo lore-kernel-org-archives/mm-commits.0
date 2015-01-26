@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- padata-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
- added to -mm tree
-Date: Mon, 26 Jan 2015 15:07:34 -0800
-Message-ID: <54c6c8b6.K1WOKLm2EPl/+W+m%akpm@linux-foundation.org>
+ mm-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch added to -mm tree
+Date: Mon, 26 Jan 2015 15:07:32 -0800
+Message-ID: <54c6c8b4.O7BzFejv5aSBv8vZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46181 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46178 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754291AbbAZXHf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jan 2015 18:07:35 -0500
+	with ESMTP id S1754291AbbAZXHd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jan 2015 18:07:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, steffen.klassert@secunet.com, mm-commits@vger.kernel.org
+To: tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: padata: use %*pb[l] to print bitmaps including cpumasks and nodemasks
+     Subject: mm: use %*pb[l] to print bitmaps including cpumasks and nodemasks
 has been added to the -mm tree.  Its filename is
-     padata-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+     mm-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/padata-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/padata-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,7 +40,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: padata: use %*pb[l] to print bitmaps including cpumasks and nodemasks
+Subject: mm: use %*pb[l] to print bitmaps including cpumasks and nodemasks
 
 printk and friends can now formap bitmaps using '%*pb[l]'.  cpumask
 and nodemask also provide cpumask_pr_args() and nodemask_pr_args()
@@ -54,35 +53,27 @@ This patch is dependent on the following two patches.
  cpumask, nodemask: implement cpumask/nodemask_pr_args()
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Steffen Klassert <steffen.klassert@secunet.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/padata.c |   11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ mm/mempolicy.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN kernel/padata.c~padata-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks kernel/padata.c
---- a/kernel/padata.c~padata-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
-+++ a/kernel/padata.c
-@@ -917,15 +917,10 @@ static ssize_t show_cpumask(struct padat
- 	else
- 		cpumask = pinst->cpumask.pcpu;
+diff -puN mm/mempolicy.c~mm-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
++++ a/mm/mempolicy.c
+@@ -2869,8 +2869,7 @@ void mpol_to_str(char *buffer, int maxle
+ 			p += snprintf(p, buffer + maxlen - p, "relative");
+ 	}
  
--	len = bitmap_scnprintf(buf, PAGE_SIZE, cpumask_bits(cpumask),
--			       nr_cpu_ids);
--	if (PAGE_SIZE - len < 2)
--		len = -EINVAL;
--	else
--		len += sprintf(buf + len, "\n");
--
-+	len = snprintf(buf, PAGE_SIZE, "%*pb\n",
-+		       nr_cpu_ids, cpumask_bits(cpumask));
- 	mutex_unlock(&pinst->lock);
--	return len;
-+	return len < PAGE_SIZE ? len : -EINVAL;
+-	if (!nodes_empty(nodes)) {
+-		p += snprintf(p, buffer + maxlen - p, ":");
+-	 	p += nodelist_scnprintf(p, buffer + maxlen - p, nodes);
+-	}
++	if (!nodes_empty(nodes))
++		p += scnprintf(p, buffer + maxlen - p, ":%*pbl",
++			       nodemask_pr_args(&nodes));
  }
- 
- static ssize_t store_cpumask(struct padata_instance *pinst,
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
