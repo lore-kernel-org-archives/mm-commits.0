@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mips-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch added
+ tile-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch added
  to -mm tree
-Date: Mon, 26 Jan 2015 15:06:50 -0800
-Message-ID: <54c6c88a.2XAhmtmKA+0inMc3%akpm@linux-foundation.org>
+Date: Mon, 26 Jan 2015 15:06:54 -0800
+Message-ID: <54c6c88e.baJGQU/IG0pZsTsK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46112 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46117 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753431AbbAZXGv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jan 2015 18:06:51 -0500
+	with ESMTP id S1755890AbbAZXGz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jan 2015 18:06:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, mm-commits@vger.kernel.org
+To: tj@kernel.org, cmetcalf@tilera.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mips: use %*pb[l] to print bitmaps including cpumasks and nodemasks
+     Subject: tile: use %*pb[l] to print bitmaps including cpumasks and nodemasks
 has been added to the -mm tree.  Its filename is
-     mips-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+     tile-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mips-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/tile-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mips-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/tile-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,7 +41,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: mips: use %*pb[l] to print bitmaps including cpumasks and nodemasks
+Subject: tile: use %*pb[l] to print bitmaps including cpumasks and nodemasks
 
 printk and friends can now formap bitmaps using '%*pb[l]'.  cpumask
 and nodemask also provide cpumask_pr_args() and nodemask_pr_args()
@@ -54,56 +54,189 @@ This patch is dependent on the following two patches.
  cpumask, nodemask: implement cpumask/nodemask_pr_args()
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
+Cc: Chris Metcalf <cmetcalf@tilera.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/netlogic/common/smp.c |   13 +++++--------
- 1 file changed, 5 insertions(+), 8 deletions(-)
+ arch/tile/kernel/hardwall.c         |    5 +----
+ arch/tile/kernel/proc.c             |    5 ++---
+ arch/tile/kernel/setup.c            |   13 +++++--------
+ arch/tile/mm/homecache.c            |   12 +++++-------
+ arch/tile/mm/init.c                 |   18 +++++++-----------
+ drivers/net/ethernet/tile/tilegx.c  |    5 ++---
+ drivers/net/ethernet/tile/tilepro.c |    5 ++---
+ 7 files changed, 24 insertions(+), 39 deletions(-)
 
-diff -puN arch/mips/netlogic/common/smp.c~mips-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks arch/mips/netlogic/common/smp.c
---- a/arch/mips/netlogic/common/smp.c~mips-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
-+++ a/arch/mips/netlogic/common/smp.c
-@@ -162,7 +162,6 @@ void __init nlm_smp_setup(void)
- 	unsigned int boot_cpu;
- 	int num_cpus, i, ncore, node;
- 	volatile u32 *cpu_ready = nlm_get_boot_data(BOOT_CPU_READY);
--	char buf[64];
- 
- 	boot_cpu = hard_smp_processor_id();
- 	cpumask_clear(&phys_cpu_present_mask);
-@@ -189,10 +188,10 @@ void __init nlm_smp_setup(void)
- 		}
- 	}
- 
--	cpumask_scnprintf(buf, ARRAY_SIZE(buf), &phys_cpu_present_mask);
--	pr_info("Physical CPU mask: %s\n", buf);
--	cpumask_scnprintf(buf, ARRAY_SIZE(buf), cpu_possible_mask);
--	pr_info("Possible CPU mask: %s\n", buf);
-+	pr_info("Physical CPU mask: %*pb\n",
-+		cpumask_pr_args(&phys_cpu_present_mask));
-+	pr_info("Possible CPU mask: %*pb\n",
-+		cpumask_pr_args(cpu_possible_mask));
- 
- 	/* check with the cores we have woken up */
- 	for (ncore = 0, i = 0; i < NLM_NR_NODES; i++)
-@@ -209,7 +208,6 @@ static int nlm_parse_cpumask(cpumask_t *
+diff -puN arch/tile/kernel/hardwall.c~tile-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks arch/tile/kernel/hardwall.c
+--- a/arch/tile/kernel/hardwall.c~tile-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
++++ a/arch/tile/kernel/hardwall.c
+@@ -909,11 +909,8 @@ static void hardwall_destroy(struct hard
+ static int hardwall_proc_show(struct seq_file *sf, void *v)
  {
- 	uint32_t core0_thr_mask, core_thr_mask;
- 	int threadmode, i, j;
--	char buf[64];
+ 	struct hardwall_info *info = sf->private;
+-	char buf[256];
  
- 	core0_thr_mask = 0;
- 	for (i = 0; i < NLM_THREADS_PER_CORE; i++)
-@@ -244,8 +242,7 @@ static int nlm_parse_cpumask(cpumask_t *
- 	return threadmode;
- 
- unsupp:
--	cpumask_scnprintf(buf, ARRAY_SIZE(buf), wakeup_mask);
--	panic("Unsupported CPU mask %s", buf);
-+	panic("Unsupported CPU mask %*pb", cpumask_pr_args(wakeup_mask));
+-	int rc = cpulist_scnprintf(buf, sizeof(buf), &info->cpumask);
+-	buf[rc++] = '\n';
+-	seq_write(sf, buf, rc);
++	seq_printf(sf, "%*pbl\n", cpumask_pr_args(&info->cpumask));
  	return 0;
  }
  
+diff -puN arch/tile/kernel/proc.c~tile-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks arch/tile/kernel/proc.c
+--- a/arch/tile/kernel/proc.c~tile-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
++++ a/arch/tile/kernel/proc.c
+@@ -45,10 +45,9 @@ static int show_cpuinfo(struct seq_file
+ 	int n = ptr_to_cpu(v);
+ 
+ 	if (n == 0) {
+-		char buf[NR_CPUS*5];
+-		cpulist_scnprintf(buf, sizeof(buf), cpu_online_mask);
+ 		seq_printf(m, "cpu count\t: %d\n", num_online_cpus());
+-		seq_printf(m, "cpu list\t: %s\n", buf);
++		seq_printf(m, "cpu list\t: %*pbl\n",
++			   cpumask_pr_args(cpu_online_mask));
+ 		seq_printf(m, "model name\t: %s\n", chip_model);
+ 		seq_printf(m, "flags\t\t:\n");  /* nothing for now */
+ 		seq_printf(m, "cpu MHz\t\t: %llu.%06llu\n",
+diff -puN arch/tile/kernel/setup.c~tile-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks arch/tile/kernel/setup.c
+--- a/arch/tile/kernel/setup.c~tile-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
++++ a/arch/tile/kernel/setup.c
+@@ -215,12 +215,11 @@ early_param("mem", setup_mem);  /* compa
+ 
+ static int __init setup_isolnodes(char *str)
+ {
+-	char buf[MAX_NUMNODES * 5];
+ 	if (str == NULL || nodelist_parse(str, isolnodes) != 0)
+ 		return -EINVAL;
+ 
+-	nodelist_scnprintf(buf, sizeof(buf), isolnodes);
+-	pr_info("Set isolnodes value to '%s'\n", buf);
++	pr_info("Set isolnodes value to '%*pbl'\n",
++		nodemask_pr_args(&isolnodes));
+ 	return 0;
+ }
+ early_param("isolnodes", setup_isolnodes);
+@@ -1315,11 +1314,9 @@ early_param("disabled_cpus", disabled_cp
+ 
+ void __init print_disabled_cpus(void)
+ {
+-	if (!cpumask_empty(&disabled_map)) {
+-		char buf[100];
+-		cpulist_scnprintf(buf, sizeof(buf), &disabled_map);
+-		pr_info("CPUs not available for Linux: %s\n", buf);
+-	}
++	if (!cpumask_empty(&disabled_map))
++		pr_info("CPUs not available for Linux: %*pbl\n",
++			cpumask_pr_args(&disabled_map));
+ }
+ 
+ static void __init setup_cpu_maps(void)
+diff -puN arch/tile/mm/homecache.c~tile-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks arch/tile/mm/homecache.c
+--- a/arch/tile/mm/homecache.c~tile-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
++++ a/arch/tile/mm/homecache.c
+@@ -115,7 +115,6 @@ void flush_remote(unsigned long cache_pf
+ 	struct cpumask cache_cpumask_copy, tlb_cpumask_copy;
+ 	struct cpumask *cache_cpumask, *tlb_cpumask;
+ 	HV_PhysAddr cache_pa;
+-	char cache_buf[NR_CPUS*5], tlb_buf[NR_CPUS*5];
+ 
+ 	mb();   /* provided just to simplify "magic hypervisor" mode */
+ 
+@@ -149,13 +148,12 @@ void flush_remote(unsigned long cache_pf
+ 			     asids, asidcount);
+ 	if (rc == 0)
+ 		return;
+-	cpumask_scnprintf(cache_buf, sizeof(cache_buf), &cache_cpumask_copy);
+-	cpumask_scnprintf(tlb_buf, sizeof(tlb_buf), &tlb_cpumask_copy);
+ 
+-	pr_err("hv_flush_remote(%#llx, %#lx, %p [%s], %#lx, %#lx, %#lx, %p [%s], %p, %d) = %d\n",
+-	       cache_pa, cache_control, cache_cpumask, cache_buf,
+-	       (unsigned long)tlb_va, tlb_length, tlb_pgsize,
+-	       tlb_cpumask, tlb_buf, asids, asidcount, rc);
++	pr_err("hv_flush_remote(%#llx, %#lx, %p [%*pb], %#lx, %#lx, %#lx, %p [%*pb], %p, %d) = %d\n",
++	       cache_pa, cache_control, cache_cpumask,
++	       cpumask_pr_args(&cache_cpumask_copy),
++	       (unsigned long)tlb_va, tlb_length, tlb_pgsize, tlb_cpumask,
++	       cpumask_pr_args(&tlb_cpumask_copy), asids, asidcount, rc);
+ 	panic("Unsafe to continue.");
+ }
+ 
+diff -puN arch/tile/mm/init.c~tile-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks arch/tile/mm/init.c
+--- a/arch/tile/mm/init.c~tile-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
++++ a/arch/tile/mm/init.c
+@@ -353,15 +353,13 @@ static int __init setup_ktext(char *str)
+ 
+ 	/* Neighborhood ktext pages on specified mask */
+ 	else if (cpulist_parse(str, &ktext_mask) == 0) {
+-		char buf[NR_CPUS * 5];
+-		cpulist_scnprintf(buf, sizeof(buf), &ktext_mask);
+ 		if (cpumask_weight(&ktext_mask) > 1) {
+ 			ktext_small = 1;
+-			pr_info("ktext: using caching neighborhood %s with small pages\n",
+-				buf);
++			pr_info("ktext: using caching neighborhood %*pbl with small pages\n",
++				cpumask_pr_args(&ktext_mask));
+ 		} else {
+-			pr_info("ktext: caching on cpu %s with one huge page\n",
+-				buf);
++			pr_info("ktext: caching on cpu %*pbl with one huge page\n",
++				cpumask_pr_args(&ktext_mask));
+ 		}
+ 	}
+ 
+@@ -492,11 +490,9 @@ static void __init kernel_physical_mappi
+ 		struct cpumask bad;
+ 		cpumask_andnot(&bad, &ktext_mask, cpu_possible_mask);
+ 		cpumask_and(&ktext_mask, &ktext_mask, cpu_possible_mask);
+-		if (!cpumask_empty(&bad)) {
+-			char buf[NR_CPUS * 5];
+-			cpulist_scnprintf(buf, sizeof(buf), &bad);
+-			pr_info("ktext: not using unavailable cpus %s\n", buf);
+-		}
++		if (!cpumask_empty(&bad))
++			pr_info("ktext: not using unavailable cpus %*pbl\n",
++				cpumask_pr_args(&bad));
+ 		if (cpumask_empty(&ktext_mask)) {
+ 			pr_warn("ktext: no valid cpus; caching on %d\n",
+ 				smp_processor_id());
+diff -puN drivers/net/ethernet/tile/tilegx.c~tile-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks drivers/net/ethernet/tile/tilegx.c
+--- a/drivers/net/ethernet/tile/tilegx.c~tile-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
++++ a/drivers/net/ethernet/tile/tilegx.c
+@@ -292,7 +292,6 @@ static inline int mpipe_instance(struct
+  */
+ static bool network_cpus_init(void)
+ {
+-	char buf[1024];
+ 	int rc;
+ 
+ 	if (network_cpus_string == NULL)
+@@ -314,8 +313,8 @@ static bool network_cpus_init(void)
+ 		return false;
+ 	}
+ 
+-	cpulist_scnprintf(buf, sizeof(buf), &network_cpus_map);
+-	pr_info("Linux network CPUs: %s\n", buf);
++	pr_info("Linux network CPUs: %*pbl\n",
++		cpumask_pr_args(&network_cpus_map));
+ 	return true;
+ }
+ 
+diff -puN drivers/net/ethernet/tile/tilepro.c~tile-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks drivers/net/ethernet/tile/tilepro.c
+--- a/drivers/net/ethernet/tile/tilepro.c~tile-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
++++ a/drivers/net/ethernet/tile/tilepro.c
+@@ -2410,9 +2410,8 @@ static int __init network_cpus_setup(cha
+ 		if (cpumask_empty(&network_cpus_map)) {
+ 			pr_warn("Ignoring network_cpus='%s'\n", str);
+ 		} else {
+-			char buf[1024];
+-			cpulist_scnprintf(buf, sizeof(buf), &network_cpus_map);
+-			pr_info("Linux network CPUs: %s\n", buf);
++			pr_info("Linux network CPUs: %*pbl\n",
++				cpumask_pr_args(&network_cpus_map));
+ 			network_cpus_used = true;
+ 		}
+ 	}
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
