@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- workqueue-use-%pb-to-format-bitmaps-including-cpumasks-and-nodemasks.patch
+ percpu-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
  added to -mm tree
-Date: Mon, 26 Jan 2015 15:07:14 -0800
-Message-ID: <54c6c8a2.oKcgAo+EsBz5e4LK%akpm@linux-foundation.org>
+Date: Mon, 26 Jan 2015 15:07:12 -0800
+Message-ID: <54c6c8a0.cww4dIosNruK5Dez%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46150 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46147 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754054AbbAZXHP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jan 2015 18:07:15 -0500
+	with ESMTP id S1754054AbbAZXHN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jan 2015 18:07:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, mm-commits@vger.kernel.org
+To: tj@kernel.org, cl@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: workqueue: use %*pb[l] to format bitmaps including cpumasks and nodemasks
+     Subject: percpu: use %*pb[l] to print bitmaps including cpumasks and nodemasks
 has been added to the -mm tree.  Its filename is
-     workqueue-use-%pb-to-format-bitmaps-including-cpumasks-and-nodemasks.patch
+     percpu-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/workqueue-use-%25pb-to-format-bitmaps-including-cpumasks-and-nodemasks.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/percpu-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/workqueue-use-%25pb-to-format-bitmaps-including-cpumasks-and-nodemasks.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/percpu-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,7 +41,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: workqueue: use %*pb[l] to format bitmaps including cpumasks and nodemasks
+Subject: percpu: use %*pb[l] to print bitmaps including cpumasks and nodemasks
 
 printk and friends can now formap bitmaps using '%*pb[l]'.  cpumask
 and nodemask also provide cpumask_pr_args() and nodemask_pr_args()
@@ -54,28 +54,39 @@ This patch is dependent on the following two patches.
  cpumask, nodemask: implement cpumask/nodemask_pr_args()
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
+Cc: Christoph Lameter <cl@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/workqueue.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ mm/percpu.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN kernel/workqueue.c~workqueue-use-%pb-to-format-bitmaps-including-cpumasks-and-nodemasks kernel/workqueue.c
---- a/kernel/workqueue.c~workqueue-use-%pb-to-format-bitmaps-including-cpumasks-and-nodemasks
-+++ a/kernel/workqueue.c
-@@ -3083,10 +3083,9 @@ static ssize_t wq_cpumask_show(struct de
- 	int written;
+diff -puN mm/percpu.c~percpu-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks mm/percpu.c
+--- a/mm/percpu.c~percpu-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
++++ a/mm/percpu.c
+@@ -1528,7 +1528,6 @@ static void pcpu_dump_alloc_info(const c
+ int __init pcpu_setup_first_chunk(const struct pcpu_alloc_info *ai,
+ 				  void *base_addr)
+ {
+-	static char cpus_buf[4096] __initdata;
+ 	static int smap[PERCPU_DYNAMIC_EARLY_SLOTS] __initdata;
+ 	static int dmap[PERCPU_DYNAMIC_EARLY_SLOTS] __initdata;
+ 	size_t dyn_size = ai->dyn_size;
+@@ -1541,12 +1540,11 @@ int __init pcpu_setup_first_chunk(const
+ 	int *unit_map;
+ 	int group, unit, i;
  
- 	mutex_lock(&wq->mutex);
--	written = cpumask_scnprintf(buf, PAGE_SIZE, wq->unbound_attrs->cpumask);
-+	written = scnprintf(buf, PAGE_SIZE, "%*pb\n",
-+			    cpumask_pr_args(wq->unbound_attrs->cpumask));
- 	mutex_unlock(&wq->mutex);
+-	cpumask_scnprintf(cpus_buf, sizeof(cpus_buf), cpu_possible_mask);
 -
--	written += scnprintf(buf + written, PAGE_SIZE - written, "\n");
- 	return written;
- }
- 
+ #define PCPU_SETUP_BUG_ON(cond)	do {					\
+ 	if (unlikely(cond)) {						\
+ 		pr_emerg("PERCPU: failed to initialize, %s", #cond);	\
+-		pr_emerg("PERCPU: cpu_possible_mask=%s\n", cpus_buf);	\
++		pr_emerg("PERCPU: cpu_possible_mask=%*pb\n",		\
++			 cpumask_pr_args(cpu_possible_mask));		\
+ 		pcpu_dump_alloc_info(KERN_EMERG, ai);			\
+ 		BUG();							\
+ 	}								\
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
