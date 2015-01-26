@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- percpu-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
- added to -mm tree
-Date: Mon, 26 Jan 2015 15:07:12 -0800
-Message-ID: <54c6c8a0.cww4dIosNruK5Dez%akpm@linux-foundation.org>
+ sched-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch added to -mm tree
+Date: Mon, 26 Jan 2015 15:07:08 -0800
+Message-ID: <54c6c89c.6Li6mL+zzuRzSTzl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46147 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46140 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754054AbbAZXHN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jan 2015 18:07:13 -0500
+	with ESMTP id S1755541AbbAZXHJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jan 2015 18:07:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, cl@linux-foundation.org, mm-commits@vger.kernel.org
+To: tj@kernel.org, mingo@redhat.com, peterz@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: percpu: use %*pb[l] to print bitmaps including cpumasks and nodemasks
+     Subject: sched: use %*pb[l] to print bitmaps including cpumasks and nodemasks
 has been added to the -mm tree.  Its filename is
-     percpu-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+     sched-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/percpu-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sched-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/percpu-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sched-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,7 +40,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: percpu: use %*pb[l] to print bitmaps including cpumasks and nodemasks
+Subject: sched: use %*pb[l] to print bitmaps including cpumasks and nodemasks
 
 printk and friends can now formap bitmaps using '%*pb[l]'.  cpumask
 and nodemask also provide cpumask_pr_args() and nodemask_pr_args()
@@ -54,39 +53,85 @@ This patch is dependent on the following two patches.
  cpumask, nodemask: implement cpumask/nodemask_pr_args()
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/percpu.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ kernel/sched/core.c  |   10 ++++------
+ kernel/sched/stats.c |   11 ++---------
+ 2 files changed, 6 insertions(+), 15 deletions(-)
 
-diff -puN mm/percpu.c~percpu-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks mm/percpu.c
---- a/mm/percpu.c~percpu-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
-+++ a/mm/percpu.c
-@@ -1528,7 +1528,6 @@ static void pcpu_dump_alloc_info(const c
- int __init pcpu_setup_first_chunk(const struct pcpu_alloc_info *ai,
- 				  void *base_addr)
+diff -puN kernel/sched/core.c~sched-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks kernel/sched/core.c
+--- a/kernel/sched/core.c~sched-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
++++ a/kernel/sched/core.c
+@@ -5408,9 +5408,7 @@ static int sched_domain_debug_one(struct
+ 				  struct cpumask *groupmask)
  {
--	static char cpus_buf[4096] __initdata;
- 	static int smap[PERCPU_DYNAMIC_EARLY_SLOTS] __initdata;
- 	static int dmap[PERCPU_DYNAMIC_EARLY_SLOTS] __initdata;
- 	size_t dyn_size = ai->dyn_size;
-@@ -1541,12 +1540,11 @@ int __init pcpu_setup_first_chunk(const
- 	int *unit_map;
- 	int group, unit, i;
+ 	struct sched_group *group = sd->groups;
+-	char str[256];
  
--	cpumask_scnprintf(cpus_buf, sizeof(cpus_buf), cpu_possible_mask);
+-	cpulist_scnprintf(str, sizeof(str), sched_domain_span(sd));
+ 	cpumask_clear(groupmask);
+ 
+ 	printk(KERN_DEBUG "%*s domain %d: ", level, "", level);
+@@ -5423,7 +5421,8 @@ static int sched_domain_debug_one(struct
+ 		return -1;
+ 	}
+ 
+-	printk(KERN_CONT "span %s level %s\n", str, sd->name);
++	printk(KERN_CONT "span %*pbl level %s\n",
++	       cpumask_pr_args(sched_domain_span(sd)), sd->name);
+ 
+ 	if (!cpumask_test_cpu(cpu, sched_domain_span(sd))) {
+ 		printk(KERN_ERR "ERROR: domain->span does not contain "
+@@ -5468,9 +5467,8 @@ static int sched_domain_debug_one(struct
+ 
+ 		cpumask_or(groupmask, groupmask, sched_group_cpus(group));
+ 
+-		cpulist_scnprintf(str, sizeof(str), sched_group_cpus(group));
 -
- #define PCPU_SETUP_BUG_ON(cond)	do {					\
- 	if (unlikely(cond)) {						\
- 		pr_emerg("PERCPU: failed to initialize, %s", #cond);	\
--		pr_emerg("PERCPU: cpu_possible_mask=%s\n", cpus_buf);	\
-+		pr_emerg("PERCPU: cpu_possible_mask=%*pb\n",		\
-+			 cpumask_pr_args(cpu_possible_mask));		\
- 		pcpu_dump_alloc_info(KERN_EMERG, ai);			\
- 		BUG();							\
- 	}								\
+-		printk(KERN_CONT " %s", str);
++		printk(KERN_CONT " %*pbl",
++		       cpumask_pr_args(sched_group_cpus(group)));
+ 		if (group->sgc->capacity != SCHED_CAPACITY_SCALE) {
+ 			printk(KERN_CONT " (cpu_capacity = %d)",
+ 				group->sgc->capacity);
+diff -puN kernel/sched/stats.c~sched-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks kernel/sched/stats.c
+--- a/kernel/sched/stats.c~sched-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
++++ a/kernel/sched/stats.c
+@@ -15,11 +15,6 @@
+ static int show_schedstat(struct seq_file *seq, void *v)
+ {
+ 	int cpu;
+-	int mask_len = DIV_ROUND_UP(NR_CPUS, 32) * 9;
+-	char *mask_str = kmalloc(mask_len, GFP_KERNEL);
+-
+-	if (mask_str == NULL)
+-		return -ENOMEM;
+ 
+ 	if (v == (void *)1) {
+ 		seq_printf(seq, "version %d\n", SCHEDSTAT_VERSION);
+@@ -50,9 +45,8 @@ static int show_schedstat(struct seq_fil
+ 		for_each_domain(cpu, sd) {
+ 			enum cpu_idle_type itype;
+ 
+-			cpumask_scnprintf(mask_str, mask_len,
+-					  sched_domain_span(sd));
+-			seq_printf(seq, "domain%d %s", dcount++, mask_str);
++			seq_printf(seq, "domain%d %*pb", dcount++,
++				   cpumask_pr_args(sched_domain_span(sd)));
+ 			for (itype = CPU_IDLE; itype < CPU_MAX_IDLE_TYPES;
+ 					itype++) {
+ 				seq_printf(seq, " %u %u %u %u %u %u %u %u",
+@@ -76,7 +70,6 @@ static int show_schedstat(struct seq_fil
+ 		rcu_read_unlock();
+ #endif
+ 	}
+-	kfree(mask_str);
+ 	return 0;
+ }
+ 
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
