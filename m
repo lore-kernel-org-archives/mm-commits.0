@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch added
- to -mm tree
-Date: Mon, 26 Jan 2015 12:26:46 -0800
-Message-ID: <54c6a306.MEsBdGzS6+QF0vcd%akpm@linux-foundation.org>
+ powerpc-mm-fix-undefined-reference-to-__kernel_map_pages-on-fsl-ppc64.patch added to -mm tree
+Date: Mon, 26 Jan 2015 12:34:28 -0800
+Message-ID: <54c6a4d4.+ocK/WrvX7WQSnGZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44531 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44625 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751631AbbAZU0r (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jan 2015 15:26:47 -0500
+	with ESMTP id S1752869AbbAZUe3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jan 2015 15:34:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alex.chen@huawei.com, fengguang.wu@gmail.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.com, wangww631@huawei.com, xuejiufei@huawei.com, mm-commits@vger.kernel.org
+To: kim.phillips@freescale.com, akinobu.mita@gmail.com, benh@kernel.crashing.org, iamjoonsoo.kim@lge.com, k.khlebnikov@samsung.com, mpe@ellerman.id.au, paulus@samba.org, scottwood@freescale.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix
+     Subject: powerpc/mm: fix undefined reference to  `.__kernel_map_pages' on FSL PPC64
 has been added to the -mm tree.  Its filename is
-     ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
+     powerpc-mm-fix-undefined-reference-to-__kernel_map_pages-on-fsl-ppc64.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-mm-fix-undefined-reference-to-__kernel_map_pages-on-fsl-ppc64.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-mm-fix-undefined-reference-to-__kernel_map_pages-on-fsl-ppc64.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,88 +39,54 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix
+From: Kim Phillips <kim.phillips@freescale.com>
+Subject: powerpc/mm: fix undefined reference to  `.__kernel_map_pages' on FSL PPC64
 
-avoid dynamic stack allocation
+arch/powerpc has __kernel_map_pages implementations in mm/pgtable_32.c, and
+mm/hash_utils_64.c, of which the former is built for PPC32, and the latter
+for PPC64 machines with PPC_STD_MMU.  Fix arch/powerpc/Kconfig to not select
+ARCH_SUPPORTS_DEBUG_PAGEALLOC when CONFIG_PPC_STD_MMU_64 isn't defined,
+i.e., for 64-bit book3e builds to use the generic __kernel_map_pages()
+in mm/debug-pagealloc.c.
 
-Reported-by: Fengguang Wu <fengguang.wu@gmail.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Joseph Qi <joseph.qi@huawei.com>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Weiwei Wang <wangww631@huawei.com>
-Cc: Xuejiufei <xuejiufei@huawei.com>
-Cc: alex chen <alex.chen@huawei.com>
+  LD      init/built-in.o
+mm/built-in.o: In function `kernel_map_pages':
+include/linux/mm.h:2076: undefined reference to `.__kernel_map_pages'
+include/linux/mm.h:2076: undefined reference to `.__kernel_map_pages'
+include/linux/mm.h:2076: undefined reference to `.__kernel_map_pages'
+Makefile:925: recipe for target 'vmlinux' failed
+make: *** [vmlinux] Error 1
+
+Fixes: 031bc5743f15 ("mm/debug-pagealloc: make debug-pagealloc boottime configurable")
+Signed-off-by: Kim Phillips <kim.phillips@freescale.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+CC: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Konstantin Khlebnikov <k.khlebnikov@samsung.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Scott Wood <scottwood@freescale.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/namei.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ arch/powerpc/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/ocfs2/namei.c~ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix fs/ocfs2/namei.c
---- a/fs/ocfs2/namei.c~ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix
-+++ a/fs/ocfs2/namei.c
-@@ -2296,8 +2296,7 @@ int ocfs2_orphan_del(struct ocfs2_super
- 		     struct buffer_head *orphan_dir_bh,
- 		     bool dio)
- {
--	int namelen = dio ? OCFS2_DIO_ORPHAN_PREFIX_LEN + OCFS2_ORPHAN_NAMELEN :
--			OCFS2_ORPHAN_NAMELEN;
-+	const int namelen = OCFS2_DIO_ORPHAN_PREFIX_LEN + OCFS2_ORPHAN_NAMELEN;
- 	char name[namelen + 1];
- 	struct ocfs2_dinode *orphan_fe;
- 	int status = 0;
+diff -puN arch/powerpc/Kconfig~powerpc-mm-fix-undefined-reference-to-__kernel_map_pages-on-fsl-ppc64 arch/powerpc/Kconfig
+--- a/arch/powerpc/Kconfig~powerpc-mm-fix-undefined-reference-to-__kernel_map_pages-on-fsl-ppc64
++++ a/arch/powerpc/Kconfig
+@@ -256,6 +256,7 @@ config PPC_OF_PLATFORM_PCI
+ 	default n
+ 
+ config ARCH_SUPPORTS_DEBUG_PAGEALLOC
++	depends on PPC32 || PPC_STD_MMU_64
+ 	def_bool y
+ 
+ config ARCH_SUPPORTS_UPROBES
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kim.phillips@freescale.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-fanotify-dont-recalculate-a-marks-mask-if-only-the-ignored-mask-changed-checkpatch-fixes.patch
-fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper.patch
-mm.patch
-mm-vmstatc-fix-cleanup-ifdefs.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub-fix.patch
-mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
-vmscan-force-scan-offline-memory-cgroups-fix.patch
-mm-memcontrol-default-hierarchy-interface-for-memory.patch
-mm-memcontrol-fold-move_anon-and-move_file-fix.patch
-fs-shrinker-always-scan-at-least-one-object-of-each-type-fix.patch
-mm-compaction-enhance-tracepoint-output-for-compaction-begin-end-v4-fix.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated-fix.patch
-mm-thp-allocate-transparent-hugepages-on-local-node-fix.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss.patch
-lib-bitmap-update-bitmap_onto-to-unsigned-checkpatch-fixes.patch
-lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned-fix.patch
-hexdump-makes-it-return-amount-of-bytes-placed-in-buffer-fix.patch
-mm-slab-convert-cache-name-allocations-to-kstrdup_const-fix.patch
-rtc-rk808-fix-the-rtc-time-reading-issue-fix.patch
-fs-befs-linuxvfsc-remove-unnecessary-casting-fix.patch
-linux-next.patch
-linux-next-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-fix-xip-fault-vs-truncate-race-fix.patch
-mm-fix-xip-fault-vs-truncate-race-fix-fix.patch
-mm-allow-page-fault-handlers-to-perform-the-cow-fix.patch
-mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix-3.patch
-mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix.patch
-daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix.patch
-daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-2.patch
-daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-3.patch
-dax-add-dax_zero_page_range-fix.patch
-ext4-add-dax-functionality-fix.patch
-ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
-ocfs2-implement-ocfs2_direct_io_write-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
+powerpc-mm-fix-undefined-reference-to-__kernel_map_pages-on-fsl-ppc64.patch
+mm-slub-fix-typo.patch
 
