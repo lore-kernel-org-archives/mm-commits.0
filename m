@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + cpumask-nodemask-implement-cpumask-nodemask_pr_args.patch added to -mm tree
-Date: Mon, 26 Jan 2015 15:06:45 -0800
-Message-ID: <54c6c885.F9bjZ4LBzxLTU49N%akpm@linux-foundation.org>
+Subject: +
+ powerpc-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+ added to -mm tree
+Date: Mon, 26 Jan 2015 15:06:52 -0800
+Message-ID: <54c6c88c.KhjdonW/vCGaQfma%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46108 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46115 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753431AbbAZXGr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jan 2015 18:06:47 -0500
+	with ESMTP id S1753431AbbAZXGx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jan 2015 18:06:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, James.Bottomley@HansenPartnership.com, benh@kernel.crashing.org, chris@zankel.net, cl@linux.com, cmetcalf@tilera.com, davem@davemloft.net, dmitry.torokhov@gmail.com, fenghua.yu@intel.com, gregkh@linuxfoundation.org, jcmvbkbc@gmail.com, linux@arm.linux.org.uk, linville@tuxdriver.com, lizefan@huawei.com, mingo@redhat.com, paulmck@linux.vnet.ibm.com, penberg@kernel.org, peterz@infradead.org, rostedt@goodmis.org, rusty@rustcorp.com.au, steffen.klassert@secunet.com, tglx@linutronix.de, tony.luck@intel.com, travis@sgi.com, mm-commits@vger.kernel.org
+To: tj@kernel.org, benh@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cpumask, nodemask: implement cpumask/nodemask_pr_args()
+     Subject: powerpc: use %*pb[l] to print bitmaps including cpumasks and nodemasks
 has been added to the -mm tree.  Its filename is
-     cpumask-nodemask-implement-cpumask-nodemask_pr_args.patch
+     powerpc-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/cpumask-nodemask-implement-cpumask-nodemask_pr_args.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/cpumask-nodemask-implement-cpumask-nodemask_pr_args.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,82 +41,92 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: cpumask, nodemask: implement cpumask/nodemask_pr_args()
+Subject: powerpc: use %*pb[l] to print bitmaps including cpumasks and nodemasks
 
-printf family of functions can now format bitmaps using '%*pb[l]' and
-all cpumask and nodemask formatting will be converted to use it.  To
-ease printing these masks with '%*pb[l]' which require two params -
-the number of bits and the actual bitmap, this patch implement
-cpumask_pr_args() and nodemask_pr_args() which can be used to provide
-arguments for '%*pb[l]'
+printk and friends can now formap bitmaps using '%*pb[l]'.  cpumask
+and nodemask also provide cpumask_pr_args() and nodemask_pr_args()
+respectively which can be used to generate the two printf arguments
+necessary to format the specified cpu/nodemask.
+
+* Spurious if (len > 1) test dropped from shared_cpu_map_show().
+
+This patch is dependent on the following two patches.
+
+ lib/vsprintf: implement bitmap printing through '%*pb[l]'
+ cpumask, nodemask: implement cpumask/nodemask_pr_args()
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
-Cc: "John W. Linville" <linville@tuxdriver.com>
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Chris Metcalf <cmetcalf@tilera.com>
-Cc: Chris Zankel <chris@zankel.net>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Li Zefan <lizefan@huawei.com>
-Cc: Max Filippov <jcmvbkbc@gmail.com>
-Cc: Mike Travis <travis@sgi.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Steffen Klassert <steffen.klassert@secunet.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpumask.h  |    8 ++++++++
- include/linux/nodemask.h |    8 ++++++++
- 2 files changed, 16 insertions(+)
+ arch/powerpc/kernel/cacheinfo.c     |   15 ++++++---------
+ arch/powerpc/sysdev/xics/ics-opal.c |    6 ++----
+ arch/powerpc/sysdev/xics/ics-rtas.c |    7 ++-----
+ 3 files changed, 10 insertions(+), 18 deletions(-)
 
-diff -puN include/linux/cpumask.h~cpumask-nodemask-implement-cpumask-nodemask_pr_args include/linux/cpumask.h
---- a/include/linux/cpumask.h~cpumask-nodemask-implement-cpumask-nodemask_pr_args
-+++ a/include/linux/cpumask.h
-@@ -22,6 +22,14 @@ typedef struct cpumask { DECLARE_BITMAP(
-  */
- #define cpumask_bits(maskp) ((maskp)->bits)
+diff -puN arch/powerpc/kernel/cacheinfo.c~powerpc-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks arch/powerpc/kernel/cacheinfo.c
+--- a/arch/powerpc/kernel/cacheinfo.c~powerpc-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
++++ a/arch/powerpc/kernel/cacheinfo.c
+@@ -607,19 +607,16 @@ static ssize_t shared_cpu_map_show(struc
+ {
+ 	struct cache_index_dir *index;
+ 	struct cache *cache;
+-	int len;
+-	int n = 0;
++	int ret;
  
-+/**
-+ * cpumask_pr_args - printf args to output a cpumask
-+ * @maskp: cpumask to be printed
-+ *
-+ * Can be used to provide arguments for '%*pb[l]' when printing a cpumask.
-+ */
-+#define cpumask_pr_args(maskp)		nr_cpu_ids, cpumask_bits(maskp)
-+
- #if NR_CPUS == 1
- #define nr_cpu_ids		1
- #else
-diff -puN include/linux/nodemask.h~cpumask-nodemask-implement-cpumask-nodemask_pr_args include/linux/nodemask.h
---- a/include/linux/nodemask.h~cpumask-nodemask-implement-cpumask-nodemask_pr_args
-+++ a/include/linux/nodemask.h
-@@ -98,6 +98,14 @@
- typedef struct { DECLARE_BITMAP(bits, MAX_NUMNODES); } nodemask_t;
- extern nodemask_t _unused_nodemask_arg_;
+ 	index = kobj_to_cache_index_dir(k);
+ 	cache = index->cache;
+-	len = PAGE_SIZE - 2;
  
-+/**
-+ * nodemask_pr_args - printf args to output a nodemask
-+ * @maskp: nodemask to be printed
-+ *
-+ * Can be used to provide arguments for '%*pb[l]' when printing a nodemask.
-+ */
-+#define nodemask_pr_args(maskp)		MAX_NUMNODES, (maskp)->bits
-+
- /*
-  * The inline keyword gives the compiler room to decide to inline, or
-  * not inline a function as it sees best.  However, as these functions
+-	if (len > 1) {
+-		n = cpumask_scnprintf(buf, len, &cache->shared_cpu_map);
+-		buf[n++] = '\n';
+-		buf[n] = '\0';
+-	}
+-	return n;
++	ret = scnprintf(buf, PAGE_SIZE - 1, "%*pb\n",
++			cpumask_pr_args(&cache->shared_cpu_map));
++	buf[ret++] = '\n';
++	buf[ret] = '\0';
++	return ret;
+ }
+ 
+ static struct kobj_attribute cache_shared_cpu_map_attr =
+diff -puN arch/powerpc/sysdev/xics/ics-opal.c~powerpc-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks arch/powerpc/sysdev/xics/ics-opal.c
+--- a/arch/powerpc/sysdev/xics/ics-opal.c~powerpc-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
++++ a/arch/powerpc/sysdev/xics/ics-opal.c
+@@ -131,10 +131,8 @@ static int ics_opal_set_affinity(struct
+ 
+ 	wanted_server = xics_get_irq_server(d->irq, cpumask, 1);
+ 	if (wanted_server < 0) {
+-		char cpulist[128];
+-		cpumask_scnprintf(cpulist, sizeof(cpulist), cpumask);
+-		pr_warning("%s: No online cpus in the mask %s for irq %d\n",
+-			   __func__, cpulist, d->irq);
++		pr_warning("%s: No online cpus in the mask %*pb for irq %d\n",
++			   __func__, cpumask_pr_args(cpumask), d->irq);
+ 		return -1;
+ 	}
+ 	server = ics_opal_mangle_server(wanted_server);
+diff -puN arch/powerpc/sysdev/xics/ics-rtas.c~powerpc-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks arch/powerpc/sysdev/xics/ics-rtas.c
+--- a/arch/powerpc/sysdev/xics/ics-rtas.c~powerpc-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
++++ a/arch/powerpc/sysdev/xics/ics-rtas.c
+@@ -140,11 +140,8 @@ static int ics_rtas_set_affinity(struct
+ 
+ 	irq_server = xics_get_irq_server(d->irq, cpumask, 1);
+ 	if (irq_server == -1) {
+-		char cpulist[128];
+-		cpumask_scnprintf(cpulist, sizeof(cpulist), cpumask);
+-		printk(KERN_WARNING
+-			"%s: No online cpus in the mask %s for irq %d\n",
+-			__func__, cpulist, d->irq);
++		pr_warning("%s: No online cpus in the mask %*pb for irq %d\n",
++			   __func__, cpumask_pr_args(cpumask), d->irq);
+ 		return -1;
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
