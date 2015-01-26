@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- tracing-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
- added to -mm tree
-Date: Mon, 26 Jan 2015 15:07:16 -0800
-Message-ID: <54c6c8a4.M8CyRkIuf6Sf5bS2%akpm@linux-foundation.org>
+ scsi-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch added
+ to -mm tree
+Date: Mon, 26 Jan 2015 15:07:24 -0800
+Message-ID: <54c6c8ac.4uRrgWr7AIB5/7Ep%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46153 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46167 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757197AbbAZXHR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jan 2015 18:07:17 -0500
+	with ESMTP id S1757199AbbAZXHZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jan 2015 18:07:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, mingo@redhat.com, rostedt@goodmis.org, mm-commits@vger.kernel.org
+To: tj@kernel.org, James.Bottomley@HansenPartnership.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tracing: use %*pb[l] to print bitmaps including cpumasks and nodemasks
+     Subject: scsi: use %*pb[l] to print bitmaps including cpumasks and nodemasks
 has been added to the -mm tree.  Its filename is
-     tracing-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+     scsi-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/tracing-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/scsi-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/tracing-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/scsi-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,12 +41,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: tracing: use %*pb[l] to print bitmaps including cpumasks and nodemasks
+Subject: scsi: use %*pb[l] to print bitmaps including cpumasks and nodemasks
 
 printk and friends can now formap bitmaps using '%*pb[l]'.  cpumask
 and nodemask also provide cpumask_pr_args() and nodemask_pr_args()
 respectively which can be used to generate the two printf arguments
 necessary to format the specified cpu/nodemask.
+
+* map_show()'s return value is too high by one and the function could
+  modify beyond the end of the buffer when the formatted text is long
+  enough.
 
 This patch is dependent on the following two patches.
 
@@ -54,46 +58,30 @@ This patch is dependent on the following two patches.
  cpumask, nodemask: implement cpumask/nodemask_pr_args()
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/trace/trace.c     |    6 +++---
- kernel/trace/trace_seq.c |    2 +-
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/scsi/scsi_debug.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN kernel/trace/trace.c~tracing-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks kernel/trace/trace.c
---- a/kernel/trace/trace.c~tracing-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
-+++ a/kernel/trace/trace.c
-@@ -3352,12 +3352,12 @@ tracing_cpumask_read(struct file *filp,
+diff -puN drivers/scsi/scsi_debug.c~scsi-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks drivers/scsi/scsi_debug.c
+--- a/drivers/scsi/scsi_debug.c~scsi-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
++++ a/drivers/scsi/scsi_debug.c
+@@ -4536,10 +4536,10 @@ static ssize_t map_show(struct device_dr
+ 		return scnprintf(buf, PAGE_SIZE, "0-%u\n",
+ 				 sdebug_store_sectors);
  
- 	mutex_lock(&tracing_cpumask_update_lock);
+-	count = bitmap_scnlistprintf(buf, PAGE_SIZE, map_storep, map_size);
+-
++	count = scnprintf(buf, PAGE_SIZE - 1, "%*pbl",
++			  (int)map_size, map_storep);
+ 	buf[count++] = '\n';
+-	buf[count++] = 0;
++	buf[count] = '\0';
  
--	len = cpumask_scnprintf(mask_str, count, tr->tracing_cpumask);
--	if (count - len < 2) {
-+	len = snprintf(mask_str, count, "%*pb\n",
-+		       cpumask_pr_args(tr->tracing_cpumask));
-+	if (len >= count) {
- 		count = -EINVAL;
- 		goto out_err;
- 	}
--	len += sprintf(mask_str + len, "\n");
- 	count = simple_read_from_buffer(ubuf, count, ppos, mask_str, NR_CPUS+1);
- 
- out_err:
-diff -puN kernel/trace/trace_seq.c~tracing-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks kernel/trace/trace_seq.c
---- a/kernel/trace/trace_seq.c~tracing-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
-+++ a/kernel/trace/trace_seq.c
-@@ -120,7 +120,7 @@ void trace_seq_bitmask(struct trace_seq
- 
- 	__trace_seq_init(s);
- 
--	seq_buf_bitmask(&s->seq, maskp, nmaskbits);
-+	seq_buf_printf(&s->seq, "%*pb", nmaskbits, maskp);
- 
- 	if (unlikely(seq_buf_has_overflowed(&s->seq))) {
- 		s->seq.len = save_len;
+ 	return count;
+ }
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
