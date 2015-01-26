@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- wireless-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
- added to -mm tree
-Date: Mon, 26 Jan 2015 15:07:20 -0800
-Message-ID: <54c6c8a8.hBWcmODuXL8iAxGa%akpm@linux-foundation.org>
+ drivers-base-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch added to -mm tree
+Date: Mon, 26 Jan 2015 15:07:28 -0800
+Message-ID: <54c6c8b0.LrDgEdg79YTpFsp1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46161 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46172 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755950AbbAZXHV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jan 2015 18:07:21 -0500
+	with ESMTP id S1754291AbbAZXH3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jan 2015 18:07:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, linville@tuxdriver.com, mm-commits@vger.kernel.org
+To: tj@kernel.org, gregkh@linuxfoundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: wireless: use %*pb[l] to print bitmaps including cpumasks and nodemasks
+     Subject: drivers/base: use %*pb[l] to print bitmaps including cpumasks and nodemasks
 has been added to the -mm tree.  Its filename is
-     wireless-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+     drivers-base-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/wireless-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-base-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/wireless-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-base-use-%25pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,12 +40,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: wireless: use %*pb[l] to print bitmaps including cpumasks and nodemasks
+Subject: drivers/base: use %*pb[l] to print bitmaps including cpumasks and nodemasks
 
 printk and friends can now formap bitmaps using '%*pb[l]'.  cpumask
 and nodemask also provide cpumask_pr_args() and nodemask_pr_args()
 respectively which can be used to generate the two printf arguments
 necessary to format the specified cpu/nodemask.
+
+* Line termination only requires one extra space at the end of the
+  buffer.  Use PAGE_SIZE - 1 instead of PAGE_SIZE - 2 when formatting.
 
 This patch is dependent on the following two patches.
 
@@ -54,105 +56,39 @@ This patch is dependent on the following two patches.
  cpumask, nodemask: implement cpumask/nodemask_pr_args()
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/ath/ath9k/htc_drv_debug.c |   23 +++-----------
- drivers/net/wireless/ath/carl9170/debug.c      |   24 +++------------
- 2 files changed, 12 insertions(+), 35 deletions(-)
+ drivers/base/cpu.c  |    2 +-
+ drivers/base/node.c |    3 ++-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/wireless/ath/ath9k/htc_drv_debug.c~wireless-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks drivers/net/wireless/ath/ath9k/htc_drv_debug.c
---- a/drivers/net/wireless/ath/ath9k/htc_drv_debug.c~wireless-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
-+++ a/drivers/net/wireless/ath/ath9k/htc_drv_debug.c
-@@ -291,26 +291,15 @@ static ssize_t read_file_slot(struct fil
+diff -puN drivers/base/cpu.c~drivers-base-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks drivers/base/cpu.c
+--- a/drivers/base/cpu.c~drivers-base-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
++++ a/drivers/base/cpu.c
+@@ -245,7 +245,7 @@ static ssize_t print_cpus_offline(struct
+ 	if (!alloc_cpumask_var(&offline, GFP_KERNEL))
+ 		return -ENOMEM;
+ 	cpumask_andnot(offline, cpu_possible_mask, cpu_online_mask);
+-	n = cpulist_scnprintf(buf, len, offline);
++	n = scnprintf(buf, len, "%*pbl", cpumask_pr_args(offline));
+ 	free_cpumask_var(offline);
+ 
+ 	/* display offline cpus >= nr_cpu_ids */
+diff -puN drivers/base/node.c~drivers-base-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks drivers/base/node.c
+--- a/drivers/base/node.c~drivers-base-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
++++ a/drivers/base/node.c
+@@ -605,7 +605,8 @@ static ssize_t print_nodes_state(enum no
  {
- 	struct ath9k_htc_priv *priv = file->private_data;
- 	char buf[512];
--	unsigned int len = 0;
-+	unsigned int len;
+ 	int n;
  
- 	spin_lock_bh(&priv->tx.tx_lock);
--
--	len += scnprintf(buf + len, sizeof(buf) - len, "TX slot bitmap : ");
--
--	len += bitmap_scnprintf(buf + len, sizeof(buf) - len,
--			       priv->tx.tx_slot, MAX_TX_BUF_NUM);
--
--	len += scnprintf(buf + len, sizeof(buf) - len, "\n");
--
--	len += scnprintf(buf + len, sizeof(buf) - len,
--			 "Used slots     : %d\n",
--			 bitmap_weight(priv->tx.tx_slot, MAX_TX_BUF_NUM));
--
-+	len = scnprintf(buf, sizeof(buf),
-+			"TX slot bitmap : %*pb\n"
-+			"Used slots     : %d\n",
-+			MAX_TX_BUF_NUM, priv->tx.tx_slot,
-+			bitmap_weight(priv->tx.tx_slot, MAX_TX_BUF_NUM));
- 	spin_unlock_bh(&priv->tx.tx_lock);
--
--	if (len > sizeof(buf))
--		len = sizeof(buf);
--
- 	return simple_read_from_buffer(user_buf, count, ppos, buf, len);
- }
- 
-diff -puN drivers/net/wireless/ath/carl9170/debug.c~wireless-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks drivers/net/wireless/ath/carl9170/debug.c
---- a/drivers/net/wireless/ath/carl9170/debug.c~wireless-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
-+++ a/drivers/net/wireless/ath/carl9170/debug.c
-@@ -214,14 +214,10 @@ DEBUGFS_DECLARE_RO_FILE(name, _read_bufs
- static char *carl9170_debugfs_mem_usage_read(struct ar9170 *ar, char *buf,
- 					     size_t bufsize, ssize_t *len)
- {
--	ADD(buf, *len, bufsize, "jar: [");
--
- 	spin_lock_bh(&ar->mem_lock);
- 
--	*len += bitmap_scnprintf(&buf[*len], bufsize - *len,
--				  ar->mem_bitmap, ar->fw.mem_blocks);
--
--	ADD(buf, *len, bufsize, "]\n");
-+	ADD(buf, *len, bufsize, "jar: [%*pb]\n",
-+	    ar->fw.mem_blocks, ar->mem_bitmap);
- 
- 	ADD(buf, *len, bufsize, "cookies: used:%3d / total:%3d, allocs:%d\n",
- 	    bitmap_weight(ar->mem_bitmap, ar->fw.mem_blocks),
-@@ -316,17 +312,13 @@ static char *carl9170_debugfs_ampdu_stat
- 		    cnt, iter->tid, iter->bsn, iter->snx, iter->hsn,
- 		    iter->max, iter->state, iter->counter);
- 
--		ADD(buf, *len, bufsize, "\tWindow:  [");
--
--		*len += bitmap_scnprintf(&buf[*len], bufsize - *len,
--			iter->bitmap, CARL9170_BAW_BITS);
-+		ADD(buf, *len, bufsize, "\tWindow:  [%*pb,W]\n",
-+		    CARL9170_BAW_BITS, iter->bitmap);
- 
- #define BM_STR_OFF(offset)					\
- 	((CARL9170_BAW_BITS - (offset) - 1) / 4 +		\
- 	 (CARL9170_BAW_BITS - (offset) - 1) / 32 + 1)
- 
--		ADD(buf, *len, bufsize, ",W]\n");
--
- 		offset = BM_STR_OFF(0);
- 		ADD(buf, *len, bufsize, "\tBase Seq: %*s\n", offset, "T");
- 
-@@ -448,12 +440,8 @@ static char *carl9170_debugfs_vif_dump_r
- 	ADD(buf, *len, bufsize, "registered VIFs:%d \\ %d\n",
- 	    ar->vifs, ar->fw.vif_num);
- 
--	ADD(buf, *len, bufsize, "VIF bitmap: [");
--
--	*len += bitmap_scnprintf(&buf[*len], bufsize - *len,
--				 &ar->vif_bitmap, ar->fw.vif_num);
--
--	ADD(buf, *len, bufsize, "]\n");
-+	ADD(buf, *len, bufsize, "VIF bitmap: [%*pb]\n",
-+	    ar->fw.vif_num, &ar->vif_bitmap);
- 
- 	rcu_read_lock();
- 	list_for_each_entry_rcu(iter, &ar->vif_list, list) {
+-	n = nodelist_scnprintf(buf, PAGE_SIZE-2, node_states[state]);
++	n = scnprintf(buf, PAGE_SIZE - 1, "%*pbl",
++		      nodemask_pr_args(&node_states[state]));
+ 	buf[n++] = '\n';
+ 	buf[n] = '\0';
+ 	return n;
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
