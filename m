@@ -1,130 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] mm-dont-offset-memmap-for-flatmem.patch removed from
- -mm tree
-Date: Mon, 26 Jan 2015 12:16:27 -0800
-Message-ID: <54c6a09b.R+NJ+Q2eoTA46qH6%akpm@linux-foundation.org>
+Subject: +
+ ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch added
+ to -mm tree
+Date: Mon, 26 Jan 2015 12:26:46 -0800
+Message-ID: <54c6a306.MEsBdGzS6+QF0vcd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44213 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44531 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753568AbbAZUQ2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jan 2015 15:16:28 -0500
+	with ESMTP id S1751631AbbAZU0r (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jan 2015 15:26:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lauraa@codeaurora.org, arnd@arndb.de, galak@codeaurora.org, khilman@linaro.org, linux@arm.linux.org.uk, sboyd@codeaurora.org, srinivas.kandagatla@linaro.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alex.chen@huawei.com, fengguang.wu@gmail.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.com, wangww631@huawei.com, xuejiufei@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc.c: don't offset memmap for flatmem
-has been removed from the -mm tree.  Its filename was
-     mm-dont-offset-memmap-for-flatmem.patch
+     Subject: ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix
+has been added to the -mm tree.  Its filename is
+     ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
 
-This patch was dropped because it was withdrawn
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Laura Abbott <lauraa@codeaurora.org>
-Subject: mm/page_alloc.c: don't offset memmap for flatmem
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix
 
-Srinivas Kandagatla reported bad page messages when trying to remove the
-bottom 2MB on an ARM based IFC6410 board
+avoid dynamic stack allocation
 
-BUG: Bad page state in process swapper  pfn:fffa8
-page:ef7fb500 count:0 mapcount:0 mapping:  (null) index:0x0
-flags: 0x96640253(locked|error|dirty|active|arch_1|reclaim|mlocked)
-page dumped because: PAGE_FLAGS_CHECK_AT_FREE flag(s) set
-bad because of flags:
-flags: 0x200041(locked|active|mlocked)
-Modules linked in:
-CPU: 0 PID: 0 Comm: swapper Not tainted 3.19.0-rc3-00007-g412f9ba-dirty #816
-Hardware name: Qualcomm (Flattened Device Tree)
-[<c0218280>] (unwind_backtrace) from [<c0212be8>] (show_stack+0x20/0x24)
-[<c0212be8>] (show_stack) from [<c0af7124>] (dump_stack+0x80/0x9c)
-[<c0af7124>] (dump_stack) from [<c0301570>] (bad_page+0xc8/0x128)
-[<c0301570>] (bad_page) from [<c03018a8>] (free_pages_prepare+0x168/0x1e0)
-[<c03018a8>] (free_pages_prepare) from [<c030369c>] (free_hot_cold_page+0x3c/0x174)
-[<c030369c>] (free_hot_cold_page) from [<c0303828>] (__free_pages+0x54/0x58)
-[<c0303828>] (__free_pages) from [<c030395c>] (free_highmem_page+0x38/0x88)
-[<c030395c>] (free_highmem_page) from [<c0f62d5c>] (mem_init+0x240/0x430)
-[<c0f62d5c>] (mem_init) from [<c0f5db3c>] (start_kernel+0x1e4/0x3c8)
-[<c0f5db3c>] (start_kernel) from [<80208074>] (0x80208074)
-Disabling lock debugging due to kernel taint
-
-Removing the lower 2MB made the start of the lowmem zone to no longer be
-page block aligned.  IFC6410 uses CONFIG_FLATMEM where alloc_node_mem_map
-allocates memory for the mem_map.  alloc_node_mem_map will offset for
-unaligned nodes with the assumption the pfn/page translation functions
-will account for the offset.  The functions for CONFIG_FLATMEM do not
-offset however, resulting in overrunning the memmap array.  Just use the
-allocated memmap without any offset when running with CONFIG_FLATMEM to
-avoid the overrun.
-
-Signed-off-by: Laura Abbott <lauraa@codeaurora.org>
-Reported-by: Srinivas Kandagatla <srinivas.kandagatla@linaro.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Kevin Hilman <khilman@linaro.org>
-Cc: Arnd Bergman <arnd@arndb.de>
-Cc: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Kumar Gala <galak@codeaurora.org>
+Reported-by: Fengguang Wu <fengguang.wu@gmail.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Joseph Qi <joseph.qi@huawei.com>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Weiwei Wang <wangww631@huawei.com>
+Cc: Xuejiufei <xuejiufei@huawei.com>
+Cc: alex chen <alex.chen@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+ fs/ocfs2/namei.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-dont-offset-memmap-for-flatmem mm/page_alloc.c
---- a/mm/page_alloc.c~mm-dont-offset-memmap-for-flatmem
-+++ a/mm/page_alloc.c
-@@ -4993,6 +4993,8 @@ static void __paginginit free_area_init_
- 
- static void __init_refok alloc_node_mem_map(struct pglist_data *pgdat)
+diff -puN fs/ocfs2/namei.c~ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix fs/ocfs2/namei.c
+--- a/fs/ocfs2/namei.c~ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix
++++ a/fs/ocfs2/namei.c
+@@ -2296,8 +2296,7 @@ int ocfs2_orphan_del(struct ocfs2_super
+ 		     struct buffer_head *orphan_dir_bh,
+ 		     bool dio)
  {
-+	unsigned long __maybe_unused offset = 0;
-+
- 	/* Skip empty nodes */
- 	if (!pgdat->node_spanned_pages)
- 		return;
-@@ -5009,6 +5011,7 @@ static void __init_refok alloc_node_mem_
- 		 * for the buddy allocator to function correctly.
- 		 */
- 		start = pgdat->node_start_pfn & ~(MAX_ORDER_NR_PAGES - 1);
-+		offset = pgdat->node_start_pfn - start;
- 		end = pgdat_end_pfn(pgdat);
- 		end = ALIGN(end, MAX_ORDER_NR_PAGES);
- 		size =  (end - start) * sizeof(struct page);
-@@ -5016,7 +5019,7 @@ static void __init_refok alloc_node_mem_
- 		if (!map)
- 			map = memblock_virt_alloc_node_nopanic(size,
- 							       pgdat->node_id);
--		pgdat->node_mem_map = map + (pgdat->node_start_pfn - start);
-+		pgdat->node_mem_map = map + offset;
- 	}
- #ifndef CONFIG_NEED_MULTIPLE_NODES
- 	/*
-@@ -5024,10 +5027,13 @@ static void __init_refok alloc_node_mem_
- 	 */
- 	if (pgdat == NODE_DATA(0)) {
- 		mem_map = NODE_DATA(0)->node_mem_map;
--#ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
--		if (page_to_pfn(mem_map) != pgdat->node_start_pfn)
--			mem_map -= (pgdat->node_start_pfn - ARCH_PFN_OFFSET);
--#endif /* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
-+#if defined(CONFIG_HAVE_MEMBLOCK_NODE_MAP) || defined(CONFIG_FLATMEM)
-+		if (page_to_pfn(mem_map) != pgdat->node_start_pfn) {
-+			if (IS_ENABLED(CONFIG_HAVE_MEMBLOCK_NODE_MAP))
-+				offset = pgdat->node_start_pfn - ARCH_PFN_OFFSET;
-+			mem_map -= offset;
-+		}
-+#endif /* CONFIG_HAVE_MEMBLOCK_NODE_MAP || CONFIG_FLATMEM */
- 	}
- #endif
- #endif /* CONFIG_FLAT_NODE_MEM_MAP */
+-	int namelen = dio ? OCFS2_DIO_ORPHAN_PREFIX_LEN + OCFS2_ORPHAN_NAMELEN :
+-			OCFS2_ORPHAN_NAMELEN;
++	const int namelen = OCFS2_DIO_ORPHAN_PREFIX_LEN + OCFS2_ORPHAN_NAMELEN;
+ 	char name[namelen + 1];
+ 	struct ocfs2_dinode *orphan_fe;
+ 	int status = 0;
 _
 
-Patches currently in -mm which might be from lauraa@codeaurora.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+fanotify-dont-recalculate-a-marks-mask-if-only-the-ignored-mask-changed-checkpatch-fixes.patch
+fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask-checkpatch-fixes.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper.patch
+mm.patch
+mm-vmstatc-fix-cleanup-ifdefs.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub-fix.patch
+mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
+vmscan-force-scan-offline-memory-cgroups-fix.patch
+mm-memcontrol-default-hierarchy-interface-for-memory.patch
+mm-memcontrol-fold-move_anon-and-move_file-fix.patch
+fs-shrinker-always-scan-at-least-one-object-of-each-type-fix.patch
+mm-compaction-enhance-tracepoint-output-for-compaction-begin-end-v4-fix.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated-fix.patch
+mm-thp-allocate-transparent-hugepages-on-local-node-fix.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss.patch
+lib-bitmap-update-bitmap_onto-to-unsigned-checkpatch-fixes.patch
+lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned-fix.patch
+hexdump-makes-it-return-amount-of-bytes-placed-in-buffer-fix.patch
+mm-slab-convert-cache-name-allocations-to-kstrdup_const-fix.patch
+rtc-rk808-fix-the-rtc-time-reading-issue-fix.patch
+fs-befs-linuxvfsc-remove-unnecessary-casting-fix.patch
 linux-next.patch
+linux-next-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mm-fix-xip-fault-vs-truncate-race-fix.patch
+mm-fix-xip-fault-vs-truncate-race-fix-fix.patch
+mm-allow-page-fault-handlers-to-perform-the-cow-fix.patch
+mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix-3.patch
+mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix.patch
+daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix.patch
+daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-2.patch
+daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-3.patch
+dax-add-dax_zero_page_range-fix.patch
+ext4-add-dax-functionality-fix.patch
+ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
+ocfs2-implement-ocfs2_direct_io_write-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
