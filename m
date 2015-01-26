@@ -1,182 +1,130 @@
 From: akpm@linux-foundation.org
-Subject: + mincore-apply-page-table-walker-on-do_mincore-fix.patch added
- to -mm tree
-Date: Mon, 26 Jan 2015 12:15:20 -0800
-Message-ID: <54c6a058.1N+IT0R3zdg0VJ1O%akpm@linux-foundation.org>
+Subject: [withdrawn] mm-dont-offset-memmap-for-flatmem.patch removed from
+ -mm tree
+Date: Mon, 26 Jan 2015 12:16:27 -0800
+Message-ID: <54c6a09b.R+NJ+Q2eoTA46qH6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44204 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44213 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752749AbbAZUPV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jan 2015 15:15:21 -0500
+	with ESMTP id S1753568AbbAZUQ2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jan 2015 15:16:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: n-horiguchi@ah.jp.nec.com, hannes@cmpxchg.org, mm-commits@vger.kernel.org
+To: lauraa@codeaurora.org, arnd@arndb.de, galak@codeaurora.org, khilman@linaro.org, linux@arm.linux.org.uk, sboyd@codeaurora.org, srinivas.kandagatla@linaro.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mincore-apply-page-table-walker-on-do_mincore-fix
-has been added to the -mm tree.  Its filename is
-     mincore-apply-page-table-walker-on-do_mincore-fix.patch
+     Subject: mm/page_alloc.c: don't offset memmap for flatmem
+has been removed from the -mm tree.  Its filename was
+     mm-dont-offset-memmap-for-flatmem.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mincore-apply-page-table-walker-on-do_mincore-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mincore-apply-page-table-walker-on-do_mincore-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mincore-apply-page-table-walker-on-do_mincore-fix
+From: Laura Abbott <lauraa@codeaurora.org>
+Subject: mm/page_alloc.c: don't offset memmap for flatmem
 
-- removed unnecessary vma check in mincore_unmapped_range()
-- introduce __mincore_unmapped_range(), this helped us avoid calling
-  mincore_unmapped_range() (which cannot be inlined) repeatedly from mincor=
-e_pte_range()
-- simplified 'nr' calculation in mincore_pte_range(), where we use the fact=
- that
-  mincore_pte_range() never fails and nr is always (end - addr) >> PAGE_SHI=
-FT.
+Srinivas Kandagatla reported bad page messages when trying to remove the
+bottom 2MB on an ARM based IFC6410 board
 
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+BUG: Bad page state in process swapper  pfn:fffa8
+page:ef7fb500 count:0 mapcount:0 mapping:  (null) index:0x0
+flags: 0x96640253(locked|error|dirty|active|arch_1|reclaim|mlocked)
+page dumped because: PAGE_FLAGS_CHECK_AT_FREE flag(s) set
+bad because of flags:
+flags: 0x200041(locked|active|mlocked)
+Modules linked in:
+CPU: 0 PID: 0 Comm: swapper Not tainted 3.19.0-rc3-00007-g412f9ba-dirty #816
+Hardware name: Qualcomm (Flattened Device Tree)
+[<c0218280>] (unwind_backtrace) from [<c0212be8>] (show_stack+0x20/0x24)
+[<c0212be8>] (show_stack) from [<c0af7124>] (dump_stack+0x80/0x9c)
+[<c0af7124>] (dump_stack) from [<c0301570>] (bad_page+0xc8/0x128)
+[<c0301570>] (bad_page) from [<c03018a8>] (free_pages_prepare+0x168/0x1e0)
+[<c03018a8>] (free_pages_prepare) from [<c030369c>] (free_hot_cold_page+0x3c/0x174)
+[<c030369c>] (free_hot_cold_page) from [<c0303828>] (__free_pages+0x54/0x58)
+[<c0303828>] (__free_pages) from [<c030395c>] (free_highmem_page+0x38/0x88)
+[<c030395c>] (free_highmem_page) from [<c0f62d5c>] (mem_init+0x240/0x430)
+[<c0f62d5c>] (mem_init) from [<c0f5db3c>] (start_kernel+0x1e4/0x3c8)
+[<c0f5db3c>] (start_kernel) from [<80208074>] (0x80208074)
+Disabling lock debugging due to kernel taint
+
+Removing the lower 2MB made the start of the lowmem zone to no longer be
+page block aligned.  IFC6410 uses CONFIG_FLATMEM where alloc_node_mem_map
+allocates memory for the mem_map.  alloc_node_mem_map will offset for
+unaligned nodes with the assumption the pfn/page translation functions
+will account for the offset.  The functions for CONFIG_FLATMEM do not
+offset however, resulting in overrunning the memmap array.  Just use the
+allocated memmap without any offset when running with CONFIG_FLATMEM to
+avoid the overrun.
+
+Signed-off-by: Laura Abbott <lauraa@codeaurora.org>
+Reported-by: Srinivas Kandagatla <srinivas.kandagatla@linaro.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Kevin Hilman <khilman@linaro.org>
+Cc: Arnd Bergman <arnd@arndb.de>
+Cc: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Kumar Gala <galak@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mincore.c |   42 ++++++++++++++++++++++++------------------
- 1 file changed, 24 insertions(+), 18 deletions(-)
+ mm/page_alloc.c |   16 +++++++++++-----
+ 1 file changed, 11 insertions(+), 5 deletions(-)
 
-diff -puN mm/mincore.c~mincore-apply-page-table-walker-on-do_mincore-fix mm/mincore.c
---- a/mm/mincore.c~mincore-apply-page-table-walker-on-do_mincore-fix
-+++ a/mm/mincore.c
-@@ -82,15 +82,13 @@ static unsigned char mincore_page(struct
- 	return present;
- }
+diff -puN mm/page_alloc.c~mm-dont-offset-memmap-for-flatmem mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-dont-offset-memmap-for-flatmem
++++ a/mm/page_alloc.c
+@@ -4993,6 +4993,8 @@ static void __paginginit free_area_init_
  
--static int mincore_unmapped_range(unsigned long addr, unsigned long end,
--				   struct mm_walk *walk)
-+static int __mincore_unmapped_range(unsigned long addr, unsigned long end,
-+				struct vm_area_struct *vma, unsigned char *vec)
+ static void __init_refok alloc_node_mem_map(struct pglist_data *pgdat)
  {
--	struct vm_area_struct *vma = walk->vma;
--	unsigned char *vec = walk->private;
- 	unsigned long nr = (end - addr) >> PAGE_SHIFT;
- 	int i;
- 
--	if (vma && vma->vm_file) {
-+	if (vma->vm_file) {
- 		pgoff_t pgoff;
- 
- 		pgoff = linear_page_index(vma, addr);
-@@ -100,7 +98,14 @@ static int mincore_unmapped_range(unsign
- 		for (i = 0; i < nr; i++)
- 			vec[i] = 0;
- 	}
--	walk->private += nr;
-+	return nr;
-+}
++	unsigned long __maybe_unused offset = 0;
 +
-+static int mincore_unmapped_range(unsigned long addr, unsigned long end,
-+				   struct mm_walk *walk)
-+{
-+	walk->private += __mincore_unmapped_range(addr, end,
-+						  walk->vma, walk->private);
- 	return 0;
- }
- 
-@@ -110,29 +115,28 @@ static int mincore_pte_range(pmd_t *pmd,
- 	spinlock_t *ptl;
- 	struct vm_area_struct *vma = walk->vma;
- 	pte_t *ptep;
-+	unsigned char *vec = walk->private;
-+	int nr = (end - addr) >> PAGE_SHIFT;
- 
- 	if (pmd_trans_huge_lock(pmd, vma, &ptl) == 1) {
--		memset(walk->private, 1, (end - addr) >> PAGE_SHIFT);
--		walk->private += (end - addr) >> PAGE_SHIFT;
-+		memset(vec, 1, nr);
- 		spin_unlock(ptl);
--		return 0;
-+		goto out;
+ 	/* Skip empty nodes */
+ 	if (!pgdat->node_spanned_pages)
+ 		return;
+@@ -5009,6 +5011,7 @@ static void __init_refok alloc_node_mem_
+ 		 * for the buddy allocator to function correctly.
+ 		 */
+ 		start = pgdat->node_start_pfn & ~(MAX_ORDER_NR_PAGES - 1);
++		offset = pgdat->node_start_pfn - start;
+ 		end = pgdat_end_pfn(pgdat);
+ 		end = ALIGN(end, MAX_ORDER_NR_PAGES);
+ 		size =  (end - start) * sizeof(struct page);
+@@ -5016,7 +5019,7 @@ static void __init_refok alloc_node_mem_
+ 		if (!map)
+ 			map = memblock_virt_alloc_node_nopanic(size,
+ 							       pgdat->node_id);
+-		pgdat->node_mem_map = map + (pgdat->node_start_pfn - start);
++		pgdat->node_mem_map = map + offset;
  	}
- 
- 	if (pmd_trans_unstable(pmd)) {
--		mincore_unmapped_range(addr, end, walk);
--		return 0;
-+		__mincore_unmapped_range(addr, end, vma, vec);
-+		goto out;
+ #ifndef CONFIG_NEED_MULTIPLE_NODES
+ 	/*
+@@ -5024,10 +5027,13 @@ static void __init_refok alloc_node_mem_
+ 	 */
+ 	if (pgdat == NODE_DATA(0)) {
+ 		mem_map = NODE_DATA(0)->node_mem_map;
+-#ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
+-		if (page_to_pfn(mem_map) != pgdat->node_start_pfn)
+-			mem_map -= (pgdat->node_start_pfn - ARCH_PFN_OFFSET);
+-#endif /* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
++#if defined(CONFIG_HAVE_MEMBLOCK_NODE_MAP) || defined(CONFIG_FLATMEM)
++		if (page_to_pfn(mem_map) != pgdat->node_start_pfn) {
++			if (IS_ENABLED(CONFIG_HAVE_MEMBLOCK_NODE_MAP))
++				offset = pgdat->node_start_pfn - ARCH_PFN_OFFSET;
++			mem_map -= offset;
++		}
++#endif /* CONFIG_HAVE_MEMBLOCK_NODE_MAP || CONFIG_FLATMEM */
  	}
- 
- 	ptep = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
- 	for (; addr != end; ptep++, addr += PAGE_SIZE) {
- 		pte_t pte = *ptep;
--		unsigned char *vec = walk->private;
- 
--		if (pte_none(pte)) {
--			mincore_unmapped_range(addr, addr + PAGE_SIZE, walk);
--			continue;
--		}
--		if (pte_present(pte))
-+		if (pte_none(pte))
-+			__mincore_unmapped_range(addr, addr + PAGE_SIZE,
-+						 vma, vec);
-+		else if (pte_present(pte))
- 			*vec = 1;
- 		else { /* pte is a swap entry */
- 			swp_entry_t entry = pte_to_swp_entry(pte);
-@@ -153,9 +157,11 @@ static int mincore_pte_range(pmd_t *pmd,
  #endif
- 			}
- 		}
--		walk->private++;
-+		vec++;
- 	}
- 	pte_unmap_unlock(ptep - 1, ptl);
-+out:
-+	walk->private += nr;
- 	cond_resched();
- 	return 0;
- }
+ #endif /* CONFIG_FLAT_NODE_MEM_MAP */
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from lauraa@codeaurora.org are
 
-mm-pagewalk-call-pte_hole-for-vm_pfnmap-during-walk_page_range.patch
-mm-add-kpf_zero_page-flag-for-proc-kpageflags.patch
-mm-hugetlb-reduce-arch-dependent-code-around-follow_huge_.patch
-mm-hugetlb-pmd_huge-returns-true-for-non-present-hugepage.patch
-mm-hugetlb-take-page-table-lock-in-follow_huge_pmd.patch
-mm-hugetlb-fix-getting-refcount-0-page-in-hugetlb_fault.patch
-mm-hugetlb-add-migration-hwpoisoned-entry-check-in-hugetlb_change_protection.patch
-mm-hugetlb-add-migration-entry-check-in-__unmap_hugepage_range.patch
-mm-hugetlb-fix-suboptimal-migration-hwpoisoned-entry-check.patch
-mm-hugetlb-cleanup-and-rename-is_hugetlb_entry_migrationhwpoisoned.patch
-mm-pagewalk-remove-pgd_entry-and-pud_entry.patch
-pagewalk-improve-vma-handling.patch
-pagewalk-add-walk_page_vma.patch
-smaps-remove-mem_size_stats-vma-and-use-walk_page_vma.patch
-clear_refs-remove-clear_refs_private-vma-and-introduce-clear_refs_test_walk.patch
-pagemap-use-walk-vma-instead-of-calling-find_vma.patch
-numa_maps-fix-typo-in-gather_hugetbl_stats.patch
-numa_maps-remove-numa_maps-vma.patch
-memcg-cleanup-preparation-for-page-table-walk.patch
-arch-powerpc-mm-subpage-protc-use-walk-vma-and-walk_page_vma.patch
-mempolicy-apply-page-table-walker-on-queue_pages_range.patch
-mm-pagewalk-fix-misbehavior-of-walk_page_range-for-vmavm_pfnmap-re-pagewalk-improve-vma-handling.patch
-mm-proc-pid-clear_refs-avoid-split_huge_page.patch
-mincore-apply-page-table-walker-on-do_mincore.patch
-mincore-apply-page-table-walker-on-do_mincore-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
+linux-next.patch
 
