@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + docs-procs-describe-proc-pid-map_files-entry-fix.patch added to -mm tree
-Date: Tue, 27 Jan 2015 14:19:26 -0800
-Message-ID: <54c80eee.elj+uW61zG1M4g7Z%akpm@linux-foundation.org>
+Subject: +
+ mm-debug_pagealloc-fix-build-failure-on-ppc-and-some-other-archs.patch
+ added to -mm tree
+Date: Tue, 27 Jan 2015 14:26:12 -0800
+Message-ID: <54c81084.hZvCDlCQkYCpCZbC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38516 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38669 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933075AbbA0WT1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Jan 2015 17:19:27 -0500
+	with ESMTP id S932959AbbA0W0N (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Jan 2015 17:26:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, calvinowens@fb.com, gorcunov@openvz.org, keescook@chromium.org, kirill@shutemov.name, xemul@openvz.org, mm-commits@vger.kernel.org
+To: iamjoonsoo.kim@lge.com, davem@davemloft.net, dhowells@redhat.com, heiko.carstens@de.ibm.com, kim.phillips@freescale.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: docs-procs-describe-proc-pid-map_files-entry-fix
+     Subject: mm/debug_pagealloc: fix build failure on ppc and some other archs
 has been added to the -mm tree.  Its filename is
-     docs-procs-describe-proc-pid-map_files-entry-fix.patch
+     mm-debug_pagealloc-fix-build-failure-on-ppc-and-some-other-archs.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/docs-procs-describe-proc-pid-map_files-entry-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-debug_pagealloc-fix-build-failure-on-ppc-and-some-other-archs.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/docs-procs-describe-proc-pid-map_files-entry-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-debug_pagealloc-fix-build-failure-on-ppc-and-some-other-archs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,112 +40,152 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: docs-procs-describe-proc-pid-map_files-entry-fix
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: mm/debug_pagealloc: fix build failure on ppc and some other archs
 
-tweaks
+Kim Phillips reported following build failure.
 
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Calvin Owens <calvinowens@fb.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
+  LD      init/built-in.o
+  mm/built-in.o: In function `free_pages_prepare':
+  mm/page_alloc.c:770: undefined reference to `.kernel_map_pages'
+  mm/built-in.o: In function `prep_new_page':
+  mm/page_alloc.c:933: undefined reference to `.kernel_map_pages'
+  mm/built-in.o: In function `map_pages':
+  mm/compaction.c:61: undefined reference to `.kernel_map_pages'
+  make: *** [vmlinux] Error 1
+
+Reason for this problem is that commit 031bc5743f15 ("mm/debug-pagealloc:
+make debug-pagealloc boottime configurable") forgot to remove old
+declaration of kernel_map_pages() in some architectures.  This patch
+removes them to fix build failure.
+
+Reported-by: Kim Phillips <kim.phillips@freescale.com>
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: David Miller <davem@davemloft.net>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ arch/mn10300/include/asm/cacheflush.h  |    7 -------
+ arch/powerpc/include/asm/cacheflush.h  |    7 -------
+ arch/s390/include/asm/cacheflush.h     |    4 ----
+ arch/sparc/include/asm/cacheflush_64.h |    5 -----
+ 4 files changed, 23 deletions(-)
 
-diff -puN Documentation/filesystems/proc.txt~docs-procs-describe-proc-pid-map_files-entry-fix Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~docs-procs-describe-proc-pid-map_files-entry-fix
-+++ a/Documentation/filesystems/proc.txt
-@@ -1766,8 +1766,8 @@ pair provide additional information part
+diff -puN arch/mn10300/include/asm/cacheflush.h~mm-debug_pagealloc-fix-build-failure-on-ppc-and-some-other-archs arch/mn10300/include/asm/cacheflush.h
+--- a/arch/mn10300/include/asm/cacheflush.h~mm-debug_pagealloc-fix-build-failure-on-ppc-and-some-other-archs
++++ a/arch/mn10300/include/asm/cacheflush.h
+@@ -159,13 +159,6 @@ extern void flush_icache_range(unsigned
+ #define copy_from_user_page(vma, page, vaddr, dst, src, len) \
+ 	memcpy(dst, src, len)
  
- 3.9	/proc/<pid>/map_files - Information about memory mapped files
- ---------------------------------------------------------------------
--This directory consists of simbolic links which represent memory mapped files
--the process is carrying. A typical output is like the following
-+This directory contains symbolic links which represent memory mapped files
-+the process is maintaining.  Example output:
- 
-      | lr-------- 1 root root 64 Jan 27 11:24 333c600000-333c620000 -> /usr/lib64/ld-2.18.so
-      | lr-------- 1 root root 64 Jan 27 11:24 333c81f000-333c820000 -> /usr/lib64/ld-2.18.so
-@@ -1776,15 +1776,15 @@ the process is carrying. A typical outpu
-      | lr-------- 1 root root 64 Jan 27 11:24 35d0421000-35d0422000 -> /usr/lib64/libselinux.so.1
-      | lr-------- 1 root root 64 Jan 27 11:24 400000-41a000 -> /usr/bin/ls
- 
--The name of a link is virtual memory bounds a particular map exhibits, i.e.
-+The name of a link represents the virtual memory bounds of a mapping, i.e.
- vm_area_struct::vm_start-vm_area_struct::vm_end.
- 
--The main purpose of map_files directory is to be able to retrieve a set of
--memory mapped files in a fast way instead of parsing /proc/<pid>/maps or
--/proc/<pid>/smaps which contain a way more records. Same time one can open(2)
--mappings from the listings of two processes and comparing inodes figure out
--which anonymous memory areas are actually shared.
+-/*
+- * Internal debugging function
+- */
+-#ifdef CONFIG_DEBUG_PAGEALLOC
+-extern void kernel_map_pages(struct page *page, int numpages, int enable);
+-#endif
 -
-+The main purpose of the map_files is to retrieve a set of memory mapped
-+files in a fast way instead of parsing /proc/<pid>/maps or
-+/proc/<pid>/smaps, both of which contain many more records.  At the same
-+time one can open(2) mappings from the listings of two processes and
-+comparing their inode numbers to figure out which anonymous memory areas
-+are actually shared.
+ #endif /* __ASSEMBLY__ */
  
- ------------------------------------------------------------------------------
- Configuring procfs
+ #endif /* _ASM_CACHEFLUSH_H */
+diff -puN arch/powerpc/include/asm/cacheflush.h~mm-debug_pagealloc-fix-build-failure-on-ppc-and-some-other-archs arch/powerpc/include/asm/cacheflush.h
+--- a/arch/powerpc/include/asm/cacheflush.h~mm-debug_pagealloc-fix-build-failure-on-ppc-and-some-other-archs
++++ a/arch/powerpc/include/asm/cacheflush.h
+@@ -60,13 +60,6 @@ extern void flush_dcache_phys_range(unsi
+ #define copy_from_user_page(vma, page, vaddr, dst, src, len) \
+ 	memcpy(dst, src, len)
+ 
+-
+-
+-#ifdef CONFIG_DEBUG_PAGEALLOC
+-/* internal debugging function */
+-void kernel_map_pages(struct page *page, int numpages, int enable);
+-#endif
+-
+ #endif /* __KERNEL__ */
+ 
+ #endif /* _ASM_POWERPC_CACHEFLUSH_H */
+diff -puN arch/s390/include/asm/cacheflush.h~mm-debug_pagealloc-fix-build-failure-on-ppc-and-some-other-archs arch/s390/include/asm/cacheflush.h
+--- a/arch/s390/include/asm/cacheflush.h~mm-debug_pagealloc-fix-build-failure-on-ppc-and-some-other-archs
++++ a/arch/s390/include/asm/cacheflush.h
+@@ -4,10 +4,6 @@
+ /* Caches aren't brain-dead on the s390. */
+ #include <asm-generic/cacheflush.h>
+ 
+-#ifdef CONFIG_DEBUG_PAGEALLOC
+-void kernel_map_pages(struct page *page, int numpages, int enable);
+-#endif
+-
+ int set_memory_ro(unsigned long addr, int numpages);
+ int set_memory_rw(unsigned long addr, int numpages);
+ int set_memory_nx(unsigned long addr, int numpages);
+diff -puN arch/sparc/include/asm/cacheflush_64.h~mm-debug_pagealloc-fix-build-failure-on-ppc-and-some-other-archs arch/sparc/include/asm/cacheflush_64.h
+--- a/arch/sparc/include/asm/cacheflush_64.h~mm-debug_pagealloc-fix-build-failure-on-ppc-and-some-other-archs
++++ a/arch/sparc/include/asm/cacheflush_64.h
+@@ -74,11 +74,6 @@ void flush_ptrace_access(struct vm_area_
+ #define flush_cache_vmap(start, end)		do { } while (0)
+ #define flush_cache_vunmap(start, end)		do { } while (0)
+ 
+-#ifdef CONFIG_DEBUG_PAGEALLOC
+-/* internal debugging function */
+-void kernel_map_pages(struct page *page, int numpages, int enable);
+-#endif
+-
+ #endif /* !__ASSEMBLY__ */
+ 
+ #endif /* _SPARC64_CACHEFLUSH_H */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 
-origin.patch
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-fanotify-dont-recalculate-a-marks-mask-if-only-the-ignored-mask-changed-checkpatch-fixes.patch
-fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper.patch
-mm.patch
+mm-debug_pagealloc-fix-build-failure-on-ppc-and-some-other-archs.patch
+powerpc-mm-fix-undefined-reference-to-__kernel_map_pages-on-fsl-ppc64.patch
+mm-slub-optimize-alloc-free-fastpath-by-removing-preemption-on-off.patch
+mm-slub-optimize-alloc-free-fastpath-by-removing-preemption-on-off-v3.patch
+mm-dont-use-compound_head-in-virt_to_head_page.patch
+mm-dont-use-compound_head-in-virt_to_head_page-v3.patch
 mm-vmstatc-fix-cleanup-ifdefs.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub-fix.patch
-mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
-vmscan-force-scan-offline-memory-cgroups-fix.patch
-mm-memcontrol-default-hierarchy-interface-for-memory.patch
-mm-memcontrol-fold-move_anon-and-move_file-fix.patch
-fs-shrinker-always-scan-at-least-one-object-of-each-type-fix.patch
+mm-vmstatc-fix-cleanup-ifdefs-fix-2.patch
+sparc32-fix-broken-set_pte.patch
+mm-set-page-pfmemalloc-in-prep_new_page.patch
+mm-page_alloc-reduce-number-of-alloc_pages-functions-parameters.patch
+mm-reduce-try_to_compact_pages-parameters.patch
+mm-microoptimize-zonelist-operations.patch
+list_lru-introduce-list_lru_shrink_countwalk.patch
+fs-consolidate-nrfree_cached_objects-args-in-shrink_control.patch
+vmscan-per-memory-cgroup-slab-shrinkers.patch
+memcg-rename-some-cache-id-related-variables.patch
+memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation.patch
+list_lru-get-rid-of-active_nodes.patch
+list_lru-organize-all-list_lrus-to-list.patch
+list_lru-introduce-per-memcg-lists.patch
+fs-make-shrinker-memcg-aware.patch
+mm-cma-fix-totalcma_pages-to-include-dt-defined-cma-regions.patch
+mm-compaction-change-tracepoint-format-from-decimal-to-hexadecimal.patch
+mm-compaction-enhance-tracepoint-output-for-compaction-begin-end.patch
+mm-compaction-enhance-tracepoint-output-for-compaction-begin-end-v4.patch
 mm-compaction-enhance-tracepoint-output-for-compaction-begin-end-v4-fix.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated-fix.patch
-mm-thp-allocate-transparent-hugepages-on-local-node-fix.patch
-docs-procs-describe-proc-pid-map_files-entry-fix.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss.patch
-lib-bitmap-update-bitmap_onto-to-unsigned-checkpatch-fixes.patch
-lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned-fix.patch
-hexdump-makes-it-return-amount-of-bytes-placed-in-buffer-fix.patch
+mm-compaction-print-current-range-where-compaction-work.patch
+mm-compaction-more-trace-to-understand-when-why-compaction-start-finish.patch
+mm-compaction-add-tracepoint-to-observe-behaviour-of-compaction-defer.patch
+mm-compaction-add-tracepoint-to-observe-behaviour-of-compaction-defer-v4.patch
+slab-embed-memcg_cache_params-to-kmem_cache.patch
+slab-link-memcg-caches-of-the-same-kind-into-a-list.patch
+cgroup-release-css-id-after-css_free.patch
+slab-use-css-id-for-naming-per-memcg-caches.patch
+memcg-free-memcg_caches-slot-on-css-offline.patch
+list_lru-add-helpers-to-isolate-items.patch
+memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline.patch
+mm-when-stealing-freepages-also-take-pages-created-by-splitting-buddy-page.patch
+mm-always-steal-split-buddies-in-fallback-allocations.patch
+mm-more-aggressive-page-stealing-for-unmovable-allocations.patch
+mm-util-add-kstrdup_const.patch
+kernfs-convert-node-name-allocation-to-kstrdup_const.patch
+clk-convert-clock-name-allocations-to-kstrdup_const.patch
+mm-slab-convert-cache-name-allocations-to-kstrdup_const.patch
 mm-slab-convert-cache-name-allocations-to-kstrdup_const-fix.patch
-rtc-rk808-fix-the-rtc-time-reading-issue-fix.patch
-fs-befs-linuxvfsc-remove-unnecessary-casting-fix.patch
-linux-next.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-drivers-gpio-gpio-zevioc-fix-build.patch
-mm-fix-xip-fault-vs-truncate-race-fix.patch
-mm-fix-xip-fault-vs-truncate-race-fix-fix.patch
-mm-allow-page-fault-handlers-to-perform-the-cow-fix.patch
-mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix-3.patch
-mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix.patch
-daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix.patch
-daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-2.patch
-daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-3.patch
-dax-add-dax_zero_page_range-fix.patch
-ext4-add-dax-functionality-fix.patch
-ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
-ocfs2-implement-ocfs2_direct_io_write-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
+fs-namespace-convert-devname-allocation-to-kstrdup_const.patch
 
