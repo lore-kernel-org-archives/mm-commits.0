@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + slab-link-memcg-caches-of-the-same-kind-into-a-list-fix.patch
- added to -mm tree
-Date: Mon, 26 Jan 2015 15:22:18 -0800
-Message-ID: <54c6cc2a.dr/SICRI7hxgdVqR%akpm@linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Tue, 27 Jan 2015 12:22:09 -0800
+Message-ID: <54c7f371.nLz1dn3DtTNy6rUQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46350 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36891 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757272AbbAZXWT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jan 2015 18:22:19 -0500
+	with ESMTP id S1751856AbbA0UWK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Jan 2015 15:22:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@parallels.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slab: suppress warnings caused by expansion of for_each_memcg_cache if !MEMCG_KMEM
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     slab-link-memcg-caches-of-the-same-kind-into-a-list-fix.patch
+     linux-next-git-rejects.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/slab-link-memcg-caches-of-the-same-kind-into-a-list-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/slab-link-memcg-caches-of-the-same-kind-into-a-list-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,82 +38,114 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: slab: suppress warnings caused by expansion of for_each_memcg_cache if !MEMCG_KMEM
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-   In file included from mm/slab_common.c:26:0:
-   mm/slab_common.c: In function 'kmem_cache_destroy':
->> mm/slab.h:259:30: warning: right-hand operand of comma expression has no effect [-Wunused-value]
-     for (iter = NULL, tmp = NULL, (root); 0; )
-                                 ^
->> mm/slab_common.c:603:2: note: in expansion of macro 'for_each_memcg_cache_safe'
-     for_each_memcg_cache_safe(c, c2, s) {
-     ^
-
-fixes: slab-link-memcg-caches-of-the-same-kind-into-a-list
-Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/spi/spi-dw-mid.c   |    5 -----
+ drivers/spi/spi-dw.c       |    5 -----
+ drivers/spi/spi-sh-msiof.c |    3 ---
+ 3 files changed, 13 deletions(-)
 
-diff -puN mm/slab.h~slab-link-memcg-caches-of-the-same-kind-into-a-list-fix mm/slab.h
---- a/mm/slab.h~slab-link-memcg-caches-of-the-same-kind-into-a-list-fix
-+++ a/mm/slab.h
-@@ -254,9 +254,9 @@ extern void slab_init_memcg_params(struc
- #else /* !CONFIG_MEMCG_KMEM */
+diff -puN drivers/spi/spi-dw-mid.c~linux-next-git-rejects drivers/spi/spi-dw-mid.c
+--- a/drivers/spi/spi-dw-mid.c~linux-next-git-rejects
++++ a/drivers/spi/spi-dw-mid.c
+@@ -270,11 +270,6 @@ int dw_spi_mid_init(struct dw_spi *dws)
+ 	dws->max_freq = MRST_SPI_CLK_BASE / (clk_cdiv + 1);
+ 	iounmap(clk_reg);
  
- #define for_each_memcg_cache(iter, root) \
--	for (iter = NULL, (root); 0; )
-+	for ((void)(iter), (void)(root); 0; )
- #define for_each_memcg_cache_safe(iter, tmp, root) \
--	for (iter = NULL, tmp = NULL, (root); 0; )
-+	for ((void)(iter), (void)(tmp), (void)(root); 0; )
+-<<<<<<< HEAD
+-	dws->num_cs = 16;
+-
+-=======
+->>>>>>> linux-next/akpm-base
+ #ifdef CONFIG_SPI_DW_MID_DMA
+ 	dws->dma_priv = kzalloc(sizeof(struct mid_dma), GFP_KERNEL);
+ 	if (!dws->dma_priv)
+diff -puN drivers/spi/spi-dw.c~linux-next-git-rejects drivers/spi/spi-dw.c
+--- a/drivers/spi/spi-dw.c~linux-next-git-rejects
++++ a/drivers/spi/spi-dw.c
+@@ -626,11 +626,6 @@ static void spi_hw_init(struct device *d
+ 			if (fifo != dw_readw(dws, DW_SPI_TXFLTR))
+ 				break;
+ 		}
+-<<<<<<< HEAD
+-
+-		dws->fifo_len = (fifo == 2) ? 0 : fifo - 1;
+-=======
+->>>>>>> linux-next/akpm-base
+ 		dw_writew(dws, DW_SPI_TXFLTR, 0);
  
- static inline bool is_root_cache(struct kmem_cache *s)
- {
+ 		dws->fifo_len = (fifo == 2) ? 0 : fifo - 1;
+diff -puN drivers/spi/spi-sh-msiof.c~linux-next-git-rejects drivers/spi/spi-sh-msiof.c
+--- a/drivers/spi/spi-sh-msiof.c~linux-next-git-rejects
++++ a/drivers/spi/spi-sh-msiof.c
+@@ -82,11 +82,8 @@ struct sh_msiof_spi_priv {
+ #define MDR1_SYNCMD_LR	 0x30000000 /*   L/R mode */
+ #define MDR1_SYNCAC_SHIFT	 25 /* Sync Polarity (1 = Active-low) */
+ #define MDR1_BITLSB_SHIFT	 24 /* MSB/LSB First (1 = LSB first) */
+-<<<<<<< HEAD
+-=======
+ #define MDR1_DTDL_SHIFT		 20 /* Data Pin Bit Delay for MSIOF_SYNC */
+ #define MDR1_SYNCDL_SHIFT	 16 /* Frame Sync Signal Timing Delay */
+->>>>>>> linux-next/akpm-base
+ #define MDR1_FLD_MASK	 0x0000000c /* Frame Sync Signal Interval (0-3) */
+ #define MDR1_FLD_SHIFT		  2
+ #define MDR1_XXSTP	 0x00000001 /* Transmission/Reception Stop on FIFO */
 _
 
-Patches currently in -mm which might be from vdavydov@parallels.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-vmscan-fix-highidx-argument-type.patch
-memcg-zap-__memcg_chargeuncharge_slab.patch
-memcg-zap-memcg_name-argument-of-memcg_create_kmem_cache.patch
-memcg-zap-memcg_slab_caches-and-memcg_slab_mutex.patch
-swap-remove-unused-mem_cgroup_uncharge_swapcache-declaration.patch
-mm-memcontrol-track-move_lock-state-internally.patch
-mm-vmscan-wake-up-all-pfmemalloc-throttled-processes-at-once.patch
-list_lru-introduce-list_lru_shrink_countwalk.patch
-fs-consolidate-nrfree_cached_objects-args-in-shrink_control.patch
-vmscan-per-memory-cgroup-slab-shrinkers.patch
-memcg-rename-some-cache-id-related-variables.patch
-memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation.patch
-list_lru-get-rid-of-active_nodes.patch
-list_lru-organize-all-list_lrus-to-list.patch
-list_lru-introduce-per-memcg-lists.patch
-fs-make-shrinker-memcg-aware.patch
-vmscan-force-scan-offline-memory-cgroups.patch
+origin.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+fanotify-dont-recalculate-a-marks-mask-if-only-the-ignored-mask-changed-checkpatch-fixes.patch
+fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask-checkpatch-fixes.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper.patch
+mm.patch
+mm-vmstatc-fix-cleanup-ifdefs.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub-fix.patch
+mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
 vmscan-force-scan-offline-memory-cgroups-fix.patch
-mm-page_counter-pull-1-handling-out-of-page_counter_memparse.patch
 mm-memcontrol-default-hierarchy-interface-for-memory.patch
-mm-memcontrol-fold-move_anon-and-move_file.patch
 mm-memcontrol-fold-move_anon-and-move_file-fix.patch
-mm-memcontrol-simplify-soft-limit-tree-init-code.patch
-mm-memcontrol-consolidate-memory-controller-initialization.patch
-mm-memcontrol-consolidate-swap-controller-code.patch
-fs-shrinker-always-scan-at-least-one-object-of-each-type.patch
 fs-shrinker-always-scan-at-least-one-object-of-each-type-fix.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+mm-compaction-enhance-tracepoint-output-for-compaction-begin-end-v4-fix.patch
 mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated-fix.patch
-slab-embed-memcg_cache_params-to-kmem_cache.patch
-slab-embed-memcg_cache_params-to-kmem_cache-fix.patch
-slab-link-memcg-caches-of-the-same-kind-into-a-list.patch
-slab-link-memcg-caches-of-the-same-kind-into-a-list-fix.patch
-cgroup-release-css-id-after-css_free.patch
-slab-use-css-id-for-naming-per-memcg-caches.patch
-memcg-free-memcg_caches-slot-on-css-offline.patch
-list_lru-add-helpers-to-isolate-items.patch
-memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline.patch
-vmstat-do-not-use-deferrable-delayed-work-for-vmstat_update.patch
+mm-thp-allocate-transparent-hugepages-on-local-node-fix.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss.patch
+lib-bitmap-update-bitmap_onto-to-unsigned-checkpatch-fixes.patch
+lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned-fix.patch
+hexdump-makes-it-return-amount-of-bytes-placed-in-buffer-fix.patch
+mm-slab-convert-cache-name-allocations-to-kstrdup_const-fix.patch
+rtc-rk808-fix-the-rtc-time-reading-issue-fix.patch
+fs-befs-linuxvfsc-remove-unnecessary-casting-fix.patch
+linux-next.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+drivers-gpio-gpio-zevioc-fix-build.patch
+mm-fix-xip-fault-vs-truncate-race-fix.patch
+mm-fix-xip-fault-vs-truncate-race-fix-fix.patch
+mm-allow-page-fault-handlers-to-perform-the-cow-fix.patch
+mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix-3.patch
+mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix.patch
+daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix.patch
+daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-2.patch
+daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-3.patch
+dax-add-dax_zero_page_range-fix.patch
+ext4-add-dax-functionality-fix.patch
+ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
+ocfs2-implement-ocfs2_direct_io_write-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
