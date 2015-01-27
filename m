@@ -1,91 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged] printk-add-dummy-routine-for-when-config_printk=n.patch
- removed from -mm tree
-Date: Tue, 27 Jan 2015 12:22:35 -0800
-Message-ID: <54c7f38b.k+ogPSkivKdQtmiW%akpm@linux-foundation.org>
+Subject: [merged]
+ rtc-s5m-terminate-s5m_rtc_id-array-with-empty-element.patch removed from
+ -mm tree
+Date: Tue, 27 Jan 2015 12:22:37 -0800
+Message-ID: <54c7f38d.fvLNH9aPPkApLHrf%akpm__41115.8571755097$1422390169$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36915 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36918 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753683AbbA0UWg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Jan 2015 15:22:36 -0500
+	with ESMTP id S1754637AbbA0UWi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Jan 2015 15:22:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bobby.prani@gmail.com, mpe@ellerman.id.au, pmladek@suse.cz, rostedt@goodmis.org, mm-commits@vger.kernel.org
+To: a.ryabinin@samsung.com, k.kozlowski@samsung.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: printk: add dummy routine for when CONFIG_PRINTK=n
+     Subject: drivers/rtc/rtc-s5m.c: terminate s5m_rtc_id array with empty element
 has been removed from the -mm tree.  Its filename was
-     printk-add-dummy-routine-for-when-config_printk=n.patch
+     rtc-s5m-terminate-s5m_rtc_id-array-with-empty-element.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Pranith Kumar <bobby.prani@gmail.com>
-Subject: printk: add dummy routine for when CONFIG_PRINTK=n
+From: Andrey Ryabinin <a.ryabinin@samsung.com>
+Subject: drivers/rtc/rtc-s5m.c: terminate s5m_rtc_id array with empty element
 
-There are missing dummy routines for log_buf_addr_get() and log_buf_len_get()
-for when CONFIG_PRINTK is not set causing build failures.
+Array of platform_device_id elements should be terminated with empty
+element.
 
-This patch adds these dummy routines at the appropriate location.
-
-Signed-off-by: Pranith Kumar <bobby.prani@gmail.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Reviewed-by: Petr Mladek <pmladek@suse.cz>
-Acked-by: Steven Rostedt <rostedt@goodmis.org>
+Fixes: 5bccae6ec458 ("rtc: s5m-rtc: add real-time clock driver for s5m8767")
+Signed-off-by: Andrey Ryabinin <a.ryabinin@samsung.com>
+Reviewed-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/printk.h |   15 ++++++++++++---
- 1 file changed, 12 insertions(+), 3 deletions(-)
+ drivers/rtc/rtc-s5m.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/printk.h~printk-add-dummy-routine-for-when-config_printk=n include/linux/printk.h
---- a/include/linux/printk.h~printk-add-dummy-routine-for-when-config_printk=n
-+++ a/include/linux/printk.h
-@@ -10,9 +10,6 @@
- extern const char linux_banner[];
- extern const char linux_proc_banner[];
+diff -puN drivers/rtc/rtc-s5m.c~rtc-s5m-terminate-s5m_rtc_id-array-with-empty-element drivers/rtc/rtc-s5m.c
+--- a/drivers/rtc/rtc-s5m.c~rtc-s5m-terminate-s5m_rtc_id-array-with-empty-element
++++ a/drivers/rtc/rtc-s5m.c
+@@ -832,6 +832,7 @@ static SIMPLE_DEV_PM_OPS(s5m_rtc_pm_ops,
+ static const struct platform_device_id s5m_rtc_id[] = {
+ 	{ "s5m-rtc",		S5M8767X },
+ 	{ "s2mps14-rtc",	S2MPS14X },
++	{ },
+ };
  
--extern char *log_buf_addr_get(void);
--extern u32 log_buf_len_get(void);
--
- static inline int printk_get_level(const char *buffer)
- {
- 	if (buffer[0] == KERN_SOH_ASCII && buffer[1]) {
-@@ -163,6 +160,8 @@ extern int kptr_restrict;
- 
- extern void wake_up_klogd(void);
- 
-+char *log_buf_addr_get(void);
-+u32 log_buf_len_get(void);
- void log_buf_kexec_setup(void);
- void __init setup_log_buf(int early);
- void dump_stack_set_arch_desc(const char *fmt, ...);
-@@ -198,6 +197,16 @@ static inline void wake_up_klogd(void)
- {
- }
- 
-+static inline char *log_buf_addr_get(void)
-+{
-+	return NULL;
-+}
-+
-+static inline u32 log_buf_len_get(void)
-+{
-+	return 0;
-+}
-+
- static inline void log_buf_kexec_setup(void)
- {
- }
+ static struct platform_driver s5m_rtc_driver = {
 _
 
-Patches currently in -mm which might be from bobby.prani@gmail.com are
+Patches currently in -mm which might be from a.ryabinin@samsung.com are
 
 origin.patch
+hugetlb-sysctl-pass-extra1-=-null-rather-then-extra1-=-zero.patch
+mm-hugetlb-fix-type-of-hugetlb_treat_as_movable-variable.patch
+proc-pagemap-walk-page-tables-under-pte-lock.patch
 linux-next.patch
 
