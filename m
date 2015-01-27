@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-debug_pagealloc-fix-build-failure-on-ppc-and-some-other-archs.patch
- added to -mm tree
-Date: Tue, 27 Jan 2015 14:26:12 -0800
-Message-ID: <54c81084.hZvCDlCQkYCpCZbC%akpm@linux-foundation.org>
+ ocfs2-prune-the-dcache-before-deleting-the-dentry-of-directory.patch added
+ to -mm tree
+Date: Tue, 27 Jan 2015 14:28:55 -0800
+Message-ID: <54c81127.RNm4Daep9MF93Q/i%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38669 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38706 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932959AbbA0W0N (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Jan 2015 17:26:13 -0500
+	with ESMTP id S933106AbbA0W24 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 27 Jan 2015 17:28:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, davem@davemloft.net, dhowells@redhat.com, heiko.carstens@de.ibm.com, kim.phillips@freescale.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: alex.chen@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.com, xuejiufei@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/debug_pagealloc: fix build failure on ppc and some other archs
+     Subject: ocfs2: prune the dcache before deleting the dentry of directory
 has been added to the -mm tree.  Its filename is
-     mm-debug_pagealloc-fix-build-failure-on-ppc-and-some-other-archs.patch
+     ocfs2-prune-the-dcache-before-deleting-the-dentry-of-directory.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-debug_pagealloc-fix-build-failure-on-ppc-and-some-other-archs.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-prune-the-dcache-before-deleting-the-dentry-of-directory.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-debug_pagealloc-fix-build-failure-on-ppc-and-some-other-archs.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-prune-the-dcache-before-deleting-the-dentry-of-directory.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,152 +40,88 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/debug_pagealloc: fix build failure on ppc and some other archs
+From: alex chen <alex.chen@huawei.com>
+Subject: ocfs2: prune the dcache before deleting the dentry of directory
 
-Kim Phillips reported following build failure.
+In ocfs2_dentry_convert_worker, we should prune the dcache before deleting
+the dentry of directory, otherwise, in the following cases the inode of
+directory will still remain in orphan directory until the device being
+umounted.
 
-  LD      init/built-in.o
-  mm/built-in.o: In function `free_pages_prepare':
-  mm/page_alloc.c:770: undefined reference to `.kernel_map_pages'
-  mm/built-in.o: In function `prep_new_page':
-  mm/page_alloc.c:933: undefined reference to `.kernel_map_pages'
-  mm/built-in.o: In function `map_pages':
-  mm/compaction.c:61: undefined reference to `.kernel_map_pages'
-  make: *** [vmlinux] Error 1
+Mount point: /mnt/ocfs2
+Node A                              Node B
+mkdir /mnt/ocfs2/testdir
+  ocfs2_mkdir
+  ->ocfs2_mknod
+  ->ocfs2_dentry_attach_lock
+  ->ocfs2_dentry_lock(dentry, 0)
+  ... ...
+touch /mnt/ocfs2/testdir/testfile
+                                    unlink /mnt/test/testdir/testfile
+                                    rmdir /mnt/ocfs2/testdir
+                                      ocfs2_unlink
+                                      ->ocfs2_remote_dentry_delete
+                                      ->ocfs2_dentry_lock(dentry, 1)
+                                      ... ...
+... ...
+ocfs2_downconvert_thread
+->ocfs2_unblock_lock
+->ocfs2_dentry_convert_worker
+->ocfs2_find_local_alias
+  ->dget_dlock
+->d_delete
+Here the dentry can not be
+released because the children's
+dentry is negative but still exist.
+Finally, this inode will still remain
+in orphan directory until its children
+are destroyed.
 
-Reason for this problem is that commit 031bc5743f15 ("mm/debug-pagealloc:
-make debug-pagealloc boottime configurable") forgot to remove old
-declaration of kernel_map_pages() in some architectures.  This patch
-removes them to fix build failure.
+So before deleting dentry of directory, we should prune the dcache to
+remove unused children of the parent dentry by shrink_dcache_parent().
 
-Reported-by: Kim Phillips <kim.phillips@freescale.com>
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: David Miller <davem@davemloft.net>
-Cc: David Howells <dhowells@redhat.com>
+Signed-off-by: Alex Chen <alex.chen@huawei.com>
+Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
+Reviewed-by: joyce.xue <xuejiufei@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mn10300/include/asm/cacheflush.h  |    7 -------
- arch/powerpc/include/asm/cacheflush.h  |    7 -------
- arch/s390/include/asm/cacheflush.h     |    4 ----
- arch/sparc/include/asm/cacheflush_64.h |    5 -----
- 4 files changed, 23 deletions(-)
+ fs/ocfs2/dlmglue.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN arch/mn10300/include/asm/cacheflush.h~mm-debug_pagealloc-fix-build-failure-on-ppc-and-some-other-archs arch/mn10300/include/asm/cacheflush.h
---- a/arch/mn10300/include/asm/cacheflush.h~mm-debug_pagealloc-fix-build-failure-on-ppc-and-some-other-archs
-+++ a/arch/mn10300/include/asm/cacheflush.h
-@@ -159,13 +159,6 @@ extern void flush_icache_range(unsigned
- #define copy_from_user_page(vma, page, vaddr, dst, src, len) \
- 	memcpy(dst, src, len)
+diff -puN fs/ocfs2/dlmglue.c~ocfs2-prune-the-dcache-before-deleting-the-dentry-of-directory fs/ocfs2/dlmglue.c
+--- a/fs/ocfs2/dlmglue.c~ocfs2-prune-the-dcache-before-deleting-the-dentry-of-directory
++++ a/fs/ocfs2/dlmglue.c
+@@ -3750,6 +3750,9 @@ static int ocfs2_dentry_convert_worker(s
+ 			break;
+ 		spin_unlock(&dentry_attach_lock);
  
--/*
-- * Internal debugging function
-- */
--#ifdef CONFIG_DEBUG_PAGEALLOC
--extern void kernel_map_pages(struct page *page, int numpages, int enable);
--#endif
--
- #endif /* __ASSEMBLY__ */
++		if (S_ISDIR(dl->dl_inode->i_mode))
++			shrink_dcache_parent(dentry);
++
+ 		mlog(0, "d_delete(%pd);\n", dentry);
  
- #endif /* _ASM_CACHEFLUSH_H */
-diff -puN arch/powerpc/include/asm/cacheflush.h~mm-debug_pagealloc-fix-build-failure-on-ppc-and-some-other-archs arch/powerpc/include/asm/cacheflush.h
---- a/arch/powerpc/include/asm/cacheflush.h~mm-debug_pagealloc-fix-build-failure-on-ppc-and-some-other-archs
-+++ a/arch/powerpc/include/asm/cacheflush.h
-@@ -60,13 +60,6 @@ extern void flush_dcache_phys_range(unsi
- #define copy_from_user_page(vma, page, vaddr, dst, src, len) \
- 	memcpy(dst, src, len)
- 
--
--
--#ifdef CONFIG_DEBUG_PAGEALLOC
--/* internal debugging function */
--void kernel_map_pages(struct page *page, int numpages, int enable);
--#endif
--
- #endif /* __KERNEL__ */
- 
- #endif /* _ASM_POWERPC_CACHEFLUSH_H */
-diff -puN arch/s390/include/asm/cacheflush.h~mm-debug_pagealloc-fix-build-failure-on-ppc-and-some-other-archs arch/s390/include/asm/cacheflush.h
---- a/arch/s390/include/asm/cacheflush.h~mm-debug_pagealloc-fix-build-failure-on-ppc-and-some-other-archs
-+++ a/arch/s390/include/asm/cacheflush.h
-@@ -4,10 +4,6 @@
- /* Caches aren't brain-dead on the s390. */
- #include <asm-generic/cacheflush.h>
- 
--#ifdef CONFIG_DEBUG_PAGEALLOC
--void kernel_map_pages(struct page *page, int numpages, int enable);
--#endif
--
- int set_memory_ro(unsigned long addr, int numpages);
- int set_memory_rw(unsigned long addr, int numpages);
- int set_memory_nx(unsigned long addr, int numpages);
-diff -puN arch/sparc/include/asm/cacheflush_64.h~mm-debug_pagealloc-fix-build-failure-on-ppc-and-some-other-archs arch/sparc/include/asm/cacheflush_64.h
---- a/arch/sparc/include/asm/cacheflush_64.h~mm-debug_pagealloc-fix-build-failure-on-ppc-and-some-other-archs
-+++ a/arch/sparc/include/asm/cacheflush_64.h
-@@ -74,11 +74,6 @@ void flush_ptrace_access(struct vm_area_
- #define flush_cache_vmap(start, end)		do { } while (0)
- #define flush_cache_vunmap(start, end)		do { } while (0)
- 
--#ifdef CONFIG_DEBUG_PAGEALLOC
--/* internal debugging function */
--void kernel_map_pages(struct page *page, int numpages, int enable);
--#endif
--
- #endif /* !__ASSEMBLY__ */
- 
- #endif /* _SPARC64_CACHEFLUSH_H */
+ 		/*
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from alex.chen@huawei.com are
 
-mm-debug_pagealloc-fix-build-failure-on-ppc-and-some-other-archs.patch
-powerpc-mm-fix-undefined-reference-to-__kernel_map_pages-on-fsl-ppc64.patch
-mm-slub-optimize-alloc-free-fastpath-by-removing-preemption-on-off.patch
-mm-slub-optimize-alloc-free-fastpath-by-removing-preemption-on-off-v3.patch
-mm-dont-use-compound_head-in-virt_to_head_page.patch
-mm-dont-use-compound_head-in-virt_to_head_page-v3.patch
-mm-vmstatc-fix-cleanup-ifdefs.patch
-mm-vmstatc-fix-cleanup-ifdefs-fix-2.patch
-sparc32-fix-broken-set_pte.patch
-mm-set-page-pfmemalloc-in-prep_new_page.patch
-mm-page_alloc-reduce-number-of-alloc_pages-functions-parameters.patch
-mm-reduce-try_to_compact_pages-parameters.patch
-mm-microoptimize-zonelist-operations.patch
-list_lru-introduce-list_lru_shrink_countwalk.patch
-fs-consolidate-nrfree_cached_objects-args-in-shrink_control.patch
-vmscan-per-memory-cgroup-slab-shrinkers.patch
-memcg-rename-some-cache-id-related-variables.patch
-memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation.patch
-list_lru-get-rid-of-active_nodes.patch
-list_lru-organize-all-list_lrus-to-list.patch
-list_lru-introduce-per-memcg-lists.patch
-fs-make-shrinker-memcg-aware.patch
-mm-cma-fix-totalcma_pages-to-include-dt-defined-cma-regions.patch
-mm-compaction-change-tracepoint-format-from-decimal-to-hexadecimal.patch
-mm-compaction-enhance-tracepoint-output-for-compaction-begin-end.patch
-mm-compaction-enhance-tracepoint-output-for-compaction-begin-end-v4.patch
-mm-compaction-enhance-tracepoint-output-for-compaction-begin-end-v4-fix.patch
-mm-compaction-print-current-range-where-compaction-work.patch
-mm-compaction-more-trace-to-understand-when-why-compaction-start-finish.patch
-mm-compaction-add-tracepoint-to-observe-behaviour-of-compaction-defer.patch
-mm-compaction-add-tracepoint-to-observe-behaviour-of-compaction-defer-v4.patch
-slab-embed-memcg_cache_params-to-kmem_cache.patch
-slab-link-memcg-caches-of-the-same-kind-into-a-list.patch
-cgroup-release-css-id-after-css_free.patch
-slab-use-css-id-for-naming-per-memcg-caches.patch
-memcg-free-memcg_caches-slot-on-css-offline.patch
-list_lru-add-helpers-to-isolate-items.patch
-memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline.patch
-mm-when-stealing-freepages-also-take-pages-created-by-splitting-buddy-page.patch
-mm-always-steal-split-buddies-in-fallback-allocations.patch
-mm-more-aggressive-page-stealing-for-unmovable-allocations.patch
-mm-util-add-kstrdup_const.patch
-kernfs-convert-node-name-allocation-to-kstrdup_const.patch
-clk-convert-clock-name-allocations-to-kstrdup_const.patch
-mm-slab-convert-cache-name-allocations-to-kstrdup_const.patch
-mm-slab-convert-cache-name-allocations-to-kstrdup_const-fix.patch
-fs-namespace-convert-devname-allocation-to-kstrdup_const.patch
+ocfs2-fix-snprintf-format-specifier-in-dlmdebugc.patch
+ocfs2-fix-journal-commit-deadlock-in-ocfs2_convert_inline_data_to_extents.patch
+ocfs2-add-a-mount-option-journal_async_commit-on-ocfs2-filesystem.patch
+ocfs2-prune-the-dcache-before-deleting-the-dentry-of-directory.patch
+linux-next.patch
+ocfs2-prepare-some-interfaces-used-in-append-direct-io.patch
+ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir.patch
+ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
+ocfs2-add-orphan-recovery-types-in-ocfs2_recover_orphans.patch
+ocfs2-implement-ocfs2_direct_io_write.patch
+ocfs2-implement-ocfs2_direct_io_write-fix.patch
+ocfs2-allocate-blocks-in-ocfs2_direct_io_get_blocks.patch
+ocfs2-do-not-fallback-to-buffer-i-o-write-if-appending.patch
+ocfs2-complete-the-rest-request-through-buffer-io.patch
+ocfs2-wait-for-orphan-recovery-first-once-append-o_direct-write-crash.patch
+ocfs2-set-append-dio-as-a-ro-compat-feature.patch
 
