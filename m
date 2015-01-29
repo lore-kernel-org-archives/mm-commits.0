@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- checkpatch-add-ability-to-fix-unnecessary-blank-lines-around-braces.patch
- added to -mm tree
-Date: Thu, 29 Jan 2015 14:00:00 -0800
-Message-ID: <54caad60.+g7VvymA5gbT07Ql%akpm@linux-foundation.org>
+Subject: + ocfs2-use-64bit-variables-to-track-heartbeat-time.patch added
+ to -mm tree
+Date: Thu, 29 Jan 2015 14:01:35 -0800
+Message-ID: <54caadbf.YRm423I2aN7mdD2H%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58705 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58712 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755049AbbA2WAB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Jan 2015 17:00:01 -0500
+	with ESMTP id S1755371AbbA2WBg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Jan 2015 17:01:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: ruchandani.tina@gmail.com, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add ability to --fix unnecessary blank lines around braces
+     Subject: ocfs2: ose 64bit variables to track heartbeat time
 has been added to the -mm tree.  Its filename is
-     checkpatch-add-ability-to-fix-unnecessary-blank-lines-around-braces.patch
+     ocfs2-use-64bit-variables-to-track-heartbeat-time.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-ability-to-fix-unnecessary-blank-lines-around-braces.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-use-64bit-variables-to-track-heartbeat-time.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-ability-to-fix-unnecessary-blank-lines-around-braces.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-use-64bit-variables-to-track-heartbeat-time.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,63 +39,126 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add ability to --fix unnecessary blank lines around braces
+From: Tina Ruchandani <ruchandani.tina@gmail.com>
+Subject: ocfs2: ose 64bit variables to track heartbeat time
 
-There's a --strict test for these blank lines.
+o2hb_elapsed_msecs computes the time taken for a disk heartbeat.  'struct
+timeval' variables are used to store start and end times.  On 32-bit
+systems, the 'tv_sec' component of 'struct timeval' will overflow in year
+2038 and beyond.
 
-Add the ability to automatically remove them with --fix.
+This patch solves the overflow with the following:
 
-Signed-off-by: Joe Perches <joe@perches.com>
+1. Replace o2hb_elapsed_msecs using 'ktime_t' values to measure start
+   and end time, and built-in function 'ktime_ms_delta' to compute the
+   elapsed time.  ktime_get_real() is used since the code prints out the
+   wallclock time.
+
+2. Changes format string to print time as a single 64-bit nanoseconds
+   value ("%lld") instead of seconds and microseconds.  This simplifies
+   the code since converting ktime_t to that format would need expensive
+   computation.  However, the debug log string is less readable than the
+   previous format.
+
+Signed-off-by: Tina Ruchandani <ruchandani.tina@gmail.com>
+Suggested by: Arnd Bergmann <arnd@arndb.de>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ fs/ocfs2/cluster/heartbeat.c |   49 ++++++---------------------------
+ 1 file changed, 9 insertions(+), 40 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-ability-to-fix-unnecessary-blank-lines-around-braces scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-ability-to-fix-unnecessary-blank-lines-around-braces
-+++ a/scripts/checkpatch.pl
-@@ -4461,12 +4461,18 @@ sub process {
+diff -puN fs/ocfs2/cluster/heartbeat.c~ocfs2-use-64bit-variables-to-track-heartbeat-time fs/ocfs2/cluster/heartbeat.c
+--- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-use-64bit-variables-to-track-heartbeat-time
++++ a/fs/ocfs2/cluster/heartbeat.c
+@@ -36,7 +36,7 @@
+ #include <linux/debugfs.h>
+ #include <linux/slab.h>
+ #include <linux/bitmap.h>
+-
++#include <linux/ktime.h>
+ #include "heartbeat.h"
+ #include "tcp.h"
+ #include "nodemanager.h"
+@@ -1061,37 +1061,6 @@ bail:
+ 	return ret;
+ }
  
- # check for unnecessary blank lines around braces
- 		if (($line =~ /^.\s*}\s*$/ && $prevrawline =~ /^.\s*$/)) {
--			CHK("BRACES",
--			    "Blank lines aren't necessary before a close brace '}'\n" . $hereprev);
-+			if (CHK("BRACES",
-+				"Blank lines aren't necessary before a close brace '}'\n" . $hereprev) &&
-+			    $fix && $prevrawline =~ /^\+/) {
-+				fix_delete_line($fixlinenr - 1, $prevrawline);
-+			}
- 		}
- 		if (($rawline =~ /^.\s*$/ && $prevline =~ /^..*{\s*$/)) {
--			CHK("BRACES",
--			    "Blank lines aren't necessary after an open brace '{'\n" . $hereprev);
-+			if (CHK("BRACES",
-+				"Blank lines aren't necessary after an open brace '{'\n" . $hereprev) &&
-+			    $fix) {
-+				fix_delete_line($fixlinenr, $rawline);
-+			}
- 		}
+-/* Subtract b from a, storing the result in a. a *must* have a larger
+- * value than b. */
+-static void o2hb_tv_subtract(struct timeval *a,
+-			     struct timeval *b)
+-{
+-	/* just return 0 when a is after b */
+-	if (a->tv_sec < b->tv_sec ||
+-	    (a->tv_sec == b->tv_sec && a->tv_usec < b->tv_usec)) {
+-		a->tv_sec = 0;
+-		a->tv_usec = 0;
+-		return;
+-	}
+-
+-	a->tv_sec -= b->tv_sec;
+-	a->tv_usec -= b->tv_usec;
+-	while ( a->tv_usec < 0 ) {
+-		a->tv_sec--;
+-		a->tv_usec += 1000000;
+-	}
+-}
+-
+-static unsigned int o2hb_elapsed_msecs(struct timeval *start,
+-				       struct timeval *end)
+-{
+-	struct timeval res = *end;
+-
+-	o2hb_tv_subtract(&res, start);
+-
+-	return res.tv_sec * 1000 + res.tv_usec / 1000;
+-}
+-
+ /*
+  * we ride the region ref that the region dir holds.  before the region
+  * dir is removed and drops it ref it will wait to tear down this
+@@ -1102,7 +1071,7 @@ static int o2hb_thread(void *data)
+ 	int i, ret;
+ 	struct o2hb_region *reg = data;
+ 	struct o2hb_bio_wait_ctxt write_wc;
+-	struct timeval before_hb, after_hb;
++	ktime_t before_hb, after_hb;
+ 	unsigned int elapsed_msec;
  
- # no volatiles please
+ 	mlog(ML_HEARTBEAT|ML_KTHREAD, "hb thread running\n");
+@@ -1119,18 +1088,18 @@ static int o2hb_thread(void *data)
+ 		 * hr_timeout_ms between disk writes. On busy systems
+ 		 * this should result in a heartbeat which is less
+ 		 * likely to time itself out. */
+-		do_gettimeofday(&before_hb);
++		before_hb = ktime_get_real();
+ 
+ 		ret = o2hb_do_disk_heartbeat(reg);
+ 
+-		do_gettimeofday(&after_hb);
+-		elapsed_msec = o2hb_elapsed_msecs(&before_hb, &after_hb);
++		after_hb = ktime_get_real();
++
++		elapsed_msec = (unsigned int)
++				ktime_ms_delta(after_hb, before_hb);
+ 
+ 		mlog(ML_HEARTBEAT,
+-		     "start = %lu.%lu, end = %lu.%lu, msec = %u, ret = %d\n",
+-		     before_hb.tv_sec, (unsigned long) before_hb.tv_usec,
+-		     after_hb.tv_sec, (unsigned long) after_hb.tv_usec,
+-		     elapsed_msec, ret);
++		     "start = %lld, end = %lld, msec = %u, ret = %d\n",
++		     before_hb.tv64, after_hb.tv64, elapsed_msec, ret);
+ 
+ 		if (!kthread_should_stop() &&
+ 		    elapsed_msec < reg->hr_timeout_ms) {
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from ruchandani.tina@gmail.com are
 
-printk-correct-timeout-comment-neaten-module_parm_desc.patch
-mm-utilc-add-kstrimdup.patch
-checkpatch-emit-an-error-when-using-predefined-timestamp-macros.patch
-checkpatch-improve-octal-permissions-tests.patch
-checkpatch-ignore-__pure-attribute.patch
-checkpatch-fix-unnecessary_kern_level-false-positive.patch
-checkpatch-add-check-for-keyword-boolean-in-kconfig-definitions.patch
-checkpatch-allow-comments-in-macros-tested-for-single-statements.patch
-checkpatch-update-git-commit-message.patch
-checkpatch-add-likely-unlikely-comparison-misuse-test.patch
-checkpatch-add-ability-to-coalesce-commit-descriptions-on-multiple-lines.patch
-checkpatch-add-types-for-other-os-typedefs.patch
-checkpatch-add-ability-to-fix-unnecessary-blank-lines-around-braces.patch
-fs-ufs-superc-remove-unnecessary-casting.patch
+ocfs2-use-64bit-variables-to-track-heartbeat-time.patch
 linux-next.patch
 
