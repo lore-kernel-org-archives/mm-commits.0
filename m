@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + eventfd-dont-take-the-spinlock-in-eventfd_poll-fix-2.patch
+Subject: + vmstat-reduce-time-interval-to-stat-update-on-idle-cpu.patch
  added to -mm tree
-Date: Thu, 29 Jan 2015 13:16:36 -0800
-Message-ID: <54caa334.kemSBBbCYuBLxY8b%akpm@linux-foundation.org>
+Date: Thu, 29 Jan 2015 13:18:20 -0800
+Message-ID: <54caa39c.raq36zhydjMijro1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58504 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58509 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753418AbbA2VQh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Jan 2015 16:16:37 -0500
+	with ESMTP id S1752084AbbA2VSV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Jan 2015 16:18:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.carpenter@oracle.com, clm@fb.com, mm-commits@vger.kernel.org
+To: cl@linux.com, mhocko@suse.cz, vinmenon@codeaurora.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: eventfd: type bug in eventfd_poll()
+     Subject: vmstat: Reduce time interval to stat update on idle cpu
 has been added to the -mm tree.  Its filename is
-     eventfd-dont-take-the-spinlock-in-eventfd_poll-fix-2.patch
+     vmstat-reduce-time-interval-to-stat-update-on-idle-cpu.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/eventfd-dont-take-the-spinlock-in-eventfd_poll-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/vmstat-reduce-time-interval-to-stat-update-on-idle-cpu.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/eventfd-dont-take-the-spinlock-in-eventfd_poll-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/vmstat-reduce-time-interval-to-stat-update-on-idle-cpu.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,49 +39,82 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: eventfd: type bug in eventfd_poll()
+From: Christoph Lameter <cl@linux.com>
+Subject: vmstat: Reduce time interval to stat update on idle cpu
 
-Since "count" is an unsigned int, then these conditions are never true:
+It was noted that the vm stat shepherd runs every 2 seconds and that the
+vmstat update is then scheduled 2 seconds in the future.
 
-        if (count == ULLONG_MAX)
-                events |= POLLERR;
-        if (ULLONG_MAX - 1 > count)
-                events |= POLLOUT;
+This yields an interval of double the time interval which is not desired.
 
-It should be a u64, because that's what ctx->count is.  Also GCC
-complains that "flags" is unused.
+Change the shepherd so that it does not delay the vmstat update on the
+other cpu.  We stil have to use schedule_delayed_work since we are using a
+delayed_work_struct but we can set the delay to 0.
 
-Fixes: a90de8a54127 ('eventfd: don't take the spinlock in eventfd_poll')
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Chris Mason <clm@fb.com>
+Signed-off-by: Christoph Lameter <cl@linux.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Vinayak Menon <vinmenon@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventfd.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmstat.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/eventfd.c~eventfd-dont-take-the-spinlock-in-eventfd_poll-fix-2 fs/eventfd.c
---- a/fs/eventfd.c~eventfd-dont-take-the-spinlock-in-eventfd_poll-fix-2
-+++ a/fs/eventfd.c
-@@ -118,7 +118,7 @@ static unsigned int eventfd_poll(struct
- {
- 	struct eventfd_ctx *ctx = file->private_data;
- 	unsigned int events = 0;
--	unsigned int count;
-+	u64 count;
+diff -puN mm/vmstat.c~vmstat-reduce-time-interval-to-stat-update-on-idle-cpu mm/vmstat.c
+--- a/mm/vmstat.c~vmstat-reduce-time-interval-to-stat-update-on-idle-cpu
++++ a/mm/vmstat.c
+@@ -1437,8 +1437,8 @@ static void vmstat_shepherd(struct work_
+ 		if (need_update(cpu) &&
+ 			cpumask_test_and_clear_cpu(cpu, cpu_stat_off))
  
- 	poll_wait(file, &ctx->wqh, wait);
- 	smp_rmb();
+-			schedule_delayed_work_on(cpu, &per_cpu(vmstat_work, cpu),
+-				__round_jiffies_relative(sysctl_stat_interval, cpu));
++			schedule_delayed_work_on(cpu,
++				&per_cpu(vmstat_work, cpu), 0);
+ 
+ 	put_online_cpus();
+ 
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from cl@linux.com are
 
-origin.patch
-ocfs2-o2net-silence-uninitialized-variable-warning.patch
-mm-remove-rest-usage-of-vm_nonlinear-and-pte_file-fix.patch
-mm-compaction-enhance-tracepoint-output-for-compaction-begin-end-v4-fix.patch
-slab-embed-memcg_cache_params-to-kmem_cache-fix.patch
-eventfd-dont-take-the-spinlock-in-eventfd_poll-fix-2.patch
+mm-slub-optimize-alloc-free-fastpath-by-removing-preemption-on-off.patch
+mm-slub-optimize-alloc-free-fastpath-by-removing-preemption-on-off-v3.patch
+mm-dont-use-compound_head-in-virt_to_head_page.patch
+mm-dont-use-compound_head-in-virt_to_head_page-v3.patch
+mm-slub-fix-typo.patch
+memcg-zap-memcg_slab_caches-and-memcg_slab_mutex.patch
+mm-add-fields-for-compound-destructor-and-order-into-struct-page.patch
+list_lru-introduce-list_lru_shrink_countwalk.patch
+fs-consolidate-nrfree_cached_objects-args-in-shrink_control.patch
+vmscan-per-memory-cgroup-slab-shrinkers.patch
+memcg-rename-some-cache-id-related-variables.patch
+memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation.patch
+list_lru-get-rid-of-active_nodes.patch
+list_lru-organize-all-list_lrus-to-list.patch
+list_lru-introduce-per-memcg-lists.patch
+fs-make-shrinker-memcg-aware.patch
+slab-embed-memcg_cache_params-to-kmem_cache.patch
+slab-link-memcg-caches-of-the-same-kind-into-a-list.patch
+cgroup-release-css-id-after-css_free.patch
+slab-use-css-id-for-naming-per-memcg-caches.patch
+memcg-free-memcg_caches-slot-on-css-offline.patch
+list_lru-add-helpers-to-isolate-items.patch
+memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline.patch
+slub-never-fail-to-shrink-cache.patch
+slub-fix-kmem_cache_shrink-return-value.patch
+slub-make-dead-caches-discard-free-slabs-immediately.patch
+vmstat-do-not-use-deferrable-delayed-work-for-vmstat_update.patch
+vmstat-reduce-time-interval-to-stat-update-on-idle-cpu.patch
+mm-util-add-kstrdup_const.patch
+kernfs-convert-node-name-allocation-to-kstrdup_const.patch
+clk-convert-clock-name-allocations-to-kstrdup_const.patch
+mm-slab-convert-cache-name-allocations-to-kstrdup_const.patch
+mm-slab-convert-cache-name-allocations-to-kstrdup_const-fix.patch
+fs-namespace-convert-devname-allocation-to-kstrdup_const.patch
+cpumask-always-use-nr_cpu_ids-in-formatting-and-parsing-functions.patch
+lib-vsprintf-implement-bitmap-printing-through-%pb.patch
+cpumask-nodemask-implement-cpumask-nodemask_pr_args.patch
+slub-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
 linux-next.patch
 
