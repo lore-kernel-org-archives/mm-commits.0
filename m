@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-export-high_memory-symbol-on-mmu.patch added to -mm tree
-Date: Wed, 28 Jan 2015 13:32:11 -0800
-Message-ID: <54c9555b.yUQ3ch0bBipq6zKp%akpm@linux-foundation.org>
+Subject: + eventfd-dont-take-the-spinlock-in-eventfd_poll-fix-2.patch
+ added to -mm tree
+Date: Thu, 29 Jan 2015 13:16:36 -0800
+Message-ID: <54caa334.kemSBBbCYuBLxY8b%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45574 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58504 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751591AbbA2BHU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 28 Jan 2015 20:07:20 -0500
+	with ESMTP id S1753418AbbA2VQh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 29 Jan 2015 16:16:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, gerg@uclinux.org, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
+To: dan.carpenter@oracle.com, clm@fb.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: export "high_memory" symbol on !MMU
+     Subject: eventfd: type bug in eventfd_poll()
 has been added to the -mm tree.  Its filename is
-     mm-export-high_memory-symbol-on-mmu.patch
+     eventfd-dont-take-the-spinlock-in-eventfd_poll-fix-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-export-high_memory-symbol-on-mmu.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/eventfd-dont-take-the-spinlock-in-eventfd_poll-fix-2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-export-high_memory-symbol-on-mmu.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/eventfd-dont-take-the-spinlock-in-eventfd_poll-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,60 +39,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: mm: export "high_memory" symbol on !MMU
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: eventfd: type bug in eventfd_poll()
 
-The symbol 'high_memory' is provided on both MMU- and NOMMU-kernels, but
-only one of them is exported, which leads to module build errors in
-drivers that work fine built-in:
+Since "count" is an unsigned int, then these conditions are never true:
 
-ERROR: "high_memory" [drivers/net/virtio_net.ko] undefined!
-ERROR: "high_memory" [drivers/net/ppp/ppp_mppe.ko] undefined!
-ERROR: "high_memory" [drivers/mtd/nand/nand.ko] undefined!
-ERROR: "high_memory" [crypto/tcrypt.ko] undefined!
-ERROR: "high_memory" [crypto/cts.ko] undefined!
+        if (count == ULLONG_MAX)
+                events |= POLLERR;
+        if (ULLONG_MAX - 1 > count)
+                events |= POLLOUT;
 
-This exports the symbol to get these to work on NOMMU as well.
+It should be a u64, because that's what ctx->count is.  Also GCC
+complains that "flags" is unused.
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Greg Ungerer <gerg@uclinux.org>
+Fixes: a90de8a54127 ('eventfd: don't take the spinlock in eventfd_poll')
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Chris Mason <clm@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nommu.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/eventfd.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/nommu.c~mm-export-high_memory-symbol-on-mmu mm/nommu.c
---- a/mm/nommu.c~mm-export-high_memory-symbol-on-mmu
-+++ a/mm/nommu.c
-@@ -59,6 +59,7 @@
- #endif
+diff -puN fs/eventfd.c~eventfd-dont-take-the-spinlock-in-eventfd_poll-fix-2 fs/eventfd.c
+--- a/fs/eventfd.c~eventfd-dont-take-the-spinlock-in-eventfd_poll-fix-2
++++ a/fs/eventfd.c
+@@ -118,7 +118,7 @@ static unsigned int eventfd_poll(struct
+ {
+ 	struct eventfd_ctx *ctx = file->private_data;
+ 	unsigned int events = 0;
+-	unsigned int count;
++	u64 count;
  
- void *high_memory;
-+EXPORT_SYMBOL(high_memory);
- struct page *mem_map;
- unsigned long max_mapnr;
- unsigned long highest_memmap_pfn;
+ 	poll_wait(file, &ctx->wqh, wait);
+ 	smp_rmb();
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
-mm-export-high_memory-symbol-on-mmu.patch
-asm-generic-drop-unused-pte_file-helpers.patch
-linux-typesh-always-use-unsigned-long-for-pgoff_t.patch
-rtc-rtc-isl12057-add-isilirq2-can-wakeup-machine-property-for-in-tree-users.patch
-arm-mvebu-isl12057-rtc-chip-can-now-wake-up-rn102-rn102-and-rn2120.patch
-of-add-vendor-prefix-for-abracon-corporation.patch
-rtc-add-support-for-abracon-ab-rtcmc-32768khz-b5ze-s3-i2c-rtc-chip.patch
-rtc-rtc-ab-b5ze-s3-add-sub-minute-alarm-support.patch
-kexec-fix-make-headers_check.patch
-kexec-simplify-conditional.patch
-kexec-add-bit-definitions-for-kimage-entry-flags.patch
-kexec-add-ind_flags-macro.patch
+origin.patch
+ocfs2-o2net-silence-uninitialized-variable-warning.patch
+mm-remove-rest-usage-of-vm_nonlinear-and-pte_file-fix.patch
+mm-compaction-enhance-tracepoint-output-for-compaction-begin-end-v4-fix.patch
+slab-embed-memcg_cache_params-to-kmem_cache-fix.patch
+eventfd-dont-take-the-spinlock-in-eventfd_poll-fix-2.patch
 linux-next.patch
-rtc-isl12022-deprecate-use-of-isl-in-compatible-string-for-isil.patch
-rtc-isl12057-deprecate-use-of-isl-in-compatible-string-for-isil.patch
-staging-iio-isl29028-deprecate-use-of-isl-in-compatible-string-for-isil.patch
-arm-dts-zynq-update-isl9305-compatible-string-to-use-isil-vendor-prefix.patch
 
