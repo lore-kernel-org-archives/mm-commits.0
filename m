@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- scripts-gdb-disable-pagination-while-printing-from-breakpoint-handler.patch added to -mm tree
-Date: Fri, 30 Jan 2015 15:37:11 -0800
-Message-ID: <54cc15a7.ee3d+3o6m9NTQ6OZ%akpm@linux-foundation.org>
+Subject: + scripts-gdb-define-maintainer.patch added to -mm tree
+Date: Fri, 30 Jan 2015 15:37:09 -0800
+Message-ID: <54cc15a5.a8hdHvqHO5wNwjS1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49173 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49167 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751715AbbA3XhM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Jan 2015 18:37:12 -0500
+	with ESMTP id S1751826AbbA3XhK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Jan 2015 18:37:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jan.kiszka@siemens.com, andi@firstfloor.org, ben@bwidawsk.net, bp@suse.de, jason.wessel@windriver.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/gdb: disable pagination while printing from breakpoint handler
+     Subject: scripts/gdb: define maintainer
 has been added to the -mm tree.  Its filename is
-     scripts-gdb-disable-pagination-while-printing-from-breakpoint-handler.patch
+     scripts-gdb-define-maintainer.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-gdb-disable-pagination-while-printing-from-breakpoint-handler.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/scripts-gdb-define-maintainer.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-gdb-disable-pagination-while-printing-from-breakpoint-handler.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-gdb-define-maintainer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,16 +39,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jan Kiszka <jan.kiszka@siemens.com>
-Subject: scripts/gdb: disable pagination while printing from breakpoint handler
+Subject: scripts/gdb: define maintainer
 
-While reporting the (refreshed) list of modules on automatic updates we
-may hit the page boundary of the output console and cause a stop if
-pagination is enabled.  However, gdb does not accept user input while
-running over the breakpoint handler.  So we get stuck, and the user is
-forced to interrupt gdb.
-
-Resolve this by disabling pagination during automatic symbol updates.  We
-restore the user's configuration once done.
+I'm proposing myself for keeping an eye on these scripts and integrating
+contributions.
 
 Signed-off-by: Jan Kiszka <jan.kiszka@siemens.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
@@ -60,36 +53,24 @@ Cc: Borislav Petkov <bp@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/symbols.py |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ MAINTAINERS |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN scripts/gdb/linux/symbols.py~scripts-gdb-disable-pagination-while-printing-from-breakpoint-handler scripts/gdb/linux/symbols.py
---- a/scripts/gdb/linux/symbols.py~scripts-gdb-disable-pagination-while-printing-from-breakpoint-handler
-+++ a/scripts/gdb/linux/symbols.py
-@@ -34,12 +34,23 @@ if hasattr(gdb, 'Breakpoint'):
-             # enforce update if object file is not found
-             cmd.module_files_updated = False
+diff -puN MAINTAINERS~scripts-gdb-define-maintainer MAINTAINERS
+--- a/MAINTAINERS~scripts-gdb-define-maintainer
++++ a/MAINTAINERS
+@@ -4164,6 +4164,11 @@ W:	http://www.icp-vortex.com/
+ S:	Supported
+ F:	drivers/scsi/gdt*
  
-+            # Disable pagination while reporting symbol (re-)loading.
-+            # The console input is blocked in this context so that we would
-+            # get stuck waiting for the user to acknowledge paged output.
-+            show_pagination = gdb.execute("show pagination", to_string=True)
-+            pagination = show_pagination.endswith("on.\n")
-+            gdb.execute("set pagination off")
++GDB KERNEL DEBUGGING HELPER SCRIPTS
++M:	Jan Kiszka <jan.kiszka@siemens.com>
++S:	Supported
++F:	scripts/gdb/
 +
-             if module_name in cmd.loaded_modules:
-                 gdb.write("refreshing all symbols to reload module "
-                           "'{0}'\n".format(module_name))
-                 cmd.load_all_symbols()
-             else:
-                 cmd.load_module_symbols(module)
-+
-+            # restore pagination state
-+            gdb.execute("set pagination %s" % ("on" if pagination else "off"))
-+
-             return False
- 
- 
+ GEMTEK FM RADIO RECEIVER DRIVER
+ M:	Hans Verkuil <hverkuil@xs4all.nl>
+ L:	linux-media@vger.kernel.org
 _
 
 Patches currently in -mm which might be from jan.kiszka@siemens.com are
