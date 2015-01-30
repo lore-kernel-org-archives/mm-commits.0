@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-gdb-add-get_target_endianness-helper.patch added to -mm tree
-Date: Fri, 30 Jan 2015 15:36:33 -0800
-Message-ID: <54cc1581.speWKmnbuauBV152%akpm@linux-foundation.org>
+Subject: + scripts-gdb-add-is_target_arch-helper.patch added to -mm tree
+Date: Fri, 30 Jan 2015 15:36:43 -0800
+Message-ID: <54cc158b.6nHITV5fb4SlbmJE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49026 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49062 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754578AbbA3Xge (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Jan 2015 18:36:34 -0500
+	with ESMTP id S1759829AbbA3Xgo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Jan 2015 18:36:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jan.kiszka@siemens.com, andi@firstfloor.org, ben@bwidawsk.net, bp@suse.de, jason.wessel@windriver.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/gdb: add get_target_endianness helper
+     Subject: scripts/gdb: add is_target_arch helper
 has been added to the -mm tree.  Its filename is
-     scripts-gdb-add-get_target_endianness-helper.patch
+     scripts-gdb-add-is_target_arch-helper.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-gdb-add-get_target_endianness-helper.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/scripts-gdb-add-is_target_arch-helper.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-gdb-add-get_target_endianness-helper.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-gdb-add-is_target_arch-helper.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,11 +39,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jan Kiszka <jan.kiszka@siemens.com>
-Subject: scripts/gdb: add get_target_endianness helper
+Subject: scripts/gdb: add is_target_arch helper
 
-Parse the target endianness from the output of "show endian" and cache the
-result to return it via the new helper get_target_endiannes.  We will need
-it for reading integers from buffers that contain target memory.
+This helper caches to result of "show architecture" and matches the
+provided arch (sub-)string against that output.
 
 Signed-off-by: Jan Kiszka <jan.kiszka@siemens.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
@@ -54,34 +53,29 @@ Cc: Borislav Petkov <bp@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/utils.py |   18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+ scripts/gdb/linux/utils.py |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff -puN scripts/gdb/linux/utils.py~scripts-gdb-add-get_target_endianness-helper scripts/gdb/linux/utils.py
---- a/scripts/gdb/linux/utils.py~scripts-gdb-add-get_target_endianness-helper
+diff -puN scripts/gdb/linux/utils.py~scripts-gdb-add-is_target_arch-helper scripts/gdb/linux/utils.py
+--- a/scripts/gdb/linux/utils.py~scripts-gdb-add-is_target_arch-helper
 +++ a/scripts/gdb/linux/utils.py
-@@ -67,3 +67,21 @@ Note that TYPE and ELEMENT have to be qu
-                             elementname.string())
- 
- ContainerOf()
+@@ -106,3 +106,16 @@ def read_u64(buffer):
+         return read_u32(buffer[0:4]) + (read_u32(buffer[4:8]) << 32)
+     else:
+         return read_u32(buffer[4:8]) + (read_u32(buffer[0:4]) << 32)
 +
 +
-+BIG_ENDIAN = 0
-+LITTLE_ENDIAN = 1
-+target_endianness = None
++target_arch = None
 +
 +
-+def get_target_endianness():
-+    global target_endianness
-+    if target_endianness is None:
-+        endian = gdb.execute("show endian", to_string=True)
-+        if "little endian" in endian:
-+            target_endianness = LITTLE_ENDIAN
-+        elif "big endian" in endian:
-+            target_endianness = BIG_ENDIAN
-+        else:
-+            raise gdb.GdgError("unknown endianness '{0}'".format(endian))
-+    return target_endianness
++def is_target_arch(arch):
++    if hasattr(gdb.Frame, 'architecture'):
++        return arch in gdb.newest_frame().architecture().name()
++    else:
++        global target_arch
++        if target_arch is None:
++            target_arch = gdb.execute("show architecture", to_string=True)
++        return arch in target_arch
 _
 
 Patches currently in -mm which might be from jan.kiszka@siemens.com are
