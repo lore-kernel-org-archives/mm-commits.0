@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-mempolicy-merge-alloc_hugepage_vma-to-alloc_pages_vma.patch
- added to -mm tree
-Date: Fri, 30 Jan 2015 15:28:02 -0800
-Message-ID: <54cc1382.EgfFpljuWomrQ44k%akpm@linux-foundation.org>
+Subject: + scripts-gdb-add-infrastructure.patch added to -mm tree
+Date: Fri, 30 Jan 2015 15:36:17 -0800
+Message-ID: <54cc1571.j+aqIDhvsWOoVN4h%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48461 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48943 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761090AbbA3X2D (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Jan 2015 18:28:03 -0500
+	with ESMTP id S1751560AbbA3XgS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Jan 2015 18:36:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: jan.kiszka@siemens.com, andi@firstfloor.org, ben@bwidawsk.net, bp@suse.de, jason.wessel@windriver.com, mmarek@suse.cz, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mempolicy.c: merge alloc_hugepage_vma to alloc_pages_vma
+     Subject: scripts/gdb: add infrastructure
 has been added to the -mm tree.  Its filename is
-     mm-mempolicy-merge-alloc_hugepage_vma-to-alloc_pages_vma.patch
+     scripts-gdb-add-infrastructure.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mempolicy-merge-alloc_hugepage_vma-to-alloc_pages_vma.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/scripts-gdb-add-infrastructure.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mempolicy-merge-alloc_hugepage_vma-to-alloc_pages_vma.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-gdb-add-infrastructure.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,258 +38,174 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm/mempolicy.c: merge alloc_hugepage_vma to alloc_pages_vma
+From: Jan Kiszka <jan.kiszka@siemens.com>
+Subject: scripts/gdb: add infrastructure
 
-Commit "mm/thp: Allocate transparent hugepages on local node" introduced
-alloc_hugepage_vma() to mm/mempolicy.c to perform a special policy for THP
-allocations.  The function has the same interface as alloc_pages_vma(),
-shares a lot of boilerplate code and a long comment.
+This provides the basic infrastructure to load kernel-specific python
+helper scripts when debugging the kernel in gdb.
 
-This patch merges the hugepage special case into alloc_pages_vma.  The
-extra if condition should be cheap enough price to pay.  We also prevent a
-(however unlikely) race with parallel mems_allowed update, which could
-make hugepage allocation restart only within the fallback call to
-alloc_hugepage_vma() and not reconsider the special rule in
-alloc_hugepage_vma().
+The loading mechanism is based on gdb loading for <objfile>-gdb.py when
+opening <objfile>.  Therefore, this places a corresponding link to the
+main helper script into the output directory that contains vmlinux.
 
-Also by making sure mpol_cond_put(pol) is always called before actual
-allocation attempt, we can use a single exit path within the function.
+The main scripts will pull in submodules containing Linux specific gdb
+commands and functions.  To avoid polluting the source directory with
+compiled python modules, we link to them from the object directory.
 
-Also update the comment for missing node parameter and obsolete reference
-to mm_sem.
+Due to gdb.parse_and_eval and string redirection for gdb.execute, we
+depend on gdb >= 7.2.
 
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+This feature is enabled via CONFIG_GDB_SCRIPTS.
+
+Signed-off-by: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: Michal Marek <mmarek@suse.cz>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Jason Wessel <jason.wessel@windriver.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Ben Widawsky <ben@bwidawsk.net>
+Cc: Borislav Petkov <bp@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |   12 ++--
- mm/mempolicy.c      |  118 +++++++++++-------------------------------
- 2 files changed, 39 insertions(+), 91 deletions(-)
+ Makefile                   |    5 ++++-
+ lib/Kconfig.debug          |   11 +++++++++++
+ scripts/Makefile           |    1 +
+ scripts/gdb/Makefile       |    1 +
+ scripts/gdb/linux/Makefile |   11 +++++++++++
+ scripts/gdb/vmlinux-gdb.py |   23 +++++++++++++++++++++++
+ 6 files changed, 51 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/gfp.h~mm-mempolicy-merge-alloc_hugepage_vma-to-alloc_pages_vma include/linux/gfp.h
---- a/include/linux/gfp.h~mm-mempolicy-merge-alloc_hugepage_vma-to-alloc_pages_vma
-+++ a/include/linux/gfp.h
-@@ -334,22 +334,22 @@ alloc_pages(gfp_t gfp_mask, unsigned int
- }
- extern struct page *alloc_pages_vma(gfp_t gfp_mask, int order,
- 			struct vm_area_struct *vma, unsigned long addr,
--			int node);
--extern struct page *alloc_hugepage_vma(gfp_t gfp, struct vm_area_struct *vma,
--				       unsigned long addr, int order);
-+			int node, bool hugepage);
-+#define alloc_hugepage_vma(gfp_mask, vma, addr, order)	\
-+	alloc_pages_vma(gfp_mask, order, vma, addr, numa_node_id(), true)
- #else
- #define alloc_pages(gfp_mask, order) \
- 		alloc_pages_node(numa_node_id(), gfp_mask, order)
--#define alloc_pages_vma(gfp_mask, order, vma, addr, node)	\
-+#define alloc_pages_vma(gfp_mask, order, vma, addr, node, false)\
- 	alloc_pages(gfp_mask, order)
- #define alloc_hugepage_vma(gfp_mask, vma, addr, order)	\
- 	alloc_pages(gfp_mask, order)
- #endif
- #define alloc_page(gfp_mask) alloc_pages(gfp_mask, 0)
- #define alloc_page_vma(gfp_mask, vma, addr)			\
--	alloc_pages_vma(gfp_mask, 0, vma, addr, numa_node_id())
-+	alloc_pages_vma(gfp_mask, 0, vma, addr, numa_node_id(), false)
- #define alloc_page_vma_node(gfp_mask, vma, addr, node)		\
--	alloc_pages_vma(gfp_mask, 0, vma, addr, node)
-+	alloc_pages_vma(gfp_mask, 0, vma, addr, node, false)
+diff -puN Makefile~scripts-gdb-add-infrastructure Makefile
+--- a/Makefile~scripts-gdb-add-infrastructure
++++ a/Makefile
+@@ -922,6 +922,9 @@ endif
+ ifdef CONFIG_BUILD_DOCSRC
+ 	$(Q)$(MAKE) $(build)=Documentation
+ endif
++ifdef CONFIG_GDB_SCRIPTS
++	$(Q)ln -fsn `cd $(srctree) && /bin/pwd`/scripts/gdb/vmlinux-gdb.py
++endif
+ 	+$(call if_changed,link-vmlinux)
  
- extern struct page *alloc_kmem_pages(gfp_t gfp_mask, unsigned int order);
- extern struct page *alloc_kmem_pages_node(int nid, gfp_t gfp_mask,
-diff -puN mm/mempolicy.c~mm-mempolicy-merge-alloc_hugepage_vma-to-alloc_pages_vma mm/mempolicy.c
---- a/mm/mempolicy.c~mm-mempolicy-merge-alloc_hugepage_vma-to-alloc_pages_vma
-+++ a/mm/mempolicy.c
-@@ -1988,120 +1988,68 @@ static struct page *alloc_page_interleav
-  *	@order:Order of the GFP allocation.
-  * 	@vma:  Pointer to VMA or NULL if not available.
-  *	@addr: Virtual Address of the allocation. Must be inside the VMA.
-+ *	@node: Which node to prefer for allocation (modulo policy).
-+ *	@hugepage: for hugepages try only the preferred node if possible
-  *
-  * 	This function allocates a page from the kernel page pool and applies
-  *	a NUMA policy associated with the VMA or the current process.
-  *	When VMA is not NULL caller must hold down_read on the mmap_sem of the
-  *	mm_struct of the VMA to prevent it from going away. Should be used for
-- *	all allocations for pages that will be mapped into
-- * 	user space. Returns NULL when no page can be allocated.
-- *
-- *	Should be called with the mm_sem of the vma hold.
-+ *	all allocations for pages that will be mapped into user space. Returns
-+ *	NULL when no page can be allocated.
-  */
- struct page *
- alloc_pages_vma(gfp_t gfp, int order, struct vm_area_struct *vma,
--		unsigned long addr, int node)
-+		unsigned long addr, int node, bool hugepage)
- {
- 	struct mempolicy *pol;
- 	struct page *page;
- 	unsigned int cpuset_mems_cookie;
-+	struct zonelist *zl;
-+	nodemask_t *nmask;
+ # The actual objects are generated when descending,
+@@ -1176,7 +1179,7 @@ MRPROPER_FILES += .config .config.old .v
+ 		  Module.symvers tags TAGS cscope* GPATH GTAGS GRTAGS GSYMS \
+ 		  signing_key.priv signing_key.x509 x509.genkey		\
+ 		  extra_certificates signing_key.x509.keyid		\
+-		  signing_key.x509.signer
++		  signing_key.x509.signer vmlinux-gdb.py
  
- retry_cpuset:
- 	pol = get_vma_policy(vma, addr);
- 	cpuset_mems_cookie = read_mems_allowed_begin();
+ # clean - Delete most, but leave enough to build external modules
+ #
+diff -puN lib/Kconfig.debug~scripts-gdb-add-infrastructure lib/Kconfig.debug
+--- a/lib/Kconfig.debug~scripts-gdb-add-infrastructure
++++ a/lib/Kconfig.debug
+@@ -167,6 +167,17 @@ config DEBUG_INFO_DWARF4
+ 	  But it significantly improves the success of resolving
+ 	  variables in gdb on optimized code.
  
--	if (unlikely(pol->mode == MPOL_INTERLEAVE)) {
-+	if (unlikely(IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) && hugepage &&
-+					pol->mode != MPOL_INTERLEAVE)) {
-+		/*
-+		 * For hugepage allocation and non-interleave policy which
-+		 * allows the current node, we only try to allocate from the
-+		 * current node and don't fall back to other nodes, as the
-+		 * cost of remote accesses would likely offset THP benefits.
-+		 *
-+		 * If the policy is interleave, or does not allow the current
-+		 * node in its nodemask, we allocate the standard way.
-+		 */
-+		nmask = policy_nodemask(gfp, pol);
-+		if (!nmask || node_isset(node, *nmask)) {
-+			mpol_cond_put(pol);
-+			page = alloc_pages_exact_node(node, gfp, order);
-+			goto out;
-+		}
-+	}
++config GDB_SCRIPTS
++	bool "Provide GDB scripts for kernel debugging"
++	select DEBUG_INFO
++	help
++	  This creates the required links to GDB helper scripts in the
++	  build directory. If you load vmlinux into gdb, the helper
++	  scripts will be automatically imported by gdb as well, and
++	  additional functions are available to analyze a Linux kernel
++	  instance. See Documentation/gdb-kernel-debugging.txt for further
++	  details.
 +
-+	if (pol->mode == MPOL_INTERLEAVE) {
- 		unsigned nid;
+ config ENABLE_WARN_DEPRECATED
+ 	bool "Enable __deprecated logic"
+ 	default y
+diff -puN scripts/Makefile~scripts-gdb-add-infrastructure scripts/Makefile
+--- a/scripts/Makefile~scripts-gdb-add-infrastructure
++++ a/scripts/Makefile
+@@ -36,6 +36,7 @@ subdir-$(CONFIG_MODVERSIONS) += genksyms
+ subdir-y                     += mod
+ subdir-$(CONFIG_SECURITY_SELINUX) += selinux
+ subdir-$(CONFIG_DTC)         += dtc
++subdir-$(CONFIG_GDB_SCRIPTS) += gdb
  
- 		nid = interleave_nid(pol, vma, addr, PAGE_SHIFT + order);
- 		mpol_cond_put(pol);
- 		page = alloc_page_interleave(gfp, order, nid);
--		if (unlikely(!page && read_mems_allowed_retry(cpuset_mems_cookie)))
--			goto retry_cpuset;
--
--		return page;
-+		goto out;
- 	}
--	page = __alloc_pages_nodemask(gfp, order,
--				      policy_zonelist(gfp, pol, node),
--				      policy_nodemask(gfp, pol));
+ # Let clean descend into subdirs
+ subdir-	+= basic kconfig package
+diff -puN /dev/null scripts/gdb/Makefile
+--- /dev/null
++++ a/scripts/gdb/Makefile
+@@ -0,0 +1 @@
++subdir-y := linux
+diff -puN /dev/null scripts/gdb/linux/Makefile
+--- /dev/null
++++ a/scripts/gdb/linux/Makefile
+@@ -0,0 +1,11 @@
++always := gdb-scripts
 +
-+	nmask = policy_nodemask(gfp, pol);
-+	zl = policy_zonelist(gfp, pol, node);
- 	mpol_cond_put(pol);
-+	page = __alloc_pages_nodemask(gfp, order, zl, nmask);
-+out:
- 	if (unlikely(!page && read_mems_allowed_retry(cpuset_mems_cookie)))
- 		goto retry_cpuset;
- 	return page;
- }
- 
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
--/**
-- * alloc_hugepage_vma: Allocate a hugepage for a VMA
-- * @gfp:
-- *   %GFP_USER	  user allocation.
-- *   %GFP_KERNEL  kernel allocations,
-- *   %GFP_HIGHMEM highmem/user allocations,
-- *   %GFP_FS	  allocation should not call back into a file system.
-- *   %GFP_ATOMIC  don't sleep.
-- *
-- * @vma:   Pointer to VMA or NULL if not available.
-- * @addr:  Virtual Address of the allocation. Must be inside the VMA.
-- * @order: Order of the hugepage for gfp allocation.
-- *
-- * This functions allocate a huge page from the kernel page pool and applies
-- * a NUMA policy associated with the VMA or the current process.
-- * For policy other than %MPOL_INTERLEAVE, we make sure we allocate hugepage
-- * only from the current node if the current node is part of the node mask.
-- * If we can't allocate a hugepage we fail the allocation and don' try to fallback
-- * to other nodes in the node mask. If the current node is not part of node mask
-- * or if the NUMA policy is MPOL_INTERLEAVE we use the allocator that can
-- * fallback to nodes in the policy node mask.
-- *
-- * When VMA is not NULL caller must hold down_read on the mmap_sem of the
-- * mm_struct of the VMA to prevent it from going away. Should be used for
-- * all allocations for pages that will be mapped into
-- * user space. Returns NULL when no page can be allocated.
-- *
-- * Should be called with vma->vm_mm->mmap_sem held.
-- *
-- */
--struct page *alloc_hugepage_vma(gfp_t gfp, struct vm_area_struct *vma,
--				unsigned long addr, int order)
--{
--	struct page *page;
--	nodemask_t *nmask;
--	struct mempolicy *pol;
--	int node = numa_node_id();
--	unsigned int cpuset_mems_cookie;
--
--retry_cpuset:
--	pol = get_vma_policy(vma, addr);
--	cpuset_mems_cookie = read_mems_allowed_begin();
--	/*
--	 * For interleave policy, we don't worry about
--	 * current node. Otherwise if current node is
--	 * in nodemask, try to allocate hugepage from
--	 * the current node. Don't fall back to other nodes
--	 * for THP.
--	 */
--	if (unlikely(pol->mode == MPOL_INTERLEAVE))
--		goto alloc_with_fallback;
--	nmask = policy_nodemask(gfp, pol);
--	if (!nmask || node_isset(node, *nmask)) {
--		mpol_cond_put(pol);
--		page = alloc_pages_exact_node(node, gfp, order);
--		if (unlikely(!page &&
--			     read_mems_allowed_retry(cpuset_mems_cookie)))
--			goto retry_cpuset;
--		return page;
--	}
--alloc_with_fallback:
--	mpol_cond_put(pol);
--	/*
--	 * if current node is not part of node mask, try
--	 * the allocation from any node, and we can do retry
--	 * in that case.
--	 */
--	return alloc_pages_vma(gfp, order, vma, addr, node);
--}
--#endif
--
- /**
-  * 	alloc_pages_current - Allocate pages.
-  *
++SRCTREE := $(shell cd $(srctree) && /bin/pwd)
++
++$(obj)/gdb-scripts:
++ifneq ($(KBUILD_SRC),)
++	$(Q)ln -fsn $(SRCTREE)/$(obj)/*.py $(objtree)/$(obj)
++endif
++	@:
++
++clean-files := *.pyc *.pyo $(if $(KBUILD_SRC),*.py)
+diff -puN /dev/null scripts/gdb/vmlinux-gdb.py
+--- /dev/null
++++ a/scripts/gdb/vmlinux-gdb.py
+@@ -0,0 +1,23 @@
++#
++# gdb helper commands and functions for Linux kernel debugging
++#
++#  loader module
++#
++# Copyright (c) Siemens AG, 2012, 2013
++#
++# Authors:
++#  Jan Kiszka <jan.kiszka@siemens.com>
++#
++# This work is licensed under the terms of the GNU GPL version 2.
++#
++
++import os
++
++sys.path.insert(0, os.path.dirname(__file__) + "/scripts/gdb")
++
++try:
++    gdb.parse_and_eval("0")
++    gdb.execute("", to_string=True)
++except:
++    gdb.write("NOTE: gdb 7.2 or later required for Linux helper scripts to "
++              "work.\n")
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from jan.kiszka@siemens.com are
 
-origin.patch
-mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
-mm-vmscan-wake-up-all-pfmemalloc-throttled-processes-at-once.patch
-mm-set-page-pfmemalloc-in-prep_new_page.patch
-mm-page_alloc-reduce-number-of-alloc_pages-functions-parameters.patch
-mm-reduce-try_to_compact_pages-parameters.patch
-mm-microoptimize-zonelist-operations.patch
-mm-page_allocc-drop-dead-destroy_compound_page.patch
-mm-more-checks-on-free_pages_prepare-for-tail-pages.patch
-mm-more-checks-on-free_pages_prepare-for-tail-pages-fix-2.patch
-mm-compaction-change-tracepoint-format-from-decimal-to-hexadecimal.patch
-mm-compaction-enhance-tracepoint-output-for-compaction-begin-end.patch
-mm-compaction-enhance-tracepoint-output-for-compaction-begin-end-v4.patch
-mm-compaction-print-current-range-where-compaction-work.patch
-mm-compaction-more-trace-to-understand-when-why-compaction-start-finish.patch
-mm-compaction-add-tracepoint-to-observe-behaviour-of-compaction-defer.patch
-mm-compaction-add-tracepoint-to-observe-behaviour-of-compaction-defer-v4.patch
-mm-thp-allocate-transparent-hugepages-on-local-node.patch
-mm-thp-allocate-transparent-hugepages-on-local-node-fix.patch
-mm-mempolicy-merge-alloc_hugepage_vma-to-alloc_pages_vma.patch
-mm-when-stealing-freepages-also-take-pages-created-by-splitting-buddy-page.patch
-mm-always-steal-split-buddies-in-fallback-allocations.patch
-mm-more-aggressive-page-stealing-for-unmovable-allocations.patch
-mm-incorporate-read-only-pages-into-transparent-huge-pages.patch
-mm-incorporate-read-only-pages-into-transparent-huge-pages-v4.patch
-mm-compaction-fix-wrong-order-check-in-compact_finished.patch
-mm-compaction-stop-the-isolation-when-we-isolate-enough-freepage.patch
+scripts-gdb-add-infrastructure.patch
+scripts-gdb-add-cache-for-type-objects.patch
+scripts-gdb-add-container_of-helper-and-convenience-function.patch
+scripts-gdb-add-module-iteration-class.patch
+scripts-gdb-add-lx-symbols-command.patch
+module-do-not-inline-do_init_module.patch
+scripts-gdb-add-automatic-symbol-reloading-on-module-insertion.patch
+scripts-gdb-add-internal-helper-and-convenience-function-to-look-up-a-module.patch
+scripts-gdb-add-get_target_endianness-helper.patch
+scripts-gdb-add-read_u16-32-64-helpers.patch
+scripts-gdb-add-lx-dmesg-command.patch
+scripts-gdb-add-task-iteration-class.patch
+scripts-gdb-add-helper-and-convenience-function-to-look-up-tasks.patch
+scripts-gdb-add-is_target_arch-helper.patch
+scripts-gdb-add-internal-helper-and-convenience-function-to-retrieve-thread_info.patch
+scripts-gdb-add-get_gdbserver_type-helper.patch
+scripts-gdb-add-internal-helper-and-convenience-function-for-per-cpu-lookup.patch
+scripts-gdb-add-lx_current-convenience-function.patch
+scripts-gdb-add-class-to-iterate-over-cpu-masks.patch
+scripts-gdb-add-lx-lsmod-command.patch
+scripts-gdb-add-basic-documentation.patch
+scripts-gdb-port-to-python3-gdb77.patch
+scripts-gdb-ignore-byte-compiled-python-files.patch
+scripts-gdb-use-a-generator-instead-of-iterator-for-task-list.patch
+scripts-gdb-convert-modulelist-to-generator-function.patch
+scripts-gdb-convert-cpulist-to-generator-function.patch
+scripts-gdb-define-maintainer.patch
+scripts-gdb-disable-pagination-while-printing-from-breakpoint-handler.patch
 
