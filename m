@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- scripts-gdb-add-automatic-symbol-reloading-on-module-insertion.patch added
- to -mm tree
-Date: Fri, 30 Jan 2015 15:36:29 -0800
-Message-ID: <54cc157d.80BMOjt/wYFZipOL%akpm@linux-foundation.org>
+Subject: + scripts-gdb-add-read_u16-32-64-helpers.patch added to -mm tree
+Date: Fri, 30 Jan 2015 15:36:35 -0800
+Message-ID: <54cc1583.sr2CZJMgIaezjxe0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49011 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49033 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754578AbbA3Xga (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Jan 2015 18:36:30 -0500
+	with ESMTP id S1754578AbbA3Xgg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Jan 2015 18:36:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jan.kiszka@siemens.com, andi@firstfloor.org, ben@bwidawsk.net, bp@suse.de, jason.wessel@windriver.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/gdb: add automatic symbol reloading on module insertion
+     Subject: scripts/gdb: add read_u16/32/64 helpers
 has been added to the -mm tree.  Its filename is
-     scripts-gdb-add-automatic-symbol-reloading-on-module-insertion.patch
+     scripts-gdb-add-read_u16-32-64-helpers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-gdb-add-automatic-symbol-reloading-on-module-insertion.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/scripts-gdb-add-read_u16-32-64-helpers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-gdb-add-automatic-symbol-reloading-on-module-insertion.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-gdb-add-read_u16-32-64-helpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,13 +39,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jan Kiszka <jan.kiszka@siemens.com>
-Subject: scripts/gdb: add automatic symbol reloading on module insertion
+Subject: scripts/gdb: add read_u16/32/64 helpers
 
-This installs a silent breakpoint on the do_init_module function.  The
-breakpoint handler will try to load symbols from the module files found
-during lx-symbols execution.  This way, breakpoints can be set to module
-initialization functions, and there is no need to explicitly call
-lx-symbols after (re-)loading a module.
+Add helpers for reading integers from target memory buffers.  Required
+when caching the memory access is more efficient than reading individual
+values via gdb.
 
 Signed-off-by: Jan Kiszka <jan.kiszka@siemens.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
@@ -58,85 +54,37 @@ Cc: Borislav Petkov <bp@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/symbols.py |   39 +++++++++++++++++++++++++++++++++
- 1 file changed, 39 insertions(+)
+ scripts/gdb/linux/utils.py |   21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
-diff -puN scripts/gdb/linux/symbols.py~scripts-gdb-add-automatic-symbol-reloading-on-module-insertion scripts/gdb/linux/symbols.py
---- a/scripts/gdb/linux/symbols.py~scripts-gdb-add-automatic-symbol-reloading-on-module-insertion
-+++ a/scripts/gdb/linux/symbols.py
-@@ -19,6 +19,30 @@ import string
- from linux import modules, utils
- 
- 
-+if hasattr(gdb, 'Breakpoint'):
-+    class LoadModuleBreakpoint(gdb.Breakpoint):
-+        def __init__(self, spec, gdb_command):
-+            super(LoadModuleBreakpoint, self).__init__(spec, internal=True)
-+            self.silent = True
-+            self.gdb_command = gdb_command
-+
-+        def stop(self):
-+            module = gdb.parse_and_eval("mod")
-+            module_name = module['name'].string()
-+            cmd = self.gdb_command
-+
-+            # enforce update if object file is not found
-+            cmd.module_files_updated = False
-+
-+            if module_name in cmd.loaded_modules:
-+                gdb.write("refreshing all symbols to reload module "
-+                          "'{0}'\n".format(module_name))
-+                cmd.load_all_symbols()
-+            else:
-+                cmd.load_module_symbols(module)
-+            return False
-+
-+
- class LxSymbols(gdb.Command):
-     """(Re-)load symbols of Linux kernel and currently loaded modules.
- 
-@@ -30,6 +54,8 @@ lx-symbols command."""
-     module_paths = []
-     module_files = []
-     module_files_updated = False
-+    loaded_modules = []
-+    breakpoint = None
- 
-     def __init__(self):
-         super(LxSymbols, self).__init__("lx-symbols", gdb.COMMAND_FILES,
-@@ -87,6 +113,8 @@ lx-symbols command."""
-                 addr=module_addr,
-                 sections=self._section_arguments(module))
-             gdb.execute(cmdline, to_string=True)
-+            if not module_name in self.loaded_modules:
-+                self.loaded_modules.append(module_name)
+diff -puN scripts/gdb/linux/utils.py~scripts-gdb-add-read_u16-32-64-helpers scripts/gdb/linux/utils.py
+--- a/scripts/gdb/linux/utils.py~scripts-gdb-add-read_u16-32-64-helpers
++++ a/scripts/gdb/linux/utils.py
+@@ -85,3 +85,24 @@ def get_target_endianness():
          else:
-             gdb.write("no module object found for '{0}'\n".format(module_name))
- 
-@@ -104,6 +132,7 @@ lx-symbols command."""
-         gdb.execute("symbol-file", to_string=True)
-         gdb.execute("symbol-file vmlinux")
- 
-+        self.loaded_modules = []
-         module_list = modules.ModuleList()
-         if not module_list:
-             gdb.write("no modules found\n")
-@@ -123,5 +152,15 @@ lx-symbols command."""
- 
-         self.load_all_symbols()
- 
-+        if hasattr(gdb, 'Breakpoint'):
-+            if not self.breakpoint is None:
-+                self.breakpoint.delete()
-+                self.breakpoint = None
-+            self.breakpoint = LoadModuleBreakpoint(
-+                "kernel/module.c:do_init_module", self)
-+        else:
-+            gdb.write("Note: symbol update on module loading not supported "
-+                      "with this gdb version\n")
+             raise gdb.GdgError("unknown endianness '{0}'".format(endian))
+     return target_endianness
 +
- 
- LxSymbols()
++
++def read_u16(buffer):
++    if get_target_endianness() == LITTLE_ENDIAN:
++        return ord(buffer[0]) + (ord(buffer[1]) << 8)
++    else:
++        return ord(buffer[1]) + (ord(buffer[0]) << 8)
++
++
++def read_u32(buffer):
++    if get_target_endianness() == LITTLE_ENDIAN:
++        return read_u16(buffer[0:2]) + (read_u16(buffer[2:4]) << 16)
++    else:
++        return read_u16(buffer[2:4]) + (read_u16(buffer[0:2]) << 16)
++
++
++def read_u64(buffer):
++    if get_target_endianness() == LITTLE_ENDIAN:
++        return read_u32(buffer[0:4]) + (read_u32(buffer[4:8]) << 32)
++    else:
++        return read_u32(buffer[4:8]) + (read_u32(buffer[0:4]) << 32)
 _
 
 Patches currently in -mm which might be from jan.kiszka@siemens.com are
