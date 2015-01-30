@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-gdb-add-read_u16-32-64-helpers.patch added to -mm tree
-Date: Fri, 30 Jan 2015 15:36:35 -0800
-Message-ID: <54cc1583.sr2CZJMgIaezjxe0%akpm@linux-foundation.org>
+Subject: + scripts-gdb-add-lx-dmesg-command.patch added to -mm tree
+Date: Fri, 30 Jan 2015 15:36:37 -0800
+Message-ID: <54cc1585.9NST6NdEpInTjmG2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49033 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49038 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754578AbbA3Xgg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Jan 2015 18:36:36 -0500
+	with ESMTP id S1759829AbbA3Xgi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Jan 2015 18:36:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jan.kiszka@siemens.com, andi@firstfloor.org, ben@bwidawsk.net, bp@suse.de, jason.wessel@windriver.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: jan.kiszka@siemens.com, andi@firstfloor.org, ben@bwidawsk.net, bp@suse.de, jason.wessel@windriver.com, kay@vrfy.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/gdb: add read_u16/32/64 helpers
+     Subject: scripts/gdb: add lx-dmesg command
 has been added to the -mm tree.  Its filename is
-     scripts-gdb-add-read_u16-32-64-helpers.patch
+     scripts-gdb-add-lx-dmesg-command.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-gdb-add-read_u16-32-64-helpers.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/scripts-gdb-add-lx-dmesg-command.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-gdb-add-read_u16-32-64-helpers.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-gdb-add-lx-dmesg-command.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,13 +39,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jan Kiszka <jan.kiszka@siemens.com>
-Subject: scripts/gdb: add read_u16/32/64 helpers
+Subject: scripts/gdb: add lx-dmesg command
 
-Add helpers for reading integers from target memory buffers.  Required
-when caching the memory access is more efficient than reading individual
-values via gdb.
+This pokes into the log buffer of the debugged kernel, dumping it to the
+gdb console.  Helping in case the target should or can no longer execute
+dmesg itself.
 
 Signed-off-by: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: Kay Sievers <kay@vrfy.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Jason Wessel <jason.wessel@windriver.com>
 Cc: Andi Kleen <andi@firstfloor.org>
@@ -54,37 +55,86 @@ Cc: Borislav Petkov <bp@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/utils.py |   21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
+ scripts/gdb/linux/dmesg.py |   64 +++++++++++++++++++++++++++++++++++
+ scripts/gdb/vmlinux-gdb.py |    1 
+ 2 files changed, 65 insertions(+)
 
-diff -puN scripts/gdb/linux/utils.py~scripts-gdb-add-read_u16-32-64-helpers scripts/gdb/linux/utils.py
---- a/scripts/gdb/linux/utils.py~scripts-gdb-add-read_u16-32-64-helpers
-+++ a/scripts/gdb/linux/utils.py
-@@ -85,3 +85,24 @@ def get_target_endianness():
-         else:
-             raise gdb.GdgError("unknown endianness '{0}'".format(endian))
-     return target_endianness
+diff -puN /dev/null scripts/gdb/linux/dmesg.py
+--- /dev/null
++++ a/scripts/gdb/linux/dmesg.py
+@@ -0,0 +1,64 @@
++#
++# gdb helper commands and functions for Linux kernel debugging
++#
++#  kernel log buffer dump
++#
++# Copyright (c) Siemens AG, 2011, 2012
++#
++# Authors:
++#  Jan Kiszka <jan.kiszka@siemens.com>
++#
++# This work is licensed under the terms of the GNU GPL version 2.
++#
++
++import gdb
++import string
++
++from linux import utils
 +
 +
-+def read_u16(buffer):
-+    if get_target_endianness() == LITTLE_ENDIAN:
-+        return ord(buffer[0]) + (ord(buffer[1]) << 8)
-+    else:
-+        return ord(buffer[1]) + (ord(buffer[0]) << 8)
++class LxDmesg(gdb.Command):
++    """Print Linux kernel log buffer."""
++
++    def __init__(self):
++        super(LxDmesg, self).__init__("lx-dmesg", gdb.COMMAND_DATA)
++
++    def invoke(self, arg, from_tty):
++        log_buf_addr = int(str(gdb.parse_and_eval("log_buf")).split()[0], 16)
++        log_first_idx = int(gdb.parse_and_eval("log_first_idx"))
++        log_next_idx = int(gdb.parse_and_eval("log_next_idx"))
++        log_buf_len = int(gdb.parse_and_eval("log_buf_len"))
++
++        inf = gdb.inferiors()[0]
++        start = log_buf_addr + log_first_idx
++        if log_first_idx < log_next_idx:
++            log_buf_2nd_half = -1
++            length = log_next_idx - log_first_idx
++            log_buf = inf.read_memory(start, length)
++        else:
++            log_buf_2nd_half = log_buf_len - log_first_idx
++            log_buf = inf.read_memory(start, log_buf_2nd_half) + \
++                inf.read_memory(log_buf_addr, log_next_idx)
++
++        pos = 0
++        while pos < log_buf.__len__():
++            length = utils.read_u16(log_buf[pos + 8:pos + 10])
++            if length == 0:
++                if log_buf_2nd_half == -1:
++                    gdb.write("Corrupted log buffer!\n")
++                    break
++                pos = log_buf_2nd_half
++                continue
++
++            text_len = utils.read_u16(log_buf[pos + 10:pos + 12])
++            time_stamp = utils.read_u64(log_buf[pos:pos + 8])
++
++            for line in log_buf[pos + 16:pos + 16 + text_len].splitlines():
++                gdb.write("[{time:12.6f}] {line}\n".format(
++                    time=time_stamp / 1000000000.0,
++                    line=line))
++
++            pos += length
 +
 +
-+def read_u32(buffer):
-+    if get_target_endianness() == LITTLE_ENDIAN:
-+        return read_u16(buffer[0:2]) + (read_u16(buffer[2:4]) << 16)
-+    else:
-+        return read_u16(buffer[2:4]) + (read_u16(buffer[0:2]) << 16)
-+
-+
-+def read_u64(buffer):
-+    if get_target_endianness() == LITTLE_ENDIAN:
-+        return read_u32(buffer[0:4]) + (read_u32(buffer[4:8]) << 32)
-+    else:
-+        return read_u32(buffer[4:8]) + (read_u32(buffer[0:4]) << 32)
++LxDmesg()
+diff -puN scripts/gdb/vmlinux-gdb.py~scripts-gdb-add-lx-dmesg-command scripts/gdb/vmlinux-gdb.py
+--- a/scripts/gdb/vmlinux-gdb.py~scripts-gdb-add-lx-dmesg-command
++++ a/scripts/gdb/vmlinux-gdb.py
+@@ -25,3 +25,4 @@ else:
+     import linux.utils
+     import linux.symbols
+     import linux.modules
++    import linux.dmesg
 _
 
 Patches currently in -mm which might be from jan.kiszka@siemens.com are
