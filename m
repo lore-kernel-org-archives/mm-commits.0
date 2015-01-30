@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- scripts-gdb-add-internal-helper-and-convenience-function-to-retrieve-thread_info.patch added to -mm tree
-Date: Fri, 30 Jan 2015 15:36:45 -0800
-Message-ID: <54cc158d.ScOuOEuaa/nXyzZQ%akpm@linux-foundation.org>
+Subject: + scripts-gdb-add-get_gdbserver_type-helper.patch added to -mm
+ tree
+Date: Fri, 30 Jan 2015 15:36:47 -0800
+Message-ID: <54cc158f.o1pbUC9FWCI0QSQM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49070 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49075 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759829AbbA3Xgq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Jan 2015 18:36:46 -0500
+	with ESMTP id S1759829AbbA3Xgs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Jan 2015 18:36:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jan.kiszka@siemens.com, andi@firstfloor.org, ben@bwidawsk.net, bp@suse.de, fenghua.yu@intel.com, jason.wessel@windriver.com, tglx@linutronix.de, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: jan.kiszka@siemens.com, andi@firstfloor.org, ben@bwidawsk.net, bp@suse.de, jason.wessel@windriver.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/gdb: add internal helper and convenience function to retrieve thread_info
+     Subject: scripts/gdb: add get_gdbserver_type helper
 has been added to the -mm tree.  Its filename is
-     scripts-gdb-add-internal-helper-and-convenience-function-to-retrieve-thread_info.patch
+     scripts-gdb-add-get_gdbserver_type-helper.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-gdb-add-internal-helper-and-convenience-function-to-retrieve-thread_info.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/scripts-gdb-add-get_gdbserver_type-helper.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-gdb-add-internal-helper-and-convenience-function-to-retrieve-thread_info.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-gdb-add-get_gdbserver_type-helper.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,17 +40,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jan Kiszka <jan.kiszka@siemens.com>
-Subject: scripts/gdb: add internal helper and convenience function to retrieve thread_info
+Subject: scripts/gdb: add get_gdbserver_type helper
 
-Add the internal helper get_thread_info that calculates the thread_info
-from a given task variable.  Also export this service as a convenience
-function.
-
-Note: ia64 version is untested.
+This helper probes the type of the gdb server.  Supported are QEMU and
+KGDB so far.  Knowledge about the gdb server is required e.g.  to retrieve
+the current CPU or current task.
 
 Signed-off-by: Jan Kiszka <jan.kiszka@siemens.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Jason Wessel <jason.wessel@windriver.com>
 Cc: Andi Kleen <andi@firstfloor.org>
@@ -59,51 +55,51 @@ Cc: Borislav Petkov <bp@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/tasks.py |   35 +++++++++++++++++++++++++++++++++++
+ scripts/gdb/linux/utils.py |   35 +++++++++++++++++++++++++++++++++++
  1 file changed, 35 insertions(+)
 
-diff -puN scripts/gdb/linux/tasks.py~scripts-gdb-add-internal-helper-and-convenience-function-to-retrieve-thread_info scripts/gdb/linux/tasks.py
---- a/scripts/gdb/linux/tasks.py~scripts-gdb-add-internal-helper-and-convenience-function-to-retrieve-thread_info
-+++ a/scripts/gdb/linux/tasks.py
-@@ -71,3 +71,38 @@ return that task_struct variable which P
- 
- 
- LxTaskByPidFunc()
+diff -puN scripts/gdb/linux/utils.py~scripts-gdb-add-get_gdbserver_type-helper scripts/gdb/linux/utils.py
+--- a/scripts/gdb/linux/utils.py~scripts-gdb-add-get_gdbserver_type-helper
++++ a/scripts/gdb/linux/utils.py
+@@ -119,3 +119,38 @@ def is_target_arch(arch):
+         if target_arch is None:
+             target_arch = gdb.execute("show architecture", to_string=True)
+         return arch in target_arch
 +
 +
-+thread_info_type = utils.CachedType("struct thread_info")
-+
-+ia64_task_size = None
-+
-+
-+def get_thread_info(task):
-+    global thread_info_type
-+    thread_info_ptr_type = thread_info_type.get_type().pointer()
-+    if utils.is_target_arch("ia64"):
-+        global ia64_task_size
-+        if ia64_task_size is None:
-+            ia64_task_size = gdb.parse_and_eval("sizeof(struct task_struct)")
-+        thread_info_addr = task.address + ia64_task_size
-+        thread_info = thread_info_addr.cast(thread_info_ptr_type)
-+    else:
-+        thread_info = task['stack'].cast(thread_info_ptr_type)
-+    return thread_info.dereference()
++GDBSERVER_QEMU = 0
++GDBSERVER_KGDB = 1
++gdbserver_type = None
 +
 +
-+class LxThreadInfoFunc (gdb.Function):
-+    """Calculate Linux thread_info from task variable.
++def get_gdbserver_type():
++    def exit_handler(event):
++        global gdbserver_type
++        gdbserver_type = None
++        gdb.events.exited.disconnect(exit_handler)
 +
-+$lx_thread_info(TASK): Given TASK, return the corresponding thread_info
-+variable."""
++    def probe_qemu():
++        try:
++            return gdb.execute("monitor info version", to_string=True) != ""
++        except:
++            return False
 +
-+    def __init__(self):
-+        super(LxThreadInfoFunc, self).__init__("lx_thread_info")
++    def probe_kgdb():
++        try:
++            thread_info = gdb.execute("info thread 2", to_string=True)
++            return "shadowCPU0" in thread_info
++        except:
++            return False
 +
-+    def invoke(self, task):
-+        return get_thread_info(task)
-+
-+
-+LxThreadInfoFunc()
++    global gdbserver_type
++    if gdbserver_type is None:
++        if probe_qemu():
++            gdbserver_type = GDBSERVER_QEMU
++        elif probe_kgdb():
++            gdbserver_type = GDBSERVER_KGDB
++        if not gdbserver_type is None and hasattr(gdb, 'events'):
++            gdb.events.exited.connect(exit_handler)
++    return gdbserver_type
 _
 
 Patches currently in -mm which might be from jan.kiszka@siemens.com are
