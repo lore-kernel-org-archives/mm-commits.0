@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-gdb-define-maintainer.patch added to -mm tree
-Date: Fri, 30 Jan 2015 15:37:09 -0800
-Message-ID: <54cc15a5.a8hdHvqHO5wNwjS1%akpm@linux-foundation.org>
+Subject: + checkpatch-add-strict-test-for-spaces-around-arithmetic.patch
+ added to -mm tree
+Date: Fri, 30 Jan 2015 15:40:13 -0800
+Message-ID: <54cc165d.cXTPmQ0fZPQCVOgc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49167 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49187 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751826AbbA3XhK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Jan 2015 18:37:10 -0500
+	with ESMTP id S1750842AbbA3XkO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Jan 2015 18:40:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jan.kiszka@siemens.com, andi@firstfloor.org, ben@bwidawsk.net, bp@suse.de, jason.wessel@windriver.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/gdb: define maintainer
+     Subject: checkpatch: add --strict test for spaces around arithmetic
 has been added to the -mm tree.  Its filename is
-     scripts-gdb-define-maintainer.patch
+     checkpatch-add-strict-test-for-spaces-around-arithmetic.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-gdb-define-maintainer.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-strict-test-for-spaces-around-arithmetic.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-gdb-define-maintainer.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-strict-test-for-spaces-around-arithmetic.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,69 +39,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jan Kiszka <jan.kiszka@siemens.com>
-Subject: scripts/gdb: define maintainer
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: add --strict test for spaces around arithmetic
 
-I'm proposing myself for keeping an eye on these scripts and integrating
-contributions.
+Some prefer code to have spaces around arithmetic so instead of:
+	a = b*c+d;
+suggest
+	a = b * c + d;
 
-Signed-off-by: Jan Kiszka <jan.kiszka@siemens.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Jason Wessel <jason.wessel@windriver.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Ben Widawsky <ben@bwidawsk.net>
-Cc: Borislav Petkov <bp@suse.de>
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    5 +++++
- 1 file changed, 5 insertions(+)
+ scripts/checkpatch.pl |   17 ++++++++++++++++-
+ 1 file changed, 16 insertions(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~scripts-gdb-define-maintainer MAINTAINERS
---- a/MAINTAINERS~scripts-gdb-define-maintainer
-+++ a/MAINTAINERS
-@@ -4164,6 +4164,11 @@ W:	http://www.icp-vortex.com/
- S:	Supported
- F:	drivers/scsi/gdt*
- 
-+GDB KERNEL DEBUGGING HELPER SCRIPTS
-+M:	Jan Kiszka <jan.kiszka@siemens.com>
-+S:	Supported
-+F:	scripts/gdb/
-+
- GEMTEK FM RADIO RECEIVER DRIVER
- M:	Hans Verkuil <hverkuil@xs4all.nl>
- L:	linux-media@vger.kernel.org
+diff -puN scripts/checkpatch.pl~checkpatch-add-strict-test-for-spaces-around-arithmetic scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-strict-test-for-spaces-around-arithmetic
++++ a/scripts/checkpatch.pl
+@@ -3689,7 +3689,22 @@ sub process {
+ 					 $op eq '*' or $op eq '/' or
+ 					 $op eq '%')
+ 				{
+-					if ($ctx =~ /Wx[^WCE]|[^WCE]xW/) {
++					if ($check) {
++						if (defined $fix_elements[$n + 2] && $ctx !~ /WxW/) {
++							if (CHK("SPACING",
++								"spaces preferred around that '$op' $at\n" . $hereptr)) {
++								$good = rtrim($fix_elements[$n]) . " " . trim($fix_elements[$n + 1]) . " ";
++								$fix_elements[$n + 2] =~ s/^\s+//;
++								$line_fixed = 1;
++							}
++						} elsif (!defined $fix_elements[$n + 2] && $ctx !~ /Wx[OE]/) {
++							if (CHK("SPACING",
++								"space preferred before that '$op' $at\n" . $hereptr)) {
++								$good = rtrim($fix_elements[$n]) . " " . trim($fix_elements[$n + 1]);
++								$line_fixed = 1;
++							}
++						}
++					} elsif ($ctx =~ /Wx[^WCE]|[^WCE]xW/) {
+ 						if (ERROR("SPACING",
+ 							  "need consistent spacing around '$op' $at\n" . $hereptr)) {
+ 							$good = rtrim($fix_elements[$n]) . " " . trim($fix_elements[$n + 1]) . " ";
 _
 
-Patches currently in -mm which might be from jan.kiszka@siemens.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-scripts-gdb-add-infrastructure.patch
-scripts-gdb-add-cache-for-type-objects.patch
-scripts-gdb-add-container_of-helper-and-convenience-function.patch
-scripts-gdb-add-module-iteration-class.patch
-scripts-gdb-add-lx-symbols-command.patch
-module-do-not-inline-do_init_module.patch
-scripts-gdb-add-automatic-symbol-reloading-on-module-insertion.patch
-scripts-gdb-add-internal-helper-and-convenience-function-to-look-up-a-module.patch
-scripts-gdb-add-get_target_endianness-helper.patch
-scripts-gdb-add-read_u16-32-64-helpers.patch
-scripts-gdb-add-lx-dmesg-command.patch
-scripts-gdb-add-task-iteration-class.patch
-scripts-gdb-add-helper-and-convenience-function-to-look-up-tasks.patch
-scripts-gdb-add-is_target_arch-helper.patch
-scripts-gdb-add-internal-helper-and-convenience-function-to-retrieve-thread_info.patch
-scripts-gdb-add-get_gdbserver_type-helper.patch
-scripts-gdb-add-internal-helper-and-convenience-function-for-per-cpu-lookup.patch
-scripts-gdb-add-lx_current-convenience-function.patch
-scripts-gdb-add-class-to-iterate-over-cpu-masks.patch
-scripts-gdb-add-lx-lsmod-command.patch
-scripts-gdb-add-basic-documentation.patch
-scripts-gdb-port-to-python3-gdb77.patch
-scripts-gdb-ignore-byte-compiled-python-files.patch
-scripts-gdb-use-a-generator-instead-of-iterator-for-task-list.patch
-scripts-gdb-convert-modulelist-to-generator-function.patch
-scripts-gdb-convert-cpulist-to-generator-function.patch
-scripts-gdb-define-maintainer.patch
-scripts-gdb-disable-pagination-while-printing-from-breakpoint-handler.patch
+printk-correct-timeout-comment-neaten-module_parm_desc.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-emit-an-error-when-using-predefined-timestamp-macros.patch
+checkpatch-improve-octal-permissions-tests.patch
+checkpatch-ignore-__pure-attribute.patch
+checkpatch-fix-unnecessary_kern_level-false-positive.patch
+checkpatch-add-check-for-keyword-boolean-in-kconfig-definitions.patch
+checkpatch-allow-comments-in-macros-tested-for-single-statements.patch
+checkpatch-update-git-commit-message.patch
+checkpatch-add-likely-unlikely-comparison-misuse-test.patch
+checkpatch-add-ability-to-coalesce-commit-descriptions-on-multiple-lines.patch
+checkpatch-add-types-for-other-os-typedefs.patch
+checkpatch-add-ability-to-fix-unnecessary-blank-lines-around-braces.patch
+checkpatch-add-strict-test-for-spaces-around-arithmetic.patch
+fs-ufs-superc-remove-unnecessary-casting.patch
+linux-next.patch
 
