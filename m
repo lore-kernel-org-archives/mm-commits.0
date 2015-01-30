@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + module-do-not-inline-do_init_module.patch added to -mm tree
-Date: Fri, 30 Jan 2015 15:36:27 -0800
-Message-ID: <54cc157b.EZbvxr0xyPapcmKe%akpm@linux-foundation.org>
+Subject: + scripts-gdb-add-module-iteration-class.patch added to -mm tree
+Date: Fri, 30 Jan 2015 15:36:23 -0800
+Message-ID: <54cc1577.IObN8Ndic4MeUFiy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49004 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48990 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754436AbbA3Xg2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Jan 2015 18:36:28 -0500
+	with ESMTP id S1753975AbbA3XgY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Jan 2015 18:36:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jan.kiszka@siemens.com, andi@firstfloor.org, ben@bwidawsk.net, bp@suse.de, jason.wessel@windriver.com, rusty@rustcorp.com.au, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: jan.kiszka@siemens.com, andi@firstfloor.org, ben@bwidawsk.net, bp@suse.de, jason.wessel@windriver.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/module.c: do not inline do_init_module()
+     Subject: scripts/gdb: add module iteration class
 has been added to the -mm tree.  Its filename is
-     module-do-not-inline-do_init_module.patch
+     scripts-gdb-add-module-iteration-class.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/module-do-not-inline-do_init_module.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/scripts-gdb-add-module-iteration-class.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/module-do-not-inline-do_init_module.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-gdb-add-module-iteration-class.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,13 +39,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jan Kiszka <jan.kiszka@siemens.com>
-Subject: kernel/module.c: do not inline do_init_module()
+Subject: scripts/gdb: add module iteration class
 
-This provides a reliable breakpoint target, required for automatic symbol
-loading via the gdb helper command 'lx-symbols'.
+Will soon be used for loading symbols, printing global variables or
+listing modules.
 
 Signed-off-by: Jan Kiszka <jan.kiszka@siemens.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Jason Wessel <jason.wessel@windriver.com>
 Cc: Andi Kleen <andi@firstfloor.org>
@@ -54,28 +53,52 @@ Cc: Borislav Petkov <bp@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/module.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ scripts/gdb/linux/modules.py |   39 +++++++++++++++++++++++++++++++++
+ 1 file changed, 39 insertions(+)
 
-diff -puN kernel/module.c~module-do-not-inline-do_init_module kernel/module.c
---- a/kernel/module.c~module-do-not-inline-do_init_module
-+++ a/kernel/module.c
-@@ -3011,8 +3011,13 @@ static void do_free_init(struct rcu_head
- 	kfree(m);
- }
- 
--/* This is where the real work happens */
--static int do_init_module(struct module *mod)
-+/*
-+ * This is where the real work happens.
-+ *
-+ * Keep it uninlined to provide a reliable breakpoint target, e.g. for the gdb
-+ * helper command 'lx-symbols'.
-+ */
-+static noinline int do_init_module(struct module *mod)
- {
- 	int ret = 0;
- 	struct mod_initfree *freeinit;
+diff -puN /dev/null scripts/gdb/linux/modules.py
+--- /dev/null
++++ a/scripts/gdb/linux/modules.py
+@@ -0,0 +1,39 @@
++#
++# gdb helper commands and functions for Linux kernel debugging
++#
++#  module tools
++#
++# Copyright (c) Siemens AG, 2013
++#
++# Authors:
++#  Jan Kiszka <jan.kiszka@siemens.com>
++#
++# This work is licensed under the terms of the GNU GPL version 2.
++#
++
++import gdb
++
++from linux import utils
++
++
++module_type = utils.CachedType("struct module")
++
++
++class ModuleList:
++    def __init__(self):
++        global module_type
++        self.module_ptr_type = module_type.get_type().pointer()
++        modules = gdb.parse_and_eval("modules")
++        self.curr_entry = modules['next']
++        self.end_of_list = modules.address
++
++    def __iter__(self):
++        return self
++
++    def next(self):
++        entry = self.curr_entry
++        if entry != self.end_of_list:
++            self.curr_entry = entry['next']
++            return utils.container_of(entry, self.module_ptr_type, "list")
++        else:
++            raise StopIteration
 _
 
 Patches currently in -mm which might be from jan.kiszka@siemens.com are
