@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-gdb-add-get_gdbserver_type-helper.patch added to -mm
- tree
-Date: Fri, 30 Jan 2015 15:36:47 -0800
-Message-ID: <54cc158f.o1pbUC9FWCI0QSQM%akpm@linux-foundation.org>
+Subject: + scripts-gdb-add-lx_current-convenience-function.patch added to
+ -mm tree
+Date: Fri, 30 Jan 2015 15:36:51 -0800
+Message-ID: <54cc1593.o0AU3wgMvTzBrY19%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49075 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49093 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759829AbbA3Xgs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Jan 2015 18:36:48 -0500
+	with ESMTP id S1760531AbbA3Xgw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Jan 2015 18:36:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jan.kiszka@siemens.com, andi@firstfloor.org, ben@bwidawsk.net, bp@suse.de, jason.wessel@windriver.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/gdb: add get_gdbserver_type helper
+     Subject: scripts/gdb: add lx_current convenience function
 has been added to the -mm tree.  Its filename is
-     scripts-gdb-add-get_gdbserver_type-helper.patch
+     scripts-gdb-add-lx_current-convenience-function.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-gdb-add-get_gdbserver_type-helper.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/scripts-gdb-add-lx_current-convenience-function.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-gdb-add-get_gdbserver_type-helper.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-gdb-add-lx_current-convenience-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,11 +40,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jan Kiszka <jan.kiszka@siemens.com>
-Subject: scripts/gdb: add get_gdbserver_type helper
+Subject: scripts/gdb: add lx_current convenience function
 
-This helper probes the type of the gdb server.  Supported are QEMU and
-KGDB so far.  Knowledge about the gdb server is required e.g.  to retrieve
-the current CPU or current task.
+This is a shorthand for *$lx_per_cpu("current_task"), i.e.  a convenience
+function to retrieve the currently running task of the active context.
 
 Signed-off-by: Jan Kiszka <jan.kiszka@siemens.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
@@ -55,51 +54,33 @@ Cc: Borislav Petkov <bp@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/utils.py |   35 +++++++++++++++++++++++++++++++++++
- 1 file changed, 35 insertions(+)
+ scripts/gdb/linux/cpus.py |   17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
-diff -puN scripts/gdb/linux/utils.py~scripts-gdb-add-get_gdbserver_type-helper scripts/gdb/linux/utils.py
---- a/scripts/gdb/linux/utils.py~scripts-gdb-add-get_gdbserver_type-helper
-+++ a/scripts/gdb/linux/utils.py
-@@ -119,3 +119,38 @@ def is_target_arch(arch):
-         if target_arch is None:
-             target_arch = gdb.execute("show architecture", to_string=True)
-         return arch in target_arch
+diff -puN scripts/gdb/linux/cpus.py~scripts-gdb-add-lx_current-convenience-function scripts/gdb/linux/cpus.py
+--- a/scripts/gdb/linux/cpus.py~scripts-gdb-add-lx_current-convenience-function
++++ a/scripts/gdb/linux/cpus.py
+@@ -66,3 +66,20 @@ Note that VAR has to be quoted as string
+ 
+ 
+ PerCpu()
 +
 +
-+GDBSERVER_QEMU = 0
-+GDBSERVER_KGDB = 1
-+gdbserver_type = None
++class LxCurrentFunc(gdb.Function):
++    """Return current task.
++
++$lx_current([CPU]): Return the per-cpu task variable for the given CPU
++number. If CPU is omitted, the CPU of the current context is used."""
++
++    def __init__(self):
++        super(LxCurrentFunc, self).__init__("lx_current")
++
++    def invoke(self, cpu=-1):
++        var_ptr = gdb.parse_and_eval("&current_task")
++        return per_cpu(var_ptr, cpu).dereference()
 +
 +
-+def get_gdbserver_type():
-+    def exit_handler(event):
-+        global gdbserver_type
-+        gdbserver_type = None
-+        gdb.events.exited.disconnect(exit_handler)
-+
-+    def probe_qemu():
-+        try:
-+            return gdb.execute("monitor info version", to_string=True) != ""
-+        except:
-+            return False
-+
-+    def probe_kgdb():
-+        try:
-+            thread_info = gdb.execute("info thread 2", to_string=True)
-+            return "shadowCPU0" in thread_info
-+        except:
-+            return False
-+
-+    global gdbserver_type
-+    if gdbserver_type is None:
-+        if probe_qemu():
-+            gdbserver_type = GDBSERVER_QEMU
-+        elif probe_kgdb():
-+            gdbserver_type = GDBSERVER_KGDB
-+        if not gdbserver_type is None and hasattr(gdb, 'events'):
-+            gdb.events.exited.connect(exit_handler)
-+    return gdbserver_type
++LxCurrentFunc()
 _
 
 Patches currently in -mm which might be from jan.kiszka@siemens.com are
