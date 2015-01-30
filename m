@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- scripts-gdb-add-container_of-helper-and-convenience-function.patch added to -mm tree
-Date: Fri, 30 Jan 2015 15:36:21 -0800
-Message-ID: <54cc1575.1KKaItgL0rQNM9Kl%akpm@linux-foundation.org>
+ scripts-gdb-add-internal-helper-and-convenience-function-to-look-up-a-module.patch added to -mm tree
+Date: Fri, 30 Jan 2015 15:36:31 -0800
+Message-ID: <54cc157f./2f8+1XUed24o7gz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48983 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49019 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752509AbbA3XgW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Jan 2015 18:36:22 -0500
+	with ESMTP id S1754578AbbA3Xgc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Jan 2015 18:36:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jan.kiszka@siemens.com, andi@firstfloor.org, ben@bwidawsk.net, bp@suse.de, jason.wessel@windriver.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/gdb: add container_of helper and convenience function
+     Subject: scripts/gdb: add internal helper and convenience function to look up a module
 has been added to the -mm tree.  Its filename is
-     scripts-gdb-add-container_of-helper-and-convenience-function.patch
+     scripts-gdb-add-internal-helper-and-convenience-function-to-look-up-a-module.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-gdb-add-container_of-helper-and-convenience-function.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/scripts-gdb-add-internal-helper-and-convenience-function-to-look-up-a-module.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-gdb-add-container_of-helper-and-convenience-function.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-gdb-add-internal-helper-and-convenience-function-to-look-up-a-module.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,12 +40,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jan Kiszka <jan.kiszka@siemens.com>
-Subject: scripts/gdb: add container_of helper and convenience function
+Subject: scripts/gdb: add internal helper and convenience function to look up a module
 
-Provide an internal helper with container_of semantics.  As type lookups
-are very slow in gdb-python and we need a type "long" for this, cache the
-reference to this type object.  Then export the helper also as a
-convenience function form use at the gdb command line.
+Add the internal helper get_module_by_name to obtain the module structure
+corresponding to the given name.  Also export this service as a
+convenience function.
 
 Signed-off-by: Jan Kiszka <jan.kiszka@siemens.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
@@ -56,61 +55,53 @@ Cc: Borislav Petkov <bp@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/utils.py |   35 +++++++++++++++++++++++++++++++++++
- scripts/gdb/vmlinux-gdb.py |    2 ++
- 2 files changed, 37 insertions(+)
+ scripts/gdb/linux/modules.py |   28 ++++++++++++++++++++++++++++
+ scripts/gdb/vmlinux-gdb.py   |    1 +
+ 2 files changed, 29 insertions(+)
 
-diff -puN scripts/gdb/linux/utils.py~scripts-gdb-add-container_of-helper-and-convenience-function scripts/gdb/linux/utils.py
---- a/scripts/gdb/linux/utils.py~scripts-gdb-add-container_of-helper-and-convenience-function
-+++ a/scripts/gdb/linux/utils.py
-@@ -32,3 +32,38 @@ class CachedType:
-             if hasattr(gdb, 'events') and hasattr(gdb.events, 'new_objfile'):
-                 gdb.events.new_objfile.connect(self._new_objfile_handler)
-         return self._type
+diff -puN scripts/gdb/linux/modules.py~scripts-gdb-add-internal-helper-and-convenience-function-to-look-up-a-module scripts/gdb/linux/modules.py
+--- a/scripts/gdb/linux/modules.py~scripts-gdb-add-internal-helper-and-convenience-function-to-look-up-a-module
++++ a/scripts/gdb/linux/modules.py
+@@ -37,3 +37,31 @@ class ModuleList:
+             return utils.container_of(entry, self.module_ptr_type, "list")
+         else:
+             raise StopIteration
 +
 +
-+long_type = CachedType("long")
++def find_module_by_name(name):
++    for module in ModuleList():
++        if module['name'].string() == name:
++            return module
++    return None
 +
 +
-+def get_long_type():
-+    global long_type
-+    return long_type.get_type()
++class LxModule(gdb.Function):
++    """Find module by name and return the module variable.
 +
-+
-+def offset_of(typeobj, field):
-+    element = gdb.Value(0).cast(typeobj)
-+    return int(str(element[field].address).split()[0], 16)
-+
-+
-+def container_of(ptr, typeobj, member):
-+    return (ptr.cast(get_long_type()) -
-+            offset_of(typeobj, member)).cast(typeobj)
-+
-+
-+class ContainerOf(gdb.Function):
-+    """Return pointer to containing data structure.
-+
-+$container_of(PTR, "TYPE", "ELEMENT"): Given PTR, return a pointer to the
-+data structure of the type TYPE in which PTR is the address of ELEMENT.
-+Note that TYPE and ELEMENT have to be quoted as strings."""
++$lx_module("MODULE"): Given the name MODULE, iterate over all loaded modules
++of the target and return that module variable which MODULE matches."""
 +
 +    def __init__(self):
-+        super(ContainerOf, self).__init__("container_of")
++        super(LxModule, self).__init__("lx_module")
 +
-+    def invoke(self, ptr, typename, elementname):
-+        return container_of(ptr, gdb.lookup_type(typename.string()).pointer(),
-+                            elementname.string())
++    def invoke(self, mod_name):
++        mod_name = mod_name.string()
++        module = find_module_by_name(mod_name)
++        if module:
++            return module.dereference()
++        else:
++            raise gdb.GdbError("Unable to find MODULE " + mod_name)
 +
-+ContainerOf()
-diff -puN scripts/gdb/vmlinux-gdb.py~scripts-gdb-add-container_of-helper-and-convenience-function scripts/gdb/vmlinux-gdb.py
---- a/scripts/gdb/vmlinux-gdb.py~scripts-gdb-add-container_of-helper-and-convenience-function
++
++LxModule()
+diff -puN scripts/gdb/vmlinux-gdb.py~scripts-gdb-add-internal-helper-and-convenience-function-to-look-up-a-module scripts/gdb/vmlinux-gdb.py
+--- a/scripts/gdb/vmlinux-gdb.py~scripts-gdb-add-internal-helper-and-convenience-function-to-look-up-a-module
 +++ a/scripts/gdb/vmlinux-gdb.py
-@@ -21,3 +21,5 @@ try:
- except:
-     gdb.write("NOTE: gdb 7.2 or later required for Linux helper scripts to "
-               "work.\n")
-+else:
-+    import linux.utils
+@@ -24,3 +24,4 @@ except:
+ else:
+     import linux.utils
+     import linux.symbols
++    import linux.modules
 _
 
 Patches currently in -mm which might be from jan.kiszka@siemens.com are
