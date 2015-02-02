@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- powerpc-add-running_clock-for-powerpc-to-prevent-spurious-softlockup-warnings-checkpatch-fixes.patch added to -mm tree
-Date: Mon, 02 Feb 2015 15:10:04 -0800
-Message-ID: <54d003cc.IiHaV9nXoEBgAIgK%akpm@linux-foundation.org>
+Subject: + lib-kconfig-fix-up-have_arch_bitreverse-help-text.patch added
+ to -mm tree
+Date: Mon, 02 Feb 2015 15:18:29 -0800
+Message-ID: <54d005c5.zJDiNHmCZ2T2MQKk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35376 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35396 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933622AbbBBXKF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Feb 2015 18:10:05 -0500
+	with ESMTP id S1752203AbbBBXSa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Feb 2015 18:18:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cyrilbur@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, linux@arm.linux.org.uk, yalin.wang@sonymobile.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc-add-running_clock-for-powerpc-to-prevent-spurious-softlockup-warnings-checkpatch-fixes
+     Subject: lib/Kconfig: fix up HAVE_ARCH_BITREVERSE help text
 has been added to the -mm tree.  Its filename is
-     powerpc-add-running_clock-for-powerpc-to-prevent-spurious-softlockup-warnings-checkpatch-fixes.patch
+     lib-kconfig-fix-up-have_arch_bitreverse-help-text.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-add-running_clock-for-powerpc-to-prevent-spurious-softlockup-warnings-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-kconfig-fix-up-have_arch_bitreverse-help-text.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-add-running_clock-for-powerpc-to-prevent-spurious-softlockup-warnings-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-kconfig-fix-up-have_arch_bitreverse-help-text.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,38 +40,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: powerpc-add-running_clock-for-powerpc-to-prevent-spurious-softlockup-warnings-checkpatch-fixes
+Subject: lib/Kconfig: fix up HAVE_ARCH_BITREVERSE help text
 
-fix >80 column mess
-
-Cc: Cyril Bur <cyrilbur@gmail.com>
+Cc: Yalin Wang <yalin.wang@sonymobile.com>
+Cc: Russell King <linux@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/time.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ lib/Kconfig |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN arch/powerpc/kernel/time.c~powerpc-add-running_clock-for-powerpc-to-prevent-spurious-softlockup-warnings-checkpatch-fixes arch/powerpc/kernel/time.c
---- a/arch/powerpc/kernel/time.c~powerpc-add-running_clock-for-powerpc-to-prevent-spurious-softlockup-warnings-checkpatch-fixes
-+++ a/arch/powerpc/kernel/time.c
-@@ -632,12 +632,12 @@ unsigned long long sched_clock(void)
- unsigned long long running_clock(void)
- {
- 	/*
--	 * Don't read the VTB as a host since KVM does not switch in host timebase
--	 * into the VTB when it takes a guest off the CPU, reading the VTB would
--	 * result in reading 'last switched out' guest VTB.
-+	 * Don't read the VTB as a host since KVM does not switch in host
-+	 * timebase into the VTB when it takes a guest off the CPU, reading the
-+	 * VTB would result in reading 'last switched out' guest VTB.
- 	 *
--	 * Host kernels are often compiled with CONFIG_PSERIES checked, it would be
--	 * unsafe to rely only on the #ifdef above.
-+	 * Host kernels are often compiled with CONFIG_PSERIES checked, it would
-+	 * be unsafe to rely only on the #ifdef above.
- 	 */
- 	if (firmware_has_feature(FW_FEATURE_LPAR) &&
- 	    cpu_has_feature(CPU_FTR_ARCH_207S))
+diff -puN lib/Kconfig~lib-kconfig-fix-up-have_arch_bitreverse-help-text lib/Kconfig
+--- a/lib/Kconfig~lib-kconfig-fix-up-have_arch_bitreverse-help-text
++++ a/lib/Kconfig
+@@ -18,9 +18,8 @@ config HAVE_ARCH_BITREVERSE
+ 	default n
+ 	depends on BITREVERSE
+ 	help
+-	  This option provides an config for the architecture which have instruction
+-	  can do bitreverse operation, we use the hardware instruction if the architecture
+-	  have this capability.
++	  This option enables the use of hardware bit-reversal instructions on
++	  architectures which support such operations.
+ 
+ config RATIONAL
+ 	bool
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -122,6 +115,7 @@ dax-add-dax_zero_page_range-fix.patch
 ext4-add-dax-functionality-fix.patch
 ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
 ocfs2-implement-ocfs2_direct_io_write-fix.patch
+lib-kconfig-fix-up-have_arch_bitreverse-help-text.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
 journal_add_journal_head-debug.patch
 journal_add_journal_head-debug-fix.patch
