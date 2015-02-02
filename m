@@ -1,212 +1,172 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- taint-on-lockdep-warning-with-new-taint_lockdep.patch removed from -mm tree
-Date: Mon, 02 Feb 2015 13:16:53 -0800
-Message-ID: <54cfe945./Gn0YZPfSlRQjh7h%akpm@linux-foundation.org>
+Subject: + memcg-shmem-fix-shmem-migration-to-use-lrucare.patch added to
+ -mm tree
+Date: Mon, 02 Feb 2015 13:50:37 -0800
+Message-ID: <54cff12d./iQN7VxjowHp/0MQ%akpm__30674.3183559322$1422913849$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34163 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34590 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964781AbbBBVQy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Feb 2015 16:16:54 -0500
+	with ESMTP id S1754564AbbBBVui (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Feb 2015 16:50:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sp@datera.io, mingo@redhat.com, peterz@infradead.org, sp@daterainc.com, mm-commits@vger.kernel.org
+To: mhocko@suse.cz, airlied@gmail.com, chris@chris-wilson.co.uk, hughd@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lockdep: taint on lockdep warning with new TAINT_LOCKDEP
-has been removed from the -mm tree.  Its filename was
-     taint-on-lockdep-warning-with-new-taint_lockdep.patch
+     Subject: memcg, shmem: fix shmem migration to use lrucare
+has been added to the -mm tree.  Its filename is
+     memcg-shmem-fix-shmem-migration-to-use-lrucare.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-shmem-fix-shmem-migration-to-use-lrucare.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-shmem-fix-shmem-migration-to-use-lrucare.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Slava Pestov <sp@datera.io>
-Subject: lockdep: taint on lockdep warning with new TAINT_LOCKDEP
+From: Michal Hocko <mhocko@suse.cz>
+Subject: memcg, shmem: fix shmem migration to use lrucare
 
-This helps when writing automated tests, since they can fail the test if
-the kernel was tainted instead of manually scraping dmesg for interesting
-strings.
+It has been reported that 965GM might trigger
 
-Signed-off-by: Slava Pestov <sp@daterainc.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Ingo Molnar <mingo@redhat.com>
+VM_BUG_ON_PAGE(!lrucare && PageLRU(oldpage), oldpage)
+
+in mem_cgroup_migrate when shmem wants to replace a swap cache page
+because of shmem_should_replace_page (the page is allocated from an
+inappropriate zone).  shmem_replace_page expects that the oldpage is not
+on LRU list and calls mem_cgroup_migrate without lrucare.  This is
+obviously incorrect because swapcache pages might be on the LRU list (e.g.
+ swapin readahead page).
+
+Fix this by enabling lrucare for the migration in shmem_replace_page. 
+Also clarify that lrucare should be used even if one of the pages might be
+on LRU list.
+
+The BUG_ON will trigger only when CONFIG_DEBUG_VM is enabled but even
+without that the migration code might leave the old page on an
+inappropriate memcg' LRU which is not that critical because the page would
+get removed with its last reference but it is still confusing.
+
+Fixes: 0a31bc97c80c ("mm: memcontrol: rewrite uncharge API")
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Reported-by: Chris Wilson <chris@chris-wilson.co.uk>
+Reported-by: Dave Airlie <airlied@gmail.com>
+Acked-by: Hugh Dickins <hughd@google.com>
+Cc: <stable@vger.kernel.org>	[3.17+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h   |    1 +
- kernel/locking/lockdep.c |   31 +++++++++++++++++++++++++++++++
- kernel/panic.c           |    2 ++
- 3 files changed, 34 insertions(+)
+ mm/memcontrol.c |    2 +-
+ mm/shmem.c      |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/kernel.h~taint-on-lockdep-warning-with-new-taint_lockdep include/linux/kernel.h
---- a/include/linux/kernel.h~taint-on-lockdep-warning-with-new-taint_lockdep
-+++ a/include/linux/kernel.h
-@@ -471,6 +471,7 @@ extern enum system_states {
- #define TAINT_OOT_MODULE		12
- #define TAINT_UNSIGNED_MODULE		13
- #define TAINT_SOFTLOCKUP		14
-+#define TAINT_LOCKDEP			15
- 
- extern const char hex_asc[];
- #define hex_asc_lo(x)	hex_asc[((x) & 0x0f)]
-diff -puN kernel/locking/lockdep.c~taint-on-lockdep-warning-with-new-taint_lockdep kernel/locking/lockdep.c
---- a/kernel/locking/lockdep.c~taint-on-lockdep-warning-with-new-taint_lockdep
-+++ a/kernel/locking/lockdep.c
-@@ -382,6 +382,8 @@ static unsigned long stack_trace[MAX_STA
- 
- static void print_lockdep_off(const char *bug_msg)
- {
-+	add_taint(TAINT_LOCKDEP, LOCKDEP_NOW_UNRELIABLE);
-+
- 	printk(KERN_DEBUG "%s\n", bug_msg);
- 	printk(KERN_DEBUG "turning off the locking correctness validator.\n");
- #ifdef CONFIG_LOCK_STAT
-@@ -739,6 +741,9 @@ register_lock_class(struct lockdep_map *
-  	 */
- 	if (!static_obj(lock->key)) {
- 		debug_locks_off();
-+
-+		add_taint(TAINT_LOCKDEP, LOCKDEP_NOW_UNRELIABLE);
-+
- 		printk("INFO: trying to register non-static key.\n");
- 		printk("the code is fine but needs lockdep annotation.\n");
- 		printk("turning off the locking correctness validator.\n");
-@@ -1190,6 +1195,8 @@ static noinline int print_circular_bug(s
- 	if (!debug_locks_off_graph_unlock() || debug_locks_silent)
- 		return 0;
- 
-+	add_taint(TAINT_LOCKDEP, LOCKDEP_NOW_UNRELIABLE);
-+
- 	if (!save_trace(&this->trace))
- 		return 0;
- 
-@@ -1492,6 +1499,8 @@ print_bad_irq_dependency(struct task_str
- 	if (!debug_locks_off_graph_unlock() || debug_locks_silent)
- 		return 0;
- 
-+	add_taint(TAINT_LOCKDEP, LOCKDEP_NOW_UNRELIABLE);
-+
- 	printk("\n");
- 	printk("======================================================\n");
- 	printk("[ INFO: %s-safe -> %s-unsafe lock order detected ]\n",
-@@ -1722,6 +1731,8 @@ print_deadlock_bug(struct task_struct *c
- 	if (!debug_locks_off_graph_unlock() || debug_locks_silent)
- 		return 0;
- 
-+	add_taint(TAINT_LOCKDEP, LOCKDEP_NOW_UNRELIABLE);
-+
- 	printk("\n");
- 	printk("=============================================\n");
- 	printk("[ INFO: possible recursive locking detected ]\n");
-@@ -2226,6 +2237,8 @@ print_usage_bug(struct task_struct *curr
- 	if (!debug_locks_off_graph_unlock() || debug_locks_silent)
- 		return 0;
- 
-+	add_taint(TAINT_LOCKDEP, LOCKDEP_NOW_UNRELIABLE);
-+
- 	printk("\n");
- 	printk("=================================\n");
- 	printk("[ INFO: inconsistent lock state ]\n");
-@@ -2291,6 +2304,8 @@ print_irq_inversion_bug(struct task_stru
- 	if (!debug_locks_off_graph_unlock() || debug_locks_silent)
- 		return 0;
- 
-+	add_taint(TAINT_LOCKDEP, LOCKDEP_NOW_UNRELIABLE);
-+
- 	printk("\n");
- 	printk("=========================================================\n");
- 	printk("[ INFO: possible irq lock inversion dependency detected ]\n");
-@@ -3014,6 +3029,8 @@ print_lock_nested_lock_not_held(struct t
- 	if (debug_locks_silent)
- 		return 0;
- 
-+	add_taint(TAINT_LOCKDEP, LOCKDEP_NOW_UNRELIABLE);
-+
- 	printk("\n");
- 	printk("==================================\n");
- 	printk("[ BUG: Nested lock was not taken ]\n");
-@@ -3219,6 +3236,8 @@ print_unlock_imbalance_bug(struct task_s
- 	if (debug_locks_silent)
- 		return 0;
- 
-+	add_taint(TAINT_LOCKDEP, LOCKDEP_NOW_UNRELIABLE);
-+
- 	printk("\n");
- 	printk("=====================================\n");
- 	printk("[ BUG: bad unlock balance detected! ]\n");
-@@ -3664,6 +3683,8 @@ print_lock_contention_bug(struct task_st
- 	if (debug_locks_silent)
- 		return 0;
- 
-+	add_taint(TAINT_LOCKDEP, LOCKDEP_NOW_UNRELIABLE);
-+
- 	printk("\n");
- 	printk("=================================\n");
- 	printk("[ BUG: bad contention detected! ]\n");
-@@ -4040,6 +4061,8 @@ print_freed_lock_bug(struct task_struct
- 	if (debug_locks_silent)
- 		return;
- 
-+	add_taint(TAINT_LOCKDEP, LOCKDEP_NOW_UNRELIABLE);
-+
- 	printk("\n");
- 	printk("=========================\n");
- 	printk("[ BUG: held lock freed! ]\n");
-@@ -4098,6 +4121,8 @@ static void print_held_locks_bug(void)
- 	if (debug_locks_silent)
- 		return;
- 
-+	add_taint(TAINT_LOCKDEP, LOCKDEP_NOW_UNRELIABLE);
-+
- 	printk("\n");
- 	printk("=====================================\n");
- 	printk("[ BUG: %s/%d still has locks held! ]\n",
-@@ -4197,6 +4222,9 @@ asmlinkage __visible void lockdep_sys_ex
- 	if (unlikely(curr->lockdep_depth)) {
- 		if (!debug_locks_off())
- 			return;
-+
-+		add_taint(TAINT_LOCKDEP, LOCKDEP_NOW_UNRELIABLE);
-+
- 		printk("\n");
- 		printk("================================================\n");
- 		printk("[ BUG: lock held when returning to user space! ]\n");
-@@ -4216,6 +4244,9 @@ void lockdep_rcu_suspicious(const char *
- 	if (!debug_locks_off())
- 		return;
- #endif /* #ifdef CONFIG_PROVE_RCU_REPEATEDLY */
-+
-+	add_taint(TAINT_LOCKDEP, LOCKDEP_NOW_UNRELIABLE);
-+
- 	/* Note: the following can be executed concurrently, so be careful. */
- 	printk("\n");
- 	printk("===============================\n");
-diff -puN kernel/panic.c~taint-on-lockdep-warning-with-new-taint_lockdep kernel/panic.c
---- a/kernel/panic.c~taint-on-lockdep-warning-with-new-taint_lockdep
-+++ a/kernel/panic.c
-@@ -226,6 +226,7 @@ static const struct tnt tnts[] = {
- 	{ TAINT_OOT_MODULE,		'O', ' ' },
- 	{ TAINT_UNSIGNED_MODULE,	'E', ' ' },
- 	{ TAINT_SOFTLOCKUP,		'L', ' ' },
-+	{ TAINT_LOCKDEP,		'K', ' ' },
- };
- 
- /**
-@@ -246,6 +247,7 @@ static const struct tnt tnts[] = {
-  *  'O' - Out-of-tree module has been loaded.
-  *  'E' - Unsigned module has been loaded.
-  *  'L' - A soft lockup has previously occurred.
-+ *  'K' - Lockdep warning was generated.
+diff -puN mm/memcontrol.c~memcg-shmem-fix-shmem-migration-to-use-lrucare mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-shmem-fix-shmem-migration-to-use-lrucare
++++ a/mm/memcontrol.c
+@@ -5773,7 +5773,7 @@ void mem_cgroup_uncharge_list(struct lis
+  * mem_cgroup_migrate - migrate a charge to another page
+  * @oldpage: currently charged page
+  * @newpage: page to transfer the charge to
+- * @lrucare: both pages might be on the LRU already
++ * @lrucare: either or both pages might be on the LRU already
   *
-  *	The string is overwritten by the next call to print_tainted().
-  */
+  * Migrate the charge from @oldpage to @newpage.
+  *
+diff -puN mm/shmem.c~memcg-shmem-fix-shmem-migration-to-use-lrucare mm/shmem.c
+--- a/mm/shmem.c~memcg-shmem-fix-shmem-migration-to-use-lrucare
++++ a/mm/shmem.c
+@@ -1013,7 +1013,7 @@ static int shmem_replace_page(struct pag
+ 		 */
+ 		oldpage = newpage;
+ 	} else {
+-		mem_cgroup_migrate(oldpage, newpage, false);
++		mem_cgroup_migrate(oldpage, newpage, true);
+ 		lru_cache_add_anon(newpage);
+ 		*pagep = newpage;
+ 	}
 _
 
-Patches currently in -mm which might be from sp@datera.io are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
+memcg-shmem-fix-shmem-migration-to-use-lrucare.patch
+mm-remove-rest-usage-of-vm_nonlinear-and-pte_file-fix.patch
+memcg-zap-__memcg_chargeuncharge_slab.patch
+memcg-zap-memcg_name-argument-of-memcg_create_kmem_cache.patch
+memcg-zap-memcg_slab_caches-and-memcg_slab_mutex.patch
+oom-dont-count-on-mm-less-current-process.patch
+oom-make-sure-that-tif_memdie-is-set-under-task_lock.patch
+swap-remove-unused-mem_cgroup_uncharge_swapcache-declaration.patch
+mm-memcontrol-track-move_lock-state-internally.patch
+mm-vmscan-wake-up-all-pfmemalloc-throttled-processes-at-once.patch
+mm-hugetlb-reduce-arch-dependent-code-around-follow_huge_.patch
+mm-hugetlb-pmd_huge-returns-true-for-non-present-hugepage.patch
+mm-hugetlb-take-page-table-lock-in-follow_huge_pmd.patch
+mm-hugetlb-fix-getting-refcount-0-page-in-hugetlb_fault.patch
+mm-hugetlb-add-migration-hwpoisoned-entry-check-in-hugetlb_change_protection.patch
+mm-hugetlb-add-migration-entry-check-in-__unmap_hugepage_range.patch
+mm-set-page-pfmemalloc-in-prep_new_page.patch
+mm-page_alloc-reduce-number-of-alloc_pages-functions-parameters.patch
+mm-reduce-try_to_compact_pages-parameters.patch
+mm-microoptimize-zonelist-operations.patch
+list_lru-introduce-list_lru_shrink_countwalk.patch
+fs-consolidate-nrfree_cached_objects-args-in-shrink_control.patch
+vmscan-per-memory-cgroup-slab-shrinkers.patch
+memcg-rename-some-cache-id-related-variables.patch
+memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation.patch
+list_lru-get-rid-of-active_nodes.patch
+list_lru-organize-all-list_lrus-to-list.patch
+list_lru-introduce-per-memcg-lists.patch
+fs-make-shrinker-memcg-aware.patch
+vmscan-force-scan-offline-memory-cgroups.patch
+vmscan-force-scan-offline-memory-cgroups-fix.patch
+memcg-add-build_bug_on-for-string-tables.patch
+mm-page_counter-pull-1-handling-out-of-page_counter_memparse.patch
+mm-memcontrol-default-hierarchy-interface-for-memory.patch
+mm-memcontrol-fold-move_anon-and-move_file.patch
+mm-memcontrol-fold-move_anon-and-move_file-fix.patch
+oom-add-helpers-for-setting-and-clearing-tif_memdie.patch
+oom-thaw-the-oom-victim-if-it-is-frozen.patch
+pm-convert-printk-to-pr_-equivalent.patch
+sysrq-convert-printk-to-pr_-equivalent.patch
+oom-pm-make-oom-detection-in-the-freezer-path-raceless.patch
+mm-memcontrol-simplify-soft-limit-tree-init-code.patch
+mm-memcontrol-consolidate-memory-controller-initialization.patch
+mm-memcontrol-consolidate-swap-controller-code.patch
+fs-shrinker-always-scan-at-least-one-object-of-each-type.patch
+fs-shrinker-always-scan-at-least-one-object-of-each-type-fix.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated-fix.patch
+slab-embed-memcg_cache_params-to-kmem_cache.patch
+slab-link-memcg-caches-of-the-same-kind-into-a-list.patch
+cgroup-release-css-id-after-css_free.patch
+slab-use-css-id-for-naming-per-memcg-caches.patch
+memcg-free-memcg_caches-slot-on-css-offline.patch
+list_lru-add-helpers-to-isolate-items.patch
+memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline.patch
+mm-when-stealing-freepages-also-take-pages-created-by-splitting-buddy-page.patch
+mm-always-steal-split-buddies-in-fallback-allocations.patch
+mm-more-aggressive-page-stealing-for-unmovable-allocations.patch
+vmstat-do-not-use-deferrable-delayed-work-for-vmstat_update.patch
+mm-incorporate-read-only-pages-into-transparent-huge-pages.patch
+mm-incorporate-read-only-pages-into-transparent-huge-pages-v4.patch
+vmstat-reduce-time-interval-to-stat-update-on-idle-cpu.patch
+mm-page_isolation-check-pfn-validity-before-access.patch
+mm-support-madvisemadv_free.patch
+mm-dont-split-thp-page-when-syscall-is-called.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-2.patch
 
