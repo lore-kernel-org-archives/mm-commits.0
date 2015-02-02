@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-shmem-fix-shmem-migration-to-use-lrucare.patch added to
- -mm tree
-Date: Mon, 02 Feb 2015 13:50:37 -0800
-Message-ID: <54cff12d./iQN7VxjowHp/0MQ%akpm__30674.3183559322$1422913849$gmane$org@linux-foundation.org>
+Subject: + zram-fix-umount-reset_store-mount-race-condition.patch added to -mm tree
+Date: Mon, 02 Feb 2015 14:30:15 -0800
+Message-ID: <54cffa77.fI/75xjuKLwGyxXD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34590 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35035 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754564AbbBBVui (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Feb 2015 16:50:38 -0500
+	with ESMTP id S1755220AbbBBWaQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Feb 2015 17:30:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.cz, airlied@gmail.com, chris@chris-wilson.co.uk, hughd@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: sergey.senozhatsky@gmail.com, minchan@kernel.org, opensource.ganesh@gmail.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg, shmem: fix shmem migration to use lrucare
+     Subject: zram: fix umount-reset_store-mount race condition
 has been added to the -mm tree.  Its filename is
-     memcg-shmem-fix-shmem-migration-to-use-lrucare.patch
+     zram-fix-umount-reset_store-mount-race-condition.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-shmem-fix-shmem-migration-to-use-lrucare.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zram-fix-umount-reset_store-mount-race-condition.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-shmem-fix-shmem-migration-to-use-lrucare.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zram-fix-umount-reset_store-mount-race-condition.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,134 +38,120 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: memcg, shmem: fix shmem migration to use lrucare
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: zram: fix umount-reset_store-mount race condition
 
-It has been reported that 965GM might trigger
+Ganesh Mahendran was the first one who proposed to use bdev->bd_mutex to
+avoid ->bd_holders race condition:
 
-VM_BUG_ON_PAGE(!lrucare && PageLRU(oldpage), oldpage)
+        CPU0                            CPU1
+umount /* zram->init_done is true */
+reset_store()
+bdev->bd_holders == 0                   mount
+...                                     zram_make_request()
+zram_reset_device()
 
-in mem_cgroup_migrate when shmem wants to replace a swap cache page
-because of shmem_should_replace_page (the page is allocated from an
-inappropriate zone).  shmem_replace_page expects that the oldpage is not
-on LRU list and calls mem_cgroup_migrate without lrucare.  This is
-obviously incorrect because swapcache pages might be on the LRU list (e.g.
- swapin readahead page).
+However, his solution required some considerable amount of code movement,
+which we can avoid.
 
-Fix this by enabling lrucare for the migration in shmem_replace_page. 
-Also clarify that lrucare should be used even if one of the pages might be
-on LRU list.
+Apart from using bdev->bd_mutex in reset_store(), this patch also
+simplifies zram_reset_device().
 
-The BUG_ON will trigger only when CONFIG_DEBUG_VM is enabled but even
-without that the migration code might leave the old page on an
-inappropriate memcg' LRU which is not that critical because the page would
-get removed with its last reference but it is still confusing.
+zram_reset_device() has a bool parameter reset_capacity which tells it
+whether disk capacity and itself disk should be reset.  There are two
+zram_reset_device() callers:
 
-Fixes: 0a31bc97c80c ("mm: memcontrol: rewrite uncharge API")
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Reported-by: Chris Wilson <chris@chris-wilson.co.uk>
-Reported-by: Dave Airlie <airlied@gmail.com>
-Acked-by: Hugh Dickins <hughd@google.com>
-Cc: <stable@vger.kernel.org>	[3.17+]
+-- zram_exit() passes reset_capacity=false
+-- reset_store() passes reset_capacity=true
+
+So we can move reset_capacity-sensitive work out of zram_reset_device()
+and perform it unconditionally in reset_store().  This also lets us drop
+reset_capacity parameter from zram_reset_device() and pass zram pointer
+only.
+
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Reported-by: Ganesh Mahendran <opensource.ganesh@gmail.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- mm/shmem.c      |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/block/zram/zram_drv.c |   23 +++++++++--------------
+ 1 file changed, 9 insertions(+), 14 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-shmem-fix-shmem-migration-to-use-lrucare mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-shmem-fix-shmem-migration-to-use-lrucare
-+++ a/mm/memcontrol.c
-@@ -5773,7 +5773,7 @@ void mem_cgroup_uncharge_list(struct lis
-  * mem_cgroup_migrate - migrate a charge to another page
-  * @oldpage: currently charged page
-  * @newpage: page to transfer the charge to
-- * @lrucare: both pages might be on the LRU already
-+ * @lrucare: either or both pages might be on the LRU already
-  *
-  * Migrate the charge from @oldpage to @newpage.
-  *
-diff -puN mm/shmem.c~memcg-shmem-fix-shmem-migration-to-use-lrucare mm/shmem.c
---- a/mm/shmem.c~memcg-shmem-fix-shmem-migration-to-use-lrucare
-+++ a/mm/shmem.c
-@@ -1013,7 +1013,7 @@ static int shmem_replace_page(struct pag
- 		 */
- 		oldpage = newpage;
- 	} else {
--		mem_cgroup_migrate(oldpage, newpage, false);
-+		mem_cgroup_migrate(oldpage, newpage, true);
- 		lru_cache_add_anon(newpage);
- 		*pagep = newpage;
+diff -puN drivers/block/zram/zram_drv.c~zram-fix-umount-reset_store-mount-race-condition drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-fix-umount-reset_store-mount-race-condition
++++ a/drivers/block/zram/zram_drv.c
+@@ -715,7 +715,7 @@ static void zram_bio_discard(struct zram
  	}
+ }
+ 
+-static void zram_reset_device(struct zram *zram, bool reset_capacity)
++static void zram_reset_device(struct zram *zram)
+ {
+ 	down_write(&zram->init_lock);
+ 
+@@ -734,18 +734,7 @@ static void zram_reset_device(struct zra
+ 	memset(&zram->stats, 0, sizeof(zram->stats));
+ 
+ 	zram->disksize = 0;
+-	if (reset_capacity)
+-		set_capacity(zram->disk, 0);
+-
+ 	up_write(&zram->init_lock);
+-
+-	/*
+-	 * Revalidate disk out of the init_lock to avoid lockdep splat.
+-	 * It's okay because disk's capacity is protected by init_lock
+-	 * so that revalidate_disk always sees up-to-date capacity.
+-	 */
+-	if (reset_capacity)
+-		revalidate_disk(zram->disk);
+ }
+ 
+ static ssize_t disksize_store(struct device *dev,
+@@ -818,6 +807,7 @@ static ssize_t reset_store(struct device
+ 	if (!bdev)
+ 		return -ENOMEM;
+ 
++	mutex_lock(&bdev->bd_mutex);
+ 	/* Do not reset an active device! */
+ 	if (bdev->bd_holders) {
+ 		ret = -EBUSY;
+@@ -835,12 +825,17 @@ static ssize_t reset_store(struct device
+ 
+ 	/* Make sure all pending I/O is finished */
+ 	fsync_bdev(bdev);
++	zram_reset_device(zram);
++	set_capacity(zram->disk, 0);
++
++	mutex_unlock(&bdev->bd_mutex);
++	revalidate_disk(zram->disk);
+ 	bdput(bdev);
+ 
+-	zram_reset_device(zram, true);
+ 	return len;
+ 
+ out:
++	mutex_unlock(&bdev->bd_mutex);
+ 	bdput(bdev);
+ 	return ret;
+ }
+@@ -1186,7 +1181,7 @@ static void __exit zram_exit(void)
+ 		 * Shouldn't access zram->disk after destroy_device
+ 		 * because destroy_device already released zram->disk.
+ 		 */
+-		zram_reset_device(zram, false);
++		zram_reset_device(zram);
+ 	}
+ 
+ 	unregister_blkdev(zram_major, "zram");
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
 
-memcg-shmem-fix-shmem-migration-to-use-lrucare.patch
-mm-remove-rest-usage-of-vm_nonlinear-and-pte_file-fix.patch
-memcg-zap-__memcg_chargeuncharge_slab.patch
-memcg-zap-memcg_name-argument-of-memcg_create_kmem_cache.patch
-memcg-zap-memcg_slab_caches-and-memcg_slab_mutex.patch
-oom-dont-count-on-mm-less-current-process.patch
-oom-make-sure-that-tif_memdie-is-set-under-task_lock.patch
-swap-remove-unused-mem_cgroup_uncharge_swapcache-declaration.patch
-mm-memcontrol-track-move_lock-state-internally.patch
-mm-vmscan-wake-up-all-pfmemalloc-throttled-processes-at-once.patch
-mm-hugetlb-reduce-arch-dependent-code-around-follow_huge_.patch
-mm-hugetlb-pmd_huge-returns-true-for-non-present-hugepage.patch
-mm-hugetlb-take-page-table-lock-in-follow_huge_pmd.patch
-mm-hugetlb-fix-getting-refcount-0-page-in-hugetlb_fault.patch
-mm-hugetlb-add-migration-hwpoisoned-entry-check-in-hugetlb_change_protection.patch
-mm-hugetlb-add-migration-entry-check-in-__unmap_hugepage_range.patch
-mm-set-page-pfmemalloc-in-prep_new_page.patch
-mm-page_alloc-reduce-number-of-alloc_pages-functions-parameters.patch
-mm-reduce-try_to_compact_pages-parameters.patch
-mm-microoptimize-zonelist-operations.patch
-list_lru-introduce-list_lru_shrink_countwalk.patch
-fs-consolidate-nrfree_cached_objects-args-in-shrink_control.patch
-vmscan-per-memory-cgroup-slab-shrinkers.patch
-memcg-rename-some-cache-id-related-variables.patch
-memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation.patch
-list_lru-get-rid-of-active_nodes.patch
-list_lru-organize-all-list_lrus-to-list.patch
-list_lru-introduce-per-memcg-lists.patch
-fs-make-shrinker-memcg-aware.patch
-vmscan-force-scan-offline-memory-cgroups.patch
-vmscan-force-scan-offline-memory-cgroups-fix.patch
-memcg-add-build_bug_on-for-string-tables.patch
-mm-page_counter-pull-1-handling-out-of-page_counter_memparse.patch
-mm-memcontrol-default-hierarchy-interface-for-memory.patch
-mm-memcontrol-fold-move_anon-and-move_file.patch
-mm-memcontrol-fold-move_anon-and-move_file-fix.patch
-oom-add-helpers-for-setting-and-clearing-tif_memdie.patch
-oom-thaw-the-oom-victim-if-it-is-frozen.patch
-pm-convert-printk-to-pr_-equivalent.patch
-sysrq-convert-printk-to-pr_-equivalent.patch
-oom-pm-make-oom-detection-in-the-freezer-path-raceless.patch
-mm-memcontrol-simplify-soft-limit-tree-init-code.patch
-mm-memcontrol-consolidate-memory-controller-initialization.patch
-mm-memcontrol-consolidate-swap-controller-code.patch
-fs-shrinker-always-scan-at-least-one-object-of-each-type.patch
-fs-shrinker-always-scan-at-least-one-object-of-each-type-fix.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated-fix.patch
-slab-embed-memcg_cache_params-to-kmem_cache.patch
-slab-link-memcg-caches-of-the-same-kind-into-a-list.patch
-cgroup-release-css-id-after-css_free.patch
-slab-use-css-id-for-naming-per-memcg-caches.patch
-memcg-free-memcg_caches-slot-on-css-offline.patch
-list_lru-add-helpers-to-isolate-items.patch
-memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline.patch
-mm-when-stealing-freepages-also-take-pages-created-by-splitting-buddy-page.patch
-mm-always-steal-split-buddies-in-fallback-allocations.patch
-mm-more-aggressive-page-stealing-for-unmovable-allocations.patch
-vmstat-do-not-use-deferrable-delayed-work-for-vmstat_update.patch
-mm-incorporate-read-only-pages-into-transparent-huge-pages.patch
-mm-incorporate-read-only-pages-into-transparent-huge-pages-v4.patch
-vmstat-reduce-time-interval-to-stat-update-on-idle-cpu.patch
-mm-page_isolation-check-pfn-validity-before-access.patch
-mm-support-madvisemadv_free.patch
-mm-dont-split-thp-page-when-syscall-is-called.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-2.patch
+zram-clean-up-zram_meta_alloc.patch
+zram-free-meta-table-in-zram_meta_free.patch
+zram-fix-umount-reset_store-mount-race-condition.patch
+linux-next.patch
 
