@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-cleanup-static-keys-decrement.patch added to -mm tree
-Date: Mon, 02 Feb 2015 14:51:05 -0800
-Message-ID: <54cfff59.aJXEk6EKLJL2B1Nh%akpm@linux-foundation.org>
+Subject: + add-another-clock-for-use-with-the-soft-lockup-watchdog.patch
+ added to -mm tree
+Date: Mon, 02 Feb 2015 15:08:46 -0800
+Message-ID: <54d0037e.C19gm/uSkwrqv9Ww%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35172 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35358 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965327AbbBBWvG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Feb 2015 17:51:06 -0500
+	with ESMTP id S933641AbbBBXIs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Feb 2015 18:08:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@parallels.com, davem@davemloft.net, ebiederm@xmission.com, glommer@parallels.com, hannes@cmpxchg.org, kamezawa.hiroyu@jp.fujtisu.com, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: cyrilbur@gmail.com, atomlin@redhat.com, benzh@chromium.org, chaiw.fnst@cn.fujitsu.com, drjones@redhat.com, dzickus@redhat.com, fabf@skynet.be, john.stultz@linaro.org, mingo@kernel.org, mpe@ellerman.id.au, schwidefsky@de.ibm.com, tglx@linutronix.de, uobergfe@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: cleanup static keys decrement
+     Subject: kernel/sched/clock.c: add another clock for use with the soft lockup watchdog
 has been added to the -mm tree.  Its filename is
-     memcg-cleanup-static-keys-decrement.patch
+     add-another-clock-for-use-with-the-soft-lockup-watchdog.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-cleanup-static-keys-decrement.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/add-another-clock-for-use-with-the-soft-lockup-watchdog.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-cleanup-static-keys-decrement.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/add-another-clock-for-use-with-the-soft-lockup-watchdog.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,177 +39,97 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: memcg: cleanup static keys decrement
+From: Cyril Bur <cyrilbur@gmail.com>
+Subject: kernel/sched/clock.c: add another clock for use with the soft lockup watchdog
 
-Move memcg_socket_limit_enabled decrement to tcp_destroy_cgroup (called
-from memcg_destroy_kmem -> mem_cgroup_sockets_destroy) and zap a bunch of
-wrapper functions.
+When the hypervisor pauses a virtualised kernel the kernel will observe a
+jump in timebase, this can cause spurious messages from the softlockup
+detector.
 
-Although this patch moves static keys decrement from __mem_cgroup_free to
-mem_cgroup_css_free, it does not introduce any functional changes, because
-the keys are incremented on setting the limit (tcp or kmem), which can
-only happen after successful mem_cgroup_css_online.
+Whilst these messages are harmless, they are accompanied with a stack
+trace which causes undue concern and more problematically the stack trace
+in the guest has nothing to do with the observed problem and can only be
+misleading.
 
-Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
-Cc: Glauber Costa <glommer@parallels.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujtisu.com>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.cz>
+Futhermore, on POWER8 this is completely avoidable with the introduction
+of the Virtual Time Base (VTB) register.
+
+
+This patch (of 2):
+
+This permits the use of arch specific clocks for which virtualised kernels
+can use their notion of 'running' time, not the elpased wall time which
+will include host execution time.
+
+Signed-off-by: Cyril Bur <cyrilbur@gmail.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Andrew Jones <drjones@redhat.com>
+Cc: Don Zickus <dzickus@redhat.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Ulrich Obergfell <uobergfe@redhat.com>
+Cc: chai wen <chaiw.fnst@cn.fujitsu.com>
+Cc: Fabian Frederick <fabf@skynet.be>
+Cc: Aaron Tomlin <atomlin@redhat.com>
+Cc: Ben Zhang <benzh@chromium.org>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: John Stultz <john.stultz@linaro.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/net/sock.h        |    5 ----
- mm/memcontrol.c           |   38 ++++--------------------------------
- net/ipv4/tcp_memcontrol.c |    4 +++
- 3 files changed, 9 insertions(+), 38 deletions(-)
+ include/linux/sched.h |    1 +
+ kernel/sched/clock.c  |   13 +++++++++++++
+ kernel/watchdog.c     |    2 +-
+ 3 files changed, 15 insertions(+), 1 deletion(-)
 
-diff -puN include/net/sock.h~memcg-cleanup-static-keys-decrement include/net/sock.h
---- a/include/net/sock.h~memcg-cleanup-static-keys-decrement
-+++ a/include/net/sock.h
-@@ -1099,11 +1099,6 @@ static inline bool memcg_proto_active(st
- 	return test_bit(MEMCG_SOCK_ACTIVE, &cg_proto->flags);
- }
+diff -puN include/linux/sched.h~add-another-clock-for-use-with-the-soft-lockup-watchdog include/linux/sched.h
+--- a/include/linux/sched.h~add-another-clock-for-use-with-the-soft-lockup-watchdog
++++ a/include/linux/sched.h
+@@ -2147,6 +2147,7 @@ extern unsigned long long notrace sched_
+  */
+ extern u64 cpu_clock(int cpu);
+ extern u64 local_clock(void);
++extern u64 running_clock(void);
+ extern u64 sched_clock_cpu(int cpu);
  
--static inline bool memcg_proto_activated(struct cg_proto *cg_proto)
--{
--	return test_bit(MEMCG_SOCK_ACTIVATED, &cg_proto->flags);
--}
--
- #ifdef SOCK_REFCNT_DEBUG
- static inline void sk_refcnt_debug_inc(struct sock *sk)
- {
-diff -puN mm/memcontrol.c~memcg-cleanup-static-keys-decrement mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-cleanup-static-keys-decrement
-+++ a/mm/memcontrol.c
-@@ -519,16 +519,6 @@ struct cg_proto *tcp_proto_cgroup(struct
- }
- EXPORT_SYMBOL(tcp_proto_cgroup);
  
--static void disarm_sock_keys(struct mem_cgroup *memcg)
--{
--	if (!memcg_proto_activated(&memcg->tcp_mem))
--		return;
--	static_key_slow_dec(&memcg_socket_limit_enabled);
--}
--#else
--static void disarm_sock_keys(struct mem_cgroup *memcg)
--{
--}
- #endif
+diff -puN kernel/sched/clock.c~add-another-clock-for-use-with-the-soft-lockup-watchdog kernel/sched/clock.c
+--- a/kernel/sched/clock.c~add-another-clock-for-use-with-the-soft-lockup-watchdog
++++ a/kernel/sched/clock.c
+@@ -420,3 +420,16 @@ u64 local_clock(void)
  
- #ifdef CONFIG_MEMCG_KMEM
-@@ -583,28 +573,8 @@ void memcg_put_cache_ids(void)
- struct static_key memcg_kmem_enabled_key;
- EXPORT_SYMBOL(memcg_kmem_enabled_key);
- 
--static void disarm_kmem_keys(struct mem_cgroup *memcg)
--{
--	if (memcg->kmem_acct_activated)
--		static_key_slow_dec(&memcg_kmem_enabled_key);
--	/*
--	 * This check can't live in kmem destruction function,
--	 * since the charges will outlive the cgroup
--	 */
--	WARN_ON(page_counter_read(&memcg->kmem));
--}
--#else
--static void disarm_kmem_keys(struct mem_cgroup *memcg)
--{
--}
- #endif /* CONFIG_MEMCG_KMEM */
- 
--static void disarm_static_keys(struct mem_cgroup *memcg)
--{
--	disarm_sock_keys(memcg);
--	disarm_kmem_keys(memcg);
--}
--
- static struct mem_cgroup_per_zone *
- mem_cgroup_zone_zoneinfo(struct mem_cgroup *memcg, struct zone *zone)
- {
-@@ -4092,7 +4062,11 @@ static void memcg_deactivate_kmem(struct
- 
- static void memcg_destroy_kmem(struct mem_cgroup *memcg)
- {
--	memcg_destroy_kmem_caches(memcg);
-+	if (memcg->kmem_acct_activated) {
-+		memcg_destroy_kmem_caches(memcg);
-+		static_key_slow_dec(&memcg_kmem_enabled_key);
-+		WARN_ON(page_counter_read(&memcg->kmem));
-+	}
- 	mem_cgroup_sockets_destroy(memcg);
- }
- #else
-@@ -4523,8 +4497,6 @@ static void __mem_cgroup_free(struct mem
- 		free_mem_cgroup_per_zone_info(memcg, node);
- 
- 	free_percpu(memcg->stat);
--
--	disarm_static_keys(memcg);
- 	kfree(memcg);
- }
- 
-diff -puN net/ipv4/tcp_memcontrol.c~memcg-cleanup-static-keys-decrement net/ipv4/tcp_memcontrol.c
---- a/net/ipv4/tcp_memcontrol.c~memcg-cleanup-static-keys-decrement
-+++ a/net/ipv4/tcp_memcontrol.c
-@@ -47,6 +47,10 @@ void tcp_destroy_cgroup(struct mem_cgrou
- 		return;
- 
- 	percpu_counter_destroy(&cg_proto->sockets_allocated);
+ EXPORT_SYMBOL_GPL(cpu_clock);
+ EXPORT_SYMBOL_GPL(local_clock);
 +
-+	if (test_bit(MEMCG_SOCK_ACTIVATED, &cg_proto->flags))
-+		static_key_slow_dec(&memcg_socket_limit_enabled);
-+
++/*
++ * Running clock - returns the time that has elapsed while a guest has been
++ * running.
++ * On a guest this value should be local_clock minus the time the guest was
++ * suspended by the hypervisor (for any reason).
++ * On bare metal this function should return the same as local_clock.
++ * Architectures and sub-architectures can override this.
++ */
++u64 __weak running_clock(void)
++{
++	return local_clock();
++}
+diff -puN kernel/watchdog.c~add-another-clock-for-use-with-the-soft-lockup-watchdog kernel/watchdog.c
+--- a/kernel/watchdog.c~add-another-clock-for-use-with-the-soft-lockup-watchdog
++++ a/kernel/watchdog.c
+@@ -154,7 +154,7 @@ static int get_softlockup_thresh(void)
+  */
+ static unsigned long get_timestamp(void)
+ {
+-	return local_clock() >> 30LL;  /* 2^30 ~= 10^9 */
++	return running_clock() >> 30LL;  /* 2^30 ~= 10^9 */
  }
- EXPORT_SYMBOL(tcp_destroy_cgroup);
  
+ static void set_sample_period(void)
 _
 
-Patches currently in -mm which might be from vdavydov@parallels.com are
+Patches currently in -mm which might be from cyrilbur@gmail.com are
 
-memcg-zap-__memcg_chargeuncharge_slab.patch
-memcg-zap-memcg_name-argument-of-memcg_create_kmem_cache.patch
-memcg-zap-memcg_slab_caches-and-memcg_slab_mutex.patch
-swap-remove-unused-mem_cgroup_uncharge_swapcache-declaration.patch
-mm-memcontrol-track-move_lock-state-internally.patch
-mm-vmscan-wake-up-all-pfmemalloc-throttled-processes-at-once.patch
-list_lru-introduce-list_lru_shrink_countwalk.patch
-fs-consolidate-nrfree_cached_objects-args-in-shrink_control.patch
-vmscan-per-memory-cgroup-slab-shrinkers.patch
-memcg-rename-some-cache-id-related-variables.patch
-memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation.patch
-list_lru-get-rid-of-active_nodes.patch
-list_lru-organize-all-list_lrus-to-list.patch
-list_lru-introduce-per-memcg-lists.patch
-fs-make-shrinker-memcg-aware.patch
-vmscan-force-scan-offline-memory-cgroups.patch
-vmscan-force-scan-offline-memory-cgroups-fix.patch
-mm-page_counter-pull-1-handling-out-of-page_counter_memparse.patch
-mm-memcontrol-default-hierarchy-interface-for-memory.patch
-mm-memcontrol-fold-move_anon-and-move_file.patch
-mm-memcontrol-fold-move_anon-and-move_file-fix.patch
-mm-memcontrol-simplify-soft-limit-tree-init-code.patch
-mm-memcontrol-consolidate-memory-controller-initialization.patch
-mm-memcontrol-consolidate-swap-controller-code.patch
-fs-shrinker-always-scan-at-least-one-object-of-each-type.patch
-fs-shrinker-always-scan-at-least-one-object-of-each-type-fix.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated-fix.patch
-slab-embed-memcg_cache_params-to-kmem_cache.patch
-slab-embed-memcg_cache_params-to-kmem_cache-fix.patch
-slab-link-memcg-caches-of-the-same-kind-into-a-list.patch
-slab-link-memcg-caches-of-the-same-kind-into-a-list-fix.patch
-cgroup-release-css-id-after-css_free.patch
-slab-use-css-id-for-naming-per-memcg-caches.patch
-memcg-free-memcg_caches-slot-on-css-offline.patch
-list_lru-add-helpers-to-isolate-items.patch
-memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline.patch
-slub-never-fail-to-shrink-cache.patch
-slub-fix-kmem_cache_shrink-return-value.patch
-slub-make-dead-caches-discard-free-slabs-immediately.patch
-vmstat-do-not-use-deferrable-delayed-work-for-vmstat_update.patch
-memcg-cleanup-static-keys-decrement.patch
+add-another-clock-for-use-with-the-soft-lockup-watchdog.patch
+powerpc-add-running_clock-for-powerpc-to-prevent-spurious-softlockup-warnings.patch
+linux-next.patch
 
