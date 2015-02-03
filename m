@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_alloc-add-kasan-hooks-on-alloc-and-free-paths.patch
+Subject: +
+ mm-slub-introduce-metadata_access_enable-metadata_access_disable.patch
  added to -mm tree
-Date: Tue, 03 Feb 2015 15:05:00 -0800
-Message-ID: <54d1541c.Rmhhh4TkW+s/ga7d%akpm@linux-foundation.org>
+Date: Tue, 03 Feb 2015 15:05:09 -0800
+Message-ID: <54d15425.ePMjamcLdAI5YAjV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54580 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54614 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753932AbbBCXFC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2015 18:05:02 -0500
+	with ESMTP id S1753932AbbBCXFL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2015 18:05:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: a.ryabinin@samsung.com, adech.fo@gmail.com, andi@firstfloor.org, cl@linux.com, dave.hansen@intel.com, dmitryc@google.com, dvyukov@google.com, hpa@zytor.com, iamjoonsoo.kim@lge.com, kcc@google.com, koct9i@gmail.com, mingo@elte.hu, penberg@kernel.org, rientjes@google.com, sasha.levin@oracle.com, tetra2005@gmail.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: page_alloc: add kasan hooks on alloc and free paths
+     Subject: mm: slub: introduce metadata_access_enable()/metadata_access_disable()
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-add-kasan-hooks-on-alloc-and-free-paths.patch
+     mm-slub-introduce-metadata_access_enable-metadata_access_disable.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-add-kasan-hooks-on-alloc-and-free-paths.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slub-introduce-metadata_access_enable-metadata_access_disable.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-add-kasan-hooks-on-alloc-and-free-paths.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-introduce-metadata_access_enable-metadata_access_disable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,11 +41,20 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Ryabinin <a.ryabinin@samsung.com>
-Subject: mm: page_alloc: add kasan hooks on alloc and free paths
+Subject: mm: slub: introduce metadata_access_enable()/metadata_access_disable()
 
-Add kernel address sanitizer hooks to mark allocated page's addresses as
-accessible in corresponding shadow region.  Mark freed pages as
-inaccessible.
+It's ok for slub to access memory that marked by kasan as inaccessible
+(object's metadata).  Kasan shouldn't print report in that case because
+these accesses are valid.  Disabling instrumentation of slub.c code is not
+enough to achieve this because slub passes pointer to object's metadata
+into external functions like memchr_inv().
+
+We don't want to disable instrumentation for memchr_inv() because this is
+quite generic function, and we don't want to miss bugs.
+
+metadata_access_enable/metadata_access_disable used to tell KASan where
+accesses to metadata starts/end, so we could temporarily disable KASan
+reports.
 
 Signed-off-by: Andrey Ryabinin <a.ryabinin@samsung.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
@@ -68,147 +78,81 @@ Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kasan.h |    6 ++++++
- mm/compaction.c       |    2 ++
- mm/kasan/kasan.c      |   14 ++++++++++++++
- mm/kasan/kasan.h      |    2 ++
- mm/kasan/report.c     |   11 +++++++++++
- mm/page_alloc.c       |    3 +++
- 6 files changed, 38 insertions(+)
+ mm/slub.c |   25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
 
-diff -puN include/linux/kasan.h~mm-page_alloc-add-kasan-hooks-on-alloc-and-free-paths include/linux/kasan.h
---- a/include/linux/kasan.h~mm-page_alloc-add-kasan-hooks-on-alloc-and-free-paths
-+++ a/include/linux/kasan.h
-@@ -34,6 +34,9 @@ static inline void kasan_disable_current
- 
- void kasan_unpoison_shadow(const void *address, size_t size);
- 
-+void kasan_alloc_pages(struct page *page, unsigned int order);
-+void kasan_free_pages(struct page *page, unsigned int order);
-+
- #else /* CONFIG_KASAN */
- 
- static inline void kasan_unpoison_shadow(const void *address, size_t size) {}
-@@ -41,6 +44,9 @@ static inline void kasan_unpoison_shadow
- static inline void kasan_enable_current(void) {}
- static inline void kasan_disable_current(void) {}
- 
-+static inline void kasan_alloc_pages(struct page *page, unsigned int order) {}
-+static inline void kasan_free_pages(struct page *page, unsigned int order) {}
-+
- #endif /* CONFIG_KASAN */
- 
- #endif /* LINUX_KASAN_H */
-diff -puN mm/compaction.c~mm-page_alloc-add-kasan-hooks-on-alloc-and-free-paths mm/compaction.c
---- a/mm/compaction.c~mm-page_alloc-add-kasan-hooks-on-alloc-and-free-paths
-+++ a/mm/compaction.c
-@@ -16,6 +16,7 @@
- #include <linux/sysfs.h>
- #include <linux/balloon_compaction.h>
- #include <linux/page-isolation.h>
+diff -puN mm/slub.c~mm-slub-introduce-metadata_access_enable-metadata_access_disable mm/slub.c
+--- a/mm/slub.c~mm-slub-introduce-metadata_access_enable-metadata_access_disable
++++ a/mm/slub.c
+@@ -20,6 +20,7 @@
+ #include <linux/proc_fs.h>
+ #include <linux/notifier.h>
+ #include <linux/seq_file.h>
 +#include <linux/kasan.h>
- #include "internal.h"
- 
- #ifdef CONFIG_COMPACTION
-@@ -61,6 +62,7 @@ static void map_pages(struct list_head *
- 	list_for_each_entry(page, list, lru) {
- 		arch_alloc_page(page, 0);
- 		kernel_map_pages(page, 1, 1);
-+		kasan_alloc_pages(page, 0);
- 	}
- }
- 
-diff -puN mm/kasan/kasan.c~mm-page_alloc-add-kasan-hooks-on-alloc-and-free-paths mm/kasan/kasan.c
---- a/mm/kasan/kasan.c~mm-page_alloc-add-kasan-hooks-on-alloc-and-free-paths
-+++ a/mm/kasan/kasan.c
-@@ -254,6 +254,20 @@ static __always_inline void check_memory
- 	kasan_report(addr, size, write, _RET_IP_);
- }
- 
-+void kasan_alloc_pages(struct page *page, unsigned int order)
-+{
-+	if (likely(!PageHighMem(page)))
-+		kasan_unpoison_shadow(page_address(page), PAGE_SIZE << order);
-+}
-+
-+void kasan_free_pages(struct page *page, unsigned int order)
-+{
-+	if (likely(!PageHighMem(page)))
-+		kasan_poison_shadow(page_address(page),
-+				PAGE_SIZE << order,
-+				KASAN_FREE_PAGE);
-+}
-+
- #define DEFINE_ASAN_LOAD_STORE(size)				\
- 	void __asan_load##size(unsigned long addr)		\
- 	{							\
-diff -puN mm/kasan/kasan.h~mm-page_alloc-add-kasan-hooks-on-alloc-and-free-paths mm/kasan/kasan.h
---- a/mm/kasan/kasan.h~mm-page_alloc-add-kasan-hooks-on-alloc-and-free-paths
-+++ a/mm/kasan/kasan.h
-@@ -6,6 +6,8 @@
- #define KASAN_SHADOW_SCALE_SIZE (1UL << KASAN_SHADOW_SCALE_SHIFT)
- #define KASAN_SHADOW_MASK       (KASAN_SHADOW_SCALE_SIZE - 1)
- 
-+#define KASAN_FREE_PAGE         0xFF  /* page was freed */
-+
- struct kasan_access_info {
- 	const void *access_addr;
- 	const void *first_bad_addr;
-diff -puN mm/kasan/report.c~mm-page_alloc-add-kasan-hooks-on-alloc-and-free-paths mm/kasan/report.c
---- a/mm/kasan/report.c~mm-page_alloc-add-kasan-hooks-on-alloc-and-free-paths
-+++ a/mm/kasan/report.c
-@@ -54,6 +54,9 @@ static void print_error_description(stru
- 	shadow_val = *(u8 *)kasan_mem_to_shadow(info->first_bad_addr);
- 
- 	switch (shadow_val) {
-+	case KASAN_FREE_PAGE:
-+		bug_type = "use after free";
-+		break;
- 	case 0 ... KASAN_SHADOW_SCALE_SIZE - 1:
- 		bug_type = "out of bounds access";
- 		break;
-@@ -69,6 +72,14 @@ static void print_error_description(stru
- 
- static void print_address_description(struct kasan_access_info *info)
- {
-+	const void *addr = info->access_addr;
-+
-+	if ((addr >= (void *)PAGE_OFFSET) &&
-+		(addr < high_memory)) {
-+		struct page *page = virt_to_head_page(addr);
-+		dump_page(page, "kasan: bad access detected");
-+	}
-+
- 	dump_stack();
- }
- 
-diff -puN mm/page_alloc.c~mm-page_alloc-add-kasan-hooks-on-alloc-and-free-paths mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-add-kasan-hooks-on-alloc-and-free-paths
-+++ a/mm/page_alloc.c
-@@ -25,6 +25,7 @@
- #include <linux/compiler.h>
- #include <linux/kernel.h>
  #include <linux/kmemcheck.h>
-+#include <linux/kasan.h>
- #include <linux/module.h>
- #include <linux/suspend.h>
- #include <linux/pagevec.h>
-@@ -807,6 +808,7 @@ static bool free_pages_prepare(struct pa
+ #include <linux/cpu.h>
+ #include <linux/cpuset.h>
+@@ -468,12 +469,30 @@ static char *slub_debug_slabs;
+ static int disable_higher_order_debug;
  
- 	trace_mm_page_free(page, order);
- 	kmemcheck_free_shadow(page, order);
-+	kasan_free_pages(page, order);
+ /*
++ * slub is about to manipulate internal object metadata.  This memory lies
++ * outside the range of the allocated object, so accessing it would normally
++ * be reported by kasan as a bounds error.  metadata_access_enable() is used
++ * to tell kasan that these accesses are OK.
++ */
++static inline void metadata_access_enable(void)
++{
++	kasan_disable_current();
++}
++
++static inline void metadata_access_disable(void)
++{
++	kasan_enable_current();
++}
++
++/*
+  * Object debugging
+  */
+ static void print_section(char *text, u8 *addr, unsigned int length)
+ {
++	metadata_access_enable();
+ 	print_hex_dump(KERN_ERR, text, DUMP_PREFIX_ADDRESS, 16, 1, addr,
+ 			length, 1);
++	metadata_access_disable();
+ }
  
- 	if (PageAnon(page))
- 		page->mapping = NULL;
-@@ -985,6 +987,7 @@ static int prep_new_page(struct page *pa
+ static struct track *get_track(struct kmem_cache *s, void *object,
+@@ -503,7 +522,9 @@ static void set_track(struct kmem_cache
+ 		trace.max_entries = TRACK_ADDRS_COUNT;
+ 		trace.entries = p->addrs;
+ 		trace.skip = 3;
++		metadata_access_enable();
+ 		save_stack_trace(&trace);
++		metadata_access_disable();
  
- 	arch_alloc_page(page, order);
- 	kernel_map_pages(page, 1 << order, 1);
-+	kasan_alloc_pages(page, order);
+ 		/* See rant in lockdep.c */
+ 		if (trace.nr_entries != 0 &&
+@@ -677,7 +698,9 @@ static int check_bytes_and_report(struct
+ 	u8 *fault;
+ 	u8 *end;
  
- 	if (gfp_flags & __GFP_ZERO)
- 		prep_zero_page(page, order, gfp_flags);
++	metadata_access_enable();
+ 	fault = memchr_inv(start, value, bytes);
++	metadata_access_disable();
+ 	if (!fault)
+ 		return 1;
+ 
+@@ -770,7 +793,9 @@ static int slab_pad_check(struct kmem_ca
+ 	if (!remainder)
+ 		return 1;
+ 
++	metadata_access_enable();
+ 	fault = memchr_inv(end - remainder, POISON_INUSE, remainder);
++	metadata_access_disable();
+ 	if (!fault)
+ 		return 1;
+ 	while (end > fault && end[-1] == POISON_INUSE)
 _
 
 Patches currently in -mm which might be from a.ryabinin@samsung.com are
