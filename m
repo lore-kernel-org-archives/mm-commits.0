@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-slub-introduce-metadata_access_enable-metadata_access_disable.patch
- added to -mm tree
-Date: Tue, 03 Feb 2015 15:05:09 -0800
-Message-ID: <54d15425.ePMjamcLdAI5YAjV%akpm@linux-foundation.org>
+ fs-dcache-manually-unpoison-dname-after-allocation-to-shut-up-kasans-reports.patch added to -mm tree
+Date: Tue, 03 Feb 2015 15:05:15 -0800
+Message-ID: <54d1542b.sGL/jTHIJq8ji1/x%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54614 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54638 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753932AbbBCXFL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2015 18:05:11 -0500
+	with ESMTP id S1754047AbbBCXFR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2015 18:05:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: a.ryabinin@samsung.com, adech.fo@gmail.com, andi@firstfloor.org, cl@linux.com, dave.hansen@intel.com, dmitryc@google.com, dvyukov@google.com, hpa@zytor.com, iamjoonsoo.kim@lge.com, kcc@google.com, koct9i@gmail.com, mingo@elte.hu, penberg@kernel.org, rientjes@google.com, sasha.levin@oracle.com, tetra2005@gmail.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: slub: introduce metadata_access_enable()/metadata_access_disable()
+     Subject: fs: dcache: manually unpoison dname after allocation to shut up kasan's reports
 has been added to the -mm tree.  Its filename is
-     mm-slub-introduce-metadata_access_enable-metadata_access_disable.patch
+     fs-dcache-manually-unpoison-dname-after-allocation-to-shut-up-kasans-reports.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slub-introduce-metadata_access_enable-metadata_access_disable.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-dcache-manually-unpoison-dname-after-allocation-to-shut-up-kasans-reports.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-introduce-metadata_access_enable-metadata_access_disable.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-dcache-manually-unpoison-dname-after-allocation-to-shut-up-kasans-reports.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,23 +40,20 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Ryabinin <a.ryabinin@samsung.com>
-Subject: mm: slub: introduce metadata_access_enable()/metadata_access_disable()
+Subject: fs: dcache: manually unpoison dname after allocation to shut up kasan's reports
 
-It's ok for slub to access memory that marked by kasan as inaccessible
-(object's metadata).  Kasan shouldn't print report in that case because
-these accesses are valid.  Disabling instrumentation of slub.c code is not
-enough to achieve this because slub passes pointer to object's metadata
-into external functions like memchr_inv().
+We need to manually unpoison rounded up allocation size for dname to avoid
+kasan's reports in dentry_string_cmp().  When CONFIG_DCACHE_WORD_ACCESS=y
+dentry_string_cmp may access few bytes beyound requested in kmalloc()
+size.
 
-We don't want to disable instrumentation for memchr_inv() because this is
-quite generic function, and we don't want to miss bugs.
-
-metadata_access_enable/metadata_access_disable used to tell KASan where
-accesses to metadata starts/end, so we could temporarily disable KASan
-reports.
+dentry_string_cmp() relates on that fact that dentry allocated using
+kmalloc and kmalloc internally round up allocation size.  So this is not a
+bug, but this makes kasan to complain about such accesses.  To avoid such
+reports we mark rounded up allocation size in shadow as accessible.
 
 Signed-off-by: Andrey Ryabinin <a.ryabinin@samsung.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
+Reported-by: Dmitry Vyukov <dvyukov@google.com>
 Cc: Konstantin Serebryany <kcc@google.com>
 Cc: Dmitry Chernenkov <dmitryc@google.com>
 Cc: Andrey Konovalov <adech.fo@gmail.com>
@@ -78,81 +74,31 @@ Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   25 +++++++++++++++++++++++++
- 1 file changed, 25 insertions(+)
+ fs/dcache.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN mm/slub.c~mm-slub-introduce-metadata_access_enable-metadata_access_disable mm/slub.c
---- a/mm/slub.c~mm-slub-introduce-metadata_access_enable-metadata_access_disable
-+++ a/mm/slub.c
-@@ -20,6 +20,7 @@
- #include <linux/proc_fs.h>
- #include <linux/notifier.h>
- #include <linux/seq_file.h>
+diff -puN fs/dcache.c~fs-dcache-manually-unpoison-dname-after-allocation-to-shut-up-kasans-reports fs/dcache.c
+--- a/fs/dcache.c~fs-dcache-manually-unpoison-dname-after-allocation-to-shut-up-kasans-reports
++++ a/fs/dcache.c
+@@ -38,6 +38,8 @@
+ #include <linux/prefetch.h>
+ #include <linux/ratelimit.h>
+ #include <linux/list_lru.h>
 +#include <linux/kasan.h>
- #include <linux/kmemcheck.h>
- #include <linux/cpu.h>
- #include <linux/cpuset.h>
-@@ -468,12 +469,30 @@ static char *slub_debug_slabs;
- static int disable_higher_order_debug;
- 
- /*
-+ * slub is about to manipulate internal object metadata.  This memory lies
-+ * outside the range of the allocated object, so accessing it would normally
-+ * be reported by kasan as a bounds error.  metadata_access_enable() is used
-+ * to tell kasan that these accesses are OK.
-+ */
-+static inline void metadata_access_enable(void)
-+{
-+	kasan_disable_current();
-+}
 +
-+static inline void metadata_access_disable(void)
-+{
-+	kasan_enable_current();
-+}
-+
-+/*
-  * Object debugging
-  */
- static void print_section(char *text, u8 *addr, unsigned int length)
- {
-+	metadata_access_enable();
- 	print_hex_dump(KERN_ERR, text, DUMP_PREFIX_ADDRESS, 16, 1, addr,
- 			length, 1);
-+	metadata_access_disable();
- }
+ #include "internal.h"
+ #include "mount.h"
  
- static struct track *get_track(struct kmem_cache *s, void *object,
-@@ -503,7 +522,9 @@ static void set_track(struct kmem_cache
- 		trace.max_entries = TRACK_ADDRS_COUNT;
- 		trace.entries = p->addrs;
- 		trace.skip = 3;
-+		metadata_access_enable();
- 		save_stack_trace(&trace);
-+		metadata_access_disable();
- 
- 		/* See rant in lockdep.c */
- 		if (trace.nr_entries != 0 &&
-@@ -677,7 +698,9 @@ static int check_bytes_and_report(struct
- 	u8 *fault;
- 	u8 *end;
- 
-+	metadata_access_enable();
- 	fault = memchr_inv(start, value, bytes);
-+	metadata_access_disable();
- 	if (!fault)
- 		return 1;
- 
-@@ -770,7 +793,9 @@ static int slab_pad_check(struct kmem_ca
- 	if (!remainder)
- 		return 1;
- 
-+	metadata_access_enable();
- 	fault = memchr_inv(end - remainder, POISON_INUSE, remainder);
-+	metadata_access_disable();
- 	if (!fault)
- 		return 1;
- 	while (end > fault && end[-1] == POISON_INUSE)
+@@ -1430,6 +1432,9 @@ struct dentry *__d_alloc(struct super_bl
+ 		}
+ 		atomic_set(&p->u.count, 1);
+ 		dname = p->name;
++		if (IS_ENABLED(CONFIG_DCACHE_WORD_ACCESS))
++			kasan_unpoison_shadow(dname,
++				round_up(name->len + 1,	sizeof(unsigned long)));
+ 	} else  {
+ 		dname = dentry->d_iname;
+ 	}	
 _
 
 Patches currently in -mm which might be from a.ryabinin@samsung.com are
