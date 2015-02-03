@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmalloc-add-flag-preventing-guard-hole-allocation.patch
- added to -mm tree
-Date: Tue, 03 Feb 2015 15:05:29 -0800
-Message-ID: <54d15439.8ONAbbLJuUnrGNRn%akpm@linux-foundation.org>
+Subject: + kernel-add-support-for-init_array-constructors.patch added to
+ -mm tree
+Date: Tue, 03 Feb 2015 15:05:33 -0800
+Message-ID: <54d1543d.VEEwwWIdYJwclwLi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54696 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54720 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753225AbbBCXFb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2015 18:05:31 -0500
+	with ESMTP id S1753225AbbBCXFe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2015 18:05:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: a.ryabinin@samsung.com, adech.fo@gmail.com, andi@firstfloor.org, cl@linux.com, dave.hansen@intel.com, dmitryc@google.com, dvyukov@google.com, hpa@zytor.com, iamjoonsoo.kim@lge.com, kcc@google.com, koct9i@gmail.com, mingo@elte.hu, penberg@kernel.org, rientjes@google.com, sasha.levin@oracle.com, tetra2005@gmail.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmalloc: add flag preventing guard hole allocation
+     Subject: kernel: add support for .init_array.* constructors
 has been added to the -mm tree.  Its filename is
-     mm-vmalloc-add-flag-preventing-guard-hole-allocation.patch
+     kernel-add-support-for-init_array-constructors.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-add-flag-preventing-guard-hole-allocation.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-add-support-for-init_array-constructors.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-add-flag-preventing-guard-hole-allocation.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-add-support-for-init_array-constructors.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,21 +40,20 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Ryabinin <a.ryabinin@samsung.com>
-Subject: mm: vmalloc: add flag preventing guard hole allocation
+Subject: kernel: add support for .init_array.* constructors
 
-For instrumenting global variables KASan will shadow memory backing memory
-for modules.  So on module loading we will need to allocate memory for
-shadow and map it at address in shadow that corresponds to the address
-allocated in module_alloc().
+KASan uses constructors for initializing redzones for global variables. 
+Globals instrumentation in GCC 4.9.2 produces constructors with priority
+(.init_array.00099)
 
-__vmalloc_node_range() could be used for this purpose, except it puts a
-guard hole after allocated area.  Guard hole in shadow memory should be a
-problem because at some future point we might need to have a shadow memory
-at address occupied by guard hole.  So we could fail to allocate shadow
-for module_alloc().
+Currently kernel ignores such constructors.  Only constructors with
+default priority supported (.init_array)
 
-Add a new vm_struct flag 'VM_NO_GUARD' indicating that vm area doesn't
-have a guard hole.
+This patch adds support for constructors with priorities.  For kernel
+image we put pointers to constructors between __ctors_start/__ctors_end
+and do_ctors() will call them on start up.  For modules we merge
+.init_array.* sections into resulting .init_array.  Module code properly
+handles constructors in .init_array section.
 
 Signed-off-by: Andrey Ryabinin <a.ryabinin@samsung.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
@@ -78,52 +77,32 @@ Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmalloc.h |    9 +++++++--
- mm/vmalloc.c            |    6 ++----
- 2 files changed, 9 insertions(+), 6 deletions(-)
+ include/asm-generic/vmlinux.lds.h |    1 +
+ scripts/module-common.lds         |    3 +++
+ 2 files changed, 4 insertions(+)
 
-diff -puN include/linux/vmalloc.h~mm-vmalloc-add-flag-preventing-guard-hole-allocation include/linux/vmalloc.h
---- a/include/linux/vmalloc.h~mm-vmalloc-add-flag-preventing-guard-hole-allocation
-+++ a/include/linux/vmalloc.h
-@@ -16,6 +16,7 @@ struct vm_area_struct;		/* vma defining
- #define VM_USERMAP		0x00000008	/* suitable for remap_vmalloc_range */
- #define VM_VPAGES		0x00000010	/* buffer for pages was vmalloc'ed */
- #define VM_UNINITIALIZED	0x00000020	/* vm_struct is not fully initialized */
-+#define VM_NO_GUARD		0x00000040      /* don't add guard page */
- /* bits [20..32] reserved for arch specific ioremap internals */
- 
- /*
-@@ -96,8 +97,12 @@ void vmalloc_sync_all(void);
- 
- static inline size_t get_vm_area_size(const struct vm_struct *area)
- {
--	/* return actual size without guard page */
--	return area->size - PAGE_SIZE;
-+	if (!(area->flags & VM_NO_GUARD))
-+		/* return actual size without guard page */
-+		return area->size - PAGE_SIZE;
-+	else
-+		return area->size;
+diff -puN include/asm-generic/vmlinux.lds.h~kernel-add-support-for-init_array-constructors include/asm-generic/vmlinux.lds.h
+--- a/include/asm-generic/vmlinux.lds.h~kernel-add-support-for-init_array-constructors
++++ a/include/asm-generic/vmlinux.lds.h
+@@ -478,6 +478,7 @@
+ #define KERNEL_CTORS()	. = ALIGN(8);			   \
+ 			VMLINUX_SYMBOL(__ctors_start) = .; \
+ 			*(.ctors)			   \
++			*(SORT(.init_array.*))		   \
+ 			*(.init_array)			   \
+ 			VMLINUX_SYMBOL(__ctors_end) = .;
+ #else
+diff -puN scripts/module-common.lds~kernel-add-support-for-init_array-constructors scripts/module-common.lds
+--- a/scripts/module-common.lds~kernel-add-support-for-init_array-constructors
++++ a/scripts/module-common.lds
+@@ -16,4 +16,7 @@ SECTIONS {
+ 	__kcrctab_unused	: { *(SORT(___kcrctab_unused+*)) }
+ 	__kcrctab_unused_gpl	: { *(SORT(___kcrctab_unused_gpl+*)) }
+ 	__kcrctab_gpl_future	: { *(SORT(___kcrctab_gpl_future+*)) }
 +
++	. = ALIGN(8);
++	.init_array		: { *(SORT(.init_array.*)) *(.init_array) }
  }
- 
- extern struct vm_struct *get_vm_area(unsigned long size, unsigned long flags);
-diff -puN mm/vmalloc.c~mm-vmalloc-add-flag-preventing-guard-hole-allocation mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmalloc-add-flag-preventing-guard-hole-allocation
-+++ a/mm/vmalloc.c
-@@ -1324,10 +1324,8 @@ static struct vm_struct *__get_vm_area_n
- 	if (unlikely(!area))
- 		return NULL;
- 
--	/*
--	 * We always allocate a guard page.
--	 */
--	size += PAGE_SIZE;
-+	if (!(flags & VM_NO_GUARD))
-+		size += PAGE_SIZE;
- 
- 	va = alloc_vmap_area(size, align, start, end, node, gfp_mask);
- 	if (IS_ERR(va)) {
 _
 
 Patches currently in -mm which might be from a.ryabinin@samsung.com are
