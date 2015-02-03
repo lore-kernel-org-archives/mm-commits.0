@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + samples-seccomp-improve-label-helper-fix.patch added to -mm
+Subject: + compiler-introduce-__aliassymbol-shortcut.patch added to -mm
  tree
-Date: Tue, 03 Feb 2015 14:24:48 -0800
-Message-ID: <54d14ab0.MQCzP37Cc0uLEY/Z%akpm@linux-foundation.org>
+Date: Tue, 03 Feb 2015 15:04:49 -0800
+Message-ID: <54d15411.NzJ0SectNI/6rpQq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54232 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54526 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753657AbbBCWYt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2015 17:24:49 -0500
+	with ESMTP id S1753932AbbBCXEu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2015 18:04:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, keescook@chromium.org, mm-commits@vger.kernel.org
+To: a.ryabinin@samsung.com, adech.fo@gmail.com, andi@firstfloor.org, cl@linux.com, dave.hansen@intel.com, dmitryc@google.com, dvyukov@google.com, hpa@zytor.com, iamjoonsoo.kim@lge.com, kcc@google.com, koct9i@gmail.com, mingo@elte.hu, penberg@kernel.org, rientjes@google.com, sasha.levin@oracle.com, tetra2005@gmail.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: samples-seccomp-improve-label-helper-fix
+     Subject: compiler: introduce __alias(symbol) shortcut
 has been added to the -mm tree.  Its filename is
-     samples-seccomp-improve-label-helper-fix.patch
+     compiler-introduce-__aliassymbol-shortcut.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/samples-seccomp-improve-label-helper-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/compiler-introduce-__aliassymbol-shortcut.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/samples-seccomp-improve-label-helper-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/compiler-introduce-__aliassymbol-shortcut.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,84 +39,73 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: samples-seccomp-improve-label-helper-fix
+From: Andrey Ryabinin <a.ryabinin@samsung.com>
+Subject: compiler: introduce __alias(symbol) shortcut
 
-coding-style fixlet
+To be consistent with other compiler attributes introduce __alias(symbol)
+macro expanding into __attribute__((alias(#symbol)))
 
-Cc: Kees Cook <keescook@chromium.org>
+Signed-off-by: Andrey Ryabinin <a.ryabinin@samsung.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Konstantin Serebryany <kcc@google.com>
+Cc: Dmitry Chernenkov <dmitryc@google.com>
+Cc: Andrey Konovalov <adech.fo@gmail.com>
+Cc: Yuri Gribov <tetra2005@gmail.com>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Sasha Levin <sasha.levin@oracle.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- samples/seccomp/bpf-helper.c |    1 +
+ include/linux/compiler-gcc.h |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN samples/seccomp/bpf-helper.c~samples-seccomp-improve-label-helper-fix samples/seccomp/bpf-helper.c
---- a/samples/seccomp/bpf-helper.c~samples-seccomp-improve-label-helper-fix
-+++ a/samples/seccomp/bpf-helper.c
-@@ -64,6 +64,7 @@ __u32 seccomp_bpf_label(struct bpf_label
- {
- 	struct __bpf_label *begin = labels->labels, *end;
- 	int id;
-+
- 	if (labels->count == BPF_LABELS_MAX) {
- 		fprintf(stderr, "Too many labels\n");
- 		exit(1);
+diff -puN include/linux/compiler-gcc.h~compiler-introduce-__aliassymbol-shortcut include/linux/compiler-gcc.h
+--- a/include/linux/compiler-gcc.h~compiler-introduce-__aliassymbol-shortcut
++++ a/include/linux/compiler-gcc.h
+@@ -66,6 +66,7 @@
+ #define __deprecated			__attribute__((deprecated))
+ #define __packed			__attribute__((packed))
+ #define __weak				__attribute__((weak))
++#define __alias(symbol)		__attribute__((alias(#symbol)))
+ 
+ /*
+  * it doesn't make sense on ARM (currently the only user of __naked) to trace
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from a.ryabinin@samsung.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-fanotify-dont-recalculate-a-marks-mask-if-only-the-ignored-mask-changed-checkpatch-fixes.patch
-fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper.patch
-mm.patch
-mm-vmstatc-fix-cleanup-ifdefs.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub-fix.patch
-mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
-vmscan-force-scan-offline-memory-cgroups-fix.patch
-mm-memcontrol-default-hierarchy-interface-for-memory.patch
-mm-memcontrol-fold-move_anon-and-move_file-fix.patch
-fs-shrinker-always-scan-at-least-one-object-of-each-type-fix.patch
-mm-compaction-enhance-tracepoint-output-for-compaction-begin-end-v4-fix.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated-fix.patch
-mm-thp-allocate-transparent-hugepages-on-local-node-fix.patch
-docs-procs-describe-proc-pid-map_files-entry-fix.patch
-mm-page_ext-remove-unnecessary-stack_trace-field-fix.patch
-mm-fix-arithmetic-overflow-in-__vm_enough_memory-fix.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss.patch
-powerpc-add-running_clock-for-powerpc-to-prevent-spurious-softlockup-warnings-checkpatch-fixes.patch
-lib-bitmap-update-bitmap_onto-to-unsigned-checkpatch-fixes.patch
-lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned-fix.patch
-hexdump-makes-it-return-amount-of-bytes-placed-in-buffer-fix.patch
-mm-slab-convert-cache-name-allocations-to-kstrdup_const-fix.patch
-rtc-rk808-fix-the-rtc-time-reading-issue-fix.patch
-fs-befs-linuxvfsc-remove-unnecessary-casting-fix.patch
-samples-seccomp-improve-label-helper-fix.patch
+compiler-introduce-__aliassymbol-shortcut.patch
+add-kernel-address-sanitizer-infrastructure.patch
+kasan-disable-memory-hotplug.patch
+x86_64-add-kasan-support.patch
+mm-page_alloc-add-kasan-hooks-on-alloc-and-free-paths.patch
+mm-slub-introduce-virt_to_obj-function.patch
+mm-slub-share-object_err-function.patch
+mm-slub-introduce-metadata_access_enable-metadata_access_disable.patch
+mm-slub-add-kernel-address-sanitizer-support-for-slub-allocator.patch
+fs-dcache-manually-unpoison-dname-after-allocation-to-shut-up-kasans-reports.patch
+kmemleak-disable-kasan-instrumentation-for-kmemleak.patch
+lib-add-kasan-test-module.patch
+x86_64-kasan-add-interceptors-for-memset-memmove-memcpy-functions.patch
+kasan-enable-stack-instrumentation.patch
+mm-vmalloc-add-flag-preventing-guard-hole-allocation.patch
+mm-vmalloc-pass-additional-vm_flags-to-__vmalloc_node_range.patch
+kernel-add-support-for-init_array-constructors.patch
+module-fix-types-of-device-tables-aliases.patch
+kasan-enable-instrumentation-of-global-variables.patch
+hugetlb-sysctl-pass-extra1-=-null-rather-then-extra1-=-zero.patch
+mm-hugetlb-fix-type-of-hugetlb_treat_as_movable-variable.patch
+proc-pagemap-walk-page-tables-under-pte-lock.patch
 linux-next.patch
-linux-next-rejects.patch
-mm-fix-xip-fault-vs-truncate-race-fix.patch
-mm-fix-xip-fault-vs-truncate-race-fix-fix.patch
-mm-allow-page-fault-handlers-to-perform-the-cow-fix.patch
-mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix-3.patch
-mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix.patch
-daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix.patch
-daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-2.patch
-daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-3.patch
-dax-add-dax_zero_page_range-fix.patch
-ext4-add-dax-functionality-fix.patch
-ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
-ocfs2-implement-ocfs2_direct_io_write-fix.patch
-lib-kconfig-fix-up-have_arch_bitreverse-help-text.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
 
