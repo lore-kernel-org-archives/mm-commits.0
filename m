@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- x86_64-kasan-add-interceptors-for-memset-memmove-memcpy-functions.patch
- added to -mm tree
-Date: Tue, 03 Feb 2015 15:05:23 -0800
-Message-ID: <54d15433.tM/0HcHjwpNuCrVn%akpm@linux-foundation.org>
+ mm-vmalloc-pass-additional-vm_flags-to-__vmalloc_node_range.patch added to
+ -mm tree
+Date: Tue, 03 Feb 2015 15:05:31 -0800
+Message-ID: <54d1543b.QDPDoSOIuZmpcYor%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54671 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54709 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753225AbbBCXFZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2015 18:05:25 -0500
+	with ESMTP id S1753225AbbBCXFc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2015 18:05:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: a.ryabinin@samsung.com, adech.fo@gmail.com, andi@firstfloor.org, cl@linux.com, dave.hansen@intel.com, dmitryc@google.com, dvyukov@google.com, hpa@zytor.com, iamjoonsoo.kim@lge.com, kcc@google.com, koct9i@gmail.com, mingo@elte.hu, penberg@kernel.org, rientjes@google.com, sasha.levin@oracle.com, tetra2005@gmail.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86_64: kasan: add interceptors for memset/memmove/memcpy functions
+     Subject: mm: vmalloc: pass additional vm_flags to __vmalloc_node_range()
 has been added to the -mm tree.  Its filename is
-     x86_64-kasan-add-interceptors-for-memset-memmove-memcpy-functions.patch
+     mm-vmalloc-pass-additional-vm_flags-to-__vmalloc_node_range.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86_64-kasan-add-interceptors-for-memset-memmove-memcpy-functions.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-pass-additional-vm_flags-to-__vmalloc_node_range.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86_64-kasan-add-interceptors-for-memset-memmove-memcpy-functions.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-pass-additional-vm_flags-to-__vmalloc_node_range.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,21 +41,22 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Ryabinin <a.ryabinin@samsung.com>
-Subject: x86_64: kasan: add interceptors for memset/memmove/memcpy functions
+Subject: mm: vmalloc: pass additional vm_flags to __vmalloc_node_range()
 
-Recently instrumentation of builtin functions calls was removed from GCC
-5.0.  To check the memory accessed by such functions, userspace asan
-always uses interceptors for them.
+For instrumenting global variables KASan will shadow memory backing memory
+for modules.  So on module loading we will need to allocate memory for
+shadow and map it at address in shadow that corresponds to the address
+allocated in module_alloc().
 
-So now we should do this as well.  This patch declares
-memset/memmove/memcpy as weak symbols.  In mm/kasan/kasan.c we have our
-own implementation of those functions which checks memory before accessing
-it.
+__vmalloc_node_range() could be used for this purpose, except it puts a
+guard hole after allocated area.  Guard hole in shadow memory should be a
+problem because at some future point we might need to have a shadow memory
+at address occupied by guard hole.  So we could fail to allocate shadow
+for module_alloc().
 
-Default memset/memmove/memcpy now now always have aliases with '__'
-prefix.  For files that built without kasan instrumentation (e.g. 
-mm/slub.c) original mem* replaced (via #define) with prefixed variants,
-cause we don't want to check memory accesses there.
+Now we have VM_NO_GUARD flag disabling guard page, so we need to pass into
+__vmalloc_node_range().  Add new parameter 'vm_flags' to
+__vmalloc_node_range() function.
 
 Signed-off-by: Andrey Ryabinin <a.ryabinin@samsung.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
@@ -79,236 +80,171 @@ Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/boot/compressed/eboot.c       |    3 --
- arch/x86/boot/compressed/misc.h        |    1 
- arch/x86/include/asm/string_64.h       |   18 +++++++++++++-
- arch/x86/kernel/x8664_ksyms_64.c       |   10 ++++++-
- arch/x86/lib/memcpy_64.S               |    6 +++-
- arch/x86/lib/memmove_64.S              |    4 +++
- arch/x86/lib/memset_64.S               |   10 ++++---
- drivers/firmware/efi/libstub/efistub.h |    4 +++
- mm/kasan/kasan.c                       |   29 +++++++++++++++++++++++
- 9 files changed, 74 insertions(+), 11 deletions(-)
+ arch/arm/kernel/module.c       |    2 +-
+ arch/arm64/kernel/module.c     |    4 ++--
+ arch/mips/kernel/module.c      |    2 +-
+ arch/parisc/kernel/module.c    |    2 +-
+ arch/s390/kernel/module.c      |    2 +-
+ arch/sparc/kernel/module.c     |    2 +-
+ arch/unicore32/kernel/module.c |    2 +-
+ arch/x86/kernel/module.c       |    2 +-
+ include/linux/vmalloc.h        |    4 +++-
+ mm/vmalloc.c                   |   10 ++++++----
+ 10 files changed, 18 insertions(+), 14 deletions(-)
 
-diff -puN arch/x86/boot/compressed/eboot.c~x86_64-kasan-add-interceptors-for-memset-memmove-memcpy-functions arch/x86/boot/compressed/eboot.c
---- a/arch/x86/boot/compressed/eboot.c~x86_64-kasan-add-interceptors-for-memset-memmove-memcpy-functions
-+++ a/arch/x86/boot/compressed/eboot.c
-@@ -13,8 +13,7 @@
- #include <asm/setup.h>
- #include <asm/desc.h>
- 
--#undef memcpy			/* Use memcpy from misc.c */
--
-+#include "../string.h"
- #include "eboot.h"
- 
- static efi_system_table_t *sys_table;
-diff -puN arch/x86/boot/compressed/misc.h~x86_64-kasan-add-interceptors-for-memset-memmove-memcpy-functions arch/x86/boot/compressed/misc.h
---- a/arch/x86/boot/compressed/misc.h~x86_64-kasan-add-interceptors-for-memset-memmove-memcpy-functions
-+++ a/arch/x86/boot/compressed/misc.h
-@@ -7,6 +7,7 @@
-  * we just keep it from happening
-  */
- #undef CONFIG_PARAVIRT
-+#undef CONFIG_KASAN
- #ifdef CONFIG_X86_32
- #define _ASM_X86_DESC_H 1
+diff -puN arch/arm/kernel/module.c~mm-vmalloc-pass-additional-vm_flags-to-__vmalloc_node_range arch/arm/kernel/module.c
+--- a/arch/arm/kernel/module.c~mm-vmalloc-pass-additional-vm_flags-to-__vmalloc_node_range
++++ a/arch/arm/kernel/module.c
+@@ -41,7 +41,7 @@
+ void *module_alloc(unsigned long size)
+ {
+ 	return __vmalloc_node_range(size, 1, MODULES_VADDR, MODULES_END,
+-				GFP_KERNEL, PAGE_KERNEL_EXEC, NUMA_NO_NODE,
++				GFP_KERNEL, PAGE_KERNEL_EXEC, 0, NUMA_NO_NODE,
+ 				__builtin_return_address(0));
+ }
  #endif
-diff -puN arch/x86/include/asm/string_64.h~x86_64-kasan-add-interceptors-for-memset-memmove-memcpy-functions arch/x86/include/asm/string_64.h
---- a/arch/x86/include/asm/string_64.h~x86_64-kasan-add-interceptors-for-memset-memmove-memcpy-functions
-+++ a/arch/x86/include/asm/string_64.h
-@@ -27,11 +27,12 @@ static __always_inline void *__inline_me
-    function. */
- 
- #define __HAVE_ARCH_MEMCPY 1
-+extern void *__memcpy(void *to, const void *from, size_t len);
-+
- #ifndef CONFIG_KMEMCHECK
- #if (__GNUC__ == 4 && __GNUC_MINOR__ >= 3) || __GNUC__ > 4
- extern void *memcpy(void *to, const void *from, size_t len);
- #else
--extern void *__memcpy(void *to, const void *from, size_t len);
- #define memcpy(dst, src, len)					\
- ({								\
- 	size_t __len = (len);					\
-@@ -53,9 +54,11 @@ extern void *__memcpy(void *to, const vo
- 
- #define __HAVE_ARCH_MEMSET
- void *memset(void *s, int c, size_t n);
-+void *__memset(void *s, int c, size_t n);
- 
- #define __HAVE_ARCH_MEMMOVE
- void *memmove(void *dest, const void *src, size_t count);
-+void *__memmove(void *dest, const void *src, size_t count);
- 
- int memcmp(const void *cs, const void *ct, size_t count);
- size_t strlen(const char *s);
-@@ -63,6 +66,19 @@ char *strcpy(char *dest, const char *src
- char *strcat(char *dest, const char *src);
- int strcmp(const char *cs, const char *ct);
- 
-+#if defined(CONFIG_KASAN) && !defined(__SANITIZE_ADDRESS__)
-+
-+/*
-+ * For files that not instrumented (e.g. mm/slub.c) we
-+ * should use not instrumented version of mem* functions.
-+ */
-+
-+#undef memcpy
-+#define memcpy(dst, src, len) __memcpy(dst, src, len)
-+#define memmove(dst, src, len) __memmove(dst, src, len)
-+#define memset(s, c, n) __memset(s, c, n)
-+#endif
-+
- #endif /* __KERNEL__ */
- 
- #endif /* _ASM_X86_STRING_64_H */
-diff -puN arch/x86/kernel/x8664_ksyms_64.c~x86_64-kasan-add-interceptors-for-memset-memmove-memcpy-functions arch/x86/kernel/x8664_ksyms_64.c
---- a/arch/x86/kernel/x8664_ksyms_64.c~x86_64-kasan-add-interceptors-for-memset-memmove-memcpy-functions
-+++ a/arch/x86/kernel/x8664_ksyms_64.c
-@@ -50,13 +50,19 @@ EXPORT_SYMBOL(csum_partial);
- #undef memset
- #undef memmove
- 
-+extern void *__memset(void *, int, __kernel_size_t);
-+extern void *__memcpy(void *, const void *, __kernel_size_t);
-+extern void *__memmove(void *, const void *, __kernel_size_t);
- extern void *memset(void *, int, __kernel_size_t);
- extern void *memcpy(void *, const void *, __kernel_size_t);
--extern void *__memcpy(void *, const void *, __kernel_size_t);
-+extern void *memmove(void *, const void *, __kernel_size_t);
-+
-+EXPORT_SYMBOL(__memset);
-+EXPORT_SYMBOL(__memcpy);
-+EXPORT_SYMBOL(__memmove);
- 
- EXPORT_SYMBOL(memset);
- EXPORT_SYMBOL(memcpy);
--EXPORT_SYMBOL(__memcpy);
- EXPORT_SYMBOL(memmove);
- 
- #ifndef CONFIG_DEBUG_VIRTUAL
-diff -puN arch/x86/lib/memcpy_64.S~x86_64-kasan-add-interceptors-for-memset-memmove-memcpy-functions arch/x86/lib/memcpy_64.S
---- a/arch/x86/lib/memcpy_64.S~x86_64-kasan-add-interceptors-for-memset-memmove-memcpy-functions
-+++ a/arch/x86/lib/memcpy_64.S
-@@ -53,6 +53,8 @@
- .Lmemcpy_e_e:
- 	.previous
- 
-+.weak memcpy
-+
- ENTRY(__memcpy)
- ENTRY(memcpy)
- 	CFI_STARTPROC
-@@ -199,8 +201,8 @@ ENDPROC(__memcpy)
- 	 * only outcome...
- 	 */
- 	.section .altinstructions, "a"
--	altinstruction_entry memcpy,.Lmemcpy_c,X86_FEATURE_REP_GOOD,\
-+	altinstruction_entry __memcpy,.Lmemcpy_c,X86_FEATURE_REP_GOOD,\
- 			     .Lmemcpy_e-.Lmemcpy_c,.Lmemcpy_e-.Lmemcpy_c
--	altinstruction_entry memcpy,.Lmemcpy_c_e,X86_FEATURE_ERMS, \
-+	altinstruction_entry __memcpy,.Lmemcpy_c_e,X86_FEATURE_ERMS, \
- 			     .Lmemcpy_e_e-.Lmemcpy_c_e,.Lmemcpy_e_e-.Lmemcpy_c_e
- 	.previous
-diff -puN arch/x86/lib/memmove_64.S~x86_64-kasan-add-interceptors-for-memset-memmove-memcpy-functions arch/x86/lib/memmove_64.S
---- a/arch/x86/lib/memmove_64.S~x86_64-kasan-add-interceptors-for-memset-memmove-memcpy-functions
-+++ a/arch/x86/lib/memmove_64.S
-@@ -24,7 +24,10 @@
-  * Output:
-  * rax: dest
-  */
-+.weak memmove
-+
- ENTRY(memmove)
-+ENTRY(__memmove)
- 	CFI_STARTPROC
- 
- 	/* Handle more 32 bytes in loop */
-@@ -220,4 +223,5 @@ ENTRY(memmove)
- 		.Lmemmove_end_forward-.Lmemmove_begin_forward,	\
- 		.Lmemmove_end_forward_efs-.Lmemmove_begin_forward_efs
- 	.previous
-+ENDPROC(__memmove)
- ENDPROC(memmove)
-diff -puN arch/x86/lib/memset_64.S~x86_64-kasan-add-interceptors-for-memset-memmove-memcpy-functions arch/x86/lib/memset_64.S
---- a/arch/x86/lib/memset_64.S~x86_64-kasan-add-interceptors-for-memset-memmove-memcpy-functions
-+++ a/arch/x86/lib/memset_64.S
-@@ -56,6 +56,8 @@
- .Lmemset_e_e:
- 	.previous
- 
-+.weak memset
-+
- ENTRY(memset)
- ENTRY(__memset)
- 	CFI_STARTPROC
-@@ -147,8 +149,8 @@ ENDPROC(__memset)
-          * feature to implement the right patch order.
- 	 */
- 	.section .altinstructions,"a"
--	altinstruction_entry memset,.Lmemset_c,X86_FEATURE_REP_GOOD,\
--			     .Lfinal-memset,.Lmemset_e-.Lmemset_c
--	altinstruction_entry memset,.Lmemset_c_e,X86_FEATURE_ERMS, \
--			     .Lfinal-memset,.Lmemset_e_e-.Lmemset_c_e
-+	altinstruction_entry __memset,.Lmemset_c,X86_FEATURE_REP_GOOD,\
-+			     .Lfinal-__memset,.Lmemset_e-.Lmemset_c
-+	altinstruction_entry __memset,.Lmemset_c_e,X86_FEATURE_ERMS, \
-+			     .Lfinal-__memset,.Lmemset_e_e-.Lmemset_c_e
- 	.previous
-diff -puN drivers/firmware/efi/libstub/efistub.h~x86_64-kasan-add-interceptors-for-memset-memmove-memcpy-functions drivers/firmware/efi/libstub/efistub.h
---- a/drivers/firmware/efi/libstub/efistub.h~x86_64-kasan-add-interceptors-for-memset-memmove-memcpy-functions
-+++ a/drivers/firmware/efi/libstub/efistub.h
-@@ -5,6 +5,10 @@
- /* error code which can't be mistaken for valid address */
- #define EFI_ERROR	(~0UL)
- 
-+#undef memcpy
-+#undef memset
-+#undef memmove
-+
- void efi_char16_printk(efi_system_table_t *, efi_char16_t *);
- 
- efi_status_t efi_open_volume(efi_system_table_t *sys_table_arg, void *__image,
-diff -puN mm/kasan/kasan.c~x86_64-kasan-add-interceptors-for-memset-memmove-memcpy-functions mm/kasan/kasan.c
---- a/mm/kasan/kasan.c~x86_64-kasan-add-interceptors-for-memset-memmove-memcpy-functions
-+++ a/mm/kasan/kasan.c
-@@ -255,6 +255,35 @@ static __always_inline void check_memory
- 	kasan_report(addr, size, write, _RET_IP_);
+diff -puN arch/arm64/kernel/module.c~mm-vmalloc-pass-additional-vm_flags-to-__vmalloc_node_range arch/arm64/kernel/module.c
+--- a/arch/arm64/kernel/module.c~mm-vmalloc-pass-additional-vm_flags-to-__vmalloc_node_range
++++ a/arch/arm64/kernel/module.c
+@@ -35,8 +35,8 @@
+ void *module_alloc(unsigned long size)
+ {
+ 	return __vmalloc_node_range(size, 1, MODULES_VADDR, MODULES_END,
+-				    GFP_KERNEL, PAGE_KERNEL_EXEC, NUMA_NO_NODE,
+-				    __builtin_return_address(0));
++				    GFP_KERNEL, PAGE_KERNEL_EXEC, 0,
++				    NUMA_NO_NODE, __builtin_return_address(0));
  }
  
-+void __asan_loadN(unsigned long addr, size_t size);
-+void __asan_storeN(unsigned long addr, size_t size);
-+
-+#undef memset
-+void *memset(void *addr, int c, size_t len)
-+{
-+	__asan_storeN((unsigned long)addr, len);
-+
-+	return __memset(addr, c, len);
-+}
-+
-+#undef memmove
-+void *memmove(void *dest, const void *src, size_t len)
-+{
-+	__asan_loadN((unsigned long)src, len);
-+	__asan_storeN((unsigned long)dest, len);
-+
-+	return __memmove(dest, src, len);
-+}
-+
-+#undef memcpy
-+void *memcpy(void *dest, const void *src, size_t len)
-+{
-+	__asan_loadN((unsigned long)src, len);
-+	__asan_storeN((unsigned long)dest, len);
-+
-+	return __memcpy(dest, src, len);
-+}
-+
- void kasan_alloc_pages(struct page *page, unsigned int order)
+ enum aarch64_reloc_op {
+diff -puN arch/mips/kernel/module.c~mm-vmalloc-pass-additional-vm_flags-to-__vmalloc_node_range arch/mips/kernel/module.c
+--- a/arch/mips/kernel/module.c~mm-vmalloc-pass-additional-vm_flags-to-__vmalloc_node_range
++++ a/arch/mips/kernel/module.c
+@@ -47,7 +47,7 @@ static DEFINE_SPINLOCK(dbe_lock);
+ void *module_alloc(unsigned long size)
  {
- 	if (likely(!PageHighMem(page)))
+ 	return __vmalloc_node_range(size, 1, MODULE_START, MODULE_END,
+-				GFP_KERNEL, PAGE_KERNEL, NUMA_NO_NODE,
++				GFP_KERNEL, PAGE_KERNEL, 0, NUMA_NO_NODE,
+ 				__builtin_return_address(0));
+ }
+ #endif
+diff -puN arch/parisc/kernel/module.c~mm-vmalloc-pass-additional-vm_flags-to-__vmalloc_node_range arch/parisc/kernel/module.c
+--- a/arch/parisc/kernel/module.c~mm-vmalloc-pass-additional-vm_flags-to-__vmalloc_node_range
++++ a/arch/parisc/kernel/module.c
+@@ -219,7 +219,7 @@ void *module_alloc(unsigned long size)
+ 	 * init_data correctly */
+ 	return __vmalloc_node_range(size, 1, VMALLOC_START, VMALLOC_END,
+ 				    GFP_KERNEL | __GFP_HIGHMEM,
+-				    PAGE_KERNEL_RWX, NUMA_NO_NODE,
++				    PAGE_KERNEL_RWX, 0, NUMA_NO_NODE,
+ 				    __builtin_return_address(0));
+ }
+ 
+diff -puN arch/s390/kernel/module.c~mm-vmalloc-pass-additional-vm_flags-to-__vmalloc_node_range arch/s390/kernel/module.c
+--- a/arch/s390/kernel/module.c~mm-vmalloc-pass-additional-vm_flags-to-__vmalloc_node_range
++++ a/arch/s390/kernel/module.c
+@@ -50,7 +50,7 @@ void *module_alloc(unsigned long size)
+ 	if (PAGE_ALIGN(size) > MODULES_LEN)
+ 		return NULL;
+ 	return __vmalloc_node_range(size, 1, MODULES_VADDR, MODULES_END,
+-				    GFP_KERNEL, PAGE_KERNEL, NUMA_NO_NODE,
++				    GFP_KERNEL, PAGE_KERNEL, 0, NUMA_NO_NODE,
+ 				    __builtin_return_address(0));
+ }
+ #endif
+diff -puN arch/sparc/kernel/module.c~mm-vmalloc-pass-additional-vm_flags-to-__vmalloc_node_range arch/sparc/kernel/module.c
+--- a/arch/sparc/kernel/module.c~mm-vmalloc-pass-additional-vm_flags-to-__vmalloc_node_range
++++ a/arch/sparc/kernel/module.c
+@@ -29,7 +29,7 @@ static void *module_map(unsigned long si
+ 	if (PAGE_ALIGN(size) > MODULES_LEN)
+ 		return NULL;
+ 	return __vmalloc_node_range(size, 1, MODULES_VADDR, MODULES_END,
+-				GFP_KERNEL, PAGE_KERNEL, NUMA_NO_NODE,
++				GFP_KERNEL, PAGE_KERNEL, 0, NUMA_NO_NODE,
+ 				__builtin_return_address(0));
+ }
+ #else
+diff -puN arch/unicore32/kernel/module.c~mm-vmalloc-pass-additional-vm_flags-to-__vmalloc_node_range arch/unicore32/kernel/module.c
+--- a/arch/unicore32/kernel/module.c~mm-vmalloc-pass-additional-vm_flags-to-__vmalloc_node_range
++++ a/arch/unicore32/kernel/module.c
+@@ -25,7 +25,7 @@
+ void *module_alloc(unsigned long size)
+ {
+ 	return __vmalloc_node_range(size, 1, MODULES_VADDR, MODULES_END,
+-				GFP_KERNEL, PAGE_KERNEL_EXEC, NUMA_NO_NODE,
++				GFP_KERNEL, PAGE_KERNEL_EXEC, 0, NUMA_NO_NODE,
+ 				__builtin_return_address(0));
+ }
+ 
+diff -puN arch/x86/kernel/module.c~mm-vmalloc-pass-additional-vm_flags-to-__vmalloc_node_range arch/x86/kernel/module.c
+--- a/arch/x86/kernel/module.c~mm-vmalloc-pass-additional-vm_flags-to-__vmalloc_node_range
++++ a/arch/x86/kernel/module.c
+@@ -88,7 +88,7 @@ void *module_alloc(unsigned long size)
+ 	return __vmalloc_node_range(size, 1,
+ 				    MODULES_VADDR + get_module_load_offset(),
+ 				    MODULES_END, GFP_KERNEL | __GFP_HIGHMEM,
+-				    PAGE_KERNEL_EXEC, NUMA_NO_NODE,
++				    PAGE_KERNEL_EXEC, 0, NUMA_NO_NODE,
+ 				    __builtin_return_address(0));
+ }
+ 
+diff -puN include/linux/vmalloc.h~mm-vmalloc-pass-additional-vm_flags-to-__vmalloc_node_range include/linux/vmalloc.h
+--- a/include/linux/vmalloc.h~mm-vmalloc-pass-additional-vm_flags-to-__vmalloc_node_range
++++ a/include/linux/vmalloc.h
+@@ -76,7 +76,9 @@ extern void *vmalloc_32_user(unsigned lo
+ extern void *__vmalloc(unsigned long size, gfp_t gfp_mask, pgprot_t prot);
+ extern void *__vmalloc_node_range(unsigned long size, unsigned long align,
+ 			unsigned long start, unsigned long end, gfp_t gfp_mask,
+-			pgprot_t prot, int node, const void *caller);
++			pgprot_t prot, unsigned long vm_flags, int node,
++			const void *caller);
++
+ extern void vfree(const void *addr);
+ 
+ extern void *vmap(struct page **pages, unsigned int count,
+diff -puN mm/vmalloc.c~mm-vmalloc-pass-additional-vm_flags-to-__vmalloc_node_range mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmalloc-pass-additional-vm_flags-to-__vmalloc_node_range
++++ a/mm/vmalloc.c
+@@ -1619,6 +1619,7 @@ fail:
+  *	@end:		vm area range end
+  *	@gfp_mask:	flags for the page level allocator
+  *	@prot:		protection mask for the allocated pages
++ *	@vm_flags:	additional vm area flags (e.g. %VM_NO_GUARD)
+  *	@node:		node to use for allocation or NUMA_NO_NODE
+  *	@caller:	caller's return address
+  *
+@@ -1628,7 +1629,8 @@ fail:
+  */
+ void *__vmalloc_node_range(unsigned long size, unsigned long align,
+ 			unsigned long start, unsigned long end, gfp_t gfp_mask,
+-			pgprot_t prot, int node, const void *caller)
++			pgprot_t prot, unsigned long vm_flags, int node,
++			const void *caller)
+ {
+ 	struct vm_struct *area;
+ 	void *addr;
+@@ -1638,8 +1640,8 @@ void *__vmalloc_node_range(unsigned long
+ 	if (!size || (size >> PAGE_SHIFT) > totalram_pages)
+ 		goto fail;
+ 
+-	area = __get_vm_area_node(size, align, VM_ALLOC | VM_UNINITIALIZED,
+-				  start, end, node, gfp_mask, caller);
++	area = __get_vm_area_node(size, align, VM_ALLOC | VM_UNINITIALIZED |
++				vm_flags, start, end, node, gfp_mask, caller);
+ 	if (!area)
+ 		goto fail;
+ 
+@@ -1688,7 +1690,7 @@ static void *__vmalloc_node(unsigned lon
+ 			    int node, const void *caller)
+ {
+ 	return __vmalloc_node_range(size, align, VMALLOC_START, VMALLOC_END,
+-				gfp_mask, prot, node, caller);
++				gfp_mask, prot, 0, node, caller);
+ }
+ 
+ void *__vmalloc(unsigned long size, gfp_t gfp_mask, pgprot_t prot)
 _
 
 Patches currently in -mm which might be from a.ryabinin@samsung.com are
