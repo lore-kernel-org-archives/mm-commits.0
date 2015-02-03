@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + kmemleak-disable-kasan-instrumentation-for-kmemleak.patch added to -mm tree
-Date: Tue, 03 Feb 2015 15:05:18 -0800
-Message-ID: <54d1542e.55Xx5bUNsQKdFR1A%akpm@linux-foundation.org>
+Subject: + lib-add-kasan-test-module.patch added to -mm tree
+Date: Tue, 03 Feb 2015 15:05:20 -0800
+Message-ID: <54d15430.rXqjMGfAbA8DL43N%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54647 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54664 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753225AbbBCXFT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2015 18:05:19 -0500
+	with ESMTP id S1754054AbbBCXFW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2015 18:05:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: a.ryabinin@samsung.com, adech.fo@gmail.com, andi@firstfloor.org, catalin.marinas@arm.com, cl@linux.com, dave.hansen@intel.com, dmitryc@google.com, dvyukov@google.com, hpa@zytor.com, iamjoonsoo.kim@lge.com, kcc@google.com, koct9i@gmail.com, mingo@elte.hu, penberg@kernel.org, rientjes@google.com, sasha.levin@oracle.com, tetra2005@gmail.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: a.ryabinin@samsung.com, adech.fo@gmail.com, andi@firstfloor.org, cl@linux.com, dave.hansen@intel.com, dmitryc@google.com, dvyukov@google.com, hpa@zytor.com, iamjoonsoo.kim@lge.com, kcc@google.com, koct9i@gmail.com, mingo@elte.hu, penberg@kernel.org, rientjes@google.com, sasha.levin@oracle.com, tetra2005@gmail.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kmemleak: disable kasan instrumentation for kmemleak
+     Subject: lib: add kasan test module
 has been added to the -mm tree.  Its filename is
-     kmemleak-disable-kasan-instrumentation-for-kmemleak.patch
+     lib-add-kasan-test-module.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kmemleak-disable-kasan-instrumentation-for-kmemleak.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-add-kasan-test-module.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kmemleak-disable-kasan-instrumentation-for-kmemleak.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-add-kasan-test-module.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,15 +39,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Ryabinin <a.ryabinin@samsung.com>
-Subject: kmemleak: disable kasan instrumentation for kmemleak
+Subject: lib: add kasan test module
 
-kmalloc internally round up allocation size, and kmemleak uses rounded up
-size as object's size.  This makes kasan to complain while kmemleak scans
-memory or calculates of object's checksum.  The simplest solution here is
-to disable kasan.
+This is a test module doing various nasty things like out of bounds
+accesses, use after free.  It is useful for testing kernel debugging
+features like kernel address sanitizer.
+
+It mostly concentrates on testing of slab allocator, but we might want to
+add more different stuff here in future (like stack/global variables out
+of bounds accesses and so on).
 
 Signed-off-by: Andrey Ryabinin <a.ryabinin@samsung.com>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Konstantin Serebryany <kcc@google.com>
 Cc: Dmitry Chernenkov <dmitryc@google.com>
@@ -69,41 +71,319 @@ Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ lib/Kconfig.kasan |    8 +
+ lib/Makefile      |    1 
+ lib/test_kasan.c  |  277 ++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 286 insertions(+)
 
-diff -puN mm/kmemleak.c~kmemleak-disable-kasan-instrumentation-for-kmemleak mm/kmemleak.c
---- a/mm/kmemleak.c~kmemleak-disable-kasan-instrumentation-for-kmemleak
-+++ a/mm/kmemleak.c
-@@ -98,6 +98,7 @@
- #include <asm/processor.h>
- #include <linux/atomic.h>
+diff -puN lib/Kconfig.kasan~lib-add-kasan-test-module lib/Kconfig.kasan
+--- a/lib/Kconfig.kasan~lib-add-kasan-test-module
++++ a/lib/Kconfig.kasan
+@@ -42,4 +42,12 @@ config KASAN_INLINE
  
-+#include <linux/kasan.h>
- #include <linux/kmemcheck.h>
- #include <linux/kmemleak.h>
- #include <linux/memory_hotplug.h>
-@@ -1113,7 +1114,10 @@ static bool update_checksum(struct kmeml
- 	if (!kmemcheck_is_obj_initialized(object->pointer, object->size))
- 		return false;
+ endchoice
  
-+	kasan_disable_current();
- 	object->checksum = crc32(0, (void *)object->pointer, object->size);
-+	kasan_enable_current();
++config TEST_KASAN
++	tristate "Module for testing kasan for bug detection"
++	depends on m && KASAN
++	help
++	  This is a test module doing various nasty things like
++	  out of bounds accesses, use after free. It is useful for testing
++	  kernel debugging features like kernel address sanitizer.
 +
- 	return object->checksum != old_csum;
- }
+ endif
+diff -puN lib/Makefile~lib-add-kasan-test-module lib/Makefile
+--- a/lib/Makefile~lib-add-kasan-test-module
++++ a/lib/Makefile
+@@ -35,6 +35,7 @@ obj-$(CONFIG_TEST_LKM) += test_module.o
+ obj-$(CONFIG_TEST_USER_COPY) += test_user_copy.o
+ obj-$(CONFIG_TEST_BPF) += test_bpf.o
+ obj-$(CONFIG_TEST_FIRMWARE) += test_firmware.o
++obj-$(CONFIG_TEST_KASAN) += test_kasan.o
  
-@@ -1164,7 +1168,9 @@ static void scan_block(void *_start, voi
- 						  BYTES_PER_POINTER))
- 			continue;
- 
-+		kasan_disable_current();
- 		pointer = *ptr;
-+		kasan_enable_current();
- 
- 		object = find_and_get_object(pointer, 1);
- 		if (!object)
+ ifeq ($(CONFIG_DEBUG_KOBJECT),y)
+ CFLAGS_kobject.o += -DDEBUG
+diff -puN /dev/null lib/test_kasan.c
+--- /dev/null
++++ a/lib/test_kasan.c
+@@ -0,0 +1,277 @@
++/*
++ *
++ * Copyright (c) 2014 Samsung Electronics Co., Ltd.
++ * Author: Andrey Ryabinin <a.ryabinin@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ */
++
++#define pr_fmt(fmt) "kasan test: %s " fmt, __func__
++
++#include <linux/kernel.h>
++#include <linux/printk.h>
++#include <linux/slab.h>
++#include <linux/string.h>
++#include <linux/module.h>
++
++static noinline void __init kmalloc_oob_right(void)
++{
++	char *ptr;
++	size_t size = 123;
++
++	pr_info("out-of-bounds to right\n");
++	ptr = kmalloc(size, GFP_KERNEL);
++	if (!ptr) {
++		pr_err("Allocation failed\n");
++		return;
++	}
++
++	ptr[size] = 'x';
++	kfree(ptr);
++}
++
++static noinline void __init kmalloc_oob_left(void)
++{
++	char *ptr;
++	size_t size = 15;
++
++	pr_info("out-of-bounds to left\n");
++	ptr = kmalloc(size, GFP_KERNEL);
++	if (!ptr) {
++		pr_err("Allocation failed\n");
++		return;
++	}
++
++	*ptr = *(ptr - 1);
++	kfree(ptr);
++}
++
++static noinline void __init kmalloc_node_oob_right(void)
++{
++	char *ptr;
++	size_t size = 4096;
++
++	pr_info("kmalloc_node(): out-of-bounds to right\n");
++	ptr = kmalloc_node(size, GFP_KERNEL, 0);
++	if (!ptr) {
++		pr_err("Allocation failed\n");
++		return;
++	}
++
++	ptr[size] = 0;
++	kfree(ptr);
++}
++
++static noinline void __init kmalloc_large_oob_rigth(void)
++{
++	char *ptr;
++	size_t size = KMALLOC_MAX_CACHE_SIZE + 10;
++
++	pr_info("kmalloc large allocation: out-of-bounds to right\n");
++	ptr = kmalloc(size, GFP_KERNEL);
++	if (!ptr) {
++		pr_err("Allocation failed\n");
++		return;
++	}
++
++	ptr[size] = 0;
++	kfree(ptr);
++}
++
++static noinline void __init kmalloc_oob_krealloc_more(void)
++{
++	char *ptr1, *ptr2;
++	size_t size1 = 17;
++	size_t size2 = 19;
++
++	pr_info("out-of-bounds after krealloc more\n");
++	ptr1 = kmalloc(size1, GFP_KERNEL);
++	ptr2 = krealloc(ptr1, size2, GFP_KERNEL);
++	if (!ptr1 || !ptr2) {
++		pr_err("Allocation failed\n");
++		kfree(ptr1);
++		return;
++	}
++
++	ptr2[size2] = 'x';
++	kfree(ptr2);
++}
++
++static noinline void __init kmalloc_oob_krealloc_less(void)
++{
++	char *ptr1, *ptr2;
++	size_t size1 = 17;
++	size_t size2 = 15;
++
++	pr_info("out-of-bounds after krealloc less\n");
++	ptr1 = kmalloc(size1, GFP_KERNEL);
++	ptr2 = krealloc(ptr1, size2, GFP_KERNEL);
++	if (!ptr1 || !ptr2) {
++		pr_err("Allocation failed\n");
++		kfree(ptr1);
++		return;
++	}
++	ptr2[size1] = 'x';
++	kfree(ptr2);
++}
++
++static noinline void __init kmalloc_oob_16(void)
++{
++	struct {
++		u64 words[2];
++	} *ptr1, *ptr2;
++
++	pr_info("kmalloc out-of-bounds for 16-bytes access\n");
++	ptr1 = kmalloc(sizeof(*ptr1) - 3, GFP_KERNEL);
++	ptr2 = kmalloc(sizeof(*ptr2), GFP_KERNEL);
++	if (!ptr1 || !ptr2) {
++		pr_err("Allocation failed\n");
++		kfree(ptr1);
++		kfree(ptr2);
++		return;
++	}
++	*ptr1 = *ptr2;
++	kfree(ptr1);
++	kfree(ptr2);
++}
++
++static noinline void __init kmalloc_oob_in_memset(void)
++{
++	char *ptr;
++	size_t size = 666;
++
++	pr_info("out-of-bounds in memset\n");
++	ptr = kmalloc(size, GFP_KERNEL);
++	if (!ptr) {
++		pr_err("Allocation failed\n");
++		return;
++	}
++
++	memset(ptr, 0, size+5);
++	kfree(ptr);
++}
++
++static noinline void __init kmalloc_uaf(void)
++{
++	char *ptr;
++	size_t size = 10;
++
++	pr_info("use-after-free\n");
++	ptr = kmalloc(size, GFP_KERNEL);
++	if (!ptr) {
++		pr_err("Allocation failed\n");
++		return;
++	}
++
++	kfree(ptr);
++	*(ptr + 8) = 'x';
++}
++
++static noinline void __init kmalloc_uaf_memset(void)
++{
++	char *ptr;
++	size_t size = 33;
++
++	pr_info("use-after-free in memset\n");
++	ptr = kmalloc(size, GFP_KERNEL);
++	if (!ptr) {
++		pr_err("Allocation failed\n");
++		return;
++	}
++
++	kfree(ptr);
++	memset(ptr, 0, size);
++}
++
++static noinline void __init kmalloc_uaf2(void)
++{
++	char *ptr1, *ptr2;
++	size_t size = 43;
++
++	pr_info("use-after-free after another kmalloc\n");
++	ptr1 = kmalloc(size, GFP_KERNEL);
++	if (!ptr1) {
++		pr_err("Allocation failed\n");
++		return;
++	}
++
++	kfree(ptr1);
++	ptr2 = kmalloc(size, GFP_KERNEL);
++	if (!ptr2) {
++		pr_err("Allocation failed\n");
++		return;
++	}
++
++	ptr1[40] = 'x';
++	kfree(ptr2);
++}
++
++static noinline void __init kmem_cache_oob(void)
++{
++	char *p;
++	size_t size = 200;
++	struct kmem_cache *cache = kmem_cache_create("test_cache",
++						size, 0,
++						0, NULL);
++	if (!cache) {
++		pr_err("Cache allocation failed\n");
++		return;
++	}
++	pr_info("out-of-bounds in kmem_cache_alloc\n");
++	p = kmem_cache_alloc(cache, GFP_KERNEL);
++	if (!p) {
++		pr_err("Allocation failed\n");
++		kmem_cache_destroy(cache);
++		return;
++	}
++
++	*p = p[size];
++	kmem_cache_free(cache, p);
++	kmem_cache_destroy(cache);
++}
++
++static char global_array[10];
++
++static noinline void __init kasan_global_oob(void)
++{
++	volatile int i = 3;
++	char *p = &global_array[ARRAY_SIZE(global_array) + i];
++
++	pr_info("out-of-bounds global variable\n");
++	*(volatile char *)p;
++}
++
++static noinline void __init kasan_stack_oob(void)
++{
++	char stack_array[10];
++	volatile int i = 0;
++	char *p = &stack_array[ARRAY_SIZE(stack_array) + i];
++
++	pr_info("out-of-bounds on stack\n");
++	*(volatile char *)p;
++}
++
++static int __init kmalloc_tests_init(void)
++{
++	kmalloc_oob_right();
++	kmalloc_oob_left();
++	kmalloc_node_oob_right();
++	kmalloc_large_oob_rigth();
++	kmalloc_oob_krealloc_more();
++	kmalloc_oob_krealloc_less();
++	kmalloc_oob_16();
++	kmalloc_oob_in_memset();
++	kmalloc_uaf();
++	kmalloc_uaf_memset();
++	kmalloc_uaf2();
++	kmem_cache_oob();
++	kasan_stack_oob();
++	kasan_global_oob();
++	return -EAGAIN;
++}
++
++module_init(kmalloc_tests_init);
++MODULE_LICENSE("GPL");
 _
 
 Patches currently in -mm which might be from a.ryabinin@samsung.com are
