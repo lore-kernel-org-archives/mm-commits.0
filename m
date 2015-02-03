@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-add-support-for-init_array-constructors.patch added to
- -mm tree
-Date: Tue, 03 Feb 2015 15:05:33 -0800
-Message-ID: <54d1543d.VEEwwWIdYJwclwLi%akpm@linux-foundation.org>
+Subject: + module-fix-types-of-device-tables-aliases.patch added to -mm
+ tree
+Date: Tue, 03 Feb 2015 15:05:35 -0800
+Message-ID: <54d1543f.3vA3nQEmE3mILiO6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54720 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54727 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753225AbbBCXFe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2015 18:05:34 -0500
+	with ESMTP id S1753225AbbBCXFg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2015 18:05:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: a.ryabinin@samsung.com, adech.fo@gmail.com, andi@firstfloor.org, cl@linux.com, dave.hansen@intel.com, dmitryc@google.com, dvyukov@google.com, hpa@zytor.com, iamjoonsoo.kim@lge.com, kcc@google.com, koct9i@gmail.com, mingo@elte.hu, penberg@kernel.org, rientjes@google.com, sasha.levin@oracle.com, tetra2005@gmail.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel: add support for .init_array.* constructors
+     Subject: module: fix types of device tables aliases
 has been added to the -mm tree.  Its filename is
-     kernel-add-support-for-init_array-constructors.patch
+     module-fix-types-of-device-tables-aliases.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-add-support-for-init_array-constructors.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/module-fix-types-of-device-tables-aliases.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-add-support-for-init_array-constructors.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/module-fix-types-of-device-tables-aliases.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,20 +40,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Ryabinin <a.ryabinin@samsung.com>
-Subject: kernel: add support for .init_array.* constructors
+Subject: module: fix types of device tables aliases
 
-KASan uses constructors for initializing redzones for global variables. 
-Globals instrumentation in GCC 4.9.2 produces constructors with priority
-(.init_array.00099)
+MODULE_DEVICE_TABLE() macro used to create aliases to device tables. 
+Normally alias should have the same type as aliased symbol.
 
-Currently kernel ignores such constructors.  Only constructors with
-default priority supported (.init_array)
+Device tables are arrays, so they have 'struct type##_device_id[x]'
+types. Alias created by MODULE_DEVICE_TABLE() will have non-array type -
+	'struct type##_device_id'.
 
-This patch adds support for constructors with priorities.  For kernel
-image we put pointers to constructors between __ctors_start/__ctors_end
-and do_ctors() will call them on start up.  For modules we merge
-.init_array.* sections into resulting .init_array.  Module code properly
-handles constructors in .init_array section.
+This inconsistency confuses compiler, it could make a wrong assumption
+about variable's size which leads KASan to produce a false positive report
+about out of bounds access.
+
+For every global variable compiler calls __asan_register_globals() passing
+information about global variable (address, size, size with redzone, name
+...) __asan_register_globals() poison symbols redzone to detect possible
+out of bounds accesses.
+
+When symbol has an alias __asan_register_globals() will be called as for
+symbol so for alias.  Compiler determines size of variable by size of
+variable's type.  Alias and symbol have the same address, so if alias have
+the wrong size part of memory that actually belongs to the symbol could be
+poisoned as redzone of alias symbol.
+
+By fixing type of alias symbol we will fix size of it, so
+__asan_register_globals() will not poison valid memory.
 
 Signed-off-by: Andrey Ryabinin <a.ryabinin@samsung.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
@@ -77,32 +89,21 @@ Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/vmlinux.lds.h |    1 +
- scripts/module-common.lds         |    3 +++
- 2 files changed, 4 insertions(+)
+ include/linux/module.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/asm-generic/vmlinux.lds.h~kernel-add-support-for-init_array-constructors include/asm-generic/vmlinux.lds.h
---- a/include/asm-generic/vmlinux.lds.h~kernel-add-support-for-init_array-constructors
-+++ a/include/asm-generic/vmlinux.lds.h
-@@ -478,6 +478,7 @@
- #define KERNEL_CTORS()	. = ALIGN(8);			   \
- 			VMLINUX_SYMBOL(__ctors_start) = .; \
- 			*(.ctors)			   \
-+			*(SORT(.init_array.*))		   \
- 			*(.init_array)			   \
- 			VMLINUX_SYMBOL(__ctors_end) = .;
- #else
-diff -puN scripts/module-common.lds~kernel-add-support-for-init_array-constructors scripts/module-common.lds
---- a/scripts/module-common.lds~kernel-add-support-for-init_array-constructors
-+++ a/scripts/module-common.lds
-@@ -16,4 +16,7 @@ SECTIONS {
- 	__kcrctab_unused	: { *(SORT(___kcrctab_unused+*)) }
- 	__kcrctab_unused_gpl	: { *(SORT(___kcrctab_unused_gpl+*)) }
- 	__kcrctab_gpl_future	: { *(SORT(___kcrctab_gpl_future+*)) }
-+
-+	. = ALIGN(8);
-+	.init_array		: { *(SORT(.init_array.*)) *(.init_array) }
- }
+diff -puN include/linux/module.h~module-fix-types-of-device-tables-aliases include/linux/module.h
+--- a/include/linux/module.h~module-fix-types-of-device-tables-aliases
++++ a/include/linux/module.h
+@@ -135,7 +135,7 @@ void trim_init_extable(struct module *m)
+ #ifdef MODULE
+ /* Creates an alias so file2alias.c can find device table. */
+ #define MODULE_DEVICE_TABLE(type, name)					\
+-  extern const struct type##_device_id __mod_##type##__##name##_device_table \
++extern const typeof(name) __mod_##type##__##name##_device_table		\
+   __attribute__ ((unused, alias(__stringify(name))))
+ #else  /* !MODULE */
+ #define MODULE_DEVICE_TABLE(type, name)
 _
 
 Patches currently in -mm which might be from a.ryabinin@samsung.com are
