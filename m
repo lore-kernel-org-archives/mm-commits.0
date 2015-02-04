@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-mm_initc-mark-mminit_verify_zonelist-as-__init.patch added
- to -mm tree
-Date: Wed, 04 Feb 2015 15:51:20 -0800
-Message-ID: <54d2b078.MzgTn+2hg+OcGVpr%akpm@linux-foundation.org>
+Subject: + mm-internalh-dont-split-printk-call-in-two.patch added to -mm
+ tree
+Date: Wed, 04 Feb 2015 15:51:15 -0800
+Message-ID: <54d2b073.nFBeShwYBvQHe6tr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48841 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48812 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755823AbbBDXvW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Feb 2015 18:51:22 -0500
+	with ESMTP id S1755823AbbBDXvR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Feb 2015 18:51:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@rasmusvillemoes.dk, hughd@google.com, iamjoonsoo.kim@lge.com, lizefan@huawei.com, mgorman@suse.de, mina86@mina86.com, paul.gortmaker@windriver.com, peterz@infradead.org, pintu.k@samsung.com, riel@redhat.com, rientjes@google.com, tim.c.chen@linux.intel.co, tj@kernel.org, vbabka@suse.cz, vishnu.ps@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mm_init.c: park mminit_verify_zonelist as __init
+     Subject: mm/internal.h: don't split printk call in two
 has been added to the -mm tree.  Its filename is
-     mm-mm_initc-mark-mminit_verify_zonelist-as-__init.patch
+     mm-internalh-dont-split-printk-call-in-two.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mm_initc-mark-mminit_verify_zonelist-as-__init.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-internalh-dont-split-printk-call-in-two.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mm_initc-mark-mminit_verify_zonelist-as-__init.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-internalh-dont-split-printk-call-in-two.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,11 +40,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: mm/mm_init.c: park mminit_verify_zonelist as __init
+Subject: mm/internal.h: don't split printk call in two
 
-The only caller of mminit_verify_zonelist is build_all_zonelists_init,
-which is annotated with __init, so it should be safe to also mark the
-former as __init, saving ~400 bytes of .text.
+All users of mminit_dprintk pass a compile-time constant as level, so this
+just makes gcc emit a single printk call instead of two.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Cc: Vlastimil Babka <vbabka@suse.cz>
@@ -64,20 +63,24 @@ Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mm_init.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/internal.h |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN mm/mm_init.c~mm-mm_initc-mark-mminit_verify_zonelist-as-__init mm/mm_init.c
---- a/mm/mm_init.c~mm-mm_initc-mark-mminit_verify_zonelist-as-__init
-+++ a/mm/mm_init.c
-@@ -21,7 +21,7 @@ int mminit_loglevel;
- #endif
- 
- /* The zonelists are simply reported, validation is manual. */
--void mminit_verify_zonelist(void)
-+void __init mminit_verify_zonelist(void)
- {
- 	int nid;
+diff -puN mm/internal.h~mm-internalh-dont-split-printk-call-in-two mm/internal.h
+--- a/mm/internal.h~mm-internalh-dont-split-printk-call-in-two
++++ a/mm/internal.h
+@@ -351,8 +351,10 @@ extern int mminit_loglevel;
+ #define mminit_dprintk(level, prefix, fmt, arg...) \
+ do { \
+ 	if (level < mminit_loglevel) { \
+-		printk(level <= MMINIT_WARNING ? KERN_WARNING : KERN_DEBUG); \
+-		printk(KERN_CONT "mminit::" prefix " " fmt, ##arg); \
++		if (level <= MMINIT_WARNING) \
++			printk(KERN_WARNING "mminit::" prefix " " fmt, ##arg); \
++		else \
++			printk(KERN_DEBUG "mminit::" prefix " " fmt, ##arg); \
+ 	} \
+ } while (0)
  
 _
 
