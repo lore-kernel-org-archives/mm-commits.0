@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + kernelh-remove-ancient-__function__-hack.patch added to -mm
- tree
-Date: Wed, 04 Feb 2015 14:35:43 -0800
-Message-ID: <54d29ebf.BxcVd7mgQ0/b9vQK%akpm@linux-foundation.org>
+Subject: +
+ hugetlb-x86-register-1g-page-size-if-we-can-allocate-them-runtime.patch
+ added to -mm tree
+Date: Wed, 04 Feb 2015 14:37:49 -0800
+Message-ID: <54d29f3d.A5ClhRlfM2/RnNra%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47147 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47160 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161137AbbBDWfo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Feb 2015 17:35:44 -0500
+	with ESMTP id S1754268AbbBDWhu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Feb 2015 17:37:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, joe@perches.com, mina86@mina86.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, ak@linux.intel.com, hpa@zytor.com, lcapitulino@redhat.com, mingo@redhat.com, n-horiguchi@ah.jp.nec.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel.h: remove ancient __FUNCTION__ hack
+     Subject: hugetlb, x86: register 1G page size if we can allocate them runtime
 has been added to the -mm tree.  Its filename is
-     kernelh-remove-ancient-__function__-hack.patch
+     hugetlb-x86-register-1g-page-size-if-we-can-allocate-them-runtime.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernelh-remove-ancient-__function__-hack.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/hugetlb-x86-register-1g-page-size-if-we-can-allocate-them-runtime.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernelh-remove-ancient-__function__-hack.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/hugetlb-x86-register-1g-page-size-if-we-can-allocate-them-runtime.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,88 +40,173 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: kernel.h: remove ancient __FUNCTION__ hack
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: hugetlb, x86: register 1G page size if we can allocate them runtime
 
-__FUNCTION__ hasn't been treated as a string literal since gcc 3.4, so
-this only helps people who only test-compile using 3.3 (compiler-gcc3.h
-barks at anything older than that).  Besides, there are almost no
-occurrences of __FUNCTION__ left in the tree.
+After commit 944d9fec8d7a ("hugetlb: add support for gigantic page
+allocation at runtime") we can allocate 1G pages at runtime if CMA is
+enabled.
 
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Joe Perches <joe@perches.com>
+Let's register 1G pages into hugetlb even if the user hasn't requested
+them explicitly at boot time with hugepagesz=1G.
+
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reviewed-by: Luiz Capitulino <lcapitulino@redhat.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |    3 ---
- 1 file changed, 3 deletions(-)
+ arch/x86/mm/hugetlbpage.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff -puN include/linux/kernel.h~kernelh-remove-ancient-__function__-hack include/linux/kernel.h
---- a/include/linux/kernel.h~kernelh-remove-ancient-__function__-hack
-+++ a/include/linux/kernel.h
-@@ -799,9 +799,6 @@ static inline void ftrace_dump(enum ftra
- 	const typeof( ((type *)0)->member ) *__mptr = (ptr);	\
- 	(type *)( (char *)__mptr - offsetof(type,member) );})
- 
--/* Trap pasters of __FUNCTION__ at compile-time */
--#define __FUNCTION__ (__func__)
--
- /* Rebuild everything on CONFIG_FTRACE_MCOUNT_RECORD */
- #ifdef CONFIG_FTRACE_MCOUNT_RECORD
- # define REBUILD_DUE_TO_FTRACE_MCOUNT_RECORD
+diff -puN arch/x86/mm/hugetlbpage.c~hugetlb-x86-register-1g-page-size-if-we-can-allocate-them-runtime arch/x86/mm/hugetlbpage.c
+--- a/arch/x86/mm/hugetlbpage.c~hugetlb-x86-register-1g-page-size-if-we-can-allocate-them-runtime
++++ a/arch/x86/mm/hugetlbpage.c
+@@ -178,4 +178,15 @@ static __init int setup_hugepagesz(char
+ 	return 1;
+ }
+ __setup("hugepagesz=", setup_hugepagesz);
++
++#ifdef CONFIG_CMA
++static __init int gigantic_pages_init(void)
++{
++	/* With CMA we can allocate gigantic pages at runtime */
++	if (cpu_has_gbpages && !size_to_hstate(1UL << PUD_SHIFT))
++		hugetlb_add_hstate(PUD_SHIFT - PAGE_SHIFT);
++	return 0;
++}
++arch_initcall(gigantic_pages_init);
++#endif
+ #endif
 _
 
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-kernelh-remove-ancient-__function__-hack.patch
-kernelh-remove-ancient-__function__-hack-fix.patch
-lib-vsprintfc-consume-p-in-format_decode.patch
-lib-vsprintfc-improve-sanity-check-in-vsnprintf.patch
-lib-vsprintfc-replace-while-with-do-while-in-skip_atoi.patch
-lib-string_get_size-remove-redundant-prefixes.patch
-lib-string_get_size-use-32-bit-arithmetic-when-possible.patch
-lib-string_get_size-return-void.patch
-lib-bitmap-more-signed-unsigned-conversions.patch
-linux-nodemaskh-update-bitmap-wrappers-to-take-unsigned-int.patch
-linux-cpumaskh-update-bitmap-wrappers-to-take-unsigned-int.patch
-lib-bitmap-update-bitmap_onto-to-unsigned.patch
-lib-bitmap-update-bitmap_onto-to-unsigned-checkpatch-fixes.patch
-lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned.patch
-lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned-fix.patch
-lib-bitmap-simplify-bitmap_pos_to_ord.patch
-lib-bitmap-simplify-bitmap_ord_to_pos.patch
-lib-bitmap-make-the-bits-parameter-of-bitmap_remap-unsigned.patch
-lib-remove-strnicmp.patch
-lib-interval_treec-simplify-includes.patch
-lib-sortc-use-simpler-includes.patch
-lib-dynamic_queue_limitsc-simplify-includes.patch
-lib-halfmd4c-simplify-includes.patch
-lib-idrc-remove-redundant-include.patch
-lib-genallocc-remove-redundant-include.patch
-lib-list_sortc-rearrange-includes.patch
-lib-md5c-simplify-include.patch
-lib-llistc-remove-redundant-include.patch
-lib-kobject_ueventc-remove-redundant-include.patch
-lib-nlattrc-remove-redundant-include.patch
-lib-plistc-remove-redundant-include.patch
-lib-radix-treec-change-to-simpler-include.patch
-lib-show_memc-remove-redundant-include.patch
-lib-sortc-move-include-inside-if-0.patch
-lib-stmp_devicec-replace-moduleh-include.patch
-lib-strncpy_from_userc-replace-moduleh-include.patch
-lib-percpu_idac-remove-redundant-includes.patch
-lib-lcmc-replace-include.patch
-lib-bitmapc-change-prototype-of-bitmap_copy_le.patch
-lib-bitmapc-elide-bitmap_copy_le-on-little-endian.patch
-lib-bitmap-change-bitmap_shift_right-to-take-unsigned-parameters.patch
-lib-bitmap-eliminate-branch-in-__bitmap_shift_right.patch
-lib-bitmap-remove-redundant-code-from-__bitmap_shift_right.patch
-lib-bitmap-yet-another-simplification-in-__bitmap_shift_right.patch
-lib-bitmap-change-bitmap_shift_left-to-take-unsigned-parameters.patch
-lib-bitmap-eliminate-branch-in-__bitmap_shift_left.patch
-lib-bitmap-remove-redundant-code-from-__bitmap_shift_left.patch
-lib-stringc-improve-strrchr.patch
-checkpatch-emit-an-error-when-using-predefined-timestamp-macros.patch
-linux-next.patch
+mm-export-high_memory-symbol-on-mmu.patch
+hugetlb-x86-register-1g-page-size-if-we-can-allocate-them-runtime.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+mm-drop-support-of-non-linear-mapping-from-unmap-zap-codepath.patch
+mm-drop-support-of-non-linear-mapping-from-fault-codepath.patch
+mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub.patch
+mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub-fix.patch
+proc-drop-handling-non-linear-mappings.patch
+rmap-drop-support-of-non-linear-mappings.patch
+mm-replace-vma-shareadlinear-with-vma-shared.patch
+mm-remove-rest-usage-of-vm_nonlinear-and-pte_file.patch
+mm-remove-rest-usage-of-vm_nonlinear-and-pte_file-fix.patch
+asm-generic-drop-unused-pte_file-helpers.patch
+alpha-drop-_page_file-and-pte_file-related-helpers.patch
+arc-drop-_page_file-and-pte_file-related-helpers.patch
+arc-drop-_page_file-and-pte_file-related-helpers-fix.patch
+arm64-drop-pte_file-and-pte_file-related-helpers.patch
+arm-drop-l_pte_file-and-pte_file-related-helpers.patch
+avr32-drop-_page_file-and-pte_file-related-helpers.patch
+blackfin-drop-pte_file.patch
+c6x-drop-pte_file.patch
+cris-drop-_page_file-and-pte_file-related-helpers.patch
+frv-drop-_page_file-and-pte_file-related-helpers.patch
+hexagon-drop-_page_file-and-pte_file-related-helpers.patch
+ia64-drop-_page_file-and-pte_file-related-helpers.patch
+m32r-drop-_page_file-and-pte_file-related-helpers.patch
+m68k-drop-_page_file-and-pte_file-related-helpers.patch
+metag-drop-_page_file-and-pte_file-related-helpers.patch
+microblaze-drop-_page_file-and-pte_file-related-helpers.patch
+mips-drop-_page_file-and-pte_file-related-helpers.patch
+mn10300-drop-_page_file-and-pte_file-related-helpers.patch
+nios2-drop-_page_file-and-pte_file-related-helpers.patch
+openrisc-drop-_page_file-and-pte_file-related-helpers.patch
+parisc-drop-_page_file-and-pte_file-related-helpers.patch
+s390-drop-pte_file-related-helpers.patch
+score-drop-_page_file-and-pte_file-related-helpers.patch
+sh-drop-_page_file-and-pte_file-related-helpers.patch
+sparc-drop-pte_file-related-helpers.patch
+tile-drop-pte_file-related-helpers.patch
+um-drop-_page_file-and-pte_file-related-helpers.patch
+unicore32-drop-pte_file-related-helpers.patch
+x86-drop-_page_file-and-pte_file-related-helpers.patch
+xtensa-drop-_page_file-and-pte_file-related-helpers.patch
+mm-memory-remove-vm_file-check-on-shared-writable-vmas.patch
+mm-memory-merge-shared-writable-dirtying-branches-in-do_wp_page.patch
+mm-add-fields-for-compound-destructor-and-order-into-struct-page.patch
+mm-add-vm_bug_on_page-for-page_mapcount.patch
+sparc32-fix-broken-set_pte.patch
+mm-numa-do-not-dereference-pmd-outside-of-the-lock-during-numa-hinting-fault.patch
+mm-add-p-protnone-helpers-for-use-by-numa-balancing.patch
+mm-convert-p_numa-users-to-p_protnone_numa.patch
+ppc64-add-paranoid-warnings-for-unexpected-dsisr_protfault.patch
+mm-convert-p_mknonnuma-and-remaining-page-table-manipulations.patch
+mm-remove-remaining-references-to-numa-hinting-bits-and-helpers.patch
+mm-numa-do-not-trap-faults-on-the-huge-zero-page.patch
+x86-mm-restore-original-pte_special-check.patch
+mm-numa-add-paranoid-check-around-pte_protnone_numa.patch
+mm-numa-avoid-unnecessary-tlb-flushes-when-setting-numa-hinting-entries.patch
+mm-set-page-pfmemalloc-in-prep_new_page.patch
+mm-page_alloc-reduce-number-of-alloc_pages-functions-parameters.patch
+mm-reduce-try_to_compact_pages-parameters.patch
+mm-microoptimize-zonelist-operations.patch
+mm-page_allocc-drop-dead-destroy_compound_page.patch
+mm-more-checks-on-free_pages_prepare-for-tail-pages.patch
+mm-more-checks-on-free_pages_prepare-for-tail-pages-fix-2.patch
+microblaze-define-__pagetable_pmd_folded.patch
+mm-make-first_user_address-unsigned-long-on-all-archs.patch
+mm-asm-generic-define-pud_shift-in-asm-generic-4level-fixuph.patch
+arm-define-__pagetable_pmd_folded-for-lpae.patch
+mm-account-pmd-page-tables-to-the-process.patch
+mm-account-pmd-page-tables-to-the-process-fix.patch
+mm-account-pmd-page-tables-to-the-process-fix-2.patch
+mm-fix-false-positive-warning-on-exit-due-mm_nr_pmdsmm.patch
+mm-thp-allocate-transparent-hugepages-on-local-node.patch
+mm-thp-allocate-transparent-hugepages-on-local-node-fix.patch
+mm-mempolicy-merge-alloc_hugepage_vma-to-alloc_pages_vma.patch
+mm-gup-add-get_user_pages_locked-and-get_user_pages_unlocked.patch
+mm-gup-add-__get_user_pages_unlocked-to-customize-gup_flags.patch
+mm-gup-use-get_user_pages_unlocked-within-get_user_pages_fast.patch
+mm-gup-use-get_user_pages_unlocked.patch
+mm-gup-kvm-use-get_user_pages_unlocked.patch
+proc-pagemap-walk-page-tables-under-pte-lock.patch
+mm-pagewalk-remove-pgd_entry-and-pud_entry.patch
+pagewalk-improve-vma-handling.patch
+pagewalk-add-walk_page_vma.patch
+smaps-remove-mem_size_stats-vma-and-use-walk_page_vma.patch
+clear_refs-remove-clear_refs_private-vma-and-introduce-clear_refs_test_walk.patch
+pagemap-use-walk-vma-instead-of-calling-find_vma.patch
+numa_maps-fix-typo-in-gather_hugetbl_stats.patch
+numa_maps-remove-numa_maps-vma.patch
+memcg-cleanup-preparation-for-page-table-walk.patch
+arch-powerpc-mm-subpage-protc-use-walk-vma-and-walk_page_vma.patch
+mempolicy-apply-page-table-walker-on-queue_pages_range.patch
+mm-proc-pid-clear_refs-avoid-split_huge_page.patch
+mincore-apply-page-table-walker-on-do_mincore.patch
+mm-when-stealing-freepages-also-take-pages-created-by-splitting-buddy-page.patch
+mm-always-steal-split-buddies-in-fallback-allocations.patch
+mm-more-aggressive-page-stealing-for-unmovable-allocations.patch
+mm-incorporate-read-only-pages-into-transparent-huge-pages.patch
+mm-do-not-use-mm-nr_pmds-on-mmu-configurations.patch
+mm-fix-xip-fault-vs-truncate-race.patch
+mm-fix-xip-fault-vs-truncate-race-fix.patch
+mm-allow-page-fault-handlers-to-perform-the-cow.patch
+mm-allow-page-fault-handlers-to-perform-the-cow-fix.patch
+vfsext2-introduce-is_daxinode.patch
+daxext2-replace-xip-read-and-write-with-dax-i-o.patch
+daxext2-replace-ext2_clear_xip_target-with-dax_clear_blocks.patch
+daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler.patch
+daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix.patch
+daxext2-replace-xip_truncate_page-with-dax_truncate_page.patch
+dax-replace-xip-documentation-with-dax-documentation.patch
+vfs-remove-get_xip_mem.patch
+ext2-remove-ext2_xip_verify_sb.patch
+ext2-remove-ext2_use_xip.patch
+ext2-remove-xipc-and-xiph.patch
+vfsext2-remove-config_ext2_fs_xip-and-rename-config_fs_xip-to-config_fs_dax.patch
+ext2-remove-ext2_aops_xip.patch
+ext2-get-rid-of-most-mentions-of-xip-in-ext2.patch
+dax-add-dax_zero_page_range.patch
+dax-add-dax_zero_page_range-fix.patch
+ext4-add-dax-functionality.patch
+brd-rename-xip-to-dax.patch
+powerpc-drop-_page_file-and-pte_file-related-helpers.patch
 
