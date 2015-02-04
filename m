@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + kasan-enable-instrumentation-of-global-variables-fix.patch
- added to -mm tree
-Date: Wed, 04 Feb 2015 14:01:04 -0800
-Message-ID: <54d296a0.eYQIzM7UH86qoozR%akpm@linux-foundation.org>
+Subject: + scripts-gdb-add-infrastructure-v13.patch added to -mm tree
+Date: Wed, 04 Feb 2015 14:02:52 -0800
+Message-ID: <54d2970c.K8JLUf8ZBArQlPbM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46864 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46873 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755927AbbBDWBF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Feb 2015 17:01:05 -0500
+	with ESMTP id S965186AbbBDWCx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Feb 2015 17:02:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.ryabinin@samsung.com, mm-commits@vger.kernel.org
+To: jan.kiszka@siemens.com, mmarek@suse.cz, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan-enable-instrumentation-of-global-variables-fix
+     Subject: scripts/gdb: Add infrastructure
 has been added to the -mm tree.  Its filename is
-     kasan-enable-instrumentation-of-global-variables-fix.patch
+     scripts-gdb-add-infrastructure-v13.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kasan-enable-instrumentation-of-global-variables-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/scripts-gdb-add-infrastructure-v13.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-enable-instrumentation-of-global-variables-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-gdb-add-infrastructure-v13.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,101 +38,70 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kasan-enable-instrumentation-of-global-variables-fix
+From: Jan Kiszka <jan.kiszka@siemens.com>
+Subject: scripts/gdb: Add infrastructure
 
-Cc: Andrey Ryabinin <a.ryabinin@samsung.com>
+Changes in v13:
+ - Let CONFIG_GDB_SCRIPT depend on CONFIG_DEBUG_INFO, instead of
+   selecting it. This addresses
+
+   warning: (GDB_SCRIPTS) selects DEBUG_INFO which has unmet direct
+   dependencies (DEBUG_KERNEL && !COMPILE_TEST)
+
+   as found by the test robot.
+
+Signed-off-by: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: Michal Marek <mmarek@suse.cz>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/Makefile.kasan |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/Kconfig.debug |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/module.c~kasan-enable-instrumentation-of-global-variables-fix arch/x86/kernel/module.c
-diff -puN arch/x86/mm/kasan_init_64.c~kasan-enable-instrumentation-of-global-variables-fix arch/x86/mm/kasan_init_64.c
-diff -puN include/linux/compiler-gcc4.h~kasan-enable-instrumentation-of-global-variables-fix include/linux/compiler-gcc4.h
-diff -puN include/linux/compiler-gcc5.h~kasan-enable-instrumentation-of-global-variables-fix include/linux/compiler-gcc5.h
-diff -puN include/linux/kasan.h~kasan-enable-instrumentation-of-global-variables-fix include/linux/kasan.h
-diff -puN kernel/module.c~kasan-enable-instrumentation-of-global-variables-fix kernel/module.c
-diff -puN lib/Kconfig.kasan~kasan-enable-instrumentation-of-global-variables-fix lib/Kconfig.kasan
-diff -puN mm/kasan/kasan.c~kasan-enable-instrumentation-of-global-variables-fix mm/kasan/kasan.c
-diff -puN mm/kasan/kasan.h~kasan-enable-instrumentation-of-global-variables-fix mm/kasan/kasan.h
-diff -puN mm/kasan/report.c~kasan-enable-instrumentation-of-global-variables-fix mm/kasan/report.c
-diff -puN scripts/Makefile.kasan~kasan-enable-instrumentation-of-global-variables-fix scripts/Makefile.kasan
---- a/scripts/Makefile.kasan~kasan-enable-instrumentation-of-global-variables-fix
-+++ a/scripts/Makefile.kasan
-@@ -5,11 +5,11 @@ else
- 	call_threshold := 0
- endif
+diff -puN lib/Kconfig.debug~scripts-gdb-add-infrastructure-v13 lib/Kconfig.debug
+--- a/lib/Kconfig.debug~scripts-gdb-add-infrastructure-v13
++++ a/lib/Kconfig.debug
+@@ -169,7 +169,7 @@ config DEBUG_INFO_DWARF4
  
--CFLAGS_KASAN_MINIMAL := -fsanitize=kernel-address
-+CFLAGS_KASAN_MINIMAL := -fsanitize=kernel-address --param asan-globals=1
- 
- CFLAGS_KASAN := $(call cc-option, -fsanitize=kernel-address \
- 		-fasan-shadow-offset=$(CONFIG_KASAN_SHADOW_OFFSET) \
--		--param asan-stack=1 \
-+		--param asan-stack=1 --param asan-globals=1 \
- 		--param asan-instrumentation-with-call-threshold=$(call_threshold))
- 
- ifeq ($(call cc-option, $(CFLAGS_KASAN_MINIMAL) -Werror),)
+ config GDB_SCRIPTS
+ 	bool "Provide GDB scripts for kernel debugging"
+-	select DEBUG_INFO
++	depends on DEBUG_INFO
+ 	help
+ 	  This creates the required links to GDB helper scripts in the
+ 	  build directory. If you load vmlinux into gdb, the helper
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jan.kiszka@siemens.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-fanotify-dont-recalculate-a-marks-mask-if-only-the-ignored-mask-changed-checkpatch-fixes.patch
-fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask-checkpatch-fixes.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper.patch
-mm.patch
-mm-vmstatc-fix-cleanup-ifdefs.patch
-mm-replace-remap_file_pages-syscall-with-emulation.patch
-mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub-fix.patch
-mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
-vmscan-force-scan-offline-memory-cgroups-fix.patch
-mm-memcontrol-default-hierarchy-interface-for-memory.patch
-mm-memcontrol-fold-move_anon-and-move_file-fix.patch
-fs-shrinker-always-scan-at-least-one-object-of-each-type-fix.patch
-mm-compaction-enhance-tracepoint-output-for-compaction-begin-end-v4-fix.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated-fix.patch
-mm-thp-allocate-transparent-hugepages-on-local-node-fix.patch
-docs-procs-describe-proc-pid-map_files-entry-fix.patch
-mm-page_ext-remove-unnecessary-stack_trace-field-fix.patch
-mm-fix-arithmetic-overflow-in-__vm_enough_memory-fix.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-zram-rework-reset-and-destroy-path-fix.patch
-task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss.patch
-powerpc-add-running_clock-for-powerpc-to-prevent-spurious-softlockup-warnings-checkpatch-fixes.patch
-lib-bitmap-update-bitmap_onto-to-unsigned-checkpatch-fixes.patch
-lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned-fix.patch
-hexdump-makes-it-return-amount-of-bytes-placed-in-buffer-fix.patch
-mm-slab-convert-cache-name-allocations-to-kstrdup_const-fix.patch
-module_device_table-fix-some-callsites.patch
-kasan-enable-instrumentation-of-global-variables-fix.patch
-rtc-rk808-fix-the-rtc-time-reading-issue-fix.patch
-fs-befs-linuxvfsc-remove-unnecessary-casting-fix.patch
-samples-seccomp-improve-label-helper-fix.patch
-linux-next.patch
-linux-next-rejects.patch
-mm-fix-xip-fault-vs-truncate-race-fix.patch
-mm-fix-xip-fault-vs-truncate-race-fix-fix.patch
-mm-allow-page-fault-handlers-to-perform-the-cow-fix.patch
-mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix-3.patch
-mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix.patch
-daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix.patch
-daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-2.patch
-daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-3.patch
-dax-add-dax_zero_page_range-fix.patch
-ext4-add-dax-functionality-fix.patch
-ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
-ocfs2-implement-ocfs2_direct_io_write-fix.patch
-lib-kconfig-fix-up-have_arch_bitreverse-help-text.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
+scripts-gdb-add-infrastructure.patch
+scripts-gdb-add-infrastructure-v13.patch
+scripts-gdb-add-cache-for-type-objects.patch
+scripts-gdb-add-container_of-helper-and-convenience-function.patch
+scripts-gdb-add-module-iteration-class.patch
+scripts-gdb-add-lx-symbols-command.patch
+module-do-not-inline-do_init_module.patch
+scripts-gdb-add-automatic-symbol-reloading-on-module-insertion.patch
+scripts-gdb-add-internal-helper-and-convenience-function-to-look-up-a-module.patch
+scripts-gdb-add-get_target_endianness-helper.patch
+scripts-gdb-add-read_u16-32-64-helpers.patch
+scripts-gdb-add-lx-dmesg-command.patch
+scripts-gdb-add-task-iteration-class.patch
+scripts-gdb-add-helper-and-convenience-function-to-look-up-tasks.patch
+scripts-gdb-add-is_target_arch-helper.patch
+scripts-gdb-add-internal-helper-and-convenience-function-to-retrieve-thread_info.patch
+scripts-gdb-add-get_gdbserver_type-helper.patch
+scripts-gdb-add-internal-helper-and-convenience-function-for-per-cpu-lookup.patch
+scripts-gdb-add-lx_current-convenience-function.patch
+scripts-gdb-add-class-to-iterate-over-cpu-masks.patch
+scripts-gdb-add-lx-lsmod-command.patch
+scripts-gdb-add-basic-documentation.patch
+scripts-gdb-port-to-python3-gdb77.patch
+scripts-gdb-ignore-byte-compiled-python-files.patch
+scripts-gdb-use-a-generator-instead-of-iterator-for-task-list.patch
+scripts-gdb-convert-modulelist-to-generator-function.patch
+scripts-gdb-convert-cpulist-to-generator-function.patch
+scripts-gdb-define-maintainer.patch
+scripts-gdb-disable-pagination-while-printing-from-breakpoint-handler.patch
 
