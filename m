@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-page_allocc-pull-out-init-code-from-build_all_zonelists.patch added to
- -mm tree
-Date: Wed, 04 Feb 2015 15:51:17 -0800
-Message-ID: <54d2b075.U3x6uKOt28TBaAga%akpm@linux-foundation.org>
+Subject: + mm-mm_initc-mark-mminit_verify_zonelist-as-__init.patch added
+ to -mm tree
+Date: Wed, 04 Feb 2015 15:51:20 -0800
+Message-ID: <54d2b078.MzgTn+2hg+OcGVpr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48829 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48841 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755823AbbBDXvT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Feb 2015 18:51:19 -0500
+	with ESMTP id S1755823AbbBDXvW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Feb 2015 18:51:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@rasmusvillemoes.dk, hughd@google.com, iamjoonsoo.kim@lge.com, lizefan@huawei.com, mgorman@suse.de, mina86@mina86.com, paul.gortmaker@windriver.com, peterz@infradead.org, pintu.k@samsung.com, riel@redhat.com, rientjes@google.com, tim.c.chen@linux.intel.co, tj@kernel.org, vbabka@suse.cz, vishnu.ps@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc.c: pull out init code from build_all_zonelists
+     Subject: mm/mm_init.c: park mminit_verify_zonelist as __init
 has been added to the -mm tree.  Its filename is
-     mm-page_allocc-pull-out-init-code-from-build_all_zonelists.patch
+     mm-mm_initc-mark-mminit_verify_zonelist-as-__init.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_allocc-pull-out-init-code-from-build_all_zonelists.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mm_initc-mark-mminit_verify_zonelist-as-__init.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_allocc-pull-out-init-code-from-build_all_zonelists.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mm_initc-mark-mminit_verify_zonelist-as-__init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,15 +40,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: mm/page_alloc.c: pull out init code from build_all_zonelists
+Subject: mm/mm_init.c: park mminit_verify_zonelist as __init
 
-Pulling the code protected by if (system_state == SYSTEM_BOOTING) into
-its own helper allows us to shrink .text a little. This relies on
-build_all_zonelists already having a __ref annotation. Add a comment
-explaining why so one doesn't have to track it down through git log.
-
-The real saving comes in 3/5, ("mm/mm_init.c: Mark mminit_verify_zonelist
-as __init"), where we save about 400 bytes
+The only caller of mminit_verify_zonelist is build_all_zonelists_init,
+which is annotated with __init, so it should be safe to also mark the
+former as __init, saving ~400 bytes of .text.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Cc: Vlastimil Babka <vbabka@suse.cz>
@@ -69,45 +64,21 @@ Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   17 ++++++++++++++---
- 1 file changed, 14 insertions(+), 3 deletions(-)
+ mm/mm_init.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-page_allocc-pull-out-init-code-from-build_all_zonelists mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_allocc-pull-out-init-code-from-build_all_zonelists
-+++ a/mm/page_alloc.c
-@@ -3871,18 +3871,29 @@ static int __build_all_zonelists(void *d
- 	return 0;
- }
+diff -puN mm/mm_init.c~mm-mm_initc-mark-mminit_verify_zonelist-as-__init mm/mm_init.c
+--- a/mm/mm_init.c~mm-mm_initc-mark-mminit_verify_zonelist-as-__init
++++ a/mm/mm_init.c
+@@ -21,7 +21,7 @@ int mminit_loglevel;
+ #endif
  
-+static noinline void __init
-+build_all_zonelists_init(void)
-+{
-+	__build_all_zonelists(NULL);
-+	mminit_verify_zonelist();
-+	cpuset_init_current_mems_allowed();
-+}
-+
- /*
-  * Called with zonelists_mutex held always
-  * unless system_state == SYSTEM_BOOTING.
-+ *
-+ * __ref due to (1) call of __meminit annotated setup_zone_pageset
-+ * [we're only called with non-NULL zone through __meminit paths] and
-+ * (2) call of __init annotated helper build_all_zonelists_init
-+ * [protected by SYSTEM_BOOTING].
-  */
- void __ref build_all_zonelists(pg_data_t *pgdat, struct zone *zone)
+ /* The zonelists are simply reported, validation is manual. */
+-void mminit_verify_zonelist(void)
++void __init mminit_verify_zonelist(void)
  {
- 	set_zonelist_order();
+ 	int nid;
  
- 	if (system_state == SYSTEM_BOOTING) {
--		__build_all_zonelists(NULL);
--		mminit_verify_zonelist();
--		cpuset_init_current_mems_allowed();
-+		build_all_zonelists_init();
- 	} else {
- #ifdef CONFIG_MEMORY_HOTPLUG
- 		if (zone)
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
