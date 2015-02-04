@@ -1,16 +1,16 @@
 From: akpm@linux-foundation.org
 Subject: + module_device_table-fix-some-callsites.patch added to -mm tree
-Date: Tue, 03 Feb 2015 15:51:49 -0800
-Message-ID: <54d15f15.YphtMNBYL2iSCIee%akpm@linux-foundation.org>
+Date: Tue, 03 Feb 2015 16:08:57 -0800
+Message-ID: <54d16319.RVMdO/B7ZsXlnREJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56007 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56258 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753998AbbBCXvv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2015 18:51:51 -0500
+	with ESMTP id S1753078AbbBDAI7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Feb 2015 19:08:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, a.ryabinin@samsung.com, mm-commits@vger.kernel.org
@@ -42,7 +42,7 @@ From: Andrew Morton <akpm@linux-foundation.org>
 Subject: MODULE_DEVICE_TABLE: fix some callsites
 
 The patch "module: fix types of device tables aliases" newly requires that
-invokations of
+invocations of
 
 MODULE_DEVICE_TABLE(type, name);
 
@@ -54,8 +54,9 @@ Cc: Andrey Ryabinin <a.ryabinin@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/be2iscsi/be_main.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/net/ethernet/emulex/benet/be_main.c |    1 -
+ drivers/scsi/be2iscsi/be_main.c             |    1 -
+ 2 files changed, 2 deletions(-)
 
 diff -puN drivers/scsi/be2iscsi/be_main.c~module_device_table-fix-some-callsites drivers/scsi/be2iscsi/be_main.c
 --- a/drivers/scsi/be2iscsi/be_main.c~module_device_table-fix-some-callsites
@@ -68,6 +69,17 @@ diff -puN drivers/scsi/be2iscsi/be_main.c~module_device_table-fix-some-callsites
  MODULE_DESCRIPTION(DRV_DESC " " BUILD_STR);
  MODULE_VERSION(BUILD_STR);
  MODULE_AUTHOR("Emulex Corporation");
+diff -puN drivers/net/ethernet/emulex/benet/be_main.c~module_device_table-fix-some-callsites drivers/net/ethernet/emulex/benet/be_main.c
+--- a/drivers/net/ethernet/emulex/benet/be_main.c~module_device_table-fix-some-callsites
++++ a/drivers/net/ethernet/emulex/benet/be_main.c
+@@ -26,7 +26,6 @@
+ #include <net/vxlan.h>
+ 
+ MODULE_VERSION(DRV_VER);
+-MODULE_DEVICE_TABLE(pci, be_dev_ids);
+ MODULE_DESCRIPTION(DRV_DESC " " DRV_VER);
+ MODULE_AUTHOR("Emulex Corporation");
+ MODULE_LICENSE("GPL");
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -102,7 +114,6 @@ lib-bitmap-update-bitmap_onto-to-unsigned-checkpatch-fixes.patch
 lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned-fix.patch
 hexdump-makes-it-return-amount-of-bytes-placed-in-buffer-fix.patch
 mm-slab-convert-cache-name-allocations-to-kstrdup_const-fix.patch
-module_device_table-fix-some-callsites.patch
 rtc-rk808-fix-the-rtc-time-reading-issue-fix.patch
 fs-befs-linuxvfsc-remove-unnecessary-casting-fix.patch
 samples-seccomp-improve-label-helper-fix.patch
@@ -127,4 +138,5 @@ journal_add_journal_head-debug-fix.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
 mutex-subsystem-synchro-test-module.patch
 slab-leaks3-default-y.patch
+module_device_table-fix-some-callsites.patch
 
