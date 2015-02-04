@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-internalh-dont-split-printk-call-in-two.patch added to -mm
- tree
-Date: Wed, 04 Feb 2015 15:51:15 -0800
-Message-ID: <54d2b073.nFBeShwYBvQHe6tr%akpm@linux-foundation.org>
+Subject: +
+ kernel-cpusetc-mark-cpuset_init_current_mems_allowed-as-__init.patch added
+ to -mm tree
+Date: Wed, 04 Feb 2015 15:51:24 -0800
+Message-ID: <54d2b07c./VkAuFhn1xvjrosF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48812 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48868 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755823AbbBDXvR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Feb 2015 18:51:17 -0500
+	with ESMTP id S1756001AbbBDXv0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Feb 2015 18:51:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@rasmusvillemoes.dk, hughd@google.com, iamjoonsoo.kim@lge.com, lizefan@huawei.com, mgorman@suse.de, mina86@mina86.com, paul.gortmaker@windriver.com, peterz@infradead.org, pintu.k@samsung.com, riel@redhat.com, rientjes@google.com, tim.c.chen@linux.intel.co, tj@kernel.org, vbabka@suse.cz, vishnu.ps@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/internal.h: don't split printk call in two
+     Subject: kernel/cpuset.c: Mark cpuset_init_current_mems_allowed as __init
 has been added to the -mm tree.  Its filename is
-     mm-internalh-dont-split-printk-call-in-two.patch
+     kernel-cpusetc-mark-cpuset_init_current_mems_allowed-as-__init.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-internalh-dont-split-printk-call-in-two.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-cpusetc-mark-cpuset_init_current_mems_allowed-as-__init.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-internalh-dont-split-printk-call-in-two.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-cpusetc-mark-cpuset_init_current_mems_allowed-as-__init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,10 +41,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: mm/internal.h: don't split printk call in two
+Subject: kernel/cpuset.c: Mark cpuset_init_current_mems_allowed as __init
 
-All users of mminit_dprintk pass a compile-time constant as level, so this
-just makes gcc emit a single printk call instead of two.
+The only caller of cpuset_init_current_mems_allowed is the __init
+annotated build_all_zonelists_init, so we can also make the former __init.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Cc: Vlastimil Babka <vbabka@suse.cz>
@@ -63,25 +64,21 @@ Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ kernel/cpuset.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/internal.h~mm-internalh-dont-split-printk-call-in-two mm/internal.h
---- a/mm/internal.h~mm-internalh-dont-split-printk-call-in-two
-+++ a/mm/internal.h
-@@ -351,8 +351,10 @@ extern int mminit_loglevel;
- #define mminit_dprintk(level, prefix, fmt, arg...) \
- do { \
- 	if (level < mminit_loglevel) { \
--		printk(level <= MMINIT_WARNING ? KERN_WARNING : KERN_DEBUG); \
--		printk(KERN_CONT "mminit::" prefix " " fmt, ##arg); \
-+		if (level <= MMINIT_WARNING) \
-+			printk(KERN_WARNING "mminit::" prefix " " fmt, ##arg); \
-+		else \
-+			printk(KERN_DEBUG "mminit::" prefix " " fmt, ##arg); \
- 	} \
- } while (0)
+diff -puN kernel/cpuset.c~kernel-cpusetc-mark-cpuset_init_current_mems_allowed-as-__init kernel/cpuset.c
+--- a/kernel/cpuset.c~kernel-cpusetc-mark-cpuset_init_current_mems_allowed-as-__init
++++ a/kernel/cpuset.c
+@@ -2400,7 +2400,7 @@ void cpuset_cpus_allowed_fallback(struct
+ 	 */
+ }
  
+-void cpuset_init_current_mems_allowed(void)
++void __init cpuset_init_current_mems_allowed(void)
+ {
+ 	nodes_setall(current->mems_allowed);
+ }
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
