@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- kprobes-makes-kprobes-enabled-works-correctly-for-optimized-kprobes.patch
- added to -mm tree
-Date: Thu, 05 Feb 2015 14:50:23 -0800
-Message-ID: <54d3f3af.2X+SZpR7dVGbfhD+%akpm@linux-foundation.org>
+Subject: + zram-rework-reset-and-destroy-path-fix-3.patch added to -mm
+ tree
+Date: Thu, 05 Feb 2015 14:52:04 -0800
+Message-ID: <54d3f414.fIKcRXErnzr8xD0d%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37405 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37410 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751712AbbBEWuY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Feb 2015 17:50:24 -0500
+	with ESMTP id S1751219AbbBEWwF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Feb 2015 17:52:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wangnan0@huawei.com, masami.hiramatsu.pt@hitachi.com, mingo@kernel.org, mm-commits@vger.kernel.org
+To: sergey.senozhatsky.work@gmail.com, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kprobes: makes kprobes/enabled works correctly for optimized kprobes.
+     Subject: zram-rework-reset-and-destroy-path-fix-3
 has been added to the -mm tree.  Its filename is
-     kprobes-makes-kprobes-enabled-works-correctly-for-optimized-kprobes.patch
+     zram-rework-reset-and-destroy-path-fix-3.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kprobes-makes-kprobes-enabled-works-correctly-for-optimized-kprobes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zram-rework-reset-and-destroy-path-fix-3.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kprobes-makes-kprobes-enabled-works-correctly-for-optimized-kprobes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zram-rework-reset-and-destroy-path-fix-3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,60 +39,46 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wang Nan <wangnan0@huawei.com>
-Subject: kprobes: makes kprobes/enabled works correctly for optimized kprobes.
+From: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Subject: zram-rework-reset-and-destroy-path-fix-3
 
-debugfs/kprobes/enabled doesn't work correctly on optimized kprobes. 
-Masami Hiramatsu has a test report on x86_64 platform:
+simplifications
 
-https://lkml.org/lkml/2015/1/19/274
-
-This patch forces it to unoptimize kprobe if kprobes_all_disarmed is set. 
-It also checks the flag in unregistering path for skipping unneeded
-disarming process when kprobes globally disarmed.
-
-Signed-off-by: Wang Nan <wangnan0@huawei.com>
-Signed-off-by: Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>
-Cc: Ingo Molnar <mingo@kernel.org>
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kprobes.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ drivers/block/zram/zram_drv.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN kernel/kprobes.c~kprobes-makes-kprobes-enabled-works-correctly-for-optimized-kprobes kernel/kprobes.c
---- a/kernel/kprobes.c~kprobes-makes-kprobes-enabled-works-correctly-for-optimized-kprobes
-+++ a/kernel/kprobes.c
-@@ -869,7 +869,8 @@ static void __disarm_kprobe(struct kprob
+diff -puN drivers/block/zram/zram_drv.c~zram-rework-reset-and-destroy-path-fix-3 drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-rework-reset-and-destroy-path-fix-3
++++ a/drivers/block/zram/zram_drv.c
+@@ -1141,7 +1141,7 @@ static void destroy_devices(unsigned int
+ 
+ static int __init zram_init(void)
  {
- 	struct kprobe *_p;
+-	int ret = -ENOMEM, dev_id = 0;
++	int ret, dev_id;
  
--	unoptimize_kprobe(p, false);	/* Try to unoptimize */
-+	/* Try to unoptimize */
-+	unoptimize_kprobe(p, kprobes_all_disarmed);
+ 	if (num_devices > max_num_devices) {
+ 		pr_warn("Invalid value for num_devices: %u\n",
+@@ -1157,8 +1157,10 @@ static int __init zram_init(void)
  
- 	if (!kprobe_queued(p)) {
- 		arch_disarm_kprobe(p);
-@@ -1571,7 +1572,13 @@ static struct kprobe *__disable_kprobe(s
+ 	/* Allocate the device array and initialize each one */
+ 	zram_devices = kzalloc(num_devices * sizeof(struct zram), GFP_KERNEL);
+-	if (!zram_devices)
+-		goto out_error;
++	if (!zram_devices) {
++		unregister_blkdev(zram_major, "zram");
++		return -ENOMEM;
++	}
  
- 		/* Try to disarm and disable this/parent probe */
- 		if (p == orig_p || aggr_kprobe_disabled(orig_p)) {
--			disarm_kprobe(orig_p, true);
-+			/*
-+			 * If kprobes_all_disarmed is set, orig_p
-+			 * should have already been disarmed, so
-+			 * skip unneed disarming process.
-+			 */
-+			if (!kprobes_all_disarmed)
-+				disarm_kprobe(orig_p, true);
- 			orig_p->flags |= KPROBE_FLAG_DISABLED;
- 		}
- 	}
+ 	for (dev_id = 0; dev_id < num_devices; dev_id++) {
+ 		ret = create_device(&zram_devices[dev_id], dev_id);
 _
 
-Patches currently in -mm which might be from wangnan0@huawei.com are
+Patches currently in -mm which might be from sergey.senozhatsky.work@gmail.com are
 
-kprobes-set-kprobes_all_disarmed-earlier-to-enable-re-optimization.patch
-kprobes-makes-kprobes-enabled-works-correctly-for-optimized-kprobes.patch
-linux-next.patch
+zram-rework-reset-and-destroy-path-fix-3.patch
 
