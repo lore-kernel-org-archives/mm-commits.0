@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + fs-affs-bitmapc-remove-unnecessary-return.patch added to -mm
+Subject: + fs-affs-amigaffsc-remove-else-after-return.patch added to -mm
  tree
-Date: Thu, 05 Feb 2015 15:19:22 -0800
-Message-ID: <54d3fa7a.qugLTX0sWAZBzXbS%akpm@linux-foundation.org>
+Date: Thu, 05 Feb 2015 15:19:20 -0800
+Message-ID: <54d3fa78.t5yOVPINJtN+5HB0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37814 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37812 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752516AbbBEXTX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Feb 2015 18:19:23 -0500
+	with ESMTP id S1751091AbbBEXTV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Feb 2015 18:19:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: fabf@skynet.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/affs/bitmap.c: remove unnecessary return
+     Subject: fs/affs/amigaffs.c: remove else after return
 has been added to the -mm tree.  Its filename is
-     fs-affs-bitmapc-remove-unnecessary-return.patch
+     fs-affs-amigaffsc-remove-else-after-return.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-affs-bitmapc-remove-unnecessary-return.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-affs-amigaffsc-remove-else-after-return.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-affs-bitmapc-remove-unnecessary-return.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-affs-amigaffsc-remove-else-after-return.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,28 +40,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/affs/bitmap.c: remove unnecessary return
+Subject: fs/affs/amigaffs.c: remove else after return
 
-return is not needed at the end of function.
+else is unnecessary after return -ENAMETOOLONG
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/affs/bitmap.c |    1 -
- 1 file changed, 1 deletion(-)
+ fs/affs/amigaffs.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/affs/bitmap.c~fs-affs-bitmapc-remove-unnecessary-return fs/affs/bitmap.c
---- a/fs/affs/bitmap.c~fs-affs-bitmapc-remove-unnecessary-return
-+++ a/fs/affs/bitmap.c
-@@ -99,7 +99,6 @@ err_bh_read:
- 
- err_range:
- 	affs_error(sb, "affs_free_block","Block %u outside partition", block);
--	return;
- }
- 
- /*
+diff -puN fs/affs/amigaffs.c~fs-affs-amigaffsc-remove-else-after-return fs/affs/amigaffs.c
+--- a/fs/affs/amigaffs.c~fs-affs-amigaffsc-remove-else-after-return
++++ a/fs/affs/amigaffs.c
+@@ -486,8 +486,7 @@ affs_check_name(const unsigned char *nam
+ 	if (len > AFFSNAMEMAX) {
+ 		if (notruncate)
+ 			return -ENAMETOOLONG;
+-		else
+-			len = AFFSNAMEMAX;
++		len = AFFSNAMEMAX;
+ 	}
+ 	for (i = 0; i < len; i++) {
+ 		if (name[i] < ' ' || name[i] == ':'
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
