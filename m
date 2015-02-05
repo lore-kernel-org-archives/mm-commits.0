@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + fs-affs-amigaffsc-remove-else-after-return.patch added to -mm
- tree
-Date: Thu, 05 Feb 2015 15:19:20 -0800
-Message-ID: <54d3fa78.t5yOVPINJtN+5HB0%akpm@linux-foundation.org>
+Subject: +
+ fs-affs-inodec-remove-double-extern-affs_symlink_inode_operations.patch
+ added to -mm tree
+Date: Thu, 05 Feb 2015 15:19:24 -0800
+Message-ID: <54d3fa7c.qQBJfK5tSEnmMVOh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37812 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37816 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751091AbbBEXTV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Feb 2015 18:19:21 -0500
+	with ESMTP id S1752530AbbBEXTZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Feb 2015 18:19:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: fabf@skynet.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/affs/amigaffs.c: remove else after return
+     Subject: fs/affs/inode.c: remove double extern affs_symlink_inode_operations
 has been added to the -mm tree.  Its filename is
-     fs-affs-amigaffsc-remove-else-after-return.patch
+     fs-affs-inodec-remove-double-extern-affs_symlink_inode_operations.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-affs-amigaffsc-remove-else-after-return.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-affs-inodec-remove-double-extern-affs_symlink_inode_operations.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-affs-amigaffsc-remove-else-after-return.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-affs-inodec-remove-double-extern-affs_symlink_inode_operations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,30 +41,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/affs/amigaffs.c: remove else after return
+Subject: fs/affs/inode.c: remove double extern affs_symlink_inode_operations
 
-else is unnecessary after return -ENAMETOOLONG
+affs_symlink_inode_operations was already declared extern in affs.h
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/affs/amigaffs.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/affs/inode.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN fs/affs/amigaffs.c~fs-affs-amigaffsc-remove-else-after-return fs/affs/amigaffs.c
---- a/fs/affs/amigaffs.c~fs-affs-amigaffsc-remove-else-after-return
-+++ a/fs/affs/amigaffs.c
-@@ -486,8 +486,7 @@ affs_check_name(const unsigned char *nam
- 	if (len > AFFSNAMEMAX) {
- 		if (notruncate)
- 			return -ENAMETOOLONG;
--		else
--			len = AFFSNAMEMAX;
-+		len = AFFSNAMEMAX;
- 	}
- 	for (i = 0; i < len; i++) {
- 		if (name[i] < ' ' || name[i] == ':'
+diff -puN fs/affs/inode.c~fs-affs-inodec-remove-double-extern-affs_symlink_inode_operations fs/affs/inode.c
+--- a/fs/affs/inode.c~fs-affs-inodec-remove-double-extern-affs_symlink_inode_operations
++++ a/fs/affs/inode.c
+@@ -13,8 +13,6 @@
+ #include <linux/gfp.h>
+ #include "affs.h"
+ 
+-extern const struct inode_operations affs_symlink_inode_operations;
+-
+ struct inode *affs_iget(struct super_block *sb, unsigned long ino)
+ {
+ 	struct affs_sb_info	*sbi = AFFS_SB(sb);
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
