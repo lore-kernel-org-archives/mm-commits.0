@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + fs-affs-superc-fix-switch-indentation.patch added to -mm tree
-Date: Thu, 05 Feb 2015 15:19:26 -0800
-Message-ID: <54d3fa7e.V+VkTqVGCyJSLoNc%akpm@linux-foundation.org>
+Subject: + kasan-enable-instrumentation-of-global-variables-fix-2.patch
+ added to -mm tree
+Date: Fri, 06 Feb 2015 13:03:13 -0800
+Message-ID: <54d52c11.m//1Vo5HomU1VkN/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37817 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52785 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752530AbbBEXT1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Feb 2015 18:19:27 -0500
+	with ESMTP id S1752315AbbBFVDP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Feb 2015 16:03:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, mm-commits@vger.kernel.org
+To: a.ryabinin@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/affs/super.c: fix switch indentation
+     Subject: kasan-enable-instrumentation-of-global-variables-fix-2
 has been added to the -mm tree.  Its filename is
-     fs-affs-superc-fix-switch-indentation.patch
+     kasan-enable-instrumentation-of-global-variables-fix-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-affs-superc-fix-switch-indentation.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kasan-enable-instrumentation-of-global-variables-fix-2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-affs-superc-fix-switch-indentation.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-enable-instrumentation-of-global-variables-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,120 +39,61 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/affs/super.c: fix switch indentation
+From: Andrey Ryabinin <a.ryabinin@samsung.com>
+Subject: kasan-enable-instrumentation-of-global-variables-fix-2
 
-Fix checkpatch error:
-ERROR: switch and case should be at the same indent
+Disable broken globals instrumentation for GCC 4.9.2
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Signed-off-by: Andrey Ryabinin <a.ryabinin@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/affs/super.c |   66 +++++++++++++++++++++++-----------------------
- 1 file changed, 33 insertions(+), 33 deletions(-)
+ scripts/Makefile.kasan |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/affs/super.c~fs-affs-superc-fix-switch-indentation fs/affs/super.c
---- a/fs/affs/super.c~fs-affs-superc-fix-switch-indentation
-+++ a/fs/affs/super.c
-@@ -432,39 +432,39 @@ got_root:
- 		sb->s_flags |= MS_RDONLY;
- 	}
- 	switch (chksum) {
--		case MUFS_FS:
--		case MUFS_INTLFFS:
--		case MUFS_DCFFS:
--			sbi->s_flags |= SF_MUFS;
--			/* fall thru */
--		case FS_INTLFFS:
--		case FS_DCFFS:
--			sbi->s_flags |= SF_INTL;
--			break;
--		case MUFS_FFS:
--			sbi->s_flags |= SF_MUFS;
--			break;
--		case FS_FFS:
--			break;
--		case MUFS_OFS:
--			sbi->s_flags |= SF_MUFS;
--			/* fall thru */
--		case FS_OFS:
--			sbi->s_flags |= SF_OFS;
--			sb->s_flags |= MS_NOEXEC;
--			break;
--		case MUFS_DCOFS:
--		case MUFS_INTLOFS:
--			sbi->s_flags |= SF_MUFS;
--		case FS_DCOFS:
--		case FS_INTLOFS:
--			sbi->s_flags |= SF_INTL | SF_OFS;
--			sb->s_flags |= MS_NOEXEC;
--			break;
--		default:
--			pr_err("Unknown filesystem on device %s: %08X\n",
--			       sb->s_id, chksum);
--			return -EINVAL;
-+	case MUFS_FS:
-+	case MUFS_INTLFFS:
-+	case MUFS_DCFFS:
-+		sbi->s_flags |= SF_MUFS;
-+		/* fall thru */
-+	case FS_INTLFFS:
-+	case FS_DCFFS:
-+		sbi->s_flags |= SF_INTL;
-+		break;
-+	case MUFS_FFS:
-+		sbi->s_flags |= SF_MUFS;
-+		break;
-+	case FS_FFS:
-+		break;
-+	case MUFS_OFS:
-+		sbi->s_flags |= SF_MUFS;
-+		/* fall thru */
-+	case FS_OFS:
-+		sbi->s_flags |= SF_OFS;
-+		sb->s_flags |= MS_NOEXEC;
-+		break;
-+	case MUFS_DCOFS:
-+	case MUFS_INTLOFS:
-+		sbi->s_flags |= SF_MUFS;
-+	case FS_DCOFS:
-+	case FS_INTLOFS:
-+		sbi->s_flags |= SF_INTL | SF_OFS;
-+		sb->s_flags |= MS_NOEXEC;
-+		break;
-+	default:
-+		pr_err("Unknown filesystem on device %s: %08X\n",
-+		       sb->s_id, chksum);
-+		return -EINVAL;
- 	}
+diff -puN scripts/Makefile.kasan~kasan-enable-instrumentation-of-global-variables-fix-2 scripts/Makefile.kasan
+--- a/scripts/Makefile.kasan~kasan-enable-instrumentation-of-global-variables-fix-2
++++ a/scripts/Makefile.kasan
+@@ -5,7 +5,7 @@ else
+ 	call_threshold := 0
+ endif
  
- 	if (mount_flags & SF_VERBOSE) {
+-CFLAGS_KASAN_MINIMAL := -fsanitize=kernel-address --param asan-globals=1
++CFLAGS_KASAN_MINIMAL := -fsanitize=kernel-address
+ 
+ CFLAGS_KASAN := $(call cc-option, -fsanitize=kernel-address \
+ 		-fasan-shadow-offset=$(CONFIG_KASAN_SHADOW_OFFSET) \
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from a.ryabinin@samsung.com are
 
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-ocfs2-remove-unnecessary-else-in-ocfs2_set_acl.patch
-ocfs2-make-resv_lock-spinlock-static.patch
-add-another-clock-for-use-with-the-soft-lockup-watchdog.patch
-powerpc-add-running_clock-for-powerpc-to-prevent-spurious-softlockup-warnings.patch
-fs-befs-linuxvfsc-remove-unnecessary-casting.patch
-fs-befs-linuxvfsc-remove-unnecessary-casting-fix.patch
-fs-coda-dirc-forward-declaration-clean-up.patch
-fs-ufs-superc-remove-unnecessary-casting.patch
-fs-ufs-superc-fix-potential-race-condition.patch
-fs-reiserfs-inodec-replace-0-by-null-for-pointers.patch
-ptrace-remove-linux-compath-inclusion-under-config_compat.patch
-vmcore-fix-pt_note-n_namesz-n_descsz-overflow-issue.patch
-fs-affs-filec-replace-if-bug-by-bug_on.patch
-fs-affs-filec-fix-direct-io-writes-beyond-eof.patch
-fs-affs-superc-destroy-sbi-mutex-in-affs_kill_sb.patch
-fs-affs-use-unsigned-int-for-string-lengths.patch
-define-affsnamemax-to-replace-constant-use.patch
-fs-affs-amigaffsc-remove-else-after-return.patch
-fs-affs-bitmapc-remove-unnecessary-return.patch
-fs-affs-inodec-remove-double-extern-affs_symlink_inode_operations.patch
-fs-affs-superc-fix-switch-indentation.patch
+hugetlb-sysctl-pass-extra1-=-null-rather-then-extra1-=-zero.patch
+mm-hugetlb-fix-type-of-hugetlb_treat_as_movable-variable.patch
+proc-pagemap-walk-page-tables-under-pte-lock.patch
+module_device_table-fix-some-callsites.patch
+module_device_table-fix-some-callsites-fix.patch
+compiler-introduce-__aliassymbol-shortcut.patch
+add-kernel-address-sanitizer-infrastructure.patch
+add-kernel-address-sanitizer-infrastructure-fix.patch
+kasan-disable-memory-hotplug.patch
+x86_64-add-kasan-support.patch
+mm-page_alloc-add-kasan-hooks-on-alloc-and-free-paths.patch
+mm-slub-introduce-virt_to_obj-function.patch
+mm-slub-share-object_err-function.patch
+mm-slub-introduce-metadata_access_enable-metadata_access_disable.patch
+mm-slub-add-kernel-address-sanitizer-support-for-slub-allocator.patch
+fs-dcache-manually-unpoison-dname-after-allocation-to-shut-up-kasans-reports.patch
+kmemleak-disable-kasan-instrumentation-for-kmemleak.patch
+lib-add-kasan-test-module.patch
+x86_64-kasan-add-interceptors-for-memset-memmove-memcpy-functions.patch
+kasan-enable-stack-instrumentation.patch
+mm-vmalloc-add-flag-preventing-guard-hole-allocation.patch
+mm-vmalloc-pass-additional-vm_flags-to-__vmalloc_node_range.patch
+kernel-add-support-for-init_array-constructors.patch
+module-fix-types-of-device-tables-aliases.patch
+kasan-enable-instrumentation-of-global-variables.patch
+kasan-enable-instrumentation-of-global-variables-fix.patch
+kasan-enable-instrumentation-of-global-variables-fix-2.patch
+kasan-enable-instrumentation-of-global-variables-fix-2-fix.patch
 linux-next.patch
 
