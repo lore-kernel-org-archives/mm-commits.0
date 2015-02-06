@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- kasan-enable-instrumentation-of-global-variables-fix-2-fix.patch added to
- -mm tree
-Date: Fri, 06 Feb 2015 13:03:15 -0800
-Message-ID: <54d52c13.LMM0Cd4rWCGZZoC0%akpm@linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Fri, 06 Feb 2015 13:06:50 -0800
+Message-ID: <54d52cea.KZ5hl/x0csw28PZC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52787 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52790 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752777AbbBFVDQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Feb 2015 16:03:16 -0500
+	with ESMTP id S1751877AbbBFVGv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Feb 2015 16:06:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.ryabinin@samsung.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan-enable-instrumentation-of-global-variables-fix-2-fix
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     kasan-enable-instrumentation-of-global-variables-fix-2-fix.patch
+     linux-next-git-rejects.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kasan-enable-instrumentation-of-global-variables-fix-2-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-enable-instrumentation-of-global-variables-fix-2-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,29 +39,36 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kasan-enable-instrumentation-of-global-variables-fix-2-fix
+Subject: linux-next-git-rejects
 
-update kasan.txt
-
-Cc: Andrey Ryabinin <a.ryabinin@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kasan.txt |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/vxlan.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN Documentation/kasan.txt~kasan-enable-instrumentation-of-global-variables-fix-2-fix Documentation/kasan.txt
---- a/Documentation/kasan.txt~kasan-enable-instrumentation-of-global-variables-fix-2-fix
-+++ a/Documentation/kasan.txt
-@@ -9,7 +9,7 @@ a fast and comprehensive solution for fi
- bugs.
+diff -puN drivers/net/vxlan.c~linux-next-git-rejects drivers/net/vxlan.c
+--- a/drivers/net/vxlan.c~linux-next-git-rejects
++++ a/drivers/net/vxlan.c
+@@ -2761,10 +2761,6 @@ static int vxlan_newlink(struct net *src
+ 	    nla_get_u8(data[IFLA_VXLAN_UDP_ZERO_CSUM6_RX]))
+ 		vxlan->flags |= VXLAN_F_UDP_ZERO_CSUM6_RX;
  
- KASan uses compile-time instrumentation for checking every memory access,
--therefore you will need a certain version of GCC >= 4.9.2
-+therefore you will need a certain version of GCC > 4.9.2
+-<<<<<<< HEAD
+-	if (vxlan_find_vni(src_net, vni, use_ipv6 ? AF_INET6 : AF_INET,
+-			   vxlan->dst_port)) {
+-=======
+ 	if (data[IFLA_VXLAN_REMCSUM_TX] &&
+ 	    nla_get_u8(data[IFLA_VXLAN_REMCSUM_TX]))
+ 		vxlan->flags |= VXLAN_F_REMCSUM_TX;
+@@ -2778,7 +2774,6 @@ static int vxlan_newlink(struct net *src
  
- Currently KASan is supported only for x86_64 architecture and requires that the
- kernel be built with the SLUB allocator.
+ 	if (vxlan_find_vni(src_net, vni, use_ipv6 ? AF_INET6 : AF_INET,
+ 			   vxlan->dst_port, vxlan->flags)) {
+->>>>>>> linux-next/akpm-base
+ 		pr_info("duplicate VNI %u\n", vni);
+ 		return -EEXIST;
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -108,6 +113,7 @@ fs-befs-linuxvfsc-remove-unnecessary-casting-fix.patch
 samples-seccomp-improve-label-helper-fix.patch
 linux-next.patch
 linux-next-rejects.patch
+linux-next-git-rejects.patch
 mm-fix-xip-fault-vs-truncate-race-fix.patch
 mm-fix-xip-fault-vs-truncate-race-fix-fix.patch
 mm-allow-page-fault-handlers-to-perform-the-cow-fix.patch
