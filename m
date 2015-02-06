@@ -1,249 +1,207 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- nilfs2-fix-deadlock-of-segment-constructor-over-i_sync-flag.patch removed
- from -mm tree
-Date: Fri, 06 Feb 2015 14:02:38 -0800
-Message-ID: <54d539fe./TSFByi2D8Gr3O6w%akpm__33046.5721701787$1423260166$gmane$org@linux-foundation.org>
+ mm-debug_pagealloc-fix-build-failure-on-ppc-and-some-other-archs.patch
+ removed from -mm tree
+Date: Fri, 06 Feb 2015 14:02:40 -0800
+Message-ID: <54d53a00.8NtHueORva6Wqg94%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53269 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53273 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755021AbbBFWCj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Feb 2015 17:02:39 -0500
+	with ESMTP id S1755040AbbBFWCl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Feb 2015 17:02:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: konishi.ryusuke@lab.ntt.co.jp, stable@vger.kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: iamjoonsoo.kim@lge.com, davem@davemloft.net, dhowells@redhat.com, heiko.carstens@de.ibm.com, kim.phillips@freescale.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: fix deadlock of segment constructor over I_SYNC flag
+     Subject: mm/debug_pagealloc: fix build failure on ppc and some other archs
 has been removed from the -mm tree.  Its filename was
-     nilfs2-fix-deadlock-of-segment-constructor-over-i_sync-flag.patch
+     mm-debug_pagealloc-fix-build-failure-on-ppc-and-some-other-archs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Subject: nilfs2: fix deadlock of segment constructor over I_SYNC flag
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: mm/debug_pagealloc: fix build failure on ppc and some other archs
 
-Nilfs2 eventually hangs in a stress test with fsstress program.  This
-issue was caused by the following deadlock over I_SYNC flag between
-nilfs_segctor_thread() and writeback_sb_inodes():
+Kim Phillips reported following build failure.
 
-  nilfs_segctor_thread()
-    nilfs_segctor_thread_construct()
-      nilfs_segctor_unlock()
-        nilfs_dispose_list()
-          iput()
-            iput_final()
-              evict()
-                inode_wait_for_writeback()  * wait for I_SYNC flag
+  LD      init/built-in.o
+  mm/built-in.o: In function `free_pages_prepare':
+  mm/page_alloc.c:770: undefined reference to `.kernel_map_pages'
+  mm/built-in.o: In function `prep_new_page':
+  mm/page_alloc.c:933: undefined reference to `.kernel_map_pages'
+  mm/built-in.o: In function `map_pages':
+  mm/compaction.c:61: undefined reference to `.kernel_map_pages'
+  make: *** [vmlinux] Error 1
 
-  writeback_sb_inodes()
-     * set I_SYNC flag on inode->i_state
-    __writeback_single_inode()
-      do_writepages()
-        nilfs_writepages()
-          nilfs_construct_dsync_segment()
-            nilfs_segctor_sync()
-               * wait for completion of segment constructor
-    inode_sync_complete()
-       * clear I_SYNC flag after __writeback_single_inode() completed
+Reason for this problem is that commit 031bc5743f15 ("mm/debug-pagealloc:
+make debug-pagealloc boottime configurable") forgot to remove old
+declaration of kernel_map_pages() in some architectures.  This patch
+removes them to fix build failure.
 
-writeback_sb_inodes() calls do_writepages() for dirty inodes after setting
-I_SYNC flag on inode->i_state.  do_writepages() calls nilfs_writepages(),
-which can run segment constructor and wait for its completion.  On the
-other hand, segment constructor calls iput(), which can call evict() and
-wait for the I_SYNC flag on inode_wait_for_writeback().
-
-Since segment constructor doesn't know when I_SYNC will be set, it cannot
-know whether iput() will block or not unless inode->i_nlink has a non-zero
-count.  We can prevent evict() from being called in iput() by implementing
-sop->drop_inode(), but it's not preferable to leave inodes with i_nlink ==
-0 for long periods because it even defers file truncation and inode
-deallocation.  So, this instead resolves the deadlock by calling iput()
-asynchronously with a workqueue for inodes with i_nlink == 0.
-
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Tested-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Cc: <stable@vger.kernel.org>
+Reported-by: Kim Phillips <kim.phillips@freescale.com>
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: David Miller <davem@davemloft.net>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/nilfs.h   |    2 -
- fs/nilfs2/segment.c |   44 +++++++++++++++++++++++++++++++++++++-----
- fs/nilfs2/segment.h |    5 ++++
- 3 files changed, 44 insertions(+), 7 deletions(-)
+ arch/mn10300/include/asm/cacheflush.h  |    7 -------
+ arch/powerpc/include/asm/cacheflush.h  |    7 -------
+ arch/s390/include/asm/cacheflush.h     |    4 ----
+ arch/sparc/include/asm/cacheflush_64.h |    5 -----
+ 4 files changed, 23 deletions(-)
 
-diff -puN fs/nilfs2/nilfs.h~nilfs2-fix-deadlock-of-segment-constructor-over-i_sync-flag fs/nilfs2/nilfs.h
---- a/fs/nilfs2/nilfs.h~nilfs2-fix-deadlock-of-segment-constructor-over-i_sync-flag
-+++ a/fs/nilfs2/nilfs.h
-@@ -141,7 +141,6 @@ enum {
-  * @ti_save: Backup of journal_info field of task_struct
-  * @ti_flags: Flags
-  * @ti_count: Nest level
-- * @ti_garbage:	List of inode to be put when releasing semaphore
-  */
- struct nilfs_transaction_info {
- 	u32			ti_magic;
-@@ -150,7 +149,6 @@ struct nilfs_transaction_info {
- 				   one of other filesystems has a bug. */
- 	unsigned short		ti_flags;
- 	unsigned short		ti_count;
--	struct list_head	ti_garbage;
- };
+diff -puN arch/mn10300/include/asm/cacheflush.h~mm-debug_pagealloc-fix-build-failure-on-ppc-and-some-other-archs arch/mn10300/include/asm/cacheflush.h
+--- a/arch/mn10300/include/asm/cacheflush.h~mm-debug_pagealloc-fix-build-failure-on-ppc-and-some-other-archs
++++ a/arch/mn10300/include/asm/cacheflush.h
+@@ -159,13 +159,6 @@ extern void flush_icache_range(unsigned
+ #define copy_from_user_page(vma, page, vaddr, dst, src, len) \
+ 	memcpy(dst, src, len)
  
- /* ti_magic */
-diff -puN fs/nilfs2/segment.c~nilfs2-fix-deadlock-of-segment-constructor-over-i_sync-flag fs/nilfs2/segment.c
---- a/fs/nilfs2/segment.c~nilfs2-fix-deadlock-of-segment-constructor-over-i_sync-flag
-+++ a/fs/nilfs2/segment.c
-@@ -305,7 +305,6 @@ static void nilfs_transaction_lock(struc
- 	ti->ti_count = 0;
- 	ti->ti_save = cur_ti;
- 	ti->ti_magic = NILFS_TI_MAGIC;
--	INIT_LIST_HEAD(&ti->ti_garbage);
- 	current->journal_info = ti;
+-/*
+- * Internal debugging function
+- */
+-#ifdef CONFIG_DEBUG_PAGEALLOC
+-extern void kernel_map_pages(struct page *page, int numpages, int enable);
+-#endif
+-
+ #endif /* __ASSEMBLY__ */
  
- 	for (;;) {
-@@ -332,8 +331,6 @@ static void nilfs_transaction_unlock(str
+ #endif /* _ASM_CACHEFLUSH_H */
+diff -puN arch/powerpc/include/asm/cacheflush.h~mm-debug_pagealloc-fix-build-failure-on-ppc-and-some-other-archs arch/powerpc/include/asm/cacheflush.h
+--- a/arch/powerpc/include/asm/cacheflush.h~mm-debug_pagealloc-fix-build-failure-on-ppc-and-some-other-archs
++++ a/arch/powerpc/include/asm/cacheflush.h
+@@ -60,13 +60,6 @@ extern void flush_dcache_phys_range(unsi
+ #define copy_from_user_page(vma, page, vaddr, dst, src, len) \
+ 	memcpy(dst, src, len)
  
- 	up_write(&nilfs->ns_segctor_sem);
- 	current->journal_info = ti->ti_save;
--	if (!list_empty(&ti->ti_garbage))
--		nilfs_dispose_list(nilfs, &ti->ti_garbage, 0);
- }
+-
+-
+-#ifdef CONFIG_DEBUG_PAGEALLOC
+-/* internal debugging function */
+-void kernel_map_pages(struct page *page, int numpages, int enable);
+-#endif
+-
+ #endif /* __KERNEL__ */
  
- static void *nilfs_segctor_map_segsum_entry(struct nilfs_sc_info *sci,
-@@ -746,6 +743,15 @@ static void nilfs_dispose_list(struct th
- 	}
- }
+ #endif /* _ASM_POWERPC_CACHEFLUSH_H */
+diff -puN arch/s390/include/asm/cacheflush.h~mm-debug_pagealloc-fix-build-failure-on-ppc-and-some-other-archs arch/s390/include/asm/cacheflush.h
+--- a/arch/s390/include/asm/cacheflush.h~mm-debug_pagealloc-fix-build-failure-on-ppc-and-some-other-archs
++++ a/arch/s390/include/asm/cacheflush.h
+@@ -4,10 +4,6 @@
+ /* Caches aren't brain-dead on the s390. */
+ #include <asm-generic/cacheflush.h>
  
-+static void nilfs_iput_work_func(struct work_struct *work)
-+{
-+	struct nilfs_sc_info *sci = container_of(work, struct nilfs_sc_info,
-+						 sc_iput_work);
-+	struct the_nilfs *nilfs = sci->sc_super->s_fs_info;
-+
-+	nilfs_dispose_list(nilfs, &sci->sc_iput_queue, 0);
-+}
-+
- static int nilfs_test_metadata_dirty(struct the_nilfs *nilfs,
- 				     struct nilfs_root *root)
- {
-@@ -1900,8 +1906,8 @@ static int nilfs_segctor_collect_dirty_f
- static void nilfs_segctor_drop_written_files(struct nilfs_sc_info *sci,
- 					     struct the_nilfs *nilfs)
- {
--	struct nilfs_transaction_info *ti = current->journal_info;
- 	struct nilfs_inode_info *ii, *n;
-+	int defer_iput = false;
+-#ifdef CONFIG_DEBUG_PAGEALLOC
+-void kernel_map_pages(struct page *page, int numpages, int enable);
+-#endif
+-
+ int set_memory_ro(unsigned long addr, int numpages);
+ int set_memory_rw(unsigned long addr, int numpages);
+ int set_memory_nx(unsigned long addr, int numpages);
+diff -puN arch/sparc/include/asm/cacheflush_64.h~mm-debug_pagealloc-fix-build-failure-on-ppc-and-some-other-archs arch/sparc/include/asm/cacheflush_64.h
+--- a/arch/sparc/include/asm/cacheflush_64.h~mm-debug_pagealloc-fix-build-failure-on-ppc-and-some-other-archs
++++ a/arch/sparc/include/asm/cacheflush_64.h
+@@ -74,11 +74,6 @@ void flush_ptrace_access(struct vm_area_
+ #define flush_cache_vmap(start, end)		do { } while (0)
+ #define flush_cache_vunmap(start, end)		do { } while (0)
  
- 	spin_lock(&nilfs->ns_inode_lock);
- 	list_for_each_entry_safe(ii, n, &sci->sc_dirty_files, i_dirty) {
-@@ -1912,9 +1918,24 @@ static void nilfs_segctor_drop_written_f
- 		clear_bit(NILFS_I_BUSY, &ii->i_state);
- 		brelse(ii->i_bh);
- 		ii->i_bh = NULL;
--		list_move_tail(&ii->i_dirty, &ti->ti_garbage);
-+		list_del_init(&ii->i_dirty);
-+		if (!ii->vfs_inode.i_nlink) {
-+			/*
-+			 * Defer calling iput() to avoid a deadlock
-+			 * over I_SYNC flag for inodes with i_nlink == 0
-+			 */
-+			list_add_tail(&ii->i_dirty, &sci->sc_iput_queue);
-+			defer_iput = true;
-+		} else {
-+			spin_unlock(&nilfs->ns_inode_lock);
-+			iput(&ii->vfs_inode);
-+			spin_lock(&nilfs->ns_inode_lock);
-+		}
- 	}
- 	spin_unlock(&nilfs->ns_inode_lock);
-+
-+	if (defer_iput)
-+		schedule_work(&sci->sc_iput_work);
- }
+-#ifdef CONFIG_DEBUG_PAGEALLOC
+-/* internal debugging function */
+-void kernel_map_pages(struct page *page, int numpages, int enable);
+-#endif
+-
+ #endif /* !__ASSEMBLY__ */
  
- /*
-@@ -2583,6 +2604,8 @@ static struct nilfs_sc_info *nilfs_segct
- 	INIT_LIST_HEAD(&sci->sc_segbufs);
- 	INIT_LIST_HEAD(&sci->sc_write_logs);
- 	INIT_LIST_HEAD(&sci->sc_gc_inodes);
-+	INIT_LIST_HEAD(&sci->sc_iput_queue);
-+	INIT_WORK(&sci->sc_iput_work, nilfs_iput_work_func);
- 	init_timer(&sci->sc_timer);
- 
- 	sci->sc_interval = HZ * NILFS_SC_DEFAULT_TIMEOUT;
-@@ -2609,6 +2632,8 @@ static void nilfs_segctor_write_out(stru
- 		ret = nilfs_segctor_construct(sci, SC_LSEG_SR);
- 		nilfs_transaction_unlock(sci->sc_super);
- 
-+		flush_work(&sci->sc_iput_work);
-+
- 	} while (ret && retrycount-- > 0);
- }
- 
-@@ -2633,6 +2658,9 @@ static void nilfs_segctor_destroy(struct
- 		|| sci->sc_seq_request != sci->sc_seq_done);
- 	spin_unlock(&sci->sc_state_lock);
- 
-+	if (flush_work(&sci->sc_iput_work))
-+		flag = true;
-+
- 	if (flag || !nilfs_segctor_confirm(sci))
- 		nilfs_segctor_write_out(sci);
- 
-@@ -2642,6 +2670,12 @@ static void nilfs_segctor_destroy(struct
- 		nilfs_dispose_list(nilfs, &sci->sc_dirty_files, 1);
- 	}
- 
-+	if (!list_empty(&sci->sc_iput_queue)) {
-+		nilfs_warning(sci->sc_super, __func__,
-+			      "iput queue is not empty\n");
-+		nilfs_dispose_list(nilfs, &sci->sc_iput_queue, 1);
-+	}
-+
- 	WARN_ON(!list_empty(&sci->sc_segbufs));
- 	WARN_ON(!list_empty(&sci->sc_write_logs));
- 
-diff -puN fs/nilfs2/segment.h~nilfs2-fix-deadlock-of-segment-constructor-over-i_sync-flag fs/nilfs2/segment.h
---- a/fs/nilfs2/segment.h~nilfs2-fix-deadlock-of-segment-constructor-over-i_sync-flag
-+++ a/fs/nilfs2/segment.h
-@@ -26,6 +26,7 @@
- #include <linux/types.h>
- #include <linux/fs.h>
- #include <linux/buffer_head.h>
-+#include <linux/workqueue.h>
- #include <linux/nilfs2_fs.h>
- #include "nilfs.h"
- 
-@@ -92,6 +93,8 @@ struct nilfs_segsum_pointer {
-  * @sc_nblk_inc: Block count of current generation
-  * @sc_dirty_files: List of files to be written
-  * @sc_gc_inodes: List of GC inodes having blocks to be written
-+ * @sc_iput_queue: list of inodes for which iput should be done
-+ * @sc_iput_work: work struct to defer iput call
-  * @sc_freesegs: array of segment numbers to be freed
-  * @sc_nfreesegs: number of segments on @sc_freesegs
-  * @sc_dsync_inode: inode whose data pages are written for a sync operation
-@@ -135,6 +138,8 @@ struct nilfs_sc_info {
- 
- 	struct list_head	sc_dirty_files;
- 	struct list_head	sc_gc_inodes;
-+	struct list_head	sc_iput_queue;
-+	struct work_struct	sc_iput_work;
- 
- 	__u64		       *sc_freesegs;
- 	size_t			sc_nfreesegs;
+ #endif /* _SPARC64_CACHEFLUSH_H */
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 
 origin.patch
-linux-next.patch
+mm-slub-optimize-alloc-free-fastpath-by-removing-preemption-on-off.patch
+mm-slub-optimize-alloc-free-fastpath-by-removing-preemption-on-off-v3.patch
+mm-dont-use-compound_head-in-virt_to_head_page.patch
+mm-dont-use-compound_head-in-virt_to_head_page-v3.patch
+mm-vmstatc-fix-cleanup-ifdefs.patch
+mm-vmstatc-fix-cleanup-ifdefs-fix-2.patch
+sparc32-fix-broken-set_pte.patch
+mm-set-page-pfmemalloc-in-prep_new_page.patch
+mm-page_alloc-reduce-number-of-alloc_pages-functions-parameters.patch
+mm-reduce-try_to_compact_pages-parameters.patch
+mm-microoptimize-zonelist-operations.patch
+list_lru-introduce-list_lru_shrink_countwalk.patch
+fs-consolidate-nrfree_cached_objects-args-in-shrink_control.patch
+vmscan-per-memory-cgroup-slab-shrinkers.patch
+memcg-rename-some-cache-id-related-variables.patch
+memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation.patch
+list_lru-get-rid-of-active_nodes.patch
+list_lru-organize-all-list_lrus-to-list.patch
+list_lru-introduce-per-memcg-lists.patch
+fs-make-shrinker-memcg-aware.patch
+mm-cma-fix-totalcma_pages-to-include-dt-defined-cma-regions.patch
+mm-compaction-change-tracepoint-format-from-decimal-to-hexadecimal.patch
+mm-compaction-enhance-tracepoint-output-for-compaction-begin-end.patch
+mm-compaction-enhance-tracepoint-output-for-compaction-begin-end-v4.patch
+mm-compaction-enhance-tracepoint-output-for-compaction-begin-end-v4-fix.patch
+mm-compaction-print-current-range-where-compaction-work.patch
+mm-compaction-more-trace-to-understand-when-why-compaction-start-finish.patch
+mm-compaction-add-tracepoint-to-observe-behaviour-of-compaction-defer.patch
+mm-compaction-add-tracepoint-to-observe-behaviour-of-compaction-defer-v4.patch
+slab-embed-memcg_cache_params-to-kmem_cache.patch
+slab-link-memcg-caches-of-the-same-kind-into-a-list.patch
+cgroup-release-css-id-after-css_free.patch
+slab-use-css-id-for-naming-per-memcg-caches.patch
+memcg-free-memcg_caches-slot-on-css-offline.patch
+list_lru-add-helpers-to-isolate-items.patch
+memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline.patch
+slub-never-fail-to-shrink-cache.patch
+slub-fix-kmem_cache_shrink-return-value.patch
+slub-make-dead-caches-discard-free-slabs-immediately.patch
+mm-when-stealing-freepages-also-take-pages-created-by-splitting-buddy-page.patch
+mm-always-steal-split-buddies-in-fallback-allocations.patch
+mm-more-aggressive-page-stealing-for-unmovable-allocations.patch
+mm-page_ext-remove-unnecessary-stack_trace-field.patch
+mm-page_ext-remove-unnecessary-stack_trace-field-fix.patch
+mm-compaction-fix-wrong-order-check-in-compact_finished.patch
+mm-compaction-stop-the-isolation-when-we-isolate-enough-freepage.patch
+mm-internalh-dont-split-printk-call-in-two.patch
+mm-page_allocc-pull-out-init-code-from-build_all_zonelists.patch
+mm-mm_initc-mark-mminit_verify_zonelist-as-__init.patch
+mm-mm_initc-mark-mminit_loglevel-__meminitdata.patch
+kernel-cpusetc-mark-cpuset_init_current_mems_allowed-as-__init.patch
+mm-util-add-kstrdup_const.patch
+kernfs-convert-node-name-allocation-to-kstrdup_const.patch
+clk-convert-clock-name-allocations-to-kstrdup_const.patch
+mm-slab-convert-cache-name-allocations-to-kstrdup_const.patch
+mm-slab-convert-cache-name-allocations-to-kstrdup_const-fix.patch
+fs-namespace-convert-devname-allocation-to-kstrdup_const.patch
+compiler-introduce-__aliassymbol-shortcut.patch
+add-kernel-address-sanitizer-infrastructure.patch
+kasan-disable-memory-hotplug.patch
+x86_64-add-kasan-support.patch
+mm-page_alloc-add-kasan-hooks-on-alloc-and-free-paths.patch
+mm-slub-introduce-virt_to_obj-function.patch
+mm-slub-share-object_err-function.patch
+mm-slub-introduce-metadata_access_enable-metadata_access_disable.patch
+mm-slub-add-kernel-address-sanitizer-support-for-slub-allocator.patch
+fs-dcache-manually-unpoison-dname-after-allocation-to-shut-up-kasans-reports.patch
+kmemleak-disable-kasan-instrumentation-for-kmemleak.patch
+lib-add-kasan-test-module.patch
+x86_64-kasan-add-interceptors-for-memset-memmove-memcpy-functions.patch
+kasan-enable-stack-instrumentation.patch
+mm-vmalloc-add-flag-preventing-guard-hole-allocation.patch
+mm-vmalloc-pass-additional-vm_flags-to-__vmalloc_node_range.patch
+kernel-add-support-for-init_array-constructors.patch
+module-fix-types-of-device-tables-aliases.patch
+kasan-enable-instrumentation-of-global-variables.patch
 
