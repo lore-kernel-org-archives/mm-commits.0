@@ -1,87 +1,161 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-export-high_memory-symbol-on-mmu.patch removed from
- -mm tree
-Date: Fri, 06 Feb 2015 14:02:31 -0800
-Message-ID: <54d539f7.Ew+p/Asex7PGR0Gg%akpm@linux-foundation.org>
+Subject: [merged] memcg-shmem-fix-shmem-migration-to-use-lrucare.patch
+ removed from -mm tree
+Date: Fri, 06 Feb 2015 14:02:33 -0800
+Message-ID: <54d539f9.DWbqYs6ACbUDP1ru%akpm__10636.3550214612$1423260164$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53255 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53263 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751116AbbBFWCc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Feb 2015 17:02:32 -0500
+	with ESMTP id S1751116AbbBFWCe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Feb 2015 17:02:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, gerg@uclinux.org, kirill.shutemov@linux.intel.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: mhocko@suse.cz, airlied@gmail.com, chris@chris-wilson.co.uk, hannes@cmpxchg.org, hughd@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: export "high_memory" symbol on !MMU
+     Subject: memcg, shmem: fix shmem migration to use lrucare
 has been removed from the -mm tree.  Its filename was
-     mm-export-high_memory-symbol-on-mmu.patch
+     memcg-shmem-fix-shmem-migration-to-use-lrucare.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: mm: export "high_memory" symbol on !MMU
+From: Michal Hocko <mhocko@suse.cz>
+Subject: memcg, shmem: fix shmem migration to use lrucare
 
-The symbol 'high_memory' is provided on both MMU- and NOMMU-kernels, but
-only one of them is exported, which leads to module build errors in
-drivers that work fine built-in:
+It has been reported that 965GM might trigger
 
-ERROR: "high_memory" [drivers/net/virtio_net.ko] undefined!
-ERROR: "high_memory" [drivers/net/ppp/ppp_mppe.ko] undefined!
-ERROR: "high_memory" [drivers/mtd/nand/nand.ko] undefined!
-ERROR: "high_memory" [crypto/tcrypt.ko] undefined!
-ERROR: "high_memory" [crypto/cts.ko] undefined!
+VM_BUG_ON_PAGE(!lrucare && PageLRU(oldpage), oldpage)
 
-This exports the symbol to get these to work on NOMMU as well.
+in mem_cgroup_migrate when shmem wants to replace a swap cache page
+because of shmem_should_replace_page (the page is allocated from an
+inappropriate zone).  shmem_replace_page expects that the oldpage is not
+on LRU list and calls mem_cgroup_migrate without lrucare.  This is
+obviously incorrect because swapcache pages might be on the LRU list (e.g.
+ swapin readahead page).
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Greg Ungerer <gerg@uclinux.org>
-Acked-by: David Rientjes <rientjes@google.com>
+Fix this by enabling lrucare for the migration in shmem_replace_page. 
+Also clarify that lrucare should be used even if one of the pages might be
+on LRU list.
+
+The BUG_ON will trigger only when CONFIG_DEBUG_VM is enabled but even
+without that the migration code might leave the old page on an
+inappropriate memcg' LRU which is not that critical because the page would
+get removed with its last reference but it is still confusing.
+
+Fixes: 0a31bc97c80c ("mm: memcontrol: rewrite uncharge API")
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Reported-by: Chris Wilson <chris@chris-wilson.co.uk>
+Reported-by: Dave Airlie <airlied@gmail.com>
+Acked-by: Hugh Dickins <hughd@google.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: <stable@vger.kernel.org>	[3.17+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nommu.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/memcontrol.c |    2 +-
+ mm/shmem.c      |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/nommu.c~mm-export-high_memory-symbol-on-mmu mm/nommu.c
---- a/mm/nommu.c~mm-export-high_memory-symbol-on-mmu
-+++ a/mm/nommu.c
-@@ -59,6 +59,7 @@
- #endif
- 
- void *high_memory;
-+EXPORT_SYMBOL(high_memory);
- struct page *mem_map;
- unsigned long max_mapnr;
- unsigned long highest_memmap_pfn;
+diff -puN mm/memcontrol.c~memcg-shmem-fix-shmem-migration-to-use-lrucare mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-shmem-fix-shmem-migration-to-use-lrucare
++++ a/mm/memcontrol.c
+@@ -5773,7 +5773,7 @@ void mem_cgroup_uncharge_list(struct lis
+  * mem_cgroup_migrate - migrate a charge to another page
+  * @oldpage: currently charged page
+  * @newpage: page to transfer the charge to
+- * @lrucare: both pages might be on the LRU already
++ * @lrucare: either or both pages might be on the LRU already
+  *
+  * Migrate the charge from @oldpage to @newpage.
+  *
+diff -puN mm/shmem.c~memcg-shmem-fix-shmem-migration-to-use-lrucare mm/shmem.c
+--- a/mm/shmem.c~memcg-shmem-fix-shmem-migration-to-use-lrucare
++++ a/mm/shmem.c
+@@ -1013,7 +1013,7 @@ static int shmem_replace_page(struct pag
+ 		 */
+ 		oldpage = newpage;
+ 	} else {
+-		mem_cgroup_migrate(oldpage, newpage, false);
++		mem_cgroup_migrate(oldpage, newpage, true);
+ 		lru_cache_add_anon(newpage);
+ 		*pagep = newpage;
+ 	}
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
 origin.patch
-asm-generic-drop-unused-pte_file-helpers.patch
-linux-typesh-always-use-unsigned-long-for-pgoff_t.patch
-rtc-rtc-isl12057-add-isilirq2-can-wakeup-machine-property-for-in-tree-users.patch
-arm-mvebu-isl12057-rtc-chip-can-now-wake-up-rn102-rn102-and-rn2120.patch
-of-add-vendor-prefix-for-abracon-corporation.patch
-rtc-add-support-for-abracon-ab-rtcmc-32768khz-b5ze-s3-i2c-rtc-chip.patch
-rtc-rtc-ab-b5ze-s3-add-sub-minute-alarm-support.patch
-kexec-fix-make-headers_check.patch
-kexec-simplify-conditional.patch
-kexec-add-bit-definitions-for-kimage-entry-flags.patch
-kexec-add-ind_flags-macro.patch
-eventfd-dont-take-the-spinlock-in-eventfd_poll-fix.patch
-linux-next.patch
-rtc-isl12022-deprecate-use-of-isl-in-compatible-string-for-isil.patch
-rtc-isl12057-deprecate-use-of-isl-in-compatible-string-for-isil.patch
-staging-iio-isl29028-deprecate-use-of-isl-in-compatible-string-for-isil.patch
-arm-dts-zynq-update-isl9305-compatible-string-to-use-isil-vendor-prefix.patch
-ocfs2-use-64bit-variables-to-track-heartbeat-time.patch
+mm-remove-rest-usage-of-vm_nonlinear-and-pte_file-fix.patch
+memcg-zap-__memcg_chargeuncharge_slab.patch
+memcg-zap-memcg_name-argument-of-memcg_create_kmem_cache.patch
+memcg-zap-memcg_slab_caches-and-memcg_slab_mutex.patch
+oom-dont-count-on-mm-less-current-process.patch
+oom-make-sure-that-tif_memdie-is-set-under-task_lock.patch
+swap-remove-unused-mem_cgroup_uncharge_swapcache-declaration.patch
+mm-memcontrol-track-move_lock-state-internally.patch
+mm-vmscan-wake-up-all-pfmemalloc-throttled-processes-at-once.patch
+mm-hugetlb-reduce-arch-dependent-code-around-follow_huge_.patch
+mm-hugetlb-pmd_huge-returns-true-for-non-present-hugepage.patch
+mm-hugetlb-take-page-table-lock-in-follow_huge_pmd.patch
+mm-hugetlb-fix-getting-refcount-0-page-in-hugetlb_fault.patch
+mm-hugetlb-add-migration-hwpoisoned-entry-check-in-hugetlb_change_protection.patch
+mm-hugetlb-add-migration-entry-check-in-__unmap_hugepage_range.patch
+mm-set-page-pfmemalloc-in-prep_new_page.patch
+mm-page_alloc-reduce-number-of-alloc_pages-functions-parameters.patch
+mm-reduce-try_to_compact_pages-parameters.patch
+mm-microoptimize-zonelist-operations.patch
+list_lru-introduce-list_lru_shrink_countwalk.patch
+fs-consolidate-nrfree_cached_objects-args-in-shrink_control.patch
+vmscan-per-memory-cgroup-slab-shrinkers.patch
+memcg-rename-some-cache-id-related-variables.patch
+memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation.patch
+list_lru-get-rid-of-active_nodes.patch
+list_lru-organize-all-list_lrus-to-list.patch
+list_lru-introduce-per-memcg-lists.patch
+fs-make-shrinker-memcg-aware.patch
+vmscan-force-scan-offline-memory-cgroups.patch
+vmscan-force-scan-offline-memory-cgroups-fix.patch
+memcg-add-build_bug_on-for-string-tables.patch
+mm-page_counter-pull-1-handling-out-of-page_counter_memparse.patch
+mm-memcontrol-default-hierarchy-interface-for-memory.patch
+mm-memcontrol-fold-move_anon-and-move_file.patch
+mm-memcontrol-fold-move_anon-and-move_file-fix.patch
+oom-add-helpers-for-setting-and-clearing-tif_memdie.patch
+oom-thaw-the-oom-victim-if-it-is-frozen.patch
+pm-convert-printk-to-pr_-equivalent.patch
+sysrq-convert-printk-to-pr_-equivalent.patch
+oom-pm-make-oom-detection-in-the-freezer-path-raceless.patch
+mm-memcontrol-simplify-soft-limit-tree-init-code.patch
+mm-memcontrol-consolidate-memory-controller-initialization.patch
+mm-memcontrol-consolidate-swap-controller-code.patch
+fs-shrinker-always-scan-at-least-one-object-of-each-type.patch
+fs-shrinker-always-scan-at-least-one-object-of-each-type-fix.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated-fix.patch
+slab-embed-memcg_cache_params-to-kmem_cache.patch
+slab-link-memcg-caches-of-the-same-kind-into-a-list.patch
+cgroup-release-css-id-after-css_free.patch
+slab-use-css-id-for-naming-per-memcg-caches.patch
+memcg-free-memcg_caches-slot-on-css-offline.patch
+list_lru-add-helpers-to-isolate-items.patch
+memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline.patch
+mm-when-stealing-freepages-also-take-pages-created-by-splitting-buddy-page.patch
+mm-always-steal-split-buddies-in-fallback-allocations.patch
+mm-more-aggressive-page-stealing-for-unmovable-allocations.patch
+vmstat-do-not-use-deferrable-delayed-work-for-vmstat_update.patch
+mm-incorporate-read-only-pages-into-transparent-huge-pages.patch
+mm-incorporate-read-only-pages-into-transparent-huge-pages-v4.patch
+vmstat-reduce-time-interval-to-stat-update-on-idle-cpu.patch
+mm-fix-arithmetic-overflow-in-__vm_enough_memory.patch
+memcg-cleanup-static-keys-decrement.patch
+mm-page_isolation-check-pfn-validity-before-access.patch
+mm-support-madvisemadv_free.patch
+mm-dont-split-thp-page-when-syscall-is-called.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-2.patch
 
