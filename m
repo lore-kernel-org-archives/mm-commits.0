@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-slab_common-use-kmem_cache_free.patch added to -mm tree
-Date: Mon, 09 Feb 2015 13:01:27 -0800
-Message-ID: <54d92027.LaVohDAusdwYRDvi%akpm@linux-foundation.org>
+Subject: +
+ ocfs2-avoid-access-invalid-address-when-read-o2dlm-debug-messages-v3.patch
+ added to -mm tree
+Date: Mon, 09 Feb 2015 13:04:39 -0800
+Message-ID: <54d920e7.rgP+K8q9urcfUe70%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54801 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54843 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761150AbbBIVB2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2015 16:01:28 -0500
+	with ESMTP id S1751996AbbBIVEl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2015 16:04:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vthakkar1994@gmail.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: jiangyiwen@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slab_common.c: use kmem_cache_free()
+     Subject: ocfs2-avoid-access-invalid-address-when-read-o2dlm-debug-messages-v3
 has been added to the -mm tree.  Its filename is
-     mm-slab_common-use-kmem_cache_free.patch
+     ocfs2-avoid-access-invalid-address-when-read-o2dlm-debug-messages-v3.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab_common-use-kmem_cache_free.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-avoid-access-invalid-address-when-read-o2dlm-debug-messages-v3.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab_common-use-kmem_cache_free.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-avoid-access-invalid-address-when-read-o2dlm-debug-messages-v3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,52 +40,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vaishali Thakkar <vthakkar1994@gmail.com>
-Subject: mm/slab_common.c: use kmem_cache_free()
+From: jiangyiwen <jiangyiwen@huawei.com>
+Subject: ocfs2-avoid-access-invalid-address-when-read-o2dlm-debug-messages-v3
 
-Here, free memory is allocated using kmem_cache_zalloc.  So, use
-kmem_cache_free instead of kfree.
+The following case will lead to a lockres is freed but is still in use.
 
-This is done using Coccinelle and semantic patch used
-is as follows:
+cat /sys/kernel/debug/o2dlm/locking_state	dlm_thread
+lockres_seq_start
+    -> lock dlm->track_lock
+    -> get resA
+                                                resA->refs decrease to 0,
+                                                call dlm_lockres_release,
+                                                and wait for "cat" unlock.
+Although resA->refs is already set to 0,
+increase resA->refs, and then unlock
+                                                lock dlm->track_lock
+                                                    -> list_del_init()
+                                                    -> unlock
+                                                    -> free resA
 
-@@
-expression x,E,c;
-@@
+In such a race case, invalid address access may occurs.
+So we should delete list res->tracking before resA->refs decrease to 0.
 
- x = \(kmem_cache_alloc\|kmem_cache_zalloc\|kmem_cache_alloc_node\)(c,...)
- ... when != x = E
-     when != &x
-?-kfree(x)
-+kmem_cache_free(c,x)
-
-Signed-off-by: Vaishali Thakkar <vthakkar1994@gmail.com>
-Acked-by: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Signed-off-by: Yiwen Jiang <jiangyiwen@huawei.com>
+Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab_common.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ocfs2/dlm/dlmmaster.c |   13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
-diff -puN mm/slab_common.c~mm-slab_common-use-kmem_cache_free mm/slab_common.c
---- a/mm/slab_common.c~mm-slab_common-use-kmem_cache_free
-+++ a/mm/slab_common.c
-@@ -331,7 +331,7 @@ out:
+diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs2-avoid-access-invalid-address-when-read-o2dlm-debug-messages-v3 fs/ocfs2/dlm/dlmmaster.c
+--- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-avoid-access-invalid-address-when-read-o2dlm-debug-messages-v3
++++ a/fs/ocfs2/dlm/dlmmaster.c
+@@ -772,8 +772,19 @@ lookup:
+ 		dlm_lockres_grab_inflight_ref(dlm, tmpres);
  
- out_free_cache:
- 	memcg_free_cache_params(s);
--	kfree(s);
-+	kmem_cache_free(kmem_cache, s);
- 	goto out;
- }
- 
+ 		spin_unlock(&tmpres->spinlock);
+-		if (res)
++		if (res) {
++			spin_lock(&dlm->track_lock);
++			if (!list_empty(&res->tracking))
++				list_del_init(&res->tracking);
++			else {
++				mlog(ML_ERROR, "Resource %.*s not "
++						"on the Tracking list\n",
++						res->lockname.len,
++						res->lockname.name);
++			}
++			spin_unlock(&dlm->track_lock);
+ 			dlm_lockres_put(res);
++		}
+ 		res = tmpres;
+ 		goto leave;
+ 	}
 _
 
-Patches currently in -mm which might be from vthakkar1994@gmail.com are
+Patches currently in -mm which might be from jiangyiwen@huawei.com are
 
-mm-slab_common-use-kmem_cache_free.patch
-linux-next.patch
+ocfs2-avoid-access-invalid-address-when-read-o2dlm-debug-messages.patch
+ocfs2-avoid-access-invalid-address-when-read-o2dlm-debug-messages-v3.patch
 
