@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-actually-remap-enough-memory.patch added to -mm tree
-Date: Mon, 09 Feb 2015 13:24:00 -0800
-Message-ID: <54d92570.7u1wJP8SwxftoJym%akpm__9051.24193891442$1423517049$gmane$org@linux-foundation.org>
+Subject: + epoll-optimize-setting-task-running-after-blocking.patch added
+ to -mm tree
+Date: Mon, 09 Feb 2015 13:46:07 -0800
+Message-ID: <54d92a9f.xhRRjrc/4fYAicqA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55214 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55643 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760736AbbBIVYB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2015 16:24:01 -0500
+	with ESMTP id S1761033AbbBIVqI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2015 16:46:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: notasas@gmail.com, riel@redhat.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: dave@stgolabs.net, dbueso@suse.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory.c: actually remap enough memory
+     Subject: epoll: optimize setting task running after blocking
 has been added to the -mm tree.  Its filename is
-     mm-actually-remap-enough-memory.patch
+     epoll-optimize-setting-task-running-after-blocking.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-actually-remap-enough-memory.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/epoll-optimize-setting-task-running-after-blocking.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-actually-remap-enough-memory.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/epoll-optimize-setting-task-running-after-blocking.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,39 +39,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Grazvydas Ignotas <notasas@gmail.com>
-Subject: mm/memory.c: actually remap enough memory
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: epoll: optimize setting task running after blocking
 
-For whatever reason, generic_access_phys() only remaps one page, but
-actually allows to access arbitrary size.  It's quite easy to trigger
-large reads, like printing out large structure with gdb, which leads to a
-crash.  Fix it by remapping correct size.
+After waking up a task waiting for an event, we explicitly mark it as
+TASK_RUNNING (which is necessary as we do the checks for wakeups as
+TASK_INTERRUPTABLE).  Once running and dealing with actually delivering
+the events, we're obviously not planning on calling schedule, thus we can
+relax the implied barrier and simply update the state with
+__set_current_state().
 
-Fixes: 28b2ee20c7cb ("access_process_vm device memory infrastructure")
-Signed-off-by: Grazvydas Ignotas <notasas@gmail.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/eventpoll.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/memory.c~mm-actually-remap-enough-memory mm/memory.c
---- a/mm/memory.c~mm-actually-remap-enough-memory
-+++ a/mm/memory.c
-@@ -3460,7 +3460,7 @@ int generic_access_phys(struct vm_area_s
- 	if (follow_phys(vma, addr, write, &prot, &phys_addr))
- 		return -EINVAL;
+diff -puN fs/eventpoll.c~epoll-optimize-setting-task-running-after-blocking fs/eventpoll.c
+--- a/fs/eventpoll.c~epoll-optimize-setting-task-running-after-blocking
++++ a/fs/eventpoll.c
+@@ -1639,9 +1639,9 @@ fetch_events:
  
--	maddr = ioremap_prot(phys_addr, PAGE_SIZE, prot);
-+	maddr = ioremap_prot(phys_addr, PAGE_ALIGN(len + offset), prot);
- 	if (write)
- 		memcpy_toio(maddr + offset, buf, len);
- 	else
+ 			spin_lock_irqsave(&ep->lock, flags);
+ 		}
+-		__remove_wait_queue(&ep->wq, &wait);
+ 
+-		set_current_state(TASK_RUNNING);
++		__remove_wait_queue(&ep->wq, &wait);
++		__set_current_state(TASK_RUNNING);
+ 	}
+ check_events:
+ 	/* Is it worth to try to dig for events ? */
 _
 
-Patches currently in -mm which might be from notasas@gmail.com are
+Patches currently in -mm which might be from dave@stgolabs.net are
 
-mm-actually-remap-enough-memory.patch
+epoll-optimize-setting-task-running-after-blocking.patch
+signal-use-current-state-helpers.patch
+ipcsem-use-current-state-helpers.patch
+linux-next.patch
 
