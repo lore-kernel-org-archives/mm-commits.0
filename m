@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- checkpatch-add-of_device_id-to-structs-that-should-be-const.patch added to
- -mm tree
-Date: Mon, 09 Feb 2015 12:56:46 -0800
-Message-ID: <54d91f0e.Kz48+BKl8gKE4VVc%akpm@linux-foundation.org>
+Subject: + mm-slab_common-use-kmem_cache_free.patch added to -mm tree
+Date: Mon, 09 Feb 2015 13:01:27 -0800
+Message-ID: <54d92027.LaVohDAusdwYRDvi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54750 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54801 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759332AbbBIU4r (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2015 15:56:47 -0500
+	with ESMTP id S1761150AbbBIVB2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Feb 2015 16:01:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: vthakkar1994@gmail.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add of_device_id to structs that should be const
+     Subject: mm/slab_common.c: use kmem_cache_free()
 has been added to the -mm tree.  Its filename is
-     checkpatch-add-of_device_id-to-structs-that-should-be-const.patch
+     mm-slab_common-use-kmem_cache_free.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-of_device_id-to-structs-that-should-be-const.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab_common-use-kmem_cache_free.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-of_device_id-to-structs-that-should-be-const.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab_common-use-kmem_cache_free.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,78 +38,52 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add of_device_id to structs that should be const
+From: Vaishali Thakkar <vthakkar1994@gmail.com>
+Subject: mm/slab_common.c: use kmem_cache_free()
 
-Uses of struct of_device_id are most commonly const.
+Here, free memory is allocated using kmem_cache_zalloc.  So, use
+kmem_cache_free instead of kfree.
 
-Suggest using it as such.
+This is done using Coccinelle and semantic patch used
+is as follows:
 
-Signed-off-by: Joe Perches <joe@perches.com>
+@@
+expression x,E,c;
+@@
+
+ x = \(kmem_cache_alloc\|kmem_cache_zalloc\|kmem_cache_alloc_node\)(c,...)
+ ... when != x = E
+     when != &x
+?-kfree(x)
++kmem_cache_free(c,x)
+
+Signed-off-by: Vaishali Thakkar <vthakkar1994@gmail.com>
+Acked-by: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ mm/slab_common.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-of_device_id-to-structs-that-should-be-const scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-of_device_id-to-structs-that-should-be-const
-+++ a/scripts/checkpatch.pl
-@@ -5223,8 +5223,9 @@ sub process {
- 			     "please use device_initcall() or more appropriate function instead of __initcall() (see include/linux/init.h)\n" . $herecurr);
- 		}
+diff -puN mm/slab_common.c~mm-slab_common-use-kmem_cache_free mm/slab_common.c
+--- a/mm/slab_common.c~mm-slab_common-use-kmem_cache_free
++++ a/mm/slab_common.c
+@@ -331,7 +331,7 @@ out:
  
--# check for various ops structs, ensure they are const.
--		my $struct_ops = qr{acpi_dock_ops|
-+# check for various structs that are normally const (ops, kgdb, device_tree)
-+		my $const_structs = qr{
-+				acpi_dock_ops|
- 				address_space_operations|
- 				backlight_ops|
- 				block_device_operations|
-@@ -5247,6 +5248,7 @@ sub process {
- 				mtrr_ops|
- 				neigh_ops|
- 				nlmsvc_binding|
-+				of_device_id|
- 				pci_raw_ops|
- 				pipe_buf_operations|
- 				platform_hibernation_ops|
-@@ -5262,7 +5264,7 @@ sub process {
- 				usb_mon_operations|
- 				wd_ops}x;
- 		if ($line !~ /\bconst\b/ &&
--		    $line =~ /\bstruct\s+($struct_ops)\b/) {
-+		    $line =~ /\bstruct\s+($const_structs)\b/) {
- 			WARN("CONST_STRUCT",
- 			     "struct $1 should normally be const\n" .
- 				$herecurr);
+ out_free_cache:
+ 	memcg_free_cache_params(s);
+-	kfree(s);
++	kmem_cache_free(kmem_cache, s);
+ 	goto out;
+ }
+ 
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from vthakkar1994@gmail.com are
 
-kernelh-remove-ancient-__function__-hack.patch
-kernelh-remove-ancient-__function__-hack-fix.patch
-printk-correct-timeout-comment-neaten-module_parm_desc.patch
-mm-utilc-add-kstrimdup.patch
-checkpatch-emit-an-error-when-using-predefined-timestamp-macros.patch
-checkpatch-improve-octal-permissions-tests.patch
-checkpatch-ignore-__pure-attribute.patch
-checkpatch-fix-unnecessary_kern_level-false-positive.patch
-checkpatch-add-check-for-keyword-boolean-in-kconfig-definitions.patch
-checkpatch-allow-comments-in-macros-tested-for-single-statements.patch
-checkpatch-update-git-commit-message.patch
-checkpatch-add-likely-unlikely-comparison-misuse-test.patch
-checkpatch-add-ability-to-coalesce-commit-descriptions-on-multiple-lines.patch
-checkpatch-add-types-for-other-os-typedefs.patch
-checkpatch-add-ability-to-fix-unnecessary-blank-lines-around-braces.patch
-checkpatch-improve-seq_print-seq_puts-suggestion.patch
-checkpatch-improve-no-space-necessary-after-cast-test.patch
-checkpatch-neaten-printk_ratelimited-message-position.patch
-checkpatch-add-strict-test-for-spaces-around-arithmetic.patch
-checkpatch-make-sure-a-commit-reference-description-uses-parentheses.patch
-checkpatch-try-to-avoid-poor-patch-subject-lines.patch
-checkpatch-add-of_device_id-to-structs-that-should-be-const.patch
-fs-ufs-superc-remove-unnecessary-casting.patch
+mm-slab_common-use-kmem_cache_free.patch
 linux-next.patch
 
