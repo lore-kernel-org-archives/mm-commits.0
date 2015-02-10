@@ -1,109 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-vmstatc-fix-cleanup-ifdefs-fix-2.patch removed from -mm tree
-Date: Tue, 10 Feb 2015 14:01:39 -0800
-Message-ID: <54da7fc3.Fb/2xyGCX6O6IyC/%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub-fix.patch
+ removed from -mm tree
+Date: Tue, 10 Feb 2015 14:02:21 -0800
+Message-ID: <54da7fed.hPxPUMngTSY0m+yU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49907 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49912 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752845AbbBJWBk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Feb 2015 17:01:40 -0500
+	with ESMTP id S1754219AbbBJWCW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Feb 2015 17:02:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: axel.lin@ingics.com, iamjoonsoo.kim@lge.com, mel@csn.ul.ie, rientjes@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, fengguang.wu@intel.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmstat: fix build error when !CONFIG_PROC_FS
+     Subject: mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub-fix
 has been removed from the -mm tree.  Its filename was
-     mm-vmstatc-fix-cleanup-ifdefs-fix-2.patch
+     mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub-fix.patch
 
-This patch was dropped because it was folded into mm-vmstatc-fix-cleanup-ifdefs.patch
+This patch was dropped because it was folded into mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub.patch
 
 ------------------------------------------------------
-From: Axel Lin <axel.lin@ingics.com>
-Subject: mm: vmstat: fix build error when !CONFIG_PROC_FS
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub-fix
 
-Fix build error when CONFIG_DEBUG_FS && CONFIG_COMPACTION && !CONFIG_PROC_FS:
+fix filemap_xip.c
 
-  CC      mm/vmstat.o
-mm/vmstat.c:1607:11: error: 'frag_start' undeclared here (not in a function)
-mm/vmstat.c:1608:10: error: 'frag_next' undeclared here (not in a function)
-mm/vmstat.c:1609:10: error: 'frag_stop' undeclared here (not in a function)
-make[1]: *** [mm/vmstat.o] Error 1
-make: *** [mm] Error 2
-
-Signed-off-by: Axel Lin <axel.lin@ingics.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Tested-by: David Rientjes <rientjes@google.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reported-by: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |   48 ++++++++++++++++++++++++------------------------
- 1 file changed, 24 insertions(+), 24 deletions(-)
+ mm/filemap_xip.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/vmstat.c~mm-vmstatc-fix-cleanup-ifdefs-fix-2 mm/vmstat.c
---- a/mm/vmstat.c~mm-vmstatc-fix-cleanup-ifdefs-fix-2
-+++ a/mm/vmstat.c
-@@ -852,6 +852,30 @@ const char * const vmstat_text[] = {
- 
- #if (defined(CONFIG_DEBUG_FS) && defined(CONFIG_COMPACTION)) || \
-      defined(CONFIG_PROC_FS)
-+static void *frag_start(struct seq_file *m, loff_t *pos)
-+{
-+	pg_data_t *pgdat;
-+	loff_t node = *pos;
-+
-+	for (pgdat = first_online_pgdat();
-+	     pgdat && node;
-+	     pgdat = next_online_pgdat(pgdat))
-+		--node;
-+
-+	return pgdat;
-+}
-+
-+static void *frag_next(struct seq_file *m, void *arg, loff_t *pos)
-+{
-+	pg_data_t *pgdat = (pg_data_t *)arg;
-+
-+	(*pos)++;
-+	return next_online_pgdat(pgdat);
-+}
-+
-+static void frag_stop(struct seq_file *m, void *arg)
-+{
-+}
- 
- /* Walk all the zones in a node and print using a callback */
- static void walk_zones_in_node(struct seq_file *m, pg_data_t *pgdat,
-@@ -886,30 +910,6 @@ static char * const migratetype_names[MI
- #endif
+diff -puN mm/filemap_xip.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub-fix mm/filemap_xip.c
+--- a/mm/filemap_xip.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub-fix
++++ a/mm/filemap_xip.c
+@@ -301,7 +301,6 @@ out:
+ static const struct vm_operations_struct xip_file_vm_ops = {
+ 	.fault	= xip_file_fault,
+ 	.page_mkwrite	= filemap_page_mkwrite,
+-	.remap_pages = generic_file_remap_pages,
  };
  
--static void *frag_start(struct seq_file *m, loff_t *pos)
--{
--	pg_data_t *pgdat;
--	loff_t node = *pos;
--	for (pgdat = first_online_pgdat();
--	     pgdat && node;
--	     pgdat = next_online_pgdat(pgdat))
--		--node;
--
--	return pgdat;
--}
--
--static void *frag_next(struct seq_file *m, void *arg, loff_t *pos)
--{
--	pg_data_t *pgdat = (pg_data_t *)arg;
--
--	(*pos)++;
--	return next_online_pgdat(pgdat);
--}
--
--static void frag_stop(struct seq_file *m, void *arg)
--{
--}
+ int xip_file_mmap(struct file * file, struct vm_area_struct * vma)
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+fanotify-dont-recalculate-a-marks-mask-if-only-the-ignored-mask-changed.patch
+fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask.patch
+o2dlm-fix-null-pointer-dereference-in-o2dlm_blocking_ast_wrapper.patch
+mm-vmstatc-fix-cleanup-ifdefs.patch
+mm-replace-remap_file_pages-syscall-with-emulation.patch
+mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub.patch
+
