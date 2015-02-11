@@ -1,54 +1,65 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-account-pmd-page-tables-to-the-process-fix.patch removed from -mm tree
-Date: Wed, 11 Feb 2015 15:14:51 -0800
-Message-ID: <54dbe26b.5M82Bxgqeuhy7x2J%akpm@linux-foundation.org>
+ mm-account-pmd-page-tables-to-the-process-fix-2.patch removed from -mm tree
+Date: Wed, 11 Feb 2015 15:14:53 -0800
+Message-ID: <54dbe26d.nmz6/t6NqeuZ5OOF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43133 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43136 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752614AbbBKXOw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 18:14:52 -0500
+	with ESMTP id S1752614AbbBKXOy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 18:14:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, fengguang.wu@intel.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, linux@roeck-us.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, x86: fix pmd accounting for PAE
+     Subject: mm: add nr_pmds into mm_struct unconditionally
 has been removed from the -mm tree.  Its filename was
-     mm-account-pmd-page-tables-to-the-process-fix.patch
+     mm-account-pmd-page-tables-to-the-process-fix-2.patch
 
 This patch was dropped because it was folded into mm-account-pmd-page-tables-to-the-process.patch
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm, x86: fix pmd accounting for PAE
+Subject: mm: add nr_pmds into mm_struct unconditionally
 
-Add missed mm->nr_pmds decrement on cleanup prepopulated PMDs.
+__PAGETABLE_PMD_FOLDED is defined during <asm/pgtable.h> which is not
+included into <linux/mm_types.h>.  And we cannot include it here since
+many of <asm/pgtables> needs <linux/mm_types.h> to define struct page.
+
+I failed to come up with better solution rather than put nr_pmds into
+mm_struct unconditionally.
+
+One possible solution would be to expose number of page table levels
+architecture has via Kconfig, but that's ugly and requires changes to
+all architectures.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+Tested-by: Guenter Roeck <linux@roeck-us.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/pgtable.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/mm_types.h |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN arch/x86/mm/pgtable.c~mm-account-pmd-page-tables-to-the-process-fix arch/x86/mm/pgtable.c
---- a/arch/x86/mm/pgtable.c~mm-account-pmd-page-tables-to-the-process-fix
-+++ a/arch/x86/mm/pgtable.c
-@@ -249,6 +249,7 @@ static void pgd_mop_up_pmds(struct mm_st
+diff -puN include/linux/mm_types.h~mm-account-pmd-page-tables-to-the-process-fix-2 include/linux/mm_types.h
+--- a/include/linux/mm_types.h~mm-account-pmd-page-tables-to-the-process-fix-2
++++ a/include/linux/mm_types.h
+@@ -364,9 +364,7 @@ struct mm_struct {
+ 	atomic_t mm_users;			/* How many users with user space? */
+ 	atomic_t mm_count;			/* How many references to "struct mm_struct" (users count as 1) */
+ 	atomic_long_t nr_ptes;			/* PTE page table pages */
+-#ifndef __PAGETABLE_PMD_FOLDED
+ 	atomic_long_t nr_pmds;			/* PMD page table pages */
+-#endif
+ 	int map_count;				/* number of VMAs */
  
- 			paravirt_release_pmd(pgd_val(pgd) >> PAGE_SHIFT);
- 			pmd_free(mm, pmd);
-+			mm_dec_nr_pmds(mm);
- 		}
- 	}
- }
+ 	spinlock_t page_table_lock;		/* Protects page tables and some counters */
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
@@ -68,7 +79,6 @@ mm-make-first_user_address-unsigned-long-on-all-archs.patch
 mm-asm-generic-define-pud_shift-in-asm-generic-4level-fixuph.patch
 arm-define-__pagetable_pmd_folded-for-lpae.patch
 mm-account-pmd-page-tables-to-the-process.patch
-mm-account-pmd-page-tables-to-the-process-fix-2.patch
 mm-account-pmd-page-tables-to-the-process-fix-3.patch
 mm-fix-false-positive-warning-on-exit-due-mm_nr_pmdsmm.patch
 mm-fix-false-positive-warning-on-exit-due-mm_nr_pmdsmm-fix-2.patch
