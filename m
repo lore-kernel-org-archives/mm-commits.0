@@ -1,68 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ocfs2-o2net-silence-uninitialized-variable-warning.patch removed from -mm tree
-Date: Wed, 11 Feb 2015 12:21:18 -0800
-Message-ID: <54dbb9be.rpEyPn1rXwx9kLxb%akpm@linux-foundation.org>
+Subject: [merged] ocfs2-make-resv_lock-spinlock-static.patch removed from
+ -mm tree
+Date: Wed, 11 Feb 2015 12:21:26 -0800
+Message-ID: <54dbb9c6.wOmxoVzUoMAb0BXy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40838 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40861 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754013AbbBKUVT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 15:21:19 -0500
+	with ESMTP id S1753530AbbBKUV1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 15:21:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.carpenter@oracle.com, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
+To: fabf@skynet.be, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: o2net: silence uninitialized variable warning
+     Subject: ocfs2: make resv_lock spinlock static
 has been removed from the -mm tree.  Its filename was
-     ocfs2-o2net-silence-uninitialized-variable-warning.patch
+     ocfs2-make-resv_lock-spinlock-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: ocfs2: o2net: silence uninitialized variable warning
+From: Fabian Frederick <fabf@skynet.be>
+Subject: ocfs2: make resv_lock spinlock static
 
-Smatch complains that, if o2net_tx_can_proceed() returns false, then "sc"
-and "ret" are uninialized or maybe we are re-using the data from previous
-iteration.  I do not know if we can hit this bug in real life but checking
-the return value is harmless and we may as well silence the static checker
-warning.
+resv_lock is only used in reservations.c
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Cc: Mark Fasheh <mfasheh@suse.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/cluster/tcp.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/ocfs2/reservations.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/cluster/tcp.c~ocfs2-o2net-silence-uninitialized-variable-warning fs/ocfs2/cluster/tcp.c
---- a/fs/ocfs2/cluster/tcp.c~ocfs2-o2net-silence-uninitialized-variable-warning
-+++ a/fs/ocfs2/cluster/tcp.c
-@@ -1016,7 +1016,8 @@ void o2net_fill_node_map(unsigned long *
+diff -puN fs/ocfs2/reservations.c~ocfs2-make-resv_lock-spinlock-static fs/ocfs2/reservations.c
+--- a/fs/ocfs2/reservations.c~ocfs2-make-resv_lock-spinlock-static
++++ a/fs/ocfs2/reservations.c
+@@ -39,7 +39,7 @@
+ #define OCFS2_CHECK_RESERVATIONS
+ #endif
  
- 	memset(map, 0, bytes);
- 	for (node = 0; node < O2NM_MAX_NODES; ++node) {
--		o2net_tx_can_proceed(o2net_nn_from_num(node), &sc, &ret);
-+		if (!o2net_tx_can_proceed(o2net_nn_from_num(node), &sc, &ret))
-+			continue;
- 		if (!ret) {
- 			set_bit(node, map);
- 			sc_put(sc);
+-DEFINE_SPINLOCK(resv_lock);
++static DEFINE_SPINLOCK(resv_lock);
+ 
+ #define	OCFS2_MIN_RESV_WINDOW_BITS	8
+ #define	OCFS2_MAX_RESV_WINDOW_BITS	1024
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from fabf@skynet.be are
 
 origin.patch
-mm-compaction-enhance-tracepoint-output-for-compaction-begin-end-v4-fix.patch
-slab-embed-memcg_cache_params-to-kmem_cache-fix.patch
-checkpatch-try-to-avoid-poor-patch-subject-lines.patch
-eventfd-dont-take-the-spinlock-in-eventfd_poll-fix-2.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+add-another-clock-for-use-with-the-soft-lockup-watchdog.patch
+powerpc-add-running_clock-for-powerpc-to-prevent-spurious-softlockup-warnings.patch
+fs-befs-linuxvfsc-remove-unnecessary-casting.patch
+fs-befs-linuxvfsc-remove-unnecessary-casting-fix.patch
+fs-coda-dirc-forward-declaration-clean-up.patch
+fs-ufs-superc-remove-unnecessary-casting.patch
+fs-ufs-superc-fix-potential-race-condition.patch
+fs-reiserfs-inodec-replace-0-by-null-for-pointers.patch
+ptrace-remove-linux-compath-inclusion-under-config_compat.patch
+vmcore-fix-pt_note-n_namesz-n_descsz-overflow-issue.patch
+fs-affs-filec-replace-if-bug-by-bug_on.patch
+fs-affs-filec-fix-direct-io-writes-beyond-eof.patch
+fs-affs-superc-destroy-sbi-mutex-in-affs_kill_sb.patch
+fs-affs-use-unsigned-int-for-string-lengths.patch
+define-affsnamemax-to-replace-constant-use.patch
+fs-affs-amigaffsc-remove-else-after-return.patch
+fs-affs-bitmapc-remove-unnecessary-return.patch
+fs-affs-inodec-remove-double-extern-affs_symlink_inode_operations.patch
+fs-affs-superc-fix-switch-indentation.patch
 linux-next.patch
 
