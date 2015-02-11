@@ -1,80 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [merged] tile-drop-pte_file-related-helpers.patch removed from
- -mm tree
-Date: Wed, 11 Feb 2015 12:22:53 -0800
-Message-ID: <54dbba1d.lho0+e/0otKjSaXV%akpm@linux-foundation.org>
+Subject: [merged] unicore32-drop-pte_file-related-helpers.patch removed
+ from -mm tree
+Date: Wed, 11 Feb 2015 12:22:57 -0800
+Message-ID: <54dbba21.kGkfyjkLwePjOkLn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41023 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41030 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753139AbbBKUWy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 15:22:54 -0500
+	with ESMTP id S1753139AbbBKUW6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 15:22:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, cmetcalf@ezchip.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, gxt@mprc.pku.edu.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tile: drop pte_file()-related helpers
+     Subject: unicore32: drop pte_file()-related helpers
 has been removed from the -mm tree.  Its filename was
-     tile-drop-pte_file-related-helpers.patch
+     unicore32-drop-pte_file-related-helpers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: tile: drop pte_file()-related helpers
+Subject: unicore32: drop pte_file()-related helpers
 
 We've replaced remap_file_pages(2) implementation with emulation.  Nobody
 creates non-linear mapping anymore.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Chris Metcalf <cmetcalf@ezchip.com>
+Cc: Guan Xuetao <gxt@mprc.pku.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/tile/include/asm/pgtable.h |   11 -----------
- arch/tile/mm/homecache.c        |    4 ----
+ arch/unicore32/include/asm/pgtable-hwdef.h |    1 -
+ arch/unicore32/include/asm/pgtable.h       |   14 --------------
  2 files changed, 15 deletions(-)
 
-diff -puN arch/tile/include/asm/pgtable.h~tile-drop-pte_file-related-helpers arch/tile/include/asm/pgtable.h
---- a/arch/tile/include/asm/pgtable.h~tile-drop-pte_file-related-helpers
-+++ a/arch/tile/include/asm/pgtable.h
-@@ -285,17 +285,6 @@ extern void start_mm_caching(struct mm_s
- extern void check_mm_caching(struct mm_struct *prev, struct mm_struct *next);
+diff -puN arch/unicore32/include/asm/pgtable-hwdef.h~unicore32-drop-pte_file-related-helpers arch/unicore32/include/asm/pgtable-hwdef.h
+--- a/arch/unicore32/include/asm/pgtable-hwdef.h~unicore32-drop-pte_file-related-helpers
++++ a/arch/unicore32/include/asm/pgtable-hwdef.h
+@@ -44,7 +44,6 @@
+ #define PTE_TYPE_INVALID	(3 << 0)
  
- /*
-- * Support non-linear file mappings (see sys_remap_file_pages).
-- * This is defined by CLIENT1 set but CLIENT0 and _PAGE_PRESENT clear, and the
-- * file offset in the 32 high bits.
-- */
--#define _PAGE_FILE        HV_PTE_CLIENT1
--#define PTE_FILE_MAX_BITS 32
--#define pte_file(pte)     (hv_pte_get_client1(pte) && !hv_pte_get_client0(pte))
--#define pte_to_pgoff(pte) ((pte).val >> 32)
--#define pgoff_to_pte(off) ((pte_t) { (((long long)(off)) << 32) | _PAGE_FILE })
--
+ #define PTE_PRESENT		(1 << 2)
+-#define PTE_FILE		(1 << 3)	/* only when !PRESENT */
+ #define PTE_YOUNG		(1 << 3)
+ #define PTE_DIRTY		(1 << 4)
+ #define PTE_CACHEABLE		(1 << 5)
+diff -puN arch/unicore32/include/asm/pgtable.h~unicore32-drop-pte_file-related-helpers arch/unicore32/include/asm/pgtable.h
+--- a/arch/unicore32/include/asm/pgtable.h~unicore32-drop-pte_file-related-helpers
++++ a/arch/unicore32/include/asm/pgtable.h
+@@ -283,20 +283,6 @@ extern pgd_t swapper_pg_dir[PTRS_PER_PGD
+ #define MAX_SWAPFILES_CHECK()	\
+ 	BUILD_BUG_ON(MAX_SWAPFILES_SHIFT > __SWP_TYPE_BITS)
+ 
 -/*
-  * Encode and de-code a swap entry (see <linux/swapops.h>).
-  * We put the swap file type+offset in the 32 high bits;
-  * I believe we can just leave the low bits clear.
-diff -puN arch/tile/mm/homecache.c~tile-drop-pte_file-related-helpers arch/tile/mm/homecache.c
---- a/arch/tile/mm/homecache.c~tile-drop-pte_file-related-helpers
-+++ a/arch/tile/mm/homecache.c
-@@ -263,10 +263,6 @@ static int pte_to_home(pte_t pte)
- /* Update the home of a PTE if necessary (can also be used for a pgprot_t). */
- pte_t pte_set_home(pte_t pte, int home)
- {
--	/* Check for non-linear file mapping "PTEs" and pass them through. */
--	if (pte_file(pte))
--		return pte;
+- * Encode and decode a file entry.  File entries are stored in the Linux
+- * page tables as follows:
+- *
+- *   3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1
+- *   1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0
+- *   <----------------------- offset ----------------------> 1 0 0 0
+- */
+-#define pte_file(pte)		(pte_val(pte) & PTE_FILE)
+-#define pte_to_pgoff(x)		(pte_val(x) >> 4)
+-#define pgoff_to_pte(x)		__pte(((x) << 4) | PTE_FILE)
 -
- #if CHIP_HAS_MMIO()
- 	/* Check for MMIO mappings and pass them through. */
- 	if (hv_pte_get_mode(pte) == HV_PTE_MODE_MMIO)
+-#define PTE_FILE_MAX_BITS	28
+-
+ /* Needs to be defined here and not in linux/mm.h, as it is arch dependent */
+ /* FIXME: this is not correct */
+ #define kern_addr_valid(addr)	(1)
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
