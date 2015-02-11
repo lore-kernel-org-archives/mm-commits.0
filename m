@@ -1,92 +1,90 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- openrisc-drop-_page_file-and-pte_file-related-helpers.patch removed from
- -mm tree
-Date: Wed, 11 Feb 2015 12:22:41 -0800
-Message-ID: <54dbba11.MEz9pmSVbPtus7l4%akpm@linux-foundation.org>
+ mn10300-drop-_page_file-and-pte_file-related-helpers.patch removed from -mm tree
+Date: Wed, 11 Feb 2015 12:22:37 -0800
+Message-ID: <54dbba0d.v8vhWuoTiTi0k/+R%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41002 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40994 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754105AbbBKUWm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 15:22:42 -0500
+	with ESMTP id S1753284AbbBKUWi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 15:22:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, jonas@southpole.se, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, dhowells@redhat.com, hughd@google.com, yasutake.koichi@jp.panasonic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: openrisc: drop _PAGE_FILE and pte_file()-related helpers
+     Subject: mn10300: drop _PAGE_FILE and pte_file()-related helpers
 has been removed from the -mm tree.  Its filename was
-     openrisc-drop-_page_file-and-pte_file-related-helpers.patch
+     mn10300-drop-_page_file-and-pte_file-related-helpers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Kirill A.  Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: openrisc: drop _PAGE_FILE and pte_file()-related helpers
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mn10300: drop _PAGE_FILE and pte_file()-related helpers
 
 We've replaced remap_file_pages(2) implementation with emulation.  Nobody
 creates non-linear mapping anymore.
 
+This patch also increases the number of bits availble for swap offset.
+
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Jonas Bonn <jonas@southpole.se>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Koichi Yasutake <yasutake.koichi@jp.panasonic.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/openrisc/include/asm/pgtable.h |    8 --------
- arch/openrisc/kernel/head.S         |    5 -----
- 2 files changed, 13 deletions(-)
+ arch/mn10300/include/asm/pgtable.h |   17 +++--------------
+ 1 file changed, 3 insertions(+), 14 deletions(-)
 
-diff -puN arch/openrisc/include/asm/pgtable.h~openrisc-drop-_page_file-and-pte_file-related-helpers arch/openrisc/include/asm/pgtable.h
---- a/arch/openrisc/include/asm/pgtable.h~openrisc-drop-_page_file-and-pte_file-related-helpers
-+++ a/arch/openrisc/include/asm/pgtable.h
-@@ -125,7 +125,6 @@ extern void paging_init(void);
- #define _PAGE_CC       0x001 /* software: pte contains a translation */
- #define _PAGE_CI       0x002 /* cache inhibit          */
- #define _PAGE_WBC      0x004 /* write back cache       */
--#define _PAGE_FILE     0x004 /* set: pagecache, unset: swap (when !PRESENT) */
- #define _PAGE_WOM      0x008 /* weakly ordered memory  */
+diff -puN arch/mn10300/include/asm/pgtable.h~mn10300-drop-_page_file-and-pte_file-related-helpers arch/mn10300/include/asm/pgtable.h
+--- a/arch/mn10300/include/asm/pgtable.h~mn10300-drop-_page_file-and-pte_file-related-helpers
++++ a/arch/mn10300/include/asm/pgtable.h
+@@ -134,7 +134,6 @@ extern pte_t kernel_vmalloc_ptes[(VMALLO
+ #define _PAGE_NX		0			/* no-execute bit */
  
- #define _PAGE_A        0x010 /* accessed               */
-@@ -240,7 +239,6 @@ static inline int pte_write(pte_t pte) {
- static inline int pte_exec(pte_t pte)  { return pte_val(pte) & _PAGE_EXEC; }
- static inline int pte_dirty(pte_t pte) { return pte_val(pte) & _PAGE_DIRTY; }
- static inline int pte_young(pte_t pte) { return pte_val(pte) & _PAGE_ACCESSED; }
--static inline int pte_file(pte_t pte)  { return pte_val(pte) & _PAGE_FILE; }
- static inline int pte_special(pte_t pte) { return 0; }
- static inline pte_t pte_mkspecial(pte_t pte) { return pte; }
+ /* If _PAGE_VALID is clear, we use these: */
+-#define _PAGE_FILE		xPTEL2_C	/* set:pagecache unset:swap */
+ #define _PAGE_PROTNONE		0x000		/* If not present */
  
-@@ -438,12 +436,6 @@ static inline void update_mmu_cache(stru
- #define __pte_to_swp_entry(pte)		((swp_entry_t) { pte_val(pte) })
- #define __swp_entry_to_pte(x)		((pte_t) { (x).val })
+ #define __PAGE_PROT_UWAUX	0x010
+@@ -241,11 +240,6 @@ static inline int pte_young(pte_t pte)	{
+ static inline int pte_write(pte_t pte)	{ return pte_val(pte) & __PAGE_PROT_WRITE; }
+ static inline int pte_special(pte_t pte){ return 0; }
  
--/* Encode and decode a nonlinear file mapping entry */
--
--#define PTE_FILE_MAX_BITS               26
--#define pte_to_pgoff(x)	                (pte_val(x) >> 6)
--#define pgoff_to_pte(x)	                __pte(((x) << 6) | _PAGE_FILE)
--
- #define kern_addr_valid(addr)           (1)
- 
- #include <asm-generic/pgtable.h>
-diff -puN arch/openrisc/kernel/head.S~openrisc-drop-_page_file-and-pte_file-related-helpers arch/openrisc/kernel/head.S
---- a/arch/openrisc/kernel/head.S~openrisc-drop-_page_file-and-pte_file-related-helpers
-+++ a/arch/openrisc/kernel/head.S
-@@ -754,11 +754,6 @@ _dc_enable:
- 
- /* ===============================================[ page table masks ]=== */
- 
--/* bit 4 is used in hardware as write back cache bit. we never use this bit
-- * explicitly, so we can reuse it as _PAGE_FILE bit and mask it out when
-- * writing into hardware pte's
+-/*
+- * The following only works if pte_present() is not true.
 - */
+-static inline int pte_file(pte_t pte)	{ return pte_val(pte) & _PAGE_FILE; }
 -
- #define DTLB_UP_CONVERT_MASK  0x3fa
- #define ITLB_UP_CONVERT_MASK  0x3a
+ static inline pte_t pte_rdprotect(pte_t pte)
+ {
+ 	pte_val(pte) &= ~(__PAGE_PROT_USER|__PAGE_PROT_UWAUX); return pte;
+@@ -338,16 +332,11 @@ static inline int pte_exec_kernel(pte_t
+ 	return 1;
+ }
+ 
+-#define PTE_FILE_MAX_BITS	30
+-
+-#define pte_to_pgoff(pte)	(pte_val(pte) >> 2)
+-#define pgoff_to_pte(off)	__pte((off) << 2 | _PAGE_FILE)
+-
+ /* Encode and de-code a swap entry */
+-#define __swp_type(x)			(((x).val >> 2) & 0x3f)
+-#define __swp_offset(x)			((x).val >> 8)
++#define __swp_type(x)			(((x).val >> 1) & 0x3f)
++#define __swp_offset(x)			((x).val >> 7)
+ #define __swp_entry(type, offset) \
+-	((swp_entry_t) { ((type) << 2) | ((offset) << 8) })
++	((swp_entry_t) { ((type) << 1) | ((offset) << 7) })
+ #define __pte_to_swp_entry(pte)		((swp_entry_t) { pte_val(pte) })
+ #define __swp_entry_to_pte(x)		__pte((x).val)
  
 _
 
