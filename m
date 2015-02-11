@@ -1,91 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mn10300-drop-_page_file-and-pte_file-related-helpers.patch removed from -mm tree
-Date: Wed, 11 Feb 2015 12:22:37 -0800
-Message-ID: <54dbba0d.v8vhWuoTiTi0k/+R%akpm@linux-foundation.org>
+Subject: [merged] nios2-drop-_page_file-and-pte_file-related-helpers.patch removed from -mm tree
+Date: Wed, 11 Feb 2015 12:22:39 -0800
+Message-ID: <54dbba0f.UX87hP1k1tK0NJPM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40994 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40998 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753284AbbBKUWi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 15:22:38 -0500
+	with ESMTP id S1754105AbbBKUWk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 15:22:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, dhowells@redhat.com, hughd@google.com, yasutake.koichi@jp.panasonic.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, lftan@altera.com, tklauser@distanz.ch, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mn10300: drop _PAGE_FILE and pte_file()-related helpers
+     Subject: nios2: drop _PAGE_FILE and pte_file()-related helpers
 has been removed from the -mm tree.  Its filename was
-     mn10300-drop-_page_file-and-pte_file-related-helpers.patch
+     nios2-drop-_page_file-and-pte_file-related-helpers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mn10300: drop _PAGE_FILE and pte_file()-related helpers
+Subject: nios2: drop _PAGE_FILE and pte_file()-related helpers
 
 We've replaced remap_file_pages(2) implementation with emulation.  Nobody
 creates non-linear mapping anymore.
 
-This patch also increases the number of bits availble for swap offset.
-
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Koichi Yasutake <yasutake.koichi@jp.panasonic.com>
-Cc: Hugh Dickins <hughd@google.com>
+Cc: Ley Foon Tan <lftan@altera.com>
+Reviewed-by: Tobias Klauser <tklauser@distanz.ch>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mn10300/include/asm/pgtable.h |   17 +++--------------
- 1 file changed, 3 insertions(+), 14 deletions(-)
+ arch/nios2/include/asm/pgtable-bits.h |    1 -
+ arch/nios2/include/asm/pgtable.h      |   10 +---------
+ 2 files changed, 1 insertion(+), 10 deletions(-)
 
-diff -puN arch/mn10300/include/asm/pgtable.h~mn10300-drop-_page_file-and-pte_file-related-helpers arch/mn10300/include/asm/pgtable.h
---- a/arch/mn10300/include/asm/pgtable.h~mn10300-drop-_page_file-and-pte_file-related-helpers
-+++ a/arch/mn10300/include/asm/pgtable.h
-@@ -134,7 +134,6 @@ extern pte_t kernel_vmalloc_ptes[(VMALLO
- #define _PAGE_NX		0			/* no-execute bit */
+diff -puN arch/nios2/include/asm/pgtable-bits.h~nios2-drop-_page_file-and-pte_file-related-helpers arch/nios2/include/asm/pgtable-bits.h
+--- a/arch/nios2/include/asm/pgtable-bits.h~nios2-drop-_page_file-and-pte_file-related-helpers
++++ a/arch/nios2/include/asm/pgtable-bits.h
+@@ -30,6 +30,5 @@
+ #define _PAGE_PRESENT	(1<<25)	/* PTE contains a translation */
+ #define _PAGE_ACCESSED	(1<<26)	/* page referenced */
+ #define _PAGE_DIRTY	(1<<27)	/* dirty page */
+-#define _PAGE_FILE	(1<<28)	/* PTE used for file mapping or swap */
  
- /* If _PAGE_VALID is clear, we use these: */
--#define _PAGE_FILE		xPTEL2_C	/* set:pagecache unset:swap */
- #define _PAGE_PROTNONE		0x000		/* If not present */
+ #endif /* _ASM_NIOS2_PGTABLE_BITS_H */
+diff -puN arch/nios2/include/asm/pgtable.h~nios2-drop-_page_file-and-pte_file-related-helpers arch/nios2/include/asm/pgtable.h
+--- a/arch/nios2/include/asm/pgtable.h~nios2-drop-_page_file-and-pte_file-related-helpers
++++ a/arch/nios2/include/asm/pgtable.h
+@@ -112,8 +112,6 @@ static inline int pte_dirty(pte_t pte)
+ 	{ return pte_val(pte) & _PAGE_DIRTY; }
+ static inline int pte_young(pte_t pte)		\
+ 	{ return pte_val(pte) & _PAGE_ACCESSED; }
+-static inline int pte_file(pte_t pte)		\
+-	{ return pte_val(pte) & _PAGE_FILE; }
+ static inline int pte_special(pte_t pte)	{ return 0; }
  
- #define __PAGE_PROT_UWAUX	0x010
-@@ -241,11 +240,6 @@ static inline int pte_young(pte_t pte)	{
- static inline int pte_write(pte_t pte)	{ return pte_val(pte) & __PAGE_PROT_WRITE; }
- static inline int pte_special(pte_t pte){ return 0; }
+ #define pgprot_noncached pgprot_noncached
+@@ -272,8 +270,7 @@ static inline void pte_clear(struct mm_s
+ 		__FILE__, __LINE__, pgd_val(e))
  
--/*
-- * The following only works if pte_present() is not true.
-- */
--static inline int pte_file(pte_t pte)	{ return pte_val(pte) & _PAGE_FILE; }
+ /*
+- * Encode and decode a swap entry (must be !pte_none(pte) && !pte_present(pte)
+- * && !pte_file(pte)):
++ * Encode and decode a swap entry (must be !pte_none(pte) && !pte_present(pte):
+  *
+  * 31 30 29 28 27 26 25 24 23 22 21 20 19 18 ...  1  0
+  *  0  0  0  0 type.  0  0  0  0  0  0 offset.........
+@@ -290,11 +287,6 @@ static inline void pte_clear(struct mm_s
+ #define __swp_entry_to_pte(swp)	((pte_t) { (swp).val })
+ #define __pte_to_swp_entry(pte)	((swp_entry_t) { pte_val(pte) })
+ 
+-/* Encode and decode a nonlinear file mapping entry */
+-#define PTE_FILE_MAX_BITS	25
+-#define pte_to_pgoff(pte)	(pte_val(pte) & 0x1ffffff)
+-#define pgoff_to_pte(off)	__pte(((off) & 0x1ffffff) | _PAGE_FILE)
 -
- static inline pte_t pte_rdprotect(pte_t pte)
- {
- 	pte_val(pte) &= ~(__PAGE_PROT_USER|__PAGE_PROT_UWAUX); return pte;
-@@ -338,16 +332,11 @@ static inline int pte_exec_kernel(pte_t
- 	return 1;
- }
+ #define kern_addr_valid(addr)		(1)
  
--#define PTE_FILE_MAX_BITS	30
--
--#define pte_to_pgoff(pte)	(pte_val(pte) >> 2)
--#define pgoff_to_pte(off)	__pte((off) << 2 | _PAGE_FILE)
--
- /* Encode and de-code a swap entry */
--#define __swp_type(x)			(((x).val >> 2) & 0x3f)
--#define __swp_offset(x)			((x).val >> 8)
-+#define __swp_type(x)			(((x).val >> 1) & 0x3f)
-+#define __swp_offset(x)			((x).val >> 7)
- #define __swp_entry(type, offset) \
--	((swp_entry_t) { ((type) << 2) | ((offset) << 8) })
-+	((swp_entry_t) { ((type) << 1) | ((offset) << 7) })
- #define __pte_to_swp_entry(pte)		((swp_entry_t) { pte_val(pte) })
- #define __swp_entry_to_pte(x)		__pte((x).val)
- 
+ #include <asm-generic/pgtable.h>
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
