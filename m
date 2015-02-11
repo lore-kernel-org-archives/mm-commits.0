@@ -1,75 +1,57 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-account-pmd-page-tables-to-the-process-fix-3.patch removed from -mm tree
-Date: Wed, 11 Feb 2015 15:14:55 -0800
-Message-ID: <54dbe26f.ukSTK4/pH7Iy4fur%akpm@linux-foundation.org>
+ mm-fix-false-positive-warning-on-exit-due-mm_nr_pmdsmm-fix-2.patch removed
+ from -mm tree
+Date: Wed, 11 Feb 2015 15:15:27 -0800
+Message-ID: <54dbe28f.GyHvRGkznPi7xotk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43139 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43268 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753809AbbBKXO4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 18:14:56 -0500
+	with ESMTP id S1753874AbbBKXP2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 18:15:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, pat-lkml@erley.org, sedat.dilek@gmail.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix race on pmd accounting
+     Subject: mm: fix missing \n in error messages in check_mm()
 has been removed from the -mm tree.  Its filename was
-     mm-account-pmd-page-tables-to-the-process-fix-3.patch
+     mm-fix-false-positive-warning-on-exit-due-mm_nr_pmdsmm-fix-2.patch
 
-This patch was dropped because it was folded into mm-account-pmd-page-tables-to-the-process.patch
+This patch was dropped because it was folded into mm-fix-false-positive-warning-on-exit-due-mm_nr_pmdsmm.patch
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: fix race on pmd accounting
-
-Do not account the pmd table to the process if other thread allocated it
-under us.
+Subject: mm: fix missing \n in error messages in check_mm()
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: Sedat Dilek <sedat.dilek@gmail.com>
-Reported-by: Pat Erley <pat-lkml@erley.org>
-Tested-by: Sedat Dilek <sedat.dilek@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ kernel/fork.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/memory.c~mm-account-pmd-page-tables-to-the-process-fix-3 mm/memory.c
---- a/mm/memory.c~mm-account-pmd-page-tables-to-the-process-fix-3
-+++ a/mm/memory.c
-@@ -3326,17 +3326,18 @@ int __pmd_alloc(struct mm_struct *mm, pu
- 	smp_wmb(); /* See comment in __pte_alloc */
+diff -puN kernel/fork.c~mm-fix-false-positive-warning-on-exit-due-mm_nr_pmdsmm-fix-2 kernel/fork.c
+--- a/kernel/fork.c~mm-fix-false-positive-warning-on-exit-due-mm_nr_pmdsmm-fix-2
++++ a/kernel/fork.c
+@@ -608,10 +608,10 @@ static void check_mm(struct mm_struct *m
+ 	}
  
- 	spin_lock(&mm->page_table_lock);
--	mm_inc_nr_pmds(mm);
- #ifndef __ARCH_HAS_4LEVEL_HACK
--	if (pud_present(*pud))		/* Another has populated it */
--		pmd_free(mm, new);
--	else
-+	if (!pud_present(*pud)) {
-+		mm_inc_nr_pmds(mm);
- 		pud_populate(mm, pud, new);
--#else
--	if (pgd_present(*pud))		/* Another has populated it */
-+	} else	/* Another has populated it */
- 		pmd_free(mm, new);
--	else
-+#else
-+	if (!pgd_present(*pud)) {
-+		mm_inc_nr_pmds(mm);
- 		pgd_populate(mm, pud, new);
-+	} else /* Another has populated it */
-+		pmd_free(mm, new);
- #endif /* __ARCH_HAS_4LEVEL_HACK */
- 	spin_unlock(&mm->page_table_lock);
- 	return 0;
+ 	if (atomic_long_read(&mm->nr_ptes))
+-		pr_alert("BUG: non-zero nr_ptes on freeing mm: %ld",
++		pr_alert("BUG: non-zero nr_ptes on freeing mm: %ld\n",
+ 				atomic_long_read(&mm->nr_ptes));
+ 	if (mm_nr_pmds(mm))
+-		pr_alert("BUG: non-zero nr_pmds on freeing mm: %ld",
++		pr_alert("BUG: non-zero nr_pmds on freeing mm: %ld\n",
+ 				mm_nr_pmds(mm));
+ 
+ #if defined(CONFIG_TRANSPARENT_HUGEPAGE) && !USE_SPLIT_PMD_PTLOCKS
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
@@ -90,7 +72,6 @@ mm-asm-generic-define-pud_shift-in-asm-generic-4level-fixuph.patch
 arm-define-__pagetable_pmd_folded-for-lpae.patch
 mm-account-pmd-page-tables-to-the-process.patch
 mm-fix-false-positive-warning-on-exit-due-mm_nr_pmdsmm.patch
-mm-fix-false-positive-warning-on-exit-due-mm_nr_pmdsmm-fix-2.patch
 mm-thp-allocate-transparent-hugepages-on-local-node.patch
 mm-thp-allocate-transparent-hugepages-on-local-node-fix.patch
 mm-mempolicy-merge-alloc_hugepage_vma-to-alloc_pages_vma.patch
