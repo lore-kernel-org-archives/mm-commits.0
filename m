@@ -1,207 +1,176 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mips-drop-_page_file-and-pte_file-related-helpers.patch
- removed from -mm tree
-Date: Wed, 11 Feb 2015 12:22:35 -0800
-Message-ID: <54dbba0b.GktidK+ueT+BrsF0%akpm@linux-foundation.org>
+Subject: [merged]
+ openrisc-drop-_page_file-and-pte_file-related-helpers.patch removed from
+ -mm tree
+Date: Wed, 11 Feb 2015 12:22:41 -0800
+Message-ID: <54dbba11.MEz9pmSVbPtus7l4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40989 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41002 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753284AbbBKUWg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 15:22:36 -0500
+	with ESMTP id S1754105AbbBKUWm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 15:22:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill@shutemov.name, kirill.shutemov@linux.intel.com, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, jonas@southpole.se, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mips: drop _PAGE_FILE and pte_file()-related helpers
+     Subject: openrisc: drop _PAGE_FILE and pte_file()-related helpers
 has been removed from the -mm tree.  Its filename was
-     mips-drop-_page_file-and-pte_file-related-helpers.patch
+     openrisc-drop-_page_file-and-pte_file-related-helpers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill@shutemov.name>
-Subject: mips: drop _PAGE_FILE and pte_file()-related helpers
+From: "Kirill A.  Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: openrisc: drop _PAGE_FILE and pte_file()-related helpers
 
 We've replaced remap_file_pages(2) implementation with emulation.  Nobody
 creates non-linear mapping anymore.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Jonas Bonn <jonas@southpole.se>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/include/asm/pgtable-32.h   |   36 -------------------------
- arch/mips/include/asm/pgtable-64.h   |    9 ------
- arch/mips/include/asm/pgtable-bits.h |    9 ------
- arch/mips/include/asm/pgtable.h      |    2 -
- 4 files changed, 56 deletions(-)
+ arch/openrisc/include/asm/pgtable.h |    8 --------
+ arch/openrisc/kernel/head.S         |    5 -----
+ 2 files changed, 13 deletions(-)
 
-diff -puN arch/mips/include/asm/pgtable-32.h~mips-drop-_page_file-and-pte_file-related-helpers arch/mips/include/asm/pgtable-32.h
---- a/arch/mips/include/asm/pgtable-32.h~mips-drop-_page_file-and-pte_file-related-helpers
-+++ a/arch/mips/include/asm/pgtable-32.h
-@@ -161,22 +161,6 @@ pfn_pte(unsigned long pfn, pgprot_t prot
+diff -puN arch/openrisc/include/asm/pgtable.h~openrisc-drop-_page_file-and-pte_file-related-helpers arch/openrisc/include/asm/pgtable.h
+--- a/arch/openrisc/include/asm/pgtable.h~openrisc-drop-_page_file-and-pte_file-related-helpers
++++ a/arch/openrisc/include/asm/pgtable.h
+@@ -125,7 +125,6 @@ extern void paging_init(void);
+ #define _PAGE_CC       0x001 /* software: pte contains a translation */
+ #define _PAGE_CI       0x002 /* cache inhibit          */
+ #define _PAGE_WBC      0x004 /* write back cache       */
+-#define _PAGE_FILE     0x004 /* set: pagecache, unset: swap (when !PRESENT) */
+ #define _PAGE_WOM      0x008 /* weakly ordered memory  */
+ 
+ #define _PAGE_A        0x010 /* accessed               */
+@@ -240,7 +239,6 @@ static inline int pte_write(pte_t pte) {
+ static inline int pte_exec(pte_t pte)  { return pte_val(pte) & _PAGE_EXEC; }
+ static inline int pte_dirty(pte_t pte) { return pte_val(pte) & _PAGE_DIRTY; }
+ static inline int pte_young(pte_t pte) { return pte_val(pte) & _PAGE_ACCESSED; }
+-static inline int pte_file(pte_t pte)  { return pte_val(pte) & _PAGE_FILE; }
+ static inline int pte_special(pte_t pte) { return 0; }
+ static inline pte_t pte_mkspecial(pte_t pte) { return pte; }
+ 
+@@ -438,12 +436,6 @@ static inline void update_mmu_cache(stru
  #define __pte_to_swp_entry(pte)		((swp_entry_t) { pte_val(pte) })
  #define __swp_entry_to_pte(x)		((pte_t) { (x).val })
  
--/*
-- * Encode and decode a nonlinear file mapping entry
+-/* Encode and decode a nonlinear file mapping entry */
+-
+-#define PTE_FILE_MAX_BITS               26
+-#define pte_to_pgoff(x)	                (pte_val(x) >> 6)
+-#define pgoff_to_pte(x)	                __pte(((x) << 6) | _PAGE_FILE)
+-
+ #define kern_addr_valid(addr)           (1)
+ 
+ #include <asm-generic/pgtable.h>
+diff -puN arch/openrisc/kernel/head.S~openrisc-drop-_page_file-and-pte_file-related-helpers arch/openrisc/kernel/head.S
+--- a/arch/openrisc/kernel/head.S~openrisc-drop-_page_file-and-pte_file-related-helpers
++++ a/arch/openrisc/kernel/head.S
+@@ -754,11 +754,6 @@ _dc_enable:
+ 
+ /* ===============================================[ page table masks ]=== */
+ 
+-/* bit 4 is used in hardware as write back cache bit. we never use this bit
+- * explicitly, so we can reuse it as _PAGE_FILE bit and mask it out when
+- * writing into hardware pte's
 - */
--#define pte_to_pgoff(_pte)		((((_pte).pte >> 1 ) & 0x07) | \
--					 (((_pte).pte >> 2 ) & 0x38) | \
--					 (((_pte).pte >> 10) <<	 6 ))
 -
--#define pgoff_to_pte(off)		((pte_t) { (((off) & 0x07) << 1 ) | \
--						   (((off) & 0x38) << 2 ) | \
--						   (((off) >>  6 ) << 10) | \
--						   _PAGE_FILE })
--
--/*
-- * Bits 0, 4, 8, and 9 are taken, split up 28 bits of offset into this range:
-- */
--#define PTE_FILE_MAX_BITS		28
- #else
+ #define DTLB_UP_CONVERT_MASK  0x3fa
+ #define ITLB_UP_CONVERT_MASK  0x3a
  
- #if defined(CONFIG_PHYS_ADDR_T_64BIT) && defined(CONFIG_CPU_MIPS32)
-@@ -188,13 +172,6 @@ pfn_pte(unsigned long pfn, pgprot_t prot
- #define __pte_to_swp_entry(pte)		((swp_entry_t) { (pte).pte_high })
- #define __swp_entry_to_pte(x)		((pte_t) { 0, (x).val })
- 
--/*
-- * Bits 0 and 1 of pte_high are taken, use the rest for the page offset...
-- */
--#define pte_to_pgoff(_pte)		((_pte).pte_high >> 2)
--#define pgoff_to_pte(off)		((pte_t) { _PAGE_FILE, (off) << 2 })
--
--#define PTE_FILE_MAX_BITS		30
- #else
- /*
-  * Constraints:
-@@ -209,19 +186,6 @@ pfn_pte(unsigned long pfn, pgprot_t prot
- #define __pte_to_swp_entry(pte)		((swp_entry_t) { pte_val(pte) })
- #define __swp_entry_to_pte(x)		((pte_t) { (x).val })
- 
--/*
-- * Encode and decode a nonlinear file mapping entry
-- */
--#define pte_to_pgoff(_pte)		((((_pte).pte >> 1) & 0x7) | \
--					 (((_pte).pte >> 2) & 0x8) | \
--					 (((_pte).pte >> 8) <<	4))
--
--#define pgoff_to_pte(off)		((pte_t) { (((off) & 0x7) << 1) | \
--						   (((off) & 0x8) << 2) | \
--						   (((off) >>  4) << 8) | \
--						   _PAGE_FILE })
--
--#define PTE_FILE_MAX_BITS		28
- #endif /* defined(CONFIG_PHYS_ADDR_T_64BIT) && defined(CONFIG_CPU_MIPS32) */
- 
- #endif /* defined(CONFIG_CPU_R3000) || defined(CONFIG_CPU_TX39XX) */
-diff -puN arch/mips/include/asm/pgtable-64.h~mips-drop-_page_file-and-pte_file-related-helpers arch/mips/include/asm/pgtable-64.h
---- a/arch/mips/include/asm/pgtable-64.h~mips-drop-_page_file-and-pte_file-related-helpers
-+++ a/arch/mips/include/asm/pgtable-64.h
-@@ -291,13 +291,4 @@ static inline pte_t mk_swap_pte(unsigned
- #define __pte_to_swp_entry(pte) ((swp_entry_t) { pte_val(pte) })
- #define __swp_entry_to_pte(x)	((pte_t) { (x).val })
- 
--/*
-- * Bits 0, 4, 6, and 7 are taken. Let's leave bits 1, 2, 3, and 5 alone to
-- * make things easier, and only use the upper 56 bits for the page offset...
-- */
--#define PTE_FILE_MAX_BITS	56
--
--#define pte_to_pgoff(_pte)	((_pte).pte >> 8)
--#define pgoff_to_pte(off)	((pte_t) { ((off) << 8) | _PAGE_FILE })
--
- #endif /* _ASM_PGTABLE_64_H */
-diff -puN arch/mips/include/asm/pgtable-bits.h~mips-drop-_page_file-and-pte_file-related-helpers arch/mips/include/asm/pgtable-bits.h
---- a/arch/mips/include/asm/pgtable-bits.h~mips-drop-_page_file-and-pte_file-related-helpers
-+++ a/arch/mips/include/asm/pgtable-bits.h
-@@ -48,8 +48,6 @@
- 
- /*
-  * The following bits are implemented in software
-- *
-- * _PAGE_FILE semantics: set:pagecache unset:swap
-  */
- #define _PAGE_PRESENT_SHIFT	(_CACHE_SHIFT + 3)
- #define _PAGE_PRESENT		(1 << _PAGE_PRESENT_SHIFT)
-@@ -64,7 +62,6 @@
- 
- #define _PAGE_SILENT_READ	_PAGE_VALID
- #define _PAGE_SILENT_WRITE	_PAGE_DIRTY
--#define _PAGE_FILE		_PAGE_MODIFIED
- 
- #define _PFN_SHIFT		(PAGE_SHIFT - 12 + _CACHE_SHIFT + 3)
- 
-@@ -72,8 +69,6 @@
- 
- /*
-  * The following are implemented by software
-- *
-- * _PAGE_FILE semantics: set:pagecache unset:swap
-  */
- #define _PAGE_PRESENT_SHIFT	0
- #define _PAGE_PRESENT		(1 <<  _PAGE_PRESENT_SHIFT)
-@@ -85,8 +80,6 @@
- #define _PAGE_ACCESSED		(1 <<  _PAGE_ACCESSED_SHIFT)
- #define _PAGE_MODIFIED_SHIFT	4
- #define _PAGE_MODIFIED		(1 <<  _PAGE_MODIFIED_SHIFT)
--#define _PAGE_FILE_SHIFT	4
--#define _PAGE_FILE		(1 <<  _PAGE_FILE_SHIFT)
- 
- /*
-  * And these are the hardware TLB bits
-@@ -116,7 +109,6 @@
-  * The following bits are implemented in software
-  *
-  * _PAGE_READ / _PAGE_READ_SHIFT should be unused if cpu_has_rixi.
-- * _PAGE_FILE semantics: set:pagecache unset:swap
-  */
- #define _PAGE_PRESENT_SHIFT	(0)
- #define _PAGE_PRESENT		(1 << _PAGE_PRESENT_SHIFT)
-@@ -128,7 +120,6 @@
- #define _PAGE_ACCESSED		(1 << _PAGE_ACCESSED_SHIFT)
- #define _PAGE_MODIFIED_SHIFT	(_PAGE_ACCESSED_SHIFT + 1)
- #define _PAGE_MODIFIED		(1 << _PAGE_MODIFIED_SHIFT)
--#define _PAGE_FILE		(_PAGE_MODIFIED)
- 
- #ifdef CONFIG_MIPS_HUGE_TLB_SUPPORT
- /* huge tlb page */
-diff -puN arch/mips/include/asm/pgtable.h~mips-drop-_page_file-and-pte_file-related-helpers arch/mips/include/asm/pgtable.h
---- a/arch/mips/include/asm/pgtable.h~mips-drop-_page_file-and-pte_file-related-helpers
-+++ a/arch/mips/include/asm/pgtable.h
-@@ -231,7 +231,6 @@ extern pgd_t swapper_pg_dir[];
- static inline int pte_write(pte_t pte)	{ return pte.pte_low & _PAGE_WRITE; }
- static inline int pte_dirty(pte_t pte)	{ return pte.pte_low & _PAGE_MODIFIED; }
- static inline int pte_young(pte_t pte)	{ return pte.pte_low & _PAGE_ACCESSED; }
--static inline int pte_file(pte_t pte)	{ return pte.pte_low & _PAGE_FILE; }
- 
- static inline pte_t pte_wrprotect(pte_t pte)
- {
-@@ -287,7 +286,6 @@ static inline pte_t pte_mkyoung(pte_t pt
- static inline int pte_write(pte_t pte)	{ return pte_val(pte) & _PAGE_WRITE; }
- static inline int pte_dirty(pte_t pte)	{ return pte_val(pte) & _PAGE_MODIFIED; }
- static inline int pte_young(pte_t pte)	{ return pte_val(pte) & _PAGE_ACCESSED; }
--static inline int pte_file(pte_t pte)	{ return pte_val(pte) & _PAGE_FILE; }
- 
- static inline pte_t pte_wrprotect(pte_t pte)
- {
 _
 
-Patches currently in -mm which might be from kirill@shutemov.name are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
 origin.patch
-mm-add-kpf_zero_page-flag-for-proc-kpageflags.patch
+mm-add-fields-for-compound-destructor-and-order-into-struct-page.patch
+mm-add-vm_bug_on_page-for-page_mapcount.patch
+sparc32-fix-broken-set_pte.patch
+mm-numa-do-not-dereference-pmd-outside-of-the-lock-during-numa-hinting-fault.patch
+mm-add-p-protnone-helpers-for-use-by-numa-balancing.patch
+mm-convert-p_numa-users-to-p_protnone_numa.patch
+ppc64-add-paranoid-warnings-for-unexpected-dsisr_protfault.patch
+mm-convert-p_mknonnuma-and-remaining-page-table-manipulations.patch
+mm-remove-remaining-references-to-numa-hinting-bits-and-helpers.patch
+mm-numa-do-not-trap-faults-on-the-huge-zero-page.patch
+x86-mm-restore-original-pte_special-check.patch
+mm-numa-add-paranoid-check-around-pte_protnone_numa.patch
+mm-numa-avoid-unnecessary-tlb-flushes-when-setting-numa-hinting-entries.patch
+mm-set-page-pfmemalloc-in-prep_new_page.patch
+mm-page_alloc-reduce-number-of-alloc_pages-functions-parameters.patch
+mm-reduce-try_to_compact_pages-parameters.patch
+mm-microoptimize-zonelist-operations.patch
+mm-page_allocc-drop-dead-destroy_compound_page.patch
+mm-more-checks-on-free_pages_prepare-for-tail-pages.patch
 mm-more-checks-on-free_pages_prepare-for-tail-pages-fix-2.patch
-mm-fix-false-positive-warning-on-exit-due-mm_nr_pmdsmm-fix.patch
-mm-incorporate-read-only-pages-into-transparent-huge-pages-v4.patch
-docs-procs-describe-proc-pid-map_files-entry.patch
-docs-procs-describe-proc-pid-map_files-entry-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
+microblaze-define-__pagetable_pmd_folded.patch
+mm-make-first_user_address-unsigned-long-on-all-archs.patch
+mm-asm-generic-define-pud_shift-in-asm-generic-4level-fixuph.patch
+arm-define-__pagetable_pmd_folded-for-lpae.patch
+mm-account-pmd-page-tables-to-the-process.patch
+mm-account-pmd-page-tables-to-the-process-fix.patch
+mm-account-pmd-page-tables-to-the-process-fix-2.patch
+mm-account-pmd-page-tables-to-the-process-fix-3.patch
+mm-fix-false-positive-warning-on-exit-due-mm_nr_pmdsmm.patch
+mm-fix-false-positive-warning-on-exit-due-mm_nr_pmdsmm-fix-2.patch
+mm-thp-allocate-transparent-hugepages-on-local-node.patch
+mm-thp-allocate-transparent-hugepages-on-local-node-fix.patch
+mm-mempolicy-merge-alloc_hugepage_vma-to-alloc_pages_vma.patch
+mm-gup-add-get_user_pages_locked-and-get_user_pages_unlocked.patch
+mm-gup-add-__get_user_pages_unlocked-to-customize-gup_flags.patch
+mm-gup-use-get_user_pages_unlocked-within-get_user_pages_fast.patch
+mm-gup-use-get_user_pages_unlocked.patch
+mm-gup-kvm-use-get_user_pages_unlocked.patch
+proc-pagemap-walk-page-tables-under-pte-lock.patch
+mm-pagewalk-remove-pgd_entry-and-pud_entry.patch
+pagewalk-improve-vma-handling.patch
+pagewalk-add-walk_page_vma.patch
+smaps-remove-mem_size_stats-vma-and-use-walk_page_vma.patch
+clear_refs-remove-clear_refs_private-vma-and-introduce-clear_refs_test_walk.patch
+pagemap-use-walk-vma-instead-of-calling-find_vma.patch
+numa_maps-fix-typo-in-gather_hugetbl_stats.patch
+numa_maps-remove-numa_maps-vma.patch
+memcg-cleanup-preparation-for-page-table-walk.patch
+arch-powerpc-mm-subpage-protc-use-walk-vma-and-walk_page_vma.patch
+mempolicy-apply-page-table-walker-on-queue_pages_range.patch
+mm-proc-pid-clear_refs-avoid-split_huge_page.patch
+mincore-apply-page-table-walker-on-do_mincore.patch
+mm-when-stealing-freepages-also-take-pages-created-by-splitting-buddy-page.patch
+mm-always-steal-split-buddies-in-fallback-allocations.patch
+mm-more-aggressive-page-stealing-for-unmovable-allocations.patch
+mm-incorporate-read-only-pages-into-transparent-huge-pages.patch
+mm-do-not-use-mm-nr_pmds-on-mmu-configurations.patch
+mm-fix-xip-fault-vs-truncate-race.patch
+mm-fix-xip-fault-vs-truncate-race-fix.patch
+mm-allow-page-fault-handlers-to-perform-the-cow.patch
+mm-allow-page-fault-handlers-to-perform-the-cow-fix.patch
+vfsext2-introduce-is_daxinode.patch
+daxext2-replace-xip-read-and-write-with-dax-i-o.patch
+daxext2-replace-ext2_clear_xip_target-with-dax_clear_blocks.patch
+daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler.patch
+daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix.patch
+daxext2-replace-xip_truncate_page-with-dax_truncate_page.patch
+dax-replace-xip-documentation-with-dax-documentation.patch
+vfs-remove-get_xip_mem.patch
+ext2-remove-ext2_xip_verify_sb.patch
+ext2-remove-ext2_use_xip.patch
+ext2-remove-xipc-and-xiph.patch
+vfsext2-remove-config_ext2_fs_xip-and-rename-config_fs_xip-to-config_fs_dax.patch
+ext2-remove-ext2_aops_xip.patch
+ext2-get-rid-of-most-mentions-of-xip-in-ext2.patch
+dax-add-dax_zero_page_range.patch
+dax-add-dax_zero_page_range-fix.patch
+ext4-add-dax-functionality.patch
+brd-rename-xip-to-dax.patch
+powerpc-drop-_page_file-and-pte_file-related-helpers.patch
 
