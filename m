@@ -1,67 +1,95 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-compaction-enhance-tracepoint-output-for-compaction-begin-end-v4-fix.patch removed from -mm tree
-Date: Wed, 11 Feb 2015 15:15:55 -0800
-Message-ID: <54dbe2ab.iYZuhMLUw7c78Ume%akpm@linux-foundation.org>
+ mm-compaction-add-tracepoint-to-observe-behaviour-of-compaction-defer-v4.patch removed from -mm tree
+Date: Wed, 11 Feb 2015 15:16:58 -0800
+Message-ID: <54dbe2ea.zmOjlTJVmLQVHUgQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43276 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43282 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754471AbbBKXP4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 18:15:56 -0500
+	with ESMTP id S1753530AbbBKXQ7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 18:16:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dan.carpenter@oracle.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org
+To: iamjoonsoo.kim@lge.com, mgorman@suse.de, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-compaction-enhance-tracepoint-output-for-compaction-begin-end-v4-fix
+     Subject: mm-compaction-add-tracepoint-to-observe-behaviour-of-compaction-defer-v4
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-enhance-tracepoint-output-for-compaction-begin-end-v4-fix.patch
+     mm-compaction-add-tracepoint-to-observe-behaviour-of-compaction-defer-v4.patch
 
-This patch was dropped because it was folded into mm-compaction-enhance-tracepoint-output-for-compaction-begin-end.patch
+This patch was dropped because it was folded into mm-compaction-add-tracepoint-to-observe-behaviour-of-compaction-defer.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-compaction-enhance-tracepoint-output-for-compaction-begin-end-v4-fix
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: mm-compaction-add-tracepoint-to-observe-behaviour-of-compaction-defer-v4
 
-fix sparse warning
+Changes from v3: Build fix for !CONFIG_COMPACTION
 
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/trace/events/compaction.h |    2 ++
+ mm/compaction.c                   |    1 -
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/compaction.c~mm-compaction-enhance-tracepoint-output-for-compaction-begin-end-v4-fix mm/compaction.c
---- a/mm/compaction.c~mm-compaction-enhance-tracepoint-output-for-compaction-begin-end-v4-fix
-+++ a/mm/compaction.c
-@@ -35,7 +35,7 @@ static inline void count_compact_events(
+diff -puN include/trace/events/compaction.h~mm-compaction-add-tracepoint-to-observe-behaviour-of-compaction-defer-v4 include/trace/events/compaction.h
+--- a/include/trace/events/compaction.h~mm-compaction-add-tracepoint-to-observe-behaviour-of-compaction-defer-v4
++++ a/include/trace/events/compaction.h
+@@ -238,6 +238,7 @@ DEFINE_EVENT(mm_compaction_suitable_temp
+ 	TP_ARGS(zone, order, ret)
+ );
  
- #if defined CONFIG_COMPACTION || defined CONFIG_CMA
- #ifdef CONFIG_TRACEPOINTS
--static const char const *compaction_status_string[] = {
-+static const char *const compaction_status_string[] = {
- 	"deferred",
- 	"skipped",
- 	"continue",
++#ifdef CONFIG_COMPACTION
+ DECLARE_EVENT_CLASS(mm_compaction_defer_template,
+ 
+ 	TP_PROTO(struct zone *zone, int order),
+@@ -291,6 +292,7 @@ DEFINE_EVENT(mm_compaction_defer_templat
+ 
+ 	TP_ARGS(zone, order)
+ );
++#endif
+ 
+ #endif /* _TRACE_COMPACTION_H */
+ 
+diff -puN mm/compaction.c~mm-compaction-add-tracepoint-to-observe-behaviour-of-compaction-defer-v4 mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-add-tracepoint-to-observe-behaviour-of-compaction-defer-v4
++++ a/mm/compaction.c
+@@ -1506,7 +1506,6 @@ unsigned long try_to_compact_pages(gfp_t
+ 			 * succeeds in this zone.
+ 			 */
+ 			compaction_defer_reset(zone, order, false);
+-
+ 			/*
+ 			 * It is possible that async compaction aborted due to
+ 			 * need_resched() and the watermarks were ok thanks to
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 
 origin.patch
-mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
-vmscan-force-scan-offline-memory-cgroups.patch
-mm-memcontrol-default-hierarchy-interface-for-memory.patch
-mm-memcontrol-fold-move_anon-and-move_file.patch
+sparc32-fix-broken-set_pte.patch
+mm-set-page-pfmemalloc-in-prep_new_page.patch
+mm-page_alloc-reduce-number-of-alloc_pages-functions-parameters.patch
+mm-reduce-try_to_compact_pages-parameters.patch
+mm-microoptimize-zonelist-operations.patch
+mm-cma-fix-totalcma_pages-to-include-dt-defined-cma-regions.patch
+mm-compaction-change-tracepoint-format-from-decimal-to-hexadecimal.patch
 mm-compaction-enhance-tracepoint-output-for-compaction-begin-end.patch
-mm-thp-allocate-transparent-hugepages-on-local-node-fix.patch
-docs-procs-describe-proc-pid-map_files-entry-fix.patch
+mm-compaction-print-current-range-where-compaction-work.patch
+mm-compaction-more-trace-to-understand-when-why-compaction-start-finish.patch
+mm-compaction-add-tracepoint-to-observe-behaviour-of-compaction-defer.patch
+mm-when-stealing-freepages-also-take-pages-created-by-splitting-buddy-page.patch
+mm-always-steal-split-buddies-in-fallback-allocations.patch
+mm-more-aggressive-page-stealing-for-unmovable-allocations.patch
+mm-page_ext-remove-unnecessary-stack_trace-field.patch
 mm-page_ext-remove-unnecessary-stack_trace-field-fix.patch
-mm-fix-arithmetic-overflow-in-__vm_enough_memory-fix.patch
 
