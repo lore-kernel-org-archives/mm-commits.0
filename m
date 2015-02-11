@@ -1,137 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [merged] arm-drop-l_pte_file-and-pte_file-related-helpers.patch
+Subject: [merged] arm64-drop-pte_file-and-pte_file-related-helpers.patch
  removed from -mm tree
-Date: Wed, 11 Feb 2015 12:22:11 -0800
-Message-ID: <54dbb9f3.u6C09IKYd3BiKJUd%akpm@linux-foundation.org>
+Date: Wed, 11 Feb 2015 12:22:09 -0800
+Message-ID: <54dbb9f1.8h5RzSwthWZ5KRb+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40950 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40947 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753497AbbBKUWM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 15:22:12 -0500
+	with ESMTP id S1753284AbbBKUWK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 15:22:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, linux@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, catalin.marinas@arm.com, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm: drop L_PTE_FILE and pte_file()-related helpers
+     Subject: arm64: drop PTE_FILE and pte_file()-related helpers
 has been removed from the -mm tree.  Its filename was
-     arm-drop-l_pte_file-and-pte_file-related-helpers.patch
+     arm64-drop-pte_file-and-pte_file-related-helpers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: arm: drop L_PTE_FILE and pte_file()-related helpers
+Subject: arm64: drop PTE_FILE and pte_file()-related helpers
 
 We've replaced remap_file_pages(2) implementation with emulation.  Nobody
 creates non-linear mapping anymore.
 
-This patch also adjust __SWP_TYPE_SHIFT, effectively increase size of
-possible swap file to 128G.
+This patch also adjust __SWP_TYPE_SHIFT and increase number of bits
+availble for swap offset.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Russell King <linux@arm.linux.org.uk>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/pgtable-2level.h |    1 -
- arch/arm/include/asm/pgtable-3level.h |    1 -
- arch/arm/include/asm/pgtable-nommu.h  |    2 --
- arch/arm/include/asm/pgtable.h        |   20 +++-----------------
- arch/arm/mm/proc-macros.S             |    2 +-
- 5 files changed, 4 insertions(+), 22 deletions(-)
+ arch/arm64/include/asm/pgtable.h |   22 ++++------------------
+ 1 file changed, 4 insertions(+), 18 deletions(-)
 
-diff -puN arch/arm/include/asm/pgtable-2level.h~arm-drop-l_pte_file-and-pte_file-related-helpers arch/arm/include/asm/pgtable-2level.h
---- a/arch/arm/include/asm/pgtable-2level.h~arm-drop-l_pte_file-and-pte_file-related-helpers
-+++ a/arch/arm/include/asm/pgtable-2level.h
-@@ -118,7 +118,6 @@
- #define L_PTE_VALID		(_AT(pteval_t, 1) << 0)		/* Valid */
- #define L_PTE_PRESENT		(_AT(pteval_t, 1) << 0)
- #define L_PTE_YOUNG		(_AT(pteval_t, 1) << 1)
--#define L_PTE_FILE		(_AT(pteval_t, 1) << 2)	/* only when !PRESENT */
- #define L_PTE_DIRTY		(_AT(pteval_t, 1) << 6)
- #define L_PTE_RDONLY		(_AT(pteval_t, 1) << 7)
- #define L_PTE_USER		(_AT(pteval_t, 1) << 8)
-diff -puN arch/arm/include/asm/pgtable-3level.h~arm-drop-l_pte_file-and-pte_file-related-helpers arch/arm/include/asm/pgtable-3level.h
---- a/arch/arm/include/asm/pgtable-3level.h~arm-drop-l_pte_file-and-pte_file-related-helpers
-+++ a/arch/arm/include/asm/pgtable-3level.h
-@@ -77,7 +77,6 @@
+diff -puN arch/arm64/include/asm/pgtable.h~arm64-drop-pte_file-and-pte_file-related-helpers arch/arm64/include/asm/pgtable.h
+--- a/arch/arm64/include/asm/pgtable.h~arm64-drop-pte_file-and-pte_file-related-helpers
++++ a/arch/arm64/include/asm/pgtable.h
+@@ -25,7 +25,6 @@
+  * Software defined PTE bits definition.
   */
- #define L_PTE_VALID		(_AT(pteval_t, 1) << 0)		/* Valid */
- #define L_PTE_PRESENT		(_AT(pteval_t, 3) << 0)		/* Present */
--#define L_PTE_FILE		(_AT(pteval_t, 1) << 2)		/* only when !PRESENT */
- #define L_PTE_USER		(_AT(pteval_t, 1) << 6)		/* AP[1] */
- #define L_PTE_SHARED		(_AT(pteval_t, 3) << 8)		/* SH[1:0], inner shareable */
- #define L_PTE_YOUNG		(_AT(pteval_t, 1) << 10)	/* AF */
-diff -puN arch/arm/include/asm/pgtable-nommu.h~arm-drop-l_pte_file-and-pte_file-related-helpers arch/arm/include/asm/pgtable-nommu.h
---- a/arch/arm/include/asm/pgtable-nommu.h~arm-drop-l_pte_file-and-pte_file-related-helpers
-+++ a/arch/arm/include/asm/pgtable-nommu.h
-@@ -54,8 +54,6 @@
- 
- typedef pte_t *pte_addr_t;
- 
--static inline int pte_file(pte_t pte) { return 0; }
--
+ #define PTE_VALID		(_AT(pteval_t, 1) << 0)
+-#define PTE_FILE		(_AT(pteval_t, 1) << 2)	/* only when !pte_present() */
+ #define PTE_DIRTY		(_AT(pteval_t, 1) << 55)
+ #define PTE_SPECIAL		(_AT(pteval_t, 1) << 56)
+ #define PTE_WRITE		(_AT(pteval_t, 1) << 57)
+@@ -469,13 +468,12 @@ extern pgd_t idmap_pg_dir[PTRS_PER_PGD];
  /*
-  * ZERO_PAGE is a global shared page that is always zero: used
-  * for zero-mapped memory areas etc..
-diff -puN arch/arm/include/asm/pgtable.h~arm-drop-l_pte_file-and-pte_file-related-helpers arch/arm/include/asm/pgtable.h
---- a/arch/arm/include/asm/pgtable.h~arm-drop-l_pte_file-and-pte_file-related-helpers
-+++ a/arch/arm/include/asm/pgtable.h
-@@ -318,12 +318,12 @@ static inline pte_t pte_modify(pte_t pte
-  *
-  *   3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1
-  *   1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0
-- *   <--------------- offset ----------------------> < type -> 0 0 0
-+ *   <--------------- offset ------------------------> < type -> 0 0
-  *
-- * This gives us up to 31 swap files and 64GB per swap file.  Note that
-+ * This gives us up to 31 swap files and 128GB per swap file.  Note that
-  * the offset field is always non-zero.
+  * Encode and decode a swap entry:
+  *	bits 0-1:	present (must be zero)
+- *	bit  2:		PTE_FILE
+- *	bits 3-8:	swap type
+- *	bits 9-57:	swap offset
++ *	bits 2-7:	swap type
++ *	bits 8-57:	swap offset
   */
 -#define __SWP_TYPE_SHIFT	3
 +#define __SWP_TYPE_SHIFT	2
- #define __SWP_TYPE_BITS		5
+ #define __SWP_TYPE_BITS		6
+-#define __SWP_OFFSET_BITS	49
++#define __SWP_OFFSET_BITS	50
  #define __SWP_TYPE_MASK		((1 << __SWP_TYPE_BITS) - 1)
  #define __SWP_OFFSET_SHIFT	(__SWP_TYPE_BITS + __SWP_TYPE_SHIFT)
-@@ -342,20 +342,6 @@ static inline pte_t pte_modify(pte_t pte
+ #define __SWP_OFFSET_MASK	((1UL << __SWP_OFFSET_BITS) - 1)
+@@ -493,18 +491,6 @@ extern pgd_t idmap_pg_dir[PTRS_PER_PGD];
   */
  #define MAX_SWAPFILES_CHECK() BUILD_BUG_ON(MAX_SWAPFILES_SHIFT > __SWP_TYPE_BITS)
  
 -/*
-- * Encode and decode a file entry.  File entries are stored in the Linux
-- * page tables as follows:
-- *
-- *   3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1
-- *   1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0
-- *   <----------------------- offset ------------------------> 1 0 0
+- * Encode and decode a file entry:
+- *	bits 0-1:	present (must be zero)
+- *	bit  2:		PTE_FILE
+- *	bits 3-57:	file offset / PAGE_SIZE
 - */
--#define pte_file(pte)		(pte_val(pte) & L_PTE_FILE)
+-#define pte_file(pte)		(pte_val(pte) & PTE_FILE)
 -#define pte_to_pgoff(x)		(pte_val(x) >> 3)
--#define pgoff_to_pte(x)		__pte(((x) << 3) | L_PTE_FILE)
+-#define pgoff_to_pte(x)		__pte(((x) << 3) | PTE_FILE)
 -
--#define PTE_FILE_MAX_BITS	29
+-#define PTE_FILE_MAX_BITS	55
 -
- /* Needs to be defined here and not in linux/mm.h, as it is arch dependent */
- /* FIXME: this is not correct */
- #define kern_addr_valid(addr)	(1)
-diff -puN arch/arm/mm/proc-macros.S~arm-drop-l_pte_file-and-pte_file-related-helpers arch/arm/mm/proc-macros.S
---- a/arch/arm/mm/proc-macros.S~arm-drop-l_pte_file-and-pte_file-related-helpers
-+++ a/arch/arm/mm/proc-macros.S
-@@ -98,7 +98,7 @@
- #endif
- #if !defined (CONFIG_ARM_LPAE) && \
- 	(L_PTE_XN+L_PTE_USER+L_PTE_RDONLY+L_PTE_DIRTY+L_PTE_YOUNG+\
--	 L_PTE_FILE+L_PTE_PRESENT) > L_PTE_SHARED
-+	 L_PTE_PRESENT) > L_PTE_SHARED
- #error Invalid Linux PTE bit settings
- #endif
- #endif	/* CONFIG_MMU */
+ extern int kern_addr_valid(unsigned long addr);
+ 
+ #include <asm-generic/pgtable.h>
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
