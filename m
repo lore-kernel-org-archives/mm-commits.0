@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-convert-p_mknonnuma-and-remaining-page-table-manipulations-fix.patch
- added to -mm tree
-Date: Wed, 11 Feb 2015 14:06:36 -0800
-Message-ID: <54dbd26c.vODpBCJ7JUOxGPD+%akpm@linux-foundation.org>
+ mm-convert-p_mknonnuma-and-remaining-page-table-manipulations-fix-fix.patch added to -mm tree
+Date: Wed, 11 Feb 2015 14:06:38 -0800
+Message-ID: <54dbd26e.aCmSARuJ4MT7DwwZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42647 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42651 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753775AbbBKWGh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 17:06:37 -0500
+	with ESMTP id S1754091AbbBKWGj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 17:06:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andre.przywara@arm.com, mel@csn.ul.ie, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, andre.przywara@arm.com, mel@csn.ul.ie, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm/mm: fix compiler warning in pmdp_invalidate() (in -next)
+     Subject: mm-convert-p_mknonnuma-and-remaining-page-table-manipulations-fix-fix
 has been added to the -mm tree.  Its filename is
-     mm-convert-p_mknonnuma-and-remaining-page-table-manipulations-fix.patch
+     mm-convert-p_mknonnuma-and-remaining-page-table-manipulations-fix-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-convert-p_mknonnuma-and-remaining-page-table-manipulations-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-convert-p_mknonnuma-and-remaining-page-table-manipulations-fix-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-convert-p_mknonnuma-and-remaining-page-table-manipulations-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-convert-p_mknonnuma-and-remaining-page-table-manipulations-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,52 +39,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andre Przywara <andre.przywara@arm.com>
-Subject: arm/mm: fix compiler warning in pmdp_invalidate() (in -next)
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-convert-p_mknonnuma-and-remaining-page-table-manipulations-fix-fix
 
-Commit ff61d185f4e7 ("mm: convert p[te|md]_mknonnuma and remaining
-page table manipulations") removed a check in
-mm/pgtable-generic.c:pmdp_invalidate(), which leaves the
-pmd_mknotpresent macro the only user of the entry variable.
-For ARM/LPAE we use a constant 0 without referencing the argument to
-mark this condition, so the entry variable is no longer used here:
+fix build with STRICT_MM_TYPECHECKS
 
-mm/pgtable-generic.c: In function 'pmdp_invalidate':
-mm/pgtable-generic.c:195:8: warning: unused variable 'entry' [-Wunused-variable]
-  pmd_t entry = *pmdp;
-        ^
-
-Replace the ARM macro implementation with a static inline function to
-get rid of this warning.
-
-Signed-off-by: Andre Przywara <andre.przywara@arm.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Andre Przywara <andre.przywara@arm.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/pgtable-3level.h |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ arch/arm/include/asm/pgtable-3level.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/arm/include/asm/pgtable-3level.h~mm-convert-p_mknonnuma-and-remaining-page-table-manipulations-fix arch/arm/include/asm/pgtable-3level.h
---- a/arch/arm/include/asm/pgtable-3level.h~mm-convert-p_mknonnuma-and-remaining-page-table-manipulations-fix
+diff -puN arch/arm/include/asm/pgtable-3level.h~mm-convert-p_mknonnuma-and-remaining-page-table-manipulations-fix-fix arch/arm/include/asm/pgtable-3level.h
+--- a/arch/arm/include/asm/pgtable-3level.h~mm-convert-p_mknonnuma-and-remaining-page-table-manipulations-fix-fix
 +++ a/arch/arm/include/asm/pgtable-3level.h
-@@ -257,7 +257,10 @@ PMD_BIT_FUNC(mkyoung,   |= PMD_SECT_AF);
- #define mk_pmd(page,prot)	pfn_pmd(page_to_pfn(page),prot)
- 
+@@ -259,7 +259,7 @@ PMD_BIT_FUNC(mkyoung,   |= PMD_SECT_AF);
  /* represent a notpresent pmd by zero, this is used by pmdp_invalidate */
--#define pmd_mknotpresent(pmd)	(__pmd(0))
-+static inline pmd_t pmd_mknotpresent(pmd_t pmd)
-+{
-+	return 0;
-+}
+ static inline pmd_t pmd_mknotpresent(pmd_t pmd)
+ {
+-	return 0;
++	return __pmd(0);
+ }
  
  static inline pmd_t pmd_modify(pmd_t pmd, pgprot_t newprot)
- {
 _
 
-Patches currently in -mm which might be from andre.przywara@arm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-convert-p_mknonnuma-and-remaining-page-table-manipulations-fix.patch
+origin.patch
+mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
 mm-convert-p_mknonnuma-and-remaining-page-table-manipulations-fix-fix.patch
+vmscan-force-scan-offline-memory-cgroups-fix.patch
+mm-memcontrol-default-hierarchy-interface-for-memory.patch
+mm-memcontrol-fold-move_anon-and-move_file-fix.patch
+fs-shrinker-always-scan-at-least-one-object-of-each-type-fix.patch
+mm-compaction-enhance-tracepoint-output-for-compaction-begin-end-v4-fix.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated-fix.patch
+mm-thp-allocate-transparent-hugepages-on-local-node-fix.patch
+docs-procs-describe-proc-pid-map_files-entry-fix.patch
+mm-page_ext-remove-unnecessary-stack_trace-field-fix.patch
+mm-fix-arithmetic-overflow-in-__vm_enough_memory-fix.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
 
