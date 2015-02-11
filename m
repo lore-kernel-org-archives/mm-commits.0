@@ -1,176 +1,138 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- xtensa-drop-_page_file-and-pte_file-related-helpers.patch removed from -mm
- tree
-Date: Wed, 11 Feb 2015 12:23:01 -0800
-Message-ID: <54dbba25.T0pI1Q0jNB9fd35m%akpm@linux-foundation.org>
+ mm-memory-remove-vm_file-check-on-shared-writable-vmas.patch removed from
+ -mm tree
+Date: Wed, 11 Feb 2015 12:23:04 -0800
+Message-ID: <54dbba28.WY4/EqA5y2qKB0le%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41038 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41042 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753139AbbBKUXC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 15:23:02 -0500
+	with ESMTP id S1753139AbbBKUXF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 15:23:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, jcmvbkbc@gmail.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, jack@suse.cz, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: xtensa: drop _PAGE_FILE and pte_file()-related helpers
+     Subject: mm: memory: remove ->vm_file check on shared writable vmas
 has been removed from the -mm tree.  Its filename was
-     xtensa-drop-_page_file-and-pte_file-related-helpers.patch
+     mm-memory-remove-vm_file-check-on-shared-writable-vmas.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: xtensa: drop _PAGE_FILE and pte_file()-related helpers
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memory: remove ->vm_file check on shared writable vmas
 
-We've replaced remap_file_pages(2) implementation with emulation.  Nobody
-creates non-linear mapping anymore.
+Shared anonymous mmaps are implemented with shmem files, so all VMAs with
+shared writable semantics also have an underlying backing file.
 
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Max Filippov <jcmvbkbc@gmail.com>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/include/asm/pgtable.h |   10 ----------
- 1 file changed, 10 deletions(-)
+ mm/memory.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN arch/xtensa/include/asm/pgtable.h~xtensa-drop-_page_file-and-pte_file-related-helpers arch/xtensa/include/asm/pgtable.h
---- a/arch/xtensa/include/asm/pgtable.h~xtensa-drop-_page_file-and-pte_file-related-helpers
-+++ a/arch/xtensa/include/asm/pgtable.h
-@@ -89,8 +89,6 @@
-  *   (PAGE_NONE)|    PPN    | 0 | 00 | ADW | 01 | 11 | 11 |
-  *		+-----------------------------------------+
-  *   swap	|     index     |   type   | 01 | 11 | 00 |
-- *		+- - - - - - - - - - - - - - - - - - - - -+
-- *   file	|        file offset       | 01 | 11 | 10 |
-  *		+-----------------------------------------+
-  *
-  * For T1050 hardware and earlier the layout differs for present and (PAGE_NONE)
-@@ -111,7 +109,6 @@
-  *   index      swap offset / PAGE_SIZE (bit 11-31: 21 bits -> 8 GB)
-  *		(note that the index is always non-zero)
-  *   type       swap type (5 bits -> 32 types)
-- *   file offset 26-bit offset into the file, in increments of PAGE_SIZE
-  *
-  *  Notes:
-  *   - (PROT_NONE) is a special case of 'present' but causes an exception for
-@@ -144,7 +141,6 @@
- #define _PAGE_HW_VALID		0x00
- #define _PAGE_NONE		0x0f
- #endif
--#define _PAGE_FILE		(1<<1)	/* file mapped page, only if !present */
+diff -puN mm/memory.c~mm-memory-remove-vm_file-check-on-shared-writable-vmas mm/memory.c
+--- a/mm/memory.c~mm-memory-remove-vm_file-check-on-shared-writable-vmas
++++ a/mm/memory.c
+@@ -2129,9 +2129,7 @@ reuse:
+ 				balance_dirty_pages_ratelimited(mapping);
+ 			}
  
- #define _PAGE_USER		(1<<4)	/* user access (ring=1) */
+-			/* file_update_time outside page_lock */
+-			if (vma->vm_file)
+-				file_update_time(vma->vm_file);
++			file_update_time(vma->vm_file);
+ 		}
+ 		put_page(dirty_page);
+ 		if (page_mkwrite) {
+@@ -2973,8 +2971,7 @@ static int do_shared_fault(struct mm_str
+ 		balance_dirty_pages_ratelimited(mapping);
+ 	}
  
-@@ -260,7 +256,6 @@ static inline void pgtable_cache_init(vo
- static inline int pte_write(pte_t pte) { return pte_val(pte) & _PAGE_WRITABLE; }
- static inline int pte_dirty(pte_t pte) { return pte_val(pte) & _PAGE_DIRTY; }
- static inline int pte_young(pte_t pte) { return pte_val(pte) & _PAGE_ACCESSED; }
--static inline int pte_file(pte_t pte)  { return pte_val(pte) & _PAGE_FILE; }
- static inline int pte_special(pte_t pte) { return 0; }
+-	/* file_update_time outside page_lock */
+-	if (vma->vm_file && !vma->vm_ops->page_mkwrite)
++	if (!vma->vm_ops->page_mkwrite)
+ 		file_update_time(vma->vm_file);
  
- static inline pte_t pte_wrprotect(pte_t pte)	
-@@ -390,11 +385,6 @@ ptep_set_wrprotect(struct mm_struct *mm,
- #define __pte_to_swp_entry(pte)	((swp_entry_t) { pte_val(pte) })
- #define __swp_entry_to_pte(x)	((pte_t) { (x).val })
- 
--#define PTE_FILE_MAX_BITS	26
--#define pte_to_pgoff(pte)	(pte_val(pte) >> 6)
--#define pgoff_to_pte(off)	\
--	((pte_t) { ((off) << 6) | _PAGE_CA_INVALID | _PAGE_FILE | _PAGE_USER })
--
- #endif /*  !defined (__ASSEMBLY__) */
- 
- 
+ 	return ret;
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 origin.patch
 mm-add-fields-for-compound-destructor-and-order-into-struct-page.patch
-mm-add-vm_bug_on_page-for-page_mapcount.patch
-sparc32-fix-broken-set_pte.patch
-mm-numa-do-not-dereference-pmd-outside-of-the-lock-during-numa-hinting-fault.patch
-mm-add-p-protnone-helpers-for-use-by-numa-balancing.patch
-mm-convert-p_numa-users-to-p_protnone_numa.patch
-ppc64-add-paranoid-warnings-for-unexpected-dsisr_protfault.patch
-mm-convert-p_mknonnuma-and-remaining-page-table-manipulations.patch
-mm-remove-remaining-references-to-numa-hinting-bits-and-helpers.patch
-mm-numa-do-not-trap-faults-on-the-huge-zero-page.patch
-x86-mm-restore-original-pte_special-check.patch
-mm-numa-add-paranoid-check-around-pte_protnone_numa.patch
-mm-numa-avoid-unnecessary-tlb-flushes-when-setting-numa-hinting-entries.patch
+swap-remove-unused-mem_cgroup_uncharge_swapcache-declaration.patch
+mm-memcontrol-track-move_lock-state-internally.patch
+mm-memcontrol-track-move_lock-state-internally-fix.patch
+mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
+mm-vmscan-wake-up-all-pfmemalloc-throttled-processes-at-once.patch
+mm-hugetlb-reduce-arch-dependent-code-around-follow_huge_.patch
+mm-hugetlb-pmd_huge-returns-true-for-non-present-hugepage.patch
+mm-hugetlb-take-page-table-lock-in-follow_huge_pmd.patch
+mm-hugetlb-fix-getting-refcount-0-page-in-hugetlb_fault.patch
+mm-hugetlb-add-migration-hwpoisoned-entry-check-in-hugetlb_change_protection.patch
+mm-hugetlb-add-migration-entry-check-in-__unmap_hugepage_range.patch
 mm-set-page-pfmemalloc-in-prep_new_page.patch
 mm-page_alloc-reduce-number-of-alloc_pages-functions-parameters.patch
 mm-reduce-try_to_compact_pages-parameters.patch
 mm-microoptimize-zonelist-operations.patch
-mm-page_allocc-drop-dead-destroy_compound_page.patch
-mm-more-checks-on-free_pages_prepare-for-tail-pages.patch
-mm-more-checks-on-free_pages_prepare-for-tail-pages-fix-2.patch
-microblaze-define-__pagetable_pmd_folded.patch
-mm-make-first_user_address-unsigned-long-on-all-archs.patch
-mm-asm-generic-define-pud_shift-in-asm-generic-4level-fixuph.patch
-arm-define-__pagetable_pmd_folded-for-lpae.patch
-mm-account-pmd-page-tables-to-the-process.patch
-mm-account-pmd-page-tables-to-the-process-fix.patch
-mm-account-pmd-page-tables-to-the-process-fix-2.patch
-mm-account-pmd-page-tables-to-the-process-fix-3.patch
-mm-fix-false-positive-warning-on-exit-due-mm_nr_pmdsmm.patch
-mm-fix-false-positive-warning-on-exit-due-mm_nr_pmdsmm-fix-2.patch
-mm-thp-allocate-transparent-hugepages-on-local-node.patch
-mm-thp-allocate-transparent-hugepages-on-local-node-fix.patch
-mm-mempolicy-merge-alloc_hugepage_vma-to-alloc_pages_vma.patch
-mm-gup-add-get_user_pages_locked-and-get_user_pages_unlocked.patch
-mm-gup-add-__get_user_pages_unlocked-to-customize-gup_flags.patch
-mm-gup-use-get_user_pages_unlocked-within-get_user_pages_fast.patch
-mm-gup-use-get_user_pages_unlocked.patch
-mm-gup-kvm-use-get_user_pages_unlocked.patch
-proc-pagemap-walk-page-tables-under-pte-lock.patch
-mm-pagewalk-remove-pgd_entry-and-pud_entry.patch
-pagewalk-improve-vma-handling.patch
-pagewalk-add-walk_page_vma.patch
-smaps-remove-mem_size_stats-vma-and-use-walk_page_vma.patch
-clear_refs-remove-clear_refs_private-vma-and-introduce-clear_refs_test_walk.patch
-pagemap-use-walk-vma-instead-of-calling-find_vma.patch
-numa_maps-fix-typo-in-gather_hugetbl_stats.patch
-numa_maps-remove-numa_maps-vma.patch
+list_lru-introduce-list_lru_shrink_countwalk.patch
+fs-consolidate-nrfree_cached_objects-args-in-shrink_control.patch
+vmscan-per-memory-cgroup-slab-shrinkers.patch
+memcg-rename-some-cache-id-related-variables.patch
+memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation.patch
+list_lru-get-rid-of-active_nodes.patch
+list_lru-organize-all-list_lrus-to-list.patch
+list_lru-introduce-per-memcg-lists.patch
+fs-make-shrinker-memcg-aware.patch
+vmscan-force-scan-offline-memory-cgroups.patch
+vmscan-force-scan-offline-memory-cgroups-fix.patch
+memcg-add-build_bug_on-for-string-tables.patch
+mm-page_counter-pull-1-handling-out-of-page_counter_memparse.patch
+mm-memcontrol-default-hierarchy-interface-for-memory.patch
+mm-memcontrol-fold-move_anon-and-move_file.patch
+mm-memcontrol-fold-move_anon-and-move_file-fix.patch
+oom-add-helpers-for-setting-and-clearing-tif_memdie.patch
+oom-thaw-the-oom-victim-if-it-is-frozen.patch
+pm-convert-printk-to-pr_-equivalent.patch
+sysrq-convert-printk-to-pr_-equivalent.patch
+oom-pm-make-oom-detection-in-the-freezer-path-raceless.patch
+mm-memcontrol-simplify-soft-limit-tree-init-code.patch
+mm-memcontrol-consolidate-memory-controller-initialization.patch
+mm-memcontrol-consolidate-swap-controller-code.patch
+fs-shrinker-always-scan-at-least-one-object-of-each-type.patch
+fs-shrinker-always-scan-at-least-one-object-of-each-type-fix.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated-fix.patch
 memcg-cleanup-preparation-for-page-table-walk.patch
-arch-powerpc-mm-subpage-protc-use-walk-vma-and-walk_page_vma.patch
-mempolicy-apply-page-table-walker-on-queue_pages_range.patch
-mm-proc-pid-clear_refs-avoid-split_huge_page.patch
 mincore-apply-page-table-walker-on-do_mincore.patch
+mincore-apply-page-table-walker-on-do_mincore-fix.patch
+mincore-apply-page-table-walker-on-do_mincore-fix-fix.patch
+slab-embed-memcg_cache_params-to-kmem_cache.patch
+slab-link-memcg-caches-of-the-same-kind-into-a-list.patch
+cgroup-release-css-id-after-css_free.patch
+slab-use-css-id-for-naming-per-memcg-caches.patch
+memcg-free-memcg_caches-slot-on-css-offline.patch
+list_lru-add-helpers-to-isolate-items.patch
+memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline.patch
 mm-when-stealing-freepages-also-take-pages-created-by-splitting-buddy-page.patch
 mm-always-steal-split-buddies-in-fallback-allocations.patch
 mm-more-aggressive-page-stealing-for-unmovable-allocations.patch
+vmstat-do-not-use-deferrable-delayed-work-for-vmstat_update.patch
 mm-incorporate-read-only-pages-into-transparent-huge-pages.patch
-mm-do-not-use-mm-nr_pmds-on-mmu-configurations.patch
-mm-fix-xip-fault-vs-truncate-race.patch
-mm-fix-xip-fault-vs-truncate-race-fix.patch
-mm-allow-page-fault-handlers-to-perform-the-cow.patch
-mm-allow-page-fault-handlers-to-perform-the-cow-fix.patch
-vfsext2-introduce-is_daxinode.patch
-daxext2-replace-xip-read-and-write-with-dax-i-o.patch
-daxext2-replace-ext2_clear_xip_target-with-dax_clear_blocks.patch
-daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler.patch
-daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix.patch
-daxext2-replace-xip_truncate_page-with-dax_truncate_page.patch
-dax-replace-xip-documentation-with-dax-documentation.patch
-vfs-remove-get_xip_mem.patch
-ext2-remove-ext2_xip_verify_sb.patch
-ext2-remove-ext2_use_xip.patch
-ext2-remove-xipc-and-xiph.patch
-vfsext2-remove-config_ext2_fs_xip-and-rename-config_fs_xip-to-config_fs_dax.patch
-ext2-remove-ext2_aops_xip.patch
-ext2-get-rid-of-most-mentions-of-xip-in-ext2.patch
-dax-add-dax_zero_page_range.patch
-dax-add-dax_zero_page_range-fix.patch
-ext4-add-dax-functionality.patch
-brd-rename-xip-to-dax.patch
-powerpc-drop-_page_file-and-pte_file-related-helpers.patch
+mm-incorporate-read-only-pages-into-transparent-huge-pages-v4.patch
+memcg-cleanup-static-keys-decrement.patch
+documentation-proc-add-proc-pid-numa_maps-interface-explanation-snippet.patch
+fs-proc-task_mmu-show-page-size-in-proc-pid-numa_maps.patch
+fs-proc-task_mmu-show-page-size-in-proc-pid-numa_maps-fix.patch
 
