@@ -1,156 +1,249 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- hugetlb-x86-register-1g-page-size-if-we-can-allocate-them-runtime.patch
- removed from -mm tree
-Date: Wed, 11 Feb 2015 12:20:39 -0800
-Message-ID: <54dbb997.evaU3M0ORJiXM4xC%akpm@linux-foundation.org>
+ inotify-update-documentation-to-reflect-code-changes.patch removed from -mm tree
+Date: Wed, 11 Feb 2015 12:20:47 -0800
+Message-ID: <54dbb99f.KdRe+0k7j0ruQxmk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40764 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40784 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754013AbbBKUUk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 15:20:40 -0500
+	with ESMTP id S1753775AbbBKUUs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 15:20:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, ak@linux.intel.com, hpa@zytor.com, lcapitulino@redhat.com, mingo@redhat.com, n-horiguchi@ah.jp.nec.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: zhenzhang.zhang@huawei.com, eparis@parisplace.org, jack@suse.cz, john@johnmccutchan.com, morgan.wang@huawei.com, robert.w.love@intel.com, xypron.glpk@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb, x86: register 1G page size if we can allocate them at runtime
+     Subject: inotify: update documentation to reflect code changes
 has been removed from the -mm tree.  Its filename was
-     hugetlb-x86-register-1g-page-size-if-we-can-allocate-them-runtime.patch
+     inotify-update-documentation-to-reflect-code-changes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: hugetlb, x86: register 1G page size if we can allocate them at runtime
+From: Zhang Zhen <zhenzhang.zhang@huawei.com>
+Subject: inotify: update documentation to reflect code changes
 
-After commit 944d9fec8d7a ("hugetlb: add support for gigantic page
-allocation at runtime") we can allocate 1G pages at runtime if CMA is
-enabled.
+The inotify interface has changed a lot.  The user interface was too old,
+and the kernel interface was removed by Eric Paris in commit: 2dfc1ca
+inotify: remove inotify in kernel interface.
 
-Let's register 1G pages into hugetlb even if the user hasn't requested
-them explicitly at boot time with hugepagesz=1G.
-
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reviewed-by: Luiz Capitulino <lcapitulino@redhat.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Signed-off-by: Zhang Zhen <zhenzhang.zhang@huawei.com>
+Cc: Wang Kai <morgan.wang@huawei.com>
+Cc: Eric Paris <eparis@parisplace.org>
+Cc: Robert Love <robert.w.love@intel.com>
+Cc: John McCutchan <john@johnmccutchan.com>
+Cc: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Acked-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/hugetlbpage.c |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ Documentation/filesystems/inotify.txt |  197 ------------------------
+ 1 file changed, 3 insertions(+), 194 deletions(-)
 
-diff -puN arch/x86/mm/hugetlbpage.c~hugetlb-x86-register-1g-page-size-if-we-can-allocate-them-runtime arch/x86/mm/hugetlbpage.c
---- a/arch/x86/mm/hugetlbpage.c~hugetlb-x86-register-1g-page-size-if-we-can-allocate-them-runtime
-+++ a/arch/x86/mm/hugetlbpage.c
-@@ -178,4 +178,15 @@ static __init int setup_hugepagesz(char
- 	return 1;
- }
- __setup("hugepagesz=", setup_hugepagesz);
-+
-+#ifdef CONFIG_CMA
-+static __init int gigantic_pages_init(void)
-+{
-+	/* With CMA we can allocate gigantic pages at runtime */
-+	if (cpu_has_gbpages && !size_to_hstate(1UL << PUD_SHIFT))
-+		hugetlb_add_hstate(PUD_SHIFT - PAGE_SHIFT);
-+	return 0;
-+}
-+arch_initcall(gigantic_pages_init);
-+#endif
- #endif
-_
-
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
-
-origin.patch
-mm-add-fields-for-compound-destructor-and-order-into-struct-page.patch
-mm-add-vm_bug_on_page-for-page_mapcount.patch
-sparc32-fix-broken-set_pte.patch
-mm-numa-do-not-dereference-pmd-outside-of-the-lock-during-numa-hinting-fault.patch
-mm-add-p-protnone-helpers-for-use-by-numa-balancing.patch
-mm-convert-p_numa-users-to-p_protnone_numa.patch
-ppc64-add-paranoid-warnings-for-unexpected-dsisr_protfault.patch
-mm-convert-p_mknonnuma-and-remaining-page-table-manipulations.patch
-mm-remove-remaining-references-to-numa-hinting-bits-and-helpers.patch
-mm-numa-do-not-trap-faults-on-the-huge-zero-page.patch
-x86-mm-restore-original-pte_special-check.patch
-mm-numa-add-paranoid-check-around-pte_protnone_numa.patch
-mm-numa-avoid-unnecessary-tlb-flushes-when-setting-numa-hinting-entries.patch
-mm-set-page-pfmemalloc-in-prep_new_page.patch
-mm-page_alloc-reduce-number-of-alloc_pages-functions-parameters.patch
-mm-reduce-try_to_compact_pages-parameters.patch
-mm-microoptimize-zonelist-operations.patch
-mm-page_allocc-drop-dead-destroy_compound_page.patch
-mm-more-checks-on-free_pages_prepare-for-tail-pages.patch
-mm-more-checks-on-free_pages_prepare-for-tail-pages-fix-2.patch
-microblaze-define-__pagetable_pmd_folded.patch
-mm-make-first_user_address-unsigned-long-on-all-archs.patch
-mm-asm-generic-define-pud_shift-in-asm-generic-4level-fixuph.patch
-arm-define-__pagetable_pmd_folded-for-lpae.patch
-mm-account-pmd-page-tables-to-the-process.patch
-mm-account-pmd-page-tables-to-the-process-fix.patch
-mm-account-pmd-page-tables-to-the-process-fix-2.patch
-mm-account-pmd-page-tables-to-the-process-fix-3.patch
-mm-fix-false-positive-warning-on-exit-due-mm_nr_pmdsmm.patch
-mm-fix-false-positive-warning-on-exit-due-mm_nr_pmdsmm-fix-2.patch
-mm-thp-allocate-transparent-hugepages-on-local-node.patch
-mm-thp-allocate-transparent-hugepages-on-local-node-fix.patch
-mm-mempolicy-merge-alloc_hugepage_vma-to-alloc_pages_vma.patch
-mm-gup-add-get_user_pages_locked-and-get_user_pages_unlocked.patch
-mm-gup-add-__get_user_pages_unlocked-to-customize-gup_flags.patch
-mm-gup-use-get_user_pages_unlocked-within-get_user_pages_fast.patch
-mm-gup-use-get_user_pages_unlocked.patch
-mm-gup-kvm-use-get_user_pages_unlocked.patch
-proc-pagemap-walk-page-tables-under-pte-lock.patch
-mm-pagewalk-remove-pgd_entry-and-pud_entry.patch
-pagewalk-improve-vma-handling.patch
-pagewalk-add-walk_page_vma.patch
-smaps-remove-mem_size_stats-vma-and-use-walk_page_vma.patch
-clear_refs-remove-clear_refs_private-vma-and-introduce-clear_refs_test_walk.patch
-pagemap-use-walk-vma-instead-of-calling-find_vma.patch
-numa_maps-fix-typo-in-gather_hugetbl_stats.patch
-numa_maps-remove-numa_maps-vma.patch
-memcg-cleanup-preparation-for-page-table-walk.patch
-arch-powerpc-mm-subpage-protc-use-walk-vma-and-walk_page_vma.patch
-mempolicy-apply-page-table-walker-on-queue_pages_range.patch
-mm-proc-pid-clear_refs-avoid-split_huge_page.patch
-mincore-apply-page-table-walker-on-do_mincore.patch
-mm-when-stealing-freepages-also-take-pages-created-by-splitting-buddy-page.patch
-mm-always-steal-split-buddies-in-fallback-allocations.patch
-mm-more-aggressive-page-stealing-for-unmovable-allocations.patch
-mm-incorporate-read-only-pages-into-transparent-huge-pages.patch
-mm-do-not-use-mm-nr_pmds-on-mmu-configurations.patch
-mm-fix-xip-fault-vs-truncate-race.patch
-mm-fix-xip-fault-vs-truncate-race-fix.patch
-mm-allow-page-fault-handlers-to-perform-the-cow.patch
-mm-allow-page-fault-handlers-to-perform-the-cow-fix.patch
-vfsext2-introduce-is_daxinode.patch
-daxext2-replace-xip-read-and-write-with-dax-i-o.patch
-daxext2-replace-ext2_clear_xip_target-with-dax_clear_blocks.patch
-daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler.patch
-daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix.patch
-daxext2-replace-xip_truncate_page-with-dax_truncate_page.patch
-dax-replace-xip-documentation-with-dax-documentation.patch
-vfs-remove-get_xip_mem.patch
-ext2-remove-ext2_xip_verify_sb.patch
-ext2-remove-ext2_use_xip.patch
-ext2-remove-xipc-and-xiph.patch
-vfsext2-remove-config_ext2_fs_xip-and-rename-config_fs_xip-to-config_fs_dax.patch
-ext2-remove-ext2_aops_xip.patch
-ext2-get-rid-of-most-mentions-of-xip-in-ext2.patch
-dax-add-dax_zero_page_range.patch
-dax-add-dax_zero_page_range-fix.patch
-ext4-add-dax-functionality.patch
-brd-rename-xip-to-dax.patch
-powerpc-drop-_page_file-and-pte_file-related-helpers.patch
-
+diff -puN Documentation/filesystems/inotify.txt~inotify-update-documentation-to-reflect-code-changes Documentation/filesystems/inotify.txt
+--- a/Documentation/filesystems/inotify.txt~inotify-update-documentation-to-reflect-code-changes
++++ a/Documentation/filesystems/inotify.txt
+@@ -4,201 +4,10 @@
+ 
+ 
+ Document started 15 Mar 2005 by Robert Love <rml@novell.com>
++Document updated 4 Jan 2015 by Zhang Zhen <zhenzhang.zhang@huawei.com>
++	--Deleted obsoleted interface, just refer to manpages for user interface.
+ 
+-
+-(i) User Interface
+-
+-Inotify is controlled by a set of three system calls and normal file I/O on a
+-returned file descriptor.
+-
+-First step in using inotify is to initialise an inotify instance:
+-
+-	int fd = inotify_init ();
+-
+-Each instance is associated with a unique, ordered queue.
+-
+-Change events are managed by "watches".  A watch is an (object,mask) pair where
+-the object is a file or directory and the mask is a bit mask of one or more
+-inotify events that the application wishes to receive.  See <linux/inotify.h>
+-for valid events.  A watch is referenced by a watch descriptor, or wd.
+-
+-Watches are added via a path to the file.
+-
+-Watches on a directory will return events on any files inside of the directory.
+-
+-Adding a watch is simple:
+-
+-	int wd = inotify_add_watch (fd, path, mask);
+-
+-Where "fd" is the return value from inotify_init(), path is the path to the
+-object to watch, and mask is the watch mask (see <linux/inotify.h>).
+-
+-You can update an existing watch in the same manner, by passing in a new mask.
+-
+-An existing watch is removed via
+-
+-	int ret = inotify_rm_watch (fd, wd);
+-
+-Events are provided in the form of an inotify_event structure that is read(2)
+-from a given inotify instance.  The filename is of dynamic length and follows
+-the struct. It is of size len.  The filename is padded with null bytes to
+-ensure proper alignment.  This padding is reflected in len.
+-
+-You can slurp multiple events by passing a large buffer, for example
+-
+-	size_t len = read (fd, buf, BUF_LEN);
+-
+-Where "buf" is a pointer to an array of "inotify_event" structures at least
+-BUF_LEN bytes in size.  The above example will return as many events as are
+-available and fit in BUF_LEN.
+-
+-Each inotify instance fd is also select()- and poll()-able.
+-
+-You can find the size of the current event queue via the standard FIONREAD
+-ioctl on the fd returned by inotify_init().
+-
+-All watches are destroyed and cleaned up on close.
+-
+-
+-(ii)
+-
+-Prototypes:
+-
+-	int inotify_init (void);
+-	int inotify_add_watch (int fd, const char *path, __u32 mask);
+-	int inotify_rm_watch (int fd, __u32 mask);
+-
+-
+-(iii) Kernel Interface
+-
+-Inotify's kernel API consists a set of functions for managing watches and an
+-event callback.
+-
+-To use the kernel API, you must first initialize an inotify instance with a set
+-of inotify_operations.  You are given an opaque inotify_handle, which you use
+-for any further calls to inotify.
+-
+-    struct inotify_handle *ih = inotify_init(my_event_handler);
+-
+-You must provide a function for processing events and a function for destroying
+-the inotify watch.
+-
+-    void handle_event(struct inotify_watch *watch, u32 wd, u32 mask,
+-    	              u32 cookie, const char *name, struct inode *inode)
+-
+-	watch - the pointer to the inotify_watch that triggered this call
+-	wd - the watch descriptor
+-	mask - describes the event that occurred
+-	cookie - an identifier for synchronizing events
+-	name - the dentry name for affected files in a directory-based event
+-	inode - the affected inode in a directory-based event
+-
+-    void destroy_watch(struct inotify_watch *watch)
+-
+-You may add watches by providing a pre-allocated and initialized inotify_watch
+-structure and specifying the inode to watch along with an inotify event mask.
+-You must pin the inode during the call.  You will likely wish to embed the
+-inotify_watch structure in a structure of your own which contains other
+-information about the watch.  Once you add an inotify watch, it is immediately
+-subject to removal depending on filesystem events.  You must grab a reference if
+-you depend on the watch hanging around after the call.
+-
+-    inotify_init_watch(&my_watch->iwatch);
+-    inotify_get_watch(&my_watch->iwatch);	// optional
+-    s32 wd = inotify_add_watch(ih, &my_watch->iwatch, inode, mask);
+-    inotify_put_watch(&my_watch->iwatch);	// optional
+-
+-You may use the watch descriptor (wd) or the address of the inotify_watch for
+-other inotify operations.  You must not directly read or manipulate data in the
+-inotify_watch.  Additionally, you must not call inotify_add_watch() more than
+-once for a given inotify_watch structure, unless you have first called either
+-inotify_rm_watch() or inotify_rm_wd().
+-
+-To determine if you have already registered a watch for a given inode, you may
+-call inotify_find_watch(), which gives you both the wd and the watch pointer for
+-the inotify_watch, or an error if the watch does not exist.
+-
+-    wd = inotify_find_watch(ih, inode, &watchp);
+-
+-You may use container_of() on the watch pointer to access your own data
+-associated with a given watch.  When an existing watch is found,
+-inotify_find_watch() bumps the refcount before releasing its locks.  You must
+-put that reference with:
+-
+-    put_inotify_watch(watchp);
+-
+-Call inotify_find_update_watch() to update the event mask for an existing watch.
+-inotify_find_update_watch() returns the wd of the updated watch, or an error if
+-the watch does not exist.
+-
+-    wd = inotify_find_update_watch(ih, inode, mask);
+-
+-An existing watch may be removed by calling either inotify_rm_watch() or
+-inotify_rm_wd().
+-
+-    int ret = inotify_rm_watch(ih, &my_watch->iwatch);
+-    int ret = inotify_rm_wd(ih, wd);
+-
+-A watch may be removed while executing your event handler with the following:
+-
+-    inotify_remove_watch_locked(ih, iwatch);
+-
+-Call inotify_destroy() to remove all watches from your inotify instance and
+-release it.  If there are no outstanding references, inotify_destroy() will call
+-your destroy_watch op for each watch.
+-
+-    inotify_destroy(ih);
+-
+-When inotify removes a watch, it sends an IN_IGNORED event to your callback.
+-You may use this event as an indication to free the watch memory.  Note that
+-inotify may remove a watch due to filesystem events, as well as by your request.
+-If you use IN_ONESHOT, inotify will remove the watch after the first event, at
+-which point you may call the final inotify_put_watch.
+-
+-(iv) Kernel Interface Prototypes
+-
+-	struct inotify_handle *inotify_init(struct inotify_operations *ops);
+-
+-	inotify_init_watch(struct inotify_watch *watch);
+-
+-	s32 inotify_add_watch(struct inotify_handle *ih,
+-		              struct inotify_watch *watch,
+-			      struct inode *inode, u32 mask);
+-
+-	s32 inotify_find_watch(struct inotify_handle *ih, struct inode *inode,
+-			       struct inotify_watch **watchp);
+-
+-	s32 inotify_find_update_watch(struct inotify_handle *ih,
+-				      struct inode *inode, u32 mask);
+-
+-	int inotify_rm_wd(struct inotify_handle *ih, u32 wd);
+-
+-	int inotify_rm_watch(struct inotify_handle *ih,
+-			     struct inotify_watch *watch);
+-
+-	void inotify_remove_watch_locked(struct inotify_handle *ih,
+-					 struct inotify_watch *watch);
+-
+-	void inotify_destroy(struct inotify_handle *ih);
+-
+-	void get_inotify_watch(struct inotify_watch *watch);
+-	void put_inotify_watch(struct inotify_watch *watch);
+-
+-
+-(v) Internal Kernel Implementation
+-
+-Each inotify instance is represented by an inotify_handle structure.
+-Inotify's userspace consumers also have an inotify_device which is
+-associated with the inotify_handle, and on which events are queued.
+-
+-Each watch is associated with an inotify_watch structure.  Watches are chained
+-off of each associated inotify_handle and each associated inode.
+-
+-See fs/notify/inotify/inotify_fsnotify.c and fs/notify/inotify/inotify_user.c
+-for the locking and lifetime rules.
+-
