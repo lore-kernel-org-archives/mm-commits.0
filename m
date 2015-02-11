@@ -1,80 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: [merged] unicore32-drop-pte_file-related-helpers.patch removed
- from -mm tree
-Date: Wed, 11 Feb 2015 12:22:57 -0800
-Message-ID: <54dbba21.kGkfyjkLwePjOkLn%akpm@linux-foundation.org>
+Subject: [merged] um-drop-_page_file-and-pte_file-related-helpers.patch
+ removed from -mm tree
+Date: Wed, 11 Feb 2015 12:22:55 -0800
+Message-ID: <54dbba1f.gz3xFIh+LVDQFQm5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41030 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41026 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753139AbbBKUW6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 15:22:58 -0500
+	with ESMTP id S1753139AbbBKUW4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 15:22:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, gxt@mprc.pku.edu.cn, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, jdike@addtoit.com, richard@nod.at, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: unicore32: drop pte_file()-related helpers
+     Subject: um: drop _PAGE_FILE and pte_file()-related helpers
 has been removed from the -mm tree.  Its filename was
-     unicore32-drop-pte_file-related-helpers.patch
+     um-drop-_page_file-and-pte_file-related-helpers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: unicore32: drop pte_file()-related helpers
+Subject: um: drop _PAGE_FILE and pte_file()-related helpers
 
 We've replaced remap_file_pages(2) implementation with emulation.  Nobody
 creates non-linear mapping anymore.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Guan Xuetao <gxt@mprc.pku.edu.cn>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Richard Weinberger <richard@nod.at>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/unicore32/include/asm/pgtable-hwdef.h |    1 -
- arch/unicore32/include/asm/pgtable.h       |   14 --------------
- 2 files changed, 15 deletions(-)
+ arch/um/include/asm/pgtable-2level.h |    9 ---------
+ arch/um/include/asm/pgtable-3level.h |   20 --------------------
+ arch/um/include/asm/pgtable.h        |    9 ---------
+ 3 files changed, 38 deletions(-)
 
-diff -puN arch/unicore32/include/asm/pgtable-hwdef.h~unicore32-drop-pte_file-related-helpers arch/unicore32/include/asm/pgtable-hwdef.h
---- a/arch/unicore32/include/asm/pgtable-hwdef.h~unicore32-drop-pte_file-related-helpers
-+++ a/arch/unicore32/include/asm/pgtable-hwdef.h
-@@ -44,7 +44,6 @@
- #define PTE_TYPE_INVALID	(3 << 0)
- 
- #define PTE_PRESENT		(1 << 2)
--#define PTE_FILE		(1 << 3)	/* only when !PRESENT */
- #define PTE_YOUNG		(1 << 3)
- #define PTE_DIRTY		(1 << 4)
- #define PTE_CACHEABLE		(1 << 5)
-diff -puN arch/unicore32/include/asm/pgtable.h~unicore32-drop-pte_file-related-helpers arch/unicore32/include/asm/pgtable.h
---- a/arch/unicore32/include/asm/pgtable.h~unicore32-drop-pte_file-related-helpers
-+++ a/arch/unicore32/include/asm/pgtable.h
-@@ -283,20 +283,6 @@ extern pgd_t swapper_pg_dir[PTRS_PER_PGD
- #define MAX_SWAPFILES_CHECK()	\
- 	BUILD_BUG_ON(MAX_SWAPFILES_SHIFT > __SWP_TYPE_BITS)
+diff -puN arch/um/include/asm/pgtable-2level.h~um-drop-_page_file-and-pte_file-related-helpers arch/um/include/asm/pgtable-2level.h
+--- a/arch/um/include/asm/pgtable-2level.h~um-drop-_page_file-and-pte_file-related-helpers
++++ a/arch/um/include/asm/pgtable-2level.h
+@@ -41,13 +41,4 @@ static inline void pgd_mkuptodate(pgd_t
+ #define pfn_pte(pfn, prot) __pte(pfn_to_phys(pfn) | pgprot_val(prot))
+ #define pfn_pmd(pfn, prot) __pmd(pfn_to_phys(pfn) | pgprot_val(prot))
  
 -/*
-- * Encode and decode a file entry.  File entries are stored in the Linux
-- * page tables as follows:
-- *
-- *   3 3 2 2 2 2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1
-- *   1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0
-- *   <----------------------- offset ----------------------> 1 0 0 0
+- * Bits 0 through 4 are taken
 - */
--#define pte_file(pte)		(pte_val(pte) & PTE_FILE)
--#define pte_to_pgoff(x)		(pte_val(x) >> 4)
--#define pgoff_to_pte(x)		__pte(((x) << 4) | PTE_FILE)
+-#define PTE_FILE_MAX_BITS	27
 -
--#define PTE_FILE_MAX_BITS	28
+-#define pte_to_pgoff(pte) (pte_val(pte) >> 5)
 -
- /* Needs to be defined here and not in linux/mm.h, as it is arch dependent */
- /* FIXME: this is not correct */
- #define kern_addr_valid(addr)	(1)
+-#define pgoff_to_pte(off) ((pte_t) { ((off) << 5) + _PAGE_FILE })
+-
+ #endif
+diff -puN arch/um/include/asm/pgtable-3level.h~um-drop-_page_file-and-pte_file-related-helpers arch/um/include/asm/pgtable-3level.h
+--- a/arch/um/include/asm/pgtable-3level.h~um-drop-_page_file-and-pte_file-related-helpers
++++ a/arch/um/include/asm/pgtable-3level.h
+@@ -112,25 +112,5 @@ static inline pmd_t pfn_pmd(pfn_t page_n
+ 	return __pmd((page_nr << PAGE_SHIFT) | pgprot_val(pgprot));
+ }
+ 
+-/*
+- * Bits 0 through 3 are taken in the low part of the pte,
+- * put the 32 bits of offset into the high part.
+- */
+-#define PTE_FILE_MAX_BITS	32
+-
+-#ifdef CONFIG_64BIT
+-
+-#define pte_to_pgoff(p) ((p).pte >> 32)
+-
+-#define pgoff_to_pte(off) ((pte_t) { ((off) << 32) | _PAGE_FILE })
+-
+-#else
+-
+-#define pte_to_pgoff(pte) ((pte).pte_high)
+-
+-#define pgoff_to_pte(off) ((pte_t) { _PAGE_FILE, (off) })
+-
+-#endif
+-
+ #endif
+ 
+diff -puN arch/um/include/asm/pgtable.h~um-drop-_page_file-and-pte_file-related-helpers arch/um/include/asm/pgtable.h
+--- a/arch/um/include/asm/pgtable.h~um-drop-_page_file-and-pte_file-related-helpers
++++ a/arch/um/include/asm/pgtable.h
+@@ -18,7 +18,6 @@
+ #define _PAGE_ACCESSED	0x080
+ #define _PAGE_DIRTY	0x100
+ /* If _PAGE_PRESENT is clear, we use these: */
+-#define _PAGE_FILE	0x008	/* nonlinear file mapping, saved PTE; unset:swap */
+ #define _PAGE_PROTNONE	0x010	/* if the user mapped it with PROT_NONE;
+ 				   pte_present gives true */
+ 
+@@ -151,14 +150,6 @@ static inline int pte_write(pte_t pte)
+ 	       !(pte_get_bits(pte, _PAGE_PROTNONE)));
+ }
+ 
+-/*
+- * The following only works if pte_present() is not true.
+- */
+-static inline int pte_file(pte_t pte)
+-{
+-	return pte_get_bits(pte, _PAGE_FILE);
+-}
+-
+ static inline int pte_dirty(pte_t pte)
+ {
+ 	return pte_get_bits(pte, _PAGE_DIRTY);
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
