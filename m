@@ -1,101 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ia64-drop-_page_file-and-pte_file-related-helpers.patch
- removed from -mm tree
-Date: Wed, 11 Feb 2015 12:22:25 -0800
-Message-ID: <54dbba01.oBTf/M6qLb6Zg8GR%akpm@linux-foundation.org>
+Subject: [merged]
+ microblaze-drop-_page_file-and-pte_file-related-helpers.patch removed from
+ -mm tree
+Date: Wed, 11 Feb 2015 12:22:33 -0800
+Message-ID: <54dbba09.M6Hxnr5hbFle19I0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40974 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40986 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753284AbbBKUW0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 15:22:26 -0500
+	with ESMTP id S1753284AbbBKUWe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 15:22:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, fenghua.yu@intel.com, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, monstr@monstr.eu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ia64: drop _PAGE_FILE and pte_file()-related helpers
+     Subject: microblaze: drop _PAGE_FILE and pte_file()-related helpers
 has been removed from the -mm tree.  Its filename was
-     ia64-drop-_page_file-and-pte_file-related-helpers.patch
+     microblaze-drop-_page_file-and-pte_file-related-helpers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: ia64: drop _PAGE_FILE and pte_file()-related helpers
+Subject: microblaze: drop _PAGE_FILE and pte_file()-related helpers
 
 We've replaced remap_file_pages(2) implementation with emulation.  Nobody
 creates non-linear mapping anymore.
 
-This patch also increase number of bits availble for swap offset.
-
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Michal Simek <monstr@monstr.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/include/asm/pgtable.h |   25 +++++--------------------
- 1 file changed, 5 insertions(+), 20 deletions(-)
+ arch/microblaze/include/asm/pgtable.h |   11 -----------
+ 1 file changed, 11 deletions(-)
 
-diff -puN arch/ia64/include/asm/pgtable.h~ia64-drop-_page_file-and-pte_file-related-helpers arch/ia64/include/asm/pgtable.h
---- a/arch/ia64/include/asm/pgtable.h~ia64-drop-_page_file-and-pte_file-related-helpers
-+++ a/arch/ia64/include/asm/pgtable.h
-@@ -57,9 +57,6 @@
- #define _PAGE_ED		(__IA64_UL(1) << 52)	/* exception deferral */
- #define _PAGE_PROTNONE		(__IA64_UL(1) << 63)
+diff -puN arch/microblaze/include/asm/pgtable.h~microblaze-drop-_page_file-and-pte_file-related-helpers arch/microblaze/include/asm/pgtable.h
+--- a/arch/microblaze/include/asm/pgtable.h~microblaze-drop-_page_file-and-pte_file-related-helpers
++++ a/arch/microblaze/include/asm/pgtable.h
+@@ -40,10 +40,6 @@ extern int mem_init_done;
+ #define __pte_to_swp_entry(pte)	((swp_entry_t) { pte_val(pte) })
+ #define __swp_entry_to_pte(x)	((pte_t) { (x).val })
  
--/* Valid only for a PTE with the present bit cleared: */
--#define _PAGE_FILE		(1 << 1)		/* see swap & file pte remarks below */
+-#ifndef __ASSEMBLY__
+-static inline int pte_file(pte_t pte) { return 0; }
+-#endif /* __ASSEMBLY__ */
 -
- #define _PFN_MASK		_PAGE_PPN_MASK
- /* Mask of bits which may be changed by pte_modify(); the odd bits are there for _PAGE_PROTNONE */
- #define _PAGE_CHG_MASK	(_PAGE_P | _PAGE_PROTNONE | _PAGE_PL_MASK | _PAGE_AR_MASK | _PAGE_ED)
-@@ -300,7 +297,6 @@ extern unsigned long VMALLOC_END;
- #define pte_exec(pte)		((pte_val(pte) & _PAGE_AR_RX) != 0)
- #define pte_dirty(pte)		((pte_val(pte) & _PAGE_D) != 0)
- #define pte_young(pte)		((pte_val(pte) & _PAGE_A) != 0)
--#define pte_file(pte)		((pte_val(pte) & _PAGE_FILE) != 0)
- #define pte_special(pte)	0
+ #define ZERO_PAGE(vaddr)	({ BUG(); NULL; })
+ 
+ #define swapper_pg_dir ((pgd_t *) NULL)
+@@ -207,7 +203,6 @@ static inline pte_t pte_mkspecial(pte_t
+ 
+ /* Definitions for MicroBlaze. */
+ #define	_PAGE_GUARDED	0x001	/* G: page is guarded from prefetch */
+-#define _PAGE_FILE	0x001	/* when !present: nonlinear file mapping */
+ #define _PAGE_PRESENT	0x002	/* software: PTE contains a translation */
+ #define	_PAGE_NO_CACHE	0x004	/* I: caching is inhibited */
+ #define	_PAGE_WRITETHRU	0x008	/* W: caching is write-through */
+@@ -337,7 +332,6 @@ static inline int pte_write(pte_t pte) {
+ static inline int pte_exec(pte_t pte)  { return pte_val(pte) & _PAGE_EXEC; }
+ static inline int pte_dirty(pte_t pte) { return pte_val(pte) & _PAGE_DIRTY; }
+ static inline int pte_young(pte_t pte) { return pte_val(pte) & _PAGE_ACCESSED; }
+-static inline int pte_file(pte_t pte)  { return pte_val(pte) & _PAGE_FILE; }
+ 
+ static inline void pte_uncache(pte_t pte) { pte_val(pte) |= _PAGE_NO_CACHE; }
+ static inline void pte_cache(pte_t pte)   { pte_val(pte) &= ~_PAGE_NO_CACHE; }
+@@ -499,11 +493,6 @@ static inline pmd_t *pmd_offset(pgd_t *d
+ 
+ #define pte_unmap(pte)		kunmap_atomic(pte)
+ 
+-/* Encode and decode a nonlinear file mapping entry */
+-#define PTE_FILE_MAX_BITS	29
+-#define pte_to_pgoff(pte)	(pte_val(pte) >> 3)
+-#define pgoff_to_pte(off)	((pte_t) { ((off) << 3) | _PAGE_FILE })
+-
+ extern pgd_t swapper_pg_dir[PTRS_PER_PGD];
  
  /*
-@@ -472,27 +468,16 @@ extern void paging_init (void);
-  *
-  * Format of swap pte:
-  *	bit   0   : present bit (must be zero)
-- *	bit   1   : _PAGE_FILE (must be zero)
-- *	bits  2- 8: swap-type
-- *	bits  9-62: swap offset
-- *	bit  63   : _PAGE_PROTNONE bit
-- *
-- * Format of file pte:
-- *	bit   0   : present bit (must be zero)
-- *	bit   1   : _PAGE_FILE (must be one)
-- *	bits  2-62: file_offset/PAGE_SIZE
-+ *	bits  1- 7: swap-type
-+ *	bits  8-62: swap offset
-  *	bit  63   : _PAGE_PROTNONE bit
-  */
--#define __swp_type(entry)		(((entry).val >> 2) & 0x7f)
--#define __swp_offset(entry)		(((entry).val << 1) >> 10)
--#define __swp_entry(type,offset)	((swp_entry_t) { ((type) << 2) | ((long) (offset) << 9) })
-+#define __swp_type(entry)		(((entry).val >> 1) & 0x7f)
-+#define __swp_offset(entry)		(((entry).val << 1) >> 9)
-+#define __swp_entry(type,offset)	((swp_entry_t) { ((type) << 1) | ((long) (offset) << 8) })
- #define __pte_to_swp_entry(pte)		((swp_entry_t) { pte_val(pte) })
- #define __swp_entry_to_pte(x)		((pte_t) { (x).val })
- 
--#define PTE_FILE_MAX_BITS		61
--#define pte_to_pgoff(pte)		((pte_val(pte) << 1) >> 3)
--#define pgoff_to_pte(off)		((pte_t) { ((off) << 2) | _PAGE_FILE })
--
- /*
-  * ZERO_PAGE is a global shared page that is always zero: used
-  * for zero-mapped memory areas etc..
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
