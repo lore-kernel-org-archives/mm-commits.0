@@ -1,70 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ocfs2-fix-snprintf-format-specifier-in-dlmdebugc.patch
- removed from -mm tree
-Date: Wed, 11 Feb 2015 12:21:04 -0800
-Message-ID: <54dbb9b0.fpsotKaXrK8vBLE1%akpm@linux-foundation.org>
+Subject: [merged] ocfs2-fix-wrong-comment.patch removed from -mm tree
+Date: Wed, 11 Feb 2015 12:21:01 -0800
+Message-ID: <54dbb9ad.5ux22fqb+XbjzvNy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40817 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40812 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754013AbbBKUVF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 15:21:05 -0500
+	with ESMTP id S1754013AbbBKUVC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 15:21:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alex.chen@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.de, mm-commits@vger.kernel.org
+To: junxiao.bi@oracle.com, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix snprintf format specifier in dlmdebug.c
+     Subject: ocfs2: fix wrong comment
 has been removed from the -mm tree.  Its filename was
-     ocfs2-fix-snprintf-format-specifier-in-dlmdebugc.patch
+     ocfs2-fix-wrong-comment.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: alex chen <alex.chen@huawei.com>
-Subject: ocfs2: fix snprintf format specifier in dlmdebug.c
+From: Junxiao Bi <junxiao.bi@oracle.com>
+Subject: ocfs2: fix wrong comment
 
-Use snprintf format specifier "%lu" instead of "%ld" for argument of type
-'unsigned long'.
+O2NET_CONN_IDLE_DELAY is not defined, connection attempts will not be
+canceled due to timeout.
 
-Signed-off-by: Alex Chen <alex.chen@huawei.com>
-Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
-Reviewed-by: Mark Fasheh <mfasheh@suse.de>
+Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmdebug.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/ocfs2/cluster/tcp_internal.h |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN fs/ocfs2/dlm/dlmdebug.c~ocfs2-fix-snprintf-format-specifier-in-dlmdebugc fs/ocfs2/dlm/dlmdebug.c
---- a/fs/ocfs2/dlm/dlmdebug.c~ocfs2-fix-snprintf-format-specifier-in-dlmdebugc
-+++ a/fs/ocfs2/dlm/dlmdebug.c
-@@ -406,7 +406,7 @@ static int debug_purgelist_print(struct
- 	}
- 	spin_unlock(&dlm->spinlock);
+diff -puN fs/ocfs2/cluster/tcp_internal.h~ocfs2-fix-wrong-comment fs/ocfs2/cluster/tcp_internal.h
+--- a/fs/ocfs2/cluster/tcp_internal.h~ocfs2-fix-wrong-comment
++++ a/fs/ocfs2/cluster/tcp_internal.h
+@@ -107,12 +107,12 @@ struct o2net_node {
+ 	struct list_head		nn_status_list;
  
--	out += snprintf(buf + out, len - out, "Total on list: %ld\n", total);
-+	out += snprintf(buf + out, len - out, "Total on list: %lu\n", total);
- 
- 	return out;
- }
-@@ -464,7 +464,7 @@ static int debug_mle_print(struct dlm_ct
- 	spin_unlock(&dlm->master_lock);
- 
- 	out += snprintf(buf + out, len - out,
--			"Total: %ld, Longest: %ld\n", total, longest);
-+			"Total: %lu, Longest: %lu\n", total, longest);
- 	return out;
- }
+ 	/* connects are attempted from when heartbeat comes up until either hb
+-	 * goes down, the node is unconfigured, no connect attempts succeed
+-	 * before O2NET_CONN_IDLE_DELAY, or a connect succeeds.  connect_work
+-	 * is queued from set_nn_state both from hb up and from itself if a
+-	 * connect attempt fails and so can be self-arming.  shutdown is
+-	 * careful to first mark the nn such that no connects will be attempted
+-	 * before canceling delayed connect work and flushing the queue. */
++	 * goes down, the node is unconfigured, or a connect succeeds.
++	 * connect_work is queued from set_nn_state both from hb up and from
++	 * itself if a connect attempt fails and so can be self-arming.
++	 * shutdown is careful to first mark the nn such that no connects will
++	 * be attempted before canceling delayed connect work and flushing the
++	 * queue. */
+ 	struct delayed_work		nn_connect_work;
+ 	unsigned long			nn_last_connect_attempt;
  
 _
 
-Patches currently in -mm which might be from alex.chen@huawei.com are
+Patches currently in -mm which might be from junxiao.bi@oracle.com are
 
 origin.patch
 linux-next.patch
