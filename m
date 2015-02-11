@@ -1,89 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: [merged] nios2-drop-_page_file-and-pte_file-related-helpers.patch removed from -mm tree
-Date: Wed, 11 Feb 2015 12:22:39 -0800
-Message-ID: <54dbba0f.UX87hP1k1tK0NJPM%akpm@linux-foundation.org>
+Subject: [merged] s390-drop-pte_file-related-helpers.patch removed from
+ -mm tree
+Date: Wed, 11 Feb 2015 12:22:45 -0800
+Message-ID: <54dbba15.CiIZSn905xkxxOEi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40998 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41011 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754105AbbBKUWk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 15:22:40 -0500
+	with ESMTP id S1753139AbbBKUWq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 15:22:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, lftan@altera.com, tklauser@distanz.ch, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nios2: drop _PAGE_FILE and pte_file()-related helpers
+     Subject: s390: drop pte_file()-related helpers
 has been removed from the -mm tree.  Its filename was
-     nios2-drop-_page_file-and-pte_file-related-helpers.patch
+     s390-drop-pte_file-related-helpers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: nios2: drop _PAGE_FILE and pte_file()-related helpers
+Subject: s390: drop pte_file()-related helpers
 
 We've replaced remap_file_pages(2) implementation with emulation.  Nobody
 creates non-linear mapping anymore.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Ley Foon Tan <lftan@altera.com>
-Reviewed-by: Tobias Klauser <tklauser@distanz.ch>
+Acked-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/nios2/include/asm/pgtable-bits.h |    1 -
- arch/nios2/include/asm/pgtable.h      |   10 +---------
- 2 files changed, 1 insertion(+), 10 deletions(-)
+ arch/s390/include/asm/pgtable.h |   29 ++++-------------------------
+ 1 file changed, 4 insertions(+), 25 deletions(-)
 
-diff -puN arch/nios2/include/asm/pgtable-bits.h~nios2-drop-_page_file-and-pte_file-related-helpers arch/nios2/include/asm/pgtable-bits.h
---- a/arch/nios2/include/asm/pgtable-bits.h~nios2-drop-_page_file-and-pte_file-related-helpers
-+++ a/arch/nios2/include/asm/pgtable-bits.h
-@@ -30,6 +30,5 @@
- #define _PAGE_PRESENT	(1<<25)	/* PTE contains a translation */
- #define _PAGE_ACCESSED	(1<<26)	/* page referenced */
- #define _PAGE_DIRTY	(1<<27)	/* dirty page */
--#define _PAGE_FILE	(1<<28)	/* PTE used for file mapping or swap */
- 
- #endif /* _ASM_NIOS2_PGTABLE_BITS_H */
-diff -puN arch/nios2/include/asm/pgtable.h~nios2-drop-_page_file-and-pte_file-related-helpers arch/nios2/include/asm/pgtable.h
---- a/arch/nios2/include/asm/pgtable.h~nios2-drop-_page_file-and-pte_file-related-helpers
-+++ a/arch/nios2/include/asm/pgtable.h
-@@ -112,8 +112,6 @@ static inline int pte_dirty(pte_t pte)
- 	{ return pte_val(pte) & _PAGE_DIRTY; }
- static inline int pte_young(pte_t pte)		\
- 	{ return pte_val(pte) & _PAGE_ACCESSED; }
--static inline int pte_file(pte_t pte)		\
--	{ return pte_val(pte) & _PAGE_FILE; }
- static inline int pte_special(pte_t pte)	{ return 0; }
- 
- #define pgprot_noncached pgprot_noncached
-@@ -272,8 +270,7 @@ static inline void pte_clear(struct mm_s
- 		__FILE__, __LINE__, pgd_val(e))
+diff -puN arch/s390/include/asm/pgtable.h~s390-drop-pte_file-related-helpers arch/s390/include/asm/pgtable.h
+--- a/arch/s390/include/asm/pgtable.h~s390-drop-pte_file-related-helpers
++++ a/arch/s390/include/asm/pgtable.h
+@@ -249,10 +249,10 @@ static inline int is_module_addr(void *a
+ 				 _PAGE_YOUNG)
  
  /*
-- * Encode and decode a swap entry (must be !pte_none(pte) && !pte_present(pte)
-- * && !pte_file(pte)):
-+ * Encode and decode a swap entry (must be !pte_none(pte) && !pte_present(pte):
+- * handle_pte_fault uses pte_present, pte_none and pte_file to find out the
+- * pte type WITHOUT holding the page table lock. The _PAGE_PRESENT bit
+- * is used to distinguish present from not-present ptes. It is changed only
+- * with the page table lock held.
++ * handle_pte_fault uses pte_present and pte_none to find out the pte type
++ * WITHOUT holding the page table lock. The _PAGE_PRESENT bit is used to
++ * distinguish present from not-present ptes. It is changed only with the page
++ * table lock held.
   *
-  * 31 30 29 28 27 26 25 24 23 22 21 20 19 18 ...  1  0
-  *  0  0  0  0 type.  0  0  0  0  0  0 offset.........
-@@ -290,11 +287,6 @@ static inline void pte_clear(struct mm_s
- #define __swp_entry_to_pte(swp)	((pte_t) { (swp).val })
- #define __pte_to_swp_entry(pte)	((swp_entry_t) { pte_val(pte) })
+  * The following table gives the different possible bit combinations for
+  * the pte hardware and software bits in the last 12 bits of a pte:
+@@ -279,7 +279,6 @@ static inline int is_module_addr(void *a
+  *
+  * pte_present is true for the bit pattern .xx...xxxxx1, (pte & 0x001) == 0x001
+  * pte_none    is true for the bit pattern .10...xxxx00, (pte & 0x603) == 0x400
+- * pte_file    is true for the bit pattern .11...xxxxx0, (pte & 0x601) == 0x600
+  * pte_swap    is true for the bit pattern .10...xxxx10, (pte & 0x603) == 0x402
+  */
  
--/* Encode and decode a nonlinear file mapping entry */
--#define PTE_FILE_MAX_BITS	25
--#define pte_to_pgoff(pte)	(pte_val(pte) & 0x1ffffff)
--#define pgoff_to_pte(off)	__pte(((off) & 0x1ffffff) | _PAGE_FILE)
+@@ -671,13 +670,6 @@ static inline int pte_swap(pte_t pte)
+ 		== (_PAGE_INVALID | _PAGE_TYPE);
+ }
+ 
+-static inline int pte_file(pte_t pte)
+-{
+-	/* Bit pattern: (pte & 0x601) == 0x600 */
+-	return (pte_val(pte) & (_PAGE_INVALID | _PAGE_PROTECT | _PAGE_PRESENT))
+-		== (_PAGE_INVALID | _PAGE_PROTECT);
+-}
 -
- #define kern_addr_valid(addr)		(1)
+ static inline int pte_special(pte_t pte)
+ {
+ 	return (pte_val(pte) & _PAGE_SPECIAL);
+@@ -1756,19 +1748,6 @@ static inline pte_t mk_swap_pte(unsigned
+ #define __pte_to_swp_entry(pte)	((swp_entry_t) { pte_val(pte) })
+ #define __swp_entry_to_pte(x)	((pte_t) { (x).val })
  
- #include <asm-generic/pgtable.h>
+-#ifndef CONFIG_64BIT
+-# define PTE_FILE_MAX_BITS	26
+-#else /* CONFIG_64BIT */
+-# define PTE_FILE_MAX_BITS	59
+-#endif /* CONFIG_64BIT */
+-
+-#define pte_to_pgoff(__pte) \
+-	((((__pte).pte >> 12) << 7) + (((__pte).pte >> 1) & 0x7f))
+-
+-#define pgoff_to_pte(__off) \
+-	((pte_t) { ((((__off) & 0x7f) << 1) + (((__off) >> 7) << 12)) \
+-		   | _PAGE_INVALID | _PAGE_PROTECT })
+-
+ #endif /* !__ASSEMBLY__ */
+ 
+ #define kern_addr_valid(addr)   (1)
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
