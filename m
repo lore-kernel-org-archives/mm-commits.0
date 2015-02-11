@@ -1,90 +1,78 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- ocfs2-remove-pointless-assignment-from-ocfs2_calc_refcount_meta_credits.patch removed from -mm tree
-Date: Wed, 11 Feb 2015 12:21:16 -0800
-Message-ID: <54dbb9bc.Zf1ax4ztOMczoH9V%akpm@linux-foundation.org>
+ ocfs2-removes-mlog_errno-call-twice-in-ocfs2_find_dir_space_el.patch
+ removed from -mm tree
+Date: Wed, 11 Feb 2015 12:21:22 -0800
+Message-ID: <54dbb9c2.dp4nF/7aO4EXmDNL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40836 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40844 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754013AbbBKUVR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 15:21:17 -0500
+	with ESMTP id S1753530AbbBKUVX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 15:21:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
+To: daeseok.youn@gmail.com, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: remove pointless assignment from ocfs2_calc_refcount_meta_credits()
+     Subject: ocfs2: removes mlog_errno() call twice in ocfs2_find_dir_space_el()
 has been removed from the -mm tree.  Its filename was
-     ocfs2-remove-pointless-assignment-from-ocfs2_calc_refcount_meta_credits.patch
+     ocfs2-removes-mlog_errno-call-twice-in-ocfs2_find_dir_space_el.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: ocfs2: remove pointless assignment from ocfs2_calc_refcount_meta_credits()
+From: Daeseok Youn <daeseok.youn@gmail.com>
+Subject: ocfs2: removes mlog_errno() call twice in ocfs2_find_dir_space_el()
 
-The assigned value is never used.
+mlog_errno() is called twice when some functions are failed.
 
-Coverity-id 1226847.
-
-Signed-off-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Daeseok Youn <daeseok.youn@gmail.com>
 Cc: Mark Fasheh <mfasheh@suse.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/refcounttree.c |    2 --
- 1 file changed, 2 deletions(-)
+ fs/ocfs2/dir.c |    9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
-diff -puN fs/ocfs2/refcounttree.c~ocfs2-remove-pointless-assignment-from-ocfs2_calc_refcount_meta_credits fs/ocfs2/refcounttree.c
---- a/fs/ocfs2/refcounttree.c~ocfs2-remove-pointless-assignment-from-ocfs2_calc_refcount_meta_credits
-+++ a/fs/ocfs2/refcounttree.c
-@@ -2428,8 +2428,6 @@ static int ocfs2_calc_refcount_meta_cred
- 			get_bh(prev_bh);
- 		}
+diff -puN fs/ocfs2/dir.c~ocfs2-removes-mlog_errno-call-twice-in-ocfs2_find_dir_space_el fs/ocfs2/dir.c
+--- a/fs/ocfs2/dir.c~ocfs2-removes-mlog_errno-call-twice-in-ocfs2_find_dir_space_el
++++ a/fs/ocfs2/dir.c
+@@ -3456,10 +3456,8 @@ static int ocfs2_find_dir_space_el(struc
+ 	int blocksize = dir->i_sb->s_blocksize;
  
--		rb = (struct ocfs2_refcount_block *)ref_leaf_bh->b_data;
--
- 		trace_ocfs2_calc_refcount_meta_credits_iterate(
- 				recs_add, (unsigned long long)cpos, clusters,
- 				(unsigned long long)le64_to_cpu(rec.r_cpos),
+ 	status = ocfs2_read_dir_block(dir, 0, &bh, 0);
+-	if (status) {
+-		mlog_errno(status);
++	if (status)
+ 		goto bail;
+-	}
+ 
+ 	rec_len = OCFS2_DIR_REC_LEN(namelen);
+ 	offset = 0;
+@@ -3480,10 +3478,9 @@ static int ocfs2_find_dir_space_el(struc
+ 			status = ocfs2_read_dir_block(dir,
+ 					     offset >> sb->s_blocksize_bits,
+ 					     &bh, 0);
+-			if (status) {
+-				mlog_errno(status);
++			if (status)
+ 				goto bail;
+-			}
++
+ 			/* move to next block */
+ 			de = (struct ocfs2_dir_entry *) bh->b_data;
+ 		}
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from daeseok.youn@gmail.com are
 
 origin.patch
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
-genalloc-check-result-of-devres_alloc.patch
-fs-affs-filec-fix-direct-io-writes-beyond-eof.patch
-fs-affs-superc-destroy-sbi-mutex-in-affs_kill_sb.patch
+mincore-apply-page-table-walker-on-do_mincore-fix-fix.patch
 linux-next.patch
-mm-fix-xip-fault-vs-truncate-race.patch
-mm-fix-xip-fault-vs-truncate-race-fix.patch
-mm-allow-page-fault-handlers-to-perform-the-cow.patch
-mm-allow-page-fault-handlers-to-perform-the-cow-fix.patch
-vfsext2-introduce-is_daxinode.patch
-daxext2-replace-xip-read-and-write-with-dax-i-o.patch
-daxext2-replace-ext2_clear_xip_target-with-dax_clear_blocks.patch
-daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler.patch
-daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix.patch
-daxext2-replace-xip_truncate_page-with-dax_truncate_page.patch
-dax-replace-xip-documentation-with-dax-documentation.patch
-vfs-remove-get_xip_mem.patch
-ext2-remove-ext2_xip_verify_sb.patch
-ext2-remove-ext2_use_xip.patch
-ext2-remove-xipc-and-xiph.patch
-vfsext2-remove-config_ext2_fs_xip-and-rename-config_fs_xip-to-config_fs_dax.patch
-ext2-remove-ext2_aops_xip.patch
-ext2-get-rid-of-most-mentions-of-xip-in-ext2.patch
-dax-add-dax_zero_page_range.patch
-dax-add-dax_zero_page_range-fix.patch
-ext4-add-dax-functionality.patch
-brd-rename-xip-to-dax.patch
-mm-add-strictlimit-knob-v2.patch
 
