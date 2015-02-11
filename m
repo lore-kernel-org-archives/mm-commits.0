@@ -1,92 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [merged] m32r-drop-_page_file-and-pte_file-related-helpers.patch
- removed from -mm tree
-Date: Wed, 11 Feb 2015 12:22:27 -0800
-Message-ID: <54dbba03.D6MxjH+0WbsYNfcx%akpm@linux-foundation.org>
+Subject: [merged] blackfin-drop-pte_file.patch removed from -mm tree
+Date: Wed, 11 Feb 2015 12:22:15 -0800
+Message-ID: <54dbb9f7.0mroUd/Ph3w292y2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40977 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40957 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753284AbbBKUW2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 15:22:28 -0500
+	with ESMTP id S1753284AbbBKUWQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 15:22:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, realmz6@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: m32r: drop _PAGE_FILE and pte_file()-related helpers
+     Subject: blackfin: drop pte_file()
 has been removed from the -mm tree.  Its filename was
-     m32r-drop-_page_file-and-pte_file-related-helpers.patch
+     blackfin-drop-pte_file.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: m32r: drop _PAGE_FILE and pte_file()-related helpers
+Subject: blackfin: drop pte_file()
 
 We've replaced remap_file_pages(2) implementation with emulation.  Nobody
 creates non-linear mapping anymore.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Steven Miao <realmz6@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/include/asm/pgtable-2level.h |    4 ----
- arch/m32r/include/asm/pgtable.h        |   11 -----------
- 2 files changed, 15 deletions(-)
+ arch/blackfin/include/asm/pgtable.h |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN arch/m32r/include/asm/pgtable-2level.h~m32r-drop-_page_file-and-pte_file-related-helpers arch/m32r/include/asm/pgtable-2level.h
---- a/arch/m32r/include/asm/pgtable-2level.h~m32r-drop-_page_file-and-pte_file-related-helpers
-+++ a/arch/m32r/include/asm/pgtable-2level.h
-@@ -70,9 +70,5 @@ static inline pmd_t *pmd_offset(pgd_t *
- #define pfn_pte(pfn, prot)	__pte(((pfn) << PAGE_SHIFT) | pgprot_val(prot))
- #define pfn_pmd(pfn, prot)	__pmd(((pfn) << PAGE_SHIFT) | pgprot_val(prot))
+diff -puN arch/blackfin/include/asm/pgtable.h~blackfin-drop-pte_file arch/blackfin/include/asm/pgtable.h
+--- a/arch/blackfin/include/asm/pgtable.h~blackfin-drop-pte_file
++++ a/arch/blackfin/include/asm/pgtable.h
+@@ -45,11 +45,6 @@ extern void paging_init(void);
+ #define __pte_to_swp_entry(pte)	((swp_entry_t) { pte_val(pte) })
+ #define __swp_entry_to_pte(x)	((pte_t) { (x).val })
  
--#define PTE_FILE_MAX_BITS	29
--#define pte_to_pgoff(pte)	(((pte_val(pte) >> 2) & 0x7f) | (((pte_val(pte) >> 10)) << 7))
--#define pgoff_to_pte(off)	((pte_t) { (((off) & 0x7f) << 2) | (((off) >> 7) << 10) | _PAGE_FILE })
--
- #endif /* __KERNEL__ */
- #endif /* _ASM_M32R_PGTABLE_2LEVEL_H */
-diff -puN arch/m32r/include/asm/pgtable.h~m32r-drop-_page_file-and-pte_file-related-helpers arch/m32r/include/asm/pgtable.h
---- a/arch/m32r/include/asm/pgtable.h~m32r-drop-_page_file-and-pte_file-related-helpers
-+++ a/arch/m32r/include/asm/pgtable.h
-@@ -80,8 +80,6 @@ extern unsigned long empty_zero_page[102
-  */
- 
- #define _PAGE_BIT_DIRTY		0	/* software: page changed */
--#define _PAGE_BIT_FILE		0	/* when !present: nonlinear file
--					   mapping */
- #define _PAGE_BIT_PRESENT	1	/* Valid: page is valid */
- #define _PAGE_BIT_GLOBAL	2	/* Global */
- #define _PAGE_BIT_LARGE		3	/* Large */
-@@ -93,7 +91,6 @@ extern unsigned long empty_zero_page[102
- #define _PAGE_BIT_PROTNONE	9	/* software: if not present */
- 
- #define _PAGE_DIRTY		(1UL << _PAGE_BIT_DIRTY)
--#define _PAGE_FILE		(1UL << _PAGE_BIT_FILE)
- #define _PAGE_PRESENT		(1UL << _PAGE_BIT_PRESENT)
- #define _PAGE_GLOBAL		(1UL << _PAGE_BIT_GLOBAL)
- #define _PAGE_LARGE		(1UL << _PAGE_BIT_LARGE)
-@@ -206,14 +203,6 @@ static inline int pte_write(pte_t pte)
- 	return pte_val(pte) & _PAGE_WRITE;
- }
- 
--/*
-- * The following only works if pte_present() is not true.
-- */
 -static inline int pte_file(pte_t pte)
 -{
--	return pte_val(pte) & _PAGE_FILE;
+-	return 0;
 -}
 -
- static inline int pte_special(pte_t pte)
- {
- 	return 0;
+ #define set_pte(pteptr, pteval) (*(pteptr) = pteval)
+ #define set_pte_at(mm, addr, ptep, pteval) set_pte(ptep, pteval)
+ 
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
