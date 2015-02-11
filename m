@@ -1,87 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-convert-p_mknonnuma-and-remaining-page-table-manipulations-fix-fix.patch added to -mm tree
-Date: Wed, 11 Feb 2015 14:06:38 -0800
-Message-ID: <54dbd26e.aCmSARuJ4MT7DwwZ%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated-fix.patch
+ removed from -mm tree
+Date: Wed, 11 Feb 2015 14:12:22 -0800
+Message-ID: <54dbd3c6.2F2E8otUW8xw6cqR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42651 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42676 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754091AbbBKWGj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 17:06:39 -0500
+	with ESMTP id S1753970AbbBKWMY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 17:12:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andre.przywara@arm.com, mel@csn.ul.ie, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, mgorman@suse.de, mhocko@suse.cz, minchan@kernel.org, vdavydov@parallels.com, vinmenon@codeaurora.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-convert-p_mknonnuma-and-remaining-page-table-manipulations-fix-fix
-has been added to the -mm tree.  Its filename is
-     mm-convert-p_mknonnuma-and-remaining-page-table-manipulations-fix-fix.patch
+     Subject: mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated-fix
+has been removed from the -mm tree.  Its filename was
+     mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-convert-p_mknonnuma-and-remaining-page-table-manipulations-fix-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-convert-p_mknonnuma-and-remaining-page-table-manipulations-fix-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-convert-p_mknonnuma-and-remaining-page-table-manipulations-fix-fix
+Subject: mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated-fix
 
-fix build with STRICT_MM_TYPECHECKS
+Move the zone_page_state_snapshot() fallback logic into
+too_many_isolated(), so shrink_inactive_list() doesn't incorrectly call
+congestion_wait().
 
-Cc: Andre Przywara <andre.przywara@arm.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Vinayak Menon <vinmenon@codeaurora.org>
+Cc: Vladimir Davydov <vdavydov@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/pgtable-3level.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmscan.c |   23 +++++++++++------------
+ 1 file changed, 11 insertions(+), 12 deletions(-)
 
-diff -puN arch/arm/include/asm/pgtable-3level.h~mm-convert-p_mknonnuma-and-remaining-page-table-manipulations-fix-fix arch/arm/include/asm/pgtable-3level.h
---- a/arch/arm/include/asm/pgtable-3level.h~mm-convert-p_mknonnuma-and-remaining-page-table-manipulations-fix-fix
-+++ a/arch/arm/include/asm/pgtable-3level.h
-@@ -259,7 +259,7 @@ PMD_BIT_FUNC(mkyoung,   |= PMD_SECT_AF);
- /* represent a notpresent pmd by zero, this is used by pmdp_invalidate */
- static inline pmd_t pmd_mknotpresent(pmd_t pmd)
- {
--	return 0;
-+	return __pmd(0);
+diff -puN mm/vmscan.c~mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated-fix mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated-fix
++++ a/mm/vmscan.c
+@@ -1402,7 +1402,7 @@ int isolate_lru_page(struct page *page)
  }
  
- static inline pmd_t pmd_modify(pmd_t pmd, pgprot_t newprot)
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
-mm-convert-p_mknonnuma-and-remaining-page-table-manipulations-fix-fix.patch
-vmscan-force-scan-offline-memory-cgroups-fix.patch
-mm-memcontrol-default-hierarchy-interface-for-memory.patch
-mm-memcontrol-fold-move_anon-and-move_file-fix.patch
-fs-shrinker-always-scan-at-least-one-object-of-each-type-fix.patch
-mm-compaction-enhance-tracepoint-output-for-compaction-begin-end-v4-fix.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated-fix.patch
-mm-thp-allocate-transparent-hugepages-on-local-node-fix.patch
-docs-procs-describe-proc-pid-map_files-entry-fix.patch
-mm-page_ext-remove-unnecessary-stack_trace-field-fix.patch
-mm-fix-arithmetic-overflow-in-__vm_enough_memory-fix.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-
+ static int __too_many_isolated(struct zone *zone, int file,
+-	struct scan_control *sc, int safe)
++			       struct scan_control *sc, int safe)
+ {
+ 	unsigned long inactive, isolated;
+ 
+@@ -1435,7 +1435,7 @@ static int __too_many_isolated(struct zo
+  * unnecessary swapping, thrashing and OOM.
+  */
+ static int too_many_isolated(struct zone *zone, int file,
+-		struct scan_control *sc, int safe)
++			     struct scan_control *sc)
+ {
+ 	if (current_is_kswapd())
+ 		return 0;
+@@ -1443,12 +1443,14 @@ static int too_many_isolated(struct zone
+ 	if (!global_reclaim(sc))
+ 		return 0;
+ 
+-	if (unlikely(__too_many_isolated(zone, file, sc, 0))) {
+-		if (safe)
+-			return __too_many_isolated(zone, file, sc, safe);
+-		else
+-			return 1;
+-	}
++	/*
++	 * __too_many_isolated(safe=0) is fast but inaccurate, because it
++	 * doesn't account for the vm_stat_diff[] counters.  So if it looks
++	 * like too_many_isolated() is about to return true, fall back to the
++	 * slower, more accurate zone_page_state_snapshot().
++	 */
++	if (unlikely(__too_many_isolated(zone, file, sc, 0)))
++		return __too_many_isolated(zone, file, sc, 1);
+ 
+ 	return 0;
+ }
+@@ -1540,18 +1542,15 @@ shrink_inactive_list(unsigned long nr_to
+ 	unsigned long nr_immediate = 0;
+ 	isolate_mode_t isolate_mode = 0;
+ 	int file = is_file_lru(lru);
+-	int safe = 0;
+ 	struct zone *zone = lruvec_zone(lruvec);
+ 	struct zone_reclaim_stat *reclaim_stat = &lruvec->reclaim_stat;
+ 
+-	while (unlikely(too_many_isolated(zone, file, sc, safe))) {
++	while (unlikely(too_many_isolated(zone, file, sc))) {
+ 		congestion_wait(BLK_RW_ASYNC, HZ/10);
+ 
+ 		/* We are about to die and free our memory. Return now. */
+ 		if (fatal_signal_pending(current))
+ 			return SWAP_CLUSTER_MAX;
