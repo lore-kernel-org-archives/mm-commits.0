@@ -1,116 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask.patch
+Subject: [merged] ocfs2-remove-unnecessary-else-in-ocfs2_set_acl.patch
  removed from -mm tree
-Date: Wed, 11 Feb 2015 12:20:45 -0800
-Message-ID: <54dbb99d.1vDf08F9VVmGFeqc%akpm@linux-foundation.org>
+Date: Wed, 11 Feb 2015 12:20:57 -0800
+Message-ID: <54dbb9a9.WlzFV8HvS+UjuN5h%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40778 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40805 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753775AbbBKUUq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 15:20:46 -0500
+	with ESMTP id S1754013AbbBKUU6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 15:20:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: LinoSanfilippo@gmx.de, eparis@redhat.com, jack@suse.cz, mm-commits@vger.kernel.org
+To: fabf@skynet.be, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fanotify: don't set FAN_ONDIR implicitly on a marks ignored mask
+     Subject: ocfs2: remove unnecessary else in ocfs2_set_acl()
 has been removed from the -mm tree.  Its filename was
-     fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask.patch
+     ocfs2-remove-unnecessary-else-in-ocfs2_set_acl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Lino Sanfilippo <LinoSanfilippo@gmx.de>
-Subject: fanotify: don't set FAN_ONDIR implicitly on a marks ignored mask
+From: Fabian Frederick <fabf@skynet.be>
+Subject: ocfs2: remove unnecessary else in ocfs2_set_acl()
 
-Currently FAN_ONDIR is always set on a mark's ignored mask when the event
-mask is extended without FAN_MARK_ONDIR being set.  This may result in
-events for directories being ignored unexpectedly for call sequences like
+else is unnecessary after return.
 
-fanotify_mark(fd, FAN_MARK_ADD, FAN_OPEN | FAN_ONDIR , AT_FDCWD, "dir");
-fanotify_mark(fd, FAN_MARK_ADD, FAN_CLOSE, AT_FDCWD, "dir");
-
-Also FAN_MARK_ONDIR is only honored when adding events to a mark's mask,
-but not for event removal.  Fix both issues by not setting FAN_ONDIR
-implicitly on the ignore mask any more.  Instead treat FAN_ONDIR as any
-other event flag and require FAN_MARK_ONDIR to be set by the user for both
-event mask and ignore mask.  Furthermore take FAN_MARK_ONDIR into account
-when set for event removal.
-
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Lino Sanfilippo <LinoSanfilippo@gmx.de>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Eric Paris <eparis@redhat.com>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/fanotify/fanotify.c      |    2 +-
- fs/notify/fanotify/fanotify_user.c |   25 +++++++++++++++++--------
- 2 files changed, 18 insertions(+), 9 deletions(-)
+ fs/ocfs2/acl.c |   14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
 
-diff -puN fs/notify/fanotify/fanotify.c~fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask fs/notify/fanotify/fanotify.c
---- a/fs/notify/fanotify/fanotify.c~fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask
-+++ a/fs/notify/fanotify/fanotify.c
-@@ -140,7 +140,7 @@ static bool fanotify_should_send_event(s
- 	}
+diff -puN fs/ocfs2/acl.c~ocfs2-remove-unnecessary-else-in-ocfs2_set_acl fs/ocfs2/acl.c
+--- a/fs/ocfs2/acl.c~ocfs2-remove-unnecessary-else-in-ocfs2_set_acl
++++ a/fs/ocfs2/acl.c
+@@ -245,16 +245,14 @@ int ocfs2_set_acl(handle_t *handle,
+ 			ret = posix_acl_equiv_mode(acl, &mode);
+ 			if (ret < 0)
+ 				return ret;
+-			else {
+-				if (ret == 0)
+-					acl = NULL;
  
- 	if (S_ISDIR(path->dentry->d_inode->i_mode) &&
--	    (marks_ignored_mask & FS_ISDIR))
-+	    !(marks_mask & FS_ISDIR & ~marks_ignored_mask))
- 		return false;
+-				ret = ocfs2_acl_set_mode(inode, di_bh,
+-							 handle, mode);
+-				if (ret)
+-					return ret;
++			if (ret == 0)
++				acl = NULL;
  
- 	if (event_mask & marks_mask & ~marks_ignored_mask)
-diff -puN fs/notify/fanotify/fanotify_user.c~fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask fs/notify/fanotify/fanotify_user.c
---- a/fs/notify/fanotify/fanotify_user.c~fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask
-+++ a/fs/notify/fanotify/fanotify_user.c
-@@ -491,10 +491,17 @@ static __u32 fanotify_mark_remove_from_m
- 
- 	spin_lock(&fsn_mark->lock);
- 	if (!(flags & FAN_MARK_IGNORED_MASK)) {
-+		__u32 tmask = fsn_mark->mask & ~mask;
-+
-+		if (flags & FAN_MARK_ONDIR)
-+			tmask &= ~FAN_ONDIR;
-+
- 		oldmask = fsn_mark->mask;
--		fsnotify_set_mark_mask_locked(fsn_mark, (oldmask & ~mask));
-+		fsnotify_set_mark_mask_locked(fsn_mark, tmask);
- 	} else {
- 		__u32 tmask = fsn_mark->ignored_mask & ~mask;
-+		if (flags & FAN_MARK_ONDIR)
-+			tmask &= ~FAN_ONDIR;
- 
- 		fsnotify_set_mark_ignored_mask_locked(fsn_mark, tmask);
- 	}
-@@ -569,20 +576,22 @@ static __u32 fanotify_mark_add_to_mask(s
- 
- 	spin_lock(&fsn_mark->lock);
- 	if (!(flags & FAN_MARK_IGNORED_MASK)) {
-+		__u32 tmask = fsn_mark->mask | mask;
-+
-+		if (flags & FAN_MARK_ONDIR)
-+			tmask |= FAN_ONDIR;
-+
- 		oldmask = fsn_mark->mask;
--		fsnotify_set_mark_mask_locked(fsn_mark, (oldmask | mask));
-+		fsnotify_set_mark_mask_locked(fsn_mark, tmask);
- 	} else {
- 		__u32 tmask = fsn_mark->ignored_mask | mask;
-+		if (flags & FAN_MARK_ONDIR)
-+			tmask |= FAN_ONDIR;
-+
- 		fsnotify_set_mark_ignored_mask_locked(fsn_mark, tmask);
- 		if (flags & FAN_MARK_IGNORED_SURV_MODIFY)
- 			fsn_mark->flags |= FSNOTIFY_MARK_FLAG_IGNORED_SURV_MODIFY;
- 	}
--
--	if (!(flags & FAN_MARK_ONDIR)) {
--		__u32 tmask = fsn_mark->ignored_mask | FAN_ONDIR;
--		fsnotify_set_mark_ignored_mask_locked(fsn_mark, tmask);
--	}
+-			}
++			ret = ocfs2_acl_set_mode(inode, di_bh,
++						 handle, mode);
++			if (ret)
++				return ret;
+ 		}
+ 		break;
+ 	case ACL_TYPE_DEFAULT:
+_
+
+Patches currently in -mm which might be from fabf@skynet.be are
+
+origin.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+add-another-clock-for-use-with-the-soft-lockup-watchdog.patch
+powerpc-add-running_clock-for-powerpc-to-prevent-spurious-softlockup-warnings.patch
+fs-befs-linuxvfsc-remove-unnecessary-casting.patch
+fs-befs-linuxvfsc-remove-unnecessary-casting-fix.patch
+fs-coda-dirc-forward-declaration-clean-up.patch
+fs-ufs-superc-remove-unnecessary-casting.patch
+fs-ufs-superc-fix-potential-race-condition.patch
+fs-reiserfs-inodec-replace-0-by-null-for-pointers.patch
+ptrace-remove-linux-compath-inclusion-under-config_compat.patch
+vmcore-fix-pt_note-n_namesz-n_descsz-overflow-issue.patch
+fs-affs-filec-replace-if-bug-by-bug_on.patch
+fs-affs-filec-fix-direct-io-writes-beyond-eof.patch
+fs-affs-superc-destroy-sbi-mutex-in-affs_kill_sb.patch
+fs-affs-use-unsigned-int-for-string-lengths.patch
+define-affsnamemax-to-replace-constant-use.patch
+fs-affs-amigaffsc-remove-else-after-return.patch
+fs-affs-bitmapc-remove-unnecessary-return.patch
+fs-affs-inodec-remove-double-extern-affs_symlink_inode_operations.patch
+fs-affs-superc-fix-switch-indentation.patch
+linux-next.patch
+
