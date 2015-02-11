@@ -1,191 +1,274 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-drop-support-of-non-linear-mapping-from-fault-codepath.patch removed
+ mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub.patch removed
  from -mm tree
-Date: Wed, 11 Feb 2015 12:21:50 -0800
-Message-ID: <54dbb9de.bJK/rEb9M2rMnQh9%akpm@linux-foundation.org>
+Date: Wed, 11 Feb 2015 12:21:52 -0800
+Message-ID: <54dbb9e0.BkLnnah3q/YKDQJt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40921 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40923 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753957AbbBKUVv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 15:21:51 -0500
+	with ESMTP id S1753957AbbBKUVx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 15:21:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, fengguang.wu@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: drop support of non-linear mapping from fault codepath
+     Subject: mm: drop vm_ops->remap_pages and generic_file_remap_pages() stub
 has been removed from the -mm tree.  Its filename was
-     mm-drop-support-of-non-linear-mapping-from-fault-codepath.patch
+     mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: drop support of non-linear mapping from fault codepath
+Subject: mm: drop vm_ops->remap_pages and generic_file_remap_pages() stub
 
-We don't create non-linear mappings anymore.  Let's drop code which
-handles them on page fault.
+Nobody uses it anymore.
 
+[akpm@linux-foundation.org: fix filemap_xip.c]
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   16 ++++------
- mm/memory.c        |   65 +++++--------------------------------------
- 2 files changed, 16 insertions(+), 65 deletions(-)
+ fs/9p/vfs_file.c   |    2 --
+ fs/btrfs/file.c    |    1 -
+ fs/ceph/addr.c     |    1 -
+ fs/cifs/file.c     |    1 -
+ fs/ext4/file.c     |    1 -
+ fs/f2fs/file.c     |    1 -
+ fs/fuse/file.c     |    1 -
+ fs/gfs2/file.c     |    1 -
+ fs/nfs/file.c      |    1 -
+ fs/nilfs2/file.c   |    1 -
+ fs/ocfs2/mmap.c    |    1 -
+ fs/ubifs/file.c    |    1 -
+ fs/xfs/xfs_file.c  |    1 -
+ include/linux/fs.h |    6 ------
+ include/linux/mm.h |    4 ----
+ mm/filemap.c       |    1 -
+ mm/filemap_xip.c   |    1 -
+ mm/shmem.c         |    1 -
+ 18 files changed, 27 deletions(-)
 
-diff -puN include/linux/mm.h~mm-drop-support-of-non-linear-mapping-from-fault-codepath include/linux/mm.h
---- a/include/linux/mm.h~mm-drop-support-of-non-linear-mapping-from-fault-codepath
-+++ a/include/linux/mm.h
-@@ -206,21 +206,19 @@ extern unsigned int kobjsize(const void
- extern pgprot_t protection_map[16];
+diff -puN fs/9p/vfs_file.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub fs/9p/vfs_file.c
+--- a/fs/9p/vfs_file.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub
++++ a/fs/9p/vfs_file.c
+@@ -831,7 +831,6 @@ static const struct vm_operations_struct
+ 	.fault = filemap_fault,
+ 	.map_pages = filemap_map_pages,
+ 	.page_mkwrite = v9fs_vm_page_mkwrite,
+-	.remap_pages = generic_file_remap_pages,
+ };
  
- #define FAULT_FLAG_WRITE	0x01	/* Fault was a write access */
--#define FAULT_FLAG_NONLINEAR	0x02	/* Fault was via a nonlinear mapping */
--#define FAULT_FLAG_MKWRITE	0x04	/* Fault was mkwrite of existing pte */
--#define FAULT_FLAG_ALLOW_RETRY	0x08	/* Retry fault if blocking */
--#define FAULT_FLAG_RETRY_NOWAIT	0x10	/* Don't drop mmap_sem and wait when retrying */
--#define FAULT_FLAG_KILLABLE	0x20	/* The fault task is in SIGKILL killable region */
--#define FAULT_FLAG_TRIED	0x40	/* second try */
--#define FAULT_FLAG_USER		0x80	/* The fault originated in userspace */
-+#define FAULT_FLAG_MKWRITE	0x02	/* Fault was mkwrite of existing pte */
-+#define FAULT_FLAG_ALLOW_RETRY	0x04	/* Retry fault if blocking */
-+#define FAULT_FLAG_RETRY_NOWAIT	0x08	/* Don't drop mmap_sem and wait when retrying */
-+#define FAULT_FLAG_KILLABLE	0x10	/* The fault task is in SIGKILL killable region */
-+#define FAULT_FLAG_TRIED	0x20	/* Second try */
-+#define FAULT_FLAG_USER		0x40	/* The fault originated in userspace */
+ static const struct vm_operations_struct v9fs_mmap_file_vm_ops = {
+@@ -839,7 +838,6 @@ static const struct vm_operations_struct
+ 	.fault = filemap_fault,
+ 	.map_pages = filemap_map_pages,
+ 	.page_mkwrite = v9fs_vm_page_mkwrite,
+-	.remap_pages = generic_file_remap_pages,
+ };
  
- /*
-  * vm_fault is filled by the the pagefault handler and passed to the vma's
-  * ->fault function. The vma's ->fault is responsible for returning a bitmask
-  * of VM_FAULT_xxx flags that give details about how the fault was handled.
-  *
-- * pgoff should be used in favour of virtual_address, if possible. If pgoff
-- * is used, one may implement ->remap_pages to get nonlinear mapping support.
-+ * pgoff should be used in favour of virtual_address, if possible.
-  */
- struct vm_fault {
- 	unsigned int flags;		/* FAULT_FLAG_xxx flags */
-diff -puN mm/memory.c~mm-drop-support-of-non-linear-mapping-from-fault-codepath mm/memory.c
---- a/mm/memory.c~mm-drop-support-of-non-linear-mapping-from-fault-codepath
-+++ a/mm/memory.c
-@@ -1901,12 +1901,11 @@ int apply_to_page_range(struct mm_struct
- EXPORT_SYMBOL_GPL(apply_to_page_range);
  
- /*
-- * handle_pte_fault chooses page fault handler according to an entry
-- * which was read non-atomically.  Before making any commitment, on
-- * those architectures or configurations (e.g. i386 with PAE) which
-- * might give a mix of unmatched parts, do_swap_page and do_nonlinear_fault
-- * must check under lock before unmapping the pte and proceeding
-- * (but do_wp_page is only called after already making such a check;
-+ * handle_pte_fault chooses page fault handler according to an entry which was
-+ * read non-atomically.  Before making any commitment, on those architectures
-+ * or configurations (e.g. i386 with PAE) which might give a mix of unmatched
-+ * parts, do_swap_page must check under lock before unmapping the pte and
-+ * proceeding (but do_wp_page is only called after already making such a check;
-  * and do_anonymous_page can safely check later on).
-  */
- static inline int pte_unmap_same(struct mm_struct *mm, pmd_t *pmd,
-@@ -2712,8 +2711,6 @@ void do_set_pte(struct vm_area_struct *v
- 	entry = mk_pte(page, vma->vm_page_prot);
- 	if (write)
- 		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
--	else if (pte_file(*pte) && pte_file_soft_dirty(*pte))
--		entry = pte_mksoft_dirty(entry);
- 	if (anon) {
- 		inc_mm_counter_fast(vma->vm_mm, MM_ANONPAGES);
- 		page_add_new_anon_rmap(page, vma, address);
-@@ -2848,8 +2845,7 @@ static int do_read_fault(struct mm_struc
- 	 * if page by the offset is not ready to be mapped (cold cache or
- 	 * something).
- 	 */
--	if (vma->vm_ops->map_pages && !(flags & FAULT_FLAG_NONLINEAR) &&
--	    fault_around_bytes >> PAGE_SHIFT > 1) {
-+	if (vma->vm_ops->map_pages && fault_around_bytes >> PAGE_SHIFT > 1) {
- 		pte = pte_offset_map_lock(mm, pmd, address, &ptl);
- 		do_fault_around(vma, address, pte, pgoff, flags);
- 		if (!pte_same(*pte, orig_pte))
-@@ -2994,7 +2990,7 @@ static int do_shared_fault(struct mm_str
-  * The mmap_sem may have been released depending on flags and our
-  * return value.  See filemap_fault() and __lock_page_or_retry().
-  */
--static int do_linear_fault(struct mm_struct *mm, struct vm_area_struct *vma,
-+static int do_fault(struct mm_struct *mm, struct vm_area_struct *vma,
- 		unsigned long address, pte_t *page_table, pmd_t *pmd,
- 		unsigned int flags, pte_t orig_pte)
- {
-@@ -3011,46 +3007,6 @@ static int do_linear_fault(struct mm_str
- 	return do_shared_fault(mm, vma, address, pmd, pgoff, flags, orig_pte);
- }
+diff -puN fs/btrfs/file.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub fs/btrfs/file.c
+--- a/fs/btrfs/file.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub
++++ a/fs/btrfs/file.c
+@@ -2081,7 +2081,6 @@ static const struct vm_operations_struct
+ 	.fault		= filemap_fault,
+ 	.map_pages	= filemap_map_pages,
+ 	.page_mkwrite	= btrfs_page_mkwrite,
+-	.remap_pages	= generic_file_remap_pages,
+ };
  
--/*
-- * Fault of a previously existing named mapping. Repopulate the pte
-- * from the encoded file_pte if possible. This enables swappable
-- * nonlinear vmas.
-- *
-- * We enter with non-exclusive mmap_sem (to exclude vma changes,
-- * but allow concurrent faults), and pte mapped but not yet locked.
-- * We return with pte unmapped and unlocked.
-- * The mmap_sem may have been released depending on flags and our
-- * return value.  See filemap_fault() and __lock_page_or_retry().
-- */
--static int do_nonlinear_fault(struct mm_struct *mm, struct vm_area_struct *vma,
--		unsigned long address, pte_t *page_table, pmd_t *pmd,
--		unsigned int flags, pte_t orig_pte)
+ static int btrfs_file_mmap(struct file	*filp, struct vm_area_struct *vma)
+diff -puN fs/ceph/addr.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub fs/ceph/addr.c
+--- a/fs/ceph/addr.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub
++++ a/fs/ceph/addr.c
+@@ -1569,7 +1569,6 @@ out:
+ static struct vm_operations_struct ceph_vmops = {
+ 	.fault		= ceph_filemap_fault,
+ 	.page_mkwrite	= ceph_page_mkwrite,
+-	.remap_pages	= generic_file_remap_pages,
+ };
+ 
+ int ceph_mmap(struct file *file, struct vm_area_struct *vma)
+diff -puN fs/cifs/file.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub fs/cifs/file.c
+--- a/fs/cifs/file.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub
++++ a/fs/cifs/file.c
+@@ -3248,7 +3248,6 @@ static struct vm_operations_struct cifs_
+ 	.fault = filemap_fault,
+ 	.map_pages = filemap_map_pages,
+ 	.page_mkwrite = cifs_page_mkwrite,
+-	.remap_pages = generic_file_remap_pages,
+ };
+ 
+ int cifs_file_strict_mmap(struct file *file, struct vm_area_struct *vma)
+diff -puN fs/ext4/file.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub fs/ext4/file.c
+--- a/fs/ext4/file.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub
++++ a/fs/ext4/file.c
+@@ -195,7 +195,6 @@ static const struct vm_operations_struct
+ 	.fault		= filemap_fault,
+ 	.map_pages	= filemap_map_pages,
+ 	.page_mkwrite   = ext4_page_mkwrite,
+-	.remap_pages	= generic_file_remap_pages,
+ };
+ 
+ static int ext4_file_mmap(struct file *file, struct vm_area_struct *vma)
+diff -puN fs/f2fs/file.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub fs/f2fs/file.c
+--- a/fs/f2fs/file.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub
++++ a/fs/f2fs/file.c
+@@ -92,7 +92,6 @@ static const struct vm_operations_struct
+ 	.fault		= filemap_fault,
+ 	.map_pages	= filemap_map_pages,
+ 	.page_mkwrite	= f2fs_vm_page_mkwrite,
+-	.remap_pages	= generic_file_remap_pages,
+ };
+ 
+ static int get_parent_ino(struct inode *inode, nid_t *pino)
+diff -puN fs/fuse/file.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub fs/fuse/file.c
+--- a/fs/fuse/file.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub
++++ a/fs/fuse/file.c
+@@ -2062,7 +2062,6 @@ static const struct vm_operations_struct
+ 	.fault		= filemap_fault,
+ 	.map_pages	= filemap_map_pages,
+ 	.page_mkwrite	= fuse_page_mkwrite,
+-	.remap_pages	= generic_file_remap_pages,
+ };
+ 
+ static int fuse_file_mmap(struct file *file, struct vm_area_struct *vma)
+diff -puN fs/gfs2/file.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub fs/gfs2/file.c
+--- a/fs/gfs2/file.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub
++++ a/fs/gfs2/file.c
+@@ -498,7 +498,6 @@ static const struct vm_operations_struct
+ 	.fault = filemap_fault,
+ 	.map_pages = filemap_map_pages,
+ 	.page_mkwrite = gfs2_page_mkwrite,
+-	.remap_pages = generic_file_remap_pages,
+ };
+ 
+ /**
+diff -puN fs/nfs/file.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub fs/nfs/file.c
+--- a/fs/nfs/file.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub
++++ a/fs/nfs/file.c
+@@ -646,7 +646,6 @@ static const struct vm_operations_struct
+ 	.fault = filemap_fault,
+ 	.map_pages = filemap_map_pages,
+ 	.page_mkwrite = nfs_vm_page_mkwrite,
+-	.remap_pages = generic_file_remap_pages,
+ };
+ 
+ static int nfs_need_sync_write(struct file *filp, struct inode *inode)
+diff -puN fs/nilfs2/file.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub fs/nilfs2/file.c
+--- a/fs/nilfs2/file.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub
++++ a/fs/nilfs2/file.c
+@@ -128,7 +128,6 @@ static const struct vm_operations_struct
+ 	.fault		= filemap_fault,
+ 	.map_pages	= filemap_map_pages,
+ 	.page_mkwrite	= nilfs_page_mkwrite,
+-	.remap_pages	= generic_file_remap_pages,
+ };
+ 
+ static int nilfs_file_mmap(struct file *file, struct vm_area_struct *vma)
+diff -puN fs/ocfs2/mmap.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub fs/ocfs2/mmap.c
+--- a/fs/ocfs2/mmap.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub
++++ a/fs/ocfs2/mmap.c
+@@ -173,7 +173,6 @@ out:
+ static const struct vm_operations_struct ocfs2_file_vm_ops = {
+ 	.fault		= ocfs2_fault,
+ 	.page_mkwrite	= ocfs2_page_mkwrite,
+-	.remap_pages	= generic_file_remap_pages,
+ };
+ 
+ int ocfs2_mmap(struct file *file, struct vm_area_struct *vma)
+diff -puN fs/ubifs/file.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub fs/ubifs/file.c
+--- a/fs/ubifs/file.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub
++++ a/fs/ubifs/file.c
+@@ -1536,7 +1536,6 @@ static const struct vm_operations_struct
+ 	.fault        = filemap_fault,
+ 	.map_pages = filemap_map_pages,
+ 	.page_mkwrite = ubifs_vm_page_mkwrite,
+-	.remap_pages = generic_file_remap_pages,
+ };
+ 
+ static int ubifs_file_mmap(struct file *file, struct vm_area_struct *vma)
+diff -puN fs/xfs/xfs_file.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub fs/xfs/xfs_file.c
+--- a/fs/xfs/xfs_file.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub
++++ a/fs/xfs/xfs_file.c
+@@ -1384,5 +1384,4 @@ static const struct vm_operations_struct
+ 	.fault		= filemap_fault,
+ 	.map_pages	= filemap_map_pages,
+ 	.page_mkwrite	= xfs_vm_page_mkwrite,
+-	.remap_pages	= generic_file_remap_pages,
+ };
+diff -puN include/linux/fs.h~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub include/linux/fs.h
+--- a/include/linux/fs.h~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub
++++ a/include/linux/fs.h
+@@ -2481,12 +2481,6 @@ extern int sb_min_blocksize(struct super
+ 
+ extern int generic_file_mmap(struct file *, struct vm_area_struct *);
+ extern int generic_file_readonly_mmap(struct file *, struct vm_area_struct *);
+-static inline int generic_file_remap_pages(struct vm_area_struct *vma,
+-		unsigned long addr, unsigned long size, pgoff_t pgoff)
 -{
--	pgoff_t pgoff;
--
--	flags |= FAULT_FLAG_NONLINEAR;
--
--	if (!pte_unmap_same(mm, pmd, page_table, orig_pte))
--		return 0;
--
--	if (unlikely(!(vma->vm_flags & VM_NONLINEAR))) {
--		/*
--		 * Page table corrupted: show pte and kill process.
--		 */
--		print_bad_pte(vma, address, orig_pte, NULL);
--		return VM_FAULT_SIGBUS;
--	}
--
--	pgoff = pte_to_pgoff(orig_pte);
--	if (!(flags & FAULT_FLAG_WRITE))
--		return do_read_fault(mm, vma, address, pmd, pgoff, flags,
--				orig_pte);
--	if (!(vma->vm_flags & VM_SHARED))
--		return do_cow_fault(mm, vma, address, pmd, pgoff, flags,
--				orig_pte);
--	return do_shared_fault(mm, vma, address, pmd, pgoff, flags, orig_pte);
+-	BUG();
+-	return 0;
 -}
+ int generic_write_checks(struct file *file, loff_t *pos, size_t *count, int isblk);
+ extern ssize_t generic_file_read_iter(struct kiocb *, struct iov_iter *);
+ extern ssize_t __generic_file_write_iter(struct kiocb *, struct iov_iter *);
+diff -puN include/linux/mm.h~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub include/linux/mm.h
+--- a/include/linux/mm.h~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub
++++ a/include/linux/mm.h
+@@ -285,10 +285,6 @@ struct vm_operations_struct {
+ 	struct mempolicy *(*get_policy)(struct vm_area_struct *vma,
+ 					unsigned long addr);
+ #endif
+-	/* called by sys_remap_file_pages() to populate non-linear mapping */
+-	int (*remap_pages)(struct vm_area_struct *vma, unsigned long addr,
+-			   unsigned long size, pgoff_t pgoff);
 -
- static int numa_migrate_prep(struct page *page, struct vm_area_struct *vma,
- 				unsigned long addr, int page_nid,
- 				int *flags)
-@@ -3178,15 +3134,12 @@ static int handle_pte_fault(struct mm_st
- 		if (pte_none(entry)) {
- 			if (vma->vm_ops) {
- 				if (likely(vma->vm_ops->fault))
--					return do_linear_fault(mm, vma, address,
--						pte, pmd, flags, entry);
-+					return do_fault(mm, vma, address, pte,
-+							pmd, flags, entry);
- 			}
- 			return do_anonymous_page(mm, vma, address,
- 						 pte, pmd, flags);
- 		}
--		if (pte_file(entry))
--			return do_nonlinear_fault(mm, vma, address,
--					pte, pmd, flags, entry);
- 		return do_swap_page(mm, vma, address,
- 					pte, pmd, flags, entry);
- 	}
+ 	/*
+ 	 * Called by vm_normal_page() for special PTEs to find the
+ 	 * page for @addr.  This is useful if the default behavior
+diff -puN mm/filemap.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub mm/filemap.c
+--- a/mm/filemap.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub
++++ a/mm/filemap.c
+@@ -2087,7 +2087,6 @@ const struct vm_operations_struct generi
+ 	.fault		= filemap_fault,
+ 	.map_pages	= filemap_map_pages,
+ 	.page_mkwrite	= filemap_page_mkwrite,
+-	.remap_pages	= generic_file_remap_pages,
+ };
+ 
+ /* This is used for a general mmap of a disk file */
+diff -puN mm/filemap_xip.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub mm/filemap_xip.c
+--- a/mm/filemap_xip.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub
++++ a/mm/filemap_xip.c
+@@ -301,7 +301,6 @@ out:
+ static const struct vm_operations_struct xip_file_vm_ops = {
+ 	.fault	= xip_file_fault,
+ 	.page_mkwrite	= filemap_page_mkwrite,
+-	.remap_pages = generic_file_remap_pages,
+ };
+ 
+ int xip_file_mmap(struct file * file, struct vm_area_struct * vma)
+diff -puN mm/shmem.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub mm/shmem.c
+--- a/mm/shmem.c~mm-drop-vm_ops-remap_pages-and-generic_file_remap_pages-stub
++++ a/mm/shmem.c
+@@ -3201,7 +3201,6 @@ static const struct vm_operations_struct
+ 	.set_policy     = shmem_set_policy,
+ 	.get_policy     = shmem_get_policy,
+ #endif
+-	.remap_pages	= generic_file_remap_pages,
+ };
+ 
+ static struct dentry *shmem_mount(struct file_system_type *fs_type,
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
