@@ -1,59 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: [merged] c6x-drop-pte_file.patch removed from -mm tree
-Date: Wed, 11 Feb 2015 12:22:17 -0800
-Message-ID: <54dbb9f9.ZgWnCLw2X0GtbZJu%akpm@linux-foundation.org>
+Subject: [merged] avr32-drop-_page_file-and-pte_file-related-helpers.patch removed from -mm tree
+Date: Wed, 11 Feb 2015 12:22:13 -0800
+Message-ID: <54dbb9f5.nDksw6MIAUfrWL/d%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40962 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40953 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753284AbbBKUWS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 15:22:18 -0500
+	with ESMTP id S1753284AbbBKUWO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 15:22:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, a-jacquiot@ti.com, msalter@redhat.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, egtvedt@samfundet.no, hskinnemoen@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: c6x: drop pte_file()
+     Subject: avr32: drop _PAGE_FILE and pte_file()-related helpers
 has been removed from the -mm tree.  Its filename was
-     c6x-drop-pte_file.patch
+     avr32-drop-_page_file-and-pte_file-related-helpers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: c6x: drop pte_file()
+Subject: avr32: drop _PAGE_FILE and pte_file()-related helpers
 
 We've replaced remap_file_pages(2) implementation with emulation.  Nobody
 creates non-linear mapping anymore.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Mark Salter <msalter@redhat.com>
-Cc: Aurelien Jacquiot <a-jacquiot@ti.com>
+Cc: Haavard Skinnemoen <hskinnemoen@gmail.com>
+Acked-by: Hans-Christian Egtvedt <egtvedt@samfundet.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/c6x/include/asm/pgtable.h |    5 -----
- 1 file changed, 5 deletions(-)
+ arch/avr32/include/asm/pgtable.h |   25 -------------------------
+ 1 file changed, 25 deletions(-)
 
-diff -puN arch/c6x/include/asm/pgtable.h~c6x-drop-pte_file arch/c6x/include/asm/pgtable.h
---- a/arch/c6x/include/asm/pgtable.h~c6x-drop-pte_file
-+++ a/arch/c6x/include/asm/pgtable.h
-@@ -50,11 +50,6 @@ extern void paging_init(void);
+diff -puN arch/avr32/include/asm/pgtable.h~avr32-drop-_page_file-and-pte_file-related-helpers arch/avr32/include/asm/pgtable.h
+--- a/arch/avr32/include/asm/pgtable.h~avr32-drop-_page_file-and-pte_file-related-helpers
++++ a/arch/avr32/include/asm/pgtable.h
+@@ -86,9 +86,6 @@ extern struct page *empty_zero_page;
+ #define _PAGE_BIT_PRESENT	10
+ #define _PAGE_BIT_ACCESSED	11 /* software: page was accessed */
+ 
+-/* The following flags are only valid when !PRESENT */
+-#define _PAGE_BIT_FILE		0 /* software: pagecache or swap? */
+-
+ #define _PAGE_WT		(1 << _PAGE_BIT_WT)
+ #define _PAGE_DIRTY		(1 << _PAGE_BIT_DIRTY)
+ #define _PAGE_EXECUTE		(1 << _PAGE_BIT_EXECUTE)
+@@ -101,7 +98,6 @@ extern struct page *empty_zero_page;
+ /* Software flags */
+ #define _PAGE_ACCESSED		(1 << _PAGE_BIT_ACCESSED)
+ #define _PAGE_PRESENT		(1 << _PAGE_BIT_PRESENT)
+-#define _PAGE_FILE		(1 << _PAGE_BIT_FILE)
+ 
+ /*
+  * Page types, i.e. sizes. _PAGE_TYPE_NONE corresponds to what is
+@@ -210,14 +206,6 @@ static inline int pte_special(pte_t pte)
+ 	return 0;
+ }
+ 
+-/*
+- * The following only work if pte_present() is not true.
+- */
+-static inline int pte_file(pte_t pte)
+-{
+-	return pte_val(pte) & _PAGE_FILE;
+-}
+-
+ /* Mutator functions for PTE bits */
+ static inline pte_t pte_wrprotect(pte_t pte)
+ {
+@@ -329,7 +317,6 @@ extern void update_mmu_cache(struct vm_a
+  * Encode and decode a swap entry
+  *
+  * Constraints:
+- *   _PAGE_FILE at bit 0
+  *   _PAGE_TYPE_* at bits 2-3 (for emulating _PAGE_PROTNONE)
+  *   _PAGE_PRESENT at bit 10
+  *
+@@ -346,18 +333,6 @@ extern void update_mmu_cache(struct vm_a
  #define __pte_to_swp_entry(pte)	((swp_entry_t) { pte_val(pte) })
  #define __swp_entry_to_pte(x)	((pte_t) { (x).val })
  
--static inline int pte_file(pte_t pte)
--{
--	return 0;
--}
+-/*
+- * Encode and decode a nonlinear file mapping entry. We have to
+- * preserve _PAGE_FILE and _PAGE_PRESENT here. _PAGE_TYPE_* isn't
+- * necessary, since _PAGE_FILE implies !_PAGE_PROTNONE (?)
+- */
+-#define PTE_FILE_MAX_BITS	30
+-#define pte_to_pgoff(pte)	(((pte_val(pte) >> 1) & 0x1ff)		\
+-				 | ((pte_val(pte) >> 11) << 9))
+-#define pgoff_to_pte(off)	((pte_t) { ((((off) & 0x1ff) << 1)	\
+-					    | (((off) >> 9) << 11)	\
+-					    | _PAGE_FILE) })
 -
- #define set_pte(pteptr, pteval) (*(pteptr) = pteval)
- #define set_pte_at(mm, addr, ptep, pteval) set_pte(ptep, pteval)
+ typedef pte_t *pte_addr_t;
  
+ #define kern_addr_valid(addr)	(1)
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
