@@ -1,96 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [merged] arm64-drop-pte_file-and-pte_file-related-helpers.patch
- removed from -mm tree
-Date: Wed, 11 Feb 2015 12:22:09 -0800
-Message-ID: <54dbb9f1.8h5RzSwthWZ5KRb+%akpm@linux-foundation.org>
+Subject: [merged] c6x-drop-pte_file.patch removed from -mm tree
+Date: Wed, 11 Feb 2015 12:22:17 -0800
+Message-ID: <54dbb9f9.ZgWnCLw2X0GtbZJu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40947 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40962 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753284AbbBKUWK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 15:22:10 -0500
+	with ESMTP id S1753284AbbBKUWS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 15:22:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, catalin.marinas@arm.com, will.deacon@arm.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, a-jacquiot@ti.com, msalter@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64: drop PTE_FILE and pte_file()-related helpers
+     Subject: c6x: drop pte_file()
 has been removed from the -mm tree.  Its filename was
-     arm64-drop-pte_file-and-pte_file-related-helpers.patch
+     c6x-drop-pte_file.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: arm64: drop PTE_FILE and pte_file()-related helpers
+Subject: c6x: drop pte_file()
 
 We've replaced remap_file_pages(2) implementation with emulation.  Nobody
 creates non-linear mapping anymore.
 
-This patch also adjust __SWP_TYPE_SHIFT and increase number of bits
-availble for swap offset.
-
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
+Acked-by: Mark Salter <msalter@redhat.com>
+Cc: Aurelien Jacquiot <a-jacquiot@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/pgtable.h |   22 ++++------------------
- 1 file changed, 4 insertions(+), 18 deletions(-)
+ arch/c6x/include/asm/pgtable.h |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN arch/arm64/include/asm/pgtable.h~arm64-drop-pte_file-and-pte_file-related-helpers arch/arm64/include/asm/pgtable.h
---- a/arch/arm64/include/asm/pgtable.h~arm64-drop-pte_file-and-pte_file-related-helpers
-+++ a/arch/arm64/include/asm/pgtable.h
-@@ -25,7 +25,6 @@
-  * Software defined PTE bits definition.
-  */
- #define PTE_VALID		(_AT(pteval_t, 1) << 0)
--#define PTE_FILE		(_AT(pteval_t, 1) << 2)	/* only when !pte_present() */
- #define PTE_DIRTY		(_AT(pteval_t, 1) << 55)
- #define PTE_SPECIAL		(_AT(pteval_t, 1) << 56)
- #define PTE_WRITE		(_AT(pteval_t, 1) << 57)
-@@ -469,13 +468,12 @@ extern pgd_t idmap_pg_dir[PTRS_PER_PGD];
- /*
-  * Encode and decode a swap entry:
-  *	bits 0-1:	present (must be zero)
-- *	bit  2:		PTE_FILE
-- *	bits 3-8:	swap type
-- *	bits 9-57:	swap offset
-+ *	bits 2-7:	swap type
-+ *	bits 8-57:	swap offset
-  */
--#define __SWP_TYPE_SHIFT	3
-+#define __SWP_TYPE_SHIFT	2
- #define __SWP_TYPE_BITS		6
--#define __SWP_OFFSET_BITS	49
-+#define __SWP_OFFSET_BITS	50
- #define __SWP_TYPE_MASK		((1 << __SWP_TYPE_BITS) - 1)
- #define __SWP_OFFSET_SHIFT	(__SWP_TYPE_BITS + __SWP_TYPE_SHIFT)
- #define __SWP_OFFSET_MASK	((1UL << __SWP_OFFSET_BITS) - 1)
-@@ -493,18 +491,6 @@ extern pgd_t idmap_pg_dir[PTRS_PER_PGD];
-  */
- #define MAX_SWAPFILES_CHECK() BUILD_BUG_ON(MAX_SWAPFILES_SHIFT > __SWP_TYPE_BITS)
+diff -puN arch/c6x/include/asm/pgtable.h~c6x-drop-pte_file arch/c6x/include/asm/pgtable.h
+--- a/arch/c6x/include/asm/pgtable.h~c6x-drop-pte_file
++++ a/arch/c6x/include/asm/pgtable.h
+@@ -50,11 +50,6 @@ extern void paging_init(void);
+ #define __pte_to_swp_entry(pte)	((swp_entry_t) { pte_val(pte) })
+ #define __swp_entry_to_pte(x)	((pte_t) { (x).val })
  
--/*
-- * Encode and decode a file entry:
-- *	bits 0-1:	present (must be zero)
-- *	bit  2:		PTE_FILE
-- *	bits 3-57:	file offset / PAGE_SIZE
-- */
--#define pte_file(pte)		(pte_val(pte) & PTE_FILE)
--#define pte_to_pgoff(x)		(pte_val(x) >> 3)
--#define pgoff_to_pte(x)		__pte(((x) << 3) | PTE_FILE)
+-static inline int pte_file(pte_t pte)
+-{
+-	return 0;
+-}
 -
--#define PTE_FILE_MAX_BITS	55
--
- extern int kern_addr_valid(unsigned long addr);
+ #define set_pte(pteptr, pteval) (*(pteptr) = pteval)
+ #define set_pte_at(mm, addr, ptep, pteval) set_pte(ptep, pteval)
  
- #include <asm-generic/pgtable.h>
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
