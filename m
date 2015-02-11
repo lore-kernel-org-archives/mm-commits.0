@@ -1,68 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged] asm-generic-drop-unused-pte_file-helpers.patch removed
- from -mm tree
-Date: Wed, 11 Feb 2015 12:22:02 -0800
-Message-ID: <54dbb9ea.SCndIB/6P77U2CFT%akpm@linux-foundation.org>
+Subject: [merged] alpha-drop-_page_file-and-pte_file-related-helpers.patch removed from -mm tree
+Date: Wed, 11 Feb 2015 12:22:05 -0800
+Message-ID: <54dbb9ed.edaq8LWsJ36PBttm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40936 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40940 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753284AbbBKUWD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 15:22:03 -0500
+	with ESMTP id S1753284AbbBKUWG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 15:22:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, arnd@arndb.de, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, ink@jurassic.park.msu.ru, mattst88@gmail.com, rth@twiddle.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: asm-generic: drop unused pte_file* helpers
+     Subject: alpha: drop _PAGE_FILE and pte_file()-related helpers
 has been removed from the -mm tree.  Its filename was
-     asm-generic-drop-unused-pte_file-helpers.patch
+     alpha-drop-_page_file-and-pte_file-related-helpers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: asm-generic: drop unused pte_file* helpers
+Subject: alpha: drop _PAGE_FILE and pte_file()-related helpers
 
-All users are gone.
+We've replaced remap_file_pages(2) implementation with emulation.  Nobody
+creates non-linear mapping anymore.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/pgtable.h |   15 ---------------
- 1 file changed, 15 deletions(-)
+ arch/alpha/include/asm/pgtable.h |    7 -------
+ 1 file changed, 7 deletions(-)
 
-diff -puN include/asm-generic/pgtable.h~asm-generic-drop-unused-pte_file-helpers include/asm-generic/pgtable.h
---- a/include/asm-generic/pgtable.h~asm-generic-drop-unused-pte_file-helpers
-+++ a/include/asm-generic/pgtable.h
-@@ -474,21 +474,6 @@ static inline pte_t pte_swp_clear_soft_d
- {
- 	return pte;
- }
--
--static inline pte_t pte_file_clear_soft_dirty(pte_t pte)
--{
--       return pte;
--}
--
--static inline pte_t pte_file_mksoft_dirty(pte_t pte)
--{
--       return pte;
--}
--
--static inline int pte_file_soft_dirty(pte_t pte)
--{
--       return 0;
--}
- #endif
+diff -puN arch/alpha/include/asm/pgtable.h~alpha-drop-_page_file-and-pte_file-related-helpers arch/alpha/include/asm/pgtable.h
+--- a/arch/alpha/include/asm/pgtable.h~alpha-drop-_page_file-and-pte_file-related-helpers
++++ a/arch/alpha/include/asm/pgtable.h
+@@ -73,7 +73,6 @@ struct vm_area_struct;
+ /* .. and these are ours ... */
+ #define _PAGE_DIRTY	0x20000
+ #define _PAGE_ACCESSED	0x40000
+-#define _PAGE_FILE	0x80000	/* set:pagecache, unset:swap */
  
- #ifndef __HAVE_PFNMAP_TRACKING
+ /*
+  * NOTE! The "accessed" bit isn't necessarily exact:  it can be kept exactly
+@@ -268,7 +267,6 @@ extern inline void pgd_clear(pgd_t * pgd
+ extern inline int pte_write(pte_t pte)		{ return !(pte_val(pte) & _PAGE_FOW); }
+ extern inline int pte_dirty(pte_t pte)		{ return pte_val(pte) & _PAGE_DIRTY; }
+ extern inline int pte_young(pte_t pte)		{ return pte_val(pte) & _PAGE_ACCESSED; }
+-extern inline int pte_file(pte_t pte)		{ return pte_val(pte) & _PAGE_FILE; }
+ extern inline int pte_special(pte_t pte)	{ return 0; }
+ 
+ extern inline pte_t pte_wrprotect(pte_t pte)	{ pte_val(pte) |= _PAGE_FOW; return pte; }
+@@ -345,11 +343,6 @@ extern inline pte_t mk_swap_pte(unsigned
+ #define __pte_to_swp_entry(pte)	((swp_entry_t) { pte_val(pte) })
+ #define __swp_entry_to_pte(x)	((pte_t) { (x).val })
+ 
+-#define pte_to_pgoff(pte)	(pte_val(pte) >> 32)
+-#define pgoff_to_pte(off)	((pte_t) { ((off) << 32) | _PAGE_FILE })
+-
+-#define PTE_FILE_MAX_BITS	32
+-
+ #ifndef CONFIG_DISCONTIGMEM
+ #define kern_addr_valid(addr)	(1)
+ #endif
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
