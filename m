@@ -1,221 +1,108 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-memory-merge-shared-writable-dirtying-branches-in-do_wp_page.patch
- removed from -mm tree
-Date: Wed, 11 Feb 2015 12:23:07 -0800
-Message-ID: <54dbba2b.tKR/frkfUmkcOxin%akpm@linux-foundation.org>
+ hugetlb-sysctl-pass-extra1-=-null-rather-then-extra1-=-zero.patch removed
+ from -mm tree
+Date: Wed, 11 Feb 2015 12:23:09 -0800
+Message-ID: <54dbba2d.UCBfozvuoHBetgXs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41046 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41048 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753139AbbBKUXI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 15:23:08 -0500
+	with ESMTP id S1753139AbbBKUXK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 15:23:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, jack@suse.cz, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
+To: a.ryabinin@samsung.com, dvyukov@google.com, manfred@colorfullife.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memory: merge shared-writable dirtying branches in do_wp_page()
+     Subject: mm, hugetlb: remove unnecessary lower bound on sysctl handlers"?
 has been removed from the -mm tree.  Its filename was
-     mm-memory-merge-shared-writable-dirtying-branches-in-do_wp_page.patch
+     hugetlb-sysctl-pass-extra1-=-null-rather-then-extra1-=-zero.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memory: merge shared-writable dirtying branches in do_wp_page()
+From: Andrey Ryabinin <a.ryabinin@samsung.com>
+Subject: mm, hugetlb: remove unnecessary lower bound on sysctl handlers"?
 
-Whether there is a vm_ops->page_mkwrite or not, the page dirtying is
-pretty much the same.  Make sure the page references are the same in both
-cases, then merge the two branches.
+Commit ed4d4902ebdd ("mm, hugetlb: remove hugetlb_zero and
+hugetlb_infinity") replaced 'unsigned long hugetlb_zero' with 'int zero'
+leading to out-of-bounds access in proc_doulongvec_minmax().  Use '.extra1
+= NULL' instead of '.extra1 = &zero'.  Passing NULL is equivalent to
+passing minimal value, which is 0 for unsigned types.
 
-It's tempting to go even further and page-lock the !page_mkwrite case, to
-get it in line with everybody else setting the page table and thus further
-simplify the model.  But that's not quite compelling enough to justify
-dropping the pte lock, then relocking and verifying the entry for
-filesystems without ->page_mkwrite, which notably includes tmpfs.  Leave
-it for now and lock the page late in the !page_mkwrite case.
-
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
+Fixes: ed4d4902ebdd ("mm, hugetlb: remove hugetlb_zero and hugetlb_infinity")
+Signed-off-by: Andrey Ryabinin <a.ryabinin@samsung.com>
+Reported-by: Dmitry Vyukov <dvyukov@google.com>
+Suggested-by: Manfred Spraul <manfred@colorfullife.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   48 +++++++++++++++++-------------------------------
- 1 file changed, 17 insertions(+), 31 deletions(-)
+ kernel/sysctl.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN mm/memory.c~mm-memory-merge-shared-writable-dirtying-branches-in-do_wp_page mm/memory.c
---- a/mm/memory.c~mm-memory-merge-shared-writable-dirtying-branches-in-do_wp_page
-+++ a/mm/memory.c
-@@ -2007,7 +2007,7 @@ static int do_wp_page(struct mm_struct *
- 	pte_t entry;
- 	int ret = 0;
- 	int page_mkwrite = 0;
--	struct page *dirty_page = NULL;
-+	bool dirty_shared = false;
- 	unsigned long mmun_start = 0;	/* For mmu_notifiers */
- 	unsigned long mmun_end = 0;	/* For mmu_notifiers */
- 	struct mem_cgroup *memcg;
-@@ -2058,6 +2058,7 @@ static int do_wp_page(struct mm_struct *
- 		unlock_page(old_page);
- 	} else if (unlikely((vma->vm_flags & (VM_WRITE|VM_SHARED)) ==
- 					(VM_WRITE|VM_SHARED))) {
-+		page_cache_get(old_page);
- 		/*
- 		 * Only catch write-faults on shared writable pages,
- 		 * read-only shared pages can get COWed by
-@@ -2065,7 +2066,7 @@ static int do_wp_page(struct mm_struct *
- 		 */
- 		if (vma->vm_ops && vma->vm_ops->page_mkwrite) {
- 			int tmp;
--			page_cache_get(old_page);
-+
- 			pte_unmap_unlock(page_table, ptl);
- 			tmp = do_page_mkwrite(vma, old_page, address);
- 			if (unlikely(!tmp || (tmp &
-@@ -2085,11 +2086,10 @@ static int do_wp_page(struct mm_struct *
- 				unlock_page(old_page);
- 				goto unlock;
- 			}
--
- 			page_mkwrite = 1;
- 		}
--		dirty_page = old_page;
--		get_page(dirty_page);
-+
-+		dirty_shared = true;
- 
- reuse:
- 		/*
-@@ -2108,43 +2108,29 @@ reuse:
- 		pte_unmap_unlock(page_table, ptl);
- 		ret |= VM_FAULT_WRITE;
- 
--		if (!dirty_page)
--			return ret;
--
--		if (!page_mkwrite) {
-+		if (dirty_shared) {
- 			struct address_space *mapping;
- 			int dirtied;
- 
--			lock_page(dirty_page);
--			dirtied = set_page_dirty(dirty_page);
--			VM_BUG_ON_PAGE(PageAnon(dirty_page), dirty_page);
--			mapping = dirty_page->mapping;
--			unlock_page(dirty_page);
-+			if (!page_mkwrite)
-+				lock_page(old_page);
- 
--			if (dirtied && mapping) {
--				/*
--				 * Some device drivers do not set page.mapping
--				 * but still dirty their pages
--				 */
--				balance_dirty_pages_ratelimited(mapping);
--			}
-+			dirtied = set_page_dirty(old_page);
-+			VM_BUG_ON_PAGE(PageAnon(old_page), old_page);
-+			mapping = old_page->mapping;
-+			unlock_page(old_page);
-+			page_cache_release(old_page);
- 
--			file_update_time(vma->vm_file);
--		}
--		put_page(dirty_page);
--		if (page_mkwrite) {
--			struct address_space *mapping = dirty_page->mapping;
--
--			set_page_dirty(dirty_page);
--			unlock_page(dirty_page);
--			page_cache_release(dirty_page);
--			if (mapping)	{
-+			if ((dirtied || page_mkwrite) && mapping) {
- 				/*
- 				 * Some device drivers do not set page.mapping
- 				 * but still dirty their pages
- 				 */
- 				balance_dirty_pages_ratelimited(mapping);
- 			}
-+
-+			if (!page_mkwrite)
-+				file_update_time(vma->vm_file);
- 		}
- 
- 		return ret;
+diff -puN kernel/sysctl.c~hugetlb-sysctl-pass-extra1-=-null-rather-then-extra1-=-zero kernel/sysctl.c
+--- a/kernel/sysctl.c~hugetlb-sysctl-pass-extra1-=-null-rather-then-extra1-=-zero
++++ a/kernel/sysctl.c
+@@ -1248,7 +1248,6 @@ static struct ctl_table vm_table[] = {
+ 		.maxlen		= sizeof(unsigned long),
+ 		.mode		= 0644,
+ 		.proc_handler	= hugetlb_sysctl_handler,
+-		.extra1		= &zero,
+ 	},
+ #ifdef CONFIG_NUMA
+ 	{
+@@ -1257,7 +1256,6 @@ static struct ctl_table vm_table[] = {
+ 		.maxlen         = sizeof(unsigned long),
+ 		.mode           = 0644,
+ 		.proc_handler   = &hugetlb_mempolicy_sysctl_handler,
+-		.extra1		= &zero,
+ 	},
+ #endif
+ 	 {
+@@ -1280,7 +1278,6 @@ static struct ctl_table vm_table[] = {
+ 		.maxlen		= sizeof(unsigned long),
+ 		.mode		= 0644,
+ 		.proc_handler	= hugetlb_overcommit_handler,
+-		.extra1		= &zero,
+ 	},
+ #endif
+ 	{
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from a.ryabinin@samsung.com are
 
 origin.patch
-mm-add-fields-for-compound-destructor-and-order-into-struct-page.patch
-swap-remove-unused-mem_cgroup_uncharge_swapcache-declaration.patch
-mm-memcontrol-track-move_lock-state-internally.patch
-mm-memcontrol-track-move_lock-state-internally-fix.patch
-mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
-mm-vmscan-wake-up-all-pfmemalloc-throttled-processes-at-once.patch
-mm-hugetlb-reduce-arch-dependent-code-around-follow_huge_.patch
-mm-hugetlb-pmd_huge-returns-true-for-non-present-hugepage.patch
-mm-hugetlb-take-page-table-lock-in-follow_huge_pmd.patch
-mm-hugetlb-fix-getting-refcount-0-page-in-hugetlb_fault.patch
-mm-hugetlb-add-migration-hwpoisoned-entry-check-in-hugetlb_change_protection.patch
-mm-hugetlb-add-migration-entry-check-in-__unmap_hugepage_range.patch
-mm-set-page-pfmemalloc-in-prep_new_page.patch
-mm-page_alloc-reduce-number-of-alloc_pages-functions-parameters.patch
-mm-reduce-try_to_compact_pages-parameters.patch
-mm-microoptimize-zonelist-operations.patch
-list_lru-introduce-list_lru_shrink_countwalk.patch
-fs-consolidate-nrfree_cached_objects-args-in-shrink_control.patch
-vmscan-per-memory-cgroup-slab-shrinkers.patch
-memcg-rename-some-cache-id-related-variables.patch
-memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation.patch
-list_lru-get-rid-of-active_nodes.patch
-list_lru-organize-all-list_lrus-to-list.patch
-list_lru-introduce-per-memcg-lists.patch
-fs-make-shrinker-memcg-aware.patch
-vmscan-force-scan-offline-memory-cgroups.patch
-vmscan-force-scan-offline-memory-cgroups-fix.patch
-memcg-add-build_bug_on-for-string-tables.patch
-mm-page_counter-pull-1-handling-out-of-page_counter_memparse.patch
-mm-memcontrol-default-hierarchy-interface-for-memory.patch
-mm-memcontrol-fold-move_anon-and-move_file.patch
-mm-memcontrol-fold-move_anon-and-move_file-fix.patch
-oom-add-helpers-for-setting-and-clearing-tif_memdie.patch
-oom-thaw-the-oom-victim-if-it-is-frozen.patch
-pm-convert-printk-to-pr_-equivalent.patch
-sysrq-convert-printk-to-pr_-equivalent.patch
-oom-pm-make-oom-detection-in-the-freezer-path-raceless.patch
-mm-memcontrol-simplify-soft-limit-tree-init-code.patch
-mm-memcontrol-consolidate-memory-controller-initialization.patch
-mm-memcontrol-consolidate-swap-controller-code.patch
-fs-shrinker-always-scan-at-least-one-object-of-each-type.patch
-fs-shrinker-always-scan-at-least-one-object-of-each-type-fix.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated-fix.patch
-memcg-cleanup-preparation-for-page-table-walk.patch
-mincore-apply-page-table-walker-on-do_mincore.patch
-mincore-apply-page-table-walker-on-do_mincore-fix.patch
-mincore-apply-page-table-walker-on-do_mincore-fix-fix.patch
-slab-embed-memcg_cache_params-to-kmem_cache.patch
-slab-link-memcg-caches-of-the-same-kind-into-a-list.patch
-cgroup-release-css-id-after-css_free.patch
-slab-use-css-id-for-naming-per-memcg-caches.patch
-memcg-free-memcg_caches-slot-on-css-offline.patch
-list_lru-add-helpers-to-isolate-items.patch
-memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline.patch
-mm-when-stealing-freepages-also-take-pages-created-by-splitting-buddy-page.patch
-mm-always-steal-split-buddies-in-fallback-allocations.patch
-mm-more-aggressive-page-stealing-for-unmovable-allocations.patch
-vmstat-do-not-use-deferrable-delayed-work-for-vmstat_update.patch
-mm-incorporate-read-only-pages-into-transparent-huge-pages.patch
-mm-incorporate-read-only-pages-into-transparent-huge-pages-v4.patch
-memcg-cleanup-static-keys-decrement.patch
-documentation-proc-add-proc-pid-numa_maps-interface-explanation-snippet.patch
-fs-proc-task_mmu-show-page-size-in-proc-pid-numa_maps.patch
-fs-proc-task_mmu-show-page-size-in-proc-pid-numa_maps-fix.patch
+proc-pagemap-walk-page-tables-under-pte-lock.patch
+module_device_table-fix-some-callsites.patch
+compiler-introduce-__aliassymbol-shortcut.patch
+add-kernel-address-sanitizer-infrastructure.patch
+add-kernel-address-sanitizer-infrastructure-fix.patch
+kasan-disable-memory-hotplug.patch
+x86_64-add-kasan-support.patch
+x86_64-add-kasan-support-fix.patch
+mm-page_alloc-add-kasan-hooks-on-alloc-and-free-paths.patch
+mm-slub-introduce-virt_to_obj-function.patch
+mm-slub-share-object_err-function.patch
+mm-slub-introduce-metadata_access_enable-metadata_access_disable.patch
+mm-slub-add-kernel-address-sanitizer-support-for-slub-allocator.patch
+fs-dcache-manually-unpoison-dname-after-allocation-to-shut-up-kasans-reports.patch
+kmemleak-disable-kasan-instrumentation-for-kmemleak.patch
+lib-add-kasan-test-module.patch
+x86_64-kasan-add-interceptors-for-memset-memmove-memcpy-functions.patch
+kasan-enable-stack-instrumentation.patch
+mm-vmalloc-add-flag-preventing-guard-hole-allocation.patch
+mm-vmalloc-pass-additional-vm_flags-to-__vmalloc_node_range.patch
+kernel-add-support-for-init_array-constructors.patch
+module-fix-types-of-device-tables-aliases.patch
+kasan-enable-instrumentation-of-global-variables.patch
+kasan-enable-instrumentation-of-global-variables-fix.patch
+kasan-enable-instrumentation-of-global-variables-fix-2.patch
+kasan-enable-instrumentation-of-global-variables-fix-2-fix.patch
+linux-next.patch
 
