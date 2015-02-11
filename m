@@ -1,119 +1,201 @@
 From: akpm@linux-foundation.org
-Subject: [merged] um-drop-_page_file-and-pte_file-related-helpers.patch
+Subject: [merged] x86-drop-_page_file-and-pte_file-related-helpers.patch
  removed from -mm tree
-Date: Wed, 11 Feb 2015 12:22:55 -0800
-Message-ID: <54dbba1f.gz3xFIh+LVDQFQm5%akpm@linux-foundation.org>
+Date: Wed, 11 Feb 2015 12:22:59 -0800
+Message-ID: <54dbba23.FFKQ8q88xEIJ4kUV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41026 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41035 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753139AbbBKUW4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 15:22:56 -0500
+	with ESMTP id S1753139AbbBKUXA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 15:23:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, jdike@addtoit.com, richard@nod.at, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, hpa@zytor.com, mingo@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: um: drop _PAGE_FILE and pte_file()-related helpers
+     Subject: x86: drop _PAGE_FILE and pte_file()-related helpers
 has been removed from the -mm tree.  Its filename was
-     um-drop-_page_file-and-pte_file-related-helpers.patch
+     x86-drop-_page_file-and-pte_file-related-helpers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: um: drop _PAGE_FILE and pte_file()-related helpers
+Subject: x86: drop _PAGE_FILE and pte_file()-related helpers
 
 We've replaced remap_file_pages(2) implementation with emulation.  Nobody
 creates non-linear mapping anymore.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: Richard Weinberger <richard@nod.at>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/asm/pgtable-2level.h |    9 ---------
- arch/um/include/asm/pgtable-3level.h |   20 --------------------
- arch/um/include/asm/pgtable.h        |    9 ---------
- 3 files changed, 38 deletions(-)
+ arch/x86/include/asm/pgtable-2level.h |   38 ------------------------
+ arch/x86/include/asm/pgtable-3level.h |   12 -------
+ arch/x86/include/asm/pgtable.h        |   20 ------------
+ arch/x86/include/asm/pgtable_64.h     |    6 ---
+ arch/x86/include/asm/pgtable_types.h  |    3 -
+ 5 files changed, 2 insertions(+), 77 deletions(-)
 
-diff -puN arch/um/include/asm/pgtable-2level.h~um-drop-_page_file-and-pte_file-related-helpers arch/um/include/asm/pgtable-2level.h
---- a/arch/um/include/asm/pgtable-2level.h~um-drop-_page_file-and-pte_file-related-helpers
-+++ a/arch/um/include/asm/pgtable-2level.h
-@@ -41,13 +41,4 @@ static inline void pgd_mkuptodate(pgd_t
- #define pfn_pte(pfn, prot) __pte(pfn_to_phys(pfn) | pgprot_val(prot))
- #define pfn_pmd(pfn, prot) __pmd(pfn_to_phys(pfn) | pgprot_val(prot))
- 
--/*
-- * Bits 0 through 4 are taken
-- */
--#define PTE_FILE_MAX_BITS	27
--
--#define pte_to_pgoff(pte) (pte_val(pte) >> 5)
--
--#define pgoff_to_pte(off) ((pte_t) { ((off) << 5) + _PAGE_FILE })
--
- #endif
-diff -puN arch/um/include/asm/pgtable-3level.h~um-drop-_page_file-and-pte_file-related-helpers arch/um/include/asm/pgtable-3level.h
---- a/arch/um/include/asm/pgtable-3level.h~um-drop-_page_file-and-pte_file-related-helpers
-+++ a/arch/um/include/asm/pgtable-3level.h
-@@ -112,25 +112,5 @@ static inline pmd_t pfn_pmd(pfn_t page_n
- 	return __pmd((page_nr << PAGE_SHIFT) | pgprot_val(pgprot));
+diff -puN arch/x86/include/asm/pgtable-2level.h~x86-drop-_page_file-and-pte_file-related-helpers arch/x86/include/asm/pgtable-2level.h
+--- a/arch/x86/include/asm/pgtable-2level.h~x86-drop-_page_file-and-pte_file-related-helpers
++++ a/arch/x86/include/asm/pgtable-2level.h
+@@ -62,44 +62,8 @@ static inline unsigned long pte_bitop(un
+ 	return ((value >> rightshift) & mask) << leftshift;
  }
  
 -/*
-- * Bits 0 through 3 are taken in the low part of the pte,
-- * put the 32 bits of offset into the high part.
+- * Bits _PAGE_BIT_PRESENT, _PAGE_BIT_FILE and _PAGE_BIT_PROTNONE are taken,
+- * split up the 29 bits of offset into this range.
 - */
--#define PTE_FILE_MAX_BITS	32
+-#define PTE_FILE_MAX_BITS	29
+-#define PTE_FILE_SHIFT1		(_PAGE_BIT_PRESENT + 1)
+-#define PTE_FILE_SHIFT2		(_PAGE_BIT_FILE + 1)
+-#define PTE_FILE_SHIFT3		(_PAGE_BIT_PROTNONE + 1)
+-#define PTE_FILE_BITS1		(PTE_FILE_SHIFT2 - PTE_FILE_SHIFT1 - 1)
+-#define PTE_FILE_BITS2		(PTE_FILE_SHIFT3 - PTE_FILE_SHIFT2 - 1)
 -
--#ifdef CONFIG_64BIT
+-#define PTE_FILE_MASK1		((1U << PTE_FILE_BITS1) - 1)
+-#define PTE_FILE_MASK2		((1U << PTE_FILE_BITS2) - 1)
 -
--#define pte_to_pgoff(p) ((p).pte >> 32)
+-#define PTE_FILE_LSHIFT2	(PTE_FILE_BITS1)
+-#define PTE_FILE_LSHIFT3	(PTE_FILE_BITS1 + PTE_FILE_BITS2)
 -
--#define pgoff_to_pte(off) ((pte_t) { ((off) << 32) | _PAGE_FILE })
--
--#else
--
--#define pte_to_pgoff(pte) ((pte).pte_high)
--
--#define pgoff_to_pte(off) ((pte_t) { _PAGE_FILE, (off) })
--
--#endif
--
- #endif
- 
-diff -puN arch/um/include/asm/pgtable.h~um-drop-_page_file-and-pte_file-related-helpers arch/um/include/asm/pgtable.h
---- a/arch/um/include/asm/pgtable.h~um-drop-_page_file-and-pte_file-related-helpers
-+++ a/arch/um/include/asm/pgtable.h
-@@ -18,7 +18,6 @@
- #define _PAGE_ACCESSED	0x080
- #define _PAGE_DIRTY	0x100
- /* If _PAGE_PRESENT is clear, we use these: */
--#define _PAGE_FILE	0x008	/* nonlinear file mapping, saved PTE; unset:swap */
- #define _PAGE_PROTNONE	0x010	/* if the user mapped it with PROT_NONE;
- 				   pte_present gives true */
- 
-@@ -151,14 +150,6 @@ static inline int pte_write(pte_t pte)
- 	       !(pte_get_bits(pte, _PAGE_PROTNONE)));
- }
- 
--/*
-- * The following only works if pte_present() is not true.
-- */
--static inline int pte_file(pte_t pte)
+-static __always_inline pgoff_t pte_to_pgoff(pte_t pte)
 -{
--	return pte_get_bits(pte, _PAGE_FILE);
+-	return (pgoff_t)
+-		(pte_bitop(pte.pte_low, PTE_FILE_SHIFT1, PTE_FILE_MASK1,  0)		    +
+-		 pte_bitop(pte.pte_low, PTE_FILE_SHIFT2, PTE_FILE_MASK2,  PTE_FILE_LSHIFT2) +
+-		 pte_bitop(pte.pte_low, PTE_FILE_SHIFT3,           -1UL,  PTE_FILE_LSHIFT3));
 -}
 -
- static inline int pte_dirty(pte_t pte)
+-static __always_inline pte_t pgoff_to_pte(pgoff_t off)
+-{
+-	return (pte_t){
+-		.pte_low =
+-			pte_bitop(off,                0, PTE_FILE_MASK1,  PTE_FILE_SHIFT1) +
+-			pte_bitop(off, PTE_FILE_LSHIFT2, PTE_FILE_MASK2,  PTE_FILE_SHIFT2) +
+-			pte_bitop(off, PTE_FILE_LSHIFT3,           -1UL,  PTE_FILE_SHIFT3) +
+-			_PAGE_FILE,
+-	};
+-}
+-
+ /* Encode and de-code a swap entry */
+-#define SWP_TYPE_BITS (_PAGE_BIT_FILE - _PAGE_BIT_PRESENT - 1)
++#define SWP_TYPE_BITS 5
+ #define SWP_OFFSET_SHIFT (_PAGE_BIT_PROTNONE + 1)
+ 
+ #define MAX_SWAPFILES_CHECK() BUILD_BUG_ON(MAX_SWAPFILES_SHIFT > SWP_TYPE_BITS)
+diff -puN arch/x86/include/asm/pgtable-3level.h~x86-drop-_page_file-and-pte_file-related-helpers arch/x86/include/asm/pgtable-3level.h
+--- a/arch/x86/include/asm/pgtable-3level.h~x86-drop-_page_file-and-pte_file-related-helpers
++++ a/arch/x86/include/asm/pgtable-3level.h
+@@ -176,18 +176,6 @@ static inline pmd_t native_pmdp_get_and_
+ #define native_pmdp_get_and_clear(xp) native_local_pmdp_get_and_clear(xp)
+ #endif
+ 
+-/*
+- * Bits 0, 6 and 7 are taken in the low part of the pte,
+- * put the 32 bits of offset into the high part.
+- *
+- * For soft-dirty tracking 11 bit is taken from
+- * the low part of pte as well.
+- */
+-#define pte_to_pgoff(pte) ((pte).pte_high)
+-#define pgoff_to_pte(off)						\
+-	((pte_t) { { .pte_low = _PAGE_FILE, .pte_high = (off) } })
+-#define PTE_FILE_MAX_BITS       32
+-
+ /* Encode and de-code a swap entry */
+ #define MAX_SWAPFILES_CHECK() BUILD_BUG_ON(MAX_SWAPFILES_SHIFT > 5)
+ #define __swp_type(x)			(((x).val) & 0x1f)
+diff -puN arch/x86/include/asm/pgtable.h~x86-drop-_page_file-and-pte_file-related-helpers arch/x86/include/asm/pgtable.h
+--- a/arch/x86/include/asm/pgtable.h~x86-drop-_page_file-and-pte_file-related-helpers
++++ a/arch/x86/include/asm/pgtable.h
+@@ -115,11 +115,6 @@ static inline int pte_write(pte_t pte)
+ 	return pte_flags(pte) & _PAGE_RW;
+ }
+ 
+-static inline int pte_file(pte_t pte)
+-{
+-	return pte_flags(pte) & _PAGE_FILE;
+-}
+-
+ static inline int pte_huge(pte_t pte)
  {
- 	return pte_get_bits(pte, _PAGE_DIRTY);
+ 	return pte_flags(pte) & _PAGE_PSE;
+@@ -329,21 +324,6 @@ static inline pmd_t pmd_mksoft_dirty(pmd
+ 	return pmd_set_flags(pmd, _PAGE_SOFT_DIRTY);
+ }
+ 
+-static inline pte_t pte_file_clear_soft_dirty(pte_t pte)
+-{
+-	return pte_clear_flags(pte, _PAGE_SOFT_DIRTY);
+-}
+-
+-static inline pte_t pte_file_mksoft_dirty(pte_t pte)
+-{
+-	return pte_set_flags(pte, _PAGE_SOFT_DIRTY);
+-}
+-
+-static inline int pte_file_soft_dirty(pte_t pte)
+-{
+-	return pte_flags(pte) & _PAGE_SOFT_DIRTY;
+-}
+-
+ #endif /* CONFIG_HAVE_ARCH_SOFT_DIRTY */
+ 
+ /*
+diff -puN arch/x86/include/asm/pgtable_64.h~x86-drop-_page_file-and-pte_file-related-helpers arch/x86/include/asm/pgtable_64.h
+--- a/arch/x86/include/asm/pgtable_64.h~x86-drop-_page_file-and-pte_file-related-helpers
++++ a/arch/x86/include/asm/pgtable_64.h
+@@ -133,10 +133,6 @@ static inline int pgd_large(pgd_t pgd) {
+ /* PUD - Level3 access */
+ 
+ /* PMD  - Level 2 access */
+-#define pte_to_pgoff(pte) ((pte_val((pte)) & PHYSICAL_PAGE_MASK) >> PAGE_SHIFT)
+-#define pgoff_to_pte(off) ((pte_t) { .pte = ((off) << PAGE_SHIFT) |	\
+-					    _PAGE_FILE })
+-#define PTE_FILE_MAX_BITS __PHYSICAL_MASK_SHIFT
+ 
+ /* PTE - Level 1 access. */
+ 
+@@ -145,7 +141,7 @@ static inline int pgd_large(pgd_t pgd) {
+ #define pte_unmap(pte) ((void)(pte))/* NOP */
+ 
+ /* Encode and de-code a swap entry */
+-#define SWP_TYPE_BITS (_PAGE_BIT_FILE - _PAGE_BIT_PRESENT - 1)
++#define SWP_TYPE_BITS 5
+ #ifdef CONFIG_NUMA_BALANCING
+ /* Automatic NUMA balancing needs to be distinguishable from swap entries */
+ #define SWP_OFFSET_SHIFT (_PAGE_BIT_PROTNONE + 2)
+diff -puN arch/x86/include/asm/pgtable_types.h~x86-drop-_page_file-and-pte_file-related-helpers arch/x86/include/asm/pgtable_types.h
+--- a/arch/x86/include/asm/pgtable_types.h~x86-drop-_page_file-and-pte_file-related-helpers
++++ a/arch/x86/include/asm/pgtable_types.h
+@@ -38,8 +38,6 @@
+ /* If _PAGE_BIT_PRESENT is clear, we use these: */
+ /* - if the user mapped it with PROT_NONE; pte_present gives true */
+ #define _PAGE_BIT_PROTNONE	_PAGE_BIT_GLOBAL
+-/* - set: nonlinear file mapping, saved PTE; unset:swap */
+-#define _PAGE_BIT_FILE		_PAGE_BIT_DIRTY
+ 
+ #define _PAGE_PRESENT	(_AT(pteval_t, 1) << _PAGE_BIT_PRESENT)
+ #define _PAGE_RW	(_AT(pteval_t, 1) << _PAGE_BIT_RW)
+@@ -114,7 +112,6 @@
+ #define _PAGE_NX	(_AT(pteval_t, 0))
+ #endif
+ 
+-#define _PAGE_FILE	(_AT(pteval_t, 1) << _PAGE_BIT_FILE)
+ #define _PAGE_PROTNONE	(_AT(pteval_t, 1) << _PAGE_BIT_PROTNONE)
+ 
+ #define _PAGE_TABLE	(_PAGE_PRESENT | _PAGE_RW | _PAGE_USER |	\
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
