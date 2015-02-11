@@ -1,76 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [merged] alpha-drop-_page_file-and-pte_file-related-helpers.patch removed from -mm tree
-Date: Wed, 11 Feb 2015 12:22:05 -0800
-Message-ID: <54dbb9ed.edaq8LWsJ36PBttm%akpm@linux-foundation.org>
+Subject: [merged] arc-drop-_page_file-and-pte_file-related-helpers.patch
+ removed from -mm tree
+Date: Wed, 11 Feb 2015 12:22:07 -0800
+Message-ID: <54dbb9ef.uUKVsL4DC71ndMnj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40940 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40944 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753284AbbBKUWG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 15:22:06 -0500
+	with ESMTP id S1753988AbbBKUWI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Feb 2015 15:22:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, ink@jurassic.park.msu.ru, mattst88@gmail.com, rth@twiddle.net, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, vgupta@synopsys.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: alpha: drop _PAGE_FILE and pte_file()-related helpers
+     Subject: arc: drop _PAGE_FILE and pte_file()-related helpers
 has been removed from the -mm tree.  Its filename was
-     alpha-drop-_page_file-and-pte_file-related-helpers.patch
+     arc-drop-_page_file-and-pte_file-related-helpers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: alpha: drop _PAGE_FILE and pte_file()-related helpers
+Subject: arc: drop _PAGE_FILE and pte_file()-related helpers
 
 We've replaced remap_file_pages(2) implementation with emulation.  Nobody
 creates non-linear mapping anymore.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
+Acked-by: Vineet Gupta <vgupta@synopsys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/pgtable.h |    7 -------
- 1 file changed, 7 deletions(-)
+ arch/arc/include/asm/pgtable.h |   13 +------------
+ 1 file changed, 1 insertion(+), 12 deletions(-)
 
-diff -puN arch/alpha/include/asm/pgtable.h~alpha-drop-_page_file-and-pte_file-related-helpers arch/alpha/include/asm/pgtable.h
---- a/arch/alpha/include/asm/pgtable.h~alpha-drop-_page_file-and-pte_file-related-helpers
-+++ a/arch/alpha/include/asm/pgtable.h
-@@ -73,7 +73,6 @@ struct vm_area_struct;
- /* .. and these are ours ... */
- #define _PAGE_DIRTY	0x20000
- #define _PAGE_ACCESSED	0x40000
--#define _PAGE_FILE	0x80000	/* set:pagecache, unset:swap */
+diff -puN arch/arc/include/asm/pgtable.h~arc-drop-_page_file-and-pte_file-related-helpers arch/arc/include/asm/pgtable.h
+--- a/arch/arc/include/asm/pgtable.h~arc-drop-_page_file-and-pte_file-related-helpers
++++ a/arch/arc/include/asm/pgtable.h
+@@ -61,7 +61,6 @@
+ #define _PAGE_WRITE         (1<<4)	/* Page has user write perm (H) */
+ #define _PAGE_READ          (1<<5)	/* Page has user read perm (H) */
+ #define _PAGE_MODIFIED      (1<<6)	/* Page modified (dirty) (S) */
+-#define _PAGE_FILE          (1<<7)	/* page cache/ swap (S) */
+ #define _PAGE_GLOBAL        (1<<8)	/* Page is global (H) */
+ #define _PAGE_PRESENT       (1<<10)	/* TLB entry is valid (H) */
  
- /*
-  * NOTE! The "accessed" bit isn't necessarily exact:  it can be kept exactly
-@@ -268,7 +267,6 @@ extern inline void pgd_clear(pgd_t * pgd
- extern inline int pte_write(pte_t pte)		{ return !(pte_val(pte) & _PAGE_FOW); }
- extern inline int pte_dirty(pte_t pte)		{ return pte_val(pte) & _PAGE_DIRTY; }
- extern inline int pte_young(pte_t pte)		{ return pte_val(pte) & _PAGE_ACCESSED; }
--extern inline int pte_file(pte_t pte)		{ return pte_val(pte) & _PAGE_FILE; }
- extern inline int pte_special(pte_t pte)	{ return 0; }
+@@ -73,7 +72,6 @@
+ #define _PAGE_READ          (1<<3)	/* Page has user read perm (H) */
+ #define _PAGE_ACCESSED      (1<<4)	/* Page is accessed (S) */
+ #define _PAGE_MODIFIED      (1<<5)	/* Page modified (dirty) (S) */
+-#define _PAGE_FILE          (1<<6)	/* page cache/ swap (S) */
+ #define _PAGE_GLOBAL        (1<<8)	/* Page is global (H) */
+ #define _PAGE_PRESENT       (1<<9)	/* TLB entry is valid (H) */
+ #define _PAGE_SHARED_CODE   (1<<11)	/* Shared Code page with cmn vaddr
+@@ -268,15 +266,6 @@ static inline void pmd_set(pmd_t *pmdp,
+ 	pte;								\
+ })
  
- extern inline pte_t pte_wrprotect(pte_t pte)	{ pte_val(pte) |= _PAGE_FOW; return pte; }
-@@ -345,11 +343,6 @@ extern inline pte_t mk_swap_pte(unsigned
- #define __pte_to_swp_entry(pte)	((swp_entry_t) { pte_val(pte) })
- #define __swp_entry_to_pte(x)	((pte_t) { (x).val })
- 
--#define pte_to_pgoff(pte)	(pte_val(pte) >> 32)
--#define pgoff_to_pte(off)	((pte_t) { ((off) << 32) | _PAGE_FILE })
+-/* TBD: Non linear mapping stuff */
+-static inline int pte_file(pte_t pte)
+-{
+-	return pte_val(pte) & _PAGE_FILE;
+-}
 -
--#define PTE_FILE_MAX_BITS	32
--
- #ifndef CONFIG_DISCONTIGMEM
- #define kern_addr_valid(addr)	(1)
- #endif
+-#define PTE_FILE_MAX_BITS	30
+-#define pgoff_to_pte(x)         __pte(x)
+-#define pte_to_pgoff(x)		(pte_val(x) >> 2)
+ #define pte_pfn(pte)		(pte_val(pte) >> PAGE_SHIFT)
+ #define pfn_pte(pfn, prot)	(__pte(((pfn) << PAGE_SHIFT) | pgprot_val(prot)))
+ #define __pte_index(addr)	(((addr) >> PAGE_SHIFT) & (PTRS_PER_PTE - 1))
+@@ -364,7 +353,7 @@ void update_mmu_cache(struct vm_area_str
+ 
+ /* Encode swap {type,off} tuple into PTE
+  * We reserve 13 bits for 5-bit @type, keeping bits 12-5 zero, ensuring that
+- * both PAGE_FILE and PAGE_PRESENT are zero in a PTE holding swap "identifier"
++ * PAGE_PRESENT is zero in a PTE holding swap "identifier"
+  */
+ #define __swp_entry(type, off)	((swp_entry_t) { \
+ 					((type) & 0x1f) | ((off) << 13) })
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
