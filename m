@@ -1,141 +1,336 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch removed from -mm tree
-Date: Thu, 12 Feb 2015 11:36:07 -0800
-Message-ID: <54dd00a7.NOPBWU+Mx4+cJkCm%akpm@linux-foundation.org>
+Subject: [merged] mm-hugetlb-take-page-table-lock-in-follow_huge_pmd.patch removed from -mm tree
+Date: Thu, 12 Feb 2015 11:36:21 -0800
+Message-ID: <54dd00b5.nZHW6HWrJ1xARZGZ%akpm__1340.63709197125$1423769796$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57976 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58025 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751540AbbBLTgI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 14:36:08 -0500
+	with ESMTP id S1751212AbbBLTgX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 14:36:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, isimatu.yasuaki@jp.fujitsu.com, mel@csn.ul.ie, ming.lei@canonical.com, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, aarcange@redhat.com, hannes@cmpxchg.org, hughd@google.com, james.hogan@imgtec.com, lcapitulino@redhat.com, lee.schermerhorn@hp.com, mel@csn.ul.ie, mhocko@suse.cz, nacc@linux.vnet.ibm.com, riel@redhat.com, rientjes@google.com, stable@vger.kernel.org, steve.capper@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc.c:__alloc_pages_nodemask(): don't alter arg gfp_mask
+     Subject: mm/hugetlb: take page table lock in follow_huge_pmd()
 has been removed from the -mm tree.  Its filename was
-     mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
+     mm-hugetlb-take-page-table-lock-in-follow_huge_pmd.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm/page_alloc.c:__alloc_pages_nodemask(): don't alter arg gfp_mask
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm/hugetlb: take page table lock in follow_huge_pmd()
 
-__alloc_pages_nodemask() strips __GFP_IO when retrying the page
-allocation.  But it does this by altering the function-wide variable
-gfp_mask.  This will cause subsequent allocation attempts to inadvertently
-use the modified gfp_mask.
+We have a race condition between move_pages() and freeing hugepages, where
+move_pages() calls follow_page(FOLL_GET) for hugepages internally and
+tries to get its refcount without preventing concurrent freeing.  This
+race crashes the kernel, so this patch fixes it by moving FOLL_GET code
+for hugepages into follow_huge_pmd() with taking the page table lock.
 
-Also, pass the correct mask (the mask we actually used) into
-trace_mm_page_alloc().
+This patch intentionally removes page==NULL check after pte_page. 
+This is justified because pte_page() never returns NULL for any
+architectures or configurations.
 
-Cc: Ming Lei <ming.lei@canonical.com>
+This patch changes the behavior of follow_huge_pmd() for tail pages and
+then tail pages can be pinned/returned.  So the caller must be changed to
+properly handle the returned tail pages.
+
+We could have a choice to add the similar locking to
+follow_huge_(addr|pud) for consistency, but it's not necessary because
+currently these functions don't support FOLL_GET flag, so let's leave it
+for future development.
+
+Here is the reproducer:
+
+  $ cat movepages.c
+  #include <stdio.h>
+  #include <stdlib.h>
+  #include <numaif.h>
+
+  #define ADDR_INPUT      0x700000000000UL
+  #define HPS             0x200000
+  #define PS              0x1000
+
+  int main(int argc, char *argv[]) {
+          int i;
+          int nr_hp = strtol(argv[1], NULL, 0);
+          int nr_p  = nr_hp * HPS / PS;
+          int ret;
+          void **addrs;
+          int *status;
+          int *nodes;
+          pid_t pid;
+
+          pid = strtol(argv[2], NULL, 0);
+          addrs  = malloc(sizeof(char *) * nr_p + 1);
+          status = malloc(sizeof(char *) * nr_p + 1);
+          nodes  = malloc(sizeof(char *) * nr_p + 1);
+
+          while (1) {
+                  for (i = 0; i < nr_p; i++) {
+                          addrs[i] = (void *)ADDR_INPUT + i * PS;
+                          nodes[i] = 1;
+                          status[i] = 0;
+                  }
+                  ret = numa_move_pages(pid, nr_p, addrs, nodes, status,
+                                        MPOL_MF_MOVE_ALL);
+                  if (ret == -1)
+                          err("move_pages");
+
+                  for (i = 0; i < nr_p; i++) {
+                          addrs[i] = (void *)ADDR_INPUT + i * PS;
+                          nodes[i] = 0;
+                          status[i] = 0;
+                  }
+                  ret = numa_move_pages(pid, nr_p, addrs, nodes, status,
+                                        MPOL_MF_MOVE_ALL);
+                  if (ret == -1)
+                          err("move_pages");
+          }
+          return 0;
+  }
+
+  $ cat hugepage.c
+  #include <stdio.h>
+  #include <sys/mman.h>
+  #include <string.h>
+
+  #define ADDR_INPUT      0x700000000000UL
+  #define HPS             0x200000
+
+  int main(int argc, char *argv[]) {
+          int nr_hp = strtol(argv[1], NULL, 0);
+          char *p;
+
+          while (1) {
+                  p = mmap((void *)ADDR_INPUT, nr_hp * HPS, PROT_READ | PROT_WRITE,
+                           MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0);
+                  if (p != (void *)ADDR_INPUT) {
+                          perror("mmap");
+                          break;
+                  }
+                  memset(p, 0, nr_hp * HPS);
+                  munmap(p, nr_hp * HPS);
+          }
+  }
+
+  $ sysctl vm.nr_hugepages=40
+  $ ./hugepage 10 &
+  $ ./movepages 10 $(pgrep -f hugepage)
+
+Fixes: e632a938d914 ("mm: migrate: add hugepage migration code to move_pages()")
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Reported-by: Hugh Dickins <hughd@google.com>
+Cc: James Hogan <james.hogan@imgtec.com>
+Cc: David Rientjes <rientjes@google.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: David Rientjes <rientjes@google.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Luiz Capitulino <lcapitulino@redhat.com>
+Cc: Nishanth Aravamudan <nacc@linux.vnet.ibm.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Steve Capper <steve.capper@linaro.org>
+Cc: <stable@vger.kernel.org>	[3.12+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ include/linux/hugetlb.h |    8 +++---
+ include/linux/swapops.h |    4 +++
+ mm/gup.c                |   25 ++++++-------------
+ mm/hugetlb.c            |   48 ++++++++++++++++++++++++++------------
+ mm/migrate.c            |    5 ++-
+ 5 files changed, 53 insertions(+), 37 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask
-+++ a/mm/page_alloc.c
-@@ -2865,6 +2865,7 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
- 	unsigned int cpuset_mems_cookie;
- 	int alloc_flags = ALLOC_WMARK_LOW|ALLOC_CPUSET|ALLOC_FAIR;
- 	int classzone_idx;
-+	gfp_t alloc_mask; /* The gfp_t that was actually used for allocation */
+diff -puN include/linux/hugetlb.h~mm-hugetlb-take-page-table-lock-in-follow_huge_pmd include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~mm-hugetlb-take-page-table-lock-in-follow_huge_pmd
++++ a/include/linux/hugetlb.h
+@@ -99,9 +99,9 @@ int huge_pmd_unshare(struct mm_struct *m
+ struct page *follow_huge_addr(struct mm_struct *mm, unsigned long address,
+ 			      int write);
+ struct page *follow_huge_pmd(struct mm_struct *mm, unsigned long address,
+-				pmd_t *pmd, int write);
++				pmd_t *pmd, int flags);
+ struct page *follow_huge_pud(struct mm_struct *mm, unsigned long address,
+-				pud_t *pud, int write);
++				pud_t *pud, int flags);
+ int pmd_huge(pmd_t pmd);
+ int pud_huge(pud_t pmd);
+ unsigned long hugetlb_change_protection(struct vm_area_struct *vma,
+@@ -133,8 +133,8 @@ static inline void hugetlb_report_meminf
+ static inline void hugetlb_show_meminfo(void)
+ {
+ }
+-#define follow_huge_pmd(mm, addr, pmd, write)	NULL
+-#define follow_huge_pud(mm, addr, pud, write)	NULL
++#define follow_huge_pmd(mm, addr, pmd, flags)	NULL
++#define follow_huge_pud(mm, addr, pud, flags)	NULL
+ #define prepare_hugepage_range(file, addr, len)	(-EINVAL)
+ #define pmd_huge(x)	0
+ #define pud_huge(x)	0
+diff -puN include/linux/swapops.h~mm-hugetlb-take-page-table-lock-in-follow_huge_pmd include/linux/swapops.h
+--- a/include/linux/swapops.h~mm-hugetlb-take-page-table-lock-in-follow_huge_pmd
++++ a/include/linux/swapops.h
+@@ -135,6 +135,8 @@ static inline void make_migration_entry_
+ 	*entry = swp_entry(SWP_MIGRATION_READ, swp_offset(*entry));
+ }
  
- 	gfp_mask &= gfp_allowed_mask;
- 
-@@ -2898,22 +2899,24 @@ retry_cpuset:
- 	classzone_idx = zonelist_zone_idx(preferred_zoneref);
- 
- 	/* First allocation attempt */
--	page = get_page_from_freelist(gfp_mask|__GFP_HARDWALL, nodemask, order,
--			zonelist, high_zoneidx, alloc_flags,
--			preferred_zone, classzone_idx, migratetype);
-+	alloc_mask = gfp_mask|__GFP_HARDWALL;
-+	page = get_page_from_freelist(alloc_mask, nodemask, order, zonelist,
-+			high_zoneidx, alloc_flags, preferred_zone,
-+			classzone_idx, migratetype);
- 	if (unlikely(!page)) {
- 		/*
- 		 * Runtime PM, block IO and its error handling path
- 		 * can deadlock because I/O on the device might not
- 		 * complete.
- 		 */
--		gfp_mask = memalloc_noio_flags(gfp_mask);
--		page = __alloc_pages_slowpath(gfp_mask, order,
-+		alloc_mask = memalloc_noio_flags(gfp_mask);
-+
-+		page = __alloc_pages_slowpath(alloc_mask, order,
- 				zonelist, high_zoneidx, nodemask,
- 				preferred_zone, classzone_idx, migratetype);
++extern void __migration_entry_wait(struct mm_struct *mm, pte_t *ptep,
++					spinlock_t *ptl);
+ extern void migration_entry_wait(struct mm_struct *mm, pmd_t *pmd,
+ 					unsigned long address);
+ extern void migration_entry_wait_huge(struct vm_area_struct *vma,
+@@ -148,6 +150,8 @@ static inline int is_migration_entry(swp
+ }
+ #define migration_entry_to_page(swp) NULL
+ static inline void make_migration_entry_read(swp_entry_t *entryp) { }
++static inline void __migration_entry_wait(struct mm_struct *mm, pte_t *ptep,
++					spinlock_t *ptl) { }
+ static inline void migration_entry_wait(struct mm_struct *mm, pmd_t *pmd,
+ 					 unsigned long address) { }
+ static inline void migration_entry_wait_huge(struct vm_area_struct *vma,
+diff -puN mm/gup.c~mm-hugetlb-take-page-table-lock-in-follow_huge_pmd mm/gup.c
+--- a/mm/gup.c~mm-hugetlb-take-page-table-lock-in-follow_huge_pmd
++++ a/mm/gup.c
+@@ -167,10 +167,10 @@ struct page *follow_page_mask(struct vm_
+ 	if (pud_none(*pud))
+ 		return no_page_table(vma, flags);
+ 	if (pud_huge(*pud) && vma->vm_flags & VM_HUGETLB) {
+-		if (flags & FOLL_GET)
+-			return NULL;
+-		page = follow_huge_pud(mm, address, pud, flags & FOLL_WRITE);
+-		return page;
++		page = follow_huge_pud(mm, address, pud, flags);
++		if (page)
++			return page;
++		return no_page_table(vma, flags);
  	}
+ 	if (unlikely(pud_bad(*pud)))
+ 		return no_page_table(vma, flags);
+@@ -179,19 +179,10 @@ struct page *follow_page_mask(struct vm_
+ 	if (pmd_none(*pmd))
+ 		return no_page_table(vma, flags);
+ 	if (pmd_huge(*pmd) && vma->vm_flags & VM_HUGETLB) {
+-		page = follow_huge_pmd(mm, address, pmd, flags & FOLL_WRITE);
+-		if (flags & FOLL_GET) {
+-			/*
+-			 * Refcount on tail pages are not well-defined and
+-			 * shouldn't be taken. The caller should handle a NULL
+-			 * return when trying to follow tail pages.
+-			 */
+-			if (PageHead(page))
+-				get_page(page);
+-			else
+-				page = NULL;
+-		}
+-		return page;
++		page = follow_huge_pmd(mm, address, pmd, flags);
++		if (page)
++			return page;
++		return no_page_table(vma, flags);
+ 	}
+ 	if ((flags & FOLL_NUMA) && pmd_numa(*pmd))
+ 		return no_page_table(vma, flags);
+diff -puN mm/hugetlb.c~mm-hugetlb-take-page-table-lock-in-follow_huge_pmd mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-take-page-table-lock-in-follow_huge_pmd
++++ a/mm/hugetlb.c
+@@ -3675,28 +3675,48 @@ follow_huge_addr(struct mm_struct *mm, u
  
--	trace_mm_page_alloc(page, order, gfp_mask, migratetype);
-+	trace_mm_page_alloc(page, order, alloc_mask, migratetype);
+ struct page * __weak
+ follow_huge_pmd(struct mm_struct *mm, unsigned long address,
+-		pmd_t *pmd, int write)
++		pmd_t *pmd, int flags)
+ {
+-	struct page *page;
+-
+-	if (!pmd_present(*pmd))
+-		return NULL;
+-	page = pte_page(*(pte_t *)pmd);
+-	if (page)
+-		page += ((address & ~PMD_MASK) >> PAGE_SHIFT);
++	struct page *page = NULL;
++	spinlock_t *ptl;
++retry:
++	ptl = pmd_lockptr(mm, pmd);
++	spin_lock(ptl);
++	/*
++	 * make sure that the address range covered by this pmd is not
++	 * unmapped from other threads.
++	 */
++	if (!pmd_huge(*pmd))
++		goto out;
++	if (pmd_present(*pmd)) {
++		page = pte_page(*(pte_t *)pmd) +
++			((address & ~PMD_MASK) >> PAGE_SHIFT);
++		if (flags & FOLL_GET)
++			get_page(page);
++	} else {
++		if (is_hugetlb_entry_migration(huge_ptep_get((pte_t *)pmd))) {
++			spin_unlock(ptl);
++			__migration_entry_wait(mm, (pte_t *)pmd, ptl);
++			goto retry;
++		}
++		/*
++		 * hwpoisoned entry is treated as no_page_table in
++		 * follow_page_mask().
++		 */
++	}
++out:
++	spin_unlock(ptl);
+ 	return page;
+ }
  
- out:
- 	/*
+ struct page * __weak
+ follow_huge_pud(struct mm_struct *mm, unsigned long address,
+-		pud_t *pud, int write)
++		pud_t *pud, int flags)
+ {
+-	struct page *page;
++	if (flags & FOLL_GET)
++		return NULL;
+ 
+-	page = pte_page(*(pte_t *)pud);
+-	if (page)
+-		page += ((address & ~PUD_MASK) >> PAGE_SHIFT);
+-	return page;
++	return pte_page(*(pte_t *)pud) + ((address & ~PUD_MASK) >> PAGE_SHIFT);
+ }
+ 
+ #ifdef CONFIG_MEMORY_FAILURE
+diff -puN mm/migrate.c~mm-hugetlb-take-page-table-lock-in-follow_huge_pmd mm/migrate.c
+--- a/mm/migrate.c~mm-hugetlb-take-page-table-lock-in-follow_huge_pmd
++++ a/mm/migrate.c
+@@ -197,7 +197,7 @@ static void remove_migration_ptes(struct
+  * get to the page and wait until migration is finished.
+  * When we return from this function the fault will be retried.
+  */
+-static void __migration_entry_wait(struct mm_struct *mm, pte_t *ptep,
++void __migration_entry_wait(struct mm_struct *mm, pte_t *ptep,
+ 				spinlock_t *ptl)
+ {
+ 	pte_t pte;
+@@ -1236,7 +1236,8 @@ static int do_move_page_to_node_array(st
+ 			goto put_and_set;
+ 
+ 		if (PageHuge(page)) {
+-			isolate_huge_page(page, &pagelist);
++			if (PageHead(page))
++				isolate_huge_page(page, &pagelist);
+ 			goto put_and_set;
+ 		}
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
 origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-mm.patch
-fs-shrinker-always-scan-at-least-one-object-of-each-type-fix.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-zram-rework-reset-and-destroy-path-fix.patch
-task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss.patch
-powerpc-add-running_clock-for-powerpc-to-prevent-spurious-softlockup-warnings-checkpatch-fixes.patch
-kernelh-remove-ancient-__function__-hack-fix.patch
-lib-bitmap-update-bitmap_onto-to-unsigned-checkpatch-fixes.patch
-lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned-fix.patch
-hexdump-makes-it-return-amount-of-bytes-placed-in-buffer-fix.patch
-mm-slab-convert-cache-name-allocations-to-kstrdup_const-fix.patch
-module_device_table-fix-some-callsites.patch
-kasan-enable-instrumentation-of-global-variables-fix.patch
-kasan-enable-instrumentation-of-global-variables-fix-2-fix.patch
-rtc-rk808-fix-the-rtc-time-reading-issue-fix.patch
-fs-befs-linuxvfsc-remove-unnecessary-casting-fix.patch
-samples-seccomp-improve-label-helper-fix.patch
-linux-next.patch
-linux-next-rejects.patch
-mm-fix-xip-fault-vs-truncate-race-fix.patch
-mm-fix-xip-fault-vs-truncate-race-fix-fix.patch
-mm-allow-page-fault-handlers-to-perform-the-cow-fix.patch
-mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix-3.patch
-mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix.patch
-daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix.patch
-daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-2.patch
-daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-3.patch
-dax-add-dax_zero_page_range-fix.patch
-ext4-add-dax-functionality-fix.patch
-ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
-ocfs2-implement-ocfs2_direct_io_write-fix.patch
-lib-kconfig-fix-up-have_arch_bitreverse-help-text.patch
+mm-hwpoison-drop-lru_add_drain_all-in-__soft_offline_page.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
 
