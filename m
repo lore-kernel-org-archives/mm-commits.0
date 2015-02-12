@@ -1,89 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: [merged] oom-thaw-the-oom-victim-if-it-is-frozen.patch removed
+Subject: [merged]
+ mm-page_counter-pull-1-handling-out-of-page_counter_memparse.patch removed
  from -mm tree
-Date: Thu, 12 Feb 2015 11:37:03 -0800
-Message-ID: <54dd00df.08dZ62b7P2lmlIIq%akpm@linux-foundation.org>
+Date: Thu, 12 Feb 2015 11:36:54 -0800
+Message-ID: <54dd00d6.qeep1jJdcSn7m8wn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58169 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58143 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751573AbbBLThE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 14:37:04 -0500
+	with ESMTP id S1752210AbbBLTgz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 14:36:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.cz, hannes@cmpxchg.org, oleg@redhat.com, rientjes@google.com, rjw@rjwysocki.net, tj@kernel.org, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, gthelen@google.com, mhocko@suse.cz, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: oom: thaw the OOM victim if it is frozen
+     Subject: mm: page_counter: pull "-1" handling out of page_counter_memparse()
 has been removed from the -mm tree.  Its filename was
-     oom-thaw-the-oom-victim-if-it-is-frozen.patch
+     mm-page_counter-pull-1-handling-out-of-page_counter_memparse.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: oom: thaw the OOM victim if it is frozen
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: page_counter: pull "-1" handling out of page_counter_memparse()
 
-oom_kill_process only sets TIF_MEMDIE flag and sends a signal to the
-victim.  This is basically noop when the task is frozen though because the
-task sleeps in the uninterruptible sleep.  The victim is eventually thawed
-later when oom_scan_process_thread meets the task again in a later OOM
-invocation so the OOM killer doesn't live lock.  But this is less than
-optimal.
+The unified hierarchy interface for memory cgroups will no longer use "-1"
+to mean maximum possible resource value.  In preparation for this, make
+the string an argument and let the caller supply it.
 
-Let's add __thaw_task into mark_tsk_oom_victim after we set TIF_MEMDIE to
-the victim.  We are not checking whether the task is frozen because that
-would be racy and __thaw_task does that already.  oom_scan_process_thread
-doesn't need to care about freezer anymore as TIF_MEMDIE and freezer are
-excluded completely now.
-
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Cong Wang <xiyou.wangcong@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: Vladimir Davydov <vdavydov@parallels.com>
+Cc: Greg Thelen <gthelen@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ include/linux/page_counter.h |    3 ++-
+ mm/hugetlb_cgroup.c          |    2 +-
+ mm/memcontrol.c              |    4 ++--
+ mm/page_counter.c            |    7 ++++---
+ net/ipv4/tcp_memcontrol.c    |    2 +-
+ 5 files changed, 10 insertions(+), 8 deletions(-)
 
-diff -puN mm/oom_kill.c~oom-thaw-the-oom-victim-if-it-is-frozen mm/oom_kill.c
---- a/mm/oom_kill.c~oom-thaw-the-oom-victim-if-it-is-frozen
-+++ a/mm/oom_kill.c
-@@ -266,8 +266,6 @@ enum oom_scan_t oom_scan_process_thread(
- 	 * Don't allow any other task to have access to the reserves.
- 	 */
- 	if (test_tsk_thread_flag(task, TIF_MEMDIE)) {
--		if (unlikely(frozen(task)))
--			__thaw_task(task);
- 		if (!force_kill)
- 			return OOM_SCAN_ABORT;
- 	}
-@@ -423,6 +421,14 @@ void note_oom_kill(void)
- void mark_tsk_oom_victim(struct task_struct *tsk)
- {
- 	set_tsk_thread_flag(tsk, TIF_MEMDIE);
-+
-+	/*
-+	 * Make sure that the task is woken up from uninterruptible sleep
-+	 * if it is frozen because OOM killer wouldn't be able to free
-+	 * any memory and livelock. freezing_slow_path will tell the freezer
-+	 * that TIF_MEMDIE tasks should be ignored.
-+	 */
-+	__thaw_task(tsk);
- }
+diff -puN include/linux/page_counter.h~mm-page_counter-pull-1-handling-out-of-page_counter_memparse include/linux/page_counter.h
+--- a/include/linux/page_counter.h~mm-page_counter-pull-1-handling-out-of-page_counter_memparse
++++ a/include/linux/page_counter.h
+@@ -41,7 +41,8 @@ int page_counter_try_charge(struct page_
+ 			    struct page_counter **fail);
+ void page_counter_uncharge(struct page_counter *counter, unsigned long nr_pages);
+ int page_counter_limit(struct page_counter *counter, unsigned long limit);
+-int page_counter_memparse(const char *buf, unsigned long *nr_pages);
++int page_counter_memparse(const char *buf, const char *max,
++			  unsigned long *nr_pages);
  
+ static inline void page_counter_reset_watermark(struct page_counter *counter)
+ {
+diff -puN mm/hugetlb_cgroup.c~mm-page_counter-pull-1-handling-out-of-page_counter_memparse mm/hugetlb_cgroup.c
+--- a/mm/hugetlb_cgroup.c~mm-page_counter-pull-1-handling-out-of-page_counter_memparse
++++ a/mm/hugetlb_cgroup.c
+@@ -279,7 +279,7 @@ static ssize_t hugetlb_cgroup_write(stru
+ 		return -EINVAL;
+ 
+ 	buf = strstrip(buf);
+-	ret = page_counter_memparse(buf, &nr_pages);
++	ret = page_counter_memparse(buf, "-1", &nr_pages);
+ 	if (ret)
+ 		return ret;
+ 
+diff -puN mm/memcontrol.c~mm-page_counter-pull-1-handling-out-of-page_counter_memparse mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-page_counter-pull-1-handling-out-of-page_counter_memparse
++++ a/mm/memcontrol.c
+@@ -3414,7 +3414,7 @@ static ssize_t mem_cgroup_write(struct k
+ 	int ret;
+ 
+ 	buf = strstrip(buf);
+-	ret = page_counter_memparse(buf, &nr_pages);
++	ret = page_counter_memparse(buf, "-1", &nr_pages);
+ 	if (ret)
+ 		return ret;
+ 
+@@ -3786,7 +3786,7 @@ static int __mem_cgroup_usage_register_e
+ 	unsigned long usage;
+ 	int i, size, ret;
+ 
+-	ret = page_counter_memparse(args, &threshold);
++	ret = page_counter_memparse(args, "-1", &threshold);
+ 	if (ret)
+ 		return ret;
+ 
+diff -puN mm/page_counter.c~mm-page_counter-pull-1-handling-out-of-page_counter_memparse mm/page_counter.c
+--- a/mm/page_counter.c~mm-page_counter-pull-1-handling-out-of-page_counter_memparse
++++ a/mm/page_counter.c
+@@ -166,18 +166,19 @@ int page_counter_limit(struct page_count
  /**
+  * page_counter_memparse - memparse() for page counter limits
+  * @buf: string to parse
++ * @max: string meaning maximum possible value
+  * @nr_pages: returns the result in number of pages
+  *
+  * Returns -EINVAL, or 0 and @nr_pages on success.  @nr_pages will be
+  * limited to %PAGE_COUNTER_MAX.
+  */
+-int page_counter_memparse(const char *buf, unsigned long *nr_pages)
++int page_counter_memparse(const char *buf, const char *max,
++			  unsigned long *nr_pages)
+ {
+-	char unlimited[] = "-1";
+ 	char *end;
+ 	u64 bytes;
+ 
+-	if (!strncmp(buf, unlimited, sizeof(unlimited))) {
++	if (!strcmp(buf, max)) {
+ 		*nr_pages = PAGE_COUNTER_MAX;
+ 		return 0;
+ 	}
+diff -puN net/ipv4/tcp_memcontrol.c~mm-page_counter-pull-1-handling-out-of-page_counter_memparse net/ipv4/tcp_memcontrol.c
+--- a/net/ipv4/tcp_memcontrol.c~mm-page_counter-pull-1-handling-out-of-page_counter_memparse
++++ a/net/ipv4/tcp_memcontrol.c
+@@ -120,7 +120,7 @@ static ssize_t tcp_cgroup_write(struct k
+ 	switch (of_cft(of)->private) {
+ 	case RES_LIMIT:
+ 		/* see memcontrol.c */
+-		ret = page_counter_memparse(buf, &nr_pages);
++		ret = page_counter_memparse(buf, "-1", &nr_pages);
+ 		if (ret)
+ 			break;
+ 		mutex_lock(&tcp_limit_mutex);
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 origin.patch
 list_lru-introduce-list_lru_shrink_countwalk.patch
@@ -106,8 +156,7 @@ memcg-free-memcg_caches-slot-on-css-offline.patch
 list_lru-add-helpers-to-isolate-items.patch
 memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline.patch
 memcg-cleanup-static-keys-decrement.patch
-mm-page_isolation-check-pfn-validity-before-access.patch
-mm-support-madvisemadv_free.patch
-mm-dont-split-thp-page-when-syscall-is-called.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-2.patch
+documentation-proc-add-proc-pid-numa_maps-interface-explanation-snippet.patch
+fs-proc-task_mmu-show-page-size-in-proc-pid-numa_maps.patch
+fs-proc-task_mmu-show-page-size-in-proc-pid-numa_maps-fix.patch
 
