@@ -1,74 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] zram-rework-reset-and-destroy-path-fix.patch
+Subject: [folded-merged]
+ all-arches-signal-move-restart_block-to-struct-task_struct-fix.patch
  removed from -mm tree
-Date: Thu, 12 Feb 2015 14:15:42 -0800
-Message-ID: <54dd260e.lBoItvFAvklsdrlv%akpm@linux-foundation.org>
+Date: Thu, 12 Feb 2015 14:16:40 -0800
+Message-ID: <54dd2648.ALdCPTEL25PrV0ak%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60244 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60262 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751468AbbBLWPn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 17:15:43 -0500
+	with ESMTP id S1751468AbbBLWQl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 17:16:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jmarchan@redhat.com, minchan@kernel.org, ngupta@vflare.org, opensource.ganesh@gmail.com, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
+To: james.hogan@imgtec.com, linux@roeck-us.net, luto@amacapital.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram-rework-reset-and-destroy-path-fix
+     Subject: metag: align thread_info::supervisor_stack
 has been removed from the -mm tree.  Its filename was
-     zram-rework-reset-and-destroy-path-fix.patch
+     all-arches-signal-move-restart_block-to-struct-task_struct-fix.patch
 
-This patch was dropped because it was folded into zram-rework-reset-and-destroy-path.patch
+This patch was dropped because it was folded into all-arches-signal-move-restart_block-to-struct-task_struct.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: zram-rework-reset-and-destroy-path-fix
+From: James Hogan <james.hogan@imgtec.com>
+Subject: metag: align thread_info::supervisor_stack
 
-tweak comment
+Commit a82be12232dc ("all arches, signal: move restart_block to struct
+task_struct") removed restart_block from struct thread_info which was the
+only thing keeping supervisor_stack and the struct as a whole 64-bit
+aligned.  This resulted in the initial stack pointer not being 64-bit
+aligned, so when arguments are saved to the stack with a 64-bit SETL
+instruction the values are corrupted resulting in a pretty early
+unserviced memory fault in printk.
 
-Cc: Ganesh Mahendran <opensource.ganesh@gmail.com>
-Cc: Jerome Marchand <jmarchan@redhat.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Nitin Gupta <ngupta@vflare.org>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+This is fixed by explicitly aligning supervisor_stack to 8 bytes.
+
+Fixes: a82be12232dc ("all arches, signal: move restart_block to struct task_struct")
+Reported-by: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: James Hogan <james.hogan@imgtec.com>
+Cc: Andy Lutomirski <luto@amacapital.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ arch/metag/include/asm/thread_info.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-rework-reset-and-destroy-path-fix drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-rework-reset-and-destroy-path-fix
-+++ a/drivers/block/zram/zram_drv.c
-@@ -1119,8 +1119,10 @@ static void destroy_devices(unsigned int
+diff -puN arch/metag/include/asm/thread_info.h~all-arches-signal-move-restart_block-to-struct-task_struct-fix arch/metag/include/asm/thread_info.h
+--- a/arch/metag/include/asm/thread_info.h~all-arches-signal-move-restart_block-to-struct-task_struct-fix
++++ a/arch/metag/include/asm/thread_info.h
+@@ -36,7 +36,7 @@ struct thread_info {
  
- 	for (i = 0; i < nr; i++) {
- 		zram = &zram_devices[i];
--		/* remove sysfs first, so no one will perform disksize
--		 * store while we destroying devices */
-+		/*
-+		 * Remove sysfs first, so no one will perform a disksize
-+		 * store while we destroy the devices
-+		 */
- 		sysfs_remove_group(&disk_to_dev(zram->disk)->kobj,
- 				&zram_disk_attr_group);
+ 	mm_segment_t addr_limit;	/* thread address space */
  
+-	u8 supervisor_stack[0];
++	u8 supervisor_stack[0] __aligned(8);
+ };
+ 
+ #else /* !__ASSEMBLY__ */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from james.hogan@imgtec.com are
 
 origin.patch
-mm-convert-p_mknonnuma-and-remaining-page-table-manipulations.patch
-fs-shrinker-always-scan-at-least-one-object-of-each-type.patch
-zram-rework-reset-and-destroy-path.patch
-task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss.patch
-powerpc-add-running_clock-for-powerpc-to-prevent-spurious-softlockup-warnings-checkpatch-fixes.patch
-kernelh-remove-ancient-__function__-hack-fix.patch
-lib-bitmap-update-bitmap_onto-to-unsigned-checkpatch-fixes.patch
-lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned-fix.patch
-hexdump-makes-it-return-amount-of-bytes-placed-in-buffer-fix.patch
+all-arches-signal-move-restart_block-to-struct-task_struct.patch
 
