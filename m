@@ -1,195 +1,275 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-compaction-enhance-tracepoint-output-for-compaction-begin-end.patch
- removed from -mm tree
-Date: Thu, 12 Feb 2015 11:37:41 -0800
-Message-ID: <54dd0105.5N4/Tq90471FfUPP%akpm@linux-foundation.org>
+ mm-compaction-add-tracepoint-to-observe-behaviour-of-compaction-defer.patch removed from -mm tree
+Date: Thu, 12 Feb 2015 11:37:47 -0800
+Message-ID: <54dd010b.FfOYJOx3AfUXLzzA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58261 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58351 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751793AbbBLThm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 14:37:42 -0500
+	with ESMTP id S1752332AbbBLThs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 14:37:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, dan.carpenter@oracle.com, mgorman@suse.de, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: iamjoonsoo.kim@lge.com, mgorman@suse.de, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/compaction: enhance tracepoint output for compaction begin/end
+     Subject: mm/compaction: add tracepoint to observe behaviour of compaction defer
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-enhance-tracepoint-output-for-compaction-begin-end.patch
+     mm-compaction-add-tracepoint-to-observe-behaviour-of-compaction-defer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/compaction: enhance tracepoint output for compaction begin/end
+Subject: mm/compaction: add tracepoint to observe behaviour of compaction defer
 
-We now have tracepoint for begin event of compaction and it prints start
-position of both scanners, but, tracepoint for end event of compaction
-doesn't print finish position of both scanners.  It'd be also useful to
-know finish position of both scanners so this patch add it.  It will help
-to find odd behavior or problem on compaction internal logic.
+Compaction deferring logic is heavy hammer that block the way to the
+compaction.  It doesn't consider overall system state, so it could prevent
+user from doing compaction falsely.  In other words, even if system has
+enough range of memory to compact, compaction would be skipped due to
+compaction deferring logic.  This patch add new tracepoint to understand
+work of deferring logic.  This will also help to check compaction success
+and fail.
 
-And mode is added to both begin/end tracepoint output, since according to
-mode, compaction behavior is quite different.
-
-And lastly, status format is changed to string rather than status number
-for readability.
-
-[akpm@linux-foundation.org: fix sparse warning]
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: David Rientjes <rientjes@google.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compaction.h        |    1 
- include/trace/events/compaction.h |   49 ++++++++++++++++++++--------
- mm/compaction.c                   |   15 +++++++-
- 3 files changed, 49 insertions(+), 16 deletions(-)
+ include/linux/compaction.h        |   65 +------------------------
+ include/trace/events/compaction.h |   56 ++++++++++++++++++++++
+ mm/compaction.c                   |   71 ++++++++++++++++++++++++++++
+ 3 files changed, 132 insertions(+), 60 deletions(-)
 
-diff -puN include/linux/compaction.h~mm-compaction-enhance-tracepoint-output-for-compaction-begin-end include/linux/compaction.h
---- a/include/linux/compaction.h~mm-compaction-enhance-tracepoint-output-for-compaction-begin-end
+diff -puN include/linux/compaction.h~mm-compaction-add-tracepoint-to-observe-behaviour-of-compaction-defer include/linux/compaction.h
+--- a/include/linux/compaction.h~mm-compaction-add-tracepoint-to-observe-behaviour-of-compaction-defer
 +++ a/include/linux/compaction.h
-@@ -12,6 +12,7 @@
- #define COMPACT_PARTIAL		3
- /* The full zone was compacted */
- #define COMPACT_COMPLETE	4
-+/* When adding new state, please change compaction_status_string, too */
+@@ -44,66 +44,11 @@ extern void reset_isolation_suitable(pg_
+ extern unsigned long compaction_suitable(struct zone *zone, int order,
+ 					int alloc_flags, int classzone_idx);
  
- /* Used to signal whether compaction detected need_sched() or lock contention */
- /* No contention detected */
-diff -puN include/trace/events/compaction.h~mm-compaction-enhance-tracepoint-output-for-compaction-begin-end include/trace/events/compaction.h
---- a/include/trace/events/compaction.h~mm-compaction-enhance-tracepoint-output-for-compaction-begin-end
+-/* Do not skip compaction more than 64 times */
+-#define COMPACT_MAX_DEFER_SHIFT 6
+-
+-/*
+- * Compaction is deferred when compaction fails to result in a page
+- * allocation success. 1 << compact_defer_limit compactions are skipped up
+- * to a limit of 1 << COMPACT_MAX_DEFER_SHIFT
+- */
+-static inline void defer_compaction(struct zone *zone, int order)
+-{
+-	zone->compact_considered = 0;
+-	zone->compact_defer_shift++;
+-
+-	if (order < zone->compact_order_failed)
+-		zone->compact_order_failed = order;
+-
+-	if (zone->compact_defer_shift > COMPACT_MAX_DEFER_SHIFT)
+-		zone->compact_defer_shift = COMPACT_MAX_DEFER_SHIFT;
+-}
+-
+-/* Returns true if compaction should be skipped this time */
+-static inline bool compaction_deferred(struct zone *zone, int order)
+-{
+-	unsigned long defer_limit = 1UL << zone->compact_defer_shift;
+-
+-	if (order < zone->compact_order_failed)
+-		return false;
+-
+-	/* Avoid possible overflow */
+-	if (++zone->compact_considered > defer_limit)
+-		zone->compact_considered = defer_limit;
+-
+-	return zone->compact_considered < defer_limit;
+-}
+-
+-/*
+- * Update defer tracking counters after successful compaction of given order,
+- * which means an allocation either succeeded (alloc_success == true) or is
+- * expected to succeed.
+- */
+-static inline void compaction_defer_reset(struct zone *zone, int order,
+-		bool alloc_success)
+-{
+-	if (alloc_success) {
+-		zone->compact_considered = 0;
+-		zone->compact_defer_shift = 0;
+-	}
+-	if (order >= zone->compact_order_failed)
+-		zone->compact_order_failed = order + 1;
+-}
+-
+-/* Returns true if restarting compaction after many failures */
+-static inline bool compaction_restarting(struct zone *zone, int order)
+-{
+-	if (order < zone->compact_order_failed)
+-		return false;
+-
+-	return zone->compact_defer_shift == COMPACT_MAX_DEFER_SHIFT &&
+-		zone->compact_considered >= 1UL << zone->compact_defer_shift;
+-}
++extern void defer_compaction(struct zone *zone, int order);
++extern bool compaction_deferred(struct zone *zone, int order);
++extern void compaction_defer_reset(struct zone *zone, int order,
++				bool alloc_success);
++extern bool compaction_restarting(struct zone *zone, int order);
+ 
+ #else
+ static inline unsigned long try_to_compact_pages(gfp_t gfp_mask,
+diff -puN include/trace/events/compaction.h~mm-compaction-add-tracepoint-to-observe-behaviour-of-compaction-defer include/trace/events/compaction.h
+--- a/include/trace/events/compaction.h~mm-compaction-add-tracepoint-to-observe-behaviour-of-compaction-defer
 +++ a/include/trace/events/compaction.h
-@@ -85,46 +85,67 @@ TRACE_EVENT(mm_compaction_migratepages,
+@@ -238,6 +238,62 @@ DEFINE_EVENT(mm_compaction_suitable_temp
+ 	TP_ARGS(zone, order, ret)
  );
  
- TRACE_EVENT(mm_compaction_begin,
--	TP_PROTO(unsigned long zone_start, unsigned long migrate_start,
--		unsigned long free_start, unsigned long zone_end),
-+	TP_PROTO(unsigned long zone_start, unsigned long migrate_pfn,
-+		unsigned long free_pfn, unsigned long zone_end, bool sync),
- 
--	TP_ARGS(zone_start, migrate_start, free_start, zone_end),
-+	TP_ARGS(zone_start, migrate_pfn, free_pfn, zone_end, sync),
- 
- 	TP_STRUCT__entry(
- 		__field(unsigned long, zone_start)
--		__field(unsigned long, migrate_start)
--		__field(unsigned long, free_start)
-+		__field(unsigned long, migrate_pfn)
-+		__field(unsigned long, free_pfn)
- 		__field(unsigned long, zone_end)
-+		__field(bool, sync)
- 	),
- 
- 	TP_fast_assign(
- 		__entry->zone_start = zone_start;
--		__entry->migrate_start = migrate_start;
--		__entry->free_start = free_start;
-+		__entry->migrate_pfn = migrate_pfn;
-+		__entry->free_pfn = free_pfn;
- 		__entry->zone_end = zone_end;
-+		__entry->sync = sync;
- 	),
- 
--	TP_printk("zone_start=0x%lx migrate_start=0x%lx free_start=0x%lx zone_end=0x%lx",
-+	TP_printk("zone_start=0x%lx migrate_pfn=0x%lx free_pfn=0x%lx zone_end=0x%lx, mode=%s",
- 		__entry->zone_start,
--		__entry->migrate_start,
--		__entry->free_start,
--		__entry->zone_end)
-+		__entry->migrate_pfn,
-+		__entry->free_pfn,
-+		__entry->zone_end,
-+		__entry->sync ? "sync" : "async")
- );
- 
- TRACE_EVENT(mm_compaction_end,
--	TP_PROTO(int status),
-+	TP_PROTO(unsigned long zone_start, unsigned long migrate_pfn,
-+		unsigned long free_pfn, unsigned long zone_end, bool sync,
-+		int status),
- 
--	TP_ARGS(status),
-+	TP_ARGS(zone_start, migrate_pfn, free_pfn, zone_end, sync, status),
- 
- 	TP_STRUCT__entry(
-+		__field(unsigned long, zone_start)
-+		__field(unsigned long, migrate_pfn)
-+		__field(unsigned long, free_pfn)
-+		__field(unsigned long, zone_end)
-+		__field(bool, sync)
- 		__field(int, status)
- 	),
- 
- 	TP_fast_assign(
-+		__entry->zone_start = zone_start;
-+		__entry->migrate_pfn = migrate_pfn;
-+		__entry->free_pfn = free_pfn;
-+		__entry->zone_end = zone_end;
-+		__entry->sync = sync;
- 		__entry->status = status;
- 	),
- 
--	TP_printk("status=%d", __entry->status)
-+	TP_printk("zone_start=0x%lx migrate_pfn=0x%lx free_pfn=0x%lx zone_end=0x%lx, mode=%s status=%s",
-+		__entry->zone_start,
-+		__entry->migrate_pfn,
-+		__entry->free_pfn,
-+		__entry->zone_end,
-+		__entry->sync ? "sync" : "async",
-+		compaction_status_string[__entry->status])
- );
- 
- #endif /* _TRACE_COMPACTION_H */
-diff -puN mm/compaction.c~mm-compaction-enhance-tracepoint-output-for-compaction-begin-end mm/compaction.c
---- a/mm/compaction.c~mm-compaction-enhance-tracepoint-output-for-compaction-begin-end
-+++ a/mm/compaction.c
-@@ -34,6 +34,15 @@ static inline void count_compact_events(
- #endif
- 
- #if defined CONFIG_COMPACTION || defined CONFIG_CMA
-+#ifdef CONFIG_TRACEPOINTS
-+static const char *const compaction_status_string[] = {
-+	"deferred",
-+	"skipped",
-+	"continue",
-+	"partial",
-+	"complete",
-+};
++#ifdef CONFIG_COMPACTION
++DECLARE_EVENT_CLASS(mm_compaction_defer_template,
++
++	TP_PROTO(struct zone *zone, int order),
++
++	TP_ARGS(zone, order),
++
++	TP_STRUCT__entry(
++		__field(int, nid)
++		__field(char *, name)
++		__field(int, order)
++		__field(unsigned int, considered)
++		__field(unsigned int, defer_shift)
++		__field(int, order_failed)
++	),
++
++	TP_fast_assign(
++		__entry->nid = zone_to_nid(zone);
++		__entry->name = (char *)zone->name;
++		__entry->order = order;
++		__entry->considered = zone->compact_considered;
++		__entry->defer_shift = zone->compact_defer_shift;
++		__entry->order_failed = zone->compact_order_failed;
++	),
++
++	TP_printk("node=%d zone=%-8s order=%d order_failed=%d consider=%u limit=%lu",
++		__entry->nid,
++		__entry->name,
++		__entry->order,
++		__entry->order_failed,
++		__entry->considered,
++		1UL << __entry->defer_shift)
++);
++
++DEFINE_EVENT(mm_compaction_defer_template, mm_compaction_deferred,
++
++	TP_PROTO(struct zone *zone, int order),
++
++	TP_ARGS(zone, order)
++);
++
++DEFINE_EVENT(mm_compaction_defer_template, mm_compaction_defer_compaction,
++
++	TP_PROTO(struct zone *zone, int order),
++
++	TP_ARGS(zone, order)
++);
++
++DEFINE_EVENT(mm_compaction_defer_template, mm_compaction_defer_reset,
++
++	TP_PROTO(struct zone *zone, int order),
++
++	TP_ARGS(zone, order)
++);
 +#endif
++
+ #endif /* _TRACE_COMPACTION_H */
  
- #define CREATE_TRACE_POINTS
- #include <trace/events/compaction.h>
-@@ -1197,7 +1206,8 @@ static int compact_zone(struct zone *zon
- 		zone->compact_cached_migrate_pfn[1] = cc->migrate_pfn;
- 	}
- 
--	trace_mm_compaction_begin(start_pfn, cc->migrate_pfn, cc->free_pfn, end_pfn);
-+	trace_mm_compaction_begin(start_pfn, cc->migrate_pfn,
-+				cc->free_pfn, end_pfn, sync);
- 
- 	migrate_prep_local();
- 
-@@ -1299,7 +1309,8 @@ out:
- 			zone->compact_cached_free_pfn = free_pfn;
- 	}
- 
--	trace_mm_compaction_end(ret);
-+	trace_mm_compaction_end(start_pfn, cc->migrate_pfn,
-+				cc->free_pfn, end_pfn, sync, ret);
- 
- 	return ret;
+ /* This part must be outside protection */
+diff -puN mm/compaction.c~mm-compaction-add-tracepoint-to-observe-behaviour-of-compaction-defer mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-add-tracepoint-to-observe-behaviour-of-compaction-defer
++++ a/mm/compaction.c
+@@ -124,6 +124,77 @@ static struct page *pageblock_pfn_to_pag
  }
+ 
+ #ifdef CONFIG_COMPACTION
++
++/* Do not skip compaction more than 64 times */
++#define COMPACT_MAX_DEFER_SHIFT 6
++
++/*
++ * Compaction is deferred when compaction fails to result in a page
++ * allocation success. 1 << compact_defer_limit compactions are skipped up
++ * to a limit of 1 << COMPACT_MAX_DEFER_SHIFT
++ */
++void defer_compaction(struct zone *zone, int order)
++{
++	zone->compact_considered = 0;
++	zone->compact_defer_shift++;
++
++	if (order < zone->compact_order_failed)
++		zone->compact_order_failed = order;
++
++	if (zone->compact_defer_shift > COMPACT_MAX_DEFER_SHIFT)
++		zone->compact_defer_shift = COMPACT_MAX_DEFER_SHIFT;
++
++	trace_mm_compaction_defer_compaction(zone, order);
++}
++
++/* Returns true if compaction should be skipped this time */
++bool compaction_deferred(struct zone *zone, int order)
++{
++	unsigned long defer_limit = 1UL << zone->compact_defer_shift;
++
++	if (order < zone->compact_order_failed)
++		return false;
++
++	/* Avoid possible overflow */
++	if (++zone->compact_considered > defer_limit)
++		zone->compact_considered = defer_limit;
++
++	if (zone->compact_considered >= defer_limit)
++		return false;
++
++	trace_mm_compaction_deferred(zone, order);
++
++	return true;
++}
++
++/*
++ * Update defer tracking counters after successful compaction of given order,
++ * which means an allocation either succeeded (alloc_success == true) or is
++ * expected to succeed.
++ */
++void compaction_defer_reset(struct zone *zone, int order,
++		bool alloc_success)
++{
++	if (alloc_success) {
++		zone->compact_considered = 0;
++		zone->compact_defer_shift = 0;
++	}
++	if (order >= zone->compact_order_failed)
++		zone->compact_order_failed = order + 1;
++
++	trace_mm_compaction_defer_reset(zone, order);
++}
++
++/* Returns true if restarting compaction after many failures */
++bool compaction_restarting(struct zone *zone, int order)
++{
++	if (order < zone->compact_order_failed)
++		return false;
++
++	return zone->compact_defer_shift == COMPACT_MAX_DEFER_SHIFT &&
++		zone->compact_considered >= 1UL << zone->compact_defer_shift;
++}
++
+ /* Returns true if the pageblock should be scanned for pages to isolate. */
+ static inline bool isolation_suitable(struct compact_control *cc,
+ 					struct page *page)
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
