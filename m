@@ -1,500 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- oom-pm-make-oom-detection-in-the-freezer-path-raceless.patch removed from
- -mm tree
-Date: Thu, 12 Feb 2015 11:37:11 -0800
-Message-ID: <54dd00e7.XHnNd/je7rHSU1Wb%akpm@linux-foundation.org>
+Subject: [merged] mm-memcontrol-simplify-soft-limit-tree-init-code.patch
+ removed from -mm tree
+Date: Thu, 12 Feb 2015 11:37:16 -0800
+Message-ID: <54dd00ec.DCyN+U6c/X8QjDkk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58193 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58211 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752270AbbBLThM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 14:37:12 -0500
+	with ESMTP id S1752279AbbBLThR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 14:37:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.cz, hannes@cmpxchg.org, oleg@redhat.com, rientjes@google.com, rjw@rjwysocki.net, tj@kernel.org, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, cl@linux-foundation.org, linux@roeck-us.net, mhocko@suse.cz, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: oom, PM: make OOM detection in the freezer path raceless
+     Subject: mm: memcontrol: simplify soft limit tree init code
 has been removed from the -mm tree.  Its filename was
-     oom-pm-make-oom-detection-in-the-freezer-path-raceless.patch
+     mm-memcontrol-simplify-soft-limit-tree-init-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: oom, PM: make OOM detection in the freezer path raceless
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memcontrol: simplify soft limit tree init code
 
-5695be142e20 ("OOM, PM: OOM killed task shouldn't escape PM suspend") has
-left a race window when OOM killer manages to note_oom_kill after
-freeze_processes checks the counter.  The race window is quite small and
-really unlikely and partial solution deemed sufficient at the time of
-submission.
+- No need to test the node for N_MEMORY.  node_online() is enough for
+  node fallback to work in slab, use NUMA_NO_NODE for everything else.
 
-Tejun wasn't happy about this partial solution though and insisted on a
-full solution.  That requires the full OOM and freezer's task freezing
-exclusion, though.  This is done by this patch which introduces oom_sem RW
-lock and turns oom_killer_disable() into a full OOM barrier.
+- Remove the BUG_ON() for allocation failure.  A NULL pointer crash is
+  just as descriptive, and the absent return value check is obvious.
 
-oom_killer_disabled check is moved from the allocation path to the OOM
-level and we take oom_sem for reading for both the check and the whole OOM
-invocation.
+- Move local variables to the inner-most blocks.
 
-oom_killer_disable() takes oom_sem for writing so it waits for all
-currently running OOM killer invocations.  Then it disable all the further
-OOMs by setting oom_killer_disabled and checks for any oom victims. 
-Victims are counted via mark_tsk_oom_victim resp.  unmark_oom_victim.  The
-last victim wakes up all waiters enqueued by oom_killer_disable(). 
-Therefore this function acts as the full OOM barrier.
+- Point to the tree structure after its initialized, not before, it's
+  just more logical that way.
 
-The page fault path is covered now as well although it was assumed to be
-safe before.  As per Tejun, "We used to have freezing points deep in file
-system code which may be reacheable from page fault." so it would be
-better and more robust to not rely on freezing points here.  Same applies
-to the memcg OOM killer.
-
-out_of_memory tells the caller whether the OOM was allowed to trigger and
-the callers are supposed to handle the situation.  The page allocation
-path simply fails the allocation same as before.  The page fault path will
-retry the fault (more on that later) and Sysrq OOM trigger will simply
-complain to the log.
-
-Normally there wouldn't be any unfrozen user tasks after
-try_to_freeze_tasks so the function will not block. But if there was an
-OOM killer racing with try_to_freeze_tasks and the OOM victim didn't
-finish yet then we have to wait for it. This should complete in a finite
-time, though, because
-
-	- the victim cannot loop in the page fault handler (it would die
-	  on the way out from the exception)
-	- it cannot loop in the page allocator because all the further
-	  allocation would fail and __GFP_NOFAIL allocations are not
-	  acceptable at this stage
-	- it shouldn't be blocked on any locks held by frozen tasks
-	  (try_to_freeze expects lockless context) and kernel threads and
-	  work queues are not frozen yet
-
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Suggested-by: Tejun Heo <tj@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Cong Wang <xiyou.wangcong@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Vladimir Davydov <vdavydov@parallels.com>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: Christoph Lameter <cl@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/tty/sysrq.c    |    5 -
- include/linux/oom.h    |   14 ----
- kernel/exit.c          |    3 
- kernel/power/process.c |   50 ++------------
- mm/memcontrol.c        |    2 
- mm/oom_kill.c          |  132 +++++++++++++++++++++++++++++++++------
- mm/page_alloc.c        |   17 -----
- 7 files changed, 132 insertions(+), 91 deletions(-)
+ mm/memcontrol.c |   17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
-diff -puN drivers/tty/sysrq.c~oom-pm-make-oom-detection-in-the-freezer-path-raceless drivers/tty/sysrq.c
---- a/drivers/tty/sysrq.c~oom-pm-make-oom-detection-in-the-freezer-path-raceless
-+++ a/drivers/tty/sysrq.c
-@@ -355,8 +355,9 @@ static struct sysrq_key_op sysrq_term_op
- 
- static void moom_callback(struct work_struct *ignored)
- {
--	out_of_memory(node_zonelist(first_memory_node, GFP_KERNEL), GFP_KERNEL,
--		      0, NULL, true);
-+	if (!out_of_memory(node_zonelist(first_memory_node, GFP_KERNEL),
-+			   GFP_KERNEL, 0, NULL, true))
-+		pr_info("OOM request ignored because killer is disabled\n");
- }
- 
- static DECLARE_WORK(moom_work, moom_callback);
-diff -puN include/linux/oom.h~oom-pm-make-oom-detection-in-the-freezer-path-raceless include/linux/oom.h
---- a/include/linux/oom.h~oom-pm-make-oom-detection-in-the-freezer-path-raceless
-+++ a/include/linux/oom.h
-@@ -72,22 +72,14 @@ extern enum oom_scan_t oom_scan_process_
- 		unsigned long totalpages, const nodemask_t *nodemask,
- 		bool force_kill);
- 
--extern void out_of_memory(struct zonelist *zonelist, gfp_t gfp_mask,
-+extern bool out_of_memory(struct zonelist *zonelist, gfp_t gfp_mask,
- 		int order, nodemask_t *mask, bool force_kill);
- extern int register_oom_notifier(struct notifier_block *nb);
- extern int unregister_oom_notifier(struct notifier_block *nb);
- 
- extern bool oom_killer_disabled;
--
--static inline void oom_killer_disable(void)
--{
--	oom_killer_disabled = true;
--}
--
--static inline void oom_killer_enable(void)
--{
--	oom_killer_disabled = false;
--}
-+extern bool oom_killer_disable(void);
-+extern void oom_killer_enable(void);
- 
- extern struct task_struct *find_lock_task_mm(struct task_struct *p);
- 
-diff -puN kernel/exit.c~oom-pm-make-oom-detection-in-the-freezer-path-raceless kernel/exit.c
---- a/kernel/exit.c~oom-pm-make-oom-detection-in-the-freezer-path-raceless
-+++ a/kernel/exit.c
-@@ -435,7 +435,8 @@ static void exit_mm(struct task_struct *
- 	task_unlock(tsk);
- 	mm_update_next_owner(mm);
- 	mmput(mm);
--	unmark_oom_victim();
-+	if (test_thread_flag(TIF_MEMDIE))
-+		unmark_oom_victim();
- }
- 
- static struct task_struct *find_alive_thread(struct task_struct *p)
-diff -puN kernel/power/process.c~oom-pm-make-oom-detection-in-the-freezer-path-raceless kernel/power/process.c
---- a/kernel/power/process.c~oom-pm-make-oom-detection-in-the-freezer-path-raceless
-+++ a/kernel/power/process.c
-@@ -108,30 +108,6 @@ static int try_to_freeze_tasks(bool user
- 	return todo ? -EBUSY : 0;
- }
- 
--static bool __check_frozen_processes(void)
--{
--	struct task_struct *g, *p;
--
--	for_each_process_thread(g, p)
--		if (p != current && !freezer_should_skip(p) && !frozen(p))
--			return false;
--
--	return true;
--}
--
--/*
-- * Returns true if all freezable tasks (except for current) are frozen already
-- */
--static bool check_frozen_processes(void)
--{
--	bool ret;
--
--	read_lock(&tasklist_lock);
--	ret = __check_frozen_processes();
--	read_unlock(&tasklist_lock);
--	return ret;
--}
--
- /**
-  * freeze_processes - Signal user space processes to enter the refrigerator.
-  * The current thread will not be frozen.  The same process that calls
-@@ -142,7 +118,6 @@ static bool check_frozen_processes(void)
- int freeze_processes(void)
- {
- 	int error;
--	int oom_kills_saved;
- 
- 	error = __usermodehelper_disable(UMH_FREEZING);
- 	if (error)
-@@ -157,29 +132,22 @@ int freeze_processes(void)
- 	pm_wakeup_clear();
- 	pr_info("Freezing user space processes ... ");
- 	pm_freezing = true;
--	oom_kills_saved = oom_kills_count();
- 	error = try_to_freeze_tasks(true);
- 	if (!error) {
- 		__usermodehelper_set_disable_depth(UMH_DISABLED);
--		oom_killer_disable();
--
--		/*
--		 * There might have been an OOM kill while we were
--		 * freezing tasks and the killed task might be still
--		 * on the way out so we have to double check for race.
--		 */
--		if (oom_kills_count() != oom_kills_saved &&
--		    !check_frozen_processes()) {
--			__usermodehelper_set_disable_depth(UMH_ENABLED);
--			pr_cont("OOM in progress.");
--			error = -EBUSY;
--		} else {
--			pr_cont("done.");
--		}
-+		pr_cont("done.");
- 	}
- 	pr_cont("\n");
- 	BUG_ON(in_atomic());
- 
-+	/*
-+	 * Now that the whole userspace is frozen we need to disbale
-+	 * the OOM killer to disallow any further interference with
-+	 * killable tasks.
-+	 */
-+	if (!error && !oom_killer_disable())
-+		error = -EBUSY;
-+
- 	if (error)
- 		thaw_processes();
- 	return error;
-diff -puN mm/memcontrol.c~oom-pm-make-oom-detection-in-the-freezer-path-raceless mm/memcontrol.c
---- a/mm/memcontrol.c~oom-pm-make-oom-detection-in-the-freezer-path-raceless
+diff -puN mm/memcontrol.c~mm-memcontrol-simplify-soft-limit-tree-init-code mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-simplify-soft-limit-tree-init-code
 +++ a/mm/memcontrol.c
-@@ -1930,7 +1930,7 @@ bool mem_cgroup_oom_synchronize(bool han
- 	if (!memcg)
- 		return false;
+@@ -4509,24 +4509,23 @@ EXPORT_SYMBOL(parent_mem_cgroup);
  
--	if (!handle)
-+	if (!handle || oom_killer_disabled)
- 		goto cleanup;
- 
- 	owait.memcg = memcg;
-diff -puN mm/oom_kill.c~oom-pm-make-oom-detection-in-the-freezer-path-raceless mm/oom_kill.c
---- a/mm/oom_kill.c~oom-pm-make-oom-detection-in-the-freezer-path-raceless
-+++ a/mm/oom_kill.c
-@@ -398,30 +398,27 @@ static void dump_header(struct task_stru
- }
- 
- /*
-- * Number of OOM killer invocations (including memcg OOM killer).
-- * Primarily used by PM freezer to check for potential races with
-- * OOM killed frozen task.
-+ * Number of OOM victims in flight
-  */
--static atomic_t oom_kills = ATOMIC_INIT(0);
-+static atomic_t oom_victims = ATOMIC_INIT(0);
-+static DECLARE_WAIT_QUEUE_HEAD(oom_victims_wait);
- 
--int oom_kills_count(void)
--{
--	return atomic_read(&oom_kills);
--}
--
--void note_oom_kill(void)
--{
--	atomic_inc(&oom_kills);
--}
-+bool oom_killer_disabled __read_mostly;
-+static DECLARE_RWSEM(oom_sem);
- 
- /**
-  * mark_tsk_oom_victim - marks the given taks as OOM victim.
-  * @tsk: task to mark
-+ *
-+ * Has to be called with oom_sem taken for read and never after
-+ * oom has been disabled already.
-  */
- void mark_tsk_oom_victim(struct task_struct *tsk)
+ static void __init mem_cgroup_soft_limit_tree_init(void)
  {
--	set_tsk_thread_flag(tsk, TIF_MEMDIE);
--
-+	WARN_ON(oom_killer_disabled);
-+	/* OOM killer might race with memcg OOM */
-+	if (test_and_set_tsk_thread_flag(tsk, TIF_MEMDIE))
-+		return;
- 	/*
- 	 * Make sure that the task is woken up from uninterruptible sleep
- 	 * if it is frozen because OOM killer wouldn't be able to free
-@@ -429,14 +426,70 @@ void mark_tsk_oom_victim(struct task_str
- 	 * that TIF_MEMDIE tasks should be ignored.
- 	 */
- 	__thaw_task(tsk);
-+	atomic_inc(&oom_victims);
- }
+-	struct mem_cgroup_tree_per_node *rtpn;
+-	struct mem_cgroup_tree_per_zone *rtpz;
+-	int tmp, node, zone;
++	int node;
  
- /**
-  * unmark_oom_victim - unmarks the current task as OOM victim.
-+ *
-+ * Wakes up all waiters in oom_killer_disable()
-  */
- void unmark_oom_victim(void)
- {
--	clear_thread_flag(TIF_MEMDIE);
-+	if (!test_and_clear_thread_flag(TIF_MEMDIE))
-+		return;
-+
-+	down_read(&oom_sem);
-+	/*
-+	 * There is no need to signal the lasst oom_victim if there
-+	 * is nobody who cares.
-+	 */
-+	if (!atomic_dec_return(&oom_victims) && oom_killer_disabled)
-+		wake_up_all(&oom_victims_wait);
-+	up_read(&oom_sem);
-+}
-+
-+/**
-+ * oom_killer_disable - disable OOM killer
-+ *
-+ * Forces all page allocations to fail rather than trigger OOM killer.
-+ * Will block and wait until all OOM victims are killed.
-+ *
-+ * The function cannot be called when there are runnable user tasks because
-+ * the userspace would see unexpected allocation failures as a result. Any
-+ * new usage of this function should be consulted with MM people.
-+ *
-+ * Returns true if successful and false if the OOM killer cannot be
-+ * disabled.
-+ */
-+bool oom_killer_disable(void)
-+{
-+	/*
-+	 * Make sure to not race with an ongoing OOM killer
-+	 * and that the current is not the victim.
-+	 */
-+	down_write(&oom_sem);
-+	if (test_thread_flag(TIF_MEMDIE)) {
-+		up_write(&oom_sem);
-+		return false;
-+	}
-+
-+	oom_killer_disabled = true;
-+	up_write(&oom_sem);
-+
-+	wait_event(oom_victims_wait, !atomic_read(&oom_victims));
-+
-+	return true;
-+}
-+
-+/**
-+ * oom_killer_enable - enable OOM killer
-+ */
-+void oom_killer_enable(void)
-+{
-+	down_write(&oom_sem);
-+	oom_killer_disabled = false;
-+	up_write(&oom_sem);
- }
+ 	for_each_node(node) {
+-		tmp = node;
+-		if (!node_state(node, N_NORMAL_MEMORY))
+-			tmp = -1;
+-		rtpn = kzalloc_node(sizeof(*rtpn), GFP_KERNEL, tmp);
+-		BUG_ON(!rtpn);
++		struct mem_cgroup_tree_per_node *rtpn;
++		int zone;
  
- #define K(x) ((x) << (PAGE_SHIFT-10))
-@@ -637,7 +690,7 @@ void oom_zonelist_unlock(struct zonelist
- }
+-		soft_limit_tree.rb_tree_per_node[node] = rtpn;
++		rtpn = kzalloc_node(sizeof(*rtpn), GFP_KERNEL,
++				    node_online(node) ? node : NUMA_NO_NODE);
  
- /**
-- * out_of_memory - kill the "best" process when we run out of memory
-+ * __out_of_memory - kill the "best" process when we run out of memory
-  * @zonelist: zonelist pointer
-  * @gfp_mask: memory allocation flags
-  * @order: amount of memory being requested as a power of 2
-@@ -649,7 +702,7 @@ void oom_zonelist_unlock(struct zonelist
-  * OR try to be smart about which process to kill. Note that we
-  * don't have to be perfect here, we just have to be good.
-  */
--void out_of_memory(struct zonelist *zonelist, gfp_t gfp_mask,
-+static void __out_of_memory(struct zonelist *zonelist, gfp_t gfp_mask,
- 		int order, nodemask_t *nodemask, bool force_kill)
- {
- 	const nodemask_t *mpol_mask;
-@@ -718,6 +771,32 @@ out:
- 		schedule_timeout_killable(1);
- }
- 
-+/**
-+ * out_of_memory -  tries to invoke OOM killer.
-+ * @zonelist: zonelist pointer
-+ * @gfp_mask: memory allocation flags
-+ * @order: amount of memory being requested as a power of 2
-+ * @nodemask: nodemask passed to page allocator
-+ * @force_kill: true if a task must be killed, even if others are exiting
-+ *
-+ * invokes __out_of_memory if the OOM is not disabled by oom_killer_disable()
-+ * when it returns false. Otherwise returns true.
-+ */
-+bool out_of_memory(struct zonelist *zonelist, gfp_t gfp_mask,
-+		int order, nodemask_t *nodemask, bool force_kill)
-+{
-+	bool ret = false;
+ 		for (zone = 0; zone < MAX_NR_ZONES; zone++) {
++			struct mem_cgroup_tree_per_zone *rtpz;
 +
-+	down_read(&oom_sem);
-+	if (!oom_killer_disabled) {
-+		__out_of_memory(zonelist, gfp_mask, order, nodemask, force_kill);
-+		ret = true;
-+	}
-+	up_read(&oom_sem);
-+
-+	return ret;
-+}
-+
- /*
-  * The pagefault handler calls here because it is out of memory, so kill a
-  * memory-hogging task.  If any populated zone has ZONE_OOM_LOCKED set, a
-@@ -727,12 +806,25 @@ void pagefault_out_of_memory(void)
- {
- 	struct zonelist *zonelist;
- 
-+	down_read(&oom_sem);
- 	if (mem_cgroup_oom_synchronize(true))
--		return;
-+		goto unlock;
- 
- 	zonelist = node_zonelist(first_memory_node, GFP_KERNEL);
- 	if (oom_zonelist_trylock(zonelist, GFP_KERNEL)) {
--		out_of_memory(NULL, 0, 0, NULL, false);
-+		if (!oom_killer_disabled)
-+			__out_of_memory(NULL, 0, 0, NULL, false);
-+		else
-+			/*
-+			 * There shouldn't be any user tasks runable while the
-+			 * OOM killer is disabled so the current task has to
-+			 * be a racing OOM victim for which oom_killer_disable()
-+			 * is waiting for.
-+			 */
-+			WARN_ON(test_thread_flag(TIF_MEMDIE));
-+
- 		oom_zonelist_unlock(zonelist, GFP_KERNEL);
+ 			rtpz = &rtpn->rb_tree_per_zone[zone];
+ 			rtpz->rb_root = RB_ROOT;
+ 			spin_lock_init(&rtpz->lock);
+ 		}
++		soft_limit_tree.rb_tree_per_node[node] = rtpn;
  	}
-+unlock:
-+	up_read(&oom_sem);
- }
-diff -puN mm/page_alloc.c~oom-pm-make-oom-detection-in-the-freezer-path-raceless mm/page_alloc.c
---- a/mm/page_alloc.c~oom-pm-make-oom-detection-in-the-freezer-path-raceless
-+++ a/mm/page_alloc.c
-@@ -244,8 +244,6 @@ void set_pageblock_migratetype(struct pa
- 					PB_migrate, PB_migrate_end);
  }
  
--bool oom_killer_disabled __read_mostly;
--
- #ifdef CONFIG_DEBUG_VM
- static int page_outside_zone_boundaries(struct zone *zone, struct page *page)
- {
-@@ -2317,9 +2315,6 @@ __alloc_pages_may_oom(gfp_t gfp_mask, un
- 
- 	*did_some_progress = 0;
- 
--	if (oom_killer_disabled)
--		return NULL;
--
- 	/*
- 	 * Acquire the per-zone oom lock for each zone.  If that
- 	 * fails, somebody else is making progress for us.
-@@ -2331,14 +2326,6 @@ __alloc_pages_may_oom(gfp_t gfp_mask, un
- 	}
- 
- 	/*
--	 * PM-freezer should be notified that there might be an OOM killer on
--	 * its way to kill and wake somebody up. This is too early and we might
--	 * end up not killing anything but false positives are acceptable.
--	 * See freeze_processes.
--	 */
--	note_oom_kill();
--
--	/*
- 	 * Go through the zonelist yet one more time, keep very high watermark
- 	 * here, this is only to catch a parallel oom killing, we must fail if
- 	 * we're still under heavy pressure.
-@@ -2372,8 +2359,8 @@ __alloc_pages_may_oom(gfp_t gfp_mask, un
- 			goto out;
- 	}
- 	/* Exhausted what can be done so it's blamo time */
--	out_of_memory(ac->zonelist, gfp_mask, order, ac->nodemask, false);
--	*did_some_progress = 1;
-+	if (out_of_memory(ac->zonelist, gfp_mask, order, ac->nodemask, false))
-+		*did_some_progress = 1;
- out:
- 	oom_zonelist_unlock(ac->zonelist, gfp_mask);
- 	return page;
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 origin.patch
 list_lru-introduce-list_lru_shrink_countwalk.patch
@@ -517,8 +111,7 @@ memcg-free-memcg_caches-slot-on-css-offline.patch
 list_lru-add-helpers-to-isolate-items.patch
 memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline.patch
 memcg-cleanup-static-keys-decrement.patch
-mm-page_isolation-check-pfn-validity-before-access.patch
-mm-support-madvisemadv_free.patch
-mm-dont-split-thp-page-when-syscall-is-called.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-2.patch
+documentation-proc-add-proc-pid-numa_maps-interface-explanation-snippet.patch
+fs-proc-task_mmu-show-page-size-in-proc-pid-numa_maps.patch
+fs-proc-task_mmu-show-page-size-in-proc-pid-numa_maps-fix.patch
 
