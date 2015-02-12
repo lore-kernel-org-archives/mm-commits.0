@@ -1,38 +1,48 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sysrq-convert-printk-to-pr_-equivalent.patch removed
+Subject: [merged] oom-thaw-the-oom-victim-if-it-is-frozen.patch removed
  from -mm tree
-Date: Thu, 12 Feb 2015 11:37:08 -0800
-Message-ID: <54dd00e4.Hy9kuJmDbjC3i5tD%akpm@linux-foundation.org>
+Date: Thu, 12 Feb 2015 11:37:03 -0800
+Message-ID: <54dd00df.08dZ62b7P2lmlIIq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58186 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58169 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751948AbbBLThJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 14:37:09 -0500
+	with ESMTP id S1751573AbbBLThE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 14:37:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mhocko@suse.cz, hannes@cmpxchg.org, oleg@redhat.com, rientjes@google.com, rjw@rjwysocki.net, tj@kernel.org, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sysrq: convert printk to pr_* equivalent
+     Subject: oom: thaw the OOM victim if it is frozen
 has been removed from the -mm tree.  Its filename was
-     sysrq-convert-printk-to-pr_-equivalent.patch
+     oom-thaw-the-oom-victim-if-it-is-frozen.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.cz>
-Subject: sysrq: convert printk to pr_* equivalent
+Subject: oom: thaw the OOM victim if it is frozen
 
-While touching this area let's convert printk to pr_*.  This also makes
-the printing of continuation lines done properly.
+oom_kill_process only sets TIF_MEMDIE flag and sends a signal to the
+victim.  This is basically noop when the task is frozen though because the
+task sleeps in the uninterruptible sleep.  The victim is eventually thawed
+later when oom_scan_process_thread meets the task again in a later OOM
+invocation so the OOM killer doesn't live lock.  But this is less than
+optimal.
+
+Let's add __thaw_task into mark_tsk_oom_victim after we set TIF_MEMDIE to
+the victim.  We are not checking whether the task is frozen because that
+would be racy and __thaw_task does that already.  oom_scan_process_thread
+doesn't need to care about freezer anymore as TIF_MEMDIE and freezer are
+excluded completely now.
 
 Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: Tejun Heo <tj@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Oleg Nesterov <oleg@redhat.com>
@@ -41,79 +51,36 @@ Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/tty/sysrq.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ mm/oom_kill.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN drivers/tty/sysrq.c~sysrq-convert-printk-to-pr_-equivalent drivers/tty/sysrq.c
---- a/drivers/tty/sysrq.c~sysrq-convert-printk-to-pr_-equivalent
-+++ a/drivers/tty/sysrq.c
-@@ -90,7 +90,7 @@ static void sysrq_handle_loglevel(int ke
- 
- 	i = key - '0';
- 	console_loglevel = CONSOLE_LOGLEVEL_DEFAULT;
--	printk("Loglevel set to %d\n", i);
-+	pr_info("Loglevel set to %d\n", i);
- 	console_loglevel = i;
- }
- static struct sysrq_key_op sysrq_loglevel_op = {
-@@ -220,7 +220,7 @@ static void showacpu(void *dummy)
- 		return;
- 
- 	spin_lock_irqsave(&show_lock, flags);
--	printk(KERN_INFO "CPU%d:\n", smp_processor_id());
-+	pr_info("CPU%d:\n", smp_processor_id());
- 	show_stack(NULL, NULL);
- 	spin_unlock_irqrestore(&show_lock, flags);
- }
-@@ -243,7 +243,7 @@ static void sysrq_handle_showallcpus(int
- 		struct pt_regs *regs = get_irq_regs();
- 
- 		if (regs) {
--			printk(KERN_INFO "CPU%d:\n", smp_processor_id());
-+			pr_info("CPU%d:\n", smp_processor_id());
- 			show_regs(regs);
- 		}
- 		schedule_work(&sysrq_showallcpus);
-@@ -522,7 +522,7 @@ void __handle_sysrq(int key, bool check_
+diff -puN mm/oom_kill.c~oom-thaw-the-oom-victim-if-it-is-frozen mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-thaw-the-oom-victim-if-it-is-frozen
++++ a/mm/oom_kill.c
+@@ -266,8 +266,6 @@ enum oom_scan_t oom_scan_process_thread(
+ 	 * Don't allow any other task to have access to the reserves.
  	 */
- 	orig_log_level = console_loglevel;
- 	console_loglevel = CONSOLE_LOGLEVEL_DEFAULT;
--	printk(KERN_INFO "SysRq : ");
-+	pr_info("SysRq : ");
- 
-         op_p = __sysrq_get_key_op(key);
-         if (op_p) {
-@@ -531,14 +531,14 @@ void __handle_sysrq(int key, bool check_
- 		 * should not) and is the invoked operation enabled?
- 		 */
- 		if (!check_mask || sysrq_on_mask(op_p->enable_mask)) {
--			printk("%s\n", op_p->action_msg);
-+			pr_cont("%s\n", op_p->action_msg);
- 			console_loglevel = orig_log_level;
- 			op_p->handler(key);
- 		} else {
--			printk("This sysrq operation is disabled.\n");
-+			pr_cont("This sysrq operation is disabled.\n");
- 		}
- 	} else {
--		printk("HELP : ");
-+		pr_cont("HELP : ");
- 		/* Only print the help msg once per handler */
- 		for (i = 0; i < ARRAY_SIZE(sysrq_key_table); i++) {
- 			if (sysrq_key_table[i]) {
-@@ -549,10 +549,10 @@ void __handle_sysrq(int key, bool check_
- 					;
- 				if (j != i)
- 					continue;
--				printk("%s ", sysrq_key_table[i]->help_msg);
-+				pr_cont("%s ", sysrq_key_table[i]->help_msg);
- 			}
- 		}
--		printk("\n");
-+		pr_cont("\n");
- 		console_loglevel = orig_log_level;
+ 	if (test_tsk_thread_flag(task, TIF_MEMDIE)) {
+-		if (unlikely(frozen(task)))
+-			__thaw_task(task);
+ 		if (!force_kill)
+ 			return OOM_SCAN_ABORT;
  	}
- 	rcu_read_unlock();
+@@ -423,6 +421,14 @@ void note_oom_kill(void)
+ void mark_tsk_oom_victim(struct task_struct *tsk)
+ {
+ 	set_tsk_thread_flag(tsk, TIF_MEMDIE);
++
++	/*
++	 * Make sure that the task is woken up from uninterruptible sleep
++	 * if it is frozen because OOM killer wouldn't be able to free
++	 * any memory and livelock. freezing_slow_path will tell the freezer
++	 * that TIF_MEMDIE tasks should be ignored.
++	 */
++	__thaw_task(tsk);
+ }
+ 
+ /**
 _
 
 Patches currently in -mm which might be from mhocko@suse.cz are
