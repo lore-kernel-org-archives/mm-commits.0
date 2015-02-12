@@ -1,153 +1,357 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pm-convert-printk-to-pr_-equivalent.patch removed from
- -mm tree
-Date: Thu, 12 Feb 2015 11:37:06 -0800
-Message-ID: <54dd00e2.6A1hKnmt99Att/ts%akpm@linux-foundation.org>
+Subject: [merged] mm-memcontrol-consolidate-swap-controller-code.patch
+ removed from -mm tree
+Date: Thu, 12 Feb 2015 11:37:20 -0800
+Message-ID: <54dd00f0.mIFWmKlgFUkhmBGW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58179 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58220 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751948AbbBLThH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 14:37:07 -0500
+	with ESMTP id S1752283AbbBLThV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 14:37:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.cz, hannes@cmpxchg.org, oleg@redhat.com, rientjes@google.com, rjw@rjwysocki.net, tj@kernel.org, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, mhocko@suse.cz, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: PM: convert printk to pr_* equivalent
+     Subject: mm: memcontrol: consolidate swap controller code
 has been removed from the -mm tree.  Its filename was
-     pm-convert-printk-to-pr_-equivalent.patch
+     mm-memcontrol-consolidate-swap-controller-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: PM: convert printk to pr_* equivalent
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memcontrol: consolidate swap controller code
 
-While touching this area let's convert printk to pr_*.  This also makes
-the printing of continuation lines done properly.
+The swap controller code is scattered all over the file.  Gather all
+the code that isn't directly needed by the memory controller at the
+end of the file in its own CONFIG_MEMCG_SWAP section.
 
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: Tejun Heo <tj@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Cong Wang <xiyou.wangcong@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Reviewed-by: Vladimir Davydov <vdavydov@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/power/process.c |   29 +++++++++++++++--------------
- 1 file changed, 15 insertions(+), 14 deletions(-)
+ mm/memcontrol.c |  264 +++++++++++++++++++++-------------------------
+ 1 file changed, 125 insertions(+), 139 deletions(-)
 
-diff -puN kernel/power/process.c~pm-convert-printk-to-pr_-equivalent kernel/power/process.c
---- a/kernel/power/process.c~pm-convert-printk-to-pr_-equivalent
-+++ a/kernel/power/process.c
-@@ -84,8 +84,8 @@ static int try_to_freeze_tasks(bool user
- 	elapsed_msecs = elapsed_msecs64;
+diff -puN mm/memcontrol.c~mm-memcontrol-consolidate-swap-controller-code mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-consolidate-swap-controller-code
++++ a/mm/memcontrol.c
+@@ -72,22 +72,13 @@ EXPORT_SYMBOL(memory_cgrp_subsys);
+ #define MEM_CGROUP_RECLAIM_RETRIES	5
+ static struct mem_cgroup *root_mem_cgroup __read_mostly;
  
- 	if (todo) {
--		printk("\n");
--		printk(KERN_ERR "Freezing of tasks %s after %d.%03d seconds "
-+		pr_cont("\n");
-+		pr_err("Freezing of tasks %s after %d.%03d seconds "
- 		       "(%d tasks refusing to freeze, wq_busy=%d):\n",
- 		       wakeup ? "aborted" : "failed",
- 		       elapsed_msecs / 1000, elapsed_msecs % 1000,
-@@ -101,7 +101,7 @@ static int try_to_freeze_tasks(bool user
- 			read_unlock(&tasklist_lock);
- 		}
- 	} else {
--		printk("(elapsed %d.%03d seconds) ", elapsed_msecs / 1000,
-+		pr_cont("(elapsed %d.%03d seconds) ", elapsed_msecs / 1000,
- 			elapsed_msecs % 1000);
- 	}
++/* Whether the swap controller is active */
+ #ifdef CONFIG_MEMCG_SWAP
+-/* Turned on only when memory cgroup is enabled && really_do_swap_account = 1 */
+ int do_swap_account __read_mostly;
+-
+-/* for remember boot option*/
+-#ifdef CONFIG_MEMCG_SWAP_ENABLED
+-static int really_do_swap_account __initdata = 1;
+-#else
+-static int really_do_swap_account __initdata;
+-#endif
+-
+ #else
+ #define do_swap_account		0
+ #endif
  
-@@ -155,7 +155,7 @@ int freeze_processes(void)
- 		atomic_inc(&system_freezing_cnt);
+-
+ static const char * const mem_cgroup_stat_names[] = {
+ 	"cache",
+ 	"rss",
+@@ -4373,34 +4364,6 @@ static struct cftype mem_cgroup_legacy_f
+ 	{ },	/* terminate */
+ };
  
- 	pm_wakeup_clear();
--	printk("Freezing user space processes ... ");
-+	pr_info("Freezing user space processes ... ");
- 	pm_freezing = true;
- 	oom_kills_saved = oom_kills_count();
- 	error = try_to_freeze_tasks(true);
-@@ -171,13 +171,13 @@ int freeze_processes(void)
- 		if (oom_kills_count() != oom_kills_saved &&
- 		    !check_frozen_processes()) {
- 			__usermodehelper_set_disable_depth(UMH_ENABLED);
--			printk("OOM in progress.");
-+			pr_cont("OOM in progress.");
- 			error = -EBUSY;
- 		} else {
--			printk("done.");
-+			pr_cont("done.");
- 		}
- 	}
--	printk("\n");
-+	pr_cont("\n");
- 	BUG_ON(in_atomic());
- 
- 	if (error)
-@@ -197,13 +197,14 @@ int freeze_kernel_threads(void)
+-#ifdef CONFIG_MEMCG_SWAP
+-static struct cftype memsw_cgroup_files[] = {
+-	{
+-		.name = "memsw.usage_in_bytes",
+-		.private = MEMFILE_PRIVATE(_MEMSWAP, RES_USAGE),
+-		.read_u64 = mem_cgroup_read_u64,
+-	},
+-	{
+-		.name = "memsw.max_usage_in_bytes",
+-		.private = MEMFILE_PRIVATE(_MEMSWAP, RES_MAX_USAGE),
+-		.write = mem_cgroup_reset,
+-		.read_u64 = mem_cgroup_read_u64,
+-	},
+-	{
+-		.name = "memsw.limit_in_bytes",
+-		.private = MEMFILE_PRIVATE(_MEMSWAP, RES_LIMIT),
+-		.write = mem_cgroup_write,
+-		.read_u64 = mem_cgroup_read_u64,
+-	},
+-	{
+-		.name = "memsw.failcnt",
+-		.private = MEMFILE_PRIVATE(_MEMSWAP, RES_FAILCNT),
+-		.write = mem_cgroup_reset,
+-		.read_u64 = mem_cgroup_read_u64,
+-	},
+-	{ },	/* terminate */
+-};
+-#endif
+ static int alloc_mem_cgroup_per_zone_info(struct mem_cgroup *memcg, int node)
  {
- 	int error;
+ 	struct mem_cgroup_per_node *pn;
+@@ -5391,37 +5354,6 @@ struct cgroup_subsys memory_cgrp_subsys
+ 	.early_init = 0,
+ };
  
--	printk("Freezing remaining freezable tasks ... ");
-+	pr_info("Freezing remaining freezable tasks ... ");
+-#ifdef CONFIG_MEMCG_SWAP
+-static int __init enable_swap_account(char *s)
+-{
+-	if (!strcmp(s, "1"))
+-		really_do_swap_account = 1;
+-	else if (!strcmp(s, "0"))
+-		really_do_swap_account = 0;
+-	return 1;
+-}
+-__setup("swapaccount=", enable_swap_account);
+-
+-static void __init memsw_file_init(void)
+-{
+-	WARN_ON(cgroup_add_legacy_cftypes(&memory_cgrp_subsys,
+-					  memsw_cgroup_files));
+-}
+-
+-static void __init enable_swap_cgroup(void)
+-{
+-	if (!mem_cgroup_disabled() && really_do_swap_account) {
+-		do_swap_account = 1;
+-		memsw_file_init();
+-	}
+-}
+-
+-#else
+-static void __init enable_swap_cgroup(void)
+-{
+-}
+-#endif
+-
+ /**
+  * mem_cgroup_events - count memory events against a cgroup
+  * @memcg: the memory cgroup
+@@ -5472,74 +5404,6 @@ bool mem_cgroup_low(struct mem_cgroup *r
+ 	return true;
+ }
+ 
+-#ifdef CONFIG_MEMCG_SWAP
+-/**
+- * mem_cgroup_swapout - transfer a memsw charge to swap
+- * @page: page whose memsw charge to transfer
+- * @entry: swap entry to move the charge to
+- *
+- * Transfer the memsw charge of @page to @entry.
+- */
+-void mem_cgroup_swapout(struct page *page, swp_entry_t entry)
+-{
+-	struct mem_cgroup *memcg;
+-	unsigned short oldid;
+-
+-	VM_BUG_ON_PAGE(PageLRU(page), page);
+-	VM_BUG_ON_PAGE(page_count(page), page);
+-
+-	if (!do_swap_account)
+-		return;
+-
+-	memcg = page->mem_cgroup;
+-
+-	/* Readahead page, never charged */
+-	if (!memcg)
+-		return;
+-
+-	oldid = swap_cgroup_record(entry, mem_cgroup_id(memcg));
+-	VM_BUG_ON_PAGE(oldid, page);
+-	mem_cgroup_swap_statistics(memcg, true);
+-
+-	page->mem_cgroup = NULL;
+-
+-	if (!mem_cgroup_is_root(memcg))
+-		page_counter_uncharge(&memcg->memory, 1);
+-
+-	/* XXX: caller holds IRQ-safe mapping->tree_lock */
+-	VM_BUG_ON(!irqs_disabled());
+-
+-	mem_cgroup_charge_statistics(memcg, page, -1);
+-	memcg_check_events(memcg, page);
+-}
+-
+-/**
+- * mem_cgroup_uncharge_swap - uncharge a swap entry
+- * @entry: swap entry to uncharge
+- *
+- * Drop the memsw charge associated with @entry.
+- */
+-void mem_cgroup_uncharge_swap(swp_entry_t entry)
+-{
+-	struct mem_cgroup *memcg;
+-	unsigned short id;
+-
+-	if (!do_swap_account)
+-		return;
+-
+-	id = swap_cgroup_record(entry, 0);
+-	rcu_read_lock();
+-	memcg = mem_cgroup_lookup(id);
+-	if (memcg) {
+-		if (!mem_cgroup_is_root(memcg))
+-			page_counter_uncharge(&memcg->memsw, 1);
+-		mem_cgroup_swap_statistics(memcg, false);
+-		css_put(&memcg->css);
+-	}
+-	rcu_read_unlock();
+-}
+-#endif
+-
+ /**
+  * mem_cgroup_try_charge - try charging a page
+  * @page: page to charge
+@@ -5897,8 +5761,130 @@ static int __init mem_cgroup_init(void)
+ 		soft_limit_tree.rb_tree_per_node[node] = rtpn;
+ 	}
+ 
+-	enable_swap_cgroup();
+-
+ 	return 0;
+ }
+ subsys_initcall(mem_cgroup_init);
 +
- 	pm_nosig_freezing = true;
- 	error = try_to_freeze_tasks(false);
- 	if (!error)
--		printk("done.");
-+		pr_cont("done.");
- 
--	printk("\n");
-+	pr_cont("\n");
- 	BUG_ON(in_atomic());
- 
- 	if (error)
-@@ -224,7 +225,7 @@ void thaw_processes(void)
- 
- 	oom_killer_enable();
- 
--	printk("Restarting tasks ... ");
-+	pr_info("Restarting tasks ... ");
- 
- 	__usermodehelper_set_disable_depth(UMH_FREEZING);
- 	thaw_workqueues();
-@@ -243,7 +244,7 @@ void thaw_processes(void)
- 	usermodehelper_enable();
- 
- 	schedule();
--	printk("done.\n");
-+	pr_cont("done.\n");
- 	trace_suspend_resume(TPS("thaw_processes"), 0, false);
- }
- 
-@@ -252,7 +253,7 @@ void thaw_kernel_threads(void)
- 	struct task_struct *g, *p;
- 
- 	pm_nosig_freezing = false;
--	printk("Restarting kernel threads ... ");
-+	pr_info("Restarting kernel threads ... ");
- 
- 	thaw_workqueues();
- 
-@@ -264,5 +265,5 @@ void thaw_kernel_threads(void)
- 	read_unlock(&tasklist_lock);
- 
- 	schedule();
--	printk("done.\n");
-+	pr_cont("done.\n");
- }
++#ifdef CONFIG_MEMCG_SWAP
++/**
++ * mem_cgroup_swapout - transfer a memsw charge to swap
++ * @page: page whose memsw charge to transfer
++ * @entry: swap entry to move the charge to
++ *
++ * Transfer the memsw charge of @page to @entry.
++ */
++void mem_cgroup_swapout(struct page *page, swp_entry_t entry)
++{
++	struct mem_cgroup *memcg;
++	unsigned short oldid;
++
++	VM_BUG_ON_PAGE(PageLRU(page), page);
++	VM_BUG_ON_PAGE(page_count(page), page);
++
++	if (!do_swap_account)
++		return;
++
++	memcg = page->mem_cgroup;
++
++	/* Readahead page, never charged */
++	if (!memcg)
++		return;
++
++	oldid = swap_cgroup_record(entry, mem_cgroup_id(memcg));
++	VM_BUG_ON_PAGE(oldid, page);
++	mem_cgroup_swap_statistics(memcg, true);
++
++	page->mem_cgroup = NULL;
++
++	if (!mem_cgroup_is_root(memcg))
++		page_counter_uncharge(&memcg->memory, 1);
++
++	/* XXX: caller holds IRQ-safe mapping->tree_lock */
++	VM_BUG_ON(!irqs_disabled());
++
++	mem_cgroup_charge_statistics(memcg, page, -1);
++	memcg_check_events(memcg, page);
++}
++
++/**
++ * mem_cgroup_uncharge_swap - uncharge a swap entry
++ * @entry: swap entry to uncharge
++ *
++ * Drop the memsw charge associated with @entry.
++ */
++void mem_cgroup_uncharge_swap(swp_entry_t entry)
++{
++	struct mem_cgroup *memcg;
++	unsigned short id;
++
++	if (!do_swap_account)
++		return;
++
++	id = swap_cgroup_record(entry, 0);
++	rcu_read_lock();
++	memcg = mem_cgroup_lookup(id);
++	if (memcg) {
++		if (!mem_cgroup_is_root(memcg))
++			page_counter_uncharge(&memcg->memsw, 1);
++		mem_cgroup_swap_statistics(memcg, false);
++		css_put(&memcg->css);
++	}
++	rcu_read_unlock();
++}
++
++/* for remember boot option*/
++#ifdef CONFIG_MEMCG_SWAP_ENABLED
++static int really_do_swap_account __initdata = 1;
++#else
++static int really_do_swap_account __initdata;
++#endif
++
++static int __init enable_swap_account(char *s)
++{
++	if (!strcmp(s, "1"))
++		really_do_swap_account = 1;
++	else if (!strcmp(s, "0"))
++		really_do_swap_account = 0;
++	return 1;
++}
++__setup("swapaccount=", enable_swap_account);
++
++static struct cftype memsw_cgroup_files[] = {
++	{
++		.name = "memsw.usage_in_bytes",
++		.private = MEMFILE_PRIVATE(_MEMSWAP, RES_USAGE),
++		.read_u64 = mem_cgroup_read_u64,
++	},
++	{
++		.name = "memsw.max_usage_in_bytes",
++		.private = MEMFILE_PRIVATE(_MEMSWAP, RES_MAX_USAGE),
++		.write = mem_cgroup_reset,
++		.read_u64 = mem_cgroup_read_u64,
++	},
++	{
++		.name = "memsw.limit_in_bytes",
++		.private = MEMFILE_PRIVATE(_MEMSWAP, RES_LIMIT),
++		.write = mem_cgroup_write,
++		.read_u64 = mem_cgroup_read_u64,
++	},
++	{
++		.name = "memsw.failcnt",
++		.private = MEMFILE_PRIVATE(_MEMSWAP, RES_FAILCNT),
++		.write = mem_cgroup_reset,
++		.read_u64 = mem_cgroup_read_u64,
++	},
++	{ },	/* terminate */
++};
++
++static int __init mem_cgroup_swap_init(void)
++{
++	if (!mem_cgroup_disabled() && really_do_swap_account) {
++		do_swap_account = 1;
++		WARN_ON(cgroup_add_legacy_cftypes(&memory_cgrp_subsys,
++						  memsw_cgroup_files));
++	}
++	return 0;
++}
++subsys_initcall(mem_cgroup_swap_init);
++
++#endif /* CONFIG_MEMCG_SWAP */
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 origin.patch
 list_lru-introduce-list_lru_shrink_countwalk.patch
@@ -170,8 +374,7 @@ memcg-free-memcg_caches-slot-on-css-offline.patch
 list_lru-add-helpers-to-isolate-items.patch
 memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline.patch
 memcg-cleanup-static-keys-decrement.patch
-mm-page_isolation-check-pfn-validity-before-access.patch
-mm-support-madvisemadv_free.patch
-mm-dont-split-thp-page-when-syscall-is-called.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-2.patch
+documentation-proc-add-proc-pid-numa_maps-interface-explanation-snippet.patch
+fs-proc-task_mmu-show-page-size-in-proc-pid-numa_maps.patch
+fs-proc-task_mmu-show-page-size-in-proc-pid-numa_maps-fix.patch
 
