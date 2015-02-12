@@ -1,147 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-microoptimize-zonelist-operations.patch removed from
- -mm tree
-Date: Thu, 12 Feb 2015 11:36:41 -0800
-Message-ID: <54dd00c9.wB80wr1uVjjrRVLK%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-use-correct-format-specifiers-when-printing-address-ranges.patch removed from -mm tree
+Date: Thu, 12 Feb 2015 11:36:52 -0800
+Message-ID: <54dd00d4.qr9KT0jBpP/BZUK4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58119 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58139 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751468AbbBLTgm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 14:36:42 -0500
+	with ESMTP id S1752096AbbBLTgx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 14:36:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, aneesh.kumar@linux.vnet.ibm.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, mgorman@suse.de, mhocko@suse.cz, minchan@kernel.org, riel@redhat.com, rientjes@google.com, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: jgross@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: microoptimize zonelist operations
+     Subject: mm: use correct format specifiers when printing address ranges
 has been removed from the -mm tree.  Its filename was
-     mm-microoptimize-zonelist-operations.patch
+     mm-use-correct-format-specifiers-when-printing-address-ranges.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm: microoptimize zonelist operations
+From: Juergen Gross <jgross@suse.com>
+Subject: mm: use correct format specifiers when printing address ranges
 
-next_zones_zonelist() returns a zoneref pointer, as well as a zone pointer
-via extra parameter.  Since the latter can be trivially obtained by
-dereferencing the former, the overhead of the extra parameter is
-unjustified.
+Especially on 32 bit kernels memory node ranges are printed with 32 bit
+wide addresses only.  Use u64 types and %llx specifiers to print full
+width of addresses.
 
-This patch thus removes the zone parameter from next_zones_zonelist(). 
-Both callers happen to be in the same header file, so it's simple to add
-the zoneref dereference inline.  We save some bytes of code size.
-
-add/remove: 0/0 grow/shrink: 0/3 up/down: 0/-105 (-105)
-function                                     old     new   delta
-nr_free_zone_pages                           129     115     -14
-__alloc_pages_nodemask                      2300    2285     -15
-get_page_from_freelist                      2652    2576     -76
-
-add/remove: 0/0 grow/shrink: 1/0 up/down: 10/0 (10)
-function                                     old     new   delta
-try_to_compact_pages                         569     579     +10
-
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Michal Hocko <mhocko@suse.cz>
+Signed-off-by: Juergen Gross <jgross@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |   13 +++++++------
- mm/mmzone.c            |    4 +---
- 2 files changed, 8 insertions(+), 9 deletions(-)
+ mm/page_alloc.c |   20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/mmzone.h~mm-microoptimize-zonelist-operations include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-microoptimize-zonelist-operations
-+++ a/include/linux/mmzone.h
-@@ -970,7 +970,6 @@ static inline int zonelist_node_idx(stru
-  * @z - The cursor used as a starting point for the search
-  * @highest_zoneidx - The zone index of the highest zone to return
-  * @nodes - An optional nodemask to filter the zonelist with
-- * @zone - The first suitable zone found is returned via this parameter
-  *
-  * This function returns the next zone at or below a given zone index that is
-  * within the allowed nodemask using a cursor as the starting point for the
-@@ -980,8 +979,7 @@ static inline int zonelist_node_idx(stru
-  */
- struct zoneref *next_zones_zonelist(struct zoneref *z,
- 					enum zone_type highest_zoneidx,
--					nodemask_t *nodes,
--					struct zone **zone);
-+					nodemask_t *nodes);
+diff -puN mm/page_alloc.c~mm-use-correct-format-specifiers-when-printing-address-ranges mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-use-correct-format-specifiers-when-printing-address-ranges
++++ a/mm/page_alloc.c
+@@ -4994,8 +4994,8 @@ void __paginginit free_area_init_node(in
+ 	pgdat->node_start_pfn = node_start_pfn;
+ #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
+ 	get_pfn_range_for_nid(nid, &start_pfn, &end_pfn);
+-	printk(KERN_INFO "Initmem setup node %d [mem %#010Lx-%#010Lx]\n", nid,
+-			(u64) start_pfn << PAGE_SHIFT, (u64) (end_pfn << PAGE_SHIFT) - 1);
++	pr_info("Initmem setup node %d [mem %#018Lx-%#018Lx]\n", nid,
++		(u64)start_pfn << PAGE_SHIFT, ((u64)end_pfn << PAGE_SHIFT) - 1);
+ #endif
+ 	calculate_node_totalpages(pgdat, start_pfn, end_pfn,
+ 				  zones_size, zholes_size);
+@@ -5367,9 +5367,10 @@ void __init free_area_init_nodes(unsigne
+ 				arch_zone_highest_possible_pfn[i])
+ 			pr_cont("empty\n");
+ 		else
+-			pr_cont("[mem %0#10lx-%0#10lx]\n",
+-				arch_zone_lowest_possible_pfn[i] << PAGE_SHIFT,
+-				(arch_zone_highest_possible_pfn[i]
++			pr_cont("[mem %#018Lx-%#018Lx]\n",
++				(u64)arch_zone_lowest_possible_pfn[i]
++					<< PAGE_SHIFT,
++				((u64)arch_zone_highest_possible_pfn[i]
+ 					<< PAGE_SHIFT) - 1);
+ 	}
  
- /**
-  * first_zones_zonelist - Returns the first zone at or below highest_zoneidx within the allowed nodemask in a zonelist
-@@ -1000,8 +998,10 @@ static inline struct zoneref *first_zone
- 					nodemask_t *nodes,
- 					struct zone **zone)
- {
--	return next_zones_zonelist(zonelist->_zonerefs, highest_zoneidx, nodes,
--								zone);
-+	struct zoneref *z = next_zones_zonelist(zonelist->_zonerefs,
-+							highest_zoneidx, nodes);
-+	*zone = zonelist_zone(z);
-+	return z;
- }
+@@ -5377,15 +5378,16 @@ void __init free_area_init_nodes(unsigne
+ 	pr_info("Movable zone start for each node\n");
+ 	for (i = 0; i < MAX_NUMNODES; i++) {
+ 		if (zone_movable_pfn[i])
+-			pr_info("  Node %d: %#010lx\n", i,
+-			       zone_movable_pfn[i] << PAGE_SHIFT);
++			pr_info("  Node %d: %#018Lx\n", i,
++			       (u64)zone_movable_pfn[i] << PAGE_SHIFT);
+ 	}
  
- /**
-@@ -1018,7 +1018,8 @@ static inline struct zoneref *first_zone
- #define for_each_zone_zonelist_nodemask(zone, z, zlist, highidx, nodemask) \
- 	for (z = first_zones_zonelist(zlist, highidx, nodemask, &zone);	\
- 		zone;							\
--		z = next_zones_zonelist(++z, highidx, nodemask, &zone))	\
-+		z = next_zones_zonelist(++z, highidx, nodemask),	\
-+			zone = zonelist_zone(z))			\
+ 	/* Print out the early node map */
+ 	pr_info("Early memory node ranges\n");
+ 	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, &nid)
+-		pr_info("  node %3d: [mem %#010lx-%#010lx]\n", nid,
+-		       start_pfn << PAGE_SHIFT, (end_pfn << PAGE_SHIFT) - 1);
++		pr_info("  node %3d: [mem %#018Lx-%#018Lx]\n", nid,
++			(u64)start_pfn << PAGE_SHIFT,
++			((u64)end_pfn << PAGE_SHIFT) - 1);
  
- /**
-  * for_each_zone_zonelist - helper macro to iterate over valid zones in a zonelist at or below a given zone index
-diff -puN mm/mmzone.c~mm-microoptimize-zonelist-operations mm/mmzone.c
---- a/mm/mmzone.c~mm-microoptimize-zonelist-operations
-+++ a/mm/mmzone.c
-@@ -54,8 +54,7 @@ static inline int zref_in_nodemask(struc
- /* Returns the next zone at or below highest_zoneidx in a zonelist */
- struct zoneref *next_zones_zonelist(struct zoneref *z,
- 					enum zone_type highest_zoneidx,
--					nodemask_t *nodes,
--					struct zone **zone)
-+					nodemask_t *nodes)
- {
- 	/*
- 	 * Find the next suitable zone to use for the allocation.
-@@ -69,7 +68,6 @@ struct zoneref *next_zones_zonelist(stru
- 				(z->zone && !zref_in_nodemask(z, nodes)))
- 			z++;
- 
--	*zone = zonelist_zone(z);
- 	return z;
- }
- 
+ 	/* Initialise every node */
+ 	mminit_verify_pageflags_layout();
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from jgross@suse.com are
 
 origin.patch
-mm-compaction-fix-wrong-order-check-in-compact_finished.patch
-mm-compaction-stop-the-isolation-when-we-isolate-enough-freepage.patch
-mm-internalh-dont-split-printk-call-in-two.patch
-mm-page_allocc-pull-out-init-code-from-build_all_zonelists.patch
-mm-mm_initc-mark-mminit_verify_zonelist-as-__init.patch
-mm-mm_initc-mark-mminit_loglevel-__meminitdata.patch
-kernel-cpusetc-mark-cpuset_init_current_mems_allowed-as-__init.patch
-mm-fix-negative-nr_isolated-counts.patch
-zram-fix-umount-reset_store-mount-race-condition.patch
+linux-next.patch
 
