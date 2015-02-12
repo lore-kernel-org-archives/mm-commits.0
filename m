@@ -1,153 +1,141 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-hugetlb-fix-getting-refcount-0-page-in-hugetlb_fault.patch removed from
- -mm tree
-Date: Thu, 12 Feb 2015 11:36:23 -0800
-Message-ID: <54dd00b7.CVTOeeBMzU2wzTN4%akpm@linux-foundation.org>
+ mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch removed from -mm tree
+Date: Thu, 12 Feb 2015 11:36:07 -0800
+Message-ID: <54dd00a7.NOPBWU+Mx4+cJkCm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58040 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57976 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751887AbbBLTgZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 14:36:25 -0500
+	with ESMTP id S1751540AbbBLTgI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 14:36:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: n-horiguchi@ah.jp.nec.com, aarcange@redhat.com, hannes@cmpxchg.org, hughd@google.com, james.hogan@imgtec.com, lcapitulino@redhat.com, lee.schermerhorn@hp.com, mel@csn.ul.ie, mhocko@suse.cz, nacc@linux.vnet.ibm.com, riel@redhat.com, rientjes@google.com, stable@vger.kernel.org, steve.capper@linaro.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, isimatu.yasuaki@jp.fujitsu.com, mel@csn.ul.ie, ming.lei@canonical.com, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: fix getting refcount 0 page in hugetlb_fault()
+     Subject: mm/page_alloc.c:__alloc_pages_nodemask(): don't alter arg gfp_mask
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-fix-getting-refcount-0-page-in-hugetlb_fault.patch
+     mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm/hugetlb: fix getting refcount 0 page in hugetlb_fault()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm/page_alloc.c:__alloc_pages_nodemask(): don't alter arg gfp_mask
 
-When running the test which causes the race as shown in the previous patch,
-we can hit the BUG "get_page() on refcount 0 page" in hugetlb_fault().
+__alloc_pages_nodemask() strips __GFP_IO when retrying the page
+allocation.  But it does this by altering the function-wide variable
+gfp_mask.  This will cause subsequent allocation attempts to inadvertently
+use the modified gfp_mask.
 
-This race happens when pte turns into migration entry just after the first
-check of is_hugetlb_entry_migration() in hugetlb_fault() passed with false.
-To fix this, we need to check pte_present() again after huge_ptep_get().
+Also, pass the correct mask (the mask we actually used) into
+trace_mm_page_alloc().
 
-This patch also reorders taking ptl and doing pte_page(), because
-pte_page() should be done in ptl.  Due to this reordering, we need use
-trylock_page() in page != pagecache_page case to respect locking order.
-
-Fixes: 66aebce747ea ("hugetlb: fix race condition in hugetlb_fault()")
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: James Hogan <james.hogan@imgtec.com>
-Cc: David Rientjes <rientjes@google.com>
+Cc: Ming Lei <ming.lei@canonical.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Luiz Capitulino <lcapitulino@redhat.com>
-Cc: Nishanth Aravamudan <nacc@linux.vnet.ibm.com>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Steve Capper <steve.capper@linaro.org>
-Cc: <stable@vger.kernel.org>	[3.2+]
+Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: David Rientjes <rientjes@google.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   52 +++++++++++++++++++++++++++++++++----------------
- 1 file changed, 36 insertions(+), 16 deletions(-)
+ mm/page_alloc.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-fix-getting-refcount-0-page-in-hugetlb_fault mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-fix-getting-refcount-0-page-in-hugetlb_fault
-+++ a/mm/hugetlb.c
-@@ -3134,6 +3134,7 @@ int hugetlb_fault(struct mm_struct *mm,
- 	struct page *pagecache_page = NULL;
- 	struct hstate *h = hstate_vma(vma);
- 	struct address_space *mapping;
-+	int need_wait_lock = 0;
+diff -puN mm/page_alloc.c~mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_allocc-__alloc_pages_nodemask-dont-alter-arg-gfp_mask
++++ a/mm/page_alloc.c
+@@ -2865,6 +2865,7 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
+ 	unsigned int cpuset_mems_cookie;
+ 	int alloc_flags = ALLOC_WMARK_LOW|ALLOC_CPUSET|ALLOC_FAIR;
+ 	int classzone_idx;
++	gfp_t alloc_mask; /* The gfp_t that was actually used for allocation */
  
- 	address &= huge_page_mask(h);
+ 	gfp_mask &= gfp_allowed_mask;
  
-@@ -3172,6 +3173,16 @@ int hugetlb_fault(struct mm_struct *mm,
- 	ret = 0;
+@@ -2898,22 +2899,24 @@ retry_cpuset:
+ 	classzone_idx = zonelist_zone_idx(preferred_zoneref);
  
+ 	/* First allocation attempt */
+-	page = get_page_from_freelist(gfp_mask|__GFP_HARDWALL, nodemask, order,
+-			zonelist, high_zoneidx, alloc_flags,
+-			preferred_zone, classzone_idx, migratetype);
++	alloc_mask = gfp_mask|__GFP_HARDWALL;
++	page = get_page_from_freelist(alloc_mask, nodemask, order, zonelist,
++			high_zoneidx, alloc_flags, preferred_zone,
++			classzone_idx, migratetype);
+ 	if (unlikely(!page)) {
+ 		/*
+ 		 * Runtime PM, block IO and its error handling path
+ 		 * can deadlock because I/O on the device might not
+ 		 * complete.
+ 		 */
+-		gfp_mask = memalloc_noio_flags(gfp_mask);
+-		page = __alloc_pages_slowpath(gfp_mask, order,
++		alloc_mask = memalloc_noio_flags(gfp_mask);
++
++		page = __alloc_pages_slowpath(alloc_mask, order,
+ 				zonelist, high_zoneidx, nodemask,
+ 				preferred_zone, classzone_idx, migratetype);
+ 	}
+ 
+-	trace_mm_page_alloc(page, order, gfp_mask, migratetype);
++	trace_mm_page_alloc(page, order, alloc_mask, migratetype);
+ 
+ out:
  	/*
-+	 * entry could be a migration/hwpoison entry at this point, so this
-+	 * check prevents the kernel from going below assuming that we have
-+	 * a active hugepage in pagecache. This goto expects the 2nd page fault,
-+	 * and is_hugetlb_entry_(migration|hwpoisoned) check will properly
-+	 * handle it.
-+	 */
-+	if (!pte_present(entry))
-+		goto out_mutex;
-+
-+	/*
- 	 * If we are going to COW the mapping later, we examine the pending
- 	 * reservations for this page now. This will ensure that any
- 	 * allocations necessary to record that reservation occur outside the
-@@ -3190,30 +3201,31 @@ int hugetlb_fault(struct mm_struct *mm,
- 								vma, address);
- 	}
- 
-+	ptl = huge_pte_lock(h, mm, ptep);
-+
-+	/* Check for a racing update before calling hugetlb_cow */
-+	if (unlikely(!pte_same(entry, huge_ptep_get(ptep))))
-+		goto out_ptl;
-+
- 	/*
- 	 * hugetlb_cow() requires page locks of pte_page(entry) and
- 	 * pagecache_page, so here we need take the former one
- 	 * when page != pagecache_page or !pagecache_page.
--	 * Note that locking order is always pagecache_page -> page,
--	 * so no worry about deadlock.
- 	 */
- 	page = pte_page(entry);
--	get_page(page);
- 	if (page != pagecache_page)
--		lock_page(page);
--
--	ptl = huge_pte_lockptr(h, mm, ptep);
--	spin_lock(ptl);
--	/* Check for a racing update before calling hugetlb_cow */
--	if (unlikely(!pte_same(entry, huge_ptep_get(ptep))))
--		goto out_ptl;
-+		if (!trylock_page(page)) {
-+			need_wait_lock = 1;
-+			goto out_ptl;
-+		}
- 
-+	get_page(page);
- 
- 	if (flags & FAULT_FLAG_WRITE) {
- 		if (!huge_pte_write(entry)) {
- 			ret = hugetlb_cow(mm, vma, address, ptep, entry,
- 					pagecache_page, ptl);
--			goto out_ptl;
-+			goto out_put_page;
- 		}
- 		entry = huge_pte_mkdirty(entry);
- 	}
-@@ -3221,7 +3233,10 @@ int hugetlb_fault(struct mm_struct *mm,
- 	if (huge_ptep_set_access_flags(vma, address, ptep, entry,
- 						flags & FAULT_FLAG_WRITE))
- 		update_mmu_cache(vma, address, ptep);
--
-+out_put_page:
-+	if (page != pagecache_page)
-+		unlock_page(page);
-+	put_page(page);
- out_ptl:
- 	spin_unlock(ptl);
- 
-@@ -3229,12 +3244,17 @@ out_ptl:
- 		unlock_page(pagecache_page);
- 		put_page(pagecache_page);
- 	}
--	if (page != pagecache_page)
--		unlock_page(page);
--	put_page(page);
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+mm.patch
+fs-shrinker-always-scan-at-least-one-object-of-each-type-fix.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+zram-rework-reset-and-destroy-path-fix.patch
+task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss.patch
+powerpc-add-running_clock-for-powerpc-to-prevent-spurious-softlockup-warnings-checkpatch-fixes.patch
+kernelh-remove-ancient-__function__-hack-fix.patch
+lib-bitmap-update-bitmap_onto-to-unsigned-checkpatch-fixes.patch
+lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned-fix.patch
+hexdump-makes-it-return-amount-of-bytes-placed-in-buffer-fix.patch
+mm-slab-convert-cache-name-allocations-to-kstrdup_const-fix.patch
+module_device_table-fix-some-callsites.patch
+kasan-enable-instrumentation-of-global-variables-fix.patch
+kasan-enable-instrumentation-of-global-variables-fix-2-fix.patch
+rtc-rk808-fix-the-rtc-time-reading-issue-fix.patch
+fs-befs-linuxvfsc-remove-unnecessary-casting-fix.patch
+samples-seccomp-improve-label-helper-fix.patch
+linux-next.patch
+linux-next-rejects.patch
+mm-fix-xip-fault-vs-truncate-race-fix.patch
+mm-fix-xip-fault-vs-truncate-race-fix-fix.patch
+mm-allow-page-fault-handlers-to-perform-the-cow-fix.patch
+mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix-3.patch
+mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix.patch
+daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix.patch
+daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-2.patch
+daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-3.patch
+dax-add-dax_zero_page_range-fix.patch
+ext4-add-dax-functionality-fix.patch
+ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
+ocfs2-implement-ocfs2_direct_io_write-fix.patch
+lib-kconfig-fix-up-have_arch_bitreverse-help-text.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+
