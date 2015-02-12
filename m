@@ -1,126 +1,267 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-more-aggressive-page-stealing-for-unmovable-allocations.patch removed
+ mm-incorporate-read-only-pages-into-transparent-huge-pages.patch removed
  from -mm tree
-Date: Thu, 12 Feb 2015 11:38:54 -0800
-Message-ID: <54dd014e.YxWcBo+BYchM4wc4%akpm@linux-foundation.org>
+Date: Thu, 12 Feb 2015 11:39:00 -0800
+Message-ID: <54dd0154.hf49rjeBhXed6LQR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58539 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58557 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752347AbbBLTiz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 14:38:55 -0500
+	with ESMTP id S1752349AbbBLTjC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 14:39:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, aneesh.kumar@linux.vnet.ibm.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, kosaki.motohiro@jp.fujitsu.com, mgorman@suse.de, mhocko@suse.cz, minchan@kernel.org, riel@redhat.com, rientjes@google.com, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: ebru.akagunduz@gmail.com, aarcange@redhat.com, hannes@cmpxchg.org, hughd@google.com, kirill.shutemov@linux.intel.com, mgorman@suse.de, mhocko@suse.cz, riel@redhat.com, rientjes@google.com, sasha.levin@oracle.com, vbabka@suse.cz, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: more aggressive page stealing for UNMOVABLE allocations
+     Subject: mm: incorporate read-only pages into transparent huge pages
 has been removed from the -mm tree.  Its filename was
-     mm-more-aggressive-page-stealing-for-unmovable-allocations.patch
+     mm-incorporate-read-only-pages-into-transparent-huge-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm: more aggressive page stealing for UNMOVABLE allocations
+From: Ebru Akagunduz <ebru.akagunduz@gmail.com>
+Subject: mm: incorporate read-only pages into transparent huge pages
 
-When allocation falls back to stealing free pages of another migratetype,
-it can decide to steal extra pages, or even the whole pageblock in order
-to reduce fragmentation, which could happen if further allocation
-fallbacks pick a different pageblock.  In try_to_steal_freepages(), one of
-the situations where extra pages are stolen happens when we are trying to
-allocate a MIGRATE_RECLAIMABLE page.
+This patch aims to improve THP collapse rates, by allowing THP collapse in
+the presence of read-only ptes, like those left in place by do_swap_page
+after a read fault.
 
-However, MIGRATE_UNMOVABLE allocations are not treated the same way,
-although spreading such allocation over multiple fallback pageblocks is
-arguably even worse than it is for RECLAIMABLE allocations.  To minimize
-fragmentation, we should minimize the number of such fallbacks, and thus
-steal as much as is possible from each fallback pageblock.
+Currently THP can collapse 4kB pages into a THP when there are up to
+khugepaged_max_ptes_none pte_none ptes in a 2MB range.  This patch applies
+the same limit for read-only ptes.
 
-Note that in theory this might put more pressure on movable pageblocks and
-cause movable allocations to steal back from unmovable pageblocks. 
-However, movable allocations are not as aggressive with stealing, and do
-not cause permanent fragmentation, so the tradeoff is reasonable, and
-evaluation seems to support the change.
+The patch was tested with a test program that allocates 800MB of memory,
+writes to it, and then sleeps.  I force the system to swap out all but
+190MB of the program by touching other memory.  Afterwards, the test
+program does a mix of reads and writes to its memory, and the memory gets
+swapped back in.
 
-This patch thus adds a check for MIGRATE_UNMOVABLE to the decision to
-steal extra free pages.  When evaluating with stress-highalloc from
-mmtests, this has reduced the number of MIGRATE_UNMOVABLE fallbacks to
-roughly 1/6.  The number of these fallbacks stealing from MIGRATE_MOVABLE
-block is reduced to 1/3.  There was no observation of growing number of
-unmovable pageblocks over time, and also not of increased movable
-allocation fallbacks.
+Without the patch, only the memory that did not get swapped out remained
+in THPs, which corresponds to 24% of the memory of the program.  The
+percentage did not increase over time.
 
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+With this patch, after 5 minutes of waiting khugepaged had collapsed 50%
+of the program's memory back into THPs.
+
+Test results:
+
+With the patch:
+After swapped out:
+cat /proc/pid/smaps:
+Anonymous:      100464 kB
+AnonHugePages:  100352 kB
+Swap:           699540 kB
+Fraction:       99,88
+
+cat /proc/meminfo:
+AnonPages:      1754448 kB
+AnonHugePages:  1716224 kB
+Fraction:       97,82
+
+After swapped in:
+In a few seconds:
+cat /proc/pid/smaps:
+Anonymous:      800004 kB
+AnonHugePages:  145408 kB
+Swap:           0 kB
+Fraction:       18,17
+
+cat /proc/meminfo:
+AnonPages:      2455016 kB
+AnonHugePages:  1761280 kB
+Fraction:       71,74
+
+In 5 minutes:
+cat /proc/pid/smaps
+Anonymous:      800004 kB
+AnonHugePages:  407552 kB
+Swap:           0 kB
+Fraction:       50,94
+
+cat /proc/meminfo:
+AnonPages:      2456872 kB
+AnonHugePages:  2023424 kB
+Fraction:       82,35
+
+Without the patch:
+After swapped out:
+cat /proc/pid/smaps:
+Anonymous:      190660 kB
+AnonHugePages:  190464 kB
+Swap:           609344 kB
+Fraction:       99,89
+
+cat /proc/meminfo:
+AnonPages:      1740456 kB
+AnonHugePages:  1667072 kB
+Fraction:       95,78
+
+After swapped in:
+cat /proc/pid/smaps:
+Anonymous:      800004 kB
+AnonHugePages:  190464 kB
+Swap:           0 kB
+Fraction:       23,80
+
+cat /proc/meminfo:
+AnonPages:      2350032 kB
+AnonHugePages:  1667072 kB
+Fraction:       70,93
+
+I waited 10 minutes the fractions did not change without the patch.
+
+Signed-off-by: Ebru Akagunduz <ebru.akagunduz@gmail.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Acked-by: Andrea Arcangeli <aarcange@redhat.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Michal Hocko <mhocko@suse.cz>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Sasha Levin <sasha.levin@oracle.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   18 ++++++++++++++----
- 1 file changed, 14 insertions(+), 4 deletions(-)
+ mm/huge_memory.c |   55 ++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 42 insertions(+), 13 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-more-aggressive-page-stealing-for-unmovable-allocations mm/page_alloc.c
---- a/mm/page_alloc.c~mm-more-aggressive-page-stealing-for-unmovable-allocations
-+++ a/mm/page_alloc.c
-@@ -1123,10 +1123,19 @@ static void change_pageblock_range(struc
- }
+diff -puN mm/huge_memory.c~mm-incorporate-read-only-pages-into-transparent-huge-pages mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-incorporate-read-only-pages-into-transparent-huge-pages
++++ a/mm/huge_memory.c
+@@ -2117,7 +2117,8 @@ static int __collapse_huge_page_isolate(
+ {
+ 	struct page *page;
+ 	pte_t *_pte;
+-	int referenced = 0, none = 0;
++	int none = 0;
++	bool referenced = false, writable = false;
+ 	for (_pte = pte; _pte < pte+HPAGE_PMD_NR;
+ 	     _pte++, address += PAGE_SIZE) {
+ 		pte_t pteval = *_pte;
+@@ -2127,7 +2128,7 @@ static int __collapse_huge_page_isolate(
+ 			else
+ 				goto out;
+ 		}
+-		if (!pte_present(pteval) || !pte_write(pteval))
++		if (!pte_present(pteval))
+ 			goto out;
+ 		page = vm_normal_page(vma, address, pteval);
+ 		if (unlikely(!page))
+@@ -2137,9 +2138,6 @@ static int __collapse_huge_page_isolate(
+ 		VM_BUG_ON_PAGE(!PageAnon(page), page);
+ 		VM_BUG_ON_PAGE(!PageSwapBacked(page), page);
  
- /*
-- * If breaking a large block of pages, move all free pages to the preferred
-- * allocation list. If falling back for a reclaimable kernel allocation, be
-- * more aggressive about taking ownership of free pages. If we claim more than
-- * half of the pageblock, change pageblock's migratetype as well.
-+ * When we are falling back to another migratetype during allocation, try to
-+ * steal extra free pages from the same pageblocks to satisfy further
-+ * allocations, instead of polluting multiple pageblocks.
-+ *
-+ * If we are stealing a relatively large buddy page, it is likely there will
-+ * be more free pages in the pageblock, so try to steal them all. For
-+ * reclaimable and unmovable allocations, we steal regardless of page size,
-+ * as fragmentation caused by those allocations polluting movable pageblocks
-+ * is worse than movable allocations stealing from unmovable and reclaimable
-+ * pageblocks.
-+ *
-+ * If we claim more than half of the pageblock, change pageblock's migratetype
-+ * as well.
-  */
- static void try_to_steal_freepages(struct zone *zone, struct page *page,
- 				  int start_type, int fallback_type)
-@@ -1141,6 +1150,7 @@ static void try_to_steal_freepages(struc
+-		/* cannot use mapcount: can't collapse if there's a gup pin */
+-		if (page_count(page) != 1)
+-			goto out;
+ 		/*
+ 		 * We can do it before isolate_lru_page because the
+ 		 * page can't be freed from under us. NOTE: PG_lock
+@@ -2148,6 +2146,29 @@ static int __collapse_huge_page_isolate(
+ 		 */
+ 		if (!trylock_page(page))
+ 			goto out;
++
++		/*
++		 * cannot use mapcount: can't collapse if there's a gup pin.
++		 * The page must only be referenced by the scanned process
++		 * and page swap cache.
++		 */
++		if (page_count(page) != 1 + !!PageSwapCache(page)) {
++			unlock_page(page);
++			goto out;
++		}
++		if (pte_write(pteval)) {
++			writable = true;
++		} else {
++			if (PageSwapCache(page) && !reuse_swap_page(page)) {
++				unlock_page(page);
++				goto out;
++			}
++			/*
++			 * Page is not in the swap cache. It can be collapsed
++			 * into a THP.
++			 */
++		}
++
+ 		/*
+ 		 * Isolate the page to avoid collapsing an hugepage
+ 		 * currently in use by the VM.
+@@ -2164,9 +2185,9 @@ static int __collapse_huge_page_isolate(
+ 		/* If there is no mapped pte young don't collapse the page */
+ 		if (pte_young(pteval) || PageReferenced(page) ||
+ 		    mmu_notifier_test_young(vma->vm_mm, address))
+-			referenced = 1;
++			referenced = true;
+ 	}
+-	if (likely(referenced))
++	if (likely(referenced && writable))
+ 		return 1;
+ out:
+ 	release_pte_pages(pte, _pte);
+@@ -2519,11 +2540,12 @@ static int khugepaged_scan_pmd(struct mm
+ {
+ 	pmd_t *pmd;
+ 	pte_t *pte, *_pte;
+-	int ret = 0, referenced = 0, none = 0;
++	int ret = 0, none = 0;
+ 	struct page *page;
+ 	unsigned long _address;
+ 	spinlock_t *ptl;
+ 	int node = NUMA_NO_NODE;
++	bool writable = false, referenced = false;
  
- 	if (current_order >= pageblock_order / 2 ||
- 	    start_type == MIGRATE_RECLAIMABLE ||
-+	    start_type == MIGRATE_UNMOVABLE ||
- 	    page_group_by_mobility_disabled) {
- 		int pages;
+ 	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
  
+@@ -2542,8 +2564,11 @@ static int khugepaged_scan_pmd(struct mm
+ 			else
+ 				goto out_unmap;
+ 		}
+-		if (!pte_present(pteval) || !pte_write(pteval))
++		if (!pte_present(pteval))
+ 			goto out_unmap;
++		if (pte_write(pteval))
++			writable = true;
++
+ 		page = vm_normal_page(vma, _address, pteval);
+ 		if (unlikely(!page))
+ 			goto out_unmap;
+@@ -2560,14 +2585,18 @@ static int khugepaged_scan_pmd(struct mm
+ 		VM_BUG_ON_PAGE(PageCompound(page), page);
+ 		if (!PageLRU(page) || PageLocked(page) || !PageAnon(page))
+ 			goto out_unmap;
+-		/* cannot use mapcount: can't collapse if there's a gup pin */
+-		if (page_count(page) != 1)
++		/*
++		 * cannot use mapcount: can't collapse if there's a gup pin.
++		 * The page must only be referenced by the scanned process
++		 * and page swap cache.
++		 */
++		if (page_count(page) != 1 + !!PageSwapCache(page))
+ 			goto out_unmap;
+ 		if (pte_young(pteval) || PageReferenced(page) ||
+ 		    mmu_notifier_test_young(vma->vm_mm, address))
+-			referenced = 1;
++			referenced = true;
+ 	}
+-	if (referenced)
++	if (referenced && writable)
+ 		ret = 1;
+ out_unmap:
+ 	pte_unmap_unlock(pte, ptl);
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from ebru.akagunduz@gmail.com are
 
 origin.patch
-mm-compaction-fix-wrong-order-check-in-compact_finished.patch
-mm-compaction-stop-the-isolation-when-we-isolate-enough-freepage.patch
-mm-internalh-dont-split-printk-call-in-two.patch
-mm-page_allocc-pull-out-init-code-from-build_all_zonelists.patch
-mm-mm_initc-mark-mminit_verify_zonelist-as-__init.patch
-mm-mm_initc-mark-mminit_loglevel-__meminitdata.patch
-kernel-cpusetc-mark-cpuset_init_current_mems_allowed-as-__init.patch
-mm-fix-negative-nr_isolated-counts.patch
-zram-fix-umount-reset_store-mount-race-condition.patch
 
