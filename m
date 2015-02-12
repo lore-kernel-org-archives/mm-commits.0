@@ -1,158 +1,75 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-memcontrol-consolidate-memory-controller-initialization.patch removed
+ mm-cma-fix-totalcma_pages-to-include-dt-defined-cma-regions.patch removed
  from -mm tree
-Date: Thu, 12 Feb 2015 11:37:18 -0800
-Message-ID: <54dd00ee.3Jt5t4jis1Lbv/MN%akpm@linux-foundation.org>
+Date: Thu, 12 Feb 2015 11:37:14 -0800
+Message-ID: <54dd00ea.YwEineBeKiQiIgO/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58216 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58200 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752283AbbBLThT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 14:37:19 -0500
+	with ESMTP id S1752273AbbBLThP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 14:37:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, mhocko@suse.cz, vdavydov@parallels.com, mm-commits@vger.kernel.org
+To: ggdavisiv@gmail.com, aneesh.kumar@linux.vnet.ibm.com, george_davis@mentor.com, iamjoonsoo.kim@lge.com, laurent.pinchart+renesas@ideasonboard.com, m.szyprowski@samsung.com, mina86@mina86.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: consolidate memory controller initialization
+     Subject: mm: cma: fix totalcma_pages to include DT defined CMA regions
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-consolidate-memory-controller-initialization.patch
+     mm-cma-fix-totalcma_pages-to-include-dt-defined-cma-regions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: consolidate memory controller initialization
+From: "George G. Davis" <ggdavisiv@gmail.com>
+Subject: mm: cma: fix totalcma_pages to include DT defined CMA regions
 
-The initialization code for the per-cpu charge stock and the soft
-limit tree is compact enough to inline it into mem_cgroup_init().
+The totalcma_pages variable is not updated to account for CMA regions
+defined via device tree reserved-memory sub-nodes.  Fix this omission by
+moving the calculation of totalcma_pages into cma_init_reserved_mem()
+instead of cma_declare_contiguous() such that it will include reserved
+memory used by all CMA regions.
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Reviewed-by: Vladimir Davydov <vdavydov@parallels.com>
+Signed-off-by: George G. Davis <george_davis@mentor.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Acked-by: Michal Nazarewicz <mina86@mina86.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   60 +++++++++++++++++++---------------------------
- 1 file changed, 25 insertions(+), 35 deletions(-)
+ mm/cma.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-consolidate-memory-controller-initialization mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-consolidate-memory-controller-initialization
-+++ a/mm/memcontrol.c
-@@ -2138,17 +2138,6 @@ static void drain_local_stock(struct wor
- 	clear_bit(FLUSHING_CACHED_CHARGE, &stock->flags);
- }
+diff -puN mm/cma.c~mm-cma-fix-totalcma_pages-to-include-dt-defined-cma-regions mm/cma.c
+--- a/mm/cma.c~mm-cma-fix-totalcma_pages-to-include-dt-defined-cma-regions
++++ a/mm/cma.c
+@@ -199,6 +199,7 @@ int __init cma_init_reserved_mem(phys_ad
+ 	cma->order_per_bit = order_per_bit;
+ 	*res_cma = cma;
+ 	cma_area_count++;
++	totalcma_pages += (size / PAGE_SIZE);
  
--static void __init memcg_stock_init(void)
--{
--	int cpu;
--
--	for_each_possible_cpu(cpu) {
--		struct memcg_stock_pcp *stock =
--					&per_cpu(memcg_stock, cpu);
--		INIT_WORK(&stock->work, drain_local_stock);
--	}
--}
--
- /*
-  * Cache charges(val) to local per_cpu area.
-  * This will be consumed by consume_stock() function, later.
-@@ -4507,28 +4496,6 @@ struct mem_cgroup *parent_mem_cgroup(str
- }
- EXPORT_SYMBOL(parent_mem_cgroup);
- 
--static void __init mem_cgroup_soft_limit_tree_init(void)
--{
--	int node;
--
--	for_each_node(node) {
--		struct mem_cgroup_tree_per_node *rtpn;
--		int zone;
--
--		rtpn = kzalloc_node(sizeof(*rtpn), GFP_KERNEL,
--				    node_online(node) ? node : NUMA_NO_NODE);
--
--		for (zone = 0; zone < MAX_NR_ZONES; zone++) {
--			struct mem_cgroup_tree_per_zone *rtpz;
--
--			rtpz = &rtpn->rb_tree_per_zone[zone];
--			rtpz->rb_root = RB_ROOT;
--			spin_lock_init(&rtpz->lock);
--		}
--		soft_limit_tree.rb_tree_per_node[node] = rtpn;
--	}
--}
--
- static struct cgroup_subsys_state * __ref
- mem_cgroup_css_alloc(struct cgroup_subsys_state *parent_css)
- {
-@@ -5905,10 +5872,33 @@ void mem_cgroup_migrate(struct page *old
-  */
- static int __init mem_cgroup_init(void)
- {
-+	int cpu, node;
-+
- 	hotcpu_notifier(memcg_cpu_hotplug_callback, 0);
-+
-+	for_each_possible_cpu(cpu)
-+		INIT_WORK(&per_cpu_ptr(&memcg_stock, cpu)->work,
-+			  drain_local_stock);
-+
-+	for_each_node(node) {
-+		struct mem_cgroup_tree_per_node *rtpn;
-+		int zone;
-+
-+		rtpn = kzalloc_node(sizeof(*rtpn), GFP_KERNEL,
-+				    node_online(node) ? node : NUMA_NO_NODE);
-+
-+		for (zone = 0; zone < MAX_NR_ZONES; zone++) {
-+			struct mem_cgroup_tree_per_zone *rtpz;
-+
-+			rtpz = &rtpn->rb_tree_per_zone[zone];
-+			rtpz->rb_root = RB_ROOT;
-+			spin_lock_init(&rtpz->lock);
-+		}
-+		soft_limit_tree.rb_tree_per_node[node] = rtpn;
-+	}
-+
- 	enable_swap_cgroup();
--	mem_cgroup_soft_limit_tree_init();
--	memcg_stock_init();
-+
  	return 0;
  }
- subsys_initcall(mem_cgroup_init);
+@@ -337,7 +338,6 @@ int __init cma_declare_contiguous(phys_a
+ 	if (ret)
+ 		goto err;
+ 
+-	totalcma_pages += (size / PAGE_SIZE);
+ 	pr_info("Reserved %ld MiB at %pa\n", (unsigned long)size / SZ_1M,
+ 		&base);
+ 	return 0;
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from ggdavisiv@gmail.com are
 
 origin.patch
-list_lru-introduce-list_lru_shrink_countwalk.patch
-fs-consolidate-nrfree_cached_objects-args-in-shrink_control.patch
-vmscan-per-memory-cgroup-slab-shrinkers.patch
-memcg-rename-some-cache-id-related-variables.patch
-memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation.patch
-list_lru-get-rid-of-active_nodes.patch
-list_lru-organize-all-list_lrus-to-list.patch
-list_lru-introduce-per-memcg-lists.patch
-fs-make-shrinker-memcg-aware.patch
-fs-shrinker-always-scan-at-least-one-object-of-each-type.patch
-fs-shrinker-always-scan-at-least-one-object-of-each-type-fix.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-slab-embed-memcg_cache_params-to-kmem_cache.patch
-slab-link-memcg-caches-of-the-same-kind-into-a-list.patch
-cgroup-release-css-id-after-css_free.patch
-slab-use-css-id-for-naming-per-memcg-caches.patch
-memcg-free-memcg_caches-slot-on-css-offline.patch
-list_lru-add-helpers-to-isolate-items.patch
-memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline.patch
-memcg-cleanup-static-keys-decrement.patch
-documentation-proc-add-proc-pid-numa_maps-interface-explanation-snippet.patch
-fs-proc-task_mmu-show-page-size-in-proc-pid-numa_maps.patch
-fs-proc-task_mmu-show-page-size-in-proc-pid-numa_maps-fix.patch
+linux-next.patch
 
