@@ -1,150 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-gup-kvm-use-get_user_pages_unlocked.patch removed
- from -mm tree
-Date: Thu, 12 Feb 2015 11:38:02 -0800
-Message-ID: <54dd011a.ejXt+wx56KFyjLM4%akpm@linux-foundation.org>
+Subject: [merged] mm-gup-use-get_user_pages_unlocked.patch removed from
+ -mm tree
+Date: Thu, 12 Feb 2015 11:38:00 -0800
+Message-ID: <54dd0118.s7ypR0J5xllROeQ6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58384 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58380 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752359AbbBLTiD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 14:38:03 -0500
+	with ESMTP id S1752350AbbBLTiB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 14:38:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, andreslc@google.com, kirill.shutemov@linux.intel.com, pfeiner@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: gup: kvm use get_user_pages_unlocked
+     Subject: mm: gup: use get_user_pages_unlocked
 has been removed from the -mm tree.  Its filename was
-     mm-gup-kvm-use-get_user_pages_unlocked.patch
+     mm-gup-use-get_user_pages_unlocked.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: mm: gup: kvm use get_user_pages_unlocked
+Subject: mm: gup: use get_user_pages_unlocked
 
-Use the more generic get_user_pages_unlocked which has the additional
-benefit of passing FAULT_FLAG_ALLOW_RETRY at the very first page fault
-(which allows the first page fault in an unmapped area to be always able
-to block indefinitely by being allowed to release the mmap_sem).
+This allows those get_user_pages calls to pass FAULT_FLAG_ALLOW_RETRY to
+the page fault in order to release the mmap_sem during the I/O.
 
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Reviewed-by: Andres Lagar-Cavilla <andreslc@google.com>
 Reviewed-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Andres Lagar-Cavilla <andreslc@google.com>
 Cc: Peter Feiner <pfeiner@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kvm_host.h |   11 --------
- virt/kvm/async_pf.c      |    2 -
- virt/kvm/kvm_main.c      |   50 ++-----------------------------------
- 3 files changed, 5 insertions(+), 58 deletions(-)
+ drivers/media/pci/ivtv/ivtv-udma.c |    6 ++----
+ drivers/scsi/st.c                  |    7 ++-----
+ drivers/video/fbdev/pvr2fb.c       |    6 ++----
+ mm/process_vm_access.c             |    7 ++-----
+ net/ceph/pagevec.c                 |    6 ++----
+ 5 files changed, 10 insertions(+), 22 deletions(-)
 
-diff -puN include/linux/kvm_host.h~mm-gup-kvm-use-get_user_pages_unlocked include/linux/kvm_host.h
---- a/include/linux/kvm_host.h~mm-gup-kvm-use-get_user_pages_unlocked
-+++ a/include/linux/kvm_host.h
-@@ -200,17 +200,6 @@ int kvm_setup_async_pf(struct kvm_vcpu *
- int kvm_async_pf_wakeup_all(struct kvm_vcpu *vcpu);
- #endif
+diff -puN drivers/media/pci/ivtv/ivtv-udma.c~mm-gup-use-get_user_pages_unlocked drivers/media/pci/ivtv/ivtv-udma.c
+--- a/drivers/media/pci/ivtv/ivtv-udma.c~mm-gup-use-get_user_pages_unlocked
++++ a/drivers/media/pci/ivtv/ivtv-udma.c
+@@ -124,10 +124,8 @@ int ivtv_udma_setup(struct ivtv *itv, un
+ 	}
  
--/*
-- * Carry out a gup that requires IO. Allow the mm to relinquish the mmap
-- * semaphore if the filemap/swap has to wait on a page lock. pagep == NULL
-- * controls whether we retry the gup one more time to completion in that case.
-- * Typically this is called after a FAULT_FLAG_RETRY_NOWAIT in the main tdp
-- * handler.
-- */
--int kvm_get_user_page_io(struct task_struct *tsk, struct mm_struct *mm,
--			 unsigned long addr, bool write_fault,
--			 struct page **pagep);
--
- enum {
- 	OUTSIDE_GUEST_MODE,
- 	IN_GUEST_MODE,
-diff -puN virt/kvm/async_pf.c~mm-gup-kvm-use-get_user_pages_unlocked virt/kvm/async_pf.c
---- a/virt/kvm/async_pf.c~mm-gup-kvm-use-get_user_pages_unlocked
-+++ a/virt/kvm/async_pf.c
-@@ -80,7 +80,7 @@ static void async_pf_execute(struct work
+ 	/* Get user pages for DMA Xfer */
+-	down_read(&current->mm->mmap_sem);
+-	err = get_user_pages(current, current->mm,
+-			user_dma.uaddr, user_dma.page_count, 0, 1, dma->map, NULL);
+-	up_read(&current->mm->mmap_sem);
++	err = get_user_pages_unlocked(current, current->mm,
++			user_dma.uaddr, user_dma.page_count, 0, 1, dma->map);
  
- 	might_sleep();
+ 	if (user_dma.page_count != err) {
+ 		IVTV_DEBUG_WARN("failed to map user pages, returned %d instead of %d\n",
+diff -puN drivers/scsi/st.c~mm-gup-use-get_user_pages_unlocked drivers/scsi/st.c
+--- a/drivers/scsi/st.c~mm-gup-use-get_user_pages_unlocked
++++ a/drivers/scsi/st.c
+@@ -4551,18 +4551,15 @@ static int sgl_map_user_pages(struct st_
+ 		return -ENOMEM;
  
--	kvm_get_user_page_io(NULL, mm, addr, 1, NULL);
-+	get_user_pages_unlocked(NULL, mm, addr, 1, 1, 0, NULL);
- 	kvm_async_page_present_sync(vcpu, apf);
+         /* Try to fault in all of the necessary pages */
+-	down_read(&current->mm->mmap_sem);
+         /* rw==READ means read from drive, write into memory area */
+-	res = get_user_pages(
++	res = get_user_pages_unlocked(
+ 		current,
+ 		current->mm,
+ 		uaddr,
+ 		nr_pages,
+ 		rw == READ,
+ 		0, /* don't force */
+-		pages,
+-		NULL);
+-	up_read(&current->mm->mmap_sem);
++		pages);
  
- 	spin_lock(&vcpu->async_pf.lock);
-diff -puN virt/kvm/kvm_main.c~mm-gup-kvm-use-get_user_pages_unlocked virt/kvm/kvm_main.c
---- a/virt/kvm/kvm_main.c~mm-gup-kvm-use-get_user_pages_unlocked
-+++ a/virt/kvm/kvm_main.c
-@@ -1128,43 +1128,6 @@ static int get_user_page_nowait(struct t
- 	return __get_user_pages(tsk, mm, start, 1, flags, page, NULL, NULL);
- }
+ 	/* Errors and no page mapped should return here */
+ 	if (res < nr_pages)
+diff -puN drivers/video/fbdev/pvr2fb.c~mm-gup-use-get_user_pages_unlocked drivers/video/fbdev/pvr2fb.c
+--- a/drivers/video/fbdev/pvr2fb.c~mm-gup-use-get_user_pages_unlocked
++++ a/drivers/video/fbdev/pvr2fb.c
+@@ -686,10 +686,8 @@ static ssize_t pvr2fb_write(struct fb_in
+ 	if (!pages)
+ 		return -ENOMEM;
  
--int kvm_get_user_page_io(struct task_struct *tsk, struct mm_struct *mm,
--			 unsigned long addr, bool write_fault,
--			 struct page **pagep)
--{
--	int npages;
--	int locked = 1;
--	int flags = FOLL_TOUCH | FOLL_HWPOISON |
--		    (pagep ? FOLL_GET : 0) |
--		    (write_fault ? FOLL_WRITE : 0);
--
--	/*
--	 * If retrying the fault, we get here *not* having allowed the filemap
--	 * to wait on the page lock. We should now allow waiting on the IO with
--	 * the mmap semaphore released.
--	 */
--	down_read(&mm->mmap_sem);
--	npages = __get_user_pages(tsk, mm, addr, 1, flags, pagep, NULL,
--				  &locked);
--	if (!locked) {
--		VM_BUG_ON(npages);
--
--		if (!pagep)
--			return 0;
--
--		/*
--		 * The previous call has now waited on the IO. Now we can
--		 * retry and complete. Pass TRIED to ensure we do not re
--		 * schedule async IO (see e.g. filemap_fault).
--		 */
+-	down_read(&current->mm->mmap_sem);
+-	ret = get_user_pages(current, current->mm, (unsigned long)buf,
+-			     nr_pages, WRITE, 0, pages, NULL);
+-	up_read(&current->mm->mmap_sem);
++	ret = get_user_pages_unlocked(current, current->mm, (unsigned long)buf,
++				      nr_pages, WRITE, 0, pages);
+ 
+ 	if (ret < nr_pages) {
+ 		nr_pages = ret;
+diff -puN mm/process_vm_access.c~mm-gup-use-get_user_pages_unlocked mm/process_vm_access.c
+--- a/mm/process_vm_access.c~mm-gup-use-get_user_pages_unlocked
++++ a/mm/process_vm_access.c
+@@ -99,11 +99,8 @@ static int process_vm_rw_single_vec(unsi
+ 		size_t bytes;
+ 
+ 		/* Get the pages we're interested in */
 -		down_read(&mm->mmap_sem);
--		npages = __get_user_pages(tsk, mm, addr, 1, flags | FOLL_TRIED,
--					  pagep, NULL, NULL);
--	}
--	up_read(&mm->mmap_sem);
--	return npages;
--}
+-		pages = get_user_pages(task, mm, pa, pages,
+-				      vm_write, 0, process_pages, NULL);
+-		up_read(&mm->mmap_sem);
 -
- static inline int check_user_page_hwpoison(unsigned long addr)
- {
- 	int rc, flags = FOLL_TOUCH | FOLL_HWPOISON | FOLL_WRITE;
-@@ -1227,15 +1190,10 @@ static int hva_to_pfn_slow(unsigned long
- 		npages = get_user_page_nowait(current, current->mm,
- 					      addr, write_fault, page);
- 		up_read(&current->mm->mmap_sem);
--	} else {
--		/*
--		 * By now we have tried gup_fast, and possibly async_pf, and we
--		 * are certainly not atomic. Time to retry the gup, allowing
--		 * mmap semaphore to be relinquished in the case of IO.
--		 */
--		npages = kvm_get_user_page_io(current, current->mm, addr,
--					      write_fault, page);
--	}
-+	} else
-+		npages = __get_user_pages_unlocked(current, current->mm, addr, 1,
-+						   write_fault, 0, page,
-+						   FOLL_TOUCH|FOLL_HWPOISON);
- 	if (npages != 1)
- 		return npages;
++		pages = get_user_pages_unlocked(task, mm, pa, pages,
++						vm_write, 0, process_pages);
+ 		if (pages <= 0)
+ 			return -EFAULT;
  
+diff -puN net/ceph/pagevec.c~mm-gup-use-get_user_pages_unlocked net/ceph/pagevec.c
+--- a/net/ceph/pagevec.c~mm-gup-use-get_user_pages_unlocked
++++ a/net/ceph/pagevec.c
+@@ -23,17 +23,15 @@ struct page **ceph_get_direct_page_vecto
+ 	if (!pages)
+ 		return ERR_PTR(-ENOMEM);
+ 
+-	down_read(&current->mm->mmap_sem);
+ 	while (got < num_pages) {
+-		rc = get_user_pages(current, current->mm,
++		rc = get_user_pages_unlocked(current, current->mm,
+ 		    (unsigned long)data + ((unsigned long)got * PAGE_SIZE),
+-		    num_pages - got, write_page, 0, pages + got, NULL);
++		    num_pages - got, write_page, 0, pages + got);
+ 		if (rc < 0)
+ 			break;
+ 		BUG_ON(rc == 0);
+ 		got += rc;
+ 	}
+-	up_read(&current->mm->mmap_sem);
+ 	if (rc < 0)
+ 		goto fail;
+ 	return pages;
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
