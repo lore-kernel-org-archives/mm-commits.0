@@ -1,118 +1,89 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- vmstat-reduce-time-interval-to-stat-update-on-idle-cpu.patch removed from
+ mm-nommuc-fix-arithmetic-overflow-in-__vm_enough_memory.patch removed from
  -mm tree
-Date: Thu, 12 Feb 2015 11:39:07 -0800
-Message-ID: <54dd015b.ihKEi4SdyfxlLnlP%akpm@linux-foundation.org>
+Date: Thu, 12 Feb 2015 11:39:12 -0800
+Message-ID: <54dd0160.4WcJGn9HS5vKac0r%akpm__6394.4140253172$1423769958$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58570 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58580 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751092AbbBLTjI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 14:39:08 -0500
+	with ESMTP id S1752442AbbBLTjN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 14:39:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cl@linux.com, mhocko@suse.cz, vinmenon@codeaurora.org, mm-commits@vger.kernel.org
+To: klamm@yandex-team.ru, agshew@gmail.com, khlebnikov@yandex-team.ru, riel@redhat.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: vmstat: Reduce time interval to stat update on idle cpu
+     Subject: mm/nommu.c: fix arithmetic overflow in __vm_enough_memory()
 has been removed from the -mm tree.  Its filename was
-     vmstat-reduce-time-interval-to-stat-update-on-idle-cpu.patch
+     mm-nommuc-fix-arithmetic-overflow-in-__vm_enough_memory.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Christoph Lameter <cl@linux.com>
-Subject: vmstat: Reduce time interval to stat update on idle cpu
+From: Roman Gushchin <klamm@yandex-team.ru>
+Subject: mm/nommu.c: fix arithmetic overflow in __vm_enough_memory()
 
-It was noted that the vm stat shepherd runs every 2 seconds and that the
-vmstat update is then scheduled 2 seconds in the future.
+I noticed that "allowed" can easily overflow by falling below 0, because
+(total_vm / 32) can be larger than "allowed".  The problem occurs in
+OVERCOMMIT_NONE mode.
 
-This yields an interval of double the time interval which is not desired.
+In this case, a huge allocation can success and overcommit the system
+(despite OVERCOMMIT_NONE mode).  All subsequent allocations will fall
+(system-wide), so system become unusable.
 
-Change the shepherd so that it does not delay the vmstat update on the
-other cpu.  We stil have to use schedule_delayed_work since we are using a
-delayed_work_struct but we can set the delay to 0.
+The problem was masked out by commit c9b1d0981fcc
+("mm: limit growth of 3% hardcoded other user reserve"),
+but it's easy to reproduce it on older kernels:
+1) set overcommit_memory sysctl to 2
+2) mmap() large file multiple times (with VM_SHARED flag)
+3) try to malloc() large amount of memory
 
-Signed-off-by: Christoph Lameter <cl@linux.com>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Cc: Vinayak Menon <vinmenon@codeaurora.org>
+It also can be reproduced on newer kernels, but miss-configured
+sysctl_user_reserve_kbytes is required.
+
+Fix this issue by switching to signed arithmetic here.
+
+Signed-off-by: Roman Gushchin <klamm@yandex-team.ru>
+Cc: Andrew Shewmaker <agshew@gmail.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |    4 ++--
+ mm/nommu.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmstat.c~vmstat-reduce-time-interval-to-stat-update-on-idle-cpu mm/vmstat.c
---- a/mm/vmstat.c~vmstat-reduce-time-interval-to-stat-update-on-idle-cpu
-+++ a/mm/vmstat.c
-@@ -1437,8 +1437,8 @@ static void vmstat_shepherd(struct work_
- 		if (need_update(cpu) &&
- 			cpumask_test_and_clear_cpu(cpu, cpu_stat_off))
+diff -puN mm/nommu.c~mm-nommuc-fix-arithmetic-overflow-in-__vm_enough_memory mm/nommu.c
+--- a/mm/nommu.c~mm-nommuc-fix-arithmetic-overflow-in-__vm_enough_memory
++++ a/mm/nommu.c
+@@ -1928,7 +1928,7 @@ EXPORT_SYMBOL(unmap_mapping_range);
+  */
+ int __vm_enough_memory(struct mm_struct *mm, long pages, int cap_sys_admin)
+ {
+-	unsigned long free, allowed, reserve;
++	long free, allowed, reserve;
  
--			schedule_delayed_work_on(cpu, &per_cpu(vmstat_work, cpu),
--				__round_jiffies_relative(sysctl_stat_interval, cpu));
-+			schedule_delayed_work_on(cpu,
-+				&per_cpu(vmstat_work, cpu), 0);
+ 	vm_acct_memory(pages);
  
- 	put_online_cpus();
+@@ -1992,7 +1992,7 @@ int __vm_enough_memory(struct mm_struct
+ 	 */
+ 	if (mm) {
+ 		reserve = sysctl_user_reserve_kbytes >> (PAGE_SHIFT - 10);
+-		allowed -= min(mm->total_vm / 32, reserve);
++		allowed -= min_t(long, mm->total_vm / 32, reserve);
+ 	}
  
+ 	if (percpu_counter_read_positive(&vm_committed_as) < allowed)
 _
 
-Patches currently in -mm which might be from cl@linux.com are
+Patches currently in -mm which might be from klamm@yandex-team.ru are
 
 origin.patch
-list_lru-introduce-list_lru_shrink_countwalk.patch
-fs-consolidate-nrfree_cached_objects-args-in-shrink_control.patch
-vmscan-per-memory-cgroup-slab-shrinkers.patch
-memcg-rename-some-cache-id-related-variables.patch
-memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation.patch
-list_lru-get-rid-of-active_nodes.patch
-list_lru-organize-all-list_lrus-to-list.patch
-list_lru-introduce-per-memcg-lists.patch
-fs-make-shrinker-memcg-aware.patch
-slab-embed-memcg_cache_params-to-kmem_cache.patch
-slab-link-memcg-caches-of-the-same-kind-into-a-list.patch
-cgroup-release-css-id-after-css_free.patch
-slab-use-css-id-for-naming-per-memcg-caches.patch
-memcg-free-memcg_caches-slot-on-css-offline.patch
-list_lru-add-helpers-to-isolate-items.patch
-memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline.patch
-slub-never-fail-to-shrink-cache.patch
-slub-never-fail-to-shrink-cache-init-discard-list-after-freeing-slabs.patch
-slub-fix-kmem_cache_shrink-return-value.patch
-slub-make-dead-caches-discard-free-slabs-immediately.patch
-mm-util-add-kstrdup_const.patch
-kernfs-convert-node-name-allocation-to-kstrdup_const.patch
-clk-convert-clock-name-allocations-to-kstrdup_const.patch
-mm-slab-convert-cache-name-allocations-to-kstrdup_const.patch
-mm-slab-convert-cache-name-allocations-to-kstrdup_const-fix.patch
-fs-namespace-convert-devname-allocation-to-kstrdup_const.patch
-cpumask-always-use-nr_cpu_ids-in-formatting-and-parsing-functions.patch
-lib-vsprintf-implement-bitmap-printing-through-%pb.patch
-cpumask-nodemask-implement-cpumask-nodemask_pr_args.patch
-slub-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
-compiler-introduce-__aliassymbol-shortcut.patch
-add-kernel-address-sanitizer-infrastructure.patch
-kasan-disable-memory-hotplug.patch
-x86_64-add-kasan-support.patch
-mm-page_alloc-add-kasan-hooks-on-alloc-and-free-paths.patch
-mm-slub-introduce-virt_to_obj-function.patch
-mm-slub-share-object_err-function.patch
-mm-slub-introduce-metadata_access_enable-metadata_access_disable.patch
-mm-slub-add-kernel-address-sanitizer-support-for-slub-allocator.patch
-fs-dcache-manually-unpoison-dname-after-allocation-to-shut-up-kasans-reports.patch
-kmemleak-disable-kasan-instrumentation-for-kmemleak.patch
-lib-add-kasan-test-module.patch
-x86_64-kasan-add-interceptors-for-memset-memmove-memcpy-functions.patch
-kasan-enable-stack-instrumentation.patch
-mm-vmalloc-add-flag-preventing-guard-hole-allocation.patch
-mm-vmalloc-pass-additional-vm_flags-to-__vmalloc_node_range.patch
-kernel-add-support-for-init_array-constructors.patch
-module-fix-types-of-device-tables-aliases.patch
-kasan-enable-instrumentation-of-global-variables.patch
 
