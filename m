@@ -1,79 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sparc32-fix-broken-set_pte.patch removed from -mm tree
-Date: Thu, 12 Feb 2015 11:36:29 -0800
-Message-ID: <54dd00bd.iyvgV6JHD19sybxp%akpm@linux-foundation.org>
+Subject: [merged] mm-page_allocc-drop-dead-destroy_compound_page.patch
+ removed from -mm tree
+Date: Thu, 12 Feb 2015 11:36:44 -0800
+Message-ID: <54dd00cc.yVRRxhL16u4meQ1s%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58068 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58123 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752096AbbBLTga (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 14:36:30 -0500
+	with ESMTP id S1751468AbbBLTgp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 14:36:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, davem@davemloft.net, iamjoonsoo.kim@lge.com, linux@roeck-us.net, pmoore@redhat.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sparc32: fix broken set_pte()
+     Subject: mm/page_alloc.c: drop dead destroy_compound_page()
 has been removed from the -mm tree.  Its filename was
-     sparc32-fix-broken-set_pte.patch
+     mm-page_allocc-drop-dead-destroy_compound_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: sparc32: fix broken set_pte()
+Subject: mm/page_alloc.c: drop dead destroy_compound_page()
 
-32-bit sparc uses swap instruction to implement set_pte().  It called
-using GCC inline assembler.  But it misses the "memory" clobber to
-indicate that pte value will be updated in memory.
+The only caller is __free_one_page(). By the time we should have
+page->flags to be cleared already:
 
-As result GCC doesn't know that it cannot postpone pte pointer dereference
-which occurs before set_pte() to post-set_pte() time.
+ - for 0-order pages though PCP list:
+	free_hot_cold_page()
+		free_pages_prepare()
+			free_pages_check()
+				page->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
+		<put the page to PCP list>
 
-It leads to real-world bugs -- [1]. In this situation we have code:
+	free_pcppages_bulk()
+		page = <withdraw pages from PCP list>
+		__free_one_page(page)
 
-	ptent = ptep_modify_prot_start(mm, addr, pte);
-	ptent = pte_modify(ptent, newprot);
-	...
-	ptep_modify_prot_commit(mm, addr, pte, ptent);
+ - for non-0-order pages:
+	__free_pages_ok()
+		free_pages_prepare()
+			free_pages_check()
+				page->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
+		free_one_page()
+			__free_one_page()
 
-ptep_modify_prot_start() in sparc case is just 'pte' dereference plus
-pte_clear().  pte_clear() calls broken set_pte().  GCC thinks it's valid
-to dereference 'pte' again on pte_modify() and gets cleared pte. 
-ptep_modify_prot_commit() puts 'pteent' with pfn==0 back to page table,
-which eventually leads to the crash.
-
-[1] http://lkml.kernel.org/r/54C06B19.8060305@roeck-us.net
+So there's no way PageCompound() will return true in __free_one_page().
+Let's remove dead destroy_compound_page() and put assert for page->flags
+there instead.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: Guenter Roeck <linux@roeck-us.net>
-Tested-by: Guenter Roeck <linux@roeck-us.net>
-Cc: Paul Moore <pmoore@redhat.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: David Miller <davem@davemloft.net>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/include/asm/pgtable_32.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/page_alloc.c |   35 +----------------------------------
+ 1 file changed, 1 insertion(+), 34 deletions(-)
 
-diff -puN arch/sparc/include/asm/pgtable_32.h~sparc32-fix-broken-set_pte arch/sparc/include/asm/pgtable_32.h
---- a/arch/sparc/include/asm/pgtable_32.h~sparc32-fix-broken-set_pte
-+++ a/arch/sparc/include/asm/pgtable_32.h
-@@ -102,7 +102,8 @@ extern unsigned long empty_zero_page;
-  */
- static inline unsigned long srmmu_swap(unsigned long *addr, unsigned long value)
- {
--	__asm__ __volatile__("swap [%2], %0" : "=&r" (value) : "0" (value), "r" (addr));
-+	__asm__ __volatile__("swap [%2], %0" :
-+			"=&r" (value) : "0" (value), "r" (addr) : "memory");
- 	return value;
+diff -puN mm/page_alloc.c~mm-page_allocc-drop-dead-destroy_compound_page mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_allocc-drop-dead-destroy_compound_page
++++ a/mm/page_alloc.c
+@@ -381,36 +381,6 @@ void prep_compound_page(struct page *pag
+ 	}
  }
  
+-/* update __split_huge_page_refcount if you change this function */
+-static int destroy_compound_page(struct page *page, unsigned long order)
+-{
+-	int i;
+-	int nr_pages = 1 << order;
+-	int bad = 0;
+-
+-	if (unlikely(compound_order(page) != order)) {
+-		bad_page(page, "wrong compound order", 0);
+-		bad++;
+-	}
+-
+-	__ClearPageHead(page);
+-
+-	for (i = 1; i < nr_pages; i++) {
+-		struct page *p = page + i;
+-
+-		if (unlikely(!PageTail(p))) {
+-			bad_page(page, "PageTail not set", 0);
+-			bad++;
+-		} else if (unlikely(p->first_page != page)) {
+-			bad_page(page, "first_page not consistent", 0);
+-			bad++;
+-		}
+-		__ClearPageTail(p);
+-	}
+-
+-	return bad;
+-}
+-
+ static inline void prep_zero_page(struct page *page, unsigned int order,
+ 							gfp_t gfp_flags)
+ {
+@@ -613,10 +583,7 @@ static inline void __free_one_page(struc
+ 	int max_order = MAX_ORDER;
+ 
+ 	VM_BUG_ON(!zone_is_initialized(zone));
+-
+-	if (unlikely(PageCompound(page)))
+-		if (unlikely(destroy_compound_page(page, order)))
+-			return;
++	VM_BUG_ON_PAGE(page->flags & PAGE_FLAGS_CHECK_AT_PREP, page);
+ 
+ 	VM_BUG_ON(migratetype == -1);
+ 	if (is_migrate_isolate(migratetype)) {
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
