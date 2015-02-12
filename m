@@ -1,89 +1,107 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-nommuc-fix-arithmetic-overflow-in-__vm_enough_memory.patch removed from
- -mm tree
-Date: Thu, 12 Feb 2015 11:39:12 -0800
-Message-ID: <54dd0160.4WcJGn9HS5vKac0r%akpm__6394.4140253172$1423769958$gmane$org@linux-foundation.org>
+ vmstat-do-not-use-deferrable-delayed-work-for-vmstat_update.patch removed
+ from -mm tree
+Date: Thu, 12 Feb 2015 11:38:57 -0800
+Message-ID: <54dd0151.+Y7+PetLyTZDzNIv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58580 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58548 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752442AbbBLTjN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 14:39:13 -0500
+	with ESMTP id S1752421AbbBLTi6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 14:38:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: klamm@yandex-team.ru, agshew@gmail.com, khlebnikov@yandex-team.ru, riel@redhat.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: mhocko@suse.cz, cl@linux.com, hannes@cmpxchg.org, mgorman@suse.de, minchan@kernel.org, rientjes@google.com, vdavydov@parallels.com, vinmenon@codeaurora.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/nommu.c: fix arithmetic overflow in __vm_enough_memory()
+     Subject: vmstat: do not use deferrable delayed work for vmstat_update
 has been removed from the -mm tree.  Its filename was
-     mm-nommuc-fix-arithmetic-overflow-in-__vm_enough_memory.patch
+     vmstat-do-not-use-deferrable-delayed-work-for-vmstat_update.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Roman Gushchin <klamm@yandex-team.ru>
-Subject: mm/nommu.c: fix arithmetic overflow in __vm_enough_memory()
+From: Michal Hocko <mhocko@suse.cz>
+Subject: vmstat: do not use deferrable delayed work for vmstat_update
 
-I noticed that "allowed" can easily overflow by falling below 0, because
-(total_vm / 32) can be larger than "allowed".  The problem occurs in
-OVERCOMMIT_NONE mode.
+Vinayak Menon has reported that an excessive number of tasks was throttled
+in the direct reclaim inside too_many_isolated() because NR_ISOLATED_FILE
+was relatively high compared to NR_INACTIVE_FILE.  However it turned out
+that the real number of NR_ISOLATED_FILE was 0 and the per-cpu
+vm_stat_diff wasn't transferred into the global counter.
 
-In this case, a huge allocation can success and overcommit the system
-(despite OVERCOMMIT_NONE mode).  All subsequent allocations will fall
-(system-wide), so system become unusable.
+vmstat_work which is responsible for the sync is defined as deferrable
+delayed work which means that the defined timeout doesn't wake up an idle
+CPU.  A CPU might stay in an idle state for a long time and general effort
+is to keep such a CPU in this state as long as possible which might lead
+to all sorts of troubles for vmstat consumers as can be seen with the
+excessive direct reclaim throttling.
 
-The problem was masked out by commit c9b1d0981fcc
-("mm: limit growth of 3% hardcoded other user reserve"),
-but it's easy to reproduce it on older kernels:
-1) set overcommit_memory sysctl to 2
-2) mmap() large file multiple times (with VM_SHARED flag)
-3) try to malloc() large amount of memory
+This patch basically reverts 39bf6270f524 ("VM statistics: Make timer
+deferrable") but it shouldn't cause any problems for idle CPUs because
+only CPUs with an active per-cpu drift are woken up since 7cc36bbddde5
+("vmstat: on-demand vmstat workers v8") and CPUs which are idle for a
+longer time shouldn't have per-cpu drift.
 
-It also can be reproduced on newer kernels, but miss-configured
-sysctl_user_reserve_kbytes is required.
-
-Fix this issue by switching to signed arithmetic here.
-
-Signed-off-by: Roman Gushchin <klamm@yandex-team.ru>
-Cc: Andrew Shewmaker <agshew@gmail.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Cc: <stable@vger.kernel.org>
+Fixes: 39bf6270f524 (VM statistics: Make timer deferrable)
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Reported-by: Vinayak Menon <vinmenon@codeaurora.org>
+Acked-by: Christoph Lameter <cl@linux.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vladimir Davydov <vdavydov@parallels.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nommu.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/vmstat.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/nommu.c~mm-nommuc-fix-arithmetic-overflow-in-__vm_enough_memory mm/nommu.c
---- a/mm/nommu.c~mm-nommuc-fix-arithmetic-overflow-in-__vm_enough_memory
-+++ a/mm/nommu.c
-@@ -1928,7 +1928,7 @@ EXPORT_SYMBOL(unmap_mapping_range);
-  */
- int __vm_enough_memory(struct mm_struct *mm, long pages, int cap_sys_admin)
- {
--	unsigned long free, allowed, reserve;
-+	long free, allowed, reserve;
+diff -puN mm/vmstat.c~vmstat-do-not-use-deferrable-delayed-work-for-vmstat_update mm/vmstat.c
+--- a/mm/vmstat.c~vmstat-do-not-use-deferrable-delayed-work-for-vmstat_update
++++ a/mm/vmstat.c
+@@ -1452,7 +1452,7 @@ static void __init start_shepherd_timer(
+ 	int cpu;
  
- 	vm_acct_memory(pages);
+ 	for_each_possible_cpu(cpu)
+-		INIT_DEFERRABLE_WORK(per_cpu_ptr(&vmstat_work, cpu),
++		INIT_DELAYED_WORK(per_cpu_ptr(&vmstat_work, cpu),
+ 			vmstat_update);
  
-@@ -1992,7 +1992,7 @@ int __vm_enough_memory(struct mm_struct
- 	 */
- 	if (mm) {
- 		reserve = sysctl_user_reserve_kbytes >> (PAGE_SHIFT - 10);
--		allowed -= min(mm->total_vm / 32, reserve);
-+		allowed -= min_t(long, mm->total_vm / 32, reserve);
- 	}
- 
- 	if (percpu_counter_read_positive(&vm_committed_as) < allowed)
+ 	if (!alloc_cpumask_var(&cpu_stat_off, GFP_KERNEL))
 _
 
-Patches currently in -mm which might be from klamm@yandex-team.ru are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
 origin.patch
+list_lru-introduce-list_lru_shrink_countwalk.patch
+fs-consolidate-nrfree_cached_objects-args-in-shrink_control.patch
+vmscan-per-memory-cgroup-slab-shrinkers.patch
+memcg-rename-some-cache-id-related-variables.patch
+memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation.patch
+list_lru-get-rid-of-active_nodes.patch
+list_lru-organize-all-list_lrus-to-list.patch
+list_lru-introduce-per-memcg-lists.patch
+fs-make-shrinker-memcg-aware.patch
+fs-shrinker-always-scan-at-least-one-object-of-each-type.patch
+fs-shrinker-always-scan-at-least-one-object-of-each-type-fix.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+slab-embed-memcg_cache_params-to-kmem_cache.patch
+slab-link-memcg-caches-of-the-same-kind-into-a-list.patch
+cgroup-release-css-id-after-css_free.patch
+slab-use-css-id-for-naming-per-memcg-caches.patch
+memcg-free-memcg_caches-slot-on-css-offline.patch
+list_lru-add-helpers-to-isolate-items.patch
+memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline.patch
+memcg-cleanup-static-keys-decrement.patch
+mm-page_isolation-check-pfn-validity-before-access.patch
+mm-support-madvisemadv_free.patch
+mm-dont-split-thp-page-when-syscall-is-called.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-2.patch
 
