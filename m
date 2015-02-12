@@ -1,81 +1,214 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-hugetlb-add-migration-entry-check-in-__unmap_hugepage_range.patch
- removed from -mm tree
-Date: Thu, 12 Feb 2015 11:36:27 -0800
-Message-ID: <54dd00bb.SawEgDMlUbdigdp3%akpm@linux-foundation.org>
+Subject: [merged] mm-set-page-pfmemalloc-in-prep_new_page.patch removed
+ from -mm tree
+Date: Thu, 12 Feb 2015 11:36:32 -0800
+Message-ID: <54dd00c0.Flx9Qojom+WbjTBa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58064 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58078 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752082AbbBLTg3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 14:36:29 -0500
+	with ESMTP id S1751978AbbBLTgd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 14:36:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: n-horiguchi@ah.jp.nec.com, aarcange@redhat.com, hannes@cmpxchg.org, hughd@google.com, james.hogan@imgtec.com, lcapitulino@redhat.com, lee.schermerhorn@hp.com, mel@csn.ul.ie, mhocko@suse.cz, nacc@linux.vnet.ibm.com, riel@redhat.com, rientjes@google.com, stable@vger.kernel.org, steve.capper@linaro.org, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, aneesh.kumar@linux.vnet.ibm.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, mgorman@suse.de, mhocko@suse.cz, minchan@kernel.org, riel@redhat.com, rientjes@google.com, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: add migration entry check in __unmap_hugepage_range
+     Subject: mm: set page->pfmemalloc in prep_new_page()
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-add-migration-entry-check-in-__unmap_hugepage_range.patch
+     mm-set-page-pfmemalloc-in-prep_new_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm/hugetlb: add migration entry check in __unmap_hugepage_range
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm: set page->pfmemalloc in prep_new_page()
 
-If __unmap_hugepage_range() tries to unmap the address range over which
-hugepage migration is on the way, we get the wrong page because pte_page()
-doesn't work for migration entries.  This patch simply clears the pte for
-migration entries as we do for hwpoison entries.
+The possibility of replacing the numerous parameters of alloc_pages*
+functions with a single structure has been discussed when Minchan proposed
+to expand the x86 kernel stack [1].  This series implements the change,
+along with few more cleanups/microoptimizations.
 
-Fixes: 290408d4a2 ("hugetlb: hugepage migration core")
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: James Hogan <james.hogan@imgtec.com>
+The series is based on next-20150108 and I used gcc 4.8.3 20140627 on
+openSUSE 13.2 for compiling.  Config includess NUMA and COMPACTION.
+
+The core change is the introduction of a new struct alloc_context, which looks
+like this:
+
+struct alloc_context {
+        struct zonelist *zonelist;
+        nodemask_t *nodemask;
+        struct zone *preferred_zone;
+        int classzone_idx;
+        int migratetype;
+        enum zone_type high_zoneidx;
+};
+
+All the contents is mostly constant, except that __alloc_pages_slowpath()
+changes preferred_zone, classzone_idx and potentially zonelist.  But
+that's not a problem in case control returns to retry_cpuset: in
+__alloc_pages_nodemask(), those will be reset to initial values again
+(although it's a bit subtle).  On the other hand, gfp_flags and alloc_info
+mutate so much that it doesn't make sense to put them into alloc_context. 
+Still, the result is one parameter instead of up to 7.  This is all in
+Patch 2.
+
+Patch 3 is a step to expand alloc_context usage out of page_alloc.c
+itself.  The function try_to_compact_pages() can also much benefit from
+the parameter reduction, but it means the struct definition has to be
+moved to a shared header.
+
+Patch 1 should IMHO be included even if the rest is deemed not useful
+enough.  It improves maintainability and also has some code/stack
+reduction.  Patch 4 is OTOH a tiny optimization.
+
+Overall bloat-o-meter results:
+
+add/remove: 0/0 grow/shrink: 0/4 up/down: 0/-460 (-460)
+function                                     old     new   delta
+nr_free_zone_pages                           129     115     -14
+__alloc_pages_direct_compact                 329     256     -73
+get_page_from_freelist                      2670    2576     -94
+__alloc_pages_nodemask                      2564    2285    -279
+try_to_compact_pages                         582     579      -3
+
+Overall stack sizes per ./scripts/checkstack.pl:
+
+                          old   new delta
+get_page_from_freelist:   184   184     0
+__alloc_pages_nodemask    248   200   -48
+__alloc_pages_direct_c     40     -   -40  
+try_to_compact_pages       72    72     0
+                                      -88
+
+[1] http://marc.info/?l=linux-mm&m=140142462528257&w=2
+
+
+
+This patch (of 4):
+
+prep_new_page() sets almost everything in the struct page of the page
+being allocated, except page->pfmemalloc.  This is not obvious and has at
+least once led to a bug where page->pfmemalloc was forgotten to be set
+correctly, see commit 8fb74b9fb2b1 ("mm: compaction: partially revert
+capture of suitable high-order page").
+
+This patch moves the pfmemalloc setting to prep_new_page(), which means it
+needs to gain alloc_flags parameter.  The call to prep_new_page is moved
+from buffered_rmqueue() to get_page_from_freelist(), which also leads to
+simpler code.  An obsolete comment for buffered_rmqueue() is replaced.
+
+In addition to better maintainability there is a small reduction of code
+and stack usage for get_page_from_freelist(), which inlines the other
+functions involved.
+
+add/remove: 0/0 grow/shrink: 0/1 up/down: 0/-145 (-145)
+function                                     old     new   delta
+get_page_from_freelist                      2670    2525    -145
+
+Stack usage is reduced from 184 to 168 bytes.
+
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
 Cc: Rik van Riel <riel@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Luiz Capitulino <lcapitulino@redhat.com>
-Cc: Nishanth Aravamudan <nacc@linux.vnet.ibm.com>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Steve Capper <steve.capper@linaro.org>
-Cc: <stable@vger.kernel.org>	[2.6.36+]
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |   37 ++++++++++++++++---------------------
+ 1 file changed, 16 insertions(+), 21 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-add-migration-entry-check-in-__unmap_hugepage_range mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-add-migration-entry-check-in-__unmap_hugepage_range
-+++ a/mm/hugetlb.c
-@@ -2657,9 +2657,10 @@ again:
- 			goto unlock;
+diff -puN mm/page_alloc.c~mm-set-page-pfmemalloc-in-prep_new_page mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-set-page-pfmemalloc-in-prep_new_page
++++ a/mm/page_alloc.c
+@@ -970,7 +970,8 @@ static inline int check_new_page(struct
+ 	return 0;
+ }
  
- 		/*
--		 * HWPoisoned hugepage is already unmapped and dropped reference
-+		 * Migrating hugepage or HWPoisoned hugepage is already
-+		 * unmapped and its refcount is dropped, so just clear pte here.
- 		 */
--		if (unlikely(is_hugetlb_entry_hwpoisoned(pte))) {
-+		if (unlikely(!pte_present(pte))) {
- 			huge_pte_clear(mm, address, ptep);
- 			goto unlock;
- 		}
-_
-
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
-
-origin.patch
-mm-hwpoison-drop-lru_add_drain_all-in-__soft_offline_page.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-
+-static int prep_new_page(struct page *page, unsigned int order, gfp_t gfp_flags)
++static int prep_new_page(struct page *page, unsigned int order, gfp_t gfp_flags,
++								int alloc_flags)
+ {
+ 	int i;
+ 
+@@ -994,6 +995,14 @@ static int prep_new_page(struct page *pa
+ 
+ 	set_page_owner(page, order, gfp_flags);
+ 
++	/*
++	 * page->pfmemalloc is set when ALLOC_NO_WATERMARKS was necessary to
++	 * allocate the page. The expectation is that the caller is taking
++	 * steps that will free more memory. The caller should avoid the page
++	 * being used for !PFMEMALLOC purposes.
++	 */
++	page->pfmemalloc = !!(alloc_flags & ALLOC_NO_WATERMARKS);
++
+ 	return 0;
+ }
+ 
+@@ -1642,9 +1651,7 @@ int split_free_page(struct page *page)
+ }
+ 
+ /*
+- * Really, prep_compound_page() should be called from __rmqueue_bulk().  But
+- * we cheat by calling it from here, in the order > 0 path.  Saves a branch
+- * or two.
++ * Allocate a page from the given zone. Use pcplists for order-0 allocations.
+  */
+ static inline
+ struct page *buffered_rmqueue(struct zone *preferred_zone,
+@@ -1655,7 +1662,6 @@ struct page *buffered_rmqueue(struct zon
+ 	struct page *page;
+ 	bool cold = ((gfp_flags & __GFP_COLD) != 0);
+ 
+-again:
+ 	if (likely(order == 0)) {
+ 		struct per_cpu_pages *pcp;
+ 		struct list_head *list;
+@@ -1711,8 +1717,6 @@ again:
+ 	local_irq_restore(flags);
+ 
+ 	VM_BUG_ON_PAGE(bad_range(zone, page), page);
+-	if (prep_new_page(page, order, gfp_flags))
+-		goto again;
+ 	return page;
+ 
+ failed:
+@@ -2177,25 +2181,16 @@ zonelist_scan:
+ try_this_zone:
+ 		page = buffered_rmqueue(preferred_zone, zone, order,
+ 						gfp_mask, migratetype);
+-		if (page)
+-			break;
++		if (page) {
++			if (prep_new_page(page, order, gfp_mask, alloc_flags))
++				goto try_this_zone;
++			return page;
++		}
+ this_zone_full:
+ 		if (IS_ENABLED(CONFIG_NUMA) && zlc_active)
+ 			zlc_mark_zone_full(zonelist, z);
+ 	}
+ 
+-	if (page) {
+-		/*
+-		 * page->pfmemalloc is set when ALLOC_NO_WATERMARKS was
+-		 * necessary to allocate the page. The expectation is
+-		 * that the caller is taking steps that will free more
+-		 * memory. The caller should avoid the page being used
+-		 * for !PFMEMALLOC purposes.
+-		 */
+-		page->pfmemalloc = !!(alloc_flags & ALLOC_NO_WATERMARKS);
+-		return page;
+-	}
