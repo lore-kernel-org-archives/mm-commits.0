@@ -1,40 +1,38 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-compaction-change-tracepoint-format-from-decimal-to-hexadecimal.patch
- removed from -mm tree
-Date: Thu, 12 Feb 2015 11:37:39 -0800
-Message-ID: <54dd0103.t0Nz3GkDz6ouiZuw%akpm@linux-foundation.org>
+ mm-compaction-print-current-range-where-compaction-work.patch removed from
+ -mm tree
+Date: Thu, 12 Feb 2015 11:37:43 -0800
+Message-ID: <54dd0107.4XEgmFob4O2EACyk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58257 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58269 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751793AbbBLThk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 14:37:40 -0500
+	with ESMTP id S1751505AbbBLTho (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 14:37:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: iamjoonsoo.kim@lge.com, mgorman@suse.de, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/compaction: change tracepoint format from decimal to hexadecimal
+     Subject: mm/compaction: print current range where compaction work
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-change-tracepoint-format-from-decimal-to-hexadecimal.patch
+     mm-compaction-print-current-range-where-compaction-work.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/compaction: change tracepoint format from decimal to hexadecimal
+Subject: mm/compaction: print current range where compaction work
 
-To check the range that compaction is working, tracepoint print start/end
-pfn of zone and start pfn of both scanner with decimal format.  Since we
-manage all pages in order of 2 and it is well represented by hexadecimal,
-this patch change the tracepoint format from decimal to hexadecimal.  This
-would improve readability.  For example, it makes us easily notice whether
-current scanner try to compact previously attempted pageblock or not.
+It'd be useful to know current range where compaction work for detailed
+analysis.  With it, we can know pageblock where we actually scan and
+isolate, and, how much pages we try in that pageblock and can guess why it
+doesn't become freepage with pageblock order roughly.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
@@ -43,21 +41,112 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/compaction.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/trace/events/compaction.h |   30 +++++++++++++++++++++-------
+ mm/compaction.c                   |    9 +++++---
+ 2 files changed, 29 insertions(+), 10 deletions(-)
 
-diff -puN include/trace/events/compaction.h~mm-compaction-change-tracepoint-format-from-decimal-to-hexadecimal include/trace/events/compaction.h
---- a/include/trace/events/compaction.h~mm-compaction-change-tracepoint-format-from-decimal-to-hexadecimal
+diff -puN include/trace/events/compaction.h~mm-compaction-print-current-range-where-compaction-work include/trace/events/compaction.h
+--- a/include/trace/events/compaction.h~mm-compaction-print-current-range-where-compaction-work
 +++ a/include/trace/events/compaction.h
-@@ -104,7 +104,7 @@ TRACE_EVENT(mm_compaction_begin,
- 		__entry->zone_end = zone_end;
+@@ -11,39 +11,55 @@
+ 
+ DECLARE_EVENT_CLASS(mm_compaction_isolate_template,
+ 
+-	TP_PROTO(unsigned long nr_scanned,
++	TP_PROTO(
++		unsigned long start_pfn,
++		unsigned long end_pfn,
++		unsigned long nr_scanned,
+ 		unsigned long nr_taken),
+ 
+-	TP_ARGS(nr_scanned, nr_taken),
++	TP_ARGS(start_pfn, end_pfn, nr_scanned, nr_taken),
+ 
+ 	TP_STRUCT__entry(
++		__field(unsigned long, start_pfn)
++		__field(unsigned long, end_pfn)
+ 		__field(unsigned long, nr_scanned)
+ 		__field(unsigned long, nr_taken)
  	),
  
--	TP_printk("zone_start=%lu migrate_start=%lu free_start=%lu zone_end=%lu",
-+	TP_printk("zone_start=0x%lx migrate_start=0x%lx free_start=0x%lx zone_end=0x%lx",
- 		__entry->zone_start,
- 		__entry->migrate_start,
- 		__entry->free_start,
+ 	TP_fast_assign(
++		__entry->start_pfn = start_pfn;
++		__entry->end_pfn = end_pfn;
+ 		__entry->nr_scanned = nr_scanned;
+ 		__entry->nr_taken = nr_taken;
+ 	),
+ 
+-	TP_printk("nr_scanned=%lu nr_taken=%lu",
++	TP_printk("range=(0x%lx ~ 0x%lx) nr_scanned=%lu nr_taken=%lu",
++		__entry->start_pfn,
++		__entry->end_pfn,
+ 		__entry->nr_scanned,
+ 		__entry->nr_taken)
+ );
+ 
+ DEFINE_EVENT(mm_compaction_isolate_template, mm_compaction_isolate_migratepages,
+ 
+-	TP_PROTO(unsigned long nr_scanned,
++	TP_PROTO(
++		unsigned long start_pfn,
++		unsigned long end_pfn,
++		unsigned long nr_scanned,
+ 		unsigned long nr_taken),
+ 
+-	TP_ARGS(nr_scanned, nr_taken)
++	TP_ARGS(start_pfn, end_pfn, nr_scanned, nr_taken)
+ );
+ 
+ DEFINE_EVENT(mm_compaction_isolate_template, mm_compaction_isolate_freepages,
+-	TP_PROTO(unsigned long nr_scanned,
++
++	TP_PROTO(
++		unsigned long start_pfn,
++		unsigned long end_pfn,
++		unsigned long nr_scanned,
+ 		unsigned long nr_taken),
+ 
+-	TP_ARGS(nr_scanned, nr_taken)
++	TP_ARGS(start_pfn, end_pfn, nr_scanned, nr_taken)
+ );
+ 
+ TRACE_EVENT(mm_compaction_migratepages,
+diff -puN mm/compaction.c~mm-compaction-print-current-range-where-compaction-work mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-print-current-range-where-compaction-work
++++ a/mm/compaction.c
+@@ -430,11 +430,12 @@ isolate_fail:
+ 
+ 	}
+ 
++	trace_mm_compaction_isolate_freepages(*start_pfn, blockpfn,
++					nr_scanned, total_isolated);
++
+ 	/* Record how far we have got within the block */
+ 	*start_pfn = blockpfn;
+ 
+-	trace_mm_compaction_isolate_freepages(nr_scanned, total_isolated);
+-
+ 	/*
+ 	 * If strict isolation is requested by CMA then check that all the
+ 	 * pages requested were isolated. If there were any failures, 0 is
+@@ -590,6 +591,7 @@ isolate_migratepages_block(struct compac
+ 	unsigned long flags = 0;
+ 	bool locked = false;
+ 	struct page *page = NULL, *valid_page = NULL;
++	unsigned long start_pfn = low_pfn;
+ 
+ 	/*
+ 	 * Ensure that there are not too many pages isolated from the LRU
+@@ -750,7 +752,8 @@ isolate_success:
+ 	if (low_pfn == end_pfn)
+ 		update_pageblock_skip(cc, valid_page, nr_isolated, true);
+ 
+-	trace_mm_compaction_isolate_migratepages(nr_scanned, nr_isolated);
++	trace_mm_compaction_isolate_migratepages(start_pfn, low_pfn,
++						nr_scanned, nr_isolated);
+ 
+ 	count_compact_events(COMPACTMIGRATE_SCANNED, nr_scanned);
+ 	if (nr_isolated)
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
