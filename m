@@ -1,108 +1,153 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- smaps-remove-mem_size_stats-vma-and-use-walk_page_vma.patch removed from
- -mm tree
-Date: Thu, 12 Feb 2015 11:38:16 -0800
-Message-ID: <54dd0128.k5TdQsja+wnA2BdU%akpm@linux-foundation.org>
+Subject: [merged] pagemap-use-walk-vma-instead-of-calling-find_vma.patch
+ removed from -mm tree
+Date: Thu, 12 Feb 2015 11:38:22 -0800
+Message-ID: <54dd012e.OxdW7UbLoTtr8EGy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58421 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58436 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752351AbbBLTiR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 14:38:17 -0500
+	with ESMTP id S1750999AbbBLTiX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 14:38:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: n-horiguchi@ah.jp.nec.com, aarcange@redhat.com, benh@kernel.crashing.org, dave.hansen@intel.com, gorcunov@openvz.org, kirill.shutemov@linux.intel.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: smaps: remove mem_size_stats->vma and use walk_page_vma()
+     Subject: pagemap: use walk->vma instead of calling find_vma()
 has been removed from the -mm tree.  Its filename was
-     smaps-remove-mem_size_stats-vma-and-use-walk_page_vma.patch
+     pagemap-use-walk-vma-instead-of-calling-find_vma.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: smaps: remove mem_size_stats->vma and use walk_page_vma()
+Subject: pagemap: use walk->vma instead of calling find_vma()
 
-pagewalk.c can handle vma in itself, so we don't have to pass vma via
-walk->private.  And show_smap() walks pages on vma basis, so using
-walk_page_vma() is preferable.
+Page table walker has the information of the current vma in mm_walk, so we
+don't have to call find_vma() in each pagemap_(pte|hugetlb)_range() call
+any longer.  Currently pagemap_pte_range() does vma loop itself, so this
+patch reduces many lines of code.
+
+NULL-vma check is omitted because we assume that we never run these
+callbacks on any address outside vma.  And even if it were broken, NULL
+pointer dereference would be detected, so we can get enough information
+for debugging.
 
 Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Cyrill Gorcunov <gorcunov@openvz.org>
 Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Pavel Emelyanov <xemul@parallels.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+ fs/proc/task_mmu.c |   68 ++++++++-----------------------------------
+ 1 file changed, 14 insertions(+), 54 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~smaps-remove-mem_size_stats-vma-and-use-walk_page_vma fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~smaps-remove-mem_size_stats-vma-and-use-walk_page_vma
+diff -puN fs/proc/task_mmu.c~pagemap-use-walk-vma-instead-of-calling-find_vma fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~pagemap-use-walk-vma-instead-of-calling-find_vma
 +++ a/fs/proc/task_mmu.c
-@@ -436,7 +436,6 @@ const struct file_operations proc_tid_ma
- 
- #ifdef CONFIG_PROC_PAGE_MONITOR
- struct mem_size_stats {
+@@ -1047,15 +1047,13 @@ static inline void thp_pmd_to_pagemap_en
+ static int pagemap_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
+ 			     struct mm_walk *walk)
+ {
 -	struct vm_area_struct *vma;
- 	unsigned long resident;
- 	unsigned long shared_clean;
- 	unsigned long shared_dirty;
-@@ -485,7 +484,7 @@ static void smaps_pte_entry(pte_t *pte,
- 		struct mm_walk *walk)
- {
- 	struct mem_size_stats *mss = walk->private;
--	struct vm_area_struct *vma = mss->vma;
 +	struct vm_area_struct *vma = walk->vma;
- 	struct page *page = NULL;
- 
- 	if (pte_present(*pte)) {
-@@ -509,7 +508,7 @@ static void smaps_pmd_entry(pmd_t *pmd,
- 		struct mm_walk *walk)
- {
- 	struct mem_size_stats *mss = walk->private;
--	struct vm_area_struct *vma = mss->vma;
-+	struct vm_area_struct *vma = walk->vma;
- 	struct page *page;
- 
- 	/* FOLL_DUMP will return -EFAULT on huge zero page */
-@@ -530,8 +529,7 @@ static void smaps_pmd_entry(pmd_t *pmd,
- static int smaps_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
- 			   struct mm_walk *walk)
- {
--	struct mem_size_stats *mss = walk->private;
--	struct vm_area_struct *vma = mss->vma;
-+	struct vm_area_struct *vma = walk->vma;
- 	pte_t *pte;
+ 	struct pagemapread *pm = walk->private;
  	spinlock_t *ptl;
+ 	pte_t *pte, *orig_pte;
+ 	int err = 0;
  
-@@ -623,10 +621,8 @@ static int show_smap(struct seq_file *m,
- 	};
+-	/* find the first VMA at or above 'addr' */
+-	vma = find_vma(walk->mm, addr);
+-	if (vma && pmd_trans_huge_lock(pmd, vma, &ptl) == 1) {
++	if (pmd_trans_huge_lock(pmd, vma, &ptl) == 1) {
+ 		int pmd_flags2;
  
- 	memset(&mss, 0, sizeof mss);
--	mss.vma = vma;
- 	/* mmap_sem is held in m_start */
--	if (vma->vm_mm && !is_vm_hugetlb_page(vma))
--		walk_page_range(vma->vm_start, vma->vm_end, &smaps_walk);
-+	walk_page_vma(vma, &smaps_walk);
+ 		if ((vma->vm_flags & VM_SOFTDIRTY) || pmd_soft_dirty(*pmd))
+@@ -1081,55 +1079,20 @@ static int pagemap_pte_range(pmd_t *pmd,
+ 	if (pmd_trans_unstable(pmd))
+ 		return 0;
  
- 	show_map_vma(m, vma, is_pid);
+-	while (1) {
+-		/* End of address space hole, which we mark as non-present. */
+-		unsigned long hole_end;
+-
+-		if (vma)
+-			hole_end = min(end, vma->vm_start);
+-		else
+-			hole_end = end;
+-
+-		for (; addr < hole_end; addr += PAGE_SIZE) {
+-			pagemap_entry_t pme = make_pme(PM_NOT_PRESENT(pm->v2));
+-
+-			err = add_to_pagemap(addr, &pme, pm);
+-			if (err)
+-				return err;
+-		}
+-
+-		if (!vma || vma->vm_start >= end)
+-			break;
+-		/*
+-		 * We can't possibly be in a hugetlb VMA. In general,
+-		 * for a mm_walk with a pmd_entry and a hugetlb_entry,
+-		 * the pmd_entry can only be called on addresses in a
+-		 * hugetlb if the walk starts in a non-hugetlb VMA and
+-		 * spans a hugepage VMA. Since pagemap_read walks are
+-		 * PMD-sized and PMD-aligned, this will never be true.
+-		 */
+-		BUG_ON(is_vm_hugetlb_page(vma));
+-
+-		/* Addresses in the VMA. */
+-		orig_pte = pte = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
+-		for (; addr < min(end, vma->vm_end); pte++, addr += PAGE_SIZE) {
+-			pagemap_entry_t pme;
+-
+-			pte_to_pagemap_entry(&pme, pm, vma, addr, *pte);
+-			err = add_to_pagemap(addr, &pme, pm);
+-			if (err)
+-				break;
+-		}
+-		pte_unmap_unlock(orig_pte, ptl);
++	/*
++	 * We can assume that @vma always points to a valid one and @end never
++	 * goes beyond vma->vm_end.
++	 */
++	orig_pte = pte = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
++	for (; addr < end; pte++, addr += PAGE_SIZE) {
++		pagemap_entry_t pme;
  
-_
-
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
-
-origin.patch
-mm-hwpoison-drop-lru_add_drain_all-in-__soft_offline_page.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-
++		pte_to_pagemap_entry(&pme, pm, vma, addr, *pte);
++		err = add_to_pagemap(addr, &pme, pm);
+ 		if (err)
+-			return err;
+-
+-		if (addr == end)
+ 			break;
+-
+-		vma = find_vma(walk->mm, addr);
+ 	}
++	pte_unmap_unlock(orig_pte, ptl);
+ 
+ 	cond_resched();
+ 
+@@ -1155,15 +1118,12 @@ static int pagemap_hugetlb_range(pte_t *
+ 				 struct mm_walk *walk)
+ {
+ 	struct pagemapread *pm = walk->private;
+-	struct vm_area_struct *vma;
++	struct vm_area_struct *vma = walk->vma;
+ 	int err = 0;
+ 	int flags2;
+ 	pagemap_entry_t pme;
+ 
+-	vma = find_vma(walk->mm, addr);
+-	WARN_ON_ONCE(!vma);
