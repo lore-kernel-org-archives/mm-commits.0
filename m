@@ -1,72 +1,99 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- fs-shrinker-always-scan-at-least-one-object-of-each-type-fix.patch removed
- from -mm tree
-Date: Thu, 12 Feb 2015 14:13:43 -0800
-Message-ID: <54dd2597.fDWALI5NRVJKPhKm%akpm@linux-foundation.org>
+ slab-embed-memcg_cache_params-to-kmem_cache-fix.patch removed from -mm tree
+Date: Thu, 12 Feb 2015 14:14:05 -0800
+Message-ID: <54dd25ad.zNKL0Lp7KOOqNs8i%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60022 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60028 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750959AbbBLWNo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 17:13:44 -0500
+	with ESMTP id S1751541AbbBLWOG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 17:14:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, david@fromorbit.com, hannes@cmpxchg.org, mhocko@suse.cz, vdavydov@parallels.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: vdavydov@parallels.com, dan.carpenter@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs-shrinker-always-scan-at-least-one-object-of-each-type-fix
+     Subject: slab: update_memcg_params: explicitly check that old array != NULL
 has been removed from the -mm tree.  Its filename was
-     fs-shrinker-always-scan-at-least-one-object-of-each-type-fix.patch
+     slab-embed-memcg_cache_params-to-kmem_cache-fix.patch
 
-This patch was dropped because it was folded into fs-shrinker-always-scan-at-least-one-object-of-each-type.patch
+This patch was dropped because it was folded into slab-embed-memcg_cache_params-to-kmem_cache.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fs-shrinker-always-scan-at-least-one-object-of-each-type-fix
+From: Vladimir Davydov <vdavydov@parallels.com>
+Subject: slab: update_memcg_params: explicitly check that old array != NULL
 
-add comment
+mm/slab_common.c:166 update_memcg_params() warn: variable dereferenced before check 'old' (see line 162)
 
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Vladimir Davydov <vdavydov@parallels.com>
+This warning is false-positive, because @old equals NULL iff
+@memcg_nr_cache_ids equals 0. Moreover, this function had been acting in
+exactly the same fashion before it was reworked by the culprit. Anyways,
+let's add an explicit check if @old is not NULL before passing it to
+@memcpy() to make static analysis tools happy.
+
+Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/super.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/slab_common.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN fs/super.c~fs-shrinker-always-scan-at-least-one-object-of-each-type-fix fs/super.c
---- a/fs/super.c~fs-shrinker-always-scan-at-least-one-object-of-each-type-fix
-+++ a/fs/super.c
-@@ -91,6 +91,9 @@ static unsigned long super_cache_scan(st
- 	/*
- 	 * prune the dcache first as the icache is pinned by it, then
- 	 * prune the icache, followed by the filesystem specific caches
-+	 *
-+	 * Ensure that we always scan at least one object - memcg kmem
-+	 * accounting uses this to fully empty the caches.
- 	 */
- 	sc->nr_to_scan = dentries + 1;
- 	freed = prune_dcache_sb(sb, sc);
+diff -puN mm/slab_common.c~slab-embed-memcg_cache_params-to-kmem_cache-fix mm/slab_common.c
+--- a/mm/slab_common.c~slab-embed-memcg_cache_params-to-kmem_cache-fix
++++ a/mm/slab_common.c
+@@ -152,15 +152,16 @@ static int update_memcg_params(struct km
+ 	if (!is_root_cache(s))
+ 		return 0;
+ 
+-	old = rcu_dereference_protected(s->memcg_params.memcg_caches,
+-					lockdep_is_held(&slab_mutex));
+ 	new = kzalloc(sizeof(struct memcg_cache_array) +
+ 		      new_array_size * sizeof(void *), GFP_KERNEL);
+ 	if (!new)
+ 		return -ENOMEM;
+ 
+-	memcpy(new->entries, old->entries,
+-	       memcg_nr_cache_ids * sizeof(void *));
++	old = rcu_dereference_protected(s->memcg_params.memcg_caches,
++					lockdep_is_held(&slab_mutex));
++	if (old)
++		memcpy(new->entries, old->entries,
++		       memcg_nr_cache_ids * sizeof(void *));
+ 
+ 	rcu_assign_pointer(s->memcg_params.memcg_caches, new);
+ 	if (old)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vdavydov@parallels.com are
 
 origin.patch
-mm-convert-p_mknonnuma-and-remaining-page-table-manipulations.patch
+list_lru-introduce-list_lru_shrink_countwalk.patch
+fs-consolidate-nrfree_cached_objects-args-in-shrink_control.patch
+vmscan-per-memory-cgroup-slab-shrinkers.patch
+memcg-rename-some-cache-id-related-variables.patch
+memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation.patch
+list_lru-get-rid-of-active_nodes.patch
+list_lru-organize-all-list_lrus-to-list.patch
+list_lru-introduce-per-memcg-lists.patch
+fs-make-shrinker-memcg-aware.patch
 fs-shrinker-always-scan-at-least-one-object-of-each-type.patch
-zram-rework-reset-and-destroy-path-fix.patch
-task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss.patch
-powerpc-add-running_clock-for-powerpc-to-prevent-spurious-softlockup-warnings-checkpatch-fixes.patch
-kernelh-remove-ancient-__function__-hack-fix.patch
-lib-bitmap-update-bitmap_onto-to-unsigned-checkpatch-fixes.patch
-lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned-fix.patch
-hexdump-makes-it-return-amount-of-bytes-placed-in-buffer-fix.patch
+slab-embed-memcg_cache_params-to-kmem_cache.patch
+slab-link-memcg-caches-of-the-same-kind-into-a-list.patch
+slab-link-memcg-caches-of-the-same-kind-into-a-list-fix.patch
+cgroup-release-css-id-after-css_free.patch
+slab-use-css-id-for-naming-per-memcg-caches.patch
+memcg-free-memcg_caches-slot-on-css-offline.patch
+list_lru-add-helpers-to-isolate-items.patch
+memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline.patch
+slub-never-fail-to-shrink-cache.patch
+slub-never-fail-to-shrink-cache-init-discard-list-after-freeing-slabs.patch
+slub-fix-kmem_cache_shrink-return-value.patch
+slub-make-dead-caches-discard-free-slabs-immediately.patch
+memcg-cleanup-static-keys-decrement.patch
 
