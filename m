@@ -1,246 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-mempolicy-merge-alloc_hugepage_vma-to-alloc_pages_vma.patch removed from -mm tree
-Date: Thu, 12 Feb 2015 11:37:51 -0800
-Message-ID: <54dd010f.tXOMaQoUczM/EXvX%akpm@linux-foundation.org>
+Subject: [merged] mm-pagewalk-remove-pgd_entry-and-pud_entry.patch removed from -mm tree
+Date: Thu, 12 Feb 2015 11:38:07 -0800
+Message-ID: <54dd011f.2Y3bfuGN9SguhJPA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58362 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58396 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752332AbbBLThw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 14:37:52 -0500
+	with ESMTP id S1752323AbbBLTiI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 14:38:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, aarcange@redhat.com, benh@kernel.crashing.org, dave.hansen@intel.com, gorcunov@openvz.org, kirill.shutemov@linux.intel.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mempolicy.c: merge alloc_hugepage_vma to alloc_pages_vma
+     Subject: mm/pagewalk: remove pgd_entry() and pud_entry()
 has been removed from the -mm tree.  Its filename was
-     mm-mempolicy-merge-alloc_hugepage_vma-to-alloc_pages_vma.patch
+     mm-pagewalk-remove-pgd_entry-and-pud_entry.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm/mempolicy.c: merge alloc_hugepage_vma to alloc_pages_vma
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm/pagewalk: remove pgd_entry() and pud_entry()
 
-Commit "mm/thp: Allocate transparent hugepages on local node" introduced
-alloc_hugepage_vma() to mm/mempolicy.c to perform a special policy for THP
-allocations.  The function has the same interface as alloc_pages_vma(),
-shares a lot of boilerplate code and a long comment.
+Currently no user of page table walker sets ->pgd_entry() or
+->pud_entry(), so checking their existence in each loop is just wasting
+CPU cycle.  So let's remove it to reduce overhead.
 
-This patch merges the hugepage special case into alloc_pages_vma.  The
-extra if condition should be cheap enough price to pay.  We also prevent a
-(however unlikely) race with parallel mems_allowed update, which could
-make hugepage allocation restart only within the fallback call to
-alloc_hugepage_vma() and not reconsider the special rule in
-alloc_hugepage_vma().
-
-Also by making sure mpol_cond_put(pol) is always called before actual
-allocation attempt, we can use a single exit path within the function.
-
-Also update the comment for missing node parameter and obsolete reference
-to mm_sem.
-
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |   12 ++--
- mm/mempolicy.c      |  118 +++++++++++-------------------------------
- 2 files changed, 39 insertions(+), 91 deletions(-)
+ include/linux/mm.h |    6 ------
+ mm/pagewalk.c      |    9 ++-------
+ 2 files changed, 2 insertions(+), 13 deletions(-)
 
-diff -puN include/linux/gfp.h~mm-mempolicy-merge-alloc_hugepage_vma-to-alloc_pages_vma include/linux/gfp.h
---- a/include/linux/gfp.h~mm-mempolicy-merge-alloc_hugepage_vma-to-alloc_pages_vma
-+++ a/include/linux/gfp.h
-@@ -334,22 +334,22 @@ alloc_pages(gfp_t gfp_mask, unsigned int
- }
- extern struct page *alloc_pages_vma(gfp_t gfp_mask, int order,
- 			struct vm_area_struct *vma, unsigned long addr,
--			int node);
--extern struct page *alloc_hugepage_vma(gfp_t gfp, struct vm_area_struct *vma,
--				       unsigned long addr, int order);
-+			int node, bool hugepage);
-+#define alloc_hugepage_vma(gfp_mask, vma, addr, order)	\
-+	alloc_pages_vma(gfp_mask, order, vma, addr, numa_node_id(), true)
- #else
- #define alloc_pages(gfp_mask, order) \
- 		alloc_pages_node(numa_node_id(), gfp_mask, order)
--#define alloc_pages_vma(gfp_mask, order, vma, addr, node)	\
-+#define alloc_pages_vma(gfp_mask, order, vma, addr, node, false)\
- 	alloc_pages(gfp_mask, order)
- #define alloc_hugepage_vma(gfp_mask, vma, addr, order)	\
- 	alloc_pages(gfp_mask, order)
- #endif
- #define alloc_page(gfp_mask) alloc_pages(gfp_mask, 0)
- #define alloc_page_vma(gfp_mask, vma, addr)			\
--	alloc_pages_vma(gfp_mask, 0, vma, addr, numa_node_id())
-+	alloc_pages_vma(gfp_mask, 0, vma, addr, numa_node_id(), false)
- #define alloc_page_vma_node(gfp_mask, vma, addr, node)		\
--	alloc_pages_vma(gfp_mask, 0, vma, addr, node)
-+	alloc_pages_vma(gfp_mask, 0, vma, addr, node, false)
+diff -puN include/linux/mm.h~mm-pagewalk-remove-pgd_entry-and-pud_entry include/linux/mm.h
+--- a/include/linux/mm.h~mm-pagewalk-remove-pgd_entry-and-pud_entry
++++ a/include/linux/mm.h
+@@ -1164,8 +1164,6 @@ void unmap_vmas(struct mmu_gather *tlb,
  
- extern struct page *alloc_kmem_pages(gfp_t gfp_mask, unsigned int order);
- extern struct page *alloc_kmem_pages_node(int nid, gfp_t gfp_mask,
-diff -puN mm/mempolicy.c~mm-mempolicy-merge-alloc_hugepage_vma-to-alloc_pages_vma mm/mempolicy.c
---- a/mm/mempolicy.c~mm-mempolicy-merge-alloc_hugepage_vma-to-alloc_pages_vma
-+++ a/mm/mempolicy.c
-@@ -1988,120 +1988,68 @@ static struct page *alloc_page_interleav
-  *	@order:Order of the GFP allocation.
-  * 	@vma:  Pointer to VMA or NULL if not available.
-  *	@addr: Virtual Address of the allocation. Must be inside the VMA.
-+ *	@node: Which node to prefer for allocation (modulo policy).
-+ *	@hugepage: for hugepages try only the preferred node if possible
-  *
-  * 	This function allocates a page from the kernel page pool and applies
-  *	a NUMA policy associated with the VMA or the current process.
-  *	When VMA is not NULL caller must hold down_read on the mmap_sem of the
-  *	mm_struct of the VMA to prevent it from going away. Should be used for
-- *	all allocations for pages that will be mapped into
-- * 	user space. Returns NULL when no page can be allocated.
-- *
-- *	Should be called with the mm_sem of the vma hold.
-+ *	all allocations for pages that will be mapped into user space. Returns
-+ *	NULL when no page can be allocated.
+ /**
+  * mm_walk - callbacks for walk_page_range
+- * @pgd_entry: if set, called for each non-empty PGD (top-level) entry
+- * @pud_entry: if set, called for each non-empty PUD (2nd-level) entry
+  * @pmd_entry: if set, called for each non-empty PMD (3rd-level) entry
+  *	       this handler is required to be able to handle
+  *	       pmd_trans_huge() pmds.  They may simply choose to
+@@ -1179,10 +1177,6 @@ void unmap_vmas(struct mmu_gather *tlb,
+  * (see walk_page_range for more details)
   */
- struct page *
- alloc_pages_vma(gfp_t gfp, int order, struct vm_area_struct *vma,
--		unsigned long addr, int node)
-+		unsigned long addr, int node, bool hugepage)
- {
- 	struct mempolicy *pol;
- 	struct page *page;
- 	unsigned int cpuset_mems_cookie;
-+	struct zonelist *zl;
-+	nodemask_t *nmask;
- 
- retry_cpuset:
- 	pol = get_vma_policy(vma, addr);
- 	cpuset_mems_cookie = read_mems_allowed_begin();
- 
--	if (unlikely(pol->mode == MPOL_INTERLEAVE)) {
-+	if (unlikely(IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) && hugepage &&
-+					pol->mode != MPOL_INTERLEAVE)) {
-+		/*
-+		 * For hugepage allocation and non-interleave policy which
-+		 * allows the current node, we only try to allocate from the
-+		 * current node and don't fall back to other nodes, as the
-+		 * cost of remote accesses would likely offset THP benefits.
-+		 *
-+		 * If the policy is interleave, or does not allow the current
-+		 * node in its nodemask, we allocate the standard way.
-+		 */
-+		nmask = policy_nodemask(gfp, pol);
-+		if (!nmask || node_isset(node, *nmask)) {
-+			mpol_cond_put(pol);
-+			page = alloc_pages_exact_node(node, gfp, order);
-+			goto out;
-+		}
-+	}
-+
-+	if (pol->mode == MPOL_INTERLEAVE) {
- 		unsigned nid;
- 
- 		nid = interleave_nid(pol, vma, addr, PAGE_SHIFT + order);
- 		mpol_cond_put(pol);
- 		page = alloc_page_interleave(gfp, order, nid);
--		if (unlikely(!page && read_mems_allowed_retry(cpuset_mems_cookie)))
--			goto retry_cpuset;
--
--		return page;
-+		goto out;
- 	}
--	page = __alloc_pages_nodemask(gfp, order,
--				      policy_zonelist(gfp, pol, node),
--				      policy_nodemask(gfp, pol));
-+
-+	nmask = policy_nodemask(gfp, pol);
-+	zl = policy_zonelist(gfp, pol, node);
- 	mpol_cond_put(pol);
-+	page = __alloc_pages_nodemask(gfp, order, zl, nmask);
-+out:
- 	if (unlikely(!page && read_mems_allowed_retry(cpuset_mems_cookie)))
- 		goto retry_cpuset;
- 	return page;
- }
- 
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
--/**
-- * alloc_hugepage_vma: Allocate a hugepage for a VMA
-- * @gfp:
-- *   %GFP_USER	  user allocation.
-- *   %GFP_KERNEL  kernel allocations,
-- *   %GFP_HIGHMEM highmem/user allocations,
-- *   %GFP_FS	  allocation should not call back into a file system.
-- *   %GFP_ATOMIC  don't sleep.
-- *
-- * @vma:   Pointer to VMA or NULL if not available.
-- * @addr:  Virtual Address of the allocation. Must be inside the VMA.
-- * @order: Order of the hugepage for gfp allocation.
-- *
-- * This functions allocate a huge page from the kernel page pool and applies
-- * a NUMA policy associated with the VMA or the current process.
-- * For policy other than %MPOL_INTERLEAVE, we make sure we allocate hugepage
-- * only from the current node if the current node is part of the node mask.
-- * If we can't allocate a hugepage we fail the allocation and don' try to fallback
-- * to other nodes in the node mask. If the current node is not part of node mask
-- * or if the NUMA policy is MPOL_INTERLEAVE we use the allocator that can
-- * fallback to nodes in the policy node mask.
-- *
-- * When VMA is not NULL caller must hold down_read on the mmap_sem of the
-- * mm_struct of the VMA to prevent it from going away. Should be used for
-- * all allocations for pages that will be mapped into
-- * user space. Returns NULL when no page can be allocated.
-- *
-- * Should be called with vma->vm_mm->mmap_sem held.
-- *
-- */
--struct page *alloc_hugepage_vma(gfp_t gfp, struct vm_area_struct *vma,
--				unsigned long addr, int order)
--{
--	struct page *page;
--	nodemask_t *nmask;
--	struct mempolicy *pol;
--	int node = numa_node_id();
--	unsigned int cpuset_mems_cookie;
--
--retry_cpuset:
--	pol = get_vma_policy(vma, addr);
--	cpuset_mems_cookie = read_mems_allowed_begin();
--	/*
--	 * For interleave policy, we don't worry about
--	 * current node. Otherwise if current node is
--	 * in nodemask, try to allocate hugepage from
--	 * the current node. Don't fall back to other nodes
--	 * for THP.
--	 */
--	if (unlikely(pol->mode == MPOL_INTERLEAVE))
--		goto alloc_with_fallback;
--	nmask = policy_nodemask(gfp, pol);
--	if (!nmask || node_isset(node, *nmask)) {
--		mpol_cond_put(pol);
--		page = alloc_pages_exact_node(node, gfp, order);
--		if (unlikely(!page &&
--			     read_mems_allowed_retry(cpuset_mems_cookie)))
--			goto retry_cpuset;
--		return page;
--	}
--alloc_with_fallback:
--	mpol_cond_put(pol);
--	/*
--	 * if current node is not part of node mask, try
--	 * the allocation from any node, and we can do retry
--	 * in that case.
--	 */
--	return alloc_pages_vma(gfp, order, vma, addr, node);
--}
--#endif
+ struct mm_walk {
+-	int (*pgd_entry)(pgd_t *pgd, unsigned long addr,
+-			 unsigned long next, struct mm_walk *walk);
+-	int (*pud_entry)(pud_t *pud, unsigned long addr,
+-	                 unsigned long next, struct mm_walk *walk);
+ 	int (*pmd_entry)(pmd_t *pmd, unsigned long addr,
+ 			 unsigned long next, struct mm_walk *walk);
+ 	int (*pte_entry)(pte_t *pte, unsigned long addr,
+diff -puN mm/pagewalk.c~mm-pagewalk-remove-pgd_entry-and-pud_entry mm/pagewalk.c
+--- a/mm/pagewalk.c~mm-pagewalk-remove-pgd_entry-and-pud_entry
++++ a/mm/pagewalk.c
+@@ -86,9 +86,7 @@ static int walk_pud_range(pgd_t *pgd, un
+ 				break;
+ 			continue;
+ 		}
+-		if (walk->pud_entry)
+-			err = walk->pud_entry(pud, addr, next, walk);
+-		if (!err && (walk->pmd_entry || walk->pte_entry))
++		if (walk->pmd_entry || walk->pte_entry)
+ 			err = walk_pmd_range(pud, addr, next, walk);
+ 		if (err)
+ 			break;
+@@ -237,10 +235,7 @@ int walk_page_range(unsigned long addr,
+ 			pgd++;
+ 			continue;
+ 		}
+-		if (walk->pgd_entry)
+-			err = walk->pgd_entry(pgd, addr, next, walk);
+-		if (!err &&
+-		    (walk->pud_entry || walk->pmd_entry || walk->pte_entry))
++		if (walk->pmd_entry || walk->pte_entry)
+ 			err = walk_pud_range(pgd, addr, next, walk);
+ 		if (err)
+ 			break;
+_
+
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+
+origin.patch
+mm-hwpoison-drop-lru_add_drain_all-in-__soft_offline_page.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+
