@@ -1,179 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-memcontrol-fold-move_anon-and-move_file.patch removed from -mm tree
-Date: Thu, 12 Feb 2015 11:36:57 -0800
-Message-ID: <54dd00d9.VJRHiCyP2sGTkMcf%akpm@linux-foundation.org>
+Subject: [merged] sysrq-convert-printk-to-pr_-equivalent.patch removed
+ from -mm tree
+Date: Thu, 12 Feb 2015 11:37:08 -0800
+Message-ID: <54dd00e4.Hy9kuJmDbjC3i5tD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58151 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58186 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752224AbbBLTg6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 14:36:58 -0500
+	with ESMTP id S1751948AbbBLThJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 14:37:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, gthelen@google.com, mhocko@suse.cz, vdavydov@parallels.com, mm-commits@vger.kernel.org
+To: mhocko@suse.cz, hannes@cmpxchg.org, oleg@redhat.com, rientjes@google.com, rjw@rjwysocki.net, tj@kernel.org, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: fold move_anon() and move_file()
+     Subject: sysrq: convert printk to pr_* equivalent
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-fold-move_anon-and-move_file.patch
+     sysrq-convert-printk-to-pr_-equivalent.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: fold move_anon() and move_file()
+From: Michal Hocko <mhocko@suse.cz>
+Subject: sysrq: convert printk to pr_* equivalent
 
-Turn the move type enum into flags and give the flags field a shorter
-name.  Once that is done, move_anon() and move_file() are simple enough to
-just fold them into the callsites.
+While touching this area let's convert printk to pr_*.  This also makes
+the printing of continuation lines done properly.
 
-[akpm@linux-foundation.org: tweak MOVE_MASK definition, per Michal]
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Reviewed-by: Vladimir Davydov <vdavydov@parallels.com>
-Cc: Greg Thelen <gthelen@google.com>
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: Tejun Heo <tj@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Cong Wang <xiyou.wangcong@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   49 ++++++++++++++++------------------------------
- 1 file changed, 18 insertions(+), 31 deletions(-)
+ drivers/tty/sysrq.c |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-fold-move_anon-and-move_file mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-fold-move_anon-and-move_file
-+++ a/mm/memcontrol.c
-@@ -369,21 +369,18 @@ static bool memcg_kmem_is_active(struct
+diff -puN drivers/tty/sysrq.c~sysrq-convert-printk-to-pr_-equivalent drivers/tty/sysrq.c
+--- a/drivers/tty/sysrq.c~sysrq-convert-printk-to-pr_-equivalent
++++ a/drivers/tty/sysrq.c
+@@ -90,7 +90,7 @@ static void sysrq_handle_loglevel(int ke
  
- /* Stuffs for move charges at task migration. */
- /*
-- * Types of charges to be moved. "move_charge_at_immitgrate" and
-- * "immigrate_flags" are treated as a left-shifted bitmap of these types.
-+ * Types of charges to be moved.
-  */
--enum move_type {
--	MOVE_CHARGE_TYPE_ANON,	/* private anonymous page and swap of it */
--	MOVE_CHARGE_TYPE_FILE,	/* file page(including tmpfs) and swap of it */
--	NR_MOVE_TYPE,
--};
-+#define MOVE_ANON	0x1U
-+#define MOVE_FILE	0x2U
-+#define MOVE_MASK	(MOVE_ANON | MOVE_FILE)
+ 	i = key - '0';
+ 	console_loglevel = CONSOLE_LOGLEVEL_DEFAULT;
+-	printk("Loglevel set to %d\n", i);
++	pr_info("Loglevel set to %d\n", i);
+ 	console_loglevel = i;
+ }
+ static struct sysrq_key_op sysrq_loglevel_op = {
+@@ -220,7 +220,7 @@ static void showacpu(void *dummy)
+ 		return;
  
- /* "mc" and its members are protected by cgroup_mutex */
- static struct move_charge_struct {
- 	spinlock_t	  lock; /* for from, to */
- 	struct mem_cgroup *from;
- 	struct mem_cgroup *to;
--	unsigned long immigrate_flags;
-+	unsigned long flags;
- 	unsigned long precharge;
- 	unsigned long moved_charge;
- 	unsigned long moved_swap;
-@@ -394,16 +391,6 @@ static struct move_charge_struct {
- 	.waitq = __WAIT_QUEUE_HEAD_INITIALIZER(mc.waitq),
- };
+ 	spin_lock_irqsave(&show_lock, flags);
+-	printk(KERN_INFO "CPU%d:\n", smp_processor_id());
++	pr_info("CPU%d:\n", smp_processor_id());
+ 	show_stack(NULL, NULL);
+ 	spin_unlock_irqrestore(&show_lock, flags);
+ }
+@@ -243,7 +243,7 @@ static void sysrq_handle_showallcpus(int
+ 		struct pt_regs *regs = get_irq_regs();
  
--static bool move_anon(void)
--{
--	return test_bit(MOVE_CHARGE_TYPE_ANON, &mc.immigrate_flags);
--}
--
--static bool move_file(void)
--{
--	return test_bit(MOVE_CHARGE_TYPE_FILE, &mc.immigrate_flags);
--}
--
- /*
-  * Maximum loops in mem_cgroup_hierarchical_reclaim(), used for soft
-  * limit reclaim to prevent infinite loops, if they ever occur.
-@@ -3500,7 +3487,7 @@ static int mem_cgroup_move_charge_write(
- {
- 	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
- 
--	if (val >= (1 << NR_MOVE_TYPE))
-+	if (val & ~MOVE_MASK)
- 		return -EINVAL;
- 
- 	/*
-@@ -4773,12 +4760,12 @@ static struct page *mc_handle_present_pt
- 	if (!page || !page_mapped(page))
- 		return NULL;
- 	if (PageAnon(page)) {
--		/* we don't move shared anon */
--		if (!move_anon())
-+		if (!(mc.flags & MOVE_ANON))
- 			return NULL;
--	} else if (!move_file())
--		/* we ignore mapcount for file pages */
--		return NULL;
-+	} else {
-+		if (!(mc.flags & MOVE_FILE))
-+			return NULL;
-+	}
- 	if (!get_page_unless_zero(page))
- 		return NULL;
- 
-@@ -4792,7 +4779,7 @@ static struct page *mc_handle_swap_pte(s
- 	struct page *page = NULL;
- 	swp_entry_t ent = pte_to_swp_entry(ptent);
- 
--	if (!move_anon() || non_swap_entry(ent))
-+	if (!(mc.flags & MOVE_ANON) || non_swap_entry(ent))
- 		return NULL;
- 	/*
- 	 * Because lookup_swap_cache() updates some statistics counter,
-@@ -4821,7 +4808,7 @@ static struct page *mc_handle_file_pte(s
- 
- 	if (!vma->vm_file) /* anonymous vma */
- 		return NULL;
--	if (!move_file())
-+	if (!(mc.flags & MOVE_FILE))
- 		return NULL;
- 
- 	mapping = vma->vm_file->f_mapping;
-@@ -4900,7 +4887,7 @@ static enum mc_target_type get_mctgt_typ
- 
- 	page = pmd_page(pmd);
- 	VM_BUG_ON_PAGE(!page || !PageHead(page), page);
--	if (!move_anon())
-+	if (!(mc.flags & MOVE_ANON))
- 		return ret;
- 	if (page->mem_cgroup == mc.from) {
- 		ret = MC_TARGET_PAGE;
-@@ -5042,15 +5029,15 @@ static int mem_cgroup_can_attach(struct
- 	struct task_struct *p = cgroup_taskset_first(tset);
- 	int ret = 0;
- 	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
--	unsigned long move_charge_at_immigrate;
-+	unsigned long move_flags;
- 
- 	/*
- 	 * We are now commited to this value whatever it is. Changes in this
- 	 * tunable will only affect upcoming migrations, not the current one.
- 	 * So we need to save it, and keep it going.
+ 		if (regs) {
+-			printk(KERN_INFO "CPU%d:\n", smp_processor_id());
++			pr_info("CPU%d:\n", smp_processor_id());
+ 			show_regs(regs);
+ 		}
+ 		schedule_work(&sysrq_showallcpus);
+@@ -522,7 +522,7 @@ void __handle_sysrq(int key, bool check_
  	 */
--	move_charge_at_immigrate  = memcg->move_charge_at_immigrate;
--	if (move_charge_at_immigrate) {
-+	move_flags = ACCESS_ONCE(memcg->move_charge_at_immigrate);
-+	if (move_flags) {
- 		struct mm_struct *mm;
- 		struct mem_cgroup *from = mem_cgroup_from_task(p);
+ 	orig_log_level = console_loglevel;
+ 	console_loglevel = CONSOLE_LOGLEVEL_DEFAULT;
+-	printk(KERN_INFO "SysRq : ");
++	pr_info("SysRq : ");
  
-@@ -5070,7 +5057,7 @@ static int mem_cgroup_can_attach(struct
- 			spin_lock(&mc.lock);
- 			mc.from = from;
- 			mc.to = memcg;
--			mc.immigrate_flags = move_charge_at_immigrate;
-+			mc.flags = move_flags;
- 			spin_unlock(&mc.lock);
- 			/* We set mc.moving_task later */
- 
+         op_p = __sysrq_get_key_op(key);
+         if (op_p) {
+@@ -531,14 +531,14 @@ void __handle_sysrq(int key, bool check_
+ 		 * should not) and is the invoked operation enabled?
+ 		 */
+ 		if (!check_mask || sysrq_on_mask(op_p->enable_mask)) {
+-			printk("%s\n", op_p->action_msg);
++			pr_cont("%s\n", op_p->action_msg);
+ 			console_loglevel = orig_log_level;
+ 			op_p->handler(key);
+ 		} else {
+-			printk("This sysrq operation is disabled.\n");
++			pr_cont("This sysrq operation is disabled.\n");
+ 		}
+ 	} else {
+-		printk("HELP : ");
++		pr_cont("HELP : ");
+ 		/* Only print the help msg once per handler */
+ 		for (i = 0; i < ARRAY_SIZE(sysrq_key_table); i++) {
+ 			if (sysrq_key_table[i]) {
+@@ -549,10 +549,10 @@ void __handle_sysrq(int key, bool check_
+ 					;
+ 				if (j != i)
+ 					continue;
+-				printk("%s ", sysrq_key_table[i]->help_msg);
++				pr_cont("%s ", sysrq_key_table[i]->help_msg);
+ 			}
+ 		}
+-		printk("\n");
++		pr_cont("\n");
+ 		console_loglevel = orig_log_level;
+ 	}
+ 	rcu_read_unlock();
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
 origin.patch
 list_lru-introduce-list_lru_shrink_countwalk.patch
@@ -196,7 +139,8 @@ memcg-free-memcg_caches-slot-on-css-offline.patch
 list_lru-add-helpers-to-isolate-items.patch
 memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline.patch
 memcg-cleanup-static-keys-decrement.patch
-documentation-proc-add-proc-pid-numa_maps-interface-explanation-snippet.patch
-fs-proc-task_mmu-show-page-size-in-proc-pid-numa_maps.patch
-fs-proc-task_mmu-show-page-size-in-proc-pid-numa_maps-fix.patch
+mm-page_isolation-check-pfn-validity-before-access.patch
+mm-support-madvisemadv_free.patch
+mm-dont-split-thp-page-when-syscall-is-called.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-2.patch
 
