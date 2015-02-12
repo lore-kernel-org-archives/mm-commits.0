@@ -1,157 +1,262 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-page_allocc-drop-dead-destroy_compound_page.patch
- removed from -mm tree
-Date: Thu, 12 Feb 2015 11:36:44 -0800
-Message-ID: <54dd00cc.yVRRxhL16u4meQ1s%akpm@linux-foundation.org>
+Subject: [merged] mm-reduce-try_to_compact_pages-parameters.patch removed
+ from -mm tree
+Date: Thu, 12 Feb 2015 11:36:38 -0800
+Message-ID: <54dd00c6.uV29yOPSWVZ/Y2L/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58123 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58105 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751468AbbBLTgp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 14:36:45 -0500
+	with ESMTP id S1752168AbbBLTgj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 14:36:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, aneesh.kumar@linux.vnet.ibm.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, mgorman@suse.de, mhocko@suse.cz, minchan@kernel.org, riel@redhat.com, rientjes@google.com, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc.c: drop dead destroy_compound_page()
+     Subject: mm: reduce try_to_compact_pages parameters
 has been removed from the -mm tree.  Its filename was
-     mm-page_allocc-drop-dead-destroy_compound_page.patch
+     mm-reduce-try_to_compact_pages-parameters.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm/page_alloc.c: drop dead destroy_compound_page()
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm: reduce try_to_compact_pages parameters
 
-The only caller is __free_one_page(). By the time we should have
-page->flags to be cleared already:
+Expand the usage of the struct alloc_context introduced in the previous
+patch also for calling try_to_compact_pages(), to reduce the number of its
+parameters.  Since the function is in different compilation unit, we need
+to move alloc_context definition in the shared mm/internal.h header.
 
- - for 0-order pages though PCP list:
-	free_hot_cold_page()
-		free_pages_prepare()
-			free_pages_check()
-				page->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
-		<put the page to PCP list>
+With this change we get simpler code and small savings of code size and stack
+usage:
 
-	free_pcppages_bulk()
-		page = <withdraw pages from PCP list>
-		__free_one_page(page)
+add/remove: 0/0 grow/shrink: 0/1 up/down: 0/-27 (-27)
+function                                     old     new   delta
+__alloc_pages_direct_compact                 283     256     -27
+add/remove: 0/0 grow/shrink: 0/1 up/down: 0/-13 (-13)
+function                                     old     new   delta
+try_to_compact_pages                         582     569     -13
 
- - for non-0-order pages:
-	__free_pages_ok()
-		free_pages_prepare()
-			free_pages_check()
-				page->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
-		free_one_page()
-			__free_one_page()
+Stack usage of __alloc_pages_direct_compact goes from 24 to none (per
+scripts/checkstack.pl).
 
-So there's no way PageCompound() will return true in __free_one_page().
-Let's remove dead destroy_compound_page() and put assert for page->flags
-there instead.
-
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   35 +----------------------------------
- 1 file changed, 1 insertion(+), 34 deletions(-)
+ include/linux/compaction.h |   17 +++++++++--------
+ mm/compaction.c            |   23 +++++++++++------------
+ mm/internal.h              |   22 ++++++++++++++++++++++
+ mm/page_alloc.c            |   27 ++-------------------------
+ 4 files changed, 44 insertions(+), 45 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_allocc-drop-dead-destroy_compound_page mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_allocc-drop-dead-destroy_compound_page
-+++ a/mm/page_alloc.c
-@@ -381,36 +381,6 @@ void prep_compound_page(struct page *pag
- 	}
+diff -puN include/linux/compaction.h~mm-reduce-try_to_compact_pages-parameters include/linux/compaction.h
+--- a/include/linux/compaction.h~mm-reduce-try_to_compact_pages-parameters
++++ a/include/linux/compaction.h
+@@ -21,6 +21,8 @@
+ /* Zone lock or lru_lock was contended in async compaction */
+ #define COMPACT_CONTENDED_LOCK	2
+ 
++struct alloc_context; /* in mm/internal.h */
++
+ #ifdef CONFIG_COMPACTION
+ extern int sysctl_compact_memory;
+ extern int sysctl_compaction_handler(struct ctl_table *table, int write,
+@@ -30,10 +32,9 @@ extern int sysctl_extfrag_handler(struct
+ 			void __user *buffer, size_t *length, loff_t *ppos);
+ 
+ extern int fragmentation_index(struct zone *zone, unsigned int order);
+-extern unsigned long try_to_compact_pages(struct zonelist *zonelist,
+-			int order, gfp_t gfp_mask, nodemask_t *mask,
+-			enum migrate_mode mode, int *contended,
+-			int alloc_flags, int classzone_idx);
++extern unsigned long try_to_compact_pages(gfp_t gfp_mask, unsigned int order,
++			int alloc_flags, const struct alloc_context *ac,
++			enum migrate_mode mode, int *contended);
+ extern void compact_pgdat(pg_data_t *pgdat, int order);
+ extern void reset_isolation_suitable(pg_data_t *pgdat);
+ extern unsigned long compaction_suitable(struct zone *zone, int order,
+@@ -101,10 +102,10 @@ static inline bool compaction_restarting
  }
  
--/* update __split_huge_page_refcount if you change this function */
--static int destroy_compound_page(struct page *page, unsigned long order)
--{
--	int i;
--	int nr_pages = 1 << order;
--	int bad = 0;
--
--	if (unlikely(compound_order(page) != order)) {
--		bad_page(page, "wrong compound order", 0);
--		bad++;
--	}
--
--	__ClearPageHead(page);
--
--	for (i = 1; i < nr_pages; i++) {
--		struct page *p = page + i;
--
--		if (unlikely(!PageTail(p))) {
--			bad_page(page, "PageTail not set", 0);
--			bad++;
--		} else if (unlikely(p->first_page != page)) {
--			bad_page(page, "first_page not consistent", 0);
--			bad++;
--		}
--		__ClearPageTail(p);
--	}
--
--	return bad;
--}
--
- static inline void prep_zero_page(struct page *page, unsigned int order,
- 							gfp_t gfp_flags)
+ #else
+-static inline unsigned long try_to_compact_pages(struct zonelist *zonelist,
+-			int order, gfp_t gfp_mask, nodemask_t *nodemask,
+-			enum migrate_mode mode, int *contended,
+-			int alloc_flags, int classzone_idx)
++static inline unsigned long try_to_compact_pages(gfp_t gfp_mask,
++			unsigned int order, int alloc_flags,
++			const struct alloc_context *ac,
++			enum migrate_mode mode, int *contended)
  {
-@@ -613,10 +583,7 @@ static inline void __free_one_page(struc
- 	int max_order = MAX_ORDER;
+ 	return COMPACT_CONTINUE;
+ }
+diff -puN mm/compaction.c~mm-reduce-try_to_compact_pages-parameters mm/compaction.c
+--- a/mm/compaction.c~mm-reduce-try_to_compact_pages-parameters
++++ a/mm/compaction.c
+@@ -1335,22 +1335,20 @@ int sysctl_extfrag_threshold = 500;
  
- 	VM_BUG_ON(!zone_is_initialized(zone));
+ /**
+  * try_to_compact_pages - Direct compact to satisfy a high-order allocation
+- * @zonelist: The zonelist used for the current allocation
+- * @order: The order of the current allocation
+  * @gfp_mask: The GFP mask of the current allocation
+- * @nodemask: The allowed nodes to allocate from
++ * @order: The order of the current allocation
++ * @alloc_flags: The allocation flags of the current allocation
++ * @ac: The context of current allocation
+  * @mode: The migration mode for async, sync light, or sync migration
+  * @contended: Return value that determines if compaction was aborted due to
+  *	       need_resched() or lock contention
+  *
+  * This is the main entry point for direct page compaction.
+  */
+-unsigned long try_to_compact_pages(struct zonelist *zonelist,
+-			int order, gfp_t gfp_mask, nodemask_t *nodemask,
+-			enum migrate_mode mode, int *contended,
+-			int alloc_flags, int classzone_idx)
++unsigned long try_to_compact_pages(gfp_t gfp_mask, unsigned int order,
++			int alloc_flags, const struct alloc_context *ac,
++			enum migrate_mode mode, int *contended)
+ {
+-	enum zone_type high_zoneidx = gfp_zone(gfp_mask);
+ 	int may_enter_fs = gfp_mask & __GFP_FS;
+ 	int may_perform_io = gfp_mask & __GFP_IO;
+ 	struct zoneref *z;
+@@ -1365,8 +1363,8 @@ unsigned long try_to_compact_pages(struc
+ 		return COMPACT_SKIPPED;
+ 
+ 	/* Compact each zone in the list */
+-	for_each_zone_zonelist_nodemask(zone, z, zonelist, high_zoneidx,
+-								nodemask) {
++	for_each_zone_zonelist_nodemask(zone, z, ac->zonelist, ac->high_zoneidx,
++								ac->nodemask) {
+ 		int status;
+ 		int zone_contended;
+ 
+@@ -1374,7 +1372,8 @@ unsigned long try_to_compact_pages(struc
+ 			continue;
+ 
+ 		status = compact_zone_order(zone, order, gfp_mask, mode,
+-				&zone_contended, alloc_flags, classzone_idx);
++				&zone_contended, alloc_flags,
++				ac->classzone_idx);
+ 		rc = max(status, rc);
+ 		/*
+ 		 * It takes at least one zone that wasn't lock contended
+@@ -1384,7 +1383,7 @@ unsigned long try_to_compact_pages(struc
+ 
+ 		/* If a normal allocation would succeed, stop compacting */
+ 		if (zone_watermark_ok(zone, order, low_wmark_pages(zone),
+-					classzone_idx, alloc_flags)) {
++					ac->classzone_idx, alloc_flags)) {
+ 			/*
+ 			 * We think the allocation will succeed in this zone,
+ 			 * but it is not certain, hence the false. The caller
+diff -puN mm/internal.h~mm-reduce-try_to_compact_pages-parameters mm/internal.h
+--- a/mm/internal.h~mm-reduce-try_to_compact_pages-parameters
++++ a/mm/internal.h
+@@ -110,6 +110,28 @@ extern pmd_t *mm_find_pmd(struct mm_stru
+  */
+ 
+ /*
++ * Structure for holding the mostly immutable allocation parameters passed
++ * between functions involved in allocations, including the alloc_pages*
++ * family of functions.
++ *
++ * nodemask, migratetype and high_zoneidx are initialized only once in
++ * __alloc_pages_nodemask() and then never change.
++ *
++ * zonelist, preferred_zone and classzone_idx are set first in
++ * __alloc_pages_nodemask() for the fast path, and might be later changed
++ * in __alloc_pages_slowpath(). All other functions pass the whole strucure
++ * by a const pointer.
++ */
++struct alloc_context {
++	struct zonelist *zonelist;
++	nodemask_t *nodemask;
++	struct zone *preferred_zone;
++	int classzone_idx;
++	int migratetype;
++	enum zone_type high_zoneidx;
++};
++
++/*
+  * Locate the struct page for both the matching buddy in our
+  * pair (buddy1) and the combined O(n+1) page they form (page).
+  *
+diff -puN mm/page_alloc.c~mm-reduce-try_to_compact_pages-parameters mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-reduce-try_to_compact_pages-parameters
++++ a/mm/page_alloc.c
+@@ -232,27 +232,6 @@ EXPORT_SYMBOL(nr_node_ids);
+ EXPORT_SYMBOL(nr_online_nodes);
+ #endif
+ 
+-/*
+- * Structure for holding the mostly immutable allocation parameters passed
+- * between alloc_pages* family of functions.
+- *
+- * nodemask, migratetype and high_zoneidx are initialized only once in
+- * __alloc_pages_nodemask() and then never change.
+- *
+- * zonelist, preferred_zone and classzone_idx are set first in
+- * __alloc_pages_nodemask() for the fast path, and might be later changed
+- * in __alloc_pages_slowpath(). All other functions pass the whole strucure
+- * by a const pointer.
+- */
+-struct alloc_context {
+-	struct zonelist *zonelist;
+-	nodemask_t *nodemask;
+-	struct zone *preferred_zone;
+-	int classzone_idx;
+-	int migratetype;
+-	enum zone_type high_zoneidx;
+-};
 -
--	if (unlikely(PageCompound(page)))
--		if (unlikely(destroy_compound_page(page, order)))
--			return;
-+	VM_BUG_ON_PAGE(page->flags & PAGE_FLAGS_CHECK_AT_PREP, page);
+ int page_group_by_mobility_disabled __read_mostly;
  
- 	VM_BUG_ON(migratetype == -1);
- 	if (is_migrate_isolate(migratetype)) {
+ void set_pageblock_migratetype(struct page *page, int migratetype)
+@@ -2429,10 +2408,8 @@ __alloc_pages_direct_compact(gfp_t gfp_m
+ 		return NULL;
+ 
+ 	current->flags |= PF_MEMALLOC;
+-	compact_result = try_to_compact_pages(ac->zonelist, order, gfp_mask,
+-						ac->nodemask, mode,
+-						contended_compaction,
+-						alloc_flags, ac->classzone_idx);
++	compact_result = try_to_compact_pages(gfp_mask, order, alloc_flags, ac,
++						mode, contended_compaction);
+ 	current->flags &= ~PF_MEMALLOC;
+ 
+ 	switch (compact_result) {
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
 origin.patch
-mm-numa-do-not-dereference-pmd-outside-of-the-lock-during-numa-hinting-fault.patch
-mm-add-p-protnone-helpers-for-use-by-numa-balancing.patch
-mm-convert-p_numa-users-to-p_protnone_numa.patch
-ppc64-add-paranoid-warnings-for-unexpected-dsisr_protfault.patch
-mm-convert-p_mknonnuma-and-remaining-page-table-manipulations.patch
-mm-remove-remaining-references-to-numa-hinting-bits-and-helpers.patch
-mm-numa-do-not-trap-faults-on-the-huge-zero-page.patch
-x86-mm-restore-original-pte_special-check.patch
-mm-numa-add-paranoid-check-around-pte_protnone_numa.patch
-mm-numa-avoid-unnecessary-tlb-flushes-when-setting-numa-hinting-entries.patch
-mm-do-not-use-mm-nr_pmds-on-mmu-configurations.patch
-mm-fix-xip-fault-vs-truncate-race.patch
-mm-fix-xip-fault-vs-truncate-race-fix.patch
-mm-allow-page-fault-handlers-to-perform-the-cow.patch
-mm-allow-page-fault-handlers-to-perform-the-cow-fix.patch
-vfsext2-introduce-is_daxinode.patch
-daxext2-replace-xip-read-and-write-with-dax-i-o.patch
-daxext2-replace-ext2_clear_xip_target-with-dax_clear_blocks.patch
-daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler.patch
-daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix.patch
-daxext2-replace-xip_truncate_page-with-dax_truncate_page.patch
-dax-replace-xip-documentation-with-dax-documentation.patch
-vfs-remove-get_xip_mem.patch
-ext2-remove-ext2_xip_verify_sb.patch
-ext2-remove-ext2_use_xip.patch
-ext2-remove-xipc-and-xiph.patch
-vfsext2-remove-config_ext2_fs_xip-and-rename-config_fs_xip-to-config_fs_dax.patch
-ext2-remove-ext2_aops_xip.patch
-ext2-get-rid-of-most-mentions-of-xip-in-ext2.patch
-dax-add-dax_zero_page_range.patch
-dax-add-dax_zero_page_range-fix.patch
-ext4-add-dax-functionality.patch
-brd-rename-xip-to-dax.patch
-powerpc-drop-_page_file-and-pte_file-related-helpers.patch
+mm-compaction-fix-wrong-order-check-in-compact_finished.patch
+mm-compaction-stop-the-isolation-when-we-isolate-enough-freepage.patch
+mm-internalh-dont-split-printk-call-in-two.patch
+mm-page_allocc-pull-out-init-code-from-build_all_zonelists.patch
+mm-mm_initc-mark-mminit_verify_zonelist-as-__init.patch
+mm-mm_initc-mark-mminit_loglevel-__meminitdata.patch
+kernel-cpusetc-mark-cpuset_init_current_mems_allowed-as-__init.patch
+mm-fix-negative-nr_isolated-counts.patch
+zram-fix-umount-reset_store-mount-race-condition.patch
 
