@@ -1,122 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-page_ext-remove-unnecessary-stack_trace-field.patch
+Subject: [merged] mm-fix-arithmetic-overflow-in-__vm_enough_memory.patch
  removed from -mm tree
-Date: Thu, 12 Feb 2015 11:39:05 -0800
-Message-ID: <54dd0159.0b1XMD0xbDfkkYgg%akpm@linux-foundation.org>
+Date: Thu, 12 Feb 2015 11:39:09 -0800
+Message-ID: <54dd015d.HMHGcqXA6lZYylvj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58567 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58574 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751092AbbBLTjG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 14:39:06 -0500
+	with ESMTP id S1751092AbbBLTjK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 14:39:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rogachevsergei@gmail.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org
+To: klamm@yandex-team.ru, agshew@gmail.com, khlebnikov@yandex-team.ru, mhocko@suse.cz, riel@redhat.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_owner.c: remove unnecessary stack_trace field
+     Subject: mm/mmap.c: fix arithmetic overflow in __vm_enough_memory()
 has been removed from the -mm tree.  Its filename was
-     mm-page_ext-remove-unnecessary-stack_trace-field.patch
+     mm-fix-arithmetic-overflow-in-__vm_enough_memory.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sergei Rogachev <rogachevsergei@gmail.com>
-Subject: mm/page_owner.c: remove unnecessary stack_trace field
+From: Roman Gushchin <klamm@yandex-team.ru>
+Subject: mm/mmap.c: fix arithmetic overflow in __vm_enough_memory()
 
-Page owner uses the page_ext structure to keep meta-information for every
-page in the system.  The structure also contains a field of type 'struct
-stack_trace', page owner uses this field during invocation of the function
-save_stack_trace.  It is easy to notice that keeping a copy of this
-structure for every page in the system is very inefficiently in terms of
-memory.
+I noticed, that "allowed" can easily overflow by falling below 0, because
+(total_vm / 32) can be larger than "allowed".  The problem occurs in
+OVERCOMMIT_NONE mode.
 
-The patch removes this unnecessary field of page_ext and forces page owner
-to use a stack_trace structure allocated on the stack.
+In this case, a huge allocation can success and overcommit the system
+(despite OVERCOMMIT_NONE mode).  All subsequent allocations will fall
+(system-wide), so system become unusable.
 
-[akpm@linux-foundation.org: use struct initializers]
-Signed-off-by: Sergei Rogachev <rogachevsergei@gmail.com>
-Acked-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+The problem was masked out by commit c9b1d0981fcc
+("mm: limit growth of 3% hardcoded other user reserve"),
+but it's easy to reproduce it on older kernels:
+1) set overcommit_memory sysctl to 2
+2) mmap() large file multiple times (with VM_SHARED flag)
+3) try to malloc() large amount of memory
+
+It also can be reproduced on newer kernels, but miss-configured
+sysctl_user_reserve_kbytes is required.
+
+Fix this issue by switching to signed arithmetic here.
+
+[akpm@linux-foundation.org: use min_t]
+Signed-off-by: Roman Gushchin <klamm@yandex-team.ru>
+Cc: Andrew Shewmaker <agshew@gmail.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Reviewed-by: Michal Hocko <mhocko@suse.cz>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page_ext.h |    2 +-
- mm/page_owner.c          |   26 ++++++++++++++------------
- 2 files changed, 15 insertions(+), 13 deletions(-)
+ mm/mmap.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/page_ext.h~mm-page_ext-remove-unnecessary-stack_trace-field include/linux/page_ext.h
---- a/include/linux/page_ext.h~mm-page_ext-remove-unnecessary-stack_trace-field
-+++ a/include/linux/page_ext.h
-@@ -40,7 +40,7 @@ struct page_ext {
- #ifdef CONFIG_PAGE_OWNER
- 	unsigned int order;
- 	gfp_t gfp_mask;
--	struct stack_trace trace;
-+	unsigned int nr_entries;
- 	unsigned long trace_entries[8];
- #endif
- };
-diff -puN mm/page_owner.c~mm-page_ext-remove-unnecessary-stack_trace-field mm/page_owner.c
---- a/mm/page_owner.c~mm-page_ext-remove-unnecessary-stack_trace-field
-+++ a/mm/page_owner.c
-@@ -59,20 +59,19 @@ void __reset_page_owner(struct page *pag
- 
- void __set_page_owner(struct page *page, unsigned int order, gfp_t gfp_mask)
+diff -puN mm/mmap.c~mm-fix-arithmetic-overflow-in-__vm_enough_memory mm/mmap.c
+--- a/mm/mmap.c~mm-fix-arithmetic-overflow-in-__vm_enough_memory
++++ a/mm/mmap.c
+@@ -152,7 +152,7 @@ EXPORT_SYMBOL_GPL(vm_memory_committed);
+  */
+ int __vm_enough_memory(struct mm_struct *mm, long pages, int cap_sys_admin)
  {
--	struct page_ext *page_ext;
--	struct stack_trace *trace;
-+	struct page_ext *page_ext = lookup_page_ext(page);
-+	struct stack_trace trace = {
-+		.nr_entries = 0,
-+		.max_entries = ARRAY_SIZE(page_ext->trace_entries),
-+		.entries = &page_ext->trace_entries[0],
-+		.skip = 3,
-+	};
+-	unsigned long free, allowed, reserve;
++	long free, allowed, reserve;
  
--	page_ext = lookup_page_ext(page);
--
--	trace = &page_ext->trace;
--	trace->nr_entries = 0;
--	trace->max_entries = ARRAY_SIZE(page_ext->trace_entries);
--	trace->entries = &page_ext->trace_entries[0];
--	trace->skip = 3;
--	save_stack_trace(&page_ext->trace);
-+	save_stack_trace(&trace);
+ 	VM_WARN_ONCE(percpu_counter_read(&vm_committed_as) <
+ 			-(s64)vm_committed_as_batch * num_online_cpus(),
+@@ -220,7 +220,7 @@ int __vm_enough_memory(struct mm_struct
+ 	 */
+ 	if (mm) {
+ 		reserve = sysctl_user_reserve_kbytes >> (PAGE_SHIFT - 10);
+-		allowed -= min(mm->total_vm / 32, reserve);
++		allowed -= min_t(long, mm->total_vm / 32, reserve);
+ 	}
  
- 	page_ext->order = order;
- 	page_ext->gfp_mask = gfp_mask;
-+	page_ext->nr_entries = trace.nr_entries;
- 
- 	__set_bit(PAGE_EXT_OWNER, &page_ext->flags);
- }
-@@ -84,6 +83,10 @@ print_page_owner(char __user *buf, size_
- 	int ret;
- 	int pageblock_mt, page_mt;
- 	char *kbuf;
-+	struct stack_trace trace = {
-+		.nr_entries = page_ext->nr_entries,
-+		.entries = &page_ext->trace_entries[0],
-+	};
- 
- 	kbuf = kmalloc(count, GFP_KERNEL);
- 	if (!kbuf)
-@@ -121,8 +124,7 @@ print_page_owner(char __user *buf, size_
- 	if (ret >= count)
- 		goto err;
- 
--	ret += snprint_stack_trace(kbuf + ret, count - ret,
--					&page_ext->trace, 0);
-+	ret += snprint_stack_trace(kbuf + ret, count - ret, &trace, 0);
- 	if (ret >= count)
- 		goto err;
- 
+ 	if (percpu_counter_read_positive(&vm_committed_as) < allowed)
 _
 
-Patches currently in -mm which might be from rogachevsergei@gmail.com are
+Patches currently in -mm which might be from klamm@yandex-team.ru are
 
 origin.patch
 
