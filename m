@@ -1,105 +1,147 @@
 From: akpm@linux-foundation.org
-Subject: [merged] proc-pagemap-walk-page-tables-under-pte-lock.patch
+Subject: [merged] memcg-cleanup-preparation-for-page-table-walk.patch
  removed from -mm tree
-Date: Thu, 12 Feb 2015 11:38:04 -0800
-Message-ID: <54dd011c.CDzoe2pt+jlGAlzA%akpm__36393.1613079787$1423769908$gmane$org@linux-foundation.org>
+Date: Thu, 12 Feb 2015 11:38:31 -0800
+Message-ID: <54dd0137.J4oy4/9+62979BF6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58389 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58463 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752359AbbBLTiF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 14:38:05 -0500
+	with ESMTP id S1751744AbbBLTic (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 14:38:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khlebnikov@yandex-team.ru, a.ryabinin@samsung.com, gorcunov@openvz.org, kirill.shutemov@linux.intel.com, n-horiguchi@ah.jp.nec.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, aarcange@redhat.com, benh@kernel.crashing.org, dave.hansen@intel.com, gorcunov@openvz.org, hannes@cmpxchg.org, kirill.shutemov@linux.intel.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc/pagemap: walk page tables under pte lock
+     Subject: memcg: cleanup preparation for page table walk
 has been removed from the -mm tree.  Its filename was
-     proc-pagemap-walk-page-tables-under-pte-lock.patch
+     memcg-cleanup-preparation-for-page-table-walk.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Subject: proc/pagemap: walk page tables under pte lock
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: memcg: cleanup preparation for page table walk
 
-Lockless access to pte in pagemap_pte_range() might race with page
-migration and trigger BUG_ON(!PageLocked()) in migration_entry_to_page():
+pagewalk.c can handle vma in itself, so we don't have to pass vma via
+walk->private.  And both of mem_cgroup_count_precharge() and
+mem_cgroup_move_charge() do for each vma loop themselves, but now it's
+done in pagewalk.c, so let's clean up them.
 
-CPU A (pagemap)                           CPU B (migration)
-                                          lock_page()
-                                          try_to_unmap(page, TTU_MIGRATION...)
-                                               make_migration_entry()
-                                               set_pte_at()
-<read *pte>
-pte_to_pagemap_entry()
-                                          remove_migration_ptes()
-                                          unlock_page()
-    if(is_migration_entry())
-        migration_entry_to_page()
-            BUG_ON(!PageLocked(page))
-
-Also lockless read might be non-atomic if pte is larger than wordsize.
-Other pte walkers (smaps, numa_maps, clear_refs) already lock ptes.
-
-Fixes: 052fb0d635df ("proc: report file/anon bit in /proc/pid/pagemap")
-Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Reported-by: Andrey Ryabinin <a.ryabinin@samsung.com>
-Reviewed-by: Cyrill Gorcunov <gorcunov@openvz.org>
-Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: <stable@vger.kernel.org>	[3.5+]
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ mm/memcontrol.c |   49 +++++++++++++++-------------------------------
+ 1 file changed, 16 insertions(+), 33 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~proc-pagemap-walk-page-tables-under-pte-lock fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~proc-pagemap-walk-page-tables-under-pte-lock
-+++ a/fs/proc/task_mmu.c
-@@ -1056,7 +1056,7 @@ static int pagemap_pte_range(pmd_t *pmd,
- 	struct vm_area_struct *vma;
- 	struct pagemapread *pm = walk->private;
+diff -puN mm/memcontrol.c~memcg-cleanup-preparation-for-page-table-walk mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-cleanup-preparation-for-page-table-walk
++++ a/mm/memcontrol.c
+@@ -4839,7 +4839,7 @@ static int mem_cgroup_count_precharge_pt
+ 					unsigned long addr, unsigned long end,
+ 					struct mm_walk *walk)
+ {
+-	struct vm_area_struct *vma = walk->private;
++	struct vm_area_struct *vma = walk->vma;
+ 	pte_t *pte;
  	spinlock_t *ptl;
--	pte_t *pte;
-+	pte_t *pte, *orig_pte;
- 	int err = 0;
  
- 	/* find the first VMA at or above 'addr' */
-@@ -1117,15 +1117,19 @@ static int pagemap_pte_range(pmd_t *pmd,
- 		BUG_ON(is_vm_hugetlb_page(vma));
+@@ -4865,20 +4865,13 @@ static int mem_cgroup_count_precharge_pt
+ static unsigned long mem_cgroup_count_precharge(struct mm_struct *mm)
+ {
+ 	unsigned long precharge;
+-	struct vm_area_struct *vma;
  
- 		/* Addresses in the VMA. */
--		for (; addr < min(end, vma->vm_end); addr += PAGE_SIZE) {
-+		orig_pte = pte = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
-+		for (; addr < min(end, vma->vm_end); pte++, addr += PAGE_SIZE) {
- 			pagemap_entry_t pme;
--			pte = pte_offset_map(pmd, addr);
-+
- 			pte_to_pagemap_entry(&pme, pm, vma, addr, *pte);
--			pte_unmap(pte);
- 			err = add_to_pagemap(addr, &pme, pm);
- 			if (err)
--				return err;
-+				break;
- 		}
-+		pte_unmap_unlock(orig_pte, ptl);
-+
-+		if (err)
-+			return err;
++	struct mm_walk mem_cgroup_count_precharge_walk = {
++		.pmd_entry = mem_cgroup_count_precharge_pte_range,
++		.mm = mm,
++	};
+ 	down_read(&mm->mmap_sem);
+-	for (vma = mm->mmap; vma; vma = vma->vm_next) {
+-		struct mm_walk mem_cgroup_count_precharge_walk = {
+-			.pmd_entry = mem_cgroup_count_precharge_pte_range,
+-			.mm = mm,
+-			.private = vma,
+-		};
+-		if (is_vm_hugetlb_page(vma))
+-			continue;
+-		walk_page_range(vma->vm_start, vma->vm_end,
+-					&mem_cgroup_count_precharge_walk);
+-	}
++	walk_page_range(0, ~0UL, &mem_cgroup_count_precharge_walk);
+ 	up_read(&mm->mmap_sem);
  
- 		if (addr == end)
- 			break;
+ 	precharge = mc.precharge;
+@@ -5011,7 +5004,7 @@ static int mem_cgroup_move_charge_pte_ra
+ 				struct mm_walk *walk)
+ {
+ 	int ret = 0;
+-	struct vm_area_struct *vma = walk->private;
++	struct vm_area_struct *vma = walk->vma;
+ 	pte_t *pte;
+ 	spinlock_t *ptl;
+ 	enum mc_target_type target_type;
+@@ -5107,7 +5100,10 @@ put:			/* get_mctgt_type() gets the page
+ 
+ static void mem_cgroup_move_charge(struct mm_struct *mm)
+ {
+-	struct vm_area_struct *vma;
++	struct mm_walk mem_cgroup_move_charge_walk = {
++		.pmd_entry = mem_cgroup_move_charge_pte_range,
++		.mm = mm,
++	};
+ 
+ 	lru_add_drain_all();
+ 	/*
+@@ -5130,24 +5126,11 @@ retry:
+ 		cond_resched();
+ 		goto retry;
+ 	}
+-	for (vma = mm->mmap; vma; vma = vma->vm_next) {
+-		int ret;
+-		struct mm_walk mem_cgroup_move_charge_walk = {
+-			.pmd_entry = mem_cgroup_move_charge_pte_range,
+-			.mm = mm,
+-			.private = vma,
+-		};
+-		if (is_vm_hugetlb_page(vma))
+-			continue;
+-		ret = walk_page_range(vma->vm_start, vma->vm_end,
+-						&mem_cgroup_move_charge_walk);
+-		if (ret)
+-			/*
+-			 * means we have consumed all precharges and failed in
+-			 * doing additional charge. Just abandon here.
+-			 */
+-			break;
+-	}
++	/*
++	 * When we have consumed all precharges and failed in doing
++	 * additional charge, the page walk just aborts.
++	 */
++	walk_page_range(0, ~0UL, &mem_cgroup_move_charge_walk);
+ 	up_read(&mm->mmap_sem);
+ 	atomic_dec(&mc.from->moving_account);
+ }
 _
 
-Patches currently in -mm which might be from khlebnikov@yandex-team.ru are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
 origin.patch
-linux-next.patch
+mm-hwpoison-drop-lru_add_drain_all-in-__soft_offline_page.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
 
