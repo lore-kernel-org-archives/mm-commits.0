@@ -1,611 +1,727 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-page_alloc-reduce-number-of-alloc_pages-functions-parameters.patch
- removed from -mm tree
-Date: Thu, 12 Feb 2015 11:36:35 -0800
-Message-ID: <54dd00c3.8HctYz6S1H5OmzGo%akpm@linux-foundation.org>
+ mm-memcontrol-default-hierarchy-interface-for-memory.patch removed from -mm tree
+Date: Thu, 12 Feb 2015 11:36:55 -0800
+Message-ID: <54dd00d7.+nXSIej+hHarWBMa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58095 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58149 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750999AbbBLTgg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 14:36:36 -0500
+	with ESMTP id S1752223AbbBLTg4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 14:36:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, aneesh.kumar@linux.vnet.ibm.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, mgorman@suse.de, mhocko@suse.cz, minchan@kernel.org, riel@redhat.com, rientjes@google.com, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, gthelen@google.com, mhocko@suse.cz, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_alloc: reduce number of alloc_pages* functions' parameters
+     Subject: mm: memcontrol: default hierarchy interface for memory
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-reduce-number-of-alloc_pages-functions-parameters.patch
+     mm-memcontrol-default-hierarchy-interface-for-memory.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, page_alloc: reduce number of alloc_pages* functions' parameters
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memcontrol: default hierarchy interface for memory
 
-Introduce struct alloc_context to accumulate the numerous parameters
-passed between the alloc_pages* family of functions and
-get_page_from_freelist().  This excludes gfp_flags and alloc_info, which
-mutate too much along the way, and allocation order, which is conceptually
-different.
+Introduce the basic control files to account, partition, and limit
+memory using cgroups in default hierarchy mode.
 
-The result is shorter function signatures, as well as overal code size and
-stack usage reductions.
+This interface versioning allows us to address fundamental design
+issues in the existing memory cgroup interface, further explained
+below.  The old interface will be maintained indefinitely, but a
+clearer model and improved workload performance should encourage
+existing users to switch over to the new one eventually.
 
-bloat-o-meter:
+The control files are thus:
 
-add/remove: 0/0 grow/shrink: 1/2 up/down: 127/-310 (-183)
-function                                     old     new   delta
-get_page_from_freelist                      2525    2652    +127
-__alloc_pages_direct_compact                 329     283     -46
-__alloc_pages_nodemask                      2564    2300    -264
+  - memory.current shows the current consumption of the cgroup and its
+    descendants, in bytes.
 
-checkstack.pl:
+  - memory.low configures the lower end of the cgroup's expected
+    memory consumption range.  The kernel considers memory below that
+    boundary to be a reserve - the minimum that the workload needs in
+    order to make forward progress - and generally avoids reclaiming
+    it, unless there is an imminent risk of entering an OOM situation.
 
-function                            old    new
-__alloc_pages_nodemask              248    200
-get_page_from_freelist              168    184
-__alloc_pages_direct_compact         40     24
+  - memory.high configures the upper end of the cgroup's expected
+    memory consumption range.  A cgroup whose consumption grows beyond
+    this threshold is forced into direct reclaim, to work off the
+    excess and to throttle new allocations heavily, but is generally
+    allowed to continue and the OOM killer is not invoked.
 
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+  - memory.max configures the hard maximum amount of memory that the
+    cgroup is allowed to consume before the OOM killer is invoked.
+
+  - memory.events shows event counters that indicate how often the
+    cgroup was reclaimed while below memory.low, how often it was
+    forced to reclaim excess beyond memory.high, how often it hit
+    memory.max, and how often it entered OOM due to memory.max.  This
+    allows users to identify configuration problems when observing a
+    degradation in workload performance.  An overcommitted system will
+    have an increased rate of low boundary breaches, whereas increased
+    rates of high limit breaches, maximum hits, or even OOM situations
+    will indicate internally overcommitted cgroups.
+
+For existing users of memory cgroups, the following deviations from
+the current interface are worth pointing out and explaining:
+
+  - The original lower boundary, the soft limit, is defined as a limit
+    that is per default unset.  As a result, the set of cgroups that
+    global reclaim prefers is opt-in, rather than opt-out.  The costs
+    for optimizing these mostly negative lookups are so high that the
+    implementation, despite its enormous size, does not even provide
+    the basic desirable behavior.  First off, the soft limit has no
+    hierarchical meaning.  All configured groups are organized in a
+    global rbtree and treated like equal peers, regardless where they
+    are located in the hierarchy.  This makes subtree delegation
+    impossible.  Second, the soft limit reclaim pass is so aggressive
+    that it not just introduces high allocation latencies into the
+    system, but also impacts system performance due to overreclaim, to
+    the point where the feature becomes self-defeating.
+
+    The memory.low boundary on the other hand is a top-down allocated
+    reserve.  A cgroup enjoys reclaim protection when it and all its
+    ancestors are below their low boundaries, which makes delegation
+    of subtrees possible.  Secondly, new cgroups have no reserve per
+    default and in the common case most cgroups are eligible for the
+    preferred reclaim pass.  This allows the new low boundary to be
+    efficiently implemented with just a minor addition to the generic
+    reclaim code, without the need for out-of-band data structures and
+    reclaim passes.  Because the generic reclaim code considers all
+    cgroups except for the ones running low in the preferred first
+    reclaim pass, overreclaim of individual groups is eliminated as
+    well, resulting in much better overall workload performance.
+
+  - The original high boundary, the hard limit, is defined as a strict
+    limit that can not budge, even if the OOM killer has to be called.
+    But this generally goes against the goal of making the most out of
+    the available memory.  The memory consumption of workloads varies
+    during runtime, and that requires users to overcommit.  But doing
+    that with a strict upper limit requires either a fairly accurate
+    prediction of the working set size or adding slack to the limit.
+    Since working set size estimation is hard and error prone, and
+    getting it wrong results in OOM kills, most users tend to err on
+    the side of a looser limit and end up wasting precious resources.
+
+    The memory.high boundary on the other hand can be set much more
+    conservatively.  When hit, it throttles allocations by forcing
+    them into direct reclaim to work off the excess, but it never
+    invokes the OOM killer.  As a result, a high boundary that is
+    chosen too aggressively will not terminate the processes, but
+    instead it will lead to gradual performance degradation.  The user
+    can monitor this and make corrections until the minimal memory
+    footprint that still gives acceptable performance is found.
+
+    In extreme cases, with many concurrent allocations and a complete
+    breakdown of reclaim progress within the group, the high boundary
+    can be exceeded.  But even then it's mostly better to satisfy the
+    allocation from the slack available in other groups or the rest of
+    the system than killing the group.  Otherwise, memory.max is there
+    to limit this type of spillover and ultimately contain buggy or
+    even malicious applications.
+
+  - The original control file names are unwieldy and inconsistent in
+    many different ways.  For example, the upper boundary hit count is
+    exported in the memory.failcnt file, but an OOM event count has to
+    be manually counted by listening to memory.oom_control events, and
+    lower boundary / soft limit events have to be counted by first
+    setting a threshold for that value and then counting those events.
+    Also, usage and limit files encode their units in the filename.
+    That makes the filenames very long, even though this is not
+    information that a user needs to be reminded of every time they
+    type out those names.
+
+    To address these naming issues, as well as to signal clearly that
+    the new interface carries a new configuration model, the naming
+    conventions in it necessarily differ from the old interface.
+
+  - The original limit files indicate the state of an unset limit with
+    a very high number, and a configured limit can be unset by echoing
+    -1 into those files.  But that very high number is implementation
+    and architecture dependent and not very descriptive.  And while -1
+    can be understood as an underflow into the highest possible value,
+    -2 or -10M etc. do not work, so it's not inconsistent.
+
+    memory.low, memory.high, and memory.max will use the string
+    "infinity" to indicate and set the highest possible value.
+
+[akpm@linux-foundation.org: use seq_puts() for basic strings]
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: Michal Hocko <mhocko@suse.cz>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Vladimir Davydov <vdavydov@parallels.com>
+Cc: Greg Thelen <gthelen@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |  229 +++++++++++++++++++++-------------------------
- 1 file changed, 108 insertions(+), 121 deletions(-)
+ Documentation/cgroups/unified-hierarchy.txt |   79 ++++++
+ include/linux/memcontrol.h                  |   32 ++
+ mm/memcontrol.c                             |  229 +++++++++++++++++-
+ mm/vmscan.c                                 |   22 +
+ 4 files changed, 348 insertions(+), 14 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-reduce-number-of-alloc_pages-functions-parameters mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-reduce-number-of-alloc_pages-functions-parameters
-+++ a/mm/page_alloc.c
-@@ -232,6 +232,27 @@ EXPORT_SYMBOL(nr_node_ids);
- EXPORT_SYMBOL(nr_online_nodes);
- #endif
+diff -puN Documentation/cgroups/unified-hierarchy.txt~mm-memcontrol-default-hierarchy-interface-for-memory Documentation/cgroups/unified-hierarchy.txt
+--- a/Documentation/cgroups/unified-hierarchy.txt~mm-memcontrol-default-hierarchy-interface-for-memory
++++ a/Documentation/cgroups/unified-hierarchy.txt
+@@ -327,6 +327,85 @@ supported and the interface files "relea
+ - use_hierarchy is on by default and the cgroup file for the flag is
+   not created.
  
-+/*
-+ * Structure for holding the mostly immutable allocation parameters passed
-+ * between alloc_pages* family of functions.
-+ *
-+ * nodemask, migratetype and high_zoneidx are initialized only once in
-+ * __alloc_pages_nodemask() and then never change.
-+ *
-+ * zonelist, preferred_zone and classzone_idx are set first in
-+ * __alloc_pages_nodemask() for the fast path, and might be later changed
-+ * in __alloc_pages_slowpath(). All other functions pass the whole strucure
-+ * by a const pointer.
-+ */
-+struct alloc_context {
-+	struct zonelist *zonelist;
-+	nodemask_t *nodemask;
-+	struct zone *preferred_zone;
-+	int classzone_idx;
-+	int migratetype;
-+	enum zone_type high_zoneidx;
++- The original lower boundary, the soft limit, is defined as a limit
++  that is per default unset.  As a result, the set of cgroups that
++  global reclaim prefers is opt-in, rather than opt-out.  The costs
++  for optimizing these mostly negative lookups are so high that the
++  implementation, despite its enormous size, does not even provide the
++  basic desirable behavior.  First off, the soft limit has no
++  hierarchical meaning.  All configured groups are organized in a
++  global rbtree and treated like equal peers, regardless where they
++  are located in the hierarchy.  This makes subtree delegation
++  impossible.  Second, the soft limit reclaim pass is so aggressive
++  that it not just introduces high allocation latencies into the
++  system, but also impacts system performance due to overreclaim, to
++  the point where the feature becomes self-defeating.
++
++  The memory.low boundary on the other hand is a top-down allocated
++  reserve.  A cgroup enjoys reclaim protection when it and all its
++  ancestors are below their low boundaries, which makes delegation of
++  subtrees possible.  Secondly, new cgroups have no reserve per
++  default and in the common case most cgroups are eligible for the
++  preferred reclaim pass.  This allows the new low boundary to be
++  efficiently implemented with just a minor addition to the generic
++  reclaim code, without the need for out-of-band data structures and
++  reclaim passes.  Because the generic reclaim code considers all
++  cgroups except for the ones running low in the preferred first
++  reclaim pass, overreclaim of individual groups is eliminated as
++  well, resulting in much better overall workload performance.
++
++- The original high boundary, the hard limit, is defined as a strict
++  limit that can not budge, even if the OOM killer has to be called.
++  But this generally goes against the goal of making the most out of
++  the available memory.  The memory consumption of workloads varies
++  during runtime, and that requires users to overcommit.  But doing
++  that with a strict upper limit requires either a fairly accurate
++  prediction of the working set size or adding slack to the limit.
++  Since working set size estimation is hard and error prone, and
++  getting it wrong results in OOM kills, most users tend to err on the
++  side of a looser limit and end up wasting precious resources.
++
++  The memory.high boundary on the other hand can be set much more
++  conservatively.  When hit, it throttles allocations by forcing them
++  into direct reclaim to work off the excess, but it never invokes the
++  OOM killer.  As a result, a high boundary that is chosen too
++  aggressively will not terminate the processes, but instead it will
++  lead to gradual performance degradation.  The user can monitor this
++  and make corrections until the minimal memory footprint that still
++  gives acceptable performance is found.
++
++  In extreme cases, with many concurrent allocations and a complete
++  breakdown of reclaim progress within the group, the high boundary
++  can be exceeded.  But even then it's mostly better to satisfy the
++  allocation from the slack available in other groups or the rest of
++  the system than killing the group.  Otherwise, memory.max is there
++  to limit this type of spillover and ultimately contain buggy or even
++  malicious applications.
++
++- The original control file names are unwieldy and inconsistent in
++  many different ways.  For example, the upper boundary hit count is
++  exported in the memory.failcnt file, but an OOM event count has to
++  be manually counted by listening to memory.oom_control events, and
++  lower boundary / soft limit events have to be counted by first
++  setting a threshold for that value and then counting those events.
++  Also, usage and limit files encode their units in the filename.
++  That makes the filenames very long, even though this is not
++  information that a user needs to be reminded of every time they type
++  out those names.
++
++  To address these naming issues, as well as to signal clearly that
++  the new interface carries a new configuration model, the naming
++  conventions in it necessarily differ from the old interface.
++
++- The original limit files indicate the state of an unset limit with a
++  Very High Number, and a configured limit can be unset by echoing -1
++  into those files.  But that very high number is implementation and
++  architecture dependent and not very descriptive.  And while -1 can
++  be understood as an underflow into the highest possible value, -2 or
++  -10M etc. do not work, so it's not consistent.
++
++  memory.low, memory.high, and memory.max will use the string
++  "infinity" to indicate and set the highest possible value.
+ 
+ 5. Planned Changes
+ 
+diff -puN include/linux/memcontrol.h~mm-memcontrol-default-hierarchy-interface-for-memory include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~mm-memcontrol-default-hierarchy-interface-for-memory
++++ a/include/linux/memcontrol.h
+@@ -52,7 +52,27 @@ struct mem_cgroup_reclaim_cookie {
+ 	unsigned int generation;
+ };
+ 
++enum mem_cgroup_events_index {
++	MEM_CGROUP_EVENTS_PGPGIN,	/* # of pages paged in */
++	MEM_CGROUP_EVENTS_PGPGOUT,	/* # of pages paged out */
++	MEM_CGROUP_EVENTS_PGFAULT,	/* # of page-faults */
++	MEM_CGROUP_EVENTS_PGMAJFAULT,	/* # of major page-faults */
++	MEM_CGROUP_EVENTS_NSTATS,
++	/* default hierarchy events */
++	MEMCG_LOW = MEM_CGROUP_EVENTS_NSTATS,
++	MEMCG_HIGH,
++	MEMCG_MAX,
++	MEMCG_OOM,
++	MEMCG_NR_EVENTS,
 +};
 +
- int page_group_by_mobility_disabled __read_mostly;
- 
- void set_pageblock_migratetype(struct page *page, int migratetype)
-@@ -2037,10 +2058,10 @@ static void reset_alloc_batches(struct z
-  * a page.
-  */
- static struct page *
--get_page_from_freelist(gfp_t gfp_mask, nodemask_t *nodemask, unsigned int order,
--		struct zonelist *zonelist, int high_zoneidx, int alloc_flags,
--		struct zone *preferred_zone, int classzone_idx, int migratetype)
-+get_page_from_freelist(gfp_t gfp_mask, unsigned int order, int alloc_flags,
-+						const struct alloc_context *ac)
- {
-+	struct zonelist *zonelist = ac->zonelist;
- 	struct zoneref *z;
- 	struct page *page = NULL;
- 	struct zone *zone;
-@@ -2059,8 +2080,8 @@ zonelist_scan:
- 	 * Scan zonelist, looking for a zone with enough free.
- 	 * See also __cpuset_node_allowed() comment in kernel/cpuset.c.
- 	 */
--	for_each_zone_zonelist_nodemask(zone, z, zonelist,
--						high_zoneidx, nodemask) {
-+	for_each_zone_zonelist_nodemask(zone, z, zonelist, ac->high_zoneidx,
-+								ac->nodemask) {
- 		unsigned long mark;
- 
- 		if (IS_ENABLED(CONFIG_NUMA) && zlc_active &&
-@@ -2077,7 +2098,7 @@ zonelist_scan:
- 		 * time the page has in memory before being reclaimed.
- 		 */
- 		if (alloc_flags & ALLOC_FAIR) {
--			if (!zone_local(preferred_zone, zone))
-+			if (!zone_local(ac->preferred_zone, zone))
- 				break;
- 			if (test_bit(ZONE_FAIR_DEPLETED, &zone->flags)) {
- 				nr_fair_skipped++;
-@@ -2115,7 +2136,7 @@ zonelist_scan:
- 
- 		mark = zone->watermark[alloc_flags & ALLOC_WMARK_MASK];
- 		if (!zone_watermark_ok(zone, order, mark,
--				       classzone_idx, alloc_flags)) {
-+				       ac->classzone_idx, alloc_flags)) {
- 			int ret;
- 
- 			/* Checked here to keep the fast path fast */
-@@ -2136,7 +2157,7 @@ zonelist_scan:
- 			}
- 
- 			if (zone_reclaim_mode == 0 ||
--			    !zone_allows_reclaim(preferred_zone, zone))
-+			    !zone_allows_reclaim(ac->preferred_zone, zone))
- 				goto this_zone_full;
- 
- 			/*
-@@ -2158,7 +2179,7 @@ zonelist_scan:
- 			default:
- 				/* did we reclaim enough */
- 				if (zone_watermark_ok(zone, order, mark,
--						classzone_idx, alloc_flags))
-+						ac->classzone_idx, alloc_flags))
- 					goto try_this_zone;
- 
- 				/*
-@@ -2179,8 +2200,8 @@ zonelist_scan:
- 		}
- 
- try_this_zone:
--		page = buffered_rmqueue(preferred_zone, zone, order,
--						gfp_mask, migratetype);
-+		page = buffered_rmqueue(ac->preferred_zone, zone, order,
-+						gfp_mask, ac->migratetype);
- 		if (page) {
- 			if (prep_new_page(page, order, gfp_mask, alloc_flags))
- 				goto try_this_zone;
-@@ -2203,7 +2224,7 @@ this_zone_full:
- 		alloc_flags &= ~ALLOC_FAIR;
- 		if (nr_fair_skipped) {
- 			zonelist_rescan = true;
--			reset_alloc_batches(preferred_zone);
-+			reset_alloc_batches(ac->preferred_zone);
- 		}
- 		if (nr_online_nodes > 1)
- 			zonelist_rescan = true;
-@@ -2325,9 +2346,7 @@ should_alloc_retry(gfp_t gfp_mask, unsig
- 
- static inline struct page *
- __alloc_pages_may_oom(gfp_t gfp_mask, unsigned int order,
--	struct zonelist *zonelist, enum zone_type high_zoneidx,
--	nodemask_t *nodemask, struct zone *preferred_zone,
--	int classzone_idx, int migratetype, unsigned long *did_some_progress)
-+	const struct alloc_context *ac, unsigned long *did_some_progress)
- {
- 	struct page *page;
- 
-@@ -2340,7 +2359,7 @@ __alloc_pages_may_oom(gfp_t gfp_mask, un
- 	 * Acquire the per-zone oom lock for each zone.  If that
- 	 * fails, somebody else is making progress for us.
- 	 */
--	if (!oom_zonelist_trylock(zonelist, gfp_mask)) {
-+	if (!oom_zonelist_trylock(ac->zonelist, gfp_mask)) {
- 		*did_some_progress = 1;
- 		schedule_timeout_uninterruptible(1);
- 		return NULL;
-@@ -2359,10 +2378,8 @@ __alloc_pages_may_oom(gfp_t gfp_mask, un
- 	 * here, this is only to catch a parallel oom killing, we must fail if
- 	 * we're still under heavy pressure.
- 	 */
--	page = get_page_from_freelist(gfp_mask|__GFP_HARDWALL, nodemask,
--		order, zonelist, high_zoneidx,
--		ALLOC_WMARK_HIGH|ALLOC_CPUSET,
--		preferred_zone, classzone_idx, migratetype);
-+	page = get_page_from_freelist(gfp_mask | __GFP_HARDWALL, order,
-+					ALLOC_WMARK_HIGH|ALLOC_CPUSET, ac);
- 	if (page)
- 		goto out;
- 
-@@ -2374,7 +2391,7 @@ __alloc_pages_may_oom(gfp_t gfp_mask, un
- 		if (order > PAGE_ALLOC_COSTLY_ORDER)
- 			goto out;
- 		/* The OOM killer does not needlessly kill tasks for lowmem */
--		if (high_zoneidx < ZONE_NORMAL)
-+		if (ac->high_zoneidx < ZONE_NORMAL)
- 			goto out;
- 		/* The OOM killer does not compensate for light reclaim */
- 		if (!(gfp_mask & __GFP_FS))
-@@ -2390,10 +2407,10 @@ __alloc_pages_may_oom(gfp_t gfp_mask, un
- 			goto out;
- 	}
- 	/* Exhausted what can be done so it's blamo time */
--	out_of_memory(zonelist, gfp_mask, order, nodemask, false);
-+	out_of_memory(ac->zonelist, gfp_mask, order, ac->nodemask, false);
- 	*did_some_progress = 1;
- out:
--	oom_zonelist_unlock(zonelist, gfp_mask);
-+	oom_zonelist_unlock(ac->zonelist, gfp_mask);
- 	return page;
- }
- 
-@@ -2401,10 +2418,9 @@ out:
- /* Try memory compaction for high-order allocations before reclaim */
- static struct page *
- __alloc_pages_direct_compact(gfp_t gfp_mask, unsigned int order,
--	struct zonelist *zonelist, enum zone_type high_zoneidx,
--	nodemask_t *nodemask, int alloc_flags, struct zone *preferred_zone,
--	int classzone_idx, int migratetype, enum migrate_mode mode,
--	int *contended_compaction, bool *deferred_compaction)
-+		int alloc_flags, const struct alloc_context *ac,
-+		enum migrate_mode mode, int *contended_compaction,
-+		bool *deferred_compaction)
- {
- 	unsigned long compact_result;
- 	struct page *page;
-@@ -2413,10 +2429,10 @@ __alloc_pages_direct_compact(gfp_t gfp_m
- 		return NULL;
- 
- 	current->flags |= PF_MEMALLOC;
--	compact_result = try_to_compact_pages(zonelist, order, gfp_mask,
--						nodemask, mode,
-+	compact_result = try_to_compact_pages(ac->zonelist, order, gfp_mask,
-+						ac->nodemask, mode,
- 						contended_compaction,
--						alloc_flags, classzone_idx);
-+						alloc_flags, ac->classzone_idx);
- 	current->flags &= ~PF_MEMALLOC;
- 
- 	switch (compact_result) {
-@@ -2435,10 +2451,8 @@ __alloc_pages_direct_compact(gfp_t gfp_m
- 	 */
- 	count_vm_event(COMPACTSTALL);
- 
--	page = get_page_from_freelist(gfp_mask, nodemask,
--			order, zonelist, high_zoneidx,
--			alloc_flags & ~ALLOC_NO_WATERMARKS,
--			preferred_zone, classzone_idx, migratetype);
-+	page = get_page_from_freelist(gfp_mask, order,
-+					alloc_flags & ~ALLOC_NO_WATERMARKS, ac);
- 
- 	if (page) {
- 		struct zone *zone = page_zone(page);
-@@ -2462,10 +2476,9 @@ __alloc_pages_direct_compact(gfp_t gfp_m
- #else
- static inline struct page *
- __alloc_pages_direct_compact(gfp_t gfp_mask, unsigned int order,
--	struct zonelist *zonelist, enum zone_type high_zoneidx,
--	nodemask_t *nodemask, int alloc_flags, struct zone *preferred_zone,
--	int classzone_idx, int migratetype, enum migrate_mode mode,
--	int *contended_compaction, bool *deferred_compaction)
-+		int alloc_flags, const struct alloc_context *ac,
-+		enum migrate_mode mode, int *contended_compaction,
-+		bool *deferred_compaction)
- {
- 	return NULL;
- }
-@@ -2473,8 +2486,8 @@ __alloc_pages_direct_compact(gfp_t gfp_m
- 
- /* Perform direct synchronous page reclaim */
- static int
--__perform_reclaim(gfp_t gfp_mask, unsigned int order, struct zonelist *zonelist,
--		  nodemask_t *nodemask)
-+__perform_reclaim(gfp_t gfp_mask, unsigned int order,
-+					const struct alloc_context *ac)
- {
- 	struct reclaim_state reclaim_state;
- 	int progress;
-@@ -2488,7 +2501,8 @@ __perform_reclaim(gfp_t gfp_mask, unsign
- 	reclaim_state.reclaimed_slab = 0;
- 	current->reclaim_state = &reclaim_state;
- 
--	progress = try_to_free_pages(zonelist, order, gfp_mask, nodemask);
-+	progress = try_to_free_pages(ac->zonelist, order, gfp_mask,
-+								ac->nodemask);
- 
- 	current->reclaim_state = NULL;
- 	lockdep_clear_current_reclaim_state();
-@@ -2502,28 +2516,23 @@ __perform_reclaim(gfp_t gfp_mask, unsign
- /* The really slow allocator path where we enter direct reclaim */
- static inline struct page *
- __alloc_pages_direct_reclaim(gfp_t gfp_mask, unsigned int order,
--	struct zonelist *zonelist, enum zone_type high_zoneidx,
--	nodemask_t *nodemask, int alloc_flags, struct zone *preferred_zone,
--	int classzone_idx, int migratetype, unsigned long *did_some_progress)
-+		int alloc_flags, const struct alloc_context *ac,
-+		unsigned long *did_some_progress)
- {
- 	struct page *page = NULL;
- 	bool drained = false;
- 
--	*did_some_progress = __perform_reclaim(gfp_mask, order, zonelist,
--					       nodemask);
-+	*did_some_progress = __perform_reclaim(gfp_mask, order, ac);
- 	if (unlikely(!(*did_some_progress)))
- 		return NULL;
- 
- 	/* After successful reclaim, reconsider all zones for allocation */
- 	if (IS_ENABLED(CONFIG_NUMA))
--		zlc_clear_zones_full(zonelist);
-+		zlc_clear_zones_full(ac->zonelist);
- 
- retry:
--	page = get_page_from_freelist(gfp_mask, nodemask, order,
--					zonelist, high_zoneidx,
--					alloc_flags & ~ALLOC_NO_WATERMARKS,
--					preferred_zone, classzone_idx,
--					migratetype);
-+	page = get_page_from_freelist(gfp_mask, order,
-+					alloc_flags & ~ALLOC_NO_WATERMARKS, ac);
- 
- 	/*
- 	 * If an allocation failed after direct reclaim, it could be because
-@@ -2544,36 +2553,30 @@ retry:
-  */
- static inline struct page *
- __alloc_pages_high_priority(gfp_t gfp_mask, unsigned int order,
--	struct zonelist *zonelist, enum zone_type high_zoneidx,
--	nodemask_t *nodemask, struct zone *preferred_zone,
--	int classzone_idx, int migratetype)
-+				const struct alloc_context *ac)
- {
- 	struct page *page;
- 
- 	do {
--		page = get_page_from_freelist(gfp_mask, nodemask, order,
--			zonelist, high_zoneidx, ALLOC_NO_WATERMARKS,
--			preferred_zone, classzone_idx, migratetype);
-+		page = get_page_from_freelist(gfp_mask, order,
-+						ALLOC_NO_WATERMARKS, ac);
- 
- 		if (!page && gfp_mask & __GFP_NOFAIL)
--			wait_iff_congested(preferred_zone, BLK_RW_ASYNC, HZ/50);
-+			wait_iff_congested(ac->preferred_zone, BLK_RW_ASYNC,
-+									HZ/50);
- 	} while (!page && (gfp_mask & __GFP_NOFAIL));
- 
- 	return page;
- }
- 
--static void wake_all_kswapds(unsigned int order,
--			     struct zonelist *zonelist,
--			     enum zone_type high_zoneidx,
--			     struct zone *preferred_zone,
--			     nodemask_t *nodemask)
-+static void wake_all_kswapds(unsigned int order, const struct alloc_context *ac)
- {
- 	struct zoneref *z;
- 	struct zone *zone;
- 
--	for_each_zone_zonelist_nodemask(zone, z, zonelist,
--						high_zoneidx, nodemask)
--		wakeup_kswapd(zone, order, zone_idx(preferred_zone));
-+	for_each_zone_zonelist_nodemask(zone, z, ac->zonelist,
-+						ac->high_zoneidx, ac->nodemask)
-+		wakeup_kswapd(zone, order, zone_idx(ac->preferred_zone));
- }
- 
- static inline int
-@@ -2632,9 +2635,7 @@ bool gfp_pfmemalloc_allowed(gfp_t gfp_ma
- 
- static inline struct page *
- __alloc_pages_slowpath(gfp_t gfp_mask, unsigned int order,
--	struct zonelist *zonelist, enum zone_type high_zoneidx,
--	nodemask_t *nodemask, struct zone *preferred_zone,
--	int classzone_idx, int migratetype)
-+						struct alloc_context *ac)
- {
- 	const gfp_t wait = gfp_mask & __GFP_WAIT;
- 	struct page *page = NULL;
-@@ -2670,8 +2671,7 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
- 
- retry:
- 	if (!(gfp_mask & __GFP_NO_KSWAPD))
--		wake_all_kswapds(order, zonelist, high_zoneidx,
--				preferred_zone, nodemask);
-+		wake_all_kswapds(order, ac);
- 
- 	/*
- 	 * OK, we're below the kswapd watermark and have kicked background
-@@ -2684,17 +2684,16 @@ retry:
- 	 * Find the true preferred zone if the allocation is unconstrained by
- 	 * cpusets.
- 	 */
--	if (!(alloc_flags & ALLOC_CPUSET) && !nodemask) {
-+	if (!(alloc_flags & ALLOC_CPUSET) && !ac->nodemask) {
- 		struct zoneref *preferred_zoneref;
--		preferred_zoneref = first_zones_zonelist(zonelist, high_zoneidx,
--				NULL, &preferred_zone);
--		classzone_idx = zonelist_zone_idx(preferred_zoneref);
-+		preferred_zoneref = first_zones_zonelist(ac->zonelist,
-+				ac->high_zoneidx, NULL, &ac->preferred_zone);
-+		ac->classzone_idx = zonelist_zone_idx(preferred_zoneref);
- 	}
- 
- 	/* This is the last chance, in general, before the goto nopage. */
--	page = get_page_from_freelist(gfp_mask, nodemask, order, zonelist,
--			high_zoneidx, alloc_flags & ~ALLOC_NO_WATERMARKS,
--			preferred_zone, classzone_idx, migratetype);
-+	page = get_page_from_freelist(gfp_mask, order,
-+				alloc_flags & ~ALLOC_NO_WATERMARKS, ac);
- 	if (page)
- 		goto got_pg;
- 
-@@ -2705,11 +2704,10 @@ retry:
- 		 * the allocation is high priority and these type of
- 		 * allocations are system rather than user orientated
- 		 */
--		zonelist = node_zonelist(numa_node_id(), gfp_mask);
-+		ac->zonelist = node_zonelist(numa_node_id(), gfp_mask);
+ #ifdef CONFIG_MEMCG
++void mem_cgroup_events(struct mem_cgroup *memcg,
++		       enum mem_cgroup_events_index idx,
++		       unsigned int nr);
 +
-+		page = __alloc_pages_high_priority(gfp_mask, order, ac);
++bool mem_cgroup_low(struct mem_cgroup *root, struct mem_cgroup *memcg);
++
+ int mem_cgroup_try_charge(struct page *page, struct mm_struct *mm,
+ 			  gfp_t gfp_mask, struct mem_cgroup **memcgp);
+ void mem_cgroup_commit_charge(struct page *page, struct mem_cgroup *memcg,
+@@ -175,6 +195,18 @@ void mem_cgroup_split_huge_fixup(struct
+ #else /* CONFIG_MEMCG */
+ struct mem_cgroup;
  
--		page = __alloc_pages_high_priority(gfp_mask, order,
--				zonelist, high_zoneidx, nodemask,
--				preferred_zone, classzone_idx, migratetype);
- 		if (page) {
- 			goto got_pg;
- 		}
-@@ -2738,11 +2736,9 @@ retry:
- 	 * Try direct compaction. The first pass is asynchronous. Subsequent
- 	 * attempts after direct reclaim are synchronous
- 	 */
--	page = __alloc_pages_direct_compact(gfp_mask, order, zonelist,
--					high_zoneidx, nodemask, alloc_flags,
--					preferred_zone,
--					classzone_idx, migratetype,
--					migration_mode, &contended_compaction,
-+	page = __alloc_pages_direct_compact(gfp_mask, order, alloc_flags, ac,
-+					migration_mode,
-+					&contended_compaction,
- 					&deferred_compaction);
- 	if (page)
- 		goto got_pg;
-@@ -2788,12 +2784,8 @@ retry:
- 		migration_mode = MIGRATE_SYNC_LIGHT;
++static inline void mem_cgroup_events(struct mem_cgroup *memcg,
++				     enum mem_cgroup_events_index idx,
++				     unsigned int nr)
++{
++}
++
++static inline bool mem_cgroup_low(struct mem_cgroup *root,
++				  struct mem_cgroup *memcg)
++{
++	return false;
++}
++
+ static inline int mem_cgroup_try_charge(struct page *page, struct mm_struct *mm,
+ 					gfp_t gfp_mask,
+ 					struct mem_cgroup **memcgp)
+diff -puN mm/memcontrol.c~mm-memcontrol-default-hierarchy-interface-for-memory mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-default-hierarchy-interface-for-memory
++++ a/mm/memcontrol.c
+@@ -97,14 +97,6 @@ static const char * const mem_cgroup_sta
+ 	"swap",
+ };
  
- 	/* Try direct reclaim and then allocating */
--	page = __alloc_pages_direct_reclaim(gfp_mask, order,
--					zonelist, high_zoneidx,
--					nodemask,
--					alloc_flags, preferred_zone,
--					classzone_idx, migratetype,
--					&did_some_progress);
-+	page = __alloc_pages_direct_reclaim(gfp_mask, order, alloc_flags, ac,
-+							&did_some_progress);
- 	if (page)
- 		goto got_pg;
+-enum mem_cgroup_events_index {
+-	MEM_CGROUP_EVENTS_PGPGIN,	/* # of pages paged in */
+-	MEM_CGROUP_EVENTS_PGPGOUT,	/* # of pages paged out */
+-	MEM_CGROUP_EVENTS_PGFAULT,	/* # of page-faults */
+-	MEM_CGROUP_EVENTS_PGMAJFAULT,	/* # of major page-faults */
+-	MEM_CGROUP_EVENTS_NSTATS,
+-};
+-
+ static const char * const mem_cgroup_events_names[] = {
+ 	"pgpgin",
+ 	"pgpgout",
+@@ -138,7 +130,7 @@ enum mem_cgroup_events_target {
  
-@@ -2807,17 +2799,15 @@ retry:
- 		 * start OOM killing tasks.
+ struct mem_cgroup_stat_cpu {
+ 	long count[MEM_CGROUP_STAT_NSTATS];
+-	unsigned long events[MEM_CGROUP_EVENTS_NSTATS];
++	unsigned long events[MEMCG_NR_EVENTS];
+ 	unsigned long nr_page_events;
+ 	unsigned long targets[MEM_CGROUP_NTARGETS];
+ };
+@@ -284,6 +276,10 @@ struct mem_cgroup {
+ 	struct page_counter memsw;
+ 	struct page_counter kmem;
+ 
++	/* Normal memory consumption range */
++	unsigned long low;
++	unsigned long high;
++
+ 	unsigned long soft_limit;
+ 
+ 	/* vmpressure notifications */
+@@ -2315,6 +2311,8 @@ retry:
+ 	if (!(gfp_mask & __GFP_WAIT))
+ 		goto nomem;
+ 
++	mem_cgroup_events(mem_over_limit, MEMCG_MAX, 1);
++
+ 	nr_reclaimed = try_to_free_mem_cgroup_pages(mem_over_limit, nr_pages,
+ 						    gfp_mask, may_swap);
+ 
+@@ -2356,6 +2354,8 @@ retry:
+ 	if (fatal_signal_pending(current))
+ 		goto bypass;
+ 
++	mem_cgroup_events(mem_over_limit, MEMCG_OOM, 1);
++
+ 	mem_cgroup_oom(mem_over_limit, gfp_mask, get_order(nr_pages));
+ nomem:
+ 	if (!(gfp_mask & __GFP_NOFAIL))
+@@ -2367,6 +2367,16 @@ done_restock:
+ 	css_get_many(&memcg->css, batch);
+ 	if (batch > nr_pages)
+ 		refill_stock(memcg, batch - nr_pages);
++	/*
++	 * If the hierarchy is above the normal consumption range,
++	 * make the charging task trim their excess contribution.
++	 */
++	do {
++		if (page_counter_read(&memcg->memory) <= memcg->high)
++			continue;
++		mem_cgroup_events(memcg, MEMCG_HIGH, 1);
++		try_to_free_mem_cgroup_pages(memcg, nr_pages, gfp_mask, true);
++	} while ((memcg = parent_mem_cgroup(memcg)));
+ done:
+ 	return ret;
+ }
+@@ -4276,7 +4286,7 @@ out_kfree:
+ 	return ret;
+ }
+ 
+-static struct cftype mem_cgroup_files[] = {
++static struct cftype mem_cgroup_legacy_files[] = {
+ 	{
+ 		.name = "usage_in_bytes",
+ 		.private = MEMFILE_PRIVATE(_MEM, RES_USAGE),
+@@ -4552,6 +4562,7 @@ mem_cgroup_css_alloc(struct cgroup_subsy
+ 	if (parent_css == NULL) {
+ 		root_mem_cgroup = memcg;
+ 		page_counter_init(&memcg->memory, NULL);
++		memcg->high = PAGE_COUNTER_MAX;
+ 		memcg->soft_limit = PAGE_COUNTER_MAX;
+ 		page_counter_init(&memcg->memsw, NULL);
+ 		page_counter_init(&memcg->kmem, NULL);
+@@ -4597,6 +4608,7 @@ mem_cgroup_css_online(struct cgroup_subs
+ 
+ 	if (parent->use_hierarchy) {
+ 		page_counter_init(&memcg->memory, &parent->memory);
++		memcg->high = PAGE_COUNTER_MAX;
+ 		memcg->soft_limit = PAGE_COUNTER_MAX;
+ 		page_counter_init(&memcg->memsw, &parent->memsw);
+ 		page_counter_init(&memcg->kmem, &parent->kmem);
+@@ -4607,6 +4619,7 @@ mem_cgroup_css_online(struct cgroup_subs
  		 */
- 		if (!did_some_progress) {
--			page = __alloc_pages_may_oom(gfp_mask, order, zonelist,
--						high_zoneidx, nodemask,
--						preferred_zone, classzone_idx,
--						migratetype,&did_some_progress);
-+			page = __alloc_pages_may_oom(gfp_mask, order, ac,
-+							&did_some_progress);
- 			if (page)
- 				goto got_pg;
- 			if (!did_some_progress)
- 				goto nopage;
- 		}
- 		/* Wait for some write requests to complete then retry */
--		wait_iff_congested(preferred_zone, BLK_RW_ASYNC, HZ/50);
-+		wait_iff_congested(ac->preferred_zone, BLK_RW_ASYNC, HZ/50);
- 		goto retry;
  	} else {
+ 		page_counter_init(&memcg->memory, NULL);
++		memcg->high = PAGE_COUNTER_MAX;
+ 		memcg->soft_limit = PAGE_COUNTER_MAX;
+ 		page_counter_init(&memcg->memsw, NULL);
+ 		page_counter_init(&memcg->kmem, NULL);
+@@ -4682,6 +4695,8 @@ static void mem_cgroup_css_reset(struct
+ 	mem_cgroup_resize_limit(memcg, PAGE_COUNTER_MAX);
+ 	mem_cgroup_resize_memsw_limit(memcg, PAGE_COUNTER_MAX);
+ 	memcg_update_kmem_limit(memcg, PAGE_COUNTER_MAX);
++	memcg->low = 0;
++	memcg->high = PAGE_COUNTER_MAX;
+ 	memcg->soft_limit = PAGE_COUNTER_MAX;
+ }
+ 
+@@ -5267,6 +5282,147 @@ static void mem_cgroup_bind(struct cgrou
+ 		mem_cgroup_from_css(root_css)->use_hierarchy = true;
+ }
+ 
++static u64 memory_current_read(struct cgroup_subsys_state *css,
++			       struct cftype *cft)
++{
++	return mem_cgroup_usage(mem_cgroup_from_css(css), false);
++}
++
++static int memory_low_show(struct seq_file *m, void *v)
++{
++	struct mem_cgroup *memcg = mem_cgroup_from_css(seq_css(m));
++	unsigned long low = ACCESS_ONCE(memcg->low);
++
++	if (low == PAGE_COUNTER_MAX)
++		seq_puts(m, "infinity\n");
++	else
++		seq_printf(m, "%llu\n", (u64)low * PAGE_SIZE);
++
++	return 0;
++}
++
++static ssize_t memory_low_write(struct kernfs_open_file *of,
++				char *buf, size_t nbytes, loff_t off)
++{
++	struct mem_cgroup *memcg = mem_cgroup_from_css(of_css(of));
++	unsigned long low;
++	int err;
++
++	buf = strstrip(buf);
++	err = page_counter_memparse(buf, "infinity", &low);
++	if (err)
++		return err;
++
++	memcg->low = low;
++
++	return nbytes;
++}
++
++static int memory_high_show(struct seq_file *m, void *v)
++{
++	struct mem_cgroup *memcg = mem_cgroup_from_css(seq_css(m));
++	unsigned long high = ACCESS_ONCE(memcg->high);
++
++	if (high == PAGE_COUNTER_MAX)
++		seq_puts(m, "infinity\n");
++	else
++		seq_printf(m, "%llu\n", (u64)high * PAGE_SIZE);
++
++	return 0;
++}
++
++static ssize_t memory_high_write(struct kernfs_open_file *of,
++				 char *buf, size_t nbytes, loff_t off)
++{
++	struct mem_cgroup *memcg = mem_cgroup_from_css(of_css(of));
++	unsigned long high;
++	int err;
++
++	buf = strstrip(buf);
++	err = page_counter_memparse(buf, "infinity", &high);
++	if (err)
++		return err;
++
++	memcg->high = high;
++
++	return nbytes;
++}
++
++static int memory_max_show(struct seq_file *m, void *v)
++{
++	struct mem_cgroup *memcg = mem_cgroup_from_css(seq_css(m));
++	unsigned long max = ACCESS_ONCE(memcg->memory.limit);
++
++	if (max == PAGE_COUNTER_MAX)
++		seq_puts(m, "infinity\n");
++	else
++		seq_printf(m, "%llu\n", (u64)max * PAGE_SIZE);
++
++	return 0;
++}
++
++static ssize_t memory_max_write(struct kernfs_open_file *of,
++				char *buf, size_t nbytes, loff_t off)
++{
++	struct mem_cgroup *memcg = mem_cgroup_from_css(of_css(of));
++	unsigned long max;
++	int err;
++
++	buf = strstrip(buf);
++	err = page_counter_memparse(buf, "infinity", &max);
++	if (err)
++		return err;
++
++	err = mem_cgroup_resize_limit(memcg, max);
++	if (err)
++		return err;
++
++	return nbytes;
++}
++
++static int memory_events_show(struct seq_file *m, void *v)
++{
++	struct mem_cgroup *memcg = mem_cgroup_from_css(seq_css(m));
++
++	seq_printf(m, "low %lu\n", mem_cgroup_read_events(memcg, MEMCG_LOW));
++	seq_printf(m, "high %lu\n", mem_cgroup_read_events(memcg, MEMCG_HIGH));
++	seq_printf(m, "max %lu\n", mem_cgroup_read_events(memcg, MEMCG_MAX));
++	seq_printf(m, "oom %lu\n", mem_cgroup_read_events(memcg, MEMCG_OOM));
++
++	return 0;
++}
++
++static struct cftype memory_files[] = {
++	{
++		.name = "current",
++		.read_u64 = memory_current_read,
++	},
++	{
++		.name = "low",
++		.flags = CFTYPE_NOT_ON_ROOT,
++		.seq_show = memory_low_show,
++		.write = memory_low_write,
++	},
++	{
++		.name = "high",
++		.flags = CFTYPE_NOT_ON_ROOT,
++		.seq_show = memory_high_show,
++		.write = memory_high_write,
++	},
++	{
++		.name = "max",
++		.flags = CFTYPE_NOT_ON_ROOT,
++		.seq_show = memory_max_show,
++		.write = memory_max_write,
++	},
++	{
++		.name = "events",
++		.flags = CFTYPE_NOT_ON_ROOT,
++		.seq_show = memory_events_show,
++	},
++	{ }	/* terminate */
++};
++
+ struct cgroup_subsys memory_cgrp_subsys = {
+ 	.css_alloc = mem_cgroup_css_alloc,
+ 	.css_online = mem_cgroup_css_online,
+@@ -5277,7 +5433,8 @@ struct cgroup_subsys memory_cgrp_subsys
+ 	.cancel_attach = mem_cgroup_cancel_attach,
+ 	.attach = mem_cgroup_move_task,
+ 	.bind = mem_cgroup_bind,
+-	.legacy_cftypes = mem_cgroup_files,
++	.dfl_cftypes = memory_files,
++	.legacy_cftypes = mem_cgroup_legacy_files,
+ 	.early_init = 0,
+ };
+ 
+@@ -5312,6 +5469,56 @@ static void __init enable_swap_cgroup(vo
+ }
+ #endif
+ 
++/**
++ * mem_cgroup_events - count memory events against a cgroup
++ * @memcg: the memory cgroup
++ * @idx: the event index
++ * @nr: the number of events to account for
++ */
++void mem_cgroup_events(struct mem_cgroup *memcg,
++		       enum mem_cgroup_events_index idx,
++		       unsigned int nr)
++{
++	this_cpu_add(memcg->stat->events[idx], nr);
++}
++
++/**
++ * mem_cgroup_low - check if memory consumption is below the normal range
++ * @root: the highest ancestor to consider
++ * @memcg: the memory cgroup to check
++ *
++ * Returns %true if memory consumption of @memcg, and that of all
++ * configurable ancestors up to @root, is below the normal range.
++ */
++bool mem_cgroup_low(struct mem_cgroup *root, struct mem_cgroup *memcg)
++{
++	if (mem_cgroup_disabled())
++		return false;
++
++	/*
++	 * The toplevel group doesn't have a configurable range, so
++	 * it's never low when looked at directly, and it is not
++	 * considered an ancestor when assessing the hierarchy.
++	 */
++
++	if (memcg == root_mem_cgroup)
++		return false;
++
++	if (page_counter_read(&memcg->memory) > memcg->low)
++		return false;
++
++	while (memcg != root) {
++		memcg = parent_mem_cgroup(memcg);
++
++		if (memcg == root_mem_cgroup)
++			break;
++
++		if (page_counter_read(&memcg->memory) > memcg->low)
++			return false;
++	}
++	return true;
++}
++
+ #ifdef CONFIG_MEMCG_SWAP
+ /**
+  * mem_cgroup_swapout - transfer a memsw charge to swap
+diff -puN mm/vmscan.c~mm-memcontrol-default-hierarchy-interface-for-memory mm/vmscan.c
+--- a/mm/vmscan.c~mm-memcontrol-default-hierarchy-interface-for-memory
++++ a/mm/vmscan.c
+@@ -91,6 +91,9 @@ struct scan_control {
+ 	/* Can pages be swapped as part of reclaim? */
+ 	unsigned int may_swap:1;
+ 
++	/* Can cgroups be reclaimed below their normal consumption range? */
++	unsigned int may_thrash:1;
++
+ 	unsigned int hibernation_mode:1;
+ 
+ 	/* One of the zones is ready for compaction */
+@@ -2294,6 +2297,12 @@ static bool shrink_zone(struct zone *zon
+ 			struct lruvec *lruvec;
+ 			int swappiness;
+ 
++			if (mem_cgroup_low(root, memcg)) {
++				if (!sc->may_thrash)
++					continue;
++				mem_cgroup_events(memcg, MEMCG_LOW, 1);
++			}
++
+ 			lruvec = mem_cgroup_zone_lruvec(zone, memcg);
+ 			swappiness = mem_cgroup_swappiness(memcg);
+ 
+@@ -2315,8 +2324,7 @@ static bool shrink_zone(struct zone *zon
+ 				mem_cgroup_iter_break(root, memcg);
+ 				break;
+ 			}
+-			memcg = mem_cgroup_iter(root, memcg, &reclaim);
+-		} while (memcg);
++		} while ((memcg = mem_cgroup_iter(root, memcg, &reclaim)));
+ 
  		/*
-@@ -2825,11 +2815,9 @@ retry:
- 		 * direct reclaim and reclaim/compaction depends on compaction
- 		 * being called after reclaim so call directly if necessary
- 		 */
--		page = __alloc_pages_direct_compact(gfp_mask, order, zonelist,
--					high_zoneidx, nodemask, alloc_flags,
--					preferred_zone,
--					classzone_idx, migratetype,
--					migration_mode, &contended_compaction,
-+		page = __alloc_pages_direct_compact(gfp_mask, order,
-+					alloc_flags, ac, migration_mode,
-+					&contended_compaction,
- 					&deferred_compaction);
- 		if (page)
- 			goto got_pg;
-@@ -2848,15 +2836,16 @@ struct page *
- __alloc_pages_nodemask(gfp_t gfp_mask, unsigned int order,
- 			struct zonelist *zonelist, nodemask_t *nodemask)
+ 		 * Shrink the slab caches in the same proportion that
+@@ -2519,10 +2527,11 @@ static bool shrink_zones(struct zonelist
+ static unsigned long do_try_to_free_pages(struct zonelist *zonelist,
+ 					  struct scan_control *sc)
  {
--	enum zone_type high_zoneidx = gfp_zone(gfp_mask);
--	struct zone *preferred_zone;
- 	struct zoneref *preferred_zoneref;
- 	struct page *page = NULL;
--	int migratetype = gfpflags_to_migratetype(gfp_mask);
- 	unsigned int cpuset_mems_cookie;
- 	int alloc_flags = ALLOC_WMARK_LOW|ALLOC_CPUSET|ALLOC_FAIR;
--	int classzone_idx;
- 	gfp_t alloc_mask; /* The gfp_t that was actually used for allocation */
-+	struct alloc_context ac = {
-+		.high_zoneidx = gfp_zone(gfp_mask),
-+		.nodemask = nodemask,
-+		.migratetype = gfpflags_to_migratetype(gfp_mask),
-+	};
++	int initial_priority = sc->priority;
+ 	unsigned long total_scanned = 0;
+ 	unsigned long writeback_threshold;
+ 	bool zones_reclaimable;
+-
++retry:
+ 	delayacct_freepages_start();
  
- 	gfp_mask &= gfp_allowed_mask;
+ 	if (global_reclaim(sc))
+@@ -2572,6 +2581,13 @@ static unsigned long do_try_to_free_page
+ 	if (sc->compaction_ready)
+ 		return 1;
  
-@@ -2875,25 +2864,25 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
- 	if (unlikely(!zonelist->_zonerefs->zone))
- 		return NULL;
- 
--	if (IS_ENABLED(CONFIG_CMA) && migratetype == MIGRATE_MOVABLE)
-+	if (IS_ENABLED(CONFIG_CMA) && ac.migratetype == MIGRATE_MOVABLE)
- 		alloc_flags |= ALLOC_CMA;
- 
- retry_cpuset:
- 	cpuset_mems_cookie = read_mems_allowed_begin();
- 
-+	/* We set it here, as __alloc_pages_slowpath might have changed it */
-+	ac.zonelist = zonelist;
- 	/* The preferred zone is used for statistics later */
--	preferred_zoneref = first_zones_zonelist(zonelist, high_zoneidx,
--				nodemask ? : &cpuset_current_mems_allowed,
--				&preferred_zone);
--	if (!preferred_zone)
-+	preferred_zoneref = first_zones_zonelist(ac.zonelist, ac.high_zoneidx,
-+				ac.nodemask ? : &cpuset_current_mems_allowed,
-+				&ac.preferred_zone);
-+	if (!ac.preferred_zone)
- 		goto out;
--	classzone_idx = zonelist_zone_idx(preferred_zoneref);
-+	ac.classzone_idx = zonelist_zone_idx(preferred_zoneref);
- 
- 	/* First allocation attempt */
- 	alloc_mask = gfp_mask|__GFP_HARDWALL;
--	page = get_page_from_freelist(alloc_mask, nodemask, order, zonelist,
--			high_zoneidx, alloc_flags, preferred_zone,
--			classzone_idx, migratetype);
-+	page = get_page_from_freelist(alloc_mask, order, alloc_flags, &ac);
- 	if (unlikely(!page)) {
- 		/*
- 		 * Runtime PM, block IO and its error handling path
-@@ -2902,15 +2891,13 @@ retry_cpuset:
- 		 */
- 		alloc_mask = memalloc_noio_flags(gfp_mask);
- 
--		page = __alloc_pages_slowpath(alloc_mask, order,
--				zonelist, high_zoneidx, nodemask,
--				preferred_zone, classzone_idx, migratetype);
-+		page = __alloc_pages_slowpath(alloc_mask, order, &ac);
- 	}
- 
- 	if (kmemcheck_enabled && page)
- 		kmemcheck_pagealloc_alloc(page, order, gfp_mask);
- 
--	trace_mm_page_alloc(page, order, alloc_mask, migratetype);
-+	trace_mm_page_alloc(page, order, alloc_mask, ac.migratetype);
- 
- out:
- 	/*
++	/* Untapped cgroup reserves?  Don't OOM, retry. */
++	if (!sc->may_thrash) {
++		sc->priority = initial_priority;
++		sc->may_thrash = 1;
++		goto retry;
++	}
++
+ 	/* Any of the zones still reclaimable?  Don't OOM. */
+ 	if (zones_reclaimable)
+ 		return 1;
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 origin.patch
-mm-compaction-fix-wrong-order-check-in-compact_finished.patch
-mm-compaction-stop-the-isolation-when-we-isolate-enough-freepage.patch
-mm-internalh-dont-split-printk-call-in-two.patch
-mm-page_allocc-pull-out-init-code-from-build_all_zonelists.patch
-mm-mm_initc-mark-mminit_verify_zonelist-as-__init.patch
-mm-mm_initc-mark-mminit_loglevel-__meminitdata.patch
-kernel-cpusetc-mark-cpuset_init_current_mems_allowed-as-__init.patch
-mm-fix-negative-nr_isolated-counts.patch
-zram-fix-umount-reset_store-mount-race-condition.patch
+list_lru-introduce-list_lru_shrink_countwalk.patch
+fs-consolidate-nrfree_cached_objects-args-in-shrink_control.patch
+vmscan-per-memory-cgroup-slab-shrinkers.patch
+memcg-rename-some-cache-id-related-variables.patch
+memcg-add-rwsem-to-synchronize-against-memcg_caches-arrays-relocation.patch
+list_lru-get-rid-of-active_nodes.patch
+list_lru-organize-all-list_lrus-to-list.patch
+list_lru-introduce-per-memcg-lists.patch
+fs-make-shrinker-memcg-aware.patch
+fs-shrinker-always-scan-at-least-one-object-of-each-type.patch
+fs-shrinker-always-scan-at-least-one-object-of-each-type-fix.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+slab-embed-memcg_cache_params-to-kmem_cache.patch
+slab-link-memcg-caches-of-the-same-kind-into-a-list.patch
+cgroup-release-css-id-after-css_free.patch
+slab-use-css-id-for-naming-per-memcg-caches.patch
+memcg-free-memcg_caches-slot-on-css-offline.patch
+list_lru-add-helpers-to-isolate-items.patch
+memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline.patch
+memcg-cleanup-static-keys-decrement.patch
+documentation-proc-add-proc-pid-numa_maps-interface-explanation-snippet.patch
+fs-proc-task_mmu-show-page-size-in-proc-pid-numa_maps.patch
+fs-proc-task_mmu-show-page-size-in-proc-pid-numa_maps-fix.patch
 
