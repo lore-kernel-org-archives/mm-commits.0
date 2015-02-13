@@ -1,69 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-halfmd4c-simplify-includes.patch removed from -mm
- tree
-Date: Fri, 13 Feb 2015 12:22:48 -0800
-Message-ID: <54de5d18.18m7V4v5LCbQnpzl%akpm@linux-foundation.org>
+Subject: [merged] lib-genallocc-remove-redundant-include.patch removed
+ from -mm tree
+Date: Fri, 13 Feb 2015 12:22:52 -0800
+Message-ID: <54de5d1c.eX1OjN0UcVIm7ER5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49140 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49145 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752935AbbBMUWt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:22:49 -0500
+	with ESMTP id S1752919AbbBMUWx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:22:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/halfmd4.c: simplify includes
+     Subject: lib/genalloc.c: remove redundant include
 has been removed from the -mm tree.  Its filename was
-     lib-halfmd4c-simplify-includes.patch
+     lib-genallocc-remove-redundant-include.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/halfmd4.c: simplify includes
+Subject: lib/genalloc.c: remove redundant include
 
-We only need EXPORT_SYMBOL, so compiler.h and export.h suffice.  This
-means linux/types.h is no longer implicitly included, so add an include of
-uapi/linux/types.h to linux/cryptohash.h for __u32.  Other users of
-cryptohash.h cannot be affected, since they must already have been
-including uapi/linux/types.h in order for gcc not to complain about
-unknown types.
+Removing this include produces byte-identical output, and thus removes a
+false dependency.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cryptohash.h |    2 ++
- lib/halfmd4.c              |    2 +-
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ lib/genalloc.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN include/linux/cryptohash.h~lib-halfmd4c-simplify-includes include/linux/cryptohash.h
---- a/include/linux/cryptohash.h~lib-halfmd4c-simplify-includes
-+++ a/include/linux/cryptohash.h
-@@ -1,6 +1,8 @@
- #ifndef __CRYPTOHASH_H
- #define __CRYPTOHASH_H
+diff -puN lib/genalloc.c~lib-genallocc-remove-redundant-include lib/genalloc.c
+--- a/lib/genalloc.c~lib-genallocc-remove-redundant-include
++++ a/lib/genalloc.c
+@@ -34,7 +34,6 @@
+ #include <linux/rculist.h>
+ #include <linux/interrupt.h>
+ #include <linux/genalloc.h>
+-#include <linux/of_address.h>
+ #include <linux/of_device.h>
  
-+#include <uapi/linux/types.h>
-+
- #define SHA_DIGEST_WORDS 5
- #define SHA_MESSAGE_BYTES (512 /*bits*/ / 8)
- #define SHA_WORKSPACE_WORDS 16
-diff -puN lib/halfmd4.c~lib-halfmd4c-simplify-includes lib/halfmd4.c
---- a/lib/halfmd4.c~lib-halfmd4c-simplify-includes
-+++ a/lib/halfmd4.c
-@@ -1,4 +1,4 @@
--#include <linux/kernel.h>
-+#include <linux/compiler.h>
- #include <linux/export.h>
- #include <linux/cryptohash.h>
- 
+ static inline size_t chunk_size(const struct gen_pool_chunk *chunk)
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
