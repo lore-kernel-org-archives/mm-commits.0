@@ -1,84 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-make-shrinker-memcg-aware.patch removed from -mm tree
-Date: Fri, 13 Feb 2015 12:20:06 -0800
-Message-ID: <54de5c76.9lqSwLxtbzlrfHof%akpm@linux-foundation.org>
+Subject: [merged]
+ fs-shrinker-always-scan-at-least-one-object-of-each-type.patch removed from -mm tree
+Date: Fri, 13 Feb 2015 12:20:09 -0800
+Message-ID: <54de5c79.LpH+Cxjtg9p3ftNW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48735 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48743 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752515AbbBMUUH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:20:07 -0500
+	with ESMTP id S1752515AbbBMUUK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:20:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@parallels.com, cl@linux.com, david@fromorbit.com, glommer@gmail.com, gthelen@google.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@suse.cz, penberg@kernel.org, rientjes@google.com, tj@kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: vdavydov@parallels.com, david@fromorbit.com, hannes@cmpxchg.org, mhocko@suse.cz, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs: make shrinker memcg aware
+     Subject: fs: shrinker: always scan at least one object of each type
 has been removed from the -mm tree.  Its filename was
-     fs-make-shrinker-memcg-aware.patch
+     fs-shrinker-always-scan-at-least-one-object-of-each-type.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: fs: make shrinker memcg aware
+Subject: fs: shrinker: always scan at least one object of each type
 
-Now, to make any list_lru-based shrinker memcg aware we should only
-initialize its list_lru as memcg aware.  Let's do it for the general FS
-shrinker (super_block::s_shrink).
+In super_cache_scan() we divide the number of objects of particular type
+by the total number of objects in order to distribute pressure among As a
+result, in some corner cases we can get nr_to_scan=0 even if there are
+some objects to reclaim, e.g.  dentries=1, inodes=1, fs_objects=1,
+nr_to_scan=1/3=0.
 
-There are other FS-specific shrinkers that use list_lru for storing
-objects, such as XFS and GFS2 dquot cache shrinkers, but since they
-reclaim objects that are shared among different cgroups, there is no point
-making them memcg aware.  It's a big question whether we should account
-them to memcg at all.
+This is unacceptable for per memcg kmem accounting, because this means
+that some objects may never get reclaimed after memcg death, preventing it
+from being freed.
 
+This patch therefore assures that super_cache_scan() will scan at least
+one object of each type if any.
+
+[akpm@linux-foundation.org: add comment]
 Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
-Cc: Dave Chinner <david@fromorbit.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Glauber Costa <glommer@gmail.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Tejun Heo <tj@kernel.org>
+Cc: Dave Chinner <david@fromorbit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/super.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/super.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN fs/super.c~fs-make-shrinker-memcg-aware fs/super.c
---- a/fs/super.c~fs-make-shrinker-memcg-aware
+diff -puN fs/super.c~fs-shrinker-always-scan-at-least-one-object-of-each-type fs/super.c
+--- a/fs/super.c~fs-shrinker-always-scan-at-least-one-object-of-each-type
 +++ a/fs/super.c
-@@ -189,9 +189,9 @@ static struct super_block *alloc_super(s
- 	INIT_HLIST_BL_HEAD(&s->s_anon);
- 	INIT_LIST_HEAD(&s->s_inodes);
+@@ -91,14 +91,17 @@ static unsigned long super_cache_scan(st
+ 	/*
+ 	 * prune the dcache first as the icache is pinned by it, then
+ 	 * prune the icache, followed by the filesystem specific caches
++	 *
++	 * Ensure that we always scan at least one object - memcg kmem
++	 * accounting uses this to fully empty the caches.
+ 	 */
+-	sc->nr_to_scan = dentries;
++	sc->nr_to_scan = dentries + 1;
+ 	freed = prune_dcache_sb(sb, sc);
+-	sc->nr_to_scan = inodes;
++	sc->nr_to_scan = inodes + 1;
+ 	freed += prune_icache_sb(sb, sc);
  
--	if (list_lru_init(&s->s_dentry_lru))
-+	if (list_lru_init_memcg(&s->s_dentry_lru))
- 		goto fail;
--	if (list_lru_init(&s->s_inode_lru))
-+	if (list_lru_init_memcg(&s->s_inode_lru))
- 		goto fail;
+ 	if (fs_objects) {
+-		sc->nr_to_scan = fs_objects;
++		sc->nr_to_scan = fs_objects + 1;
+ 		freed += sb->s_op->free_cached_objects(sb, sc);
+ 	}
  
- 	init_rwsem(&s->s_umount);
-@@ -227,7 +227,7 @@ static struct super_block *alloc_super(s
- 	s->s_shrink.scan_objects = super_cache_scan;
- 	s->s_shrink.count_objects = super_cache_count;
- 	s->s_shrink.batch = 1024;
--	s->s_shrink.flags = SHRINKER_NUMA_AWARE;
-+	s->s_shrink.flags = SHRINKER_NUMA_AWARE | SHRINKER_MEMCG_AWARE;
- 	return s;
- 
- fail:
 _
 
 Patches currently in -mm which might be from vdavydov@parallels.com are
