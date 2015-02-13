@@ -1,55 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-show_memc-remove-redundant-include.patch removed
+Subject: [merged] lib-radix-treec-change-to-simpler-include.patch removed
  from -mm tree
-Date: Fri, 13 Feb 2015 12:23:08 -0800
-Message-ID: <54de5d2c.CckvWQBVO6sqpo3+%akpm@linux-foundation.org>
+Date: Fri, 13 Feb 2015 12:23:06 -0800
+Message-ID: <54de5d2a.ZlOA5/YgRKgvO8pr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49161 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49159 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753689AbbBMUXJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:23:09 -0500
+	with ESMTP id S1753599AbbBMUXH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:23:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/show_mem.c: remove redundant include
+     Subject: lib/radix-tree.c: change to simpler include
 has been removed from the -mm tree.  Its filename was
-     lib-show_memc-remove-redundant-include.patch
+     lib-radix-treec-change-to-simpler-include.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/show_mem.c: remove redundant include
+Subject: lib/radix-tree.c: change to simpler include
 
-show_mem.c doesn't use anything from nmi.h.  Removing it yields identical
-objdump -d output for each of {allyes,allno,def}config and eliminates more
-than 100 lines in the dependency file.
+The comment helpfully explains why hardirq.h is included, but since
+2d4b84739f0a ("hardirq: Split preempt count mask definitions")
+in_interrupt() has been provided by preempt_mask.h.  Use that instead,
+saving around 40 lines in the generated dependency file.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/show_mem.c |    1 -
- 1 file changed, 1 deletion(-)
+ lib/radix-tree.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/show_mem.c~lib-show_memc-remove-redundant-include lib/show_mem.c
---- a/lib/show_mem.c~lib-show_memc-remove-redundant-include
-+++ a/lib/show_mem.c
-@@ -6,7 +6,6 @@
-  */
+diff -puN lib/radix-tree.c~lib-radix-treec-change-to-simpler-include lib/radix-tree.c
+--- a/lib/radix-tree.c~lib-radix-treec-change-to-simpler-include
++++ a/lib/radix-tree.c
+@@ -33,7 +33,7 @@
+ #include <linux/string.h>
+ #include <linux/bitops.h>
+ #include <linux/rcupdate.h>
+-#include <linux/hardirq.h>		/* in_interrupt() */
++#include <linux/preempt_mask.h>		/* in_interrupt() */
  
- #include <linux/mm.h>
--#include <linux/nmi.h>
- #include <linux/quicklist.h>
- #include <linux/cma.h>
  
+ /*
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
