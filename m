@@ -1,78 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-percpu_idac-remove-redundant-includes.patch removed
+Subject: [folded-merged]
+ mm-slab-convert-cache-name-allocations-to-kstrdup_const-fix.patch removed
  from -mm tree
-Date: Fri, 13 Feb 2015 12:29:37 -0800
-Message-ID: <54de5eb1.3jkkANez5kJS93Vl%akpm@linux-foundation.org>
+Date: Fri, 13 Feb 2015 14:28:31 -0800
+Message-ID: <54de7a8f.UaKNKX/YkDhUeKsM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49183 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51186 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751445AbbBMU3i (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:29:38 -0500
+	with ESMTP id S1752758AbbBMW2d (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 17:28:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.hajda@samsung.com, cl@linux.com, geert@linux-m68k.org, greg@kroah.com, iamjoonsoo.kim@lge.com, kyungmin.park@samsung.com, m.szyprowski@samsung.com, mturquette@linaro.org, penberg@kernel.org, rientjes@google.com, tj@kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/percpu_ida.c: remove redundant includes
+     Subject: mm-slab-convert-cache-name-allocations-to-kstrdup_const-fix
 has been removed from the -mm tree.  Its filename was
-     lib-percpu_idac-remove-redundant-includes.patch
+     mm-slab-convert-cache-name-allocations-to-kstrdup_const-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into mm-slab-convert-cache-name-allocations-to-kstrdup_const.patch
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/percpu_ida.c: remove redundant includes
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-slab-convert-cache-name-allocations-to-kstrdup_const-fix
 
-These three #includes seem to be completely redundant: Removing them
-yields identical objdump -d output for each of {allyes,allno,def}config,
-and neither included file end up in the generated dependency file through
-some recursive include.  In total, about 50 lines are eliminated from
-.percpu.o.cmd.
+mm/slab_common.c:391: warning: assignment discards qualifiers from pointer target type
 
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+make the handling of kmem_cache.name const-correct
+
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Andrzej Hajda <a.hajda@samsung.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Greg KH <greg@kroah.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Mike Turquette <mturquette@linaro.org>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/percpu_ida.c |    3 ---
- 1 file changed, 3 deletions(-)
+ mm/slab_common.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN lib/percpu_ida.c~lib-percpu_idac-remove-redundant-includes lib/percpu_ida.c
---- a/lib/percpu_ida.c~lib-percpu_idac-remove-redundant-includes
-+++ a/lib/percpu_ida.c
-@@ -19,13 +19,10 @@
- #include <linux/bug.h>
- #include <linux/err.h>
- #include <linux/export.h>
--#include <linux/hardirq.h>
--#include <linux/idr.h>
- #include <linux/init.h>
- #include <linux/kernel.h>
- #include <linux/percpu.h>
- #include <linux/sched.h>
--#include <linux/slab.h>
- #include <linux/string.h>
- #include <linux/spinlock.h>
- #include <linux/percpu_ida.h>
+diff -puN mm/slab_common.c~mm-slab-convert-cache-name-allocations-to-kstrdup_const-fix mm/slab_common.c
+--- a/mm/slab_common.c~mm-slab-convert-cache-name-allocations-to-kstrdup_const-fix
++++ a/mm/slab_common.c
+@@ -295,8 +295,8 @@ unsigned long calculate_alignment(unsign
+ }
+ 
+ static struct kmem_cache *
+-do_kmem_cache_create(char *name, size_t object_size, size_t size, size_t align,
+-		     unsigned long flags, void (*ctor)(void *),
++do_kmem_cache_create(const char *name, size_t object_size, size_t size,
++		     size_t align, unsigned long flags, void (*ctor)(void *),
+ 		     struct mem_cgroup *memcg, struct kmem_cache *root_cache)
+ {
+ 	struct kmem_cache *s;
+@@ -363,7 +363,7 @@ kmem_cache_create(const char *name, size
+ 		  unsigned long flags, void (*ctor)(void *))
+ {
+ 	struct kmem_cache *s;
+-	char *cache_name;
++	const char *cache_name;
+ 	int err;
+ 
+ 	get_online_cpus();
 _
 
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-lib-bitmapc-change-prototype-of-bitmap_copy_le.patch
-lib-bitmapc-elide-bitmap_copy_le-on-little-endian.patch
-lib-bitmap-change-bitmap_shift_right-to-take-unsigned-parameters.patch
-lib-bitmap-eliminate-branch-in-__bitmap_shift_right.patch
-lib-bitmap-remove-redundant-code-from-__bitmap_shift_right.patch
-lib-bitmap-yet-another-simplification-in-__bitmap_shift_right.patch
-lib-bitmap-change-bitmap_shift_left-to-take-unsigned-parameters.patch
-lib-bitmap-eliminate-branch-in-__bitmap_shift_left.patch
-lib-bitmap-remove-redundant-code-from-__bitmap_shift_left.patch
-lib-stringc-improve-strrchr.patch
-checkpatch-emit-an-error-when-using-predefined-timestamp-macros.patch
-linux-next.patch
+mm-slab-convert-cache-name-allocations-to-kstrdup_const.patch
+module_device_table-fix-some-callsites.patch
+kasan-enable-instrumentation-of-global-variables-fix.patch
+kasan-enable-instrumentation-of-global-variables-fix-2-fix.patch
+rtc-rk808-fix-the-rtc-time-reading-issue-fix.patch
 
