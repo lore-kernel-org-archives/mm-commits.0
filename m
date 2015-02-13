@@ -1,81 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-list_sortc-rearrange-includes.patch removed from -mm tree
-Date: Fri, 13 Feb 2015 12:22:54 -0800
-Message-ID: <54de5d1e.QunFsVt1KqZHtqOw%akpm@linux-foundation.org>
+Subject: [merged] lib-llistc-remove-redundant-include.patch removed from
+ -mm tree
+Date: Fri, 13 Feb 2015 12:22:58 -0800
+Message-ID: <54de5d22.ZjDEX79oLc6z6/Cu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49147 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49151 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752919AbbBMUWz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:22:55 -0500
+	with ESMTP id S1753628AbbBMUW7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:22:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/list_sort.c: rearrange includes
+     Subject: lib/llist.c: remove redundant include
 has been removed from the -mm tree.  Its filename was
-     lib-list_sortc-rearrange-includes.patch
+     lib-llistc-remove-redundant-include.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/list_sort.c: rearrange includes
+Subject: lib/llist.c: remove redundant include
 
-Memory allocation only happens in the self test, just as random numbers
-are only used there.  So move the inclusion of slab.h inside the
-CONFIG_TEST_LIST_SORT.
-
-We don't need module.h and all of the stuff it carries with it, so replace
-with export.h and compiler.h.  Unfortunately, the ARRAY_SIZE macro from
-kernel.h requires the user to ensure bug.h is also included (for
-BUILD_BUG_ON_ZERO, used by __must_be_array).  We used to get that through
-some maze of nested includes, but just include it explicitly.
-
-linux/string.h is then only included implicitly through
-kernel.h->printk.h->dynamic_debug.h, but only if !CONFIG_DYNAMIC_DEBUG, so
-just include it explicitly (for memset).
-
-objdump -d says the generated code is the same, and wc -l says that
-lib/.list_sort.o.cmd went from 579 to 165 lines.
+This file doesn't seem to use anything provided by linux/interrupt.h or
+anything recursively included through that.  Removing it produces
+byte-identical output, while reducing .llist.o.cmd from 541 to 156 lines.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/list_sort.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ lib/llist.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN lib/list_sort.c~lib-list_sortc-rearrange-includes lib/list_sort.c
---- a/lib/list_sort.c~lib-list_sortc-rearrange-includes
-+++ a/lib/list_sort.c
-@@ -2,9 +2,11 @@
- #define pr_fmt(fmt) "list_sort_test: " fmt
- 
+diff -puN lib/llist.c~lib-llistc-remove-redundant-include lib/llist.c
+--- a/lib/llist.c~lib-llistc-remove-redundant-include
++++ a/lib/llist.c
+@@ -24,7 +24,6 @@
+  */
  #include <linux/kernel.h>
--#include <linux/module.h>
-+#include <linux/bug.h>
-+#include <linux/compiler.h>
-+#include <linux/export.h>
-+#include <linux/string.h>
- #include <linux/list_sort.h>
--#include <linux/slab.h>
- #include <linux/list.h>
+ #include <linux/export.h>
+-#include <linux/interrupt.h>
+ #include <linux/llist.h>
  
- #define MAX_LIST_LENGTH_BITS 20
-@@ -146,6 +148,7 @@ EXPORT_SYMBOL(list_sort);
  
- #ifdef CONFIG_TEST_LIST_SORT
- 
-+#include <linux/slab.h>
- #include <linux/random.h>
- 
- /*
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
