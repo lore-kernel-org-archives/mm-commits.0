@@ -1,61 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged] arch-frv-mm-extablec-remove-unused-function.patch
+Subject: [merged] fs-proc-use-the-pde-to-to-get-proc_dir_entry.patch
  removed from -mm tree
-Date: Fri, 13 Feb 2015 12:21:33 -0800
-Message-ID: <54de5ccd.gAtNT46O8KFeUNKf%akpm@linux-foundation.org>
+Date: Fri, 13 Feb 2015 12:21:37 -0800
+Message-ID: <54de5cd1.DVqp66GXl0R4L+wj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48988 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48993 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752698AbbBMUVe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:21:34 -0500
+	with ESMTP id S1752698AbbBMUVi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:21:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rickard_strandqvist@spectrumdigital.se, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: kuleshovmail@gmail.com, nicolas.dichtel@6wind.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch/frv/mm/extable.c:  remove unused function
+     Subject: fs: proc: use PDE() to get proc_dir_entry
 has been removed from the -mm tree.  Its filename was
-     arch-frv-mm-extablec-remove-unused-function.patch
+     fs-proc-use-the-pde-to-to-get-proc_dir_entry.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
-Subject: arch/frv/mm/extable.c:  remove unused function
+From: Alexander Kuleshov <kuleshovmail@gmail.com>
+Subject: fs: proc: use PDE() to get proc_dir_entry
 
-Remove the function search_one_table() that is not used anywhere.
+Use the PDE() helper to get proc_dir_entry instead of coding it directly.
 
-This was partially found by using a static code analysis program called
-cppcheck.
-
-Signed-off-by: Rickard Strandqvist <rickard_strandqvist@spectrumdigital.se>
-Cc: David Howells <dhowells@redhat.com>
+Signed-off-by: Alexander Kuleshov <kuleshovmail@gmail.com>
+Acked-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/mm/extable.c |   23 -----------------------
- 1 file changed, 23 deletions(-)
+ fs/proc/generic.c |    2 +-
+ fs/proc/inode.c   |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/frv/mm/extable.c~arch-frv-mm-extablec-remove-unused-function arch/frv/mm/extable.c
---- a/arch/frv/mm/extable.c~arch-frv-mm-extablec-remove-unused-function
-+++ a/arch/frv/mm/extable.c
-@@ -10,29 +10,6 @@ extern const void __memset_end, __memset
- extern const void __memcpy_end, __memcpy_user_error_lr, __memcpy_user_error_handler;
- extern spinlock_t modlist_lock;
+diff -puN fs/proc/generic.c~fs-proc-use-the-pde-to-to-get-proc_dir_entry fs/proc/generic.c
+--- a/fs/proc/generic.c~fs-proc-use-the-pde-to-to-get-proc_dir_entry
++++ a/fs/proc/generic.c
+@@ -122,7 +122,7 @@ static int proc_getattr(struct vfsmount
+ 			struct kstat *stat)
+ {
+ 	struct inode *inode = dentry->d_inode;
+-	struct proc_dir_entry *de = PROC_I(inode)->pde;
++	struct proc_dir_entry *de = PDE(inode);
+ 	if (de && de->nlink)
+ 		set_nlink(inode, de->nlink);
  
--/*****************************************************************************/
--/*
-- *
-- */
--static inline unsigned long search_one_table(const struct exception_table_entry *first,
--					     const struct exception_table_entry *last,
--					     unsigned long value)
--{
--        while (first <= last) {
--		const struct exception_table_entry __attribute__((aligned(8))) *mid;
--		long diff;
+diff -puN fs/proc/inode.c~fs-proc-use-the-pde-to-to-get-proc_dir_entry fs/proc/inode.c
+--- a/fs/proc/inode.c~fs-proc-use-the-pde-to-to-get-proc_dir_entry
++++ a/fs/proc/inode.c
+@@ -40,7 +40,7 @@ static void proc_evict_inode(struct inod
+ 	put_pid(PROC_I(inode)->pid);
+ 
+ 	/* Let go of any associated proc directory entry */
+-	de = PROC_I(inode)->pde;
++	de = PDE(inode);
+ 	if (de)
+ 		pde_put(de);
+ 	head = PROC_I(inode)->sysctl;
+_
+
+Patches currently in -mm which might be from kuleshovmail@gmail.com are
+
+origin.patch
+kexec-fix-a-typo-in-comment.patch
+linux-next.patch
+
