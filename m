@@ -1,112 +1,154 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- powerpc-add-running_clock-for-powerpc-to-prevent-spurious-softlockup-warnings.patch removed from -mm tree
-Date: Fri, 13 Feb 2015 12:21:55 -0800
-Message-ID: <54de5ce3.0R1dZmf7bPw+AbuP%akpm@linux-foundation.org>
+Subject: [merged] kernelh-remove-ancient-__function__-hack.patch removed
+ from -mm tree
+Date: Fri, 13 Feb 2015 12:21:57 -0800
+Message-ID: <54de5ce5.n5Ch2IvqIYdgY2Hn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49071 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49078 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753111AbbBMUV4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:21:56 -0500
+	with ESMTP id S1753111AbbBMUV6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:21:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cyrilbur@gmail.com, atomlin@redhat.com, benzh@chromium.org, chaiw.fnst@cn.fujitsu.com, drjones@redhat.com, dzickus@redhat.com, fabf@skynet.be, john.stultz@linaro.org, mingo@kernel.org, mpe@ellerman.id.au, schwidefsky@de.ibm.com, tglx@linutronix.de, uobergfe@redhat.com, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, joe@perches.com, mina86@mina86.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc: add running_clock for powerpc to prevent spurious softlockup warnings
+     Subject: kernel.h: remove ancient __FUNCTION__ hack
 has been removed from the -mm tree.  Its filename was
-     powerpc-add-running_clock-for-powerpc-to-prevent-spurious-softlockup-warnings.patch
+     kernelh-remove-ancient-__function__-hack.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Cyril Bur <cyrilbur@gmail.com>
-Subject: powerpc: add running_clock for powerpc to prevent spurious softlockup warnings
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: kernel.h: remove ancient __FUNCTION__ hack
 
-On POWER8 virtualised kernels the VTB register can be read to have a view
-of time that only increases while the guest is running.  This will prevent
-guests from seeing time jump if a guest is paused for significant amounts
-of time.
+__FUNCTION__ hasn't been treated as a string literal since gcc 3.4, so
+this only helps people who only test-compile using 3.3 (compiler-gcc3.h
+barks at anything older than that).  Besides, there are almost no
+occurrences of __FUNCTION__ left in the tree.
 
-On POWER7 and below virtualised kernels stolen time is subtracted from
-local_clock as a best effort approximation.  This will not eliminate
-spurious warnings in the case of a suspended guest but may reduce the
-occurance in the case of softlockups due to host over commit.
-
-Bare metal kernels should avoid reading the VTB as KVM does not restore
-sane values when not executing, the approxmation is fine as host kernels
-won't observe any stolen time.
-
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Cyril Bur <cyrilbur@gmail.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Andrew Jones <drjones@redhat.com>
-Acked-by: Don Zickus <dzickus@redhat.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Ulrich Obergfell <uobergfe@redhat.com>
-Cc: chai wen <chaiw.fnst@cn.fujitsu.com>
-Cc: Fabian Frederick <fabf@skynet.be>
-Cc: Aaron Tomlin <atomlin@redhat.com>
-Cc: Ben Zhang <benzh@chromium.org>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: John Stultz <john.stultz@linaro.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+[akpm@linux-foundation.org: convert remaining __FUNCTION__ references]
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/time.c |   32 ++++++++++++++++++++++++++++++++
- 1 file changed, 32 insertions(+)
+ arch/x86/kernel/hpet.c                       |    2 +-
+ arch/x86/kernel/rtc.c                        |    4 ++--
+ arch/x86/platform/intel-mid/intel_mid_vrtc.c |    2 +-
+ drivers/acpi/acpica/utdebug.c                |    4 ++--
+ drivers/block/xen-blkfront.c                 |    2 +-
+ include/acpi/acoutput.h                      |    6 +++---
+ include/linux/kernel.h                       |    3 ---
+ 7 files changed, 10 insertions(+), 13 deletions(-)
 
-diff -puN arch/powerpc/kernel/time.c~powerpc-add-running_clock-for-powerpc-to-prevent-spurious-softlockup-warnings arch/powerpc/kernel/time.c
---- a/arch/powerpc/kernel/time.c~powerpc-add-running_clock-for-powerpc-to-prevent-spurious-softlockup-warnings
-+++ a/arch/powerpc/kernel/time.c
-@@ -621,6 +621,38 @@ unsigned long long sched_clock(void)
- 	return mulhdu(get_tb() - boot_tb, tb_to_ns_scale) << tb_to_ns_shift;
- }
+diff -puN arch/x86/kernel/hpet.c~kernelh-remove-ancient-__function__-hack arch/x86/kernel/hpet.c
+--- a/arch/x86/kernel/hpet.c~kernelh-remove-ancient-__function__-hack
++++ a/arch/x86/kernel/hpet.c
+@@ -168,7 +168,7 @@ static void _hpet_print_config(const cha
+ #define hpet_print_config()					\
+ do {								\
+ 	if (hpet_verbose)					\
+-		_hpet_print_config(__FUNCTION__, __LINE__);	\
++		_hpet_print_config(__func__, __LINE__);	\
+ } while (0)
  
-+
-+#ifdef CONFIG_PPC_PSERIES
-+
-+/*
-+ * Running clock - attempts to give a view of time passing for a virtualised
-+ * kernels.
-+ * Uses the VTB register if available otherwise a next best guess.
-+ */
-+unsigned long long running_clock(void)
-+{
-+	/*
-+	 * Don't read the VTB as a host since KVM does not switch in host
-+	 * timebase into the VTB when it takes a guest off the CPU, reading the
-+	 * VTB would result in reading 'last switched out' guest VTB.
-+	 *
-+	 * Host kernels are often compiled with CONFIG_PPC_PSERIES checked, it
-+	 * would be unsafe to rely only on the #ifdef above.
-+	 */
-+	if (firmware_has_feature(FW_FEATURE_LPAR) &&
-+	    cpu_has_feature(CPU_FTR_ARCH_207S))
-+		return mulhdu(get_vtb() - boot_tb, tb_to_ns_scale) << tb_to_ns_shift;
-+
-+	/*
-+	 * This is a next best approximation without a VTB.
-+	 * On a host which is running bare metal there should never be any stolen
-+	 * time and on a host which doesn't do any virtualisation TB *should* equal
-+	 * VTB so it makes no difference anyway.
-+	 */
-+	return local_clock() - cputime_to_nsecs(kcpustat_this_cpu->cpustat[CPUTIME_STEAL]);
-+}
-+#endif
-+
- static int __init get_freq(char *name, int cells, unsigned long *val)
- {
- 	struct device_node *cpu;
-_
-
-Patches currently in -mm which might be from cyrilbur@gmail.com are
-
-origin.patch
-
+ /*
+diff -puN arch/x86/kernel/rtc.c~kernelh-remove-ancient-__function__-hack arch/x86/kernel/rtc.c
+--- a/arch/x86/kernel/rtc.c~kernelh-remove-ancient-__function__-hack
++++ a/arch/x86/kernel/rtc.c
+@@ -49,11 +49,11 @@ int mach_set_rtc_mmss(const struct times
+ 		retval = set_rtc_time(&tm);
+ 		if (retval)
+ 			printk(KERN_ERR "%s: RTC write failed with error %d\n",
+-			       __FUNCTION__, retval);
++			       __func__, retval);
+ 	} else {
+ 		printk(KERN_ERR
+ 		       "%s: Invalid RTC value: write of %lx to RTC failed\n",
+-			__FUNCTION__, nowtime);
++			__func__, nowtime);
+ 		retval = -EINVAL;
+ 	}
+ 	return retval;
+diff -puN arch/x86/platform/intel-mid/intel_mid_vrtc.c~kernelh-remove-ancient-__function__-hack arch/x86/platform/intel-mid/intel_mid_vrtc.c
+--- a/arch/x86/platform/intel-mid/intel_mid_vrtc.c~kernelh-remove-ancient-__function__-hack
++++ a/arch/x86/platform/intel-mid/intel_mid_vrtc.c
+@@ -110,7 +110,7 @@ int vrtc_set_mmss(const struct timespec
+ 		spin_unlock_irqrestore(&rtc_lock, flags);
+ 	} else {
+ 		pr_err("%s: Invalid vRTC value: write of %lx to vRTC failed\n",
+-			__FUNCTION__, now->tv_sec);
++			__func__, now->tv_sec);
+ 		retval = -EINVAL;
+ 	}
+ 	return retval;
+diff -puN drivers/acpi/acpica/utdebug.c~kernelh-remove-ancient-__function__-hack drivers/acpi/acpica/utdebug.c
+--- a/drivers/acpi/acpica/utdebug.c~kernelh-remove-ancient-__function__-hack
++++ a/drivers/acpi/acpica/utdebug.c
+@@ -111,8 +111,8 @@ void acpi_ut_track_stack_ptr(void)
+  * RETURN:      Updated pointer to the function name
+  *
+  * DESCRIPTION: Remove the "Acpi" prefix from the function name, if present.
+- *              This allows compiler macros such as __FUNCTION__ to be used
+- *              with no change to the debug output.
++ *              This allows compiler macros such as __func__ to be used with no
++ *              change to the debug output.
+  *
+  ******************************************************************************/
+ 
+diff -puN drivers/block/xen-blkfront.c~kernelh-remove-ancient-__function__-hack drivers/block/xen-blkfront.c
+--- a/drivers/block/xen-blkfront.c~kernelh-remove-ancient-__function__-hack
++++ a/drivers/block/xen-blkfront.c
+@@ -1391,7 +1391,7 @@ static int blkfront_probe(struct xenbus_
+ 			if (major != XENVBD_MAJOR) {
+ 				printk(KERN_INFO
+ 						"%s: HVM does not support vbd %d as xen block device\n",
+-						__FUNCTION__, vdevice);
++						__func__, vdevice);
+ 				return -ENODEV;
+ 			}
+ 		}
+diff -puN include/acpi/acoutput.h~kernelh-remove-ancient-__function__-hack include/acpi/acoutput.h
+--- a/include/acpi/acoutput.h~kernelh-remove-ancient-__function__-hack
++++ a/include/acpi/acoutput.h
+@@ -240,7 +240,7 @@
+ /*
+  * If ACPI_GET_FUNCTION_NAME was not defined in the compiler-dependent header,
+  * define it now. This is the case where there the compiler does not support
+- * a __FUNCTION__ macro or equivalent.
++ * a __func__ macro or equivalent.
+  */
+ #ifndef ACPI_GET_FUNCTION_NAME
+ #define ACPI_GET_FUNCTION_NAME          _acpi_function_name
+@@ -249,12 +249,12 @@
+  * The Name parameter should be the procedure name as a quoted string.
+  * The function name is also used by the function exit macros below.
+  * Note: (const char) is used to be compatible with the debug interfaces
+- * and macros such as __FUNCTION__.
++ * and macros such as __func__.
+  */
+ #define ACPI_FUNCTION_NAME(name)        static const char _acpi_function_name[] = #name;
+ 
+ #else
+-/* Compiler supports __FUNCTION__ (or equivalent) -- Ignore this macro */
++/* Compiler supports __func__ (or equivalent) -- Ignore this macro */
+ 
+ #define ACPI_FUNCTION_NAME(name)
+ #endif				/* ACPI_GET_FUNCTION_NAME */
+diff -puN include/linux/kernel.h~kernelh-remove-ancient-__function__-hack include/linux/kernel.h
+--- a/include/linux/kernel.h~kernelh-remove-ancient-__function__-hack
++++ a/include/linux/kernel.h
+@@ -800,9 +800,6 @@ static inline void ftrace_dump(enum ftra
+ 	const typeof( ((type *)0)->member ) *__mptr = (ptr);	\
+ 	(type *)( (char *)__mptr - offsetof(type,member) );})
+ 
+-/* Trap pasters of __FUNCTION__ at compile-time */
+-#define __FUNCTION__ (__func__)
