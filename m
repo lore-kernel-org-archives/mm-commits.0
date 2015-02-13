@@ -1,45 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline.patch removed
- from -mm tree
-Date: Fri, 13 Feb 2015 12:20:28 -0800
-Message-ID: <54de5c8c.Bn7i3gY9+DcDF4ci%akpm@linux-foundation.org>
+Subject: [merged] list_lru-add-helpers-to-isolate-items.patch removed from -mm tree
+Date: Fri, 13 Feb 2015 12:20:26 -0800
+Message-ID: <54de5c8a.oNbxDJRyzKgPqhMM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48813 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48802 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753626AbbBMUU3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:20:29 -0500
+	with ESMTP id S1753566AbbBMUU1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:20:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vdavydov@parallels.com, cl@linux.com, david@fromorbit.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@suse.cz, penberg@kernel.org, rientjes@google.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: reparent list_lrus and free kmemcg_id on css offline
+     Subject: list_lru: add helpers to isolate items
 has been removed from the -mm tree.  Its filename was
-     memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline.patch
+     list_lru-add-helpers-to-isolate-items.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: memcg: reparent list_lrus and free kmemcg_id on css offline
+Subject: list_lru: add helpers to isolate items
 
-Now, the only reason to keep kmemcg_id till css free is list_lru, which
-uses it to distribute elements between per-memcg lists.  However, it can
-be easily sorted out - we only need to change kmemcg_id of an offline
-cgroup to its parent's id, making further list_lru_add()'s add elements to
-the parent's list, and then move all elements from the offline cgroup's
-list to the one of its parent.  It will work, because a racing
-list_lru_del() does not need to know the list it is deleting the element
-from.  It can decrement the wrong nr_items counter though, but the ongoing
-reparenting will fix it.  After list_lru reparenting is done we are free
-to release kmemcg_id saving a valuable slot in a per-memcg array for new
-cgroups.
+Currently, the isolate callback passed to the list_lru_walk family of
+functions is supposed to just delete an item from the list upon returning
+LRU_REMOVED or LRU_REMOVED_RETRY, while nr_items counter is fixed by
+__list_lru_walk_one after the callback returns.  Since the callback is
+allowed to drop the lock after removing an item (it has to return
+LRU_REMOVED_RETRY then), the nr_items can be less than the actual number
+of elements on the list even if we check them under the lock.  This makes
+it difficult to move items from one list_lru_one to another, which is
+required for per-memcg list_lru reparenting - we can't just splice the
+lists, we have to move entries one by one.
+
+This patch therefore introduces helpers that must be used by callback
+functions to isolate items instead of raw list_del/list_move.  These are
+list_lru_isolate and list_lru_isolate_move.  They not only remove the
+entry from the list, but also fix the nr_items counter, making sure
+nr_items always reflects the actual number of elements on the list if
+checked under the appropriate lock.
 
 Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -53,195 +57,290 @@ Cc: Dave Chinner <david@fromorbit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/list_lru.h |    3 +-
- mm/list_lru.c            |   46 ++++++++++++++++++++++++++++++++++---
- mm/memcontrol.c          |   39 +++++++++++++++++++++++++++----
- 3 files changed, 79 insertions(+), 9 deletions(-)
+ fs/dcache.c              |   21 +++++++++++----------
+ fs/gfs2/quota.c          |    5 +++--
+ fs/inode.c               |    8 ++++----
+ fs/xfs/xfs_buf.c         |    6 ++++--
+ fs/xfs/xfs_qm.c          |    5 +++--
+ include/linux/list_lru.h |    9 +++++++--
+ mm/list_lru.c            |   19 ++++++++++++++++---
+ mm/workingset.c          |    3 ++-
+ 8 files changed, 50 insertions(+), 26 deletions(-)
 
-diff -puN include/linux/list_lru.h~memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline include/linux/list_lru.h
---- a/include/linux/list_lru.h~memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline
-+++ a/include/linux/list_lru.h
-@@ -26,7 +26,7 @@ enum lru_status {
+diff -puN fs/dcache.c~list_lru-add-helpers-to-isolate-items fs/dcache.c
+--- a/fs/dcache.c~list_lru-add-helpers-to-isolate-items
++++ a/fs/dcache.c
+@@ -400,19 +400,20 @@ static void d_shrink_add(struct dentry *
+  * LRU lists entirely, while shrink_move moves it to the indicated
+  * private list.
+  */
+-static void d_lru_isolate(struct dentry *dentry)
++static void d_lru_isolate(struct list_lru_one *lru, struct dentry *dentry)
+ {
+ 	D_FLAG_VERIFY(dentry, DCACHE_LRU_LIST);
+ 	dentry->d_flags &= ~DCACHE_LRU_LIST;
+ 	this_cpu_dec(nr_dentry_unused);
+-	list_del_init(&dentry->d_lru);
++	list_lru_isolate(lru, &dentry->d_lru);
+ }
  
- struct list_lru_one {
- 	struct list_head	list;
--	/* kept as signed so we can catch imbalance bugs */
-+	/* may become negative during memcg reparenting */
- 	long			nr_items;
- };
+-static void d_lru_shrink_move(struct dentry *dentry, struct list_head *list)
++static void d_lru_shrink_move(struct list_lru_one *lru, struct dentry *dentry,
++			      struct list_head *list)
+ {
+ 	D_FLAG_VERIFY(dentry, DCACHE_LRU_LIST);
+ 	dentry->d_flags |= DCACHE_SHRINK_LIST;
+-	list_move_tail(&dentry->d_lru, list);
++	list_lru_isolate_move(lru, &dentry->d_lru, list);
+ }
  
-@@ -62,6 +62,7 @@ int __list_lru_init(struct list_lru *lru
- #define list_lru_init_memcg(lru)	__list_lru_init((lru), true, NULL)
- 
- int memcg_update_all_list_lrus(int num_memcgs);
-+void memcg_drain_all_list_lrus(int src_idx, int dst_idx);
- 
- /**
-  * list_lru_add: add an element to the lru list's tail
-diff -puN mm/list_lru.c~memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline mm/list_lru.c
---- a/mm/list_lru.c~memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline
-+++ a/mm/list_lru.c
-@@ -100,7 +100,6 @@ bool list_lru_add(struct list_lru *lru,
- 
- 	spin_lock(&nlru->lock);
- 	l = list_lru_from_kmem(nlru, item);
--	WARN_ON_ONCE(l->nr_items < 0);
- 	if (list_empty(item)) {
- 		list_add_tail(item, &l->list);
- 		l->nr_items++;
-@@ -123,7 +122,6 @@ bool list_lru_del(struct list_lru *lru,
- 	if (!list_empty(item)) {
- 		list_del_init(item);
- 		l->nr_items--;
--		WARN_ON_ONCE(l->nr_items < 0);
- 		spin_unlock(&nlru->lock);
- 		return true;
+ /*
+@@ -869,8 +870,8 @@ static void shrink_dentry_list(struct li
  	}
-@@ -156,7 +154,6 @@ static unsigned long __list_lru_count_on
- 
- 	spin_lock(&nlru->lock);
- 	l = list_lru_from_memcg_idx(nlru, memcg_idx);
--	WARN_ON_ONCE(l->nr_items < 0);
- 	count = l->nr_items;
- 	spin_unlock(&nlru->lock);
- 
-@@ -458,6 +455,49 @@ fail:
- 		memcg_cancel_update_list_lru(lru, old_size, new_size);
- 	goto out;
  }
-+
-+static void memcg_drain_list_lru_node(struct list_lru_node *nlru,
-+				      int src_idx, int dst_idx)
-+{
-+	struct list_lru_one *src, *dst;
-+
-+	/*
-+	 * Since list_lru_{add,del} may be called under an IRQ-safe lock,
-+	 * we have to use IRQ-safe primitives here to avoid deadlock.
-+	 */
-+	spin_lock_irq(&nlru->lock);
-+
-+	src = list_lru_from_memcg_idx(nlru, src_idx);
-+	dst = list_lru_from_memcg_idx(nlru, dst_idx);
-+
-+	list_splice_init(&src->list, &dst->list);
-+	dst->nr_items += src->nr_items;
-+	src->nr_items = 0;
-+
-+	spin_unlock_irq(&nlru->lock);
-+}
-+
-+static void memcg_drain_list_lru(struct list_lru *lru,
-+				 int src_idx, int dst_idx)
-+{
-+	int i;
-+
-+	if (!list_lru_memcg_aware(lru))
-+		return;
-+
-+	for (i = 0; i < nr_node_ids; i++)
-+		memcg_drain_list_lru_node(&lru->node[i], src_idx, dst_idx);
-+}
-+
-+void memcg_drain_all_list_lrus(int src_idx, int dst_idx)
-+{
-+	struct list_lru *lru;
-+
-+	mutex_lock(&list_lrus_mutex);
-+	list_for_each_entry(lru, &list_lrus, list)
-+		memcg_drain_list_lru(lru, src_idx, dst_idx);
-+	mutex_unlock(&list_lrus_mutex);
-+}
- #else
- static int memcg_init_list_lru(struct list_lru *lru, bool memcg_aware)
+ 
+-static enum lru_status
+-dentry_lru_isolate(struct list_head *item, spinlock_t *lru_lock, void *arg)
++static enum lru_status dentry_lru_isolate(struct list_head *item,
++		struct list_lru_one *lru, spinlock_t *lru_lock, void *arg)
  {
-diff -puN mm/memcontrol.c~memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-reparent-list_lrus-and-free-kmemcg_id-on-css-offline
-+++ a/mm/memcontrol.c
-@@ -334,6 +334,7 @@ struct mem_cgroup {
- #if defined(CONFIG_MEMCG_KMEM)
-         /* Index in the kmem_cache->memcg_params.memcg_caches array */
- 	int kmemcg_id;
-+	bool kmem_acct_activated;
- 	bool kmem_acct_active;
- #endif
- 
-@@ -582,14 +583,10 @@ void memcg_put_cache_ids(void)
- struct static_key memcg_kmem_enabled_key;
- EXPORT_SYMBOL(memcg_kmem_enabled_key);
- 
--static void memcg_free_cache_id(int id);
--
- static void disarm_kmem_keys(struct mem_cgroup *memcg)
- {
--	if (memcg->kmemcg_id >= 0) {
-+	if (memcg->kmem_acct_activated)
- 		static_key_slow_dec(&memcg_kmem_enabled_key);
--		memcg_free_cache_id(memcg->kmemcg_id);
--	}
- 	/*
- 	 * This check can't live in kmem destruction function,
- 	 * since the charges will outlive the cgroup
-@@ -3322,6 +3319,7 @@ static int memcg_activate_kmem(struct me
- 	int memcg_id;
- 
- 	BUG_ON(memcg->kmemcg_id >= 0);
-+	BUG_ON(memcg->kmem_acct_activated);
- 	BUG_ON(memcg->kmem_acct_active);
- 
- 	/*
-@@ -3365,6 +3363,7 @@ static int memcg_activate_kmem(struct me
- 	 * patched.
+ 	struct list_head *freeable = arg;
+ 	struct dentry	*dentry = container_of(item, struct dentry, d_lru);
+@@ -890,7 +891,7 @@ dentry_lru_isolate(struct list_head *ite
+ 	 * another pass through the LRU.
  	 */
- 	memcg->kmemcg_id = memcg_id;
-+	memcg->kmem_acct_activated = true;
- 	memcg->kmem_acct_active = true;
- out:
- 	return err;
-@@ -4047,6 +4046,10 @@ static int memcg_init_kmem(struct mem_cg
+ 	if (dentry->d_lockref.count) {
+-		d_lru_isolate(dentry);
++		d_lru_isolate(lru, dentry);
+ 		spin_unlock(&dentry->d_lock);
+ 		return LRU_REMOVED;
+ 	}
+@@ -921,7 +922,7 @@ dentry_lru_isolate(struct list_head *ite
+ 		return LRU_ROTATE;
+ 	}
  
- static void memcg_deactivate_kmem(struct mem_cgroup *memcg)
- {
-+	struct cgroup_subsys_state *css;
-+	struct mem_cgroup *parent, *child;
-+	int kmemcg_id;
-+
- 	if (!memcg->kmem_acct_active)
- 		return;
+-	d_lru_shrink_move(dentry, freeable);
++	d_lru_shrink_move(lru, dentry, freeable);
+ 	spin_unlock(&dentry->d_lock);
  
-@@ -4059,6 +4062,32 @@ static void memcg_deactivate_kmem(struct
- 	memcg->kmem_acct_active = false;
- 
- 	memcg_deactivate_kmem_caches(memcg);
-+
-+	kmemcg_id = memcg->kmemcg_id;
-+	BUG_ON(kmemcg_id < 0);
-+
-+	parent = parent_mem_cgroup(memcg);
-+	if (!parent)
-+		parent = root_mem_cgroup;
-+
-+	/*
-+	 * Change kmemcg_id of this cgroup and all its descendants to the
-+	 * parent's id, and then move all entries from this cgroup's list_lrus
-+	 * to ones of the parent. After we have finished, all list_lrus
-+	 * corresponding to this cgroup are guaranteed to remain empty. The
-+	 * ordering is imposed by list_lru_node->lock taken by
-+	 * memcg_drain_all_list_lrus().
-+	 */
-+	css_for_each_descendant_pre(css, &memcg->css) {
-+		child = mem_cgroup_from_css(css);
-+		BUG_ON(child->kmemcg_id != kmemcg_id);
-+		child->kmemcg_id = parent->kmemcg_id;
-+		if (!memcg->use_hierarchy)
-+			break;
-+	}
-+	memcg_drain_all_list_lrus(kmemcg_id, parent->kmemcg_id);
-+
-+	memcg_free_cache_id(kmemcg_id);
+ 	return LRU_REMOVED;
+@@ -951,7 +952,7 @@ long prune_dcache_sb(struct super_block
  }
  
- static void memcg_destroy_kmem(struct mem_cgroup *memcg)
+ static enum lru_status dentry_lru_isolate_shrink(struct list_head *item,
+-						spinlock_t *lru_lock, void *arg)
++		struct list_lru_one *lru, spinlock_t *lru_lock, void *arg)
+ {
+ 	struct list_head *freeable = arg;
+ 	struct dentry	*dentry = container_of(item, struct dentry, d_lru);
+@@ -964,7 +965,7 @@ static enum lru_status dentry_lru_isolat
+ 	if (!spin_trylock(&dentry->d_lock))
+ 		return LRU_SKIP;
+ 
+-	d_lru_shrink_move(dentry, freeable);
++	d_lru_shrink_move(lru, dentry, freeable);
+ 	spin_unlock(&dentry->d_lock);
+ 
+ 	return LRU_REMOVED;
+diff -puN fs/gfs2/quota.c~list_lru-add-helpers-to-isolate-items fs/gfs2/quota.c
+--- a/fs/gfs2/quota.c~list_lru-add-helpers-to-isolate-items
++++ a/fs/gfs2/quota.c
+@@ -145,7 +145,8 @@ static void gfs2_qd_dispose(struct list_
+ }
+ 
+ 
+-static enum lru_status gfs2_qd_isolate(struct list_head *item, spinlock_t *lock, void *arg)
++static enum lru_status gfs2_qd_isolate(struct list_head *item,
++		struct list_lru_one *lru, spinlock_t *lru_lock, void *arg)
+ {
+ 	struct list_head *dispose = arg;
+ 	struct gfs2_quota_data *qd = list_entry(item, struct gfs2_quota_data, qd_lru);
+@@ -155,7 +156,7 @@ static enum lru_status gfs2_qd_isolate(s
+ 
+ 	if (qd->qd_lockref.count == 0) {
+ 		lockref_mark_dead(&qd->qd_lockref);
+-		list_move(&qd->qd_lru, dispose);
++		list_lru_isolate_move(lru, &qd->qd_lru, dispose);
+ 	}
+ 
+ 	spin_unlock(&qd->qd_lockref.lock);
+diff -puN fs/inode.c~list_lru-add-helpers-to-isolate-items fs/inode.c
+--- a/fs/inode.c~list_lru-add-helpers-to-isolate-items
++++ a/fs/inode.c
+@@ -685,8 +685,8 @@ int invalidate_inodes(struct super_block
+  * LRU does not have strict ordering. Hence we don't want to reclaim inodes
+  * with this flag set because they are the inodes that are out of order.
+  */
+-static enum lru_status
+-inode_lru_isolate(struct list_head *item, spinlock_t *lru_lock, void *arg)
++static enum lru_status inode_lru_isolate(struct list_head *item,
++		struct list_lru_one *lru, spinlock_t *lru_lock, void *arg)
+ {
+ 	struct list_head *freeable = arg;
+ 	struct inode	*inode = container_of(item, struct inode, i_lru);
+@@ -704,7 +704,7 @@ inode_lru_isolate(struct list_head *item
+ 	 */
+ 	if (atomic_read(&inode->i_count) ||
+ 	    (inode->i_state & ~I_REFERENCED)) {
+-		list_del_init(&inode->i_lru);
++		list_lru_isolate(lru, &inode->i_lru);
+ 		spin_unlock(&inode->i_lock);
+ 		this_cpu_dec(nr_unused);
+ 		return LRU_REMOVED;
+@@ -738,7 +738,7 @@ inode_lru_isolate(struct list_head *item
+ 
+ 	WARN_ON(inode->i_state & I_NEW);
+ 	inode->i_state |= I_FREEING;
+-	list_move(&inode->i_lru, freeable);
++	list_lru_isolate_move(lru, &inode->i_lru, freeable);
+ 	spin_unlock(&inode->i_lock);
+ 
+ 	this_cpu_dec(nr_unused);
+diff -puN fs/xfs/xfs_buf.c~list_lru-add-helpers-to-isolate-items fs/xfs/xfs_buf.c
+--- a/fs/xfs/xfs_buf.c~list_lru-add-helpers-to-isolate-items
++++ a/fs/xfs/xfs_buf.c
+@@ -1488,6 +1488,7 @@ xfs_buf_iomove(
+ static enum lru_status
+ xfs_buftarg_wait_rele(
+ 	struct list_head	*item,
++	struct list_lru_one	*lru,
+ 	spinlock_t		*lru_lock,
+ 	void			*arg)
+ 
+@@ -1509,7 +1510,7 @@ xfs_buftarg_wait_rele(
+ 	 */
+ 	atomic_set(&bp->b_lru_ref, 0);
+ 	bp->b_state |= XFS_BSTATE_DISPOSE;
+-	list_move(item, dispose);
++	list_lru_isolate_move(lru, item, dispose);
+ 	spin_unlock(&bp->b_lock);
+ 	return LRU_REMOVED;
+ }
+@@ -1546,6 +1547,7 @@ xfs_wait_buftarg(
+ static enum lru_status
+ xfs_buftarg_isolate(
+ 	struct list_head	*item,
++	struct list_lru_one	*lru,
+ 	spinlock_t		*lru_lock,
+ 	void			*arg)
+ {
+@@ -1569,7 +1571,7 @@ xfs_buftarg_isolate(
+ 	}
+ 
+ 	bp->b_state |= XFS_BSTATE_DISPOSE;
+-	list_move(item, dispose);
++	list_lru_isolate_move(lru, item, dispose);
+ 	spin_unlock(&bp->b_lock);
+ 	return LRU_REMOVED;
+ }
+diff -puN fs/xfs/xfs_qm.c~list_lru-add-helpers-to-isolate-items fs/xfs/xfs_qm.c
+--- a/fs/xfs/xfs_qm.c~list_lru-add-helpers-to-isolate-items
++++ a/fs/xfs/xfs_qm.c
+@@ -430,6 +430,7 @@ struct xfs_qm_isolate {
+ static enum lru_status
+ xfs_qm_dquot_isolate(
+ 	struct list_head	*item,
++	struct list_lru_one	*lru,
+ 	spinlock_t		*lru_lock,
+ 	void			*arg)
+ 		__releases(lru_lock) __acquires(lru_lock)
+@@ -450,7 +451,7 @@ xfs_qm_dquot_isolate(
+ 		XFS_STATS_INC(xs_qm_dqwants);
+ 
+ 		trace_xfs_dqreclaim_want(dqp);
+-		list_del_init(&dqp->q_lru);
++		list_lru_isolate(lru, &dqp->q_lru);
+ 		XFS_STATS_DEC(xs_qm_dquot_unused);
+ 		return LRU_REMOVED;
+ 	}
+@@ -494,7 +495,7 @@ xfs_qm_dquot_isolate(
+ 	xfs_dqunlock(dqp);
+ 
+ 	ASSERT(dqp->q_nrefs == 0);
+-	list_move_tail(&dqp->q_lru, &isol->dispose);
++	list_lru_isolate_move(lru, &dqp->q_lru, &isol->dispose);
+ 	XFS_STATS_DEC(xs_qm_dquot_unused);
+ 	trace_xfs_dqreclaim_done(dqp);
+ 	XFS_STATS_INC(xs_qm_dqreclaims);
+diff -puN include/linux/list_lru.h~list_lru-add-helpers-to-isolate-items include/linux/list_lru.h
+--- a/include/linux/list_lru.h~list_lru-add-helpers-to-isolate-items
++++ a/include/linux/list_lru.h
+@@ -125,8 +125,13 @@ static inline unsigned long list_lru_cou
+ 	return count;
+ }
+ 
+-typedef enum lru_status
+-(*list_lru_walk_cb)(struct list_head *item, spinlock_t *lock, void *cb_arg);
++void list_lru_isolate(struct list_lru_one *list, struct list_head *item);
++void list_lru_isolate_move(struct list_lru_one *list, struct list_head *item,
++			   struct list_head *head);
++
++typedef enum lru_status (*list_lru_walk_cb)(struct list_head *item,
++		struct list_lru_one *list, spinlock_t *lock, void *cb_arg);
++
+ /**
+  * list_lru_walk_one: walk a list_lru, isolating and disposing freeable items.
+  * @lru: the lru pointer.
+diff -puN mm/list_lru.c~list_lru-add-helpers-to-isolate-items mm/list_lru.c
+--- a/mm/list_lru.c~list_lru-add-helpers-to-isolate-items
++++ a/mm/list_lru.c
+@@ -132,6 +132,21 @@ bool list_lru_del(struct list_lru *lru,
+ }
+ EXPORT_SYMBOL_GPL(list_lru_del);
+ 
++void list_lru_isolate(struct list_lru_one *list, struct list_head *item)
++{
++	list_del_init(item);
++	list->nr_items--;
++}
++EXPORT_SYMBOL_GPL(list_lru_isolate);
++
++void list_lru_isolate_move(struct list_lru_one *list, struct list_head *item,
++			   struct list_head *head)
++{
++	list_move(item, head);
++	list->nr_items--;
++}
++EXPORT_SYMBOL_GPL(list_lru_isolate_move);
++
+ static unsigned long __list_lru_count_one(struct list_lru *lru,
+ 					  int nid, int memcg_idx)
+ {
+@@ -194,13 +209,11 @@ restart:
+ 			break;
+ 		--*nr_to_walk;
+ 
+-		ret = isolate(item, &nlru->lock, cb_arg);
++		ret = isolate(item, l, &nlru->lock, cb_arg);
+ 		switch (ret) {
+ 		case LRU_REMOVED_RETRY:
+ 			assert_spin_locked(&nlru->lock);
+ 		case LRU_REMOVED:
+-			l->nr_items--;
+-			WARN_ON_ONCE(l->nr_items < 0);
+ 			isolated++;
+ 			/*
+ 			 * If the lru lock has been dropped, our list
+diff -puN mm/workingset.c~list_lru-add-helpers-to-isolate-items mm/workingset.c
+--- a/mm/workingset.c~list_lru-add-helpers-to-isolate-items
++++ a/mm/workingset.c
+@@ -302,6 +302,7 @@ static unsigned long count_shadow_nodes(
+ }
+ 
+ static enum lru_status shadow_lru_isolate(struct list_head *item,
++					  struct list_lru_one *lru,
+ 					  spinlock_t *lru_lock,
+ 					  void *arg)
+ {
+@@ -332,7 +333,7 @@ static enum lru_status shadow_lru_isolat
+ 		goto out;
+ 	}
+ 
+-	list_del_init(item);
++	list_lru_isolate(lru, item);
+ 	spin_unlock(lru_lock);
+ 
+ 	/*
 _
 
 Patches currently in -mm which might be from vdavydov@parallels.com are
