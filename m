@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-mm_initc-mark-mminit_loglevel-__meminitdata.patch
+Subject: [merged]
+ kernel-cpusetc-mark-cpuset_init_current_mems_allowed-as-__init.patch
  removed from -mm tree
-Date: Fri, 13 Feb 2015 12:20:57 -0800
-Message-ID: <54de5ca9.QsL5BIRLZaGPkHv9%akpm@linux-foundation.org>
+Date: Fri, 13 Feb 2015 12:21:00 -0800
+Message-ID: <54de5cac.j1ehc3zUDFR9xgG9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48912 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48925 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752378AbbBMUU6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:20:58 -0500
+	with ESMTP id S1752378AbbBMUVB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:21:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@rasmusvillemoes.dk, hughd@google.com, iamjoonsoo.kim@lge.com, lizefan@huawei.com, mgorman@suse.de, mina86@mina86.com, paul.gortmaker@windriver.com, peterz@infradead.org, pintu.k@samsung.com, riel@redhat.com, rientjes@google.com, tim.c.chen@linux.intel.com, tj@kernel.org, vbabka@suse.cz, vishnu.ps@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mm_init.c: mark mminit_loglevel __meminitdata
+     Subject: kernel/cpuset.c: Mark cpuset_init_current_mems_allowed as __init
 has been removed from the -mm tree.  Its filename was
-     mm-mm_initc-mark-mminit_loglevel-__meminitdata.patch
+     kernel-cpusetc-mark-cpuset_init_current_mems_allowed-as-__init.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: mm/mm_init.c: mark mminit_loglevel __meminitdata
+Subject: kernel/cpuset.c: Mark cpuset_init_current_mems_allowed as __init
 
-mminit_loglevel is only referenced from __init and __meminit functions, so
-we can mark it __meminitdata.
+The only caller of cpuset_init_current_mems_allowed is the __init
+annotated build_all_zonelists_init, so we can also make the former __init.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Cc: Vlastimil Babka <vbabka@suse.cz>
@@ -49,21 +50,21 @@ Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mm_init.c |    2 +-
+ kernel/cpuset.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/mm_init.c~mm-mm_initc-mark-mminit_loglevel-__meminitdata mm/mm_init.c
---- a/mm/mm_init.c~mm-mm_initc-mark-mminit_loglevel-__meminitdata
-+++ a/mm/mm_init.c
-@@ -14,7 +14,7 @@
- #include "internal.h"
+diff -puN kernel/cpuset.c~kernel-cpusetc-mark-cpuset_init_current_mems_allowed-as-__init kernel/cpuset.c
+--- a/kernel/cpuset.c~kernel-cpusetc-mark-cpuset_init_current_mems_allowed-as-__init
++++ a/kernel/cpuset.c
+@@ -2400,7 +2400,7 @@ void cpuset_cpus_allowed_fallback(struct
+ 	 */
+ }
  
- #ifdef CONFIG_DEBUG_MEMORY_INIT
--int mminit_loglevel;
-+int __meminitdata mminit_loglevel;
- 
- #ifndef SECTIONS_SHIFT
- #define SECTIONS_SHIFT	0
+-void cpuset_init_current_mems_allowed(void)
++void __init cpuset_init_current_mems_allowed(void)
+ {
+ 	nodes_setall(current->mems_allowed);
+ }
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
