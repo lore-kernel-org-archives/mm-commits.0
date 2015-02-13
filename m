@@ -1,107 +1,199 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-rejects.patch removed from -mm tree
-Date: Fri, 13 Feb 2015 12:18:31 -0800
-Message-ID: <54de5c17.2XVXVCuFR3M2G3Bz%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-numa-do-not-dereference-pmd-outside-of-the-lock-during-numa-hinting-fault.patch removed from -mm tree
+Date: Fri, 13 Feb 2015 12:19:12 -0800
+Message-ID: <54de5c40.bk3fd6EbfxX9Io/n%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48530 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48535 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751263AbbBMUSd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:18:33 -0500
+	with ESMTP id S1752378AbbBMUTO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:19:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mgorman@suse.de, aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, davej@redhat.com, hughd@google.com, kirill.shutemov@linux.intel.com, mingo@redhat.com, paulus@samba.org, riel@redhat.com, sasha.levin@oracle.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-rejects
+     Subject: mm: numa: do not dereference pmd outside of the lock during NUMA hinting fault
 has been removed from the -mm tree.  Its filename was
-     linux-next-rejects.patch
+     mm-numa-do-not-dereference-pmd-outside-of-the-lock-during-numa-hinting-fault.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-rejects
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm: numa: do not dereference pmd outside of the lock during NUMA hinting fault
 
+Automatic NUMA balancing depends on being able to protect PTEs to trap a
+fault and gather reference locality information.  Very broadly speaking it
+would mark PTEs as not present and use another bit to distinguish between
+NUMA hinting faults and other types of faults.  It was universally loved
+by everybody and caused no problems whatsoever.  That last sentence might
+be a lie.
+
+This series is very heavily based on patches from Linus and Aneesh to
+replace the existing PTE/PMD NUMA helper functions with normal change
+protections.  I did alter and add parts of it but I consider them
+relatively minor contributions.  At their suggestion, acked-bys are in
+there but I've no problem converting them to Signed-off-by if requested.
+
+AFAIK, this has received no testing on ppc64 and I'm depending on Aneesh
+for that.  I tested trinity under kvm-tool and passed and ran a few other
+basic tests.  At the time of writing, only the short-lived tests have
+completed but testing of V2 indicated that long-term testing had no
+surprises.  In most cases I'm leaving out detail as it's not that
+interesting.
+
+specjbb single JVM: There was negligible performance difference in the
+	benchmark itself for short runs. However, system activity is
+	higher and interrupts are much higher over time -- possibly TLB
+	flushes. Migrations are also higher. Overall, this is more overhead
+	but considering the problems faced with the old approach I think
+	we just have to suck it up and find another way of reducing the
+	overhead.
+
+specjbb multi JVM: Negligible performance difference to the actual benchmark
+	but like the single JVM case, the system overhead is noticeably
+	higher.  Again, interrupts are a major factor.
+
+autonumabench: This was all over the place and about all that can be
+	reasonably concluded is that it's different but not necessarily
+	better or worse.
+
+autonumabench
+                                     3.18.0-rc5            3.18.0-rc5
+                                 mmotm-20141119         protnone-v3r3
+User    NUMA01               32380.24 (  0.00%)    21642.92 ( 33.16%)
+User    NUMA01_THEADLOCAL    22481.02 (  0.00%)    22283.22 (  0.88%)
+User    NUMA02                3137.00 (  0.00%)     3116.54 (  0.65%)
+User    NUMA02_SMT            1614.03 (  0.00%)     1543.53 (  4.37%)
+System  NUMA01                 322.97 (  0.00%)     1465.89 (-353.88%)
+System  NUMA01_THEADLOCAL       91.87 (  0.00%)       49.32 ( 46.32%)
+System  NUMA02                  37.83 (  0.00%)       14.61 ( 61.38%)
+System  NUMA02_SMT               7.36 (  0.00%)        7.45 ( -1.22%)
+Elapsed NUMA01                 716.63 (  0.00%)      599.29 ( 16.37%)
+Elapsed NUMA01_THEADLOCAL      553.98 (  0.00%)      539.94 (  2.53%)
+Elapsed NUMA02                  83.85 (  0.00%)       83.04 (  0.97%)
+Elapsed NUMA02_SMT              86.57 (  0.00%)       79.15 (  8.57%)
+CPU     NUMA01                4563.00 (  0.00%)     3855.00 ( 15.52%)
+CPU     NUMA01_THEADLOCAL     4074.00 (  0.00%)     4136.00 ( -1.52%)
+CPU     NUMA02                3785.00 (  0.00%)     3770.00 (  0.40%)
+CPU     NUMA02_SMT            1872.00 (  0.00%)     1959.00 ( -4.65%)
+
+System CPU usage of NUMA01 is worse but it's an adverse workload on this
+machine so I'm reluctant to conclude that it's a problem that matters.  On
+the other workloads that are sensible on this machine, system CPU usage is
+great.  Overall time to complete the benchmark is comparable
+
+          3.18.0-rc5  3.18.0-rc5
+        mmotm-20141119protnone-v3r3
+User        59612.50    48586.44
+System        460.22     1537.45
+Elapsed      1442.20     1304.29
+
+NUMA alloc hit                 5075182     5743353
+NUMA alloc miss                      0           0
+NUMA interleave hit                  0           0
+NUMA alloc local               5075174     5743339
+NUMA base PTE updates        637061448   443106883
+NUMA huge PMD updates          1243434      864747
+NUMA page range updates     1273699656   885857347
+NUMA hint faults               1658116     1214277
+NUMA hint local faults          959487      754113
+NUMA hint local percent             57          62
+NUMA pages migrated            5467056    61676398
+
+The NUMA pages migrated look terrible but when I looked at a graph of the
+activity over time I see that the massive spike in migration activity was
+during NUMA01.  This correlates with high system CPU usage and could be
+simply down to bad luck but any modifications that affect that workload
+would be related to scan rates and migrations, not the protection
+mechanism.  For all other workloads, migration activity was comparable.
+
+Overall, headline performance figures are comparable but the overhead is
+higher, mostly in interrupts.  To some extent, higher overhead from this
+approach was anticipated but not to this degree.  It's going to be
+necessary to reduce this again with a separate series in the future.  It's
+still worth going ahead with this series though as it's likely to avoid
+constant headaches with Xen and is probably easier to maintain.
+
+
+
+This patch (of 10):
+
+A transhuge NUMA hinting fault may find the page is migrating and should
+wait until migration completes.  The check is race-prone because the pmd
+is deferenced outside of the page lock and while the race is tiny, it'll
+be larger if the PMD is cleared while marking PMDs for hinting fault. 
+This patch closes the race.
+
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Dave Jones <davej@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Kirill Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Sasha Levin <sasha.levin@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/module-common.lds |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ include/linux/migrate.h |    4 ----
+ mm/huge_memory.c        |    3 ++-
+ mm/migrate.c            |    6 ------
+ 3 files changed, 2 insertions(+), 11 deletions(-)
 
-diff -puN scripts/module-common.lds~linux-next-rejects scripts/module-common.lds
---- a/scripts/module-common.lds~linux-next-rejects
-+++ a/scripts/module-common.lds
-@@ -6,17 +6,17 @@
- SECTIONS {
- 	/DISCARD/ : { *(.discard) }
+diff -puN include/linux/migrate.h~mm-numa-do-not-dereference-pmd-outside-of-the-lock-during-numa-hinting-fault include/linux/migrate.h
+--- a/include/linux/migrate.h~mm-numa-do-not-dereference-pmd-outside-of-the-lock-during-numa-hinting-fault
++++ a/include/linux/migrate.h
+@@ -67,7 +67,6 @@ static inline int migrate_huge_page_move
  
--	__ksymtab		: { *(SORT(___ksymtab+*)) }
--	__ksymtab_gpl		: { *(SORT(___ksymtab_gpl+*)) }
--	__ksymtab_unused	: { *(SORT(___ksymtab_unused+*)) }
--	__ksymtab_unused_gpl	: { *(SORT(___ksymtab_unused_gpl+*)) }
--	__ksymtab_gpl_future	: { *(SORT(___ksymtab_gpl_future+*)) }
--	__kcrctab		: { *(SORT(___kcrctab+*)) }
--	__kcrctab_gpl		: { *(SORT(___kcrctab_gpl+*)) }
--	__kcrctab_unused	: { *(SORT(___kcrctab_unused+*)) }
--	__kcrctab_unused_gpl	: { *(SORT(___kcrctab_unused_gpl+*)) }
--	__kcrctab_gpl_future	: { *(SORT(___kcrctab_gpl_future+*)) }
-+	__ksymtab		0 : { *(SORT(___ksymtab+*)) }
-+	__ksymtab_gpl		0 : { *(SORT(___ksymtab_gpl+*)) }
-+	__ksymtab_unused	0 : { *(SORT(___ksymtab_unused+*)) }
-+	__ksymtab_unused_gpl	0 : { *(SORT(___ksymtab_unused_gpl+*)) }
-+	__ksymtab_gpl_future	0 : { *(SORT(___ksymtab_gpl_future+*)) }
-+	__kcrctab		0 : { *(SORT(___kcrctab+*)) }
-+	__kcrctab_gpl		0 : { *(SORT(___kcrctab_gpl+*)) }
-+	__kcrctab_unused	0 : { *(SORT(___kcrctab_unused+*)) }
-+	__kcrctab_unused_gpl	0 : { *(SORT(___kcrctab_unused_gpl+*)) }
-+	__kcrctab_gpl_future	0 : { *(SORT(___kcrctab_gpl_future+*)) }
- 
- 	. = ALIGN(8);
--	.init_array		: { *(SORT(.init_array.*)) *(.init_array) }
-+	.init_array		0 : { *(SORT(.init_array.*)) *(.init_array) }
+ #ifdef CONFIG_NUMA_BALANCING
+ extern bool pmd_trans_migrating(pmd_t pmd);
+-extern void wait_migrate_huge_page(struct anon_vma *anon_vma, pmd_t *pmd);
+ extern int migrate_misplaced_page(struct page *page,
+ 				  struct vm_area_struct *vma, int node);
+ extern bool migrate_ratelimited(int node);
+@@ -76,9 +75,6 @@ static inline bool pmd_trans_migrating(p
+ {
+ 	return false;
  }
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-input-route-kbd-leds-through-the-generic-leds-layer.patch
-mm.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mm-slab-convert-cache-name-allocations-to-kstrdup_const-fix.patch
-module_device_table-fix-some-callsites.patch
-kasan-enable-instrumentation-of-global-variables-fix.patch
-kasan-enable-instrumentation-of-global-variables-fix-2-fix.patch
-rtc-rk808-fix-the-rtc-time-reading-issue-fix.patch
-fs-befs-linuxvfsc-remove-unnecessary-casting-fix.patch
-samples-seccomp-improve-label-helper-fix.patch
-linux-next.patch
-mm-fix-xip-fault-vs-truncate-race-fix.patch
-mm-fix-xip-fault-vs-truncate-race-fix-fix.patch
-mm-allow-page-fault-handlers-to-perform-the-cow-fix.patch
-mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix-3.patch
-mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix.patch
-daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix.patch
-daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-2.patch
-daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-3.patch
-dax-add-dax_zero_page_range-fix.patch
-ext4-add-dax-functionality-fix.patch
-ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
-ocfs2-implement-ocfs2_direct_io_write-fix.patch
-lib-kconfig-fix-up-have_arch_bitreverse-help-text.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-
+-static inline void wait_migrate_huge_page(struct anon_vma *anon_vma, pmd_t *pmd)
+-{
+-}
+ static inline int migrate_misplaced_page(struct page *page,
+ 					 struct vm_area_struct *vma, int node)
+ {
+diff -puN mm/huge_memory.c~mm-numa-do-not-dereference-pmd-outside-of-the-lock-during-numa-hinting-fault mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-numa-do-not-dereference-pmd-outside-of-the-lock-during-numa-hinting-fault
++++ a/mm/huge_memory.c
+@@ -1272,8 +1272,9 @@ int do_huge_pmd_numa_page(struct mm_stru
+ 	 * check_same as the page may no longer be mapped.
+ 	 */
+ 	if (unlikely(pmd_trans_migrating(*pmdp))) {
++		page = pmd_page(*pmdp);
+ 		spin_unlock(ptl);
+-		wait_migrate_huge_page(vma->anon_vma, pmdp);
++		wait_on_page_locked(page);
+ 		goto out;
+ 	}
+ 
+diff -puN mm/migrate.c~mm-numa-do-not-dereference-pmd-outside-of-the-lock-during-numa-hinting-fault mm/migrate.c
+--- a/mm/migrate.c~mm-numa-do-not-dereference-pmd-outside-of-the-lock-during-numa-hinting-fault
++++ a/mm/migrate.c
+@@ -1654,12 +1654,6 @@ bool pmd_trans_migrating(pmd_t pmd)
+ 	return PageLocked(page);
+ }
+ 
+-void wait_migrate_huge_page(struct anon_vma *anon_vma, pmd_t *pmd)
+-{
+-	struct page *page = pmd_page(*pmd);
+-	wait_on_page_locked(page);
+-}
