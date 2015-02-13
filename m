@@ -1,113 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-compaction-fix-wrong-order-check-in-compact_finished.patch removed from
- -mm tree
-Date: Fri, 13 Feb 2015 12:20:38 -0800
-Message-ID: <54de5c96.hZaZuYlu9yx01Wxt%akpm@linux-foundation.org>
+Subject: [merged] mm-do-not-use-mm-nr_pmds-on-mmu-configurations.patch
+ removed from -mm tree
+Date: Fri, 13 Feb 2015 12:20:46 -0800
+Message-ID: <54de5c9e.lrntbyHq060PHZ0I%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48838 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48856 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752665AbbBMUUj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:20:39 -0500
+	with ESMTP id S1753698AbbBMUUr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:20:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, mgorman@suse.de, riel@redhat.com, rientjes@google.com, stable@vger.kernel.org, vbabka@suse.cz, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, linux@roeck-us.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/compaction: fix wrong order check in compact_finished()
+     Subject: mm: do not use mm->nr_pmds on !MMU configurations
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-fix-wrong-order-check-in-compact_finished.patch
+     mm-do-not-use-mm-nr_pmds-on-mmu-configurations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/compaction: fix wrong order check in compact_finished()
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm: do not use mm->nr_pmds on !MMU configurations
 
-What we want to check here is whether there is highorder freepage in buddy
-list of other migratetype in order to steal it without fragmentation. 
-But, current code just checks cc->order which means allocation request
-order.  So, this is wrong.
+mm->nr_pmds doesn't make sense on !MMU configurations
 
-Without this fix, non-movable synchronous compaction below pageblock order
-would not stopped until compaction is complete, because migratetype of
-most pageblocks are movable and high order freepage made by compaction is
-usually on movable type buddy list.
-
-There is some report related to this bug. See below link.
-
-http://www.spinics.net/lists/linux-mm/msg81666.html
-
-Although the issued system still has load spike comes from compaction,
-this makes that system completely stable and responsive according to his
-report.
-
-stress-highalloc test in mmtests with non movable order 7 allocation
-doesn't show any notable difference in allocation success rate, but, it
-shows more compaction success rate.
-
-Compaction success rate (Compaction success * 100 / Compaction stalls, %)
-18.47 : 28.94
-
-Fixes: 1fb3f8ca0e922253 ("mm: compaction: capture a suitable high-order page immediately when it is made available")
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: <stable@vger.kernel.org>	[3.7+]
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Guenter Roeck <linux@roeck-us.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/mm.h |    9 ++++++++-
+ kernel/fork.c      |    4 +---
+ 2 files changed, 9 insertions(+), 4 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-fix-wrong-order-check-in-compact_finished mm/compaction.c
---- a/mm/compaction.c~mm-compaction-fix-wrong-order-check-in-compact_finished
-+++ a/mm/compaction.c
-@@ -1173,7 +1173,7 @@ static int __compact_finished(struct zon
- 			return COMPACT_PARTIAL;
+diff -puN include/linux/mm.h~mm-do-not-use-mm-nr_pmds-on-mmu-configurations include/linux/mm.h
+--- a/include/linux/mm.h~mm-do-not-use-mm-nr_pmds-on-mmu-configurations
++++ a/include/linux/mm.h
+@@ -1447,13 +1447,15 @@ static inline int __pud_alloc(struct mm_
+ int __pud_alloc(struct mm_struct *mm, pgd_t *pgd, unsigned long address);
+ #endif
  
- 		/* Job done if allocation would set block type */
--		if (cc->order >= pageblock_order && area->nr_free)
-+		if (order >= pageblock_order && area->nr_free)
- 			return COMPACT_PARTIAL;
- 	}
+-#ifdef __PAGETABLE_PMD_FOLDED
++#if defined(__PAGETABLE_PMD_FOLDED) || !defined(CONFIG_MMU)
+ static inline int __pmd_alloc(struct mm_struct *mm, pud_t *pud,
+ 						unsigned long address)
+ {
+ 	return 0;
+ }
  
++static inline void mm_nr_pmds_init(struct mm_struct *mm) {}
++
+ static inline unsigned long mm_nr_pmds(struct mm_struct *mm)
+ {
+ 	return 0;
+@@ -1465,6 +1467,11 @@ static inline void mm_dec_nr_pmds(struct
+ #else
+ int __pmd_alloc(struct mm_struct *mm, pud_t *pud, unsigned long address);
+ 
++static inline void mm_nr_pmds_init(struct mm_struct *mm)
++{
++	atomic_long_set(&mm->nr_pmds, 0);
++}
++
+ static inline unsigned long mm_nr_pmds(struct mm_struct *mm)
+ {
+ 	return atomic_long_read(&mm->nr_pmds);
+diff -puN kernel/fork.c~mm-do-not-use-mm-nr_pmds-on-mmu-configurations kernel/fork.c
+--- a/kernel/fork.c~mm-do-not-use-mm-nr_pmds-on-mmu-configurations
++++ a/kernel/fork.c
+@@ -555,9 +555,7 @@ static struct mm_struct *mm_init(struct
+ 	INIT_LIST_HEAD(&mm->mmlist);
+ 	mm->core_state = NULL;
+ 	atomic_long_set(&mm->nr_ptes, 0);
+-#ifndef __PAGETABLE_PMD_FOLDED
+-	atomic_long_set(&mm->nr_pmds, 0);
+-#endif
++	mm_nr_pmds_init(mm);
+ 	mm->map_count = 0;
+ 	mm->locked_vm = 0;
+ 	mm->pinned_vm = 0;
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
 origin.patch
-mm-util-add-kstrdup_const.patch
-kernfs-convert-node-name-allocation-to-kstrdup_const.patch
-clk-convert-clock-name-allocations-to-kstrdup_const.patch
-mm-slab-convert-cache-name-allocations-to-kstrdup_const.patch
-mm-slab-convert-cache-name-allocations-to-kstrdup_const-fix.patch
-fs-namespace-convert-devname-allocation-to-kstrdup_const.patch
-compiler-introduce-__aliassymbol-shortcut.patch
-add-kernel-address-sanitizer-infrastructure.patch
-kasan-disable-memory-hotplug.patch
-x86_64-add-kasan-support.patch
-mm-page_alloc-add-kasan-hooks-on-alloc-and-free-paths.patch
-mm-slub-introduce-virt_to_obj-function.patch
-mm-slub-share-object_err-function.patch
-mm-slub-introduce-metadata_access_enable-metadata_access_disable.patch
-mm-slub-add-kernel-address-sanitizer-support-for-slub-allocator.patch
-fs-dcache-manually-unpoison-dname-after-allocation-to-shut-up-kasans-reports.patch
-kmemleak-disable-kasan-instrumentation-for-kmemleak.patch
-lib-add-kasan-test-module.patch
-x86_64-kasan-add-interceptors-for-memset-memmove-memcpy-functions.patch
-kasan-enable-stack-instrumentation.patch
-mm-vmalloc-add-flag-preventing-guard-hole-allocation.patch
-mm-vmalloc-pass-additional-vm_flags-to-__vmalloc_node_range.patch
-kernel-add-support-for-init_array-constructors.patch
-module-fix-types-of-device-tables-aliases.patch
-kasan-enable-instrumentation-of-global-variables.patch
+mm-fix-xip-fault-vs-truncate-race.patch
+mm-fix-xip-fault-vs-truncate-race-fix.patch
+mm-allow-page-fault-handlers-to-perform-the-cow.patch
+mm-allow-page-fault-handlers-to-perform-the-cow-fix.patch
+vfsext2-introduce-is_daxinode.patch
+daxext2-replace-xip-read-and-write-with-dax-i-o.patch
+daxext2-replace-ext2_clear_xip_target-with-dax_clear_blocks.patch
+daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler.patch
+daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix.patch
+daxext2-replace-xip_truncate_page-with-dax_truncate_page.patch
+dax-replace-xip-documentation-with-dax-documentation.patch
+vfs-remove-get_xip_mem.patch
+ext2-remove-ext2_xip_verify_sb.patch
+ext2-remove-ext2_use_xip.patch
+ext2-remove-xipc-and-xiph.patch
+vfsext2-remove-config_ext2_fs_xip-and-rename-config_fs_xip-to-config_fs_dax.patch
+ext2-remove-ext2_aops_xip.patch
+ext2-get-rid-of-most-mentions-of-xip-in-ext2.patch
+dax-add-dax_zero_page_range.patch
+dax-add-dax_zero_page_range-fix.patch
+ext4-add-dax-functionality.patch
+brd-rename-xip-to-dax.patch
+powerpc-drop-_page_file-and-pte_file-related-helpers.patch
 
