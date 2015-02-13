@@ -1,70 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- hexdump-makes-it-return-amount-of-bytes-placed-in-buffer-fix.patch removed
- from -mm tree
-Date: Thu, 12 Feb 2015 14:19:53 -0800
-Message-ID: <54dd2709.zL/B8ZDBt4gXvgX0%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-rejects.patch removed from -mm tree
+Date: Fri, 13 Feb 2015 12:18:31 -0800
+Message-ID: <54de5c17.2XVXVCuFR3M2G3Bz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60280 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48530 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751876AbbBLWTy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Feb 2015 17:19:54 -0500
+	with ESMTP id S1751263AbbBMUSd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:18:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hexdump-makes-it-return-amount-of-bytes-placed-in-buffer-fix
+     Subject: linux-next-rejects
 has been removed from the -mm tree.  Its filename was
-     hexdump-makes-it-return-amount-of-bytes-placed-in-buffer-fix.patch
+     linux-next-rejects.patch
 
-This patch was dropped because it was folded into hexdump-makes-it-return-amount-of-bytes-placed-in-buffer.patch
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: hexdump-makes-it-return-amount-of-bytes-placed-in-buffer-fix
+Subject: linux-next-rejects
 
-fix printk warning
-
-lib/test-hexdump.c: In function 'test_hexdump_overflow':
-lib/test-hexdump.c:151: warning: format '%zu' expects type 'size_t', but argument 3 has type 'int'
-
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test-hexdump.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/module-common.lds |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN lib/test-hexdump.c~hexdump-makes-it-return-amount-of-bytes-placed-in-buffer-fix lib/test-hexdump.c
---- a/lib/test-hexdump.c~hexdump-makes-it-return-amount-of-bytes-placed-in-buffer-fix
-+++ a/lib/test-hexdump.c
-@@ -148,7 +148,7 @@ static void __init test_hexdump_overflow
- 	}
+diff -puN scripts/module-common.lds~linux-next-rejects scripts/module-common.lds
+--- a/scripts/module-common.lds~linux-next-rejects
++++ a/scripts/module-common.lds
+@@ -6,17 +6,17 @@
+ SECTIONS {
+ 	/DISCARD/ : { *(.discard) }
  
- 	if (!a) {
--		pr_err("Len: %zu rc: %zu strlen: %zu\n", l, r, strlen(buf));
-+		pr_err("Len: %zu rc: %u strlen: %zu\n", l, r, strlen(buf));
- 		pr_err("Result: '%s'\n", buf);
- 	}
+-	__ksymtab		: { *(SORT(___ksymtab+*)) }
+-	__ksymtab_gpl		: { *(SORT(___ksymtab_gpl+*)) }
+-	__ksymtab_unused	: { *(SORT(___ksymtab_unused+*)) }
+-	__ksymtab_unused_gpl	: { *(SORT(___ksymtab_unused_gpl+*)) }
+-	__ksymtab_gpl_future	: { *(SORT(___ksymtab_gpl_future+*)) }
+-	__kcrctab		: { *(SORT(___kcrctab+*)) }
+-	__kcrctab_gpl		: { *(SORT(___kcrctab_gpl+*)) }
+-	__kcrctab_unused	: { *(SORT(___kcrctab_unused+*)) }
+-	__kcrctab_unused_gpl	: { *(SORT(___kcrctab_unused_gpl+*)) }
+-	__kcrctab_gpl_future	: { *(SORT(___kcrctab_gpl_future+*)) }
++	__ksymtab		0 : { *(SORT(___ksymtab+*)) }
++	__ksymtab_gpl		0 : { *(SORT(___ksymtab_gpl+*)) }
++	__ksymtab_unused	0 : { *(SORT(___ksymtab_unused+*)) }
++	__ksymtab_unused_gpl	0 : { *(SORT(___ksymtab_unused_gpl+*)) }
++	__ksymtab_gpl_future	0 : { *(SORT(___ksymtab_gpl_future+*)) }
++	__kcrctab		0 : { *(SORT(___kcrctab+*)) }
++	__kcrctab_gpl		0 : { *(SORT(___kcrctab_gpl+*)) }
++	__kcrctab_unused	0 : { *(SORT(___kcrctab_unused+*)) }
++	__kcrctab_unused_gpl	0 : { *(SORT(___kcrctab_unused_gpl+*)) }
++	__kcrctab_gpl_future	0 : { *(SORT(___kcrctab_gpl_future+*)) }
+ 
+ 	. = ALIGN(8);
+-	.init_array		: { *(SORT(.init_array.*)) *(.init_array) }
++	.init_array		0 : { *(SORT(.init_array.*)) *(.init_array) }
  }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-convert-p_mknonnuma-and-remaining-page-table-manipulations.patch
-fs-shrinker-always-scan-at-least-one-object-of-each-type.patch
-zram-rework-reset-and-destroy-path.patch
-task_mmu-add-user-space-support-for-resetting-mm-hiwater_rss-peak-rss.patch
-powerpc-add-running_clock-for-powerpc-to-prevent-spurious-softlockup-warnings.patch
-kernelh-remove-ancient-__function__-hack.patch
-lib-bitmap-update-bitmap_onto-to-unsigned.patch
-lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned.patch
-hexdump-makes-it-return-amount-of-bytes-placed-in-buffer.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+input-route-kbd-leds-through-the-generic-leds-layer.patch
+mm.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-slab-convert-cache-name-allocations-to-kstrdup_const-fix.patch
+module_device_table-fix-some-callsites.patch
+kasan-enable-instrumentation-of-global-variables-fix.patch
+kasan-enable-instrumentation-of-global-variables-fix-2-fix.patch
+rtc-rk808-fix-the-rtc-time-reading-issue-fix.patch
+fs-befs-linuxvfsc-remove-unnecessary-casting-fix.patch
+samples-seccomp-improve-label-helper-fix.patch
+linux-next.patch
+mm-fix-xip-fault-vs-truncate-race-fix.patch
+mm-fix-xip-fault-vs-truncate-race-fix-fix.patch
+mm-allow-page-fault-handlers-to-perform-the-cow-fix.patch
+mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix-3.patch
+mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix.patch
+daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix.patch
+daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-2.patch
+daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-3.patch
+dax-add-dax_zero_page_range-fix.patch
+ext4-add-dax-functionality-fix.patch
+ocfs2-add-functions-to-add-and-remove-inode-in-orphan-dir-fix.patch
+ocfs2-implement-ocfs2_direct_io_write-fix.patch
+lib-kconfig-fix-up-have_arch_bitreverse-help-text.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
