@@ -1,230 +1,265 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- slub-make-dead-caches-discard-free-slabs-immediately.patch removed from -mm tree
-Date: Fri, 13 Feb 2015 12:20:36 -0800
-Message-ID: <54de5c94.lT+oPPfNr7xLLoRQ%akpm@linux-foundation.org>
+Subject: [merged] memcg-free-memcg_caches-slot-on-css-offline.patch
+ removed from -mm tree
+Date: Fri, 13 Feb 2015 12:20:23 -0800
+Message-ID: <54de5c87.wEPkNx4C6LXvAtL7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48831 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48796 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752618AbbBMUUh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:20:37 -0500
+	with ESMTP id S1752805AbbBMUUY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:20:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@parallels.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: vdavydov@parallels.com, cl@linux.com, david@fromorbit.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@suse.cz, penberg@kernel.org, rientjes@google.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slub: make dead caches discard free slabs immediately
+     Subject: memcg: free memcg_caches slot on css offline
 has been removed from the -mm tree.  Its filename was
-     slub-make-dead-caches-discard-free-slabs-immediately.patch
+     memcg-free-memcg_caches-slot-on-css-offline.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: slub: make dead caches discard free slabs immediately
+Subject: memcg: free memcg_caches slot on css offline
 
-To speed up further allocations SLUB may store empty slabs in per cpu/node
-partial lists instead of freeing them immediately.  This prevents per
-memcg caches destruction, because kmem caches created for a memory cgroup
-are only destroyed after the last page charged to the cgroup is freed.
-
-To fix this issue, this patch resurrects approach first proposed in [1]. 
-It forbids SLUB to cache empty slabs after the memory cgroup that the
-cache belongs to was destroyed.  It is achieved by setting kmem_cache's
-cpu_partial and min_partial constants to 0 and tuning put_cpu_partial() so
-that it would drop frozen empty slabs immediately if cpu_partial = 0.
-
-The runtime overhead is minimal.  From all the hot functions, we only
-touch relatively cold put_cpu_partial(): we make it call
-unfreeze_partials() after freezing a slab that belongs to an offline
-memory cgroup.  Since slab freezing exists to avoid moving slabs from/to a
-partial list on free/alloc, and there can't be allocations from dead
-caches, it shouldn't cause any overhead.  We do have to disable preemption
-for put_cpu_partial() to achieve that though.
-
-The original patch was accepted well and even merged to the mm tree. 
-However, I decided to withdraw it due to changes happening to the memcg
-core at that time.  I had an idea of introducing per-memcg shrinkers for
-kmem caches, but now, as memcg has finally settled down, I do not see it
-as an option, because SLUB shrinker would be too costly to call since SLUB
-does not keep free slabs on a separate list.  Besides, we currently do not
-even call per-memcg shrinkers for offline memcgs.  Overall, it would
-introduce much more complexity to both SLUB and memcg than this small
-patch.
-
-Regarding to SLAB, there's no problem with it, because it shrinks
-per-cpu/node caches periodically.  Thanks to list_lru reparenting, we no
-longer keep entries for offline cgroups in per-memcg arrays (such as
-memcg_cache_params->memcg_caches), so we do not have to bother if a
-per-memcg cache will be shrunk a bit later than it could be.
-
-[1] http://thread.gmane.org/gmane.linux.kernel.mm/118649/focus=118650
+We need to look up a kmem_cache in ->memcg_params.memcg_caches arrays only
+on allocations, so there is no need to have the array entries set until
+css free - we can clear them on css offline.  This will allow us to reuse
+array entries more efficiently and avoid costly array relocations.
 
 Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Tejun Heo <tj@kernel.org>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Dave Chinner <david@fromorbit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c        |    4 ++--
- mm/slab.h        |    2 +-
- mm/slab_common.c |   15 +++++++++++++--
- mm/slob.c        |    2 +-
- mm/slub.c        |   31 ++++++++++++++++++++++++++-----
- 5 files changed, 43 insertions(+), 11 deletions(-)
+ include/linux/slab.h |   10 +++++-----
+ mm/memcontrol.c      |   38 ++++++++++++++++++++++++++++++++------
+ mm/slab_common.c     |   39 ++++++++++++++++++++++++++++-----------
+ 3 files changed, 65 insertions(+), 22 deletions(-)
 
-diff -puN mm/slab.c~slub-make-dead-caches-discard-free-slabs-immediately mm/slab.c
---- a/mm/slab.c~slub-make-dead-caches-discard-free-slabs-immediately
-+++ a/mm/slab.c
-@@ -2382,7 +2382,7 @@ out:
- 	return nr_freed;
+diff -puN include/linux/slab.h~memcg-free-memcg_caches-slot-on-css-offline include/linux/slab.h
+--- a/include/linux/slab.h~memcg-free-memcg_caches-slot-on-css-offline
++++ a/include/linux/slab.h
+@@ -115,13 +115,12 @@ int slab_is_available(void);
+ struct kmem_cache *kmem_cache_create(const char *, size_t, size_t,
+ 			unsigned long,
+ 			void (*)(void *));
+-#ifdef CONFIG_MEMCG_KMEM
+-void memcg_create_kmem_cache(struct mem_cgroup *, struct kmem_cache *);
+-void memcg_destroy_kmem_caches(struct mem_cgroup *);
+-#endif
+ void kmem_cache_destroy(struct kmem_cache *);
+ int kmem_cache_shrink(struct kmem_cache *);
+-void kmem_cache_free(struct kmem_cache *, void *);
++
++void memcg_create_kmem_cache(struct mem_cgroup *, struct kmem_cache *);
++void memcg_deactivate_kmem_caches(struct mem_cgroup *);
++void memcg_destroy_kmem_caches(struct mem_cgroup *);
+ 
+ /*
+  * Please use this macro to create slab caches. Simply specify the
+@@ -288,6 +287,7 @@ static __always_inline int kmalloc_index
+ 
+ void *__kmalloc(size_t size, gfp_t flags);
+ void *kmem_cache_alloc(struct kmem_cache *, gfp_t flags);
++void kmem_cache_free(struct kmem_cache *, void *);
+ 
+ #ifdef CONFIG_NUMA
+ void *__kmalloc_node(size_t size, gfp_t flags, int node);
+diff -puN mm/memcontrol.c~memcg-free-memcg_caches-slot-on-css-offline mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-free-memcg_caches-slot-on-css-offline
++++ a/mm/memcontrol.c
+@@ -334,6 +334,7 @@ struct mem_cgroup {
+ #if defined(CONFIG_MEMCG_KMEM)
+         /* Index in the kmem_cache->memcg_params.memcg_caches array */
+ 	int kmemcg_id;
++	bool kmem_acct_active;
+ #endif
+ 
+ 	int last_scanned_node;
+@@ -354,7 +355,7 @@ struct mem_cgroup {
+ #ifdef CONFIG_MEMCG_KMEM
+ bool memcg_kmem_is_active(struct mem_cgroup *memcg)
+ {
+-	return memcg->kmemcg_id >= 0;
++	return memcg->kmem_acct_active;
+ }
+ #endif
+ 
+@@ -585,7 +586,7 @@ static void memcg_free_cache_id(int id);
+ 
+ static void disarm_kmem_keys(struct mem_cgroup *memcg)
+ {
+-	if (memcg_kmem_is_active(memcg)) {
++	if (memcg->kmemcg_id >= 0) {
+ 		static_key_slow_dec(&memcg_kmem_enabled_key);
+ 		memcg_free_cache_id(memcg->kmemcg_id);
+ 	}
+@@ -2666,6 +2667,7 @@ struct kmem_cache *__memcg_kmem_get_cach
+ {
+ 	struct mem_cgroup *memcg;
+ 	struct kmem_cache *memcg_cachep;
++	int kmemcg_id;
+ 
+ 	VM_BUG_ON(!is_root_cache(cachep));
+ 
+@@ -2673,10 +2675,11 @@ struct kmem_cache *__memcg_kmem_get_cach
+ 		return cachep;
+ 
+ 	memcg = get_mem_cgroup_from_mm(current->mm);
+-	if (!memcg_kmem_is_active(memcg))
++	kmemcg_id = ACCESS_ONCE(memcg->kmemcg_id);
++	if (kmemcg_id < 0)
+ 		goto out;
+ 
+-	memcg_cachep = cache_from_memcg_idx(cachep, memcg_cache_id(memcg));
++	memcg_cachep = cache_from_memcg_idx(cachep, kmemcg_id);
+ 	if (likely(memcg_cachep))
+ 		return memcg_cachep;
+ 
+@@ -3318,8 +3321,8 @@ static int memcg_activate_kmem(struct me
+ 	int err = 0;
+ 	int memcg_id;
+ 
+-	if (memcg_kmem_is_active(memcg))
+-		return 0;
++	BUG_ON(memcg->kmemcg_id >= 0);
++	BUG_ON(memcg->kmem_acct_active);
+ 
+ 	/*
+ 	 * For simplicity, we won't allow this to be disabled.  It also can't
+@@ -3362,6 +3365,7 @@ static int memcg_activate_kmem(struct me
+ 	 * patched.
+ 	 */
+ 	memcg->kmemcg_id = memcg_id;
++	memcg->kmem_acct_active = true;
+ out:
+ 	return err;
+ }
+@@ -4041,6 +4045,22 @@ static int memcg_init_kmem(struct mem_cg
+ 	return mem_cgroup_sockets_init(memcg, ss);
  }
  
--int __kmem_cache_shrink(struct kmem_cache *cachep)
-+int __kmem_cache_shrink(struct kmem_cache *cachep, bool deactivate)
- {
- 	int ret = 0;
- 	int node;
-@@ -2404,7 +2404,7 @@ int __kmem_cache_shutdown(struct kmem_ca
- {
- 	int i;
- 	struct kmem_cache_node *n;
--	int rc = __kmem_cache_shrink(cachep);
-+	int rc = __kmem_cache_shrink(cachep, false);
- 
- 	if (rc)
- 		return rc;
-diff -puN mm/slab.h~slub-make-dead-caches-discard-free-slabs-immediately mm/slab.h
---- a/mm/slab.h~slub-make-dead-caches-discard-free-slabs-immediately
-+++ a/mm/slab.h
-@@ -138,7 +138,7 @@ static inline unsigned long kmem_cache_f
- #define CACHE_CREATE_MASK (SLAB_CORE_FLAGS | SLAB_DEBUG_FLAGS | SLAB_CACHE_FLAGS)
- 
- int __kmem_cache_shutdown(struct kmem_cache *);
--int __kmem_cache_shrink(struct kmem_cache *);
-+int __kmem_cache_shrink(struct kmem_cache *, bool);
- void slab_kmem_cache_release(struct kmem_cache *);
- 
- struct seq_file;
-diff -puN mm/slab_common.c~slub-make-dead-caches-discard-free-slabs-immediately mm/slab_common.c
---- a/mm/slab_common.c~slub-make-dead-caches-discard-free-slabs-immediately
-+++ a/mm/slab_common.c
-@@ -549,10 +549,13 @@ void memcg_deactivate_kmem_caches(struct
- {
- 	int idx;
- 	struct memcg_cache_array *arr;
--	struct kmem_cache *s;
-+	struct kmem_cache *s, *c;
- 
- 	idx = memcg_cache_id(memcg);
- 
-+	get_online_cpus();
-+	get_online_mems();
++static void memcg_deactivate_kmem(struct mem_cgroup *memcg)
++{
++	if (!memcg->kmem_acct_active)
++		return;
 +
- 	mutex_lock(&slab_mutex);
- 	list_for_each_entry(s, &slab_caches, list) {
- 		if (!is_root_cache(s))
-@@ -560,9 +563,17 @@ void memcg_deactivate_kmem_caches(struct
++	/*
++	 * Clear the 'active' flag before clearing memcg_caches arrays entries.
++	 * Since we take the slab_mutex in memcg_deactivate_kmem_caches(), it
++	 * guarantees no cache will be created for this cgroup after we are
++	 * done (see memcg_create_kmem_cache()).
++	 */
++	memcg->kmem_acct_active = false;
++
++	memcg_deactivate_kmem_caches(memcg);
++}
++
+ static void memcg_destroy_kmem(struct mem_cgroup *memcg)
+ {
+ 	memcg_destroy_kmem_caches(memcg);
+@@ -4052,6 +4072,10 @@ static int memcg_init_kmem(struct mem_cg
+ 	return 0;
+ }
  
- 		arr = rcu_dereference_protected(s->memcg_params.memcg_caches,
- 						lockdep_is_held(&slab_mutex));
-+		c = arr->entries[idx];
-+		if (!c)
++static void memcg_deactivate_kmem(struct mem_cgroup *memcg)
++{
++}
++
+ static void memcg_destroy_kmem(struct mem_cgroup *memcg)
+ {
+ }
+@@ -4608,6 +4632,8 @@ static void mem_cgroup_css_offline(struc
+ 	spin_unlock(&memcg->event_list_lock);
+ 
+ 	vmpressure_cleanup(&memcg->vmpressure);
++
++	memcg_deactivate_kmem(memcg);
+ }
+ 
+ static void mem_cgroup_css_free(struct cgroup_subsys_state *css)
+diff -puN mm/slab_common.c~memcg-free-memcg_caches-slot-on-css-offline mm/slab_common.c
+--- a/mm/slab_common.c~memcg-free-memcg_caches-slot-on-css-offline
++++ a/mm/slab_common.c
+@@ -440,18 +440,8 @@ static int do_kmem_cache_shutdown(struct
+ 		*need_rcu_barrier = true;
+ 
+ #ifdef CONFIG_MEMCG_KMEM
+-	if (!is_root_cache(s)) {
+-		int idx;
+-		struct memcg_cache_array *arr;
+-
+-		idx = memcg_cache_id(s->memcg_params.memcg);
+-		arr = rcu_dereference_protected(s->memcg_params.root_cache->
+-						memcg_params.memcg_caches,
+-						lockdep_is_held(&slab_mutex));
+-		BUG_ON(arr->entries[idx] != s);
+-		arr->entries[idx] = NULL;
++	if (!is_root_cache(s))
+ 		list_del(&s->memcg_params.list);
+-	}
+ #endif
+ 	list_move(&s->list, release);
+ 	return 0;
+@@ -499,6 +489,13 @@ void memcg_create_kmem_cache(struct mem_
+ 
+ 	mutex_lock(&slab_mutex);
+ 
++	/*
++	 * The memory cgroup could have been deactivated while the cache
++	 * creation work was pending.
++	 */
++	if (!memcg_kmem_is_active(memcg))
++		goto out_unlock;
++
+ 	idx = memcg_cache_id(memcg);
+ 	arr = rcu_dereference_protected(root_cache->memcg_params.memcg_caches,
+ 					lockdep_is_held(&slab_mutex));
+@@ -548,6 +545,26 @@ out_unlock:
+ 	put_online_cpus();
+ }
+ 
++void memcg_deactivate_kmem_caches(struct mem_cgroup *memcg)
++{
++	int idx;
++	struct memcg_cache_array *arr;
++	struct kmem_cache *s;
++
++	idx = memcg_cache_id(memcg);
++
++	mutex_lock(&slab_mutex);
++	list_for_each_entry(s, &slab_caches, list) {
++		if (!is_root_cache(s))
 +			continue;
 +
-+		__kmem_cache_shrink(c, true);
- 		arr->entries[idx] = NULL;
- 	}
- 	mutex_unlock(&slab_mutex);
++		arr = rcu_dereference_protected(s->memcg_params.memcg_caches,
++						lockdep_is_held(&slab_mutex));
++		arr->entries[idx] = NULL;
++	}
++	mutex_unlock(&slab_mutex);
++}
 +
-+	put_online_mems();
-+	put_online_cpus();
- }
- 
  void memcg_destroy_kmem_caches(struct mem_cgroup *memcg)
-@@ -649,7 +660,7 @@ int kmem_cache_shrink(struct kmem_cache
- 
- 	get_online_cpus();
- 	get_online_mems();
--	ret = __kmem_cache_shrink(cachep);
-+	ret = __kmem_cache_shrink(cachep, false);
- 	put_online_mems();
- 	put_online_cpus();
- 	return ret;
-diff -puN mm/slob.c~slub-make-dead-caches-discard-free-slabs-immediately mm/slob.c
---- a/mm/slob.c~slub-make-dead-caches-discard-free-slabs-immediately
-+++ a/mm/slob.c
-@@ -618,7 +618,7 @@ int __kmem_cache_shutdown(struct kmem_ca
- 	return 0;
- }
- 
--int __kmem_cache_shrink(struct kmem_cache *d)
-+int __kmem_cache_shrink(struct kmem_cache *d, bool deactivate)
  {
- 	return 0;
- }
-diff -puN mm/slub.c~slub-make-dead-caches-discard-free-slabs-immediately mm/slub.c
---- a/mm/slub.c~slub-make-dead-caches-discard-free-slabs-immediately
-+++ a/mm/slub.c
-@@ -2007,6 +2007,7 @@ static void put_cpu_partial(struct kmem_
- 	int pages;
- 	int pobjects;
- 
-+	preempt_disable();
- 	do {
- 		pages = 0;
- 		pobjects = 0;
-@@ -2040,6 +2041,14 @@ static void put_cpu_partial(struct kmem_
- 
- 	} while (this_cpu_cmpxchg(s->cpu_slab->partial, oldpage, page)
- 								!= oldpage);
-+	if (unlikely(!s->cpu_partial)) {
-+		unsigned long flags;
-+
-+		local_irq_save(flags);
-+		unfreeze_partials(s, this_cpu_ptr(s->cpu_slab));
-+		local_irq_restore(flags);
-+	}
-+	preempt_enable();
- #endif
- }
- 
-@@ -3369,7 +3378,7 @@ EXPORT_SYMBOL(kfree);
-  * being allocated from last increasing the chance that the last objects
-  * are freed in them.
-  */
--int __kmem_cache_shrink(struct kmem_cache *s)
-+int __kmem_cache_shrink(struct kmem_cache *s, bool deactivate)
- {
- 	int node;
- 	int i;
-@@ -3381,11 +3390,23 @@ int __kmem_cache_shrink(struct kmem_cach
- 	unsigned long flags;
- 	int ret = 0;
- 
-+	if (deactivate) {
-+		/*
-+		 * Disable empty slabs caching. Used to avoid pinning offline
-+		 * memory cgroups by kmem pages that can be freed.
-+		 */
-+		s->cpu_partial = 0;
-+		s->min_partial = 0;
-+
-+		/*
-+		 * s->cpu_partial is checked locklessly (see put_cpu_partial),
-+		 * so we have to make sure the change is visible.
-+		 */
-+		kick_all_cpus_sync();
-+	}
-+
- 	flush_all(s);
- 	for_each_kmem_cache_node(s, node, n) {
--		if (!n->nr_partial)
--			continue;
+ 	LIST_HEAD(release);
+_
+
+Patches currently in -mm which might be from vdavydov@parallels.com are
+
+origin.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+
