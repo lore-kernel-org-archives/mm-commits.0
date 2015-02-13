@@ -1,87 +1,99 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-slab-convert-cache-name-allocations-to-kstrdup_const-fix.patch removed
- from -mm tree
-Date: Fri, 13 Feb 2015 14:28:31 -0800
-Message-ID: <54de7a8f.UaKNKX/YkDhUeKsM%akpm@linux-foundation.org>
+ add-kernel-address-sanitizer-infrastructure-fix.patch removed from -mm tree
+Date: Fri, 13 Feb 2015 14:29:16 -0800
+Message-ID: <54de7abc.XcHtCkerAwHe53Zu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51186 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51193 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752758AbbBMW2d (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 17:28:33 -0500
+	with ESMTP id S1752934AbbBMW3R (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 17:29:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.hajda@samsung.com, cl@linux.com, geert@linux-m68k.org, greg@kroah.com, iamjoonsoo.kim@lge.com, kyungmin.park@samsung.com, m.szyprowski@samsung.com, mturquette@linaro.org, penberg@kernel.org, rientjes@google.com, tj@kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: a.ryabinin@samsung.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-slab-convert-cache-name-allocations-to-kstrdup_const-fix
+     Subject: kasan: fix build warnings
 has been removed from the -mm tree.  Its filename was
-     mm-slab-convert-cache-name-allocations-to-kstrdup_const-fix.patch
+     add-kernel-address-sanitizer-infrastructure-fix.patch
 
-This patch was dropped because it was folded into mm-slab-convert-cache-name-allocations-to-kstrdup_const.patch
+This patch was dropped because it was folded into add-kernel-address-sanitizer-infrastructure.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-slab-convert-cache-name-allocations-to-kstrdup_const-fix
+From: Andrey Ryabinin <a.ryabinin@samsung.com>
+Subject: kasan: fix build warnings
 
-mm/slab_common.c:391: warning: assignment discards qualifiers from pointer target type
+Some versions of gcc produce warning instead of error when
+-fsanitize flag uses unsupported argument:
+	https://gcc.gnu.org/bugzilla/show_bug.cgi?id=61065
 
-make the handling of kmem_cache.name const-correct
+This breaks our detection of whether -fsanitize=kernel-address
+is supported by compiler or not. Thus we have tons of build
+warnings like this:
+	x86_64-linux-gcc: warning: unrecognized argument to -fsanitize= option: 'kernel-address'
 
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Andrzej Hajda <a.hajda@samsung.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Greg KH <greg@kroah.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Mike Turquette <mturquette@linaro.org>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
+Passing -Werror into $(call cc-option) will fix this problem
+as gcc will error out now.
+
+Signed-off-by: Andrey Ryabinin <a.ryabinin@samsung.com>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab_common.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ scripts/Makefile.kasan |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/slab_common.c~mm-slab-convert-cache-name-allocations-to-kstrdup_const-fix mm/slab_common.c
---- a/mm/slab_common.c~mm-slab-convert-cache-name-allocations-to-kstrdup_const-fix
-+++ a/mm/slab_common.c
-@@ -295,8 +295,8 @@ unsigned long calculate_alignment(unsign
- }
+diff -puN scripts/Makefile.kasan~add-kernel-address-sanitizer-infrastructure-fix scripts/Makefile.kasan
+--- a/scripts/Makefile.kasan~add-kernel-address-sanitizer-infrastructure-fix
++++ a/scripts/Makefile.kasan
+@@ -5,13 +5,13 @@ else
+ 	call_threshold := 0
+ endif
  
- static struct kmem_cache *
--do_kmem_cache_create(char *name, size_t object_size, size_t size, size_t align,
--		     unsigned long flags, void (*ctor)(void *),
-+do_kmem_cache_create(const char *name, size_t object_size, size_t size,
-+		     size_t align, unsigned long flags, void (*ctor)(void *),
- 		     struct mem_cgroup *memcg, struct kmem_cache *root_cache)
- {
- 	struct kmem_cache *s;
-@@ -363,7 +363,7 @@ kmem_cache_create(const char *name, size
- 		  unsigned long flags, void (*ctor)(void *))
- {
- 	struct kmem_cache *s;
--	char *cache_name;
-+	const char *cache_name;
- 	int err;
+-CFLAGS_KASAN_MINIMAL := $(call cc-option, -fsanitize=kernel-address)
++CFLAGS_KASAN_MINIMAL := -fsanitize=kernel-address
  
- 	get_online_cpus();
+ CFLAGS_KASAN := $(call cc-option, -fsanitize=kernel-address \
+ 		-fasan-shadow-offset=$(CONFIG_KASAN_SHADOW_OFFSET) \
+ 		--param asan-instrumentation-with-call-threshold=$(call_threshold))
+ 
+-ifeq ($(CFLAGS_KASAN_MINIMAL),)
++ifeq ($(call cc-option, $(CFLAGS_KASAN_MINIMAL) -Werror),)
+         $(warning Cannot use CONFIG_KASAN: \
+             -fsanitize=kernel-address is not supported by compiler)
+ else
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from a.ryabinin@samsung.com are
 
 origin.patch
-mm-slab-convert-cache-name-allocations-to-kstrdup_const.patch
 module_device_table-fix-some-callsites.patch
+compiler-introduce-__aliassymbol-shortcut.patch
+add-kernel-address-sanitizer-infrastructure.patch
+kasan-disable-memory-hotplug.patch
+x86_64-add-kasan-support.patch
+x86_64-add-kasan-support-fix.patch
+mm-page_alloc-add-kasan-hooks-on-alloc-and-free-paths.patch
+mm-slub-introduce-virt_to_obj-function.patch
+mm-slub-share-object_err-function.patch
+mm-slub-introduce-metadata_access_enable-metadata_access_disable.patch
+mm-slub-add-kernel-address-sanitizer-support-for-slub-allocator.patch
+fs-dcache-manually-unpoison-dname-after-allocation-to-shut-up-kasans-reports.patch
+kmemleak-disable-kasan-instrumentation-for-kmemleak.patch
+lib-add-kasan-test-module.patch
+x86_64-kasan-add-interceptors-for-memset-memmove-memcpy-functions.patch
+kasan-enable-stack-instrumentation.patch
+mm-vmalloc-add-flag-preventing-guard-hole-allocation.patch
+mm-vmalloc-pass-additional-vm_flags-to-__vmalloc_node_range.patch
+kernel-add-support-for-init_array-constructors.patch
+module-fix-types-of-device-tables-aliases.patch
+kasan-enable-instrumentation-of-global-variables.patch
 kasan-enable-instrumentation-of-global-variables-fix.patch
+kasan-enable-instrumentation-of-global-variables-fix-2.patch
 kasan-enable-instrumentation-of-global-variables-fix-2-fix.patch
-rtc-rk808-fix-the-rtc-time-reading-issue-fix.patch
 
