@@ -1,55 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-nlattrc-remove-redundant-include.patch removed from
- -mm tree
-Date: Fri, 13 Feb 2015 12:23:02 -0800
-Message-ID: <54de5d26.HQXYJ4DCNFww+T6V%akpm@linux-foundation.org>
+Subject: [merged] lib-md5c-simplify-include.patch removed from -mm tree
+Date: Fri, 13 Feb 2015 12:22:56 -0800
+Message-ID: <54de5d20.evI6iW+tdV6XlaFT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49155 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49149 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753647AbbBMUXD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:23:03 -0500
+	with ESMTP id S1752935AbbBMUW5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:22:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/nlattr.c: remove redundant include
+     Subject: lib/md5.c: simplify include
 has been removed from the -mm tree.  Its filename was
-     lib-nlattrc-remove-redundant-include.patch
+     lib-md5c-simplify-include.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/nlattr.c: remove redundant include
+Subject: lib/md5.c: simplify include
 
-nlattr.c doesn't seem to rely on anything from netdevice.h.  Removing it
-yields identical objdump -d output for each of {allyes,allno,def}config,
-and eliminates more than 200 lines from the generated dependency file.
+md5.c doesn't use anything from kernel.h, except that that pulls in
+compiler.h, which is needed for the export.h to work.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/nlattr.c |    1 -
- 1 file changed, 1 deletion(-)
+ lib/md5.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/nlattr.c~lib-nlattrc-remove-redundant-include lib/nlattr.c
---- a/lib/nlattr.c~lib-nlattrc-remove-redundant-include
-+++ a/lib/nlattr.c
-@@ -9,7 +9,6 @@
- #include <linux/kernel.h>
- #include <linux/errno.h>
- #include <linux/jiffies.h>
--#include <linux/netdevice.h>
- #include <linux/skbuff.h>
- #include <linux/string.h>
- #include <linux/types.h>
+diff -puN lib/md5.c~lib-md5c-simplify-include lib/md5.c
+--- a/lib/md5.c~lib-md5c-simplify-include
++++ a/lib/md5.c
+@@ -1,4 +1,4 @@
+-#include <linux/kernel.h>
++#include <linux/compiler.h>
+ #include <linux/export.h>
+ #include <linux/cryptohash.h>
+ 
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
