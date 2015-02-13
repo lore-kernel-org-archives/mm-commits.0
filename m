@@ -1,92 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- lib-string_get_size-use-32-bit-arithmetic-when-possible.patch removed from
- -mm tree
-Date: Fri, 13 Feb 2015 12:22:10 -0800
-Message-ID: <54de5cf2.dZKwnhXlNt87fXkW%akpm@linux-foundation.org>
+Subject: [merged] lib-string_get_size-return-void.patch removed from -mm
+ tree
+Date: Fri, 13 Feb 2015 12:22:12 -0800
+Message-ID: <54de5cf4.Q5cj7s+jvr0+1oJl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49098 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49100 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752797AbbBMUWL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:22:11 -0500
+	with ESMTP id S1752797AbbBMUWN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:22:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/string_helpers.c:string_get_size(): use 32 bit arithmetic when possible
+     Subject: libstring_helpers.c:string_get_size(): return void
 has been removed from the -mm tree.  Its filename was
-     lib-string_get_size-use-32-bit-arithmetic-when-possible.patch
+     lib-string_get_size-return-void.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/string_helpers.c:string_get_size(): use 32 bit arithmetic when possible
+Subject: libstring_helpers.c:string_get_size(): return void
 
-The remainder from do_div is always a u32, and after size has been reduced
-to be below 1000 (or 1024), it certainly fits in u32.  So both remainder
-and sf_cap can be made u32s, the format specifiers can be simplified (%lld
-wasn't the right thing to use for _unsigned_ long long anyway), and we can
-replace a do_div with an ordinary 32/32 bit division.
+string_get_size() was documented to return an error, but in fact always
+returned 0.  Since the output always fits in 9 bytes, just document that
+and let callers do what they do now: pass a small stack buffer and ignore
+the return value.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/string_helpers.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ include/linux/string_helpers.h |    4 ++--
+ lib/string_helpers.c           |   10 ++++------
+ 2 files changed, 6 insertions(+), 8 deletions(-)
 
-diff -puN lib/string_helpers.c~lib-string_get_size-use-32-bit-arithmetic-when-possible lib/string_helpers.c
---- a/lib/string_helpers.c~lib-string_get_size-use-32-bit-arithmetic-when-possible
+diff -puN include/linux/string_helpers.h~lib-string_get_size-return-void include/linux/string_helpers.h
+--- a/include/linux/string_helpers.h~lib-string_get_size-return-void
++++ a/include/linux/string_helpers.h
+@@ -10,8 +10,8 @@ enum string_size_units {
+ 	STRING_UNITS_2,		/* use binary powers of 2^10 */
+ };
+ 
+-int string_get_size(u64 size, enum string_size_units units,
+-		    char *buf, int len);
++void string_get_size(u64 size, enum string_size_units units,
++		     char *buf, int len);
+ 
+ #define UNESCAPE_SPACE		0x01
+ #define UNESCAPE_OCTAL		0x02
+diff -puN lib/string_helpers.c~lib-string_get_size-return-void lib/string_helpers.c
+--- a/lib/string_helpers.c~lib-string_get_size-return-void
 +++ a/lib/string_helpers.c
-@@ -42,7 +42,7 @@ int string_get_size(u64 size, const enum
- 		[STRING_UNITS_2] = 1024,
- 	};
- 	int i, j;
--	u64 remainder = 0, sf_cap;
-+	u32 remainder = 0, sf_cap;
- 	char tmp[8];
+@@ -20,12 +20,12 @@
+  * @len:	length of buffer
+  *
+  * This function returns a string formatted to 3 significant figures
+- * giving the size in the required units.  Returns 0 on success or
+- * error on failure.  @buf is always zero terminated.
++ * giving the size in the required units.  @buf should have room for
++ * at least 9 bytes and will always be zero terminated.
+  *
+  */
+-int string_get_size(u64 size, const enum string_size_units units,
+-		    char *buf, int len)
++void string_get_size(u64 size, const enum string_size_units units,
++		     char *buf, int len)
+ {
+ 	static const char *const units_10[] = {
+ 		"B", "kB", "MB", "GB", "TB", "PB", "EB"
+@@ -67,8 +67,6 @@ int string_get_size(u64 size, const enum
  
- 	tmp[0] = '\0';
-@@ -59,14 +59,13 @@ int string_get_size(u64 size, const enum
- 
- 		if (j) {
- 			remainder *= 1000;
--			do_div(remainder, divisor[units]);
--			snprintf(tmp, sizeof(tmp), ".%03lld",
--				 (unsigned long long)remainder);
-+			remainder /= divisor[units];
-+			snprintf(tmp, sizeof(tmp), ".%03u", remainder);
- 			tmp[j+1] = '\0';
- 		}
- 	}
- 
--	snprintf(buf, len, "%lld%s %s", (unsigned long long)size,
-+	snprintf(buf, len, "%u%s %s", (u32)size,
+ 	snprintf(buf, len, "%u%s %s", (u32)size,
  		 tmp, units_str[units][i]);
- 
- 	return 0;
-_
-
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
-
-origin.patch
-lib-bitmapc-change-prototype-of-bitmap_copy_le.patch
-lib-bitmapc-elide-bitmap_copy_le-on-little-endian.patch
-lib-bitmap-change-bitmap_shift_right-to-take-unsigned-parameters.patch
-lib-bitmap-eliminate-branch-in-__bitmap_shift_right.patch
-lib-bitmap-remove-redundant-code-from-__bitmap_shift_right.patch
-lib-bitmap-yet-another-simplification-in-__bitmap_shift_right.patch
-lib-bitmap-change-bitmap_shift_left-to-take-unsigned-parameters.patch
-lib-bitmap-eliminate-branch-in-__bitmap_shift_left.patch
-lib-bitmap-remove-redundant-code-from-__bitmap_shift_left.patch
-lib-stringc-improve-strrchr.patch
-checkpatch-emit-an-error-when-using-predefined-timestamp-macros.patch
-linux-next.patch
-
