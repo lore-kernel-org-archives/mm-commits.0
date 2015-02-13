@@ -1,63 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-dynamic_queue_limitsc-simplify-includes.patch
- removed from -mm tree
-Date: Fri, 13 Feb 2015 12:22:46 -0800
-Message-ID: <54de5d16.3PGLRR3VClExA5Bh%akpm@linux-foundation.org>
+Subject: [merged] lib-sortc-use-simpler-includes.patch removed from -mm
+ tree
+Date: Fri, 13 Feb 2015 12:22:44 -0800
+Message-ID: <54de5d14.BZEBJyNnUzm/TxIS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49138 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49136 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753587AbbBMUWr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:22:47 -0500
+	with ESMTP id S1753582AbbBMUWp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:22:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/dynamic_queue_limits.c: simplify includes
+     Subject: lib/sort.c: use simpler includes
 has been removed from the -mm tree.  Its filename was
-     lib-dynamic_queue_limitsc-simplify-includes.patch
+     lib-sortc-use-simpler-includes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/dynamic_queue_limits.c: simplify includes
+Subject: lib/sort.c: use simpler includes
 
-The file doesn't use anything from ctype.h.  Instead of module.h, just use
-export.h for EXPORT_SYMBOL.  The latter requires the user to include
-compiler.h, so do that explicitly instead of relying on some other header
-pulling it in.
+sort.c doesn't use facilities from kernel.h, but does use some types
+defined in linux/types.h.  Include the latter directly instead of relying
+on some other header doing it.  Similarly, include linux/export.h directly
+instead of through module.h.  This removes 80 lines from the dependency
+file .sort.o.cmd.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/dynamic_queue_limits.c |    4 ++--
+ lib/sort.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN lib/dynamic_queue_limits.c~lib-dynamic_queue_limitsc-simplify-includes lib/dynamic_queue_limits.c
---- a/lib/dynamic_queue_limits.c~lib-dynamic_queue_limitsc-simplify-includes
-+++ a/lib/dynamic_queue_limits.c
-@@ -3,12 +3,12 @@
-  *
-  * Copyright (c) 2011, Tom Herbert <therbert@google.com>
+diff -puN lib/sort.c~lib-sortc-use-simpler-includes lib/sort.c
+--- a/lib/sort.c~lib-sortc-use-simpler-includes
++++ a/lib/sort.c
+@@ -4,8 +4,8 @@
+  * Jan 23 2005  Matt Mackall <mpm@selenic.com>
   */
--#include <linux/module.h>
- #include <linux/types.h>
--#include <linux/ctype.h>
- #include <linux/kernel.h>
- #include <linux/jiffies.h>
- #include <linux/dynamic_queue_limits.h>
-+#include <linux/compiler.h>
-+#include <linux/export.h>
  
- #define POSDIFF(A, B) ((int)((A) - (B)) > 0 ? (A) - (B) : 0)
- #define AFTER_EQ(A, B) ((int)((A) - (B)) >= 0)
+-#include <linux/kernel.h>
+-#include <linux/module.h>
++#include <linux/types.h>
++#include <linux/export.h>
+ #include <linux/sort.h>
+ #include <linux/slab.h>
+ 
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
