@@ -1,198 +1,257 @@
 From: akpm@linux-foundation.org
-Subject: [merged] zram-rework-reset-and-destroy-path.patch removed from
- -mm tree
-Date: Fri, 13 Feb 2015 12:21:19 -0800
-Message-ID: <54de5cbf.4MILNm+mF8kV+r3T%akpm@linux-foundation.org>
+Subject: [merged] zram-remove-init_lock-in-zram_make_request.patch removed from -mm tree
+Date: Fri, 13 Feb 2015 12:21:24 -0800
+Message-ID: <54de5cc4.1EzUKaZWotW4TnjA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48956 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48966 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753254AbbBMUVU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:21:20 -0500
+	with ESMTP id S1752772AbbBMUVZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:21:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sergey.senozhatsky@gmail.com, jmarchan@redhat.com, minchan@kernel.org, ngupta@vflare.org, opensource.ganesh@gmail.com, mm-commits@vger.kernel.org
+To: minchan@kernel.org, jmarchan@redhat.com, ngupta@vflare.org, opensource.ganesh@gmail.com, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: rework reset and destroy path
+     Subject: zram: remove init_lock in zram_make_request
 has been removed from the -mm tree.  Its filename was
-     zram-rework-reset-and-destroy-path.patch
+     zram-remove-init_lock-in-zram_make_request.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: zram: rework reset and destroy path
+From: Minchan Kim <minchan@kernel.org>
+Subject: zram: remove init_lock in zram_make_request
 
-We need to return set_capacity(disk, 0) from reset_store() back to
-zram_reset_device(), a catch by Ganesh Mahendran.  Potentially, we can
-race set_capacity() calls from init and reset paths.
+Admin could reset zram during I/O operation going on so we have used
+zram->init_lock as read-side lock in I/O path to prevent sudden zram meta
+freeing.
 
-The problem is that zram_reset_device() is also getting called from
-zram_exit(), which performs operations in misleading reversed order -- we
-first create_device() and then init it, while zram_exit() perform
-destroy_device() first and then does zram_reset_device().  This is done to
-remove sysfs group before we reset device, so we can continue with device
-reset/destruction not being raced by sysfs attr write (f.e.  disksize).
+However, the init_lock is really troublesome.  We can't do call
+zram_meta_alloc under init_lock due to lockdep splat because zram_rw_page
+is one of the function under reclaim path and hold it as read_lock while
+other places in process context hold it as write_lock.  So, we have used
+allocation out of the lock to avoid lockdep warn but it's not good for
+readability and fainally, I met another lockdep splat between init_lock
+and cpu_hotplug from kmem_cache_destroy during working zsmalloc
+compaction.  :(
 
-Apart from that, destroy_device() releases zram->disk (but we still have
-->disk pointer), so we cannot acces zram->disk in later
-zram_reset_device() call, which may cause additional errors in the future.
+Yes, the ideal is to remove horrible init_lock of zram in rw path.  This
+patch removes it in rw path and instead, add atomic refcount for meta
+lifetime management and completion to free meta in process context.  It's
+important to free meta in process context because some of resource
+destruction needs mutex lock, which could be held if we releases the
+resource in reclaim context so it's deadlock, again.
 
-So, this patch rework and cleanup destroy path.
+As a bonus, we could remove init_done check in rw path because
+zram_meta_get will do a role for it, instead.
 
-1) remove several unneeded goto labels in zram_init()
-
-2) factor out zram_init() error path and zram_exit() into
-   destroy_devices() function, which takes the number of devices to
-   destroy as its argument.
-
-3) remove sysfs group in destroy_devices() first, so we can reorder
-   operations -- reset device (as expected) goes before disk destroy and
-   queue cleanup.  So we can always access ->disk in zram_reset_device().
-
-4) and, finally, return set_capacity() back under ->init_lock.
-
-[akpm@linux-foundation.org: tweak comment]
 Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Reported-by: Ganesh Mahendran <opensource.ganesh@gmail.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Jerome Marchand <jmarchan@redhat.com>
+Signed-off-by: Minchan Kim <minchan@kernel.org>
 Cc: Nitin Gupta <ngupta@vflare.org>
+Cc: Jerome Marchand <jmarchan@redhat.com>
+Cc: Ganesh Mahendran <opensource.ganesh@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   75 ++++++++++++++------------------
- 1 file changed, 33 insertions(+), 42 deletions(-)
+ drivers/block/zram/zram_drv.c |   76 ++++++++++++++++++++++----------
+ drivers/block/zram/zram_drv.h |   20 ++++----
+ 2 files changed, 64 insertions(+), 32 deletions(-)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-rework-reset-and-destroy-path drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-rework-reset-and-destroy-path
+diff -puN drivers/block/zram/zram_drv.c~zram-remove-init_lock-in-zram_make_request drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-remove-init_lock-in-zram_make_request
 +++ a/drivers/block/zram/zram_drv.c
-@@ -732,8 +732,9 @@ static void zram_reset_device(struct zra
- 	zram->meta = NULL;
+@@ -53,9 +53,9 @@ static ssize_t name##_show(struct device
+ }									\
+ static DEVICE_ATTR_RO(name);
+ 
+-static inline int init_done(struct zram *zram)
++static inline bool init_done(struct zram *zram)
+ {
+-	return zram->meta != NULL;
++	return zram->disksize;
+ }
+ 
+ static inline struct zram *dev_to_zram(struct device *dev)
+@@ -356,6 +356,18 @@ out_error:
+ 	return NULL;
+ }
+ 
++static inline bool zram_meta_get(struct zram *zram)
++{
++	if (atomic_inc_not_zero(&zram->refcount))
++		return true;
++	return false;
++}
++
++static inline void zram_meta_put(struct zram *zram)
++{
++	atomic_dec(&zram->refcount);
++}
++
+ static void update_position(u32 *index, int *offset, struct bio_vec *bvec)
+ {
+ 	if (*offset + bvec->bv_len >= PAGE_SIZE)
+@@ -717,6 +729,10 @@ static void zram_bio_discard(struct zram
+ 
+ static void zram_reset_device(struct zram *zram)
+ {
++	struct zram_meta *meta;
++	struct zcomp *comp;
++	u64 disksize;
++
+ 	down_write(&zram->init_lock);
+ 
+ 	zram->limit_pages = 0;
+@@ -726,16 +742,31 @@ static void zram_reset_device(struct zra
+ 		return;
+ 	}
+ 
+-	zcomp_destroy(zram->comp);
+-	zram->max_comp_streams = 1;
+-	zram_meta_free(zram->meta, zram->disksize);
+-	zram->meta = NULL;
++	meta = zram->meta;
++	comp = zram->comp;
++	disksize = zram->disksize;
++	/*
++	 * Refcount will go down to 0 eventually and r/w handler
++	 * cannot handle further I/O so it will bail out by
++	 * check zram_meta_get.
++	 */
++	zram_meta_put(zram);
++	/*
++	 * We want to free zram_meta in process context to avoid
++	 * deadlock between reclaim path and any other locks.
++	 */
++	wait_event(zram->io_done, atomic_read(&zram->refcount) == 0);
++
  	/* Reset stats */
  	memset(&zram->stats, 0, sizeof(zram->stats));
--
  	zram->disksize = 0;
-+	set_capacity(zram->disk, 0);
-+
++	zram->max_comp_streams = 1;
+ 	set_capacity(zram->disk, 0);
+ 
  	up_write(&zram->init_lock);
++	/* I/O operation under all of CPU are done so let's free */
++	zram_meta_free(meta, disksize);
++	zcomp_destroy(comp);
  }
  
-@@ -826,7 +827,6 @@ static ssize_t reset_store(struct device
- 	/* Make sure all pending I/O is finished */
- 	fsync_bdev(bdev);
- 	zram_reset_device(zram);
--	set_capacity(zram->disk, 0);
+ static ssize_t disksize_store(struct device *dev,
+@@ -771,6 +802,8 @@ static ssize_t disksize_store(struct dev
+ 		goto out_destroy_comp;
+ 	}
  
- 	mutex_unlock(&bdev->bd_mutex);
- 	revalidate_disk(zram->disk);
-@@ -1112,15 +1112,31 @@ out:
- 	return ret;
- }
- 
--static void destroy_device(struct zram *zram)
-+static void destroy_devices(unsigned int nr)
++	init_waitqueue_head(&zram->io_done);
++	atomic_set(&zram->refcount, 1);
+ 	zram->meta = meta;
+ 	zram->comp = comp;
+ 	zram->disksize = disksize;
+@@ -901,23 +934,21 @@ static void zram_make_request(struct req
  {
--	sysfs_remove_group(&disk_to_dev(zram->disk)->kobj,
--			&zram_disk_attr_group);
-+	struct zram *zram;
-+	unsigned int i;
+ 	struct zram *zram = queue->queuedata;
  
--	del_gendisk(zram->disk);
--	put_disk(zram->disk);
-+	for (i = 0; i < nr; i++) {
-+		zram = &zram_devices[i];
-+		/*
-+		 * Remove sysfs first, so no one will perform a disksize
-+		 * store while we destroy the devices
-+		 */
-+		sysfs_remove_group(&disk_to_dev(zram->disk)->kobj,
-+				&zram_disk_attr_group);
+-	down_read(&zram->init_lock);
+-	if (unlikely(!init_done(zram)))
++	if (unlikely(!zram_meta_get(zram)))
+ 		goto error;
  
--	blk_cleanup_queue(zram->queue);
-+		zram_reset_device(zram);
-+
-+		del_gendisk(zram->disk);
-+		put_disk(zram->disk);
-+
-+		blk_cleanup_queue(zram->queue);
-+	}
-+
-+	kfree(zram_devices);
-+	unregister_blkdev(zram_major, "zram");
-+	pr_info("Destroyed %u device(s)\n", nr);
- }
- 
- static int __init zram_init(void)
-@@ -1130,64 +1146,39 @@ static int __init zram_init(void)
- 	if (num_devices > max_num_devices) {
- 		pr_warn("Invalid value for num_devices: %u\n",
- 				num_devices);
--		ret = -EINVAL;
--		goto out;
-+		return -EINVAL;
+ 	if (!valid_io_request(zram, bio->bi_iter.bi_sector,
+ 					bio->bi_iter.bi_size)) {
+ 		atomic64_inc(&zram->stats.invalid_io);
+-		goto error;
++		goto put_zram;
  	}
  
- 	zram_major = register_blkdev(0, "zram");
- 	if (zram_major <= 0) {
- 		pr_warn("Unable to get major number\n");
--		ret = -EBUSY;
--		goto out;
-+		return -EBUSY;
- 	}
- 
- 	/* Allocate the device array and initialize each one */
- 	zram_devices = kzalloc(num_devices * sizeof(struct zram), GFP_KERNEL);
- 	if (!zram_devices) {
--		ret = -ENOMEM;
--		goto unregister;
-+		unregister_blkdev(zram_major, "zram");
-+		return -ENOMEM;
- 	}
- 
- 	for (dev_id = 0; dev_id < num_devices; dev_id++) {
- 		ret = create_device(&zram_devices[dev_id], dev_id);
- 		if (ret)
--			goto free_devices;
-+			goto out_error;
- 	}
- 
--	pr_info("Created %u device(s) ...\n", num_devices);
+ 	__zram_make_request(zram, bio);
+-	up_read(&zram->init_lock);
 -
-+	pr_info("Created %u device(s)\n", num_devices);
- 	return 0;
- 
--free_devices:
--	while (dev_id)
--		destroy_device(&zram_devices[--dev_id]);
--	kfree(zram_devices);
--unregister:
--	unregister_blkdev(zram_major, "zram");
--out:
-+out_error:
-+	destroy_devices(dev_id);
- 	return ret;
++	zram_meta_put(zram);
+ 	return;
+-
++put_zram:
++	zram_meta_put(zram);
+ error:
+-	up_read(&zram->init_lock);
+ 	bio_io_error(bio);
  }
  
- static void __exit zram_exit(void)
+@@ -939,21 +970,19 @@ static void zram_slot_free_notify(struct
+ static int zram_rw_page(struct block_device *bdev, sector_t sector,
+ 		       struct page *page, int rw)
  {
--	int i;
--	struct zram *zram;
--
--	for (i = 0; i < num_devices; i++) {
--		zram = &zram_devices[i];
--
--		destroy_device(zram);
--		/*
--		 * Shouldn't access zram->disk after destroy_device
--		 * because destroy_device already released zram->disk.
--		 */
--		zram_reset_device(zram);
+-	int offset, err;
++	int offset, err = -EIO;
+ 	u32 index;
+ 	struct zram *zram;
+ 	struct bio_vec bv;
+ 
+ 	zram = bdev->bd_disk->private_data;
++	if (unlikely(!zram_meta_get(zram)))
++		goto out;
++
+ 	if (!valid_io_request(zram, sector, PAGE_SIZE)) {
+ 		atomic64_inc(&zram->stats.invalid_io);
+-		return -EINVAL;
 -	}
 -
--	unregister_blkdev(zram_major, "zram");
+-	down_read(&zram->init_lock);
+-	if (unlikely(!init_done(zram))) {
+-		err = -EIO;
+-		goto out_unlock;
++		err = -EINVAL;
++		goto put_zram;
+ 	}
+ 
+ 	index = sector >> SECTORS_PER_PAGE_SHIFT;
+@@ -964,8 +993,9 @@ static int zram_rw_page(struct block_dev
+ 	bv.bv_offset = 0;
+ 
+ 	err = zram_bvec_rw(zram, &bv, index, offset, rw);
+-out_unlock:
+-	up_read(&zram->init_lock);
++put_zram:
++	zram_meta_put(zram);
++out:
+ 	/*
+ 	 * If I/O fails, just return error(ie, non-zero) without
+ 	 * calling page_endio.
+diff -puN drivers/block/zram/zram_drv.h~zram-remove-init_lock-in-zram_make_request drivers/block/zram/zram_drv.h
+--- a/drivers/block/zram/zram_drv.h~zram-remove-init_lock-in-zram_make_request
++++ a/drivers/block/zram/zram_drv.h
+@@ -100,24 +100,26 @@ struct zram_meta {
+ 
+ struct zram {
+ 	struct zram_meta *meta;
++	struct zcomp *comp;
+ 	struct request_queue *queue;
+ 	struct gendisk *disk;
+-	struct zcomp *comp;
+-
+-	/* Prevent concurrent execution of device init, reset and R/W request */
++	/* Prevent concurrent execution of device init */
+ 	struct rw_semaphore init_lock;
+ 	/*
+-	 * This is the limit on amount of *uncompressed* worth of data
+-	 * we can store in a disk.
++	 * the number of pages zram can consume for storing compressed data
+ 	 */
+-	u64 disksize;	/* bytes */
++	unsigned long limit_pages;
+ 	int max_comp_streams;
++
+ 	struct zram_stats stats;
++	atomic_t refcount; /* refcount for zram_meta */
++	/* wait all IO under all of cpu are done */
++	wait_queue_head_t io_done;
+ 	/*
+-	 * the number of pages zram can consume for storing compressed data
++	 * This is the limit on amount of *uncompressed* worth of data
++	 * we can store in a disk.
+ 	 */
+-	unsigned long limit_pages;
