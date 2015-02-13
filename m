@@ -1,55 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-kobject_ueventc-remove-redundant-include.patch
- removed from -mm tree
-Date: Fri, 13 Feb 2015 12:23:00 -0800
-Message-ID: <54de5d24.KJ6Hzizc2lVuie0Q%akpm@linux-foundation.org>
+Subject: [merged] lib-nlattrc-remove-redundant-include.patch removed from
+ -mm tree
+Date: Fri, 13 Feb 2015 12:23:02 -0800
+Message-ID: <54de5d26.HQXYJ4DCNFww+T6V%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49153 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49155 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753666AbbBMUXB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:23:01 -0500
+	with ESMTP id S1753647AbbBMUXD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:23:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/kobject_uevent.c: remove redundant include
+     Subject: lib/nlattr.c: remove redundant include
 has been removed from the -mm tree.  Its filename was
-     lib-kobject_ueventc-remove-redundant-include.patch
+     lib-nlattrc-remove-redundant-include.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/kobject_uevent.c: remove redundant include
+Subject: lib/nlattr.c: remove redundant include
 
-The file doesn't seem to use anything from linux/user_namespace.h, and
-removing it yields byte-identical object code and strictly fewer
-dependencies in the .cmd file.
+nlattr.c doesn't seem to rely on anything from netdevice.h.  Removing it
+yields identical objdump -d output for each of {allyes,allno,def}config,
+and eliminates more than 200 lines from the generated dependency file.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/kobject_uevent.c |    1 -
+ lib/nlattr.c |    1 -
  1 file changed, 1 deletion(-)
 
-diff -puN lib/kobject_uevent.c~lib-kobject_ueventc-remove-redundant-include lib/kobject_uevent.c
---- a/lib/kobject_uevent.c~lib-kobject_ueventc-remove-redundant-include
-+++ a/lib/kobject_uevent.c
-@@ -20,7 +20,6 @@
- #include <linux/export.h>
- #include <linux/kmod.h>
- #include <linux/slab.h>
--#include <linux/user_namespace.h>
- #include <linux/socket.h>
+diff -puN lib/nlattr.c~lib-nlattrc-remove-redundant-include lib/nlattr.c
+--- a/lib/nlattr.c~lib-nlattrc-remove-redundant-include
++++ a/lib/nlattr.c
+@@ -9,7 +9,6 @@
+ #include <linux/kernel.h>
+ #include <linux/errno.h>
+ #include <linux/jiffies.h>
+-#include <linux/netdevice.h>
  #include <linux/skbuff.h>
- #include <linux/netlink.h>
+ #include <linux/string.h>
+ #include <linux/types.h>
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
