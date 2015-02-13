@@ -1,52 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-lcmc-replace-include.patch removed from -mm tree
-Date: Fri, 13 Feb 2015 12:29:39 -0800
-Message-ID: <54de5eb3.ugn2AKuSBvGiCHYk%akpm@linux-foundation.org>
+Subject: [merged] lib-percpu_idac-remove-redundant-includes.patch removed
+ from -mm tree
+Date: Fri, 13 Feb 2015 12:29:37 -0800
+Message-ID: <54de5eb1.3jkkANez5kJS93Vl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49184 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49183 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751445AbbBMU3j (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:29:39 -0500
+	with ESMTP id S1751445AbbBMU3i (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:29:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/lcm.c: replace include
+     Subject: lib/percpu_ida.c: remove redundant includes
 has been removed from the -mm tree.  Its filename was
-     lib-lcmc-replace-include.patch
+     lib-percpu_idac-remove-redundant-includes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/lcm.c: replace include
+Subject: lib/percpu_ida.c: remove redundant includes
 
-We don't need all the stuff kernel.h pulls in; just compiler.h since
-export.h doesn't do necessary #includes.  This removes more than 100
-dependencies.
+These three #includes seem to be completely redundant: Removing them
+yields identical objdump -d output for each of {allyes,allno,def}config,
+and neither included file end up in the generated dependency file through
+some recursive include.  In total, about 50 lines are eliminated from
+.percpu.o.cmd.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/lcm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/percpu_ida.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN lib/lcm.c~lib-lcmc-replace-include lib/lcm.c
---- a/lib/lcm.c~lib-lcmc-replace-include
-+++ a/lib/lcm.c
-@@ -1,4 +1,4 @@
--#include <linux/kernel.h>
-+#include <linux/compiler.h>
- #include <linux/gcd.h>
+diff -puN lib/percpu_ida.c~lib-percpu_idac-remove-redundant-includes lib/percpu_ida.c
+--- a/lib/percpu_ida.c~lib-percpu_idac-remove-redundant-includes
++++ a/lib/percpu_ida.c
+@@ -19,13 +19,10 @@
+ #include <linux/bug.h>
+ #include <linux/err.h>
  #include <linux/export.h>
- #include <linux/lcm.h>
+-#include <linux/hardirq.h>
+-#include <linux/idr.h>
+ #include <linux/init.h>
+ #include <linux/kernel.h>
+ #include <linux/percpu.h>
+ #include <linux/sched.h>
+-#include <linux/slab.h>
+ #include <linux/string.h>
+ #include <linux/spinlock.h>
+ #include <linux/percpu_ida.h>
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
