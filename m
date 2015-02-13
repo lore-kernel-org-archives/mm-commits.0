@@ -1,116 +1,230 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-do-not-use-mm-nr_pmds-on-mmu-configurations.patch
- removed from -mm tree
-Date: Fri, 13 Feb 2015 12:20:46 -0800
-Message-ID: <54de5c9e.lrntbyHq060PHZ0I%akpm@linux-foundation.org>
+Subject: [merged]
+ slub-make-dead-caches-discard-free-slabs-immediately.patch removed from -mm tree
+Date: Fri, 13 Feb 2015 12:20:36 -0800
+Message-ID: <54de5c94.lT+oPPfNr7xLLoRQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48856 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48831 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753698AbbBMUUr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:20:47 -0500
+	with ESMTP id S1752618AbbBMUUh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:20:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, linux@roeck-us.net, mm-commits@vger.kernel.org
+To: vdavydov@parallels.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: do not use mm->nr_pmds on !MMU configurations
+     Subject: slub: make dead caches discard free slabs immediately
 has been removed from the -mm tree.  Its filename was
-     mm-do-not-use-mm-nr_pmds-on-mmu-configurations.patch
+     slub-make-dead-caches-discard-free-slabs-immediately.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: do not use mm->nr_pmds on !MMU configurations
+From: Vladimir Davydov <vdavydov@parallels.com>
+Subject: slub: make dead caches discard free slabs immediately
 
-mm->nr_pmds doesn't make sense on !MMU configurations
+To speed up further allocations SLUB may store empty slabs in per cpu/node
+partial lists instead of freeing them immediately.  This prevents per
+memcg caches destruction, because kmem caches created for a memory cgroup
+are only destroyed after the last page charged to the cgroup is freed.
 
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Guenter Roeck <linux@roeck-us.net>
+To fix this issue, this patch resurrects approach first proposed in [1]. 
+It forbids SLUB to cache empty slabs after the memory cgroup that the
+cache belongs to was destroyed.  It is achieved by setting kmem_cache's
+cpu_partial and min_partial constants to 0 and tuning put_cpu_partial() so
+that it would drop frozen empty slabs immediately if cpu_partial = 0.
+
+The runtime overhead is minimal.  From all the hot functions, we only
+touch relatively cold put_cpu_partial(): we make it call
+unfreeze_partials() after freezing a slab that belongs to an offline
+memory cgroup.  Since slab freezing exists to avoid moving slabs from/to a
+partial list on free/alloc, and there can't be allocations from dead
+caches, it shouldn't cause any overhead.  We do have to disable preemption
+for put_cpu_partial() to achieve that though.
+
+The original patch was accepted well and even merged to the mm tree. 
+However, I decided to withdraw it due to changes happening to the memcg
+core at that time.  I had an idea of introducing per-memcg shrinkers for
+kmem caches, but now, as memcg has finally settled down, I do not see it
+as an option, because SLUB shrinker would be too costly to call since SLUB
+does not keep free slabs on a separate list.  Besides, we currently do not
+even call per-memcg shrinkers for offline memcgs.  Overall, it would
+introduce much more complexity to both SLUB and memcg than this small
+patch.
+
+Regarding to SLAB, there's no problem with it, because it shrinks
+per-cpu/node caches periodically.  Thanks to list_lru reparenting, we no
+longer keep entries for offline cgroups in per-memcg arrays (such as
+memcg_cache_params->memcg_caches), so we do not have to bother if a
+per-memcg cache will be shrunk a bit later than it could be.
+
+[1] http://thread.gmane.org/gmane.linux.kernel.mm/118649/focus=118650
+
+Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    9 ++++++++-
- kernel/fork.c      |    4 +---
- 2 files changed, 9 insertions(+), 4 deletions(-)
+ mm/slab.c        |    4 ++--
+ mm/slab.h        |    2 +-
+ mm/slab_common.c |   15 +++++++++++++--
+ mm/slob.c        |    2 +-
+ mm/slub.c        |   31 ++++++++++++++++++++++++++-----
+ 5 files changed, 43 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/mm.h~mm-do-not-use-mm-nr_pmds-on-mmu-configurations include/linux/mm.h
---- a/include/linux/mm.h~mm-do-not-use-mm-nr_pmds-on-mmu-configurations
-+++ a/include/linux/mm.h
-@@ -1447,13 +1447,15 @@ static inline int __pud_alloc(struct mm_
- int __pud_alloc(struct mm_struct *mm, pgd_t *pgd, unsigned long address);
- #endif
+diff -puN mm/slab.c~slub-make-dead-caches-discard-free-slabs-immediately mm/slab.c
+--- a/mm/slab.c~slub-make-dead-caches-discard-free-slabs-immediately
++++ a/mm/slab.c
+@@ -2382,7 +2382,7 @@ out:
+ 	return nr_freed;
+ }
  
--#ifdef __PAGETABLE_PMD_FOLDED
-+#if defined(__PAGETABLE_PMD_FOLDED) || !defined(CONFIG_MMU)
- static inline int __pmd_alloc(struct mm_struct *mm, pud_t *pud,
- 						unsigned long address)
+-int __kmem_cache_shrink(struct kmem_cache *cachep)
++int __kmem_cache_shrink(struct kmem_cache *cachep, bool deactivate)
  {
+ 	int ret = 0;
+ 	int node;
+@@ -2404,7 +2404,7 @@ int __kmem_cache_shutdown(struct kmem_ca
+ {
+ 	int i;
+ 	struct kmem_cache_node *n;
+-	int rc = __kmem_cache_shrink(cachep);
++	int rc = __kmem_cache_shrink(cachep, false);
+ 
+ 	if (rc)
+ 		return rc;
+diff -puN mm/slab.h~slub-make-dead-caches-discard-free-slabs-immediately mm/slab.h
+--- a/mm/slab.h~slub-make-dead-caches-discard-free-slabs-immediately
++++ a/mm/slab.h
+@@ -138,7 +138,7 @@ static inline unsigned long kmem_cache_f
+ #define CACHE_CREATE_MASK (SLAB_CORE_FLAGS | SLAB_DEBUG_FLAGS | SLAB_CACHE_FLAGS)
+ 
+ int __kmem_cache_shutdown(struct kmem_cache *);
+-int __kmem_cache_shrink(struct kmem_cache *);
++int __kmem_cache_shrink(struct kmem_cache *, bool);
+ void slab_kmem_cache_release(struct kmem_cache *);
+ 
+ struct seq_file;
+diff -puN mm/slab_common.c~slub-make-dead-caches-discard-free-slabs-immediately mm/slab_common.c
+--- a/mm/slab_common.c~slub-make-dead-caches-discard-free-slabs-immediately
++++ a/mm/slab_common.c
+@@ -549,10 +549,13 @@ void memcg_deactivate_kmem_caches(struct
+ {
+ 	int idx;
+ 	struct memcg_cache_array *arr;
+-	struct kmem_cache *s;
++	struct kmem_cache *s, *c;
+ 
+ 	idx = memcg_cache_id(memcg);
+ 
++	get_online_cpus();
++	get_online_mems();
++
+ 	mutex_lock(&slab_mutex);
+ 	list_for_each_entry(s, &slab_caches, list) {
+ 		if (!is_root_cache(s))
+@@ -560,9 +563,17 @@ void memcg_deactivate_kmem_caches(struct
+ 
+ 		arr = rcu_dereference_protected(s->memcg_params.memcg_caches,
+ 						lockdep_is_held(&slab_mutex));
++		c = arr->entries[idx];
++		if (!c)
++			continue;
++
++		__kmem_cache_shrink(c, true);
+ 		arr->entries[idx] = NULL;
+ 	}
+ 	mutex_unlock(&slab_mutex);
++
++	put_online_mems();
++	put_online_cpus();
+ }
+ 
+ void memcg_destroy_kmem_caches(struct mem_cgroup *memcg)
+@@ -649,7 +660,7 @@ int kmem_cache_shrink(struct kmem_cache
+ 
+ 	get_online_cpus();
+ 	get_online_mems();
+-	ret = __kmem_cache_shrink(cachep);
++	ret = __kmem_cache_shrink(cachep, false);
+ 	put_online_mems();
+ 	put_online_cpus();
+ 	return ret;
+diff -puN mm/slob.c~slub-make-dead-caches-discard-free-slabs-immediately mm/slob.c
+--- a/mm/slob.c~slub-make-dead-caches-discard-free-slabs-immediately
++++ a/mm/slob.c
+@@ -618,7 +618,7 @@ int __kmem_cache_shutdown(struct kmem_ca
  	return 0;
  }
  
-+static inline void mm_nr_pmds_init(struct mm_struct *mm) {}
-+
- static inline unsigned long mm_nr_pmds(struct mm_struct *mm)
+-int __kmem_cache_shrink(struct kmem_cache *d)
++int __kmem_cache_shrink(struct kmem_cache *d, bool deactivate)
  {
  	return 0;
-@@ -1465,6 +1467,11 @@ static inline void mm_dec_nr_pmds(struct
- #else
- int __pmd_alloc(struct mm_struct *mm, pud_t *pud, unsigned long address);
+ }
+diff -puN mm/slub.c~slub-make-dead-caches-discard-free-slabs-immediately mm/slub.c
+--- a/mm/slub.c~slub-make-dead-caches-discard-free-slabs-immediately
++++ a/mm/slub.c
+@@ -2007,6 +2007,7 @@ static void put_cpu_partial(struct kmem_
+ 	int pages;
+ 	int pobjects;
  
-+static inline void mm_nr_pmds_init(struct mm_struct *mm)
-+{
-+	atomic_long_set(&mm->nr_pmds, 0);
-+}
++	preempt_disable();
+ 	do {
+ 		pages = 0;
+ 		pobjects = 0;
+@@ -2040,6 +2041,14 @@ static void put_cpu_partial(struct kmem_
+ 
+ 	} while (this_cpu_cmpxchg(s->cpu_slab->partial, oldpage, page)
+ 								!= oldpage);
++	if (unlikely(!s->cpu_partial)) {
++		unsigned long flags;
 +
- static inline unsigned long mm_nr_pmds(struct mm_struct *mm)
++		local_irq_save(flags);
++		unfreeze_partials(s, this_cpu_ptr(s->cpu_slab));
++		local_irq_restore(flags);
++	}
++	preempt_enable();
+ #endif
+ }
+ 
+@@ -3369,7 +3378,7 @@ EXPORT_SYMBOL(kfree);
+  * being allocated from last increasing the chance that the last objects
+  * are freed in them.
+  */
+-int __kmem_cache_shrink(struct kmem_cache *s)
++int __kmem_cache_shrink(struct kmem_cache *s, bool deactivate)
  {
- 	return atomic_long_read(&mm->nr_pmds);
-diff -puN kernel/fork.c~mm-do-not-use-mm-nr_pmds-on-mmu-configurations kernel/fork.c
---- a/kernel/fork.c~mm-do-not-use-mm-nr_pmds-on-mmu-configurations
-+++ a/kernel/fork.c
-@@ -555,9 +555,7 @@ static struct mm_struct *mm_init(struct
- 	INIT_LIST_HEAD(&mm->mmlist);
- 	mm->core_state = NULL;
- 	atomic_long_set(&mm->nr_ptes, 0);
--#ifndef __PAGETABLE_PMD_FOLDED
--	atomic_long_set(&mm->nr_pmds, 0);
--#endif
-+	mm_nr_pmds_init(mm);
- 	mm->map_count = 0;
- 	mm->locked_vm = 0;
- 	mm->pinned_vm = 0;
-_
-
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
-
-origin.patch
-mm-fix-xip-fault-vs-truncate-race.patch
-mm-fix-xip-fault-vs-truncate-race-fix.patch
-mm-allow-page-fault-handlers-to-perform-the-cow.patch
-mm-allow-page-fault-handlers-to-perform-the-cow-fix.patch
-vfsext2-introduce-is_daxinode.patch
-daxext2-replace-xip-read-and-write-with-dax-i-o.patch
-daxext2-replace-ext2_clear_xip_target-with-dax_clear_blocks.patch
-daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler.patch
-daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix.patch
-daxext2-replace-xip_truncate_page-with-dax_truncate_page.patch
-dax-replace-xip-documentation-with-dax-documentation.patch
-vfs-remove-get_xip_mem.patch
-ext2-remove-ext2_xip_verify_sb.patch
-ext2-remove-ext2_use_xip.patch
-ext2-remove-xipc-and-xiph.patch
-vfsext2-remove-config_ext2_fs_xip-and-rename-config_fs_xip-to-config_fs_dax.patch
-ext2-remove-ext2_aops_xip.patch
-ext2-get-rid-of-most-mentions-of-xip-in-ext2.patch
-dax-add-dax_zero_page_range.patch
-dax-add-dax_zero_page_range-fix.patch
-ext4-add-dax-functionality.patch
-brd-rename-xip-to-dax.patch
-powerpc-drop-_page_file-and-pte_file-related-helpers.patch
-
+ 	int node;
+ 	int i;
+@@ -3381,11 +3390,23 @@ int __kmem_cache_shrink(struct kmem_cach
+ 	unsigned long flags;
+ 	int ret = 0;
+ 
++	if (deactivate) {
++		/*
++		 * Disable empty slabs caching. Used to avoid pinning offline
++		 * memory cgroups by kmem pages that can be freed.
++		 */
++		s->cpu_partial = 0;
++		s->min_partial = 0;
++
++		/*
++		 * s->cpu_partial is checked locklessly (see put_cpu_partial),
++		 * so we have to make sure the change is visible.
++		 */
++		kick_all_cpus_sync();
++	}
++
+ 	flush_all(s);
+ 	for_each_kmem_cache_node(s, node, n) {
+-		if (!n->nr_partial)
+-			continue;
