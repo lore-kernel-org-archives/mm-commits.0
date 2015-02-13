@@ -1,92 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hexdump-fix-ascii-column-for-the-tail-of-a-dump.patch
+Subject: [merged] lib-dynamic_queue_limitsc-simplify-includes.patch
  removed from -mm tree
-Date: Fri, 13 Feb 2015 12:22:36 -0800
-Message-ID: <54de5d0c.mF4Q6aysMcp4QtNu%akpm@linux-foundation.org>
+Date: Fri, 13 Feb 2015 12:22:46 -0800
+Message-ID: <54de5d16.3PGLRR3VClExA5Bh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49128 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49138 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753608AbbBMUWh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:22:37 -0500
+	with ESMTP id S1753587AbbBMUWr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:22:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andriy.shevchenko@linux.intel.com, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hexdump: fix ascii column for the tail of a dump
+     Subject: lib/dynamic_queue_limits.c: simplify includes
 has been removed from the -mm tree.  Its filename was
-     hexdump-fix-ascii-column-for-the-tail-of-a-dump.patch
+     lib-dynamic_queue_limitsc-simplify-includes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: hexdump: fix ascii column for the tail of a dump
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: lib/dynamic_queue_limits.c: simplify includes
 
-In the current implementation we have a floating ascii column in the tail
-of the dump.
+The file doesn't use anything from ctype.h.  Instead of module.h, just use
+export.h for EXPORT_SYMBOL.  The latter requires the user to include
+compiler.h, so do that explicitly instead of relying on some other header
+pulling it in.
 
-For example, for row size equal to 16 the ascii column as in following
-table
-
-group size \ length	8	12	16
-	1		50	50	50
-	2		22	32	42
-	4		20	29	38
-	8		19	-	36
-
-This patch makes it the same independently of amount of bytes dumped.
-
-The change is safe since all current users, which use ASCII part of the
-dump, rely on the group size equal to 1.  The patch doesn't change
-behaviour for such group size (see the table above).
-
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/hexdump.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ lib/dynamic_queue_limits.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN lib/hexdump.c~hexdump-fix-ascii-column-for-the-tail-of-a-dump lib/hexdump.c
---- a/lib/hexdump.c~hexdump-fix-ascii-column-for-the-tail-of-a-dump
-+++ a/lib/hexdump.c
-@@ -126,7 +126,7 @@ void hex_dump_to_buffer(const void *buf,
- 			lx += scnprintf(linebuf + lx, linebuflen - lx,
- 					"%s%16.16llx", j ? " " : "",
- 					(unsigned long long)*(ptr8 + j));
--		ascii_column = 17 * ngroups + 2;
-+		ascii_column = rowsize * 2 + rowsize / 8 + 2;
- 		break;
- 	}
+diff -puN lib/dynamic_queue_limits.c~lib-dynamic_queue_limitsc-simplify-includes lib/dynamic_queue_limits.c
+--- a/lib/dynamic_queue_limits.c~lib-dynamic_queue_limitsc-simplify-includes
++++ a/lib/dynamic_queue_limits.c
+@@ -3,12 +3,12 @@
+  *
+  * Copyright (c) 2011, Tom Herbert <therbert@google.com>
+  */
+-#include <linux/module.h>
+ #include <linux/types.h>
+-#include <linux/ctype.h>
+ #include <linux/kernel.h>
+ #include <linux/jiffies.h>
+ #include <linux/dynamic_queue_limits.h>
++#include <linux/compiler.h>
++#include <linux/export.h>
  
-@@ -137,7 +137,7 @@ void hex_dump_to_buffer(const void *buf,
- 		for (j = 0; j < ngroups; j++)
- 			lx += scnprintf(linebuf + lx, linebuflen - lx,
- 					"%s%8.8x", j ? " " : "", *(ptr4 + j));
--		ascii_column = 9 * ngroups + 2;
-+		ascii_column = rowsize * 2 + rowsize / 4 + 2;
- 		break;
- 	}
- 
-@@ -148,7 +148,7 @@ void hex_dump_to_buffer(const void *buf,
- 		for (j = 0; j < ngroups; j++)
- 			lx += scnprintf(linebuf + lx, linebuflen - lx,
- 					"%s%4.4x", j ? " " : "", *(ptr2 + j));
--		ascii_column = 5 * ngroups + 2;
-+		ascii_column = rowsize * 2 + rowsize / 2 + 2;
- 		break;
- 	}
- 
+ #define POSDIFF(A, B) ((int)((A) - (B)) > 0 ? (A) - (B) : 0)
+ #define AFTER_EQ(A, B) ((int)((A) - (B)) >= 0)
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
 
 origin.patch
+lib-bitmapc-change-prototype-of-bitmap_copy_le.patch
+lib-bitmapc-elide-bitmap_copy_le-on-little-endian.patch
+lib-bitmap-change-bitmap_shift_right-to-take-unsigned-parameters.patch
+lib-bitmap-eliminate-branch-in-__bitmap_shift_right.patch
+lib-bitmap-remove-redundant-code-from-__bitmap_shift_right.patch
+lib-bitmap-yet-another-simplification-in-__bitmap_shift_right.patch
+lib-bitmap-change-bitmap_shift_left-to-take-unsigned-parameters.patch
+lib-bitmap-eliminate-branch-in-__bitmap_shift_left.patch
+lib-bitmap-remove-redundant-code-from-__bitmap_shift_left.patch
+lib-stringc-improve-strrchr.patch
+checkpatch-emit-an-error-when-using-predefined-timestamp-macros.patch
 linux-next.patch
 
