@@ -1,136 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- linux-cpumaskh-update-bitmap-wrappers-to-take-unsigned-int.patch removed
+Subject: [merged] lib-bitmap-update-bitmap_onto-to-unsigned.patch removed
  from -mm tree
-Date: Fri, 13 Feb 2015 12:22:18 -0800
-Message-ID: <54de5cfa.DPMW4N5PpgPnWyou%akpm@linux-foundation.org>
+Date: Fri, 13 Feb 2015 12:22:20 -0800
+Message-ID: <54de5cfc.1gTdQhh07FwuI1Il%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49106 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49108 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753808AbbBMUWT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:22:19 -0500
+	with ESMTP id S1753808AbbBMUWV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:22:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux/cpumask.h: update bitmap wrappers to take unsigned int
+     Subject: lib/bitmap.c: update bitmap_onto to unsigned
 has been removed from the -mm tree.  Its filename was
-     linux-cpumaskh-update-bitmap-wrappers-to-take-unsigned-int.patch
+     lib-bitmap-update-bitmap_onto-to-unsigned.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: linux/cpumask.h: update bitmap wrappers to take unsigned int
+Subject: lib/bitmap.c: update bitmap_onto to unsigned
 
-Since the various bitmap_* functions now take an unsigned int as nbits
-parameter, it makes sense to also update the various wrappers, even though
-they're marked as obsolete.
+Change the nbits parameter of bitmap_onto to unsigned int for consistency
+with other bitmap_* functions.
 
+[akpm@linux-foundation.org: coding-style fixes]
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpumask.h |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ include/linux/bitmap.h |    2 +-
+ lib/bitmap.c           |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/cpumask.h~linux-cpumaskh-update-bitmap-wrappers-to-take-unsigned-int include/linux/cpumask.h
---- a/include/linux/cpumask.h~linux-cpumaskh-update-bitmap-wrappers-to-take-unsigned-int
-+++ a/include/linux/cpumask.h
-@@ -905,13 +905,13 @@ static inline void __cpu_clear(int cpu,
- }
+diff -puN include/linux/bitmap.h~lib-bitmap-update-bitmap_onto-to-unsigned include/linux/bitmap.h
+--- a/include/linux/bitmap.h~lib-bitmap-update-bitmap_onto-to-unsigned
++++ a/include/linux/bitmap.h
+@@ -164,7 +164,7 @@ extern void bitmap_remap(unsigned long *
+ extern int bitmap_bitremap(int oldbit,
+ 		const unsigned long *old, const unsigned long *new, int bits);
+ extern void bitmap_onto(unsigned long *dst, const unsigned long *orig,
+-		const unsigned long *relmap, int bits);
++		const unsigned long *relmap, unsigned int bits);
+ extern void bitmap_fold(unsigned long *dst, const unsigned long *orig,
+ 		int sz, int bits);
+ extern int bitmap_find_free_region(unsigned long *bitmap, unsigned int bits, int order);
+diff -puN lib/bitmap.c~lib-bitmap-update-bitmap_onto-to-unsigned lib/bitmap.c
+--- a/lib/bitmap.c~lib-bitmap-update-bitmap_onto-to-unsigned
++++ a/lib/bitmap.c
+@@ -1006,9 +1006,9 @@ EXPORT_SYMBOL(bitmap_bitremap);
+  * All bits in @dst not set by the above rule are cleared.
+  */
+ void bitmap_onto(unsigned long *dst, const unsigned long *orig,
+-			const unsigned long *relmap, int bits)
++			const unsigned long *relmap, unsigned int bits)
+ {
+-	int n, m;       	/* same meaning as in above comment */
++	unsigned int n, m;	/* same meaning as in above comment */
  
- #define cpus_setall(dst) __cpus_setall(&(dst), NR_CPUS)
--static inline void __cpus_setall(cpumask_t *dstp, int nbits)
-+static inline void __cpus_setall(cpumask_t *dstp, unsigned int nbits)
- {
- 	bitmap_fill(dstp->bits, nbits);
- }
- 
- #define cpus_clear(dst) __cpus_clear(&(dst), NR_CPUS)
--static inline void __cpus_clear(cpumask_t *dstp, int nbits)
-+static inline void __cpus_clear(cpumask_t *dstp, unsigned int nbits)
- {
- 	bitmap_zero(dstp->bits, nbits);
- }
-@@ -927,21 +927,21 @@ static inline int __cpu_test_and_set(int
- 
- #define cpus_and(dst, src1, src2) __cpus_and(&(dst), &(src1), &(src2), NR_CPUS)
- static inline int __cpus_and(cpumask_t *dstp, const cpumask_t *src1p,
--					const cpumask_t *src2p, int nbits)
-+					const cpumask_t *src2p, unsigned int nbits)
- {
- 	return bitmap_and(dstp->bits, src1p->bits, src2p->bits, nbits);
- }
- 
- #define cpus_or(dst, src1, src2) __cpus_or(&(dst), &(src1), &(src2), NR_CPUS)
- static inline void __cpus_or(cpumask_t *dstp, const cpumask_t *src1p,
--					const cpumask_t *src2p, int nbits)
-+					const cpumask_t *src2p, unsigned int nbits)
- {
- 	bitmap_or(dstp->bits, src1p->bits, src2p->bits, nbits);
- }
- 
- #define cpus_xor(dst, src1, src2) __cpus_xor(&(dst), &(src1), &(src2), NR_CPUS)
- static inline void __cpus_xor(cpumask_t *dstp, const cpumask_t *src1p,
--					const cpumask_t *src2p, int nbits)
-+					const cpumask_t *src2p, unsigned int nbits)
- {
- 	bitmap_xor(dstp->bits, src1p->bits, src2p->bits, nbits);
- }
-@@ -949,40 +949,40 @@ static inline void __cpus_xor(cpumask_t
- #define cpus_andnot(dst, src1, src2) \
- 				__cpus_andnot(&(dst), &(src1), &(src2), NR_CPUS)
- static inline int __cpus_andnot(cpumask_t *dstp, const cpumask_t *src1p,
--					const cpumask_t *src2p, int nbits)
-+					const cpumask_t *src2p, unsigned int nbits)
- {
- 	return bitmap_andnot(dstp->bits, src1p->bits, src2p->bits, nbits);
- }
- 
- #define cpus_equal(src1, src2) __cpus_equal(&(src1), &(src2), NR_CPUS)
- static inline int __cpus_equal(const cpumask_t *src1p,
--					const cpumask_t *src2p, int nbits)
-+					const cpumask_t *src2p, unsigned int nbits)
- {
- 	return bitmap_equal(src1p->bits, src2p->bits, nbits);
- }
- 
- #define cpus_intersects(src1, src2) __cpus_intersects(&(src1), &(src2), NR_CPUS)
- static inline int __cpus_intersects(const cpumask_t *src1p,
--					const cpumask_t *src2p, int nbits)
-+					const cpumask_t *src2p, unsigned int nbits)
- {
- 	return bitmap_intersects(src1p->bits, src2p->bits, nbits);
- }
- 
- #define cpus_subset(src1, src2) __cpus_subset(&(src1), &(src2), NR_CPUS)
- static inline int __cpus_subset(const cpumask_t *src1p,
--					const cpumask_t *src2p, int nbits)
-+					const cpumask_t *src2p, unsigned int nbits)
- {
- 	return bitmap_subset(src1p->bits, src2p->bits, nbits);
- }
- 
- #define cpus_empty(src) __cpus_empty(&(src), NR_CPUS)
--static inline int __cpus_empty(const cpumask_t *srcp, int nbits)
-+static inline int __cpus_empty(const cpumask_t *srcp, unsigned int nbits)
- {
- 	return bitmap_empty(srcp->bits, nbits);
- }
- 
- #define cpus_weight(cpumask) __cpus_weight(&(cpumask), NR_CPUS)
--static inline int __cpus_weight(const cpumask_t *srcp, int nbits)
-+static inline int __cpus_weight(const cpumask_t *srcp, unsigned int nbits)
- {
- 	return bitmap_weight(srcp->bits, nbits);
- }
+ 	if (dst == orig)	/* following doesn't handle inplace mappings */
+ 		return;
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
