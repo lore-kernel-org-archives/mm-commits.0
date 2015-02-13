@@ -1,257 +1,218 @@
 From: akpm@linux-foundation.org
-Subject: [merged] zram-remove-init_lock-in-zram_make_request.patch removed from -mm tree
-Date: Fri, 13 Feb 2015 12:21:24 -0800
-Message-ID: <54de5cc4.1EzUKaZWotW4TnjA%akpm@linux-foundation.org>
+Subject: [merged] mm-zpool-add-name-argument-to-create-zpool.patch removed from -mm tree
+Date: Fri, 13 Feb 2015 12:21:28 -0800
+Message-ID: <54de5cc8.ugTcFiCHfgVk1kM0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48966 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48975 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752772AbbBMUVZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:21:25 -0500
+	with ESMTP id S1752698AbbBMUV3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:21:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, jmarchan@redhat.com, ngupta@vflare.org, opensource.ganesh@gmail.com, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
+To: opensource.ganesh@gmail.com, ddstreet@ieee.org, minchan@kernel.org, ngupta@vflare.org, sjennings@variantweb.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: remove init_lock in zram_make_request
+     Subject: mm/zpool: add name argument to create zpool
 has been removed from the -mm tree.  Its filename was
-     zram-remove-init_lock-in-zram_make_request.patch
+     mm-zpool-add-name-argument-to-create-zpool.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: zram: remove init_lock in zram_make_request
+From: Ganesh Mahendran <opensource.ganesh@gmail.com>
+Subject: mm/zpool: add name argument to create zpool
 
-Admin could reset zram during I/O operation going on so we have used
-zram->init_lock as read-side lock in I/O path to prevent sudden zram meta
-freeing.
+Currently the underlay of zpool: zsmalloc/zbud, do not know who creates
+them.  There is not a method to let zsmalloc/zbud find which caller they
+belong to.
 
-However, the init_lock is really troublesome.  We can't do call
-zram_meta_alloc under init_lock due to lockdep splat because zram_rw_page
-is one of the function under reclaim path and hold it as read_lock while
-other places in process context hold it as write_lock.  So, we have used
-allocation out of the lock to avoid lockdep warn but it's not good for
-readability and fainally, I met another lockdep splat between init_lock
-and cpu_hotplug from kmem_cache_destroy during working zsmalloc
-compaction.  :(
+Now we want to add statistics collection in zsmalloc.  We need to name the
+debugfs dir for each pool created.  The way suggested by Minchan Kim is to
+use a name passed by caller(such as zram) to create the zsmalloc pool.
 
-Yes, the ideal is to remove horrible init_lock of zram in rw path.  This
-patch removes it in rw path and instead, add atomic refcount for meta
-lifetime management and completion to free meta in process context.  It's
-important to free meta in process context because some of resource
-destruction needs mutex lock, which could be held if we releases the
-resource in reclaim context so it's deadlock, again.
+    /sys/kernel/debug/zsmalloc/zram0
 
-As a bonus, we could remove init_done check in rw path because
-zram_meta_get will do a role for it, instead.
+This patch adds an argument `name' to zs_create_pool() and other related
+functions.
 
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Signed-off-by: Minchan Kim <minchan@kernel.org>
+Signed-off-by: Ganesh Mahendran <opensource.ganesh@gmail.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Cc: Seth Jennings <sjennings@variantweb.net>
 Cc: Nitin Gupta <ngupta@vflare.org>
-Cc: Jerome Marchand <jmarchan@redhat.com>
-Cc: Ganesh Mahendran <opensource.ganesh@gmail.com>
+Cc: Dan Streetman <ddstreet@ieee.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   76 ++++++++++++++++++++++----------
- drivers/block/zram/zram_drv.h |   20 ++++----
- 2 files changed, 64 insertions(+), 32 deletions(-)
+ drivers/block/zram/zram_drv.c |    8 +++++---
+ include/linux/zpool.h         |    5 +++--
+ include/linux/zsmalloc.h      |    2 +-
+ mm/zbud.c                     |    3 ++-
+ mm/zpool.c                    |    6 ++++--
+ mm/zsmalloc.c                 |    6 +++---
+ mm/zswap.c                    |    5 +++--
+ 7 files changed, 21 insertions(+), 14 deletions(-)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-remove-init_lock-in-zram_make_request drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-remove-init_lock-in-zram_make_request
+diff -puN drivers/block/zram/zram_drv.c~mm-zpool-add-name-argument-to-create-zpool drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~mm-zpool-add-name-argument-to-create-zpool
 +++ a/drivers/block/zram/zram_drv.c
-@@ -53,9 +53,9 @@ static ssize_t name##_show(struct device
- }									\
- static DEVICE_ATTR_RO(name);
- 
--static inline int init_done(struct zram *zram)
-+static inline bool init_done(struct zram *zram)
- {
--	return zram->meta != NULL;
-+	return zram->disksize;
+@@ -327,9 +327,10 @@ static void zram_meta_free(struct zram_m
+ 	kfree(meta);
  }
  
- static inline struct zram *dev_to_zram(struct device *dev)
-@@ -356,6 +356,18 @@ out_error:
- 	return NULL;
+-static struct zram_meta *zram_meta_alloc(u64 disksize)
++static struct zram_meta *zram_meta_alloc(int device_id, u64 disksize)
+ {
+ 	size_t num_pages;
++	char pool_name[8];
+ 	struct zram_meta *meta = kmalloc(sizeof(*meta), GFP_KERNEL);
+ 
+ 	if (!meta)
+@@ -342,7 +343,8 @@ static struct zram_meta *zram_meta_alloc
+ 		goto out_error;
+ 	}
+ 
+-	meta->mem_pool = zs_create_pool(GFP_NOIO | __GFP_HIGHMEM);
++	snprintf(pool_name, sizeof(pool_name), "zram%d", device_id);
++	meta->mem_pool = zs_create_pool(pool_name, GFP_NOIO | __GFP_HIGHMEM);
+ 	if (!meta->mem_pool) {
+ 		pr_err("Error creating memory pool\n");
+ 		goto out_error;
+@@ -783,7 +785,7 @@ static ssize_t disksize_store(struct dev
+ 		return -EINVAL;
+ 
+ 	disksize = PAGE_ALIGN(disksize);
+-	meta = zram_meta_alloc(disksize);
++	meta = zram_meta_alloc(zram->disk->first_minor, disksize);
+ 	if (!meta)
+ 		return -ENOMEM;
+ 
+diff -puN include/linux/zpool.h~mm-zpool-add-name-argument-to-create-zpool include/linux/zpool.h
+--- a/include/linux/zpool.h~mm-zpool-add-name-argument-to-create-zpool
++++ a/include/linux/zpool.h
+@@ -36,7 +36,8 @@ enum zpool_mapmode {
+ 	ZPOOL_MM_DEFAULT = ZPOOL_MM_RW
+ };
+ 
+-struct zpool *zpool_create_pool(char *type, gfp_t gfp, struct zpool_ops *ops);
++struct zpool *zpool_create_pool(char *type, char *name,
++			gfp_t gfp, struct zpool_ops *ops);
+ 
+ char *zpool_get_type(struct zpool *pool);
+ 
+@@ -80,7 +81,7 @@ struct zpool_driver {
+ 	atomic_t refcount;
+ 	struct list_head list;
+ 
+-	void *(*create)(gfp_t gfp, struct zpool_ops *ops);
++	void *(*create)(char *name, gfp_t gfp, struct zpool_ops *ops);
+ 	void (*destroy)(void *pool);
+ 
+ 	int (*malloc)(void *pool, size_t size, gfp_t gfp,
+diff -puN include/linux/zsmalloc.h~mm-zpool-add-name-argument-to-create-zpool include/linux/zsmalloc.h
+--- a/include/linux/zsmalloc.h~mm-zpool-add-name-argument-to-create-zpool
++++ a/include/linux/zsmalloc.h
+@@ -36,7 +36,7 @@ enum zs_mapmode {
+ 
+ struct zs_pool;
+ 
+-struct zs_pool *zs_create_pool(gfp_t flags);
++struct zs_pool *zs_create_pool(char *name, gfp_t flags);
+ void zs_destroy_pool(struct zs_pool *pool);
+ 
+ unsigned long zs_malloc(struct zs_pool *pool, size_t size);
+diff -puN mm/zbud.c~mm-zpool-add-name-argument-to-create-zpool mm/zbud.c
+--- a/mm/zbud.c~mm-zpool-add-name-argument-to-create-zpool
++++ a/mm/zbud.c
+@@ -130,7 +130,8 @@ static struct zbud_ops zbud_zpool_ops =
+ 	.evict =	zbud_zpool_evict
+ };
+ 
+-static void *zbud_zpool_create(gfp_t gfp, struct zpool_ops *zpool_ops)
++static void *zbud_zpool_create(char *name, gfp_t gfp,
++			struct zpool_ops *zpool_ops)
+ {
+ 	return zbud_create_pool(gfp, zpool_ops ? &zbud_zpool_ops : NULL);
+ }
+diff -puN mm/zpool.c~mm-zpool-add-name-argument-to-create-zpool mm/zpool.c
+--- a/mm/zpool.c~mm-zpool-add-name-argument-to-create-zpool
++++ a/mm/zpool.c
+@@ -129,6 +129,7 @@ static void zpool_put_driver(struct zpoo
+ /**
+  * zpool_create_pool() - Create a new zpool
+  * @type	The type of the zpool to create (e.g. zbud, zsmalloc)
++ * @name	The name of the zpool (e.g. zram0, zswap)
+  * @gfp		The GFP flags to use when allocating the pool.
+  * @ops		The optional ops callback.
+  *
+@@ -140,7 +141,8 @@ static void zpool_put_driver(struct zpoo
+  *
+  * Returns: New zpool on success, NULL on failure.
+  */
+-struct zpool *zpool_create_pool(char *type, gfp_t gfp, struct zpool_ops *ops)
++struct zpool *zpool_create_pool(char *type, char *name, gfp_t gfp,
++		struct zpool_ops *ops)
+ {
+ 	struct zpool_driver *driver;
+ 	struct zpool *zpool;
+@@ -168,7 +170,7 @@ struct zpool *zpool_create_pool(char *ty
+ 
+ 	zpool->type = driver->type;
+ 	zpool->driver = driver;
+-	zpool->pool = driver->create(gfp, ops);
++	zpool->pool = driver->create(name, gfp, ops);
+ 	zpool->ops = ops;
+ 
+ 	if (!zpool->pool) {
+diff -puN mm/zsmalloc.c~mm-zpool-add-name-argument-to-create-zpool mm/zsmalloc.c
+--- a/mm/zsmalloc.c~mm-zpool-add-name-argument-to-create-zpool
++++ a/mm/zsmalloc.c
+@@ -246,9 +246,9 @@ struct mapping_area {
+ 
+ #ifdef CONFIG_ZPOOL
+ 
+-static void *zs_zpool_create(gfp_t gfp, struct zpool_ops *zpool_ops)
++static void *zs_zpool_create(char *name, gfp_t gfp, struct zpool_ops *zpool_ops)
+ {
+-	return zs_create_pool(gfp);
++	return zs_create_pool(name, gfp);
  }
  
-+static inline bool zram_meta_get(struct zram *zram)
-+{
-+	if (atomic_inc_not_zero(&zram->refcount))
-+		return true;
-+	return false;
-+}
-+
-+static inline void zram_meta_put(struct zram *zram)
-+{
-+	atomic_dec(&zram->refcount);
-+}
-+
- static void update_position(u32 *index, int *offset, struct bio_vec *bvec)
+ static void zs_zpool_destroy(void *pool)
+@@ -1148,7 +1148,7 @@ EXPORT_SYMBOL_GPL(zs_free);
+  * On success, a pointer to the newly created pool is returned,
+  * otherwise NULL.
+  */
+-struct zs_pool *zs_create_pool(gfp_t flags)
++struct zs_pool *zs_create_pool(char *name, gfp_t flags)
  {
- 	if (*offset + bvec->bv_len >= PAGE_SIZE)
-@@ -717,6 +729,10 @@ static void zram_bio_discard(struct zram
+ 	int i;
+ 	struct zs_pool *pool;
+diff -puN mm/zswap.c~mm-zpool-add-name-argument-to-create-zpool mm/zswap.c
+--- a/mm/zswap.c~mm-zpool-add-name-argument-to-create-zpool
++++ a/mm/zswap.c
+@@ -906,11 +906,12 @@ static int __init init_zswap(void)
  
- static void zram_reset_device(struct zram *zram)
- {
-+	struct zram_meta *meta;
-+	struct zcomp *comp;
-+	u64 disksize;
-+
- 	down_write(&zram->init_lock);
+ 	pr_info("loading zswap\n");
  
- 	zram->limit_pages = 0;
-@@ -726,16 +742,31 @@ static void zram_reset_device(struct zra
- 		return;
+-	zswap_pool = zpool_create_pool(zswap_zpool_type, gfp, &zswap_zpool_ops);
++	zswap_pool = zpool_create_pool(zswap_zpool_type, "zswap", gfp,
++					&zswap_zpool_ops);
+ 	if (!zswap_pool && strcmp(zswap_zpool_type, ZSWAP_ZPOOL_DEFAULT)) {
+ 		pr_info("%s zpool not available\n", zswap_zpool_type);
+ 		zswap_zpool_type = ZSWAP_ZPOOL_DEFAULT;
+-		zswap_pool = zpool_create_pool(zswap_zpool_type, gfp,
++		zswap_pool = zpool_create_pool(zswap_zpool_type, "zswap", gfp,
+ 					&zswap_zpool_ops);
  	}
- 
--	zcomp_destroy(zram->comp);
--	zram->max_comp_streams = 1;
--	zram_meta_free(zram->meta, zram->disksize);
--	zram->meta = NULL;
-+	meta = zram->meta;
-+	comp = zram->comp;
-+	disksize = zram->disksize;
-+	/*
-+	 * Refcount will go down to 0 eventually and r/w handler
-+	 * cannot handle further I/O so it will bail out by
-+	 * check zram_meta_get.
-+	 */
-+	zram_meta_put(zram);
-+	/*
-+	 * We want to free zram_meta in process context to avoid
-+	 * deadlock between reclaim path and any other locks.
-+	 */
-+	wait_event(zram->io_done, atomic_read(&zram->refcount) == 0);
-+
- 	/* Reset stats */
- 	memset(&zram->stats, 0, sizeof(zram->stats));
- 	zram->disksize = 0;
-+	zram->max_comp_streams = 1;
- 	set_capacity(zram->disk, 0);
- 
- 	up_write(&zram->init_lock);
-+	/* I/O operation under all of CPU are done so let's free */
-+	zram_meta_free(meta, disksize);
-+	zcomp_destroy(comp);
- }
- 
- static ssize_t disksize_store(struct device *dev,
-@@ -771,6 +802,8 @@ static ssize_t disksize_store(struct dev
- 		goto out_destroy_comp;
- 	}
- 
-+	init_waitqueue_head(&zram->io_done);
-+	atomic_set(&zram->refcount, 1);
- 	zram->meta = meta;
- 	zram->comp = comp;
- 	zram->disksize = disksize;
-@@ -901,23 +934,21 @@ static void zram_make_request(struct req
- {
- 	struct zram *zram = queue->queuedata;
- 
--	down_read(&zram->init_lock);
--	if (unlikely(!init_done(zram)))
-+	if (unlikely(!zram_meta_get(zram)))
- 		goto error;
- 
- 	if (!valid_io_request(zram, bio->bi_iter.bi_sector,
- 					bio->bi_iter.bi_size)) {
- 		atomic64_inc(&zram->stats.invalid_io);
--		goto error;
-+		goto put_zram;
- 	}
- 
- 	__zram_make_request(zram, bio);
--	up_read(&zram->init_lock);
--
-+	zram_meta_put(zram);
- 	return;
--
-+put_zram:
-+	zram_meta_put(zram);
- error:
--	up_read(&zram->init_lock);
- 	bio_io_error(bio);
- }
- 
-@@ -939,21 +970,19 @@ static void zram_slot_free_notify(struct
- static int zram_rw_page(struct block_device *bdev, sector_t sector,
- 		       struct page *page, int rw)
- {
--	int offset, err;
-+	int offset, err = -EIO;
- 	u32 index;
- 	struct zram *zram;
- 	struct bio_vec bv;
- 
- 	zram = bdev->bd_disk->private_data;
-+	if (unlikely(!zram_meta_get(zram)))
-+		goto out;
-+
- 	if (!valid_io_request(zram, sector, PAGE_SIZE)) {
- 		atomic64_inc(&zram->stats.invalid_io);
--		return -EINVAL;
--	}
--
--	down_read(&zram->init_lock);
--	if (unlikely(!init_done(zram))) {
--		err = -EIO;
--		goto out_unlock;
-+		err = -EINVAL;
-+		goto put_zram;
- 	}
- 
- 	index = sector >> SECTORS_PER_PAGE_SHIFT;
-@@ -964,8 +993,9 @@ static int zram_rw_page(struct block_dev
- 	bv.bv_offset = 0;
- 
- 	err = zram_bvec_rw(zram, &bv, index, offset, rw);
--out_unlock:
--	up_read(&zram->init_lock);
-+put_zram:
-+	zram_meta_put(zram);
-+out:
- 	/*
- 	 * If I/O fails, just return error(ie, non-zero) without
- 	 * calling page_endio.
-diff -puN drivers/block/zram/zram_drv.h~zram-remove-init_lock-in-zram_make_request drivers/block/zram/zram_drv.h
---- a/drivers/block/zram/zram_drv.h~zram-remove-init_lock-in-zram_make_request
-+++ a/drivers/block/zram/zram_drv.h
-@@ -100,24 +100,26 @@ struct zram_meta {
- 
- struct zram {
- 	struct zram_meta *meta;
-+	struct zcomp *comp;
- 	struct request_queue *queue;
- 	struct gendisk *disk;
--	struct zcomp *comp;
--
--	/* Prevent concurrent execution of device init, reset and R/W request */
-+	/* Prevent concurrent execution of device init */
- 	struct rw_semaphore init_lock;
- 	/*
--	 * This is the limit on amount of *uncompressed* worth of data
--	 * we can store in a disk.
-+	 * the number of pages zram can consume for storing compressed data
- 	 */
--	u64 disksize;	/* bytes */
-+	unsigned long limit_pages;
- 	int max_comp_streams;
-+
- 	struct zram_stats stats;
-+	atomic_t refcount; /* refcount for zram_meta */
-+	/* wait all IO under all of cpu are done */
-+	wait_queue_head_t io_done;
- 	/*
--	 * the number of pages zram can consume for storing compressed data
-+	 * This is the limit on amount of *uncompressed* worth of data
-+	 * we can store in a disk.
- 	 */
--	unsigned long limit_pages;
+ 	if (!zswap_pool) {
+_
+
+Patches currently in -mm which might be from opensource.ganesh@gmail.com are
+
+origin.patch
+
