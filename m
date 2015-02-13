@@ -1,99 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- lib-bitmap-make-the-bits-parameter-of-bitmap_remap-unsigned.patch removed
- from -mm tree
-Date: Fri, 13 Feb 2015 12:22:28 -0800
-Message-ID: <54de5d04.H6XKFiXDuaP8licj%akpm@linux-foundation.org>
+Subject: [merged] lib-remove-strnicmp.patch removed from -mm tree
+Date: Fri, 13 Feb 2015 12:22:30 -0800
+Message-ID: <54de5d06.DAwv2iPshKoazfpn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49117 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49119 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753608AbbBMUW3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:22:29 -0500
+	with ESMTP id S1753608AbbBMUWb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:22:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, dhowells@redhat.com, heiko.carstens@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/bitmap.c: make the bits parameter of bitmap_remap unsigned
+     Subject: lib/string.c: remove strnicmp()
 has been removed from the -mm tree.  Its filename was
-     lib-bitmap-make-the-bits-parameter-of-bitmap_remap-unsigned.patch
+     lib-remove-strnicmp.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/bitmap.c: make the bits parameter of bitmap_remap unsigned
+Subject: lib/string.c: remove strnicmp()
 
-Also, rename bits to nbits. Both changes for consistency with other
-bitmap_* functions.
+Now that all in-tree users of strnicmp have been converted to
+strncasecmp, the wrapper can be removed.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bitmap.h |    2 +-
- lib/bitmap.c           |   16 ++++++++--------
- 2 files changed, 9 insertions(+), 9 deletions(-)
+ arch/frv/include/asm/string.h  |    1 -
+ arch/s390/include/asm/string.h |    1 -
+ include/linux/string.h         |    3 ---
+ lib/string.c                   |    8 --------
+ 4 files changed, 13 deletions(-)
 
-diff -puN include/linux/bitmap.h~lib-bitmap-make-the-bits-parameter-of-bitmap_remap-unsigned include/linux/bitmap.h
---- a/include/linux/bitmap.h~lib-bitmap-make-the-bits-parameter-of-bitmap_remap-unsigned
-+++ a/include/linux/bitmap.h
-@@ -160,7 +160,7 @@ extern int bitmap_parselist(const char *
- extern int bitmap_parselist_user(const char __user *ubuf, unsigned int ulen,
- 			unsigned long *dst, int nbits);
- extern void bitmap_remap(unsigned long *dst, const unsigned long *src,
--		const unsigned long *old, const unsigned long *new, int bits);
-+		const unsigned long *old, const unsigned long *new, unsigned int nbits);
- extern int bitmap_bitremap(int oldbit,
- 		const unsigned long *old, const unsigned long *new, int bits);
- extern void bitmap_onto(unsigned long *dst, const unsigned long *orig,
-diff -puN lib/bitmap.c~lib-bitmap-make-the-bits-parameter-of-bitmap_remap-unsigned lib/bitmap.c
---- a/lib/bitmap.c~lib-bitmap-make-the-bits-parameter-of-bitmap_remap-unsigned
-+++ a/lib/bitmap.c
-@@ -803,7 +803,7 @@ unsigned int bitmap_ord_to_pos(const uns
-  *	@src: subset to be remapped
-  *	@old: defines domain of map
-  *	@new: defines range of map
-- *	@bits: number of bits in each of these bitmaps
-+ *	@nbits: number of bits in each of these bitmaps
-  *
-  * Let @old and @new define a mapping of bit positions, such that
-  * whatever position is held by the n-th set bit in @old is mapped
-@@ -831,22 +831,22 @@ unsigned int bitmap_ord_to_pos(const uns
-  */
- void bitmap_remap(unsigned long *dst, const unsigned long *src,
- 		const unsigned long *old, const unsigned long *new,
--		int bits)
-+		unsigned int nbits)
- {
--	int oldbit, w;
-+	unsigned int oldbit, w;
- 
- 	if (dst == src)		/* following doesn't handle inplace remaps */
- 		return;
--	bitmap_zero(dst, bits);
-+	bitmap_zero(dst, nbits);
- 
--	w = bitmap_weight(new, bits);
--	for_each_set_bit(oldbit, src, bits) {
--	     	int n = bitmap_pos_to_ord(old, oldbit, bits);
-+	w = bitmap_weight(new, nbits);
-+	for_each_set_bit(oldbit, src, nbits) {
-+		int n = bitmap_pos_to_ord(old, oldbit, nbits);
- 
- 		if (n < 0 || w == 0)
- 			set_bit(oldbit, dst);	/* identity map */
- 		else
--			set_bit(bitmap_ord_to_pos(new, n % w, bits), dst);
-+			set_bit(bitmap_ord_to_pos(new, n % w, nbits), dst);
- 	}
+diff -puN arch/frv/include/asm/string.h~lib-remove-strnicmp arch/frv/include/asm/string.h
+--- a/arch/frv/include/asm/string.h~lib-remove-strnicmp
++++ a/arch/frv/include/asm/string.h
+@@ -33,7 +33,6 @@ extern void *memcpy(void *, const void *
+ #define __HAVE_ARCH_STRNCAT 1
+ #define __HAVE_ARCH_STRCMP 1
+ #define __HAVE_ARCH_STRNCMP 1
+-#define __HAVE_ARCH_STRNICMP 1
+ #define __HAVE_ARCH_STRCHR 1
+ #define __HAVE_ARCH_STRRCHR 1
+ #define __HAVE_ARCH_STRSTR 1
+diff -puN arch/s390/include/asm/string.h~lib-remove-strnicmp arch/s390/include/asm/string.h
+--- a/arch/s390/include/asm/string.h~lib-remove-strnicmp
++++ a/arch/s390/include/asm/string.h
+@@ -44,7 +44,6 @@ extern char *strstr(const char *, const
+ #undef __HAVE_ARCH_STRCHR
+ #undef __HAVE_ARCH_STRNCHR
+ #undef __HAVE_ARCH_STRNCMP
+-#undef __HAVE_ARCH_STRNICMP
+ #undef __HAVE_ARCH_STRPBRK
+ #undef __HAVE_ARCH_STRSEP
+ #undef __HAVE_ARCH_STRSPN
+diff -puN include/linux/string.h~lib-remove-strnicmp include/linux/string.h
+--- a/include/linux/string.h~lib-remove-strnicmp
++++ a/include/linux/string.h
+@@ -40,9 +40,6 @@ extern int strcmp(const char *,const cha
+ #ifndef __HAVE_ARCH_STRNCMP
+ extern int strncmp(const char *,const char *,__kernel_size_t);
+ #endif
+-#ifndef __HAVE_ARCH_STRNICMP
+-#define strnicmp strncasecmp
+-#endif
+ #ifndef __HAVE_ARCH_STRCASECMP
+ extern int strcasecmp(const char *s1, const char *s2);
+ #endif
+diff -puN lib/string.c~lib-remove-strnicmp lib/string.c
+--- a/lib/string.c~lib-remove-strnicmp
++++ a/lib/string.c
+@@ -58,14 +58,6 @@ int strncasecmp(const char *s1, const ch
  }
- EXPORT_SYMBOL(bitmap_remap);
+ EXPORT_SYMBOL(strncasecmp);
+ #endif
+-#ifndef __HAVE_ARCH_STRNICMP
+-#undef strnicmp
+-int strnicmp(const char *s1, const char *s2, size_t len)
+-{
+-	return strncasecmp(s1, s2, len);
+-}
+-EXPORT_SYMBOL(strnicmp);
+-#endif
+ 
+ #ifndef __HAVE_ARCH_STRCASECMP
+ int strcasecmp(const char *s1, const char *s2)
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
