@@ -1,98 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-numa-avoid-unnecessary-tlb-flushes-when-setting-numa-hinting-entries.patch removed from -mm tree
-Date: Fri, 13 Feb 2015 12:19:39 -0800
-Message-ID: <54de5c5b./4+mSweETKciJMIf%akpm@linux-foundation.org>
+Subject: [merged] list_lru-get-rid-of-active_nodes.patch removed from -mm
+ tree
+Date: Fri, 13 Feb 2015 12:19:57 -0800
+Message-ID: <54de5c6d.tFNWTqXieQKj4mty%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48638 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48707 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752772AbbBMUTk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:19:40 -0500
+	with ESMTP id S1752698AbbBMUT6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:19:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, davej@redhat.com, hughd@google.com, kirill.shutemov@linux.intel.com, mingo@redhat.com, paulus@samba.org, riel@redhat.com, sasha.levin@oracle.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
+To: vdavydov@parallels.com, cl@linux.com, david@fromorbit.com, glommer@gmail.com, gthelen@google.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@suse.cz, penberg@kernel.org, rientjes@google.com, tj@kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: numa: avoid unnecessary TLB flushes when setting NUMA hinting entries
+     Subject: list_lru: get rid of ->active_nodes
 has been removed from the -mm tree.  Its filename was
-     mm-numa-avoid-unnecessary-tlb-flushes-when-setting-numa-hinting-entries.patch
+     list_lru-get-rid-of-active_nodes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: numa: avoid unnecessary TLB flushes when setting NUMA hinting entries
+From: Vladimir Davydov <vdavydov@parallels.com>
+Subject: list_lru: get rid of ->active_nodes
 
-If a PTE or PMD is already marked NUMA when scanning to mark entries for
-NUMA hinting then it is not necessary to update the entry and incur a TLB
-flush penalty.  Avoid the avoidhead where possible.
+The active_nodes mask allows us to skip empty nodes when walking over
+list_lru items from all nodes in list_lru_count/walk.  However, these
+functions are never called from hot paths, so it doesn't seem we need such
+kind of optimization there.  OTOH, removing the mask will make it easier
+to make list_lru per-memcg.
 
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Dave Jones <davej@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Kirill Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Sasha Levin <sasha.levin@oracle.com>
+Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Glauber Costa <glommer@gmail.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   14 ++++++++------
- mm/mprotect.c    |    4 ++++
- 2 files changed, 12 insertions(+), 6 deletions(-)
+ include/linux/list_lru.h |    5 ++---
+ mm/list_lru.c            |   10 +++-------
+ 2 files changed, 5 insertions(+), 10 deletions(-)
 
-diff -puN mm/huge_memory.c~mm-numa-avoid-unnecessary-tlb-flushes-when-setting-numa-hinting-entries mm/huge_memory.c
---- a/mm/huge_memory.c~mm-numa-avoid-unnecessary-tlb-flushes-when-setting-numa-hinting-entries
-+++ a/mm/huge_memory.c
-@@ -1493,12 +1493,14 @@ int change_huge_pmd(struct vm_area_struc
- 			return 0;
- 		}
+diff -puN include/linux/list_lru.h~list_lru-get-rid-of-active_nodes include/linux/list_lru.h
+--- a/include/linux/list_lru.h~list_lru-get-rid-of-active_nodes
++++ a/include/linux/list_lru.h
+@@ -31,7 +31,6 @@ struct list_lru_node {
  
--		ret = 1;
--		entry = pmdp_get_and_clear_notify(mm, addr, pmd);
--		entry = pmd_modify(entry, newprot);
--		ret = HPAGE_PMD_NR;
--		set_pmd_at(mm, addr, pmd, entry);
--		BUG_ON(pmd_write(entry));
-+		if (!prot_numa || !pmd_protnone(*pmd)) {
-+			ret = 1;
-+			entry = pmdp_get_and_clear_notify(mm, addr, pmd);
-+			entry = pmd_modify(entry, newprot);
-+			ret = HPAGE_PMD_NR;
-+			set_pmd_at(mm, addr, pmd, entry);
-+			BUG_ON(pmd_write(entry));
-+		}
- 		spin_unlock(ptl);
+ struct list_lru {
+ 	struct list_lru_node	*node;
+-	nodemask_t		active_nodes;
+ };
+ 
+ void list_lru_destroy(struct list_lru *lru);
+@@ -94,7 +93,7 @@ static inline unsigned long list_lru_cou
+ 	long count = 0;
+ 	int nid;
+ 
+-	for_each_node_mask(nid, lru->active_nodes)
++	for_each_node_state(nid, N_NORMAL_MEMORY)
+ 		count += list_lru_count_node(lru, nid);
+ 
+ 	return count;
+@@ -142,7 +141,7 @@ list_lru_walk(struct list_lru *lru, list
+ 	long isolated = 0;
+ 	int nid;
+ 
+-	for_each_node_mask(nid, lru->active_nodes) {
++	for_each_node_state(nid, N_NORMAL_MEMORY) {
+ 		isolated += list_lru_walk_node(lru, nid, isolate,
+ 					       cb_arg, &nr_to_walk);
+ 		if (nr_to_walk <= 0)
+diff -puN mm/list_lru.c~list_lru-get-rid-of-active_nodes mm/list_lru.c
+--- a/mm/list_lru.c~list_lru-get-rid-of-active_nodes
++++ a/mm/list_lru.c
+@@ -19,8 +19,7 @@ bool list_lru_add(struct list_lru *lru,
+ 	WARN_ON_ONCE(nlru->nr_items < 0);
+ 	if (list_empty(item)) {
+ 		list_add_tail(item, &nlru->list);
+-		if (nlru->nr_items++ == 0)
+-			node_set(nid, lru->active_nodes);
++		nlru->nr_items++;
+ 		spin_unlock(&nlru->lock);
+ 		return true;
  	}
+@@ -37,8 +36,7 @@ bool list_lru_del(struct list_lru *lru,
+ 	spin_lock(&nlru->lock);
+ 	if (!list_empty(item)) {
+ 		list_del_init(item);
+-		if (--nlru->nr_items == 0)
+-			node_clear(nid, lru->active_nodes);
++		nlru->nr_items--;
+ 		WARN_ON_ONCE(nlru->nr_items < 0);
+ 		spin_unlock(&nlru->lock);
+ 		return true;
+@@ -90,8 +88,7 @@ restart:
+ 		case LRU_REMOVED_RETRY:
+ 			assert_spin_locked(&nlru->lock);
+ 		case LRU_REMOVED:
+-			if (--nlru->nr_items == 0)
+-				node_clear(nid, lru->active_nodes);
++			nlru->nr_items--;
+ 			WARN_ON_ONCE(nlru->nr_items < 0);
+ 			isolated++;
+ 			/*
+@@ -133,7 +130,6 @@ int list_lru_init_key(struct list_lru *l
+ 	if (!lru->node)
+ 		return -ENOMEM;
  
-diff -puN mm/mprotect.c~mm-numa-avoid-unnecessary-tlb-flushes-when-setting-numa-hinting-entries mm/mprotect.c
---- a/mm/mprotect.c~mm-numa-avoid-unnecessary-tlb-flushes-when-setting-numa-hinting-entries
-+++ a/mm/mprotect.c
-@@ -86,6 +86,10 @@ static unsigned long change_pte_range(st
- 				page = vm_normal_page(vma, addr, oldpte);
- 				if (!page || PageKsm(page))
- 					continue;
-+
-+				/* Avoid TLB flush if possible */
-+				if (pte_protnone(oldpte))
-+					continue;
- 			}
- 
- 			ptent = ptep_modify_prot_start(mm, addr, pte);
+-	nodes_clear(lru->active_nodes);
+ 	for (i = 0; i < nr_node_ids; i++) {
+ 		spin_lock_init(&lru->node[i].lock);
+ 		if (key)
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from vdavydov@parallels.com are
 
 origin.patch
 mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
 
