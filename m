@@ -1,60 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-sortc-use-simpler-includes.patch removed from -mm
- tree
-Date: Fri, 13 Feb 2015 12:22:44 -0800
-Message-ID: <54de5d14.BZEBJyNnUzm/TxIS%akpm@linux-foundation.org>
+Subject: [merged] lib-idrc-remove-redundant-include.patch removed from -mm tree
+Date: Fri, 13 Feb 2015 12:22:50 -0800
+Message-ID: <54de5d1a.lL/G/MxPXMJ8VBPW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49136 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49143 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753582AbbBMUWp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:22:45 -0500
+	with ESMTP id S1752935AbbBMUWv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:22:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/sort.c: use simpler includes
+     Subject: lib/idr.c: remove redundant include
 has been removed from the -mm tree.  Its filename was
-     lib-sortc-use-simpler-includes.patch
+     lib-idrc-remove-redundant-include.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/sort.c: use simpler includes
+Subject: lib/idr.c: remove redundant include
 
-sort.c doesn't use facilities from kernel.h, but does use some types
-defined in linux/types.h.  Include the latter directly instead of relying
-on some other header doing it.  Similarly, include linux/export.h directly
-instead of through module.h.  This removes 80 lines from the dependency
-file .sort.o.cmd.
+idr.c doesn't seem to use anything from hardirq.h (or anything included
+from that).  Removing it produces identical objdump -d output, and gives
+44 fewer lines in the .idr.o.cmd dependency file.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/sort.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/idr.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN lib/sort.c~lib-sortc-use-simpler-includes lib/sort.c
---- a/lib/sort.c~lib-sortc-use-simpler-includes
-+++ a/lib/sort.c
-@@ -4,8 +4,8 @@
-  * Jan 23 2005  Matt Mackall <mpm@selenic.com>
-  */
+diff -puN lib/idr.c~lib-idrc-remove-redundant-include lib/idr.c
+--- a/lib/idr.c~lib-idrc-remove-redundant-include
++++ a/lib/idr.c
+@@ -30,7 +30,6 @@
+ #include <linux/idr.h>
+ #include <linux/spinlock.h>
+ #include <linux/percpu.h>
+-#include <linux/hardirq.h>
  
--#include <linux/kernel.h>
--#include <linux/module.h>
-+#include <linux/types.h>
-+#include <linux/export.h>
- #include <linux/sort.h>
- #include <linux/slab.h>
- 
+ #define MAX_IDR_SHIFT		(sizeof(int) * 8 - 1)
+ #define MAX_IDR_BIT		(1U << MAX_IDR_SHIFT)
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
