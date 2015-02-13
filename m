@@ -1,106 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned.patch removed from
- -mm tree
-Date: Fri, 13 Feb 2015 12:22:22 -0800
-Message-ID: <54de5cfe.fspK5uYLzu042d8N%akpm@linux-foundation.org>
+Subject: [merged] lib-bitmap-simplify-bitmap_pos_to_ord.patch removed from -mm tree
+Date: Fri, 13 Feb 2015 12:22:24 -0800
+Message-ID: <54de5d00.aHlzC0D06scRdTle%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49110 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49113 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753808AbbBMUWX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:22:23 -0500
+	with ESMTP id S1753808AbbBMUWZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 13 Feb 2015 15:22:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, fengguang.wu@intel.com, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/bitmap.c: change parameters of bitmap_fold to unsigned
+     Subject: lib/bitmap.c: simplify bitmap_pos_to_ord
 has been removed from the -mm tree.  Its filename was
-     lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned.patch
+     lib-bitmap-simplify-bitmap_pos_to_ord.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/bitmap.c: change parameters of bitmap_fold to unsigned
+Subject: lib/bitmap.c: simplify bitmap_pos_to_ord
 
-Change the sz and nbits parameters of bitmap_fold to unsigned int for
-consistency with other bitmap_* functions, and to save another few bytes
-in the generated code.
+The ordinal of a set bit is simply the number of set bits before it;
+counting those doesn't need to be done one bit at a time.  While at it,
+update the parameters to unsigned int.
 
-[akpm@linux-foundation.org: fix kerneldoc]
+It is not completely unthinkable that gcc would see pos as compile-time
+constant 0 in one of the uses of bitmap_pos_to_ord.  Since the static
+inline frontend bitmap_weight doesn't handle nbits==0 correctly (it would
+behave exactly as if nbits==BITS_PER_LONG), use __bitmap_weight.
+
+Alternatively, the last line could be spelled bitmap_weight(buf, pos+1)-1,
+but this is simpler.
+
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bitmap.h |    2 +-
- lib/bitmap.c           |   10 +++++-----
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ lib/bitmap.c |   22 ++++++----------------
+ 1 file changed, 6 insertions(+), 16 deletions(-)
 
-diff -puN include/linux/bitmap.h~lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned include/linux/bitmap.h
---- a/include/linux/bitmap.h~lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned
-+++ a/include/linux/bitmap.h
-@@ -166,7 +166,7 @@ extern int bitmap_bitremap(int oldbit,
- extern void bitmap_onto(unsigned long *dst, const unsigned long *orig,
- 		const unsigned long *relmap, unsigned int bits);
- extern void bitmap_fold(unsigned long *dst, const unsigned long *orig,
--		int sz, int bits);
-+		unsigned int sz, unsigned int nbits);
- extern int bitmap_find_free_region(unsigned long *bitmap, unsigned int bits, int order);
- extern void bitmap_release_region(unsigned long *bitmap, unsigned int pos, int order);
- extern int bitmap_allocate_region(unsigned long *bitmap, unsigned int pos, int order);
-diff -puN lib/bitmap.c~lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned lib/bitmap.c
---- a/lib/bitmap.c~lib-bitmap-change-parameters-of-bitmap_fold-to-unsigned
+diff -puN lib/bitmap.c~lib-bitmap-simplify-bitmap_pos_to_ord lib/bitmap.c
+--- a/lib/bitmap.c~lib-bitmap-simplify-bitmap_pos_to_ord
 +++ a/lib/bitmap.c
-@@ -1039,22 +1039,22 @@ EXPORT_SYMBOL(bitmap_onto);
-  *	@dst: resulting smaller bitmap
-  *	@orig: original larger bitmap
-  *	@sz: specified size
-- *	@bits: number of bits in each of these bitmaps
-+ *	@nbits: number of bits in each of these bitmaps
+@@ -744,10 +744,10 @@ EXPORT_SYMBOL(bitmap_parselist_user);
+ /**
+  * bitmap_pos_to_ord - find ordinal of set bit at given position in bitmap
+  *	@buf: pointer to a bitmap
+- *	@pos: a bit position in @buf (0 <= @pos < @bits)
+- *	@bits: number of valid bit positions in @buf
++ *	@pos: a bit position in @buf (0 <= @pos < @nbits)
++ *	@nbits: number of valid bit positions in @buf
   *
-  * For each bit oldbit in @orig, set bit oldbit mod @sz in @dst.
-  * Clear all other bits in @dst.  See further the comment and
-  * Example [2] for bitmap_onto() for why and how to use this.
+- * Map the bit at position @pos in @buf (of length @bits) to the
++ * Map the bit at position @pos in @buf (of length @nbits) to the
+  * ordinal of which set bit it is.  If it is not set or if @pos
+  * is not a valid bit position, map to -1.
+  *
+@@ -759,22 +759,12 @@ EXPORT_SYMBOL(bitmap_parselist_user);
+  *
+  * The bit positions 0 through @bits are valid positions in @buf.
   */
- void bitmap_fold(unsigned long *dst, const unsigned long *orig,
--			int sz, int bits)
-+			unsigned int sz, unsigned int nbits)
+-static int bitmap_pos_to_ord(const unsigned long *buf, int pos, int bits)
++static int bitmap_pos_to_ord(const unsigned long *buf, unsigned int pos, unsigned int nbits)
  {
--	int oldbit;
-+	unsigned int oldbit;
+-	int i, ord;
+-
+-	if (pos < 0 || pos >= bits || !test_bit(pos, buf))
++	if (pos >= nbits || !test_bit(pos, buf))
+ 		return -1;
  
- 	if (dst == orig)	/* following doesn't handle inplace mappings */
- 		return;
--	bitmap_zero(dst, bits);
-+	bitmap_zero(dst, nbits);
- 
--	for_each_set_bit(oldbit, orig, bits)
-+	for_each_set_bit(oldbit, orig, nbits)
- 		set_bit(oldbit % sz, dst);
- }
- EXPORT_SYMBOL(bitmap_fold);
-_
-
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
-
-origin.patch
-lib-bitmapc-change-prototype-of-bitmap_copy_le.patch
-lib-bitmapc-elide-bitmap_copy_le-on-little-endian.patch
-lib-bitmap-change-bitmap_shift_right-to-take-unsigned-parameters.patch
-lib-bitmap-eliminate-branch-in-__bitmap_shift_right.patch
-lib-bitmap-remove-redundant-code-from-__bitmap_shift_right.patch
-lib-bitmap-yet-another-simplification-in-__bitmap_shift_right.patch
-lib-bitmap-change-bitmap_shift_left-to-take-unsigned-parameters.patch
-lib-bitmap-eliminate-branch-in-__bitmap_shift_left.patch
-lib-bitmap-remove-redundant-code-from-__bitmap_shift_left.patch
-lib-stringc-improve-strrchr.patch
-checkpatch-emit-an-error-when-using-predefined-timestamp-macros.patch
-linux-next.patch
-
+-	i = find_first_bit(buf, bits);
+-	ord = 0;
+-	while (i < pos) {
+-		i = find_next_bit(buf, bits, i + 1);
+-	     	ord++;
+-	}
+-	BUG_ON(i != pos);
