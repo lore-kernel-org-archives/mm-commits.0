@@ -1,422 +1,450 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- drivers-rtc-rtc-armada38x-add-a-new-rtc-driver-for-recent-mvebu-socs.patch
+Subject: [merged] rtc-rtc-ab-b5ze-s3-add-sub-minute-alarm-support.patch
  removed from -mm tree
-Date: Mon, 16 Feb 2015 12:19:27 -0800
-Message-ID: <54e250cf.9xKUbUKutGILqI2C%akpm@linux-foundation.org>
+Date: Mon, 16 Feb 2015 12:19:22 -0800
+Message-ID: <54e250ca.1mEkEUCfVRP+vfpb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51494 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51472 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751408AbbBPUUE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Feb 2015 15:20:04 -0500
+	with ESMTP id S1751198AbbBPUT7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Feb 2015 15:19:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gregory.clement@free-electrons.com, a.zummo@towertech.it, alior@marvell.com, andrew@lunn.ch, arno@natisbad.org, boris.brezillon@free-electrons.com, ezequiel.garcia@free-electrons.com, jason@lakedaemon.net, mark.rutland@arm.com, maxime.ripard@free-electrons.com, nadavh@marvell.com, sebastian.hesselbarth@gmail.com, tawfik@marvell.com, thomas.petazzoni@free-electrons.com, mm-commits@vger.kernel.org
+To: arno@natisbad.org, a.zummo@towertech.it, arnd@arndb.de, broonie@kernel.org, galak@codeaurora.org, grant.likely@linaro.org, ijc+devicetree@hellion.org.uk, jason@lakedaemon.net, jgunthorpe@obsidianresearch.com, linus.walleij@linaro.org, linux@roeck-us.net, mark.rutland@arm.com, pawel.moll@arm.com, peter.huewe@infineon.com, rob@landley.net, robherring2@gmail.com, swarren@wwwdotorg.org, treding@nvidia.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-armada38x: add a new RTC driver for recent mvebu SoCs
+     Subject: rtc: rtc-ab-b5ze-s3: add sub-minute alarm support
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-armada38x-add-a-new-rtc-driver-for-recent-mvebu-socs.patch
+     rtc-rtc-ab-b5ze-s3-add-sub-minute-alarm-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Gregory CLEMENT <gregory.clement@free-electrons.com>
-Subject: drivers/rtc/rtc-armada38x: add a new RTC driver for recent mvebu SoCs
+From: Arnaud Ebalard <arno@natisbad.org>
+Subject: rtc: rtc-ab-b5ze-s3: add sub-minute alarm support
 
-The new mvebu SoCs come with a new RTC driver. This patch adds the
-support for this new IP which is currently found in the Armada 38x
-SoCs.
+Abracon AB-RTCMC-32.768kHz-B5ZE-S3 alarm is only accurate to the minute. 
+For that reason, UIE mode is currently not supported by the driver.  But
+the device provides a watchdog timer which can be coupled with the alarm
+mechanism to extend support and provide sub-minute alarm capability.
 
-This RTC provides two alarms, but only the first one is used in the
-driver. The RTC also allows using periodic interrupts.
+This patch implements that extension.  More precisely, it makes use of the
+watchdog timer for alarms which are less that four minutes in the future
+(with second accuracy) and use standard alarm mechanism for other alarms
+(with minute accuracy).
 
-Signed-off-by: Gregory CLEMENT <gregory.clement@free-electrons.com>
-Reviewed-by: Arnaud Ebalard <arno@natisbad.org>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Jason Cooper <jason@lakedaemon.net>
-Cc: Andrew Lunn <andrew@lunn.ch>
-Cc: Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
-Cc: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Cc: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Cc: Maxime Ripard <maxime.ripard@free-electrons.com>
-Cc: Boris BREZILLON <boris.brezillon@free-electrons.com>
-Cc: Lior Amsalem <alior@marvell.com>
-Cc: Tawfik Bayouk <tawfik@marvell.com>
-Cc: Nadav Haklai <nadavh@marvell.com>
+Signed-off-by: Arnaud Ebalard <arno@natisbad.org>
 Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Peter Huewe <peter.huewe@infineon.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: Thierry Reding <treding@nvidia.com>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Rob Herring <robherring2@gmail.com>
+Cc: Pawel Moll <pawel.moll@arm.com>
+Cc: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
+Cc: Grant Likely <grant.likely@linaro.org>
+Cc: Rob Landley <rob@landley.net>
+Cc: Jason Cooper <jason@lakedaemon.net>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: Kumar Gala <galak@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig         |   10 +
- drivers/rtc/Makefile        |    1 
- drivers/rtc/rtc-armada38x.c |  320 ++++++++++++++++++++++++++++++++++
- 3 files changed, 331 insertions(+)
+ drivers/rtc/rtc-ab-b5ze-s3.c |  291 +++++++++++++++++++++++++++++----
+ 1 file changed, 262 insertions(+), 29 deletions(-)
 
-diff -puN drivers/rtc/Kconfig~drivers-rtc-rtc-armada38x-add-a-new-rtc-driver-for-recent-mvebu-socs drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~drivers-rtc-rtc-armada38x-add-a-new-rtc-driver-for-recent-mvebu-socs
-+++ a/drivers/rtc/Kconfig
-@@ -1280,6 +1280,16 @@ config RTC_DRV_MV
- 	  This driver can also be built as a module. If so, the module
- 	  will be called rtc-mv.
+diff -puN drivers/rtc/rtc-ab-b5ze-s3.c~rtc-rtc-ab-b5ze-s3-add-sub-minute-alarm-support drivers/rtc/rtc-ab-b5ze-s3.c
+--- a/drivers/rtc/rtc-ab-b5ze-s3.c~rtc-rtc-ab-b5ze-s3-add-sub-minute-alarm-support
++++ a/drivers/rtc/rtc-ab-b5ze-s3.c
+@@ -133,6 +133,7 @@ struct abb5zes3_rtc_data {
+ 	int irq;
  
-+config RTC_DRV_ARMADA38X
-+	tristate "Armada 38x Marvell SoC RTC"
-+	depends on ARCH_MVEBU
-+	help
-+	  If you say yes here you will get support for the in-chip RTC
-+	  that can be found in the Armada 38x Marvell's SoC device
-+
-+	  This driver can also be built as a module. If so, the module
-+	  will be called armada38x-rtc.
-+
- config RTC_DRV_PS3
- 	tristate "PS3 RTC"
- 	depends on PPC_PS3
-diff -puN drivers/rtc/Makefile~drivers-rtc-rtc-armada38x-add-a-new-rtc-driver-for-recent-mvebu-socs drivers/rtc/Makefile
---- a/drivers/rtc/Makefile~drivers-rtc-rtc-armada38x-add-a-new-rtc-driver-for-recent-mvebu-socs
-+++ a/drivers/rtc/Makefile
-@@ -25,6 +25,7 @@ obj-$(CONFIG_RTC_DRV_88PM80X)	+= rtc-88p
- obj-$(CONFIG_RTC_DRV_AB3100)	+= rtc-ab3100.o
- obj-$(CONFIG_RTC_DRV_AB8500)	+= rtc-ab8500.o
- obj-$(CONFIG_RTC_DRV_ABB5ZES3)	+= rtc-ab-b5ze-s3.o
-+obj-$(CONFIG_RTC_DRV_ARMADA38X)	+= rtc-armada38x.o
- obj-$(CONFIG_RTC_DRV_AS3722)	+= rtc-as3722.o
- obj-$(CONFIG_RTC_DRV_AT32AP700X)+= rtc-at32ap700x.o
- obj-$(CONFIG_RTC_DRV_AT91RM9200)+= rtc-at91rm9200.o
-diff -puN /dev/null drivers/rtc/rtc-armada38x.c
---- /dev/null
-+++ a/drivers/rtc/rtc-armada38x.c
-@@ -0,0 +1,320 @@
-+/*
-+ * RTC driver for the Armada 38x Marvell SoCs
-+ *
-+ * Copyright (C) 2015 Marvell
-+ *
-+ * Gregory Clement <gregory.clement@free-electrons.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation; either version 2 of the
-+ * License, or (at your option) any later version.
-+ *
-+ */
-+
-+#include <linux/delay.h>
-+#include <linux/io.h>
-+#include <linux/module.h>
-+#include <linux/of.h>
-+#include <linux/platform_device.h>
-+#include <linux/rtc.h>
-+
-+#define RTC_STATUS	    0x0
-+#define RTC_STATUS_ALARM1	    BIT(0)
-+#define RTC_STATUS_ALARM2	    BIT(1)
-+#define RTC_IRQ1_CONF	    0x4
-+#define RTC_IRQ1_AL_EN		    BIT(0)
-+#define RTC_IRQ1_FREQ_EN	    BIT(1)
-+#define RTC_IRQ1_FREQ_1HZ	    BIT(2)
-+#define RTC_TIME	    0xC
-+#define RTC_ALARM1	    0x10
-+
-+#define SOC_RTC_INTERRUPT   0x8
-+#define SOC_RTC_ALARM1		BIT(0)
-+#define SOC_RTC_ALARM2		BIT(1)
-+#define SOC_RTC_ALARM1_MASK	BIT(2)
-+#define SOC_RTC_ALARM2_MASK	BIT(3)
-+
-+struct armada38x_rtc {
-+	struct rtc_device   *rtc_dev;
-+	void __iomem	    *regs;
-+	void __iomem	    *regs_soc;
-+	spinlock_t	    lock;
-+	int		    irq;
-+};
-+
-+/*
-+ * According to the datasheet, the OS should wait 5us after every
-+ * register write to the RTC hard macro so that the required update
-+ * can occur without holding off the system bus
-+ */
-+static void rtc_delayed_write(u32 val, struct armada38x_rtc *rtc, int offset)
+ 	bool battery_low;
++	bool timer_alarm; /* current alarm is via timer A */
+ };
+ 
+ /*
+@@ -192,6 +193,22 @@ static int _abb5zes3_rtc_update_alarm(st
+ 	return ret;
+ }
+ 
++/* Enable or disable timer (watchdog timer A interrupt generation) */
++static int _abb5zes3_rtc_update_timer(struct device *dev, bool enable)
 +{
-+	writel(val, rtc->regs + offset);
-+	udelay(5);
-+}
-+
-+static int armada38x_rtc_read_time(struct device *dev, struct rtc_time *tm)
-+{
-+	struct armada38x_rtc *rtc = dev_get_drvdata(dev);
-+	unsigned long time, time_check, flags;
-+
-+	spin_lock_irqsave(&rtc->lock, flags);
-+
-+	time = readl(rtc->regs + RTC_TIME);
-+	/*
-+	 * WA for failing time set attempts. As stated in HW ERRATA if
-+	 * more than one second between two time reads is detected
-+	 * then read once again.
-+	 */
-+	time_check = readl(rtc->regs + RTC_TIME);
-+	if ((time_check - time) > 1)
-+		time_check = readl(rtc->regs + RTC_TIME);
-+
-+	spin_unlock_irqrestore(&rtc->lock, flags);
-+
-+	rtc_time_to_tm(time_check, tm);
-+
-+	return 0;
-+}
-+
-+static int armada38x_rtc_set_time(struct device *dev, struct rtc_time *tm)
-+{
-+	struct armada38x_rtc *rtc = dev_get_drvdata(dev);
-+	int ret = 0;
-+	unsigned long time, flags;
-+
-+	ret = rtc_tm_to_time(tm, &time);
-+
-+	if (ret)
-+		goto out;
-+	/*
-+	 * Setting the RTC time not always succeeds. According to the
-+	 * errata we need to first write on the status register and
-+	 * then wait for 100ms before writing to the time register to be
-+	 * sure that the data will be taken into account.
-+	 */
-+	spin_lock_irqsave(&rtc->lock, flags);
-+
-+	rtc_delayed_write(0, rtc, RTC_STATUS);
-+
-+	spin_unlock_irqrestore(&rtc->lock, flags);
-+
-+	msleep(100);
-+
-+	spin_lock_irqsave(&rtc->lock, flags);
-+
-+	rtc_delayed_write(time, rtc, RTC_TIME);
-+
-+	spin_unlock_irqrestore(&rtc->lock, flags);
-+out:
-+	return ret;
-+}
-+
-+static int armada38x_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alrm)
-+{
-+	struct armada38x_rtc *rtc = dev_get_drvdata(dev);
-+	unsigned long time, flags;
-+	u32 val;
-+
-+	spin_lock_irqsave(&rtc->lock, flags);
-+
-+	time = readl(rtc->regs + RTC_ALARM1);
-+	val = readl(rtc->regs + RTC_IRQ1_CONF) & RTC_IRQ1_AL_EN;
-+
-+	spin_unlock_irqrestore(&rtc->lock, flags);
-+
-+	alrm->enabled = val ? 1 : 0;
-+	rtc_time_to_tm(time,  &alrm->time);
-+
-+	return 0;
-+}
-+
-+static int armada38x_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alrm)
-+{
-+	struct armada38x_rtc *rtc = dev_get_drvdata(dev);
-+	unsigned long time, flags;
-+	int ret = 0;
-+	u32 val;
-+
-+	ret = rtc_tm_to_time(&alrm->time, &time);
-+
-+	if (ret)
-+		goto out;
-+
-+	spin_lock_irqsave(&rtc->lock, flags);
-+
-+	rtc_delayed_write(time, rtc, RTC_ALARM1);
-+
-+	if (alrm->enabled) {
-+			rtc_delayed_write(RTC_IRQ1_AL_EN, rtc, RTC_IRQ1_CONF);
-+			val = readl(rtc->regs_soc + SOC_RTC_INTERRUPT);
-+			writel(val | SOC_RTC_ALARM1_MASK,
-+			       rtc->regs_soc + SOC_RTC_INTERRUPT);
-+	}
-+
-+	spin_unlock_irqrestore(&rtc->lock, flags);
-+
-+out:
-+	return ret;
-+}
-+
-+static int armada38x_rtc_alarm_irq_enable(struct device *dev,
-+					 unsigned int enabled)
-+{
-+	struct armada38x_rtc *rtc = dev_get_drvdata(dev);
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&rtc->lock, flags);
-+
-+	if (enabled)
-+		rtc_delayed_write(RTC_IRQ1_AL_EN, rtc, RTC_IRQ1_CONF);
-+	else
-+		rtc_delayed_write(0, rtc, RTC_IRQ1_CONF);
-+
-+	spin_unlock_irqrestore(&rtc->lock, flags);
-+
-+	return 0;
-+}
-+
-+static irqreturn_t armada38x_rtc_alarm_irq(int irq, void *data)
-+{
-+	struct armada38x_rtc *rtc = data;
-+	u32 val;
-+	int event = RTC_IRQF | RTC_AF;
-+
-+	dev_dbg(&rtc->rtc_dev->dev, "%s:irq(%d)\n", __func__, irq);
-+
-+	spin_lock(&rtc->lock);
-+
-+	val = readl(rtc->regs_soc + SOC_RTC_INTERRUPT);
-+
-+	writel(val & ~SOC_RTC_ALARM1, rtc->regs_soc + SOC_RTC_INTERRUPT);
-+	val = readl(rtc->regs + RTC_IRQ1_CONF);
-+	/* disable all the interrupts for alarm 1 */
-+	rtc_delayed_write(0, rtc, RTC_IRQ1_CONF);
-+	/* Ack the event */
-+	rtc_delayed_write(RTC_STATUS_ALARM1, rtc, RTC_STATUS);
-+
-+	spin_unlock(&rtc->lock);
-+
-+	if (val & RTC_IRQ1_FREQ_EN) {
-+		if (val & RTC_IRQ1_FREQ_1HZ)
-+			event |= RTC_UF;
-+		else
-+			event |= RTC_PF;
-+	}
-+
-+	rtc_update_irq(rtc->rtc_dev, 1, event);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static struct rtc_class_ops armada38x_rtc_ops = {
-+	.read_time = armada38x_rtc_read_time,
-+	.set_time = armada38x_rtc_set_time,
-+	.read_alarm = armada38x_rtc_read_alarm,
-+	.set_alarm = armada38x_rtc_set_alarm,
-+	.alarm_irq_enable = armada38x_rtc_alarm_irq_enable,
-+};
-+
-+static __init int armada38x_rtc_probe(struct platform_device *pdev)
-+{
-+	struct resource *res;
-+	struct armada38x_rtc *rtc;
++	struct abb5zes3_rtc_data *data = dev_get_drvdata(dev);
 +	int ret;
 +
-+	rtc = devm_kzalloc(&pdev->dev, sizeof(struct armada38x_rtc),
-+			    GFP_KERNEL);
-+	if (!rtc)
-+		return -ENOMEM;
++	ret = regmap_update_bits(data->regmap, ABB5ZES3_REG_CTRL2,
++				 ABB5ZES3_REG_CTRL2_WTAIE,
++				 enable ? ABB5ZES3_REG_CTRL2_WTAIE : 0);
++	if (ret)
++		dev_err(dev, "%s: writing timer INT failed (%d)\n",
++			__func__, ret);
 +
-+	spin_lock_init(&rtc->lock);
++	return ret;
++}
 +
-+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "rtc");
-+	rtc->regs = devm_ioremap_resource(&pdev->dev, res);
-+	if (IS_ERR(rtc->regs))
-+		return PTR_ERR(rtc->regs);
-+	res = platform_get_resource_byname(pdev, IORESOURCE_MEM, "rtc-soc");
-+	rtc->regs_soc = devm_ioremap_resource(&pdev->dev, res);
-+	if (IS_ERR(rtc->regs_soc))
-+		return PTR_ERR(rtc->regs_soc);
+ /*
+  * Note: we only read, so regmap inner lock protection is sufficient, i.e.
+  * we do not need driver's main lock protection.
+@@ -277,7 +294,92 @@ static int abb5zes3_rtc_set_time(struct
+ 	return ret;
+ }
+ 
+-static int abb5zes3_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alarm)
++/*
++ * Set provided TAQ and Timer A registers (TIMA_CLK and TIMA) based on
++ * given number of seconds.
++ */
++static inline void sec_to_timer_a(u8 secs, u8 *taq, u8 *timer_a)
++{
++	*taq = ABB5ZES3_REG_TIMA_CLK_TAQ1; /* 1Hz */
++	*timer_a = secs;
++}
 +
-+	rtc->irq = platform_get_irq(pdev, 0);
++/*
++ * Return current number of seconds in Timer A. As we only use
++ * timer A with a 1Hz freq, this is what we expect to have.
++ */
++static inline int sec_from_timer_a(u8 *secs, u8 taq, u8 timer_a)
++{
++	if (taq != ABB5ZES3_REG_TIMA_CLK_TAQ1) /* 1Hz */
++		return -EINVAL;
 +
-+	if (rtc->irq < 0) {
-+		dev_err(&pdev->dev, "no irq\n");
-+		return rtc->irq;
++	*secs = timer_a;
++
++	return 0;
++}
++
++/*
++ * Read alarm currently configured via a watchdog timer using timer A. This
++ * is done by reading current RTC time and adding remaining timer time.
++ */
++static int _abb5zes3_rtc_read_timer(struct device *dev,
++				    struct rtc_wkalrm *alarm)
++{
++	struct abb5zes3_rtc_data *data = dev_get_drvdata(dev);
++	struct rtc_time rtc_tm, *alarm_tm = &alarm->time;
++	u8 regs[ABB5ZES3_TIMA_SEC_LEN + 1];
++	unsigned long rtc_secs;
++	unsigned int reg;
++	u8 timer_secs;
++	int ret;
++
++	/*
++	 * Instead of doing two separate calls, because they are consecutive,
++	 * we grab both clockout register and Timer A section. The latter is
++	 * used to decide if timer A is enabled (as a watchdog timer).
++	 */
++	ret = regmap_bulk_read(data->regmap, ABB5ZES3_REG_TIM_CLK, regs,
++			       ABB5ZES3_TIMA_SEC_LEN + 1);
++	if (ret) {
++		dev_err(dev, "%s: reading Timer A section failed (%d)\n",
++			__func__, ret);
++		goto err;
 +	}
-+	if (devm_request_irq(&pdev->dev, rtc->irq, armada38x_rtc_alarm_irq,
-+				0, pdev->name, rtc) < 0) {
-+		dev_warn(&pdev->dev, "Interrupt not available.\n");
-+		rtc->irq = -1;
++
++	/* get current time ... */
++	ret = _abb5zes3_rtc_read_time(dev, &rtc_tm);
++	if (ret)
++		goto err;
++
++	/* ... convert to seconds ... */
++	ret = rtc_tm_to_time(&rtc_tm, &rtc_secs);
++	if (ret)
++		goto err;
++
++	/* ... add remaining timer A time ... */
++	ret = sec_from_timer_a(&timer_secs, regs[1], regs[2]);
++	if (ret)
++		goto err;
++
++	/* ... and convert back. */
++	rtc_time_to_tm(rtc_secs + timer_secs, alarm_tm);
++
++	ret = regmap_read(data->regmap, ABB5ZES3_REG_CTRL2, &reg);
++	if (ret) {
++		dev_err(dev, "%s: reading ctrl reg failed (%d)\n",
++			__func__, ret);
++		goto err;
++	}
++
++	alarm->enabled = !!(reg & ABB5ZES3_REG_CTRL2_WTAIE);
++
++err:
++	return ret;
++}
++
++/* Read alarm currently configured via a RTC alarm registers. */
++static int _abb5zes3_rtc_read_alarm(struct device *dev,
++				    struct rtc_wkalrm *alarm)
+ {
+ 	struct abb5zes3_rtc_data *data = dev_get_drvdata(dev);
+ 	struct rtc_time rtc_tm, *alarm_tm = &alarm->time;
+@@ -286,7 +388,6 @@ static int abb5zes3_rtc_read_alarm(struc
+ 	unsigned int reg;
+ 	int ret;
+ 
+-	mutex_lock(&data->lock);
+ 	ret = regmap_bulk_read(data->regmap, ABB5ZES3_REG_ALRM_MN, regs,
+ 			       ABB5ZES3_ALRM_SEC_LEN);
+ 	if (ret) {
+@@ -340,13 +441,39 @@ static int abb5zes3_rtc_read_alarm(struc
+ 	alarm->enabled = !!(reg & ABB5ZES3_REG_CTRL1_AIE);
+ 
+ err:
++	return ret;
++}
++
++/*
++ * As the Alarm mechanism supported by the chip is only accurate to the
++ * minute, we use the watchdog timer mechanism provided by timer A
++ * (up to 256 seconds w/ a second accuracy) for low alarm values (below
++ * 4 minutes). Otherwise, we use the common alarm mechanism provided
++ * by the chip. In order for that to work, we keep track of currently
++ * configured timer type via 'timer_alarm' flag in our private data
++ * structure.
++ */
++static int abb5zes3_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alarm)
++{
++	struct abb5zes3_rtc_data *data = dev_get_drvdata(dev);
++	int ret;
++
++	mutex_lock(&data->lock);
++	if (data->timer_alarm)
++		ret = _abb5zes3_rtc_read_timer(dev, alarm);
++	else
++		ret = _abb5zes3_rtc_read_alarm(dev, alarm);
+ 	mutex_unlock(&data->lock);
+ 
+ 	return ret;
+ }
+ 
+-/* ALARM is only accurate to the minute (not the second) */
+-static int abb5zes3_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alarm)
++/*
++ * Set alarm using chip alarm mechanism. It is only accurate to the
++ * minute (not the second). The function expects alarm interrupt to
++ * be disabled.
++ */
++static int _abb5zes3_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alarm)
+ {
+ 	struct abb5zes3_rtc_data *data = dev_get_drvdata(dev);
+ 	struct rtc_time *alarm_tm = &alarm->time;
+@@ -355,7 +482,6 @@ static int abb5zes3_rtc_set_alarm(struct
+ 	struct rtc_time rtc_tm;
+ 	int ret, enable = 1;
+ 
+-	mutex_lock(&data->lock);
+ 	ret = _abb5zes3_rtc_read_time(dev, &rtc_tm);
+ 	if (ret)
+ 		goto err;
+@@ -397,18 +523,13 @@ static int abb5zes3_rtc_set_alarm(struct
+ 		}
+ 	}
+ 
+-	/* Disable the alarm before modifying it */
+-	ret = _abb5zes3_rtc_update_alarm(dev, 0);
+-	if (ret < 0) {
+-		dev_err(dev, "%s: unable to disable the alarm (%d)\n",
+-			__func__, ret);
+-		goto err;
+-	}
+-
+-	/* Program alarm registers */
+-	regs[0] = bin2bcd(alarm_tm->tm_min) & 0x7f;  /* minute */
+-	regs[1] = bin2bcd(alarm_tm->tm_hour) & 0x3f; /* hour */
+-	regs[2] = bin2bcd(alarm_tm->tm_mday) & 0x3f; /* day of the month */
++	/*
++	 * Program all alarm registers but DW one. For each register, setting
++	 * MSB to 0 enables associated alarm.
++	 */
++	regs[0] = bin2bcd(alarm_tm->tm_min) & 0x7f;
++	regs[1] = bin2bcd(alarm_tm->tm_hour) & 0x3f;
++	regs[2] = bin2bcd(alarm_tm->tm_mday) & 0x3f;
+ 	regs[3] = ABB5ZES3_REG_ALRM_DW_AE; /* do not match day of the week */
+ 
+ 	ret = regmap_bulk_write(data->regmap, ABB5ZES3_REG_ALRM_MN, regs,
+@@ -419,15 +540,115 @@ static int abb5zes3_rtc_set_alarm(struct
+ 		goto err;
+ 	}
+ 
+-	/* Enable or disable alarm */
++	/* Record currently configured alarm is not a timer */
++	data->timer_alarm = 0;
++
++	/* Enable or disable alarm interrupt generation */
+ 	ret = _abb5zes3_rtc_update_alarm(dev, enable);
+ 
+ err:
+-	mutex_unlock(&data->lock);
++	return ret;
++}
++
++/*
++ * Set alarm using timer watchdog (via timer A) mechanism. The function expects
++ * timer A interrupt to be disabled.
++ */
++static int _abb5zes3_rtc_set_timer(struct device *dev, struct rtc_wkalrm *alarm,
++				   u8 secs)
++{
++	struct abb5zes3_rtc_data *data = dev_get_drvdata(dev);
++	u8 regs[ABB5ZES3_TIMA_SEC_LEN];
++	u8 mask = ABB5ZES3_REG_TIM_CLK_TAC0 | ABB5ZES3_REG_TIM_CLK_TAC1;
++	int ret = 0;
++
++	/* Program given number of seconds to Timer A registers */
++	sec_to_timer_a(secs, &regs[0], &regs[1]);
++	ret = regmap_bulk_write(data->regmap, ABB5ZES3_REG_TIMA_CLK, regs,
++				ABB5ZES3_TIMA_SEC_LEN);
++	if (ret < 0) {
++		dev_err(dev, "%s: writing timer section failed\n", __func__);
++		goto err;
++	}
++
++	/* Configure Timer A as a watchdog timer */
++	ret = regmap_update_bits(data->regmap, ABB5ZES3_REG_TIM_CLK,
++				 mask, ABB5ZES3_REG_TIM_CLK_TAC1);
++	if (ret)
++		dev_err(dev, "%s: failed to update timer\n", __func__);
++
++	/* Record currently configured alarm is a timer */
++	data->timer_alarm = 1;
+ 
++	/* Enable or disable timer interrupt generation */
++	ret = _abb5zes3_rtc_update_timer(dev, alarm->enabled);
++
++err:
+ 	return ret;
+ }
+ 
++/*
++ * The chip has an alarm which is only accurate to the minute. In order to
++ * handle alarms below that limit, we use the watchdog timer function of
++ * timer A. More precisely, the timer method is used for alarms below 240
++ * seconds.
++ */
++static int abb5zes3_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alarm)
++{
++	struct abb5zes3_rtc_data *data = dev_get_drvdata(dev);
++	struct rtc_time *alarm_tm = &alarm->time;
++	unsigned long rtc_secs, alarm_secs;
++	struct rtc_time rtc_tm;
++	int ret;
++
++	mutex_lock(&data->lock);
++	ret = _abb5zes3_rtc_read_time(dev, &rtc_tm);
++	if (ret)
++		goto err;
++
++	ret = rtc_tm_to_time(&rtc_tm, &rtc_secs);
++	if (ret)
++		goto err;
++
++	ret = rtc_tm_to_time(alarm_tm, &alarm_secs);
++	if (ret)
++		goto err;
++
++	/* Let's first disable both the alarm and the timer interrupts */
++	ret = _abb5zes3_rtc_update_alarm(dev, false);
++	if (ret < 0) {
++		dev_err(dev, "%s: unable to disable alarm (%d)\n", __func__,
++			ret);
++		goto err;
++	}
++	ret = _abb5zes3_rtc_update_timer(dev, false);
++	if (ret < 0) {
++		dev_err(dev, "%s: unable to disable timer (%d)\n", __func__,
++			ret);
++		goto err;
++	}
++
++	data->timer_alarm = 0;
++
++	/*
++	 * Let's now configure the alarm; if we are expected to ring in
++	 * more than 240s, then we setup an alarm. Otherwise, a timer.
++	 */
++	if ((alarm_secs > rtc_secs) && ((alarm_secs - rtc_secs) <= 240))
++		ret = _abb5zes3_rtc_set_timer(dev, alarm,
++					      alarm_secs - rtc_secs);
++	else
++		ret = _abb5zes3_rtc_set_alarm(dev, alarm);
++
++ err:
++	mutex_unlock(&data->lock);
++
++	if (ret)
++		dev_err(dev, "%s: unable to configure alarm (%d)\n", __func__,
++			ret);
++
++	return ret;
++ }
+ 
+ /* Enable or disable battery low irq generation */
+ static inline int _abb5zes3_rtc_battery_low_irq_enable(struct regmap *regmap,
+@@ -446,7 +667,7 @@ static inline int _abb5zes3_rtc_battery_
+ static int abb5zes3_rtc_check_setup(struct device *dev)
+ {
+ 	struct abb5zes3_rtc_data *data = dev_get_drvdata(dev);
+-	struct regmap *regmap =  data->regmap;
++	struct regmap *regmap = data->regmap;
+ 	unsigned int reg;
+ 	int ret;
+ 	u8 mask;
+@@ -579,7 +800,10 @@ static int abb5zes3_rtc_alarm_irq_enable
+ 
+ 	if (rtc_data->irq) {
+ 		mutex_lock(&rtc_data->lock);
+-		ret = _abb5zes3_rtc_update_alarm(dev, enable);
++		if (rtc_data->timer_alarm)
++			ret = _abb5zes3_rtc_update_timer(dev, enable);
++		else
++			ret = _abb5zes3_rtc_update_alarm(dev, enable);
+ 		mutex_unlock(&rtc_data->lock);
+ 	}
+ 
+@@ -629,6 +853,23 @@ static irqreturn_t _abb5zes3_rtc_interru
+ 		handled = IRQ_HANDLED;
+ 	}
+ 
++	/* Check watchdog Timer A flag */
++	if (regs[ABB5ZES3_REG_CTRL2] & ABB5ZES3_REG_CTRL2_WTAF) {
++		dev_dbg(dev, "RTC timer!\n");
++
++		rtc_update_irq(rtc, 1, RTC_IRQF | RTC_AF);
++
 +		/*
-+		 * If there is no interrupt available then we can't
-+		 * use the alarm
++		 * Acknowledge and disable the alarm. Note: WTAF
++		 * flag had been cleared when reading CTRL2
 +		 */
-+		armada38x_rtc_ops.set_alarm = NULL;
-+		armada38x_rtc_ops.alarm_irq_enable = NULL;
-+	}
-+	platform_set_drvdata(pdev, rtc);
-+	if (rtc->irq != -1)
-+		device_init_wakeup(&pdev->dev, 1);
++		_abb5zes3_rtc_update_timer(dev, 0);
 +
-+	rtc->rtc_dev = devm_rtc_device_register(&pdev->dev, pdev->name,
-+					&armada38x_rtc_ops, THIS_MODULE);
-+	if (IS_ERR(rtc->rtc_dev)) {
-+		ret = PTR_ERR(rtc->rtc_dev);
-+		dev_err(&pdev->dev, "Failed to register RTC device: %d\n", ret);
-+		return ret;
-+	}
-+	return 0;
-+}
++		rtc_data->timer_alarm = 0;
 +
-+#ifdef CONFIG_PM_SLEEP
-+static int armada38x_rtc_suspend(struct device *dev)
-+{
-+	if (device_may_wakeup(dev)) {
-+		struct armada38x_rtc *rtc = dev_get_drvdata(dev);
-+
-+		return enable_irq_wake(rtc->irq);
++		handled = IRQ_HANDLED;
 +	}
 +
-+	return 0;
-+}
-+
-+static int armada38x_rtc_resume(struct device *dev)
-+{
-+	if (device_may_wakeup(dev)) {
-+		struct armada38x_rtc *rtc = dev_get_drvdata(dev);
-+
-+		return disable_irq_wake(rtc->irq);
-+	}
-+
-+	return 0;
-+}
-+#endif
-+
-+static SIMPLE_DEV_PM_OPS(armada38x_rtc_pm_ops,
-+			 armada38x_rtc_suspend, armada38x_rtc_resume);
-+
-+#ifdef CONFIG_OF
-+static const struct of_device_id armada38x_rtc_of_match_table[] = {
-+	{ .compatible = "marvell,armada-380-rtc", },
-+	{}
-+};
-+#endif
-+
-+static struct platform_driver armada38x_rtc_driver = {
-+	.driver		= {
-+		.name	= "armada38x-rtc",
-+		.pm	= &armada38x_rtc_pm_ops,
-+		.of_match_table = of_match_ptr(armada38x_rtc_of_match_table),
-+	},
-+};
-+
-+module_platform_driver_probe(armada38x_rtc_driver, armada38x_rtc_probe);
-+
-+MODULE_DESCRIPTION("Marvell Armada 38x RTC driver");
-+MODULE_AUTHOR("Gregory CLEMENT <gregory.clement@free-electrons.com>");
-+MODULE_LICENSE("GPL");
-_
-
-Patches currently in -mm which might be from gregory.clement@free-electrons.com are
-
-origin.patch
-linux-next.patch
-
+ 	return handled;
+ }
+ 
+@@ -712,14 +953,6 @@ static int abb5zes3_probe(struct i2c_cli
+ 		goto err;
+ 	}
+ 
+-	/*
+-	 * AB-B5Z5E only supports a coarse granularity alarm (one minute
+-	 * resolution up to one month) so we cannot support UIE mode
+-	 * using the device's alarm. Note it should be feasible to support
+-	 * such a feature using one of the two timers the device provides.
+-	 */
+-	data->rtc->uie_unsupported = 1;
