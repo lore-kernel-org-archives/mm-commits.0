@@ -1,106 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- clk-convert-clock-name-allocations-to-kstrdup_const.patch removed from -mm
- tree
-Date: Mon, 16 Feb 2015 12:15:43 -0800
-Message-ID: <54e24fef.UsQDrZD/Ih7339Ec%akpm@linux-foundation.org>
+Subject: [merged] lib-crc32-constify-crc32-lookup-table.patch removed from -mm tree
+Date: Mon, 16 Feb 2015 12:15:33 -0800
+Message-ID: <54e24fe5.ye31dtkYjjUhl9N9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50839 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50818 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751231AbbBPUQU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Feb 2015 15:16:20 -0500
+	with ESMTP id S1751799AbbBPUQJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Feb 2015 15:16:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: a.hajda@samsung.com, cl@linux.com, geert@linux-m68k.org, greg@kroah.com, iamjoonsoo.kim@lge.com, kyungmin.park@samsung.com, m.szyprowski@samsung.com, mturquette@linaro.org, penberg@kernel.org, rientjes@google.com, tj@kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: dborkman@redhat.com, jmario@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: clk: convert clock name allocations to kstrdup_const
+     Subject: lib: crc32: constify crc32 lookup table
 has been removed from the -mm tree.  Its filename was
-     clk-convert-clock-name-allocations-to-kstrdup_const.patch
+     lib-crc32-constify-crc32-lookup-table.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrzej Hajda <a.hajda@samsung.com>
-Subject: clk: convert clock name allocations to kstrdup_const
+From: Daniel Borkmann <dborkman@redhat.com>
+Subject: lib: crc32: constify crc32 lookup table
 
-Clock subsystem frequently performs duplication of strings located in
-read-only memory section.  Replacing kstrdup by kstrdup_const allows to
-avoid such operations.
+Commit 8f243af42ade ("sections: fix const sections for crc32 table")
+removed the compile-time generated crc32 tables from the RO sections,
+because it conflicts with the definition of __cacheline_aligned which puts
+all such aligned data into .data..cacheline_aligned section optimized for
+wasting less space, and can cause alignment issues when used in
+combination with const with some gcc versions like 4.7.0 due to a gcc bug
+[1].
 
-Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Mike Turquette <mturquette@linaro.org>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Greg KH <greg@kroah.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Given that most gcc versions should have the fix by now, we can just use
+____cacheline_aligned, which only aligns the data but doesn't move it into
+specific sections as opposed to __cacheline_aligned.  In case of gcc
+versions having the mentioned bug, the alignment attribute will have no
+effect, but the data will still be made RO.
+
+After patch tables are in RO:
+
+$ nm -v lib/crc32.o | grep -1 -E "crc32c?table"
+0000000000000000 t arch_local_irq_enable
+0000000000000000 r crc32ctable_le
+0000000000000000 t crc32_exit
+--
+0000000000000960 t test_buf
+0000000000002000 r crc32table_be
+0000000000004000 r crc32table_le
+000000001d1056e5 A __crc_crc32_be
+
+  [1] https://gcc.gnu.org/bugzilla/show_bug.cgi?id=52181
+
+Signed-off-by: Daniel Borkmann <dborkman@redhat.com>
+Cc: Joe Mario <jmario@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/clk/clk.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ lib/gen_crc32table.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/clk/clk.c~clk-convert-clock-name-allocations-to-kstrdup_const drivers/clk/clk.c
---- a/drivers/clk/clk.c~clk-convert-clock-name-allocations-to-kstrdup_const
-+++ a/drivers/clk/clk.c
-@@ -2048,7 +2048,7 @@ struct clk *clk_register(struct device *
- 		goto fail_out;
+diff -puN lib/gen_crc32table.c~lib-crc32-constify-crc32-lookup-table lib/gen_crc32table.c
+--- a/lib/gen_crc32table.c~lib-crc32-constify-crc32-lookup-table
++++ a/lib/gen_crc32table.c
+@@ -109,7 +109,7 @@ int main(int argc, char** argv)
+ 
+ 	if (CRC_LE_BITS > 1) {
+ 		crc32init_le();
+-		printf("static u32 __cacheline_aligned "
++		printf("static const u32 ____cacheline_aligned "
+ 		       "crc32table_le[%d][%d] = {",
+ 		       LE_TABLE_ROWS, LE_TABLE_SIZE);
+ 		output_table(crc32table_le, LE_TABLE_ROWS,
+@@ -119,7 +119,7 @@ int main(int argc, char** argv)
+ 
+ 	if (CRC_BE_BITS > 1) {
+ 		crc32init_be();
+-		printf("static u32 __cacheline_aligned "
++		printf("static const u32 ____cacheline_aligned "
+ 		       "crc32table_be[%d][%d] = {",
+ 		       BE_TABLE_ROWS, BE_TABLE_SIZE);
+ 		output_table(crc32table_be, LE_TABLE_ROWS,
+@@ -128,7 +128,7 @@ int main(int argc, char** argv)
  	}
- 
--	clk->name = kstrdup(hw->init->name, GFP_KERNEL);
-+	clk->name = kstrdup_const(hw->init->name, GFP_KERNEL);
- 	if (!clk->name) {
- 		pr_err("%s: could not allocate clk->name\n", __func__);
- 		ret = -ENOMEM;
-@@ -2075,7 +2075,7 @@ struct clk *clk_register(struct device *
- 
- 	/* copy each string name in case parent_names is __initdata */
- 	for (i = 0; i < clk->num_parents; i++) {
--		clk->parent_names[i] = kstrdup(hw->init->parent_names[i],
-+		clk->parent_names[i] = kstrdup_const(hw->init->parent_names[i],
- 						GFP_KERNEL);
- 		if (!clk->parent_names[i]) {
- 			pr_err("%s: could not copy parent_names\n", __func__);
-@@ -2090,10 +2090,10 @@ struct clk *clk_register(struct device *
- 
- fail_parent_names_copy:
- 	while (--i >= 0)
--		kfree(clk->parent_names[i]);
-+		kfree_const(clk->parent_names[i]);
- 	kfree(clk->parent_names);
- fail_parent_names:
--	kfree(clk->name);
-+	kfree_const(clk->name);
- fail_name:
- 	kfree(clk);
- fail_out:
-@@ -2112,10 +2112,10 @@ static void __clk_release(struct kref *r
- 
- 	kfree(clk->parents);
- 	while (--i >= 0)
--		kfree(clk->parent_names[i]);
-+		kfree_const(clk->parent_names[i]);
- 
- 	kfree(clk->parent_names);
--	kfree(clk->name);
-+	kfree_const(clk->name);
- 	kfree(clk);
- }
- 
+ 	if (CRC_LE_BITS > 1) {
+ 		crc32cinit_le();
+-		printf("static u32 __cacheline_aligned "
++		printf("static const u32 ____cacheline_aligned "
+ 		       "crc32ctable_le[%d][%d] = {",
+ 		       LE_TABLE_ROWS, LE_TABLE_SIZE);
+ 		output_table(crc32ctable_le, LE_TABLE_ROWS,
 _
 
-Patches currently in -mm which might be from a.hajda@samsung.com are
+Patches currently in -mm which might be from dborkman@redhat.com are
 
 origin.patch
 
