@@ -1,74 +1,72 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix-3.patch removed
- from -mm tree
-Date: Mon, 16 Feb 2015 15:43:55 -0800
-Message-ID: <54e280bb.d2scJN/f2eAC0Abh%akpm@linux-foundation.org>
+ daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-2.patch removed from -mm tree
+Date: Mon, 16 Feb 2015 15:44:29 -0800
+Message-ID: <54e280dd.KaBtNtQVsMYQhYfU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53901 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53917 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750931AbbBPXob (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Feb 2015 18:44:31 -0500
+	with ESMTP id S1750931AbbBPXpF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Feb 2015 18:45:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, matthew.r.wilcox@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix-3
+     Subject: daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-2
 has been removed from the -mm tree.  Its filename was
-     mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix-3.patch
+     daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-2.patch
 
-This patch was dropped because it was folded into mm-allow-page-fault-handlers-to-perform-the-cow.patch
+This patch was dropped because it was folded into daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix-3
+Subject: daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-2
 
-bah
+email->code comments
 
 Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/dax.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN mm/memory.c~mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix-3 mm/memory.c
---- a/mm/memory.c~mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix-3
-+++ a/mm/memory.c
-@@ -2900,7 +2900,7 @@ static int do_cow_fault(struct mm_struct
- 			 * DAX doesn't have a page to lock, so it uses
- 			 * i_mmap_lock()
- 			 */
--			i_mmap_unlock_read(&vma->vm_file->f_mapping);
-+			i_mmap_unlock_read(vma->vm_file->f_mapping);
+diff -puN fs/dax.c~daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-2 fs/dax.c
+--- a/fs/dax.c~daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-2
++++ a/fs/dax.c
+@@ -353,6 +353,10 @@ static int do_dax_fault(struct vm_area_s
  		}
- 		goto uncharge_out;
- 	}
-@@ -2916,7 +2916,7 @@ static int do_cow_fault(struct mm_struct
- 			 * DAX doesn't have a page to lock, so it uses
- 			 * i_mmap_lock()
- 			 */
--			i_mmap_unlock_read(&vma->vm_file->f_mapping);
-+			i_mmap_unlock_read(vma->vm_file->f_mapping);
- 	}
- 	return ret;
- uncharge_out:
+ 		size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
+ 		if (unlikely(vmf->pgoff >= size)) {
++			/*
++			 * We have a struct page covering a hole in the file
++			 * from a read fault and we've raced with a truncate
++			 */
+ 			error = -EIO;
+ 			goto unlock_page;
+ 		}
+@@ -360,7 +364,7 @@ static int do_dax_fault(struct vm_area_s
+ 
+ 	error = get_block(inode, block, &bh, 0);
+ 	if (!error && (bh.b_size < PAGE_SIZE))
+-		error = -EIO;
++		error = -EIO;		/* fs corruption? */
+ 	if (error)
+ 		goto unlock_page;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 mm-fix-xip-fault-vs-truncate-race.patch
-mm-allow-page-fault-handlers-to-perform-the-cow.patch
-mm-allow-page-fault-handlers-to-perform-the-cow-fix-fix.patch
-daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix.patch
-daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-2.patch
+daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler.patch
 daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler-fix-3.patch
 dax-add-dax_zero_page_range-fix.patch
 ext4-add-dax-functionality-fix.patch
