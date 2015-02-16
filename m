@@ -1,69 +1,74 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- profile-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+ checkpatch-emit-an-error-when-using-predefined-timestamp-macros.patch
  removed from -mm tree
-Date: Mon, 16 Feb 2015 12:16:57 -0800
-Message-ID: <54e25039./fJ1Xj9cjHDv5StH%akpm@linux-foundation.org>
+Date: Mon, 16 Feb 2015 12:17:01 -0800
+Message-ID: <54e2503d.Q5Ly97FGR5Bpoyyf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51010 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51014 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751568AbbBPURd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Feb 2015 15:17:33 -0500
+	with ESMTP id S1751733AbbBPURh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Feb 2015 15:17:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, mm-commits@vger.kernel.org
+To: joe@perches.com, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: profile: use %*pb[l] to print bitmaps including cpumasks and nodemasks
+     Subject: checkpatch: emit an error when using predefined timestamp macros
 has been removed from the -mm tree.  Its filename was
-     profile-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+     checkpatch-emit-an-error-when-using-predefined-timestamp-macros.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tejun Heo <tj@kernel.org>
-Subject: profile: use %*pb[l] to print bitmaps including cpumasks and nodemasks
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: emit an error when using predefined timestamp macros
 
-printk and friends can now formap bitmaps using '%*pb[l]'.  cpumask
-and nodemask also provide cpumask_pr_args() and nodemask_pr_args()
-respectively which can be used to generate the two printf arguments
-necessary to format the specified cpu/nodemask.
+Since commit fe7c36c7bde1 ("Makefile: Build with -Werror=date-time if
+the compiler supports it"), use of __DATE__, __TIME__, and __TIMESTAMP__
+has not been allowed.
 
-This patch is dependent on the following two patches.
+As this test is gcc version specific (> 4.9), it hasn't prevented a few
+new uses from creeping into the kernel sources.
 
- lib/vsprintf: implement bitmap printing through '%*pb[l]'
- cpumask, nodemask: implement cpumask/nodemask_pr_args()
+Make checkpatch complain about them.
 
-Signed-off-by: Tejun Heo <tj@kernel.org>
+Signed-off-by: Joe Perches <joe@perches.com>
+Original-patch-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/profile.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ scripts/checkpatch.pl |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN kernel/profile.c~profile-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks kernel/profile.c
---- a/kernel/profile.c~profile-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
-+++ a/kernel/profile.c
-@@ -422,8 +422,7 @@ void profile_tick(int type)
+diff -puN scripts/checkpatch.pl~checkpatch-emit-an-error-when-using-predefined-timestamp-macros scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-emit-an-error-when-using-predefined-timestamp-macros
++++ a/scripts/checkpatch.pl
+@@ -5089,6 +5089,12 @@ sub process {
+ 			}
+ 		}
  
- static int prof_cpu_mask_proc_show(struct seq_file *m, void *v)
- {
--	seq_cpumask(m, prof_cpu_mask);
--	seq_putc(m, '\n');
-+	seq_printf(m, "%*pb\n", cpumask_pr_args(prof_cpu_mask));
- 	return 0;
- }
- 
++# check for uses of __DATE__, __TIME__, __TIMESTAMP__
++		while ($line =~ /\b(__(?:DATE|TIME|TIMESTAMP)__)\b/g) {
++			ERROR("DATE_TIME",
++			      "Use of the '$1' macro makes the build non-deterministic\n" . $herecurr);
++		}
++
+ # check for use of yield()
+ 		if ($line =~ /\byield\s*\(\s*\)/) {
+ 			WARN("YIELD",
 _
 
-Patches currently in -mm which might be from tj@kernel.org are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
-block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
-fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
+mm-utilc-add-kstrimdup.patch
+fs-ufs-superc-remove-unnecessary-casting.patch
+linux-next.patch
 
