@@ -1,123 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- powerpc-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
- removed from -mm tree
-Date: Mon, 16 Feb 2015 12:16:09 -0800
-Message-ID: <54e25009.HXIaQa1NAeQEdwnL%akpm@linux-foundation.org>
+Subject: [merged] module-fix-types-of-device-tables-aliases.patch removed
+ from -mm tree
+Date: Mon, 16 Feb 2015 12:18:37 -0800
+Message-ID: <54e2509d.g1gLh3Jj0ez23Cwu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51624 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51626 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751523AbbBPU1n (ORCPT
+	with ESMTP id S1751541AbbBPU1n (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Feb 2015 15:27:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, benh@kernel.crashing.org, mm-commits@vger.kernel.org
+To: a.ryabinin@samsung.com, adech.fo@gmail.com, andi@firstfloor.org, cl@linux.com, dave.hansen@intel.com, dmitryc@google.com, dvyukov@google.com, hpa@zytor.com, iamjoonsoo.kim@lge.com, kcc@google.com, koct9i@gmail.com, mingo@elte.hu, penberg@kernel.org, rientjes@google.com, sasha.levin@oracle.com, tetra2005@gmail.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc: use %*pb[l] to print bitmaps including cpumasks and nodemasks
+     Subject: module: fix types of device tables aliases
 has been removed from the -mm tree.  Its filename was
-     powerpc-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+     module-fix-types-of-device-tables-aliases.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tejun Heo <tj@kernel.org>
-Subject: powerpc: use %*pb[l] to print bitmaps including cpumasks and nodemasks
+From: Andrey Ryabinin <a.ryabinin@samsung.com>
+Subject: module: fix types of device tables aliases
 
-printk and friends can now formap bitmaps using '%*pb[l]'.  cpumask
-and nodemask also provide cpumask_pr_args() and nodemask_pr_args()
-respectively which can be used to generate the two printf arguments
-necessary to format the specified cpu/nodemask.
+MODULE_DEVICE_TABLE() macro used to create aliases to device tables. 
+Normally alias should have the same type as aliased symbol.
 
-* Spurious if (len > 1) test dropped from shared_cpu_map_show().
+Device tables are arrays, so they have 'struct type##_device_id[x]'
+types. Alias created by MODULE_DEVICE_TABLE() will have non-array type -
+	'struct type##_device_id'.
 
-This patch is dependent on the following two patches.
+This inconsistency confuses compiler, it could make a wrong assumption
+about variable's size which leads KASan to produce a false positive report
+about out of bounds access.
 
- lib/vsprintf: implement bitmap printing through '%*pb[l]'
- cpumask, nodemask: implement cpumask/nodemask_pr_args()
+For every global variable compiler calls __asan_register_globals() passing
+information about global variable (address, size, size with redzone, name
+...) __asan_register_globals() poison symbols redzone to detect possible
+out of bounds accesses.
 
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+When symbol has an alias __asan_register_globals() will be called as for
+symbol so for alias.  Compiler determines size of variable by size of
+variable's type.  Alias and symbol have the same address, so if alias have
+the wrong size part of memory that actually belongs to the symbol could be
+poisoned as redzone of alias symbol.
+
+By fixing type of alias symbol we will fix size of it, so
+__asan_register_globals() will not poison valid memory.
+
+Signed-off-by: Andrey Ryabinin <a.ryabinin@samsung.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Konstantin Serebryany <kcc@google.com>
+Cc: Dmitry Chernenkov <dmitryc@google.com>
+Signed-off-by: Andrey Konovalov <adech.fo@gmail.com>
+Cc: Yuri Gribov <tetra2005@gmail.com>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Sasha Levin <sasha.levin@oracle.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/cacheinfo.c     |   15 ++++++---------
- arch/powerpc/sysdev/xics/ics-opal.c |    6 ++----
- arch/powerpc/sysdev/xics/ics-rtas.c |    7 ++-----
- 3 files changed, 10 insertions(+), 18 deletions(-)
+ include/linux/module.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/powerpc/kernel/cacheinfo.c~powerpc-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks arch/powerpc/kernel/cacheinfo.c
---- a/arch/powerpc/kernel/cacheinfo.c~powerpc-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
-+++ a/arch/powerpc/kernel/cacheinfo.c
-@@ -607,19 +607,16 @@ static ssize_t shared_cpu_map_show(struc
- {
- 	struct cache_index_dir *index;
- 	struct cache *cache;
--	int len;
--	int n = 0;
-+	int ret;
- 
- 	index = kobj_to_cache_index_dir(k);
- 	cache = index->cache;
--	len = PAGE_SIZE - 2;
- 
--	if (len > 1) {
--		n = cpumask_scnprintf(buf, len, &cache->shared_cpu_map);
--		buf[n++] = '\n';
--		buf[n] = '\0';
--	}
--	return n;
-+	ret = scnprintf(buf, PAGE_SIZE - 1, "%*pb\n",
-+			cpumask_pr_args(&cache->shared_cpu_map));
-+	buf[ret++] = '\n';
-+	buf[ret] = '\0';
-+	return ret;
- }
- 
- static struct kobj_attribute cache_shared_cpu_map_attr =
-diff -puN arch/powerpc/sysdev/xics/ics-opal.c~powerpc-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks arch/powerpc/sysdev/xics/ics-opal.c
---- a/arch/powerpc/sysdev/xics/ics-opal.c~powerpc-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
-+++ a/arch/powerpc/sysdev/xics/ics-opal.c
-@@ -131,10 +131,8 @@ static int ics_opal_set_affinity(struct
- 
- 	wanted_server = xics_get_irq_server(d->irq, cpumask, 1);
- 	if (wanted_server < 0) {
--		char cpulist[128];
--		cpumask_scnprintf(cpulist, sizeof(cpulist), cpumask);
--		pr_warning("%s: No online cpus in the mask %s for irq %d\n",
--			   __func__, cpulist, d->irq);
-+		pr_warning("%s: No online cpus in the mask %*pb for irq %d\n",
-+			   __func__, cpumask_pr_args(cpumask), d->irq);
- 		return -1;
- 	}
- 	server = ics_opal_mangle_server(wanted_server);
-diff -puN arch/powerpc/sysdev/xics/ics-rtas.c~powerpc-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks arch/powerpc/sysdev/xics/ics-rtas.c
---- a/arch/powerpc/sysdev/xics/ics-rtas.c~powerpc-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
-+++ a/arch/powerpc/sysdev/xics/ics-rtas.c
-@@ -140,11 +140,8 @@ static int ics_rtas_set_affinity(struct
- 
- 	irq_server = xics_get_irq_server(d->irq, cpumask, 1);
- 	if (irq_server == -1) {
--		char cpulist[128];
--		cpumask_scnprintf(cpulist, sizeof(cpulist), cpumask);
--		printk(KERN_WARNING
--			"%s: No online cpus in the mask %s for irq %d\n",
--			__func__, cpulist, d->irq);
-+		pr_warning("%s: No online cpus in the mask %*pb for irq %d\n",
-+			   __func__, cpumask_pr_args(cpumask), d->irq);
- 		return -1;
- 	}
- 
+diff -puN include/linux/module.h~module-fix-types-of-device-tables-aliases include/linux/module.h
+--- a/include/linux/module.h~module-fix-types-of-device-tables-aliases
++++ a/include/linux/module.h
+@@ -135,7 +135,7 @@ void trim_init_extable(struct module *m)
+ #ifdef MODULE
+ /* Creates an alias so file2alias.c can find device table. */
+ #define MODULE_DEVICE_TABLE(type, name)					\
+-  extern const struct type##_device_id __mod_##type##__##name##_device_table \
++extern const typeof(name) __mod_##type##__##name##_device_table		\
+   __attribute__ ((unused, alias(__stringify(name))))
+ #else  /* !MODULE */
+ #define MODULE_DEVICE_TABLE(type, name)
 _
 
-Patches currently in -mm which might be from tj@kernel.org are
+Patches currently in -mm which might be from a.ryabinin@samsung.com are
 
 origin.patch
-block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
-fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
 
