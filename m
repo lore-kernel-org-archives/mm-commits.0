@@ -1,284 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- rtc-rtc-isl12057-add-isilirq2-can-wakeup-machine-property-for-in-tree-users.patch removed from -mm tree
-Date: Mon, 16 Feb 2015 12:18:59 -0800
-Message-ID: <54e250b3.CiT/yGB4n9lT58dK%akpm@linux-foundation.org>
+Subject: [merged] rtc-imx-dryice-add-more-known-register-bits.patch
+ removed from -mm tree
+Date: Mon, 16 Feb 2015 12:19:07 -0800
+Message-ID: <54e250bb.8NcOdERLx3vveWQX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51367 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51406 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751727AbbBPUTg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Feb 2015 15:19:36 -0500
+	with ESMTP id S1751038AbbBPUTn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Feb 2015 15:19:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arno@natisbad.org, a.zummo@towertech.it, arnd@arndb.de, broonie@kernel.org, darshanapadmadas@gmail.com, galak@codeaurora.org, grant.likely@linaro.org, ijc+devicetree@hellion.org.uk, jason@lakedaemon.net, jgunthorpe@obsidianresearch.com, linus.walleij@linaro.org, linux@roeck-us.net, mark.rutland@arm.com, pawel.moll@arm.com, peter.huewe@infineon.com, rob.herring@calxeda.com, rob@landley.net, swarren@wwwdotorg.org, treding@nvidia.com, uwe@kleine-koenig.org, mm-commits@vger.kernel.org
+To: jbe@pengutronix.de, a.zummo@towertech.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: rtc-isl12057: add isil,irq2-can-wakeup-machine prope=
-rty for in-tree users
+     Subject: drivers/rtc/rtc-imxdi.c: add more known register bits
 has been removed from the -mm tree.  Its filename was
-     rtc-rtc-isl12057-add-isilirq2-can-wakeup-machine-property-for-in-t=
-ree-users.patch
+     rtc-imx-dryice-add-more-known-register-bits.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-=46rom: Arnaud Ebalard <arno@natisbad.org>
-Subject: rtc: rtc-isl12057: add isil,irq2-can-wakeup-machine property f=
-or in-tree users
+From: Juergen Borleis <jbe@pengutronix.de>
+Subject: drivers/rtc/rtc-imxdi.c: add more known register bits
 
-Current in-tree users of ISL12057 RTC chip (NETGEAR ReadyNAS 102, 104 a=
-nd
-2120) do not have the IRQ#2 pin of the chip (associated w/ the Alarm1
-mechanism) connected to their SoC, but to a PMIC (TPS65251 FWIW).  This
-specific hardware configuration allows the NAS to wake up when the alar=
-ms
-rings.
+Intended for monitoring and controlling the security features.  These bits
+are required to bring this unit back to live after a security violation
+event was detected.  The code to bring it back to live will follow after a
+vendor clearance.
 
-Recently introduced alarm support for ISL12057 relies on the provision =
-of
-an "interrupts" property in system .dts file, which previous three user=
-s
-will never get.  For that reason, alarm support on those devices is not
-function.  To support this use case, this patch adds a new DT property =
-for
-ISL12057 (isil,irq2-can-wakeup-machine) to indicate that the chip is
-capable of waking up the device using its IRQ#2 pin (even though it doe=
-s
-not have its IRQ#2 pin connected directly to the SoC).
-
-This specific configuration was tested on a ReadyNAS 102 by setting an
-alarm, powering off the device and see it reboot as expected when the
-alarm rang w/:
-
-  # echo `date '+%s' -d '+ 1 minutes'` > /sys/class/rtc/rtc0/wakealarm
-  # shutdown -h now
-
-As a side note, the ISL12057 remains in the list of trivial devices,
-because the property is not per se required by the device to work but c=
-an
-help handle system w/ specific requirements.  In exchange, the new feat=
-ure
-is described in details in a specific documentation file.
-
-Signed-off-by: Arnaud Ebalard <arno@natisbad.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
+Signed-off-by: Juergen Borleis <jbe@pengutronix.de>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Peter Huewe <peter.huewe@infineon.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>
-Cc: Thierry Reding <treding@nvidia.com>
-Cc: Mark Brown <broonie@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Darshana Padmadas <darshanapadmadas@gmail.com>
-Cc: Rob Herring <rob.herring@calxeda.com>
-Cc: Pawel Moll <pawel.moll@arm.com>
-Cc: Stephen Warren <swarren@wwwdotorg.org>
-Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
-Cc: Grant Likely <grant.likely@linaro.org>
-Cc: Rob Landley <rob@landley.net>
-Cc: Jason Cooper <jason@lakedaemon.net>
-Cc: Guenter Roeck <linux@roeck-us.net>
-Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: Kumar Gala <galak@codeaurora.org>
-Cc: Uwe Kleine-K=F6nig <uwe@kleine-koenig.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/devicetree/bindings/rtc/isil,isl12057.txt |   78 +++++++=
-+++
- drivers/rtc/rtc-isl12057.c                              |   45 +++++
- 2 files changed, 117 insertions(+), 6 deletions(-)
+ drivers/rtc/rtc-imxdi.c |   44 ++++++++++++++++++++++++++++++++++----
+ 1 file changed, 40 insertions(+), 4 deletions(-)
 
-diff -puN /dev/null Documentation/devicetree/bindings/rtc/isil,isl12057=
-=2Etxt
---- /dev/null
-+++ a/Documentation/devicetree/bindings/rtc/isil,isl12057.txt
-@@ -0,0 +1,78 @@
-+Intersil ISL12057 I2C RTC/Alarm chip
+diff -puN drivers/rtc/rtc-imxdi.c~rtc-imx-dryice-add-more-known-register-bits drivers/rtc/rtc-imxdi.c
+--- a/drivers/rtc/rtc-imxdi.c~rtc-imx-dryice-add-more-known-register-bits
++++ a/drivers/rtc/rtc-imxdi.c
+@@ -50,22 +50,58 @@
+ #define DCAMR_UNSET  0xFFFFFFFF  /* doomsday - 1 sec */
+ 
+ #define DCR       0x10           /* Control Reg */
++#define DCR_TDCHL (1 << 30)      /* Tamper-detect configuration hard lock */
++#define DCR_TDCSL (1 << 29)      /* Tamper-detect configuration soft lock */
++#define DCR_KSSL  (1 << 27)      /* Key-select soft lock */
++#define DCR_MCHL  (1 << 20)      /* Monotonic-counter hard lock */
++#define DCR_MCSL  (1 << 19)      /* Monotonic-counter soft lock */
++#define DCR_TCHL  (1 << 18)      /* Timer-counter hard lock */
++#define DCR_TCSL  (1 << 17)      /* Timer-counter soft lock */
++#define DCR_FSHL  (1 << 16)      /* Failure state hard lock */
+ #define DCR_TCE   (1 << 3)       /* Time Counter Enable */
++#define DCR_MCE   (1 << 2)       /* Monotonic Counter Enable */
+ 
+ #define DSR       0x14           /* Status Reg */
+-#define DSR_WBF   (1 << 10)      /* Write Busy Flag */
+-#define DSR_WNF   (1 << 9)       /* Write Next Flag */
+-#define DSR_WCF   (1 << 8)       /* Write Complete Flag */
++#define DSR_WTD   (1 << 23)      /* Wire-mesh tamper detected */
++#define DSR_ETBD  (1 << 22)      /* External tamper B detected */
++#define DSR_ETAD  (1 << 21)      /* External tamper A detected */
++#define DSR_EBD   (1 << 20)      /* External boot detected */
++#define DSR_SAD   (1 << 19)      /* SCC alarm detected */
++#define DSR_TTD   (1 << 18)      /* Temperatur tamper detected */
++#define DSR_CTD   (1 << 17)      /* Clock tamper detected */
++#define DSR_VTD   (1 << 16)      /* Voltage tamper detected */
++#define DSR_WBF   (1 << 10)      /* Write Busy Flag (synchronous) */
++#define DSR_WNF   (1 << 9)       /* Write Next Flag (synchronous) */
++#define DSR_WCF   (1 << 8)       /* Write Complete Flag (synchronous)*/
+ #define DSR_WEF   (1 << 7)       /* Write Error Flag */
+ #define DSR_CAF   (1 << 4)       /* Clock Alarm Flag */
++#define DSR_MCO   (1 << 3)       /* monotonic counter overflow */
++#define DSR_TCO   (1 << 2)       /* time counter overflow */
+ #define DSR_NVF   (1 << 1)       /* Non-Valid Flag */
+ #define DSR_SVF   (1 << 0)       /* Security Violation Flag */
+ 
+-#define DIER      0x18           /* Interrupt Enable Reg */
++#define DIER      0x18           /* Interrupt Enable Reg (synchronous) */
+ #define DIER_WNIE (1 << 9)       /* Write Next Interrupt Enable */
+ #define DIER_WCIE (1 << 8)       /* Write Complete Interrupt Enable */
+ #define DIER_WEIE (1 << 7)       /* Write Error Interrupt Enable */
+ #define DIER_CAIE (1 << 4)       /* Clock Alarm Interrupt Enable */
++#define DIER_SVIE (1 << 0)       /* Security-violation Interrupt Enable */
 +
-+ISL12057 is a trivial I2C device (it has simple device tree bindings,
-+consisting of a compatible field, an address and possibly an interrupt
-+line).
++#define DMCR      0x1c           /* DryIce Monotonic Counter Reg */
 +
-+Nonetheless, it also supports an option boolean property
-+("isil,irq2-can-wakeup-machine") to handle the specific use-case found
-+on at least three in-tree users of the chip (NETGEAR ReadyNAS 102, 104
-+and 2120 ARM-based NAS); On those devices, the IRQ#2 pin of the chip
-+(associated with the alarm supported by the driver) is not connected
-+to the SoC but to a PMIC. It allows the device to be powered up when
-+RTC alarm rings. In order to mark the device has a wakeup source and
-+get access to the 'wakealarm' sysfs entry, this specific property can
-+be set when the IRQ#2 pin of the chip is not connected to the SoC but
-+can wake up the device.
++#define DTCR      0x28           /* DryIce Tamper Configuration Reg */
++#define DTCR_MOE  (1 << 9)       /* monotonic overflow enabled */
++#define DTCR_TOE  (1 << 8)       /* time overflow enabled */
++#define DTCR_WTE  (1 << 7)       /* wire-mesh tamper enabled */
++#define DTCR_ETBE (1 << 6)       /* external B tamper enabled */
++#define DTCR_ETAE (1 << 5)       /* external A tamper enabled */
++#define DTCR_EBE  (1 << 4)       /* external boot tamper enabled */
++#define DTCR_SAIE (1 << 3)       /* SCC enabled */
++#define DTCR_TTE  (1 << 2)       /* temperature tamper enabled */
++#define DTCR_CTE  (1 << 1)       /* clock tamper enabled */
++#define DTCR_VTE  (1 << 0)       /* voltage tamper enabled */
 +
-+Required properties supported by the device:
-+
-+ - "compatible": must be "isil,isl12057"
-+ - "reg": I2C bus address of the device
-+
-+Optional properties:
-+
-+ - "isil,irq2-can-wakeup-machine": mark the chip as a wakeup source,
-+   independently of the availability of an IRQ line connected to the
-+   SoC.
-+
-+ - "interrupt-parent", "interrupts": for passing the interrupt line
-+   of the SoC connected to IRQ#2 of the RTC chip.
-+
-+
-+Example isl12057 node without IRQ#2 pin connected (no alarm support):
-+
-+	isl12057: isl12057@68 {
-+		compatible =3D "isil,isl12057";
-+		reg =3D <0x68>;
-+	};
-+
-+
-+Example isl12057 node with IRQ#2 pin connected to main SoC via MPP6 (n=
-ote
-+that the pinctrl-related properties below are given for completeness a=
-nd
-+may not be required or may be different depending on your system or
-+SoC, and the main function of the MPP used as IRQ line, i.e.
-+"interrupt-parent" and "interrupts" are usually sufficient):
-+
-+		    pinctrl {
-+				...
-+
-+				rtc_alarm_pin: rtc_alarm_pin {
-+					marvell,pins =3D "mpp6";
-+					marvell,function =3D "gpio";
-+				};
-+
-+				...
-+
-+		    };
-+
-+	...
-+
-+	isl12057: isl12057@68 {
-+		compatible =3D "isil,isl12057";
-+		reg =3D <0x68>;
-+		pinctrl-0 =3D <&rtc_alarm_pin>;
-+		pinctrl-names =3D "default";
-+		interrupt-parent =3D <&gpio0>;
-+		interrupts =3D <6 IRQ_TYPE_EDGE_FALLING>;
-+	};
-+
-+
-+Example isl12057 node without IRQ#2 pin connected to the SoC but to a
-+PMIC, allowing the device to be started based on configured alarm:
-+
-+	isl12057: isl12057@68 {
-+		compatible =3D "isil,isl12057";
-+		reg =3D <0x68>;
-+		isil,irq2-can-wakeup-machine;
-+	};
-diff -puN drivers/rtc/rtc-isl12057.c~rtc-rtc-isl12057-add-isilirq2-can-=
-wakeup-machine-property-for-in-tree-users drivers/rtc/rtc-isl12057.c
---- a/drivers/rtc/rtc-isl12057.c~rtc-rtc-isl12057-add-isilirq2-can-wake=
-up-machine-property-for-in-tree-users
-+++ a/drivers/rtc/rtc-isl12057.c
-@@ -457,6 +457,40 @@ static int isl12057_check_rtc_status(str
- 	return 0;
- }
-=20
-+#ifdef CONFIG_OF
-+/*
-+ * One would expect the device to be marked as a wakeup source only
-+ * when an IRQ pin of the RTC is routed to an interrupt line of the
-+ * CPU. In practice, such an IRQ pin can be connected to a PMIC and
-+ * this allows the device to be powered up when RTC alarm rings. This
-+ * is for instance the case on ReadyNAS 102, 104 and 2120. On those
-+ * devices with no IRQ driectly connected to the SoC, the RTC chip
-+ * can be forced as a wakeup source by stating that explicitly in
-+ * the device's .dts file using the "isil,irq2-can-wakeup-machine"
-+ * boolean property. This will guarantee 'wakealarm' sysfs entry is
-+ * available on the device.
-+ *
-+ * The function below returns 1, i.e. the capability of the chip to
-+ * wakeup the device, based on IRQ availability or if the boolean
-+ * property has been set in the .dts file. Otherwise, it returns 0.
-+ */
-+
-+static bool isl12057_can_wakeup_machine(struct device *dev)
-+{
-+	struct isl12057_rtc_data *data =3D dev_get_drvdata(dev);
-+
-+	return (data->irq || of_property_read_bool(dev->of_node,
-+					      "isil,irq2-can-wakeup-machine"));
-+}
-+#else
-+static bool isl12057_can_wakeup_machine(struct device *dev)
-+{
-+	struct isl12057_rtc_data *data =3D dev_get_drvdata(dev);
-+
-+	return !!data->irq;
-+}
-+#endif
-+
- static int isl12057_rtc_alarm_irq_enable(struct device *dev,
- 					 unsigned int enable)
- {
-@@ -555,7 +589,8 @@ static int isl12057_probe(struct i2c_cli
- 				client->irq, ret);
- 	}
-=20
--	device_init_wakeup(dev, !!data->irq);
-+	if (isl12057_can_wakeup_machine(dev))
-+		device_init_wakeup(dev, true);
-=20
- 	data->rtc =3D devm_rtc_device_register(dev, DRV_NAME, &rtc_ops,
- 					     THIS_MODULE);
-@@ -576,9 +611,7 @@ err:
-=20
- static int isl12057_remove(struct i2c_client *client)
- {
--	struct isl12057_rtc_data *rtc_data =3D dev_get_drvdata(&client->dev);
--
--	if (rtc_data->irq)
-+	if (isl12057_can_wakeup_machine(&client->dev))
- 		device_init_wakeup(&client->dev, false);
-=20
- 	return 0;
-@@ -589,7 +622,7 @@ static int isl12057_rtc_suspend(struct d
- {
- 	struct isl12057_rtc_data *rtc_data =3D dev_get_drvdata(dev);
-=20
--	if (device_may_wakeup(dev))
-+	if (rtc_data->irq && device_may_wakeup(dev))
- 		return enable_irq_wake(rtc_data->irq);
-=20
- 	return 0;
-@@ -599,7 +632,7 @@ static int isl12057_rtc_resume(struct de
- {
- 	struct isl12057_rtc_data *rtc_data =3D dev_get_drvdata(dev);
-=20
--	if (device_may_wakeup(dev))
-+	if (rtc_data->irq && device_may_wakeup(dev))
- 		return disable_irq_wake(rtc_data->irq);
-=20
- 	return 0;
++#define DGPR      0x3c           /* DryIce General Purpose Reg */
+ 
+ /**
+  * struct imxdi_dev - private imxdi rtc data
 _
 
-Patches currently in -mm which might be from arno@natisbad.org are
+Patches currently in -mm which might be from jbe@pengutronix.de are
 
 origin.patch
-linux-next.patch
-rtc-isl12022-deprecate-use-of-isl-in-compatible-string-for-isil.patch
-rtc-isl12057-deprecate-use-of-isl-in-compatible-string-for-isil.patch
-staging-iio-isl29028-deprecate-use-of-isl-in-compatible-string-for-isil=
-=2Epatch
-arm-dts-zynq-update-isl9305-compatible-string-to-use-isil-vendor-prefix=
-=2Epatch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
