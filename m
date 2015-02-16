@@ -1,32 +1,33 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- irq-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch removed from -mm tree
-Date: Mon, 16 Feb 2015 12:16:55 -0800
-Message-ID: <54e25037.1IWoms4oQOBFgBtw%akpm@linux-foundation.org>
+ proc-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+ removed from -mm tree
+Date: Mon, 16 Feb 2015 12:16:53 -0800
+Message-ID: <54e25035.R/G449e1h0RljLti%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51010 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51007 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751492AbbBPURb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Feb 2015 15:17:31 -0500
+	with ESMTP id S1751492AbbBPUR3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Feb 2015 15:17:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: irq: use %*pb[l] to print bitmaps including cpumasks and nodemasks
+     Subject: proc: use %*pb[l] to print bitmaps including cpumasks and nodemasks
 has been removed from the -mm tree.  Its filename was
-     irq-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+     proc-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: irq: use %*pb[l] to print bitmaps including cpumasks and nodemasks
+Subject: proc: use %*pb[l] to print bitmaps including cpumasks and nodemasks
 
 printk and friends can now formap bitmaps using '%*pb[l]'.  cpumask
 and nodemask also provide cpumask_pr_args() and nodemask_pr_args()
@@ -39,49 +40,32 @@ This patch is dependent on the following two patches.
  cpumask, nodemask: implement cpumask/nodemask_pr_args()
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/irq/proc.c |   11 ++++-------
- 1 file changed, 4 insertions(+), 7 deletions(-)
+ fs/proc/array.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN kernel/irq/proc.c~irq-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks kernel/irq/proc.c
---- a/kernel/irq/proc.c~irq-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
-+++ a/kernel/irq/proc.c
-@@ -46,10 +46,9 @@ static int show_irq_affinity(int type, s
- 		mask = desc->pending_mask;
- #endif
- 	if (type)
--		seq_cpumask_list(m, mask);
-+		seq_printf(m, "%*pbl\n", cpumask_pr_args(mask));
- 	else
--		seq_cpumask(m, mask);
--	seq_putc(m, '\n');
-+		seq_printf(m, "%*pb\n", cpumask_pr_args(mask));
- 	return 0;
- }
+diff -puN fs/proc/array.c~proc-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks fs/proc/array.c
+--- a/fs/proc/array.c~proc-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
++++ a/fs/proc/array.c
+@@ -316,12 +316,10 @@ static inline void task_context_switch_c
  
-@@ -67,8 +66,7 @@ static int irq_affinity_hint_proc_show(s
- 		cpumask_copy(mask, desc->affinity_hint);
- 	raw_spin_unlock_irqrestore(&desc->lock, flags);
- 
--	seq_cpumask(m, mask);
--	seq_putc(m, '\n');
-+	seq_printf(m, "%*pb\n", cpumask_pr_args(mask));
- 	free_cpumask_var(mask);
- 
- 	return 0;
-@@ -186,8 +184,7 @@ static const struct file_operations irq_
- 
- static int default_affinity_show(struct seq_file *m, void *v)
+ static void task_cpus_allowed(struct seq_file *m, struct task_struct *task)
  {
--	seq_cpumask(m, irq_default_affinity);
+-	seq_puts(m, "Cpus_allowed:\t");
+-	seq_cpumask(m, &task->cpus_allowed);
 -	seq_putc(m, '\n');
-+	seq_printf(m, "%*pb\n", cpumask_pr_args(irq_default_affinity));
- 	return 0;
+-	seq_puts(m, "Cpus_allowed_list:\t");
+-	seq_cpumask_list(m, &task->cpus_allowed);
+-	seq_putc(m, '\n');
++	seq_printf(m, "Cpus_allowed:\t%*pb\n",
++		   cpumask_pr_args(&task->cpus_allowed));
++	seq_printf(m, "Cpus_allowed_list:\t%*pbl\n",
++		   cpumask_pr_args(&task->cpus_allowed));
  }
  
+ int proc_pid_status(struct seq_file *m, struct pid_namespace *ns,
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
