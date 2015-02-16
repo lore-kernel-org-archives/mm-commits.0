@@ -1,99 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [merged] init-remove-config_init_fallback.patch removed from -mm
- tree
-Date: Mon, 16 Feb 2015 12:18:43 -0800
-Message-ID: <54e250a3.CNtGeWokWNwsR0AD%akpm@linux-foundation.org>
+Subject: [merged]
+ kprobes-set-kprobes_all_disarmed-earlier-to-enable-re-optimization.patch
+ removed from -mm tree
+Date: Mon, 16 Feb 2015 12:18:46 -0800
+Message-ID: <54e250a6.IVZobBZItR58iFgf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51327 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51330 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751176AbbBPUTU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Feb 2015 15:19:20 -0500
+	with ESMTP id S1751176AbbBPUTX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Feb 2015 15:19:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: luto@amacapital.net, cebbert.lkml@gmail.com, frowand.list@gmail.com, josh@joshtriplett.org, rdunlap@infradead.org, rob@landley.net, rusty@rustcorp.com.au, shuah.kh@samsung.com, mm-commits@vger.kernel.org
+To: wangnan0@huawei.com, masami.hiramatsu.pt@hitachi.com, mingo@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: init: remove CONFIG_INIT_FALLBACK
+     Subject: kprobes: set kprobes_all_disarmed earlier to enable re-optimization.
 has been removed from the -mm tree.  Its filename was
-     init-remove-config_init_fallback.patch
+     kprobes-set-kprobes_all_disarmed-earlier-to-enable-re-optimization.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andy Lutomirski <luto@amacapital.net>
-Subject: init: remove CONFIG_INIT_FALLBACK
+From: Wang Nan <wangnan0@huawei.com>
+Subject: kprobes: set kprobes_all_disarmed earlier to enable re-optimization.
 
-CONFIG_INIT_FALLBACK adds config bloat without an obvious use case that
-makes it worth keeping around.  Delete it.
+In original code, the probed instruction doesn't get optimized after
 
-Signed-off-by: Andy Lutomirski <luto@amacapital.net>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Chuck Ebbert <cebbert.lkml@gmail.com>
-Cc: Frank Rowand <frowand.list@gmail.com>
-Reviewed-by: Josh Triplett <josh@joshtriplett.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Rob Landley <rob@landley.net>
-Cc: Shuah Khan <shuah.kh@samsung.com>
+echo 0 > /sys/kernel/debug/kprobes/enabled
+echo 1 > /sys/kernel/debug/kprobes/enabled
+
+This is because original code checks kprobes_all_disarmed in
+optimize_kprobe(), but this flag is turned off after calling that
+function.  Therefore, optimize_kprobe() will see kprobes_all_disarmed ==
+true and doesn't do the optimization.
+
+This patch simply turns off kprobes_all_disarmed earlier to enable
+optimization.
+
+Signed-off-by: Wang Nan <wangnan0@huawei.com>
+Signed-off-by: Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>
+Cc: Ingo Molnar <mingo@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |   16 ----------------
- init/main.c  |    5 -----
- 2 files changed, 21 deletions(-)
+ kernel/kprobes.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN init/Kconfig~init-remove-config_init_fallback init/Kconfig
---- a/init/Kconfig~init-remove-config_init_fallback
-+++ a/init/Kconfig
-@@ -1287,22 +1287,6 @@ source "usr/Kconfig"
+diff -puN kernel/kprobes.c~kprobes-set-kprobes_all_disarmed-earlier-to-enable-re-optimization kernel/kprobes.c
+--- a/kernel/kprobes.c~kprobes-set-kprobes_all_disarmed-earlier-to-enable-re-optimization
++++ a/kernel/kprobes.c
+@@ -2320,6 +2320,12 @@ static void arm_all_kprobes(void)
+ 	if (!kprobes_all_disarmed)
+ 		goto already_enabled;
  
- endif
- 
--config INIT_FALLBACK
--	bool "Fall back to defaults if init= parameter is bad"
--	default y
--	help
--	  If enabled, the kernel will try the default init binaries if an
--	  explicit request from the init= parameter fails.
--
--	  This can have unexpected effects.  For example, booting
--	  with init=/sbin/kiosk_app will run /sbin/init or even /bin/sh
--	  if /sbin/kiosk_app cannot be executed.
--
--	  The default value of Y is consistent with historical behavior.
--	  Selecting N is likely to be more appropriate for most uses,
--	  especially on kiosks and on kernels that are intended to be
--	  run under the control of a script.
--
- config CC_OPTIMIZE_FOR_SIZE
- 	bool "Optimize for size"
- 	help
-diff -puN init/main.c~init-remove-config_init_fallback init/main.c
---- a/init/main.c~init-remove-config_init_fallback
-+++ a/init/main.c
-@@ -953,13 +953,8 @@ static int __ref kernel_init(void *unuse
- 		ret = run_init_process(execute_command);
- 		if (!ret)
- 			return 0;
--#ifndef CONFIG_INIT_FALLBACK
- 		panic("Requested init %s failed (error %d).",
- 		      execute_command, ret);
--#else
--		pr_err("Failed to execute %s (error %d).  Attempting defaults...\n",
--		       execute_command, ret);
--#endif
++	/*
++	 * optimize_kprobe() called by arm_kprobe() checks
++	 * kprobes_all_disarmed, so set kprobes_all_disarmed before
++	 * arm_kprobe.
++	 */
++	kprobes_all_disarmed = false;
+ 	/* Arming kprobes doesn't optimize kprobe itself */
+ 	for (i = 0; i < KPROBE_TABLE_SIZE; i++) {
+ 		head = &kprobe_table[i];
+@@ -2328,7 +2334,6 @@ static void arm_all_kprobes(void)
+ 				arm_kprobe(p);
  	}
- 	if (!try_to_run_init_process("/sbin/init") ||
- 	    !try_to_run_init_process("/etc/init") ||
+ 
+-	kprobes_all_disarmed = false;
+ 	printk(KERN_INFO "Kprobes globally enabled\n");
+ 
+ already_enabled:
 _
 
-Patches currently in -mm which might be from luto@amacapital.net are
+Patches currently in -mm which might be from wangnan0@huawei.com are
 
 origin.patch
-seccomp-cap-seccomp_ret_errno-data-to-max_errno.patch
-linux-next.patch
 
