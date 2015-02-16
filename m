@@ -1,71 +1,77 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- arm-mvebu-enable-armada-38x-rtc-driver-in-mvebu_v7_defconfig.patch removed
- from -mm tree
-Date: Mon, 16 Feb 2015 12:19:36 -0800
-Message-ID: <54e250d8.dMeEDoiYecLSSfFg%akpm@linux-foundation.org>
+ lib-bitmap-yet-another-simplification-in-__bitmap_shift_right.patch removed from -mm tree
+Date: Mon, 16 Feb 2015 12:15:25 -0800
+Message-ID: <54e24fdd.aMPsoNHx2cAkp+yp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51523 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51532 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751515AbbBPUUN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Feb 2015 15:20:13 -0500
+	with ESMTP id S1751586AbbBPUWn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Feb 2015 15:22:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gregory.clement@free-electrons.com, a.zummo@towertech.it, alior@marvell.com, andrew@lunn.ch, arno@natisbad.org, boris.brezillon@free-electrons.com, ezequiel.garcia@free-electrons.com, jason@lakedaemon.net, mark.rutland@arm.com, maxime.ripard@free-electrons.com, nadavh@marvell.com, sebastian.hesselbarth@gmail.com, tawfik@marvell.com, thomas.petazzoni@free-electrons.com, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ARM: mvebu: enable Armada 38x RTC driver in mvebu_v7_defconfig
+     Subject: lib: bitmap: yet another simplification in __bitmap_shift_right
 has been removed from the -mm tree.  Its filename was
-     arm-mvebu-enable-armada-38x-rtc-driver-in-mvebu_v7_defconfig.patch
+     lib-bitmap-yet-another-simplification-in-__bitmap_shift_right.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Gregory CLEMENT <gregory.clement@free-electrons.com>
-Subject: ARM: mvebu: enable Armada 38x RTC driver in mvebu_v7_defconfig
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: lib: bitmap: yet another simplification in __bitmap_shift_right
 
-Now that the Armada 38x RTC driver has been pushed, let's enable it in
-mvebu_v7_defconfig.
+If left is 0, we can just let mask be ~0UL, so that anding with it is a
+no-op.  Conveniently, BITMAP_LAST_WORD_MASK provides precisely what we
+need, and we can eliminate left.
 
-Signed-off-by: Gregory CLEMENT <gregory.clement@free-electrons.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Jason Cooper <jason@lakedaemon.net>
-Cc: Andrew Lunn <andrew@lunn.ch>
-Cc: Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
-Cc: Arnaud Ebalard <arno@natisbad.org>
-Cc: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Cc: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Cc: Maxime Ripard <maxime.ripard@free-electrons.com>
-Cc: Boris BREZILLON <boris.brezillon@free-electrons.com>
-Cc: Lior Amsalem <alior@marvell.com>
-Cc: Tawfik Bayouk <tawfik@marvell.com>
-Cc: Nadav Haklai <nadavh@marvell.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/configs/mvebu_v7_defconfig |    1 +
- 1 file changed, 1 insertion(+)
+ lib/bitmap.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/arm/configs/mvebu_v7_defconfig~arm-mvebu-enable-armada-38x-rtc-driver-in-mvebu_v7_defconfig arch/arm/configs/mvebu_v7_defconfig
---- a/arch/arm/configs/mvebu_v7_defconfig~arm-mvebu-enable-armada-38x-rtc-driver-in-mvebu_v7_defconfig
-+++ a/arch/arm/configs/mvebu_v7_defconfig
-@@ -112,6 +112,7 @@ CONFIG_LEDS_TRIGGER_HEARTBEAT=y
- CONFIG_RTC_CLASS=y
- CONFIG_RTC_DRV_S35390A=y
- CONFIG_RTC_DRV_MV=y
-+CONFIG_RTC_DRV_ARMADA38X=y
- CONFIG_DMADEVICES=y
- CONFIG_MV_XOR=y
- # CONFIG_IOMMU_SUPPORT is not set
+diff -puN lib/bitmap.c~lib-bitmap-yet-another-simplification-in-__bitmap_shift_right lib/bitmap.c
+--- a/lib/bitmap.c~lib-bitmap-yet-another-simplification-in-__bitmap_shift_right
++++ a/lib/bitmap.c
+@@ -113,9 +113,9 @@ EXPORT_SYMBOL(__bitmap_complement);
+ void __bitmap_shift_right(unsigned long *dst, const unsigned long *src,
+ 			unsigned shift, unsigned nbits)
+ {
+-	unsigned k, lim = BITS_TO_LONGS(nbits), left = nbits % BITS_PER_LONG;
++	unsigned k, lim = BITS_TO_LONGS(nbits);
+ 	unsigned off = shift/BITS_PER_LONG, rem = shift % BITS_PER_LONG;
+-	unsigned long mask = (1UL << left) - 1;
++	unsigned long mask = BITMAP_LAST_WORD_MASK(nbits);
+ 	for (k = 0; off + k < lim; ++k) {
+ 		unsigned long upper, lower;
+ 
+@@ -127,12 +127,12 @@ void __bitmap_shift_right(unsigned long
+ 			upper = 0;
+ 		else {
+ 			upper = src[off + k + 1];
+-			if (off + k + 1 == lim - 1 && left)
++			if (off + k + 1 == lim - 1)
+ 				upper &= mask;
+ 			upper <<= (BITS_PER_LONG - rem);
+ 		}
+ 		lower = src[off + k];
+-		if (left && off + k == lim - 1)
++		if (off + k == lim - 1)
+ 			lower &= mask;
+ 		lower >>= rem;
+ 		dst[k] = lower | upper;
 _
 
-Patches currently in -mm which might be from gregory.clement@free-electrons.com are
+Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
 
 origin.patch
 linux-next.patch
