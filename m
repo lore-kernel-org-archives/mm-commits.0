@@ -1,74 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-imx-dryice-trivial-clean-up-code.patch removed from
- -mm tree
-Date: Mon, 16 Feb 2015 12:19:05 -0800
-Message-ID: <54e250b9.E2ZzMNT0CS6/f2gp%akpm@linux-foundation.org>
+Subject: [merged]
+ arm-mvebu-isl12057-rtc-chip-can-now-wake-up-rn102-rn102-and-rn2120.patch
+ removed from -mm tree
+Date: Mon, 16 Feb 2015 12:19:02 -0800
+Message-ID: <54e250b6.yXuKd0hUThruD/NH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail.linuxfoundation.org ([140.211.169.12]:51393 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751038AbbBPUTl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Feb 2015 15:19:41 -0500
+	with ESMTP id S1751038AbbBPUTj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Feb 2015 15:19:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jbe@pengutronix.de, a.zummo@towertech.it, mm-commits@vger.kernel.org
+To: arno@natisbad.org, a.zummo@towertech.it, arnd@arndb.de, broonie@kernel.org, darshanapadmadas@gmail.com, galak@codeaurora.org, grant.likely@linaro.org, ijc+devicetree@hellion.org.uk, jason@lakedaemon.net, jgunthorpe@obsidianresearch.com, linus.walleij@linaro.org, linux@roeck-us.net, mark.rutland@arm.com, pawel.moll@arm.com, peter.huewe@infineon.com, rob.herring@calxeda.com, rob@landley.net, swarren@wwwdotorg.org, treding@nvidia.com, uwe@kleine-koenig.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-imxdi.c: trivial clean up code
+     Subject: ARM: mvebu: ISL12057 rtc chip can now wake up RN102, RN10=
+2 and RN2120
 has been removed from the -mm tree.  Its filename was
-     rtc-imx-dryice-trivial-clean-up-code.patch
+     arm-mvebu-isl12057-rtc-chip-can-now-wake-up-rn102-rn102-and-rn2120=
+=2Epatch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
 ------------------------------------------------------
-From: Juergen Borleis <jbe@pengutronix.de>
-Subject: drivers/rtc/rtc-imxdi.c: trivial clean up code
+=46rom: Arnaud Ebalard <arno@natisbad.org>
+Subject: ARM: mvebu: ISL12057 rtc chip can now wake up RN102, RN102 and=
+ RN2120
 
-Signed-off-by: Juergen Borleis <jbe@pengutronix.de>
+Now that alarm support for ISL12057 chip is available w/ the specific
+"isil,irq2-can-wakeup-machine" property, let's use that feature of the
+driver dedicated to NETGEAR ReadyNAS 102, 104 and 2120 specific routing=
+ of
+RTC Alarm IRQ#2 pin; on those devices, this pin is not connected to the
+SoC but to a PMIC, which allows the device to be powered up when RTC al=
+arm
+rings.
+
+=46or that to work, the chip needs to be explicitly marked as a device
+wakeup source using this "isil,irq2-can-wakeup-machine" boolean propert=
+y.=20
+This makes 'wakealarm' sysfs entry available to configure the alarm.
+
+Signed-off-by: Arnaud Ebalard <arno@natisbad.org>
+Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Peter Huewe <peter.huewe@infineon.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: Thierry Reding <treding@nvidia.com>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Darshana Padmadas <darshanapadmadas@gmail.com>
+Cc: Rob Herring <rob.herring@calxeda.com>
+Cc: Pawel Moll <pawel.moll@arm.com>
+Cc: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
+Cc: Grant Likely <grant.likely@linaro.org>
+Cc: Rob Landley <rob@landley.net>
+Cc: Jason Cooper <jason@lakedaemon.net>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: Kumar Gala <galak@codeaurora.org>
+Cc: Uwe Kleine-K=F6nig <uwe@kleine-koenig.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-imxdi.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/arm/boot/dts/armada-370-netgear-rn102.dts |    1 +
+ arch/arm/boot/dts/armada-370-netgear-rn104.dts |    1 +
+ arch/arm/boot/dts/armada-xp-netgear-rn2120.dts |    1 +
+ 3 files changed, 3 insertions(+)
 
-diff -puN drivers/rtc/rtc-imxdi.c~rtc-imx-dryice-trivial-clean-up-code drivers/rtc/rtc-imxdi.c
---- a/drivers/rtc/rtc-imxdi.c~rtc-imx-dryice-trivial-clean-up-code
-+++ a/drivers/rtc/rtc-imxdi.c
-@@ -313,7 +313,7 @@ static irqreturn_t dryice_norm_irq(int i
- 	dier = __raw_readl(imxdi->ioaddr + DIER);
- 
- 	/* handle write complete and write error cases */
--	if ((dier & DIER_WCIE)) {
-+	if (dier & DIER_WCIE) {
- 		/*If the write wait queue is empty then there is no pending
- 		  operations. It means the interrupt is for DryIce -Security.
- 		  IRQ must be returned as none.*/
-@@ -322,7 +322,7 @@ static irqreturn_t dryice_norm_irq(int i
- 
- 		/* DSR_WCF clears itself on DSR read */
- 		dsr = __raw_readl(imxdi->ioaddr + DSR);
--		if ((dsr & (DSR_WCF | DSR_WEF))) {
-+		if (dsr & (DSR_WCF | DSR_WEF)) {
- 			/* mask the interrupt */
- 			di_int_disable(imxdi, DIER_WCIE);
- 
-@@ -335,7 +335,7 @@ static irqreturn_t dryice_norm_irq(int i
- 	}
- 
- 	/* handle the alarm case */
--	if ((dier & DIER_CAIE)) {
-+	if (dier & DIER_CAIE) {
- 		/* DSR_WCF clears itself on DSR read */
- 		dsr = __raw_readl(imxdi->ioaddr + DSR);
- 		if (dsr & DSR_CAF) {
+diff -puN arch/arm/boot/dts/armada-370-netgear-rn102.dts~arm-mvebu-isl1=
+2057-rtc-chip-can-now-wake-up-rn102-rn102-and-rn2120 arch/arm/boot/dts/=
+armada-370-netgear-rn102.dts
+--- a/arch/arm/boot/dts/armada-370-netgear-rn102.dts~arm-mvebu-isl12057=
+-rtc-chip-can-now-wake-up-rn102-rn102-and-rn2120
++++ a/arch/arm/boot/dts/armada-370-netgear-rn102.dts
+@@ -87,6 +87,7 @@
+ 				isl12057: isl12057@68 {
+ 					compatible =3D "isil,isl12057";
+ 					reg =3D <0x68>;
++					isil,irq2-can-wakeup-machine;
+ 				};
+=20
+ 				g762: g762@3e {
+diff -puN arch/arm/boot/dts/armada-370-netgear-rn104.dts~arm-mvebu-isl1=
+2057-rtc-chip-can-now-wake-up-rn102-rn102-and-rn2120 arch/arm/boot/dts/=
+armada-370-netgear-rn104.dts
+--- a/arch/arm/boot/dts/armada-370-netgear-rn104.dts~arm-mvebu-isl12057=
+-rtc-chip-can-now-wake-up-rn102-rn102-and-rn2120
++++ a/arch/arm/boot/dts/armada-370-netgear-rn104.dts
+@@ -93,6 +93,7 @@
+ 				isl12057: isl12057@68 {
+ 					compatible =3D "isil,isl12057";
+ 					reg =3D <0x68>;
++					isil,irq2-can-wakeup-machine;
+ 				};
+=20
+ 				g762: g762@3e {
+diff -puN arch/arm/boot/dts/armada-xp-netgear-rn2120.dts~arm-mvebu-isl1=
+2057-rtc-chip-can-now-wake-up-rn102-rn102-and-rn2120 arch/arm/boot/dts/=
+armada-xp-netgear-rn2120.dts
+--- a/arch/arm/boot/dts/armada-xp-netgear-rn2120.dts~arm-mvebu-isl12057=
+-rtc-chip-can-now-wake-up-rn102-rn102-and-rn2120
++++ a/arch/arm/boot/dts/armada-xp-netgear-rn2120.dts
+@@ -100,6 +100,7 @@
+ 				isl12057: isl12057@68 {
+ 					compatible =3D "isil,isl12057";
+ 					reg =3D <0x68>;
++					isil,irq2-can-wakeup-machine;
+ 				};
+=20
+ 				/* Controller for rear fan #1 of 3 (Protechnic
 _
 
-Patches currently in -mm which might be from jbe@pengutronix.de are
+Patches currently in -mm which might be from arno@natisbad.org are
 
 origin.patch
+linux-next.patch
+rtc-isl12022-deprecate-use-of-isl-in-compatible-string-for-isil.patch
+rtc-isl12057-deprecate-use-of-isl-in-compatible-string-for-isil.patch
+staging-iio-isl29028-deprecate-use-of-isl-in-compatible-string-for-isil=
+=2Epatch
+arm-dts-zynq-update-isl9305-compatible-string-to-use-isil-vendor-prefix=
+=2Epatch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
