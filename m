@@ -1,59 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-isl12057-constify-struct-regmap_config.patch removed from -mm tree
-Date: Mon, 16 Feb 2015 12:19:11 -0800
-Message-ID: <54e250bf.VxDhUPyj8zpjKMMi%akpm@linux-foundation.org>
+Subject: [merged]
+ slub-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+ removed from -mm tree
+Date: Mon, 16 Feb 2015 12:16:47 -0800
+Message-ID: <54e2502f.BzCovQXIhS3vDgCy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51622 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51625 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751402AbbBPU1n (ORCPT
+	with ESMTP id S1751538AbbBPU1n (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Feb 2015 15:27:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: k.kozlowski@samsung.com, mm-commits@vger.kernel.org
+To: tj@kernel.org, cl@linux.com, penberg@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-isl12057.c: constify struct regmap_config
+     Subject: slub: use %*pb[l] to print bitmaps including cpumasks and nodemasks
 has been removed from the -mm tree.  Its filename was
-     rtc-isl12057-constify-struct-regmap_config.patch
+     slub-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: drivers/rtc/rtc-isl12057.c: constify struct regmap_config
+From: Tejun Heo <tj@kernel.org>
+Subject: slub: use %*pb[l] to print bitmaps including cpumasks and nodemasks
 
-The regmap_config struct may be const because it is not modified by the
-driver and regmap_init() accepts pointer to const.
+printk and friends can now formap bitmaps using '%*pb[l]'.  cpumask
+and nodemask also provide cpumask_pr_args() and nodemask_pr_args()
+respectively which can be used to generate the two printf arguments
+necessary to format the specified cpu/nodemask.
 
-Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+* This is an equivalent conversion but the whole function should be
+  converted to use scnprinf famiily of functions rather than
+  performing custom output length predictions in multiple places.
+
+This patch is dependent on the following two patches.
+
+ lib/vsprintf: implement bitmap printing through '%*pb[l]'
+ cpumask, nodemask: implement cpumask/nodemask_pr_args()
+
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Acked-by: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-isl12057.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/slub.c |   20 ++++++++------------
+ 1 file changed, 8 insertions(+), 12 deletions(-)
 
-diff -puN drivers/rtc/rtc-isl12057.c~rtc-isl12057-constify-struct-regmap_config drivers/rtc/rtc-isl12057.c
---- a/drivers/rtc/rtc-isl12057.c~rtc-isl12057-constify-struct-regmap_config
-+++ a/drivers/rtc/rtc-isl12057.c
-@@ -535,7 +535,7 @@ static const struct rtc_class_ops rtc_op
- 	.alarm_irq_enable = isl12057_rtc_alarm_irq_enable,
- };
+diff -puN mm/slub.c~slub-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks mm/slub.c
+--- a/mm/slub.c~slub-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
++++ a/mm/slub.c
+@@ -4108,20 +4108,16 @@ static int list_locations(struct kmem_ca
  
--static struct regmap_config isl12057_rtc_regmap_config = {
-+static const struct regmap_config isl12057_rtc_regmap_config = {
- 	.reg_bits = 8,
- 	.val_bits = 8,
- };
+ 		if (num_online_cpus() > 1 &&
+ 				!cpumask_empty(to_cpumask(l->cpus)) &&
+-				len < PAGE_SIZE - 60) {
+-			len += sprintf(buf + len, " cpus=");
+-			len += cpulist_scnprintf(buf + len,
+-						 PAGE_SIZE - len - 50,
+-						 to_cpumask(l->cpus));
+-		}
++				len < PAGE_SIZE - 60)
++			len += scnprintf(buf + len, PAGE_SIZE - len - 50,
++					 " cpus=%*pbl",
++					 cpumask_pr_args(to_cpumask(l->cpus)));
+ 
+ 		if (nr_online_nodes > 1 && !nodes_empty(l->nodes) &&
+-				len < PAGE_SIZE - 60) {
+-			len += sprintf(buf + len, " nodes=");
+-			len += nodelist_scnprintf(buf + len,
+-						  PAGE_SIZE - len - 50,
+-						  l->nodes);
+-		}
++				len < PAGE_SIZE - 60)
++			len += scnprintf(buf + len, PAGE_SIZE - len - 50,
++					 " nodes=%*pbl",
++					 nodemask_pr_args(&l->nodes));
+ 
+ 		len += sprintf(buf + len, "\n");
+ 	}
 _
 
-Patches currently in -mm which might be from k.kozlowski@samsung.com are
+Patches currently in -mm which might be from tj@kernel.org are
 
 origin.patch
-linux-next.patch
-maintainers-add-entry-for-maxim-pmics-on-samsung-boards.patch
+block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
+fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
 
