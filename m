@@ -1,34 +1,46 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-slub-share-object_err-function.patch removed from -mm tree
-Date: Mon, 16 Feb 2015 12:18:04 -0800
-Message-ID: <54e2507c.+/jEwV6Bv/YSVFfl%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-slub-introduce-metadata_access_enable-metadata_access_disable.patch
+ removed from -mm tree
+Date: Mon, 16 Feb 2015 12:18:07 -0800
+Message-ID: <54e2507f.koFmuJoW7LndZJpD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51173 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51186 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751551AbbBPUSl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Feb 2015 15:18:41 -0500
+	with ESMTP id S1751637AbbBPUSo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Feb 2015 15:18:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: a.ryabinin@samsung.com, adech.fo@gmail.com, andi@firstfloor.org, cl@linux.com, dave.hansen@intel.com, dmitryc@google.com, dvyukov@google.com, hpa@zytor.com, iamjoonsoo.kim@lge.com, kcc@google.com, koct9i@gmail.com, mingo@elte.hu, penberg@kernel.org, rientjes@google.com, sasha.levin@oracle.com, tetra2005@gmail.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: slub: share object_err function
+     Subject: mm: slub: introduce metadata_access_enable()/metadata_access_disable()
 has been removed from the -mm tree.  Its filename was
-     mm-slub-share-object_err-function.patch
+     mm-slub-introduce-metadata_access_enable-metadata_access_disable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrey Ryabinin <a.ryabinin@samsung.com>
-Subject: mm: slub: share object_err function
+Subject: mm: slub: introduce metadata_access_enable()/metadata_access_disable()
 
-Remove static and add function declarations to linux/slub_def.h so it
-could be used by kernel address sanitizer.
+It's ok for slub to access memory that marked by kasan as inaccessible
+(object's metadata).  Kasan shouldn't print report in that case because
+these accesses are valid.  Disabling instrumentation of slub.c code is not
+enough to achieve this because slub passes pointer to object's metadata
+into external functions like memchr_inv().
+
+We don't want to disable instrumentation for memchr_inv() because this is
+quite generic function, and we don't want to miss bugs.
+
+metadata_access_enable/metadata_access_disable used to tell KASan where
+accesses to metadata starts/end, so we could temporarily disable KASan
+reports.
 
 Signed-off-by: Andrey Ryabinin <a.ryabinin@samsung.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
@@ -51,33 +63,81 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slub_def.h |    3 +++
- mm/slub.c                |    2 +-
- 2 files changed, 4 insertions(+), 1 deletion(-)
+ mm/slub.c |   25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
 
-diff -puN include/linux/slub_def.h~mm-slub-share-object_err-function include/linux/slub_def.h
---- a/include/linux/slub_def.h~mm-slub-share-object_err-function
-+++ a/include/linux/slub_def.h
-@@ -126,4 +126,7 @@ static inline void *virt_to_obj(struct k
- 	return (void *)x - ((x - slab_page) % s->size);
- }
- 
-+void object_err(struct kmem_cache *s, struct page *page,
-+		u8 *object, char *reason);
-+
- #endif /* _LINUX_SLUB_DEF_H */
-diff -puN mm/slub.c~mm-slub-share-object_err-function mm/slub.c
---- a/mm/slub.c~mm-slub-share-object_err-function
+diff -puN mm/slub.c~mm-slub-introduce-metadata_access_enable-metadata_access_disable mm/slub.c
+--- a/mm/slub.c~mm-slub-introduce-metadata_access_enable-metadata_access_disable
 +++ a/mm/slub.c
-@@ -629,7 +629,7 @@ static void print_trailer(struct kmem_ca
- 	dump_stack();
+@@ -20,6 +20,7 @@
+ #include <linux/proc_fs.h>
+ #include <linux/notifier.h>
+ #include <linux/seq_file.h>
++#include <linux/kasan.h>
+ #include <linux/kmemcheck.h>
+ #include <linux/cpu.h>
+ #include <linux/cpuset.h>
+@@ -468,12 +469,30 @@ static char *slub_debug_slabs;
+ static int disable_higher_order_debug;
+ 
+ /*
++ * slub is about to manipulate internal object metadata.  This memory lies
++ * outside the range of the allocated object, so accessing it would normally
++ * be reported by kasan as a bounds error.  metadata_access_enable() is used
++ * to tell kasan that these accesses are OK.
++ */
++static inline void metadata_access_enable(void)
++{
++	kasan_disable_current();
++}
++
++static inline void metadata_access_disable(void)
++{
++	kasan_enable_current();
++}
++
++/*
+  * Object debugging
+  */
+ static void print_section(char *text, u8 *addr, unsigned int length)
+ {
++	metadata_access_enable();
+ 	print_hex_dump(KERN_ERR, text, DUMP_PREFIX_ADDRESS, 16, 1, addr,
+ 			length, 1);
++	metadata_access_disable();
  }
  
--static void object_err(struct kmem_cache *s, struct page *page,
-+void object_err(struct kmem_cache *s, struct page *page,
- 			u8 *object, char *reason)
- {
- 	slab_bug(s, "%s", reason);
+ static struct track *get_track(struct kmem_cache *s, void *object,
+@@ -503,7 +522,9 @@ static void set_track(struct kmem_cache
+ 		trace.max_entries = TRACK_ADDRS_COUNT;
+ 		trace.entries = p->addrs;
+ 		trace.skip = 3;
++		metadata_access_enable();
+ 		save_stack_trace(&trace);
++		metadata_access_disable();
+ 
+ 		/* See rant in lockdep.c */
+ 		if (trace.nr_entries != 0 &&
+@@ -677,7 +698,9 @@ static int check_bytes_and_report(struct
+ 	u8 *fault;
+ 	u8 *end;
+ 
++	metadata_access_enable();
+ 	fault = memchr_inv(start, value, bytes);
++	metadata_access_disable();
+ 	if (!fault)
+ 		return 1;
+ 
+@@ -770,7 +793,9 @@ static int slab_pad_check(struct kmem_ca
+ 	if (!remainder)
+ 		return 1;
+ 
++	metadata_access_enable();
+ 	fault = memchr_inv(end - remainder, POISON_INUSE, remainder);
++	metadata_access_disable();
+ 	if (!fault)
+ 		return 1;
+ 	while (end > fault && end[-1] == POISON_INUSE)
 _
 
 Patches currently in -mm which might be from a.ryabinin@samsung.com are
