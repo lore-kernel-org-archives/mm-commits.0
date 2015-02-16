@@ -1,16 +1,16 @@
 From: akpm@linux-foundation.org
-Subject: [merged] module-fix-types-of-device-tables-aliases.patch removed
+Subject: [merged] compiler-introduce-__aliassymbol-shortcut.patch removed
  from -mm tree
-Date: Mon, 16 Feb 2015 12:18:37 -0800
-Message-ID: <54e2509d.g1gLh3Jj0ez23Cwu%akpm@linux-foundation.org>
+Date: Mon, 16 Feb 2015 12:17:45 -0800
+Message-ID: <54e25069.osUZdfTFfmpWiR2X%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51626 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51621 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751541AbbBPU1n (ORCPT
+	with ESMTP id S1751459AbbBPU1n (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Feb 2015 15:27:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -18,40 +18,18 @@ To: a.ryabinin@samsung.com, adech.fo@gmail.com, andi@firstfloor.org, cl@linux.co
 
 
 The patch titled
-     Subject: module: fix types of device tables aliases
+     Subject: compiler: introduce __alias(symbol) shortcut
 has been removed from the -mm tree.  Its filename was
-     module-fix-types-of-device-tables-aliases.patch
+     compiler-introduce-__aliassymbol-shortcut.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrey Ryabinin <a.ryabinin@samsung.com>
-Subject: module: fix types of device tables aliases
+Subject: compiler: introduce __alias(symbol) shortcut
 
-MODULE_DEVICE_TABLE() macro used to create aliases to device tables. 
-Normally alias should have the same type as aliased symbol.
-
-Device tables are arrays, so they have 'struct type##_device_id[x]'
-types. Alias created by MODULE_DEVICE_TABLE() will have non-array type -
-	'struct type##_device_id'.
-
-This inconsistency confuses compiler, it could make a wrong assumption
-about variable's size which leads KASan to produce a false positive report
-about out of bounds access.
-
-For every global variable compiler calls __asan_register_globals() passing
-information about global variable (address, size, size with redzone, name
-...) __asan_register_globals() poison symbols redzone to detect possible
-out of bounds accesses.
-
-When symbol has an alias __asan_register_globals() will be called as for
-symbol so for alias.  Compiler determines size of variable by size of
-variable's type.  Alias and symbol have the same address, so if alias have
-the wrong size part of memory that actually belongs to the symbol could be
-poisoned as redzone of alias symbol.
-
-By fixing type of alias symbol we will fix size of it, so
-__asan_register_globals() will not poison valid memory.
+To be consistent with other compiler attributes introduce __alias(symbol)
+macro expanding into __attribute__((alias(#symbol)))
 
 Signed-off-by: Andrey Ryabinin <a.ryabinin@samsung.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
@@ -74,21 +52,20 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/module.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/compiler-gcc.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/module.h~module-fix-types-of-device-tables-aliases include/linux/module.h
---- a/include/linux/module.h~module-fix-types-of-device-tables-aliases
-+++ a/include/linux/module.h
-@@ -135,7 +135,7 @@ void trim_init_extable(struct module *m)
- #ifdef MODULE
- /* Creates an alias so file2alias.c can find device table. */
- #define MODULE_DEVICE_TABLE(type, name)					\
--  extern const struct type##_device_id __mod_##type##__##name##_device_table \
-+extern const typeof(name) __mod_##type##__##name##_device_table		\
-   __attribute__ ((unused, alias(__stringify(name))))
- #else  /* !MODULE */
- #define MODULE_DEVICE_TABLE(type, name)
+diff -puN include/linux/compiler-gcc.h~compiler-introduce-__aliassymbol-shortcut include/linux/compiler-gcc.h
+--- a/include/linux/compiler-gcc.h~compiler-introduce-__aliassymbol-shortcut
++++ a/include/linux/compiler-gcc.h
+@@ -66,6 +66,7 @@
+ #define __deprecated			__attribute__((deprecated))
+ #define __packed			__attribute__((packed))
+ #define __weak				__attribute__((weak))
++#define __alias(symbol)		__attribute__((alias(#symbol)))
+ 
+ /*
+  * it doesn't make sense on ARM (currently the only user of __naked) to trace
 _
 
 Patches currently in -mm which might be from a.ryabinin@samsung.com are
