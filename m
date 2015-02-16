@@ -1,321 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-vsprintf-implement-bitmap-printing-through-%pb.patch removed from -mm tree
-Date: Mon, 16 Feb 2015 12:15:59 -0800
-Message-ID: <54e24fff./LBOJ+MPKKuiGaAZ%akpm@linux-foundation.org>
+Subject: [merged]
+ bitmap-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+ removed from -mm tree
+Date: Mon, 16 Feb 2015 12:16:05 -0800
+Message-ID: <54e25005.h1WOwKJZ0DMB4BYs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50919 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50944 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751652AbbBPUQh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Feb 2015 15:16:37 -0500
+	with ESMTP id S1751799AbbBPUQl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Feb 2015 15:16:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, James.Bottomley@HansenPartnership.com, benh@kernel.crashing.org, chris@zankel.net, cl@linux.com, cmetcalf@tilera.com, davem@davemloft.net, dmitry.torokhov@gmail.com, fenghua.yu@intel.com, gregkh@linuxfoundation.org, jcmvbkbc@gmail.com, linux@arm.linux.org.uk, linville@tuxdriver.com, lizefan@huawei.com, mingo@redhat.com, paulmck@linux.vnet.ibm.com, penberg@kernel.org, peterz@infradead.org, rostedt@goodmis.org, rusty@rustcorp.com.au, steffen.klassert@secunet.com, tglx@linutronix.de, tony.luck@intel.com, travis@sgi.com, mm-commits@vger.kernel.org
+To: tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/vsprintf: implement bitmap printing through '%*pb[l]'
+     Subject: bitmap: use %*pb[l] to print bitmaps including cpumasks and nodemasks
 has been removed from the -mm tree.  Its filename was
-     lib-vsprintf-implement-bitmap-printing-through-%pb.patch
+     bitmap-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: lib/vsprintf: implement bitmap printing through '%*pb[l]'
+Subject: bitmap: use %*pb[l] to print bitmaps including cpumasks and nodemasks
 
-bitmap and its derivatives such as cpumask and nodemask currently only
-provide formatting functions which put the output string into the
-provided buffer; however, how long this buffer should be isn't defined
-anywhere and given that some of these bitmaps can be too large to be
-formatted into an on-stack buffer it users sometimes are unnecessarily
-forced to come up with creative solutions and compromises for the
-buffer just to printk these bitmaps.
+printk and friends can now formap bitmaps using '%*pb[l]'.  cpumask
+and nodemask also provide cpumask_pr_args() and nodemask_pr_args()
+respectively which can be used to generate the two printf arguments
+necessary to format the specified cpu/nodemask.
 
-There have been a couple different attempts at making this easier.
+This patch is dependent on the following two patches.
 
-1. Way back, PeterZ tried printk '%pb' extension with the precision
-   for bit width - '%.*pb'.  This was intuitive and made sense but
-   unfortunately triggered a compile warning about using precision
-   for a pointer.
-
-   http://lkml.kernel.org/g/1336577562.2527.58.camel@twins
-
-2. I implemented bitmap_pr_cont[_list]() and its wrappers for cpumask
-   and nodemask.  This works but PeterZ pointed out that pr_cont's
-   tendency to produce broken lines when multiple CPUs are printing is
-   bothering considering the usages.
-
-   http://lkml.kernel.org/g/1418226774-30215-3-git-send-email-tj@kernel.org
-
-So, this patch is another attempt at teaching printk and friends how
-to print bitmaps.  It's almost identical to what PeterZ tried with
-precision but it uses the field width for the number of bits instead
-of precision.  The format used is '%*pb[l]', with the optional
-trailing 'l' specifying list format instead of hex masks.
-
-This is a valid format string and doesn't trigger compiler warnings;
-however, it does make it impossible to specify output field width when
-printing bitmaps.  I think this is an acceptable trade-off given how
-much easier it makes printing bitmaps and that we don't have any
-in-kernel user which is using the field width specification.  If any
-future user wants to use field width with a bitmap, it'd have to
-format the bitmap into a string buffer and then print that buffer with
-width spec, which isn't different from how it should be done now.
-
-This patch implements bitmap[_list]_string() which are called from the
-vsprintf pointer() formatting function.  The implementation is mostly
-identical to bitmap_scn[list]printf() except that the output is
-performed in the vsprintf way.  These functions handle formatting into
-too small buffers and sprintf() family of functions report the correct
-overrun output length.
-
-bitmap_scn[list]printf() are now thin wrappers around scnprintf().
+ lib/vsprintf: implement bitmap printing through '%*pb[l]'
+ cpumask, nodemask: implement cpumask/nodemask_pr_args()
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
-Cc: "John W. Linville" <linville@tuxdriver.com>
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Chris Metcalf <cmetcalf@tilera.com>
-Cc: Chris Zankel <chris@zankel.net>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Li Zefan <lizefan@huawei.com>
-Cc: Max Filippov <jcmvbkbc@gmail.com>
-Cc: Mike Travis <travis@sgi.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Steffen Klassert <steffen.klassert@secunet.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/bitmap.c   |   61 +-----------------------------
- lib/vsprintf.c |   94 +++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 96 insertions(+), 59 deletions(-)
+ lib/bitmap.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN lib/bitmap.c~lib-vsprintf-implement-bitmap-printing-through-%pb lib/bitmap.c
---- a/lib/bitmap.c~lib-vsprintf-implement-bitmap-printing-through-%pb
+diff -puN lib/bitmap.c~bitmap-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks lib/bitmap.c
+--- a/lib/bitmap.c~bitmap-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
 +++ a/lib/bitmap.c
-@@ -383,28 +383,7 @@ EXPORT_SYMBOL(bitmap_find_next_zero_area
- int bitmap_scnprintf(char *buf, unsigned int buflen,
- 	const unsigned long *maskp, int nmaskbits)
- {
--	int i, word, bit, len = 0;
--	unsigned long val;
--	const char *sep = "";
--	int chunksz;
--	u32 chunkmask;
--
--	chunksz = nmaskbits & (CHUNKSZ - 1);
--	if (chunksz == 0)
--		chunksz = CHUNKSZ;
--
--	i = ALIGN(nmaskbits, CHUNKSZ) - CHUNKSZ;
--	for (; i >= 0; i -= CHUNKSZ) {
--		chunkmask = ((1ULL << chunksz) - 1);
--		word = i / BITS_PER_LONG;
--		bit = i % BITS_PER_LONG;
--		val = (maskp[word] >> bit) & chunkmask;
--		len += scnprintf(buf+len, buflen-len, "%s%0*lx", sep,
--			(chunksz+3)/4, val);
--		chunksz = CHUNKSZ;
--		sep = ",";
--	}
--	return len;
-+	return scnprintf(buf, buflen, "%*pb", nmaskbits, maskp);
- }
- EXPORT_SYMBOL(bitmap_scnprintf);
+@@ -541,8 +541,8 @@ int bitmap_print_to_pagebuf(bool list, c
+ 	int n = 0;
  
-@@ -521,25 +500,6 @@ int bitmap_parse_user(const char __user
- }
- EXPORT_SYMBOL(bitmap_parse_user);
- 
--/*
-- * bscnl_emit(buf, buflen, rbot, rtop, bp)
-- *
-- * Helper routine for bitmap_scnlistprintf().  Write decimal number
-- * or range to buf, suppressing output past buf+buflen, with optional
-- * comma-prefix.  Return len of what was written to *buf, excluding the
-- * trailing \0.
-- */
--static inline int bscnl_emit(char *buf, int buflen, int rbot, int rtop, int len)
--{
--	if (len > 0)
--		len += scnprintf(buf + len, buflen - len, ",");
--	if (rbot == rtop)
--		len += scnprintf(buf + len, buflen - len, "%d", rbot);
--	else
--		len += scnprintf(buf + len, buflen - len, "%d-%d", rbot, rtop);
--	return len;
--}
--
- /**
-  * bitmap_scnlistprintf - convert bitmap to list format ASCII string
-  * @buf: byte buffer into which string is placed
-@@ -559,24 +519,7 @@ static inline int bscnl_emit(char *buf,
- int bitmap_scnlistprintf(char *buf, unsigned int buflen,
- 	const unsigned long *maskp, int nmaskbits)
- {
--	int len = 0;
--	/* current bit is 'cur', most recently seen range is [rbot, rtop] */
--	int cur, rbot, rtop;
--
--	if (buflen == 0)
--		return 0;
--	buf[0] = 0;
--
--	rbot = cur = find_first_bit(maskp, nmaskbits);
--	while (cur < nmaskbits) {
--		rtop = cur;
--		cur = find_next_bit(maskp, nmaskbits, cur+1);
--		if (cur >= nmaskbits || cur > rtop + 1) {
--			len = bscnl_emit(buf, buflen, rbot, rtop, len);
--			rbot = cur;
--		}
--	}
--	return len;
-+	return scnprintf(buf, buflen, "%*pbl", nmaskbits, maskp);
- }
- EXPORT_SYMBOL(bitmap_scnlistprintf);
- 
-diff -puN lib/vsprintf.c~lib-vsprintf-implement-bitmap-printing-through-%pb lib/vsprintf.c
---- a/lib/vsprintf.c~lib-vsprintf-implement-bitmap-printing-through-%pb
-+++ a/lib/vsprintf.c
-@@ -794,6 +794,87 @@ char *hex_string(char *buf, char *end, u
- }
- 
- static noinline_for_stack
-+char *bitmap_string(char *buf, char *end, unsigned long *bitmap,
-+		    struct printf_spec spec, const char *fmt)
-+{
-+	const int CHUNKSZ = 32;
-+	int nr_bits = max_t(int, spec.field_width, 0);
-+	int i, chunksz;
-+	bool first = true;
-+
-+	/* reused to print numbers */
-+	spec = (struct printf_spec){ .flags = SMALL | ZEROPAD, .base = 16 };
-+
-+	chunksz = nr_bits & (CHUNKSZ - 1);
-+	if (chunksz == 0)
-+		chunksz = CHUNKSZ;
-+
-+	i = ALIGN(nr_bits, CHUNKSZ) - CHUNKSZ;
-+	for (; i >= 0; i -= CHUNKSZ) {
-+		u32 chunkmask, val;
-+		int word, bit;
-+
-+		chunkmask = ((1ULL << chunksz) - 1);
-+		word = i / BITS_PER_LONG;
-+		bit = i % BITS_PER_LONG;
-+		val = (bitmap[word] >> bit) & chunkmask;
-+
-+		if (!first) {
-+			if (buf < end)
-+				*buf = ',';
-+			buf++;
-+		}
-+		first = false;
-+
-+		spec.field_width = DIV_ROUND_UP(chunksz, 4);
-+		buf = number(buf, end, val, spec);
-+
-+		chunksz = CHUNKSZ;
-+	}
-+	return buf;
-+}
-+
-+static noinline_for_stack
-+char *bitmap_list_string(char *buf, char *end, unsigned long *bitmap,
-+			 struct printf_spec spec, const char *fmt)
-+{
-+	int nr_bits = max_t(int, spec.field_width, 0);
-+	/* current bit is 'cur', most recently seen range is [rbot, rtop] */
-+	int cur, rbot, rtop;
-+	bool first = true;
-+
-+	/* reused to print numbers */
-+	spec = (struct printf_spec){ .base = 10 };
-+
-+	rbot = cur = find_first_bit(bitmap, nr_bits);
-+	while (cur < nr_bits) {
-+		rtop = cur;
-+		cur = find_next_bit(bitmap, nr_bits, cur + 1);
-+		if (cur < nr_bits && cur <= rtop + 1)
-+			continue;
-+
-+		if (!first) {
-+			if (buf < end)
-+				*buf = ',';
-+			buf++;
-+		}
-+		first = false;
-+
-+		buf = number(buf, end, rbot, spec);
-+		if (rbot < rtop) {
-+			if (buf < end)
-+				*buf = '-';
-+			buf++;
-+
-+			buf = number(buf, end, rtop, spec);
-+		}
-+
-+		rbot = cur;
-+	}
-+	return buf;
-+}
-+
-+static noinline_for_stack
- char *mac_address_string(char *buf, char *end, u8 *addr,
- 			 struct printf_spec spec, const char *fmt)
- {
-@@ -1258,6 +1339,10 @@ int kptr_restrict __read_mostly;
-  * - 'B' For backtraced symbolic direct pointers with offset
-  * - 'R' For decoded struct resource, e.g., [mem 0x0-0x1f 64bit pref]
-  * - 'r' For raw struct resource, e.g., [mem 0x0-0x1f flags 0x201]
-+ * - 'b[l]' For a bitmap, the number of bits is determined by the field
-+ *       width which must be explicitly specified either as part of the
-+ *       format string '%32b[l]' or through '%*b[l]', [l] selects
-+ *       range-list format instead of hex format
-  * - 'M' For a 6-byte MAC address, it prints the address in the
-  *       usual colon-separated hex notation
-  * - 'm' For a 6-byte MAC address, it prints the hex address without colons
-@@ -1354,6 +1439,13 @@ char *pointer(const char *fmt, char *buf
- 		return resource_string(buf, end, ptr, spec, fmt);
- 	case 'h':
- 		return hex_string(buf, end, ptr, spec, fmt);
-+	case 'b':
-+		switch (fmt[1]) {
-+		case 'l':
-+			return bitmap_list_string(buf, end, ptr, spec, fmt);
-+		default:
-+			return bitmap_string(buf, end, ptr, spec, fmt);
-+		}
- 	case 'M':			/* Colon separated: 00:01:02:03:04:05 */
- 	case 'm':			/* Contiguous: 000102030405 */
- 					/* [mM]F (FDDI) */
-@@ -1689,6 +1781,8 @@ qualifier:
-  * %pB output the name of a backtrace symbol with its offset
-  * %pR output the address range in a struct resource with decoded flags
-  * %pr output the address range in a struct resource with raw flags
-+ * %pb output the bitmap with field width as the number of bits
-+ * %pbl output the bitmap as range list with field width as the number of bits
-  * %pM output a 6-byte MAC address with colons
-  * %pMR output a 6-byte MAC address with colons in reversed order
-  * %pMF output a 6-byte MAC address with dashes
+ 	if (len > 1) {
+-		n = list ? bitmap_scnlistprintf(buf, len, maskp, nmaskbits) :
+-			   bitmap_scnprintf(buf, len, maskp, nmaskbits);
++		n = list ? scnprintf(buf, len, "%*pbl", nmaskbits, maskp) :
++			   scnprintf(buf, len, "%*pb", nmaskbits, maskp);
+ 		buf[n++] = '\n';
+ 		buf[n] = '\0';
+ 	}
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
