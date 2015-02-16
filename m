@@ -1,77 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- checkpatch-add-ability-to-fix-unnecessary-blank-lines-around-braces.patch
+Subject: [merged] checkpatch-improve-seq_print-seq_puts-suggestion.patch
  removed from -mm tree
-Date: Mon, 16 Feb 2015 12:17:24 -0800
-Message-ID: <54e25054.3awdOEnptWCtiSi8%akpm@linux-foundation.org>
+Date: Mon, 16 Feb 2015 12:17:27 -0800
+Message-ID: <54e25057.YJda4o88KdhA2ddv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51053 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51055 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751964AbbBPUSB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Feb 2015 15:18:01 -0500
+	with ESMTP id S1751969AbbBPUSD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Feb 2015 15:18:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: heba93aamer@gmail.com, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add ability to --fix unnecessary blank lines around braces
+     Subject: checkpatch: improve seq_print->seq_puts suggestion
 has been removed from the -mm tree.  Its filename was
-     checkpatch-add-ability-to-fix-unnecessary-blank-lines-around-braces.patch
+     checkpatch-improve-seq_print-seq_puts-suggestion.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add ability to --fix unnecessary blank lines around braces
+From: Heba Aamer <heba93aamer@gmail.com>
+Subject: checkpatch: improve seq_print->seq_puts suggestion
 
-There's a --strict test for these blank lines.
+Improve the format specifier test by removing any %% before looking for
+any remaining % format specifier.
 
-Add the ability to automatically remove them with --fix.
-
+Signed-off-by: Heba Aamer <heba93aamer@gmail.com>
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ scripts/checkpatch.pl |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-ability-to-fix-unnecessary-blank-lines-around-braces scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-ability-to-fix-unnecessary-blank-lines-around-braces
+diff -puN scripts/checkpatch.pl~checkpatch-improve-seq_print-seq_puts-suggestion scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-improve-seq_print-seq_puts-suggestion
 +++ a/scripts/checkpatch.pl
-@@ -4461,12 +4461,18 @@ sub process {
- 
- # check for unnecessary blank lines around braces
- 		if (($line =~ /^.\s*}\s*$/ && $prevrawline =~ /^.\s*$/)) {
--			CHK("BRACES",
--			    "Blank lines aren't necessary before a close brace '}'\n" . $hereprev);
-+			if (CHK("BRACES",
-+				"Blank lines aren't necessary before a close brace '}'\n" . $hereprev) &&
-+			    $fix && $prevrawline =~ /^\+/) {
-+				fix_delete_line($fixlinenr - 1, $prevrawline);
-+			}
- 		}
- 		if (($rawline =~ /^.\s*$/ && $prevline =~ /^..*{\s*$/)) {
--			CHK("BRACES",
--			    "Blank lines aren't necessary after an open brace '{'\n" . $hereprev);
-+			if (CHK("BRACES",
-+				"Blank lines aren't necessary after an open brace '{'\n" . $hereprev) &&
-+			    $fix) {
-+				fix_delete_line($fixlinenr, $rawline);
-+			}
- 		}
- 
- # no volatiles please
+@@ -4854,7 +4854,8 @@ sub process {
+ # check for seq_printf uses that could be seq_puts
+ 		if ($sline =~ /\bseq_printf\s*\(.*"\s*\)\s*;\s*$/) {
+ 			my $fmt = get_quoted_string($line, $rawline);
+-			if ($fmt ne "" && $fmt !~ /[^\\]\%/) {
++			$fmt =~ s/%%//g;
++			if ($fmt !~ /%/) {
+ 				if (WARN("PREFER_SEQ_PUTS",
+ 					 "Prefer seq_puts to seq_printf\n" . $herecurr) &&
+ 				    $fix) {
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from heba93aamer@gmail.com are
 
 origin.patch
-mm-utilc-add-kstrimdup.patch
-fs-ufs-superc-remove-unnecessary-casting.patch
-linux-next.patch
 
