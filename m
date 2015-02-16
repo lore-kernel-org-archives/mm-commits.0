@@ -1,38 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kasan-disable-memory-hotplug.patch removed from -mm tree
-Date: Mon, 16 Feb 2015 12:17:52 -0800
-Message-ID: <54e25070.KcsT+iM5xphnrRzu%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-page_alloc-add-kasan-hooks-on-alloc-and-free-paths.patch removed from
+ -mm tree
+Date: Mon, 16 Feb 2015 12:17:58 -0800
+Message-ID: <54e25076.0JBUx57fFzaqB5L7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51124 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51150 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751575AbbBPUS3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Feb 2015 15:18:29 -0500
+	with ESMTP id S1751551AbbBPUSf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Feb 2015 15:18:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: a.ryabinin@samsung.com, adech.fo@gmail.com, andi@firstfloor.org, cl@linux.com, dave.hansen@intel.com, dmitryc@google.com, dvyukov@google.com, hpa@zytor.com, iamjoonsoo.kim@lge.com, kcc@google.com, koct9i@gmail.com, mingo@elte.hu, penberg@kernel.org, rientjes@google.com, sasha.levin@oracle.com, tetra2005@gmail.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: disable memory hotplug
+     Subject: mm: page_alloc: add kasan hooks on alloc and free paths
 has been removed from the -mm tree.  Its filename was
-     kasan-disable-memory-hotplug.patch
+     mm-page_alloc-add-kasan-hooks-on-alloc-and-free-paths.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrey Ryabinin <a.ryabinin@samsung.com>
-Subject: kasan: disable memory hotplug
+Subject: mm: page_alloc: add kasan hooks on alloc and free paths
 
-Currently memory hotplug won't work with KASan.  As we don't have shadow
-for hotplugged memory, kernel will crash on the first access to it.  To
-make this work we will need to allocate shadow for new memory.
-
-At some future point proper memory hotplug support will be implemented. 
-Until then, print a warning at startup and disable memory hot-add.
+Add kernel address sanitizer hooks to mark allocated page's addresses as
+accessible in corresponding shadow region.  Mark freed pages as
+inaccessible.
 
 Signed-off-by: Andrey Ryabinin <a.ryabinin@samsung.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
@@ -55,44 +54,147 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan.c |   21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
+ include/linux/kasan.h |    6 ++++++
+ mm/compaction.c       |    2 ++
+ mm/kasan/kasan.c      |   14 ++++++++++++++
+ mm/kasan/kasan.h      |    2 ++
+ mm/kasan/report.c     |   11 +++++++++++
+ mm/page_alloc.c       |    3 +++
+ 6 files changed, 38 insertions(+)
 
-diff -puN mm/kasan/kasan.c~kasan-disable-memory-hotplug mm/kasan/kasan.c
---- a/mm/kasan/kasan.c~kasan-disable-memory-hotplug
+diff -puN include/linux/kasan.h~mm-page_alloc-add-kasan-hooks-on-alloc-and-free-paths include/linux/kasan.h
+--- a/include/linux/kasan.h~mm-page_alloc-add-kasan-hooks-on-alloc-and-free-paths
++++ a/include/linux/kasan.h
+@@ -34,6 +34,9 @@ static inline void kasan_disable_current
+ 
+ void kasan_unpoison_shadow(const void *address, size_t size);
+ 
++void kasan_alloc_pages(struct page *page, unsigned int order);
++void kasan_free_pages(struct page *page, unsigned int order);
++
+ #else /* CONFIG_KASAN */
+ 
+ static inline void kasan_unpoison_shadow(const void *address, size_t size) {}
+@@ -41,6 +44,9 @@ static inline void kasan_unpoison_shadow
+ static inline void kasan_enable_current(void) {}
+ static inline void kasan_disable_current(void) {}
+ 
++static inline void kasan_alloc_pages(struct page *page, unsigned int order) {}
++static inline void kasan_free_pages(struct page *page, unsigned int order) {}
++
+ #endif /* CONFIG_KASAN */
+ 
+ #endif /* LINUX_KASAN_H */
+diff -puN mm/compaction.c~mm-page_alloc-add-kasan-hooks-on-alloc-and-free-paths mm/compaction.c
+--- a/mm/compaction.c~mm-page_alloc-add-kasan-hooks-on-alloc-and-free-paths
++++ a/mm/compaction.c
+@@ -16,6 +16,7 @@
+ #include <linux/sysfs.h>
+ #include <linux/balloon_compaction.h>
+ #include <linux/page-isolation.h>
++#include <linux/kasan.h>
+ #include "internal.h"
+ 
+ #ifdef CONFIG_COMPACTION
+@@ -72,6 +73,7 @@ static void map_pages(struct list_head *
+ 	list_for_each_entry(page, list, lru) {
+ 		arch_alloc_page(page, 0);
+ 		kernel_map_pages(page, 1, 1);
++		kasan_alloc_pages(page, 0);
+ 	}
+ }
+ 
+diff -puN mm/kasan/kasan.c~mm-page_alloc-add-kasan-hooks-on-alloc-and-free-paths mm/kasan/kasan.c
+--- a/mm/kasan/kasan.c~mm-page_alloc-add-kasan-hooks-on-alloc-and-free-paths
 +++ a/mm/kasan/kasan.c
-@@ -20,6 +20,7 @@
- #include <linux/init.h>
+@@ -254,6 +254,20 @@ static __always_inline void check_memory
+ 	kasan_report(addr, size, write, _RET_IP_);
+ }
+ 
++void kasan_alloc_pages(struct page *page, unsigned int order)
++{
++	if (likely(!PageHighMem(page)))
++		kasan_unpoison_shadow(page_address(page), PAGE_SIZE << order);
++}
++
++void kasan_free_pages(struct page *page, unsigned int order)
++{
++	if (likely(!PageHighMem(page)))
++		kasan_poison_shadow(page_address(page),
++				PAGE_SIZE << order,
++				KASAN_FREE_PAGE);
++}
++
+ #define DEFINE_ASAN_LOAD_STORE(size)				\
+ 	void __asan_load##size(unsigned long addr)		\
+ 	{							\
+diff -puN mm/kasan/kasan.h~mm-page_alloc-add-kasan-hooks-on-alloc-and-free-paths mm/kasan/kasan.h
+--- a/mm/kasan/kasan.h~mm-page_alloc-add-kasan-hooks-on-alloc-and-free-paths
++++ a/mm/kasan/kasan.h
+@@ -6,6 +6,8 @@
+ #define KASAN_SHADOW_SCALE_SIZE (1UL << KASAN_SHADOW_SCALE_SHIFT)
+ #define KASAN_SHADOW_MASK       (KASAN_SHADOW_SCALE_SIZE - 1)
+ 
++#define KASAN_FREE_PAGE         0xFF  /* page was freed */
++
+ struct kasan_access_info {
+ 	const void *access_addr;
+ 	const void *first_bad_addr;
+diff -puN mm/kasan/report.c~mm-page_alloc-add-kasan-hooks-on-alloc-and-free-paths mm/kasan/report.c
+--- a/mm/kasan/report.c~mm-page_alloc-add-kasan-hooks-on-alloc-and-free-paths
++++ a/mm/kasan/report.c
+@@ -54,6 +54,9 @@ static void print_error_description(stru
+ 	shadow_val = *(u8 *)kasan_mem_to_shadow(info->first_bad_addr);
+ 
+ 	switch (shadow_val) {
++	case KASAN_FREE_PAGE:
++		bug_type = "use after free";
++		break;
+ 	case 0 ... KASAN_SHADOW_SCALE_SIZE - 1:
+ 		bug_type = "out of bounds access";
+ 		break;
+@@ -69,6 +72,14 @@ static void print_error_description(stru
+ 
+ static void print_address_description(struct kasan_access_info *info)
+ {
++	const void *addr = info->access_addr;
++
++	if ((addr >= (void *)PAGE_OFFSET) &&
++		(addr < high_memory)) {
++		struct page *page = virt_to_head_page(addr);
++		dump_page(page, "kasan: bad access detected");
++	}
++
+ 	dump_stack();
+ }
+ 
+diff -puN mm/page_alloc.c~mm-page_alloc-add-kasan-hooks-on-alloc-and-free-paths mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-add-kasan-hooks-on-alloc-and-free-paths
++++ a/mm/page_alloc.c
+@@ -25,6 +25,7 @@
+ #include <linux/compiler.h>
  #include <linux/kernel.h>
- #include <linux/memblock.h>
-+#include <linux/memory.h>
- #include <linux/mm.h>
- #include <linux/printk.h>
- #include <linux/sched.h>
-@@ -300,3 +301,23 @@ EXPORT_SYMBOL(__asan_storeN_noabort);
- /* to shut up compiler complaints */
- void __asan_handle_no_return(void) {}
- EXPORT_SYMBOL(__asan_handle_no_return);
-+
-+#ifdef CONFIG_MEMORY_HOTPLUG
-+static int kasan_mem_notifier(struct notifier_block *nb,
-+			unsigned long action, void *data)
-+{
-+	return (action == MEM_GOING_ONLINE) ? NOTIFY_BAD : NOTIFY_OK;
-+}
-+
-+static int __init kasan_memhotplug_init(void)
-+{
-+	pr_err("WARNING: KASan doesn't support memory hot-add\n");
-+	pr_err("Memory hot-add will be disabled\n");
-+
-+	hotplug_memory_notifier(kasan_mem_notifier, 0);
-+
-+	return 0;
-+}
-+
-+module_init(kasan_memhotplug_init);
-+#endif
+ #include <linux/kmemcheck.h>
++#include <linux/kasan.h>
+ #include <linux/module.h>
+ #include <linux/suspend.h>
+ #include <linux/pagevec.h>
+@@ -787,6 +788,7 @@ static bool free_pages_prepare(struct pa
+ 
+ 	trace_mm_page_free(page, order);
+ 	kmemcheck_free_shadow(page, order);
++	kasan_free_pages(page, order);
+ 
+ 	if (PageAnon(page))
+ 		page->mapping = NULL;
+@@ -970,6 +972,7 @@ static int prep_new_page(struct page *pa
+ 
+ 	arch_alloc_page(page, order);
+ 	kernel_map_pages(page, 1 << order, 1);
++	kasan_alloc_pages(page, order);
+ 
+ 	if (gfp_flags & __GFP_ZERO)
+ 		prep_zero_page(page, order, gfp_flags);
 _
 
 Patches currently in -mm which might be from a.ryabinin@samsung.com are
