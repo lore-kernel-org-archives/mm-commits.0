@@ -1,33 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- padata-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
- removed from -mm tree
-Date: Mon, 16 Feb 2015 12:16:51 -0800
-Message-ID: <54e25033.BY4ChP/1dUfZJp7W%akpm@linux-foundation.org>
+ irq-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch removed from -mm tree
+Date: Mon, 16 Feb 2015 12:16:55 -0800
+Message-ID: <54e25037.1IWoms4oQOBFgBtw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51005 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51010 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751492AbbBPUR1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Feb 2015 15:17:27 -0500
+	with ESMTP id S1751492AbbBPURb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Feb 2015 15:17:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, steffen.klassert@secunet.com, mm-commits@vger.kernel.org
+To: tj@kernel.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: padata: use %*pb[l] to print bitmaps including cpumasks and nodemasks
+     Subject: irq: use %*pb[l] to print bitmaps including cpumasks and nodemasks
 has been removed from the -mm tree.  Its filename was
-     padata-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
+     irq-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: padata: use %*pb[l] to print bitmaps including cpumasks and nodemasks
+Subject: irq: use %*pb[l] to print bitmaps including cpumasks and nodemasks
 
 printk and friends can now formap bitmaps using '%*pb[l]'.  cpumask
 and nodemask also provide cpumask_pr_args() and nodemask_pr_args()
@@ -40,23 +39,54 @@ This patch is dependent on the following two patches.
  cpumask, nodemask: implement cpumask/nodemask_pr_args()
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: Steffen Klassert <steffen.klassert@secunet.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/padata.c |   11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ kernel/irq/proc.c |   11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
-diff -puN kernel/padata.c~padata-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks kernel/padata.c
---- a/kernel/padata.c~padata-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
-+++ a/kernel/padata.c
-@@ -917,15 +917,10 @@ static ssize_t show_cpumask(struct padat
+diff -puN kernel/irq/proc.c~irq-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks kernel/irq/proc.c
+--- a/kernel/irq/proc.c~irq-use-%pb-to-print-bitmaps-including-cpumasks-and-nodemasks
++++ a/kernel/irq/proc.c
+@@ -46,10 +46,9 @@ static int show_irq_affinity(int type, s
+ 		mask = desc->pending_mask;
+ #endif
+ 	if (type)
+-		seq_cpumask_list(m, mask);
++		seq_printf(m, "%*pbl\n", cpumask_pr_args(mask));
  	else
- 		cpumask = pinst->cpumask.pcpu;
+-		seq_cpumask(m, mask);
+-	seq_putc(m, '\n');
++		seq_printf(m, "%*pb\n", cpumask_pr_args(mask));
+ 	return 0;
+ }
  
--	len = bitmap_scnprintf(buf, PAGE_SIZE, cpumask_bits(cpumask),
--			       nr_cpu_ids);
--	if (PAGE_SIZE - len < 2)
--		len = -EINVAL;
--	else
--		len += sprintf(buf + len, "\n");
+@@ -67,8 +66,7 @@ static int irq_affinity_hint_proc_show(s
+ 		cpumask_copy(mask, desc->affinity_hint);
+ 	raw_spin_unlock_irqrestore(&desc->lock, flags);
+ 
+-	seq_cpumask(m, mask);
+-	seq_putc(m, '\n');
++	seq_printf(m, "%*pb\n", cpumask_pr_args(mask));
+ 	free_cpumask_var(mask);
+ 
+ 	return 0;
+@@ -186,8 +184,7 @@ static const struct file_operations irq_
+ 
+ static int default_affinity_show(struct seq_file *m, void *v)
+ {
+-	seq_cpumask(m, irq_default_affinity);
+-	seq_putc(m, '\n');
++	seq_printf(m, "%*pb\n", cpumask_pr_args(irq_default_affinity));
+ 	return 0;
+ }
+ 
+_
+
+Patches currently in -mm which might be from tj@kernel.org are
+
+origin.patch
+block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
+fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
+
