@@ -1,34 +1,39 @@
 From: akpm@linux-foundation.org
-Subject: [merged] brd-rename-xip-to-dax.patch removed from -mm tree
-Date: Tue, 17 Feb 2015 12:06:08 -0800
-Message-ID: <54e39f30.deCBnq72AaD0r8xN%akpm@linux-foundation.org>
+Subject: [merged]
+ dax-does-not-work-correctly-with-virtual-aliasing-caches.patch removed from -mm tree
+Date: Tue, 17 Feb 2015 12:06:11 -0800
+Message-ID: <54e39f33.XYeQ3TS6RIhvavY7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35301 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35315 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752760AbbBQUGJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Feb 2015 15:06:09 -0500
+	with ESMTP id S1752760AbbBQUGM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Feb 2015 15:06:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: willy@linux.intel.com, andreas.dilger@intel.com, axboe@kernel.dk, boaz@plexistor.com, david@fromorbit.com, hch@lst.de, jack@suse.cz, kirill.shutemov@linux.intel.com, mathieu.desnoyers@efficios.com, matthew.r.wilcox@intel.com, rdunlap@infradead.org, ross.zwisler@linux.intel.com, tytso@mit.edu, mm-commits@vger.kernel.org
+To: matthew.r.wilcox@intel.com, andreas.dilger@intel.com, axboe@kernel.dk, boaz@plexistor.com, david@fromorbit.com, hch@lst.de, jack@suse.cz, kirill.shutemov@linux.intel.com, mathieu.desnoyers@efficios.com, ralf@linux-mips.org, rdunlap@infradead.org, rmk@arm.linux.org.uk, ross.zwisler@linux.intel.com, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: brd: rename XIP to DAX
+     Subject: dax: does not work correctly with virtual aliasing caches
 has been removed from the -mm tree.  Its filename was
-     brd-rename-xip-to-dax.patch
+     dax-does-not-work-correctly-with-virtual-aliasing-caches.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Matthew Wilcox <willy@linux.intel.com>
-Subject: brd: rename XIP to DAX
+From: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Subject: dax: does not work correctly with virtual aliasing caches
 
-Since this is relating to FS_XIP, not KERNEL_XIP, it should be called
-DAX instead of XIP.
+The DAX code accesses the underlying storage through the kernel's linear
+mapping, which may not be cache-coherent with user mappings on ARM, MIPS
+or SPARC.  Temporarily disable the DAX code until this problem is
+resolved.
+
+The original XIP code also had this problem, but it was never noticed.
 
 Signed-off-by: Matthew Wilcox <matthew.r.wilcox@intel.com>
 Cc: Andreas Dilger <andreas.dilger@intel.com>
@@ -42,90 +47,43 @@ Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/Kconfig |   13 +++++++------
- drivers/block/brd.c   |   14 +++++++-------
- 2 files changed, 14 insertions(+), 13 deletions(-)
+ Documentation/filesystems/dax.txt |    3 +++
+ fs/Kconfig                        |    1 +
+ 2 files changed, 4 insertions(+)
 
-diff -puN drivers/block/Kconfig~brd-rename-xip-to-dax drivers/block/Kconfig
---- a/drivers/block/Kconfig~brd-rename-xip-to-dax
-+++ a/drivers/block/Kconfig
-@@ -393,14 +393,15 @@ config BLK_DEV_RAM_SIZE
- 	  The default value is 4096 kilobytes. Only change this if you know
- 	  what you are doing.
+diff -puN Documentation/filesystems/dax.txt~dax-does-not-work-correctly-with-virtual-aliasing-caches Documentation/filesystems/dax.txt
+--- a/Documentation/filesystems/dax.txt~dax-does-not-work-correctly-with-virtual-aliasing-caches
++++ a/Documentation/filesystems/dax.txt
+@@ -82,6 +82,9 @@ Shortcomings
+ Even if the kernel or its modules are stored on a filesystem that supports
+ DAX on a block device that supports DAX, they will still be copied into RAM.
  
--config BLK_DEV_XIP
--	bool "Support XIP filesystems on RAM block device"
--	depends on BLK_DEV_RAM
-+config BLK_DEV_RAM_DAX
-+	bool "Support Direct Access (DAX) to RAM block devices"
-+	depends on BLK_DEV_RAM && FS_DAX
- 	default n
++The DAX code does not work correctly on architectures which have virtually
++mapped caches such as ARM, MIPS and SPARC.
++
+ Calling get_user_pages() on a range of user memory that has been mmaped
+ from a DAX file will fail as there are no 'struct page' to describe
+ those pages.  This problem is being worked on.  That means that O_DIRECT
+diff -puN fs/Kconfig~dax-does-not-work-correctly-with-virtual-aliasing-caches fs/Kconfig
+--- a/fs/Kconfig~dax-does-not-work-correctly-with-virtual-aliasing-caches
++++ a/fs/Kconfig
+@@ -36,6 +36,7 @@ source "fs/nilfs2/Kconfig"
+ config FS_DAX
+ 	bool "Direct Access (DAX) support"
+ 	depends on MMU
++	depends on !(ARM || MIPS || SPARC)
  	help
--	  Support XIP filesystems (such as ext2 with XIP support on) on
--	  top of block ram device. This will slightly enlarge the kernel, and
--	  will prevent RAM block device backing store memory from being
-+	  Support filesystems using DAX to access RAM block devices.  This
-+	  avoids double-buffering data in the page cache before copying it
-+	  to the block device.  Answering Y will slightly enlarge the kernel,
-+	  and will prevent RAM block device backing store memory from being
- 	  allocated from highmem (only a problem for highmem systems).
- 
- config CDROM_PKTCDVD
-diff -puN drivers/block/brd.c~brd-rename-xip-to-dax drivers/block/brd.c
---- a/drivers/block/brd.c~brd-rename-xip-to-dax
-+++ a/drivers/block/brd.c
-@@ -97,13 +97,13 @@ static struct page *brd_insert_page(stru
- 	 * Must use NOIO because we don't want to recurse back into the
- 	 * block or filesystem layers from page reclaim.
- 	 *
--	 * Cannot support XIP and highmem, because our ->direct_access
--	 * routine for XIP must return memory that is always addressable.
--	 * If XIP was reworked to use pfns and kmap throughout, this
-+	 * Cannot support DAX and highmem, because our ->direct_access
-+	 * routine for DAX must return memory that is always addressable.
-+	 * If DAX was reworked to use pfns and kmap throughout, this
- 	 * restriction might be able to be lifted.
- 	 */
- 	gfp_flags = GFP_NOIO | __GFP_ZERO;
--#ifndef CONFIG_BLK_DEV_XIP
-+#ifndef CONFIG_BLK_DEV_RAM_DAX
- 	gfp_flags |= __GFP_HIGHMEM;
- #endif
- 	page = alloc_page(gfp_flags);
-@@ -369,7 +369,7 @@ static int brd_rw_page(struct block_devi
- 	return err;
- }
- 
--#ifdef CONFIG_BLK_DEV_XIP
-+#ifdef CONFIG_BLK_DEV_RAM_DAX
- static long brd_direct_access(struct block_device *bdev, sector_t sector,
- 			void **kaddr, unsigned long *pfn, long size)
- {
-@@ -390,6 +390,8 @@ static long brd_direct_access(struct blo
- 	 */
- 	return PAGE_SIZE;
- }
-+#else
-+#define brd_direct_access NULL
- #endif
- 
- static int brd_ioctl(struct block_device *bdev, fmode_t mode,
-@@ -430,9 +432,7 @@ static const struct block_device_operati
- 	.owner =		THIS_MODULE,
- 	.rw_page =		brd_rw_page,
- 	.ioctl =		brd_ioctl,
--#ifdef CONFIG_BLK_DEV_XIP
- 	.direct_access =	brd_direct_access,
--#endif
- };
- 
- /*
+ 	  Direct Access (DAX) can be used on memory-backed block devices.
+ 	  If the block device supports DAX and the filesystem supports DAX,
 _
 
-Patches currently in -mm which might be from willy@linux.intel.com are
+Patches currently in -mm which might be from matthew.r.wilcox@intel.com are
 
 origin.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
 
