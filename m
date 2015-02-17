@@ -1,120 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: + dax-does-not-work-correctly-with-virtual-aliasing-caches.patch
- added to -mm tree
-Date: Mon, 16 Feb 2015 15:50:48 -0800
-Message-ID: <54e28258.cAcXCKKgMl6XqI0/%akpm@linux-foundation.org>
+Subject: [merged] jffs2-bugfix-of-summary-length.patch removed from -mm
+ tree
+Date: Mon, 16 Feb 2015 16:11:47 -0800
+Message-ID: <54e28743.BXhBOonq/66B1JC3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53964 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54573 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751038AbbBPXv0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Feb 2015 18:51:26 -0500
+	with ESMTP id S1751492AbbBQAMZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Feb 2015 19:12:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matthew.r.wilcox@intel.com, andreas.dilger@intel.com, axboe@kernel.dk, boaz@plexistor.com, david@fromorbit.com, hch@lst.de, jack@suse.cz, kirill.shutemov@linux.intel.com, mathieu.desnoyers@efficios.com, ralf@linux-mips.org, rdunlap@infradead.org, rmk@arm.linux.org.uk, ross.zwisler@linux.intel.com, tytso@mit.edu, mm-commits@vger.kernel.org
+To: chenjie6@huawei.com, dwmw2@infradead.org, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dax: does not work correctly with virtual aliasing caches
-has been added to the -mm tree.  Its filename is
-     dax-does-not-work-correctly-with-virtual-aliasing-caches.patch
+     Subject: jffs2: fix handling of corrupted summary length
+has been removed from the -mm tree.  Its filename was
+     jffs2-bugfix-of-summary-length.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/dax-does-not-work-correctly-with-virtual-aliasing-caches.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/dax-does-not-work-correctly-with-virtual-aliasing-caches.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Subject: dax: does not work correctly with virtual aliasing caches
+From: Chen Jie <chenjie6@huawei.com>
+Subject: jffs2: fix handling of corrupted summary length
 
-The DAX code accesses the underlying storage through the kernel's linear
-mapping, which may not be cache-coherent with user mappings on ARM, MIPS
-or SPARC.  Temporarily disable the DAX code until this problem is
-resolved.
+sm->offset maybe wrong but magic maybe right, the offset do not have CRC.
 
-The original XIP code also had this problem, but it was never noticed.
+Badness at c00c7580 [verbose debug info unavailable]
+NIP: c00c7580 LR: c00c718c CTR: 00000014
+REGS: df07bb40 TRAP: 0700   Not tainted  (2.6.34.13-WR4.3.0.0_standard)
+MSR: 00029000 <EE,ME,CE>  CR: 22084f84  XER: 00000000
+TASK = df84d6e0[908] 'mount' THREAD: df07a000
+GPR00: 00000001 df07bbf0 df84d6e0 00000000 00000001 00000000 df07bb58 00000041
+GPR08: 00000041 c0638860 00000000 00000010 22084f88 100636c8 df814ff8 00000000
+GPR16: df84d6e0 dfa558cc c05adb90 00000048 c0452d30 00000000 000240d0 000040d0
+GPR24: 00000014 c05ae734 c05be2e0 00000000 00000001 00000000 00000000 c05ae730
+NIP [c00c7580] __alloc_pages_nodemask+0x4d0/0x638
+LR [c00c718c] __alloc_pages_nodemask+0xdc/0x638
+Call Trace:
+[df07bbf0] [c00c718c] __alloc_pages_nodemask+0xdc/0x638 (unreliable)
+[df07bc90] [c00c7708] __get_free_pages+0x20/0x48
+[df07bca0] [c00f4a40] __kmalloc+0x15c/0x1ec
+[df07bcd0] [c01fc880] jffs2_scan_medium+0xa58/0x14d0
+[df07bd70] [c01ff38c] jffs2_do_mount_fs+0x1f4/0x6b4
+[df07bdb0] [c020144c] jffs2_do_fill_super+0xa8/0x260
+[df07bdd0] [c020230c] jffs2_fill_super+0x104/0x184
+[df07be00] [c0335814] get_sb_mtd_aux+0x9c/0xec
+[df07be20] [c033596c] get_sb_mtd+0x84/0x1e8
+[df07be60] [c0201ed0] jffs2_get_sb+0x1c/0x2c
+[df07be70] [c0103898] vfs_kern_mount+0x78/0x1e8
+[df07bea0] [c0103a58] do_kern_mount+0x40/0x100
+[df07bec0] [c011fe90] do_mount+0x240/0x890
+[df07bf10] [c0120570] sys_mount+0x90/0xd8
+[df07bf40] [c00110d8] ret_from_syscall+0x0/0x4
+=== Exception: c01 at 0xff61a34
+    LR = 0x100135f0
+Instruction dump:
+38800005 38600000 48010f41 4bfffe1c 4bfc2d15 4bfffe8c 72e90200 4082fc28
+3d20c064 39298860 8809000d 68000001 <0f000000> 2f800000 419efc0c 38000001
+mount: mounting /dev/mtdblock3 on /common failed: Input/output error
 
-Signed-off-by: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Cc: Andreas Dilger <andreas.dilger@intel.com>
-Cc: Boaz Harrosh <boaz@plexistor.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Signed-off-by: Chen Jie <chenjie6@huawei.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/dax.txt |    3 +++
- fs/Kconfig                        |    1 +
- 2 files changed, 4 insertions(+)
+ fs/jffs2/scan.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN Documentation/filesystems/dax.txt~dax-does-not-work-correctly-with-virtual-aliasing-caches Documentation/filesystems/dax.txt
---- a/Documentation/filesystems/dax.txt~dax-does-not-work-correctly-with-virtual-aliasing-caches
-+++ a/Documentation/filesystems/dax.txt
-@@ -82,6 +82,9 @@ Shortcomings
- Even if the kernel or its modules are stored on a filesystem that supports
- DAX on a block device that supports DAX, they will still be copied into RAM.
+diff -puN fs/jffs2/scan.c~jffs2-bugfix-of-summary-length fs/jffs2/scan.c
+--- a/fs/jffs2/scan.c~jffs2-bugfix-of-summary-length
++++ a/fs/jffs2/scan.c
+@@ -510,6 +510,10 @@ static int jffs2_scan_eraseblock (struct
+ 				sumlen = c->sector_size - je32_to_cpu(sm->offset);
+ 				sumptr = buf + buf_size - sumlen;
  
-+The DAX code does not work correctly on architectures which have virtually
-+mapped caches such as ARM, MIPS and SPARC.
++				/* sm->offset maybe wrong but MAGIC maybe right */
++				if (sumlen > c->sector_size)
++					goto full_scan;
 +
- Calling get_user_pages() on a range of user memory that has been mmaped
- from a DAX file will fail as there are no 'struct page' to describe
- those pages.  This problem is being worked on.  That means that O_DIRECT
-diff -puN fs/Kconfig~dax-does-not-work-correctly-with-virtual-aliasing-caches fs/Kconfig
---- a/fs/Kconfig~dax-does-not-work-correctly-with-virtual-aliasing-caches
-+++ a/fs/Kconfig
-@@ -36,6 +36,7 @@ source "fs/nilfs2/Kconfig"
- config FS_DAX
- 	bool "Direct Access (DAX) support"
- 	depends on MMU
-+	depends on !(ARM || MIPS || SPARC)
- 	help
- 	  Direct Access (DAX) can be used on memory-backed block devices.
- 	  If the block device supports DAX and the filesystem supports DAX,
+ 				/* Now, make sure the summary itself is available */
+ 				if (sumlen > buf_size) {
+ 					/* Need to kmalloc for this. */
+@@ -544,6 +548,7 @@ static int jffs2_scan_eraseblock (struct
+ 		}
+ 	}
+ 
++full_scan:
+ 	buf_ofs = jeb->offset;
+ 
+ 	if (!buf_size) {
 _
 
-Patches currently in -mm which might be from matthew.r.wilcox@intel.com are
+Patches currently in -mm which might be from chenjie6@huawei.com are
 
-origin.patch
-mm-fix-xip-fault-vs-truncate-race.patch
-mm-allow-page-fault-handlers-to-perform-the-cow.patch
-vfsext2-introduce-is_daxinode.patch
-daxext2-replace-xip-read-and-write-with-dax-i-o.patch
-daxext2-replace-ext2_clear_xip_target-with-dax_clear_blocks.patch
-daxext2-replace-the-xip-page-fault-handler-with-the-dax-page-fault-handler.patch
-daxext2-replace-xip_truncate_page-with-dax_truncate_page.patch
-vfs-remove-get_xip_mem.patch
-ext2-remove-ext2_xip_verify_sb.patch
-ext2-remove-ext2_use_xip.patch
-ext2-remove-xipc-and-xiph.patch
-vfsext2-remove-config_ext2_fs_xip-and-rename-config_fs_xip-to-config_fs_dax.patch
-ext2-remove-ext2_aops_xip.patch
-ext2-get-rid-of-most-mentions-of-xip-in-ext2.patch
-dax-add-dax_zero_page_range.patch
-ext4-add-dax-functionality.patch
-brd-rename-xip-to-dax.patch
-dax-does-not-work-correctly-with-virtual-aliasing-caches.patch
+linux-next.patch
 
