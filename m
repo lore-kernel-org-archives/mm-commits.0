@@ -1,189 +1,154 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-allow-page-fault-handlers-to-perform-the-cow.patch
- removed from -mm tree
-Date: Tue, 17 Feb 2015 12:05:21 -0800
-Message-ID: <54e39f01.loVkbvNT6PKn8RRy%akpm@linux-foundation.org>
+Subject: [merged] vfsext2-introduce-is_daxinode.patch removed from -mm
+ tree
+Date: Tue, 17 Feb 2015 12:05:24 -0800
+Message-ID: <54e39f04.I3026XRaYVNqHqoH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35120 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35131 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752916AbbBQUFW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Feb 2015 15:05:22 -0500
+	with ESMTP id S1752954AbbBQUFZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Feb 2015 15:05:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: matthew.r.wilcox@intel.com, andreas.dilger@intel.com, axboe@kernel.dk, boaz@plexistor.com, david@fromorbit.com, hch@lst.de, jack@suse.cz, kirill.shutemov@linux.intel.com, mathieu.desnoyers@efficios.com, rdunlap@infradead.org, ross.zwisler@linux.intel.com, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: allow page fault handlers to perform the COW
+     Subject: vfs,ext2: introduce IS_DAX(inode)
 has been removed from the -mm tree.  Its filename was
-     mm-allow-page-fault-handlers-to-perform-the-cow.patch
+     vfsext2-introduce-is_daxinode.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Subject: mm: allow page fault handlers to perform the COW
+Subject: vfs,ext2: introduce IS_DAX(inode)
 
-Currently COW of an XIP file is done by first bringing in a read-only
-mapping, then retrying the fault and copying the page.  It is much more
-efficient to tell the fault handler that a COW is being attempted (by
-passing in the pre-allocated page in the vm_fault structure), and allow
-the handler to perform the COW operation itself.
-
-The handler cannot insert the page itself if there is already a read-only
-mapping at that address, so allow the handler to return VM_FAULT_LOCKED
-and set the fault_page to be NULL.  This indicates to the MM code that the
-i_mmap_lock is held instead of the page lock.
+Use an inode flag to tag inodes which should avoid using the page cache. 
+Convert ext2 to use it instead of mapping_is_xip().  Prevent I/Os to files
+tagged with the DAX flag from falling back to buffered I/O.
 
 Signed-off-by: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 Cc: Andreas Dilger <andreas.dilger@intel.com>
 Cc: Boaz Harrosh <boaz@plexistor.com>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Dave Chinner <david@fromorbit.com>
-Cc: Jan Kara <jack@suse.cz>
 Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    1 +
- mm/memory.c        |   41 ++++++++++++++++++++++++++++++++---------
- 2 files changed, 33 insertions(+), 9 deletions(-)
+ fs/ext2/inode.c    |    9 ++++++---
+ fs/ext2/xip.h      |    2 --
+ include/linux/fs.h |    6 ++++++
+ mm/filemap.c       |   19 ++++++++++++-------
+ 4 files changed, 24 insertions(+), 12 deletions(-)
 
-diff -puN include/linux/mm.h~mm-allow-page-fault-handlers-to-perform-the-cow include/linux/mm.h
---- a/include/linux/mm.h~mm-allow-page-fault-handlers-to-perform-the-cow
-+++ a/include/linux/mm.h
-@@ -224,6 +224,7 @@ struct vm_fault {
- 	pgoff_t pgoff;			/* Logical page offset based on vma */
- 	void __user *virtual_address;	/* Faulting virtual address */
+diff -puN fs/ext2/inode.c~vfsext2-introduce-is_daxinode fs/ext2/inode.c
+--- a/fs/ext2/inode.c~vfsext2-introduce-is_daxinode
++++ a/fs/ext2/inode.c
+@@ -731,7 +731,7 @@ static int ext2_get_blocks(struct inode 
+ 		goto cleanup;
+ 	}
  
-+	struct page *cow_page;		/* Handler may choose to COW */
- 	struct page *page;		/* ->fault handlers should return a
- 					 * page here, unless VM_FAULT_NOPAGE
- 					 * is set (which is also implied by
-diff -puN mm/memory.c~mm-allow-page-fault-handlers-to-perform-the-cow mm/memory.c
---- a/mm/memory.c~mm-allow-page-fault-handlers-to-perform-the-cow
-+++ a/mm/memory.c
-@@ -1965,6 +1965,7 @@ static int do_page_mkwrite(struct vm_are
- 	vmf.pgoff = page->index;
- 	vmf.flags = FAULT_FLAG_WRITE|FAULT_FLAG_MKWRITE;
- 	vmf.page = page;
-+	vmf.cow_page = NULL;
+-	if (ext2_use_xip(inode->i_sb)) {
++	if (IS_DAX(inode)) {
+ 		/*
+ 		 * we need to clear the block
+ 		 */
+@@ -1201,7 +1201,7 @@ static int ext2_setsize(struct inode *in
  
- 	ret = vma->vm_ops->page_mkwrite(vma, &vmf);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE)))
-@@ -2639,7 +2640,8 @@ oom:
-  * See filemap_fault() and __lock_page_retry().
-  */
- static int __do_fault(struct vm_area_struct *vma, unsigned long address,
--		pgoff_t pgoff, unsigned int flags, struct page **page)
-+			pgoff_t pgoff, unsigned int flags,
-+			struct page *cow_page, struct page **page)
+ 	inode_dio_wait(inode);
+ 
+-	if (mapping_is_xip(inode->i_mapping))
++	if (IS_DAX(inode))
+ 		error = xip_truncate_page(inode->i_mapping, newsize);
+ 	else if (test_opt(inode->i_sb, NOBH))
+ 		error = nobh_truncate_page(inode->i_mapping,
+@@ -1273,7 +1273,8 @@ void ext2_set_inode_flags(struct inode *
  {
- 	struct vm_fault vmf;
- 	int ret;
-@@ -2648,10 +2650,13 @@ static int __do_fault(struct vm_area_str
- 	vmf.pgoff = pgoff;
- 	vmf.flags = flags;
- 	vmf.page = NULL;
-+	vmf.cow_page = cow_page;
+ 	unsigned int flags = EXT2_I(inode)->i_flags;
  
- 	ret = vma->vm_ops->fault(vma, &vmf);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
- 		return ret;
-+	if (!vmf.page)
-+		goto out;
- 
- 	if (unlikely(PageHWPoison(vmf.page))) {
- 		if (ret & VM_FAULT_LOCKED)
-@@ -2665,6 +2670,7 @@ static int __do_fault(struct vm_area_str
- 	else
- 		VM_BUG_ON_PAGE(!PageLocked(vmf.page), vmf.page);
- 
-+ out:
- 	*page = vmf.page;
- 	return ret;
+-	inode->i_flags &= ~(S_SYNC|S_APPEND|S_IMMUTABLE|S_NOATIME|S_DIRSYNC);
++	inode->i_flags &= ~(S_SYNC | S_APPEND | S_IMMUTABLE | S_NOATIME |
++				S_DIRSYNC | S_DAX);
+ 	if (flags & EXT2_SYNC_FL)
+ 		inode->i_flags |= S_SYNC;
+ 	if (flags & EXT2_APPEND_FL)
+@@ -1284,6 +1285,8 @@ void ext2_set_inode_flags(struct inode *
+ 		inode->i_flags |= S_NOATIME;
+ 	if (flags & EXT2_DIRSYNC_FL)
+ 		inode->i_flags |= S_DIRSYNC;
++	if (test_opt(inode->i_sb, XIP))
++		inode->i_flags |= S_DAX;
  }
-@@ -2835,7 +2841,7 @@ static int do_read_fault(struct mm_struc
- 		pte_unmap_unlock(pte, ptl);
- 	}
  
--	ret = __do_fault(vma, address, pgoff, flags, &fault_page);
-+	ret = __do_fault(vma, address, pgoff, flags, NULL, &fault_page);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
- 		return ret;
+ /* Propagate flags from i_flags to EXT2_I(inode)->i_flags */
+diff -puN fs/ext2/xip.h~vfsext2-introduce-is_daxinode fs/ext2/xip.h
+--- a/fs/ext2/xip.h~vfsext2-introduce-is_daxinode
++++ a/fs/ext2/xip.h
+@@ -16,9 +16,7 @@ static inline int ext2_use_xip (struct s
+ }
+ int ext2_get_xip_mem(struct address_space *, pgoff_t, int,
+ 				void **, unsigned long *);
+-#define mapping_is_xip(map) unlikely(map->a_ops->get_xip_mem)
+ #else
+-#define mapping_is_xip(map)			0
+ #define ext2_xip_verify_sb(sb)			do { } while (0)
+ #define ext2_use_xip(sb)			0
+ #define ext2_clear_xip_target(inode, chain)	0
+diff -puN include/linux/fs.h~vfsext2-introduce-is_daxinode include/linux/fs.h
+--- a/include/linux/fs.h~vfsext2-introduce-is_daxinode
++++ a/include/linux/fs.h
+@@ -1677,6 +1677,11 @@ struct super_operations {
+ #define S_IMA		1024	/* Inode has an associated IMA struct */
+ #define S_AUTOMOUNT	2048	/* Automount/referral quasi-directory */
+ #define S_NOSEC		4096	/* no suid or xattr security attributes */
++#ifdef CONFIG_FS_XIP
++#define S_DAX		8192	/* Direct Access, avoiding the page cache */
++#else
++#define S_DAX		0	/* Make all the DAX code disappear */
++#endif
  
-@@ -2875,26 +2881,43 @@ static int do_cow_fault(struct mm_struct
- 		return VM_FAULT_OOM;
- 	}
+ /*
+  * Note that nosuid etc flags are inode-specific: setting some file-system
+@@ -1714,6 +1719,7 @@ struct super_operations {
+ #define IS_IMA(inode)		((inode)->i_flags & S_IMA)
+ #define IS_AUTOMOUNT(inode)	((inode)->i_flags & S_AUTOMOUNT)
+ #define IS_NOSEC(inode)		((inode)->i_flags & S_NOSEC)
++#define IS_DAX(inode)		((inode)->i_flags & S_DAX)
  
--	ret = __do_fault(vma, address, pgoff, flags, &fault_page);
-+	ret = __do_fault(vma, address, pgoff, flags, new_page, &fault_page);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
- 		goto uncharge_out;
+ #define IS_WHITEOUT(inode)	(S_ISCHR(inode->i_mode) && \
+ 				 (inode)->i_rdev == WHITEOUT_DEV)
+diff -puN mm/filemap.c~vfsext2-introduce-is_daxinode mm/filemap.c
+--- a/mm/filemap.c~vfsext2-introduce-is_daxinode
++++ a/mm/filemap.c
+@@ -1723,9 +1723,11 @@ generic_file_read_iter(struct kiocb *ioc
+ 		 * we've already read everything we wanted to, or if
+ 		 * there was a short read because we hit EOF, go ahead
+ 		 * and return.  Otherwise fallthrough to buffered io for
+-		 * the rest of the read.
++		 * the rest of the read.  Buffered reads will not work for
++		 * DAX files, so don't bother trying.
+ 		 */
+-		if (retval < 0 || !iov_iter_count(iter) || *ppos >= size) {
++		if (retval < 0 || !iov_iter_count(iter) || *ppos >= size ||
++		    IS_DAX(inode)) {
+ 			file_accessed(file);
+ 			goto out;
+ 		}
+@@ -2587,13 +2589,16 @@ ssize_t __generic_file_write_iter(struct
+ 		loff_t endbyte;
  
--	copy_user_highpage(new_page, fault_page, address, vma);
-+	if (fault_page)
-+		copy_user_highpage(new_page, fault_page, address, vma);
- 	__SetPageUptodate(new_page);
- 
- 	pte = pte_offset_map_lock(mm, pmd, address, &ptl);
- 	if (unlikely(!pte_same(*pte, orig_pte))) {
- 		pte_unmap_unlock(pte, ptl);
--		unlock_page(fault_page);
--		page_cache_release(fault_page);
-+		if (fault_page) {
-+			unlock_page(fault_page);
-+			page_cache_release(fault_page);
-+		} else {
-+			/*
-+			 * The fault handler has no page to lock, so it holds
-+			 * i_mmap_lock for read to protect against truncate.
-+			 */
-+			i_mmap_unlock_read(vma->vm_file->f_mapping);
-+		}
- 		goto uncharge_out;
- 	}
- 	do_set_pte(vma, address, new_page, pte, true, true);
- 	mem_cgroup_commit_charge(new_page, memcg, false);
- 	lru_cache_add_active_or_unevictable(new_page, vma);
- 	pte_unmap_unlock(pte, ptl);
--	unlock_page(fault_page);
--	page_cache_release(fault_page);
-+	if (fault_page) {
-+		unlock_page(fault_page);
-+		page_cache_release(fault_page);
-+	} else {
-+		/*
-+		 * The fault handler has no page to lock, so it holds
-+		 * i_mmap_lock for read to protect against truncate.
-+		 */
-+		i_mmap_unlock_read(vma->vm_file->f_mapping);
-+	}
- 	return ret;
- uncharge_out:
- 	mem_cgroup_cancel_charge(new_page, memcg);
-@@ -2913,7 +2936,7 @@ static int do_shared_fault(struct mm_str
- 	int dirtied = 0;
- 	int ret, tmp;
- 
--	ret = __do_fault(vma, address, pgoff, flags, &fault_page);
-+	ret = __do_fault(vma, address, pgoff, flags, NULL, &fault_page);
- 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
- 		return ret;
- 
-_
-
-Patches currently in -mm which might be from matthew.r.wilcox@intel.com are
-
-origin.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-
+ 		written = generic_file_direct_write(iocb, from, pos);
+-		if (written < 0 || written == count)
+-			goto out;
