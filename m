@@ -1,107 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged]
- mm-memcontrol-fix-null-pointer-dereference-when-use_hierarchy-is-0.patch
- removed from -mm tree
-Date: Tue, 17 Feb 2015 15:16:41 -0800
-Message-ID: <54e3cbd9.DvRoJ6qyWj4zAAFW%akpm@linux-foundation.org>
+Subject: + memcg-fix-low-limit-calculation.patch added to -mm tree
+Date: Tue, 17 Feb 2015 15:18:07 -0800
+Message-ID: <54e3cc2f.s6cPGsKN0Hq0YzLb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37279 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37285 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754913AbbBQXQm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Feb 2015 18:16:42 -0500
+	with ESMTP id S1752444AbbBQXSI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Feb 2015 18:18:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: js1304@gmail.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: mhocko@suse.cz, hannes@cmpxchg.org, js1304@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memcontrol: fix NULL pointer dereference when use_hierarchy is 0
-has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-fix-null-pointer-dereference-when-use_hierarchy-is-0.patch
+     Subject: memcg: fix low limit calculation
+has been added to the -mm tree.  Its filename is
+     memcg-fix-low-limit-calculation.patch
 
-This patch was dropped because an alternative patch was merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-fix-low-limit-calculation.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-fix-low-limit-calculation.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Joonsoo Kim <js1304@gmail.com>
-Subject: mm/memcontrol: fix NULL pointer dereference when use_hierarchy is 0
+From: Michal Hocko <mhocko@suse.cz>
+Subject: memcg: fix low limit calculation
 
-It can be possible to return NULL in parent_mem_cgroup() if use_hierarchy
-is 0.  So, we need to check NULL in the loop on mem_cgroup_low().  Without
-it, following NULL pointer dereference happens.
+A memcg is considered low limited even when the current usage is equal to
+the low limit.  This leads to interesting side effects e.g. 
+groups/hierarchies with no memory accounted are considered protected and
+so the reclaim will emit MEMCG_LOW event when encountering them.
 
-[   33.607531] BUG: unable to handle kernel NULL pointer dereference at 00000000000000b0
-[   33.608008] IP: [<ffffffff811dcf60>] mem_cgroup_low+0x40/0x90
-[   33.608008] PGD 1d893067 PUD 1cf41067 PMD 0
-[   33.608008] Oops: 0000 [#12] SMP
-[   33.608008] Modules linked in:
-[   33.608008] CPU: 1 PID: 3936 Comm: as Tainted: G      D         3.19.0-next-20150216 #156
-[   33.608008] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
-[   33.608008] task: ffff88001d9c8000 ti: ffff88000cb14000 task.ti: ffff88000cb14000
-[   33.608008] RIP: 0010:[<ffffffff811dcf60>]  [<ffffffff811dcf60>] mem_cgroup_low+0x40/0x90
-[   33.608008] RSP: 0000:ffff88000cb17a88  EFLAGS: 00010286
-[   33.608008] RAX: 0000000000000000 RBX: ffff88000cb17bc0 RCX: 0000000000000000
-[   33.608008] RDX: ffff88001f491400 RSI: 0000000000000000 RDI: 0000000000000000
-[   33.608008] RBP: ffff88000cb17a88 R08: 0000000000000160 R09: 0000000000000000
-[   33.608008] R10: 0000000000000000 R11: 0000000002b8c101 R12: 0000000000000000
-[   33.608008] R13: 0000000000000000 R14: ffff88001fff9e08 R15: ffff88001da95800
-[   33.608008] FS:  00002b7a12715380(0000) GS:ffff88001fa40000(0000) knlGS:0000000000000000
-[   33.608008] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[   33.608008] CR2: 00000000000000b0 CR3: 000000000762f000 CR4: 00000000000007e0
-[   33.608008] Stack:
-[   33.608008]  ffff88000cb17b18 ffffffff811838ec ffff88000cb17cd8 0000000000000000
-[   33.608008]  0000000000000000 0001000000000000 000280da00000000 ffff88001fff8780
-[   33.608008]  ffff88000cb17af8 ffffffff810e1d7e ffff88001fff8780 000000030000000c
-[   33.608008] Call Trace:
-[   33.608008]  [<ffffffff811838ec>] shrink_zone+0xac/0x2d0
-[   33.608008]  [<ffffffff810e1d7e>] ? ktime_get+0x3e/0xa0
-[   33.608008]  [<ffffffff81183e94>] do_try_to_free_pages+0x174/0x440
-[   33.608008]  [<ffffffff8117f1a8>] ? throttle_direct_reclaim+0x98/0x250
-[   33.608008]  [<ffffffff8118421a>] try_to_free_pages+0xba/0x150
-[   33.608008]  [<ffffffff81176d10>] __alloc_pages_nodemask+0x5a0/0x950
-[   33.608008]  [<ffffffff811c09ff>] alloc_pages_vma+0xaf/0x200
-[   33.608008]  [<ffffffff811a0717>] handle_mm_fault+0x1287/0x17e0
-[   33.608008]  [<ffffffff81059e9e>] ? kvm_clock_read+0x1e/0x20
-[   33.608008]  [<ffffffff81059e9e>] ? kvm_clock_read+0x1e/0x20
-[   33.608008]  [<ffffffff8101e6a9>] ? sched_clock+0x9/0x10
-[   33.608008]  [<ffffffff810605f1>] __do_page_fault+0x191/0x440
-[   33.608008]  [<ffffffff81060955>] trace_do_page_fault+0x45/0x100
-[   33.608008]  [<ffffffff8105968e>] do_async_page_fault+0x1e/0xd0
-[   33.608008]  [<ffffffff8176f628>] async_page_fault+0x28/0x30
-[   33.608008] Code: 48 8b 15 cc 21 b4 00 48 39 d6 74 53 48 8b 8e b0 00 00 00 48 39 8e 28 01 00 00 72 43 31 c9 48 39 fe 75 1d eb 35 66 0f 1f 44 00 00 <48> 8b 86 b0 00 00 00 48 39 86 28 01 00 00 72 30 48 39 f7 74 1a
-[   33.608008] RIP  [<ffffffff811dcf60>] mem_cgroup_low+0x40/0x90
-[   33.608008]  RSP <ffff88000cb17a88>
-[   33.608008] CR2: 00000000000000b0
-[   33.608008] BUG: unable to handle kernel [   33.653499] ---[ end trace e264a32717ffda51 ]---
+Another and much bigger issue was reported by Joonsoo Kim.  He has hit a
+NULL ptr dereference with the legacy cgroup API which even doesn't have
+low limit exposed.  The limit is 0 by default but the initial check fails
+for memcg with 0 consumption and parent_mem_cgroup() would return NULL if
+use_hierarchy is 0 and so page_counter_read would try to dereference NULL.
 
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+I suppose that the current implementation is just an overlook because the
+documentation in Documentation/cgroups/unified-hierarchy.txt says:
+
+  "The memory.low boundary on the other hand is a top-down allocated
+  reserve.  A cgroup enjoys reclaim protection when it and all its
+  ancestors are below their low boundaries"
+
+Fix the usage and the low limit comparision in mem_cgroup_low accordingly.
+
+Fixes: 241994ed8649 (mm: memcontrol: default hierarchy interface for memory)
+Reported-by: Joonsoo Kim <js1304@gmail.com>
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/memcontrol.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-fix-null-pointer-dereference-when-use_hierarchy-is-0 mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-fix-null-pointer-dereference-when-use_hierarchy-is-0
+diff -puN mm/memcontrol.c~memcg-fix-low-limit-calculation mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-low-limit-calculation
 +++ a/mm/memcontrol.c
-@@ -5431,6 +5431,8 @@ bool mem_cgroup_low(struct mem_cgroup *r
+@@ -5426,7 +5426,7 @@ bool mem_cgroup_low(struct mem_cgroup *r
+ 	if (memcg == root_mem_cgroup)
+ 		return false;
+ 
+-	if (page_counter_read(&memcg->memory) > memcg->low)
++	if (page_counter_read(&memcg->memory) >= memcg->low)
+ 		return false;
  
  	while (memcg != root) {
- 		memcg = parent_mem_cgroup(memcg);
-+		if (!memcg)
-+			break;
- 
+@@ -5435,7 +5435,7 @@ bool mem_cgroup_low(struct mem_cgroup *r
  		if (memcg == root_mem_cgroup)
  			break;
+ 
+-		if (page_counter_read(&memcg->memory) > memcg->low)
++		if (page_counter_read(&memcg->memory) >= memcg->low)
+ 			return false;
+ 	}
+ 	return true;
 _
 
-Patches currently in -mm which might be from js1304@gmail.com are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
-mm-nommu-fix-memory-leak.patch
-zram-use-proper-type-to-update-max_used_pages.patch
+origin.patch
+memcg-fix-low-limit-calculation.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+mm-page_isolation-check-pfn-validity-before-access.patch
+mm-support-madvisemadv_free.patch
+mm-dont-split-thp-page-when-syscall-is-called.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-2.patch
 
