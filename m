@@ -1,173 +1,618 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- daxext2-replace-xip_truncate_page-with-dax_truncate_page.patch removed from -mm tree
-Date: Tue, 17 Feb 2015 12:05:36 -0800
-Message-ID: <54e39f10.v9NhRuLaJERuzooj%akpm@linux-foundation.org>
+Subject: [merged] daxext2-replace-xip-read-and-write-with-dax-i-o.patch
+ removed from -mm tree
+Date: Tue, 17 Feb 2015 12:05:27 -0800
+Message-ID: <54e39f07.IGwZl4ucVEUjdw+p%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35178 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35143 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753009AbbBQUFh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Feb 2015 15:05:37 -0500
+	with ESMTP id S1753009AbbBQUF2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Feb 2015 15:05:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: matthew.r.wilcox@intel.com, andreas.dilger@intel.com, axboe@kernel.dk, boaz@plexistor.com, david@fromorbit.com, hch@lst.de, jack@suse.cz, kirill.shutemov@linux.intel.com, mathieu.desnoyers@efficios.com, rdunlap@infradead.org, ross.zwisler@linux.intel.com, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dax,ext2: replace xip_truncate_page with dax_truncate_page
+     Subject: dax,ext2: replace XIP read and write with DAX I/O
 has been removed from the -mm tree.  Its filename was
-     daxext2-replace-xip_truncate_page-with-dax_truncate_page.patch
+     daxext2-replace-xip-read-and-write-with-dax-i-o.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Subject: dax,ext2: replace xip_truncate_page with dax_truncate_page
+Subject: dax,ext2: replace XIP read and write with DAX I/O
 
-It takes a get_block parameter just like nobh_truncate_page() and
-block_truncate_page()
+Use the generic AIO infrastructure instead of custom read and write
+methods.  In addition to giving us support for AIO, this adds the missing
+locking between read() and truncate().
 
 Signed-off-by: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Reviewed-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
 Cc: Andreas Dilger <andreas.dilger@intel.com>
 Cc: Boaz Harrosh <boaz@plexistor.com>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Dave Chinner <david@fromorbit.com>
-Cc: Jan Kara <jack@suse.cz>
 Cc: Jens Axboe <axboe@kernel.dk>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c           |   44 +++++++++++++++++++++++++++++++++++++++++++
- fs/ext2/inode.c    |    2 -
- include/linux/fs.h |   10 ---------
- mm/filemap_xip.c   |   40 ---------------------------------------
- 4 files changed, 46 insertions(+), 50 deletions(-)
+ MAINTAINERS        |    6 +
+ fs/Makefile        |    1 
+ fs/dax.c           |  186 ++++++++++++++++++++++++++++++++++
+ fs/ext2/file.c     |    6 -
+ fs/ext2/inode.c    |    8 +
+ include/linux/fs.h |   12 +-
+ mm/filemap.c       |    6 -
+ mm/filemap_xip.c   |  234 -------------------------------------------
+ 8 files changed, 214 insertions(+), 245 deletions(-)
 
-diff -puN fs/dax.c~daxext2-replace-xip_truncate_page-with-dax_truncate_page fs/dax.c
---- a/fs/dax.c~daxext2-replace-xip_truncate_page-with-dax_truncate_page
+diff -puN MAINTAINERS~daxext2-replace-xip-read-and-write-with-dax-i-o MAINTAINERS
+--- a/MAINTAINERS~daxext2-replace-xip-read-and-write-with-dax-i-o
++++ a/MAINTAINERS
+@@ -3151,6 +3151,12 @@ L:	linux-i2c@vger.kernel.org
+ S:	Maintained
+ F:	drivers/i2c/busses/i2c-diolan-u2c.c
+ 
++DIRECT ACCESS (DAX)
++M:	Matthew Wilcox <willy@linux.intel.com>
++L:	linux-fsdevel@vger.kernel.org
++S:	Supported
++F:	fs/dax.c
++
+ DIRECTORY NOTIFICATION (DNOTIFY)
+ M:	Eric Paris <eparis@parisplace.org>
+ S:	Maintained
+diff -puN fs/Makefile~daxext2-replace-xip-read-and-write-with-dax-i-o fs/Makefile
+--- a/fs/Makefile~daxext2-replace-xip-read-and-write-with-dax-i-o
++++ a/fs/Makefile
+@@ -28,6 +28,7 @@ obj-$(CONFIG_SIGNALFD)		+= signalfd.o
+ obj-$(CONFIG_TIMERFD)		+= timerfd.o
+ obj-$(CONFIG_EVENTFD)		+= eventfd.o
+ obj-$(CONFIG_AIO)               += aio.o
++obj-$(CONFIG_FS_XIP)		+= dax.o
+ obj-$(CONFIG_FILE_LOCKING)      += locks.o
+ obj-$(CONFIG_COMPAT)		+= compat.o compat_ioctl.o
+ obj-$(CONFIG_BINFMT_AOUT)	+= binfmt_aout.o
+diff -puN /dev/null fs/dax.c
+--- /dev/null
 +++ a/fs/dax.c
-@@ -462,3 +462,47 @@ int dax_fault(struct vm_area_struct *vma
- 	return result;
- }
- EXPORT_SYMBOL_GPL(dax_fault);
-+
-+/**
-+ * dax_truncate_page - handle a partial page being truncated in a DAX file
-+ * @inode: The file being truncated
-+ * @from: The file offset that is being truncated to
-+ * @get_block: The filesystem method used to translate file offsets to blocks
+@@ -0,0 +1,186 @@
++/*
++ * fs/dax.c - Direct Access filesystem code
++ * Copyright (c) 2013-2014 Intel Corporation
++ * Author: Matthew Wilcox <matthew.r.wilcox@intel.com>
++ * Author: Ross Zwisler <ross.zwisler@linux.intel.com>
 + *
-+ * Similar to block_truncate_page(), this function can be called by a
-+ * filesystem when it is truncating an DAX file to handle the partial page.
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
 + *
-+ * We work in terms of PAGE_CACHE_SIZE here for commonality with
-+ * block_truncate_page(), but we could go down to PAGE_SIZE if the filesystem
-+ * took care of disposing of the unnecessary blocks.  Even if the filesystem
-+ * block size is smaller than PAGE_SIZE, we have to zero the rest of the page
-+ * since the file might be mmaped.
++ * This program is distributed in the hope it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
 + */
-+int dax_truncate_page(struct inode *inode, loff_t from, get_block_t get_block)
++
++#include <linux/atomic.h>
++#include <linux/blkdev.h>
++#include <linux/buffer_head.h>
++#include <linux/fs.h>
++#include <linux/genhd.h>
++#include <linux/mutex.h>
++#include <linux/uio.h>
++
++static long dax_get_addr(struct buffer_head *bh, void **addr, unsigned blkbits)
 +{
-+	struct buffer_head bh;
-+	pgoff_t index = from >> PAGE_CACHE_SHIFT;
-+	unsigned offset = from & (PAGE_CACHE_SIZE-1);
-+	unsigned length = PAGE_CACHE_ALIGN(from) - from;
-+	int err;
++	unsigned long pfn;
++	sector_t sector = bh->b_blocknr << (blkbits - 9);
++	return bdev_direct_access(bh->b_bdev, sector, addr, &pfn, bh->b_size);
++}
 +
-+	/* Block boundary? Nothing to do */
-+	if (!length)
-+		return 0;
++static void dax_new_buf(void *addr, unsigned size, unsigned first, loff_t pos,
++			loff_t end)
++{
++	loff_t final = end - pos + first; /* The final byte of the buffer */
 +
-+	memset(&bh, 0, sizeof(bh));
-+	bh.b_size = PAGE_CACHE_SIZE;
-+	err = get_block(inode, index, &bh, 0);
-+	if (err < 0)
-+		return err;
-+	if (buffer_written(&bh)) {
-+		void *addr;
-+		err = dax_get_addr(&bh, &addr, inode->i_blkbits);
-+		if (err < 0)
-+			return err;
-+		memset(addr + offset, 0, length);
++	if (first > 0)
++		memset(addr, 0, first);
++	if (final < size)
++		memset(addr + final, 0, size - final);
++}
++
++static bool buffer_written(struct buffer_head *bh)
++{
++	return buffer_mapped(bh) && !buffer_unwritten(bh);
++}
++
++/*
++ * When ext4 encounters a hole, it returns without modifying the buffer_head
++ * which means that we can't trust b_size.  To cope with this, we set b_state
++ * to 0 before calling get_block and, if any bit is set, we know we can trust
++ * b_size.  Unfortunate, really, since ext4 knows precisely how long a hole is
++ * and would save us time calling get_block repeatedly.
++ */
++static bool buffer_size_valid(struct buffer_head *bh)
++{
++	return bh->b_state != 0;
++}
++
++static ssize_t dax_io(int rw, struct inode *inode, struct iov_iter *iter,
++			loff_t start, loff_t end, get_block_t get_block,
++			struct buffer_head *bh)
++{
++	ssize_t retval = 0;
++	loff_t pos = start;
++	loff_t max = start;
++	loff_t bh_max = start;
++	void *addr;
++	bool hole = false;
++
++	if (rw != WRITE)
++		end = min(end, i_size_read(inode));
++
++	while (pos < end) {
++		unsigned len;
++		if (pos == max) {
++			unsigned blkbits = inode->i_blkbits;
++			sector_t block = pos >> blkbits;
++			unsigned first = pos - (block << blkbits);
++			long size;
++
++			if (pos == bh_max) {
++				bh->b_size = PAGE_ALIGN(end - pos);
++				bh->b_state = 0;
++				retval = get_block(inode, block, bh,
++								rw == WRITE);
++				if (retval)
++					break;
++				if (!buffer_size_valid(bh))
++					bh->b_size = 1 << blkbits;
++				bh_max = pos - first + bh->b_size;
++			} else {
++				unsigned done = bh->b_size -
++						(bh_max - (pos - first));
++				bh->b_blocknr += done >> blkbits;
++				bh->b_size -= done;
++			}
++
++			hole = (rw != WRITE) && !buffer_written(bh);
++			if (hole) {
++				addr = NULL;
++				size = bh->b_size - first;
++			} else {
++				retval = dax_get_addr(bh, &addr, blkbits);
++				if (retval < 0)
++					break;
++				if (buffer_unwritten(bh) || buffer_new(bh))
++					dax_new_buf(addr, retval, first, pos,
++									end);
++				addr += first;
++				size = retval - first;
++			}
++			max = min(pos + size, end);
++		}
++
++		if (rw == WRITE)
++			len = copy_from_iter(addr, max - pos, iter);
++		else if (!hole)
++			len = copy_to_iter(addr, max - pos, iter);
++		else
++			len = iov_iter_zero(max - pos, iter);
++
++		if (!len)
++			break;
++
++		pos += len;
++		addr += len;
 +	}
 +
-+	return 0;
++	return (pos == start) ? retval : pos - start;
 +}
-+EXPORT_SYMBOL_GPL(dax_truncate_page);
-diff -puN fs/ext2/inode.c~daxext2-replace-xip_truncate_page-with-dax_truncate_page fs/ext2/inode.c
---- a/fs/ext2/inode.c~daxext2-replace-xip_truncate_page-with-dax_truncate_page
++
++/**
++ * dax_do_io - Perform I/O to a DAX file
++ * @rw: READ to read or WRITE to write
++ * @iocb: The control block for this I/O
++ * @inode: The file which the I/O is directed at
++ * @iter: The addresses to do I/O from or to
++ * @pos: The file offset where the I/O starts
++ * @get_block: The filesystem method used to translate file offsets to blocks
++ * @end_io: A filesystem callback for I/O completion
++ * @flags: See below
++ *
++ * This function uses the same locking scheme as do_blockdev_direct_IO:
++ * If @flags has DIO_LOCKING set, we assume that the i_mutex is held by the
++ * caller for writes.  For reads, we take and release the i_mutex ourselves.
++ * If DIO_LOCKING is not set, the filesystem takes care of its own locking.
++ * As with do_blockdev_direct_IO(), we increment i_dio_count while the I/O
++ * is in progress.
++ */
++ssize_t dax_do_io(int rw, struct kiocb *iocb, struct inode *inode,
++			struct iov_iter *iter, loff_t pos,
++			get_block_t get_block, dio_iodone_t end_io, int flags)
++{
++	struct buffer_head bh;
++	ssize_t retval = -EINVAL;
++	loff_t end = pos + iov_iter_count(iter);
++
++	memset(&bh, 0, sizeof(bh));
++
++	if ((flags & DIO_LOCKING) && (rw == READ)) {
++		struct address_space *mapping = inode->i_mapping;
++		mutex_lock(&inode->i_mutex);
++		retval = filemap_write_and_wait_range(mapping, pos, end - 1);
++		if (retval) {
++			mutex_unlock(&inode->i_mutex);
++			goto out;
++		}
++	}
++
++	/* Protects against truncate */
++	atomic_inc(&inode->i_dio_count);
++
++	retval = dax_io(rw, inode, iter, pos, end, get_block, &bh);
++
++	if ((flags & DIO_LOCKING) && (rw == READ))
++		mutex_unlock(&inode->i_mutex);
++
++	if ((retval > 0) && end_io)
++		end_io(iocb, pos, retval, bh.b_private);
++
++	inode_dio_done(inode);
++ out:
++	return retval;
++}
++EXPORT_SYMBOL_GPL(dax_do_io);
+diff -puN fs/ext2/file.c~daxext2-replace-xip-read-and-write-with-dax-i-o fs/ext2/file.c
+--- a/fs/ext2/file.c~daxext2-replace-xip-read-and-write-with-dax-i-o
++++ a/fs/ext2/file.c
+@@ -81,8 +81,10 @@ const struct file_operations ext2_file_o
+ #ifdef CONFIG_EXT2_FS_XIP
+ const struct file_operations ext2_xip_file_operations = {
+ 	.llseek		= generic_file_llseek,
+-	.read		= xip_file_read,
+-	.write		= xip_file_write,
++	.read		= new_sync_read,
++	.write		= new_sync_write,
++	.read_iter	= generic_file_read_iter,
++	.write_iter	= generic_file_write_iter,
+ 	.unlocked_ioctl = ext2_ioctl,
+ #ifdef CONFIG_COMPAT
+ 	.compat_ioctl	= ext2_compat_ioctl,
+diff -puN fs/ext2/inode.c~daxext2-replace-xip-read-and-write-with-dax-i-o fs/ext2/inode.c
+--- a/fs/ext2/inode.c~daxext2-replace-xip-read-and-write-with-dax-i-o
 +++ a/fs/ext2/inode.c
-@@ -1210,7 +1210,7 @@ static int ext2_setsize(struct inode *in
- 	inode_dio_wait(inode);
+@@ -859,7 +859,12 @@ ext2_direct_IO(int rw, struct kiocb *ioc
+ 	size_t count = iov_iter_count(iter);
+ 	ssize_t ret;
  
- 	if (IS_DAX(inode))
--		error = xip_truncate_page(inode->i_mapping, newsize);
-+		error = dax_truncate_page(inode, newsize, ext2_get_block);
- 	else if (test_opt(inode->i_sb, NOBH))
- 		error = nobh_truncate_page(inode->i_mapping,
- 				newsize, ext2_get_block);
-diff -puN include/linux/fs.h~daxext2-replace-xip_truncate_page-with-dax_truncate_page include/linux/fs.h
---- a/include/linux/fs.h~daxext2-replace-xip_truncate_page-with-dax_truncate_page
+-	ret = blockdev_direct_IO(rw, iocb, inode, iter, offset, ext2_get_block);
++	if (IS_DAX(inode))
++		ret = dax_do_io(rw, iocb, inode, iter, offset, ext2_get_block,
++				NULL, DIO_LOCKING);
++	else
++		ret = blockdev_direct_IO(rw, iocb, inode, iter, offset,
++					 ext2_get_block);
+ 	if (ret < 0 && (rw & WRITE))
+ 		ext2_write_failed(mapping, offset + count);
+ 	return ret;
+@@ -888,6 +893,7 @@ const struct address_space_operations ex
+ const struct address_space_operations ext2_aops_xip = {
+ 	.bmap			= ext2_bmap,
+ 	.get_xip_mem		= ext2_get_xip_mem,
++	.direct_IO		= ext2_direct_IO,
+ };
+ 
+ const struct address_space_operations ext2_nobh_aops = {
+diff -puN include/linux/fs.h~daxext2-replace-xip-read-and-write-with-dax-i-o include/linux/fs.h
+--- a/include/linux/fs.h~daxext2-replace-xip-read-and-write-with-dax-i-o
 +++ a/include/linux/fs.h
-@@ -2591,18 +2591,10 @@ extern int nonseekable_open(struct inode
- ssize_t dax_do_io(int rw, struct kiocb *, struct inode *, struct iov_iter *,
- 		loff_t, get_block_t, dio_iodone_t, int flags);
- int dax_clear_blocks(struct inode *, sector_t block, long size);
-+int dax_truncate_page(struct inode *, loff_t from, get_block_t);
- int dax_fault(struct vm_area_struct *, struct vm_fault *, get_block_t);
- #define dax_mkwrite(vma, vmf, gb)	dax_fault(vma, vmf, gb)
+@@ -2587,12 +2587,11 @@ extern loff_t fixed_size_llseek(struct f
+ extern int generic_file_open(struct inode * inode, struct file * filp);
+ extern int nonseekable_open(struct inode * inode, struct file * filp);
  
--#ifdef CONFIG_FS_XIP
--extern int xip_truncate_page(struct address_space *mapping, loff_t from);
--#else
--static inline int xip_truncate_page(struct address_space *mapping, loff_t from)
--{
--	return 0;
--}
--#endif
--
- #ifdef CONFIG_BLOCK
- typedef void (dio_submit_t)(int rw, struct bio *bio, struct inode *inode,
- 			    loff_t file_offset);
-diff -puN mm/filemap_xip.c~daxext2-replace-xip_truncate_page-with-dax_truncate_page mm/filemap_xip.c
---- a/mm/filemap_xip.c~daxext2-replace-xip_truncate_page-with-dax_truncate_page
++ssize_t dax_do_io(int rw, struct kiocb *, struct inode *, struct iov_iter *,
++		loff_t, get_block_t, dio_iodone_t, int flags);
++
+ #ifdef CONFIG_FS_XIP
+-extern ssize_t xip_file_read(struct file *filp, char __user *buf, size_t len,
+-			     loff_t *ppos);
+ extern int xip_file_mmap(struct file * file, struct vm_area_struct * vma);
+-extern ssize_t xip_file_write(struct file *filp, const char __user *buf,
+-			      size_t len, loff_t *ppos);
+ extern int xip_truncate_page(struct address_space *mapping, loff_t from);
+ #else
+ static inline int xip_truncate_page(struct address_space *mapping, loff_t from)
+@@ -2756,6 +2755,11 @@ extern int generic_show_options(struct s
+ extern void save_mount_options(struct super_block *sb, char *options);
+ extern void replace_mount_options(struct super_block *sb, char *options);
+ 
++static inline bool io_is_direct(struct file *filp)
++{
++	return (filp->f_flags & O_DIRECT) || IS_DAX(file_inode(filp));
++}
++
+ static inline ino_t parent_ino(struct dentry *dentry)
+ {
+ 	ino_t res;
+diff -puN mm/filemap.c~daxext2-replace-xip-read-and-write-with-dax-i-o mm/filemap.c
+--- a/mm/filemap.c~daxext2-replace-xip-read-and-write-with-dax-i-o
++++ a/mm/filemap.c
+@@ -1695,8 +1695,7 @@ generic_file_read_iter(struct kiocb *ioc
+ 	loff_t *ppos = &iocb->ki_pos;
+ 	loff_t pos = *ppos;
+ 
+-	/* coalesce the iovecs and go direct-to-BIO for O_DIRECT */
+-	if (file->f_flags & O_DIRECT) {
++	if (io_is_direct(file)) {
+ 		struct address_space *mapping = file->f_mapping;
+ 		struct inode *inode = mapping->host;
+ 		size_t count = iov_iter_count(iter);
+@@ -2584,8 +2583,7 @@ ssize_t __generic_file_write_iter(struct
+ 	if (err)
+ 		goto out;
+ 
+-	/* coalesce the iovecs and go direct-to-BIO for O_DIRECT */
+-	if (unlikely(file->f_flags & O_DIRECT)) {
++	if (io_is_direct(file)) {
+ 		loff_t endbyte;
+ 
+ 		written = generic_file_direct_write(iocb, from, pos);
+diff -puN mm/filemap_xip.c~daxext2-replace-xip-read-and-write-with-dax-i-o mm/filemap_xip.c
+--- a/mm/filemap_xip.c~daxext2-replace-xip-read-and-write-with-dax-i-o
 +++ a/mm/filemap_xip.c
-@@ -22,43 +22,3 @@
- #include <asm/tlbflush.h>
- #include <asm/io.h>
+@@ -43,119 +43,6 @@ static struct page *xip_sparse_page(void
+ }
  
--/*
-- * truncate a page used for execute in place
-- * functionality is analog to block_truncate_page but does use get_xip_mem
-- * to get the page instead of page cache
+ /*
+- * This is a file read routine for execute in place files, and uses
+- * the mapping->a_ops->get_xip_mem() function for the actual low-level
+- * stuff.
+- *
+- * Note the struct file* is not used at all.  It may be NULL.
 - */
--int
--xip_truncate_page(struct address_space *mapping, loff_t from)
+-static ssize_t
+-do_xip_mapping_read(struct address_space *mapping,
+-		    struct file_ra_state *_ra,
+-		    struct file *filp,
+-		    char __user *buf,
+-		    size_t len,
+-		    loff_t *ppos)
 -{
--	pgoff_t index = from >> PAGE_CACHE_SHIFT;
--	unsigned offset = from & (PAGE_CACHE_SIZE-1);
--	unsigned blocksize;
--	unsigned length;
--	void *xip_mem;
--	unsigned long xip_pfn;
--	int err;
+-	struct inode *inode = mapping->host;
+-	pgoff_t index, end_index;
+-	unsigned long offset;
+-	loff_t isize, pos;
+-	size_t copied = 0, error = 0;
 -
 -	BUG_ON(!mapping->a_ops->get_xip_mem);
 -
--	blocksize = 1 << mapping->host->i_blkbits;
--	length = offset & (blocksize - 1);
+-	pos = *ppos;
+-	index = pos >> PAGE_CACHE_SHIFT;
+-	offset = pos & ~PAGE_CACHE_MASK;
 -
--	/* Block boundary? Nothing to do */
--	if (!length)
--		return 0;
+-	isize = i_size_read(inode);
+-	if (!isize)
+-		goto out;
 -
--	length = blocksize - length;
+-	end_index = (isize - 1) >> PAGE_CACHE_SHIFT;
+-	do {
+-		unsigned long nr, left;
+-		void *xip_mem;
+-		unsigned long xip_pfn;
+-		int zero = 0;
+-
+-		/* nr is the maximum number of bytes to copy from this page */
+-		nr = PAGE_CACHE_SIZE;
+-		if (index >= end_index) {
+-			if (index > end_index)
+-				goto out;
+-			nr = ((isize - 1) & ~PAGE_CACHE_MASK) + 1;
+-			if (nr <= offset) {
+-				goto out;
+-			}
+-		}
+-		nr = nr - offset;
+-		if (nr > len - copied)
+-			nr = len - copied;
+-
+-		error = mapping->a_ops->get_xip_mem(mapping, index, 0,
+-							&xip_mem, &xip_pfn);
+-		if (unlikely(error)) {
+-			if (error == -ENODATA) {
+-				/* sparse */
+-				zero = 1;
+-			} else
+-				goto out;
+-		}
+-
+-		/* If users can be writing to this page using arbitrary
+-		 * virtual addresses, take care about potential aliasing
+-		 * before reading the page on the kernel side.
+-		 */
+-		if (mapping_writably_mapped(mapping))
+-			/* address based flush */ ;
+-
+-		/*
+-		 * Ok, we have the mem, so now we can copy it to user space...
+-		 *
+-		 * The actor routine returns how many bytes were actually used..
+-		 * NOTE! This may not be the same as how much of a user buffer
+-		 * we filled up (we may be padding etc), so we can only update
+-		 * "pos" here (the actor routine has to update the user buffer
+-		 * pointers and the remaining count).
+-		 */
+-		if (!zero)
+-			left = __copy_to_user(buf+copied, xip_mem+offset, nr);
+-		else
+-			left = __clear_user(buf + copied, nr);
+-
+-		if (left) {
+-			error = -EFAULT;
+-			goto out;
+-		}
+-
+-		copied += (nr - left);
+-		offset += (nr - left);
+-		index += offset >> PAGE_CACHE_SHIFT;
+-		offset &= ~PAGE_CACHE_MASK;
+-	} while (copied < len);
+-
+-out:
+-	*ppos = pos + copied;
+-	if (filp)
+-		file_accessed(filp);
+-
+-	return (copied ? copied : error);
+-}
+-
+-ssize_t
+-xip_file_read(struct file *filp, char __user *buf, size_t len, loff_t *ppos)
+-{
+-	if (!access_ok(VERIFY_WRITE, buf, len))
+-		return -EFAULT;
+-
+-	return do_xip_mapping_read(filp->f_mapping, &filp->f_ra, filp,
+-			    buf, len, ppos);
+-}
+-EXPORT_SYMBOL_GPL(xip_file_read);
+-
+-/*
+  * __xip_unmap is invoked from xip_unmap and xip_write
+  *
+  * This function walks all vmas of the address_space and unmaps the
+@@ -341,127 +228,6 @@ int xip_file_mmap(struct file * file, st
+ }
+ EXPORT_SYMBOL_GPL(xip_file_mmap);
+ 
+-static ssize_t
+-__xip_file_write(struct file *filp, const char __user *buf,
+-		  size_t count, loff_t pos, loff_t *ppos)
+-{
+-	struct address_space * mapping = filp->f_mapping;
+-	const struct address_space_operations *a_ops = mapping->a_ops;
+-	struct inode 	*inode = mapping->host;
+-	long		status = 0;
+-	size_t		bytes;
+-	ssize_t		written = 0;
+-
+-	BUG_ON(!mapping->a_ops->get_xip_mem);
+-
+-	do {
+-		unsigned long index;
+-		unsigned long offset;
+-		size_t copied;
+-		void *xip_mem;
+-		unsigned long xip_pfn;
+-
+-		offset = (pos & (PAGE_CACHE_SIZE -1)); /* Within page */
+-		index = pos >> PAGE_CACHE_SHIFT;
+-		bytes = PAGE_CACHE_SIZE - offset;
+-		if (bytes > count)
+-			bytes = count;
+-
+-		status = a_ops->get_xip_mem(mapping, index, 0,
+-						&xip_mem, &xip_pfn);
+-		if (status == -ENODATA) {
+-			/* we allocate a new page unmap it */
+-			mutex_lock(&xip_sparse_mutex);
+-			status = a_ops->get_xip_mem(mapping, index, 1,
+-							&xip_mem, &xip_pfn);
+-			mutex_unlock(&xip_sparse_mutex);
+-			if (!status)
+-				/* unmap page at pgoff from all other vmas */
+-				__xip_unmap(mapping, index);
+-		}
+-
+-		if (status)
+-			break;
+-
+-		copied = bytes -
+-			__copy_from_user_nocache(xip_mem + offset, buf, bytes);
+-
+-		if (likely(copied > 0)) {
+-			status = copied;
+-
+-			if (status >= 0) {
+-				written += status;
+-				count -= status;
+-				pos += status;
+-				buf += status;
+-			}
+-		}
+-		if (unlikely(copied != bytes))
+-			if (status >= 0)
+-				status = -EFAULT;
+-		if (status < 0)
+-			break;
+-	} while (count);
+-	*ppos = pos;
+-	/*
+-	 * No need to use i_size_read() here, the i_size
+-	 * cannot change under us because we hold i_mutex.
+-	 */
+-	if (pos > inode->i_size) {
+-		i_size_write(inode, pos);
+-		mark_inode_dirty(inode);
+-	}
+-
+-	return written ? written : status;
+-}
+-
+-ssize_t
+-xip_file_write(struct file *filp, const char __user *buf, size_t len,
+-	       loff_t *ppos)
+-{
+-	struct address_space *mapping = filp->f_mapping;
+-	struct inode *inode = mapping->host;
+-	size_t count;
+-	loff_t pos;
+-	ssize_t ret;
+-
+-	mutex_lock(&inode->i_mutex);
+-
+-	if (!access_ok(VERIFY_READ, buf, len)) {
+-		ret=-EFAULT;
+-		goto out_up;
+-	}
+-
+-	pos = *ppos;
+-	count = len;
+-
+-	/* We can write back this queue in page reclaim */
+-	current->backing_dev_info = inode_to_bdi(inode);
+-
+-	ret = generic_write_checks(filp, &pos, &count, S_ISBLK(inode->i_mode));
+-	if (ret)
+-		goto out_backing;
+-	if (count == 0)
+-		goto out_backing;
+-
+-	ret = file_remove_suid(filp);
+-	if (ret)
+-		goto out_backing;
+-
+-	ret = file_update_time(filp);
+-	if (ret)
+-		goto out_backing;
+-
+-	ret = __xip_file_write (filp, buf, count, pos, ppos);
+-
+- out_backing:
+-	current->backing_dev_info = NULL;
+- out_up:
+-	mutex_unlock(&inode->i_mutex);
+-	return ret;
+-}
+-EXPORT_SYMBOL_GPL(xip_file_write);
