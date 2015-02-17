@@ -1,312 +1,151 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ocfs2-implement-ocfs2_direct_io_write.patch removed from -mm tree
-Date: Tue, 17 Feb 2015 12:06:22 -0800
-Message-ID: <54e39f3e.whjh0CXniLCzRYsH%akpm@linux-foundation.org>
+Subject: [merged]
+ ocfs2-wait-for-orphan-recovery-first-once-append-o_direct-write-crash.patch removed from -mm tree
+Date: Tue, 17 Feb 2015 12:06:31 -0800
+Message-ID: <54e39f47.AMU6v4rI75YKJpjA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35340 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35358 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752916AbbBQUGX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Feb 2015 15:06:23 -0500
+	with ESMTP id S1753678AbbBQUGc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Feb 2015 15:06:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: joseph.qi@huawei.com, alex.chen@huawei.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@suse.com, wangww631@huawei.com, xuejiufei@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: implement ocfs2_direct_IO_write
+     Subject: ocfs2: wait for orphan recovery first once append O_DIRECT write crash
 has been removed from the -mm tree.  Its filename was
-     ocfs2-implement-ocfs2_direct_io_write.patch
+     ocfs2-wait-for-orphan-recovery-first-once-append-o_direct-write-crash.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joseph Qi <joseph.qi@huawei.com>
-Subject: ocfs2: implement ocfs2_direct_IO_write
+Subject: ocfs2: wait for orphan recovery first once append O_DIRECT write crash
 
-Implement ocfs2_direct_IO_write.  Add the inode to orphan dir first, and
-then delete it once append O_DIRECT finished.
+If one node has crashed with orphan entry leftover, another node which do
+append O_DIRECT write to the same file will override the
+i_dio_orphaned_slot.  Then the old entry won't be cleaned forever.  If
+this case happens, we let it wait for orphan recovery first.
 
-This is to make sure block allocation and inode size are consistent.
-
-[akpm@linux-foundation.org: fix it for "block: Add discard flag to blkdev_issue_zeroout() function"]
 Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
 Cc: Weiwei Wang <wangww631@huawei.com>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Cc: Mark Fasheh <mfasheh@suse.com>
 Cc: Xuejiufei <xuejiufei@huawei.com>
 Cc: alex chen <alex.chen@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/aops.c  |  197 ++++++++++++++++++++++++++++++++++++++++++++-
- fs/ocfs2/ocfs2.h |   10 ++
- 2 files changed, 204 insertions(+), 3 deletions(-)
+ fs/ocfs2/inode.h   |    2 ++
+ fs/ocfs2/journal.c |    2 ++
+ fs/ocfs2/namei.c   |   37 +++++++++++++++++++++++++++++++++++++
+ fs/ocfs2/super.c   |    2 ++
+ 4 files changed, 43 insertions(+)
 
-diff -puN fs/ocfs2/aops.c~ocfs2-implement-ocfs2_direct_io_write fs/ocfs2/aops.c
---- a/fs/ocfs2/aops.c~ocfs2-implement-ocfs2_direct_io_write
-+++ a/fs/ocfs2/aops.c
-@@ -28,6 +28,7 @@
- #include <linux/pipe_fs_i.h>
- #include <linux/mpage.h>
- #include <linux/quotaops.h>
-+#include <linux/blkdev.h>
+diff -puN fs/ocfs2/inode.h~ocfs2-wait-for-orphan-recovery-first-once-append-o_direct-write-crash fs/ocfs2/inode.h
+--- a/fs/ocfs2/inode.h~ocfs2-wait-for-orphan-recovery-first-once-append-o_direct-write-crash
++++ a/fs/ocfs2/inode.h
+@@ -81,6 +81,8 @@ struct ocfs2_inode_info
+ 	tid_t i_sync_tid;
+ 	tid_t i_datasync_tid;
  
- #include <cluster/masklog.h>
++	wait_queue_head_t append_dio_wq;
++
+ 	struct dquot *i_dquot[MAXQUOTAS];
+ };
  
-@@ -47,6 +48,9 @@
- #include "ocfs2_trace.h"
+diff -puN fs/ocfs2/journal.c~ocfs2-wait-for-orphan-recovery-first-once-append-o_direct-write-crash fs/ocfs2/journal.c
+--- a/fs/ocfs2/journal.c~ocfs2-wait-for-orphan-recovery-first-once-append-o_direct-write-crash
++++ a/fs/ocfs2/journal.c
+@@ -2204,6 +2204,8 @@ static int ocfs2_recover_orphans(struct 
+ 			ret = ocfs2_del_inode_from_orphan(osb, inode, 0, 0);
+ 			if (ret)
+ 				mlog_errno(ret);
++
++			wake_up(&OCFS2_I(inode)->append_dio_wq);
+ 		} /* else if ORPHAN_NO_NEED_TRUNCATE, do nothing */
  
- #include "buffer_head_io.h"
-+#include "dir.h"
-+#include "namei.h"
-+#include "sysfile.h"
- 
- static int ocfs2_symlink_get_block(struct inode *inode, sector_t iblock,
- 				   struct buffer_head *bh_result, int create)
-@@ -597,6 +601,184 @@ static int ocfs2_releasepage(struct page
- 	return try_to_free_buffers(page);
+ next:
+diff -puN fs/ocfs2/namei.c~ocfs2-wait-for-orphan-recovery-first-once-append-o_direct-write-crash fs/ocfs2/namei.c
+--- a/fs/ocfs2/namei.c~ocfs2-wait-for-orphan-recovery-first-once-append-o_direct-write-crash
++++ a/fs/ocfs2/namei.c
+@@ -2577,6 +2577,27 @@ leave:
+ 	return status;
  }
  
-+static int ocfs2_is_overwrite(struct ocfs2_super *osb,
-+		struct inode *inode, loff_t offset)
++static int ocfs2_dio_orphan_recovered(struct inode *inode)
 +{
-+	int ret = 0;
-+	u32 v_cpos = 0;
-+	u32 p_cpos = 0;
-+	unsigned int num_clusters = 0;
-+	unsigned int ext_flags = 0;
++	int ret;
++	struct buffer_head *di_bh = NULL;
++	struct ocfs2_dinode *di = NULL;
 +
-+	v_cpos = ocfs2_bytes_to_clusters(osb->sb, offset);
-+	ret = ocfs2_get_clusters(inode, v_cpos, &p_cpos,
-+			&num_clusters, &ext_flags);
++	ret = ocfs2_inode_lock(inode, &di_bh, 1);
 +	if (ret < 0) {
 +		mlog_errno(ret);
-+		return ret;
++		return 0;
 +	}
 +
-+	if (p_cpos && !(ext_flags & OCFS2_EXT_UNWRITTEN))
-+		return 1;
++	di = (struct ocfs2_dinode *) di_bh->b_data;
++	ret = !(di->i_flags & cpu_to_le32(OCFS2_DIO_ORPHANED_FL));
++	ocfs2_inode_unlock(inode, 1);
++	brelse(di_bh);
 +
-+	return 0;
-+}
-+
-+static ssize_t ocfs2_direct_IO_write(struct kiocb *iocb,
-+		struct iov_iter *iter,
-+		loff_t offset)
-+{
-+	ssize_t ret = 0;
-+	ssize_t written = 0;
-+	bool orphaned = false;
-+	int is_overwrite = 0;
-+	struct file *file = iocb->ki_filp;
-+	struct inode *inode = file_inode(file)->i_mapping->host;
-+	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
-+	struct buffer_head *di_bh = NULL;
-+	size_t count = iter->count;
-+	journal_t *journal = osb->journal->j_journal;
-+	u32 zero_len;
-+	int cluster_align;
-+	loff_t final_size = offset + count;
-+	int append_write = offset >= i_size_read(inode) ? 1 : 0;
-+	unsigned int num_clusters = 0;
-+	unsigned int ext_flags = 0;
-+
-+	{
-+		u64 o = offset;
-+
-+		zero_len = do_div(o, 1 << osb->s_clustersize_bits);
-+		cluster_align = !zero_len;
-+	}
-+
-+	/*
-+	 * when final_size > inode->i_size, inode->i_size will be
-+	 * updated after direct write, so add the inode to orphan
-+	 * dir first.
-+	 */
-+	if (final_size > i_size_read(inode)) {
-+		ret = ocfs2_add_inode_to_orphan(osb, inode);
-+		if (ret < 0) {
-+			mlog_errno(ret);
-+			goto out;
-+		}
-+		orphaned = true;
-+	}
-+
-+	if (append_write) {
-+		ret = ocfs2_inode_lock(inode, &di_bh, 1);
-+		if (ret < 0) {
-+			mlog_errno(ret);
-+			goto clean_orphan;
-+		}
-+
-+		if (ocfs2_sparse_alloc(OCFS2_SB(inode->i_sb)))
-+			ret = ocfs2_zero_extend(inode, di_bh, offset);
-+		else
-+			ret = ocfs2_extend_no_holes(inode, di_bh, offset,
-+					offset);
-+		if (ret < 0) {
-+			mlog_errno(ret);
-+			ocfs2_inode_unlock(inode, 1);
-+			brelse(di_bh);
-+			goto clean_orphan;
-+		}
-+
-+		is_overwrite = ocfs2_is_overwrite(osb, inode, offset);
-+		if (is_overwrite < 0) {
-+			mlog_errno(is_overwrite);
-+			ocfs2_inode_unlock(inode, 1);
-+			brelse(di_bh);
-+			goto clean_orphan;
-+		}
-+
-+		ocfs2_inode_unlock(inode, 1);
-+		brelse(di_bh);
-+		di_bh = NULL;
-+	}
-+
-+	written = __blockdev_direct_IO(WRITE, iocb, inode, inode->i_sb->s_bdev,
-+			iter, offset,
-+			ocfs2_direct_IO_get_blocks,
-+			ocfs2_dio_end_io, NULL, 0);
-+	if (unlikely(written < 0)) {
-+		loff_t i_size = i_size_read(inode);
-+
-+		if (offset + count > i_size) {
-+			ret = ocfs2_inode_lock(inode, &di_bh, 1);
-+			if (ret < 0) {
-+				mlog_errno(ret);
-+				goto clean_orphan;
-+			}
-+
-+			if (i_size == i_size_read(inode)) {
-+				ret = ocfs2_truncate_file(inode, di_bh,
-+						i_size);
-+				if (ret < 0) {
-+					if (ret != -ENOSPC)
-+						mlog_errno(ret);
-+
-+					ocfs2_inode_unlock(inode, 1);
-+					brelse(di_bh);
-+					goto clean_orphan;
-+				}
-+			}
-+
-+			ocfs2_inode_unlock(inode, 1);
-+			brelse(di_bh);
-+
-+			ret = jbd2_journal_force_commit(journal);
-+			if (ret < 0)
-+				mlog_errno(ret);
-+		}
-+	} else if (written < 0 && append_write && !is_overwrite &&
-+			!cluster_align) {
-+		u32 p_cpos = 0;
-+		u32 v_cpos = ocfs2_bytes_to_clusters(osb->sb, offset);
-+
-+		ret = ocfs2_get_clusters(inode, v_cpos, &p_cpos,
-+				&num_clusters, &ext_flags);
-+		if (ret < 0) {
-+			mlog_errno(ret);
-+			goto clean_orphan;
-+		}
-+
-+		BUG_ON(!p_cpos || (ext_flags & OCFS2_EXT_UNWRITTEN));
-+
-+		ret = blkdev_issue_zeroout(osb->sb->s_bdev,
-+				p_cpos << (osb->s_clustersize_bits - 9),
-+				zero_len >> 9, GFP_KERNEL, false);
-+		if (ret < 0)
-+			mlog_errno(ret);
-+	}
-+
-+clean_orphan:
-+	if (orphaned) {
-+		int tmp_ret;
-+		int update_isize = written > 0 ? 1 : 0;
-+		loff_t end = update_isize ? offset + written : 0;
-+
-+		tmp_ret = ocfs2_del_inode_from_orphan(osb, inode,
-+				update_isize, end);
-+		if (tmp_ret < 0) {
-+			ret = tmp_ret;
-+			goto out;
-+		}
-+
-+		tmp_ret = jbd2_journal_force_commit(journal);
-+		if (tmp_ret < 0) {
-+			ret = tmp_ret;
-+			mlog_errno(tmp_ret);
-+		}
-+	}
-+
-+out:
-+	if (ret >= 0)
-+		ret = written;
 +	return ret;
 +}
 +
- static ssize_t ocfs2_direct_IO(int rw,
- 			       struct kiocb *iocb,
- 			       struct iov_iter *iter,
-@@ -604,6 +786,9 @@ static ssize_t ocfs2_direct_IO(int rw,
++#define OCFS2_DIO_ORPHANED_FL_CHECK_INTERVAL 10000
+ int ocfs2_add_inode_to_orphan(struct ocfs2_super *osb,
+ 	struct inode *inode)
  {
- 	struct file *file = iocb->ki_filp;
- 	struct inode *inode = file_inode(file)->i_mapping->host;
-+	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
-+	int full_coherency = !(osb->s_mount_opt &
-+			OCFS2_MOUNT_COHERENCY_BUFFERED);
+@@ -2586,13 +2607,29 @@ int ocfs2_add_inode_to_orphan(struct ocf
+ 	struct buffer_head *di_bh = NULL;
+ 	int status = 0;
+ 	handle_t *handle = NULL;
++	struct ocfs2_dinode *di = NULL;
  
- 	/*
- 	 * Fallback to buffered I/O if we see an inode without
-@@ -612,14 +797,20 @@ static ssize_t ocfs2_direct_IO(int rw,
- 	if (OCFS2_I(inode)->ip_dyn_features & OCFS2_INLINE_DATA_FL)
- 		return 0;
++restart:
+ 	status = ocfs2_inode_lock(inode, &di_bh, 1);
+ 	if (status < 0) {
+ 		mlog_errno(status);
+ 		goto bail;
+ 	}
  
--	/* Fallback to buffered I/O if we are appending. */
--	if (i_size_read(inode) <= offset)
-+	/* Fallback to buffered I/O if we are appending and
-+	 * concurrent O_DIRECT writes are allowed.
++	di = (struct ocfs2_dinode *) di_bh->b_data;
++	/*
++	 * Another append dio crashed?
++	 * If so, wait for recovery first.
 +	 */
-+	if (i_size_read(inode) <= offset && !full_coherency)
- 		return 0;
- 
--	return __blockdev_direct_IO(rw, iocb, inode, inode->i_sb->s_bdev,
-+	if (rw == READ)
-+		return __blockdev_direct_IO(rw, iocb, inode,
-+				    inode->i_sb->s_bdev,
- 				    iter, offset,
- 				    ocfs2_direct_IO_get_blocks,
- 				    ocfs2_dio_end_io, NULL, 0);
-+	else
-+		return ocfs2_direct_IO_write(iocb, iter, offset);
- }
- 
- static void ocfs2_figure_cluster_boundaries(struct ocfs2_super *osb,
-diff -puN fs/ocfs2/ocfs2.h~ocfs2-implement-ocfs2_direct_io_write fs/ocfs2/ocfs2.h
---- a/fs/ocfs2/ocfs2.h~ocfs2-implement-ocfs2_direct_io_write
-+++ a/fs/ocfs2/ocfs2.h
-@@ -731,6 +731,16 @@ static inline unsigned int ocfs2_cluster
- 	return clusters;
- }
- 
-+static inline unsigned int ocfs2_bytes_to_clusters(struct super_block *sb,
-+		u64 bytes)
-+{
-+	int cl_bits = OCFS2_SB(sb)->s_clustersize_bits;
-+	unsigned int clusters;
++	if (unlikely(di->i_flags & cpu_to_le32(OCFS2_DIO_ORPHANED_FL))) {
++		ocfs2_inode_unlock(inode, 1);
++		brelse(di_bh);
++		wait_event_interruptible_timeout(OCFS2_I(inode)->append_dio_wq,
++				ocfs2_dio_orphan_recovered(inode),
++				msecs_to_jiffies(OCFS2_DIO_ORPHANED_FL_CHECK_INTERVAL));
++		goto restart;
++	}
 +
-+	clusters = (unsigned int)(bytes >> cl_bits);
-+	return clusters;
-+}
+ 	status = ocfs2_prepare_orphan_dir(osb, &orphan_dir_inode,
+ 			OCFS2_I(inode)->ip_blkno,
+ 			orphan_name,
+diff -puN fs/ocfs2/super.c~ocfs2-wait-for-orphan-recovery-first-once-append-o_direct-write-crash fs/ocfs2/super.c
+--- a/fs/ocfs2/super.c~ocfs2-wait-for-orphan-recovery-first-once-append-o_direct-write-crash
++++ a/fs/ocfs2/super.c
+@@ -1746,6 +1746,8 @@ static void ocfs2_inode_init_once(void *
+ 	ocfs2_lock_res_init_once(&oi->ip_inode_lockres);
+ 	ocfs2_lock_res_init_once(&oi->ip_open_lockres);
+ 
++	init_waitqueue_head(&oi->append_dio_wq);
 +
- static inline u64 ocfs2_blocks_for_bytes(struct super_block *sb,
- 					 u64 bytes)
- {
+ 	ocfs2_metadata_cache_init(INODE_CACHE(&oi->vfs_inode),
+ 				  &ocfs2_inode_caching_ops);
+ 
 _
 
 Patches currently in -mm which might be from joseph.qi@huawei.com are
