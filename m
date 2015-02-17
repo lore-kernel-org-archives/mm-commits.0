@@ -1,103 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: [merged] jffs2-bugfix-of-summary-length.patch removed from -mm
- tree
-Date: Mon, 16 Feb 2015 16:11:47 -0800
-Message-ID: <54e28743.BXhBOonq/66B1JC3%akpm@linux-foundation.org>
+Subject: [merged]
+ rtc-isl12022-deprecate-use-of-isl-in-compatible-string-for-isil.patch
+ removed from -mm tree
+Date: Tue, 17 Feb 2015 12:05:06 -0800
+Message-ID: <54e39ef2.COWZ9bvABO5eQh/B%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54573 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35038 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751492AbbBQAMZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Feb 2015 19:12:25 -0500
+	with ESMTP id S1752760AbbBQUFI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Feb 2015 15:05:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chenjie6@huawei.com, dwmw2@infradead.org, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: arno@natisbad.org, a.zummo@towertech.it, arnd@arndb.de, broonie@kernel.org, darshanapadmadas@gmail.com, galak@codeaurora.org, gnurou@gmail.com, grant.likely@linaro.org, ijc+devicetree@hellion.org.uk, jason@lakedaemon.net, jgunthorpe@obsidianresearch.com, linus.walleij@linaro.org, linux@arm.linux.org.uk, linux@roeck-us.net, mark.rutland@arm.com, pawel.moll@arm.com, peter.huewe@infineon.com, rob@landley.net, robh+dt@kernel.org, swarren@wwwdotorg.org, thierry.reding@gmail.com, uwe@kleine-koenig.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: jffs2: fix handling of corrupted summary length
+     Subject: rtc: isl12022: deprecate use of isl in compatible string =
+for isil
 has been removed from the -mm tree.  Its filename was
-     jffs2-bugfix-of-summary-length.patch
+     rtc-isl12022-deprecate-use-of-isl-in-compatible-string-for-isil.pa=
+tch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
 ------------------------------------------------------
-From: Chen Jie <chenjie6@huawei.com>
-Subject: jffs2: fix handling of corrupted summary length
+=46rom: Arnaud Ebalard <arno@natisbad.org>
+Subject: rtc: isl12022: deprecate use of isl in compatible string for i=
+sil
 
-sm->offset maybe wrong but magic maybe right, the offset do not have CRC.
+"isil" and "isl" prefixes are used at various locations inside the kern=
+el
+to reference Intersil corporation.  This patch is part of a series fixi=
+ng
+those locations were "isl" is used in compatible strings to use the now
+expected "isil" prefix instead (NASDAQ symbol for Intersil and most use=
+d
+version).  The old compatible string is kept for backward compatibility=
+=2E
 
-Badness at c00c7580 [verbose debug info unavailable]
-NIP: c00c7580 LR: c00c718c CTR: 00000014
-REGS: df07bb40 TRAP: 0700   Not tainted  (2.6.34.13-WR4.3.0.0_standard)
-MSR: 00029000 <EE,ME,CE>  CR: 22084f84  XER: 00000000
-TASK = df84d6e0[908] 'mount' THREAD: df07a000
-GPR00: 00000001 df07bbf0 df84d6e0 00000000 00000001 00000000 df07bb58 00000041
-GPR08: 00000041 c0638860 00000000 00000010 22084f88 100636c8 df814ff8 00000000
-GPR16: df84d6e0 dfa558cc c05adb90 00000048 c0452d30 00000000 000240d0 000040d0
-GPR24: 00000014 c05ae734 c05be2e0 00000000 00000001 00000000 00000000 c05ae730
-NIP [c00c7580] __alloc_pages_nodemask+0x4d0/0x638
-LR [c00c718c] __alloc_pages_nodemask+0xdc/0x638
-Call Trace:
-[df07bbf0] [c00c718c] __alloc_pages_nodemask+0xdc/0x638 (unreliable)
-[df07bc90] [c00c7708] __get_free_pages+0x20/0x48
-[df07bca0] [c00f4a40] __kmalloc+0x15c/0x1ec
-[df07bcd0] [c01fc880] jffs2_scan_medium+0xa58/0x14d0
-[df07bd70] [c01ff38c] jffs2_do_mount_fs+0x1f4/0x6b4
-[df07bdb0] [c020144c] jffs2_do_fill_super+0xa8/0x260
-[df07bdd0] [c020230c] jffs2_fill_super+0x104/0x184
-[df07be00] [c0335814] get_sb_mtd_aux+0x9c/0xec
-[df07be20] [c033596c] get_sb_mtd+0x84/0x1e8
-[df07be60] [c0201ed0] jffs2_get_sb+0x1c/0x2c
-[df07be70] [c0103898] vfs_kern_mount+0x78/0x1e8
-[df07bea0] [c0103a58] do_kern_mount+0x40/0x100
-[df07bec0] [c011fe90] do_mount+0x240/0x890
-[df07bf10] [c0120570] sys_mount+0x90/0xd8
-[df07bf40] [c00110d8] ret_from_syscall+0x0/0x4
-=== Exception: c01 at 0xff61a34
-    LR = 0x100135f0
-Instruction dump:
-38800005 38600000 48010f41 4bfffe1c 4bfc2d15 4bfffe8c 72e90200 4082fc28
-3d20c064 39298860 8809000d 68000001 <0f000000> 2f800000 419efc0c 38000001
-mount: mounting /dev/mtdblock3 on /common failed: Input/output error
-
-Signed-off-by: Chen Jie <chenjie6@huawei.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Arnaud Ebalard <arno@natisbad.org>
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: Pawel Moll <pawel.moll@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
+Cc: Kumar Gala <galak@codeaurora.org>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Thierry Reding <thierry.reding@gmail.com>
+Cc: Alexandre Courbot <gnurou@gmail.com>
+Cc: Uwe Kleine-Knig <uwe@kleine-koenig.org>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Peter Huewe <peter.huewe@infineon.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Darshana Padmadas <darshanapadmadas@gmail.com>
+Cc: Grant Likely <grant.likely@linaro.org>
+Cc: Rob Landley <rob@landley.net>
+Cc: Jason Cooper <jason@lakedaemon.net>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: Uwe Kleine-K=F6nig <uwe@kleine-koenig.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jffs2/scan.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/rtc/rtc-isl12022.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/jffs2/scan.c~jffs2-bugfix-of-summary-length fs/jffs2/scan.c
---- a/fs/jffs2/scan.c~jffs2-bugfix-of-summary-length
-+++ a/fs/jffs2/scan.c
-@@ -510,6 +510,10 @@ static int jffs2_scan_eraseblock (struct
- 				sumlen = c->sector_size - je32_to_cpu(sm->offset);
- 				sumptr = buf + buf_size - sumlen;
- 
-+				/* sm->offset maybe wrong but MAGIC maybe right */
-+				if (sumlen > c->sector_size)
-+					goto full_scan;
-+
- 				/* Now, make sure the summary itself is available */
- 				if (sumlen > buf_size) {
- 					/* Need to kmalloc for this. */
-@@ -544,6 +548,7 @@ static int jffs2_scan_eraseblock (struct
- 		}
- 	}
- 
-+full_scan:
- 	buf_ofs = jeb->offset;
- 
- 	if (!buf_size) {
+diff -puN drivers/rtc/rtc-isl12022.c~rtc-isl12022-deprecate-use-of-isl-=
+in-compatible-string-for-isil drivers/rtc/rtc-isl12022.c
+--- a/drivers/rtc/rtc-isl12022.c~rtc-isl12022-deprecate-use-of-isl-in-c=
+ompatible-string-for-isil
++++ a/drivers/rtc/rtc-isl12022.c
+@@ -275,7 +275,8 @@ static int isl12022_probe(struct i2c_cli
+=20
+ #ifdef CONFIG_OF
+ static const struct of_device_id isl12022_dt_match[] =3D {
+-	{ .compatible =3D "isl,isl12022" },
++	{ .compatible =3D "isl,isl12022" }, /* for backward compat., don't us=
+e */
++	{ .compatible =3D "isil,isl12022" },
+ 	{ },
+ };
+ #endif
 _
 
-Patches currently in -mm which might be from chenjie6@huawei.com are
+Patches currently in -mm which might be from arno@natisbad.org are
 
+origin.patch
 linux-next.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
