@@ -1,36 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ext2-remove-ext2_aops_xip.patch removed from -mm tree
-Date: Tue, 17 Feb 2015 12:05:57 -0800
-Message-ID: <54e39f25.tBDBx6qsIt34/HYc%akpm@linux-foundation.org>
+Subject: [merged]
+ vfsext2-remove-config_ext2_fs_xip-and-rename-config_fs_xip-to-config_fs_dax.patch removed from -mm tree
+Date: Tue, 17 Feb 2015 12:05:54 -0800
+Message-ID: <54e39f22.WH7HBO9DyNL1JugW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35257 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35246 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753009AbbBQUF6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Feb 2015 15:05:58 -0500
+	with ESMTP id S1753009AbbBQUFz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Feb 2015 15:05:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: matthew.r.wilcox@intel.com, andreas.dilger@intel.com, axboe@kernel.dk, boaz@plexistor.com, david@fromorbit.com, hch@lst.de, jack@suse.cz, kirill.shutemov@linux.intel.com, mathieu.desnoyers@efficios.com, rdunlap@infradead.org, ross.zwisler@linux.intel.com, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ext2: remove ext2_aops_xip
+     Subject: vfs,ext2: remove CONFIG_EXT2_FS_XIP and rename CONFIG_FS_XIP to CONFIG_FS_DAX
 has been removed from the -mm tree.  Its filename was
-     ext2-remove-ext2_aops_xip.patch
+     vfsext2-remove-config_ext2_fs_xip-and-rename-config_fs_xip-to-config_fs_dax.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Subject: ext2: remove ext2_aops_xip
+Subject: vfs,ext2: remove CONFIG_EXT2_FS_XIP and rename CONFIG_FS_XIP to CONFIG_FS_DAX
 
-We shouldn't need a special address_space_operations any more
+The fewer Kconfig options we have the better.  Use the generic
+CONFIG_FS_DAX to enable XIP support in ext2 as well as in the core.
 
 Signed-off-by: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Reviewed-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 Cc: Andreas Dilger <andreas.dilger@intel.com>
 Cc: Boaz Harrosh <boaz@plexistor.com>
 Cc: Christoph Hellwig <hch@lst.de>
@@ -38,73 +39,168 @@ Cc: Dave Chinner <david@fromorbit.com>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Jens Axboe <axboe@kernel.dk>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/ext2.h  |    1 -
- fs/ext2/inode.c |    7 +------
- fs/ext2/namei.c |    4 ++--
- 3 files changed, 3 insertions(+), 9 deletions(-)
+ fs/Kconfig         |   21 ++++++++++++++-------
+ fs/Makefile        |    2 +-
+ fs/ext2/Kconfig    |   11 -----------
+ fs/ext2/ext2.h     |    2 +-
+ fs/ext2/file.c     |    4 ++--
+ fs/ext2/super.c    |    4 ++--
+ include/linux/fs.h |    2 +-
+ scripts/diffconfig |    1 -
+ 8 files changed, 21 insertions(+), 26 deletions(-)
 
-diff -puN fs/ext2/ext2.h~ext2-remove-ext2_aops_xip fs/ext2/ext2.h
---- a/fs/ext2/ext2.h~ext2-remove-ext2_aops_xip
+diff -puN fs/Kconfig~vfsext2-remove-config_ext2_fs_xip-and-rename-config_fs_xip-to-config_fs_dax fs/Kconfig
+--- a/fs/Kconfig~vfsext2-remove-config_ext2_fs_xip-and-rename-config_fs_xip-to-config_fs_dax
++++ a/fs/Kconfig
+@@ -13,13 +13,6 @@ if BLOCK
+ source "fs/ext2/Kconfig"
+ source "fs/ext3/Kconfig"
+ source "fs/ext4/Kconfig"
+-
+-config FS_XIP
+-# execute in place
+-	bool
+-	depends on EXT2_FS_XIP
+-	default y
+-
+ source "fs/jbd/Kconfig"
+ source "fs/jbd2/Kconfig"
+ 
+@@ -40,6 +33,20 @@ source "fs/ocfs2/Kconfig"
+ source "fs/btrfs/Kconfig"
+ source "fs/nilfs2/Kconfig"
+ 
++config FS_DAX
++	bool "Direct Access (DAX) support"
++	depends on MMU
++	help
++	  Direct Access (DAX) can be used on memory-backed block devices.
++	  If the block device supports DAX and the filesystem supports DAX,
++	  then you can avoid using the pagecache to buffer I/Os.  Turning
++	  on this option will compile in support for DAX; you will need to
++	  mount the filesystem using the -o dax option.
++
++	  If you do not have a block device that is capable of using this,
++	  or if unsure, say N.  Saying Y will increase the size of the kernel
++	  by about 5kB.
++
+ endif # BLOCK
+ 
+ # Posix ACL utility routines
+diff -puN fs/Makefile~vfsext2-remove-config_ext2_fs_xip-and-rename-config_fs_xip-to-config_fs_dax fs/Makefile
+--- a/fs/Makefile~vfsext2-remove-config_ext2_fs_xip-and-rename-config_fs_xip-to-config_fs_dax
++++ a/fs/Makefile
+@@ -28,7 +28,7 @@ obj-$(CONFIG_SIGNALFD)		+= signalfd.o
+ obj-$(CONFIG_TIMERFD)		+= timerfd.o
+ obj-$(CONFIG_EVENTFD)		+= eventfd.o
+ obj-$(CONFIG_AIO)               += aio.o
+-obj-$(CONFIG_FS_XIP)		+= dax.o
++obj-$(CONFIG_FS_DAX)		+= dax.o
+ obj-$(CONFIG_FILE_LOCKING)      += locks.o
+ obj-$(CONFIG_COMPAT)		+= compat.o compat_ioctl.o
+ obj-$(CONFIG_BINFMT_AOUT)	+= binfmt_aout.o
+diff -puN fs/ext2/Kconfig~vfsext2-remove-config_ext2_fs_xip-and-rename-config_fs_xip-to-config_fs_dax fs/ext2/Kconfig
+--- a/fs/ext2/Kconfig~vfsext2-remove-config_ext2_fs_xip-and-rename-config_fs_xip-to-config_fs_dax
++++ a/fs/ext2/Kconfig
+@@ -42,14 +42,3 @@ config EXT2_FS_SECURITY
+ 
+ 	  If you are not using a security module that requires using
+ 	  extended attributes for file security labels, say N.
+-
+-config EXT2_FS_XIP
+-	bool "Ext2 execute in place support"
+-	depends on EXT2_FS && MMU
+-	help
+-	  Execute in place can be used on memory-backed block devices. If you
+-	  enable this option, you can select to mount block devices which are
+-	  capable of this feature without using the page cache.
+-
+-	  If you do not use a block device that is capable of using this,
+-	  or if unsure, say N.
+diff -puN fs/ext2/ext2.h~vfsext2-remove-config_ext2_fs_xip-and-rename-config_fs_xip-to-config_fs_dax fs/ext2/ext2.h
+--- a/fs/ext2/ext2.h~vfsext2-remove-config_ext2_fs_xip-and-rename-config_fs_xip-to-config_fs_dax
 +++ a/fs/ext2/ext2.h
-@@ -796,7 +796,6 @@ extern const struct file_operations ext2
+@@ -380,7 +380,7 @@ struct ext2_inode {
+ #define EXT2_MOUNT_NO_UID32		0x000200  /* Disable 32-bit UIDs */
+ #define EXT2_MOUNT_XATTR_USER		0x004000  /* Extended user attributes */
+ #define EXT2_MOUNT_POSIX_ACL		0x008000  /* POSIX Access Control Lists */
+-#ifdef CONFIG_FS_XIP
++#ifdef CONFIG_FS_DAX
+ #define EXT2_MOUNT_XIP			0x010000  /* Execute in place */
+ #else
+ #define EXT2_MOUNT_XIP			0
+diff -puN fs/ext2/file.c~vfsext2-remove-config_ext2_fs_xip-and-rename-config_fs_xip-to-config_fs_dax fs/ext2/file.c
+--- a/fs/ext2/file.c~vfsext2-remove-config_ext2_fs_xip-and-rename-config_fs_xip-to-config_fs_dax
++++ a/fs/ext2/file.c
+@@ -25,7 +25,7 @@
+ #include "xattr.h"
+ #include "acl.h"
  
- /* inode.c */
- extern const struct address_space_operations ext2_aops;
--extern const struct address_space_operations ext2_aops_xip;
- extern const struct address_space_operations ext2_nobh_aops;
- 
- /* namei.c */
-diff -puN fs/ext2/inode.c~ext2-remove-ext2_aops_xip fs/ext2/inode.c
---- a/fs/ext2/inode.c~ext2-remove-ext2_aops_xip
-+++ a/fs/ext2/inode.c
-@@ -891,11 +891,6 @@ const struct address_space_operations ex
- 	.error_remove_page	= generic_error_remove_page,
+-#ifdef CONFIG_EXT2_FS_XIP
++#ifdef CONFIG_FS_DAX
+ static int ext2_dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ {
+ 	return dax_fault(vma, vmf, ext2_get_block);
+@@ -108,7 +108,7 @@ const struct file_operations ext2_file_o
+ 	.splice_write	= iter_file_splice_write,
  };
  
--const struct address_space_operations ext2_aops_xip = {
--	.bmap			= ext2_bmap,
--	.direct_IO		= ext2_direct_IO,
--};
--
- const struct address_space_operations ext2_nobh_aops = {
- 	.readpage		= ext2_readpage,
- 	.readpages		= ext2_readpages,
-@@ -1394,7 +1389,7 @@ struct inode *ext2_iget (struct super_bl
- 	if (S_ISREG(inode->i_mode)) {
- 		inode->i_op = &ext2_file_inode_operations;
- 		if (test_opt(inode->i_sb, XIP)) {
--			inode->i_mapping->a_ops = &ext2_aops_xip;
-+			inode->i_mapping->a_ops = &ext2_aops;
- 			inode->i_fop = &ext2_xip_file_operations;
- 		} else if (test_opt(inode->i_sb, NOBH)) {
- 			inode->i_mapping->a_ops = &ext2_nobh_aops;
-diff -puN fs/ext2/namei.c~ext2-remove-ext2_aops_xip fs/ext2/namei.c
---- a/fs/ext2/namei.c~ext2-remove-ext2_aops_xip
-+++ a/fs/ext2/namei.c
-@@ -105,7 +105,7 @@ static int ext2_create (struct inode * d
+-#ifdef CONFIG_EXT2_FS_XIP
++#ifdef CONFIG_FS_DAX
+ const struct file_operations ext2_xip_file_operations = {
+ 	.llseek		= generic_file_llseek,
+ 	.read		= new_sync_read,
+diff -puN fs/ext2/super.c~vfsext2-remove-config_ext2_fs_xip-and-rename-config_fs_xip-to-config_fs_dax fs/ext2/super.c
+--- a/fs/ext2/super.c~vfsext2-remove-config_ext2_fs_xip-and-rename-config_fs_xip-to-config_fs_dax
++++ a/fs/ext2/super.c
+@@ -291,7 +291,7 @@ static int ext2_show_options(struct seq_
+ 		seq_puts(seq, ",grpquota");
+ #endif
  
- 	inode->i_op = &ext2_file_inode_operations;
- 	if (test_opt(inode->i_sb, XIP)) {
--		inode->i_mapping->a_ops = &ext2_aops_xip;
-+		inode->i_mapping->a_ops = &ext2_aops;
- 		inode->i_fop = &ext2_xip_file_operations;
- 	} else if (test_opt(inode->i_sb, NOBH)) {
- 		inode->i_mapping->a_ops = &ext2_nobh_aops;
-@@ -126,7 +126,7 @@ static int ext2_tmpfile(struct inode *di
- 
- 	inode->i_op = &ext2_file_inode_operations;
- 	if (test_opt(inode->i_sb, XIP)) {
--		inode->i_mapping->a_ops = &ext2_aops_xip;
-+		inode->i_mapping->a_ops = &ext2_aops;
- 		inode->i_fop = &ext2_xip_file_operations;
- 	} else if (test_opt(inode->i_sb, NOBH)) {
- 		inode->i_mapping->a_ops = &ext2_nobh_aops;
+-#if defined(CONFIG_EXT2_FS_XIP)
++#ifdef CONFIG_FS_DAX
+ 	if (sbi->s_mount_opt & EXT2_MOUNT_XIP)
+ 		seq_puts(seq, ",xip");
+ #endif
+@@ -558,7 +558,7 @@ static int parse_options(char *options, 
+ 			break;
+ #endif
+ 		case Opt_xip:
+-#ifdef CONFIG_EXT2_FS_XIP
++#ifdef CONFIG_FS_DAX
+ 			set_opt (sbi->s_mount_opt, XIP);
+ #else
+ 			ext2_msg(sb, KERN_INFO, "xip option not supported");
+diff -puN include/linux/fs.h~vfsext2-remove-config_ext2_fs_xip-and-rename-config_fs_xip-to-config_fs_dax include/linux/fs.h
+--- a/include/linux/fs.h~vfsext2-remove-config_ext2_fs_xip-and-rename-config_fs_xip-to-config_fs_dax
++++ a/include/linux/fs.h
+@@ -1676,7 +1676,7 @@ struct super_operations {
+ #define S_IMA		1024	/* Inode has an associated IMA struct */
+ #define S_AUTOMOUNT	2048	/* Automount/referral quasi-directory */
+ #define S_NOSEC		4096	/* no suid or xattr security attributes */
+-#ifdef CONFIG_FS_XIP
++#ifdef CONFIG_FS_DAX
+ #define S_DAX		8192	/* Direct Access, avoiding the page cache */
+ #else
+ #define S_DAX		0	/* Make all the DAX code disappear */
+diff -puN scripts/diffconfig~vfsext2-remove-config_ext2_fs_xip-and-rename-config_fs_xip-to-config_fs_dax scripts/diffconfig
+--- a/scripts/diffconfig~vfsext2-remove-config_ext2_fs_xip-and-rename-config_fs_xip-to-config_fs_dax
++++ a/scripts/diffconfig
+@@ -28,7 +28,6 @@ If no config files are specified, .confi
+ Example usage:
+  $ diffconfig .config config-with-some-changes
+ -EXT2_FS_XATTR  n
+--EXT2_FS_XIP  n
+  CRAMFS  n -> y
+  EXT2_FS  y -> n
+  LOG_BUF_SHIFT  14 -> 16
 _
 
 Patches currently in -mm which might be from matthew.r.wilcox@intel.com are
