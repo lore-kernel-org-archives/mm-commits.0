@@ -1,100 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kexec-add-bit-definitions-for-kimage-entry-flags.patch
- removed from -mm tree
-Date: Wed, 18 Feb 2015 11:43:13 -0800
-Message-ID: <54e4eb51.oDiIxfvI2BEj4LnE%akpm@linux-foundation.org>
+Subject: [merged] kexec-fix-make-headers_check.patch removed from -mm tree
+Date: Wed, 18 Feb 2015 11:43:07 -0800
+Message-ID: <54e4eb4b.h0UoUBO7V+WIH1UW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46051 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46030 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753766AbbBRTnO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Feb 2015 14:43:14 -0500
+	with ESMTP id S1753766AbbBRTnI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Feb 2015 14:43:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: geoff@infradead.org, arnd@arndb.de, benh@kernel.crashing.org, hpa@zytor.com, max@stro.at, mmarek@suse.cz, pebolle@tiscali.nl, vgoyal@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec: add bit definitions for kimage entry flags
+     Subject: kexec: Fix make headers_check
 has been removed from the -mm tree.  Its filename was
-     kexec-add-bit-definitions-for-kimage-entry-flags.patch
+     kexec-fix-make-headers_check.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Geoff Levand <geoff@infradead.org>
-Subject: kexec: add bit definitions for kimage entry flags
+Subject: kexec: Fix make headers_check
 
-Define new kexec preprocessor macros IND_*_BIT that define the bit
-position of the kimage entry flags.  Change the existing IND_* flag macros
-to be defined as bit shifts of the corresponding IND_*_BIT macros.  Also
-wrap all C language code in kexec.h with #if !defined(__ASSEMBLY__) so
-assembly files can include kexec.h to get the IND_* and IND_*_BIT macros.
+Remove the unneded declaration for a kexec_load() routine.
 
-Some CPU instruction sets have tests for bit position which are convenient
-in implementing routines that operate on the kimage entry list.  The
-addition of these bit position macros in a common location will avoid
-duplicate definitions and the chance that changes to the IND_* flags will
-not be propagated to assembly files.
+Fixes errors like these when running 'make headers_check':
+
+include/uapi/linux/kexec.h: userspace cannot reference function or variable defined in the kernel
+
+Paul said:
+
+: The kexec_load declaration isn't very useful for userspace, see the patch
+: I submitted in http://lkml.kernel.org/r/1389791824.17407.9.camel@x220 . 
+: And After my attempt the export of that declaration has also been
+: discussed in
+: http://lkml.kernel.org/r/115373b6ac68ee7a305975896e1c4971e8e51d4c.1408731991.git.geoff@infradead.org
+: 
+: In that last discussion no one has been able to point to an actual user of
+: it.  So, as far as I can tell, no one actually uses it.  Which makes
+: sense, because including this header by itself doesn't give one access to
+: a useful definition of kexec_load.  So why bother with the declaration?
 
 Signed-off-by: Geoff Levand <geoff@infradead.org>
-Acked-by: Vivek Goyal <vgoyal@redhat.com>
+Acked-by: Paul Bolle <pebolle@tiscali.nl>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: H. Peter Anvin <hpa@zytor.com>
 Cc: Maximilian Attems <max@stro.at>
 Cc: Michal Marek <mmarek@suse.cz>
-Cc: Paul Bolle <pebolle@tiscali.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kexec.h |   19 +++++++++++++++----
- 1 file changed, 15 insertions(+), 4 deletions(-)
+ include/uapi/linux/kexec.h |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN include/linux/kexec.h~kexec-add-bit-definitions-for-kimage-entry-flags include/linux/kexec.h
---- a/include/linux/kexec.h~kexec-add-bit-definitions-for-kimage-entry-flags
-+++ a/include/linux/kexec.h
-@@ -1,6 +1,18 @@
- #ifndef LINUX_KEXEC_H
- #define LINUX_KEXEC_H
+diff -puN include/uapi/linux/kexec.h~kexec-fix-make-headers_check include/uapi/linux/kexec.h
+--- a/include/uapi/linux/kexec.h~kexec-fix-make-headers_check
++++ a/include/uapi/linux/kexec.h
+@@ -55,12 +55,6 @@ struct kexec_segment {
+ 	size_t memsz;
+ };
  
-+#define IND_DESTINATION_BIT 0
-+#define IND_INDIRECTION_BIT 1
-+#define IND_DONE_BIT        2
-+#define IND_SOURCE_BIT      3
-+
-+#define IND_DESTINATION  (1 << IND_DESTINATION_BIT)
-+#define IND_INDIRECTION  (1 << IND_INDIRECTION_BIT)
-+#define IND_DONE         (1 << IND_DONE_BIT)
-+#define IND_SOURCE       (1 << IND_SOURCE_BIT)
-+
-+#if !defined(__ASSEMBLY__)
-+
- #include <uapi/linux/kexec.h>
+-/* Load a new kernel image as described by the kexec_segment array
+- * consisting of passed number of segments at the entry-point address.
+- * The flags allow different useage types.
+- */
+-extern int kexec_load(void *, size_t, struct kexec_segment *,
+-		unsigned long int);
+ #endif /* __KERNEL__ */
  
- #ifdef CONFIG_KEXEC
-@@ -64,10 +76,6 @@
-  */
- 
- typedef unsigned long kimage_entry_t;
--#define IND_DESTINATION  0x1
--#define IND_INDIRECTION  0x2
--#define IND_DONE         0x4
--#define IND_SOURCE       0x8
- 
- struct kexec_segment {
- 	/*
-@@ -311,4 +319,7 @@ struct task_struct;
- static inline void crash_kexec(struct pt_regs *regs) { }
- static inline int kexec_should_crash(struct task_struct *p) { return 0; }
- #endif /* CONFIG_KEXEC */
-+
-+#endif /* !defined(__ASSEBMLY__) */
-+
- #endif /* LINUX_KEXEC_H */
+ #endif /* _UAPILINUX_KEXEC_H */
 _
 
 Patches currently in -mm which might be from geoff@infradead.org are
