@@ -1,78 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-ufs-superc-fix-potential-race-condition.patch removed from -mm tree
-Date: Wed, 18 Feb 2015 11:42:52 -0800
-Message-ID: <54e4eb3c.oiOYW4UQ7e7wLLQ1%akpm@linux-foundation.org>
+Subject: [merged] fs-reiserfs-inodec-replace-0-by-null-for-pointers.patch
+ removed from -mm tree
+Date: Wed, 18 Feb 2015 11:42:54 -0800
+Message-ID: <54e4eb3e.RTAMuo3hbXbCJVVM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46007 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46009 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753748AbbBRTmx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Feb 2015 14:42:53 -0500
+	with ESMTP id S1752660AbbBRTmz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Feb 2015 14:42:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, dushistov@mail.ru, mm-commits@vger.kernel.org
+To: fabf@skynet.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/ufs/super.c: fix potential race condition
+     Subject: fs/reiserfs/inode.c: replace 0 by NULL for pointers
 has been removed from the -mm tree.  Its filename was
-     fs-ufs-superc-fix-potential-race-condition.patch
+     fs-reiserfs-inodec-replace-0-by-null-for-pointers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/ufs/super.c: fix potential race condition
+Subject: fs/reiserfs/inode.c: replace 0 by NULL for pointers
 
-Let locking subsystem decide on mutex management.  As reported by Andrew
-Morton this patch fixes a bug:
-
-: lock_ufs() is assuming that on non-preempt uniprocessor, the calling
-: code will run atomically up to the matching unlock_ufs().
-: 
-: But that isn't true. The very first site I looked at (ufs_frag_map)
-: does sb_bread() under lock_ufs().  And sb_bread() will call schedule(),
-: very commonly.
-: 
-: The ->mutex_owner stuff is a bit hacky but should work OK.
+Fix sparse warning:
+fs/reiserfs/inode.c:2769:19: warning: Using plain integer as NULL pointer
 
 Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Evgeniy Dushistov <dushistov@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ufs/super.c |    4 ----
- 1 file changed, 4 deletions(-)
+ fs/reiserfs/inode.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ufs/super.c~fs-ufs-superc-fix-potential-race-condition fs/ufs/super.c
---- a/fs/ufs/super.c~fs-ufs-superc-fix-potential-race-condition
-+++ a/fs/ufs/super.c
-@@ -95,22 +95,18 @@
+diff -puN fs/reiserfs/inode.c~fs-reiserfs-inodec-replace-0-by-null-for-pointers fs/reiserfs/inode.c
+--- a/fs/reiserfs/inode.c~fs-reiserfs-inodec-replace-0-by-null-for-pointers
++++ a/fs/reiserfs/inode.c
+@@ -2766,7 +2766,7 @@ static int reiserfs_write_begin(struct f
+ 	int old_ref = 0;
  
- void lock_ufs(struct super_block *sb)
- {
--#if defined(CONFIG_SMP) || defined (CONFIG_PREEMPT)
- 	struct ufs_sb_info *sbi = UFS_SB(sb);
- 
- 	mutex_lock(&sbi->mutex);
- 	sbi->mutex_owner = current;
--#endif
- }
- 
- void unlock_ufs(struct super_block *sb)
- {
--#if defined(CONFIG_SMP) || defined (CONFIG_PREEMPT)
- 	struct ufs_sb_info *sbi = UFS_SB(sb);
- 
- 	sbi->mutex_owner = NULL;
- 	mutex_unlock(&sbi->mutex);
--#endif
- }
- 
- static struct inode *ufs_nfs_get_inode(struct super_block *sb, u64 ino, u32 generation)
+  	inode = mapping->host;
+-	*fsdata = 0;
++	*fsdata = NULL;
+  	if (flags & AOP_FLAG_CONT_EXPAND &&
+  	    (pos & (inode->i_sb->s_blocksize - 1)) == 0) {
+  		pos ++;
 _
 
 Patches currently in -mm which might be from fabf@skynet.be are
