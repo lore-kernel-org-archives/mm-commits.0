@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-cma-allocation-trigger.patch added to -mm tree
-Date: Wed, 18 Feb 2015 14:18:30 -0800
-Message-ID: <54e50fb6.i8Li47lchdJAmXt6%akpm@linux-foundation.org>
+Subject: + mm-cma-release-trigger.patch added to -mm tree
+Date: Wed, 18 Feb 2015 14:18:32 -0800
+Message-ID: <54e50fb8.B50Tu0uz73ICmpxh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48110 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48115 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753076AbbBRWSb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Feb 2015 17:18:31 -0500
+	with ESMTP id S1753076AbbBRWSd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Feb 2015 17:18:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: sasha.levin@oracle.com, iamjoonsoo.kim@lge.com, konrad.wilk@oracle.com, lauraa@codeaurora.org, m.szyprowski@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: cma: allocation trigger
+     Subject: mm: cma: release trigger
 has been added to the -mm tree.  Its filename is
-     mm-cma-allocation-trigger.patch
+     mm-cma-release-trigger.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-cma-allocation-trigger.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-cma-release-trigger.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-cma-allocation-trigger.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-cma-release-trigger.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,15 +39,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sasha Levin <sasha.levin@oracle.com>
-Subject: mm: cma: allocation trigger
+Subject: mm: cma: release trigger
 
-Provides a userspace interface to trigger a CMA allocation.
+Provides a userspace interface to trigger a CMA release.
 
 Usage:
 
-	echo [pages] > alloc
+	echo [pages] > free
 
-This would provide testing/fuzzing access to the CMA allocation paths.
+This would provide testing/fuzzing access to the CMA release paths.
 
 Signed-off-by: Sasha Levin <sasha.levin@oracle.com>
 Acked-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
@@ -57,127 +57,83 @@ Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma.c       |    6 +++++
- mm/cma.h       |    4 +++
- mm/cma_debug.c |   54 ++++++++++++++++++++++++++++++++++++++++++++++-
- 3 files changed, 63 insertions(+), 1 deletion(-)
+ mm/cma_debug.c |   57 +++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 57 insertions(+)
 
-diff -puN mm/cma.c~mm-cma-allocation-trigger mm/cma.c
---- a/mm/cma.c~mm-cma-allocation-trigger
-+++ a/mm/cma.c
-@@ -121,6 +121,12 @@ static int __init cma_activate_area(stru
- 	} while (--i);
- 
- 	mutex_init(&cma->lock);
-+
-+#ifdef CONFIG_CMA_DEBUGFS
-+	INIT_HLIST_HEAD(&cma->mem_head);
-+	spin_lock_init(&cma->mem_head_lock);
-+#endif
-+
- 	return 0;
- 
- err:
-diff -puN mm/cma.h~mm-cma-allocation-trigger mm/cma.h
---- a/mm/cma.h~mm-cma-allocation-trigger
-+++ a/mm/cma.h
-@@ -7,6 +7,10 @@ struct cma {
- 	unsigned long   *bitmap;
- 	unsigned int order_per_bit; /* Order of pages represented by one bit */
- 	struct mutex    lock;
-+#ifdef CONFIG_CMA_DEBUGFS
-+	struct hlist_head mem_head;
-+	spinlock_t mem_head_lock;
-+#endif
- };
- 
- extern struct cma cma_areas[MAX_CMA_AREAS];
-diff -puN mm/cma_debug.c~mm-cma-allocation-trigger mm/cma_debug.c
---- a/mm/cma_debug.c~mm-cma-allocation-trigger
+diff -puN mm/cma_debug.c~mm-cma-release-trigger mm/cma_debug.c
+--- a/mm/cma_debug.c~mm-cma-release-trigger
 +++ a/mm/cma_debug.c
-@@ -7,9 +7,18 @@
+@@ -39,6 +39,60 @@ static void cma_add_to_cma_mem_list(stru
+ 	spin_unlock(&cma->mem_head_lock);
+ }
  
- #include <linux/debugfs.h>
- #include <linux/cma.h>
-+#include <linux/list.h>
-+#include <linux/kernel.h>
-+#include <linux/slab.h>
- 
- #include "cma.h"
- 
-+struct cma_mem {
-+	struct hlist_node node;
-+	struct page *p;
-+	unsigned long n;
-+};
-+
- static struct dentry *cma_debugfs_root;
- 
- static int cma_debugfs_get(void *data, u64 *val)
-@@ -23,6 +32,46 @@ static int cma_debugfs_get(void *data, u
- 
- DEFINE_SIMPLE_ATTRIBUTE(cma_debugfs_fops, cma_debugfs_get, NULL, "%llu\n");
- 
-+static void cma_add_to_cma_mem_list(struct cma *cma, struct cma_mem *mem)
++static struct cma_mem *cma_get_entry_from_list(struct cma *cma)
 +{
++	struct cma_mem *mem = NULL;
++
 +	spin_lock(&cma->mem_head_lock);
-+	hlist_add_head(&mem->node, &cma->mem_head);
++	if (!hlist_empty(&cma->mem_head)) {
++		mem = hlist_entry(cma->mem_head.first, struct cma_mem, node);
++		hlist_del_init(&mem->node);
++	}
 +	spin_unlock(&cma->mem_head_lock);
++
++	return mem;
 +}
 +
-+static int cma_alloc_mem(struct cma *cma, int count)
++static int cma_free_mem(struct cma *cma, int count)
 +{
-+	struct cma_mem *mem;
-+	struct page *p;
++	struct cma_mem *mem = NULL;
 +
-+	mem = kzalloc(sizeof(*mem), GFP_KERNEL);
-+	if (!mem)
-+		return -ENOMEM;
++	while (count) {
++		mem = cma_get_entry_from_list(cma);
++		if (mem == NULL)
++			return 0;
 +
-+	p = cma_alloc(cma, count, CONFIG_CMA_ALIGNMENT);
-+	if (!p) {
-+		kfree(mem);
-+		return -ENOMEM;
++		if (mem->n <= count) {
++			cma_release(cma, mem->p, mem->n);
++			count -= mem->n;
++			kfree(mem);
++		} else if (cma->order_per_bit == 0) {
++			cma_release(cma, mem->p, count);
++			mem->p += count;
++			mem->n -= count;
++			count = 0;
++			cma_add_to_cma_mem_list(cma, mem);
++		} else {
++			pr_debug("cma: cannot release partial block when order_per_bit != 0\n");
++			cma_add_to_cma_mem_list(cma, mem);
++			break;
++		}
 +	}
 +
-+	mem->p = p;
-+	mem->n = count;
-+
-+	cma_add_to_cma_mem_list(cma, mem);
-+
 +	return 0;
++
 +}
 +
-+static int cma_alloc_write(void *data, u64 val)
++static int cma_free_write(void *data, u64 val)
 +{
-+	int pages = val;
++        int pages = val;
 +	struct cma *cma = data;
 +
-+	return cma_alloc_mem(cma, pages);
++        return cma_free_mem(cma, pages);
 +}
 +
-+DEFINE_SIMPLE_ATTRIBUTE(cma_alloc_fops, NULL, cma_alloc_write, "%llu\n");
++DEFINE_SIMPLE_ATTRIBUTE(cma_free_fops, NULL, cma_free_write, "%llu\n");
 +
- static void cma_debugfs_add_one(struct cma *cma, int idx)
+ static int cma_alloc_mem(struct cma *cma, int count)
  {
- 	struct dentry *tmp;
-@@ -33,12 +82,15 @@ static void cma_debugfs_add_one(struct c
+ 	struct cma_mem *mem;
+@@ -85,6 +139,9 @@ static void cma_debugfs_add_one(struct c
+ 	debugfs_create_file("alloc", S_IWUSR, cma_debugfs_root, cma,
+ 				&cma_alloc_fops);
  
- 	tmp = debugfs_create_dir(name, cma_debugfs_root);
- 
-+	debugfs_create_file("alloc", S_IWUSR, cma_debugfs_root, cma,
-+				&cma_alloc_fops);
++	debugfs_create_file("free", S_IWUSR, cma_debugfs_root, cma,
++				&cma_free_fops);
 +
  	debugfs_create_file("base_pfn", S_IRUGO, tmp,
  				&cma->base_pfn, &cma_debugfs_fops);
  	debugfs_create_file("count", S_IRUGO, tmp,
- 				&cma->count, &cma_debugfs_fops);
- 	debugfs_create_file("order_per_bit", S_IRUGO, tmp,
--			&cma->order_per_bit, &cma_debugfs_fops);
-+				&cma->order_per_bit, &cma_debugfs_fops);
- 
- 	u32s = DIV_ROUND_UP(cma_bitmap_maxno(cma), BITS_PER_BYTE * sizeof(u32));
- 	debugfs_create_u32_array("bitmap", S_IRUGO, tmp, (u32*)cma->bitmap, u32s);
 _
 
 Patches currently in -mm which might be from sasha.levin@oracle.com are
