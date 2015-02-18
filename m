@@ -1,62 +1,41 @@
 From: akpm@linux-foundation.org
-Subject: [merged] scripts-gdb-port-to-python3-gdb77.patch removed from -mm tree
-Date: Wed, 18 Feb 2015 11:44:33 -0800
-Message-ID: <54e4eba1.CnB852WqC4LKxWUm%akpm@linux-foundation.org>
+Subject: [merged]
+ scripts-gdb-use-a-generator-instead-of-iterator-for-task-list.patch removed from -mm tree
+Date: Wed, 18 Feb 2015 11:44:39 -0800
+Message-ID: <54e4eba7.V7Bok8T4SG3hzEdd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46255 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46272 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754423AbbBRToe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Feb 2015 14:44:34 -0500
+	with ESMTP id S1754432AbbBRTok (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Feb 2015 14:44:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pktoss@gmail.com, andi@firstfloor.org, ben@bwidawsk.net, bp@suse.de, jan.kiszka@siemens.com, jason.wessel@windriver.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: daniel.wagner@bmw-carit.de, andi@firstfloor.org, ben@bwidawsk.net, bp@suse.de, jan.kiszka@siemens.com, jason.wessel@windriver.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/gdb: port to python3 / gdb7.7
+     Subject: scripts/gdb: use a generator instead of iterator for task list
 has been removed from the -mm tree.  Its filename was
-     scripts-gdb-port-to-python3-gdb77.patch
+     scripts-gdb-use-a-generator-instead-of-iterator-for-task-list.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Pantelis Koukousoulas <pktoss@gmail.com>
-Subject: scripts/gdb: port to python3 / gdb7.7
+From: Daniel Wagner <daniel.wagner@bmw-carit.de>
+Subject: scripts/gdb: use a generator instead of iterator for task list
 
-I tried to use these scripts in an ubuntu 14.04 host (gdb 7.7 compiled
-against python 3.3) but there were several errors.
+The iterator does not return any task_struct from the thread_group list
+because the first condition in the 'if not t or ...' will only be the
+first time None.
 
-I believe this patch fixes these issues so that the commands now work (I
-tested lx-symbols, lx-dmesg, lx-lsmod).
+Instead of keeping track of the state ourself in the next() function, we
+fall back using Python's generator.
 
-Main issues that needed to be resolved:
-
-  * In python 2 iterators have a "next()" method. In python 3 it is
-    __next__() instead (so let's just add both).
-
-  * In older python versions there was an implicit conversion
-    in object.__format__() (used when an object is in string.format())
-    where it was converting the object to str first and then
-    calling str's __format__(). This has now been removed so
-    we must explicitly convert to str the objects for which
-    we need to keep this behavior.
-
-  * In dmesg.py: in python 3 log_buf is now a "memoryview" object
-    which needs to be converted to a string in order to use string
-    methods like "splitlines()". Luckily memoryview exists in
-    python 2.7.6 as well, so we can convert log_buf to memoryview
-    and use the same code in both python 2 and python 3.
-
-This version of the patch has now been tested with gdb 7.7 and both python
-3.4 and python 2.7.6 (I think asking for at least python 2.7.6 is a
-reasonable requirement instead of complicating the code with version
-checks etc).
-
-Signed-off-by: Pantelis Koukousoulas <pktoss@gmail.com>
+Signed-off-by: Daniel Wagner <daniel.wagner@bmw-carit.de>
 Signed-off-by: Jan Kiszka <jan.kiszka@siemens.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Jason Wessel <jason.wessel@windriver.com>
@@ -66,141 +45,74 @@ Cc: Borislav Petkov <bp@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/cpus.py    |    5 ++++-
- scripts/gdb/linux/dmesg.py   |    3 ++-
- scripts/gdb/linux/modules.py |    9 ++++++---
- scripts/gdb/linux/symbols.py |    4 ++--
- scripts/gdb/linux/tasks.py   |    4 +++-
- scripts/gdb/linux/utils.py   |    2 +-
- 6 files changed, 18 insertions(+), 9 deletions(-)
+ scripts/gdb/linux/tasks.py |   50 ++++++++++++++---------------------
+ 1 file changed, 20 insertions(+), 30 deletions(-)
 
-diff -puN scripts/gdb/linux/cpus.py~scripts-gdb-port-to-python3-gdb77 scripts/gdb/linux/cpus.py
---- a/scripts/gdb/linux/cpus.py~scripts-gdb-port-to-python3-gdb77
-+++ a/scripts/gdb/linux/cpus.py
-@@ -82,7 +82,7 @@ class CpuList():
-     def __iter__(self):
-         return self
- 
--    def next(self):
-+    def __next__(self):
-         while self.bits == 0:
-             self.entry += 1
-             if self.entry == self.num_entries:
-@@ -103,6 +103,9 @@ class CpuList():
- 
-         return cpu
- 
-+    def next(self):
-+        return self.__next__()
-+
- 
- class PerCpu(gdb.Function):
-     """Return per-cpu variable.
-diff -puN scripts/gdb/linux/dmesg.py~scripts-gdb-port-to-python3-gdb77 scripts/gdb/linux/dmesg.py
---- a/scripts/gdb/linux/dmesg.py~scripts-gdb-port-to-python3-gdb77
-+++ a/scripts/gdb/linux/dmesg.py
-@@ -51,9 +51,10 @@ class LxDmesg(gdb.Command):
-                 continue
- 
-             text_len = utils.read_u16(log_buf[pos + 10:pos + 12])
-+            text = log_buf[pos + 16:pos + 16 + text_len]
-             time_stamp = utils.read_u64(log_buf[pos:pos + 8])
- 
--            for line in log_buf[pos + 16:pos + 16 + text_len].splitlines():
-+            for line in memoryview(text).tobytes().splitlines():
-                 gdb.write("[{time:12.6f}] {line}\n".format(
-                     time=time_stamp / 1000000000.0,
-                     line=line))
-diff -puN scripts/gdb/linux/modules.py~scripts-gdb-port-to-python3-gdb77 scripts/gdb/linux/modules.py
---- a/scripts/gdb/linux/modules.py~scripts-gdb-port-to-python3-gdb77
-+++ a/scripts/gdb/linux/modules.py
-@@ -30,7 +30,7 @@ class ModuleList:
-     def __iter__(self):
-         return self
- 
--    def next(self):
-+    def __next__(self):
-         entry = self.curr_entry
-         if entry != self.end_of_list:
-             self.curr_entry = entry['next']
-@@ -38,6 +38,9 @@ class ModuleList:
-         else:
-             raise StopIteration
- 
-+    def next(self):
-+        return self.__next__()
-+
- 
- def find_module_by_name(name):
-     for module in ModuleList():
-@@ -91,8 +94,8 @@ class LxLsmod(gdb.Command):
-             gdb.write("{address} {name:<19} {size:>8}  {ref}".format(
-                 address=str(module['module_core']).split()[0],
-                 name=module['name'].string(),
--                size=module['core_size'],
--                ref=ref))
-+                size=str(module['core_size']),
-+                ref=str(ref)))
- 
-             source_list = module['source_list']
-             t = self._module_use_type.get_type().pointer()
-diff -puN scripts/gdb/linux/symbols.py~scripts-gdb-port-to-python3-gdb77 scripts/gdb/linux/symbols.py
---- a/scripts/gdb/linux/symbols.py~scripts-gdb-port-to-python3-gdb77
-+++ a/scripts/gdb/linux/symbols.py
-@@ -73,7 +73,7 @@ lx-symbols command."""
- 
-     def _get_module_file(self, module_name):
-         module_pattern = ".*/{0}\.ko$".format(
--            string.replace(module_name, "_", r"[_\-]"))
-+            module_name.replace("_", r"[_\-]"))
-         for name in self.module_files:
-             if re.match(module_pattern, name) and os.path.exists(name):
-                 return name
-@@ -87,7 +87,7 @@ lx-symbols command."""
-         attrs = sect_attrs['attrs']
-         section_name_to_address = {
-             attrs[n]['name'].string() : attrs[n]['address']
--            for n in range(sect_attrs['nsections'])}
-+            for n in range(int(sect_attrs['nsections']))}
-         args = []
-         for section_name in [".data", ".data..read_mostly", ".rodata", ".bss"]:
-             address = section_name_to_address.get(section_name)
-diff -puN scripts/gdb/linux/tasks.py~scripts-gdb-port-to-python3-gdb77 scripts/gdb/linux/tasks.py
---- a/scripts/gdb/linux/tasks.py~scripts-gdb-port-to-python3-gdb77
+diff -puN scripts/gdb/linux/tasks.py~scripts-gdb-use-a-generator-instead-of-iterator-for-task-list scripts/gdb/linux/tasks.py
+--- a/scripts/gdb/linux/tasks.py~scripts-gdb-use-a-generator-instead-of-iterator-for-task-list
 +++ a/scripts/gdb/linux/tasks.py
-@@ -30,7 +30,7 @@ class TaskList:
-     def __iter__(self):
-         return self
+@@ -18,38 +18,28 @@ from linux import utils
  
+ task_type = utils.CachedType("struct task_struct")
+ 
+-
+-class TaskList:
+-    def __init__(self):
+-        global task_type
+-        self.task_ptr_type = task_type.get_type().pointer()
+-        self.init_task = gdb.parse_and_eval("init_task")
+-        self.curr_group = self.init_task.address
+-        self.curr_task = None
+-
+-    def __iter__(self):
+-        return self
+-
+-    def __next__(self):
+-        t = self.curr_task
+-        if not t or t == self.curr_group:
+-            self.curr_group = \
+-                utils.container_of(self.curr_group['tasks']['next'],
+-                                   self.task_ptr_type, "tasks")
+-            if self.curr_group == self.init_task.address:
+-                raise StopIteration
+-            t = self.curr_task = self.curr_group
+-        else:
+-            self.curr_task = \
+-                utils.container_of(t['thread_group']['next'],
+-                                   self.task_ptr_type, "thread_group")
+-        return t
+-
 -    def next(self):
-+    def __next__(self):
-         t = self.curr_task
-         if not t or t == self.curr_group:
-             self.curr_group = \
-@@ -45,6 +45,8 @@ class TaskList:
-                                    self.task_ptr_type, "thread_group")
-         return t
- 
-+    def next(self):
-+        return self.__next__()
+-        return self.__next__()
++def task_lists():
++    global task_type
++    task_ptr_type = task_type.get_type().pointer()
++    init_task = gdb.parse_and_eval("init_task").address
++    t = g = init_task
++
++    while True:
++        while True:
++            yield t
++
++            t = utils.container_of(t['thread_group']['next'],
++                                   task_ptr_type, "thread_group")
++            if t == g:
++                break
++
++        t = g = utils.container_of(g['tasks']['next'],
++                                   task_ptr_type, "tasks")
++        if t == init_task:
++            return
  
  def get_task_by_pid(pid):
-     for task in TaskList():
-diff -puN scripts/gdb/linux/utils.py~scripts-gdb-port-to-python3-gdb77 scripts/gdb/linux/utils.py
---- a/scripts/gdb/linux/utils.py~scripts-gdb-port-to-python3-gdb77
-+++ a/scripts/gdb/linux/utils.py
-@@ -83,7 +83,7 @@ def get_target_endianness():
-         elif "big endian" in endian:
-             target_endianness = BIG_ENDIAN
-         else:
--            raise gdb.GdgError("unknown endianness '{0}'".format(endian))
-+            raise gdb.GdgError("unknown endianness '{0}'".format(str(endian)))
-     return target_endianness
- 
- 
+-    for task in TaskList():
++    for task in task_lists():
+         if int(task['pid']) == pid:
+             return task
+     return None
 _
 
-Patches currently in -mm which might be from pktoss@gmail.com are
+Patches currently in -mm which might be from daniel.wagner@bmw-carit.de are
 
 origin.patch
 
