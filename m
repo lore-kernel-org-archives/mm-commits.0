@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-cma-debugfs-interface.patch added to -mm tree
-Date: Wed, 18 Feb 2015 14:18:28 -0800
-Message-ID: <54e50fb4.puvwoVGPuJvMAhMJ%akpm@linux-foundation.org>
+Subject: + mm-cma-allocation-trigger.patch added to -mm tree
+Date: Wed, 18 Feb 2015 14:18:30 -0800
+Message-ID: <54e50fb6.i8Li47lchdJAmXt6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48105 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48110 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753076AbbBRWS3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Feb 2015 17:18:29 -0500
+	with ESMTP id S1753076AbbBRWSb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Feb 2015 17:18:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: sasha.levin@oracle.com, iamjoonsoo.kim@lge.com, konrad.wilk@oracle.com, lauraa@codeaurora.org, m.szyprowski@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: cma: debugfs interface
+     Subject: mm: cma: allocation trigger
 has been added to the -mm tree.  Its filename is
-     mm-cma-debugfs-interface.patch
+     mm-cma-allocation-trigger.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-cma-debugfs-interface.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-cma-allocation-trigger.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-cma-debugfs-interface.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-cma-allocation-trigger.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,23 +39,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sasha Levin <sasha.levin@oracle.com>
-Subject: mm: cma: debugfs interface
+Subject: mm: cma: allocation trigger
 
-I've noticed that there is no interfaces exposed by CMA which would let me
-fuzz what's going on in there.
+Provides a userspace interface to trigger a CMA allocation.
 
-This small patchset exposes some information out to userspace, plus adds
-the ability to trigger allocation and freeing from userspace.
+Usage:
 
+	echo [pages] > alloc
 
-
-This patch (of 3):
-
-Implement a simple debugfs interface to expose information about CMA areas
-in the system.
-
-Useful for testing/sanity checks for CMA since it was impossible to
-previously retrieve this information in userspace.
+This would provide testing/fuzzing access to the CMA allocation paths.
 
 Signed-off-by: Sasha Levin <sasha.levin@oracle.com>
 Acked-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
@@ -65,161 +57,127 @@ Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig     |    6 ++++
- mm/Makefile    |    1 
- mm/cma.c       |   17 ++-----------
- mm/cma.h       |   20 +++++++++++++++
- mm/cma_debug.c |   61 +++++++++++++++++++++++++++++++++++++++++++++++
- 5 files changed, 91 insertions(+), 14 deletions(-)
+ mm/cma.c       |    6 +++++
+ mm/cma.h       |    4 +++
+ mm/cma_debug.c |   54 ++++++++++++++++++++++++++++++++++++++++++++++-
+ 3 files changed, 63 insertions(+), 1 deletion(-)
 
-diff -puN mm/Kconfig~mm-cma-debugfs-interface mm/Kconfig
---- a/mm/Kconfig~mm-cma-debugfs-interface
-+++ a/mm/Kconfig
-@@ -517,6 +517,12 @@ config CMA_DEBUG
- 	  processing calls such as dma_alloc_from_contiguous().
- 	  This option does not affect warning and error messages.
- 
-+config CMA_DEBUGFS
-+	bool "CMA debugfs interface"
-+	depends on CMA && DEBUG_FS
-+	help
-+	  Turns on the DebugFS interface for CMA.
-+
- config CMA_AREAS
- 	int "Maximum count of the CMA areas"
- 	depends on CMA
-diff -puN mm/Makefile~mm-cma-debugfs-interface mm/Makefile
---- a/mm/Makefile~mm-cma-debugfs-interface
-+++ a/mm/Makefile
-@@ -76,3 +76,4 @@ obj-$(CONFIG_GENERIC_EARLY_IOREMAP) += e
- obj-$(CONFIG_CMA)	+= cma.o
- obj-$(CONFIG_MEMORY_BALLOON) += balloon_compaction.o
- obj-$(CONFIG_PAGE_EXTENSION) += page_ext.o
-+obj-$(CONFIG_CMA_DEBUGFS) += cma_debug.o
-diff -puN mm/cma.c~mm-cma-debugfs-interface mm/cma.c
---- a/mm/cma.c~mm-cma-debugfs-interface
+diff -puN mm/cma.c~mm-cma-allocation-trigger mm/cma.c
+--- a/mm/cma.c~mm-cma-allocation-trigger
 +++ a/mm/cma.c
-@@ -35,16 +35,10 @@
- #include <linux/highmem.h>
- #include <linux/io.h>
+@@ -121,6 +121,12 @@ static int __init cma_activate_area(stru
+ 	} while (--i);
  
--struct cma {
--	unsigned long	base_pfn;
--	unsigned long	count;
--	unsigned long	*bitmap;
--	unsigned int order_per_bit; /* Order of pages represented by one bit */
--	struct mutex	lock;
--};
-+#include "cma.h"
- 
--static struct cma cma_areas[MAX_CMA_AREAS];
--static unsigned cma_area_count;
-+struct cma cma_areas[MAX_CMA_AREAS];
-+unsigned cma_area_count;
- static DEFINE_MUTEX(cma_mutex);
- 
- phys_addr_t cma_get_base(struct cma *cma)
-@@ -75,11 +69,6 @@ static unsigned long cma_bitmap_aligned_
- 		(cma->base_pfn >> cma->order_per_bit);
- }
- 
--static unsigned long cma_bitmap_maxno(struct cma *cma)
--{
--	return cma->count >> cma->order_per_bit;
--}
--
- static unsigned long cma_bitmap_pages_to_bits(struct cma *cma,
- 						unsigned long pages)
- {
-diff -puN /dev/null mm/cma.h
---- /dev/null
-+++ a/mm/cma.h
-@@ -0,0 +1,20 @@
-+#ifndef __MM_CMA_H__
-+#define __MM_CMA_H__
+ 	mutex_init(&cma->lock);
 +
-+struct cma {
-+	unsigned long   base_pfn;
-+	unsigned long   count;
-+	unsigned long   *bitmap;
-+	unsigned int order_per_bit; /* Order of pages represented by one bit */
-+	struct mutex    lock;
++#ifdef CONFIG_CMA_DEBUGFS
++	INIT_HLIST_HEAD(&cma->mem_head);
++	spin_lock_init(&cma->mem_head_lock);
++#endif
++
+ 	return 0;
+ 
+ err:
+diff -puN mm/cma.h~mm-cma-allocation-trigger mm/cma.h
+--- a/mm/cma.h~mm-cma-allocation-trigger
++++ a/mm/cma.h
+@@ -7,6 +7,10 @@ struct cma {
+ 	unsigned long   *bitmap;
+ 	unsigned int order_per_bit; /* Order of pages represented by one bit */
+ 	struct mutex    lock;
++#ifdef CONFIG_CMA_DEBUGFS
++	struct hlist_head mem_head;
++	spinlock_t mem_head_lock;
++#endif
+ };
+ 
+ extern struct cma cma_areas[MAX_CMA_AREAS];
+diff -puN mm/cma_debug.c~mm-cma-allocation-trigger mm/cma_debug.c
+--- a/mm/cma_debug.c~mm-cma-allocation-trigger
++++ a/mm/cma_debug.c
+@@ -7,9 +7,18 @@
+ 
+ #include <linux/debugfs.h>
+ #include <linux/cma.h>
++#include <linux/list.h>
++#include <linux/kernel.h>
++#include <linux/slab.h>
+ 
+ #include "cma.h"
+ 
++struct cma_mem {
++	struct hlist_node node;
++	struct page *p;
++	unsigned long n;
 +};
 +
-+extern struct cma cma_areas[MAX_CMA_AREAS];
-+extern unsigned cma_area_count;
-+
-+static unsigned long cma_bitmap_maxno(struct cma *cma)
+ static struct dentry *cma_debugfs_root;
+ 
+ static int cma_debugfs_get(void *data, u64 *val)
+@@ -23,6 +32,46 @@ static int cma_debugfs_get(void *data, u
+ 
+ DEFINE_SIMPLE_ATTRIBUTE(cma_debugfs_fops, cma_debugfs_get, NULL, "%llu\n");
+ 
++static void cma_add_to_cma_mem_list(struct cma *cma, struct cma_mem *mem)
 +{
-+	return cma->count >> cma->order_per_bit;
++	spin_lock(&cma->mem_head_lock);
++	hlist_add_head(&mem->node, &cma->mem_head);
++	spin_unlock(&cma->mem_head_lock);
 +}
 +
-+#endif
-diff -puN /dev/null mm/cma_debug.c
---- /dev/null
-+++ a/mm/cma_debug.c
-@@ -0,0 +1,61 @@
-+/*
-+ * CMA DebugFS Interface
-+ *
-+ * Copyright (c) 2015 Sasha Levin <sasha.levin@oracle.com>
-+ */
-+
-+
-+#include <linux/debugfs.h>
-+#include <linux/cma.h>
-+
-+#include "cma.h"
-+
-+static struct dentry *cma_debugfs_root;
-+
-+static int cma_debugfs_get(void *data, u64 *val)
++static int cma_alloc_mem(struct cma *cma, int count)
 +{
-+	unsigned long *p = data;
++	struct cma_mem *mem;
++	struct page *p;
 +
-+	*val = *p;
-+
-+	return 0;
-+}
-+
-+DEFINE_SIMPLE_ATTRIBUTE(cma_debugfs_fops, cma_debugfs_get, NULL, "%llu\n");
-+
-+static void cma_debugfs_add_one(struct cma *cma, int idx)
-+{
-+	struct dentry *tmp;
-+	char name[16];
-+	int u32s;
-+
-+	sprintf(name, "cma-%d", idx);
-+
-+	tmp = debugfs_create_dir(name, cma_debugfs_root);
-+
-+	debugfs_create_file("base_pfn", S_IRUGO, tmp,
-+				&cma->base_pfn, &cma_debugfs_fops);
-+	debugfs_create_file("count", S_IRUGO, tmp,
-+				&cma->count, &cma_debugfs_fops);
-+	debugfs_create_file("order_per_bit", S_IRUGO, tmp,
-+			&cma->order_per_bit, &cma_debugfs_fops);
-+
-+	u32s = DIV_ROUND_UP(cma_bitmap_maxno(cma), BITS_PER_BYTE * sizeof(u32));
-+	debugfs_create_u32_array("bitmap", S_IRUGO, tmp, (u32*)cma->bitmap, u32s);
-+}
-+
-+static int __init cma_debugfs_init(void)
-+{
-+	int i;
-+
-+	cma_debugfs_root = debugfs_create_dir("cma", NULL);
-+	if (!cma_debugfs_root)
++	mem = kzalloc(sizeof(*mem), GFP_KERNEL);
++	if (!mem)
 +		return -ENOMEM;
 +
-+	for (i = 0; i < cma_area_count; i++)
-+		cma_debugfs_add_one(&cma_areas[i], i);
++	p = cma_alloc(cma, count, CONFIG_CMA_ALIGNMENT);
++	if (!p) {
++		kfree(mem);
++		return -ENOMEM;
++	}
++
++	mem->p = p;
++	mem->n = count;
++
++	cma_add_to_cma_mem_list(cma, mem);
 +
 +	return 0;
 +}
-+late_initcall(cma_debugfs_init);
 +
++static int cma_alloc_write(void *data, u64 val)
++{
++	int pages = val;
++	struct cma *cma = data;
++
++	return cma_alloc_mem(cma, pages);
++}
++
++DEFINE_SIMPLE_ATTRIBUTE(cma_alloc_fops, NULL, cma_alloc_write, "%llu\n");
++
+ static void cma_debugfs_add_one(struct cma *cma, int idx)
+ {
+ 	struct dentry *tmp;
+@@ -33,12 +82,15 @@ static void cma_debugfs_add_one(struct c
+ 
+ 	tmp = debugfs_create_dir(name, cma_debugfs_root);
+ 
++	debugfs_create_file("alloc", S_IWUSR, cma_debugfs_root, cma,
++				&cma_alloc_fops);
++
+ 	debugfs_create_file("base_pfn", S_IRUGO, tmp,
+ 				&cma->base_pfn, &cma_debugfs_fops);
+ 	debugfs_create_file("count", S_IRUGO, tmp,
+ 				&cma->count, &cma_debugfs_fops);
+ 	debugfs_create_file("order_per_bit", S_IRUGO, tmp,
+-			&cma->order_per_bit, &cma_debugfs_fops);
++				&cma->order_per_bit, &cma_debugfs_fops);
+ 
+ 	u32s = DIV_ROUND_UP(cma_bitmap_maxno(cma), BITS_PER_BYTE * sizeof(u32));
+ 	debugfs_create_u32_array("bitmap", S_IRUGO, tmp, (u32*)cma->bitmap, u32s);
 _
 
 Patches currently in -mm which might be from sasha.levin@oracle.com are
