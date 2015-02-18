@@ -1,84 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kexec-fix-make-headers_check.patch removed from -mm tree
-Date: Wed, 18 Feb 2015 11:43:07 -0800
-Message-ID: <54e4eb4b.h0UoUBO7V+WIH1UW%akpm@linux-foundation.org>
+Subject: [merged] kexec-add-ind_flags-macro.patch removed from -mm tree
+Date: Wed, 18 Feb 2015 11:43:16 -0800
+Message-ID: <54e4eb54.9By2+vcdyo54o1rs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46030 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46060 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753766AbbBRTnI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Feb 2015 14:43:08 -0500
+	with ESMTP id S1753766AbbBRTnR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Feb 2015 14:43:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: geoff@infradead.org, arnd@arndb.de, benh@kernel.crashing.org, hpa@zytor.com, max@stro.at, mmarek@suse.cz, pebolle@tiscali.nl, vgoyal@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec: Fix make headers_check
+     Subject: kexec: add IND_FLAGS macro
 has been removed from the -mm tree.  Its filename was
-     kexec-fix-make-headers_check.patch
+     kexec-add-ind_flags-macro.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Geoff Levand <geoff@infradead.org>
-Subject: kexec: Fix make headers_check
+Subject: kexec: add IND_FLAGS macro
 
-Remove the unneded declaration for a kexec_load() routine.
-
-Fixes errors like these when running 'make headers_check':
-
-include/uapi/linux/kexec.h: userspace cannot reference function or variable defined in the kernel
-
-Paul said:
-
-: The kexec_load declaration isn't very useful for userspace, see the patch
-: I submitted in http://lkml.kernel.org/r/1389791824.17407.9.camel@x220 . 
-: And After my attempt the export of that declaration has also been
-: discussed in
-: http://lkml.kernel.org/r/115373b6ac68ee7a305975896e1c4971e8e51d4c.1408731991.git.geoff@infradead.org
-: 
-: In that last discussion no one has been able to point to an actual user of
-: it.  So, as far as I can tell, no one actually uses it.  Which makes
-: sense, because including this header by itself doesn't give one access to
-: a useful definition of kexec_load.  So why bother with the declaration?
+Add a new kexec preprocessor macro IND_FLAGS, which is the bitwise OR of
+all the possible kexec IND_ kimage_entry indirection flags.  Having this
+macro allows for simplified code in the prosessing of the kexec
+kimage_entry items.  Also, remove the local powerpc definition and use the
+generic one.
 
 Signed-off-by: Geoff Levand <geoff@infradead.org>
-Acked-by: Paul Bolle <pebolle@tiscali.nl>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
+Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Acked-by: Vivek Goyal <vgoyal@redhat.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Maximilian Attems <max@stro.at>
 Cc: Michal Marek <mmarek@suse.cz>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Paul Bolle <pebolle@tiscali.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/linux/kexec.h |    6 ------
- 1 file changed, 6 deletions(-)
+ arch/powerpc/kernel/machine_kexec_64.c |    2 --
+ include/linux/kexec.h                  |    1 +
+ 2 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN include/uapi/linux/kexec.h~kexec-fix-make-headers_check include/uapi/linux/kexec.h
---- a/include/uapi/linux/kexec.h~kexec-fix-make-headers_check
-+++ a/include/uapi/linux/kexec.h
-@@ -55,12 +55,6 @@ struct kexec_segment {
- 	size_t memsz;
- };
+diff -puN arch/powerpc/kernel/machine_kexec_64.c~kexec-add-ind_flags-macro arch/powerpc/kernel/machine_kexec_64.c
+--- a/arch/powerpc/kernel/machine_kexec_64.c~kexec-add-ind_flags-macro
++++ a/arch/powerpc/kernel/machine_kexec_64.c
+@@ -96,8 +96,6 @@ int default_machine_kexec_prepare(struct
+ 	return 0;
+ }
  
--/* Load a new kernel image as described by the kexec_segment array
-- * consisting of passed number of segments at the entry-point address.
-- * The flags allow different useage types.
-- */
--extern int kexec_load(void *, size_t, struct kexec_segment *,
--		unsigned long int);
- #endif /* __KERNEL__ */
- 
- #endif /* _UAPILINUX_KEXEC_H */
-_
-
-Patches currently in -mm which might be from geoff@infradead.org are
-
-origin.patch
-
+-#define IND_FLAGS (IND_DESTINATION | IND_INDIRECTION | IND_DONE | IND_SOURCE)
