@@ -1,90 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- kexec-remove-never-used-member-destination-in-kimage.patch removed from -mm tree
-Date: Wed, 18 Feb 2015 11:43:02 -0800
-Message-ID: <54e4eb46.psFrtaA+ENqmy538%akpm@linux-foundation.org>
+Subject: [merged] kexec-simplify-conditional.patch removed from -mm tree
+Date: Wed, 18 Feb 2015 11:43:10 -0800
+Message-ID: <54e4eb4e.49ZWMDVtWd2EhKcQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46020 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46043 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753766AbbBRTnD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Feb 2015 14:43:03 -0500
+	with ESMTP id S1753766AbbBRTnL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Feb 2015 14:43:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bhe@redhat.com, ebiederm@xmission.com, vgoyal@redhat.com, mm-commits@vger.kernel.org
+To: geoff@infradead.org, arnd@arndb.de, benh@kernel.crashing.org, hpa@zytor.com, max@stro.at, mmarek@suse.cz, pebolle@tiscali.nl, vgoyal@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec: remove never used member destination  in kimage
+     Subject: kexec: simplify conditional
 has been removed from the -mm tree.  Its filename was
-     kexec-remove-never-used-member-destination-in-kimage.patch
+     kexec-simplify-conditional.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Baoquan He <bhe@redhat.com>
-Subject: kexec: remove never used member destination  in kimage
+From: Geoff Levand <geoff@infradead.org>
+Subject: kexec: simplify conditional
 
-struct kimage has a member destination which is used to store the real
-destination address of each page when load segment from user space buffer
-to kernel.  But we never retrieve the value stored in kimage->destination,
-so this member variable in kimage and its assignment operation are
-redundent code.
+Simplify the code around one of the conditionals in the kexec_load syscall
+routine.
 
-I guess for_each_kimage_entry just does the work that kimage->destination
-is expected to do.
+The original code was confusing with a redundant check on KEXEC_ON_CRASH
+and comments outside of the conditional block.  This change switches the
+order of the conditional check, and cleans up the comments for the
+conditional.  There is no functional change to the code.
 
-So in this patch just make a cleanup to remove it.
-
-Signed-off-by: Baoquan He <bhe@redhat.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
+Signed-off-by: Geoff Levand <geoff@infradead.org>
+Acked-by: Vivek Goyal <vgoyal@redhat.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Maximilian Attems <max@stro.at>
+Cc: Michal Marek <mmarek@suse.cz>
+Cc: Paul Bolle <pebolle@tiscali.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kexec.h |    2 --
- kernel/kexec.c        |    4 ----
- 2 files changed, 6 deletions(-)
+ kernel/kexec.c |   17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/kexec.h~kexec-remove-never-used-member-destination-in-kimage include/linux/kexec.h
---- a/include/linux/kexec.h~kexec-remove-never-used-member-destination-in-kimage
-+++ a/include/linux/kexec.h
-@@ -122,8 +122,6 @@ struct kimage {
- 	kimage_entry_t *entry;
- 	kimage_entry_t *last_entry;
- 
--	unsigned long destination;
--
- 	unsigned long start;
- 	struct page *control_code_page;
- 	struct page *swap_page;
-diff -puN kernel/kexec.c~kexec-remove-never-used-member-destination-in-kimage kernel/kexec.c
---- a/kernel/kexec.c~kexec-remove-never-used-member-destination-in-kimage
+diff -puN kernel/kexec.c~kexec-simplify-conditional kernel/kexec.c
+--- a/kernel/kexec.c~kexec-simplify-conditional
 +++ a/kernel/kexec.c
-@@ -856,8 +856,6 @@ static int kimage_set_destination(struct
+@@ -1284,19 +1284,22 @@ SYSCALL_DEFINE4(kexec_load, unsigned lon
+ 	if (nr_segments > 0) {
+ 		unsigned long i;
  
- 	destination &= PAGE_MASK;
- 	result = kimage_add_entry(image, destination | IND_DESTINATION);
--	if (result == 0)
--		image->destination = destination;
- 
- 	return result;
- }
-@@ -869,8 +867,6 @@ static int kimage_add_page(struct kimage
- 
- 	page &= PAGE_MASK;
- 	result = kimage_add_entry(image, page | IND_SOURCE);
--	if (result == 0)
--		image->destination += PAGE_SIZE;
- 
- 	return result;
- }
+-		/* Loading another kernel to reboot into */
+-		if ((flags & KEXEC_ON_CRASH) == 0)
+-			result = kimage_alloc_init(&image, entry, nr_segments,
+-						   segments, flags);
+-		/* Loading another kernel to switch to if this one crashes */
+-		else if (flags & KEXEC_ON_CRASH) {
+-			/* Free any current crash dump kernel before
++		if (flags & KEXEC_ON_CRASH) {
++			/*
++			 * Loading another kernel to switch to if this one
++			 * crashes.  Free any current crash dump kernel before
+ 			 * we corrupt it.
+ 			 */
++
+ 			kimage_free(xchg(&kexec_crash_image, NULL));
+ 			result = kimage_alloc_init(&image, entry, nr_segments,
+ 						   segments, flags);
+ 			crash_map_reserved_pages();
++		} else {
++			/* Loading another kernel to reboot into. */
++
++			result = kimage_alloc_init(&image, entry, nr_segments,
++						   segments, flags);
+ 		}
+ 		if (result)
+ 			goto out;
 _
 
-Patches currently in -mm which might be from bhe@redhat.com are
+Patches currently in -mm which might be from geoff@infradead.org are
 
 origin.patch
 
