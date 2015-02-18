@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + arc-do-not-export-symbols-in-troubleshootc.patch added to -mm
+Subject: + fs-fat-comment-fix-fat_bits-can-be-also-32.patch added to -mm
  tree
-Date: Wed, 18 Feb 2015 12:18:54 -0800
-Message-ID: <54e4f3ae.G5sjiYVZuWC/kQc5%akpm@linux-foundation.org>
+Date: Wed, 18 Feb 2015 12:19:56 -0800
+Message-ID: <54e4f3ec.9cSmlULC3faqo4XD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46698 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46701 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752505AbbBRUSz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Feb 2015 15:18:55 -0500
+	with ESMTP id S1753271AbbBRUT5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Feb 2015 15:19:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave@stgolabs.net, dbueso@suse.de, vgupta@synopsys.com, mm-commits@vger.kernel.org
+To: kuleshovmail@gmail.com, hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arc: do not export symbols in troubleshoot.c
+     Subject: fs/fat: comment fix, fat_bits can be also 32
 has been added to the -mm tree.  Its filename is
-     arc-do-not-export-symbols-in-troubleshootc.patch
+     fs-fat-comment-fix-fat_bits-can-be-also-32.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arc-do-not-export-symbols-in-troubleshootc.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-fat-comment-fix-fat_bits-can-be-also-32.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arc-do-not-export-symbols-in-troubleshootc.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-fat-comment-fix-fat_bits-can-be-also-32.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,44 +39,35 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: arc: do not export symbols in troubleshoot.c
+From: Alexander Kuleshov <kuleshovmail@gmail.com>
+Subject: fs/fat: comment fix, fat_bits can be also 32
 
-print_task_path_n_nm() is local to this file, its only user being
-show_regs().  Mark the function static and avoid the EXPORT_SYMBOL.
-
-Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
-Cc: Vineet Gupta <vgupta@synopsys.com>
+Signed-off-by: Alexander Kuleshov <kuleshovmail@gmail.com>
+Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arc/kernel/troubleshoot.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/fat/fat.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/arc/kernel/troubleshoot.c~arc-do-not-export-symbols-in-troubleshootc arch/arc/kernel/troubleshoot.c
---- a/arch/arc/kernel/troubleshoot.c~arc-do-not-export-symbols-in-troubleshootc
-+++ a/arch/arc/kernel/troubleshoot.c
-@@ -52,7 +52,7 @@ static void show_callee_regs(struct call
- 	print_reg_file(&(cregs->r13), 13);
- }
- 
--void print_task_path_n_nm(struct task_struct *tsk, char *buf)
-+static void print_task_path_n_nm(struct task_struct *tsk, char *buf)
- {
- 	struct path path;
- 	char *path_nm = NULL;
-@@ -77,7 +77,6 @@ void print_task_path_n_nm(struct task_st
- done:
- 	pr_info("Path: %s\n", path_nm);
- }
--EXPORT_SYMBOL(print_task_path_n_nm);
- 
- static void show_faulting_vma(unsigned long address, char *buf)
- {
+diff -puN fs/fat/fat.h~fs-fat-comment-fix-fat_bits-can-be-also-32 fs/fat/fat.h
+--- a/fs/fat/fat.h~fs-fat-comment-fix-fat_bits-can-be-also-32
++++ a/fs/fat/fat.h
+@@ -63,7 +63,7 @@ struct msdos_sb_info {
+ 	unsigned short sec_per_clus;  /* sectors/cluster */
+ 	unsigned short cluster_bits;  /* log2(cluster_size) */
+ 	unsigned int cluster_size;    /* cluster size */
+-	unsigned char fats, fat_bits; /* number of FATs, FAT bits (12 or 16) */
++	unsigned char fats, fat_bits; /* number of FATs, FAT bits (12,16 or 32) */
+ 	unsigned short fat_start;
+ 	unsigned long fat_length;     /* FAT start & length (sec.) */
+ 	unsigned long dir_start;
 _
 
-Patches currently in -mm which might be from dave@stgolabs.net are
+Patches currently in -mm which might be from kuleshovmail@gmail.com are
 
 origin.patch
-arc-do-not-export-symbols-in-troubleshootc.patch
+fs-fat-remove-unnecessary-defintion.patch
+fs-fat-remove-unnecessary-includes.patch
+fs-fat-comment-fix-fat_bits-can-be-also-32.patch
 
