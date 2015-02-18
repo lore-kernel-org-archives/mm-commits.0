@@ -1,96 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- vmcore-fix-pt_note-n_namesz-n_descsz-overflow-issue.patch removed from -mm
- tree
-Date: Wed, 18 Feb 2015 11:43:19 -0800
-Message-ID: <54e4eb57.2REV/+tujRvkpfXt%akpm@linux-foundation.org>
+Subject: [merged] fs-affs-filec-fix-direct-io-writes-beyond-eof.patch
+ removed from -mm tree
+Date: Wed, 18 Feb 2015 11:43:30 -0800
+Message-ID: <54e4eb62.NTH3qNBMIk90esM+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46065 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46082 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753506AbbBRTnU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Feb 2015 14:43:20 -0500
+	with ESMTP id S1753896AbbBRTnb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Feb 2015 14:43:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chaowang@redhat.com, anderson@redhat.com, bhe@redhat.com, fabf@skynet.be, greg.pearson@hp.com, paul.gortmaker@windriver.com, rashika.kheria@gmail.com, rwright@hp.com, vgoyal@redhat.com, vkuznets@redhat.com, mm-commits@vger.kernel.org
+To: fabf@skynet.be, jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: vmcore: fix PT_NOTE n_namesz, n_descsz overflow issue
+     Subject: fs/affs/file.c: fix direct IO writes beyond EOF
 has been removed from the -mm tree.  Its filename was
-     vmcore-fix-pt_note-n_namesz-n_descsz-overflow-issue.patch
+     fs-affs-filec-fix-direct-io-writes-beyond-eof.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: WANG Chao <chaowang@redhat.com>
-Subject: vmcore: fix PT_NOTE n_namesz, n_descsz overflow issue
+From: Fabian Frederick <fabf@skynet.be>
+Subject: fs/affs/file.c: fix direct IO writes beyond EOF
 
-When updating PT_NOTE header size (ie.  p_memsz), an overflow issue
-happens with the following bogus note entry:
+Use the same fallback to normal IO in case of write
+operations beyond EOF as fat direct IO. This patch fixes
 
-n_namesz = 0xFFFFFFFF
-n_descsz = 0x0
-n_type   = 0x0
+fsx file -d -Z -r 4096 -w 4096
 
-This kind of note entry should be dropped during updating p_memsz.  But
-because n_namesz is 32bit, after (n_namesz + 3) & (~3), it's overflow to
-0x0, the note entry size looks sane and reserved.
+Report:
+129(129 mod 256): TRUNCATE DOWN from 0x3ff01 to 0xb3f6
+130(130 mod 256): WRITE    0x22000 thru 0x2dfff (0xc000 bytes) HOLE
 
-When userspace (eg.  crash utility) is trying to access such bogus note,
-it could lead to an unexpected behavior (eg.  crash utility segment fault
-because it's reading bogus address).
+Thanks to Jan for helping me on this problem.
 
-The source of bogus note hasn't been identified yet.  At least we could
-drop the bogus note so user space wouldn't be surprised.
+The ideal solution suggested by Jan Kara would be to use
+cont_write_begin() but affs direct_IO shouldn't be used a lot anyway...
 
-Signed-off-by: WANG Chao <chaowang@redhat.com>
-Cc: Dave Anderson <anderson@redhat.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Randy Wright <rwright@hp.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: Fabian Frederick <fabf@skynet.be>
-Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
-Cc: Rashika Kheria <rashika.kheria@gmail.com>
-Cc: Greg Pearson <greg.pearson@hp.com>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Reviewed-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/vmcore.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ fs/affs/file.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN fs/proc/vmcore.c~vmcore-fix-pt_note-n_namesz-n_descsz-overflow-issue fs/proc/vmcore.c
---- a/fs/proc/vmcore.c~vmcore-fix-pt_note-n_namesz-n_descsz-overflow-issue
-+++ a/fs/proc/vmcore.c
-@@ -546,8 +546,8 @@ static int __init update_note_header_siz
- 		nhdr_ptr = notes_section;
- 		while (nhdr_ptr->n_namesz != 0) {
- 			sz = sizeof(Elf64_Nhdr) +
--				((nhdr_ptr->n_namesz + 3) & ~3) +
--				((nhdr_ptr->n_descsz + 3) & ~3);
-+				(((u64)nhdr_ptr->n_namesz + 3) & ~3) +
-+				(((u64)nhdr_ptr->n_descsz + 3) & ~3);
- 			if ((real_sz + sz) > max_sz) {
- 				pr_warn("Warning: Exceeded p_memsz, dropping PT_NOTE entry n_namesz=0x%x, n_descsz=0x%x\n",
- 					nhdr_ptr->n_namesz, nhdr_ptr->n_descsz);
-@@ -732,8 +732,8 @@ static int __init update_note_header_siz
- 		nhdr_ptr = notes_section;
- 		while (nhdr_ptr->n_namesz != 0) {
- 			sz = sizeof(Elf32_Nhdr) +
--				((nhdr_ptr->n_namesz + 3) & ~3) +
--				((nhdr_ptr->n_descsz + 3) & ~3);
-+				(((u64)nhdr_ptr->n_namesz + 3) & ~3) +
-+				(((u64)nhdr_ptr->n_descsz + 3) & ~3);
- 			if ((real_sz + sz) > max_sz) {
- 				pr_warn("Warning: Exceeded p_memsz, dropping PT_NOTE entry n_namesz=0x%x, n_descsz=0x%x\n",
- 					nhdr_ptr->n_namesz, nhdr_ptr->n_descsz);
+diff -puN fs/affs/file.c~fs-affs-filec-fix-direct-io-writes-beyond-eof fs/affs/file.c
+--- a/fs/affs/file.c~fs-affs-filec-fix-direct-io-writes-beyond-eof
++++ a/fs/affs/file.c
+@@ -398,6 +398,13 @@ affs_direct_IO(int rw, struct kiocb *ioc
+ 	size_t count = iov_iter_count(iter);
+ 	ssize_t ret;
+ 
++	if (rw == WRITE) {
++		loff_t size = offset + count;
++
++		if (AFFS_I(inode)->mmu_private < size)
++			return 0;
++	}
++
+ 	ret = blockdev_direct_IO(rw, iocb, inode, iter, offset, affs_get_block);
+ 	if (ret < 0 && (rw & WRITE))
+ 		affs_write_failed(mapping, offset + count);
 _
 
-Patches currently in -mm which might be from chaowang@redhat.com are
+Patches currently in -mm which might be from fabf@skynet.be are
 
 origin.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
 
