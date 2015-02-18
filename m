@@ -1,68 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [merged] seccomp-cap-seccomp_ret_errno-data-to-max_errno.patch
- removed from -mm tree
-Date: Wed, 18 Feb 2015 11:44:55 -0800
-Message-ID: <54e4ebb7.sIZFA/mA4O/JoLu/%akpm@linux-foundation.org>
+Subject: + rtc-ds1685-fix-ds1685_rtc_alarm_irq_enable-build-error.patch
+ added to -mm tree
+Date: Wed, 18 Feb 2015 12:14:41 -0800
+Message-ID: <54e4f2b1.oV1kYQUjR6SKOFEw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46310 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46675 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754432AbbBRTo4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Feb 2015 14:44:56 -0500
+	with ESMTP id S1751676AbbBRUOm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Feb 2015 15:14:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: keescook@chromium.org, ldv@altlinux.org, luto@amacapital.net, wad@chromium.org, mm-commits@vger.kernel.org
+To: arnd@arndb.de, a.zummo@towertech.it, kumba@gentoo.org, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: seccomp: cap SECCOMP_RET_ERRNO data to MAX_ERRNO
-has been removed from the -mm tree.  Its filename was
-     seccomp-cap-seccomp_ret_errno-data-to-max_errno.patch
+     Subject: rtc: ds1685: fix ds1685_rtc_alarm_irq_enable build error
+has been added to the -mm tree.  Its filename is
+     rtc-ds1685-fix-ds1685_rtc_alarm_irq_enable-build-error.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/rtc-ds1685-fix-ds1685_rtc_alarm_irq_enable-build-error.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-ds1685-fix-ds1685_rtc_alarm_irq_enable-build-error.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: seccomp: cap SECCOMP_RET_ERRNO data to MAX_ERRNO
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: rtc: ds1685: fix ds1685_rtc_alarm_irq_enable build error
 
-The value resulting from the SECCOMP_RET_DATA mask could exceed MAX_ERRNO
-when setting errno during a SECCOMP_RET_ERRNO filter action.  This makes
-sure we have a reliable value being set, so that an invalid errno will not
-be ignored by userspace.
+The newly added ds1685 driver causes a build error when enabled without
+CONFIG_RTC_INTF_DEV:
 
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Reported-by: Dmitry V. Levin <ldv@altlinux.org>
-Cc: Andy Lutomirski <luto@amacapital.net>
-Cc: Will Drewry <wad@chromium.org>
+drivers/rtc/rtc-ds1685.c:919:22: error: 'ds1685_rtc_alarm_irq_enable' undeclared here (not in a function)
+  .alarm_irq_enable = ds1685_rtc_alarm_irq_enable,
+
+Apparently the driver was incorrectly changed to reflect the interface
+change from 16380c153a69c ("RTC: Convert rtc drivers to use the
+alarm_irq_enable method"), which removed the respective #ifdef from all
+other rtc drivers.
+
+This does the same change that was merged for the other drivers before and
+removes the #ifdef, allowing the interrupts to be enabled through the
+in-kernel rtc interface independent of the existence of /dev/rtc.
+
+Fixes: aaaf5fbf56f ("rtc: add driver for DS1685 family of real time clocks")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Joshua Kinard <kumba@gentoo.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/seccomp.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/rtc/rtc-ds1685.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN kernel/seccomp.c~seccomp-cap-seccomp_ret_errno-data-to-max_errno kernel/seccomp.c
---- a/kernel/seccomp.c~seccomp-cap-seccomp_ret_errno-data-to-max_errno
-+++ a/kernel/seccomp.c
-@@ -629,7 +629,9 @@ static u32 __seccomp_phase1_filter(int t
+diff -puN drivers/rtc/rtc-ds1685.c~rtc-ds1685-fix-ds1685_rtc_alarm_irq_enable-build-error drivers/rtc/rtc-ds1685.c
+--- a/drivers/rtc/rtc-ds1685.c~rtc-ds1685-fix-ds1685_rtc_alarm_irq_enable-build-error
++++ a/drivers/rtc/rtc-ds1685.c
+@@ -528,7 +528,6 @@ ds1685_rtc_set_alarm(struct device *dev,
+ /* ----------------------------------------------------------------------- */
+ /* /dev/rtcX Interface functions */
  
- 	switch (action) {
- 	case SECCOMP_RET_ERRNO:
--		/* Set the low-order 16-bits as a errno. */
-+		/* Set low-order bits as an errno, capped at MAX_ERRNO. */
-+		if (data > MAX_ERRNO)
-+			data = MAX_ERRNO;
- 		syscall_set_return_value(current, task_pt_regs(current),
- 					 -data, 0);
- 		goto skip;
+-#ifdef CONFIG_RTC_INTF_DEV
+ /**
+  * ds1685_rtc_alarm_irq_enable - replaces ioctl() RTC_AIE on/off.
+  * @dev: pointer to device structure.
+@@ -557,7 +556,6 @@ ds1685_rtc_alarm_irq_enable(struct devic
+ 
+ 	return 0;
+ }
+-#endif
+ /* ----------------------------------------------------------------------- */
+ 
+ 
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from arnd@arndb.de are
 
 origin.patch
-aslr-fix-stack-randomization-on-64-bit-systems.patch
-lib-vsprintf-add-%pt-format-specifier.patch
+rtc-ds1685-fix-ds1685_rtc_alarm_irq_enable-build-error.patch
+ocfs2-use-64bit-variables-to-track-heartbeat-time.patch
 linux-next.patch
 
