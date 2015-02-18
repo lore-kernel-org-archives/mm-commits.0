@@ -1,40 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- scripts-gdb-add-internal-helper-and-convenience-function-for-per-cpu-lookup.patch removed from -mm tree
-Date: Wed, 18 Feb 2015 11:44:22 -0800
-Message-ID: <54e4eb96.RFYaHNqgQ9rQxrww%akpm@linux-foundation.org>
+Subject: [merged] scripts-gdb-add-class-to-iterate-over-cpu-masks.patch
+ removed from -mm tree
+Date: Wed, 18 Feb 2015 11:44:27 -0800
+Message-ID: <54e4eb9b.NiMKdoFXJ2p2SSAM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46215 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46232 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754374AbbBRToX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Feb 2015 14:44:23 -0500
+	with ESMTP id S1754423AbbBRTo2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Feb 2015 14:44:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jan.kiszka@siemens.com, andi@firstfloor.org, ben@bwidawsk.net, bp@suse.de, davem@davemloft.net, jason.wessel@windriver.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: jan.kiszka@siemens.com, andi@firstfloor.org, ben@bwidawsk.net, bp@suse.de, jason.wessel@windriver.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/gdb: add internal helper and convenience function for per-cpu lookup
+     Subject: scripts/gdb: add class to iterate over CPU masks
 has been removed from the -mm tree.  Its filename was
-     scripts-gdb-add-internal-helper-and-convenience-function-for-per-cpu-lookup.patch
+     scripts-gdb-add-class-to-iterate-over-cpu-masks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jan Kiszka <jan.kiszka@siemens.com>
-Subject: scripts/gdb: add internal helper and convenience function for per-cpu lookup
+Subject: scripts/gdb: add class to iterate over CPU masks
 
-This function allows to obtain a per-cpu variable, either of the current
-or an explicitly specified CPU.
-
-Note: sparc64 version is untested.
+Will be used first to count module references.  It is optimized to read
+the mask only once per stop.
 
 Signed-off-by: Jan Kiszka <jan.kiszka@siemens.com>
-Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Jason Wessel <jason.wessel@windriver.com>
 Cc: Andi Kleen <andi@firstfloor.org>
@@ -43,90 +40,73 @@ Cc: Borislav Petkov <bp@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/cpus.py  |   68 +++++++++++++++++++++++++++++++++++
- scripts/gdb/vmlinux-gdb.py |    1 
- 2 files changed, 69 insertions(+)
+ scripts/gdb/linux/cpus.py |   54 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 54 insertions(+)
 
-diff -puN /dev/null scripts/gdb/linux/cpus.py
---- /dev/null
+diff -puN scripts/gdb/linux/cpus.py~scripts-gdb-add-class-to-iterate-over-cpu-masks scripts/gdb/linux/cpus.py
+--- a/scripts/gdb/linux/cpus.py~scripts-gdb-add-class-to-iterate-over-cpu-masks
 +++ a/scripts/gdb/linux/cpus.py
-@@ -0,0 +1,68 @@
-+#
-+# gdb helper commands and functions for Linux kernel debugging
-+#
-+#  per-cpu tools
-+#
-+# Copyright (c) Siemens AG, 2011-2013
-+#
-+# Authors:
-+#  Jan Kiszka <jan.kiszka@siemens.com>
-+#
-+# This work is licensed under the terms of the GNU GPL version 2.
-+#
-+
-+import gdb
-+
-+from linux import tasks, utils
+@@ -50,6 +50,60 @@ def per_cpu(var_ptr, cpu):
+     return pointer.cast(var_ptr.type).dereference()
+ 
+ 
++cpu_mask = {}
 +
 +
-+MAX_CPUS = 4096
++def cpu_mask_invalidate(event):
++    global cpu_mask
++    cpu_mask = {}
++    gdb.events.stop.disconnect(cpu_mask_invalidate)
++    if hasattr(gdb.events, 'new_objfile'):
++        gdb.events.new_objfile.disconnect(cpu_mask_invalidate)
 +
 +
-+def get_current_cpu():
-+    if utils.get_gdbserver_type() == utils.GDBSERVER_QEMU:
-+        return gdb.selected_thread().num - 1
-+    elif utils.get_gdbserver_type() == utils.GDBSERVER_KGDB:
-+        tid = gdb.selected_thread().ptid[2]
-+        if tid > (0x100000000 - MAX_CPUS - 2):
-+            return 0x100000000 - tid - 2
-+        else:
-+            return tasks.get_thread_info(tasks.get_task_by_pid(tid))['cpu']
-+    else:
-+        raise gdb.GdbError("Sorry, obtaining the current CPU is not yet "
-+                           "supported with this gdb server.")
++class CpuList():
++    def __init__(self, mask_name):
++        global cpu_mask
++        self.mask = None
++        if mask_name in cpu_mask:
++            self.mask = cpu_mask[mask_name]
++        if self.mask is None:
++            self.mask = gdb.parse_and_eval(mask_name + ".bits")
++            if hasattr(gdb, 'events'):
++                cpu_mask[mask_name] = self.mask
++                gdb.events.stop.connect(cpu_mask_invalidate)
++                if hasattr(gdb.events, 'new_objfile'):
++                    gdb.events.new_objfile.connect(cpu_mask_invalidate)
++        self.bits_per_entry = self.mask[0].type.sizeof * 8
++        self.num_entries = self.mask.type.sizeof * 8 / self.bits_per_entry
++        self.entry = -1
++        self.bits = 0
++
++    def __iter__(self):
++        return self
++
++    def next(self):
++        while self.bits == 0:
++            self.entry += 1
++            if self.entry == self.num_entries:
++                raise StopIteration
++            self.bits = self.mask[self.entry]
++            if self.bits != 0:
++                self.bit = 0
++                break
++
++        while self.bits & 1 == 0:
++            self.bits >>= 1
++            self.bit += 1
++
++        cpu = self.entry * self.bits_per_entry + self.bit
++
++        self.bits >>= 1
++        self.bit += 1
++
++        return cpu
 +
 +
-+def per_cpu(var_ptr, cpu):
-+    if cpu == -1:
-+        cpu = get_current_cpu()
-+    if utils.is_target_arch("sparc:v9"):
-+        offset = gdb.parse_and_eval(
-+            "trap_block[{0}].__per_cpu_base".format(str(cpu)))
-+    else:
-+        try:
-+            offset = gdb.parse_and_eval(
-+                "__per_cpu_offset[{0}]".format(str(cpu)))
-+        except gdb.error:
-+            # !CONFIG_SMP case
-+            offset = 0
-+    pointer = var_ptr.cast(utils.get_long_type()) + offset
-+    return pointer.cast(var_ptr.type).dereference()
-+
-+
-+class PerCpu(gdb.Function):
-+    """Return per-cpu variable.
-+
-+$lx_per_cpu("VAR"[, CPU]): Return the per-cpu variable called VAR for the
-+given CPU number. If CPU is omitted, the CPU of the current context is used.
-+Note that VAR has to be quoted as string."""
-+
-+    def __init__(self):
-+        super(PerCpu, self).__init__("lx_per_cpu")
-+
-+    def invoke(self, var_name, cpu=-1):
-+        var_ptr = gdb.parse_and_eval("&" + var_name.string())
-+        return per_cpu(var_ptr, cpu)
-+
-+
-+PerCpu()
-diff -puN scripts/gdb/vmlinux-gdb.py~scripts-gdb-add-internal-helper-and-convenience-function-for-per-cpu-lookup scripts/gdb/vmlinux-gdb.py
---- a/scripts/gdb/vmlinux-gdb.py~scripts-gdb-add-internal-helper-and-convenience-function-for-per-cpu-lookup
-+++ a/scripts/gdb/vmlinux-gdb.py
-@@ -27,3 +27,4 @@ else:
-     import linux.modules
-     import linux.dmesg
-     import linux.tasks
-+    import linux.cpus
+ class PerCpu(gdb.Function):
+     """Return per-cpu variable.
+ 
 _
 
 Patches currently in -mm which might be from jan.kiszka@siemens.com are
