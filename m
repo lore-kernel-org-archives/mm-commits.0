@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-memblockc-name-the-local-variable-of-memblock_type-as-type.patch added
- to -mm tree
-Date: Wed, 18 Feb 2015 12:57:56 -0800
-Message-ID: <54e4fcd4.wXh+E1ybss0zXnan%akpm@linux-foundation.org>
+Subject: + rtc-pcf8563-simplify-return-from-function.patch added to -mm
+ tree
+Date: Wed, 18 Feb 2015 13:54:16 -0800
+Message-ID: <54e50a08.YCdyQSH5AF0HONb4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47504 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47953 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751787AbbBRU55 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Feb 2015 15:57:57 -0500
+	with ESMTP id S1752090AbbBRVyR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Feb 2015 16:54:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bhe@redhat.com, benh@kernel.crashing.org, mm-commits@vger.kernel.org
+To: robert.r.kmiec@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memblock.c: rename local variable of memblock_type to `type'
+     Subject: drivers/rtc/rtc-pcf8563.c: simplify return from function
 has been added to the -mm tree.  Its filename is
-     mm-memblockc-name-the-local-variable-of-memblock_type-as-type.patch
+     rtc-pcf8563-simplify-return-from-function.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memblockc-name-the-local-variable-of-memblock_type-as-type.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rtc-pcf8563-simplify-return-from-function.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memblockc-name-the-local-variable-of-memblock_type-as-type.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-pcf8563-simplify-return-from-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,45 +39,40 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Baoquan He <bhe@redhat.com>
-Subject: mm/memblock.c: rename local variable of memblock_type to `type'
+From: Robert Kmiec <robert.r.kmiec@gmail.com>
+Subject: drivers/rtc/rtc-pcf8563.c: simplify return from function
 
-A small cleanup.  Seems in e3239ff9 ("memblock: Rename memblock_region to
-memblock_type and memblock_property to memblock_region") this one was
-missed.
+This commit does not change any logic here.  It just makes the code easier
+to read.
 
-Signed-off-by: Baoquan He <bhe@redhat.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+This is how it looked like:
+If err != 0 return err;
+else return 0;
+
+Signed-off-by: Robert Kmiec <robert.r.kmiec@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/rtc/rtc-pcf8563.c |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-diff -puN mm/memblock.c~mm-memblockc-name-the-local-variable-of-memblock_type-as-type mm/memblock.c
---- a/mm/memblock.c~mm-memblockc-name-the-local-variable-of-memblock_type-as-type
-+++ a/mm/memblock.c
-@@ -699,14 +699,14 @@ static int __init_memblock memblock_rese
- 						   int nid,
- 						   unsigned long flags)
+diff -puN drivers/rtc/rtc-pcf8563.c~rtc-pcf8563-simplify-return-from-function drivers/rtc/rtc-pcf8563.c
+--- a/drivers/rtc/rtc-pcf8563.c~rtc-pcf8563-simplify-return-from-function
++++ a/drivers/rtc/rtc-pcf8563.c
+@@ -246,7 +246,6 @@ static int pcf8563_get_datetime(struct i
+ static int pcf8563_set_datetime(struct i2c_client *client, struct rtc_time *tm)
  {
--	struct memblock_type *_rgn = &memblock.reserved;
-+	struct memblock_type *type = &memblock.reserved;
+ 	struct pcf8563 *pcf8563 = i2c_get_clientdata(client);
+-	int err;
+ 	unsigned char buf[9];
  
- 	memblock_dbg("memblock_reserve: [%#016llx-%#016llx] flags %#02lx %pF\n",
- 		     (unsigned long long)base,
- 		     (unsigned long long)base + size - 1,
- 		     flags, (void *)_RET_IP_);
+ 	dev_dbg(&client->dev, "%s: secs=%d, mins=%d, hours=%d, "
+@@ -272,12 +271,8 @@ static int pcf8563_set_datetime(struct i
  
--	return memblock_add_range(_rgn, base, size, nid, flags);
-+	return memblock_add_range(type, base, size, nid, flags);
- }
+ 	buf[PCF8563_REG_DW] = tm->tm_wday & 0x07;
  
- int __init_memblock memblock_reserve(phys_addr_t base, phys_addr_t size)
-_
-
-Patches currently in -mm which might be from bhe@redhat.com are
-
-origin.patch
-mm-memblockc-name-the-local-variable-of-memblock_type-as-type.patch
-
+-	err = pcf8563_write_block_data(client, PCF8563_REG_SC,
++	return pcf8563_write_block_data(client, PCF8563_REG_SC,
+ 				9 - PCF8563_REG_SC, buf + PCF8563_REG_SC);
+-	if (err)
+-		return err;
