@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-compaction-enhance-compaction-finish-condition.patch added
- to -mm tree
-Date: Wed, 18 Feb 2015 15:10:01 -0800
-Message-ID: <54e51bc9.A/S14VgYqmA692qK%akpm@linux-foundation.org>
+Subject: + mm-incorporate-zero-pages-into-transparent-huge-pages.patch
+ added to -mm tree
+Date: Wed, 18 Feb 2015 15:31:29 -0800
+Message-ID: <54e520d1./3yxsOAGHJxSa2KM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48405 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48461 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751646AbbBRXKD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Feb 2015 18:10:03 -0500
+	with ESMTP id S1751473AbbBRXba (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Feb 2015 18:31:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, mgorman@suse.de, riel@redhat.com, rientjes@google.com, vbabka@suse.cz, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: ebru.akagunduz@gmail.com, aarcange@redhat.com, hannes@cmpxchg.org, hughd@google.com, kirill.shutemov@linux.intel.com, mel@csn.ul.ie, riel@redhat.com, rientjes@google.com, sasha.levin@oracle.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/compaction: enhance compaction finish condition
+     Subject: mm: incorporate zero pages into transparent huge pages
 has been added to the -mm tree.  Its filename is
-     mm-compaction-enhance-compaction-finish-condition.patch
+     mm-incorporate-zero-pages-into-transparent-huge-pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-enhance-compaction-finish-condition.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-incorporate-zero-pages-into-transparent-huge-pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-enhance-compaction-finish-condition.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-incorporate-zero-pages-into-transparent-huge-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,163 +39,107 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/compaction: enhance compaction finish condition
+From: Ebru Akagunduz <ebru.akagunduz@gmail.com>
+Subject: mm: incorporate zero pages into transparent huge pages
 
-Compaction has anti fragmentation algorithm.  It is that freepage should
-be more than pageblock order to finish the compaction if we don't find any
-freepage in requested migratetype buddy list.  This is for mitigating
-fragmentation, but, there is a lack of migratetype consideration and it is
-too excessive compared to page allocator's anti fragmentation algorithm.
+This patch improves THP collapse rates, by allowing zero pages.
 
-Not considering migratetype would cause premature finish of compaction. 
-For example, if allocation request is for unmovable migratetype, freepage
-with CMA migratetype doesn't help that allocation and compaction should
-not be stopped.  But, current logic regards this situation as compaction
-is no longer needed, so finish the compaction.
+Currently THP can collapse 4kB pages into a THP when there are up to
+khugepaged_max_ptes_none pte_none ptes in a 2MB range.  This patch counts
+pte none and mapped zero pages with the same variable.
 
-Secondly, condition is too excessive compared to page allocator's logic. 
-We can steal freepage from other migratetype and change pageblock
-migratetype on more relaxed conditions in page allocator.  This is
-designed to prevent fragmentation and we can use it here.  Imposing hard
-constraint only to the compaction doesn't help much in this case since
-page allocator would cause fragmentation again.
+The patch was tested with a program that allocates 800MB of
+memory, and performs interleaved reads and writes, in a pattern
+that causes some 2MB areas to first see read accesses, resulting
+in the zero pfn being mapped there.
 
-To solve these problems, this patch borrows anti fragmentation logic from
-page allocator.  It will reduce premature compaction finish in some cases
-and reduce excessive compaction work.
+To simulate memory fragmentation at allocation time, I modified
+do_huge_pmd_anonymous_page to return VM_FAULT_FALLBACK for read faults.
 
-stress-highalloc test in mmtests with non movable order 7 allocation shows
-considerable increase of compaction success rate.
+Without the patch, only %50 of the program was collapsed into THP and the
+percentage did not increase over time.
 
-Compaction success rate (Compaction success * 100 / Compaction stalls, %)
-31.82 : 42.20
+With this patch after 10 minutes of waiting khugepaged had collapsed %99
+of the program's memory.
 
-I tested it on non-reboot 5 runs stress-highalloc benchmark and found that
-there is no more degradation on allocation success rate than before.  That
-roughly means that this patch doesn't result in more fragmentations.
-
-Vlastimil suggests additional idea that we only test for fallbacks when
-migration scanner has scanned a whole pageblock.  It looked good for
-fragmentation because chance of stealing increase due to making more free
-pages in certain pageblock.  So, I tested it, but, it results in decreased
-compaction success rate, roughly 38.00.  I guess the reason that if system
-is low memory condition, watermark check could be failed due to not enough
-order 0 free page and so, sometimes, we can't reach a fallback check
-although migrate_pfn is aligned to pageblock_nr_pages.  I can insert code
-to cope with this situation but it makes code more complicated so I don't
-include his idea at this patch.
-
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Signed-off-by: Ebru Akagunduz <ebru.akagunduz@gmail.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@suse.de>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Sasha Levin <sasha.levin@oracle.com>
 Cc: David Rientjes <rientjes@google.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   14 ++++++++++++--
- mm/internal.h   |    2 ++
- mm/page_alloc.c |   19 ++++++++++++++-----
- 3 files changed, 28 insertions(+), 7 deletions(-)
+ mm/huge_memory.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-enhance-compaction-finish-condition mm/compaction.c
---- a/mm/compaction.c~mm-compaction-enhance-compaction-finish-condition
-+++ a/mm/compaction.c
-@@ -1174,13 +1174,23 @@ static int __compact_finished(struct zon
- 	/* Direct compactor: Is a suitable page free? */
- 	for (order = cc->order; order < MAX_ORDER; order++) {
- 		struct free_area *area = &zone->free_area[order];
-+		bool can_steal;
- 
- 		/* Job done if page is free of the right migratetype */
- 		if (!list_empty(&area->free_list[migratetype]))
- 			return COMPACT_PARTIAL;
- 
--		/* Job done if allocation would set block type */
--		if (order >= pageblock_order && area->nr_free)
-+		/* MIGRATE_MOVABLE can fallback on MIGRATE_CMA */
-+		if (migratetype == MIGRATE_MOVABLE &&
-+			!list_empty(&area->free_list[MIGRATE_CMA]))
-+			return COMPACT_PARTIAL;
-+
-+		/*
-+		 * Job done if allocation would steal freepages from
-+		 * other migratetype buddy lists.
-+		 */
-+		if (find_suitable_fallback(area, order, migratetype,
-+						true, &can_steal) != -1)
- 			return COMPACT_PARTIAL;
- 	}
- 
-diff -puN mm/internal.h~mm-compaction-enhance-compaction-finish-condition mm/internal.h
---- a/mm/internal.h~mm-compaction-enhance-compaction-finish-condition
-+++ a/mm/internal.h
-@@ -200,6 +200,8 @@ isolate_freepages_range(struct compact_c
- unsigned long
- isolate_migratepages_range(struct compact_control *cc,
- 			   unsigned long low_pfn, unsigned long end_pfn);
-+int find_suitable_fallback(struct free_area *area, unsigned int order,
-+			int migratetype, bool only_stealable, bool *can_steal);
- 
- #endif
- 
-diff -puN mm/page_alloc.c~mm-compaction-enhance-compaction-finish-condition mm/page_alloc.c
---- a/mm/page_alloc.c~mm-compaction-enhance-compaction-finish-condition
-+++ a/mm/page_alloc.c
-@@ -1194,9 +1194,14 @@ static void steal_suitable_fallback(stru
- 		set_pageblock_migratetype(page, start_type);
- }
- 
--/* Check whether there is a suitable fallback freepage with requested order. */
--static int find_suitable_fallback(struct free_area *area, unsigned int order,
--					int migratetype, bool *can_steal)
-+/*
-+ * Check whether there is a suitable fallback freepage with requested order.
-+ * If only_stealable is true, this function returns fallback_mt only if
-+ * we can steal other freepages all together. This would help to reduce
-+ * fragmentation due to mixed migratetype pages in one pageblock.
-+ */
-+int find_suitable_fallback(struct free_area *area, unsigned int order,
-+			int migratetype, bool only_stealable, bool *can_steal)
+diff -puN mm/huge_memory.c~mm-incorporate-zero-pages-into-transparent-huge-pages mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-incorporate-zero-pages-into-transparent-huge-pages
++++ a/mm/huge_memory.c
+@@ -2104,7 +2104,7 @@ static void release_pte_pages(pte_t *pte
  {
- 	int i;
- 	int fallback_mt;
-@@ -1216,7 +1221,11 @@ static int find_suitable_fallback(struct
- 		if (can_steal_fallback(order, migratetype))
- 			*can_steal = true;
- 
--		return fallback_mt;
-+		if (!only_stealable)
-+			return fallback_mt;
-+
-+		if (*can_steal)
-+			return fallback_mt;
+ 	while (--_pte >= pte) {
+ 		pte_t pteval = *_pte;
+-		if (!pte_none(pteval))
++		if (!pte_none(pteval) && !is_zero_pfn(pte_pfn(pteval)))
+ 			release_pte_page(pte_page(pteval));
  	}
+ }
+@@ -2115,13 +2115,13 @@ static int __collapse_huge_page_isolate(
+ {
+ 	struct page *page;
+ 	pte_t *_pte;
+-	int none = 0;
++	int none_or_zero = 0;
+ 	bool referenced = false, writable = false;
+ 	for (_pte = pte; _pte < pte+HPAGE_PMD_NR;
+ 	     _pte++, address += PAGE_SIZE) {
+ 		pte_t pteval = *_pte;
+-		if (pte_none(pteval)) {
+-			if (++none <= khugepaged_max_ptes_none)
++		if (pte_none(pteval) || is_zero_pfn(pte_pfn(pteval))) {
++			if (++none_or_zero <= khugepaged_max_ptes_none)
+ 				continue;
+ 			else
+ 				goto out;
+@@ -2202,7 +2202,7 @@ static void __collapse_huge_page_copy(pt
+ 		pte_t pteval = *_pte;
+ 		struct page *src_page;
  
- 	return -1;
-@@ -1238,7 +1247,7 @@ __rmqueue_fallback(struct zone *zone, un
- 				--current_order) {
- 		area = &(zone->free_area[current_order]);
- 		fallback_mt = find_suitable_fallback(area, current_order,
--				start_migratetype, &can_steal);
-+				start_migratetype, false, &can_steal);
- 		if (fallback_mt == -1)
- 			continue;
- 
+-		if (pte_none(pteval)) {
++		if (pte_none(pteval) || is_zero_pfn(pte_pfn(pteval))) {
+ 			clear_user_highpage(page, address);
+ 			add_mm_counter(vma->vm_mm, MM_ANONPAGES, 1);
+ 		} else {
+@@ -2538,7 +2538,7 @@ static int khugepaged_scan_pmd(struct mm
+ {
+ 	pmd_t *pmd;
+ 	pte_t *pte, *_pte;
+-	int ret = 0, none = 0;
++	int ret = 0, none_or_zero = 0;
+ 	struct page *page;
+ 	unsigned long _address;
+ 	spinlock_t *ptl;
+@@ -2556,8 +2556,8 @@ static int khugepaged_scan_pmd(struct mm
+ 	for (_address = address, _pte = pte; _pte < pte+HPAGE_PMD_NR;
+ 	     _pte++, _address += PAGE_SIZE) {
+ 		pte_t pteval = *_pte;
+-		if (pte_none(pteval)) {
+-			if (++none <= khugepaged_max_ptes_none)
++		if (pte_none(pteval) || is_zero_pfn(pte_pfn(pteval))) {
++			if (++none_or_zero <= khugepaged_max_ptes_none)
+ 				continue;
+ 			else
+ 				goto out_unmap;
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from ebru.akagunduz@gmail.com are
 
 origin.patch
-mm-nommu-fix-memory-leak.patch
-zram-use-proper-type-to-update-max_used_pages.patch
-mm-cma-debugfs-interface.patch
-mm-cma-allocation-trigger.patch
-mm-cma-release-trigger.patch
-mm-cma-allocation-trigger-fix.patch
-mm-cma-change-fallback-behaviour-for-cma-freepage.patch
-mm-page_alloc-factor-out-fallback-freepage-checking.patch
-mm-compaction-enhance-compaction-finish-condition.patch
+mm-incorporate-zero-pages-into-transparent-huge-pages.patch
 
