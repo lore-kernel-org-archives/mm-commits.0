@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-compaction-enhance-compaction-finish-condition-fix.patch
- added to -mm tree
-Date: Wed, 18 Feb 2015 16:04:24 -0800
-Message-ID: <54e52888.UKE8sX79aZ4JMerb%akpm@linux-foundation.org>
+Subject: + fs-fat-remove-unnecessary-includes-fix.patch added to -mm tree
+Date: Wed, 18 Feb 2015 16:06:43 -0800
+Message-ID: <54e52913.XKuRgKFPBd6R8/U6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48587 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48809 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752897AbbBSAEZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Feb 2015 19:04:25 -0500
+	with ESMTP id S1751646AbbBSAGo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Feb 2015 19:06:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, iamjoonsoo.kim@lge.com, mgorman@suse.de, riel@redhat.com, rientjes@google.com, vbabka@suse.cz, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hirofumi@mail.parknet.co.jp, kuleshovmail@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-compaction-enhance-compaction-finish-condition-fix
+     Subject: fs-fat-remove-unnecessary-includes-fix
 has been added to the -mm tree.  Its filename is
-     mm-compaction-enhance-compaction-finish-condition-fix.patch
+     fs-fat-remove-unnecessary-includes-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-enhance-compaction-finish-condition-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-fat-remove-unnecessary-includes-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-enhance-compaction-finish-condition-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-fat-remove-unnecessary-includes-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,39 +39,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-compaction-enhance-compaction-finish-condition-fix
+Subject: fs-fat-remove-unnecessary-includes-fix
 
-fix CONFIG_CMA=n build
+fs/fat/iode.c needs seq_file.h
 
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Cc: Alexander Kuleshov <kuleshovmail@gmail.com>
+Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/fat/inode.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/compaction.c~mm-compaction-enhance-compaction-finish-condition-fix mm/compaction.c
---- a/mm/compaction.c~mm-compaction-enhance-compaction-finish-condition-fix
-+++ a/mm/compaction.c
-@@ -1180,11 +1180,12 @@ static int __compact_finished(struct zon
- 		if (!list_empty(&area->free_list[migratetype]))
- 			return COMPACT_PARTIAL;
- 
-+#ifdef CONFIG_CMA
- 		/* MIGRATE_MOVABLE can fallback on MIGRATE_CMA */
- 		if (migratetype == MIGRATE_MOVABLE &&
- 			!list_empty(&area->free_list[MIGRATE_CMA]))
- 			return COMPACT_PARTIAL;
--
-+#endif
- 		/*
- 		 * Job done if allocation would steal freepages from
- 		 * other migratetype buddy lists.
+diff -puN fs/fat/inode.c~fs-fat-remove-unnecessary-includes-fix fs/fat/inode.c
+--- a/fs/fat/inode.c~fs-fat-remove-unnecessary-includes-fix
++++ a/fs/fat/inode.c
+@@ -15,6 +15,7 @@
+ #include <linux/mpage.h>
+ #include <linux/aio.h>
+ #include <linux/vfs.h>
++#include <linux/seq_file.h>
+ #include <linux/parser.h>
+ #include <linux/blkdev.h>
+ #include <asm/unaligned.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -87,6 +76,7 @@ mm-compaction-enhance-compaction-finish-condition-fix.patch
 mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
 x86-add-pmd_-for-thp-fix.patch
 sparc-add-pmd_-for-thp-fix.patch
+fs-fat-remove-unnecessary-includes-fix.patch
 linux-next.patch
 linux-next-git-rejects.patch
 linux-next-fixup.patch
