@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hide-per-cpu-lists-in-output-of-show_mem.patch added to -mm
- tree
-Date: Fri, 20 Feb 2015 13:46:07 -0800
-Message-ID: <54e7ab1f.VgStcKquviQWBxDf%akpm@linux-foundation.org>
+Subject: + nilfs2-fix-potential-memory-overrun-on-inode.patch added to -mm tree
+Date: Fri, 20 Feb 2015 13:58:54 -0800
+Message-ID: <54e7ae1e.oNIG9ErEu3NRppfH%akpm__38877.0727361136$1424469554$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44536 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44679 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755107AbbBTVqI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Feb 2015 16:46:08 -0500
+	with ESMTP id S1755279AbbBTV6z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Feb 2015 16:58:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khlebnikov@yandex-team.ru, mm-commits@vger.kernel.org
+To: konishi.ryusuke@lab.ntt.co.jp, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: hide per-cpu lists in output of show_mem()
+     Subject: nilfs2: fix potential memory overrun on inode
 has been added to the -mm tree.  Its filename is
-     mm-hide-per-cpu-lists-in-output-of-show_mem.patch
+     nilfs2-fix-potential-memory-overrun-on-inode.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hide-per-cpu-lists-in-output-of-show_mem.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/nilfs2-fix-potential-memory-overrun-on-inode.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hide-per-cpu-lists-in-output-of-show_mem.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-fix-potential-memory-overrun-on-inode.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,138 +38,126 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Subject: mm: hide per-cpu lists in output of show_mem()
+From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Subject: nilfs2: fix potential memory overrun on inode
 
-This makes show_mem() much less verbose on huge machines.  Instead of huge
-and almost useless dump of counters for each per-zone per-cpu lists this
-patch prints the sum of these counters for each zone (free_pcp) and size
-of per-cpu list for current cpu (local_pcp).
+Each inode of nilfs2 stores a root node of a b-tree, and it turned out to
+have a memory overrun issue:
 
-The filter flag SHOW_MEM_PERCPU_LISTS reverts to the old verbose mode.
+Each b-tree node of nilfs2 stores a set of key-value pairs and the number
+of them (in "bn_nchildren" member of nilfs_btree_node struct), as well as
+a few other "bn_*" members.
 
-Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Since the value of "bn_nchildren" is used for operations on the key-values
+within the b-tree node, it can cause memory access overrun if a large
+number is incorrectly set to "bn_nchildren".
+
+For instance, nilfs_btree_node_lookup() function determines the range of
+binary search with it, and too large "bn_nchildren" leads
+nilfs_btree_node_get_key() in that function to overrun.
+
+As for intermediate b-tree nodes, this is prevented by a sanity check
+performed when each node is read from a drive, however, no sanity check
+has been done for root nodes stored in inodes.
+
+This patch fixes the issue by adding missing sanity check against b-tree
+root nodes so that it's called when on-memory inodes are read from ifile,
+inode metadata file.
+
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    1 +
- mm/page_alloc.c    |   32 +++++++++++++++++++++++++-------
- 2 files changed, 26 insertions(+), 7 deletions(-)
+ fs/nilfs2/btree.c |   47 +++++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 44 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/mm.h~mm-hide-per-cpu-lists-in-output-of-show_mem include/linux/mm.h
---- a/include/linux/mm.h~mm-hide-per-cpu-lists-in-output-of-show_mem
-+++ a/include/linux/mm.h
-@@ -1126,6 +1126,7 @@ extern void pagefault_out_of_memory(void
-  * various contexts.
-  */
- #define SHOW_MEM_FILTER_NODES		(0x0001u)	/* disallowed nodes */
-+#define SHOW_MEM_PERCPU_LISTS		(0x0002u)	/* per-zone per-cpu */
+diff -puN fs/nilfs2/btree.c~nilfs2-fix-potential-memory-overrun-on-inode fs/nilfs2/btree.c
+--- a/fs/nilfs2/btree.c~nilfs2-fix-potential-memory-overrun-on-inode
++++ a/fs/nilfs2/btree.c
+@@ -31,6 +31,8 @@
+ #include "alloc.h"
+ #include "dat.h"
  
- extern void show_free_areas(unsigned int flags);
- extern bool skip_free_areas_node(unsigned int flags, int nid);
-diff -puN mm/page_alloc.c~mm-hide-per-cpu-lists-in-output-of-show_mem mm/page_alloc.c
---- a/mm/page_alloc.c~mm-hide-per-cpu-lists-in-output-of-show_mem
-+++ a/mm/page_alloc.c
-@@ -3248,20 +3248,29 @@ static void show_migration_types(unsigne
-  */
- void show_free_areas(unsigned int filter)
++static void __nilfs_btree_init(struct nilfs_bmap *bmap);
++
+ static struct nilfs_btree_path *nilfs_btree_alloc_path(void)
  {
-+	unsigned long free_pcp = 0;
- 	int cpu;
- 	struct zone *zone;
+ 	struct nilfs_btree_path *path;
+@@ -368,6 +370,34 @@ static int nilfs_btree_node_broken(const
+ 	return ret;
+ }
  
- 	for_each_populated_zone(zone) {
- 		if (skip_free_areas_node(filter, zone_to_nid(zone)))
- 			continue;
--		show_node(zone);
--		printk("%s per-cpu:\n", zone->name);
++/**
++ * nilfs_btree_root_broken - verify consistency of btree root node
++ * @node: btree root node to be examined
++ * @ino: inode number
++ *
++ * Return Value: If node is broken, 1 is returned. Otherwise, 0 is returned.
++ */
++static int nilfs_btree_root_broken(const struct nilfs_btree_node *node,
++				   ino_t ino)
++{
++	int level, flags, nchildren;
++	int ret = 0;
 +
-+		if (filter & SHOW_MEM_PERCPU_LISTS) {
-+			show_node(zone);
-+			printk("%s per-cpu:\n", zone->name);
-+		}
- 
- 		for_each_online_cpu(cpu) {
- 			struct per_cpu_pageset *pageset;
- 
- 			pageset = per_cpu_ptr(zone->pageset, cpu);
- 
-+			free_pcp += pageset->pcp.count;
++	level = nilfs_btree_node_get_level(node);
++	flags = nilfs_btree_node_get_flags(node);
++	nchildren = nilfs_btree_node_get_nchildren(node);
 +
-+			if (!(filter & SHOW_MEM_PERCPU_LISTS))
-+				continue;
++	if (unlikely(level < NILFS_BTREE_LEVEL_NODE_MIN ||
++		     level > NILFS_BTREE_LEVEL_MAX ||
++		     nchildren < 0 ||
++		     nchildren > NILFS_BTREE_ROOT_NCHILDREN_MAX)) {
++		pr_crit("NILFS: bad btree root (inode number=%lu): level = %d, flags = 0x%x, nchildren = %d\n",
++			ino, level, flags, nchildren);
++		ret = 1;
++	}
++	return ret;
++}
 +
- 			printk("CPU %4d: hi:%5d, btch:%4d usd:%4d\n",
- 			       cpu, pageset->pcp.high,
- 			       pageset->pcp.batch, pageset->pcp.count);
-@@ -3270,11 +3279,10 @@ void show_free_areas(unsigned int filter
+ int nilfs_btree_broken_node_block(struct buffer_head *bh)
+ {
+ 	int ret;
+@@ -1713,7 +1743,7 @@ nilfs_btree_commit_convert_and_insert(st
  
- 	printk("active_anon:%lu inactive_anon:%lu isolated_anon:%lu\n"
- 		" active_file:%lu inactive_file:%lu isolated_file:%lu\n"
--		" unevictable:%lu"
--		" dirty:%lu writeback:%lu unstable:%lu\n"
--		" free:%lu slab_reclaimable:%lu slab_unreclaimable:%lu\n"
-+		" unevictable:%lu dirty:%lu writeback:%lu unstable:%lu\n"
-+		" slab_reclaimable:%lu slab_unreclaimable:%lu\n"
- 		" mapped:%lu shmem:%lu pagetables:%lu bounce:%lu\n"
--		" free_cma:%lu\n",
-+		" free:%lu free_pcp:%lu free_cma:%lu\n",
- 		global_page_state(NR_ACTIVE_ANON),
- 		global_page_state(NR_INACTIVE_ANON),
- 		global_page_state(NR_ISOLATED_ANON),
-@@ -3285,13 +3293,14 @@ void show_free_areas(unsigned int filter
- 		global_page_state(NR_FILE_DIRTY),
- 		global_page_state(NR_WRITEBACK),
- 		global_page_state(NR_UNSTABLE_NFS),
--		global_page_state(NR_FREE_PAGES),
- 		global_page_state(NR_SLAB_RECLAIMABLE),
- 		global_page_state(NR_SLAB_UNRECLAIMABLE),
- 		global_page_state(NR_FILE_MAPPED),
- 		global_page_state(NR_SHMEM),
- 		global_page_state(NR_PAGETABLE),
- 		global_page_state(NR_BOUNCE),
-+		global_page_state(NR_FREE_PAGES),
-+		free_pcp,
- 		global_page_state(NR_FREE_CMA_PAGES));
+ 	/* convert and insert */
+ 	dat = NILFS_BMAP_USE_VBN(btree) ? nilfs_bmap_get_dat(btree) : NULL;
+-	nilfs_btree_init(btree);
++	__nilfs_btree_init(btree);
+ 	if (nreq != NULL) {
+ 		nilfs_bmap_commit_alloc_ptr(btree, dreq, dat);
+ 		nilfs_bmap_commit_alloc_ptr(btree, nreq, dat);
+@@ -2294,12 +2324,23 @@ static const struct nilfs_bmap_operation
+ 	.bop_gather_data	=	NULL,
+ };
  
- 	for_each_populated_zone(zone) {
-@@ -3299,6 +3308,11 @@ void show_free_areas(unsigned int filter
- 
- 		if (skip_free_areas_node(filter, zone_to_nid(zone)))
- 			continue;
+-int nilfs_btree_init(struct nilfs_bmap *bmap)
++static void __nilfs_btree_init(struct nilfs_bmap *bmap)
+ {
+ 	bmap->b_ops = &nilfs_btree_ops;
+ 	bmap->b_nchildren_per_block =
+ 		NILFS_BTREE_NODE_NCHILDREN_MAX(nilfs_btree_node_size(bmap));
+-	return 0;
++}
 +
-+		free_pcp = 0;
-+		for_each_online_cpu(cpu)
-+			free_pcp += per_cpu_ptr(zone->pageset, cpu)->pcp.count;
++int nilfs_btree_init(struct nilfs_bmap *bmap)
++{
++	int ret = 0;
 +
- 		show_node(zone);
- 		printk("%s"
- 			" free:%lukB"
-@@ -3325,6 +3339,8 @@ void show_free_areas(unsigned int filter
- 			" pagetables:%lukB"
- 			" unstable:%lukB"
- 			" bounce:%lukB"
-+			" free_pcp:%lukB"
-+			" local_pcp:%ukB"
- 			" free_cma:%lukB"
- 			" writeback_tmp:%lukB"
- 			" pages_scanned:%lu"
-@@ -3356,6 +3372,8 @@ void show_free_areas(unsigned int filter
- 			K(zone_page_state(zone, NR_PAGETABLE)),
- 			K(zone_page_state(zone, NR_UNSTABLE_NFS)),
- 			K(zone_page_state(zone, NR_BOUNCE)),
-+			K(free_pcp),
-+			K(this_cpu_read(zone->pageset->pcp.count)),
- 			K(zone_page_state(zone, NR_FREE_CMA_PAGES)),
- 			K(zone_page_state(zone, NR_WRITEBACK_TEMP)),
- 			K(zone_page_state(zone, NR_PAGES_SCANNED)),
++	__nilfs_btree_init(bmap);
++
++	if (nilfs_btree_root_broken(nilfs_btree_get_root(bmap),
++				    bmap->b_inode->i_ino))
++		ret = -EIO;
++	return ret;
+ }
+ 
+ void nilfs_btree_init_gc(struct nilfs_bmap *bmap)
 _
 
-Patches currently in -mm which might be from khlebnikov@yandex-team.ru are
+Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
 
 origin.patch
-page_writeback-cleanup-mess-around-cancel_dirty_page.patch
-page_writeback-cleanup-mess-around-cancel_dirty_page-checkpatch-fixes.patch
-mm-hide-per-cpu-lists-in-output-of-show_mem.patch
-mm-hide-per-cpu-lists-in-output-of-show_mem-fix.patch
+nilfs2-fix-potential-memory-overrun-on-inode.patch
 
