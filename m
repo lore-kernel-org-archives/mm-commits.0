@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + nilfs2-fix-potential-memory-overrun-on-inode.patch added to -mm tree
-Date: Fri, 20 Feb 2015 13:58:54 -0800
-Message-ID: <54e7ae1e.oNIG9ErEu3NRppfH%akpm__38877.0727361136$1424469554$gmane$org@linux-foundation.org>
+Subject: + fs-affs-superc-use-affs_set_opt.patch added to -mm tree
+Date: Fri, 20 Feb 2015 14:35:04 -0800
+Message-ID: <54e7b698.x39ksxStu/90YxcT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44679 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44883 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755279AbbBTV6z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Feb 2015 16:58:55 -0500
+	with ESMTP id S1755209AbbBTWfF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Feb 2015 17:35:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: konishi.ryusuke@lab.ntt.co.jp, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: fabf@skynet.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: fix potential memory overrun on inode
+     Subject: fs/affs/super.c: use affs_set_opt()
 has been added to the -mm tree.  Its filename is
-     nilfs2-fix-potential-memory-overrun-on-inode.patch
+     fs-affs-superc-use-affs_set_opt.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/nilfs2-fix-potential-memory-overrun-on-inode.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-affs-superc-use-affs_set_opt.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-fix-potential-memory-overrun-on-inode.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-affs-superc-use-affs_set_opt.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,126 +38,118 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Subject: nilfs2: fix potential memory overrun on inode
+From: Fabian Frederick <fabf@skynet.be>
+Subject: fs/affs/super.c: use affs_set_opt()
 
-Each inode of nilfs2 stores a root node of a b-tree, and it turned out to
-have a memory overrun issue:
+Replace direct mount option assignation by affs_set_opt() macro.
 
-Each b-tree node of nilfs2 stores a set of key-value pairs and the number
-of them (in "bn_nchildren" member of nilfs_btree_node struct), as well as
-a few other "bn_*" members.
-
-Since the value of "bn_nchildren" is used for operations on the key-values
-within the b-tree node, it can cause memory access overrun if a large
-number is incorrectly set to "bn_nchildren".
-
-For instance, nilfs_btree_node_lookup() function determines the range of
-binary search with it, and too large "bn_nchildren" leads
-nilfs_btree_node_get_key() in that function to overrun.
-
-As for intermediate b-tree nodes, this is prevented by a sanity check
-performed when each node is read from a drive, however, no sanity check
-has been done for root nodes stored in inodes.
-
-This patch fixes the issue by adding missing sanity check against b-tree
-root nodes so that it's called when on-memory inodes are read from ifile,
-inode metadata file.
-
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/btree.c |   47 +++++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 44 insertions(+), 3 deletions(-)
+ fs/affs/super.c |   31 ++++++++++++++++---------------
+ 1 file changed, 16 insertions(+), 15 deletions(-)
 
-diff -puN fs/nilfs2/btree.c~nilfs2-fix-potential-memory-overrun-on-inode fs/nilfs2/btree.c
---- a/fs/nilfs2/btree.c~nilfs2-fix-potential-memory-overrun-on-inode
-+++ a/fs/nilfs2/btree.c
-@@ -31,6 +31,8 @@
- #include "alloc.h"
- #include "dat.h"
- 
-+static void __nilfs_btree_init(struct nilfs_bmap *bmap);
-+
- static struct nilfs_btree_path *nilfs_btree_alloc_path(void)
- {
- 	struct nilfs_btree_path *path;
-@@ -368,6 +370,34 @@ static int nilfs_btree_node_broken(const
- 	return ret;
- }
- 
-+/**
-+ * nilfs_btree_root_broken - verify consistency of btree root node
-+ * @node: btree root node to be examined
-+ * @ino: inode number
-+ *
-+ * Return Value: If node is broken, 1 is returned. Otherwise, 0 is returned.
-+ */
-+static int nilfs_btree_root_broken(const struct nilfs_btree_node *node,
-+				   ino_t ino)
-+{
-+	int level, flags, nchildren;
-+	int ret = 0;
-+
-+	level = nilfs_btree_node_get_level(node);
-+	flags = nilfs_btree_node_get_flags(node);
-+	nchildren = nilfs_btree_node_get_nchildren(node);
-+
-+	if (unlikely(level < NILFS_BTREE_LEVEL_NODE_MIN ||
-+		     level > NILFS_BTREE_LEVEL_MAX ||
-+		     nchildren < 0 ||
-+		     nchildren > NILFS_BTREE_ROOT_NCHILDREN_MAX)) {
-+		pr_crit("NILFS: bad btree root (inode number=%lu): level = %d, flags = 0x%x, nchildren = %d\n",
-+			ino, level, flags, nchildren);
-+		ret = 1;
-+	}
-+	return ret;
-+}
-+
- int nilfs_btree_broken_node_block(struct buffer_head *bh)
- {
- 	int ret;
-@@ -1713,7 +1743,7 @@ nilfs_btree_commit_convert_and_insert(st
- 
- 	/* convert and insert */
- 	dat = NILFS_BMAP_USE_VBN(btree) ? nilfs_bmap_get_dat(btree) : NULL;
--	nilfs_btree_init(btree);
-+	__nilfs_btree_init(btree);
- 	if (nreq != NULL) {
- 		nilfs_bmap_commit_alloc_ptr(btree, dreq, dat);
- 		nilfs_bmap_commit_alloc_ptr(btree, nreq, dat);
-@@ -2294,12 +2324,23 @@ static const struct nilfs_bmap_operation
- 	.bop_gather_data	=	NULL,
- };
- 
--int nilfs_btree_init(struct nilfs_bmap *bmap)
-+static void __nilfs_btree_init(struct nilfs_bmap *bmap)
- {
- 	bmap->b_ops = &nilfs_btree_ops;
- 	bmap->b_nchildren_per_block =
- 		NILFS_BTREE_NODE_NCHILDREN_MAX(nilfs_btree_node_size(bmap));
--	return 0;
-+}
-+
-+int nilfs_btree_init(struct nilfs_bmap *bmap)
-+{
-+	int ret = 0;
-+
-+	__nilfs_btree_init(bmap);
-+
-+	if (nilfs_btree_root_broken(nilfs_btree_get_root(bmap),
-+				    bmap->b_inode->i_ino))
-+		ret = -EIO;
-+	return ret;
- }
- 
- void nilfs_btree_init_gc(struct nilfs_bmap *bmap)
+diff -puN fs/affs/super.c~fs-affs-superc-use-affs_set_opt fs/affs/super.c
+--- a/fs/affs/super.c~fs-affs-superc-use-affs_set_opt
++++ a/fs/affs/super.c
+@@ -227,22 +227,22 @@ parse_options(char *options, kuid_t *uid
+ 			if (match_octal(&args[0], &option))
+ 				return 0;
+ 			*mode = option & 0777;
+-			*mount_opts |= AFFS_MOUNT_SF_SETMODE;
++			affs_set_opt(*mount_opts, SF_SETMODE);
+ 			break;
+ 		case Opt_mufs:
+-			*mount_opts |= AFFS_MOUNT_SF_MUFS;
++			affs_set_opt(*mount_opts, SF_MUFS);
+ 			break;
+ 		case Opt_notruncate:
+-			*mount_opts |= AFFS_MOUNT_SF_NO_TRUNCATE;
++			affs_set_opt(*mount_opts, SF_NO_TRUNCATE);
+ 			break;
+ 		case Opt_prefix:
+ 			*prefix = match_strdup(&args[0]);
+ 			if (!*prefix)
+ 				return 0;
+-			*mount_opts |= AFFS_MOUNT_SF_PREFIX;
++			affs_set_opt(*mount_opts, SF_PREFIX);
+ 			break;
+ 		case Opt_protect:
+-			*mount_opts |= AFFS_MOUNT_SF_IMMUTABLE;
++			affs_set_opt(*mount_opts, SF_IMMUTABLE);
+ 			break;
+ 		case Opt_reserved:
+ 			if (match_int(&args[0], reserved))
+@@ -258,7 +258,7 @@ parse_options(char *options, kuid_t *uid
+ 			*gid = make_kgid(current_user_ns(), option);
+ 			if (!gid_valid(*gid))
+ 				return 0;
+-			*mount_opts |= AFFS_MOUNT_SF_SETGID;
++			affs_set_opt(*mount_opts, SF_SETGID);
+ 			break;
+ 		case Opt_setuid:
+ 			if (match_int(&args[0], &option))
+@@ -266,10 +266,10 @@ parse_options(char *options, kuid_t *uid
+ 			*uid = make_kuid(current_user_ns(), option);
+ 			if (!uid_valid(*uid))
+ 				return 0;
+-			*mount_opts |= AFFS_MOUNT_SF_SETUID;
++			affs_set_opt(*mount_opts, SF_SETUID);
+ 			break;
+ 		case Opt_verbose:
+-			*mount_opts |= AFFS_MOUNT_SF_VERBOSE;
++			affs_set_opt(*mount_opts, SF_VERBOSE);
+ 			break;
+ 		case Opt_volume: {
+ 			char *vol = match_strdup(&args[0]);
+@@ -435,30 +435,31 @@ got_root:
+ 	case MUFS_FS:
+ 	case MUFS_INTLFFS:
+ 	case MUFS_DCFFS:
+-		sbi->s_flags |= AFFS_MOUNT_SF_MUFS;
++		affs_set_opt(sbi->s_flags, SF_MUFS);
+ 		/* fall thru */
+ 	case FS_INTLFFS:
+ 	case FS_DCFFS:
+-		sbi->s_flags |= AFFS_MOUNT_SF_INTL;
++		affs_set_opt(sbi->s_flags, SF_INTL);
+ 		break;
+ 	case MUFS_FFS:
+-		sbi->s_flags |= AFFS_MOUNT_SF_MUFS;
++		affs_set_opt(sbi->s_flags, SF_MUFS);
+ 		break;
+ 	case FS_FFS:
+ 		break;
+ 	case MUFS_OFS:
+-		sbi->s_flags |= AFFS_MOUNT_SF_MUFS;
++		affs_set_opt(sbi->s_flags, SF_MUFS);
+ 		/* fall thru */
+ 	case FS_OFS:
+-		sbi->s_flags |= AFFS_MOUNT_SF_OFS;
++		affs_set_opt(sbi->s_flags, SF_OFS);
+ 		sb->s_flags |= MS_NOEXEC;
+ 		break;
+ 	case MUFS_DCOFS:
+ 	case MUFS_INTLOFS:
+-		sbi->s_flags |= AFFS_MOUNT_SF_MUFS;
++		affs_set_opt(sbi->s_flags, SF_MUFS);
+ 	case FS_DCOFS:
+ 	case FS_INTLOFS:
+-		sbi->s_flags |= AFFS_MOUNT_SF_INTL | AFFS_MOUNT_SF_OFS;
++		affs_set_opt(sbi->s_flags, SF_INTL);
++		affs_set_opt(sbi->s_flags, SF_OFS);
+ 		sb->s_flags |= MS_NOEXEC;
+ 		break;
+ 	default:
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
+Patches currently in -mm which might be from fabf@skynet.be are
 
 origin.patch
-nilfs2-fix-potential-memory-overrun-on-inode.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+fs-affs-use-affs_mount-prefix-for-mount-options.patch
+fs-affs-affsh-add-mount-option-manipulation-macros.patch
+fs-affs-superc-use-affs_set_opt.patch
+fs-affs-use-affs_test_opt.patch
 
