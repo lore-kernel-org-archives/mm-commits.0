@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- page_writeback-cleanup-mess-around-cancel_dirty_page-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 20 Feb 2015 13:36:50 -0800
-Message-ID: <54e7a8f2.0zygUai6+3SgNo/T%akpm@linux-foundation.org>
+Subject: + mm-hide-per-cpu-lists-in-output-of-show_mem-fix.patch added to
+ -mm tree
+Date: Fri, 20 Feb 2015 13:46:09 -0800
+Message-ID: <54e7ab21.py6PwOgip0cpUCJZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44508 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44538 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754429AbbBTVgv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Feb 2015 16:36:51 -0500
+	with ESMTP id S1755308AbbBTVqK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Feb 2015 16:46:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jack@suse.cz, khlebnikov@yandex-team.ru, tj@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, khlebnikov@yandex-team.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: page_writeback-cleanup-mess-around-cancel_dirty_page-checkpatch-fixes
+     Subject: mm-hide-per-cpu-lists-in-output-of-show_mem-fix
 has been added to the -mm tree.  Its filename is
-     page_writeback-cleanup-mess-around-cancel_dirty_page-checkpatch-fixes.patch
+     mm-hide-per-cpu-lists-in-output-of-show_mem-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/page_writeback-cleanup-mess-around-cancel_dirty_page-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hide-per-cpu-lists-in-output-of-show_mem-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/page_writeback-cleanup-mess-around-cancel_dirty_page-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hide-per-cpu-lists-in-output-of-show_mem-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,42 +40,34 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: page_writeback-cleanup-mess-around-cancel_dirty_page-checkpatch-fixes
+Subject: mm-hide-per-cpu-lists-in-output-of-show_mem-fix
 
-WARNING: 'loosing' may be misspelled - perhaps 'losing'?
-#145: FILE: mm/filemap.c:207:
-+	 * Dirty page here signals about bug and loosing unwitten data.
+update show_free_areas comment
 
-total: 0 errors, 1 warnings, 155 lines checked
-
-./patches/page_writeback-cleanup-mess-around-cancel_dirty_page.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Jan Kara <jack@suse.cz>
 Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN mm/filemap.c~page_writeback-cleanup-mess-around-cancel_dirty_page-checkpatch-fixes mm/filemap.c
---- a/mm/filemap.c~page_writeback-cleanup-mess-around-cancel_dirty_page-checkpatch-fixes
-+++ a/mm/filemap.c
-@@ -204,7 +204,7 @@ void __delete_from_page_cache(struct pag
- 
- 	/*
- 	 * At this point page must be either written or cleaned by truncate.
--	 * Dirty page here signals about bug and loosing unwitten data.
-+	 * Dirty page here signals a bug and loss of unwritten data.
- 	 *
- 	 * This fixes dirty accounting after removing the page entirely but
- 	 * leaves PageDirty set: it has no effect for truncated page and
+diff -puN mm/page_alloc.c~mm-hide-per-cpu-lists-in-output-of-show_mem-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-hide-per-cpu-lists-in-output-of-show_mem-fix
++++ a/mm/page_alloc.c
+@@ -3243,8 +3243,11 @@ static void show_migration_types(unsigne
+  * Show free area list (used inside shift_scroll-lock stuff)
+  * We also calculate the percentage fragmentation. We do this by counting the
+  * memory on each free list with the exception of the first item on the list.
+- * Suppresses nodes that are not allowed by current's cpuset if
+- * SHOW_MEM_FILTER_NODES is passed.
++ *
++ * Bits in @filter:
++ * SHOW_MEM_FILTER_NODES: suppress nodes that are not allowed by current's
++ *   cpuset.
++ * SHOW_MEM_PERCPU_LISTS: display full per-node per-cpu pcp lists
+  */
+ void show_free_areas(unsigned int filter)
+ {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -88,6 +80,7 @@ mm-cma-release-trigger-checkpatch-fixes.patch
 mm-cma-allocation-trigger-fix.patch
 mm-compaction-enhance-compaction-finish-condition-fix.patch
 page_writeback-cleanup-mess-around-cancel_dirty_page-checkpatch-fixes.patch
+mm-hide-per-cpu-lists-in-output-of-show_mem-fix.patch
 mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
 x86-add-pmd_-for-thp-fix.patch
 sparc-add-pmd_-for-thp-fix.patch
