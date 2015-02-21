@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes.patch added to -mm tree
-Date: Fri, 20 Feb 2015 16:13:50 -0800
-Message-ID: <54e7cdbe.n1iiPZwhcZ3k5mCV%akpm@linux-foundation.org>
+Subject: + lib-lz4-pull-out-constant-tables.patch added to -mm tree
+Date: Fri, 20 Feb 2015 16:25:24 -0800
+Message-ID: <54e7d074.GN8cUpSf9um71e/L%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45758 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45848 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755004AbbBUANv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Feb 2015 19:13:51 -0500
+	with ESMTP id S1754616AbbBUAZZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Feb 2015 19:25:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, iulia.manda21@gmail.com, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, kyungsik.lee@lge.com, rlaager@wiktel.com, sergey.senozhatsky@gmail.com, yann.collet.73@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes
+     Subject: lib/lz4/lz4_decompress.c: pull out constant tables
 has been added to the -mm tree.  Its filename is
-     kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes.patch
+     lib-lz4-pull-out-constant-tables.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-lz4-pull-out-constant-tables.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-lz4-pull-out-constant-tables.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,129 +38,79 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: lib/lz4/lz4_decompress.c: pull out constant tables
 
-ERROR: code indent should use tabs where possible
-#120: FILE: include/linux/capability.h:220:
-+        return true;$
+There's no reason to allocate the dec{32,64}table on the stack; it just
+wastes a bunch of instructions setting them up and, of course, also
+consumes quite a bit of stack.  Using size_t for such small integers is a
+little excessive.
 
-WARNING: please, no spaces at the start of a line
-#120: FILE: include/linux/capability.h:220:
-+        return true;$
+$ scripts/bloat-o-meter /tmp/built-in.o lib/built-in.o
+add/remove: 2/2 grow/shrink: 2/0 up/down: 1304/-1548 (-244)
+function                                     old     new   delta
+lz4_decompress_unknownoutputsize              55     718    +663
+lz4_decompress                                55     632    +577
+dec64table                                     -      32     +32
+dec32table                                     -      32     +32
+lz4_uncompress                               747       -    -747
+lz4_uncompress_unknownoutputsize             801       -    -801
 
-ERROR: code indent should use tabs where possible
-#125: FILE: include/linux/capability.h:225:
-+        return true;$
+The now inlined lz4_uncompress functions used to have a stack footprint of
+176 bytes (according to -fstack-usage); their inlinees have increased
+their stack use from 32 bytes to 48 and 80 bytes, respectively.
 
-WARNING: please, no spaces at the start of a line
-#125: FILE: include/linux/capability.h:225:
-+        return true;$
-
-ERROR: code indent should use tabs where possible
-#129: FILE: include/linux/capability.h:229:
-+        return true;$
-
-WARNING: please, no spaces at the start of a line
-#129: FILE: include/linux/capability.h:229:
-+        return true;$
-
-ERROR: code indent should use tabs where possible
-#134: FILE: include/linux/capability.h:234:
-+        return true;$
-
-WARNING: please, no spaces at the start of a line
-#134: FILE: include/linux/capability.h:234:
-+        return true;$
-
-ERROR: code indent should use tabs where possible
-#170: FILE: include/linux/cred.h:79:
-+        return 1;$
-
-WARNING: please, no spaces at the start of a line
-#170: FILE: include/linux/cred.h:79:
-+        return 1;$
-
-ERROR: code indent should use tabs where possible
-#174: FILE: include/linux/cred.h:83:
-+        return 1;$
-
-WARNING: please, no spaces at the start of a line
-#174: FILE: include/linux/cred.h:83:
-+        return 1;$
-
-total: 6 errors, 6 warnings, 310 lines checked
-
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
-
-./patches/kernel-conditionally-support-non-root-users-groups-and-capabilities.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Iulia Manda <iulia.manda21@gmail.com>
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Kyungsik Lee <kyungsik.lee@lge.com>
+Cc: Yann Collet <yann.collet.73@gmail.com>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Richard Laager <rlaager@wiktel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/capability.h |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ lib/lz4/lz4_decompress.c |   18 +++++++-----------
+ 1 file changed, 7 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/capability.h~kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes include/linux/capability.h
---- a/include/linux/capability.h~kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes
-+++ a/include/linux/capability.h
-@@ -217,21 +217,21 @@ extern bool ns_capable(struct user_names
+diff -puN lib/lz4/lz4_decompress.c~lib-lz4-pull-out-constant-tables lib/lz4/lz4_decompress.c
+--- a/lib/lz4/lz4_decompress.c~lib-lz4-pull-out-constant-tables
++++ a/lib/lz4/lz4_decompress.c
+@@ -47,6 +47,11 @@
+ 
+ #include "lz4defs.h"
+ 
++static const int dec32table[] = {0, 3, 2, 3, 0, 0, 0, 0};
++#if LZ4_ARCH64
++static const int dec64table[] = {0, 0, 0, -1, 0, 1, 2, 3};
++#endif
++
+ static int lz4_uncompress(const char *source, char *dest, int osize)
+ {
+ 	const BYTE *ip = (const BYTE *) source;
+@@ -56,10 +61,6 @@ static int lz4_uncompress(const char *so
+ 	BYTE *cpy;
+ 	unsigned token;
+ 	size_t length;
+-	size_t dec32table[] = {0, 3, 2, 3, 0, 0, 0, 0};
+-#if LZ4_ARCH64
+-	size_t dec64table[] = {0, 0, 0, -1, 0, 1, 2, 3};
+-#endif
+ 
+ 	while (1) {
+ 
+@@ -116,7 +117,7 @@ static int lz4_uncompress(const char *so
+ 		/* copy repeated sequence */
+ 		if (unlikely((op - ref) < STEPSIZE)) {
+ #if LZ4_ARCH64
+-			size_t dec64 = dec64table[op - ref];
++			int dec64 = dec64table[op - ref];
  #else
- static inline bool has_capability(struct task_struct *t, int cap)
- {
--        return true;
-+	return true;
- }
- static inline bool has_ns_capability(struct task_struct *t,
- 			      struct user_namespace *ns, int cap)
- {
--        return true;
-+	return true;
- }
- static inline bool has_capability_noaudit(struct task_struct *t, int cap)
- {
--        return true;
-+	return true;
- }
- static inline bool has_ns_capability_noaudit(struct task_struct *t,
- 				      struct user_namespace *ns, int cap)
- {
--        return true;
-+	return true;
- }
- static inline bool capable(int cap)
- {
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-mm.patch
-mm-cma-release-trigger-checkpatch-fixes.patch
-mm-cma-allocation-trigger-fix.patch
-mm-compaction-enhance-compaction-finish-condition-fix.patch
-page_writeback-cleanup-mess-around-cancel_dirty_page-checkpatch-fixes.patch
-mm-hide-per-cpu-lists-in-output-of-show_mem-fix.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes.patch
-fs-fat-remove-unnecessary-includes-fix.patch
-linux-next.patch
-lib-kconfig-fix-up-have_arch_bitreverse-help-text.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-
+ 			const int dec64 = 0;
+ #endif
+@@ -174,11 +175,6 @@ static int lz4_uncompress_unknownoutputs
+ 	BYTE * const oend = op + maxoutputsize;
+ 	BYTE *cpy;
+ 
+-	size_t dec32table[] = {0, 3, 2, 3, 0, 0, 0, 0};
+-#if LZ4_ARCH64
+-	size_t dec64table[] = {0, 0, 0, -1, 0, 1, 2, 3};
+-#endif
