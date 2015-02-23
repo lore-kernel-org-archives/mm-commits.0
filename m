@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + s390-remove-use-of-seq_printf-return-value.patch added to -mm
+Subject: + cris-remove-use-of-seq_printf-return-value.patch added to -mm
  tree
-Date: Mon, 23 Feb 2015 15:59:08 -0800
-Message-ID: <54ebbecc.qbpgmP0WBTe5zXlw%akpm@linux-foundation.org>
+Date: Mon, 23 Feb 2015 15:59:00 -0800
+Message-ID: <54ebbec4.qU0A334l/iaZ9QKR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48308 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48294 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752714AbbBWX7J (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Feb 2015 18:59:09 -0500
+	with ESMTP id S1752647AbbBWX7D (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Feb 2015 18:59:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, gerald.schaefer@de.ibm.com, heiko.carstens@de.ibm.com, oberpar@linux.vnet.ibm.com, schwidefsky@de.ibm.com, sebott@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: joe@perches.com, jesper.nilsson@axis.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: s390: remove use of seq_printf return value
+     Subject: cris: remove use of seq_printf return value
 has been added to the -mm tree.  Its filename is
-     s390-remove-use-of-seq_printf-return-value.patch
+     cris-remove-use-of-seq_printf-return-value.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/s390-remove-use-of-seq_printf-return-value.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/cris-remove-use-of-seq_printf-return-value.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/s390-remove-use-of-seq_printf-return-value.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/cris-remove-use-of-seq_printf-return-value.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,7 +40,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: s390: remove use of seq_printf return value
+Subject: cris: remove use of seq_printf return value
 
 The seq_printf return value, because it's frequently misused,
 will eventually be converted to void.
@@ -49,63 +49,154 @@ See: commit 1f33c41c03da ("seq_file: Rename seq_overflow() to
      seq_has_overflowed() and make public")
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Sebastian Ott <sebott@linux.vnet.ibm.com>
-Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Cc: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com
+Acked-by: Jesper Nilsson <jesper.nilsson@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/pci/pci_debug.c    |    6 ++++--
- drivers/s390/cio/blacklist.c |   12 +++++++-----
- 2 files changed, 11 insertions(+), 7 deletions(-)
+ arch/cris/arch-v10/kernel/setup.c |   58 ++++++++++++++-------------
+ arch/cris/arch-v32/kernel/setup.c |   60 ++++++++++++++--------------
+ 2 files changed, 61 insertions(+), 57 deletions(-)
 
-diff -puN arch/s390/pci/pci_debug.c~s390-remove-use-of-seq_printf-return-value arch/s390/pci/pci_debug.c
---- a/arch/s390/pci/pci_debug.c~s390-remove-use-of-seq_printf-return-value
-+++ a/arch/s390/pci/pci_debug.c
-@@ -45,8 +45,10 @@ static int pci_perf_show(struct seq_file
+diff -puN arch/cris/arch-v10/kernel/setup.c~cris-remove-use-of-seq_printf-return-value arch/cris/arch-v10/kernel/setup.c
+--- a/arch/cris/arch-v10/kernel/setup.c~cris-remove-use-of-seq_printf-return-value
++++ a/arch/cris/arch-v10/kernel/setup.c
+@@ -63,35 +63,37 @@ int show_cpuinfo(struct seq_file *m, voi
+ 	else
+ 		info = &cpu_info[revision];
  
- 	if (!zdev)
- 		return 0;
--	if (!zdev->fmb)
--		return seq_printf(m, "FMB statistics disabled\n");
-+	if (!zdev->fmb) {
-+		seq_puts(m, "FMB statistics disabled\n");
-+		return 0;
-+	}
+-	return seq_printf(m,
+-		       "processor\t: 0\n" 
+-		       "cpu\t\t: CRIS\n"
+-		       "cpu revision\t: %lu\n"
+-		       "cpu model\t: %s\n"
+-		       "cache size\t: %d kB\n"
+-		       "fpu\t\t: %s\n"
+-		       "mmu\t\t: %s\n"
+-		       "mmu DMA bug\t: %s\n"
+-		       "ethernet\t: %s Mbps\n"
+-		       "token ring\t: %s\n"
+-		       "scsi\t\t: %s\n"
+-		       "ata\t\t: %s\n"
+-		       "usb\t\t: %s\n"
+-		       "bogomips\t: %lu.%02lu\n",
++	seq_printf(m,
++		   "processor\t: 0\n"
++		   "cpu\t\t: CRIS\n"
++		   "cpu revision\t: %lu\n"
++		   "cpu model\t: %s\n"
++		   "cache size\t: %d kB\n"
++		   "fpu\t\t: %s\n"
++		   "mmu\t\t: %s\n"
++		   "mmu DMA bug\t: %s\n"
++		   "ethernet\t: %s Mbps\n"
++		   "token ring\t: %s\n"
++		   "scsi\t\t: %s\n"
++		   "ata\t\t: %s\n"
++		   "usb\t\t: %s\n"
++		   "bogomips\t: %lu.%02lu\n",
  
- 	/* header */
- 	seq_printf(m, "FMB @ %p\n", zdev->fmb);
-diff -puN drivers/s390/cio/blacklist.c~s390-remove-use-of-seq_printf-return-value drivers/s390/cio/blacklist.c
---- a/drivers/s390/cio/blacklist.c~s390-remove-use-of-seq_printf-return-value
-+++ a/drivers/s390/cio/blacklist.c
-@@ -330,18 +330,20 @@ cio_ignore_proc_seq_show(struct seq_file
- 	if (!iter->in_range) {
- 		/* First device in range. */
- 		if ((iter->devno == __MAX_SUBCHANNEL) ||
--		    !is_blacklisted(iter->ssid, iter->devno + 1))
-+		    !is_blacklisted(iter->ssid, iter->devno + 1)) {
- 			/* Singular device. */
--			return seq_printf(s, "0.%x.%04x\n",
--					  iter->ssid, iter->devno);
-+			seq_printf(s, "0.%x.%04x\n", iter->ssid, iter->devno);
-+			return 0;
-+		}
- 		iter->in_range = 1;
--		return seq_printf(s, "0.%x.%04x-", iter->ssid, iter->devno);
-+		seq_printf(s, "0.%x.%04x-", iter->ssid, iter->devno);
-+		return 0;
- 	}
- 	if ((iter->devno == __MAX_SUBCHANNEL) ||
- 	    !is_blacklisted(iter->ssid, iter->devno + 1)) {
- 		/* Last device in range. */
- 		iter->in_range = 0;
--		return seq_printf(s, "0.%x.%04x\n", iter->ssid, iter->devno);
-+		seq_printf(s, "0.%x.%04x\n", iter->ssid, iter->devno);
- 	}
- 	return 0;
+-		       revision,
+-		       info->model,
+-		       info->cache,
+-		       info->flags & HAS_FPU ? "yes" : "no",
+-		       info->flags & HAS_MMU ? "yes" : "no",
+-		       info->flags & HAS_MMU_BUG ? "yes" : "no",
+-		       info->flags & HAS_ETHERNET100 ? "10/100" : "10",
+-		       info->flags & HAS_TOKENRING ? "4/16 Mbps" : "no",
+-		       info->flags & HAS_SCSI ? "yes" : "no",
+-		       info->flags & HAS_ATA ? "yes" : "no",
+-		       info->flags & HAS_USB ? "yes" : "no",
+-		       (loops_per_jiffy * HZ + 500) / 500000,
+-		       ((loops_per_jiffy * HZ + 500) / 5000) % 100);
++		   revision,
++		   info->model,
++		   info->cache,
++		   info->flags & HAS_FPU ? "yes" : "no",
++		   info->flags & HAS_MMU ? "yes" : "no",
++		   info->flags & HAS_MMU_BUG ? "yes" : "no",
++		   info->flags & HAS_ETHERNET100 ? "10/100" : "10",
++		   info->flags & HAS_TOKENRING ? "4/16 Mbps" : "no",
++		   info->flags & HAS_SCSI ? "yes" : "no",
++		   info->flags & HAS_ATA ? "yes" : "no",
++		   info->flags & HAS_USB ? "yes" : "no",
++		   (loops_per_jiffy * HZ + 500) / 500000,
++		   ((loops_per_jiffy * HZ + 500) / 5000) % 100);
++
++	return 0;
  }
+ 
+ #endif /* CONFIG_PROC_FS */
+diff -puN arch/cris/arch-v32/kernel/setup.c~cris-remove-use-of-seq_printf-return-value arch/cris/arch-v32/kernel/setup.c
+--- a/arch/cris/arch-v32/kernel/setup.c~cris-remove-use-of-seq_printf-return-value
++++ a/arch/cris/arch-v32/kernel/setup.c
+@@ -77,36 +77,38 @@ int show_cpuinfo(struct seq_file *m, voi
+ 		}
+ 	}
+ 
+-	return seq_printf(m,
+-		"processor\t: %d\n"
+-		"cpu\t\t: CRIS\n"
+-		"cpu revision\t: %lu\n"
+-		"cpu model\t: %s\n"
+-		"cache size\t: %d KB\n"
+-		"fpu\t\t: %s\n"
+-		"mmu\t\t: %s\n"
+-		"mmu DMA bug\t: %s\n"
+-		"ethernet\t: %s Mbps\n"
+-		"token ring\t: %s\n"
+-		"scsi\t\t: %s\n"
+-		"ata\t\t: %s\n"
+-		"usb\t\t: %s\n"
+-		"bogomips\t: %lu.%02lu\n\n",
++	seq_printf(m,
++		   "processor\t: %d\n"
++		   "cpu\t\t: CRIS\n"
++		   "cpu revision\t: %lu\n"
++		   "cpu model\t: %s\n"
++		   "cache size\t: %d KB\n"
++		   "fpu\t\t: %s\n"
++		   "mmu\t\t: %s\n"
++		   "mmu DMA bug\t: %s\n"
++		   "ethernet\t: %s Mbps\n"
++		   "token ring\t: %s\n"
++		   "scsi\t\t: %s\n"
++		   "ata\t\t: %s\n"
++		   "usb\t\t: %s\n"
++		   "bogomips\t: %lu.%02lu\n\n",
+ 
+-		cpu,
+-		revision,
+-		info->cpu_model,
+-		info->cache_size,
+-		info->flags & HAS_FPU ? "yes" : "no",
+-		info->flags & HAS_MMU ? "yes" : "no",
+-		info->flags & HAS_MMU_BUG ? "yes" : "no",
+-		info->flags & HAS_ETHERNET100 ? "10/100" : "10",
+-		info->flags & HAS_TOKENRING ? "4/16 Mbps" : "no",
+-		info->flags & HAS_SCSI ? "yes" : "no",
+-		info->flags & HAS_ATA ? "yes" : "no",
+-		info->flags & HAS_USB ? "yes" : "no",
+-		(loops_per_jiffy * HZ + 500) / 500000,
+-		((loops_per_jiffy * HZ + 500) / 5000) % 100);
++		   cpu,
++		   revision,
++		   info->cpu_model,
++		   info->cache_size,
++		   info->flags & HAS_FPU ? "yes" : "no",
++		   info->flags & HAS_MMU ? "yes" : "no",
++		   info->flags & HAS_MMU_BUG ? "yes" : "no",
++		   info->flags & HAS_ETHERNET100 ? "10/100" : "10",
++		   info->flags & HAS_TOKENRING ? "4/16 Mbps" : "no",
++		   info->flags & HAS_SCSI ? "yes" : "no",
++		   info->flags & HAS_ATA ? "yes" : "no",
++		   info->flags & HAS_USB ? "yes" : "no",
++		   (loops_per_jiffy * HZ + 500) / 500000,
++		   ((loops_per_jiffy * HZ + 500) / 5000) % 100);
++
++	return 0;
+ }
+ 
+ #endif /* CONFIG_PROC_FS */
 _
 
 Patches currently in -mm which might be from joe@perches.com are
