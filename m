@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + sh-expose-number-of-page-table-levels.patch added to -mm tree
-Date: Mon, 23 Feb 2015 12:44:54 -0800
-Message-ID: <54eb9146.uIpNDQU1owtx+z45%akpm@linux-foundation.org>
+Subject: + tile-expose-number-of-page-table-levels.patch added to -mm tree
+Date: Mon, 23 Feb 2015 12:44:58 -0800
+Message-ID: <54eb914a.C42DXuhugMw7UeQf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44357 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44364 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752470AbbBWUoz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Feb 2015 15:44:55 -0500
+	with ESMTP id S1752470AbbBWUo7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Feb 2015 15:44:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, linux@roeck-us.net, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, cmetcalf@ezchip.com, linux@roeck-us.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sh: expose number of page table levels
+     Subject: tile: expose number of page table levels
 has been added to the -mm tree.  Its filename is
-     sh-expose-number-of-page-table-levels.patch
+     tile-expose-number-of-page-table-levels.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sh-expose-number-of-page-table-levels.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/tile-expose-number-of-page-table-levels.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sh-expose-number-of-page-table-levels.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/tile-expose-number-of-page-table-levels.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,29 +39,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: sh: expose number of page table levels
+Subject: tile: expose number of page table levels
 
 We would want to use number of page table level to define mm_struct.
 Let's expose it as CONFIG_PGTABLE_LEVELS.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: linux-sh@vger.kernel.org
+Acked-by: Chris Metcalf <cmetcalf@ezchip.com>
 Tested-by: Guenter Roeck <linux@roeck-us.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/Kconfig |    4 ++++
- 1 file changed, 4 insertions(+)
+ arch/tile/Kconfig |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN arch/sh/Kconfig~sh-expose-number-of-page-table-levels arch/sh/Kconfig
---- a/arch/sh/Kconfig~sh-expose-number-of-page-table-levels
-+++ a/arch/sh/Kconfig
-@@ -162,6 +162,10 @@ config NEED_DMA_MAP_STATE
- config NEED_SG_DMA_LENGTH
- 	def_bool y
+diff -puN arch/tile/Kconfig~tile-expose-number-of-page-table-levels arch/tile/Kconfig
+--- a/arch/tile/Kconfig~tile-expose-number-of-page-table-levels
++++ a/arch/tile/Kconfig
+@@ -147,6 +147,11 @@ config ARCH_DEFCONFIG
+ 	default "arch/tile/configs/tilepro_defconfig" if !TILEGX
+ 	default "arch/tile/configs/tilegx_defconfig" if TILEGX
  
 +config PGTABLE_LEVELS
-+	default 3 if X2TLB
++	int
++	default 3 if 64BIT
 +	default 2
 +
  source "init/Kconfig"
