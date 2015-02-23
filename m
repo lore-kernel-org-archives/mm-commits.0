@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + power-wakeup-remove-use-of-seq_printf-return-value.patch added
+Subject: + x86-mtrr-if-remove-use-of-seq_printf-return-value.patch added
  to -mm tree
-Date: Mon, 23 Feb 2015 15:58:44 -0800
-Message-ID: <54ebbeb4.GQN6LQdGp5VSp5Th%akpm@linux-foundation.org>
+Date: Mon, 23 Feb 2015 15:58:42 -0800
+Message-ID: <54ebbeb2./0Wd0bptF9y8iwEx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48265 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48259 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752507AbbBWX6q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Feb 2015 18:58:46 -0500
+	with ESMTP id S1752303AbbBWX6n (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Feb 2015 18:58:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, gregkh@linuxfoundation.org, len.brown@intel.com, pavel@ucw.cz, rjw@rjwysocki.net, mm-commits@vger.kernel.org
+To: joe@perches.com, hpa@zytor.com, mingo@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: power: wakeup: remove use of seq_printf return value
+     Subject: x86: mtrr: if: remove use of seq_printf return value
 has been added to the -mm tree.  Its filename is
-     power-wakeup-remove-use-of-seq_printf-return-value.patch
+     x86-mtrr-if-remove-use-of-seq_printf-return-value.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/power-wakeup-remove-use-of-seq_printf-return-value.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/x86-mtrr-if-remove-use-of-seq_printf-return-value.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/power-wakeup-remove-use-of-seq_printf-return-value.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/x86-mtrr-if-remove-use-of-seq_printf-return-value.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,7 +40,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: power: wakeup: remove use of seq_printf return value
+Subject: x86: mtrr: if: remove use of seq_printf return value
 
 The seq_printf return value, because it's frequently misused,
 will eventually be converted to void.
@@ -49,52 +49,47 @@ See: commit 1f33c41c03da ("seq_file: Rename seq_overflow() to
      seq_has_overflowed() and make public")
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Len Brown <len.brown@intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/power/wakeup.c |   16 +++++++---------
- 1 file changed, 7 insertions(+), 9 deletions(-)
+ arch/x86/kernel/cpu/mtrr/if.c |   12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
-diff -puN drivers/base/power/wakeup.c~power-wakeup-remove-use-of-seq_printf-return-value drivers/base/power/wakeup.c
---- a/drivers/base/power/wakeup.c~power-wakeup-remove-use-of-seq_printf-return-value
-+++ a/drivers/base/power/wakeup.c
-@@ -842,7 +842,6 @@ static int print_wakeup_source_stats(str
- 	unsigned long active_count;
- 	ktime_t active_time;
- 	ktime_t prevent_sleep_time;
--	int ret;
+diff -puN arch/x86/kernel/cpu/mtrr/if.c~x86-mtrr-if-remove-use-of-seq_printf-return-value arch/x86/kernel/cpu/mtrr/if.c
+--- a/arch/x86/kernel/cpu/mtrr/if.c~x86-mtrr-if-remove-use-of-seq_printf-return-value
++++ a/arch/x86/kernel/cpu/mtrr/if.c
+@@ -404,11 +404,10 @@ static const struct file_operations mtrr
+ static int mtrr_seq_show(struct seq_file *seq, void *offset)
+ {
+ 	char factor;
+-	int i, max, len;
++	int i, max;
+ 	mtrr_type type;
+ 	unsigned long base, size;
  
- 	spin_lock_irqsave(&ws->lock, flags);
- 
-@@ -865,17 +864,16 @@ static int print_wakeup_source_stats(str
- 		active_time = ktime_set(0, 0);
+-	len = 0;
+ 	max = num_var_ranges;
+ 	for (i = 0; i < max; i++) {
+ 		mtrr_if->get(i, &base, &size, &type);
+@@ -425,11 +424,10 @@ static int mtrr_seq_show(struct seq_file
+ 			size >>= 20 - PAGE_SHIFT;
+ 		}
+ 		/* Base can be > 32bit */
+-		len += seq_printf(seq, "reg%02i: base=0x%06lx000 "
+-			"(%5luMB), size=%5lu%cB, count=%d: %s\n",
+-			i, base, base >> (20 - PAGE_SHIFT), size,
+-			factor, mtrr_usage_table[i],
+-			mtrr_attrib_to_str(type));
++		seq_printf(seq, "reg%02i: base=0x%06lx000 (%5luMB), size=%5lu%cB, count=%d: %s\n",
++			   i, base, base >> (20 - PAGE_SHIFT),
++			   size, factor,
++			   mtrr_usage_table[i], mtrr_attrib_to_str(type));
  	}
- 
--	ret = seq_printf(m, "%-12s\t%lu\t\t%lu\t\t%lu\t\t%lu\t\t"
--			"%lld\t\t%lld\t\t%lld\t\t%lld\t\t%lld\n",
--			ws->name, active_count, ws->event_count,
--			ws->wakeup_count, ws->expire_count,
--			ktime_to_ms(active_time), ktime_to_ms(total_time),
--			ktime_to_ms(max_time), ktime_to_ms(ws->last_time),
--			ktime_to_ms(prevent_sleep_time));
-+	seq_printf(m, "%-12s\t%lu\t\t%lu\t\t%lu\t\t%lu\t\t%lld\t\t%lld\t\t%lld\t\t%lld\t\t%lld\n",
-+		   ws->name, active_count, ws->event_count,
-+		   ws->wakeup_count, ws->expire_count,
-+		   ktime_to_ms(active_time), ktime_to_ms(total_time),
-+		   ktime_to_ms(max_time), ktime_to_ms(ws->last_time),
-+		   ktime_to_ms(prevent_sleep_time));
- 
- 	spin_unlock_irqrestore(&ws->lock, flags);
- 
--	return ret;
-+	return 0;
+ 	return 0;
  }
- 
- /**
 _
 
 Patches currently in -mm which might be from joe@perches.com are
