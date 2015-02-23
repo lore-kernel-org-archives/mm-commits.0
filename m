@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + watchdog-bcm281xx-remove-use-of-seq_printf-return-value.patch
- added to -mm tree
-Date: Mon, 23 Feb 2015 15:59:12 -0800
-Message-ID: <54ebbed0.AE4xvmAM2VQ+i7tk%akpm@linux-foundation.org>
+Subject: + pxa27x_udc-remove-use-of-seq_printf-return-value.patch added to -mm tree
+Date: Mon, 23 Feb 2015 15:58:50 -0800
+Message-ID: <54ebbeba.Er9oRZPFC40DC99p%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48317 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48276 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752714AbbBWX7N (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Feb 2015 18:59:13 -0500
+	with ESMTP id S1752303AbbBWX6v (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Feb 2015 18:58:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, wim@iguana.be, mm-commits@vger.kernel.org
+To: joe@perches.com, balbi@ti.com, daniel@zonque.org, gregkh@linuxfoundation.org, haojian.zhuang@gmail.com, robert.jarzmik@free.fr, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: watchdog: bcm281xx: remove use of seq_printf return value
+     Subject: drivers/usb/gadget/udc/pxa27x_udc.c: remove use of seq_printf return value
 has been added to the -mm tree.  Its filename is
-     watchdog-bcm281xx-remove-use-of-seq_printf-return-value.patch
+     pxa27x_udc-remove-use-of-seq_printf-return-value.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/watchdog-bcm281xx-remove-use-of-seq_printf-return-value.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/pxa27x_udc-remove-use-of-seq_printf-return-value.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/watchdog-bcm281xx-remove-use-of-seq_printf-return-value.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/pxa27x_udc-remove-use-of-seq_printf-return-value.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,7 +39,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: watchdog: bcm281xx: remove use of seq_printf return value
+Subject: drivers/usb/gadget/udc/pxa27x_udc.c: remove use of seq_printf return value
 
 The seq_printf return value, because it's frequently misused,
 will eventually be converted to void.
@@ -48,71 +47,211 @@ will eventually be converted to void.
 See: commit 1f33c41c03da ("seq_file: Rename seq_overflow() to
      seq_has_overflowed() and make public")
 
+While there, simplify the error handler logic by returning
+immediately and remove the unnecessary labels.
+
 Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Guenter Roeck <linux~roeck-us.net>
-Cc: Wim Van Sebroeck <wim@iguana.be>
+Cc: Daniel Mack <daniel@zonque.org>
+Cc: Haojian Zhuang <haojian.zhuang@gmail.com>
+Cc: Robert Jarzmik <robert.jarzmik@free.fr>
+Cc: Felipe Balbi <balbi@ti.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/bcm_kona_wdt.c |   27 ++++++++++++++++-----------
- 1 file changed, 16 insertions(+), 11 deletions(-)
+ drivers/usb/gadget/udc/pxa27x_udc.c |  132 +++++++++++---------------
+ 1 file changed, 60 insertions(+), 72 deletions(-)
 
-diff -puN drivers/watchdog/bcm_kona_wdt.c~watchdog-bcm281xx-remove-use-of-seq_printf-return-value drivers/watchdog/bcm_kona_wdt.c
---- a/drivers/watchdog/bcm_kona_wdt.c~watchdog-bcm281xx-remove-use-of-seq_printf-return-value
-+++ a/drivers/watchdog/bcm_kona_wdt.c
-@@ -99,12 +99,14 @@ static int secure_register_read(struct b
- 
- static int bcm_kona_wdt_dbg_show(struct seq_file *s, void *data)
+diff -puN drivers/usb/gadget/udc/pxa27x_udc.c~pxa27x_udc-remove-use-of-seq_printf-return-value drivers/usb/gadget/udc/pxa27x_udc.c
+--- a/drivers/usb/gadget/udc/pxa27x_udc.c~pxa27x_udc-remove-use-of-seq_printf-return-value
++++ a/drivers/usb/gadget/udc/pxa27x_udc.c
+@@ -93,50 +93,46 @@ static void handle_ep(struct pxa_ep *ep)
+ static int state_dbg_show(struct seq_file *s, void *p)
  {
--	int ctl_val, cur_val, ret;
-+	int ctl_val, cur_val;
- 	unsigned long flags;
- 	struct bcm_kona_wdt *wdt = s->private;
+ 	struct pxa_udc *udc = s->private;
+-	int pos = 0, ret;
+ 	u32 tmp;
  
--	if (!wdt)
--		return seq_puts(s, "No device pointer\n");
-+	if (!wdt) {
-+		seq_puts(s, "No device pointer\n");
-+		return 0;
-+	}
+-	ret = -ENODEV;
+ 	if (!udc->driver)
+-		goto out;
++		return -ENODEV;
  
- 	spin_lock_irqsave(&wdt->lock, flags);
- 	ctl_val = secure_register_read(wdt, SECWDOG_CTRL_REG);
-@@ -112,7 +114,7 @@ static int bcm_kona_wdt_dbg_show(struct
- 	spin_unlock_irqrestore(&wdt->lock, flags);
+ 	/* basic device status */
+-	pos += seq_printf(s, DRIVER_DESC "\n"
+-			 "%s version: %s\nGadget driver: %s\n",
+-			 driver_name, DRIVER_VERSION,
+-			 udc->driver ? udc->driver->driver.name : "(none)");
++	seq_printf(s, DRIVER_DESC "\n"
++		   "%s version: %s\n"
++		   "Gadget driver: %s\n",
++		   driver_name, DRIVER_VERSION,
++		   udc->driver ? udc->driver->driver.name : "(none)");
  
- 	if (ctl_val < 0 || cur_val < 0) {
--		ret = seq_puts(s, "Error accessing hardware\n");
-+		seq_puts(s, "Error accessing hardware\n");
- 	} else {
- 		int ctl, cur, ctl_sec, cur_sec, res;
+ 	tmp = udc_readl(udc, UDCCR);
+-	pos += seq_printf(s,
+-			 "udccr=0x%0x(%s%s%s%s%s%s%s%s%s%s), "
+-			 "con=%d,inter=%d,altinter=%d\n", tmp,
+-			 (tmp & UDCCR_OEN) ? " oen":"",
+-			 (tmp & UDCCR_AALTHNP) ? " aalthnp":"",
+-			 (tmp & UDCCR_AHNP) ? " rem" : "",
+-			 (tmp & UDCCR_BHNP) ? " rstir" : "",
+-			 (tmp & UDCCR_DWRE) ? " dwre" : "",
+-			 (tmp & UDCCR_SMAC) ? " smac" : "",
+-			 (tmp & UDCCR_EMCE) ? " emce" : "",
+-			 (tmp & UDCCR_UDR) ? " udr" : "",
+-			 (tmp & UDCCR_UDA) ? " uda" : "",
+-			 (tmp & UDCCR_UDE) ? " ude" : "",
+-			 (tmp & UDCCR_ACN) >> UDCCR_ACN_S,
+-			 (tmp & UDCCR_AIN) >> UDCCR_AIN_S,
+-			 (tmp & UDCCR_AAISN) >> UDCCR_AAISN_S);
++	seq_printf(s,
++		   "udccr=0x%0x(%s%s%s%s%s%s%s%s%s%s), con=%d,inter=%d,altinter=%d\n",
++		   tmp,
++		   (tmp & UDCCR_OEN) ? " oen":"",
++		   (tmp & UDCCR_AALTHNP) ? " aalthnp":"",
++		   (tmp & UDCCR_AHNP) ? " rem" : "",
++		   (tmp & UDCCR_BHNP) ? " rstir" : "",
++		   (tmp & UDCCR_DWRE) ? " dwre" : "",
++		   (tmp & UDCCR_SMAC) ? " smac" : "",
++		   (tmp & UDCCR_EMCE) ? " emce" : "",
++		   (tmp & UDCCR_UDR) ? " udr" : "",
++		   (tmp & UDCCR_UDA) ? " uda" : "",
++		   (tmp & UDCCR_UDE) ? " ude" : "",
++		   (tmp & UDCCR_ACN) >> UDCCR_ACN_S,
++		   (tmp & UDCCR_AIN) >> UDCCR_AIN_S,
++		   (tmp & UDCCR_AAISN) >> UDCCR_AAISN_S);
+ 	/* registers for device and ep0 */
+-	pos += seq_printf(s, "udcicr0=0x%08x udcicr1=0x%08x\n",
+-			udc_readl(udc, UDCICR0), udc_readl(udc, UDCICR1));
+-	pos += seq_printf(s, "udcisr0=0x%08x udcisr1=0x%08x\n",
+-			udc_readl(udc, UDCISR0), udc_readl(udc, UDCISR1));
+-	pos += seq_printf(s, "udcfnr=%d\n", udc_readl(udc, UDCFNR));
+-	pos += seq_printf(s, "irqs: reset=%lu, suspend=%lu, resume=%lu, "
+-			"reconfig=%lu\n",
+-			udc->stats.irqs_reset, udc->stats.irqs_suspend,
+-			udc->stats.irqs_resume, udc->stats.irqs_reconfig);
+-
+-	ret = 0;
+-out:
+-	return ret;
++	seq_printf(s, "udcicr0=0x%08x udcicr1=0x%08x\n",
++		   udc_readl(udc, UDCICR0), udc_readl(udc, UDCICR1));
++	seq_printf(s, "udcisr0=0x%08x udcisr1=0x%08x\n",
++		   udc_readl(udc, UDCISR0), udc_readl(udc, UDCISR1));
++	seq_printf(s, "udcfnr=%d\n", udc_readl(udc, UDCFNR));
++	seq_printf(s, "irqs: reset=%lu, suspend=%lu, resume=%lu, reconfig=%lu\n",
++		   udc->stats.irqs_reset, udc->stats.irqs_suspend,
++		   udc->stats.irqs_resume, udc->stats.irqs_reconfig);
++
++	return 0;
+ }
  
-@@ -121,15 +123,18 @@ static int bcm_kona_wdt_dbg_show(struct
- 		cur = cur_val & SECWDOG_COUNT_MASK;
- 		ctl_sec = TICKS_TO_SECS(ctl, wdt);
- 		cur_sec = TICKS_TO_SECS(cur, wdt);
--		ret = seq_printf(s, "Resolution: %d / %d\n"
--				"Control: %d s / %d (%#x) ticks\n"
--				"Current: %d s / %d (%#x) ticks\n"
--				"Busy count: %lu\n", res,
--				wdt->resolution, ctl_sec, ctl, ctl, cur_sec,
--				cur, cur, wdt->busy_count);
-+		seq_printf(s,
-+			   "Resolution: %d / %d\n"
-+			   "Control: %d s / %d (%#x) ticks\n"
-+			   "Current: %d s / %d (%#x) ticks\n"
-+			   "Busy count: %lu\n",
-+			   res, wdt->resolution,
-+			   ctl_sec, ctl, ctl,
-+			   cur_sec, cur, cur,
-+			   wdt->busy_count);
+ static int queues_dbg_show(struct seq_file *s, void *p)
+@@ -144,75 +140,67 @@ static int queues_dbg_show(struct seq_fi
+ 	struct pxa_udc *udc = s->private;
+ 	struct pxa_ep *ep;
+ 	struct pxa27x_request *req;
+-	int pos = 0, i, maxpkt, ret;
++	int i, maxpkt;
+ 
+-	ret = -ENODEV;
+ 	if (!udc->driver)
+-		goto out;
++		return -ENODEV;
+ 
+ 	/* dump endpoint queues */
+ 	for (i = 0; i < NR_PXA_ENDPOINTS; i++) {
+ 		ep = &udc->pxa_ep[i];
+ 		maxpkt = ep->fifo_size;
+-		pos += seq_printf(s,  "%-12s max_pkt=%d %s\n",
+-				EPNAME(ep), maxpkt, "pio");
++		seq_printf(s,  "%-12s max_pkt=%d %s\n",
++			   EPNAME(ep), maxpkt, "pio");
+ 
+ 		if (list_empty(&ep->queue)) {
+-			pos += seq_printf(s, "\t(nothing queued)\n");
++			seq_puts(s, "\t(nothing queued)\n");
+ 			continue;
+ 		}
+ 
+ 		list_for_each_entry(req, &ep->queue, queue) {
+-			pos += seq_printf(s,  "\treq %p len %d/%d buf %p\n",
+-					&req->req, req->req.actual,
+-					req->req.length, req->req.buf);
++			seq_printf(s,  "\treq %p len %d/%d buf %p\n",
++				   &req->req, req->req.actual,
++				   req->req.length, req->req.buf);
+ 		}
  	}
  
+-	ret = 0;
+-out:
 -	return ret;
 +	return 0;
  }
  
- static int bcm_kona_dbg_open(struct inode *inode, struct file *file)
+ static int eps_dbg_show(struct seq_file *s, void *p)
+ {
+ 	struct pxa_udc *udc = s->private;
+ 	struct pxa_ep *ep;
+-	int pos = 0, i, ret;
++	int i;
+ 	u32 tmp;
+ 
+-	ret = -ENODEV;
+ 	if (!udc->driver)
+-		goto out;
++		return -ENODEV;
+ 
+ 	ep = &udc->pxa_ep[0];
+ 	tmp = udc_ep_readl(ep, UDCCSR);
+-	pos += seq_printf(s, "udccsr0=0x%03x(%s%s%s%s%s%s%s)\n", tmp,
+-			 (tmp & UDCCSR0_SA) ? " sa" : "",
+-			 (tmp & UDCCSR0_RNE) ? " rne" : "",
+-			 (tmp & UDCCSR0_FST) ? " fst" : "",
+-			 (tmp & UDCCSR0_SST) ? " sst" : "",
+-			 (tmp & UDCCSR0_DME) ? " dme" : "",
+-			 (tmp & UDCCSR0_IPR) ? " ipr" : "",
+-			 (tmp & UDCCSR0_OPC) ? " opc" : "");
++	seq_printf(s, "udccsr0=0x%03x(%s%s%s%s%s%s%s)\n",
++		   tmp,
++		   (tmp & UDCCSR0_SA) ? " sa" : "",
++		   (tmp & UDCCSR0_RNE) ? " rne" : "",
++		   (tmp & UDCCSR0_FST) ? " fst" : "",
++		   (tmp & UDCCSR0_SST) ? " sst" : "",
++		   (tmp & UDCCSR0_DME) ? " dme" : "",
++		   (tmp & UDCCSR0_IPR) ? " ipr" : "",
++		   (tmp & UDCCSR0_OPC) ? " opc" : "");
+ 	for (i = 0; i < NR_PXA_ENDPOINTS; i++) {
+ 		ep = &udc->pxa_ep[i];
+ 		tmp = i? udc_ep_readl(ep, UDCCR) : udc_readl(udc, UDCCR);
+-		pos += seq_printf(s, "%-12s: "
+-				"IN %lu(%lu reqs), OUT %lu(%lu reqs), "
+-				"irqs=%lu, udccr=0x%08x, udccsr=0x%03x, "
+-				"udcbcr=%d\n",
+-				EPNAME(ep),
+-				ep->stats.in_bytes, ep->stats.in_ops,
+-				ep->stats.out_bytes, ep->stats.out_ops,
+-				ep->stats.irqs,
+-				tmp, udc_ep_readl(ep, UDCCSR),
+-				udc_ep_readl(ep, UDCBCR));
++		seq_printf(s, "%-12s: IN %lu(%lu reqs), OUT %lu(%lu reqs), irqs=%lu, udccr=0x%08x, udccsr=0x%03x, udcbcr=%d\n",
++			   EPNAME(ep),
++			   ep->stats.in_bytes, ep->stats.in_ops,
++			   ep->stats.out_bytes, ep->stats.out_ops,
++			   ep->stats.irqs,
++			   tmp, udc_ep_readl(ep, UDCCSR),
++			   udc_ep_readl(ep, UDCBCR));
+ 	}
+ 
+-	ret = 0;
+-out:
+-	return ret;
++	return 0;
+ }
+ 
+ static int eps_dbg_open(struct inode *inode, struct file *file)
 _
 
 Patches currently in -mm which might be from joe@perches.com are
