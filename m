@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + watchdog-introduce-the-proc_watchdog_update-function.patch
+Subject: + watchdog-introduce-the-proc_watchdog_common-function.patch
  added to -mm tree
-Date: Mon, 23 Feb 2015 13:20:41 -0800
-Message-ID: <54eb99a9.dDQE2+tEDGUpgUYm%akpm@linux-foundation.org>
+Date: Mon, 23 Feb 2015 13:20:45 -0800
+Message-ID: <54eb99ad.JOvITAK4c8pWdtMI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45180 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45187 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752765AbbBWVUm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Feb 2015 16:20:42 -0500
+	with ESMTP id S1752608AbbBWVUq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Feb 2015 16:20:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: uobergfe@redhat.com, dzickus@redhat.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: watchdog: introduce the proc_watchdog_update() function
+     Subject: watchdog: introduce proc_watchdog_common()
 has been added to the -mm tree.  Its filename is
-     watchdog-introduce-the-proc_watchdog_update-function.patch
+     watchdog-introduce-the-proc_watchdog_common-function.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/watchdog-introduce-the-proc_watchdog_update-function.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/watchdog-introduce-the-proc_watchdog_common-function.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/watchdog-introduce-the-proc_watchdog_update-function.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/watchdog-introduce-the-proc_watchdog_common-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,12 +40,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ulrich Obergfell <uobergfe@redhat.com>
-Subject: watchdog: introduce the proc_watchdog_update() function
+Subject: watchdog: introduce proc_watchdog_common()
 
-This series introduces a separate handler for each watchdog parameter in
-/proc/sys/kernel.  The separate handlers need a common function that they
-can call to update the run state of the lockup detectors, or to have the
-lockup detectors use a new sample period.
+Three of four handlers for the watchdog parameters in /proc/sys/kernel
+essentially have to do the same thing.
+
+  if the parameter is being read {
+    return the state of the corresponding bit(s) in 'watchdog_enabled'
+  } else {
+    set/clear the state of the corresponding bit(s) in 'watchdog_enabled'
+    update the run state of the lockup detector(s)
+  }
+
+Hence, introduce a common function that can be called by those handlers. 
+The callers pass a 'bit mask' to this function to indicate which bit(s)
+should be set/cleared in 'watchdog_enabled'.
+
+This function handles an uncommon race with watchdog_nmi_enable() where a
+concurrent update of 'watchdog_enabled' is possible.  We use 'cmpxchg' to
+detect the concurrency.  [This avoids introducing a new spinlock or a
+mutex to synchronize updates of 'watchdog_enabled'.  Using the same lock
+or mutex in watchdog thread context and in system call context needs to be
+considered carefully because it can make the code prone to deadlock
+situations in connection with parking/unparking the watchdog threads.]
 
 Signed-off-by: Ulrich Obergfell <uobergfe@redhat.com>
 Signed-off-by: Don Zickus <dzickus@redhat.com>
@@ -53,36 +70,78 @@ Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |   23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+ kernel/watchdog.c |   65 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 65 insertions(+)
 
-diff -puN kernel/watchdog.c~watchdog-introduce-the-proc_watchdog_update-function kernel/watchdog.c
---- a/kernel/watchdog.c~watchdog-introduce-the-proc_watchdog_update-function
+diff -puN kernel/watchdog.c~watchdog-introduce-the-proc_watchdog_common-function kernel/watchdog.c
+--- a/kernel/watchdog.c~watchdog-introduce-the-proc_watchdog_common-function
 +++ a/kernel/watchdog.c
-@@ -679,6 +679,29 @@ static void watchdog_disable_all_cpus(vo
- }
+@@ -704,6 +704,71 @@ static int proc_watchdog_update(void)
+ static DEFINE_MUTEX(watchdog_proc_mutex);
  
  /*
-+ * Update the run state of the lockup detectors.
++ * common function for watchdog, nmi_watchdog and soft_watchdog parameter
++ *
++ * caller             | table->data points to | 'which' contains the flag(s)
++ * -------------------|-----------------------|-----------------------------
++ * proc_watchdog      | watchdog_user_enabled | NMI_WATCHDOG_ENABLED or'ed
++ *                    |                       | with SOFT_WATCHDOG_ENABLED
++ * -------------------|-----------------------|-----------------------------
++ * proc_nmi_watchdog  | nmi_watchdog_enabled  | NMI_WATCHDOG_ENABLED
++ * -------------------|-----------------------|-----------------------------
++ * proc_soft_watchdog | soft_watchdog_enabled | SOFT_WATCHDOG_ENABLED
 + */
-+static int proc_watchdog_update(void)
++static int proc_watchdog_common(int which, struct ctl_table *table, int write,
++				void __user *buffer, size_t *lenp, loff_t *ppos)
 +{
-+	int err = 0;
++	int err, old, new;
++	int *watchdog_param = (int *)table->data;
++
++	mutex_lock(&watchdog_proc_mutex);
 +
 +	/*
-+	 * Watchdog threads won't be started if they are already active.
-+	 * The 'watchdog_running' variable in watchdog_*_all_cpus() takes
-+	 * care of this. If those threads are already active, the sample
-+	 * period will be updated and the lockup detectors will be enabled
-+	 * or disabled 'on the fly'.
++	 * If the parameter is being read return the state of the corresponding
++	 * bit(s) in 'watchdog_enabled', else update 'watchdog_enabled' and the
++	 * run state of the lockup detectors.
 +	 */
-+	if (watchdog_enabled && watchdog_thresh)
-+		err = watchdog_enable_all_cpus(true);
-+	else
-+		watchdog_disable_all_cpus();
++	if (!write) {
++		*watchdog_param = (watchdog_enabled & which) != 0;
++		err = proc_dointvec_minmax(table, write, buffer, lenp, ppos);
++	} else {
++		err = proc_dointvec_minmax(table, write, buffer, lenp, ppos);
++		if (err)
++			goto out;
 +
++		/*
++		 * There is a race window between fetching the current value
++		 * from 'watchdog_enabled' and storing the new value. During
++		 * this race window, watchdog_nmi_enable() can sneak in and
++		 * clear the NMI_WATCHDOG_ENABLED bit in 'watchdog_enabled'.
++		 * The 'cmpxchg' detects this race and the loop retries.
++		 */
++		do {
++			old = watchdog_enabled;
++			/*
++			 * If the parameter value is not zero set the
++			 * corresponding bit(s), else clear it(them).
++			 */
++			if (*watchdog_param)
++				new = old | which;
++			else
++				new = old & ~which;
++		} while (cmpxchg(&watchdog_enabled, old, new) != old);
++
++		/*
++		 * Update the run state of the lockup detectors.
++		 * Restore 'watchdog_enabled' on failure.
++		 */
++		err = proc_watchdog_update();
++		if (err)
++			watchdog_enabled = old;
++	}
++out:
++	mutex_unlock(&watchdog_proc_mutex);
 +	return err;
-+
 +}
 +
 +/*
