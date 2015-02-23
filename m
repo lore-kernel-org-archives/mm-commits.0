@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + nios2-cpuinfo-remove-use-of-seq_printf-return-value.patch added to -mm tree
-Date: Mon, 23 Feb 2015 15:58:54 -0800
-Message-ID: <54ebbebe.o+QkgoedIvLrI75Q%akpm@linux-foundation.org>
+Subject: + openrisc-remove-use-of-seq_printf-return-value.patch added to
+ -mm tree
+Date: Mon, 23 Feb 2015 15:58:58 -0800
+Message-ID: <54ebbec2.bVvr83XR3F9FxDeZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48285 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48291 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752647AbbBWX6z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Feb 2015 18:58:55 -0500
+	with ESMTP id S1752303AbbBWX67 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Feb 2015 18:58:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, lftan@altera.com, mm-commits@vger.kernel.org
+To: joe@perches.com, jonas@southpole.se, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nios2: cpuinfo: remove use of seq_printf return value
+     Subject: openrisc: remove use of seq_printf return value
 has been added to the -mm tree.  Its filename is
-     nios2-cpuinfo-remove-use-of-seq_printf-return-value.patch
+     openrisc-remove-use-of-seq_printf-return-value.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/nios2-cpuinfo-remove-use-of-seq_printf-return-value.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/openrisc-remove-use-of-seq_printf-return-value.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/nios2-cpuinfo-remove-use-of-seq_printf-return-value.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/openrisc-remove-use-of-seq_printf-return-value.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,7 +40,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: nios2: cpuinfo: remove use of seq_printf return value
+Subject: openrisc: remove use of seq_printf return value
 
 The seq_printf return value, because it's frequently misused,
 will eventually be converted to void.
@@ -48,102 +49,73 @@ See: commit 1f33c41c03da ("seq_file: Rename seq_overflow() to
      seq_has_overflowed() and make public")
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Ley Foon Tan <lftan@altera.com>
+Cc: Jonas Bonn <jonas@southpole.se>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/nios2/kernel/cpuinfo.c |   77 ++++++++++++++++------------------
- 1 file changed, 38 insertions(+), 39 deletions(-)
+ arch/openrisc/kernel/setup.c |   50 +++++++++++++++++----------------
+ 1 file changed, 26 insertions(+), 24 deletions(-)
 
-diff -puN arch/nios2/kernel/cpuinfo.c~nios2-cpuinfo-remove-use-of-seq_printf-return-value arch/nios2/kernel/cpuinfo.c
---- a/arch/nios2/kernel/cpuinfo.c~nios2-cpuinfo-remove-use-of-seq_printf-return-value
-+++ a/arch/nios2/kernel/cpuinfo.c
-@@ -126,47 +126,46 @@ void __init setup_cpuinfo(void)
-  */
- static int show_cpuinfo(struct seq_file *m, void *v)
- {
--	int count = 0;
- 	const u32 clockfreq = cpuinfo.cpu_clock_freq;
+diff -puN arch/openrisc/kernel/setup.c~openrisc-remove-use-of-seq_printf-return-value arch/openrisc/kernel/setup.c
+--- a/arch/openrisc/kernel/setup.c~openrisc-remove-use-of-seq_printf-return-value
++++ a/arch/openrisc/kernel/setup.c
+@@ -329,30 +329,32 @@ static int show_cpuinfo(struct seq_file
+ 	version = (vr & SPR_VR_VER) >> 24;
+ 	revision = vr & SPR_VR_REV;
  
--	count = seq_printf(m,
--			"CPU:\t\tNios II/%s\n"
--			"MMU:\t\t%s\n"
--			"FPU:\t\tnone\n"
--			"Clocking:\t%u.%02u MHz\n"
--			"BogoMips:\t%lu.%02lu\n"
--			"Calibration:\t%lu loops\n",
--			cpuinfo.cpu_impl,
--			cpuinfo.mmu ? "present" : "none",
--			clockfreq / 1000000, (clockfreq / 100000) % 10,
--			(loops_per_jiffy * HZ) / 500000,
--			((loops_per_jiffy * HZ) / 5000) % 100,
--			(loops_per_jiffy * HZ));
--
--	count += seq_printf(m,
--			"HW:\n"
--			" MUL:\t\t%s\n"
--			" MULX:\t\t%s\n"
--			" DIV:\t\t%s\n",
--			cpuinfo.has_mul ? "yes" : "no",
--			cpuinfo.has_mulx ? "yes" : "no",
--			cpuinfo.has_div ? "yes" : "no");
--
--	count += seq_printf(m,
--			"Icache:\t\t%ukB, line length: %u\n",
--			cpuinfo.icache_size >> 10,
--			cpuinfo.icache_line_size);
--
--	count += seq_printf(m,
--			"Dcache:\t\t%ukB, line length: %u\n",
--			cpuinfo.dcache_size >> 10,
--			cpuinfo.dcache_line_size);
--
--	count += seq_printf(m,
--			"TLB:\t\t%u ways, %u entries, %u PID bits\n",
--			cpuinfo.tlb_num_ways,
--			cpuinfo.tlb_num_entries,
--			cpuinfo.tlb_pid_num_bits);
+-	return seq_printf(m,
+-			  "cpu\t\t: OpenRISC-%x\n"
+-			  "revision\t: %d\n"
+-			  "frequency\t: %ld\n"
+-			  "dcache size\t: %d bytes\n"
+-			  "dcache block size\t: %d bytes\n"
+-			  "icache size\t: %d bytes\n"
+-			  "icache block size\t: %d bytes\n"
+-			  "immu\t\t: %d entries, %lu ways\n"
+-			  "dmmu\t\t: %d entries, %lu ways\n"
+-			  "bogomips\t: %lu.%02lu\n",
+-			  version,
+-			  revision,
+-			  loops_per_jiffy * HZ,
+-			  cpuinfo.dcache_size,
+-			  cpuinfo.dcache_block_size,
+-			  cpuinfo.icache_size,
+-			  cpuinfo.icache_block_size,
+-			  1 << ((mfspr(SPR_DMMUCFGR) & SPR_DMMUCFGR_NTS) >> 2),
+-			  1 + (mfspr(SPR_DMMUCFGR) & SPR_DMMUCFGR_NTW),
+-			  1 << ((mfspr(SPR_IMMUCFGR) & SPR_IMMUCFGR_NTS) >> 2),
+-			  1 + (mfspr(SPR_IMMUCFGR) & SPR_IMMUCFGR_NTW),
+-			  (loops_per_jiffy * HZ) / 500000,
+-			  ((loops_per_jiffy * HZ) / 5000) % 100);
 +	seq_printf(m,
-+		   "CPU:\t\tNios II/%s\n"
-+		   "MMU:\t\t%s\n"
-+		   "FPU:\t\tnone\n"
-+		   "Clocking:\t%u.%02u MHz\n"
-+		   "BogoMips:\t%lu.%02lu\n"
-+		   "Calibration:\t%lu loops\n",
-+		   cpuinfo.cpu_impl,
-+		   cpuinfo.mmu ? "present" : "none",
-+		   clockfreq / 1000000, (clockfreq / 100000) % 10,
++		   "cpu\t\t: OpenRISC-%x\n"
++		   "revision\t: %d\n"
++		   "frequency\t: %ld\n"
++		   "dcache size\t: %d bytes\n"
++		   "dcache block size\t: %d bytes\n"
++		   "icache size\t: %d bytes\n"
++		   "icache block size\t: %d bytes\n"
++		   "immu\t\t: %d entries, %lu ways\n"
++		   "dmmu\t\t: %d entries, %lu ways\n"
++		   "bogomips\t: %lu.%02lu\n",
++		   version,
++		   revision,
++		   loops_per_jiffy * HZ,
++		   cpuinfo.dcache_size,
++		   cpuinfo.dcache_block_size,
++		   cpuinfo.icache_size,
++		   cpuinfo.icache_block_size,
++		   1 << ((mfspr(SPR_DMMUCFGR) & SPR_DMMUCFGR_NTS) >> 2),
++		   1 + (mfspr(SPR_DMMUCFGR) & SPR_DMMUCFGR_NTW),
++		   1 << ((mfspr(SPR_IMMUCFGR) & SPR_IMMUCFGR_NTS) >> 2),
++		   1 + (mfspr(SPR_IMMUCFGR) & SPR_IMMUCFGR_NTW),
 +		   (loops_per_jiffy * HZ) / 500000,
-+		   ((loops_per_jiffy * HZ) / 5000) % 100,
-+		   (loops_per_jiffy * HZ));
++		   ((loops_per_jiffy * HZ) / 5000) % 100);
 +
-+	seq_printf(m,
-+		   "HW:\n"
-+		   " MUL:\t\t%s\n"
-+		   " MULX:\t\t%s\n"
-+		   " DIV:\t\t%s\n",
-+		   cpuinfo.has_mul ? "yes" : "no",
-+		   cpuinfo.has_mulx ? "yes" : "no",
-+		   cpuinfo.has_div ? "yes" : "no");
-+
-+	seq_printf(m,
-+		   "Icache:\t\t%ukB, line length: %u\n",
-+		   cpuinfo.icache_size >> 10,
-+		   cpuinfo.icache_line_size);
-+
-+	seq_printf(m,
-+		   "Dcache:\t\t%ukB, line length: %u\n",
-+		   cpuinfo.dcache_size >> 10,
-+		   cpuinfo.dcache_line_size);
-+
-+	seq_printf(m,
-+		   "TLB:\t\t%u ways, %u entries, %u PID bits\n",
-+		   cpuinfo.tlb_num_ways,
-+		   cpuinfo.tlb_num_entries,
-+		   cpuinfo.tlb_pid_num_bits);
- 
- 	return 0;
++	return 0;
  }
+ 
+ static void *c_start(struct seq_file *m, loff_t * pos)
 _
 
 Patches currently in -mm which might be from joe@perches.com are
