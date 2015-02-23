@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + lib-vsprintfc-another-small-hack.patch added to -mm tree
-Date: Mon, 23 Feb 2015 14:53:20 -0800
-Message-ID: <54ebaf60.Bl005RbbqSrVmLZy%akpm@linux-foundation.org>
+Subject: + rtc-hctosys-do-not-treat-lack-of-rtc-device-as-error.patch
+ added to -mm tree
+Date: Mon, 23 Feb 2015 14:58:51 -0800
+Message-ID: <54ebb0ab.tNnQ5KoOgVDCT5m2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47257 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47281 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753084AbbBWWxV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Feb 2015 17:53:21 -0500
+	with ESMTP id S1752028AbbBWW6w (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Feb 2015 17:58:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, a.p.zijlstra@chello.nl, tj@kernel.org, mm-commits@vger.kernel.org
+To: bos@je-eigen-domein.nl, a.zummo@towertech.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/vsprintf.c: another small hack
+     Subject: rtc: hctosys: do not treat lack of RTC device as error
 has been added to the -mm tree.  Its filename is
-     lib-vsprintfc-another-small-hack.patch
+     rtc-hctosys-do-not-treat-lack-of-rtc-device-as-error.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-vsprintfc-another-small-hack.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rtc-hctosys-do-not-treat-lack-of-rtc-device-as-error.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-vsprintfc-another-small-hack.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-hctosys-do-not-treat-lack-of-rtc-device-as-error.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,56 +39,42 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/vsprintf.c: another small hack
+From: Floris Bos <bos@je-eigen-domein.nl>
+Subject: rtc: hctosys: do not treat lack of RTC device as error
 
-Making ZEROPAD == '0'-' ', we can eliminate a few more instructions.
+When using device trees on the ARM platform, it is not certain at compile
+time whether or not the system will have a RTC.
 
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Tejun Heo <tj@kernel.org>
+If one enables CONFIG_HCTOSYS just in case the system booted has a RTC,
+and it turns out not to be, this will result in a big fat "unable to open
+rtc device" error being printed to console, even when "quiet" is set in
+the kernel cmdline.
+
+Fix this by outputting the message with loglevel info instead.
+
+Signed-off-by: Floris Bos <bos@je-eigen-domein.nl>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ drivers/rtc/hctosys.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/vsprintf.c~lib-vsprintfc-another-small-hack lib/vsprintf.c
---- a/lib/vsprintf.c~lib-vsprintfc-another-small-hack
-+++ a/lib/vsprintf.c
-@@ -341,10 +341,10 @@ int num_to_str(char *buf, int size, unsi
- }
+diff -puN drivers/rtc/hctosys.c~rtc-hctosys-do-not-treat-lack-of-rtc-device-as-error drivers/rtc/hctosys.c
+--- a/drivers/rtc/hctosys.c~rtc-hctosys-do-not-treat-lack-of-rtc-device-as-error
++++ a/drivers/rtc/hctosys.c
+@@ -32,7 +32,7 @@ static int __init rtc_hctosys(void)
+ 	struct rtc_device *rtc = rtc_class_open(CONFIG_RTC_HCTOSYS_DEVICE);
  
- #define SIGN	1		/* unsigned/signed, must be 1 */
--#define ZEROPAD	2		/* pad with zero */
-+#define LEFT	2		/* left justified */
- #define PLUS	4		/* show plus */
- #define SPACE	8		/* space if plus */
--#define LEFT	16		/* left justified */
-+#define ZEROPAD	16		/* pad with zero, must be 16 == '0' - ' ' */
- #define SMALL	32		/* use lowercase in hex (must be 32 == 0x20) */
- #define SPECIAL	64		/* prefix hex with "0x", octal with "0" */
- 
-@@ -467,7 +467,8 @@ char *number(char *buf, char *end, unsig
+ 	if (rtc == NULL) {
+-		pr_err("%s: unable to open rtc device (%s)\n",
++		pr_info("%s: unable to open rtc device (%s)\n",
+ 			__FILE__, CONFIG_RTC_HCTOSYS_DEVICE);
+ 		goto err_open;
  	}
- 	/* zero or space padding */
- 	if (!(spec.flags & LEFT)) {
--		char c = (spec.flags & ZEROPAD) ? '0' : ' ';
-+		char c = ' ' + (spec.flags & ZEROPAD);
-+		BUILD_BUG_ON(' ' + ZEROPAD != '0');
- 		while (--spec.field_width >= 0) {
- 			if (buf < end)
- 				*buf = c;
 _
 
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
+Patches currently in -mm which might be from bos@je-eigen-domein.nl are
 
-lib-vsprintfc-eliminate-some-branches.patch
-lib-vsprintfc-reduce-stack-use-in-number.patch
-lib-vsprintfc-eliminate-duplicate-hex-string-array.patch
-lib-vsprintfc-another-small-hack.patch
-linux-bitmaph-improve-bitmap_lastfirst_word_mask.patch
-rtc-mc13xxx-fix-obfuscated-and-wrong-format-string.patch
-lib-lz4-pull-out-constant-tables.patch
-linux-next.patch
+rtc-hctosys-do-not-treat-lack-of-rtc-device-as-error.patch
 
