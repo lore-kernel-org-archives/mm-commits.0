@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + cgroup-remove-use-of-seq_printf-return-value.patch added to -mm tree
-Date: Mon, 23 Feb 2015 15:59:16 -0800
-Message-ID: <54ebbed4./j+DezakdzRrSU46%akpm@linux-foundation.org>
+Subject: +
+ regulator-dbx500-remove-use-of-seq_puts-seq_printf-return-value.patch added to -mm tree
+Date: Mon, 23 Feb 2015 15:59:24 -0800
+Message-ID: <54ebbedc.UsXSPduh+0K8y/dD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48322 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48336 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752714AbbBWX7R (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Feb 2015 18:59:17 -0500
+	with ESMTP id S1752779AbbBWX7Z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Feb 2015 18:59:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, tj@kernel.org, mm-commits@vger.kernel.org
+To: joe@perches.com, broonie@kernel.org, lgirdwood@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cgroup: remove use of seq_printf return value
+     Subject: regulator: dbx500: remove use of seq_puts/seq_printf return value
 has been added to the -mm tree.  Its filename is
-     cgroup-remove-use-of-seq_printf-return-value.patch
+     regulator-dbx500-remove-use-of-seq_puts-seq_printf-return-value.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/cgroup-remove-use-of-seq_printf-return-value.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/regulator-dbx500-remove-use-of-seq_puts-seq_printf-return-value.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/cgroup-remove-use-of-seq_printf-return-value.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/regulator-dbx500-remove-use-of-seq_puts-seq_printf-return-value.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,36 +40,87 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: cgroup: remove use of seq_printf return value
+Subject: regulator: dbx500: remove use of seq_puts/seq_printf return value
 
-The seq_printf return value, because it's frequently misused,
+The seq_puts/seq_printf return value, because it's frequently misused,
 will eventually be converted to void.
 
 See: commit 1f33c41c03da ("seq_file: Rename seq_overflow() to
      seq_has_overflowed() and make public")
 
+Miscellanea:
+
+o Remove unnecessary dev_err("seq_<foo> overflow\n") messages
+
 Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Tejun Heo <tj@kernel.org>
+Cc: Liam Girdwood <lgirdwood@gmail.com>
+Cc: Mark Brown <broonie@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/regulator/dbx500-prcmu.c |   32 ++++++++---------------------
+ 1 file changed, 9 insertions(+), 23 deletions(-)
 
-diff -puN kernel/cgroup.c~cgroup-remove-use-of-seq_printf-return-value kernel/cgroup.c
---- a/kernel/cgroup.c~cgroup-remove-use-of-seq_printf-return-value
-+++ a/kernel/cgroup.c
-@@ -4199,7 +4199,9 @@ static void *cgroup_pidlist_next(struct
+diff -puN drivers/regulator/dbx500-prcmu.c~regulator-dbx500-remove-use-of-seq_puts-seq_printf-return-value drivers/regulator/dbx500-prcmu.c
+--- a/drivers/regulator/dbx500-prcmu.c~regulator-dbx500-remove-use-of-seq_puts-seq_printf-return-value
++++ a/drivers/regulator/dbx500-prcmu.c
+@@ -95,14 +95,9 @@ void ux500_regulator_resume_debug(void)
  
- static int cgroup_pidlist_show(struct seq_file *s, void *v)
+ static int ux500_regulator_power_state_cnt_print(struct seq_file *s, void *p)
  {
--	return seq_printf(s, "%d\n", *(int *)v);
-+	seq_printf(s, "%d\n", *(int *)v);
-+
-+	return 0;
- }
+-	struct device *dev = s->private;
+-	int err;
+-
+ 	/* print power state count */
+-	err = seq_printf(s, "ux500-regulator power state count: %i\n",
+-		power_state_active_get());
+-	if (err < 0)
+-		dev_err(dev, "seq_printf overflow\n");
++	seq_printf(s, "ux500-regulator power state count: %i\n",
++		   power_state_active_get());
  
- static u64 cgroup_read_notify_on_release(struct cgroup_subsys_state *css,
+ 	return 0;
+ }
+@@ -124,19 +119,11 @@ static const struct file_operations ux50
+ 
+ static int ux500_regulator_status_print(struct seq_file *s, void *p)
+ {
+-	struct device *dev = s->private;
+-	int err;
+ 	int i;
+ 
+ 	/* print dump header */
+-	err = seq_puts(s, "ux500-regulator status:\n");
+-	if (err < 0)
+-		dev_err(dev, "seq_puts overflow\n");
+-
+-	err = seq_printf(s, "%31s : %8s : %8s\n", "current",
+-		"before", "after");
+-	if (err < 0)
+-		dev_err(dev, "seq_printf overflow\n");
++	seq_puts(s, "ux500-regulator status:\n");
++	seq_printf(s, "%31s : %8s : %8s\n", "current", "before", "after");
+ 
+ 	for (i = 0; i < rdebug.num_regulators; i++) {
+ 		struct dbx500_regulator_info *info;
+@@ -144,12 +131,11 @@ static int ux500_regulator_status_print(
+ 		info = &rdebug.regulator_array[i];
+ 
+ 		/* print status */
+-		err = seq_printf(s, "%20s : %8s : %8s : %8s\n", info->desc.name,
+-			info->is_enabled ? "enabled" : "disabled",
+-			rdebug.state_before_suspend[i] ? "enabled" : "disabled",
+-			rdebug.state_after_suspend[i] ? "enabled" : "disabled");
+-		if (err < 0)
+-			dev_err(dev, "seq_printf overflow\n");
++		seq_printf(s, "%20s : %8s : %8s : %8s\n",
++			   info->desc.name,
++			   info->is_enabled ? "enabled" : "disabled",
++			   rdebug.state_before_suspend[i] ? "enabled" : "disabled",
++			   rdebug.state_after_suspend[i] ? "enabled" : "disabled");
+ 	}
+ 
+ 	return 0;
 _
 
 Patches currently in -mm which might be from joe@perches.com are
