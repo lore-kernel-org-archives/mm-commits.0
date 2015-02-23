@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-page_alloc-revert-inadvertent-__gfp_fs-retry-behavior-change.patch added to -mm tree
-Date: Mon, 23 Feb 2015 11:41:32 -0800
-Message-ID: <54eb826c.7kvsGOwvM/EczB7A%akpm@linux-foundation.org>
+ m68k-mark-pmd-folded-and-expose-number-of-page-table-levels.patch added to
+ -mm tree
+Date: Mon, 23 Feb 2015 12:44:42 -0800
+Message-ID: <54eb913a.56hRI+vxPGrNDfVF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43245 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44328 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751591AbbBWTld (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Feb 2015 14:41:33 -0500
+	with ESMTP id S1752470AbbBWUon (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Feb 2015 15:44:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, david@fromorbit.com, mgorman@suse.de, mhocko@suse.cz, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, stable@vger.kernel.org, tytso@mit.edu, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, geert@linux-m68k.org, linux@roeck-us.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: page_alloc: revert inadvertent !__GFP_FS retry behavior change
+     Subject: m68k: mark PMD folded and expose number of page table levels
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-revert-inadvertent-__gfp_fs-retry-behavior-change.patch
+     m68k-mark-pmd-folded-and-expose-number-of-page-table-levels.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-revert-inadvertent-__gfp_fs-retry-behavior-change.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/m68k-mark-pmd-folded-and-expose-number-of-page-table-levels.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-revert-inadvertent-__gfp_fs-retry-behavior-change.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/m68k-mark-pmd-folded-and-expose-number-of-page-table-levels.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,65 +40,82 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: page_alloc: revert inadvertent !__GFP_FS retry behavior change
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: m68k: mark PMD folded and expose number of page table levels
 
-Historically, !__GFP_FS allocations were not allowed to invoke the OOM
-killer once reclaim had failed, but nevertheless kept looping in the
-allocator.  9879de7373fc ("mm: page_alloc: embed OOM killing naturally
-into allocation slowpath"), which should have been a simple cleanup patch,
-accidentally changed the behavior to aborting the allocation at that
-point.  This creates problems with filesystem callers (?) that currently
-rely on the allocator waiting for other tasks to intervene.
+We would want to use number of page table level to define mm_struct.
+Let's expose it as CONFIG_PGTABLE_LEVELS.
 
-Revert the behavior as it shouldn't have been changed as part of a cleanup
-patch.
+Core mm expects __PAGETABLE_{PUD,PMD}_FOLDED to be defined if these page
+table levels folded.
 
-Fixes: 9879de7373fc ("mm: page_alloc: embed OOM killing naturally into allocation slowpath")
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Reported-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Theodore Ts'o <tytso@mit.edu>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: <stable@vger.kernel.org>	[3.19.x]
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Tested-by: Guenter Roeck <linux@roeck-us.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ arch/m68k/Kconfig                  |    4 ++++
+ arch/m68k/include/asm/pgtable_mm.h |    2 ++
+ 2 files changed, 6 insertions(+)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-revert-inadvertent-__gfp_fs-retry-behavior-change mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-revert-inadvertent-__gfp_fs-retry-behavior-change
-+++ a/mm/page_alloc.c
-@@ -2353,8 +2353,15 @@ __alloc_pages_may_oom(gfp_t gfp_mask, un
- 		if (ac->high_zoneidx < ZONE_NORMAL)
- 			goto out;
- 		/* The OOM killer does not compensate for light reclaim */
--		if (!(gfp_mask & __GFP_FS))
-+		if (!(gfp_mask & __GFP_FS)) {
-+			/*
-+			 * XXX: Page reclaim didn't yield anything,
-+			 * and the OOM killer can't be invoked, but
-+			 * keep looping as per should_alloc_retry().
-+			 */
-+			*did_some_progress = 1;
- 			goto out;
-+		}
- 		/*
- 		 * GFP_THISNODE contains __GFP_NORETRY and we never hit this.
- 		 * Sanity check for bare calls of __GFP_THISNODE, not real OOM.
+diff -puN arch/m68k/Kconfig~m68k-mark-pmd-folded-and-expose-number-of-page-table-levels arch/m68k/Kconfig
+--- a/arch/m68k/Kconfig~m68k-mark-pmd-folded-and-expose-number-of-page-table-levels
++++ a/arch/m68k/Kconfig
+@@ -67,6 +67,10 @@ config HZ
+ 	default 1000 if CLEOPATRA
+ 	default 100
+ 
++config PGTABLE_LEVELS
++	default 2 if SUN3 || COLDFIRE
++	default 3
++
+ source "init/Kconfig"
+ 
+ source "kernel/Kconfig.freezer"
+diff -puN arch/m68k/include/asm/pgtable_mm.h~m68k-mark-pmd-folded-and-expose-number-of-page-table-levels arch/m68k/include/asm/pgtable_mm.h
+--- a/arch/m68k/include/asm/pgtable_mm.h~m68k-mark-pmd-folded-and-expose-number-of-page-table-levels
++++ a/arch/m68k/include/asm/pgtable_mm.h
+@@ -54,10 +54,12 @@
+  */
+ #ifdef CONFIG_SUN3
+ #define PTRS_PER_PTE   16
++#define __PAGETABLE_PMD_FOLDED
+ #define PTRS_PER_PMD   1
+ #define PTRS_PER_PGD   2048
+ #elif defined(CONFIG_COLDFIRE)
+ #define PTRS_PER_PTE	512
++#define __PAGETABLE_PMD_FOLDED
+ #define PTRS_PER_PMD	1
+ #define PTRS_PER_PGD	1024
+ #else
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-memcg-fix-low-limit-calculation.patch
-mm-memcontrol-use-max-instead-of-infinity-in-control-knobs.patch
-mm-page_alloc-revert-inadvertent-__gfp_fs-retry-behavior-change.patch
-mm-memcontrol-update-copyright-notice.patch
+mm-rename-foll_mlock-to-foll_populate.patch
+mm-rename-__mlock_vma_pages_range-to-populate_vma_page_range.patch
+mm-move-gup-posix-mlock-error-conversion-out-of-__mm_populate.patch
+mm-move-mm_populate-related-code-to-mm-gupc.patch
 mm-incorporate-zero-pages-into-transparent-huge-pages.patch
 mm-incorporate-zero-pages-into-transparent-huge-pages-fix.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+alpha-expose-number-of-page-table-levels-on-kconfig-level.patch
+arm64-expose-number-of-page-table-levels-on-kconfig-level.patch
+arm-expose-number-of-page-table-levels-on-kconfig-level.patch
+frv-mark-pud-and-pmd-folded.patch
+ia64-expose-number-of-page-table-levels-on-kconfig-level.patch
+m32r-mark-pmd-folded.patch
+m68k-mark-pmd-folded-and-expose-number-of-page-table-levels.patch
+mips-expose-number-of-page-table-levels-on-kconfig-level.patch
+mn10300-mark-pud-and-pmd-folded.patch
+parisc-expose-number-of-page-table-levels-on-kconfig-level.patch
+powerpc-expose-number-of-page-table-levels-on-kconfig-level.patch
+s390-expose-number-of-page-table-levels.patch
+sh-expose-number-of-page-table-levels.patch
+sparc-expose-number-of-page-table-levels.patch
+tile-expose-number-of-page-table-levels.patch
+um-expose-number-of-page-table-levels.patch
+x86-expose-number-of-page-table-levels-on-kconfig-level.patch
+mm-define-default-pgtable_levels-to-two.patch
+mm-do-not-add-nr_pmds-into-mm_struct-if-pmd-is-folded.patch
 
