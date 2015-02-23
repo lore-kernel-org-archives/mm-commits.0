@@ -1,81 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-mc13xxx-fix-obfuscated-and-wrong-format-string.patch added
- to -mm tree
-Date: Fri, 20 Feb 2015 23:10:15 -0800
-Message-ID: <54e82f57.hbZz3Ej5l+1//P+e%akpm@linux-foundation.org>
+Subject: [merged] aslr-fix-stack-randomization-on-64-bit-systems.patch
+ removed from -mm tree
+Date: Mon, 23 Feb 2015 10:33:17 -0800
+Message-ID: <54eb726d.XJZB1dzJua27Th+5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48876 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42807 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751133AbbBUHK4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 21 Feb 2015 02:10:56 -0500
+	with ESMTP id S1752135AbbBWSdT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Feb 2015 13:33:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, a.zummo@towertech.it, mm-commits@vger.kernel.org
+To: hecmargi@upv.es, iripoll@upv.es, keescook@chromium.org, luto@amacapital.net, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-mc13xxx.c: fix obfuscated and wrong format string
-has been added to the -mm tree.  Its filename is
-     rtc-mc13xxx-fix-obfuscated-and-wrong-format-string.patch
+     Subject: ASLR: fix stack randomization on 64-bit systems
+has been removed from the -mm tree.  Its filename was
+     aslr-fix-stack-randomization-on-64-bit-systems.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rtc-mc13xxx-fix-obfuscated-and-wrong-format-string.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-mc13xxx-fix-obfuscated-and-wrong-format-string.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: drivers/rtc/rtc-mc13xxx.c: fix obfuscated and wrong format string
+From: Hector Marco-Gisbert <hecmargi@upv.es>
+Subject: ASLR: fix stack randomization on 64-bit systems
 
-According to C99, %2.s means 'print two spaces' (a precision of .  without
-following digits or * means 0).  The kernel's printf implementation,
-however, treats that case as if no precision was given, but relying on
-that quirk is rather silly.  Also, since no - (aka left-justify) flag is
-given, the field with of 2 would then cause the alarm->enabled case to
-come out as "o n".  Deobfuscate it.
+The issue is that the stack for processes is not properly randomized on 64
+bit architectures due to an integer overflow.
 
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+The affected function is randomize_stack_top() in file "fs/binfmt_elf.c":
+
+static unsigned long randomize_stack_top(unsigned long stack_top)
+{
+         unsigned int random_variable = 0;
+
+         if ((current->flags & PF_RANDOMIZE) &&
+                 !(current->personality & ADDR_NO_RANDOMIZE)) {
+                 random_variable = get_random_int() & STACK_RND_MASK;
+                 random_variable <<= PAGE_SHIFT;
+         }
+         return PAGE_ALIGN(stack_top) + random_variable;
+         return PAGE_ALIGN(stack_top) - random_variable;
+}
+
+Note that it declares the "random_variable" variable as "unsigned int". 
+Since the result of the shifting operation between STACK_RND_MASK (which
+is 0x3fffff on x86_64, 22 bits) and PAGE_SHIFT (which is 12 on x86_64):
+
+random_variable <<= PAGE_SHIFT;
+
+then the two leftmost bits are dropped when storing the result in the
+"random_variable".  This variable shall be at least 34 bits long to hold
+the (22+12) result.
+
+These two dropped bits have an impact on the entropy of process stack. 
+Concretely, the total stack entropy is reduced by four: from 2^28 to 2^30
+(One fourth of expected entropy).
+
+This patch restores back the entropy by correcting the types involved in
+the operations in the functions randomize_stack_top() and
+stack_maxrandom_size().
+
+The successful fix can be tested with:
+$ for i in `seq 1 10`; do cat /proc/self/maps | grep stack; done
+7ffeda566000-7ffeda587000 rw-p 00000000 00:00 0                          [stack]
+7fff5a332000-7fff5a353000 rw-p 00000000 00:00 0                          [stack]
+7ffcdb7a1000-7ffcdb7c2000 rw-p 00000000 00:00 0                          [stack]
+7ffd5e2c4000-7ffd5e2e5000 rw-p 00000000 00:00 0                          [stack]
+...
+
+Once corrected, the leading bytes should be between 7ffc and 7fff, rather
+than always being 7fff.
+
+CVE-2015-1593
+
+[keescook@chromium.org: rebase, fix 80 char, clean up commit message, add test example, cve]
+Signed-off-by: Hector Marco-Gisbert <hecmargi@upv.es>
+Signed-off-by: Ismael Ripoll <iripoll@upv.es>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-mc13xxx.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/mm/mmap.c |    6 +++---
+ fs/binfmt_elf.c    |    5 +++--
+ 2 files changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN drivers/rtc/rtc-mc13xxx.c~rtc-mc13xxx-fix-obfuscated-and-wrong-format-string drivers/rtc/rtc-mc13xxx.c
---- a/drivers/rtc/rtc-mc13xxx.c~rtc-mc13xxx-fix-obfuscated-and-wrong-format-string
-+++ a/drivers/rtc/rtc-mc13xxx.c
-@@ -219,7 +219,7 @@ static int mc13xxx_rtc_set_alarm(struct 
- 	if (unlikely(ret))
- 		goto out;
+diff -puN arch/x86/mm/mmap.c~aslr-fix-stack-randomization-on-64-bit-systems arch/x86/mm/mmap.c
+--- a/arch/x86/mm/mmap.c~aslr-fix-stack-randomization-on-64-bit-systems
++++ a/arch/x86/mm/mmap.c
+@@ -35,12 +35,12 @@ struct va_alignment __read_mostly va_ali
+ 	.flags = -1,
+ };
  
--	dev_dbg(dev, "%s: o%2.s %lu\n", __func__, alarm->enabled ? "n" : "ff",
-+	dev_dbg(dev, "%s: %s %lu\n", __func__, alarm->enabled ? "on" : "off",
- 			s1970);
+-static unsigned int stack_maxrandom_size(void)
++static unsigned long stack_maxrandom_size(void)
+ {
+-	unsigned int max = 0;
++	unsigned long max = 0;
+ 	if ((current->flags & PF_RANDOMIZE) &&
+ 		!(current->personality & ADDR_NO_RANDOMIZE)) {
+-		max = ((-1U) & STACK_RND_MASK) << PAGE_SHIFT;
++		max = ((-1UL) & STACK_RND_MASK) << PAGE_SHIFT;
+ 	}
  
- 	ret = mc13xxx_rtc_irq_enable_unlocked(dev, alarm->enabled,
+ 	return max;
+diff -puN fs/binfmt_elf.c~aslr-fix-stack-randomization-on-64-bit-systems fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~aslr-fix-stack-randomization-on-64-bit-systems
++++ a/fs/binfmt_elf.c
+@@ -645,11 +645,12 @@ out:
+ 
+ static unsigned long randomize_stack_top(unsigned long stack_top)
+ {
+-	unsigned int random_variable = 0;
++	unsigned long random_variable = 0;
+ 
+ 	if ((current->flags & PF_RANDOMIZE) &&
+ 		!(current->personality & ADDR_NO_RANDOMIZE)) {
+-		random_variable = get_random_int() & STACK_RND_MASK;
++		random_variable = (unsigned long) get_random_int();
++		random_variable &= STACK_RND_MASK;
+ 		random_variable <<= PAGE_SHIFT;
+ 	}
+ #ifdef CONFIG_STACK_GROWSUP
 _
 
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
+Patches currently in -mm which might be from hecmargi@upv.es are
 
-origin.patch
-linux-bitmaph-improve-bitmap_lastfirst_word_mask.patch
-rtc-mc13xxx-fix-obfuscated-and-wrong-format-string.patch
-lib-lz4-pull-out-constant-tables.patch
-linux-next.patch
 
