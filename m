@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-remove-use-of-seq_printf-return-value.patch added to -mm
- tree
-Date: Mon, 23 Feb 2015 15:58:46 -0800
-Message-ID: <54ebbeb6.LYAz2rzLHR2QD+gD%akpm@linux-foundation.org>
+Subject: + arm-plat-pxa-remove-use-of-seq_printf-return-value.patch added
+ to -mm tree
+Date: Mon, 23 Feb 2015 15:58:56 -0800
+Message-ID: <54ebbec0.0yK2iRKWRSqbwHAU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48271 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48288 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752641AbbBWX6r (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Feb 2015 18:58:47 -0500
+	with ESMTP id S1752714AbbBWX65 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Feb 2015 18:58:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: joe@perches.com, linux@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: remove use of seq_printf return value
+     Subject: ARM: plat-pxa: remove use of seq_printf return value
 has been added to the -mm tree.  Its filename is
-     rtc-remove-use-of-seq_printf-return-value.patch
+     arm-plat-pxa-remove-use-of-seq_printf-return-value.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rtc-remove-use-of-seq_printf-return-value.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arm-plat-pxa-remove-use-of-seq_printf-return-value.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-remove-use-of-seq_printf-return-value.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arm-plat-pxa-remove-use-of-seq_printf-return-value.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,126 +40,195 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: rtc: remove use of seq_printf return value
+Subject: ARM: plat-pxa: remove use of seq_printf return value
 
 The seq_printf return value, because it's frequently misused,
-will eventually be converted to void.
+(as it is here, it doesn't return # of chars emitted) will
+eventually be converted to void.
 
 See: commit 1f33c41c03da ("seq_file: Rename seq_overflow() to
      seq_has_overflowed() and make public")
 
 Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Russell King <linux@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-cmos.c   |   36 +++++++++++++++++++-----------------
- drivers/rtc/rtc-ds1305.c |    6 +++---
- drivers/rtc/rtc-mrst.c   |   16 +++++++++-------
- drivers/rtc/rtc-tegra.c  |    4 +++-
- 4 files changed, 34 insertions(+), 28 deletions(-)
+ arch/arm/plat-pxa/dma.c |  111 ++++++++++++++++++--------------------
+ 1 file changed, 53 insertions(+), 58 deletions(-)
 
-diff -puN drivers/rtc/rtc-cmos.c~rtc-remove-use-of-seq_printf-return-value drivers/rtc/rtc-cmos.c
---- a/drivers/rtc/rtc-cmos.c~rtc-remove-use-of-seq_printf-return-value
-+++ a/drivers/rtc/rtc-cmos.c
-@@ -459,23 +459,25 @@ static int cmos_procfs(struct device *de
- 	/* NOTE:  at least ICH6 reports battery status using a different
- 	 * (non-RTC) bit; and SQWE is ignored on many current systems.
- 	 */
--	return seq_printf(seq,
--			"periodic_IRQ\t: %s\n"
--			"update_IRQ\t: %s\n"
--			"HPET_emulated\t: %s\n"
--			// "square_wave\t: %s\n"
--			"BCD\t\t: %s\n"
--			"DST_enable\t: %s\n"
--			"periodic_freq\t: %d\n"
--			"batt_status\t: %s\n",
--			(rtc_control & RTC_PIE) ? "yes" : "no",
--			(rtc_control & RTC_UIE) ? "yes" : "no",
--			is_hpet_enabled() ? "yes" : "no",
--			// (rtc_control & RTC_SQWE) ? "yes" : "no",
--			(rtc_control & RTC_DM_BINARY) ? "no" : "yes",
--			(rtc_control & RTC_DST_EN) ? "yes" : "no",
--			cmos->rtc->irq_freq,
--			(valid & RTC_VRT) ? "okay" : "dead");
-+	seq_printf(seq,
-+		   "periodic_IRQ\t: %s\n"
-+		   "update_IRQ\t: %s\n"
-+		   "HPET_emulated\t: %s\n"
-+		   // "square_wave\t: %s\n"
-+		   "BCD\t\t: %s\n"
-+		   "DST_enable\t: %s\n"
-+		   "periodic_freq\t: %d\n"
-+		   "batt_status\t: %s\n",
-+		   (rtc_control & RTC_PIE) ? "yes" : "no",
-+		   (rtc_control & RTC_UIE) ? "yes" : "no",
-+		   is_hpet_enabled() ? "yes" : "no",
-+		   // (rtc_control & RTC_SQWE) ? "yes" : "no",
-+		   (rtc_control & RTC_DM_BINARY) ? "no" : "yes",
-+		   (rtc_control & RTC_DST_EN) ? "yes" : "no",
-+		   cmos->rtc->irq_freq,
-+		   (valid & RTC_VRT) ? "okay" : "dead");
-+
-+	return 0;
- }
+diff -puN arch/arm/plat-pxa/dma.c~arm-plat-pxa-remove-use-of-seq_printf-return-value arch/arm/plat-pxa/dma.c
+--- a/arch/arm/plat-pxa/dma.c~arm-plat-pxa-remove-use-of-seq_printf-return-value
++++ a/arch/arm/plat-pxa/dma.c
+@@ -51,19 +51,19 @@ static struct dentry *dbgfs_root, *dbgfs
  
- #else
-diff -puN drivers/rtc/rtc-ds1305.c~rtc-remove-use-of-seq_printf-return-value drivers/rtc/rtc-ds1305.c
---- a/drivers/rtc/rtc-ds1305.c~rtc-remove-use-of-seq_printf-return-value
-+++ a/drivers/rtc/rtc-ds1305.c
-@@ -434,9 +434,9 @@ static int ds1305_proc(struct device *de
+ static int dbg_show_requester_chan(struct seq_file *s, void *p)
+ {
+-	int pos = 0;
+ 	int chan = (int)s->private;
+ 	int i;
+ 	u32 drcmr;
+ 
+-	pos += seq_printf(s, "DMA channel %d requesters list :\n", chan);
++	seq_printf(s, "DMA channel %d requesters list :\n", chan);
+ 	for (i = 0; i < DMA_MAX_REQUESTERS; i++) {
+ 		drcmr = DRCMR(i);
+ 		if ((drcmr & DRCMR_CHLNUM) == chan)
+-			pos += seq_printf(s, "\tRequester %d (MAPVLD=%d)\n", i,
+-					  !!(drcmr & DRCMR_MAPVLD));
++			seq_printf(s, "\tRequester %d (MAPVLD=%d)\n",
++				   i, !!(drcmr & DRCMR_MAPVLD));
  	}
- 
- done:
--	return seq_printf(seq,
--			"trickle_charge\t: %s%s\n",
--			diodes, resistors);
-+	seq_printf(seq, "trickle_charge\t: %s%s\n", diodes, resistors);
+-	return pos;
 +
 +	return 0;
  }
  
- #else
-diff -puN drivers/rtc/rtc-mrst.c~rtc-remove-use-of-seq_printf-return-value drivers/rtc/rtc-mrst.c
---- a/drivers/rtc/rtc-mrst.c~rtc-remove-use-of-seq_printf-return-value
-+++ a/drivers/rtc/rtc-mrst.c
-@@ -277,13 +277,15 @@ static int mrst_procfs(struct device *de
- 	valid = vrtc_cmos_read(RTC_VALID);
- 	spin_unlock_irq(&rtc_lock);
+ static inline int dbg_burst_from_dcmd(u32 dcmd)
+@@ -83,7 +83,6 @@ static int is_phys_valid(unsigned long a
  
--	return seq_printf(seq,
--			"periodic_IRQ\t: %s\n"
--			"alarm\t\t: %s\n"
--			"BCD\t\t: no\n"
--			"periodic_freq\t: daily (not adjustable)\n",
--			(rtc_control & RTC_PIE) ? "on" : "off",
--			(rtc_control & RTC_AIE) ? "on" : "off");
-+	seq_printf(seq,
-+		   "periodic_IRQ\t: %s\n"
-+		   "alarm\t\t: %s\n"
-+		   "BCD\t\t: no\n"
-+		   "periodic_freq\t: daily (not adjustable)\n",
-+		   (rtc_control & RTC_PIE) ? "on" : "off",
-+		   (rtc_control & RTC_AIE) ? "on" : "off");
+ static int dbg_show_descriptors(struct seq_file *s, void *p)
+ {
+-	int pos = 0;
+ 	int chan = (int)s->private;
+ 	int i, max_show = 20, burst, width;
+ 	u32 dcmd;
+@@ -94,44 +93,43 @@ static int dbg_show_descriptors(struct s
+ 	spin_lock_irqsave(&dma_channels[chan].lock, flags);
+ 	phys_desc = DDADR(chan);
+ 
+-	pos += seq_printf(s, "DMA channel %d descriptors :\n", chan);
+-	pos += seq_printf(s, "[%03d] First descriptor unknown\n", 0);
++	seq_printf(s, "DMA channel %d descriptors :\n", chan);
++	seq_printf(s, "[%03d] First descriptor unknown\n", 0);
+ 	for (i = 1; i < max_show && is_phys_valid(phys_desc); i++) {
+ 		desc = phys_to_virt(phys_desc);
+ 		dcmd = desc->dcmd;
+ 		burst = dbg_burst_from_dcmd(dcmd);
+ 		width = (1 << ((dcmd >> 14) & 0x3)) >> 1;
+ 
+-		pos += seq_printf(s, "[%03d] Desc at %08lx(virt %p)\n",
+-				  i, phys_desc, desc);
+-		pos += seq_printf(s, "\tDDADR = %08x\n", desc->ddadr);
+-		pos += seq_printf(s, "\tDSADR = %08x\n", desc->dsadr);
+-		pos += seq_printf(s, "\tDTADR = %08x\n", desc->dtadr);
+-		pos += seq_printf(s, "\tDCMD  = %08x (%s%s%s%s%s%s%sburst=%d"
+-				  " width=%d len=%d)\n",
+-				  dcmd,
+-				  DCMD_STR(INCSRCADDR), DCMD_STR(INCTRGADDR),
+-				  DCMD_STR(FLOWSRC), DCMD_STR(FLOWTRG),
+-				  DCMD_STR(STARTIRQEN), DCMD_STR(ENDIRQEN),
+-				  DCMD_STR(ENDIAN), burst, width,
+-				  dcmd & DCMD_LENGTH);
++		seq_printf(s, "[%03d] Desc at %08lx(virt %p)\n",
++			   i, phys_desc, desc);
++		seq_printf(s, "\tDDADR = %08x\n", desc->ddadr);
++		seq_printf(s, "\tDSADR = %08x\n", desc->dsadr);
++		seq_printf(s, "\tDTADR = %08x\n", desc->dtadr);
++		seq_printf(s, "\tDCMD  = %08x (%s%s%s%s%s%s%sburst=%d width=%d len=%d)\n",
++			   dcmd,
++			   DCMD_STR(INCSRCADDR), DCMD_STR(INCTRGADDR),
++			   DCMD_STR(FLOWSRC), DCMD_STR(FLOWTRG),
++			   DCMD_STR(STARTIRQEN), DCMD_STR(ENDIRQEN),
++			   DCMD_STR(ENDIAN), burst, width,
++			   dcmd & DCMD_LENGTH);
+ 		phys_desc = desc->ddadr;
+ 	}
+ 	if (i == max_show)
+-		pos += seq_printf(s, "[%03d] Desc at %08lx ... max display reached\n",
+-				  i, phys_desc);
++		seq_printf(s, "[%03d] Desc at %08lx ... max display reached\n",
++			   i, phys_desc);
+ 	else
+-		pos += seq_printf(s, "[%03d] Desc at %08lx is %s\n",
+-				  i, phys_desc, phys_desc == DDADR_STOP ?
+-				  "DDADR_STOP" : "invalid");
++		seq_printf(s, "[%03d] Desc at %08lx is %s\n",
++			   i, phys_desc, phys_desc == DDADR_STOP ?
++			   "DDADR_STOP" : "invalid");
+ 
+ 	spin_unlock_irqrestore(&dma_channels[chan].lock, flags);
+-	return pos;
 +
 +	return 0;
  }
  
- #else
-diff -puN drivers/rtc/rtc-tegra.c~rtc-remove-use-of-seq_printf-return-value drivers/rtc/rtc-tegra.c
---- a/drivers/rtc/rtc-tegra.c~rtc-remove-use-of-seq_printf-return-value
-+++ a/drivers/rtc/rtc-tegra.c
-@@ -261,7 +261,9 @@ static int tegra_rtc_proc(struct device
- 	if (!dev || !dev->driver)
- 		return 0;
+ static int dbg_show_chan_state(struct seq_file *s, void *p)
+ {
+-	int pos = 0;
+ 	int chan = (int)s->private;
+ 	u32 dcsr, dcmd;
+ 	int burst, width;
+@@ -142,42 +140,39 @@ static int dbg_show_chan_state(struct se
+ 	burst = dbg_burst_from_dcmd(dcmd);
+ 	width = (1 << ((dcmd >> 14) & 0x3)) >> 1;
  
--	return seq_printf(seq, "name\t\t: %s\n", dev_name(dev));
-+	seq_printf(seq, "name\t\t: %s\n", dev_name(dev));
+-	pos += seq_printf(s, "DMA channel %d\n", chan);
+-	pos += seq_printf(s, "\tPriority : %s\n",
+-			  str_prio[dma_channels[chan].prio]);
+-	pos += seq_printf(s, "\tUnaligned transfer bit: %s\n",
+-			  DALGN & (1 << chan) ? "yes" : "no");
+-	pos += seq_printf(s, "\tDCSR  = %08x (%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s)\n",
+-			  dcsr, DCSR_STR(RUN), DCSR_STR(NODESC),
+-			  DCSR_STR(STOPIRQEN), DCSR_STR(EORIRQEN),
+-			  DCSR_STR(EORJMPEN), DCSR_STR(EORSTOPEN),
+-			  DCSR_STR(SETCMPST), DCSR_STR(CLRCMPST),
+-			  DCSR_STR(CMPST), DCSR_STR(EORINTR), DCSR_STR(REQPEND),
+-			  DCSR_STR(STOPSTATE), DCSR_STR(ENDINTR),
+-			  DCSR_STR(STARTINTR), DCSR_STR(BUSERR));
+-
+-	pos += seq_printf(s, "\tDCMD  = %08x (%s%s%s%s%s%s%sburst=%d width=%d"
+-			  " len=%d)\n",
+-			  dcmd,
+-			  DCMD_STR(INCSRCADDR), DCMD_STR(INCTRGADDR),
+-			  DCMD_STR(FLOWSRC), DCMD_STR(FLOWTRG),
+-			  DCMD_STR(STARTIRQEN), DCMD_STR(ENDIRQEN),
+-			  DCMD_STR(ENDIAN), burst, width, dcmd & DCMD_LENGTH);
+-	pos += seq_printf(s, "\tDSADR = %08x\n", DSADR(chan));
+-	pos += seq_printf(s, "\tDTADR = %08x\n", DTADR(chan));
+-	pos += seq_printf(s, "\tDDADR = %08x\n", DDADR(chan));
+-	return pos;
++	seq_printf(s, "DMA channel %d\n", chan);
++	seq_printf(s, "\tPriority : %s\n", str_prio[dma_channels[chan].prio]);
++	seq_printf(s, "\tUnaligned transfer bit: %s\n",
++		   DALGN & (1 << chan) ? "yes" : "no");
++	seq_printf(s, "\tDCSR  = %08x (%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s)\n",
++		   dcsr, DCSR_STR(RUN), DCSR_STR(NODESC),
++		   DCSR_STR(STOPIRQEN), DCSR_STR(EORIRQEN),
++		   DCSR_STR(EORJMPEN), DCSR_STR(EORSTOPEN),
++		   DCSR_STR(SETCMPST), DCSR_STR(CLRCMPST),
++		   DCSR_STR(CMPST), DCSR_STR(EORINTR), DCSR_STR(REQPEND),
++		   DCSR_STR(STOPSTATE), DCSR_STR(ENDINTR),
++		   DCSR_STR(STARTINTR), DCSR_STR(BUSERR));
++
++	seq_printf(s, "\tDCMD  = %08x (%s%s%s%s%s%s%sburst=%d width=%d len=%d)\n",
++		   dcmd,
++		   DCMD_STR(INCSRCADDR), DCMD_STR(INCTRGADDR),
++		   DCMD_STR(FLOWSRC), DCMD_STR(FLOWTRG),
++		   DCMD_STR(STARTIRQEN), DCMD_STR(ENDIRQEN),
++		   DCMD_STR(ENDIAN), burst, width, dcmd & DCMD_LENGTH);
++	seq_printf(s, "\tDSADR = %08x\n", DSADR(chan));
++	seq_printf(s, "\tDTADR = %08x\n", DTADR(chan));
++	seq_printf(s, "\tDDADR = %08x\n", DDADR(chan));
 +
 +	return 0;
  }
  
- static irqreturn_t tegra_rtc_irq_handler(int irq, void *data)
+ static int dbg_show_state(struct seq_file *s, void *p)
+ {
+-	int pos = 0;
+-
+ 	/* basic device status */
+-	pos += seq_printf(s, "DMA engine status\n");
+-	pos += seq_printf(s, "\tChannel number: %d\n", num_dma_channels);
++	seq_puts(s, "DMA engine status\n");
++	seq_printf(s, "\tChannel number: %d\n", num_dma_channels);
+ 
+-	return pos;
++	return 0;
+ }
+ 
+ #define DBGFS_FUNC_DECL(name) \
 _
 
 Patches currently in -mm which might be from joe@perches.com are
