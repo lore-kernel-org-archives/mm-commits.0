@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-do-not-add-nr_pmds-into-mm_struct-if-pmd-is-folded.patch
- added to -mm tree
-Date: Mon, 23 Feb 2015 12:45:08 -0800
-Message-ID: <54eb9154.tzt2IaboGy6TpJ/l%akpm@linux-foundation.org>
+Subject: +
+ rtc-s5m-remove-unused-watchdog-and-sudden-momentary-power-loss.patch added
+ to -mm tree
+Date: Mon, 23 Feb 2015 12:51:32 -0800
+Message-ID: <54eb92d4.RYb51jJUqEm9kVs4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44426 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44456 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752379AbbBWUpJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Feb 2015 15:45:09 -0500
+	with ESMTP id S1752370AbbBWUvd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Feb 2015 15:51:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, benh@kernel.crashing.org, catalin.marinas@arm.com, cmetcalf@ezchip.com, davem@davemloft.net, deller@gmx.de, dhowells@redhat.com, fenghua.yu@intel.com, geert@linux-m68k.org, heiko.carstens@de.ibm.com, hpa@zytor.com, ink@jurassic.park.msu.ru, jdike@addtoit.com, jejb@parisc-linux.org, linux@arm.linux.org.uk, linux@roeck-us.net, mattst88@gmail.com, mingo@redhat.com, mpe@ellerman.id.au, paulus@samba.org, ralf@linux-mips.org, richard@nod.at, rth@twiddle.net, schwidefsky@de.ibm.com, tglx@linutronix.de, tony.luck@intel.com, will.deacon@arm.com, yasutake.koichi@jp.panasonic.com, mm-commits@vger.kernel.org
+To: k.kozlowski@samsung.com, a.zummo@towertech.it, b.zolnierkie@samsung.com, kyungmin.park@samsung.com, lee.jones@linaro.org, m.szyprowski@samsung.com, sameo@linux.intel.com, sbkim73@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: do not add nr_pmds into mm_struct if PMD is folded
+     Subject: drivers/rtc/rtc-s5m.c: remove unused watchdog and sudden momentary power loss
 has been added to the -mm tree.  Its filename is
-     mm-do-not-add-nr_pmds-into-mm_struct-if-pmd-is-folded.patch
+     rtc-s5m-remove-unused-watchdog-and-sudden-momentary-power-loss.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-do-not-add-nr_pmds-into-mm_struct-if-pmd-is-folded.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rtc-s5m-remove-unused-watchdog-and-sudden-momentary-power-loss.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-do-not-add-nr_pmds-into-mm_struct-if-pmd-is-folded.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-s5m-remove-unused-watchdog-and-sudden-momentary-power-loss.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,87 +40,137 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: do not add nr_pmds into mm_struct if PMD is folded
+From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Subject: drivers/rtc/rtc-s5m.c: remove unused watchdog and sudden momentary power loss
 
-CONFIG_PGTABLE_LEVELS is now available on every architecture and we can
-use it to check if we need to add nr_pmds into mm_struct.
+The WTSR (Watchdog Timer Software Reset) and SMPL (Sudden Momentary Power
+Loss) are never enabled.  These are left-overs from board files.  After
+removing them the driver's shutdown callback is empty so get rid of it as
+well.
 
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Tested-by: Guenter Roeck <linux@roeck-us.net>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Chris Metcalf <cmetcalf@ezchip.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Helge Deller <deller@gmx.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Koichi Yasutake <yasutake.koichi@jp.panasonic.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Richard Weinberger <richard@nod.at>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Will Deacon <will.deacon@arm.com>
+Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Cc: Sangbeom Kim <sbkim73@samsung.com>
+Cc: Samuel Ortiz <sameo@linux.intel.com>
+Cc: Lee Jones <lee.jones@linaro.org>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/rtc/rtc-s5m.c |   60 ----------------------------------------
+ 1 file changed, 60 deletions(-)
 
-diff -puN include/linux/mm_types.h~mm-do-not-add-nr_pmds-into-mm_struct-if-pmd-is-folded include/linux/mm_types.h
---- a/include/linux/mm_types.h~mm-do-not-add-nr_pmds-into-mm_struct-if-pmd-is-folded
-+++ a/include/linux/mm_types.h
-@@ -364,7 +364,9 @@ struct mm_struct {
- 	atomic_t mm_users;			/* How many users with user space? */
- 	atomic_t mm_count;			/* How many references to "struct mm_struct" (users count as 1) */
- 	atomic_long_t nr_ptes;			/* PTE page table pages */
-+#if CONFIG_PGTABLE_LEVELS > 2
- 	atomic_long_t nr_pmds;			/* PMD page table pages */
-+#endif
- 	int map_count;				/* number of VMAs */
+diff -puN drivers/rtc/rtc-s5m.c~rtc-s5m-remove-unused-watchdog-and-sudden-momentary-power-loss drivers/rtc/rtc-s5m.c
+--- a/drivers/rtc/rtc-s5m.c~rtc-s5m-remove-unused-watchdog-and-sudden-momentary-power-loss
++++ a/drivers/rtc/rtc-s5m.c
+@@ -48,8 +48,6 @@ struct s5m_rtc_reg_config {
+ 	unsigned int alarm0;
+ 	/* First register for alarm 1, seconds */
+ 	unsigned int alarm1;
+-	/* SMPL/WTSR register */
+-	unsigned int smpl_wtsr;
+ 	/*
+ 	 * Register for update flag (UDR). Typically setting UDR field to 1
+ 	 * will enable update of time or alarm register. Then it will be
+@@ -67,7 +65,6 @@ static const struct s5m_rtc_reg_config s
+ 	.ctrl			= S5M_ALARM1_CONF,
+ 	.alarm0			= S5M_ALARM0_SEC,
+ 	.alarm1			= S5M_ALARM1_SEC,
+-	.smpl_wtsr		= S5M_WTSR_SMPL_CNTL,
+ 	.rtc_udr_update		= S5M_RTC_UDR_CON,
+ 	.rtc_udr_mask		= S5M_RTC_UDR_MASK,
+ };
+@@ -82,7 +79,6 @@ static const struct s5m_rtc_reg_config s
+ 	.ctrl			= S2MPS_RTC_CTRL,
+ 	.alarm0			= S2MPS_ALARM0_SEC,
+ 	.alarm1			= S2MPS_ALARM1_SEC,
+-	.smpl_wtsr		= S2MPS_WTSR_SMPL_CNTL,
+ 	.rtc_udr_update		= S2MPS_RTC_UDR_CON,
+ 	.rtc_udr_mask		= S2MPS_RTC_WUDR_MASK,
+ };
+@@ -96,7 +92,6 @@ struct s5m_rtc_info {
+ 	int irq;
+ 	int device_type;
+ 	int rtc_24hr_mode;
+-	bool wtsr_smpl;
+ 	const struct s5m_rtc_reg_config	*regs;
+ };
  
- 	spinlock_t page_table_lock;		/* Protects page tables and some counters */
-_
-
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
-
-mm-rename-foll_mlock-to-foll_populate.patch
-mm-rename-__mlock_vma_pages_range-to-populate_vma_page_range.patch
-mm-move-gup-posix-mlock-error-conversion-out-of-__mm_populate.patch
-mm-move-mm_populate-related-code-to-mm-gupc.patch
-mm-incorporate-zero-pages-into-transparent-huge-pages.patch
-mm-incorporate-zero-pages-into-transparent-huge-pages-fix.patch
-alpha-expose-number-of-page-table-levels-on-kconfig-level.patch
-arm64-expose-number-of-page-table-levels-on-kconfig-level.patch
-arm-expose-number-of-page-table-levels-on-kconfig-level.patch
-frv-mark-pud-and-pmd-folded.patch
-ia64-expose-number-of-page-table-levels-on-kconfig-level.patch
-m32r-mark-pmd-folded.patch
-m68k-mark-pmd-folded-and-expose-number-of-page-table-levels.patch
-mips-expose-number-of-page-table-levels-on-kconfig-level.patch
-mn10300-mark-pud-and-pmd-folded.patch
-parisc-expose-number-of-page-table-levels-on-kconfig-level.patch
-powerpc-expose-number-of-page-table-levels-on-kconfig-level.patch
-s390-expose-number-of-page-table-levels.patch
-sh-expose-number-of-page-table-levels.patch
-sparc-expose-number-of-page-table-levels.patch
-tile-expose-number-of-page-table-levels.patch
-um-expose-number-of-page-table-levels.patch
-x86-expose-number-of-page-table-levels-on-kconfig-level.patch
-mm-define-default-pgtable_levels-to-two.patch
-mm-do-not-add-nr_pmds-into-mm_struct-if-pmd-is-folded.patch
-
+@@ -597,28 +592,6 @@ static const struct rtc_class_ops s5m_rt
+ 	.alarm_irq_enable = s5m_rtc_alarm_irq_enable,
+ };
+ 
+-static void s5m_rtc_enable_wtsr(struct s5m_rtc_info *info, bool enable)
+-{
+-	int ret;
+-	ret = regmap_update_bits(info->regmap, info->regs->smpl_wtsr,
+-				 WTSR_ENABLE_MASK,
+-				 enable ? WTSR_ENABLE_MASK : 0);
+-	if (ret < 0)
+-		dev_err(info->dev, "%s: fail to update WTSR reg(%d)\n",
+-			__func__, ret);
+-}
+-
+-static void s5m_rtc_enable_smpl(struct s5m_rtc_info *info, bool enable)
+-{
+-	int ret;
+-	ret = regmap_update_bits(info->regmap, info->regs->smpl_wtsr,
+-				 SMPL_ENABLE_MASK,
+-				 enable ? SMPL_ENABLE_MASK : 0);
+-	if (ret < 0)
+-		dev_err(info->dev, "%s: fail to update SMPL reg(%d)\n",
+-			__func__, ret);
+-}
+-
+ static int s5m8767_rtc_init_reg(struct s5m_rtc_info *info)
+ {
+ 	u8 data[2];
+@@ -715,7 +688,6 @@ static int s5m_rtc_probe(struct platform
+ 	info->dev = &pdev->dev;
+ 	info->s5m87xx = s5m87xx;
+ 	info->device_type = s5m87xx->device_type;
+-	info->wtsr_smpl = s5m87xx->wtsr_smpl;
+ 
+ 	if (s5m87xx->irq_data) {
+ 		info->irq = regmap_irq_get_virq(s5m87xx->irq_data, alarm_irq);
+@@ -731,11 +703,6 @@ static int s5m_rtc_probe(struct platform
+ 
+ 	ret = s5m8767_rtc_init_reg(info);
+ 
+-	if (info->wtsr_smpl) {
+-		s5m_rtc_enable_wtsr(info, true);
+-		s5m_rtc_enable_smpl(info, true);
+-	}
+-
+ 	device_init_wakeup(&pdev->dev, 1);
+ 
+ 	info->rtc_dev = devm_rtc_device_register(&pdev->dev, "s5m-rtc",
+@@ -768,36 +735,10 @@ err:
+ 	return ret;
+ }
+ 
+-static void s5m_rtc_shutdown(struct platform_device *pdev)
+-{
+-	struct s5m_rtc_info *info = platform_get_drvdata(pdev);
+-	int i;
+-	unsigned int val = 0;
+-	if (info->wtsr_smpl) {
+-		for (i = 0; i < 3; i++) {
+-			s5m_rtc_enable_wtsr(info, false);
+-			regmap_read(info->regmap, info->regs->smpl_wtsr, &val);
+-			pr_debug("%s: WTSR_SMPL reg(0x%02x)\n", __func__, val);
+-			if (val & WTSR_ENABLE_MASK)
+-				pr_emerg("%s: fail to disable WTSR\n",
+-					 __func__);
+-			else {
+-				pr_info("%s: success to disable WTSR\n",
+-					__func__);
+-				break;
+-			}
+-		}
+-	}
+-	/* Disable SMPL when power off */
+-	s5m_rtc_enable_smpl(info, false);
+-}
