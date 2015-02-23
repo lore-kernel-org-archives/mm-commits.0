@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-hctosys-do-not-treat-lack-of-rtc-device-as-error.patch
+Subject: +
+ ocfs2-deletion-of-unnecessary-checks-before-three-function-calls.patch
  added to -mm tree
-Date: Mon, 23 Feb 2015 14:58:51 -0800
-Message-ID: <54ebb0ab.tNnQ5KoOgVDCT5m2%akpm@linux-foundation.org>
+Date: Mon, 23 Feb 2015 15:21:19 -0800
+Message-ID: <54ebb5ef.tukizp3RjtGdJne0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47281 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47733 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752028AbbBWW6w (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Feb 2015 17:58:52 -0500
+	with ESMTP id S1751055AbbBWXVU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Feb 2015 18:21:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bos@je-eigen-domein.nl, a.zummo@towertech.it, mm-commits@vger.kernel.org
+To: elfring@users.sourceforge.net, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: hctosys: do not treat lack of RTC device as error
+     Subject: ocfs2: delete unnecessary checks before three function calls
 has been added to the -mm tree.  Its filename is
-     rtc-hctosys-do-not-treat-lack-of-rtc-device-as-error.patch
+     ocfs2-deletion-of-unnecessary-checks-before-three-function-calls.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rtc-hctosys-do-not-treat-lack-of-rtc-device-as-error.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-deletion-of-unnecessary-checks-before-three-function-calls.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-hctosys-do-not-treat-lack-of-rtc-device-as-error.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-deletion-of-unnecessary-checks-before-three-function-calls.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,42 +40,108 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Floris Bos <bos@je-eigen-domein.nl>
-Subject: rtc: hctosys: do not treat lack of RTC device as error
+From: Markus Elfring <elfring@users.sourceforge.net>
+Subject: ocfs2: delete unnecessary checks before three function calls
 
-When using device trees on the ARM platform, it is not certain at compile
-time whether or not the system will have a RTC.
+kfree(), ocfs2_free_path() and __ocfs2_free_slot_info() test whether their
+argument is NULL and then return immediately.  Thus the test around their
+calls is not needed.
 
-If one enables CONFIG_HCTOSYS just in case the system booted has a RTC,
-and it turns out not to be, this will result in a big fat "unable to open
-rtc device" error being printed to console, even when "quiet" is set in
-the kernel cmdline.
+This issue was detected by using the Coccinelle software.
 
-Fix this by outputting the message with loglevel info instead.
-
-Signed-off-by: Floris Bos <bos@je-eigen-domein.nl>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/hctosys.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ocfs2/alloc.c      |   17 +++++------------
+ fs/ocfs2/slot_map.c   |    2 +-
+ fs/ocfs2/stack_user.c |    2 +-
+ 3 files changed, 7 insertions(+), 14 deletions(-)
 
-diff -puN drivers/rtc/hctosys.c~rtc-hctosys-do-not-treat-lack-of-rtc-device-as-error drivers/rtc/hctosys.c
---- a/drivers/rtc/hctosys.c~rtc-hctosys-do-not-treat-lack-of-rtc-device-as-error
-+++ a/drivers/rtc/hctosys.c
-@@ -32,7 +32,7 @@ static int __init rtc_hctosys(void)
- 	struct rtc_device *rtc = rtc_class_open(CONFIG_RTC_HCTOSYS_DEVICE);
- 
- 	if (rtc == NULL) {
--		pr_err("%s: unable to open rtc device (%s)\n",
-+		pr_info("%s: unable to open rtc device (%s)\n",
- 			__FILE__, CONFIG_RTC_HCTOSYS_DEVICE);
- 		goto err_open;
+diff -puN fs/ocfs2/alloc.c~ocfs2-deletion-of-unnecessary-checks-before-three-function-calls fs/ocfs2/alloc.c
+--- a/fs/ocfs2/alloc.c~ocfs2-deletion-of-unnecessary-checks-before-three-function-calls
++++ a/fs/ocfs2/alloc.c
+@@ -3453,8 +3453,7 @@ static int ocfs2_merge_rec_right(struct
+ 					   subtree_index);
  	}
+ out:
+-	if (right_path)
+-		ocfs2_free_path(right_path);
++	ocfs2_free_path(right_path);
+ 	return ret;
+ }
+ 
+@@ -3647,8 +3646,7 @@ static int ocfs2_merge_rec_left(struct o
+ 						   right_path, subtree_index);
+ 	}
+ out:
+-	if (left_path)
+-		ocfs2_free_path(left_path);
++	ocfs2_free_path(left_path);
+ 	return ret;
+ }
+ 
+@@ -4431,11 +4429,8 @@ ocfs2_figure_merge_contig_type(struct oc
+ 	}
+ 
+ out:
+-	if (left_path)
+-		ocfs2_free_path(left_path);
+-	if (right_path)
+-		ocfs2_free_path(right_path);
+-
++	ocfs2_free_path(left_path);
++	ocfs2_free_path(right_path);
+ 	return ret;
+ }
+ 
+@@ -6996,9 +6991,7 @@ out_commit:
+ out:
+ 	if (data_ac)
+ 		ocfs2_free_alloc_context(data_ac);
+-	if (pages)
+-		kfree(pages);
+-
++	kfree(pages);
+ 	return ret;
+ }
+ 
+diff -puN fs/ocfs2/slot_map.c~ocfs2-deletion-of-unnecessary-checks-before-three-function-calls fs/ocfs2/slot_map.c
+--- a/fs/ocfs2/slot_map.c~ocfs2-deletion-of-unnecessary-checks-before-three-function-calls
++++ a/fs/ocfs2/slot_map.c
+@@ -452,7 +452,7 @@ int ocfs2_init_slot_info(struct ocfs2_su
+ 
+ 	osb->slot_info = (struct ocfs2_slot_info *)si;
+ bail:
+-	if (status < 0 && si)
++	if (status < 0)
+ 		__ocfs2_free_slot_info(si);
+ 
+ 	return status;
+diff -puN fs/ocfs2/stack_user.c~ocfs2-deletion-of-unnecessary-checks-before-three-function-calls fs/ocfs2/stack_user.c
+--- a/fs/ocfs2/stack_user.c~ocfs2-deletion-of-unnecessary-checks-before-three-function-calls
++++ a/fs/ocfs2/stack_user.c
+@@ -1063,7 +1063,7 @@ static int user_cluster_connect(struct o
+ 	}
+ 
+ out:
+-	if (rc && lc)
++	if (rc)
+ 		kfree(lc);
+ 	return rc;
+ }
 _
 
-Patches currently in -mm which might be from bos@je-eigen-domein.nl are
+Patches currently in -mm which might be from elfring@users.sourceforge.net are
 
-rtc-hctosys-do-not-treat-lack-of-rtc-device-as-error.patch
+ocfs2-deletion-of-unnecessary-checks-before-three-function-calls.patch
+ocfs2-less-function-calls-in-ocfs2_convert_inline_data_to_extents-after-error-detection.patch
+ocfs2-less-function-calls-in-ocfs2_figure_merge_contig_type-after-error-detection.patch
+ocfs2-one-function-call-less-in-ocfs2_merge_rec_left-after-error-detection.patch
+ocfs2-one-function-call-less-in-ocfs2_merge_rec_right-after-error-detection.patch
+ocfs2-one-function-call-less-in-ocfs2_init_slot_info-after-error-detection.patch
+ocfs2-one-function-call-less-in-user_cluster_connect-after-error-detection.patch
+linux-next.patch
 
