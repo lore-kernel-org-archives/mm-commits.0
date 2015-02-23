@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + cris-remove-use-of-seq_printf-return-value.patch added to -mm
- tree
-Date: Mon, 23 Feb 2015 15:59:00 -0800
-Message-ID: <54ebbec4.qU0A334l/iaZ9QKR%akpm@linux-foundation.org>
+Subject: + staging-rtl8192x-remove-use-of-seq_printf-return-value.patch
+ added to -mm tree
+Date: Mon, 23 Feb 2015 15:59:06 -0800
+Message-ID: <54ebbeca.eqMpc6tgvonq6XQK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48294 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48304 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752647AbbBWX7D (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Feb 2015 18:59:03 -0500
+	with ESMTP id S1752714AbbBWX7H (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Feb 2015 18:59:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, jesper.nilsson@axis.com, mm-commits@vger.kernel.org
+To: joe@perches.com, gregkh@linuxfoundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cris: remove use of seq_printf return value
+     Subject: staging: rtl8192x: remove use of seq_printf return value
 has been added to the -mm tree.  Its filename is
-     cris-remove-use-of-seq_printf-return-value.patch
+     staging-rtl8192x-remove-use-of-seq_printf-return-value.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/cris-remove-use-of-seq_printf-return-value.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/staging-rtl8192x-remove-use-of-seq_printf-return-value.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/cris-remove-use-of-seq_printf-return-value.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/staging-rtl8192x-remove-use-of-seq_printf-return-value.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,7 +40,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: cris: remove use of seq_printf return value
+Subject: staging: rtl8192x: remove use of seq_printf return value
 
 The seq_printf return value, because it's frequently misused,
 will eventually be converted to void.
@@ -49,154 +49,42 @@ See: commit 1f33c41c03da ("seq_file: Rename seq_overflow() to
      seq_has_overflowed() and make public")
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Jesper Nilsson <jesper.nilsson@axis.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/arch-v10/kernel/setup.c |   58 ++++++++++++++-------------
- arch/cris/arch-v32/kernel/setup.c |   60 ++++++++++++++--------------
- 2 files changed, 61 insertions(+), 57 deletions(-)
+ drivers/staging/rtl8192e/rtllib_module.c              |    4 +++-
+ drivers/staging/rtl8192u/ieee80211/ieee80211_module.c |    4 +++-
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN arch/cris/arch-v10/kernel/setup.c~cris-remove-use-of-seq_printf-return-value arch/cris/arch-v10/kernel/setup.c
---- a/arch/cris/arch-v10/kernel/setup.c~cris-remove-use-of-seq_printf-return-value
-+++ a/arch/cris/arch-v10/kernel/setup.c
-@@ -63,35 +63,37 @@ int show_cpuinfo(struct seq_file *m, voi
- 	else
- 		info = &cpu_info[revision];
+diff -puN drivers/staging/rtl8192e/rtllib_module.c~staging-rtl8192x-remove-use-of-seq_printf-return-value drivers/staging/rtl8192e/rtllib_module.c
+--- a/drivers/staging/rtl8192e/rtllib_module.c~staging-rtl8192x-remove-use-of-seq_printf-return-value
++++ a/drivers/staging/rtl8192e/rtllib_module.c
+@@ -207,7 +207,9 @@ static struct proc_dir_entry *rtllib_pro
  
--	return seq_printf(m,
--		       "processor\t: 0\n" 
--		       "cpu\t\t: CRIS\n"
--		       "cpu revision\t: %lu\n"
--		       "cpu model\t: %s\n"
--		       "cache size\t: %d kB\n"
--		       "fpu\t\t: %s\n"
--		       "mmu\t\t: %s\n"
--		       "mmu DMA bug\t: %s\n"
--		       "ethernet\t: %s Mbps\n"
--		       "token ring\t: %s\n"
--		       "scsi\t\t: %s\n"
--		       "ata\t\t: %s\n"
--		       "usb\t\t: %s\n"
--		       "bogomips\t: %lu.%02lu\n",
-+	seq_printf(m,
-+		   "processor\t: 0\n"
-+		   "cpu\t\t: CRIS\n"
-+		   "cpu revision\t: %lu\n"
-+		   "cpu model\t: %s\n"
-+		   "cache size\t: %d kB\n"
-+		   "fpu\t\t: %s\n"
-+		   "mmu\t\t: %s\n"
-+		   "mmu DMA bug\t: %s\n"
-+		   "ethernet\t: %s Mbps\n"
-+		   "token ring\t: %s\n"
-+		   "scsi\t\t: %s\n"
-+		   "ata\t\t: %s\n"
-+		   "usb\t\t: %s\n"
-+		   "bogomips\t: %lu.%02lu\n",
- 
--		       revision,
--		       info->model,
--		       info->cache,
--		       info->flags & HAS_FPU ? "yes" : "no",
--		       info->flags & HAS_MMU ? "yes" : "no",
--		       info->flags & HAS_MMU_BUG ? "yes" : "no",
--		       info->flags & HAS_ETHERNET100 ? "10/100" : "10",
--		       info->flags & HAS_TOKENRING ? "4/16 Mbps" : "no",
--		       info->flags & HAS_SCSI ? "yes" : "no",
--		       info->flags & HAS_ATA ? "yes" : "no",
--		       info->flags & HAS_USB ? "yes" : "no",
--		       (loops_per_jiffy * HZ + 500) / 500000,
--		       ((loops_per_jiffy * HZ + 500) / 5000) % 100);
-+		   revision,
-+		   info->model,
-+		   info->cache,
-+		   info->flags & HAS_FPU ? "yes" : "no",
-+		   info->flags & HAS_MMU ? "yes" : "no",
-+		   info->flags & HAS_MMU_BUG ? "yes" : "no",
-+		   info->flags & HAS_ETHERNET100 ? "10/100" : "10",
-+		   info->flags & HAS_TOKENRING ? "4/16 Mbps" : "no",
-+		   info->flags & HAS_SCSI ? "yes" : "no",
-+		   info->flags & HAS_ATA ? "yes" : "no",
-+		   info->flags & HAS_USB ? "yes" : "no",
-+		   (loops_per_jiffy * HZ + 500) / 500000,
-+		   ((loops_per_jiffy * HZ + 500) / 5000) % 100);
+ static int show_debug_level(struct seq_file *m, void *v)
+ {
+-	return seq_printf(m, "0x%08X\n", rtllib_debug_level);
++	seq_printf(m, "0x%08X\n", rtllib_debug_level);
 +
 +	return 0;
  }
  
- #endif /* CONFIG_PROC_FS */
-diff -puN arch/cris/arch-v32/kernel/setup.c~cris-remove-use-of-seq_printf-return-value arch/cris/arch-v32/kernel/setup.c
---- a/arch/cris/arch-v32/kernel/setup.c~cris-remove-use-of-seq_printf-return-value
-+++ a/arch/cris/arch-v32/kernel/setup.c
-@@ -77,36 +77,38 @@ int show_cpuinfo(struct seq_file *m, voi
- 		}
- 	}
+ static ssize_t write_debug_level(struct file *file, const char __user *buffer,
+diff -puN drivers/staging/rtl8192u/ieee80211/ieee80211_module.c~staging-rtl8192x-remove-use-of-seq_printf-return-value drivers/staging/rtl8192u/ieee80211/ieee80211_module.c
+--- a/drivers/staging/rtl8192u/ieee80211/ieee80211_module.c~staging-rtl8192x-remove-use-of-seq_printf-return-value
++++ a/drivers/staging/rtl8192u/ieee80211/ieee80211_module.c
+@@ -245,7 +245,9 @@ static struct proc_dir_entry *ieee80211_
  
--	return seq_printf(m,
--		"processor\t: %d\n"
--		"cpu\t\t: CRIS\n"
--		"cpu revision\t: %lu\n"
--		"cpu model\t: %s\n"
--		"cache size\t: %d KB\n"
--		"fpu\t\t: %s\n"
--		"mmu\t\t: %s\n"
--		"mmu DMA bug\t: %s\n"
--		"ethernet\t: %s Mbps\n"
--		"token ring\t: %s\n"
--		"scsi\t\t: %s\n"
--		"ata\t\t: %s\n"
--		"usb\t\t: %s\n"
--		"bogomips\t: %lu.%02lu\n\n",
-+	seq_printf(m,
-+		   "processor\t: %d\n"
-+		   "cpu\t\t: CRIS\n"
-+		   "cpu revision\t: %lu\n"
-+		   "cpu model\t: %s\n"
-+		   "cache size\t: %d KB\n"
-+		   "fpu\t\t: %s\n"
-+		   "mmu\t\t: %s\n"
-+		   "mmu DMA bug\t: %s\n"
-+		   "ethernet\t: %s Mbps\n"
-+		   "token ring\t: %s\n"
-+		   "scsi\t\t: %s\n"
-+		   "ata\t\t: %s\n"
-+		   "usb\t\t: %s\n"
-+		   "bogomips\t: %lu.%02lu\n\n",
- 
--		cpu,
--		revision,
--		info->cpu_model,
--		info->cache_size,
--		info->flags & HAS_FPU ? "yes" : "no",
--		info->flags & HAS_MMU ? "yes" : "no",
--		info->flags & HAS_MMU_BUG ? "yes" : "no",
--		info->flags & HAS_ETHERNET100 ? "10/100" : "10",
--		info->flags & HAS_TOKENRING ? "4/16 Mbps" : "no",
--		info->flags & HAS_SCSI ? "yes" : "no",
--		info->flags & HAS_ATA ? "yes" : "no",
--		info->flags & HAS_USB ? "yes" : "no",
--		(loops_per_jiffy * HZ + 500) / 500000,
--		((loops_per_jiffy * HZ + 500) / 5000) % 100);
-+		   cpu,
-+		   revision,
-+		   info->cpu_model,
-+		   info->cache_size,
-+		   info->flags & HAS_FPU ? "yes" : "no",
-+		   info->flags & HAS_MMU ? "yes" : "no",
-+		   info->flags & HAS_MMU_BUG ? "yes" : "no",
-+		   info->flags & HAS_ETHERNET100 ? "10/100" : "10",
-+		   info->flags & HAS_TOKENRING ? "4/16 Mbps" : "no",
-+		   info->flags & HAS_SCSI ? "yes" : "no",
-+		   info->flags & HAS_ATA ? "yes" : "no",
-+		   info->flags & HAS_USB ? "yes" : "no",
-+		   (loops_per_jiffy * HZ + 500) / 500000,
-+		   ((loops_per_jiffy * HZ + 500) / 5000) % 100);
+ static int show_debug_level(struct seq_file *m, void *v)
+ {
+-	return seq_printf(m, "0x%08X\n", ieee80211_debug_level);
++	seq_printf(m, "0x%08X\n", ieee80211_debug_level);
 +
 +	return 0;
  }
  
- #endif /* CONFIG_PROC_FS */
+ static ssize_t write_debug_level(struct file *file, const char __user *buffer,
 _
 
 Patches currently in -mm which might be from joe@perches.com are
