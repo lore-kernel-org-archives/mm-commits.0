@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mn10300-mark-pud-and-pmd-folded.patch added to -mm tree
-Date: Mon, 23 Feb 2015 12:44:46 -0800
-Message-ID: <54eb913e.8XnqGVC5l0Q1jN20%akpm@linux-foundation.org>
+Subject: +
+ powerpc-expose-number-of-page-table-levels-on-kconfig-level.patch added to
+ -mm tree
+Date: Mon, 23 Feb 2015 12:44:50 -0800
+Message-ID: <54eb9142.iqDM5NBasnrF5lGS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44337 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44350 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752470AbbBWUor (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Feb 2015 15:44:47 -0500
+	with ESMTP id S1752470AbbBWUov (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Feb 2015 15:44:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, dhowells@redhat.com, linux@roeck-us.net, yasutake.koichi@jp.panasonic.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, benh@kernel.crashing.org, linux@roeck-us.net, mpe@ellerman.id.au, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mn10300: mark PUD and PMD folded
+     Subject: powerpc: expose number of page table levels on Kconfig level
 has been added to the -mm tree.  Its filename is
-     mn10300-mark-pud-and-pmd-folded.patch
+     powerpc-expose-number-of-page-table-levels-on-kconfig-level.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mn10300-mark-pud-and-pmd-folded.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-expose-number-of-page-table-levels-on-kconfig-level.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mn10300-mark-pud-and-pmd-folded.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-expose-number-of-page-table-levels-on-kconfig-level.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,34 +41,38 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mn10300: mark PUD and PMD folded
+Subject: powerpc: expose number of page table levels on Kconfig level
 
-Core mm expects __PAGETABLE_{PUD,PMD}_FOLDED to be defined if these page
-table levels folded.
+We would want to use number of page table level to define mm_struct.
+Let's expose it as CONFIG_PGTABLE_LEVELS.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Koichi Yasutake <yasutake.koichi@jp.panasonic.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 Tested-by: Guenter Roeck <linux@roeck-us.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mn10300/include/asm/pgtable.h |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/powerpc/Kconfig |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN arch/mn10300/include/asm/pgtable.h~mn10300-mark-pud-and-pmd-folded arch/mn10300/include/asm/pgtable.h
---- a/arch/mn10300/include/asm/pgtable.h~mn10300-mark-pud-and-pmd-folded
-+++ a/arch/mn10300/include/asm/pgtable.h
-@@ -56,7 +56,9 @@ extern void paging_init(void);
- #define PGDIR_SHIFT	22
- #define PTRS_PER_PGD	1024
- #define PTRS_PER_PUD	1	/* we don't really have any PUD physically */
-+#define __PAGETABLE_PUD_FOLDED
- #define PTRS_PER_PMD	1	/* we don't really have any PMD physically */
-+#define __PAGETABLE_PMD_FOLDED
- #define PTRS_PER_PTE	1024
+diff -puN arch/powerpc/Kconfig~powerpc-expose-number-of-page-table-levels-on-kconfig-level arch/powerpc/Kconfig
+--- a/arch/powerpc/Kconfig~powerpc-expose-number-of-page-table-levels-on-kconfig-level
++++ a/arch/powerpc/Kconfig
+@@ -297,6 +297,12 @@ config ZONE_DMA32
+ 	bool
+ 	default y if PPC64
  
- #define PGD_SIZE	PAGE_SIZE
++config PGTABLE_LEVELS
++	int
++	default 2 if !PPC64
++	default 3 if PPC_64K_PAGES
++	default 4
++
+ source "init/Kconfig"
+ 
+ source "kernel/Kconfig.freezer"
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
