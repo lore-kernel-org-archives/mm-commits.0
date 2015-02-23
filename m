@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + openrisc-remove-use-of-seq_printf-return-value.patch added to
- -mm tree
-Date: Mon, 23 Feb 2015 15:58:58 -0800
-Message-ID: <54ebbec2.bVvr83XR3F9FxDeZ%akpm@linux-foundation.org>
+Subject: + rtc-remove-use-of-seq_printf-return-value.patch added to -mm
+ tree
+Date: Mon, 23 Feb 2015 15:58:46 -0800
+Message-ID: <54ebbeb6.LYAz2rzLHR2QD+gD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48291 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48271 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752303AbbBWX67 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Feb 2015 18:58:59 -0500
+	with ESMTP id S1752641AbbBWX6r (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Feb 2015 18:58:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, jonas@southpole.se, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: openrisc: remove use of seq_printf return value
+     Subject: rtc: remove use of seq_printf return value
 has been added to the -mm tree.  Its filename is
-     openrisc-remove-use-of-seq_printf-return-value.patch
+     rtc-remove-use-of-seq_printf-return-value.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/openrisc-remove-use-of-seq_printf-return-value.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rtc-remove-use-of-seq_printf-return-value.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/openrisc-remove-use-of-seq_printf-return-value.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-remove-use-of-seq_printf-return-value.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,7 +40,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: openrisc: remove use of seq_printf return value
+Subject: rtc: remove use of seq_printf return value
 
 The seq_printf return value, because it's frequently misused,
 will eventually be converted to void.
@@ -49,73 +49,117 @@ See: commit 1f33c41c03da ("seq_file: Rename seq_overflow() to
      seq_has_overflowed() and make public")
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Jonas Bonn <jonas@southpole.se>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/openrisc/kernel/setup.c |   50 +++++++++++++++++----------------
- 1 file changed, 26 insertions(+), 24 deletions(-)
+ drivers/rtc/rtc-cmos.c   |   36 +++++++++++++++++++-----------------
+ drivers/rtc/rtc-ds1305.c |    6 +++---
+ drivers/rtc/rtc-mrst.c   |   16 +++++++++-------
+ drivers/rtc/rtc-tegra.c  |    4 +++-
+ 4 files changed, 34 insertions(+), 28 deletions(-)
 
-diff -puN arch/openrisc/kernel/setup.c~openrisc-remove-use-of-seq_printf-return-value arch/openrisc/kernel/setup.c
---- a/arch/openrisc/kernel/setup.c~openrisc-remove-use-of-seq_printf-return-value
-+++ a/arch/openrisc/kernel/setup.c
-@@ -329,30 +329,32 @@ static int show_cpuinfo(struct seq_file
- 	version = (vr & SPR_VR_VER) >> 24;
- 	revision = vr & SPR_VR_REV;
- 
--	return seq_printf(m,
--			  "cpu\t\t: OpenRISC-%x\n"
--			  "revision\t: %d\n"
--			  "frequency\t: %ld\n"
--			  "dcache size\t: %d bytes\n"
--			  "dcache block size\t: %d bytes\n"
--			  "icache size\t: %d bytes\n"
--			  "icache block size\t: %d bytes\n"
--			  "immu\t\t: %d entries, %lu ways\n"
--			  "dmmu\t\t: %d entries, %lu ways\n"
--			  "bogomips\t: %lu.%02lu\n",
--			  version,
--			  revision,
--			  loops_per_jiffy * HZ,
--			  cpuinfo.dcache_size,
--			  cpuinfo.dcache_block_size,
--			  cpuinfo.icache_size,
--			  cpuinfo.icache_block_size,
--			  1 << ((mfspr(SPR_DMMUCFGR) & SPR_DMMUCFGR_NTS) >> 2),
--			  1 + (mfspr(SPR_DMMUCFGR) & SPR_DMMUCFGR_NTW),
--			  1 << ((mfspr(SPR_IMMUCFGR) & SPR_IMMUCFGR_NTS) >> 2),
--			  1 + (mfspr(SPR_IMMUCFGR) & SPR_IMMUCFGR_NTW),
--			  (loops_per_jiffy * HZ) / 500000,
--			  ((loops_per_jiffy * HZ) / 5000) % 100);
-+	seq_printf(m,
-+		   "cpu\t\t: OpenRISC-%x\n"
-+		   "revision\t: %d\n"
-+		   "frequency\t: %ld\n"
-+		   "dcache size\t: %d bytes\n"
-+		   "dcache block size\t: %d bytes\n"
-+		   "icache size\t: %d bytes\n"
-+		   "icache block size\t: %d bytes\n"
-+		   "immu\t\t: %d entries, %lu ways\n"
-+		   "dmmu\t\t: %d entries, %lu ways\n"
-+		   "bogomips\t: %lu.%02lu\n",
-+		   version,
-+		   revision,
-+		   loops_per_jiffy * HZ,
-+		   cpuinfo.dcache_size,
-+		   cpuinfo.dcache_block_size,
-+		   cpuinfo.icache_size,
-+		   cpuinfo.icache_block_size,
-+		   1 << ((mfspr(SPR_DMMUCFGR) & SPR_DMMUCFGR_NTS) >> 2),
-+		   1 + (mfspr(SPR_DMMUCFGR) & SPR_DMMUCFGR_NTW),
-+		   1 << ((mfspr(SPR_IMMUCFGR) & SPR_IMMUCFGR_NTS) >> 2),
-+		   1 + (mfspr(SPR_IMMUCFGR) & SPR_IMMUCFGR_NTW),
-+		   (loops_per_jiffy * HZ) / 500000,
-+		   ((loops_per_jiffy * HZ) / 5000) % 100);
+diff -puN drivers/rtc/rtc-cmos.c~rtc-remove-use-of-seq_printf-return-value drivers/rtc/rtc-cmos.c
+--- a/drivers/rtc/rtc-cmos.c~rtc-remove-use-of-seq_printf-return-value
++++ a/drivers/rtc/rtc-cmos.c
+@@ -459,23 +459,25 @@ static int cmos_procfs(struct device *de
+ 	/* NOTE:  at least ICH6 reports battery status using a different
+ 	 * (non-RTC) bit; and SQWE is ignored on many current systems.
+ 	 */
+-	return seq_printf(seq,
+-			"periodic_IRQ\t: %s\n"
+-			"update_IRQ\t: %s\n"
+-			"HPET_emulated\t: %s\n"
+-			// "square_wave\t: %s\n"
+-			"BCD\t\t: %s\n"
+-			"DST_enable\t: %s\n"
+-			"periodic_freq\t: %d\n"
+-			"batt_status\t: %s\n",
+-			(rtc_control & RTC_PIE) ? "yes" : "no",
+-			(rtc_control & RTC_UIE) ? "yes" : "no",
+-			is_hpet_enabled() ? "yes" : "no",
+-			// (rtc_control & RTC_SQWE) ? "yes" : "no",
+-			(rtc_control & RTC_DM_BINARY) ? "no" : "yes",
+-			(rtc_control & RTC_DST_EN) ? "yes" : "no",
+-			cmos->rtc->irq_freq,
+-			(valid & RTC_VRT) ? "okay" : "dead");
++	seq_printf(seq,
++		   "periodic_IRQ\t: %s\n"
++		   "update_IRQ\t: %s\n"
++		   "HPET_emulated\t: %s\n"
++		   // "square_wave\t: %s\n"
++		   "BCD\t\t: %s\n"
++		   "DST_enable\t: %s\n"
++		   "periodic_freq\t: %d\n"
++		   "batt_status\t: %s\n",
++		   (rtc_control & RTC_PIE) ? "yes" : "no",
++		   (rtc_control & RTC_UIE) ? "yes" : "no",
++		   is_hpet_enabled() ? "yes" : "no",
++		   // (rtc_control & RTC_SQWE) ? "yes" : "no",
++		   (rtc_control & RTC_DM_BINARY) ? "no" : "yes",
++		   (rtc_control & RTC_DST_EN) ? "yes" : "no",
++		   cmos->rtc->irq_freq,
++		   (valid & RTC_VRT) ? "okay" : "dead");
 +
 +	return 0;
  }
  
- static void *c_start(struct seq_file *m, loff_t * pos)
+ #else
+diff -puN drivers/rtc/rtc-ds1305.c~rtc-remove-use-of-seq_printf-return-value drivers/rtc/rtc-ds1305.c
+--- a/drivers/rtc/rtc-ds1305.c~rtc-remove-use-of-seq_printf-return-value
++++ a/drivers/rtc/rtc-ds1305.c
+@@ -434,9 +434,9 @@ static int ds1305_proc(struct device *de
+ 	}
+ 
+ done:
+-	return seq_printf(seq,
+-			"trickle_charge\t: %s%s\n",
+-			diodes, resistors);
++	seq_printf(seq, "trickle_charge\t: %s%s\n", diodes, resistors);
++
++	return 0;
+ }
+ 
+ #else
+diff -puN drivers/rtc/rtc-mrst.c~rtc-remove-use-of-seq_printf-return-value drivers/rtc/rtc-mrst.c
+--- a/drivers/rtc/rtc-mrst.c~rtc-remove-use-of-seq_printf-return-value
++++ a/drivers/rtc/rtc-mrst.c
+@@ -277,13 +277,15 @@ static int mrst_procfs(struct device *de
+ 	valid = vrtc_cmos_read(RTC_VALID);
+ 	spin_unlock_irq(&rtc_lock);
+ 
+-	return seq_printf(seq,
+-			"periodic_IRQ\t: %s\n"
+-			"alarm\t\t: %s\n"
+-			"BCD\t\t: no\n"
+-			"periodic_freq\t: daily (not adjustable)\n",
+-			(rtc_control & RTC_PIE) ? "on" : "off",
+-			(rtc_control & RTC_AIE) ? "on" : "off");
++	seq_printf(seq,
++		   "periodic_IRQ\t: %s\n"
++		   "alarm\t\t: %s\n"
++		   "BCD\t\t: no\n"
++		   "periodic_freq\t: daily (not adjustable)\n",
++		   (rtc_control & RTC_PIE) ? "on" : "off",
++		   (rtc_control & RTC_AIE) ? "on" : "off");
++
++	return 0;
+ }
+ 
+ #else
+diff -puN drivers/rtc/rtc-tegra.c~rtc-remove-use-of-seq_printf-return-value drivers/rtc/rtc-tegra.c
+--- a/drivers/rtc/rtc-tegra.c~rtc-remove-use-of-seq_printf-return-value
++++ a/drivers/rtc/rtc-tegra.c
+@@ -261,7 +261,9 @@ static int tegra_rtc_proc(struct device
+ 	if (!dev || !dev->driver)
+ 		return 0;
+ 
+-	return seq_printf(seq, "name\t\t: %s\n", dev_name(dev));
++	seq_printf(seq, "name\t\t: %s\n", dev_name(dev));
++
++	return 0;
+ }
+ 
+ static irqreturn_t tegra_rtc_irq_handler(int irq, void *data)
 _
 
 Patches currently in -mm which might be from joe@perches.com are
