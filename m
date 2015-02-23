@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- powerpc-expose-number-of-page-table-levels-on-kconfig-level.patch added to
- -mm tree
-Date: Mon, 23 Feb 2015 12:44:50 -0800
-Message-ID: <54eb9142.iqDM5NBasnrF5lGS%akpm@linux-foundation.org>
+Subject: + s390-expose-number-of-page-table-levels.patch added to -mm tree
+Date: Mon, 23 Feb 2015 12:44:52 -0800
+Message-ID: <54eb9144.D+/UksVJhngTW24A%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44350 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44353 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752470AbbBWUov (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Feb 2015 15:44:51 -0500
+	with ESMTP id S1752470AbbBWUox (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Feb 2015 15:44:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, benh@kernel.crashing.org, linux@roeck-us.net, mpe@ellerman.id.au, paulus@samba.org, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, heiko.carstens@de.ibm.com, linux@roeck-us.net, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc: expose number of page table levels on Kconfig level
+     Subject: s390: expose number of page table levels
 has been added to the -mm tree.  Its filename is
-     powerpc-expose-number-of-page-table-levels-on-kconfig-level.patch
+     s390-expose-number-of-page-table-levels.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-expose-number-of-page-table-levels-on-kconfig-level.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/s390-expose-number-of-page-table-levels.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-expose-number-of-page-table-levels-on-kconfig-level.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/s390-expose-number-of-page-table-levels.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,38 +39,53 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: powerpc: expose number of page table levels on Kconfig level
+Subject: s390: expose number of page table levels
 
 We would want to use number of page table level to define mm_struct.
 Let's expose it as CONFIG_PGTABLE_LEVELS.
 
+Core mm expects __PAGETABLE_{PUD,PMD}_FOLDED to be defined if these page
+table levels folded.
+
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Tested-by: Guenter Roeck <linux@roeck-us.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/Kconfig |    6 ++++++
- 1 file changed, 6 insertions(+)
+ arch/s390/Kconfig               |    5 +++++
+ arch/s390/include/asm/pgtable.h |    2 ++
+ 2 files changed, 7 insertions(+)
 
-diff -puN arch/powerpc/Kconfig~powerpc-expose-number-of-page-table-levels-on-kconfig-level arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~powerpc-expose-number-of-page-table-levels-on-kconfig-level
-+++ a/arch/powerpc/Kconfig
-@@ -297,6 +297,12 @@ config ZONE_DMA32
- 	bool
- 	default y if PPC64
+diff -puN arch/s390/Kconfig~s390-expose-number-of-page-table-levels arch/s390/Kconfig
+--- a/arch/s390/Kconfig~s390-expose-number-of-page-table-levels
++++ a/arch/s390/Kconfig
+@@ -155,6 +155,11 @@ config S390
+ config SCHED_OMIT_FRAME_POINTER
+ 	def_bool y
  
 +config PGTABLE_LEVELS
 +	int
-+	default 2 if !PPC64
-+	default 3 if PPC_64K_PAGES
-+	default 4
++	default 4 if 64BIT
++	default 2
 +
  source "init/Kconfig"
  
  source "kernel/Kconfig.freezer"
+diff -puN arch/s390/include/asm/pgtable.h~s390-expose-number-of-page-table-levels arch/s390/include/asm/pgtable.h
+--- a/arch/s390/include/asm/pgtable.h~s390-expose-number-of-page-table-levels
++++ a/arch/s390/include/asm/pgtable.h
+@@ -91,7 +91,9 @@ extern unsigned long zero_page_mask;
+  */
+ #define PTRS_PER_PTE	256
+ #ifndef CONFIG_64BIT
++#define __PAGETABLE_PUD_FOLDED
+ #define PTRS_PER_PMD	1
++#define __PAGETABLE_PMD_FOLDED
+ #define PTRS_PER_PUD	1
+ #else /* CONFIG_64BIT */
+ #define PTRS_PER_PMD	2048
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
