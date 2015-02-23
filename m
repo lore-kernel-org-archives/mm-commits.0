@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- watchdog-implement-error-handling-for-failure-to-set-up-hardware-perf-events.patch added to -mm tree
-Date: Mon, 23 Feb 2015 13:20:49 -0800
-Message-ID: <54eb99b1.iM4dxtJl7Jl7n9Oq%akpm@linux-foundation.org>
+ watchdog-move-definition-of-watchdog_proc_mutex-outside-of-proc_dowatchdog.patch added to -mm tree
+Date: Mon, 23 Feb 2015 13:20:43 -0800
+Message-ID: <54eb99ab.K58WLWC2/mNZ+BoM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45192 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45182 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752775AbbBWVUu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Feb 2015 16:20:50 -0500
+	with ESMTP id S1753126AbbBWVUo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Feb 2015 16:20:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: uobergfe@redhat.com, dzickus@redhat.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: watchdog: implement error handling for failure to set up hardware perf events
+     Subject: watchdog: move definition of 'watchdog_proc_mutex' outside of proc_dowatchdog()
 has been added to the -mm tree.  Its filename is
-     watchdog-implement-error-handling-for-failure-to-set-up-hardware-perf-events.patch
+     watchdog-move-definition-of-watchdog_proc_mutex-outside-of-proc_dowatchdog.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/watchdog-implement-error-handling-for-failure-to-set-up-hardware-perf-events.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/watchdog-move-definition-of-watchdog_proc_mutex-outside-of-proc_dowatchdog.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/watchdog-implement-error-handling-for-failure-to-set-up-hardware-perf-events.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/watchdog-move-definition-of-watchdog_proc_mutex-outside-of-proc_dowatchdog.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,12 +40,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ulrich Obergfell <uobergfe@redhat.com>
-Subject: watchdog: implement error handling for failure to set up hardware perf events
+Subject: watchdog: move definition of 'watchdog_proc_mutex' outside of proc_dowatchdog()
 
-If watchdog_nmi_enable() fails to set up the hardware perf event of one
-CPU, the entire hard lockup detector is deemed unreliable.  Hence, disable
-the hard lockup detector and shut down the hardware perf events on all
-CPUs.
+This series removes proc_dowatchdog().  Since multiple new functions need
+the 'watchdog_proc_mutex' to serialize access to the watchdog parameters
+in /proc/sys/kernel, move the mutex outside of any function.
 
 Signed-off-by: Ulrich Obergfell <uobergfe@redhat.com>
 Signed-off-by: Don Zickus <dzickus@redhat.com>
@@ -53,44 +52,29 @@ Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |   18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+ kernel/watchdog.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN kernel/watchdog.c~watchdog-implement-error-handling-for-failure-to-set-up-hardware-perf-events kernel/watchdog.c
---- a/kernel/watchdog.c~watchdog-implement-error-handling-for-failure-to-set-up-hardware-perf-events
+diff -puN kernel/watchdog.c~watchdog-move-definition-of-watchdog_proc_mutex-outside-of-proc_dowatchdog kernel/watchdog.c
+--- a/kernel/watchdog.c~watchdog-move-definition-of-watchdog_proc_mutex-outside-of-proc_dowatchdog
 +++ a/kernel/watchdog.c
-@@ -502,6 +502,15 @@ static void watchdog(unsigned int cpu)
- 	__this_cpu_write(soft_lockup_hrtimer_cnt,
- 			 __this_cpu_read(hrtimer_interrupts));
- 	__touch_watchdog();
-+
-+	/*
-+	 * watchdog_nmi_enable() clears the NMI_WATCHDOG_ENABLED bit in the
-+	 * failure path. Check for failures that can occur asynchronously -
-+	 * for example, when CPUs are on-lined - and shut down the hardware
-+	 * perf event on each CPU accordingly.
-+	 */
-+	if (!(watchdog_enabled & NMI_WATCHDOG_ENABLED))
-+		watchdog_nmi_disable(cpu);
+@@ -701,6 +701,8 @@ static int proc_watchdog_update(void)
+ 
  }
  
- #ifdef CONFIG_HARDLOCKUP_DETECTOR
-@@ -552,6 +561,15 @@ handle_err:
- 		goto out_save;
- 	}
- 
-+	/*
-+	 * Disable the hard lockup detector if _any_ CPU fails to set up
-+	 * set up the hardware perf event. The watchdog() function checks
-+	 * the NMI_WATCHDOG_ENABLED bit periodically.
-+	 */
-+	smp_mb__before_atomic();
-+	clear_bit(NMI_WATCHDOG_ENABLED_BIT, &watchdog_enabled);
-+	smp_mb__after_atomic();
++static DEFINE_MUTEX(watchdog_proc_mutex);
 +
- 	/* skip displaying the same error again */
- 	if (cpu > 0 && (PTR_ERR(event) == cpu0_err))
- 		return PTR_ERR(event);
+ /*
+  * proc handler for /proc/sys/kernel/nmi_watchdog,watchdog_thresh
+  */
+@@ -710,7 +712,6 @@ int proc_dowatchdog(struct ctl_table *ta
+ {
+ 	int err, old_thresh, old_enabled;
+ 	bool old_hardlockup;
+-	static DEFINE_MUTEX(watchdog_proc_mutex);
+ 
+ 	mutex_lock(&watchdog_proc_mutex);
+ 	old_thresh = ACCESS_ONCE(watchdog_thresh);
 _
 
 Patches currently in -mm which might be from uobergfe@redhat.com are
