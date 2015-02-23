@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + tracing-remove-use-of-seq_printf-return-value.patch added to
- -mm tree
-Date: Mon, 23 Feb 2015 15:59:18 -0800
-Message-ID: <54ebbed6.vxVdMRSxyv4qoI8u%akpm@linux-foundation.org>
+Subject: + cgroup-remove-use-of-seq_printf-return-value.patch added to -mm tree
+Date: Mon, 23 Feb 2015 15:59:16 -0800
+Message-ID: <54ebbed4./j+DezakdzRrSU46%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48325 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48322 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752735AbbBWX7T (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Feb 2015 18:59:19 -0500
+	with ESMTP id S1752714AbbBWX7R (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Feb 2015 18:59:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, rostedt@goodmis.org, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
+To: joe@perches.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tracing: remove use of seq_printf return value
+     Subject: cgroup: remove use of seq_printf return value
 has been added to the -mm tree.  Its filename is
-     tracing-remove-use-of-seq_printf-return-value.patch
+     cgroup-remove-use-of-seq_printf-return-value.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/tracing-remove-use-of-seq_printf-return-value.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/cgroup-remove-use-of-seq_printf-return-value.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/tracing-remove-use-of-seq_printf-return-value.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/cgroup-remove-use-of-seq_printf-return-value.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,7 +39,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: tracing: remove use of seq_printf return value
+Subject: cgroup: remove use of seq_printf return value
 
 The seq_printf return value, because it's frequently misused,
 will eventually be converted to void.
@@ -48,36 +47,28 @@ will eventually be converted to void.
 See: commit 1f33c41c03da ("seq_file: Rename seq_overflow() to
      seq_has_overflowed() and make public")
 
-Miscellanea:
-
-o Remove unused return value from trace_lookup_stack
-
 Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Steven Rostedt <rostedt@goodmis.org>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Acked-by: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/trace/trace_stack.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/cgroup.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN kernel/trace/trace_stack.c~tracing-remove-use-of-seq_printf-return-value kernel/trace/trace_stack.c
---- a/kernel/trace/trace_stack.c~tracing-remove-use-of-seq_printf-return-value
-+++ a/kernel/trace/trace_stack.c
-@@ -327,11 +327,11 @@ static void t_stop(struct seq_file *m, v
- 	local_irq_enable();
- }
+diff -puN kernel/cgroup.c~cgroup-remove-use-of-seq_printf-return-value kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroup-remove-use-of-seq_printf-return-value
++++ a/kernel/cgroup.c
+@@ -4199,7 +4199,9 @@ static void *cgroup_pidlist_next(struct
  
--static int trace_lookup_stack(struct seq_file *m, long i)
-+static void trace_lookup_stack(struct seq_file *m, long i)
+ static int cgroup_pidlist_show(struct seq_file *s, void *v)
  {
- 	unsigned long addr = stack_dump_trace[i];
- 
--	return seq_printf(m, "%pS\n", (void *)addr);
-+	seq_printf(m, "%pS\n", (void *)addr);
+-	return seq_printf(s, "%d\n", *(int *)v);
++	seq_printf(s, "%d\n", *(int *)v);
++
++	return 0;
  }
  
- static void print_disabled(struct seq_file *m)
+ static u64 cgroup_read_notify_on_release(struct cgroup_subsys_state *css,
 _
 
 Patches currently in -mm which might be from joe@perches.com are
