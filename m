@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + x86-mtrr-if-remove-use-of-seq_printf-return-value.patch added
- to -mm tree
-Date: Mon, 23 Feb 2015 15:58:42 -0800
-Message-ID: <54ebbeb2./0Wd0bptF9y8iwEx%akpm@linux-foundation.org>
+Subject: + microblaze-mb-remove-use-of-seq_printf-return-value.patch added to -mm tree
+Date: Mon, 23 Feb 2015 15:58:52 -0800
+Message-ID: <54ebbebc.P+QgQHa14ARC9OSP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48259 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48282 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752303AbbBWX6n (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Feb 2015 18:58:43 -0500
+	with ESMTP id S1752303AbbBWX6x (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Feb 2015 18:58:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, hpa@zytor.com, mingo@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: joe@perches.com, monstr@monstr.eu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86: mtrr: if: remove use of seq_printf return value
+     Subject: microblaze: mb: remove use of seq_printf return value
 has been added to the -mm tree.  Its filename is
-     x86-mtrr-if-remove-use-of-seq_printf-return-value.patch
+     microblaze-mb-remove-use-of-seq_printf-return-value.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86-mtrr-if-remove-use-of-seq_printf-return-value.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/microblaze-mb-remove-use-of-seq_printf-return-value.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86-mtrr-if-remove-use-of-seq_printf-return-value.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/microblaze-mb-remove-use-of-seq_printf-return-value.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,7 +39,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: x86: mtrr: if: remove use of seq_printf return value
+Subject: microblaze: mb: remove use of seq_printf return value
 
 The seq_printf return value, because it's frequently misused,
 will eventually be converted to void.
@@ -49,47 +48,191 @@ See: commit 1f33c41c03da ("seq_file: Rename seq_overflow() to
      seq_has_overflowed() and make public")
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Acked-by: Michal Simek <monstr@monstr.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/mtrr/if.c |   12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+ arch/microblaze/kernel/cpu/mb.c |  153 ++++++++++++++----------------
+ 1 file changed, 75 insertions(+), 78 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/mtrr/if.c~x86-mtrr-if-remove-use-of-seq_printf-return-value arch/x86/kernel/cpu/mtrr/if.c
---- a/arch/x86/kernel/cpu/mtrr/if.c~x86-mtrr-if-remove-use-of-seq_printf-return-value
-+++ a/arch/x86/kernel/cpu/mtrr/if.c
-@@ -404,11 +404,10 @@ static const struct file_operations mtrr
- static int mtrr_seq_show(struct seq_file *seq, void *offset)
- {
- 	char factor;
--	int i, max, len;
-+	int i, max;
- 	mtrr_type type;
- 	unsigned long base, size;
+diff -puN arch/microblaze/kernel/cpu/mb.c~microblaze-mb-remove-use-of-seq_printf-return-value arch/microblaze/kernel/cpu/mb.c
+--- a/arch/microblaze/kernel/cpu/mb.c~microblaze-mb-remove-use-of-seq_printf-return-value
++++ a/arch/microblaze/kernel/cpu/mb.c
+@@ -27,7 +27,6 @@
  
--	len = 0;
- 	max = num_var_ranges;
- 	for (i = 0; i < max; i++) {
- 		mtrr_if->get(i, &base, &size, &type);
-@@ -425,11 +424,10 @@ static int mtrr_seq_show(struct seq_file
- 			size >>= 20 - PAGE_SHIFT;
+ static int show_cpuinfo(struct seq_file *m, void *v)
+ {
+-	int count = 0;
+ 	char *fpga_family = "Unknown";
+ 	char *cpu_ver = "Unknown";
+ 	int i;
+@@ -48,91 +47,89 @@ static int show_cpuinfo(struct seq_file
  		}
- 		/* Base can be > 32bit */
--		len += seq_printf(seq, "reg%02i: base=0x%06lx000 "
--			"(%5luMB), size=%5lu%cB, count=%d: %s\n",
--			i, base, base >> (20 - PAGE_SHIFT), size,
--			factor, mtrr_usage_table[i],
--			mtrr_attrib_to_str(type));
-+		seq_printf(seq, "reg%02i: base=0x%06lx000 (%5luMB), size=%5lu%cB, count=%d: %s\n",
-+			   i, base, base >> (20 - PAGE_SHIFT),
-+			   size, factor,
-+			   mtrr_usage_table[i], mtrr_attrib_to_str(type));
  	}
+ 
+-	count = seq_printf(m,
+-			"CPU-Family:	MicroBlaze\n"
+-			"FPGA-Arch:	%s\n"
+-			"CPU-Ver:	%s, %s endian\n"
+-			"CPU-MHz:	%d.%02d\n"
+-			"BogoMips:	%lu.%02lu\n",
+-			fpga_family,
+-			cpu_ver,
+-			cpuinfo.endian ? "little" : "big",
+-			cpuinfo.cpu_clock_freq /
+-			1000000,
+-			cpuinfo.cpu_clock_freq %
+-			1000000,
+-			loops_per_jiffy / (500000 / HZ),
+-			(loops_per_jiffy / (5000 / HZ)) % 100);
+-
+-	count += seq_printf(m,
+-		"HW:\n Shift:\t\t%s\n"
+-		" MSR:\t\t%s\n"
+-		" PCMP:\t\t%s\n"
+-		" DIV:\t\t%s\n",
+-		(cpuinfo.use_instr & PVR0_USE_BARREL_MASK) ? "yes" : "no",
+-		(cpuinfo.use_instr & PVR2_USE_MSR_INSTR) ? "yes" : "no",
+-		(cpuinfo.use_instr & PVR2_USE_PCMP_INSTR) ? "yes" : "no",
+-		(cpuinfo.use_instr & PVR0_USE_DIV_MASK) ? "yes" : "no");
+-
+-	count += seq_printf(m,
+-			" MMU:\t\t%x\n",
+-			cpuinfo.mmu);
+-
+-	count += seq_printf(m,
+-		" MUL:\t\t%s\n"
+-		" FPU:\t\t%s\n",
+-		(cpuinfo.use_mult & PVR2_USE_MUL64_MASK) ? "v2" :
+-			(cpuinfo.use_mult & PVR0_USE_HW_MUL_MASK) ? "v1" : "no",
+-		(cpuinfo.use_fpu & PVR2_USE_FPU2_MASK) ? "v2" :
+-			(cpuinfo.use_fpu & PVR0_USE_FPU_MASK) ? "v1" : "no");
+-
+-	count += seq_printf(m,
+-		" Exc:\t\t%s%s%s%s%s%s%s%s\n",
+-		(cpuinfo.use_exc & PVR2_OPCODE_0x0_ILL_MASK) ? "op0x0 " : "",
+-		(cpuinfo.use_exc & PVR2_UNALIGNED_EXC_MASK) ? "unal " : "",
+-		(cpuinfo.use_exc & PVR2_ILL_OPCODE_EXC_MASK) ? "ill " : "",
+-		(cpuinfo.use_exc & PVR2_IOPB_BUS_EXC_MASK) ? "iopb " : "",
+-		(cpuinfo.use_exc & PVR2_DOPB_BUS_EXC_MASK) ? "dopb " : "",
+-		(cpuinfo.use_exc & PVR2_DIV_ZERO_EXC_MASK) ? "zero " : "",
+-		(cpuinfo.use_exc & PVR2_FPU_EXC_MASK) ? "fpu " : "",
+-		(cpuinfo.use_exc & PVR2_USE_FSL_EXC) ? "fsl " : "");
+-
+-	count += seq_printf(m,
+-			"Stream-insns:\t%sprivileged\n",
+-			cpuinfo.mmu_privins ? "un" : "");
++	seq_printf(m,
++		   "CPU-Family:	MicroBlaze\n"
++		   "FPGA-Arch:	%s\n"
++		   "CPU-Ver:	%s, %s endian\n"
++		   "CPU-MHz:	%d.%02d\n"
++		   "BogoMips:	%lu.%02lu\n",
++		   fpga_family,
++		   cpu_ver,
++		   cpuinfo.endian ? "little" : "big",
++		   cpuinfo.cpu_clock_freq / 1000000,
++		   cpuinfo.cpu_clock_freq % 1000000,
++		   loops_per_jiffy / (500000 / HZ),
++		   (loops_per_jiffy / (5000 / HZ)) % 100);
++
++	seq_printf(m,
++		   "HW:\n Shift:\t\t%s\n"
++		   " MSR:\t\t%s\n"
++		   " PCMP:\t\t%s\n"
++		   " DIV:\t\t%s\n",
++		   (cpuinfo.use_instr & PVR0_USE_BARREL_MASK) ? "yes" : "no",
++		   (cpuinfo.use_instr & PVR2_USE_MSR_INSTR) ? "yes" : "no",
++		   (cpuinfo.use_instr & PVR2_USE_PCMP_INSTR) ? "yes" : "no",
++		   (cpuinfo.use_instr & PVR0_USE_DIV_MASK) ? "yes" : "no");
++
++	seq_printf(m, " MMU:\t\t%x\n", cpuinfo.mmu);
++
++	seq_printf(m,
++		   " MUL:\t\t%s\n"
++		   " FPU:\t\t%s\n",
++		   (cpuinfo.use_mult & PVR2_USE_MUL64_MASK) ? "v2" :
++		   (cpuinfo.use_mult & PVR0_USE_HW_MUL_MASK) ? "v1" : "no",
++		   (cpuinfo.use_fpu & PVR2_USE_FPU2_MASK) ? "v2" :
++		   (cpuinfo.use_fpu & PVR0_USE_FPU_MASK) ? "v1" : "no");
++
++	seq_printf(m,
++		   " Exc:\t\t%s%s%s%s%s%s%s%s\n",
++		   (cpuinfo.use_exc & PVR2_OPCODE_0x0_ILL_MASK) ? "op0x0 " : "",
++		   (cpuinfo.use_exc & PVR2_UNALIGNED_EXC_MASK) ? "unal " : "",
++		   (cpuinfo.use_exc & PVR2_ILL_OPCODE_EXC_MASK) ? "ill " : "",
++		   (cpuinfo.use_exc & PVR2_IOPB_BUS_EXC_MASK) ? "iopb " : "",
++		   (cpuinfo.use_exc & PVR2_DOPB_BUS_EXC_MASK) ? "dopb " : "",
++		   (cpuinfo.use_exc & PVR2_DIV_ZERO_EXC_MASK) ? "zero " : "",
++		   (cpuinfo.use_exc & PVR2_FPU_EXC_MASK) ? "fpu " : "",
++		   (cpuinfo.use_exc & PVR2_USE_FSL_EXC) ? "fsl " : "");
++
++	seq_printf(m,
++		   "Stream-insns:\t%sprivileged\n",
++		   cpuinfo.mmu_privins ? "un" : "");
+ 
+ 	if (cpuinfo.use_icache)
+-		count += seq_printf(m,
+-				"Icache:\t\t%ukB\tline length:\t%dB\n",
+-				cpuinfo.icache_size >> 10,
+-				cpuinfo.icache_line_length);
++		seq_printf(m,
++			   "Icache:\t\t%ukB\tline length:\t%dB\n",
++			   cpuinfo.icache_size >> 10,
++			   cpuinfo.icache_line_length);
+ 	else
+-		count += seq_printf(m, "Icache:\t\tno\n");
++	x	seq_puts(m, "Icache:\t\tno\n");
+ 
+ 	if (cpuinfo.use_dcache) {
+-		count += seq_printf(m,
+-				"Dcache:\t\t%ukB\tline length:\t%dB\n",
+-				cpuinfo.dcache_size >> 10,
+-				cpuinfo.dcache_line_length);
+-		seq_printf(m, "Dcache-Policy:\t");
++		seq_printf(m,
++			   "Dcache:\t\t%ukB\tline length:\t%dB\n",
++			   cpuinfo.dcache_size >> 10,
++			   cpuinfo.dcache_line_length);
++		seq_puts(m, "Dcache-Policy:\t");
+ 		if (cpuinfo.dcache_wb)
+-			count += seq_printf(m, "write-back\n");
++			seq_puts(m, "write-back\n");
+ 		else
+-			count += seq_printf(m, "write-through\n");
+-	} else
+-		count += seq_printf(m, "Dcache:\t\tno\n");
+-
+-	count += seq_printf(m,
+-			"HW-Debug:\t%s\n",
+-			cpuinfo.hw_debug ? "yes" : "no");
+-
+-	count += seq_printf(m,
+-			"PVR-USR1:\t%02x\n"
+-			"PVR-USR2:\t%08x\n",
+-			cpuinfo.pvr_user1,
+-			cpuinfo.pvr_user2);
++			seq_puts(m, "write-through\n");
++	} else {
++		seq_puts(m, "Dcache:\t\tno\n");
++	}
++
++	seq_printf(m,
++		   "HW-Debug:\t%s\n",
++		   cpuinfo.hw_debug ? "yes" : "no");
++
++	seq_printf(m,
++		   "PVR-USR1:\t%02x\n"
++		   "PVR-USR2:\t%08x\n",
++		   cpuinfo.pvr_user1,
++		   cpuinfo.pvr_user2);
++
++	seq_printf(m, "Page size:\t%lu\n", PAGE_SIZE);
+ 
+-	count += seq_printf(m, "Page size:\t%lu\n", PAGE_SIZE);
  	return 0;
  }
+ 
 _
 
 Patches currently in -mm which might be from joe@perches.com are
