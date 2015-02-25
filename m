@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + cleancache-forbid-overriding-cleancache_ops.patch added to -mm
- tree
-Date: Wed, 25 Feb 2015 14:41:20 -0800
-Message-ID: <54ee4f90.+8CrpIdMhaUd83oP%akpm@linux-foundation.org>
+Subject: +
+ cleancache-remove-limit-on-the-number-of-cleancache-enabled-filesystems-fix.patch added to -mm tree
+Date: Wed, 25 Feb 2015 14:41:24 -0800
+Message-ID: <54ee4f94.SWgSpKjtzMPHTK/A%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38797 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38813 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754085AbbBYWlV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Feb 2015 17:41:21 -0500
+	with ESMTP id S1753237AbbBYWl0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Feb 2015 17:41:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vdavydov@parallels.com, andor.daam@googlemail.com, boris.ostrovsky@oracle.com, dan.magenheimer@oracle.com, david.vrabel@citrix.com, fschmaus@gmail.com, ilendir@googlemail.com, jlbec@evilplan.org, konrad.wilk@oracle.com, lliubbo@gmail.com, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cleancache: forbid overriding cleancache_ops
+     Subject: cleancache-remove-limit-on-the-number-of-cleancache-enabled-filesystems-fix
 has been added to the -mm tree.  Its filename is
-     cleancache-forbid-overriding-cleancache_ops.patch
+     cleancache-remove-limit-on-the-number-of-cleancache-enabled-filesystems-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/cleancache-forbid-overriding-cleancache_ops.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/cleancache-remove-limit-on-the-number-of-cleancache-enabled-filesystems-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/cleancache-forbid-overriding-cleancache_ops.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/cleancache-remove-limit-on-the-number-of-cleancache-enabled-filesystems-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,25 +40,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: cleancache: forbid overriding cleancache_ops
+Subject: cleancache-remove-limit-on-the-number-of-cleancache-enabled-filesystems-fix
 
-Currently, cleancache_register_ops returns the previous value of
-cleancache_ops to allow chaining.  However, chaining, as it is implemented
-now, is extremely dangerous due to possible pool id collisions.  Suppose,
-a new cleancache driver is registered after the previous one assigned an
-id to a super block.  If the new driver assigns the same id to another
-super block, which is perfectly possible, we will have two different
-filesystems using the same id.  No matter if the new driver implements
-chaining or not, we are likely to get data corruption with such a
-configuration eventually.
+I admit the synchronization between cleancache_register_ops and
+cleancache_init_fs is far not obvious.  I should have updated the comment
+instead of merely dropping it, sorry.  What about the following patch
+proving correctness of register_ops-vs-init_fs synchronization?  It is
+meant to be applied incrementally on top of patch #4.
 
-This patch therefore disables the ability to override cleancache_ops
-altogether as potentially dangerous.  If there is already cleancache
-driver registered, all further calls to cleancache_register_ops will
-return EBUSY.  Since no user of cleancache implements chaining, we only
-need to make minor changes to the code outside the cleancache core.
-
-Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
 Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
 Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
 Cc: David Vrabel <david.vrabel@citrix.com>
@@ -72,99 +61,70 @@ Cc: Bob Liu <lliubbo@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/cleancache.txt |    4 +---
- drivers/xen/tmem.c              |   16 +++++++++-------
- include/linux/cleancache.h      |    3 +--
- mm/cleancache.c                 |   12 +++++++-----
- 4 files changed, 18 insertions(+), 17 deletions(-)
+ mm/cleancache.c |   51 ++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 51 insertions(+)
 
-diff -puN Documentation/vm/cleancache.txt~cleancache-forbid-overriding-cleancache_ops Documentation/vm/cleancache.txt
---- a/Documentation/vm/cleancache.txt~cleancache-forbid-overriding-cleancache_ops
-+++ a/Documentation/vm/cleancache.txt
-@@ -28,9 +28,7 @@ IMPLEMENTATION OVERVIEW
- A cleancache "backend" that provides transcendent memory registers itself
- to the kernel's cleancache "frontend" by calling cleancache_register_ops,
- passing a pointer to a cleancache_ops structure with funcs set appropriately.
--Note that cleancache_register_ops returns the previous settings so that
--chaining can be performed if desired. The functions provided must conform to
--certain semantics as follows:
-+The functions provided must conform to certain semantics as follows:
- 
- Most important, cleancache is "ephemeral".  Pages which are copied into
- cleancache have an indefinite lifetime which is completely unknowable
-diff -puN drivers/xen/tmem.c~cleancache-forbid-overriding-cleancache_ops drivers/xen/tmem.c
---- a/drivers/xen/tmem.c~cleancache-forbid-overriding-cleancache_ops
-+++ a/drivers/xen/tmem.c
-@@ -397,13 +397,15 @@ static int __init xen_tmem_init(void)
- #ifdef CONFIG_CLEANCACHE
- 	BUG_ON(sizeof(struct cleancache_filekey) != sizeof(struct tmem_oid));
- 	if (tmem_enabled && cleancache) {
--		char *s = "";
--		struct cleancache_ops *old_ops =
--			cleancache_register_ops(&tmem_cleancache_ops);
--		if (old_ops)
--			s = " (WARNING: cleancache_ops overridden)";
--		pr_info("cleancache enabled, RAM provided by Xen Transcendent Memory%s\n",
--			s);
-+		int err;
-+
-+		err = cleancache_register_ops(&tmem_cleancache_ops);
-+		if (err)
-+			pr_warn("xen-tmem: failed to enable cleancache: %d\n",
-+				err);
-+		else
-+			pr_info("cleancache enabled, RAM provided by "
-+				"Xen Transcendent Memory\n");
- 	}
- #endif
- #ifdef CONFIG_XEN_SELFBALLOONING
-diff -puN include/linux/cleancache.h~cleancache-forbid-overriding-cleancache_ops include/linux/cleancache.h
---- a/include/linux/cleancache.h~cleancache-forbid-overriding-cleancache_ops
-+++ a/include/linux/cleancache.h
-@@ -33,8 +33,7 @@ struct cleancache_ops {
- 	void (*invalidate_fs)(int);
- };
- 
--extern struct cleancache_ops *
--	cleancache_register_ops(struct cleancache_ops *ops);
-+extern int cleancache_register_ops(struct cleancache_ops *ops);
- extern void __cleancache_init_fs(struct super_block *);
- extern void __cleancache_init_shared_fs(struct super_block *);
- extern int  __cleancache_get_page(struct page *);
-diff -puN mm/cleancache.c~cleancache-forbid-overriding-cleancache_ops mm/cleancache.c
---- a/mm/cleancache.c~cleancache-forbid-overriding-cleancache_ops
+diff -puN mm/cleancache.c~cleancache-remove-limit-on-the-number-of-cleancache-enabled-filesystems-fix mm/cleancache.c
+--- a/mm/cleancache.c~cleancache-remove-limit-on-the-number-of-cleancache-enabled-filesystems-fix
 +++ a/mm/cleancache.c
-@@ -106,15 +106,17 @@ static DEFINE_MUTEX(poolid_mutex);
-  */
+@@ -54,6 +54,57 @@ int cleancache_register_ops(struct clean
+ 	if (cmpxchg(&cleancache_ops, NULL, ops))
+ 		return -EBUSY;
  
- /*
-- * Register operations for cleancache, returning previous thus allowing
-- * detection of multiple backends and possible nesting.
-+ * Register operations for cleancache. Returns 0 on success.
-  */
--struct cleancache_ops *cleancache_register_ops(struct cleancache_ops *ops)
-+int cleancache_register_ops(struct cleancache_ops *ops)
- {
--	struct cleancache_ops *old = cleancache_ops;
- 	int i;
- 
- 	mutex_lock(&poolid_mutex);
-+	if (cleancache_ops) {
-+		mutex_unlock(&poolid_mutex);
-+		return -EBUSY;
-+	}
- 	for (i = 0; i < MAX_INITIALIZABLE_FS; i++) {
- 		if (fs_poolid_map[i] == FS_NO_BACKEND)
- 			fs_poolid_map[i] = ops->init_fs(PAGE_SIZE);
-@@ -130,7 +132,7 @@ struct cleancache_ops *cleancache_regist
- 	barrier();
- 	cleancache_ops = ops;
- 	mutex_unlock(&poolid_mutex);
--	return old;
-+	return 0;
++	/*
++	 * A cleancache backend can be built as a module and hence loaded after
++	 * a cleancache enabled filesystem has called cleancache_init_fs. To
++	 * handle such a scenario, here we call ->init_fs or ->init_shared_fs
++	 * for each active super block. To differentiate between local and
++	 * shared filesystems, we temporarily initialize sb->cleancache_poolid
++	 * to CLEANCACHE_NO_BACKEND or CLEANCACHE_NO_BACKEND_SHARED
++	 * respectively in case there is no backend registered at the time
++	 * cleancache_init_fs or cleancache_init_shared_fs is called.
++	 *
++	 * Since filesystems can be mounted concurrently with cleancache
++	 * backend registration, we have to be careful to guarantee that all
++	 * cleancache enabled filesystems that has been mounted by the time
++	 * cleancache_register_ops is called has got and all mounted later will
++	 * get cleancache_poolid. This is assured by the following statements
++	 * tied together:
++	 *
++	 * a) iterate_supers skips only those super blocks that has started
++	 *    ->kill_sb
++	 *
++	 * b) if iterate_supers encounters a super block that has not finished
++	 *    ->mount yet, it waits until it is finished
++	 *
++	 * c) cleancache_init_fs is called from ->mount and
++	 *    cleancache_invalidate_fs is called from ->kill_sb
++	 *
++	 * d) we call iterate_supers after cleancache_ops has been set
++	 *
++	 * From a) it follows that if iterate_supers skips a super block, then
++	 * either the super block is already dead, in which case we do not need
++	 * to bother initializing cleancache for it, or it was mounted after we
++	 * initiated iterate_supers. In the latter case, it must have seen
++	 * cleancache_ops set according to d) and initialized cleancache from
++	 * ->mount by itself according to c). This proves that we call
++	 * ->init_fs at least once for each active super block.
++	 *
++	 * From b) and c) it follows that if iterate_supers encounters a super
++	 * block that has already started ->init_fs, it will wait until ->mount
++	 * and hence ->init_fs has finished, then check cleancache_poolid, see
++	 * that it has already been set and therefore do nothing. This proves
++	 * that we call ->init_fs no more than once for each super block.
++	 *
++	 * Combined together, the last two paragraphs prove the function
++	 * correctness.
++	 *
++	 * Note that various cleancache callbacks may proceed before this
++	 * function is called or even concurrently with it, but since
++	 * CLEANCACHE_NO_BACKEND is negative, they will all result in a noop
++	 * until the corresponding ->init_fs has been actually called and
++	 * cleancache_ops has been set.
++	 */
+ 	iterate_supers(cleancache_register_ops_sb, NULL);
+ 	return 0;
  }
- EXPORT_SYMBOL(cleancache_register_ops);
- 
 _
 
 Patches currently in -mm which might be from vdavydov@parallels.com are
