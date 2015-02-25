@@ -1,143 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- regulator-dbx500-remove-use-of-seq_puts-seq_printf-return-value.patch
- removed from -mm tree
-Date: Wed, 25 Feb 2015 12:51:58 -0800
-Message-ID: <54ee35ee.82UZZth0ZgLADpjL%akpm@linux-foundation.org>
+Subject: + mm-refactor-do_wp_page-extract-the-reuse-case-fix.patch added
+ to -mm tree
+Date: Wed, 25 Feb 2015 13:47:41 -0800
+Message-ID: <54ee42fd.mmhNIKydGvv+QVnR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36223 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36734 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752716AbbBYUwA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Feb 2015 15:52:00 -0500
+	with ESMTP id S932165AbbBYVrm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Feb 2015 16:47:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, broonie@kernel.org, lgirdwood@gmail.com, mm-commits@vger.kernel.org
+To: raindel@mellanox.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: regulator: dbx500: remove use of seq_puts/seq_printf return value
-has been removed from the -mm tree.  Its filename was
-     regulator-dbx500-remove-use-of-seq_puts-seq_printf-return-value.patch
+     Subject: mm-refactor-do_wp_page-extract-the-reuse-case-fix
+has been added to the -mm tree.  Its filename is
+     mm-refactor-do_wp_page-extract-the-reuse-case-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-refactor-do_wp_page-extract-the-reuse-case-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-refactor-do_wp_page-extract-the-reuse-case-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: regulator: dbx500: remove use of seq_puts/seq_printf return value
+From: Shachar Raindel <raindel@mellanox.com>
+Subject: mm-refactor-do_wp_page-extract-the-reuse-case-fix
 
-The seq_puts/seq_printf return value, because it's frequently misused,
-will eventually be converted to void.
+inline wp_page_reuse for a small code-size saving
 
-See: commit 1f33c41c03da ("seq_file: Rename seq_overflow() to
-     seq_has_overflowed() and make public")
-
-Miscellanea:
-
-o Remove unnecessary dev_err("seq_<foo> overflow\n") messages
-
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Liam Girdwood <lgirdwood@gmail.com>
-Cc: Mark Brown <broonie@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/regulator/dbx500-prcmu.c |   32 ++++++++---------------------
- 1 file changed, 9 insertions(+), 23 deletions(-)
+ mm/memory.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/regulator/dbx500-prcmu.c~regulator-dbx500-remove-use-of-seq_puts-seq_printf-return-value drivers/regulator/dbx500-prcmu.c
---- a/drivers/regulator/dbx500-prcmu.c~regulator-dbx500-remove-use-of-seq_puts-seq_printf-return-value
-+++ a/drivers/regulator/dbx500-prcmu.c
-@@ -95,14 +95,9 @@ void ux500_regulator_resume_debug(void)
- 
- static int ux500_regulator_power_state_cnt_print(struct seq_file *s, void *p)
+diff -puN mm/memory.c~mm-refactor-do_wp_page-extract-the-reuse-case-fix mm/memory.c
+--- a/mm/memory.c~mm-refactor-do_wp_page-extract-the-reuse-case-fix
++++ a/mm/memory.c
+@@ -1990,11 +1990,11 @@ static int do_page_mkwrite(struct vm_are
+  * case, all we need to do here is to mark the page as writable and update
+  * any related book-keeping.
+  */
+-static int wp_page_reuse(struct mm_struct *mm, struct vm_area_struct *vma,
+-			 unsigned long address, pte_t *page_table,
+-			 spinlock_t *ptl, pte_t orig_pte,
+-			 struct page *page, int page_mkwrite,
+-			 int dirty_shared)
++static inline int wp_page_reuse(struct mm_struct *mm,
++			struct vm_area_struct *vma, unsigned long address,
++			pte_t *page_table, spinlock_t *ptl, pte_t orig_pte,
++			struct page *page, int page_mkwrite,
++			int dirty_shared)
+ 	__releases(ptl)
  {
--	struct device *dev = s->private;
--	int err;
--
- 	/* print power state count */
--	err = seq_printf(s, "ux500-regulator power state count: %i\n",
--		power_state_active_get());
--	if (err < 0)
--		dev_err(dev, "seq_printf overflow\n");
-+	seq_printf(s, "ux500-regulator power state count: %i\n",
-+		   power_state_active_get());
- 
- 	return 0;
- }
-@@ -124,19 +119,11 @@ static const struct file_operations ux50
- 
- static int ux500_regulator_status_print(struct seq_file *s, void *p)
- {
--	struct device *dev = s->private;
--	int err;
- 	int i;
- 
- 	/* print dump header */
--	err = seq_puts(s, "ux500-regulator status:\n");
--	if (err < 0)
--		dev_err(dev, "seq_puts overflow\n");
--
--	err = seq_printf(s, "%31s : %8s : %8s\n", "current",
--		"before", "after");
--	if (err < 0)
--		dev_err(dev, "seq_printf overflow\n");
-+	seq_puts(s, "ux500-regulator status:\n");
-+	seq_printf(s, "%31s : %8s : %8s\n", "current", "before", "after");
- 
- 	for (i = 0; i < rdebug.num_regulators; i++) {
- 		struct dbx500_regulator_info *info;
-@@ -144,12 +131,11 @@ static int ux500_regulator_status_print(
- 		info = &rdebug.regulator_array[i];
- 
- 		/* print status */
--		err = seq_printf(s, "%20s : %8s : %8s : %8s\n", info->desc.name,
--			info->is_enabled ? "enabled" : "disabled",
--			rdebug.state_before_suspend[i] ? "enabled" : "disabled",
--			rdebug.state_after_suspend[i] ? "enabled" : "disabled");
--		if (err < 0)
--			dev_err(dev, "seq_printf overflow\n");
-+		seq_printf(s, "%20s : %8s : %8s : %8s\n",
-+			   info->desc.name,
-+			   info->is_enabled ? "enabled" : "disabled",
-+			   rdebug.state_before_suspend[i] ? "enabled" : "disabled",
-+			   rdebug.state_after_suspend[i] ? "enabled" : "disabled");
- 	}
- 
- 	return 0;
+ 	pte_t entry;
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from raindel@mellanox.com are
 
-staging-lustre-convert-return-seq_printf-uses.patch
-staging-lustre-convert-seq_-hash-functions-to-return-void.patch
-staging-lustre-convert-uses-of-int-rc-=-seq_printf.patch
-staging-lustre-convert-remaining-uses-of-=-seq_printf.patch
-x86-mtrr-if-remove-use-of-seq_printf-return-value.patch
-power-wakeup-remove-use-of-seq_printf-return-value.patch
-rtc-remove-use-of-seq_printf-return-value.patch
-ipc-remove-use-of-seq_printf-return-value.patch
-pxa27x_udc-remove-use-of-seq_printf-return-value.patch
-microblaze-mb-remove-use-of-seq_printf-return-value.patch
-nios2-cpuinfo-remove-use-of-seq_printf-return-value.patch
-arm-plat-pxa-remove-use-of-seq_printf-return-value.patch
-openrisc-remove-use-of-seq_printf-return-value.patch
-cris-remove-use-of-seq_printf-return-value.patch
-mfd-ab8500-debugfs-remove-use-of-seq_printf-return-value.patch
-staging-i2o-remove-use-of-seq_printf-return-value.patch
-staging-rtl8192x-remove-use-of-seq_printf-return-value.patch
-s390-remove-use-of-seq_printf-return-value.patch
-i8k-remove-use-of-seq_printf-return-value.patch
-watchdog-bcm281xx-remove-use-of-seq_printf-return-value.patch
-proc-remove-use-of-seq_printf-return-value.patch
-cgroup-remove-use-of-seq_printf-return-value.patch
-tracing-remove-use-of-seq_printf-return-value.patch
-lru_cache-remove-use-of-seq_printf-return-value.patch
-parisc-remove-use-of-seq_printf-return-value.patch
-mm-utilc-add-kstrimdup.patch
-checkpatch-improve-no-space-is-necessary-after-a-cast-test.patch
-linux-next.patch
+mm-refactor-do_wp_page-extract-the-reuse-case.patch
+mm-refactor-do_wp_page-extract-the-reuse-case-fix.patch
+mm-refactor-do_wp_page-rewrite-the-unlock-flow.patch
+mm-refactor-do_wp_page-extract-the-page-copy-flow.patch
+mm-refactor-do_wp_page-handling-of-shared-vma-into-a-function.patch
 
