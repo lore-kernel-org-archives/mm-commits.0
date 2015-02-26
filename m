@@ -1,88 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] mn10300-mark-pud-and-pmd-folded.patch
- removed from -mm tree
-Date: Thu, 26 Feb 2015 12:32:00 -0800
-Message-ID: <54ef82c0.F12A+TI57R7GOiup%akpm@linux-foundation.org>
+Subject: + microblaze-mb-remove-use-of-seq_printf-return-value-fix.patch
+ added to -mm tree
+Date: Thu, 26 Feb 2015 12:36:47 -0800
+Message-ID: <54ef83df.EL8/+yibEwkF82v9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58497 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58513 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753747AbbBZUcB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Feb 2015 15:32:01 -0500
+	with ESMTP id S1753747AbbBZUgs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Feb 2015 15:36:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, dhowells@redhat.com, linux@roeck-us.net, yasutake.koichi@jp.panasonic.com, mm-commits@vger.kernel.org
+To: joe@perches.com, monstr@monstr.eu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mn10300: mark PUD and PMD folded
-has been removed from the -mm tree.  Its filename was
-     mn10300-mark-pud-and-pmd-folded.patch
+     From: Joe Perches <joe@perches.com>
+has been added to the -mm tree.  Its filename is
+     microblaze-mb-remove-use-of-seq_printf-return-value-fix.patch
 
-This patch was dropped because an alternative patch was merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/microblaze-mb-remove-use-of-seq_printf-return-value-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/microblaze-mb-remove-use-of-seq_printf-return-value-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mn10300: mark PUD and PMD folded
+From: Joe Perches <joe@perches.com>
+Subject: microblaze: mb: Remove use of seq_printf return value
 
-Core mm expects __PAGETABLE_{PUD,PMD}_FOLDED to be defined if these page
-table levels folded.
+Remove errant x char after tab found by kbuild test robot
 
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Koichi Yasutake <yasutake.koichi@jp.panasonic.com>
-Tested-by: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Michal Simek <monstr@monstr.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mn10300/include/asm/pgtable.h |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/microblaze/kernel/cpu/mb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/mn10300/include/asm/pgtable.h~mn10300-mark-pud-and-pmd-folded arch/mn10300/include/asm/pgtable.h
---- a/arch/mn10300/include/asm/pgtable.h~mn10300-mark-pud-and-pmd-folded
-+++ a/arch/mn10300/include/asm/pgtable.h
-@@ -56,7 +56,9 @@ extern void paging_init(void);
- #define PGDIR_SHIFT	22
- #define PTRS_PER_PGD	1024
- #define PTRS_PER_PUD	1	/* we don't really have any PUD physically */
-+#define __PAGETABLE_PUD_FOLDED
- #define PTRS_PER_PMD	1	/* we don't really have any PMD physically */
-+#define __PAGETABLE_PMD_FOLDED
- #define PTRS_PER_PTE	1024
+diff -puN arch/microblaze/kernel/cpu/mb.c~microblaze-mb-remove-use-of-seq_printf-return-value-fix arch/microblaze/kernel/cpu/mb.c
+--- a/arch/microblaze/kernel/cpu/mb.c~microblaze-mb-remove-use-of-seq_printf-return-value-fix
++++ a/arch/microblaze/kernel/cpu/mb.c
+@@ -102,7 +102,7 @@ static int show_cpuinfo(struct seq_file
+ 			   cpuinfo.icache_size >> 10,
+ 			   cpuinfo.icache_line_length);
+ 	else
+-	x	seq_puts(m, "Icache:\t\tno\n");
++		seq_puts(m, "Icache:\t\tno\n");
  
- #define PGD_SIZE	PAGE_SIZE
+ 	if (cpuinfo.use_dcache) {
+ 		seq_printf(m,
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-mm-add-missing-__pagetable_pudpmd_folded-defines.patch
-mm-rename-foll_mlock-to-foll_populate.patch
-mm-rename-__mlock_vma_pages_range-to-populate_vma_page_range.patch
-mm-move-gup-posix-mlock-error-conversion-out-of-__mm_populate.patch
-mm-move-mm_populate-related-code-to-mm-gupc.patch
-mm-incorporate-zero-pages-into-transparent-huge-pages.patch
-mm-incorporate-zero-pages-into-transparent-huge-pages-fix.patch
-alpha-expose-number-of-page-table-levels-on-kconfig-level.patch
-arm64-expose-number-of-page-table-levels-on-kconfig-level.patch
-arm-expose-number-of-page-table-levels-on-kconfig-level.patch
-ia64-expose-number-of-page-table-levels-on-kconfig-level.patch
-m68k-mark-pmd-folded-and-expose-number-of-page-table-levels.patch
-mips-expose-number-of-page-table-levels-on-kconfig-level.patch
-parisc-expose-number-of-page-table-levels-on-kconfig-level.patch
-powerpc-expose-number-of-page-table-levels-on-kconfig-level.patch
-s390-expose-number-of-page-table-levels.patch
-sh-expose-number-of-page-table-levels.patch
-sparc-expose-number-of-page-table-levels.patch
-tile-expose-number-of-page-table-levels.patch
-um-expose-number-of-page-table-levels.patch
-x86-expose-number-of-page-table-levels-on-kconfig-level.patch
-mm-define-default-pgtable_levels-to-two.patch
-mm-do-not-add-nr_pmds-into-mm_struct-if-pmd-is-folded.patch
-mm-refactor-do_wp_page-extract-the-reuse-case.patch
-mm-refactor-do_wp_page-rewrite-the-unlock-flow.patch
-mm-refactor-do_wp_page-extract-the-page-copy-flow.patch
-mm-refactor-do_wp_page-handling-of-shared-vma-into-a-function.patch
+staging-lustre-convert-return-seq_printf-uses.patch
+staging-lustre-convert-seq_-hash-functions-to-return-void.patch
+staging-lustre-convert-uses-of-int-rc-=-seq_printf.patch
+staging-lustre-convert-remaining-uses-of-=-seq_printf.patch
+x86-mtrr-if-remove-use-of-seq_printf-return-value.patch
+power-wakeup-remove-use-of-seq_printf-return-value.patch
+rtc-remove-use-of-seq_printf-return-value.patch
+ipc-remove-use-of-seq_printf-return-value.patch
+pxa27x_udc-remove-use-of-seq_printf-return-value.patch
+microblaze-mb-remove-use-of-seq_printf-return-value.patch
+microblaze-mb-remove-use-of-seq_printf-return-value-fix.patch
+nios2-cpuinfo-remove-use-of-seq_printf-return-value.patch
+arm-plat-pxa-remove-use-of-seq_printf-return-value.patch
+openrisc-remove-use-of-seq_printf-return-value.patch
+cris-remove-use-of-seq_printf-return-value.patch
+mfd-ab8500-debugfs-remove-use-of-seq_printf-return-value.patch
+staging-i2o-remove-use-of-seq_printf-return-value.patch
+staging-rtl8192x-remove-use-of-seq_printf-return-value.patch
+s390-remove-use-of-seq_printf-return-value.patch
+i8k-remove-use-of-seq_printf-return-value.patch
+watchdog-bcm281xx-remove-use-of-seq_printf-return-value.patch
+proc-remove-use-of-seq_printf-return-value.patch
+cgroup-remove-use-of-seq_printf-return-value.patch
+tracing-remove-use-of-seq_printf-return-value.patch
+lru_cache-remove-use-of-seq_printf-return-value.patch
+parisc-remove-use-of-seq_printf-return-value.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-improve-no-space-is-necessary-after-a-cast-test.patch
+linux-next.patch
 
