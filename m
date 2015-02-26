@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-make-append_dio-an-incompat-feature.patch added to -mm
- tree
-Date: Thu, 26 Feb 2015 13:09:21 -0800
-Message-ID: <54ef8b81.AmWNpU7/PXGiMooV%akpm@linux-foundation.org>
+Subject: + kconfig-use-macros-which-are-already-defined-fix.patch added to -mm tree
+Date: Thu, 26 Feb 2015 13:24:16 -0800
+Message-ID: <54ef8f00.FnKt8XtgASEyQiYY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58977 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59041 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753192AbbBZVJW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Feb 2015 16:09:22 -0500
+	with ESMTP id S1753943AbbBZVYR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Feb 2015 16:24:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mfasheh@suse.de, jlbec@evilplan.org, joseph.qi@huawei.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, michal.simek@xilinx.com, monstr@monstr.eu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: make append_dio an incompat feature
+     Subject: kconfig-use-macros-which-are-already-defined-fix
 has been added to the -mm tree.  Its filename is
-     ocfs2-make-append_dio-an-incompat-feature.patch
+     kconfig-use-macros-which-are-already-defined-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-make-append_dio-an-incompat-feature.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kconfig-use-macros-which-are-already-defined-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-make-append_dio-an-incompat-feature.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kconfig-use-macros-which-are-already-defined-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,90 +38,76 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mark Fasheh <mfasheh@suse.de>
-Subject: ocfs2: make append_dio an incompat feature
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kconfig-use-macros-which-are-already-defined-fix
 
-It turns out that making this feature ro_compat isn't quite enough to
-prevent accidental corruption on mount from older kernels.  Ocfs2 (like
-other file systems) will process orphaned inodes even when the user mounts
-in 'ro' mode.  So for the case of a filesystem not knowing the append_dio
-feature, mounting the filesystem could result in orphaned-for-dio files
-being deleted, which we clearly don't want.
+move IS_ENABLED definition to after the IS_BUILTIN and IS_MODULE definitions
 
-So instead, turn this into an incompat flag.
-
-Btw, this is kind of my fault - initially I asked that we add a flag to
-cover the feature and even suggested that we use an ro flag.  It wasn't
-until I was looking through our commits for v4.0-rc1 that I realized we
-actually want this to be incompat.
-
-Signed-off-by: Mark Fasheh <mfasheh@suse.de>
-Cc: Joseph Qi <joseph.qi@huawei.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Michal Simek <michal.simek@xilinx.com>
+Cc: Michal Simek <monstr@monstr.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/ocfs2.h    |    2 +-
- fs/ocfs2/ocfs2_fs.h |   15 ++++++++-------
- 2 files changed, 9 insertions(+), 8 deletions(-)
+ include/linux/kconfig.h |   15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
 
-diff -puN fs/ocfs2/ocfs2.h~ocfs2-make-append_dio-an-incompat-feature fs/ocfs2/ocfs2.h
---- a/fs/ocfs2/ocfs2.h~ocfs2-make-append_dio-an-incompat-feature
-+++ a/fs/ocfs2/ocfs2.h
-@@ -502,7 +502,7 @@ static inline int ocfs2_writes_unwritten
- 
- static inline int ocfs2_supports_append_dio(struct ocfs2_super *osb)
- {
--	if (osb->s_feature_ro_compat & OCFS2_FEATURE_RO_COMPAT_APPEND_DIO)
-+	if (osb->s_feature_incompat & OCFS2_FEATURE_INCOMPAT_APPEND_DIO)
- 		return 1;
- 	return 0;
- }
-diff -puN fs/ocfs2/ocfs2_fs.h~ocfs2-make-append_dio-an-incompat-feature fs/ocfs2/ocfs2_fs.h
---- a/fs/ocfs2/ocfs2_fs.h~ocfs2-make-append_dio-an-incompat-feature
-+++ a/fs/ocfs2/ocfs2_fs.h
-@@ -102,11 +102,11 @@
- 					 | OCFS2_FEATURE_INCOMPAT_INDEXED_DIRS \
- 					 | OCFS2_FEATURE_INCOMPAT_REFCOUNT_TREE \
- 					 | OCFS2_FEATURE_INCOMPAT_DISCONTIG_BG	\
--					 | OCFS2_FEATURE_INCOMPAT_CLUSTERINFO)
-+					 | OCFS2_FEATURE_INCOMPAT_CLUSTERINFO \
-+					 | OCFS2_FEATURE_INCOMPAT_APPEND_DIO)
- #define OCFS2_FEATURE_RO_COMPAT_SUPP	(OCFS2_FEATURE_RO_COMPAT_UNWRITTEN \
- 					 | OCFS2_FEATURE_RO_COMPAT_USRQUOTA \
--					 | OCFS2_FEATURE_RO_COMPAT_GRPQUOTA \
--					 | OCFS2_FEATURE_RO_COMPAT_APPEND_DIO)
-+					 | OCFS2_FEATURE_RO_COMPAT_GRPQUOTA)
+diff -puN include/linux/kconfig.h~kconfig-use-macros-which-are-already-defined-fix include/linux/kconfig.h
+--- a/include/linux/kconfig.h~kconfig-use-macros-which-are-already-defined-fix
++++ a/include/linux/kconfig.h
+@@ -23,14 +23,6 @@
+ #define ___config_enabled(__ignored, val, ...) val
  
  /*
-  * Heartbeat-only devices are missing journals and other files.  The
-@@ -179,6 +179,11 @@
- #define OCFS2_FEATURE_INCOMPAT_CLUSTERINFO	0x4000
- 
- /*
-+ * Append Direct IO support
-+ */
-+#define OCFS2_FEATURE_INCOMPAT_APPEND_DIO	0x8000
-+
-+/*
-  * backup superblock flag is used to indicate that this volume
-  * has backup superblocks.
-  */
-@@ -200,10 +205,6 @@
- #define OCFS2_FEATURE_RO_COMPAT_USRQUOTA	0x0002
- #define OCFS2_FEATURE_RO_COMPAT_GRPQUOTA	0x0004
- 
--/*
-- * Append Direct IO support
+- * IS_ENABLED(CONFIG_FOO) evaluates to 1 if CONFIG_FOO is set to 'y' or 'm',
+- * 0 otherwise.
+- *
 - */
--#define OCFS2_FEATURE_RO_COMPAT_APPEND_DIO	0x0008
+-#define IS_ENABLED(option) \
+-	(IS_BUILTIN(option) || IS_MODULE(option))
+-
+-/*
+  * IS_BUILTIN(CONFIG_FOO) evaluates to 1 if CONFIG_FOO is set to 'y', 0
+  * otherwise. For boolean options, this is equivalent to
+  * IS_ENABLED(CONFIG_FOO).
+@@ -43,4 +35,11 @@
+  */
+ #define IS_MODULE(option) config_enabled(option##_MODULE)
  
- /* The byte offset of the first backup block will be 1G.
-  * The following will be 4G, 16G, 64G, 256G and 1T.
++/*
++ * IS_ENABLED(CONFIG_FOO) evaluates to 1 if CONFIG_FOO is set to 'y' or 'm',
++ * 0 otherwise.
++ */
++#define IS_ENABLED(option) \
++	(IS_BUILTIN(option) || IS_MODULE(option))
++
+ #endif /* __LINUX_KCONFIG_H */
 _
 
-Patches currently in -mm which might be from mfasheh@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-ocfs2-update-web-page-git-tree-in-documentation.patch
-ocfs2-make-append_dio-an-incompat-feature.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+kernel-sysc-fix-uname26-for-40-fix.patch
+mm.patch
+mm-cma-release-trigger-checkpatch-fixes.patch
+mm-cma-allocation-trigger-fix.patch
+mm-compaction-enhance-compaction-finish-condition-fix.patch
+page_writeback-cleanup-mess-around-cancel_dirty_page-checkpatch-fixes.patch
+mm-hide-per-cpu-lists-in-output-of-show_mem-fix.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes.patch
+lib-find__bit-reimplementation-fix.patch
+fs-fat-remove-unnecessary-includes-fix.patch
+kconfig-use-macros-which-are-already-defined-fix.patch
+linux-next.patch
+linux-next-rejects.patch
+lib-kconfig-fix-up-have_arch_bitreverse-help-text.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
