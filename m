@@ -1,55 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] m32r-mark-pmd-folded.patch removed from -mm
- tree
-Date: Thu, 26 Feb 2015 12:31:52 -0800
-Message-ID: <54ef82b8.aFzLII4Jsf1bAqfx%akpm@linux-foundation.org>
+Subject: [alternative-merged] mn10300-mark-pud-and-pmd-folded.patch
+ removed from -mm tree
+Date: Thu, 26 Feb 2015 12:32:00 -0800
+Message-ID: <54ef82c0.F12A+TI57R7GOiup%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58493 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58497 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753747AbbBZUbx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Feb 2015 15:31:53 -0500
+	with ESMTP id S1753747AbbBZUcB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Feb 2015 15:32:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, linux@roeck-us.net, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, dhowells@redhat.com, linux@roeck-us.net, yasutake.koichi@jp.panasonic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: m32r: mark PMD folded
+     Subject: mn10300: mark PUD and PMD folded
 has been removed from the -mm tree.  Its filename was
-     m32r-mark-pmd-folded.patch
+     mn10300-mark-pud-and-pmd-folded.patch
 
 This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: m32r: mark PMD folded
+Subject: mn10300: mark PUD and PMD folded
 
 Core mm expects __PAGETABLE_{PUD,PMD}_FOLDED to be defined if these page
 table levels folded.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Koichi Yasutake <yasutake.koichi@jp.panasonic.com>
 Tested-by: Guenter Roeck <linux@roeck-us.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/include/asm/pgtable-2level.h |    1 +
- 1 file changed, 1 insertion(+)
+ arch/mn10300/include/asm/pgtable.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/m32r/include/asm/pgtable-2level.h~m32r-mark-pmd-folded arch/m32r/include/asm/pgtable-2level.h
---- a/arch/m32r/include/asm/pgtable-2level.h~m32r-mark-pmd-folded
-+++ a/arch/m32r/include/asm/pgtable-2level.h
-@@ -13,6 +13,7 @@
-  * the M32R is two-level, so we don't really have any
-  * PMD directory physically.
-  */
+diff -puN arch/mn10300/include/asm/pgtable.h~mn10300-mark-pud-and-pmd-folded arch/mn10300/include/asm/pgtable.h
+--- a/arch/mn10300/include/asm/pgtable.h~mn10300-mark-pud-and-pmd-folded
++++ a/arch/mn10300/include/asm/pgtable.h
+@@ -56,7 +56,9 @@ extern void paging_init(void);
+ #define PGDIR_SHIFT	22
+ #define PTRS_PER_PGD	1024
+ #define PTRS_PER_PUD	1	/* we don't really have any PUD physically */
++#define __PAGETABLE_PUD_FOLDED
+ #define PTRS_PER_PMD	1	/* we don't really have any PMD physically */
 +#define __PAGETABLE_PMD_FOLDED
- #define PMD_SHIFT	22
- #define PTRS_PER_PMD	1
+ #define PTRS_PER_PTE	1024
  
+ #define PGD_SIZE	PAGE_SIZE
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
@@ -67,7 +71,6 @@ arm-expose-number-of-page-table-levels-on-kconfig-level.patch
 ia64-expose-number-of-page-table-levels-on-kconfig-level.patch
 m68k-mark-pmd-folded-and-expose-number-of-page-table-levels.patch
 mips-expose-number-of-page-table-levels-on-kconfig-level.patch
-mn10300-mark-pud-and-pmd-folded.patch
 parisc-expose-number-of-page-table-levels-on-kconfig-level.patch
 powerpc-expose-number-of-page-table-levels-on-kconfig-level.patch
 s390-expose-number-of-page-table-levels.patch
