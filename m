@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- fix-offset2lib-issue-for-x86-arm-powerpc-and-mips-fix-fix-2-fix.patch added to -mm tree
-Date: Thu, 26 Feb 2015 15:38:15 -0800
-Message-ID: <54efae67.BEWAsGpDfm6qbIns%akpm@linux-foundation.org>
+ mm-oom-do-not-fail-__gfp_nofail-allocation-if-oom-killer-is-disbaled.patch
+ added to -mm tree
+Date: Thu, 26 Feb 2015 15:54:18 -0800
+Message-ID: <54efb22a.wJUwrWt4BUREnTu8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60535 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60689 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932234AbbBZXiR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Feb 2015 18:38:17 -0500
+	with ESMTP id S1752169AbbBZXyT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Feb 2015 18:54:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, benh@kernel.crashing.org, catalin.marinas@arm.com, hecmargi@upv.es, hpa@zytor.com, iripoll@upv.es, keescook@chromium.org, mingo@kernel.org, ralf@linux-mips.org, rmk@arm.linux.org.uk, tglx@linutronix.de, will.deacon@arm.com, mm-commits@vger.kernel.org
+To: mhocko@suse.cz, hannes@cmpxchg.org, penguin-kernel@i-love.sakura.ne.jp, rientjes@gooogle.com, rjw@rjwysocki.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fix-offset2lib-issue-for-x86-arm-powerpc-and-mips-fix-fix-2-fix
+     Subject: mm, oom: do not fail __GFP_NOFAIL allocation if oom killer is disabled
 has been added to the -mm tree.  Its filename is
-     fix-offset2lib-issue-for-x86-arm-powerpc-and-mips-fix-fix-2-fix.patch
+     mm-oom-do-not-fail-__gfp_nofail-allocation-if-oom-killer-is-disbaled.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fix-offset2lib-issue-for-x86-arm-powerpc-and-mips-fix-fix-2-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom-do-not-fail-__gfp_nofail-allocation-if-oom-killer-is-disbaled.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fix-offset2lib-issue-for-x86-arm-powerpc-and-mips-fix-fix-2-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom-do-not-fail-__gfp_nofail-allocation-if-oom-killer-is-disbaled.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,74 +40,77 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fix-offset2lib-issue-for-x86-arm-powerpc-and-mips-fix-fix-2-fix
+From: Michal Hocko <mhocko@suse.cz>
+Subject: mm, oom: do not fail __GFP_NOFAIL allocation if oom killer is disabled
 
-bah
+Tetsuo Handa has pointed out that __GFP_NOFAIL allocations might fail
+after OOM killer is disabled if the allocation is performed by a kernel
+thread.  This behavior was introduced from the very beginning by
+7f33d49a2ed5 ("mm, PM/Freezer: Disable OOM killer when tasks are frozen").
+ This means that the basic contract for the allocation request is broken
+and the context requesting such an allocation might blow up unexpectedly.
 
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Hector Marco Gisbert <hecmargi@upv.es>
-Cc: Hector Marco-Gisbert <hecmargi@upv.es>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Ismael Ripoll <iripoll@upv.es>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Will Deacon <will.deacon@arm.com>
+There are basically two ways forward.
+
+1) move oom_killer_disable after kernel threads are frozen.  This has a
+   risk that the OOM victim wouldn't be able to finish because it would
+   depend on an already frozen kernel thread.  This would be really tricky
+   to debug.
+
+2) do not fail GFP_NOFAIL allocation no matter what and risk a
+   potential Freezable kernel threads will loop and fail the suspend. 
+   Incidental allocations after kernel threads are frozen will at least
+   dump a warning - if we are lucky and the serial console is still active
+   of course...
+
+This patch implements the later option because it is safer.  We would see
+warning rather than allocation failures for the kernel threads which would
+blow up otherwise and have a higher chances to identify __GFP_NOFAIL users
+from deeper pm code.
+
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: David Rientjes <rientjes@gooogle.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/binfmt_elf.c~fix-offset2lib-issue-for-x86-arm-powerpc-and-mips-fix-fix-2-fix fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~fix-offset2lib-issue-for-x86-arm-powerpc-and-mips-fix-fix-2-fix
-+++ a/fs/binfmt_elf.c
-@@ -2301,7 +2301,7 @@ out:
- 
- #endif		/* CONFIG_ELF_CORE */
- 
--#ifdef ARCH_HAVE_ELF_ASLR
-+#ifdef CONFIG_ARCH_HAVE_ELF_ASLR
- unsigned long randomize_et_dyn(unsigned long base)
- {
- 	unsigned long ret;
+diff -puN mm/page_alloc.c~mm-oom-do-not-fail-__gfp_nofail-allocation-if-oom-killer-is-disbaled mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-oom-do-not-fail-__gfp_nofail-allocation-if-oom-killer-is-disbaled
++++ a/mm/page_alloc.c
+@@ -2373,7 +2373,8 @@ __alloc_pages_may_oom(gfp_t gfp_mask, un
+ 			goto out;
+ 	}
+ 	/* Exhausted what can be done so it's blamo time */
+-	if (out_of_memory(ac->zonelist, gfp_mask, order, ac->nodemask, false))
++	if (out_of_memory(ac->zonelist, gfp_mask, order, ac->nodemask, false)
++			|| WARN_ON_ONCE(gfp_mask & __GFP_NOFAIL))
+ 		*did_some_progress = 1;
+ out:
+ 	oom_zonelist_unlock(ac->zonelist, gfp_mask);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-kernel-sysc-fix-uname26-for-40-fix.patch
-mm.patch
-mm-cma-release-trigger-checkpatch-fixes.patch
-mm-cma-allocation-trigger-fix.patch
-mm-compaction-enhance-compaction-finish-condition-fix.patch
-page_writeback-cleanup-mess-around-cancel_dirty_page-checkpatch-fixes.patch
-mm-hide-per-cpu-lists-in-output-of-show_mem-fix.patch
+memcg-fix-low-limit-calculation.patch
+mm-memcontrol-use-max-instead-of-infinity-in-control-knobs.patch
+mm-page_alloc-revert-inadvertent-__gfp_fs-retry-behavior-change.patch
+mm-oom-do-not-fail-__gfp_nofail-allocation-if-oom-killer-is-disbaled.patch
+mm-memcontrol-update-copyright-notice.patch
+mm-cma-release-trigger-fixpatch.patch
+mm-hide-per-cpu-lists-in-output-of-show_mem.patch
+mm-refactor-do_wp_page-extract-the-reuse-case.patch
+mm-refactor-do_wp_page-rewrite-the-unlock-flow.patch
+mm-refactor-do_wp_page-extract-the-page-copy-flow.patch
+mm-refactor-do_wp_page-handling-of-shared-vma-into-a-function.patch
 mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mips-rename-brk_rnd-to-mmap_rnd.patch
-fix-offset2lib-issue-for-x86-arm-powerpc-and-mips-fix.patch
-fix-offset2lib-issue-for-x86-arm-powerpc-and-mips-fix-fix.patch
-fix-offset2lib-issue-for-x86-arm-powerpc-and-mips-fix-fix-2.patch
-fix-offset2lib-issue-for-x86-arm-powerpc-and-mips-fix-fix-2-fix.patch
-kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes.patch
-lib-find__bit-reimplementation-fix.patch
-binfmt_misc-simplify-entry_status-fix.patch
-fs-fat-remove-unnecessary-includes-fix.patch
-kconfig-use-macros-which-are-already-defined-fix.patch
-linux-next.patch
-linux-next-rejects.patch
-lib-kconfig-fix-up-have_arch_bitreverse-help-text.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
+mm-page_isolation-check-pfn-validity-before-access.patch
+mm-support-madvisemadv_free.patch
+mm-dont-split-thp-page-when-syscall-is-called.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-2.patch
+fork-report-pid-reservation-failure-properly.patch
 
