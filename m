@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace-x86-fix-the-tif_forced_tf-logic-in-handle_signal.patch
- added to -mm tree
-Date: Thu, 26 Feb 2015 14:43:33 -0800
-Message-ID: <54efa195./Bqidi5EFHAZ30Bw%akpm@linux-foundation.org>
+Subject: + fork-report-pid-reservation-failure-properly.patch added to -mm tree
+Date: Thu, 26 Feb 2015 14:49:23 -0800
+Message-ID: <54efa2f3.8ni7viz55ROVjPTX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59865 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59891 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753970AbbBZWne (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Feb 2015 17:43:34 -0500
+	with ESMTP id S1754172AbbBZWtY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Feb 2015 17:49:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, andres@anarazel.de, eteran@alum.rit.edu, hpa@zytor.com, mingo@elte.hu, palves@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mhocko@suse.cz, ebiederm@xmission.com, mtk.manpages@gmail.com, oleg@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ptrace/x86: fix the TIF_FORCED_TF logic in handle_signal()
+     Subject: fork: report pid reservation failure properly
 has been added to the -mm tree.  Its filename is
-     ptrace-x86-fix-the-tif_forced_tf-logic-in-handle_signal.patch
+     fork-report-pid-reservation-failure-properly.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ptrace-x86-fix-the-tif_forced_tf-logic-in-handle_signal.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fork-report-pid-reservation-failure-properly.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ptrace-x86-fix-the-tif_forced_tf-logic-in-handle_signal.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fork-report-pid-reservation-failure-properly.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,162 +38,159 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: ptrace/x86: fix the TIF_FORCED_TF logic in handle_signal()
+From: Michal Hocko <mhocko@suse.cz>
+Subject: fork: report pid reservation failure properly
 
-When the TIF_SINGLESTEP tracee dequeues a signal, handle_signal() clears
-TIF_FORCED_TF and X86_EFLAGS_TF but leaves TIF_SINGLESTEP set.
+copy_process will report any failure in alloc_pid as ENOMEM currently
+which is misleading because the pid allocation might fail not only when
+the memory is short but also when the pid space is consumed already.
 
-If the tracer does PTRACE_SINGLESTEP again, enable_single_step() sets
-X86_EFLAGS_TF but not TIF_FORCED_TF.  This means that the subsequent
-PTRACE_CONT doesn't not clear X86_EFLAGS_TF, and the tracee gets the wrong
-SIGTRAP.
+The current man page even mentions this case:
 
-Test-case (needs -O2 to avoid prologue insns in signal handler):
+: EAGAIN
+: 
+:       A system-imposed limit on the number of threads was encountered.
+:       There are a number of limits that may trigger this error: the
+:       RLIMIT_NPROC soft resource limit (set via setrlimit(2)), which
+:       limits the number of processes and threads for a real user ID, was
+:       reached; the kernel's system-wide limit on the number of processes
+:       and threads, /proc/sys/kernel/threads-max, was reached (see
+:       proc(5)); or the maximum number of PIDs, /proc/sys/kernel/pid_max,
+:       was reached (see proc(5)).
 
-	#include <unistd.h>
-	#include <stdio.h>
-	#include <sys/ptrace.h>
-	#include <sys/wait.h>
-	#include <sys/user.h>
-	#include <assert.h>
-	#include <stddef.h>
 
-	void handler(int n)
-	{
-		asm("nop");
-	}
+so the current behavior is also incorrect wrt.  documentation.  POSIX man
+page also suggest returing EAGAIN when the process count limit is reached.
 
-	int child(void)
-	{
-		assert(ptrace(PTRACE_TRACEME, 0,0,0) == 0);
-		signal(SIGALRM, handler);
-		kill(getpid(), SIGALRM);
-		return 0x23;
-	}
+This patch simply propagates error code from alloc_pid and makes sure we
+return -EAGAIN due to reservation failure.  This will make behavior of
+fork closer to both our documentation and POSIX.
 
-	void *getip(int pid)
-	{
-		return (void*)ptrace(PTRACE_PEEKUSER, pid,
-					offsetof(struct user, regs.rip), 0);
-	}
+alloc_pid might alsoo fail when the reaper in the pid namespace is dead
+(the namespace basically disallows all new processes) and there is no
+good error code which would match documented ones. We have traditionally
+returned ENOMEM for this case which is misleading as well but as per
+Eric W. Biederman this behavior is documented in man pid_namespaces(7)
 
-	int main(void)
-	{
-		int pid, status;
+: If the "init" process of a PID namespace terminates, the kernel
+: terminates all of the processes in the namespace via a SIGKILL signal.
+: This behavior reflects the fact that the "init" process is essential for
+: the correct operation of a PID namespace.  In this case, a subsequent
+: fork(2) into this PID namespace will fail with the error ENOMEM; it is
+: not possible to create a new processes in a PID namespace whose "init"
+: process has terminated.
 
-		pid = fork();
-		if (!pid)
-			return child();
+and introducing a new error code would be too risky so let's stick to
+ENOMEM for this case.
 
-		assert(wait(&status) == pid);
-		assert(WIFSTOPPED(status) && WSTOPSIG(status) == SIGALRM);
-
-		assert(ptrace(PTRACE_SINGLESTEP, pid, 0, SIGALRM) == 0);
-		assert(wait(&status) == pid);
-		assert(WIFSTOPPED(status) && WSTOPSIG(status) == SIGTRAP);
-		assert((getip(pid) - (void*)handler) == 0);
-
-		assert(ptrace(PTRACE_SINGLESTEP, pid, 0, SIGALRM) == 0);
-		assert(wait(&status) == pid);
-		assert(WIFSTOPPED(status) && WSTOPSIG(status) == SIGTRAP);
-		assert((getip(pid) - (void*)handler) == 1);
-
-		assert(ptrace(PTRACE_CONT, pid, 0,0) == 0);
-		assert(wait(&status) == pid);
-		assert(WIFEXITED(status) && WEXITSTATUS(status) == 0x23);
-
-		return 0;
-	}
-
-The last assert() fails because PTRACE_CONT wrongly triggers another
-single-step and X86_EFLAGS_TF can't be cleared by debugger until the
-tracee does sys_rt_sigreturn().
-
-Change handle_signal() to do user_disable_single_step() if stepping, we do
-not need to preserve TIF_SINGLESTEP because we are going to do
-ptrace_notify(), and it is simply wrong to leak this bit.
-
-While at it, change the comment to explain why we also need to clear TF
-unconditionally after setup_rt_frame().
-
-Note: in the longer term we should probably change setup_sigcontext() to
-use get_flags() and then just remove this user_disable_single_step(). 
-And, the state of TIF_FORCED_TF can be wrong after restore_sigcontext()
-which can set/clear TF, this needs another fix.
-
-Reported-by: Evan Teran <eteran@alum.rit.edu>
-Reported-by: Pedro Alves <palves@redhat.com>
-Tested-by: Andres Freund <andres@anarazel.de>
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/signal.c |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ kernel/fork.c |    5 +++--
+ kernel/pid.c  |   15 ++++++++-------
+ 2 files changed, 11 insertions(+), 9 deletions(-)
 
-diff -puN arch/x86/kernel/signal.c~ptrace-x86-fix-the-tif_forced_tf-logic-in-handle_signal arch/x86/kernel/signal.c
---- a/arch/x86/kernel/signal.c~ptrace-x86-fix-the-tif_forced_tf-logic-in-handle_signal
-+++ a/arch/x86/kernel/signal.c
-@@ -629,7 +629,8 @@ setup_rt_frame(struct ksignal *ksig, str
- static void
- handle_signal(struct ksignal *ksig, struct pt_regs *regs)
- {
--	bool failed;
-+	bool stepping, failed;
-+
- 	/* Are we from a system call? */
- 	if (syscall_get_nr(current, regs) >= 0) {
- 		/* If so, check system call restarting.. */
-@@ -653,12 +654,13 @@ handle_signal(struct ksignal *ksig, stru
+diff -puN kernel/fork.c~fork-report-pid-reservation-failure-properly kernel/fork.c
+--- a/kernel/fork.c~fork-report-pid-reservation-failure-properly
++++ a/kernel/fork.c
+@@ -1406,10 +1406,11 @@ static struct task_struct *copy_process(
+ 		goto bad_fork_cleanup_io;
+ 
+ 	if (pid != &init_struct_pid) {
+-		retval = -ENOMEM;
+ 		pid = alloc_pid(p->nsproxy->pid_ns_for_children);
+-		if (!pid)
++		if (IS_ERR(pid)) {
++			retval = PTR_ERR(pid);
+ 			goto bad_fork_cleanup_io;
++		}
  	}
  
- 	/*
--	 * If TF is set due to a debugger (TIF_FORCED_TF), clear the TF
--	 * flag so that register information in the sigcontext is correct.
-+	 * If TF is set due to a debugger (TIF_FORCED_TF), clear TF now
-+	 * so that register information in the sigcontext is correct and
-+	 * then notify the tracer before entering the signal handler.
- 	 */
--	if (unlikely(regs->flags & X86_EFLAGS_TF) &&
--	    likely(test_and_clear_thread_flag(TIF_FORCED_TF)))
--		regs->flags &= ~X86_EFLAGS_TF;
-+	stepping = test_thread_flag(TIF_SINGLESTEP);
-+	if (stepping)
-+		user_disable_single_step(current);
- 
- 	failed = (setup_rt_frame(ksig, regs) < 0);
- 	if (!failed) {
-@@ -669,10 +671,8 @@ handle_signal(struct ksignal *ksig, stru
- 		 * it might disable possible debug exception from the
- 		 * signal handler.
- 		 *
--		 * Clear TF when entering the signal handler, but
--		 * notify any tracer that was single-stepping it.
--		 * The tracer may want to single-step inside the
--		 * handler too.
-+		 * Clear TF for the case when it wasn't set by debugger to
-+		 * avoid the recursive send_sigtrap() in SIGTRAP handler.
- 		 */
- 		regs->flags &= ~(X86_EFLAGS_DF|X86_EFLAGS_RF|X86_EFLAGS_TF);
- 		/*
-@@ -681,7 +681,7 @@ handle_signal(struct ksignal *ksig, stru
- 		if (used_math())
- 			drop_init_fpu(current);
+ 	p->set_child_tid = (clone_flags & CLONE_CHILD_SETTID) ? child_tidptr : NULL;
+diff -puN kernel/pid.c~fork-report-pid-reservation-failure-properly kernel/pid.c
+--- a/kernel/pid.c~fork-report-pid-reservation-failure-properly
++++ a/kernel/pid.c
+@@ -182,7 +182,7 @@ static int alloc_pidmap(struct pid_names
+ 			spin_unlock_irq(&pidmap_lock);
+ 			kfree(page);
+ 			if (unlikely(!map->page))
+-				break;
++				return -ENOMEM;
+ 		}
+ 		if (likely(atomic_read(&map->nr_free))) {
+ 			for ( ; ; ) {
+@@ -210,7 +210,7 @@ static int alloc_pidmap(struct pid_names
+ 		}
+ 		pid = mk_pid(pid_ns, map, offset);
  	}
--	signal_setup_done(failed, ksig, test_thread_flag(TIF_SINGLESTEP));
-+	signal_setup_done(failed, ksig, stepping);
+-	return -1;
++	return -EAGAIN;
  }
  
- #ifdef CONFIG_X86_32
+ int next_pidmap(struct pid_namespace *pid_ns, unsigned int last)
+@@ -301,17 +301,20 @@ struct pid *alloc_pid(struct pid_namespa
+ 	int i, nr;
+ 	struct pid_namespace *tmp;
+ 	struct upid *upid;
++	int retval = -ENOMEM;
+ 
+ 	pid = kmem_cache_alloc(ns->pid_cachep, GFP_KERNEL);
+ 	if (!pid)
+-		goto out;
++		return ERR_PTR(retval);
+ 
+ 	tmp = ns;
+ 	pid->level = ns->level;
+ 	for (i = ns->level; i >= 0; i--) {
+ 		nr = alloc_pidmap(tmp);
+-		if (nr < 0)
++		if (IS_ERR_VALUE(nr)) {
++			retval = nr;
+ 			goto out_free;
++		}
+ 
+ 		pid->numbers[i].nr = nr;
+ 		pid->numbers[i].ns = tmp;
+@@ -339,7 +342,6 @@ struct pid *alloc_pid(struct pid_namespa
+ 	}
+ 	spin_unlock_irq(&pidmap_lock);
+ 
+-out:
+ 	return pid;
+ 
+ out_unlock:
+@@ -351,8 +353,7 @@ out_free:
+ 		free_pidmap(pid->numbers + i);
+ 
+ 	kmem_cache_free(ns->pid_cachep, pid);
+-	pid = NULL;
+-	goto out;
++	return ERR_PTR(retval);
+ }
+ 
+ void disable_pid_allocation(struct pid_namespace *ns)
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
+memcg-fix-low-limit-calculation.patch
+mm-memcontrol-use-max-instead-of-infinity-in-control-knobs.patch
 mm-page_alloc-revert-inadvertent-__gfp_fs-retry-behavior-change.patch
-ptrace-x86-fix-the-tif_forced_tf-logic-in-handle_signal.patch
-linux-next.patch
+mm-memcontrol-update-copyright-notice.patch
+mm-cma-release-trigger-fixpatch.patch
+mm-hide-per-cpu-lists-in-output-of-show_mem.patch
+mm-refactor-do_wp_page-extract-the-reuse-case.patch
+mm-refactor-do_wp_page-rewrite-the-unlock-flow.patch
+mm-refactor-do_wp_page-extract-the-page-copy-flow.patch
+mm-refactor-do_wp_page-handling-of-shared-vma-into-a-function.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+mm-page_isolation-check-pfn-validity-before-access.patch
+mm-support-madvisemadv_free.patch
+mm-dont-split-thp-page-when-syscall-is-called.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-2.patch
+fork-report-pid-reservation-failure-properly.patch
 
