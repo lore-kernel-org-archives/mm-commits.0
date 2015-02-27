@@ -1,66 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- nilfs2-fix-potential-memory-overrun-on-inode-fix.patch removed from -mm
- tree
-Date: Fri, 27 Feb 2015 15:49:18 -0800
-Message-ID: <54f1027e.pSXmtYUIAl6NjGh3%akpm@linux-foundation.org>
+Subject: [folded-merged] kernel-sysc-fix-uname26-for-40-fix.patch removed
+ from -mm tree
+Date: Fri, 27 Feb 2015 15:49:35 -0800
+Message-ID: <54f1028f.htr1ciQF+KcB/576%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48758 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48759 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755393AbbB0XtT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Feb 2015 18:49:19 -0500
+	with ESMTP id S1755393AbbB0Xtg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Feb 2015 18:49:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, andi@firstfloor.org, nuxi@vault24.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2-fix-potential-memory-overrun-on-inode-fix
+     Subject: kernel-sysc-fix-uname26-for-40-fix
 has been removed from the -mm tree.  Its filename was
-     nilfs2-fix-potential-memory-overrun-on-inode-fix.patch
+     kernel-sysc-fix-uname26-for-40-fix.patch
 
-This patch was dropped because it was folded into nilfs2-fix-potential-memory-overrun-on-inode.patch
+This patch was dropped because it was folded into kernel-sysc-fix-uname26-for-40.patch
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Subject: nilfs2-fix-potential-memory-overrun-on-inode-fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kernel-sysc-fix-uname26-for-40-fix
 
-I've got a warning from 0day kernel testing backend:
-
-    fs/nilfs2/btree.c: In function 'nilfs_btree_root_broken':
->> fs/nilfs2/btree.c:394:3: warning: format '%lu' expects argument of type 'long unsigned int', but argument 2 has type 'ino_t' [-Wformat=]
-       pr_crit("NILFS: bad btree root (inode number=%lu): level = %d,
-flags = 0x%x, nchildren = %d\n",
-       ^
-
-This is output for s390 arch since ino_t doesn't mean "unsigned long"
-in s390.
-
+Cc: Jon DeVree <nuxi@vault24.org>
+Cc: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/btree.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/sys.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/nilfs2/btree.c~nilfs2-fix-potential-memory-overrun-on-inode-fix fs/nilfs2/btree.c
---- a/fs/nilfs2/btree.c~nilfs2-fix-potential-memory-overrun-on-inode-fix
-+++ a/fs/nilfs2/btree.c
-@@ -378,7 +378,7 @@ static int nilfs_btree_node_broken(const
-  * Return Value: If node is broken, 1 is returned. Otherwise, 0 is returned.
+diff -puN kernel/sys.c~kernel-sysc-fix-uname26-for-40-fix kernel/sys.c
+--- a/kernel/sys.c~kernel-sysc-fix-uname26-for-40-fix
++++ a/kernel/sys.c
+@@ -1108,6 +1108,7 @@ DECLARE_RWSEM(uts_sem);
+ /*
+  * Work around broken programs that cannot handle "Linux 3.0".
+  * Instead we map 3.x to 2.6.40+x, so e.g. 3.0 would be 2.6.40
++ * And we map 4.x to 2.6.60+x, so 4.0 would be 2.6.60.
   */
- static int nilfs_btree_root_broken(const struct nilfs_btree_node *node,
--				   ino_t ino)
-+				   unsigned long ino)
+ static int override_release(char __user *release, size_t len)
  {
- 	int level, flags, nchildren;
- 	int ret = 0;
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-nilfs2-fix-potential-memory-overrun-on-inode.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+kernel-sysc-fix-uname26-for-40.patch
+mm.patch
+mm-cma-release-trigger-checkpatch-fixes.patch
+mm-cma-allocation-trigger-fix.patch
+mm-compaction-enhance-compaction-finish-condition-fix.patch
+page_writeback-cleanup-mess-around-cancel_dirty_page-checkpatch-fixes.patch
+mm-hide-per-cpu-lists-in-output-of-show_mem-fix.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes.patch
+lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix.patch
+lib-find__bit-reimplementation-fix.patch
+binfmt_misc-simplify-entry_status-fix.patch
+fs-fat-remove-unnecessary-includes-fix.patch
+kconfig-use-macros-which-are-already-defined-fix.patch
+linux-next.patch
+linux-next-rejects.patch
+lib-kconfig-fix-up-have_arch_bitreverse-help-text.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
