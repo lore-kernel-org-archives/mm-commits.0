@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-oprofile-reduce-mmap_sem-hold-for-exe_file.patch added
- to -mm tree
-Date: Fri, 27 Feb 2015 13:58:10 -0800
-Message-ID: <54f0e872.3Uev62OcTv2O6dYn%akpm@linux-foundation.org>
+Subject: + mm-completely-remove-dumping-per-cpu-lists-from-show_mem.patch
+ added to -mm tree
+Date: Fri, 27 Feb 2015 14:00:20 -0800
+Message-ID: <54f0e8f4.X63ZyS/wac1m1Jd9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47978 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47996 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754697AbbB0V6L (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Feb 2015 16:58:11 -0500
+	with ESMTP id S1754697AbbB0WAV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Feb 2015 17:00:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave@stgolabs.net, arnd@arndb.de, benh@kernel.crashing.org, dbueso@suse.de, rric@kernel.org, mm-commits@vger.kernel.org
+To: koct9i@gmail.com, mhocko@suse.cz, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc/oprofile: reduce mmap_sem hold for exe_file
+     Subject: mm: completely remove dumping per-cpu lists from show_mem()
 has been added to the -mm tree.  Its filename is
-     powerpc-oprofile-reduce-mmap_sem-hold-for-exe_file.patch
+     mm-completely-remove-dumping-per-cpu-lists-from-show_mem.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-oprofile-reduce-mmap_sem-hold-for-exe_file.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-completely-remove-dumping-per-cpu-lists-from-show_mem.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-oprofile-reduce-mmap_sem-hold-for-exe_file.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-completely-remove-dumping-per-cpu-lists-from-show_mem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,71 +39,58 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: powerpc/oprofile: reduce mmap_sem hold for exe_file
+From: Konstantin Khlebnikov <koct9i@gmail.com>
+Subject: mm: completely remove dumping per-cpu lists from show_mem()
 
-In the future mm->exe_file will be done without mmap_sem serialization,
-thus isolate and reorganize the related code to make the transition
-easier.  Good users will, make use of the more standard get_mm_exe_file(),
-requiring only holding the mmap_sem to read the value, and relying on
-reference counting to make sure that the exe file won't dissappear
-underneath us while getting the dcookie.
+It seems nobody needs this.
 
-Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Robert Richter <rric@kernel.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/oprofile/cell/spu_task_sync.c |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ include/linux/mm.h |    1 -
+ mm/page_alloc.c    |   22 ++--------------------
+ 2 files changed, 2 insertions(+), 21 deletions(-)
 
-diff -puN arch/powerpc/oprofile/cell/spu_task_sync.c~powerpc-oprofile-reduce-mmap_sem-hold-for-exe_file arch/powerpc/oprofile/cell/spu_task_sync.c
---- a/arch/powerpc/oprofile/cell/spu_task_sync.c~powerpc-oprofile-reduce-mmap_sem-hold-for-exe_file
-+++ a/arch/powerpc/oprofile/cell/spu_task_sync.c
-@@ -22,6 +22,7 @@
- #include <linux/kref.h>
- #include <linux/mm.h>
- #include <linux/fs.h>
-+#include <linux/file.h>
- #include <linux/module.h>
- #include <linux/notifier.h>
- #include <linux/numa.h>
-@@ -322,18 +323,20 @@ get_exec_dcookie_and_offset(struct spu *
- 	unsigned long app_cookie = 0;
- 	unsigned int my_offset = 0;
- 	struct vm_area_struct *vma;
-+	struct file *exe_file;
- 	struct mm_struct *mm = spu->mm;
+diff -puN include/linux/mm.h~mm-completely-remove-dumping-per-cpu-lists-from-show_mem include/linux/mm.h
+--- a/include/linux/mm.h~mm-completely-remove-dumping-per-cpu-lists-from-show_mem
++++ a/include/linux/mm.h
+@@ -1126,7 +1126,6 @@ extern void pagefault_out_of_memory(void
+  * various contexts.
+  */
+ #define SHOW_MEM_FILTER_NODES		(0x0001u)	/* disallowed nodes */
+-#define SHOW_MEM_PERCPU_LISTS		(0x0002u)	/* per-zone per-cpu */
  
- 	if (!mm)
- 		goto out;
- 
--	down_read(&mm->mmap_sem);
--
--	if (mm->exe_file) {
--		app_cookie = fast_get_dcookie(&mm->exe_file->f_path);
--		pr_debug("got dcookie for %pD\n", mm->exe_file);
-+	exe_file = get_mm_exe_file(mm);
-+	if (exe_file) {
-+		app_cookie = fast_get_dcookie(&exe_file->f_path);
-+		pr_debug("got dcookie for %pD\n", exe_file);
-+		fput(exe_file);
- 	}
- 
-+	down_read(&mm->mmap_sem);
- 	for (vma = mm->mmap; vma; vma = vma->vm_next) {
- 		if (vma->vm_start > spu_ref || vma->vm_end <= spu_ref)
+ extern void show_free_areas(unsigned int flags);
+ extern bool skip_free_areas_node(unsigned int flags, int nid);
+diff -puN mm/page_alloc.c~mm-completely-remove-dumping-per-cpu-lists-from-show_mem mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-completely-remove-dumping-per-cpu-lists-from-show_mem
++++ a/mm/page_alloc.c
+@@ -3255,7 +3255,6 @@ static void show_migration_types(unsigne
+  * Bits in @filter:
+  * SHOW_MEM_FILTER_NODES: suppress nodes that are not allowed by current's
+  *   cpuset.
+- * SHOW_MEM_PERCPU_LISTS: display full per-node per-cpu pcp lists
+  */
+ void show_free_areas(unsigned int filter)
+ {
+@@ -3267,25 +3266,8 @@ void show_free_areas(unsigned int filter
+ 		if (skip_free_areas_node(filter, zone_to_nid(zone)))
  			continue;
-_
-
-Patches currently in -mm which might be from dave@stgolabs.net are
-
-mm-hugetlb-close-race-when-setting-pagetail-for-gigantic-pages.patch
-arc-do-not-export-symbols-in-troubleshootc.patch
-linux-next.patch
-tile-elf-reorganize-notify_exec.patch
-oprofile-reduce-mmap_sem-hold-for-mm-exe_file.patch
-powerpc-oprofile-reduce-mmap_sem-hold-for-exe_file.patch
-
+ 
+-		if (filter & SHOW_MEM_PERCPU_LISTS) {
+-			show_node(zone);
+-			printk("%s per-cpu:\n", zone->name);
+-		}
+-
+-		for_each_online_cpu(cpu) {
+-			struct per_cpu_pageset *pageset;
+-
+-			pageset = per_cpu_ptr(zone->pageset, cpu);
+-
+-			free_pcp += pageset->pcp.count;
+-
+-			if (!(filter & SHOW_MEM_PERCPU_LISTS))
+-				continue;
