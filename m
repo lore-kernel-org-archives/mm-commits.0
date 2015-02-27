@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + cma-debug-document-new-debugfs-interface.patch added to -mm
- tree
-Date: Fri, 27 Feb 2015 14:01:20 -0800
-Message-ID: <54f0e930.aXRTxY7g+rPpAvi8%akpm@linux-foundation.org>
+Subject: + lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix.patch
+ added to -mm tree
+Date: Fri, 27 Feb 2015 14:19:05 -0800
+Message-ID: <54f0ed59.VpllvTsAbHWRebSm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48003 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48121 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754787AbbB0WBV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Feb 2015 17:01:21 -0500
+	with ESMTP id S1755881AbbB0WTG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Feb 2015 17:19:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sasha.levin@oracle.com, iamjoonsoo.kim@lge.com, konrad.wilk@oracle.com, lauraa@codeaurora.org, m.szyprowski@samsung.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, corbet@lwn.net, geert+renesas@glider.be, mturquette@linaro.org, penguin-kernel@I-love.SAKURA.ne.jp, sboyd@codeaurora.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cma: debug: document new debugfs interface
+     Subject: lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix
 has been added to the -mm tree.  Its filename is
-     cma-debug-document-new-debugfs-interface.patch
+     lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/cma-debug-document-new-debugfs-interface.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-vsprintf-add-%25pcnr-format-specifiers-for-clocks-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/cma-debug-document-new-debugfs-interface.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-vsprintf-add-%25pcnr-format-specifiers-for-clocks-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,60 +39,95 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sasha Levin <sasha.levin@oracle.com>
-Subject: cma: debug: document new debugfs interface
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix
 
-Document the structure and files under the new debugfs interface.
+omit code if !CONFIG_HAVE_CLK
 
-Signed-off-by: Sasha Levin <sasha.levin@oracle.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Laura Abbott <lauraa@codeaurora.org>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Geert Uytterhoeven <geert+renesas@glider.be>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Mike Turquette <mturquette@linaro.org>
+Cc: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cma/debugfs.txt |   21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
+ lib/vsprintf.c |   29 ++++++++++++++++-------------
+ 1 file changed, 16 insertions(+), 13 deletions(-)
 
-diff -puN /dev/null Documentation/cma/debugfs.txt
---- /dev/null
-+++ a/Documentation/cma/debugfs.txt
-@@ -0,0 +1,21 @@
-+The CMA debugfs interface is useful to retrieve basic information out of the
-+different CMA areas and to test allocation/release in each of the areas.
+diff -puN lib/vsprintf.c~lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix lib/vsprintf.c
+--- a/lib/vsprintf.c~lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix
++++ a/lib/vsprintf.c
+@@ -1320,24 +1320,27 @@ static noinline_for_stack
+ char *clock(char *buf, char *end, struct clk *clk, struct printf_spec spec,
+ 	    const char *fmt)
+ {
+-	if (!clk)
+-		return string(buf, end, NULL, spec);
++#ifdef CONFIG_HAVE_CLK
++	if (clk) {
++		switch (fmt[1]) {
++		case 'r':
++			return number(buf, end, clk_get_rate(clk), spec);
+ 
+-	switch (fmt[1]) {
+-	case 'r':
+-		return number(buf, end, clk_get_rate(clk), spec);
+-
+-	case 'n':
+-	default:
++		case 'n':
++		default:
+ #ifdef CONFIG_COMMON_CLK
+-		return string(buf, end, __clk_get_name(clk), spec);
++			return string(buf, end, __clk_get_name(clk), spec);
+ #else
+-		spec.base = 16;
+-		spec.field_width = sizeof(unsigned long) * 2 + 2;
+-		spec.flags |= SPECIAL | SMALL | ZEROPAD;
+-		return number(buf, end, (unsigned long)clk, spec);
++			spec.base = 16;
++			spec.field_width = sizeof(unsigned long) * 2 + 2;
++			spec.flags |= SPECIAL | SMALL | ZEROPAD;
++			return number(buf, end, (unsigned long)clk, spec);
+ #endif
++		}
+ 	}
++#endif	/* CONFIG_HAVE_CLK */
 +
-+Each CMA zone represents a directory under <debugfs>/cma/, indexed by the
-+kernel's CMA index. So the first CMA zone would be:
-+
-+	<debugfs>/cma/cma-0
-+
-+The structure of the files created under that directory is as follows:
-+
-+ - [RO] base_pfn: The base PFN (Page Frame Number) of the zone.
-+ - [RO] count: Amount of memory in the CMA area.
-+ - [RO] order_per_bit: Order of pages represented by one bit.
-+ - [RO] bitmap: The bitmap of page states in the zone.
-+ - [WO] alloc: Allocate N pages from that CMA area. For example:
-+
-+	echo 5 > <debugfs>/cma/cma-2/alloc
-+
-+would try to allocate 5 pages from the cma-2 area.
-+
-+ - [WO] free: Free N pages from that CMA area, similar to the above.
++	return string(buf, end, NULL, spec);
+ }
+ 
+ int kptr_restrict __read_mostly;
 _
 
-Patches currently in -mm which might be from sasha.levin@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-cma-debugfs-interface.patch
-mm-cma-allocation-trigger.patch
-mm-cma-release-trigger.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+kernel-sysc-fix-uname26-for-40-fix.patch
+mm.patch
 mm-cma-release-trigger-checkpatch-fixes.patch
-mm-cma-release-trigger-fixpatch.patch
 mm-cma-allocation-trigger-fix.patch
-cma-debug-document-new-debugfs-interface.patch
-mm-incorporate-zero-pages-into-transparent-huge-pages.patch
-mm-incorporate-zero-pages-into-transparent-huge-pages-fix.patch
+mm-compaction-enhance-compaction-finish-condition-fix.patch
+page_writeback-cleanup-mess-around-cancel_dirty_page-checkpatch-fixes.patch
+mm-hide-per-cpu-lists-in-output-of-show_mem-fix.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes.patch
+lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix.patch
+lib-find__bit-reimplementation-fix.patch
+binfmt_misc-simplify-entry_status-fix.patch
+fs-fat-remove-unnecessary-includes-fix.patch
+kconfig-use-macros-which-are-already-defined-fix.patch
 linux-next.patch
+linux-next-rejects.patch
+lib-kconfig-fix-up-have_arch_bitreverse-help-text.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
