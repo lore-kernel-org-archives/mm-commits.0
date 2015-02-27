@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-completely-remove-dumping-per-cpu-lists-from-show_mem.patch
- added to -mm tree
-Date: Fri, 27 Feb 2015 14:00:20 -0800
-Message-ID: <54f0e8f4.X63ZyS/wac1m1Jd9%akpm@linux-foundation.org>
+Subject: + cma-debug-document-new-debugfs-interface.patch added to -mm
+ tree
+Date: Fri, 27 Feb 2015 14:01:20 -0800
+Message-ID: <54f0e930.aXRTxY7g+rPpAvi8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47996 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48003 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754697AbbB0WAV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Feb 2015 17:00:21 -0500
+	with ESMTP id S1754787AbbB0WBV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Feb 2015 17:01:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: koct9i@gmail.com, mhocko@suse.cz, rientjes@google.com, mm-commits@vger.kernel.org
+To: sasha.levin@oracle.com, iamjoonsoo.kim@lge.com, konrad.wilk@oracle.com, lauraa@codeaurora.org, m.szyprowski@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: completely remove dumping per-cpu lists from show_mem()
+     Subject: cma: debug: document new debugfs interface
 has been added to the -mm tree.  Its filename is
-     mm-completely-remove-dumping-per-cpu-lists-from-show_mem.patch
+     cma-debug-document-new-debugfs-interface.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-completely-remove-dumping-per-cpu-lists-from-show_mem.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/cma-debug-document-new-debugfs-interface.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-completely-remove-dumping-per-cpu-lists-from-show_mem.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/cma-debug-document-new-debugfs-interface.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,58 +39,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <koct9i@gmail.com>
-Subject: mm: completely remove dumping per-cpu lists from show_mem()
+From: Sasha Levin <sasha.levin@oracle.com>
+Subject: cma: debug: document new debugfs interface
 
-It seems nobody needs this.
+Document the structure and files under the new debugfs interface.
 
-Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Sasha Levin <sasha.levin@oracle.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Laura Abbott <lauraa@codeaurora.org>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    1 -
- mm/page_alloc.c    |   22 ++--------------------
- 2 files changed, 2 insertions(+), 21 deletions(-)
+ Documentation/cma/debugfs.txt |   21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
-diff -puN include/linux/mm.h~mm-completely-remove-dumping-per-cpu-lists-from-show_mem include/linux/mm.h
---- a/include/linux/mm.h~mm-completely-remove-dumping-per-cpu-lists-from-show_mem
-+++ a/include/linux/mm.h
-@@ -1126,7 +1126,6 @@ extern void pagefault_out_of_memory(void
-  * various contexts.
-  */
- #define SHOW_MEM_FILTER_NODES		(0x0001u)	/* disallowed nodes */
--#define SHOW_MEM_PERCPU_LISTS		(0x0002u)	/* per-zone per-cpu */
- 
- extern void show_free_areas(unsigned int flags);
- extern bool skip_free_areas_node(unsigned int flags, int nid);
-diff -puN mm/page_alloc.c~mm-completely-remove-dumping-per-cpu-lists-from-show_mem mm/page_alloc.c
---- a/mm/page_alloc.c~mm-completely-remove-dumping-per-cpu-lists-from-show_mem
-+++ a/mm/page_alloc.c
-@@ -3255,7 +3255,6 @@ static void show_migration_types(unsigne
-  * Bits in @filter:
-  * SHOW_MEM_FILTER_NODES: suppress nodes that are not allowed by current's
-  *   cpuset.
-- * SHOW_MEM_PERCPU_LISTS: display full per-node per-cpu pcp lists
-  */
- void show_free_areas(unsigned int filter)
- {
-@@ -3267,25 +3266,8 @@ void show_free_areas(unsigned int filter
- 		if (skip_free_areas_node(filter, zone_to_nid(zone)))
- 			continue;
- 
--		if (filter & SHOW_MEM_PERCPU_LISTS) {
--			show_node(zone);
--			printk("%s per-cpu:\n", zone->name);
--		}
--
--		for_each_online_cpu(cpu) {
--			struct per_cpu_pageset *pageset;
--
--			pageset = per_cpu_ptr(zone->pageset, cpu);
--
--			free_pcp += pageset->pcp.count;
--
--			if (!(filter & SHOW_MEM_PERCPU_LISTS))
--				continue;
+diff -puN /dev/null Documentation/cma/debugfs.txt
+--- /dev/null
++++ a/Documentation/cma/debugfs.txt
+@@ -0,0 +1,21 @@
++The CMA debugfs interface is useful to retrieve basic information out of the
++different CMA areas and to test allocation/release in each of the areas.
++
++Each CMA zone represents a directory under <debugfs>/cma/, indexed by the
++kernel's CMA index. So the first CMA zone would be:
++
++	<debugfs>/cma/cma-0
++
++The structure of the files created under that directory is as follows:
++
++ - [RO] base_pfn: The base PFN (Page Frame Number) of the zone.
++ - [RO] count: Amount of memory in the CMA area.
++ - [RO] order_per_bit: Order of pages represented by one bit.
++ - [RO] bitmap: The bitmap of page states in the zone.
++ - [WO] alloc: Allocate N pages from that CMA area. For example:
++
++	echo 5 > <debugfs>/cma/cma-2/alloc
++
++would try to allocate 5 pages from the cma-2 area.
++
++ - [WO] free: Free N pages from that CMA area, similar to the above.
+_
+
+Patches currently in -mm which might be from sasha.levin@oracle.com are
+
+mm-cma-debugfs-interface.patch
+mm-cma-allocation-trigger.patch
+mm-cma-release-trigger.patch
+mm-cma-release-trigger-checkpatch-fixes.patch
+mm-cma-release-trigger-fixpatch.patch
+mm-cma-allocation-trigger-fix.patch
+cma-debug-document-new-debugfs-interface.patch
+mm-incorporate-zero-pages-into-transparent-huge-pages.patch
+mm-incorporate-zero-pages-into-transparent-huge-pages-fix.patch
+linux-next.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+
