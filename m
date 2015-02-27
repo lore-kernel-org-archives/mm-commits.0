@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + memstick-mspro_block-add-missing-curly-braces.patch added to
- -mm tree
-Date: Fri, 27 Feb 2015 13:51:07 -0800
-Message-ID: <54f0e6cb.ZIsOtkQkOG3h01SX%akpm@linux-foundation.org>
+Subject: + hfsplus-add-missing-curly-braces-in-hfsplus_delete_cat.patch
+ added to -mm tree
+Date: Fri, 27 Feb 2015 13:53:50 -0800
+Message-ID: <54f0e76e.jc81XNN7/tsSfZ2F%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47949 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47957 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754962AbbB0VvI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Feb 2015 16:51:08 -0500
+	with ESMTP id S1754632AbbB0Vxv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Feb 2015 16:53:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.carpenter@oracle.com, oakad@yahoo.com, mm-commits@vger.kernel.org
+To: dan.carpenter@oracle.com, hch@lst.de, slava@dubeyko.com, sougata@tuxera.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memstick: mspro_block: add missing curly braces
+     Subject: hfsplus: add missing curly braces in hfsplus_delete_cat()
 has been added to the -mm tree.  Its filename is
-     memstick-mspro_block-add-missing-curly-braces.patch
+     hfsplus-add-missing-curly-braces-in-hfsplus_delete_cat.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memstick-mspro_block-add-missing-curly-braces.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/hfsplus-add-missing-curly-braces-in-hfsplus_delete_cat.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memstick-mspro_block-add-missing-curly-braces.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/hfsplus-add-missing-curly-braces-in-hfsplus_delete_cat.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,46 +40,43 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: memstick: mspro_block: add missing curly braces
+Subject: hfsplus: add missing curly braces in hfsplus_delete_cat()
 
-Using the indenting we can see the curly braces were obviously intended. 
-This is a static checker fix, but my guess is that we don't read enough
-bytes, because we don't calculate "t_len" correctly.
+This doesn't change how the code works, but clearly the curly braces were
+intended.
 
-Fixes: f1d82698029b ('memstick: use fully asynchronous request processing')
 Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Alex Dubov <oakad@yahoo.com>
+Cc: Vyacheslav Dubeyko <slava@dubeyko.com>
+Cc: Sougata Santra <sougata@tuxera.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/memstick/core/mspro_block.c |    3 ++-
+ fs/hfsplus/catalog.c |    3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/memstick/core/mspro_block.c~memstick-mspro_block-add-missing-curly-braces drivers/memstick/core/mspro_block.c
---- a/drivers/memstick/core/mspro_block.c~memstick-mspro_block-add-missing-curly-braces
-+++ a/drivers/memstick/core/mspro_block.c
-@@ -758,7 +758,7 @@ static int mspro_block_complete_req(stru
+diff -puN fs/hfsplus/catalog.c~hfsplus-add-missing-curly-braces-in-hfsplus_delete_cat fs/hfsplus/catalog.c
+--- a/fs/hfsplus/catalog.c~hfsplus-add-missing-curly-braces-in-hfsplus_delete_cat
++++ a/fs/hfsplus/catalog.c
+@@ -350,10 +350,11 @@ int hfsplus_delete_cat(u32 cnid, struct
+ 			&fd.search_key->cat.name.unicode,
+ 			off + 2, len);
+ 		fd.search_key->key_len = cpu_to_be16(6 + len);
+-	} else
++	} else {
+ 		err = hfsplus_cat_build_key(sb, fd.search_key, dir->i_ino, str);
+ 		if (unlikely(err))
+ 			goto out;
++	}
  
- 		if (error || (card->current_mrq.tpc == MSPRO_CMD_STOP)) {
- 			if (msb->data_dir == READ) {
--				for (cnt = 0; cnt < msb->current_seg; cnt++)
-+				for (cnt = 0; cnt < msb->current_seg; cnt++) {
- 					t_len += msb->req_sg[cnt].length
- 						 / msb->page_size;
- 
-@@ -766,6 +766,7 @@ static int mspro_block_complete_req(stru
- 						t_len += msb->current_page - 1;
- 
- 					t_len *= msb->page_size;
-+				}
- 			}
- 		} else
- 			t_len = blk_rq_bytes(msb->block_req);
+ 	err = hfs_brec_find(&fd, hfs_find_rec_by_key);
+ 	if (err)
 _
 
 Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
 rtc-ds1685-fix-conditional-in-ds1685_rtc_sysfs_time_regs_showstore.patch
+hfsplus-add-missing-curly-braces-in-hfsplus_delete_cat.patch
 memstick-mspro_block-add-missing-curly-braces.patch
 linux-next.patch
 
