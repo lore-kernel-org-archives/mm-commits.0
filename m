@@ -1,263 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-do-not-use-ocfs2_zero_extend-during-direct-io.patch added to -mm tree
-Date: Mon, 02 Mar 2015 11:07:36 -0800
-Message-ID: <54f4b4f8.+WYsEJW357niW6jW%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-rejects.patch removed from -mm tree
+Date: Mon, 02 Mar 2015 11:09:13 -0800
+Message-ID: <54f4b559.LmziqZjial3C8cbs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41848 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41987 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753741AbbCBTHh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Mar 2015 14:07:37 -0500
+	with ESMTP id S1753858AbbCBTJO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Mar 2015 14:09:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joseph.qi@huawei.com, jiangyiwen@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: do not use ocfs2_zero_extend during direct IO
-has been added to the -mm tree.  Its filename is
-     ocfs2-do-not-use-ocfs2_zero_extend-during-direct-io.patch
+     Subject: linux-next-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-rejects.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-do-not-use-ocfs2_zero_extend-during-direct-io.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-do-not-use-ocfs2_zero_extend-during-direct-io.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@huawei.com>
-Subject: ocfs2: do not use ocfs2_zero_extend during direct IO
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-rejects
 
-In ocfs2_direct_IO_write, we use ocfs2_zero_extend to zero allocated
-clusters in case of cluster not aligned.  But ocfs2_zero_extend uses page
-cache, this may happen that it clears the data which blockdev_direct_IO
-has already written.
-
-We should use blkdev_issue_zeroout instead of ocfs2_zero_extend during
-direct IO.
-
-So fix this issue by introducing ocfs2_direct_IO_zero_extend and
-ocfs2_direct_IO_extend_no_holes.
-
-Reported-by: Yiwen Jiang <jiangyiwen@huawei.com>
-Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
-Tested-by: Yiwen Jiang <jiangyiwen@huawei.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/aops.c |  138 +++++++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 130 insertions(+), 8 deletions(-)
+ arch/s390/include/asm/pgtable.h |    7 -------
+ 1 file changed, 7 deletions(-)
 
-diff -puN fs/ocfs2/aops.c~ocfs2-do-not-use-ocfs2_zero_extend-during-direct-io fs/ocfs2/aops.c
---- a/fs/ocfs2/aops.c~ocfs2-do-not-use-ocfs2_zero_extend-during-direct-io
-+++ a/fs/ocfs2/aops.c
-@@ -663,6 +663,117 @@ static int ocfs2_is_overwrite(struct ocf
- 	return 0;
- }
+diff -puN arch/s390/include/asm/pgtable.h~linux-next-rejects arch/s390/include/asm/pgtable.h
+--- a/arch/s390/include/asm/pgtable.h~linux-next-rejects
++++ a/arch/s390/include/asm/pgtable.h
+@@ -84,15 +84,8 @@ extern unsigned long zero_page_mask;
+  * that leads to 1024 pte per pgd
+  */
+ #define PTRS_PER_PTE	256
+-#ifndef CONFIG_64BIT
+-#define __PAGETABLE_PUD_FOLDED
+-#define PTRS_PER_PMD	1
+-#define __PAGETABLE_PMD_FOLDED
+-#define PTRS_PER_PUD	1
+-#else /* CONFIG_64BIT */
+ #define PTRS_PER_PMD	2048
+ #define PTRS_PER_PUD	2048
+-#endif /* CONFIG_64BIT */
+ #define PTRS_PER_PGD	2048
  
-+static int ocfs2_direct_IO_zero_extend(struct ocfs2_super *osb,
-+		struct inode *inode, loff_t offset,
-+		u64 zero_len, int cluster_align)
-+{
-+	u32 p_cpos = 0;
-+	u32 v_cpos = ocfs2_bytes_to_clusters(osb->sb, i_size_read(inode));
-+	unsigned int num_clusters = 0;
-+	unsigned int ext_flags = 0;
-+	int ret = 0;
-+
-+	if (offset <= i_size_read(inode) || cluster_align)
-+		return 0;
-+
-+	ret = ocfs2_get_clusters(inode, v_cpos, &p_cpos, &num_clusters,
-+			&ext_flags);
-+	if (ret < 0) {
-+		mlog_errno(ret);
-+		return ret;
-+	}
-+
-+	if (p_cpos && !(ext_flags & OCFS2_EXT_UNWRITTEN)) {
-+		u64 s = i_size_read(inode);
-+		sector_t sector = (p_cpos << (osb->s_clustersize_bits - 9)) +
-+			(do_div(s, osb->s_clustersize) >> 9);
-+
-+		ret = blkdev_issue_zeroout(osb->sb->s_bdev, sector,
-+				zero_len >> 9, GFP_NOFS, false);
-+		if (ret < 0)
-+			mlog_errno(ret);
-+	}
-+
-+	return ret;
-+}
-+
-+static int ocfs2_direct_IO_extend_no_holes(struct ocfs2_super *osb,
-+		struct inode *inode, loff_t offset)
-+{
-+	u64 zero_start, zero_len, total_zero_len;
-+	u32 p_cpos = 0, clusters_to_add;
-+	u32 v_cpos = ocfs2_bytes_to_clusters(osb->sb, i_size_read(inode));
-+	unsigned int num_clusters = 0;
-+	unsigned int ext_flags = 0;
-+	u32 size_div, offset_div;
-+	int ret = 0;
-+
-+	{
-+		u64 o = offset;
-+		u64 s = i_size_read(inode);
-+
-+		offset_div = do_div(o, osb->s_clustersize);
-+		size_div = do_div(s, osb->s_clustersize);
-+	}
-+
-+	if (offset <= i_size_read(inode))
-+		return 0;
-+
-+	clusters_to_add = ocfs2_bytes_to_clusters(inode->i_sb, offset) -
-+		ocfs2_bytes_to_clusters(inode->i_sb, i_size_read(inode));
-+	total_zero_len = offset - i_size_read(inode);
-+	if (clusters_to_add)
-+		total_zero_len -= offset_div;
-+
-+	/* Allocate clusters to fill out holes, and this is only needed
-+	 * when we add more than one clusters. Otherwise the cluster will
-+	 * be allocated during direct IO */
-+	if (clusters_to_add > 1) {
-+		ret = ocfs2_extend_allocation(inode,
-+				OCFS2_I(inode)->ip_clusters,
-+				clusters_to_add - 1, 0);
-+		if (ret) {
-+			mlog_errno(ret);
-+			goto out;
-+		}
-+	}
-+
-+	while (total_zero_len) {
-+		ret = ocfs2_get_clusters(inode, v_cpos, &p_cpos, &num_clusters,
-+				&ext_flags);
-+		if (ret < 0) {
-+			mlog_errno(ret);
-+			goto out;
-+		}
-+
-+		zero_start = ocfs2_clusters_to_bytes(osb->sb, p_cpos) +
-+			size_div;
-+		zero_len = ocfs2_clusters_to_bytes(osb->sb, num_clusters) -
-+			size_div;
-+		zero_len = min(total_zero_len, zero_len);
-+
-+		if (p_cpos && !(ext_flags & OCFS2_EXT_UNWRITTEN)) {
-+			ret = blkdev_issue_zeroout(osb->sb->s_bdev,
-+					zero_start >> 9, zero_len >> 9,
-+					GFP_NOFS, false);
-+			if (ret < 0) {
-+				mlog_errno(ret);
-+				goto out;
-+			}
-+		}
-+
-+		total_zero_len -= zero_len;
-+		v_cpos += ocfs2_bytes_to_clusters(osb->sb, zero_len + size_div);
-+
-+		/* Only at first iteration can be cluster not aligned.
-+		 * So set size_div to 0 for the rest */
-+		size_div = 0;
-+	}
-+
-+out:
-+	return ret;
-+}
-+
- static ssize_t ocfs2_direct_IO_write(struct kiocb *iocb,
- 		struct iov_iter *iter,
- 		loff_t offset)
-@@ -677,8 +788,8 @@ static ssize_t ocfs2_direct_IO_write(str
- 	struct buffer_head *di_bh = NULL;
- 	size_t count = iter->count;
- 	journal_t *journal = osb->journal->j_journal;
--	u32 zero_len;
--	int cluster_align;
-+	u64 zero_len_head, zero_len_tail;
-+	int cluster_align_head, cluster_align_tail;
- 	loff_t final_size = offset + count;
- 	int append_write = offset >= i_size_read(inode) ? 1 : 0;
- 	unsigned int num_clusters = 0;
-@@ -686,9 +797,16 @@ static ssize_t ocfs2_direct_IO_write(str
- 
- 	{
- 		u64 o = offset;
-+		u64 s = i_size_read(inode);
- 
--		zero_len = do_div(o, 1 << osb->s_clustersize_bits);
--		cluster_align = !zero_len;
-+		zero_len_head = do_div(o, 1 << osb->s_clustersize_bits);
-+		cluster_align_head = !zero_len_head;
-+
-+		zero_len_tail = osb->s_clustersize -
-+			do_div(s, osb->s_clustersize);
-+		if ((offset - i_size_read(inode)) < zero_len_tail)
-+			zero_len_tail = offset - i_size_read(inode);
-+		cluster_align_tail = !zero_len_tail;
- 	}
- 
- 	/*
-@@ -712,10 +830,13 @@ static ssize_t ocfs2_direct_IO_write(str
- 			goto clean_orphan;
- 		}
- 
-+		/* zeroing out the previously allocated cluster tail
-+		 * that but not zeroed */
- 		if (ocfs2_sparse_alloc(OCFS2_SB(inode->i_sb)))
--			ret = ocfs2_zero_extend(inode, di_bh, offset);
-+			ret = ocfs2_direct_IO_zero_extend(osb, inode, offset,
-+					zero_len_tail, cluster_align_tail);
- 		else
--			ret = ocfs2_extend_no_holes(inode, di_bh, offset,
-+			ret = ocfs2_direct_IO_extend_no_holes(osb, inode,
- 					offset);
- 		if (ret < 0) {
- 			mlog_errno(ret);
-@@ -768,7 +889,8 @@ static ssize_t ocfs2_direct_IO_write(str
- 				mlog_errno(ret);
- 		}
- 	} else if (written > 0 && append_write && !is_overwrite &&
--			!cluster_align) {
-+			!cluster_align_head) {
-+		/* zeroing out the allocated cluster head */
- 		u32 p_cpos = 0;
- 		u32 v_cpos = ocfs2_bytes_to_clusters(osb->sb, offset);
- 
-@@ -790,7 +912,7 @@ static ssize_t ocfs2_direct_IO_write(str
- 
- 		ret = blkdev_issue_zeroout(osb->sb->s_bdev,
- 				p_cpos << (osb->s_clustersize_bits - 9),
--				zero_len >> 9, GFP_NOFS, false);
-+				zero_len_head >> 9, GFP_NOFS, false);
- 		if (ret < 0)
- 			mlog_errno(ret);
- 
+ #define FIRST_USER_ADDRESS  0UL
 _
 
-Patches currently in -mm which might be from joseph.qi@huawei.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-ocfs2-make-append_dio-an-incompat-feature.patch
-ocfs2-fix-a-typing-error-in-ocfs2_direct_io_write.patch
-ocfs2-no-need-get-dinode-bh-when-zeroing-extend.patch
-ocfs2-take-inode-lock-when-get-clusters.patch
-ocfs2-do-not-use-ocfs2_zero_extend-during-direct-io.patch
-ocfs2-avoid-access-invalid-address-when-read-o2dlm-debug-messages.patch
-ocfs2-avoid-access-invalid-address-when-read-o2dlm-debug-messages-v3.patch
+origin.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+mm.patch
+mm-cma-release-trigger-checkpatch-fixes.patch
+mm-cma-allocation-trigger-fix.patch
+mm-compaction-enhance-compaction-finish-condition-fix.patch
+page_writeback-cleanup-mess-around-cancel_dirty_page-checkpatch-fixes.patch
+mm-hide-per-cpu-lists-in-output-of-show_mem-fix.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes.patch
+lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix.patch
+lib-find__bit-reimplementation-fix.patch
+binfmt_misc-simplify-entry_status-fix.patch
+fs-fat-remove-unnecessary-includes-fix.patch
+kconfig-use-macros-which-are-already-defined-fix.patch
+linux-next.patch
+lib-kconfig-fix-up-have_arch_bitreverse-help-text.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
