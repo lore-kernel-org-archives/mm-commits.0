@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-cpuset-remove-exception-for-__gfp_thisnode.patch added
- to -mm tree
-Date: Mon, 02 Mar 2015 14:58:29 -0800
-Message-ID: <54f4eb15.AEBcgxmANMJTR4Mg%akpm@linux-foundation.org>
+Subject: + mm-cma-constify-and-use-correct-signness-in-mm-cmac.patch added to -mm tree
+Date: Mon, 02 Mar 2015 15:28:12 -0800
+Message-ID: <54f4f20c.DIwOcwv3STklEjHQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45181 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45641 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754183AbbCBW6a (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Mar 2015 17:58:30 -0500
+	with ESMTP id S1753836AbbCBX2N (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Mar 2015 18:28:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, cl@linux.com, gthelen@google.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, jrajahalme@nicira.com, lizefan@huawei.com, mgorman@suse.de, penberg@kernel.org, pshelar@nicira.com, tj@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: sasha.levin@oracle.com, gregory.0xf0@gmail.com, iamjoonsoo.kim@lge.com, laurent.pinchart+renesas@ideasonboard.com, m.szyprowski@samsung.com, mina86@mina86.com, pintu.k@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel, cpuset: remove exception for __GFP_THISNODE
+     Subject: mm: cma: constify and use correct signness in mm/cma.c
 has been added to the -mm tree.  Its filename is
-     kernel-cpuset-remove-exception-for-__gfp_thisnode.patch
+     mm-cma-constify-and-use-correct-signness-in-mm-cmac.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-cpuset-remove-exception-for-__gfp_thisnode.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-cma-constify-and-use-correct-signness-in-mm-cmac.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-cpuset-remove-exception-for-__gfp_thisnode.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-cma-constify-and-use-correct-signness-in-mm-cmac.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,89 +38,147 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: kernel, cpuset: remove exception for __GFP_THISNODE
+From: Sasha Levin <sasha.levin@oracle.com>
+Subject: mm: cma: constify and use correct signness in mm/cma.c
 
-Nothing calls __cpuset_node_allowed() with __GFP_THISNODE set anymore, so
-remove the obscure comment about it and its special-case exception.
+Constify function parameters and use correct signness where needed.
 
-Signed-off-by: David Rientjes <rientjes@google.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
+Signed-off-by: Sasha Levin <sasha.levin@oracle.com>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Pravin Shelar <pshelar@nicira.com>
-Cc: Jarno Rajahalme <jrajahalme@nicira.com>
-Cc: Li Zefan <lizefan@huawei.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Tejun Heo <tj@kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Cc: Gregory Fong <gregory.0xf0@gmail.com>
+Cc: Pintu Kumar <pintu.k@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |   18 +++++-------------
- 1 file changed, 5 insertions(+), 13 deletions(-)
+ include/linux/cma.h |   12 ++++++------
+ mm/cma.c            |   24 ++++++++++++++----------
+ 2 files changed, 20 insertions(+), 16 deletions(-)
 
-diff -puN kernel/cpuset.c~kernel-cpuset-remove-exception-for-__gfp_thisnode kernel/cpuset.c
---- a/kernel/cpuset.c~kernel-cpuset-remove-exception-for-__gfp_thisnode
-+++ a/kernel/cpuset.c
-@@ -2445,20 +2445,12 @@ static struct cpuset *nearest_hardwall_a
-  * @node: is this an allowed node?
-  * @gfp_mask: memory allocation flags
-  *
-- * If we're in interrupt, yes, we can always allocate.  If __GFP_THISNODE is
-- * set, yes, we can always allocate.  If node is in our task's mems_allowed,
-- * yes.  If it's not a __GFP_HARDWALL request and this node is in the nearest
-- * hardwalled cpuset ancestor to this task's cpuset, yes.  If the task has been
-- * OOM killed and has access to memory reserves as specified by the TIF_MEMDIE
-- * flag, yes.
-+ * If we're in interrupt, yes, we can always allocate.  If @node is set in
-+ * current's mems_allowed, yes.  If it's not a __GFP_HARDWALL request and this
-+ * node is set in the nearest hardwalled cpuset ancestor to current's cpuset,
-+ * yes.  If current has access to memory reserves due to TIF_MEMDIE, yes.
-  * Otherwise, no.
-  *
-- * The __GFP_THISNODE placement logic is really handled elsewhere,
-- * by forcibly using a zonelist starting at a specified node, and by
-- * (in get_page_from_freelist()) refusing to consider the zones for
-- * any node on the zonelist except the first.  By the time any such
-- * calls get to this routine, we should just shut up and say 'yes'.
-- *
-  * GFP_USER allocations are marked with the __GFP_HARDWALL bit,
-  * and do not allow allocations outside the current tasks cpuset
-  * unless the task has been OOM killed as is marked TIF_MEMDIE.
-@@ -2494,7 +2486,7 @@ int __cpuset_node_allowed(int node, gfp_
- 	int allowed;			/* is allocation in zone z allowed? */
- 	unsigned long flags;
+diff -puN include/linux/cma.h~mm-cma-constify-and-use-correct-signness-in-mm-cmac include/linux/cma.h
+--- a/include/linux/cma.h~mm-cma-constify-and-use-correct-signness-in-mm-cmac
++++ a/include/linux/cma.h
+@@ -16,16 +16,16 @@
+ struct cma;
  
--	if (in_interrupt() || (gfp_mask & __GFP_THISNODE))
-+	if (in_interrupt())
- 		return 1;
- 	if (node_isset(node, current->mems_allowed))
- 		return 1;
+ extern unsigned long totalcma_pages;
+-extern phys_addr_t cma_get_base(struct cma *cma);
+-extern unsigned long cma_get_size(struct cma *cma);
++extern phys_addr_t cma_get_base(const struct cma *cma);
++extern unsigned long cma_get_size(const struct cma *cma);
+ 
+ extern int __init cma_declare_contiguous(phys_addr_t base,
+ 			phys_addr_t size, phys_addr_t limit,
+ 			phys_addr_t alignment, unsigned int order_per_bit,
+ 			bool fixed, struct cma **res_cma);
+-extern int cma_init_reserved_mem(phys_addr_t base,
+-					phys_addr_t size, int order_per_bit,
++extern int cma_init_reserved_mem(phys_addr_t base, phys_addr_t size,
++					unsigned int order_per_bit,
+ 					struct cma **res_cma);
+-extern struct page *cma_alloc(struct cma *cma, int count, unsigned int align);
+-extern bool cma_release(struct cma *cma, struct page *pages, int count);
++extern struct page *cma_alloc(struct cma *cma, unsigned int count, unsigned int align);
++extern bool cma_release(struct cma *cma, const struct page *pages, unsigned int count);
+ #endif
+diff -puN mm/cma.c~mm-cma-constify-and-use-correct-signness-in-mm-cmac mm/cma.c
+--- a/mm/cma.c~mm-cma-constify-and-use-correct-signness-in-mm-cmac
++++ a/mm/cma.c
+@@ -41,17 +41,18 @@ struct cma cma_areas[MAX_CMA_AREAS];
+ unsigned cma_area_count;
+ static DEFINE_MUTEX(cma_mutex);
+ 
+-phys_addr_t cma_get_base(struct cma *cma)
++phys_addr_t cma_get_base(const struct cma *cma)
+ {
+ 	return PFN_PHYS(cma->base_pfn);
+ }
+ 
+-unsigned long cma_get_size(struct cma *cma)
++unsigned long cma_get_size(const struct cma *cma)
+ {
+ 	return cma->count << PAGE_SHIFT;
+ }
+ 
+-static unsigned long cma_bitmap_aligned_mask(struct cma *cma, int align_order)
++static unsigned long cma_bitmap_aligned_mask(const struct cma *cma,
++					     int align_order)
+ {
+ 	if (align_order <= cma->order_per_bit)
+ 		return 0;
+@@ -62,7 +63,8 @@ static unsigned long cma_bitmap_aligned_
+  * Find a PFN aligned to the specified order and return an offset represented in
+  * order_per_bits.
+  */
+-static unsigned long cma_bitmap_aligned_offset(struct cma *cma, int align_order)
++static unsigned long cma_bitmap_aligned_offset(const struct cma *cma,
++					       int align_order)
+ {
+ 	if (align_order <= cma->order_per_bit)
+ 		return 0;
+@@ -71,13 +73,14 @@ static unsigned long cma_bitmap_aligned_
+ 		- cma->base_pfn) >> cma->order_per_bit;
+ }
+ 
+-static unsigned long cma_bitmap_pages_to_bits(struct cma *cma,
+-						unsigned long pages)
++static unsigned long cma_bitmap_pages_to_bits(const struct cma *cma,
++					      unsigned long pages)
+ {
+ 	return ALIGN(pages, 1UL << cma->order_per_bit) >> cma->order_per_bit;
+ }
+ 
+-static void cma_clear_bitmap(struct cma *cma, unsigned long pfn, int count)
++static void cma_clear_bitmap(struct cma *cma, unsigned long pfn,
++			     unsigned int count)
+ {
+ 	unsigned long bitmap_no, bitmap_count;
+ 
+@@ -162,7 +165,8 @@ core_initcall(cma_init_reserved_areas);
+  * This function creates custom contiguous area from already reserved memory.
+  */
+ int __init cma_init_reserved_mem(phys_addr_t base, phys_addr_t size,
+-				 int order_per_bit, struct cma **res_cma)
++					unsigned int order_per_bit,
++				 	struct cma **res_cma)
+ {
+ 	struct cma *cma;
+ 	phys_addr_t alignment;
+@@ -353,7 +357,7 @@ err:
+  * This function allocates part of contiguous memory on specific
+  * contiguous memory area.
+  */
+-struct page *cma_alloc(struct cma *cma, int count, unsigned int align)
++struct page *cma_alloc(struct cma *cma, unsigned int count, unsigned int align)
+ {
+ 	unsigned long mask, offset, pfn, start = 0;
+ 	unsigned long bitmap_maxno, bitmap_no, bitmap_count;
+@@ -424,7 +428,7 @@ struct page *cma_alloc(struct cma *cma,
+  * It returns false when provided pages do not belong to contiguous area and
+  * true otherwise.
+  */
+-bool cma_release(struct cma *cma, struct page *pages, int count)
++bool cma_release(struct cma *cma, const struct page *pages, unsigned int count)
+ {
+ 	unsigned long pfn;
+ 
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from sasha.levin@oracle.com are
 
 origin.patch
-mm-hugetlb-close-race-when-setting-pagetail-for-gigantic-pages.patch
-mm-slub-parse-slub_debug-o-option-in-switch-statement.patch
-mm-rename-foll_mlock-to-foll_populate.patch
-mm-rename-__mlock_vma_pages_range-to-populate_vma_page_range.patch
-mm-move-gup-posix-mlock-error-conversion-out-of-__mm_populate.patch
-mm-move-mm_populate-related-code-to-mm-gupc.patch
-mm-hotplug-fix-concurrent-memory-hot-add-deadlock.patch
-mm-cma-change-fallback-behaviour-for-cma-freepage.patch
-mm-page_alloc-factor-out-fallback-freepage-checking.patch
-mm-compaction-enhance-compaction-finish-condition.patch
-mm-compaction-enhance-compaction-finish-condition-fix.patch
+mm-cma-debugfs-interface.patch
+mm-cma-allocation-trigger.patch
+mm-cma-release-trigger.patch
+mm-cma-release-trigger-checkpatch-fixes.patch
+mm-cma-release-trigger-fixpatch.patch
+mm-cma-allocation-trigger-fix.patch
+cma-debug-document-new-debugfs-interface.patch
 mm-incorporate-zero-pages-into-transparent-huge-pages.patch
 mm-incorporate-zero-pages-into-transparent-huge-pages-fix.patch
-mm-completely-remove-dumping-per-cpu-lists-from-show_mem.patch
-mm-mempolicy-migrate_to_node-should-only-migrate-to-node.patch
-mm-remove-gfp_thisnode.patch
-mm-thp-really-limit-transparent-hugepage-allocation-to-local-node.patch
-kernel-cpuset-remove-exception-for-__gfp_thisnode.patch
-mm-utilc-add-kstrimdup.patch
+mm-cma-constify-and-use-correct-signness-in-mm-cmac.patch
+linux-next.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
 
