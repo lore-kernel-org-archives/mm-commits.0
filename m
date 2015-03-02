@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + kasan-module-vmalloc-rework-shadow-allocation-for-modules.patch added to -mm tree
-Date: Mon, 02 Mar 2015 14:19:20 -0800
-Message-ID: <54f4e1e8.kqwwkxSuLxPGUgSi%akpm@linux-foundation.org>
+Subject: +
+ kasan-module-move-module_align-macro-into-linux-moduleloaderh.patch added
+ to -mm tree
+Date: Mon, 02 Mar 2015 14:19:22 -0800
+Message-ID: <54f4e1ea.mw+p0V0a/VlaW8VN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44790 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44795 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754775AbbCBWTV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Mar 2015 17:19:21 -0500
+	with ESMTP id S1754775AbbCBWTX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Mar 2015 17:19:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: a.ryabinin@samsung.com, dvyukov@google.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan, module, vmalloc: rework shadow allocation for modules
+     Subject: kasan, module: move MODULE_ALIGN macro into <linux/moduleloader.h>
 has been added to the -mm tree.  Its filename is
-     kasan-module-vmalloc-rework-shadow-allocation-for-modules.patch
+     kasan-module-move-module_align-macro-into-linux-moduleloaderh.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kasan-module-vmalloc-rework-shadow-allocation-for-modules.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kasan-module-move-module_align-macro-into-linux-moduleloaderh.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-module-vmalloc-rework-shadow-allocation-for-modules.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-module-move-module_align-macro-into-linux-moduleloaderh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,151 +41,57 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Ryabinin <a.ryabinin@samsung.com>
-Subject: kasan, module, vmalloc: rework shadow allocation for modules
+Subject: kasan, module: move MODULE_ALIGN macro into <linux/moduleloader.h>
 
-Current approach in handling shadow memory for modules is broken.
-
-Shadow memory could be freed only after memory shadow corresponds it is no
-longer used.  vfree() called from interrupt context could use memory its
-freeing to store 'struct llist_node' in it:
-
-void vfree(const void *addr)
-{
-...
-	if (unlikely(in_interrupt())) {
-		struct vfree_deferred *p = this_cpu_ptr(&vfree_deferred);
-		if (llist_add((struct llist_node *)addr, &p->list))
-				schedule_work(&p->wq);
-
-Later this list node used in free_work() which actually frees memory. 
-Currently module_memfree() called in interrupt context will free shadow
-before freeing module's memory which could provoke kernel crash.
-
-So shadow memory should be freed after module's memory.  However, such
-deallocation order could race with kasan_module_alloc() in module_alloc().
-
-Free shadow right before releasing vm area.  At this point vfree()'d
-memory is not used anymore and yet not available for other allocations. 
-New VM_KASAN flag used to indicate that vm area has dynamically allocated
-shadow memory so kasan frees shadow only if it was previously allocated.
+include/linux/moduleloader.h is more suitable place for this macro.
+Also change alignment to PAGE_SIZE for CONFIG_KASAN=n as such
+alignment already assumed in several places.
 
 Signed-off-by: Andrey Ryabinin <a.ryabinin@samsung.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Acked-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kasan.h   |    5 +++--
- include/linux/vmalloc.h |    1 +
- kernel/module.c         |    2 --
- mm/kasan/kasan.c        |   14 +++++++++++---
- mm/vmalloc.c            |    1 +
- 5 files changed, 16 insertions(+), 7 deletions(-)
+ include/linux/kasan.h        |    4 ----
+ include/linux/moduleloader.h |    8 ++++++++
+ 2 files changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/kasan.h~kasan-module-vmalloc-rework-shadow-allocation-for-modules include/linux/kasan.h
---- a/include/linux/kasan.h~kasan-module-vmalloc-rework-shadow-allocation-for-modules
+diff -puN include/linux/kasan.h~kasan-module-move-module_align-macro-into-linux-moduleloaderh include/linux/kasan.h
+--- a/include/linux/kasan.h~kasan-module-move-module_align-macro-into-linux-moduleloaderh
 +++ a/include/linux/kasan.h
-@@ -5,6 +5,7 @@
+@@ -50,15 +50,11 @@ void kasan_krealloc(const void *object,
+ void kasan_slab_alloc(struct kmem_cache *s, void *object);
+ void kasan_slab_free(struct kmem_cache *s, void *object);
  
- struct kmem_cache;
- struct page;
-+struct vm_struct;
- 
- #ifdef CONFIG_KASAN
- 
-@@ -52,7 +53,7 @@ void kasan_slab_free(struct kmem_cache *
- #define MODULE_ALIGN (PAGE_SIZE << KASAN_SHADOW_SCALE_SHIFT)
- 
+-#define MODULE_ALIGN (PAGE_SIZE << KASAN_SHADOW_SCALE_SHIFT)
+-
  int kasan_module_alloc(void *addr, size_t size);
--void kasan_module_free(void *addr);
-+void kasan_free_shadow(const struct vm_struct *vm);
+ void kasan_free_shadow(const struct vm_struct *vm);
  
  #else /* CONFIG_KASAN */
  
-@@ -82,7 +83,7 @@ static inline void kasan_slab_alloc(stru
- static inline void kasan_slab_free(struct kmem_cache *s, void *object) {}
+-#define MODULE_ALIGN 1
+-
+ static inline void kasan_unpoison_shadow(const void *address, size_t size) {}
  
- static inline int kasan_module_alloc(void *addr, size_t size) { return 0; }
--static inline void kasan_module_free(void *addr) {}
-+static inline void kasan_free_shadow(const struct vm_struct *vm) {}
+ static inline void kasan_enable_current(void) {}
+diff -puN include/linux/moduleloader.h~kasan-module-move-module_align-macro-into-linux-moduleloaderh include/linux/moduleloader.h
+--- a/include/linux/moduleloader.h~kasan-module-move-module_align-macro-into-linux-moduleloaderh
++++ a/include/linux/moduleloader.h
+@@ -84,4 +84,12 @@ void module_arch_cleanup(struct module *
  
- #endif /* CONFIG_KASAN */
- 
-diff -puN include/linux/vmalloc.h~kasan-module-vmalloc-rework-shadow-allocation-for-modules include/linux/vmalloc.h
---- a/include/linux/vmalloc.h~kasan-module-vmalloc-rework-shadow-allocation-for-modules
-+++ a/include/linux/vmalloc.h
-@@ -17,6 +17,7 @@ struct vm_area_struct;		/* vma defining
- #define VM_VPAGES		0x00000010	/* buffer for pages was vmalloc'ed */
- #define VM_UNINITIALIZED	0x00000020	/* vm_struct is not fully initialized */
- #define VM_NO_GUARD		0x00000040      /* don't add guard page */
-+#define VM_KASAN		0x00000080      /* has allocated kasan shadow memory */
- /* bits [20..32] reserved for arch specific ioremap internals */
- 
- /*
-diff -puN kernel/module.c~kasan-module-vmalloc-rework-shadow-allocation-for-modules kernel/module.c
---- a/kernel/module.c~kasan-module-vmalloc-rework-shadow-allocation-for-modules
-+++ a/kernel/module.c
-@@ -56,7 +56,6 @@
- #include <linux/async.h>
- #include <linux/percpu.h>
- #include <linux/kmemleak.h>
--#include <linux/kasan.h>
- #include <linux/jump_label.h>
- #include <linux/pfn.h>
- #include <linux/bsearch.h>
-@@ -1814,7 +1813,6 @@ static void unset_module_init_ro_nx(stru
- void __weak module_memfree(void *module_region)
- {
- 	vfree(module_region);
--	kasan_module_free(module_region);
- }
- 
- void __weak module_arch_cleanup(struct module *mod)
-diff -puN mm/kasan/kasan.c~kasan-module-vmalloc-rework-shadow-allocation-for-modules mm/kasan/kasan.c
---- a/mm/kasan/kasan.c~kasan-module-vmalloc-rework-shadow-allocation-for-modules
-+++ a/mm/kasan/kasan.c
-@@ -29,6 +29,7 @@
- #include <linux/stacktrace.h>
- #include <linux/string.h>
- #include <linux/types.h>
-+#include <linux/vmalloc.h>
- #include <linux/kasan.h>
- 
- #include "kasan.h"
-@@ -414,12 +415,19 @@ int kasan_module_alloc(void *addr, size_
- 			GFP_KERNEL | __GFP_HIGHMEM | __GFP_ZERO,
- 			PAGE_KERNEL, VM_NO_GUARD, NUMA_NO_NODE,
- 			__builtin_return_address(0));
--	return ret ? 0 : -ENOMEM;
+ /* Any cleanup before freeing mod->module_init */
+ void module_arch_freeing_init(struct module *mod);
 +
-+	if (ret) {
-+		find_vm_area(addr)->flags |= VM_KASAN;
-+		return 0;
-+	}
++#ifdef CONFIG_KASAN
++#include <linux/kasan.h>
++#define MODULE_ALIGN (PAGE_SIZE << KASAN_SHADOW_SCALE_SHIFT)
++#else
++#define MODULE_ALIGN PAGE_SIZE
++#endif
 +
-+	return -ENOMEM;
- }
- 
--void kasan_module_free(void *addr)
-+void kasan_free_shadow(const struct vm_struct *vm)
- {
--	vfree(kasan_mem_to_shadow(addr));
-+	if (vm->flags & VM_KASAN)
-+		vfree(kasan_mem_to_shadow(vm->addr));
- }
- 
- static void register_global(struct kasan_global *global)
-diff -puN mm/vmalloc.c~kasan-module-vmalloc-rework-shadow-allocation-for-modules mm/vmalloc.c
---- a/mm/vmalloc.c~kasan-module-vmalloc-rework-shadow-allocation-for-modules
-+++ a/mm/vmalloc.c
-@@ -1418,6 +1418,7 @@ struct vm_struct *remove_vm_area(const v
- 		spin_unlock(&vmap_area_lock);
- 
- 		vmap_debug_free_range(va->va_start, va->va_end);
-+		kasan_free_shadow(vm);
- 		free_unmap_vmap_area(va);
- 		vm->size -= PAGE_SIZE;
- 
+ #endif
 _
 
 Patches currently in -mm which might be from a.ryabinin@samsung.com are
