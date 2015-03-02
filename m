@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fold-arch_randomize_brk-into-arch_has_elf_randomize.patch
- added to -mm tree
-Date: Mon, 02 Mar 2015 13:27:18 -0800
-Message-ID: <54f4d5b6.VVUCupneD1Olrv27%akpm@linux-foundation.org>
+Subject: + mm-move-randomize_et_dyn-into-elf_et_dyn_base.patch added to
+ -mm tree
+Date: Mon, 02 Mar 2015 13:27:12 -0800
+Message-ID: <54f4d5b0.VEXVSIdE6Y8QEDUd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43772 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43719 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932155AbbCBV1U (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Mar 2015 16:27:20 -0500
+	with ESMTP id S1755497AbbCBV1O (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Mar 2015 16:27:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: keescook@chromium.org, a.ryabinin@samsung.com, achandran@mvista.com, alex@alex-smith.me.uk, behanw@converseincode.com, ben@decadent.org.uk, benh@kernel.crashing.org, catalin.marinas@arm.com, dave.long@linaro.org, dl9pf@gmx.de, hecmargi@upv.es, heiko.carstens@de.ibm.com, holzheu@linux.vnet.ibm.com, iripoll@upv.es, jeffbailey@google.com, linux@arm.linux.org.uk, luto@amacapital.net, markos.chandras@imgtec.com, mingo@elte.hu, mpe@ellerman.id.au, oleg@redhat.com, orca.chen@gmail.com, paul.burton@imgtec.com, paulus@samba.org, ralf@linux-mips.org, schwidefsky@de.ibm.com, viro@zeniv.linux.org.uk, vvijayan@mvista.com, will.deacon@arm.com, ydroneaud@opteya.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fold arch_randomize_brk into ARCH_HAS_ELF_RANDOMIZE
+     Subject: mm: move randomize_et_dyn into ELF_ET_DYN_BASE
 has been added to the -mm tree.  Its filename is
-     mm-fold-arch_randomize_brk-into-arch_has_elf_randomize.patch
+     mm-move-randomize_et_dyn-into-elf_et_dyn_base.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fold-arch_randomize_brk-into-arch_has_elf_randomize.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-move-randomize_et_dyn-into-elf_et_dyn_base.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fold-arch_randomize_brk-into-arch_has_elf_randomize.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-move-randomize_et_dyn-into-elf_et_dyn_base.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,10 +40,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kees Cook <keescook@chromium.org>
-Subject: mm: fold arch_randomize_brk into ARCH_HAS_ELF_RANDOMIZE
+Subject: mm: move randomize_et_dyn into ELF_ET_DYN_BASE
 
-On architectures that define CONFIG_ARCH_HAS_ELF_RANDOMIZE, collapse the
-function declarations while continuing to handle CONFIG_COMPAT_BRK.
+This moves s390's randomize_et_dyn base into ELF_ET_DYN_BASE, and removes
+an unused arm64 extern.
 
 Signed-off-by: Kees Cook <keescook@chromium.org>
 Cc: Hector Marco-Gisbert <hecmargi@upv.es>
@@ -79,166 +79,55 @@ Cc: Jan-Simon Mller <dl9pf@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/Kconfig                   |    1 +
- arch/arm/include/asm/elf.h     |    4 ----
- arch/arm64/include/asm/elf.h   |    4 ----
- arch/mips/include/asm/elf.h    |    4 ----
- arch/powerpc/include/asm/elf.h |    4 ----
- arch/s390/include/asm/elf.h    |    3 ---
- arch/x86/include/asm/elf.h     |    3 ---
- fs/binfmt_elf.c                |    4 +---
- include/linux/elf-randomize.h  |   12 ++++++++++++
- 9 files changed, 14 insertions(+), 25 deletions(-)
+ arch/arm64/include/asm/elf.h |    1 -
+ arch/s390/include/asm/elf.h  |    9 +++++----
+ arch/s390/mm/mmap.c          |   11 -----------
+ 3 files changed, 5 insertions(+), 16 deletions(-)
 
-diff -puN arch/Kconfig~mm-fold-arch_randomize_brk-into-arch_has_elf_randomize arch/Kconfig
---- a/arch/Kconfig~mm-fold-arch_randomize_brk-into-arch_has_elf_randomize
-+++ a/arch/Kconfig
-@@ -494,6 +494,7 @@ config ARCH_HAS_ELF_RANDOMIZE
- 	  An architecture supports choosing randomized locations for
- 	  stack, mmap, brk, and ET_DYN. Defined functions:
- 	  - arch_mmap_rnd(), must respect (current->flags & PF_RANDOMIZE)
-+	  - arch_randomize_brk()
- 
- #
- # ABI hall of shame
-diff -puN arch/arm/include/asm/elf.h~mm-fold-arch_randomize_brk-into-arch_has_elf_randomize arch/arm/include/asm/elf.h
---- a/arch/arm/include/asm/elf.h~mm-fold-arch_randomize_brk-into-arch_has_elf_randomize
-+++ a/arch/arm/include/asm/elf.h
-@@ -125,10 +125,6 @@ int dump_task_regs(struct task_struct *t
- extern void elf_set_personality(const struct elf32_hdr *);
- #define SET_PERSONALITY(ex)	elf_set_personality(&(ex))
- 
--struct mm_struct;
--extern unsigned long arch_randomize_brk(struct mm_struct *mm);
--#define arch_randomize_brk arch_randomize_brk
--
- #ifdef CONFIG_MMU
- #define ARCH_HAS_SETUP_ADDITIONAL_PAGES 1
- struct linux_binprm;
-diff -puN arch/arm64/include/asm/elf.h~mm-fold-arch_randomize_brk-into-arch_has_elf_randomize arch/arm64/include/asm/elf.h
---- a/arch/arm64/include/asm/elf.h~mm-fold-arch_randomize_brk-into-arch_has_elf_randomize
+diff -puN arch/arm64/include/asm/elf.h~mm-move-randomize_et_dyn-into-elf_et_dyn_base arch/arm64/include/asm/elf.h
+--- a/arch/arm64/include/asm/elf.h~mm-move-randomize_et_dyn-into-elf_et_dyn_base
 +++ a/arch/arm64/include/asm/elf.h
-@@ -156,10 +156,6 @@ extern int arch_setup_additional_pages(s
- #define STACK_RND_MASK			(0x3ffff >> (PAGE_SHIFT - 12))
- #endif
- 
--struct mm_struct;
--extern unsigned long arch_randomize_brk(struct mm_struct *mm);
--#define arch_randomize_brk arch_randomize_brk
--
- #ifdef CONFIG_COMPAT
- 
- #ifdef __AARCH64EB__
-diff -puN arch/mips/include/asm/elf.h~mm-fold-arch_randomize_brk-into-arch_has_elf_randomize arch/mips/include/asm/elf.h
---- a/arch/mips/include/asm/elf.h~mm-fold-arch_randomize_brk-into-arch_has_elf_randomize
-+++ a/arch/mips/include/asm/elf.h
-@@ -410,10 +410,6 @@ struct linux_binprm;
- extern int arch_setup_additional_pages(struct linux_binprm *bprm,
- 				       int uses_interp);
- 
--struct mm_struct;
--extern unsigned long arch_randomize_brk(struct mm_struct *mm);
--#define arch_randomize_brk arch_randomize_brk
--
- struct arch_elf_state {
- 	int fp_abi;
- 	int interp_fp_abi;
-diff -puN arch/powerpc/include/asm/elf.h~mm-fold-arch_randomize_brk-into-arch_has_elf_randomize arch/powerpc/include/asm/elf.h
---- a/arch/powerpc/include/asm/elf.h~mm-fold-arch_randomize_brk-into-arch_has_elf_randomize
-+++ a/arch/powerpc/include/asm/elf.h
-@@ -128,10 +128,6 @@ extern int arch_setup_additional_pages(s
- 	(0x7ff >> (PAGE_SHIFT - 12)) : \
- 	(0x3ffff >> (PAGE_SHIFT - 12)))
- 
--extern unsigned long arch_randomize_brk(struct mm_struct *mm);
--#define arch_randomize_brk arch_randomize_brk
--
--
- #ifdef CONFIG_SPU_BASE
- /* Notes used in ET_CORE. Note name is "SPU/<fd>/<filename>". */
- #define NT_SPU		1
-diff -puN arch/s390/include/asm/elf.h~mm-fold-arch_randomize_brk-into-arch_has_elf_randomize arch/s390/include/asm/elf.h
---- a/arch/s390/include/asm/elf.h~mm-fold-arch_randomize_brk-into-arch_has_elf_randomize
-+++ a/arch/s390/include/asm/elf.h
-@@ -226,9 +226,6 @@ struct linux_binprm;
- #define ARCH_HAS_SETUP_ADDITIONAL_PAGES 1
- int arch_setup_additional_pages(struct linux_binprm *, int);
- 
--extern unsigned long arch_randomize_brk(struct mm_struct *mm);
--#define arch_randomize_brk arch_randomize_brk
--
- void *fill_cpu_elf_notes(void *ptr, struct save_area *sa, __vector128 *vxrs);
- 
- #endif
-diff -puN arch/x86/include/asm/elf.h~mm-fold-arch_randomize_brk-into-arch_has_elf_randomize arch/x86/include/asm/elf.h
---- a/arch/x86/include/asm/elf.h~mm-fold-arch_randomize_brk-into-arch_has_elf_randomize
-+++ a/arch/x86/include/asm/elf.h
-@@ -338,9 +338,6 @@ extern int compat_arch_setup_additional_
- 					      int uses_interp);
- #define compat_arch_setup_additional_pages compat_arch_setup_additional_pages
- 
--extern unsigned long arch_randomize_brk(struct mm_struct *mm);
--#define arch_randomize_brk arch_randomize_brk
--
- /*
-  * True on X86_32 or when emulating IA32 on X86_64
+@@ -125,7 +125,6 @@ typedef struct user_fpsimd_state elf_fpr
+  * the loader.  We need to make sure that it is out of the way of the program
+  * that it will "exec", and that there is sufficient room for the brk.
   */
-diff -puN fs/binfmt_elf.c~mm-fold-arch_randomize_brk-into-arch_has_elf_randomize fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~mm-fold-arch_randomize_brk-into-arch_has_elf_randomize
-+++ a/fs/binfmt_elf.c
-@@ -1041,15 +1041,13 @@ static int load_elf_binary(struct linux_
- 	current->mm->end_data = end_data;
- 	current->mm->start_stack = bprm->p;
+-extern unsigned long randomize_et_dyn(unsigned long base);
+ #define ELF_ET_DYN_BASE	(2 * TASK_SIZE_64 / 3)
  
--#ifdef arch_randomize_brk
- 	if ((current->flags & PF_RANDOMIZE) && (randomize_va_space > 1)) {
- 		current->mm->brk = current->mm->start_brk =
- 			arch_randomize_brk(current->mm);
--#ifdef CONFIG_COMPAT_BRK
-+#ifdef compat_brk_randomized
- 		current->brk_randomized = 1;
- #endif
- 	}
--#endif
+ /*
+diff -puN arch/s390/include/asm/elf.h~mm-move-randomize_et_dyn-into-elf_et_dyn_base arch/s390/include/asm/elf.h
+--- a/arch/s390/include/asm/elf.h~mm-move-randomize_et_dyn-into-elf_et_dyn_base
++++ a/arch/s390/include/asm/elf.h
+@@ -161,10 +161,11 @@ extern unsigned int vdso_enabled;
+ /* This is the location that an ET_DYN program is loaded if exec'ed.  Typical
+    use of this is to invoke "./ld.so someprog" to test out a new version of
+    the loader.  We need to make sure that it is out of the way of the program
+-   that it will "exec", and that there is sufficient room for the brk.  */
+-
+-extern unsigned long randomize_et_dyn(void);
+-#define ELF_ET_DYN_BASE		randomize_et_dyn()
++   that it will "exec", and that there is sufficient room for the brk. 64-bit
++   tasks are aligned to 4GB. */
++#define ELF_ET_DYN_BASE (arch_mmap_rnd() + (is_32bit_task() ? \
++				(STACK_TOP / 3 * 2) : \
++				(STACK_TOP / 3 * 2) & ~((1UL << 32) - 1)))
  
- 	if (current->personality & MMAP_PAGE_ZERO) {
- 		/* Why this, you ask???  Well SVr4 maps page 0 as read-only,
-diff -puN include/linux/elf-randomize.h~mm-fold-arch_randomize_brk-into-arch_has_elf_randomize include/linux/elf-randomize.h
---- a/include/linux/elf-randomize.h~mm-fold-arch_randomize_brk-into-arch_has_elf_randomize
-+++ a/include/linux/elf-randomize.h
-@@ -1,10 +1,22 @@
- #ifndef _ELF_RANDOMIZE_H
- #define _ELF_RANDOMIZE_H
+ /* This yields a mask that user programs can use to figure out what
+    instruction set this CPU supports. */
+diff -puN arch/s390/mm/mmap.c~mm-move-randomize_et_dyn-into-elf_et_dyn_base arch/s390/mm/mmap.c
+--- a/arch/s390/mm/mmap.c~mm-move-randomize_et_dyn-into-elf_et_dyn_base
++++ a/arch/s390/mm/mmap.c
+@@ -179,17 +179,6 @@ arch_get_unmapped_area_topdown(struct fi
+ 	return addr;
+ }
  
-+struct mm_struct;
-+
- #ifndef CONFIG_ARCH_HAS_ELF_RANDOMIZE
- static inline unsigned long arch_mmap_rnd(void) { return 0; }
-+# if defined(arch_randomize_brk) && defined(CONFIG_COMPAT_BRK)
-+#  define compat_brk_randomized
-+# endif
-+# ifndef arch_randomize_brk
-+#  define arch_randomize_brk(mm)	(mm->brk)
-+# endif
- #else
- extern unsigned long arch_mmap_rnd(void);
-+extern unsigned long arch_randomize_brk(struct mm_struct *mm);
-+# ifdef CONFIG_COMPAT_BRK
-+#  define compat_brk_randomized
-+# endif
- #endif
- 
- #endif
-_
-
-Patches currently in -mm which might be from keescook@chromium.org are
-
-origin.patch
-arm-factor-out-mmap-aslr-into-mmap_rnd.patch
-mm-expose-arch_mmap_rnd-when-available.patch
-mm-move-randomize_et_dyn-into-elf_et_dyn_base.patch
-mm-split-et_dyn-aslr-from-mmap-aslr.patch
-mm-fold-arch_randomize_brk-into-arch_has_elf_randomize.patch
-lib-vsprintf-add-%pt-format-specifier.patch
-linux-next.patch
-
+-unsigned long randomize_et_dyn(void)
+-{
+-	unsigned long base;
+-
+-	base = STACK_TOP / 3 * 2;
+-	if (!is_32bit_task())
+-		/* Align to 4GB */
+-		base &= ~((1UL << 32) - 1);
+-	return base + arch_mmap_rnd();
+-}
