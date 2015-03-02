@@ -1,37 +1,35 @@
 From: akpm@linux-foundation.org
 Subject: [alternative-merged]
- fix-offset2lib-issue-for-x86-arm-powerpc-and-mips-fix-fix-2.patch removed
- from -mm tree
-Date: Mon, 02 Mar 2015 13:58:10 -0800
-Message-ID: <54f4dcf2.eIXAb/GbcpVdGnqb%akpm@linux-foundation.org>
+ fix-offset2lib-issue-for-x86-arm-powerpc-and-mips-fix-fix-2-fix.patch
+ removed from -mm tree
+Date: Mon, 02 Mar 2015 13:58:13 -0800
+Message-ID: <54f4dcf5.g0sCtGTlxeJLZfOr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43965 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43974 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754949AbbCBV6L (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Mar 2015 16:58:11 -0500
+	with ESMTP id S1754588AbbCBV6O (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Mar 2015 16:58:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, benh@kernel.crashing.org, catalin.marinas@arm.com, hecmargi@upv.es, hpa@zytor.com, iripoll@upv.es, keescook@chromium.org, mingo@kernel.org, ralf@linux-mips.org, rmk@arm.linux.org.uk, tglx@linutronix.de, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fix-offset2lib-issue-for-x86-arm-powerpc-and-mips-fix-fix-2
+     Subject: fix-offset2lib-issue-for-x86-arm-powerpc-and-mips-fix-fix-2-fix
 has been removed from the -mm tree.  Its filename was
-     fix-offset2lib-issue-for-x86-arm-powerpc-and-mips-fix-fix-2.patch
+     fix-offset2lib-issue-for-x86-arm-powerpc-and-mips-fix-fix-2-fix.patch
 
 This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fix-offset2lib-issue-for-x86-arm-powerpc-and-mips-fix-fix-2
+Subject: fix-offset2lib-issue-for-x86-arm-powerpc-and-mips-fix-fix-2-fix
 
-Create and use ARCH_HAVE_ELF_ASLR.
-
-There are probably lots of other places which should use this.
+bah
 
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
@@ -48,111 +46,21 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/Kconfig     |    1 +
- arch/arm64/Kconfig   |    1 +
- arch/mips/Kconfig    |    1 +
- arch/powerpc/Kconfig |    1 +
- arch/x86/Kconfig     |    1 +
- fs/Kconfig           |    3 +++
- fs/binfmt_elf.c      |   11 ++---------
- 7 files changed, 10 insertions(+), 9 deletions(-)
+ fs/binfmt_elf.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/arm/Kconfig~fix-offset2lib-issue-for-x86-arm-powerpc-and-mips-fix-fix-2 arch/arm/Kconfig
---- a/arch/arm/Kconfig~fix-offset2lib-issue-for-x86-arm-powerpc-and-mips-fix-fix-2
-+++ a/arch/arm/Kconfig
-@@ -5,6 +5,7 @@ config ARM
- 	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
- 	select ARCH_HAVE_CUSTOM_GPIO_H
- 	select ARCH_HAS_GCOV_PROFILE_ALL
-+	select ARCH_HAVE_ELF_ASLR
- 	select ARCH_MIGHT_HAVE_PC_PARPORT
- 	select ARCH_SUPPORTS_ATOMIC_RMW
- 	select ARCH_USE_BUILTIN_BSWAP
-diff -puN arch/arm64/Kconfig~fix-offset2lib-issue-for-x86-arm-powerpc-and-mips-fix-fix-2 arch/arm64/Kconfig
---- a/arch/arm64/Kconfig~fix-offset2lib-issue-for-x86-arm-powerpc-and-mips-fix-fix-2
-+++ a/arch/arm64/Kconfig
-@@ -9,6 +9,7 @@ config ARM64
- 	select ARCH_WANT_OPTIONAL_GPIOLIB
- 	select ARCH_WANT_COMPAT_IPC_PARSE_VERSION
- 	select ARCH_WANT_FRAME_POINTERS
-+	select ARCH_HAVE_ELF_ASLR
- 	select ARM_AMBA
- 	select ARM_ARCH_TIMER
- 	select ARM_GIC
-diff -puN arch/mips/Kconfig~fix-offset2lib-issue-for-x86-arm-powerpc-and-mips-fix-fix-2 arch/mips/Kconfig
---- a/arch/mips/Kconfig~fix-offset2lib-issue-for-x86-arm-powerpc-and-mips-fix-fix-2
-+++ a/arch/mips/Kconfig
-@@ -39,6 +39,7 @@ config MIPS
- 	select HAVE_MEMBLOCK
- 	select HAVE_MEMBLOCK_NODE_MAP
- 	select ARCH_DISCARD_MEMBLOCK
-+	select ARCH_HAVE_ELF_ASLR
- 	select GENERIC_SMP_IDLE_THREAD
- 	select BUILDTIME_EXTABLE_SORT
- 	select GENERIC_CLOCKEVENTS
-diff -puN arch/powerpc/Kconfig~fix-offset2lib-issue-for-x86-arm-powerpc-and-mips-fix-fix-2 arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~fix-offset2lib-issue-for-x86-arm-powerpc-and-mips-fix-fix-2
-+++ a/arch/powerpc/Kconfig
-@@ -97,6 +97,7 @@ config PPC
- 	select HAVE_FUNCTION_GRAPH_TRACER
- 	select SYSCTL_EXCEPTION_TRACE
- 	select ARCH_WANT_OPTIONAL_GPIOLIB
-+	select ARCH_HAVE_ELF_ASLR
- 	select VIRT_TO_BUS if !PPC64
- 	select HAVE_IDE
- 	select HAVE_IOREMAP_PROT
-diff -puN arch/x86/Kconfig~fix-offset2lib-issue-for-x86-arm-powerpc-and-mips-fix-fix-2 arch/x86/Kconfig
---- a/arch/x86/Kconfig~fix-offset2lib-issue-for-x86-arm-powerpc-and-mips-fix-fix-2
-+++ a/arch/x86/Kconfig
-@@ -28,6 +28,7 @@ config X86
- 	select ARCH_HAS_GCOV_PROFILE_ALL
- 	select ARCH_MIGHT_HAVE_PC_PARPORT
- 	select ARCH_MIGHT_HAVE_PC_SERIO
-+	select ARCH_HAVE_ELF_ASLR
- 	select HAVE_AOUT if X86_32
- 	select HAVE_UNSTABLE_SCHED_CLOCK
- 	select ARCH_SUPPORTS_NUMA_BALANCING if X86_64
-diff -puN fs/Kconfig~fix-offset2lib-issue-for-x86-arm-powerpc-and-mips-fix-fix-2 fs/Kconfig
---- a/fs/Kconfig~fix-offset2lib-issue-for-x86-arm-powerpc-and-mips-fix-fix-2
-+++ a/fs/Kconfig
-@@ -50,6 +50,9 @@ config FS_DAX
- 
- endif # BLOCK
- 
-+config ARCH_HAVE_ELF_ASLR
-+	bool
-+
- # Posix ACL utility routines
- #
- # Note: Posix ACLs can be implemented without these helpers.  Never use
-diff -puN fs/binfmt_elf.c~fix-offset2lib-issue-for-x86-arm-powerpc-and-mips-fix-fix-2 fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~fix-offset2lib-issue-for-x86-arm-powerpc-and-mips-fix-fix-2
+diff -puN fs/binfmt_elf.c~fix-offset2lib-issue-for-x86-arm-powerpc-and-mips-fix-fix-2-fix fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~fix-offset2lib-issue-for-x86-arm-powerpc-and-mips-fix-fix-2-fix
 +++ a/fs/binfmt_elf.c
-@@ -2301,15 +2301,7 @@ out:
+@@ -2301,7 +2301,7 @@ out:
  
  #endif		/* CONFIG_ELF_CORE */
  
--/* Not all architectures implement mmap_rnd() */
--unsigned long __weak mmap_rnd(void)
--{
--}
--
--/*
-- * Not all architectures use randomize_et_dyn(), but there doesn't seem to be
-- * a compile-time way of avoiding its generation.
-- */
-+#ifdef ARCH_HAVE_ELF_ASLR
+-#ifdef ARCH_HAVE_ELF_ASLR
++#ifdef CONFIG_ARCH_HAVE_ELF_ASLR
  unsigned long randomize_et_dyn(unsigned long base)
  {
  	unsigned long ret;
-@@ -2320,6 +2312,7 @@ unsigned long randomize_et_dyn(unsigned
- 	ret = base + mmap_rnd();
- 	return max(ret, base);
- }
-+#endif
- 
- static int __init init_elf_binfmt(void)
- {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -169,7 +77,6 @@ mm-hide-per-cpu-lists-in-output-of-show_mem-fix.patch
 mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
 x86-add-pmd_-for-thp-fix.patch
 sparc-add-pmd_-for-thp-fix.patch
-fix-offset2lib-issue-for-x86-arm-powerpc-and-mips-fix-fix-2-fix.patch
 kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes.patch
 lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix.patch
 lib-find__bit-reimplementation-fix.patch
