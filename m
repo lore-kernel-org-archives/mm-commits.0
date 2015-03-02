@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-no-need-get-dinode-bh-when-zeroing-extend.patch added to
- -mm tree
-Date: Mon, 02 Mar 2015 11:07:31 -0800
-Message-ID: <54f4b4f3.4CoczFrbRCQrKIac%akpm@linux-foundation.org>
+Subject: + ocfs2-fix-a-typing-error-in-ocfs2_direct_io_write.patch added
+ to -mm tree
+Date: Mon, 02 Mar 2015 11:07:29 -0800
+Message-ID: <54f4b4f1.CDZC3s5Bj8mLZVDB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41840 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41837 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753590AbbCBTHc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Mar 2015 14:07:32 -0500
+	with ESMTP id S1753590AbbCBTHa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Mar 2015 14:07:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: joseph.qi@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: no need get dinode bh when zeroing extend
+     Subject: ocfs2: fix a typing error in ocfs2_direct_IO_write
 has been added to the -mm tree.  Its filename is
-     ocfs2-no-need-get-dinode-bh-when-zeroing-extend.patch
+     ocfs2-fix-a-typing-error-in-ocfs2_direct_io_write.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-no-need-get-dinode-bh-when-zeroing-extend.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-a-typing-error-in-ocfs2_direct_io_write.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-no-need-get-dinode-bh-when-zeroing-extend.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-a-typing-error-in-ocfs2_direct_io_write.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,9 +40,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joseph Qi <joseph.qi@huawei.com>
-Subject: ocfs2: no need get dinode bh when zeroing extend
+Subject: ocfs2: fix a typing error in ocfs2_direct_IO_write
 
-Since di_bh won't be used when zeroing extend, set it to NULL.
+Only when direct IO succeeds we need consider zeroing out in case of
+cluster not aligned.
 
 Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
 Cc: Mark Fasheh <mfasheh@suse.com>
@@ -50,43 +51,21 @@ Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/aops.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ fs/ocfs2/aops.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/aops.c~ocfs2-no-need-get-dinode-bh-when-zeroing-extend fs/ocfs2/aops.c
---- a/fs/ocfs2/aops.c~ocfs2-no-need-get-dinode-bh-when-zeroing-extend
+diff -puN fs/ocfs2/aops.c~ocfs2-fix-a-typing-error-in-ocfs2_direct_io_write fs/ocfs2/aops.c
+--- a/fs/ocfs2/aops.c~ocfs2-fix-a-typing-error-in-ocfs2_direct_io_write
 +++ a/fs/ocfs2/aops.c
-@@ -706,7 +706,7 @@ static ssize_t ocfs2_direct_IO_write(str
- 	}
- 
- 	if (append_write) {
--		ret = ocfs2_inode_lock(inode, &di_bh, 1);
-+		ret = ocfs2_inode_lock(inode, NULL, 1);
- 		if (ret < 0) {
- 			mlog_errno(ret);
- 			goto clean_orphan;
-@@ -720,7 +720,6 @@ static ssize_t ocfs2_direct_IO_write(str
- 		if (ret < 0) {
- 			mlog_errno(ret);
- 			ocfs2_inode_unlock(inode, 1);
--			brelse(di_bh);
- 			goto clean_orphan;
+@@ -771,7 +771,7 @@ static ssize_t ocfs2_direct_IO_write(str
+ 			if (ret < 0)
+ 				mlog_errno(ret);
  		}
- 
-@@ -728,13 +727,10 @@ static ssize_t ocfs2_direct_IO_write(str
- 		if (is_overwrite < 0) {
- 			mlog_errno(is_overwrite);
- 			ocfs2_inode_unlock(inode, 1);
--			brelse(di_bh);
- 			goto clean_orphan;
- 		}
- 
- 		ocfs2_inode_unlock(inode, 1);
--		brelse(di_bh);
--		di_bh = NULL;
- 	}
- 
- 	written = __blockdev_direct_IO(WRITE, iocb, inode, inode->i_sb->s_bdev,
+-	} else if (written < 0 && append_write && !is_overwrite &&
++	} else if (written > 0 && append_write && !is_overwrite &&
+ 			!cluster_align) {
+ 		u32 p_cpos = 0;
+ 		u32 v_cpos = ocfs2_bytes_to_clusters(osb->sb, offset);
 _
 
 Patches currently in -mm which might be from joseph.qi@huawei.com are
