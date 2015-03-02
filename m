@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- rtc-add-rtc-abx805-a-driver-for-the-abracon-ab-1805-i2c-rtc-fix.patch added to -mm tree
-Date: Mon, 02 Mar 2015 12:44:37 -0800
-Message-ID: <54f4cbb5.+gvD5SfgC2vxPGir%akpm@linux-foundation.org>
+Subject: + lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix.patch
+ added to -mm tree
+Date: Mon, 02 Mar 2015 12:48:34 -0800
+Message-ID: <54f4cca2.OAZ1RXswRaTfxAX5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43229 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43358 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751914AbbCBUoi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Mar 2015 15:44:38 -0500
+	with ESMTP id S1754746AbbCBUsf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Mar 2015 15:48:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, a.zummo@towertech.it, phdm@macqel.be, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, corbet@lwn.net, geert+renesas@glider.be, mturquette@linaro.org, penguin-kernel@I-love.SAKURA.ne.jp, sboyd@codeaurora.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: abx805 depends on i2c
+     Subject: lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix
 has been added to the -mm tree.  Its filename is
-     rtc-add-rtc-abx805-a-driver-for-the-abracon-ab-1805-i2c-rtc-fix.patch
+     lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rtc-add-rtc-abx805-a-driver-for-the-abracon-ab-1805-i2c-rtc-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-vsprintf-add-%25pcnr-format-specifiers-for-clocks-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-add-rtc-abx805-a-driver-for-the-abracon-ab-1805-i2c-rtc-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-vsprintf-add-%25pcnr-format-specifiers-for-clocks-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,47 +39,62 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: rtc: abx805 depends on i2c
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix
 
-The recently added X805 rtc driver uses the i2c subsystem, but has no
-Kconfig dependency, so it can result in a build error when i2c is
-disabled:
+omit code if !CONFIG_HAVE_CLK
 
-drivers/rtc/rtc-abx805.c: In function 'abx805_read_multiple_regs':
-drivers/rtc/rtc-abx805.c:55:2: error: implicit declaration of function 'i2c_transfer' [-Werror=implicit-function-declaration]
-
-This adds the obvious dependency.
-
-Fixes: 9033ab8ddd29 ("rtc: add rtc-abx805, a driver for the Abracon AB 1805 i2c rtc")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Philippe De Muyter <phdm@macqel.be>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Geert Uytterhoeven <geert+renesas@glider.be>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Mike Turquette <mturquette@linaro.org>
+Cc: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ lib/vsprintf.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/Kconfig~rtc-add-rtc-abx805-a-driver-for-the-abracon-ab-1805-i2c-rtc-fix drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-add-rtc-abx805-a-driver-for-the-abracon-ab-1805-i2c-rtc-fix
-+++ a/drivers/rtc/Kconfig
-@@ -1083,6 +1083,7 @@ config RTC_DRV_AB8500
+diff -puN lib/vsprintf.c~lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix lib/vsprintf.c
+--- a/lib/vsprintf.c~lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix
++++ a/lib/vsprintf.c
+@@ -1320,7 +1320,7 @@ static noinline_for_stack
+ char *clock(char *buf, char *end, struct clk *clk, struct printf_spec spec,
+ 	    const char *fmt)
+ {
+-	if (!clk)
++	if (!IS_ENABLED(CONFIG_HAVE_CLK) || !clk)
+ 		return string(buf, end, NULL, spec);
  
- config RTC_DRV_ABX805
- 	tristate "Abracon AB X805 RTC"
-+	depends on I2C
- 	help
- 	  Select this to enable support for the Abracon AB X805 RTC.
- 	  AB X805 is the i2c flavour of the AB 18X5 family of ultra-low-power
+ 	switch (fmt[1]) {
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-ocfs2-use-64bit-variables-to-track-heartbeat-time.patch
-i8k-remove-use-of-seq_printf-return-value.patch
-rtc-add-rtc-abx805-a-driver-for-the-abracon-ab-1805-i2c-rtc-fix.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+mm.patch
+mm-cma-release-trigger-checkpatch-fixes.patch
+mm-cma-allocation-trigger-fix.patch
+mm-compaction-enhance-compaction-finish-condition-fix.patch
+page_writeback-cleanup-mess-around-cancel_dirty_page-checkpatch-fixes.patch
+mm-hide-per-cpu-lists-in-output-of-show_mem-fix.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes.patch
+lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix.patch
+lib-find__bit-reimplementation-fix.patch
+binfmt_misc-simplify-entry_status-fix.patch
+fs-fat-remove-unnecessary-includes-fix.patch
+kconfig-use-macros-which-are-already-defined-fix.patch
 linux-next.patch
-powerpc-oprofile-reduce-mmap_sem-hold-for-exe_file.patch
+lib-kconfig-fix-up-have_arch_bitreverse-help-text.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
