@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-change-__get_vm_area_node-to-use-fls_long.patch added to -mm tree
-Date: Tue, 03 Mar 2015 14:45:56 -0800
-Message-ID: <54f639a4.KpTvInGrUxZvjDAe%akpm@linux-foundation.org>
+Subject: + mm-change-ioremap-to-set-up-huge-i-o-mappings.patch added to
+ -mm tree
+Date: Tue, 03 Mar 2015 14:46:00 -0800
+Message-ID: <54f639a8.Vb6y5G+rlfSuVk/O%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36514 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36529 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756618AbbCCWp5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Mar 2015 17:45:57 -0500
+	with ESMTP id S1756618AbbCCWqB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Mar 2015 17:46:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: toshi.kani@hp.com, Elliott@hp.com, arnd@arndb.de, dave.hansen@intel.com, hpa@zytor.com, mingo@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: change __get_vm_area_node() to use fls_long()
+     Subject: mm: change ioremap to set up huge I/O mappings
 has been added to the -mm tree.  Its filename is
-     mm-change-__get_vm_area_node-to-use-fls_long.patch
+     mm-change-ioremap-to-set-up-huge-i-o-mappings.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-change-__get_vm_area_node-to-use-fls_long.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-change-ioremap-to-set-up-huge-i-o-mappings.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-change-__get_vm_area_node-to-use-fls_long.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-change-ioremap-to-set-up-huge-i-o-mappings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,51 +40,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: mm: change __get_vm_area_node() to use fls_long()
+Subject: mm: change ioremap to set up huge I/O mappings
 
-ioremap() and its related interfaces are used to create I/O mappings to
-memory-mapped I/O devices.  The mapping sizes of the traditional I/O
-devices are relatively small.  Non-volatile memory (NVM), however, has
-many GB and is going to have TB soon.  It is not very efficient to create
-large I/O mappings with 4KB.  
+ioremap_pud_range() and ioremap_pmd_range() are changed to create huge I/O
+mappings when their capability is enabled, and a request meets required
+conditions -- both virtual & physical addresses are aligned by their huge
+page size, and a requested range fufills their huge page size.  When
+pud_set_huge() or pmd_set_huge() returns zero, i.e.  no-operation is
+performed, the code simply falls back to the next level.
 
-This patchset extends the ioremap() interfaces to transparently create I/O
-mappings with huge pages whenever possible.  ioremap() continues to use
-4KB mappings when a huge page does not fit into a requested range.  There
-is no change necessary to the drivers using ioremap().  A requested
-physical address must be aligned by a huge page size (1GB or 2MB on x86)
-for using huge page mapping, though.  The kernel huge I/O mapping will
-improve performance of NVM and other devices with large memory, and reduce
-the time to create their mappings as well.
-
-On x86, MTRRs can override PAT memory types with a 4KB granularity.  When
-using a huge page, MTRRs can override the memory type of the huge page,
-which may lead a performance penalty.  The processor can also behave in an
-undefined manner if a huge page is mapped to a memory range that MTRRs
-have mapped with multiple different memory types.  Therefore, the mapping
-code falls back to use a smaller page size toward 4KB when a mapping range
-is covered by non-WB type of MTRRs.  The WB type of MTRRs has no affect on
-the PAT memory types.
-
-The patchset introduces HAVE_ARCH_HUGE_VMAP, which indicates that the arch
-supports huge KVA mappings for ioremap().  User may specify a new kernel
-option "nohugeiomap" to disable the huge I/O mapping capability of
-ioremap() when necessary.
-
-Patch 1-4 change common files to support huge I/O mappings.  There is no
-change in the functinalities unless HAVE_ARCH_HUGE_VMAP is defined on the
-architecture of the system.
-
-Patch 5-6 implement the HAVE_ARCH_HUGE_VMAP funcs on x86, and set
-HAVE_ARCH_HUGE_VMAP on x86.
-
-
-
-This patch (of 6):
-
-__get_vm_area_node() takes unsigned long size, which is a 64-bit value on
-a 64-bit kernel.  However, fls(size) simply ignores the upper 32-bit. 
-Change to use fls_long() to handle the size properly.
+The changes are only enabled when CONFIG_HAVE_ARCH_HUGE_VMAP is defined on
+the architecture.
 
 Signed-off-by: Toshi Kani <toshi.kani@hp.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
@@ -95,30 +62,73 @@ Cc: Robert Elliott <Elliott@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ include/asm-generic/pgtable.h |   15 +++++++++++++++
+ lib/ioremap.c                 |   16 ++++++++++++++++
+ 2 files changed, 31 insertions(+)
 
-diff -puN mm/vmalloc.c~mm-change-__get_vm_area_node-to-use-fls_long mm/vmalloc.c
---- a/mm/vmalloc.c~mm-change-__get_vm_area_node-to-use-fls_long
-+++ a/mm/vmalloc.c
-@@ -29,6 +29,7 @@
- #include <linux/atomic.h>
- #include <linux/compiler.h>
- #include <linux/llist.h>
-+#include <linux/bitops.h>
+diff -puN include/asm-generic/pgtable.h~mm-change-ioremap-to-set-up-huge-i-o-mappings include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~mm-change-ioremap-to-set-up-huge-i-o-mappings
++++ a/include/asm-generic/pgtable.h
+@@ -6,6 +6,7 @@
  
- #include <asm/uaccess.h>
- #include <asm/tlbflush.h>
-@@ -1314,7 +1315,8 @@ static struct vm_struct *__get_vm_area_n
+ #include <linux/mm_types.h>
+ #include <linux/bug.h>
++#include <linux/errno.h>
  
- 	BUG_ON(in_interrupt());
- 	if (flags & VM_IOREMAP)
--		align = 1ul << clamp(fls(size), PAGE_SHIFT, IOREMAP_MAX_ORDER);
-+		align = 1ul << clamp_t(int, fls_long(size),
-+				       PAGE_SHIFT, IOREMAP_MAX_ORDER);
+ #if 4 - defined(__PAGETABLE_PUD_FOLDED) - defined(__PAGETABLE_PMD_FOLDED) != \
+ 	CONFIG_PGTABLE_LEVELS
+@@ -702,4 +703,18 @@ static inline int pmd_protnone(pmd_t pmd
+ #define io_remap_pfn_range remap_pfn_range
+ #endif
  
- 	size = PAGE_ALIGN(size);
- 	if (unlikely(!size))
++#ifdef CONFIG_HAVE_ARCH_HUGE_VMAP
++int pud_set_huge(pud_t *pud, phys_addr_t addr, pgprot_t prot);
++int pmd_set_huge(pmd_t *pmd, phys_addr_t addr, pgprot_t prot);
++#else	/* !CONFIG_HAVE_ARCH_HUGE_VMAP */
++static inline int pud_set_huge(pud_t *pud, phys_addr_t addr, pgprot_t prot)
++{
++	return 0;
++}
++static inline int pmd_set_huge(pmd_t *pmd, phys_addr_t addr, pgprot_t prot)
++{
++	return 0;
++}
++#endif	/* CONFIG_HAVE_ARCH_HUGE_VMAP */
++
+ #endif /* _ASM_GENERIC_PGTABLE_H */
+diff -puN lib/ioremap.c~mm-change-ioremap-to-set-up-huge-i-o-mappings lib/ioremap.c
+--- a/lib/ioremap.c~mm-change-ioremap-to-set-up-huge-i-o-mappings
++++ a/lib/ioremap.c
+@@ -81,6 +81,14 @@ static inline int ioremap_pmd_range(pud_
+ 		return -ENOMEM;
+ 	do {
+ 		next = pmd_addr_end(addr, end);
++
++		if (ioremap_pmd_enabled() &&
++		    ((next - addr) == PMD_SIZE) &&
++		    IS_ALIGNED(phys_addr + addr, PMD_SIZE)) {
++			if (pmd_set_huge(pmd, phys_addr + addr, prot))
++				continue;
++		}
++
+ 		if (ioremap_pte_range(pmd, addr, next, phys_addr + addr, prot))
+ 			return -ENOMEM;
+ 	} while (pmd++, addr = next, addr != end);
+@@ -99,6 +107,14 @@ static inline int ioremap_pud_range(pgd_
+ 		return -ENOMEM;
+ 	do {
+ 		next = pud_addr_end(addr, end);
++
++		if (ioremap_pud_enabled() &&
++		    ((next - addr) == PUD_SIZE) &&
++		    IS_ALIGNED(phys_addr + addr, PUD_SIZE)) {
++			if (pud_set_huge(pud, phys_addr + addr, prot))
++				continue;
++		}
++
+ 		if (ioremap_pmd_range(pud, addr, next, phys_addr + addr, prot))
+ 			return -ENOMEM;
+ 	} while (pud++, addr = next, addr != end);
 _
 
 Patches currently in -mm which might be from toshi.kani@hp.com are
