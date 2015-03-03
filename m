@@ -1,82 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: + clear-the-rest-of-the-buffers-on-error.patch added to -mm tree
-Date: Tue, 03 Mar 2015 14:07:32 -0800
-Message-ID: <54f630a4.qE4Gj7YxB/dtz+k4%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ rtc-add-rtc-abx805-a-driver-for-the-abracon-ab-1805-i2c-rtc-fix.patch
+ removed from -mm tree
+Date: Tue, 03 Mar 2015 14:29:31 -0800
+Message-ID: <54f635cb.q/PfKg6FuAxWcC9k%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36287 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36412 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932082AbbCCWHd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Mar 2015 17:07:33 -0500
+	with ESMTP id S1755787AbbCCW3d (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Mar 2015 17:29:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rgoldwyn@suse.de, jlbec@evilplan.org, mfasheh@suse.com, rgoldwyn@suse.com, mm-commits@vger.kernel.org
+To: arnd@arndb.de, a.zummo@towertech.it, phdm@macqel.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: clear the rest of the buffers on error
-has been added to the -mm tree.  Its filename is
-     clear-the-rest-of-the-buffers-on-error.patch
+     Subject: rtc: abx805 depends on i2c
+has been removed from the -mm tree.  Its filename was
+     rtc-add-rtc-abx805-a-driver-for-the-abracon-ab-1805-i2c-rtc-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/clear-the-rest-of-the-buffers-on-error.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/clear-the-rest-of-the-buffers-on-error.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into rtc-add-rtc-abx805-a-driver-for-the-abracon-ab-1805-i2c-rtc.patch
 
 ------------------------------------------------------
-From: Goldwyn Rodrigues <rgoldwyn@suse.de>
-Subject: ocfs2: clear the rest of the buffers on error
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: rtc: abx805 depends on i2c
 
-In case a validation fails, clear the rest of the buffers and return the
-error to the calling function.
+The recently added X805 rtc driver uses the i2c subsystem, but has no
+Kconfig dependency, so it can result in a build error when i2c is
+disabled:
 
-This also facilitates bubbling up the error originating from ocfs2_error
-to calling functions.
+drivers/rtc/rtc-abx805.c: In function 'abx805_read_multiple_regs':
+drivers/rtc/rtc-abx805.c:55:2: error: implicit declaration of function 'i2c_transfer' [-Werror=implicit-function-declaration]
 
-Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+This adds the obvious dependency.
+
+Fixes: 9033ab8ddd29 ("rtc: add rtc-abx805, a driver for the Abracon AB 1805 i2c rtc")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Philippe De Muyter <phdm@macqel.be>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/buffer_head_io.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/rtc/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/ocfs2/buffer_head_io.c~clear-the-rest-of-the-buffers-on-error fs/ocfs2/buffer_head_io.c
---- a/fs/ocfs2/buffer_head_io.c~clear-the-rest-of-the-buffers-on-error
-+++ a/fs/ocfs2/buffer_head_io.c
-@@ -316,6 +316,12 @@ int ocfs2_read_blocks(struct ocfs2_cachi
- 		bh = bhs[i];
+diff -puN drivers/rtc/Kconfig~rtc-add-rtc-abx805-a-driver-for-the-abracon-ab-1805-i2c-rtc-fix drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-add-rtc-abx805-a-driver-for-the-abracon-ab-1805-i2c-rtc-fix
++++ a/drivers/rtc/Kconfig
+@@ -1083,6 +1083,7 @@ config RTC_DRV_AB8500
  
- 		if (!(flags & OCFS2_BH_READAHEAD)) {
-+			if (status) {
-+				/* Clear the rest of the buffers on error */
-+				put_bh(bh);
-+				bhs[i] = NULL;
-+				continue;
-+			}
- 			/* We know this can't have changed as we hold the
- 			 * owner sem. Avoid doing any work on the bh if the
- 			 * journal has it. */
+ config RTC_DRV_ABX805
+ 	tristate "Abracon AB X805 RTC"
++	depends on I2C
+ 	help
+ 	  Select this to enable support for the Abracon AB X805 RTC.
+ 	  AB X805 is the i2c flavour of the AB 18X5 family of ultra-low-power
 _
 
-Patches currently in -mm which might be from rgoldwyn@suse.de are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-add-errors=continue.patch
-acknowledge-return-value-of-ocfs2_error.patch
-clear-the-rest-of-the-buffers-on-error.patch
+ocfs2-use-64bit-variables-to-track-heartbeat-time.patch
+i8k-remove-use-of-seq_printf-return-value.patch
+rtc-add-rtc-abx805-a-driver-for-the-abracon-ab-1805-i2c-rtc.patch
+linux-next.patch
+powerpc-oprofile-reduce-mmap_sem-hold-for-exe_file.patch
 
