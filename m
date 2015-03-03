@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + cxgb4-drop-__gfp_nofail-allocation-fix.patch added to -mm tree
-Date: Tue, 03 Mar 2015 12:13:47 -0800
-Message-ID: <54f615fb.RrzuLAgwE5DZRJPf%akpm@linux-foundation.org>
+Subject: + rtc-add-abracon-abx80x-driver-fix.patch added to -mm tree
+Date: Tue, 03 Mar 2015 12:22:30 -0800
+Message-ID: <54f61806.pIX7Lz54EdyGX1QP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34962 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35120 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754631AbbCCUNs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Mar 2015 15:13:48 -0500
+	with ESMTP id S1756500AbbCCUWb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Mar 2015 15:22:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.cz, penguin-kernel@I-love.SAKURA.ne.jp, vipul@chelsio.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.zummo@towertech.it, alexandre.belloni@free-electrons.com, pebolle@tiscali.nl, phdm@macqel.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mmotm: cxgb4-drop-__gfp_nofail-allocation-fix
+     Subject: rtc-add-abracon-abx80x-driver-fix
 has been added to the -mm tree.  Its filename is
-     cxgb4-drop-__gfp_nofail-allocation-fix.patch
+     rtc-add-abracon-abx80x-driver-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/cxgb4-drop-__gfp_nofail-allocation-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rtc-add-abracon-abx80x-driver-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/cxgb4-drop-__gfp_nofail-allocation-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-add-abracon-abx80x-driver-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,64 +38,59 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: mmotm: cxgb4-drop-__gfp_nofail-allocation-fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: rtc-add-abracon-abx80x-driver-fix
 
-Use kfree_skb instead of kfree because the allocation is done by
-alloc_skb.
+s/GPL/GPL v2/, per Paul.
 
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Reported-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Vipul Pandya <vipul@chelsio.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+Cc: Philippe De Muyter <phdm@macqel.be>
+Cc: Paul Bolle <pebolle@tiscali.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/rtc/rtc-abx80x.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c~cxgb4-drop-__gfp_nofail-allocation-fix drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
---- a/drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c~cxgb4-drop-__gfp_nofail-allocation-fix
-+++ a/drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
-@@ -1133,14 +1133,14 @@ static int set_filter_wr(struct adapter
- 		/* allocate L2T entry for new filter */
- 		f->l2t = t4_l2t_alloc_switching(adapter->l2t);
- 		if (f->l2t == NULL) {
--			kfree(skb);
-+			kfree_skb(skb);
- 			return -EAGAIN;
- 		}
- 		if (t4_l2t_set_switching(adapter, f->l2t, f->fs.vlan,
- 					f->fs.eport, f->fs.dmac)) {
- 			cxgb4_l2t_release(f->l2t);
- 			f->l2t = NULL;
--			kfree(skb);
-+			kfree_skb(skb);
- 			return -ENOMEM;
- 		}
- 	}
+diff -puN drivers/rtc/rtc-abx80x.c~rtc-add-abracon-abx80x-driver-fix drivers/rtc/rtc-abx80x.c
+--- a/drivers/rtc/rtc-abx80x.c~rtc-add-abracon-abx80x-driver-fix
++++ a/drivers/rtc/rtc-abx80x.c
+@@ -190,4 +190,4 @@ module_i2c_driver(abx80x_driver);
+ 
+ MODULE_AUTHOR("Alexandre Belloni <alexandre.belloni@free-electrons.com>");
+ MODULE_DESCRIPTION("Abracon ABX80X RTC driver");
+-MODULE_LICENSE("GPL");
++MODULE_LICENSE("GPL v2");
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-oom-do-not-fail-__gfp_nofail-allocation-if-oom-killer-is-disbaled.patch
-cxgb4-drop-__gfp_nofail-allocation.patch
-cxgb4-drop-__gfp_nofail-allocation-fix.patch
-jbd2-revert-must-not-fail-allocation-loops-back-to-gfp_nofail.patch
-mm-memcontrol-update-copyright-notice.patch
-mm-cma-release-trigger-fixpatch.patch
-mm-hide-per-cpu-lists-in-output-of-show_mem.patch
-mm-completely-remove-dumping-per-cpu-lists-from-show_mem.patch
-mm-refactor-do_wp_page-extract-the-reuse-case.patch
-mm-refactor-do_wp_page-rewrite-the-unlock-flow.patch
-mm-refactor-do_wp_page-extract-the-page-copy-flow.patch
-mm-refactor-do_wp_page-handling-of-shared-vma-into-a-function.patch
-mm-clarify-__gfp_nofail-deprecation-status.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+mm.patch
+mm-cma-release-trigger-checkpatch-fixes.patch
+mm-cma-allocation-trigger-fix.patch
+mm-compaction-enhance-compaction-finish-condition-fix.patch
+page_writeback-cleanup-mess-around-cancel_dirty_page-checkpatch-fixes.patch
+mm-hide-per-cpu-lists-in-output-of-show_mem-fix.patch
 mm-clarify-__gfp_nofail-deprecation-status-checkpatch-fixes.patch
-sparc-clarify-__gfp_nofail-allocation.patch
 mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-mm-page_isolation-check-pfn-validity-before-access.patch
-mm-support-madvisemadv_free.patch
-mm-dont-split-thp-page-when-syscall-is-called.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-2.patch
-fork-report-pid-reservation-failure-properly.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes.patch
+lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix.patch
+lib-find__bit-reimplementation-fix.patch
+binfmt_misc-simplify-entry_status-fix.patch
+rtc-add-abracon-abx80x-driver-fix.patch
+fs-fat-remove-unnecessary-includes-fix.patch
+kconfig-use-macros-which-are-already-defined-fix.patch
+linux-next.patch
+lib-kconfig-fix-up-have_arch_bitreverse-help-text.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
