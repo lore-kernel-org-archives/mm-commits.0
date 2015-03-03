@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-clarify-__gfp_nofail-deprecation-status.patch added to -mm
- tree
-Date: Mon, 02 Mar 2015 16:17:02 -0800
-Message-ID: <54f4fd7e.QlsF4TpJtEpC5qoD%akpm@linux-foundation.org>
+Subject: + cxgb4-drop-__gfp_nofail-allocation.patch added to -mm tree
+Date: Mon, 02 Mar 2015 16:17:08 -0800
+Message-ID: <54f4fd84.AKmdg2zKxHfJTCnb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45905 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45939 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752705AbbCCARE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Mar 2015 19:17:04 -0500
+	with ESMTP id S1752705AbbCCARJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Mar 2015 19:17:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mhocko@suse.cz, davem@davemloft.net, david@fromorbit.com, hannes@cmpxchg.org, jack@suse.cz, mgorman@suse.de, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, tytso@mit.edu, vipul@chelsio.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: clarify __GFP_NOFAIL deprecation status
+     Subject: cxgb4: drop __GFP_NOFAIL allocation
 has been added to the -mm tree.  Its filename is
-     mm-clarify-__gfp_nofail-deprecation-status.patch
+     cxgb4-drop-__gfp_nofail-allocation.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-clarify-__gfp_nofail-deprecation-status.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/cxgb4-drop-__gfp_nofail-allocation.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-clarify-__gfp_nofail-deprecation-status.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/cxgb4-drop-__gfp_nofail-allocation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,21 +39,25 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.cz>
-Subject: mm: clarify __GFP_NOFAIL deprecation status
+Subject: cxgb4: drop __GFP_NOFAIL allocation
 
-__GFP_NOFAIL is documented as a deprecated flag since 478352e789f5 (mm:
-add comment about deprecation of __GFP_NOFAIL).  This has discouraged
-people from using it but in some cases an opencoded endless loop around
-allocator has been used instead.  So the allocator is not aware of the de
-facto __GFP_NOFAIL allocation because this information was not
-communicated properly.
+set_filter_wr is requesting __GFP_NOFAIL allocation although it can return
+ENOMEM without any problems obviously (t4_l2t_set_switching does that
+already).  So the non-failing requirement is too strong without any
+obvious reason.  Drop __GFP_NOFAIL and reorganize the code to have the
+failure paths easier.
 
-Let's make clear that if the allocation context really cannot effort
-failure because there is no good failure policy then using __GFP_NOFAIL is
-preferable to opencoding the loop outside of the allocator.
+The same applies to _c4iw_write_mem_dma_aligned which uses __GFP_NOFAIL
+and then checks the return value and returns -ENOMEM on failure.  This
+doesn't make any sense what so ever.  Either the allocation cannot fail or
+it can.
+
+del_filter_wr seems to be safe as well because the filter entry is not
+marked as pending and the return value is propagated up the stack up to
+c4iw_destroy_listen.
 
 Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: David Rientjes <rientjes@google.com>
+Cc: David Rientjes <rientjes@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: "Theodore Ts'o" <tytso@mit.edu>
@@ -66,25 +69,72 @@ Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/cxgb4/mem.c               |    2 -
+ drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c |   15 +++++++++++---
+ 2 files changed, 13 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/gfp.h~mm-clarify-__gfp_nofail-deprecation-status include/linux/gfp.h
---- a/include/linux/gfp.h~mm-clarify-__gfp_nofail-deprecation-status
-+++ a/include/linux/gfp.h
-@@ -57,8 +57,10 @@ struct vm_area_struct;
-  * _might_ fail.  This depends upon the particular VM implementation.
-  *
-  * __GFP_NOFAIL: The VM implementation _must_ retry infinitely: the caller
-- * cannot handle allocation failures.  This modifier is deprecated and no new
-- * users should be added.
-+ * cannot handle allocation failures. New users should be evaluated carefuly
-+ * (and the flag should be used only when there is no reasonable failure policy)
-+ * but it is definitely preferable to use the flag rather than opencode endless
-+ * loop around allocator.
-  *
-  * __GFP_NORETRY: The VM implementation must not retry indefinitely.
-  *
+diff -puN drivers/infiniband/hw/cxgb4/mem.c~cxgb4-drop-__gfp_nofail-allocation drivers/infiniband/hw/cxgb4/mem.c
+--- a/drivers/infiniband/hw/cxgb4/mem.c~cxgb4-drop-__gfp_nofail-allocation
++++ a/drivers/infiniband/hw/cxgb4/mem.c
+@@ -73,7 +73,7 @@ static int _c4iw_write_mem_dma_aligned(s
+ 		c4iw_init_wr_wait(&wr_wait);
+ 	wr_len = roundup(sizeof(*req) + sizeof(*sgl), 16);
+ 
+-	skb = alloc_skb(wr_len, GFP_KERNEL | __GFP_NOFAIL);
++	skb = alloc_skb(wr_len, GFP_KERNEL);
+ 	if (!skb)
+ 		return -ENOMEM;
+ 	set_wr_txq(skb, CPL_PRIORITY_CONTROL, 0);
+diff -puN drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c~cxgb4-drop-__gfp_nofail-allocation drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
+--- a/drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c~cxgb4-drop-__gfp_nofail-allocation
++++ a/drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
+@@ -1121,6 +1121,10 @@ static int set_filter_wr(struct adapter
+ 	struct fw_filter_wr *fwr;
+ 	unsigned int ftid;
+ 
++	skb = alloc_skb(sizeof(*fwr), GFP_KERNEL);
++	if (!skb)
++		return -ENOMEM;
++
+ 	/* If the new filter requires loopback Destination MAC and/or VLAN
+ 	 * rewriting then we need to allocate a Layer 2 Table (L2T) entry for
+ 	 * the filter.
+@@ -1128,19 +1132,21 @@ static int set_filter_wr(struct adapter
+ 	if (f->fs.newdmac || f->fs.newvlan) {
+ 		/* allocate L2T entry for new filter */
+ 		f->l2t = t4_l2t_alloc_switching(adapter->l2t);
+-		if (f->l2t == NULL)
++		if (f->l2t == NULL) {
++			kfree(skb);
+ 			return -EAGAIN;
++		}
+ 		if (t4_l2t_set_switching(adapter, f->l2t, f->fs.vlan,
+ 					f->fs.eport, f->fs.dmac)) {
+ 			cxgb4_l2t_release(f->l2t);
+ 			f->l2t = NULL;
++			kfree(skb);
+ 			return -ENOMEM;
+ 		}
+ 	}
+ 
+ 	ftid = adapter->tids.ftid_base + fidx;
+ 
+-	skb = alloc_skb(sizeof(*fwr), GFP_KERNEL | __GFP_NOFAIL);
+ 	fwr = (struct fw_filter_wr *)__skb_put(skb, sizeof(*fwr));
+ 	memset(fwr, 0, sizeof(*fwr));
+ 
+@@ -1238,7 +1244,10 @@ static int del_filter_wr(struct adapter
+ 	len = sizeof(*fwr);
+ 	ftid = adapter->tids.ftid_base + fidx;
+ 
+-	skb = alloc_skb(len, GFP_KERNEL | __GFP_NOFAIL);
++	skb = alloc_skb(len, GFP_KERNEL);
++	if (!skb)
++		return -ENOMEM;
++
+ 	fwr = (struct fw_filter_wr *)__skb_put(skb, len);
+ 	t4_mk_filtdelwr(ftid, fwr, adapter->sge.fw_evtq.abs_id);
+ 
 _
 
 Patches currently in -mm which might be from mhocko@suse.cz are
