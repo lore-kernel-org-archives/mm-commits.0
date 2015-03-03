@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-change-ioremap-to-set-up-huge-i-o-mappings.patch added to
+Subject: + x86-mm-support-huge-i-o-mapping-capability-i-f.patch added to
  -mm tree
-Date: Tue, 03 Mar 2015 14:46:00 -0800
-Message-ID: <54f639a8.Vb6y5G+rlfSuVk/O%akpm@linux-foundation.org>
+Date: Tue, 03 Mar 2015 14:46:04 -0800
+Message-ID: <54f639ac.r3gDEcioc85vf1tA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36529 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36544 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756618AbbCCWqB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Mar 2015 17:46:01 -0500
+	with ESMTP id S1756618AbbCCWqF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Mar 2015 17:46:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: toshi.kani@hp.com, Elliott@hp.com, arnd@arndb.de, dave.hansen@intel.com, hpa@zytor.com, mingo@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: change ioremap to set up huge I/O mappings
+     Subject: x86, mm: support huge I/O mapping capability I/F
 has been added to the -mm tree.  Its filename is
-     mm-change-ioremap-to-set-up-huge-i-o-mappings.patch
+     x86-mm-support-huge-i-o-mapping-capability-i-f.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-change-ioremap-to-set-up-huge-i-o-mappings.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/x86-mm-support-huge-i-o-mapping-capability-i-f.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-change-ioremap-to-set-up-huge-i-o-mappings.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/x86-mm-support-huge-i-o-mapping-capability-i-f.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,17 +40,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: mm: change ioremap to set up huge I/O mappings
+Subject: x86, mm: support huge I/O mapping capability I/F
 
-ioremap_pud_range() and ioremap_pmd_range() are changed to create huge I/O
-mappings when their capability is enabled, and a request meets required
-conditions -- both virtual & physical addresses are aligned by their huge
-page size, and a requested range fufills their huge page size.  When
-pud_set_huge() or pmd_set_huge() returns zero, i.e.  no-operation is
-performed, the code simply falls back to the next level.
+Implement huge I/O mapping capability interfaces for ioremap() on x86.
 
-The changes are only enabled when CONFIG_HAVE_ARCH_HUGE_VMAP is defined on
-the architecture.
+IOREMAP_MAX_ORDER is defined to PUD_SHIFT on x86/64 and PMD_SHIFT on
+x86/32, which overrides the default value defined in <linux/vmalloc.h>.
 
 Signed-off-by: Toshi Kani <toshi.kani@hp.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
@@ -62,73 +57,64 @@ Cc: Robert Elliott <Elliott@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/pgtable.h |   15 +++++++++++++++
- lib/ioremap.c                 |   16 ++++++++++++++++
- 2 files changed, 31 insertions(+)
+ arch/x86/include/asm/page_types.h |    2 ++
+ arch/x86/mm/ioremap.c             |   23 +++++++++++++++++++++--
+ 2 files changed, 23 insertions(+), 2 deletions(-)
 
-diff -puN include/asm-generic/pgtable.h~mm-change-ioremap-to-set-up-huge-i-o-mappings include/asm-generic/pgtable.h
---- a/include/asm-generic/pgtable.h~mm-change-ioremap-to-set-up-huge-i-o-mappings
-+++ a/include/asm-generic/pgtable.h
-@@ -6,6 +6,7 @@
+diff -puN arch/x86/include/asm/page_types.h~x86-mm-support-huge-i-o-mapping-capability-i-f arch/x86/include/asm/page_types.h
+--- a/arch/x86/include/asm/page_types.h~x86-mm-support-huge-i-o-mapping-capability-i-f
++++ a/arch/x86/include/asm/page_types.h
+@@ -40,8 +40,10 @@
  
- #include <linux/mm_types.h>
- #include <linux/bug.h>
-+#include <linux/errno.h>
+ #ifdef CONFIG_X86_64
+ #include <asm/page_64_types.h>
++#define IOREMAP_MAX_ORDER       (PUD_SHIFT)
+ #else
+ #include <asm/page_32_types.h>
++#define IOREMAP_MAX_ORDER       (PMD_SHIFT)
+ #endif	/* CONFIG_X86_64 */
  
- #if 4 - defined(__PAGETABLE_PUD_FOLDED) - defined(__PAGETABLE_PMD_FOLDED) != \
- 	CONFIG_PGTABLE_LEVELS
-@@ -702,4 +703,18 @@ static inline int pmd_protnone(pmd_t pmd
- #define io_remap_pfn_range remap_pfn_range
- #endif
+ #ifndef __ASSEMBLY__
+diff -puN arch/x86/mm/ioremap.c~x86-mm-support-huge-i-o-mapping-capability-i-f arch/x86/mm/ioremap.c
+--- a/arch/x86/mm/ioremap.c~x86-mm-support-huge-i-o-mapping-capability-i-f
++++ a/arch/x86/mm/ioremap.c
+@@ -67,8 +67,13 @@ static int __ioremap_check_ram(unsigned
  
-+#ifdef CONFIG_HAVE_ARCH_HUGE_VMAP
-+int pud_set_huge(pud_t *pud, phys_addr_t addr, pgprot_t prot);
-+int pmd_set_huge(pmd_t *pmd, phys_addr_t addr, pgprot_t prot);
-+#else	/* !CONFIG_HAVE_ARCH_HUGE_VMAP */
-+static inline int pud_set_huge(pud_t *pud, phys_addr_t addr, pgprot_t prot)
+ /*
+  * Remap an arbitrary physical address space into the kernel virtual
+- * address space. Needed when the kernel wants to access high addresses
+- * directly.
++ * address space. It transparently creates kernel huge I/O mapping when
++ * the physical address is aligned by a huge page size (1GB or 2MB) and
++ * the requested size is at least the huge page size.
++ *
++ * NOTE: MTRRs can override PAT memory types with a 4KB granularity.
++ * Therefore, the mapping code falls back to use a smaller page toward 4KB
++ * when a mapping range is covered by non-WB type of MTRRs.
+  *
+  * NOTE! We need to allow non-page-aligned mappings too: we will obviously
+  * have to convert them into an offset in a page-aligned mapping, but the
+@@ -326,6 +331,20 @@ void iounmap(volatile void __iomem *addr
+ }
+ EXPORT_SYMBOL(iounmap);
+ 
++int arch_ioremap_pud_supported(void)
 +{
++#ifdef CONFIG_X86_64
++	return cpu_has_gbpages;
++#else
 +	return 0;
++#endif
 +}
-+static inline int pmd_set_huge(pmd_t *pmd, phys_addr_t addr, pgprot_t prot)
++
++int arch_ioremap_pmd_supported(void)
 +{
-+	return 0;
++	return cpu_has_pse;
 +}
-+#endif	/* CONFIG_HAVE_ARCH_HUGE_VMAP */
 +
- #endif /* _ASM_GENERIC_PGTABLE_H */
-diff -puN lib/ioremap.c~mm-change-ioremap-to-set-up-huge-i-o-mappings lib/ioremap.c
---- a/lib/ioremap.c~mm-change-ioremap-to-set-up-huge-i-o-mappings
-+++ a/lib/ioremap.c
-@@ -81,6 +81,14 @@ static inline int ioremap_pmd_range(pud_
- 		return -ENOMEM;
- 	do {
- 		next = pmd_addr_end(addr, end);
-+
-+		if (ioremap_pmd_enabled() &&
-+		    ((next - addr) == PMD_SIZE) &&
-+		    IS_ALIGNED(phys_addr + addr, PMD_SIZE)) {
-+			if (pmd_set_huge(pmd, phys_addr + addr, prot))
-+				continue;
-+		}
-+
- 		if (ioremap_pte_range(pmd, addr, next, phys_addr + addr, prot))
- 			return -ENOMEM;
- 	} while (pmd++, addr = next, addr != end);
-@@ -99,6 +107,14 @@ static inline int ioremap_pud_range(pgd_
- 		return -ENOMEM;
- 	do {
- 		next = pud_addr_end(addr, end);
-+
-+		if (ioremap_pud_enabled() &&
-+		    ((next - addr) == PUD_SIZE) &&
-+		    IS_ALIGNED(phys_addr + addr, PUD_SIZE)) {
-+			if (pud_set_huge(pud, phys_addr + addr, prot))
-+				continue;
-+		}
-+
- 		if (ioremap_pmd_range(pud, addr, next, phys_addr + addr, prot))
- 			return -ENOMEM;
- 	} while (pud++, addr = next, addr != end);
+ /*
+  * Convert a physical pointer to a virtual kernel pointer for /dev/mem
+  * access
 _
 
 Patches currently in -mm which might be from toshi.kani@hp.com are
