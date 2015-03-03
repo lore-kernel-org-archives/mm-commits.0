@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-clarify-__gfp_nofail-deprecation-status-checkpatch-fixes.patch added to
- -mm tree
-Date: Mon, 02 Mar 2015 16:17:48 -0800
-Message-ID: <54f4fdac.Gf3hUX5R1XwJnVKz%akpm@linux-foundation.org>
+Subject: + kdb-fix-handling-of-kallsyms_symbol_next-return-value.patch
+ added to -mm tree
+Date: Mon, 02 Mar 2015 16:20:04 -0800
+Message-ID: <54f4fe34.GpWBdvDH94m8Kdcv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45947 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45954 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752705AbbCCARt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Mar 2015 19:17:49 -0500
+	with ESMTP id S1750960AbbCCAUF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Mar 2015 19:20:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mhocko@suse.cz, rientjes@google.com, mm-commits@vger.kernel.org
+To: daniel.thompson@linaro.org, dan.carpenter@oracle.com, jason.wessel@windriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-clarify-__gfp_nofail-deprecation-status-checkpatch-fixes
+     Subject: kdb: fix handling of kallsyms_symbol_next() return value
 has been added to the -mm tree.  Its filename is
-     mm-clarify-__gfp_nofail-deprecation-status-checkpatch-fixes.patch
+     kdb-fix-handling-of-kallsyms_symbol_next-return-value.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-clarify-__gfp_nofail-deprecation-status-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kdb-fix-handling-of-kallsyms_symbol_next-return-value.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-clarify-__gfp_nofail-deprecation-status-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kdb-fix-handling-of-kallsyms_symbol_next-return-value.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,71 +39,41 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-clarify-__gfp_nofail-deprecation-status-checkpatch-fixes
+From: Daniel Thompson <daniel.thompson@linaro.org>
+Subject: kdb: fix handling of kallsyms_symbol_next() return value
 
-WARNING: 'carefuly' may be misspelled - perhaps 'carefully'?
-#40: FILE: include/linux/gfp.h:60:
-+ * cannot handle allocation failures. New users should be evaluated carefuly
+kallsyms_symbol_next() returns a boolean (true on success). Currently
+kdb_read() tests the return value with an inequality that
+unconditionally evaluates to true.
 
-total: 0 errors, 1 warnings, 12 lines checked
+This is fixed in the obvious way and, since the conditional branch is
+supposed to be unreachable, we also add a WARN_ON().
 
-./patches/mm-clarify-__gfp_nofail-deprecation-status.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: David Rientjes <rientjes@google.com>
-Cc: Michal Hocko <mhocko@suse.cz>
+Signed-off-by: Daniel Thompson <daniel.thompson@linaro.org>
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Jason Wessel <jason.wessel@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |    2 +-
+ kernel/debug/kdb/kdb_io.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/gfp.h~mm-clarify-__gfp_nofail-deprecation-status-checkpatch-fixes include/linux/gfp.h
---- a/include/linux/gfp.h~mm-clarify-__gfp_nofail-deprecation-status-checkpatch-fixes
-+++ a/include/linux/gfp.h
-@@ -57,7 +57,7 @@ struct vm_area_struct;
-  * _might_ fail.  This depends upon the particular VM implementation.
-  *
-  * __GFP_NOFAIL: The VM implementation _must_ retry infinitely: the caller
-- * cannot handle allocation failures. New users should be evaluated carefuly
-+ * cannot handle allocation failures. New users should be evaluated carefully
-  * (and the flag should be used only when there is no reasonable failure policy)
-  * but it is definitely preferable to use the flag rather than opencode endless
-  * loop around allocator.
+diff -puN kernel/debug/kdb/kdb_io.c~kdb-fix-handling-of-kallsyms_symbol_next-return-value kernel/debug/kdb/kdb_io.c
+--- a/kernel/debug/kdb/kdb_io.c~kdb-fix-handling-of-kallsyms_symbol_next-return-value
++++ a/kernel/debug/kdb/kdb_io.c
+@@ -349,7 +349,7 @@ poll_again:
+ 			}
+ 			kdb_printf("\n");
+ 			for (i = 0; i < count; i++) {
+-				if (kallsyms_symbol_next(p_tmp, i) < 0)
++				if (WARN_ON(!kallsyms_symbol_next(p_tmp, i)))
+ 					break;
+ 				kdb_printf("%s ", p_tmp);
+ 				*(p_tmp + len) = '\0';
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from daniel.thompson@linaro.org are
 
-origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-mm.patch
-mm-cma-release-trigger-checkpatch-fixes.patch
-mm-cma-allocation-trigger-fix.patch
-mm-compaction-enhance-compaction-finish-condition-fix.patch
-page_writeback-cleanup-mess-around-cancel_dirty_page-checkpatch-fixes.patch
-mm-hide-per-cpu-lists-in-output-of-show_mem-fix.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes.patch
-lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix.patch
-lib-find__bit-reimplementation-fix.patch
-binfmt_misc-simplify-entry_status-fix.patch
-fs-fat-remove-unnecessary-includes-fix.patch
-kconfig-use-macros-which-are-already-defined-fix.patch
+kdb-fix-handling-of-kallsyms_symbol_next-return-value.patch
 linux-next.patch
-lib-kconfig-fix-up-have_arch_bitreverse-help-text.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-mm-clarify-__gfp_nofail-deprecation-status-checkpatch-fixes.patch
 
