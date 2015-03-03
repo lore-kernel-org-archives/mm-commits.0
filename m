@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + zram-factor-out-device-reset-from-reset_store.patch added to
- -mm tree
-Date: Tue, 03 Mar 2015 14:02:00 -0800
-Message-ID: <54f62f58.F19rz5EBJY5dvHzh%akpm@linux-foundation.org>
+Subject: + acknowledge-return-value-of-ocfs2_error.patch added to -mm tree
+Date: Tue, 03 Mar 2015 14:07:30 -0800
+Message-ID: <54f630a2.qhkrua/Rv1baVoEl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36229 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36283 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932506AbbCCWCB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Mar 2015 17:02:01 -0500
+	with ESMTP id S1757735AbbCCWHb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Mar 2015 17:07:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sergey.senozhatsky@gmail.com, minchan@kernel.org, ngupta@vflare.org, mm-commits@vger.kernel.org
+To: rgoldwyn@suse.de, jlbec@evilplan.org, mfasheh@suse.com, rgoldwyn@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: factor out device reset from reset_store()
+     Subject: ocfs2: acknowledge return value of ocfs2_error()
 has been added to the -mm tree.  Its filename is
-     zram-factor-out-device-reset-from-reset_store.patch
+     acknowledge-return-value-of-ocfs2_error.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zram-factor-out-device-reset-from-reset_store.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/acknowledge-return-value-of-ocfs2_error.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zram-factor-out-device-reset-from-reset_store.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/acknowledge-return-value-of-ocfs2_error.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,224 +38,551 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: zram: factor out device reset from reset_store()
+From: Goldwyn Rodrigues <rgoldwyn@suse.de>
+Subject: ocfs2: acknowledge return value of ocfs2_error()
 
-Device reset currently consists of two steps:
-a) holding ->bd_mutex we ensure that there are no device users
-(bdev->bd_openers)
+Caveat: This may return -EROFS for a read case, which seems wrong.  This
+is happening even without this patch series though.  Should we convert
+EROFS to EIO?
 
-b) and internal part (executed under bdev->bd_mutex and partially
-under zram->init_lock) that resets the device - frees allocated
-memory and returns the device back to its initial (un-init) state.
-
-Dynamic device removal requires the same amount of work and checks.
-We can reuse internal cleanup part (b) zram_reset_device(), but step (a)
-is done in sysfs ATTR reset_store() handler.
-
-Rename step (b) from zram_reset_device() to zram_reset_device_internal()
-and factor out step (a) to zram_reset_device(). Both reset_store() and
-dynamic device removal will use zram_reset_device().
-
-For readability let's keep them separated.
-
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Nitin Gupta <ngupta@vflare.org>
+Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |  135 +++++++++++++++-----------------
- 1 file changed, 67 insertions(+), 68 deletions(-)
+ fs/ocfs2/alloc.c        |   16 +++++++-------
+ fs/ocfs2/dir.c          |   25 ++++++++--------------
+ fs/ocfs2/inode.c        |    8 +++----
+ fs/ocfs2/move_extents.c |    3 --
+ fs/ocfs2/refcounttree.c |   42 ++++++++++++++++----------------------
+ fs/ocfs2/suballoc.c     |   25 +++++-----------------
+ fs/ocfs2/xattr.c        |   15 ++++---------
+ 7 files changed, 51 insertions(+), 83 deletions(-)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-factor-out-device-reset-from-reset_store drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-factor-out-device-reset-from-reset_store
-+++ a/drivers/block/zram/zram_drv.c
-@@ -729,48 +729,6 @@ static void zram_bio_discard(struct zram
+diff -puN fs/ocfs2/alloc.c~acknowledge-return-value-of-ocfs2_error fs/ocfs2/alloc.c
+--- a/fs/ocfs2/alloc.c~acknowledge-return-value-of-ocfs2_error
++++ a/fs/ocfs2/alloc.c
+@@ -908,32 +908,32 @@ static int ocfs2_validate_extent_block(s
+ 	 */
+ 
+ 	if (!OCFS2_IS_VALID_EXTENT_BLOCK(eb)) {
+-		ocfs2_error(sb,
++		rc = ocfs2_error(sb,
+ 			    "Extent block #%llu has bad signature %.*s",
+ 			    (unsigned long long)bh->b_blocknr, 7,
+ 			    eb->h_signature);
+-		return -EINVAL;
++		goto bail;
  	}
+ 
+ 	if (le64_to_cpu(eb->h_blkno) != bh->b_blocknr) {
+-		ocfs2_error(sb,
++		rc = ocfs2_error(sb,
+ 			    "Extent block #%llu has an invalid h_blkno "
+ 			    "of %llu",
+ 			    (unsigned long long)bh->b_blocknr,
+ 			    (unsigned long long)le64_to_cpu(eb->h_blkno));
+-		return -EINVAL;
++		goto bail;
+ 	}
+ 
+ 	if (le32_to_cpu(eb->h_fs_generation) != OCFS2_SB(sb)->fs_generation) {
+-		ocfs2_error(sb,
++		rc = ocfs2_error(sb,
+ 			    "Extent block #%llu has an invalid "
+ 			    "h_fs_generation of #%u",
+ 			    (unsigned long long)bh->b_blocknr,
+ 			    le32_to_cpu(eb->h_fs_generation));
+-		return -EINVAL;
++		goto bail;
+ 	}
+-
+-	return 0;
++bail:
++	return rc;
  }
  
--static void zram_reset_device(struct zram *zram)
--{
--	struct zram_meta *meta;
--	struct zcomp *comp;
--	u64 disksize;
--
--	down_write(&zram->init_lock);
--
--	zram->limit_pages = 0;
--
--	if (!init_done(zram)) {
--		up_write(&zram->init_lock);
--		return;
--	}
--
--	meta = zram->meta;
--	comp = zram->comp;
--	disksize = zram->disksize;
--	/*
--	 * Refcount will go down to 0 eventually and r/w handler
--	 * cannot handle further I/O so it will bail out by
--	 * check zram_meta_get.
--	 */
--	zram_meta_put(zram);
--	/*
--	 * We want to free zram_meta in process context to avoid
--	 * deadlock between reclaim path and any other locks.
--	 */
--	wait_event(zram->io_done, atomic_read(&zram->refcount) == 0);
--
--	/* Reset stats */
--	memset(&zram->stats, 0, sizeof(zram->stats));
--	zram->disksize = 0;
--	zram->max_comp_streams = 1;
--	set_capacity(zram->disk, 0);
--
--	up_write(&zram->init_lock);
--	/* I/O operation under all of CPU are done so let's free */
--	zram_meta_free(meta, disksize);
--	zcomp_destroy(comp);
--}
--
- static ssize_t disksize_store(struct device *dev,
- 		struct device_attribute *attr, const char *buf, size_t len)
- {
-@@ -829,16 +787,54 @@ out_free_meta:
- 	return err;
+ int ocfs2_read_extent_block(struct ocfs2_caching_info *ci, u64 eb_blkno,
+diff -puN fs/ocfs2/dir.c~acknowledge-return-value-of-ocfs2_error fs/ocfs2/dir.c
+--- a/fs/ocfs2/dir.c~acknowledge-return-value-of-ocfs2_error
++++ a/fs/ocfs2/dir.c
+@@ -480,8 +480,7 @@ static int ocfs2_check_dir_trailer(struc
+ 
+ 	trailer = ocfs2_trailer_from_bh(bh, dir->i_sb);
+ 	if (!OCFS2_IS_VALID_DIR_TRAILER(trailer)) {
+-		rc = -EINVAL;
+-		ocfs2_error(dir->i_sb,
++		rc = ocfs2_error(dir->i_sb,
+ 			    "Invalid dirblock #%llu: "
+ 			    "signature = %.*s\n",
+ 			    (unsigned long long)bh->b_blocknr, 7,
+@@ -489,8 +488,7 @@ static int ocfs2_check_dir_trailer(struc
+ 		goto out;
+ 	}
+ 	if (le64_to_cpu(trailer->db_blkno) != bh->b_blocknr) {
+-		rc = -EINVAL;
+-		ocfs2_error(dir->i_sb,
++		rc = ocfs2_error(dir->i_sb,
+ 			    "Directory block #%llu has an invalid "
+ 			    "db_blkno of %llu",
+ 			    (unsigned long long)bh->b_blocknr,
+@@ -499,8 +497,7 @@ static int ocfs2_check_dir_trailer(struc
+ 	}
+ 	if (le64_to_cpu(trailer->db_parent_dinode) !=
+ 	    OCFS2_I(dir)->ip_blkno) {
+-		rc = -EINVAL;
+-		ocfs2_error(dir->i_sb,
++		rc = ocfs2_error(dir->i_sb,
+ 			    "Directory block #%llu on dinode "
+ 			    "#%llu has an invalid parent_dinode "
+ 			    "of %llu",
+@@ -604,14 +601,13 @@ static int ocfs2_validate_dx_root(struct
+ 	}
+ 
+ 	if (!OCFS2_IS_VALID_DX_ROOT(dx_root)) {
+-		ocfs2_error(sb,
++		ret = ocfs2_error(sb,
+ 			    "Dir Index Root # %llu has bad signature %.*s",
+ 			    (unsigned long long)le64_to_cpu(dx_root->dr_blkno),
+ 			    7, dx_root->dr_signature);
+-		return -EINVAL;
+ 	}
+ 
+-	return 0;
++	return ret;
  }
  
--static ssize_t reset_store(struct device *dev,
--		struct device_attribute *attr, const char *buf, size_t len)
-+/* internal device reset part -- cleanup allocated memory and
-+ * return back to initial state */
-+static void zram_reset_device_internal(struct zram *zram)
- {
--	int ret;
--	unsigned short do_reset;
--	struct zram *zram;
--	struct block_device *bdev;
-+	struct zram_meta *meta;
-+	struct zcomp *comp;
-+	u64 disksize;
+ static int ocfs2_read_dx_root(struct inode *dir, struct ocfs2_dinode *di,
+@@ -648,12 +644,11 @@ static int ocfs2_validate_dx_leaf(struct
+ 	}
  
--	zram = dev_to_zram(dev);
--	bdev = bdget_disk(zram->disk, 0);
-+	down_write(&zram->init_lock);
-+
-+	zram->limit_pages = 0;
-+
-+	if (!init_done(zram)) {
-+		up_write(&zram->init_lock);
-+		return;
-+	}
-+
-+	meta = zram->meta;
-+	comp = zram->comp;
-+	disksize = zram->disksize;
-+	/*
-+	 * Refcount will go down to 0 eventually and r/w handler
-+	 * cannot handle further I/O so it will bail out by
-+	 * check zram_meta_get.
-+	 */
-+	zram_meta_put(zram);
-+	/*
-+	 * We want to free zram_meta in process context to avoid
-+	 * deadlock between reclaim path and any other locks.
-+	 */
-+	wait_event(zram->io_done, atomic_read(&zram->refcount) == 0);
-+
-+	/* Reset stats */
-+	memset(&zram->stats, 0, sizeof(zram->stats));
-+	zram->disksize = 0;
-+	zram->max_comp_streams = 1;
-+	set_capacity(zram->disk, 0);
-+
-+	up_write(&zram->init_lock);
-+	/* I/O operation under all of CPU are done so let's free */
-+	zram_meta_free(meta, disksize);
-+	zcomp_destroy(comp);
-+}
-+
-+static int zram_reset_device(struct zram *zram)
-+{
-+	int ret = 0;
-+	struct block_device *bdev = bdget_disk(zram->disk, 0);
+ 	if (!OCFS2_IS_VALID_DX_LEAF(dx_leaf)) {
+-		ocfs2_error(sb, "Dir Index Leaf has bad signature %.*s",
++		ret = ocfs2_error(sb, "Dir Index Leaf has bad signature %.*s",
+ 			    7, dx_leaf->dl_signature);
+-		return -EROFS;
+ 	}
  
- 	if (!bdev)
- 		return -ENOMEM;
-@@ -850,31 +846,34 @@ static ssize_t reset_store(struct device
+-	return 0;
++	return ret;
+ }
+ 
+ static int ocfs2_read_dx_leaf(struct inode *dir, u64 blkno,
+@@ -812,11 +807,10 @@ static int ocfs2_dx_dir_lookup_rec(struc
+ 		el = &eb->h_list;
+ 
+ 		if (el->l_tree_depth) {
+-			ocfs2_error(inode->i_sb,
++			ret = ocfs2_error(inode->i_sb,
+ 				    "Inode %lu has non zero tree depth in "
+ 				    "btree tree block %llu\n", inode->i_ino,
+ 				    (unsigned long long)eb_bh->b_blocknr);
+-			ret = -EROFS;
+ 			goto out;
+ 		}
+ 	}
+@@ -832,11 +826,10 @@ static int ocfs2_dx_dir_lookup_rec(struc
+ 	}
+ 
+ 	if (!found) {
+-		ocfs2_error(inode->i_sb, "Inode %lu has bad extent "
++		ret = ocfs2_error(inode->i_sb, "Inode %lu has bad extent "
+ 			    "record (%u, %u, 0) in btree", inode->i_ino,
+ 			    le32_to_cpu(rec->e_cpos),
+ 			    ocfs2_rec_clusters(el, rec));
+-		ret = -EROFS;
  		goto out;
  	}
  
--	ret = kstrtou16(buf, 10, &do_reset);
--	if (ret)
--		goto out;
+diff -puN fs/ocfs2/inode.c~acknowledge-return-value-of-ocfs2_error fs/ocfs2/inode.c
+--- a/fs/ocfs2/inode.c~acknowledge-return-value-of-ocfs2_error
++++ a/fs/ocfs2/inode.c
+@@ -1350,21 +1350,21 @@ int ocfs2_validate_inode_block(struct su
+ 	rc = -EINVAL;
+ 
+ 	if (!OCFS2_IS_VALID_DINODE(di)) {
+-		ocfs2_error(sb, "Invalid dinode #%llu: signature = %.*s\n",
++		rc = ocfs2_error(sb, "Invalid dinode #%llu: signature = %.*s\n",
+ 			    (unsigned long long)bh->b_blocknr, 7,
+ 			    di->i_signature);
+ 		goto bail;
+ 	}
+ 
+ 	if (le64_to_cpu(di->i_blkno) != bh->b_blocknr) {
+-		ocfs2_error(sb, "Invalid dinode #%llu: i_blkno is %llu\n",
++		rc = ocfs2_error(sb, "Invalid dinode #%llu: i_blkno is %llu\n",
+ 			    (unsigned long long)bh->b_blocknr,
+ 			    (unsigned long long)le64_to_cpu(di->i_blkno));
+ 		goto bail;
+ 	}
+ 
+ 	if (!(di->i_flags & cpu_to_le32(OCFS2_VALID_FL))) {
+-		ocfs2_error(sb,
++		rc = ocfs2_error(sb,
+ 			    "Invalid dinode #%llu: OCFS2_VALID_FL not set\n",
+ 			    (unsigned long long)bh->b_blocknr);
+ 		goto bail;
+@@ -1372,7 +1372,7 @@ int ocfs2_validate_inode_block(struct su
+ 
+ 	if (le32_to_cpu(di->i_fs_generation) !=
+ 	    OCFS2_SB(sb)->fs_generation) {
+-		ocfs2_error(sb,
++		rc = ocfs2_error(sb,
+ 			    "Invalid dinode #%llu: fs_generation is %u\n",
+ 			    (unsigned long long)bh->b_blocknr,
+ 			    le32_to_cpu(di->i_fs_generation));
+diff -puN fs/ocfs2/move_extents.c~acknowledge-return-value-of-ocfs2_error fs/ocfs2/move_extents.c
+--- a/fs/ocfs2/move_extents.c~acknowledge-return-value-of-ocfs2_error
++++ a/fs/ocfs2/move_extents.c
+@@ -99,11 +99,10 @@ static int __ocfs2_move_extent(handle_t
+ 
+ 	index = ocfs2_search_extent_list(el, cpos);
+ 	if (index == -1) {
+-		ocfs2_error(inode->i_sb,
++		ret = ocfs2_error(inode->i_sb,
+ 			    "Inode %llu has an extent at cpos %u which can no "
+ 			    "longer be found.\n",
+ 			    (unsigned long long)ino, cpos);
+-		ret = -EROFS;
+ 		goto out;
+ 	}
+ 
+diff -puN fs/ocfs2/refcounttree.c~acknowledge-return-value-of-ocfs2_error fs/ocfs2/refcounttree.c
+--- a/fs/ocfs2/refcounttree.c~acknowledge-return-value-of-ocfs2_error
++++ a/fs/ocfs2/refcounttree.c
+@@ -102,32 +102,32 @@ static int ocfs2_validate_refcount_block
+ 
+ 
+ 	if (!OCFS2_IS_VALID_REFCOUNT_BLOCK(rb)) {
+-		ocfs2_error(sb,
++		rc = ocfs2_error(sb,
+ 			    "Refcount block #%llu has bad signature %.*s",
+ 			    (unsigned long long)bh->b_blocknr, 7,
+ 			    rb->rf_signature);
+-		return -EINVAL;
++		goto out;
+ 	}
+ 
+ 	if (le64_to_cpu(rb->rf_blkno) != bh->b_blocknr) {
+-		ocfs2_error(sb,
++		rc = ocfs2_error(sb,
+ 			    "Refcount block #%llu has an invalid rf_blkno "
+ 			    "of %llu",
+ 			    (unsigned long long)bh->b_blocknr,
+ 			    (unsigned long long)le64_to_cpu(rb->rf_blkno));
+-		return -EINVAL;
++		goto out;
+ 	}
+ 
+ 	if (le32_to_cpu(rb->rf_fs_generation) != OCFS2_SB(sb)->fs_generation) {
+-		ocfs2_error(sb,
++		rc = ocfs2_error(sb,
+ 			    "Refcount block #%llu has an invalid "
+ 			    "rf_fs_generation of #%u",
+ 			    (unsigned long long)bh->b_blocknr,
+ 			    le32_to_cpu(rb->rf_fs_generation));
+-		return -EINVAL;
++		goto out;
+ 	}
 -
--	if (!do_reset) {
--		ret = -EINVAL;
--		goto out;
--	}
--
- 	/* Make sure all pending I/O is finished */
- 	fsync_bdev(bdev);
--	zram_reset_device(zram);
--
--	mutex_unlock(&bdev->bd_mutex);
--	revalidate_disk(zram->disk);
--	bdput(bdev);
--
--	return len;
--
-+	zram_reset_device_internal(zram);
- out:
- 	mutex_unlock(&bdev->bd_mutex);
- 	bdput(bdev);
- 	return ret;
+-	return 0;
++out:
++	return rc;
  }
  
-+static ssize_t reset_store(struct device *dev,
-+		struct device_attribute *attr, const char *buf, size_t len)
-+{
-+	int ret;
-+	unsigned short do_reset;
-+	struct zram *zram;
-+
-+	zram = dev_to_zram(dev);
-+	ret = kstrtou16(buf, 10, &do_reset);
-+	if (ret)
-+		return ret;
-+
-+	if (!do_reset)
-+		return -EINVAL;
-+
-+	ret = zram_reset_device(zram);
-+	return ret ? ret : len;
-+}
-+
- static void __zram_make_request(struct zram *zram, struct bio *bio)
- {
- 	int offset, rw;
-@@ -1167,7 +1166,7 @@ static void zram_remove(struct zram *zra
- 	sysfs_remove_group(&disk_to_dev(zram->disk)->kobj,
- 			&zram_disk_attr_group);
+ static int ocfs2_read_refcount_block(struct ocfs2_caching_info *ci,
+@@ -1102,12 +1102,11 @@ static int ocfs2_get_refcount_rec(struct
+ 		el = &eb->h_list;
  
--	zram_reset_device(zram);
-+	zram_reset_device_internal(zram);
- 	idr_remove(&zram_index_idr, zram->disk->first_minor);
- 	blk_cleanup_queue(zram->disk->queue);
- 	del_gendisk(zram->disk);
+ 		if (el->l_tree_depth) {
+-			ocfs2_error(sb,
+-			"refcount tree %llu has non zero tree "
+-			"depth in leaf btree tree block %llu\n",
+-			(unsigned long long)ocfs2_metadata_cache_owner(ci),
+-			(unsigned long long)eb_bh->b_blocknr);
+-			ret = -EROFS;
++			ret = ocfs2_error(sb,
++				"refcount tree %llu has non zero tree "
++				"depth in leaf btree tree block %llu\n",
++				(unsigned long long)ocfs2_metadata_cache_owner(ci),
++				(unsigned long long)eb_bh->b_blocknr);
+ 			goto out;
+ 		}
+ 	}
+@@ -2361,10 +2360,9 @@ static int ocfs2_mark_extent_refcounted(
+ 					   cpos, len, phys);
+ 
+ 	if (!ocfs2_refcount_tree(OCFS2_SB(inode->i_sb))) {
+-		ocfs2_error(inode->i_sb, "Inode %lu want to use refcount "
++		ret = ocfs2_error(inode->i_sb, "Inode %lu want to use refcount "
+ 			    "tree, but the feature bit is not set in the "
+ 			    "super block.", inode->i_ino);
+-		ret = -EROFS;
+ 		goto out;
+ 	}
+ 
+@@ -2547,10 +2545,9 @@ int ocfs2_prepare_refcount_change_for_de
+ 	u64 start_cpos = ocfs2_blocks_to_clusters(inode->i_sb, phys_blkno);
+ 
+ 	if (!ocfs2_refcount_tree(OCFS2_SB(inode->i_sb))) {
+-		ocfs2_error(inode->i_sb, "Inode %lu want to use refcount "
++		ret = ocfs2_error(inode->i_sb, "Inode %lu want to use refcount "
+ 			    "tree, but the feature bit is not set in the "
+ 			    "super block.", inode->i_ino);
+-		ret = -EROFS;
+ 		goto out;
+ 	}
+ 
+@@ -2674,11 +2671,10 @@ static int ocfs2_refcount_cal_cow_cluste
+ 		el = &eb->h_list;
+ 
+ 		if (el->l_tree_depth) {
+-			ocfs2_error(inode->i_sb,
++			ret = ocfs2_error(inode->i_sb,
+ 				    "Inode %lu has non zero tree depth in "
+ 				    "leaf block %llu\n", inode->i_ino,
+ 				    (unsigned long long)eb_bh->b_blocknr);
+-			ret = -EROFS;
+ 			goto out;
+ 		}
+ 	}
+@@ -3108,11 +3104,10 @@ static int ocfs2_clear_ext_refcount(hand
+ 
+ 	index = ocfs2_search_extent_list(el, cpos);
+ 	if (index == -1) {
+-		ocfs2_error(sb,
++		ret = ocfs2_error(sb,
+ 			    "Inode %llu has an extent at cpos %u which can no "
+ 			    "longer be found.\n",
+ 			    (unsigned long long)ino, cpos);
+-		ret = -EROFS;
+ 		goto out;
+ 	}
+ 
+@@ -3378,10 +3373,9 @@ static int ocfs2_replace_cow(struct ocfs
+ 	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
+ 
+ 	if (!ocfs2_refcount_tree(OCFS2_SB(inode->i_sb))) {
+-		ocfs2_error(inode->i_sb, "Inode %lu want to use refcount "
++		return ocfs2_error(inode->i_sb, "Inode %lu want to use refcount "
+ 			    "tree, but the feature bit is not set in the "
+ 			    "super block.", inode->i_ino);
+-		return -EROFS;
+ 	}
+ 
+ 	ocfs2_init_dealloc_ctxt(&context->dealloc);
+diff -puN fs/ocfs2/suballoc.c~acknowledge-return-value-of-ocfs2_error fs/ocfs2/suballoc.c
+--- a/fs/ocfs2/suballoc.c~acknowledge-return-value-of-ocfs2_error
++++ a/fs/ocfs2/suballoc.c
+@@ -171,7 +171,7 @@ static u32 ocfs2_bits_per_group(struct o
+ 		if (resize)					\
+ 			mlog(ML_ERROR, fmt "\n", ##__VA_ARGS__);	\
+ 		else							\
+-			ocfs2_error(sb, fmt, ##__VA_ARGS__);		\
++			return ocfs2_error(sb, fmt, ##__VA_ARGS__);		\
+ 	} while (0)
+ 
+ static int ocfs2_validate_gd_self(struct super_block *sb,
+@@ -184,7 +184,6 @@ static int ocfs2_validate_gd_self(struct
+ 		do_error("Group descriptor #%llu has bad signature %.*s",
+ 			 (unsigned long long)bh->b_blocknr, 7,
+ 			 gd->bg_signature);
+-		return -EINVAL;
+ 	}
+ 
+ 	if (le64_to_cpu(gd->bg_blkno) != bh->b_blocknr) {
+@@ -192,7 +191,6 @@ static int ocfs2_validate_gd_self(struct
+ 			 "of %llu",
+ 			 (unsigned long long)bh->b_blocknr,
+ 			 (unsigned long long)le64_to_cpu(gd->bg_blkno));
+-		return -EINVAL;
+ 	}
+ 
+ 	if (le32_to_cpu(gd->bg_generation) != OCFS2_SB(sb)->fs_generation) {
+@@ -200,7 +198,6 @@ static int ocfs2_validate_gd_self(struct
+ 			 "fs_generation of #%u",
+ 			 (unsigned long long)bh->b_blocknr,
+ 			 le32_to_cpu(gd->bg_generation));
+-		return -EINVAL;
+ 	}
+ 
+ 	if (le16_to_cpu(gd->bg_free_bits_count) > le16_to_cpu(gd->bg_bits)) {
+@@ -209,7 +206,6 @@ static int ocfs2_validate_gd_self(struct
+ 			 (unsigned long long)bh->b_blocknr,
+ 			 le16_to_cpu(gd->bg_bits),
+ 			 le16_to_cpu(gd->bg_free_bits_count));
+-		return -EINVAL;
+ 	}
+ 
+ 	if (le16_to_cpu(gd->bg_bits) > (8 * le16_to_cpu(gd->bg_size))) {
+@@ -218,7 +214,6 @@ static int ocfs2_validate_gd_self(struct
+ 			 (unsigned long long)bh->b_blocknr,
+ 			 le16_to_cpu(gd->bg_bits),
+ 			 8 * le16_to_cpu(gd->bg_size));
+-		return -EINVAL;
+ 	}
+ 
+ 	return 0;
+@@ -238,7 +233,6 @@ static int ocfs2_validate_gd_parent(stru
+ 			 (unsigned long long)bh->b_blocknr,
+ 			 (unsigned long long)le64_to_cpu(gd->bg_parent_dinode),
+ 			 (unsigned long long)le64_to_cpu(di->i_blkno));
+-		return -EINVAL;
+ 	}
+ 
+ 	max_bits = le16_to_cpu(di->id2.i_chain.cl_cpg) * le16_to_cpu(di->id2.i_chain.cl_bpc);
+@@ -246,7 +240,6 @@ static int ocfs2_validate_gd_parent(stru
+ 		do_error("Group descriptor #%llu has bit count of %u",
+ 			 (unsigned long long)bh->b_blocknr,
+ 			 le16_to_cpu(gd->bg_bits));
+-		return -EINVAL;
+ 	}
+ 
+ 	/* In resize, we may meet the case bg_chain == cl_next_free_rec. */
+@@ -257,7 +250,6 @@ static int ocfs2_validate_gd_parent(stru
+ 		do_error("Group descriptor #%llu has bad chain %u",
+ 			 (unsigned long long)bh->b_blocknr,
+ 			 le16_to_cpu(gd->bg_chain));
+-		return -EINVAL;
+ 	}
+ 
+ 	return 0;
+@@ -384,11 +376,10 @@ static int ocfs2_block_group_fill(handle
+ 	struct super_block * sb = alloc_inode->i_sb;
+ 
+ 	if (((unsigned long long) bg_bh->b_blocknr) != group_blkno) {
+-		ocfs2_error(alloc_inode->i_sb, "group block (%llu) != "
++		status = ocfs2_error(alloc_inode->i_sb, "group block (%llu) != "
+ 			    "b_blocknr (%llu)",
+ 			    (unsigned long long)group_blkno,
+ 			    (unsigned long long) bg_bh->b_blocknr);
+-		status = -EIO;
+ 		goto bail;
+ 	}
+ 
+@@ -834,9 +825,8 @@ static int ocfs2_reserve_suballoc_bits(s
+ 	BUG_ON(!OCFS2_IS_VALID_DINODE(fe));
+ 
+ 	if (!(fe->i_flags & cpu_to_le32(OCFS2_CHAIN_FL))) {
+-		ocfs2_error(alloc_inode->i_sb, "Invalid chain allocator %llu",
++		status = ocfs2_error(alloc_inode->i_sb, "Invalid chain allocator %llu",
+ 			    (unsigned long long)le64_to_cpu(fe->i_blkno));
+-		status = -EIO;
+ 		goto bail;
+ 	}
+ 
+@@ -1370,12 +1360,11 @@ int ocfs2_block_group_set_bits(handle_t
+ 
+ 	le16_add_cpu(&bg->bg_free_bits_count, -num_bits);
+ 	if (le16_to_cpu(bg->bg_free_bits_count) > le16_to_cpu(bg->bg_bits)) {
+-		ocfs2_error(alloc_inode->i_sb, "Group descriptor # %llu has bit"
++		return ocfs2_error(alloc_inode->i_sb, "Group descriptor # %llu has bit"
+ 			    " count %u but claims %u are freed. num_bits %d",
+ 			    (unsigned long long)le64_to_cpu(bg->bg_blkno),
+ 			    le16_to_cpu(bg->bg_bits),
+ 			    le16_to_cpu(bg->bg_free_bits_count), num_bits);
+-		return -EROFS;
+ 	}
+ 	while(num_bits--)
+ 		ocfs2_set_bit(bit_off++, bitmap);
+@@ -1905,13 +1894,12 @@ static int ocfs2_claim_suballoc_bits(str
+ 
+ 	if (le32_to_cpu(fe->id1.bitmap1.i_used) >=
+ 	    le32_to_cpu(fe->id1.bitmap1.i_total)) {
+-		ocfs2_error(ac->ac_inode->i_sb,
++		status = ocfs2_error(ac->ac_inode->i_sb,
+ 			    "Chain allocator dinode %llu has %u used "
+ 			    "bits but only %u total.",
+ 			    (unsigned long long)le64_to_cpu(fe->i_blkno),
+ 			    le32_to_cpu(fe->id1.bitmap1.i_used),
+ 			    le32_to_cpu(fe->id1.bitmap1.i_total));
+-		status = -EIO;
+ 		goto bail;
+ 	}
+ 
+@@ -2429,12 +2417,11 @@ static int ocfs2_block_group_clear_bits(
+ 	}
+ 	le16_add_cpu(&bg->bg_free_bits_count, num_bits);
+ 	if (le16_to_cpu(bg->bg_free_bits_count) > le16_to_cpu(bg->bg_bits)) {
+-		ocfs2_error(alloc_inode->i_sb, "Group descriptor # %llu has bit"
++		return ocfs2_error(alloc_inode->i_sb, "Group descriptor # %llu has bit"
+ 			    " count %u but claims %u are freed. num_bits %d",
+ 			    (unsigned long long)le64_to_cpu(bg->bg_blkno),
+ 			    le16_to_cpu(bg->bg_bits),
+ 			    le16_to_cpu(bg->bg_free_bits_count), num_bits);
+-		return -EROFS;
+ 	}
+ 
+ 	if (undo_fn)
+diff -puN fs/ocfs2/xattr.c~acknowledge-return-value-of-ocfs2_error fs/ocfs2/xattr.c
+--- a/fs/ocfs2/xattr.c~acknowledge-return-value-of-ocfs2_error
++++ a/fs/ocfs2/xattr.c
+@@ -499,30 +499,27 @@ static int ocfs2_validate_xattr_block(st
+ 	 */
+ 
+ 	if (!OCFS2_IS_VALID_XATTR_BLOCK(xb)) {
+-		ocfs2_error(sb,
++		return ocfs2_error(sb,
+ 			    "Extended attribute block #%llu has bad "
+ 			    "signature %.*s",
+ 			    (unsigned long long)bh->b_blocknr, 7,
+ 			    xb->xb_signature);
+-		return -EINVAL;
+ 	}
+ 
+ 	if (le64_to_cpu(xb->xb_blkno) != bh->b_blocknr) {
+-		ocfs2_error(sb,
++		return ocfs2_error(sb,
+ 			    "Extended attribute block #%llu has an "
+ 			    "invalid xb_blkno of %llu",
+ 			    (unsigned long long)bh->b_blocknr,
+ 			    (unsigned long long)le64_to_cpu(xb->xb_blkno));
+-		return -EINVAL;
+ 	}
+ 
+ 	if (le32_to_cpu(xb->xb_fs_generation) != OCFS2_SB(sb)->fs_generation) {
+-		ocfs2_error(sb,
++		return ocfs2_error(sb,
+ 			    "Extended attribute block #%llu has an invalid "
+ 			    "xb_fs_generation of #%u",
+ 			    (unsigned long long)bh->b_blocknr,
+ 			    le32_to_cpu(xb->xb_fs_generation));
+-		return -EINVAL;
+ 	}
+ 
+ 	return 0;
+@@ -3690,11 +3687,10 @@ static int ocfs2_xattr_get_rec(struct in
+ 		el = &eb->h_list;
+ 
+ 		if (el->l_tree_depth) {
+-			ocfs2_error(inode->i_sb,
++			ret = ocfs2_error(inode->i_sb,
+ 				    "Inode %lu has non zero tree depth in "
+ 				    "xattr tree block %llu\n", inode->i_ino,
+ 				    (unsigned long long)eb_bh->b_blocknr);
+-			ret = -EROFS;
+ 			goto out;
+ 		}
+ 	}
+@@ -3709,11 +3705,10 @@ static int ocfs2_xattr_get_rec(struct in
+ 	}
+ 
+ 	if (!e_blkno) {
+-		ocfs2_error(inode->i_sb, "Inode %lu has bad extent "
++		ret = ocfs2_error(inode->i_sb, "Inode %lu has bad extent "
+ 			    "record (%u, %u, 0) in xattr", inode->i_ino,
+ 			    le32_to_cpu(rec->e_cpos),
+ 			    ocfs2_rec_clusters(el, rec));
+-		ret = -EROFS;
+ 		goto out;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
+Patches currently in -mm which might be from rgoldwyn@suse.de are
 
-zram-cosmetic-zram_attr_ro-code-formatting-tweak.patch
-zram-use-idr-instead-of-zram_devices-array.patch
-zram-factor-out-device-reset-from-reset_store.patch
-zram-reorganize-code-layout.patch
-zram-add-dynamic-device-add-remove-functionality.patch
-zram-remove-max_num_devices-limitation.patch
-zram-report-every-added-and-removed-device.patch
-zram-trivial-correct-flag-operations-comment.patch
-cpumask-dont-perform-while-loop-in-cpumask_next_and.patch
-lib-lz4-pull-out-constant-tables.patch
+add-errors=continue.patch
+acknowledge-return-value-of-ocfs2_error.patch
+clear-the-rest-of-the-buffers-on-error.patch
 
