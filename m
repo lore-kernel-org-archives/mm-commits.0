@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention-fix.patch added to -mm tree
-Date: Tue, 03 Mar 2015 15:34:43 -0800
-Message-ID: <54f64513.uO0Gf1SjZfMGjemu%akpm@linux-foundation.org>
+ mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention.patch added to -mm tree
+Date: Tue, 03 Mar 2015 15:34:41 -0800
+Message-ID: <54f64511.F575DuiJdB1E2gwt%akpm__24756.5951235176$1425425707$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37007 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37005 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756234AbbCCXeo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Mar 2015 18:34:44 -0500
+	with ESMTP id S1756234AbbCCXen (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Mar 2015 18:34:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, chianglungyu@gmail.com, mm-commits@vger.kernel.org
+To: chianglungyu@gmail.com, koct9i@gmail.com, mhocko@suse.cz, rientjes@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention-fix
+     Subject: mm: fix anon_vma->degree underflow in anon_vma endless growing prevention
 has been added to the -mm tree.  Its filename is
-     mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention-fix.patch
+     mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,62 +39,59 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention-fix
+From: Leon Yu <chianglungyu@gmail.com>
+Subject: mm: fix anon_vma->degree underflow in anon_vma endless growing prevention
 
-tweak comment
+I have constantly stumbled upon "kernel BUG at mm/rmap.c:399!" after
+upgrading to 3.19 and had no luck with 4.0-rc1 neither.
 
-Cc: Leon Yu <chianglungyu@gmail.com>
+So, after looking into new logic introduced by commit 7a3ef208e662, ("mm:
+prevent endless growth of anon_vma hierarchy"), I found chances are that
+unlink_anon_vmas() is called without incrementing dst->anon_vma->degree in
+anon_vma_clone() due to allocation failure.  If dst->anon_vma is not NULL
+in error path, its degree will be incorrectly decremented in
+unlink_anon_vmas() and eventually underflow when exiting as a result of
+another call to unlink_anon_vmas().  That's how "kernel BUG at
+mm/rmap.c:399!" is triggered for me.
+
+This patch fixes the underflow by dropping dst->anon_vma when allocation
+fails.  It's safe to do so regardless of original value of dst->anon_vma
+because dst->anon_vma doesn't have valid meaning if anon_vma_clone()
+fails.  Besides, callers don't care dst->anon_vma in such case neither.
+
+Fixes: 7a3ef208e662 ("mm: prevent endless growth of anon_vma hierarchy")
+Signed-off-by: Leon Yu <chianglungyu@gmail.com>
+Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
+Reviewed-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/rmap.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN mm/rmap.c~mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention-fix mm/rmap.c
---- a/mm/rmap.c~mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention-fix
+diff -puN mm/rmap.c~mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention mm/rmap.c
+--- a/mm/rmap.c~mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention
 +++ a/mm/rmap.c
-@@ -290,8 +290,8 @@ int anon_vma_clone(struct vm_area_struct
- 	/*
- 	 * dst->anon_vma is dropped here otherwise its degree can be incorrectly
- 	 * decremented in unlink_anon_vmas().
--	 * We can safely do this because calllers of anon_vma_clone() wouldn't
--	 * care dst->anon_vma if anon_vma_clone() failed.
-+	 * We can safely do this because callers of anon_vma_clone() don't care
-+	 * about dst->anon_vma if anon_vma_clone() failed.
- 	 */
- 	dst->anon_vma = NULL;
+@@ -287,6 +287,13 @@ int anon_vma_clone(struct vm_area_struct
+ 	return 0;
+ 
+  enomem_failure:
++	/*
++	 * dst->anon_vma is dropped here otherwise its degree can be incorrectly
++	 * decremented in unlink_anon_vmas().
++	 * We can safely do this because calllers of anon_vma_clone() wouldn't
++	 * care dst->anon_vma if anon_vma_clone() failed.
++	 */
++	dst->anon_vma = NULL;
  	unlink_anon_vmas(dst);
+ 	return -ENOMEM;
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from chianglungyu@gmail.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
+mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention.patch
 mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention-fix.patch
-mm.patch
-mm-cma-release-trigger-checkpatch-fixes.patch
-mm-cma-allocation-trigger-fix.patch
-mm-compaction-enhance-compaction-finish-condition-fix.patch
-page_writeback-cleanup-mess-around-cancel_dirty_page-checkpatch-fixes.patch
-mm-hide-per-cpu-lists-in-output-of-show_mem-fix.patch
-mm-clarify-__gfp_nofail-deprecation-status-checkpatch-fixes.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes.patch
-lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix.patch
-lib-find__bit-reimplementation-fix.patch
-binfmt_misc-simplify-entry_status-fix.patch
-rtc-add-abracon-abx80x-driver-fix.patch
-fs-fat-remove-unnecessary-includes-fix.patch
-kconfig-use-macros-which-are-already-defined-fix.patch
-linux-next.patch
-lib-kconfig-fix-up-have_arch_bitreverse-help-text.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
 
