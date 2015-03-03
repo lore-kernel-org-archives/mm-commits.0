@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-ds1685-remove-owner-assignment-from-platform_driver.patch
- added to -mm tree
-Date: Mon, 02 Mar 2015 16:00:10 -0800
-Message-ID: <54f4f98a.VYvdZD/FHMLtaz9b%akpm@linux-foundation.org>
+Subject: + fork_init-update-max_threads-comment.patch added to -mm tree
+Date: Mon, 02 Mar 2015 16:05:35 -0800
+Message-ID: <54f4facf.6TFbtSsSte2ddfNP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45864 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45877 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753286AbbCCAAL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Mar 2015 19:00:11 -0500
+	with ESMTP id S1754119AbbCCAFg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Mar 2015 19:05:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kumba@gentoo.org, fengguang.wu@intel.com, mm-commits@vger.kernel.org
+To: jdelvare@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-ds1685.c: remove .owner assignment from platform_driver
+     Subject: fork_init: Update max_threads comment
 has been added to the -mm tree.  Its filename is
-     rtc-ds1685-remove-owner-assignment-from-platform_driver.patch
+     fork_init-update-max_threads-comment.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rtc-ds1685-remove-owner-assignment-from-platform_driver.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fork_init-update-max_threads-comment.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-ds1685-remove-owner-assignment-from-platform_driver.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fork_init-update-max_threads-comment.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,37 +38,40 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joshua Kinard <kumba@gentoo.org>
-Subject: drivers/rtc/rtc-ds1685.c: remove .owner assignment from platform_driver
+From: Jean Delvare <jdelvare@suse.de>
+Subject: fork_init: Update max_threads comment
 
-The rtc driver core now sets the platform_driver 'owner' property, so
-remove the assignment from the DS1685 driver.
+The comment explaining what value max_threads is set to is outdated.  The
+maximum memory consumption ratio for thread structures was 1/2 until
+February 2002, then it was briefly changed to 1/16 before being set to 1/8
+which we still use today.  The comment was never updated to reflect that
+change, it's about time.
 
-Fixes: aaaf5fbf56f1: "rtc: add driver for DS1685 family of real time clocks"
-Signed-off-by: Joshua Kinard <kumba@gentoo.org>
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
+Signed-off-by: Jean Delvare <jdelvare@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1685.c |    1 -
- 1 file changed, 1 deletion(-)
+ kernel/fork.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-ds1685.c~rtc-ds1685-remove-owner-assignment-from-platform_driver drivers/rtc/rtc-ds1685.c
---- a/drivers/rtc/rtc-ds1685.c~rtc-ds1685-remove-owner-assignment-from-platform_driver
-+++ a/drivers/rtc/rtc-ds1685.c
-@@ -2139,7 +2139,6 @@ ds1685_rtc_remove(struct platform_device
- static struct platform_driver ds1685_rtc_driver = {
- 	.driver		= {
- 		.name	= "rtc-ds1685",
--		.owner	= THIS_MODULE,
- 	},
- 	.probe		= ds1685_rtc_probe,
- 	.remove		= ds1685_rtc_remove,
+diff -puN kernel/fork.c~fork_init-update-max_threads-comment kernel/fork.c
+--- a/kernel/fork.c~fork_init-update-max_threads-comment
++++ a/kernel/fork.c
+@@ -270,8 +270,8 @@ void __init fork_init(unsigned long memp
+ 
+ 	/*
+ 	 * The default maximum number of threads is set to a safe
+-	 * value: the thread structures can take up at most half
+-	 * of memory.
++	 * value: the thread structures can take up at most one
++	 * eighth of the memory.
+ 	 */
+ 	max_threads = mempages / (8 * THREAD_SIZE / PAGE_SIZE);
+ 
 _
 
-Patches currently in -mm which might be from kumba@gentoo.org are
+Patches currently in -mm which might be from jdelvare@suse.de are
 
-origin.patch
-rtc-ds1685-remove-owner-assignment-from-platform_driver.patch
-mips-ip32-add-platform-data-hooks-to-use-ds1685-driver.patch
+fork_init-update-max_threads-comment.patch
+linux-next.patch
 
