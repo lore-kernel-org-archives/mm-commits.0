@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + add-errors=continue.patch added to -mm tree
-Date: Tue, 03 Mar 2015 14:07:28 -0800
-Message-ID: <54f630a0.ayKIWuJeR96UkYwL%akpm@linux-foundation.org>
+Subject: + clear-the-rest-of-the-buffers-on-error.patch added to -mm tree
+Date: Tue, 03 Mar 2015 14:07:32 -0800
+Message-ID: <54f630a4.qE4Gj7YxB/dtz+k4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36278 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36287 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757568AbbCCWHa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Mar 2015 17:07:30 -0500
+	with ESMTP id S932082AbbCCWHd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Mar 2015 17:07:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: rgoldwyn@suse.de, jlbec@evilplan.org, mfasheh@suse.com, rgoldwyn@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: add errors=continue
+     Subject: ocfs2: clear the rest of the buffers on error
 has been added to the -mm tree.  Its filename is
-     add-errors=continue.patch
+     clear-the-rest-of-the-buffers-on-error.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/add-errors%3Dcontinue.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/clear-the-rest-of-the-buffers-on-error.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/add-errors%3Dcontinue.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/clear-the-rest-of-the-buffers-on-error.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,34 +39,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Goldwyn Rodrigues <rgoldwyn@suse.de>
-Subject: ocfs2: add errors=continue
+Subject: ocfs2: clear the rest of the buffers on error
 
-OCFS2 is often used in high-availaibility systems.  However, ocfs2
-converts the filesystem to read-only at the drop of the hat.  This may not
-be necessary, since turning the filesystem read-only would affect other
-running processes as well, decreasing availability.
+In case a validation fails, clear the rest of the buffers and return the
+error to the calling function.
 
-This attempt is to add errors=continue, which would return the EIO to the
-calling process and terminate furhter processing so that the filesystem is
-not corrupted further.  However, the filesystem is not converted to
-read-only.
-
-As a future plan, I intend to create a small utility or extend fsck.ocfs2
-to fix small errors such as in the inode.  The input to the utility such
-as the inode can come from the kernel logs so we don't have to schedule a
-downtime for fixing small-enough errors.
-
-The patch changes the ocfs2_error to return an error.  The error returned
-depends on the mount option set.  If none is set, the default is to turn
-the filesystem read-only.
-
-Perhaps errors=continue is not the best option name.  Historically it is
-used for making an attempt to progress in the current process itself. 
-Should we call it errors=eio?  or errors=killproc?  Suggestions/Comments
-welcome.
-
-Sources are available at:
-https://github.com/goldwynr/linux/tree/error-cont
+This also facilitates bubbling up the error originating from ocfs2_error
+to calling functions.
 
 Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
 Cc: Mark Fasheh <mfasheh@suse.com>
@@ -74,155 +53,25 @@ Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/ocfs2.h |    2 +
- fs/ocfs2/super.c |   59 ++++++++++++++++++++++++++++++++-------------
- fs/ocfs2/super.h |    2 -
- 3 files changed, 46 insertions(+), 17 deletions(-)
+ fs/ocfs2/buffer_head_io.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN fs/ocfs2/ocfs2.h~add-errors=continue fs/ocfs2/ocfs2.h
---- a/fs/ocfs2/ocfs2.h~add-errors=continue
-+++ a/fs/ocfs2/ocfs2.h
-@@ -286,6 +286,8 @@ enum ocfs2_mount_options
- 	OCFS2_MOUNT_HB_GLOBAL = 1 << 14, /* Global heartbeat */
+diff -puN fs/ocfs2/buffer_head_io.c~clear-the-rest-of-the-buffers-on-error fs/ocfs2/buffer_head_io.c
+--- a/fs/ocfs2/buffer_head_io.c~clear-the-rest-of-the-buffers-on-error
++++ a/fs/ocfs2/buffer_head_io.c
+@@ -316,6 +316,12 @@ int ocfs2_read_blocks(struct ocfs2_cachi
+ 		bh = bhs[i];
  
- 	OCFS2_MOUNT_JOURNAL_ASYNC_COMMIT = 1 << 15,  /* Journal Async Commit */
-+	OCFS2_MOUNT_ERRORS_CONT = 1 << 16, /* Return EIO to the calling process on error */
-+	OCFS2_MOUNT_ERRORS_ROFS = 1 << 17, /* Change filesystem to read-only on error */
- };
- 
- #define OCFS2_OSB_SOFT_RO	0x0001
-diff -puN fs/ocfs2/super.c~add-errors=continue fs/ocfs2/super.c
---- a/fs/ocfs2/super.c~add-errors=continue
-+++ a/fs/ocfs2/super.c
-@@ -192,6 +192,7 @@ enum {
- 	Opt_resv_level,
- 	Opt_dir_resv_level,
- 	Opt_journal_async_commit,
-+	Opt_err_cont,
- 	Opt_err,
- };
- 
-@@ -224,6 +225,7 @@ static const match_table_t tokens = {
- 	{Opt_resv_level, "resv_level=%u"},
- 	{Opt_dir_resv_level, "dir_resv_level=%u"},
- 	{Opt_journal_async_commit, "journal_async_commit"},
-+	{Opt_err_cont, "errors=continue"},
- 	{Opt_err, NULL}
- };
- 
-@@ -1330,10 +1332,19 @@ static int ocfs2_parse_options(struct su
- 			mopt->mount_opt |= OCFS2_MOUNT_NOINTR;
- 			break;
- 		case Opt_err_panic:
-+			mopt->mount_opt &= ~OCFS2_MOUNT_ERRORS_CONT;
-+			mopt->mount_opt &= ~OCFS2_MOUNT_ERRORS_ROFS;
- 			mopt->mount_opt |= OCFS2_MOUNT_ERRORS_PANIC;
- 			break;
- 		case Opt_err_ro:
-+			mopt->mount_opt &= ~OCFS2_MOUNT_ERRORS_CONT;
- 			mopt->mount_opt &= ~OCFS2_MOUNT_ERRORS_PANIC;
-+			mopt->mount_opt |= OCFS2_MOUNT_ERRORS_ROFS;
-+			break;
-+		case Opt_err_cont:
-+			mopt->mount_opt &= ~OCFS2_MOUNT_ERRORS_ROFS;
-+			mopt->mount_opt &= ~OCFS2_MOUNT_ERRORS_PANIC;
-+			mopt->mount_opt |= OCFS2_MOUNT_ERRORS_CONT;
- 			break;
- 		case Opt_data_ordered:
- 			mopt->mount_opt &= ~OCFS2_MOUNT_DATA_WRITEBACK;
-@@ -1530,6 +1541,8 @@ static int ocfs2_show_options(struct seq
- 
- 	if (opts & OCFS2_MOUNT_ERRORS_PANIC)
- 		seq_printf(s, ",errors=panic");
-+	else if (opts & OCFS2_MOUNT_ERRORS_CONT)
-+		seq_printf(s, ",errors=continue");
- 	else
- 		seq_printf(s, ",errors=remount-ro");
- 
-@@ -2539,33 +2552,47 @@ static void ocfs2_delete_osb(struct ocfs
- 	memset(osb, 0, sizeof(struct ocfs2_super));
- }
- 
--/* Put OCFS2 into a readonly state, or (if the user specifies it),
-- * panic(). We do not support continue-on-error operation. */
--static void ocfs2_handle_error(struct super_block *sb)
-+/* Depending on the mount option passed, perform one of the following:
-+ * Put OCFS2 into a readonly state (default)
-+ * Return EIO so that only the process errs
-+ * Fix the error as if fsck.ocfs2 -y
-+ * panic
-+ */
-+static int ocfs2_handle_error(struct super_block *sb)
- {
- 	struct ocfs2_super *osb = OCFS2_SB(sb);
-+	int rv = 0;
-+
-+	ocfs2_set_osb_flag(osb, OCFS2_OSB_ERROR_FS);
-+	pr_crit("On-disk corruption discovered. "
-+		"Please run fsck.ocfs2 once the filesystem is unmounted.\n");
- 
- 	if (osb->s_mount_opt & OCFS2_MOUNT_ERRORS_PANIC)
- 		panic("OCFS2: (device %s): panic forced after error\n",
- 		      sb->s_id);
-+	else if (osb->s_mount_opt & OCFS2_MOUNT_ERRORS_CONT) {
-+		pr_crit("OCFS2: Returning error to the calling process.\n");
-+		rv = -EIO;
-+	}
-+	else { /* default option */
-+		rv = -EROFS;
-+		if (sb->s_flags & MS_RDONLY &&
-+				(ocfs2_is_soft_readonly(osb) ||
-+				 ocfs2_is_hard_readonly(osb)))
-+			return rv;
-+
-+		pr_crit("OCFS2: File system is now read-only.\n");
-+		sb->s_flags |= MS_RDONLY;
-+		ocfs2_set_ro_flag(osb, 0);
-+	}
- 
--	ocfs2_set_osb_flag(osb, OCFS2_OSB_ERROR_FS);
--
--	if (sb->s_flags & MS_RDONLY &&
--	    (ocfs2_is_soft_readonly(osb) ||
--	     ocfs2_is_hard_readonly(osb)))
--		return;
-+	return rv;
- 
--	printk(KERN_CRIT "File system is now read-only due to the potential "
--	       "of on-disk corruption. Please run fsck.ocfs2 once the file "
--	       "system is unmounted.\n");
--	sb->s_flags |= MS_RDONLY;
--	ocfs2_set_ro_flag(osb, 0);
- }
- 
- static char error_buf[1024];
- 
--void __ocfs2_error(struct super_block *sb,
-+int __ocfs2_error(struct super_block *sb,
- 		   const char *function,
- 		   const char *fmt, ...)
- {
-@@ -2580,7 +2607,7 @@ void __ocfs2_error(struct super_block *s
- 	printk(KERN_CRIT "OCFS2: ERROR (device %s): %s: %s\n",
- 	       sb->s_id, function, error_buf);
- 
--	ocfs2_handle_error(sb);
-+	return ocfs2_handle_error(sb);
- }
- 
- /* Handle critical errors. This is intentionally more drastic than
-diff -puN fs/ocfs2/super.h~add-errors=continue fs/ocfs2/super.h
---- a/fs/ocfs2/super.h~add-errors=continue
-+++ a/fs/ocfs2/super.h
-@@ -32,7 +32,7 @@ int ocfs2_publish_get_mount_state(struct
- 				  int node_num);
- 
- __printf(3, 4)
--void __ocfs2_error(struct super_block *sb, const char *function,
-+int __ocfs2_error(struct super_block *sb, const char *function,
- 		   const char *fmt, ...);
- 
- #define ocfs2_error(sb, fmt, args...) __ocfs2_error(sb, __PRETTY_FUNCTION__, fmt, ##args)
+ 		if (!(flags & OCFS2_BH_READAHEAD)) {
++			if (status) {
++				/* Clear the rest of the buffers on error */
++				put_bh(bh);
++				bhs[i] = NULL;
++				continue;
++			}
+ 			/* We know this can't have changed as we hold the
+ 			 * owner sem. Avoid doing any work on the bh if the
+ 			 * journal has it. */
 _
 
 Patches currently in -mm which might be from rgoldwyn@suse.de are
