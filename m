@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- jbd2-revert-must-not-fail-allocation-loops-back-to-gfp_nofail.patch added
- to -mm tree
-Date: Mon, 02 Mar 2015 16:17:04 -0800
-Message-ID: <54f4fd80.KhHgF9qtkhazN1OU%akpm@linux-foundation.org>
+Subject: + sparc-clarify-__gfp_nofail-allocation.patch added to -mm tree
+Date: Mon, 02 Mar 2015 16:17:06 -0800
+Message-ID: <54f4fd82.LW53pXJabSGQ0aLk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45922 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45929 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754017AbbCCARG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Mar 2015 19:17:06 -0500
+	with ESMTP id S1752705AbbCCARI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Mar 2015 19:17:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mhocko@suse.cz, davem@davemloft.net, david@fromorbit.com, hannes@cmpxchg.org, jack@suse.cz, mgorman@suse.de, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, tytso@mit.edu, vipul@chelsio.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: jbd2: revert must-not-fail allocation loops back to GFP_NOFAIL
+     Subject: sparc: clarify __GFP_NOFAIL allocation
 has been added to the -mm tree.  Its filename is
-     jbd2-revert-must-not-fail-allocation-loops-back-to-gfp_nofail.patch
+     sparc-clarify-__gfp_nofail-allocation.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/jbd2-revert-must-not-fail-allocation-loops-back-to-gfp_nofail.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sparc-clarify-__gfp_nofail-allocation.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/jbd2-revert-must-not-fail-allocation-loops-back-to-gfp_nofail.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sparc-clarify-__gfp_nofail-allocation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,23 +39,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.cz>
-Subject: jbd2: revert must-not-fail allocation loops back to GFP_NOFAIL
+Subject: sparc: clarify __GFP_NOFAIL allocation
 
-This basically reverts 47def82672b3 ("jbd2: Remove __GFP_NOFAIL from jbd2
-layer").  The deprecation of __GFP_NOFAIL was a bad choice because it led
-to open coding the endless loop around the allocator rather than removing
-the dependency on the non failing allocation.  So the deprecation was a
-clear failure and the reality tells us that __GFP_NOFAIL is not even close
-to go away.
+920c3ed74134 ([SPARC64]: Add basic infrastructure for MD add/remove
+notification.) has added __GFP_NOFAIL for the allocation request but it
+hasn't mentioned why is this strict requirement really needed.  The code
+was handling an allocation failure and propagated it properly up the
+callchain so it is not clear why it is needed.
 
-It is still true that __GFP_NOFAIL allocations are generally discouraged
-and new uses should be evaluated and an alternative (pre-allocations or
-reservations) should be considered but it doesn't make any sense to lie
-the allocator about the requirements.  Allocator can take steps to help
-making a progress if it knows the requirements.
+Dave has clarified the intention when I tried to remove the flag as not
+being necessary:
+
+: It is a serious failure.
+: 
+: If we miss an MDESC update due to this allocation failure, the update
+: is not an event which gets retransmitted so we will lose the updated
+: machine description forever.
+: 
+: We really need this allocation to succeed.
+
+So add a comment to clarify the nofail flag and get rid of the failure
+check because __GFP_NOFAIL allocation doesn't fail.
 
 Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: David Rientjes <rientjes@google.com>
+Cc: David Rientjes <rientjes@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: "Theodore Ts'o" <tytso@mit.edu>
@@ -69,64 +74,50 @@ Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd2/journal.c     |   11 +----------
- fs/jbd2/transaction.c |   20 +++++++-------------
- 2 files changed, 8 insertions(+), 23 deletions(-)
+ arch/sparc/kernel/mdesc.c |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN fs/jbd2/journal.c~jbd2-revert-must-not-fail-allocation-loops-back-to-gfp_nofail fs/jbd2/journal.c
---- a/fs/jbd2/journal.c~jbd2-revert-must-not-fail-allocation-loops-back-to-gfp_nofail
-+++ a/fs/jbd2/journal.c
-@@ -371,16 +371,7 @@ int jbd2_journal_write_metadata_buffer(t
- 	 */
- 	J_ASSERT_BH(bh_in, buffer_jbddirty(bh_in));
+diff -puN arch/sparc/kernel/mdesc.c~sparc-clarify-__gfp_nofail-allocation arch/sparc/kernel/mdesc.c
+--- a/arch/sparc/kernel/mdesc.c~sparc-clarify-__gfp_nofail-allocation
++++ a/arch/sparc/kernel/mdesc.c
+@@ -130,26 +130,26 @@ static struct mdesc_mem_ops memblock_mde
+ static struct mdesc_handle *mdesc_kmalloc(unsigned int mdesc_size)
+ {
+ 	unsigned int handle_size;
++	struct mdesc_handle *hp;
++	unsigned long addr;
+ 	void *base;
  
--retry_alloc:
--	new_bh = alloc_buffer_head(GFP_NOFS);
--	if (!new_bh) {
--		/*
--		 * Failure is not an option, but __GFP_NOFAIL is going
--		 * away; so we retry ourselves here.
--		 */
--		congestion_wait(BLK_RW_ASYNC, HZ/50);
--		goto retry_alloc;
+ 	handle_size = (sizeof(struct mdesc_handle) -
+ 		       sizeof(struct mdesc_hdr) +
+ 		       mdesc_size);
+ 
++	/*
++	 * Allocation has to succeed because mdesc update would be missed
++	 * and such events are not retransmitted.
++	 */
+ 	base = kmalloc(handle_size + 15, GFP_KERNEL | __GFP_NOFAIL);
+-	if (base) {
+-		struct mdesc_handle *hp;
+-		unsigned long addr;
++	addr = (unsigned long)base;
++	addr = (addr + 15UL) & ~15UL;
++	hp = (struct mdesc_handle *) addr;
+ 
+-		addr = (unsigned long)base;
+-		addr = (addr + 15UL) & ~15UL;
+-		hp = (struct mdesc_handle *) addr;
++	mdesc_handle_init(hp, handle_size, base);
+ 
+-		mdesc_handle_init(hp, handle_size, base);
+-		return hp;
 -	}
-+	new_bh = alloc_buffer_head(GFP_NOFS|__GFP_NOFAIL);
+-
+-	return NULL;
++	return hp;
+ }
  
- 	/* keep subsequent assertions sane */
- 	atomic_set(&new_bh->b_count, 1);
-diff -puN fs/jbd2/transaction.c~jbd2-revert-must-not-fail-allocation-loops-back-to-gfp_nofail fs/jbd2/transaction.c
---- a/fs/jbd2/transaction.c~jbd2-revert-must-not-fail-allocation-loops-back-to-gfp_nofail
-+++ a/fs/jbd2/transaction.c
-@@ -278,22 +278,16 @@ static int start_this_handle(journal_t *
- 
- alloc_transaction:
- 	if (!journal->j_running_transaction) {
-+		/*
-+		 * If __GFP_FS is not present, then we may be being called from
-+		 * inside the fs writeback layer, so we MUST NOT fail.
-+		 */
-+		if ((gfp_mask & __GFP_FS) == 0)
-+			gfp_mask |= __GFP_NOFAIL;
- 		new_transaction = kmem_cache_zalloc(transaction_cache,
- 						    gfp_mask);
--		if (!new_transaction) {
--			/*
--			 * If __GFP_FS is not present, then we may be
--			 * being called from inside the fs writeback
--			 * layer, so we MUST NOT fail.  Since
--			 * __GFP_NOFAIL is going away, we will arrange
--			 * to retry the allocation ourselves.
--			 */
--			if ((gfp_mask & __GFP_FS) == 0) {
--				congestion_wait(BLK_RW_ASYNC, HZ/50);
--				goto alloc_transaction;
--			}
-+		if (!new_transaction)
- 			return -ENOMEM;
--		}
- 	}
- 
- 	jbd_debug(3, "New handle %p going live.\n", handle);
+ static void mdesc_kfree(struct mdesc_handle *hp)
 _
 
 Patches currently in -mm which might be from mhocko@suse.cz are
