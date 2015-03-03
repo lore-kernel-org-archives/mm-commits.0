@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + kdb-fix-handling-of-kallsyms_symbol_next-return-value.patch
- added to -mm tree
-Date: Mon, 02 Mar 2015 16:20:04 -0800
-Message-ID: <54f4fe34.GpWBdvDH94m8Kdcv%akpm@linux-foundation.org>
+Subject: + mm-page_allocc-add-and-in-comment.patch added to -mm tree
+Date: Mon, 02 Mar 2015 16:36:07 -0800
+Message-ID: <54f501f7.+MKasl916AhV1Qg+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45954 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46403 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750960AbbCCAUF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Mar 2015 19:20:05 -0500
+	with ESMTP id S1754120AbbCCAgI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Mar 2015 19:36:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: daniel.thompson@linaro.org, dan.carpenter@oracle.com, jason.wessel@windriver.com, mm-commits@vger.kernel.org
+To: bywxiaobai@163.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kdb: fix handling of kallsyms_symbol_next() return value
+     Subject: mm/page_alloc.c: clean up comment
 has been added to the -mm tree.  Its filename is
-     kdb-fix-handling-of-kallsyms_symbol_next-return-value.patch
+     mm-page_allocc-add-and-in-comment.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kdb-fix-handling-of-kallsyms_symbol_next-return-value.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_allocc-add-and-in-comment.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kdb-fix-handling-of-kallsyms_symbol_next-return-value.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_allocc-add-and-in-comment.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,41 +38,31 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Daniel Thompson <daniel.thompson@linaro.org>
-Subject: kdb: fix handling of kallsyms_symbol_next() return value
+From: Yaowei Bai <bywxiaobai@163.com>
+Subject: mm/page_alloc.c: clean up comment
 
-kallsyms_symbol_next() returns a boolean (true on success). Currently
-kdb_read() tests the return value with an inequality that
-unconditionally evaluates to true.
-
-This is fixed in the obvious way and, since the conditional branch is
-supposed to be unreachable, we also add a WARN_ON().
-
-Signed-off-by: Daniel Thompson <daniel.thompson@linaro.org>
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Jason Wessel <jason.wessel@windriver.com>
+Signed-off-by: Yaowei Bai <bywxiaobai@163.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/debug/kdb/kdb_io.c |    2 +-
+ mm/page_alloc.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/debug/kdb/kdb_io.c~kdb-fix-handling-of-kallsyms_symbol_next-return-value kernel/debug/kdb/kdb_io.c
---- a/kernel/debug/kdb/kdb_io.c~kdb-fix-handling-of-kallsyms_symbol_next-return-value
-+++ a/kernel/debug/kdb/kdb_io.c
-@@ -349,7 +349,7 @@ poll_again:
- 			}
- 			kdb_printf("\n");
- 			for (i = 0; i < count; i++) {
--				if (kallsyms_symbol_next(p_tmp, i) < 0)
-+				if (WARN_ON(!kallsyms_symbol_next(p_tmp, i)))
- 					break;
- 				kdb_printf("%s ", p_tmp);
- 				*(p_tmp + len) = '\0';
+diff -puN mm/page_alloc.c~mm-page_allocc-add-and-in-comment mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_allocc-add-and-in-comment
++++ a/mm/page_alloc.c
+@@ -5760,7 +5760,7 @@ static void __setup_per_zone_wmarks(void
+ 			 * value here.
+ 			 *
+ 			 * The WMARK_HIGH-WMARK_LOW and (WMARK_LOW-WMARK_MIN)
+-			 * deltas controls asynch page reclaim, and so should
++			 * deltas control asynch page reclaim, and so should
+ 			 * not be capped for highmem.
+ 			 */
+ 			unsigned long min_pages;
 _
 
-Patches currently in -mm which might be from daniel.thompson@linaro.org are
+Patches currently in -mm which might be from bywxiaobai@163.com are
 
-kdb-fix-handling-of-kallsyms_symbol_next-return-value.patch
-linux-next.patch
+mm-page_allocc-add-and-in-comment.patch
 
