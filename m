@@ -1,382 +1,368 @@
 From: akpm@linux-foundation.org
-Subject: + lib-string_helpersc-change-semantics-of-string_escape_mem.patch tentatively added to -mm tree
-Date: Wed, 04 Mar 2015 13:26:03 -0800
-Message-ID: <54f7786b.YUfK0ILKyAumUS9P%akpm@linux-foundation.org>
+Subject: [to-be-updated] mm-expose-arch_mmap_rnd-when-available.patch
+ removed from -mm tree
+Date: Wed, 04 Mar 2015 13:34:07 -0800
+Message-ID: <54f77a4f.bOOJboGMZKN3mfHL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60845 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60935 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751105AbbCDV0E (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Mar 2015 16:26:04 -0500
+	with ESMTP id S1751423AbbCDVeJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Mar 2015 16:34:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, andriy.shevchenko@linux.intel.com, mm-commits@vger.kernel.org
+To: keescook@chromium.org, a.ryabinin@samsung.com, achandran@mvista.com, alex@alex-smith.me.uk, behanw@converseincode.com, ben@decadent.org.uk, benh@kernel.crashing.org, catalin.marinas@arm.com, dave.long@linaro.org, dl9pf@gmx.de, hecmargi@upv.es, heiko.carstens@de.ibm.com, holzheu@linux.vnet.ibm.com, iripoll@upv.es, jeffbailey@google.com, linux@arm.linux.org.uk, luto@amacapital.net, markos.chandras@imgtec.com, mingo@kernel.org, mpe@ellerman.id.au, oleg@redhat.com, orca.chen@gmail.com, paul.burton@imgtec.com, paulus@samba.org, ralf@linux-mips.org, schwidefsky@de.ibm.com, viro@zeniv.linux.org.uk, vvijayan@mvista.com, will.deacon@arm.com, ydroneaud@opteya.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/string_helpers.c: change semantics of string_escape_mem
-has been added to the -mm tree.  Its filename is
-     lib-string_helpersc-change-semantics-of-string_escape_mem.patch
+     Subject: mm: expose arch_mmap_rnd when available
+has been removed from the -mm tree.  Its filename was
+     mm-expose-arch_mmap_rnd-when-available.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-string_helpersc-change-semantics-of-string_escape_mem.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-string_helpersc-change-semantics-of-string_escape_mem.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/string_helpers.c: change semantics of string_escape_mem
+From: Kees Cook <keescook@chromium.org>
+Subject: mm: expose arch_mmap_rnd when available
 
-The current semantics of string_escape_mem are inadequate for one of its
-current users, vsnprintf().  If that is to honour its contract, it must
-know how much space would be needed for the entire escaped buffer, and
-string_escape_mem provides no way of obtaining that (short of allocating a
-large enough buffer (~4 times input string) to let it play with, and
-that's definitely a big no-no inside vsnprintf).
+When an architecture fully supports randomizing the ELF load location, a
+per-arch mmap_rnd() function is used to finding a randomized mmap base.  
 
-So change the semantics for string_escape_mem to be more snprintf-like:
-Return the size of the output that would be generated if the destination
-buffer was big enough, but of course still only write to the part of dst
-it is allowed to, and (contrary to snprintf) don't do '\0'-termination. 
-It is then up to the caller to detect whether output was truncated and to
-append a '\0' if desired.  Also, we must output partial escape sequences,
-otherwise a call such as snprintf(buf, 3, "%1pE", "\123") would cause
-printf to write a \0 to buf[2] but leaving buf[0] and buf[1] with whatever
-they previously contained.
+In preparation for randomizing the location of ET_DYN binaries separately
+from mmap, this renames and exports these functions as arch_mmap_rnd().  
 
-This also fixes a bug in the escaped_string() helper function, which used
-to unconditionally pass a length of "end-buf" to string_escape_mem();
-since the latter doesn't check osz for being insanely large, it would
-happily write to dst.  For example, kasprintf(GFP_KERNEL, "something and
-then %pE", ...); is an easy way to trigger an oops.
+Additionally introduces CONFIG_ARCH_HAS_ELF_RANDOMIZE for describing this
+feature on architectures that support it (which is a superset of
+ARCH_BINFMT_ELF_RANDOMIZE_PIE, since s390 already does this witout the
+ARCH_BINFMT_ELF_RANDOMIZE_PIE logic).
 
-In test-string_helpers.c, the -ENOMEM test is replaced with testing for
-getting the expected return value even if the buffer is too small.  We
-also ensure that nothing is written (by relying on a NULL pointer deref)
-if the output size is 0 by passing NULL - this has to work for
-kasprintf("%pE") to work.
-
-In net/sunrpc/cache.c, I think qword_add still has the same semantics. 
-Someone should definitely double-check this.
-
-In fs/proc/array.c, I made the minimum possible change, but longer-term it
-should stop poking around in seq_file internals.
-
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Acked-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Hector Marco-Gisbert <hecmargi@upv.es>
+Cc: Russell King <linux@arm.linux.org.uk>
+Reviewed-by: Ingo Molnar <mingo@kernel.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: "David A. Long" <dave.long@linaro.org>
+Cc: Andrey Ryabinin <a.ryabinin@samsung.com>
+Cc: Arun Chandran <achandran@mvista.com>
+Cc: Yann Droneaud <ydroneaud@opteya.com>
+Cc: Min-Hua Chen <orca.chen@gmail.com>
+Cc: Paul Burton <paul.burton@imgtec.com>
+Cc: Alex Smith <alex@alex-smith.me.uk>
+Cc: Markos Chandras <markos.chandras@imgtec.com>
+Cc: Vineeth Vijayan <vvijayan@mvista.com>
+Cc: Jeff Bailey <jeffbailey@google.com>
+Cc: Michael Holzheu <holzheu@linux.vnet.ibm.com>
+Cc: Ben Hutchings <ben@decadent.org.uk>
+Cc: Behan Webster <behanw@converseincode.com>
+Cc: Ismael Ripoll <iripoll@upv.es>
+Cc: Jan-Simon Mller <dl9pf@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c                |    4 +-
- include/linux/string_helpers.h |    8 ++---
- lib/string_helpers.c           |   49 ++++---------------------------
- lib/test-string_helpers.c      |   40 ++++++++++++-------------
- lib/vsprintf.c                 |    8 +++--
- net/sunrpc/cache.c             |    8 +++--
- 6 files changed, 44 insertions(+), 73 deletions(-)
+ arch/Kconfig                  |    7 +++++++
+ arch/arm/Kconfig              |    1 +
+ arch/arm/mm/mmap.c            |    4 ++--
+ arch/arm64/Kconfig            |    1 +
+ arch/arm64/mm/mmap.c          |    4 ++--
+ arch/mips/Kconfig             |    1 +
+ arch/mips/mm/mmap.c           |    9 ++++++---
+ arch/powerpc/Kconfig          |    1 +
+ arch/powerpc/mm/mmap.c        |    4 ++--
+ arch/s390/Kconfig             |    1 +
+ arch/s390/mm/mmap.c           |    8 ++++----
+ arch/x86/Kconfig              |    1 +
+ arch/x86/mm/mmap.c            |    6 +++---
+ fs/binfmt_elf.c               |    1 +
+ include/linux/elf-randomize.h |   10 ++++++++++
+ 15 files changed, 43 insertions(+), 16 deletions(-)
 
-diff -puN fs/proc/array.c~lib-string_helpersc-change-semantics-of-string_escape_mem fs/proc/array.c
---- a/fs/proc/array.c~lib-string_helpersc-change-semantics-of-string_escape_mem
-+++ a/fs/proc/array.c
-@@ -99,8 +99,8 @@ static inline void task_name(struct seq_
- 	buf = m->buf + m->count;
+diff -puN arch/Kconfig~mm-expose-arch_mmap_rnd-when-available arch/Kconfig
+--- a/arch/Kconfig~mm-expose-arch_mmap_rnd-when-available
++++ a/arch/Kconfig
+@@ -488,6 +488,13 @@ config PGTABLE_LEVELS
+ 	int
+ 	default 2
  
- 	/* Ignore error for now */
--	string_escape_str(tcomm, &buf, m->size - m->count,
--			  ESCAPE_SPACE | ESCAPE_SPECIAL, "\n\\");
-+	buf += string_escape_str(tcomm, buf, m->size - m->count,
-+				 ESCAPE_SPACE | ESCAPE_SPECIAL, "\n\\");
- 
- 	m->count = buf - m->buf;
- 	seq_putc(m, '\n');
-diff -puN include/linux/string_helpers.h~lib-string_helpersc-change-semantics-of-string_escape_mem include/linux/string_helpers.h
---- a/include/linux/string_helpers.h~lib-string_helpersc-change-semantics-of-string_escape_mem
-+++ a/include/linux/string_helpers.h
-@@ -47,22 +47,22 @@ static inline int string_unescape_any_in
- #define ESCAPE_ANY_NP		(ESCAPE_ANY | ESCAPE_NP)
- #define ESCAPE_HEX		0x20
- 
--int string_escape_mem(const char *src, size_t isz, char **dst, size_t osz,
-+int string_escape_mem(const char *src, size_t isz, char *dst, size_t osz,
- 		unsigned int flags, const char *esc);
- 
- static inline int string_escape_mem_any_np(const char *src, size_t isz,
--		char **dst, size_t osz, const char *esc)
-+		char *dst, size_t osz, const char *esc)
- {
- 	return string_escape_mem(src, isz, dst, osz, ESCAPE_ANY_NP, esc);
- }
- 
--static inline int string_escape_str(const char *src, char **dst, size_t sz,
-+static inline int string_escape_str(const char *src, char *dst, size_t sz,
- 		unsigned int flags, const char *esc)
- {
- 	return string_escape_mem(src, strlen(src), dst, sz, flags, esc);
- }
- 
--static inline int string_escape_str_any_np(const char *src, char **dst,
-+static inline int string_escape_str_any_np(const char *src, char *dst,
- 		size_t sz, const char *esc)
- {
- 	return string_escape_str(src, dst, sz, ESCAPE_ANY_NP, esc);
-diff -puN lib/string_helpers.c~lib-string_helpersc-change-semantics-of-string_escape_mem lib/string_helpers.c
---- a/lib/string_helpers.c~lib-string_helpersc-change-semantics-of-string_escape_mem
-+++ a/lib/string_helpers.c
-@@ -274,11 +274,6 @@ static bool escape_space(unsigned char c
- 		return false;
- 	}
- 
--	if (out + 2 > end) {
--		*dst = out + 2;
--		return true;
--	}
--
- 	if (out < end)
- 		*out = '\\';
- 	++out;
-@@ -309,11 +304,6 @@ static bool escape_special(unsigned char
- 		return false;
- 	}
- 
--	if (out + 2 > end) {
--		*dst = out + 2;
--		return true;
--	}
--
- 	if (out < end)
- 		*out = '\\';
- 	++out;
-@@ -332,11 +322,6 @@ static bool escape_null(unsigned char c,
- 	if (c)
- 		return false;
- 
--	if (out + 2 > end) {
--		*dst = out + 2;
--		return true;
--	}
--
- 	if (out < end)
- 		*out = '\\';
- 	++out;
-@@ -352,11 +337,6 @@ static bool escape_octal(unsigned char c
- {
- 	char *out = *dst;
- 
--	if (out + 4 > end) {
--		*dst = out + 4;
--		return true;
--	}
--
- 	if (out < end)
- 		*out = '\\';
- 	++out;
-@@ -378,11 +358,6 @@ static bool escape_hex(unsigned char c,
- {
- 	char *out = *dst;
- 
--	if (out + 4 > end) {
--		*dst = out + 4;
--		return true;
--	}
--
- 	if (out < end)
- 		*out = '\\';
- 	++out;
-@@ -449,20 +424,17 @@ static bool escape_hex(unsigned char c,
-  * it if needs.
-  *
-  * Return:
-- * The amount of the characters processed to the destination buffer, or
-- * %-ENOMEM if the size of buffer is not enough to put an escaped character is
-- * returned.
-- *
-- * Even in the case of error @dst pointer will be updated to point to the byte
-- * after the last processed character.
-+ * The total size of the escaped output that would be generated for
-+ * the given input and flags. To check whether the output was
-+ * truncated, compare the return value to osz. There is room left in
-+ * dst for a '\0' terminator if and only if ret < osz.
-  */
--int string_escape_mem(const char *src, size_t isz, char **dst, size_t osz,
-+int string_escape_mem(const char *src, size_t isz, char *dst, size_t osz,
- 		      unsigned int flags, const char *esc)
- {
--	char *p = *dst;
-+	char *p = dst;
- 	char *end = p + osz;
- 	bool is_dict = esc && *esc;
--	int ret;
- 
- 	while (isz--) {
- 		unsigned char c = *src++;
-@@ -502,13 +474,6 @@ int string_escape_mem(const char *src, s
- 		escape_passthrough(c, &p, end);
- 	}
- 
--	if (p > end) {
--		*dst = end;
--		return -ENOMEM;
--	}
--
--	ret = p - *dst;
--	*dst = p;
--	return ret;
-+	return p - dst;
- }
- EXPORT_SYMBOL(string_escape_mem);
-diff -puN lib/test-string_helpers.c~lib-string_helpersc-change-semantics-of-string_escape_mem lib/test-string_helpers.c
---- a/lib/test-string_helpers.c~lib-string_helpersc-change-semantics-of-string_escape_mem
-+++ a/lib/test-string_helpers.c
-@@ -260,16 +260,28 @@ static __init const char *test_string_fi
- 	return NULL;
- }
- 
-+static __init void
-+test_string_escape_overflow(const char *in, int p, unsigned int flags, const char *esc,
-+			    int q_test, const char *name)
-+{
-+	int q_real;
++config ARCH_HAS_ELF_RANDOMIZE
++	bool
++	help
++	  An architecture supports choosing randomized locations for
++	  stack, mmap, brk, and ET_DYN. Defined functions:
++	  - arch_mmap_rnd(), must respect (current->flags & PF_RANDOMIZE)
 +
-+	q_real = string_escape_mem(in, p, NULL, 0, flags, esc);
-+	if (q_real != q_test)
-+		pr_warn("Test '%s' failed: flags = %u, osz = 0, expected %d, got %d\n",
-+			name, flags, q_test, q_real);
-+}
-+
- static __init void test_string_escape(const char *name,
- 				      const struct test_string_2 *s2,
- 				      unsigned int flags, const char *esc)
- {
--	int q_real = 512;
--	char *out_test = kmalloc(q_real, GFP_KERNEL);
--	char *out_real = kmalloc(q_real, GFP_KERNEL);
-+	size_t out_size = 512;
-+	char *out_test = kmalloc(out_size, GFP_KERNEL);
-+	char *out_real = kmalloc(out_size, GFP_KERNEL);
- 	char *in = kmalloc(256, GFP_KERNEL);
--	char *buf = out_real;
- 	int p = 0, q_test = 0;
-+	int q_real;
+ #
+ # ABI hall of shame
+ #
+diff -puN arch/arm/Kconfig~mm-expose-arch_mmap_rnd-when-available arch/arm/Kconfig
+--- a/arch/arm/Kconfig~mm-expose-arch_mmap_rnd-when-available
++++ a/arch/arm/Kconfig
+@@ -3,6 +3,7 @@ config ARM
+ 	default y
+ 	select ARCH_BINFMT_ELF_RANDOMIZE_PIE
+ 	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
++	select ARCH_HAS_ELF_RANDOMIZE
+ 	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
+ 	select ARCH_HAVE_CUSTOM_GPIO_H
+ 	select ARCH_HAS_GCOV_PROFILE_ALL
+diff -puN arch/arm/mm/mmap.c~mm-expose-arch_mmap_rnd-when-available arch/arm/mm/mmap.c
+--- a/arch/arm/mm/mmap.c~mm-expose-arch_mmap_rnd-when-available
++++ a/arch/arm/mm/mmap.c
+@@ -169,7 +169,7 @@ arch_get_unmapped_area_topdown(struct fi
+ 	return addr;
+ }
  
- 	if (!out_test || !out_real || !in)
- 		goto out;
-@@ -301,29 +313,19 @@ static __init void test_string_escape(co
- 		q_test += len;
+-static unsigned long mmap_rnd(void)
++unsigned long arch_mmap_rnd(void)
+ {
+ 	unsigned long rnd = 0UL;
+ 
+@@ -183,7 +183,7 @@ static unsigned long mmap_rnd(void)
+ 
+ void arch_pick_mmap_layout(struct mm_struct *mm)
+ {
+-	unsigned long random_factor = mmap_rnd();
++	unsigned long random_factor = arch_mmap_rnd();
+ 
+ 	if (mmap_is_legacy()) {
+ 		mm->mmap_base = TASK_UNMAPPED_BASE + random_factor;
+diff -puN arch/arm64/Kconfig~mm-expose-arch_mmap_rnd-when-available arch/arm64/Kconfig
+--- a/arch/arm64/Kconfig~mm-expose-arch_mmap_rnd-when-available
++++ a/arch/arm64/Kconfig
+@@ -2,6 +2,7 @@ config ARM64
+ 	def_bool y
+ 	select ARCH_BINFMT_ELF_RANDOMIZE_PIE
+ 	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
++	select ARCH_HAS_ELF_RANDOMIZE
+ 	select ARCH_HAS_GCOV_PROFILE_ALL
+ 	select ARCH_HAS_SG_CHAIN
+ 	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
+diff -puN arch/arm64/mm/mmap.c~mm-expose-arch_mmap_rnd-when-available arch/arm64/mm/mmap.c
+--- a/arch/arm64/mm/mmap.c~mm-expose-arch_mmap_rnd-when-available
++++ a/arch/arm64/mm/mmap.c
+@@ -47,7 +47,7 @@ static int mmap_is_legacy(void)
+ 	return sysctl_legacy_va_layout;
+ }
+ 
+-static unsigned long mmap_rnd(void)
++unsigned long arch_mmap_rnd(void)
+ {
+ 	unsigned long rnd = 0;
+ 
+@@ -66,7 +66,7 @@ static unsigned long mmap_base(void)
+ 	else if (gap > MAX_GAP)
+ 		gap = MAX_GAP;
+ 
+-	return PAGE_ALIGN(STACK_TOP - gap - mmap_rnd());
++	return PAGE_ALIGN(STACK_TOP - gap - arch_mmap_rnd());
+ }
+ 
+ /*
+diff -puN arch/mips/Kconfig~mm-expose-arch_mmap_rnd-when-available arch/mips/Kconfig
+--- a/arch/mips/Kconfig~mm-expose-arch_mmap_rnd-when-available
++++ a/arch/mips/Kconfig
+@@ -24,6 +24,7 @@ config MIPS
+ 	select HAVE_DEBUG_KMEMLEAK
+ 	select HAVE_SYSCALL_TRACEPOINTS
+ 	select ARCH_BINFMT_ELF_RANDOMIZE_PIE
++	select ARCH_HAS_ELF_RANDOMIZE
+ 	select HAVE_ARCH_TRANSPARENT_HUGEPAGE if CPU_SUPPORTS_HUGEPAGES && 64BIT
+ 	select RTC_LIB if !MACH_LOONGSON
+ 	select GENERIC_ATOMIC64 if !64BIT
+diff -puN arch/mips/mm/mmap.c~mm-expose-arch_mmap_rnd-when-available arch/mips/mm/mmap.c
+--- a/arch/mips/mm/mmap.c~mm-expose-arch_mmap_rnd-when-available
++++ a/arch/mips/mm/mmap.c
+@@ -164,9 +164,12 @@ void arch_pick_mmap_layout(struct mm_str
  	}
- 
--	q_real = string_escape_mem(in, p, &buf, q_real, flags, esc);
-+	q_real = string_escape_mem(in, p, out_real, out_size, flags, esc);
- 
- 	test_string_check_buf(name, flags, in, p, out_real, q_real, out_test,
- 			      q_test);
-+
-+	test_string_escape_overflow(in, p, flags, esc, q_test, name);
-+
- out:
- 	kfree(in);
- 	kfree(out_real);
- 	kfree(out_test);
  }
  
--static __init void test_string_escape_nomem(void)
--{
--	char *in = "\eb \\C\007\"\x90\r]";
--	char out[64], *buf = out;
--	int rc = -ENOMEM, ret;
--
--	ret = string_escape_str_any_np(in, &buf, strlen(in), NULL);
--	if (ret == rc)
--		return;
--
--	pr_err("Test 'escape nomem' failed: got %d instead of %d\n", ret, rc);
--}
--
- static int __init test_string_helpers_init(void)
+-static inline unsigned long brk_rnd(void)
++unsigned long arch_mmap_rnd(void)
  {
- 	unsigned int i;
-@@ -342,8 +344,6 @@ static int __init test_string_helpers_in
- 	for (i = 0; i < (ESCAPE_ANY_NP | ESCAPE_HEX) + 1; i++)
- 		test_string_escape("escape 1", escape1, i, TEST_STRING_2_DICT_1);
+-	unsigned long rnd = get_random_int();
++	unsigned long rnd = 0;
++
++	if (current->flags & PF_RANDOMIZE)
++		rnd = get_random_int();
  
--	test_string_escape_nomem();
--
- 	return -EINVAL;
+ 	rnd = rnd << PAGE_SHIFT;
+ 	/* 8MB for 32bit, 256MB for 64bit */
+@@ -183,7 +186,7 @@ unsigned long arch_randomize_brk(struct
+ 	unsigned long base = mm->brk;
+ 	unsigned long ret;
+ 
+-	ret = PAGE_ALIGN(base + brk_rnd());
++	ret = PAGE_ALIGN(base + arch_mmap_rnd());
+ 
+ 	if (ret < mm->brk)
+ 		return mm->brk;
+diff -puN arch/powerpc/Kconfig~mm-expose-arch_mmap_rnd-when-available arch/powerpc/Kconfig
+--- a/arch/powerpc/Kconfig~mm-expose-arch_mmap_rnd-when-available
++++ a/arch/powerpc/Kconfig
+@@ -89,6 +89,7 @@ config PPC
+ 	select ARCH_MIGHT_HAVE_PC_SERIO
+ 	select BINFMT_ELF
+ 	select ARCH_BINFMT_ELF_RANDOMIZE_PIE
++	select ARCH_HAS_ELF_RANDOMIZE
+ 	select OF
+ 	select OF_EARLY_FLATTREE
+ 	select OF_RESERVED_MEM
+diff -puN arch/powerpc/mm/mmap.c~mm-expose-arch_mmap_rnd-when-available arch/powerpc/mm/mmap.c
+--- a/arch/powerpc/mm/mmap.c~mm-expose-arch_mmap_rnd-when-available
++++ a/arch/powerpc/mm/mmap.c
+@@ -53,7 +53,7 @@ static inline int mmap_is_legacy(void)
+ 	return sysctl_legacy_va_layout;
  }
- module_init(test_string_helpers_init);
-diff -puN lib/vsprintf.c~lib-string_helpersc-change-semantics-of-string_escape_mem lib/vsprintf.c
---- a/lib/vsprintf.c~lib-string_helpersc-change-semantics-of-string_escape_mem
-+++ a/lib/vsprintf.c
-@@ -1235,8 +1235,12 @@ char *escaped_string(char *buf, char *en
  
- 	len = spec.field_width < 0 ? 1 : spec.field_width;
- 
--	/* Ignore the error. We print as many characters as we can */
--	string_escape_mem(addr, len, &buf, end - buf, flags, NULL);
-+	/*
-+	 * string_escape_mem() writes as many characters as it can to
-+	 * the given buffer, and returns the total size of the output
-+	 * had the buffer been big enough.
-+	 */
-+	buf += string_escape_mem(addr, len, buf, buf < end ? end - buf : 0, flags, NULL);
- 
- 	return buf;
- }
-diff -puN net/sunrpc/cache.c~lib-string_helpersc-change-semantics-of-string_escape_mem net/sunrpc/cache.c
---- a/net/sunrpc/cache.c~lib-string_helpersc-change-semantics-of-string_escape_mem
-+++ a/net/sunrpc/cache.c
-@@ -1068,12 +1068,14 @@ void qword_add(char **bpp, int *lp, char
+-static unsigned long mmap_rnd(void)
++unsigned long arch_mmap_rnd(void)
  {
- 	char *bp = *bpp;
- 	int len = *lp;
--	int ret;
-+	int ret, written;
+ 	unsigned long rnd = 0;
  
- 	if (len < 0) return;
+@@ -76,7 +76,7 @@ static inline unsigned long mmap_base(vo
+ 	else if (gap > MAX_GAP)
+ 		gap = MAX_GAP;
  
--	ret = string_escape_str(str, &bp, len, ESCAPE_OCTAL, "\\ \n\t");
--	if (ret < 0 || ret == len)
-+	ret = string_escape_str(str, bp, len, ESCAPE_OCTAL, "\\ \n\t");
-+	written = min(ret, len);
-+	bp += written;
-+	if (ret >= len)
- 		len = -1;
- 	else {
- 		len -= ret;
+-	return PAGE_ALIGN(TASK_SIZE - gap - mmap_rnd());
++	return PAGE_ALIGN(TASK_SIZE - gap - arch_mmap_rnd());
+ }
+ 
+ /*
+diff -puN arch/s390/Kconfig~mm-expose-arch_mmap_rnd-when-available arch/s390/Kconfig
+--- a/arch/s390/Kconfig~mm-expose-arch_mmap_rnd-when-available
++++ a/arch/s390/Kconfig
+@@ -65,6 +65,7 @@ config S390
+ 	def_bool y
+ 	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
+ 	select ARCH_HAS_DEBUG_STRICT_USER_COPY_CHECKS
++	select ARCH_HAS_ELF_RANDOMIZE
+ 	select ARCH_HAS_GCOV_PROFILE_ALL
+ 	select ARCH_HAS_SG_CHAIN
+ 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
+diff -puN arch/s390/mm/mmap.c~mm-expose-arch_mmap_rnd-when-available arch/s390/mm/mmap.c
+--- a/arch/s390/mm/mmap.c~mm-expose-arch_mmap_rnd-when-available
++++ a/arch/s390/mm/mmap.c
+@@ -60,7 +60,7 @@ static inline int mmap_is_legacy(void)
+ 	return sysctl_legacy_va_layout;
+ }
+ 
+-static unsigned long mmap_rnd(void)
++unsigned long arch_mmap_rnd(void)
+ {
+ 	if (!(current->flags & PF_RANDOMIZE))
+ 		return 0;
+@@ -72,7 +72,7 @@ static unsigned long mmap_rnd(void)
+ 
+ static unsigned long mmap_base_legacy(void)
+ {
+-	return TASK_UNMAPPED_BASE + mmap_rnd();
++	return TASK_UNMAPPED_BASE + arch_mmap_rnd();
+ }
+ 
+ static inline unsigned long mmap_base(void)
+@@ -84,7 +84,7 @@ static inline unsigned long mmap_base(vo
+ 	else if (gap > MAX_GAP)
+ 		gap = MAX_GAP;
+ 	gap &= PAGE_MASK;
+-	return STACK_TOP - stack_maxrandom_size() - mmap_rnd() - gap;
++	return STACK_TOP - stack_maxrandom_size() - arch_mmap_rnd() - gap;
+ }
+ 
+ unsigned long
+@@ -187,7 +187,7 @@ unsigned long randomize_et_dyn(void)
+ 	if (!is_32bit_task())
+ 		/* Align to 4GB */
+ 		base &= ~((1UL << 32) - 1);
+-	return base + mmap_rnd();
++	return base + arch_mmap_rnd();
+ }
+ 
+ #ifndef CONFIG_64BIT
+diff -puN arch/x86/Kconfig~mm-expose-arch_mmap_rnd-when-available arch/x86/Kconfig
+--- a/arch/x86/Kconfig~mm-expose-arch_mmap_rnd-when-available
++++ a/arch/x86/Kconfig
+@@ -88,6 +88,7 @@ config X86
+ 	select HAVE_ARCH_KASAN if X86_64 && SPARSEMEM_VMEMMAP
+ 	select HAVE_USER_RETURN_NOTIFIER
+ 	select ARCH_BINFMT_ELF_RANDOMIZE_PIE
++	select ARCH_HAS_ELF_RANDOMIZE
+ 	select HAVE_ARCH_JUMP_LABEL
+ 	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
+ 	select SPARSE_IRQ
+diff -puN arch/x86/mm/mmap.c~mm-expose-arch_mmap_rnd-when-available arch/x86/mm/mmap.c
+--- a/arch/x86/mm/mmap.c~mm-expose-arch_mmap_rnd-when-available
++++ a/arch/x86/mm/mmap.c
+@@ -65,7 +65,7 @@ static int mmap_is_legacy(void)
+ 	return sysctl_legacy_va_layout;
+ }
+ 
+-static unsigned long mmap_rnd(void)
++unsigned long arch_mmap_rnd(void)
+ {
+ 	unsigned long rnd = 0;
+ 
+@@ -91,7 +91,7 @@ static unsigned long mmap_base(void)
+ 	else if (gap > MAX_GAP)
+ 		gap = MAX_GAP;
+ 
+-	return PAGE_ALIGN(TASK_SIZE - gap - mmap_rnd());
++	return PAGE_ALIGN(TASK_SIZE - gap - arch_mmap_rnd());
+ }
+ 
+ /*
+@@ -103,7 +103,7 @@ static unsigned long mmap_legacy_base(vo
+ 	if (mmap_is_ia32())
+ 		return TASK_UNMAPPED_BASE;
+ 	else
+-		return TASK_UNMAPPED_BASE + mmap_rnd();
++		return TASK_UNMAPPED_BASE + arch_mmap_rnd();
+ }
+ 
+ /*
+diff -puN fs/binfmt_elf.c~mm-expose-arch_mmap_rnd-when-available fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~mm-expose-arch_mmap_rnd-when-available
++++ a/fs/binfmt_elf.c
+@@ -31,6 +31,7 @@
+ #include <linux/security.h>
+ #include <linux/random.h>
+ #include <linux/elf.h>
++#include <linux/elf-randomize.h>
+ #include <linux/utsname.h>
+ #include <linux/coredump.h>
+ #include <linux/sched.h>
+diff -puN /dev/null include/linux/elf-randomize.h
+--- /dev/null
++++ a/include/linux/elf-randomize.h
+@@ -0,0 +1,10 @@
++#ifndef _ELF_RANDOMIZE_H
++#define _ELF_RANDOMIZE_H
++
++#ifndef CONFIG_ARCH_HAS_ELF_RANDOMIZE
++static inline unsigned long arch_mmap_rnd(void) { return 0; }
++#else
++extern unsigned long arch_mmap_rnd(void);
++#endif
++
++#endif
 _
 
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
+Patches currently in -mm which might be from keescook@chromium.org are
 
-origin.patch
-include-linux-remove-empty-conditionals.patch
-lib-vsprintfc-eliminate-some-branches.patch
-lib-vsprintfc-reduce-stack-use-in-number.patch
-lib-vsprintfc-eliminate-duplicate-hex-string-array.patch
-lib-vsprintfc-another-small-hack.patch
-lib-vsprintfc-fix-potential-null-deref-in-hex_string.patch
-lib-string_helpersc-refactor-string_escape_mem.patch
-lib-string_helpersc-change-semantics-of-string_escape_mem.patch
-linux-bitmaph-improve-bitmap_lastfirst_word_mask.patch
-lib-find__bit-reimplementation.patch
-lib-find__bit-reimplementation-fix.patch
-lib-move-find_last_bit-to-lib-find_next_bitc.patch
-lib-rename-lib-find_next_bitc-to-lib-find_bitc.patch
-binfmt_misc-simplify-entry_status.patch
-binfmt_misc-simplify-entry_status-fix.patch
-rtc-mc13xxx-fix-obfuscated-and-wrong-format-string.patch
-lib-lz4-pull-out-constant-tables.patch
+mm-move-randomize_et_dyn-into-elf_et_dyn_base.patch
+mm-split-et_dyn-aslr-from-mmap-aslr.patch
+mm-fold-arch_randomize_brk-into-arch_has_elf_randomize.patch
+lib-vsprintf-add-%pt-format-specifier.patch
 linux-next.patch
 
