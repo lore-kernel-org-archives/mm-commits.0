@@ -1,55 +1,39 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] arm-factor-out-mmap-aslr-into-mmap_rnd.patch
- removed from -mm tree
-Date: Wed, 04 Mar 2015 13:34:04 -0800
-Message-ID: <54f77a4c.LFKeRCBrBOLKL0hO%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ mm-move-randomize_et_dyn-into-elf_et_dyn_base.patch removed from -mm tree
+Date: Wed, 04 Mar 2015 13:34:11 -0800
+Message-ID: <54f77a53.BkXCAt3OZnVz0cIG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60897 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60963 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751423AbbCDVeG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Mar 2015 16:34:06 -0500
+	with ESMTP id S1751806AbbCDVeN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Mar 2015 16:34:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: keescook@chromium.org, a.ryabinin@samsung.com, achandran@mvista.com, alex@alex-smith.me.uk, behanw@converseincode.com, ben@decadent.org.uk, benh@kernel.crashing.org, catalin.marinas@arm.com, dave.long@linaro.org, dl9pf@gmx.de, hecmargi@upv.es, heiko.carstens@de.ibm.com, holzheu@linux.vnet.ibm.com, iripoll@upv.es, jeffbailey@google.com, linux@arm.linux.org.uk, luto@amacapital.net, markos.chandras@imgtec.com, mingo@kernel.org, mpe@ellerman.id.au, oleg@redhat.com, orca.chen@gmail.com, paul.burton@imgtec.com, paulus@samba.org, ralf@linux-mips.org, schwidefsky@de.ibm.com, viro@zeniv.linux.org.uk, vvijayan@mvista.com, will.deacon@arm.com, ydroneaud@opteya.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm: factor out mmap ASLR into mmap_rnd
+     Subject: mm: move randomize_et_dyn into ELF_ET_DYN_BASE
 has been removed from the -mm tree.  Its filename was
-     arm-factor-out-mmap-aslr-into-mmap_rnd.patch
+     mm-move-randomize_et_dyn-into-elf_et_dyn_base.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Kees Cook <keescook@chromium.org>
-Subject: arm: factor out mmap ASLR into mmap_rnd
+Subject: mm: move randomize_et_dyn into ELF_ET_DYN_BASE
 
-This separates ET_DYN ASLR from mmap ASLR, as already done on s390.  The
-various architectures that are already randomizing mmap (arm, arm64, mips,
-powerpc, s390, and x86), have their various forms of arch_mmap_rnd() made
-available via the new CONFIG_ARCH_HAS_ELF_RANDOMIZE.  For these
-architectures, arch_randomize_brk() is collapsed as well.
-
-To address the "offset2lib" ASLR weakness[1], this separates ET_DYN ASLR
-from mmap ASLR, as already done on s390.  The architectures that are
-already randomizing mmap (arm, arm64, mips, powerpc, s390, and x86), have
-their various forms of arch_mmap_rnd() made available via the new
-CONFIG_ARCH_HAS_ELF_RANDOMIZE.  For these architectures,
-arch_randomize_brk() is collapsed as well.
-
-This is an alternative to the solutions in
-https://lkml.org/lkml/2015/2/23/442
-
-[1] http://cybersecurity.upv.es/attacks/offset2lib/offset2lib.html
-
-
-This patch (of 5):
-
-Move logic for mmap ASLR into separate function.
+In preparation for moving ET_DYN randomization into the ELF loader (which
+requires a static ELF_ET_DYN_BASE), this redefines s390's existing ET_DYN
+randomization away from a separate function (randomize_et_dyn) and into
+ELF_ET_DYN_BASE and a call to arch_mmap_rnd().  This refactoring results
+in the same ET_DYN randomization on s390.  Additionally removes a
+copy/pasted unused arm64 extern.
 
 Signed-off-by: Kees Cook <keescook@chromium.org>
 Cc: Hector Marco-Gisbert <hecmargi@upv.es>
@@ -84,45 +68,55 @@ Cc: Jan-Simon Mller <dl9pf@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mm/mmap.c |   13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+ arch/arm64/include/asm/elf.h |    1 -
+ arch/s390/include/asm/elf.h  |    9 +++++----
+ arch/s390/mm/mmap.c          |   11 -----------
+ 3 files changed, 5 insertions(+), 16 deletions(-)
 
-diff -puN arch/arm/mm/mmap.c~arm-factor-out-mmap-aslr-into-mmap_rnd arch/arm/mm/mmap.c
---- a/arch/arm/mm/mmap.c~arm-factor-out-mmap-aslr-into-mmap_rnd
-+++ a/arch/arm/mm/mmap.c
-@@ -169,14 +169,21 @@ arch_get_unmapped_area_topdown(struct fi
+diff -puN arch/arm64/include/asm/elf.h~mm-move-randomize_et_dyn-into-elf_et_dyn_base arch/arm64/include/asm/elf.h
+--- a/arch/arm64/include/asm/elf.h~mm-move-randomize_et_dyn-into-elf_et_dyn_base
++++ a/arch/arm64/include/asm/elf.h
+@@ -125,7 +125,6 @@ typedef struct user_fpsimd_state elf_fpr
+  * the loader.  We need to make sure that it is out of the way of the program
+  * that it will "exec", and that there is sufficient room for the brk.
+  */
+-extern unsigned long randomize_et_dyn(unsigned long base);
+ #define ELF_ET_DYN_BASE	(2 * TASK_SIZE_64 / 3)
+ 
+ /*
+diff -puN arch/s390/include/asm/elf.h~mm-move-randomize_et_dyn-into-elf_et_dyn_base arch/s390/include/asm/elf.h
+--- a/arch/s390/include/asm/elf.h~mm-move-randomize_et_dyn-into-elf_et_dyn_base
++++ a/arch/s390/include/asm/elf.h
+@@ -161,10 +161,11 @@ extern unsigned int vdso_enabled;
+ /* This is the location that an ET_DYN program is loaded if exec'ed.  Typical
+    use of this is to invoke "./ld.so someprog" to test out a new version of
+    the loader.  We need to make sure that it is out of the way of the program
+-   that it will "exec", and that there is sufficient room for the brk.  */
+-
+-extern unsigned long randomize_et_dyn(void);
+-#define ELF_ET_DYN_BASE		randomize_et_dyn()
++   that it will "exec", and that there is sufficient room for the brk. 64-bit
++   tasks are aligned to 4GB. */
++#define ELF_ET_DYN_BASE (arch_mmap_rnd() + (is_32bit_task() ? \
++				(STACK_TOP / 3 * 2) : \
++				(STACK_TOP / 3 * 2) & ~((1UL << 32) - 1)))
+ 
+ /* This yields a mask that user programs can use to figure out what
+    instruction set this CPU supports. */
+diff -puN arch/s390/mm/mmap.c~mm-move-randomize_et_dyn-into-elf_et_dyn_base arch/s390/mm/mmap.c
+--- a/arch/s390/mm/mmap.c~mm-move-randomize_et_dyn-into-elf_et_dyn_base
++++ a/arch/s390/mm/mmap.c
+@@ -179,17 +179,6 @@ arch_get_unmapped_area_topdown(struct fi
  	return addr;
  }
  
--void arch_pick_mmap_layout(struct mm_struct *mm)
-+static unsigned long mmap_rnd(void)
- {
--	unsigned long random_factor = 0UL;
-+	unsigned long rnd = 0UL;
- 
- 	/* 8 bits of randomness in 20 address space bits */
- 	if ((current->flags & PF_RANDOMIZE) &&
- 	    !(current->personality & ADDR_NO_RANDOMIZE))
--		random_factor = (get_random_int() % (1 << 8)) << PAGE_SHIFT;
-+		rnd = (get_random_int() % (1 << 8)) << PAGE_SHIFT;
-+
-+	return rnd;
-+}
-+
-+void arch_pick_mmap_layout(struct mm_struct *mm)
-+{
-+	unsigned long random_factor = mmap_rnd();
- 
- 	if (mmap_is_legacy()) {
- 		mm->mmap_base = TASK_UNMAPPED_BASE + random_factor;
-_
-
-Patches currently in -mm which might be from keescook@chromium.org are
-
-mm-expose-arch_mmap_rnd-when-available.patch
-mm-move-randomize_et_dyn-into-elf_et_dyn_base.patch
-mm-split-et_dyn-aslr-from-mmap-aslr.patch
-mm-fold-arch_randomize_brk-into-arch_has_elf_randomize.patch
-lib-vsprintf-add-%pt-format-specifier.patch
-linux-next.patch
-
+-unsigned long randomize_et_dyn(void)
+-{
+-	unsigned long base;
+-
+-	base = STACK_TOP / 3 * 2;
+-	if (!is_32bit_task())
+-		/* Align to 4GB */
+-		base &= ~((1UL << 32) - 1);
+-	return base + arch_mmap_rnd();
+-}
