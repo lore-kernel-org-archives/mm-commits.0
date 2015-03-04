@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + ihex-restore-missing-default-in-switch-statement.patch added to -mm tree
-Date: Wed, 04 Mar 2015 14:18:20 -0800
-Message-ID: <54f784ac.fpi9UP22vRwrEb4S%akpm@linux-foundation.org>
+Subject: + tomoyo-reduce-mmap_sem-hold-for-mm-exe_file.patch added to -mm
+ tree
+Date: Wed, 04 Mar 2015 14:28:59 -0800
+Message-ID: <54f7872b.9J02PeiSPsvi9805%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33514 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33539 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752978AbbCDWSV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Mar 2015 17:18:21 -0500
+	with ESMTP id S1752934AbbCDW3A (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Mar 2015 17:29:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nicolas.iooss_linux@m4x.org, broonie@opensource.wolfsonmicro.com, dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: dave@stgolabs.net, dbueso@suse.de, jmorris@namei.org, penguin-kernel@I-love.SAKURA.ne.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: firmware/ihex2fw.c: restore missing default in switch statement
+     Subject: tomoyo: reduce mmap_sem hold for mm->exe_file
 has been added to the -mm tree.  Its filename is
-     ihex-restore-missing-default-in-switch-statement.patch
+     tomoyo-reduce-mmap_sem-hold-for-mm-exe_file.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ihex-restore-missing-default-in-switch-statement.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/tomoyo-reduce-mmap_sem-hold-for-mm-exe_file.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ihex-restore-missing-default-in-switch-statement.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/tomoyo-reduce-mmap_sem-hold-for-mm-exe_file.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,41 +39,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
-Subject: firmware/ihex2fw.c: restore missing default in switch statement
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: tomoyo: reduce mmap_sem hold for mm->exe_file
 
-Commit 2473238eac95 ("ihex: add support for CS:IP/EIP records") removes
-the "default:" statement in the switch block, making the "return usage();"
-line dead code and ihex2fw silently ignoring unknown options.  Restore
-this statement.
+The mm->exe_file is currently serialized with mmap_sem (shared) in order
+to both safely (1) read the file and (2) compute the realpath by calling
+tomoyo_realpath_from_path, making it an absolute overkill.  Good users
+will, on the other hand, make use of the more standard get_mm_exe_file(),
+requiring only holding the mmap_sem to read the value, and relying on
+reference
 
-This bug was found by building with HOSTCC=clang and adding
--Wunreachable-code-return to HOSTCFLAGS.
-
-Fixes: 2473238eac95 ("ihex: add support for CS:IP/EIP records")
-Signed-off-by: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+Acked-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- firmware/ihex2fw.c |    1 +
- 1 file changed, 1 insertion(+)
+ security/tomoyo/util.c |   21 ++++++++++++---------
+ 1 file changed, 12 insertions(+), 9 deletions(-)
 
-diff -puN firmware/ihex2fw.c~ihex-restore-missing-default-in-switch-statement firmware/ihex2fw.c
---- a/firmware/ihex2fw.c~ihex-restore-missing-default-in-switch-statement
-+++ a/firmware/ihex2fw.c
-@@ -86,6 +86,7 @@ int main(int argc, char **argv)
- 		case 'j':
- 			include_jump = 1;
- 			break;
-+		default:
- 			return usage();
- 		}
- 	}
+diff -puN security/tomoyo/util.c~tomoyo-reduce-mmap_sem-hold-for-mm-exe_file security/tomoyo/util.c
+--- a/security/tomoyo/util.c~tomoyo-reduce-mmap_sem-hold-for-mm-exe_file
++++ a/security/tomoyo/util.c
+@@ -948,16 +948,19 @@ bool tomoyo_path_matches_pattern(const s
+  */
+ const char *tomoyo_get_exe(void)
+ {
+-	struct mm_struct *mm = current->mm;
+-	const char *cp = NULL;
++       struct file *exe_file;
++       const char *cp;
++       struct mm_struct *mm = current->mm;
+ 
+-	if (!mm)
+-		return NULL;
+-	down_read(&mm->mmap_sem);
+-	if (mm->exe_file)
+-		cp = tomoyo_realpath_from_path(&mm->exe_file->f_path);
+-	up_read(&mm->mmap_sem);
+-	return cp;
++       if (!mm)
++	       return NULL;
++       exe_file = get_mm_exe_file(mm);
++       if (!exe_file)
++	       return NULL;
++
++       cp = tomoyo_realpath_from_path(&exe_file->f_path);
++       fput(exe_file);
++       return cp;
+ }
+ 
+ /**
 _
 
-Patches currently in -mm which might be from nicolas.iooss_linux@m4x.org are
+Patches currently in -mm which might be from dave@stgolabs.net are
 
-ihex-restore-missing-default-in-switch-statement.patch
+mm-hugetlb-close-race-when-setting-pagetail-for-gigantic-pages.patch
+arc-do-not-export-symbols-in-troubleshootc.patch
+linux-next.patch
+tile-elf-reorganize-notify_exec.patch
+oprofile-reduce-mmap_sem-hold-for-mm-exe_file.patch
+powerpc-oprofile-reduce-mmap_sem-hold-for-exe_file.patch
+tomoyo-reduce-mmap_sem-hold-for-mm-exe_file.patch
 
