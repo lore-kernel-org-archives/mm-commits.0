@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + s390-redefine-randomize_et_dyn-for-elf_et_dyn_base.patch added
- to -mm tree
-Date: Wed, 04 Mar 2015 13:40:23 -0800
-Message-ID: <54f77bc7.HcMX6bctgPp77C7/%akpm@linux-foundation.org>
+Subject: + powerpc-standardize-mmap_rnd-usage.patch added to -mm tree
+Date: Wed, 04 Mar 2015 13:40:16 -0800
+Message-ID: <54f77bc0.5IiKmAhBaom2XFay%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:32968 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:32935 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752787AbbCDVkY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Mar 2015 16:40:24 -0500
+	with ESMTP id S1752766AbbCDVkR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Mar 2015 16:40:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: keescook@chromium.org, heiko.carstens@de.ibm.com, mingo@kernel.org, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: keescook@chromium.org, benh@kernel.crashing.org, mingo@kernel.org, mpe@ellerman.id.au, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: s390: redefine randomize_et_dyn for ELF_ET_DYN_BASE
+     Subject: powerpc: standardize mmap_rnd() usage
 has been added to the -mm tree.  Its filename is
-     s390-redefine-randomize_et_dyn-for-elf_et_dyn_base.patch
+     powerpc-standardize-mmap_rnd-usage.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/s390-redefine-randomize_et_dyn-for-elf_et_dyn_base.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-standardize-mmap_rnd-usage.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/s390-redefine-randomize_et_dyn-for-elf_et_dyn_base.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-standardize-mmap_rnd-usage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,66 +39,86 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kees Cook <keescook@chromium.org>
-Subject: s390: redefine randomize_et_dyn for ELF_ET_DYN_BASE
+Subject: powerpc: standardize mmap_rnd() usage
 
-In preparation for moving ET_DYN randomization into the ELF loader (which
-requires a static ELF_ET_DYN_BASE), this redefines s390's existing ET_DYN
-randomization in a call to arch_mmap_rnd(). This refactoring results in
-the same ET_DYN randomization on s390.
+In preparation for splitting out ET_DYN ASLR, this refactors the use of
+mmap_rnd() to be used similarly to arm and x86.
+
+(Can mmap ASLR be safely enabled in the legacy mmap case here?  Other
+archs use "mm->mmap_base = TASK_UNMAPPED_BASE + random_factor".)
 
 Signed-off-by: Kees Cook <keescook@chromium.org>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/elf.h |    8 +++++---
- arch/s390/mm/mmap.c         |   11 ++---------
- 2 files changed, 7 insertions(+), 12 deletions(-)
+ arch/powerpc/mm/mmap.c |   26 +++++++++++++++-----------
+ 1 file changed, 15 insertions(+), 11 deletions(-)
 
-diff -puN arch/s390/include/asm/elf.h~s390-redefine-randomize_et_dyn-for-elf_et_dyn_base arch/s390/include/asm/elf.h
---- a/arch/s390/include/asm/elf.h~s390-redefine-randomize_et_dyn-for-elf_et_dyn_base
-+++ a/arch/s390/include/asm/elf.h
-@@ -161,10 +161,12 @@ extern unsigned int vdso_enabled;
- /* This is the location that an ET_DYN program is loaded if exec'ed.  Typical
-    use of this is to invoke "./ld.so someprog" to test out a new version of
-    the loader.  We need to make sure that it is out of the way of the program
--   that it will "exec", and that there is sufficient room for the brk.  */
--
-+   that it will "exec", and that there is sufficient room for the brk. 64-bit
-+   tasks are aligned to 4GB. */
- extern unsigned long randomize_et_dyn(void);
--#define ELF_ET_DYN_BASE		randomize_et_dyn()
-+#define ELF_ET_DYN_BASE (randomize_et_dyn() + (is_32bit_task() ? \
-+				(STACK_TOP / 3 * 2) : \
-+				(STACK_TOP / 3 * 2) & ~((1UL << 32) - 1)))
+diff -puN arch/powerpc/mm/mmap.c~powerpc-standardize-mmap_rnd-usage arch/powerpc/mm/mmap.c
+--- a/arch/powerpc/mm/mmap.c~powerpc-standardize-mmap_rnd-usage
++++ a/arch/powerpc/mm/mmap.c
+@@ -55,19 +55,18 @@ static inline int mmap_is_legacy(void)
  
- /* This yields a mask that user programs can use to figure out what
-    instruction set this CPU supports. */
-diff -puN arch/s390/mm/mmap.c~s390-redefine-randomize_et_dyn-for-elf_et_dyn_base arch/s390/mm/mmap.c
---- a/arch/s390/mm/mmap.c~s390-redefine-randomize_et_dyn-for-elf_et_dyn_base
-+++ a/arch/s390/mm/mmap.c
-@@ -179,17 +179,10 @@ arch_get_unmapped_area_topdown(struct fi
- 
- unsigned long randomize_et_dyn(void)
+ static unsigned long mmap_rnd(void)
  {
--	unsigned long base;
--
--	base = STACK_TOP / 3 * 2;
--	if (!is_32bit_task())
--		/* Align to 4GB */
--		base &= ~((1UL << 32) - 1);
--
- 	if (current->flags & PF_RANDOMIZE)
--		base += arch_mmap_rnd();
-+		return arch_mmap_rnd();
+-	unsigned long rnd = 0;
++	unsigned long rnd;
++
++	/* 8MB for 32bit, 1GB for 64bit */
++	if (is_32bit_task())
++		rnd = (unsigned long)get_random_int() % (1<<(23-PAGE_SHIFT));
++	else
++		rnd = (unsigned long)get_random_int() % (1<<(30-PAGE_SHIFT));
  
--	return base;
-+	return 0UL;
+-	if (current->flags & PF_RANDOMIZE) {
+-		/* 8MB for 32bit, 1GB for 64bit */
+-		if (is_32bit_task())
+-			rnd = (long)(get_random_int() % (1<<(23-PAGE_SHIFT)));
+-		else
+-			rnd = (long)(get_random_int() % (1<<(30-PAGE_SHIFT)));
+-	}
+ 	return rnd << PAGE_SHIFT;
  }
  
- #ifndef CONFIG_64BIT
+-static inline unsigned long mmap_base(void)
++static inline unsigned long mmap_base(unsigned long base)
+ {
+ 	unsigned long gap = rlimit(RLIMIT_STACK);
+ 
+@@ -76,7 +75,7 @@ static inline unsigned long mmap_base(vo
+ 	else if (gap > MAX_GAP)
+ 		gap = MAX_GAP;
+ 
+-	return PAGE_ALIGN(TASK_SIZE - gap - mmap_rnd());
++	return PAGE_ALIGN(TASK_SIZE - gap - base);
+ }
+ 
+ /*
+@@ -85,6 +84,11 @@ static inline unsigned long mmap_base(vo
+  */
+ void arch_pick_mmap_layout(struct mm_struct *mm)
+ {
++	unsigned long random_factor = 0UL;
++
++	if (current->flags & PF_RANDOMIZE)
++		random_factor = mmap_rnd();
++
+ 	/*
+ 	 * Fall back to the standard layout if the personality
+ 	 * bit is set, or if the expected stack growth is unlimited:
+@@ -93,7 +97,7 @@ void arch_pick_mmap_layout(struct mm_str
+ 		mm->mmap_base = TASK_UNMAPPED_BASE;
+ 		mm->get_unmapped_area = arch_get_unmapped_area;
+ 	} else {
+-		mm->mmap_base = mmap_base();
++		mm->mmap_base = mmap_base(random_factor);
+ 		mm->get_unmapped_area = arch_get_unmapped_area_topdown;
+ 	}
+ }
 _
 
 Patches currently in -mm which might be from keescook@chromium.org are
