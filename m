@@ -1,96 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: + arm64-standardize-mmap_rnd-usage-v4.patch added to -mm tree
-Date: Wed, 04 Mar 2015 14:38:12 -0800
-Message-ID: <54f78954.y2GKJGNSS0eEuKfn%akpm@linux-foundation.org>
+Subject: [merged]
+ kdb-fix-handling-of-kallsyms_symbol_next-return-value.patch removed from
+ -mm tree
+Date: Wed, 04 Mar 2015 15:14:25 -0800
+Message-ID: <54f791d1.VFRDRPh4ap/g30pL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33650 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33839 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751475AbbCDWiN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Mar 2015 17:38:13 -0500
+	with ESMTP id S1750988AbbCDXO0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Mar 2015 18:14:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: keescook@chromium.org, catalin.marinas@arm.com, linux@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: daniel.thompson@linaro.org, dan.carpenter@oracle.com, jason.wessel@windriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64-standardize-mmap_rnd-usage-v4
-has been added to the -mm tree.  Its filename is
-     arm64-standardize-mmap_rnd-usage-v4.patch
+     Subject: kdb: fix handling of kallsyms_symbol_next() return value
+has been removed from the -mm tree.  Its filename was
+     kdb-fix-handling-of-kallsyms_symbol_next-return-value.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arm64-standardize-mmap_rnd-usage-v4.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arm64-standardize-mmap_rnd-usage-v4.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: arm64-standardize-mmap_rnd-usage-v4
+From: Daniel Thompson <daniel.thompson@linaro.org>
+Subject: kdb: fix handling of kallsyms_symbol_next() return value
 
-fixed mmap_base argument convention to be the same on all archs
+kallsyms_symbol_next() returns a boolean (true on success). Currently
+kdb_read() tests the return value with an inequality that
+unconditionally evaluates to true.
 
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
+This is fixed in the obvious way and, since the conditional branch is
+supposed to be unreachable, we also add a WARN_ON().
 
+Signed-off-by: Daniel Thompson <daniel.thompson@linaro.org>
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Jason Wessel <jason.wessel@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/mmap.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/debug/kdb/kdb_io.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/arm64/mm/mmap.c~arm64-standardize-mmap_rnd-usage-v4 arch/arm64/mm/mmap.c
---- a/arch/arm64/mm/mmap.c~arm64-standardize-mmap_rnd-usage-v4
-+++ a/arch/arm64/mm/mmap.c
-@@ -56,7 +56,7 @@ static unsigned long mmap_rnd(void)
- 	return rnd << PAGE_SHIFT;
- }
- 
--static unsigned long mmap_base(unsigned long base)
-+static unsigned long mmap_base(unsigned long rnd)
- {
- 	unsigned long gap = rlimit(RLIMIT_STACK);
- 
-@@ -65,7 +65,7 @@ static unsigned long mmap_base(unsigned
- 	else if (gap > MAX_GAP)
- 		gap = MAX_GAP;
- 
--	return PAGE_ALIGN(STACK_TOP - gap - base);
-+	return PAGE_ALIGN(STACK_TOP - gap - rnd);
- }
- 
- /*
+diff -puN kernel/debug/kdb/kdb_io.c~kdb-fix-handling-of-kallsyms_symbol_next-return-value kernel/debug/kdb/kdb_io.c
+--- a/kernel/debug/kdb/kdb_io.c~kdb-fix-handling-of-kallsyms_symbol_next-return-value
++++ a/kernel/debug/kdb/kdb_io.c
+@@ -349,7 +349,7 @@ poll_again:
+ 			}
+ 			kdb_printf("\n");
+ 			for (i = 0; i < count; i++) {
+-				if (kallsyms_symbol_next(p_tmp, i) < 0)
++				if (WARN_ON(!kallsyms_symbol_next(p_tmp, i)))
+ 					break;
+ 				kdb_printf("%s ", p_tmp);
+ 				*(p_tmp + len) = '\0';
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from daniel.thompson@linaro.org are
 
-arm-factor-out-mmap-aslr-into-mmap_rnd.patch
-x86-standardize-mmap_rnd-usage.patch
-arm64-standardize-mmap_rnd-usage.patch
-arm64-standardize-mmap_rnd-usage-v4.patch
-mips-extract-logic-for-mmap_rnd.patch
-mips-extract-logic-for-mmap_rnd-v4.patch
-powerpc-standardize-mmap_rnd-usage.patch
-powerpc-standardize-mmap_rnd-usage-v4.patch
-s390-standardize-mmap_rnd-usage.patch
-mm-expose-arch_mmap_rnd-when-available.patch
-s390-redefine-randomize_et_dyn-for-elf_et_dyn_base.patch
-mm-split-et_dyn-aslr-from-mmap-aslr.patch
-mm-fold-arch_randomize_brk-into-arch_has_elf_randomize.patch
-lib-vsprintf-add-%pt-format-specifier.patch
 linux-next.patch
 
