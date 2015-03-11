@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-change-vunmap-to-tear-down-huge-kva-mappings-fix.patch added to -mm tree
-Date: Wed, 11 Mar 2015 13:05:24 -0700
-Message-ID: <5500a004.d24SgbrLeAnICeQm%akpm@linux-foundation.org>
+Subject: + x86-mm-support-huge-kva-mappings-on-x86-fix.patch added to -mm
+ tree
+Date: Wed, 11 Mar 2015 13:06:17 -0700
+Message-ID: <5500a039.YJnAnjm6V8AMZs70%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48639 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48643 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751057AbbCKUFZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Mar 2015 16:05:25 -0400
+	with ESMTP id S1751057AbbCKUGR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Mar 2015 16:06:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, toshi.kani@hp.com, mm-commits@vger.kernel.org
+To: fengguang.wu@intel.com, toshi.kani@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-change-vunmap-to-tear-down-huge-kva-mappings-fix
+     Subject: x86, mm: ioremap_pud_capable can be static
 has been added to the -mm tree.  Its filename is
-     mm-change-vunmap-to-tear-down-huge-kva-mappings-fix.patch
+     x86-mm-support-huge-kva-mappings-on-x86-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-change-vunmap-to-tear-down-huge-kva-mappings-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/x86-mm-support-huge-kva-mappings-on-x86-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-change-vunmap-to-tear-down-huge-kva-mappings-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/x86-mm-support-huge-kva-mappings-on-x86-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,73 +39,42 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-change-vunmap-to-tear-down-huge-kva-mappings-fix
+From: kbuild test robot <fengguang.wu@intel.com>
+Subject: x86, mm: ioremap_pud_capable can be static
 
-use consistent code layout
-
-Cc: Toshi Kani <toshi.kani@hp.com>
+Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
+Reviewed-by: Toshi Kani <toshi.kani@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/pgtable.h |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ lib/ioremap.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/asm-generic/pgtable.h~mm-change-vunmap-to-tear-down-huge-kva-mappings-fix include/asm-generic/pgtable.h
---- a/include/asm-generic/pgtable.h~mm-change-vunmap-to-tear-down-huge-kva-mappings-fix
-+++ a/include/asm-generic/pgtable.h
-@@ -711,8 +711,14 @@ static inline int pmd_set_huge(pmd_t *pm
- {
- 	return 0;
- }
--static inline int pud_clear_huge(pud_t *pud) { return 0; }
--static inline int pmd_clear_huge(pmd_t *pmd) { return 0; }
-+static inline int pud_clear_huge(pud_t *pud)
-+{
-+	return 0;
-+}
-+static inline int pmd_clear_huge(pmd_t *pmd)
-+{
-+	return 0;
-+}
- #endif	/* CONFIG_HAVE_ARCH_HUGE_VMAP */
+diff -puN lib/ioremap.c~x86-mm-support-huge-kva-mappings-on-x86-fix lib/ioremap.c
+--- a/lib/ioremap.c~x86-mm-support-huge-kva-mappings-on-x86-fix
++++ a/lib/ioremap.c
+@@ -14,9 +14,9 @@
+ #include <asm/pgtable.h>
  
- #endif /* !__ASSEMBLY__ */
+ #ifdef CONFIG_HAVE_ARCH_HUGE_VMAP
+-int __read_mostly ioremap_pud_capable;
+-int __read_mostly ioremap_pmd_capable;
+-int __read_mostly ioremap_huge_disabled;
++static int __read_mostly ioremap_pud_capable;
++static int __read_mostly ioremap_pmd_capable;
++static int __read_mostly ioremap_huge_disabled;
+ 
+ static int __init set_nohugeiomap(char *str)
+ {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from fengguang.wu@intel.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention.patch
-mm.patch
-mm-cma-release-trigger-checkpatch-fixes.patch
-mm-cma-allocation-trigger-fix.patch
-mm-compaction-enhance-compaction-finish-condition-fix.patch
-page_writeback-cleanup-mess-around-cancel_dirty_page-checkpatch-fixes.patch
-mm-hide-per-cpu-lists-in-output-of-show_mem-fix.patch
-mm-clarify-__gfp_nofail-deprecation-status-checkpatch-fixes.patch
-mm-change-vunmap-to-tear-down-huge-kva-mappings-fix.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-x86-add-pmd_-for-thp-fix.patch
+origin.patch
+x86-mm-support-huge-kva-mappings-on-x86-fix.patch
+mm-support-madvisemadv_free-fix.patch
 sparc-add-pmd_-for-thp-fix.patch
-zram-add-dynamic-device-add-remove-functionality-fix.patch
-zram-introduce-automatic-device_id-generation-fix.patch
-kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes.patch
-lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix.patch
-lib-find__bit-reimplementation-fix.patch
-binfmt_misc-simplify-entry_status-fix.patch
-rtc-add-abracon-abx80x-driver-fix.patch
-fs-fat-remove-unnecessary-includes-fix.patch
-kconfig-use-macros-which-are-already-defined-fix.patch
+rtc-ds1685-remove-owner-assignment-from-platform_driver.patch
 linux-next.patch
-lib-kconfig-fix-up-have_arch_bitreverse-help-text.patch
-oprofile-reduce-mmap_sem-hold-for-mm-exe_file-fix.patch
-tomoyo-reduce-mmap_sem-hold-for-mm-exe_file-checkpatch-fixes.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
+mm-add-strictlimit-knob-v2.patch
 
