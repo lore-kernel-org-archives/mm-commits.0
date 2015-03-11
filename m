@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + sh-dwarf-use-mempool_create_slab_pool.patch added to -mm tree
-Date: Wed, 11 Mar 2015 16:13:00 -0700
-Message-ID: <5500cbfc.I2xVIfpXWmo69+CC%akpm@linux-foundation.org>
+Subject: +
+ memcg-print-cgroup-information-when-system-panics-due-to-panic_on_oom.patch added to -mm tree
+Date: Wed, 11 Mar 2015 16:24:57 -0700
+Message-ID: <5500cec9.Lke+LHvamyXf03w+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53977 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54037 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752151AbbCKXNB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Mar 2015 19:13:01 -0400
+	with ESMTP id S1751107AbbCKXY6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Mar 2015 19:24:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, mm-commits@vger.kernel.org
+To: balu252@gmail.com, balasubramani_vivekanandan@mentor.com, hannes@cmpxchg.org, mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch/sh/kernel/dwarf.c: use mempool_create_slab_pool()
+     Subject: memcg: print cgroup information when system panics due to panic_on_oom
 has been added to the -mm tree.  Its filename is
-     sh-dwarf-use-mempool_create_slab_pool.patch
+     memcg-print-cgroup-information-when-system-panics-due-to-panic_on_oom.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sh-dwarf-use-mempool_create_slab_pool.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-print-cgroup-information-when-system-panics-due-to-panic_on_oom.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sh-dwarf-use-mempool_create_slab_pool.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-print-cgroup-information-when-system-panics-due-to-panic_on_oom.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,74 +39,110 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: arch/sh/kernel/dwarf.c: use mempool_create_slab_pool()
+From: Balasubramani Vivekanandan <balu252@gmail.com>
+Subject: memcg: print cgroup information when system panics due to panic_on_oom
 
-Mempools created for slab caches should use mempool_create_slab_pool().
+If kernel panics due to oom, caused by a cgroup reaching its limit, when
+'compulsory panic_on_oom' is enabled, then we will only see that the OOM
+happened because of "compulsory panic_on_oom is enabled" but this doesn't
+tell the difference between mempolicy and memcg.  And dumping system wide
+information is plain wrong and more confusing.  This patch provides the
+information of the cgroup whose limit triggerred panic
 
-Signed-off-by: David Rientjes <rientjes@google.com>
+Signed-off-by: Balasubramani Vivekanandan <balasubramani_vivekanandan@mentor.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/kernel/dwarf.c |   12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+ include/linux/oom.h |    3 ++-
+ mm/memcontrol.c     |   16 +++++++++-------
+ mm/oom_kill.c       |    7 ++++---
+ 3 files changed, 15 insertions(+), 11 deletions(-)
 
-diff -puN arch/sh/kernel/dwarf.c~sh-dwarf-use-mempool_create_slab_pool arch/sh/kernel/dwarf.c
---- a/arch/sh/kernel/dwarf.c~sh-dwarf-use-mempool_create_slab_pool
-+++ a/arch/sh/kernel/dwarf.c
-@@ -1180,17 +1180,13 @@ static int __init dwarf_unwinder_init(vo
- 			sizeof(struct dwarf_reg), 0,
- 			SLAB_PANIC | SLAB_HWCACHE_ALIGN | SLAB_NOTRACK, NULL);
+diff -puN include/linux/oom.h~memcg-print-cgroup-information-when-system-panics-due-to-panic_on_oom include/linux/oom.h
+--- a/include/linux/oom.h~memcg-print-cgroup-information-when-system-panics-due-to-panic_on_oom
++++ a/include/linux/oom.h
+@@ -66,7 +66,8 @@ extern bool oom_zonelist_trylock(struct
+ extern void oom_zonelist_unlock(struct zonelist *zonelist, gfp_t gfp_flags);
  
--	dwarf_frame_pool = mempool_create(DWARF_FRAME_MIN_REQ,
--					  mempool_alloc_slab,
--					  mempool_free_slab,
--					  dwarf_frame_cachep);
-+	dwarf_frame_pool = mempool_create_slab_pool(DWARF_FRAME_MIN_REQ,
-+						    dwarf_frame_cachep);
- 	if (!dwarf_frame_pool)
- 		goto out;
+ extern void check_panic_on_oom(enum oom_constraint constraint, gfp_t gfp_mask,
+-			       int order, const nodemask_t *nodemask);
++			       int order, const nodemask_t *nodemask,
++			       struct mem_cgroup *memcg);
  
--	dwarf_reg_pool = mempool_create(DWARF_REG_MIN_REQ,
--					 mempool_alloc_slab,
--					 mempool_free_slab,
--					 dwarf_reg_cachep);
-+	dwarf_reg_pool = mempool_create_slab_pool(DWARF_REG_MIN_REQ,
-+						  dwarf_reg_cachep);
- 	if (!dwarf_reg_pool)
- 		goto out;
+ extern enum oom_scan_t oom_scan_process_thread(struct task_struct *task,
+ 		unsigned long totalpages, const nodemask_t *nodemask,
+diff -puN mm/memcontrol.c~memcg-print-cgroup-information-when-system-panics-due-to-panic_on_oom mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-print-cgroup-information-when-system-panics-due-to-panic_on_oom
++++ a/mm/memcontrol.c
+@@ -1442,15 +1442,17 @@ void mem_cgroup_print_oom_info(struct me
+ 	struct mem_cgroup *iter;
+ 	unsigned int i;
  
+-	if (!p)
+-		return;
+-
+ 	mutex_lock(&oom_info_lock);
+ 	rcu_read_lock();
+ 
+-	pr_info("Task in ");
+-	pr_cont_cgroup_path(task_cgroup(p, memory_cgrp_id));
+-	pr_cont(" killed as a result of limit of ");
++	if (p) {
++		pr_info("Task in ");
++		pr_cont_cgroup_path(task_cgroup(p, memory_cgrp_id));
++		pr_cont(" killed as a result of limit of ");
++	} else {
++		pr_info("Memory limit reached of cgroup ");
++	}
++
+ 	pr_cont_cgroup_path(memcg->css.cgroup);
+ 	pr_cont("\n");
+ 
+@@ -1537,7 +1539,7 @@ static void mem_cgroup_out_of_memory(str
+ 		return;
+ 	}
+ 
+-	check_panic_on_oom(CONSTRAINT_MEMCG, gfp_mask, order, NULL);
++	check_panic_on_oom(CONSTRAINT_MEMCG, gfp_mask, order, NULL, memcg);
+ 	totalpages = mem_cgroup_get_limit(memcg) ? : 1;
+ 	for_each_mem_cgroup_tree(iter, memcg) {
+ 		struct css_task_iter it;
+diff -puN mm/oom_kill.c~memcg-print-cgroup-information-when-system-panics-due-to-panic_on_oom mm/oom_kill.c
+--- a/mm/oom_kill.c~memcg-print-cgroup-information-when-system-panics-due-to-panic_on_oom
++++ a/mm/oom_kill.c
+@@ -612,7 +612,8 @@ void oom_kill_process(struct task_struct
+  * Determines whether the kernel must panic because of the panic_on_oom sysctl.
+  */
+ void check_panic_on_oom(enum oom_constraint constraint, gfp_t gfp_mask,
+-			int order, const nodemask_t *nodemask)
++			int order, const nodemask_t *nodemask,
++			struct mem_cgroup *memcg)
+ {
+ 	if (likely(!sysctl_panic_on_oom))
+ 		return;
+@@ -625,7 +626,7 @@ void check_panic_on_oom(enum oom_constra
+ 		if (constraint != CONSTRAINT_NONE)
+ 			return;
+ 	}
+-	dump_header(NULL, gfp_mask, order, NULL, nodemask);
++	dump_header(NULL, gfp_mask, order, memcg, nodemask);
+ 	panic("Out of memory: %s panic_on_oom is enabled\n",
+ 		sysctl_panic_on_oom == 2 ? "compulsory" : "system-wide");
+ }
+@@ -740,7 +741,7 @@ static void __out_of_memory(struct zonel
+ 	constraint = constrained_alloc(zonelist, gfp_mask, nodemask,
+ 						&totalpages);
+ 	mpol_mask = (constraint == CONSTRAINT_MEMORY_POLICY) ? nodemask : NULL;
+-	check_panic_on_oom(constraint, gfp_mask, order, mpol_mask);
++	check_panic_on_oom(constraint, gfp_mask, order, mpol_mask, NULL);
+ 
+ 	if (sysctl_oom_kill_allocating_task && current->mm &&
+ 	    !oom_unkillable_task(current, NULL, nodemask) &&
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from balu252@gmail.com are
 
-mm-hugetlb-close-race-when-setting-pagetail-for-gigantic-pages.patch
-mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention.patch
-mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention-v2.patch
-mm-pagewalk-prevent-positive-return-value-of-walk_page_test-from-being-passed-to-callers.patch
-cxgb4-drop-__gfp_nofail-allocation.patch
-sh-dwarf-destroy-mempools-on-cleanup.patch
-sh-dwarf-use-mempool_create_slab_pool.patch
-jbd2-revert-must-not-fail-allocation-loops-back-to-gfp_nofail.patch
-mm-slub-parse-slub_debug-o-option-in-switch-statement.patch
-mm-rename-foll_mlock-to-foll_populate.patch
-mm-rename-__mlock_vma_pages_range-to-populate_vma_page_range.patch
-mm-move-gup-posix-mlock-error-conversion-out-of-__mm_populate.patch
-mm-move-mm_populate-related-code-to-mm-gupc.patch
-mm-hotplug-fix-concurrent-memory-hot-add-deadlock.patch
-mm-cma-change-fallback-behaviour-for-cma-freepage.patch
-mm-page_alloc-factor-out-fallback-freepage-checking.patch
-mm-compaction-enhance-compaction-finish-condition.patch
-mm-compaction-enhance-compaction-finish-condition-fix.patch
-mm-incorporate-zero-pages-into-transparent-huge-pages.patch
-mm-incorporate-zero-pages-into-transparent-huge-pages-fix.patch
-mm-completely-remove-dumping-per-cpu-lists-from-show_mem.patch
-mm-mempolicy-migrate_to_node-should-only-migrate-to-node.patch
-mm-remove-gfp_thisnode.patch
-mm-thp-really-limit-transparent-hugepage-allocation-to-local-node.patch
-kernel-cpuset-remove-exception-for-__gfp_thisnode.patch
-mm-clarify-__gfp_nofail-deprecation-status.patch
-mm-clarify-__gfp_nofail-deprecation-status-checkpatch-fixes.patch
-sparc-clarify-__gfp_nofail-allocation.patch
-mm-utilc-add-kstrimdup.patch
+memcg-print-cgroup-information-when-system-panics-due-to-panic_on_oom.patch
 
