@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-da9052-add-constraints-to-set-valid-year.patch added to -mm tree
-Date: Wed, 11 Mar 2015 13:54:58 -0700
-Message-ID: <5500aba2.EWlSrY+q/pxZqELr%akpm@linux-foundation.org>
+Subject: +
+ rtc-da9052-register-ability-of-alarm-to-wake-device-from-suspend.patch
+ added to -mm tree
+Date: Wed, 11 Mar 2015 13:55:00 -0700
+Message-ID: <5500aba4.Kva6bKZNh1GdJFK4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49754 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49758 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751549AbbCKUy7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Mar 2015 16:54:59 -0400
+	with ESMTP id S1751448AbbCKUzB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Mar 2015 16:55:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: adam.ward.opensource@diasemi.com, a.zummo@towertech.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-da9052.c: add constraints to set valid year
+     Subject: drivers/rtc/rtc-da9052.c: register ability of alarm to wake device from suspend
 has been added to the -mm tree.  Its filename is
-     rtc-da9052-add-constraints-to-set-valid-year.patch
+     rtc-da9052-register-ability-of-alarm-to-wake-device-from-suspend.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rtc-da9052-add-constraints-to-set-valid-year.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rtc-da9052-register-ability-of-alarm-to-wake-device-from-suspend.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-da9052-add-constraints-to-set-valid-year.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-da9052-register-ability-of-alarm-to-wake-device-from-suspend.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,7 +41,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Adam Ward <adam.ward.opensource@diasemi.com>
-Subject: drivers/rtc/rtc-da9052.c: add constraints to set valid year
+Subject: drivers/rtc/rtc-da9052.c: register ability of alarm to wake device from suspend
 
 Signed-off-by: Adam Ward <adam.ward.opensource@diasemi.com>
 Tested-by: Adam Ward <adam.ward.opensource@diasemi.com>
@@ -47,34 +49,21 @@ Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-da9052.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/rtc/rtc-da9052.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/rtc/rtc-da9052.c~rtc-da9052-add-constraints-to-set-valid-year drivers/rtc/rtc-da9052.c
---- a/drivers/rtc/rtc-da9052.c~rtc-da9052-add-constraints-to-set-valid-year
+diff -puN drivers/rtc/rtc-da9052.c~rtc-da9052-register-ability-of-alarm-to-wake-device-from-suspend drivers/rtc/rtc-da9052.c
+--- a/drivers/rtc/rtc-da9052.c~rtc-da9052-register-ability-of-alarm-to-wake-device-from-suspend
 +++ a/drivers/rtc/rtc-da9052.c
-@@ -206,6 +206,10 @@ static int da9052_rtc_set_time(struct de
- 	uint8_t v[6];
- 	int ret;
- 
-+	/* DA9052 only has 6 bits for year - to represent 2000-2063 */
-+	if ((tm->tm_year < 100) || (tm->tm_year > 163))
-+		return -EINVAL;
-+
- 	rtc = dev_get_drvdata(dev);
- 
- 	v[0] = tm->tm_sec;
-@@ -243,6 +247,10 @@ static int da9052_rtc_set_alarm(struct d
- 	struct rtc_time *tm = &alrm->time;
- 	struct da9052_rtc *rtc = dev_get_drvdata(dev);
- 
-+	/* DA9052 only has 6 bits for year - to represent 2000-2063 */
-+	if ((tm->tm_year < 100) || (tm->tm_year > 163))
-+		return -EINVAL;
-+
- 	ret = da9052_rtc_enable_alarm(rtc, 0);
- 	if (ret < 0)
+@@ -309,6 +309,8 @@ static int da9052_rtc_probe(struct platf
  		return ret;
+ 	}
+ 
++	device_init_wakeup(&pdev->dev, true);
++
+ 	rtc->rtc = devm_rtc_device_register(&pdev->dev, pdev->name,
+ 				       &da9052_rtc_ops, THIS_MODULE);
+ 	return PTR_ERR_OR_ZERO(rtc->rtc);
 _
 
 Patches currently in -mm which might be from adam.ward.opensource@diasemi.com are
