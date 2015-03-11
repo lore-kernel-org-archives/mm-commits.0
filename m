@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- ocfs2-flush-inode-data-to-disk-and-free-inode-when-i_count-becomes-zero.patch added to -mm tree
-Date: Wed, 11 Mar 2015 15:32:09 -0700
-Message-ID: <5500c269.ax6eL9JFm9KaGpX+%akpm@linux-foundation.org>
+Subject: + rtc-hym8563-return-clock-rate-even-when-clock-is-disabled.patch added to -mm tree
+Date: Wed, 11 Mar 2015 15:35:46 -0700
+Message-ID: <5500c342.R1L0W3Uryyhv1fh+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51718 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51728 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751138AbbCKWcK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Mar 2015 18:32:10 -0400
+	with ESMTP id S1750779AbbCKWfr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Mar 2015 18:35:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xuejiufei@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
+To: heiko@sntech.de, a.zummo@towertech.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: flush inode data to disk and free inode when i_count becomes zero
+     Subject: drivers/rtc/rtc-hym8563.c: return clock rate even when clock is disabled
 has been added to the -mm tree.  Its filename is
-     ocfs2-flush-inode-data-to-disk-and-free-inode-when-i_count-becomes-zero.patch
+     rtc-hym8563-return-clock-rate-even-when-clock-is-disabled.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-flush-inode-data-to-disk-and-free-inode-when-i_count-becomes-zero.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rtc-hym8563-return-clock-rate-even-when-clock-is-disabled.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-flush-inode-data-to-disk-and-free-inode-when-i_count-becomes-zero.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-hym8563-return-clock-rate-even-when-clock-is-disabled.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,62 +38,39 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Xue jiufei <xuejiufei@huawei.com>
-Subject: ocfs2: flush inode data to disk and free inode when i_count becomes zero
+From: Heiko Stuebner <heiko@sntech.de>
+Subject: drivers/rtc/rtc-hym8563.c: return clock rate even when clock is disabled
 
-Disk inode deletion may be heavily delayed when one node unlink a file
-after the same dentry is freed on another node(say N1) because of memory
-shrink but inode is left in memory.  This inode can only be freed while N1
-doing the orphan scan work.
+When the clock is disabled, do not return a rate of 0 but instead return
+the rate the clock will be running at after it gets enabled.  This
+prevents problems when the core clock code is trying to determine a
+suitable rate, while the clock is still off.
 
-However, N1 may skip orphan scan for several times because other nodes may
-do the work earlier.  In our tests, it may take 1 hour on 4 nodes cluster
-and it hurts the user experience.  So we think the inode should be freed
-after the data flushed to disk when i_count becomes zero to avoid such
-circumstances.
-
-Signed-off-by: Joyce.xue <xuejiufei@huawei.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
+Signed-off-by: Heiko Stuebner <heiko@sntech.de>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/inode.c |   14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ drivers/rtc/rtc-hym8563.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/inode.c~ocfs2-flush-inode-data-to-disk-and-free-inode-when-i_count-becomes-zero fs/ocfs2/inode.c
---- a/fs/ocfs2/inode.c~ocfs2-flush-inode-data-to-disk-and-free-inode-when-i_count-becomes-zero
-+++ a/fs/ocfs2/inode.c
-@@ -1191,17 +1191,19 @@ void ocfs2_evict_inode(struct inode *ino
- int ocfs2_drop_inode(struct inode *inode)
- {
- 	struct ocfs2_inode_info *oi = OCFS2_I(inode);
--	int res;
+diff -puN drivers/rtc/rtc-hym8563.c~rtc-hym8563-return-clock-rate-even-when-clock-is-disabled drivers/rtc/rtc-hym8563.c
+--- a/drivers/rtc/rtc-hym8563.c~rtc-hym8563-return-clock-rate-even-when-clock-is-disabled
++++ a/drivers/rtc/rtc-hym8563.c
+@@ -309,7 +309,7 @@ static unsigned long hym8563_clkout_reca
+ 	struct i2c_client *client = hym8563->client;
+ 	int ret = i2c_smbus_read_byte_data(client, HYM8563_CLKOUT);
  
- 	trace_ocfs2_drop_inode((unsigned long long)oi->ip_blkno,
- 				inode->i_nlink, oi->ip_flags);
+-	if (ret < 0 || ret & HYM8563_CLKOUT_DISABLE)
++	if (ret < 0)
+ 		return 0;
  
--	if (oi->ip_flags & OCFS2_INODE_MAYBE_ORPHANED)
--		res = 1;
--	else
--		res = generic_drop_inode(inode);
-+	assert_spin_locked(&inode->i_lock);
-+	inode->i_state |= I_WILL_FREE;
-+	spin_unlock(&inode->i_lock);
-+	write_inode_now(inode, 1);
-+	spin_lock(&inode->i_lock);
-+	WARN_ON(inode->i_state & I_NEW);
-+	inode->i_state &= ~I_WILL_FREE;
- 
--	return res;
-+	return 1;
- }
- 
- /*
+ 	ret &= HYM8563_CLKOUT_MASK;
 _
 
-Patches currently in -mm which might be from xuejiufei@huawei.com are
+Patches currently in -mm which might be from heiko@sntech.de are
 
-ocfs2-flush-inode-data-to-disk-and-free-inode-when-i_count-becomes-zero.patch
-ocfs2-flush-inode-data-to-disk-and-free-inode-when-i_count-becomes-zero.patch
+origin.patch
+rtc-hym8563-return-clock-rate-even-when-clock-is-disabled.patch
+linux-next.patch
 
