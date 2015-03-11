@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-spell-check-reudce.patch added to -mm tree
-Date: Wed, 11 Mar 2015 15:16:41 -0700
-Message-ID: <5500bec9.mcTYz+FyX9AZYo0x%akpm@linux-foundation.org>
+Subject: + ocfs2-dereferencing-freed-pointers-in-ocfs2_reflink.patch added to -mm tree
+Date: Wed, 11 Mar 2015 15:20:50 -0700
+Message-ID: <5500bfc2.tjqcS8PfbnHh5psp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51660 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51669 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752246AbbCKWQl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Mar 2015 18:16:41 -0400
+	with ESMTP id S1751710AbbCKWUv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Mar 2015 18:20:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jani.nikula@intel.com, joe@perches.com, mm-commits@vger.kernel.org
+To: dan.carpenter@oracle.com, jlbec@evilplan.org, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: spell check reudce
+     Subject: ocfs2: dereferencing freed pointers in ocfs2_reflink()
 has been added to the -mm tree.  Its filename is
-     checkpatch-spell-check-reudce.patch
+     ocfs2-dereferencing-freed-pointers-in-ocfs2_reflink.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-spell-check-reudce.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-dereferencing-freed-pointers-in-ocfs2_reflink.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-spell-check-reudce.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-dereferencing-freed-pointers-in-ocfs2_reflink.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,35 +38,40 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jani Nikula <jani.nikula@intel.com>
-Subject: checkpatch: spell check reudce
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: ocfs2: dereferencing freed pointers in ocfs2_reflink()
 
-References: http://mid.gmane.org/1424977312-24902-1-git-send-email-ville.syrjala@linux.intel.com
+The code at the "out" label assumes that "default_acl" and "acl" are NULL,
+but actually the pointers can be NULL, unitialized, or freed.
 
-Signed-off-by: Jani Nikula <jani.nikula@intel.com>
-Cc: Joe Perches <joe@perches.com>
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Reviewed-by: Mark Fasheh <mfasheh@suse.de>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/spelling.txt |    1 +
- 1 file changed, 1 insertion(+)
+ fs/ocfs2/refcounttree.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/spelling.txt~checkpatch-spell-check-reudce scripts/spelling.txt
---- a/scripts/spelling.txt~checkpatch-spell-check-reudce
-+++ a/scripts/spelling.txt
-@@ -825,6 +825,7 @@ retreived||retrieved
- retreive||retrieve
- retrive||retrieve
- retuned||returned
-+reudce||reduce
- reuest||request
- reuqest||request
- reutnred||returned
+diff -puN fs/ocfs2/refcounttree.c~ocfs2-dereferencing-freed-pointers-in-ocfs2_reflink fs/ocfs2/refcounttree.c
+--- a/fs/ocfs2/refcounttree.c~ocfs2-dereferencing-freed-pointers-in-ocfs2_reflink
++++ a/fs/ocfs2/refcounttree.c
+@@ -4276,7 +4276,7 @@ static int ocfs2_reflink(struct dentry *
+ 	error = posix_acl_create(dir, &mode, &default_acl, &acl);
+ 	if (error) {
+ 		mlog_errno(error);
+-		goto out;
++		return error;
+ 	}
+ 
+ 	error = ocfs2_create_inode_in_orphan(dir, mode,
 _
 
-Patches currently in -mm which might be from jani.nikula@intel.com are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
-checkpatch-add-spell-checking-of-email-subject-line.patch
-checkpatch-spell-check-reudce.patch
+ocfs2-dereferencing-freed-pointers-in-ocfs2_reflink.patch
+paride-fix-the-verbose-module-param.patch
+hfsplus-add-missing-curly-braces-in-hfsplus_delete_cat.patch
+memstick-mspro_block-add-missing-curly-braces.patch
 linux-next.patch
 
