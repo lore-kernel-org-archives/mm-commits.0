@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + posix_acl-make-posix_acl_create-safer-and-cleaner.patch added
- to -mm tree
-Date: Wed, 11 Mar 2015 15:24:37 -0700
-Message-ID: <5500c0a5.6OqfasKDc83oD4bq%akpm@linux-foundation.org>
+Subject: +
+ checkpatch-add-optional-codespell-dictionary-to-find-more-typos.patch added to -mm tree
+Date: Wed, 11 Mar 2015 15:25:58 -0700
+Message-ID: <5500c0f6.gRFPAqoRtnQMtXaA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51689 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51693 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752817AbbCKWYi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Mar 2015 18:24:38 -0400
+	with ESMTP id S1751138AbbCKWZ7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Mar 2015 18:25:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.carpenter@oracle.com, jlbec@evilplan.org, mfasheh@suse.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: joe@perches.com, apw@canonical.com, keescook@chromium.org, lucas.de.marchi@gmail.com, standby24x7@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/posix_acl.c: make posix_acl_create() safer and cleaner
+     Subject: checkpatch: add optional --codespell dictionary to find more typos
 has been added to the -mm tree.  Its filename is
-     posix_acl-make-posix_acl_create-safer-and-cleaner.patch
+     checkpatch-add-optional-codespell-dictionary-to-find-more-typos.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/posix_acl-make-posix_acl_create-safer-and-cleaner.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-optional-codespell-dictionary-to-find-more-typos.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/posix_acl-make-posix_acl_create-safer-and-cleaner.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-optional-codespell-dictionary-to-find-more-typos.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,115 +39,150 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: fs/posix_acl.c: make posix_acl_create() safer and cleaner
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: add optional --codespell dictionary to find more typos
 
-If posix_acl_create() returns an error code then "*acl" and "*default_acl"
-can be uninitialized or point to freed memory.  This is a dangerous thing
-to do.  For example, it causes a problem in ocfs2_reflink():
+If a codespell dictionary exists, use it if desired.  default is off,
+maybe it could be turned on later.
 
-	fs/ocfs2/refcounttree.c:4327 ocfs2_reflink()
-	error: potentially using uninitialized 'default_acl'.
+codespell's dictionary format allows multiple possible corrections, ignore
+that for now and only use the first suggestion.
 
-I've re-written this so we set the pointers to NULL at the start.  I've
-added a temporary "clone" variable to hold the value of "*acl" until end. 
-Setting them to NULL means means we don't need the "no_acl" label.  We may
-as well remove the "apply_umask" stuff forward and remove that label as
-well.
+Also add \b to spelling test so that consecutive misspelled words
+are found properly.
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Andy Whitcroft <apw@canonical.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Masanari Iida <standby24x7@gmail.com>
+Cc: Lucas De Marchi <lucas.de.marchi@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/posix_acl.c |   46 ++++++++++++++++++++--------------------------
- 1 file changed, 20 insertions(+), 26 deletions(-)
+ scripts/checkpatch.pl |   38 ++++++++++++++++++++++++++++++++++----
+ 1 file changed, 34 insertions(+), 4 deletions(-)
 
-diff -puN fs/posix_acl.c~posix_acl-make-posix_acl_create-safer-and-cleaner fs/posix_acl.c
---- a/fs/posix_acl.c~posix_acl-make-posix_acl_create-safer-and-cleaner
-+++ a/fs/posix_acl.c
-@@ -547,51 +547,45 @@ posix_acl_create(struct inode *dir, umod
- 		struct posix_acl **default_acl, struct posix_acl **acl)
- {
- 	struct posix_acl *p;
-+	struct posix_acl *clone;
- 	int ret;
+diff -puN scripts/checkpatch.pl~checkpatch-add-optional-codespell-dictionary-to-find-more-typos scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-optional-codespell-dictionary-to-find-more-typos
++++ a/scripts/checkpatch.pl
+@@ -47,6 +47,8 @@ my $ignore_perl_version = 0;
+ my $minimum_perl_version = 5.10.0;
+ my $min_conf_desc_length = 4;
+ my $spelling_file = "$D/spelling.txt";
++my $codespell = 0;
++my $codespellfile = "/usr/local/share/codespell/dictionary.txt";
  
-+	*acl = NULL;
-+	*default_acl = NULL;
-+
- 	if (S_ISLNK(*mode) || !IS_POSIXACL(dir))
--		goto no_acl;
-+		return 0;
+ sub help {
+ 	my ($exitcode) = @_;
+@@ -88,6 +90,9 @@ Options:
+                              file.  It's your fault if there's no backup or git
+   --ignore-perl-version      override checking of perl version.  expect
+                              runtime errors.
++  --codespell                Use the codespell dictionary for spelling/typos
++                             (default:/usr/local/share/codespell/dictionary.txt)
++  --codespellfile            Use this codespell dictionary
+   -h, --help, --version      display this help and exit
  
- 	p = get_acl(dir, ACL_TYPE_DEFAULT);
--	if (IS_ERR(p)) {
--		if (p == ERR_PTR(-EOPNOTSUPP))
--			goto apply_umask;
--		return PTR_ERR(p);
-+	if (!p || p == ERR_PTR(-EOPNOTSUPP)) {
-+		*mode &= ~current_umask();
-+		return 0;
+ When FILE is - read standard input.
+@@ -146,6 +151,8 @@ GetOptions(
+ 	'ignore-perl-version!' => \$ignore_perl_version,
+ 	'debug=s'	=> \%debug,
+ 	'test-only=s'	=> \$tst_only,
++	'codespell!'	=> \$codespell,
++	'codespellfile=s'	=> \$codespellfile,
+ 	'h|help'	=> \$help,
+ 	'version'	=> \$help
+ ) or help(1);
+@@ -449,7 +456,6 @@ my $misspellings;
+ my %spelling_fix;
+ 
+ if (open(my $spelling, '<', $spelling_file)) {
+-	my @spelling_list;
+ 	while (<$spelling>) {
+ 		my $line = $_;
+ 
+@@ -461,15 +467,39 @@ if (open(my $spelling, '<', $spelling_fi
+ 
+ 		my ($suspect, $fix) = split(/\|\|/, $line);
+ 
+-		push(@spelling_list, $suspect);
+ 		$spelling_fix{$suspect} = $fix;
  	}
-+	if (IS_ERR(p))
-+		return PTR_ERR(p);
+ 	close($spelling);
+-	$misspellings = join("|", @spelling_list);
+ } else {
+ 	warn "No typos will be found - file '$spelling_file': $!\n";
+ }
  
--	if (!p)
--		goto apply_umask;
--
--	*acl = posix_acl_clone(p, GFP_NOFS);
--	if (!*acl)
-+	clone = posix_acl_clone(p, GFP_NOFS);
-+	if (!clone)
- 		goto no_mem;
- 
--	ret = posix_acl_create_masq(*acl, mode);
-+	ret = posix_acl_create_masq(clone, mode);
- 	if (ret < 0)
- 		goto no_mem_clone;
- 
--	if (ret == 0) {
--		posix_acl_release(*acl);
--		*acl = NULL;
--	}
-+	if (ret == 0)
-+		posix_acl_release(clone);
-+	else
-+		*acl = clone;
- 
--	if (!S_ISDIR(*mode)) {
-+	if (!S_ISDIR(*mode))
- 		posix_acl_release(p);
--		*default_acl = NULL;
--	} else {
-+	else
- 		*default_acl = p;
--	}
--	return 0;
- 
--apply_umask:
--	*mode &= ~current_umask();
--no_acl:
--	*default_acl = NULL;
--	*acl = NULL;
- 	return 0;
- 
- no_mem_clone:
--	posix_acl_release(*acl);
-+	posix_acl_release(clone);
- no_mem:
- 	posix_acl_release(p);
- 	return -ENOMEM;
++if ($codespell) {
++	if (open(my $spelling, '<', $codespellfile)) {
++		while (<$spelling>) {
++			my $line = $_;
++
++			$line =~ s/\s*\n?$//g;
++			$line =~ s/^\s*//g;
++
++			next if ($line =~ m/^\s*#/);
++			next if ($line =~ m/^\s*$/);
++			next if ($line =~ m/, disabled/i);
++
++			$line =~ s/,.*$//;
++
++			my ($suspect, $fix) = split(/->/, $line);
++
++			$spelling_fix{$suspect} = $fix;
++		}
++		close($spelling);
++	} else {
++		warn "No codespell typos will be found - file '$codespellfile': $!\n";
++	}
++}
++
++$misspellings = join("|", sort keys %spelling_fix) if keys %spelling_fix;
++
+ sub build_types {
+ 	my $mods = "(?x:  \n" . join("|\n  ", @modifierList) . "\n)";
+ 	my $all = "(?x:  \n" . join("|\n  ", @typeList) . "\n)";
+@@ -2305,7 +2335,7 @@ sub process {
+ # Check for various typo / spelling mistakes
+ 		if (defined($misspellings) &&
+ 		    ($in_commit_log || $line =~ /^(?:\+|Subject:)/i)) {
+-			while ($rawline =~ /(?:^|[^a-z@])($misspellings)(?:$|[^a-z@])/gi) {
++			while ($rawline =~ /(?:^|[^a-z@])($misspellings)(?:\b|$|[^a-z@])/gi) {
+ 				my $typo = $1;
+ 				my $typo_fix = $spelling_fix{lc($typo)};
+ 				$typo_fix = ucfirst($typo_fix) if ($typo =~ /^[A-Z]/);
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-ocfs2-dereferencing-freed-pointers-in-ocfs2_reflink.patch
-posix_acl-make-posix_acl_create-safer-and-cleaner.patch
-paride-fix-the-verbose-module-param.patch
-hfsplus-add-missing-curly-braces-in-hfsplus_delete_cat.patch
-memstick-mspro_block-add-missing-curly-braces.patch
+origin.patch
+proc-show-locks-in-proc-pid-fdinfo-x.patch
+x86-mtrr-if-remove-use-of-seq_printf-return-value.patch
+power-wakeup-remove-use-of-seq_printf-return-value.patch
+rtc-remove-use-of-seq_printf-return-value.patch
+ipc-remove-use-of-seq_printf-return-value.patch
+pxa27x_udc-remove-use-of-seq_printf-return-value.patch
+microblaze-mb-remove-use-of-seq_printf-return-value.patch
+microblaze-mb-remove-use-of-seq_printf-return-value-fix.patch
+nios2-cpuinfo-remove-use-of-seq_printf-return-value.patch
+arm-plat-pxa-remove-use-of-seq_printf-return-value.patch
+openrisc-remove-use-of-seq_printf-return-value.patch
+cris-remove-use-of-seq_printf-return-value.patch
+mfd-ab8500-debugfs-remove-use-of-seq_printf-return-value.patch
+s390-remove-use-of-seq_printf-return-value.patch
+i8k-remove-use-of-seq_printf-return-value.patch
+watchdog-bcm281xx-remove-use-of-seq_printf-return-value.patch
+proc-remove-use-of-seq_printf-return-value.patch
+cgroup-remove-use-of-seq_printf-return-value.patch
+tracing-remove-use-of-seq_printf-return-value.patch
+lru_cache-remove-use-of-seq_printf-return-value.patch
+parisc-remove-use-of-seq_printf-return-value.patch
+lib-vsprintfc-even-faster-decimal-conversion.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-improve-no-space-is-necessary-after-a-cast-test.patch
+checkpatch-add-spell-checking-of-email-subject-line.patch
+checkpatch-spell-check-reudce.patch
+checkpatch-add-optional-codespell-dictionary-to-find-more-typos.patch
 linux-next.patch
 
