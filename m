@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- memcg-print-cgroup-information-when-system-panics-due-to-panic_on_oom.patch added to -mm tree
-Date: Wed, 11 Mar 2015 16:24:57 -0700
-Message-ID: <5500cec9.Lke+LHvamyXf03w+%akpm@linux-foundation.org>
+Subject: + mm-mempool-do-not-allow-atomic-resizing.patch added to -mm tree
+Date: Wed, 11 Mar 2015 16:26:16 -0700
+Message-ID: <5500cf18.7PycUtWpxahnftd8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54037 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54043 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751107AbbCKXY6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Mar 2015 19:24:58 -0400
+	with ESMTP id S1750939AbbCKX0R (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Mar 2015 19:26:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: balu252@gmail.com, balasubramani_vivekanandan@mentor.com, hannes@cmpxchg.org, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: rientjes@google.com, heiko.carstens@de.ibm.com, maier@linux.vnet.ibm.com, schwidefsky@de.ibm.com, sfrench@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: print cgroup information when system panics due to panic_on_oom
+     Subject: mm, mempool: do not allow atomic resizing
 has been added to the -mm tree.  Its filename is
-     memcg-print-cgroup-information-when-system-panics-due-to-panic_on_oom.patch
+     mm-mempool-do-not-allow-atomic-resizing.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-print-cgroup-information-when-system-panics-due-to-panic_on_oom.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mempool-do-not-allow-atomic-resizing.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-print-cgroup-information-when-system-panics-due-to-panic_on_oom.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mempool-do-not-allow-atomic-resizing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,110 +38,161 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Balasubramani Vivekanandan <balu252@gmail.com>
-Subject: memcg: print cgroup information when system panics due to panic_on_oom
+From: David Rientjes <rientjes@google.com>
+Subject: mm, mempool: do not allow atomic resizing
 
-If kernel panics due to oom, caused by a cgroup reaching its limit, when
-'compulsory panic_on_oom' is enabled, then we will only see that the OOM
-happened because of "compulsory panic_on_oom is enabled" but this doesn't
-tell the difference between mempolicy and memcg.  And dumping system wide
-information is plain wrong and more confusing.  This patch provides the
-information of the cgroup whose limit triggerred panic
+Allocating a large number of elements in atomic context could quickly
+deplete memory reserves, so just disallow atomic resizing entirely.
 
-Signed-off-by: Balasubramani Vivekanandan <balasubramani_vivekanandan@mentor.com>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Nothing currently uses mempool_resize() with anything other than
+GFP_KERNEL, so convert existing callers to drop the gfp_mask.
+
+Signed-off-by: David Rientjes <rientjes@google.com>
+Acked-by: Steffen Maier <maier@linux.vnet.ibm.com>	[zfcp]
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Steve French <sfrench@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/oom.h |    3 ++-
- mm/memcontrol.c     |   16 +++++++++-------
- mm/oom_kill.c       |    7 ++++---
- 3 files changed, 15 insertions(+), 11 deletions(-)
+ drivers/s390/scsi/zfcp_erp.c |    4 ++--
+ fs/cifs/connect.c            |    6 ++----
+ include/linux/mempool.h      |    2 +-
+ mm/mempool.c                 |    9 +++++----
+ 4 files changed, 10 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/oom.h~memcg-print-cgroup-information-when-system-panics-due-to-panic_on_oom include/linux/oom.h
---- a/include/linux/oom.h~memcg-print-cgroup-information-when-system-panics-due-to-panic_on_oom
-+++ a/include/linux/oom.h
-@@ -66,7 +66,8 @@ extern bool oom_zonelist_trylock(struct
- extern void oom_zonelist_unlock(struct zonelist *zonelist, gfp_t gfp_flags);
+diff -puN drivers/s390/scsi/zfcp_erp.c~mm-mempool-do-not-allow-atomic-resizing drivers/s390/scsi/zfcp_erp.c
+--- a/drivers/s390/scsi/zfcp_erp.c~mm-mempool-do-not-allow-atomic-resizing
++++ a/drivers/s390/scsi/zfcp_erp.c
+@@ -738,11 +738,11 @@ static int zfcp_erp_adapter_strategy_ope
+ 		return ZFCP_ERP_FAILED;
  
- extern void check_panic_on_oom(enum oom_constraint constraint, gfp_t gfp_mask,
--			       int order, const nodemask_t *nodemask);
-+			       int order, const nodemask_t *nodemask,
-+			       struct mem_cgroup *memcg);
+ 	if (mempool_resize(act->adapter->pool.sr_data,
+-			   act->adapter->stat_read_buf_num, GFP_KERNEL))
++			   act->adapter->stat_read_buf_num))
+ 		return ZFCP_ERP_FAILED;
  
- extern enum oom_scan_t oom_scan_process_thread(struct task_struct *task,
- 		unsigned long totalpages, const nodemask_t *nodemask,
-diff -puN mm/memcontrol.c~memcg-print-cgroup-information-when-system-panics-due-to-panic_on_oom mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-print-cgroup-information-when-system-panics-due-to-panic_on_oom
-+++ a/mm/memcontrol.c
-@@ -1442,15 +1442,17 @@ void mem_cgroup_print_oom_info(struct me
- 	struct mem_cgroup *iter;
- 	unsigned int i;
+ 	if (mempool_resize(act->adapter->pool.status_read_req,
+-			   act->adapter->stat_read_buf_num, GFP_KERNEL))
++			   act->adapter->stat_read_buf_num))
+ 		return ZFCP_ERP_FAILED;
  
--	if (!p)
--		return;
--
- 	mutex_lock(&oom_info_lock);
- 	rcu_read_lock();
+ 	atomic_set(&act->adapter->stat_miss, act->adapter->stat_read_buf_num);
+diff -puN fs/cifs/connect.c~mm-mempool-do-not-allow-atomic-resizing fs/cifs/connect.c
+--- a/fs/cifs/connect.c~mm-mempool-do-not-allow-atomic-resizing
++++ a/fs/cifs/connect.c
+@@ -773,8 +773,7 @@ static void clean_demultiplex_info(struc
  
--	pr_info("Task in ");
--	pr_cont_cgroup_path(task_cgroup(p, memory_cgrp_id));
--	pr_cont(" killed as a result of limit of ");
-+	if (p) {
-+		pr_info("Task in ");
-+		pr_cont_cgroup_path(task_cgroup(p, memory_cgrp_id));
-+		pr_cont(" killed as a result of limit of ");
-+	} else {
-+		pr_info("Memory limit reached of cgroup ");
-+	}
-+
- 	pr_cont_cgroup_path(memcg->css.cgroup);
- 	pr_cont("\n");
- 
-@@ -1537,7 +1539,7 @@ static void mem_cgroup_out_of_memory(str
- 		return;
- 	}
- 
--	check_panic_on_oom(CONSTRAINT_MEMCG, gfp_mask, order, NULL);
-+	check_panic_on_oom(CONSTRAINT_MEMCG, gfp_mask, order, NULL, memcg);
- 	totalpages = mem_cgroup_get_limit(memcg) ? : 1;
- 	for_each_mem_cgroup_tree(iter, memcg) {
- 		struct css_task_iter it;
-diff -puN mm/oom_kill.c~memcg-print-cgroup-information-when-system-panics-due-to-panic_on_oom mm/oom_kill.c
---- a/mm/oom_kill.c~memcg-print-cgroup-information-when-system-panics-due-to-panic_on_oom
-+++ a/mm/oom_kill.c
-@@ -612,7 +612,8 @@ void oom_kill_process(struct task_struct
-  * Determines whether the kernel must panic because of the panic_on_oom sysctl.
-  */
- void check_panic_on_oom(enum oom_constraint constraint, gfp_t gfp_mask,
--			int order, const nodemask_t *nodemask)
-+			int order, const nodemask_t *nodemask,
-+			struct mem_cgroup *memcg)
- {
- 	if (likely(!sysctl_panic_on_oom))
- 		return;
-@@ -625,7 +626,7 @@ void check_panic_on_oom(enum oom_constra
- 		if (constraint != CONSTRAINT_NONE)
- 			return;
- 	}
--	dump_header(NULL, gfp_mask, order, NULL, nodemask);
-+	dump_header(NULL, gfp_mask, order, memcg, nodemask);
- 	panic("Out of memory: %s panic_on_oom is enabled\n",
- 		sysctl_panic_on_oom == 2 ? "compulsory" : "system-wide");
+ 	length = atomic_dec_return(&tcpSesAllocCount);
+ 	if (length > 0)
+-		mempool_resize(cifs_req_poolp, length + cifs_min_rcv,
+-				GFP_KERNEL);
++		mempool_resize(cifs_req_poolp, length + cifs_min_rcv);
  }
-@@ -740,7 +741,7 @@ static void __out_of_memory(struct zonel
- 	constraint = constrained_alloc(zonelist, gfp_mask, nodemask,
- 						&totalpages);
- 	mpol_mask = (constraint == CONSTRAINT_MEMORY_POLICY) ? nodemask : NULL;
--	check_panic_on_oom(constraint, gfp_mask, order, mpol_mask);
-+	check_panic_on_oom(constraint, gfp_mask, order, mpol_mask, NULL);
  
- 	if (sysctl_oom_kill_allocating_task && current->mm &&
- 	    !oom_unkillable_task(current, NULL, nodemask) &&
+ static int
+@@ -848,8 +847,7 @@ cifs_demultiplex_thread(void *p)
+ 
+ 	length = atomic_inc_return(&tcpSesAllocCount);
+ 	if (length > 1)
+-		mempool_resize(cifs_req_poolp, length + cifs_min_rcv,
+-				GFP_KERNEL);
++		mempool_resize(cifs_req_poolp, length + cifs_min_rcv);
+ 
+ 	set_freezable();
+ 	while (server->tcpStatus != CifsExiting) {
+diff -puN include/linux/mempool.h~mm-mempool-do-not-allow-atomic-resizing include/linux/mempool.h
+--- a/include/linux/mempool.h~mm-mempool-do-not-allow-atomic-resizing
++++ a/include/linux/mempool.h
+@@ -29,7 +29,7 @@ extern mempool_t *mempool_create_node(in
+ 			mempool_free_t *free_fn, void *pool_data,
+ 			gfp_t gfp_mask, int nid);
+ 
+-extern int mempool_resize(mempool_t *pool, int new_min_nr, gfp_t gfp_mask);
++extern int mempool_resize(mempool_t *pool, int new_min_nr);
+ extern void mempool_destroy(mempool_t *pool);
+ extern void * mempool_alloc(mempool_t *pool, gfp_t gfp_mask);
+ extern void mempool_free(void *element, mempool_t *pool);
+diff -puN mm/mempool.c~mm-mempool-do-not-allow-atomic-resizing mm/mempool.c
+--- a/mm/mempool.c~mm-mempool-do-not-allow-atomic-resizing
++++ a/mm/mempool.c
+@@ -113,23 +113,24 @@ EXPORT_SYMBOL(mempool_create_node);
+  *              mempool_create().
+  * @new_min_nr: the new minimum number of elements guaranteed to be
+  *              allocated for this pool.
+- * @gfp_mask:   the usual allocation bitmask.
+  *
+  * This function shrinks/grows the pool. In the case of growing,
+  * it cannot be guaranteed that the pool will be grown to the new
+  * size immediately, but new mempool_free() calls will refill it.
++ * This function may sleep.
+  *
+  * Note, the caller must guarantee that no mempool_destroy is called
+  * while this function is running. mempool_alloc() & mempool_free()
+  * might be called (eg. from IRQ contexts) while this function executes.
+  */
+-int mempool_resize(mempool_t *pool, int new_min_nr, gfp_t gfp_mask)
++int mempool_resize(mempool_t *pool, int new_min_nr)
+ {
+ 	void *element;
+ 	void **new_elements;
+ 	unsigned long flags;
+ 
+ 	BUG_ON(new_min_nr <= 0);
++	might_sleep();
+ 
+ 	spin_lock_irqsave(&pool->lock, flags);
+ 	if (new_min_nr <= pool->min_nr) {
+@@ -145,7 +146,7 @@ int mempool_resize(mempool_t *pool, int
+ 	spin_unlock_irqrestore(&pool->lock, flags);
+ 
+ 	/* Grow the pool */
+-	new_elements = kmalloc(new_min_nr * sizeof(*new_elements), gfp_mask);
++	new_elements = kmalloc(new_min_nr * sizeof(*new_elements), GFP_KERNEL);
+ 	if (!new_elements)
+ 		return -ENOMEM;
+ 
+@@ -164,7 +165,7 @@ int mempool_resize(mempool_t *pool, int
+ 
+ 	while (pool->curr_nr < pool->min_nr) {
+ 		spin_unlock_irqrestore(&pool->lock, flags);
+-		element = pool->alloc(gfp_mask, pool->pool_data);
++		element = pool->alloc(GFP_KERNEL, pool->pool_data);
+ 		if (!element)
+ 			goto out;
+ 		spin_lock_irqsave(&pool->lock, flags);
 _
 
-Patches currently in -mm which might be from balu252@gmail.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
-memcg-print-cgroup-information-when-system-panics-due-to-panic_on_oom.patch
+mm-hugetlb-close-race-when-setting-pagetail-for-gigantic-pages.patch
+mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention.patch
+mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention-v2.patch
+mm-pagewalk-prevent-positive-return-value-of-walk_page_test-from-being-passed-to-callers.patch
+cxgb4-drop-__gfp_nofail-allocation.patch
+sh-dwarf-destroy-mempools-on-cleanup.patch
+sh-dwarf-use-mempool_create_slab_pool.patch
+jbd2-revert-must-not-fail-allocation-loops-back-to-gfp_nofail.patch
+mm-slub-parse-slub_debug-o-option-in-switch-statement.patch
+mm-rename-foll_mlock-to-foll_populate.patch
+mm-rename-__mlock_vma_pages_range-to-populate_vma_page_range.patch
+mm-move-gup-posix-mlock-error-conversion-out-of-__mm_populate.patch
+mm-move-mm_populate-related-code-to-mm-gupc.patch
+mm-hotplug-fix-concurrent-memory-hot-add-deadlock.patch
+mm-cma-change-fallback-behaviour-for-cma-freepage.patch
+mm-page_alloc-factor-out-fallback-freepage-checking.patch
+mm-compaction-enhance-compaction-finish-condition.patch
+mm-compaction-enhance-compaction-finish-condition-fix.patch
+mm-incorporate-zero-pages-into-transparent-huge-pages.patch
+mm-incorporate-zero-pages-into-transparent-huge-pages-fix.patch
+mm-completely-remove-dumping-per-cpu-lists-from-show_mem.patch
+mm-mempolicy-migrate_to_node-should-only-migrate-to-node.patch
+mm-remove-gfp_thisnode.patch
+mm-thp-really-limit-transparent-hugepage-allocation-to-local-node.patch
+kernel-cpuset-remove-exception-for-__gfp_thisnode.patch
+mm-clarify-__gfp_nofail-deprecation-status.patch
+mm-clarify-__gfp_nofail-deprecation-status-checkpatch-fixes.patch
+sparc-clarify-__gfp_nofail-allocation.patch
+mm-mempool-do-not-allow-atomic-resizing.patch
+mm-utilc-add-kstrimdup.patch
 
