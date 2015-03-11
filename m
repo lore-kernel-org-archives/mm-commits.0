@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + sparc-switch-to-using-asm-generic-for-seccomph.patch added to
- -mm tree
-Date: Wed, 11 Mar 2015 13:59:40 -0700
-Message-ID: <5500acbc.yS33JQ1dKQfxq//2%akpm@linux-foundation.org>
+Subject: + microblaze-use-asm-generic-for-seccomph.patch added to -mm tree
+Date: Wed, 11 Mar 2015 13:59:32 -0700
+Message-ID: <5500acb4.iMs48yOJ9LYS2QHN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49815 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49799 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752250AbbCKU7l (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Mar 2015 16:59:41 -0400
+	with ESMTP id S1751745AbbCKU7d (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Mar 2015 16:59:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: keescook@chromium.org, davem@davemloft.net, mm-commits@vger.kernel.org
+To: keescook@chromium.org, monstr@monstr.eu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sparc: switch to using asm-generic for seccomp.h
+     Subject: microblaze: use asm-generic for seccomp.h
 has been added to the -mm tree.  Its filename is
-     sparc-switch-to-using-asm-generic-for-seccomph.patch
+     microblaze-use-asm-generic-for-seccomph.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sparc-switch-to-using-asm-generic-for-seccomph.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/microblaze-use-asm-generic-for-seccomph.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sparc-switch-to-using-asm-generic-for-seccomph.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/microblaze-use-asm-generic-for-seccomph.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,43 +39,41 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kees Cook <keescook@chromium.org>
-Subject: sparc: switch to using asm-generic for seccomp.h
+Subject: microblaze: use asm-generic for seccomp.h
 
 Switch to using the newly created asm-generic/seccomp.h for the seccomp
-strict mode syscall definitions. The obsolete sigreturn in COMPAT mode
-is retained as an override. Remaining definitions are identical. Also
-corrected missing #define for header reinclusion protection.
+strict mode syscall definitions. Since microblaze is 32-bit, the COMPAT
+seccomp defines are unused and can be dropped. The obsolete sigreturn
+for seccomp strict mode is retained as an override. Remaining definitions
+are identical.
 
 Signed-off-by: Kees Cook <keescook@chromium.org>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Michal Simek <monstr@monstr.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/include/asm/seccomp.h |   11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ arch/microblaze/include/asm/seccomp.h |    8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
-diff -puN arch/sparc/include/asm/seccomp.h~sparc-switch-to-using-asm-generic-for-seccomph arch/sparc/include/asm/seccomp.h
---- a/arch/sparc/include/asm/seccomp.h~sparc-switch-to-using-asm-generic-for-seccomph
-+++ a/arch/sparc/include/asm/seccomp.h
-@@ -1,15 +1,10 @@
- #ifndef _ASM_SECCOMP_H
-+#define _ASM_SECCOMP_H
+diff -puN arch/microblaze/include/asm/seccomp.h~microblaze-use-asm-generic-for-seccomph arch/microblaze/include/asm/seccomp.h
+--- a/arch/microblaze/include/asm/seccomp.h~microblaze-use-asm-generic-for-seccomph
++++ a/arch/microblaze/include/asm/seccomp.h
+@@ -3,14 +3,8 @@
  
  #include <linux/unistd.h>
  
--#define __NR_seccomp_read __NR_read
--#define __NR_seccomp_write __NR_write
--#define __NR_seccomp_exit __NR_exit
--#define __NR_seccomp_sigreturn __NR_rt_sigreturn
--
--#define __NR_seccomp_read_32 __NR_read
--#define __NR_seccomp_write_32 __NR_write
--#define __NR_seccomp_exit_32 __NR_exit
- #define __NR_seccomp_sigreturn_32 __NR_sigreturn
+-#define __NR_seccomp_read		__NR_read
+-#define __NR_seccomp_write		__NR_write
+-#define __NR_seccomp_exit		__NR_exit
+ #define __NR_seccomp_sigreturn		__NR_sigreturn
  
+-#define __NR_seccomp_read_32		__NR_read
+-#define __NR_seccomp_write_32		__NR_write
+-#define __NR_seccomp_exit_32		__NR_exit
+-#define __NR_seccomp_sigreturn_32	__NR_sigreturn
 +#include <asm-generic/seccomp.h>
-+
- #endif /* _ASM_SECCOMP_H */
+ 
+ #endif	/* _ASM_MICROBLAZE_SECCOMP_H */
 _
 
 Patches currently in -mm which might be from keescook@chromium.org are
