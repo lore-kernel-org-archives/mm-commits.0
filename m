@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: [merged] staging-lustre-convert-return-seq_printf-uses.patch
- removed from -mm tree
-Date: Wed, 11 Mar 2015 12:17:37 -0700
-Message-ID: <550094d1.xwO/01IwKfyAUo14%akpm@linux-foundation.org>
+Subject: [merged] staging-lustre-convert-uses-of-int-rc-=-seq_printf.patch removed from -mm tree
+Date: Wed, 11 Mar 2015 12:17:41 -0700
+Message-ID: <550094d5.CJ8TgCCIReZHEeeu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48053 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48059 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751538AbbCKTRi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Mar 2015 15:17:38 -0400
+	with ESMTP id S1751538AbbCKTRm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Mar 2015 15:17:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: joe@perches.com, andreas.dilger@intel.com, gregkh@linuxfoundation.org, oleg.drokin@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: staging: lustre: convert "return seq_printf(...)" uses
+     Subject: staging: lustre: convert uses of "int rc = seq_printf(...)"
 has been removed from the -mm tree.  Its filename was
-     staging-lustre-convert-return-seq_printf-uses.patch
+     staging-lustre-convert-uses-of-int-rc-=-seq_printf.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: staging: lustre: convert "return seq_printf(...)" uses
+Subject: staging: lustre: convert uses of "int rc = seq_printf(...)"
 
 The seq_printf return value, because it's frequently misused,
 will eventually be converted to void.
@@ -34,29 +33,39 @@ will eventually be converted to void.
 See: commit 1f33c41c03da ("seq_file: Rename seq_overflow() to
      seq_has_overflowed() and make public")
 
-Convert these "return seq_printf(...)" uses to:
+Convert these uses to:
 
 	seq_printf(seq, ...);
+
 	return 0;
 
 Done via cocci script:
 
 @@
 struct seq_file *seq;
+int i;
 @@
-
--	return
-	\(seq_printf\|seq_puts\|seq_putc\)(seq,
-	...);
-
+-	i = seq_printf(seq,
++	seq_printf(seq,
+		   ...);
+	...
+-	return i;
 +	return 0;
 
-With some additional reformatting and typing post conversion.
+@@
+struct seq_file *seq;
+int i;
+@@
+-	i = 0;
+-	i += seq_printf(seq,
++	seq_printf(seq,
+	           ...);
+	...
+-	return i;
++	return 0;
 
-Miscellanea:
-
-o convert an rc++ use to a bool
-o use seq_puts with fixed strings where appropriate
+With some additional reformatting and typing post conversion
+to remove the now unnecessary "int i;" declaration.
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Cc: Oleg Drokin <oleg.drokin@intel.com>
@@ -65,717 +74,350 @@ Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/lustre/lustre/libcfs/hash.c                 |   11 -
- drivers/staging/lustre/lustre/llite/lproc_llite.c           |   88 +++++-----
- drivers/staging/lustre/lustre/lmv/lproc_lmv.c               |   18 +-
- drivers/staging/lustre/lustre/lov/lproc_lov.c               |   30 ++-
- drivers/staging/lustre/lustre/obdclass/linux/linux-module.c |   38 ++--
- drivers/staging/lustre/lustre/obdclass/lprocfs_status.c     |   26 +-
- drivers/staging/lustre/lustre/obdclass/lu_object.c          |   25 +-
- drivers/staging/lustre/lustre/osc/lproc_osc.c               |   22 +-
- drivers/staging/lustre/lustre/ptlrpc/lproc_ptlrpc.c         |   20 +-
- 9 files changed, 163 insertions(+), 115 deletions(-)
+ drivers/staging/lustre/lustre/fid/lproc_fid.c       |   23 +-
+ drivers/staging/lustre/lustre/llite/lproc_llite.c   |    5 
+ drivers/staging/lustre/lustre/mdc/lproc_mdc.c       |    6 
+ drivers/staging/lustre/lustre/osc/lproc_osc.c       |   45 ++---
+ drivers/staging/lustre/lustre/ptlrpc/lproc_ptlrpc.c |    5 
+ drivers/staging/lustre/lustre/ptlrpc/sec_bulk.c     |   82 ++++------
+ 6 files changed, 79 insertions(+), 87 deletions(-)
 
-diff -puN drivers/staging/lustre/lustre/libcfs/hash.c~staging-lustre-convert-return-seq_printf-uses drivers/staging/lustre/lustre/libcfs/hash.c
---- a/drivers/staging/lustre/lustre/libcfs/hash.c~staging-lustre-convert-return-seq_printf-uses
-+++ a/drivers/staging/lustre/lustre/libcfs/hash.c
-@@ -2010,11 +2010,12 @@ EXPORT_SYMBOL(cfs_hash_rehash_key);
- 
- int cfs_hash_debug_header(struct seq_file *m)
+diff -puN drivers/staging/lustre/lustre/fid/lproc_fid.c~staging-lustre-convert-uses-of-int-rc-=-seq_printf drivers/staging/lustre/lustre/fid/lproc_fid.c
+--- a/drivers/staging/lustre/lustre/fid/lproc_fid.c~staging-lustre-convert-uses-of-int-rc-=-seq_printf
++++ a/drivers/staging/lustre/lustre/fid/lproc_fid.c
+@@ -120,15 +120,14 @@ static int
+ lprocfs_fid_space_seq_show(struct seq_file *m, void *unused)
  {
--	return seq_printf(m, "%-*s%6s%6s%6s%6s%6s%6s%6s%7s%8s%8s%8s%s\n",
--		 CFS_HASH_BIGNAME_LEN,
--		 "name", "cur", "min", "max", "theta", "t-min", "t-max",
--		 "flags", "rehash", "count", "maxdep", "maxdepb",
--		 " distribution");
-+	seq_printf(m, "%-*s%6s%6s%6s%6s%6s%6s%6s%7s%8s%8s%8s%s\n",
-+		   CFS_HASH_BIGNAME_LEN,
-+		   "name", "cur", "min", "max", "theta", "t-min", "t-max",
-+		   "flags", "rehash", "count", "maxdep", "maxdepb",
-+		   " distribution");
-+	return 0;
- }
- EXPORT_SYMBOL(cfs_hash_debug_header);
+ 	struct lu_client_seq *seq = (struct lu_client_seq *)m->private;
+-	int rc;
  
-diff -puN drivers/staging/lustre/lustre/llite/lproc_llite.c~staging-lustre-convert-return-seq_printf-uses drivers/staging/lustre/lustre/llite/lproc_llite.c
---- a/drivers/staging/lustre/lustre/llite/lproc_llite.c~staging-lustre-convert-return-seq_printf-uses
-+++ a/drivers/staging/lustre/lustre/llite/lproc_llite.c
-@@ -187,7 +187,8 @@ static int ll_fstype_seq_show(struct seq
- 	struct super_block *sb = (struct super_block *)m->private;
+ 	LASSERT(seq != NULL);
  
- 	LASSERT(sb != NULL);
--	return seq_printf(m, "%s\n", sb->s_type->name);
-+	seq_printf(m, "%s\n", sb->s_type->name);
-+	return 0;
- }
- LPROC_SEQ_FOPS_RO(ll_fstype);
+ 	mutex_lock(&seq->lcs_mutex);
+-	rc = seq_printf(m, "[%#llx - %#llx]:%x:%s\n", PRANGE(&seq->lcs_space));
++	seq_printf(m, "[%#llx - %#llx]:%x:%s\n", PRANGE(&seq->lcs_space));
+ 	mutex_unlock(&seq->lcs_mutex);
  
-@@ -196,7 +197,8 @@ static int ll_sb_uuid_seq_show(struct se
- 	struct super_block *sb = (struct super_block *)m->private;
- 
- 	LASSERT(sb != NULL);
--	return seq_printf(m, "%s\n", ll_s2sbi(sb)->ll_sb_uuid.uuid);
-+	seq_printf(m, "%s\n", ll_s2sbi(sb)->ll_sb_uuid.uuid);
-+	return 0;
- }
- LPROC_SEQ_FOPS_RO(ll_sb_uuid);
- 
-@@ -353,17 +355,18 @@ static int ll_max_cached_mb_seq_show(str
- 
- 	max_cached_mb = cache->ccc_lru_max >> shift;
- 	unused_mb = atomic_read(&cache->ccc_lru_left) >> shift;
--	return seq_printf(m,
--			"users: %d\n"
--			"max_cached_mb: %d\n"
--			"used_mb: %d\n"
--			"unused_mb: %d\n"
--			"reclaim_count: %u\n",
--			atomic_read(&cache->ccc_users),
--			max_cached_mb,
--			max_cached_mb - unused_mb,
--			unused_mb,
--			cache->ccc_lru_shrinkers);
-+	seq_printf(m,
-+		   "users: %d\n"
-+		   "max_cached_mb: %d\n"
-+		   "used_mb: %d\n"
-+		   "unused_mb: %d\n"
-+		   "reclaim_count: %u\n",
-+		   atomic_read(&cache->ccc_users),
-+		   max_cached_mb,
-+		   max_cached_mb - unused_mb,
-+		   unused_mb,
-+		   cache->ccc_lru_shrinkers);
+-	return rc;
 +	return 0;
  }
  
- static ssize_t ll_max_cached_mb_seq_write(struct file *file,
-@@ -467,7 +470,8 @@ static int ll_checksum_seq_show(struct s
- 	struct super_block *sb = m->private;
- 	struct ll_sb_info *sbi = ll_s2sbi(sb);
- 
--	return seq_printf(m, "%u\n", (sbi->ll_flags & LL_SBI_CHECKSUM) ? 1 : 0);
-+	seq_printf(m, "%u\n", (sbi->ll_flags & LL_SBI_CHECKSUM) ? 1 : 0);
-+	return 0;
- }
- 
- static ssize_t ll_checksum_seq_write(struct file *file,
-@@ -503,7 +507,8 @@ static int ll_max_rw_chunk_seq_show(stru
+ static ssize_t lprocfs_fid_width_seq_write(struct file *file,
+@@ -170,30 +169,28 @@ static int
+ lprocfs_fid_width_seq_show(struct seq_file *m, void *unused)
  {
- 	struct super_block *sb = m->private;
+ 	struct lu_client_seq *seq = (struct lu_client_seq *)m->private;
+-	int rc;
  
--	return seq_printf(m, "%lu\n", ll_s2sbi(sb)->ll_max_rw_chunk);
-+	seq_printf(m, "%lu\n", ll_s2sbi(sb)->ll_max_rw_chunk);
+ 	LASSERT(seq != NULL);
+ 
+ 	mutex_lock(&seq->lcs_mutex);
+-	rc = seq_printf(m, "%llu\n", seq->lcs_width);
++	seq_printf(m, "%llu\n", seq->lcs_width);
+ 	mutex_unlock(&seq->lcs_mutex);
+ 
+-	return rc;
 +	return 0;
  }
  
- static ssize_t ll_max_rw_chunk_seq_write(struct file *file,
-@@ -525,15 +530,14 @@ static int ll_rd_track_id(struct seq_fil
+ static int
+ lprocfs_fid_fid_seq_show(struct seq_file *m, void *unused)
  {
- 	struct super_block *sb = m->private;
+ 	struct lu_client_seq *seq = (struct lu_client_seq *)m->private;
+-	int rc;
  
--	if (ll_s2sbi(sb)->ll_stats_track_type == type) {
--		return seq_printf(m, "%d\n",
--				ll_s2sbi(sb)->ll_stats_track_id);
-+	if (ll_s2sbi(sb)->ll_stats_track_type == type)
-+		seq_printf(m, "%d\n", ll_s2sbi(sb)->ll_stats_track_id);
-+	else if (ll_s2sbi(sb)->ll_stats_track_type == STATS_TRACK_ALL)
-+		seq_puts(m, "0 (all)\n");
-+	else
-+		seq_puts(m, "untracked\n");
+ 	LASSERT(seq != NULL);
  
--	} else if (ll_s2sbi(sb)->ll_stats_track_type == STATS_TRACK_ALL) {
--		return seq_printf(m, "0 (all)\n");
--	} else {
--		return seq_printf(m, "untracked\n");
--	}
+ 	mutex_lock(&seq->lcs_mutex);
+-	rc = seq_printf(m, DFID"\n", PFID(&seq->lcs_fid));
++	seq_printf(m, DFID"\n", PFID(&seq->lcs_fid));
+ 	mutex_unlock(&seq->lcs_mutex);
+ 
+-	return rc;
 +	return 0;
  }
  
- static int ll_wr_track_id(const char __user *buffer, unsigned long count,
-@@ -601,7 +605,8 @@ static int ll_statahead_max_seq_show(str
- 	struct super_block *sb = m->private;
- 	struct ll_sb_info *sbi = ll_s2sbi(sb);
- 
--	return seq_printf(m, "%u\n", sbi->ll_sa_max);
-+	seq_printf(m, "%u\n", sbi->ll_sa_max);
-+	return 0;
- }
- 
- static ssize_t ll_statahead_max_seq_write(struct file *file,
-@@ -631,8 +636,8 @@ static int ll_statahead_agl_seq_show(str
- 	struct super_block *sb = m->private;
- 	struct ll_sb_info *sbi = ll_s2sbi(sb);
- 
--	return seq_printf(m, "%u\n",
--			sbi->ll_flags & LL_SBI_AGL_ENABLED ? 1 : 0);
-+	seq_printf(m, "%u\n", sbi->ll_flags & LL_SBI_AGL_ENABLED ? 1 : 0);
-+	return 0;
- }
- 
- static ssize_t ll_statahead_agl_seq_write(struct file *file,
-@@ -661,13 +666,14 @@ static int ll_statahead_stats_seq_show(s
- 	struct super_block *sb = m->private;
- 	struct ll_sb_info *sbi = ll_s2sbi(sb);
- 
--	return seq_printf(m,
--			"statahead total: %u\n"
--			"statahead wrong: %u\n"
--			"agl total: %u\n",
--			atomic_read(&sbi->ll_sa_total),
--			atomic_read(&sbi->ll_sa_wrong),
--			atomic_read(&sbi->ll_agl_total));
-+	seq_printf(m,
-+		   "statahead total: %u\n"
-+		   "statahead wrong: %u\n"
-+		   "agl total: %u\n",
-+		   atomic_read(&sbi->ll_sa_total),
-+		   atomic_read(&sbi->ll_sa_wrong),
-+		   atomic_read(&sbi->ll_agl_total));
-+	return 0;
- }
- LPROC_SEQ_FOPS_RO(ll_statahead_stats);
- 
-@@ -676,8 +682,8 @@ static int ll_lazystatfs_seq_show(struct
- 	struct super_block *sb = m->private;
- 	struct ll_sb_info *sbi = ll_s2sbi(sb);
- 
--	return seq_printf(m, "%u\n",
--			(sbi->ll_flags & LL_SBI_LAZYSTATFS) ? 1 : 0);
-+	seq_printf(m, "%u\n", sbi->ll_flags & LL_SBI_LAZYSTATFS ? 1 : 0);
-+	return 0;
- }
- 
- static ssize_t ll_lazystatfs_seq_write(struct file *file,
-@@ -712,7 +718,8 @@ static int ll_max_easize_seq_show(struct
- 	if (rc)
- 		return rc;
- 
--	return seq_printf(m, "%u\n", ealen);
-+	seq_printf(m, "%u\n", ealen);
-+	return 0;
- }
- LPROC_SEQ_FOPS_RO(ll_max_easize);
- 
-@@ -727,7 +734,8 @@ static int ll_defult_easize_seq_show(str
- 	if (rc)
- 		return rc;
- 
--	return seq_printf(m, "%u\n", ealen);
-+	seq_printf(m, "%u\n", ealen);
-+	return 0;
- }
- LPROC_SEQ_FOPS_RO(ll_defult_easize);
- 
-@@ -742,7 +750,8 @@ static int ll_max_cookiesize_seq_show(st
- 	if (rc)
- 		return rc;
- 
--	return seq_printf(m, "%u\n", cookielen);
-+	seq_printf(m, "%u\n", cookielen);
-+	return 0;
- }
- LPROC_SEQ_FOPS_RO(ll_max_cookiesize);
- 
-@@ -757,7 +766,8 @@ static int ll_defult_cookiesize_seq_show
- 	if (rc)
- 		return rc;
- 
--	return seq_printf(m, "%u\n", cookielen);
-+	seq_printf(m, "%u\n", cookielen);
-+	return 0;
- }
- LPROC_SEQ_FOPS_RO(ll_defult_cookiesize);
- 
-diff -puN drivers/staging/lustre/lustre/lmv/lproc_lmv.c~staging-lustre-convert-return-seq_printf-uses drivers/staging/lustre/lustre/lmv/lproc_lmv.c
---- a/drivers/staging/lustre/lustre/lmv/lproc_lmv.c~staging-lustre-convert-return-seq_printf-uses
-+++ a/drivers/staging/lustre/lustre/lmv/lproc_lmv.c
-@@ -48,7 +48,8 @@ static int lmv_numobd_seq_show(struct se
- 
- 	LASSERT(dev != NULL);
- 	desc = &dev->u.lmv.desc;
--	return seq_printf(m, "%u\n", desc->ld_tgt_count);
-+	seq_printf(m, "%u\n", desc->ld_tgt_count);
-+	return 0;
- }
- LPROC_SEQ_FOPS_RO(lmv_numobd);
- 
-@@ -82,7 +83,8 @@ static int lmv_placement_seq_show(struct
- 
- 	LASSERT(dev != NULL);
- 	lmv = &dev->u.lmv;
--	return seq_printf(m, "%s\n", placement_policy2name(lmv->lmv_placement));
-+	seq_printf(m, "%s\n", placement_policy2name(lmv->lmv_placement));
-+	return 0;
- }
- 
- #define MAX_POLICY_STRING_SIZE 64
-@@ -130,7 +132,8 @@ static int lmv_activeobd_seq_show(struct
- 
- 	LASSERT(dev != NULL);
- 	desc = &dev->u.lmv.desc;
--	return seq_printf(m, "%u\n", desc->ld_active_tgt_count);
-+	seq_printf(m, "%u\n", desc->ld_active_tgt_count);
-+	return 0;
- }
- LPROC_SEQ_FOPS_RO(lmv_activeobd);
- 
-@@ -141,7 +144,8 @@ static int lmv_desc_uuid_seq_show(struct
- 
- 	LASSERT(dev != NULL);
- 	lmv = &dev->u.lmv;
--	return seq_printf(m, "%s\n", lmv->desc.ld_uuid.uuid);
-+	seq_printf(m, "%s\n", lmv->desc.ld_uuid.uuid);
-+	return 0;
- }
- LPROC_SEQ_FOPS_RO(lmv_desc_uuid);
- 
-@@ -171,8 +175,10 @@ static int lmv_tgt_seq_show(struct seq_f
- 
- 	if (tgt == NULL)
- 		return 0;
--	return seq_printf(p, "%d: %s %sACTIVE\n", tgt->ltd_idx,
--			  tgt->ltd_uuid.uuid, tgt->ltd_active ? "" : "IN");
-+	seq_printf(p, "%d: %s %sACTIVE\n",
-+		   tgt->ltd_idx, tgt->ltd_uuid.uuid,
-+		   tgt->ltd_active ? "" : "IN");
-+	return 0;
- }
- 
- static struct seq_operations lmv_tgt_sops = {
-diff -puN drivers/staging/lustre/lustre/lov/lproc_lov.c~staging-lustre-convert-return-seq_printf-uses drivers/staging/lustre/lustre/lov/lproc_lov.c
---- a/drivers/staging/lustre/lustre/lov/lproc_lov.c~staging-lustre-convert-return-seq_printf-uses
-+++ a/drivers/staging/lustre/lustre/lov/lproc_lov.c
-@@ -48,7 +48,8 @@ static int lov_stripesize_seq_show(struc
- 
- 	LASSERT(dev != NULL);
- 	desc = &dev->u.lov.desc;
--	return seq_printf(m, "%llu\n", desc->ld_default_stripe_size);
-+	seq_printf(m, "%llu\n", desc->ld_default_stripe_size);
-+	return 0;
- }
- 
- static ssize_t lov_stripesize_seq_write(struct file *file,
-@@ -79,7 +80,8 @@ static int lov_stripeoffset_seq_show(str
- 
- 	LASSERT(dev != NULL);
- 	desc = &dev->u.lov.desc;
--	return seq_printf(m, "%llu\n", desc->ld_default_stripe_offset);
-+	seq_printf(m, "%llu\n", desc->ld_default_stripe_offset);
-+	return 0;
- }
- 
- static ssize_t lov_stripeoffset_seq_write(struct file *file,
-@@ -109,7 +111,8 @@ static int lov_stripetype_seq_show(struc
- 
- 	LASSERT(dev != NULL);
- 	desc = &dev->u.lov.desc;
--	return seq_printf(m, "%u\n", desc->ld_pattern);
-+	seq_printf(m, "%u\n", desc->ld_pattern);
-+	return 0;
- }
- 
- static ssize_t lov_stripetype_seq_write(struct file *file,
-@@ -139,8 +142,8 @@ static int lov_stripecount_seq_show(stru
- 
- 	LASSERT(dev != NULL);
- 	desc = &dev->u.lov.desc;
--	return seq_printf(m, "%d\n",
--			(__s16)(desc->ld_default_stripe_count + 1) - 1);
-+	seq_printf(m, "%d\n", (__s16)(desc->ld_default_stripe_count + 1) - 1);
-+	return 0;
- }
- 
- static ssize_t lov_stripecount_seq_write(struct file *file,
-@@ -170,7 +173,8 @@ static int lov_numobd_seq_show(struct se
- 
- 	LASSERT(dev != NULL);
- 	desc = &dev->u.lov.desc;
--	return seq_printf(m, "%u\n", desc->ld_tgt_count);
-+	seq_printf(m, "%u\n", desc->ld_tgt_count);
-+	return 0;
- }
- LPROC_SEQ_FOPS_RO(lov_numobd);
- 
-@@ -181,7 +185,8 @@ static int lov_activeobd_seq_show(struct
- 
- 	LASSERT(dev != NULL);
- 	desc = &dev->u.lov.desc;
--	return seq_printf(m, "%u\n", desc->ld_active_tgt_count);
-+	seq_printf(m, "%u\n", desc->ld_active_tgt_count);
-+	return 0;
- }
- LPROC_SEQ_FOPS_RO(lov_activeobd);
- 
-@@ -192,7 +197,8 @@ static int lov_desc_uuid_seq_show(struct
- 
- 	LASSERT(dev != NULL);
- 	lov = &dev->u.lov;
--	return seq_printf(m, "%s\n", lov->desc.ld_uuid.uuid);
-+	seq_printf(m, "%s\n", lov->desc.ld_uuid.uuid);
-+	return 0;
- }
- LPROC_SEQ_FOPS_RO(lov_desc_uuid);
- 
-@@ -228,9 +234,11 @@ static void *lov_tgt_seq_next(struct seq
- static int lov_tgt_seq_show(struct seq_file *p, void *v)
+ static int
+@@ -201,17 +198,17 @@ lprocfs_fid_server_seq_show(struct seq_f
  {
- 	struct lov_tgt_desc *tgt = v;
--	return seq_printf(p, "%d: %s %sACTIVE\n", tgt->ltd_index,
--			  obd_uuid2str(&tgt->ltd_uuid),
--			  tgt->ltd_active ? "" : "IN");
-+
-+	seq_printf(p, "%d: %s %sACTIVE\n",
-+		   tgt->ltd_index, obd_uuid2str(&tgt->ltd_uuid),
-+		   tgt->ltd_active ? "" : "IN");
-+	return 0;
- }
+ 	struct lu_client_seq *seq = (struct lu_client_seq *)m->private;
+ 	struct client_obd *cli;
+-	int rc;
  
- struct seq_operations lov_tgt_sops = {
-diff -puN drivers/staging/lustre/lustre/obdclass/linux/linux-module.c~staging-lustre-convert-return-seq_printf-uses drivers/staging/lustre/lustre/obdclass/linux/linux-module.c
---- a/drivers/staging/lustre/lustre/obdclass/linux/linux-module.c~staging-lustre-convert-return-seq_printf-uses
-+++ a/drivers/staging/lustre/lustre/obdclass/linux/linux-module.c
-@@ -219,21 +219,23 @@ struct miscdevice obd_psdev = {
- #if defined (CONFIG_PROC_FS)
- int obd_proc_version_seq_show(struct seq_file *m, void *v)
- {
--	return seq_printf(m, "lustre: %s\nkernel: %s\nbuild:  %s\n",
--			LUSTRE_VERSION_STRING, "patchless_client",
--			BUILD_VERSION);
-+	seq_printf(m, "lustre: %s\nkernel: %s\nbuild:  %s\n",
-+		   LUSTRE_VERSION_STRING, "patchless_client", BUILD_VERSION);
-+	return 0;
- }
- LPROC_SEQ_FOPS_RO(obd_proc_version);
+ 	LASSERT(seq != NULL);
  
- int obd_proc_pinger_seq_show(struct seq_file *m, void *v)
- {
--	return seq_printf(m, "%s\n", "on");
-+	seq_printf(m, "%s\n", "on");
-+	return 0;
- }
- LPROC_SEQ_FOPS_RO(obd_proc_pinger);
- 
- static int obd_proc_health_seq_show(struct seq_file *m, void *v)
- {
--	int rc = 0, i;
-+	bool healthy = true;
-+	int i;
- 
- 	if (libcfs_catastrophe)
- 		seq_printf(m, "LBUG\n");
-@@ -255,25 +257,27 @@ static int obd_proc_health_seq_show(stru
- 
- 		if (obd_health_check(NULL, obd)) {
- 			seq_printf(m, "device %s reported unhealthy\n",
--				      obd->obd_name);
--			rc++;
-+				   obd->obd_name);
-+			healthy = false;
- 		}
- 		class_decref(obd, __func__, current);
- 		read_lock(&obd_dev_lock);
+ 	if (seq->lcs_exp != NULL) {
+ 		cli = &seq->lcs_exp->exp_obd->u.cli;
+-		rc = seq_printf(m, "%s\n", cli->cl_target_uuid.uuid);
++		seq_printf(m, "%s\n", cli->cl_target_uuid.uuid);
+ 	} else {
+-		rc = seq_printf(m, "%s\n", seq->lcs_srv->lss_name);
++		seq_printf(m, "%s\n", seq->lcs_srv->lss_name);
  	}
- 	read_unlock(&obd_dev_lock);
- 
--	if (rc == 0)
--		return seq_printf(m, "healthy\n");
-+	if (healthy)
-+		seq_puts(m, "healthy\n");
-+	else
-+		seq_puts(m, "NOT HEALTHY\n");
- 
--	seq_printf(m, "NOT HEALTHY\n");
- 	return 0;
- }
- LPROC_SEQ_FOPS_RO(obd_proc_health);
- 
- static int obd_proc_jobid_var_seq_show(struct seq_file *m, void *v)
- {
--	return seq_printf(m, "%s\n", obd_jobid_var);
-+	seq_printf(m, "%s\n", obd_jobid_var);
-+	return 0;
- }
- 
- static ssize_t obd_proc_jobid_var_seq_write(struct file *file,
-@@ -299,7 +303,8 @@ LPROC_SEQ_FOPS(obd_proc_jobid_var);
- 
- static int obd_proc_jobid_name_seq_show(struct seq_file *m, void *v)
- {
--	return seq_printf(m, "%s\n", obd_jobid_var);
-+	seq_printf(m, "%s\n", obd_jobid_var);
-+	return 0;
- }
- 
- static ssize_t obd_proc_jobid_name_seq_write(struct file *file,
-@@ -378,10 +383,11 @@ static int obd_device_list_seq_show(stru
- 	else
- 		status = "--";
- 
--	return seq_printf(p, "%3d %s %s %s %s %d\n",
--			  (int)index, status, obd->obd_type->typ_name,
--			  obd->obd_name, obd->obd_uuid.uuid,
--			  atomic_read(&obd->obd_refcount));
-+	seq_printf(p, "%3d %s %s %s %s %d\n",
-+		   (int)index, status, obd->obd_type->typ_name,
-+		   obd->obd_name, obd->obd_uuid.uuid,
-+		   atomic_read(&obd->obd_refcount));
-+	return 0;
- }
- 
- struct seq_operations obd_device_list_sops = {
-diff -puN drivers/staging/lustre/lustre/obdclass/lprocfs_status.c~staging-lustre-convert-return-seq_printf-uses drivers/staging/lustre/lustre/obdclass/lprocfs_status.c
---- a/drivers/staging/lustre/lustre/obdclass/lprocfs_status.c~staging-lustre-convert-return-seq_printf-uses
-+++ a/drivers/staging/lustre/lustre/obdclass/lprocfs_status.c
-@@ -377,7 +377,8 @@ EXPORT_SYMBOL(lprocfs_register);
- /* Generic callbacks */
- int lprocfs_rd_uint(struct seq_file *m, void *data)
- {
--	return seq_printf(m, "%u\n", *(unsigned int *)data);
-+	seq_printf(m, "%u\n", *(unsigned int *)data);
-+	return 0;
- }
- EXPORT_SYMBOL(lprocfs_rd_uint);
- 
-@@ -403,7 +404,8 @@ EXPORT_SYMBOL(lprocfs_wr_uint);
- 
- int lprocfs_rd_u64(struct seq_file *m, void *data)
- {
--	return seq_printf(m, "%llu\n", *(__u64 *)data);
-+	seq_printf(m, "%llu\n", *(__u64 *)data);
-+	return 0;
- }
- EXPORT_SYMBOL(lprocfs_rd_u64);
- 
-@@ -411,7 +413,8 @@ int lprocfs_rd_atomic(struct seq_file *m
- {
- 	atomic_t *atom = data;
- 	LASSERT(atom != NULL);
--	return seq_printf(m, "%d\n", atomic_read(atom));
-+	seq_printf(m, "%d\n", atomic_read(atom));
-+	return 0;
- }
- EXPORT_SYMBOL(lprocfs_rd_atomic);
- 
-@@ -439,7 +442,8 @@ int lprocfs_rd_uuid(struct seq_file *m,
- 	struct obd_device *obd = data;
- 
- 	LASSERT(obd != NULL);
--	return seq_printf(m, "%s\n", obd->obd_uuid.uuid);
-+	seq_printf(m, "%s\n", obd->obd_uuid.uuid);
-+	return 0;
- }
- EXPORT_SYMBOL(lprocfs_rd_uuid);
- 
-@@ -448,7 +452,8 @@ int lprocfs_rd_name(struct seq_file *m,
- 	struct obd_device *dev = data;
- 
- 	LASSERT(dev != NULL);
--	return seq_printf(m, "%s\n", dev->obd_name);
-+	seq_printf(m, "%s\n", dev->obd_name);
-+	return 0;
- }
- EXPORT_SYMBOL(lprocfs_rd_name);
- 
-@@ -924,7 +929,8 @@ int lprocfs_rd_num_exports(struct seq_fi
- 	struct obd_device *obd = data;
- 
- 	LASSERT(obd != NULL);
--	return seq_printf(m, "%u\n", obd->obd_num_exports);
-+	seq_printf(m, "%u\n", obd->obd_num_exports);
-+	return 0;
- }
- EXPORT_SYMBOL(lprocfs_rd_num_exports);
- 
-@@ -933,7 +939,8 @@ int lprocfs_rd_numrefs(struct seq_file *
- 	struct obd_type *class = (struct obd_type *) data;
- 
- 	LASSERT(class != NULL);
--	return seq_printf(m, "%d\n", class->typ_refcnt);
-+	seq_printf(m, "%d\n", class->typ_refcnt);
-+	return 0;
- }
- EXPORT_SYMBOL(lprocfs_rd_numrefs);
- 
-@@ -1606,8 +1613,9 @@ LPROC_SEQ_FOPS_RO(lproc_exp_hash);
- 
- int lprocfs_nid_stats_clear_read(struct seq_file *m, void *data)
- {
--	return seq_printf(m, "%s\n",
--			  "Write into this file to clear all nid stats and stale nid entries");
-+	seq_printf(m, "%s\n",
-+		   "Write into this file to clear all nid stats and stale nid entries");
-+	return 0;
- }
- EXPORT_SYMBOL(lprocfs_nid_stats_clear_read);
- 
-diff -puN drivers/staging/lustre/lustre/obdclass/lu_object.c~staging-lustre-convert-return-seq_printf-uses drivers/staging/lustre/lustre/obdclass/lu_object.c
---- a/drivers/staging/lustre/lustre/obdclass/lu_object.c~staging-lustre-convert-return-seq_printf-uses
-+++ a/drivers/staging/lustre/lustre/obdclass/lu_object.c
-@@ -2014,18 +2014,19 @@ int lu_site_stats_print(const struct lu_
- 	memset(&stats, 0, sizeof(stats));
- 	lu_site_stats_get(s->ls_obj_hash, &stats, 1);
- 
--	return seq_printf(m, "%d/%d %d/%d %d %d %d %d %d %d %d\n",
--			stats.lss_busy,
--			stats.lss_total,
--			stats.lss_populated,
--			CFS_HASH_NHLIST(s->ls_obj_hash),
--			stats.lss_max_search,
--			ls_stats_read(s->ls_stats, LU_SS_CREATED),
--			ls_stats_read(s->ls_stats, LU_SS_CACHE_HIT),
--			ls_stats_read(s->ls_stats, LU_SS_CACHE_MISS),
--			ls_stats_read(s->ls_stats, LU_SS_CACHE_RACE),
--			ls_stats_read(s->ls_stats, LU_SS_CACHE_DEATH_RACE),
--			ls_stats_read(s->ls_stats, LU_SS_LRU_PURGED));
-+	seq_printf(m, "%d/%d %d/%d %d %d %d %d %d %d %d\n",
-+		   stats.lss_busy,
-+		   stats.lss_total,
-+		   stats.lss_populated,
-+		   CFS_HASH_NHLIST(s->ls_obj_hash),
-+		   stats.lss_max_search,
-+		   ls_stats_read(s->ls_stats, LU_SS_CREATED),
-+		   ls_stats_read(s->ls_stats, LU_SS_CACHE_HIT),
-+		   ls_stats_read(s->ls_stats, LU_SS_CACHE_MISS),
-+		   ls_stats_read(s->ls_stats, LU_SS_CACHE_RACE),
-+		   ls_stats_read(s->ls_stats, LU_SS_CACHE_DEATH_RACE),
-+		   ls_stats_read(s->ls_stats, LU_SS_LRU_PURGED));
-+	return 0;
- }
- EXPORT_SYMBOL(lu_site_stats_print);
- 
-diff -puN drivers/staging/lustre/lustre/osc/lproc_osc.c~staging-lustre-convert-return-seq_printf-uses drivers/staging/lustre/lustre/osc/lproc_osc.c
---- a/drivers/staging/lustre/lustre/osc/lproc_osc.c~staging-lustre-convert-return-seq_printf-uses
-+++ a/drivers/staging/lustre/lustre/osc/lproc_osc.c
-@@ -289,8 +289,8 @@ static int osc_grant_shrink_interval_seq
- 
- 	if (obd == NULL)
- 		return 0;
--	return seq_printf(m, "%d\n",
--			obd->u.cli.cl_grant_shrink_interval);
-+	seq_printf(m, "%d\n", obd->u.cli.cl_grant_shrink_interval);
-+	return 0;
- }
- 
- static ssize_t osc_grant_shrink_interval_seq_write(struct file *file,
-@@ -323,8 +323,8 @@ static int osc_checksum_seq_show(struct
- 	if (obd == NULL)
- 		return 0;
- 
--	return seq_printf(m, "%d\n",
--			obd->u.cli.cl_checksum ? 1 : 0);
-+	seq_printf(m, "%d\n", obd->u.cli.cl_checksum ? 1 : 0);
-+	return 0;
- }
- 
- static ssize_t osc_checksum_seq_write(struct file *file,
-@@ -405,7 +405,8 @@ static int osc_resend_count_seq_show(str
- {
- 	struct obd_device *obd = m->private;
- 
--	return seq_printf(m, "%u\n", atomic_read(&obd->u.cli.cl_resends));
-+	seq_printf(m, "%u\n", atomic_read(&obd->u.cli.cl_resends));
-+	return 0;
- }
- 
- static ssize_t osc_resend_count_seq_write(struct file *file,
-@@ -433,7 +434,8 @@ static int osc_contention_seconds_seq_sh
- 	struct obd_device *obd = m->private;
- 	struct osc_device *od  = obd2osc_dev(obd);
- 
--	return seq_printf(m, "%u\n", od->od_contention_time);
-+	seq_printf(m, "%u\n", od->od_contention_time);
-+	return 0;
- }
- 
- static ssize_t osc_contention_seconds_seq_write(struct file *file,
-@@ -453,7 +455,8 @@ static int osc_lockless_truncate_seq_sho
- 	struct obd_device *obd = m->private;
- 	struct osc_device *od  = obd2osc_dev(obd);
- 
--	return seq_printf(m, "%u\n", od->od_lockless_truncate);
-+	seq_printf(m, "%u\n", od->od_lockless_truncate);
-+	return 0;
- }
- 
- static ssize_t osc_lockless_truncate_seq_write(struct file *file,
-@@ -471,8 +474,9 @@ LPROC_SEQ_FOPS(osc_lockless_truncate);
- static int osc_destroys_in_flight_seq_show(struct seq_file *m, void *v)
- {
- 	struct obd_device *obd = m->private;
--	return seq_printf(m, "%u\n",
--			atomic_read(&obd->u.cli.cl_destroy_in_flight));
+-	return rc;
 +
-+	seq_printf(m, "%u\n", atomic_read(&obd->u.cli.cl_destroy_in_flight));
 +	return 0;
  }
- LPROC_SEQ_FOPS_RO(osc_destroys_in_flight);
  
-diff -puN drivers/staging/lustre/lustre/ptlrpc/lproc_ptlrpc.c~staging-lustre-convert-return-seq_printf-uses drivers/staging/lustre/lustre/ptlrpc/lproc_ptlrpc.c
---- a/drivers/staging/lustre/lustre/ptlrpc/lproc_ptlrpc.c~staging-lustre-convert-return-seq_printf-uses
+ LPROC_SEQ_FOPS(lprocfs_fid_space);
+diff -puN drivers/staging/lustre/lustre/llite/lproc_llite.c~staging-lustre-convert-uses-of-int-rc-=-seq_printf drivers/staging/lustre/lustre/llite/lproc_llite.c
+--- a/drivers/staging/lustre/lustre/llite/lproc_llite.c~staging-lustre-convert-uses-of-int-rc-=-seq_printf
++++ a/drivers/staging/lustre/lustre/llite/lproc_llite.c
+@@ -799,11 +799,10 @@ static int ll_xattr_cache_seq_show(struc
+ {
+ 	struct super_block *sb = m->private;
+ 	struct ll_sb_info *sbi = ll_s2sbi(sb);
+-	int rc;
+ 
+-	rc = seq_printf(m, "%u\n", sbi->ll_xattr_cache_enabled);
++	seq_printf(m, "%u\n", sbi->ll_xattr_cache_enabled);
+ 
+-	return rc;
++	return 0;
+ }
+ 
+ static ssize_t ll_xattr_cache_seq_write(struct file *file,
+diff -puN drivers/staging/lustre/lustre/mdc/lproc_mdc.c~staging-lustre-convert-uses-of-int-rc-=-seq_printf drivers/staging/lustre/lustre/mdc/lproc_mdc.c
+--- a/drivers/staging/lustre/lustre/mdc/lproc_mdc.c~staging-lustre-convert-uses-of-int-rc-=-seq_printf
++++ a/drivers/staging/lustre/lustre/mdc/lproc_mdc.c
+@@ -43,12 +43,12 @@ static int mdc_max_rpcs_in_flight_seq_sh
+ {
+ 	struct obd_device *dev = m->private;
+ 	struct client_obd *cli = &dev->u.cli;
+-	int rc;
+ 
+ 	client_obd_list_lock(&cli->cl_loi_list_lock);
+-	rc = seq_printf(m, "%u\n", cli->cl_max_rpcs_in_flight);
++	seq_printf(m, "%u\n", cli->cl_max_rpcs_in_flight);
+ 	client_obd_list_unlock(&cli->cl_loi_list_lock);
+-	return rc;
++
++	return 0;
+ }
+ 
+ static ssize_t mdc_max_rpcs_in_flight_seq_write(struct file *file,
+diff -puN drivers/staging/lustre/lustre/osc/lproc_osc.c~staging-lustre-convert-uses-of-int-rc-=-seq_printf drivers/staging/lustre/lustre/osc/lproc_osc.c
+--- a/drivers/staging/lustre/lustre/osc/lproc_osc.c~staging-lustre-convert-uses-of-int-rc-=-seq_printf
++++ a/drivers/staging/lustre/lustre/osc/lproc_osc.c
+@@ -45,12 +45,12 @@
+ static int osc_active_seq_show(struct seq_file *m, void *v)
+ {
+ 	struct obd_device *dev = m->private;
+-	int rc;
+ 
+ 	LPROCFS_CLIMP_CHECK(dev);
+-	rc = seq_printf(m, "%d\n", !dev->u.cli.cl_import->imp_deactive);
++	seq_printf(m, "%d\n", !dev->u.cli.cl_import->imp_deactive);
+ 	LPROCFS_CLIMP_EXIT(dev);
+-	return rc;
++
++	return 0;
+ }
+ 
+ static ssize_t osc_active_seq_write(struct file *file,
+@@ -80,12 +80,12 @@ static int osc_max_rpcs_in_flight_seq_sh
+ {
+ 	struct obd_device *dev = m->private;
+ 	struct client_obd *cli = &dev->u.cli;
+-	int rc;
+ 
+ 	client_obd_list_lock(&cli->cl_loi_list_lock);
+-	rc = seq_printf(m, "%u\n", cli->cl_max_rpcs_in_flight);
++	seq_printf(m, "%u\n", cli->cl_max_rpcs_in_flight);
+ 	client_obd_list_unlock(&cli->cl_loi_list_lock);
+-	return rc;
++
++	return 0;
+ }
+ 
+ static ssize_t osc_max_rpcs_in_flight_seq_write(struct file *file,
+@@ -164,16 +164,15 @@ static int osc_cached_mb_seq_show(struct
+ 	struct obd_device *dev = m->private;
+ 	struct client_obd *cli = &dev->u.cli;
+ 	int shift = 20 - PAGE_CACHE_SHIFT;
+-	int rc;
+ 
+-	rc = seq_printf(m,
+-		      "used_mb: %d\n"
+-		      "busy_cnt: %d\n",
+-		      (atomic_read(&cli->cl_lru_in_list) +
+-			atomic_read(&cli->cl_lru_busy)) >> shift,
+-		      atomic_read(&cli->cl_lru_busy));
++	seq_printf(m,
++		   "used_mb: %d\n"
++		   "busy_cnt: %d\n",
++		   (atomic_read(&cli->cl_lru_in_list) +
++		    atomic_read(&cli->cl_lru_busy)) >> shift,
++		   atomic_read(&cli->cl_lru_busy));
+ 
+-	return rc;
++	return 0;
+ }
+ 
+ /* shrink the number of caching pages to a specific number */
+@@ -215,12 +214,12 @@ static int osc_cur_dirty_bytes_seq_show(
+ {
+ 	struct obd_device *dev = m->private;
+ 	struct client_obd *cli = &dev->u.cli;
+-	int rc;
+ 
+ 	client_obd_list_lock(&cli->cl_loi_list_lock);
+-	rc = seq_printf(m, "%lu\n", cli->cl_dirty);
++	seq_printf(m, "%lu\n", cli->cl_dirty);
+ 	client_obd_list_unlock(&cli->cl_loi_list_lock);
+-	return rc;
++
++	return 0;
+ }
+ LPROC_SEQ_FOPS_RO(osc_cur_dirty_bytes);
+ 
+@@ -228,12 +227,12 @@ static int osc_cur_grant_bytes_seq_show(
+ {
+ 	struct obd_device *dev = m->private;
+ 	struct client_obd *cli = &dev->u.cli;
+-	int rc;
+ 
+ 	client_obd_list_lock(&cli->cl_loi_list_lock);
+-	rc = seq_printf(m, "%lu\n", cli->cl_avail_grant);
++	seq_printf(m, "%lu\n", cli->cl_avail_grant);
+ 	client_obd_list_unlock(&cli->cl_loi_list_lock);
+-	return rc;
++
++	return 0;
+ }
+ 
+ static ssize_t osc_cur_grant_bytes_seq_write(struct file *file,
+@@ -274,12 +273,12 @@ static int osc_cur_lost_grant_bytes_seq_
+ {
+ 	struct obd_device *dev = m->private;
+ 	struct client_obd *cli = &dev->u.cli;
+-	int rc;
+ 
+ 	client_obd_list_lock(&cli->cl_loi_list_lock);
+-	rc = seq_printf(m, "%lu\n", cli->cl_lost_grant);
++	seq_printf(m, "%lu\n", cli->cl_lost_grant);
+ 	client_obd_list_unlock(&cli->cl_loi_list_lock);
+-	return rc;
++
++	return 0;
+ }
+ LPROC_SEQ_FOPS_RO(osc_cur_lost_grant_bytes);
+ 
+diff -puN drivers/staging/lustre/lustre/ptlrpc/lproc_ptlrpc.c~staging-lustre-convert-uses-of-int-rc-=-seq_printf drivers/staging/lustre/lustre/ptlrpc/lproc_ptlrpc.c
+--- a/drivers/staging/lustre/lustre/ptlrpc/lproc_ptlrpc.c~staging-lustre-convert-uses-of-int-rc-=-seq_printf
 +++ a/drivers/staging/lustre/lustre/ptlrpc/lproc_ptlrpc.c
-@@ -267,7 +267,8 @@ ptlrpc_lprocfs_req_history_len_seq_show(
- 	ptlrpc_service_for_each_part(svcpt, i, svc)
- 		total += svcpt->scp_hist_nrqbds;
- 
--	return seq_printf(m, "%d\n", total);
-+	seq_printf(m, "%d\n", total);
-+	return 0;
- }
- LPROC_SEQ_FOPS_RO(ptlrpc_lprocfs_req_history_len);
- 
-@@ -282,7 +283,8 @@ ptlrpc_lprocfs_req_history_max_seq_show(
- 	ptlrpc_service_for_each_part(svcpt, i, svc)
- 		total += svc->srv_hist_nrqbds_cpt_max;
- 
--	return seq_printf(m, "%d\n", total);
-+	seq_printf(m, "%d\n", total);
-+	return 0;
- }
- 
- static ssize_t
-@@ -327,8 +329,8 @@ ptlrpc_lprocfs_threads_min_seq_show(stru
+@@ -1328,13 +1328,12 @@ int lprocfs_rd_pinger_recov(struct seq_f
  {
- 	struct ptlrpc_service *svc = m->private;
+ 	struct obd_device *obd = m->private;
+ 	struct obd_import *imp = obd->u.cli.cl_import;
+-	int rc;
  
--	return seq_printf(m, "%d\n",
--			svc->srv_nthrs_cpt_init * svc->srv_ncpts);
-+	seq_printf(m, "%d\n", svc->srv_nthrs_cpt_init * svc->srv_ncpts);
+ 	LPROCFS_CLIMP_CHECK(obd);
+-	rc = seq_printf(m, "%d\n", !imp->imp_no_pinger_recover);
++	seq_printf(m, "%d\n", !imp->imp_no_pinger_recover);
+ 	LPROCFS_CLIMP_EXIT(obd);
+ 
+-	return rc;
 +	return 0;
  }
+ EXPORT_SYMBOL(lprocfs_rd_pinger_recov);
  
- static ssize_t
-@@ -371,7 +373,8 @@ ptlrpc_lprocfs_threads_started_seq_show(
- 	ptlrpc_service_for_each_part(svcpt, i, svc)
- 		total += svcpt->scp_nthrs_running;
- 
--	return seq_printf(m, "%d\n", total);
-+	seq_printf(m, "%d\n", total);
-+	return 0;
- }
- LPROC_SEQ_FOPS_RO(ptlrpc_lprocfs_threads_started);
- 
-@@ -380,8 +383,8 @@ ptlrpc_lprocfs_threads_max_seq_show(stru
+diff -puN drivers/staging/lustre/lustre/ptlrpc/sec_bulk.c~staging-lustre-convert-uses-of-int-rc-=-seq_printf drivers/staging/lustre/lustre/ptlrpc/sec_bulk.c
+--- a/drivers/staging/lustre/lustre/ptlrpc/sec_bulk.c~staging-lustre-convert-uses-of-int-rc-=-seq_printf
++++ a/drivers/staging/lustre/lustre/ptlrpc/sec_bulk.c
+@@ -125,52 +125,50 @@ static struct ptlrpc_enc_page_pool {
+  */
+ int sptlrpc_proc_enc_pool_seq_show(struct seq_file *m, void *v)
  {
- 	struct ptlrpc_service *svc = m->private;
+-	int     rc;
+-
+ 	spin_lock(&page_pools.epp_lock);
  
--	return seq_printf(m, "%d\n",
--			svc->srv_nthrs_cpt_limit * svc->srv_ncpts);
-+	seq_printf(m, "%d\n", svc->srv_nthrs_cpt_limit * svc->srv_ncpts);
+-	rc = seq_printf(m,
+-		      "physical pages:	  %lu\n"
+-		      "pages per pool:	  %lu\n"
+-		      "max pages:	       %lu\n"
+-		      "max pools:	       %u\n"
+-		      "total pages:	     %lu\n"
+-		      "total free:	      %lu\n"
+-		      "idle index:	      %lu/100\n"
+-		      "last shrink:	     %lds\n"
+-		      "last access:	     %lds\n"
+-		      "max pages reached:       %lu\n"
+-		      "grows:		   %u\n"
+-		      "grows failure:	   %u\n"
+-		      "shrinks:		 %u\n"
+-		      "cache access:	    %lu\n"
+-		      "cache missing:	   %lu\n"
+-		      "low free mark:	   %lu\n"
+-		      "max waitqueue depth:     %u\n"
+-		      "max wait time:	   "CFS_TIME_T"/%u\n"
+-		      ,
+-		      totalram_pages,
+-		      PAGES_PER_POOL,
+-		      page_pools.epp_max_pages,
+-		      page_pools.epp_max_pools,
+-		      page_pools.epp_total_pages,
+-		      page_pools.epp_free_pages,
+-		      page_pools.epp_idle_idx,
+-		      get_seconds() - page_pools.epp_last_shrink,
+-		      get_seconds() - page_pools.epp_last_access,
+-		      page_pools.epp_st_max_pages,
+-		      page_pools.epp_st_grows,
+-		      page_pools.epp_st_grow_fails,
+-		      page_pools.epp_st_shrinks,
+-		      page_pools.epp_st_access,
+-		      page_pools.epp_st_missings,
+-		      page_pools.epp_st_lowfree,
+-		      page_pools.epp_st_max_wqlen,
+-		      page_pools.epp_st_max_wait, HZ
+-		     );
++	seq_printf(m,
++		   "physical pages:	  %lu\n"
++		   "pages per pool:	  %lu\n"
++		   "max pages:	       %lu\n"
++		   "max pools:	       %u\n"
++		   "total pages:	     %lu\n"
++		   "total free:	      %lu\n"
++		   "idle index:	      %lu/100\n"
++		   "last shrink:	     %lds\n"
++		   "last access:	     %lds\n"
++		   "max pages reached:       %lu\n"
++		   "grows:		   %u\n"
++		   "grows failure:	   %u\n"
++		   "shrinks:		 %u\n"
++		   "cache access:	    %lu\n"
++		   "cache missing:	   %lu\n"
++		   "low free mark:	   %lu\n"
++		   "max waitqueue depth:     %u\n"
++		   "max wait time:	   " CFS_TIME_T "/%u\n",
++		   totalram_pages,
++		   PAGES_PER_POOL,
++		   page_pools.epp_max_pages,
++		   page_pools.epp_max_pools,
++		   page_pools.epp_total_pages,
++		   page_pools.epp_free_pages,
++		   page_pools.epp_idle_idx,
++		   get_seconds() - page_pools.epp_last_shrink,
++		   get_seconds() - page_pools.epp_last_access,
++		   page_pools.epp_st_max_pages,
++		   page_pools.epp_st_grows,
++		   page_pools.epp_st_grow_fails,
++		   page_pools.epp_st_shrinks,
++		   page_pools.epp_st_access,
++		   page_pools.epp_st_missings,
++		   page_pools.epp_st_lowfree,
++		   page_pools.epp_st_max_wqlen,
++		   page_pools.epp_st_max_wait,
++		   HZ);
+ 
+ 	spin_unlock(&page_pools.epp_lock);
+-	return rc;
++
 +	return 0;
  }
  
- static ssize_t
-@@ -1026,7 +1029,8 @@ LPROC_SEQ_FOPS_RO(ptlrpc_lprocfs_timeout
- static int ptlrpc_lprocfs_hp_ratio_seq_show(struct seq_file *m, void *v)
- {
- 	struct ptlrpc_service *svc = m->private;
--	return seq_printf(m, "%d", svc->srv_hpreq_ratio);
-+	seq_printf(m, "%d", svc->srv_hpreq_ratio);
-+	return 0;
- }
- 
- static ssize_t ptlrpc_lprocfs_hp_ratio_seq_write(struct file *file,
+ static void enc_pools_release_free_pages(long npages)
 _
 
 Patches currently in -mm which might be from joe@perches.com are
