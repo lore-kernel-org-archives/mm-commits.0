@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-numa-mark-huge-ptes-young-when-clearing-numa-hinting-faults.patch added
- to -mm tree
-Date: Wed, 11 Mar 2015 16:05:55 -0700
-Message-ID: <5500ca53.zcN7NqtJMB/tlzjb%akpm@linux-foundation.org>
+Subject: + sh-dwarf-destroy-mempools-on-cleanup.patch added to -mm tree
+Date: Wed, 11 Mar 2015 16:12:58 -0700
+Message-ID: <5500cbfa.g+XtnCRFIP/hnDrF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53557 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53975 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751668AbbCKXF4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Mar 2015 19:05:56 -0400
+	with ESMTP id S1751488AbbCKXM7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Mar 2015 19:12:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, aneesh.kumar@linux.vnet.ibm.com, david@fromorbit.com, mingo@kernel.org, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
+To: rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: numa: mark huge PTEs young when clearing NUMA hinting faults
+     Subject: arch/sh/kernel/dwarf.c: destroy mempools on cleanup
 has been added to the -mm tree.  Its filename is
-     mm-numa-mark-huge-ptes-young-when-clearing-numa-hinting-faults.patch
+     sh-dwarf-destroy-mempools-on-cleanup.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-numa-mark-huge-ptes-young-when-clearing-numa-hinting-faults.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sh-dwarf-destroy-mempools-on-cleanup.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-numa-mark-huge-ptes-young-when-clearing-numa-hinting-faults.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sh-dwarf-destroy-mempools-on-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,62 +38,75 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: numa: mark huge PTEs young when clearing NUMA hinting faults
+From: David Rientjes <rientjes@google.com>
+Subject: arch/sh/kernel/dwarf.c: destroy mempools on cleanup
 
-Base PTEs are marked young when the NUMA hinting information is cleared
-but the same does not happen for huge pages which this patch addresses. 
-Note that migrated pages are not marked young as the base page migration
-code does not assume that migrated pages have been referenced.  This could
-be addressed but beyond the scope of this series which is aimed at Dave
-Chinners shrink workload that is unlikely to be affected by this issue.
+dwarf_reg_pool and dwarf_frame_pool are not properly destroyed when
+cleaning up the dwarf unwinder.  Destroy them with mempool_destroy().
 
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Aneesh Kumar <aneesh.kumar@linux.vnet.ibm.com>
+Also mark dwarf_unwinder_cleanup() as __init.
+
+Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/sh/kernel/dwarf.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN mm/huge_memory.c~mm-numa-mark-huge-ptes-young-when-clearing-numa-hinting-faults mm/huge_memory.c
---- a/mm/huge_memory.c~mm-numa-mark-huge-ptes-young-when-clearing-numa-hinting-faults
-+++ a/mm/huge_memory.c
-@@ -1359,6 +1359,7 @@ int do_huge_pmd_numa_page(struct mm_stru
- clear_pmdnuma:
- 	BUG_ON(!PageLocked(page));
- 	pmd = pmd_modify(pmd, vma->vm_page_prot);
-+	pmd = pmd_mkyoung(pmd);
- 	set_pmd_at(mm, haddr, pmdp, pmd);
- 	update_mmu_cache_pmd(vma, addr, pmdp);
- 	unlock_page(page);
+diff -puN arch/sh/kernel/dwarf.c~sh-dwarf-destroy-mempools-on-cleanup arch/sh/kernel/dwarf.c
+--- a/arch/sh/kernel/dwarf.c~sh-dwarf-destroy-mempools-on-cleanup
++++ a/arch/sh/kernel/dwarf.c
+@@ -993,7 +993,7 @@ static struct unwinder dwarf_unwinder =
+ 	.rating = 150,
+ };
+ 
+-static void dwarf_unwinder_cleanup(void)
++static void __init dwarf_unwinder_cleanup(void)
+ {
+ 	struct dwarf_fde *fde, *next_fde;
+ 	struct dwarf_cie *cie, *next_cie;
+@@ -1009,6 +1009,10 @@ static void dwarf_unwinder_cleanup(void)
+ 	rbtree_postorder_for_each_entry_safe(cie, next_cie, &cie_root, node)
+ 		kfree(cie);
+ 
++	if (dwarf_reg_pool)
++		mempool_destroy(dwarf_reg_pool);
++	if (dwarf_frame_pool)
++		mempool_destroy(dwarf_frame_pool);
+ 	kmem_cache_destroy(dwarf_reg_cachep);
+ 	kmem_cache_destroy(dwarf_frame_cachep);
+ }
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from rientjes@google.com are
 
-mm-thp-return-the-correct-value-for-change_huge_pmd.patch
-mm-numa-do-not-clear-ptes-or-pmds-for-numa-hinting-faults.patch
-mm-numa-mark-huge-ptes-young-when-clearing-numa-hinting-faults.patch
+mm-hugetlb-close-race-when-setting-pagetail-for-gigantic-pages.patch
+mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention.patch
+mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention-v2.patch
+mm-pagewalk-prevent-positive-return-value-of-walk_page_test-from-being-passed-to-callers.patch
 cxgb4-drop-__gfp_nofail-allocation.patch
+sh-dwarf-destroy-mempools-on-cleanup.patch
+sh-dwarf-use-mempool_create_slab_pool.patch
 jbd2-revert-must-not-fail-allocation-loops-back-to-gfp_nofail.patch
+mm-slub-parse-slub_debug-o-option-in-switch-statement.patch
+mm-rename-foll_mlock-to-foll_populate.patch
+mm-rename-__mlock_vma_pages_range-to-populate_vma_page_range.patch
+mm-move-gup-posix-mlock-error-conversion-out-of-__mm_populate.patch
+mm-move-mm_populate-related-code-to-mm-gupc.patch
+mm-hotplug-fix-concurrent-memory-hot-add-deadlock.patch
 mm-cma-change-fallback-behaviour-for-cma-freepage.patch
 mm-page_alloc-factor-out-fallback-freepage-checking.patch
 mm-compaction-enhance-compaction-finish-condition.patch
 mm-compaction-enhance-compaction-finish-condition-fix.patch
-mm-refactor-do_wp_page-extract-the-reuse-case.patch
-mm-refactor-do_wp_page-rewrite-the-unlock-flow.patch
-mm-refactor-do_wp_page-extract-the-page-copy-flow.patch
-mm-refactor-do_wp_page-handling-of-shared-vma-into-a-function.patch
+mm-incorporate-zero-pages-into-transparent-huge-pages.patch
+mm-incorporate-zero-pages-into-transparent-huge-pages-fix.patch
+mm-completely-remove-dumping-per-cpu-lists-from-show_mem.patch
+mm-mempolicy-migrate_to_node-should-only-migrate-to-node.patch
 mm-remove-gfp_thisnode.patch
 mm-thp-really-limit-transparent-hugepage-allocation-to-local-node.patch
 kernel-cpuset-remove-exception-for-__gfp_thisnode.patch
 mm-clarify-__gfp_nofail-deprecation-status.patch
+mm-clarify-__gfp_nofail-deprecation-status-checkpatch-fixes.patch
 sparc-clarify-__gfp_nofail-allocation.patch
-mm-numa-remove-migrate_ratelimited.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-linux-next.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
+mm-utilc-add-kstrimdup.patch
 
