@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-mempool-do-not-allow-atomic-resizing-checkpatch-fixes.patch
+Subject: + resource-remove-deprecated-__check_region-and-friends.patch
  added to -mm tree
-Date: Wed, 11 Mar 2015 16:34:42 -0700
-Message-ID: <5500d112.r8BVYQSA7QrNyVjR%akpm@linux-foundation.org>
+Date: Wed, 11 Mar 2015 16:35:33 -0700
+Message-ID: <5500d145.M1Sl+so1ZfX3RRc3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54060 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54067 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750852AbbCKXen (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Mar 2015 19:34:43 -0400
+	with ESMTP id S1751494AbbCKXfd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Mar 2015 19:35:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: jsitnicki@gmail.com, bhelgaas@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-mempool-do-not-allow-atomic-resizing-checkpatch-fixes
+     Subject: kernel/resource.c: remove deprecated __check_region() and friends
 has been added to the -mm tree.  Its filename is
-     mm-mempool-do-not-allow-atomic-resizing-checkpatch-fixes.patch
+     resource-remove-deprecated-__check_region-and-friends.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mempool-do-not-allow-atomic-resizing-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/resource-remove-deprecated-__check_region-and-friends.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mempool-do-not-allow-atomic-resizing-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/resource-remove-deprecated-__check_region-and-friends.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,79 +39,97 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-mempool-do-not-allow-atomic-resizing-checkpatch-fixes
+From: Jakub Sitnicki <jsitnicki@gmail.com>
+Subject: kernel/resource.c: remove deprecated __check_region() and friends
 
-WARNING: Prefer kmalloc_array over kmalloc with multiply
-#111: FILE: mm/mempool.c:149:
-+	new_elements = kmalloc(new_min_nr * sizeof(*new_elements), GFP_KERNEL);
+All users of __check_region(), check_region(), and check_mem_region() are
+gone.  We got rid of the last user in v4.0-rc1.  Remove them.
 
-total: 0 errors, 1 warnings, 81 lines checked
+bloat-o-meter on x86_64 shows:
 
-./patches/mm-mempool-do-not-allow-atomic-resizing.patch has style problems, please review.
+add/remove: 0/3 grow/shrink: 0/0 up/down: 0/-102 (-102)
+function                                     old     new   delta
+__kstrtab___check_region                      15       -     -15
+__ksymtab___check_region                      16       -     -16
+__check_region                                71       -     -71
 
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Jakub Sitnicki <jsitnicki@gmail.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempool.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/ioport.h |    8 --------
+ kernel/resource.c      |   32 --------------------------------
+ 2 files changed, 40 deletions(-)
 
-diff -puN mm/mempool.c~mm-mempool-do-not-allow-atomic-resizing-checkpatch-fixes mm/mempool.c
---- a/mm/mempool.c~mm-mempool-do-not-allow-atomic-resizing-checkpatch-fixes
-+++ a/mm/mempool.c
-@@ -146,7 +146,8 @@ int mempool_resize(mempool_t *pool, int
- 	spin_unlock_irqrestore(&pool->lock, flags);
+diff -puN include/linux/ioport.h~resource-remove-deprecated-__check_region-and-friends include/linux/ioport.h
+--- a/include/linux/ioport.h~resource-remove-deprecated-__check_region-and-friends
++++ a/include/linux/ioport.h
+@@ -196,10 +196,8 @@ extern struct resource * __request_regio
  
- 	/* Grow the pool */
--	new_elements = kmalloc(new_min_nr * sizeof(*new_elements), GFP_KERNEL);
-+	new_elements = kmalloc_array(new_min_nr, sizeof(*new_elements),
-+				     GFP_KERNEL);
- 	if (!new_elements)
- 		return -ENOMEM;
+ /* Compatibility cruft */
+ #define release_region(start,n)	__release_region(&ioport_resource, (start), (n))
+-#define check_mem_region(start,n)	__check_region(&iomem_resource, (start), (n))
+ #define release_mem_region(start,n)	__release_region(&iomem_resource, (start), (n))
  
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention.patch
-mm.patch
-mm-cma-release-trigger-checkpatch-fixes.patch
-mm-cma-allocation-trigger-fix.patch
-mm-compaction-enhance-compaction-finish-condition-fix.patch
-page_writeback-cleanup-mess-around-cancel_dirty_page-checkpatch-fixes.patch
-mm-hide-per-cpu-lists-in-output-of-show_mem-fix.patch
-mm-clarify-__gfp_nofail-deprecation-status-checkpatch-fixes.patch
-mm-change-vunmap-to-tear-down-huge-kva-mappings-fix.patch
-mm-mempool-do-not-allow-atomic-resizing-checkpatch-fixes.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-zram-add-dynamic-device-add-remove-functionality-fix.patch
-zram-introduce-automatic-device_id-generation-fix.patch
-zsmalloc-support-compaction-fix.patch
-kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes.patch
-lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix.patch
-lib-find__bit-reimplementation-fix.patch
-binfmt_misc-simplify-entry_status-fix.patch
-rtc-add-abracon-abx80x-driver-fix.patch
-fs-fat-remove-unnecessary-includes-fix.patch
-kconfig-use-macros-which-are-already-defined-fix.patch
-linux-next.patch
-lib-kconfig-fix-up-have_arch_bitreverse-help-text.patch
-oprofile-reduce-mmap_sem-hold-for-mm-exe_file-fix.patch
-tomoyo-reduce-mmap_sem-hold-for-mm-exe_file-checkpatch-fixes.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-
+-extern int __check_region(struct resource *, resource_size_t, resource_size_t);
+ extern void __release_region(struct resource *, resource_size_t,
+ 				resource_size_t);
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+@@ -207,12 +205,6 @@ extern int release_mem_region_adjustable
+ 				resource_size_t);
+ #endif
+ 
+-static inline int __deprecated check_region(resource_size_t s,
+-						resource_size_t n)
+-{
+-	return __check_region(&ioport_resource, s, n);
+-}
+-
+ /* Wrappers for managed devices */
+ struct device;
+ 
+diff -puN kernel/resource.c~resource-remove-deprecated-__check_region-and-friends kernel/resource.c
+--- a/kernel/resource.c~resource-remove-deprecated-__check_region-and-friends
++++ a/kernel/resource.c
+@@ -1034,8 +1034,6 @@ resource_size_t resource_alignment(struc
+  *
+  * request_region creates a new busy region.
+  *
+- * check_region returns non-zero if the area is already busy.
+- *
+  * release_region releases a matching busy region.
+  */
+ 
+@@ -1098,36 +1096,6 @@ struct resource * __request_region(struc
+ EXPORT_SYMBOL(__request_region);
+ 
+ /**
+- * __check_region - check if a resource region is busy or free
+- * @parent: parent resource descriptor
+- * @start: resource start address
+- * @n: resource region size
+- *
+- * Returns 0 if the region is free at the moment it is checked,
+- * returns %-EBUSY if the region is busy.
+- *
+- * NOTE:
+- * This function is deprecated because its use is racy.
+- * Even if it returns 0, a subsequent call to request_region()
+- * may fail because another driver etc. just allocated the region.
+- * Do NOT use it.  It will be removed from the kernel.
+- */
+-int __check_region(struct resource *parent, resource_size_t start,
+-			resource_size_t n)
+-{
+-	struct resource * res;
+-
+-	res = __request_region(parent, start, n, "check-region", 0);
+-	if (!res)
+-		return -EBUSY;
+-
+-	release_resource(res);
+-	free_resource(res);
+-	return 0;
+-}
+-EXPORT_SYMBOL(__check_region);
