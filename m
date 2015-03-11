@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + x86-mm-support-huge-kva-mappings-on-x86-fix.patch added to -mm
- tree
-Date: Wed, 11 Mar 2015 13:06:17 -0700
-Message-ID: <5500a039.YJnAnjm6V8AMZs70%akpm@linux-foundation.org>
+Subject: + zsmalloc-support-compaction-fix.patch added to -mm tree
+Date: Wed, 11 Mar 2015 13:10:01 -0700
+Message-ID: <5500a119.JUx0A1nuYuWTjcaz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48643 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49033 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751057AbbCKUGR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Mar 2015 16:06:17 -0400
+	with ESMTP id S1750839AbbCKUKC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Mar 2015 16:10:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@intel.com, toshi.kani@hp.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, fengguang.wu@gmail.com, minchan@kernel.org, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86, mm: ioremap_pud_capable can be static
+     Subject: zsmalloc-support-compaction-fix
 has been added to the -mm tree.  Its filename is
-     x86-mm-support-huge-kva-mappings-on-x86-fix.patch
+     zsmalloc-support-compaction-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86-mm-support-huge-kva-mappings-on-x86-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zsmalloc-support-compaction-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86-mm-support-huge-kva-mappings-on-x86-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zsmalloc-support-compaction-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,42 +38,67 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: kbuild test robot <fengguang.wu@intel.com>
-Subject: x86, mm: ioremap_pud_capable can be static
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: zsmalloc-support-compaction-fix
 
-Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
-Reviewed-by: Toshi Kani <toshi.kani@hp.com>
+zsmalloc.c needs sched.h for cond_resched()
+
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Reported-by: Fengguang Wu <fengguang.wu@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/ioremap.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/zsmalloc.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN lib/ioremap.c~x86-mm-support-huge-kva-mappings-on-x86-fix lib/ioremap.c
---- a/lib/ioremap.c~x86-mm-support-huge-kva-mappings-on-x86-fix
-+++ a/lib/ioremap.c
-@@ -14,9 +14,9 @@
- #include <asm/pgtable.h>
+diff -puN mm/zsmalloc.c~zsmalloc-support-compaction-fix mm/zsmalloc.c
+--- a/mm/zsmalloc.c~zsmalloc-support-compaction-fix
++++ a/mm/zsmalloc.c
+@@ -78,6 +78,7 @@
  
- #ifdef CONFIG_HAVE_ARCH_HUGE_VMAP
--int __read_mostly ioremap_pud_capable;
--int __read_mostly ioremap_pmd_capable;
--int __read_mostly ioremap_huge_disabled;
-+static int __read_mostly ioremap_pud_capable;
-+static int __read_mostly ioremap_pmd_capable;
-+static int __read_mostly ioremap_huge_disabled;
- 
- static int __init set_nohugeiomap(char *str)
- {
+ #include <linux/module.h>
+ #include <linux/kernel.h>
++#include <linux/sched.h>
+ #include <linux/bitops.h>
+ #include <linux/errno.h>
+ #include <linux/highmem.h>
 _
 
-Patches currently in -mm which might be from fengguang.wu@intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-origin.patch
-x86-mm-support-huge-kva-mappings-on-x86-fix.patch
-mm-support-madvisemadv_free-fix.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention.patch
+mm.patch
+mm-cma-release-trigger-checkpatch-fixes.patch
+mm-cma-allocation-trigger-fix.patch
+mm-compaction-enhance-compaction-finish-condition-fix.patch
+page_writeback-cleanup-mess-around-cancel_dirty_page-checkpatch-fixes.patch
+mm-hide-per-cpu-lists-in-output-of-show_mem-fix.patch
+mm-clarify-__gfp_nofail-deprecation-status-checkpatch-fixes.patch
+mm-change-vunmap-to-tear-down-huge-kva-mappings-fix.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+x86-add-pmd_-for-thp-fix.patch
 sparc-add-pmd_-for-thp-fix.patch
-rtc-ds1685-remove-owner-assignment-from-platform_driver.patch
+zram-add-dynamic-device-add-remove-functionality-fix.patch
+zram-introduce-automatic-device_id-generation-fix.patch
+zsmalloc-support-compaction-fix.patch
+kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes.patch
+lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix.patch
+lib-find__bit-reimplementation-fix.patch
+binfmt_misc-simplify-entry_status-fix.patch
+rtc-add-abracon-abx80x-driver-fix.patch
+fs-fat-remove-unnecessary-includes-fix.patch
+kconfig-use-macros-which-are-already-defined-fix.patch
 linux-next.patch
-mm-add-strictlimit-knob-v2.patch
+lib-kconfig-fix-up-have_arch_bitreverse-help-text.patch
+oprofile-reduce-mmap_sem-hold-for-mm-exe_file-fix.patch
+tomoyo-reduce-mmap_sem-hold-for-mm-exe_file-checkpatch-fixes.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
