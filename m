@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-change-ioremap-to-set-up-huge-i-o-mappings-fix.patch added
- to -mm tree
-Date: Wed, 11 Mar 2015 13:04:16 -0700
-Message-ID: <55009fc0.9/fi2Eq+N9RLtq4t%akpm@linux-foundation.org>
+Subject: + mm-change-vunmap-to-tear-down-huge-kva-mappings-fix.patch added to -mm tree
+Date: Wed, 11 Mar 2015 13:05:24 -0700
+Message-ID: <5500a004.d24SgbrLeAnICeQm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48565 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48639 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752332AbbCKUER (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Mar 2015 16:04:17 -0400
+	with ESMTP id S1751057AbbCKUFZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Mar 2015 16:05:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: toshi.kani@hp.com, fengguang.wu@gmail.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, toshi.kani@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Fix build errors in asm-generic/pgtable.h
+     Subject: mm-change-vunmap-to-tear-down-huge-kva-mappings-fix
 has been added to the -mm tree.  Its filename is
-     mm-change-ioremap-to-set-up-huge-i-o-mappings-fix.patch
+     mm-change-vunmap-to-tear-down-huge-kva-mappings-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-change-ioremap-to-set-up-huge-i-o-mappings-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-change-vunmap-to-tear-down-huge-kva-mappings-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-change-ioremap-to-set-up-huge-i-o-mappings-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-change-vunmap-to-tear-down-huge-kva-mappings-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,62 +38,73 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Fix build errors in asm-generic/pgtable.h
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-change-vunmap-to-tear-down-huge-kva-mappings-fix
 
-Fix build errors in pud_set_huge() and pmd_set_huge() in
-asm-generic/pgtable.h on some architectures in linux-next
-and -mm trees.
+use consistent code layout
 
-C-stype code needs be used under #ifndef __ASSEMBLY__.
-
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Fengguang Wu <fengguang.wu@gmail.com>
+Cc: Toshi Kani <toshi.kani@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/pgtable.h |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ include/asm-generic/pgtable.h |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN include/asm-generic/pgtable.h~mm-change-ioremap-to-set-up-huge-i-o-mappings-fix include/asm-generic/pgtable.h
---- a/include/asm-generic/pgtable.h~mm-change-ioremap-to-set-up-huge-i-o-mappings-fix
+diff -puN include/asm-generic/pgtable.h~mm-change-vunmap-to-tear-down-huge-kva-mappings-fix include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~mm-change-vunmap-to-tear-down-huge-kva-mappings-fix
 +++ a/include/asm-generic/pgtable.h
-@@ -697,12 +697,6 @@ static inline int pmd_protnone(pmd_t pmd
- 
- #endif /* CONFIG_MMU */
- 
--#endif /* !__ASSEMBLY__ */
--
--#ifndef io_remap_pfn_range
--#define io_remap_pfn_range remap_pfn_range
--#endif
--
- #ifdef CONFIG_HAVE_ARCH_HUGE_VMAP
- int pud_set_huge(pud_t *pud, phys_addr_t addr, pgprot_t prot);
- int pmd_set_huge(pmd_t *pmd, phys_addr_t addr, pgprot_t prot);
-@@ -717,4 +711,10 @@ static inline int pmd_set_huge(pmd_t *pm
+@@ -711,8 +711,14 @@ static inline int pmd_set_huge(pmd_t *pm
+ {
+ 	return 0;
  }
+-static inline int pud_clear_huge(pud_t *pud) { return 0; }
+-static inline int pmd_clear_huge(pmd_t *pmd) { return 0; }
++static inline int pud_clear_huge(pud_t *pud)
++{
++	return 0;
++}
++static inline int pmd_clear_huge(pmd_t *pmd)
++{
++	return 0;
++}
  #endif	/* CONFIG_HAVE_ARCH_HUGE_VMAP */
  
-+#endif /* !__ASSEMBLY__ */
-+
-+#ifndef io_remap_pfn_range
-+#define io_remap_pfn_range remap_pfn_range
-+#endif
-+
- #endif /* _ASM_GENERIC_PGTABLE_H */
+ #endif /* !__ASSEMBLY__ */
 _
 
-Patches currently in -mm which might be from toshi.kani@hp.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-change-__get_vm_area_node-to-use-fls_long.patch
-lib-add-huge-i-o-map-capability-interfaces.patch
-lib-add-huge-i-o-map-capability-interfaces-fix.patch
-mm-change-ioremap-to-set-up-huge-i-o-mappings.patch
-mm-change-ioremap-to-set-up-huge-i-o-mappings-fix.patch
-mm-change-vunmap-to-tear-down-huge-kva-mappings.patch
-x86-mm-support-huge-i-o-mapping-capability-i-f.patch
-x86-mm-support-huge-kva-mappings-on-x86.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention.patch
+mm.patch
+mm-cma-release-trigger-checkpatch-fixes.patch
+mm-cma-allocation-trigger-fix.patch
+mm-compaction-enhance-compaction-finish-condition-fix.patch
+page_writeback-cleanup-mess-around-cancel_dirty_page-checkpatch-fixes.patch
+mm-hide-per-cpu-lists-in-output-of-show_mem-fix.patch
+mm-clarify-__gfp_nofail-deprecation-status-checkpatch-fixes.patch
+mm-change-vunmap-to-tear-down-huge-kva-mappings-fix.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+zram-add-dynamic-device-add-remove-functionality-fix.patch
+zram-introduce-automatic-device_id-generation-fix.patch
+kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes.patch
+lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix.patch
+lib-find__bit-reimplementation-fix.patch
+binfmt_misc-simplify-entry_status-fix.patch
+rtc-add-abracon-abx80x-driver-fix.patch
+fs-fat-remove-unnecessary-includes-fix.patch
+kconfig-use-macros-which-are-already-defined-fix.patch
 linux-next.patch
+lib-kconfig-fix-up-have_arch_bitreverse-help-text.patch
+oprofile-reduce-mmap_sem-hold-for-mm-exe_file-fix.patch
+tomoyo-reduce-mmap_sem-hold-for-mm-exe_file-checkpatch-fixes.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
