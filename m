@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-use-tabs-consistently.patch added to -mm tree
-Date: Thu, 12 Mar 2015 13:01:02 -0700
-Message-ID: <5501f07e.1/PNIm8Sg31hP1A6%akpm@linux-foundation.org>
+Subject: + readme-update-version-number-reference.patch added to -mm tree
+Date: Thu, 12 Mar 2015 13:02:03 -0700
+Message-ID: <5501f0bb.DGO37Tb0v1AxU6WC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43327 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43331 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755690AbbCLUBD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Mar 2015 16:01:03 -0400
+	with ESMTP id S1755809AbbCLUCE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Mar 2015 16:02:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: jeffrey.t.kirsher@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: Use tabs consistently
+     Subject: README: update version number reference
 has been added to the -mm tree.  Its filename is
-     maintainers-use-tabs-consistently.patch
+     readme-update-version-number-reference.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-use-tabs-consistently.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/readme-update-version-number-reference.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-use-tabs-consistently.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/readme-update-version-number-reference.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,195 +38,113 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: Use tabs consistently
+From: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
+Subject: README: update version number reference
 
-Consistently use a single tab after the "specifier:" type.
+When 4.0 is released, the README should reflect the new numbering.
 
-Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   70 +++++++++++++++++++++++++-------------------------
- 1 file changed, 35 insertions(+), 35 deletions(-)
+ README |   34 +++++++++++++++++-----------------
+ 1 file changed, 17 insertions(+), 17 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-use-tabs-consistently MAINTAINERS
---- a/MAINTAINERS~maintainers-use-tabs-consistently
-+++ a/MAINTAINERS
-@@ -625,16 +625,16 @@ F:	drivers/iommu/amd_iommu*.[ch]
- F:	include/linux/amd-iommu.h
+diff -puN README~readme-update-version-number-reference README
+--- a/README~readme-update-version-number-reference
++++ a/README
+@@ -1,6 +1,6 @@
+-        Linux kernel release 3.x <http://kernel.org/>
++        Linux kernel release 4.x <http://kernel.org/>
  
- AMD KFD
--M:      Oded Gabbay <oded.gabbay@amd.com>
--L:      dri-devel@lists.freedesktop.org
--T:      git git://people.freedesktop.org/~gabbayo/linux.git
--S:      Supported
--F:      drivers/gpu/drm/amd/amdkfd/
-+M:	Oded Gabbay <oded.gabbay@amd.com>
-+L:	dri-devel@lists.freedesktop.org
-+T:	git git://people.freedesktop.org/~gabbayo/linux.git
-+S:	Supported
-+F:	drivers/gpu/drm/amd/amdkfd/
- F:	drivers/gpu/drm/amd/include/cik_structs.h
- F:	drivers/gpu/drm/amd/include/kgd_kfd_interface.h
--F:      drivers/gpu/drm/radeon/radeon_kfd.c
--F:      drivers/gpu/drm/radeon/radeon_kfd.h
--F:      include/uapi/linux/kfd_ioctl.h
-+F:	drivers/gpu/drm/radeon/radeon_kfd.c
-+F:	drivers/gpu/drm/radeon/radeon_kfd.h
-+F:	include/uapi/linux/kfd_ioctl.h
+-These are the release notes for Linux version 3.  Read them carefully,
++These are the release notes for Linux version 4.  Read them carefully,
+ as they tell you what this is all about, explain how to install the
+ kernel, and what to do if something goes wrong. 
  
- AMD MICROCODE UPDATE SUPPORT
- M:	Andreas Herrmann <herrmann.der.user@googlemail.com>
-@@ -1954,10 +1954,10 @@ F:	Documentation/filesystems/befs.txt
- F:	fs/befs/
+@@ -62,11 +62,11 @@ INSTALLING the kernel source:
+    directory where you have permissions (eg. your home directory) and
+    unpack it:
  
- BECKHOFF CX5020 ETHERCAT MASTER DRIVER
--M: Dariusz Marcinkiewicz <reksio@newterm.pl>
--L: netdev@vger.kernel.org
--S: Maintained
--F: drivers/net/ethernet/ec_bhf.c
-+M:	Dariusz Marcinkiewicz <reksio@newterm.pl>
-+L:	netdev@vger.kernel.org
-+S:	Maintained
-+F:	drivers/net/ethernet/ec_bhf.c
+-     gzip -cd linux-3.X.tar.gz | tar xvf -
++     gzip -cd linux-4.X.tar.gz | tar xvf -
  
- BFS FILE SYSTEM
- M:	"Tigran A. Aivazian" <tigran@aivazian.fsnet.co.uk>
-@@ -2876,11 +2876,11 @@ S:	Supported
- F:	drivers/net/ethernet/chelsio/cxgb3/
+    or
  
- CXGB3 ISCSI DRIVER (CXGB3I)
--M:      Karen Xie <kxie@chelsio.com>
--L:      linux-scsi@vger.kernel.org
--W:      http://www.chelsio.com
--S:      Supported
--F:      drivers/scsi/cxgbi/cxgb3i
-+M:	Karen Xie <kxie@chelsio.com>
-+L:	linux-scsi@vger.kernel.org
-+W:	http://www.chelsio.com
-+S:	Supported
-+F:	drivers/scsi/cxgbi/cxgb3i
+-     bzip2 -dc linux-3.X.tar.bz2 | tar xvf -
++     bzip2 -dc linux-4.X.tar.bz2 | tar xvf -
  
- CXGB3 IWARP RNIC DRIVER (IW_CXGB3)
- M:	Steve Wise <swise@chelsio.com>
-@@ -2897,11 +2897,11 @@ S:	Supported
- F:	drivers/net/ethernet/chelsio/cxgb4/
+    Replace "X" with the version number of the latest kernel.
  
- CXGB4 ISCSI DRIVER (CXGB4I)
--M:      Karen Xie <kxie@chelsio.com>
--L:      linux-scsi@vger.kernel.org
--W:      http://www.chelsio.com
--S:      Supported
--F:      drivers/scsi/cxgbi/cxgb4i
-+M:	Karen Xie <kxie@chelsio.com>
-+L:	linux-scsi@vger.kernel.org
-+W:	http://www.chelsio.com
-+S:	Supported
-+F:	drivers/scsi/cxgbi/cxgb4i
+@@ -75,16 +75,16 @@ INSTALLING the kernel source:
+    files.  They should match the library, and not get messed up by
+    whatever the kernel-du-jour happens to be.
  
- CXGB4 IWARP RNIC DRIVER (IW_CXGB4)
- M:	Steve Wise <swise@chelsio.com>
-@@ -5177,7 +5177,7 @@ F:	arch/x86/kernel/tboot.c
- INTEL WIRELESS WIMAX CONNECTION 2400
- M:	Inaky Perez-Gonzalez <inaky.perez-gonzalez@intel.com>
- M:	linux-wimax@intel.com
--L:     wimax@linuxwimax.org (subscribers-only)
-+L:	wimax@linuxwimax.org (subscribers-only)
- S:	Supported
- W:	http://linuxwimax.org
- F:	Documentation/wimax/README.i2400m
-@@ -5871,7 +5871,7 @@ F:	arch/powerpc/platforms/512x/
- F:	arch/powerpc/platforms/52xx/
+- - You can also upgrade between 3.x releases by patching.  Patches are
++ - You can also upgrade between 4.x releases by patching.  Patches are
+    distributed in the traditional gzip and the newer bzip2 format.  To
+    install by patching, get all the newer patch files, enter the
+-   top level directory of the kernel source (linux-3.X) and execute:
++   top level directory of the kernel source (linux-4.X) and execute:
  
- LINUX FOR POWERPC EMBEDDED PPC4XX
--M:  Alistair Popple <alistair@popple.id.au>
-+M:	Alistair Popple <alistair@popple.id.au>
- M:	Matt Porter <mporter@kernel.crashing.org>
- W:	http://www.penguinppc.org/
- L:	linuxppc-dev@lists.ozlabs.org
-@@ -6343,7 +6343,7 @@ S:	Supported
- F:	drivers/watchdog/mena21_wdt.c
+-     gzip -cd ../patch-3.x.gz | patch -p1
++     gzip -cd ../patch-4.x.gz | patch -p1
  
- MEN CHAMELEON BUS (mcb)
--M:  	Johannes Thumshirn <johannes.thumshirn@men.de>
-+M:	Johannes Thumshirn <johannes.thumshirn@men.de>
- S:	Supported
- F:	drivers/mcb/
- F:	include/linux/mcb.h
-@@ -7894,10 +7894,10 @@ L:	rtc-linux@googlegroups.com
- S:	Maintained
+    or
  
- QAT DRIVER
--M:      Tadeusz Struk <tadeusz.struk@intel.com>
--L:      qat-linux@intel.com
--S:      Supported
--F:      drivers/crypto/qat/
-+M:	Tadeusz Struk <tadeusz.struk@intel.com>
-+L:	qat-linux@intel.com
-+S:	Supported
-+F:	drivers/crypto/qat/
+-     bzip2 -dc ../patch-3.x.bz2 | patch -p1
++     bzip2 -dc ../patch-4.x.bz2 | patch -p1
  
- QIB DRIVER
- M:	Mike Marciniszyn <infinipath@intel.com>
-@@ -10067,11 +10067,11 @@ F:	include/linux/cdrom.h
- F:	include/uapi/linux/cdrom.h
+    Replace "x" for all versions bigger than the version "X" of your current
+    source tree, _in_order_, and you should be ok.  You may want to remove
+@@ -92,13 +92,13 @@ INSTALLING the kernel source:
+    that there are no failed patches (some-file-name# or some-file-name.rej).
+    If there are, either you or I have made a mistake.
  
- UNISYS S-PAR DRIVERS
--M:     Benjamin Romer <benjamin.romer@unisys.com>
--M:     David Kershner <david.kershner@unisys.com>
--L:     sparmaintainer@unisys.com (Unisys internal)
--S:     Supported
--F:     drivers/staging/unisys/
-+M:	Benjamin Romer <benjamin.romer@unisys.com>
-+M:	David Kershner <david.kershner@unisys.com>
-+L:	sparmaintainer@unisys.com (Unisys internal)
-+S:	Supported
-+F:	drivers/staging/unisys/
+-   Unlike patches for the 3.x kernels, patches for the 3.x.y kernels
++   Unlike patches for the 4.x kernels, patches for the 4.x.y kernels
+    (also known as the -stable kernels) are not incremental but instead apply
+-   directly to the base 3.x kernel.  For example, if your base kernel is 3.0
+-   and you want to apply the 3.0.3 patch, you must not first apply the 3.0.1
+-   and 3.0.2 patches. Similarly, if you are running kernel version 3.0.2 and
+-   want to jump to 3.0.3, you must first reverse the 3.0.2 patch (that is,
+-   patch -R) _before_ applying the 3.0.3 patch. You can read more on this in
++   directly to the base 4.x kernel.  For example, if your base kernel is 4.0
++   and you want to apply the 4.0.3 patch, you must not first apply the 4.0.1
++   and 4.0.2 patches. Similarly, if you are running kernel version 4.0.2 and
++   want to jump to 4.0.3, you must first reverse the 4.0.2 patch (that is,
++   patch -R) _before_ applying the 4.0.3 patch. You can read more on this in
+    Documentation/applying-patches.txt
  
- UNIVERSAL FLASH STORAGE HOST CONTROLLER DRIVER
- M:	Vinayak Holikatti <vinholikatti@gmail.com>
-@@ -10615,7 +10615,7 @@ F:	drivers/media/rc/winbond-cir.c
- WIMAX STACK
- M:	Inaky Perez-Gonzalez <inaky.perez-gonzalez@intel.com>
- M:	linux-wimax@intel.com
--L:     wimax@linuxwimax.org (subscribers-only)
-+L:	wimax@linuxwimax.org (subscribers-only)
- S:	Supported
- W:	http://linuxwimax.org
- F:	Documentation/wimax/README.wimax
+    Alternatively, the script patch-kernel can be used to automate this
+@@ -120,7 +120,7 @@ INSTALLING the kernel source:
+ 
+ SOFTWARE REQUIREMENTS
+ 
+-   Compiling and running the 3.x kernels requires up-to-date
++   Compiling and running the 4.x kernels requires up-to-date
+    versions of various software packages.  Consult
+    Documentation/Changes for the minimum version numbers required
+    and how to get updates for these packages.  Beware that using
+@@ -137,12 +137,12 @@ BUILD directory for the kernel:
+    place for the output files (including .config).
+    Example:
+ 
+-     kernel source code: /usr/src/linux-3.X
++     kernel source code: /usr/src/linux-4.X
+      build directory:    /home/name/build/kernel
+ 
+    To configure and build the kernel, use:
+ 
+-     cd /usr/src/linux-3.X
++     cd /usr/src/linux-4.X
+      make O=/home/name/build/kernel menuconfig
+      make O=/home/name/build/kernel
+      sudo make O=/home/name/build/kernel modules_install install
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from jeffrey.t.kirsher@intel.com are
 
-origin.patch
-proc-show-locks-in-proc-pid-fdinfo-x.patch
-proc-show-locks-in-proc-pid-fdinfo-x-v2.patch
-maintainers-use-tabs-consistently.patch
-x86-mtrr-if-remove-use-of-seq_printf-return-value.patch
-power-wakeup-remove-use-of-seq_printf-return-value.patch
-rtc-remove-use-of-seq_printf-return-value.patch
-ipc-remove-use-of-seq_printf-return-value.patch
-microblaze-mb-remove-use-of-seq_printf-return-value.patch
-microblaze-mb-remove-use-of-seq_printf-return-value-fix.patch
-nios2-cpuinfo-remove-use-of-seq_printf-return-value.patch
-arm-plat-pxa-remove-use-of-seq_printf-return-value.patch
-openrisc-remove-use-of-seq_printf-return-value.patch
-cris-remove-use-of-seq_printf-return-value.patch
-mfd-ab8500-debugfs-remove-use-of-seq_printf-return-value.patch
-s390-remove-use-of-seq_printf-return-value.patch
-i8k-remove-use-of-seq_printf-return-value.patch
-watchdog-bcm281xx-remove-use-of-seq_printf-return-value.patch
-proc-remove-use-of-seq_printf-return-value.patch
-cgroup-remove-use-of-seq_printf-return-value.patch
-tracing-remove-use-of-seq_printf-return-value.patch
-lru_cache-remove-use-of-seq_printf-return-value.patch
-parisc-remove-use-of-seq_printf-return-value.patch
-lib-vsprintfc-even-faster-decimal-conversion.patch
-mm-utilc-add-kstrimdup.patch
-checkpatch-improve-no-space-is-necessary-after-a-cast-test.patch
-checkpatch-add-spell-checking-of-email-subject-line.patch
-checkpatch-spell-check-reudce.patch
-checkpatch-add-optional-codespell-dictionary-to-find-more-typos.patch
+readme-update-version-number-reference.patch
 linux-next.patch
 
