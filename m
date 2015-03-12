@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + kconfig-memtest-update-number-of-test-patterns-up-to-17.patch
- added to -mm tree
-Date: Thu, 12 Mar 2015 13:41:57 -0700
-Message-ID: <5501fa15.RCHtzQYDKo94HzdK%akpm@linux-foundation.org>
+Subject: + documentation-update-arch-list-in-the-memtest-entry.patch added to -mm tree
+Date: Thu, 12 Mar 2015 13:41:59 -0700
+Message-ID: <5501fa17.xXg9hfP42ITlTzc5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43678 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43682 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752582AbbCLUl6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Mar 2015 16:41:58 -0400
+	with ESMTP id S1752582AbbCLUmA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Mar 2015 16:42:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vladimir.murzin@arm.com, catalin.marinas@arm.com, hpa@zytor.com, mark.rutland@arm.com, mingo@elte.hu, rmk@arm.linux.org.uk, tglx@linutronix.de, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Kconfig: memtest: update number of test patterns up to 17
+     Subject: Documentation: update arch list in the 'memtest' entry
 has been added to the -mm tree.  Its filename is
-     kconfig-memtest-update-number-of-test-patterns-up-to-17.patch
+     documentation-update-arch-list-in-the-memtest-entry.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kconfig-memtest-update-number-of-test-patterns-up-to-17.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/documentation-update-arch-list-in-the-memtest-entry.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kconfig-memtest-update-number-of-test-patterns-up-to-17.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/documentation-update-arch-list-in-the-memtest-entry.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,13 +39,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vladimir Murzin <vladimir.murzin@arm.com>
-Subject: Kconfig: memtest: update number of test patterns up to 17
+Subject: Documentation: update arch list in the 'memtest' entry
 
-Additional test patterns for memtest were introduced since 63823126
-"x86: memtest: add additional (regular) test patterns", but looks like
-Kconfig was not updated that time.
-
-Update Kconfig entry with the actual number of maximum test patterns.
+Since arm64/arm support memtest command line option update the "memtest"
+entry.
 
 Signed-off-by: Vladimir Murzin <vladimir.murzin@arm.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
@@ -59,21 +55,21 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    2 +-
+ Documentation/kernel-parameters.txt |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/Kconfig.debug~kconfig-memtest-update-number-of-test-patterns-up-to-17 lib/Kconfig.debug
---- a/lib/Kconfig.debug~kconfig-memtest-update-number-of-test-patterns-up-to-17
-+++ a/lib/Kconfig.debug
-@@ -1740,7 +1740,7 @@ config MEMTEST
- 	        memtest=0, mean disabled; -- default
- 	        memtest=1, mean do 1 test pattern;
- 	        ...
--	        memtest=4, mean do 4 test patterns.
-+	        memtest=17, mean do 17 test patterns.
- 	  If you are unsure how to answer this question, answer N.
+diff -puN Documentation/kernel-parameters.txt~documentation-update-arch-list-in-the-memtest-entry Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~documentation-update-arch-list-in-the-memtest-entry
++++ a/Documentation/kernel-parameters.txt
+@@ -1988,7 +1988,7 @@ bytes respectively. Such letter suffixes
+ 			seconds.  Use this parameter to check at some
+ 			other rate.  0 disables periodic checking.
  
- source "samples/Kconfig"
+-	memtest=	[KNL,X86] Enable memtest
++	memtest=	[KNL,X86,ARM] Enable memtest
+ 			Format: <integer>
+ 			default : 0 <disable>
+ 			Specifies the number of memtest passes to be
 _
 
 Patches currently in -mm which might be from vladimir.murzin@arm.com are
