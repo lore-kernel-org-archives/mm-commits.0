@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-hugetlb-abort-__get_user_pages-if-current-has-been-oom-killed.patch
- added to -mm tree
-Date: Thu, 12 Mar 2015 13:05:12 -0700
-Message-ID: <5501f178.oAFnDFKeor9z0wpC%akpm@linux-foundation.org>
+Subject: + memtest-use-phys_addr_t-for-physical-addresses.patch added to
+ -mm tree
+Date: Thu, 12 Mar 2015 13:41:51 -0700
+Message-ID: <5501fa0f.8RFn1NZBNrvGh9v7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43342 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43641 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751616AbbCLUFN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Mar 2015 16:05:13 -0400
+	with ESMTP id S1752022AbbCLUlw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Mar 2015 16:41:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, dave@stgolabs.net, gthelen@google.com, kirill@shutemov.name, n-horiguchi@ah.jp.nec.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: vladimir.murzin@arm.com, catalin.marinas@arm.com, hpa@zytor.com, mark.rutland@arm.com, mingo@elte.hu, rmk@arm.linux.org.uk, tglx@linutronix.de, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, hugetlb: abort __get_user_pages if current has been oom killed
+     Subject: memtest: use phys_addr_t for physical addresses
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-abort-__get_user_pages-if-current-has-been-oom-killed.patch
+     memtest-use-phys_addr_t-for-physical-addresses.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-abort-__get_user_pages-if-current-has-been-oom-killed.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memtest-use-phys_addr_t-for-physical-addresses.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-abort-__get_user_pages-if-current-has-been-oom-killed.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memtest-use-phys_addr_t-for-physical-addresses.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,87 +39,105 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, hugetlb: abort __get_user_pages if current has been oom killed
+From: Vladimir Murzin <vladimir.murzin@arm.com>
+Subject: memtest: use phys_addr_t for physical addresses
 
-If __get_user_pages() is faulting a significant number of hugetlb pages,
-usually as the result of mmap(MAP_LOCKED), it can potentially allocate a
-very large amount of memory.
+Since memtest might be used by other architectures pass input parameters
+as phys_addr_t instead of long to prevent overflow.
 
-If the process has been oom killed, this will cause a lot of memory to
-potentially deplete memory reserves.
-
-In the same way that commit 4779280d1ea4 ("mm: make get_user_pages()
-interruptible") aborted for pending SIGKILLs when faulting non-hugetlb
-memory, based on the premise of commit 462e00cc7151 ("oom: stop allocating
-user memory if TIF_MEMDIE is set"), hugetlb page faults now terminate when
-the process has been oom killed.
-
-Signed-off-by: David Rientjes <rientjes@google.com>
-Acked-by: Rik van Riel <riel@redhat.com>
-Acked-by: "Greg Thelen" <gthelen@google.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Acked-by: Davidlohr Bueso <dave@stgolabs.net>
-Acked-by: "Kirill A. Shutemov" <kirill@shutemov.name>
+Signed-off-by: Vladimir Murzin <vladimir.murzin@arm.com>
+Acked-by: Will Deacon <will.deacon@arm.com>
+Tested-by: Mark Rutland <mark.rutland@arm.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ include/linux/memblock.h |    4 ++--
+ mm/memtest.c             |   16 ++++++++--------
+ 2 files changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-abort-__get_user_pages-if-current-has-been-oom-killed mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-abort-__get_user_pages-if-current-has-been-oom-killed
-+++ a/mm/hugetlb.c
-@@ -3278,6 +3278,15 @@ long follow_hugetlb_page(struct mm_struc
- 		struct page *page;
+diff -puN include/linux/memblock.h~memtest-use-phys_addr_t-for-physical-addresses include/linux/memblock.h
+--- a/include/linux/memblock.h~memtest-use-phys_addr_t-for-physical-addresses
++++ a/include/linux/memblock.h
+@@ -366,9 +366,9 @@ static inline unsigned long memblock_reg
+ #endif
  
- 		/*
-+		 * If we have a pending SIGKILL, don't keep faulting pages and
-+		 * potentially allocating memory.
-+		 */
-+		if (unlikely(fatal_signal_pending(current))) {
-+			remainder = 0;
-+			break;
-+		}
-+
-+		/*
- 		 * Some archs (sparc64, sh*) have multiple pte_ts to
- 		 * each hugepage.  We have to make sure we get the
- 		 * first, for the page indexing below to work.
+ #ifdef CONFIG_MEMTEST
+-extern void early_memtest(unsigned long start, unsigned long end);
++extern void early_memtest(phys_addr_t start, phys_addr_t end);
+ #else
+-static inline void early_memtest(unsigned long start, unsigned long end)
++static inline void early_memtest(phys_addr_t start, phys_addr_t end)
+ {
+ }
+ #endif
+diff -puN mm/memtest.c~memtest-use-phys_addr_t-for-physical-addresses mm/memtest.c
+--- a/mm/memtest.c~memtest-use-phys_addr_t-for-physical-addresses
++++ a/mm/memtest.c
+@@ -29,7 +29,7 @@ static u64 patterns[] __initdata = {
+ 	0x7a6c7258554e494cULL, /* yeah ;-) */
+ };
+ 
+-static void __init reserve_bad_mem(u64 pattern, u64 start_bad, u64 end_bad)
++static void __init reserve_bad_mem(u64 pattern, phys_addr_t start_bad, phys_addr_t end_bad)
+ {
+ 	printk(KERN_INFO "  %016llx bad mem addr %010llx - %010llx reserved\n",
+ 	       (unsigned long long) pattern,
+@@ -38,11 +38,11 @@ static void __init reserve_bad_mem(u64 p
+ 	memblock_reserve(start_bad, end_bad - start_bad);
+ }
+ 
+-static void __init memtest(u64 pattern, u64 start_phys, u64 size)
++static void __init memtest(u64 pattern, phys_addr_t start_phys, phys_addr_t size)
+ {
+ 	u64 *p, *start, *end;
+-	u64 start_bad, last_bad;
+-	u64 start_phys_aligned;
++	phys_addr_t start_bad, last_bad;
++	phys_addr_t start_phys_aligned;
+ 	const size_t incr = sizeof(pattern);
+ 
+ 	start_phys_aligned = ALIGN(start_phys, incr);
+@@ -69,14 +69,14 @@ static void __init memtest(u64 pattern,
+ 		reserve_bad_mem(pattern, start_bad, last_bad + incr);
+ }
+ 
+-static void __init do_one_pass(u64 pattern, u64 start, u64 end)
++static void __init do_one_pass(u64 pattern, phys_addr_t start, phys_addr_t end)
+ {
+ 	u64 i;
+ 	phys_addr_t this_start, this_end;
+ 
+ 	for_each_free_mem_range(i, NUMA_NO_NODE, &this_start, &this_end, NULL) {
+-		this_start = clamp_t(phys_addr_t, this_start, start, end);
+-		this_end = clamp_t(phys_addr_t, this_end, start, end);
++		this_start = clamp(this_start, start, end);
++		this_end = clamp(this_end, start, end);
+ 		if (this_start < this_end) {
+ 			printk(KERN_INFO "  %010llx - %010llx pattern %016llx\n",
+ 			       (unsigned long long)this_start,
+@@ -102,7 +102,7 @@ static int __init parse_memtest(char *ar
+ 
+ early_param("memtest", parse_memtest);
+ 
+-void __init early_memtest(unsigned long start, unsigned long end)
++void __init early_memtest(phys_addr_t start, phys_addr_t end)
+ {
+ 	unsigned int i;
+ 	unsigned int idx = 0;
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from vladimir.murzin@arm.com are
 
-mm-hugetlb-close-race-when-setting-pagetail-for-gigantic-pages.patch
-mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention.patch
-mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention-v2.patch
-mm-pagewalk-prevent-positive-return-value-of-walk_page_test-from-being-passed-to-callers.patch
-cxgb4-drop-__gfp_nofail-allocation.patch
-sh-dwarf-destroy-mempools-on-cleanup.patch
-sh-dwarf-use-mempool_create_slab_pool.patch
-jbd2-revert-must-not-fail-allocation-loops-back-to-gfp_nofail.patch
-mm-slub-parse-slub_debug-o-option-in-switch-statement.patch
-mm-rename-foll_mlock-to-foll_populate.patch
-mm-rename-__mlock_vma_pages_range-to-populate_vma_page_range.patch
-mm-move-gup-posix-mlock-error-conversion-out-of-__mm_populate.patch
-mm-move-mm_populate-related-code-to-mm-gupc.patch
-mm-hotplug-fix-concurrent-memory-hot-add-deadlock.patch
-mm-cma-change-fallback-behaviour-for-cma-freepage.patch
-mm-page_alloc-factor-out-fallback-freepage-checking.patch
-mm-compaction-enhance-compaction-finish-condition.patch
-mm-compaction-enhance-compaction-finish-condition-fix.patch
-mm-incorporate-zero-pages-into-transparent-huge-pages.patch
-mm-incorporate-zero-pages-into-transparent-huge-pages-fix.patch
-mm-completely-remove-dumping-per-cpu-lists-from-show_mem.patch
-mm-mempolicy-migrate_to_node-should-only-migrate-to-node.patch
-mm-remove-gfp_thisnode.patch
-mm-thp-really-limit-transparent-hugepage-allocation-to-local-node.patch
-kernel-cpuset-remove-exception-for-__gfp_thisnode.patch
-mm-clarify-__gfp_nofail-deprecation-status.patch
-mm-clarify-__gfp_nofail-deprecation-status-checkpatch-fixes.patch
-sparc-clarify-__gfp_nofail-allocation.patch
-mm-mempool-do-not-allow-atomic-resizing.patch
-mm-mempool-do-not-allow-atomic-resizing-checkpatch-fixes.patch
-mm-hugetlb-abort-__get_user_pages-if-current-has-been-oom-killed.patch
-mm-utilc-add-kstrimdup.patch
+mm-move-memtest-under-mm.patch
+memtest-use-phys_addr_t-for-physical-addresses.patch
+arm64-add-support-for-memtest.patch
+arm-add-support-for-memtest.patch
+kconfig-memtest-update-number-of-test-patterns-up-to-17.patch
+documentation-update-arch-list-in-the-memtest-entry.patch
+linux-next.patch
 
