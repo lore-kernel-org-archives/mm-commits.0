@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-correct-rtc-armada38x-pattern-entry.patch added to
- -mm tree
-Date: Thu, 12 Mar 2015 13:03:07 -0700
-Message-ID: <5501f0fb.Y08T3JwqHyEMZiJK%akpm@linux-foundation.org>
+Subject: +
+ mm-hugetlb-abort-__get_user_pages-if-current-has-been-oom-killed.patch
+ added to -mm tree
+Date: Thu, 12 Mar 2015 13:05:12 -0700
+Message-ID: <5501f178.oAFnDFKeor9z0wpC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43334 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43342 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754946AbbCLUDI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Mar 2015 16:03:08 -0400
+	with ESMTP id S1751616AbbCLUFN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 12 Mar 2015 16:05:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, gregory.clement@free-electrons.com, mm-commits@vger.kernel.org
+To: rientjes@google.com, dave@stgolabs.net, gthelen@google.com, kirill@shutemov.name, n-horiguchi@ah.jp.nec.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: correct rtc armada38x pattern entry
+     Subject: mm, hugetlb: abort __get_user_pages if current has been oom killed
 has been added to the -mm tree.  Its filename is
-     maintainers-correct-rtc-armada38x-pattern-entry.patch
+     mm-hugetlb-abort-__get_user_pages-if-current-has-been-oom-killed.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-correct-rtc-armada38x-pattern-entry.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-abort-__get_user_pages-if-current-has-been-oom-killed.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-correct-rtc-armada38x-pattern-entry.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-abort-__get_user_pages-if-current-has-been-oom-killed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,65 +40,87 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: correct rtc armada38x pattern entry
+From: David Rientjes <rientjes@google.com>
+Subject: mm, hugetlb: abort __get_user_pages if current has been oom killed
 
-commit c6a95dbee793 ("MAINTAINERS: add the RTC driver for the Armada38x")
-typoed the pattern, fix it.
+If __get_user_pages() is faulting a significant number of hugetlb pages,
+usually as the result of mmap(MAP_LOCKED), it can potentially allocate a
+very large amount of memory.
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Gregory CLEMENT <gregory.clement@free-electrons.com>
+If the process has been oom killed, this will cause a lot of memory to
+potentially deplete memory reserves.
+
+In the same way that commit 4779280d1ea4 ("mm: make get_user_pages()
+interruptible") aborted for pending SIGKILLs when faulting non-hugetlb
+memory, based on the premise of commit 462e00cc7151 ("oom: stop allocating
+user memory if TIF_MEMDIE is set"), hugetlb page faults now terminate when
+the process has been oom killed.
+
+Signed-off-by: David Rientjes <rientjes@google.com>
+Acked-by: Rik van Riel <riel@redhat.com>
+Acked-by: "Greg Thelen" <gthelen@google.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Acked-by: Davidlohr Bueso <dave@stgolabs.net>
+Acked-by: "Kirill A. Shutemov" <kirill@shutemov.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/hugetlb.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN MAINTAINERS~maintainers-correct-rtc-armada38x-pattern-entry MAINTAINERS
---- a/MAINTAINERS~maintainers-correct-rtc-armada38x-pattern-entry
-+++ a/MAINTAINERS
-@@ -1176,7 +1176,7 @@ M:	Sebastian Hesselbarth <sebastian.hess
- L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
- S:	Maintained
- F:	arch/arm/mach-mvebu/
--F:	drivers/rtc/armada38x-rtc
-+F:	drivers/rtc/rtc-armada38x.c
+diff -puN mm/hugetlb.c~mm-hugetlb-abort-__get_user_pages-if-current-has-been-oom-killed mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-abort-__get_user_pages-if-current-has-been-oom-killed
++++ a/mm/hugetlb.c
+@@ -3278,6 +3278,15 @@ long follow_hugetlb_page(struct mm_struc
+ 		struct page *page;
  
- ARM/Marvell Berlin SoC support
- M:	Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
+ 		/*
++		 * If we have a pending SIGKILL, don't keep faulting pages and
++		 * potentially allocating memory.
++		 */
++		if (unlikely(fatal_signal_pending(current))) {
++			remainder = 0;
++			break;
++		}
++
++		/*
+ 		 * Some archs (sparc64, sh*) have multiple pte_ts to
+ 		 * each hugepage.  We have to make sure we get the
+ 		 * first, for the page indexing below to work.
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
-origin.patch
-maintainers-correct-rtc-armada38x-pattern-entry.patch
-proc-show-locks-in-proc-pid-fdinfo-x.patch
-proc-show-locks-in-proc-pid-fdinfo-x-v2.patch
-maintainers-use-tabs-consistently.patch
-x86-mtrr-if-remove-use-of-seq_printf-return-value.patch
-power-wakeup-remove-use-of-seq_printf-return-value.patch
-rtc-remove-use-of-seq_printf-return-value.patch
-ipc-remove-use-of-seq_printf-return-value.patch
-microblaze-mb-remove-use-of-seq_printf-return-value.patch
-microblaze-mb-remove-use-of-seq_printf-return-value-fix.patch
-nios2-cpuinfo-remove-use-of-seq_printf-return-value.patch
-arm-plat-pxa-remove-use-of-seq_printf-return-value.patch
-openrisc-remove-use-of-seq_printf-return-value.patch
-cris-remove-use-of-seq_printf-return-value.patch
-mfd-ab8500-debugfs-remove-use-of-seq_printf-return-value.patch
-s390-remove-use-of-seq_printf-return-value.patch
-i8k-remove-use-of-seq_printf-return-value.patch
-watchdog-bcm281xx-remove-use-of-seq_printf-return-value.patch
-proc-remove-use-of-seq_printf-return-value.patch
-cgroup-remove-use-of-seq_printf-return-value.patch
-tracing-remove-use-of-seq_printf-return-value.patch
-lru_cache-remove-use-of-seq_printf-return-value.patch
-parisc-remove-use-of-seq_printf-return-value.patch
-lib-vsprintfc-even-faster-decimal-conversion.patch
+mm-hugetlb-close-race-when-setting-pagetail-for-gigantic-pages.patch
+mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention.patch
+mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention-v2.patch
+mm-pagewalk-prevent-positive-return-value-of-walk_page_test-from-being-passed-to-callers.patch
+cxgb4-drop-__gfp_nofail-allocation.patch
+sh-dwarf-destroy-mempools-on-cleanup.patch
+sh-dwarf-use-mempool_create_slab_pool.patch
+jbd2-revert-must-not-fail-allocation-loops-back-to-gfp_nofail.patch
+mm-slub-parse-slub_debug-o-option-in-switch-statement.patch
+mm-rename-foll_mlock-to-foll_populate.patch
+mm-rename-__mlock_vma_pages_range-to-populate_vma_page_range.patch
+mm-move-gup-posix-mlock-error-conversion-out-of-__mm_populate.patch
+mm-move-mm_populate-related-code-to-mm-gupc.patch
+mm-hotplug-fix-concurrent-memory-hot-add-deadlock.patch
+mm-cma-change-fallback-behaviour-for-cma-freepage.patch
+mm-page_alloc-factor-out-fallback-freepage-checking.patch
+mm-compaction-enhance-compaction-finish-condition.patch
+mm-compaction-enhance-compaction-finish-condition-fix.patch
+mm-incorporate-zero-pages-into-transparent-huge-pages.patch
+mm-incorporate-zero-pages-into-transparent-huge-pages-fix.patch
+mm-completely-remove-dumping-per-cpu-lists-from-show_mem.patch
+mm-mempolicy-migrate_to_node-should-only-migrate-to-node.patch
+mm-remove-gfp_thisnode.patch
+mm-thp-really-limit-transparent-hugepage-allocation-to-local-node.patch
+kernel-cpuset-remove-exception-for-__gfp_thisnode.patch
+mm-clarify-__gfp_nofail-deprecation-status.patch
+mm-clarify-__gfp_nofail-deprecation-status-checkpatch-fixes.patch
+sparc-clarify-__gfp_nofail-allocation.patch
+mm-mempool-do-not-allow-atomic-resizing.patch
+mm-mempool-do-not-allow-atomic-resizing-checkpatch-fixes.patch
+mm-hugetlb-abort-__get_user_pages-if-current-has-been-oom-killed.patch
 mm-utilc-add-kstrimdup.patch
-checkpatch-improve-no-space-is-necessary-after-a-cast-test.patch
-checkpatch-add-spell-checking-of-email-subject-line.patch
-checkpatch-spell-check-reudce.patch
-checkpatch-add-optional-codespell-dictionary-to-find-more-typos.patch
-linux-next.patch
 
