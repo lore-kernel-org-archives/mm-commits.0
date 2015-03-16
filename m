@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + zram-describe-device-attrs-in-documentation.patch added to -mm
- tree
-Date: Mon, 16 Mar 2015 16:17:19 -0700
-Message-ID: <5507647f.MxdSTeITZBMCSzDb%akpm@linux-foundation.org>
+Subject: + zram-deprecate-zram-attrs-sysfs-nodes.patch added to -mm tree
+Date: Mon, 16 Mar 2015 16:17:25 -0700
+Message-ID: <55076485.yMfXNklyT2R3jfda%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37516 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37528 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932412AbbCPXRU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Mar 2015 19:17:20 -0400
+	with ESMTP id S932601AbbCPXR0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Mar 2015 19:17:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: sergey.senozhatsky@gmail.com, minchan@kernel.org, ngupta@vflare.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: describe device attrs in documentation
+     Subject: zram: deprecate zram attrs sysfs nodes
 has been added to the -mm tree.  Its filename is
-     zram-describe-device-attrs-in-documentation.patch
+     zram-deprecate-zram-attrs-sysfs-nodes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zram-describe-device-attrs-in-documentation.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zram-deprecate-zram-attrs-sysfs-nodes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zram-describe-device-attrs-in-documentation.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zram-deprecate-zram-attrs-sysfs-nodes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,88 +39,240 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: zram: describe device attrs in documentation
+Subject: zram: deprecate zram attrs sysfs nodes
 
-Briefly describe exported device stat attrs in zram documentation.  We
-will eventually get rid of per-stat sysfs nodes and, thus, clean up
-Documentation/ABI/testing/sysfs-block-zram file, which is the only source
-of information about device sysfs nodes.
+Add Documentation/ABI/obsolete/sysfs-block-zram file and list obsolete and
+deprecated attributes there.  The patch also adds additional information
+to zram documentation and describes the basic strategy:
 
-Add `num_migrated' description, since there is no independent
-`num_migrated' sysfs node (and no corresponding sysfs-block-zram entry),
-it will be exported via zram<id>/mm_stat file.
+- the existing RW nodes will be downgraded to WO nodes (in 4.11)
+- deprecated RO sysfs nodes will eventually be removed (in 4.11)
 
-At this point we can provide minimal description, because sysfs-block-zram
-still contains detailed information.
+Users will be additionally notified about deprecated attr usage by
+pr_warn_once() (added to every deprecated attr _show()), as suggested by
+Minchan Kim.
+
+User space is advised to use zram<id>/stat, zram<id>/io_stat and
+zram<id>/mm_stat files.
 
 Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
+Reported-by: Minchan Kim <minchan@kernel.org>
 Cc: Nitin Gupta <ngupta@vflare.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/blockdev/zram.txt |   49 +++++++++++++++++++++---------
- 1 file changed, 35 insertions(+), 14 deletions(-)
+ Documentation/ABI/obsolete/sysfs-block-zram |  119 ++++++++++++++++++
+ Documentation/blockdev/zram.txt             |   16 ++
+ drivers/block/zram/zram_drv.c               |   15 ++
+ 3 files changed, 150 insertions(+)
 
-diff -puN Documentation/blockdev/zram.txt~zram-describe-device-attrs-in-documentation Documentation/blockdev/zram.txt
---- a/Documentation/blockdev/zram.txt~zram-describe-device-attrs-in-documentation
+diff -puN /dev/null Documentation/ABI/obsolete/sysfs-block-zram
+--- /dev/null
++++ a/Documentation/ABI/obsolete/sysfs-block-zram
+@@ -0,0 +1,119 @@
++What:		/sys/block/zram<id>/num_reads
++Date:		August 2015
++Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
++Description:
++		The num_reads file is read-only and specifies the number of
++		reads (failed or successful) done on this device.
++		Now accessible via zram<id>/stat node.
++
++What:		/sys/block/zram<id>/num_writes
++Date:		August 2015
++Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
++Description:
++		The num_writes file is read-only and specifies the number of
++		writes (failed or successful) done on this device.
++		Now accessible via zram<id>/stat node.
++
++What:		/sys/block/zram<id>/invalid_io
++Date:		August 2015
++Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
++Description:
++		The invalid_io file is read-only and specifies the number of
++		non-page-size-aligned I/O requests issued to this device.
++		Now accessible via zram<id>/io_stat node.
++
++What:		/sys/block/zram<id>/failed_reads
++Date:		August 2015
++Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
++Description:
++		The failed_reads file is read-only and specifies the number of
++		failed reads happened on this device.
++		Now accessible via zram<id>/io_stat node.
++
++What:		/sys/block/zram<id>/failed_writes
++Date:		August 2015
++Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
++Description:
++		The failed_writes file is read-only and specifies the number of
++		failed writes happened on this device.
++		Now accessible via zram<id>/io_stat node.
++
++What:		/sys/block/zram<id>/notify_free
++Date:		August 2015
++Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
++Description:
++		The notify_free file is read-only. Depending on device usage
++		scenario it may account a) the number of pages freed because
++		of swap slot free notifications or b) the number of pages freed
++		because of REQ_DISCARD requests sent by bio. The former ones
++		are sent to a swap block device when a swap slot is freed, which
++		implies that this disk is being used as a swap disk. The latter
++		ones are sent by filesystem mounted with discard option,
++		whenever some data blocks are getting discarded.
++		Now accessible via zram<id>/io_stat node.
++
++What:		/sys/block/zram<id>/zero_pages
++Date:		August 2015
++Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
++Description:
++		The zero_pages file is read-only and specifies number of zero
++		filled pages written to this disk. No memory is allocated for
++		such pages.
++		Now accessible via zram<id>/mm_stat node.
++
++What:		/sys/block/zram<id>/orig_data_size
++Date:		August 2015
++Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
++Description:
++		The orig_data_size file is read-only and specifies uncompressed
++		size of data stored in this disk. This excludes zero-filled
++		pages (zero_pages) since no memory is allocated for them.
++		Unit: bytes
++		Now accessible via zram<id>/mm_stat node.
++
++What:		/sys/block/zram<id>/compr_data_size
++Date:		August 2015
++Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
++Description:
++		The compr_data_size file is read-only and specifies compressed
++		size of data stored in this disk. So, compression ratio can be
++		calculated using orig_data_size and this statistic.
++		Unit: bytes
++		Now accessible via zram<id>/mm_stat node.
++
++What:		/sys/block/zram<id>/mem_used_total
++Date:		August 2015
++Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
++Description:
++		The mem_used_total file is read-only and specifies the amount
++		of memory, including allocator fragmentation and metadata
++		overhead, allocated for this disk. So, allocator space
++		efficiency can be calculated using compr_data_size and this
++		statistic.
++		Unit: bytes
++		Now accessible via zram<id>/mm_stat node.
++
++What:		/sys/block/zram<id>/mem_used_max
++Date:		August 2015
++Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
++Description:
++		The mem_used_max file is read/write and specifies the amount
++		of maximum memory zram have consumed to store compressed data.
++		For resetting the value, you should write "0". Otherwise,
++		you could see -EINVAL.
++		Unit: bytes
++		Downgraded to write-only node: so it's possible to set new
++		value only; its current value is stored in zram<id>/mm_stat
++		node.
++
++What:		/sys/block/zram<id>/mem_limit
++Date:		August 2015
++Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
++Description:
++		The mem_limit file is read/write and specifies the maximum
++		amount of memory ZRAM can use to store the compressed data.
++		The limit could be changed in run time and "0" means disable
++		the limit.  No limit is the initial state.  Unit: bytes
++		Downgraded to write-only node: so it's possible to set new
++		value only; its current value is stored in zram<id>/mm_stat
++		node.
+diff -puN Documentation/blockdev/zram.txt~zram-deprecate-zram-attrs-sysfs-nodes Documentation/blockdev/zram.txt
+--- a/Documentation/blockdev/zram.txt~zram-deprecate-zram-attrs-sysfs-nodes
 +++ a/Documentation/blockdev/zram.txt
-@@ -117,20 +117,41 @@ execute
- 	echo X > /sys/class/zram-control/zram_remove
+@@ -148,6 +148,22 @@ num_migrated      RO    the number of ob
+ compact           WO    trigger memory compaction
  
- 8) Stats:
--	Per-device statistics are exported as various nodes under
--	/sys/block/zram<id>/
--		disksize
--		num_reads
--		num_writes
--		failed_reads
--		failed_writes
--		invalid_io
--		notify_free
--		zero_pages
--		orig_data_size
--		compr_data_size
--		mem_used_total
--		mem_used_max
-+Per-device statistics are exported as various nodes under /sys/block/zram<id>/
-+
-+A brief description of exported device attritbutes. For more details please
-+read Documentation/ABI/testing/sysfs-block-zram.
-+
-+Name            access            description
-+----            ------            -----------
-+disksize          RW    show and set the device's disk size
-+initstate         RO    shows the initialization state of the device
-+reset             WO    trigger device reset
-+num_reads         RO    the number of reads
-+failed_reads      RO    the number of failed reads
-+num_write         RO    the number of writes
-+failed_writes     RO    the number of failed writes
-+invalid_io        RO    the number of non-page-size-aligned I/O requests
-+max_comp_streams  RW    the number of possible concurrent compress operations
-+comp_algorithm    RW    show and change the compression algorithm
-+notify_free       RO    the number of notifications to free pages (either
-+                        slot free notifications or REQ_DISCARD requests)
-+zero_pages        RO    the number of zero filled pages written to this disk
-+orig_data_size    RO    uncompressed size of data stored in this disk
-+compr_data_size   RO    compressed size of data stored in this disk
-+mem_used_total    RO    the amount of memory allocated for this disk
-+mem_used_max      RW    the maximum amount memory zram have consumed to
-+                        store compressed data
-+mem_limit         RW    the maximum amount of memory ZRAM can use to store
-+                        the compressed data
-+num_migrated      RO    the number of objects migrated migrated by compaction
-+compact           WO    trigger memory compaction
-+
-+
-+File /sys/block/zram<id>/stat
-+
-+Represents block layer statistics. Read Documentation/block/stat.txt for
-+details.
  
- 9) Deactivate:
- 	swapoff /dev/zram0
++WARNING
++=======
++per-stat sysfs attributes are considered to be deprecated.
++The basic strategy is:
++-- the existing RW nodes will be downgraded to WO nodes (in linux 4.11)
++-- deprecated RO sysfs nodes will eventually be removed (in linux 4.11)
++
++The list of deprecated attributes can be found here:
++Documentation/ABI/obsolete/sysfs-block-zram
++
++Basically, every attribute that has its own read accessible sysfs node
++(e.g. num_reads) *AND* is accessible via one of the stat files (zram<id>/stat
++or zram<id>/io_stat or zram<id>/mm_stat) is considered to be deprecated.
++
++User space is advised to use the following files to read the device statistics.
++
+ File /sys/block/zram<id>/stat
+ 
+ Represents block layer statistics. Read Documentation/block/stat.txt for
+diff -puN drivers/block/zram/zram_drv.c~zram-deprecate-zram-attrs-sysfs-nodes drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-deprecate-zram-attrs-sysfs-nodes
++++ a/drivers/block/zram/zram_drv.c
+@@ -47,11 +47,22 @@ static const char *default_compressor =
+ /* Module params (documentation at end) */
+ static unsigned int num_devices = 1;
+ 
++static inline void deprecated_attr_warn(const char *name)
++{
++	pr_warn_once("%d (%s) Attribute %s (and others) will be removed. %s\n",
++			task_pid_nr(current),
++			current->comm,
++			name,
++			"See zram documentation.");
++}
++
+ #define ZRAM_ATTR_RO(name)						\
+ static ssize_t name##_show(struct device *d,				\
+ 				struct device_attribute *attr, char *b)	\
+ {									\
+ 	struct zram *zram = dev_to_zram(d);				\
++									\
++	deprecated_attr_warn(__stringify(name));			\
+ 	return scnprintf(b, PAGE_SIZE, "%llu\n",			\
+ 		(u64)atomic64_read(&zram->stats.name));			\
+ }									\
+@@ -206,6 +217,7 @@ static ssize_t orig_data_size_show(struc
+ {
+ 	struct zram *zram = dev_to_zram(dev);
+ 
++	deprecated_attr_warn("orig_data_size");
+ 	return scnprintf(buf, PAGE_SIZE, "%llu\n",
+ 		(u64)(atomic64_read(&zram->stats.pages_stored)) << PAGE_SHIFT);
+ }
+@@ -216,6 +228,7 @@ static ssize_t mem_used_total_show(struc
+ 	u64 val = 0;
+ 	struct zram *zram = dev_to_zram(dev);
+ 
++	deprecated_attr_warn("mem_used_total");
+ 	down_read(&zram->init_lock);
+ 	if (init_done(zram)) {
+ 		struct zram_meta *meta = zram->meta;
+@@ -245,6 +258,7 @@ static ssize_t mem_limit_show(struct dev
+ 	u64 val;
+ 	struct zram *zram = dev_to_zram(dev);
+ 
++	deprecated_attr_warn("mem_limit");
+ 	down_read(&zram->init_lock);
+ 	val = zram->limit_pages;
+ 	up_read(&zram->init_lock);
+@@ -276,6 +290,7 @@ static ssize_t mem_used_max_show(struct
+ 	u64 val = 0;
+ 	struct zram *zram = dev_to_zram(dev);
+ 
++	deprecated_attr_warn("mem_used_max");
+ 	down_read(&zram->init_lock);
+ 	if (init_done(zram))
+ 		val = atomic_long_read(&zram->stats.max_used_pages);
 _
 
 Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
