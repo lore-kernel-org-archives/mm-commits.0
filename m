@@ -1,89 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fanotify-fix-event-filtering-with-fan_ondir-set.patch
- removed from -mm tree
-Date: Mon, 16 Mar 2015 11:02:48 -0700
-Message-ID: <55071ac8.pOX4FqImX8ZCmysz%akpm@linux-foundation.org>
+Subject: [merged]
+ c6x-asm-pgtable-define-dummy-pgprot_writecombine-for-mmu.patch removed from -mm tree
+Date: Mon, 16 Mar 2015 11:02:44 -0700
+Message-ID: <55071ac4.01bdV608epvJAguM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33557 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33544 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933115AbbCPSCs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Mar 2015 14:02:48 -0400
+	with ESMTP id S933125AbbCPSCo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Mar 2015 14:02:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: suzuki.poulose@arm.com, LinoSanfilippo@gmx.de, eparis@redhat.com, jack@suse.cz, will.deacon@arm.com, mm-commits@vger.kernel.org
+To: 762976180@qq.com, a-jacquiot@ti.com, gang.chen.5i5j@gmail.com, kirill@shutemov.name, msalter@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fanotify: fix event filtering with FAN_ONDIR set
+     Subject: arch/c6x/include/asm/pgtable.h: define dummy pgprot_writecombine for !MMU
 has been removed from the -mm tree.  Its filename was
-     fanotify-fix-event-filtering-with-fan_ondir-set.patch
+     c6x-asm-pgtable-define-dummy-pgprot_writecombine-for-mmu.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Suzuki K. Poulose" <suzuki.poulose@arm.com>
-Subject: fanotify: fix event filtering with FAN_ONDIR set
+From: Chen Gang <762976180@qq.com>
+Subject: arch/c6x/include/asm/pgtable.h: define dummy pgprot_writecombine for !MMU
 
-With FAN_ONDIR set, the user can end up getting events, which it hasn't
-marked.  This was revealed with fanotify04 testcase failure on
-Linux-4.0-rc1, and is a regression from 3.19, revealed with 66ba93c0d7fe6
-("fanotify: don't set FAN_ONDIR implicitly on a marks ignored mask").
+When !MMU, asm-generic will not define default pgprot_writecombine, so c6x
+needs to define it by itself.  The related error:
 
- # /opt/ltp/testcases/bin/fanotify04
- [ ... ]
-fanotify04    7  TPASS  :  event generated properly for type 100000
-fanotify04    8  TFAIL  :  fanotify04.c:147: got unexpected event 30
-fanotify04    9  TPASS  :  No event as expected
+    CC [M]  fs/pstore/ram_core.o
+  fs/pstore/ram_core.c: In function 'persistent_ram_vmap':
+  fs/pstore/ram_core.c:399:10: error: implicit declaration of function 'pgprot_writecombine' [-Werror=implicit-function-declaration]
+     prot = pgprot_writecombine(PAGE_KERNEL);
+            ^
+  fs/pstore/ram_core.c:399:8: error: incompatible types when assigning to type 'pgprot_t {aka struct <anonymous>}' from type 'int'
+     prot = pgprot_writecombine(PAGE_KERNEL);
+          ^
 
-The testcase sets the adds the following marks : FAN_OPEN | FAN_ONDIR for
-a fanotify on a dir.  Then does an open(), followed by close() of the
-directory and expects to see an event FAN_OPEN(0x20).  However, the
-fanotify returns (FAN_OPEN|FAN_CLOSE_NOWRITE(0x10)).  This happens due to
-the flaw in the check for event_mask in fanotify_should_send_event() which
-does:
-
-	if (event_mask & marks_mask & ~marks_ignored_mask)
-		return true;
-
-where, event_mask == (FAN_ONDIR | FAN_CLOSE_NOWRITE),
-       marks_mask == (FAN_ONDIR | FAN_OPEN),
-       marks_ignored_mask == 0
-
-Fix this by masking the outgoing events to the user, as we already take
-care of FAN_ONDIR and FAN_EVENT_ON_CHILD.
-
-Signed-off-by: Suzuki K. Poulose <suzuki.poulose@arm.com>
-Tested-by: Lino Sanfilippo <LinoSanfilippo@gmx.de>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Eric Paris <eparis@redhat.com>
-Cc: Will Deacon <will.deacon@arm.com>
-
+Signed-off-by: Chen Gang <gang.chen.5i5j@gmail.com>
+Cc: Mark Salter <msalter@redhat.com>
+Cc: Aurelien Jacquiot <a-jacquiot@ti.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/fanotify/fanotify.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/c6x/include/asm/pgtable.h |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN fs/notify/fanotify/fanotify.c~fanotify-fix-event-filtering-with-fan_ondir-set fs/notify/fanotify/fanotify.c
---- a/fs/notify/fanotify/fanotify.c~fanotify-fix-event-filtering-with-fan_ondir-set
-+++ a/fs/notify/fanotify/fanotify.c
-@@ -143,7 +143,8 @@ static bool fanotify_should_send_event(s
- 	    !(marks_mask & FS_ISDIR & ~marks_ignored_mask))
- 		return false;
+diff -puN arch/c6x/include/asm/pgtable.h~c6x-asm-pgtable-define-dummy-pgprot_writecombine-for-mmu arch/c6x/include/asm/pgtable.h
+--- a/arch/c6x/include/asm/pgtable.h~c6x-asm-pgtable-define-dummy-pgprot_writecombine-for-mmu
++++ a/arch/c6x/include/asm/pgtable.h
+@@ -67,6 +67,11 @@ extern unsigned long empty_zero_page;
+  */
+ #define pgtable_cache_init()   do { } while (0)
  
--	if (event_mask & marks_mask & ~marks_ignored_mask)
-+	if (event_mask & FAN_ALL_OUTGOING_EVENTS & marks_mask &
-+				 ~marks_ignored_mask)
- 		return true;
++/*
++ * c6x is !MMU, so define the simpliest implementation
++ */
++#define pgprot_writecombine pgprot_noncached
++
+ #include <asm-generic/pgtable.h>
  
- 	return false;
+ #endif /* _ASM_C6X_PGTABLE_H */
 _
 
-Patches currently in -mm which might be from suzuki.poulose@arm.com are
+Patches currently in -mm which might be from 762976180@qq.com are
 
-linux-next.patch
+mm-memcontrol-let-mem_cgroup_move_account-have-effect-only-if-mmu-enabled.patch
 
