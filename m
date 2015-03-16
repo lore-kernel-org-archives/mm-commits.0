@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + zram-use-generic-start-end-io-accounting.patch added to -mm
- tree
-Date: Mon, 16 Mar 2015 16:17:17 -0700
-Message-ID: <5507647d.yUacY8B/KAwiN+4p%akpm@linux-foundation.org>
+Subject: + zram-export-new-io_stat-sysfs-attrs.patch added to -mm tree
+Date: Mon, 16 Mar 2015 16:17:21 -0700
+Message-ID: <55076481.aunZSLB27cBOcpzs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37512 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37520 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932235AbbCPXRS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Mar 2015 19:17:18 -0400
+	with ESMTP id S932601AbbCPXRW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Mar 2015 19:17:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: sergey.senozhatsky@gmail.com, minchan@kernel.org, ngupta@vflare.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: use generic start/end io accounting
+     Subject: zram: export new 'io_stat' sysfs attrs
 has been added to the -mm tree.  Its filename is
-     zram-use-generic-start-end-io-accounting.patch
+     zram-export-new-io_stat-sysfs-attrs.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zram-use-generic-start-end-io-accounting.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zram-export-new-io_stat-sysfs-attrs.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zram-use-generic-start-end-io-accounting.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zram-export-new-io_stat-sysfs-attrs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,16 +39,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: zram: use generic start/end io accounting
+Subject: zram: export new 'io_stat' sysfs attrs
 
-Use bio generic_start_io_acct() and generic_end_io_acct() to account
-device's block layer statistics.  This will let users to monitor zram
-activities using sysstat and similar packages/tools.
+Per-device `zram<id>/io_stat' file provides accumulated I/O statistics of
+particular zram device in a format similar to block layer statistics.  The
+file consists of a single line and represents the following stats
+(separated by whitespace):
 
-Apart from the usual per-stat sysfs attr, zram IO stats are now also
-available in '/sys/block/zram<id>/stat' and '/proc/diskstats' files.
-
-We will slowly get rid of per-stat sysfs files.
+	failed_reads
+	failed_writes
+	invalid_io
+	notify_free
 
 Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Acked-by: Minchan Kim <minchan@kernel.org>
@@ -57,34 +57,86 @@ Cc: Nitin Gupta <ngupta@vflare.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ Documentation/ABI/testing/sysfs-block-zram |    9 ++++++++
+ Documentation/blockdev/zram.txt            |   12 +++++++++++
+ drivers/block/zram/zram_drv.c              |   20 +++++++++++++++++++
+ 3 files changed, 41 insertions(+)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-use-generic-start-end-io-accounting drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-use-generic-start-end-io-accounting
+diff -puN Documentation/ABI/testing/sysfs-block-zram~zram-export-new-io_stat-sysfs-attrs Documentation/ABI/testing/sysfs-block-zram
+--- a/Documentation/ABI/testing/sysfs-block-zram~zram-export-new-io_stat-sysfs-attrs
++++ a/Documentation/ABI/testing/sysfs-block-zram
+@@ -149,3 +149,12 @@ Description:
+ 		The compact file is write-only and trigger compaction for
+ 		allocator zrm uses. The allocator moves some objects so that
+ 		it could free fragment space.
++
++What:		/sys/block/zram<id>/io_stat
++Date:		August 2015
++Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
++Description:
++		The io_stat file is read-only and accumulates device's I/O
++		statistics not accounted by block layer. For example,
++		failed_reads, failed_writes, etc. File format is similar to
++		block layer statistics file format.
+diff -puN Documentation/blockdev/zram.txt~zram-export-new-io_stat-sysfs-attrs Documentation/blockdev/zram.txt
+--- a/Documentation/blockdev/zram.txt~zram-export-new-io_stat-sysfs-attrs
++++ a/Documentation/blockdev/zram.txt
+@@ -153,6 +153,18 @@ File /sys/block/zram<id>/stat
+ Represents block layer statistics. Read Documentation/block/stat.txt for
+ details.
+ 
++
++File /sys/block/zram<id>/io_stat
++
++The stat file represents device's I/O statistics not accounted by block
++layer and, thus, not available in zram<id>/stat file. It consists of a
++single line of text and contains the following stats separated by
++whitespace:
++	failed_reads
++	failed_writes
++	invalid_io
++	notify_free
++
+ 9) Deactivate:
+ 	swapoff /dev/zram0
+ 	umount /dev/zram1
+diff -puN drivers/block/zram/zram_drv.c~zram-export-new-io_stat-sysfs-attrs drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-export-new-io_stat-sysfs-attrs
 +++ a/drivers/block/zram/zram_drv.c
-@@ -743,8 +743,12 @@ static void zram_bio_discard(struct zram
- static int zram_bvec_rw(struct zram *zram, struct bio_vec *bvec, u32 index,
- 			int offset, int rw)
- {
-+	unsigned long start_time = jiffies;
- 	int ret;
+@@ -384,6 +384,25 @@ static ssize_t compact_store(struct devi
+ 	return len;
+ }
  
-+	generic_start_io_acct(rw, bvec->bv_len >> SECTOR_SHIFT,
-+			&zram->disk->part0);
++static ssize_t io_stat_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct zram *zram = dev_to_zram(dev);
++	ssize_t ret;
 +
- 	if (rw == READ) {
- 		atomic64_inc(&zram->stats.num_reads);
- 		ret = zram_bvec_read(zram, bvec, index, offset);
-@@ -753,6 +757,8 @@ static int zram_bvec_rw(struct zram *zra
- 		ret = zram_bvec_write(zram, bvec, index, offset);
- 	}
++	down_read(&zram->init_lock);
++	ret = scnprintf(buf, PAGE_SIZE,
++			"%8llu %8llu %8llu %8llu\n",
++			(u64)atomic64_read(&zram->stats.failed_reads),
++			(u64)atomic64_read(&zram->stats.failed_writes),
++			(u64)atomic64_read(&zram->stats.invalid_io),
++			(u64)atomic64_read(&zram->stats.notify_free));
++	up_read(&zram->init_lock);
++
++	return ret;
++}
++
++static DEVICE_ATTR_RO(io_stat);
+ ZRAM_ATTR_RO(num_reads);
+ ZRAM_ATTR_RO(num_writes);
+ ZRAM_ATTR_RO(failed_reads);
+@@ -1085,6 +1104,7 @@ static struct attribute *zram_disk_attrs
+ 	&dev_attr_mem_used_max.attr,
+ 	&dev_attr_max_comp_streams.attr,
+ 	&dev_attr_comp_algorithm.attr,
++	&dev_attr_io_stat.attr,
+ 	NULL,
+ };
  
-+	generic_end_io_acct(rw, &zram->disk->part0, start_time);
-+
- 	if (unlikely(ret)) {
- 		if (rw == READ)
- 			atomic64_inc(&zram->stats.failed_reads);
 _
 
 Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
