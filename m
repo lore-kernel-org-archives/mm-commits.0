@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + nilfs2-add-helper-to-find-existent-block-on-metadata-file.patch added to -mm tree
-Date: Mon, 16 Mar 2015 15:51:39 -0700
-Message-ID: <55075e7b.FvvkMDnpMuqRpxvH%akpm@linux-foundation.org>
+Subject: +
+ nilfs2-use-set_mask_bits-for-operations-on-buffer-state-bitmap.patch added
+ to -mm tree
+Date: Mon, 16 Mar 2015 15:51:31 -0700
+Message-ID: <55075e73.ZM8Q+nsf4imTFxpO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36786 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36778 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933155AbbCPWvk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Mar 2015 18:51:40 -0400
+	with ESMTP id S1754854AbbCPWvc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Mar 2015 18:51:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: add helper to find existent block on metadata file
+     Subject: nilfs2: use set_mask_bits() for operations on buffer state bitmap
 has been added to the -mm tree.  Its filename is
-     nilfs2-add-helper-to-find-existent-block-on-metadata-file.patch
+     nilfs2-use-set_mask_bits-for-operations-on-buffer-state-bitmap.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/nilfs2-add-helper-to-find-existent-block-on-metadata-file.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/nilfs2-use-set_mask_bits-for-operations-on-buffer-state-bitmap.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-add-helper-to-find-existent-block-on-metadata-file.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-use-set_mask_bits-for-operations-on-buffer-state-bitmap.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,98 +41,106 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Subject: nilfs2: add helper to find existent block on metadata file
+Subject: nilfs2: use set_mask_bits() for operations on buffer state bitmap
 
-Add a new metadata file function, nilfs_mdt_find_block(), which finds
-an existent block on a metadata file in a given range of blocks.  This
-function skips continuous hole blocks efficiently by using
-nilfs_bmap_seek_key().
+nilfs_forget_buffer(), nilfs_clear_dirty_page(), and
+nilfs_segctor_complete_write() are using a bunch of atomic bit operations
+against buffer state bitmap.
+
+This reduces the number of them by utilizing set_mask_bits() macro.
 
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/mdt.c |   54 ++++++++++++++++++++++++++++++++++++++++++++++
- fs/nilfs2/mdt.h |    3 ++
- 2 files changed, 57 insertions(+)
+ fs/nilfs2/page.c    |   24 ++++++++++--------------
+ fs/nilfs2/segment.c |   14 ++++++++------
+ 2 files changed, 18 insertions(+), 20 deletions(-)
 
-diff -puN fs/nilfs2/mdt.c~nilfs2-add-helper-to-find-existent-block-on-metadata-file fs/nilfs2/mdt.c
---- a/fs/nilfs2/mdt.c~nilfs2-add-helper-to-find-existent-block-on-metadata-file
-+++ a/fs/nilfs2/mdt.c
-@@ -261,6 +261,60 @@ int nilfs_mdt_get_block(struct inode *in
- }
+diff -puN fs/nilfs2/page.c~nilfs2-use-set_mask_bits-for-operations-on-buffer-state-bitmap fs/nilfs2/page.c
+--- a/fs/nilfs2/page.c~nilfs2-use-set_mask_bits-for-operations-on-buffer-state-bitmap
++++ a/fs/nilfs2/page.c
+@@ -89,18 +89,16 @@ struct buffer_head *nilfs_grab_buffer(st
+ void nilfs_forget_buffer(struct buffer_head *bh)
+ {
+ 	struct page *page = bh->b_page;
++	const unsigned long clear_bits =
++		(1 << BH_Uptodate | 1 << BH_Dirty | 1 << BH_Mapped |
++		 1 << BH_Async_Write | 1 << BH_NILFS_Volatile |
++		 1 << BH_NILFS_Checked | 1 << BH_NILFS_Redirected);
  
- /**
-+ * nilfs_mdt_find_block - find and get a buffer on meta data file.
-+ * @inode: inode of the meta data file
-+ * @start: start block offset (inclusive)
-+ * @end: end block offset (inclusive)
-+ * @blkoff: block offset
-+ * @out_bh: place to store a pointer to buffer_head struct
-+ *
-+ * nilfs_mdt_find_block() looks up an existing block in range of
-+ * [@start, @end] and stores pointer to a buffer head of the block to
-+ * @out_bh, and block offset to @blkoff, respectively.  @out_bh and
-+ * @blkoff are substituted only when zero is returned.
-+ *
-+ * Return Value: On success, it returns 0. On error, the following negative
-+ * error code is returned.
-+ *
-+ * %-ENOMEM - Insufficient memory available.
-+ *
-+ * %-EIO - I/O error
-+ *
-+ * %-ENOENT - no block was found in the range
-+ */
-+int nilfs_mdt_find_block(struct inode *inode, unsigned long start,
-+			 unsigned long end, unsigned long *blkoff,
-+			 struct buffer_head **out_bh)
-+{
-+	__u64 next;
-+	int ret;
+ 	lock_buffer(bh);
+-	clear_buffer_nilfs_volatile(bh);
+-	clear_buffer_nilfs_checked(bh);
+-	clear_buffer_nilfs_redirected(bh);
+-	clear_buffer_async_write(bh);
+-	clear_buffer_dirty(bh);
++	set_mask_bits(&bh->b_state, clear_bits, 0);
+ 	if (nilfs_page_buffers_clean(page))
+ 		__nilfs_clear_page_dirty(page);
+ 
+-	clear_buffer_uptodate(bh);
+-	clear_buffer_mapped(bh);
+ 	bh->b_blocknr = -1;
+ 	ClearPageUptodate(page);
+ 	ClearPageMappedToDisk(page);
+@@ -421,6 +419,10 @@ void nilfs_clear_dirty_page(struct page
+ 
+ 	if (page_has_buffers(page)) {
+ 		struct buffer_head *bh, *head;
++		const unsigned long clear_bits =
++			(1 << BH_Uptodate | 1 << BH_Dirty | 1 << BH_Mapped |
++			 1 << BH_Async_Write | 1 << BH_NILFS_Volatile |
++			 1 << BH_NILFS_Checked | 1 << BH_NILFS_Redirected);
+ 
+ 		bh = head = page_buffers(page);
+ 		do {
+@@ -430,13 +432,7 @@ void nilfs_clear_dirty_page(struct page
+ 					"discard block %llu, size %zu",
+ 					(u64)bh->b_blocknr, bh->b_size);
+ 			}
+-			clear_buffer_async_write(bh);
+-			clear_buffer_dirty(bh);
+-			clear_buffer_nilfs_volatile(bh);
+-			clear_buffer_nilfs_checked(bh);
+-			clear_buffer_nilfs_redirected(bh);
+-			clear_buffer_uptodate(bh);
+-			clear_buffer_mapped(bh);
++			set_mask_bits(&bh->b_state, clear_bits, 0);
+ 			unlock_buffer(bh);
+ 		} while (bh = bh->b_this_page, bh != head);
+ 	}
+diff -puN fs/nilfs2/segment.c~nilfs2-use-set_mask_bits-for-operations-on-buffer-state-bitmap fs/nilfs2/segment.c
+--- a/fs/nilfs2/segment.c~nilfs2-use-set_mask_bits-for-operations-on-buffer-state-bitmap
++++ a/fs/nilfs2/segment.c
+@@ -24,6 +24,7 @@
+ #include <linux/pagemap.h>
+ #include <linux/buffer_head.h>
+ #include <linux/writeback.h>
++#include <linux/bitops.h>
+ #include <linux/bio.h>
+ #include <linux/completion.h>
+ #include <linux/blkdev.h>
+@@ -1785,12 +1786,13 @@ static void nilfs_segctor_complete_write
+ 		 */
+ 		list_for_each_entry(bh, &segbuf->sb_payload_buffers,
+ 				    b_assoc_buffers) {
+-			set_buffer_uptodate(bh);
+-			clear_buffer_dirty(bh);
+-			clear_buffer_async_write(bh);
+-			clear_buffer_delay(bh);
+-			clear_buffer_nilfs_volatile(bh);
+-			clear_buffer_nilfs_redirected(bh);
++			const unsigned long set_bits = (1 << BH_Uptodate);
++			const unsigned long clear_bits =
++				(1 << BH_Dirty | 1 << BH_Async_Write |
++				 1 << BH_Delay | 1 << BH_NILFS_Volatile |
++				 1 << BH_NILFS_Redirected);
 +
-+	if (unlikely(start > end))
-+		return -ENOENT;
-+
-+	ret = nilfs_mdt_read_block(inode, start, true, out_bh);
-+	if (!ret) {
-+		*blkoff = start;
-+		goto out;
-+	}
-+	if (unlikely(ret != -ENOENT || start == ULONG_MAX))
-+		goto out;
-+
-+	ret = nilfs_bmap_seek_key(NILFS_I(inode)->i_bmap, start + 1, &next);
-+	if (!ret) {
-+		if (next <= end) {
-+			ret = nilfs_mdt_read_block(inode, next, true, out_bh);
-+			if (!ret)
-+				*blkoff = next;
-+		} else {
-+			ret = -ENOENT;
-+		}
-+	}
-+out:
-+	return ret;
-+}
-+
-+/**
-  * nilfs_mdt_delete_block - make a hole on the meta data file.
-  * @inode: inode of the meta data file
-  * @block: block offset
-diff -puN fs/nilfs2/mdt.h~nilfs2-add-helper-to-find-existent-block-on-metadata-file fs/nilfs2/mdt.h
---- a/fs/nilfs2/mdt.h~nilfs2-add-helper-to-find-existent-block-on-metadata-file
-+++ a/fs/nilfs2/mdt.h
-@@ -78,6 +78,9 @@ int nilfs_mdt_get_block(struct inode *,
- 			void (*init_block)(struct inode *,
- 					   struct buffer_head *, void *),
- 			struct buffer_head **);
-+int nilfs_mdt_find_block(struct inode *inode, unsigned long start,
-+			 unsigned long end, unsigned long *blkoff,
-+			 struct buffer_head **out_bh);
- int nilfs_mdt_delete_block(struct inode *, unsigned long);
- int nilfs_mdt_forget_block(struct inode *, unsigned long);
- int nilfs_mdt_mark_block_dirty(struct inode *, unsigned long);
++			set_mask_bits(&bh->b_state, clear_bits, set_bits);
+ 			if (bh == segbuf->sb_super_root) {
+ 				if (bh->b_page != bd_page) {
+ 					end_page_writeback(bd_page);
 _
 
 Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
