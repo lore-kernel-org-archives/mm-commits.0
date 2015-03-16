@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + nilfs2-add-bmap-function-to-seek-a-valid-key.patch added to -mm tree
-Date: Mon, 16 Mar 2015 15:51:37 -0700
-Message-ID: <55075e79.oZ2IR6cJ7mrDFfkR%akpm@linux-foundation.org>
+Subject: + zram-remove-num_migrated-device-attr.patch added to -mm tree
+Date: Mon, 16 Mar 2015 16:17:13 -0700
+Message-ID: <55076479.qRWm78DBVtix66pC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36784 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37505 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933340AbbCPWvi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Mar 2015 18:51:38 -0400
+	with ESMTP id S932235AbbCPXRO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Mar 2015 19:17:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
+To: sergey.senozhatsky@gmail.com, minchan@kernel.org, ngupta@vflare.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: add bmap function to seek a valid key
+     Subject: zram: remove `num_migrated' device attr
 has been added to the -mm tree.  Its filename is
-     nilfs2-add-bmap-function-to-seek-a-valid-key.patch
+     zram-remove-num_migrated-device-attr.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/nilfs2-add-bmap-function-to-seek-a-valid-key.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zram-remove-num_migrated-device-attr.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-add-bmap-function-to-seek-a-valid-key.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zram-remove-num_migrated-device-attr.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,230 +38,149 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Subject: nilfs2: add bmap function to seek a valid key
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: zram: remove `num_migrated' device attr
 
-Add a new bmap function, nilfs_bmap_seek_key(), which seeks a valid
-entry and returns its key starting from a given key.  This function
-can be used to skip hole blocks efficiently.
+This patch introduces rework to zram stats.  We have per-stat sysfs nodes,
+and it makes things a bit hard to use in user space: it doesn't give an
+immediate stats 'snapshot', it requires user space to use more syscalls -
+open, read, close for every stat file, with appropriate error checks on
+every step, etc.
 
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+First, zram now accounts block layer statistics, available in
+/sys/block/zram<id>/stat and /proc/diskstats files.  So some new stats are
+available (see Documentation/block/stat.txt), besides, zram's activities
+now can be monitored by sysstat's iostat or similar tools.
+
+Example:
+cat /sys/block/zram0/stat
+248     0    1984    0   251029     0  2008232   5120   0   5116   5116
+
+
+
+Second, group currently exported on per-stat basis nodes into two
+categories (files):
+
+-- zram<id>/io_stat
+accumulates device's IO stats, that are not accounted by block layer,
+and contains:
+        failed_reads
+        failed_writes
+        invalid_io
+        notify_free
+
+Example:
+cat /sys/block/zram0/io_stat
+0        0        0   652572
+
+
+-- zram<id>/mm_stat
+accumulates zram mm stats and contains:
+        orig_data_size
+        compr_data_size
+        mem_used_total
+        mem_limit
+        mem_used_max
+        zero_pages
+        num_migrated
+
+
+Example:
+cat /sys/block/zram0/mm_stat
+434634752 270288572 279158784        0 579895296    15060        0
+
+
+per-stat sysfs nodes are now considered to be deprecated and we plan to
+remove them (and clean up some of the existing stat code) in two years (as
+of now, there is no warning printed to syslog about deprecated stats being
+used).  User space is advised to use the above mentioned 3 files.
+
+
+
+This patch (of 7):
+
+Remove sysfs `num_migrated' attribute.  We are moving away from per-stat
+device attrs towards 3 stat files that will accumulate io and mm stats in
+a format similar to block layer statistics in /sys/block/<dev>/stat.  That
+will be easier to use in user space, and reduce the number of syscalls
+needed to read zram device statistics.
+
+`num_migrated' will return back in zram<id>/mm_stat file.
+
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/bmap.c   |   31 ++++++++++++++++++++
- fs/nilfs2/bmap.h   |    5 ++-
- fs/nilfs2/btree.c  |   66 +++++++++++++++++++++++++++++++++++++++++++
- fs/nilfs2/direct.c |   17 +++++++++++
- 4 files changed, 118 insertions(+), 1 deletion(-)
+ Documentation/ABI/testing/sysfs-block-zram |    7 -------
+ drivers/block/zram/zram_drv.c              |    2 --
+ 2 files changed, 9 deletions(-)
 
-diff -puN fs/nilfs2/bmap.c~nilfs2-add-bmap-function-to-seek-a-valid-key fs/nilfs2/bmap.c
---- a/fs/nilfs2/bmap.c~nilfs2-add-bmap-function-to-seek-a-valid-key
-+++ a/fs/nilfs2/bmap.c
-@@ -189,6 +189,37 @@ static int nilfs_bmap_do_delete(struct n
- 	return bmap->b_ops->bop_delete(bmap, key);
- }
+diff -puN Documentation/ABI/testing/sysfs-block-zram~zram-remove-num_migrated-device-attr Documentation/ABI/testing/sysfs-block-zram
+--- a/Documentation/ABI/testing/sysfs-block-zram~zram-remove-num_migrated-device-attr
++++ a/Documentation/ABI/testing/sysfs-block-zram
+@@ -149,10 +149,3 @@ Description:
+ 		The compact file is write-only and trigger compaction for
+ 		allocator zrm uses. The allocator moves some objects so that
+ 		it could free fragment space.
+-
+-What:		/sys/block/zram<id>/num_migrated
+-Date:		August 2015
+-Contact:	Minchan Kim <minchan@kernel.org>
+-Description:
+-		The compact file is read-only and shows how many object
+-		migrated by compaction.
+diff -puN drivers/block/zram/zram_drv.c~zram-remove-num_migrated-device-attr drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-remove-num_migrated-device-attr
++++ a/drivers/block/zram/zram_drv.c
+@@ -392,7 +392,6 @@ ZRAM_ATTR_RO(invalid_io);
+ ZRAM_ATTR_RO(notify_free);
+ ZRAM_ATTR_RO(zero_pages);
+ ZRAM_ATTR_RO(compr_data_size);
+-ZRAM_ATTR_RO(num_migrated);
  
-+/**
-+ * nilfs_bmap_seek_key - seek a valid entry and return its key
-+ * @bmap: bmap struct
-+ * @start: start key number
-+ * @keyp: place to store valid key
-+ *
-+ * Description: nilfs_bmap_seek_key() seeks a valid key on @bmap
-+ * starting from @start, and stores it to @keyp if found.
-+ *
-+ * Return Value: On success, 0 is returned. On error, one of the following
-+ * negative error codes is returned.
-+ *
-+ * %-EIO - I/O error.
-+ *
-+ * %-ENOMEM - Insufficient amount of memory available.
-+ *
-+ * %-ENOENT - No valid entry was found
-+ */
-+int nilfs_bmap_seek_key(struct nilfs_bmap *bmap, __u64 start, __u64 *keyp)
-+{
-+	int ret;
-+
-+	down_read(&bmap->b_sem);
-+	ret = bmap->b_ops->bop_seek_key(bmap, start, keyp);
-+	up_read(&bmap->b_sem);
-+
-+	if (ret < 0)
-+		ret = nilfs_bmap_convert_error(bmap, __func__, ret);
-+	return ret;
-+}
-+
- int nilfs_bmap_last_key(struct nilfs_bmap *bmap, __u64 *keyp)
+ static inline bool zram_meta_get(struct zram *zram)
  {
- 	int ret;
-diff -puN fs/nilfs2/bmap.h~nilfs2-add-bmap-function-to-seek-a-valid-key fs/nilfs2/bmap.h
---- a/fs/nilfs2/bmap.h~nilfs2-add-bmap-function-to-seek-a-valid-key
-+++ a/fs/nilfs2/bmap.h
-@@ -76,8 +76,10 @@ struct nilfs_bmap_operations {
- 			  union nilfs_binfo *);
- 	int (*bop_mark)(struct nilfs_bmap *, __u64, int);
- 
--	/* The following functions are internal use only. */
-+	int (*bop_seek_key)(const struct nilfs_bmap *, __u64, __u64 *);
- 	int (*bop_last_key)(const struct nilfs_bmap *, __u64 *);
-+
-+	/* The following functions are internal use only. */
- 	int (*bop_check_insert)(const struct nilfs_bmap *, __u64);
- 	int (*bop_check_delete)(struct nilfs_bmap *, __u64);
- 	int (*bop_gather_data)(struct nilfs_bmap *, __u64 *, __u64 *, int);
-@@ -155,6 +157,7 @@ void nilfs_bmap_write(struct nilfs_bmap
- int nilfs_bmap_lookup_contig(struct nilfs_bmap *, __u64, __u64 *, unsigned);
- int nilfs_bmap_insert(struct nilfs_bmap *bmap, __u64 key, unsigned long rec);
- int nilfs_bmap_delete(struct nilfs_bmap *bmap, __u64 key);
-+int nilfs_bmap_seek_key(struct nilfs_bmap *bmap, __u64 start, __u64 *keyp);
- int nilfs_bmap_last_key(struct nilfs_bmap *bmap, __u64 *keyp);
- int nilfs_bmap_truncate(struct nilfs_bmap *bmap, __u64 key);
- void nilfs_bmap_clear(struct nilfs_bmap *);
-diff -puN fs/nilfs2/btree.c~nilfs2-add-bmap-function-to-seek-a-valid-key fs/nilfs2/btree.c
---- a/fs/nilfs2/btree.c~nilfs2-add-bmap-function-to-seek-a-valid-key
-+++ a/fs/nilfs2/btree.c
-@@ -633,6 +633,44 @@ static int nilfs_btree_do_lookup_last(co
- 	return 0;
- }
- 
-+/**
-+ * nilfs_btree_get_next_key - get next valid key from btree path array
-+ * @btree: bmap struct of btree
-+ * @path: array of nilfs_btree_path struct
-+ * @minlevel: start level
-+ * @nextkey: place to store the next valid key
-+ *
-+ * Return Value: If a next key was found, 0 is returned. Otherwise,
-+ * -ENOENT is returned.
-+ */
-+static int nilfs_btree_get_next_key(const struct nilfs_bmap *btree,
-+				    const struct nilfs_btree_path *path,
-+				    int minlevel, __u64 *nextkey)
-+{
-+	struct nilfs_btree_node *node;
-+	int maxlevel = nilfs_btree_height(btree) - 1;
-+	int index, next_adj, level;
-+
-+	/* Next index is already set to bp_index for leaf nodes. */
-+	next_adj = 0;
-+	for (level = minlevel; level <= maxlevel; level++) {
-+		if (level == maxlevel)
-+			node = nilfs_btree_get_root(btree);
-+		else
-+			node = nilfs_btree_get_nonroot_node(path, level);
-+
-+		index = path[level].bp_index + next_adj;
-+		if (index < nilfs_btree_node_get_nchildren(node)) {
-+			/* Next key is in this node */
-+			*nextkey = nilfs_btree_node_get_key(node, index);
-+			return 0;
-+		}
-+		/* For non-leaf nodes, next index is stored at bp_index + 1. */
-+		next_adj = 1;
-+	}
-+	return -ENOENT;
-+}
-+
- static int nilfs_btree_lookup(const struct nilfs_bmap *btree,
- 			      __u64 key, int level, __u64 *ptrp)
- {
-@@ -1563,6 +1601,30 @@ out:
- 	return ret;
- }
- 
-+static int nilfs_btree_seek_key(const struct nilfs_bmap *btree, __u64 start,
-+				__u64 *keyp)
-+{
-+	struct nilfs_btree_path *path;
-+	const int minlevel = NILFS_BTREE_LEVEL_NODE_MIN;
-+	int ret;
-+
-+	if (start > NILFS_BTREE_KEY_MAX)
-+		return -ENOENT;
-+
-+	path = nilfs_btree_alloc_path();
-+	if (!path)
-+		return -ENOMEM;
-+
-+	ret = nilfs_btree_do_lookup(btree, path, start, NULL, minlevel, 0);
-+	if (!ret)
-+		*keyp = start;
-+	else if (ret == -ENOENT)
-+		ret = nilfs_btree_get_next_key(btree, path, minlevel, keyp);
-+
-+	nilfs_btree_free_path(path);
-+	return ret;
-+}
-+
- static int nilfs_btree_last_key(const struct nilfs_bmap *btree, __u64 *keyp)
- {
- 	struct nilfs_btree_path *path;
-@@ -2298,7 +2360,9 @@ static const struct nilfs_bmap_operation
- 	.bop_assign		=	nilfs_btree_assign,
- 	.bop_mark		=	nilfs_btree_mark,
- 
-+	.bop_seek_key		=	nilfs_btree_seek_key,
- 	.bop_last_key		=	nilfs_btree_last_key,
-+
- 	.bop_check_insert	=	NULL,
- 	.bop_check_delete	=	nilfs_btree_check_delete,
- 	.bop_gather_data	=	nilfs_btree_gather_data,
-@@ -2318,7 +2382,9 @@ static const struct nilfs_bmap_operation
- 	.bop_assign		=	nilfs_btree_assign_gc,
- 	.bop_mark		=	NULL,
- 
-+	.bop_seek_key		=	NULL,
- 	.bop_last_key		=	NULL,
-+
- 	.bop_check_insert	=	NULL,
- 	.bop_check_delete	=	NULL,
- 	.bop_gather_data	=	NULL,
-diff -puN fs/nilfs2/direct.c~nilfs2-add-bmap-function-to-seek-a-valid-key fs/nilfs2/direct.c
---- a/fs/nilfs2/direct.c~nilfs2-add-bmap-function-to-seek-a-valid-key
-+++ a/fs/nilfs2/direct.c
-@@ -173,6 +173,21 @@ static int nilfs_direct_delete(struct ni
- 	return ret;
- }
- 
-+static int nilfs_direct_seek_key(const struct nilfs_bmap *direct, __u64 start,
-+				 __u64 *keyp)
-+{
-+	__u64 key;
-+
-+	for (key = start; key <= NILFS_DIRECT_KEY_MAX; key++) {
-+		if (nilfs_direct_get_ptr(direct, key) !=
-+		    NILFS_BMAP_INVALID_PTR) {
-+			*keyp = key;
-+			return 0;
-+		}
-+	}
-+	return -ENOENT;
-+}
-+
- static int nilfs_direct_last_key(const struct nilfs_bmap *direct, __u64 *keyp)
- {
- 	__u64 key, lastkey;
-@@ -355,7 +370,9 @@ static const struct nilfs_bmap_operation
- 	.bop_assign		=	nilfs_direct_assign,
- 	.bop_mark		=	NULL,
- 
-+	.bop_seek_key		=	nilfs_direct_seek_key,
- 	.bop_last_key		=	nilfs_direct_last_key,
-+
- 	.bop_check_insert	=	nilfs_direct_check_insert,
- 	.bop_check_delete	=	NULL,
- 	.bop_gather_data	=	nilfs_direct_gather_data,
+@@ -1069,7 +1068,6 @@ static struct attribute *zram_disk_attrs
+ 	&dev_attr_num_writes.attr,
+ 	&dev_attr_failed_reads.attr,
+ 	&dev_attr_failed_writes.attr,
+-	&dev_attr_num_migrated.attr,
+ 	&dev_attr_compact.attr,
+ 	&dev_attr_invalid_io.attr,
+ 	&dev_attr_notify_free.attr,
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
+Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
 
-nilfs2-do-not-use-async-write-flag-for-segment-summary-buffers.patch
-nilfs2-use-set_mask_bits-for-operations-on-buffer-state-bitmap.patch
-nilfs2-use-bgl_lock_ptr.patch
-nilfs2-unify-type-of-key-arguments-in-bmap-interface.patch
-nilfs2-add-bmap-function-to-seek-a-valid-key.patch
-nilfs2-add-helper-to-find-existent-block-on-metadata-file.patch
-nilfs2-improve-execution-time-of-nilfs_ioctl_get_cpinfo-ioctl.patch
+zram-cosmetic-zram_attr_ro-code-formatting-tweak.patch
+zram-use-idr-instead-of-zram_devices-array.patch
+zram-factor-out-device-reset-from-reset_store.patch
+zram-reorganize-code-layout.patch
+zram-add-dynamic-device-add-remove-functionality.patch
+zram-add-dynamic-device-add-remove-functionality-fix.patch
+zram-remove-max_num_devices-limitation.patch
+zram-report-every-added-and-removed-device.patch
+zram-trivial-correct-flag-operations-comment.patch
+zram-return-zram-device_id-value-from-zram_add.patch
+zram-introduce-automatic-device_id-generation.patch
+zram-introduce-automatic-device_id-generation-fix.patch
+zram-do-not-let-user-enforce-new-device-dev_id.patch
+zsmalloc-decouple-handle-and-object.patch
+zsmalloc-factor-out-obj_.patch
+zsmalloc-support-compaction.patch
+zsmalloc-adjust-zs_almost_full.patch
+zram-support-compaction.patch
+zsmalloc-record-handle-in-page-private-for-huge-object.patch
+zsmalloc-add-fullness-into-stat.patch
+zram-remove-num_migrated-device-attr.patch
+zram-move-compact_store-to-sysfs-functions-area.patch
+zram-use-generic-start-end-io-accounting.patch
+zram-describe-device-attrs-in-documentation.patch
+zram-export-new-io_stat-sysfs-attrs.patch
+zram-export-new-mm_stat-sysfs-attrs.patch
+zram-deprecate-zram-attrs-sysfs-nodes.patch
+cpumask-dont-perform-while-loop-in-cpumask_next_and.patch
+lib-lz4-pull-out-constant-tables.patch
 
