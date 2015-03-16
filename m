@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- nilfs2-use-set_mask_bits-for-operations-on-buffer-state-bitmap.patch added
- to -mm tree
-Date: Mon, 16 Mar 2015 15:51:31 -0700
-Message-ID: <55075e73.ZM8Q+nsf4imTFxpO%akpm@linux-foundation.org>
+Subject: + nilfs2-add-bmap-function-to-seek-a-valid-key.patch added to -mm tree
+Date: Mon, 16 Mar 2015 15:51:37 -0700
+Message-ID: <55075e79.oZ2IR6cJ7mrDFfkR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36778 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36784 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754854AbbCPWvc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Mar 2015 18:51:32 -0400
+	with ESMTP id S933340AbbCPWvi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Mar 2015 18:51:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: use set_mask_bits() for operations on buffer state bitmap
+     Subject: nilfs2: add bmap function to seek a valid key
 has been added to the -mm tree.  Its filename is
-     nilfs2-use-set_mask_bits-for-operations-on-buffer-state-bitmap.patch
+     nilfs2-add-bmap-function-to-seek-a-valid-key.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/nilfs2-use-set_mask_bits-for-operations-on-buffer-state-bitmap.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/nilfs2-add-bmap-function-to-seek-a-valid-key.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-use-set_mask_bits-for-operations-on-buffer-state-bitmap.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-add-bmap-function-to-seek-a-valid-key.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,106 +39,220 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Subject: nilfs2: use set_mask_bits() for operations on buffer state bitmap
+Subject: nilfs2: add bmap function to seek a valid key
 
-nilfs_forget_buffer(), nilfs_clear_dirty_page(), and
-nilfs_segctor_complete_write() are using a bunch of atomic bit operations
-against buffer state bitmap.
-
-This reduces the number of them by utilizing set_mask_bits() macro.
+Add a new bmap function, nilfs_bmap_seek_key(), which seeks a valid
+entry and returns its key starting from a given key.  This function
+can be used to skip hole blocks efficiently.
 
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/page.c    |   24 ++++++++++--------------
- fs/nilfs2/segment.c |   14 ++++++++------
- 2 files changed, 18 insertions(+), 20 deletions(-)
+ fs/nilfs2/bmap.c   |   31 ++++++++++++++++++++
+ fs/nilfs2/bmap.h   |    5 ++-
+ fs/nilfs2/btree.c  |   66 +++++++++++++++++++++++++++++++++++++++++++
+ fs/nilfs2/direct.c |   17 +++++++++++
+ 4 files changed, 118 insertions(+), 1 deletion(-)
 
-diff -puN fs/nilfs2/page.c~nilfs2-use-set_mask_bits-for-operations-on-buffer-state-bitmap fs/nilfs2/page.c
---- a/fs/nilfs2/page.c~nilfs2-use-set_mask_bits-for-operations-on-buffer-state-bitmap
-+++ a/fs/nilfs2/page.c
-@@ -89,18 +89,16 @@ struct buffer_head *nilfs_grab_buffer(st
- void nilfs_forget_buffer(struct buffer_head *bh)
- {
- 	struct page *page = bh->b_page;
-+	const unsigned long clear_bits =
-+		(1 << BH_Uptodate | 1 << BH_Dirty | 1 << BH_Mapped |
-+		 1 << BH_Async_Write | 1 << BH_NILFS_Volatile |
-+		 1 << BH_NILFS_Checked | 1 << BH_NILFS_Redirected);
+diff -puN fs/nilfs2/bmap.c~nilfs2-add-bmap-function-to-seek-a-valid-key fs/nilfs2/bmap.c
+--- a/fs/nilfs2/bmap.c~nilfs2-add-bmap-function-to-seek-a-valid-key
++++ a/fs/nilfs2/bmap.c
+@@ -189,6 +189,37 @@ static int nilfs_bmap_do_delete(struct n
+ 	return bmap->b_ops->bop_delete(bmap, key);
+ }
  
- 	lock_buffer(bh);
--	clear_buffer_nilfs_volatile(bh);
--	clear_buffer_nilfs_checked(bh);
--	clear_buffer_nilfs_redirected(bh);
--	clear_buffer_async_write(bh);
--	clear_buffer_dirty(bh);
-+	set_mask_bits(&bh->b_state, clear_bits, 0);
- 	if (nilfs_page_buffers_clean(page))
- 		__nilfs_clear_page_dirty(page);
- 
--	clear_buffer_uptodate(bh);
--	clear_buffer_mapped(bh);
- 	bh->b_blocknr = -1;
- 	ClearPageUptodate(page);
- 	ClearPageMappedToDisk(page);
-@@ -421,6 +419,10 @@ void nilfs_clear_dirty_page(struct page
- 
- 	if (page_has_buffers(page)) {
- 		struct buffer_head *bh, *head;
-+		const unsigned long clear_bits =
-+			(1 << BH_Uptodate | 1 << BH_Dirty | 1 << BH_Mapped |
-+			 1 << BH_Async_Write | 1 << BH_NILFS_Volatile |
-+			 1 << BH_NILFS_Checked | 1 << BH_NILFS_Redirected);
- 
- 		bh = head = page_buffers(page);
- 		do {
-@@ -430,13 +432,7 @@ void nilfs_clear_dirty_page(struct page
- 					"discard block %llu, size %zu",
- 					(u64)bh->b_blocknr, bh->b_size);
- 			}
--			clear_buffer_async_write(bh);
--			clear_buffer_dirty(bh);
--			clear_buffer_nilfs_volatile(bh);
--			clear_buffer_nilfs_checked(bh);
--			clear_buffer_nilfs_redirected(bh);
--			clear_buffer_uptodate(bh);
--			clear_buffer_mapped(bh);
-+			set_mask_bits(&bh->b_state, clear_bits, 0);
- 			unlock_buffer(bh);
- 		} while (bh = bh->b_this_page, bh != head);
- 	}
-diff -puN fs/nilfs2/segment.c~nilfs2-use-set_mask_bits-for-operations-on-buffer-state-bitmap fs/nilfs2/segment.c
---- a/fs/nilfs2/segment.c~nilfs2-use-set_mask_bits-for-operations-on-buffer-state-bitmap
-+++ a/fs/nilfs2/segment.c
-@@ -24,6 +24,7 @@
- #include <linux/pagemap.h>
- #include <linux/buffer_head.h>
- #include <linux/writeback.h>
-+#include <linux/bitops.h>
- #include <linux/bio.h>
- #include <linux/completion.h>
- #include <linux/blkdev.h>
-@@ -1785,12 +1786,13 @@ static void nilfs_segctor_complete_write
- 		 */
- 		list_for_each_entry(bh, &segbuf->sb_payload_buffers,
- 				    b_assoc_buffers) {
--			set_buffer_uptodate(bh);
--			clear_buffer_dirty(bh);
--			clear_buffer_async_write(bh);
--			clear_buffer_delay(bh);
--			clear_buffer_nilfs_volatile(bh);
--			clear_buffer_nilfs_redirected(bh);
-+			const unsigned long set_bits = (1 << BH_Uptodate);
-+			const unsigned long clear_bits =
-+				(1 << BH_Dirty | 1 << BH_Async_Write |
-+				 1 << BH_Delay | 1 << BH_NILFS_Volatile |
-+				 1 << BH_NILFS_Redirected);
++/**
++ * nilfs_bmap_seek_key - seek a valid entry and return its key
++ * @bmap: bmap struct
++ * @start: start key number
++ * @keyp: place to store valid key
++ *
++ * Description: nilfs_bmap_seek_key() seeks a valid key on @bmap
++ * starting from @start, and stores it to @keyp if found.
++ *
++ * Return Value: On success, 0 is returned. On error, one of the following
++ * negative error codes is returned.
++ *
++ * %-EIO - I/O error.
++ *
++ * %-ENOMEM - Insufficient amount of memory available.
++ *
++ * %-ENOENT - No valid entry was found
++ */
++int nilfs_bmap_seek_key(struct nilfs_bmap *bmap, __u64 start, __u64 *keyp)
++{
++	int ret;
 +
-+			set_mask_bits(&bh->b_state, clear_bits, set_bits);
- 			if (bh == segbuf->sb_super_root) {
- 				if (bh->b_page != bd_page) {
- 					end_page_writeback(bd_page);
++	down_read(&bmap->b_sem);
++	ret = bmap->b_ops->bop_seek_key(bmap, start, keyp);
++	up_read(&bmap->b_sem);
++
++	if (ret < 0)
++		ret = nilfs_bmap_convert_error(bmap, __func__, ret);
++	return ret;
++}
++
+ int nilfs_bmap_last_key(struct nilfs_bmap *bmap, __u64 *keyp)
+ {
+ 	int ret;
+diff -puN fs/nilfs2/bmap.h~nilfs2-add-bmap-function-to-seek-a-valid-key fs/nilfs2/bmap.h
+--- a/fs/nilfs2/bmap.h~nilfs2-add-bmap-function-to-seek-a-valid-key
++++ a/fs/nilfs2/bmap.h
+@@ -76,8 +76,10 @@ struct nilfs_bmap_operations {
+ 			  union nilfs_binfo *);
+ 	int (*bop_mark)(struct nilfs_bmap *, __u64, int);
+ 
+-	/* The following functions are internal use only. */
++	int (*bop_seek_key)(const struct nilfs_bmap *, __u64, __u64 *);
+ 	int (*bop_last_key)(const struct nilfs_bmap *, __u64 *);
++
++	/* The following functions are internal use only. */
+ 	int (*bop_check_insert)(const struct nilfs_bmap *, __u64);
+ 	int (*bop_check_delete)(struct nilfs_bmap *, __u64);
+ 	int (*bop_gather_data)(struct nilfs_bmap *, __u64 *, __u64 *, int);
+@@ -155,6 +157,7 @@ void nilfs_bmap_write(struct nilfs_bmap
+ int nilfs_bmap_lookup_contig(struct nilfs_bmap *, __u64, __u64 *, unsigned);
+ int nilfs_bmap_insert(struct nilfs_bmap *bmap, __u64 key, unsigned long rec);
+ int nilfs_bmap_delete(struct nilfs_bmap *bmap, __u64 key);
++int nilfs_bmap_seek_key(struct nilfs_bmap *bmap, __u64 start, __u64 *keyp);
+ int nilfs_bmap_last_key(struct nilfs_bmap *bmap, __u64 *keyp);
+ int nilfs_bmap_truncate(struct nilfs_bmap *bmap, __u64 key);
+ void nilfs_bmap_clear(struct nilfs_bmap *);
+diff -puN fs/nilfs2/btree.c~nilfs2-add-bmap-function-to-seek-a-valid-key fs/nilfs2/btree.c
+--- a/fs/nilfs2/btree.c~nilfs2-add-bmap-function-to-seek-a-valid-key
++++ a/fs/nilfs2/btree.c
+@@ -633,6 +633,44 @@ static int nilfs_btree_do_lookup_last(co
+ 	return 0;
+ }
+ 
++/**
++ * nilfs_btree_get_next_key - get next valid key from btree path array
++ * @btree: bmap struct of btree
++ * @path: array of nilfs_btree_path struct
++ * @minlevel: start level
++ * @nextkey: place to store the next valid key
++ *
++ * Return Value: If a next key was found, 0 is returned. Otherwise,
++ * -ENOENT is returned.
++ */
++static int nilfs_btree_get_next_key(const struct nilfs_bmap *btree,
++				    const struct nilfs_btree_path *path,
++				    int minlevel, __u64 *nextkey)
++{
++	struct nilfs_btree_node *node;
++	int maxlevel = nilfs_btree_height(btree) - 1;
++	int index, next_adj, level;
++
++	/* Next index is already set to bp_index for leaf nodes. */
++	next_adj = 0;
++	for (level = minlevel; level <= maxlevel; level++) {
++		if (level == maxlevel)
++			node = nilfs_btree_get_root(btree);
++		else
++			node = nilfs_btree_get_nonroot_node(path, level);
++
++		index = path[level].bp_index + next_adj;
++		if (index < nilfs_btree_node_get_nchildren(node)) {
++			/* Next key is in this node */
++			*nextkey = nilfs_btree_node_get_key(node, index);
++			return 0;
++		}
++		/* For non-leaf nodes, next index is stored at bp_index + 1. */
++		next_adj = 1;
++	}
++	return -ENOENT;
++}
++
+ static int nilfs_btree_lookup(const struct nilfs_bmap *btree,
+ 			      __u64 key, int level, __u64 *ptrp)
+ {
+@@ -1563,6 +1601,30 @@ out:
+ 	return ret;
+ }
+ 
++static int nilfs_btree_seek_key(const struct nilfs_bmap *btree, __u64 start,
++				__u64 *keyp)
++{
++	struct nilfs_btree_path *path;
++	const int minlevel = NILFS_BTREE_LEVEL_NODE_MIN;
++	int ret;
++
++	if (start > NILFS_BTREE_KEY_MAX)
++		return -ENOENT;
++
++	path = nilfs_btree_alloc_path();
++	if (!path)
++		return -ENOMEM;
++
++	ret = nilfs_btree_do_lookup(btree, path, start, NULL, minlevel, 0);
++	if (!ret)
++		*keyp = start;
++	else if (ret == -ENOENT)
++		ret = nilfs_btree_get_next_key(btree, path, minlevel, keyp);
++
++	nilfs_btree_free_path(path);
++	return ret;
++}
++
+ static int nilfs_btree_last_key(const struct nilfs_bmap *btree, __u64 *keyp)
+ {
+ 	struct nilfs_btree_path *path;
+@@ -2298,7 +2360,9 @@ static const struct nilfs_bmap_operation
+ 	.bop_assign		=	nilfs_btree_assign,
+ 	.bop_mark		=	nilfs_btree_mark,
+ 
++	.bop_seek_key		=	nilfs_btree_seek_key,
+ 	.bop_last_key		=	nilfs_btree_last_key,
++
+ 	.bop_check_insert	=	NULL,
+ 	.bop_check_delete	=	nilfs_btree_check_delete,
+ 	.bop_gather_data	=	nilfs_btree_gather_data,
+@@ -2318,7 +2382,9 @@ static const struct nilfs_bmap_operation
+ 	.bop_assign		=	nilfs_btree_assign_gc,
+ 	.bop_mark		=	NULL,
+ 
++	.bop_seek_key		=	NULL,
+ 	.bop_last_key		=	NULL,
++
+ 	.bop_check_insert	=	NULL,
+ 	.bop_check_delete	=	NULL,
+ 	.bop_gather_data	=	NULL,
+diff -puN fs/nilfs2/direct.c~nilfs2-add-bmap-function-to-seek-a-valid-key fs/nilfs2/direct.c
+--- a/fs/nilfs2/direct.c~nilfs2-add-bmap-function-to-seek-a-valid-key
++++ a/fs/nilfs2/direct.c
+@@ -173,6 +173,21 @@ static int nilfs_direct_delete(struct ni
+ 	return ret;
+ }
+ 
++static int nilfs_direct_seek_key(const struct nilfs_bmap *direct, __u64 start,
++				 __u64 *keyp)
++{
++	__u64 key;
++
++	for (key = start; key <= NILFS_DIRECT_KEY_MAX; key++) {
++		if (nilfs_direct_get_ptr(direct, key) !=
++		    NILFS_BMAP_INVALID_PTR) {
++			*keyp = key;
++			return 0;
++		}
++	}
++	return -ENOENT;
++}
++
+ static int nilfs_direct_last_key(const struct nilfs_bmap *direct, __u64 *keyp)
+ {
+ 	__u64 key, lastkey;
+@@ -355,7 +370,9 @@ static const struct nilfs_bmap_operation
+ 	.bop_assign		=	nilfs_direct_assign,
+ 	.bop_mark		=	NULL,
+ 
++	.bop_seek_key		=	nilfs_direct_seek_key,
+ 	.bop_last_key		=	nilfs_direct_last_key,
++
+ 	.bop_check_insert	=	nilfs_direct_check_insert,
+ 	.bop_check_delete	=	NULL,
+ 	.bop_gather_data	=	nilfs_direct_gather_data,
 _
 
 Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
