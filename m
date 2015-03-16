@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + zram-export-new-mm_stat-sysfs-attrs.patch added to -mm tree
-Date: Mon, 16 Mar 2015 16:17:23 -0700
-Message-ID: <55076483.Oe9aG4Z5nHkf0nle%akpm@linux-foundation.org>
+Subject: + zram-describe-device-attrs-in-documentation.patch added to -mm
+ tree
+Date: Mon, 16 Mar 2015 16:17:19 -0700
+Message-ID: <5507647f.MxdSTeITZBMCSzDb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37524 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37516 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933061AbbCPXRY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Mar 2015 19:17:24 -0400
+	with ESMTP id S932412AbbCPXRU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Mar 2015 19:17:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: sergey.senozhatsky@gmail.com, minchan@kernel.org, ngupta@vflare.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: export new 'mm_stat' sysfs attrs
+     Subject: zram: describe device attrs in documentation
 has been added to the -mm tree.  Its filename is
-     zram-export-new-mm_stat-sysfs-attrs.patch
+     zram-describe-device-attrs-in-documentation.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zram-export-new-mm_stat-sysfs-attrs.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zram-describe-device-attrs-in-documentation.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zram-export-new-mm_stat-sysfs-attrs.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zram-describe-device-attrs-in-documentation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,20 +40,19 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: zram: export new 'mm_stat' sysfs attrs
+Subject: zram: describe device attrs in documentation
 
-Per-device `zram<id>/mm_stat' file provides mm statistics of a particular
-zram device in a format similar to block layer statistics.  The file
-consists of a single line and represents the following stats (separated by
-whitespace):
+Briefly describe exported device stat attrs in zram documentation.  We
+will eventually get rid of per-stat sysfs nodes and, thus, clean up
+Documentation/ABI/testing/sysfs-block-zram file, which is the only source
+of information about device sysfs nodes.
 
-	orig_data_size
-	compr_data_size
-	mem_used_total
-	mem_limit
-	mem_used_max
-	zero_pages
-	num_migrated
+Add `num_migrated' description, since there is no independent
+`num_migrated' sysfs node (and no corresponding sysfs-block-zram entry),
+it will be exported via zram<id>/mm_stat file.
+
+At this point we can provide minimal description, because sysfs-block-zram
+still contains detailed information.
 
 Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Acked-by: Minchan Kim <minchan@kernel.org>
@@ -60,99 +60,68 @@ Cc: Nitin Gupta <ngupta@vflare.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-block-zram |    8 ++++
- Documentation/blockdev/zram.txt            |   14 ++++++++
- drivers/block/zram/zram_drv.c              |   31 +++++++++++++++++++
- 3 files changed, 53 insertions(+)
+ Documentation/blockdev/zram.txt |   49 +++++++++++++++++++++---------
+ 1 file changed, 35 insertions(+), 14 deletions(-)
 
-diff -puN Documentation/ABI/testing/sysfs-block-zram~zram-export-new-mm_stat-sysfs-attrs Documentation/ABI/testing/sysfs-block-zram
---- a/Documentation/ABI/testing/sysfs-block-zram~zram-export-new-mm_stat-sysfs-attrs
-+++ a/Documentation/ABI/testing/sysfs-block-zram
-@@ -158,3 +158,11 @@ Description:
- 		statistics not accounted by block layer. For example,
- 		failed_reads, failed_writes, etc. File format is similar to
- 		block layer statistics file format.
-+
-+What:		/sys/block/zram<id>/mm_stat
-+Date:		August 2015
-+Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-+Description:
-+		The mm_stat file is read-only and represents device's mm
-+		statistics (orig_data_size, compr_data_size, etc.) in a format
-+		similar to block layer statistics file format.
-diff -puN Documentation/blockdev/zram.txt~zram-export-new-mm_stat-sysfs-attrs Documentation/blockdev/zram.txt
---- a/Documentation/blockdev/zram.txt~zram-export-new-mm_stat-sysfs-attrs
+diff -puN Documentation/blockdev/zram.txt~zram-describe-device-attrs-in-documentation Documentation/blockdev/zram.txt
+--- a/Documentation/blockdev/zram.txt~zram-describe-device-attrs-in-documentation
 +++ a/Documentation/blockdev/zram.txt
-@@ -165,6 +165,20 @@ whitespace:
- 	invalid_io
- 	notify_free
+@@ -117,20 +117,41 @@ execute
+ 	echo X > /sys/class/zram-control/zram_remove
  
+ 8) Stats:
+-	Per-device statistics are exported as various nodes under
+-	/sys/block/zram<id>/
+-		disksize
+-		num_reads
+-		num_writes
+-		failed_reads
+-		failed_writes
+-		invalid_io
+-		notify_free
+-		zero_pages
+-		orig_data_size
+-		compr_data_size
+-		mem_used_total
+-		mem_used_max
++Per-device statistics are exported as various nodes under /sys/block/zram<id>/
 +
-+File /sys/block/zram<id>/mm_stat
++A brief description of exported device attritbutes. For more details please
++read Documentation/ABI/testing/sysfs-block-zram.
 +
-+The stat file represents device's mm statistics. It consists of a single
-+line of text and contains the following stats separated by whitespace:
-+	orig_data_size
-+	compr_data_size
-+	mem_used_total
-+	mem_limit
-+	mem_used_max
-+	zero_pages
-+	num_migrated
++Name            access            description
++----            ------            -----------
++disksize          RW    show and set the device's disk size
++initstate         RO    shows the initialization state of the device
++reset             WO    trigger device reset
++num_reads         RO    the number of reads
++failed_reads      RO    the number of failed reads
++num_write         RO    the number of writes
++failed_writes     RO    the number of failed writes
++invalid_io        RO    the number of non-page-size-aligned I/O requests
++max_comp_streams  RW    the number of possible concurrent compress operations
++comp_algorithm    RW    show and change the compression algorithm
++notify_free       RO    the number of notifications to free pages (either
++                        slot free notifications or REQ_DISCARD requests)
++zero_pages        RO    the number of zero filled pages written to this disk
++orig_data_size    RO    uncompressed size of data stored in this disk
++compr_data_size   RO    compressed size of data stored in this disk
++mem_used_total    RO    the amount of memory allocated for this disk
++mem_used_max      RW    the maximum amount memory zram have consumed to
++                        store compressed data
++mem_limit         RW    the maximum amount of memory ZRAM can use to store
++                        the compressed data
++num_migrated      RO    the number of objects migrated migrated by compaction
++compact           WO    trigger memory compaction
 +
 +
++File /sys/block/zram<id>/stat
++
++Represents block layer statistics. Read Documentation/block/stat.txt for
++details.
+ 
  9) Deactivate:
  	swapoff /dev/zram0
- 	umount /dev/zram1
-diff -puN drivers/block/zram/zram_drv.c~zram-export-new-mm_stat-sysfs-attrs drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-export-new-mm_stat-sysfs-attrs
-+++ a/drivers/block/zram/zram_drv.c
-@@ -402,7 +402,37 @@ static ssize_t io_stat_show(struct devic
- 	return ret;
- }
- 
-+static ssize_t mm_stat_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct zram *zram = dev_to_zram(dev);
-+	u64 orig_size, mem_used = 0;
-+	long max_used;
-+	ssize_t ret;
-+
-+	down_read(&zram->init_lock);
-+	if (init_done(zram))
-+		mem_used = zs_get_total_pages(zram->meta->mem_pool);
-+
-+	orig_size = atomic64_read(&zram->stats.pages_stored);
-+	max_used = atomic_long_read(&zram->stats.max_used_pages);
-+
-+	ret = scnprintf(buf, PAGE_SIZE,
-+			"%8llu %8llu %8llu %8lu %8ld %8llu %8llu\n",
-+			orig_size << PAGE_SHIFT,
-+			(u64)atomic64_read(&zram->stats.compr_data_size),
-+			mem_used << PAGE_SHIFT,
-+			zram->limit_pages << PAGE_SHIFT,
-+			max_used << PAGE_SHIFT,
-+			(u64)atomic64_read(&zram->stats.zero_pages),
-+			(u64)atomic64_read(&zram->stats.num_migrated));
-+	up_read(&zram->init_lock);
-+
-+	return ret;
-+}
-+
- static DEVICE_ATTR_RO(io_stat);
-+static DEVICE_ATTR_RO(mm_stat);
- ZRAM_ATTR_RO(num_reads);
- ZRAM_ATTR_RO(num_writes);
- ZRAM_ATTR_RO(failed_reads);
-@@ -1105,6 +1135,7 @@ static struct attribute *zram_disk_attrs
- 	&dev_attr_max_comp_streams.attr,
- 	&dev_attr_comp_algorithm.attr,
- 	&dev_attr_io_stat.attr,
-+	&dev_attr_mm_stat.attr,
- 	NULL,
- };
- 
 _
 
 Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
