@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-slub-fix-lockups-on-preempt-smp-kernels.patch added to -mm
- tree
-Date: Tue, 17 Mar 2015 16:28:57 -0700
-Message-ID: <5508b8b9.McIbqx2rbQu86Fjp%akpm@linux-foundation.org>
+Subject: +
+ ocfs2-use-enoent-instead-of-eexist-when-get-system-file-fails.patch added
+ to -mm tree
+Date: Tue, 17 Mar 2015 16:30:50 -0700
+Message-ID: <5508b92a.lSiXesmESDq82NpU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52810 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52819 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754532AbbCQX26 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Mar 2015 19:28:58 -0400
+	with ESMTP id S1753496AbbCQXav (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Mar 2015 19:30:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mark.rutland@arm.com, brouer@redhat.com, catalin.marinas@arm.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, steve.capper@linaro.org, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
+To: joseph.qi@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slub: fix lockups on PREEMPT && !SMP kernels
+     Subject: ocfs2: use ENOENT instead of EEXIST when get system file fails
 has been added to the -mm tree.  Its filename is
-     mm-slub-fix-lockups-on-preempt-smp-kernels.patch
+     ocfs2-use-enoent-instead-of-eexist-when-get-system-file-fails.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slub-fix-lockups-on-preempt-smp-kernels.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-use-enoent-instead-of-eexist-when-get-system-file-fails.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-fix-lockups-on-preempt-smp-kernels.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-use-enoent-instead-of-eexist-when-get-system-file-fails.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,91 +40,67 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: mm/slub: fix lockups on PREEMPT && !SMP kernels
+From: Joseph Qi <joseph.qi@huawei.com>
+Subject: ocfs2: use ENOENT instead of EEXIST when get system file fails
 
-Commit 9aabf810a67cd97e ("mm/slub: optimize alloc/free fastpath by
-removing preemption on/off") introduced an occasional hang for kernels
-built with CONFIG_PREEMPT && !CONFIG_SMP.
+When ocfs2_get_system_file_inode fails, it is obscure to set the return
+value to -EEXIST. So change it to -ENOENT.
 
-The problem is the following loop the patch introduced to slab_alloc_node
-and slab_free:
-
-do {
-        tid = this_cpu_read(s->cpu_slab->tid);
-        c = raw_cpu_ptr(s->cpu_slab);
-} while (IS_ENABLED(CONFIG_PREEMPT) && unlikely(tid != c->tid));
-
-GCC 4.9 has been observed to hoist the load of c and c->tid above the loop
-for !SMP kernels (as in this case raw_cpu_ptr(x) is compile-time constant
-and does not force a reload).  On arm64 the generated assembly looks like:
-
-ffffffc00016d3c4:       f9400404        ldr     x4, [x0,#8]
-ffffffc00016d3c8:       f9400401        ldr     x1, [x0,#8]
-ffffffc00016d3cc:       eb04003f        cmp     x1, x4
-ffffffc00016d3d0:       54ffffc1        b.ne    ffffffc00016d3c8 <slab_alloc_node.constprop.82+0x30>
-
-If the thread is preempted between the load of c->tid (into x1) and tid
-(into x4), and an allocation or free occurs in another thread (bumping the
-cpu_slab's tid), the thread will be stuck in the loop until
-s->cpu_slab->tid wraps, which may be forever in the absence of
-allocations/frees on the same CPU.
-
-This patch changes the loop condition to access c->tid with READ_ONCE. 
-This ensures that the value is reloaded even when the compiler would
-otherwise assume it could cache the value, and also ensures that the load
-will not be torn.
-
-Signed-off-by: Mark Rutland <mark.rutland@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Acked-by: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Jesper Dangaard Brouer <brouer@redhat.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Steve Capper <steve.capper@linaro.org>
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ fs/ocfs2/inode.c |    4 ++--
+ fs/ocfs2/namei.c |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/slub.c~mm-slub-fix-lockups-on-preempt-smp-kernels mm/slub.c
---- a/mm/slub.c~mm-slub-fix-lockups-on-preempt-smp-kernels
-+++ a/mm/slub.c
-@@ -2449,7 +2449,8 @@ redo:
- 	do {
- 		tid = this_cpu_read(s->cpu_slab->tid);
- 		c = raw_cpu_ptr(s->cpu_slab);
--	} while (IS_ENABLED(CONFIG_PREEMPT) && unlikely(tid != c->tid));
-+	} while (IS_ENABLED(CONFIG_PREEMPT) &&
-+		 unlikely(tid != READ_ONCE(c->tid)));
- 
- 	/*
- 	 * Irqless object alloc/free algorithm used here depends on sequence
-@@ -2718,7 +2719,8 @@ redo:
- 	do {
- 		tid = this_cpu_read(s->cpu_slab->tid);
- 		c = raw_cpu_ptr(s->cpu_slab);
--	} while (IS_ENABLED(CONFIG_PREEMPT) && unlikely(tid != c->tid));
-+	} while (IS_ENABLED(CONFIG_PREEMPT) &&
-+		 unlikely(tid != READ_ONCE(c->tid)));
- 
- 	/* Same with comment on barrier() in slab_alloc_node() */
- 	barrier();
+diff -puN fs/ocfs2/inode.c~ocfs2-use-enoent-instead-of-eexist-when-get-system-file-fails fs/ocfs2/inode.c
+--- a/fs/ocfs2/inode.c~ocfs2-use-enoent-instead-of-eexist-when-get-system-file-fails
++++ a/fs/ocfs2/inode.c
+@@ -624,7 +624,7 @@ static int ocfs2_remove_inode(struct ino
+ 		ocfs2_get_system_file_inode(osb, INODE_ALLOC_SYSTEM_INODE,
+ 					    le16_to_cpu(di->i_suballoc_slot));
+ 	if (!inode_alloc_inode) {
+-		status = -EEXIST;
++		status = -ENOENT;
+ 		mlog_errno(status);
+ 		goto bail;
+ 	}
+@@ -742,7 +742,7 @@ static int ocfs2_wipe_inode(struct inode
+ 							       ORPHAN_DIR_SYSTEM_INODE,
+ 							       orphaned_slot);
+ 		if (!orphan_dir_inode) {
+-			status = -EEXIST;
++			status = -ENOENT;
+ 			mlog_errno(status);
+ 			goto bail;
+ 		}
+diff -puN fs/ocfs2/namei.c~ocfs2-use-enoent-instead-of-eexist-when-get-system-file-fails fs/ocfs2/namei.c
+--- a/fs/ocfs2/namei.c~ocfs2-use-enoent-instead-of-eexist-when-get-system-file-fails
++++ a/fs/ocfs2/namei.c
+@@ -2808,7 +2808,7 @@ int ocfs2_mv_orphaned_inode_to_new(struc
+ 						       ORPHAN_DIR_SYSTEM_INODE,
+ 						       osb->slot_num);
+ 	if (!orphan_dir_inode) {
+-		status = -EEXIST;
++		status = -ENOENT;
+ 		mlog_errno(status);
+ 		goto leave;
+ 	}
 _
 
-Patches currently in -mm which might be from mark.rutland@arm.com are
+Patches currently in -mm which might be from joseph.qi@huawei.com are
 
-origin.patch
-mm-slub-fix-lockups-on-preempt-smp-kernels.patch
-mm-move-memtest-under-mm.patch
-memtest-use-phys_addr_t-for-physical-addresses.patch
-arm64-add-support-for-memtest.patch
-arm-add-support-for-memtest.patch
-kconfig-memtest-update-number-of-test-patterns-up-to-17.patch
-documentation-update-arch-list-in-the-memtest-entry.patch
-rtc-mediatek-add-mt63xx-rtc-driver.patch
-linux-next.patch
+ocfs2-fix-a-typing-error-in-ocfs2_direct_io_write.patch
+ocfs2-no-need-get-dinode-bh-when-zeroing-extend.patch
+ocfs2-take-inode-lock-when-get-clusters.patch
+ocfs2-do-not-use-ocfs2_zero_extend-during-direct-io.patch
+ocfs2-fix-typo-in-ocfs2_reserve_local_alloc_bits.patch
+ocfs2-use-actual-name-length-when-find-entry-in-ocfs2_orphan_del.patch
+ocfs2-use-enoent-instead-of-eexist-when-get-system-file-fails.patch
+ocfs2-rollback-the-cleared-bits-if-error-occurs-after-ocfs2_block_group_clear_bits.patch
+ocfs2-avoid-access-invalid-address-when-read-o2dlm-debug-messages.patch
+ocfs2-avoid-access-invalid-address-when-read-o2dlm-debug-messages-v3.patch
 
