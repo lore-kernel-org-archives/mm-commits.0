@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-match-more-world-writable-permissions.patch added to -mm tree
-Date: Tue, 17 Mar 2015 15:28:15 -0700
-Message-ID: <5508aa7f.KFMv+5GBx4zfBEns%akpm@linux-foundation.org>
+Subject: + mm-dont-offset-memmap-for-flatmem.patch added to -mm tree
+Date: Tue, 17 Mar 2015 15:32:15 -0700
+Message-ID: <5508ab6f.B3yRyqU6MKlghdpz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52291 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52363 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932268AbbCQW2Q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Mar 2015 18:28:16 -0400
+	with ESMTP id S1750958AbbCQWcQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Mar 2015 18:32:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, hofrat@osadl.org, linux@roeck-us.net, mm-commits@vger.kernel.org
+To: lauraa@codeaurora.org, arnd@arndb.de, galak@codeaurora.org, khilman@linaro.org, mgorman@suse.de, rmk@arm.linux.org.uk, sboyd@codeaurora.org, srinivas.kandagatla@linaro.org, ssantosh@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: match more world writable permissions
+     Subject: mm: don't offset memmap for flatmem
 has been added to the -mm tree.  Its filename is
-     checkpatch-match-more-world-writable-permissions.patch
+     mm-dont-offset-memmap-for-flatmem.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-match-more-world-writable-permissions.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-dont-offset-memmap-for-flatmem.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-match-more-world-writable-permissions.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-dont-offset-memmap-for-flatmem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,86 +38,119 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: match more world writable permissions
+From: Laura Abbott <lauraa@codeaurora.org>
+Subject: mm: don't offset memmap for flatmem
 
-Currently checkpatch will fuss if one uses world writable settings in
-debugfs files and DEVICE_ATTR uses by testing S_IWUGO but not testing
-S_IWOTH, S_IRWXUGO or S_IALLUGO.
+Srinivas Kandagatla reported bad page messages when trying to remove the
+bottom 2MB on an ARM based IFC6410 board
 
-Extend the check to catch all cases exporting world writable permissions
-including octal values.
+BUG: Bad page state in process swapper  pfn:fffa8
+page:ef7fb500 count:0 mapcount:0 mapping:  (null) index:0x0
+flags: 0x96640253(locked|error|dirty|active|arch_1|reclaim|mlocked)
+page dumped because: PAGE_FLAGS_CHECK_AT_FREE flag(s) set
+bad because of flags:
+flags: 0x200041(locked|active|mlocked)
+Modules linked in:
+CPU: 0 PID: 0 Comm: swapper Not tainted 3.19.0-rc3-00007-g412f9ba-dirty #816
+Hardware name: Qualcomm (Flattened Device Tree)
+[<c0218280>] (unwind_backtrace) from [<c0212be8>] (show_stack+0x20/0x24)
+[<c0212be8>] (show_stack) from [<c0af7124>] (dump_stack+0x80/0x9c)
+[<c0af7124>] (dump_stack) from [<c0301570>] (bad_page+0xc8/0x128)
+[<c0301570>] (bad_page) from [<c03018a8>] (free_pages_prepare+0x168/0x1e0)
+[<c03018a8>] (free_pages_prepare) from [<c030369c>] (free_hot_cold_page+0x3c/0x174)
+[<c030369c>] (free_hot_cold_page) from [<c0303828>] (__free_pages+0x54/0x58)
+[<c0303828>] (__free_pages) from [<c030395c>] (free_highmem_page+0x38/0x88)
+[<c030395c>] (free_highmem_page) from [<c0f62d5c>] (mem_init+0x240/0x430)
+[<c0f62d5c>] (mem_init) from [<c0f5db3c>] (start_kernel+0x1e4/0x3c8)
+[<c0f5db3c>] (start_kernel) from [<80208074>] (0x80208074)
+Disabling lock debugging due to kernel taint
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Original-patch-by: Nicholas Mc Guire <hofrat@osadl.org>
-Cc: Guenter Roeck <linux@roeck-us.net>
+Removing the lower 2MB made the start of the lowmem zone to no longer
+be page block aligned. IFC6410 uses CONFIG_FLATMEM where
+alloc_node_mem_map allocates memory for the mem_map. alloc_node_mem_map
+will offset for unaligned nodes with the assumption the pfn/page
+translation functions will account for the offset. The functions for
+CONFIG_FLATMEM do not offset however, resulting in overrunning
+the memmap array. Just use the allocated memmap without any offset
+when running with CONFIG_FLATMEM to avoid the overrun.
+
+The thread got too deep so I split this out into a new thread.
+See http://marc.info/?l=linux-mm&m=142188852025672&w=2 for previous
+thread discussion, last comment by Vlastimil
+http://marc.info/?l=linux-mm&m=142505070430844&w=2
+
+Signed-off-by: Laura Abbott <lauraa@codeaurora.org>
+Reported-by: Srinivas Kandagatla <srinivas.kandagatla@linaro.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Santosh Shilimkar <ssantosh@kernel.org>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Kevin Hilman <khilman@linaro.org>
+Cc: Arnd Bergman <arnd@arndb.de>
+Cc: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Kumar Gala <galak@codeaurora.org>
+Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |   15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-match-more-world-writable-permissions scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-match-more-world-writable-permissions
-+++ a/scripts/checkpatch.pl
-@@ -443,6 +443,14 @@ foreach my $entry (@mode_permission_func
- 	$mode_perms_search .= $entry->[0];
- }
+diff -puN mm/page_alloc.c~mm-dont-offset-memmap-for-flatmem mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-dont-offset-memmap-for-flatmem
++++ a/mm/page_alloc.c
+@@ -4996,6 +4996,8 @@ static void __paginginit free_area_init_
  
-+$our $mode_perms_world_writable = qr{
-+	S_IWUGO		|
-+	S_IWOTH		|
-+	S_IRWXUGO	|
-+	S_IALLUGO	|
-+	0[0-7][0-7][2367]
-+}x;
+ static void __init_refok alloc_node_mem_map(struct pglist_data *pgdat)
+ {
++	unsigned long __maybe_unused offset = 0;
 +
- our $allowed_asm_includes = qr{(?x:
- 	irq|
- 	memory|
-@@ -5356,8 +5364,8 @@ sub process {
- 			}
- 		}
- 
--		if ($line =~ /debugfs_create_file.*S_IWUGO/ ||
--		    $line =~ /DEVICE_ATTR.*S_IWUGO/ ) {
-+		if ($line =~ /debugfs_create_\w+.*\b$mode_perms_world_writable\b/ ||
-+		    $line =~ /DEVICE_ATTR.*\b$mode_perms_world_writable\b/) {
- 			WARN("EXPORTED_WORLD_WRITABLE",
- 			     "Exporting world writable files is usually an error. Consider more restrictive permissions.\n" . $herecurr);
- 		}
+ 	/* Skip empty nodes */
+ 	if (!pgdat->node_spanned_pages)
+ 		return;
+@@ -5012,6 +5014,7 @@ static void __init_refok alloc_node_mem_
+ 		 * for the buddy allocator to function correctly.
+ 		 */
+ 		start = pgdat->node_start_pfn & ~(MAX_ORDER_NR_PAGES - 1);
++		offset = pgdat->node_start_pfn - start;
+ 		end = pgdat_end_pfn(pgdat);
+ 		end = ALIGN(end, MAX_ORDER_NR_PAGES);
+ 		size =  (end - start) * sizeof(struct page);
+@@ -5019,7 +5022,7 @@ static void __init_refok alloc_node_mem_
+ 		if (!map)
+ 			map = memblock_virt_alloc_node_nopanic(size,
+ 							       pgdat->node_id);
+-		pgdat->node_mem_map = map + (pgdat->node_start_pfn - start);
++		pgdat->node_mem_map = map + offset;
+ 	}
+ #ifndef CONFIG_NEED_MULTIPLE_NODES
+ 	/*
+@@ -5027,10 +5030,12 @@ static void __init_refok alloc_node_mem_
+ 	 */
+ 	if (pgdat == NODE_DATA(0)) {
+ 		mem_map = NODE_DATA(0)->node_mem_map;
+-#ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
+-		if (page_to_pfn(mem_map) != pgdat->node_start_pfn)
+-			mem_map -= (pgdat->node_start_pfn - ARCH_PFN_OFFSET);
+-#endif /* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
++#if defined(CONFIG_HAVE_MEMBLOCK_NODE_MAP) || defined(CONFIG_FLATMEM)
++		if (page_to_pfn(mem_map) != pgdat->node_start_pfn) {
++			mem_map -= offset;
++			VM_BUG_ON(page_to_pfn(mem_map) != pgdat->node_start_pfn);
++		}
++#endif /* CONFIG_HAVE_MEMBLOCK_NODE_MAP || CONFIG_FLATMEM */
+ 	}
+ #endif
+ #endif /* CONFIG_FLAT_NODE_MEM_MAP */
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from lauraa@codeaurora.org are
 
-maintainers-correct-rtc-armada38x-pattern-entry.patch
-proc-show-locks-in-proc-pid-fdinfo-x.patch
-proc-show-locks-in-proc-pid-fdinfo-x-v2.patch
-maintainers-use-tabs-consistently.patch
-x86-mtrr-if-remove-use-of-seq_printf-return-value.patch
-power-wakeup-remove-use-of-seq_printf-return-value.patch
-rtc-remove-use-of-seq_printf-return-value.patch
-ipc-remove-use-of-seq_printf-return-value.patch
-microblaze-mb-remove-use-of-seq_printf-return-value.patch
-microblaze-mb-remove-use-of-seq_printf-return-value-fix.patch
-nios2-cpuinfo-remove-use-of-seq_printf-return-value.patch
-arm-plat-pxa-remove-use-of-seq_printf-return-value.patch
-openrisc-remove-use-of-seq_printf-return-value.patch
-cris-remove-use-of-seq_printf-return-value.patch
-s390-remove-use-of-seq_printf-return-value.patch
-i8k-remove-use-of-seq_printf-return-value.patch
-watchdog-bcm281xx-remove-use-of-seq_printf-return-value.patch
-proc-remove-use-of-seq_printf-return-value.patch
-cgroup-remove-use-of-seq_printf-return-value.patch
-tracing-remove-use-of-seq_printf-return-value.patch
-lru_cache-remove-use-of-seq_printf-return-value.patch
-parisc-remove-use-of-seq_printf-return-value.patch
-lib-vsprintfc-even-faster-decimal-conversion.patch
-mm-utilc-add-kstrimdup.patch
-checkpatch-improve-no-space-is-necessary-after-a-cast-test.patch
-checkpatch-add-spell-checking-of-email-subject-line.patch
-checkpatch-spell-check-reudce.patch
-checkpatch-add-optional-codespell-dictionary-to-find-more-typos.patch
-checkpatch-match-more-world-writable-permissions.patch
-linux-next.patch
+mm-cma-debugfs-interface.patch
+mm-cma-allocation-trigger.patch
+mm-cma-release-trigger.patch
+mm-cma-allocation-trigger-fix.patch
+cma-debug-document-new-debugfs-interface.patch
+mm-dont-offset-memmap-for-flatmem.patch
+seccomp-allow-compat-sigreturn-overrides.patch
+arm-use-asm-generic-for-seccomph.patch
 
