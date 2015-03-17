@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-remove-obsolete-comment.patch added to -mm tree
-Date: Tue, 17 Mar 2015 16:27:18 -0700
-Message-ID: <5508b856.FbbFUIomsFry+kS6%akpm@linux-foundation.org>
+Subject: + mm-slub-fix-lockups-on-preempt-smp-kernels.patch added to -mm
+ tree
+Date: Tue, 17 Mar 2015 16:28:57 -0700
+Message-ID: <5508b8b9.McIbqx2rbQu86Fjp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52745 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52810 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932388AbbCQX1S (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Mar 2015 19:27:18 -0400
+	with ESMTP id S1754532AbbCQX26 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Mar 2015 19:28:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@parallels.com, hannes@cmpxchg.org, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: mark.rutland@arm.com, brouer@redhat.com, catalin.marinas@arm.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, steve.capper@linaro.org, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: remove obsolete comment
+     Subject: mm/slub: fix lockups on PREEMPT && !SMP kernels
 has been added to the -mm tree.  Its filename is
-     memcg-remove-obsolete-comment.patch
+     mm-slub-fix-lockups-on-preempt-smp-kernels.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-remove-obsolete-comment.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slub-fix-lockups-on-preempt-smp-kernels.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-remove-obsolete-comment.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-fix-lockups-on-preempt-smp-kernels.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,49 +39,91 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: memcg: remove obsolete comment
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: mm/slub: fix lockups on PREEMPT && !SMP kernels
 
-Low and high watermarks, as they defined in the TODO to the mem_cgroup
-struct, have already been implemented by Johannes, so remove the stale
-comment.
+Commit 9aabf810a67cd97e ("mm/slub: optimize alloc/free fastpath by
+removing preemption on/off") introduced an occasional hang for kernels
+built with CONFIG_PREEMPT && !CONFIG_SMP.
 
-Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.cz>
+The problem is the following loop the patch introduced to slab_alloc_node
+and slab_free:
+
+do {
+        tid = this_cpu_read(s->cpu_slab->tid);
+        c = raw_cpu_ptr(s->cpu_slab);
+} while (IS_ENABLED(CONFIG_PREEMPT) && unlikely(tid != c->tid));
+
+GCC 4.9 has been observed to hoist the load of c and c->tid above the loop
+for !SMP kernels (as in this case raw_cpu_ptr(x) is compile-time constant
+and does not force a reload).  On arm64 the generated assembly looks like:
+
+ffffffc00016d3c4:       f9400404        ldr     x4, [x0,#8]
+ffffffc00016d3c8:       f9400401        ldr     x1, [x0,#8]
+ffffffc00016d3cc:       eb04003f        cmp     x1, x4
+ffffffc00016d3d0:       54ffffc1        b.ne    ffffffc00016d3c8 <slab_alloc_node.constprop.82+0x30>
+
+If the thread is preempted between the load of c->tid (into x1) and tid
+(into x4), and an allocation or free occurs in another thread (bumping the
+cpu_slab's tid), the thread will be stuck in the loop until
+s->cpu_slab->tid wraps, which may be forever in the absence of
+allocations/frees on the same CPU.
+
+This patch changes the loop condition to access c->tid with READ_ONCE. 
+This ensures that the value is reloaded even when the compiler would
+otherwise assume it could cache the value, and also ensures that the load
+will not be torn.
+
+Signed-off-by: Mark Rutland <mark.rutland@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Acked-by: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Steve Capper <steve.capper@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    5 -----
- 1 file changed, 5 deletions(-)
+ mm/slub.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-remove-obsolete-comment mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-remove-obsolete-comment
-+++ a/mm/memcontrol.c
-@@ -259,11 +259,6 @@ static void mem_cgroup_oom_notify(struct
-  * page cache and RSS per cgroup. We would eventually like to provide
-  * statistics based on the statistics developed by Rik Van Riel for clock-pro,
-  * to help the administrator determine what knobs to tune.
-- *
-- * TODO: Add a water mark for the memory controller. Reclaim will begin when
-- * we hit the water mark. May be even add a low water mark, such that
-- * no reclaim occurs from a cgroup at it's low water mark, this is
-- * a feature that will be implemented much later in the future.
-  */
- struct mem_cgroup {
- 	struct cgroup_subsys_state css;
+diff -puN mm/slub.c~mm-slub-fix-lockups-on-preempt-smp-kernels mm/slub.c
+--- a/mm/slub.c~mm-slub-fix-lockups-on-preempt-smp-kernels
++++ a/mm/slub.c
+@@ -2449,7 +2449,8 @@ redo:
+ 	do {
+ 		tid = this_cpu_read(s->cpu_slab->tid);
+ 		c = raw_cpu_ptr(s->cpu_slab);
+-	} while (IS_ENABLED(CONFIG_PREEMPT) && unlikely(tid != c->tid));
++	} while (IS_ENABLED(CONFIG_PREEMPT) &&
++		 unlikely(tid != READ_ONCE(c->tid)));
+ 
+ 	/*
+ 	 * Irqless object alloc/free algorithm used here depends on sequence
+@@ -2718,7 +2719,8 @@ redo:
+ 	do {
+ 		tid = this_cpu_read(s->cpu_slab->tid);
+ 		c = raw_cpu_ptr(s->cpu_slab);
+-	} while (IS_ENABLED(CONFIG_PREEMPT) && unlikely(tid != c->tid));
++	} while (IS_ENABLED(CONFIG_PREEMPT) &&
++		 unlikely(tid != READ_ONCE(c->tid)));
+ 
+ 	/* Same with comment on barrier() in slab_alloc_node() */
+ 	barrier();
 _
 
-Patches currently in -mm which might be from vdavydov@parallels.com are
+Patches currently in -mm which might be from mark.rutland@arm.com are
 
-mm-hotplug-fix-concurrent-memory-hot-add-deadlock.patch
-ocfs2-copy-fs-uuid-to-superblock.patch
-cleancache-zap-uuid-arg-of-cleancache_init_shared_fs.patch
-cleancache-forbid-overriding-cleancache_ops.patch
-cleancache-remove-limit-on-the-number-of-cleancache-enabled-filesystems.patch
-cleancache-remove-limit-on-the-number-of-cleancache-enabled-filesystems-fix.patch
-memcg-zap-mem_cgroup_lookup.patch
-memcg-remove-obsolete-comment.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+origin.patch
+mm-slub-fix-lockups-on-preempt-smp-kernels.patch
+mm-move-memtest-under-mm.patch
+memtest-use-phys_addr_t-for-physical-addresses.patch
+arm64-add-support-for-memtest.patch
+arm-add-support-for-memtest.patch
+kconfig-memtest-update-number-of-test-patterns-up-to-17.patch
+documentation-update-arch-list-in-the-memtest-entry.patch
+rtc-mediatek-add-mt63xx-rtc-driver.patch
 linux-next.patch
 
