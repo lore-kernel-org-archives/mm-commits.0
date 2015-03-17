@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-dont-offset-memmap-for-flatmem.patch added to -mm tree
-Date: Tue, 17 Mar 2015 15:32:15 -0700
-Message-ID: <5508ab6f.B3yRyqU6MKlghdpz%akpm@linux-foundation.org>
+Subject: + aoe-update-aoe-maintainer-information.patch added to -mm tree
+Date: Tue, 17 Mar 2015 15:32:46 -0700
+Message-ID: <5508ab8e.UpeWVfp3lMD8uOTh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52363 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52366 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750958AbbCQWcQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Mar 2015 18:32:16 -0400
+	with ESMTP id S1753930AbbCQWcq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Mar 2015 18:32:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lauraa@codeaurora.org, arnd@arndb.de, galak@codeaurora.org, khilman@linaro.org, mgorman@suse.de, rmk@arm.linux.org.uk, sboyd@codeaurora.org, srinivas.kandagatla@linaro.org, ssantosh@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: ed.cashin@acm.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: don't offset memmap for flatmem
+     Subject: aoe: update aoe maintainer information
 has been added to the -mm tree.  Its filename is
-     mm-dont-offset-memmap-for-flatmem.patch
+     aoe-update-aoe-maintainer-information.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-dont-offset-memmap-for-flatmem.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/aoe-update-aoe-maintainer-information.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-dont-offset-memmap-for-flatmem.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/aoe-update-aoe-maintainer-information.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,119 +38,37 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Laura Abbott <lauraa@codeaurora.org>
-Subject: mm: don't offset memmap for flatmem
+From: Ed Cashin <ed.cashin@acm.org>
+Subject: aoe: update aoe maintainer information
 
-Srinivas Kandagatla reported bad page messages when trying to remove the
-bottom 2MB on an ARM based IFC6410 board
+The coraid.com email address is defunct.  The old aoe support area hosted
+at coraid.com is no longer up.  These changes update the email and website
+to current ones.
 
-BUG: Bad page state in process swapper  pfn:fffa8
-page:ef7fb500 count:0 mapcount:0 mapping:  (null) index:0x0
-flags: 0x96640253(locked|error|dirty|active|arch_1|reclaim|mlocked)
-page dumped because: PAGE_FLAGS_CHECK_AT_FREE flag(s) set
-bad because of flags:
-flags: 0x200041(locked|active|mlocked)
-Modules linked in:
-CPU: 0 PID: 0 Comm: swapper Not tainted 3.19.0-rc3-00007-g412f9ba-dirty #816
-Hardware name: Qualcomm (Flattened Device Tree)
-[<c0218280>] (unwind_backtrace) from [<c0212be8>] (show_stack+0x20/0x24)
-[<c0212be8>] (show_stack) from [<c0af7124>] (dump_stack+0x80/0x9c)
-[<c0af7124>] (dump_stack) from [<c0301570>] (bad_page+0xc8/0x128)
-[<c0301570>] (bad_page) from [<c03018a8>] (free_pages_prepare+0x168/0x1e0)
-[<c03018a8>] (free_pages_prepare) from [<c030369c>] (free_hot_cold_page+0x3c/0x174)
-[<c030369c>] (free_hot_cold_page) from [<c0303828>] (__free_pages+0x54/0x58)
-[<c0303828>] (__free_pages) from [<c030395c>] (free_highmem_page+0x38/0x88)
-[<c030395c>] (free_highmem_page) from [<c0f62d5c>] (mem_init+0x240/0x430)
-[<c0f62d5c>] (mem_init) from [<c0f5db3c>] (start_kernel+0x1e4/0x3c8)
-[<c0f5db3c>] (start_kernel) from [<80208074>] (0x80208074)
-Disabling lock debugging due to kernel taint
-
-Removing the lower 2MB made the start of the lowmem zone to no longer
-be page block aligned. IFC6410 uses CONFIG_FLATMEM where
-alloc_node_mem_map allocates memory for the mem_map. alloc_node_mem_map
-will offset for unaligned nodes with the assumption the pfn/page
-translation functions will account for the offset. The functions for
-CONFIG_FLATMEM do not offset however, resulting in overrunning
-the memmap array. Just use the allocated memmap without any offset
-when running with CONFIG_FLATMEM to avoid the overrun.
-
-The thread got too deep so I split this out into a new thread.
-See http://marc.info/?l=linux-mm&m=142188852025672&w=2 for previous
-thread discussion, last comment by Vlastimil
-http://marc.info/?l=linux-mm&m=142505070430844&w=2
-
-Signed-off-by: Laura Abbott <lauraa@codeaurora.org>
-Reported-by: Srinivas Kandagatla <srinivas.kandagatla@linaro.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Santosh Shilimkar <ssantosh@kernel.org>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Kevin Hilman <khilman@linaro.org>
-Cc: Arnd Bergman <arnd@arndb.de>
-Cc: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Kumar Gala <galak@codeaurora.org>
-Cc: Mel Gorman <mgorman@suse.de>
+Signed-off-by: Ed Cashin <ed.cashin@acm.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+ MAINTAINERS |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-dont-offset-memmap-for-flatmem mm/page_alloc.c
---- a/mm/page_alloc.c~mm-dont-offset-memmap-for-flatmem
-+++ a/mm/page_alloc.c
-@@ -4996,6 +4996,8 @@ static void __paginginit free_area_init_
+diff -puN MAINTAINERS~aoe-update-aoe-maintainer-information MAINTAINERS
+--- a/MAINTAINERS~aoe-update-aoe-maintainer-information
++++ a/MAINTAINERS
+@@ -1675,8 +1675,8 @@ F:	drivers/misc/eeprom/at24.c
+ F:	include/linux/platform_data/at24.h
  
- static void __init_refok alloc_node_mem_map(struct pglist_data *pgdat)
- {
-+	unsigned long __maybe_unused offset = 0;
-+
- 	/* Skip empty nodes */
- 	if (!pgdat->node_spanned_pages)
- 		return;
-@@ -5012,6 +5014,7 @@ static void __init_refok alloc_node_mem_
- 		 * for the buddy allocator to function correctly.
- 		 */
- 		start = pgdat->node_start_pfn & ~(MAX_ORDER_NR_PAGES - 1);
-+		offset = pgdat->node_start_pfn - start;
- 		end = pgdat_end_pfn(pgdat);
- 		end = ALIGN(end, MAX_ORDER_NR_PAGES);
- 		size =  (end - start) * sizeof(struct page);
-@@ -5019,7 +5022,7 @@ static void __init_refok alloc_node_mem_
- 		if (!map)
- 			map = memblock_virt_alloc_node_nopanic(size,
- 							       pgdat->node_id);
--		pgdat->node_mem_map = map + (pgdat->node_start_pfn - start);
-+		pgdat->node_mem_map = map + offset;
- 	}
- #ifndef CONFIG_NEED_MULTIPLE_NODES
- 	/*
-@@ -5027,10 +5030,12 @@ static void __init_refok alloc_node_mem_
- 	 */
- 	if (pgdat == NODE_DATA(0)) {
- 		mem_map = NODE_DATA(0)->node_mem_map;
--#ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
--		if (page_to_pfn(mem_map) != pgdat->node_start_pfn)
--			mem_map -= (pgdat->node_start_pfn - ARCH_PFN_OFFSET);
--#endif /* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
-+#if defined(CONFIG_HAVE_MEMBLOCK_NODE_MAP) || defined(CONFIG_FLATMEM)
-+		if (page_to_pfn(mem_map) != pgdat->node_start_pfn) {
-+			mem_map -= offset;
-+			VM_BUG_ON(page_to_pfn(mem_map) != pgdat->node_start_pfn);
-+		}
-+#endif /* CONFIG_HAVE_MEMBLOCK_NODE_MAP || CONFIG_FLATMEM */
- 	}
- #endif
- #endif /* CONFIG_FLAT_NODE_MEM_MAP */
+ ATA OVER ETHERNET (AOE) DRIVER
+-M:	"Ed L. Cashin" <ecashin@coraid.com>
+-W:	http://support.coraid.com/support/linux
++M:	"Ed L. Cashin" <ed.cashin@acm.org>
++W:	http://www.openaoe.org/
+ S:	Supported
+ F:	Documentation/aoe/
+ F:	drivers/block/aoe/
 _
 
-Patches currently in -mm which might be from lauraa@codeaurora.org are
+Patches currently in -mm which might be from ed.cashin@acm.org are
 
-mm-cma-debugfs-interface.patch
-mm-cma-allocation-trigger.patch
-mm-cma-release-trigger.patch
-mm-cma-allocation-trigger-fix.patch
-cma-debug-document-new-debugfs-interface.patch
-mm-dont-offset-memmap-for-flatmem.patch
-seccomp-allow-compat-sigreturn-overrides.patch
-arm-use-asm-generic-for-seccomph.patch
+aoe-update-aoe-maintainer-information.patch
 
