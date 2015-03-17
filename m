@@ -1,309 +1,156 @@
 From: akpm@linux-foundation.org
-Subject: + zram-deprecate-zram-attrs-sysfs-nodes.patch added to -mm tree
-Date: Mon, 16 Mar 2015 16:17:25 -0700
-Message-ID: <55076485.yMfXNklyT2R3jfda%akpm@linux-foundation.org>
+Subject: [merged] tile-elf-reorganize-notify_exec.patch removed from -mm
+ tree
+Date: Tue, 17 Mar 2015 12:32:04 -0700
+Message-ID: <55088134.zQNl+Qk3o5R+hoAK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37528 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49463 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932601AbbCPXR0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Mar 2015 19:17:26 -0400
+	with ESMTP id S1754147AbbCQTcF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Mar 2015 15:32:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sergey.senozhatsky@gmail.com, minchan@kernel.org, ngupta@vflare.org, mm-commits@vger.kernel.org
+To: dave@stgolabs.net, cmetcalf@ezchip.com, dbueso@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: deprecate zram attrs sysfs nodes
-has been added to the -mm tree.  Its filename is
-     zram-deprecate-zram-attrs-sysfs-nodes.patch
+     Subject: tile/elf: reorganize notify_exec()
+has been removed from the -mm tree.  Its filename was
+     tile-elf-reorganize-notify_exec.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zram-deprecate-zram-attrs-sysfs-nodes.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zram-deprecate-zram-attrs-sysfs-nodes.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: zram: deprecate zram attrs sysfs nodes
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: tile/elf: reorganize notify_exec()
 
-Add Documentation/ABI/obsolete/sysfs-block-zram file and list obsolete and
-deprecated attributes there.  The patch also adds additional information
-to zram documentation and describes the basic strategy:
+This patch series addresses exe_file use for users that require the
+mmap_sem for other things (mostly looking up the related vma->vm_file). 
+In a lot of cases we end up with scenarios where we take the mmap_sem in
+get_mm_exe_file(), just to then take it again soon after.  This is only
+temporary as we will remove the need for mmap_sem when dealing with
+exe_file.
 
-- the existing RW nodes will be downgraded to WO nodes (in 4.11)
-- deprecated RO sysfs nodes will eventually be removed (in 4.11)
+This patch (of 3):
 
-Users will be additionally notified about deprecated attr usage by
-pr_warn_once() (added to every deprecated attr _show()), as suggested by
-Minchan Kim.
+In the future mm->exe_file will be done without mmap_sem serialization,
+thus isolate and reorganize the tile elf code to make the transition
+easier.  Good users will, make use of the more standard get_mm_exe_file(),
+requiring only holding the mmap_sem to read the value, and relying on
+reference counting to make sure that the exe file won't dissappear
+underneath us.
 
-User space is advised to use zram<id>/stat, zram<id>/io_stat and
-zram<id>/mm_stat files.
+The visible effects of this patch are:
 
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Reported-by: Minchan Kim <minchan@kernel.org>
-Cc: Nitin Gupta <ngupta@vflare.org>
+   o We now take and drop the mmap_sem more often. Instead of
+     just in arch_setup_additional_pages(), we also do it in:
+
+     1) get_mm_exe_file()
+     2) to get the mm->vm_file and notify the simulator.
+
+    [Note that 1) will disappear once we change the locking
+     rules for exe_file.]
+
+   o We avoid getting a free page and doing d_path() while
+     holding the mmap_sem. This requires reordering the checks.
+
+Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+Cc: Chris Metcalf <cmetcalf@ezchip.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/obsolete/sysfs-block-zram |  119 ++++++++++++++++++
- Documentation/blockdev/zram.txt             |   16 ++
- drivers/block/zram/zram_drv.c               |   15 ++
- 3 files changed, 150 insertions(+)
+ arch/tile/mm/elf.c |   47 ++++++++++++++++++++++++++-----------------
+ 1 file changed, 29 insertions(+), 18 deletions(-)
 
-diff -puN /dev/null Documentation/ABI/obsolete/sysfs-block-zram
---- /dev/null
-+++ a/Documentation/ABI/obsolete/sysfs-block-zram
-@@ -0,0 +1,119 @@
-+What:		/sys/block/zram<id>/num_reads
-+Date:		August 2015
-+Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-+Description:
-+		The num_reads file is read-only and specifies the number of
-+		reads (failed or successful) done on this device.
-+		Now accessible via zram<id>/stat node.
-+
-+What:		/sys/block/zram<id>/num_writes
-+Date:		August 2015
-+Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-+Description:
-+		The num_writes file is read-only and specifies the number of
-+		writes (failed or successful) done on this device.
-+		Now accessible via zram<id>/stat node.
-+
-+What:		/sys/block/zram<id>/invalid_io
-+Date:		August 2015
-+Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-+Description:
-+		The invalid_io file is read-only and specifies the number of
-+		non-page-size-aligned I/O requests issued to this device.
-+		Now accessible via zram<id>/io_stat node.
-+
-+What:		/sys/block/zram<id>/failed_reads
-+Date:		August 2015
-+Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-+Description:
-+		The failed_reads file is read-only and specifies the number of
-+		failed reads happened on this device.
-+		Now accessible via zram<id>/io_stat node.
-+
-+What:		/sys/block/zram<id>/failed_writes
-+Date:		August 2015
-+Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-+Description:
-+		The failed_writes file is read-only and specifies the number of
-+		failed writes happened on this device.
-+		Now accessible via zram<id>/io_stat node.
-+
-+What:		/sys/block/zram<id>/notify_free
-+Date:		August 2015
-+Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-+Description:
-+		The notify_free file is read-only. Depending on device usage
-+		scenario it may account a) the number of pages freed because
-+		of swap slot free notifications or b) the number of pages freed
-+		because of REQ_DISCARD requests sent by bio. The former ones
-+		are sent to a swap block device when a swap slot is freed, which
-+		implies that this disk is being used as a swap disk. The latter
-+		ones are sent by filesystem mounted with discard option,
-+		whenever some data blocks are getting discarded.
-+		Now accessible via zram<id>/io_stat node.
-+
-+What:		/sys/block/zram<id>/zero_pages
-+Date:		August 2015
-+Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-+Description:
-+		The zero_pages file is read-only and specifies number of zero
-+		filled pages written to this disk. No memory is allocated for
-+		such pages.
-+		Now accessible via zram<id>/mm_stat node.
-+
-+What:		/sys/block/zram<id>/orig_data_size
-+Date:		August 2015
-+Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-+Description:
-+		The orig_data_size file is read-only and specifies uncompressed
-+		size of data stored in this disk. This excludes zero-filled
-+		pages (zero_pages) since no memory is allocated for them.
-+		Unit: bytes
-+		Now accessible via zram<id>/mm_stat node.
-+
-+What:		/sys/block/zram<id>/compr_data_size
-+Date:		August 2015
-+Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-+Description:
-+		The compr_data_size file is read-only and specifies compressed
-+		size of data stored in this disk. So, compression ratio can be
-+		calculated using orig_data_size and this statistic.
-+		Unit: bytes
-+		Now accessible via zram<id>/mm_stat node.
-+
-+What:		/sys/block/zram<id>/mem_used_total
-+Date:		August 2015
-+Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-+Description:
-+		The mem_used_total file is read-only and specifies the amount
-+		of memory, including allocator fragmentation and metadata
-+		overhead, allocated for this disk. So, allocator space
-+		efficiency can be calculated using compr_data_size and this
-+		statistic.
-+		Unit: bytes
-+		Now accessible via zram<id>/mm_stat node.
-+
-+What:		/sys/block/zram<id>/mem_used_max
-+Date:		August 2015
-+Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-+Description:
-+		The mem_used_max file is read/write and specifies the amount
-+		of maximum memory zram have consumed to store compressed data.
-+		For resetting the value, you should write "0". Otherwise,
-+		you could see -EINVAL.
-+		Unit: bytes
-+		Downgraded to write-only node: so it's possible to set new
-+		value only; its current value is stored in zram<id>/mm_stat
-+		node.
-+
-+What:		/sys/block/zram<id>/mem_limit
-+Date:		August 2015
-+Contact:	Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-+Description:
-+		The mem_limit file is read/write and specifies the maximum
-+		amount of memory ZRAM can use to store the compressed data.
-+		The limit could be changed in run time and "0" means disable
-+		the limit.  No limit is the initial state.  Unit: bytes
-+		Downgraded to write-only node: so it's possible to set new
-+		value only; its current value is stored in zram<id>/mm_stat
-+		node.
-diff -puN Documentation/blockdev/zram.txt~zram-deprecate-zram-attrs-sysfs-nodes Documentation/blockdev/zram.txt
---- a/Documentation/blockdev/zram.txt~zram-deprecate-zram-attrs-sysfs-nodes
-+++ a/Documentation/blockdev/zram.txt
-@@ -148,6 +148,22 @@ num_migrated      RO    the number of ob
- compact           WO    trigger memory compaction
+diff -puN arch/tile/mm/elf.c~tile-elf-reorganize-notify_exec arch/tile/mm/elf.c
+--- a/arch/tile/mm/elf.c~tile-elf-reorganize-notify_exec
++++ a/arch/tile/mm/elf.c
+@@ -17,6 +17,7 @@
+ #include <linux/binfmts.h>
+ #include <linux/compat.h>
+ #include <linux/mman.h>
++#include <linux/file.h>
+ #include <linux/elf.h>
+ #include <asm/pgtable.h>
+ #include <asm/pgalloc.h>
+@@ -39,30 +40,34 @@ static void sim_notify_exec(const char *
  
- 
-+WARNING
-+=======
-+per-stat sysfs attributes are considered to be deprecated.
-+The basic strategy is:
-+-- the existing RW nodes will be downgraded to WO nodes (in linux 4.11)
-+-- deprecated RO sysfs nodes will eventually be removed (in linux 4.11)
-+
-+The list of deprecated attributes can be found here:
-+Documentation/ABI/obsolete/sysfs-block-zram
-+
-+Basically, every attribute that has its own read accessible sysfs node
-+(e.g. num_reads) *AND* is accessible via one of the stat files (zram<id>/stat
-+or zram<id>/io_stat or zram<id>/mm_stat) is considered to be deprecated.
-+
-+User space is advised to use the following files to read the device statistics.
-+
- File /sys/block/zram<id>/stat
- 
- Represents block layer statistics. Read Documentation/block/stat.txt for
-diff -puN drivers/block/zram/zram_drv.c~zram-deprecate-zram-attrs-sysfs-nodes drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-deprecate-zram-attrs-sysfs-nodes
-+++ a/drivers/block/zram/zram_drv.c
-@@ -47,11 +47,22 @@ static const char *default_compressor =
- /* Module params (documentation at end) */
- static unsigned int num_devices = 1;
- 
-+static inline void deprecated_attr_warn(const char *name)
-+{
-+	pr_warn_once("%d (%s) Attribute %s (and others) will be removed. %s\n",
-+			task_pid_nr(current),
-+			current->comm,
-+			name,
-+			"See zram documentation.");
-+}
-+
- #define ZRAM_ATTR_RO(name)						\
- static ssize_t name##_show(struct device *d,				\
- 				struct device_attribute *attr, char *b)	\
- {									\
- 	struct zram *zram = dev_to_zram(d);				\
-+									\
-+	deprecated_attr_warn(__stringify(name));			\
- 	return scnprintf(b, PAGE_SIZE, "%llu\n",			\
- 		(u64)atomic64_read(&zram->stats.name));			\
- }									\
-@@ -206,6 +217,7 @@ static ssize_t orig_data_size_show(struc
+ static int notify_exec(struct mm_struct *mm)
  {
- 	struct zram *zram = dev_to_zram(dev);
++	int ret = 0;
+ 	char *buf, *path;
+ 	struct vm_area_struct *vma;
++	struct file *exe_file;
  
-+	deprecated_attr_warn("orig_data_size");
- 	return scnprintf(buf, PAGE_SIZE, "%llu\n",
- 		(u64)(atomic64_read(&zram->stats.pages_stored)) << PAGE_SHIFT);
+ 	if (!sim_is_simulator())
+ 		return 1;
+ 
+-	if (mm->exe_file == NULL)
+-		return 0;
+-
+-	for (vma = current->mm->mmap; ; vma = vma->vm_next) {
+-		if (vma == NULL)
+-			return 0;
+-		if (vma->vm_file == mm->exe_file)
+-			break;
+-	}
+-
+ 	buf = (char *) __get_free_page(GFP_KERNEL);
+ 	if (buf == NULL)
+ 		return 0;
+ 
+-	path = d_path(&mm->exe_file->f_path, buf, PAGE_SIZE);
+-	if (IS_ERR(path)) {
+-		free_page((unsigned long)buf);
+-		return 0;
++	exe_file = get_mm_exe_file(mm);
++	if (exe_file == NULL)
++		goto done_free;
++
++	path = d_path(&exe_file->f_path, buf, PAGE_SIZE);
++	if (IS_ERR(path))
++		goto done_put;
++
++	down_read(&mm->mmap_sem);
++	for (vma = current->mm->mmap; ; vma = vma->vm_next) {
++		if (vma == NULL) {
++			up_read(&mm->mmap_sem);
++			goto done_put;
++		}
++		if (vma->vm_file == exe_file)
++			break;
+ 	}
+ 
+ 	/*
+@@ -80,14 +85,20 @@ static int notify_exec(struct mm_struct
+ 			__insn_mtspr(SPR_SIM_CONTROL,
+ 				     (SIM_CONTROL_DLOPEN
+ 				      | (c << _SIM_CONTROL_OPERATOR_BITS)));
+-			if (c == '\0')
++			if (c == '\0') {
++				ret = 1; /* success */
+ 				break;
++			}
+ 		}
+ 	}
++	up_read(&mm->mmap_sem);
+ 
+ 	sim_notify_exec(path);
++done_put:
++	fput(exe_file);
++done_free:
+ 	free_page((unsigned long)buf);
+-	return 1;
++	return ret;
  }
-@@ -216,6 +228,7 @@ static ssize_t mem_used_total_show(struc
- 	u64 val = 0;
- 	struct zram *zram = dev_to_zram(dev);
  
-+	deprecated_attr_warn("mem_used_total");
- 	down_read(&zram->init_lock);
- 	if (init_done(zram)) {
- 		struct zram_meta *meta = zram->meta;
-@@ -245,6 +258,7 @@ static ssize_t mem_limit_show(struct dev
- 	u64 val;
- 	struct zram *zram = dev_to_zram(dev);
+ /* Notify a running simulator, if any, that we loaded an interpreter. */
+@@ -109,8 +120,6 @@ int arch_setup_additional_pages(struct l
+ 	struct mm_struct *mm = current->mm;
+ 	int retval = 0;
  
-+	deprecated_attr_warn("mem_limit");
- 	down_read(&zram->init_lock);
- 	val = zram->limit_pages;
- 	up_read(&zram->init_lock);
-@@ -276,6 +290,7 @@ static ssize_t mem_used_max_show(struct
- 	u64 val = 0;
- 	struct zram *zram = dev_to_zram(dev);
- 
-+	deprecated_attr_warn("mem_used_max");
- 	down_read(&zram->init_lock);
- 	if (init_done(zram))
- 		val = atomic_long_read(&zram->stats.max_used_pages);
-_
-
-Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
-
-zram-cosmetic-zram_attr_ro-code-formatting-tweak.patch
-zram-use-idr-instead-of-zram_devices-array.patch
-zram-factor-out-device-reset-from-reset_store.patch
-zram-reorganize-code-layout.patch
-zram-add-dynamic-device-add-remove-functionality.patch
-zram-add-dynamic-device-add-remove-functionality-fix.patch
-zram-remove-max_num_devices-limitation.patch
-zram-report-every-added-and-removed-device.patch
-zram-trivial-correct-flag-operations-comment.patch
-zram-return-zram-device_id-value-from-zram_add.patch
-zram-introduce-automatic-device_id-generation.patch
-zram-introduce-automatic-device_id-generation-fix.patch
-zram-do-not-let-user-enforce-new-device-dev_id.patch
-zsmalloc-decouple-handle-and-object.patch
-zsmalloc-factor-out-obj_.patch
-zsmalloc-support-compaction.patch
-zsmalloc-adjust-zs_almost_full.patch
-zram-support-compaction.patch
-zsmalloc-record-handle-in-page-private-for-huge-object.patch
-zsmalloc-add-fullness-into-stat.patch
-zram-remove-num_migrated-device-attr.patch
-zram-move-compact_store-to-sysfs-functions-area.patch
-zram-use-generic-start-end-io-accounting.patch
-zram-describe-device-attrs-in-documentation.patch
-zram-export-new-io_stat-sysfs-attrs.patch
-zram-export-new-mm_stat-sysfs-attrs.patch
-zram-deprecate-zram-attrs-sysfs-nodes.patch
-cpumask-dont-perform-while-loop-in-cpumask_next_and.patch
-lib-lz4-pull-out-constant-tables.patch
-
+-	down_write(&mm->mmap_sem);
