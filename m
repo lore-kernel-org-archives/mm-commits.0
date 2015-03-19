@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-remove-goto-statement-in-ocfs2_check_dir_for_entry.patch
+Subject: +
+ mm-zsmallocc-count-in-handles-size-when-calculating-pages_per_zspage.patch
  added to -mm tree
-Date: Thu, 19 Mar 2015 15:36:34 -0700
-Message-ID: <550b4f72.KOhZTiaKJ3EZG7Ev%akpm@linux-foundation.org>
+Date: Thu, 19 Mar 2015 15:44:02 -0700
+Message-ID: <550b5132.GpQoo8cTKKbSJ2gE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58747 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58767 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751581AbbCSWgg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Mar 2015 18:36:36 -0400
+	with ESMTP id S1752022AbbCSWoD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Mar 2015 18:44:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: daeseok.youn@gmail.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.com, mm-commits@vger.kernel.org
+To: yinghao.xie@samsung.com, minchan@kernel.org, ngupta@vflare.org, yinghao.xie@sumsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: remove goto statement in ocfs2_check_dir_for_entry()
+     Subject: mm/zsmalloc.c: count in handle's size when calculating pages_per_zspage
 has been added to the -mm tree.  Its filename is
-     ocfs2-remove-goto-statement-in-ocfs2_check_dir_for_entry.patch
+     mm-zsmallocc-count-in-handles-size-when-calculating-pages_per_zspage.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-remove-goto-statement-in-ocfs2_check_dir_for_entry.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-zsmallocc-count-in-handles-size-when-calculating-pages_per_zspage.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-remove-goto-statement-in-ocfs2_check_dir_for_entry.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zsmallocc-count-in-handles-size-when-calculating-pages_per_zspage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,54 +40,93 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Daeseok Youn <daeseok.youn@gmail.com>
-Subject: ocfs2: remove goto statement in ocfs2_check_dir_for_entry()
+From: Yinghao Xie <yinghao.xie@samsung.com>
+Subject: mm/zsmalloc.c: count in handle's size when calculating pages_per_zspage
 
-Signed-off-by: Daeseok Youn <daeseok.youn@gmail.com>
-Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+1. Fix wastage calculation.
+
+2. Indirect handle introduced extra ZS_HANDLE_SIZE size for each
+   object,it's transparent for upper function, but a size_class's total
+   objects will change.
+
+   take the 43rd class which class_size = 32 + 43 * 16 = 720 as example:
+	4096 * 1 % 720 = 496
+	4096 * 2 % 720 = 272
+	4096 * 3 % 720 = 48 
+	4096 * 4 %720 = 544
+
+   after handle introduced,class_size + ZS_HANDLE_SIZE (4 on 32bit) = 724
+	4096 * 1 % 724 = 476
+	4096 * 2 % 724 = 228
+	4096 * 3 % 724 = 704
+	4096 * 4 % 724 = 456
+
+
+   Clearly, ZS_HANDLE_SIZE should be considered when calculating
+   pages_per_zspage;
+
+3. In get_size_class_index(), min(zs_size_classes - 1, idx) insures a
+   huge class's index <= zs_size_classes - 1, so it's no need to check
+   again.
+
+Signed-off-by: Yinghao Xie <yinghao.xie@sumsung.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dir.c |   13 +++++--------
- 1 file changed, 5 insertions(+), 8 deletions(-)
+ mm/zsmalloc.c |   15 ++++++---------
+ 1 file changed, 6 insertions(+), 9 deletions(-)
 
-diff -puN fs/ocfs2/dir.c~ocfs2-remove-goto-statement-in-ocfs2_check_dir_for_entry fs/ocfs2/dir.c
---- a/fs/ocfs2/dir.c~ocfs2-remove-goto-statement-in-ocfs2_check_dir_for_entry
-+++ a/fs/ocfs2/dir.c
-@@ -2047,22 +2047,19 @@ int ocfs2_check_dir_for_entry(struct ino
- 			      const char *name,
- 			      int namelen)
- {
--	int ret;
-+	int ret = 0;
- 	struct ocfs2_dir_lookup_result lookup = { NULL, };
+diff -puN mm/zsmalloc.c~mm-zsmallocc-count-in-handles-size-when-calculating-pages_per_zspage mm/zsmalloc.c
+--- a/mm/zsmalloc.c~mm-zsmallocc-count-in-handles-size-when-calculating-pages_per_zspage
++++ a/mm/zsmalloc.c
+@@ -731,7 +731,8 @@ out:
+  * to form a zspage for each size class. This is important
+  * to reduce wastage due to unusable space left at end of
+  * each zspage which is given as:
+- *	wastage = Zp - Zp % size_class
++ *	wastage = Zp % (class_size + ZS_HANDLE_SIZE)
++ *	usage = Zp - wastage
+  * where Zp = zspage size = k * PAGE_SIZE where k = 1, 2, ...
+  *
+  * For example, for size class of 3/8 * PAGE_SIZE, we should
+@@ -744,6 +745,9 @@ static int get_pages_per_zspage(int clas
+ 	/* zspage order which gives maximum used size per KB */
+ 	int max_usedpc_order = 1;
  
- 	trace_ocfs2_check_dir_for_entry(
- 		(unsigned long long)OCFS2_I(dir)->ip_blkno, namelen, name);
++	if (class_size > ZS_MAX_ALLOC_SIZE)
++		class_size = ZS_MAX_ALLOC_SIZE;
++
+ 	for (i = 1; i <= ZS_MAX_PAGES_PER_ZSPAGE; i++) {
+ 		int zspage_size;
+ 		int waste, usedpc;
+@@ -1397,11 +1401,6 @@ unsigned long zs_malloc(struct zs_pool *
+ 	/* extra space in chunk to keep the handle */
+ 	size += ZS_HANDLE_SIZE;
+ 	class = pool->size_class[get_size_class_index(size)];
+-	/* In huge class size, we store the handle into first_page->private */
+-	if (class->huge) {
+-		size -= ZS_HANDLE_SIZE;
+-		class = pool->size_class[get_size_class_index(size)];
+-	}
  
--	ret = -EEXIST;
--	if (ocfs2_find_entry(name, namelen, dir, &lookup) == 0)
--		goto bail;
-+	if (ocfs2_find_entry(name, namelen, dir, &lookup) == 0) {
-+		ret = -EEXIST;
-+		mlog_errno(ret);
-+	}
+ 	spin_lock(&class->lock);
+ 	first_page = find_get_zspage(class);
+@@ -1827,9 +1826,7 @@ struct zs_pool *zs_create_pool(char *nam
+ 		struct size_class *class;
  
--	ret = 0;
--bail:
- 	ocfs2_free_dir_lookup_result(&lookup);
+ 		size = ZS_MIN_ALLOC_SIZE + i * ZS_SIZE_CLASS_DELTA;
+-		if (size > ZS_MAX_ALLOC_SIZE)
+-			size = ZS_MAX_ALLOC_SIZE;
+-		pages_per_zspage = get_pages_per_zspage(size);
++		pages_per_zspage = get_pages_per_zspage(size + ZS_HANDLE_SIZE);
  
--	if (ret)
--		mlog_errno(ret);
- 	return ret;
- }
- 
+ 		/*
+ 		 * size_class is used for normal zsmalloc operation such
 _
 
-Patches currently in -mm which might be from daeseok.youn@gmail.com are
+Patches currently in -mm which might be from yinghao.xie@samsung.com are
 
-ocfs2-avoid-a-pointless-delay-in-o2cb_cluster_check.patch
-ocfs2-remove-goto-statement-in-ocfs2_check_dir_for_entry.patch
+mm-zsmallocc-count-in-handles-size-when-calculating-pages_per_zspage.patch
 
