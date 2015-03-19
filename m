@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- signal-remove-warning-about-using-si_tkill-in-rt_sigqueueinfo.patch added
- to -mm tree
-Date: Thu, 19 Mar 2015 15:30:45 -0700
-Message-ID: <550b4e15.vk3xgzSBmx6KDQ9V%akpm@linux-foundation.org>
+Subject: + ocfs2-remove-goto-statement-in-ocfs2_check_dir_for_entry.patch
+ added to -mm tree
+Date: Thu, 19 Mar 2015 15:36:34 -0700
+Message-ID: <550b4f72.KOhZTiaKJ3EZG7Ev%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58730 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58747 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750852AbbCSWaq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Mar 2015 18:30:46 -0400
+	with ESMTP id S1751581AbbCSWgg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Mar 2015 18:36:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@parallels.com, oleg@redhat.com, paulmck@linux.vnet.ibm.com, richard@nod.at, mm-commits@vger.kernel.org
+To: daeseok.youn@gmail.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: signal: remove warning about using SI_TKILL in rt_[tg]sigqueueinfo
+     Subject: ocfs2: remove goto statement in ocfs2_check_dir_for_entry()
 has been added to the -mm tree.  Its filename is
-     signal-remove-warning-about-using-si_tkill-in-rt_sigqueueinfo.patch
+     ocfs2-remove-goto-statement-in-ocfs2_check_dir_for_entry.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/signal-remove-warning-about-using-si_tkill-in-rt_sigqueueinfo.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-remove-goto-statement-in-ocfs2_check_dir_for_entry.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/signal-remove-warning-about-using-si_tkill-in-rt_sigqueueinfo.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-remove-goto-statement-in-ocfs2_check_dir_for_entry.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,77 +39,54 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: signal: remove warning about using SI_TKILL in rt_[tg]sigqueueinfo
+From: Daeseok Youn <daeseok.youn@gmail.com>
+Subject: ocfs2: remove goto statement in ocfs2_check_dir_for_entry()
 
-Sending SI_TKILL from rt_[tg]sigqueueinfo was deprecated, so now we issue
-a warning on the first attempt of doing it.  We use WARN_ON_ONCE, which is
-not informative and, what is worse, taints the kernel, making the trinity
-syscall fuzzer complain false-positively from time to time.
-
-It does not look like we need this warning at all, because the behaviour
-changed quite a long time ago (2.6.39), and if an application relies on
-the old API, it gets EPERM anyway and can issue a warning by itself.
-
-So let us zap the warning in kernel.
-
-Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
-Acked-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Richard Weinberger <richard@nod.at>
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Signed-off-by: Daeseok Youn <daeseok.youn@gmail.com>
+Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |   14 +++++---------
- 1 file changed, 5 insertions(+), 9 deletions(-)
+ fs/ocfs2/dir.c |   13 +++++--------
+ 1 file changed, 5 insertions(+), 8 deletions(-)
 
-diff -puN kernel/signal.c~signal-remove-warning-about-using-si_tkill-in-rt_sigqueueinfo kernel/signal.c
---- a/kernel/signal.c~signal-remove-warning-about-using-si_tkill-in-rt_sigqueueinfo
-+++ a/kernel/signal.c
-@@ -2992,11 +2992,9 @@ static int do_rt_sigqueueinfo(pid_t pid,
- 	 * Nor can they impersonate a kill()/tgkill(), which adds source info.
- 	 */
- 	if ((info->si_code >= 0 || info->si_code == SI_TKILL) &&
--	    (task_pid_vnr(current) != pid)) {
--		/* We used to allow any < 0 si_code */
--		WARN_ON_ONCE(info->si_code < 0);
-+	    (task_pid_vnr(current) != pid))
- 		return -EPERM;
--	}
-+
- 	info->si_signo = sig;
+diff -puN fs/ocfs2/dir.c~ocfs2-remove-goto-statement-in-ocfs2_check_dir_for_entry fs/ocfs2/dir.c
+--- a/fs/ocfs2/dir.c~ocfs2-remove-goto-statement-in-ocfs2_check_dir_for_entry
++++ a/fs/ocfs2/dir.c
+@@ -2047,22 +2047,19 @@ int ocfs2_check_dir_for_entry(struct ino
+ 			      const char *name,
+ 			      int namelen)
+ {
+-	int ret;
++	int ret = 0;
+ 	struct ocfs2_dir_lookup_result lookup = { NULL, };
  
- 	/* POSIX.1b doesn't mention process groups.  */
-@@ -3041,12 +3039,10 @@ static int do_rt_tgsigqueueinfo(pid_t tg
- 	/* Not even root can pretend to send signals from the kernel.
- 	 * Nor can they impersonate a kill()/tgkill(), which adds source info.
- 	 */
--	if (((info->si_code >= 0 || info->si_code == SI_TKILL)) &&
--	    (task_pid_vnr(current) != pid)) {
--		/* We used to allow any < 0 si_code */
--		WARN_ON_ONCE(info->si_code < 0);
-+	if ((info->si_code >= 0 || info->si_code == SI_TKILL) &&
-+	    (task_pid_vnr(current) != pid))
- 		return -EPERM;
--	}
-+
- 	info->si_signo = sig;
+ 	trace_ocfs2_check_dir_for_entry(
+ 		(unsigned long long)OCFS2_I(dir)->ip_blkno, namelen, name);
  
- 	return do_send_specific(tgid, pid, sig, info);
+-	ret = -EEXIST;
+-	if (ocfs2_find_entry(name, namelen, dir, &lookup) == 0)
+-		goto bail;
++	if (ocfs2_find_entry(name, namelen, dir, &lookup) == 0) {
++		ret = -EEXIST;
++		mlog_errno(ret);
++	}
+ 
+-	ret = 0;
+-bail:
+ 	ocfs2_free_dir_lookup_result(&lookup);
+ 
+-	if (ret)
+-		mlog_errno(ret);
+ 	return ret;
+ }
+ 
 _
 
-Patches currently in -mm which might be from vdavydov@parallels.com are
+Patches currently in -mm which might be from daeseok.youn@gmail.com are
 
-mm-page_alloc-call-kernel_map_pages-in-unset_migrateype_isolate.patch
-mm-hotplug-fix-concurrent-memory-hot-add-deadlock.patch
-ocfs2-copy-fs-uuid-to-superblock.patch
-cleancache-zap-uuid-arg-of-cleancache_init_shared_fs.patch
-cleancache-forbid-overriding-cleancache_ops.patch
-cleancache-remove-limit-on-the-number-of-cleancache-enabled-filesystems.patch
-cleancache-remove-limit-on-the-number-of-cleancache-enabled-filesystems-fix.patch
-memcg-zap-mem_cgroup_lookup.patch
-memcg-remove-obsolete-comment.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-signal-remove-warning-about-using-si_tkill-in-rt_sigqueueinfo.patch
-linux-next.patch
+ocfs2-avoid-a-pointless-delay-in-o2cb_cluster_check.patch
+ocfs2-remove-goto-statement-in-ocfs2_check_dir_for_entry.patch
 
