@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-zsmallocc-count-in-handles-size-when-calculating-pages_per_zspage.patch
- added to -mm tree
-Date: Thu, 19 Mar 2015 15:44:02 -0700
-Message-ID: <550b5132.GpQoo8cTKKbSJ2gE%akpm@linux-foundation.org>
+Subject: + documentation-spi-spidev_testc-fix-warning.patch added to -mm
+ tree
+Date: Thu, 19 Mar 2015 16:38:11 -0700
+Message-ID: <550b5de3.8gLxc7kSgzOrWrzu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58767 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59128 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752022AbbCSWoD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Mar 2015 18:44:03 -0400
+	with ESMTP id S1751032AbbCSXiM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Mar 2015 19:38:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yinghao.xie@samsung.com, minchan@kernel.org, ngupta@vflare.org, yinghao.xie@sumsung.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, broonie@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/zsmalloc.c: count in handle's size when calculating pages_per_zspage
+     Subject: Documentation/spi/spidev_test.c: fix warning
 has been added to the -mm tree.  Its filename is
-     mm-zsmallocc-count-in-handles-size-when-calculating-pages_per_zspage.patch
+     documentation-spi-spidev_testc-fix-warning.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-zsmallocc-count-in-handles-size-when-calculating-pages_per_zspage.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/documentation-spi-spidev_testc-fix-warning.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zsmallocc-count-in-handles-size-when-calculating-pages_per_zspage.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/documentation-spi-spidev_testc-fix-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,93 +39,85 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yinghao Xie <yinghao.xie@samsung.com>
-Subject: mm/zsmalloc.c: count in handle's size when calculating pages_per_zspage
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Documentation/spi/spidev_test.c: fix warning
 
-1. Fix wastage calculation.
+Documentation/spi/spidev_test.c:83:5: warning: no previous prototype for 'unespcape' [-Wmissing-prototypes]
 
-2. Indirect handle introduced extra ZS_HANDLE_SIZE size for each
-   object,it's transparent for upper function, but a size_class's total
-   objects will change.
+fix spelling too.
 
-   take the 43rd class which class_size = 32 + 43 * 16 = 720 as example:
-	4096 * 1 % 720 = 496
-	4096 * 2 % 720 = 272
-	4096 * 3 % 720 = 48 
-	4096 * 4 %720 = 544
-
-   after handle introduced,class_size + ZS_HANDLE_SIZE (4 on 32bit) = 724
-	4096 * 1 % 724 = 476
-	4096 * 2 % 724 = 228
-	4096 * 3 % 724 = 704
-	4096 * 4 % 724 = 456
-
-
-   Clearly, ZS_HANDLE_SIZE should be considered when calculating
-   pages_per_zspage;
-
-3. In get_size_class_index(), min(zs_size_classes - 1, idx) insures a
-   huge class's index <= zs_size_classes - 1, so it's no need to check
-   again.
-
-Signed-off-by: Yinghao Xie <yinghao.xie@sumsung.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Nitin Gupta <ngupta@vflare.org>
+Cc: Mark Brown <broonie@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |   15 ++++++---------
- 1 file changed, 6 insertions(+), 9 deletions(-)
+ Documentation/spi/spidev_test.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/zsmalloc.c~mm-zsmallocc-count-in-handles-size-when-calculating-pages_per_zspage mm/zsmalloc.c
---- a/mm/zsmalloc.c~mm-zsmallocc-count-in-handles-size-when-calculating-pages_per_zspage
-+++ a/mm/zsmalloc.c
-@@ -731,7 +731,8 @@ out:
-  * to form a zspage for each size class. This is important
-  * to reduce wastage due to unusable space left at end of
-  * each zspage which is given as:
-- *	wastage = Zp - Zp % size_class
-+ *	wastage = Zp % (class_size + ZS_HANDLE_SIZE)
-+ *	usage = Zp - wastage
-  * where Zp = zspage size = k * PAGE_SIZE where k = 1, 2, ...
-  *
-  * For example, for size class of 3/8 * PAGE_SIZE, we should
-@@ -744,6 +745,9 @@ static int get_pages_per_zspage(int clas
- 	/* zspage order which gives maximum used size per KB */
- 	int max_usedpc_order = 1;
- 
-+	if (class_size > ZS_MAX_ALLOC_SIZE)
-+		class_size = ZS_MAX_ALLOC_SIZE;
-+
- 	for (i = 1; i <= ZS_MAX_PAGES_PER_ZSPAGE; i++) {
- 		int zspage_size;
- 		int waste, usedpc;
-@@ -1397,11 +1401,6 @@ unsigned long zs_malloc(struct zs_pool *
- 	/* extra space in chunk to keep the handle */
- 	size += ZS_HANDLE_SIZE;
- 	class = pool->size_class[get_size_class_index(size)];
--	/* In huge class size, we store the handle into first_page->private */
--	if (class->huge) {
--		size -= ZS_HANDLE_SIZE;
--		class = pool->size_class[get_size_class_index(size)];
--	}
- 
- 	spin_lock(&class->lock);
- 	first_page = find_get_zspage(class);
-@@ -1827,9 +1826,7 @@ struct zs_pool *zs_create_pool(char *nam
- 		struct size_class *class;
- 
- 		size = ZS_MIN_ALLOC_SIZE + i * ZS_SIZE_CLASS_DELTA;
--		if (size > ZS_MAX_ALLOC_SIZE)
--			size = ZS_MAX_ALLOC_SIZE;
--		pages_per_zspage = get_pages_per_zspage(size);
-+		pages_per_zspage = get_pages_per_zspage(size + ZS_HANDLE_SIZE);
- 
- 		/*
- 		 * size_class is used for normal zsmalloc operation such
+diff -puN Documentation/spi/spidev_test.c~documentation-spi-spidev_testc-fix-warning Documentation/spi/spidev_test.c
+--- a/Documentation/spi/spidev_test.c~documentation-spi-spidev_testc-fix-warning
++++ a/Documentation/spi/spidev_test.c
+@@ -80,7 +80,7 @@ static void hex_dump(const void *src, si
+  *  Unescape - process hexadecimal escape character
+  *      converts shell input "\x23" -> 0x23
+  */
+-int unespcape(char *_dst, char *_src, size_t len)
++static int unescape(char *_dst, char *_src, size_t len)
+ {
+ 	int ret = 0;
+ 	char *src = _src;
+@@ -304,7 +304,7 @@ int main(int argc, char *argv[])
+ 		size = strlen(input_tx+1);
+ 		tx = malloc(size);
+ 		rx = malloc(size);
+-		size = unespcape((char *)tx, input_tx, size);
++		size = unescape((char *)tx, input_tx, size);
+ 		transfer(fd, tx, rx, size);
+ 		free(rx);
+ 		free(tx);
 _
 
-Patches currently in -mm which might be from yinghao.xie@samsung.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-zsmallocc-count-in-handles-size-when-calculating-pages_per_zspage.patch
+origin.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+drivers-rtc-rtc-mrst-fix-suspend-resume-fix.patch
+mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention.patch
+mm.patch
+mm-cma-release-trigger-checkpatch-fixes.patch
+mm-cma-allocation-trigger-fix.patch
+mm-compaction-enhance-compaction-finish-condition-fix.patch
+page_writeback-cleanup-mess-around-cancel_dirty_page-checkpatch-fixes.patch
+mm-hide-per-cpu-lists-in-output-of-show_mem-fix.patch
+mm-clarify-__gfp_nofail-deprecation-status-checkpatch-fixes.patch
+mm-change-vunmap-to-tear-down-huge-kva-mappings-fix.patch
+mm-mempool-do-not-allow-atomic-resizing-checkpatch-fixes.patch
+hugetlbfs-add-minimum-size-tracking-fields-to-subpool-structure-fix.patch
+hugetlbfs-add-minimum-size-accounting-to-subpools-fix.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+zram-add-dynamic-device-add-remove-functionality-fix.patch
+zram-introduce-automatic-device_id-generation-fix.patch
+zsmalloc-support-compaction-fix.patch
+kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes.patch
+lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix.patch
+lib-find__bit-reimplementation-fix.patch
+checkpatch-match-more-world-writable-permissions-fix.patch
+binfmt_misc-simplify-entry_status-fix.patch
+rtc-add-abracon-abx80x-driver-fix.patch
+fs-fat-remove-unnecessary-includes-fix.patch
+kconfig-use-macros-which-are-already-defined-fix.patch
+linux-next.patch
+linux-next-rejects.patch
+lib-kconfig-fix-up-have_arch_bitreverse-help-text.patch
+oprofile-reduce-mmap_sem-hold-for-mm-exe_file-fix.patch
+tomoyo-reduce-mmap_sem-hold-for-mm-exe_file-checkpatch-fixes.patch
+documentation-spi-spidev_testc-fix-warning.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
