@@ -1,113 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-page_alloc-call-kernel_map_pages-in-unset_migrateype_isolate.patch added to -mm tree
-Date: Wed, 18 Mar 2015 16:26:05 -0700
-Message-ID: <550a098d.gDWlNGMwomPf6f1P%akpm@linux-foundation.org>
+Subject: [merged]
+ rtc-at91rm9200-double-locking-bug-in-at91_rtc_interrupt.patch removed from
+ -mm tree
+Date: Thu, 19 Mar 2015 12:15:49 -0700
+Message-ID: <550b2065.S9UMY8nBhgFVv1Jy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39866 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54242 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754586AbbCRX0G (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Mar 2015 19:26:06 -0400
+	with ESMTP id S1751318AbbCSTPu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Mar 2015 15:15:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lauraa@codeaurora.org, gioh.kim@lge.com, iamjoonsoo.kim@lge.com, isimatu.yasuaki@jp.fujitsu.com, m.szyprowski@samsung.com, mgorman@suse.de, mina86@mina86.com, n-horiguchi@ah.jp.nec.com, qiuxishi@huawei.com, riel@redhat.com, stable@vger.kernel.org, vbabka@suse.cz, vdavydov@parallels.com, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: dan.carpenter@oracle.com, boris.brezillon@free-electrons.com, davidcdueck@googlemail.com, nicolas.ferre@atmel.com, rafael.j.wysocki@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc.c: call kernel_map_pages in unset_migrateype_isolate
-has been added to the -mm tree.  Its filename is
-     mm-page_alloc-call-kernel_map_pages-in-unset_migrateype_isolate.patch
+     Subject: drivers/rtc/rtc-at91rm9200.c: double locking bug in at91_rtc_interrupt()
+has been removed from the -mm tree.  Its filename was
+     rtc-at91rm9200-double-locking-bug-in-at91_rtc_interrupt.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-call-kernel_map_pages-in-unset_migrateype_isolate.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-call-kernel_map_pages-in-unset_migrateype_isolate.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Laura Abbott <lauraa@codeaurora.org>
-Subject: mm/page_alloc.c: call kernel_map_pages in unset_migrateype_isolate
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: drivers/rtc/rtc-at91rm9200.c: double locking bug in at91_rtc_interrupt()
 
-Commit 3c605096d315 ("mm/page_alloc: restrict max order of merging on
-isolated pageblock") changed the logic of unset_migratetype_isolate to
-check the buddy allocator and explicitly call __free_pages to merge.  The
-page that is being freed in this path never had prep_new_page called so
-set_page_refcounted is called explicitly but there is no call to
-kernel_map_pages.  With the default kernel_map_pages this is mostly
-harmless but if kernel_map_pages does any manipulation of the page tables
-(unmapping or setting pages to read only) this may trigger a fault:
+There is a typo here so we deadlock.
 
-    alloc_contig_range test_pages_isolated(ceb00, ced00) failed
-    Unable to handle kernel paging request at virtual address ffffffc0cec00000
-    pgd = ffffffc045fc4000
-    [ffffffc0cec00000] *pgd=0000000000000000
-    Internal error: Oops: 9600004f [#1] PREEMPT SMP
-    Modules linked in: exfatfs
-    CPU: 1 PID: 23237 Comm: TimedEventQueue Not tainted 3.10.49-gc72ad36-dirty #1
-    task: ffffffc03de52100 ti: ffffffc015388000 task.ti: ffffffc015388000
-    PC is at memset+0xc8/0x1c0
-    LR is at kernel_map_pages+0x1ec/0x244
-
-Fix this by calling kernel_map_pages to ensure the page is set in the
-page table properly
-
-Fixes: 3c605096d315 ("mm/page_alloc: restrict max order of merging on isolated pageblock")
-Signed-off-by: Laura Abbott <lauraa@codeaurora.org>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Acked-by: Rik van Riel <riel@redhat.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Vladimir Davydov <vdavydov@parallels.com>
-Acked-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Gioh Kim <gioh.kim@lge.com>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: <stable@vger.kernel.org>
+Fixes: dd1f1f391dd7 ('rtc: at91rm9200: rework wakeup and interrupt handling')
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Nicolas Ferre <nicolas.ferre@atmel.com>
+Acked-by: Boris Brezillon <boris.brezillon@free-electrons.com>
+Reported-by: David Dueck <davidcdueck@googlemail.com>
+Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_isolation.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/rtc/rtc-at91rm9200.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_isolation.c~mm-page_alloc-call-kernel_map_pages-in-unset_migrateype_isolate mm/page_isolation.c
---- a/mm/page_isolation.c~mm-page_alloc-call-kernel_map_pages-in-unset_migrateype_isolate
-+++ a/mm/page_isolation.c
-@@ -103,6 +103,7 @@ void unset_migratetype_isolate(struct pa
+diff -puN drivers/rtc/rtc-at91rm9200.c~rtc-at91rm9200-double-locking-bug-in-at91_rtc_interrupt drivers/rtc/rtc-at91rm9200.c
+--- a/drivers/rtc/rtc-at91rm9200.c~rtc-at91rm9200-double-locking-bug-in-at91_rtc_interrupt
++++ a/drivers/rtc/rtc-at91rm9200.c
+@@ -324,7 +324,7 @@ static irqreturn_t at91_rtc_interrupt(in
  
- 			if (!is_migrate_isolate_page(buddy)) {
- 				__isolate_free_page(page, order);
-+				kernel_map_pages(page, (1 << order), 1);
- 				set_page_refcounted(page);
- 				isolated_page = page;
- 			}
+ 		ret = IRQ_HANDLED;
+ 	}
+-	spin_lock(&suspended_lock);
++	spin_unlock(&suspended_lock);
+ 
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from lauraa@codeaurora.org are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
-mm-page_alloc-call-kernel_map_pages-in-unset_migrateype_isolate.patch
-mm-cma-debugfs-interface.patch
-mm-cma-allocation-trigger.patch
-mm-cma-release-trigger.patch
-mm-cma-allocation-trigger-fix.patch
-cma-debug-document-new-debugfs-interface.patch
-mm-dont-offset-memmap-for-flatmem.patch
-seccomp-allow-compat-sigreturn-overrides.patch
-arm-use-asm-generic-for-seccomph.patch
+ocfs2-dereferencing-freed-pointers-in-ocfs2_reflink.patch
+posix_acl-make-posix_acl_create-safer-and-cleaner.patch
+paride-fix-the-verbose-module-param.patch
+hfsplus-add-missing-curly-braces-in-hfsplus_delete_cat.patch
+memstick-mspro_block-add-missing-curly-braces.patch
+linux-next.patch
 
