@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- page-flags-define-behavior-slb-related-flags-on-compound-pages.patch added
- to -mm tree
-Date: Fri, 20 Mar 2015 13:36:12 -0700
-Message-ID: <550c84bc.tM+uD/QApdGe1pQ5%akpm@linux-foundation.org>
+ page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
+ added to -mm tree
+Date: Fri, 20 Mar 2015 13:36:28 -0700
+Message-ID: <550c84cc.foqeP8RJxTN9sH8E%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53039 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53144 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751513AbbCTUgN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Mar 2015 16:36:13 -0400
+	with ESMTP id S1751639AbbCTUg3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Mar 2015 16:36:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, cl@linux.com, dave.hansen@intel.com, hannes@cmpxchg.org, hughd@google.com, iamjoonsoo.kim@lge.com, jmarchan@redhat.com, mgorman@suse.de, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, penberg@kernel.org, riel@redhat.com, rientjes@google.com, steve.capper@linaro.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, cl@linux.com, dave.hansen@intel.com, hannes@cmpxchg.org, hughd@google.com, jmarchan@redhat.com, mgorman@suse.de, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, riel@redhat.com, steve.capper@linaro.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: page-flags: define behavior SL*B-related flags on compound pages
+     Subject: page-flags: look at head page if the flag is encoded in page->mapping
 has been added to the -mm tree.  Its filename is
-     page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
+     page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,26 +41,21 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: page-flags: define behavior SL*B-related flags on compound pages
+Subject: page-flags: look at head page if the flag is encoded in page->mapping
 
-SL*B uses compound pages and marks head pages with PG_slab.
-__SetPageSlab() and __ClearPageSlab() are never called for tail pages.
+PageAnon() and PageKsm() look at lower bits of page->mapping to check if
+the page is Anon or KSM.  page->mapping can be overloaded in tail pages.
 
-The same situation with PG_slob_free in SLOB allocator.
-
-NO_TAIL is appropriate for these flags.
+Let's always look at head page to avoid false-positives.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Dave Hansen <dave.hansen@intel.com>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Rik van Riel <riel@redhat.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Christoph Lameter <cl@linux.com>
 Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Steve Capper <steve.capper@linaro.org>
 Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
@@ -70,31 +65,28 @@ Cc: Jerome Marchand <jmarchan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ include/linux/page-flags.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN include/linux/page-flags.h~page-flags-define-behavior-slb-related-flags-on-compound-pages include/linux/page-flags.h
---- a/include/linux/page-flags.h~page-flags-define-behavior-slb-related-flags-on-compound-pages
+diff -puN include/linux/page-flags.h~page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping include/linux/page-flags.h
+--- a/include/linux/page-flags.h~page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping
 +++ a/include/linux/page-flags.h
-@@ -279,7 +279,8 @@ PAGEFLAG(Dirty, dirty, HEAD) TESTSCFLAG(
- PAGEFLAG(LRU, lru, HEAD) __CLEARPAGEFLAG(LRU, lru, HEAD)
- PAGEFLAG(Active, active, HEAD) __CLEARPAGEFLAG(Active, active, HEAD)
- 	TESTCLEARFLAG(Active, active, HEAD)
--__PAGEFLAG(Slab, slab, ANY)
-+__PAGEFLAG(Slab, slab, NO_TAIL)
-+__PAGEFLAG(SlobFree, slob_free, NO_TAIL)
- PAGEFLAG(Checked, checked, NO_COMPOUND) /* Used by some filesystems */
- PAGEFLAG(Pinned, pinned, ANY) TESTSCFLAG(Pinned, pinned, ANY)	/* Xen */
- PAGEFLAG(SavePinned, savepinned, ANY);			/* Xen */
-@@ -289,8 +290,6 @@ PAGEFLAG(SwapBacked, swapbacked, ANY)
- 	__CLEARPAGEFLAG(SwapBacked, swapbacked, ANY)
- 	__SETPAGEFLAG(SwapBacked, swapbacked, ANY)
+@@ -385,6 +385,7 @@ PAGEFLAG_FALSE(HWPoison)
  
--__PAGEFLAG(SlobFree, slob_free, ANY)
--
- /*
-  * Private page markings that may be used by the filesystem that owns the page
-  * for its own purposes.
+ static inline int PageAnon(struct page *page)
+ {
++	page = compound_head(page);
+ 	return ((unsigned long)page->mapping & PAGE_MAPPING_ANON) != 0;
+ }
+ 
+@@ -397,6 +398,7 @@ static inline int PageAnon(struct page *
+  */
+ static inline int PageKsm(struct page *page)
+ {
++	page = compound_head(page);
+ 	return ((unsigned long)page->mapping & PAGE_MAPPING_FLAGS) ==
+ 				(PAGE_MAPPING_ANON | PAGE_MAPPING_KSM);
+ }
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
