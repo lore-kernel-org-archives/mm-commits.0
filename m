@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-sanitize-page-mapping-for-tail-pages.patch added to -mm tree
-Date: Fri, 20 Mar 2015 13:36:30 -0700
-Message-ID: <550c84ce.7OZADd2nWOeYil22%akpm@linux-foundation.org>
+Subject: + page-flags-define-pg_swapcache-behavior-on-compound-pages.patch added to -mm tree
+Date: Fri, 20 Mar 2015 13:36:20 -0700
+Message-ID: <550c84c4.vipumjfXwBneUjcM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53156 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53094 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751639AbbCTUgc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Mar 2015 16:36:32 -0400
+	with ESMTP id S1751310AbbCTUgV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Mar 2015 16:36:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, cl@linux.com, dave.hansen@intel.com, hannes@cmpxchg.org, hughd@google.com, jmarchan@redhat.com, mgorman@suse.de, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, riel@redhat.com, steve.capper@linaro.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: sanitize page->mapping for tail pages
+     Subject: page-flags: define PG_swapcache behavior on compound pages
 has been added to the -mm tree.  Its filename is
-     mm-sanitize-page-mapping-for-tail-pages.patch
+     page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-sanitize-page-mapping-for-tail-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-sanitize-page-mapping-for-tail-pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,19 +39,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: sanitize page->mapping for tail pages
+Subject: page-flags: define PG_swapcache behavior on compound pages
 
-We don't define meaning of page->mapping for tail pages.  Currently it's
-always NULL, which can be inconsistent with head page and potentially lead
-to problems.
-
-Let's poison the pointer to catch all illigal uses.
-
-page_rmapping() and page_mapping() are changed to look on head page.
-
-The only illegal use I've caught so far is __GPF_COMP pages from sound
-subsystem, mapped with PTEs.  do_shared_fault() is changed to use
-page_rmapping() instead of direct access to fault_page->mapping.
+Swap cannot handle compound pages so far. Transparent huge pages are
+split on the way to swap.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -70,102 +61,21 @@ Cc: Jerome Marchand <jmarchan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h     |    1 +
- include/linux/poison.h |    4 ++++
- mm/huge_memory.c       |    2 +-
- mm/memory.c            |    2 +-
- mm/page_alloc.c        |    7 +++++++
- mm/util.c              |    5 ++++-
- 6 files changed, 18 insertions(+), 3 deletions(-)
+ include/linux/page-flags.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/mm.h~mm-sanitize-page-mapping-for-tail-pages include/linux/mm.h
---- a/include/linux/mm.h~mm-sanitize-page-mapping-for-tail-pages
-+++ a/include/linux/mm.h
-@@ -915,6 +915,7 @@ extern struct address_space *page_mappin
- /* Neutral page->mapping pointer to address_space or anon_vma or other */
- static inline void *page_rmapping(struct page *page)
- {
-+	page = compound_head(page);
- 	return (void *)((unsigned long)page->mapping & ~PAGE_MAPPING_FLAGS);
- }
+diff -puN include/linux/page-flags.h~page-flags-define-pg_swapcache-behavior-on-compound-pages include/linux/page-flags.h
+--- a/include/linux/page-flags.h~page-flags-define-pg_swapcache-behavior-on-compound-pages
++++ a/include/linux/page-flags.h
+@@ -330,7 +330,7 @@ PAGEFLAG_FALSE(HighMem)
+ #endif
  
-diff -puN include/linux/poison.h~mm-sanitize-page-mapping-for-tail-pages include/linux/poison.h
---- a/include/linux/poison.h~mm-sanitize-page-mapping-for-tail-pages
-+++ a/include/linux/poison.h
-@@ -32,6 +32,10 @@
- /********** mm/debug-pagealloc.c **********/
- #define PAGE_POISON 0xaa
- 
-+/********** mm/page_alloc.c ************/
-+
-+#define TAIL_MAPPING	((void *) 0x01014A11 + POISON_POINTER_DELTA)
-+
- /********** mm/slab.c **********/
- /*
-  * Magic nums for obj red zoning.
-diff -puN mm/huge_memory.c~mm-sanitize-page-mapping-for-tail-pages mm/huge_memory.c
---- a/mm/huge_memory.c~mm-sanitize-page-mapping-for-tail-pages
-+++ a/mm/huge_memory.c
-@@ -1704,7 +1704,7 @@ static void __split_huge_page_refcount(s
- 		*/
- 		page_tail->_mapcount = page->_mapcount;
- 
--		BUG_ON(page_tail->mapping);
-+		BUG_ON(page_tail->mapping != TAIL_MAPPING);
- 		page_tail->mapping = page->mapping;
- 
- 		page_tail->index = page->index + i;
-diff -puN mm/memory.c~mm-sanitize-page-mapping-for-tail-pages mm/memory.c
---- a/mm/memory.c~mm-sanitize-page-mapping-for-tail-pages
-+++ a/mm/memory.c
-@@ -3033,7 +3033,7 @@ static int do_shared_fault(struct mm_str
- 	 * pinned by vma->vm_file's reference.  We rely on unlock_page()'s
- 	 * release semantics to prevent the compiler from undoing this copying.
- 	 */
--	mapping = fault_page->mapping;
-+	mapping = page_rmapping(fault_page);
- 	unlock_page(fault_page);
- 	if ((dirtied || vma->vm_ops->page_mkwrite) && mapping) {
- 		/*
-diff -puN mm/page_alloc.c~mm-sanitize-page-mapping-for-tail-pages mm/page_alloc.c
---- a/mm/page_alloc.c~mm-sanitize-page-mapping-for-tail-pages
-+++ a/mm/page_alloc.c
-@@ -373,6 +373,7 @@ void prep_compound_page(struct page *pag
- 	for (i = 1; i < nr_pages; i++) {
- 		struct page *p = page + i;
- 		set_page_count(p, 0);
-+		p->mapping = TAIL_MAPPING;
- 		p->first_page = page;
- 		/* Make sure p->first_page is always valid for PageTail() */
- 		smp_wmb();
-@@ -765,6 +766,12 @@ static void free_one_page(struct zone *z
- 
- static int free_tail_pages_check(struct page *head_page, struct page *page)
- {
-+	if (page->mapping != TAIL_MAPPING) {
-+		bad_page(page, "corrupted mapping in tail page", 0);
-+		page->mapping = NULL;
-+		return 1;
-+	}
-+	page->mapping = NULL;
- 	if (!IS_ENABLED(CONFIG_DEBUG_VM))
- 		return 0;
- 	if (unlikely(!PageTail(page))) {
-diff -puN mm/util.c~mm-sanitize-page-mapping-for-tail-pages mm/util.c
---- a/mm/util.c~mm-sanitize-page-mapping-for-tail-pages
-+++ a/mm/util.c
-@@ -327,7 +327,10 @@ EXPORT_SYMBOL(kvfree);
- 
- struct address_space *page_mapping(struct page *page)
- {
--	struct address_space *mapping = page->mapping;
-+	struct address_space *mapping;
-+
-+	page = compound_head(page);
-+	mapping = page->mapping;
- 
- 	/* This happens if someone calls flush_dcache_page on slab page */
- 	if (unlikely(PageSlab(page)))
+ #ifdef CONFIG_SWAP
+-PAGEFLAG(SwapCache, swapcache, ANY)
++PAGEFLAG(SwapCache, swapcache, NO_COMPOUND)
+ #else
+ PAGEFLAG_FALSE(SwapCache)
+ #endif
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
