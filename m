@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
+Subject: +
+ page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
  added to -mm tree
-Date: Fri, 20 Mar 2015 13:36:22 -0700
-Message-ID: <550c84c6.yF203YhWSUS8pUle%akpm@linux-foundation.org>
+Date: Fri, 20 Mar 2015 13:36:14 -0700
+Message-ID: <550c84be.qUu7pN4PhqbWbTkZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53105 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53055 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751638AbbCTUgX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Mar 2015 16:36:23 -0400
+	with ESMTP id S1751569AbbCTUgP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Mar 2015 16:36:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, cl@linux.com, dave.hansen@intel.com, hannes@cmpxchg.org, hughd@google.com, jmarchan@redhat.com, mgorman@suse.de, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, riel@redhat.com, steve.capper@linaro.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: page-flags: define PG_mlocked behavior on compound pages
+     Subject: page-flags: define behavior of Xen-related flags on compound pages
 has been added to the -mm tree.  Its filename is
-     page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
+     page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,11 +41,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: page-flags: define PG_mlocked behavior on compound pages
+Subject: page-flags: define behavior of Xen-related flags on compound pages
 
-Transparent huge pages can be mlocked -- whole compund page at once.
-Something went wrong if we're trying to mlock() tail page.
-Let's use NO_TAIL.
+PG_pinned and PG_savepinned are about page table's pages which are never
+compound.
+
+I'm not so sure about PG_foreign, but it seems we shouldn't see compound
+pages there too.
+
+Let's use NO_COMPOUND for all of them.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -63,24 +68,28 @@ Cc: Jerome Marchand <jmarchan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ include/linux/page-flags.h |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/page-flags.h~page-flags-define-pg_mlocked-behavior-on-compound-pages include/linux/page-flags.h
---- a/include/linux/page-flags.h~page-flags-define-pg_mlocked-behavior-on-compound-pages
+diff -puN include/linux/page-flags.h~page-flags-define-behavior-of-xen-related-flags-on-compound-pages include/linux/page-flags.h
+--- a/include/linux/page-flags.h~page-flags-define-behavior-of-xen-related-flags-on-compound-pages
 +++ a/include/linux/page-flags.h
-@@ -340,8 +340,9 @@ PAGEFLAG(Unevictable, unevictable, HEAD)
- 	TESTCLEARFLAG(Unevictable, unevictable, HEAD)
- 
- #ifdef CONFIG_MMU
--PAGEFLAG(Mlocked, mlocked, ANY) __CLEARPAGEFLAG(Mlocked, mlocked, ANY)
--	TESTSCFLAG(Mlocked, mlocked, ANY) __TESTCLEARFLAG(Mlocked, mlocked, ANY)
-+PAGEFLAG(Mlocked, mlocked, NO_TAIL) __CLEARPAGEFLAG(Mlocked, mlocked, NO_TAIL)
-+	TESTSCFLAG(Mlocked, mlocked, NO_TAIL)
-+	__TESTCLEARFLAG(Mlocked, mlocked, NO_TAIL)
- #else
- PAGEFLAG_FALSE(Mlocked) __CLEARPAGEFLAG_NOOP(Mlocked)
- 	TESTSCFLAG_FALSE(Mlocked) __TESTCLEARFLAG_FALSE(Mlocked)
+@@ -282,9 +282,12 @@ PAGEFLAG(Active, active, HEAD) __CLEARPA
+ __PAGEFLAG(Slab, slab, NO_TAIL)
+ __PAGEFLAG(SlobFree, slob_free, NO_TAIL)
+ PAGEFLAG(Checked, checked, NO_COMPOUND) /* Used by some filesystems */
+-PAGEFLAG(Pinned, pinned, ANY) TESTSCFLAG(Pinned, pinned, ANY)	/* Xen */
+-PAGEFLAG(SavePinned, savepinned, ANY);			/* Xen */
+-PAGEFLAG(Foreign, foreign, ANY);				/* Xen */
++
++/* Xen */
++PAGEFLAG(Pinned, pinned, NO_COMPOUND) TESTSCFLAG(Pinned, pinned, NO_COMPOUND)
++PAGEFLAG(SavePinned, savepinned, NO_COMPOUND)
++PAGEFLAG(Foreign, foreign, NO_COMPOUND)
++
+ PAGEFLAG(Reserved, reserved, ANY) __CLEARPAGEFLAG(Reserved, reserved, ANY)
+ PAGEFLAG(SwapBacked, swapbacked, ANY)
+ 	__CLEARPAGEFLAG(SwapBacked, swapbacked, ANY)
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
