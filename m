@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- irq_work-fix-build-failure-when-config_irq_work-not-defined.patch added to
- -mm tree
-Date: Fri, 20 Mar 2015 13:02:29 -0700
-Message-ID: <550c7cd5.ea3zDfIH+XUbOGFl%akpm@linux-foundation.org>
+Subject: + page-flags-trivial-cleanup-for-pagetrans-helpers.patch added to -mm tree
+Date: Fri, 20 Mar 2015 13:36:00 -0700
+Message-ID: <550c84b0.vDTMs8P/EZOoWzOA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52582 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52975 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750925AbbCTUCa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Mar 2015 16:02:30 -0400
+	with ESMTP id S1751509AbbCTUgC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Mar 2015 16:36:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rostedt@goodmis.org, mingo@kernel.org, peterz@infradead.org, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, cl@linux.com, dave.hansen@intel.com, hannes@cmpxchg.org, hughd@google.com, jmarchan@redhat.com, mgorman@suse.de, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, riel@redhat.com, steve.capper@linaro.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: irq_work: fix build failure when CONFIG_IRQ_WORK not defined
+     Subject: page-flags: trivial cleanup for PageTrans* helpers
 has been added to the -mm tree.  Its filename is
-     irq_work-fix-build-failure-when-config_irq_work-not-defined.patch
+     page-flags-trivial-cleanup-for-pagetrans-helpers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/irq_work-fix-build-failure-when-config_irq_work-not-defined.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/page-flags-trivial-cleanup-for-pagetrans-helpers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/irq_work-fix-build-failure-when-config_irq_work-not-defined.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/page-flags-trivial-cleanup-for-pagetrans-helpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,57 +38,106 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Steven Rostedt <rostedt@goodmis.org>
-Subject: irq_work: fix build failure when CONFIG_IRQ_WORK not defined
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: page-flags: trivial cleanup for PageTrans* helpers
 
-When CONFIG_IRQ_WORK is not defined (difficult to do, as it also requires
-CONFIG_PRINTK not to be defined), we get a build failure:
+Use TESTPAGEFLAG_FALSE() to get it a bit cleaner.
 
-kernel/built-in.o: In function `flush_smp_call_function_queue':
-kernel/smp.c:263: undefined reference to `irq_work_run'
-kernel/smp.c:263: undefined reference to `irq_work_run'
-Makefile:933: recipe for target 'vmlinux' failed
-
-Simplest thing to do is to make irq_work_run() a nop when not set.
-
-Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Steve Capper <steve.capper@linaro.org>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Jerome Marchand <jmarchan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/irq_work.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/page-flags.h |   18 +++---------------
+ 1 file changed, 3 insertions(+), 15 deletions(-)
 
-diff -puN include/linux/irq_work.h~irq_work-fix-build-failure-when-config_irq_work-not-defined include/linux/irq_work.h
---- a/include/linux/irq_work.h~irq_work-fix-build-failure-when-config_irq_work-not-defined
-+++ a/include/linux/irq_work.h
-@@ -38,16 +38,17 @@ bool irq_work_queue(struct irq_work *wor
- bool irq_work_queue_on(struct irq_work *work, int cpu);
- #endif
+diff -puN include/linux/page-flags.h~page-flags-trivial-cleanup-for-pagetrans-helpers include/linux/page-flags.h
+--- a/include/linux/page-flags.h~page-flags-trivial-cleanup-for-pagetrans-helpers
++++ a/include/linux/page-flags.h
+@@ -511,21 +511,9 @@ static inline int PageTransTail(struct p
+ }
  
--void irq_work_run(void);
- void irq_work_tick(void);
- void irq_work_sync(struct irq_work *work);
- 
- #ifdef CONFIG_IRQ_WORK
- #include <asm/irq_work.h>
- 
-+void irq_work_run(void);
- bool irq_work_needs_cpu(void);
  #else
- static inline bool irq_work_needs_cpu(void) { return false; }
-+static inline void irq_work_run(void) { }
+-
+-static inline int PageTransHuge(struct page *page)
+-{
+-	return 0;
+-}
+-
+-static inline int PageTransCompound(struct page *page)
+-{
+-	return 0;
+-}
+-
+-static inline int PageTransTail(struct page *page)
+-{
+-	return 0;
+-}
++TESTPAGEFLAG_FALSE(TransHuge)
++TESTPAGEFLAG_FALSE(TransCompound)
++TESTPAGEFLAG_FALSE(TransTail)
  #endif
  
- #endif /* _LINUX_IRQ_WORK_H */
+ /*
 _
 
-Patches currently in -mm which might be from rostedt@goodmis.org are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-mm-memory-failurec-define-page-types-for-action_result-in-one-place.patch
-printk-comment-pr_cont-stating-it-is-only-to-continue-a-line.patch
-tracing-remove-use-of-seq_printf-return-value.patch
+origin.patch
+mm-rename-foll_mlock-to-foll_populate.patch
+mm-rename-__mlock_vma_pages_range-to-populate_vma_page_range.patch
+mm-move-gup-posix-mlock-error-conversion-out-of-__mm_populate.patch
+mm-move-mm_populate-related-code-to-mm-gupc.patch
+mm-incorporate-zero-pages-into-transparent-huge-pages.patch
+mm-incorporate-zero-pages-into-transparent-huge-pages-fix.patch
+alpha-expose-number-of-page-table-levels-on-kconfig-level.patch
+arm64-expose-number-of-page-table-levels-on-kconfig-level.patch
+arm-expose-number-of-page-table-levels-on-kconfig-level.patch
+ia64-expose-number-of-page-table-levels-on-kconfig-level.patch
+m68k-mark-pmd-folded-and-expose-number-of-page-table-levels.patch
+mips-expose-number-of-page-table-levels-on-kconfig-level.patch
+parisc-expose-number-of-page-table-levels-on-kconfig-level.patch
+powerpc-expose-number-of-page-table-levels-on-kconfig-level.patch
+s390-expose-number-of-page-table-levels.patch
+sh-expose-number-of-page-table-levels.patch
+sparc-expose-number-of-page-table-levels.patch
+tile-expose-number-of-page-table-levels.patch
+um-expose-number-of-page-table-levels.patch
+x86-expose-number-of-page-table-levels-on-kconfig-level.patch
+mm-define-default-pgtable_levels-to-two.patch
+mm-do-not-add-nr_pmds-into-mm_struct-if-pmd-is-folded.patch
+mm-refactor-do_wp_page-extract-the-reuse-case.patch
+mm-refactor-do_wp_page-rewrite-the-unlock-flow.patch
+mm-refactor-do_wp_page-extract-the-page-copy-flow.patch
+mm-refactor-do_wp_page-handling-of-shared-vma-into-a-function.patch
+mm-consolidate-all-page-flags-helpers-in-linux-page-flagsh.patch
+page-flags-trivial-cleanup-for-pagetrans-helpers.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
+page-flags-define-pg_locked-behavior-on-compound-pages.patch
+page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
+page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
+page-flags-define-pg_reserved-behavior-on-compound-pages.patch
+page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
+page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
+page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
+page-flags-define-pg_uncached-behavior-on-compound-pages.patch
+page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
+page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
+mm-sanitize-page-mapping-for-tail-pages.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
 linux-next.patch
-irq_work-fix-build-failure-when-config_irq_work-not-defined.patch
 
