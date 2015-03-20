@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-free-swp_entry-in-madvise_free.patch added to -mm tree
-Date: Fri, 20 Mar 2015 15:29:10 -0700
-Message-ID: <550c9f36.C8DMh8k/+6u8fY9w%akpm@linux-foundation.org>
+Subject: + mm-change-deactivate_page-with-deactivate_file_page.patch added to -mm tree
+Date: Fri, 20 Mar 2015 15:32:59 -0700
+Message-ID: <550ca01b.cRzxK8TY/4A4bZVL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54122 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54129 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751427AbbCTW3L (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Mar 2015 18:29:11 -0400
+	with ESMTP id S1751281AbbCTWdA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Mar 2015 18:33:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, mm-commits@vger.kernel.org
+To: minchan@kernel.org, Yalin.Wang@sonymobile.com, hannes@cmpxchg.org, mgorman@suse.de, mhocko@suse.cz, riel@redhat.com, shli@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: free swp_entry in madvise_free
+     Subject: mm: rename deactivate_page to deactivate_file_page
 has been added to the -mm tree.  Its filename is
-     mm-free-swp_entry-in-madvise_free.patch
+     mm-change-deactivate_page-with-deactivate_file_page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-free-swp_entry-in-madvise_free.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-change-deactivate_page-with-deactivate_file_page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-free-swp_entry-in-madvise_free.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-change-deactivate_page-with-deactivate_file_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,98 +39,128 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Minchan Kim <minchan@kernel.org>
-Subject: mm: free swp_entry in madvise_free
+Subject: mm: rename deactivate_page to deactivate_file_page
 
-When I test below piece of code with 12 processes(ie, 512M * 12 = 6G
-consume) on my (3G ram + 12 cpu + 8G swap, the madvise_free is siginficat
-slower (ie, 2x times) than madvise_dontneed.
-
-loop = 5;
-mmap(512M);
-while (loop--) {
-        memset(512M);
-        madvise(MADV_FREE or MADV_DONTNEED);
-}
-
-The reason is lots of swapin.
-
-1) dontneed: 1,612 swapin
-2) madvfree: 879,585 swapin
-
-If we find hinted pages were already swapped out when syscall is called,
-it's pointless to keep the swapped-out pages in pte.
-Instead, let's free the cold page because swapin is more expensive
-than (alloc page + zeroing).
-
-With this patch, it reduced swapin from 879,585 to 1,878 so elapsed time
-
-1) dontneed: 6.10user 233.50system 0:50.44elapsed
-2) madvfree: 6.03user 401.17system 1:30.67elapsed
-2) madvfree + below patch: 6.70user 339.14system 1:04.45elapsed
+"deactivate_page" was created for file invalidation so it has too specific
+logic for file-backed pages.  So, let's change the name of the function
+and date to a file-specific one and yield the generic name.
 
 Signed-off-by: Minchan Kim <minchan@kernel.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Shaohua Li <shli@kernel.org>
+Cc: Wang, Yalin <Yalin.Wang@sonymobile.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |   26 +++++++++++++++++++++++++-
- 1 file changed, 25 insertions(+), 1 deletion(-)
+ include/linux/swap.h |    2 +-
+ mm/swap.c            |   20 ++++++++++----------
+ mm/truncate.c        |    2 +-
+ 3 files changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN mm/madvise.c~mm-free-swp_entry-in-madvise_free mm/madvise.c
---- a/mm/madvise.c~mm-free-swp_entry-in-madvise_free
-+++ a/mm/madvise.c
-@@ -274,7 +274,9 @@ static int madvise_free_pte_range(pmd_t
- 	spinlock_t *ptl;
- 	pte_t *pte, ptent;
- 	struct page *page;
-+	swp_entry_t entry;
- 	unsigned long next;
-+	int nr_swap = 0;
+diff -puN include/linux/swap.h~mm-change-deactivate_page-with-deactivate_file_page include/linux/swap.h
+--- a/include/linux/swap.h~mm-change-deactivate_page-with-deactivate_file_page
++++ a/include/linux/swap.h
+@@ -307,7 +307,7 @@ extern void lru_add_drain(void);
+ extern void lru_add_drain_cpu(int cpu);
+ extern void lru_add_drain_all(void);
+ extern void rotate_reclaimable_page(struct page *page);
+-extern void deactivate_page(struct page *page);
++extern void deactivate_file_page(struct page *page);
+ extern void swap_setup(void);
  
- 	next = pmd_addr_end(addr, end);
- 	if (pmd_trans_huge(*pmd)) {
-@@ -293,8 +295,22 @@ static int madvise_free_pte_range(pmd_t
- 	for (; addr != end; pte++, addr += PAGE_SIZE) {
- 		ptent = *pte;
+ extern void add_page_to_unevictable_list(struct page *page);
+diff -puN mm/swap.c~mm-change-deactivate_page-with-deactivate_file_page mm/swap.c
+--- a/mm/swap.c~mm-change-deactivate_page-with-deactivate_file_page
++++ a/mm/swap.c
+@@ -42,7 +42,7 @@ int page_cluster;
  
--		if (!pte_present(ptent))
-+		if (pte_none(ptent))
- 			continue;
-+		/*
-+		 * If the pte has swp_entry, just clear page table to
-+		 * prevent swap-in which is more expensive rather than
-+		 * (page allocation + zeroing).
-+		 */
-+		if (!pte_present(ptent)) {
-+			entry = pte_to_swp_entry(ptent);
-+			if (non_swap_entry(entry))
-+				continue;
-+			nr_swap--;
-+			free_swap_and_cache(entry);
-+			pte_clear_not_present_full(mm, addr, pte, tlb->fullmm);
-+			continue;
-+		}
+ static DEFINE_PER_CPU(struct pagevec, lru_add_pvec);
+ static DEFINE_PER_CPU(struct pagevec, lru_rotate_pvecs);
+-static DEFINE_PER_CPU(struct pagevec, lru_deactivate_pvecs);
++static DEFINE_PER_CPU(struct pagevec, lru_deactivate_file_pvecs);
  
- 		page = vm_normal_page(vma, addr, ptent);
- 		if (!page)
-@@ -326,6 +342,14 @@ static int madvise_free_pte_range(pmd_t
- 		set_pte_at(mm, addr, pte, ptent);
- 		tlb_remove_tlb_entry(tlb, pte, addr);
+ /*
+  * This path almost never happens for VM activity - pages are normally
+@@ -743,7 +743,7 @@ void lru_cache_add_active_or_unevictable
+  * be write it out by flusher threads as this is much more effective
+  * than the single-page writeout from reclaim.
+  */
+-static void lru_deactivate_fn(struct page *page, struct lruvec *lruvec,
++static void lru_deactivate_file_fn(struct page *page, struct lruvec *lruvec,
+ 			      void *arg)
+ {
+ 	int lru, file;
+@@ -811,22 +811,22 @@ void lru_add_drain_cpu(int cpu)
+ 		local_irq_restore(flags);
  	}
-+
-+	if (nr_swap) {
-+		if (current->mm == mm)
-+			sync_mm_rss(mm);
-+
-+		add_mm_counter(mm, MM_SWAPENTS, nr_swap);
-+	}
-+
- 	arch_leave_lazy_mmu_mode();
- 	pte_unmap_unlock(pte - 1, ptl);
- next:
+ 
+-	pvec = &per_cpu(lru_deactivate_pvecs, cpu);
++	pvec = &per_cpu(lru_deactivate_file_pvecs, cpu);
+ 	if (pagevec_count(pvec))
+-		pagevec_lru_move_fn(pvec, lru_deactivate_fn, NULL);
++		pagevec_lru_move_fn(pvec, lru_deactivate_file_fn, NULL);
+ 
+ 	activate_page_drain(cpu);
+ }
+ 
+ /**
+- * deactivate_page - forcefully deactivate a page
++ * deactivate_file_page - forcefully deactivate a file page
+  * @page: page to deactivate
+  *
+  * This function hints the VM that @page is a good reclaim candidate,
+  * for example if its invalidation fails due to the page being dirty
+  * or under writeback.
+  */
+-void deactivate_page(struct page *page)
++void deactivate_file_page(struct page *page)
+ {
+ 	/*
+ 	 * In a workload with many unevictable page such as mprotect, unevictable
+@@ -836,11 +836,11 @@ void deactivate_page(struct page *page)
+ 		return;
+ 
+ 	if (likely(get_page_unless_zero(page))) {
+-		struct pagevec *pvec = &get_cpu_var(lru_deactivate_pvecs);
++		struct pagevec *pvec = &get_cpu_var(lru_deactivate_file_pvecs);
+ 
+ 		if (!pagevec_add(pvec, page))
+-			pagevec_lru_move_fn(pvec, lru_deactivate_fn, NULL);
+-		put_cpu_var(lru_deactivate_pvecs);
++			pagevec_lru_move_fn(pvec, lru_deactivate_file_fn, NULL);
++		put_cpu_var(lru_deactivate_file_pvecs);
+ 	}
+ }
+ 
+@@ -872,7 +872,7 @@ void lru_add_drain_all(void)
+ 
+ 		if (pagevec_count(&per_cpu(lru_add_pvec, cpu)) ||
+ 		    pagevec_count(&per_cpu(lru_rotate_pvecs, cpu)) ||
+-		    pagevec_count(&per_cpu(lru_deactivate_pvecs, cpu)) ||
++		    pagevec_count(&per_cpu(lru_deactivate_file_pvecs, cpu)) ||
+ 		    need_activate_page_drain(cpu)) {
+ 			INIT_WORK(work, lru_add_drain_per_cpu);
+ 			schedule_work_on(cpu, work);
+diff -puN mm/truncate.c~mm-change-deactivate_page-with-deactivate_file_page mm/truncate.c
+--- a/mm/truncate.c~mm-change-deactivate_page-with-deactivate_file_page
++++ a/mm/truncate.c
+@@ -490,7 +490,7 @@ unsigned long invalidate_mapping_pages(s
+ 			 * of interest and try to speed up its reclaim.
+ 			 */
+ 			if (!ret)
+-				deactivate_page(page);
++				deactivate_file_page(page);
+ 			count += ret;
+ 		}
+ 		pagevec_remove_exceptionals(&pvec);
 _
 
 Patches currently in -mm which might be from minchan@kernel.org are
 
+mm-change-deactivate_page-with-deactivate_file_page.patch
 mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
 mm-page_isolation-check-pfn-validity-before-access.patch
 mm-support-madvisemadv_free.patch
