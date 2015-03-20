@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + allow-compaction-of-unevictable-pages.patch added to -mm tree
-Date: Fri, 20 Mar 2015 15:19:31 -0700
-Message-ID: <550c9cf3.qGDjKWLH6fVi98Qt%akpm@linux-foundation.org>
+Subject: + mm-free-swp_entry-in-madvise_free.patch added to -mm tree
+Date: Fri, 20 Mar 2015 15:29:10 -0700
+Message-ID: <550c9f36.C8DMh8k/+6u8fY9w%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54071 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54122 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751612AbbCTWTc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Mar 2015 18:19:32 -0400
+	with ESMTP id S1751427AbbCTW3L (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Mar 2015 18:29:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: emunson@akamai.com, cl@linux.com, mgorman@suse.de, mhocko@suse.cz, peterz@infradead.org, riel@redhat.com, rientjes@google.com, tglx@linutronix.de, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Allow compaction of unevictable pages
+     Subject: mm: free swp_entry in madvise_free
 has been added to the -mm tree.  Its filename is
-     allow-compaction-of-unevictable-pages.patch
+     mm-free-swp_entry-in-madvise_free.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/allow-compaction-of-unevictable-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-free-swp_entry-in-madvise_free.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/allow-compaction-of-unevictable-pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-free-swp_entry-in-madvise_free.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,138 +38,144 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Eric B Munson <emunson@akamai.com>
-Subject: Allow compaction of unevictable pages
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm: free swp_entry in madvise_free
 
-Currently, pages which are marked as unevictable are protected from
-compaction, but not from other types of migration.  The POSIX real time
-extension explicitly states that mlock() will prevent a major page fault,
-but the spirit of this is that mlock() should give a process the ability
-to control sources of latency, including minor page faults.  However, the
-mlock manpage only explicitly says that a locked page will not be written
-to swap and this can cause some confusion.  The compaction code today does
-not give a developer who wants to avoid swap but wants to have large
-contiguous areas available any method to achieve this state.  This patch
-introduces a sysctl for controlling compaction behavior with respect to
-the unevictable lru.  Users that demand no page faults after a page is
-present can set compact_unevictable_allowed to 0 and users who need the
-large contiguous areas can enable compaction on locked memory by leaving
-the default value of 1.
+When I test below piece of code with 12 processes(ie, 512M * 12 = 6G
+consume) on my (3G ram + 12 cpu + 8G swap, the madvise_free is siginficat
+slower (ie, 2x times) than madvise_dontneed.
 
-To illustrate this problem I wrote a quick test program that mmaps a large
-number of 1MB files filled with random data.  These maps are created
-locked and read only.  Then every other mmap is unmapped and I attempt to
-allocate huge pages to the static huge page pool.  When the
-compact_unevictable_allowed sysctl is 0, I cannot allocate hugepages after
-fragmenting memory.  When the value is set to 1, allocations succeed.
+loop = 5;
+mmap(512M);
+while (loop--) {
+        memset(512M);
+        madvise(MADV_FREE or MADV_DONTNEED);
+}
 
-Signed-off-by: Eric B Munson <emunson@akamai.com>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Christoph Lameter <cl@linux.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Acked-by: Rik van Riel <riel@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Michal Hocko <mhocko@suse.cz>
+The reason is lots of swapin.
+
+1) dontneed: 1,612 swapin
+2) madvfree: 879,585 swapin
+
+If we find hinted pages were already swapped out when syscall is called,
+it's pointless to keep the swapped-out pages in pte.
+Instead, let's free the cold page because swapin is more expensive
+than (alloc page + zeroing).
+
+With this patch, it reduced swapin from 879,585 to 1,878 so elapsed time
+
+1) dontneed: 6.10user 233.50system 0:50.44elapsed
+2) madvfree: 6.03user 401.17system 1:30.67elapsed
+2) madvfree + below patch: 6.70user 339.14system 1:04.45elapsed
+
+Signed-off-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/vm.txt |   11 +++++++++++
- include/linux/compaction.h  |    1 +
- kernel/sysctl.c             |    9 +++++++++
- mm/compaction.c             |    7 +++++++
- 4 files changed, 28 insertions(+)
+ mm/madvise.c |   26 +++++++++++++++++++++++++-
+ 1 file changed, 25 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/sysctl/vm.txt~allow-compaction-of-unevictable-pages Documentation/sysctl/vm.txt
---- a/Documentation/sysctl/vm.txt~allow-compaction-of-unevictable-pages
-+++ a/Documentation/sysctl/vm.txt
-@@ -21,6 +21,7 @@ Currently, these files are in /proc/sys/
- - admin_reserve_kbytes
- - block_dump
- - compact_memory
-+- compact_unevictable_allowed
- - dirty_background_bytes
- - dirty_background_ratio
- - dirty_bytes
-@@ -106,6 +107,16 @@ huge pages although processes will also
- 
- ==============================================================
- 
-+compact_unevictable_allowed
-+
-+Available only when CONFIG_COMPACTION is set. When set to 1, compaction is
-+allowed to examine the unevictable lru (mlocked pages) for pages to compact.
-+This should be used on systems where stalls for minor page faults are an
-+acceptable trade for large contiguous free memory.  Set to 0 to prevent
-+compaction from moving pages that are unevictable.  Default value is 1.
-+
-+==============================================================
-+
- dirty_background_bytes
- 
- Contains the amount of dirty memory at which the background kernel
-diff -puN include/linux/compaction.h~allow-compaction-of-unevictable-pages include/linux/compaction.h
---- a/include/linux/compaction.h~allow-compaction-of-unevictable-pages
-+++ a/include/linux/compaction.h
-@@ -34,6 +34,7 @@ extern int sysctl_compaction_handler(str
- extern int sysctl_extfrag_threshold;
- extern int sysctl_extfrag_handler(struct ctl_table *table, int write,
- 			void __user *buffer, size_t *length, loff_t *ppos);
-+extern int sysctl_compact_unevictable_allowed;
- 
- extern int fragmentation_index(struct zone *zone, unsigned int order);
- extern unsigned long try_to_compact_pages(gfp_t gfp_mask, unsigned int order,
-diff -puN kernel/sysctl.c~allow-compaction-of-unevictable-pages kernel/sysctl.c
---- a/kernel/sysctl.c~allow-compaction-of-unevictable-pages
-+++ a/kernel/sysctl.c
-@@ -1326,6 +1326,15 @@ static struct ctl_table vm_table[] = {
- 		.extra1		= &min_extfrag_threshold,
- 		.extra2		= &max_extfrag_threshold,
- 	},
-+	{
-+		.procname	= "compact_unevictable_allowed",
-+		.data		= &sysctl_compact_unevictable_allowed,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= proc_dointvec,
-+		.extra1		= &zero,
-+		.extra2		= &one,
-+	},
- 
- #endif /* CONFIG_COMPACTION */
- 	{
-diff -puN mm/compaction.c~allow-compaction-of-unevictable-pages mm/compaction.c
---- a/mm/compaction.c~allow-compaction-of-unevictable-pages
-+++ a/mm/compaction.c
-@@ -1047,6 +1047,12 @@ typedef enum {
- } isolate_migrate_t;
- 
- /*
-+ * Allow userspace to control policy on scanning the unevictable LRU for
-+ * compactable pages.
-+ */
-+int sysctl_compact_unevictable_allowed __read_mostly = 1;
-+
-+/*
-  * Isolate all pages that can be migrated from the first suitable block,
-  * starting at the block pointed to by the migrate scanner pfn within
-  * compact_control.
-@@ -1057,6 +1063,7 @@ static isolate_migrate_t isolate_migrate
- 	unsigned long low_pfn, end_pfn;
+diff -puN mm/madvise.c~mm-free-swp_entry-in-madvise_free mm/madvise.c
+--- a/mm/madvise.c~mm-free-swp_entry-in-madvise_free
++++ a/mm/madvise.c
+@@ -274,7 +274,9 @@ static int madvise_free_pte_range(pmd_t
+ 	spinlock_t *ptl;
+ 	pte_t *pte, ptent;
  	struct page *page;
- 	const isolate_mode_t isolate_mode =
-+		(sysctl_compact_unevictable_allowed ? ISOLATE_UNEVICTABLE : 0) |
- 		(cc->mode == MIGRATE_ASYNC ? ISOLATE_ASYNC_MIGRATE : 0);
++	swp_entry_t entry;
+ 	unsigned long next;
++	int nr_swap = 0;
  
- 	/*
+ 	next = pmd_addr_end(addr, end);
+ 	if (pmd_trans_huge(*pmd)) {
+@@ -293,8 +295,22 @@ static int madvise_free_pte_range(pmd_t
+ 	for (; addr != end; pte++, addr += PAGE_SIZE) {
+ 		ptent = *pte;
+ 
+-		if (!pte_present(ptent))
++		if (pte_none(ptent))
+ 			continue;
++		/*
++		 * If the pte has swp_entry, just clear page table to
++		 * prevent swap-in which is more expensive rather than
++		 * (page allocation + zeroing).
++		 */
++		if (!pte_present(ptent)) {
++			entry = pte_to_swp_entry(ptent);
++			if (non_swap_entry(entry))
++				continue;
++			nr_swap--;
++			free_swap_and_cache(entry);
++			pte_clear_not_present_full(mm, addr, pte, tlb->fullmm);
++			continue;
++		}
+ 
+ 		page = vm_normal_page(vma, addr, ptent);
+ 		if (!page)
+@@ -326,6 +342,14 @@ static int madvise_free_pte_range(pmd_t
+ 		set_pte_at(mm, addr, pte, ptent);
+ 		tlb_remove_tlb_entry(tlb, pte, addr);
+ 	}
++
++	if (nr_swap) {
++		if (current->mm == mm)
++			sync_mm_rss(mm);
++
++		add_mm_counter(mm, MM_SWAPENTS, nr_swap);
++	}
++
+ 	arch_leave_lazy_mmu_mode();
+ 	pte_unmap_unlock(pte - 1, ptl);
+ next:
 _
 
-Patches currently in -mm which might be from emunson@akamai.com are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-allow-compaction-of-unevictable-pages.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+mm-page_isolation-check-pfn-validity-before-access.patch
+mm-support-madvisemadv_free.patch
+mm-support-madvisemadv_free-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-dont-split-thp-page-when-syscall-is-called.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-2.patch
+mm-free-swp_entry-in-madvise_free.patch
+x86-add-pmd_-for-thp.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp.patch
+sparc-add-pmd_-for-thp-fix.patch
+powerpc-add-pmd_-for-thp.patch
+arm-add-pmd_mkclean-for-thp.patch
+arm64-add-pmd_-for-thp.patch
+zram-cosmetic-zram_attr_ro-code-formatting-tweak.patch
+zram-use-idr-instead-of-zram_devices-array.patch
+zram-factor-out-device-reset-from-reset_store.patch
+zram-reorganize-code-layout.patch
+zram-add-dynamic-device-add-remove-functionality.patch
+zram-add-dynamic-device-add-remove-functionality-fix.patch
+zram-remove-max_num_devices-limitation.patch
+zram-report-every-added-and-removed-device.patch
+zram-trivial-correct-flag-operations-comment.patch
+zram-return-zram-device_id-value-from-zram_add.patch
+zram-introduce-automatic-device_id-generation.patch
+zram-introduce-automatic-device_id-generation-fix.patch
+zram-do-not-let-user-enforce-new-device-dev_id.patch
+zsmalloc-decouple-handle-and-object.patch
+zsmalloc-factor-out-obj_.patch
+zsmalloc-support-compaction.patch
+zsmalloc-support-compaction-fix.patch
+zsmalloc-adjust-zs_almost_full.patch
+zram-support-compaction.patch
+zsmalloc-record-handle-in-page-private-for-huge-object.patch
+zsmalloc-add-fullness-into-stat.patch
+zsmalloc-zsmalloc-documentation.patch
+mm-zsmallocc-fix-comment-for-get_pages_per_zspage.patch
+zram-remove-num_migrated-device-attr.patch
+zram-move-compact_store-to-sysfs-functions-area.patch
+zram-use-generic-start-end-io-accounting.patch
+zram-describe-device-attrs-in-documentation.patch
+zram-export-new-io_stat-sysfs-attrs.patch
+zram-export-new-mm_stat-sysfs-attrs.patch
+zram-deprecate-zram-attrs-sysfs-nodes.patch
+linux-next.patch
 
