@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + fs-affs-filec-unlock-release-page-on-error.patch added to -mm
- tree
-Date: Fri, 20 Mar 2015 12:40:15 -0700
-Message-ID: <550c779f.qK0VsDZF3uPkUH8M%akpm@linux-foundation.org>
+Subject: +
+ mm-memory-failurec-define-page-types-for-action_result-in-one-place-fix.patch added to -mm tree
+Date: Fri, 20 Mar 2015 12:42:52 -0700
+Message-ID: <550c783c.f//j3iAQO5MeVoM4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52246 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52252 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750994AbbCTTkQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Mar 2015 15:40:16 -0400
+	with ESMTP id S1751748AbbCTTmx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Mar 2015 15:42:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tsgatesv@gmail.com, fabf@skynet.be, geert@linux-m68k.org, jack@suse.cz, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@linux.intel.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/affs/file.c: unlock/release page on error
+     Subject: mm-memory-failurec-define-page-types-for-action_result-in-one-place-fix
 has been added to the -mm tree.  Its filename is
-     fs-affs-filec-unlock-release-page-on-error.patch
+     mm-memory-failurec-define-page-types-for-action_result-in-one-place-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-affs-filec-unlock-release-page-on-error.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory-failurec-define-page-types-for-action_result-in-one-place-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-affs-filec-unlock-release-page-on-error.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory-failurec-define-page-types-for-action_result-in-one-place-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,64 +39,76 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Taesoo Kim <tsgatesv@gmail.com>
-Subject: fs/affs/file.c: unlock/release page on error
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-memory-failurec-define-page-types-for-action_result-in-one-place-fix
 
-When affs_bread_ino() fails, correctly unlock the page and release the
-page cache with proper error value.  All write_end() should unlock/release
-the page that was locked by write_beg().
+s/DIRTY_UNEVICTABLE_LRU/CLEAN_UNEVICTABLE_LRU', per Andi
 
-Signed-off-by: Taesoo Kim <tsgatesv@gmail.com>
-Cc: Fabian Frederick <fabf@skynet.be>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Jan Kara <jack@suse.cz>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/affs/file.c |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ mm/memory-failure.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/affs/file.c~fs-affs-filec-unlock-release-page-on-error fs/affs/file.c
---- a/fs/affs/file.c~fs-affs-filec-unlock-release-page-on-error
-+++ a/fs/affs/file.c
-@@ -699,8 +699,10 @@ static int affs_write_end_ofs(struct fil
- 	boff = tmp % bsize;
- 	if (boff) {
- 		bh = affs_bread_ino(inode, bidx, 0);
--		if (IS_ERR(bh))
--			return PTR_ERR(bh);
-+		if (IS_ERR(bh)) {
-+			written = PTR_ERR(bh);
-+			goto err;
-+		}
- 		tmp = min(bsize - boff, to - from);
- 		BUG_ON(boff + tmp > bsize || tmp > bsize);
- 		memcpy(AFFS_DATA(bh) + boff, data + from, tmp);
-@@ -712,8 +714,10 @@ static int affs_write_end_ofs(struct fil
- 		bidx++;
- 	} else if (bidx) {
- 		bh = affs_bread_ino(inode, bidx - 1, 0);
--		if (IS_ERR(bh))
--			return PTR_ERR(bh);
-+		if (IS_ERR(bh)) {
-+			written = PTR_ERR(bh);
-+			goto err;
-+		}
- 	}
- 	while (from + bsize <= to) {
- 		prev_bh = bh;
-@@ -790,6 +794,7 @@ done:
- 	if (tmp > inode->i_size)
- 		inode->i_size = AFFS_I(inode)->mmu_private = tmp;
+diff -puN mm/memory-failure.c~mm-memory-failurec-define-page-types-for-action_result-in-one-place-fix mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-memory-failurec-define-page-types-for-action_result-in-one-place-fix
++++ a/mm/memory-failure.c
+@@ -853,7 +853,7 @@ static struct page_state {
+ 	{ mlock|dirty,	mlock,		CLEAN_MLOCKED_LRU,	me_pagecache_clean },
  
-+err:
- 	unlock_page(page);
- 	page_cache_release(page);
+ 	{ unevict|dirty, unevict|dirty,	DIRTY_UNEVICTABLE_LRU,	me_pagecache_dirty },
+-	{ unevict|dirty, unevict,	DIRTY_UNEVICTABLE_LRU,	me_pagecache_clean },
++	{ unevict|dirty, unevict,	CLEAN_UNEVICTABLE_LRU,	me_pagecache_clean },
  
+ 	{ lru|dirty,	lru|dirty,	DIRTY_LRU,	me_pagecache_dirty },
+ 	{ lru|dirty,	lru,		CLEAN_LRU,	me_pagecache_clean },
 _
 
-Patches currently in -mm which might be from tsgatesv@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-fs-affs-filec-unlock-release-page-on-error.patch
+origin.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+drivers-rtc-rtc-mrst-fix-suspend-resume-fix.patch
+mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention.patch
+mm.patch
+mm-cma-release-trigger-checkpatch-fixes.patch
+mm-cma-allocation-trigger-fix.patch
+mm-compaction-enhance-compaction-finish-condition-fix.patch
+page_writeback-cleanup-mess-around-cancel_dirty_page-checkpatch-fixes.patch
+mm-hide-per-cpu-lists-in-output-of-show_mem-fix.patch
+mm-clarify-__gfp_nofail-deprecation-status-checkpatch-fixes.patch
+mm-change-vunmap-to-tear-down-huge-kva-mappings-fix.patch
+mm-mempool-do-not-allow-atomic-resizing-checkpatch-fixes.patch
+hugetlbfs-add-minimum-size-tracking-fields-to-subpool-structure-fix.patch
+hugetlbfs-add-minimum-size-accounting-to-subpools-fix.patch
+mm-memory-failurec-define-page-types-for-action_result-in-one-place-fix.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+zram-add-dynamic-device-add-remove-functionality-fix.patch
+zram-introduce-automatic-device_id-generation-fix.patch
+zsmalloc-support-compaction-fix.patch
+kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes.patch
+lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix.patch
+lib-find__bit-reimplementation-fix.patch
+checkpatch-match-more-world-writable-permissions-fix.patch
+binfmt_misc-simplify-entry_status-fix.patch
+rtc-add-abracon-abx80x-driver-fix.patch
+fs-fat-remove-unnecessary-includes-fix.patch
+kconfig-use-macros-which-are-already-defined-fix.patch
+linux-next.patch
+linux-next-rejects.patch
+lib-kconfig-fix-up-have_arch_bitreverse-help-text.patch
+oprofile-reduce-mmap_sem-hold-for-mm-exe_file-fix.patch
+tomoyo-reduce-mmap_sem-hold-for-mm-exe_file-checkpatch-fixes.patch
+documentation-spi-spidev_testc-fix-warning.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
