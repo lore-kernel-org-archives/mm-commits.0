@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
+ page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
  added to -mm tree
-Date: Fri, 20 Mar 2015 13:36:28 -0700
-Message-ID: <550c84cc.foqeP8RJxTN9sH8E%akpm@linux-foundation.org>
+Date: Fri, 20 Mar 2015 13:36:10 -0700
+Message-ID: <550c84ba.xAXgcqDlzi7ZJhU0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53144 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53029 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751639AbbCTUg3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Mar 2015 16:36:29 -0400
+	with ESMTP id S1751513AbbCTUgL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Mar 2015 16:36:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, cl@linux.com, dave.hansen@intel.com, hannes@cmpxchg.org, hughd@google.com, jmarchan@redhat.com, mgorman@suse.de, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, riel@redhat.com, steve.capper@linaro.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: page-flags: look at head page if the flag is encoded in page->mapping
+     Subject: page-flags: define behavior of LRU-related flags on compound pages
 has been added to the -mm tree.  Its filename is
-     page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
+     page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,12 +41,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: page-flags: look at head page if the flag is encoded in page->mapping
+Subject: page-flags: define behavior of LRU-related flags on compound pages
 
-PageAnon() and PageKsm() look at lower bits of page->mapping to check if
-the page is Anon or KSM.  page->mapping can be overloaded in tail pages.
-
-Let's always look at head page to avoid false-positives.
+Only head pages are ever on LRU. Let's use HEAD policy to avoid any
+confusion for all LRU-related flags.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -65,28 +63,45 @@ Cc: Jerome Marchand <jmarchan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/page-flags.h |   17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/page-flags.h~page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping include/linux/page-flags.h
---- a/include/linux/page-flags.h~page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping
+diff -puN include/linux/page-flags.h~page-flags-define-behavior-of-lru-related-flags-on-compound-pages include/linux/page-flags.h
+--- a/include/linux/page-flags.h~page-flags-define-behavior-of-lru-related-flags-on-compound-pages
 +++ a/include/linux/page-flags.h
-@@ -385,6 +385,7 @@ PAGEFLAG_FALSE(HWPoison)
+@@ -271,13 +271,14 @@ static inline struct page *compound_head
  
- static inline int PageAnon(struct page *page)
- {
-+	page = compound_head(page);
- 	return ((unsigned long)page->mapping & PAGE_MAPPING_ANON) != 0;
- }
+ __PAGEFLAG(Locked, locked, NO_TAIL)
+ PAGEFLAG(Error, error, NO_COMPOUND) TESTCLEARFLAG(Error, error, NO_COMPOUND)
+-PAGEFLAG(Referenced, referenced, ANY) TESTCLEARFLAG(Referenced, referenced, ANY)
+-	__SETPAGEFLAG(Referenced, referenced, ANY)
++PAGEFLAG(Referenced, referenced, HEAD)
++	TESTCLEARFLAG(Referenced, referenced, HEAD)
++	__SETPAGEFLAG(Referenced, referenced, HEAD)
+ PAGEFLAG(Dirty, dirty, HEAD) TESTSCFLAG(Dirty, dirty, HEAD)
+ 	__CLEARPAGEFLAG(Dirty, dirty, HEAD)
+-PAGEFLAG(LRU, lru, ANY) __CLEARPAGEFLAG(LRU, lru, ANY)
+-PAGEFLAG(Active, active, ANY) __CLEARPAGEFLAG(Active, active, ANY)
+-	TESTCLEARFLAG(Active, active, ANY)
++PAGEFLAG(LRU, lru, HEAD) __CLEARPAGEFLAG(LRU, lru, HEAD)
++PAGEFLAG(Active, active, HEAD) __CLEARPAGEFLAG(Active, active, HEAD)
++	TESTCLEARFLAG(Active, active, HEAD)
+ __PAGEFLAG(Slab, slab, ANY)
+ PAGEFLAG(Checked, checked, NO_COMPOUND) /* Used by some filesystems */
+ PAGEFLAG(Pinned, pinned, ANY) TESTSCFLAG(Pinned, pinned, ANY)	/* Xen */
+@@ -331,9 +332,9 @@ PAGEFLAG(SwapCache, swapcache, ANY)
+ PAGEFLAG_FALSE(SwapCache)
+ #endif
  
-@@ -397,6 +398,7 @@ static inline int PageAnon(struct page *
-  */
- static inline int PageKsm(struct page *page)
- {
-+	page = compound_head(page);
- 	return ((unsigned long)page->mapping & PAGE_MAPPING_FLAGS) ==
- 				(PAGE_MAPPING_ANON | PAGE_MAPPING_KSM);
- }
+-PAGEFLAG(Unevictable, unevictable, ANY)
+-	__CLEARPAGEFLAG(Unevictable, unevictable, ANY)
+-	TESTCLEARFLAG(Unevictable, unevictable, ANY)
++PAGEFLAG(Unevictable, unevictable, HEAD)
++	__CLEARPAGEFLAG(Unevictable, unevictable, HEAD)
++	TESTCLEARFLAG(Unevictable, unevictable, HEAD)
+ 
+ #ifdef CONFIG_MMU
+ PAGEFLAG(Mlocked, mlocked, ANY) __CLEARPAGEFLAG(Mlocked, mlocked, ANY)
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
