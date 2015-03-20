@@ -1,114 +1,147 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-memory-failurec-define-page-types-for-action_result-in-one-place-fix.patch added to -mm tree
-Date: Fri, 20 Mar 2015 12:42:52 -0700
-Message-ID: <550c783c.f//j3iAQO5MeVoM4%akpm@linux-foundation.org>
+Subject: [failures] mm-dont-offset-memmap-for-flatmem.patch removed from
+ -mm tree
+Date: Fri, 20 Mar 2015 12:53:59 -0700
+Message-ID: <550c7ad7.UZ0XUv8+b+UAEAo0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52252 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52471 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751748AbbCTTmx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Mar 2015 15:42:53 -0400
+	with ESMTP id S1750977AbbCTTyB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Mar 2015 15:54:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ak@linux.intel.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
+To: lauraa@codeaurora.org, arnd@arndb.de, bjorn.andersson@sonymobile.com, galak@codeaurora.org, khilman@linaro.org, mgorman@suse.de, rmk@arm.linux.org.uk, rostedt@goodmis.org, sboyd@codeaurora.org, sfr@canb.auug.org.au, srinivas.kandagatla@linaro.org, ssantosh@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-memory-failurec-define-page-types-for-action_result-in-one-place-fix
-has been added to the -mm tree.  Its filename is
-     mm-memory-failurec-define-page-types-for-action_result-in-one-place-fix.patch
+     Subject: mm: don't offset memmap for flatmem
+has been removed from the -mm tree.  Its filename was
+     mm-dont-offset-memmap-for-flatmem.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory-failurec-define-page-types-for-action_result-in-one-place-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory-failurec-define-page-types-for-action_result-in-one-place-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-memory-failurec-define-page-types-for-action_result-in-one-place-fix
+From: Laura Abbott <lauraa@codeaurora.org>
+Subject: mm: don't offset memmap for flatmem
 
-s/DIRTY_UNEVICTABLE_LRU/CLEAN_UNEVICTABLE_LRU', per Andi
+Srinivas Kandagatla reported bad page messages when trying to remove the
+bottom 2MB on an ARM based IFC6410 board
 
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+BUG: Bad page state in process swapper  pfn:fffa8
+page:ef7fb500 count:0 mapcount:0 mapping:  (null) index:0x0
+flags: 0x96640253(locked|error|dirty|active|arch_1|reclaim|mlocked)
+page dumped because: PAGE_FLAGS_CHECK_AT_FREE flag(s) set
+bad because of flags:
+flags: 0x200041(locked|active|mlocked)
+Modules linked in:
+CPU: 0 PID: 0 Comm: swapper Not tainted 3.19.0-rc3-00007-g412f9ba-dirty #816
+Hardware name: Qualcomm (Flattened Device Tree)
+[<c0218280>] (unwind_backtrace) from [<c0212be8>] (show_stack+0x20/0x24)
+[<c0212be8>] (show_stack) from [<c0af7124>] (dump_stack+0x80/0x9c)
+[<c0af7124>] (dump_stack) from [<c0301570>] (bad_page+0xc8/0x128)
+[<c0301570>] (bad_page) from [<c03018a8>] (free_pages_prepare+0x168/0x1e0)
+[<c03018a8>] (free_pages_prepare) from [<c030369c>] (free_hot_cold_page+0x3c/0x174)
+[<c030369c>] (free_hot_cold_page) from [<c0303828>] (__free_pages+0x54/0x58)
+[<c0303828>] (__free_pages) from [<c030395c>] (free_highmem_page+0x38/0x88)
+[<c030395c>] (free_highmem_page) from [<c0f62d5c>] (mem_init+0x240/0x430)
+[<c0f62d5c>] (mem_init) from [<c0f5db3c>] (start_kernel+0x1e4/0x3c8)
+[<c0f5db3c>] (start_kernel) from [<80208074>] (0x80208074)
+Disabling lock debugging due to kernel taint
+
+Removing the lower 2MB made the start of the lowmem zone to no longer
+be page block aligned. IFC6410 uses CONFIG_FLATMEM where
+alloc_node_mem_map allocates memory for the mem_map. alloc_node_mem_map
+will offset for unaligned nodes with the assumption the pfn/page
+translation functions will account for the offset. The functions for
+CONFIG_FLATMEM do not offset however, resulting in overrunning
+the memmap array. Just use the allocated memmap without any offset
+when running with CONFIG_FLATMEM to avoid the overrun.
+
+The thread got too deep so I split this out into a new thread.
+See http://marc.info/?l=linux-mm&m=142188852025672&w=2 for previous
+thread discussion, last comment by Vlastimil
+http://marc.info/?l=linux-mm&m=142505070430844&w=2
+
+Signed-off-by: Laura Abbott <lauraa@codeaurora.org>
+Reported-by: Srinivas Kandagatla <srinivas.kandagatla@linaro.org>
+Tested-by: Srinivas Kandagatla <srinivas.kandagatla@linaro.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Tested-by: Bjorn Andersson <bjorn.andersson@sonymobile.com>
+Cc: Santosh Shilimkar <ssantosh@kernel.org>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Kevin Hilman <khilman@linaro.org>
+Cc: Arnd Bergman <arnd@arndb.de>
+Cc: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Kumar Gala <galak@codeaurora.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |   15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
-diff -puN mm/memory-failure.c~mm-memory-failurec-define-page-types-for-action_result-in-one-place-fix mm/memory-failure.c
---- a/mm/memory-failure.c~mm-memory-failurec-define-page-types-for-action_result-in-one-place-fix
-+++ a/mm/memory-failure.c
-@@ -853,7 +853,7 @@ static struct page_state {
- 	{ mlock|dirty,	mlock,		CLEAN_MLOCKED_LRU,	me_pagecache_clean },
+diff -puN mm/page_alloc.c~mm-dont-offset-memmap-for-flatmem mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-dont-offset-memmap-for-flatmem
++++ a/mm/page_alloc.c
+@@ -4996,6 +4996,8 @@ static void __paginginit free_area_init_
  
- 	{ unevict|dirty, unevict|dirty,	DIRTY_UNEVICTABLE_LRU,	me_pagecache_dirty },
--	{ unevict|dirty, unevict,	DIRTY_UNEVICTABLE_LRU,	me_pagecache_clean },
-+	{ unevict|dirty, unevict,	CLEAN_UNEVICTABLE_LRU,	me_pagecache_clean },
- 
- 	{ lru|dirty,	lru|dirty,	DIRTY_LRU,	me_pagecache_dirty },
- 	{ lru|dirty,	lru,		CLEAN_LRU,	me_pagecache_clean },
+ static void __init_refok alloc_node_mem_map(struct pglist_data *pgdat)
+ {
++	unsigned long __maybe_unused offset = 0;
++
+ 	/* Skip empty nodes */
+ 	if (!pgdat->node_spanned_pages)
+ 		return;
+@@ -5012,6 +5014,7 @@ static void __init_refok alloc_node_mem_
+ 		 * for the buddy allocator to function correctly.
+ 		 */
+ 		start = pgdat->node_start_pfn & ~(MAX_ORDER_NR_PAGES - 1);
++		offset = pgdat->node_start_pfn - start;
+ 		end = pgdat_end_pfn(pgdat);
+ 		end = ALIGN(end, MAX_ORDER_NR_PAGES);
+ 		size =  (end - start) * sizeof(struct page);
+@@ -5019,7 +5022,7 @@ static void __init_refok alloc_node_mem_
+ 		if (!map)
+ 			map = memblock_virt_alloc_node_nopanic(size,
+ 							       pgdat->node_id);
+-		pgdat->node_mem_map = map + (pgdat->node_start_pfn - start);
++		pgdat->node_mem_map = map + offset;
+ 	}
+ #ifndef CONFIG_NEED_MULTIPLE_NODES
+ 	/*
+@@ -5027,10 +5030,12 @@ static void __init_refok alloc_node_mem_
+ 	 */
+ 	if (pgdat == NODE_DATA(0)) {
+ 		mem_map = NODE_DATA(0)->node_mem_map;
+-#ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
+-		if (page_to_pfn(mem_map) != pgdat->node_start_pfn)
+-			mem_map -= (pgdat->node_start_pfn - ARCH_PFN_OFFSET);
+-#endif /* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
++#if defined(CONFIG_HAVE_MEMBLOCK_NODE_MAP) || defined(CONFIG_FLATMEM)
++		if (page_to_pfn(mem_map) != pgdat->node_start_pfn) {
++			mem_map -= offset;
++			VM_BUG_ON(page_to_pfn(mem_map) != pgdat->node_start_pfn);
++		}
++#endif /* CONFIG_HAVE_MEMBLOCK_NODE_MAP || CONFIG_FLATMEM */
+ 	}
+ #endif
+ #endif /* CONFIG_FLAT_NODE_MEM_MAP */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from lauraa@codeaurora.org are
 
-origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-drivers-rtc-rtc-mrst-fix-suspend-resume-fix.patch
-mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention.patch
-mm.patch
-mm-cma-release-trigger-checkpatch-fixes.patch
+mm-page_alloc-call-kernel_map_pages-in-unset_migrateype_isolate.patch
+mm-cma-debugfs-interface.patch
+mm-cma-allocation-trigger.patch
+mm-cma-release-trigger.patch
 mm-cma-allocation-trigger-fix.patch
-mm-compaction-enhance-compaction-finish-condition-fix.patch
-page_writeback-cleanup-mess-around-cancel_dirty_page-checkpatch-fixes.patch
-mm-hide-per-cpu-lists-in-output-of-show_mem-fix.patch
-mm-clarify-__gfp_nofail-deprecation-status-checkpatch-fixes.patch
-mm-change-vunmap-to-tear-down-huge-kva-mappings-fix.patch
-mm-mempool-do-not-allow-atomic-resizing-checkpatch-fixes.patch
-hugetlbfs-add-minimum-size-tracking-fields-to-subpool-structure-fix.patch
-hugetlbfs-add-minimum-size-accounting-to-subpools-fix.patch
-mm-memory-failurec-define-page-types-for-action_result-in-one-place-fix.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-zram-add-dynamic-device-add-remove-functionality-fix.patch
-zram-introduce-automatic-device_id-generation-fix.patch
-zsmalloc-support-compaction-fix.patch
-kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes.patch
-lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix.patch
-lib-find__bit-reimplementation-fix.patch
-checkpatch-match-more-world-writable-permissions-fix.patch
-binfmt_misc-simplify-entry_status-fix.patch
-rtc-add-abracon-abx80x-driver-fix.patch
-fs-fat-remove-unnecessary-includes-fix.patch
-kconfig-use-macros-which-are-already-defined-fix.patch
-linux-next.patch
-linux-next-rejects.patch
-lib-kconfig-fix-up-have_arch_bitreverse-help-text.patch
-oprofile-reduce-mmap_sem-hold-for-mm-exe_file-fix.patch
-tomoyo-reduce-mmap_sem-hold-for-mm-exe_file-checkpatch-fixes.patch
-documentation-spi-spidev_testc-fix-warning.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
+cma-debug-document-new-debugfs-interface.patch
+seccomp-allow-compat-sigreturn-overrides.patch
+arm-use-asm-generic-for-seccomph.patch
 
