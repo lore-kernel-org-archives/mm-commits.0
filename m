@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-improve-return-negative-errno-check.patch added to
- -mm tree
-Date: Mon, 23 Mar 2015 15:20:01 -0700
-Message-ID: <55109191.YLSF5Q9FHnbWmCXH%akpm@linux-foundation.org>
+Subject: + rtc-digicolor-document-device-tree-binding.patch added to -mm
+ tree
+Date: Mon, 23 Mar 2015 15:34:06 -0700
+Message-ID: <551094de.Bs2AnRzaw0fM8Zn8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48077 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48122 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752748AbbCWWUC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Mar 2015 18:20:02 -0400
+	with ESMTP id S1752772AbbCWWeH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Mar 2015 18:34:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: baruch@tkos.co.il, a.zummo@towertech.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: improve return negative errno check
+     Subject: rtc: digicolor: document device tree binding
 has been added to the -mm tree.  Its filename is
-     checkpatch-improve-return-negative-errno-check.patch
+     rtc-digicolor-document-device-tree-binding.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-improve-return-negative-errno-check.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rtc-digicolor-document-device-tree-binding.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-improve-return-negative-errno-check.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-digicolor-document-device-tree-binding.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,76 +39,48 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: improve return negative errno check
+From: Baruch Siach <baruch@tkos.co.il>
+Subject: rtc: digicolor: document device tree binding
 
-Add a few conditions to the test to find
-	return (ERRNO);
+Add a device tree binding documentation to the Real Time Clock hardware
+block on the Conexant CX92755 SoC.  The CX92755 is from the Digicolor SoCs
+series.  Other SoCs in that series may share the same hardware block.
 
-Make the output message a bit less cryptic too.
-
-Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Baruch Siach <baruch@tkos.co.il>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ Documentation/devicetree/bindings/rtc/digicolor-rtc.txt |   17 ++++++++++
+ 1 file changed, 17 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-improve-return-negative-errno-check scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-improve-return-negative-errno-check
-+++ a/scripts/checkpatch.pl
-@@ -4009,12 +4009,12 @@ sub process {
- 			}
- 		}
- 
--# Return of what appears to be an errno should normally be -'ve
--		if ($line =~ /^.\s*return\s*(E[A-Z]*)\s*;/) {
-+# Return of what appears to be an errno should normally be negative
-+		if ($sline =~ /\breturn(?:\s*\(+\s*|\s+)(E[A-Z]+)(?:\s*\)+\s*|\s*)[;:,]/) {
- 			my $name = $1;
- 			if ($name ne 'EOF' && $name ne 'ERROR') {
- 				WARN("USE_NEGATIVE_ERRNO",
--				     "return of an errno should typically be -ve (return -$1)\n" . $herecurr);
-+				     "return of an errno should typically be negative (ie: return -$1)\n" . $herecurr);
- 			}
- 		}
- 
+diff -puN /dev/null Documentation/devicetree/bindings/rtc/digicolor-rtc.txt
+--- /dev/null
++++ a/Documentation/devicetree/bindings/rtc/digicolor-rtc.txt
+@@ -0,0 +1,17 @@
++Conexant Digicolor Real Time Clock controller
++
++This binding currently supports the CX92755 SoC.
++
++Required properties:
++- compatible: should be "cnxt,cx92755-rtc"
++- reg: physical base address of the controller and length of memory mapped
++  region.
++- interrupts: rtc alarm interrupt
++
++Example:
++
++	rtc@f0000c30 {
++		compatible = "cnxt,cx92755-rtc";
++		reg = <0xf0000c30 0x18>;
++		interrupts = <25>;
++	};
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from baruch@tkos.co.il are
 
-maintainers-correct-rtc-armada38x-pattern-entry.patch
-maintainers-remove-drm-drivers-for-renesas-pattern.patch
-hfsplus-fix-b-tree-corruption-after-insertion-at-position-0.patch
-proc-show-locks-in-proc-pid-fdinfo-x.patch
-proc-show-locks-in-proc-pid-fdinfo-x-v2.patch
-maintainers-use-tabs-consistently.patch
-x86-mtrr-if-remove-use-of-seq_printf-return-value.patch
-power-wakeup-remove-use-of-seq_printf-return-value.patch
-rtc-remove-use-of-seq_printf-return-value.patch
-ipc-remove-use-of-seq_printf-return-value.patch
-microblaze-mb-remove-use-of-seq_printf-return-value.patch
-microblaze-mb-remove-use-of-seq_printf-return-value-fix.patch
-nios2-cpuinfo-remove-use-of-seq_printf-return-value.patch
-arm-plat-pxa-remove-use-of-seq_printf-return-value.patch
-openrisc-remove-use-of-seq_printf-return-value.patch
-cris-remove-use-of-seq_printf-return-value.patch
-s390-remove-use-of-seq_printf-return-value.patch
-i8k-remove-use-of-seq_printf-return-value.patch
-watchdog-bcm281xx-remove-use-of-seq_printf-return-value.patch
-proc-remove-use-of-seq_printf-return-value.patch
-cgroup-remove-use-of-seq_printf-return-value.patch
-tracing-remove-use-of-seq_printf-return-value.patch
-lru_cache-remove-use-of-seq_printf-return-value.patch
-parisc-remove-use-of-seq_printf-return-value.patch
-lib-vsprintfc-even-faster-decimal-conversion.patch
-mm-utilc-add-kstrimdup.patch
-checkpatch-improve-no-space-is-necessary-after-a-cast-test.patch
-checkpatch-add-spell-checking-of-email-subject-line.patch
-checkpatch-spell-check-reudce.patch
-checkpatch-add-optional-codespell-dictionary-to-find-more-typos.patch
-checkpatch-match-more-world-writable-permissions.patch
-checkpatch-match-more-world-writable-permissions-fix.patch
-checkpatch-improve-return-negative-errno-check.patch
+rtc-digicolor-document-device-tree-binding.patch
+rtc-driver-for-conexant-digicolor-cx92755-on-chip-rtc.patch
+rtc-driver-for-conexant-digicolor-cx92755-on-chip-rtc-fix.patch
 linux-next.patch
 
