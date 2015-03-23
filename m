@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp-fix.patch added to -mm tree
-Date: Fri, 20 Mar 2015 16:11:19 -0700
-Message-ID: <550ca917.3k8YFU3ePQM4lAf1%akpm@linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Mon, 23 Mar 2015 12:25:16 -0700
+Message-ID: <5510689c.cb/hfSAPpKMgwD6Q%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54397 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45478 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751242AbbCTXLU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Mar 2015 19:11:20 -0400
+	with ESMTP id S1752508AbbCWTZR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Mar 2015 15:25:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, mhocko@suse.cz, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp-fix
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp-fix.patch
+     linux-next-git-rejects.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,59 +39,65 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp-fix
+Subject: linux-next-git-rejects
 
-fix weird code layout while we're there
-
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ net/netfilter/nf_tables_core.c |   37 -------------------------------
+ 1 file changed, 37 deletions(-)
 
-diff -puN mm/huge_memory.c~mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp-fix mm/huge_memory.c
---- a/mm/huge_memory.c~mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp-fix
-+++ a/mm/huge_memory.c
-@@ -1129,8 +1129,7 @@ alloc:
- 		goto out;
- 	}
+diff -puN net/netfilter/nf_tables_core.c~linux-next-git-rejects net/netfilter/nf_tables_core.c
+--- a/net/netfilter/nf_tables_core.c~linux-next-git-rejects
++++ a/net/netfilter/nf_tables_core.c
+@@ -108,43 +108,6 @@ struct nft_jumpstack {
+ 	int			rulenum;
+ };
  
--	if (unlikely(mem_cgroup_try_charge(new_page, mm,
--					   huge_gfp, &memcg))) {
-+	if (unlikely(mem_cgroup_try_charge(new_page, mm, huge_gfp, &memcg))) {
- 		put_page(new_page);
- 		if (page) {
- 			split_huge_page(page);
-@@ -2323,8 +2322,8 @@ static bool khugepaged_prealloc_page(str
- 	return true;
- }
- 
--static struct page
--*khugepaged_alloc_page(struct page **hpage, gfp_t *gfp, struct mm_struct *mm,
-+static struct page *
-+khugepaged_alloc_page(struct page **hpage, gfp_t *gfp, struct mm_struct *mm,
- 		       struct vm_area_struct *vma, unsigned long address,
- 		       int node)
- {
-@@ -2395,8 +2394,8 @@ static bool khugepaged_prealloc_page(str
- 	return true;
- }
- 
--static struct page
--*khugepaged_alloc_page(struct page **hpage, gfp_t *gfp, struct mm_struct *mm,
-+static struct page *
-+khugepaged_alloc_page(struct page **hpage, gfp_t *gfp, struct mm_struct *mm,
- 		       struct vm_area_struct *vma, unsigned long address,
- 		       int node)
+-<<<<<<< HEAD
+-enum nft_trace {
+-	NFT_TRACE_RULE,
+-	NFT_TRACE_RETURN,
+-	NFT_TRACE_POLICY,
+-};
+-
+-static const char *const comments[] = {
+-	[NFT_TRACE_RULE]	= "rule",
+-	[NFT_TRACE_RETURN]	= "return",
+-	[NFT_TRACE_POLICY]	= "policy",
+-};
+-
+-static struct nf_loginfo trace_loginfo = {
+-	.type = NF_LOG_TYPE_LOG,
+-	.u = {
+-		.log = {
+-			.level = 4,
+-			.logflags = NF_LOG_MASK,
+-	        },
+-	},
+-};
+-
+-static void nft_trace_packet(const struct nft_pktinfo *pkt,
+-			     const struct nft_chain *chain,
+-			     int rulenum, enum nft_trace type)
+-{
+-	struct net *net = dev_net(pkt->in ? pkt->in : pkt->out);
+-
+-	nf_log_trace(net, pkt->xt.family, pkt->ops->hooknum, pkt->skb, pkt->in,
+-		     pkt->out, &trace_loginfo, "TRACE: %s:%s:%s:%u ",
+-		     chain->table->name, chain->name, comments[type],
+-		     rulenum);
+-}
+-
+-=======
+->>>>>>> linux-next/akpm-base
+ unsigned int
+ nft_do_chain(struct nft_pktinfo *pkt, const struct nf_hook_ops *ops)
  {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-origin.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 i-need-old-gcc.patch
 drivers-rtc-rtc-mrst-fix-suspend-resume-fix.patch
@@ -128,6 +133,7 @@ fs-fat-remove-unnecessary-includes-fix.patch
 kconfig-use-macros-which-are-already-defined-fix.patch
 linux-next.patch
 linux-next-rejects.patch
+linux-next-git-rejects.patch
 lib-kconfig-fix-up-have_arch_bitreverse-help-text.patch
 oprofile-reduce-mmap_sem-hold-for-mm-exe_file-fix.patch
 tomoyo-reduce-mmap_sem-hold-for-mm-exe_file-checkpatch-fixes.patch
