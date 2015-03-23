@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + fs-affs-filec-unlock-release-page-on-error-v2.patch added to
- -mm tree
-Date: Mon, 23 Mar 2015 16:46:53 -0700
-Message-ID: <5510a5ed.WQ+YrSI/66LPOid+%akpm@linux-foundation.org>
+Subject: + affs-kstrdup-memory-handling-fix.patch added to -mm tree
+Date: Mon, 23 Mar 2015 16:49:57 -0700
+Message-ID: <5510a6a5.EmkWcgMjHsXg5lj2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49076 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49155 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752192AbbCWXqy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Mar 2015 19:46:54 -0400
+	with ESMTP id S1752084AbbCWXt6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Mar 2015 19:49:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tsgatesv@gmail.com, fabf@skynet.be, geert@linux-m68k.org, jack@suse.cz, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, fabf@skynet.be, sanidhya.gatech@gmail.com, taesoo@gatech.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs-affs-filec-unlock-release-page-on-error-v2
+     Subject: affs-kstrdup-memory-handling-fix
 has been added to the -mm tree.  Its filename is
-     fs-affs-filec-unlock-release-page-on-error-v2.patch
+     affs-kstrdup-memory-handling-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-affs-filec-unlock-release-page-on-error-v2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/affs-kstrdup-memory-handling-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-affs-filec-unlock-release-page-on-error-v2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/affs-kstrdup-memory-handling-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,78 +38,87 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Taesoo Kim <tsgatesv@gmail.com>
-Subject: fs-affs-filec-unlock-release-page-on-error-v2
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: affs-kstrdup-memory-handling-fix
 
-Signed-off-by: Taesoo Kim <tsgatesv@gmail.com>
+cleanup
+
 Cc: Fabian Frederick <fabf@skynet.be>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Jan Kara <jack@suse.cz>
+Cc: Sanidhya Kashyap <sanidhya.gatech@gmail.com>
+Cc: Taesoo kim <taesoo@gatech.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/affs/file.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ fs/affs/super.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/affs/file.c~fs-affs-filec-unlock-release-page-on-error-v2 fs/affs/file.c
---- a/fs/affs/file.c~fs-affs-filec-unlock-release-page-on-error-v2
-+++ a/fs/affs/file.c
-@@ -701,7 +701,7 @@ static int affs_write_end_ofs(struct fil
- 		bh = affs_bread_ino(inode, bidx, 0);
- 		if (IS_ERR(bh)) {
- 			written = PTR_ERR(bh);
--			goto err;
-+			goto err_first_bh;
- 		}
- 		tmp = min(bsize - boff, to - from);
- 		BUG_ON(boff + tmp > bsize || tmp > bsize);
-@@ -716,14 +716,14 @@ static int affs_write_end_ofs(struct fil
- 		bh = affs_bread_ino(inode, bidx - 1, 0);
- 		if (IS_ERR(bh)) {
- 			written = PTR_ERR(bh);
--			goto err;
-+			goto err_first_bh;
- 		}
- 	}
- 	while (from + bsize <= to) {
- 		prev_bh = bh;
- 		bh = affs_getemptyblk_ino(inode, bidx);
- 		if (IS_ERR(bh))
--			goto out;
-+			goto err_bh;
- 		memcpy(AFFS_DATA(bh), data + from, bsize);
- 		if (buffer_new(bh)) {
- 			AFFS_DATA_HEAD(bh)->ptype = cpu_to_be32(T_DATA);
-@@ -755,7 +755,7 @@ static int affs_write_end_ofs(struct fil
- 		prev_bh = bh;
- 		bh = affs_bread_ino(inode, bidx, 1);
- 		if (IS_ERR(bh))
--			goto out;
-+			goto err_bh;
- 		tmp = min(bsize, to - from);
- 		BUG_ON(tmp > bsize);
- 		memcpy(AFFS_DATA(bh), data + from, tmp);
-@@ -794,13 +794,13 @@ done:
- 	if (tmp > inode->i_size)
- 		inode->i_size = AFFS_I(inode)->mmu_private = tmp;
+diff -puN fs/affs/super.c~affs-kstrdup-memory-handling-fix fs/affs/super.c
+--- a/fs/affs/super.c~affs-kstrdup-memory-handling-fix
++++ a/fs/affs/super.c
+@@ -521,11 +521,11 @@ affs_remount(struct super_block *sb, int
+ 	int			 root_block;
+ 	unsigned long		 mount_flags;
+ 	int			 res = 0;
+-	char			*new_opts = kstrdup(data, GFP_KERNEL);
++	char			*new_opts;
+ 	char			 volume[32];
+ 	char			*prefix = NULL;
  
--err:
-+err_first_bh:
- 	unlock_page(page);
- 	page_cache_release(page);
+-
++	new_opts = kstrdup(data, GFP_KERNEL);
+ 	if (!new_opts)
+ 		return -ENOMEM;
  
- 	return written;
- 
--out:
-+err_bh:
- 	bh = prev_bh;
- 	if (!written)
- 		written = PTR_ERR(bh);
 _
 
-Patches currently in -mm which might be from tsgatesv@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-fs-affs-filec-unlock-release-page-on-error.patch
-fs-affs-filec-unlock-release-page-on-error-v2.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+drivers-rtc-rtc-mrst-fix-suspend-resume-fix.patch
+mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention.patch
+mm.patch
+mm-cma-release-trigger-checkpatch-fixes.patch
+mm-cma-allocation-trigger-fix.patch
+mm-compaction-enhance-compaction-finish-condition-fix.patch
+page_writeback-cleanup-mess-around-cancel_dirty_page-checkpatch-fixes.patch
+mm-hide-per-cpu-lists-in-output-of-show_mem-fix.patch
+mm-clarify-__gfp_nofail-deprecation-status-checkpatch-fixes.patch
+mm-change-vunmap-to-tear-down-huge-kva-mappings-fix.patch
+mm-mempool-do-not-allow-atomic-resizing-checkpatch-fixes.patch
+hugetlbfs-add-minimum-size-tracking-fields-to-subpool-structure-fix.patch
+hugetlbfs-add-minimum-size-accounting-to-subpools-fix.patch
+mm-memory-failurec-define-page-types-for-action_result-in-one-place-fix.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
+mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp-fix.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+mm-support-madvisemadv_free-fix-2.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+zram-add-dynamic-device-add-remove-functionality-fix.patch
+zram-introduce-automatic-device_id-generation-fix.patch
+zsmalloc-support-compaction-fix.patch
+kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes.patch
+lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix.patch
+lib-find__bit-reimplementation-fix.patch
+checkpatch-match-more-world-writable-permissions-fix.patch
+binfmt_misc-simplify-entry_status-fix.patch
+rtc-add-abracon-abx80x-driver-fix.patch
+rtc-driver-for-conexant-digicolor-cx92755-on-chip-rtc-fix.patch
+fs-fat-remove-unnecessary-includes-fix.patch
+affs-kstrdup-memory-handling-fix.patch
+kconfig-use-macros-which-are-already-defined-fix.patch
+linux-next.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+lib-kconfig-fix-up-have_arch_bitreverse-help-text.patch
+oprofile-reduce-mmap_sem-hold-for-mm-exe_file-fix.patch
+tomoyo-reduce-mmap_sem-hold-for-mm-exe_file-checkpatch-fixes.patch
+documentation-spi-spidev_testc-fix-warning.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
