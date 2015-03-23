@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-numa-slow-pte-scan-rate-if-migration-failures-occur.patch
- added to -mm tree
-Date: Mon, 23 Mar 2015 16:16:01 -0700
-Message-ID: <55109eb1.NOXC0eqOth8bpYdJ%akpm@linux-foundation.org>
+Subject: +
+ mm-numa-group-related-processes-based-on-vma-flags-instead-of-page-table-flags.patch added to -mm tree
+Date: Mon, 23 Mar 2015 16:15:57 -0700
+Message-ID: <55109ead.+tgPn09Z0MwjiKBi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48658 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48644 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753246AbbCWXQC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Mar 2015 19:16:02 -0400
+	with ESMTP id S1753277AbbCWXP6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Mar 2015 19:15:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mgorman@suse.de, aneesh.kumar@linux.vnet.ibm.com, david@fromorbit.com, mingo@kernel.org, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: numa: slow PTE scan rate if migration failures occur
+     Subject: mm: numa: group related processes based on VMA flags instead of page table flags
 has been added to the -mm tree.  Its filename is
-     mm-numa-slow-pte-scan-rate-if-migration-failures-occur.patch
+     mm-numa-group-related-processes-based-on-vma-flags-instead-of-page-table-flags.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-numa-slow-pte-scan-rate-if-migration-failures-occur.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-numa-group-related-processes-based-on-vma-flags-instead-of-page-table-flags.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-numa-slow-pte-scan-rate-if-migration-failures-occur.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-numa-group-related-processes-based-on-vma-flags-instead-of-page-table-flags.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,44 +40,150 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: numa: slow PTE scan rate if migration failures occur
+Subject: mm: numa: group related processes based on VMA flags instead of page table flags
 
-Dave Chinner reported the following on https://lkml.org/lkml/2015/3/1/226
+These are three follow-on patches based on the xfsrepair workload Dave
+Chinner reported was problematic in 4.0-rc1 due to changes in page table
+management -- https://lkml.org/lkml/2015/3/1/226.
 
-  Across the board the 4.0-rc1 numbers are much slower, and the degradation
-  is far worse when using the large memory footprint configs. Perf points
-  straight at the cause - this is from 4.0-rc1 on the "-o bhash=101073" config:
+Much of the problem was reduced by commit 53da3bc2ba9e ("mm: fix up numa
+read-only thread grouping logic") and commit ba68bc0115eb ("mm: thp:
+Return the correct value for change_huge_pmd").  It was known that the
+performance in 3.19 was still better even if is far less safe.  This
+series aims to restore the performance without compromising on safety.
 
-   -   56.07%    56.07%  [kernel]            [k] default_send_IPI_mask_sequence_phys
-      - default_send_IPI_mask_sequence_phys
-         - 99.99% physflat_send_IPI_mask
-            - 99.37% native_send_call_func_ipi
-                 smp_call_function_many
-               - native_flush_tlb_others
-                  - 99.85% flush_tlb_page
-                       ptep_clear_flush
-                       try_to_unmap_one
-                       rmap_walk
-                       try_to_unmap
-                       migrate_pages
-                       migrate_misplaced_page
-                     - handle_mm_fault
-                        - 99.73% __do_page_fault
-                             trace_do_page_fault
-                             do_async_page_fault
-                           + async_page_fault
-              0.63% native_send_call_func_single_ipi
-                 generic_exec_single
-                 smp_call_function_single
+For the test of this mail, I'm comparing 3.19 against 4.0-rc4 and the
+three patches applied on top
 
-This is showing excessive migration activity even though excessive
-migrations are meant to get throttled.  Normally, the scan rate is tuned
-on a per-task basis depending on the locality of faults.  However, if
-migrations fail for any reason then the PTE scanner may scan faster if the
-faults continue to be remote.  This means there is higher system CPU
-overhead and fault trapping at exactly the time we know that migrations
-cannot happen.  This patch tracks when migration failures occur and slows
-the PTE scanner.
+autonumabench
+                                              3.19.0             4.0.0-rc4             4.0.0-rc4             4.0.0-rc4             4.0.0-rc4
+                                             vanilla               vanilla          vmwrite-v5r8         preserve-v5r8         slowscan-v5r8
+Time System-NUMA01                  124.00 (  0.00%)      161.86 (-30.53%)      107.13 ( 13.60%)      103.13 ( 16.83%)      145.01 (-16.94%)
+Time System-NUMA01_THEADLOCAL       115.54 (  0.00%)      107.64 (  6.84%)      131.87 (-14.13%)       83.30 ( 27.90%)       92.35 ( 20.07%)
+Time System-NUMA02                    9.35 (  0.00%)       10.44 (-11.66%)        8.95 (  4.28%)       10.72 (-14.65%)        8.16 ( 12.73%)
+Time System-NUMA02_SMT                3.87 (  0.00%)        4.63 (-19.64%)        4.57 (-18.09%)        3.99 ( -3.10%)        3.36 ( 13.18%)
+Time Elapsed-NUMA01                 570.06 (  0.00%)      567.82 (  0.39%)      515.78 (  9.52%)      517.26 (  9.26%)      543.80 (  4.61%)
+Time Elapsed-NUMA01_THEADLOCAL      393.69 (  0.00%)      384.83 (  2.25%)      384.10 (  2.44%)      384.31 (  2.38%)      380.73 (  3.29%)
+Time Elapsed-NUMA02                  49.09 (  0.00%)       49.33 ( -0.49%)       48.86 (  0.47%)       48.78 (  0.63%)       50.94 ( -3.77%)
+Time Elapsed-NUMA02_SMT              47.51 (  0.00%)       47.15 (  0.76%)       47.98 ( -0.99%)       48.12 ( -1.28%)       49.56 ( -4.31%)
+
+              3.19.0   4.0.0-rc4   4.0.0-rc4   4.0.0-rc4   4.0.0-rc4
+             vanilla     vanillavmwrite-v5r8preserve-v5r8slowscan-v5r8
+User        46334.60    46391.94    44383.95    43971.89    44372.12
+System        252.84      284.66      252.61      201.24      249.00
+Elapsed      1062.14     1050.96      998.68     1000.94     1026.78
+
+Overall the system CPU usage is comparable and the test is naturally a bit
+variable.  The slowing of the scanner hurts numa01 but on this machine it
+is an adverse workload and patches that dramatically help it often hurt
+absolutely everything else.
+
+Due to patch 2, the fault activity is interesting
+
+                                3.19.0   4.0.0-rc4   4.0.0-rc4   4.0.0-rc4   4.0.0-rc4
+                               vanilla     vanillavmwrite-v5r8preserve-v5r8slowscan-v5r8
+Minor Faults                   2097811     2656646     2597249     1981230     1636841
+Major Faults                       362         450         365         364         365
+
+Note the impact preserving the write bit across protection updates and
+fault reduces faults.
+
+NUMA alloc hit                 1229008     1217015     1191660     1178322     1199681
+NUMA alloc miss                      0           0           0           0           0
+NUMA interleave hit                  0           0           0           0           0
+NUMA alloc local               1228514     1216317     1190871     1177448     1199021
+NUMA base PTE updates        245706197   240041607   238195516   244704842   115012800
+NUMA huge PMD updates           479530      468448      464868      477573      224487
+NUMA page range updates      491225557   479886983   476207932   489222218   229950144
+NUMA hint faults                659753      656503      641678      656926      294842
+NUMA hint local faults          381604      373963      360478      337585      186249
+NUMA hint local percent             57          56          56          51          63
+NUMA pages migrated            5412140     6374899     6266530     5277468     5755096
+AutoNUMA cost                    5121%       5083%       4994%       5097%       2388%
+
+Here the impact of slowing the PTE scanner on migratrion failures is
+obvious as "NUMA base PTE updates" and "NUMA huge PMD updates" are
+massively reduced even though the headline performance is very similar.
+
+As xfsrepair was the reported workload here is the impact of the series on
+it.
+
+xfsrepair
+                                       3.19.0             4.0.0-rc4             4.0.0-rc4             4.0.0-rc4             4.0.0-rc4
+                                      vanilla               vanilla          vmwrite-v5r8         preserve-v5r8         slowscan-v5r8
+Min      real-fsmark        1183.29 (  0.00%)     1165.73 (  1.48%)     1152.78 (  2.58%)     1153.64 (  2.51%)     1177.62 (  0.48%)
+Min      syst-fsmark        4107.85 (  0.00%)     4027.75 (  1.95%)     3986.74 (  2.95%)     3979.16 (  3.13%)     4048.76 (  1.44%)
+Min      real-xfsrepair      441.51 (  0.00%)      463.96 ( -5.08%)      449.50 ( -1.81%)      440.08 (  0.32%)      439.87 (  0.37%)
+Min      syst-xfsrepair      195.76 (  0.00%)      278.47 (-42.25%)      262.34 (-34.01%)      203.70 ( -4.06%)      143.64 ( 26.62%)
+Amean    real-fsmark        1188.30 (  0.00%)     1177.34 (  0.92%)     1157.97 (  2.55%)     1158.21 (  2.53%)     1182.22 (  0.51%)
+Amean    syst-fsmark        4111.37 (  0.00%)     4055.70 (  1.35%)     3987.19 (  3.02%)     3998.72 (  2.74%)     4061.69 (  1.21%)
+Amean    real-xfsrepair      450.88 (  0.00%)      468.32 ( -3.87%)      454.14 ( -0.72%)      442.36 (  1.89%)      440.59 (  2.28%)
+Amean    syst-xfsrepair      199.66 (  0.00%)      290.60 (-45.55%)      277.20 (-38.84%)      204.68 ( -2.51%)      150.55 ( 24.60%)
+Stddev   real-fsmark           4.12 (  0.00%)       10.82 (-162.29%)        4.14 ( -0.28%)        5.98 (-45.05%)        4.60 (-11.53%)
+Stddev   syst-fsmark           2.63 (  0.00%)       20.32 (-671.82%)        0.37 ( 85.89%)       16.47 (-525.59%)       15.05 (-471.79%)
+Stddev   real-xfsrepair        6.87 (  0.00%)        4.55 ( 33.75%)        3.46 ( 49.58%)        1.78 ( 74.12%)        0.52 ( 92.50%)
+Stddev   syst-xfsrepair        3.02 (  0.00%)       10.30 (-241.37%)       13.17 (-336.37%)        0.71 ( 76.63%)        5.00 (-65.61%)
+CoeffVar real-fsmark           0.35 (  0.00%)        0.92 (-164.73%)        0.36 ( -2.91%)        0.52 (-48.82%)        0.39 (-12.10%)
+CoeffVar syst-fsmark           0.06 (  0.00%)        0.50 (-682.41%)        0.01 ( 85.45%)        0.41 (-543.22%)        0.37 (-478.78%)
+CoeffVar real-xfsrepair        1.52 (  0.00%)        0.97 ( 36.21%)        0.76 ( 49.94%)        0.40 ( 73.62%)        0.12 ( 92.33%)
+CoeffVar syst-xfsrepair        1.51 (  0.00%)        3.54 (-134.54%)        4.75 (-214.31%)        0.34 ( 77.20%)        3.32 (-119.63%)
+Max      real-fsmark        1193.39 (  0.00%)     1191.77 (  0.14%)     1162.90 (  2.55%)     1166.66 (  2.24%)     1188.50 (  0.41%)
+Max      syst-fsmark        4114.18 (  0.00%)     4075.45 (  0.94%)     3987.65 (  3.08%)     4019.45 (  2.30%)     4082.80 (  0.76%)
+Max      real-xfsrepair      457.80 (  0.00%)      474.60 ( -3.67%)      457.82 ( -0.00%)      444.42 (  2.92%)      441.03 (  3.66%)
+Max      syst-xfsrepair      203.11 (  0.00%)      303.65 (-49.50%)      294.35 (-44.92%)      205.33 ( -1.09%)      155.28 ( 23.55%)
+
+The really relevant lines as syst-xfsrepair which is the system CPU usage
+when running xfsrepair.  Note that on my machine the overhead was 45%
+higher on 4.0-rc4 which may be part of what Dave is seeing.  Once we
+preserve the write bit across faults, it's only 2.51% higher on average. 
+With the full series applied, system CPU usage is 24.6% lower on average.
+
+Again, the impact of preserving the write bit on minor faults is obvious
+and the impact of slowing scanning after migration failures is obvious on
+the PTE updates.  Note also that the number of pages migrated is much
+reduced even though the headline performance is comparable.
+
+                                3.19.0   4.0.0-rc4   4.0.0-rc4   4.0.0-rc4   4.0.0-rc4
+                               vanilla     vanillavmwrite-v5r8preserve-v5r8slowscan-v5r8
+Minor Faults                 153466827   254507978   249163829   153501373   105737890
+Major Faults                       610         702         690         649         724
+NUMA base PTE updates        217735049   210756527   217729596   216937111   144344993
+NUMA huge PMD updates           129294       85044      106921      127246       79887
+NUMA pages migrated           21938995    29705270    28594162    22687324    16258075
+
+                      3.19.0   4.0.0-rc4   4.0.0-rc4   4.0.0-rc4   4.0.0-rc4
+                     vanilla     vanillavmwrite-v5r8preserve-v5r8slowscan-v5r8
+Mean sdb-avgqusz       13.47        2.54        2.55        2.47        2.49
+Mean sdb-avgrqsz      202.32      140.22      139.50      139.02      138.12
+Mean sdb-await         25.92        5.09        5.33        5.02        5.22
+Mean sdb-r_await        4.71        0.19        0.83        0.51        0.11
+Mean sdb-w_await      104.13        5.21        5.38        5.05        5.32
+Mean sdb-svctm          0.59        0.13        0.14        0.13        0.14
+Mean sdb-rrqm           0.16        0.00        0.00        0.00        0.00
+Mean sdb-wrqm           3.59     1799.43     1826.84     1812.21     1785.67
+Max  sdb-avgqusz      111.06       12.13       14.05       11.66       15.60
+Max  sdb-avgrqsz      255.60      190.34      190.01      187.33      191.78
+Max  sdb-await        168.24       39.28       49.22       44.64       65.62
+Max  sdb-r_await      660.00       52.00      280.00       76.00       12.00
+Max  sdb-w_await     7804.00       39.28       49.22       44.64       65.62
+Max  sdb-svctm          4.00        2.82        2.86        1.98        2.84
+Max  sdb-rrqm           8.30        0.00        0.00        0.00        0.00
+Max  sdb-wrqm          34.20     5372.80     5278.60     5386.60     5546.15
+
+FWIW, I also checked SPECjbb in different configurations but it's similar
+observations -- minor faults lower, PTE update activity lower and
+performance is roughly comparable against 3.19.
+
+
+This patch (of 3):
+
+Threads that share writable data within pages are grouped together as
+related tasks.  This decision is based on whether the PTE is marked dirty
+which is subject to timing races between the PTE scanner update and when
+the application writes the page.  If the page is file-backed, then
+background flushes and sync also affect placement.  This is unpredictable
+behaviour which is impossible to reason about so this patch makes grouping
+decisions based on the VMA flags.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Reported-by: Dave Chinner <david@fromorbit.com>
@@ -88,91 +194,64 @@ Cc: Ingo Molnar <mingo@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    9 +++++----
- kernel/sched/fair.c   |    8 ++++++--
- mm/huge_memory.c      |    3 ++-
- mm/memory.c           |    3 ++-
- 4 files changed, 15 insertions(+), 8 deletions(-)
+ mm/huge_memory.c |   13 ++-----------
+ mm/memory.c      |   19 +++++++++++--------
+ 2 files changed, 13 insertions(+), 19 deletions(-)
 
-diff -puN include/linux/sched.h~mm-numa-slow-pte-scan-rate-if-migration-failures-occur include/linux/sched.h
---- a/include/linux/sched.h~mm-numa-slow-pte-scan-rate-if-migration-failures-occur
-+++ a/include/linux/sched.h
-@@ -1625,11 +1625,11 @@ struct task_struct {
- 
- 	/*
- 	 * numa_faults_locality tracks if faults recorded during the last
--	 * scan window were remote/local. The task scan period is adapted
--	 * based on the locality of the faults with different weights
--	 * depending on whether they were shared or private faults
-+	 * scan window were remote/local or failed to migrate. The task scan
-+	 * period is adapted based on the locality of the faults with different
-+	 * weights depending on whether they were shared or private faults
- 	 */
--	unsigned long numa_faults_locality[2];
-+	unsigned long numa_faults_locality[3];
- 
- 	unsigned long numa_pages_migrated;
- #endif /* CONFIG_NUMA_BALANCING */
-@@ -1719,6 +1719,7 @@ struct task_struct {
- #define TNF_NO_GROUP	0x02
- #define TNF_SHARED	0x04
- #define TNF_FAULT_LOCAL	0x08
-+#define TNF_MIGRATE_FAIL 0x10
- 
- #ifdef CONFIG_NUMA_BALANCING
- extern void task_numa_fault(int last_node, int node, int pages, int flags);
-diff -puN kernel/sched/fair.c~mm-numa-slow-pte-scan-rate-if-migration-failures-occur kernel/sched/fair.c
---- a/kernel/sched/fair.c~mm-numa-slow-pte-scan-rate-if-migration-failures-occur
-+++ a/kernel/sched/fair.c
-@@ -1609,9 +1609,11 @@ static void update_task_scan_period(stru
- 	/*
- 	 * If there were no record hinting faults then either the task is
- 	 * completely idle or all activity is areas that are not of interest
--	 * to automatic numa balancing. Scan slower
-+	 * to automatic numa balancing. Related to that, if there were failed
-+	 * migration then it implies we are migrating too quickly or the local
-+	 * node is overloaded. In either case, scan slower
- 	 */
--	if (local + shared == 0) {
-+	if (local + shared == 0 || p->numa_faults_locality[2]) {
- 		p->numa_scan_period = min(p->numa_scan_period_max,
- 			p->numa_scan_period << 1);
- 
-@@ -2080,6 +2082,8 @@ void task_numa_fault(int last_cpupid, in
- 
- 	if (migrated)
- 		p->numa_pages_migrated += pages;
-+	if (flags & TNF_MIGRATE_FAIL)
-+		p->numa_faults_locality[2] += pages;
- 
- 	p->numa_faults[task_faults_idx(NUMA_MEMBUF, mem_node, priv)] += pages;
- 	p->numa_faults[task_faults_idx(NUMA_CPUBUF, cpu_node, priv)] += pages;
-diff -puN mm/huge_memory.c~mm-numa-slow-pte-scan-rate-if-migration-failures-occur mm/huge_memory.c
---- a/mm/huge_memory.c~mm-numa-slow-pte-scan-rate-if-migration-failures-occur
+diff -puN mm/huge_memory.c~mm-numa-group-related-processes-based-on-vma-flags-instead-of-page-table-flags mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-numa-group-related-processes-based-on-vma-flags-instead-of-page-table-flags
 +++ a/mm/huge_memory.c
-@@ -1350,7 +1350,8 @@ int do_huge_pmd_numa_page(struct mm_stru
- 	if (migrated) {
- 		flags |= TNF_MIGRATED;
- 		page_nid = target_nid;
--	}
-+	} else
-+		flags |= TNF_MIGRATE_FAIL;
+@@ -1291,17 +1291,8 @@ int do_huge_pmd_numa_page(struct mm_stru
+ 		flags |= TNF_FAULT_LOCAL;
+ 	}
  
- 	goto out;
- clear_pmdnuma:
-diff -puN mm/memory.c~mm-numa-slow-pte-scan-rate-if-migration-failures-occur mm/memory.c
---- a/mm/memory.c~mm-numa-slow-pte-scan-rate-if-migration-failures-occur
+-	/*
+-	 * Avoid grouping on DSO/COW pages in specific and RO pages
+-	 * in general, RO pages shouldn't hurt as much anyway since
+-	 * they can be in shared cache state.
+-	 *
+-	 * FIXME! This checks "pmd_dirty()" as an approximation of
+-	 * "is this a read-only page", since checking "pmd_write()"
+-	 * is even more broken. We haven't actually turned this into
+-	 * a writable page, so pmd_write() will always be false.
+-	 */
+-	if (!pmd_dirty(pmd))
++	/* See similar comment in do_numa_page for explanation */
++	if (!(vma->vm_flags & VM_WRITE))
+ 		flags |= TNF_NO_GROUP;
+ 
+ 	/*
+diff -puN mm/memory.c~mm-numa-group-related-processes-based-on-vma-flags-instead-of-page-table-flags mm/memory.c
+--- a/mm/memory.c~mm-numa-group-related-processes-based-on-vma-flags-instead-of-page-table-flags
 +++ a/mm/memory.c
-@@ -3103,7 +3103,8 @@ static int do_numa_page(struct mm_struct
- 	if (migrated) {
- 		page_nid = target_nid;
- 		flags |= TNF_MIGRATED;
--	}
-+	} else
-+		flags |= TNF_MIGRATE_FAIL;
+@@ -3069,16 +3069,19 @@ static int do_numa_page(struct mm_struct
+ 	}
  
- out:
- 	if (page_nid != -1)
+ 	/*
+-	 * Avoid grouping on DSO/COW pages in specific and RO pages
+-	 * in general, RO pages shouldn't hurt as much anyway since
+-	 * they can be in shared cache state.
++	 * Avoid grouping on RO pages in general. RO pages shouldn't hurt as
++	 * much anyway since they can be in shared cache state. This misses
++	 * the case where a mapping is writable but the process never writes
++	 * to it but pte_write gets cleared during protection updates and
++	 * pte_dirty has unpredictable behaviour between PTE scan updates,
++	 * background writeback, dirty balancing and application behaviour.
+ 	 *
+-	 * FIXME! This checks "pmd_dirty()" as an approximation of
+-	 * "is this a read-only page", since checking "pmd_write()"
+-	 * is even more broken. We haven't actually turned this into
+-	 * a writable page, so pmd_write() will always be false.
++	 * TODO: Note that the ideal here would be to avoid a situation where a
++	 * NUMA fault is taken immediately followed by a write fault in
++	 * some cases which would have lower overhead overall but would be
++	 * invasive as the fault paths would need to be unified.
+ 	 */
+-	if (!pte_dirty(pte))
++	if (!(vma->vm_flags & VM_WRITE))
+ 		flags |= TNF_NO_GROUP;
+ 
+ 	/*
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
