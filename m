@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-remove-drm-drivers-for-renesas-pattern.patch added
- to -mm tree
-Date: Mon, 23 Mar 2015 15:16:19 -0700
-Message-ID: <551090b3.lbKPpCdjw8HK57Up%akpm@linux-foundation.org>
+Subject: + checkpatch-improve-return-negative-errno-check.patch added to
+ -mm tree
+Date: Mon, 23 Mar 2015 15:20:01 -0700
+Message-ID: <55109191.YLSF5Q9FHnbWmCXH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47931 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48077 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753284AbbCWWQU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Mar 2015 18:16:20 -0400
+	with ESMTP id S1752748AbbCWWUC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Mar 2015 18:20:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, laurent.pinchart@ideasonboard.com, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: Remove  DRM DRIVERS FOR RENESAS pattern
+     Subject: checkpatch: improve return negative errno check
 has been added to the -mm tree.  Its filename is
-     maintainers-remove-drm-drivers-for-renesas-pattern.patch
+     checkpatch-improve-return-negative-errno-check.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-remove-drm-drivers-for-renesas-pattern.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-improve-return-negative-errno-check.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-remove-drm-drivers-for-renesas-pattern.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-improve-return-negative-errno-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,30 +40,39 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: Remove  DRM DRIVERS FOR RENESAS pattern
+Subject: checkpatch: improve return negative errno check
 
-commit 2378ad1228d2 ("drm: rcar-du: Remove platform data support")
-removed the file, remove the pattern.
+Add a few conditions to the test to find
+	return (ERRNO);
+
+Make the output message a bit less cryptic too.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 -
- 1 file changed, 1 deletion(-)
+ scripts/checkpatch.pl |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-remove-drm-drivers-for-renesas-pattern MAINTAINERS
---- a/MAINTAINERS~maintainers-remove-drm-drivers-for-renesas-pattern
-+++ a/MAINTAINERS
-@@ -3405,7 +3405,6 @@ T:	git git://people.freedesktop.org/~air
- S:	Supported
- F:	drivers/gpu/drm/rcar-du/
- F:	drivers/gpu/drm/shmobile/
--F:	include/linux/platform_data/rcar-du.h
- F:	include/linux/platform_data/shmob_drm.h
+diff -puN scripts/checkpatch.pl~checkpatch-improve-return-negative-errno-check scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-improve-return-negative-errno-check
++++ a/scripts/checkpatch.pl
+@@ -4009,12 +4009,12 @@ sub process {
+ 			}
+ 		}
  
- DSBR100 USB FM RADIO DRIVER
+-# Return of what appears to be an errno should normally be -'ve
+-		if ($line =~ /^.\s*return\s*(E[A-Z]*)\s*;/) {
++# Return of what appears to be an errno should normally be negative
++		if ($sline =~ /\breturn(?:\s*\(+\s*|\s+)(E[A-Z]+)(?:\s*\)+\s*|\s*)[;:,]/) {
+ 			my $name = $1;
+ 			if ($name ne 'EOF' && $name ne 'ERROR') {
+ 				WARN("USE_NEGATIVE_ERRNO",
+-				     "return of an errno should typically be -ve (return -$1)\n" . $herecurr);
++				     "return of an errno should typically be negative (ie: return -$1)\n" . $herecurr);
+ 			}
+ 		}
+ 
 _
 
 Patches currently in -mm which might be from joe@perches.com are
@@ -100,5 +109,6 @@ checkpatch-spell-check-reudce.patch
 checkpatch-add-optional-codespell-dictionary-to-find-more-typos.patch
 checkpatch-match-more-world-writable-permissions.patch
 checkpatch-match-more-world-writable-permissions-fix.patch
+checkpatch-improve-return-negative-errno-check.patch
 linux-next.patch
 
