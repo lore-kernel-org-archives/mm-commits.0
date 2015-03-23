@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + zsmalloc-remove-synchronize_rcu-from-zs_compact.patch added to
- -mm tree
-Date: Mon, 23 Mar 2015 15:35:20 -0700
-Message-ID: <55109528.QiG1m9Lsw0G9DRH+%akpm@linux-foundation.org>
+Subject: + zsmalloc-remove-extra-cond_resched-in-__zs_compact.patch added
+ to -mm tree
+Date: Mon, 23 Mar 2015 15:35:22 -0700
+Message-ID: <5510952a.pECTxS0E+rXBRbtJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48134 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48141 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752214AbbCWWfV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Mar 2015 18:35:21 -0400
+	with ESMTP id S1752214AbbCWWfX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Mar 2015 18:35:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: sergey.senozhatsky@gmail.com, minchan@kernel.org, ngupta@vflare.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: remove synchronize_rcu from zs_compact()
+     Subject: zsmalloc: remove extra cond_resched() in __zs_compact
 has been added to the -mm tree.  Its filename is
-     zsmalloc-remove-synchronize_rcu-from-zs_compact.patch
+     zsmalloc-remove-extra-cond_resched-in-__zs_compact.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zsmalloc-remove-synchronize_rcu-from-zs_compact.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zsmalloc-remove-extra-cond_resched-in-__zs_compact.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zsmalloc-remove-synchronize_rcu-from-zs_compact.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zsmalloc-remove-extra-cond_resched-in-__zs_compact.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,10 +40,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: zsmalloc: remove synchronize_rcu from zs_compact()
+Subject: zsmalloc: remove extra cond_resched() in __zs_compact
 
-Do not synchronize rcu in zs_compact(). Neither zsmalloc not
-zram use rcu.
+Do not perform cond_resched() before the busy compaction loop in
+__zs_compact(), because this loop does it when needed.
 
 Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Cc: Minchan Kim <minchan@kernel.org>
@@ -54,18 +54,18 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  mm/zsmalloc.c |    2 --
  1 file changed, 2 deletions(-)
 
-diff -puN mm/zsmalloc.c~zsmalloc-remove-synchronize_rcu-from-zs_compact mm/zsmalloc.c
---- a/mm/zsmalloc.c~zsmalloc-remove-synchronize_rcu-from-zs_compact
+diff -puN mm/zsmalloc.c~zsmalloc-remove-extra-cond_resched-in-__zs_compact mm/zsmalloc.c
+--- a/mm/zsmalloc.c~zsmalloc-remove-extra-cond_resched-in-__zs_compact
 +++ a/mm/zsmalloc.c
-@@ -1778,8 +1778,6 @@ unsigned long zs_compact(struct zs_pool
- 		nr_migrated += __zs_compact(pool, class);
- 	}
+@@ -1717,8 +1717,6 @@ static unsigned long __zs_compact(struct
+ 	struct page *dst_page = NULL;
+ 	unsigned long nr_total_migrated = 0;
  
--	synchronize_rcu();
+-	cond_resched();
 -
- 	return nr_migrated;
- }
- EXPORT_SYMBOL_GPL(zs_compact);
+ 	spin_lock(&class->lock);
+ 	while ((src_page = isolate_source_page(class))) {
+ 
 _
 
 Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
