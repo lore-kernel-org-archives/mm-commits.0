@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-add-test-for-repeated-const-uses.patch added to -mm
- tree
-Date: Tue, 24 Mar 2015 13:34:23 -0700
-Message-ID: <5511ca4f.YXiuCZCuxO3n1P4Y%akpm@linux-foundation.org>
+Subject: + kernelh-implement-div_round_closest_ull.patch added to -mm tree
+Date: Tue, 24 Mar 2015 14:01:27 -0700
+Message-ID: <5511d0a7.LtlIW0Y+jWUTCiMk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36543 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36857 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752021AbbCXUeY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Mar 2015 16:34:24 -0400
+	with ESMTP id S1752411AbbCXVB2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Mar 2015 17:01:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: javi.merino@arm.com, airlied@linux.ie, crope@iki.fi, daniel.vetter@ffwll.ch, elder@linaro.org, jani.nikula@linux.intel.com, linux@roeck-us.net, mchehab@osg.samsung.com, mgorman@suse.de, mturquette@linaro.org, rafael.j.wysocki@intel.com, sboyd@codeaurora.org, shemminger@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add test for repeated const uses
+     Subject: kernel.h: implement DIV_ROUND_CLOSEST_ULL
 has been added to the -mm tree.  Its filename is
-     checkpatch-add-test-for-repeated-const-uses.patch
+     kernelh-implement-div_round_closest_ull.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-test-for-repeated-const-uses.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernelh-implement-div_round_closest_ull.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-test-for-repeated-const-uses.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernelh-implement-div_round_closest_ull.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,100 +38,88 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add test for repeated const uses
+From: Javi Merino <javi.merino@arm.com>
+Subject: kernel.h: implement DIV_ROUND_CLOSEST_ULL
 
-Using 'const <type> const *' is generally meant to be written 'const
-<type> * const'.
+We have grown a number of different implementations of
+DIV_ROUND_CLOSEST_ULL throughout the kernel.  Move the i915 one to
+kernel.h so that it can be reused.
 
-Add a test for the miswritten form.
-
-Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Javi Merino <javi.merino@arm.com>
+Cc: Jani Nikula <jani.nikula@linux.intel.com>
+Cc: David Airlie <airlied@linux.ie>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: Alex Elder <elder@linaro.org>
+Cc: Antti Palosaari <crope@iki.fi>
+Cc: Javi Merino <javi.merino@arm.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Mike Turquette <mturquette@linaro.org>
+Cc: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Stephen Hemminger <shemminger@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+ drivers/gpu/drm/i915/intel_drv.h   |    3 ---
+ drivers/gpu/drm/i915/intel_panel.c |    1 +
+ include/linux/kernel.h             |   12 ++++++++++++
+ 3 files changed, 13 insertions(+), 3 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-test-for-repeated-const-uses scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-test-for-repeated-const-uses
-+++ a/scripts/checkpatch.pl
-@@ -323,6 +323,7 @@ our $Operators	= qr{
+diff -puN drivers/gpu/drm/i915/intel_drv.h~kernelh-implement-div_round_closest_ull drivers/gpu/drm/i915/intel_drv.h
+--- a/drivers/gpu/drm/i915/intel_drv.h~kernelh-implement-div_round_closest_ull
++++ a/drivers/gpu/drm/i915/intel_drv.h
+@@ -36,9 +36,6 @@
+ #include <drm/drm_dp_mst_helper.h>
+ #include <drm/drm_rect.h>
  
- our $c90_Keywords = qr{do|for|while|if|else|return|goto|continue|switch|default|case|break}x;
+-#define DIV_ROUND_CLOSEST_ULL(ll, d)	\
+-({ unsigned long long _tmp = (ll)+(d)/2; do_div(_tmp, d); _tmp; })
+-
+ /**
+  * _wait_for - magic (register) wait macro
+  *
+diff -puN drivers/gpu/drm/i915/intel_panel.c~kernelh-implement-div_round_closest_ull drivers/gpu/drm/i915/intel_panel.c
+--- a/drivers/gpu/drm/i915/intel_panel.c~kernelh-implement-div_round_closest_ull
++++ a/drivers/gpu/drm/i915/intel_panel.c
+@@ -30,6 +30,7 @@
  
-+our $BasicType;
- our $NonptrType;
- our $NonptrTypeMisordered;
- our $NonptrTypeWithAttr;
-@@ -514,6 +515,11 @@ sub build_types {
- 	my $Misordered = "(?x:  \n" . join("|\n  ", @typeListMisordered) . "\n)";
- 	my $allWithAttr = "(?x:  \n" . join("|\n  ", @typeListWithAttr) . "\n)";
- 	$Modifier	= qr{(?:$Attribute|$Sparse|$mods)};
-+	$BasicType	= qr{
-+				(?:$typeOtherOSTypedefs\b)|
-+				(?:$typeTypedefs\b)|
-+				(?:${all}\b)
-+		}x;
- 	$NonptrType	= qr{
- 			(?:$Modifier\s+|const\s+)*
- 			(?:
-@@ -3192,6 +3198,18 @@ sub process {
- 				$herecurr);
-                }
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
  
-+# check for const <foo> const where <foo> is not a pointer or array type
-+		if ($sline =~ /\bconst\s+($BasicType)\s+const\b/) {
-+			my $found = $1;
-+			if ($sline =~ /\bconst\s+\Q$found\E\s+const\b\s*\*/) {
-+				WARN("CONST_CONST",
-+				     "'const $found const *' should probably be 'const $found * const'\n" . $herecurr);
-+			} elsif ($sline !~ /\bconst\s+\Q$found\E\s+const\s+\w+\s*\[/) {
-+				WARN("CONST_CONST",
-+				     "'const $found const' should probably be 'const $found'\n" . $herecurr);
-+			}
-+		}
-+
- # check for non-global char *foo[] = {"bar", ...} declarations.
- 		if ($line =~ /^.\s+(?:static\s+|const\s+)?char\s+\*\s*\w+\s*\[\s*\]\s*=\s*\{/) {
- 			WARN("STATIC_CONST_CHAR_ARRAY",
++#include <linux/kernel.h>
+ #include <linux/moduleparam.h>
+ #include "intel_drv.h"
+ 
+diff -puN include/linux/kernel.h~kernelh-implement-div_round_closest_ull include/linux/kernel.h
+--- a/include/linux/kernel.h~kernelh-implement-div_round_closest_ull
++++ a/include/linux/kernel.h
+@@ -103,6 +103,18 @@
+ 		(((__x) - ((__d) / 2)) / (__d));	\
+ }							\
+ )
++/*
++ * Same as above but for u64 dividends. divisor must be a 32-bit
++ * number.
++ */
++#define DIV_ROUND_CLOSEST_ULL(x, divisor)(		\
++{							\
++	typeof(divisor) __d = divisor;			\
++	unsigned long long _tmp = (x) + (__d) / 2;	\
++	do_div(_tmp, __d);				\
++	_tmp;						\
++}							\
++)
+ 
+ /*
+  * Multiplies an integer by a fraction, while avoiding unnecessary
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from javi.merino@arm.com are
 
-maintainers-correct-rtc-armada38x-pattern-entry.patch
-hfsplus-fix-b-tree-corruption-after-insertion-at-position-0.patch
-proc-show-locks-in-proc-pid-fdinfo-x.patch
-proc-show-locks-in-proc-pid-fdinfo-x-v2.patch
-maintainers-use-tabs-consistently.patch
-x86-mtrr-if-remove-use-of-seq_printf-return-value.patch
-power-wakeup-remove-use-of-seq_printf-return-value.patch
-rtc-remove-use-of-seq_printf-return-value.patch
-ipc-remove-use-of-seq_printf-return-value.patch
-microblaze-mb-remove-use-of-seq_printf-return-value.patch
-microblaze-mb-remove-use-of-seq_printf-return-value-fix.patch
-nios2-cpuinfo-remove-use-of-seq_printf-return-value.patch
-arm-plat-pxa-remove-use-of-seq_printf-return-value.patch
-openrisc-remove-use-of-seq_printf-return-value.patch
-cris-remove-use-of-seq_printf-return-value.patch
-s390-remove-use-of-seq_printf-return-value.patch
-i8k-remove-use-of-seq_printf-return-value.patch
-watchdog-bcm281xx-remove-use-of-seq_printf-return-value.patch
-proc-remove-use-of-seq_printf-return-value.patch
-cgroup-remove-use-of-seq_printf-return-value.patch
-tracing-remove-use-of-seq_printf-return-value.patch
-lru_cache-remove-use-of-seq_printf-return-value.patch
-parisc-remove-use-of-seq_printf-return-value.patch
-lib-vsprintfc-even-faster-decimal-conversion.patch
-mm-utilc-add-kstrimdup.patch
-checkpatch-improve-no-space-is-necessary-after-a-cast-test.patch
-checkpatch-add-spell-checking-of-email-subject-line.patch
-checkpatch-spell-check-reudce.patch
-checkpatch-add-optional-codespell-dictionary-to-find-more-typos.patch
-checkpatch-match-more-world-writable-permissions.patch
-checkpatch-match-more-world-writable-permissions-fix.patch
-checkpatch-improve-return-negative-errno-check.patch
-checkpatch-add-test-for-repeated-const-uses.patch
-adfs-returning-correct-return-values.patch
+kernelh-implement-div_round_closest_ull.patch
+clk-bcm-kona-use-div_round_closest_ull.patch
+cpuidle-menu-use-div_round_closest_ull.patch
+media-cxd2820r-use-div_round_closest_ull.patch
 linux-next.patch
 
