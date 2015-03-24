@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + clean-up-goto-just-return-err_ptr.patch added to -mm tree
-Date: Tue, 24 Mar 2015 15:26:14 -0700
-Message-ID: <5511e486.AMaXEnPqod+Ch77G%akpm@linux-foundation.org>
+Subject: +
+ rtc-s5m-allow-usage-on-device-type-different-than-main-mfd-type-v2.patch
+ added to -mm tree
+Date: Tue, 24 Mar 2015 15:30:15 -0700
+Message-ID: <5511e577.CmFNYQIO/ZgA79jW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38064 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38081 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752190AbbCXW0P (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Mar 2015 18:26:15 -0400
+	with ESMTP id S932091AbbCXWaQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Mar 2015 18:30:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: denc716@gmail.com, crquan@ymail.com, kirill@shutemov.name, rientjes@google.com, mm-commits@vger.kernel.org
+To: k.kozlowski@samsung.com, a.zummo@towertech.it, cw00.choi@samsung.com, kyungmin.park@samsung.com, m.szyprowski@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mremap.c: clean up goto just return ERR_PTR
+     Subject: rtc-s5m-allow-usage-on-device-type-different-than-main-mfd-type-v2
 has been added to the -mm tree.  Its filename is
-     clean-up-goto-just-return-err_ptr.patch
+     rtc-s5m-allow-usage-on-device-type-different-than-main-mfd-type-v2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/clean-up-goto-just-return-err_ptr.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rtc-s5m-allow-usage-on-device-type-different-than-main-mfd-type-v2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/clean-up-goto-just-return-err_ptr.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-s5m-allow-usage-on-device-type-different-than-main-mfd-type-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,73 +40,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Derek <denc716@gmail.com>
-Subject: mm/mremap.c: clean up goto just return ERR_PTR
+From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Subject: rtc-s5m-allow-usage-on-device-type-different-than-main-mfd-type-v2
 
-As suggested by Kirill the "goto"s in vma_to_resize aren't neccessary,
-just change them to explicit return.
+Consistently use platform_get_device_id() instead of pdev->id_entry.
 
-Signed-off-by: Derek Che <crquan@ymail.com>
-Suggested-by: "Kirill A. Shutemov" <kirill@shutemov.name>
-Acked-by: David Rientjes <rientjes@google.com>
+Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Chanwoo Choi <cw00.choi@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mremap.c |   25 ++++++++-----------------
- 1 file changed, 8 insertions(+), 17 deletions(-)
+ drivers/rtc/rtc-s5m.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/mremap.c~clean-up-goto-just-return-err_ptr mm/mremap.c
---- a/mm/mremap.c~clean-up-goto-just-return-err_ptr
-+++ a/mm/mremap.c
-@@ -339,25 +339,25 @@ static struct vm_area_struct *vma_to_res
- 	struct vm_area_struct *vma = find_vma(mm, addr);
- 
- 	if (!vma || vma->vm_start > addr)
--		goto Efault;
-+		return ERR_PTR(-EFAULT);
- 
- 	if (is_vm_hugetlb_page(vma))
--		goto Einval;
-+		return ERR_PTR(-EINVAL);
- 
- 	/* We can't remap across vm area boundaries */
- 	if (old_len > vma->vm_end - addr)
--		goto Efault;
-+		return ERR_PTR(-EFAULT);
- 
- 	/* Need to be careful about a growing mapping */
- 	if (new_len > old_len) {
- 		unsigned long pgoff;
- 
- 		if (vma->vm_flags & (VM_DONTEXPAND | VM_PFNMAP))
--			goto Efault;
-+			return ERR_PTR(-EFAULT);
- 		pgoff = (addr - vma->vm_start) >> PAGE_SHIFT;
- 		pgoff += vma->vm_pgoff;
- 		if (pgoff + (new_len >> PAGE_SHIFT) < pgoff)
--			goto Einval;
-+			return ERR_PTR(-EINVAL);
+diff -puN drivers/rtc/rtc-s5m.c~rtc-s5m-allow-usage-on-device-type-different-than-main-mfd-type-v2 drivers/rtc/rtc-s5m.c
+--- a/drivers/rtc/rtc-s5m.c~rtc-s5m-allow-usage-on-device-type-different-than-main-mfd-type-v2
++++ a/drivers/rtc/rtc-s5m.c
+@@ -669,7 +669,7 @@ static int s5m_rtc_probe(struct platform
+ 	default:
+ 		dev_err(&pdev->dev,
+ 				"Device type %lu is not supported by RTC driver\n",
+-				pdev->id_entry->driver_data);
++				platform_get_device_id(pdev)->driver_data);
+ 		return -ENODEV;
  	}
  
- 	if (vma->vm_flags & VM_LOCKED) {
-@@ -366,29 +366,20 @@ static struct vm_area_struct *vma_to_res
- 		lock_limit = rlimit(RLIMIT_MEMLOCK);
- 		locked += new_len - old_len;
- 		if (locked > lock_limit && !capable(CAP_IPC_LOCK))
--			goto Eagain;
-+			return ERR_PTR(-EAGAIN);
- 	}
+@@ -689,7 +689,7 @@ static int s5m_rtc_probe(struct platform
  
- 	if (!may_expand_vm(mm, (new_len - old_len) >> PAGE_SHIFT))
--		goto Enomem;
-+		return ERR_PTR(-ENOMEM);
+ 	info->dev = &pdev->dev;
+ 	info->s5m87xx = s5m87xx;
+-	info->device_type = pdev->id_entry->driver_data;
++	info->device_type = platform_get_device_id(pdev)->driver_data;
  
- 	if (vma->vm_flags & VM_ACCOUNT) {
- 		unsigned long charged = (new_len - old_len) >> PAGE_SHIFT;
- 		if (security_vm_enough_memory_mm(mm, charged))
--			goto Enomem;
-+			return ERR_PTR(-ENOMEM);
- 		*p = charged;
- 	}
- 
- 	return vma;
+ 	if (s5m87xx->irq_data) {
+ 		info->irq = regmap_irq_get_virq(s5m87xx->irq_data, alarm_irq);
+_
+
+Patches currently in -mm which might be from k.kozlowski@samsung.com are
+
+rtc-rtc-ab-b5ze-s3-constify-struct-regmap_config.patch
+linux-next.patch
+rtc-s5m-allow-usage-on-device-type-different-than-main-mfd-type.patch
+rtc-s5m-allow-usage-on-device-type-different-than-main-mfd-type-v2.patch
+
