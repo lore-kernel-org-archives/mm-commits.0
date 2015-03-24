@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mtrr-x86-remove-a-wrong-address-check-in-__mtrr_type_lookup.patch added to
+Subject: + mm-x86-document-return-values-of-mapping-funcs.patch added to
  -mm tree
-Date: Tue, 24 Mar 2015 15:43:40 -0700
-Message-ID: <5511e89c.O44EIHIbkZPC6FPI%akpm@linux-foundation.org>
+Date: Tue, 24 Mar 2015 15:43:36 -0700
+Message-ID: <5511e898.ZflueR/3uAbHe+sn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38124 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38111 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752730AbbCXWnl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Mar 2015 18:43:41 -0400
+	with ESMTP id S1751933AbbCXWnh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Mar 2015 18:43:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: toshi.kani@hp.com, Elliott@hp.com, dave.hansen@intel.com, hpa@zytor.com, mingo@redhat.com, pebolle@tiscali.nl, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mtrr, x86: remove a wrong address check in __mtrr_type_lookup()
+     Subject: mm, x86: document return values of mapping funcs
 has been added to the -mm tree.  Its filename is
-     mtrr-x86-remove-a-wrong-address-check-in-__mtrr_type_lookup.patch
+     mm-x86-document-return-values-of-mapping-funcs.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mtrr-x86-remove-a-wrong-address-check-in-__mtrr_type_lookup.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-x86-document-return-values-of-mapping-funcs.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mtrr-x86-remove-a-wrong-address-check-in-__mtrr_type_lookup.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-x86-document-return-values-of-mapping-funcs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,15 +40,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: mtrr, x86: remove a wrong address check in __mtrr_type_lookup()
+Subject: mm, x86: document return values of mapping funcs
 
-__mtrr_type_lookup() checks MTRR fixed ranges when mtrr_state.have_fixed
-is set and start is less than 0x100000.  However, the 'else if (start <
-0x1000000)' in the code checks with a wrong address as it has an
-extra-zero in the address.  The code still runs correctly as this check is
-meaningless, though.
+This patchset enhances MTRR checks for the kernel huge I/O mapping, which
+was enabled by the patchset below:
 
-This patch replaces the wrong address check with 'else' with no condition.
+  https://lkml.org/lkml/2015/3/3/589
+
+The following functional changes are made in patch 7/7.
+ - Allow pud_set_huge() and pmd_set_huge() to create a huge page
+   mapping to a range covered by a single MTRR entry of any memory
+   type.
+ - Log a pr_warn() message when a specified PMD map range spans more
+   than a single MTRR entry.  Drivers should make a mapping request
+   aligned to a single MTRR entry when the range is covered by MTRRs.
+
+
+
+This patch (of 7):
+
+Document the return values of KVA mapping functions, pud_set_huge(),
+pmd_set_huge, pud_clear_huge() and pmd_clear_huge().
+
+Simplify the conditions to select HAVE_ARCH_HUGE_VMAP in the Kconfig,
+since X86_PAE depends on X86_32.
+
+There is no functional change in this patch.
 
 Signed-off-by: Toshi Kani <toshi.kani@hp.com>
 Cc: Dave Hansen <dave.hansen@intel.com>
@@ -61,21 +77,97 @@ Cc: Ingo Molnar <mingo@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/mtrr/generic.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/Kconfig      |    2 +-
+ arch/x86/mm/pgtable.c |   36 ++++++++++++++++++++++++++++--------
+ 2 files changed, 29 insertions(+), 9 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/mtrr/generic.c~mtrr-x86-remove-a-wrong-address-check-in-__mtrr_type_lookup arch/x86/kernel/cpu/mtrr/generic.c
---- a/arch/x86/kernel/cpu/mtrr/generic.c~mtrr-x86-remove-a-wrong-address-check-in-__mtrr_type_lookup
-+++ a/arch/x86/kernel/cpu/mtrr/generic.c
-@@ -137,7 +137,7 @@ static u8 __mtrr_type_lookup(u64 start,
- 			idx = 1 * 8;
- 			idx += ((start - 0x80000) >> 14);
- 			return mtrr_state.fixed_ranges[idx];
--		} else if (start < 0x1000000) {
-+		} else {
- 			idx = 3 * 8;
- 			idx += ((start - 0xC0000) >> 12);
- 			return mtrr_state.fixed_ranges[idx];
+diff -puN arch/x86/Kconfig~mm-x86-document-return-values-of-mapping-funcs arch/x86/Kconfig
+--- a/arch/x86/Kconfig~mm-x86-document-return-values-of-mapping-funcs
++++ a/arch/x86/Kconfig
+@@ -99,7 +99,7 @@ config X86
+ 	select IRQ_FORCED_THREADING
+ 	select HAVE_BPF_JIT if X86_64
+ 	select HAVE_ARCH_TRANSPARENT_HUGEPAGE
+-	select HAVE_ARCH_HUGE_VMAP if X86_64 || (X86_32 && X86_PAE)
++	select HAVE_ARCH_HUGE_VMAP if X86_64 || X86_PAE
+ 	select ARCH_HAS_SG_CHAIN
+ 	select CLKEVT_I8253
+ 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
+diff -puN arch/x86/mm/pgtable.c~mm-x86-document-return-values-of-mapping-funcs arch/x86/mm/pgtable.c
+--- a/arch/x86/mm/pgtable.c~mm-x86-document-return-values-of-mapping-funcs
++++ a/arch/x86/mm/pgtable.c
+@@ -563,14 +563,19 @@ void native_set_fixmap(enum fixed_addres
+ }
+ 
+ #ifdef CONFIG_HAVE_ARCH_HUGE_VMAP
++/**
++ * pud_set_huge - setup kernel PUD mapping
++ *
++ * MTRR can override PAT memory types with 4KB granularity.  Therefore,
++ * it does not set up a huge page when the range is covered by a non-WB
++ * type of MTRR.  0xFF indicates that MTRR are disabled.
++ *
++ * Return 1 on success, and 0 when no PUD was set.
++ */
+ int pud_set_huge(pud_t *pud, phys_addr_t addr, pgprot_t prot)
+ {
+ 	u8 mtrr;
+ 
+-	/*
+-	 * Do not use a huge page when the range is covered by non-WB type
+-	 * of MTRRs.
+-	 */
+ 	mtrr = mtrr_type_lookup(addr, addr + PUD_SIZE);
+ 	if ((mtrr != MTRR_TYPE_WRBACK) && (mtrr != 0xFF))
+ 		return 0;
+@@ -584,14 +589,19 @@ int pud_set_huge(pud_t *pud, phys_addr_t
+ 	return 1;
+ }
+ 
++/**
++ * pmd_set_huge - setup kernel PMD mapping
++ *
++ * MTRR can override PAT memory types with 4KB granularity.  Therefore,
++ * it does not set up a huge page when the range is covered by a non-WB
++ * type of MTRR.  0xFF indicates that MTRR are disabled.
++ *
++ * Return 1 on success, and 0 when no PMD was set.
++ */
+ int pmd_set_huge(pmd_t *pmd, phys_addr_t addr, pgprot_t prot)
+ {
+ 	u8 mtrr;
+ 
+-	/*
+-	 * Do not use a huge page when the range is covered by non-WB type
+-	 * of MTRRs.
+-	 */
+ 	mtrr = mtrr_type_lookup(addr, addr + PMD_SIZE);
+ 	if ((mtrr != MTRR_TYPE_WRBACK) && (mtrr != 0xFF))
+ 		return 0;
+@@ -605,6 +615,11 @@ int pmd_set_huge(pmd_t *pmd, phys_addr_t
+ 	return 1;
+ }
+ 
++/**
++ * pud_clear_huge - clear kernel PUD mapping when it is set
++ *
++ * Return 1 on success, and 0 when no PUD map was found.
++ */
+ int pud_clear_huge(pud_t *pud)
+ {
+ 	if (pud_large(*pud)) {
+@@ -615,6 +630,11 @@ int pud_clear_huge(pud_t *pud)
+ 	return 0;
+ }
+ 
++/**
++ * pmd_clear_huge - clear kernel PMD mapping when it is set
++ *
++ * Return 1 on success, and 0 when no PMD map was found.
++ */
+ int pmd_clear_huge(pmd_t *pmd)
+ {
+ 	if (pmd_large(*pmd)) {
 _
 
 Patches currently in -mm which might be from toshi.kani@hp.com are
