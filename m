@@ -1,39 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] mm-remove-usages-of-access_once.patch removed
- from -mm tree
-Date: Tue, 24 Mar 2015 15:44:38 -0700
-Message-ID: <5511e8d6.0/lFfRrEtHbkJBz2%akpm@linux-foundation.org>
+Subject: + mm-remove-rest-of-access_once-usages.patch added to -mm tree
+Date: Tue, 24 Mar 2015 15:45:43 -0700
+Message-ID: <5511e917.hCXyaUXqfkrzjjoo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38154 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38170 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751803AbbCXWoj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Mar 2015 18:44:39 -0400
+	with ESMTP id S1751874AbbCXWpo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Mar 2015 18:45:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jason.low2@hp.com, borntraeger@de.ibm.com, dave@stgolabs.net, mhocko@suse.cz, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     From: Jason Low <jason.low2@hp.com>
-has been removed from the -mm tree.  Its filename was
-     mm-remove-usages-of-access_once.patch
+     Subject: mm: remove rest of ACCESS_ONCE() usages
+has been added to the -mm tree.  Its filename is
+     mm-remove-rest-of-access_once-usages.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-remove-rest-of-access_once-usages.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-rest-of-access_once-usages.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-Subject: mm: Remove usages of ACCESS_ONCE
 From: Jason Low <jason.low2@hp.com>
+Subject: mm: remove rest of ACCESS_ONCE() usages
 
-Commit 38c5ce936a08 ("mm/gup: Replace ACCESS_ONCE with READ_ONCE")
-converted ACCESS_ONCE usage in gup_pmd_range() to READ_ONCE, since
-ACCESS_ONCE doesn't work reliably on non-scalar types.
+We converted some of the usages of ACCESS_ONCE to READ_ONCE in the mm/
+tree since it doesn't work reliably on non-scalar types.
 
-This patch removes the rest of the usages of ACCESS_ONCE, and uses
-READ_ONCE for the read accesses.  This also makes things cleaner, instead
+This patch removes the rest of the usages of ACCESS_ONCE, and use the new
+READ_ONCE API for the read accesses.  This makes things cleaner, instead
 of using separate/multiple sets of APIs.
 
 Signed-off-by: Jason Low <jason.low2@hp.com>
@@ -44,7 +56,6 @@ Reviewed-by: Christian Borntraeger <borntraeger@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c         |    4 ++--
  mm/huge_memory.c |    4 ++--
  mm/internal.h    |    4 ++--
  mm/ksm.c         |   10 +++++-----
@@ -56,31 +67,10 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  mm/slub.c        |    4 ++--
  mm/swap_state.c  |    2 +-
  mm/swapfile.c    |    2 +-
- 12 files changed, 35 insertions(+), 35 deletions(-)
+ 11 files changed, 33 insertions(+), 33 deletions(-)
 
-diff -puN mm/gup.c~mm-remove-usages-of-access_once mm/gup.c
---- a/mm/gup.c~mm-remove-usages-of-access_once
-+++ a/mm/gup.c
-@@ -1019,7 +1019,7 @@ static int gup_pte_range(pmd_t pmd, unsi
- 		 *
- 		 * for an example see gup_get_pte in arch/x86/mm/gup.c
- 		 */
--		pte_t pte = ACCESS_ONCE(*ptep);
-+		pte_t pte = READ_ONCE(*ptep);
- 		struct page *page;
- 
- 		/*
-@@ -1309,7 +1309,7 @@ int __get_user_pages_fast(unsigned long
- 	local_irq_save(flags);
- 	pgdp = pgd_offset(mm, addr);
- 	do {
--		pgd_t pgd = ACCESS_ONCE(*pgdp);
-+		pgd_t pgd = READ_ONCE(*pgdp);
- 
- 		next = pgd_addr_end(addr, end);
- 		if (pgd_none(pgd))
-diff -puN mm/huge_memory.c~mm-remove-usages-of-access_once mm/huge_memory.c
---- a/mm/huge_memory.c~mm-remove-usages-of-access_once
+diff -puN mm/huge_memory.c~mm-remove-rest-of-access_once-usages mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-remove-rest-of-access_once-usages
 +++ a/mm/huge_memory.c
 @@ -183,7 +183,7 @@ static struct page *get_huge_zero_page(v
  	struct page *zero_page;
@@ -100,8 +90,8 @@ diff -puN mm/huge_memory.c~mm-remove-usages-of-access_once mm/huge_memory.c
  }
  
  static void put_huge_zero_page(void)
-diff -puN mm/internal.h~mm-remove-usages-of-access_once mm/internal.h
---- a/mm/internal.h~mm-remove-usages-of-access_once
+diff -puN mm/internal.h~mm-remove-rest-of-access_once-usages mm/internal.h
+--- a/mm/internal.h~mm-remove-rest-of-access_once-usages
 +++ a/mm/internal.h
 @@ -224,13 +224,13 @@ static inline unsigned long page_order(s
   * PageBuddy() should be checked first by the caller to minimize race window,
@@ -119,8 +109,8 @@ diff -puN mm/internal.h~mm-remove-usages-of-access_once mm/internal.h
  
  static inline bool is_cow_mapping(vm_flags_t flags)
  {
-diff -puN mm/ksm.c~mm-remove-usages-of-access_once mm/ksm.c
---- a/mm/ksm.c~mm-remove-usages-of-access_once
+diff -puN mm/ksm.c~mm-remove-rest-of-access_once-usages mm/ksm.c
+--- a/mm/ksm.c~mm-remove-rest-of-access_once-usages
 +++ a/mm/ksm.c
 @@ -542,7 +542,7 @@ static struct page *get_ksm_page(struct
  	expected_mapping = (void *)stable_node +
@@ -166,8 +156,8 @@ diff -puN mm/ksm.c~mm-remove-usages-of-access_once mm/ksm.c
  		goto again;
  	remove_node_from_stable_tree(stable_node);
  	return NULL;
-diff -puN mm/memcontrol.c~mm-remove-usages-of-access_once mm/memcontrol.c
---- a/mm/memcontrol.c~mm-remove-usages-of-access_once
+diff -puN mm/memcontrol.c~mm-remove-rest-of-access_once-usages mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-remove-rest-of-access_once-usages
 +++ a/mm/memcontrol.c
 @@ -674,7 +674,7 @@ static void mem_cgroup_remove_exceeded(s
  static unsigned long soft_limit_excess(struct mem_cgroup *memcg)
@@ -248,8 +238,8 @@ diff -puN mm/memcontrol.c~mm-remove-usages-of-access_once mm/memcontrol.c
  
  	if (max == PAGE_COUNTER_MAX)
  		seq_puts(m, "max\n");
-diff -puN mm/memory.c~mm-remove-usages-of-access_once mm/memory.c
---- a/mm/memory.c~mm-remove-usages-of-access_once
+diff -puN mm/memory.c~mm-remove-rest-of-access_once-usages mm/memory.c
+--- a/mm/memory.c~mm-remove-rest-of-access_once-usages
 +++ a/mm/memory.c
 @@ -2845,7 +2845,7 @@ static void do_fault_around(struct vm_ar
  	struct vm_fault vmf;
@@ -260,8 +250,8 @@ diff -puN mm/memory.c~mm-remove-usages-of-access_once mm/memory.c
  	mask = ~(nr_pages * PAGE_SIZE - 1) & PAGE_MASK;
  
  	start_addr = max(address & mask, vma->vm_start);
-diff -puN mm/mmap.c~mm-remove-usages-of-access_once mm/mmap.c
---- a/mm/mmap.c~mm-remove-usages-of-access_once
+diff -puN mm/mmap.c~mm-remove-rest-of-access_once-usages mm/mmap.c
+--- a/mm/mmap.c~mm-remove-rest-of-access_once-usages
 +++ a/mm/mmap.c
 @@ -1133,7 +1133,7 @@ static int anon_vma_compatible(struct vm
   * by another page fault trying to merge _that_. But that's ok: if it
@@ -299,8 +289,8 @@ diff -puN mm/mmap.c~mm-remove-usages-of-access_once mm/mmap.c
  		limit >>= PAGE_SHIFT;
  		if (locked > limit && !capable(CAP_IPC_LOCK))
  			return -ENOMEM;
-diff -puN mm/page_alloc.c~mm-remove-usages-of-access_once mm/page_alloc.c
---- a/mm/page_alloc.c~mm-remove-usages-of-access_once
+diff -puN mm/page_alloc.c~mm-remove-rest-of-access_once-usages mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-remove-rest-of-access_once-usages
 +++ a/mm/page_alloc.c
 @@ -1378,7 +1378,7 @@ void drain_zone_pages(struct zone *zone,
  	int to_drain, batch;
@@ -329,8 +319,8 @@ diff -puN mm/page_alloc.c~mm-remove-usages-of-access_once mm/page_alloc.c
  	for (;;) {
  		old_word = cmpxchg(&bitmap[word_bitidx], word, (word & ~mask) | flags);
  		if (word == old_word)
-diff -puN mm/rmap.c~mm-remove-usages-of-access_once mm/rmap.c
---- a/mm/rmap.c~mm-remove-usages-of-access_once
+diff -puN mm/rmap.c~mm-remove-rest-of-access_once-usages mm/rmap.c
+--- a/mm/rmap.c~mm-remove-rest-of-access_once-usages
 +++ a/mm/rmap.c
 @@ -456,7 +456,7 @@ struct anon_vma *page_get_anon_vma(struc
  	unsigned long anon_mapping;
@@ -358,8 +348,8 @@ diff -puN mm/rmap.c~mm-remove-usages-of-access_once mm/rmap.c
  	if (down_read_trylock(&root_anon_vma->rwsem)) {
  		/*
  		 * If the page is still mapped, then this anon_vma is still
-diff -puN mm/slub.c~mm-remove-usages-of-access_once mm/slub.c
---- a/mm/slub.c~mm-remove-usages-of-access_once
+diff -puN mm/slub.c~mm-remove-rest-of-access_once-usages mm/slub.c
+--- a/mm/slub.c~mm-remove-rest-of-access_once-usages
 +++ a/mm/slub.c
 @@ -4279,7 +4279,7 @@ static ssize_t show_slab_objects(struct
  			int node;
@@ -379,8 +369,8 @@ diff -puN mm/slub.c~mm-remove-usages-of-access_once mm/slub.c
  			if (page) {
  				node = page_to_nid(page);
  				if (flags & SO_TOTAL)
-diff -puN mm/swap_state.c~mm-remove-usages-of-access_once mm/swap_state.c
---- a/mm/swap_state.c~mm-remove-usages-of-access_once
+diff -puN mm/swap_state.c~mm-remove-rest-of-access_once-usages mm/swap_state.c
+--- a/mm/swap_state.c~mm-remove-rest-of-access_once-usages
 +++ a/mm/swap_state.c
 @@ -390,7 +390,7 @@ static unsigned long swapin_nr_pages(uns
  	unsigned int pages, max_pages, last_ra;
@@ -391,8 +381,8 @@ diff -puN mm/swap_state.c~mm-remove-usages-of-access_once mm/swap_state.c
  	if (max_pages <= 1)
  		return 1;
  
-diff -puN mm/swapfile.c~mm-remove-usages-of-access_once mm/swapfile.c
---- a/mm/swapfile.c~mm-remove-usages-of-access_once
+diff -puN mm/swapfile.c~mm-remove-rest-of-access_once-usages mm/swapfile.c
+--- a/mm/swapfile.c~mm-remove-rest-of-access_once-usages
 +++ a/mm/swapfile.c
 @@ -1312,7 +1312,7 @@ static unsigned int find_next_to_unuse(s
  			else
@@ -407,5 +397,7 @@ _
 
 Patches currently in -mm which might be from jason.low2@hp.com are
 
+mm-use-read_once-for-non-scalar-types.patch
+mm-remove-rest-of-access_once-usages.patch
 linux-next.patch
 
