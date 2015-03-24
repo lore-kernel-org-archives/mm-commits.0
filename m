@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + zsmalloc-micro-optimize-zs_object_copy.patch added to -mm tree
-Date: Tue, 24 Mar 2015 14:03:49 -0700
-Message-ID: <5511d135.LvYZHBBG2huWFQF6%akpm@linux-foundation.org>
+Subject: +
+ zsmalloc-do-not-remap-dst-page-while-prepare-next-src-page.patch added to
+ -mm tree
+Date: Tue, 24 Mar 2015 14:03:47 -0700
+Message-ID: <5511d133.CLvN99GLSL/edQEW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36886 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36882 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752284AbbCXVDu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Mar 2015 17:03:50 -0400
+	with ESMTP id S1752374AbbCXVDs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Mar 2015 17:03:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: sergey.senozhatsky@gmail.com, minchan@kernel.org, ngupta@vflare.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: micro-optimize zs_object_copy()
+     Subject: zsmalloc: do not remap dst page while prepare next src page
 has been added to the -mm tree.  Its filename is
-     zsmalloc-micro-optimize-zs_object_copy.patch
+     zsmalloc-do-not-remap-dst-page-while-prepare-next-src-page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zsmalloc-micro-optimize-zs_object_copy.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zsmalloc-do-not-remap-dst-page-while-prepare-next-src-page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zsmalloc-micro-optimize-zs_object_copy.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zsmalloc-do-not-remap-dst-page-while-prepare-next-src-page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,18 +41,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: zsmalloc: micro-optimize zs_object_copy()
+Subject: zsmalloc: do not remap dst page while prepare next src page
 
-A micro-optimization.  Avoid additional branching and reduce (a bit)
-registry pressure (f.e.  s_off += size; d_off += size; may be calculated
-twise: first for >= PAGE_SIZE check and later for offset update in "else"
-clause).
-
-/scripts/bloat-o-meter shows some improvement
-
-add/remove: 0/0 grow/shrink: 0/1 up/down: 0/-10 (-10)
-function                          old     new   delta
-zs_object_copy                    550     540     -10
+The object may belong to different pages.  zs_object_copy() handles this
+case and maps a new source page (get_next_page() and kmap_atomic()) when
+object crosses boundaries of the current source page.  But it also
+performs unnecessary kunmap/kmap_atomic of the destination page (it
+remains unchanged), which can be avoided.
 
 Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Cc: Minchan Kim <minchan@kernel.org>
@@ -58,48 +55,25 @@ Cc: Nitin Gupta <ngupta@vflare.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |   15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
+ mm/zsmalloc.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN mm/zsmalloc.c~zsmalloc-micro-optimize-zs_object_copy mm/zsmalloc.c
---- a/mm/zsmalloc.c~zsmalloc-micro-optimize-zs_object_copy
+diff -puN mm/zsmalloc.c~zsmalloc-do-not-remap-dst-page-while-prepare-next-src-page mm/zsmalloc.c
+--- a/mm/zsmalloc.c~zsmalloc-do-not-remap-dst-page-while-prepare-next-src-page
 +++ a/mm/zsmalloc.c
-@@ -1537,28 +1537,27 @@ static void zs_object_copy(unsigned long
- 		if (written == class->size)
+@@ -1538,12 +1538,10 @@ static void zs_object_copy(unsigned long
  			break;
  
--		if (s_off + size >= PAGE_SIZE) {
-+		s_off += size;
-+		s_size -= size;
-+		d_off += size;
-+		d_size -= size;
-+
-+		if (s_off >= PAGE_SIZE) {
+ 		if (s_off + size >= PAGE_SIZE) {
+-			kunmap_atomic(d_addr);
  			kunmap_atomic(s_addr);
  			s_page = get_next_page(s_page);
  			BUG_ON(!s_page);
  			s_addr = kmap_atomic(s_page);
+-			d_addr = kmap_atomic(d_page);
  			s_size = class->size - written;
  			s_off = 0;
--		} else {
--			s_off += size;
--			s_size -= size;
- 		}
- 
--		if (d_off + size >= PAGE_SIZE) {
-+		if (d_off >= PAGE_SIZE) {
- 			kunmap_atomic(d_addr);
- 			d_page = get_next_page(d_page);
- 			BUG_ON(!d_page);
- 			d_addr = kmap_atomic(d_page);
- 			d_size = class->size - written;
- 			d_off = 0;
--		} else {
--			d_off += size;
--			d_size -= size;
- 		}
- 	}
- 
+ 		} else {
 _
 
 Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
