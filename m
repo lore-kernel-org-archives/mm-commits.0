@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-vmalloc-occupy-newly-allocated-vmap-block-just-after-allocation.patch
- added to -mm tree
-Date: Tue, 24 Mar 2015 14:59:10 -0700
-Message-ID: <5511de2e.CiCkKxa2T5j93C7Q%akpm@linux-foundation.org>
+Subject: + rtc-at91rm9200-make-io-endian-agnostic.patch added to -mm tree
+Date: Tue, 24 Mar 2015 15:21:52 -0700
+Message-ID: <5511e380.RagduGQYn99c/g/S%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37682 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38016 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751842AbbCXV7L (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Mar 2015 17:59:11 -0400
+	with ESMTP id S1752446AbbCXWVx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Mar 2015 18:21:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: r.peniaev@gmail.com, akpm@linux-foundation.org, chaowang@redhat.com, cl@linux.com, edumazet@google.com, fabf@skynet.be, gioh.kim@lge.com, iamjoonsoo.kim@lge.com, rientjes@google.com, rob.jones@codethink.co.uk, mm-commits@vger.kernel.org
+To: ben.dooks@codethink.co.uk, a.zummo@towertech.it, linux@maxim.org.za, nicolas.ferre@atmel.com, plagnioj@jcrosoft.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmalloc: occupy newly allocated vmap block just after allocation
+     Subject: drivers/rtc/rtc-at91rm9200.c: make IO endian agnostic
 has been added to the -mm tree.  Its filename is
-     mm-vmalloc-occupy-newly-allocated-vmap-block-just-after-allocation.patch
+     rtc-at91rm9200-make-io-endian-agnostic.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-occupy-newly-allocated-vmap-block-just-after-allocation.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rtc-at91rm9200-make-io-endian-agnostic.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-occupy-newly-allocated-vmap-block-just-after-allocation.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-at91rm9200-make-io-endian-agnostic.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,173 +38,42 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Roman Pen <r.peniaev@gmail.com>
-Subject: mm/vmalloc: occupy newly allocated vmap block just after allocation
+From: Ben Dooks <ben.dooks@codethink.co.uk>
+Subject: drivers/rtc/rtc-at91rm9200.c: make IO endian agnostic
 
-Previous implementation allocates new vmap block and repeats search of a
-free block from the very beginning, iterating over the CPU free list.
+Change the __raw IO calls to readl/write_relaxed which makes the driver
+endian agnostic to run properly on big endian systems.
 
-Why it can be better??
-
-1. Allocation can happen on one CPU, but search can be done on another CPU.
-   In worst case we preallocate amount of vmap blocks which is equal to
-   CPU number on the system.
-
-2. In previous patch I added newly allocated block to the tail of free list
-   to avoid soon exhaustion of virtual space and give a chance to occupy
-   blocks which were allocated long time ago.  Thus to find newly allocated
-   block all the search sequence should be repeated, seems it is not efficient.
-
-In this patch newly allocated block is occupied right away, address of
-virtual space is returned to the caller, so there is no any need to repeat
-the search sequence, allocation job is done.
-
-Signed-off-by: Roman Pen <r.peniaev@gmail.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Eric Dumazet <edumazet@google.com>
-Acked-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: WANG Chao <chaowang@redhat.com>
-Cc: Fabian Frederick <fabf@skynet.be>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Gioh Kim <gioh.kim@lge.com>
-Cc: Rob Jones <rob.jones@codethink.co.uk>
+Signed-off-by: Ben Dooks <ben.dooks@codethink.co.uk>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Andrew Victor <linux@maxim.org.za>
+Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
+Acked-by: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   58 +++++++++++++++++++++++++++++++------------------
- 1 file changed, 37 insertions(+), 21 deletions(-)
+ drivers/rtc/rtc-at91rm9200.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmalloc.c~mm-vmalloc-occupy-newly-allocated-vmap-block-just-after-allocation mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmalloc-occupy-newly-allocated-vmap-block-just-after-allocation
-+++ a/mm/vmalloc.c
-@@ -796,13 +796,31 @@ static unsigned long addr_to_vb_idx(unsi
- 	return addr;
- }
+diff -puN drivers/rtc/rtc-at91rm9200.c~rtc-at91rm9200-make-io-endian-agnostic drivers/rtc/rtc-at91rm9200.c
+--- a/drivers/rtc/rtc-at91rm9200.c~rtc-at91rm9200-make-io-endian-agnostic
++++ a/drivers/rtc/rtc-at91rm9200.c
+@@ -37,9 +37,9 @@
+ #include "rtc-at91rm9200.h"
  
--static struct vmap_block *new_vmap_block(gfp_t gfp_mask)
-+static void *vmap_block_vaddr(unsigned long va_start, unsigned long pages_off)
-+{
-+	unsigned long addr;
-+
-+	addr = va_start + (pages_off << PAGE_SHIFT);
-+	BUG_ON(addr_to_vb_idx(addr) != addr_to_vb_idx(va_start));
-+	return (void *)addr;
-+}
-+
-+/**
-+ * new_vmap_block - allocates new vmap_block and occupies 2^order pages in this
-+ *                  block. Of course pages number can't exceed VMAP_BBMAP_BITS
-+ * @order:    how many 2^order pages should be occupied in newly allocated block
-+ * @gfp_mask: flags for the page level allocator
-+ *
-+ * Returns: virtual address in a newly allocated block or ERR_PTR(-errno)
-+ */
-+static void *new_vmap_block(unsigned int order, gfp_t gfp_mask)
- {
- 	struct vmap_block_queue *vbq;
- 	struct vmap_block *vb;
- 	struct vmap_area *va;
- 	unsigned long vb_idx;
- 	int node, err;
-+	void *vaddr;
+ #define at91_rtc_read(field) \
+-	__raw_readl(at91_rtc_regs + field)
++	readl_relaxed(at91_rtc_regs + field)
+ #define at91_rtc_write(field, val) \
+-	__raw_writel((val), at91_rtc_regs + field)
++	writel_relaxed((val), at91_rtc_regs + field)
  
- 	node = numa_node_id();
+ #define AT91_RTC_EPOCH		1900UL	/* just like arch/arm/common/rtctime.c */
  
-@@ -826,9 +844,12 @@ static struct vmap_block *new_vmap_block
- 		return ERR_PTR(err);
- 	}
- 
-+	vaddr = vmap_block_vaddr(va->va_start, 0);
- 	spin_lock_init(&vb->lock);
- 	vb->va = va;
--	vb->free = VMAP_BBMAP_BITS;
-+	/* At least something should be left free */
-+	BUG_ON(VMAP_BBMAP_BITS <= (1UL << order));
-+	vb->free = VMAP_BBMAP_BITS - (1UL << order);
- 	vb->dirty = 0;
- 	bitmap_zero(vb->dirty_map, VMAP_BBMAP_BITS);
- 	INIT_LIST_HEAD(&vb->free_list);
-@@ -846,7 +867,7 @@ static struct vmap_block *new_vmap_block
- 	spin_unlock(&vbq->lock);
- 	put_cpu_var(vmap_block_queue);
- 
--	return vb;
-+	return vaddr;
- }
- 
- static void free_vmap_block(struct vmap_block *vb)
-@@ -910,7 +931,7 @@ static void *vb_alloc(unsigned long size
- {
- 	struct vmap_block_queue *vbq;
- 	struct vmap_block *vb;
--	unsigned long addr = 0;
-+	void *vaddr = NULL;
- 	unsigned int order;
- 
- 	BUG_ON(size & ~PAGE_MASK);
-@@ -925,43 +946,38 @@ static void *vb_alloc(unsigned long size
- 	}
- 	order = get_order(size);
- 
--again:
- 	rcu_read_lock();
- 	vbq = &get_cpu_var(vmap_block_queue);
- 	list_for_each_entry_rcu(vb, &vbq->free, free_list) {
--		int i;
-+		unsigned long pages_off;
- 
- 		spin_lock(&vb->lock);
--		if (vb->free < 1UL << order)
--			goto next;
-+		if (vb->free < (1UL << order)) {
-+			spin_unlock(&vb->lock);
-+			continue;
-+		}
- 
--		i = VMAP_BBMAP_BITS - vb->free;
--		addr = vb->va->va_start + (i << PAGE_SHIFT);
--		BUG_ON(addr_to_vb_idx(addr) !=
--				addr_to_vb_idx(vb->va->va_start));
-+		pages_off = VMAP_BBMAP_BITS - vb->free;
-+		vaddr = vmap_block_vaddr(vb->va->va_start, pages_off);
- 		vb->free -= 1UL << order;
- 		if (vb->free == 0) {
- 			spin_lock(&vbq->lock);
- 			list_del_rcu(&vb->free_list);
- 			spin_unlock(&vbq->lock);
- 		}
-+
- 		spin_unlock(&vb->lock);
- 		break;
--next:
--		spin_unlock(&vb->lock);
- 	}
- 
- 	put_cpu_var(vmap_block_queue);
- 	rcu_read_unlock();
- 
--	if (!addr) {
--		vb = new_vmap_block(gfp_mask);
--		if (IS_ERR(vb))
--			return vb;
--		goto again;
--	}
-+	/* Allocate new block if nothing was found */
-+	if (!vaddr)
-+		vaddr = new_vmap_block(order, gfp_mask);
- 
--	return (void *)addr;
-+	return vaddr;
- }
- 
- static void vb_free(const void *addr, unsigned long size)
 _
 
-Patches currently in -mm which might be from r.peniaev@gmail.com are
+Patches currently in -mm which might be from ben.dooks@codethink.co.uk are
 
-mm-vmalloc-fix-possible-exhaustion-of-vmalloc-space-caused-by-vm_map_ram-allocator.patch
-mm-vmalloc-occupy-newly-allocated-vmap-block-just-after-allocation.patch
-mm-vmalloc-get-rid-of-dirty-bitmap-inside-vmap_block-structure.patch
-fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
+linux-next.patch
+rtc-at91rm9200-make-io-endian-agnostic.patch
 
