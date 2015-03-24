@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + adfs-returning-correct-return-values.patch added to -mm tree
-Date: Tue, 24 Mar 2015 13:31:45 -0700
-Message-ID: <5511c9b1.S43B3JKvpxWJ5TRP%akpm@linux-foundation.org>
+Subject: + checkpatch-add-test-for-repeated-const-uses.patch added to -mm
+ tree
+Date: Tue, 24 Mar 2015 13:34:23 -0700
+Message-ID: <5511ca4f.YXiuCZCuxO3n1P4Y%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36535 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36543 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752093AbbCXUbq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Mar 2015 16:31:46 -0400
+	with ESMTP id S1752021AbbCXUeY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Mar 2015 16:34:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sanidhya.gatech@gmail.com, fabf@skynet.be, joe@perches.com, taesoo@gatech.edu, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: adfs: return correct return values
+     Subject: checkpatch: add test for repeated const uses
 has been added to the -mm tree.  Its filename is
-     adfs-returning-correct-return-values.patch
+     checkpatch-add-test-for-repeated-const-uses.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/adfs-returning-correct-return-values.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-test-for-repeated-const-uses.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/adfs-returning-correct-return-values.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-test-for-repeated-const-uses.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,145 +39,100 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sanidhya Kashyap <sanidhya.gatech@gmail.com>
-Subject: adfs: return correct return values
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: add test for repeated const uses
 
-Fix the wrong values returned by various functions such as EIO and ENOMEM.
+Using 'const <type> const *' is generally meant to be written 'const
+<type> * const'.
 
-Signed-off-by: Sanidhya Kashyap <sanidhya.gatech@gmail.com>
-Cc: Fabian Frederick <fabf@skynet.be>
-Cc: Joe Perches <joe@perches.com>
-Cc: Taesoo kim <taesoo@gatech.edu>
+Add a test for the miswritten form.
+
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/adfs/dir_fplus.c |    1 +
- fs/adfs/super.c     |   20 +++++++++++++++-----
- 2 files changed, 16 insertions(+), 5 deletions(-)
+ scripts/checkpatch.pl |   18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
-diff -puN fs/adfs/dir_fplus.c~adfs-returning-correct-return-values fs/adfs/dir_fplus.c
---- a/fs/adfs/dir_fplus.c~adfs-returning-correct-return-values
-+++ a/fs/adfs/dir_fplus.c
-@@ -61,6 +61,7 @@ adfs_fplus_read(struct super_block *sb,
- 			kcalloc(size, sizeof(struct buffer_head *),
- 				GFP_KERNEL);
- 		if (!bh_fplus) {
-+			ret = -ENOMEM;
- 			adfs_error(sb, "not enough memory for"
- 					" dir object %X (%d blocks)", id, size);
- 			goto out;
-diff -puN fs/adfs/super.c~adfs-returning-correct-return-values fs/adfs/super.c
---- a/fs/adfs/super.c~adfs-returning-correct-return-values
-+++ a/fs/adfs/super.c
-@@ -316,7 +316,7 @@ static struct adfs_discmap *adfs_read_ma
- 	dm = kmalloc(nzones * sizeof(*dm), GFP_KERNEL);
- 	if (dm == NULL) {
- 		adfs_error(sb, "not enough memory");
--		return NULL;
-+		return ERR_PTR(-ENOMEM);
- 	}
+diff -puN scripts/checkpatch.pl~checkpatch-add-test-for-repeated-const-uses scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-test-for-repeated-const-uses
++++ a/scripts/checkpatch.pl
+@@ -323,6 +323,7 @@ our $Operators	= qr{
  
- 	for (zone = 0; zone < nzones; zone++, map_addr++) {
-@@ -349,7 +349,7 @@ error_free:
- 		brelse(dm[zone].dm_bh);
+ our $c90_Keywords = qr{do|for|while|if|else|return|goto|continue|switch|default|case|break}x;
  
- 	kfree(dm);
--	return NULL;
-+	return ERR_PTR(-EIO);
- }
++our $BasicType;
+ our $NonptrType;
+ our $NonptrTypeMisordered;
+ our $NonptrTypeWithAttr;
+@@ -514,6 +515,11 @@ sub build_types {
+ 	my $Misordered = "(?x:  \n" . join("|\n  ", @typeListMisordered) . "\n)";
+ 	my $allWithAttr = "(?x:  \n" . join("|\n  ", @typeListWithAttr) . "\n)";
+ 	$Modifier	= qr{(?:$Attribute|$Sparse|$mods)};
++	$BasicType	= qr{
++				(?:$typeOtherOSTypedefs\b)|
++				(?:$typeTypedefs\b)|
++				(?:${all}\b)
++		}x;
+ 	$NonptrType	= qr{
+ 			(?:$Modifier\s+|const\s+)*
+ 			(?:
+@@ -3192,6 +3198,18 @@ sub process {
+ 				$herecurr);
+                }
  
- static inline unsigned long adfs_discsize(struct adfs_discrecord *dr, int block_bits)
-@@ -370,6 +370,7 @@ static int adfs_fill_super(struct super_
- 	unsigned char *b_data;
- 	struct adfs_sb_info *asb;
- 	struct inode *root;
-+	int ret = -EINVAL;
- 
- 	sb->s_flags |= MS_NODIRATIME;
- 
-@@ -391,6 +392,7 @@ static int adfs_fill_super(struct super_
- 	sb_set_blocksize(sb, BLOCK_SIZE);
- 	if (!(bh = sb_bread(sb, ADFS_DISCRECORD / BLOCK_SIZE))) {
- 		adfs_error(sb, "unable to read superblock");
-+		ret = -EIO;
- 		goto error;
- 	}
- 
-@@ -400,6 +402,7 @@ static int adfs_fill_super(struct super_
- 		if (!silent)
- 			printk("VFS: Can't find an adfs filesystem on dev "
- 				"%s.\n", sb->s_id);
-+		ret = -EINVAL;
- 		goto error_free_bh;
- 	}
- 
-@@ -412,6 +415,7 @@ static int adfs_fill_super(struct super_
- 		if (!silent)
- 			printk("VPS: Can't find an adfs filesystem on dev "
- 				"%s.\n", sb->s_id);
-+		ret = -EINVAL;
- 		goto error_free_bh;
- 	}
- 
-@@ -421,11 +425,13 @@ static int adfs_fill_super(struct super_
- 		if (!bh) {
- 			adfs_error(sb, "couldn't read superblock on "
- 				"2nd try.");
-+			ret = -EIO;
- 			goto error;
- 		}
- 		b_data = bh->b_data + (ADFS_DISCRECORD % sb->s_blocksize);
- 		if (adfs_checkbblk(b_data)) {
- 			adfs_error(sb, "disc record mismatch, very weird!");
-+			ret = -EINVAL;
- 			goto error_free_bh;
- 		}
- 		dr = (struct adfs_discrecord *)(b_data + ADFS_DR_OFFSET);
-@@ -433,6 +439,7 @@ static int adfs_fill_super(struct super_
- 		if (!silent)
- 			printk(KERN_ERR "VFS: Unsupported blocksize on dev "
- 				"%s.\n", sb->s_id);
-+		ret = -EINVAL;
- 		goto error;
- 	}
- 
-@@ -447,10 +454,12 @@ static int adfs_fill_super(struct super_
- 	asb->s_size    		= adfs_discsize(dr, sb->s_blocksize_bits);
- 	asb->s_version 		= dr->format_version;
- 	asb->s_log2sharesize	= dr->log2sharesize;
--	
++# check for const <foo> const where <foo> is not a pointer or array type
++		if ($sline =~ /\bconst\s+($BasicType)\s+const\b/) {
++			my $found = $1;
++			if ($sline =~ /\bconst\s+\Q$found\E\s+const\b\s*\*/) {
++				WARN("CONST_CONST",
++				     "'const $found const *' should probably be 'const $found * const'\n" . $herecurr);
++			} elsif ($sline !~ /\bconst\s+\Q$found\E\s+const\s+\w+\s*\[/) {
++				WARN("CONST_CONST",
++				     "'const $found const' should probably be 'const $found'\n" . $herecurr);
++			}
++		}
 +
- 	asb->s_map = adfs_read_map(sb, dr);
--	if (!asb->s_map)
-+	if (IS_ERR(asb->s_map)) {
-+		ret =  PTR_ERR(asb->s_map);
- 		goto error_free_bh;
-+	}
- 
- 	brelse(bh);
- 
-@@ -499,6 +508,7 @@ static int adfs_fill_super(struct super_
- 			brelse(asb->s_map[i].dm_bh);
- 		kfree(asb->s_map);
- 		adfs_error(sb, "get root inode failed\n");
-+		ret = -EIO;
- 		goto error;
- 	}
- 	return 0;
-@@ -508,7 +518,7 @@ error_free_bh:
- error:
- 	sb->s_fs_info = NULL;
- 	kfree(asb);
--	return -EINVAL;
-+	return ret;
- }
- 
- static struct dentry *adfs_mount(struct file_system_type *fs_type,
+ # check for non-global char *foo[] = {"bar", ...} declarations.
+ 		if ($line =~ /^.\s+(?:static\s+|const\s+)?char\s+\*\s*\w+\s*\[\s*\]\s*=\s*\{/) {
+ 			WARN("STATIC_CONST_CHAR_ARRAY",
 _
 
-Patches currently in -mm which might be from sanidhya.gatech@gmail.com are
+Patches currently in -mm which might be from joe@perches.com are
 
+maintainers-correct-rtc-armada38x-pattern-entry.patch
+hfsplus-fix-b-tree-corruption-after-insertion-at-position-0.patch
+proc-show-locks-in-proc-pid-fdinfo-x.patch
+proc-show-locks-in-proc-pid-fdinfo-x-v2.patch
+maintainers-use-tabs-consistently.patch
+x86-mtrr-if-remove-use-of-seq_printf-return-value.patch
+power-wakeup-remove-use-of-seq_printf-return-value.patch
+rtc-remove-use-of-seq_printf-return-value.patch
+ipc-remove-use-of-seq_printf-return-value.patch
+microblaze-mb-remove-use-of-seq_printf-return-value.patch
+microblaze-mb-remove-use-of-seq_printf-return-value-fix.patch
+nios2-cpuinfo-remove-use-of-seq_printf-return-value.patch
+arm-plat-pxa-remove-use-of-seq_printf-return-value.patch
+openrisc-remove-use-of-seq_printf-return-value.patch
+cris-remove-use-of-seq_printf-return-value.patch
+s390-remove-use-of-seq_printf-return-value.patch
+i8k-remove-use-of-seq_printf-return-value.patch
+watchdog-bcm281xx-remove-use-of-seq_printf-return-value.patch
+proc-remove-use-of-seq_printf-return-value.patch
+cgroup-remove-use-of-seq_printf-return-value.patch
+tracing-remove-use-of-seq_printf-return-value.patch
+lru_cache-remove-use-of-seq_printf-return-value.patch
+parisc-remove-use-of-seq_printf-return-value.patch
+lib-vsprintfc-even-faster-decimal-conversion.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-improve-no-space-is-necessary-after-a-cast-test.patch
+checkpatch-add-spell-checking-of-email-subject-line.patch
+checkpatch-spell-check-reudce.patch
+checkpatch-add-optional-codespell-dictionary-to-find-more-typos.patch
+checkpatch-match-more-world-writable-permissions.patch
+checkpatch-match-more-world-writable-permissions-fix.patch
+checkpatch-improve-return-negative-errno-check.patch
+checkpatch-add-test-for-repeated-const-uses.patch
 adfs-returning-correct-return-values.patch
-affs-kstrdup-memory-handling.patch
-affs-kstrdup-memory-handling-fix.patch
+linux-next.patch
 
