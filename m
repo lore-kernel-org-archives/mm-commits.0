@@ -1,70 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- hugetlbfs-add-minimum-size-tracking-fields-to-subpool-structure.patch
+Subject: [to-be-updated] hugetlbfs-document-min_size-mount-option.patch
  removed from -mm tree
-Date: Tue, 24 Mar 2015 14:25:10 -0700
-Message-ID: <5511d636.TeAjRspv114XDB7c%akpm@linux-foundation.org>
+Date: Tue, 24 Mar 2015 14:25:17 -0700
+Message-ID: <5511d63d.79d6tVwrZELrrtzs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37107 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37131 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752331AbbCXVZL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Mar 2015 17:25:11 -0400
+	with ESMTP id S1752459AbbCXVZS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Mar 2015 17:25:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mike.kravetz@oracle.com, andi@firstfloor.org, aneesh.kumar@linux.vnet.ibm.com, dave@stgolabs.net, iamjoonsoo.kim@lge.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlbfs: add minimum size tracking fields to subpool structure
+     Subject: hugetlbfs: document min_size mount option
 has been removed from the -mm tree.  Its filename was
-     hugetlbfs-add-minimum-size-tracking-fields-to-subpool-structure.patch
+     hugetlbfs-document-min_size-mount-option.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: hugetlbfs: add minimum size tracking fields to subpool structure
+Subject: hugetlbfs: document min_size mount option
 
-hugetlbfs allocates huge pages from the global pool as needed.  Even if
-the global pool contains a sufficient number pages for the filesystem size
-at mount time, those global pages could be grabbed for some other use.  As
-a result, filesystem huge page allocations may fail due to lack of pages.
+Update documentation for the hugetlbfs min_size mount option.
 
-Applications such as a database want to use huge pages for performance
-reasons.  hugetlbfs filesystem semantics with ownership and modes work
-well to manage access to a pool of huge pages.  However, the application
-would like some reasonable assurance that allocations will not fail due to
-a lack of huge pages.  At application startup time, the application would
-like to configure itself to use a specific number of huge pages.  Before
-starting, the application can check to make sure that enough huge pages
-exist in the system global pools.  However, there are no guarantees that
-those pages will be available when needed by the application.  What the
-application wants is exclusive use of a subset of huge pages.
-
-Add a new hugetlbfs mount option 'min_size=<value>' to indicate that the
-specified number of pages will be available for use by the filesystem.  At
-mount time, this number of huge pages will be reserved for exclusive use
-of the filesystem.  If there is not a sufficient number of free pages, the
-mount will fail.  As pages are allocated to and freed from the filesystem,
-the number of reserved pages is adjusted so that the specified minimum is
-maintained.
-
-
-This patch (of 4):
-
-Add a field to the subpool structure to indicate the minimimum number of
-huge pages to always be used by this subpool.  This minimum count includes
-allocated pages as well as reserved pages.  If the minimum number of pages
-for the subpool have not been allocated, pages are reserved up to this
-minimum.  An additional field (rsv_hpages) is used to track the number of
-pages reserved to meet this minimum size.  The hstate pointer in the
-subpool is convenient to have when reserving and unreserving the pages.
-
-[akpm@linux-foundation.org: clean up hugepage_subpool definition, use kzalloc()]
 Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Davidlohr Bueso <dave@stgolabs.net>
 Cc: Aneesh Kumar <aneesh.kumar@linux.vnet.ibm.com>
@@ -74,50 +39,49 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    6 +++++-
- mm/hugetlb.c            |    3 +--
- 2 files changed, 6 insertions(+), 3 deletions(-)
+ Documentation/vm/hugetlbpage.txt |   21 ++++++++++++++-------
+ 1 file changed, 14 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/hugetlb.h~hugetlbfs-add-minimum-size-tracking-fields-to-subpool-structure include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~hugetlbfs-add-minimum-size-tracking-fields-to-subpool-structure
-+++ a/include/linux/hugetlb.h
-@@ -22,7 +22,11 @@ struct mmu_gather;
- struct hugepage_subpool {
- 	spinlock_t lock;
- 	long count;
--	long max_hpages, used_hpages;
-+	long max_hpages;
-+	long used_hpages;
-+	struct hstate *hstate;
-+	long min_hpages;
-+	long rsv_hpages;
- };
+diff -puN Documentation/vm/hugetlbpage.txt~hugetlbfs-document-min_size-mount-option Documentation/vm/hugetlbpage.txt
+--- a/Documentation/vm/hugetlbpage.txt~hugetlbfs-document-min_size-mount-option
++++ a/Documentation/vm/hugetlbpage.txt
+@@ -267,8 +267,8 @@ call, then it is required that system ad
+ type hugetlbfs:
  
- struct resv_map {
-diff -puN mm/hugetlb.c~hugetlbfs-add-minimum-size-tracking-fields-to-subpool-structure mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlbfs-add-minimum-size-tracking-fields-to-subpool-structure
-+++ a/mm/hugetlb.c
-@@ -77,14 +77,13 @@ struct hugepage_subpool *hugepage_new_su
- {
- 	struct hugepage_subpool *spool;
+   mount -t hugetlbfs \
+-	-o uid=<value>,gid=<value>,mode=<value>,size=<value>,nr_inodes=<value> \
+-	none /mnt/huge
++	-o uid=<value>,gid=<value>,mode=<value>,size=<value>,min_size=<value>, \
++	nr_inodes=<value> none /mnt/huge
  
--	spool = kmalloc(sizeof(*spool), GFP_KERNEL);
-+	spool = kzalloc(sizeof(*spool), GFP_KERNEL);
- 	if (!spool)
- 		return NULL;
+ This command mounts a (pseudo) filesystem of type hugetlbfs on the directory
+ /mnt/huge.  Any files created on /mnt/huge uses huge pages.  The uid and gid
+@@ -277,11 +277,18 @@ the uid and gid of the current process a
+ mode of root of file system to value & 01777.  This value is given in octal.
+ By default the value 0755 is picked. The size option sets the maximum value of
+ memory (huge pages) allowed for that filesystem (/mnt/huge). The size is
+-rounded down to HPAGE_SIZE.  The option nr_inodes sets the maximum number of
+-inodes that /mnt/huge can use.  If the size or nr_inodes option is not
+-provided on command line then no limits are set.  For size and nr_inodes
+-options, you can use [G|g]/[M|m]/[K|k] to represent giga/mega/kilo. For
+-example, size=2K has the same meaning as size=2048.
++rounded down to HPAGE_SIZE.  The min_size option sets the minimum value of
++memory (huge pages) allowed for the filesystem.  Like the size option,
++min_size is rounded down to HPAGE_SIZE.  At mount time, the number of huge
++pages specified by min_size are reserved for use by the filesystem.  If
++there are not enough free huge pages available, the mount will fail.  As
++huge pages are allocated to the filesystem and freed, the reserve count
++is adjusted so that the sum of allocated and reserved huge pages is always
++at least min_size.  The option nr_inodes sets the maximum number of
++inodes that /mnt/huge can use.  If the size, min_size or nr_inodes option
++is not provided on command line then no limits are set.  For size, min_size
++and nr_inodes options, you can use [G|g]/[M|m]/[K|k] to represent
++giga/mega/kilo. For example, size=2K has the same meaning as size=2048.
  
- 	spin_lock_init(&spool->lock);
- 	spool->count = 1;
- 	spool->max_hpages = nr_blocks;
--	spool->used_hpages = 0;
- 
- 	return spool;
- }
+ While read system calls are supported on files that reside on hugetlb
+ file systems, write system calls are not.
 _
 
 Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
-hugetlbfs-add-minimum-size-accounting-to-subpools.patch
-hugetlbfs-accept-subpool-min_size-mount-option-and-setup-accordingly.patch
-hugetlbfs-document-min_size-mount-option.patch
 
