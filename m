@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mremap-should-return-enomem-when-__vm_enough_memory-fail.patch
- added to -mm tree
-Date: Tue, 24 Mar 2015 15:25:04 -0700
-Message-ID: <5511e440.aYyTiAFT5ZsA+A0X%akpm@linux-foundation.org>
+Subject: + clean-up-goto-just-return-err_ptr.patch added to -mm tree
+Date: Tue, 24 Mar 2015 15:26:14 -0700
+Message-ID: <5511e486.AMaXEnPqod+Ch77G%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38060 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38064 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751915AbbCXWZF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Mar 2015 18:25:05 -0400
+	with ESMTP id S1752190AbbCXW0P (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Mar 2015 18:26:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: denc716@gmail.com, crquan@ymail.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: denc716@gmail.com, crquan@ymail.com, kirill@shutemov.name, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mremap should return -ENOMEM when __vm_enough_memory fail
+     Subject: mm/mremap.c: clean up goto just return ERR_PTR
 has been added to the -mm tree.  Its filename is
-     mremap-should-return-enomem-when-__vm_enough_memory-fail.patch
+     clean-up-goto-just-return-err_ptr.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mremap-should-return-enomem-when-__vm_enough_memory-fail.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/clean-up-goto-just-return-err_ptr.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mremap-should-return-enomem-when-__vm_enough_memory-fail.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/clean-up-goto-just-return-err_ptr.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,65 +39,72 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Derek <denc716@gmail.com>
-Subject: mremap should return -ENOMEM when __vm_enough_memory fail
+Subject: mm/mremap.c: clean up goto just return ERR_PTR
 
-Recently I straced bash behavior in this dd zero pipe to read test, in
-part of testing under vm.overcommit_memory=2 (OVERCOMMIT_NEVER mode):
-
-    # dd if=/dev/zero | read x
-
-The bash sub shell is calling mremap to reallocate more and more memory
-untill it finally failed -ENOMEM (I expect), or to be killed by system OOM
-killer (which should not happen under OVERCOMMIT_NEVER mode); But the
-mremap system call actually failed of -EFAULT, which is a surprise to me,
-I think it's supposed to be -ENOMEM?  then I wrote this piece of C code
-testing confirmed it: https://gist.github.com/crquan/326bde37e1ddda8effe5
-
-    $ ./remap
-    allocated one page @0x7f686bf71000, (PAGE_SIZE: 4096)
-    grabbed 7680512000 bytes of memory (1875125 pages) @ 00007f6690993000.
-    mremap failed Bad address (14).
-
-The -EFAULT comes from the branch of security_vm_enough_memory_mm failure,
-underlyingly it calls __vm_enough_memory which returns only 0 for success
-or -ENOMEM; So why vma_to_resize needs to return -EFAULT in this case? 
-this sounds like a mistake to me.
-
-Some more digging into git history:
-
-1) Before commit 119f657c7 ("RLIMIT_AS checking fix") in May 1 2005
-   (pre 2.6.12 days) it was returning -ENOMEM for this failure;
-
-2) but commit 119f657c7 ("untangling do_mremap(), part 1") changed it
-   accidentally, to what ever is preserved in local ret, which happened to
-   be -EFAULT, in a previous assignment;
-
-3) then in commit 54f5de709 code refactoring, it's explicitly returning
-   -EFAULT, should be wrong.
+As suggested by Kirill the "goto"s in vma_to_resize aren't neccessary,
+just change them to explicit return.
 
 Signed-off-by: Derek Che <crquan@ymail.com>
+Suggested-by: "Kirill A. Shutemov" <kirill@shutemov.name>
 Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mremap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mremap.c |   25 ++++++++-----------------
+ 1 file changed, 8 insertions(+), 17 deletions(-)
 
-diff -puN mm/mremap.c~mremap-should-return-enomem-when-__vm_enough_memory-fail mm/mremap.c
---- a/mm/mremap.c~mremap-should-return-enomem-when-__vm_enough_memory-fail
+diff -puN mm/mremap.c~clean-up-goto-just-return-err_ptr mm/mremap.c
+--- a/mm/mremap.c~clean-up-goto-just-return-err_ptr
 +++ a/mm/mremap.c
-@@ -375,7 +375,7 @@ static struct vm_area_struct *vma_to_res
+@@ -339,25 +339,25 @@ static struct vm_area_struct *vma_to_res
+ 	struct vm_area_struct *vma = find_vma(mm, addr);
+ 
+ 	if (!vma || vma->vm_start > addr)
+-		goto Efault;
++		return ERR_PTR(-EFAULT);
+ 
+ 	if (is_vm_hugetlb_page(vma))
+-		goto Einval;
++		return ERR_PTR(-EINVAL);
+ 
+ 	/* We can't remap across vm area boundaries */
+ 	if (old_len > vma->vm_end - addr)
+-		goto Efault;
++		return ERR_PTR(-EFAULT);
+ 
+ 	/* Need to be careful about a growing mapping */
+ 	if (new_len > old_len) {
+ 		unsigned long pgoff;
+ 
+ 		if (vma->vm_flags & (VM_DONTEXPAND | VM_PFNMAP))
+-			goto Efault;
++			return ERR_PTR(-EFAULT);
+ 		pgoff = (addr - vma->vm_start) >> PAGE_SHIFT;
+ 		pgoff += vma->vm_pgoff;
+ 		if (pgoff + (new_len >> PAGE_SHIFT) < pgoff)
+-			goto Einval;
++			return ERR_PTR(-EINVAL);
+ 	}
+ 
+ 	if (vma->vm_flags & VM_LOCKED) {
+@@ -366,29 +366,20 @@ static struct vm_area_struct *vma_to_res
+ 		lock_limit = rlimit(RLIMIT_MEMLOCK);
+ 		locked += new_len - old_len;
+ 		if (locked > lock_limit && !capable(CAP_IPC_LOCK))
+-			goto Eagain;
++			return ERR_PTR(-EAGAIN);
+ 	}
+ 
+ 	if (!may_expand_vm(mm, (new_len - old_len) >> PAGE_SHIFT))
+-		goto Enomem;
++		return ERR_PTR(-ENOMEM);
+ 
  	if (vma->vm_flags & VM_ACCOUNT) {
  		unsigned long charged = (new_len - old_len) >> PAGE_SHIFT;
  		if (security_vm_enough_memory_mm(mm, charged))
--			goto Efault;
-+			goto Enomem;
+-			goto Enomem;
++			return ERR_PTR(-ENOMEM);
  		*p = charged;
  	}
  
-_
-
-Patches currently in -mm which might be from denc716@gmail.com are
-
-mremap-should-return-enomem-when-__vm_enough_memory-fail.patch
-
+ 	return vma;
