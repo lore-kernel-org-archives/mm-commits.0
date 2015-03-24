@@ -1,89 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-remove-drm-drivers-for-renesas-pattern.patch removed from -mm tree
-Date: Tue, 24 Mar 2015 12:22:22 -0700
-Message-ID: <5511b96e.Xy0rULtUf69zdCgy%akpm@linux-foundation.org>
+Subject: [merged]
+ irq_work-fix-build-failure-when-config_irq_work-not-defined.patch removed
+ from -mm tree
+Date: Tue, 24 Mar 2015 12:22:19 -0700
+Message-ID: <5511b96b./N8JZPpgXJo3CeYN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36092 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36088 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753610AbbCXTWW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Mar 2015 15:22:22 -0400
+	with ESMTP id S1753610AbbCXTWU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Mar 2015 15:22:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, laurent.pinchart@ideasonboard.com, mm-commits@vger.kernel.org
+To: rostedt@goodmis.org, mingo@kernel.org, peterz@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: Remove  DRM DRIVERS FOR RENESAS pattern
+     Subject: irq_work: fix build failure when CONFIG_IRQ_WORK not defined
 has been removed from the -mm tree.  Its filename was
-     maintainers-remove-drm-drivers-for-renesas-pattern.patch
+     irq_work-fix-build-failure-when-config_irq_work-not-defined.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: Remove  DRM DRIVERS FOR RENESAS pattern
+From: Steven Rostedt <rostedt@goodmis.org>
+Subject: irq_work: fix build failure when CONFIG_IRQ_WORK not defined
 
-commit 2378ad1228d2 ("drm: rcar-du: Remove platform data support")
-removed the file, remove the pattern.
+When CONFIG_IRQ_WORK is not defined (difficult to do, as it also requires
+CONFIG_PRINTK not to be defined), we get a build failure:
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+kernel/built-in.o: In function `flush_smp_call_function_queue':
+kernel/smp.c:263: undefined reference to `irq_work_run'
+kernel/smp.c:263: undefined reference to `irq_work_run'
+Makefile:933: recipe for target 'vmlinux' failed
+
+Simplest thing to do is to make irq_work_run() a nop when not set.
+
+Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 -
- 1 file changed, 1 deletion(-)
+ include/linux/irq_work.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-remove-drm-drivers-for-renesas-pattern MAINTAINERS
---- a/MAINTAINERS~maintainers-remove-drm-drivers-for-renesas-pattern
-+++ a/MAINTAINERS
-@@ -3389,7 +3389,6 @@ T:	git git://people.freedesktop.org/~air
- S:	Supported
- F:	drivers/gpu/drm/rcar-du/
- F:	drivers/gpu/drm/shmobile/
--F:	include/linux/platform_data/rcar-du.h
- F:	include/linux/platform_data/shmob_drm.h
+diff -puN include/linux/irq_work.h~irq_work-fix-build-failure-when-config_irq_work-not-defined include/linux/irq_work.h
+--- a/include/linux/irq_work.h~irq_work-fix-build-failure-when-config_irq_work-not-defined
++++ a/include/linux/irq_work.h
+@@ -38,16 +38,17 @@ bool irq_work_queue(struct irq_work *wor
+ bool irq_work_queue_on(struct irq_work *work, int cpu);
+ #endif
  
- DSBR100 USB FM RADIO DRIVER
+-void irq_work_run(void);
+ void irq_work_tick(void);
+ void irq_work_sync(struct irq_work *work);
+ 
+ #ifdef CONFIG_IRQ_WORK
+ #include <asm/irq_work.h>
+ 
++void irq_work_run(void);
+ bool irq_work_needs_cpu(void);
+ #else
+ static inline bool irq_work_needs_cpu(void) { return false; }
++static inline void irq_work_run(void) { }
+ #endif
+ 
+ #endif /* _LINUX_IRQ_WORK_H */
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from rostedt@goodmis.org are
 
-maintainers-correct-rtc-armada38x-pattern-entry.patch
-hfsplus-fix-b-tree-corruption-after-insertion-at-position-0.patch
-proc-show-locks-in-proc-pid-fdinfo-x.patch
-proc-show-locks-in-proc-pid-fdinfo-x-v2.patch
-maintainers-use-tabs-consistently.patch
-x86-mtrr-if-remove-use-of-seq_printf-return-value.patch
-power-wakeup-remove-use-of-seq_printf-return-value.patch
-rtc-remove-use-of-seq_printf-return-value.patch
-ipc-remove-use-of-seq_printf-return-value.patch
-microblaze-mb-remove-use-of-seq_printf-return-value.patch
-microblaze-mb-remove-use-of-seq_printf-return-value-fix.patch
-nios2-cpuinfo-remove-use-of-seq_printf-return-value.patch
-arm-plat-pxa-remove-use-of-seq_printf-return-value.patch
-openrisc-remove-use-of-seq_printf-return-value.patch
-cris-remove-use-of-seq_printf-return-value.patch
-s390-remove-use-of-seq_printf-return-value.patch
-i8k-remove-use-of-seq_printf-return-value.patch
-watchdog-bcm281xx-remove-use-of-seq_printf-return-value.patch
-proc-remove-use-of-seq_printf-return-value.patch
-cgroup-remove-use-of-seq_printf-return-value.patch
+mm-memory-failurec-define-page-types-for-action_result-in-one-place.patch
+printk-comment-pr_cont-stating-it-is-only-to-continue-a-line.patch
 tracing-remove-use-of-seq_printf-return-value.patch
-lru_cache-remove-use-of-seq_printf-return-value.patch
-parisc-remove-use-of-seq_printf-return-value.patch
-lib-vsprintfc-even-faster-decimal-conversion.patch
-mm-utilc-add-kstrimdup.patch
-checkpatch-improve-no-space-is-necessary-after-a-cast-test.patch
-checkpatch-add-spell-checking-of-email-subject-line.patch
-checkpatch-spell-check-reudce.patch
-checkpatch-add-optional-codespell-dictionary-to-find-more-typos.patch
-checkpatch-match-more-world-writable-permissions.patch
-checkpatch-match-more-world-writable-permissions-fix.patch
-checkpatch-improve-return-negative-errno-check.patch
+util_macrosh-add-find_closest-macro.patch
+documentation-update-codingstyle-on-local-variables-naming-in-macros.patch
+hwmon-ina2xx-replace-ina226_avg_bits-with-find_closest.patch
+hwmon-lm85-use-find_closest-in-x_to_reg-functions.patch
+hwmon-w83795-use-find_closest_descending-in-pwm_freq_to_reg.patch
 linux-next.patch
 
