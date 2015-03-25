@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + asoc-pcm512x-use-div_round_closest_ull-from-kernelh.patch added to -mm tree
-Date: Wed, 25 Mar 2015 13:32:22 -0700
-Message-ID: <55131b56.uOMxGzYQcabX+OYf%akpm@linux-foundation.org>
+Subject: + doc-sysctl-kerneltxt-document-threads-max.patch added to -mm
+ tree
+Date: Wed, 25 Mar 2015 13:55:20 -0700
+Message-ID: <551320b8.e/aRj3YYWtV/L6Vj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60397 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:32936 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750873AbbCYUcX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Mar 2015 16:32:23 -0400
+	with ESMTP id S1751238AbbCYUzV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Mar 2015 16:55:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: javi.merino@arm.com, broonie@kernel.org, fengguang.wu@intel.com, lgirdwood@gmail.com, peda@axentia.se, perex@perex.cz, tiwai@suse.de, mm-commits@vger.kernel.org
+To: xypron.glpk@gmx.de, linux@roeck-us.net, mingo@kernel.org, oleg@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ASoC: pcm512x: use DIV_ROUND_CLOSEST_ULL() from kernel.h
+     Subject: Doc/sysctl/kernel.txt: document threads-max
 has been added to the -mm tree.  Its filename is
-     asoc-pcm512x-use-div_round_closest_ull-from-kernelh.patch
+     doc-sysctl-kerneltxt-document-threads-max.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/asoc-pcm512x-use-div_round_closest_ull-from-kernelh.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/doc-sysctl-kerneltxt-document-threads-max.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/asoc-pcm512x-use-div_round_closest_ull-from-kernelh.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/doc-sysctl-kerneltxt-document-threads-max.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,53 +39,62 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Javi Merino <javi.merino@arm.com>
-Subject: ASoC: pcm512x: use DIV_ROUND_CLOSEST_ULL() from kernel.h
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Subject: Doc/sysctl/kernel.txt: document threads-max
 
-Now that the kernel provides DIV_ROUND_CLOSEST_ULL(), drop the internal
-implementation and use the kernel one.
+File /proc/sys/kernel/threads-max controls the maximum number of threads
+that can be created using fork().
 
-Signed-off-by: Javi Merino <javi.merino@arm.com>
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
-Cc: Peter Rosin <peda@axentia.se>
-Acked-by: Mark Brown <broonie@kernel.org>
-Cc: Liam Girdwood <lgirdwood@gmail.com>
-Cc: Jaroslav Kysela <perex@perex.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Guenter Roeck <linux@roeck-us.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/soc/codecs/pcm512x.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ Documentation/sysctl/kernel.txt |   21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
-diff -puN sound/soc/codecs/pcm512x.c~asoc-pcm512x-use-div_round_closest_ull-from-kernelh sound/soc/codecs/pcm512x.c
---- a/sound/soc/codecs/pcm512x.c~asoc-pcm512x-use-div_round_closest_ull-from-kernelh
-+++ a/sound/soc/codecs/pcm512x.c
-@@ -18,6 +18,7 @@
- #include <linux/init.h>
- #include <linux/module.h>
- #include <linux/clk.h>
-+#include <linux/kernel.h>
- #include <linux/pm_runtime.h>
- #include <linux/regmap.h>
- #include <linux/regulator/consumer.h>
-@@ -31,8 +32,6 @@
+diff -puN Documentation/sysctl/kernel.txt~doc-sysctl-kerneltxt-document-threads-max Documentation/sysctl/kernel.txt
+--- a/Documentation/sysctl/kernel.txt~doc-sysctl-kerneltxt-document-threads-max
++++ a/Documentation/sysctl/kernel.txt
+@@ -872,6 +872,27 @@ can be ORed together:
  
- #define DIV_ROUND_DOWN_ULL(ll, d) \
- 	({ unsigned long long _tmp = (ll); do_div(_tmp, d); _tmp; })
--#define DIV_ROUND_CLOSEST_ULL(ll, d) \
--	({ unsigned long long _tmp = (ll)+(d)/2; do_div(_tmp, d); _tmp; })
+ ==============================================================
  
- #define PCM512x_NUM_SUPPLIES 3
- static const char * const pcm512x_supply_names[PCM512x_NUM_SUPPLIES] = {
++threads-max
++
++This value controls the maximum number of threads that can be created
++using fork().
++
++During initialization the kernel sets this value such that even if the
++maximum number of threads is created, the thread structures occupy only
++a part (1/8th) of the available RAM pages.
++
++The minimum value that can be written to threads-max is 20.
++The maximum vlaue that can be written to threads-max is given by the
++constant FUTEX_TID_MASK (0x3fffffff).
++If a value outside of this range is written to threads-max an error
++EINVAL occurs.
++
++The value written is checked against the available RAM pages. If the
++thread structures would occupy too much (more than 1/8th) of the
++available RAM pages threads-max is reduced accordingly.
++
++==============================================================
++
+ unknown_nmi_panic:
+ 
+ The value in this file affects behavior of handling NMI. When the
 _
 
-Patches currently in -mm which might be from javi.merino@arm.com are
+Patches currently in -mm which might be from xypron.glpk@gmx.de are
 
-kernelh-implement-div_round_closest_ull.patch
-clk-bcm-kona-use-div_round_closest_ull.patch
-cpuidle-menu-use-div_round_closest_ull.patch
-media-cxd2820r-use-div_round_closest_ull.patch
-asoc-pcm512x-use-div_round_closest_ull-from-kernelh.patch
+kernel-forkc-new-function-for-max_threads.patch
+kernel-forkc-avoid-division-by-zero.patch
+kernel-forkc-avoid-division-by-zero-fix.patch
+kernel-sysctlc-threads-max-observe-limits.patch
+doc-sysctl-kerneltxt-document-threads-max.patch
+doc-sysctl-kerneltxt-document-threads-max-fix.patch
 linux-next.patch
 
