@@ -1,101 +1,337 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn]
- zsmalloc-do-not-remap-dst-page-while-prepare-next-src-page.patch removed
- from -mm tree
-Date: Wed, 25 Mar 2015 14:16:26 -0700
-Message-ID: <551325aa.A1LjrHvqHBpn9l6j%akpm@linux-foundation.org>
+Subject: +
+ mm-memory-failurec-define-page-types-for-action_result-in-one-place-fix-2.patch added to -mm tree
+Date: Wed, 25 Mar 2015 14:24:48 -0700
+Message-ID: <551327a0.F/w4iVCreK+iICQt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33097 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33342 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751278AbbCYVQ1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Mar 2015 17:16:27 -0400
+	with ESMTP id S1750947AbbCYVYt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Mar 2015 17:24:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sergey.senozhatsky@gmail.com, heesub.shin@samsung.com, minchan@kernel.org, ngupta@vflare.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@linux.intel.com, gong.chen@linux.intel.com, n-horiguchi@ah.jp.nec.com, rientjes@google.com, rostedt@goodmis.org, tony.luck@intel.com, xiexiuqi@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: do not remap dst page while prepare next src page
-has been removed from the -mm tree.  Its filename was
-     zsmalloc-do-not-remap-dst-page-while-prepare-next-src-page.patch
+     Subject: mm-memory-failurec-define-page-types-for-action_result-in-one-place-fix-2
+has been added to the -mm tree.  Its filename is
+     mm-memory-failurec-define-page-types-for-action_result-in-one-place-fix-2.patch
 
-This patch was dropped because it was withdrawn
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory-failurec-define-page-types-for-action_result-in-one-place-fix-2.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory-failurec-define-page-types-for-action_result-in-one-place-fix-2.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: zsmalloc: do not remap dst page while prepare next src page
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-memory-failurec-define-page-types-for-action_result-in-one-place-fix-2
 
-The object may belong to different pages.  zs_object_copy() handles this
-case and maps a new source page (get_next_page() and kmap_atomic()) when
-object crosses boundaries of the current source page.  But it also
-performs unnecessary kunmap/kmap_atomic of the destination page (it
-remains unchanged), which can be avoided.
+rename messages, per David
 
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Nitin Gupta <ngupta@vflare.org>
-Cc: Heesub Shin <heesub.shin@samsung.com>
+Cc: "Xie XiuQi" <xiexiuqi@huawei.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Chen Gong <gong.chen@linux.intel.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/memory-failure.c |  127 +++++++++++++++++++++---------------------
+ 1 file changed, 64 insertions(+), 63 deletions(-)
 
-diff -puN mm/zsmalloc.c~zsmalloc-do-not-remap-dst-page-while-prepare-next-src-page mm/zsmalloc.c
---- a/mm/zsmalloc.c~zsmalloc-do-not-remap-dst-page-while-prepare-next-src-page
-+++ a/mm/zsmalloc.c
-@@ -1538,12 +1538,10 @@ static void zs_object_copy(unsigned long
- 			break;
+diff -puN mm/memory-failure.c~mm-memory-failurec-define-page-types-for-action_result-in-one-place-fix-2 mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-memory-failurec-define-page-types-for-action_result-in-one-place-fix-2
++++ a/mm/memory-failure.c
+@@ -522,49 +522,49 @@ static const char *action_name[] = {
+ };
  
- 		if (s_off + size >= PAGE_SIZE) {
--			kunmap_atomic(d_addr);
- 			kunmap_atomic(s_addr);
- 			s_page = get_next_page(s_page);
- 			BUG_ON(!s_page);
- 			s_addr = kmap_atomic(s_page);
--			d_addr = kmap_atomic(d_page);
- 			s_size = class->size - written;
- 			s_off = 0;
+ enum page_type {
+-	KERNEL,
+-	KERNEL_HIGH_ORDER,
+-	SLAB,
+-	DIFFERENT_COMPOUND,
+-	POISONED_HUGE,
+-	HUGE,
+-	FREE_HUGE,
+-	UNMAP_FAILED,
+-	DIRTY_SWAPCACHE,
+-	CLEAN_SWAPCACHE,
+-	DIRTY_MLOCKED_LRU,
+-	CLEAN_MLOCKED_LRU,
+-	DIRTY_UNEVICTABLE_LRU,
+-	CLEAN_UNEVICTABLE_LRU,
+-	DIRTY_LRU,
+-	CLEAN_LRU,
+-	TRUNCATED_LRU,
+-	BUDDY,
+-	BUDDY_2ND,
+-	UNKNOWN,
++	MSG_KERNEL,
++	MSG_KERNEL_HIGH_ORDER,
++	MSG_SLAB,
++	MSG_DIFFERENT_COMPOUND,
++	MSG_POISONED_HUGE,
++	MSG_HUGE,
++	MSG_FREE_HUGE,
++	MSG_UNMAP_FAILED,
++	MSG_DIRTY_SWAPCACHE,
++	MSG_CLEAN_SWAPCACHE,
++	MSG_DIRTY_MLOCKED_LRU,
++	MSG_CLEAN_MLOCKED_LRU,
++	MSG_DIRTY_UNEVICTABLE_LRU,
++	MSG_CLEAN_UNEVICTABLE_LRU,
++	MSG_DIRTY_LRU,
++	MSG_CLEAN_LRU,
++	MSG_TRUNCATED_LRU,
++	MSG_BUDDY,
++	MSG_BUDDY_2ND,
++	MSG_UNKNOWN,
+ };
+ 
+ static const char *action_page_type[] = {
+-	[KERNEL]		= "reserved kernel page",
+-	[KERNEL_HIGH_ORDER]	= "high-order kernel page",
+-	[SLAB]			= "kernel slab page",
+-	[DIFFERENT_COMPOUND]	= "different compound page after locking",
+-	[POISONED_HUGE]		= "huge page already hardware poisoned",
+-	[HUGE]			= "huge page",
+-	[FREE_HUGE]		= "free huge page",
+-	[UNMAP_FAILED]		= "unmapping failed page",
+-	[DIRTY_SWAPCACHE]	= "dirty swapcache page",
+-	[CLEAN_SWAPCACHE]	= "clean swapcache page",
+-	[DIRTY_MLOCKED_LRU]	= "dirty mlocked LRU page",
+-	[CLEAN_MLOCKED_LRU]	= "clean mlocked LRU page",
+-	[DIRTY_UNEVICTABLE_LRU]	= "dirty unevictable LRU page",
+-	[CLEAN_UNEVICTABLE_LRU]	= "clean unevictable LRU page",
+-	[DIRTY_LRU]		= "dirty LRU page",
+-	[CLEAN_LRU]		= "clean LRU page",
+-	[TRUNCATED_LRU]		= "already truncated LRU page",
+-	[BUDDY]			= "free buddy page",
+-	[BUDDY_2ND]		= "free buddy page (2nd try)",
+-	[UNKNOWN]		= "unknown page",
++	[MSG_KERNEL]			= "reserved kernel page",
++	[MSG_KERNEL_HIGH_ORDER]		= "high-order kernel page",
++	[MSG_SLAB]			= "kernel slab page",
++	[MSG_DIFFERENT_COMPOUND]	= "different compound page after locking",
++	[MSG_POISONED_HUGE]		= "huge page already hardware poisoned",
++	[MSG_HUGE]			= "huge page",
++	[MSG_FREE_HUGE]			= "free huge page",
++	[MSG_UNMAP_FAILED]		= "unmapping failed page",
++	[MSG_DIRTY_SWAPCACHE]		= "dirty swapcache page",
++	[MSG_CLEAN_SWAPCACHE]		= "clean swapcache page",
++	[MSG_DIRTY_MLOCKED_LRU]		= "dirty mlocked LRU page",
++	[MSG_CLEAN_MLOCKED_LRU]		= "clean mlocked LRU page",
++	[MSG_DIRTY_UNEVICTABLE_LRU]	= "dirty unevictable LRU page",
++	[MSG_CLEAN_UNEVICTABLE_LRU]	= "clean unevictable LRU page",
++	[MSG_DIRTY_LRU]			= "dirty LRU page",
++	[MSG_CLEAN_LRU]			= "clean LRU page",
++	[MSG_TRUNCATED_LRU]		= "already truncated LRU page",
++	[MSG_BUDDY]			= "free buddy page",
++	[MSG_BUDDY_2ND]			= "free buddy page (2nd try)",
++	[MSG_UNKNOWN]			= "unknown page",
+ };
+ 
+ /*
+@@ -826,7 +826,7 @@ static struct page_state {
+ 	int type;
+ 	int (*action)(struct page *p, unsigned long pfn);
+ } error_states[] = {
+-	{ reserved,	reserved,	KERNEL,	me_kernel },
++	{ reserved,	reserved,	MSG_KERNEL,	me_kernel },
+ 	/*
+ 	 * free pages are specially detected outside this table:
+ 	 * PG_buddy pages only make a small fraction of all free pages.
+@@ -837,31 +837,31 @@ static struct page_state {
+ 	 * currently unused objects without touching them. But just
+ 	 * treat it as standard kernel for now.
+ 	 */
+-	{ slab,		slab,		SLAB,	me_kernel },
++	{ slab,		slab,		MSG_SLAB,	me_kernel },
+ 
+ #ifdef CONFIG_PAGEFLAGS_EXTENDED
+-	{ head,		head,		HUGE,		me_huge_page },
+-	{ tail,		tail,		HUGE,		me_huge_page },
++	{ head,		head,		MSG_HUGE,		me_huge_page },
++	{ tail,		tail,		MSG_HUGE,		me_huge_page },
+ #else
+-	{ compound,	compound,	HUGE,		me_huge_page },
++	{ compound,	compound,	MSG_HUGE,		me_huge_page },
+ #endif
+ 
+-	{ sc|dirty,	sc|dirty,	DIRTY_SWAPCACHE,	me_swapcache_dirty },
+-	{ sc|dirty,	sc,		CLEAN_SWAPCACHE,	me_swapcache_clean },
++	{ sc|dirty,	sc|dirty,	MSG_DIRTY_SWAPCACHE,	me_swapcache_dirty },
++	{ sc|dirty,	sc,		MSG_CLEAN_SWAPCACHE,	me_swapcache_clean },
+ 
+-	{ mlock|dirty,	mlock|dirty,	DIRTY_MLOCKED_LRU,	me_pagecache_dirty },
+-	{ mlock|dirty,	mlock,		CLEAN_MLOCKED_LRU,	me_pagecache_clean },
++	{ mlock|dirty,	mlock|dirty,	MSG_DIRTY_MLOCKED_LRU,	me_pagecache_dirty },
++	{ mlock|dirty,	mlock,		MSG_CLEAN_MLOCKED_LRU,	me_pagecache_clean },
+ 
+-	{ unevict|dirty, unevict|dirty,	DIRTY_UNEVICTABLE_LRU,	me_pagecache_dirty },
+-	{ unevict|dirty, unevict,	DIRTY_UNEVICTABLE_LRU,	me_pagecache_clean },
++	{ unevict|dirty, unevict|dirty,	MSG_DIRTY_UNEVICTABLE_LRU,	me_pagecache_dirty },
++	{ unevict|dirty, unevict,	MSG_DIRTY_UNEVICTABLE_LRU,	me_pagecache_clean },
+ 
+-	{ lru|dirty,	lru|dirty,	DIRTY_LRU,	me_pagecache_dirty },
+-	{ lru|dirty,	lru,		CLEAN_LRU,	me_pagecache_clean },
++	{ lru|dirty,	lru|dirty,	MSG_DIRTY_LRU,	me_pagecache_dirty },
++	{ lru|dirty,	lru,		MSG_CLEAN_LRU,	me_pagecache_clean },
+ 
+ 	/*
+ 	 * Catchall entry: must be at end.
+ 	 */
+-	{ 0,		0,		UNKNOWN,	me_unknown },
++	{ 0,		0,		MSG_UNKNOWN,	me_unknown },
+ };
+ 
+ #undef dirty
+@@ -1152,7 +1152,7 @@ int memory_failure(unsigned long pfn, in
+ 	if (!(flags & MF_COUNT_INCREASED) &&
+ 		!get_page_unless_zero(hpage)) {
+ 		if (is_free_buddy_page(p)) {
+-			action_result(pfn, BUDDY, DELAYED);
++			action_result(pfn, MSG_BUDDY, DELAYED);
+ 			return 0;
+ 		} else if (PageHuge(hpage)) {
+ 			/*
+@@ -1169,12 +1169,12 @@ int memory_failure(unsigned long pfn, in
+ 			}
+ 			set_page_hwpoison_huge_page(hpage);
+ 			res = dequeue_hwpoisoned_huge_page(hpage);
+-			action_result(pfn, FREE_HUGE,
++			action_result(pfn, MSG_FREE_HUGE,
+ 				      res ? IGNORED : DELAYED);
+ 			unlock_page(hpage);
+ 			return res;
  		} else {
+-			action_result(pfn, KERNEL_HIGH_ORDER, IGNORED);
++			action_result(pfn, MSG_KERNEL_HIGH_ORDER, IGNORED);
+ 			return -EBUSY;
+ 		}
+ 	}
+@@ -1196,9 +1196,10 @@ int memory_failure(unsigned long pfn, in
+ 			 */
+ 			if (is_free_buddy_page(p)) {
+ 				if (flags & MF_COUNT_INCREASED)
+-					action_result(pfn, BUDDY, DELAYED);
++					action_result(pfn, MSG_BUDDY, DELAYED);
+ 				else
+-					action_result(pfn, BUDDY_2ND, DELAYED);
++					action_result(pfn, MSG_BUDDY_2ND,
++						      DELAYED);
+ 				return 0;
+ 			}
+ 		}
+@@ -1211,7 +1212,7 @@ int memory_failure(unsigned long pfn, in
+ 	 * If this happens just bail out.
+ 	 */
+ 	if (compound_head(p) != hpage) {
+-		action_result(pfn, DIFFERENT_COMPOUND, IGNORED);
++		action_result(pfn, MSG_DIFFERENT_COMPOUND, IGNORED);
+ 		res = -EBUSY;
+ 		goto out;
+ 	}
+@@ -1251,7 +1252,7 @@ int memory_failure(unsigned long pfn, in
+ 	 * on the head page to show that the hugepage is hwpoisoned
+ 	 */
+ 	if (PageHuge(p) && PageTail(p) && TestSetPageHWPoison(hpage)) {
+-		action_result(pfn, POISONED_HUGE, IGNORED);
++		action_result(pfn, MSG_POISONED_HUGE, IGNORED);
+ 		unlock_page(hpage);
+ 		put_page(hpage);
+ 		return 0;
+@@ -1280,7 +1281,7 @@ int memory_failure(unsigned long pfn, in
+ 	 */
+ 	if (hwpoison_user_mappings(p, pfn, trapno, flags, &hpage)
+ 	    != SWAP_SUCCESS) {
+-		action_result(pfn, UNMAP_FAILED, IGNORED);
++		action_result(pfn, MSG_UNMAP_FAILED, IGNORED);
+ 		res = -EBUSY;
+ 		goto out;
+ 	}
+@@ -1289,7 +1290,7 @@ int memory_failure(unsigned long pfn, in
+ 	 * Torn down by someone else?
+ 	 */
+ 	if (PageLRU(p) && !PageSwapCache(p) && p->mapping == NULL) {
+-		action_result(pfn, TRUNCATED_LRU, IGNORED);
++		action_result(pfn, MSG_TRUNCATED_LRU, IGNORED);
+ 		res = -EBUSY;
+ 		goto out;
+ 	}
 _
 
-Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-zram-cosmetic-zram_attr_ro-code-formatting-tweak.patch
-zram-use-idr-instead-of-zram_devices-array.patch
-zram-factor-out-device-reset-from-reset_store.patch
-zram-reorganize-code-layout.patch
-zram-add-dynamic-device-add-remove-functionality.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+drivers-rtc-rtc-mrst-fix-suspend-resume-fix.patch
+mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention.patch
+mm.patch
+mm-cma-release-trigger-checkpatch-fixes.patch
+mm-cma-allocation-trigger-fix.patch
+mm-compaction-enhance-compaction-finish-condition-fix.patch
+page_writeback-cleanup-mess-around-cancel_dirty_page-checkpatch-fixes.patch
+mm-hide-per-cpu-lists-in-output-of-show_mem-fix.patch
+mm-clarify-__gfp_nofail-deprecation-status-checkpatch-fixes.patch
+mm-change-vunmap-to-tear-down-huge-kva-mappings-fix.patch
+mm-mempool-do-not-allow-atomic-resizing-checkpatch-fixes.patch
+mm-memory-failurec-define-page-types-for-action_result-in-one-place-fix-2.patch
+mm-memory-failurec-define-page-types-for-action_result-in-one-place-fix.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
+mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp-fix.patch
+mm-vmalloc-occupy-newly-allocated-vmap-block-just-after-allocation.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
 zram-add-dynamic-device-add-remove-functionality-fix.patch
-zram-remove-max_num_devices-limitation.patch
-zram-report-every-added-and-removed-device.patch
-zram-trivial-correct-flag-operations-comment.patch
-zram-return-zram-device_id-value-from-zram_add.patch
-zram-introduce-automatic-device_id-generation.patch
 zram-introduce-automatic-device_id-generation-fix.patch
-zram-do-not-let-user-enforce-new-device-dev_id.patch
-zsmalloc-decouple-handle-and-object.patch
-zsmalloc-factor-out-obj_.patch
-zsmalloc-support-compaction.patch
-zsmalloc-adjust-zs_almost_full.patch
-zram-support-compaction.patch
-zsmalloc-record-handle-in-page-private-for-huge-object.patch
-zsmalloc-add-fullness-into-stat.patch
-zsmalloc-zsmalloc-documentation.patch
-zram-remove-num_migrated-device-attr.patch
-zram-move-compact_store-to-sysfs-functions-area.patch
-zram-use-generic-start-end-io-accounting.patch
-zram-describe-device-attrs-in-documentation.patch
-zram-export-new-io_stat-sysfs-attrs.patch
-zram-export-new-mm_stat-sysfs-attrs.patch
-zram-deprecate-zram-attrs-sysfs-nodes.patch
-zsmalloc-remove-synchronize_rcu-from-zs_compact.patch
-zsmalloc-micro-optimize-zs_object_copy.patch
-zsmalloc-remove-unnecessary-insertion-removal-of-zspage-in-compaction.patch
-cpumask-dont-perform-while-loop-in-cpumask_next_and.patch
-lib-lz4-pull-out-constant-tables.patch
+zsmalloc-support-compaction-fix.patch
+kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes.patch
+lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix.patch
+lib-find__bit-reimplementation-fix.patch
+checkpatch-match-more-world-writable-permissions-fix.patch
+binfmt_misc-simplify-entry_status-fix.patch
+rtc-add-abracon-abx80x-driver-fix.patch
+rtc-driver-for-conexant-digicolor-cx92755-on-chip-rtc-fix.patch
+rtc-omap-add-external-32k-clock-feature-fix.patch
+fs-fat-remove-unnecessary-includes-fix.patch
+kernel-forkc-avoid-division-by-zero-fix.patch
+doc-sysctl-kerneltxt-document-threads-max-fix.patch
+mm-rcu-protected-get_mm_exe_file-fix-2.patch
+affs-kstrdup-memory-handling-fix.patch
+kconfig-use-macros-which-are-already-defined-fix.patch
+linux-next.patch
+linux-next-git-rejects.patch
+linux-next-rejects.patch
+include-sound-fix-build.patch
+lib-kconfig-fix-up-have_arch_bitreverse-help-text.patch
+oprofile-reduce-mmap_sem-hold-for-mm-exe_file-fix.patch
+tomoyo-reduce-mmap_sem-hold-for-mm-exe_file-checkpatch-fixes.patch
+documentation-spi-spidev_testc-fix-warning.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
