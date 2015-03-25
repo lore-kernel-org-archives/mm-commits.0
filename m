@@ -1,144 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: + mm-avoid-tail-page-refcounting-on-non-thp-compound-pages.patch
- added to -mm tree
-Date: Wed, 25 Mar 2015 15:47:25 -0700
-Message-ID: <55133afd.QJmu3PJgx1ONu2fk%akpm@linux-foundation.org>
+Subject: [folded-merged] drivers-rtc-rtc-mrst-fix-suspend-resume.patch
+ removed from -mm tree
+Date: Wed, 25 Mar 2015 15:50:08 -0700
+Message-ID: <55133ba0.yw+vwrBaqWSb/W9Q%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34060 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34075 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750821AbbCYWr0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Mar 2015 18:47:26 -0400
+	with ESMTP id S1751413AbbCYWuJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Mar 2015 18:50:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, hughd@google.com, mm-commits@vger.kernel.org
+To: lars@metafoo.de, a.zummo@towertech.it, feng.tang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: avoid tail page refcounting on non-THP compound pages
-has been added to the -mm tree.  Its filename is
-     mm-avoid-tail-page-refcounting-on-non-thp-compound-pages.patch
+     Subject: drivers/rtc/rtc-mrst: fix suspend/resume
+has been removed from the -mm tree.  Its filename was
+     drivers-rtc-rtc-mrst-fix-suspend-resume.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-avoid-tail-page-refcounting-on-non-thp-compound-pages.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-avoid-tail-page-refcounting-on-non-thp-compound-pages.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into aoe-update-aoe-maintainer-information.patch
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: avoid tail page refcounting on non-THP compound pages
+From: Lars-Peter Clausen <lars@metafoo.de>
+Subject: drivers/rtc/rtc-mrst: fix suspend/resume
 
-THP uses tail page refcounting to be able to split huge pages at any time.
- Tail page refcounting is not needed for other users of compound pages and
-it's harmful because of overhead.
+The Moorestown RTC driver implements suspend and resume callbacks and
+assigns them to the suspend and resume fields of the device_driver struct.
+These callbacks are never actually called by anything though.
 
-We try to exclude non-THP pages from tail page refcounting using
-__compound_tail_refcounted() check.  It excludes most common non-THP
-compound pages: SL*B and hugetlb, but it doesn't catch rest of __GFP_COMP
-users -- drivers.
+Modify the driver to properly use dev_pm_ops so that the suspend and resume
+functions are actually executed upon suspend/resume.
 
-And it's not only about overhead.
-
-Drivers might want to use compound pages to get refcounting semantics
-suitable for mapping high-order pages to userspace.  But tail page
-refcounting breaks it.
-
-Tail page refcounting uses ->_mapcount in tail pages to store GUP pins on
-them.  It means GUP pins would affect page_mapcount() for tail pages. 
-It's not a problem for THP, because it never maps tail pages.  But unlike
-THP, drivers map parts of compound pages with PTEs and it makes
-page_mapcount() be called for tail pages.
-
-In particular, GUP pins would shift PSS up and affect /proc/kpagecount for
-such pages.  But, I'm not aware about anything which can lead to crash or
-other serious misbehaviour.
-
-Since currently all THP pages are anonymous and all drivers pages are not,
-we can fix the __compound_tail_refcounted() check by requiring PageAnon()
-to enable tail page refcounting.
-
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Feng Tang <feng.tang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-mrst.c |   17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/mm.h~mm-avoid-tail-page-refcounting-on-non-thp-compound-pages include/linux/mm.h
---- a/include/linux/mm.h~mm-avoid-tail-page-refcounting-on-non-thp-compound-pages
-+++ a/include/linux/mm.h
-@@ -456,7 +456,7 @@ static inline int page_count(struct page
- 
- static inline bool __compound_tail_refcounted(struct page *page)
- {
--	return !PageSlab(page) && !PageHeadHuge(page);
-+	return PageAnon(page) && !PageSlab(page) && !PageHeadHuge(page);
+diff -puN drivers/rtc/rtc-mrst.c~drivers-rtc-rtc-mrst-fix-suspend-resume drivers/rtc/rtc-mrst.c
+--- a/drivers/rtc/rtc-mrst.c~drivers-rtc-rtc-mrst-fix-suspend-resume
++++ a/drivers/rtc/rtc-mrst.c
+@@ -413,8 +413,8 @@ static void rtc_mrst_do_remove(struct de
+ 	mrst->dev = NULL;
  }
  
- /*
+-#ifdef	CONFIG_PM
+-static int mrst_suspend(struct device *dev, pm_message_t mesg)
++#ifdef CONFIG_PM_SLEEP
++static int mrst_suspend(struct device *dev)
+ {
+ 	struct mrst_rtc	*mrst = dev_get_drvdata(dev);
+ 	unsigned char	tmp;
+@@ -453,7 +453,7 @@ static int mrst_suspend(struct device *d
+  */
+ static inline int mrst_poweroff(struct device *dev)
+ {
+-	return mrst_suspend(dev, PMSG_HIBERNATE);
++	return mrst_suspend(dev);
+ }
+ 
+ static int mrst_resume(struct device *dev)
+@@ -490,9 +490,11 @@ static int mrst_resume(struct device *de
+ 	return 0;
+ }
+ 
++static SIMPLE_DEV_PM_OPS(mrst_pm_ops, mrst_suspend, mrst_resume);
++#define MRST_PM_OPS (&mrst_pm_ops)
++
+ #else
+-#define	mrst_suspend	NULL
+-#define	mrst_resume	NULL
++#define MRST_PM_OPS NULL
+ 
+ static inline int mrst_poweroff(struct device *dev)
+ {
+@@ -529,9 +531,8 @@ static struct platform_driver vrtc_mrst_
+ 	.remove		= vrtc_mrst_platform_remove,
+ 	.shutdown	= vrtc_mrst_platform_shutdown,
+ 	.driver = {
+-		.name		= (char *) driver_name,
+-		.suspend	= mrst_suspend,
+-		.resume		= mrst_resume,
++		.name	= (char *) driver_name,
++		.pm	= MRST_PM_OPS,
+ 	}
+ };
+ 
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from lars@metafoo.de are
 
-mm-rename-foll_mlock-to-foll_populate.patch
-mm-rename-__mlock_vma_pages_range-to-populate_vma_page_range.patch
-mm-move-gup-posix-mlock-error-conversion-out-of-__mm_populate.patch
-mm-move-mm_populate-related-code-to-mm-gupc.patch
-mm-incorporate-zero-pages-into-transparent-huge-pages.patch
-mm-incorporate-zero-pages-into-transparent-huge-pages-fix.patch
-alpha-expose-number-of-page-table-levels-on-kconfig-level.patch
-arm64-expose-number-of-page-table-levels-on-kconfig-level.patch
-arm-expose-number-of-page-table-levels-on-kconfig-level.patch
-ia64-expose-number-of-page-table-levels-on-kconfig-level.patch
-m68k-mark-pmd-folded-and-expose-number-of-page-table-levels.patch
-mips-expose-number-of-page-table-levels-on-kconfig-level.patch
-parisc-expose-number-of-page-table-levels-on-kconfig-level.patch
-powerpc-expose-number-of-page-table-levels-on-kconfig-level.patch
-s390-expose-number-of-page-table-levels.patch
-sh-expose-number-of-page-table-levels.patch
-sparc-expose-number-of-page-table-levels.patch
-tile-expose-number-of-page-table-levels.patch
-um-expose-number-of-page-table-levels.patch
-x86-expose-number-of-page-table-levels-on-kconfig-level.patch
-mm-define-default-pgtable_levels-to-two.patch
-mm-do-not-add-nr_pmds-into-mm_struct-if-pmd-is-folded.patch
-mm-refactor-do_wp_page-extract-the-reuse-case.patch
-mm-refactor-do_wp_page-rewrite-the-unlock-flow.patch
-mm-refactor-do_wp_page-extract-the-page-copy-flow.patch
-mm-refactor-do_wp_page-handling-of-shared-vma-into-a-function.patch
-mm-consolidate-all-page-flags-helpers-in-linux-page-flagsh.patch
-page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-mm-sanitize-page-mapping-for-tail-pages.patch
-include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
-mm-avoid-tail-page-refcounting-on-non-thp-compound-pages.patch
+aoe-update-aoe-maintainer-information.patch
+drivers-rtc-rtc-mrst-fix-suspend-resume-fix.patch
 linux-next.patch
 
