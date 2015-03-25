@@ -1,64 +1,102 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention-v2.patch removed from -mm tree
-Date: Wed, 25 Mar 2015 15:51:49 -0700
-Message-ID: <55133c05.GUyyMkv+VUIu+m2L%akpm@linux-foundation.org>
+ fs-affs-filec-unlock-release-page-on-error-v2.patch removed from -mm tree
+Date: Wed, 25 Mar 2015 15:52:17 -0700
+Message-ID: <55133c21.XPowdEL0pcZZ7dgG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34092 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34096 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752201AbbCYWvt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Mar 2015 18:51:49 -0400
+	with ESMTP id S1752249AbbCYWwS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Mar 2015 18:52:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chianglungyu@gmail.com, koct9i@gmail.com, mhocko@suse.cz, rientjes@google.com, mm-commits@vger.kernel.org
+To: tsgatesv@gmail.com, fabf@skynet.be, geert@linux-m68k.org, jack@suse.cz, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention-v2
+     Subject: fs-affs-filec-unlock-release-page-on-error-v2
 has been removed from the -mm tree.  Its filename was
-     mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention-v2.patch
+     fs-affs-filec-unlock-release-page-on-error-v2.patch
 
-This patch was dropped because it was folded into mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention.patch
+This patch was dropped because it was folded into fs-affs-filec-unlock-release-page-on-error.patch
 
 ------------------------------------------------------
-From: Leon Yu <chianglungyu@gmail.com>
-Subject: mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention-v2
+From: Taesoo Kim <tsgatesv@gmail.com>
+Subject: fs-affs-filec-unlock-release-page-on-error-v2
 
-Also suggested by Michal Hocko, we can clean up vma_adjust() a bit as
-anon_vma_clone() now does the work.
-
-Signed-off-by: Leon Yu <chianglungyu@gmail.com>
-Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
-Reviewed-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: David Rientjes <rientjes@google.com>
+Signed-off-by: Taesoo Kim <tsgatesv@gmail.com>
+Cc: Fabian Frederick <fabf@skynet.be>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ fs/affs/file.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN mm/mmap.c~mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention-v2 mm/mmap.c
---- a/mm/mmap.c~mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention-v2
-+++ a/mm/mmap.c
-@@ -774,10 +774,8 @@ again:			remove_next = 1 + (end > next->
- 
- 			importer->anon_vma = exporter->anon_vma;
- 			error = anon_vma_clone(importer, exporter);
--			if (error) {
--				importer->anon_vma = NULL;
-+			if (error)
- 				return error;
--			}
+diff -puN fs/affs/file.c~fs-affs-filec-unlock-release-page-on-error-v2 fs/affs/file.c
+--- a/fs/affs/file.c~fs-affs-filec-unlock-release-page-on-error-v2
++++ a/fs/affs/file.c
+@@ -701,7 +701,7 @@ static int affs_write_end_ofs(struct fil
+ 		bh = affs_bread_ino(inode, bidx, 0);
+ 		if (IS_ERR(bh)) {
+ 			written = PTR_ERR(bh);
+-			goto err;
++			goto err_first_bh;
+ 		}
+ 		tmp = min(bsize - boff, to - from);
+ 		BUG_ON(boff + tmp > bsize || tmp > bsize);
+@@ -716,14 +716,14 @@ static int affs_write_end_ofs(struct fil
+ 		bh = affs_bread_ino(inode, bidx - 1, 0);
+ 		if (IS_ERR(bh)) {
+ 			written = PTR_ERR(bh);
+-			goto err;
++			goto err_first_bh;
  		}
  	}
+ 	while (from + bsize <= to) {
+ 		prev_bh = bh;
+ 		bh = affs_getemptyblk_ino(inode, bidx);
+ 		if (IS_ERR(bh))
+-			goto out;
++			goto err_bh;
+ 		memcpy(AFFS_DATA(bh), data + from, bsize);
+ 		if (buffer_new(bh)) {
+ 			AFFS_DATA_HEAD(bh)->ptype = cpu_to_be32(T_DATA);
+@@ -755,7 +755,7 @@ static int affs_write_end_ofs(struct fil
+ 		prev_bh = bh;
+ 		bh = affs_bread_ino(inode, bidx, 1);
+ 		if (IS_ERR(bh))
+-			goto out;
++			goto err_bh;
+ 		tmp = min(bsize, to - from);
+ 		BUG_ON(tmp > bsize);
+ 		memcpy(AFFS_DATA(bh), data + from, tmp);
+@@ -794,13 +794,13 @@ done:
+ 	if (tmp > inode->i_size)
+ 		inode->i_size = AFFS_I(inode)->mmu_private = tmp;
  
+-err:
++err_first_bh:
+ 	unlock_page(page);
+ 	page_cache_release(page);
+ 
+ 	return written;
+ 
+-out:
++err_bh:
+ 	bh = prev_bh;
+ 	if (!written)
+ 		written = PTR_ERR(bh);
 _
 
-Patches currently in -mm which might be from chianglungyu@gmail.com are
+Patches currently in -mm which might be from tsgatesv@gmail.com are
 
-mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention.patch
+fs-affs-filec-unlock-release-page-on-error.patch
+linux-next.patch
 
