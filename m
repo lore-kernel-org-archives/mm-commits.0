@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-mempool-poison-elements-backed-by-page-allocator.patch added to -mm tree
-Date: Wed, 25 Mar 2015 14:55:41 -0700
-Message-ID: <55132edd.ZoNxQ/T4YZrMJdBZ%akpm@linux-foundation.org>
+Subject: +
+ mm-mempool-disallow-mempools-based-on-slab-caches-with-constructors.patch
+ added to -mm tree
+Date: Wed, 25 Mar 2015 14:55:37 -0700
+Message-ID: <55132ed9.UXJSU17tkPg1UN9L%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33772 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33758 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751909AbbCYVzm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Mar 2015 17:55:42 -0400
+	with ESMTP id S1750979AbbCYVzi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Mar 2015 17:55:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: rientjes@google.com, catalin.marinas@arm.com, hch@lst.de, mpatocka@redhat.com, sebott@linux.vnet.ibm.com, shaggy@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, mempool: poison elements backed by page allocator
+     Subject: mm, mempool: disallow mempools based on slab caches with constructors
 has been added to the -mm tree.  Its filename is
-     mm-mempool-poison-elements-backed-by-page-allocator.patch
+     mm-mempool-disallow-mempools-based-on-slab-caches-with-constructors.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mempool-poison-elements-backed-by-page-allocator.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mempool-disallow-mempools-based-on-slab-caches-with-constructors.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mempool-poison-elements-backed-by-page-allocator.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mempool-disallow-mempools-based-on-slab-caches-with-constructors.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,19 +41,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Rientjes <rientjes@google.com>
-Subject: mm, mempool: poison elements backed by page allocator
+Subject: mm, mempool: disallow mempools based on slab caches with constructors
 
-Elements backed by the slab allocator are poisoned when added to a
-mempool's reserved pool.
+All occurrences of mempools based on slab caches with object constructors
+have been removed from the tree, so disallow creating them.
 
-It is also possible to poison elements backed by the page allocator
-because the mempool layer knows the allocation order.
+We can only dereference mem->ctor in mm/mempool.c without including
+mm/slab.h in include/linux/mempool.h.  So simply note the restriction,
+just like the comment restricting usage of __GFP_ZERO, and warn on kernels
+with CONFIG_DEBUG_VM() if such a mempool is allocated from.
 
-This patch extends mempool element poisoning to include memory backed by
-the page allocator.
-
-This is only effective for configs with CONFIG_DEBUG_SLAB or
-CONFIG_SLUB_DEBUG_ON.
+We don't want to incur this check on every element allocation, so use
+VM_BUG_ON().
 
 Signed-off-by: David Rientjes <rientjes@google.com>
 Cc: Dave Kleikamp <shaggy@kernel.org>
@@ -62,126 +63,42 @@ Cc: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempool.c |   74 ++++++++++++++++++++++++++++++++-----------------
- 1 file changed, 49 insertions(+), 25 deletions(-)
+ include/linux/mempool.h |    3 ++-
+ mm/mempool.c            |    2 ++
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN mm/mempool.c~mm-mempool-poison-elements-backed-by-page-allocator mm/mempool.c
---- a/mm/mempool.c~mm-mempool-poison-elements-backed-by-page-allocator
-+++ a/mm/mempool.c
-@@ -6,6 +6,7 @@
-  *  extreme VM load.
-  *
-  *  started by Ingo Molnar, Copyright (C) 2001
-+ *  debugging by David Rientjes, Copyright (C) 2015
+diff -puN include/linux/mempool.h~mm-mempool-disallow-mempools-based-on-slab-caches-with-constructors include/linux/mempool.h
+--- a/include/linux/mempool.h~mm-mempool-disallow-mempools-based-on-slab-caches-with-constructors
++++ a/include/linux/mempool.h
+@@ -36,7 +36,8 @@ extern void mempool_free(void *element,
+ 
+ /*
+  * A mempool_alloc_t and mempool_free_t that get the memory from
+- * a slab that is passed in through pool_data.
++ * a slab cache that is passed in through pool_data.
++ * Note: the slab cache may not have a ctor function.
   */
+ void *mempool_alloc_slab(gfp_t gfp_mask, void *pool_data);
+ void mempool_free_slab(void *element, void *pool_data);
+diff -puN mm/mempool.c~mm-mempool-disallow-mempools-based-on-slab-caches-with-constructors mm/mempool.c
+--- a/mm/mempool.c~mm-mempool-disallow-mempools-based-on-slab-caches-with-constructors
++++ a/mm/mempool.c
+@@ -15,6 +15,7 @@
+ #include <linux/mempool.h>
+ #include <linux/blkdev.h>
+ #include <linux/writeback.h>
++#include "slab.h"
  
- #include <linux/mm.h>
-@@ -35,41 +36,64 @@ static void poison_error(mempool_t *pool
- 	dump_stack();
- }
- 
--static void check_slab_element(mempool_t *pool, void *element)
-+static void __check_element(mempool_t *pool, void *element, size_t size)
- {
--	if (pool->free == mempool_free_slab || pool->free == mempool_kfree) {
--		size_t size = ksize(element);
--		u8 *obj = element;
--		size_t i;
--
--		for (i = 0; i < size; i++) {
--			u8 exp = (i < size - 1) ? POISON_FREE : POISON_END;
--
--			if (obj[i] != exp) {
--				poison_error(pool, element, size, i);
--				return;
--			}
-+	u8 *obj = element;
-+	size_t i;
-+
-+	for (i = 0; i < size; i++) {
-+		u8 exp = (i < size - 1) ? POISON_FREE : POISON_END;
-+
-+		if (obj[i] != exp) {
-+			poison_error(pool, element, size, i);
-+			return;
- 		}
--		memset(obj, POISON_INUSE, size);
- 	}
-+	memset(obj, POISON_INUSE, size);
- }
- 
--static void poison_slab_element(mempool_t *pool, void *element)
-+static void check_element(mempool_t *pool, void *element)
- {
--	if (pool->alloc == mempool_alloc_slab ||
--	    pool->alloc == mempool_kmalloc) {
--		size_t size = ksize(element);
--		u8 *obj = element;
-+	/* Mempools backed by slab allocator */
-+	if (pool->free == mempool_free_slab || pool->free == mempool_kfree)
-+		__check_element(pool, element, ksize(element));
-+
-+	/* Mempools backed by page allocator */
-+	if (pool->free == mempool_free_pages) {
-+		int order = (int)(long)pool->pool_data;
-+		void *addr = page_address(element);
-+
-+		__check_element(pool, addr, 1UL << (PAGE_SHIFT + order));
-+	}
-+}
-+
-+static void __poison_element(void *element, size_t size)
-+{
-+	u8 *obj = element;
-+
-+	memset(obj, POISON_FREE, size - 1);
-+	obj[size - 1] = POISON_END;
-+}
-+
-+static void poison_element(mempool_t *pool, void *element)
-+{
-+	/* Mempools backed by slab allocator */
-+	if (pool->alloc == mempool_alloc_slab || pool->alloc == mempool_kmalloc)
-+		__poison_element(element, ksize(element));
-+
-+	/* Mempools backed by page allocator */
-+	if (pool->alloc == mempool_alloc_pages) {
-+		int order = (int)(long)pool->pool_data;
-+		void *addr = page_address(element);
- 
--		memset(obj, POISON_FREE, size - 1);
--		obj[size - 1] = POISON_END;
-+		__poison_element(addr, 1UL << (PAGE_SHIFT + order));
- 	}
- }
- #else /* CONFIG_DEBUG_SLAB || CONFIG_SLUB_DEBUG_ON */
--static inline void check_slab_element(mempool_t *pool, void *element)
-+static inline void check_element(mempool_t *pool, void *element)
- {
- }
--static inline void poison_slab_element(mempool_t *pool, void *element)
-+static inline void poison_element(mempool_t *pool, void *element)
- {
- }
- #endif /* CONFIG_DEBUG_SLAB || CONFIG_SLUB_DEBUG_ON */
-@@ -77,7 +101,7 @@ static inline void poison_slab_element(m
  static void add_element(mempool_t *pool, void *element)
  {
- 	BUG_ON(pool->curr_nr >= pool->min_nr);
--	poison_slab_element(pool, element);
-+	poison_element(pool, element);
- 	pool->elements[pool->curr_nr++] = element;
+@@ -334,6 +335,7 @@ EXPORT_SYMBOL(mempool_free);
+ void *mempool_alloc_slab(gfp_t gfp_mask, void *pool_data)
+ {
+ 	struct kmem_cache *mem = pool_data;
++	VM_BUG_ON(mem->ctor);
+ 	return kmem_cache_alloc(mem, gfp_mask);
  }
- 
-@@ -86,7 +110,7 @@ static void *remove_element(mempool_t *p
- 	void *element = pool->elements[--pool->curr_nr];
- 
- 	BUG_ON(pool->curr_nr < 0);
--	check_slab_element(pool, element);
-+	check_element(pool, element);
- 	return element;
- }
- 
+ EXPORT_SYMBOL(mempool_alloc_slab);
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
