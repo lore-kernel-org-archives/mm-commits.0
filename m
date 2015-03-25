@@ -1,116 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-rtc-rtc-mrst-fix-suspend-resume.patch added to -mm tree
-Date: Wed, 25 Mar 2015 15:51:22 -0700
-Message-ID: <55133bea.fA1UfY4kBNvfEXMr%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention-v2.patch removed from -mm tree
+Date: Wed, 25 Mar 2015 15:51:49 -0700
+Message-ID: <55133c05.GUyyMkv+VUIu+m2L%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34080 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34092 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750764AbbCYWvX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Mar 2015 18:51:23 -0400
+	with ESMTP id S1752201AbbCYWvt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Mar 2015 18:51:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lars@metafoo.de, a.zummo@towertech.it, feng.tang@intel.com, mm-commits@vger.kernel.org
+To: chianglungyu@gmail.com, koct9i@gmail.com, mhocko@suse.cz, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-mrst: fix suspend/resume
-has been added to the -mm tree.  Its filename is
-     drivers-rtc-rtc-mrst-fix-suspend-resume.patch
+     Subject: mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention-v2
+has been removed from the -mm tree.  Its filename was
+     mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention-v2.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-rtc-rtc-mrst-fix-suspend-resume.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-rtc-rtc-mrst-fix-suspend-resume.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention.patch
 
 ------------------------------------------------------
-From: Lars-Peter Clausen <lars@metafoo.de>
-Subject: drivers/rtc/rtc-mrst: fix suspend/resume
+From: Leon Yu <chianglungyu@gmail.com>
+Subject: mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention-v2
 
-The Moorestown RTC driver implements suspend and resume callbacks and
-assigns them to the suspend and resume fields of the device_driver struct.
-These callbacks are never actually called by anything though.
+Also suggested by Michal Hocko, we can clean up vma_adjust() a bit as
+anon_vma_clone() now does the work.
 
-Modify the driver to properly use dev_pm_ops so that the suspend and resume
-functions are actually executed upon suspend/resume.
-
-Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Feng Tang <feng.tang@intel.com>
+Signed-off-by: Leon Yu <chianglungyu@gmail.com>
+Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
+Reviewed-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-mrst.c |   17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+ mm/mmap.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/rtc/rtc-mrst.c~drivers-rtc-rtc-mrst-fix-suspend-resume drivers/rtc/rtc-mrst.c
---- a/drivers/rtc/rtc-mrst.c~drivers-rtc-rtc-mrst-fix-suspend-resume
-+++ a/drivers/rtc/rtc-mrst.c
-@@ -413,8 +413,8 @@ static void rtc_mrst_do_remove(struct de
- 	mrst->dev = NULL;
- }
+diff -puN mm/mmap.c~mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention-v2 mm/mmap.c
+--- a/mm/mmap.c~mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention-v2
++++ a/mm/mmap.c
+@@ -774,10 +774,8 @@ again:			remove_next = 1 + (end > next->
  
--#ifdef	CONFIG_PM
--static int mrst_suspend(struct device *dev, pm_message_t mesg)
-+#ifdef CONFIG_PM_SLEEP
-+static int mrst_suspend(struct device *dev)
- {
- 	struct mrst_rtc	*mrst = dev_get_drvdata(dev);
- 	unsigned char	tmp;
-@@ -453,7 +453,7 @@ static int mrst_suspend(struct device *d
-  */
- static inline int mrst_poweroff(struct device *dev)
- {
--	return mrst_suspend(dev, PMSG_HIBERNATE);
-+	return mrst_suspend(dev);
- }
- 
- static int mrst_resume(struct device *dev)
-@@ -490,9 +490,11 @@ static int mrst_resume(struct device *de
- 	return 0;
- }
- 
-+static SIMPLE_DEV_PM_OPS(mrst_pm_ops, mrst_suspend, mrst_resume);
-+#define MRST_PM_OPS (&mrst_pm_ops)
-+
- #else
--#define	mrst_suspend	NULL
--#define	mrst_resume	NULL
-+#define MRST_PM_OPS NULL
- 
- static inline int mrst_poweroff(struct device *dev)
- {
-@@ -529,9 +531,8 @@ static struct platform_driver vrtc_mrst_
- 	.remove		= vrtc_mrst_platform_remove,
- 	.shutdown	= vrtc_mrst_platform_shutdown,
- 	.driver = {
--		.name		= (char *) driver_name,
--		.suspend	= mrst_suspend,
--		.resume		= mrst_resume,
-+		.name	= (char *) driver_name,
-+		.pm	= MRST_PM_OPS,
+ 			importer->anon_vma = exporter->anon_vma;
+ 			error = anon_vma_clone(importer, exporter);
+-			if (error) {
+-				importer->anon_vma = NULL;
++			if (error)
+ 				return error;
+-			}
+ 		}
  	}
- };
  
 _
 
-Patches currently in -mm which might be from lars@metafoo.de are
+Patches currently in -mm which might be from chianglungyu@gmail.com are
 
-drivers-rtc-rtc-mrst-fix-suspend-resume.patch
-drivers-rtc-rtc-mrst-fix-suspend-resume-fix.patch
-linux-next.patch
+mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention.patch
 
