@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-mempool-poison-elements-backed-by-slab-allocator.patch added to -mm tree
-Date: Wed, 25 Mar 2015 14:55:39 -0700
-Message-ID: <55132edb.ohcYoNXYk7kHGcoN%akpm@linux-foundation.org>
+Subject: + fs-jfs-remove-slab-object-constructor.patch added to -mm tree
+Date: Wed, 25 Mar 2015 14:55:35 -0700
+Message-ID: <55132ed7.P8HqAZohEJTWAijd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33766 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33748 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751888AbbCYVzk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Mar 2015 17:55:40 -0400
+	with ESMTP id S1751708AbbCYVzg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Mar 2015 17:55:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, catalin.marinas@arm.com, hch@lst.de, mpatocka@redhat.com, sebott@linux.vnet.ibm.com, shaggy@kernel.org, mm-commits@vger.kernel.org
+To: rientjes@google.com, catalin.marinas@arm.com, dave.kleikamp@oracle.com, hch@lst.de, mpatocka@redhat.com, sebott@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, mempool: poison elements backed by slab allocator
+     Subject: fs, jfs: remove slab object constructor
 has been added to the -mm tree.  Its filename is
-     mm-mempool-poison-elements-backed-by-slab-allocator.patch
+     fs-jfs-remove-slab-object-constructor.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mempool-poison-elements-backed-by-slab-allocator.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-jfs-remove-slab-object-constructor.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mempool-poison-elements-backed-by-slab-allocator.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-jfs-remove-slab-object-constructor.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,29 +39,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Rientjes <rientjes@google.com>
-Subject: mm, mempool: poison elements backed by slab allocator
+Subject: fs, jfs: remove slab object constructor
 
-Mempools keep elements in a reserved pool for contexts in which allocation
-may not be possible.  When an element is allocated from the reserved pool,
-its memory contents is the same as when it was added to the reserved pool.
+Mempools based on slab caches with object constructors are risky because
+element allocation can happen either from the slab cache itself, meaning
+the constructor is properly called before returning, or from the mempool
+reserve pool, meaning the constructor is not called before returning,
+depending on the allocation context.
 
-Because of this, elements lack any free poisoning to detect use-after-free
-errors.
+For this reason, we should disallow creating mempools based on slab caches
+that have object constructors.  Callers of mempool_alloc() will be
+responsible for properly initializing the returned element.
 
-This patch adds free poisoning for elements backed by the slab allocator. 
-This is possible because the mempool layer knows the object size of each
-element.
+Then, it doesn't matter if the element came from the slab cache or the
+mempool reserved pool.
 
-When an element is added to the reserved pool, it is poisoned with
-POISON_FREE.  When it is removed from the reserved pool, the contents are
-checked for POISON_FREE.  If there is a mismatch, a warning is emitted to
-the kernel log.
+The only occurrence of a mempool being based on a slab cache with an
+object constructor in the tree is in fs/jfs/jfs_metapage.c.  Remove it and
+properly initialize the element in alloc_metapage().
 
-This is only effective for configs with CONFIG_DEBUG_SLAB or
-CONFIG_SLUB_DEBUG_ON.
+At the same time, META_free is never used, so remove it as well.
 
 Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Dave Kleikamp <shaggy@kernel.org>
+Acked-by: Dave Kleikamp <dave.kleikamp@oracle.com>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Sebastian Ott <sebott@linux.vnet.ibm.com>
 Cc: Mikulas Patocka <mpatocka@redhat.com>
@@ -69,92 +69,75 @@ Cc: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempool.c |   65 +++++++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 63 insertions(+), 2 deletions(-)
+ fs/jfs/jfs_metapage.c |   31 ++++++++++++-------------------
+ fs/jfs/jfs_metapage.h |    1 -
+ 2 files changed, 12 insertions(+), 20 deletions(-)
 
-diff -puN mm/mempool.c~mm-mempool-poison-elements-backed-by-slab-allocator mm/mempool.c
---- a/mm/mempool.c~mm-mempool-poison-elements-backed-by-slab-allocator
-+++ a/mm/mempool.c
-@@ -17,16 +17,77 @@
- #include <linux/writeback.h>
- #include "slab.h"
+diff -puN fs/jfs/jfs_metapage.c~fs-jfs-remove-slab-object-constructor fs/jfs/jfs_metapage.c
+--- a/fs/jfs/jfs_metapage.c~fs-jfs-remove-slab-object-constructor
++++ a/fs/jfs/jfs_metapage.c
+@@ -183,30 +183,23 @@ static inline void remove_metapage(struc
  
-+#if defined(CONFIG_DEBUG_SLAB) || defined(CONFIG_SLUB_DEBUG_ON)
-+static void poison_error(mempool_t *pool, void *element, size_t size,
-+			 size_t byte)
-+{
-+	const int nr = pool->curr_nr;
-+	const int start = max_t(int, byte - (BITS_PER_LONG / 8), 0);
-+	const int end = min_t(int, byte + (BITS_PER_LONG / 8), size);
-+	int i;
-+
-+	pr_err("BUG: mempool element poison mismatch\n");
-+	pr_err("Mempool %p size %ld\n", pool, size);
-+	pr_err(" nr=%d @ %p: %s0x", nr, element, start > 0 ? "... " : "");
-+	for (i = start; i < end; i++)
-+		pr_cont("%x ", *(u8 *)(element + i));
-+	pr_cont("%s\n", end < size ? "..." : "");
-+	dump_stack();
-+}
-+
-+static void check_slab_element(mempool_t *pool, void *element)
-+{
-+	if (pool->free == mempool_free_slab || pool->free == mempool_kfree) {
-+		size_t size = ksize(element);
-+		u8 *obj = element;
-+		size_t i;
-+
-+		for (i = 0; i < size; i++) {
-+			u8 exp = (i < size - 1) ? POISON_FREE : POISON_END;
-+
-+			if (obj[i] != exp) {
-+				poison_error(pool, element, size, i);
-+				return;
-+			}
-+		}
-+		memset(obj, POISON_INUSE, size);
-+	}
-+}
-+
-+static void poison_slab_element(mempool_t *pool, void *element)
-+{
-+	if (pool->alloc == mempool_alloc_slab ||
-+	    pool->alloc == mempool_kmalloc) {
-+		size_t size = ksize(element);
-+		u8 *obj = element;
-+
-+		memset(obj, POISON_FREE, size - 1);
-+		obj[size - 1] = POISON_END;
-+	}
-+}
-+#else /* CONFIG_DEBUG_SLAB || CONFIG_SLUB_DEBUG_ON */
-+static inline void check_slab_element(mempool_t *pool, void *element)
-+{
-+}
-+static inline void poison_slab_element(mempool_t *pool, void *element)
-+{
-+}
-+#endif /* CONFIG_DEBUG_SLAB || CONFIG_SLUB_DEBUG_ON */
-+
- static void add_element(mempool_t *pool, void *element)
+ #endif
+ 
+-static void init_once(void *foo)
+-{
+-	struct metapage *mp = (struct metapage *)foo;
+-
+-	mp->lid = 0;
+-	mp->lsn = 0;
+-	mp->flag = 0;
+-	mp->data = NULL;
+-	mp->clsn = 0;
+-	mp->log = NULL;
+-	set_bit(META_free, &mp->flag);
+-	init_waitqueue_head(&mp->wait);
+-}
+-
+ static inline struct metapage *alloc_metapage(gfp_t gfp_mask)
  {
- 	BUG_ON(pool->curr_nr >= pool->min_nr);
-+	poison_slab_element(pool, element);
- 	pool->elements[pool->curr_nr++] = element;
+-	return mempool_alloc(metapage_mempool, gfp_mask);
++	struct metapage *mp = mempool_alloc(metapage_mempool, gfp_mask);
++
++	if (mp) {
++		mp->lid = 0;
++		mp->lsn = 0;
++		mp->data = NULL;
++		mp->clsn = 0;
++		mp->log = NULL;
++		init_waitqueue_head(&mp->wait);
++	}
++	return mp;
  }
  
- static void *remove_element(mempool_t *pool)
+ static inline void free_metapage(struct metapage *mp)
  {
--	BUG_ON(pool->curr_nr <= 0);
--	return pool->elements[--pool->curr_nr];
-+	void *element = pool->elements[--pool->curr_nr];
-+
-+	BUG_ON(pool->curr_nr < 0);
-+	check_slab_element(pool, element);
-+	return element;
+-	mp->flag = 0;
+-	set_bit(META_free, &mp->flag);
+-
+ 	mempool_free(mp, metapage_mempool);
  }
  
- /**
+@@ -216,7 +209,7 @@ int __init metapage_init(void)
+ 	 * Allocate the metapage structures
+ 	 */
+ 	metapage_cache = kmem_cache_create("jfs_mp", sizeof(struct metapage),
+-					   0, 0, init_once);
++					   0, 0, NULL);
+ 	if (metapage_cache == NULL)
+ 		return -ENOMEM;
+ 
+diff -puN fs/jfs/jfs_metapage.h~fs-jfs-remove-slab-object-constructor fs/jfs/jfs_metapage.h
+--- a/fs/jfs/jfs_metapage.h~fs-jfs-remove-slab-object-constructor
++++ a/fs/jfs/jfs_metapage.h
+@@ -48,7 +48,6 @@ struct metapage {
+ 
+ /* metapage flag */
+ #define META_locked	0
+-#define META_free	1
+ #define META_dirty	2
+ #define META_sync	3
+ #define META_discard	4
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
