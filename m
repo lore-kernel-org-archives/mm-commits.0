@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-forkc-avoid-division-by-zero-fix-fix.patch added to -mm
- tree
-Date: Wed, 25 Mar 2015 14:37:17 -0700
-Message-ID: <55132a8d.3iTx3RUOQ8BPhe5J%akpm@linux-foundation.org>
+Subject: + prctl-avoid-using-mmap_sem-for-exe_file-serialization.patch
+ added to -mm tree
+Date: Wed, 25 Mar 2015 14:41:38 -0700
+Message-ID: <55132b92.qGhdb0f2H93/IqOq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33637 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33643 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751092AbbCYVhS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Mar 2015 17:37:18 -0400
+	with ESMTP id S1750979AbbCYVlj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Mar 2015 17:41:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, linux@roeck-us.net, mingo@kernel.org, oleg@redhat.com, xypron.glpk@gmx.de, mm-commits@vger.kernel.org
+To: dave@stgolabs.net, dbueso@suse.de, khlebnikov@yandex-team.ru, oleg@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel-forkc-avoid-division-by-zero-fix-fix
+     Subject: prctl: avoid using mmap_sem for exe_file serialization
 has been added to the -mm tree.  Its filename is
-     kernel-forkc-avoid-division-by-zero-fix-fix.patch
+     prctl-avoid-using-mmap_sem-for-exe_file-serialization.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-forkc-avoid-division-by-zero-fix-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/prctl-avoid-using-mmap_sem-for-exe_file-serialization.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-forkc-avoid-division-by-zero-fix-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/prctl-avoid-using-mmap_sem-for-exe_file-serialization.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,89 +39,193 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kernel-forkc-avoid-division-by-zero-fix-fix
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: prctl: avoid using mmap_sem for exe_file serialization
 
-s/clamp/clamp_t/
+Oleg cleverly suggested using xchg() to set the new mm->exe_file instead
+of calling set_mm_exe_file() which requires some form of serialization --
+mmap_sem in this case.  For archs that do not have atomic rmw instructions
+we still fallback to a spinlock alternative, so this should always be
+safe.  As such, we only need the mmap_sem for looking up the backing
+vm_file, which can be done sharing the lock.  Naturally, this means we
+need to manually deal with both the new and old file reference counting,
+and we need not worry about the MMF_EXE_FILE_CHANGED bits, which can
+probably be deleted in the future anyway.
 
-Cc: Guenter Roeck <linux@roeck-us.net>
-Cc: Heinrich Schuchardt <xypron.glpk@gmx.de>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
+Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+Suggested-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Oleg Nesterov <oleg@redhat.com>
+Reviewed-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/exec.c     |    6 ++++++
+ kernel/fork.c |   19 +++++++++++++------
+ kernel/sys.c  |   47 ++++++++++++++++++++++++++++-------------------
+ 3 files changed, 47 insertions(+), 25 deletions(-)
 
-diff -puN kernel/fork.c~kernel-forkc-avoid-division-by-zero-fix-fix kernel/fork.c
---- a/kernel/fork.c~kernel-forkc-avoid-division-by-zero-fix-fix
-+++ a/kernel/fork.c
-@@ -280,7 +280,7 @@ static void set_max_threads(void)
- 		threads = div64_u64((u64) totalram_pages * (u64) PAGE_SIZE,
- 				    (u64) THREAD_SIZE * 8UL);
+diff -puN fs/exec.c~prctl-avoid-using-mmap_sem-for-exe_file-serialization fs/exec.c
+--- a/fs/exec.c~prctl-avoid-using-mmap_sem-for-exe_file-serialization
++++ a/fs/exec.c
+@@ -1082,7 +1082,13 @@ int flush_old_exec(struct linux_binprm *
+ 	if (retval)
+ 		goto out;
  
--	max_threads = clamp(threads, MIN_THREADS, MAX_THREADS);
-+	max_threads = clamp_t(u64, threads, MIN_THREADS, MAX_THREADS);
++	/*
++	 * Must be called _before_ exec_mmap() as bprm->mm is
++	 * not visibile until then. This also enables the update
++	 * to be lockless.
++	 */
+ 	set_mm_exe_file(bprm->mm, bprm->file);
++
+ 	/*
+ 	 * Release all of the old mmap stuff
+ 	 */
+diff -puN kernel/fork.c~prctl-avoid-using-mmap_sem-for-exe_file-serialization kernel/fork.c
+--- a/kernel/fork.c~prctl-avoid-using-mmap_sem-for-exe_file-serialization
++++ a/kernel/fork.c
+@@ -711,15 +711,22 @@ EXPORT_SYMBOL_GPL(mmput);
+  *
+  * This changes mm's executable file (shown as symlink /proc/[pid]/exe).
+  *
+- * Main users are mmput(), sys_execve() and sys_prctl(PR_SET_MM_MAP/EXE_FILE).
+- * Callers prevent concurrent invocations: in mmput() nobody alive left,
+- * in execve task is single-threaded, prctl holds mmap_sem exclusively.
++ * Main users are mmput() and sys_execve(). Callers prevent concurrent
++ * invocations: in mmput() nobody alive left, in execve task is single
++ * threaded. sys_prctl(PR_SET_MM_MAP/EXE_FILE) also needs to set the
++ * mm->exe_file, but does so without using set_mm_exe_file() in order
++ * to do avoid the need for any locks.
+  */
+ void set_mm_exe_file(struct mm_struct *mm, struct file *new_exe_file)
+ {
+-	struct file *old_exe_file = rcu_dereference_protected(mm->exe_file,
+-			!atomic_read(&mm->mm_users) || current->in_execve ||
+-			lockdep_is_held(&mm->mmap_sem));
++	struct file *old_exe_file;
++
++	/*
++	 * It is safe to dereference the exe_file without RCU as
++	 * this function is only called if nobody else can access
++	 * this mm -- see comment above for justification.
++	 */
++	old_exe_file = rcu_dereference_raw(mm->exe_file);
+ 
+ 	if (new_exe_file)
+ 		get_file(new_exe_file);
+diff -puN kernel/sys.c~prctl-avoid-using-mmap_sem-for-exe_file-serialization kernel/sys.c
+--- a/kernel/sys.c~prctl-avoid-using-mmap_sem-for-exe_file-serialization
++++ a/kernel/sys.c
+@@ -1649,14 +1649,13 @@ SYSCALL_DEFINE1(umask, int, mask)
+ 	return mask;
  }
  
- void __init fork_init(void)
+-static int prctl_set_mm_exe_file_locked(struct mm_struct *mm, unsigned int fd)
++static int prctl_set_mm_exe_file(struct mm_struct *mm, unsigned int fd)
+ {
+ 	struct fd exe;
++	struct file *old_exe, *exe_file;
+ 	struct inode *inode;
+ 	int err;
+ 
+-	VM_BUG_ON_MM(!rwsem_is_locked(&mm->mmap_sem), mm);
+-
+ 	exe = fdget(fd);
+ 	if (!exe.file)
+ 		return -EBADF;
+@@ -1680,15 +1679,22 @@ static int prctl_set_mm_exe_file_locked(
+ 	/*
+ 	 * Forbid mm->exe_file change if old file still mapped.
+ 	 */
++	exe_file = get_mm_exe_file(mm);
+ 	err = -EBUSY;
+-	if (mm->exe_file) {
++	if (exe_file) {
+ 		struct vm_area_struct *vma;
+ 
+-		for (vma = mm->mmap; vma; vma = vma->vm_next)
+-			if (vma->vm_file &&
+-			    path_equal(&vma->vm_file->f_path,
+-				       &mm->exe_file->f_path))
+-				goto exit;
++		down_read(&mm->mmap_sem);
++		for (vma = mm->mmap; vma; vma = vma->vm_next) {
++			if (!vma->vm_file)
++				continue;
++			if (path_equal(&vma->vm_file->f_path,
++				       &exe_file->f_path))
++				goto exit_err;
++		}
++
++		up_read(&mm->mmap_sem);
++		fput(exe_file);
+ 	}
+ 
+ 	/*
+@@ -1702,10 +1708,18 @@ static int prctl_set_mm_exe_file_locked(
+ 		goto exit;
+ 
+ 	err = 0;
+-	set_mm_exe_file(mm, exe.file);	/* this grabs a reference to exe.file */
++	/* set the new file, lockless */
++	get_file(exe.file);
++	old_exe = xchg(&mm->exe_file, exe.file);
++	if (old_exe)
++		fput(old_exe);
+ exit:
+ 	fdput(exe);
+ 	return err;
++exit_err:
++	up_read(&mm->mmap_sem);
++	fput(exe_file);
++	goto exit;
+ }
+ 
+ #ifdef CONFIG_CHECKPOINT_RESTORE
+@@ -1840,10 +1854,9 @@ static int prctl_set_mm_map(int opt, con
+ 		user_auxv[AT_VECTOR_SIZE - 1] = AT_NULL;
+ 	}
+ 
+-	down_write(&mm->mmap_sem);
+ 	if (prctl_map.exe_fd != (u32)-1)
+-		error = prctl_set_mm_exe_file_locked(mm, prctl_map.exe_fd);
+-	downgrade_write(&mm->mmap_sem);
++		error = prctl_set_mm_exe_file(mm, prctl_map.exe_fd);
++	down_read(&mm->mmap_sem);
+ 	if (error)
+ 		goto out;
+ 
+@@ -1909,12 +1922,8 @@ static int prctl_set_mm(int opt, unsigne
+ 	if (!capable(CAP_SYS_RESOURCE))
+ 		return -EPERM;
+ 
+-	if (opt == PR_SET_MM_EXE_FILE) {
+-		down_write(&mm->mmap_sem);
+-		error = prctl_set_mm_exe_file_locked(mm, (unsigned int)addr);
+-		up_write(&mm->mmap_sem);
+-		return error;
+-	}
++	if (opt == PR_SET_MM_EXE_FILE)
++		return prctl_set_mm_exe_file(mm, (unsigned int)addr);
+ 
+ 	if (addr >= TASK_SIZE || addr < mmap_min_addr)
+ 		return -EINVAL;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dave@stgolabs.net are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-drivers-rtc-rtc-mrst-fix-suspend-resume-fix.patch
-mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention.patch
-mm.patch
-mm-cma-release-trigger-checkpatch-fixes.patch
-mm-cma-allocation-trigger-fix.patch
-mm-compaction-enhance-compaction-finish-condition-fix.patch
-page_writeback-cleanup-mess-around-cancel_dirty_page-checkpatch-fixes.patch
-mm-hide-per-cpu-lists-in-output-of-show_mem-fix.patch
-mm-clarify-__gfp_nofail-deprecation-status-checkpatch-fixes.patch
-mm-change-vunmap-to-tear-down-huge-kva-mappings-fix.patch
-mm-mempool-do-not-allow-atomic-resizing-checkpatch-fixes.patch
-mm-memory-failurec-define-page-types-for-action_result-in-one-place-fix-2.patch
-mm-memory-failurec-define-page-types-for-action_result-in-one-place-fix.patch
-include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
-mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp-fix.patch
-mm-vmalloc-occupy-newly-allocated-vmap-block-just-after-allocation.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mm-support-madvisemadv_free-fix-2.patch
-zram-add-dynamic-device-add-remove-functionality-fix.patch
-zram-introduce-automatic-device_id-generation-fix.patch
-zsmalloc-support-compaction-fix.patch
-kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes.patch
-lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix.patch
-lib-find__bit-reimplementation-fix.patch
-checkpatch-match-more-world-writable-permissions-fix.patch
-binfmt_misc-simplify-entry_status-fix.patch
-rtc-add-abracon-abx80x-driver-fix.patch
-rtc-driver-for-conexant-digicolor-cx92755-on-chip-rtc-fix.patch
-rtc-omap-add-external-32k-clock-feature-fix.patch
-fs-fat-remove-unnecessary-includes-fix.patch
-kernel-forkc-avoid-division-by-zero-fix.patch
-kernel-forkc-avoid-division-by-zero-fix-fix.patch
-doc-sysctl-kerneltxt-document-threads-max-fix.patch
-mm-rcu-protected-get_mm_exe_file-fix-2.patch
-affs-kstrdup-memory-handling-fix.patch
-kconfig-use-macros-which-are-already-defined-fix.patch
+mm-hugetlb-abort-__get_user_pages-if-current-has-been-oom-killed.patch
+hugetlbfs-add-minimum-size-tracking-fields-to-subpool-structure.patch
+hugetlbfs-add-minimum-size-accounting-to-subpools.patch
+hugetlbfs-accept-subpool-min_size-mount-option-and-setup-accordingly.patch
+hugetlbfs-document-min_size-mount-option-and-cleanup.patch
+mm-use-read_once-for-non-scalar-types.patch
+mm-remove-rest-of-access_once-usages.patch
+arc-do-not-export-symbols-in-troubleshootc.patch
 linux-next.patch
-linux-next-git-rejects.patch
-linux-next-rejects.patch
-include-sound-fix-build.patch
-lib-kconfig-fix-up-have_arch_bitreverse-help-text.patch
+oprofile-reduce-mmap_sem-hold-for-mm-exe_file.patch
+powerpc-oprofile-reduce-mmap_sem-hold-for-exe_file.patch
 oprofile-reduce-mmap_sem-hold-for-mm-exe_file-fix.patch
-tomoyo-reduce-mmap_sem-hold-for-mm-exe_file-checkpatch-fixes.patch
-documentation-spi-spidev_testc-fix-warning.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
+tomoyo-reduce-mmap_sem-hold-for-mm-exe_file.patch
+prctl-avoid-using-mmap_sem-for-exe_file-serialization.patch
 
