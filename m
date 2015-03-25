@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-sysctlc-threads-max-observe-limits.patch added to -mm
- tree
-Date: Wed, 25 Mar 2015 13:55:18 -0700
-Message-ID: <551320b6.I4ekLl0mDAcFDppv%akpm@linux-foundation.org>
+Subject: + doc-sysctl-kerneltxt-document-threads-max-fix.patch added to
+ -mm tree
+Date: Wed, 25 Mar 2015 13:55:22 -0700
+Message-ID: <551320ba.79BPUaHAytUnkwXq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:32932 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:32944 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751238AbbCYUzT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Mar 2015 16:55:19 -0400
+	with ESMTP id S1752148AbbCYUzX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Mar 2015 16:55:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xypron.glpk@gmx.de, linux@roeck-us.net, mingo@kernel.org, oleg@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, linux@roeck-us.net, mingo@kernel.org, oleg@redhat.com, xypron.glpk@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/sysctl.c: threads-max observe limits
+     Subject: doc-sysctl-kerneltxt-document-threads-max-fix
 has been added to the -mm tree.  Its filename is
-     kernel-sysctlc-threads-max-observe-limits.patch
+     doc-sysctl-kerneltxt-document-threads-max-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-sysctlc-threads-max-observe-limits.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/doc-sysctl-kerneltxt-document-threads-max-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-sysctlc-threads-max-observe-limits.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/doc-sysctl-kerneltxt-document-threads-max-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,141 +39,87 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Heinrich Schuchardt <xypron.glpk@gmx.de>
-Subject: kernel/sysctl.c: threads-max observe limits
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: doc-sysctl-kerneltxt-document-threads-max-fix
 
-Users can change the maximum number of threads by writing to
-/proc/sys/kernel/threads-max.
+fix typo, per Guenter
 
-With the patch the value entered is checked against the same limits that
-apply when fork_init is called.
-
-Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Ingo Molnar <mingo@kernel.org>
 Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sysctl.h |    3 +++
- kernel/fork.c          |   31 +++++++++++++++++++++++++++++--
- kernel/sysctl.c        |    6 ++----
- 3 files changed, 34 insertions(+), 6 deletions(-)
+ Documentation/sysctl/kernel.txt |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/sysctl.h~kernel-sysctlc-threads-max-observe-limits include/linux/sysctl.h
---- a/include/linux/sysctl.h~kernel-sysctlc-threads-max-observe-limits
-+++ a/include/linux/sysctl.h
-@@ -212,4 +212,7 @@ static inline void setup_sysctl_set(stru
+diff -puN Documentation/sysctl/kernel.txt~doc-sysctl-kerneltxt-document-threads-max-fix Documentation/sysctl/kernel.txt
+--- a/Documentation/sysctl/kernel.txt~doc-sysctl-kerneltxt-document-threads-max-fix
++++ a/Documentation/sysctl/kernel.txt
+@@ -882,7 +882,7 @@ maximum number of threads is created, th
+ a part (1/8th) of the available RAM pages.
  
- #endif /* CONFIG_SYSCTL */
- 
-+int sysctl_max_threads(struct ctl_table *table, int write,
-+		       void __user *buffer, size_t *lenp, loff_t *ppos);
-+
- #endif /* _LINUX_SYSCTL_H */
-diff -puN kernel/fork.c~kernel-sysctlc-threads-max-observe-limits kernel/fork.c
---- a/kernel/fork.c~kernel-sysctlc-threads-max-observe-limits
-+++ a/kernel/fork.c
-@@ -74,6 +74,7 @@
- #include <linux/uprobes.h>
- #include <linux/aio.h>
- #include <linux/compiler.h>
-+#include <linux/sysctl.h>
- 
- #include <asm/pgtable.h>
- #include <asm/pgalloc.h>
-@@ -266,7 +267,7 @@ void __init __weak arch_task_cache_init(
- /*
-  * set_max_threads
-  */
--static void set_max_threads(void)
-+static void set_max_threads(unsigned int max_threads_suggested)
- {
- 	u64 threads;
- 
-@@ -280,6 +281,9 @@ static void set_max_threads(void)
- 		threads = div64_u64((u64) totalram_pages * (u64) PAGE_SIZE,
- 				    (u64) THREAD_SIZE * 8UL);
- 
-+	if (threads > max_threads_suggested)
-+		threads = max_threads_suggested;
-+
- 	max_threads = clamp(threads, MIN_THREADS, MAX_THREADS);
- }
- 
-@@ -298,7 +302,7 @@ void __init fork_init(void)
- 	/* do the arch specific task caches init */
- 	arch_task_cache_init();
- 
--	set_max_threads();
-+	set_max_threads(MAX_THREADS);
- 
- 	init_task.signal->rlim[RLIMIT_NPROC].rlim_cur = max_threads/2;
- 	init_task.signal->rlim[RLIMIT_NPROC].rlim_max = max_threads/2;
-@@ -2024,3 +2028,26 @@ int unshare_files(struct files_struct **
- 	task_unlock(task);
- 	return 0;
- }
-+
-+int sysctl_max_threads(struct ctl_table *table, int write,
-+		       void __user *buffer, size_t *lenp, loff_t *ppos)
-+{
-+	struct ctl_table t;
-+	int ret;
-+	int threads = max_threads;
-+	int min = MIN_THREADS;
-+	int max = MAX_THREADS;
-+
-+	t = *table;
-+	t.data = &threads;
-+	t.extra1 = &min;
-+	t.extra2 = &max;
-+
-+	ret = proc_dointvec_minmax(&t, write, buffer, lenp, ppos);
-+	if (ret || !write)
-+		return ret;
-+
-+	set_max_threads(threads);
-+
-+	return 0;
-+}
-diff -puN kernel/sysctl.c~kernel-sysctlc-threads-max-observe-limits kernel/sysctl.c
---- a/kernel/sysctl.c~kernel-sysctlc-threads-max-observe-limits
-+++ a/kernel/sysctl.c
-@@ -92,11 +92,9 @@
- #include <linux/nmi.h>
- #endif
- 
--
- #if defined(CONFIG_SYSCTL)
- 
- /* External variables not in a header file. */
--extern int max_threads;
- extern int suid_dumpable;
- #ifdef CONFIG_COREDUMP
- extern int core_uses_pid;
-@@ -709,10 +707,10 @@ static struct ctl_table kern_table[] = {
- #endif
- 	{
- 		.procname	= "threads-max",
--		.data		= &max_threads,
-+		.data		= NULL,
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
--		.proc_handler	= proc_dointvec,
-+		.proc_handler	= sysctl_max_threads,
- 	},
- 	{
- 		.procname	= "random",
+ The minimum value that can be written to threads-max is 20.
+-The maximum vlaue that can be written to threads-max is given by the
++The maximum value that can be written to threads-max is given by the
+ constant FUTEX_TID_MASK (0x3fffffff).
+ If a value outside of this range is written to threads-max an error
+ EINVAL occurs.
 _
 
-Patches currently in -mm which might be from xypron.glpk@gmx.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-kernel-forkc-new-function-for-max_threads.patch
-kernel-forkc-avoid-division-by-zero.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+drivers-rtc-rtc-mrst-fix-suspend-resume-fix.patch
+mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention.patch
+mm.patch
+mm-cma-release-trigger-checkpatch-fixes.patch
+mm-cma-allocation-trigger-fix.patch
+mm-compaction-enhance-compaction-finish-condition-fix.patch
+page_writeback-cleanup-mess-around-cancel_dirty_page-checkpatch-fixes.patch
+mm-hide-per-cpu-lists-in-output-of-show_mem-fix.patch
+mm-clarify-__gfp_nofail-deprecation-status-checkpatch-fixes.patch
+mm-change-vunmap-to-tear-down-huge-kva-mappings-fix.patch
+mm-mempool-do-not-allow-atomic-resizing-checkpatch-fixes.patch
+mm-memory-failurec-define-page-types-for-action_result-in-one-place-fix.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
+mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp-fix.patch
+mm-vmalloc-occupy-newly-allocated-vmap-block-just-after-allocation.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+zram-add-dynamic-device-add-remove-functionality-fix.patch
+zram-introduce-automatic-device_id-generation-fix.patch
+zsmalloc-support-compaction-fix.patch
+kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes.patch
+lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix.patch
+lib-find__bit-reimplementation-fix.patch
+checkpatch-match-more-world-writable-permissions-fix.patch
+binfmt_misc-simplify-entry_status-fix.patch
+rtc-add-abracon-abx80x-driver-fix.patch
+rtc-driver-for-conexant-digicolor-cx92755-on-chip-rtc-fix.patch
+rtc-omap-add-external-32k-clock-feature-fix.patch
+fs-fat-remove-unnecessary-includes-fix.patch
 kernel-forkc-avoid-division-by-zero-fix.patch
-kernel-sysctlc-threads-max-observe-limits.patch
-doc-sysctl-kerneltxt-document-threads-max.patch
 doc-sysctl-kerneltxt-document-threads-max-fix.patch
+mm-rcu-protected-get_mm_exe_file-fix-2.patch
+affs-kstrdup-memory-handling-fix.patch
+kconfig-use-macros-which-are-already-defined-fix.patch
 linux-next.patch
+linux-next-git-rejects.patch
+linux-next-rejects.patch
+include-sound-fix-build.patch
+lib-kconfig-fix-up-have_arch_bitreverse-help-text.patch
+oprofile-reduce-mmap_sem-hold-for-mm-exe_file-fix.patch
+tomoyo-reduce-mmap_sem-hold-for-mm-exe_file-checkpatch-fixes.patch
+documentation-spi-spidev_testc-fix-warning.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
