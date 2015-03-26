@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-memory-failurec-define-page-types-for-action_result-in-one-place-v3.patch added to -mm tree
-Date: Thu, 26 Mar 2015 12:38:52 -0700
-Message-ID: <5514604c.VJ/BIdfB0djBTfcc%akpm@linux-foundation.org>
+Subject: + zsmalloc-remove-extra-cond_resched-in-__zs_compact.patch added
+ to -mm tree
+Date: Thu, 26 Mar 2015 12:45:59 -0700
+Message-ID: <551461f7.OeCK3gn4nc5n55s0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57037 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57051 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752524AbbCZTix (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Mar 2015 15:38:53 -0400
+	with ESMTP id S1751455AbbCZTqA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 26 Mar 2015 15:46:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: n-horiguchi@ah.jp.nec.com, ak@linux.intel.com, mm-commits@vger.kernel.org
+To: sergey.senozhatsky@gmail.com, minchan@kernel.org, ngupta@vflare.org, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-memory-failurec-define-page-types-for-action_result-in-one-place-v3
+     Subject: zsmalloc: remove extra cond_resched() in __zs_compact
 has been added to the -mm tree.  Its filename is
-     mm-memory-failurec-define-page-types-for-action_result-in-one-place-v3.patch
+     zsmalloc-remove-extra-cond_resched-in-__zs_compact.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory-failurec-define-page-types-for-action_result-in-one-place-v3.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zsmalloc-remove-extra-cond_resched-in-__zs_compact.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory-failurec-define-page-types-for-action_result-in-one-place-v3.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zsmalloc-remove-extra-cond_resched-in-__zs_compact.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,108 +39,70 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm-memory-failurec-define-page-types-for-action_result-in-one-place-v3
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: zsmalloc: remove extra cond_resched() in __zs_compact
 
-ChangeLog v2 -> v3:
-- rename action_page_type to action_page_types
-- rename enum page_type to enum action_page_type
+Do not perform cond_resched() before the busy compaction loop in
+__zs_compact(), because this loop does it when needed.
 
-ChangeLog v1 -> v2:
-- fix DIRTY_UNEVICTABLE_LRU typo
-- adding "MSG_" prefix to each enum value
-- use declaration with type "enum page_type" instead of int
-- define action_type_type as "static const char * const" (not "static const=
- char *")
-
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Reviewed-by: Andi Kleen <ak@linux.intel.com>
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ mm/zsmalloc.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN mm/memory-failure.c~mm-memory-failurec-define-page-types-for-action_result-in-one-place-v3 mm/memory-failure.c
---- a/mm/memory-failure.c~mm-memory-failurec-define-page-types-for-action_result-in-one-place-v3
-+++ a/mm/memory-failure.c
-@@ -521,7 +521,7 @@ static const char *action_name[] = {
- 	[RECOVERED] = "Recovered",
- };
+diff -puN mm/zsmalloc.c~zsmalloc-remove-extra-cond_resched-in-__zs_compact mm/zsmalloc.c
+--- a/mm/zsmalloc.c~zsmalloc-remove-extra-cond_resched-in-__zs_compact
++++ a/mm/zsmalloc.c
+@@ -1711,8 +1711,6 @@ static unsigned long __zs_compact(struct
+ 	struct page *dst_page = NULL;
+ 	unsigned long nr_total_migrated = 0;
  
--enum page_type {
-+enum action_page_type {
- 	MSG_KERNEL,
- 	MSG_KERNEL_HIGH_ORDER,
- 	MSG_SLAB,
-@@ -544,7 +544,7 @@ enum page_type {
- 	MSG_UNKNOWN,
- };
+-	cond_resched();
+-
+ 	spin_lock(&class->lock);
+ 	while ((src_page = isolate_source_page(class))) {
  
--static const char *action_page_type[] = {
-+static const char * const action_page_types[] = {
- 	[MSG_KERNEL]			= "reserved kernel page",
- 	[MSG_KERNEL_HIGH_ORDER]		= "high-order kernel page",
- 	[MSG_SLAB]			= "kernel slab page",
-@@ -823,7 +823,7 @@ static int me_huge_page(struct page *p,
- static struct page_state {
- 	unsigned long mask;
- 	unsigned long res;
--	int type;
-+	enum action_page_type type;
- 	int (*action)(struct page *p, unsigned long pfn);
- } error_states[] = {
- 	{ reserved,	reserved,	MSG_KERNEL,	me_kernel },
-@@ -881,10 +881,10 @@ static struct page_state {
-  * "Dirty/Clean" indication is not 100% accurate due to the possibility of
-  * setting PG_dirty outside page lock. See also comment above set_page_dirty().
-  */
--static void action_result(unsigned long pfn, int type, int result)
-+static void action_result(unsigned long pfn, enum action_page_type type, int result)
- {
- 	pr_err("MCE %#lx: recovery action for %s: %s\n",
--		pfn, action_page_type[type], action_name[result]);
-+		pfn, action_page_types[type], action_name[result]);
- }
- 
- static int page_action(struct page_state *ps, struct page *p,
-@@ -901,7 +901,7 @@ static int page_action(struct page_state
- 	if (count != 0) {
- 		printk(KERN_ERR
- 		       "MCE %#lx: %s still referenced by %d users\n",
--		       pfn, action_page_type[ps->type], count);
-+		       pfn, action_page_types[ps->type], count);
- 		result = FAILED;
- 	}
- 	action_result(pfn, ps->type, result);
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
 
-origin.patch
-mm-refactor-do_wp_page-extract-the-reuse-case.patch
-mm-refactor-do_wp_page-rewrite-the-unlock-flow.patch
-mm-refactor-do_wp_page-extract-the-page-copy-flow.patch
-mm-refactor-do_wp_page-handling-of-shared-vma-into-a-function.patch
-mm-mempolicy-migrate_to_node-should-only-migrate-to-node.patch
-mm-hugetlb-abort-__get_user_pages-if-current-has-been-oom-killed.patch
-mm-memory-failurec-define-page-types-for-action_result-in-one-place.patch
-mm-memory-failurec-define-page-types-for-action_result-in-one-place-v3.patch
-mm-consolidate-all-page-flags-helpers-in-linux-page-flagsh.patch
-page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-mm-sanitize-page-mapping-for-tail-pages.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
+zram-cosmetic-zram_attr_ro-code-formatting-tweak.patch
+zram-use-idr-instead-of-zram_devices-array.patch
+zram-factor-out-device-reset-from-reset_store.patch
+zram-reorganize-code-layout.patch
+zram-add-dynamic-device-add-remove-functionality.patch
+zram-add-dynamic-device-add-remove-functionality-fix.patch
+zram-remove-max_num_devices-limitation.patch
+zram-report-every-added-and-removed-device.patch
+zram-trivial-correct-flag-operations-comment.patch
+zram-return-zram-device_id-value-from-zram_add.patch
+zram-introduce-automatic-device_id-generation.patch
+zram-introduce-automatic-device_id-generation-fix.patch
+zram-do-not-let-user-enforce-new-device-dev_id.patch
+zsmalloc-decouple-handle-and-object.patch
+zsmalloc-factor-out-obj_.patch
+zsmalloc-support-compaction.patch
+zsmalloc-adjust-zs_almost_full.patch
+zram-support-compaction.patch
+zsmalloc-record-handle-in-page-private-for-huge-object.patch
+zsmalloc-add-fullness-into-stat.patch
+zsmalloc-zsmalloc-documentation.patch
+zram-remove-num_migrated-device-attr.patch
+zram-move-compact_store-to-sysfs-functions-area.patch
+zram-use-generic-start-end-io-accounting.patch
+zram-describe-device-attrs-in-documentation.patch
+zram-export-new-io_stat-sysfs-attrs.patch
+zram-export-new-mm_stat-sysfs-attrs.patch
+zram-deprecate-zram-attrs-sysfs-nodes.patch
+zsmalloc-remove-synchronize_rcu-from-zs_compact.patch
+zsmalloc-micro-optimize-zs_object_copy.patch
+zsmalloc-remove-unnecessary-insertion-removal-of-zspage-in-compaction.patch
+zsmalloc-remove-extra-cond_resched-in-__zs_compact.patch
+cpumask-dont-perform-while-loop-in-cpumask_next_and.patch
+lib-lz4-pull-out-constant-tables.patch
 
