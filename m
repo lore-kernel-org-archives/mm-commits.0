@@ -1,79 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Fri, 27 Mar 2015 11:15:56 -0700
-Message-ID: <55159e5c.1S1qLk07wJQ4Vtqd%akpm@linux-foundation.org>
+Subject: [obsolete] include-sound-fix-build.patch removed from -mm tree
+Date: Fri, 27 Mar 2015 11:16:06 -0700
+Message-ID: <55159e66.1Us2Uq7y6nTXyKqB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47668 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47671 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751002AbbC0SP5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Mar 2015 14:15:57 -0400
+	with ESMTP id S1751002AbbC0SQH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Mar 2015 14:16:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, tiwai@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: include/sound: fix build
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     include-sound-fix-build.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+Subject: include/sound: fix build
 
+In file included from sound/pci/hda/hda_bind.c:14:                              sound/pci/hda/hda_codec.h:73: error: redefinition of typedef 'hda_nid_t'        include/sound/hdaudio.h:12: note: previous declaration of 'hda_nid_t' was here  
+
+hack around it.
+
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/blk-mq.c |   13 -------------
- 1 file changed, 13 deletions(-)
+ include/sound/hdaudio.h   |    3 +++
+ sound/pci/hda/hda_codec.h |    3 +++
+ 2 files changed, 6 insertions(+)
 
-diff -puN drivers/regulator/palmas-regulator.c~linux-next-git-rejects drivers/regulator/palmas-regulator.c
-diff -puN include/linux/libata.h~linux-next-git-rejects include/linux/libata.h
-diff -puN block/blk-mq.c~linux-next-git-rejects block/blk-mq.c
---- a/block/blk-mq.c~linux-next-git-rejects
-+++ a/block/blk-mq.c
-@@ -1953,11 +1953,7 @@ struct request_queue *blk_mq_init_alloca
- 	 */
- 	if (percpu_ref_init(&q->mq_usage_counter, blk_mq_usage_counter_release,
- 			    PERCPU_REF_INIT_ATOMIC, GFP_KERNEL))
--<<<<<<< HEAD
--		goto err_mq_usage;
--=======
- 		goto err_hctxs;
-->>>>>>> linux-next/akpm-base
+diff -puN include/sound/hdaudio.h~include-sound-fix-build include/sound/hdaudio.h
+--- a/include/sound/hdaudio.h~include-sound-fix-build
++++ a/include/sound/hdaudio.h
+@@ -9,7 +9,10 @@
+ #include <sound/hda_verbs.h>
  
- 	setup_timer(&q->timeout, blk_mq_rq_timer, (unsigned long) q);
- 	blk_queue_rq_timeout(q, 30000);
-@@ -2000,11 +1996,7 @@ struct request_queue *blk_mq_init_alloca
- 	blk_mq_init_cpu_queues(q, set->nr_hw_queues);
+ /* codec node id */
++#ifndef hda_nid_t
+ typedef u16 hda_nid_t;
++#define hda_nid_t hda_nid_t
++#endif
  
- 	if (blk_mq_init_hw_queues(q, set))
--<<<<<<< HEAD
--		goto err_mq_usage;
--=======
- 		goto err_hctxs;
-->>>>>>> linux-next/akpm-base
+ struct hdac_bus;
+ struct hdac_device;
+diff -puN sound/pci/hda/hda_codec.h~include-sound-fix-build sound/pci/hda/hda_codec.h
+--- a/sound/pci/hda/hda_codec.h~include-sound-fix-build
++++ a/sound/pci/hda/hda_codec.h
+@@ -70,7 +70,10 @@ struct hda_pcm;
+ struct hda_pcm_stream;
  
- 	mutex_lock(&all_q_mutex);
- 	list_add_tail(&q->all_q_node, &all_q_list);
-@@ -2016,11 +2008,6 @@ struct request_queue *blk_mq_init_alloca
+ /* NID type */
++#ifndef hda_nid_t
+ typedef u16 hda_nid_t;
++#define hda_nid_t hda_nid_t
++#endif
  
- 	return q;
- 
--<<<<<<< HEAD
--err_mq_usage:
--	blk_cleanup_queue(q);
--=======
-->>>>>>> linux-next/akpm-base
- err_hctxs:
- 	kfree(map);
- 	for (i = 0; i < set->nr_hw_queues; i++) {
+ /* bus operators */
+ struct hda_bus_ops {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -118,7 +111,6 @@ affs-kstrdup-memory-handling-fix.patch
 kconfig-use-macros-which-are-already-defined-fix.patch
 linux-next.patch
 linux-next-rejects.patch
-include-sound-fix-build.patch
 lib-kconfig-fix-up-have_arch_bitreverse-help-text.patch
 oprofile-reduce-mmap_sem-hold-for-mm-exe_file-fix.patch
 tomoyo-reduce-mmap_sem-hold-for-mm-exe_file-checkpatch-fixes.patch
