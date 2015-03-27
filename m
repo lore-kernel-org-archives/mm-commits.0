@@ -1,63 +1,165 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-numa-mark-huge-ptes-young-when-clearing-numa-hinting-faults.patch
- removed from -mm tree
-Date: Fri, 27 Mar 2015 11:17:14 -0700
-Message-ID: <55159eaa.pie6AazzaxucCfXw%akpm@linux-foundation.org>
+ mm-numa-slow-pte-scan-rate-if-migration-failures-occur.patch removed from
+ -mm tree
+Date: Fri, 27 Mar 2015 11:17:11 -0700
+Message-ID: <55159ea7.jq78VOwlZmJq9DEx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47757 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47750 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752868AbbC0SRP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Mar 2015 14:17:15 -0400
+	with ESMTP id S1752868AbbC0SRM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Mar 2015 14:17:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mgorman@suse.de, aneesh.kumar@linux.vnet.ibm.com, david@fromorbit.com, mingo@kernel.org, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: numa: mark huge PTEs young when clearing NUMA hinting faults
+     Subject: mm: numa: slow PTE scan rate if migration failures occur
 has been removed from the -mm tree.  Its filename was
-     mm-numa-mark-huge-ptes-young-when-clearing-numa-hinting-faults.patch
+     mm-numa-slow-pte-scan-rate-if-migration-failures-occur.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: numa: mark huge PTEs young when clearing NUMA hinting faults
+Subject: mm: numa: slow PTE scan rate if migration failures occur
 
-Base PTEs are marked young when the NUMA hinting information is cleared
-but the same does not happen for huge pages which this patch addresses. 
-Note that migrated pages are not marked young as the base page migration
-code does not assume that migrated pages have been referenced.  This could
-be addressed but beyond the scope of this series which is aimed at Dave
-Chinners shrink workload that is unlikely to be affected by this issue.
+Dave Chinner reported the following on https://lkml.org/lkml/2015/3/1/226
+
+  Across the board the 4.0-rc1 numbers are much slower, and the degradation
+  is far worse when using the large memory footprint configs. Perf points
+  straight at the cause - this is from 4.0-rc1 on the "-o bhash=101073" config:
+
+   -   56.07%    56.07%  [kernel]            [k] default_send_IPI_mask_sequence_phys
+      - default_send_IPI_mask_sequence_phys
+         - 99.99% physflat_send_IPI_mask
+            - 99.37% native_send_call_func_ipi
+                 smp_call_function_many
+               - native_flush_tlb_others
+                  - 99.85% flush_tlb_page
+                       ptep_clear_flush
+                       try_to_unmap_one
+                       rmap_walk
+                       try_to_unmap
+                       migrate_pages
+                       migrate_misplaced_page
+                     - handle_mm_fault
+                        - 99.73% __do_page_fault
+                             trace_do_page_fault
+                             do_async_page_fault
+                           + async_page_fault
+              0.63% native_send_call_func_single_ipi
+                 generic_exec_single
+                 smp_call_function_single
+
+This is showing excessive migration activity even though excessive
+migrations are meant to get throttled.  Normally, the scan rate is tuned
+on a per-task basis depending on the locality of faults.  However, if
+migrations fail for any reason then the PTE scanner may scan faster if the
+faults continue to be remote.  This means there is higher system CPU
+overhead and fault trapping at exactly the time we know that migrations
+cannot happen.  This patch tracks when migration failures occur and slows
+the PTE scanner.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
-Cc: Dave Chinner <david@fromorbit.com>
+Reported-by: Dave Chinner <david@fromorbit.com>
+Tested-by: Dave Chinner <david@fromorbit.com>
 Cc: Ingo Molnar <mingo@kernel.org>
 Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Aneesh Kumar <aneesh.kumar@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/sched.h |    9 +++++----
+ kernel/sched/fair.c   |    8 ++++++--
+ mm/huge_memory.c      |    3 ++-
+ mm/memory.c           |    3 ++-
+ 4 files changed, 15 insertions(+), 8 deletions(-)
 
-diff -puN mm/huge_memory.c~mm-numa-mark-huge-ptes-young-when-clearing-numa-hinting-faults mm/huge_memory.c
---- a/mm/huge_memory.c~mm-numa-mark-huge-ptes-young-when-clearing-numa-hinting-faults
+diff -puN include/linux/sched.h~mm-numa-slow-pte-scan-rate-if-migration-failures-occur include/linux/sched.h
+--- a/include/linux/sched.h~mm-numa-slow-pte-scan-rate-if-migration-failures-occur
++++ a/include/linux/sched.h
+@@ -1625,11 +1625,11 @@ struct task_struct {
+ 
+ 	/*
+ 	 * numa_faults_locality tracks if faults recorded during the last
+-	 * scan window were remote/local. The task scan period is adapted
+-	 * based on the locality of the faults with different weights
+-	 * depending on whether they were shared or private faults
++	 * scan window were remote/local or failed to migrate. The task scan
++	 * period is adapted based on the locality of the faults with different
++	 * weights depending on whether they were shared or private faults
+ 	 */
+-	unsigned long numa_faults_locality[2];
++	unsigned long numa_faults_locality[3];
+ 
+ 	unsigned long numa_pages_migrated;
+ #endif /* CONFIG_NUMA_BALANCING */
+@@ -1719,6 +1719,7 @@ struct task_struct {
+ #define TNF_NO_GROUP	0x02
+ #define TNF_SHARED	0x04
+ #define TNF_FAULT_LOCAL	0x08
++#define TNF_MIGRATE_FAIL 0x10
+ 
+ #ifdef CONFIG_NUMA_BALANCING
+ extern void task_numa_fault(int last_node, int node, int pages, int flags);
+diff -puN kernel/sched/fair.c~mm-numa-slow-pte-scan-rate-if-migration-failures-occur kernel/sched/fair.c
+--- a/kernel/sched/fair.c~mm-numa-slow-pte-scan-rate-if-migration-failures-occur
++++ a/kernel/sched/fair.c
+@@ -1609,9 +1609,11 @@ static void update_task_scan_period(stru
+ 	/*
+ 	 * If there were no record hinting faults then either the task is
+ 	 * completely idle or all activity is areas that are not of interest
+-	 * to automatic numa balancing. Scan slower
++	 * to automatic numa balancing. Related to that, if there were failed
++	 * migration then it implies we are migrating too quickly or the local
++	 * node is overloaded. In either case, scan slower
+ 	 */
+-	if (local + shared == 0) {
++	if (local + shared == 0 || p->numa_faults_locality[2]) {
+ 		p->numa_scan_period = min(p->numa_scan_period_max,
+ 			p->numa_scan_period << 1);
+ 
+@@ -2080,6 +2082,8 @@ void task_numa_fault(int last_cpupid, in
+ 
+ 	if (migrated)
+ 		p->numa_pages_migrated += pages;
++	if (flags & TNF_MIGRATE_FAIL)
++		p->numa_faults_locality[2] += pages;
+ 
+ 	p->numa_faults[task_faults_idx(NUMA_MEMBUF, mem_node, priv)] += pages;
+ 	p->numa_faults[task_faults_idx(NUMA_CPUBUF, cpu_node, priv)] += pages;
+diff -puN mm/huge_memory.c~mm-numa-slow-pte-scan-rate-if-migration-failures-occur mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-numa-slow-pte-scan-rate-if-migration-failures-occur
 +++ a/mm/huge_memory.c
-@@ -1358,6 +1358,7 @@ clear_pmdnuma:
- 	BUG_ON(!PageLocked(page));
- 	was_writable = pmd_write(pmd);
- 	pmd = pmd_modify(pmd, vma->vm_page_prot);
-+	pmd = pmd_mkyoung(pmd);
- 	if (was_writable)
- 		pmd = pmd_mkwrite(pmd);
- 	set_pmd_at(mm, haddr, pmdp, pmd);
+@@ -1350,7 +1350,8 @@ int do_huge_pmd_numa_page(struct mm_stru
+ 	if (migrated) {
+ 		flags |= TNF_MIGRATED;
+ 		page_nid = target_nid;
+-	}
++	} else
++		flags |= TNF_MIGRATE_FAIL;
+ 
+ 	goto out;
+ clear_pmdnuma:
+diff -puN mm/memory.c~mm-numa-slow-pte-scan-rate-if-migration-failures-occur mm/memory.c
+--- a/mm/memory.c~mm-numa-slow-pte-scan-rate-if-migration-failures-occur
++++ a/mm/memory.c
+@@ -3103,7 +3103,8 @@ static int do_numa_page(struct mm_struct
+ 	if (migrated) {
+ 		page_nid = target_nid;
+ 		flags |= TNF_MIGRATED;
+-	}
++	} else
++		flags |= TNF_MIGRATE_FAIL;
+ 
+ out:
+ 	if (page_nid != -1)
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
