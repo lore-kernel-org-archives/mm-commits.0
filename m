@@ -1,140 +1,100 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- watchdog-bcm281xx-remove-use-of-seq_printf-return-value.patch removed from
- -mm tree
-Date: Fri, 27 Mar 2015 11:17:16 -0700
-Message-ID: <55159eac.8YYAsIZmQYm2nHJt%akpm@linux-foundation.org>
+ mm-page_alloc-call-kernel_map_pages-in-unset_migrateype_isolate.patch
+ removed from -mm tree
+Date: Fri, 27 Mar 2015 11:16:55 -0700
+Message-ID: <55159e97.zS+eOW0HhV4EmnGc%akpm__40251.7329356217$1427480261$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47764 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47714 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752473AbbC0SRQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Mar 2015 14:17:16 -0400
+	with ESMTP id S1753301AbbC0SQ4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Mar 2015 14:16:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, wim@iguana.be, mm-commits@vger.kernel.org
+To: lauraa@codeaurora.org, gioh.kim@lge.com, iamjoonsoo.kim@lge.com, isimatu.yasuaki@jp.fujitsu.com, m.szyprowski@samsung.com, mgorman@suse.de, mina86@mina86.com, n-horiguchi@ah.jp.nec.com, qiuxishi@huawei.com, riel@redhat.com, stable@vger.kernel.org, vbabka@suse.cz, vdavydov@parallels.com, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: watchdog: bcm281xx: remove use of seq_printf return value
+     Subject: mm/page_alloc.c: call kernel_map_pages in unset_migrateype_isolate
 has been removed from the -mm tree.  Its filename was
-     watchdog-bcm281xx-remove-use-of-seq_printf-return-value.patch
+     mm-page_alloc-call-kernel_map_pages-in-unset_migrateype_isolate.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: watchdog: bcm281xx: remove use of seq_printf return value
+From: Laura Abbott <lauraa@codeaurora.org>
+Subject: mm/page_alloc.c: call kernel_map_pages in unset_migrateype_isolate
 
-The seq_printf return value, because it's frequently misused,
-will eventually be converted to void.
+Commit 3c605096d315 ("mm/page_alloc: restrict max order of merging on
+isolated pageblock") changed the logic of unset_migratetype_isolate to
+check the buddy allocator and explicitly call __free_pages to merge.  The
+page that is being freed in this path never had prep_new_page called so
+set_page_refcounted is called explicitly but there is no call to
+kernel_map_pages.  With the default kernel_map_pages this is mostly
+harmless but if kernel_map_pages does any manipulation of the page tables
+(unmapping or setting pages to read only) this may trigger a fault:
 
-See: commit 1f33c41c03da ("seq_file: Rename seq_overflow() to
-     seq_has_overflowed() and make public")
+    alloc_contig_range test_pages_isolated(ceb00, ced00) failed
+    Unable to handle kernel paging request at virtual address ffffffc0cec00000
+    pgd = ffffffc045fc4000
+    [ffffffc0cec00000] *pgd=0000000000000000
+    Internal error: Oops: 9600004f [#1] PREEMPT SMP
+    Modules linked in: exfatfs
+    CPU: 1 PID: 23237 Comm: TimedEventQueue Not tainted 3.10.49-gc72ad36-dirty #1
+    task: ffffffc03de52100 ti: ffffffc015388000 task.ti: ffffffc015388000
+    PC is at memset+0xc8/0x1c0
+    LR is at kernel_map_pages+0x1ec/0x244
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Guenter Roeck <linux~roeck-us.net>
-Cc: Wim Van Sebroeck <wim@iguana.be>
+Fix this by calling kernel_map_pages to ensure the page is set in the
+page table properly
+
+Fixes: 3c605096d315 ("mm/page_alloc: restrict max order of merging on isolated pageblock")
+Signed-off-by: Laura Abbott <lauraa@codeaurora.org>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
+Cc: Vladimir Davydov <vdavydov@parallels.com>
+Acked-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Gioh Kim <gioh.kim@lge.com>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/bcm_kona_wdt.c |   27 ++++++++++++++++-----------
- 1 file changed, 16 insertions(+), 11 deletions(-)
+ mm/page_isolation.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/watchdog/bcm_kona_wdt.c~watchdog-bcm281xx-remove-use-of-seq_printf-return-value drivers/watchdog/bcm_kona_wdt.c
---- a/drivers/watchdog/bcm_kona_wdt.c~watchdog-bcm281xx-remove-use-of-seq_printf-return-value
-+++ a/drivers/watchdog/bcm_kona_wdt.c
-@@ -99,12 +99,14 @@ static int secure_register_read(struct b
+diff -puN mm/page_isolation.c~mm-page_alloc-call-kernel_map_pages-in-unset_migrateype_isolate mm/page_isolation.c
+--- a/mm/page_isolation.c~mm-page_alloc-call-kernel_map_pages-in-unset_migrateype_isolate
++++ a/mm/page_isolation.c
+@@ -103,6 +103,7 @@ void unset_migratetype_isolate(struct pa
  
- static int bcm_kona_wdt_dbg_show(struct seq_file *s, void *data)
- {
--	int ctl_val, cur_val, ret;
-+	int ctl_val, cur_val;
- 	unsigned long flags;
- 	struct bcm_kona_wdt *wdt = s->private;
- 
--	if (!wdt)
--		return seq_puts(s, "No device pointer\n");
-+	if (!wdt) {
-+		seq_puts(s, "No device pointer\n");
-+		return 0;
-+	}
- 
- 	spin_lock_irqsave(&wdt->lock, flags);
- 	ctl_val = secure_register_read(wdt, SECWDOG_CTRL_REG);
-@@ -112,7 +114,7 @@ static int bcm_kona_wdt_dbg_show(struct
- 	spin_unlock_irqrestore(&wdt->lock, flags);
- 
- 	if (ctl_val < 0 || cur_val < 0) {
--		ret = seq_puts(s, "Error accessing hardware\n");
-+		seq_puts(s, "Error accessing hardware\n");
- 	} else {
- 		int ctl, cur, ctl_sec, cur_sec, res;
- 
-@@ -121,15 +123,18 @@ static int bcm_kona_wdt_dbg_show(struct
- 		cur = cur_val & SECWDOG_COUNT_MASK;
- 		ctl_sec = TICKS_TO_SECS(ctl, wdt);
- 		cur_sec = TICKS_TO_SECS(cur, wdt);
--		ret = seq_printf(s, "Resolution: %d / %d\n"
--				"Control: %d s / %d (%#x) ticks\n"
--				"Current: %d s / %d (%#x) ticks\n"
--				"Busy count: %lu\n", res,
--				wdt->resolution, ctl_sec, ctl, ctl, cur_sec,
--				cur, cur, wdt->busy_count);
-+		seq_printf(s,
-+			   "Resolution: %d / %d\n"
-+			   "Control: %d s / %d (%#x) ticks\n"
-+			   "Current: %d s / %d (%#x) ticks\n"
-+			   "Busy count: %lu\n",
-+			   res, wdt->resolution,
-+			   ctl_sec, ctl, ctl,
-+			   cur_sec, cur, cur,
-+			   wdt->busy_count);
- 	}
- 
--	return ret;
-+	return 0;
- }
- 
- static int bcm_kona_dbg_open(struct inode *inode, struct file *file)
+ 			if (!is_migrate_isolate_page(buddy)) {
+ 				__isolate_free_page(page, order);
++				kernel_map_pages(page, (1 << order), 1);
+ 				set_page_refcounted(page);
+ 				isolated_page = page;
+ 			}
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from lauraa@codeaurora.org are
 
 origin.patch
-proc-show-locks-in-proc-pid-fdinfo-x.patch
-proc-show-locks-in-proc-pid-fdinfo-x-v2.patch
-maintainers-use-tabs-consistently.patch
-x86-mtrr-if-remove-use-of-seq_printf-return-value.patch
-power-wakeup-remove-use-of-seq_printf-return-value.patch
-rtc-remove-use-of-seq_printf-return-value.patch
-ipc-remove-use-of-seq_printf-return-value.patch
-microblaze-mb-remove-use-of-seq_printf-return-value.patch
-microblaze-mb-remove-use-of-seq_printf-return-value-fix.patch
-nios2-cpuinfo-remove-use-of-seq_printf-return-value.patch
-arm-plat-pxa-remove-use-of-seq_printf-return-value.patch
-openrisc-remove-use-of-seq_printf-return-value.patch
-cris-remove-use-of-seq_printf-return-value.patch
-cris-fasttimer-remove-use-of-seq_printf-return-value.patch
-s390-remove-use-of-seq_printf-return-value.patch
-proc-remove-use-of-seq_printf-return-value.patch
-cgroup-remove-use-of-seq_printf-return-value.patch
-tracing-remove-use-of-seq_printf-return-value.patch
-lru_cache-remove-use-of-seq_printf-return-value.patch
-parisc-remove-use-of-seq_printf-return-value.patch
-lib-vsprintfc-even-faster-decimal-conversion.patch
-mm-utilc-add-kstrimdup.patch
-checkpatch-improve-no-space-is-necessary-after-a-cast-test.patch
-checkpatch-add-spell-checking-of-email-subject-line.patch
-checkpatch-spell-check-reudce.patch
-checkpatch-add-optional-codespell-dictionary-to-find-more-typos.patch
-checkpatch-match-more-world-writable-permissions.patch
-checkpatch-match-more-world-writable-permissions-fix.patch
-checkpatch-improve-return-negative-errno-check.patch
-checkpatch-add-test-for-repeated-const-uses.patch
-adfs-returning-correct-return-values.patch
+mm-cma-debugfs-interface.patch
+mm-cma-allocation-trigger.patch
+mm-cma-release-trigger.patch
+mm-cma-allocation-trigger-fix.patch
+cma-debug-document-new-debugfs-interface.patch
+seccomp-allow-compat-sigreturn-overrides.patch
+arm-use-asm-generic-for-seccomph.patch
 linux-next.patch
 
