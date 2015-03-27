@@ -1,103 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention.patch removed from -mm tree
-Date: Fri, 27 Mar 2015 11:16:42 -0700
-Message-ID: <55159e8a.e2AkKmHQHfv2IO2/%akpm@linux-foundation.org>
+Subject: [merged] drivers-rtc-rtc-mrst-fix-suspend-resume.patch removed
+ from -mm tree
+Date: Fri, 27 Mar 2015 11:16:40 -0700
+Message-ID: <55159e88.IsRA0b7uJuB/UVg+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47682 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47674 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752195AbbC0SQn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Mar 2015 14:16:43 -0400
+	with ESMTP id S1751002AbbC0SQl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Mar 2015 14:16:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chianglungyu@gmail.com, koct9i@gmail.com, mhocko@suse.cz, riel@redhat.com, rientjes@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: lars@metafoo.de, a.zummo@towertech.it, feng.tang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix anon_vma->degree underflow in anon_vma endless growing prevention
+     Subject: drivers/rtc/rtc-mrst: fix suspend/resume
 has been removed from the -mm tree.  Its filename was
-     mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention.patch
+     drivers-rtc-rtc-mrst-fix-suspend-resume.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Leon Yu <chianglungyu@gmail.com>
-Subject: mm: fix anon_vma->degree underflow in anon_vma endless growing prevention
+From: Lars-Peter Clausen <lars@metafoo.de>
+Subject: drivers/rtc/rtc-mrst: fix suspend/resume
 
-I have constantly stumbled upon "kernel BUG at mm/rmap.c:399!" after
-upgrading to 3.19 and had no luck with 4.0-rc1 neither.
+The Moorestown RTC driver implements suspend and resume callbacks and
+assigns them to the suspend and resume fields of the device_driver struct.
+These callbacks are never actually called by anything though.
 
-So, after looking into new logic introduced by 7a3ef208e662 ("mm: prevent
-endless growth of anon_vma hierarchy"), I found chances are that
-unlink_anon_vmas() is called without incrementing dst->anon_vma->degree in
-anon_vma_clone() due to allocation failure.  If dst->anon_vma is not NULL
-in error path, its degree will be incorrectly decremented in
-unlink_anon_vmas() and eventually underflow when exiting as a result of
-another call to unlink_anon_vmas().  That's how "kernel BUG at
-mm/rmap.c:399!" is triggered for me.
+Modify the driver to properly use dev_pm_ops so that the suspend and resume
+functions are actually executed upon suspend/resume.
 
-This patch fixes the underflow by dropping dst->anon_vma when allocation
-fails.  It's safe to do so regardless of original value of dst->anon_vma
-because dst->anon_vma doesn't have valid meaning if anon_vma_clone()
-fails.  Besides, callers don't care dst->anon_vma in such case neither.
-
-Also suggested by Michal Hocko, we can clean up vma_adjust() a bit as
-anon_vma_clone() now does the work.
-
-[akpm@linux-foundation.org: tweak comment]
-Fixes: 7a3ef208e662 ("mm: prevent endless growth of anon_vma hierarchy")
-Signed-off-by: Leon Yu <chianglungyu@gmail.com>
-Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
-Reviewed-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: Rik van Riel <riel@redhat.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: <stable@vger.kernel.org>
+[akpm@linux-foundation.org: device_driver.name is const char *]
+Signed-off-by: Lars-Peter Clausen <lars@metafoo.de>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Feng Tang <feng.tang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    4 +---
- mm/rmap.c |    7 +++++++
- 2 files changed, 8 insertions(+), 3 deletions(-)
+ drivers/rtc/rtc-mrst.c |   17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
-diff -puN mm/mmap.c~mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention mm/mmap.c
---- a/mm/mmap.c~mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention
-+++ a/mm/mmap.c
-@@ -774,10 +774,8 @@ again:			remove_next = 1 + (end > next->
- 
- 			importer->anon_vma = exporter->anon_vma;
- 			error = anon_vma_clone(importer, exporter);
--			if (error) {
--				importer->anon_vma = NULL;
-+			if (error)
- 				return error;
--			}
- 		}
- 	}
- 
-diff -puN mm/rmap.c~mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention mm/rmap.c
---- a/mm/rmap.c~mm-fix-anon_vma-degree-underflow-in-anon_vma-endless-growing-prevention
-+++ a/mm/rmap.c
-@@ -287,6 +287,13 @@ int anon_vma_clone(struct vm_area_struct
- 	return 0;
- 
-  enomem_failure:
-+	/*
-+	 * dst->anon_vma is dropped here otherwise its degree can be incorrectly
-+	 * decremented in unlink_anon_vmas().
-+	 * We can safely do this because callers of anon_vma_clone() don't care
-+	 * about dst->anon_vma if anon_vma_clone() failed.
-+	 */
-+	dst->anon_vma = NULL;
- 	unlink_anon_vmas(dst);
- 	return -ENOMEM;
+diff -puN drivers/rtc/rtc-mrst.c~drivers-rtc-rtc-mrst-fix-suspend-resume drivers/rtc/rtc-mrst.c
+--- a/drivers/rtc/rtc-mrst.c~drivers-rtc-rtc-mrst-fix-suspend-resume
++++ a/drivers/rtc/rtc-mrst.c
+@@ -413,8 +413,8 @@ static void rtc_mrst_do_remove(struct de
+ 	mrst->dev = NULL;
  }
+ 
+-#ifdef	CONFIG_PM
+-static int mrst_suspend(struct device *dev, pm_message_t mesg)
++#ifdef CONFIG_PM_SLEEP
++static int mrst_suspend(struct device *dev)
+ {
+ 	struct mrst_rtc	*mrst = dev_get_drvdata(dev);
+ 	unsigned char	tmp;
+@@ -453,7 +453,7 @@ static int mrst_suspend(struct device *d
+  */
+ static inline int mrst_poweroff(struct device *dev)
+ {
+-	return mrst_suspend(dev, PMSG_HIBERNATE);
++	return mrst_suspend(dev);
+ }
+ 
+ static int mrst_resume(struct device *dev)
+@@ -490,9 +490,11 @@ static int mrst_resume(struct device *de
+ 	return 0;
+ }
+ 
++static SIMPLE_DEV_PM_OPS(mrst_pm_ops, mrst_suspend, mrst_resume);
++#define MRST_PM_OPS (&mrst_pm_ops)
++
+ #else
+-#define	mrst_suspend	NULL
+-#define	mrst_resume	NULL
++#define MRST_PM_OPS NULL
+ 
+ static inline int mrst_poweroff(struct device *dev)
+ {
+@@ -529,9 +531,8 @@ static struct platform_driver vrtc_mrst_
+ 	.remove		= vrtc_mrst_platform_remove,
+ 	.shutdown	= vrtc_mrst_platform_shutdown,
+ 	.driver = {
+-		.name		= (char *) driver_name,
+-		.suspend	= mrst_suspend,
+-		.resume		= mrst_resume,
++		.name	= driver_name,
++		.pm	= MRST_PM_OPS,
+ 	}
+ };
+ 
 _
 
-Patches currently in -mm which might be from chianglungyu@gmail.com are
+Patches currently in -mm which might be from lars@metafoo.de are
 
 origin.patch
+linux-next.patch
 
