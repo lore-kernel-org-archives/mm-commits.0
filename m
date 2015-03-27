@@ -1,111 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-affs-filec-unlock-release-page-on-error.patch removed from -mm tree
-Date: Fri, 27 Mar 2015 11:16:58 -0700
-Message-ID: <55159e9a.MwcLhkMEJujLkgb+%akpm@linux-foundation.org>
+Subject: [merged]
+ hfsplus-fix-b-tree-corruption-after-insertion-at-position-0.patch removed
+ from -mm tree
+Date: Fri, 27 Mar 2015 11:17:03 -0700
+Message-ID: <55159e9f.jU/cURD9WTXFIagS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47720 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47729 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753241AbbC0SQ7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Mar 2015 14:16:59 -0400
+	with ESMTP id S1752331AbbC0SRE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Mar 2015 14:17:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tsgatesv@gmail.com, fabf@skynet.be, geert@linux-m68k.org, jack@suse.cz, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: saproj@gmail.com, aia21@cam.ac.uk, hch@infradead.org, htl10@users.sourceforge.net, joe@perches.com, slava@dubeyko.com, stable@vger.kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/affs/file.c: unlock/release page on error
+     Subject: hfsplus: fix B-tree corruption after insertion at position 0
 has been removed from the -mm tree.  Its filename was
-     fs-affs-filec-unlock-release-page-on-error.patch
+     hfsplus-fix-b-tree-corruption-after-insertion-at-position-0.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Taesoo Kim <tsgatesv@gmail.com>
-Subject: fs/affs/file.c: unlock/release page on error
+From: Sergei Antonov <saproj@gmail.com>
+Subject: hfsplus: fix B-tree corruption after insertion at position 0
 
-When affs_bread_ino() fails, correctly unlock the page and release the
-page cache with proper error value.  All write_end() should unlock/release
-the page that was locked by write_beg().
+Fix B-tree corruption when a new record is inserted at position 0 in the
+node in hfs_brec_insert().  In this case a hfs_brec_update_parent() is
+called to update the parent index node (if exists) and it is passed
+hfs_find_data with a search_key containing a newly inserted key instead of
+the key to be updated.  This results in an inconsistent index node.  The
+bug reproduces on my machine after an extents overflow record for the
+catalog file (CNID=4) is inserted into the extents overflow B-tree. 
+Because of a low (reserved) value of CNID=4, it has to become the first
+record in the first leaf node.
 
-Signed-off-by: Taesoo Kim <tsgatesv@gmail.com>
-Cc: Fabian Frederick <fabf@skynet.be>
+The resulting first leaf node is correct:
+
+----------------------------------------------------
+| key0.CNID=4 | key1.CNID=123 | key2.CNID=456, ... |
+----------------------------------------------------
+But the parent index key0 still contains the previous key CNID=123:
+-----------------------
+| key0.CNID=123 | ... |
+-----------------------
+
+A change in hfs_brec_insert() makes hfs_brec_update_parent() work
+correctly by preventing it from getting fd->record=-1 value from
+__hfs_brec_find().
+
+Along the way, I removed duplicate code with unification of the if
+condition.  The resulting code is equivalent to the original code because
+node is never 0.
+
+Also hfs_brec_update_parent() will now return an error after getting a
+negative fd->record value.  However, the return value of
+hfs_brec_update_parent() is not checked anywhere in the file and I'm
+leaving it unchanged by this patch.  brec.c lacks error checking after
+some other calls too, but this issue is of less importance than the one
+being fixed by this patch.
+
+Signed-off-by: Sergei Antonov <saproj@gmail.com>
+Cc: Joe Perches <joe@perches.com>
+Reviewed-by: Vyacheslav Dubeyko <slava@dubeyko.com>
+Acked-by: Hin-Tak Leung <htl10@users.sourceforge.net>
+Cc: Anton Altaparmakov <aia21@cam.ac.uk>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Jan Kara <jack@suse.cz>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/affs/file.c |   19 ++++++++++++-------
- 1 file changed, 12 insertions(+), 7 deletions(-)
+ fs/hfsplus/brec.c |   20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
 
-diff -puN fs/affs/file.c~fs-affs-filec-unlock-release-page-on-error fs/affs/file.c
---- a/fs/affs/file.c~fs-affs-filec-unlock-release-page-on-error
-+++ a/fs/affs/file.c
-@@ -699,8 +699,10 @@ static int affs_write_end_ofs(struct fil
- 	boff = tmp % bsize;
- 	if (boff) {
- 		bh = affs_bread_ino(inode, bidx, 0);
--		if (IS_ERR(bh))
--			return PTR_ERR(bh);
-+		if (IS_ERR(bh)) {
-+			written = PTR_ERR(bh);
-+			goto err_first_bh;
-+		}
- 		tmp = min(bsize - boff, to - from);
- 		BUG_ON(boff + tmp > bsize || tmp > bsize);
- 		memcpy(AFFS_DATA(bh) + boff, data + from, tmp);
-@@ -712,14 +714,16 @@ static int affs_write_end_ofs(struct fil
- 		bidx++;
- 	} else if (bidx) {
- 		bh = affs_bread_ino(inode, bidx - 1, 0);
--		if (IS_ERR(bh))
--			return PTR_ERR(bh);
-+		if (IS_ERR(bh)) {
-+			written = PTR_ERR(bh);
-+			goto err_first_bh;
-+		}
+diff -puN fs/hfsplus/brec.c~hfsplus-fix-b-tree-corruption-after-insertion-at-position-0 fs/hfsplus/brec.c
+--- a/fs/hfsplus/brec.c~hfsplus-fix-b-tree-corruption-after-insertion-at-position-0
++++ a/fs/hfsplus/brec.c
+@@ -131,13 +131,16 @@ skip:
+ 	hfs_bnode_write(node, entry, data_off + key_len, entry_len);
+ 	hfs_bnode_dump(node);
+ 
+-	if (new_node) {
+-		/* update parent key if we inserted a key
+-		 * at the start of the first node
+-		 */
+-		if (!rec && new_node != node)
+-			hfs_brec_update_parent(fd);
++	/*
++	 * update parent key if we inserted a key
++	 * at the start of the node and it is not the new node
++	 */
++	if (!rec && new_node != node) {
++		hfs_bnode_read_key(node, fd->search_key, data_off + size);
++		hfs_brec_update_parent(fd);
++	}
+ 
++	if (new_node) {
+ 		hfs_bnode_put(fd->bnode);
+ 		if (!new_node->parent) {
+ 			hfs_btree_inc_height(tree);
+@@ -168,9 +171,6 @@ skip:
+ 		goto again;
  	}
- 	while (from + bsize <= to) {
- 		prev_bh = bh;
- 		bh = affs_getemptyblk_ino(inode, bidx);
- 		if (IS_ERR(bh))
--			goto out;
-+			goto err_bh;
- 		memcpy(AFFS_DATA(bh), data + from, bsize);
- 		if (buffer_new(bh)) {
- 			AFFS_DATA_HEAD(bh)->ptype = cpu_to_be32(T_DATA);
-@@ -751,7 +755,7 @@ static int affs_write_end_ofs(struct fil
- 		prev_bh = bh;
- 		bh = affs_bread_ino(inode, bidx, 1);
- 		if (IS_ERR(bh))
--			goto out;
-+			goto err_bh;
- 		tmp = min(bsize, to - from);
- 		BUG_ON(tmp > bsize);
- 		memcpy(AFFS_DATA(bh), data + from, tmp);
-@@ -790,12 +794,13 @@ done:
- 	if (tmp > inode->i_size)
- 		inode->i_size = AFFS_I(inode)->mmu_private = tmp;
  
-+err_first_bh:
- 	unlock_page(page);
- 	page_cache_release(page);
- 
- 	return written;
- 
--out:
-+err_bh:
- 	bh = prev_bh;
- 	if (!written)
- 		written = PTR_ERR(bh);
-_
-
-Patches currently in -mm which might be from tsgatesv@gmail.com are
-
-origin.patch
-linux-next.patch
-
+-	if (!rec)
+-		hfs_brec_update_parent(fd);
