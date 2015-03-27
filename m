@@ -1,175 +1,75 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-numa-group-related-processes-based-on-vma-flags-instead-of-page-table-flags.patch removed from -mm tree
-Date: Fri, 27 Mar 2015 11:17:06 -0700
-Message-ID: <55159ea2.wdV1nPrIRoBs/7ir%akpm@linux-foundation.org>
+ mm-numa-preserve-pte-write-permissions-across-a-numa-hinting-fault.patch
+ removed from -mm tree
+Date: Fri, 27 Mar 2015 11:17:08 -0700
+Message-ID: <55159ea4.ZL/TRZv22Nk6SO8j%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47737 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47745 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753241AbbC0SRH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Mar 2015 14:17:07 -0400
+	with ESMTP id S1753237AbbC0SRJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Mar 2015 14:17:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mgorman@suse.de, aneesh.kumar@linux.vnet.ibm.com, david@fromorbit.com, mingo@kernel.org, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: numa: group related processes based on VMA flags instead of page table flags
+     Subject: mm: numa: preserve PTE write permissions across a NUMA hinting fault
 has been removed from the -mm tree.  Its filename was
-     mm-numa-group-related-processes-based-on-vma-flags-instead-of-page-table-flags.patch
+     mm-numa-preserve-pte-write-permissions-across-a-numa-hinting-fault.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: numa: group related processes based on VMA flags instead of page table flags
+Subject: mm: numa: preserve PTE write permissions across a NUMA hinting fault
 
-These are three follow-on patches based on the xfsrepair workload Dave
-Chinner reported was problematic in 4.0-rc1 due to changes in page table
-management -- https://lkml.org/lkml/2015/3/1/226.
-
-Much of the problem was reduced by commit 53da3bc2ba9e ("mm: fix up numa
-read-only thread grouping logic") and commit ba68bc0115eb ("mm: thp:
-Return the correct value for change_huge_pmd").  It was known that the
-performance in 3.19 was still better even if is far less safe.  This
-series aims to restore the performance without compromising on safety.
-
-For the test of this mail, I'm comparing 3.19 against 4.0-rc4 and the
-three patches applied on top
+Protecting a PTE to trap a NUMA hinting fault clears the writable bit and
+further faults are needed after trapping a NUMA hinting fault to set the
+writable bit again.  This patch preserves the writable bit when trapping
+NUMA hinting faults.  The impact is obvious from the number of minor
+faults trapped during the basis balancing benchmark and the system CPU
+usage;
 
 autonumabench
-                                              3.19.0             4.0.0-rc4             4.0.0-rc4             4.0.0-rc4             4.0.0-rc4
-                                             vanilla               vanilla          vmwrite-v5r8         preserve-v5r8         slowscan-v5r8
-Time System-NUMA01                  124.00 (  0.00%)      161.86 (-30.53%)      107.13 ( 13.60%)      103.13 ( 16.83%)      145.01 (-16.94%)
-Time System-NUMA01_THEADLOCAL       115.54 (  0.00%)      107.64 (  6.84%)      131.87 (-14.13%)       83.30 ( 27.90%)       92.35 ( 20.07%)
-Time System-NUMA02                    9.35 (  0.00%)       10.44 (-11.66%)        8.95 (  4.28%)       10.72 (-14.65%)        8.16 ( 12.73%)
-Time System-NUMA02_SMT                3.87 (  0.00%)        4.63 (-19.64%)        4.57 (-18.09%)        3.99 ( -3.10%)        3.36 ( 13.18%)
-Time Elapsed-NUMA01                 570.06 (  0.00%)      567.82 (  0.39%)      515.78 (  9.52%)      517.26 (  9.26%)      543.80 (  4.61%)
-Time Elapsed-NUMA01_THEADLOCAL      393.69 (  0.00%)      384.83 (  2.25%)      384.10 (  2.44%)      384.31 (  2.38%)      380.73 (  3.29%)
-Time Elapsed-NUMA02                  49.09 (  0.00%)       49.33 ( -0.49%)       48.86 (  0.47%)       48.78 (  0.63%)       50.94 ( -3.77%)
-Time Elapsed-NUMA02_SMT              47.51 (  0.00%)       47.15 (  0.76%)       47.98 ( -0.99%)       48.12 ( -1.28%)       49.56 ( -4.31%)
+                                           4.0.0-rc4             4.0.0-rc4
+                                            baseline              preserve
+Time System-NUMA01                  107.13 (  0.00%)      103.13 (  3.73%)
+Time System-NUMA01_THEADLOCAL       131.87 (  0.00%)       83.30 ( 36.83%)
+Time System-NUMA02                    8.95 (  0.00%)       10.72 (-19.78%)
+Time System-NUMA02_SMT                4.57 (  0.00%)        3.99 ( 12.69%)
+Time Elapsed-NUMA01                 515.78 (  0.00%)      517.26 ( -0.29%)
+Time Elapsed-NUMA01_THEADLOCAL      384.10 (  0.00%)      384.31 ( -0.05%)
+Time Elapsed-NUMA02                  48.86 (  0.00%)       48.78 (  0.16%)
+Time Elapsed-NUMA02_SMT              47.98 (  0.00%)       48.12 ( -0.29%)
 
-              3.19.0   4.0.0-rc4   4.0.0-rc4   4.0.0-rc4   4.0.0-rc4
-             vanilla     vanillavmwrite-v5r8preserve-v5r8slowscan-v5r8
-User        46334.60    46391.94    44383.95    43971.89    44372.12
-System        252.84      284.66      252.61      201.24      249.00
-Elapsed      1062.14     1050.96      998.68     1000.94     1026.78
+             4.0.0-rc4   4.0.0-rc4
+              baseline    preserve
+User          44383.95    43971.89
+System          252.61      201.24
+Elapsed         998.68     1000.94
 
-Overall the system CPU usage is comparable and the test is naturally a bit
-variable.  The slowing of the scanner hurts numa01 but on this machine it
-is an adverse workload and patches that dramatically help it often hurt
-absolutely everything else.
+Minor Faults   2597249     1981230
+Major Faults       365         364
 
-Due to patch 2, the fault activity is interesting
+There is a similar drop in system CPU usage using Dave Chinner's xfsrepair
+workload
 
-                                3.19.0   4.0.0-rc4   4.0.0-rc4   4.0.0-rc4   4.0.0-rc4
-                               vanilla     vanillavmwrite-v5r8preserve-v5r8slowscan-v5r8
-Minor Faults                   2097811     2656646     2597249     1981230     1636841
-Major Faults                       362         450         365         364         365
+                                    4.0.0-rc4             4.0.0-rc4
+                                     baseline              preserve
+Amean    real-xfsrepair      454.14 (  0.00%)      442.36 (  2.60%)
+Amean    syst-xfsrepair      277.20 (  0.00%)      204.68 ( 26.16%)
 
-Note the impact preserving the write bit across protection updates and
-fault reduces faults.
-
-NUMA alloc hit                 1229008     1217015     1191660     1178322     1199681
-NUMA alloc miss                      0           0           0           0           0
-NUMA interleave hit                  0           0           0           0           0
-NUMA alloc local               1228514     1216317     1190871     1177448     1199021
-NUMA base PTE updates        245706197   240041607   238195516   244704842   115012800
-NUMA huge PMD updates           479530      468448      464868      477573      224487
-NUMA page range updates      491225557   479886983   476207932   489222218   229950144
-NUMA hint faults                659753      656503      641678      656926      294842
-NUMA hint local faults          381604      373963      360478      337585      186249
-NUMA hint local percent             57          56          56          51          63
-NUMA pages migrated            5412140     6374899     6266530     5277468     5755096
-AutoNUMA cost                    5121%       5083%       4994%       5097%       2388%
-
-Here the impact of slowing the PTE scanner on migratrion failures is
-obvious as "NUMA base PTE updates" and "NUMA huge PMD updates" are
-massively reduced even though the headline performance is very similar.
-
-As xfsrepair was the reported workload here is the impact of the series on
-it.
-
-xfsrepair
-                                       3.19.0             4.0.0-rc4             4.0.0-rc4             4.0.0-rc4             4.0.0-rc4
-                                      vanilla               vanilla          vmwrite-v5r8         preserve-v5r8         slowscan-v5r8
-Min      real-fsmark        1183.29 (  0.00%)     1165.73 (  1.48%)     1152.78 (  2.58%)     1153.64 (  2.51%)     1177.62 (  0.48%)
-Min      syst-fsmark        4107.85 (  0.00%)     4027.75 (  1.95%)     3986.74 (  2.95%)     3979.16 (  3.13%)     4048.76 (  1.44%)
-Min      real-xfsrepair      441.51 (  0.00%)      463.96 ( -5.08%)      449.50 ( -1.81%)      440.08 (  0.32%)      439.87 (  0.37%)
-Min      syst-xfsrepair      195.76 (  0.00%)      278.47 (-42.25%)      262.34 (-34.01%)      203.70 ( -4.06%)      143.64 ( 26.62%)
-Amean    real-fsmark        1188.30 (  0.00%)     1177.34 (  0.92%)     1157.97 (  2.55%)     1158.21 (  2.53%)     1182.22 (  0.51%)
-Amean    syst-fsmark        4111.37 (  0.00%)     4055.70 (  1.35%)     3987.19 (  3.02%)     3998.72 (  2.74%)     4061.69 (  1.21%)
-Amean    real-xfsrepair      450.88 (  0.00%)      468.32 ( -3.87%)      454.14 ( -0.72%)      442.36 (  1.89%)      440.59 (  2.28%)
-Amean    syst-xfsrepair      199.66 (  0.00%)      290.60 (-45.55%)      277.20 (-38.84%)      204.68 ( -2.51%)      150.55 ( 24.60%)
-Stddev   real-fsmark           4.12 (  0.00%)       10.82 (-162.29%)        4.14 ( -0.28%)        5.98 (-45.05%)        4.60 (-11.53%)
-Stddev   syst-fsmark           2.63 (  0.00%)       20.32 (-671.82%)        0.37 ( 85.89%)       16.47 (-525.59%)       15.05 (-471.79%)
-Stddev   real-xfsrepair        6.87 (  0.00%)        4.55 ( 33.75%)        3.46 ( 49.58%)        1.78 ( 74.12%)        0.52 ( 92.50%)
-Stddev   syst-xfsrepair        3.02 (  0.00%)       10.30 (-241.37%)       13.17 (-336.37%)        0.71 ( 76.63%)        5.00 (-65.61%)
-CoeffVar real-fsmark           0.35 (  0.00%)        0.92 (-164.73%)        0.36 ( -2.91%)        0.52 (-48.82%)        0.39 (-12.10%)
-CoeffVar syst-fsmark           0.06 (  0.00%)        0.50 (-682.41%)        0.01 ( 85.45%)        0.41 (-543.22%)        0.37 (-478.78%)
-CoeffVar real-xfsrepair        1.52 (  0.00%)        0.97 ( 36.21%)        0.76 ( 49.94%)        0.40 ( 73.62%)        0.12 ( 92.33%)
-CoeffVar syst-xfsrepair        1.51 (  0.00%)        3.54 (-134.54%)        4.75 (-214.31%)        0.34 ( 77.20%)        3.32 (-119.63%)
-Max      real-fsmark        1193.39 (  0.00%)     1191.77 (  0.14%)     1162.90 (  2.55%)     1166.66 (  2.24%)     1188.50 (  0.41%)
-Max      syst-fsmark        4114.18 (  0.00%)     4075.45 (  0.94%)     3987.65 (  3.08%)     4019.45 (  2.30%)     4082.80 (  0.76%)
-Max      real-xfsrepair      457.80 (  0.00%)      474.60 ( -3.67%)      457.82 ( -0.00%)      444.42 (  2.92%)      441.03 (  3.66%)
-Max      syst-xfsrepair      203.11 (  0.00%)      303.65 (-49.50%)      294.35 (-44.92%)      205.33 ( -1.09%)      155.28 ( 23.55%)
-
-The really relevant lines as syst-xfsrepair which is the system CPU usage
-when running xfsrepair.  Note that on my machine the overhead was 45%
-higher on 4.0-rc4 which may be part of what Dave is seeing.  Once we
-preserve the write bit across faults, it's only 2.51% higher on average. 
-With the full series applied, system CPU usage is 24.6% lower on average.
-
-Again, the impact of preserving the write bit on minor faults is obvious
-and the impact of slowing scanning after migration failures is obvious on
-the PTE updates.  Note also that the number of pages migrated is much
-reduced even though the headline performance is comparable.
-
-                                3.19.0   4.0.0-rc4   4.0.0-rc4   4.0.0-rc4   4.0.0-rc4
-                               vanilla     vanillavmwrite-v5r8preserve-v5r8slowscan-v5r8
-Minor Faults                 153466827   254507978   249163829   153501373   105737890
-Major Faults                       610         702         690         649         724
-NUMA base PTE updates        217735049   210756527   217729596   216937111   144344993
-NUMA huge PMD updates           129294       85044      106921      127246       79887
-NUMA pages migrated           21938995    29705270    28594162    22687324    16258075
-
-                      3.19.0   4.0.0-rc4   4.0.0-rc4   4.0.0-rc4   4.0.0-rc4
-                     vanilla     vanillavmwrite-v5r8preserve-v5r8slowscan-v5r8
-Mean sdb-avgqusz       13.47        2.54        2.55        2.47        2.49
-Mean sdb-avgrqsz      202.32      140.22      139.50      139.02      138.12
-Mean sdb-await         25.92        5.09        5.33        5.02        5.22
-Mean sdb-r_await        4.71        0.19        0.83        0.51        0.11
-Mean sdb-w_await      104.13        5.21        5.38        5.05        5.32
-Mean sdb-svctm          0.59        0.13        0.14        0.13        0.14
-Mean sdb-rrqm           0.16        0.00        0.00        0.00        0.00
-Mean sdb-wrqm           3.59     1799.43     1826.84     1812.21     1785.67
-Max  sdb-avgqusz      111.06       12.13       14.05       11.66       15.60
-Max  sdb-avgrqsz      255.60      190.34      190.01      187.33      191.78
-Max  sdb-await        168.24       39.28       49.22       44.64       65.62
-Max  sdb-r_await      660.00       52.00      280.00       76.00       12.00
-Max  sdb-w_await     7804.00       39.28       49.22       44.64       65.62
-Max  sdb-svctm          4.00        2.82        2.86        1.98        2.84
-Max  sdb-rrqm           8.30        0.00        0.00        0.00        0.00
-Max  sdb-wrqm          34.20     5372.80     5278.60     5386.60     5546.15
-
-FWIW, I also checked SPECjbb in different configurations but it's similar
-observations -- minor faults lower, PTE update activity lower and
-performance is roughly comparable against 3.19.
-
-
-This patch (of 3):
-
-Threads that share writable data within pages are grouped together as
-related tasks.  This decision is based on whether the PTE is marked dirty
-which is subject to timing races between the PTE scanner update and when
-the application writes the page.  If the page is file-backed, then
-background flushes and sync also affect placement.  This is unpredictable
-behaviour which is impossible to reason about so this patch makes grouping
-decisions based on the VMA flags.
+The patch looks hacky but the alternatives looked worse.  The tidest was
+to rewalk the page tables after a hinting fault but it was more complex
+than this approach and the performance was worse.  It's not generally safe
+to just mark the page writable during the fault if it's a write fault as
+it may have been read-only for COW so that approach was discarded.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Reported-by: Dave Chinner <david@fromorbit.com>
@@ -180,64 +80,106 @@ Cc: Aneesh Kumar <aneesh.kumar@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   13 ++-----------
- mm/memory.c      |   19 +++++++++++--------
- 2 files changed, 13 insertions(+), 19 deletions(-)
+ mm/huge_memory.c |    9 ++++++++-
+ mm/memory.c      |    8 +++-----
+ mm/mprotect.c    |    3 +++
+ 3 files changed, 14 insertions(+), 6 deletions(-)
 
-diff -puN mm/huge_memory.c~mm-numa-group-related-processes-based-on-vma-flags-instead-of-page-table-flags mm/huge_memory.c
---- a/mm/huge_memory.c~mm-numa-group-related-processes-based-on-vma-flags-instead-of-page-table-flags
+diff -puN mm/huge_memory.c~mm-numa-preserve-pte-write-permissions-across-a-numa-hinting-fault mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-numa-preserve-pte-write-permissions-across-a-numa-hinting-fault
 +++ a/mm/huge_memory.c
-@@ -1291,17 +1291,8 @@ int do_huge_pmd_numa_page(struct mm_stru
- 		flags |= TNF_FAULT_LOCAL;
+@@ -1260,6 +1260,7 @@ int do_huge_pmd_numa_page(struct mm_stru
+ 	int target_nid, last_cpupid = -1;
+ 	bool page_locked;
+ 	bool migrated = false;
++	bool was_writable;
+ 	int flags = 0;
+ 
+ 	/* A PROT_NONE fault should not end up here */
+@@ -1354,7 +1355,10 @@ int do_huge_pmd_numa_page(struct mm_stru
+ 	goto out;
+ clear_pmdnuma:
+ 	BUG_ON(!PageLocked(page));
++	was_writable = pmd_write(pmd);
+ 	pmd = pmd_modify(pmd, vma->vm_page_prot);
++	if (was_writable)
++		pmd = pmd_mkwrite(pmd);
+ 	set_pmd_at(mm, haddr, pmdp, pmd);
+ 	update_mmu_cache_pmd(vma, addr, pmdp);
+ 	unlock_page(page);
+@@ -1478,6 +1482,7 @@ int change_huge_pmd(struct vm_area_struc
+ 
+ 	if (__pmd_trans_huge_lock(pmd, vma, &ptl) == 1) {
+ 		pmd_t entry;
++		bool preserve_write = prot_numa && pmd_write(*pmd);
+ 		ret = 1;
+ 
+ 		/*
+@@ -1493,9 +1498,11 @@ int change_huge_pmd(struct vm_area_struc
+ 		if (!prot_numa || !pmd_protnone(*pmd)) {
+ 			entry = pmdp_get_and_clear_notify(mm, addr, pmd);
+ 			entry = pmd_modify(entry, newprot);
++			if (preserve_write)
++				entry = pmd_mkwrite(entry);
+ 			ret = HPAGE_PMD_NR;
+ 			set_pmd_at(mm, addr, pmd, entry);
+-			BUG_ON(pmd_write(entry));
++			BUG_ON(!preserve_write && pmd_write(entry));
+ 		}
+ 		spin_unlock(ptl);
  	}
- 
--	/*
--	 * Avoid grouping on DSO/COW pages in specific and RO pages
--	 * in general, RO pages shouldn't hurt as much anyway since
--	 * they can be in shared cache state.
--	 *
--	 * FIXME! This checks "pmd_dirty()" as an approximation of
--	 * "is this a read-only page", since checking "pmd_write()"
--	 * is even more broken. We haven't actually turned this into
--	 * a writable page, so pmd_write() will always be false.
--	 */
--	if (!pmd_dirty(pmd))
-+	/* See similar comment in do_numa_page for explanation */
-+	if (!(vma->vm_flags & VM_WRITE))
- 		flags |= TNF_NO_GROUP;
- 
- 	/*
-diff -puN mm/memory.c~mm-numa-group-related-processes-based-on-vma-flags-instead-of-page-table-flags mm/memory.c
---- a/mm/memory.c~mm-numa-group-related-processes-based-on-vma-flags-instead-of-page-table-flags
+diff -puN mm/memory.c~mm-numa-preserve-pte-write-permissions-across-a-numa-hinting-fault mm/memory.c
+--- a/mm/memory.c~mm-numa-preserve-pte-write-permissions-across-a-numa-hinting-fault
 +++ a/mm/memory.c
-@@ -3069,16 +3069,19 @@ static int do_numa_page(struct mm_struct
- 	}
+@@ -3035,6 +3035,7 @@ static int do_numa_page(struct mm_struct
+ 	int last_cpupid;
+ 	int target_nid;
+ 	bool migrated = false;
++	bool was_writable = pte_write(pte);
+ 	int flags = 0;
  
- 	/*
--	 * Avoid grouping on DSO/COW pages in specific and RO pages
--	 * in general, RO pages shouldn't hurt as much anyway since
--	 * they can be in shared cache state.
-+	 * Avoid grouping on RO pages in general. RO pages shouldn't hurt as
-+	 * much anyway since they can be in shared cache state. This misses
-+	 * the case where a mapping is writable but the process never writes
-+	 * to it but pte_write gets cleared during protection updates and
-+	 * pte_dirty has unpredictable behaviour between PTE scan updates,
-+	 * background writeback, dirty balancing and application behaviour.
- 	 *
--	 * FIXME! This checks "pmd_dirty()" as an approximation of
--	 * "is this a read-only page", since checking "pmd_write()"
--	 * is even more broken. We haven't actually turned this into
--	 * a writable page, so pmd_write() will always be false.
-+	 * TODO: Note that the ideal here would be to avoid a situation where a
-+	 * NUMA fault is taken immediately followed by a write fault in
-+	 * some cases which would have lower overhead overall but would be
-+	 * invasive as the fault paths would need to be unified.
+ 	/* A PROT_NONE fault should not end up here */
+@@ -3059,6 +3060,8 @@ static int do_numa_page(struct mm_struct
+ 	/* Make it present again */
+ 	pte = pte_modify(pte, vma->vm_page_prot);
+ 	pte = pte_mkyoung(pte);
++	if (was_writable)
++		pte = pte_mkwrite(pte);
+ 	set_pte_at(mm, addr, ptep, pte);
+ 	update_mmu_cache(vma, addr, ptep);
+ 
+@@ -3075,11 +3078,6 @@ static int do_numa_page(struct mm_struct
+ 	 * to it but pte_write gets cleared during protection updates and
+ 	 * pte_dirty has unpredictable behaviour between PTE scan updates,
+ 	 * background writeback, dirty balancing and application behaviour.
+-	 *
+-	 * TODO: Note that the ideal here would be to avoid a situation where a
+-	 * NUMA fault is taken immediately followed by a write fault in
+-	 * some cases which would have lower overhead overall but would be
+-	 * invasive as the fault paths would need to be unified.
  	 */
--	if (!pte_dirty(pte))
-+	if (!(vma->vm_flags & VM_WRITE))
+ 	if (!(vma->vm_flags & VM_WRITE))
  		flags |= TNF_NO_GROUP;
+diff -puN mm/mprotect.c~mm-numa-preserve-pte-write-permissions-across-a-numa-hinting-fault mm/mprotect.c
+--- a/mm/mprotect.c~mm-numa-preserve-pte-write-permissions-across-a-numa-hinting-fault
++++ a/mm/mprotect.c
+@@ -75,6 +75,7 @@ static unsigned long change_pte_range(st
+ 		oldpte = *pte;
+ 		if (pte_present(oldpte)) {
+ 			pte_t ptent;
++			bool preserve_write = prot_numa && pte_write(oldpte);
  
- 	/*
+ 			/*
+ 			 * Avoid trapping faults against the zero or KSM
+@@ -94,6 +95,8 @@ static unsigned long change_pte_range(st
+ 
+ 			ptent = ptep_modify_prot_start(mm, addr, pte);
+ 			ptent = pte_modify(ptent, newprot);
++			if (preserve_write)
++				ptent = pte_mkwrite(ptent);
+ 
+ 			/* Avoid taking write faults for known dirty pages */
+ 			if (dirty_accountable && pte_dirty(ptent) &&
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
