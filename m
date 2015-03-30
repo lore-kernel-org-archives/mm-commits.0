@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-reclaimable-pages.patch added to -mm tree
-Date: Fri, 27 Mar 2015 15:33:34 -0700
-Message-ID: <5515dabe.Q7Ek8eYHpLTwBlnB%akpm@linux-foundation.org>
+Subject: + mm-move-lazy-free-pages-to-inactive-list-fix.patch added to -mm tree
+Date: Mon, 30 Mar 2015 14:19:32 -0700
+Message-ID: <5519bde4.tkF5Bq4yFj/s3ek6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49541 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56091 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751850AbbC0Wdf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 27 Mar 2015 18:33:35 -0400
+	with ESMTP id S1753386AbbC3VTd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Mar 2015 17:19:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nacc@linux.vnet.ibm.com, anton@samba.org, dave.hansen@intel.com, ddstreet@ieee.org, hannes@cmpxchg.org, mgorman@suse.de, mhocko@suse.cz, riel@redhat.com, mm-commits@vger.kernel.org
+To: minchan@kernel.org, Yalin.Wang@sonymobile.com, hannes@cmpxchg.org, mgorman@suse.de, mhocko@suse.cz, riel@redhat.com, shli@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmscan: do not throttle based on pfmemalloc reserves if node has no reclaimable pages
+     Subject: mm: document deactivate_page
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-reclaimable-pages.patch
+     mm-move-lazy-free-pages-to-inactive-list-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-reclaimable-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-move-lazy-free-pages-to-inactive-list-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-reclaimable-pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-move-lazy-free-pages-to-inactive-list-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,102 +38,99 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Nishanth Aravamudan <nacc@linux.vnet.ibm.com>
-Subject: mm: vmscan: do not throttle based on pfmemalloc reserves if node has no reclaimable pages
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm: document deactivate_page
 
-Based upon 675becce15 ("mm: vmscan: do not throttle based on pfmemalloc
-reserves if node has no ZONE_NORMAL") from Mel.
+This patch adds function description for deactivate_page.
 
-We have a system with the following topology:
-
-# numactl -H
-available: 3 nodes (0,2-3)
-node 0 cpus: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22
-23 24 25 26 27 28 29 30 31
-node 0 size: 28273 MB
-node 0 free: 27323 MB
-node 2 cpus:
-node 2 size: 16384 MB
-node 2 free: 0 MB
-node 3 cpus: 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47
-node 3 size: 30533 MB
-node 3 free: 13273 MB
-node distances:
-node   0   2   3
-  0:  10  20  20
-  2:  20  10  20
-  3:  20  20  10
-
-Node 2 has no free memory, because:
-# cat /sys/devices/system/node/node2/hugepages/hugepages-16777216kB/nr_hugepages
-1
-
-This leads to the following zoneinfo:
-
-Node 2, zone      DMA
-  pages free     0
-        min      1840
-        low      2300
-        high     2760
-        scanned  0
-        spanned  262144
-        present  262144
-        managed  262144
-...
-  all_unreclaimable: 1
-
-If one then attempts to allocate some normal 16M hugepages via
-
-echo 37 > /proc/sys/vm/nr_hugepages
-
-The echo never returns and kswapd2 consumes CPU cycles.
-
-This is because throttle_direct_reclaim ends up calling
-wait_event(pfmemalloc_wait, pfmemalloc_watermark_ok...). 
-pfmemalloc_watermark_ok() in turn checks all zones on the node if there
-are any reserves, and if so, then indicates the watermarks are ok, by
-seeing if there are sufficient free pages.
-
-675becce15 added a condition already for memoryless nodes.  In this case,
-though, the node has memory, it is just all consumed (and not
-reclaimable).  Effectively, though, the result is the same on this call to
-pfmemalloc_watermark_ok() and thus seems like a reasonable additional
-condition.
-
-With this change, the afore-mentioned 16M hugepage allocation attempt
-succeeds and correctly round-robins between Nodes 1 and 3.
-
-Signed-off-by: Nishanth Aravamudan <nacc@linux.vnet.ibm.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Anton Blanchard <anton@samba.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Minchan Kim <minchan@kernel.org>
 Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mel Gorman <mgorman@suse.de>
 Cc: Rik van Riel <riel@redhat.com>
-Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Shaohua Li <shli@kernel.org>
+Cc: Wang, Yalin <Yalin.Wang@sonymobile.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/swap.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN mm/vmscan.c~mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-reclaimable-pages mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-reclaimable-pages
-+++ a/mm/vmscan.c
-@@ -2646,7 +2646,8 @@ static bool pfmemalloc_watermark_ok(pg_d
+diff -puN mm/swap.c~mm-move-lazy-free-pages-to-inactive-list-fix mm/swap.c
+--- a/mm/swap.c~mm-move-lazy-free-pages-to-inactive-list-fix
++++ a/mm/swap.c
+@@ -866,6 +866,13 @@ void deactivate_file_page(struct page *p
+ 	}
+ }
  
- 	for (i = 0; i <= ZONE_NORMAL; i++) {
- 		zone = &pgdat->node_zones[i];
--		if (!populated_zone(zone))
-+		if (!populated_zone(zone) ||
-+		    zone_reclaimable_pages(zone) == 0)
- 			continue;
- 
- 		pfmemalloc_reserve += min_wmark_pages(zone);
++/**
++ * deactivate_page - deactivate a page
++ * @page: page to deactivate
++ *
++ * This function moves @page to inactive list if @page was on active list and
++ * was not unevictable page to accelerate to reclaim @page.
++ */
+ void deactivate_page(struct page *page)
+ {
+ 	if (PageLRU(page) && PageActive(page) && !PageUnevictable(page)) {
 _
 
-Patches currently in -mm which might be from nacc@linux.vnet.ibm.com are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-reclaimable-pages.patch
+mm-change-deactivate_page-with-deactivate_file_page.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+mm-page_isolation-check-pfn-validity-before-access.patch
+x86-add-pmd_-for-thp.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp.patch
+sparc-add-pmd_-for-thp-fix.patch
+powerpc-add-pmd_-for-thp.patch
+arm-add-pmd_mkclean-for-thp.patch
+arm64-add-pmd_-for-thp.patch
+mm-support-madvisemadv_free.patch
+mm-support-madvisemadv_free-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-dont-split-thp-page-when-syscall-is-called.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-2.patch
+mm-free-swp_entry-in-madvise_free.patch
+mm-move-lazy-free-pages-to-inactive-list.patch
+mm-move-lazy-free-pages-to-inactive-list-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+zram-cosmetic-zram_attr_ro-code-formatting-tweak.patch
+zram-use-idr-instead-of-zram_devices-array.patch
+zram-factor-out-device-reset-from-reset_store.patch
+zram-reorganize-code-layout.patch
+zram-add-dynamic-device-add-remove-functionality.patch
+zram-add-dynamic-device-add-remove-functionality-fix.patch
+zram-remove-max_num_devices-limitation.patch
+zram-report-every-added-and-removed-device.patch
+zram-trivial-correct-flag-operations-comment.patch
+zram-return-zram-device_id-value-from-zram_add.patch
+zram-introduce-automatic-device_id-generation.patch
+zram-introduce-automatic-device_id-generation-fix.patch
+zram-do-not-let-user-enforce-new-device-dev_id.patch
+zsmalloc-decouple-handle-and-object.patch
+zsmalloc-factor-out-obj_.patch
+zsmalloc-support-compaction.patch
+zsmalloc-support-compaction-fix.patch
+zsmalloc-adjust-zs_almost_full.patch
+zram-support-compaction.patch
+zsmalloc-record-handle-in-page-private-for-huge-object.patch
+zsmalloc-add-fullness-into-stat.patch
+zsmalloc-zsmalloc-documentation.patch
+mm-zsmallocc-fix-comment-for-get_pages_per_zspage.patch
+zram-remove-num_migrated-device-attr.patch
+zram-move-compact_store-to-sysfs-functions-area.patch
+zram-use-generic-start-end-io-accounting.patch
+zram-describe-device-attrs-in-documentation.patch
+zram-export-new-io_stat-sysfs-attrs.patch
+zram-export-new-mm_stat-sysfs-attrs.patch
+zram-deprecate-zram-attrs-sysfs-nodes.patch
+zsmalloc-remove-synchronize_rcu-from-zs_compact.patch
+zsmalloc-micro-optimize-zs_object_copy.patch
+zsmalloc-remove-unnecessary-insertion-removal-of-zspage-in-compaction.patch
+zsmalloc-fix-fatal-corruption-due-to-wrong-size-class-selection.patch
+zsmalloc-remove-extra-cond_resched-in-__zs_compact.patch
 linux-next.patch
 
