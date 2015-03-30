@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + befs-replace-typedef-befs_mount_options-by-structure.patch
- added to -mm tree
-Date: Mon, 30 Mar 2015 14:47:46 -0700
-Message-ID: <5519c482.NRGha4Ne6HDIA2yS%akpm@linux-foundation.org>
+Subject: + mm-mmapc-use-while-instead-of-ifgoto-fix.patch added to -mm
+ tree
+Date: Mon, 30 Mar 2015 14:58:33 -0700
+Message-ID: <5519c709.KdgZH2oFUQvs0jNh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56299 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56471 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752890AbbC3Vrr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Mar 2015 17:47:47 -0400
+	with ESMTP id S932169AbbC3V6e (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Mar 2015 17:58:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, gorcunov@openvz.org, hughd@google.com, kirill.shutemov@linux.intel.com, klamm@yandex-team.ru, linux@rasmusvillemoes.dk, sasha.levin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: befs: replace typedef befs_mount_options by structure
+     Subject: mm-mmapc-use-while-instead-of-ifgoto-fix
 has been added to the -mm tree.  Its filename is
-     befs-replace-typedef-befs_mount_options-by-structure.patch
+     mm-mmapc-use-while-instead-of-ifgoto-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/befs-replace-typedef-befs_mount_options-by-structure.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mmapc-use-while-instead-of-ifgoto-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/befs-replace-typedef-befs_mount_options-by-structure.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mmapc-use-while-instead-of-ifgoto-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,91 +39,109 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: befs: replace typedef befs_mount_options by structure
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-mmapc-use-while-instead-of-ifgoto-fix
 
-See Documentation/CodingStyle
+fix 80-col overflows
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Roman Gushchin <klamm@yandex-team.ru>
+Cc: Sasha Levin <sasha.levin@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/befs/befs.h     |    6 +++---
- fs/befs/linuxvfs.c |    4 ++--
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ mm/mmap.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN fs/befs/befs.h~befs-replace-typedef-befs_mount_options-by-structure fs/befs/befs.h
---- a/fs/befs/befs.h~befs-replace-typedef-befs_mount_options-by-structure
-+++ a/fs/befs/befs.h
-@@ -19,14 +19,14 @@ typedef u64 befs_blocknr_t;
-  * BeFS in memory structures
-  */
+diff -puN mm/mmap.c~mm-mmapc-use-while-instead-of-ifgoto-fix mm/mmap.c
+--- a/mm/mmap.c~mm-mmapc-use-while-instead-of-ifgoto-fix
++++ a/mm/mmap.c
+@@ -1551,7 +1551,8 @@ unsigned long mmap_region(struct file *f
  
--typedef struct befs_mount_options {
-+struct befs_mount_options {
- 	kgid_t gid;
- 	kuid_t uid;
- 	int use_gid;
- 	int use_uid;
- 	int debug;
- 	char *iocharset;
--} befs_mount_options;
-+};
+ 	/* Clear old maps */
+ 	error = -ENOMEM;
+-	while (find_vma_links(mm, addr, addr + len, &prev, &rb_link, &rb_parent)) {
++	while (find_vma_links(mm, addr, addr + len, &prev, &rb_link,
++			      &rb_parent)) {
+ 		if (do_munmap(mm, addr, len))
+ 			return -ENOMEM;
+ 	}
+@@ -1569,7 +1570,8 @@ unsigned long mmap_region(struct file *f
+ 	/*
+ 	 * Can we just expand an old mapping?
+ 	 */
+-	vma = vma_merge(mm, prev, addr, addr + len, vm_flags, NULL, file, pgoff, NULL);
++	vma = vma_merge(mm, prev, addr, addr + len, vm_flags, NULL, file, pgoff,
++	                NULL);
+ 	if (vma)
+ 		goto out;
  
- typedef struct befs_sb_info {
- 	u32 magic1;
-@@ -52,7 +52,7 @@ typedef struct befs_sb_info {
- 	befs_inode_addr indices;
- 	u32 magic3;
- 
--	befs_mount_options mount_opts;
-+	struct befs_mount_options mount_opts;
- 	struct nls_table *nls;
- 
- } befs_sb_info;
-diff -puN fs/befs/linuxvfs.c~befs-replace-typedef-befs_mount_options-by-structure fs/befs/linuxvfs.c
---- a/fs/befs/linuxvfs.c~befs-replace-typedef-befs_mount_options-by-structure
-+++ a/fs/befs/linuxvfs.c
-@@ -51,7 +51,7 @@ static int befs_nls2utf(struct super_blo
- static void befs_put_super(struct super_block *);
- static int befs_remount(struct super_block *, int *, char *);
- static int befs_statfs(struct dentry *, struct kstatfs *);
--static int parse_options(char *, befs_mount_options *);
-+static int parse_options(char *, struct befs_mount_options *);
- 
- static const struct super_operations befs_sops = {
- 	.alloc_inode	= befs_alloc_inode,	/* allocate a new inode */
-@@ -669,7 +669,7 @@ static const match_table_t befs_tokens =
- };
- 
- static int
--parse_options(char *options, befs_mount_options * opts)
-+parse_options(char *options, struct befs_mount_options *opts)
- {
- 	char *p;
- 	substring_t args[MAX_OPT_ARGS];
+@@ -2737,7 +2739,8 @@ static unsigned long do_brk(unsigned lon
+ 	/*
+ 	 * Clear old maps.  this also does some error checking for us
+ 	 */
+-	while (find_vma_links(mm, addr, addr + len, &prev, &rb_link, &rb_parent)) {
++	while (find_vma_links(mm, addr, addr + len, &prev, &rb_link,
++			      &rb_parent)) {
+ 		if (do_munmap(mm, addr, len))
+ 			return -ENOMEM;
+ 	}
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-mm-vmalloc-fix-possible-exhaustion-of-vmalloc-space-caused-by-vm_map_ram-allocator.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+mm.patch
+mm-cma-release-trigger-checkpatch-fixes.patch
+mm-cma-allocation-trigger-fix.patch
+mm-compaction-enhance-compaction-finish-condition-fix.patch
+page_writeback-cleanup-mess-around-cancel_dirty_page-checkpatch-fixes.patch
+mm-hide-per-cpu-lists-in-output-of-show_mem-fix.patch
+mm-clarify-__gfp_nofail-deprecation-status-checkpatch-fixes.patch
+mm-change-vunmap-to-tear-down-huge-kva-mappings-fix.patch
+mm-mempool-do-not-allow-atomic-resizing-checkpatch-fixes.patch
+mm-memory-failurec-define-page-types-for-action_result-in-one-place.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
+mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp-fix.patch
 mm-vmalloc-occupy-newly-allocated-vmap-block-just-after-allocation.patch
-mm-vmalloc-get-rid-of-dirty-bitmap-inside-vmap_block-structure.patch
-befs-replace-typedef-befs_mount_options-by-structure.patch
-befs-replace-typedef-befs_sb_info-by-structure.patch
-befs-replace-typedef-befs_inode_info-by-structure.patch
-fs-hfsplus-move-xattr_name-allocation-in-hfsplus_getxattr.patch
-fs-hfsplus-move-xattr_name-allocation-in-hfsplus_setxattr.patch
-fs-hfsplus-atomically-set-inode-i_flags.patch
-fs-hfsplus-use-bool-instead-of-int-for-is_known_namespace-return-value.patch
-fs-hfsplus-replace-if-bug-by-bug_on.patch
-adfs-returning-correct-return-values.patch
-fs-affs-use-affs_mount-prefix-for-mount-options.patch
-fs-affs-affsh-add-mount-option-manipulation-macros.patch
-fs-affs-superc-use-affs_set_opt.patch
-fs-affs-use-affs_test_opt.patch
-affs-kstrdup-memory-handling.patch
+mm-mmapc-use-while-instead-of-ifgoto-fix.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+zram-add-dynamic-device-add-remove-functionality-fix.patch
+zram-introduce-automatic-device_id-generation-fix.patch
+zsmalloc-support-compaction-fix.patch
+kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes.patch
+lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix.patch
+lib-find__bit-reimplementation-fix.patch
+checkpatch-match-more-world-writable-permissions-fix.patch
+binfmt_misc-simplify-entry_status-fix.patch
+rtc-add-abracon-abx80x-driver-fix.patch
+rtc-driver-for-conexant-digicolor-cx92755-on-chip-rtc-fix.patch
+rtc-omap-add-external-32k-clock-feature-fix.patch
+fs-fat-remove-unnecessary-includes-fix.patch
+kernel-forkc-avoid-division-by-zero-fix.patch
+kernel-forkc-avoid-division-by-zero-fix-fix.patch
+doc-sysctl-kerneltxt-document-threads-max-fix.patch
+mm-rcu-protected-get_mm_exe_file-fix-2.patch
 affs-kstrdup-memory-handling-fix.patch
+kconfig-use-macros-which-are-already-defined-fix.patch
 linux-next.patch
+linux-next-rejects.patch
+lib-kconfig-fix-up-have_arch_bitreverse-help-text.patch
+oprofile-reduce-mmap_sem-hold-for-mm-exe_file-fix.patch
+tomoyo-reduce-mmap_sem-hold-for-mm-exe_file-checkpatch-fixes.patch
+documentation-spi-spidev_testc-fix-warning.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
