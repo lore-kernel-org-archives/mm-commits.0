@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch added to -mm tree
-Date: Mon, 30 Mar 2015 14:19:34 -0700
-Message-ID: <5519bde6.YDL02hafRLkgNGum%akpm@linux-foundation.org>
+Subject: + befs-replace-typedef-befs_inode_info-by-structure.patch added
+ to -mm tree
+Date: Mon, 30 Mar 2015 14:47:50 -0700
+Message-ID: <5519c486.ItQvybG9Itg5MDD/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56100 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56304 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753386AbbC3VTf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Mar 2015 17:19:35 -0400
+	with ESMTP id S1752811AbbC3Vrv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Mar 2015 17:47:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, Yalin.Wang@sonymobile.com, hannes@cmpxchg.org, mgorman@suse.de, mhocko@suse.cz, minchan@kernel.org, riel@redhat.com, shli@kernel.org, mm-commits@vger.kernel.org
+To: fabf@skynet.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-move-lazy-free-pages-to-inactive-list-fix-fix
+     Subject: befs: replace typedef befs_inode_info by structure
 has been added to the -mm tree.  Its filename is
-     mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+     befs-replace-typedef-befs_inode_info-by-structure.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/befs-replace-typedef-befs_inode_info-by-structure.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/befs-replace-typedef-befs_inode_info-by-structure.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,91 +39,103 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-move-lazy-free-pages-to-inactive-list-fix-fix
+From: Fabian Frederick <fabf@skynet.be>
+Subject: befs: replace typedef befs_inode_info by structure
 
-tweak comment
+See Documentation/CodingStyle
 
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Shaohua Li <shli@kernel.org>
-Cc: Wang, Yalin <Yalin.Wang@sonymobile.com>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ fs/befs/befs.h     |    7 +++----
+ fs/befs/linuxvfs.c |    7 ++++---
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN mm/swap.c~mm-move-lazy-free-pages-to-inactive-list-fix-fix mm/swap.c
---- a/mm/swap.c~mm-move-lazy-free-pages-to-inactive-list-fix-fix
-+++ a/mm/swap.c
-@@ -870,8 +870,9 @@ void deactivate_file_page(struct page *p
-  * deactivate_page - deactivate a page
-  * @page: page to deactivate
-  *
-- * This function moves @page to inactive list if @page was on active list and
-- * was not unevictable page to accelerate to reclaim @page.
-+ * deactivate_page() moves @page to the inactive list if @page was on the active
-+ * list and was not an unevictable page.  This is done to accelerate the reclaim
-+ * of @page.
-  */
- void deactivate_page(struct page *page)
+diff -puN fs/befs/befs.h~befs-replace-typedef-befs_inode_info-by-structure fs/befs/befs.h
+--- a/fs/befs/befs.h~befs-replace-typedef-befs_inode_info-by-structure
++++ a/fs/befs/befs.h
+@@ -56,7 +56,7 @@ struct befs_sb_info {
+ 	struct nls_table *nls;
+ };
+ 
+-typedef struct befs_inode_info {
++struct befs_inode_info {
+ 	u32 i_flags;
+ 	u32 i_type;
+ 
+@@ -70,8 +70,7 @@ typedef struct befs_inode_info {
+ 	} i_data;
+ 
+ 	struct inode vfs_inode;
+-
+-} befs_inode_info;
++};
+ 
+ enum befs_err {
+ 	BEFS_OK,
+@@ -110,7 +109,7 @@ BEFS_SB(const struct super_block *super)
+ 	return (struct befs_sb_info *) super->s_fs_info;
+ }
+ 
+-static inline befs_inode_info *
++static inline struct befs_inode_info *
+ BEFS_I(const struct inode *inode)
  {
+ 	return list_entry(inode, struct befs_inode_info, vfs_inode);
+diff -puN fs/befs/linuxvfs.c~befs-replace-typedef-befs_inode_info-by-structure fs/befs/linuxvfs.c
+--- a/fs/befs/linuxvfs.c~befs-replace-typedef-befs_inode_info-by-structure
++++ a/fs/befs/linuxvfs.c
+@@ -305,7 +305,7 @@ static struct inode *befs_iget(struct su
+ 	struct buffer_head *bh = NULL;
+ 	befs_inode *raw_inode = NULL;
+ 	struct befs_sb_info *befs_sb = BEFS_SB(sb);
+-	befs_inode_info *befs_ino = NULL;
++	struct befs_inode_info *befs_ino = NULL;
+ 	struct inode *inode;
+ 	long ret = -EIO;
+ 
+@@ -471,7 +471,7 @@ static void *
+ befs_follow_link(struct dentry *dentry, struct nameidata *nd)
+ {
+ 	struct super_block *sb = dentry->d_sb;
+-	befs_inode_info *befs_ino = BEFS_I(dentry->d_inode);
++	struct befs_inode_info *befs_ino = BEFS_I(dentry->d_inode);
+ 	befs_data_stream *data = &befs_ino->i_data.ds;
+ 	befs_off_t len = data->size;
+ 	char *link;
+@@ -501,7 +501,8 @@ befs_follow_link(struct dentry *dentry,
+ static void *
+ befs_fast_follow_link(struct dentry *dentry, struct nameidata *nd)
+ {
+-	befs_inode_info *befs_ino = BEFS_I(dentry->d_inode);
++	struct befs_inode_info *befs_ino = BEFS_I(dentry->d_inode);
++
+ 	nd_set_link(nd, befs_ino->i_data.symlink);
+ 	return NULL;
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from fabf@skynet.be are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-mm.patch
-mm-cma-release-trigger-checkpatch-fixes.patch
-mm-cma-allocation-trigger-fix.patch
-mm-compaction-enhance-compaction-finish-condition-fix.patch
-page_writeback-cleanup-mess-around-cancel_dirty_page-checkpatch-fixes.patch
-mm-hide-per-cpu-lists-in-output-of-show_mem-fix.patch
-mm-clarify-__gfp_nofail-deprecation-status-checkpatch-fixes.patch
-mm-change-vunmap-to-tear-down-huge-kva-mappings-fix.patch
-mm-mempool-do-not-allow-atomic-resizing-checkpatch-fixes.patch
-mm-memory-failurec-define-page-types-for-action_result-in-one-place.patch
-include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
-mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp-fix.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+mm-vmalloc-fix-possible-exhaustion-of-vmalloc-space-caused-by-vm_map_ram-allocator.patch
 mm-vmalloc-occupy-newly-allocated-vmap-block-just-after-allocation.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-zram-add-dynamic-device-add-remove-functionality-fix.patch
-zram-introduce-automatic-device_id-generation-fix.patch
-zsmalloc-support-compaction-fix.patch
-kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes.patch
-lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix.patch
-lib-find__bit-reimplementation-fix.patch
-checkpatch-match-more-world-writable-permissions-fix.patch
-binfmt_misc-simplify-entry_status-fix.patch
-rtc-add-abracon-abx80x-driver-fix.patch
-rtc-driver-for-conexant-digicolor-cx92755-on-chip-rtc-fix.patch
-rtc-omap-add-external-32k-clock-feature-fix.patch
-fs-fat-remove-unnecessary-includes-fix.patch
-kernel-forkc-avoid-division-by-zero-fix.patch
-kernel-forkc-avoid-division-by-zero-fix-fix.patch
-doc-sysctl-kerneltxt-document-threads-max-fix.patch
-mm-rcu-protected-get_mm_exe_file-fix-2.patch
+mm-vmalloc-get-rid-of-dirty-bitmap-inside-vmap_block-structure.patch
+befs-replace-typedef-befs_mount_options-by-structure.patch
+befs-replace-typedef-befs_sb_info-by-structure.patch
+befs-replace-typedef-befs_inode_info-by-structure.patch
+fs-hfsplus-move-xattr_name-allocation-in-hfsplus_getxattr.patch
+fs-hfsplus-move-xattr_name-allocation-in-hfsplus_setxattr.patch
+fs-hfsplus-atomically-set-inode-i_flags.patch
+fs-hfsplus-use-bool-instead-of-int-for-is_known_namespace-return-value.patch
+fs-hfsplus-replace-if-bug-by-bug_on.patch
+adfs-returning-correct-return-values.patch
+fs-affs-use-affs_mount-prefix-for-mount-options.patch
+fs-affs-affsh-add-mount-option-manipulation-macros.patch
+fs-affs-superc-use-affs_set_opt.patch
+fs-affs-use-affs_test_opt.patch
+affs-kstrdup-memory-handling.patch
 affs-kstrdup-memory-handling-fix.patch
-kconfig-use-macros-which-are-already-defined-fix.patch
 linux-next.patch
-linux-next-rejects.patch
-lib-kconfig-fix-up-have_arch_bitreverse-help-text.patch
-oprofile-reduce-mmap_sem-hold-for-mm-exe_file-fix.patch
-tomoyo-reduce-mmap_sem-hold-for-mm-exe_file-checkpatch-fixes.patch
-documentation-spi-spidev_testc-fix-warning.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
 
