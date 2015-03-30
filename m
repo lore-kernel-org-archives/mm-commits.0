@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- document-interaction-between-compaction-and-the-unevictable-lru.patch added to -mm tree
-Date: Mon, 30 Mar 2015 15:09:48 -0700
-Message-ID: <5519c9ac.qbWUxoscAWZN+qYf%akpm@linux-foundation.org>
+ doc-add-guest_nice-column-to-example-output-of-cat-proc-stat.patch added to -mm tree
+Date: Mon, 30 Mar 2015 15:21:52 -0700
+Message-ID: <5519cc80.qeEnCJu3hu1FeIoS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56509 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57116 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752290AbbC3WJt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Mar 2015 18:09:49 -0400
+	with ESMTP id S1753047AbbC3WVx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Mar 2015 18:21:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: emunson@akamai.com, cl@linux.com, mgorman@suse.de, mhocko@suse.cz, peterz@infradead.org, riel@redhat.com, rientjes@google.com, tglx@linutronix.de, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: tklauser@distanz.ch, corbet@lwn.net, ozaki.ryota@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Documentation/vm/unevictable-lru.txt: document interaction between compaction and the unevictable LRU
+     Subject: Documentation/filesystems/proc.txt: add guest_nice column to example output of `cat /proc/stat'
 has been added to the -mm tree.  Its filename is
-     document-interaction-between-compaction-and-the-unevictable-lru.patch
+     doc-add-guest_nice-column-to-example-output-of-cat-proc-stat.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/document-interaction-between-compaction-and-the-unevictable-lru.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/doc-add-guest_nice-column-to-example-output-of-cat-proc-stat.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/document-interaction-between-compaction-and-the-unevictable-lru.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/doc-add-guest_nice-column-to-example-output-of-cat-proc-stat.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,68 +39,42 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Eric B Munson <emunson@akamai.com>
-Subject: Documentation/vm/unevictable-lru.txt: document interaction between compaction and the unevictable LRU
+From: Tobias Klauser <tklauser@distanz.ch>
+Subject: Documentation/filesystems/proc.txt: add guest_nice column to example output of `cat /proc/stat'
 
-The memory compaction code uses the migration code to do most of the work
-in compaction.  However, the compaction code interacts with the
-unevictable LRU differently than migration code and this difference should
-be noted in the documentation.
+Commit ce0e7b28fb75cb00 ("sched, cpuacct: Fix niced guest time
+accounting") added the guest_nice column to /proc/stat, but the example
+output of `cat /proc/stat' in Documentation/filesystems/proc.txt wasn't
+updated accordingly.  Do so now.
 
-Signed-off-by: Eric B Munson <emunson@akamai.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Michal Hocko <mhocko@suse.cz>
+Signed-off-by: Tobias Klauser <tklauser@distanz.ch>
+Cc: Ryota Ozaki <ozaki.ryota@gmail.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/unevictable-lru.txt |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ Documentation/filesystems/proc.txt |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/vm/unevictable-lru.txt~document-interaction-between-compaction-and-the-unevictable-lru Documentation/vm/unevictable-lru.txt
---- a/Documentation/vm/unevictable-lru.txt~document-interaction-between-compaction-and-the-unevictable-lru
-+++ a/Documentation/vm/unevictable-lru.txt
-@@ -22,6 +22,7 @@ CONTENTS
-      - Filtering special vmas.
-      - munlock()/munlockall() system call handling.
-      - Migrating mlocked pages.
-+     - Compacting mlocked pages.
-      - mmap(MAP_LOCKED) system call handling.
-      - munmap()/exit()/exec() system call handling.
-      - try_to_unmap().
-@@ -450,6 +451,16 @@ list because of a race between munlock a
- putback_lru_page() function to add migrated pages back to the LRU.
+diff -puN Documentation/filesystems/proc.txt~doc-add-guest_nice-column-to-example-output-of-cat-proc-stat Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~doc-add-guest_nice-column-to-example-output-of-cat-proc-stat
++++ a/Documentation/filesystems/proc.txt
+@@ -1260,9 +1260,9 @@ Various pieces   of  information about
+ since the system first booted.  For a quick look, simply cat the file:
  
- 
-+COMPACTING MLOCKED PAGES
-+------------------------
-+
-+The unevictable LRU can be scanned for compactable regions and the default
-+behavior is to do so.  There is a sysctl to control this behavior (see
-+Documentation/sysctl/vm.txt).  Once scanning of the unevictable LRU is
-+enabled, the work of compaction is mostly handled by the page migration code
-+and the same work flow as described in MIGRATING MLOCKED PAGES will apply.
-+
-+
- mmap(MAP_LOCKED) SYSTEM CALL HANDLING
- -------------------------------------
- 
+   > cat /proc/stat
+-  cpu  2255 34 2290 22625563 6290 127 456 0 0
+-  cpu0 1132 34 1441 11311718 3675 127 438 0 0
+-  cpu1 1123 0 849 11313845 2614 0 18 0 0
++  cpu  2255 34 2290 22625563 6290 127 456 0 0 0
++  cpu0 1132 34 1441 11311718 3675 127 438 0 0 0
++  cpu1 1123 0 849 11313845 2614 0 18 0 0 0
+   intr 114930548 113199788 3 0 5 263 0 4 [... lots more numbers ...]
+   ctxt 1990473
+   btime 1062191376
 _
 
-Patches currently in -mm which might be from emunson@akamai.com are
+Patches currently in -mm which might be from tklauser@distanz.ch are
 
-allow-compaction-of-unevictable-pages.patch
-document-interaction-between-compaction-and-the-unevictable-lru.patch
-document-interaction-between-compaction-and-the-unevictable-lru-fix.patch
-mm-doc-cleanup-and-clarify-munmap-behavior-for-hugetlb-memory.patch
-mm-selftests-test-return-value-of-munmap-for-map_hugetlb-memory.patch
+doc-add-guest_nice-column-to-example-output-of-cat-proc-stat.patch
 
