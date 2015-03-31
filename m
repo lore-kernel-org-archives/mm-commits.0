@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
- added to -mm tree
-Date: Mon, 30 Mar 2015 22:28:57 -0700
-Message-ID: <551a3099.isiToRjcvIaCohAH%akpm@linux-foundation.org>
+Subject: + dmapool-declare-struct-device.patch added to -mm tree
+Date: Tue, 31 Mar 2015 13:08:55 -0700
+Message-ID: <551afed7.Ac25C1/jZuxIgc+U%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33665 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53732 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751931AbbCaF07 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Mar 2015 01:26:59 -0400
+	with ESMTP id S1752979AbbCaUI4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Mar 2015 16:08:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: broonie@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: lru_deactivate_fn should clear PG_referenced
+     Subject: include/linux/dmapool.h: declare struct device
 has been added to the -mm tree.  Its filename is
-     mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
+     dmapool-declare-struct-device.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/dmapool-declare-struct-device.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/dmapool-declare-struct-device.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,91 +38,42 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm: lru_deactivate_fn should clear PG_referenced
+From: Mark Brown <broonie@kernel.org>
+Subject: include/linux/dmapool.h: declare struct device
 
-deactivate_page aims for accelerate for reclaiming through
-moving pages from active list to inactive list so we should
-clear PG_referenced for the goal.
+dmapool uses struct device in function arguments but relies on an implicit
+inclusion to declare struct device causing warnings in some
+configurations:
 
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Suggested-by: Andrew Morton <akpm@linux-foundation.org>
+include/linux/dmapool.h:31:7: warning: 'struct device' declared inside parameter list
+
+Fix this by adding a struct device declaration to the file.
+
+Signed-off-by: Mark Brown <broonie@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/dmapool.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/swap.c~mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix mm/swap.c
---- a/mm/swap.c~mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix
-+++ a/mm/swap.c
-@@ -800,6 +800,7 @@ static void lru_deactivate_fn(struct pag
+diff -puN include/linux/dmapool.h~dmapool-declare-struct-device include/linux/dmapool.h
+--- a/include/linux/dmapool.h~dmapool-declare-struct-device
++++ a/include/linux/dmapool.h
+@@ -14,6 +14,8 @@
+ #include <asm/io.h>
+ #include <asm/scatterlist.h>
  
- 		del_page_from_lru_list(page, lruvec, lru + LRU_ACTIVE);
- 		ClearPageActive(page);
-+		ClearPageReferenced(page);
- 		add_page_to_lru_list(page, lruvec, lru);
++struct device;
++
+ struct dma_pool *dma_pool_create(const char *name, struct device *dev, 
+ 			size_t size, size_t align, size_t allocation);
  
- 		__count_vm_event(PGDEACTIVATE);
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from broonie@kernel.org are
 
-mm-change-deactivate_page-with-deactivate_file_page.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-mm-page_isolation-check-pfn-validity-before-access.patch
-x86-add-pmd_-for-thp.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp.patch
-sparc-add-pmd_-for-thp-fix.patch
-powerpc-add-pmd_-for-thp.patch
-arm-add-pmd_mkclean-for-thp.patch
-arm64-add-pmd_-for-thp.patch
-mm-support-madvisemadv_free.patch
-mm-support-madvisemadv_free-fix.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-dont-split-thp-page-when-syscall-is-called.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-2.patch
-mm-free-swp_entry-in-madvise_free.patch
-mm-move-lazy-free-pages-to-inactive-list.patch
-mm-move-lazy-free-pages-to-inactive-list-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
-zram-cosmetic-zram_attr_ro-code-formatting-tweak.patch
-zram-use-idr-instead-of-zram_devices-array.patch
-zram-factor-out-device-reset-from-reset_store.patch
-zram-reorganize-code-layout.patch
-zram-add-dynamic-device-add-remove-functionality.patch
-zram-add-dynamic-device-add-remove-functionality-fix.patch
-zram-remove-max_num_devices-limitation.patch
-zram-report-every-added-and-removed-device.patch
-zram-trivial-correct-flag-operations-comment.patch
-zram-return-zram-device_id-value-from-zram_add.patch
-zram-introduce-automatic-device_id-generation.patch
-zram-introduce-automatic-device_id-generation-fix.patch
-zram-do-not-let-user-enforce-new-device-dev_id.patch
-zsmalloc-decouple-handle-and-object.patch
-zsmalloc-factor-out-obj_.patch
-zsmalloc-support-compaction.patch
-zsmalloc-support-compaction-fix.patch
-zsmalloc-adjust-zs_almost_full.patch
-zram-support-compaction.patch
-zsmalloc-record-handle-in-page-private-for-huge-object.patch
-zsmalloc-add-fullness-into-stat.patch
-zsmalloc-zsmalloc-documentation.patch
-mm-zsmallocc-fix-comment-for-get_pages_per_zspage.patch
-zram-remove-num_migrated-device-attr.patch
-zram-move-compact_store-to-sysfs-functions-area.patch
-zram-use-generic-start-end-io-accounting.patch
-zram-describe-device-attrs-in-documentation.patch
-zram-export-new-io_stat-sysfs-attrs.patch
-zram-export-new-mm_stat-sysfs-attrs.patch
-zram-deprecate-zram-attrs-sysfs-nodes.patch
-zsmalloc-remove-synchronize_rcu-from-zs_compact.patch
-zsmalloc-micro-optimize-zs_object_copy.patch
-zsmalloc-remove-unnecessary-insertion-removal-of-zspage-in-compaction.patch
-zsmalloc-fix-fatal-corruption-due-to-wrong-size-class-selection.patch
-zsmalloc-remove-extra-cond_resched-in-__zs_compact.patch
+dmapool-declare-struct-device.patch
+asoc-pcm512x-use-div_round_closest_ull-from-kernelh.patch
 linux-next.patch
+documentation-spi-spidev_testc-fix-warning.patch
 
