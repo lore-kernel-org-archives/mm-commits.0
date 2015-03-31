@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + restart_syscall-use-freezable-blocking-call.patch added to -mm
- tree
-Date: Mon, 30 Mar 2015 15:43:58 -0700
-Message-ID: <5519d1ae.dIrBbagJ3pnFt9J+%akpm@linux-foundation.org>
+Subject: + mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
+ added to -mm tree
+Date: Mon, 30 Mar 2015 22:28:57 -0700
+Message-ID: <551a3099.isiToRjcvIaCohAH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57628 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33665 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753517AbbC3Wn7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Mar 2015 18:43:59 -0400
+	with ESMTP id S1751931AbbCaF07 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Mar 2015 01:26:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: maninder1.s@samsung.com, rjw@rjwysocki.net, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: minchan@kernel.org, akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/time/hrtimer.c: restart_syscall: use freezable blocking call
+     Subject: mm: lru_deactivate_fn should clear PG_referenced
 has been added to the -mm tree.  Its filename is
-     restart_syscall-use-freezable-blocking-call.patch
+     mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/restart_syscall-use-freezable-blocking-call.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/restart_syscall-use-freezable-blocking-call.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,63 +39,91 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Maninder Singh <maninder1.s@samsung.com>
-Subject: kernel/time/hrtimer.c: restart_syscall: use freezable blocking call
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm: lru_deactivate_fn should clear PG_referenced
 
-Avoid waking up every thread sleeping in a restart_syscall call during
-suspend and resume by calling a freezable blocking call.  Previous patches
-modified the freezer to avoid sending wakeups to threads that are blocked
-in freezable blocking calls.
+deactivate_page aims for accelerate for reclaiming through
+moving pages from active list to inactive list so we should
+clear PG_referenced for the goal.
 
-Ref: https://lkml.org/lkml/2013/5/1/424
-
-Backtrace: 
-[<c03e3924>] (__schedule+0x0/0x5d8) from [<c03e3f88>] (schedule+0x8c/0x90)
-[<c03e3efc>] (schedule+0x0/0x90) from [<c03e3150>] (schedule_hrtimeout_range_clock+0xdc/0x110)
-[<c03e3074>] (schedule_hrtimeout_range_clock+0x0/0x110) from [<c03e31a0>] (schedule_hrtimeout_range+0x1c/0x20)
- r9:d16c9be0 r8:8b7d9c2c r7:00000000 r6:00000000 r5:d16c8028
-[<c03e3184>] (schedule_hrtimeout_range+0x0/0x20) from [<c015778c>] (poll_schedule_timeout+0x48/0x6c)
-[<c0157744>] (poll_schedule_timeout+0x0/0x6c) from [<c0158994>] (do_sys_poll+0x2c8/0x378) r5:d16c9f78 r4:00000000
-[<c01586cc>] (do_sys_poll+0x0/0x378) from [<c0158a84>] (do_restart_poll+0x40/0x5c)
-[<c0158a44>] (do_restart_poll+0x0/0x5c) from [<c005710c>] (sys_restart_syscall+0x2c/0x30) r4:fffffe7a
-[<c00570e0>] (sys_restart_syscall+0x0/0x30) from [<c001a180>] (ret_fast_syscall+0x0/0x48)
-
-
-Signed-off-by: Yogesh Gaur <yn.gaur <at> samsung.com>
-Signed-off-by: Amit Arora <amit.arora <at> samsung.com>
-Reviewed-by : Ajeet Yadav <ajeet.y <at> samsung.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/hrtimer.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/swap.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/time/hrtimer.c~restart_syscall-use-freezable-blocking-call kernel/time/hrtimer.c
---- a/kernel/time/hrtimer.c~restart_syscall-use-freezable-blocking-call
-+++ a/kernel/time/hrtimer.c
-@@ -1767,7 +1767,7 @@ schedule_hrtimeout_range_clock(ktime_t *
- 	 * A NULL parameter means "infinite"
- 	 */
- 	if (!expires) {
--		schedule();
-+		freezable_schedule();
- 		return -EINTR;
- 	}
+diff -puN mm/swap.c~mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix mm/swap.c
+--- a/mm/swap.c~mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix
++++ a/mm/swap.c
+@@ -800,6 +800,7 @@ static void lru_deactivate_fn(struct pag
  
-@@ -1781,7 +1781,7 @@ schedule_hrtimeout_range_clock(ktime_t *
- 		t.task = NULL;
+ 		del_page_from_lru_list(page, lruvec, lru + LRU_ACTIVE);
+ 		ClearPageActive(page);
++		ClearPageReferenced(page);
+ 		add_page_to_lru_list(page, lruvec, lru);
  
- 	if (likely(t.task))
--		schedule();
-+		freezable_schedule();
- 
- 	hrtimer_cancel(&t.timer);
- 	destroy_hrtimer_on_stack(&t.timer);
+ 		__count_vm_event(PGDEACTIVATE);
 _
 
-Patches currently in -mm which might be from maninder1.s@samsung.com are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-restart_syscall-use-freezable-blocking-call.patch
+mm-change-deactivate_page-with-deactivate_file_page.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+mm-page_isolation-check-pfn-validity-before-access.patch
+x86-add-pmd_-for-thp.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp.patch
+sparc-add-pmd_-for-thp-fix.patch
+powerpc-add-pmd_-for-thp.patch
+arm-add-pmd_mkclean-for-thp.patch
+arm64-add-pmd_-for-thp.patch
+mm-support-madvisemadv_free.patch
+mm-support-madvisemadv_free-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-dont-split-thp-page-when-syscall-is-called.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-2.patch
+mm-free-swp_entry-in-madvise_free.patch
+mm-move-lazy-free-pages-to-inactive-list.patch
+mm-move-lazy-free-pages-to-inactive-list-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
+zram-cosmetic-zram_attr_ro-code-formatting-tweak.patch
+zram-use-idr-instead-of-zram_devices-array.patch
+zram-factor-out-device-reset-from-reset_store.patch
+zram-reorganize-code-layout.patch
+zram-add-dynamic-device-add-remove-functionality.patch
+zram-add-dynamic-device-add-remove-functionality-fix.patch
+zram-remove-max_num_devices-limitation.patch
+zram-report-every-added-and-removed-device.patch
+zram-trivial-correct-flag-operations-comment.patch
+zram-return-zram-device_id-value-from-zram_add.patch
+zram-introduce-automatic-device_id-generation.patch
+zram-introduce-automatic-device_id-generation-fix.patch
+zram-do-not-let-user-enforce-new-device-dev_id.patch
+zsmalloc-decouple-handle-and-object.patch
+zsmalloc-factor-out-obj_.patch
+zsmalloc-support-compaction.patch
+zsmalloc-support-compaction-fix.patch
+zsmalloc-adjust-zs_almost_full.patch
+zram-support-compaction.patch
+zsmalloc-record-handle-in-page-private-for-huge-object.patch
+zsmalloc-add-fullness-into-stat.patch
+zsmalloc-zsmalloc-documentation.patch
+mm-zsmallocc-fix-comment-for-get_pages_per_zspage.patch
+zram-remove-num_migrated-device-attr.patch
+zram-move-compact_store-to-sysfs-functions-area.patch
+zram-use-generic-start-end-io-accounting.patch
+zram-describe-device-attrs-in-documentation.patch
+zram-export-new-io_stat-sysfs-attrs.patch
+zram-export-new-mm_stat-sysfs-attrs.patch
+zram-deprecate-zram-attrs-sysfs-nodes.patch
+zsmalloc-remove-synchronize_rcu-from-zs_compact.patch
+zsmalloc-micro-optimize-zs_object_copy.patch
+zsmalloc-remove-unnecessary-insertion-removal-of-zspage-in-compaction.patch
+zsmalloc-fix-fatal-corruption-due-to-wrong-size-class-selection.patch
+zsmalloc-remove-extra-cond_resched-in-__zs_compact.patch
+linux-next.patch
 
