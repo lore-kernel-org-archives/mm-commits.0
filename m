@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memblock-add-debug-output-for-the-memblock_add.patch added
- to -mm tree
-Date: Tue, 31 Mar 2015 16:38:18 -0700
-Message-ID: <551b2fea.YFtCI+LE9h1aiP5M%akpm@linux-foundation.org>
+Subject: + mm-trivial-simplify-flag-check.patch added to -mm tree
+Date: Tue, 31 Mar 2015 16:40:15 -0700
+Message-ID: <551b305f.xYsIdwDwOlVYdTj5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55037 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55061 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752058AbbCaXiT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Mar 2015 19:38:19 -0400
+	with ESMTP id S1752167AbbCaXkQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Mar 2015 19:40:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kuleshovmail@gmail.com, Emilian.Medve@freescale.com, akinobu.mita@gmail.com, catalin.marinas@arm.com, fabf@skynet.be, phacht@linux.vnet.ibm.com, schwidefsky@de.ibm.com, tangchen@cn.fujitsu.com, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: bp@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memblock.c: add debug output for memblock_add()
+     Subject: include/linux/mm.h: simplify flag check
 has been added to the -mm tree.  Its filename is
-     mm-memblock-add-debug-output-for-the-memblock_add.patch
+     mm-trivial-simplify-flag-check.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memblock-add-debug-output-for-the-memblock_add.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-trivial-simplify-flag-check.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memblock-add-debug-output-for-the-memblock_add.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-trivial-simplify-flag-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,68 +38,54 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexander Kuleshov <kuleshovmail@gmail.com>
-Subject: mm/memblock.c: add debug output for memblock_add()
+From: Borislav Petkov <bp@suse.de>
+Subject: include/linux/mm.h: simplify flag check
 
-memblock_reserve() calls memblock_reserve_region() which prints debugging
-information if 'memblock=debug' was passed on the command line.  This
-patch adds the same behaviour, but for memblock_add function().
+Flip the flag test so that it is the simplest.  No functional change, just
+a small readability improvement:
 
-Signed-off-by: Alexander Kuleshov <kuleshovmail@gmail.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Philipp Hachtmann <phacht@linux.vnet.ibm.com>
-Cc: Fabian Frederick <fabf@skynet.be>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Emil Medve <Emilian.Medve@freescale.com>
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Tony Luck <tony.luck@intel.com>
+No code changed:
+
+  # arch/x86/kernel/sys_x86_64.o:
+
+   text    data     bss     dec     hex filename
+   1551      24       0    1575     627 sys_x86_64.o.before
+   1551      24       0    1575     627 sys_x86_64.o.after
+
+md5:
+   70708d1b1ad35cc891118a69dc1a63f9  sys_x86_64.o.before.asm
+   70708d1b1ad35cc891118a69dc1a63f9  sys_x86_64.o.after.asm
+
+Signed-off-by: Borislav Petkov <bp@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c |   18 ++++++++++++++++--
- 1 file changed, 16 insertions(+), 2 deletions(-)
+ include/linux/mm.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/memblock.c~mm-memblock-add-debug-output-for-the-memblock_add mm/memblock.c
---- a/mm/memblock.c~mm-memblock-add-debug-output-for-the-memblock_add
-+++ a/mm/memblock.c
-@@ -580,10 +580,24 @@ int __init_memblock memblock_add_node(ph
- 	return memblock_add_range(&memblock.memory, base, size, nid, 0);
- }
- 
-+static int __init_memblock memblock_add_region(phys_addr_t base,
-+						phys_addr_t size,
-+						int nid,
-+						unsigned long flags)
-+{
-+	struct memblock_type *_rgn = &memblock.memory;
-+
-+	memblock_dbg("memblock_memory: [%#016llx-%#016llx] flags %#02lx %pF\n",
-+		     (unsigned long long)base,
-+		     (unsigned long long)base + size - 1,
-+		     flags, (void *)_RET_IP_);
-+
-+	return memblock_add_range(_rgn, base, size, nid, flags);
-+}
-+
- int __init_memblock memblock_add(phys_addr_t base, phys_addr_t size)
+diff -puN include/linux/mm.h~mm-trivial-simplify-flag-check include/linux/mm.h
+--- a/include/linux/mm.h~mm-trivial-simplify-flag-check
++++ a/include/linux/mm.h
+@@ -1855,10 +1855,10 @@ extern unsigned long unmapped_area_topdo
+ static inline unsigned long
+ vm_unmapped_area(struct vm_unmapped_area_info *info)
  {
--	return memblock_add_range(&memblock.memory, base, size,
--				   MAX_NUMNODES, 0);
-+	return memblock_add_region(base, size, MAX_NUMNODES, 0);
+-	if (!(info->flags & VM_UNMAPPED_AREA_TOPDOWN))
+-		return unmapped_area(info);
+-	else
++	if (info->flags & VM_UNMAPPED_AREA_TOPDOWN)
+ 		return unmapped_area_topdown(info);
++	else
++		return unmapped_area(info);
  }
  
- /**
+ /* truncate.c */
 _
 
-Patches currently in -mm which might be from kuleshovmail@gmail.com are
+Patches currently in -mm which might be from bp@suse.de are
 
-mm-memblock-add-debug-output-for-the-memblock_add.patch
-mm-memblock-add-debug-output-for-the-memblock_add-fix.patch
-fs-fat-remove-unnecessary-defintion.patch
-fs-fat-remove-unnecessary-includes.patch
-fs-fat-remove-unnecessary-includes-fix.patch
-fs-fat-remove-unnecessary-includes-fix-2.patch
-fs-fat-comment-fix-fat_bits-can-be-also-32.patch
+maintainers-change-x86-microcode-loader-maintainer.patch
+mm-trivial-simplify-flag-check.patch
+printk-comment-pr_cont-stating-it-is-only-to-continue-a-line.patch
 linux-next.patch
 
