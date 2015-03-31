@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + dmapool-declare-struct-device.patch added to -mm tree
-Date: Tue, 31 Mar 2015 13:08:55 -0700
-Message-ID: <551afed7.Ac25C1/jZuxIgc+U%akpm@linux-foundation.org>
+Subject: +
+ checkpatch-submittingpatches-suggest-line-wrapping-commit-messages-at-72-columns.patch added to -mm tree
+Date: Tue, 31 Mar 2015 13:10:22 -0700
+Message-ID: <551aff2e.Is0DSf+Qt6PzzzO9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53732 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53736 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752979AbbCaUI4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Mar 2015 16:08:56 -0400
+	with ESMTP id S1755036AbbCaUKY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Mar 2015 16:10:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: broonie@kernel.org, mm-commits@vger.kernel.org
+To: joe@perches.com, corbet@lwn.net, davem@davemloft.net, ipm@chirality.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/dmapool.h: declare struct device
+     Subject: checkpatch/SubmittingPatches: suggest line wrapping commit messages at 72 columns
 has been added to the -mm tree.  Its filename is
-     dmapool-declare-struct-device.patch
+     checkpatch-submittingpatches-suggest-line-wrapping-commit-messages-at-72-columns.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/dmapool-declare-struct-device.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-submittingpatches-suggest-line-wrapping-commit-messages-at-72-columns.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/dmapool-declare-struct-device.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-submittingpatches-suggest-line-wrapping-commit-messages-at-72-columns.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,42 +39,102 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mark Brown <broonie@kernel.org>
-Subject: include/linux/dmapool.h: declare struct device
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch/SubmittingPatches: suggest line wrapping commit messages at 72 columns
 
-dmapool uses struct device in function arguments but relies on an implicit
-inclusion to declare struct device causing warnings in some
-configurations:
+Commit messages are sometimes overly long.
+Suggest line wrapping at 72 columns.
 
-include/linux/dmapool.h:31:7: warning: 'struct device' declared inside parameter list
+Add a checkpatch test for long commit messages as well.
 
-Fix this by adding a struct device declaration to the file.
-
-Signed-off-by: Mark Brown <broonie@kernel.org>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Acked-by: David S. Miller <davem@davemloft.net>
+Cc: Ian Morris <ipm@chirality.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/dmapool.h |    2 ++
- 1 file changed, 2 insertions(+)
+ Documentation/SubmittingPatches |    4 ++--
+ scripts/checkpatch.pl           |    9 +++++++++
+ 2 files changed, 11 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/dmapool.h~dmapool-declare-struct-device include/linux/dmapool.h
---- a/include/linux/dmapool.h~dmapool-declare-struct-device
-+++ a/include/linux/dmapool.h
-@@ -14,6 +14,8 @@
- #include <asm/io.h>
- #include <asm/scatterlist.h>
+diff -puN Documentation/SubmittingPatches~checkpatch-submittingpatches-suggest-line-wrapping-commit-messages-at-72-columns Documentation/SubmittingPatches
+--- a/Documentation/SubmittingPatches~checkpatch-submittingpatches-suggest-line-wrapping-commit-messages-at-72-columns
++++ a/Documentation/SubmittingPatches
+@@ -614,8 +614,8 @@ The canonical patch message body contain
  
-+struct device;
+   - An empty line.
+ 
+-  - The body of the explanation, which will be copied to the
+-    permanent changelog to describe this patch.
++  - The body of the explanation, line wrapped at 72 columns, which will
++    be copied to the permanent changelog to describe this patch.
+ 
+   - The "Signed-off-by:" lines, described above, which will
+     also go in the changelog.
+diff -puN scripts/checkpatch.pl~checkpatch-submittingpatches-suggest-line-wrapping-commit-messages-at-72-columns scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-submittingpatches-suggest-line-wrapping-commit-messages-at-72-columns
++++ a/scripts/checkpatch.pl
+@@ -1898,6 +1898,7 @@ sub process {
+ 
+ 	my $in_header_lines = $file ? 0 : 1;
+ 	my $in_commit_log = 0;		#Scanning lines before patch
++	my $commit_log_long_line = 0;
+ 	my $reported_maintainer_file = 0;
+ 	my $non_utf8_charset = 0;
+ 
+@@ -2233,6 +2234,14 @@ sub process {
+ 			      "Remove Gerrit Change-Id's before submitting upstream.\n" . $herecurr);
+ 		}
+ 
++# Check for line lengths > 72 in commit log, warn once
++		if ($in_commit_log && !$commit_log_long_line &&
++		    length($line) > 72) {
++			WARN("COMMIT_LOG_LONG_LINE",
++			     "Possible unwrapped commit description (prefer maximum 72 chars per line)\n" . $herecurr);
++			$commit_log_long_line = 1;
++		}
 +
- struct dma_pool *dma_pool_create(const char *name, struct device *dev, 
- 			size_t size, size_t align, size_t allocation);
- 
+ # Check for git id commit length and improperly formed commit descriptions
+ 		if ($in_commit_log && $line =~ /\b(c)ommit\s+([0-9a-f]{5,})/i) {
+ 			my $init_char = $1;
 _
 
-Patches currently in -mm which might be from broonie@kernel.org are
+Patches currently in -mm which might be from joe@perches.com are
 
-dmapool-declare-struct-device.patch
-asoc-pcm512x-use-div_round_closest_ull-from-kernelh.patch
+ocfs2-logging-remove-static-buffer-use-vsprintf-extension-%pv.patch
+ocfs2-neaten-do_error-ocfs2_error-and-ocfs2_abort.patch
+proc-show-locks-in-proc-pid-fdinfo-x.patch
+proc-show-locks-in-proc-pid-fdinfo-x-v2.patch
+maintainers-use-tabs-consistently.patch
+x86-mtrr-if-remove-use-of-seq_printf-return-value.patch
+power-wakeup-remove-use-of-seq_printf-return-value.patch
+rtc-remove-use-of-seq_printf-return-value.patch
+ipc-remove-use-of-seq_printf-return-value.patch
+microblaze-mb-remove-use-of-seq_printf-return-value.patch
+microblaze-mb-remove-use-of-seq_printf-return-value-fix.patch
+nios2-cpuinfo-remove-use-of-seq_printf-return-value.patch
+arm-plat-pxa-remove-use-of-seq_printf-return-value.patch
+openrisc-remove-use-of-seq_printf-return-value.patch
+cris-remove-use-of-seq_printf-return-value.patch
+cris-fasttimer-remove-use-of-seq_printf-return-value.patch
+s390-remove-use-of-seq_printf-return-value.patch
+proc-remove-use-of-seq_printf-return-value.patch
+cgroup-remove-use-of-seq_printf-return-value.patch
+tracing-remove-use-of-seq_printf-return-value.patch
+lru_cache-remove-use-of-seq_printf-return-value.patch
+parisc-remove-use-of-seq_printf-return-value.patch
+lib-vsprintfc-even-faster-decimal-conversion.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-improve-no-space-is-necessary-after-a-cast-test.patch
+checkpatch-add-spell-checking-of-email-subject-line.patch
+checkpatch-spell-check-reudce.patch
+checkpatch-add-optional-codespell-dictionary-to-find-more-typos.patch
+checkpatch-match-more-world-writable-permissions.patch
+checkpatch-match-more-world-writable-permissions-fix.patch
+checkpatch-improve-return-negative-errno-check.patch
+checkpatch-add-test-for-repeated-const-uses.patch
+checkpatch-submittingpatches-suggest-line-wrapping-commit-messages-at-72-columns.patch
+adfs-returning-correct-return-values.patch
 linux-next.patch
-documentation-spi-spidev_testc-fix-warning.patch
 
