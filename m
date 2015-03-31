@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-change-x86-microcode-loader-maintainer.patch added
- to -mm tree
-Date: Tue, 31 Mar 2015 15:55:47 -0700
-Message-ID: <551b25f3.wLfB/M/XP3yJUNEw%akpm@linux-foundation.org>
+Subject: + lib-bitmap_-remove-code-duplication.patch added to -mm tree
+Date: Tue, 31 Mar 2015 16:07:24 -0700
+Message-ID: <551b28ac.oT7xFM6hMNvL6M50%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54762 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54861 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750907AbbCaWzs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Mar 2015 18:55:48 -0400
+	with ESMTP id S1751138AbbCaXHZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Mar 2015 19:07:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bp@suse.de, akpm@linux-foundation.org, aravind.gopalakrishnan@amd.com, geert@linux-m68k.org, gregkh@linuxfoundation.org, herrmann.der.user@googlemail.com, mingo@kernel.org, tigran@aivazian.fsnet.co.uk, mm-commits@vger.kernel.org
+To: yury.norov@gmail.com, klimov.linux@gmail.com, linux@horizon.com, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: change x86 microcode loader maintainer
+     Subject: lib/bitmap.c: bitmap_[empty,full]: remove code duplication
 has been added to the -mm tree.  Its filename is
-     maintainers-change-x86-microcode-loader-maintainer.patch
+     lib-bitmap_-remove-code-duplication.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-change-x86-microcode-loader-maintainer.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-bitmap_-remove-code-duplication.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-change-x86-microcode-loader-maintainer.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-bitmap_-remove-code-duplication.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,52 +38,82 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Borislav Petkov <bp@suse.de>
-Subject: MAINTAINERS: change x86 microcode loader maintainer
+From: Yury Norov <yury.norov@gmail.com>
+Subject: lib/bitmap.c: bitmap_[empty,full]: remove code duplication
 
-Let's make it official - I've been doing this for a while now anyway.
+bitmap_empty() has its own implementation.  But it's clearly as simple as:
 
-Signed-off-by: Borislav Petkov <bp@suse.de>
-Cc: Andreas Herrmann <herrmann.der.user@googlemail.com>
-Cc: Tigran Aivazian <tigran@aivazian.fsnet.co.uk>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Greg KH <gregkh@linuxfoundation.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Aravind Gopalakrishnan <aravind.gopalakrishnan@amd.com>
+	find_first_bit(src, nbits) == nbits
+	
+The same is true for 'bitmap_full'.
+
+Cc: George Spelvin <linux@horizon.com>
+Cc: Alexey Klimov <klimov.linux@gmail.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ include/linux/bitmap.h |    8 ++++----
+ lib/bitmap.c           |   30 ------------------------------
+ 2 files changed, 4 insertions(+), 34 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-change-x86-microcode-loader-maintainer MAINTAINERS
---- a/MAINTAINERS~maintainers-change-x86-microcode-loader-maintainer
-+++ a/MAINTAINERS
-@@ -637,8 +637,7 @@ F:      drivers/gpu/drm/radeon/radeon_kf
- F:      include/uapi/linux/kfd_ioctl.h
+diff -puN include/linux/bitmap.h~lib-bitmap_-remove-code-duplication include/linux/bitmap.h
+--- a/include/linux/bitmap.h~lib-bitmap_-remove-code-duplication
++++ a/include/linux/bitmap.h
+@@ -283,16 +283,16 @@ static inline int bitmap_empty(const uns
+ {
+ 	if (small_const_nbits(nbits))
+ 		return ! (*src & BITMAP_LAST_WORD_MASK(nbits));
+-	else
+-		return __bitmap_empty(src, nbits);
++
++	return find_first_bit(src, nbits) == nbits;
+ }
  
- AMD MICROCODE UPDATE SUPPORT
--M:	Andreas Herrmann <herrmann.der.user@googlemail.com>
--L:	amd64-microcode@amd64.org
-+M:	Borislav Petkov <bp@alien8.de>
- S:	Maintained
- F:	arch/x86/kernel/cpu/microcode/amd*
+ static inline int bitmap_full(const unsigned long *src, unsigned int nbits)
+ {
+ 	if (small_const_nbits(nbits))
+ 		return ! (~(*src) & BITMAP_LAST_WORD_MASK(nbits));
+-	else
+-		return __bitmap_full(src, nbits);
++
++	return find_first_zero_bit(src, nbits) == nbits;
+ }
  
-@@ -5095,7 +5094,7 @@ S:	Supported
- F:	drivers/platform/x86/intel_menlow.c
+ static inline int bitmap_weight(const unsigned long *src, unsigned int nbits)
+diff -puN lib/bitmap.c~lib-bitmap_-remove-code-duplication lib/bitmap.c
+--- a/lib/bitmap.c~lib-bitmap_-remove-code-duplication
++++ a/lib/bitmap.c
+@@ -42,36 +42,6 @@
+  * for the best explanations of this ordering.
+  */
  
- INTEL IA32 MICROCODE UPDATE SUPPORT
--M:	Tigran Aivazian <tigran@aivazian.fsnet.co.uk>
-+M:	Borislav Petkov <bp@alien8.de>
- S:	Maintained
- F:	arch/x86/kernel/cpu/microcode/core*
- F:	arch/x86/kernel/cpu/microcode/intel*
-_
-
-Patches currently in -mm which might be from bp@suse.de are
-
-maintainers-change-x86-microcode-loader-maintainer.patch
-printk-comment-pr_cont-stating-it-is-only-to-continue-a-line.patch
-linux-next.patch
-
+-int __bitmap_empty(const unsigned long *bitmap, unsigned int bits)
+-{
+-	unsigned int k, lim = bits/BITS_PER_LONG;
+-	for (k = 0; k < lim; ++k)
+-		if (bitmap[k])
+-			return 0;
+-
+-	if (bits % BITS_PER_LONG)
+-		if (bitmap[k] & BITMAP_LAST_WORD_MASK(bits))
+-			return 0;
+-
+-	return 1;
+-}
+-EXPORT_SYMBOL(__bitmap_empty);
+-
+-int __bitmap_full(const unsigned long *bitmap, unsigned int bits)
+-{
+-	unsigned int k, lim = bits/BITS_PER_LONG;
+-	for (k = 0; k < lim; ++k)
+-		if (~bitmap[k])
+-			return 0;
+-
+-	if (bits % BITS_PER_LONG)
+-		if (~bitmap[k] & BITMAP_LAST_WORD_MASK(bits))
+-			return 0;
+-
+-	return 1;
+-}
+-EXPORT_SYMBOL(__bitmap_full);
