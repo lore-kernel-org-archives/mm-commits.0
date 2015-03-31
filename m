@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlb-introduce-pagehugeactive-flag.patch added to -mm
- tree
-Date: Tue, 31 Mar 2015 14:08:31 -0700
-Message-ID: <551b0ccf.4jxH8YxSIUPEQWY9%akpm@linux-foundation.org>
+Subject: + mm-dont-call-__page_cache_release-for-hugetlb.patch added to
+ -mm tree
+Date: Tue, 31 Mar 2015 14:08:29 -0700
+Message-ID: <551b0ccd.TIezk3J4TgBJKg65%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54054 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54047 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751846AbbCaVId (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Mar 2015 17:08:33 -0400
+	with ESMTP id S1751817AbbCaVIa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Mar 2015 17:08:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: n-horiguchi@ah.jp.nec.com, hannes@cmpxchg.org, hughd@google.com, mgorman@suse.de, mhocko@suse.cz, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: hugetlb: introduce page_huge_active
+     Subject: mm: don't call __page_cache_release for hugetlb
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-introduce-pagehugeactive-flag.patch
+     mm-dont-call-__page_cache_release-for-hugetlb.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-introduce-pagehugeactive-flag.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-dont-call-__page_cache_release-for-hugetlb.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-introduce-pagehugeactive-flag.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-dont-call-__page_cache_release-for-hugetlb.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,26 +40,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm: hugetlb: introduce page_huge_active
+Subject: mm: don't call __page_cache_release for hugetlb
 
-We are not safe from calling isolate_huge_page() on a hugepage
-concurrently, which can make the victim hugepage in invalid state and
-results in BUG_ON().
-
-The root problem of this is that we don't have any information on struct
-page (so easily accessible) about hugepages' activeness.  Note that
-hugepages' activeness means just being linked to
-hstate->hugepage_activelist, which is not the same as normal pages'
-activeness represented by PageActive flag.
-
-Normal pages are isolated by isolate_lru_page() which prechecks PageLRU
-before isolation, so let's do similarly for hugetlb with a new
-paeg_huge_active().
-
-set/clear_page_huge_active() should be called within hugetlb_lock.  But
-hugetlb_cow() and hugetlb_no_page() don't do this, being justified because
-in these functions set_page_huge_active() is called right after the
-hugepage is allocated and no other thread tries to isolate it.
+__put_compound_page() calls __page_cache_release() to do some freeing
+work, but it's obviously for thps, not for hugetlb.  We don't care because
+PageLRU is always cleared and page->mem_cgroup is always NULL for hugetlb.
+But it's not correct and has potential risks, so let's make it
+conditional.
 
 Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Hugh Dickins <hughd@google.com>
@@ -70,123 +57,36 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c        |   41 ++++++++++++++++++++++++++++++++++++++---
- mm/memory-failure.c |   14 ++++++++++++--
- 2 files changed, 50 insertions(+), 5 deletions(-)
+ mm/swap.c |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-introduce-pagehugeactive-flag mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-introduce-pagehugeactive-flag
-+++ a/mm/hugetlb.c
-@@ -924,6 +924,31 @@ struct hstate *size_to_hstate(unsigned l
- 	return NULL;
+diff -puN mm/swap.c~mm-dont-call-__page_cache_release-for-hugetlb mm/swap.c
+--- a/mm/swap.c~mm-dont-call-__page_cache_release-for-hugetlb
++++ a/mm/swap.c
+@@ -31,6 +31,7 @@
+ #include <linux/memcontrol.h>
+ #include <linux/gfp.h>
+ #include <linux/uio.h>
++#include <linux/hugetlb.h>
+ 
+ #include "internal.h"
+ 
+@@ -75,7 +76,14 @@ static void __put_compound_page(struct p
+ {
+ 	compound_page_dtor *dtor;
+ 
+-	__page_cache_release(page);
++	/*
++	 * __page_cache_release() is supposed to be called for thp, not for
++	 * hugetlb. This is because hugetlb page does never have PageLRU set
++	 * (it's never listed to any LRU lists) and no memcg routines should
++	 * be called for hugetlb (it has a separate hugetlb_cgroup.)
++	 */
++	if (!PageHuge(page))
++		__page_cache_release(page);
+ 	dtor = get_compound_page_dtor(page);
+ 	(*dtor)(page);
  }
- 
-+/*
-+ * Page flag to show that the hugepage is "active/in-use" (i.e. being linked to
-+ * hstate->hugepage_activelist.)
-+ *
-+ * This function can be called for tail pages, but never returns true for them.
-+ */
-+int PageHugeActive(struct page *page)
-+{
-+	VM_BUG_ON_PAGE(!PageHuge(page), page);
-+	return PageHead(page) && PagePrivate(&page[1]);
-+}
-+
-+/* never called for tail page */
-+void SetPageHugeActive(struct page *page)
-+{
-+	VM_BUG_ON_PAGE(!PageHeadHuge(page), page);
-+	SetPagePrivate(&page[1]);
-+}
-+
-+void ClearPageHugeActive(struct page *page)
-+{
-+	VM_BUG_ON_PAGE(!PageHeadHuge(page), page);
-+	ClearPagePrivate(&page[1]);
-+}
-+
- void free_huge_page(struct page *page)
- {
- 	/*
-@@ -952,6 +977,7 @@ void free_huge_page(struct page *page)
- 		restore_reserve = true;
- 
- 	spin_lock(&hugetlb_lock);
-+	ClearPageHugeActive(page);
- 	hugetlb_cgroup_uncharge_page(hstate_index(h),
- 				     pages_per_huge_page(h), page);
- 	if (restore_reserve)
-@@ -2972,6 +2998,7 @@ retry_avoidcopy:
- 	copy_user_huge_page(new_page, old_page, address, vma,
- 			    pages_per_huge_page(h));
- 	__SetPageUptodate(new_page);
-+	SetPageHugeActive(new_page);
- 
- 	mmun_start = address & huge_page_mask(h);
- 	mmun_end = mmun_start + huge_page_size(h);
-@@ -3084,6 +3111,7 @@ retry:
- 		}
- 		clear_huge_page(page, address, pages_per_huge_page(h));
- 		__SetPageUptodate(page);
-+		SetPageHugeActive(page);
- 
- 		if (vma->vm_flags & VM_MAYSHARE) {
- 			int err;
-@@ -3914,19 +3942,26 @@ int dequeue_hwpoisoned_huge_page(struct
- 
- bool isolate_huge_page(struct page *page, struct list_head *list)
- {
-+	bool ret = true;
-+
- 	VM_BUG_ON_PAGE(!PageHead(page), page);
--	if (!get_page_unless_zero(page))
--		return false;
- 	spin_lock(&hugetlb_lock);
-+	if (!PageHugeActive(page) || !get_page_unless_zero(page)) {
-+		ret = false;
-+		goto unlock;
-+	}
-+	ClearPageHugeActive(page);
- 	list_move_tail(&page->lru, list);
-+unlock:
- 	spin_unlock(&hugetlb_lock);
--	return true;
-+	return ret;
- }
- 
- void putback_active_hugepage(struct page *page)
- {
- 	VM_BUG_ON_PAGE(!PageHead(page), page);
- 	spin_lock(&hugetlb_lock);
-+	SetPageHugeActive(page);
- 	list_move_tail(&page->lru, &(page_hstate(page))->hugepage_activelist);
- 	spin_unlock(&hugetlb_lock);
- 	put_page(page);
-diff -puN mm/memory-failure.c~mm-hugetlb-introduce-pagehugeactive-flag mm/memory-failure.c
---- a/mm/memory-failure.c~mm-hugetlb-introduce-pagehugeactive-flag
-+++ a/mm/memory-failure.c
-@@ -1586,8 +1586,18 @@ static int soft_offline_huge_page(struct
- 	}
- 	unlock_page(hpage);
- 
--	/* Keep page count to indicate a given hugepage is isolated. */
--	list_move(&hpage->lru, &pagelist);
-+	ret = isolate_huge_page(hpage, &pagelist);
-+	if (ret) {
-+		/*
-+		 * get_any_page() and isolate_huge_page() takes a refcount each,
-+		 * so need to drop one here.
-+		 */
-+		put_page(hpage);
-+	} else {
-+		pr_info("soft offline: %#lx hugepage failed to isolate\n", pfn);
-+		return -EBUSY;
-+	}
-+
- 	ret = migrate_pages(&pagelist, new_page, NULL, MPOL_MF_MOVE_ALL,
- 				MIGRATE_SYNC, MR_MEMORY_FAILURE);
- 	if (ret) {
 _
 
 Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
