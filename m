@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- checkpatch-submittingpatches-suggest-line-wrapping-commit-messages-at-72-columns.patch added to -mm tree
-Date: Tue, 31 Mar 2015 13:10:22 -0700
-Message-ID: <551aff2e.Is0DSf+Qt6PzzzO9%akpm@linux-foundation.org>
+ checkpatch-dont-ask-for-asm-fileh-to-linux-fileh-unconditionally.patch
+ added to -mm tree
+Date: Tue, 31 Mar 2015 13:26:25 -0700
+Message-ID: <551b02f1.yl12mm9jR2rCqDM0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53736 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53757 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755036AbbCaUKY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Mar 2015 16:10:24 -0400
+	with ESMTP id S1755714AbbCaU00 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Mar 2015 16:26:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, corbet@lwn.net, davem@davemloft.net, ipm@chirality.org.uk, mm-commits@vger.kernel.org
+To: fabf@skynet.be, apw@canonical.com, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch/SubmittingPatches: suggest line wrapping commit messages at 72 columns
+     Subject: checkpatch: don't ask for asm/file.h to linux/file.h unconditionally
 has been added to the -mm tree.  Its filename is
-     checkpatch-submittingpatches-suggest-line-wrapping-commit-messages-at-72-columns.patch
+     checkpatch-dont-ask-for-asm-fileh-to-linux-fileh-unconditionally.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-submittingpatches-suggest-line-wrapping-commit-messages-at-72-columns.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-dont-ask-for-asm-fileh-to-linux-fileh-unconditionally.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-submittingpatches-suggest-line-wrapping-commit-messages-at-72-columns.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-dont-ask-for-asm-fileh-to-linux-fileh-unconditionally.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,102 +40,80 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch/SubmittingPatches: suggest line wrapping commit messages at 72 columns
+From: Fabian Frederick <fabf@skynet.be>
+Subject: checkpatch: don't ask for asm/file.h to linux/file.h unconditionally
 
-Commit messages are sometimes overly long.
-Suggest line wrapping at 72 columns.
+Currently checkpatch warns when asm/file.h is included and linux/file.h
+exists.  That conversion can be made when linux/file.h includes asm/file.h
+which is not always the case.(See signal.h)
 
-Add a checkpatch test for long commit messages as well.
-
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Acked-by: David S. Miller <davem@davemloft.net>
-Cc: Ian Morris <ipm@chirality.org.uk>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: Andy Whitcroft <apw@canonical.com>
+Acked-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/SubmittingPatches |    4 ++--
- scripts/checkpatch.pl           |    9 +++++++++
- 2 files changed, 11 insertions(+), 2 deletions(-)
+ scripts/checkpatch.pl |   18 +++++++++++-------
+ 1 file changed, 11 insertions(+), 7 deletions(-)
 
-diff -puN Documentation/SubmittingPatches~checkpatch-submittingpatches-suggest-line-wrapping-commit-messages-at-72-columns Documentation/SubmittingPatches
---- a/Documentation/SubmittingPatches~checkpatch-submittingpatches-suggest-line-wrapping-commit-messages-at-72-columns
-+++ a/Documentation/SubmittingPatches
-@@ -614,8 +614,8 @@ The canonical patch message body contain
- 
-   - An empty line.
- 
--  - The body of the explanation, which will be copied to the
--    permanent changelog to describe this patch.
-+  - The body of the explanation, line wrapped at 72 columns, which will
-+    be copied to the permanent changelog to describe this patch.
- 
-   - The "Signed-off-by:" lines, described above, which will
-     also go in the changelog.
-diff -puN scripts/checkpatch.pl~checkpatch-submittingpatches-suggest-line-wrapping-commit-messages-at-72-columns scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-submittingpatches-suggest-line-wrapping-commit-messages-at-72-columns
+diff -puN scripts/checkpatch.pl~checkpatch-dont-ask-for-asm-fileh-to-linux-fileh-unconditionally scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-dont-ask-for-asm-fileh-to-linux-fileh-unconditionally
 +++ a/scripts/checkpatch.pl
-@@ -1898,6 +1898,7 @@ sub process {
- 
- 	my $in_header_lines = $file ? 0 : 1;
- 	my $in_commit_log = 0;		#Scanning lines before patch
-+	my $commit_log_long_line = 0;
- 	my $reported_maintainer_file = 0;
- 	my $non_utf8_charset = 0;
- 
-@@ -2233,6 +2234,14 @@ sub process {
- 			      "Remove Gerrit Change-Id's before submitting upstream.\n" . $herecurr);
+@@ -4251,7 +4251,8 @@ sub process {
+ 			}
  		}
  
-+# Check for line lengths > 72 in commit log, warn once
-+		if ($in_commit_log && !$commit_log_long_line &&
-+		    length($line) > 72) {
-+			WARN("COMMIT_LOG_LONG_LINE",
-+			     "Possible unwrapped commit description (prefer maximum 72 chars per line)\n" . $herecurr);
-+			$commit_log_long_line = 1;
-+		}
-+
- # Check for git id commit length and improperly formed commit descriptions
- 		if ($in_commit_log && $line =~ /\b(c)ommit\s+([0-9a-f]{5,})/i) {
- 			my $init_char = $1;
+-#warn if <asm/foo.h> is #included and <linux/foo.h> is available (uses RAW line)
++# warn if <asm/foo.h> is #included and <linux/foo.h> is available and includes
++# itself <asm/foo.h> (uses RAW line)
+ 		if ($tree && $rawline =~ m{^.\s*\#\s*include\s*\<asm\/(.*)\.h\>}) {
+ 			my $file = "$1.h";
+ 			my $checkfile = "include/linux/$file";
+@@ -4259,12 +4260,15 @@ sub process {
+ 			    $realfile ne $checkfile &&
+ 			    $1 !~ /$allowed_asm_includes/)
+ 			{
+-				if ($realfile =~ m{^arch/}) {
+-					CHK("ARCH_INCLUDE_LINUX",
+-					    "Consider using #include <linux/$file> instead of <asm/$file>\n" . $herecurr);
+-				} else {
+-					WARN("INCLUDE_LINUX",
+-					     "Use #include <linux/$file> instead of <asm/$file>\n" . $herecurr);
++				my $asminclude = `grep -Ec "#include\\s+<asm/$file>" $root/$checkfile`;
++				if ($asminclude > 0) {
++					if ($realfile =~ m{^arch/}) {
++						CHK("ARCH_INCLUDE_LINUX",
++						    "Consider using #include <linux/$file> instead of <asm/$file>\n" . $herecurr);
++					} else {
++						WARN("INCLUDE_LINUX",
++						     "Use #include <linux/$file> instead of <asm/$file>\n" . $herecurr);
++					}
+ 				}
+ 			}
+ 		}
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from fabf@skynet.be are
 
-ocfs2-logging-remove-static-buffer-use-vsprintf-extension-%pv.patch
-ocfs2-neaten-do_error-ocfs2_error-and-ocfs2_abort.patch
-proc-show-locks-in-proc-pid-fdinfo-x.patch
-proc-show-locks-in-proc-pid-fdinfo-x-v2.patch
-maintainers-use-tabs-consistently.patch
-x86-mtrr-if-remove-use-of-seq_printf-return-value.patch
-power-wakeup-remove-use-of-seq_printf-return-value.patch
-rtc-remove-use-of-seq_printf-return-value.patch
-ipc-remove-use-of-seq_printf-return-value.patch
-microblaze-mb-remove-use-of-seq_printf-return-value.patch
-microblaze-mb-remove-use-of-seq_printf-return-value-fix.patch
-nios2-cpuinfo-remove-use-of-seq_printf-return-value.patch
-arm-plat-pxa-remove-use-of-seq_printf-return-value.patch
-openrisc-remove-use-of-seq_printf-return-value.patch
-cris-remove-use-of-seq_printf-return-value.patch
-cris-fasttimer-remove-use-of-seq_printf-return-value.patch
-s390-remove-use-of-seq_printf-return-value.patch
-proc-remove-use-of-seq_printf-return-value.patch
-cgroup-remove-use-of-seq_printf-return-value.patch
-tracing-remove-use-of-seq_printf-return-value.patch
-lru_cache-remove-use-of-seq_printf-return-value.patch
-parisc-remove-use-of-seq_printf-return-value.patch
-lib-vsprintfc-even-faster-decimal-conversion.patch
-mm-utilc-add-kstrimdup.patch
-checkpatch-improve-no-space-is-necessary-after-a-cast-test.patch
-checkpatch-add-spell-checking-of-email-subject-line.patch
-checkpatch-spell-check-reudce.patch
-checkpatch-add-optional-codespell-dictionary-to-find-more-typos.patch
-checkpatch-match-more-world-writable-permissions.patch
-checkpatch-match-more-world-writable-permissions-fix.patch
-checkpatch-improve-return-negative-errno-check.patch
-checkpatch-add-test-for-repeated-const-uses.patch
-checkpatch-submittingpatches-suggest-line-wrapping-commit-messages-at-72-columns.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+mm-vmalloc-fix-possible-exhaustion-of-vmalloc-space-caused-by-vm_map_ram-allocator.patch
+mm-vmalloc-occupy-newly-allocated-vmap-block-just-after-allocation.patch
+mm-vmalloc-get-rid-of-dirty-bitmap-inside-vmap_block-structure.patch
+checkpatch-dont-ask-for-asm-fileh-to-linux-fileh-unconditionally.patch
+befs-replace-typedef-befs_mount_options-by-structure.patch
+befs-replace-typedef-befs_sb_info-by-structure.patch
+befs-replace-typedef-befs_inode_info-by-structure.patch
+fs-hfsplus-move-xattr_name-allocation-in-hfsplus_getxattr.patch
+fs-hfsplus-move-xattr_name-allocation-in-hfsplus_setxattr.patch
+fs-hfsplus-atomically-set-inode-i_flags.patch
+fs-hfsplus-use-bool-instead-of-int-for-is_known_namespace-return-value.patch
+fs-hfsplus-replace-if-bug-by-bug_on.patch
 adfs-returning-correct-return-values.patch
+fs-affs-use-affs_mount-prefix-for-mount-options.patch
+fs-affs-affsh-add-mount-option-manipulation-macros.patch
+fs-affs-superc-use-affs_set_opt.patch
+fs-affs-use-affs_test_opt.patch
+affs-kstrdup-memory-handling.patch
+affs-kstrdup-memory-handling-fix.patch
 linux-next.patch
 
