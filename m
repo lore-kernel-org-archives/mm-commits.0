@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-cma-add-trace-events-for-cma-allocations-and-freeings.patch
- added to -mm tree
-Date: Wed, 01 Apr 2015 13:02:21 -0700
-Message-ID: <551c4ecd.WTbCmqpGgSd57jh1%akpm@linux-foundation.org>
+Subject: + powerpc-powernv-reboot-when-requested-by-firmware.patch added
+ to -mm tree
+Date: Wed, 01 Apr 2015 13:06:17 -0700
+Message-ID: <551c4fb9.N9VmTehkE5XuJKs2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34021 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34136 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752945AbbDAUCW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2015 16:02:22 -0400
+	with ESMTP id S1753174AbbDAUGS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2015 16:06:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: s.strogin@partner.samsung.com, iamjoonsoo.kim@lge.com, laurent.pinchart+renesas@ideasonboard.com, m.szyprowski@samsung.com, mingo@elte.hu, mpn@google.com, rostedt@goodmis.org, stefan.strogin@gmail.com, treding@nvidia.com, mm-commits@vger.kernel.org
+To: joel@jms.id.au, benh@kernel.crashing.org, davem@davemloft.net, fabf@skynet.be, jk@ozlabs.org, mpe@ellerman.id.au, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: cma: add trace events for CMA allocations and freeings
+     Subject: powerpc/powernv: reboot when requested by firmware
 has been added to the -mm tree.  Its filename is
-     mm-cma-add-trace-events-for-cma-allocations-and-freeings.patch
+     powerpc-powernv-reboot-when-requested-by-firmware.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-cma-add-trace-events-for-cma-allocations-and-freeings.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-powernv-reboot-when-requested-by-firmware.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-cma-add-trace-events-for-cma-allocations-and-freeings.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-powernv-reboot-when-requested-by-firmware.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,135 +39,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Stefan Strogin <s.strogin@partner.samsung.com>
-Subject: mm: cma: add trace events for CMA allocations and freeings
+From: Joel Stanley <joel@jms.id.au>
+Subject: powerpc/powernv: reboot when requested by firmware
 
-Add trace events for cma_alloc() and cma_release().
+Use orderly_reboot so userspace will to shut itself down via the reboot
+path.  This is required for graceful reboot initiated by the BMC, such as
+when a user uses ipmitool to issue a 'chassis power cycle' command.
 
-The cma_alloc tracepoint is used both for successful and failed allocations,
-in case of allocation failure pfn=-1UL is stored and printed.
-
-Signed-off-by: Stefan Strogin <stefan.strogin@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Michal Nazarewicz <mpn@google.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Cc: Thierry Reding <treding@nvidia.com>
+Signed-off-by: Joel Stanley <joel@jms.id.au>
+Acked-by: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Fabian Frederick <fabf@skynet.be>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Jeremy Kerr <jk@ozlabs.org>
+Cc: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/cma.h |   63 +++++++++++++++++++++++++++++++++++
- mm/cma.c                   |    5 ++
- 2 files changed, 68 insertions(+)
+ arch/powerpc/platforms/powernv/opal-power.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN /dev/null include/trace/events/cma.h
---- /dev/null
-+++ a/include/trace/events/cma.h
-@@ -0,0 +1,63 @@
-+#undef TRACE_SYSTEM
-+#define TRACE_SYSTEM cma
-+
-+#if !defined(_TRACE_CMA_H) || defined(TRACE_HEADER_MULTI_READ)
-+#define _TRACE_CMA_H
-+
-+#include <linux/types.h>
-+#include <linux/tracepoint.h>
-+
-+TRACE_EVENT(cma_alloc,
-+
-+	TP_PROTO(unsigned long pfn, const struct page *page,
-+		 unsigned int count),
-+
-+	TP_ARGS(pfn, page, count),
-+
-+	TP_STRUCT__entry(
-+		__field(unsigned long, pfn)
-+		__field(const struct page *, page)
-+		__field(unsigned int, count)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->pfn = pfn;
-+		__entry->page = page;
-+		__entry->count = count;
-+	),
-+
-+	TP_printk("pfn=%lx page=%p count=%u",
-+		  __entry->pfn,
-+		  __entry->page,
-+		  __entry->count)
-+);
-+
-+TRACE_EVENT(cma_release,
-+
-+	TP_PROTO(unsigned long pfn, const struct page *page,
-+		 unsigned int count),
-+
-+	TP_ARGS(pfn, page, count),
-+
-+	TP_STRUCT__entry(
-+		__field(unsigned long, pfn)
-+		__field(const struct page *, page)
-+		__field(unsigned int, count)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->pfn = pfn;
-+		__entry->page = page;
-+		__entry->count = count;
-+	),
-+
-+	TP_printk("pfn=%lx page=%p count=%u",
-+		  __entry->pfn,
-+		  __entry->page,
-+		  __entry->count)
-+);
-+
-+#endif /* _TRACE_CMA_H */
-+
-+/* This part must be outside protection */
-+#include <trace/define_trace.h>
-diff -puN mm/cma.c~mm-cma-add-trace-events-for-cma-allocations-and-freeings mm/cma.c
---- a/mm/cma.c~mm-cma-add-trace-events-for-cma-allocations-and-freeings
-+++ a/mm/cma.c
-@@ -23,6 +23,7 @@
- #  define DEBUG
- #endif
- #endif
-+#define CREATE_TRACE_POINTS
+diff -puN arch/powerpc/platforms/powernv/opal-power.c~powerpc-powernv-reboot-when-requested-by-firmware arch/powerpc/platforms/powernv/opal-power.c
+--- a/arch/powerpc/platforms/powernv/opal-power.c~powerpc-powernv-reboot-when-requested-by-firmware
++++ a/arch/powerpc/platforms/powernv/opal-power.c
+@@ -29,8 +29,9 @@ static int opal_power_control_event(stru
  
- #include <linux/memblock.h>
- #include <linux/err.h>
-@@ -34,6 +35,7 @@
- #include <linux/cma.h>
- #include <linux/highmem.h>
- #include <linux/io.h>
-+#include <trace/events/cma.h>
- 
- #include "cma.h"
- 
-@@ -414,6 +416,8 @@ struct page *cma_alloc(struct cma *cma,
- 		start = bitmap_no + mask + 1;
- 	}
- 
-+	trace_cma_alloc(page ? pfn : -1UL, page, count);
-+
- 	pr_debug("%s(): returned %p\n", __func__, page);
- 	return page;
- }
-@@ -446,6 +450,7 @@ bool cma_release(struct cma *cma, const
- 
- 	free_contig_range(pfn, count);
- 	cma_clear_bitmap(cma, pfn, count);
-+	trace_cma_release(pfn, pages, count);
- 
- 	return true;
- }
+ 	switch (type) {
+ 	case SOFT_REBOOT:
+-		/* Fall through. The service processor is responsible for
+-		 * bringing the machine back up */
++		pr_info("OPAL: reboot requested\n");
++		orderly_reboot();
++		break;
+ 	case SOFT_OFF:
+ 		pr_info("OPAL: poweroff requested\n");
+ 		orderly_poweroff(true);
 _
 
-Patches currently in -mm which might be from s.strogin@partner.samsung.com are
+Patches currently in -mm which might be from joel@jms.id.au are
 
-mm-cma-add-trace-events-for-cma-allocations-and-freeings.patch
+envctrl-ignore-orderly_poweroff-return-value.patch
+kernel-rebootc-add-orderly_reboot-for-graceful-reboot.patch
+powerpc-powernv-reboot-when-requested-by-firmware.patch
+linux-next.patch
 
