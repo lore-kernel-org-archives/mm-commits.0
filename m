@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-migrate-mark-unmap_and_move-noinline-to-avoid-ice-in-gcc-473-fix.patch
+Subject: + mm-cma-add-trace-events-for-cma-allocations-and-freeings.patch
  added to -mm tree
-Date: Wed, 01 Apr 2015 12:40:38 -0700
-Message-ID: <551c49b6.5aVvrT+farFUITmL%akpm@linux-foundation.org>
+Date: Wed, 01 Apr 2015 13:02:21 -0700
+Message-ID: <551c4ecd.WTbCmqpGgSd57jh1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33794 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34021 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753507AbbDATkj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2015 15:40:39 -0400
+	with ESMTP id S1752945AbbDAUCW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2015 16:02:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, geert+renesas@glider.be, khilman@kernel.org, khilman@linaro.org, marc.zyngier@arm.com, mm-commits@vger.kernel.org
+To: s.strogin@partner.samsung.com, iamjoonsoo.kim@lge.com, laurent.pinchart+renesas@ideasonboard.com, m.szyprowski@samsung.com, mingo@elte.hu, mpn@google.com, rostedt@goodmis.org, stefan.strogin@gmail.com, treding@nvidia.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-migrate-mark-unmap_and_move-noinline-to-avoid-ice-in-gcc-473-fix
+     Subject: mm: cma: add trace events for CMA allocations and freeings
 has been added to the -mm tree.  Its filename is
-     mm-migrate-mark-unmap_and_move-noinline-to-avoid-ice-in-gcc-473-fix.patch
+     mm-cma-add-trace-events-for-cma-allocations-and-freeings.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-mark-unmap_and_move-noinline-to-avoid-ice-in-gcc-473-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-cma-add-trace-events-for-cma-allocations-and-freeings.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-mark-unmap_and_move-noinline-to-avoid-ice-in-gcc-473-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-cma-add-trace-events-for-cma-allocations-and-freeings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,106 +39,135 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-migrate-mark-unmap_and_move-noinline-to-avoid-ice-in-gcc-473-fix
+From: Stefan Strogin <s.strogin@partner.samsung.com>
+Subject: mm: cma: add trace events for CMA allocations and freeings
 
-make it conditional on gcc-4.7.3 and arm
+Add trace events for cma_alloc() and cma_release().
 
-Cc: Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: Kevin Hilman <khilman@kernel.org>
-Cc: Kevin Hilman <khilman@linaro.org>
-Cc: Marc Zyngier <marc.zyngier@arm.com>
+The cma_alloc tracepoint is used both for successful and failed allocations,
+in case of allocation failure pfn=-1UL is stored and printed.
+
+Signed-off-by: Stefan Strogin <stefan.strogin@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Michal Nazarewicz <mpn@google.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Cc: Thierry Reding <treding@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ include/trace/events/cma.h |   63 +++++++++++++++++++++++++++++++++++
+ mm/cma.c                   |    5 ++
+ 2 files changed, 68 insertions(+)
 
-diff -puN mm/migrate.c~mm-migrate-mark-unmap_and_move-noinline-to-avoid-ice-in-gcc-473-fix mm/migrate.c
---- a/mm/migrate.c~mm-migrate-mark-unmap_and_move-noinline-to-avoid-ice-in-gcc-473-fix
-+++ a/mm/migrate.c
-@@ -901,10 +901,20 @@ out:
- }
- 
- /*
-+ * gcc-4.7.3 on arm gets an ICE when inlining unmap_and_move().  Work around
-+ * it.
-+ */
-+#if GCC_VERSION == 40703 && defined(CONFIG_ARM)
-+#define ICE_noinline noinline
-+#else
-+#define ICE_noinline
-+#endif
+diff -puN /dev/null include/trace/events/cma.h
+--- /dev/null
++++ a/include/trace/events/cma.h
+@@ -0,0 +1,63 @@
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM cma
 +
-+/*
-  * Obtain the lock on page, remove all ptes and migrate the page
-  * to the newly allocated page in newpage.
-  */
--static noinline int unmap_and_move(new_page_t get_new_page,
-+static ICE_noinline int unmap_and_move(new_page_t get_new_page,
- 				   free_page_t put_new_page,
- 				   unsigned long private, struct page *page,
- 				   int force, enum migrate_mode mode)
++#if !defined(_TRACE_CMA_H) || defined(TRACE_HEADER_MULTI_READ)
++#define _TRACE_CMA_H
++
++#include <linux/types.h>
++#include <linux/tracepoint.h>
++
++TRACE_EVENT(cma_alloc,
++
++	TP_PROTO(unsigned long pfn, const struct page *page,
++		 unsigned int count),
++
++	TP_ARGS(pfn, page, count),
++
++	TP_STRUCT__entry(
++		__field(unsigned long, pfn)
++		__field(const struct page *, page)
++		__field(unsigned int, count)
++	),
++
++	TP_fast_assign(
++		__entry->pfn = pfn;
++		__entry->page = page;
++		__entry->count = count;
++	),
++
++	TP_printk("pfn=%lx page=%p count=%u",
++		  __entry->pfn,
++		  __entry->page,
++		  __entry->count)
++);
++
++TRACE_EVENT(cma_release,
++
++	TP_PROTO(unsigned long pfn, const struct page *page,
++		 unsigned int count),
++
++	TP_ARGS(pfn, page, count),
++
++	TP_STRUCT__entry(
++		__field(unsigned long, pfn)
++		__field(const struct page *, page)
++		__field(unsigned int, count)
++	),
++
++	TP_fast_assign(
++		__entry->pfn = pfn;
++		__entry->page = page;
++		__entry->count = count;
++	),
++
++	TP_printk("pfn=%lx page=%p count=%u",
++		  __entry->pfn,
++		  __entry->page,
++		  __entry->count)
++);
++
++#endif /* _TRACE_CMA_H */
++
++/* This part must be outside protection */
++#include <trace/define_trace.h>
+diff -puN mm/cma.c~mm-cma-add-trace-events-for-cma-allocations-and-freeings mm/cma.c
+--- a/mm/cma.c~mm-cma-add-trace-events-for-cma-allocations-and-freeings
++++ a/mm/cma.c
+@@ -23,6 +23,7 @@
+ #  define DEBUG
+ #endif
+ #endif
++#define CREATE_TRACE_POINTS
+ 
+ #include <linux/memblock.h>
+ #include <linux/err.h>
+@@ -34,6 +35,7 @@
+ #include <linux/cma.h>
+ #include <linux/highmem.h>
+ #include <linux/io.h>
++#include <trace/events/cma.h>
+ 
+ #include "cma.h"
+ 
+@@ -414,6 +416,8 @@ struct page *cma_alloc(struct cma *cma,
+ 		start = bitmap_no + mask + 1;
+ 	}
+ 
++	trace_cma_alloc(page ? pfn : -1UL, page, count);
++
+ 	pr_debug("%s(): returned %p\n", __func__, page);
+ 	return page;
+ }
+@@ -446,6 +450,7 @@ bool cma_release(struct cma *cma, const
+ 
+ 	free_contig_range(pfn, count);
+ 	cma_clear_bitmap(cma, pfn, count);
++	trace_cma_release(pfn, pages, count);
+ 
+ 	return true;
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from s.strogin@partner.samsung.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-maintainers-change-x86-microcode-loader-maintainer.patch
-mm-migrate-mark-unmap_and_move-noinline-to-avoid-ice-in-gcc-473-fix.patch
-ocfs2-make-mlog_errno-return-the-errno.patch
-mm.patch
-mm-cma-release-trigger-checkpatch-fixes.patch
-mm-cma-allocation-trigger-fix.patch
-mm-compaction-enhance-compaction-finish-condition-fix.patch
-page_writeback-cleanup-mess-around-cancel_dirty_page-checkpatch-fixes.patch
-mm-hide-per-cpu-lists-in-output-of-show_mem-fix.patch
-mm-clarify-__gfp_nofail-deprecation-status-checkpatch-fixes.patch
-mm-change-vunmap-to-tear-down-huge-kva-mappings-fix.patch
-mm-mempool-do-not-allow-atomic-resizing-checkpatch-fixes.patch
-mm-memory-failurec-define-page-types-for-action_result-in-one-place.patch
-include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
-document-interaction-between-compaction-and-the-unevictable-lru-fix.patch
-mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp-fix.patch
-mm-vmalloc-occupy-newly-allocated-vmap-block-just-after-allocation.patch
-mm-mmapc-use-while-instead-of-ifgoto-fix.patch
-mm-hugetlb-introduce-pagehugeactive-flag-fix.patch
-mm-hugetlb-cleanup-using-pagehugeactive-flag-fix.patch
-mm-memblock-add-debug-output-for-the-memblock_add-fix.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
-zram-add-dynamic-device-add-remove-functionality-fix.patch
-zram-introduce-automatic-device_id-generation-fix.patch
-zsmalloc-support-compaction-fix.patch
-kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes.patch
-lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix.patch
-lib-find__bit-reimplementation-fix.patch
-checkpatch-match-more-world-writable-permissions-fix.patch
-binfmt_misc-simplify-entry_status-fix.patch
-rtc-driver-for-conexant-digicolor-cx92755-on-chip-rtc-fix.patch
-rtc-omap-add-external-32k-clock-feature-fix.patch
-fs-fat-remove-unnecessary-includes-fix.patch
-kernel-forkc-avoid-division-by-zero-fix.patch
-kernel-forkc-avoid-division-by-zero-fix-fix.patch
-doc-sysctl-kerneltxt-document-threads-max-fix.patch
-mm-rcu-protected-get_mm_exe_file-fix-2.patch
-affs-kstrdup-memory-handling-fix.patch
-kconfig-use-macros-which-are-already-defined-fix.patch
-linux-next.patch
-linux-next-rejects.patch
-lib-kconfig-fix-up-have_arch_bitreverse-help-text.patch
-oprofile-reduce-mmap_sem-hold-for-mm-exe_file-fix.patch
-tomoyo-reduce-mmap_sem-hold-for-mm-exe_file-checkpatch-fixes.patch
-documentation-spi-spidev_testc-fix-warning.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
+mm-cma-add-trace-events-for-cma-allocations-and-freeings.patch
 
