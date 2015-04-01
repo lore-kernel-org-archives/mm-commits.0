@@ -1,311 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged]
- rtc-add-rtc-abx805-a-driver-for-the-abracon-ab-1805-i2c-rtc.patch removed
+Subject: [folded-merged] rtc-add-abracon-abx80x-driver-fix.patch removed
  from -mm tree
-Date: Wed, 01 Apr 2015 12:21:15 -0700
-Message-ID: <551c452b.WNISDUC+xJtdWSV1%akpm@linux-foundation.org>
+Date: Wed, 01 Apr 2015 12:22:09 -0700
+Message-ID: <551c4561.CIKlMZ1/W7QXyHgi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33309 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33319 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753272AbbDATVQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2015 15:21:16 -0400
+	with ESMTP id S1752972AbbDATWK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2015 15:22:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: phdm@macqel.be, a.zummo@towertech.it, alexandre.belloni@free-electrons.com, arnd@arndb.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.zummo@towertech.it, alexandre.belloni@free-electrons.com, pebolle@tiscali.nl, phdm@macqel.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: add rtc-abx805, a driver for the Abracon AB 1805 i2c rtc
+     Subject: rtc-add-abracon-abx80x-driver-fix
 has been removed from the -mm tree.  Its filename was
-     rtc-add-rtc-abx805-a-driver-for-the-abracon-ab-1805-i2c-rtc.patch
+     rtc-add-abracon-abx80x-driver-fix.patch
 
-This patch was dropped because an alternative patch was merged
+This patch was dropped because it was folded into rtc-add-abracon-abx80x-driver.patch
 
 ------------------------------------------------------
-From: Philippe De Muyter <phdm@macqel.be>
-Subject: rtc: add rtc-abx805, a driver for the Abracon AB 1805 i2c rtc
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: rtc-add-abracon-abx80x-driver-fix
 
-This is a basic driver for the ultra-low-power Abracon AB 1805 RTC chip. 
-It allows reading and writing the time, and enables the supercapacitor/
-battery charger.
+s/GPL/GPL v2/, per Paul.
 
-[arnd@arndb.de: abx805 depends on i2c]
-Signed-off-by: Philippe De Muyter <phdm@macqel.be>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
 Cc: Alexandre Belloni <alexandre.belloni@free-electrons.com>
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Philippe De Muyter <phdm@macqel.be>
+Cc: Paul Bolle <pebolle@tiscali.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig      |    8 +
- drivers/rtc/Makefile     |    1 
- drivers/rtc/rtc-abx805.c |  223 +++++++++++++++++++++++++++++++++++++
- 3 files changed, 232 insertions(+)
+ drivers/rtc/rtc-abx80x.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/Kconfig~rtc-add-rtc-abx805-a-driver-for-the-abracon-ab-1805-i2c-rtc drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-add-rtc-abx805-a-driver-for-the-abracon-ab-1805-i2c-rtc
-+++ a/drivers/rtc/Kconfig
-@@ -1081,6 +1081,14 @@ config RTC_DRV_AB8500
- 	  Select this to enable the ST-Ericsson AB8500 power management IC RTC
- 	  support. This chip contains a battery- and capacitor-backed RTC.
+diff -puN drivers/rtc/rtc-abx80x.c~rtc-add-abracon-abx80x-driver-fix drivers/rtc/rtc-abx80x.c
+--- a/drivers/rtc/rtc-abx80x.c~rtc-add-abracon-abx80x-driver-fix
++++ a/drivers/rtc/rtc-abx80x.c
+@@ -190,4 +190,4 @@ module_i2c_driver(abx80x_driver);
  
-+config RTC_DRV_ABX805
-+	tristate "Abracon AB X805 RTC"
-+	depends on I2C
-+	help
-+	  Select this to enable support for the Abracon AB X805 RTC.
-+	  AB X805 is the i2c flavour of the AB 18X5 family of ultra-low-power
-+	  battery- and capacitor-backed RTC..
-+
- config RTC_DRV_NUC900
- 	tristate "NUC910/NUC920 RTC driver"
- 	depends on ARCH_W90X900
-diff -puN drivers/rtc/Makefile~rtc-add-rtc-abx805-a-driver-for-the-abracon-ab-1805-i2c-rtc drivers/rtc/Makefile
---- a/drivers/rtc/Makefile~rtc-add-rtc-abx805-a-driver-for-the-abracon-ab-1805-i2c-rtc
-+++ a/drivers/rtc/Makefile
-@@ -25,6 +25,7 @@ obj-$(CONFIG_RTC_DRV_88PM80X)	+= rtc-88p
- obj-$(CONFIG_RTC_DRV_AB3100)	+= rtc-ab3100.o
- obj-$(CONFIG_RTC_DRV_AB8500)	+= rtc-ab8500.o
- obj-$(CONFIG_RTC_DRV_ABB5ZES3)	+= rtc-ab-b5ze-s3.o
-+obj-$(CONFIG_RTC_DRV_ABX805)	+= rtc-abx805.o
- obj-$(CONFIG_RTC_DRV_ARMADA38X)	+= rtc-armada38x.o
- obj-$(CONFIG_RTC_DRV_AS3722)	+= rtc-as3722.o
- obj-$(CONFIG_RTC_DRV_AT32AP700X)+= rtc-at32ap700x.o
-diff -puN /dev/null drivers/rtc/rtc-abx805.c
---- /dev/null
-+++ a/drivers/rtc/rtc-abx805.c
-@@ -0,0 +1,223 @@
-+/*
-+ * A driver for the I2C members of the Abracon AB 18X5 RTC family,
-+ * and compatible: AB 1805 and AB 0805
-+ *
-+ * Copyright 2014-2015 Macq S.A.
-+ *
-+ * Author: Philippe De Muyter <phdm@macqel.be>
-+ *
-+ * Based on rtc-em3027.c by Mike Rapoport <mike@compulab.co.il>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/i2c.h>
-+#include <linux/rtc.h>
-+#include <linux/bcd.h>
-+#include <linux/module.h>
-+
-+/* Registers */
-+
-+#define ABX805_REG_SECONDS		0x01
-+#define ABX805_REG_CONFIGURATION_KEY	0x1f
-+#define		KEY_ENABLE_MISC_REGISTERS_WRITE_ACCESS	0x90
-+#define ABX805_REG_TRICKLE		0x20
-+#define		TRICKLE_CHARGE_ENABLE		0xA0
-+#define		TRICKLE_STANDARD_DIODE		0x8
-+#define		TRICKLE_SCHOTTKY_DIODE		0x4
-+#define		TRICKLE_OUTPUT_RESISTOR_3KOHM	0x1
-+#define		TRICKLE_OUTPUT_RESISTOR_6KOHM	0x2
-+#define		TRICKLE_OUTPUT_RESISTOR_11KOHM	0x3
-+#define ABX805_REG_ID0			0x28
-+
-+static struct i2c_driver abx805_driver;
-+
-+static int abx805_read_multiple_regs(struct i2c_client *client,
-+				     u8 *buf, u8 addr0, int len)
-+{
-+	u8 addr = addr0;
-+	struct i2c_msg msgs[] = {
-+		{/* setup read addr */
-+			.addr = client->addr,
-+			.len = 1,
-+			.buf = &addr
-+		},
-+		{/* read into buf */
-+			.addr = client->addr,
-+			.flags = I2C_M_RD,
-+			.len = len,
-+			.buf = buf
-+		},
-+	};
-+
-+	if ((i2c_transfer(client->adapter, &msgs[0], 2)) != 2) {
-+		dev_err(&client->dev, "%s: read error\n", __func__);
-+		return -EIO;
-+	}
-+
-+	return 0;
-+}
-+
-+static int abx805_enable_trickle_charger(struct i2c_client *client)
-+{
-+	u8 buf[2];
-+	struct i2c_msg msg = {
-+		.addr = client->addr,
-+		.len = 2,
-+		.buf = buf,
-+	};
-+
-+	/*
-+	 * Write 0x90 in the configuration key register (0x1F) to enable
-+	 * the access to the Trickle register
-+	 */
-+	buf[0] = ABX805_REG_CONFIGURATION_KEY;
-+	buf[1] = 0x9D;
-+
-+	/* write register */
-+	if ((i2c_transfer(client->adapter, &msg, 1)) != 1) {
-+		dev_err(&client->dev, "%s: write error\n", __func__);
-+		return -EIO;
-+	}
-+
-+	buf[0] = ABX805_REG_TRICKLE;
-+	buf[1] = TRICKLE_CHARGE_ENABLE | TRICKLE_SCHOTTKY_DIODE |
-+		 TRICKLE_OUTPUT_RESISTOR_3KOHM;
-+
-+	/* write register */
-+	if ((i2c_transfer(client->adapter, &msg, 1)) != 1) {
-+		dev_err(&client->dev, "%s: write error\n", __func__);
-+		return -EIO;
-+	}
-+	return 0;
-+}
-+
-+static int abx805_get_time(struct device *dev, struct rtc_time *tm)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	u8 buf[7];
-+	int err;
-+
-+	dev_dbg(dev, "abx805_get_time\n");
-+	/* read time/date registers */
-+	err = abx805_read_multiple_regs(client, buf, ABX805_REG_SECONDS,
-+					sizeof(buf));
-+	if (err) {
-+		dev_err(&client->dev, "%s: read error\n", __func__);
-+		return err;
-+	}
-+
-+	tm->tm_sec	= bcd2bin(buf[0]);
-+	tm->tm_min	= bcd2bin(buf[1]);
-+	tm->tm_hour	= bcd2bin(buf[2]);
-+	tm->tm_mday	= bcd2bin(buf[3]);
-+	tm->tm_mon	= bcd2bin(buf[4]) - 1;
-+	tm->tm_year	= bcd2bin(buf[5]) + 100;
-+	tm->tm_wday	= bcd2bin(buf[6]);
-+
-+	return 0;
-+}
-+
-+static int abx805_set_time(struct device *dev, struct rtc_time *tm)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	u8 buf[8];
-+
-+	struct i2c_msg msg = {
-+		.addr = client->addr,
-+		.len = 8,
-+		.buf = buf,	/* write time/date */
-+	};
-+
-+	dev_dbg(dev, "abx805_set_time\n");
-+	buf[0] = ABX805_REG_SECONDS;
-+	buf[1] = bin2bcd(tm->tm_sec);
-+	buf[2] = bin2bcd(tm->tm_min);
-+	buf[3] = bin2bcd(tm->tm_hour);
-+	buf[4] = bin2bcd(tm->tm_mday);
-+	buf[5] = bin2bcd(tm->tm_mon + 1);
-+	buf[6] = bin2bcd(tm->tm_year % 100);
-+	buf[7] = bin2bcd(tm->tm_wday);
-+
-+	/* write time/date registers */
-+	if ((i2c_transfer(client->adapter, &msg, 1)) != 1) {
-+		dev_err(&client->dev, "%s: write error\n", __func__);
-+		return -EIO;
-+	}
-+
-+	return 0;
-+}
-+
-+static const struct rtc_class_ops abx805_rtc_ops = {
-+	.read_time = abx805_get_time,
-+	.set_time = abx805_set_time,
-+};
-+
-+static int abx805_probe(struct i2c_client *client,
-+			const struct i2c_device_id *id)
-+{
-+	int err;
-+	struct rtc_device *rtc;
-+	char buf[7];
-+	unsigned int partnumber;
-+	unsigned int majrev, minrev;
-+	unsigned int lot;
-+	unsigned int wafer;
-+	unsigned int uid;
-+
-+	dev_info(&client->dev, "abx805_probe\n");
-+	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
-+		return -ENODEV;
-+
-+	err = abx805_read_multiple_regs(client, buf, ABX805_REG_ID0,
-+					sizeof(buf));
-+	if (err)
-+		return err;
-+
-+	partnumber = (buf[0] << 8) | buf[1];
-+	majrev = buf[2] >> 3;
-+	minrev = buf[2] & 0x7;
-+	lot = ((buf[4] & 0x80) << 2) | ((buf[6] & 0x80) << 1) | buf[3];
-+	uid = ((buf[4] & 0x7f) << 8) | buf[5];
-+	wafer = (buf[6] & 0x7c) >> 2;
-+	dev_info(&client->dev, "model %04x, revision %u.%u, lot %x, wafer %x, uid %x\n",
-+			partnumber, majrev, minrev, lot, wafer, uid);
-+
-+	abx805_enable_trickle_charger(client);
-+
-+	rtc = devm_rtc_device_register(&client->dev, abx805_driver.driver.name,
-+				  &abx805_rtc_ops, THIS_MODULE);
-+	if (IS_ERR(rtc))
-+		return PTR_ERR(rtc);
-+
-+	i2c_set_clientdata(client, rtc);
-+
-+	return 0;
-+}
-+
-+static int abx805_remove(struct i2c_client *client)
-+{
-+	return 0;
-+}
-+
-+static struct i2c_device_id abx805_id[] = {
-+	{ "abx805-rtc", 0 },
-+	{ }
-+};
-+
-+static struct i2c_driver abx805_driver = {
-+	.driver = {
-+		   .name = "abx805-rtc",
-+	},
-+	.probe = &abx805_probe,
-+	.remove = &abx805_remove,
-+	.id_table = abx805_id,
-+};
-+
-+module_i2c_driver(abx805_driver);
-+
-+MODULE_AUTHOR("Philippe De Muyter <phdm@macqel.be>");
-+MODULE_DESCRIPTION("Abracon AB X805 RTC driver");
-+MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Alexandre Belloni <alexandre.belloni@free-electrons.com>");
+ MODULE_DESCRIPTION("Abracon ABX80X RTC driver");
+-MODULE_LICENSE("GPL");
++MODULE_LICENSE("GPL v2");
 _
 
-Patches currently in -mm which might be from phdm@macqel.be are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+maintainers-change-x86-microcode-loader-maintainer.patch
+ocfs2-make-mlog_errno-return-the-errno.patch
+mm.patch
+mm-cma-release-trigger-checkpatch-fixes.patch
+mm-cma-allocation-trigger-fix.patch
+mm-compaction-enhance-compaction-finish-condition-fix.patch
+page_writeback-cleanup-mess-around-cancel_dirty_page-checkpatch-fixes.patch
+mm-hide-per-cpu-lists-in-output-of-show_mem-fix.patch
+mm-clarify-__gfp_nofail-deprecation-status-checkpatch-fixes.patch
+mm-change-vunmap-to-tear-down-huge-kva-mappings-fix.patch
+mm-mempool-do-not-allow-atomic-resizing-checkpatch-fixes.patch
+mm-memory-failurec-define-page-types-for-action_result-in-one-place.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
+document-interaction-between-compaction-and-the-unevictable-lru-fix.patch
+mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp-fix.patch
+mm-vmalloc-occupy-newly-allocated-vmap-block-just-after-allocation.patch
+mm-mmapc-use-while-instead-of-ifgoto-fix.patch
+mm-hugetlb-introduce-pagehugeactive-flag-fix.patch
+mm-hugetlb-cleanup-using-pagehugeactive-flag-fix.patch
+mm-memblock-add-debug-output-for-the-memblock_add-fix.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
+zram-add-dynamic-device-add-remove-functionality-fix.patch
+zram-introduce-automatic-device_id-generation-fix.patch
+zsmalloc-support-compaction-fix.patch
+kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes.patch
+lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix.patch
+lib-find__bit-reimplementation-fix.patch
+checkpatch-match-more-world-writable-permissions-fix.patch
+binfmt_misc-simplify-entry_status-fix.patch
 rtc-add-abracon-abx80x-driver.patch
-rtc-add-abracon-abx80x-driver-fix.patch
+rtc-driver-for-conexant-digicolor-cx92755-on-chip-rtc-fix.patch
+rtc-omap-add-external-32k-clock-feature-fix.patch
+fs-fat-remove-unnecessary-includes-fix.patch
+kernel-forkc-avoid-division-by-zero-fix.patch
+kernel-forkc-avoid-division-by-zero-fix-fix.patch
+doc-sysctl-kerneltxt-document-threads-max-fix.patch
+mm-rcu-protected-get_mm_exe_file-fix-2.patch
+affs-kstrdup-memory-handling-fix.patch
+kconfig-use-macros-which-are-already-defined-fix.patch
+linux-next.patch
+linux-next-rejects.patch
+lib-kconfig-fix-up-have_arch_bitreverse-help-text.patch
+oprofile-reduce-mmap_sem-hold-for-mm-exe_file-fix.patch
+tomoyo-reduce-mmap_sem-hold-for-mm-exe_file-checkpatch-fixes.patch
+documentation-spi-spidev_testc-fix-warning.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
