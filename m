@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-trivial-simplify-flag-check.patch added to -mm tree
-Date: Tue, 31 Mar 2015 16:40:15 -0700
-Message-ID: <551b305f.xYsIdwDwOlVYdTj5%akpm@linux-foundation.org>
+Subject: + sysctl-detect-overflows-when-converting-to-int.patch added to
+ -mm tree
+Date: Wed, 01 Apr 2015 12:20:29 -0700
+Message-ID: <551c44fd.qYSYLAjFlvMrDkzv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55061 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33304 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752167AbbCaXkQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 31 Mar 2015 19:40:16 -0400
+	with ESMTP id S1753276AbbDATUa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 1 Apr 2015 15:20:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bp@suse.de, mm-commits@vger.kernel.org
+To: xypron.glpk@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/mm.h: simplify flag check
+     Subject: kernel/sysctl.c: detect overflows when converting to int
 has been added to the -mm tree.  Its filename is
-     mm-trivial-simplify-flag-check.patch
+     sysctl-detect-overflows-when-converting-to-int.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-trivial-simplify-flag-check.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sysctl-detect-overflows-when-converting-to-int.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-trivial-simplify-flag-check.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sysctl-detect-overflows-when-converting-to-int.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,54 +39,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Borislav Petkov <bp@suse.de>
-Subject: include/linux/mm.h: simplify flag check
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Subject: kernel/sysctl.c: detect overflows when converting to int
 
-Flip the flag test so that it is the simplest.  No functional change, just
-a small readability improvement:
+When converting unsigned long to int overflows may occur.  These currently
+are not detected when writing to the sysctl file system.
 
-No code changed:
+E.g. on a system where int has 32 bits and long has 64 bits
+  echo 0x800001234 > /proc/sys/kernel/threads-max
+has the same effect as
+  echo 0x1234 > /proc/sys/kernel/threads-max
 
-  # arch/x86/kernel/sys_x86_64.o:
+The patch adds the missing check in do_proc_dointvec_conv.
 
-   text    data     bss     dec     hex filename
-   1551      24       0    1575     627 sys_x86_64.o.before
-   1551      24       0    1575     627 sys_x86_64.o.after
+With the patch an overflow will result in an error EINVAL when writing to
+the the sysctl file system.
 
-md5:
-   70708d1b1ad35cc891118a69dc1a63f9  sys_x86_64.o.before.asm
-   70708d1b1ad35cc891118a69dc1a63f9  sys_x86_64.o.after.asm
-
-Signed-off-by: Borislav Petkov <bp@suse.de>
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ kernel/sysctl.c |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/mm.h~mm-trivial-simplify-flag-check include/linux/mm.h
---- a/include/linux/mm.h~mm-trivial-simplify-flag-check
-+++ a/include/linux/mm.h
-@@ -1855,10 +1855,10 @@ extern unsigned long unmapped_area_topdo
- static inline unsigned long
- vm_unmapped_area(struct vm_unmapped_area_info *info)
+diff -puN kernel/sysctl.c~sysctl-detect-overflows-when-converting-to-int kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-detect-overflows-when-converting-to-int
++++ a/kernel/sysctl.c
+@@ -1980,7 +1980,15 @@ static int do_proc_dointvec_conv(bool *n
+ 				 int write, void *data)
  {
--	if (!(info->flags & VM_UNMAPPED_AREA_TOPDOWN))
--		return unmapped_area(info);
--	else
-+	if (info->flags & VM_UNMAPPED_AREA_TOPDOWN)
- 		return unmapped_area_topdown(info);
-+	else
-+		return unmapped_area(info);
- }
- 
- /* truncate.c */
+ 	if (write) {
+-		*valp = *negp ? -*lvalp : *lvalp;
++		if (*negp) {
++			if (*lvalp > (unsigned long) INT_MAX + 1)
++				return -EINVAL;
++			*valp = -*lvalp;
++		} else {
++			if (*lvalp > (unsigned long) INT_MAX)
++				return -EINVAL;
++			*valp = *lvalp;
++		}
+ 	} else {
+ 		int val = *valp;
+ 		if (val < 0) {
 _
 
-Patches currently in -mm which might be from bp@suse.de are
+Patches currently in -mm which might be from xypron.glpk@gmx.de are
 
-maintainers-change-x86-microcode-loader-maintainer.patch
-mm-trivial-simplify-flag-check.patch
-printk-comment-pr_cont-stating-it-is-only-to-continue-a-line.patch
+kernel-forkc-new-function-for-max_threads.patch
+kernel-forkc-avoid-division-by-zero.patch
+kernel-forkc-avoid-division-by-zero-fix.patch
+kernel-forkc-avoid-division-by-zero-fix-fix.patch
+kernel-sysctlc-threads-max-observe-limits.patch
+doc-sysctl-kerneltxt-document-threads-max.patch
+doc-sysctl-kerneltxt-document-threads-max-fix.patch
+sysctl-detect-overflows-when-converting-to-int.patch
 linux-next.patch
 
