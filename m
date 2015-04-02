@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-cma-add-trace-events-for-cma-allocations-and-freeings-fix.patch added to -mm tree
-Date: Thu, 02 Apr 2015 13:56:10 -0700
-Message-ID: <551dacea.djOQqaHpj9U9/km9%akpm@linux-foundation.org>
+Subject: + mm-hugetlb-introduce-pagehugeactive-flag-fix-fix.patch added to -mm tree
+Date: Thu, 02 Apr 2015 14:05:14 -0700
+Message-ID: <551daf0a.GK94q+cJMFq/AC4x%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56873 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56903 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751491AbbDBU4L (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Apr 2015 16:56:11 -0400
+	with ESMTP id S1750771AbbDBVFP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 2 Apr 2015 17:05:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: stefan.strogin@gmail.com, iamjoonsoo.kim@lge.com, laurent.pinchart+renesas@ideasonboard.com, m.szyprowski@samsung.com, mingo@elte.hu, mpn@google.com, rostedt@goodmis.org, treding@nvidia.com, mm-commits@vger.kernel.org
+To: fengguang.wu@intel.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-cma-add-trace-events-for-cma-allocations-and-freeings-fix
+     Subject: set_page_huge_active() can be static
 has been added to the -mm tree.  Its filename is
-     mm-cma-add-trace-events-for-cma-allocations-and-freeings-fix.patch
+     mm-hugetlb-introduce-pagehugeactive-flag-fix-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-cma-add-trace-events-for-cma-allocations-and-freeings-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-introduce-pagehugeactive-flag-fix-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-cma-add-trace-events-for-cma-allocations-and-freeings-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-introduce-pagehugeactive-flag-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,79 +38,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Stefan Strogin <stefan.strogin@gmail.com>
-Subject: mm-cma-add-trace-events-for-cma-allocations-and-freeings-fix
+From: kbuild test robot <fengguang.wu@intel.com>
+Subject: set_page_huge_active() can be static
 
-Trace 'align' too in cma_alloc trace event.
-
-Signed-off-by: Stefan Strogin <stefan.strogin@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Michal Nazarewicz <mpn@google.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Cc: Thierry Reding <treding@nvidia.com>
+Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/cma.h |   11 +++++++----
- mm/cma.c                   |    2 +-
- 2 files changed, 8 insertions(+), 5 deletions(-)
+ mm/hugetlb.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/trace/events/cma.h~mm-cma-add-trace-events-for-cma-allocations-and-freeings-fix include/trace/events/cma.h
---- a/include/trace/events/cma.h~mm-cma-add-trace-events-for-cma-allocations-and-freeings-fix
-+++ a/include/trace/events/cma.h
-@@ -10,26 +10,29 @@
- TRACE_EVENT(cma_alloc,
+diff -puN mm/hugetlb.c~mm-hugetlb-introduce-pagehugeactive-flag-fix-fix mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-introduce-pagehugeactive-flag-fix-fix
++++ a/mm/hugetlb.c
+@@ -937,13 +937,13 @@ bool page_huge_active(struct page *page)
+ }
  
- 	TP_PROTO(unsigned long pfn, const struct page *page,
--		 unsigned int count),
-+		 unsigned int count, unsigned int align),
+ /* never called for tail page */
+-void set_page_huge_active(struct page *page)
++static void set_page_huge_active(struct page *page)
+ {
+ 	VM_BUG_ON_PAGE(!PageHeadHuge(page), page);
+ 	SetPagePrivate(&page[1]);
+ }
  
--	TP_ARGS(pfn, page, count),
-+	TP_ARGS(pfn, page, count, align),
- 
- 	TP_STRUCT__entry(
- 		__field(unsigned long, pfn)
- 		__field(const struct page *, page)
- 		__field(unsigned int, count)
-+		__field(unsigned int, align)
- 	),
- 
- 	TP_fast_assign(
- 		__entry->pfn = pfn;
- 		__entry->page = page;
- 		__entry->count = count;
-+		__entry->align = align;
- 	),
- 
--	TP_printk("pfn=%lx page=%p count=%u",
-+	TP_printk("pfn=%lx page=%p count=%u align=%u",
- 		  __entry->pfn,
- 		  __entry->page,
--		  __entry->count)
-+		  __entry->count,
-+		  __entry->align)
- );
- 
- TRACE_EVENT(cma_release,
-diff -puN mm/cma.c~mm-cma-add-trace-events-for-cma-allocations-and-freeings-fix mm/cma.c
---- a/mm/cma.c~mm-cma-add-trace-events-for-cma-allocations-and-freeings-fix
-+++ a/mm/cma.c
-@@ -416,7 +416,7 @@ struct page *cma_alloc(struct cma *cma,
- 		start = bitmap_no + mask + 1;
- 	}
- 
--	trace_cma_alloc(page ? pfn : -1UL, page, count);
-+	trace_cma_alloc(page ? pfn : -1UL, page, count, align);
- 
- 	pr_debug("%s(): returned %p\n", __func__, page);
- 	return page;
+-void clear_page_huge_active(struct page *page)
++static void clear_page_huge_active(struct page *page)
+ {
+ 	VM_BUG_ON_PAGE(!PageHeadHuge(page), page);
+ 	ClearPagePrivate(&page[1]);
 _
 
-Patches currently in -mm which might be from stefan.strogin@gmail.com are
+Patches currently in -mm which might be from fengguang.wu@intel.com are
 
-mm-cma-add-trace-events-for-cma-allocations-and-freeings.patch
-mm-cma-add-trace-events-for-cma-allocations-and-freeings-fix.patch
+x86-mm-support-huge-kva-mappings-on-x86-fix.patch
+mm-hugetlb-introduce-pagehugeactive-flag-fix-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix.patch
+asoc-pcm512x-use-div_round_closest_ull-from-kernelh.patch
+rtc-ds1685-remove-owner-assignment-from-platform_driver.patch
+gcov-fix-softlockups.patch
+linux-next.patch
+mm-add-strictlimit-knob-v2.patch
 
