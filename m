@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-cma-add-functions-to-get-region-pages-counters-fix.patch
- added to -mm tree
-Date: Fri, 03 Apr 2015 14:58:40 -0700
-Message-ID: <551f0d10.bf1YY9HHc3v2aBRJ%akpm@linux-foundation.org>
+Subject: +
+ mm-cma_debugc-remove-blank-lines-before-define_simple_attribute.patch added to -mm tree
+Date: Fri, 03 Apr 2015 15:00:34 -0700
+Message-ID: <551f0d82.GpCjwzoTJ9hPhrN8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49037 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49045 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752274AbbDCV6l (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Apr 2015 17:58:41 -0400
+	with ESMTP id S1751817AbbDCWAf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Apr 2015 18:00:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, a.mateosian@samsung.com, d.safonov@partner.samsung.com, iamjoonsoo.kim@lge.com, laurent.pinchart+renesas@ideasonboard.com, m.szyprowski@samsung.com, mina86@mina86.com, pintu.k@samsung.com, stefan.strogin@gmail.com, v.tyrtov@samsung.com, weijie.yang@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-cma-add-functions-to-get-region-pages-counters-fix
+     Subject: mm/cma_debug.c: remove blank lines before DEFINE_SIMPLE_ATTRIBUTE()
 has been added to the -mm tree.  Its filename is
-     mm-cma-add-functions-to-get-region-pages-counters-fix.patch
+     mm-cma_debugc-remove-blank-lines-before-define_simple_attribute.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-cma-add-functions-to-get-region-pages-counters-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-cma_debugc-remove-blank-lines-before-define_simple_attribute.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-cma-add-functions-to-get-region-pages-counters-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-cma_debugc-remove-blank-lines-before-define_simple_attribute.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,10 +40,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-cma-add-functions-to-get-region-pages-counters-fix
+Subject: mm/cma_debug.c: remove blank lines before DEFINE_SIMPLE_ATTRIBUTE()
 
-move debug code from cma.c into cma_debug.c so it doesn't get included in
-CONFIG_CMA_DEBUGFS=n builds
+Like EXPORT_SYMBOL(): the positioning communicates that the macro pertains
+to the immediately preceding function.
 
 Cc: Dmitry Safonov <d.safonov@partner.samsung.com>
 Cc: Michal Nazarewicz <mina86@mina86.com>
@@ -58,104 +58,52 @@ Cc: Aleksei Mateosian <a.mateosian@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cma.h |    2 --
- mm/cma.c            |   30 ------------------------------
- mm/cma_debug.c      |   31 +++++++++++++++++++++++++++++++
- 3 files changed, 31 insertions(+), 32 deletions(-)
+ mm/cma_debug.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN include/linux/cma.h~mm-cma-add-functions-to-get-region-pages-counters-fix include/linux/cma.h
---- a/include/linux/cma.h~mm-cma-add-functions-to-get-region-pages-counters-fix
-+++ a/include/linux/cma.h
-@@ -18,8 +18,6 @@ struct cma;
- extern unsigned long totalcma_pages;
- extern phys_addr_t cma_get_base(const struct cma *cma);
- extern unsigned long cma_get_size(const struct cma *cma);
--extern unsigned long cma_get_used(struct cma *cma);
--extern unsigned long cma_get_maxchunk(struct cma *cma);
- 
- extern int __init cma_declare_contiguous(phys_addr_t base,
- 			phys_addr_t size, phys_addr_t limit,
-diff -puN mm/cma.c~mm-cma-add-functions-to-get-region-pages-counters-fix mm/cma.c
---- a/mm/cma.c~mm-cma-add-functions-to-get-region-pages-counters-fix
-+++ a/mm/cma.c
-@@ -53,36 +53,6 @@ unsigned long cma_get_size(const struct
- 	return cma->count << PAGE_SHIFT;
- }
- 
--unsigned long cma_get_used(struct cma *cma)
--{
--	unsigned long ret = 0;
--
--	mutex_lock(&cma->lock);
--	/* pages counter is smaller than sizeof(int) */
--	ret = bitmap_weight(cma->bitmap, (int)cma->count);
--	mutex_unlock(&cma->lock);
--
--	return ret << cma->order_per_bit;
--}
--
--unsigned long cma_get_maxchunk(struct cma *cma)
--{
--	unsigned long maxchunk = 0;
--	unsigned long start, end = 0;
--
--	mutex_lock(&cma->lock);
--	for (;;) {
--		start = find_next_zero_bit(cma->bitmap, cma->count, end);
--		if (start >= cma->count)
--			break;
--		end = find_next_bit(cma->bitmap, cma->count, start);
--		maxchunk = max(end - start, maxchunk);
--	}
--	mutex_unlock(&cma->lock);
--
--	return maxchunk << cma->order_per_bit;
--}
--
- static unsigned long cma_bitmap_aligned_mask(const struct cma *cma,
- 					     int align_order)
- {
-diff -puN mm/cma_debug.c~mm-cma-add-functions-to-get-region-pages-counters-fix mm/cma_debug.c
---- a/mm/cma_debug.c~mm-cma-add-functions-to-get-region-pages-counters-fix
+diff -puN mm/cma_debug.c~mm-cma_debugc-remove-blank-lines-before-define_simple_attribute mm/cma_debug.c
+--- a/mm/cma_debug.c~mm-cma_debugc-remove-blank-lines-before-define_simple_attribute
 +++ a/mm/cma_debug.c
-@@ -22,6 +22,37 @@ struct cma_mem {
+@@ -61,7 +61,6 @@ static int cma_debugfs_get(void *data, u
  
- static struct dentry *cma_debugfs_root;
+ 	return 0;
+ }
+-
+ DEFINE_SIMPLE_ATTRIBUTE(cma_debugfs_fops, cma_debugfs_get, NULL, "%llu\n");
  
-+static unsigned long cma_get_used(struct cma *cma)
-+{
-+	unsigned long ret = 0;
-+
-+	mutex_lock(&cma->lock);
-+	/* pages counter is smaller than sizeof(int) */
-+	ret = bitmap_weight(cma->bitmap, (int)cma->count);
-+	mutex_unlock(&cma->lock);
-+
-+	return ret << cma->order_per_bit;
-+}
-+
-+static unsigned long cma_get_maxchunk(struct cma *cma)
-+{
-+	unsigned long maxchunk = 0;
-+	unsigned long start, end = 0;
-+
-+	mutex_lock(&cma->lock);
-+	for (;;) {
-+		start = find_next_zero_bit(cma->bitmap, cma->count, end);
-+		if (start >= cma->count)
-+			break;
-+		end = find_next_bit(cma->bitmap, cma->count, start);
-+		maxchunk = max(end - start, maxchunk);
-+	}
-+	mutex_unlock(&cma->lock);
-+
-+	return maxchunk << cma->order_per_bit;
-+}
-+
-+
- static int cma_debugfs_get(void *data, u64 *val)
- {
- 	unsigned long *p = data;
+ static int cma_used_get(void *data, u64 *val)
+@@ -72,7 +71,6 @@ static int cma_used_get(void *data, u64
+ 
+ 	return 0;
+ }
+-
+ DEFINE_SIMPLE_ATTRIBUTE(cma_used_fops, cma_used_get, NULL, "%llu\n");
+ 
+ static int cma_maxchunk_get(void *data, u64 *val)
+@@ -83,7 +81,6 @@ static int cma_maxchunk_get(void *data,
+ 
+ 	return 0;
+ }
+-
+ DEFINE_SIMPLE_ATTRIBUTE(cma_maxchunk_fops, cma_maxchunk_get, NULL, "%llu\n");
+ 
+ static void cma_add_to_cma_mem_list(struct cma *cma, struct cma_mem *mem)
+@@ -144,7 +141,6 @@ static int cma_free_write(void *data, u6
+ 
+ 	return cma_free_mem(cma, pages);
+ }
+-
+ DEFINE_SIMPLE_ATTRIBUTE(cma_free_fops, NULL, cma_free_write, "%llu\n");
+ 
+ static int cma_alloc_mem(struct cma *cma, int count)
+@@ -177,7 +173,6 @@ static int cma_alloc_write(void *data, u
+ 
+ 	return cma_alloc_mem(cma, pages);
+ }
+-
+ DEFINE_SIMPLE_ATTRIBUTE(cma_alloc_fops, NULL, cma_alloc_write, "%llu\n");
+ 
+ static void cma_debugfs_add_one(struct cma *cma, int idx)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -186,6 +134,7 @@ mm-hugetlb-cleanup-using-pagehugeactive-flag-fix.patch
 mm-memblock-add-debug-output-for-the-memblock_add-fix.patch
 mm-uninline-and-cleanup-page-mapping-related-helpers-checkpatch-fixes.patch
 mm-cma-add-functions-to-get-region-pages-counters-fix.patch
+mm-cma_debugc-remove-blank-lines-before-define_simple_attribute.patch
 mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
 x86-add-pmd_-for-thp-fix.patch
 sparc-add-pmd_-for-thp-fix.patch
