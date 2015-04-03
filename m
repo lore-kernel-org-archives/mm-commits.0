@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-mempool-poison-elements-backed-by-page-allocator-fix-fix.patch added to
- -mm tree
-Date: Fri, 03 Apr 2015 14:30:52 -0700
-Message-ID: <551f068c.qTjLrOQqLUnaNk3d%akpm@linux-foundation.org>
+ mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp-fix-fix.patch
+ added to -mm tree
+Date: Fri, 03 Apr 2015 14:31:54 -0700
+Message-ID: <551f06ca.Wi49B5Lv2YwvvLwI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48626 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48636 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751817AbbDCVax (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Apr 2015 17:30:53 -0400
+	with ESMTP id S1750739AbbDCVbz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Apr 2015 17:31:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, a.ryabinin@samsung.com, mm-commits@vger.kernel.org
+To: rientjes@google.com, hannes@cmpxchg.org, mhocko@suse.cz, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, mempool: poison elements backed by page allocator fix fix
+     Subject: mm, memcg: sync allocation and memcg charge gfp flags for thp fix fix
 has been added to the -mm tree.  Its filename is
-     mm-mempool-poison-elements-backed-by-page-allocator-fix-fix.patch
+     mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp-fix-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mempool-poison-elements-backed-by-page-allocator-fix-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp-fix-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mempool-poison-elements-backed-by-page-allocator-fix-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,47 +41,91 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Rientjes <rientjes@google.com>
-Subject: mm, mempool: poison elements backed by page allocator fix fix
+Subject: mm, memcg: sync allocation and memcg charge gfp flags for thp fix fix
 
-Elements backed by the page allocator might not be directly mapped into
-lowmem, so do k{,un}map_atomic() before poisoning and verifying contents
-to map into lowmem and return the virtual adddress.
+"mm, memcg: sync allocation and memcg charge gfp flags for THP" in -mm
+introduces a formal to pass the gfp mask for khugepaged's hugepage
+allocation.  This is just too ugly to live.
+
+alloc_hugepage_gfpmask() cannot differ between NUMA and UMA configs by
+anything in GFP_RECLAIM_MASK, which is the only thing that matters for
+memcg reclaim, so just determine the gfp flags once in
+collapse_huge_page() and avoid the complexity.
 
 Signed-off-by: David Rientjes <rientjes@google.com>
-Reported-by: Andrey Ryabinin <a.ryabinin@samsung.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempool.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/huge_memory.c |   21 ++++++++-------------
+ 1 file changed, 8 insertions(+), 13 deletions(-)
 
-diff -puN mm/mempool.c~mm-mempool-poison-elements-backed-by-page-allocator-fix-fix mm/mempool.c
---- a/mm/mempool.c~mm-mempool-poison-elements-backed-by-page-allocator-fix-fix
-+++ a/mm/mempool.c
-@@ -61,9 +61,10 @@ static void check_element(mempool_t *poo
- 	/* Mempools backed by page allocator */
- 	if (pool->free == mempool_free_pages) {
- 		int order = (int)(long)pool->pool_data;
--		void *addr = page_address(element);
-+		void *addr = kmap_atomic((struct page *)element);
- 
- 		__check_element(pool, addr, 1UL << (PAGE_SHIFT + order));
-+		kunmap_atomic(addr);
- 	}
+diff -puN mm/huge_memory.c~mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp-fix-fix mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp-fix-fix
++++ a/mm/huge_memory.c
+@@ -2322,16 +2322,12 @@ static bool khugepaged_prealloc_page(str
  }
  
-@@ -84,9 +85,10 @@ static void poison_element(mempool_t *po
- 	/* Mempools backed by page allocator */
- 	if (pool->alloc == mempool_alloc_pages) {
- 		int order = (int)(long)pool->pool_data;
--		void *addr = page_address(element);
-+		void *addr = kmap_atomic((struct page *)element);
+ static struct page *
+-khugepaged_alloc_page(struct page **hpage, gfp_t *gfp, struct mm_struct *mm,
++khugepaged_alloc_page(struct page **hpage, gfp_t gfp, struct mm_struct *mm,
+ 		       struct vm_area_struct *vma, unsigned long address,
+ 		       int node)
+ {
+ 	VM_BUG_ON_PAGE(*hpage, *hpage);
  
- 		__poison_element(addr, 1UL << (PAGE_SHIFT + order));
-+		kunmap_atomic(addr);
- 	}
+-	/* Only allocate from the target node */
+-	*gfp = alloc_hugepage_gfpmask(khugepaged_defrag(), __GFP_OTHER_NODE) |
+-	        __GFP_THISNODE;
+-
+ 	/*
+ 	 * Before allocating the hugepage, release the mmap_sem read lock.
+ 	 * The allocation can take potentially a long time if it involves
+@@ -2340,7 +2336,7 @@ khugepaged_alloc_page(struct page **hpag
+ 	 */
+ 	up_read(&mm->mmap_sem);
+ 
+-	*hpage = alloc_pages_exact_node(node, *gfp, HPAGE_PMD_ORDER);
++	*hpage = alloc_pages_exact_node(node, gfp, HPAGE_PMD_ORDER);
+ 	if (unlikely(!*hpage)) {
+ 		count_vm_event(THP_COLLAPSE_ALLOC_FAILED);
+ 		*hpage = ERR_PTR(-ENOMEM);
+@@ -2394,18 +2390,13 @@ static bool khugepaged_prealloc_page(str
  }
- #else /* CONFIG_DEBUG_SLAB || CONFIG_SLUB_DEBUG_ON */
+ 
+ static struct page *
+-khugepaged_alloc_page(struct page **hpage, gfp_t *gfp, struct mm_struct *mm,
++khugepaged_alloc_page(struct page **hpage, gfp_t gfp, struct mm_struct *mm,
+ 		       struct vm_area_struct *vma, unsigned long address,
+ 		       int node)
+ {
+ 	up_read(&mm->mmap_sem);
+ 	VM_BUG_ON(!*hpage);
+ 
+-	/*
+-	 * khugepaged_alloc_hugepage is doing the preallocation, use the same
+-	 * gfp flags here.
+-	 */
+-	*gfp = alloc_hugepage_gfpmask(khugepaged_defrag(), 0);
+ 	return  *hpage;
+ }
+ #endif
+@@ -2444,8 +2435,12 @@ static void collapse_huge_page(struct mm
+ 
+ 	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
+ 
++	/* Only allocate from the target node */
++	gfp = alloc_hugepage_gfpmask(khugepaged_defrag(), __GFP_OTHER_NODE) |
++		__GFP_THISNODE;
++
+ 	/* release the mmap_sem read lock. */
+-	new_page = khugepaged_alloc_page(hpage, &gfp, mm, vma, address, node);
++	new_page = khugepaged_alloc_page(hpage, gfp, mm, vma, address, node);
+ 	if (!new_page)
+ 		return;
+ 
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
@@ -123,6 +167,7 @@ page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
 allow-compaction-of-unevictable-pages.patch
 document-interaction-between-compaction-and-the-unevictable-lru.patch
 document-interaction-between-compaction-and-the-unevictable-lru-fix.patch
+mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp-fix-fix.patch
 mm-compaction-reset-compaction-scanner-positions.patch
 hugetlbfs-add-minimum-size-tracking-fields-to-subpool-structure.patch
 hugetlbfs-add-minimum-size-accounting-to-subpools.patch
