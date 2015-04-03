@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-doc-cleanup-and-clarify-munmap-behavior-for-hugetlb-memory-fix.patch
- added to -mm tree
-Date: Fri, 03 Apr 2015 14:27:32 -0700
-Message-ID: <551f05c4.trwCTlBIdxojjGUu%akpm@linux-foundation.org>
+ mm-mempool-poison-elements-backed-by-page-allocator-fix-fix.patch added to
+ -mm tree
+Date: Fri, 03 Apr 2015 14:30:52 -0700
+Message-ID: <551f068c.qTjLrOQqLUnaNk3d%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48621 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48626 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752586AbbDCV1d (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Apr 2015 17:27:33 -0400
+	with ESMTP id S1751817AbbDCVax (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Apr 2015 17:30:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, hillf.zj@alibaba-inc.com, hughd@google.com, mm-commits@vger.kernel.org
+To: rientjes@google.com, a.ryabinin@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, doc: cleanup and clarify munmap behavior for hugetlb memory fix
+     Subject: mm, mempool: poison elements backed by page allocator fix fix
 has been added to the -mm tree.  Its filename is
-     mm-doc-cleanup-and-clarify-munmap-behavior-for-hugetlb-memory-fix.patch
+     mm-mempool-poison-elements-backed-by-page-allocator-fix-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-doc-cleanup-and-clarify-munmap-behavior-for-hugetlb-memory-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mempool-poison-elements-backed-by-page-allocator-fix-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-doc-cleanup-and-clarify-munmap-behavior-for-hugetlb-memory-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mempool-poison-elements-backed-by-page-allocator-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,38 +41,47 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Rientjes <rientjes@google.com>
-Subject: mm, doc: cleanup and clarify munmap behavior for hugetlb memory fix
+Subject: mm, mempool: poison elements backed by page allocator fix fix
 
-Don't only specify munmap(2) behavior with respect the hugetlb memory, all
-other syscalls get naturally aligned to the native page size of the
-processor.  Rather, pick out munmap(2) as a specific example.
+Elements backed by the page allocator might not be directly mapped into
+lowmem, so do k{,un}map_atomic() before poisoning and verifying contents
+to map into lowmem and return the virtual adddress.
 
 Signed-off-by: David Rientjes <rientjes@google.com>
-Acked-by: Hugh Dickins <hughd@google.com>
-Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+Reported-by: Andrey Ryabinin <a.ryabinin@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/hugetlbpage.txt |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ mm/mempool.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/vm/hugetlbpage.txt~mm-doc-cleanup-and-clarify-munmap-behavior-for-hugetlb-memory-fix Documentation/vm/hugetlbpage.txt
---- a/Documentation/vm/hugetlbpage.txt~mm-doc-cleanup-and-clarify-munmap-behavior-for-hugetlb-memory-fix
-+++ a/Documentation/vm/hugetlbpage.txt
-@@ -313,8 +313,11 @@ into /proc/sys/vm/hugetlb_shm_group.  It
- applications to use any combination of mmaps and shm* calls, though the mount of
- filesystem will be required for using mmap calls without MAP_HUGETLB.
+diff -puN mm/mempool.c~mm-mempool-poison-elements-backed-by-page-allocator-fix-fix mm/mempool.c
+--- a/mm/mempool.c~mm-mempool-poison-elements-backed-by-page-allocator-fix-fix
++++ a/mm/mempool.c
+@@ -61,9 +61,10 @@ static void check_element(mempool_t *poo
+ 	/* Mempools backed by page allocator */
+ 	if (pool->free == mempool_free_pages) {
+ 		int order = (int)(long)pool->pool_data;
+-		void *addr = page_address(element);
++		void *addr = kmap_atomic((struct page *)element);
  
--When using munmap(2) to unmap hugetlb memory, the length specified must be
--hugepage aligned, otherwise it will fail with errno set to EINVAL.
-+Syscalls that operate on memory backed by hugetlb pages only have their lengths
-+aligned to the native page size of the processor; they will normally fail with
-+errno set to EINVAL or exclude hugetlb pages that extend beyond the length if
-+not hugepage aligned.  For example, munmap(2) will fail if memory is backed by
-+a hugetlb page and the length is smaller than the hugepage size.
+ 		__check_element(pool, addr, 1UL << (PAGE_SHIFT + order));
++		kunmap_atomic(addr);
+ 	}
+ }
  
+@@ -84,9 +85,10 @@ static void poison_element(mempool_t *po
+ 	/* Mempools backed by page allocator */
+ 	if (pool->alloc == mempool_alloc_pages) {
+ 		int order = (int)(long)pool->pool_data;
+-		void *addr = page_address(element);
++		void *addr = kmap_atomic((struct page *)element);
  
- Examples
+ 		__poison_element(addr, 1UL << (PAGE_SHIFT + order));
++		kunmap_atomic(addr);
+ 	}
+ }
+ #else /* CONFIG_DEBUG_SLAB || CONFIG_SLUB_DEBUG_ON */
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
@@ -129,6 +138,7 @@ mm-mempool-disallow-mempools-based-on-slab-caches-with-constructors.patch
 mm-mempool-poison-elements-backed-by-slab-allocator.patch
 mm-mempool-poison-elements-backed-by-page-allocator.patch
 mm-mempool-poison-elements-backed-by-page-allocator-fix.patch
+mm-mempool-poison-elements-backed-by-page-allocator-fix-fix.patch
 thp-handle-errors-in-hugepage_init-properly.patch
 thp-do-not-adjust-zone-water-marks-if-khugepaged-is-not-started.patch
 mm-doc-cleanup-and-clarify-munmap-behavior-for-hugetlb-memory.patch
