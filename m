@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memory-print-also-a_ops-readpage-in-print_bad_pte.patch
+Subject: + checkpatch-add-define-foo-string-long-line-exception.patch
  added to -mm tree
-Date: Fri, 03 Apr 2015 15:12:11 -0700
-Message-ID: <551f103b.kIkdY9ZbnmSLT0Nx%akpm@linux-foundation.org>
+Date: Fri, 03 Apr 2015 15:13:19 -0700
+Message-ID: <551f107f.dLUikRR8MGWDYbKS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49203 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49209 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752582AbbDCWMM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Apr 2015 18:12:12 -0400
+	with ESMTP id S1751730AbbDCWNU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Apr 2015 18:13:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khlebnikov@yandex-team.ru, kirill@shutemov.name, sasha.levin@oracle.com, mm-commits@vger.kernel.org
+To: joe@perches.com, apw@shadowen.org, madalin.bucur@freescale.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory: also print a_ops->readpage in print_bad_pte()
+     Subject: checkpatch: add #define foo "string" long line exception
 has been added to the -mm tree.  Its filename is
-     mm-memory-print-also-a_ops-readpage-in-print_bad_pte.patch
+     checkpatch-add-define-foo-string-long-line-exception.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory-print-also-a_ops-readpage-in-print_bad_pte.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-define-foo-string-long-line-exception.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory-print-also-a_ops-readpage-in-print_bad_pte.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-define-foo-string-long-line-exception.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,68 +39,82 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Subject: mm/memory: also print a_ops->readpage in print_bad_pte()
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: add #define foo "string" long line exception
 
-A lot of filesystems use generic_file_mmap() and filemap_fault(),
-f_op->mmap and vm_ops->fault aren't enough to identify filesystem.
+There are #defines with long string constants like:
+	#define foo "some really long string > 80 columns"
+Add a long line exception for them.
 
-This prints file name, vm_ops->fault, f_op->mmap and a_ops->readpage
-(which is almost always implemented and filesystem-specific).
+Miscellanea:
 
-Example:
+Use the $String variable for slightly better readability
 
-[   23.676410] BUG: Bad page map in process sh  pte:1b7e6025 pmd:19bbd067
-[   23.676887] page:ffffea00006df980 count:4 mapcount:1 mapping:ffff8800196426c0 index:0x97
-[   23.677481] flags: 0x10000000000000c(referenced|uptodate)
-[   23.677896] page dumped because: bad pte
-[   23.678205] addr:00007f52fcb17000 vm_flags:00000075 anon_vma:          (null) mapping:ffff8800196426c0 index:97
-[   23.678922] file:libc-2.19.so fault:filemap_fault mmap:generic_file_readonly_mmap readpage:v9fs_vfs_readpage
-
-Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Cc: Sasha Levin <sasha.levin@oracle.com>
-Acked-by: Kirill A. Shutemov <kirill@shutemov.name>
+Signed-off-by: Joe Perches <joe@perches.com>
+Reported-by: Madalin-Cristian Bucur <madalin.bucur@freescale.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ scripts/checkpatch.pl |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN mm/memory.c~mm-memory-print-also-a_ops-readpage-in-print_bad_pte mm/memory.c
---- a/mm/memory.c~mm-memory-print-also-a_ops-readpage-in-print_bad_pte
-+++ a/mm/memory.c
-@@ -690,12 +690,12 @@ static void print_bad_pte(struct vm_area
- 	/*
- 	 * Choose text because data symbols depend on CONFIG_KALLSYMS_ALL=y
- 	 */
--	if (vma->vm_ops)
--		printk(KERN_ALERT "vma->vm_ops->fault: %pSR\n",
--		       vma->vm_ops->fault);
--	if (vma->vm_file)
--		printk(KERN_ALERT "vma->vm_file->f_op->mmap: %pSR\n",
--		       vma->vm_file->f_op->mmap);
-+	printk(KERN_ALERT
-+		"file:%pD fault:%pf mmap:%pf readpage:%pf\n",
-+		vma->vm_file,
-+		vma->vm_ops ? vma->vm_ops->fault : NULL,
-+		vma->vm_file ? vma->vm_file->f_op->mmap : NULL,
-+		mapping ? mapping->a_ops->readpage : NULL);
- 	dump_stack();
- 	add_taint(TAINT_BAD_PAGE, LOCKDEP_NOW_UNRELIABLE);
- }
+diff -puN scripts/checkpatch.pl~checkpatch-add-define-foo-string-long-line-exception scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-define-foo-string-long-line-exception
++++ a/scripts/checkpatch.pl
+@@ -2513,8 +2513,9 @@ sub process {
+ #line length limit
+ 		if ($line =~ /^\+/ && $prevrawline !~ /\/\*\*/ &&
+ 		    $rawline !~ /^.\s*\*\s*\@$Ident\s/ &&
+-		    !($line =~ /^\+\s*$logFunctions\s*\(\s*(?:(KERN_\S+\s*|[^"]*))?"[X\t]*"\s*(?:|,|\)\s*;)\s*$/ ||
+-		    $line =~ /^\+\s*"[^"]*"\s*(?:\s*|,|\)\s*;)\s*$/) &&
++		    !($line =~ /^\+\s*$logFunctions\s*\(\s*(?:(KERN_\S+\s*|[^"]*))?$String\s*(?:|,|\)\s*;)\s*$/ ||
++		      $line =~ /^\+\s*$String\s*(?:\s*|,|\)\s*;)\s*$/ ||
++		      $line =~ /^\+\s*#\s*define\s+\w+\s+$String$/) &&
+ 		    $length > $max_line_length)
+ 		{
+ 			WARN("LONG_LINE",
 _
 
-Patches currently in -mm which might be from khlebnikov@yandex-team.ru are
+Patches currently in -mm which might be from joe@perches.com are
 
-page_writeback-cleanup-mess-around-cancel_dirty_page.patch
-page_writeback-cleanup-mess-around-cancel_dirty_page-checkpatch-fixes.patch
-mm-hide-per-cpu-lists-in-output-of-show_mem.patch
-mm-hide-per-cpu-lists-in-output-of-show_mem-fix.patch
-mm-memory-print-also-a_ops-readpage-in-print_bad_pte.patch
-mm-memory-print-also-a_ops-readpage-in-print_bad_pte-fix.patch
-mm-rcu-protected-get_mm_exe_file.patch
-mm-rcu-protected-get_mm_exe_file-fix.patch
-mm-rcu-protected-get_mm_exe_file-fix-2.patch
+ocfs2-logging-remove-static-buffer-use-vsprintf-extension-%pv.patch
+ocfs2-neaten-do_error-ocfs2_error-and-ocfs2_abort.patch
+slub-use-bool-function-return-values-of-true-false-not-1-0.patch
+proc-show-locks-in-proc-pid-fdinfo-x.patch
+proc-show-locks-in-proc-pid-fdinfo-x-v2.patch
+maintainers-use-tabs-consistently.patch
+maintainers-credits-remove-stefano-brivio-from-b43.patch
+x86-mtrr-if-remove-use-of-seq_printf-return-value.patch
+power-wakeup-remove-use-of-seq_printf-return-value.patch
+rtc-remove-use-of-seq_printf-return-value.patch
+ipc-remove-use-of-seq_printf-return-value.patch
+microblaze-mb-remove-use-of-seq_printf-return-value.patch
+microblaze-mb-remove-use-of-seq_printf-return-value-fix.patch
+nios2-cpuinfo-remove-use-of-seq_printf-return-value.patch
+arm-plat-pxa-remove-use-of-seq_printf-return-value.patch
+openrisc-remove-use-of-seq_printf-return-value.patch
+cris-remove-use-of-seq_printf-return-value.patch
+cris-fasttimer-remove-use-of-seq_printf-return-value.patch
+s390-remove-use-of-seq_printf-return-value.patch
+proc-remove-use-of-seq_printf-return-value.patch
+cgroup-remove-use-of-seq_printf-return-value.patch
+tracing-remove-use-of-seq_printf-return-value.patch
+lru_cache-remove-use-of-seq_printf-return-value.patch
+parisc-remove-use-of-seq_printf-return-value.patch
+lib-vsprintfc-even-faster-decimal-conversion.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-improve-no-space-is-necessary-after-a-cast-test.patch
+checkpatch-add-spell-checking-of-email-subject-line.patch
+checkpatch-spell-check-reudce.patch
+checkpatch-add-optional-codespell-dictionary-to-find-more-typos.patch
+checkpatch-match-more-world-writable-permissions.patch
+checkpatch-match-more-world-writable-permissions-fix.patch
+checkpatch-improve-return-negative-errno-check.patch
+checkpatch-add-test-for-repeated-const-uses.patch
+checkpatch-dont-ask-for-asm-fileh-to-linux-fileh-unconditionally.patch
+checkpatch-submittingpatches-suggest-line-wrapping-commit-messages-at-75-columns.patch
+checkpatch-add-define-foo-string-long-line-exception.patch
+adfs-returning-correct-return-values.patch
 linux-next.patch
-prctl-avoid-using-mmap_sem-for-exe_file-serialization.patch
 
