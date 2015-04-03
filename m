@@ -1,20 +1,20 @@
 From: akpm@linux-foundation.org
 Subject: + rtc-rtc-s3c-fix-failed-first-read-of-rtc-time.patch added to
  -mm tree
-Date: Fri, 03 Apr 2015 14:33:09 -0700
-Message-ID: <551f0715.2J61YolDhK8GDVcE%akpm@linux-foundation.org>
+Date: Fri, 03 Apr 2015 14:33:21 -0700
+Message-ID: <551f0721.54TraWT/e/GRStw3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48645 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48650 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751256AbbDCVdK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Apr 2015 17:33:10 -0400
+	with ESMTP id S1751256AbbDCVdW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 3 Apr 2015 17:33:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: k.kozlowski@samsung.com, a.zummo@towertech.it, alexandre.belloni@free-electrons.com, m.szyprowski@samsung.com, mm-commits@vger.kernel.org
+To: k.kozlowski@samsung.com, a.zummo@towertech.it, alexandre.belloni@free-electrons.com, cw00.choi@samsung.com, m.szyprowski@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
@@ -52,6 +52,7 @@ Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
 Cc: Alexandre Belloni <alexandre.belloni@free-electrons.com>
 Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Reviewed-by: Chanwoo Choi <cw00.choi@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
