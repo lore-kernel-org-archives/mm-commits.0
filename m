@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page-writeback-check-before-clear-pagereclaim.patch added to -mm tree
-Date: Mon, 06 Apr 2015 12:37:08 -0700
-Message-ID: <5522e064.ETbeBTDz6s5qH5F+%akpm@linux-foundation.org>
+Subject: + zram-fix-error-return-code.patch added to -mm tree
+Date: Mon, 06 Apr 2015 12:43:03 -0700
+Message-ID: <5522e1c7.85EYdVI5AOC58VOT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40981 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40991 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752688AbbDFThI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2015 15:37:08 -0400
+	with ESMTP id S1752763AbbDFTnE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2015 15:43:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: n-horiguchi@ah.jp.nec.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
+To: Julia.Lawall@lip6.fr, minchan@kernel.org, ngupta@vflare.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page-writeback: check-before-clear PageReclaim
+     Subject: zram: fix error return code
 has been added to the -mm tree.  Its filename is
-     mm-page-writeback-check-before-clear-pagereclaim.patch
+     zram-fix-error-return-code.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page-writeback-check-before-clear-pagereclaim.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zram-fix-error-return-code.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page-writeback-check-before-clear-pagereclaim.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zram-fix-error-return-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,72 +38,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm/page-writeback: check-before-clear PageReclaim
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+Subject: zram: fix error return code
 
-With the page flag sanitization patchset, an invalid usage of
-ClearPageReclaim() is detected in set_page_dirty().  This can be called
-from __unmap_hugepage_range(), so let's check PageReclaim() before trying
-to clear it to avoid the misuse.
+Return a negative error code on failure.
 
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+A simplified version of the semantic match that finds this problem is as
+follows: (http://coccinelle.lip6.fr/)
+
+// <smpl>
+@@
+identifier ret; expression e1,e2;
+@@
+(
+if (\(ret < 0\|ret != 0\))
+ { ... return ret; }
+|
+ret = 0
+)
+... when != ret = e1
+    when != &ret
+*if(...)
+{
+  ... when != ret = e2
+      when forall
+ return ret;
+}
+// </smpl>
+
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/block/zram/zram_drv.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/page-writeback.c~mm-page-writeback-check-before-clear-pagereclaim mm/page-writeback.c
---- a/mm/page-writeback.c~mm-page-writeback-check-before-clear-pagereclaim
-+++ a/mm/page-writeback.c
-@@ -2228,7 +2228,8 @@ int set_page_dirty(struct page *page)
- 		 * it will confuse readahead and make it restart the size rampup
- 		 * process. But it's a trivial problem.
- 		 */
--		ClearPageReclaim(page);
-+		if (PageReclaim(page))
-+			ClearPageReclaim(page);
- #ifdef CONFIG_BLOCK
- 		if (!spd)
- 			spd = __set_page_dirty_buffers;
+diff -puN drivers/block/zram/zram_drv.c~zram-fix-error-return-code drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-fix-error-return-code
++++ a/drivers/block/zram/zram_drv.c
+@@ -1188,6 +1188,7 @@ static int zram_add(int device_id)
+ 	if (!queue) {
+ 		pr_err("Error allocating disk queue for device %d\n",
+ 			device_id);
++		ret = -ENOMEM;
+ 		goto out_free_idr;
+ 	}
+ 
+@@ -1198,6 +1199,7 @@ static int zram_add(int device_id)
+ 	if (!zram->disk) {
+ 		pr_warn("Error allocating disk structure for device %d\n",
+ 			device_id);
++		ret = -ENOMEM;
+ 		goto out_free_queue;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from Julia.Lawall@lip6.fr are
 
-mm-numa-disable-change-protection-for-vmavm_hugetlb.patch
-mm-refactor-do_wp_page-extract-the-reuse-case.patch
-mm-refactor-do_wp_page-rewrite-the-unlock-flow.patch
-mm-refactor-do_wp_page-extract-the-page-copy-flow.patch
-mm-refactor-do_wp_page-handling-of-shared-vma-into-a-function.patch
-mm-mempolicy-migrate_to_node-should-only-migrate-to-node.patch
-mm-hugetlb-abort-__get_user_pages-if-current-has-been-oom-killed.patch
-mm-memory-failurec-define-page-types-for-action_result-in-one-place.patch
-mm-memory-failurec-define-page-types-for-action_result-in-one-place-v3.patch
-mm-consolidate-all-page-flags-helpers-in-linux-page-flagsh.patch
-mm-migrate-check-before-clear-pageswapcache.patch
-mm-page-writeback-check-before-clear-pagereclaim.patch
-page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-mm-sanitize-page-mapping-for-tail-pages.patch
-mm-sanitize-page-mapping-for-tail-pages-v2.patch
-mm-dont-call-__page_cache_release-for-hugetlb.patch
-mm-hugetlb-introduce-pagehugeactive-flag.patch
-mm-hugetlb-introduce-pagehugeactive-flag-fix.patch
-mm-hugetlb-introduce-pagehugeactive-flag-fix-fix.patch
-mm-hugetlb-cleanup-using-pagehugeactive-flag.patch
-mm-hugetlb-cleanup-using-pagehugeactive-flag-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
+zram-fix-error-return-code.patch
+linux-next.patch
 
