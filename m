@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-migrate-check-before-clear-pageswapcache.patch added to -mm
- tree
-Date: Mon, 06 Apr 2015 12:36:20 -0700
-Message-ID: <5522e034.61uz7Yc2qR84rFS7%akpm@linux-foundation.org>
+Subject: + mm-page-writeback-check-before-clear-pagereclaim.patch added to -mm tree
+Date: Mon, 06 Apr 2015 12:37:08 -0700
+Message-ID: <5522e064.ETbeBTDz6s5qH5F+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40978 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40981 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752688AbbDFTgV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2015 15:36:21 -0400
+	with ESMTP id S1752688AbbDFThI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2015 15:37:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: n-horiguchi@ah.jp.nec.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/migrate: check-before-clear PageSwapCache
+     Subject: mm/page-writeback: check-before-clear PageReclaim
 has been added to the -mm tree.  Its filename is
-     mm-migrate-check-before-clear-pageswapcache.patch
+     mm-page-writeback-check-before-clear-pagereclaim.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-check-before-clear-pageswapcache.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page-writeback-check-before-clear-pagereclaim.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-check-before-clear-pageswapcache.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page-writeback-check-before-clear-pagereclaim.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,35 +39,34 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm/migrate: check-before-clear PageSwapCache
+Subject: mm/page-writeback: check-before-clear PageReclaim
 
 With the page flag sanitization patchset, an invalid usage of
-ClearPageSwapCache() is detected in migration_page_copy(). 
-migrate_page_copy() is shared by both normal and hugepage (both thp and
-hugetlb) code path, so let's check PageSwapCache() and clear it if it's
-set to avoid misuse of the invalid clear operation.
+ClearPageReclaim() is detected in set_page_dirty().  This can be called
+from __unmap_hugepage_range(), so let's check PageReclaim() before trying
+to clear it to avoid the misuse.
 
 Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    3 ++-
+ mm/page-writeback.c |    3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/migrate.c~mm-migrate-check-before-clear-pageswapcache mm/migrate.c
---- a/mm/migrate.c~mm-migrate-check-before-clear-pageswapcache
-+++ a/mm/migrate.c
-@@ -537,7 +537,8 @@ void migrate_page_copy(struct page *newp
- 	 * Please do not reorder this without considering how mm/ksm.c's
- 	 * get_ksm_page() depends upon ksm_migrate_page() and PageSwapCache().
- 	 */
--	ClearPageSwapCache(page);
-+	if (PageSwapCache(page))
-+		ClearPageSwapCache(page);
- 	ClearPagePrivate(page);
- 	set_page_private(page, 0);
- 
+diff -puN mm/page-writeback.c~mm-page-writeback-check-before-clear-pagereclaim mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-page-writeback-check-before-clear-pagereclaim
++++ a/mm/page-writeback.c
+@@ -2228,7 +2228,8 @@ int set_page_dirty(struct page *page)
+ 		 * it will confuse readahead and make it restart the size rampup
+ 		 * process. But it's a trivial problem.
+ 		 */
+-		ClearPageReclaim(page);
++		if (PageReclaim(page))
++			ClearPageReclaim(page);
+ #ifdef CONFIG_BLOCK
+ 		if (!spd)
+ 			spd = __set_page_dirty_buffers;
 _
 
 Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
@@ -84,6 +82,7 @@ mm-memory-failurec-define-page-types-for-action_result-in-one-place.patch
 mm-memory-failurec-define-page-types-for-action_result-in-one-place-v3.patch
 mm-consolidate-all-page-flags-helpers-in-linux-page-flagsh.patch
 mm-migrate-check-before-clear-pageswapcache.patch
+mm-page-writeback-check-before-clear-pagereclaim.patch
 page-flags-trivial-cleanup-for-pagetrans-helpers.patch
 page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
 page-flags-define-pg_locked-behavior-on-compound-pages.patch
