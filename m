@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-add-uart_ops-to-normally-const-structs.patch added
- to -mm tree
-Date: Mon, 06 Apr 2015 12:52:53 -0700
-Message-ID: <5522e415.YVkDkwsxpXEtovFZ%akpm@linux-foundation.org>
+Subject: + documentation-memcg-update-memcg-kmem-status.patch added to -mm tree
+Date: Mon, 06 Apr 2015 14:06:16 -0700
+Message-ID: <5522f548.Z/jwLKCHR/STiisr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41025 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41711 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752688AbbDFTwy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2015 15:52:54 -0400
+	with ESMTP id S1752787AbbDFVGR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Apr 2015 17:06:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, apw@shadowen.org, gregkh@linuxfoundation.org, jslaby@suse.cz, mcoquelin.stm32@gmail.com, mm-commits@vger.kernel.org
+To: vdavydov@parallels.com, corbet@lwn.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add uart_ops to normally const structs
+     Subject: Documentation/memcg: update memcg/kmem status
 has been added to the -mm tree.  Its filename is
-     checkpatch-add-uart_ops-to-normally-const-structs.patch
+     documentation-memcg-update-memcg-kmem-status.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-uart_ops-to-normally-const-structs.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/documentation-memcg-update-memcg-kmem-status.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-uart_ops-to-normally-const-structs.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/documentation-memcg-update-memcg-kmem-status.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,75 +38,55 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add uart_ops to normally const structs
+From: Vladimir Davydov <vdavydov@parallels.com>
+Subject: Documentation/memcg: update memcg/kmem status
 
-Add another struct to the list of normally const struct types
+Memcg/kmem reclaim support has been finally merged. Reflect this in the
+documentation.
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Maxime Coquelin <mcoquelin.stm32@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jiri Slaby <jslaby@suse.cz>
+Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    1 +
- 1 file changed, 1 insertion(+)
+ Documentation/cgroups/memory.txt |    8 +++-----
+ init/Kconfig                     |    6 ------
+ 2 files changed, 3 insertions(+), 11 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-uart_ops-to-normally-const-structs scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-uart_ops-to-normally-const-structs
-+++ a/scripts/checkpatch.pl
-@@ -5339,6 +5339,7 @@ sub process {
- 				stacktrace_ops|
- 				sysfs_ops|
- 				tty_operations|
-+				uart_ops|
- 				usb_mon_operations|
- 				wd_ops}x;
- 		if ($line !~ /\bconst\b/ &&
-_
-
-Patches currently in -mm which might be from joe@perches.com are
-
-ocfs2-logging-remove-static-buffer-use-vsprintf-extension-%pv.patch
-ocfs2-neaten-do_error-ocfs2_error-and-ocfs2_abort.patch
-slub-use-bool-function-return-values-of-true-false-not-1-0.patch
-proc-show-locks-in-proc-pid-fdinfo-x.patch
-proc-show-locks-in-proc-pid-fdinfo-x-v2.patch
-maintainers-use-tabs-consistently.patch
-maintainers-credits-remove-stefano-brivio-from-b43.patch
-x86-mtrr-if-remove-use-of-seq_printf-return-value.patch
-power-wakeup-remove-use-of-seq_printf-return-value.patch
-rtc-remove-use-of-seq_printf-return-value.patch
-ipc-remove-use-of-seq_printf-return-value.patch
-microblaze-mb-remove-use-of-seq_printf-return-value.patch
-microblaze-mb-remove-use-of-seq_printf-return-value-fix.patch
-nios2-cpuinfo-remove-use-of-seq_printf-return-value.patch
-arm-plat-pxa-remove-use-of-seq_printf-return-value.patch
-openrisc-remove-use-of-seq_printf-return-value.patch
-cris-remove-use-of-seq_printf-return-value.patch
-cris-fasttimer-remove-use-of-seq_printf-return-value.patch
-s390-remove-use-of-seq_printf-return-value.patch
-proc-remove-use-of-seq_printf-return-value.patch
-cgroup-remove-use-of-seq_printf-return-value.patch
-tracing-remove-use-of-seq_printf-return-value.patch
-lru_cache-remove-use-of-seq_printf-return-value.patch
-parisc-remove-use-of-seq_printf-return-value.patch
-lib-vsprintfc-even-faster-decimal-conversion.patch
-mm-utilc-add-kstrimdup.patch
-checkpatch-improve-no-space-is-necessary-after-a-cast-test.patch
-checkpatch-add-spell-checking-of-email-subject-line.patch
-checkpatch-spell-check-reudce.patch
-checkpatch-add-optional-codespell-dictionary-to-find-more-typos.patch
-checkpatch-match-more-world-writable-permissions.patch
-checkpatch-match-more-world-writable-permissions-fix.patch
-checkpatch-improve-return-negative-errno-check.patch
-checkpatch-add-test-for-repeated-const-uses.patch
-checkpatch-dont-ask-for-asm-fileh-to-linux-fileh-unconditionally.patch
-checkpatch-submittingpatches-suggest-line-wrapping-commit-messages-at-75-columns.patch
-checkpatch-add-define-foo-string-long-line-exception.patch
-checkpatch-add-uart_ops-to-normally-const-structs.patch
-adfs-returning-correct-return-values.patch
-linux-next.patch
-
+diff -puN Documentation/cgroups/memory.txt~documentation-memcg-update-memcg-kmem-status Documentation/cgroups/memory.txt
+--- a/Documentation/cgroups/memory.txt~documentation-memcg-update-memcg-kmem-status
++++ a/Documentation/cgroups/memory.txt
+@@ -275,11 +275,6 @@ When oom event notifier is registered, e
+ 
+ 2.7 Kernel Memory Extension (CONFIG_MEMCG_KMEM)
+ 
+-WARNING: Current implementation lacks reclaim support. That means allocation
+-	 attempts will fail when close to the limit even if there are plenty of
+-	 kmem available for reclaim. That makes this option unusable in real
+-	 life so DO NOT SELECT IT unless for development purposes.
+-
+ With the Kernel memory extension, the Memory Controller is able to limit
+ the amount of kernel memory used by the system. Kernel memory is fundamentally
+ different than user memory, since it can't be swapped out, which makes it
+@@ -345,6 +340,9 @@ set:
+     In this case, the admin could set up K so that the sum of all groups is
+     never greater than the total memory, and freely set U at the cost of his
+     QoS.
++    WARNING: In the current implementation, memory reclaim will NOT be
++    triggered for a cgroup when it hits K while staying below U, which makes
++    this setup impractical.
+ 
+     U != 0, K >= U:
+     Since kmem charges will also be fed to the user counter and reclaim will be
+diff -puN init/Kconfig~documentation-memcg-update-memcg-kmem-status init/Kconfig
+--- a/init/Kconfig~documentation-memcg-update-memcg-kmem-status
++++ a/init/Kconfig
+@@ -1032,12 +1032,6 @@ config MEMCG_KMEM
+ 	  the kmem extension can use it to guarantee that no group of processes
+ 	  will ever exhaust kernel resources alone.
+ 
+-	  WARNING: Current implementation lacks reclaim support. That means
+-	  allocation attempts will fail when close to the limit even if there
+-	  are plenty of kmem available for reclaim. That makes this option
+-	  unusable in real life so DO NOT SELECT IT unless for development
+-	  purposes.
