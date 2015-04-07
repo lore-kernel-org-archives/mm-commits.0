@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + dax-unify-ext2-4_dax_file_operations.patch added to -mm tree
-Date: Tue, 07 Apr 2015 13:48:54 -0700
-Message-ID: <552442b6.GCYHOtajfjnXjH4b%akpm@linux-foundation.org>
+Subject: + checkpatch-improve-operator-spacing-check.patch added to -mm
+ tree
+Date: Tue, 07 Apr 2015 13:50:06 -0700
+Message-ID: <552442fe./DQEkjfxsFf9AYDu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34901 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34903 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752620AbbDGUsz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2015 16:48:55 -0400
+	with ESMTP id S1752472AbbDGUuH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2015 16:50:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: boaz@plexistor.com, dchinner@redhat.com, hughd@google.com, jack@suse.cz, kirill.shutemov@linux.intel.com, mgorman@suse.de, willy@linux.intel.com, mm-commits@vger.kernel.org
+To: sam.bobroff@au1.ibm.com, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dax: unify ext2/4_{dax,}_file_operations
+     Subject: checkpatch: improve operator spacing check
 has been added to the -mm tree.  Its filename is
-     dax-unify-ext2-4_dax_file_operations.patch
+     checkpatch-improve-operator-spacing-check.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/dax-unify-ext2-4_dax_file_operations.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-improve-operator-spacing-check.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/dax-unify-ext2-4_dax_file_operations.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-improve-operator-spacing-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,225 +39,43 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Boaz Harrosh <boaz@plexistor.com>
-Subject: dax: unify ext2/4_{dax,}_file_operations
+From: Sam Bobroff <sam.bobroff@au1.ibm.com>
+Subject: checkpatch: improve operator spacing check
 
-The original dax patchset split the ext2/4_file_operations because of the
-two NULL splice_read/splice_write in the dax case.
+Code such as:
+       x = timercmp(&now, &end, <);
+Will currently trigger a checkpatch error. e.g.
 
-In the vfs if splice_read/splice_write are NULL we then call
-default_splice_read/write.
+ERROR: spaces required around that '<'
 
-What we do here is make generic_file_splice_read aware of IS_DAX() so the
-original ext2/4_file_operations can be used as is.
+This is because the "Ignore operators passed as parameters" check looks
+only for a comma following the operator.  Improve the check by also
+looking for a close parenthesis.
 
-For write it appears that iter_file_splice_write is just fine.  It uses
-the regular f_op->write(file,..) or new_sync_write(file, ...).
-
-Signed-off-by: Boaz Harrosh <boaz@plexistor.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Dave Chinner <dchinner@redhat.com>
-Cc: Matthew Wilcox <willy@linux.intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Signed-off-by: Sam Bobroff <sam.bobroff@au1.ibm.com>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/ext2.h  |    1 -
- fs/ext2/file.c  |   18 ------------------
- fs/ext2/inode.c |    5 +----
- fs/ext2/namei.c |   10 ++--------
- fs/ext4/ext4.h  |    1 -
- fs/ext4/file.c  |   20 --------------------
- fs/ext4/inode.c |    5 +----
- fs/ext4/namei.c |   10 ++--------
- fs/splice.c     |    3 +++
- 9 files changed, 9 insertions(+), 64 deletions(-)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ext2/ext2.h~dax-unify-ext2-4_dax_file_operations fs/ext2/ext2.h
---- a/fs/ext2/ext2.h~dax-unify-ext2-4_dax_file_operations
-+++ a/fs/ext2/ext2.h
-@@ -793,7 +793,6 @@ extern int ext2_fsync(struct file *file,
- 		      int datasync);
- extern const struct inode_operations ext2_file_inode_operations;
- extern const struct file_operations ext2_file_operations;
--extern const struct file_operations ext2_dax_file_operations;
+diff -puN scripts/checkpatch.pl~checkpatch-improve-operator-spacing-check scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-improve-operator-spacing-check
++++ a/scripts/checkpatch.pl
+@@ -3652,7 +3652,7 @@ sub process {
  
- /* inode.c */
- extern const struct address_space_operations ext2_aops;
-diff -puN fs/ext2/file.c~dax-unify-ext2-4_dax_file_operations fs/ext2/file.c
---- a/fs/ext2/file.c~dax-unify-ext2-4_dax_file_operations
-+++ a/fs/ext2/file.c
-@@ -109,24 +109,6 @@ const struct file_operations ext2_file_o
- 	.splice_write	= iter_file_splice_write,
- };
+ 				# Ignore operators passed as parameters.
+ 				if ($op_type ne 'V' &&
+-				    $ca =~ /\s$/ && $cc =~ /^\s*,/) {
++				    $ca =~ /\s$/ && $cc =~ /^\s*[,\)]/) {
  
--#ifdef CONFIG_FS_DAX
--const struct file_operations ext2_dax_file_operations = {
--	.llseek		= generic_file_llseek,
--	.read		= new_sync_read,
--	.write		= new_sync_write,
--	.read_iter	= generic_file_read_iter,
--	.write_iter	= generic_file_write_iter,
--	.unlocked_ioctl = ext2_ioctl,
--#ifdef CONFIG_COMPAT
--	.compat_ioctl	= ext2_compat_ioctl,
--#endif
--	.mmap		= ext2_file_mmap,
--	.open		= dquot_file_open,
--	.release	= ext2_release_file,
--	.fsync		= ext2_fsync,
--};
--#endif
--
- const struct inode_operations ext2_file_inode_operations = {
- #ifdef CONFIG_EXT2_FS_XATTR
- 	.setxattr	= generic_setxattr,
-diff -puN fs/ext2/inode.c~dax-unify-ext2-4_dax_file_operations fs/ext2/inode.c
---- a/fs/ext2/inode.c~dax-unify-ext2-4_dax_file_operations
-+++ a/fs/ext2/inode.c
-@@ -1388,10 +1388,7 @@ struct inode *ext2_iget (struct super_bl
- 
- 	if (S_ISREG(inode->i_mode)) {
- 		inode->i_op = &ext2_file_inode_operations;
--		if (test_opt(inode->i_sb, DAX)) {
--			inode->i_mapping->a_ops = &ext2_aops;
--			inode->i_fop = &ext2_dax_file_operations;
--		} else if (test_opt(inode->i_sb, NOBH)) {
-+		if (test_opt(inode->i_sb, NOBH)) {
- 			inode->i_mapping->a_ops = &ext2_nobh_aops;
- 			inode->i_fop = &ext2_file_operations;
- 		} else {
-diff -puN fs/ext2/namei.c~dax-unify-ext2-4_dax_file_operations fs/ext2/namei.c
---- a/fs/ext2/namei.c~dax-unify-ext2-4_dax_file_operations
-+++ a/fs/ext2/namei.c
-@@ -104,10 +104,7 @@ static int ext2_create (struct inode * d
- 		return PTR_ERR(inode);
- 
- 	inode->i_op = &ext2_file_inode_operations;
--	if (test_opt(inode->i_sb, DAX)) {
--		inode->i_mapping->a_ops = &ext2_aops;
--		inode->i_fop = &ext2_dax_file_operations;
--	} else if (test_opt(inode->i_sb, NOBH)) {
-+	if (test_opt(inode->i_sb, NOBH)) {
- 		inode->i_mapping->a_ops = &ext2_nobh_aops;
- 		inode->i_fop = &ext2_file_operations;
- 	} else {
-@@ -125,10 +122,7 @@ static int ext2_tmpfile(struct inode *di
- 		return PTR_ERR(inode);
- 
- 	inode->i_op = &ext2_file_inode_operations;
--	if (test_opt(inode->i_sb, DAX)) {
--		inode->i_mapping->a_ops = &ext2_aops;
--		inode->i_fop = &ext2_dax_file_operations;
--	} else if (test_opt(inode->i_sb, NOBH)) {
-+	if (test_opt(inode->i_sb, NOBH)) {
- 		inode->i_mapping->a_ops = &ext2_nobh_aops;
- 		inode->i_fop = &ext2_file_operations;
- 	} else {
-diff -puN fs/ext4/ext4.h~dax-unify-ext2-4_dax_file_operations fs/ext4/ext4.h
---- a/fs/ext4/ext4.h~dax-unify-ext2-4_dax_file_operations
-+++ a/fs/ext4/ext4.h
-@@ -2593,7 +2593,6 @@ extern const struct file_operations ext4
- /* file.c */
- extern const struct inode_operations ext4_file_inode_operations;
- extern const struct file_operations ext4_file_operations;
--extern const struct file_operations ext4_dax_file_operations;
- extern loff_t ext4_llseek(struct file *file, loff_t offset, int origin);
- 
- /* inline.c */
-diff -puN fs/ext4/file.c~dax-unify-ext2-4_dax_file_operations fs/ext4/file.c
---- a/fs/ext4/file.c~dax-unify-ext2-4_dax_file_operations
-+++ a/fs/ext4/file.c
-@@ -625,26 +625,6 @@ const struct file_operations ext4_file_o
- 	.fallocate	= ext4_fallocate,
- };
- 
--#ifdef CONFIG_FS_DAX
--const struct file_operations ext4_dax_file_operations = {
--	.llseek		= ext4_llseek,
--	.read		= new_sync_read,
--	.write		= new_sync_write,
--	.read_iter	= generic_file_read_iter,
--	.write_iter	= ext4_file_write_iter,
--	.unlocked_ioctl = ext4_ioctl,
--#ifdef CONFIG_COMPAT
--	.compat_ioctl	= ext4_compat_ioctl,
--#endif
--	.mmap		= ext4_file_mmap,
--	.open		= ext4_file_open,
--	.release	= ext4_release_file,
--	.fsync		= ext4_sync_file,
--	/* Splice not yet supported with DAX */
--	.fallocate	= ext4_fallocate,
--};
--#endif
--
- const struct inode_operations ext4_file_inode_operations = {
- 	.setattr	= ext4_setattr,
- 	.getattr	= ext4_getattr,
-diff -puN fs/ext4/inode.c~dax-unify-ext2-4_dax_file_operations fs/ext4/inode.c
---- a/fs/ext4/inode.c~dax-unify-ext2-4_dax_file_operations
-+++ a/fs/ext4/inode.c
-@@ -4091,10 +4091,7 @@ struct inode *ext4_iget(struct super_blo
- 
- 	if (S_ISREG(inode->i_mode)) {
- 		inode->i_op = &ext4_file_inode_operations;
--		if (test_opt(inode->i_sb, DAX))
--			inode->i_fop = &ext4_dax_file_operations;
--		else
--			inode->i_fop = &ext4_file_operations;
-+		inode->i_fop = &ext4_file_operations;
- 		ext4_set_aops(inode);
- 	} else if (S_ISDIR(inode->i_mode)) {
- 		inode->i_op = &ext4_dir_inode_operations;
-diff -puN fs/ext4/namei.c~dax-unify-ext2-4_dax_file_operations fs/ext4/namei.c
---- a/fs/ext4/namei.c~dax-unify-ext2-4_dax_file_operations
-+++ a/fs/ext4/namei.c
-@@ -2235,10 +2235,7 @@ retry:
- 	err = PTR_ERR(inode);
- 	if (!IS_ERR(inode)) {
- 		inode->i_op = &ext4_file_inode_operations;
--		if (test_opt(inode->i_sb, DAX))
--			inode->i_fop = &ext4_dax_file_operations;
--		else
--			inode->i_fop = &ext4_file_operations;
-+		inode->i_fop = &ext4_file_operations;
- 		ext4_set_aops(inode);
- 		err = ext4_add_nondir(handle, dentry, inode);
- 		if (!err && IS_DIRSYNC(dir))
-@@ -2302,10 +2299,7 @@ retry:
- 	err = PTR_ERR(inode);
- 	if (!IS_ERR(inode)) {
- 		inode->i_op = &ext4_file_inode_operations;
--		if (test_opt(inode->i_sb, DAX))
--			inode->i_fop = &ext4_dax_file_operations;
--		else
--			inode->i_fop = &ext4_file_operations;
-+		inode->i_fop = &ext4_file_operations;
- 		ext4_set_aops(inode);
- 		d_tmpfile(dentry, inode);
- 		err = ext4_orphan_add(handle, inode);
-diff -puN fs/splice.c~dax-unify-ext2-4_dax_file_operations fs/splice.c
---- a/fs/splice.c~dax-unify-ext2-4_dax_file_operations
-+++ a/fs/splice.c
-@@ -524,6 +524,9 @@ ssize_t generic_file_splice_read(struct
- 	loff_t isize, left;
- 	int ret;
- 
-+	if (IS_DAX(in->f_mapping->host))
-+		return default_file_splice_read(in, ppos, pipe, len, flags);
-+
- 	isize = i_size_read(in->f_mapping->host);
- 	if (unlikely(*ppos >= isize))
- 		return 0;
+ #				# Ignore comments
+ #				} elsif ($op =~ /^$;+$/) {
 _
 
-Patches currently in -mm which might be from boaz@plexistor.com are
+Patches currently in -mm which might be from sam.bobroff@au1.ibm.com are
 
-mmv41-new-pfn_mkwrite-same-as-page_mkwrite-for-vm_pfnmap.patch
-dax-use-pfn_mkwrite-to-update-c-mtime-freeze-protection.patch
-dax-unify-ext2-4_dax_file_operations.patch
-gitignore-ignore-tar.patch
+checkpatch-improve-operator-spacing-check.patch
+linux-next.patch
 
