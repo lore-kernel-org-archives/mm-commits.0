@@ -1,204 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Tue, 07 Apr 2015 15:50:38 -0700
-Message-ID: <55245f3e.rBiEa1fZHDgm1/l7%akpm@linux-foundation.org>
+Subject: [merged]
+ usb-musb-dsps-fix-build-on-i386-when-compile_test-is-set.patch removed from -mm tree
+Date: Tue, 07 Apr 2015 15:50:52 -0700
+Message-ID: <55245f4c.poHwayjTrPuR0zSo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39580 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39581 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753842AbbDGWuj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2015 18:50:39 -0400
+	with ESMTP id S1753220AbbDGWux (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2015 18:50:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: tony@atomide.com, balbi@ti.com, gregkh@linuxfoundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: usb: musb: dsps: fix build on i386 when COMPILE_TEST is set
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     usb-musb-dsps-fix-build-on-i386-when-compile_test-is-set.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Tony Lindgren <tony@atomide.com>
+Subject: usb: musb: dsps: fix build on i386 when COMPILE_TEST is set
 
+Commit 3e457371f436 ("usb: musb: Fix fifo reads for dm816x with musb_dsps")
+fixed a USB error on dm816x, but introduced a new build error on i386
+when COMPILE_TEST is set:
+
+drivers/usb/musb/musb_dsps.c: In function `dsps_read_fifo32':
+drivers/usb/musb/musb_dsps.c:624:3: error: implicit declaration of function
+`readsl' [-Werror=implicit-function-declaration]
+readsl(fifo, dst, len >> 2);
+
+Let's fix this by using ioread32_rep() instead of readsl() as that's
+more portable.
+
+Signed-off-by: Tony Lindgren <tony@atomide.com>
+Cc: Felipe Balbi <balbi@ti.com>
+Cc: Greg KH <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/entry_64.S          |   18 ----------------
- drivers/gpu/drm/i915/intel_sprite.c |   28 --------------------------
- net/ipv4/tcp_ipv4.c                 |    4 ---
- net/ipv6/tcp_ipv6.c                 |    4 ---
- 4 files changed, 54 deletions(-)
+ drivers/usb/musb/musb_dsps.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/entry_64.S~linux-next-git-rejects arch/x86/kernel/entry_64.S
---- a/arch/x86/kernel/entry_64.S~linux-next-git-rejects
-+++ a/arch/x86/kernel/entry_64.S
-@@ -716,25 +716,7 @@ retint_swapgs:		/* return to user-space
- 	cmpq %r11,EFLAGS(%rsp)		/* R11 == RFLAGS */
- 	jne opportunistic_sysret_failed
+diff -puN drivers/usb/musb/musb_dsps.c~usb-musb-dsps-fix-build-on-i386-when-compile_test-is-set drivers/usb/musb/musb_dsps.c
+--- a/drivers/usb/musb/musb_dsps.c~usb-musb-dsps-fix-build-on-i386-when-compile_test-is-set
++++ a/drivers/usb/musb/musb_dsps.c
+@@ -621,7 +621,7 @@ static void dsps_read_fifo32(struct musb
+ 	void __iomem *fifo = hw_ep->fifo;
  
--<<<<<<< HEAD
--	/*
--	 * SYSRET can't restore RF.  SYSRET can restore TF, but unlike IRET,
--	 * restoring TF results in a trap from userspace immediately after
--	 * SYSRET.  This would cause an infinite loop whenever #DB happens
--	 * with register state that satisfies the opportunistic SYSRET
--	 * conditions.  For example, single-stepping this user code:
--	 *
--	 *           movq $stuck_here,%rcx
--	 *           pushfq
--	 *           popq %r11
--	 *   stuck_here:
--	 *
--	 * would never get past 'stuck_here'.
--	 */
--	testq $(X86_EFLAGS_RF|X86_EFLAGS_TF), %r11
--=======
- 	testq $X86_EFLAGS_RF,%r11	/* sysret can't restore RF */
-->>>>>>> linux-next/akpm-base
- 	jnz opportunistic_sysret_failed
- 
- 	/* nothing to check for RSP */
-diff -puN drivers/gpu/drm/i915/intel_sprite.c~linux-next-git-rejects drivers/gpu/drm/i915/intel_sprite.c
---- a/drivers/gpu/drm/i915/intel_sprite.c~linux-next-git-rejects
-+++ a/drivers/gpu/drm/i915/intel_sprite.c
-@@ -1119,35 +1119,7 @@ int intel_sprite_set_colorkey(struct drm
+ 	if (len >= 4) {
+-		readsl(fifo, dst, len >> 2);
++		ioread32_rep(fifo, dst, len >> 2);
+ 		dst += len & ~0x03;
+ 		len &= 0x03;
  	}
- 
- 	intel_plane = to_intel_plane(plane);
--<<<<<<< HEAD
--	ret = intel_plane->update_colorkey(plane, set);
--
--out_unlock:
--	drm_modeset_unlock_all(dev);
--	return ret;
--}
--
--int intel_sprite_get_colorkey(struct drm_device *dev, void *data,
--			      struct drm_file *file_priv)
--{
--	struct drm_intel_sprite_colorkey *get = data;
--	struct drm_plane *plane;
--	struct intel_plane *intel_plane;
--	int ret = 0;
--
--	if (!drm_core_check_feature(dev, DRIVER_MODESET))
--		return -ENODEV;
--
--	drm_modeset_lock_all(dev);
--
--	plane = drm_plane_find(dev, get->plane_id);
--	if (!plane || plane->type != DRM_PLANE_TYPE_OVERLAY) {
--		ret = -ENOENT;
--		goto out_unlock;
--	}
--=======
- 	intel_plane->ckey = *set;
-->>>>>>> linux-next/akpm-base
- 
- 	/*
- 	 * The only way this could fail would be due to
-diff -puN net/ipv4/tcp_ipv4.c~linux-next-git-rejects net/ipv4/tcp_ipv4.c
---- a/net/ipv4/tcp_ipv4.c~linux-next-git-rejects
-+++ a/net/ipv4/tcp_ipv4.c
-@@ -1468,11 +1468,7 @@ void tcp_v4_early_demux(struct sk_buff *
- 	if (sk) {
- 		skb->sk = sk;
- 		skb->destructor = sock_edemux;
--<<<<<<< HEAD
--		if (sk->sk_state != TCP_TIME_WAIT) {
--=======
- 		if (sk_fullsock(sk)) {
-->>>>>>> linux-next/akpm-base
- 			struct dst_entry *dst = READ_ONCE(sk->sk_rx_dst);
- 
- 			if (dst)
-diff -puN net/ipv6/tcp_ipv6.c~linux-next-git-rejects net/ipv6/tcp_ipv6.c
---- a/net/ipv6/tcp_ipv6.c~linux-next-git-rejects
-+++ a/net/ipv6/tcp_ipv6.c
-@@ -1532,11 +1532,7 @@ static void tcp_v6_early_demux(struct sk
- 	if (sk) {
- 		skb->sk = sk;
- 		skb->destructor = sock_edemux;
--<<<<<<< HEAD
--		if (sk->sk_state != TCP_TIME_WAIT) {
--=======
- 		if (sk_fullsock(sk)) {
-->>>>>>> linux-next/akpm-base
- 			struct dst_entry *dst = READ_ONCE(sk->sk_rx_dst);
- 
- 			if (dst)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from tony@atomide.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-i-need-old-gcc.patch
-ocfs2-make-mlog_errno-return-the-errno.patch
-mm.patch
-mm-migrate-mark-unmap_and_move-noinline-to-avoid-ice-in-gcc-473-fix.patch
-mm-migrate-mark-unmap_and_move-noinline-to-avoid-ice-in-gcc-473-fix-fix-fix.patch
-mm-cma-release-trigger-checkpatch-fixes.patch
-mm-cma-allocation-trigger-fix.patch
-mm-compaction-enhance-compaction-finish-condition-fix.patch
-page_writeback-cleanup-mess-around-cancel_dirty_page-checkpatch-fixes.patch
-mm-hide-per-cpu-lists-in-output-of-show_mem-fix.patch
-mm-clarify-__gfp_nofail-deprecation-status-checkpatch-fixes.patch
-mm-change-vunmap-to-tear-down-huge-kva-mappings-fix.patch
-mm-mempool-do-not-allow-atomic-resizing-checkpatch-fixes.patch
-mm-memory-failurec-define-page-types-for-action_result-in-one-place.patch
-include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
-document-interaction-between-compaction-and-the-unevictable-lru-fix.patch
-mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp-fix.patch
-mm-vmalloc-occupy-newly-allocated-vmap-block-just-after-allocation.patch
-mm-mmapc-use-while-instead-of-ifgoto-fix.patch
-mm-hugetlb-introduce-pagehugeactive-flag-fix.patch
-mm-hugetlb-cleanup-using-pagehugeactive-flag-fix.patch
-mm-memblock-add-debug-output-for-the-memblock_add-fix.patch
-mm-uninline-and-cleanup-page-mapping-related-helpers-checkpatch-fixes.patch
-mm-cma-add-functions-to-get-region-pages-counters-fix.patch
-mm-cma_debugc-remove-blank-lines-before-define_simple_attribute.patch
-mm-memory-print-also-a_ops-readpage-in-print_bad_pte-fix.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
-zram-add-dynamic-device-add-remove-functionality-fix.patch
-zram-introduce-automatic-device_id-generation-fix.patch
-zsmalloc-support-compaction-fix.patch
-kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes.patch
-lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix.patch
-lib-find__bit-reimplementation-fix.patch
-checkpatch-match-more-world-writable-permissions-fix.patch
-binfmt_misc-simplify-entry_status-fix.patch
-rtc-driver-for-conexant-digicolor-cx92755-on-chip-rtc-fix.patch
-rtc-omap-add-external-32k-clock-feature-fix.patch
-fs-fat-remove-unnecessary-includes-fix.patch
-kernel-forkc-avoid-division-by-zero-fix.patch
-kernel-forkc-avoid-division-by-zero-fix-fix.patch
-doc-sysctl-kerneltxt-document-threads-max-fix.patch
-mm-rcu-protected-get_mm_exe_file-fix-2.patch
-affs-kstrdup-memory-handling-fix.patch
-kconfig-use-macros-which-are-already-defined-fix.patch
 linux-next.patch
-linux-next-rejects.patch
-arch-x86-kernel-cpu-commonc-fix-warning.patch
-lib-kconfig-fix-up-have_arch_bitreverse-help-text.patch
-oprofile-reduce-mmap_sem-hold-for-mm-exe_file-fix.patch
-tomoyo-reduce-mmap_sem-hold-for-mm-exe_file-checkpatch-fixes.patch
-documentation-spi-spidev_testc-fix-warning.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
 
