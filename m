@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-add-prefer-array_size-test.patch added to -mm tree
-Date: Tue, 07 Apr 2015 13:28:02 -0700
-Message-ID: <55243dd2.BaaLh0K2LnTrkEoP%akpm@linux-foundation.org>
+Subject: + mmv41-new-pfn_mkwrite-same-as-page_mkwrite-for-vm_pfnmap.patch
+ added to -mm tree
+Date: Tue, 07 Apr 2015 13:48:50 -0700
+Message-ID: <552442b2.N7Bsl35dlkRYW9lk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34599 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34884 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750862AbbDGU2C (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2015 16:28:02 -0400
+	with ESMTP id S1753346AbbDGUsv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2015 16:48:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: boaz@plexistor.com, david@fromorbit.com, hughd@google.com, jack@suse.cz, kirill.shutemov@linux.intel.com, matthew.r.wilcox@intel.com, mgorman@suse.de, yigal@plexistor.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add 'Prefer ARRAY_SIZE" test
+     Subject: mm: new pfn_mkwrite same as page_mkwrite for VM_PFNMAP
 has been added to the -mm tree.  Its filename is
-     checkpatch-add-prefer-array_size-test.patch
+     mmv41-new-pfn_mkwrite-same-as-page_mkwrite-for-vm_pfnmap.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-prefer-array_size-test.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mmv41-new-pfn_mkwrite-same-as-page_mkwrite-for-vm_pfnmap.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-prefer-array_size-test.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mmv41-new-pfn_mkwrite-same-as-page_mkwrite-for-vm_pfnmap.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,85 +39,171 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add 'Prefer ARRAY_SIZE" test
+From: Boaz Harrosh <boaz@plexistor.com>
+Subject: mm: new pfn_mkwrite same as page_mkwrite for VM_PFNMAP
 
-Add a test for sizeof(foo)/sizeof(foo[0]) that could be ARRAY_SIZE(foo).
+This will allow FS that uses VM_PFNMAP | VM_MIXEDMAP (no page structs) to
+get notified when access is a write to a read-only PFN.
 
-Signed-off-by: Joe Perches <joe@perches.com>
+This can happen if we mmap() a file then first mmap-read from it to
+page-in a read-only PFN, than we mmap-write to the same page.
+
+We need this functionality to fix a DAX bug, where in the scenario above
+we fail to set ctime/mtime though we modified the file.  An xfstest is
+attached to this patchset that shows the failure and the fix.  (A DAX
+patch will follow)
+
+This functionality is extra important for us, because upon dirtying of a
+pmem page we also want to RDMA the page to a remote cluster node.
+
+We define a new pfn_mkwrite and do not reuse page_mkwrite because
+  1 - The name ;-)
+  2 - But mainly because it would take a very long and tedious
+      audit of all page_mkwrite functions of VM_MIXEDMAP/VM_PFNMAP
+      users. To make sure they do not now CRASH. For example current
+      DAX code (which this is for) would crash.
+      If we would want to reuse page_mkwrite, We will need to first
+      patch all users, so to not-crash-on-no-page. Then enable this
+      patch. But even if I did that I would not sleep so well at night.
+      Adding a new vector is the safest thing to do, and is not that
+      expensive. an extra pointer at a static function vector per driver.
+      Also the new vector is better for performance, because else we
+      Will call all current Kernel vectors, so to:
+	check-ha-no-page-do-nothing and return.
+
+No need to call it from do_shared_fault because do_wp_page is called to
+change pte permissions anyway.
+
+Signed-off-by: Yigal Korman <yigal@plexistor.com>
+Signed-off-by: Boaz Harrosh <boaz@plexistor.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Dave Chinner <david@fromorbit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ Documentation/filesystems/Locking |    8 +++++
+ include/linux/mm.h                |    3 +
+ mm/memory.c                       |   43 +++++++++++++++++++++++++---
+ 3 files changed, 50 insertions(+), 4 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-prefer-array_size-test scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-prefer-array_size-test
-+++ a/scripts/checkpatch.pl
-@@ -3227,6 +3227,19 @@ sub process {
- 				$herecurr);
-                }
+diff -puN Documentation/filesystems/Locking~mmv41-new-pfn_mkwrite-same-as-page_mkwrite-for-vm_pfnmap Documentation/filesystems/Locking
+--- a/Documentation/filesystems/Locking~mmv41-new-pfn_mkwrite-same-as-page_mkwrite-for-vm_pfnmap
++++ a/Documentation/filesystems/Locking
+@@ -525,6 +525,7 @@ prototypes:
+ 	void (*close)(struct vm_area_struct*);
+ 	int (*fault)(struct vm_area_struct*, struct vm_fault *);
+ 	int (*page_mkwrite)(struct vm_area_struct *, struct vm_fault *);
++	int (*pfn_mkwrite)(struct vm_area_struct *, struct vm_fault *);
+ 	int (*access)(struct vm_area_struct *, unsigned long, void*, int, int);
  
-+# check for sizeof(foo)/sizeof(foo[0]) that could be ARRAY_SIZE(foo)
-+		if ($line =~ m@\bsizeof\s*\(\s*($Lval)\s*\)@) {
-+			my $array = $1;
-+			if ($line =~ m@\b(sizeof\s*\(\s*\Q$array\E\s*\)\s*/\s*sizeof\s*\(\s*\Q$array\E\s*\[\s*0\s*\]\s*\))@) {
-+				my $array_div = $1;
-+				if (WARN("ARRAY_SIZE",
-+					 "Prefer ARRAY_SIZE($array)\n" . $herecurr) &&
-+				    $fix) {
-+					$fixed[$fixlinenr] =~ s/\Q$array_div\E/ARRAY_SIZE($array)/;
-+				}
-+			}
-+		}
+ locking rules:
+@@ -534,6 +535,7 @@ close:		yes
+ fault:		yes		can return with page locked
+ map_pages:	yes
+ page_mkwrite:	yes		can return with page locked
++pfn_mkwrite:	yes
+ access:		yes
+ 
+ 	->fault() is called when a previously not present pte is about
+@@ -560,6 +562,12 @@ the page has been truncated, the filesys
+ like the ->fault() handler, but simply return with VM_FAULT_NOPAGE, which
+ will cause the VM to retry the fault.
+ 
++	->pfn_mkwrite() is the same as page_mkwrite but when the pte is
++VM_PFNMAP or VM_MIXEDMAP with a page-less entry. Expected return is
++VM_FAULT_NOPAGE. Or one of the VM_FAULT_ERROR types. The default behavior
++after this call is to make the pte read-write, unless pfn_mkwrite returns
++an error.
 +
- # check for function declarations without arguments like "int foo()"
- 		if ($line =~ /(\b$Type\s+$Ident)\s*\(\s*\)/) {
- 			if (ERROR("FUNCTION_WITHOUT_ARGS",
+ 	->access() is called when get_user_pages() fails in
+ access_process_vm(), typically used to debug a process through
+ /proc/pid/mem or ptrace.  This function is needed only for
+diff -puN include/linux/mm.h~mmv41-new-pfn_mkwrite-same-as-page_mkwrite-for-vm_pfnmap include/linux/mm.h
+--- a/include/linux/mm.h~mmv41-new-pfn_mkwrite-same-as-page_mkwrite-for-vm_pfnmap
++++ a/include/linux/mm.h
+@@ -251,6 +251,9 @@ struct vm_operations_struct {
+ 	 * writable, if an error is returned it will cause a SIGBUS */
+ 	int (*page_mkwrite)(struct vm_area_struct *vma, struct vm_fault *vmf);
+ 
++	/* same as page_mkwrite when using VM_PFNMAP|VM_MIXEDMAP */
++	int (*pfn_mkwrite)(struct vm_area_struct *vma, struct vm_fault *vmf);
++
+ 	/* called by access_process_vm when get_user_pages() fails, typically
+ 	 * for use by special VMAs that can switch between memory and hardware
+ 	 */
+diff -puN mm/memory.c~mmv41-new-pfn_mkwrite-same-as-page_mkwrite-for-vm_pfnmap mm/memory.c
+--- a/mm/memory.c~mmv41-new-pfn_mkwrite-same-as-page_mkwrite-for-vm_pfnmap
++++ a/mm/memory.c
+@@ -2180,6 +2180,42 @@ oom:
+ 	return VM_FAULT_OOM;
+ }
+ 
++/*
++ * Handle write page faults for VM_MIXEDMAP or VM_PFNMAP for a VM_SHARED
++ * mapping
++ */
++static int wp_pfn_shared(struct mm_struct *mm,
++			struct vm_area_struct *vma, unsigned long address,
++			pte_t *page_table, spinlock_t *ptl, pte_t orig_pte,
++			pmd_t *pmd)
++{
++	if (vma->vm_ops && vma->vm_ops->pfn_mkwrite) {
++		struct vm_fault vmf = {
++			.page = NULL,
++			.pgoff = linear_page_index(vma, address),
++			.virtual_address = (void __user *)(address & PAGE_MASK),
++			.flags = FAULT_FLAG_WRITE | FAULT_FLAG_MKWRITE,
++		};
++		int ret;
++
++		pte_unmap_unlock(page_table, ptl);
++		ret = vma->vm_ops->pfn_mkwrite(vma, &vmf);
++		if (ret & VM_FAULT_ERROR)
++			return ret;
++		page_table = pte_offset_map_lock(mm, pmd, address, &ptl);
++		/*
++		 * We might have raced with another page fault while we
++		 * released the pte_offset_map_lock.
++		 */
++		if (!pte_same(*page_table, orig_pte)) {
++			pte_unmap_unlock(page_table, ptl);
++			return 0;
++		}
++	}
++	return wp_page_reuse(mm, vma, address, page_table, ptl, orig_pte,
++			     NULL, 0, 0);
++}
++
+ static int wp_page_shared(struct mm_struct *mm, struct vm_area_struct *vma,
+ 			  unsigned long address, pte_t *page_table,
+ 			  pmd_t *pmd, spinlock_t *ptl, pte_t orig_pte,
+@@ -2258,13 +2294,12 @@ static int do_wp_page(struct mm_struct *
+ 		 * VM_PFNMAP VMA.
+ 		 *
+ 		 * We should not cow pages in a shared writeable mapping.
+-		 * Just mark the pages writable as we can't do any dirty
+-		 * accounting on raw pfn maps.
++		 * Just mark the pages writable and/or call ops->pfn_mkwrite.
+ 		 */
+ 		if ((vma->vm_flags & (VM_WRITE|VM_SHARED)) ==
+ 				     (VM_WRITE|VM_SHARED))
+-			return wp_page_reuse(mm, vma, address, page_table, ptl,
+-					     orig_pte, old_page, 0, 0);
++			return wp_pfn_shared(mm, vma, address, page_table, ptl,
++					     orig_pte, pmd);
+ 
+ 		pte_unmap_unlock(page_table, ptl);
+ 		return wp_page_copy(mm, vma, address, page_table, pmd,
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from boaz@plexistor.com are
 
-ocfs2-logging-remove-static-buffer-use-vsprintf-extension-%pv.patch
-ocfs2-neaten-do_error-ocfs2_error-and-ocfs2_abort.patch
-slub-use-bool-function-return-values-of-true-false-not-1-0.patch
-proc-show-locks-in-proc-pid-fdinfo-x.patch
-proc-show-locks-in-proc-pid-fdinfo-x-v2.patch
-maintainers-use-tabs-consistently.patch
-maintainers-credits-remove-stefano-brivio-from-b43.patch
-x86-mtrr-if-remove-use-of-seq_printf-return-value.patch
-power-wakeup-remove-use-of-seq_printf-return-value.patch
-rtc-remove-use-of-seq_printf-return-value.patch
-ipc-remove-use-of-seq_printf-return-value.patch
-microblaze-mb-remove-use-of-seq_printf-return-value.patch
-microblaze-mb-remove-use-of-seq_printf-return-value-fix.patch
-nios2-cpuinfo-remove-use-of-seq_printf-return-value.patch
-arm-plat-pxa-remove-use-of-seq_printf-return-value.patch
-openrisc-remove-use-of-seq_printf-return-value.patch
-cris-remove-use-of-seq_printf-return-value.patch
-cris-fasttimer-remove-use-of-seq_printf-return-value.patch
-s390-remove-use-of-seq_printf-return-value.patch
-proc-remove-use-of-seq_printf-return-value.patch
-cgroup-remove-use-of-seq_printf-return-value.patch
-tracing-remove-use-of-seq_printf-return-value.patch
-lru_cache-remove-use-of-seq_printf-return-value.patch
-parisc-remove-use-of-seq_printf-return-value.patch
-lib-vsprintfc-even-faster-decimal-conversion.patch
-mm-utilc-add-kstrimdup.patch
-checkpatch-improve-no-space-is-necessary-after-a-cast-test.patch
-checkpatch-add-spell-checking-of-email-subject-line.patch
-checkpatch-spell-check-reudce.patch
-checkpatch-add-optional-codespell-dictionary-to-find-more-typos.patch
-checkpatch-match-more-world-writable-permissions.patch
-checkpatch-match-more-world-writable-permissions-fix.patch
-checkpatch-improve-return-negative-errno-check.patch
-checkpatch-add-test-for-repeated-const-uses.patch
-checkpatch-dont-ask-for-asm-fileh-to-linux-fileh-unconditionally.patch
-checkpatch-submittingpatches-suggest-line-wrapping-commit-messages-at-75-columns.patch
-checkpatch-add-define-foo-string-long-line-exception.patch
-checkpatch-add-uart_ops-to-normally-const-structs.patch
-checkpatch-add-prefer-array_size-test.patch
-rtc-use-more-standard-kernel-logging-styles.patch
-adfs-returning-correct-return-values.patch
-linux-next.patch
+mmv41-new-pfn_mkwrite-same-as-page_mkwrite-for-vm_pfnmap.patch
+dax-use-pfn_mkwrite-to-update-c-mtime-freeze-protection.patch
+dax-unify-ext2-4_dax_file_operations.patch
+gitignore-ignore-tar.patch
 
