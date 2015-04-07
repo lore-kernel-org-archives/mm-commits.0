@@ -1,93 +1,204 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- ocfs2-avoid-access-invalid-address-when-read-o2dlm-debug-messages-v3.patch
- removed from -mm tree
-Date: Tue, 07 Apr 2015 14:51:46 -0700
-Message-ID: <55245172.m21n+WhFPOnbcyvE%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Tue, 07 Apr 2015 15:50:38 -0700
+Message-ID: <55245f3e.rBiEa1fZHDgm1/l7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37305 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39580 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751904AbbDGVvr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2015 17:51:47 -0400
+	with ESMTP id S1753842AbbDGWuj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2015 18:50:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jiangyiwen@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2-avoid-access-invalid-address-when-read-o2dlm-debug-messages-v3
+     Subject: linux-next-git-rejects
 has been removed from the -mm tree.  Its filename was
-     ocfs2-avoid-access-invalid-address-when-read-o2dlm-debug-messages-v3.patch
+     linux-next-git-rejects.patch
 
-This patch was dropped because it was folded into ocfs2-avoid-access-invalid-address-when-read-o2dlm-debug-messages.patch
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: jiangyiwen <jiangyiwen@huawei.com>
-Subject: ocfs2-avoid-access-invalid-address-when-read-o2dlm-debug-messages-v3
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-The following case will lead to a lockres is freed but is still in use.
-
-cat /sys/kernel/debug/o2dlm/locking_state	dlm_thread
-lockres_seq_start
-    -> lock dlm->track_lock
-    -> get resA
-                                                resA->refs decrease to 0,
-                                                call dlm_lockres_release,
-                                                and wait for "cat" unlock.
-Although resA->refs is already set to 0,
-increase resA->refs, and then unlock
-                                                lock dlm->track_lock
-                                                    -> list_del_init()
-                                                    -> unlock
-                                                    -> free resA
-
-In such a race case, invalid address access may occurs.
-So we should delete list res->tracking before resA->refs decrease to 0.
-
-Signed-off-by: Yiwen Jiang <jiangyiwen@huawei.com>
-Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmmaster.c |   13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ arch/x86/kernel/entry_64.S          |   18 ----------------
+ drivers/gpu/drm/i915/intel_sprite.c |   28 --------------------------
+ net/ipv4/tcp_ipv4.c                 |    4 ---
+ net/ipv6/tcp_ipv6.c                 |    4 ---
+ 4 files changed, 54 deletions(-)
 
-diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs2-avoid-access-invalid-address-when-read-o2dlm-debug-messages-v3 fs/ocfs2/dlm/dlmmaster.c
---- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-avoid-access-invalid-address-when-read-o2dlm-debug-messages-v3
-+++ a/fs/ocfs2/dlm/dlmmaster.c
-@@ -772,8 +772,19 @@ lookup:
- 		dlm_lockres_grab_inflight_ref(dlm, tmpres);
+diff -puN arch/x86/kernel/entry_64.S~linux-next-git-rejects arch/x86/kernel/entry_64.S
+--- a/arch/x86/kernel/entry_64.S~linux-next-git-rejects
++++ a/arch/x86/kernel/entry_64.S
+@@ -716,25 +716,7 @@ retint_swapgs:		/* return to user-space
+ 	cmpq %r11,EFLAGS(%rsp)		/* R11 == RFLAGS */
+ 	jne opportunistic_sysret_failed
  
- 		spin_unlock(&tmpres->spinlock);
--		if (res)
-+		if (res) {
-+			spin_lock(&dlm->track_lock);
-+			if (!list_empty(&res->tracking))
-+				list_del_init(&res->tracking);
-+			else {
-+				mlog(ML_ERROR, "Resource %.*s not "
-+						"on the Tracking list\n",
-+						res->lockname.len,
-+						res->lockname.name);
-+			}
-+			spin_unlock(&dlm->track_lock);
- 			dlm_lockres_put(res);
-+		}
- 		res = tmpres;
- 		goto leave;
+-<<<<<<< HEAD
+-	/*
+-	 * SYSRET can't restore RF.  SYSRET can restore TF, but unlike IRET,
+-	 * restoring TF results in a trap from userspace immediately after
+-	 * SYSRET.  This would cause an infinite loop whenever #DB happens
+-	 * with register state that satisfies the opportunistic SYSRET
+-	 * conditions.  For example, single-stepping this user code:
+-	 *
+-	 *           movq $stuck_here,%rcx
+-	 *           pushfq
+-	 *           popq %r11
+-	 *   stuck_here:
+-	 *
+-	 * would never get past 'stuck_here'.
+-	 */
+-	testq $(X86_EFLAGS_RF|X86_EFLAGS_TF), %r11
+-=======
+ 	testq $X86_EFLAGS_RF,%r11	/* sysret can't restore RF */
+->>>>>>> linux-next/akpm-base
+ 	jnz opportunistic_sysret_failed
+ 
+ 	/* nothing to check for RSP */
+diff -puN drivers/gpu/drm/i915/intel_sprite.c~linux-next-git-rejects drivers/gpu/drm/i915/intel_sprite.c
+--- a/drivers/gpu/drm/i915/intel_sprite.c~linux-next-git-rejects
++++ a/drivers/gpu/drm/i915/intel_sprite.c
+@@ -1119,35 +1119,7 @@ int intel_sprite_set_colorkey(struct drm
  	}
+ 
+ 	intel_plane = to_intel_plane(plane);
+-<<<<<<< HEAD
+-	ret = intel_plane->update_colorkey(plane, set);
+-
+-out_unlock:
+-	drm_modeset_unlock_all(dev);
+-	return ret;
+-}
+-
+-int intel_sprite_get_colorkey(struct drm_device *dev, void *data,
+-			      struct drm_file *file_priv)
+-{
+-	struct drm_intel_sprite_colorkey *get = data;
+-	struct drm_plane *plane;
+-	struct intel_plane *intel_plane;
+-	int ret = 0;
+-
+-	if (!drm_core_check_feature(dev, DRIVER_MODESET))
+-		return -ENODEV;
+-
+-	drm_modeset_lock_all(dev);
+-
+-	plane = drm_plane_find(dev, get->plane_id);
+-	if (!plane || plane->type != DRM_PLANE_TYPE_OVERLAY) {
+-		ret = -ENOENT;
+-		goto out_unlock;
+-	}
+-=======
+ 	intel_plane->ckey = *set;
+->>>>>>> linux-next/akpm-base
+ 
+ 	/*
+ 	 * The only way this could fail would be due to
+diff -puN net/ipv4/tcp_ipv4.c~linux-next-git-rejects net/ipv4/tcp_ipv4.c
+--- a/net/ipv4/tcp_ipv4.c~linux-next-git-rejects
++++ a/net/ipv4/tcp_ipv4.c
+@@ -1468,11 +1468,7 @@ void tcp_v4_early_demux(struct sk_buff *
+ 	if (sk) {
+ 		skb->sk = sk;
+ 		skb->destructor = sock_edemux;
+-<<<<<<< HEAD
+-		if (sk->sk_state != TCP_TIME_WAIT) {
+-=======
+ 		if (sk_fullsock(sk)) {
+->>>>>>> linux-next/akpm-base
+ 			struct dst_entry *dst = READ_ONCE(sk->sk_rx_dst);
+ 
+ 			if (dst)
+diff -puN net/ipv6/tcp_ipv6.c~linux-next-git-rejects net/ipv6/tcp_ipv6.c
+--- a/net/ipv6/tcp_ipv6.c~linux-next-git-rejects
++++ a/net/ipv6/tcp_ipv6.c
+@@ -1532,11 +1532,7 @@ static void tcp_v6_early_demux(struct sk
+ 	if (sk) {
+ 		skb->sk = sk;
+ 		skb->destructor = sock_edemux;
+-<<<<<<< HEAD
+-		if (sk->sk_state != TCP_TIME_WAIT) {
+-=======
+ 		if (sk_fullsock(sk)) {
+->>>>>>> linux-next/akpm-base
+ 			struct dst_entry *dst = READ_ONCE(sk->sk_rx_dst);
+ 
+ 			if (dst)
 _
 
-Patches currently in -mm which might be from jiangyiwen@huawei.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-ocfs2-do-not-use-ocfs2_zero_extend-during-direct-io.patch
-ocfs2-use-actual-name-length-when-find-entry-in-ocfs2_orphan_del.patch
-ocfs2-fix-a-tiny-case-that-inode-can-not-removed.patch
-ocfs2-avoid-access-invalid-address-when-read-o2dlm-debug-messages.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+ocfs2-make-mlog_errno-return-the-errno.patch
+mm.patch
+mm-migrate-mark-unmap_and_move-noinline-to-avoid-ice-in-gcc-473-fix.patch
+mm-migrate-mark-unmap_and_move-noinline-to-avoid-ice-in-gcc-473-fix-fix-fix.patch
+mm-cma-release-trigger-checkpatch-fixes.patch
+mm-cma-allocation-trigger-fix.patch
+mm-compaction-enhance-compaction-finish-condition-fix.patch
+page_writeback-cleanup-mess-around-cancel_dirty_page-checkpatch-fixes.patch
+mm-hide-per-cpu-lists-in-output-of-show_mem-fix.patch
+mm-clarify-__gfp_nofail-deprecation-status-checkpatch-fixes.patch
+mm-change-vunmap-to-tear-down-huge-kva-mappings-fix.patch
+mm-mempool-do-not-allow-atomic-resizing-checkpatch-fixes.patch
+mm-memory-failurec-define-page-types-for-action_result-in-one-place.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
+document-interaction-between-compaction-and-the-unevictable-lru-fix.patch
+mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp-fix.patch
+mm-vmalloc-occupy-newly-allocated-vmap-block-just-after-allocation.patch
+mm-mmapc-use-while-instead-of-ifgoto-fix.patch
+mm-hugetlb-introduce-pagehugeactive-flag-fix.patch
+mm-hugetlb-cleanup-using-pagehugeactive-flag-fix.patch
+mm-memblock-add-debug-output-for-the-memblock_add-fix.patch
+mm-uninline-and-cleanup-page-mapping-related-helpers-checkpatch-fixes.patch
+mm-cma-add-functions-to-get-region-pages-counters-fix.patch
+mm-cma_debugc-remove-blank-lines-before-define_simple_attribute.patch
+mm-memory-print-also-a_ops-readpage-in-print_bad_pte-fix.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
+zram-add-dynamic-device-add-remove-functionality-fix.patch
+zram-introduce-automatic-device_id-generation-fix.patch
+zsmalloc-support-compaction-fix.patch
+kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes.patch
+lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix.patch
+lib-find__bit-reimplementation-fix.patch
+checkpatch-match-more-world-writable-permissions-fix.patch
+binfmt_misc-simplify-entry_status-fix.patch
+rtc-driver-for-conexant-digicolor-cx92755-on-chip-rtc-fix.patch
+rtc-omap-add-external-32k-clock-feature-fix.patch
+fs-fat-remove-unnecessary-includes-fix.patch
+kernel-forkc-avoid-division-by-zero-fix.patch
+kernel-forkc-avoid-division-by-zero-fix-fix.patch
+doc-sysctl-kerneltxt-document-threads-max-fix.patch
+mm-rcu-protected-get_mm_exe_file-fix-2.patch
+affs-kstrdup-memory-handling-fix.patch
+kconfig-use-macros-which-are-already-defined-fix.patch
+linux-next.patch
+linux-next-rejects.patch
+arch-x86-kernel-cpu-commonc-fix-warning.patch
+lib-kconfig-fix-up-have_arch_bitreverse-help-text.patch
+oprofile-reduce-mmap_sem-hold-for-mm-exe_file-fix.patch
+tomoyo-reduce-mmap_sem-hold-for-mm-exe_file-checkpatch-fixes.patch
+documentation-spi-spidev_testc-fix-warning.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
