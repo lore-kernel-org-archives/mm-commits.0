@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mmv41-new-pfn_mkwrite-same-as-page_mkwrite-for-vm_pfnmap.patch
+Subject: + dax-use-pfn_mkwrite-to-update-c-mtime-freeze-protection.patch
  added to -mm tree
-Date: Tue, 07 Apr 2015 13:48:50 -0700
-Message-ID: <552442b2.N7Bsl35dlkRYW9lk%akpm@linux-foundation.org>
+Date: Tue, 07 Apr 2015 13:48:52 -0700
+Message-ID: <552442b4.JsVasF1MeSGAvFgx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34884 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34894 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753346AbbDGUsv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2015 16:48:51 -0400
+	with ESMTP id S1753490AbbDGUsx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Apr 2015 16:48:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: boaz@plexistor.com, david@fromorbit.com, hughd@google.com, jack@suse.cz, kirill.shutemov@linux.intel.com, matthew.r.wilcox@intel.com, mgorman@suse.de, yigal@plexistor.com, mm-commits@vger.kernel.org
+To: boaz@plexistor.com, david@fromorbit.com, hughd@google.com, jack@suse.cz, kirill.shutemov@linux.intel.com, matthew.r.wilcox@intel.com, mgorman@suse.de, stable@vger.kernel.org, yigal@plexistor.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: new pfn_mkwrite same as page_mkwrite for VM_PFNMAP
+     Subject: dax: use pfn_mkwrite to update c/mtime + freeze protection
 has been added to the -mm tree.  Its filename is
-     mmv41-new-pfn_mkwrite-same-as-page_mkwrite-for-vm_pfnmap.patch
+     dax-use-pfn_mkwrite-to-update-c-mtime-freeze-protection.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mmv41-new-pfn_mkwrite-same-as-page_mkwrite-for-vm_pfnmap.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/dax-use-pfn_mkwrite-to-update-c-mtime-freeze-protection.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mmv41-new-pfn_mkwrite-same-as-page_mkwrite-for-vm_pfnmap.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/dax-use-pfn_mkwrite-to-update-c-mtime-freeze-protection.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,164 +40,99 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Boaz Harrosh <boaz@plexistor.com>
-Subject: mm: new pfn_mkwrite same as page_mkwrite for VM_PFNMAP
+Subject: dax: use pfn_mkwrite to update c/mtime + freeze protection
 
-This will allow FS that uses VM_PFNMAP | VM_MIXEDMAP (no page structs) to
-get notified when access is a write to a read-only PFN.
 
-This can happen if we mmap() a file then first mmap-read from it to
-page-in a read-only PFN, than we mmap-write to the same page.
+[v1]
+Without this patch, c/mtime is not updated correctly when mmap'ed page is
+first read from and then written to.
 
-We need this functionality to fix a DAX bug, where in the scenario above
-we fail to set ctime/mtime though we modified the file.  An xfstest is
-attached to this patchset that shows the failure and the fix.  (A DAX
-patch will follow)
+A new xfstest is submitted for testing this (generic/080)
 
-This functionality is extra important for us, because upon dirtying of a
-pmem page we also want to RDMA the page to a remote cluster node.
-
-We define a new pfn_mkwrite and do not reuse page_mkwrite because
-  1 - The name ;-)
-  2 - But mainly because it would take a very long and tedious
-      audit of all page_mkwrite functions of VM_MIXEDMAP/VM_PFNMAP
-      users. To make sure they do not now CRASH. For example current
-      DAX code (which this is for) would crash.
-      If we would want to reuse page_mkwrite, We will need to first
-      patch all users, so to not-crash-on-no-page. Then enable this
-      patch. But even if I did that I would not sleep so well at night.
-      Adding a new vector is the safest thing to do, and is not that
-      expensive. an extra pointer at a static function vector per driver.
-      Also the new vector is better for performance, because else we
-      Will call all current Kernel vectors, so to:
-	check-ha-no-page-do-nothing and return.
-
-No need to call it from do_shared_fault because do_wp_page is called to
-change pte permissions anyway.
+[v2]
+Jan Kara has pointed out that if we add the
+sb_start/end_pagefault pair in the new pfn_mkwrite we
+are then fixing another bug where: A user could start
+writing to the page while filesystem is frozen.
 
 Signed-off-by: Yigal Korman <yigal@plexistor.com>
 Signed-off-by: Boaz Harrosh <boaz@plexistor.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
 Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Cc: Jan Kara <jack@suse.cz>
+Cc: Dave Chinner <david@fromorbit.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Mel Gorman <mgorman@suse.de>
-Cc: Dave Chinner <david@fromorbit.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/Locking |    8 +++++
- include/linux/mm.h                |    3 +
- mm/memory.c                       |   43 +++++++++++++++++++++++++---
- 3 files changed, 50 insertions(+), 4 deletions(-)
+ fs/dax.c           |   17 +++++++++++++++++
+ fs/ext2/file.c     |    1 +
+ fs/ext4/file.c     |    1 +
+ include/linux/fs.h |    1 +
+ 4 files changed, 20 insertions(+)
 
-diff -puN Documentation/filesystems/Locking~mmv41-new-pfn_mkwrite-same-as-page_mkwrite-for-vm_pfnmap Documentation/filesystems/Locking
---- a/Documentation/filesystems/Locking~mmv41-new-pfn_mkwrite-same-as-page_mkwrite-for-vm_pfnmap
-+++ a/Documentation/filesystems/Locking
-@@ -525,6 +525,7 @@ prototypes:
- 	void (*close)(struct vm_area_struct*);
- 	int (*fault)(struct vm_area_struct*, struct vm_fault *);
- 	int (*page_mkwrite)(struct vm_area_struct *, struct vm_fault *);
-+	int (*pfn_mkwrite)(struct vm_area_struct *, struct vm_fault *);
- 	int (*access)(struct vm_area_struct *, unsigned long, void*, int, int);
+diff -puN fs/dax.c~dax-use-pfn_mkwrite-to-update-c-mtime-freeze-protection fs/dax.c
+--- a/fs/dax.c~dax-use-pfn_mkwrite-to-update-c-mtime-freeze-protection
++++ a/fs/dax.c
+@@ -464,6 +464,23 @@ int dax_fault(struct vm_area_struct *vma
+ EXPORT_SYMBOL_GPL(dax_fault);
  
- locking rules:
-@@ -534,6 +535,7 @@ close:		yes
- fault:		yes		can return with page locked
- map_pages:	yes
- page_mkwrite:	yes		can return with page locked
-+pfn_mkwrite:	yes
- access:		yes
- 
- 	->fault() is called when a previously not present pte is about
-@@ -560,6 +562,12 @@ the page has been truncated, the filesys
- like the ->fault() handler, but simply return with VM_FAULT_NOPAGE, which
- will cause the VM to retry the fault.
- 
-+	->pfn_mkwrite() is the same as page_mkwrite but when the pte is
-+VM_PFNMAP or VM_MIXEDMAP with a page-less entry. Expected return is
-+VM_FAULT_NOPAGE. Or one of the VM_FAULT_ERROR types. The default behavior
-+after this call is to make the pte read-write, unless pfn_mkwrite returns
-+an error.
-+
- 	->access() is called when get_user_pages() fails in
- access_process_vm(), typically used to debug a process through
- /proc/pid/mem or ptrace.  This function is needed only for
-diff -puN include/linux/mm.h~mmv41-new-pfn_mkwrite-same-as-page_mkwrite-for-vm_pfnmap include/linux/mm.h
---- a/include/linux/mm.h~mmv41-new-pfn_mkwrite-same-as-page_mkwrite-for-vm_pfnmap
-+++ a/include/linux/mm.h
-@@ -251,6 +251,9 @@ struct vm_operations_struct {
- 	 * writable, if an error is returned it will cause a SIGBUS */
- 	int (*page_mkwrite)(struct vm_area_struct *vma, struct vm_fault *vmf);
- 
-+	/* same as page_mkwrite when using VM_PFNMAP|VM_MIXEDMAP */
-+	int (*pfn_mkwrite)(struct vm_area_struct *vma, struct vm_fault *vmf);
-+
- 	/* called by access_process_vm when get_user_pages() fails, typically
- 	 * for use by special VMAs that can switch between memory and hardware
- 	 */
-diff -puN mm/memory.c~mmv41-new-pfn_mkwrite-same-as-page_mkwrite-for-vm_pfnmap mm/memory.c
---- a/mm/memory.c~mmv41-new-pfn_mkwrite-same-as-page_mkwrite-for-vm_pfnmap
-+++ a/mm/memory.c
-@@ -2180,6 +2180,42 @@ oom:
- 	return VM_FAULT_OOM;
- }
- 
-+/*
-+ * Handle write page faults for VM_MIXEDMAP or VM_PFNMAP for a VM_SHARED
-+ * mapping
+ /**
++ * dax_pfn_mkwrite - handle first write to DAX page
++ * @vma: The virtual memory area where the fault occurred
++ * @vmf: The description of the fault
++ *
 + */
-+static int wp_pfn_shared(struct mm_struct *mm,
-+			struct vm_area_struct *vma, unsigned long address,
-+			pte_t *page_table, spinlock_t *ptl, pte_t orig_pte,
-+			pmd_t *pmd)
++int dax_pfn_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf)
 +{
-+	if (vma->vm_ops && vma->vm_ops->pfn_mkwrite) {
-+		struct vm_fault vmf = {
-+			.page = NULL,
-+			.pgoff = linear_page_index(vma, address),
-+			.virtual_address = (void __user *)(address & PAGE_MASK),
-+			.flags = FAULT_FLAG_WRITE | FAULT_FLAG_MKWRITE,
-+		};
-+		int ret;
++	struct super_block *sb = file_inode(vma->vm_file)->i_sb;
 +
-+		pte_unmap_unlock(page_table, ptl);
-+		ret = vma->vm_ops->pfn_mkwrite(vma, &vmf);
-+		if (ret & VM_FAULT_ERROR)
-+			return ret;
-+		page_table = pte_offset_map_lock(mm, pmd, address, &ptl);
-+		/*
-+		 * We might have raced with another page fault while we
-+		 * released the pte_offset_map_lock.
-+		 */
-+		if (!pte_same(*page_table, orig_pte)) {
-+			pte_unmap_unlock(page_table, ptl);
-+			return 0;
-+		}
-+	}
-+	return wp_page_reuse(mm, vma, address, page_table, ptl, orig_pte,
-+			     NULL, 0, 0);
++	sb_start_pagefault(sb);
++	file_update_time(vma->vm_file);
++	sb_end_pagefault(sb);
++	return VM_FAULT_NOPAGE;
 +}
++EXPORT_SYMBOL_GPL(dax_pfn_mkwrite);
 +
- static int wp_page_shared(struct mm_struct *mm, struct vm_area_struct *vma,
- 			  unsigned long address, pte_t *page_table,
- 			  pmd_t *pmd, spinlock_t *ptl, pte_t orig_pte,
-@@ -2258,13 +2294,12 @@ static int do_wp_page(struct mm_struct *
- 		 * VM_PFNMAP VMA.
- 		 *
- 		 * We should not cow pages in a shared writeable mapping.
--		 * Just mark the pages writable as we can't do any dirty
--		 * accounting on raw pfn maps.
-+		 * Just mark the pages writable and/or call ops->pfn_mkwrite.
- 		 */
- 		if ((vma->vm_flags & (VM_WRITE|VM_SHARED)) ==
- 				     (VM_WRITE|VM_SHARED))
--			return wp_page_reuse(mm, vma, address, page_table, ptl,
--					     orig_pte, old_page, 0, 0);
-+			return wp_pfn_shared(mm, vma, address, page_table, ptl,
-+					     orig_pte, pmd);
++/**
+  * dax_zero_page_range - zero a range within a page of a DAX file
+  * @inode: The file being truncated
+  * @from: The file offset that is being truncated to
+diff -puN fs/ext2/file.c~dax-use-pfn_mkwrite-to-update-c-mtime-freeze-protection fs/ext2/file.c
+--- a/fs/ext2/file.c~dax-use-pfn_mkwrite-to-update-c-mtime-freeze-protection
++++ a/fs/ext2/file.c
+@@ -39,6 +39,7 @@ static int ext2_dax_mkwrite(struct vm_ar
+ static const struct vm_operations_struct ext2_dax_vm_ops = {
+ 	.fault		= ext2_dax_fault,
+ 	.page_mkwrite	= ext2_dax_mkwrite,
++	.pfn_mkwrite	= dax_pfn_mkwrite,
+ };
  
- 		pte_unmap_unlock(page_table, ptl);
- 		return wp_page_copy(mm, vma, address, page_table, pmd,
+ static int ext2_file_mmap(struct file *file, struct vm_area_struct *vma)
+diff -puN fs/ext4/file.c~dax-use-pfn_mkwrite-to-update-c-mtime-freeze-protection fs/ext4/file.c
+--- a/fs/ext4/file.c~dax-use-pfn_mkwrite-to-update-c-mtime-freeze-protection
++++ a/fs/ext4/file.c
+@@ -206,6 +206,7 @@ static int ext4_dax_mkwrite(struct vm_ar
+ static const struct vm_operations_struct ext4_dax_vm_ops = {
+ 	.fault		= ext4_dax_fault,
+ 	.page_mkwrite	= ext4_dax_mkwrite,
++	.pfn_mkwrite	= dax_pfn_mkwrite,
+ };
+ #else
+ #define ext4_dax_vm_ops	ext4_file_vm_ops
+diff -puN include/linux/fs.h~dax-use-pfn_mkwrite-to-update-c-mtime-freeze-protection include/linux/fs.h
+--- a/include/linux/fs.h~dax-use-pfn_mkwrite-to-update-c-mtime-freeze-protection
++++ a/include/linux/fs.h
+@@ -2598,6 +2598,7 @@ int dax_clear_blocks(struct inode *, sec
+ int dax_zero_page_range(struct inode *, loff_t from, unsigned len, get_block_t);
+ int dax_truncate_page(struct inode *, loff_t from, get_block_t);
+ int dax_fault(struct vm_area_struct *, struct vm_fault *, get_block_t);
++int dax_pfn_mkwrite(struct vm_area_struct *, struct vm_fault *);
+ #define dax_mkwrite(vma, vmf, gb)	dax_fault(vma, vmf, gb)
+ 
+ #ifdef CONFIG_BLOCK
 _
 
 Patches currently in -mm which might be from boaz@plexistor.com are
