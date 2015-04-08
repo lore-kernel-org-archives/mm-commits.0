@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + slub-bulk-alloc-extract-objects-from-the-per-cpu-slab.patch
- added to -mm tree
-Date: Wed, 08 Apr 2015 15:53:13 -0700
-Message-ID: <5525b159.BpuUD6FQt89EaGh/%akpm@linux-foundation.org>
+Subject: +
+ nilfs2-put-out-gfp-mask-manipulation-from-nilfs_set_inode_flags.patch added to -mm tree
+Date: Wed, 08 Apr 2015 16:09:41 -0700
+Message-ID: <5525b535.o99NSzgj1cNCisBb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60458 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60480 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754222AbbDHWxO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Apr 2015 18:53:14 -0400
+	with ESMTP id S1754222AbbDHXJm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Apr 2015 19:09:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cl@linux.com, brouer@redhat.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slub bulk alloc: extract objects from the per cpu slab
+     Subject: nilfs2: put out gfp mask manipulation from nilfs_set_inode_flags()
 has been added to the -mm tree.  Its filename is
-     slub-bulk-alloc-extract-objects-from-the-per-cpu-slab.patch
+     nilfs2-put-out-gfp-mask-manipulation-from-nilfs_set_inode_flags.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/slub-bulk-alloc-extract-objects-from-the-per-cpu-slab.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/nilfs2-put-out-gfp-mask-manipulation-from-nilfs_set_inode_flags.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/slub-bulk-alloc-extract-objects-from-the-per-cpu-slab.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-put-out-gfp-mask-manipulation-from-nilfs_set_inode_flags.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,104 +39,63 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Christoph Lameter <cl@linux.com>
-Subject: slub bulk alloc: extract objects from the per cpu slab
+From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Subject: nilfs2: put out gfp mask manipulation from nilfs_set_inode_flags()
 
-First piece: acceleration of retrieval of per cpu objects
+nilfs_set_inode_flags() function adjusts gfp-mask of inode->i_mapping as
+well as i_flags, however, this coupling of operations is not appropriate.
 
-If we are allocating lots of objects then it is advantageous to disable
-interrupts and avoid the this_cpu_cmpxchg() operation to get these objects
-faster.  Note that we cannot do the fast operation if debugging is
-enabled.  Note also that the requirement of having interrupts disabled
-avoids having to do processor flag operations.
+For instance, nilfs_ioctl_setflags(), one of three callers of
+nilfs_set_inode_flags(), doesn't need to reinitialize the gfp-mask at all.
+ In addition, nilfs_new_inode(), another caller of
+nilfs_set_inode_flags(), doesn't either because it has already initialized
+the gfp-mask.
 
-Allocate as many objects as possible in the fast way and then fall back to
-the generic implementation for the rest of the objects.
+Only __nilfs_read_inode(), the remaining caller, needs it.  So, this moves
+the gfp mask manipulation to __nilfs_read_inode() from
+nilfs_set_inode_flags().
 
-Signed-off-by: Christoph Lameter <cl@linux.com>
-Cc: Jesper Dangaard Brouer <brouer@redhat.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   27 ++++++++++++++++++++++++++-
- 1 file changed, 26 insertions(+), 1 deletion(-)
+ fs/nilfs2/inode.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/slub.c~slub-bulk-alloc-extract-objects-from-the-per-cpu-slab mm/slub.c
---- a/mm/slub.c~slub-bulk-alloc-extract-objects-from-the-per-cpu-slab
-+++ a/mm/slub.c
-@@ -2759,7 +2759,32 @@ EXPORT_SYMBOL(kmem_cache_free_bulk);
- bool kmem_cache_alloc_bulk(struct kmem_cache *s, gfp_t flags, size_t size,
- 								void **p)
- {
--	return kmem_cache_alloc_bulk(s, flags, size, p);
-+	if (!kmem_cache_debug(s)) {
-+		struct kmem_cache_cpu *c;
-+
-+		/* Drain objects in the per cpu slab */
-+		local_irq_disable();
-+		c = this_cpu_ptr(s->cpu_slab);
-+
-+		while (size) {
-+			void *object = c->freelist;
-+
-+			if (!object)
-+				break;
-+
-+			c->freelist = get_freepointer(s, object);
-+			*p++ = object;
-+			size--;
-+
-+			if (unlikely(flags & __GFP_ZERO))
-+				memset(object, 0, s->object_size);
-+		}
-+		c->tid = next_tid(c->tid);
-+
-+		local_irq_enable();
-+	}
-+
-+	return __kmem_cache_alloc_bulk(s, flags, size, p);
+diff -puN fs/nilfs2/inode.c~nilfs2-put-out-gfp-mask-manipulation-from-nilfs_set_inode_flags fs/nilfs2/inode.c
+--- a/fs/nilfs2/inode.c~nilfs2-put-out-gfp-mask-manipulation-from-nilfs_set_inode_flags
++++ a/fs/nilfs2/inode.c
+@@ -456,8 +456,6 @@ void nilfs_set_inode_flags(struct inode
+ 		inode->i_flags |= S_NOATIME;
+ 	if (flags & FS_DIRSYNC_FL)
+ 		inode->i_flags |= S_DIRSYNC;
+-	mapping_set_gfp_mask(inode->i_mapping,
+-			     mapping_gfp_mask(inode->i_mapping) & ~__GFP_FS);
  }
- EXPORT_SYMBOL(kmem_cache_alloc_bulk);
  
+ int nilfs_read_inode_common(struct inode *inode,
+@@ -542,6 +540,8 @@ static int __nilfs_read_inode(struct sup
+ 	brelse(bh);
+ 	up_read(&NILFS_MDT(nilfs->ns_dat)->mi_sem);
+ 	nilfs_set_inode_flags(inode);
++	mapping_set_gfp_mask(inode->i_mapping,
++			     mapping_gfp_mask(inode->i_mapping) & ~__GFP_FS);
+ 	return 0;
+ 
+  failed_unmap:
 _
 
-Patches currently in -mm which might be from cl@linux.com are
+Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
 
-mm-slub-parse-slub_debug-o-option-in-switch-statement.patch
-mm-slab-correct-config-option-in-comment.patch
-slub-use-bool-function-return-values-of-true-false-not-1-0.patch
-slab-infrastructure-for-bulk-object-allocation-and-freeing-v3.patch
-slub-bulk-alloc-extract-objects-from-the-per-cpu-slab.patch
-mm-remove-gfp_thisnode.patch
-mm-thp-really-limit-transparent-hugepage-allocation-to-local-node.patch
-kernel-cpuset-remove-exception-for-__gfp_thisnode.patch
-mm-consolidate-all-page-flags-helpers-in-linux-page-flagsh.patch
-page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-mm-sanitize-page-mapping-for-tail-pages.patch
-mm-sanitize-page-mapping-for-tail-pages-v2.patch
-allow-compaction-of-unevictable-pages.patch
-document-interaction-between-compaction-and-the-unevictable-lru.patch
-document-interaction-between-compaction-and-the-unevictable-lru-fix.patch
-mm-vmalloc-fix-possible-exhaustion-of-vmalloc-space-caused-by-vm_map_ram-allocator.patch
-mm-vmalloc-occupy-newly-allocated-vmap-block-just-after-allocation.patch
-mm-vmalloc-get-rid-of-dirty-bitmap-inside-vmap_block-structure.patch
-mm-uninline-and-cleanup-page-mapping-related-helpers.patch
-linux-next.patch
+nilfs2-do-not-use-async-write-flag-for-segment-summary-buffers.patch
+nilfs2-use-set_mask_bits-for-operations-on-buffer-state-bitmap.patch
+nilfs2-use-bgl_lock_ptr.patch
+nilfs2-unify-type-of-key-arguments-in-bmap-interface.patch
+nilfs2-add-bmap-function-to-seek-a-valid-key.patch
+nilfs2-add-bmap-function-to-seek-a-valid-key-fix.patch
+nilfs2-add-helper-to-find-existent-block-on-metadata-file.patch
+nilfs2-improve-execution-time-of-nilfs_ioctl_get_cpinfo-ioctl.patch
+nilfs2-fix-gcc-warning-at-nilfs_checkpoint_is_mounted.patch
+nilfs2-put-out-gfp-mask-manipulation-from-nilfs_set_inode_flags.patch
+nilfs2-use-inode_set_flags-in-nilfs_set_inode_flags.patch
 
