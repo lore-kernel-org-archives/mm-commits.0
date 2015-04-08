@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + test-hexdumpc-fix-initconst-confusion.patch added to -mm tree
-Date: Wed, 08 Apr 2015 15:22:38 -0700
-Message-ID: <5525aa2e.iaa1TGZADDLMoaj9%akpm@linux-foundation.org>
+Subject: + lto-add-__noreorder-and-mark-initcalls-__noreorder.patch added
+ to -mm tree
+Date: Wed, 08 Apr 2015 15:36:35 -0700
+Message-ID: <5525ad73.PQKQ7A+LnuNtrGnW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60094 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60350 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753897AbbDHWWj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Apr 2015 18:22:39 -0400
+	with ESMTP id S1754434AbbDHWgf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Apr 2015 18:36:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ak@linux.intel.com, mm-commits@vger.kernel.org
+To: ak@linux.intel.com, mmarek@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/test-hexdump.c: fix initconst confusion
+     Subject: lto: add __noreorder and mark initcalls __noreorder
 has been added to the -mm tree.  Its filename is
-     test-hexdumpc-fix-initconst-confusion.patch
+     lto-add-__noreorder-and-mark-initcalls-__noreorder.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/test-hexdumpc-fix-initconst-confusion.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lto-add-__noreorder-and-mark-initcalls-__noreorder.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/test-hexdumpc-fix-initconst-confusion.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lto-add-__noreorder-and-mark-initcalls-__noreorder.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,54 +40,67 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andi Kleen <ak@linux.intel.com>
-Subject: lib/test-hexdump.c: fix initconst confusion
+Subject: lto: add __noreorder and mark initcalls __noreorder
 
-const char *...[] is not const, but an array of pointer to const.  So
-these arrays cannot be __initconst, but must be __initdata
+gcc 5 has a new no_reorder attribute that prevents top level reordering
+only for that symbol.
 
-This fixes section conflicts with LTO.
+Kernels don't like any reordering of initcalls between files, as several
+initcalls depend on each other.  LTO previously needed to use
+-fno-toplevel-reordering to prevent boot failures.
+
+Add a __noreorder wrapper for the no_reorder attribute and use
+it for initcalls.
 
 Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test-hexdump.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/linux/compiler-gcc5.h |    3 +++
+ include/linux/compiler.h      |    4 ++++
+ include/linux/init.h          |    2 +-
+ 3 files changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN lib/test-hexdump.c~test-hexdumpc-fix-initconst-confusion lib/test-hexdump.c
---- a/lib/test-hexdump.c~test-hexdumpc-fix-initconst-confusion
-+++ a/lib/test-hexdump.c
-@@ -18,26 +18,26 @@ static const unsigned char data_b[] = {
+diff -puN include/linux/compiler-gcc5.h~lto-add-__noreorder-and-mark-initcalls-__noreorder include/linux/compiler-gcc5.h
+--- a/include/linux/compiler-gcc5.h~lto-add-__noreorder-and-mark-initcalls-__noreorder
++++ a/include/linux/compiler-gcc5.h
+@@ -42,6 +42,9 @@
+ /* Mark a function definition as prohibited from being cloned. */
+ #define __noclone	__attribute__((__noclone__))
  
- static const unsigned char data_a[] = ".2.{....p..$}.4...1.....L...C...";
++/* Avoid reordering a top level statement */
++#define __noreorder	__attribute__((no_reorder))
++
+ /*
+  * Tell the optimizer that something else uses this function or variable.
+  */
+diff -puN include/linux/compiler.h~lto-add-__noreorder-and-mark-initcalls-__noreorder include/linux/compiler.h
+--- a/include/linux/compiler.h~lto-add-__noreorder-and-mark-initcalls-__noreorder
++++ a/include/linux/compiler.h
+@@ -334,6 +334,10 @@ static __always_inline void __write_once
+ #define noinline
+ #endif
  
--static const char *test_data_1_le[] __initconst = {
-+static const char * const test_data_1_le[] __initconst = {
- 	"be", "32", "db", "7b", "0a", "18", "93", "b2",
- 	"70", "ba", "c4", "24", "7d", "83", "34", "9b",
- 	"a6", "9c", "31", "ad", "9c", "0f", "ac", "e9",
- 	"4c", "d1", "19", "99", "43", "b1", "af", "0c",
- };
++#ifndef __noreorder
++#define __noreorder		/* unimplemented */
++#endif
++
+ /*
+  * Rather then using noinline to prevent stack consumption, use
+  * noinline_for_stack instead.  For documentation reasons.
+diff -puN include/linux/init.h~lto-add-__noreorder-and-mark-initcalls-__noreorder include/linux/init.h
+--- a/include/linux/init.h~lto-add-__noreorder-and-mark-initcalls-__noreorder
++++ a/include/linux/init.h
+@@ -191,7 +191,7 @@ extern bool initcall_debug;
+  */
  
--static const char *test_data_2_le[] __initconst = {
-+static const char *test_data_2_le[] __initdata = {
- 	"32be", "7bdb", "180a", "b293",
- 	"ba70", "24c4", "837d", "9b34",
- 	"9ca6", "ad31", "0f9c", "e9ac",
- 	"d14c", "9919", "b143", "0caf",
- };
+ #define __define_initcall(fn, id) \
+-	static initcall_t __initcall_##fn##id __used \
++	static initcall_t __initcall_##fn##id __used __noreorder \
+ 	__attribute__((__section__(".initcall" #id ".init"))) = fn; \
+ 	LTO_REFERENCE_INITCALL(__initcall_##fn##id)
  
--static const char *test_data_4_le[] __initconst = {
-+static const char *test_data_4_le[] __initdata = {
- 	"7bdb32be", "b293180a", "24c4ba70", "9b34837d",
- 	"ad319ca6", "e9ac0f9c", "9919d14c", "0cafb143",
- };
- 
--static const char *test_data_8_le[] __initconst = {
-+static const char *test_data_8_le[] __initdata = {
- 	"b293180a7bdb32be", "9b34837d24c4ba70",
- 	"e9ac0f9cad319ca6", "0cafb1439919d14c",
- };
 _
 
 Patches currently in -mm which might be from ak@linux.intel.com are
@@ -99,6 +113,7 @@ mm-memory-failurec-define-page-types-for-action_result-in-one-place.patch
 mm-memory-failurec-define-page-types-for-action_result-in-one-place-v3.patch
 dont-let-latencytop-and-lockdep-select-kallsyms_all.patch
 test-hexdumpc-fix-initconst-confusion.patch
+lto-add-__noreorder-and-mark-initcalls-__noreorder.patch
 linux-next.patch
 gitignore-ignore-tar.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
