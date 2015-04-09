@@ -1,85 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlb-use-pmd_page-in-follow_huge_pmd.patch added to -mm
+Subject: [withdrawn]
+ dont-let-latencytop-and-lockdep-select-kallsyms_all.patch removed from -mm
  tree
-Date: Thu, 09 Apr 2015 12:45:13 -0700
-Message-ID: <5526d6c9.RTvOS5b0imL0V4cg%akpm__28179.7751122669$1428608727$gmane$org@linux-foundation.org>
+Date: Thu, 09 Apr 2015 13:03:31 -0700
+Message-ID: <5526db13.6NkAH3k5AfZmkJQ6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50092 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50827 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933327AbbDITpP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Apr 2015 15:45:15 -0400
+	with ESMTP id S933018AbbDIUDc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Apr 2015 16:03:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gerald.schaefer@de.ibm.com, aarcange@redhat.com, hughd@google.com, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, schwidefsky@de.ibm.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: ak@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: use pmd_page() in follow_huge_pmd()
-has been added to the -mm tree.  Its filename is
-     mm-hugetlb-use-pmd_page-in-follow_huge_pmd.patch
+     Subject: lib/Kconfig.debug: don't let LATENCYTOP and LOCKDEP select KALLSYMS_ALL
+has been removed from the -mm tree.  Its filename was
+     dont-let-latencytop-and-lockdep-select-kallsyms_all.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-use-pmd_page-in-follow_huge_pmd.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-use-pmd_page-in-follow_huge_pmd.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-From: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Subject: mm/hugetlb: use pmd_page() in follow_huge_pmd()
+From: Andi Kleen <ak@linux.intel.com>
+Subject: lib/Kconfig.debug: don't let LATENCYTOP and LOCKDEP select KALLSYMS_ALL
 
-commit 61f77eda "mm/hugetlb: reduce arch dependent code around
-follow_huge_*" broke follow_huge_pmd() on s390, where pmd and pte layout
-differ and using pte_page() on a huge pmd will return wrong results. 
-Using pmd_page() instead fixes this.
+KALLSYMS_ALL enables including data variables into KALLSYMS.  With plain
+KALLSYMS only functions are included.
 
-All architectures that were touched by commit 61f77eda have pmd_page()
-defined, so this should not break anything on other architectures.
+LATENCYTOP and LOCKDEP select KALLSYMS_ALL in addition to KALLSYMS.  It's
+unclear what they actually need _ALL for; they should only need function
+backtraces and afaik never touch variables.
 
-Fixes: 61f77eda "mm/hugetlb: reduce arch dependent code around follow_huge_*"
-Signed-off-by: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Michal Hocko <mhocko@suse.cz>, Andrea Arcangeli <aarcange@redhat.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: <stable@vger.kernel.org>	[3.12+]
+LTO currently does not support KALLSYMS_ALL, which prevents LATENCYTOP and
+LOCKDEP from working and gives Kconfig errors.  Disable the requirement
+for KALLSYMS_ALL for them, just use KALLSYMS.
+
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ lib/Kconfig.debug |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-use-pmd_page-in-follow_huge_pmd mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-use-pmd_page-in-follow_huge_pmd
-+++ a/mm/hugetlb.c
-@@ -3865,8 +3865,7 @@ retry:
- 	if (!pmd_huge(*pmd))
- 		goto out;
- 	if (pmd_present(*pmd)) {
--		page = pte_page(*(pte_t *)pmd) +
--			((address & ~PMD_MASK) >> PAGE_SHIFT);
-+		page = pmd_page(*pmd) + ((address & ~PMD_MASK) >> PAGE_SHIFT);
- 		if (flags & FOLL_GET)
- 			get_page(page);
- 	} else {
+diff -puN lib/Kconfig.debug~dont-let-latencytop-and-lockdep-select-kallsyms_all lib/Kconfig.debug
+--- a/lib/Kconfig.debug~dont-let-latencytop-and-lockdep-select-kallsyms_all
++++ a/lib/Kconfig.debug
+@@ -1001,7 +1001,6 @@ config LOCKDEP
+ 	select STACKTRACE
+ 	select FRAME_POINTER if !MIPS && !PPC && !ARM_UNWIND && !S390 && !MICROBLAZE && !ARC && !SCORE
+ 	select KALLSYMS
+-	select KALLSYMS_ALL
+ 
+ config LOCK_STAT
+ 	bool "Lock usage statistics"
+@@ -1469,7 +1468,6 @@ config LATENCYTOP
+ 	depends on PROC_FS
+ 	select FRAME_POINTER if !MIPS && !PPC && !S390 && !MICROBLAZE && !ARM_UNWIND && !ARC
+ 	select KALLSYMS
+-	select KALLSYMS_ALL
+ 	select STACKTRACE
+ 	select SCHEDSTATS
+ 	select SCHED_DEBUG
 _
 
-Patches currently in -mm which might be from gerald.schaefer@de.ibm.com are
+Patches currently in -mm which might be from ak@linux.intel.com are
 
-mm-hugetlb-use-pmd_page-in-follow_huge_pmd.patch
-s390-remove-use-of-seq_printf-return-value.patch
+mm-refactor-do_wp_page-extract-the-reuse-case.patch
+mm-refactor-do_wp_page-rewrite-the-unlock-flow.patch
+mm-refactor-do_wp_page-extract-the-page-copy-flow.patch
+mm-refactor-do_wp_page-handling-of-shared-vma-into-a-function.patch
+mm-memory-failurec-define-page-types-for-action_result-in-one-place.patch
+mm-memory-failurec-define-page-types-for-action_result-in-one-place-v3.patch
+test-hexdumpc-fix-initconst-confusion.patch
+lto-add-__noreorder-and-mark-initcalls-__noreorder.patch
+linux-next.patch
+gitignore-ignore-tar.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
 
