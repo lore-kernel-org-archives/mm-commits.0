@@ -1,66 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: [merged] dmapool-declare-struct-device.patch removed from -mm
+Subject: [merged]
+ mm-numa-disable-change-protection-for-vmavm_hugetlb.patch removed from -mm
  tree
-Date: Thu, 09 Apr 2015 12:28:05 -0700
-Message-ID: <5526d2c5.qcqyZd+9fNTjsVM9%akpm@linux-foundation.org>
+Date: Thu, 09 Apr 2015 12:28:07 -0700
+Message-ID: <5526d2c7.7jtV1ovYwXSQOOlu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49702 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49707 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933018AbbDIT2F (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Apr 2015 15:28:05 -0400
+	with ESMTP id S933018AbbDIT2I (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Apr 2015 15:28:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: broonie@kernel.org, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, a.p.zijlstra@chello.nl, hughd@google.com, kirill@shutemov.name, mgorman@suse.de, mingo@elte.hu, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/dmapool.h: declare struct device
+     Subject: mm: numa: disable change protection for vma(VM_HUGETLB)
 has been removed from the -mm tree.  Its filename was
-     dmapool-declare-struct-device.patch
+     mm-numa-disable-change-protection-for-vmavm_hugetlb.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mark Brown <broonie@kernel.org>
-Subject: include/linux/dmapool.h: declare struct device
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm: numa: disable change protection for vma(VM_HUGETLB)
 
-dmapool uses struct device in function arguments but relies on an implicit
-inclusion to declare struct device causing warnings in some
-configurations:
+Currently when a process accesses a hugetlb range protected with PROTNONE,
+unexpected COWs are triggered, which finally puts the hugetlb subsystem
+into a broken/uncontrollable state, where for example h->resv_huge_pages
+is subtracted too much and wraps around to a very large number, and the
+free hugepage pool is no longer maintainable.
 
-include/linux/dmapool.h:31:7: warning: 'struct device' declared inside parameter list
+This patch simply stops changing protection for vma(VM_HUGETLB) to fix the
+problem.  And this also allows us to avoid useless overhead of minor
+faults.
 
-Fix this by adding a struct device declaration to the file.
-
-Signed-off-by: Mark Brown <broonie@kernel.org>
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Suggested-by: Mel Gorman <mgorman@suse.de>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/dmapool.h |    2 ++
- 1 file changed, 2 insertions(+)
+ kernel/sched/fair.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/dmapool.h~dmapool-declare-struct-device include/linux/dmapool.h
---- a/include/linux/dmapool.h~dmapool-declare-struct-device
-+++ a/include/linux/dmapool.h
-@@ -14,6 +14,8 @@
- #include <asm/io.h>
- #include <asm/scatterlist.h>
+diff -puN kernel/sched/fair.c~mm-numa-disable-change-protection-for-vmavm_hugetlb kernel/sched/fair.c
+--- a/kernel/sched/fair.c~mm-numa-disable-change-protection-for-vmavm_hugetlb
++++ a/kernel/sched/fair.c
+@@ -2165,8 +2165,10 @@ void task_numa_work(struct callback_head
+ 		vma = mm->mmap;
+ 	}
+ 	for (; vma; vma = vma->vm_next) {
+-		if (!vma_migratable(vma) || !vma_policy_mof(vma))
++		if (!vma_migratable(vma) || !vma_policy_mof(vma) ||
++			is_vm_hugetlb_page(vma)) {
+ 			continue;
++		}
  
-+struct device;
-+
- struct dma_pool *dma_pool_create(const char *name, struct device *dev, 
- 			size_t size, size_t align, size_t allocation);
- 
+ 		/*
+ 		 * Shared library pages mapped by multiple processes are not
 _
 
-Patches currently in -mm which might be from broonie@kernel.org are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
 origin.patch
-asoc-pcm512x-use-div_round_closest_ull-from-kernelh.patch
-linux-next.patch
-documentation-spi-spidev_testc-fix-warning.patch
+mm-refactor-do_wp_page-extract-the-reuse-case.patch
+mm-refactor-do_wp_page-rewrite-the-unlock-flow.patch
+mm-refactor-do_wp_page-extract-the-page-copy-flow.patch
+mm-refactor-do_wp_page-handling-of-shared-vma-into-a-function.patch
+mm-mempolicy-migrate_to_node-should-only-migrate-to-node.patch
+mm-hugetlb-abort-__get_user_pages-if-current-has-been-oom-killed.patch
+mm-memory-failurec-define-page-types-for-action_result-in-one-place.patch
+mm-memory-failurec-define-page-types-for-action_result-in-one-place-v3.patch
+mm-consolidate-all-page-flags-helpers-in-linux-page-flagsh.patch
+mm-migrate-check-before-clear-pageswapcache.patch
+mm-page-writeback-check-before-clear-pagereclaim.patch
+page-flags-trivial-cleanup-for-pagetrans-helpers.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
+page-flags-define-pg_locked-behavior-on-compound-pages.patch
+page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
+page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
+page-flags-define-pg_reserved-behavior-on-compound-pages.patch
+page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
+page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
+page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
+page-flags-define-pg_uncached-behavior-on-compound-pages.patch
+page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
+page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
+mm-sanitize-page-mapping-for-tail-pages.patch
+mm-sanitize-page-mapping-for-tail-pages-v2.patch
+mm-dont-call-__page_cache_release-for-hugetlb.patch
+mm-hugetlb-introduce-pagehugeactive-flag.patch
+mm-hugetlb-introduce-pagehugeactive-flag-fix.patch
+mm-hugetlb-introduce-pagehugeactive-flag-fix-fix.patch
+mm-hugetlb-cleanup-using-pagehugeactive-flag.patch
+mm-hugetlb-cleanup-using-pagehugeactive-flag-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
 
