@@ -1,163 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-move-zone-lock-to-a-different-cache-line-than-order-0-free-page-lists.patch removed from -mm tree
-Date: Thu, 09 Apr 2015 12:28:03 -0700
-Message-ID: <5526d2c3.EaKiYXFFof++vRtS%akpm@linux-foundation.org>
+Subject: [merged] dmapool-declare-struct-device.patch removed from -mm
+ tree
+Date: Thu, 09 Apr 2015 12:28:05 -0700
+Message-ID: <5526d2c5.qcqyZd+9fNTjsVM9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49700 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49702 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933018AbbDIT2E (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Apr 2015 15:28:04 -0400
+	with ESMTP id S933018AbbDIT2F (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Apr 2015 15:28:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, rientjes@google.com, ying.huang@intel.com, mm-commits@vger.kernel.org
+To: broonie@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: move zone lock to a different cache line than order-0 free page lists
+     Subject: include/linux/dmapool.h: declare struct device
 has been removed from the -mm tree.  Its filename was
-     mm-move-zone-lock-to-a-different-cache-line-than-order-0-free-page-lists.patch
+     dmapool-declare-struct-device.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: move zone lock to a different cache line than order-0 free page lists
+From: Mark Brown <broonie@kernel.org>
+Subject: include/linux/dmapool.h: declare struct device
 
-Huang Ying reported the following problem due to commit 3484b2de9499 ("mm:
-rearrange zone fields into read-only, page alloc, statistics and page
-reclaim lines") from the Intel performance tests
+dmapool uses struct device in function arguments but relies on an implicit
+inclusion to declare struct device causing warnings in some
+configurations:
 
-    24b7e5819ad5cbef  3484b2de9499df23c4604a513b
-    ----------------  --------------------------
-             %stddev     %change         %stddev
-                 \          |                \
-        152288 \261  0%     -46.2%      81911 \261  0%  aim7.jobs-per-min
-           237 \261  0%     +85.6%        440 \261  0%  aim7.time.elapsed_time
-           237 \261  0%     +85.6%        440 \261  0%  aim7.time.elapsed_time.max
-         25026 \261  0%     +70.7%      42712 \261  0%  aim7.time.system_time
-       2186645 \261  5%     +32.0%    2885949 \261  4%  aim7.time.voluntary_context_switches
-       4576561 \261  1%     +24.9%    5715773 \261  0%  aim7.time.involuntary_context_switches
+include/linux/dmapool.h:31:7: warning: 'struct device' declared inside parameter list
 
-The problem is specific to very large machines under stress.  It was not
-reproducible with the machines I had used to justify the original patch
-because large numbers of CPUs are required.  When pressure is high enough,
-the cache line is bouncing between CPUs trying to acquire the lock and the
-holder of the lock adjusting free lists.  The intention was that the
-acquirer of the lock would automatically have the cache line holding the
-free lists but according to Huang, this is not a universal win.
+Fix this by adding a struct device declaration to the file.
 
-One possibility is to move the zone lock to its own cache line but it
-increases the size of the zone.  This patch moves the lock to the other
-end of the free lists where they do not contend under high pressure.  It
-does mean the page allocator paths now require more cache lines but Huang
-reports that it restores performance to previous levels on large machines
-
-             %stddev     %change         %stddev
-                 \          |                \
-         84568 \261  1%     +94.3%     164280 \261  1%  aim7.jobs-per-min
-       2881944 \261  2%     -35.1%    1870386 \261  8%  aim7.time.voluntary_context_switches
-           681 \261  1%      -3.4%        658 \261  0%  aim7.time.user_time
-       5538139 \261  0%     -12.1%    4867884 \261  0%  aim7.time.involuntary_context_switches
-         44174 \261  1%     -46.0%      23848 \261  1%  aim7.time.system_time
-           426 \261  1%     -48.4%        219 \261  1%  aim7.time.elapsed_time
-           426 \261  1%     -48.4%        219 \261  1%  aim7.time.elapsed_time.max
-           468 \261  1%     -43.1%        266 \261  2%  uptime.boot
-
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Reported-by: Huang Ying <ying.huang@intel.com>
-Tested-by: Huang Ying <ying.huang@intel.com>
-Acked-by: David Rientjes <rientjes@google.com>
+Signed-off-by: Mark Brown <broonie@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ include/linux/dmapool.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN include/linux/mmzone.h~mm-move-zone-lock-to-a-different-cache-line-than-order-0-free-page-lists include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-move-zone-lock-to-a-different-cache-line-than-order-0-free-page-lists
-+++ a/include/linux/mmzone.h
-@@ -474,16 +474,15 @@ struct zone {
- 	unsigned long		wait_table_bits;
+diff -puN include/linux/dmapool.h~dmapool-declare-struct-device include/linux/dmapool.h
+--- a/include/linux/dmapool.h~dmapool-declare-struct-device
++++ a/include/linux/dmapool.h
+@@ -14,6 +14,8 @@
+ #include <asm/io.h>
+ #include <asm/scatterlist.h>
  
- 	ZONE_PADDING(_pad1_)
--
--	/* Write-intensive fields used from the page allocator */
--	spinlock_t		lock;
--
- 	/* free areas of different sizes */
- 	struct free_area	free_area[MAX_ORDER];
- 
- 	/* zone flags, see below */
- 	unsigned long		flags;
- 
-+	/* Write-intensive fields used from the page allocator */
-+	spinlock_t		lock;
++struct device;
 +
- 	ZONE_PADDING(_pad2_)
+ struct dma_pool *dma_pool_create(const char *name, struct device *dev, 
+ 			size_t size, size_t align, size_t allocation);
  
- 	/* Write-intensive fields used by page reclaim */
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from broonie@kernel.org are
 
 origin.patch
-cxgb4-drop-__gfp_nofail-allocation.patch
-jbd2-revert-must-not-fail-allocation-loops-back-to-gfp_nofail.patch
-mm-cma-change-fallback-behaviour-for-cma-freepage.patch
-mm-page_alloc-factor-out-fallback-freepage-checking.patch
-mm-compaction-enhance-compaction-finish-condition.patch
-mm-compaction-enhance-compaction-finish-condition-fix.patch
-mm-refactor-do_wp_page-extract-the-reuse-case.patch
-mm-refactor-do_wp_page-rewrite-the-unlock-flow.patch
-mm-refactor-do_wp_page-extract-the-page-copy-flow.patch
-mm-refactor-do_wp_page-handling-of-shared-vma-into-a-function.patch
-mm-remove-gfp_thisnode.patch
-mm-thp-really-limit-transparent-hugepage-allocation-to-local-node.patch
-kernel-cpuset-remove-exception-for-__gfp_thisnode.patch
-mm-clarify-__gfp_nofail-deprecation-status.patch
-sparc-clarify-__gfp_nofail-allocation.patch
-mm-numa-remove-migrate_ratelimited.patch
-mm-consolidate-all-page-flags-helpers-in-linux-page-flagsh.patch
-page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-mm-sanitize-page-mapping-for-tail-pages.patch
-mm-sanitize-page-mapping-for-tail-pages-v2.patch
-allow-compaction-of-unevictable-pages.patch
-document-interaction-between-compaction-and-the-unevictable-lru.patch
-document-interaction-between-compaction-and-the-unevictable-lru-fix.patch
-mm-change-deactivate_page-with-deactivate_file_page.patch
-mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-reclaimable-pages.patch
-mm-dont-call-__page_cache_release-for-hugetlb.patch
-mm-hugetlb-introduce-pagehugeactive-flag.patch
-mm-hugetlb-introduce-pagehugeactive-flag-fix.patch
-mm-hugetlb-cleanup-using-pagehugeactive-flag.patch
-mm-hugetlb-cleanup-using-pagehugeactive-flag-fix.patch
-mmv41-new-pfn_mkwrite-same-as-page_mkwrite-for-vm_pfnmap.patch
-dax-use-pfn_mkwrite-to-update-c-mtime-freeze-protection.patch
-dax-unify-ext2-4_dax_file_operations.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-mm-move-lazy-free-pages-to-inactive-list.patch
-mm-move-lazy-free-pages-to-inactive-list-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-kernelh-implement-div_round_closest_ull.patch
-cpuidle-menu-use-div_round_closest_ull.patch
+asoc-pcm512x-use-div_round_closest_ull-from-kernelh.patch
 linux-next.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
+documentation-spi-spidev_testc-fix-warning.patch
 
