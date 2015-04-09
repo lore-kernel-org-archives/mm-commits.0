@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-mempool-poison-elements-backed-by-page-allocator-fix-fix-fix.patch added to -mm tree
-Date: Thu, 09 Apr 2015 12:37:55 -0700
-Message-ID: <5526d513.RLEcz5Tp5LRtA0jy%akpm@linux-foundation.org>
+Subject: + mm-hugetlb-use-pmd_page-in-follow_huge_pmd.patch added to -mm
+ tree
+Date: Thu, 09 Apr 2015 12:45:13 -0700
+Message-ID: <5526d6c9.RTvOS5b0imL0V4cg%akpm__28179.7751122669$1428608727$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49970 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50092 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933308AbbDITh4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Apr 2015 15:37:56 -0400
+	with ESMTP id S933327AbbDITpP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Apr 2015 15:45:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, rientjes@google.com, mm-commits@vger.kernel.org
+To: gerald.schaefer@de.ibm.com, aarcange@redhat.com, hughd@google.com, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, schwidefsky@de.ibm.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mempool: add missing include
+     Subject: mm/hugetlb: use pmd_page() in follow_huge_pmd()
 has been added to the -mm tree.  Its filename is
-     mm-mempool-poison-elements-backed-by-page-allocator-fix-fix-fix.patch
+     mm-hugetlb-use-pmd_page-in-follow_huge_pmd.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mempool-poison-elements-backed-by-page-allocator-fix-fix-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-use-pmd_page-in-follow_huge_pmd.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mempool-poison-elements-backed-by-page-allocator-fix-fix-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-use-pmd_page-in-follow_huge_pmd.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,56 +39,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: mempool: add missing include
+From: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Subject: mm/hugetlb: use pmd_page() in follow_huge_pmd()
 
-This is a fix^3 for the mempool poisoning patch, which introduces
-a compile-time error on some ARM randconfig builds:
+commit 61f77eda "mm/hugetlb: reduce arch dependent code around
+follow_huge_*" broke follow_huge_pmd() on s390, where pmd and pte layout
+differ and using pte_page() on a huge pmd will return wrong results. 
+Using pmd_page() instead fixes this.
 
-mm/mempool.c: In function 'check_element':
-mm/mempool.c:65:16: error: implicit declaration of function 'kmap_atomic' [-Werror=implicit-function-declaration]
-   void *addr = kmap_atomic((struct page *)element);
+All architectures that were touched by commit 61f77eda have pmd_page()
+defined, so this should not break anything on other architectures.
 
-The problem is clearly the missing declaration, and including
-linux/highmem.h fixes it.
-
-Fixes: a3db5a8463b0db ("mm, mempool: poison elements backed by page allocator fix fix")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: David Rientjes <rientjes@google.com>
+Fixes: 61f77eda "mm/hugetlb: reduce arch dependent code around follow_huge_*"
+Signed-off-by: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Michal Hocko <mhocko@suse.cz>, Andrea Arcangeli <aarcange@redhat.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: <stable@vger.kernel.org>	[3.12+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempool.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/hugetlb.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN mm/mempool.c~mm-mempool-poison-elements-backed-by-page-allocator-fix-fix-fix mm/mempool.c
---- a/mm/mempool.c~mm-mempool-poison-elements-backed-by-page-allocator-fix-fix-fix
-+++ a/mm/mempool.c
-@@ -11,6 +11,7 @@
- 
- #include <linux/mm.h>
- #include <linux/slab.h>
-+#include <linux/highmem.h>
- #include <linux/kmemleak.h>
- #include <linux/export.h>
- #include <linux/mempool.h>
+diff -puN mm/hugetlb.c~mm-hugetlb-use-pmd_page-in-follow_huge_pmd mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-use-pmd_page-in-follow_huge_pmd
++++ a/mm/hugetlb.c
+@@ -3865,8 +3865,7 @@ retry:
+ 	if (!pmd_huge(*pmd))
+ 		goto out;
+ 	if (pmd_present(*pmd)) {
+-		page = pte_page(*(pte_t *)pmd) +
+-			((address & ~PMD_MASK) >> PAGE_SHIFT);
++		page = pmd_page(*pmd) + ((address & ~PMD_MASK) >> PAGE_SHIFT);
+ 		if (flags & FOLL_GET)
+ 			get_page(page);
+ 	} else {
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from gerald.schaefer@de.ibm.com are
 
-origin.patch
-ocfs2-use-64bit-variables-to-track-heartbeat-time.patch
-mm-change-__get_vm_area_node-to-use-fls_long.patch
-lib-add-huge-i-o-map-capability-interfaces.patch
-mm-change-ioremap-to-set-up-huge-i-o-mappings.patch
-mm-change-vunmap-to-tear-down-huge-kva-mappings.patch
-x86-mm-support-huge-i-o-mapping-capability-i-f.patch
-x86-mm-support-huge-kva-mappings-on-x86.patch
-mm-mempool-poison-elements-backed-by-page-allocator-fix-fix-fix.patch
-documentation-bindings-add-abraconabx80x.patch
-rtc-add-rtc-abx80x-a-driver-for-the-abracon-ab-x80x-i2c-rtc.patch
-seccomp-allow-compat-sigreturn-overrides.patch
-linux-next.patch
-powerpc-oprofile-reduce-mmap_sem-hold-for-exe_file.patch
-maintainers-add-mediatek-soc-mailing-list.patch
+mm-hugetlb-use-pmd_page-in-follow_huge_pmd.patch
+s390-remove-use-of-seq_printf-return-value.patch
 
