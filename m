@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-add-a-test-for-const-with-__read_mostly-uses.patch
- added to -mm tree
-Date: Thu, 09 Apr 2015 13:51:49 -0700
-Message-ID: <5526e665.zoU5qIPJFBWqmkJI%akpm@linux-foundation.org>
+Subject: + mm-make-every-pte-dirty-on-do_swap_page.patch added to -mm tree
+Date: Thu, 09 Apr 2015 13:54:51 -0700
+Message-ID: <5526e71b.fd6fmPBM/GLAK02Z%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51941 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51947 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753872AbbDIUvu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Apr 2015 16:51:50 -0400
+	with ESMTP id S1754182AbbDIUyw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Apr 2015 16:54:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, andi@firstfloor.org, apw@shadowen.org, mm-commits@vger.kernel.org
+To: minchan@kernel.org, gorcunov@gmail.com, hughd@google.com, xemul@parallels.com, yalin.wang@sonymobile.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add a test for const with __read_mostly uses
+     Subject: mm: make every pte dirty on do_swap_page
 has been added to the -mm tree.  Its filename is
-     checkpatch-add-a-test-for-const-with-__read_mostly-uses.patch
+     mm-make-every-pte-dirty-on-do_swap_page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-a-test-for-const-with-__read_mostly-uses.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-make-every-pte-dirty-on-do_swap_page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-a-test-for-const-with-__read_mostly-uses.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-make-every-pte-dirty-on-do_swap_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,91 +38,188 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add a test for const with __read_mostly uses
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm: make every pte dirty on do_swap_page
 
-const objects shouldn't be __read_mostly.  They are read-only.
+Bascially, MADV_FREE relys on the dirty bit in page table entry to decide
+whether VM allows to discard the page or not.  IOW, if page table entry
+includes marked dirty bit, VM shouldn't discard the page.
 
-Marking these objects as __read_mostly causes section conflicts with LTO
-linking.
+However, if swap-in by read fault happens, page table entry point out the
+page doesn't have marked dirty bit so MADV_FREE might discard the page
+wrongly.  For avoiding the problem, MADV_FREE did more checks with
+PageDirty and PageSwapCache.  It worked out because swapped-in page lives
+on swap cache and since it was evicted from the swap cache, the page has
+PG_dirty flag.  So both page flags checks effectvely prevent wrong
+discarding by MADV_FREE.
 
-So add a test to try to avoid this issue.
+A problem in above logic is that swapped-in page has PG_dirty since they
+are removed from swap cache so VM cannot consider those pages as freeable
+any more alghouth madvise_free is called in future.  Look at below example
+for detail.
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Andi Kleen <andi@firstfloor.org>
+ptr = malloc();
+memset(ptr);
+..
+..
+.. heavy memory pressure so all of pages are swapped out
+..
+..
+var = *ptr; -> a page swapped-in and removed from swapcache.
+               page table doesn't mark dirty bit and page
+               descriptor includes PG_dirty
+..
+..
+madvise_free(ptr);
+..
+..
+..
+.. heavy memory pressure again.
+.. In this time, VM cannot discard the page because the page
+.. has *PG_dirty*
+
+Rather than relying on the PG_dirty of page descriptor for preventing
+discarding a page, dirty bit in page table is more straightforward and
+simple.  So, this patch makes page table dirty bit marked whenever swap-in
+happens.  Inherenty, page table entry point out swapped-out page had dirty
+bit so I think it's no prblem.
+
+With this, it removes complicated logic and makes freeable page checking
+by madvise_free simple.  Of course, we could solve above mentioned
+example.
+
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Reported-by: Yalin Wang <yalin.wang@sonymobile.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Cyrill Gorcunov <gorcunov@gmail.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ mm/madvise.c |    1 -
+ mm/memory.c  |   10 ++++++++--
+ mm/rmap.c    |    2 +-
+ mm/vmscan.c  |    3 +--
+ 4 files changed, 10 insertions(+), 6 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-a-test-for-const-with-__read_mostly-uses scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-a-test-for-const-with-__read_mostly-uses
-+++ a/scripts/checkpatch.pl
-@@ -4791,6 +4791,16 @@ sub process {
+diff -puN mm/madvise.c~mm-make-every-pte-dirty-on-do_swap_page mm/madvise.c
+--- a/mm/madvise.c~mm-make-every-pte-dirty-on-do_swap_page
++++ a/mm/madvise.c
+@@ -325,7 +325,6 @@ static int madvise_free_pte_range(pmd_t
+ 				continue;
  			}
+ 
+-			ClearPageDirty(page);
+ 			unlock_page(page);
  		}
  
-+# check for __read_mostly with const non-pointer (should just be const)
-+		if ($line =~ /\b__read_mostly\b/ &&
-+		    $line =~ /($Type)\s*$Ident/ && $1 !~ /\*\s*$/ && $1 =~ /\bconst\b/) {
-+			if (ERROR("CONST_READ_MOSTLY",
-+				  "Invalid use of __read_mostly with const type\n" . $herecurr) &&
-+			    $fix) {
-+				$fixed[$fixlinenr] =~ s/\s+__read_mostly\b//;
-+			}
-+		}
+diff -puN mm/memory.c~mm-make-every-pte-dirty-on-do_swap_page mm/memory.c
+--- a/mm/memory.c~mm-make-every-pte-dirty-on-do_swap_page
++++ a/mm/memory.c
+@@ -2555,9 +2555,15 @@ static int do_swap_page(struct mm_struct
+ 
+ 	inc_mm_counter_fast(mm, MM_ANONPAGES);
+ 	dec_mm_counter_fast(mm, MM_SWAPENTS);
+-	pte = mk_pte(page, vma->vm_page_prot);
 +
- # don't use __constant_<foo> functions outside of include/uapi/
- 		if ($realfile !~ m@^include/uapi/@ &&
- 		    $line =~ /(__constant_(?:htons|ntohs|[bl]e(?:16|32|64)_to_cpu|cpu_to_[bl]e(?:16|32|64)))\s*\(/) {
++	/*
++	 * The page is swapping in now was dirty before it was swapped out
++	 * so restore the state again(ie, pte_mkdirty) because MADV_FREE
++	 * relies on the dirty bit on page table.
++	 */
++	pte = pte_mkdirty(mk_pte(page, vma->vm_page_prot));
+ 	if ((flags & FAULT_FLAG_WRITE) && reuse_swap_page(page)) {
+-		pte = maybe_mkwrite(pte_mkdirty(pte), vma);
++		pte = maybe_mkwrite(pte, vma);
+ 		flags &= ~FAULT_FLAG_WRITE;
+ 		ret |= VM_FAULT_WRITE;
+ 		exclusive = 1;
+diff -puN mm/rmap.c~mm-make-every-pte-dirty-on-do_swap_page mm/rmap.c
+--- a/mm/rmap.c~mm-make-every-pte-dirty-on-do_swap_page
++++ a/mm/rmap.c
+@@ -1275,7 +1275,7 @@ static int try_to_unmap_one(struct page
+ 
+ 		if (flags & TTU_FREE) {
+ 			VM_BUG_ON_PAGE(PageSwapCache(page), page);
+-			if (!dirty && !PageDirty(page)) {
++			if (!dirty) {
+ 				/* It's a freeable page by MADV_FREE */
+ 				dec_mm_counter(mm, MM_ANONPAGES);
+ 				goto discard;
+diff -puN mm/vmscan.c~mm-make-every-pte-dirty-on-do_swap_page mm/vmscan.c
+--- a/mm/vmscan.c~mm-make-every-pte-dirty-on-do_swap_page
++++ a/mm/vmscan.c
+@@ -805,8 +805,7 @@ static enum page_references page_check_r
+ 		return PAGEREF_KEEP;
+ 	}
+ 
+-	if (PageAnon(page) && !pte_dirty && !PageSwapCache(page) &&
+-			!PageDirty(page))
++	if (PageAnon(page) && !pte_dirty && !PageSwapCache(page))
+ 		*freeable = true;
+ 
+ 	/* Reclaim if clean, defer dirty pages to writeback */
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-ocfs2-logging-remove-static-buffer-use-vsprintf-extension-%pv.patch
-ocfs2-neaten-do_error-ocfs2_error-and-ocfs2_abort.patch
-slub-use-bool-function-return-values-of-true-false-not-1-0.patch
-maintainers-use-tabs-consistently.patch
-maintainers-credits-remove-stefano-brivio-from-b43.patch
-x86-mtrr-if-remove-use-of-seq_printf-return-value.patch
-power-wakeup-remove-use-of-seq_printf-return-value.patch
-rtc-remove-use-of-seq_printf-return-value.patch
-ipc-remove-use-of-seq_printf-return-value.patch
-microblaze-mb-remove-use-of-seq_printf-return-value.patch
-microblaze-mb-remove-use-of-seq_printf-return-value-fix.patch
-nios2-cpuinfo-remove-use-of-seq_printf-return-value.patch
-arm-plat-pxa-remove-use-of-seq_printf-return-value.patch
-openrisc-remove-use-of-seq_printf-return-value.patch
-cris-remove-use-of-seq_printf-return-value.patch
-cris-fasttimer-remove-use-of-seq_printf-return-value.patch
-s390-remove-use-of-seq_printf-return-value.patch
-proc-remove-use-of-seq_printf-return-value.patch
-cgroup-remove-use-of-seq_printf-return-value.patch
-tracing-remove-use-of-seq_printf-return-value.patch
-lru_cache-remove-use-of-seq_printf-return-value.patch
-parisc-remove-use-of-seq_printf-return-value.patch
-lib-vsprintfc-even-faster-decimal-conversion.patch
-mm-utilc-add-kstrimdup.patch
-checkpatch-improve-no-space-is-necessary-after-a-cast-test.patch
-checkpatch-add-spell-checking-of-email-subject-line.patch
-checkpatch-spell-check-reudce.patch
-checkpatch-add-optional-codespell-dictionary-to-find-more-typos.patch
-checkpatch-match-more-world-writable-permissions.patch
-checkpatch-match-more-world-writable-permissions-fix.patch
-checkpatch-improve-return-negative-errno-check.patch
-checkpatch-add-test-for-repeated-const-uses.patch
-checkpatch-dont-ask-for-asm-fileh-to-linux-fileh-unconditionally.patch
-checkpatch-submittingpatches-suggest-line-wrapping-commit-messages-at-75-columns.patch
-checkpatch-add-define-foo-string-long-line-exception.patch
-checkpatch-add-uart_ops-to-normally-const-structs.patch
-checkpatch-add-prefer-array_size-test.patch
-checkpatch-improve-operator-spacing-check.patch
-checkpatch-add-a-test-for-const-with-__read_mostly-uses.patch
-rtc-use-more-standard-kernel-logging-styles.patch
-adfs-returning-correct-return-values.patch
+mm-change-deactivate_page-with-deactivate_file_page.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+mm-page_isolation-check-pfn-validity-before-access.patch
+x86-add-pmd_-for-thp.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp.patch
+sparc-add-pmd_-for-thp-fix.patch
+powerpc-add-pmd_-for-thp.patch
+arm-add-pmd_mkclean-for-thp.patch
+arm64-add-pmd_-for-thp.patch
+mm-support-madvisemadv_free.patch
+mm-support-madvisemadv_free-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-dont-split-thp-page-when-syscall-is-called.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-2.patch
+mm-free-swp_entry-in-madvise_free.patch
+mm-move-lazy-free-pages-to-inactive-list.patch
+mm-move-lazy-free-pages-to-inactive-list-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
+mm-make-every-pte-dirty-on-do_swap_page.patch
+zram-cosmetic-zram_attr_ro-code-formatting-tweak.patch
+zram-use-idr-instead-of-zram_devices-array.patch
+zram-factor-out-device-reset-from-reset_store.patch
+zram-reorganize-code-layout.patch
+zram-add-dynamic-device-add-remove-functionality.patch
+zram-add-dynamic-device-add-remove-functionality-fix.patch
+zram-remove-max_num_devices-limitation.patch
+zram-report-every-added-and-removed-device.patch
+zram-trivial-correct-flag-operations-comment.patch
+zram-return-zram-device_id-value-from-zram_add.patch
+zram-introduce-automatic-device_id-generation.patch
+zram-introduce-automatic-device_id-generation-fix.patch
+zram-do-not-let-user-enforce-new-device-dev_id.patch
+zsmalloc-decouple-handle-and-object.patch
+zsmalloc-factor-out-obj_.patch
+zsmalloc-support-compaction.patch
+zsmalloc-support-compaction-fix.patch
+zsmalloc-adjust-zs_almost_full.patch
+zram-support-compaction.patch
+zsmalloc-record-handle-in-page-private-for-huge-object.patch
+zsmalloc-add-fullness-into-stat.patch
+zsmalloc-zsmalloc-documentation.patch
+mm-zsmallocc-fix-comment-for-get_pages_per_zspage.patch
+zram-remove-num_migrated-device-attr.patch
+zram-move-compact_store-to-sysfs-functions-area.patch
+zram-use-generic-start-end-io-accounting.patch
+zram-describe-device-attrs-in-documentation.patch
+zram-export-new-io_stat-sysfs-attrs.patch
+zram-export-new-mm_stat-sysfs-attrs.patch
+zram-deprecate-zram-attrs-sysfs-nodes.patch
+zsmalloc-remove-synchronize_rcu-from-zs_compact.patch
+zsmalloc-micro-optimize-zs_object_copy.patch
+zsmalloc-remove-unnecessary-insertion-removal-of-zspage-in-compaction.patch
+zsmalloc-fix-fatal-corruption-due-to-wrong-size-class-selection.patch
+zsmalloc-remove-extra-cond_resched-in-__zs_compact.patch
+zram-fix-error-return-code.patch
 linux-next.patch
-proc-show-locks-in-proc-pid-fdinfo-x.patch
-proc-show-locks-in-proc-pid-fdinfo-x-v2.patch
 
