@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- scripts-coccinelle-misc-bugoncocci-update-bug_on-conversion-warning.patch
- added to -mm tree
-Date: Thu, 09 Apr 2015 14:02:14 -0700
-Message-ID: <5526e8d6.9veB54x9Dk0hD9Xt%akpm@linux-foundation.org>
+ documentation-vm-pagemaptxt-correct-location-of-page-types-tool.patch added to -mm tree
+Date: Fri, 10 Apr 2015 14:37:13 -0700
+Message-ID: <55284289.F3UD3qGVc8ReAn/x%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52043 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50622 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754421AbbDIVCP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Apr 2015 17:02:15 -0400
+	with ESMTP id S1754914AbbDJVhN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 10 Apr 2015 17:37:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, Julia.Lawall@lip6.fr, bfields@fieldses.org, mm-commits@vger.kernel.org
+To: rwright@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/coccinelle/misc/bugon.cocci: update bug_on conversion warning
+     Subject: Documentation/vm/pagemap.txt: correct location of page-types tool
 has been added to the -mm tree.  Its filename is
-     scripts-coccinelle-misc-bugoncocci-update-bug_on-conversion-warning.patch
+     documentation-vm-pagemaptxt-correct-location-of-page-types-tool.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-coccinelle-misc-bugoncocci-update-bug_on-conversion-warning.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/documentation-vm-pagemaptxt-correct-location-of-page-types-tool.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-coccinelle-misc-bugoncocci-update-bug_on-conversion-warning.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/documentation-vm-pagemaptxt-correct-location-of-page-types-tool.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,67 +39,34 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: scripts/coccinelle/misc/bugon.cocci: update bug_on conversion warning
+From: Randy Wright <rwright@hp.com>
+Subject: Documentation/vm/pagemap.txt: correct location of page-types tool
 
-if()/BUG conversion to BUG_ON must be avoided when there's side effect in
-condition.  The reason being BUG_ON won't execute the condition when
-CONFIG_BUG is not defined.
+The page-types tool was relocated to tools/vm in the 3.4 kernel timeframe.
 
-With inspiration from Bruce Fields.
-
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Suggested-by: Julia Lawall <Julia.Lawall@lip6.fr>
-Acked-by: Julia Lawall <Julia.Lawall@lip6.fr>
-Cc: J. Bruce Fields <bfields@fieldses.org>
+Signed-off-by: Randy Wright <rwright@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/coccinelle/misc/bugon.cocci |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/vm/pagemap.txt |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN scripts/coccinelle/misc/bugon.cocci~scripts-coccinelle-misc-bugoncocci-update-bug_on-conversion-warning scripts/coccinelle/misc/bugon.cocci
---- a/scripts/coccinelle/misc/bugon.cocci~scripts-coccinelle-misc-bugoncocci-update-bug_on-conversion-warning
-+++ a/scripts/coccinelle/misc/bugon.cocci
-@@ -57,6 +57,6 @@ coccilib.org.print_todo(p[0], "WARNING u
- p << r.p;
- @@
+diff -puN Documentation/vm/pagemap.txt~documentation-vm-pagemaptxt-correct-location-of-page-types-tool Documentation/vm/pagemap.txt
+--- a/Documentation/vm/pagemap.txt~documentation-vm-pagemaptxt-correct-location-of-page-types-tool
++++ a/Documentation/vm/pagemap.txt
+@@ -131,7 +131,8 @@ Short descriptions to the page flags:
+ 13. SWAPCACHE   page is mapped to swap space, ie. has an associated swap entry
+ 14. SWAPBACKED  page is backed by swap/RAM
  
--msg="WARNING: Use BUG_ON"
-+msg="WARNING: Use BUG_ON instead of if condition followed by BUG.\nPlease make sure the condition has no side effects (see conditional BUG_ON definition in include/asm-generic/bug.h)"
- coccilib.report.print_report(p[0], msg)
+-The page-types tool in this directory can be used to query the above flags.
++The page-types tool in the tools/vm directory can be used to query the
++above flags.
+ 
+ Using pagemap to do something useful:
  
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from rwright@hp.com are
 
-scripts-coccinelle-misc-bugoncocci-update-bug_on-conversion-warning.patch
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-slob-statify-slob_alloc_node-and-remove-symbol.patch
-mm-vmalloc-fix-possible-exhaustion-of-vmalloc-space-caused-by-vm_map_ram-allocator.patch
-mm-vmalloc-occupy-newly-allocated-vmap-block-just-after-allocation.patch
-mm-vmalloc-get-rid-of-dirty-bitmap-inside-vmap_block-structure.patch
-mm-memblock-add-debug-output-for-the-memblock_add.patch
-mm-memblock-add-debug-output-for-the-memblock_add-fix.patch
-envctrl-ignore-orderly_poweroff-return-value.patch
-kernel-rebootc-add-orderly_reboot-for-graceful-reboot.patch
-powerpc-powernv-reboot-when-requested-by-firmware.patch
-checkpatch-dont-ask-for-asm-fileh-to-linux-fileh-unconditionally.patch
-befs-replace-typedef-befs_mount_options-by-structure.patch
-befs-replace-typedef-befs_sb_info-by-structure.patch
-befs-replace-typedef-befs_inode_info-by-structure.patch
-fs-hfsplus-move-xattr_name-allocation-in-hfsplus_getxattr.patch
-fs-hfsplus-move-xattr_name-allocation-in-hfsplus_setxattr.patch
-fs-hfsplus-atomically-set-inode-i_flags.patch
-fs-hfsplus-use-bool-instead-of-int-for-is_known_namespace-return-value.patch
-fs-hfsplus-replace-if-bug-by-bug_on.patch
-hfsplus-dont-store-special-osx-xattr-prefix-on-disk.patch
-adfs-returning-correct-return-values.patch
-fs-affs-use-affs_mount-prefix-for-mount-options.patch
-fs-affs-affsh-add-mount-option-manipulation-macros.patch
-fs-affs-superc-use-affs_set_opt.patch
-fs-affs-use-affs_test_opt.patch
-affs-kstrdup-memory-handling.patch
-affs-kstrdup-memory-handling-fix.patch
-linux-next.patch
+documentation-vm-pagemaptxt-correct-location-of-page-types-tool.patch
 
