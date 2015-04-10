@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- documentation-vm-pagemaptxt-correct-location-of-page-types-tool.patch added to -mm tree
-Date: Fri, 10 Apr 2015 14:37:13 -0700
-Message-ID: <55284289.F3UD3qGVc8ReAn/x%akpm@linux-foundation.org>
+Subject: + checkpatchpl-new-instances-of-enosys-are-errors.patch added to
+ -mm tree
+Date: Fri, 10 Apr 2015 15:48:09 -0700
+Message-ID: <55285329.8CEc0QBdbAOpJKES%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50622 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51061 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754914AbbDJVhN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 10 Apr 2015 17:37:13 -0400
+	with ESMTP id S932470AbbDJWsK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 10 Apr 2015 18:48:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rwright@hp.com, mm-commits@vger.kernel.org
+To: luto@amacapital.net, joe@perches.com, mtk.manpages@gmail.com, pavel@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Documentation/vm/pagemap.txt: correct location of page-types tool
+     Subject: checkpatch.pl: new instances of ENOSYS are errors
 has been added to the -mm tree.  Its filename is
-     documentation-vm-pagemaptxt-correct-location-of-page-types-tool.patch
+     checkpatchpl-new-instances-of-enosys-are-errors.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/documentation-vm-pagemaptxt-correct-location-of-page-types-tool.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatchpl-new-instances-of-enosys-are-errors.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/documentation-vm-pagemaptxt-correct-location-of-page-types-tool.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatchpl-new-instances-of-enosys-are-errors.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,34 +39,55 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Randy Wright <rwright@hp.com>
-Subject: Documentation/vm/pagemap.txt: correct location of page-types tool
+From: Andy Lutomirski <luto@amacapital.net>
+Subject: checkpatch.pl: new instances of ENOSYS are errors
 
-The page-types tool was relocated to tools/vm in the 3.4 kernel timeframe.
+ENOSYS means that a nonexistent system call was called.  We have a
+bad habit of using it for things like invalid operations on
+otherwise valid syscalls.  We should avoid this in new code.
 
-Signed-off-by: Randy Wright <rwright@hp.com>
+Pervasive incorrect usage of ENOSYS came up at the kernel summit ABI
+review discussion.  Let's see if checkpatch can help.
+
+I'll submit a separate patch for include/uapi/asm-generic/errno.h.
+
+Signed-off-by: Andy Lutomirski <luto@amacapital.net>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/pagemap.txt |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ scripts/checkpatch.pl |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN Documentation/vm/pagemap.txt~documentation-vm-pagemaptxt-correct-location-of-page-types-tool Documentation/vm/pagemap.txt
---- a/Documentation/vm/pagemap.txt~documentation-vm-pagemaptxt-correct-location-of-page-types-tool
-+++ a/Documentation/vm/pagemap.txt
-@@ -131,7 +131,8 @@ Short descriptions to the page flags:
- 13. SWAPCACHE   page is mapped to swap space, ie. has an associated swap entry
- 14. SWAPBACKED  page is backed by swap/RAM
+diff -puN scripts/checkpatch.pl~checkpatchpl-new-instances-of-enosys-are-errors scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatchpl-new-instances-of-enosys-are-errors
++++ a/scripts/checkpatch.pl
+@@ -3396,6 +3396,14 @@ sub process {
+ 			     "Prefer dev_$level(... to dev_printk(KERN_$orig, ...\n" . $herecurr);
+ 		}
  
--The page-types tool in this directory can be used to query the above flags.
-+The page-types tool in the tools/vm directory can be used to query the
-+above flags.
- 
- Using pagemap to do something useful:
- 
++# ENOSYS means "bad syscall nr" and nothing else.  This will have a small
++# number of false positives, but assembly files are not checked, so at
++# least the arch entry code will not trigger this warning.
++		if ($line =~ /\bENOSYS\b/) {
++			WARN("ENOSYS",
++			     "ENOSYS means 'invalid syscall nr' and nothing else\n" . $herecurr);
++		}
++
+ # function brace can't be on same line, except for #defines of do while,
+ # or if closed on same line
+ 		if (($line=~/$Type\s*$Ident\(.*\).*\s*{/) and
 _
 
-Patches currently in -mm which might be from rwright@hp.com are
+Patches currently in -mm which might be from luto@amacapital.net are
 
-documentation-vm-pagemaptxt-correct-location-of-page-types-tool.patch
+arm-factor-out-mmap-aslr-into-mmap_rnd.patch
+x86-standardize-mmap_rnd-usage.patch
+mm-expose-arch_mmap_rnd-when-available.patch
+mm-split-et_dyn-aslr-from-mmap-aslr.patch
+mm-fold-arch_randomize_brk-into-arch_has_elf_randomize.patch
+checkpatchpl-new-instances-of-enosys-are-errors.patch
+linux-next.patch
 
