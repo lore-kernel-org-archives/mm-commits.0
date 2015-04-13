@@ -1,80 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged] documentation-memcg-update-memcg-kmem-status.patch
- removed from -mm tree
-Date: Mon, 13 Apr 2015 12:58:21 -0700
-Message-ID: <552c1fdd.uArRb81UAfKK/cRx%akpm@linux-foundation.org>
+Subject: +
+ powerpc-merge-fix-for-watchdog_enable_hardlockup_detector-api-change.patch
+ added to -mm tree
+Date: Mon, 13 Apr 2015 13:14:12 -0700
+Message-ID: <552c2394.R2iKVxuRCwXCu4I9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57796 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57883 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751691AbbDMT6V (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Apr 2015 15:58:21 -0400
+	with ESMTP id S1752182AbbDMUON (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Apr 2015 16:14:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@parallels.com, corbet@lwn.net, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Documentation/memcg: update memcg/kmem status
-has been removed from the -mm tree.  Its filename was
-     documentation-memcg-update-memcg-kmem-status.patch
+     Subject: powerpc: merge fix for watchdog_enable_hardlockup_detector API change
+has been added to the -mm tree.  Its filename is
+     powerpc-merge-fix-for-watchdog_enable_hardlockup_detector-api-change.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-merge-fix-for-watchdog_enable_hardlockup_detector-api-change.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-merge-fix-for-watchdog_enable_hardlockup_detector-api-change.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: Documentation/memcg: update memcg/kmem status
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: powerpc: merge fix for watchdog_enable_hardlockup_detector API change
 
-Memcg/kmem reclaim support has been finally merged. Reflect this in the
-documentation.
-
-Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Acked-by: Michal Hocko <mhocko@suse.cz>
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups/memory.txt |    8 +++-----
- init/Kconfig                     |    6 ------
- 2 files changed, 3 insertions(+), 11 deletions(-)
+ arch/powerpc/kernel/setup_64.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/cgroups/memory.txt~documentation-memcg-update-memcg-kmem-status Documentation/cgroups/memory.txt
---- a/Documentation/cgroups/memory.txt~documentation-memcg-update-memcg-kmem-status
-+++ a/Documentation/cgroups/memory.txt
-@@ -275,11 +275,6 @@ When oom event notifier is registered, e
+diff -puN arch/powerpc/kernel/setup_64.c~powerpc-merge-fix-for-watchdog_enable_hardlockup_detector-api-change arch/powerpc/kernel/setup_64.c
+--- a/arch/powerpc/kernel/setup_64.c~powerpc-merge-fix-for-watchdog_enable_hardlockup_detector-api-change
++++ a/arch/powerpc/kernel/setup_64.c
+@@ -793,7 +793,7 @@ u64 hw_nmi_get_sample_period(int watchdo
+  */
+ static int __init disable_hardlockup_detector(void)
+ {
+-	watchdog_enable_hardlockup_detector(false);
++	hardlockup_detector_disable();
  
- 2.7 Kernel Memory Extension (CONFIG_MEMCG_KMEM)
- 
--WARNING: Current implementation lacks reclaim support. That means allocation
--	 attempts will fail when close to the limit even if there are plenty of
--	 kmem available for reclaim. That makes this option unusable in real
--	 life so DO NOT SELECT IT unless for development purposes.
--
- With the Kernel memory extension, the Memory Controller is able to limit
- the amount of kernel memory used by the system. Kernel memory is fundamentally
- different than user memory, since it can't be swapped out, which makes it
-@@ -345,6 +340,9 @@ set:
-     In this case, the admin could set up K so that the sum of all groups is
-     never greater than the total memory, and freely set U at the cost of his
-     QoS.
-+    WARNING: In the current implementation, memory reclaim will NOT be
-+    triggered for a cgroup when it hits K while staying below U, which makes
-+    this setup impractical.
- 
-     U != 0, K >= U:
-     Since kmem charges will also be fed to the user counter and reclaim will be
-diff -puN init/Kconfig~documentation-memcg-update-memcg-kmem-status init/Kconfig
---- a/init/Kconfig~documentation-memcg-update-memcg-kmem-status
-+++ a/init/Kconfig
-@@ -1032,12 +1032,6 @@ config MEMCG_KMEM
- 	  the kmem extension can use it to guarantee that no group of processes
- 	  will ever exhaust kernel resources alone.
- 
--	  WARNING: Current implementation lacks reclaim support. That means
--	  allocation attempts will fail when close to the limit even if there
--	  are plenty of kmem available for reclaim. That makes this option
--	  unusable in real life so DO NOT SELECT IT unless for development
--	  purposes.
+ 	return 0;
+ }
+_
+
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
+
+mm-cma-release-trigger-fixpatch.patch
+lib-add-huge-i-o-map-capability-interfaces-fix.patch
+mm-change-ioremap-to-set-up-huge-i-o-mappings-fix.patch
+zsmalloc-support-compaction-fix.patch
+zsmalloc-remove-extra-cond_resched-in-__zs_compact.patch
+fs-fat-remove-unnecessary-includes-fix-2.patch
+mm-rcu-protected-get_mm_exe_file-fix.patch
+linux-next.patch
+powerpc-merge-fix-for-watchdog_enable_hardlockup_detector-api-change.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+
