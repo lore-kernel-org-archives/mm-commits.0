@@ -1,59 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- documentation-vm-pagemaptxt-correct-location-of-page-types-tool.patch
+Subject: [merged] documentation-memcg-update-memcg-kmem-status.patch
  removed from -mm tree
-Date: Mon, 13 Apr 2015 12:58:18 -0700
-Message-ID: <552c1fda.W5FtqNteqtRO2BnE%akpm@linux-foundation.org>
+Date: Mon, 13 Apr 2015 12:58:21 -0700
+Message-ID: <552c1fdd.uArRb81UAfKK/cRx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57793 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57796 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751610AbbDMT6T (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Apr 2015 15:58:19 -0400
+	with ESMTP id S1751691AbbDMT6V (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Apr 2015 15:58:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rwright@hp.com, mm-commits@vger.kernel.org
+To: vdavydov@parallels.com, corbet@lwn.net, mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Documentation/vm/pagemap.txt: correct location of page-types tool
+     Subject: Documentation/memcg: update memcg/kmem status
 has been removed from the -mm tree.  Its filename was
-     documentation-vm-pagemaptxt-correct-location-of-page-types-tool.patch
+     documentation-memcg-update-memcg-kmem-status.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Randy Wright <rwright@hp.com>
-Subject: Documentation/vm/pagemap.txt: correct location of page-types tool
+From: Vladimir Davydov <vdavydov@parallels.com>
+Subject: Documentation/memcg: update memcg/kmem status
 
-The page-types tool was relocated to tools/vm in the 3.4 kernel timeframe.
+Memcg/kmem reclaim support has been finally merged. Reflect this in the
+documentation.
 
-Signed-off-by: Randy Wright <rwright@hp.com>
+Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Acked-by: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/pagemap.txt |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ Documentation/cgroups/memory.txt |    8 +++-----
+ init/Kconfig                     |    6 ------
+ 2 files changed, 3 insertions(+), 11 deletions(-)
 
-diff -puN Documentation/vm/pagemap.txt~documentation-vm-pagemaptxt-correct-location-of-page-types-tool Documentation/vm/pagemap.txt
---- a/Documentation/vm/pagemap.txt~documentation-vm-pagemaptxt-correct-location-of-page-types-tool
-+++ a/Documentation/vm/pagemap.txt
-@@ -131,7 +131,8 @@ Short descriptions to the page flags:
- 13. SWAPCACHE   page is mapped to swap space, ie. has an associated swap entry
- 14. SWAPBACKED  page is backed by swap/RAM
+diff -puN Documentation/cgroups/memory.txt~documentation-memcg-update-memcg-kmem-status Documentation/cgroups/memory.txt
+--- a/Documentation/cgroups/memory.txt~documentation-memcg-update-memcg-kmem-status
++++ a/Documentation/cgroups/memory.txt
+@@ -275,11 +275,6 @@ When oom event notifier is registered, e
  
--The page-types tool in this directory can be used to query the above flags.
-+The page-types tool in the tools/vm directory can be used to query the
-+above flags.
+ 2.7 Kernel Memory Extension (CONFIG_MEMCG_KMEM)
  
- Using pagemap to do something useful:
+-WARNING: Current implementation lacks reclaim support. That means allocation
+-	 attempts will fail when close to the limit even if there are plenty of
+-	 kmem available for reclaim. That makes this option unusable in real
+-	 life so DO NOT SELECT IT unless for development purposes.
+-
+ With the Kernel memory extension, the Memory Controller is able to limit
+ the amount of kernel memory used by the system. Kernel memory is fundamentally
+ different than user memory, since it can't be swapped out, which makes it
+@@ -345,6 +340,9 @@ set:
+     In this case, the admin could set up K so that the sum of all groups is
+     never greater than the total memory, and freely set U at the cost of his
+     QoS.
++    WARNING: In the current implementation, memory reclaim will NOT be
++    triggered for a cgroup when it hits K while staying below U, which makes
++    this setup impractical.
  
-_
-
-Patches currently in -mm which might be from rwright@hp.com are
-
-linux-next.patch
-
+     U != 0, K >= U:
+     Since kmem charges will also be fed to the user counter and reclaim will be
+diff -puN init/Kconfig~documentation-memcg-update-memcg-kmem-status init/Kconfig
+--- a/init/Kconfig~documentation-memcg-update-memcg-kmem-status
++++ a/init/Kconfig
+@@ -1032,12 +1032,6 @@ config MEMCG_KMEM
+ 	  the kmem extension can use it to guarantee that no group of processes
+ 	  will ever exhaust kernel resources alone.
+ 
+-	  WARNING: Current implementation lacks reclaim support. That means
+-	  allocation attempts will fail when close to the limit even if there
+-	  are plenty of kmem available for reclaim. That makes this option
+-	  unusable in real life so DO NOT SELECT IT unless for development
+-	  purposes.
