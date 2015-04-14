@@ -1,78 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] powerpc-standardize-mmap_rnd-usage-v4.patch
- removed from -mm tree
-Date: Tue, 14 Apr 2015 15:19:10 -0700
-Message-ID: <552d925e.Vd4MXCAqEcfLMaMd%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ mm-mempool-do-not-allow-atomic-resizing-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 14 Apr 2015 15:19:31 -0700
+Message-ID: <552d9273.Rlw/9Qy++bTA2ab/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54344 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54347 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932141AbbDNWTL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Apr 2015 18:19:11 -0400
+	with ESMTP id S932141AbbDNWTb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Apr 2015 18:19:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: keescook@chromium.org, mpe@ellerman.id.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc-standardize-mmap_rnd-usage-v4
+     Subject: mm-mempool-do-not-allow-atomic-resizing-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     powerpc-standardize-mmap_rnd-usage-v4.patch
+     mm-mempool-do-not-allow-atomic-resizing-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into powerpc-standardize-mmap_rnd-usage.patch
+This patch was dropped because it was folded into mm-mempool-do-not-allow-atomic-resizing.patch
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: powerpc-standardize-mmap_rnd-usage-v4
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-mempool-do-not-allow-atomic-resizing-checkpatch-fixes
 
-fixed mmap_base argument convention to be the same on all archs
+WARNING: Prefer kmalloc_array over kmalloc with multiply
+#111: FILE: mm/mempool.c:149:
++	new_elements = kmalloc(new_min_nr * sizeof(*new_elements), GFP_KERNEL);
 
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+total: 0 errors, 1 warnings, 81 lines checked
+
+./patches/mm-mempool-do-not-allow-atomic-resizing.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/mmap.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/mempool.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/powerpc/mm/mmap.c~powerpc-standardize-mmap_rnd-usage-v4 arch/powerpc/mm/mmap.c
---- a/arch/powerpc/mm/mmap.c~powerpc-standardize-mmap_rnd-usage-v4
-+++ a/arch/powerpc/mm/mmap.c
-@@ -66,7 +66,7 @@ static unsigned long mmap_rnd(void)
- 	return rnd << PAGE_SHIFT;
- }
+diff -puN mm/mempool.c~mm-mempool-do-not-allow-atomic-resizing-checkpatch-fixes mm/mempool.c
+--- a/mm/mempool.c~mm-mempool-do-not-allow-atomic-resizing-checkpatch-fixes
++++ a/mm/mempool.c
+@@ -146,7 +146,8 @@ int mempool_resize(mempool_t *pool, int
+ 	spin_unlock_irqrestore(&pool->lock, flags);
  
--static inline unsigned long mmap_base(unsigned long base)
-+static inline unsigned long mmap_base(unsigned long rnd)
- {
- 	unsigned long gap = rlimit(RLIMIT_STACK);
+ 	/* Grow the pool */
+-	new_elements = kmalloc(new_min_nr * sizeof(*new_elements), GFP_KERNEL);
++	new_elements = kmalloc_array(new_min_nr, sizeof(*new_elements),
++				     GFP_KERNEL);
+ 	if (!new_elements)
+ 		return -ENOMEM;
  
-@@ -75,7 +75,7 @@ static inline unsigned long mmap_base(un
- 	else if (gap > MAX_GAP)
- 		gap = MAX_GAP;
- 
--	return PAGE_ALIGN(TASK_SIZE - gap - base);
-+	return PAGE_ALIGN(TASK_SIZE - gap - rnd);
- }
- 
- /*
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-binfmt_elf-fix-bug-in-loading-of-pie-binaries.patch
-arm-factor-out-mmap-aslr-into-mmap_rnd.patch
-x86-standardize-mmap_rnd-usage.patch
-arm64-standardize-mmap_rnd-usage.patch
-mips-extract-logic-for-mmap_rnd.patch
-powerpc-standardize-mmap_rnd-usage.patch
-s390-standardize-mmap_rnd-usage.patch
-mm-expose-arch_mmap_rnd-when-available.patch
-s390-redefine-randomize_et_dyn-for-elf_et_dyn_base.patch
-mm-split-et_dyn-aslr-from-mmap-aslr.patch
-mm-fold-arch_randomize_brk-into-arch_has_elf_randomize.patch
+ocfs2-make-mlog_errno-return-the-errno.patch
+mm-migrate-mark-unmap_and_move-noinline-to-avoid-ice-in-gcc-473.patch
+mm-cma-release-trigger.patch
+mm-cma-allocation-trigger-fix.patch
+mm-compaction-enhance-compaction-finish-condition.patch
+page_writeback-cleanup-mess-around-cancel_dirty_page.patch
+mm-hide-per-cpu-lists-in-output-of-show_mem.patch
+mm-clarify-__gfp_nofail-deprecation-status.patch
+mm-change-vunmap-to-tear-down-huge-kva-mappings.patch
+mm-mempool-do-not-allow-atomic-resizing.patch
 
