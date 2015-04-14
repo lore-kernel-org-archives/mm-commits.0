@@ -1,38 +1,39 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- lib-add-huge-i-o-map-capability-interfaces-fix.patch removed from -mm tree
-Date: Tue, 14 Apr 2015 15:17:19 -0700
-Message-ID: <552d91ef.fh71KDyaXoiyKXTz%akpm@linux-foundation.org>
+ mm-change-ioremap-to-set-up-huge-i-o-mappings-fix.patch removed from -mm
+ tree
+Date: Tue, 14 Apr 2015 15:17:34 -0700
+Message-ID: <552d91fe.aaN4RG+rzgLRovDS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54323 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54329 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932105AbbDNWRU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Apr 2015 18:17:20 -0400
+	with ESMTP id S932105AbbDNWRe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Apr 2015 18:17:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: toshi.kani@hp.com, fengguang.wu@gmail.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Fix undefined ioremap_huge_init when CONFIG_MMU is not set
+     Subject: Fix build errors in asm-generic/pgtable.h
 has been removed from the -mm tree.  Its filename was
-     lib-add-huge-i-o-map-capability-interfaces-fix.patch
+     mm-change-ioremap-to-set-up-huge-i-o-mappings-fix.patch
 
-This patch was dropped because it was folded into lib-add-huge-i-o-map-capability-interfaces.patch
+This patch was dropped because it was folded into mm-change-ioremap-to-set-up-huge-i-o-mappings.patch
 
 ------------------------------------------------------
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: Fix undefined ioremap_huge_init when CONFIG_MMU is not set
+Subject: Fix build errors in asm-generic/pgtable.h
 
-Fix a build error, undefined reference to ioremap_huge_init, when
-CONFIG_MMU is not defined on linux-next and -mm tree.
+Fix build errors in pud_set_huge() and pmd_set_huge() in
+asm-generic/pgtable.h on some architectures in linux-next
+and -mm trees.
 
-lib/ioremap.o is not linked to the kernel when CONFIG_MMU is not
-defined.
+C-stype code needs be used under #ifndef __ASSEMBLY__.
 
 Signed-off-by: Toshi Kani <toshi.kani@hp.com>
 Cc: Stephen Rothwell <sfr@canb.auug.org.au>
@@ -40,39 +41,36 @@ Cc: Fengguang Wu <fengguang.wu@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/io.h |    5 +++--
- lib/ioremap.c      |    1 -
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ include/asm-generic/pgtable.h |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/io.h~lib-add-huge-i-o-map-capability-interfaces-fix include/linux/io.h
---- a/include/linux/io.h~lib-add-huge-i-o-map-capability-interfaces-fix
-+++ a/include/linux/io.h
-@@ -38,11 +38,12 @@ static inline int ioremap_page_range(uns
- }
- #endif
+diff -puN include/asm-generic/pgtable.h~mm-change-ioremap-to-set-up-huge-i-o-mappings-fix include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~mm-change-ioremap-to-set-up-huge-i-o-mappings-fix
++++ a/include/asm-generic/pgtable.h
+@@ -697,12 +697,6 @@ static inline int pmd_protnone(pmd_t pmd
  
--void __init ioremap_huge_init(void);
+ #endif /* CONFIG_MMU */
+ 
+-#endif /* !__ASSEMBLY__ */
+-
+-#ifndef io_remap_pfn_range
+-#define io_remap_pfn_range remap_pfn_range
+-#endif
 -
  #ifdef CONFIG_HAVE_ARCH_HUGE_VMAP
-+void __init ioremap_huge_init(void);
- int arch_ioremap_pud_supported(void);
- int arch_ioremap_pmd_supported(void);
-+#else
-+static inline void ioremap_huge_init(void) { }
- #endif
- 
- /*
-diff -puN lib/ioremap.c~lib-add-huge-i-o-map-capability-interfaces-fix lib/ioremap.c
---- a/lib/ioremap.c~lib-add-huge-i-o-map-capability-interfaces-fix
-+++ a/lib/ioremap.c
-@@ -46,7 +46,6 @@ static inline int ioremap_pmd_enabled(vo
+ int pud_set_huge(pud_t *pud, phys_addr_t addr, pgprot_t prot);
+ int pmd_set_huge(pmd_t *pmd, phys_addr_t addr, pgprot_t prot);
+@@ -717,4 +711,10 @@ static inline int pmd_set_huge(pmd_t *pm
  }
- 
- #else	/* !CONFIG_HAVE_ARCH_HUGE_VMAP */
--void __init ioremap_huge_init(void) { }
- static inline int ioremap_pud_enabled(void) { return 0; }
- static inline int ioremap_pmd_enabled(void) { return 0; }
  #endif	/* CONFIG_HAVE_ARCH_HUGE_VMAP */
+ 
++#endif /* !__ASSEMBLY__ */
++
++#ifndef io_remap_pfn_range
++#define io_remap_pfn_range remap_pfn_range
++#endif
++
+ #endif /* _ASM_GENERIC_PGTABLE_H */
 _
 
 Patches currently in -mm which might be from toshi.kani@hp.com are
@@ -81,7 +79,6 @@ origin.patch
 mm-change-__get_vm_area_node-to-use-fls_long.patch
 lib-add-huge-i-o-map-capability-interfaces.patch
 mm-change-ioremap-to-set-up-huge-i-o-mappings.patch
-mm-change-ioremap-to-set-up-huge-i-o-mappings-fix.patch
 mm-change-vunmap-to-tear-down-huge-kva-mappings.patch
 mm-change-vunmap-to-tear-down-huge-kva-mappings-fix.patch
 x86-mm-support-huge-i-o-mapping-capability-i-f.patch
