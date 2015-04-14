@@ -1,79 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- mm-mempool-do-not-allow-atomic-resizing-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 14 Apr 2015 15:19:31 -0700
-Message-ID: <552d9273.Rlw/9Qy++bTA2ab/%akpm@linux-foundation.org>
+Subject: [folded-merged] mm-move-memtest-under-mm-fix.patch removed from
+ -mm tree
+Date: Tue, 14 Apr 2015 15:19:54 -0700
+Message-ID: <552d928a.sBFIKl3VCWB1L5hO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54347 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54352 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932141AbbDNWTb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Apr 2015 18:19:31 -0400
+	with ESMTP id S932141AbbDNWTz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Apr 2015 18:19:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: linux@roeck-us.net, geert@linux-m68k.org, vladimir.murzin@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-mempool-do-not-allow-atomic-resizing-checkpatch-fixes
+     Subject: mm: MEMTEST depends on MEMBLOCK
 has been removed from the -mm tree.  Its filename was
-     mm-mempool-do-not-allow-atomic-resizing-checkpatch-fixes.patch
+     mm-move-memtest-under-mm-fix.patch
 
-This patch was dropped because it was folded into mm-mempool-do-not-allow-atomic-resizing.patch
+This patch was dropped because it was folded into mm-move-memtest-under-mm.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-mempool-do-not-allow-atomic-resizing-checkpatch-fixes
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: mm: MEMTEST depends on MEMBLOCK
 
-WARNING: Prefer kmalloc_array over kmalloc with multiply
-#111: FILE: mm/mempool.c:149:
-+	new_elements = kmalloc(new_min_nr * sizeof(*new_elements), GFP_KERNEL);
+Building alpha:allmodconfig fails with
 
-total: 0 errors, 1 warnings, 81 lines checked
+mm/memtest.c: In function 'reserve_bad_mem':
+mm/memtest.c:38:2: error: implicit declaration of function 'memblock_reserve'
+mm/memtest.c: In function 'do_one_pass':
+mm/memtest.c:77:2: error: implicit declaration of function 'for_each_free_mem_range'
+mm/memtest.c:77:73: error: expected ';' before '{' token
 
-./patches/mm-mempool-do-not-allow-atomic-resizing.patch has style problems, please review.
+because it depends on MEMBLOCK which is not defined for the alpha
+architecture.
 
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: David Rientjes <rientjes@google.com>
+Fixes: 420c89e6185d ("mm: move memtest under mm")
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Acked-by: Vladimir Murzin <vladimir.murzin@arm.com>
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempool.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ lib/Kconfig.debug |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/mempool.c~mm-mempool-do-not-allow-atomic-resizing-checkpatch-fixes mm/mempool.c
---- a/mm/mempool.c~mm-mempool-do-not-allow-atomic-resizing-checkpatch-fixes
-+++ a/mm/mempool.c
-@@ -146,7 +146,8 @@ int mempool_resize(mempool_t *pool, int
- 	spin_unlock_irqrestore(&pool->lock, flags);
+diff -puN lib/Kconfig.debug~mm-move-memtest-under-mm-fix lib/Kconfig.debug
+--- a/lib/Kconfig.debug~mm-move-memtest-under-mm-fix
++++ a/lib/Kconfig.debug
+@@ -1734,6 +1734,7 @@ config TEST_UDELAY
  
- 	/* Grow the pool */
--	new_elements = kmalloc(new_min_nr * sizeof(*new_elements), GFP_KERNEL);
-+	new_elements = kmalloc_array(new_min_nr, sizeof(*new_elements),
-+				     GFP_KERNEL);
- 	if (!new_elements)
- 		return -ENOMEM;
- 
+ config MEMTEST
+ 	bool "Memtest"
++	depends on MEMBLOCK
+ 	---help---
+ 	  This option adds a kernel parameter 'memtest', which allows memtest
+ 	  to be set.
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from linux@roeck-us.net are
 
 origin.patch
-ocfs2-make-mlog_errno-return-the-errno.patch
-mm-migrate-mark-unmap_and_move-noinline-to-avoid-ice-in-gcc-473.patch
-mm-cma-release-trigger.patch
-mm-cma-allocation-trigger-fix.patch
-mm-compaction-enhance-compaction-finish-condition.patch
-page_writeback-cleanup-mess-around-cancel_dirty_page.patch
-mm-hide-per-cpu-lists-in-output-of-show_mem.patch
-mm-clarify-__gfp_nofail-deprecation-status.patch
-mm-change-vunmap-to-tear-down-huge-kva-mappings.patch
-mm-mempool-do-not-allow-atomic-resizing.patch
+alpha-expose-number-of-page-table-levels-on-kconfig-level.patch
+arm64-expose-number-of-page-table-levels-on-kconfig-level.patch
+arm-expose-number-of-page-table-levels-on-kconfig-level.patch
+ia64-expose-number-of-page-table-levels-on-kconfig-level.patch
+m68k-mark-pmd-folded-and-expose-number-of-page-table-levels.patch
+mips-expose-number-of-page-table-levels-on-kconfig-level.patch
+parisc-expose-number-of-page-table-levels-on-kconfig-level.patch
+powerpc-expose-number-of-page-table-levels-on-kconfig-level.patch
+s390-expose-number-of-page-table-levels.patch
+sh-expose-number-of-page-table-levels.patch
+sparc-expose-number-of-page-table-levels.patch
+tile-expose-number-of-page-table-levels.patch
+um-expose-number-of-page-table-levels.patch
+x86-expose-number-of-page-table-levels-on-kconfig-level.patch
+mm-define-default-pgtable_levels-to-two.patch
+mm-do-not-add-nr_pmds-into-mm_struct-if-pmd-is-folded.patch
+mm-move-memtest-under-mm.patch
 
