@@ -1,76 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- mm-change-vunmap-to-tear-down-huge-kva-mappings-fix.patch removed from -mm
- tree
-Date: Tue, 14 Apr 2015 15:17:48 -0700
-Message-ID: <552d920c.F7eTq933YtcdVYQ7%akpm@linux-foundation.org>
+Subject: [folded-merged] x86-mm-support-huge-kva-mappings-on-x86-fix.patch removed from -mm tree
+Date: Tue, 14 Apr 2015 15:18:09 -0700
+Message-ID: <552d9221.PHFTOYcmlUzTxr24%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54332 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54334 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932105AbbDNWRt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Apr 2015 18:17:49 -0400
+	with ESMTP id S932214AbbDNWSK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Apr 2015 18:18:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, toshi.kani@hp.com, mm-commits@vger.kernel.org
+To: fengguang.wu@intel.com, toshi.kani@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-change-vunmap-to-tear-down-huge-kva-mappings-fix
+     Subject: x86, mm: ioremap_pud_capable can be static
 has been removed from the -mm tree.  Its filename was
-     mm-change-vunmap-to-tear-down-huge-kva-mappings-fix.patch
+     x86-mm-support-huge-kva-mappings-on-x86-fix.patch
 
-This patch was dropped because it was folded into mm-change-vunmap-to-tear-down-huge-kva-mappings.patch
+This patch was dropped because it was folded into x86-mm-support-huge-kva-mappings-on-x86.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-change-vunmap-to-tear-down-huge-kva-mappings-fix
+From: kbuild test robot <fengguang.wu@intel.com>
+Subject: x86, mm: ioremap_pud_capable can be static
 
-use consistent code layout
-
-Cc: Toshi Kani <toshi.kani@hp.com>
+Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
+Reviewed-by: Toshi Kani <toshi.kani@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/pgtable.h |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ lib/ioremap.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/asm-generic/pgtable.h~mm-change-vunmap-to-tear-down-huge-kva-mappings-fix include/asm-generic/pgtable.h
---- a/include/asm-generic/pgtable.h~mm-change-vunmap-to-tear-down-huge-kva-mappings-fix
-+++ a/include/asm-generic/pgtable.h
-@@ -711,8 +711,14 @@ static inline int pmd_set_huge(pmd_t *pm
- {
- 	return 0;
- }
--static inline int pud_clear_huge(pud_t *pud) { return 0; }
--static inline int pmd_clear_huge(pmd_t *pmd) { return 0; }
-+static inline int pud_clear_huge(pud_t *pud)
-+{
-+	return 0;
-+}
-+static inline int pmd_clear_huge(pmd_t *pmd)
-+{
-+	return 0;
-+}
- #endif	/* CONFIG_HAVE_ARCH_HUGE_VMAP */
+diff -puN lib/ioremap.c~x86-mm-support-huge-kva-mappings-on-x86-fix lib/ioremap.c
+--- a/lib/ioremap.c~x86-mm-support-huge-kva-mappings-on-x86-fix
++++ a/lib/ioremap.c
+@@ -14,9 +14,9 @@
+ #include <asm/pgtable.h>
  
- #endif /* !__ASSEMBLY__ */
+ #ifdef CONFIG_HAVE_ARCH_HUGE_VMAP
+-int __read_mostly ioremap_pud_capable;
+-int __read_mostly ioremap_pmd_capable;
+-int __read_mostly ioremap_huge_disabled;
++static int __read_mostly ioremap_pud_capable;
++static int __read_mostly ioremap_pmd_capable;
++static int __read_mostly ioremap_huge_disabled;
+ 
+ static int __init set_nohugeiomap(char *str)
+ {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from fengguang.wu@intel.com are
 
 origin.patch
-ocfs2-make-mlog_errno-return-the-errno.patch
-mm-migrate-mark-unmap_and_move-noinline-to-avoid-ice-in-gcc-473.patch
-mm-cma-release-trigger.patch
-mm-cma-allocation-trigger-fix.patch
-mm-compaction-enhance-compaction-finish-condition.patch
-page_writeback-cleanup-mess-around-cancel_dirty_page.patch
-mm-hide-per-cpu-lists-in-output-of-show_mem.patch
-mm-clarify-__gfp_nofail-deprecation-status.patch
-mm-change-vunmap-to-tear-down-huge-kva-mappings.patch
-mm-mempool-do-not-allow-atomic-resizing-checkpatch-fixes.patch
+x86-mm-support-huge-kva-mappings-on-x86.patch
 
