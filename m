@@ -1,87 +1,76 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-change-ioremap-to-set-up-huge-i-o-mappings-fix.patch removed from -mm
+ mm-change-vunmap-to-tear-down-huge-kva-mappings-fix.patch removed from -mm
  tree
-Date: Tue, 14 Apr 2015 15:17:34 -0700
-Message-ID: <552d91fe.aaN4RG+rzgLRovDS%akpm@linux-foundation.org>
+Date: Tue, 14 Apr 2015 15:17:48 -0700
+Message-ID: <552d920c.F7eTq933YtcdVYQ7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54329 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54332 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932105AbbDNWRe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Apr 2015 18:17:34 -0400
+	with ESMTP id S932105AbbDNWRt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Apr 2015 18:17:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: toshi.kani@hp.com, fengguang.wu@gmail.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, toshi.kani@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Fix build errors in asm-generic/pgtable.h
+     Subject: mm-change-vunmap-to-tear-down-huge-kva-mappings-fix
 has been removed from the -mm tree.  Its filename was
-     mm-change-ioremap-to-set-up-huge-i-o-mappings-fix.patch
+     mm-change-vunmap-to-tear-down-huge-kva-mappings-fix.patch
 
-This patch was dropped because it was folded into mm-change-ioremap-to-set-up-huge-i-o-mappings.patch
+This patch was dropped because it was folded into mm-change-vunmap-to-tear-down-huge-kva-mappings.patch
 
 ------------------------------------------------------
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Fix build errors in asm-generic/pgtable.h
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-change-vunmap-to-tear-down-huge-kva-mappings-fix
 
-Fix build errors in pud_set_huge() and pmd_set_huge() in
-asm-generic/pgtable.h on some architectures in linux-next
-and -mm trees.
+use consistent code layout
 
-C-stype code needs be used under #ifndef __ASSEMBLY__.
-
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Fengguang Wu <fengguang.wu@gmail.com>
+Cc: Toshi Kani <toshi.kani@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/pgtable.h |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ include/asm-generic/pgtable.h |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN include/asm-generic/pgtable.h~mm-change-ioremap-to-set-up-huge-i-o-mappings-fix include/asm-generic/pgtable.h
---- a/include/asm-generic/pgtable.h~mm-change-ioremap-to-set-up-huge-i-o-mappings-fix
+diff -puN include/asm-generic/pgtable.h~mm-change-vunmap-to-tear-down-huge-kva-mappings-fix include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~mm-change-vunmap-to-tear-down-huge-kva-mappings-fix
 +++ a/include/asm-generic/pgtable.h
-@@ -697,12 +697,6 @@ static inline int pmd_protnone(pmd_t pmd
- 
- #endif /* CONFIG_MMU */
- 
--#endif /* !__ASSEMBLY__ */
--
--#ifndef io_remap_pfn_range
--#define io_remap_pfn_range remap_pfn_range
--#endif
--
- #ifdef CONFIG_HAVE_ARCH_HUGE_VMAP
- int pud_set_huge(pud_t *pud, phys_addr_t addr, pgprot_t prot);
- int pmd_set_huge(pmd_t *pmd, phys_addr_t addr, pgprot_t prot);
-@@ -717,4 +711,10 @@ static inline int pmd_set_huge(pmd_t *pm
+@@ -711,8 +711,14 @@ static inline int pmd_set_huge(pmd_t *pm
+ {
+ 	return 0;
  }
+-static inline int pud_clear_huge(pud_t *pud) { return 0; }
+-static inline int pmd_clear_huge(pmd_t *pmd) { return 0; }
++static inline int pud_clear_huge(pud_t *pud)
++{
++	return 0;
++}
++static inline int pmd_clear_huge(pmd_t *pmd)
++{
++	return 0;
++}
  #endif	/* CONFIG_HAVE_ARCH_HUGE_VMAP */
  
-+#endif /* !__ASSEMBLY__ */
-+
-+#ifndef io_remap_pfn_range
-+#define io_remap_pfn_range remap_pfn_range
-+#endif
-+
- #endif /* _ASM_GENERIC_PGTABLE_H */
+ #endif /* !__ASSEMBLY__ */
 _
 
-Patches currently in -mm which might be from toshi.kani@hp.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-change-__get_vm_area_node-to-use-fls_long.patch
-lib-add-huge-i-o-map-capability-interfaces.patch
-mm-change-ioremap-to-set-up-huge-i-o-mappings.patch
+ocfs2-make-mlog_errno-return-the-errno.patch
+mm-migrate-mark-unmap_and_move-noinline-to-avoid-ice-in-gcc-473.patch
+mm-cma-release-trigger.patch
+mm-cma-allocation-trigger-fix.patch
+mm-compaction-enhance-compaction-finish-condition.patch
+page_writeback-cleanup-mess-around-cancel_dirty_page.patch
+mm-hide-per-cpu-lists-in-output-of-show_mem.patch
+mm-clarify-__gfp_nofail-deprecation-status.patch
 mm-change-vunmap-to-tear-down-huge-kva-mappings.patch
-mm-change-vunmap-to-tear-down-huge-kva-mappings-fix.patch
-x86-mm-support-huge-i-o-mapping-capability-i-f.patch
-x86-mm-support-huge-kva-mappings-on-x86.patch
-x86-mm-support-huge-kva-mappings-on-x86-fix.patch
+mm-mempool-do-not-allow-atomic-resizing-checkpatch-fixes.patch
 
