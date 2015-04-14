@@ -1,80 +1,90 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-clarify-__gfp_nofail-deprecation-status-checkpatch-fixes.patch removed
- from -mm tree
-Date: Tue, 14 Apr 2015 15:16:59 -0700
-Message-ID: <552d91db.nDGKFQ1X39NT29kw%akpm@linux-foundation.org>
+ lib-add-huge-i-o-map-capability-interfaces-fix.patch removed from -mm tree
+Date: Tue, 14 Apr 2015 15:17:19 -0700
+Message-ID: <552d91ef.fh71KDyaXoiyKXTz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54320 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54323 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753950AbbDNWRA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Apr 2015 18:17:00 -0400
+	with ESMTP id S932105AbbDNWRU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Apr 2015 18:17:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mhocko@suse.cz, rientjes@google.com, mm-commits@vger.kernel.org
+To: toshi.kani@hp.com, fengguang.wu@gmail.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-clarify-__gfp_nofail-deprecation-status-checkpatch-fixes
+     Subject: Fix undefined ioremap_huge_init when CONFIG_MMU is not set
 has been removed from the -mm tree.  Its filename was
-     mm-clarify-__gfp_nofail-deprecation-status-checkpatch-fixes.patch
+     lib-add-huge-i-o-map-capability-interfaces-fix.patch
 
-This patch was dropped because it was folded into mm-clarify-__gfp_nofail-deprecation-status.patch
+This patch was dropped because it was folded into lib-add-huge-i-o-map-capability-interfaces.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-clarify-__gfp_nofail-deprecation-status-checkpatch-fixes
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Fix undefined ioremap_huge_init when CONFIG_MMU is not set
 
-WARNING: 'carefuly' may be misspelled - perhaps 'carefully'?
-#40: FILE: include/linux/gfp.h:60:
-+ * cannot handle allocation failures. New users should be evaluated carefuly
+Fix a build error, undefined reference to ioremap_huge_init, when
+CONFIG_MMU is not defined on linux-next and -mm tree.
 
-total: 0 errors, 1 warnings, 12 lines checked
+lib/ioremap.o is not linked to the kernel when CONFIG_MMU is not
+defined.
 
-./patches/mm-clarify-__gfp_nofail-deprecation-status.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: David Rientjes <rientjes@google.com>
-Cc: Michal Hocko <mhocko@suse.cz>
+Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Fengguang Wu <fengguang.wu@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/io.h |    5 +++--
+ lib/ioremap.c      |    1 -
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/gfp.h~mm-clarify-__gfp_nofail-deprecation-status-checkpatch-fixes include/linux/gfp.h
---- a/include/linux/gfp.h~mm-clarify-__gfp_nofail-deprecation-status-checkpatch-fixes
-+++ a/include/linux/gfp.h
-@@ -57,7 +57,7 @@ struct vm_area_struct;
-  * _might_ fail.  This depends upon the particular VM implementation.
-  *
-  * __GFP_NOFAIL: The VM implementation _must_ retry infinitely: the caller
-- * cannot handle allocation failures. New users should be evaluated carefuly
-+ * cannot handle allocation failures. New users should be evaluated carefully
-  * (and the flag should be used only when there is no reasonable failure policy)
-  * but it is definitely preferable to use the flag rather than opencode endless
-  * loop around allocator.
+diff -puN include/linux/io.h~lib-add-huge-i-o-map-capability-interfaces-fix include/linux/io.h
+--- a/include/linux/io.h~lib-add-huge-i-o-map-capability-interfaces-fix
++++ a/include/linux/io.h
+@@ -38,11 +38,12 @@ static inline int ioremap_page_range(uns
+ }
+ #endif
+ 
+-void __init ioremap_huge_init(void);
+-
+ #ifdef CONFIG_HAVE_ARCH_HUGE_VMAP
++void __init ioremap_huge_init(void);
+ int arch_ioremap_pud_supported(void);
+ int arch_ioremap_pmd_supported(void);
++#else
++static inline void ioremap_huge_init(void) { }
+ #endif
+ 
+ /*
+diff -puN lib/ioremap.c~lib-add-huge-i-o-map-capability-interfaces-fix lib/ioremap.c
+--- a/lib/ioremap.c~lib-add-huge-i-o-map-capability-interfaces-fix
++++ a/lib/ioremap.c
+@@ -46,7 +46,6 @@ static inline int ioremap_pmd_enabled(vo
+ }
+ 
+ #else	/* !CONFIG_HAVE_ARCH_HUGE_VMAP */
+-void __init ioremap_huge_init(void) { }
+ static inline int ioremap_pud_enabled(void) { return 0; }
+ static inline int ioremap_pmd_enabled(void) { return 0; }
+ #endif	/* CONFIG_HAVE_ARCH_HUGE_VMAP */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from toshi.kani@hp.com are
 
 origin.patch
-ocfs2-make-mlog_errno-return-the-errno.patch
-mm-migrate-mark-unmap_and_move-noinline-to-avoid-ice-in-gcc-473.patch
-mm-cma-release-trigger.patch
-mm-cma-allocation-trigger-fix.patch
-mm-compaction-enhance-compaction-finish-condition.patch
-page_writeback-cleanup-mess-around-cancel_dirty_page.patch
-mm-hide-per-cpu-lists-in-output-of-show_mem.patch
-mm-clarify-__gfp_nofail-deprecation-status.patch
+mm-change-__get_vm_area_node-to-use-fls_long.patch
+lib-add-huge-i-o-map-capability-interfaces.patch
+mm-change-ioremap-to-set-up-huge-i-o-mappings.patch
+mm-change-ioremap-to-set-up-huge-i-o-mappings-fix.patch
+mm-change-vunmap-to-tear-down-huge-kva-mappings.patch
 mm-change-vunmap-to-tear-down-huge-kva-mappings-fix.patch
-mm-mempool-do-not-allow-atomic-resizing-checkpatch-fixes.patch
+x86-mm-support-huge-i-o-mapping-capability-i-f.patch
+x86-mm-support-huge-kva-mappings-on-x86.patch
+x86-mm-support-huge-kva-mappings-on-x86-fix.patch
 
