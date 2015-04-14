@@ -1,77 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-cma-release-trigger-fixpatch.patch removed
- from -mm tree
-Date: Tue, 14 Apr 2015 15:13:08 -0700
-Message-ID: <552d90f4.W795VWOv5fc4ft0f%akpm@linux-foundation.org>
+Subject: [folded-merged] mm-cma-release-trigger-checkpatch-fixes.patch
+ removed from -mm tree
+Date: Tue, 14 Apr 2015 15:13:05 -0700
+Message-ID: <552d90f1.WRyItftqRM1pcpNo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54277 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54274 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932141AbbDNWNJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Apr 2015 18:13:09 -0400
+	with ESMTP id S932141AbbDNWNG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Apr 2015 18:13:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.cz, fengguang.wu@gmail.com, sasha.levin@oracle.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, sasha.levin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-cma-release-trigger-fix
+     Subject: mm-cma-release-trigger-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     mm-cma-release-trigger-fixpatch.patch
+     mm-cma-release-trigger-checkpatch-fixes.patch
 
 This patch was dropped because it was folded into mm-cma-release-trigger.patch
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: mm-cma-release-trigger-fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-cma-release-trigger-checkpatch-fixes
 
-allmodconfig fails with
-mm/cma_debug.c: In function `cma_free_mem':
-mm/cma_debug.c:71:4: error: invalid use of undefined type `struct page'
-    mem->p += count;
+ERROR: code indent should use tabs where possible
+#76: FILE: mm/cma_debug.c:88:
++        int pages = val;$
 
-Fix it by including mm_types.h
+WARNING: please, no spaces at the start of a line
+#76: FILE: mm/cma_debug.c:88:
++        int pages = val;$
 
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
+ERROR: code indent should use tabs where possible
+#79: FILE: mm/cma_debug.c:91:
++        return cma_free_mem(cma, pages);$
+
+WARNING: please, no spaces at the start of a line
+#79: FILE: mm/cma_debug.c:91:
++        return cma_free_mem(cma, pages);$
+
+total: 2 errors, 2 warnings, 69 lines checked
+
+NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
+      scripts/cleanfile
+
+./patches/mm-cma-release-trigger.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
 Cc: Sasha Levin <sasha.levin@oracle.com>
-Cc: Fengguang Wu <fengguang.wu@gmail.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma_debug.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/cma_debug.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/cma_debug.c~mm-cma-release-trigger-fixpatch mm/cma_debug.c
---- a/mm/cma_debug.c~mm-cma-release-trigger-fixpatch
+diff -puN mm/cma_debug.c~mm-cma-release-trigger-checkpatch-fixes mm/cma_debug.c
+--- a/mm/cma_debug.c~mm-cma-release-trigger-checkpatch-fixes
 +++ a/mm/cma_debug.c
-@@ -10,6 +10,7 @@
- #include <linux/list.h>
- #include <linux/kernel.h>
- #include <linux/slab.h>
-+#include <linux/mm_types.h>
+@@ -85,10 +85,10 @@ static int cma_free_mem(struct cma *cma,
  
- #include "cma.h"
+ static int cma_free_write(void *data, u64 val)
+ {
+-        int pages = val;
++	int pages = val;
+ 	struct cma *cma = data;
  
+-        return cma_free_mem(cma, pages);
++	return cma_free_mem(cma, pages);
+ }
+ 
+ DEFINE_SIMPLE_ATTRIBUTE(cma_free_fops, NULL, cma_free_write, "%llu\n");
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-hugetlb-use-pmd_page-in-follow_huge_pmd.patch
-mm-memcontrol-update-copyright-notice.patch
+origin.patch
+ocfs2-make-mlog_errno-return-the-errno.patch
+mm-migrate-mark-unmap_and_move-noinline-to-avoid-ice-in-gcc-473.patch
 mm-cma-release-trigger.patch
-mm-hide-per-cpu-lists-in-output-of-show_mem.patch
-mm-completely-remove-dumping-per-cpu-lists-from-show_mem.patch
-mm-refactor-do_wp_page-extract-the-reuse-case.patch
-mm-refactor-do_wp_page-rewrite-the-unlock-flow.patch
-mm-refactor-do_wp_page-extract-the-page-copy-flow.patch
-mm-refactor-do_wp_page-handling-of-shared-vma-into-a-function.patch
-mm-clarify-__gfp_nofail-deprecation-status.patch
+mm-cma-allocation-trigger-fix.patch
+mm-compaction-enhance-compaction-finish-condition-fix.patch
+page_writeback-cleanup-mess-around-cancel_dirty_page-checkpatch-fixes.patch
+mm-hide-per-cpu-lists-in-output-of-show_mem-fix.patch
 mm-clarify-__gfp_nofail-deprecation-status-checkpatch-fixes.patch
-sparc-clarify-__gfp_nofail-allocation.patch
-mm-memcontrol-let-mem_cgroup_move_account-have-effect-only-if-mmu-enabled.patch
-memcg-print-cgroup-information-when-system-panics-due-to-panic_on_oom.patch
+mm-change-vunmap-to-tear-down-huge-kva-mappings-fix.patch
+mm-mempool-do-not-allow-atomic-resizing-checkpatch-fixes.patch
 
