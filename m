@@ -1,67 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] ocfs2-make-mlog_errno-return-the-errno-fix.patch
- removed from -mm tree
-Date: Tue, 14 Apr 2015 15:10:10 -0700
-Message-ID: <552d9042.hMRQ7MQzLfzpTWz9%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ watchdog-implement-error-handling-for-failure-to-set-up-hardware-perf-events-fix.patch removed from -mm tree
+Date: Tue, 14 Apr 2015 15:10:45 -0700
+Message-ID: <552d9065.AYaLsOl6ix97dqI6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54252 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54255 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932225AbbDNWKL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Apr 2015 18:10:11 -0400
+	with ESMTP id S932225AbbDNWKp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Apr 2015 18:10:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.carpenter@oracle.com, alex.chen@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
+To: dzickus@redhat.com, uobergfe@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: double evaluation concerns in mlog_errno()
+     Subject: watchdog: update comments to explain some code
 has been removed from the -mm tree.  Its filename was
-     ocfs2-make-mlog_errno-return-the-errno-fix.patch
+     watchdog-implement-error-handling-for-failure-to-set-up-hardware-perf-events-fix.patch
 
-This patch was dropped because it was folded into ocfs2-make-mlog_errno-return-the-errno.patch
+This patch was dropped because it was folded into watchdog-implement-error-handling-for-failure-to-set-up-hardware-perf-events.patch
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: ocfs2: double evaluation concerns in mlog_errno()
+From: Don Zickus <dzickus@redhat.com>
+Subject: watchdog: update comments to explain some code
 
-It won't happen in real life, but for consistency etc then we should
-only evaluate the "st" parameter once.
+This patch was written to update some comments and concerns from Andrew
+and is expected to be folded into patch
 
-Also, since not all callers use the new return, it causes at static
-checker warning:
-fs/ocfs2/export.c:138 ocfs2_get_dentry() warn: unchecked 'PTR_ERR'
+watchdog-implement-error-handling-for-failure-to-set-up-hardware-perf-events.patch
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: alex chen <alex.chen@huawei.com>
+Resolves:
+- comments around barriers
+- comments around blind shutdown of hardware lockup detector
+- printk letting someone know hardlockup detector is being shut down
+
+Signed-off-by: Don Zickus <dzickus@redhat.com>
+Suggested-by: Ulrich Obergfell <uobergfe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/cluster/masklog.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/watchdog.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff -puN fs/ocfs2/cluster/masklog.h~ocfs2-make-mlog_errno-return-the-errno-fix fs/ocfs2/cluster/masklog.h
---- a/fs/ocfs2/cluster/masklog.h~ocfs2-make-mlog_errno-return-the-errno-fix
-+++ a/fs/ocfs2/cluster/masklog.h
-@@ -202,7 +202,7 @@ extern struct mlog_bits mlog_and_bits, m
- 	    _st != AOP_TRUNCATED_PAGE && _st != -ENOSPC &&		\
- 	    _st != -EDQUOT)						\
- 		mlog(ML_ERROR, "status = %lld\n", (long long)_st);	\
--	st;								\
-+	_st;								\
- })
+diff -puN kernel/watchdog.c~watchdog-implement-error-handling-for-failure-to-set-up-hardware-perf-events-fix kernel/watchdog.c
+--- a/kernel/watchdog.c~watchdog-implement-error-handling-for-failure-to-set-up-hardware-perf-events-fix
++++ a/kernel/watchdog.c
+@@ -508,6 +508,12 @@ static void watchdog(unsigned int cpu)
+ 	 * failure path. Check for failures that can occur asynchronously -
+ 	 * for example, when CPUs are on-lined - and shut down the hardware
+ 	 * perf event on each CPU accordingly.
++	 *
++	 * The only non-obvious place this bit can be cleared is through
++	 * watchdog_nmi_enable(), so a pr_info() is placed there.  Placing a
++	 * pr_info here would be too noisy as it would result in a message
++	 * every few seconds if the hardlockup was disabled but the softlockup
++	 * enabled.
+ 	 */
+ 	if (!(watchdog_enabled & NMI_WATCHDOG_ENABLED))
+ 		watchdog_nmi_disable(cpu);
+@@ -565,6 +571,9 @@ handle_err:
+ 	 * Disable the hard lockup detector if _any_ CPU fails to set up
+ 	 * set up the hardware perf event. The watchdog() function checks
+ 	 * the NMI_WATCHDOG_ENABLED bit periodically.
++	 *
++	 * The barriers are for syncing up watchdog_enabled across all the
++	 * cpus, as clear_bit() does not use barriers.
+ 	 */
+ 	smp_mb__before_atomic();
+ 	clear_bit(NMI_WATCHDOG_ENABLED_BIT, &watchdog_enabled);
+@@ -583,6 +592,9 @@ handle_err:
+ 	else
+ 		pr_err("disabled (cpu%i): unable to create perf event: %ld\n",
+ 			cpu, PTR_ERR(event));
++
++	pr_info("Shutting down hard lockup detector on all cpus\n");
++
+ 	return PTR_ERR(event);
  
- #define mlog_bug_on_msg(cond, fmt, args...) do {			\
+ 	/* success path */
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from dzickus@redhat.com are
 
-origin.patch
-ocfs2-dereferencing-freed-pointers-in-ocfs2_reflink.patch
-ocfs2-make-mlog_errno-return-the-errno.patch
+watchdog-new-definitions-and-variables-initialization.patch
+watchdog-introduce-the-proc_watchdog_update-function.patch
+watchdog-move-definition-of-watchdog_proc_mutex-outside-of-proc_dowatchdog.patch
+watchdog-introduce-the-proc_watchdog_common-function.patch
+watchdog-introduce-separate-handlers-for-parameters-in-proc-sys-kernel.patch
+watchdog-implement-error-handling-for-failure-to-set-up-hardware-perf-events.patch
+watchdog-enable-the-new-user-interface-of-the-watchdog-mechanism.patch
+watchdog-enable-the-new-user-interface-of-the-watchdog-mechanism-fix.patch
+watchdog-clean-up-some-function-names-and-arguments.patch
+watchdog-introduce-the-hardlockup_detector_disable-function.patch
 
