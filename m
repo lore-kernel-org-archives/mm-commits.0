@@ -1,124 +1,80 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- cleancache-remove-limit-on-the-number-of-cleancache-enabled-filesystems-fix.patch removed from -mm tree
-Date: Tue, 14 Apr 2015 15:16:36 -0700
-Message-ID: <552d91c4.PRwcA11P1PU7Kp6w%akpm@linux-foundation.org>
+ mm-clarify-__gfp_nofail-deprecation-status-checkpatch-fixes.patch removed
+ from -mm tree
+Date: Tue, 14 Apr 2015 15:16:59 -0700
+Message-ID: <552d91db.nDGKFQ1X39NT29kw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54312 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54320 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753950AbbDNWQh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Apr 2015 18:16:37 -0400
+	with ESMTP id S1753950AbbDNWRA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Apr 2015 18:17:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@parallels.com, andor.daam@googlemail.com, boris.ostrovsky@oracle.com, dan.magenheimer@oracle.com, david.vrabel@citrix.com, fschmaus@gmail.com, ilendir@googlemail.com, jlbec@evilplan.org, konrad.wilk@oracle.com, lliubbo@gmail.com, mfasheh@suse.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mhocko@suse.cz, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cleancache-remove-limit-on-the-number-of-cleancache-enabled-filesystems-fix
+     Subject: mm-clarify-__gfp_nofail-deprecation-status-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     cleancache-remove-limit-on-the-number-of-cleancache-enabled-filesystems-fix.patch
+     mm-clarify-__gfp_nofail-deprecation-status-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into cleancache-remove-limit-on-the-number-of-cleancache-enabled-filesystems.patch
+This patch was dropped because it was folded into mm-clarify-__gfp_nofail-deprecation-status.patch
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: cleancache-remove-limit-on-the-number-of-cleancache-enabled-filesystems-fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-clarify-__gfp_nofail-deprecation-status-checkpatch-fixes
 
-I admit the synchronization between cleancache_register_ops and
-cleancache_init_fs is far not obvious.  I should have updated the comment
-instead of merely dropping it, sorry.  What about the following patch
-proving correctness of register_ops-vs-init_fs synchronization?  It is
-meant to be applied incrementally on top of patch #4.
+WARNING: 'carefuly' may be misspelled - perhaps 'carefully'?
+#40: FILE: include/linux/gfp.h:60:
++ * cannot handle allocation failures. New users should be evaluated carefuly
 
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Cc: David Vrabel <david.vrabel@citrix.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Stefan Hengelein <ilendir@googlemail.com>
-Cc: Florian Schmaus <fschmaus@gmail.com>
-Cc: Andor Daam <andor.daam@googlemail.com>
-Cc: Dan Magenheimer <dan.magenheimer@oracle.com>
-Cc: Bob Liu <lliubbo@gmail.com>
+total: 0 errors, 1 warnings, 12 lines checked
+
+./patches/mm-clarify-__gfp_nofail-deprecation-status.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: David Rientjes <rientjes@google.com>
+Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cleancache.c |   51 ++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 51 insertions(+)
+ include/linux/gfp.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/cleancache.c~cleancache-remove-limit-on-the-number-of-cleancache-enabled-filesystems-fix mm/cleancache.c
---- a/mm/cleancache.c~cleancache-remove-limit-on-the-number-of-cleancache-enabled-filesystems-fix
-+++ a/mm/cleancache.c
-@@ -54,6 +54,57 @@ int cleancache_register_ops(struct clean
- 	if (cmpxchg(&cleancache_ops, NULL, ops))
- 		return -EBUSY;
- 
-+	/*
-+	 * A cleancache backend can be built as a module and hence loaded after
-+	 * a cleancache enabled filesystem has called cleancache_init_fs. To
-+	 * handle such a scenario, here we call ->init_fs or ->init_shared_fs
-+	 * for each active super block. To differentiate between local and
-+	 * shared filesystems, we temporarily initialize sb->cleancache_poolid
-+	 * to CLEANCACHE_NO_BACKEND or CLEANCACHE_NO_BACKEND_SHARED
-+	 * respectively in case there is no backend registered at the time
-+	 * cleancache_init_fs or cleancache_init_shared_fs is called.
-+	 *
-+	 * Since filesystems can be mounted concurrently with cleancache
-+	 * backend registration, we have to be careful to guarantee that all
-+	 * cleancache enabled filesystems that has been mounted by the time
-+	 * cleancache_register_ops is called has got and all mounted later will
-+	 * get cleancache_poolid. This is assured by the following statements
-+	 * tied together:
-+	 *
-+	 * a) iterate_supers skips only those super blocks that has started
-+	 *    ->kill_sb
-+	 *
-+	 * b) if iterate_supers encounters a super block that has not finished
-+	 *    ->mount yet, it waits until it is finished
-+	 *
-+	 * c) cleancache_init_fs is called from ->mount and
-+	 *    cleancache_invalidate_fs is called from ->kill_sb
-+	 *
-+	 * d) we call iterate_supers after cleancache_ops has been set
-+	 *
-+	 * From a) it follows that if iterate_supers skips a super block, then
-+	 * either the super block is already dead, in which case we do not need
-+	 * to bother initializing cleancache for it, or it was mounted after we
-+	 * initiated iterate_supers. In the latter case, it must have seen
-+	 * cleancache_ops set according to d) and initialized cleancache from
-+	 * ->mount by itself according to c). This proves that we call
-+	 * ->init_fs at least once for each active super block.
-+	 *
-+	 * From b) and c) it follows that if iterate_supers encounters a super
-+	 * block that has already started ->init_fs, it will wait until ->mount
-+	 * and hence ->init_fs has finished, then check cleancache_poolid, see
-+	 * that it has already been set and therefore do nothing. This proves
-+	 * that we call ->init_fs no more than once for each super block.
-+	 *
-+	 * Combined together, the last two paragraphs prove the function
-+	 * correctness.
-+	 *
-+	 * Note that various cleancache callbacks may proceed before this
-+	 * function is called or even concurrently with it, but since
-+	 * CLEANCACHE_NO_BACKEND is negative, they will all result in a noop
-+	 * until the corresponding ->init_fs has been actually called and
-+	 * cleancache_ops has been set.
-+	 */
- 	iterate_supers(cleancache_register_ops_sb, NULL);
- 	return 0;
- }
+diff -puN include/linux/gfp.h~mm-clarify-__gfp_nofail-deprecation-status-checkpatch-fixes include/linux/gfp.h
+--- a/include/linux/gfp.h~mm-clarify-__gfp_nofail-deprecation-status-checkpatch-fixes
++++ a/include/linux/gfp.h
+@@ -57,7 +57,7 @@ struct vm_area_struct;
+  * _might_ fail.  This depends upon the particular VM implementation.
+  *
+  * __GFP_NOFAIL: The VM implementation _must_ retry infinitely: the caller
+- * cannot handle allocation failures. New users should be evaluated carefuly
++ * cannot handle allocation failures. New users should be evaluated carefully
+  * (and the flag should be used only when there is no reasonable failure policy)
+  * but it is definitely preferable to use the flag rather than opencode endless
+  * loop around allocator.
 _
 
-Patches currently in -mm which might be from vdavydov@parallels.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-hotplug-fix-concurrent-memory-hot-add-deadlock.patch
-ocfs2-copy-fs-uuid-to-superblock.patch
-cleancache-zap-uuid-arg-of-cleancache_init_shared_fs.patch
-cleancache-forbid-overriding-cleancache_ops.patch
-cleancache-remove-limit-on-the-number-of-cleancache-enabled-filesystems.patch
+ocfs2-make-mlog_errno-return-the-errno.patch
+mm-migrate-mark-unmap_and_move-noinline-to-avoid-ice-in-gcc-473.patch
+mm-cma-release-trigger.patch
+mm-cma-allocation-trigger-fix.patch
+mm-compaction-enhance-compaction-finish-condition.patch
+page_writeback-cleanup-mess-around-cancel_dirty_page.patch
+mm-hide-per-cpu-lists-in-output-of-show_mem.patch
+mm-clarify-__gfp_nofail-deprecation-status.patch
+mm-change-vunmap-to-tear-down-huge-kva-mappings-fix.patch
+mm-mempool-do-not-allow-atomic-resizing-checkpatch-fixes.patch
 
