@@ -1,39 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-define-default-pgtable_levels-to-two.patch removed
- from -mm tree
-Date: Wed, 15 Apr 2015 12:10:21 -0700
-Message-ID: <552eb79d.Xb63wC95yYbKdnK4%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-do-not-add-nr_pmds-into-mm_struct-if-pmd-is-folded.patch removed from
+ -mm tree
+Date: Wed, 15 Apr 2015 12:10:24 -0700
+Message-ID: <552eb7a0.PQjyno1Ub9Khri0p%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48160 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48185 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756656AbbDOTKW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:10:22 -0400
+	with ESMTP id S932072AbbDOTKZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:10:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, benh@kernel.crashing.org, catalin.marinas@arm.com, cmetcalf@ezchip.com, davem@davemloft.net, deller@gmx.de, dhowells@redhat.com, fenghua.yu@intel.com, geert@linux-m68k.org, heiko.carstens@de.ibm.com, hpa@zytor.com, ink@jurassic.park.msu.ru, jdike@addtoit.com, jejb@parisc-linux.org, linux@arm.linux.org.uk, linux@roeck-us.net, mattst88@gmail.com, mingo@redhat.com, mpe@ellerman.id.au, paulus@samba.org, ralf@linux-mips.org, richard@nod.at, rth@twiddle.net, schwidefsky@de.ibm.com, tglx@linutronix.de, tony.luck@intel.com, will.deacon@arm.com, yasutake.koichi@jp.panasonic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: define default PGTABLE_LEVELS to two
+     Subject: mm: do not add nr_pmds into mm_struct if PMD is folded
 has been removed from the -mm tree.  Its filename was
-     mm-define-default-pgtable_levels-to-two.patch
+     mm-do-not-add-nr_pmds-into-mm_struct-if-pmd-is-folded.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: define default PGTABLE_LEVELS to two
+Subject: mm: do not add nr_pmds into mm_struct if PMD is folded
 
-By this time all architectures which support more than two page table
-levels should be covered. This patch add default definiton of
-PGTABLE_LEVELS equal 2.
-
-We also add assert to detect inconsistence between CONFIG_PGTABLE_LEVELS
-and __PAGETABLE_PMD_FOLDED/__PAGETABLE_PUD_FOLDED.
+CONFIG_PGTABLE_LEVELS is now available on every architecture and we can
+use it to check if we need to add nr_pmds into mm_struct.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Tested-by: Guenter Roeck <linux@roeck-us.net>
@@ -67,39 +64,22 @@ Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/Kconfig                  |    4 ++++
- include/asm-generic/pgtable.h |    5 +++++
- 2 files changed, 9 insertions(+)
+ include/linux/mm_types.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/Kconfig~mm-define-default-pgtable_levels-to-two arch/Kconfig
---- a/arch/Kconfig~mm-define-default-pgtable_levels-to-two
-+++ a/arch/Kconfig
-@@ -484,6 +484,10 @@ config HAVE_IRQ_EXIT_ON_IRQ_STACK
- 	  This spares a stack switch and improves cache usage on softirq
- 	  processing.
- 
-+config PGTABLE_LEVELS
-+	int
-+	default 2
-+
- #
- # ABI hall of shame
- #
-diff -puN include/asm-generic/pgtable.h~mm-define-default-pgtable_levels-to-two include/asm-generic/pgtable.h
---- a/include/asm-generic/pgtable.h~mm-define-default-pgtable_levels-to-two
-+++ a/include/asm-generic/pgtable.h
-@@ -7,6 +7,11 @@
- #include <linux/mm_types.h>
- #include <linux/bug.h>
- 
-+#if 4 - defined(__PAGETABLE_PUD_FOLDED) - defined(__PAGETABLE_PMD_FOLDED) != \
-+	CONFIG_PGTABLE_LEVELS
-+#error CONFIG_PGTABLE_LEVELS is not consistent with __PAGETABLE_{PUD,PMD}_FOLDED
+diff -puN include/linux/mm_types.h~mm-do-not-add-nr_pmds-into-mm_struct-if-pmd-is-folded include/linux/mm_types.h
+--- a/include/linux/mm_types.h~mm-do-not-add-nr_pmds-into-mm_struct-if-pmd-is-folded
++++ a/include/linux/mm_types.h
+@@ -364,7 +364,9 @@ struct mm_struct {
+ 	atomic_t mm_users;			/* How many users with user space? */
+ 	atomic_t mm_count;			/* How many references to "struct mm_struct" (users count as 1) */
+ 	atomic_long_t nr_ptes;			/* PTE page table pages */
++#if CONFIG_PGTABLE_LEVELS > 2
+ 	atomic_long_t nr_pmds;			/* PMD page table pages */
 +#endif
-+
- /*
-  * On almost all architectures and configurations, 0 can be used as the
-  * upper ceiling to free_pgtables(): on many architectures it has the same
+ 	int map_count;				/* number of VMAs */
+ 
+ 	spinlock_t page_table_lock;		/* Protects page tables and some counters */
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
