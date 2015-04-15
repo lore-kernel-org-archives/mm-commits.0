@@ -1,97 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [merged] slob-statify-slob_alloc_node-and-remove-symbol.patch
- removed from -mm tree
-Date: Wed, 15 Apr 2015 12:09:04 -0700
-Message-ID: <552eb750.6MD9R34VVmh9Wxzy%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-slub-parse-slub_debug-o-option-in-switch-statement.patch removed from
+ -mm tree
+Date: Wed, 15 Apr 2015 12:08:58 -0700
+Message-ID: <552eb74a.uU1rzrwiu4sU4rGi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47939 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47921 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756011AbbDOTJE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:09:04 -0400
+	with ESMTP id S932695AbbDOTI7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:08:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: chris.j.arges@canonical.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slob: make slob_alloc_node() static and remove EXPORT_SYMBOL()
+     Subject: mm/slub.c: parse slub_debug O option in switch statement
 has been removed from the -mm tree.  Its filename was
-     slob-statify-slob_alloc_node-and-remove-symbol.patch
+     mm-slub-parse-slub_debug-o-option-in-switch-statement.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: slob: make slob_alloc_node() static and remove EXPORT_SYMBOL()
+From: Chris J Arges <chris.j.arges@canonical.com>
+Subject: mm/slub.c: parse slub_debug O option in switch statement
 
-slob_alloc_node() is only used in slob.c.  Remove the EXPORT_SYMBOL and
-make slob_alloc_node() static.
+By moving the O option detection into the switch statement, we allow this
+parameter to be combined with other options correctly.  Previously options
+like slub_debug=OFZ would only detect the 'o' and use DEBUG_DEFAULT_FLAGS
+to fill in the rest of the flags.
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Signed-off-by: Chris J Arges <chris.j.arges@canonical.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slob.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/slub.c |   16 +++++++---------
+ 1 file changed, 7 insertions(+), 9 deletions(-)
 
-diff -puN mm/slob.c~slob-statify-slob_alloc_node-and-remove-symbol mm/slob.c
---- a/mm/slob.c~slob-statify-slob_alloc_node-and-remove-symbol
-+++ a/mm/slob.c
-@@ -532,7 +532,7 @@ int __kmem_cache_create(struct kmem_cach
- 	return 0;
- }
+diff -puN mm/slub.c~mm-slub-parse-slub_debug-o-option-in-switch-statement mm/slub.c
+--- a/mm/slub.c~mm-slub-parse-slub_debug-o-option-in-switch-statement
++++ a/mm/slub.c
+@@ -1137,15 +1137,6 @@ static int __init setup_slub_debug(char
+ 		 */
+ 		goto check_slabs;
  
--void *slob_alloc_node(struct kmem_cache *c, gfp_t flags, int node)
-+static void *slob_alloc_node(struct kmem_cache *c, gfp_t flags, int node)
- {
- 	void *b;
- 
-@@ -558,7 +558,6 @@ void *slob_alloc_node(struct kmem_cache
- 	kmemleak_alloc_recursive(b, c->size, 1, c->flags, flags);
- 	return b;
- }
--EXPORT_SYMBOL(slob_alloc_node);
- 
- void *kmem_cache_alloc(struct kmem_cache *cachep, gfp_t flags)
- {
-_
-
-Patches currently in -mm which might be from fabf@skynet.be are
-
-origin.patch
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-mm-vmalloc-fix-possible-exhaustion-of-vmalloc-space-caused-by-vm_map_ram-allocator.patch
-mm-vmalloc-occupy-newly-allocated-vmap-block-just-after-allocation.patch
-mm-vmalloc-get-rid-of-dirty-bitmap-inside-vmap_block-structure.patch
-mm-memblock-add-debug-output-for-the-memblock_add.patch
-mm-memblock-add-debug-output-for-the-memblock_add-fix.patch
-envctrl-ignore-orderly_poweroff-return-value.patch
-kernel-rebootc-add-orderly_reboot-for-graceful-reboot.patch
-powerpc-powernv-reboot-when-requested-by-firmware.patch
-checkpatch-dont-ask-for-asm-fileh-to-linux-fileh-unconditionally.patch
-befs-replace-typedef-befs_mount_options-by-structure.patch
-befs-replace-typedef-befs_sb_info-by-structure.patch
-befs-replace-typedef-befs_inode_info-by-structure.patch
-fs-hfsplus-move-xattr_name-allocation-in-hfsplus_getxattr.patch
-fs-hfsplus-move-xattr_name-allocation-in-hfsplus_setxattr.patch
-fs-hfsplus-atomically-set-inode-i_flags.patch
-fs-hfsplus-use-bool-instead-of-int-for-is_known_namespace-return-value.patch
-fs-hfsplus-replace-if-bug-by-bug_on.patch
-hfsplus-dont-store-special-osx-xattr-prefix-on-disk.patch
-adfs-returning-correct-return-values.patch
-fs-affs-use-affs_mount-prefix-for-mount-options.patch
-fs-affs-affsh-add-mount-option-manipulation-macros.patch
-fs-affs-superc-use-affs_set_opt.patch
-fs-affs-use-affs_test_opt.patch
-affs-kstrdup-memory-handling.patch
-affs-kstrdup-memory-handling-fix.patch
-linux-next.patch
-
+-	if (tolower(*str) == 'o') {
+-		/*
+-		 * Avoid enabling debugging on caches if its minimum order
+-		 * would increase as a result.
+-		 */
+-		disable_higher_order_debug = 1;
+-		goto out;
+-	}
