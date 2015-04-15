@@ -1,285 +1,347 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- page_writeback-cleanup-mess-around-cancel_dirty_page.patch removed from -mm tree
-Date: Wed, 15 Apr 2015 12:09:45 -0700
-Message-ID: <552eb779.j6DiYAdxvU1Al0ed%akpm@linux-foundation.org>
+Subject: [merged] mm-hotplug-fix-concurrent-memory-hot-add-deadlock.patch
+ removed from -mm tree
+Date: Wed, 15 Apr 2015 12:09:31 -0700
+Message-ID: <552eb76b.1pXmElFOXMI6/MNk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48040 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48002 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933166AbbDOTJq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:09:46 -0400
+	with ESMTP id S933059AbbDOTJc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:09:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khlebnikov@yandex-team.ru, jack@suse.cz, tj@kernel.org, mm-commits@vger.kernel.org
+To: rientjes@google.com, gregkh@linuxfoundation.org, isimatu.yasuaki@jp.fujitsu.com, kys@microsoft.com, rjw@rjwysocki.net, tangchen@cn.fujitsu.com, vbabka@suse.cz, vdavydov@parallels.com, vkuznets@redhat.com, wangnan0@huawei.com, zhenzhang.zhang@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: page_writeback: clean up mess around cancel_dirty_page()
+     Subject: mm, hotplug: fix concurrent memory hot-add deadlock
 has been removed from the -mm tree.  Its filename was
-     page_writeback-cleanup-mess-around-cancel_dirty_page.patch
+     mm-hotplug-fix-concurrent-memory-hot-add-deadlock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Subject: page_writeback: clean up mess around cancel_dirty_page()
+From: David Rientjes <rientjes@google.com>
+Subject: mm, hotplug: fix concurrent memory hot-add deadlock
 
-This patch replaces cancel_dirty_page() with helper account_page_cleaned()
-which only updates counters.  It's called from truncate_complete_page()
-and from try_to_free_buffers() (hack for ext3).  Page is locked in both
-cases, page-lock protects against concurrent dirtiers: see commit
-2d6d7f982846 ("mm: protect set_page_dirty() from ongoing truncation").
+There's a deadlock when concurrently hot-adding memory through the probe
+interface and switching a memory block from offline to online.
 
-Delete_from_page_cache() shouldn't be called for dirty pages, they must be
-handled by caller (either written or truncated).  This patch treats final
-dirty accounting fixup at the end of __delete_from_page_cache() as a debug
-check and adds WARN_ON_ONCE() around it.  If something removes dirty pages
-without proper handling that might be a bug and unwritten data might be
-lost.
+When hot-adding memory via the probe interface, add_memory() first takes
+mem_hotplug_begin() and then device_lock() is later taken when registering
+the newly initialized memory block.  This creates a lock dependency of (1)
+mem_hotplug.lock (2) dev->mutex.
 
-Hugetlbfs has no dirty pages accounting, ClearPageDirty() is enough here.
+When switching a memory block from offline to online, dev->mutex is first
+grabbed in device_online() when the write(2) transitions an existing
+memory block from offline to online, and then online_pages() will take
+mem_hotplug_begin().
 
-cancel_dirty_page() in nfs_wb_page_cancel() is redundant.  This is helper
-for nfs_invalidate_page() and it's called only in case complete
-invalidation.
+This creates a lock inversion between mem_hotplug.lock and dev->mutex. 
+Vitaly reports that this deadlock can happen when kworker handling a probe
+event races with systemd-udevd switching a memory block's state.
 
-The mess was started in v2.6.20 after commits 46d2277c796f ("Clean up and
-make try_to_free_buffers() not race with dirty pages") and 3e67c0987d75
-("truncate: clear page dirtiness before running try_to_free_buffers()")
-first was reverted right in v2.6.20 in commit ecdfc9787fe5 ("Resurrect
-'try_to_free_buffers()' VM hackery"), second in v2.6.25 commit
-a2b345642f53 ("Fix dirty page accounting leak with ext3 data=journal").
+This patch requires the state transition to take mem_hotplug_begin()
+before dev->mutex.  Hot-adding memory via the probe interface creates a
+memory block while holding mem_hotplug_begin(), there is no way to take
+dev->mutex first in this case.
 
-Custom fixes were introduced between these points.  NFS in v2.6.23, commit
-1b3b4a1a2deb ("NFS: Fix a write request leak in nfs_invalidate_page()"). 
-Kludge in __delete_from_page_cache() in v2.6.24, commit 3a6927906f1b ("Do
-dirty page accounting when removing a page from the page cache").  Since
-v2.6.25 all of them are redundant.
+online_pages() and offline_pages() are only called when transitioning
+memory block state.  We now require that mem_hotplug_begin() is taken
+before calling them -- this requires exporting the mem_hotplug_begin() and
+mem_hotplug_done() to generic code.  In all hot-add and hot-remove cases,
+mem_hotplug_begin() is done prior to device_online().  This is all that is
+needed to avoid the deadlock.
 
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Jan Kara <jack@suse.cz>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Reported-by: Vitaly Kuznetsov <vkuznets@redhat.com>
+Tested-by: Vitaly Kuznetsov <vkuznets@redhat.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "K. Y. Srinivasan" <kys@microsoft.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Zhang Zhen <zhenzhang.zhang@huawei.com>
+Cc: Vladimir Davydov <vdavydov@parallels.com>
+Cc: Wang Nan <wangnan0@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/lustre/lustre/include/linux/lustre_patchless_compat.h |    4 -
- fs/buffer.c                                                           |    4 -
- fs/hugetlbfs/inode.c                                                  |    2 
- fs/nfs/write.c                                                        |    5 -
- include/linux/mm.h                                                    |    2 
- include/linux/page-flags.h                                            |    2 
- mm/filemap.c                                                          |   15 +---
- mm/page-writeback.c                                                   |   19 +++++
- mm/truncate.c                                                         |   37 +---------
- 9 files changed, 41 insertions(+), 49 deletions(-)
+ drivers/base/memory.c          |   19 +++++++++++------
+ include/linux/memory_hotplug.h |    6 +++++
+ mm/memory_hotplug.c            |   33 +++++++++++--------------------
+ 3 files changed, 30 insertions(+), 28 deletions(-)
 
-diff -puN drivers/staging/lustre/lustre/include/linux/lustre_patchless_compat.h~page_writeback-cleanup-mess-around-cancel_dirty_page drivers/staging/lustre/lustre/include/linux/lustre_patchless_compat.h
---- a/drivers/staging/lustre/lustre/include/linux/lustre_patchless_compat.h~page_writeback-cleanup-mess-around-cancel_dirty_page
-+++ a/drivers/staging/lustre/lustre/include/linux/lustre_patchless_compat.h
-@@ -55,7 +55,9 @@ truncate_complete_page(struct address_sp
- 	if (PagePrivate(page))
- 		page->mapping->a_ops->invalidatepage(page, 0, PAGE_CACHE_SIZE);
+diff -puN drivers/base/memory.c~mm-hotplug-fix-concurrent-memory-hot-add-deadlock drivers/base/memory.c
+--- a/drivers/base/memory.c~mm-hotplug-fix-concurrent-memory-hot-add-deadlock
++++ a/drivers/base/memory.c
+@@ -219,6 +219,7 @@ static bool pages_correctly_reserved(uns
+ /*
+  * MEMORY_HOTPLUG depends on SPARSEMEM in mm/Kconfig, so it is
+  * OK to have direct references to sparsemem variables in here.
++ * Must already be protected by mem_hotplug_begin().
+  */
+ static int
+ memory_block_action(unsigned long phys_index, unsigned long action, int online_type)
+@@ -286,6 +287,7 @@ static int memory_subsys_online(struct d
+ 	if (mem->online_type < 0)
+ 		mem->online_type = MMOP_ONLINE_KEEP;
  
--	cancel_dirty_page(page, PAGE_SIZE);
-+	if (TestClearPageDirty(page))
-+		account_page_cleaned(page, mapping);
-+
- 	ClearPageMappedToDisk(page);
- 	ll_delete_from_page_cache(page);
- }
-diff -puN fs/buffer.c~page_writeback-cleanup-mess-around-cancel_dirty_page fs/buffer.c
---- a/fs/buffer.c~page_writeback-cleanup-mess-around-cancel_dirty_page
-+++ a/fs/buffer.c
-@@ -3243,8 +3243,8 @@ int try_to_free_buffers(struct page *pag
- 	 * to synchronise against __set_page_dirty_buffers and prevent the
- 	 * dirty bit from being lost.
- 	 */
--	if (ret)
--		cancel_dirty_page(page, PAGE_CACHE_SIZE);
-+	if (ret && TestClearPageDirty(page))
-+		account_page_cleaned(page, mapping);
- 	spin_unlock(&mapping->private_lock);
- out:
- 	if (buffers_to_free) {
-diff -puN fs/hugetlbfs/inode.c~page_writeback-cleanup-mess-around-cancel_dirty_page fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~page_writeback-cleanup-mess-around-cancel_dirty_page
-+++ a/fs/hugetlbfs/inode.c
-@@ -319,7 +319,7 @@ static int hugetlbfs_write_end(struct fi
++	/* Already under protection of mem_hotplug_begin() */
+ 	ret = memory_block_change_state(mem, MEM_ONLINE, MEM_OFFLINE);
  
- static void truncate_huge_page(struct page *page)
- {
--	cancel_dirty_page(page, /* No IO accounting for huge pages? */0);
-+	ClearPageDirty(page);
- 	ClearPageUptodate(page);
- 	delete_from_page_cache(page);
- }
-diff -puN fs/nfs/write.c~page_writeback-cleanup-mess-around-cancel_dirty_page fs/nfs/write.c
---- a/fs/nfs/write.c~page_writeback-cleanup-mess-around-cancel_dirty_page
-+++ a/fs/nfs/write.c
-@@ -1876,11 +1876,6 @@ int nfs_wb_page_cancel(struct inode *ino
- 		 * request from the inode / page_private pointer and
- 		 * release it */
- 		nfs_inode_remove_request(req);
--		/*
--		 * In case nfs_inode_remove_request has marked the
--		 * page as being dirty
--		 */
--		cancel_dirty_page(page, PAGE_CACHE_SIZE);
- 		nfs_unlock_and_release_request(req);
+ 	/* clear online_type */
+@@ -328,17 +330,19 @@ store_mem_state(struct device *dev,
+ 		goto err;
  	}
  
-diff -puN include/linux/mm.h~page_writeback-cleanup-mess-around-cancel_dirty_page include/linux/mm.h
---- a/include/linux/mm.h~page_writeback-cleanup-mess-around-cancel_dirty_page
-+++ a/include/linux/mm.h
-@@ -1294,9 +1294,11 @@ int __set_page_dirty_no_writeback(struct
- int redirty_page_for_writepage(struct writeback_control *wbc,
- 				struct page *page);
- void account_page_dirtied(struct page *page, struct address_space *mapping);
-+void account_page_cleaned(struct page *page, struct address_space *mapping);
- int set_page_dirty(struct page *page);
- int set_page_dirty_lock(struct page *page);
- int clear_page_dirty_for_io(struct page *page);
-+
- int get_cmdline(struct task_struct *task, char *buffer, int buflen);
- 
- /* Is the vma a continuation of the stack vma above it? */
-diff -puN include/linux/page-flags.h~page_writeback-cleanup-mess-around-cancel_dirty_page include/linux/page-flags.h
---- a/include/linux/page-flags.h~page_writeback-cleanup-mess-around-cancel_dirty_page
-+++ a/include/linux/page-flags.h
-@@ -328,8 +328,6 @@ static inline void SetPageUptodate(struc
- 
- CLEARPAGEFLAG(Uptodate, uptodate)
- 
--extern void cancel_dirty_page(struct page *page, unsigned int account_size);
--
- int test_clear_page_writeback(struct page *page);
- int __test_set_page_writeback(struct page *page, bool keep_write);
- 
-diff -puN mm/filemap.c~page_writeback-cleanup-mess-around-cancel_dirty_page mm/filemap.c
---- a/mm/filemap.c~page_writeback-cleanup-mess-around-cancel_dirty_page
-+++ a/mm/filemap.c
-@@ -203,16 +203,15 @@ void __delete_from_page_cache(struct pag
- 	BUG_ON(page_mapped(page));
- 
- 	/*
--	 * Some filesystems seem to re-dirty the page even after
--	 * the VM has canceled the dirty bit (eg ext3 journaling).
-+	 * At this point page must be either written or cleaned by truncate.
-+	 * Dirty page here signals a bug and loss of unwritten data.
- 	 *
--	 * Fix it up by doing a final dirty accounting check after
--	 * having removed the page entirely.
-+	 * This fixes dirty accounting after removing the page entirely but
-+	 * leaves PageDirty set: it has no effect for truncated page and
-+	 * anyway will be cleared before returning page into buddy allocator.
- 	 */
--	if (PageDirty(page) && mapping_cap_account_dirty(mapping)) {
--		dec_zone_page_state(page, NR_FILE_DIRTY);
--		dec_bdi_stat(inode_to_bdi(mapping->host), BDI_RECLAIMABLE);
--	}
-+	if (WARN_ON_ONCE(PageDirty(page)))
-+		account_page_cleaned(page, mapping);
- }
- 
- /**
-diff -puN mm/page-writeback.c~page_writeback-cleanup-mess-around-cancel_dirty_page mm/page-writeback.c
---- a/mm/page-writeback.c~page_writeback-cleanup-mess-around-cancel_dirty_page
-+++ a/mm/page-writeback.c
-@@ -2111,6 +2111,25 @@ void account_page_dirtied(struct page *p
- EXPORT_SYMBOL(account_page_dirtied);
- 
- /*
-+ * Helper function for deaccounting dirty page without writeback.
-+ *
-+ * Doing this should *normally* only ever be done when a page
-+ * is truncated, and is not actually mapped anywhere at all. However,
-+ * fs/buffer.c does this when it notices that somebody has cleaned
-+ * out all the buffers on a page without actually doing it through
-+ * the VM. Can you say "ext3 is horribly ugly"? Thought you could.
-+ */
-+void account_page_cleaned(struct page *page, struct address_space *mapping)
-+{
-+	if (mapping_cap_account_dirty(mapping)) {
-+		dec_zone_page_state(page, NR_FILE_DIRTY);
-+		dec_bdi_stat(inode_to_bdi(mapping->host), BDI_RECLAIMABLE);
-+		task_io_account_cancelled_write(PAGE_CACHE_SIZE);
-+	}
-+}
-+EXPORT_SYMBOL(account_page_cleaned);
-+
-+/*
-  * For address_spaces which do not use buffers.  Just tag the page as dirty in
-  * its radix tree.
-  *
-diff -puN mm/truncate.c~page_writeback-cleanup-mess-around-cancel_dirty_page mm/truncate.c
---- a/mm/truncate.c~page_writeback-cleanup-mess-around-cancel_dirty_page
-+++ a/mm/truncate.c
-@@ -93,35 +93,6 @@ void do_invalidatepage(struct page *page
- }
- 
- /*
-- * This cancels just the dirty bit on the kernel page itself, it
-- * does NOT actually remove dirty bits on any mmap's that may be
-- * around. It also leaves the page tagged dirty, so any sync
-- * activity will still find it on the dirty lists, and in particular,
-- * clear_page_dirty_for_io() will still look at the dirty bits in
-- * the VM.
-- *
-- * Doing this should *normally* only ever be done when a page
-- * is truncated, and is not actually mapped anywhere at all. However,
-- * fs/buffer.c does this when it notices that somebody has cleaned
-- * out all the buffers on a page without actually doing it through
-- * the VM. Can you say "ext3 is horribly ugly"? Tought you could.
-- */
--void cancel_dirty_page(struct page *page, unsigned int account_size)
--{
--	if (TestClearPageDirty(page)) {
--		struct address_space *mapping = page->mapping;
--		if (mapping && mapping_cap_account_dirty(mapping)) {
--			dec_zone_page_state(page, NR_FILE_DIRTY);
--			dec_bdi_stat(inode_to_bdi(mapping->host),
--					BDI_RECLAIMABLE);
--			if (account_size)
--				task_io_account_cancelled_write(account_size);
--		}
--	}
--}
--EXPORT_SYMBOL(cancel_dirty_page);
--
--/*
-  * If truncate cannot remove the fs-private metadata from the page, the page
-  * becomes orphaned.  It will be left on the LRU and may even be mapped into
-  * user pagetables if we're racing with filemap_fault().
-@@ -140,7 +111,13 @@ truncate_complete_page(struct address_sp
- 	if (page_has_private(page))
- 		do_invalidatepage(page, 0, PAGE_CACHE_SIZE);
- 
--	cancel_dirty_page(page, PAGE_CACHE_SIZE);
 +	/*
-+	 * Some filesystems seem to re-dirty the page even after
-+	 * the VM has canceled the dirty bit (eg ext3 journaling).
-+	 * Hence dirty accounting check is placed after invalidation.
++	 * Memory hotplug needs to hold mem_hotplug_begin() for probe to find
++	 * the correct memory block to online before doing device_online(dev),
++	 * which will take dev->mutex.  Take the lock early to prevent an
++	 * inversion, memory_subsys_online() callbacks will be implemented by
++	 * assuming it's already protected.
 +	 */
-+	if (TestClearPageDirty(page))
-+		account_page_cleaned(page, mapping);
++	mem_hotplug_begin();
++
+ 	switch (online_type) {
+ 	case MMOP_ONLINE_KERNEL:
+ 	case MMOP_ONLINE_MOVABLE:
+ 	case MMOP_ONLINE_KEEP:
+-		/*
+-		 * mem->online_type is not protected so there can be a
+-		 * race here.  However, when racing online, the first
+-		 * will succeed and the second will just return as the
+-		 * block will already be online.  The online type
+-		 * could be either one, but that is expected.
+-		 */
+ 		mem->online_type = online_type;
+ 		ret = device_online(&mem->dev);
+ 		break;
+@@ -349,6 +353,7 @@ store_mem_state(struct device *dev,
+ 		ret = -EINVAL; /* should never happen */
+ 	}
  
- 	ClearPageMappedToDisk(page);
- 	delete_from_page_cache(page);
++	mem_hotplug_done();
+ err:
+ 	unlock_device_hotplug();
+ 
+diff -puN include/linux/memory_hotplug.h~mm-hotplug-fix-concurrent-memory-hot-add-deadlock include/linux/memory_hotplug.h
+--- a/include/linux/memory_hotplug.h~mm-hotplug-fix-concurrent-memory-hot-add-deadlock
++++ a/include/linux/memory_hotplug.h
+@@ -192,6 +192,9 @@ extern void get_page_bootmem(unsigned lo
+ void get_online_mems(void);
+ void put_online_mems(void);
+ 
++void mem_hotplug_begin(void);
++void mem_hotplug_done(void);
++
+ #else /* ! CONFIG_MEMORY_HOTPLUG */
+ /*
+  * Stub functions for when hotplug is off
+@@ -231,6 +234,9 @@ static inline int try_online_node(int ni
+ static inline void get_online_mems(void) {}
+ static inline void put_online_mems(void) {}
+ 
++static inline void mem_hotplug_begin(void) {}
++static inline void mem_hotplug_done(void) {}
++
+ #endif /* ! CONFIG_MEMORY_HOTPLUG */
+ 
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+diff -puN mm/memory_hotplug.c~mm-hotplug-fix-concurrent-memory-hot-add-deadlock mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-hotplug-fix-concurrent-memory-hot-add-deadlock
++++ a/mm/memory_hotplug.c
+@@ -104,7 +104,7 @@ void put_online_mems(void)
+ 
+ }
+ 
+-static void mem_hotplug_begin(void)
++void mem_hotplug_begin(void)
+ {
+ 	mem_hotplug.active_writer = current;
+ 
+@@ -119,7 +119,7 @@ static void mem_hotplug_begin(void)
+ 	}
+ }
+ 
+-static void mem_hotplug_done(void)
++void mem_hotplug_done(void)
+ {
+ 	mem_hotplug.active_writer = NULL;
+ 	mutex_unlock(&mem_hotplug.lock);
+@@ -959,6 +959,7 @@ static void node_states_set_node(int nod
+ }
+ 
+ 
++/* Must be protected by mem_hotplug_begin() */
+ int __ref online_pages(unsigned long pfn, unsigned long nr_pages, int online_type)
+ {
+ 	unsigned long flags;
+@@ -969,7 +970,6 @@ int __ref online_pages(unsigned long pfn
+ 	int ret;
+ 	struct memory_notify arg;
+ 
+-	mem_hotplug_begin();
+ 	/*
+ 	 * This doesn't need a lock to do pfn_to_page().
+ 	 * The section can't be removed here because of the
+@@ -977,21 +977,20 @@ int __ref online_pages(unsigned long pfn
+ 	 */
+ 	zone = page_zone(pfn_to_page(pfn));
+ 
+-	ret = -EINVAL;
+ 	if ((zone_idx(zone) > ZONE_NORMAL ||
+ 	    online_type == MMOP_ONLINE_MOVABLE) &&
+ 	    !can_online_high_movable(zone))
+-		goto out;
++		return -EINVAL;
+ 
+ 	if (online_type == MMOP_ONLINE_KERNEL &&
+ 	    zone_idx(zone) == ZONE_MOVABLE) {
+ 		if (move_pfn_range_left(zone - 1, zone, pfn, pfn + nr_pages))
+-			goto out;
++			return -EINVAL;
+ 	}
+ 	if (online_type == MMOP_ONLINE_MOVABLE &&
+ 	    zone_idx(zone) == ZONE_MOVABLE - 1) {
+ 		if (move_pfn_range_right(zone, zone + 1, pfn, pfn + nr_pages))
+-			goto out;
++			return -EINVAL;
+ 	}
+ 
+ 	/* Previous code may changed the zone of the pfn range */
+@@ -1007,7 +1006,7 @@ int __ref online_pages(unsigned long pfn
+ 	ret = notifier_to_errno(ret);
+ 	if (ret) {
+ 		memory_notify(MEM_CANCEL_ONLINE, &arg);
+-		goto out;
++		return ret;
+ 	}
+ 	/*
+ 	 * If this zone is not populated, then it is not in zonelist.
+@@ -1031,7 +1030,7 @@ int __ref online_pages(unsigned long pfn
+ 		       (((unsigned long long) pfn + nr_pages)
+ 			    << PAGE_SHIFT) - 1);
+ 		memory_notify(MEM_CANCEL_ONLINE, &arg);
+-		goto out;
++		return ret;
+ 	}
+ 
+ 	zone->present_pages += onlined_pages;
+@@ -1061,9 +1060,7 @@ int __ref online_pages(unsigned long pfn
+ 
+ 	if (onlined_pages)
+ 		memory_notify(MEM_ONLINE, &arg);
+-out:
+-	mem_hotplug_done();
+-	return ret;
++	return 0;
+ }
+ #endif /* CONFIG_MEMORY_HOTPLUG_SPARSE */
+ 
+@@ -1688,21 +1685,18 @@ static int __ref __offline_pages(unsigne
+ 	if (!test_pages_in_a_zone(start_pfn, end_pfn))
+ 		return -EINVAL;
+ 
+-	mem_hotplug_begin();
+-
+ 	zone = page_zone(pfn_to_page(start_pfn));
+ 	node = zone_to_nid(zone);
+ 	nr_pages = end_pfn - start_pfn;
+ 
+-	ret = -EINVAL;
+ 	if (zone_idx(zone) <= ZONE_NORMAL && !can_offline_normal(zone, nr_pages))
+-		goto out;
++		return -EINVAL;
+ 
+ 	/* set above range as isolated */
+ 	ret = start_isolate_page_range(start_pfn, end_pfn,
+ 				       MIGRATE_MOVABLE, true);
+ 	if (ret)
+-		goto out;
++		return ret;
+ 
+ 	arg.start_pfn = start_pfn;
+ 	arg.nr_pages = nr_pages;
+@@ -1795,7 +1789,6 @@ repeat:
+ 	writeback_set_ratelimit();
+ 
+ 	memory_notify(MEM_OFFLINE, &arg);
+-	mem_hotplug_done();
+ 	return 0;
+ 
+ failed_removal:
+@@ -1805,12 +1798,10 @@ failed_removal:
+ 	memory_notify(MEM_CANCEL_OFFLINE, &arg);
+ 	/* pushback to free area */
+ 	undo_isolate_page_range(start_pfn, end_pfn, MIGRATE_MOVABLE);
+-
+-out:
+-	mem_hotplug_done();
+ 	return ret;
+ }
+ 
++/* Must be protected by mem_hotplug_begin() */
+ int offline_pages(unsigned long start_pfn, unsigned long nr_pages)
+ {
+ 	return __offline_pages(start_pfn, start_pfn + nr_pages, 120 * HZ);
 _
 
-Patches currently in -mm which might be from khlebnikov@yandex-team.ru are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
-mm-memory-print-also-a_ops-readpage-in-print_bad_pte.patch
-mm-memory-print-also-a_ops-readpage-in-print_bad_pte-fix.patch
-mm-rcu-protected-get_mm_exe_file.patch
-mm-rcu-protected-get_mm_exe_file-fix.patch
-mm-rcu-protected-get_mm_exe_file-fix-2.patch
+mm-mempool-do-not-allow-atomic-resizing.patch
+mm-hugetlb-abort-__get_user_pages-if-current-has-been-oom-killed.patch
+cxgb4-drop-__gfp_nofail-allocation.patch
+jbd2-revert-must-not-fail-allocation-loops-back-to-gfp_nofail.patch
+slab-infrastructure-for-bulk-object-allocation-and-freeing-v3.patch
+slub-bulk-alloc-extract-objects-from-the-per-cpu-slab.patch
+slub-bulk-allocation-from-per-cpu-partial-pages.patch
+slub-bulk-allocation-from-per-cpu-partial-pages-fix.patch
+mm-refactor-zone_movable_is_highmem.patch
+mm-memory-failurec-define-page-types-for-action_result-in-one-place.patch
+page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
+allow-compaction-of-unevictable-pages.patch
+document-interaction-between-compaction-and-the-unevictable-lru.patch
+document-interaction-between-compaction-and-the-unevictable-lru-fix.patch
+mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp.patch
+mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp-fix-fix.patch
+mm-compaction-reset-compaction-scanner-positions.patch
+hugetlbfs-add-minimum-size-tracking-fields-to-subpool-structure.patch
+hugetlbfs-add-minimum-size-accounting-to-subpools.patch
+hugetlbfs-accept-subpool-min_size-mount-option-and-setup-accordingly.patch
+hugetlbfs-document-min_size-mount-option-and-cleanup.patch
+mm-vmalloc-fix-possible-exhaustion-of-vmalloc-space-caused-by-vm_map_ram-allocator.patch
+mm-vmalloc-occupy-newly-allocated-vmap-block-just-after-allocation.patch
+mm-vmalloc-get-rid-of-dirty-bitmap-inside-vmap_block-structure.patch
+mremap-should-return-enomem-when-__vm_enough_memory-fail.patch
+clean-up-goto-just-return-err_ptr.patch
+fs-jfs-remove-slab-object-constructor.patch
+mm-mempool-disallow-mempools-based-on-slab-caches-with-constructors.patch
+mm-mempool-poison-elements-backed-by-slab-allocator.patch
+mm-mempool-poison-elements-backed-by-page-allocator.patch
+mm-mempool-poison-elements-backed-by-page-allocator-fix.patch
+mm-mempool-poison-elements-backed-by-page-allocator-fix-fix.patch
+mm-mempool-poison-elements-backed-by-page-allocator-fix-fix-fix.patch
+thp-handle-errors-in-hugepage_init-properly.patch
+thp-do-not-adjust-zone-water-marks-if-khugepaged-is-not-started.patch
+mm-doc-cleanup-and-clarify-munmap-behavior-for-hugetlb-memory.patch
+mm-doc-cleanup-and-clarify-munmap-behavior-for-hugetlb-memory-fix.patch
+mm-selftests-test-return-value-of-munmap-for-map_hugetlb-memory.patch
+mm-dont-call-__page_cache_release-for-hugetlb.patch
+mm-hugetlb-introduce-pagehugeactive-flag.patch
+mm-hugetlb-introduce-pagehugeactive-flag-fix.patch
+mm-hugetlb-cleanup-using-pagehugeactive-flag.patch
+mm-hugetlb-cleanup-using-pagehugeactive-flag-fix.patch
+thp-cleanup-khugepaged-startup.patch
+mm-mempool-kasan-poison-mempool-elements.patch
+hung_task-change-hung_taskc-to-use-for_each_process_thread.patch
+mm-utilc-add-kstrimdup.patch
 linux-next.patch
-prctl-avoid-using-mmap_sem-for-exe_file-serialization.patch
 
