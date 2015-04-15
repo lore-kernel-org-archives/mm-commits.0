@@ -1,84 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-move-gup-posix-mlock-error-conversion-out-of-__mm_populate.patch removed from -mm tree
-Date: Wed, 15 Apr 2015 12:09:10 -0700
-Message-ID: <552eb756.4TdGLa3tV8/XfjXS%akpm@linux-foundation.org>
+Subject: [merged] mm-memcontrol-update-copyright-notice.patch removed from -mm tree
+Date: Wed, 15 Apr 2015 12:09:16 -0700
+Message-ID: <552eb75c.QDoeZDUzlHYnL2r5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47955 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47967 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756670AbbDOTJL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:09:11 -0400
+	with ESMTP id S1756672AbbDOTJQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:09:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, riel@redhat.com, rientjes@google.com, torvalds@linux-foundation.org, walken@google.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: move gup() -> posix mlock() error conversion out of __mm_populate
+     Subject: mm: memcontrol: update copyright notice
 has been removed from the -mm tree.  Its filename was
-     mm-move-gup-posix-mlock-error-conversion-out-of-__mm_populate.patch
+     mm-memcontrol-update-copyright-notice.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: move gup() -> posix mlock() error conversion out of __mm_populate
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memcontrol: update copyright notice
 
-This is praparation to moving mm_populate()-related code out of
-mm/mlock.c.
+Add myself to the list of copyright holders.
 
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: Rik van Riel <riel@redhat.com>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ mm/memcontrol.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN mm/mlock.c~mm-move-gup-posix-mlock-error-conversion-out-of-__mm_populate mm/mlock.c
---- a/mm/mlock.c~mm-move-gup-posix-mlock-error-conversion-out-of-__mm_populate
-+++ a/mm/mlock.c
-@@ -712,7 +712,6 @@ int __mm_populate(unsigned long start, u
- 				ret = 0;
- 				continue;	/* continue at next VMA */
- 			}
--			ret = __mlock_posix_error_return(ret);
- 			break;
- 		}
- 		nend = nstart + ret * PAGE_SIZE;
-@@ -750,9 +749,13 @@ SYSCALL_DEFINE2(mlock, unsigned long, st
- 		error = do_mlock(start, len, 1);
- 
- 	up_write(&current->mm->mmap_sem);
--	if (!error)
--		error = __mm_populate(start, len, 0);
--	return error;
-+	if (error)
-+		return error;
-+
-+	error = __mm_populate(start, len, 0);
-+	if (error)
-+		return __mlock_posix_error_return(error);
-+	return 0;
- }
- 
- SYSCALL_DEFINE2(munlock, unsigned long, start, size_t, len)
+diff -puN mm/memcontrol.c~mm-memcontrol-update-copyright-notice mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-update-copyright-notice
++++ a/mm/memcontrol.c
+@@ -14,6 +14,12 @@
+  * Copyright (C) 2012 Parallels Inc. and Google Inc.
+  * Authors: Glauber Costa and Suleiman Souhlal
+  *
++ * Native page reclaim
++ * Charge lifetime sanitation
++ * Lockless page tracking & accounting
++ * Unified hierarchy configuration model
++ * Copyright (C) 2015 Red Hat, Inc., Johannes Weiner
++ *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+  * the Free Software Foundation; either version 2 of the License, or
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 origin.patch
+memcg-print-cgroup-information-when-system-panics-due-to-panic_on_oom.patch
+cxgb4-drop-__gfp_nofail-allocation.patch
+jbd2-revert-must-not-fail-allocation-loops-back-to-gfp_nofail.patch
+memcg-zap-mem_cgroup_lookup.patch
+memcg-remove-obsolete-comment.patch
 mm-consolidate-all-page-flags-helpers-in-linux-page-flagsh.patch
-mm-avoid-tail-page-refcounting-on-non-thp-compound-pages.patch
-mm-migrate-check-before-clear-pageswapcache.patch
-mm-page-writeback-check-before-clear-pagereclaim.patch
 page-flags-trivial-cleanup-for-pagetrans-helpers.patch
 page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
 page-flags-define-pg_locked-behavior-on-compound-pages.patch
@@ -95,16 +80,18 @@ page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
 page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
 mm-sanitize-page-mapping-for-tail-pages.patch
 mm-sanitize-page-mapping-for-tail-pages-v2.patch
-include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
-thp-handle-errors-in-hugepage_init-properly.patch
-thp-do-not-adjust-zone-water-marks-if-khugepaged-is-not-started.patch
-mm-mmapc-use-while-instead-of-ifgoto.patch
-mm-mmapc-use-while-instead-of-ifgoto-fix.patch
-mm-uninline-and-cleanup-page-mapping-related-helpers.patch
-mm-uninline-and-cleanup-page-mapping-related-helpers-checkpatch-fixes.patch
-thp-cleanup-khugepaged-startup.patch
-mmv41-new-pfn_mkwrite-same-as-page_mkwrite-for-vm_pfnmap.patch
-dax-use-pfn_mkwrite-to-update-c-mtime-freeze-protection.patch
-dax-unify-ext2-4_dax_file_operations.patch
-linux-next.patch
+mm-change-deactivate_page-with-deactivate_file_page.patch
+mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp.patch
+mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp-fix.patch
+mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp-fix-fix.patch
+mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-reclaimable-pages.patch
+mm-dont-call-__page_cache_release-for-hugetlb.patch
+mm-hugetlb-introduce-pagehugeactive-flag.patch
+mm-hugetlb-introduce-pagehugeactive-flag-fix.patch
+mm-hugetlb-cleanup-using-pagehugeactive-flag.patch
+mm-hugetlb-cleanup-using-pagehugeactive-flag-fix.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+mm-move-lazy-free-pages-to-inactive-list.patch
+mm-move-lazy-free-pages-to-inactive-list-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
 
