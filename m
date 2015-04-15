@@ -1,127 +1,166 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-clarify-__gfp_nofail-deprecation-status.patch removed from -mm tree
-Date: Wed, 15 Apr 2015 12:11:04 -0700
-Message-ID: <552eb7c8.NO6uUQo3NBDSsTXp%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-cma-constify-and-use-correct-signness-in-mm-cmac.patch removed from -mm
+ tree
+Date: Wed, 15 Apr 2015 12:11:02 -0700
+Message-ID: <552eb7c6.HTOw0PfFlbzUXPUL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48309 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48301 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933544AbbDOTLF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:11:05 -0400
+	with ESMTP id S933527AbbDOTLD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:11:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.cz, davem@davemloft.net, david@fromorbit.com, hannes@cmpxchg.org, jack@suse.cz, mgorman@suse.de, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, tytso@mit.edu, vipul@chelsio.com, mm-commits@vger.kernel.org
+To: sasha.levin@oracle.com, gregory.0xf0@gmail.com, iamjoonsoo.kim@lge.com, laurent.pinchart+renesas@ideasonboard.com, m.szyprowski@samsung.com, mina86@mina86.com, pintu.k@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: clarify __GFP_NOFAIL deprecation status
+     Subject: mm: cma: constify and use correct signness in mm/cma.c
 has been removed from the -mm tree.  Its filename was
-     mm-clarify-__gfp_nofail-deprecation-status.patch
+     mm-cma-constify-and-use-correct-signness-in-mm-cmac.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: mm: clarify __GFP_NOFAIL deprecation status
+From: Sasha Levin <sasha.levin@oracle.com>
+Subject: mm: cma: constify and use correct signness in mm/cma.c
 
-__GFP_NOFAIL is documented as a deprecated flag since 478352e789f5 (mm:
-add comment about deprecation of __GFP_NOFAIL).  This has discouraged
-people from using it but in some cases an opencoded endless loop around
-allocator has been used instead.  So the allocator is not aware of the de
-facto __GFP_NOFAIL allocation because this information was not
-communicated properly.
+Constify function parameters and use correct signness where needed.
 
-Let's make clear that if the allocation context really cannot effort
-failure because there is no good failure policy then using __GFP_NOFAIL is
-preferable to opencoding the loop outside of the allocator.
-
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Vipul Pandya <vipul@chelsio.com>
-Cc: Jan Kara <jack@suse.cz>
+Signed-off-by: Sasha Levin <sasha.levin@oracle.com>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Acked-by: Gregory Fong <gregory.0xf0@gmail.com>
+Cc: Pintu Kumar <pintu.k@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ include/linux/cma.h |   12 ++++++------
+ mm/cma.c            |   24 ++++++++++++++----------
+ 2 files changed, 20 insertions(+), 16 deletions(-)
 
-diff -puN include/linux/gfp.h~mm-clarify-__gfp_nofail-deprecation-status include/linux/gfp.h
---- a/include/linux/gfp.h~mm-clarify-__gfp_nofail-deprecation-status
-+++ a/include/linux/gfp.h
-@@ -57,8 +57,10 @@ struct vm_area_struct;
-  * _might_ fail.  This depends upon the particular VM implementation.
-  *
-  * __GFP_NOFAIL: The VM implementation _must_ retry infinitely: the caller
-- * cannot handle allocation failures.  This modifier is deprecated and no new
-- * users should be added.
-+ * cannot handle allocation failures. New users should be evaluated carefully
-+ * (and the flag should be used only when there is no reasonable failure policy)
-+ * but it is definitely preferable to use the flag rather than opencode endless
-+ * loop around allocator.
-  *
-  * __GFP_NORETRY: The VM implementation must not retry indefinitely.
-  *
+diff -puN include/linux/cma.h~mm-cma-constify-and-use-correct-signness-in-mm-cmac include/linux/cma.h
+--- a/include/linux/cma.h~mm-cma-constify-and-use-correct-signness-in-mm-cmac
++++ a/include/linux/cma.h
+@@ -16,16 +16,16 @@
+ struct cma;
+ 
+ extern unsigned long totalcma_pages;
+-extern phys_addr_t cma_get_base(struct cma *cma);
+-extern unsigned long cma_get_size(struct cma *cma);
++extern phys_addr_t cma_get_base(const struct cma *cma);
++extern unsigned long cma_get_size(const struct cma *cma);
+ 
+ extern int __init cma_declare_contiguous(phys_addr_t base,
+ 			phys_addr_t size, phys_addr_t limit,
+ 			phys_addr_t alignment, unsigned int order_per_bit,
+ 			bool fixed, struct cma **res_cma);
+-extern int cma_init_reserved_mem(phys_addr_t base,
+-					phys_addr_t size, int order_per_bit,
++extern int cma_init_reserved_mem(phys_addr_t base, phys_addr_t size,
++					unsigned int order_per_bit,
+ 					struct cma **res_cma);
+-extern struct page *cma_alloc(struct cma *cma, int count, unsigned int align);
+-extern bool cma_release(struct cma *cma, struct page *pages, int count);
++extern struct page *cma_alloc(struct cma *cma, unsigned int count, unsigned int align);
++extern bool cma_release(struct cma *cma, const struct page *pages, unsigned int count);
+ #endif
+diff -puN mm/cma.c~mm-cma-constify-and-use-correct-signness-in-mm-cmac mm/cma.c
+--- a/mm/cma.c~mm-cma-constify-and-use-correct-signness-in-mm-cmac
++++ a/mm/cma.c
+@@ -41,17 +41,18 @@ struct cma cma_areas[MAX_CMA_AREAS];
+ unsigned cma_area_count;
+ static DEFINE_MUTEX(cma_mutex);
+ 
+-phys_addr_t cma_get_base(struct cma *cma)
++phys_addr_t cma_get_base(const struct cma *cma)
+ {
+ 	return PFN_PHYS(cma->base_pfn);
+ }
+ 
+-unsigned long cma_get_size(struct cma *cma)
++unsigned long cma_get_size(const struct cma *cma)
+ {
+ 	return cma->count << PAGE_SHIFT;
+ }
+ 
+-static unsigned long cma_bitmap_aligned_mask(struct cma *cma, int align_order)
++static unsigned long cma_bitmap_aligned_mask(const struct cma *cma,
++					     int align_order)
+ {
+ 	if (align_order <= cma->order_per_bit)
+ 		return 0;
+@@ -62,7 +63,8 @@ static unsigned long cma_bitmap_aligned_
+  * Find a PFN aligned to the specified order and return an offset represented in
+  * order_per_bits.
+  */
+-static unsigned long cma_bitmap_aligned_offset(struct cma *cma, int align_order)
++static unsigned long cma_bitmap_aligned_offset(const struct cma *cma,
++					       int align_order)
+ {
+ 	if (align_order <= cma->order_per_bit)
+ 		return 0;
+@@ -71,13 +73,14 @@ static unsigned long cma_bitmap_aligned_
+ 		- cma->base_pfn) >> cma->order_per_bit;
+ }
+ 
+-static unsigned long cma_bitmap_pages_to_bits(struct cma *cma,
+-						unsigned long pages)
++static unsigned long cma_bitmap_pages_to_bits(const struct cma *cma,
++					      unsigned long pages)
+ {
+ 	return ALIGN(pages, 1UL << cma->order_per_bit) >> cma->order_per_bit;
+ }
+ 
+-static void cma_clear_bitmap(struct cma *cma, unsigned long pfn, int count)
++static void cma_clear_bitmap(struct cma *cma, unsigned long pfn,
++			     unsigned int count)
+ {
+ 	unsigned long bitmap_no, bitmap_count;
+ 
+@@ -162,7 +165,8 @@ core_initcall(cma_init_reserved_areas);
+  * This function creates custom contiguous area from already reserved memory.
+  */
+ int __init cma_init_reserved_mem(phys_addr_t base, phys_addr_t size,
+-				 int order_per_bit, struct cma **res_cma)
++				 unsigned int order_per_bit,
++				 struct cma **res_cma)
+ {
+ 	struct cma *cma;
+ 	phys_addr_t alignment;
+@@ -353,7 +357,7 @@ err:
+  * This function allocates part of contiguous memory on specific
+  * contiguous memory area.
+  */
+-struct page *cma_alloc(struct cma *cma, int count, unsigned int align)
++struct page *cma_alloc(struct cma *cma, unsigned int count, unsigned int align)
+ {
+ 	unsigned long mask, offset, pfn, start = 0;
+ 	unsigned long bitmap_maxno, bitmap_no, bitmap_count;
+@@ -424,7 +428,7 @@ struct page *cma_alloc(struct cma *cma,
+  * It returns false when provided pages do not belong to contiguous area and
+  * true otherwise.
+  */
+-bool cma_release(struct cma *cma, struct page *pages, int count)
++bool cma_release(struct cma *cma, const struct page *pages, unsigned int count)
+ {
+ 	unsigned long pfn;
+ 
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from sasha.levin@oracle.com are
 
 origin.patch
-memcg-print-cgroup-information-when-system-panics-due-to-panic_on_oom.patch
-cxgb4-drop-__gfp_nofail-allocation.patch
-jbd2-revert-must-not-fail-allocation-loops-back-to-gfp_nofail.patch
-memcg-zap-mem_cgroup_lookup.patch
-memcg-remove-obsolete-comment.patch
-mm-consolidate-all-page-flags-helpers-in-linux-page-flagsh.patch
-page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-mm-sanitize-page-mapping-for-tail-pages.patch
-mm-sanitize-page-mapping-for-tail-pages-v2.patch
-allow-compaction-of-unevictable-pages.patch
-document-interaction-between-compaction-and-the-unevictable-lru.patch
-document-interaction-between-compaction-and-the-unevictable-lru-fix.patch
-mm-change-deactivate_page-with-deactivate_file_page.patch
-mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp.patch
-mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp-fix.patch
-mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp-fix-fix.patch
-mm-use-read_once-for-non-scalar-types.patch
-mm-remove-rest-of-access_once-usages.patch
-mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-reclaimable-pages.patch
-mm-dont-call-__page_cache_release-for-hugetlb.patch
-mm-hugetlb-introduce-pagehugeactive-flag.patch
-mm-hugetlb-introduce-pagehugeactive-flag-fix.patch
-mm-hugetlb-cleanup-using-pagehugeactive-flag.patch
-mm-hugetlb-cleanup-using-pagehugeactive-flag-fix.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-mm-page_isolation-check-pfn-validity-before-access.patch
-mm-support-madvisemadv_free.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-dont-split-thp-page-when-syscall-is-called.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-2.patch
-mm-move-lazy-free-pages-to-inactive-list.patch
-mm-move-lazy-free-pages-to-inactive-list-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-fork-report-pid-reservation-failure-properly.patch
+mm-mmapc-use-while-instead-of-ifgoto.patch
+mm-mmapc-use-while-instead-of-ifgoto-fix.patch
+mm-memory-print-also-a_ops-readpage-in-print_bad_pte.patch
+mm-memory-print-also-a_ops-readpage-in-print_bad_pte-fix.patch
 linux-next.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
 
