@@ -1,108 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-slab-correct-config-option-in-comment.patch removed
- from -mm tree
-Date: Wed, 15 Apr 2015 12:09:00 -0700
-Message-ID: <552eb74c.6KFYpO4YZLDGdCzX%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-migrate-mark-unmap_and_move-noinline-to-avoid-ice-in-gcc-473.patch
+ removed from -mm tree
+Date: Wed, 15 Apr 2015 12:08:56 -0700
+Message-ID: <552eb748.F3HGrgfoaH2uDRTb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47928 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47915 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932739AbbDOTJB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:09:01 -0400
+	with ESMTP id S932695AbbDOTI5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:08:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, mm-commits@vger.kernel.org
+To: geert+renesas@glider.be, khilman@kernel.org, khilman@linaro.org, lina.iyer@linaro.org, marc.zyngier@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, slab: correct config option in comment
+     Subject: mm/migrate: mark unmap_and_move() "noinline" to avoid ICE in gcc 4.7.3
 has been removed from the -mm tree.  Its filename was
-     mm-slab-correct-config-option-in-comment.patch
+     mm-migrate-mark-unmap_and_move-noinline-to-avoid-ice-in-gcc-473.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, slab: correct config option in comment
+From: Geert Uytterhoeven <geert+renesas@glider.be>
+Subject: mm/migrate: mark unmap_and_move() "noinline" to avoid ICE in gcc 4.7.3
 
-CONFIG_SLAB_DEBUG doesn't exist, CONFIG_DEBUG_SLAB does.
+With gcc version 4.7.3 (Ubuntu/Linaro 4.7.3-12ubuntu1) :
 
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+    mm/migrate.c: In function `migrate_pages':
+    mm/migrate.c:1148:1: internal compiler error: in push_minipool_fix, at config/arm/arm.c:13500
+    Please submit a full bug report,
+    with preprocessed source if appropriate.
+    See <file:///usr/share/doc/gcc-4.7/README.Bugs> for instructions.
+    Preprocessed source stored into /tmp/ccPoM1tr.out file, please attach this to your bugreport.
+    make[1]: *** [mm/migrate.o] Error 1
+    make: *** [mm/migrate.o] Error 2
+
+Mark unmap_and_move() (which is used in a single place only) "noinline"
+to work around this compiler bug.
+
+[akpm@linux-foundation.org: make it conditional on gcc-4.7.3 and arm]
+[khilman@kernel.org: fine-tune compiler versions]
+[akpm@linux-foundation.org: fix comment]
+Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Reported-by: Kevin Hilman <khilman@kernel.org>
+Cc: Marc Zyngier <marc.zyngier@arm.com>
+Tested-by: Kevin Hilman <khilman@linaro.org>
+Tested-by: Lina Iyer <lina.iyer@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slab.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/migrate.c |   17 ++++++++++++++---
+ 1 file changed, 14 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/slab.h~mm-slab-correct-config-option-in-comment include/linux/slab.h
---- a/include/linux/slab.h~mm-slab-correct-config-option-in-comment
-+++ a/include/linux/slab.h
-@@ -18,7 +18,7 @@
+diff -puN mm/migrate.c~mm-migrate-mark-unmap_and_move-noinline-to-avoid-ice-in-gcc-473 mm/migrate.c
+--- a/mm/migrate.c~mm-migrate-mark-unmap_and_move-noinline-to-avoid-ice-in-gcc-473
++++ a/mm/migrate.c
+@@ -901,12 +901,23 @@ out:
+ }
  
  /*
-  * Flags to pass to kmem_cache_create().
-- * The ones marked DEBUG are only valid if CONFIG_SLAB_DEBUG is set.
-+ * The ones marked DEBUG are only valid if CONFIG_DEBUG_SLAB is set.
++ * gcc 4.7 and 4.8 on arm get an ICEs when inlining unmap_and_move().  Work
++ * around it.
++ */
++#if (GCC_VERSION >= 40700 && GCC_VERSION < 40900) && defined(CONFIG_ARM)
++#define ICE_noinline noinline
++#else
++#define ICE_noinline
++#endif
++
++/*
+  * Obtain the lock on page, remove all ptes and migrate the page
+  * to the newly allocated page in newpage.
   */
- #define SLAB_DEBUG_FREE		0x00000100UL	/* DEBUG: Perform (expensive) checks on free */
- #define SLAB_RED_ZONE		0x00000400UL	/* DEBUG: Red zone objs in a cache */
+-static int unmap_and_move(new_page_t get_new_page, free_page_t put_new_page,
+-			unsigned long private, struct page *page, int force,
+-			enum migrate_mode mode)
++static ICE_noinline int unmap_and_move(new_page_t get_new_page,
++				   free_page_t put_new_page,
++				   unsigned long private, struct page *page,
++				   int force, enum migrate_mode mode)
+ {
+ 	int rc = 0;
+ 	int *result = NULL;
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from geert+renesas@glider.be are
 
 origin.patch
-mm-mempool-do-not-allow-atomic-resizing.patch
-mm-hugetlb-abort-__get_user_pages-if-current-has-been-oom-killed.patch
-cxgb4-drop-__gfp_nofail-allocation.patch
-jbd2-revert-must-not-fail-allocation-loops-back-to-gfp_nofail.patch
-slab-infrastructure-for-bulk-object-allocation-and-freeing-v3.patch
-slub-bulk-alloc-extract-objects-from-the-per-cpu-slab.patch
-slub-bulk-allocation-from-per-cpu-partial-pages.patch
-slub-bulk-allocation-from-per-cpu-partial-pages-fix.patch
-mm-refactor-zone_movable_is_highmem.patch
-mm-memory-failurec-define-page-types-for-action_result-in-one-place.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-allow-compaction-of-unevictable-pages.patch
-document-interaction-between-compaction-and-the-unevictable-lru.patch
-document-interaction-between-compaction-and-the-unevictable-lru-fix.patch
-mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp.patch
-mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp-fix-fix.patch
-mm-compaction-reset-compaction-scanner-positions.patch
-hugetlbfs-add-minimum-size-tracking-fields-to-subpool-structure.patch
-hugetlbfs-add-minimum-size-accounting-to-subpools.patch
-hugetlbfs-accept-subpool-min_size-mount-option-and-setup-accordingly.patch
-hugetlbfs-document-min_size-mount-option-and-cleanup.patch
-mm-vmalloc-fix-possible-exhaustion-of-vmalloc-space-caused-by-vm_map_ram-allocator.patch
-mm-vmalloc-occupy-newly-allocated-vmap-block-just-after-allocation.patch
-mm-vmalloc-get-rid-of-dirty-bitmap-inside-vmap_block-structure.patch
-mremap-should-return-enomem-when-__vm_enough_memory-fail.patch
-clean-up-goto-just-return-err_ptr.patch
-fs-jfs-remove-slab-object-constructor.patch
-mm-mempool-disallow-mempools-based-on-slab-caches-with-constructors.patch
-mm-mempool-poison-elements-backed-by-slab-allocator.patch
-mm-mempool-poison-elements-backed-by-page-allocator.patch
-mm-mempool-poison-elements-backed-by-page-allocator-fix.patch
-mm-mempool-poison-elements-backed-by-page-allocator-fix-fix.patch
-mm-mempool-poison-elements-backed-by-page-allocator-fix-fix-fix.patch
-thp-handle-errors-in-hugepage_init-properly.patch
-thp-do-not-adjust-zone-water-marks-if-khugepaged-is-not-started.patch
-mm-doc-cleanup-and-clarify-munmap-behavior-for-hugetlb-memory.patch
-mm-doc-cleanup-and-clarify-munmap-behavior-for-hugetlb-memory-fix.patch
-mm-selftests-test-return-value-of-munmap-for-map_hugetlb-memory.patch
-mm-dont-call-__page_cache_release-for-hugetlb.patch
-mm-hugetlb-introduce-pagehugeactive-flag.patch
-mm-hugetlb-introduce-pagehugeactive-flag-fix.patch
-mm-hugetlb-cleanup-using-pagehugeactive-flag.patch
-mm-hugetlb-cleanup-using-pagehugeactive-flag-fix.patch
-thp-cleanup-khugepaged-startup.patch
-mm-mempool-kasan-poison-mempool-elements.patch
-hung_task-change-hung_taskc-to-use-for_each_process_thread.patch
-mm-utilc-add-kstrimdup.patch
+lib-vsprintf-document-%p-parameters-passed-by-reference.patch
+lib-vsprintf-move-integer-format-types-to-the-top.patch
+lib-vsprintf-add-%pcnr-format-specifiers-for-clocks.patch
+lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix.patch
 linux-next.patch
 
