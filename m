@@ -1,255 +1,205 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- ia64-expose-number-of-page-table-levels-on-kconfig-level.patch removed from -mm tree
-Date: Wed, 15 Apr 2015 12:09:59 -0700
-Message-ID: <552eb787.sqSU8VmLhecGsAHX%akpm@linux-foundation.org>
+ parisc-expose-number-of-page-table-levels-on-kconfig-level.patch removed
+ from -mm tree
+Date: Wed, 15 Apr 2015 12:10:05 -0700
+Message-ID: <552eb78d.W45aZyYhzokZI21s%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48088 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48103 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933343AbbDOTKA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:10:00 -0400
+	with ESMTP id S1755421AbbDOTKG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:10:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, fenghua.yu@intel.com, linux@roeck-us.net, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, deller@gmx.de, jejb@parisc-linux.org, linux@roeck-us.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ia64: expose number of page table levels on Kconfig level
+     Subject: parisc: expose number of page table levels on Kconfig level
 has been removed from the -mm tree.  Its filename was
-     ia64-expose-number-of-page-table-levels-on-kconfig-level.patch
+     parisc-expose-number-of-page-table-levels-on-kconfig-level.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: ia64: expose number of page table levels on Kconfig level
+Subject: parisc: expose number of page table levels on Kconfig level
 
 We would want to use number of page table level to define mm_struct.
 Let's expose it as CONFIG_PGTABLE_LEVELS.
 
-We need to define PGTABLE_LEVELS before sourcing init/Kconfig:
-arch/Kconfig will define default value and it's sourced from init/Kconfig.
-
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
+Cc: Helge Deller <deller@gmx.de>
 Tested-by: Guenter Roeck <linux@roeck-us.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/Kconfig                |   18 +++++-------------
- arch/ia64/include/asm/page.h     |    4 ++--
- arch/ia64/include/asm/pgalloc.h  |    4 ++--
- arch/ia64/include/asm/pgtable.h  |   12 ++++++------
- arch/ia64/kernel/ivt.S           |   12 ++++++------
- arch/ia64/kernel/machine_kexec.c |    4 ++--
- 6 files changed, 23 insertions(+), 31 deletions(-)
+ arch/parisc/Kconfig               |    5 +++++
+ arch/parisc/include/asm/pgalloc.h |    2 +-
+ arch/parisc/include/asm/pgtable.h |   16 +++++++---------
+ arch/parisc/kernel/entry.S        |    4 ++--
+ arch/parisc/kernel/head.S         |    4 ++--
+ arch/parisc/mm/init.c             |    2 +-
+ 6 files changed, 18 insertions(+), 15 deletions(-)
 
-diff -puN arch/ia64/Kconfig~ia64-expose-number-of-page-table-levels-on-kconfig-level arch/ia64/Kconfig
---- a/arch/ia64/Kconfig~ia64-expose-number-of-page-table-levels-on-kconfig-level
-+++ a/arch/ia64/Kconfig
-@@ -1,3 +1,8 @@
+diff -puN arch/parisc/Kconfig~parisc-expose-number-of-page-table-levels-on-kconfig-level arch/parisc/Kconfig
+--- a/arch/parisc/Kconfig~parisc-expose-number-of-page-table-levels-on-kconfig-level
++++ a/arch/parisc/Kconfig
+@@ -103,6 +103,11 @@ config ARCH_MAY_HAVE_PC_FDC
+ 	depends on BROKEN
+ 	default y
+ 
 +config PGTABLE_LEVELS
-+	int "Page Table Levels" if !IA64_PAGE_SIZE_64KB
-+	range 3 4 if !IA64_PAGE_SIZE_64KB
-+	default 3
++	int
++	default 3 if 64BIT && PARISC_PAGE_SIZE_4KB
++	default 2
 +
  source "init/Kconfig"
  
  source "kernel/Kconfig.freezer"
-@@ -286,19 +291,6 @@ config IA64_PAGE_SIZE_64KB
- 
- endchoice
- 
--choice
--	prompt "Page Table Levels"
--	default PGTABLE_3
--
--config PGTABLE_3
--	bool "3 Levels"
--
--config PGTABLE_4
--	depends on !IA64_PAGE_SIZE_64KB
--	bool "4 Levels"
--
--endchoice
--
- if IA64_HP_SIM
- config HZ
- 	default 32
-diff -puN arch/ia64/include/asm/page.h~ia64-expose-number-of-page-table-levels-on-kconfig-level arch/ia64/include/asm/page.h
---- a/arch/ia64/include/asm/page.h~ia64-expose-number-of-page-table-levels-on-kconfig-level
-+++ a/arch/ia64/include/asm/page.h
-@@ -173,7 +173,7 @@ get_order (unsigned long size)
-    */
-   typedef struct { unsigned long pte; } pte_t;
-   typedef struct { unsigned long pmd; } pmd_t;
--#ifdef CONFIG_PGTABLE_4
-+#if CONFIG_PGTABLE_LEVELS == 4
-   typedef struct { unsigned long pud; } pud_t;
- #endif
-   typedef struct { unsigned long pgd; } pgd_t;
-@@ -182,7 +182,7 @@ get_order (unsigned long size)
- 
- # define pte_val(x)	((x).pte)
- # define pmd_val(x)	((x).pmd)
--#ifdef CONFIG_PGTABLE_4
-+#if CONFIG_PGTABLE_LEVELS == 4
- # define pud_val(x)	((x).pud)
- #endif
- # define pgd_val(x)	((x).pgd)
-diff -puN arch/ia64/include/asm/pgalloc.h~ia64-expose-number-of-page-table-levels-on-kconfig-level arch/ia64/include/asm/pgalloc.h
---- a/arch/ia64/include/asm/pgalloc.h~ia64-expose-number-of-page-table-levels-on-kconfig-level
-+++ a/arch/ia64/include/asm/pgalloc.h
-@@ -32,7 +32,7 @@ static inline void pgd_free(struct mm_st
- 	quicklist_free(0, NULL, pgd);
+diff -puN arch/parisc/include/asm/pgalloc.h~parisc-expose-number-of-page-table-levels-on-kconfig-level arch/parisc/include/asm/pgalloc.h
+--- a/arch/parisc/include/asm/pgalloc.h~parisc-expose-number-of-page-table-levels-on-kconfig-level
++++ a/arch/parisc/include/asm/pgalloc.h
+@@ -51,7 +51,7 @@ static inline void pgd_free(struct mm_st
+ 	free_pages((unsigned long)pgd, PGD_ALLOC_ORDER);
  }
  
--#ifdef CONFIG_PGTABLE_4
-+#if CONFIG_PGTABLE_LEVELS == 4
- static inline void
- pgd_populate(struct mm_struct *mm, pgd_t * pgd_entry, pud_t * pud)
- {
-@@ -49,7 +49,7 @@ static inline void pud_free(struct mm_st
- 	quicklist_free(0, NULL, pud);
- }
- #define __pud_free_tlb(tlb, pud, address)	pud_free((tlb)->mm, pud)
--#endif /* CONFIG_PGTABLE_4 */
-+#endif /* CONFIG_PGTABLE_LEVELS == 4 */
+-#if PT_NLEVELS == 3
++#if CONFIG_PGTABLE_LEVELS == 3
  
- static inline void
- pud_populate(struct mm_struct *mm, pud_t * pud_entry, pmd_t * pmd)
-diff -puN arch/ia64/include/asm/pgtable.h~ia64-expose-number-of-page-table-levels-on-kconfig-level arch/ia64/include/asm/pgtable.h
---- a/arch/ia64/include/asm/pgtable.h~ia64-expose-number-of-page-table-levels-on-kconfig-level
-+++ a/arch/ia64/include/asm/pgtable.h
-@@ -99,7 +99,7 @@
+ /* Three Level Page Table Support for pmd's */
+ 
+diff -puN arch/parisc/include/asm/pgtable.h~parisc-expose-number-of-page-table-levels-on-kconfig-level arch/parisc/include/asm/pgtable.h
+--- a/arch/parisc/include/asm/pgtable.h~parisc-expose-number-of-page-table-levels-on-kconfig-level
++++ a/arch/parisc/include/asm/pgtable.h
+@@ -68,13 +68,11 @@ extern void purge_tlb_entries(struct mm_
+ #define KERNEL_INITIAL_ORDER	24	/* 0 to 1<<24 = 16MB */
+ #define KERNEL_INITIAL_SIZE	(1 << KERNEL_INITIAL_ORDER)
+ 
+-#if defined(CONFIG_64BIT) && defined(CONFIG_PARISC_PAGE_SIZE_4KB)
+-#define PT_NLEVELS	3
++#if CONFIG_PGTABLE_LEVELS == 3
+ #define PGD_ORDER	1 /* Number of pages per pgd */
+ #define PMD_ORDER	1 /* Number of pages per pmd */
+ #define PGD_ALLOC_ORDER	2 /* first pgd contains pmd */
+ #else
+-#define PT_NLEVELS	2
+ #define PGD_ORDER	1 /* Number of pages per pgd */
+ #define PGD_ALLOC_ORDER	PGD_ORDER
+ #endif
+@@ -93,7 +91,7 @@ extern void purge_tlb_entries(struct mm_
+ #define PMD_SHIFT       (PLD_SHIFT + BITS_PER_PTE)
+ #define PMD_SIZE	(1UL << PMD_SHIFT)
  #define PMD_MASK	(~(PMD_SIZE-1))
- #define PTRS_PER_PMD	(1UL << (PTRS_PER_PTD_SHIFT))
- 
--#ifdef CONFIG_PGTABLE_4
-+#if CONFIG_PGTABLE_LEVELS == 4
- /*
-  * Definitions for second level:
-  *
-@@ -117,7 +117,7 @@
-  *
-  * PGDIR_SHIFT determines what a first-level page table entry can map.
-  */
--#ifdef CONFIG_PGTABLE_4
-+#if CONFIG_PGTABLE_LEVELS == 4
- #define PGDIR_SHIFT		(PUD_SHIFT + (PTRS_PER_PTD_SHIFT))
+-#if PT_NLEVELS == 3
++#if CONFIG_PGTABLE_LEVELS == 3
+ #define BITS_PER_PMD	(PAGE_SHIFT + PMD_ORDER - BITS_PER_PMD_ENTRY)
  #else
- #define PGDIR_SHIFT		(PMD_SHIFT + (PTRS_PER_PTD_SHIFT))
-@@ -180,7 +180,7 @@
- #define __S111	__pgprot(__ACCESS_BITS | _PAGE_PL_3 | _PAGE_AR_RWX)
+ #define __PAGETABLE_PMD_FOLDED
+@@ -277,7 +275,7 @@ extern unsigned long *empty_zero_page;
+ #define pgd_flag(x)	(pgd_val(x) & PxD_FLAG_MASK)
+ #define pgd_address(x)	((unsigned long)(pgd_val(x) &~ PxD_FLAG_MASK) << PxD_VALUE_SHIFT)
  
- #define pgd_ERROR(e)	printk("%s:%d: bad pgd %016lx.\n", __FILE__, __LINE__, pgd_val(e))
--#ifdef CONFIG_PGTABLE_4
-+#if CONFIG_PGTABLE_LEVELS == 4
- #define pud_ERROR(e)	printk("%s:%d: bad pud %016lx.\n", __FILE__, __LINE__, pud_val(e))
- #endif
- #define pmd_ERROR(e)	printk("%s:%d: bad pmd %016lx.\n", __FILE__, __LINE__, pmd_val(e))
-@@ -281,7 +281,7 @@ extern unsigned long VMALLOC_END;
- #define pud_page_vaddr(pud)		((unsigned long) __va(pud_val(pud) & _PFN_MASK))
- #define pud_page(pud)			virt_to_page((pud_val(pud) + PAGE_OFFSET))
+-#if PT_NLEVELS == 3
++#if CONFIG_PGTABLE_LEVELS == 3
+ /* The first entry of the permanent pmd is not there if it contains
+  * the gateway marker */
+ #define pmd_none(x)	(!pmd_val(x) || pmd_flag(x) == PxD_FLAG_ATTACHED)
+@@ -287,7 +285,7 @@ extern unsigned long *empty_zero_page;
+ #define pmd_bad(x)	(!(pmd_flag(x) & PxD_FLAG_VALID))
+ #define pmd_present(x)	(pmd_flag(x) & PxD_FLAG_PRESENT)
+ static inline void pmd_clear(pmd_t *pmd) {
+-#if PT_NLEVELS == 3
++#if CONFIG_PGTABLE_LEVELS == 3
+ 	if (pmd_flag(*pmd) & PxD_FLAG_ATTACHED)
+ 		/* This is the entry pointing to the permanent pmd
+ 		 * attached to the pgd; cannot clear it */
+@@ -299,7 +297,7 @@ static inline void pmd_clear(pmd_t *pmd)
  
--#ifdef CONFIG_PGTABLE_4
-+#if CONFIG_PGTABLE_LEVELS == 4
- #define pgd_none(pgd)			(!pgd_val(pgd))
- #define pgd_bad(pgd)			(!ia64_phys_addr_valid(pgd_val(pgd)))
- #define pgd_present(pgd)		(pgd_val(pgd) != 0UL)
-@@ -384,7 +384,7 @@ pgd_offset (const struct mm_struct *mm,
-    here.  */
- #define pgd_offset_gate(mm, addr)	pgd_offset_k(addr)
  
--#ifdef CONFIG_PGTABLE_4
-+#if CONFIG_PGTABLE_LEVELS == 4
+ 
+-#if PT_NLEVELS == 3
++#if CONFIG_PGTABLE_LEVELS == 3
+ #define pgd_page_vaddr(pgd) ((unsigned long) __va(pgd_address(pgd)))
+ #define pgd_page(pgd)	virt_to_page((void *)pgd_page_vaddr(pgd))
+ 
+@@ -309,7 +307,7 @@ static inline void pmd_clear(pmd_t *pmd)
+ #define pgd_bad(x)      (!(pgd_flag(x) & PxD_FLAG_VALID))
+ #define pgd_present(x)  (pgd_flag(x) & PxD_FLAG_PRESENT)
+ static inline void pgd_clear(pgd_t *pgd) {
+-#if PT_NLEVELS == 3
++#if CONFIG_PGTABLE_LEVELS == 3
+ 	if(pgd_flag(*pgd) & PxD_FLAG_ATTACHED)
+ 		/* This is the permanent pmd attached to the pgd; cannot
+ 		 * free it */
+@@ -393,7 +391,7 @@ static inline pte_t pte_modify(pte_t pte
+ 
  /* Find an entry in the second-level page table.. */
- #define pud_offset(dir,addr) \
- 	((pud_t *) pgd_page_vaddr(*(dir)) + (((addr) >> PUD_SHIFT) & (PTRS_PER_PUD - 1)))
-@@ -586,7 +586,7 @@ extern struct page *zero_page_memmap_ptr
- #define __HAVE_ARCH_PGD_OFFSET_GATE
  
- 
--#ifndef CONFIG_PGTABLE_4
+-#if PT_NLEVELS == 3
 +#if CONFIG_PGTABLE_LEVELS == 3
- #include <asm-generic/pgtable-nopud.h>
- #endif
- #include <asm-generic/pgtable.h>
-diff -puN arch/ia64/kernel/ivt.S~ia64-expose-number-of-page-table-levels-on-kconfig-level arch/ia64/kernel/ivt.S
---- a/arch/ia64/kernel/ivt.S~ia64-expose-number-of-page-table-levels-on-kconfig-level
-+++ a/arch/ia64/kernel/ivt.S
-@@ -146,7 +146,7 @@ ENTRY(vhpt_miss)
- (p6)	dep r17=r18,r19,3,(PAGE_SHIFT-3)	// r17=pgd_offset for region 5
- (p7)	dep r17=r18,r17,3,(PAGE_SHIFT-6)	// r17=pgd_offset for region[0-4]
- 	cmp.eq p7,p6=0,r21			// unused address bits all zeroes?
--#ifdef CONFIG_PGTABLE_4
-+#if CONFIG_PGTABLE_LEVELS == 4
- 	shr.u r28=r22,PUD_SHIFT			// shift pud index into position
+ #define pmd_offset(dir,address) \
+ ((pmd_t *) pgd_page_vaddr(*(dir)) + (((address)>>PMD_SHIFT) & (PTRS_PER_PMD-1)))
  #else
- 	shr.u r18=r22,PMD_SHIFT			// shift pmd index into position
-@@ -155,7 +155,7 @@ ENTRY(vhpt_miss)
- 	ld8 r17=[r17]				// get *pgd (may be 0)
- 	;;
- (p7)	cmp.eq p6,p7=r17,r0			// was pgd_present(*pgd) == NULL?
--#ifdef CONFIG_PGTABLE_4
-+#if CONFIG_PGTABLE_LEVELS == 4
- 	dep r28=r28,r17,3,(PAGE_SHIFT-3)	// r28=pud_offset(pgd,addr)
- 	;;
- 	shr.u r18=r22,PMD_SHIFT			// shift pmd index into position
-@@ -222,13 +222,13 @@ ENTRY(vhpt_miss)
+diff -puN arch/parisc/kernel/entry.S~parisc-expose-number-of-page-table-levels-on-kconfig-level arch/parisc/kernel/entry.S
+--- a/arch/parisc/kernel/entry.S~parisc-expose-number-of-page-table-levels-on-kconfig-level
++++ a/arch/parisc/kernel/entry.S
+@@ -398,7 +398,7 @@
+ 	 * can address up to 1TB
  	 */
- 	ld8 r25=[r21]				// read *pte again
- 	ld8 r26=[r17]				// read *pmd again
--#ifdef CONFIG_PGTABLE_4
-+#if CONFIG_PGTABLE_LEVELS == 4
- 	ld8 r19=[r28]				// read *pud again
- #endif
- 	cmp.ne p6,p7=r0,r0
- 	;;
- 	cmp.ne.or.andcm p6,p7=r26,r20		// did *pmd change
--#ifdef CONFIG_PGTABLE_4
-+#if CONFIG_PGTABLE_LEVELS == 4
- 	cmp.ne.or.andcm p6,p7=r19,r29		// did *pud change
- #endif
- 	mov r27=PAGE_SHIFT<<2
-@@ -476,7 +476,7 @@ ENTRY(nested_dtlb_miss)
- (p6)	dep r17=r18,r19,3,(PAGE_SHIFT-3)	// r17=pgd_offset for region 5
- (p7)	dep r17=r18,r17,3,(PAGE_SHIFT-6)	// r17=pgd_offset for region[0-4]
- 	cmp.eq p7,p6=0,r21			// unused address bits all zeroes?
--#ifdef CONFIG_PGTABLE_4
-+#if CONFIG_PGTABLE_LEVELS == 4
- 	shr.u r18=r22,PUD_SHIFT			// shift pud index into position
- #else
- 	shr.u r18=r22,PMD_SHIFT			// shift pmd index into position
-@@ -487,7 +487,7 @@ ENTRY(nested_dtlb_miss)
- (p7)	cmp.eq p6,p7=r17,r0			// was pgd_present(*pgd) == NULL?
- 	dep r17=r18,r17,3,(PAGE_SHIFT-3)	// r17=p[u|m]d_offset(pgd,addr)
- 	;;
--#ifdef CONFIG_PGTABLE_4
-+#if CONFIG_PGTABLE_LEVELS == 4
- (p7)	ld8 r17=[r17]				// get *pud (may be 0)
- 	shr.u r18=r22,PMD_SHIFT			// shift pmd index into position
- 	;;
-diff -puN arch/ia64/kernel/machine_kexec.c~ia64-expose-number-of-page-table-levels-on-kconfig-level arch/ia64/kernel/machine_kexec.c
---- a/arch/ia64/kernel/machine_kexec.c~ia64-expose-number-of-page-table-levels-on-kconfig-level
-+++ a/arch/ia64/kernel/machine_kexec.c
-@@ -156,9 +156,9 @@ void arch_crash_save_vmcoreinfo(void)
- 	VMCOREINFO_OFFSET(node_memblk_s, start_paddr);
- 	VMCOREINFO_OFFSET(node_memblk_s, size);
- #endif
--#ifdef CONFIG_PGTABLE_3
+ 	.macro		L2_ptep	pmd,pte,index,va,fault
+-#if PT_NLEVELS == 3
 +#if CONFIG_PGTABLE_LEVELS == 3
- 	VMCOREINFO_CONFIG(PGTABLE_3);
--#elif defined(CONFIG_PGTABLE_4)
-+#elif CONFIG_PGTABLE_LEVELS == 4
- 	VMCOREINFO_CONFIG(PGTABLE_4);
- #endif
- }
+ 	extru		\va,31-ASM_PMD_SHIFT,ASM_BITS_PER_PMD,\index
+ #else
+ # if defined(CONFIG_64BIT)
+@@ -436,7 +436,7 @@
+ 	 * all ILP32 processes and all the kernel for machines with
+ 	 * under 4GB of memory) */
+ 	.macro		L3_ptep pgd,pte,index,va,fault
+-#if PT_NLEVELS == 3 /* we might have a 2-Level scheme, e.g. with 16kb page size */
++#if CONFIG_PGTABLE_LEVELS == 3 /* we might have a 2-Level scheme, e.g. with 16kb page size */
+ 	extrd,u		\va,63-ASM_PGDIR_SHIFT,ASM_BITS_PER_PGD,\index
+ 	copy		%r0,\pte
+ 	extrd,u,*=	\va,63-ASM_PGDIR_SHIFT,64-ASM_PGDIR_SHIFT,%r0
+diff -puN arch/parisc/kernel/head.S~parisc-expose-number-of-page-table-levels-on-kconfig-level arch/parisc/kernel/head.S
+--- a/arch/parisc/kernel/head.S~parisc-expose-number-of-page-table-levels-on-kconfig-level
++++ a/arch/parisc/kernel/head.S
+@@ -74,7 +74,7 @@ $bss_loop:
+ 	mtctl		%r4,%cr24	/* Initialize kernel root pointer */
+ 	mtctl		%r4,%cr25	/* Initialize user root pointer */
+ 
+-#if PT_NLEVELS == 3
++#if CONFIG_PGTABLE_LEVELS == 3
+ 	/* Set pmd in pgd */
+ 	load32		PA(pmd0),%r5
+ 	shrd            %r5,PxD_VALUE_SHIFT,%r3	
+@@ -97,7 +97,7 @@ $bss_loop:
+ 	stw		%r3,0(%r4)
+ 	ldo		(PAGE_SIZE >> PxD_VALUE_SHIFT)(%r3),%r3
+ 	addib,>		-1,%r1,1b
+-#if PT_NLEVELS == 3
++#if CONFIG_PGTABLE_LEVELS == 3
+ 	ldo             ASM_PMD_ENTRY_SIZE(%r4),%r4
+ #else
+ 	ldo             ASM_PGD_ENTRY_SIZE(%r4),%r4
+diff -puN arch/parisc/mm/init.c~parisc-expose-number-of-page-table-levels-on-kconfig-level arch/parisc/mm/init.c
+--- a/arch/parisc/mm/init.c~parisc-expose-number-of-page-table-levels-on-kconfig-level
++++ a/arch/parisc/mm/init.c
+@@ -34,7 +34,7 @@
+ extern int  data_start;
+ extern void parisc_kernel_start(void);	/* Kernel entry point in head.S */
+ 
+-#if PT_NLEVELS == 3
++#if CONFIG_PGTABLE_LEVELS == 3
+ /* NOTE: This layout exactly conforms to the hybrid L2/L3 page table layout
+  * with the first pmd adjacent to the pgd and below it. gcc doesn't actually
+  * guarantee that global objects will be laid out in memory in the same order
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
