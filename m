@@ -1,136 +1,85 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-cma-add-functions-to-get-region-pages-counters-fix-2.patch removed from
- -mm tree
-Date: Wed, 15 Apr 2015 15:42:38 -0700
-Message-ID: <552ee95e.OJeWHmyqeiMMic5m%akpm@linux-foundation.org>
+ mm-memory-print-also-a_ops-readpage-in-print_bad_pte-fix.patch removed from -mm tree
+Date: Wed, 15 Apr 2015 15:43:52 -0700
+Message-ID: <552ee9a8.4/BcuI9EIHh/cfK7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51940 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51948 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752254AbbDOWmj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 18:42:39 -0400
+	with ESMTP id S1752916AbbDOWnx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 18:43:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: stefan.strogin@gmail.com, a.mateosian@samsung.com, d.safonov@partner.samsung.com, iamjoonsoo.kim@lge.com, laurent.pinchart+renesas@ideasonboard.com, m.szyprowski@samsung.com, mina86@mina86.com, pintu.k@samsung.com, v.tyrtov@samsung.com, weijie.yang@samsung.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, khlebnikov@yandex-team.ru, kirill@shutemov.name, sasha.levin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-cma-add-functions-to-get-region-pages-counters-fix-2
+     Subject: mm-memory-print-also-a_ops-readpage-in-print_bad_pte-fix
 has been removed from the -mm tree.  Its filename was
-     mm-cma-add-functions-to-get-region-pages-counters-fix-2.patch
+     mm-memory-print-also-a_ops-readpage-in-print_bad_pte-fix.patch
 
-This patch was dropped because it was folded into mm-cma-add-functions-to-get-region-pages-counters.patch
+This patch was dropped because it was folded into mm-memory-print-also-a_ops-readpage-in-print_bad_pte.patch
 
 ------------------------------------------------------
-From: Stefan Strogin <stefan.strogin@gmail.com>
-Subject: mm-cma-add-functions-to-get-region-pages-counters-fix-2
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-memory-print-also-a_ops-readpage-in-print_bad_pte-fix
 
-Move the code from cma_get_used() and cma_get_maxchunk() to cma_used_get()
-and cma_maxchunk_get(), because cma_get_*() aren't used anywhere else, and
-because of their confusing similar names.
+use pr_alert, per Kirill
 
-Signed-off-by: Stefan Strogin <stefan.strogin@gmail.com>
-Cc: Dmitry Safonov <d.safonov@partner.samsung.com>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Pintu Kumar <pintu.k@samsung.com>
-Cc: Weijie Yang <weijie.yang@samsung.com>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Cc: Vyacheslav Tyrtov <v.tyrtov@samsung.com>
-Cc: Aleksei Mateosian <a.mateosian@samsung.com>
+Cc: Kirill A. Shutemov <kirill@shutemov.name>
+Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Cc: Sasha Levin <sasha.levin@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma_debug.c |   51 ++++++++++++++++-------------------------------
- 1 file changed, 18 insertions(+), 33 deletions(-)
+ mm/memory.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN mm/cma_debug.c~mm-cma-add-functions-to-get-region-pages-counters-fix-2 mm/cma_debug.c
---- a/mm/cma_debug.c~mm-cma-add-functions-to-get-region-pages-counters-fix-2
-+++ a/mm/cma_debug.c
-@@ -22,37 +22,6 @@ struct cma_mem {
- 
- static struct dentry *cma_debugfs_root;
- 
--static unsigned long cma_get_used(struct cma *cma)
--{
--	unsigned long ret = 0;
--
--	mutex_lock(&cma->lock);
--	/* pages counter is smaller than sizeof(int) */
--	ret = bitmap_weight(cma->bitmap, (int)cma->count);
--	mutex_unlock(&cma->lock);
--
--	return ret << cma->order_per_bit;
--}
--
--static unsigned long cma_get_maxchunk(struct cma *cma)
--{
--	unsigned long maxchunk = 0;
--	unsigned long start, end = 0;
--
--	mutex_lock(&cma->lock);
--	for (;;) {
--		start = find_next_zero_bit(cma->bitmap, cma->count, end);
--		if (start >= cma->count)
--			break;
--		end = find_next_bit(cma->bitmap, cma->count, start);
--		maxchunk = max(end - start, maxchunk);
--	}
--	mutex_unlock(&cma->lock);
--
--	return maxchunk << cma->order_per_bit;
--}
--
--
- static int cma_debugfs_get(void *data, u64 *val)
- {
- 	unsigned long *p = data;
-@@ -67,8 +36,13 @@ DEFINE_SIMPLE_ATTRIBUTE(cma_debugfs_fops
- static int cma_used_get(void *data, u64 *val)
- {
- 	struct cma *cma = data;
-+	unsigned long used;
- 
--	*val = cma_get_used(cma);
-+	mutex_lock(&cma->lock);
-+	/* pages counter is smaller than sizeof(int) */
-+	used = bitmap_weight(cma->bitmap, (int)cma->count);
-+	mutex_unlock(&cma->lock);
-+	*val = used << cma->order_per_bit;
- 
- 	return 0;
- }
-@@ -78,8 +52,19 @@ DEFINE_SIMPLE_ATTRIBUTE(cma_used_fops, c
- static int cma_maxchunk_get(void *data, u64 *val)
- {
- 	struct cma *cma = data;
-+	unsigned long maxchunk = 0;
-+	unsigned long start, end = 0;
- 
--	*val = cma_get_maxchunk(cma);
-+	mutex_lock(&cma->lock);
-+	for (;;) {
-+		start = find_next_zero_bit(cma->bitmap, cma->count, end);
-+		if (start >= cma->count)
-+			break;
-+		end = find_next_bit(cma->bitmap, cma->count, start);
-+		maxchunk = max(end - start, maxchunk);
-+	}
-+	mutex_unlock(&cma->lock);
-+	*val = maxchunk << cma->order_per_bit;
- 
- 	return 0;
+diff -puN mm/memory.c~mm-memory-print-also-a_ops-readpage-in-print_bad_pte-fix mm/memory.c
+--- a/mm/memory.c~mm-memory-print-also-a_ops-readpage-in-print_bad_pte-fix
++++ a/mm/memory.c
+@@ -690,12 +690,11 @@ static void print_bad_pte(struct vm_area
+ 	/*
+ 	 * Choose text because data symbols depend on CONFIG_KALLSYMS_ALL=y
+ 	 */
+-	printk(KERN_ALERT
+-		"file:%pD fault:%pf mmap:%pf readpage:%pf\n",
+-		vma->vm_file,
+-		vma->vm_ops ? vma->vm_ops->fault : NULL,
+-		vma->vm_file ? vma->vm_file->f_op->mmap : NULL,
+-		mapping ? mapping->a_ops->readpage : NULL);
++	pr_alert("file:%pD fault:%pf mmap:%pf readpage:%pf\n",
++		 vma->vm_file,
++		 vma->vm_ops ? vma->vm_ops->fault : NULL,
++		 vma->vm_file ? vma->vm_file->f_op->mmap : NULL,
++		 mapping ? mapping->a_ops->readpage : NULL);
+ 	dump_stack();
+ 	add_taint(TAINT_BAD_PAGE, LOCKDEP_NOW_UNRELIABLE);
  }
 _
 
-Patches currently in -mm which might be from stefan.strogin@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-cma-add-trace-events-for-cma-allocations-and-freeings.patch
+origin.patch
+mm-memory-failurec-define-page-types-for-action_result-in-one-place.patch
+document-interaction-between-compaction-and-the-unevictable-lru.patch
+mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp.patch
+mm-vmalloc-occupy-newly-allocated-vmap-block-just-after-allocation.patch
+mm-mmapc-use-while-instead-of-ifgoto.patch
+mm-hugetlb-introduce-pagehugeactive-flag.patch
+mm-hugetlb-cleanup-using-pagehugeactive-flag.patch
+mm-memblock-add-debug-output-for-the-memblock_add.patch
+mm-uninline-and-cleanup-page-mapping-related-helpers.patch
 mm-cma-add-functions-to-get-region-pages-counters.patch
 mm-cma_debugc-remove-blank-lines-before-define_simple_attribute.patch
+mm-memory-print-also-a_ops-readpage-in-print_bad_pte.patch
+mm-compactionc-fix-suitable_migration_target-unused-warning.patch
+zsmalloc-support-compaction-fix.patch
+proc-pid-status-show-all-sets-of-pid-according-to-ns-fix.patch
+kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes.patch
+lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix.patch
 
