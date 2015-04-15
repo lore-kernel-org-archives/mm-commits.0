@@ -1,317 +1,187 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-hotplug-fix-concurrent-memory-hot-add-deadlock.patch
+Subject: [merged] mm-compaction-enhance-compaction-finish-condition.patch
  removed from -mm tree
-Date: Wed, 15 Apr 2015 12:09:31 -0700
-Message-ID: <552eb76b.1pXmElFOXMI6/MNk%akpm@linux-foundation.org>
+Date: Wed, 15 Apr 2015 12:09:39 -0700
+Message-ID: <552eb773.Z+cPHX54cqAw1JbU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48002 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48029 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933059AbbDOTJc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:09:32 -0400
+	with ESMTP id S933148AbbDOTJk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:09:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, gregkh@linuxfoundation.org, isimatu.yasuaki@jp.fujitsu.com, kys@microsoft.com, rjw@rjwysocki.net, tangchen@cn.fujitsu.com, vbabka@suse.cz, vdavydov@parallels.com, vkuznets@redhat.com, wangnan0@huawei.com, zhenzhang.zhang@huawei.com, mm-commits@vger.kernel.org
+To: iamjoonsoo.kim@lge.com, mgorman@suse.de, riel@redhat.com, rientjes@google.com, vbabka@suse.cz, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, hotplug: fix concurrent memory hot-add deadlock
+     Subject: mm/compaction: enhance compaction finish condition
 has been removed from the -mm tree.  Its filename was
-     mm-hotplug-fix-concurrent-memory-hot-add-deadlock.patch
+     mm-compaction-enhance-compaction-finish-condition.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, hotplug: fix concurrent memory hot-add deadlock
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: mm/compaction: enhance compaction finish condition
 
-There's a deadlock when concurrently hot-adding memory through the probe
-interface and switching a memory block from offline to online.
+Compaction has anti fragmentation algorithm.  It is that freepage should
+be more than pageblock order to finish the compaction if we don't find any
+freepage in requested migratetype buddy list.  This is for mitigating
+fragmentation, but, there is a lack of migratetype consideration and it is
+too excessive compared to page allocator's anti fragmentation algorithm.
 
-When hot-adding memory via the probe interface, add_memory() first takes
-mem_hotplug_begin() and then device_lock() is later taken when registering
-the newly initialized memory block.  This creates a lock dependency of (1)
-mem_hotplug.lock (2) dev->mutex.
+Not considering migratetype would cause premature finish of compaction. 
+For example, if allocation request is for unmovable migratetype, freepage
+with CMA migratetype doesn't help that allocation and compaction should
+not be stopped.  But, current logic regards this situation as compaction
+is no longer needed, so finish the compaction.
 
-When switching a memory block from offline to online, dev->mutex is first
-grabbed in device_online() when the write(2) transitions an existing
-memory block from offline to online, and then online_pages() will take
-mem_hotplug_begin().
+Secondly, condition is too excessive compared to page allocator's logic. 
+We can steal freepage from other migratetype and change pageblock
+migratetype on more relaxed conditions in page allocator.  This is
+designed to prevent fragmentation and we can use it here.  Imposing hard
+constraint only to the compaction doesn't help much in this case since
+page allocator would cause fragmentation again.
 
-This creates a lock inversion between mem_hotplug.lock and dev->mutex. 
-Vitaly reports that this deadlock can happen when kworker handling a probe
-event races with systemd-udevd switching a memory block's state.
+To solve these problems, this patch borrows anti fragmentation logic from
+page allocator.  It will reduce premature compaction finish in some cases
+and reduce excessive compaction work.
 
-This patch requires the state transition to take mem_hotplug_begin()
-before dev->mutex.  Hot-adding memory via the probe interface creates a
-memory block while holding mem_hotplug_begin(), there is no way to take
-dev->mutex first in this case.
+stress-highalloc test in mmtests with non movable order 7 allocation shows
+considerable increase of compaction success rate.
 
-online_pages() and offline_pages() are only called when transitioning
-memory block state.  We now require that mem_hotplug_begin() is taken
-before calling them -- this requires exporting the mem_hotplug_begin() and
-mem_hotplug_done() to generic code.  In all hot-add and hot-remove cases,
-mem_hotplug_begin() is done prior to device_online().  This is all that is
-needed to avoid the deadlock.
+Compaction success rate (Compaction success * 100 / Compaction stalls, %)
+31.82 : 42.20
 
-Signed-off-by: David Rientjes <rientjes@google.com>
-Reported-by: Vitaly Kuznetsov <vkuznets@redhat.com>
-Tested-by: Vitaly Kuznetsov <vkuznets@redhat.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "K. Y. Srinivasan" <kys@microsoft.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Zhang Zhen <zhenzhang.zhang@huawei.com>
-Cc: Vladimir Davydov <vdavydov@parallels.com>
-Cc: Wang Nan <wangnan0@huawei.com>
+I tested it on non-reboot 5 runs stress-highalloc benchmark and found that
+there is no more degradation on allocation success rate than before.  That
+roughly means that this patch doesn't result in more fragmentations.
+
+Vlastimil suggests additional idea that we only test for fallbacks when
+migration scanner has scanned a whole pageblock.  It looked good for
+fragmentation because chance of stealing increase due to making more free
+pages in certain pageblock.  So, I tested it, but, it results in decreased
+compaction success rate, roughly 38.00.  I guess the reason that if system
+is low memory condition, watermark check could be failed due to not enough
+order 0 free page and so, sometimes, we can't reach a fallback check
+although migrate_pfn is aligned to pageblock_nr_pages.  I can insert code
+to cope with this situation but it makes code more complicated so I don't
+include his idea at this patch.
+
+[akpm@linux-foundation.org: fix CONFIG_CMA=n build]
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c          |   19 +++++++++++------
- include/linux/memory_hotplug.h |    6 +++++
- mm/memory_hotplug.c            |   33 +++++++++++--------------------
- 3 files changed, 30 insertions(+), 28 deletions(-)
+ mm/compaction.c |   15 +++++++++++++--
+ mm/internal.h   |    2 ++
+ mm/page_alloc.c |   19 ++++++++++++++-----
+ 3 files changed, 29 insertions(+), 7 deletions(-)
 
-diff -puN drivers/base/memory.c~mm-hotplug-fix-concurrent-memory-hot-add-deadlock drivers/base/memory.c
---- a/drivers/base/memory.c~mm-hotplug-fix-concurrent-memory-hot-add-deadlock
-+++ a/drivers/base/memory.c
-@@ -219,6 +219,7 @@ static bool pages_correctly_reserved(uns
- /*
-  * MEMORY_HOTPLUG depends on SPARSEMEM in mm/Kconfig, so it is
-  * OK to have direct references to sparsemem variables in here.
-+ * Must already be protected by mem_hotplug_begin().
-  */
- static int
- memory_block_action(unsigned long phys_index, unsigned long action, int online_type)
-@@ -286,6 +287,7 @@ static int memory_subsys_online(struct d
- 	if (mem->online_type < 0)
- 		mem->online_type = MMOP_ONLINE_KEEP;
+diff -puN mm/compaction.c~mm-compaction-enhance-compaction-finish-condition mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-enhance-compaction-finish-condition
++++ a/mm/compaction.c
+@@ -1174,13 +1174,24 @@ static int __compact_finished(struct zon
+ 	/* Direct compactor: Is a suitable page free? */
+ 	for (order = cc->order; order < MAX_ORDER; order++) {
+ 		struct free_area *area = &zone->free_area[order];
++		bool can_steal;
  
-+	/* Already under protection of mem_hotplug_begin() */
- 	ret = memory_block_change_state(mem, MEM_ONLINE, MEM_OFFLINE);
+ 		/* Job done if page is free of the right migratetype */
+ 		if (!list_empty(&area->free_list[migratetype]))
+ 			return COMPACT_PARTIAL;
  
- 	/* clear online_type */
-@@ -328,17 +330,19 @@ store_mem_state(struct device *dev,
- 		goto err;
+-		/* Job done if allocation would set block type */
+-		if (order >= pageblock_order && area->nr_free)
++#ifdef CONFIG_CMA
++		/* MIGRATE_MOVABLE can fallback on MIGRATE_CMA */
++		if (migratetype == MIGRATE_MOVABLE &&
++			!list_empty(&area->free_list[MIGRATE_CMA]))
++			return COMPACT_PARTIAL;
++#endif
++		/*
++		 * Job done if allocation would steal freepages from
++		 * other migratetype buddy lists.
++		 */
++		if (find_suitable_fallback(area, order, migratetype,
++						true, &can_steal) != -1)
+ 			return COMPACT_PARTIAL;
  	}
  
-+	/*
-+	 * Memory hotplug needs to hold mem_hotplug_begin() for probe to find
-+	 * the correct memory block to online before doing device_online(dev),
-+	 * which will take dev->mutex.  Take the lock early to prevent an
-+	 * inversion, memory_subsys_online() callbacks will be implemented by
-+	 * assuming it's already protected.
-+	 */
-+	mem_hotplug_begin();
+diff -puN mm/internal.h~mm-compaction-enhance-compaction-finish-condition mm/internal.h
+--- a/mm/internal.h~mm-compaction-enhance-compaction-finish-condition
++++ a/mm/internal.h
+@@ -200,6 +200,8 @@ isolate_freepages_range(struct compact_c
+ unsigned long
+ isolate_migratepages_range(struct compact_control *cc,
+ 			   unsigned long low_pfn, unsigned long end_pfn);
++int find_suitable_fallback(struct free_area *area, unsigned int order,
++			int migratetype, bool only_stealable, bool *can_steal);
+ 
+ #endif
+ 
+diff -puN mm/page_alloc.c~mm-compaction-enhance-compaction-finish-condition mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-compaction-enhance-compaction-finish-condition
++++ a/mm/page_alloc.c
+@@ -1194,9 +1194,14 @@ static void steal_suitable_fallback(stru
+ 		set_pageblock_migratetype(page, start_type);
+ }
+ 
+-/* Check whether there is a suitable fallback freepage with requested order. */
+-static int find_suitable_fallback(struct free_area *area, unsigned int order,
+-					int migratetype, bool *can_steal)
++/*
++ * Check whether there is a suitable fallback freepage with requested order.
++ * If only_stealable is true, this function returns fallback_mt only if
++ * we can steal other freepages all together. This would help to reduce
++ * fragmentation due to mixed migratetype pages in one pageblock.
++ */
++int find_suitable_fallback(struct free_area *area, unsigned int order,
++			int migratetype, bool only_stealable, bool *can_steal)
+ {
+ 	int i;
+ 	int fallback_mt;
+@@ -1216,7 +1221,11 @@ static int find_suitable_fallback(struct
+ 		if (can_steal_fallback(order, migratetype))
+ 			*can_steal = true;
+ 
+-		return fallback_mt;
++		if (!only_stealable)
++			return fallback_mt;
 +
- 	switch (online_type) {
- 	case MMOP_ONLINE_KERNEL:
- 	case MMOP_ONLINE_MOVABLE:
- 	case MMOP_ONLINE_KEEP:
--		/*
--		 * mem->online_type is not protected so there can be a
--		 * race here.  However, when racing online, the first
--		 * will succeed and the second will just return as the
--		 * block will already be online.  The online type
--		 * could be either one, but that is expected.
--		 */
- 		mem->online_type = online_type;
- 		ret = device_online(&mem->dev);
- 		break;
-@@ -349,6 +353,7 @@ store_mem_state(struct device *dev,
- 		ret = -EINVAL; /* should never happen */
++		if (*can_steal)
++			return fallback_mt;
  	}
  
-+	mem_hotplug_done();
- err:
- 	unlock_device_hotplug();
+ 	return -1;
+@@ -1238,7 +1247,7 @@ __rmqueue_fallback(struct zone *zone, un
+ 				--current_order) {
+ 		area = &(zone->free_area[current_order]);
+ 		fallback_mt = find_suitable_fallback(area, current_order,
+-				start_migratetype, &can_steal);
++				start_migratetype, false, &can_steal);
+ 		if (fallback_mt == -1)
+ 			continue;
  
-diff -puN include/linux/memory_hotplug.h~mm-hotplug-fix-concurrent-memory-hot-add-deadlock include/linux/memory_hotplug.h
---- a/include/linux/memory_hotplug.h~mm-hotplug-fix-concurrent-memory-hot-add-deadlock
-+++ a/include/linux/memory_hotplug.h
-@@ -192,6 +192,9 @@ extern void get_page_bootmem(unsigned lo
- void get_online_mems(void);
- void put_online_mems(void);
- 
-+void mem_hotplug_begin(void);
-+void mem_hotplug_done(void);
-+
- #else /* ! CONFIG_MEMORY_HOTPLUG */
- /*
-  * Stub functions for when hotplug is off
-@@ -231,6 +234,9 @@ static inline int try_online_node(int ni
- static inline void get_online_mems(void) {}
- static inline void put_online_mems(void) {}
- 
-+static inline void mem_hotplug_begin(void) {}
-+static inline void mem_hotplug_done(void) {}
-+
- #endif /* ! CONFIG_MEMORY_HOTPLUG */
- 
- #ifdef CONFIG_MEMORY_HOTREMOVE
-diff -puN mm/memory_hotplug.c~mm-hotplug-fix-concurrent-memory-hot-add-deadlock mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-hotplug-fix-concurrent-memory-hot-add-deadlock
-+++ a/mm/memory_hotplug.c
-@@ -104,7 +104,7 @@ void put_online_mems(void)
- 
- }
- 
--static void mem_hotplug_begin(void)
-+void mem_hotplug_begin(void)
- {
- 	mem_hotplug.active_writer = current;
- 
-@@ -119,7 +119,7 @@ static void mem_hotplug_begin(void)
- 	}
- }
- 
--static void mem_hotplug_done(void)
-+void mem_hotplug_done(void)
- {
- 	mem_hotplug.active_writer = NULL;
- 	mutex_unlock(&mem_hotplug.lock);
-@@ -959,6 +959,7 @@ static void node_states_set_node(int nod
- }
- 
- 
-+/* Must be protected by mem_hotplug_begin() */
- int __ref online_pages(unsigned long pfn, unsigned long nr_pages, int online_type)
- {
- 	unsigned long flags;
-@@ -969,7 +970,6 @@ int __ref online_pages(unsigned long pfn
- 	int ret;
- 	struct memory_notify arg;
- 
--	mem_hotplug_begin();
- 	/*
- 	 * This doesn't need a lock to do pfn_to_page().
- 	 * The section can't be removed here because of the
-@@ -977,21 +977,20 @@ int __ref online_pages(unsigned long pfn
- 	 */
- 	zone = page_zone(pfn_to_page(pfn));
- 
--	ret = -EINVAL;
- 	if ((zone_idx(zone) > ZONE_NORMAL ||
- 	    online_type == MMOP_ONLINE_MOVABLE) &&
- 	    !can_online_high_movable(zone))
--		goto out;
-+		return -EINVAL;
- 
- 	if (online_type == MMOP_ONLINE_KERNEL &&
- 	    zone_idx(zone) == ZONE_MOVABLE) {
- 		if (move_pfn_range_left(zone - 1, zone, pfn, pfn + nr_pages))
--			goto out;
-+			return -EINVAL;
- 	}
- 	if (online_type == MMOP_ONLINE_MOVABLE &&
- 	    zone_idx(zone) == ZONE_MOVABLE - 1) {
- 		if (move_pfn_range_right(zone, zone + 1, pfn, pfn + nr_pages))
--			goto out;
-+			return -EINVAL;
- 	}
- 
- 	/* Previous code may changed the zone of the pfn range */
-@@ -1007,7 +1006,7 @@ int __ref online_pages(unsigned long pfn
- 	ret = notifier_to_errno(ret);
- 	if (ret) {
- 		memory_notify(MEM_CANCEL_ONLINE, &arg);
--		goto out;
-+		return ret;
- 	}
- 	/*
- 	 * If this zone is not populated, then it is not in zonelist.
-@@ -1031,7 +1030,7 @@ int __ref online_pages(unsigned long pfn
- 		       (((unsigned long long) pfn + nr_pages)
- 			    << PAGE_SHIFT) - 1);
- 		memory_notify(MEM_CANCEL_ONLINE, &arg);
--		goto out;
-+		return ret;
- 	}
- 
- 	zone->present_pages += onlined_pages;
-@@ -1061,9 +1060,7 @@ int __ref online_pages(unsigned long pfn
- 
- 	if (onlined_pages)
- 		memory_notify(MEM_ONLINE, &arg);
--out:
--	mem_hotplug_done();
--	return ret;
-+	return 0;
- }
- #endif /* CONFIG_MEMORY_HOTPLUG_SPARSE */
- 
-@@ -1688,21 +1685,18 @@ static int __ref __offline_pages(unsigne
- 	if (!test_pages_in_a_zone(start_pfn, end_pfn))
- 		return -EINVAL;
- 
--	mem_hotplug_begin();
--
- 	zone = page_zone(pfn_to_page(start_pfn));
- 	node = zone_to_nid(zone);
- 	nr_pages = end_pfn - start_pfn;
- 
--	ret = -EINVAL;
- 	if (zone_idx(zone) <= ZONE_NORMAL && !can_offline_normal(zone, nr_pages))
--		goto out;
-+		return -EINVAL;
- 
- 	/* set above range as isolated */
- 	ret = start_isolate_page_range(start_pfn, end_pfn,
- 				       MIGRATE_MOVABLE, true);
- 	if (ret)
--		goto out;
-+		return ret;
- 
- 	arg.start_pfn = start_pfn;
- 	arg.nr_pages = nr_pages;
-@@ -1795,7 +1789,6 @@ repeat:
- 	writeback_set_ratelimit();
- 
- 	memory_notify(MEM_OFFLINE, &arg);
--	mem_hotplug_done();
- 	return 0;
- 
- failed_removal:
-@@ -1805,12 +1798,10 @@ failed_removal:
- 	memory_notify(MEM_CANCEL_OFFLINE, &arg);
- 	/* pushback to free area */
- 	undo_isolate_page_range(start_pfn, end_pfn, MIGRATE_MOVABLE);
--
--out:
--	mem_hotplug_done();
- 	return ret;
- }
- 
-+/* Must be protected by mem_hotplug_begin() */
- int offline_pages(unsigned long start_pfn, unsigned long nr_pages)
- {
- 	return __offline_pages(start_pfn, start_pfn + nr_pages, 120 * HZ);
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 
 origin.patch
-mm-mempool-do-not-allow-atomic-resizing.patch
-mm-hugetlb-abort-__get_user_pages-if-current-has-been-oom-killed.patch
-cxgb4-drop-__gfp_nofail-allocation.patch
-jbd2-revert-must-not-fail-allocation-loops-back-to-gfp_nofail.patch
 slab-infrastructure-for-bulk-object-allocation-and-freeing-v3.patch
 slub-bulk-alloc-extract-objects-from-the-per-cpu-slab.patch
 slub-bulk-allocation-from-per-cpu-partial-pages.patch
 slub-bulk-allocation-from-per-cpu-partial-pages-fix.patch
-mm-refactor-zone_movable_is_highmem.patch
-mm-memory-failurec-define-page-types-for-action_result-in-one-place.patch
 page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-allow-compaction-of-unevictable-pages.patch
-document-interaction-between-compaction-and-the-unevictable-lru.patch
-document-interaction-between-compaction-and-the-unevictable-lru-fix.patch
-mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp.patch
-mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp-fix-fix.patch
 mm-compaction-reset-compaction-scanner-positions.patch
 hugetlbfs-add-minimum-size-tracking-fields-to-subpool-structure.patch
 hugetlbfs-add-minimum-size-accounting-to-subpools.patch
@@ -320,28 +190,19 @@ hugetlbfs-document-min_size-mount-option-and-cleanup.patch
 mm-vmalloc-fix-possible-exhaustion-of-vmalloc-space-caused-by-vm_map_ram-allocator.patch
 mm-vmalloc-occupy-newly-allocated-vmap-block-just-after-allocation.patch
 mm-vmalloc-get-rid-of-dirty-bitmap-inside-vmap_block-structure.patch
-mremap-should-return-enomem-when-__vm_enough_memory-fail.patch
-clean-up-goto-just-return-err_ptr.patch
-fs-jfs-remove-slab-object-constructor.patch
-mm-mempool-disallow-mempools-based-on-slab-caches-with-constructors.patch
-mm-mempool-poison-elements-backed-by-slab-allocator.patch
-mm-mempool-poison-elements-backed-by-page-allocator.patch
-mm-mempool-poison-elements-backed-by-page-allocator-fix.patch
-mm-mempool-poison-elements-backed-by-page-allocator-fix-fix.patch
-mm-mempool-poison-elements-backed-by-page-allocator-fix-fix-fix.patch
-thp-handle-errors-in-hugepage_init-properly.patch
-thp-do-not-adjust-zone-water-marks-if-khugepaged-is-not-started.patch
-mm-doc-cleanup-and-clarify-munmap-behavior-for-hugetlb-memory.patch
-mm-doc-cleanup-and-clarify-munmap-behavior-for-hugetlb-memory-fix.patch
-mm-selftests-test-return-value-of-munmap-for-map_hugetlb-memory.patch
-mm-dont-call-__page_cache_release-for-hugetlb.patch
-mm-hugetlb-introduce-pagehugeactive-flag.patch
-mm-hugetlb-introduce-pagehugeactive-flag-fix.patch
-mm-hugetlb-cleanup-using-pagehugeactive-flag.patch
-mm-hugetlb-cleanup-using-pagehugeactive-flag-fix.patch
-thp-cleanup-khugepaged-startup.patch
-mm-mempool-kasan-poison-mempool-elements.patch
-hung_task-change-hung_taskc-to-use-for_each_process_thread.patch
-mm-utilc-add-kstrimdup.patch
-linux-next.patch
+mm-cma-add-trace-events-for-cma-allocations-and-freeings.patch
+mm-cma-add-trace-events-for-cma-allocations-and-freeings-fix.patch
+mm-cma-add-functions-to-get-region-pages-counters.patch
+mm-cma-add-functions-to-get-region-pages-counters-fix.patch
+mm-cma-add-functions-to-get-region-pages-counters-fix-2.patch
+mm-cma-add-functions-to-get-region-pages-counters-fix-3.patch
+mm-cma_debugc-remove-blank-lines-before-define_simple_attribute.patch
+zsmalloc-decouple-handle-and-object.patch
+zsmalloc-factor-out-obj_.patch
+zsmalloc-support-compaction.patch
+zsmalloc-adjust-zs_almost_full.patch
+zram-support-compaction.patch
+zsmalloc-record-handle-in-page-private-for-huge-object.patch
+zsmalloc-add-fullness-into-stat.patch
+zsmalloc-zsmalloc-documentation.patch
 
