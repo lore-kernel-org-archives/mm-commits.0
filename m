@@ -1,55 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mips-expose-number-of-page-table-levels-on-kconfig-level.patch removed from -mm tree
-Date: Wed, 15 Apr 2015 12:10:03 -0700
-Message-ID: <552eb78b.oiFv7uEfOo6me10+%akpm@linux-foundation.org>
+Subject: [merged] s390-expose-number-of-page-table-levels.patch removed
+ from -mm tree
+Date: Wed, 15 Apr 2015 12:10:09 -0700
+Message-ID: <552eb791.7UTRUBbL++yO5he9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48097 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48112 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933377AbbDOTKD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:10:03 -0400
+	with ESMTP id S1756203AbbDOTKJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:10:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, linux@roeck-us.net, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, heiko.carstens@de.ibm.com, linux@roeck-us.net, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mips: expose number of page table levels on Kconfig level
+     Subject: s390: expose number of page table levels
 has been removed from the -mm tree.  Its filename was
-     mips-expose-number-of-page-table-levels-on-kconfig-level.patch
+     s390-expose-number-of-page-table-levels.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mips: expose number of page table levels on Kconfig level
+Subject: s390: expose number of page table levels
 
 We would want to use number of page table level to define mm_struct.
 Let's expose it as CONFIG_PGTABLE_LEVELS.
 
+Core mm expects __PAGETABLE_{PUD,PMD}_FOLDED to be defined if these page
+table levels folded.
+
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Tested-by: Guenter Roeck <linux@roeck-us.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/Kconfig |    5 +++++
+ arch/s390/Kconfig |    5 +++++
  1 file changed, 5 insertions(+)
 
-diff -puN arch/mips/Kconfig~mips-expose-number-of-page-table-levels-on-kconfig-level arch/mips/Kconfig
---- a/arch/mips/Kconfig~mips-expose-number-of-page-table-levels-on-kconfig-level
-+++ a/arch/mips/Kconfig
-@@ -2600,6 +2600,11 @@ config STACKTRACE_SUPPORT
- 	bool
- 	default y
+diff -puN arch/s390/Kconfig~s390-expose-number-of-page-table-levels arch/s390/Kconfig
+--- a/arch/s390/Kconfig~s390-expose-number-of-page-table-levels
++++ a/arch/s390/Kconfig
+@@ -155,6 +155,11 @@ config S390
+ config SCHED_OMIT_FRAME_POINTER
+ 	def_bool y
  
 +config PGTABLE_LEVELS
 +	int
-+	default 3 if 64BIT && !PAGE_SIZE_64KB
++	default 4 if 64BIT
 +	default 2
 +
  source "init/Kconfig"
