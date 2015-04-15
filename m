@@ -1,68 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sh-dwarf-destroy-mempools-on-cleanup.patch removed from
- -mm tree
-Date: Wed, 15 Apr 2015 12:07:46 -0700
-Message-ID: <552eb702.87tD94fLdXZU1Tcl%akpm@linux-foundation.org>
+Subject: [merged] sh-dwarf-use-mempool_create_slab_pool.patch removed from -mm tree
+Date: Wed, 15 Apr 2015 12:07:48 -0700
+Message-ID: <552eb704.BbtHSYG/MU2IwyD+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47784 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47786 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752040AbbDOTHq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:07:46 -0400
+	with ESMTP id S1756314AbbDOTHs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:07:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch/sh/kernel/dwarf.c: destroy mempools on cleanup
+     Subject: arch/sh/kernel/dwarf.c: use mempool_create_slab_pool()
 has been removed from the -mm tree.  Its filename was
-     sh-dwarf-destroy-mempools-on-cleanup.patch
+     sh-dwarf-use-mempool_create_slab_pool.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: David Rientjes <rientjes@google.com>
-Subject: arch/sh/kernel/dwarf.c: destroy mempools on cleanup
+Subject: arch/sh/kernel/dwarf.c: use mempool_create_slab_pool()
 
-dwarf_reg_pool and dwarf_frame_pool are not properly destroyed when
-cleaning up the dwarf unwinder.  Destroy them with mempool_destroy().
-
-Also mark dwarf_unwinder_cleanup() as __init.
+Mempools created for slab caches should use mempool_create_slab_pool().
 
 Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/kernel/dwarf.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ arch/sh/kernel/dwarf.c |   12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
-diff -puN arch/sh/kernel/dwarf.c~sh-dwarf-destroy-mempools-on-cleanup arch/sh/kernel/dwarf.c
---- a/arch/sh/kernel/dwarf.c~sh-dwarf-destroy-mempools-on-cleanup
+diff -puN arch/sh/kernel/dwarf.c~sh-dwarf-use-mempool_create_slab_pool arch/sh/kernel/dwarf.c
+--- a/arch/sh/kernel/dwarf.c~sh-dwarf-use-mempool_create_slab_pool
 +++ a/arch/sh/kernel/dwarf.c
-@@ -993,7 +993,7 @@ static struct unwinder dwarf_unwinder =
- 	.rating = 150,
- };
+@@ -1180,17 +1180,13 @@ static int __init dwarf_unwinder_init(vo
+ 			sizeof(struct dwarf_reg), 0,
+ 			SLAB_PANIC | SLAB_HWCACHE_ALIGN | SLAB_NOTRACK, NULL);
  
--static void dwarf_unwinder_cleanup(void)
-+static void __init dwarf_unwinder_cleanup(void)
- {
- 	struct dwarf_fde *fde, *next_fde;
- 	struct dwarf_cie *cie, *next_cie;
-@@ -1009,6 +1009,10 @@ static void dwarf_unwinder_cleanup(void)
- 	rbtree_postorder_for_each_entry_safe(cie, next_cie, &cie_root, node)
- 		kfree(cie);
+-	dwarf_frame_pool = mempool_create(DWARF_FRAME_MIN_REQ,
+-					  mempool_alloc_slab,
+-					  mempool_free_slab,
+-					  dwarf_frame_cachep);
++	dwarf_frame_pool = mempool_create_slab_pool(DWARF_FRAME_MIN_REQ,
++						    dwarf_frame_cachep);
+ 	if (!dwarf_frame_pool)
+ 		goto out;
  
-+	if (dwarf_reg_pool)
-+		mempool_destroy(dwarf_reg_pool);
-+	if (dwarf_frame_pool)
-+		mempool_destroy(dwarf_frame_pool);
- 	kmem_cache_destroy(dwarf_reg_cachep);
- 	kmem_cache_destroy(dwarf_frame_cachep);
- }
+-	dwarf_reg_pool = mempool_create(DWARF_REG_MIN_REQ,
+-					 mempool_alloc_slab,
+-					 mempool_free_slab,
+-					 dwarf_reg_cachep);
++	dwarf_reg_pool = mempool_create_slab_pool(DWARF_REG_MIN_REQ,
++						  dwarf_reg_cachep);
+ 	if (!dwarf_reg_pool)
+ 		goto out;
+ 
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
