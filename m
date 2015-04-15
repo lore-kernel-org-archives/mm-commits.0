@@ -1,129 +1,59 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 15 Apr 2015 15:45:12 -0700
-Message-ID: <552ee9f8./L2fmHcz6/ejbgBM%akpm@linux-foundation.org>
+ lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix.patch removed from
+ -mm tree
+Date: Wed, 15 Apr 2015 15:45:36 -0700
+Message-ID: <552eea10.cFOogUMc5fEtba8y%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52032 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52035 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932203AbbDOWpM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 18:45:12 -0400
+	with ESMTP id S1753780AbbDOWph (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 18:45:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, iulia.manda21@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, corbet@lwn.net, geert+renesas@glider.be, mturquette@linaro.org, penguin-kernel@I-love.SAKURA.ne.jp, sboyd@codeaurora.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes
+     Subject: lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix
 has been removed from the -mm tree.  Its filename was
-     kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes.patch
+     lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix.patch
 
-This patch was dropped because it was folded into kernel-conditionally-support-non-root-users-groups-and-capabilities.patch
+This patch was dropped because it was folded into lib-vsprintf-add-%pcnr-format-specifiers-for-clocks.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes
+Subject: lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix
 
-ERROR: code indent should use tabs where possible
-#120: FILE: include/linux/capability.h:220:
-+        return true;$
+omit code if !CONFIG_HAVE_CLK
 
-WARNING: please, no spaces at the start of a line
-#120: FILE: include/linux/capability.h:220:
-+        return true;$
-
-ERROR: code indent should use tabs where possible
-#125: FILE: include/linux/capability.h:225:
-+        return true;$
-
-WARNING: please, no spaces at the start of a line
-#125: FILE: include/linux/capability.h:225:
-+        return true;$
-
-ERROR: code indent should use tabs where possible
-#129: FILE: include/linux/capability.h:229:
-+        return true;$
-
-WARNING: please, no spaces at the start of a line
-#129: FILE: include/linux/capability.h:229:
-+        return true;$
-
-ERROR: code indent should use tabs where possible
-#134: FILE: include/linux/capability.h:234:
-+        return true;$
-
-WARNING: please, no spaces at the start of a line
-#134: FILE: include/linux/capability.h:234:
-+        return true;$
-
-ERROR: code indent should use tabs where possible
-#170: FILE: include/linux/cred.h:79:
-+        return 1;$
-
-WARNING: please, no spaces at the start of a line
-#170: FILE: include/linux/cred.h:79:
-+        return 1;$
-
-ERROR: code indent should use tabs where possible
-#174: FILE: include/linux/cred.h:83:
-+        return 1;$
-
-WARNING: please, no spaces at the start of a line
-#174: FILE: include/linux/cred.h:83:
-+        return 1;$
-
-total: 6 errors, 6 warnings, 310 lines checked
-
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
-
-./patches/kernel-conditionally-support-non-root-users-groups-and-capabilities.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Iulia Manda <iulia.manda21@gmail.com>
+Cc: Geert Uytterhoeven <geert+renesas@glider.be>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Mike Turquette <mturquette@linaro.org>
+Cc: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/capability.h |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ lib/vsprintf.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/capability.h~kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes include/linux/capability.h
---- a/include/linux/capability.h~kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes
-+++ a/include/linux/capability.h
-@@ -217,21 +217,21 @@ extern bool ns_capable(struct user_names
- #else
- static inline bool has_capability(struct task_struct *t, int cap)
+diff -puN lib/vsprintf.c~lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix lib/vsprintf.c
+--- a/lib/vsprintf.c~lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix
++++ a/lib/vsprintf.c
+@@ -1320,7 +1320,7 @@ static noinline_for_stack
+ char *clock(char *buf, char *end, struct clk *clk, struct printf_spec spec,
+ 	    const char *fmt)
  {
--        return true;
-+	return true;
- }
- static inline bool has_ns_capability(struct task_struct *t,
- 			      struct user_namespace *ns, int cap)
- {
--        return true;
-+	return true;
- }
- static inline bool has_capability_noaudit(struct task_struct *t, int cap)
- {
--        return true;
-+	return true;
- }
- static inline bool has_ns_capability_noaudit(struct task_struct *t,
- 				      struct user_namespace *ns, int cap)
- {
--        return true;
-+	return true;
- }
- static inline bool capable(int cap)
- {
+-	if (!clk)
++	if (!IS_ENABLED(CONFIG_HAVE_CLK) || !clk)
+ 		return string(buf, end, NULL, spec);
+ 
+ 	switch (fmt[1]) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -145,5 +75,5 @@ mm-compactionc-fix-suitable_migration_target-unused-warning.patch
 zsmalloc-support-compaction.patch
 proc-pid-status-show-all-sets-of-pid-according-to-ns.patch
 kernel-conditionally-support-non-root-users-groups-and-capabilities.patch
-lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix.patch
+lib-vsprintf-add-%pcnr-format-specifiers-for-clocks.patch
 
