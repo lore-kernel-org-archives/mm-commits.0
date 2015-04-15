@@ -1,84 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged] x86-standardize-mmap_rnd-usage.patch removed from -mm
- tree
-Date: Wed, 15 Apr 2015 12:30:14 -0700
-Message-ID: <552ebc46./HYHRFk285Ao9dWq%akpm@linux-foundation.org>
+Subject: [merged] powerpc-standardize-mmap_rnd-usage.patch removed from
+ -mm tree
+Date: Wed, 15 Apr 2015 12:30:22 -0700
+Message-ID: <552ebc4e.5UMaw2irR1eAdhfg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48515 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48531 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751859AbbDOTY5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:24:57 -0400
+	with ESMTP id S932192AbbDOTZF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:25:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: keescook@chromium.org, luto@amacapital.net, mingo@kernel.org, oleg@redhat.com, mm-commits@vger.kernel.org
+To: keescook@chromium.org, benh@kernel.crashing.org, mingo@kernel.org, mpe@ellerman.id.au, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86: standardize mmap_rnd() usage
+     Subject: powerpc: standardize mmap_rnd() usage
 has been removed from the -mm tree.  Its filename was
-     x86-standardize-mmap_rnd-usage.patch
+     powerpc-standardize-mmap_rnd-usage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Kees Cook <keescook@chromium.org>
-Subject: x86: standardize mmap_rnd() usage
+Subject: powerpc: standardize mmap_rnd() usage
 
 In preparation for splitting out ET_DYN ASLR, this refactors the use of
-mmap_rnd() to be used similarly to arm, and extracts the checking of
-PF_RANDOMIZE.
+mmap_rnd() to be used similarly to arm and x86.
+
+(Can mmap ASLR be safely enabled in the legacy mmap case here?  Other
+archs use "mm->mmap_base = TASK_UNMAPPED_BASE + random_factor".)
 
 Signed-off-by: Kees Cook <keescook@chromium.org>
 Reviewed-by: Ingo Molnar <mingo@kernel.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/mmap.c |   36 ++++++++++++++++++++----------------
- 1 file changed, 20 insertions(+), 16 deletions(-)
+ arch/powerpc/mm/mmap.c |   26 +++++++++++++++-----------
+ 1 file changed, 15 insertions(+), 11 deletions(-)
 
-diff -puN arch/x86/mm/mmap.c~x86-standardize-mmap_rnd-usage arch/x86/mm/mmap.c
---- a/arch/x86/mm/mmap.c~x86-standardize-mmap_rnd-usage
-+++ a/arch/x86/mm/mmap.c
-@@ -67,22 +67,21 @@ static int mmap_is_legacy(void)
+diff -puN arch/powerpc/mm/mmap.c~powerpc-standardize-mmap_rnd-usage arch/powerpc/mm/mmap.c
+--- a/arch/powerpc/mm/mmap.c~powerpc-standardize-mmap_rnd-usage
++++ a/arch/powerpc/mm/mmap.c
+@@ -55,19 +55,18 @@ static inline int mmap_is_legacy(void)
  
  static unsigned long mmap_rnd(void)
  {
 -	unsigned long rnd = 0;
 +	unsigned long rnd;
- 
- 	/*
--	*  8 bits of randomness in 32bit mmaps, 20 address space bits
--	* 28 bits of randomness in 64bit mmaps, 40 address space bits
--	*/
--	if (current->flags & PF_RANDOMIZE) {
--		if (mmap_is_ia32())
--			rnd = get_random_int() % (1<<8);
--		else
--			rnd = get_random_int() % (1<<28);
--	}
-+	 *  8 bits of randomness in 32bit mmaps, 20 address space bits
-+	 * 28 bits of randomness in 64bit mmaps, 40 address space bits
-+	 */
-+	if (mmap_is_ia32())
-+		rnd = (unsigned long)get_random_int() % (1<<8);
-+	else
-+		rnd = (unsigned long)get_random_int() % (1<<28);
 +
++	/* 8MB for 32bit, 1GB for 64bit */
++	if (is_32bit_task())
++		rnd = (unsigned long)get_random_int() % (1<<(23-PAGE_SHIFT));
++	else
++		rnd = (unsigned long)get_random_int() % (1<<(30-PAGE_SHIFT));
+ 
+-	if (current->flags & PF_RANDOMIZE) {
+-		/* 8MB for 32bit, 1GB for 64bit */
+-		if (is_32bit_task())
+-			rnd = (long)(get_random_int() % (1<<(23-PAGE_SHIFT)));
+-		else
+-			rnd = (long)(get_random_int() % (1<<(30-PAGE_SHIFT)));
+-	}
  	return rnd << PAGE_SHIFT;
  }
  
--static unsigned long mmap_base(void)
-+static unsigned long mmap_base(unsigned long rnd)
+-static inline unsigned long mmap_base(void)
++static inline unsigned long mmap_base(unsigned long rnd)
  {
  	unsigned long gap = rlimit(RLIMIT_STACK);
  
-@@ -91,19 +90,19 @@ static unsigned long mmap_base(void)
+@@ -76,7 +75,7 @@ static inline unsigned long mmap_base(vo
  	else if (gap > MAX_GAP)
  		gap = MAX_GAP;
  
@@ -87,37 +85,23 @@ diff -puN arch/x86/mm/mmap.c~x86-standardize-mmap_rnd-usage arch/x86/mm/mmap.c
  }
  
  /*
-  * Bottom-up (legacy) layout on X86_32 did not support randomization, X86_64
-  * does, but not when emulating X86_32
-  */
--static unsigned long mmap_legacy_base(void)
-+static unsigned long mmap_legacy_base(unsigned long rnd)
- {
- 	if (mmap_is_ia32())
- 		return TASK_UNMAPPED_BASE;
- 	else
--		return TASK_UNMAPPED_BASE + mmap_rnd();
-+		return TASK_UNMAPPED_BASE + rnd;
- }
- 
- /*
-@@ -112,13 +111,18 @@ static unsigned long mmap_legacy_base(vo
+@@ -85,6 +84,11 @@ static inline unsigned long mmap_base(vo
   */
  void arch_pick_mmap_layout(struct mm_struct *mm)
  {
--	mm->mmap_legacy_base = mmap_legacy_base();
--	mm->mmap_base = mmap_base();
 +	unsigned long random_factor = 0UL;
 +
 +	if (current->flags & PF_RANDOMIZE)
 +		random_factor = mmap_rnd();
 +
-+	mm->mmap_legacy_base = mmap_legacy_base(random_factor);
- 
- 	if (mmap_is_legacy()) {
- 		mm->mmap_base = mm->mmap_legacy_base;
+ 	/*
+ 	 * Fall back to the standard layout if the personality
+ 	 * bit is set, or if the expected stack growth is unlimited:
+@@ -93,7 +97,7 @@ void arch_pick_mmap_layout(struct mm_str
+ 		mm->mmap_base = TASK_UNMAPPED_BASE;
  		mm->get_unmapped_area = arch_get_unmapped_area;
  	} else {
+-		mm->mmap_base = mmap_base();
 +		mm->mmap_base = mmap_base(random_factor);
  		mm->get_unmapped_area = arch_get_unmapped_area_topdown;
  	}
