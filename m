@@ -1,88 +1,84 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- ocfs2-check-if-the-ocfs2-lock-resource-be-initialized-before-calling-ocfs2_dlm_lock.patch removed from -mm tree
-Date: Wed, 15 Apr 2015 12:08:34 -0700
-Message-ID: <552eb732.FDDeo1LXZuQ2IzMc%akpm@linux-foundation.org>
+ watchdog-introduce-the-proc_watchdog_update-function.patch removed from -mm tree
+Date: Wed, 15 Apr 2015 12:08:40 -0700
+Message-ID: <552eb738.O8hUnkMSSwc27Ogh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47875 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47892 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932631AbbDOTIf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:08:35 -0400
+	with ESMTP id S932667AbbDOTIk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:08:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alex.chen@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.com, xuejiufei@huawei.com, mm-commits@vger.kernel.org
+To: uobergfe@redhat.com, dzickus@redhat.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: check if the ocfs2 lock resource has been initialized before calling ocfs2_dlm_lock
+     Subject: watchdog: introduce the proc_watchdog_update() function
 has been removed from the -mm tree.  Its filename was
-     ocfs2-check-if-the-ocfs2-lock-resource-be-initialized-before-calling-ocfs2_dlm_lock.patch
+     watchdog-introduce-the-proc_watchdog_update-function.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: alex chen <alex.chen@huawei.com>
-Subject: ocfs2: check if the ocfs2 lock resource has been initialized before calling ocfs2_dlm_lock
+From: Ulrich Obergfell <uobergfe@redhat.com>
+Subject: watchdog: introduce the proc_watchdog_update() function
 
-If ocfs2 lockres has not been initialized before calling ocfs2_dlm_lock,
-the lock won't be dropped and then will lead umount hung.  The case is
-described below:
+This series introduces a separate handler for each watchdog parameter in
+/proc/sys/kernel.  The separate handlers need a common function that they
+can call to update the run state of the lockup detectors, or to have the
+lockup detectors use a new sample period.
 
-ocfs2_mknod
-    ocfs2_mknod_locked
-        __ocfs2_mknod_locked
-            ocfs2_journal_access_di
-            Failed because of -ENOMEM or other reasons, the inode lockres
-            has not been initialized yet.
-
-    iput(inode)
-        ocfs2_evict_inode
-            ocfs2_delete_inode
-                ocfs2_inode_lock
-                    ocfs2_inode_lock_full_nested
-                        __ocfs2_cluster_lock
-                        Succeeds and allocates a new dlm lockres.
-            ocfs2_clear_inode
-                ocfs2_open_unlock
-                    ocfs2_drop_inode_locks
-                        ocfs2_drop_lock
-                        Since lockres has not been initialized, the lock
-                        can't be dropped and the lockres can't be
-                        migrated, thus umount will hang forever.
-
-Signed-off-by: Alex Chen <alex.chen@huawei.com>
-Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
-Reviewed-by: joyce.xue <xuejiufei@huawei.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+Signed-off-by: Ulrich Obergfell <uobergfe@redhat.com>
+Signed-off-by: Don Zickus <dzickus@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlmglue.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ kernel/watchdog.c |   23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
-diff -puN fs/ocfs2/dlmglue.c~ocfs2-check-if-the-ocfs2-lock-resource-be-initialized-before-calling-ocfs2_dlm_lock fs/ocfs2/dlmglue.c
---- a/fs/ocfs2/dlmglue.c~ocfs2-check-if-the-ocfs2-lock-resource-be-initialized-before-calling-ocfs2_dlm_lock
-+++ a/fs/ocfs2/dlmglue.c
-@@ -1391,6 +1391,11 @@ static int __ocfs2_cluster_lock(struct o
- 	int noqueue_attempted = 0;
- 	int dlm_locked = 0;
+diff -puN kernel/watchdog.c~watchdog-introduce-the-proc_watchdog_update-function kernel/watchdog.c
+--- a/kernel/watchdog.c~watchdog-introduce-the-proc_watchdog_update-function
++++ a/kernel/watchdog.c
+@@ -679,6 +679,29 @@ static void watchdog_disable_all_cpus(vo
+ }
  
-+	if (!(lockres->l_flags & OCFS2_LOCK_INITIALIZED)) {
-+		mlog_errno(-EINVAL);
-+		return -EINVAL;
-+	}
+ /*
++ * Update the run state of the lockup detectors.
++ */
++static int proc_watchdog_update(void)
++{
++	int err = 0;
 +
- 	ocfs2_init_mask_waiter(&mw);
++	/*
++	 * Watchdog threads won't be started if they are already active.
++	 * The 'watchdog_running' variable in watchdog_*_all_cpus() takes
++	 * care of this. If those threads are already active, the sample
++	 * period will be updated and the lockup detectors will be enabled
++	 * or disabled 'on the fly'.
++	 */
++	if (watchdog_enabled && watchdog_thresh)
++		err = watchdog_enable_all_cpus(true);
++	else
++		watchdog_disable_all_cpus();
++
++	return err;
++
++}
++
++/*
+  * proc handler for /proc/sys/kernel/nmi_watchdog,watchdog_thresh
+  */
  
- 	if (lockres->l_ops->flags & LOCK_TYPE_USES_LVB)
 _
 
-Patches currently in -mm which might be from alex.chen@huawei.com are
+Patches currently in -mm which might be from uobergfe@redhat.com are
 
 origin.patch
+linux-next.patch
 
