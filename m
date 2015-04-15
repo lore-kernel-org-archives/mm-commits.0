@@ -1,417 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-move-memtest-under-mm.patch removed from -mm tree
-Date: Wed, 15 Apr 2015 12:30:50 -0700
-Message-ID: <552ebc6a.OJgOlbZdvG4Yf7kc%akpm@linux-foundation.org>
+Subject: [merged] memtest-use-phys_addr_t-for-physical-addresses.patch
+ removed from -mm tree
+Date: Wed, 15 Apr 2015 12:30:53 -0700
+Message-ID: <552ebc6d.euCgFUV0/aZ1l99/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48646 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48654 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751905AbbDOTZd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:25:33 -0400
+	with ESMTP id S1751905AbbDOTZg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:25:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vladimir.murzin@arm.com, catalin.marinas@arm.com, hpa@zytor.com, mark.rutland@arm.com, mingo@elte.hu, pebolle@tiscali.nl, rmk@arm.linux.org.uk, tglx@linutronix.de, will.deacon@arm.com, mm-commits@vger.kernel.org
+To: vladimir.murzin@arm.com, catalin.marinas@arm.com, hpa@zytor.com, mark.rutland@arm.com, mingo@elte.hu, rmk@arm.linux.org.uk, tglx@linutronix.de, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: move memtest under mm
+     Subject: memtest: use phys_addr_t for physical addresses
 has been removed from the -mm tree.  Its filename was
-     mm-move-memtest-under-mm.patch
+     memtest-use-phys_addr_t-for-physical-addresses.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Vladimir Murzin <vladimir.murzin@arm.com>
-Subject: mm: move memtest under mm
+Subject: memtest: use phys_addr_t for physical addresses
 
-Memtest is a simple feature which fills the memory with a given set of
-patterns and validates memory contents, if bad memory regions is detected
-it reserves them via memblock API.  Since memblock API is widely used by
-other architectures this feature can be enabled outside of x86 world.
+Since memtest might be used by other architectures pass input parameters
+as phys_addr_t instead of long to prevent overflow.
 
-This patch set promotes memtest to live under generic mm umbrella and
-enables memtest feature for arm/arm64.
-
-It was reported that this patch set was useful for tracking down an issue
-with some errant DMA on an arm64 platform.
-
-
-
-This patch (of 6):
-
-There is nothing platform dependent in the core memtest code, so other
-platforms might benefit from this feature too.
-
-[linux@roeck-us.net: MEMTEST depends on MEMBLOCK]
 Signed-off-by: Vladimir Murzin <vladimir.murzin@arm.com>
 Acked-by: Will Deacon <will.deacon@arm.com>
 Tested-by: Mark Rutland <mark.rutland@arm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Paul Bolle <pebolle@tiscali.nl>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig            |   11 ---
- arch/x86/include/asm/e820.h |    8 --
- arch/x86/mm/Makefile        |    2 
- arch/x86/mm/memtest.c       |  118 ----------------------------------
- include/linux/memblock.h    |    8 ++
- lib/Kconfig.debug           |   12 +++
- mm/Makefile                 |    1 
- mm/memtest.c                |  118 ++++++++++++++++++++++++++++++++++
- 8 files changed, 139 insertions(+), 139 deletions(-)
+ include/linux/memblock.h |    4 ++--
+ mm/memtest.c             |   16 ++++++++--------
+ 2 files changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN arch/x86/Kconfig~mm-move-memtest-under-mm arch/x86/Kconfig
---- a/arch/x86/Kconfig~mm-move-memtest-under-mm
-+++ a/arch/x86/Kconfig
-@@ -721,17 +721,6 @@ endif #HYPERVISOR_GUEST
- config NO_BOOTMEM
- 	def_bool y
+diff -puN include/linux/memblock.h~memtest-use-phys_addr_t-for-physical-addresses include/linux/memblock.h
+--- a/include/linux/memblock.h~memtest-use-phys_addr_t-for-physical-addresses
++++ a/include/linux/memblock.h
+@@ -366,9 +366,9 @@ static inline unsigned long memblock_reg
+ #endif
  
--config MEMTEST
--	bool "Memtest"
--	---help---
--	  This option adds a kernel parameter 'memtest', which allows memtest
--	  to be set.
--	        memtest=0, mean disabled; -- default
--	        memtest=1, mean do 1 test pattern;
--	        ...
--	        memtest=4, mean do 4 test patterns.
--	  If you are unsure how to answer this question, answer N.
--
- source "arch/x86/Kconfig.cpu"
- 
- config HPET_TIMER
-diff -puN arch/x86/include/asm/e820.h~mm-move-memtest-under-mm arch/x86/include/asm/e820.h
---- a/arch/x86/include/asm/e820.h~mm-move-memtest-under-mm
-+++ a/arch/x86/include/asm/e820.h
-@@ -40,14 +40,6 @@ static inline void e820_mark_nosave_regi
+ #ifdef CONFIG_MEMTEST
+-extern void early_memtest(unsigned long start, unsigned long end);
++extern void early_memtest(phys_addr_t start, phys_addr_t end);
+ #else
+-static inline void early_memtest(unsigned long start, unsigned long end)
++static inline void early_memtest(phys_addr_t start, phys_addr_t end)
+ {
  }
  #endif
+diff -puN mm/memtest.c~memtest-use-phys_addr_t-for-physical-addresses mm/memtest.c
+--- a/mm/memtest.c~memtest-use-phys_addr_t-for-physical-addresses
++++ a/mm/memtest.c
+@@ -29,7 +29,7 @@ static u64 patterns[] __initdata = {
+ 	0x7a6c7258554e494cULL, /* yeah ;-) */
+ };
  
--#ifdef CONFIG_MEMTEST
--extern void early_memtest(unsigned long start, unsigned long end);
--#else
--static inline void early_memtest(unsigned long start, unsigned long end)
--{
--}
--#endif
--
- extern unsigned long e820_end_of_ram_pfn(void);
- extern unsigned long e820_end_of_low_ram_pfn(void);
- extern u64 early_reserve_e820(u64 sizet, u64 align);
-diff -puN arch/x86/mm/Makefile~mm-move-memtest-under-mm arch/x86/mm/Makefile
---- a/arch/x86/mm/Makefile~mm-move-memtest-under-mm
-+++ a/arch/x86/mm/Makefile
-@@ -32,6 +32,4 @@ obj-$(CONFIG_AMD_NUMA)		+= amdtopology.o
- obj-$(CONFIG_ACPI_NUMA)		+= srat.o
- obj-$(CONFIG_NUMA_EMU)		+= numa_emulation.o
- 
--obj-$(CONFIG_MEMTEST)		+= memtest.o
--
- obj-$(CONFIG_X86_INTEL_MPX)	+= mpx.o
-diff -puN arch/x86/mm/memtest.c~mm-move-memtest-under-mm /dev/null
---- a/arch/x86/mm/memtest.c
-+++ /dev/null
-@@ -1,118 +0,0 @@
--#include <linux/kernel.h>
--#include <linux/errno.h>
--#include <linux/string.h>
--#include <linux/types.h>
--#include <linux/mm.h>
--#include <linux/smp.h>
--#include <linux/init.h>
--#include <linux/pfn.h>
--#include <linux/memblock.h>
--
--static u64 patterns[] __initdata = {
--	/* The first entry has to be 0 to leave memtest with zeroed memory */
--	0,
--	0xffffffffffffffffULL,
--	0x5555555555555555ULL,
--	0xaaaaaaaaaaaaaaaaULL,
--	0x1111111111111111ULL,
--	0x2222222222222222ULL,
--	0x4444444444444444ULL,
--	0x8888888888888888ULL,
--	0x3333333333333333ULL,
--	0x6666666666666666ULL,
--	0x9999999999999999ULL,
--	0xccccccccccccccccULL,
--	0x7777777777777777ULL,
--	0xbbbbbbbbbbbbbbbbULL,
--	0xddddddddddddddddULL,
--	0xeeeeeeeeeeeeeeeeULL,
--	0x7a6c7258554e494cULL, /* yeah ;-) */
--};
--
 -static void __init reserve_bad_mem(u64 pattern, u64 start_bad, u64 end_bad)
--{
--	printk(KERN_INFO "  %016llx bad mem addr %010llx - %010llx reserved\n",
--	       (unsigned long long) pattern,
--	       (unsigned long long) start_bad,
--	       (unsigned long long) end_bad);
--	memblock_reserve(start_bad, end_bad - start_bad);
--}
--
++static void __init reserve_bad_mem(u64 pattern, phys_addr_t start_bad, phys_addr_t end_bad)
+ {
+ 	printk(KERN_INFO "  %016llx bad mem addr %010llx - %010llx reserved\n",
+ 	       (unsigned long long) pattern,
+@@ -38,11 +38,11 @@ static void __init reserve_bad_mem(u64 p
+ 	memblock_reserve(start_bad, end_bad - start_bad);
+ }
+ 
 -static void __init memtest(u64 pattern, u64 start_phys, u64 size)
--{
--	u64 *p, *start, *end;
++static void __init memtest(u64 pattern, phys_addr_t start_phys, phys_addr_t size)
+ {
+ 	u64 *p, *start, *end;
 -	u64 start_bad, last_bad;
 -	u64 start_phys_aligned;
--	const size_t incr = sizeof(pattern);
--
--	start_phys_aligned = ALIGN(start_phys, incr);
--	start = __va(start_phys_aligned);
--	end = start + (size - (start_phys_aligned - start_phys)) / incr;
--	start_bad = 0;
--	last_bad = 0;
--
--	for (p = start; p < end; p++)
--		*p = pattern;
--
--	for (p = start; p < end; p++, start_phys_aligned += incr) {
--		if (*p == pattern)
--			continue;
--		if (start_phys_aligned == last_bad + incr) {
--			last_bad += incr;
--			continue;
--		}
--		if (start_bad)
--			reserve_bad_mem(pattern, start_bad, last_bad + incr);
--		start_bad = last_bad = start_phys_aligned;
--	}
--	if (start_bad)
--		reserve_bad_mem(pattern, start_bad, last_bad + incr);
--}
--
++	phys_addr_t start_bad, last_bad;
++	phys_addr_t start_phys_aligned;
+ 	const size_t incr = sizeof(pattern);
+ 
+ 	start_phys_aligned = ALIGN(start_phys, incr);
+@@ -69,14 +69,14 @@ static void __init memtest(u64 pattern,
+ 		reserve_bad_mem(pattern, start_bad, last_bad + incr);
+ }
+ 
 -static void __init do_one_pass(u64 pattern, u64 start, u64 end)
--{
--	u64 i;
--	phys_addr_t this_start, this_end;
--
--	for_each_free_mem_range(i, NUMA_NO_NODE, &this_start, &this_end, NULL) {
++static void __init do_one_pass(u64 pattern, phys_addr_t start, phys_addr_t end)
+ {
+ 	u64 i;
+ 	phys_addr_t this_start, this_end;
+ 
+ 	for_each_free_mem_range(i, NUMA_NO_NODE, &this_start, &this_end, NULL) {
 -		this_start = clamp_t(phys_addr_t, this_start, start, end);
 -		this_end = clamp_t(phys_addr_t, this_end, start, end);
--		if (this_start < this_end) {
--			printk(KERN_INFO "  %010llx - %010llx pattern %016llx\n",
--			       (unsigned long long)this_start,
--			       (unsigned long long)this_end,
--			       (unsigned long long)cpu_to_be64(pattern));
--			memtest(pattern, this_start, this_end - this_start);
--		}
--	}
--}
--
--/* default is disabled */
--static int memtest_pattern __initdata;
--
--static int __init parse_memtest(char *arg)
--{
--	if (arg)
--		memtest_pattern = simple_strtoul(arg, NULL, 0);
--	else
--		memtest_pattern = ARRAY_SIZE(patterns);
--
--	return 0;
--}
--
--early_param("memtest", parse_memtest);
--
++		this_start = clamp(this_start, start, end);
++		this_end = clamp(this_end, start, end);
+ 		if (this_start < this_end) {
+ 			printk(KERN_INFO "  %010llx - %010llx pattern %016llx\n",
+ 			       (unsigned long long)this_start,
+@@ -102,7 +102,7 @@ static int __init parse_memtest(char *ar
+ 
+ early_param("memtest", parse_memtest);
+ 
 -void __init early_memtest(unsigned long start, unsigned long end)
--{
--	unsigned int i;
--	unsigned int idx = 0;
--
--	if (!memtest_pattern)
--		return;
--
--	printk(KERN_INFO "early_memtest: # of tests: %d\n", memtest_pattern);
--	for (i = memtest_pattern-1; i < UINT_MAX; --i) {
--		idx = i % ARRAY_SIZE(patterns);
--		do_one_pass(patterns[idx], start, end);
--	}
--}
-diff -puN include/linux/memblock.h~mm-move-memtest-under-mm include/linux/memblock.h
---- a/include/linux/memblock.h~mm-move-memtest-under-mm
-+++ a/include/linux/memblock.h
-@@ -365,6 +365,14 @@ static inline unsigned long memblock_reg
- #define __initdata_memblock
- #endif
- 
-+#ifdef CONFIG_MEMTEST
-+extern void early_memtest(unsigned long start, unsigned long end);
-+#else
-+static inline void early_memtest(unsigned long start, unsigned long end)
-+{
-+}
-+#endif
-+
- #else
- static inline phys_addr_t memblock_alloc(phys_addr_t size, phys_addr_t align)
++void __init early_memtest(phys_addr_t start, phys_addr_t end)
  {
-diff -puN lib/Kconfig.debug~mm-move-memtest-under-mm lib/Kconfig.debug
---- a/lib/Kconfig.debug~mm-move-memtest-under-mm
-+++ a/lib/Kconfig.debug
-@@ -1745,6 +1745,18 @@ config TEST_UDELAY
- 
- 	  If unsure, say N.
- 
-+config MEMTEST
-+	bool "Memtest"
-+	depends on HAVE_MEMBLOCK
-+	---help---
-+	  This option adds a kernel parameter 'memtest', which allows memtest
-+	  to be set.
-+	        memtest=0, mean disabled; -- default
-+	        memtest=1, mean do 1 test pattern;
-+	        ...
-+	        memtest=4, mean do 4 test patterns.
-+	  If you are unsure how to answer this question, answer N.
-+
- source "samples/Kconfig"
- 
- source "lib/Kconfig.kgdb"
-diff -puN mm/Makefile~mm-move-memtest-under-mm mm/Makefile
---- a/mm/Makefile~mm-move-memtest-under-mm
-+++ a/mm/Makefile
-@@ -55,6 +55,7 @@ obj-$(CONFIG_KMEMCHECK) += kmemcheck.o
- obj-$(CONFIG_KASAN)	+= kasan/
- obj-$(CONFIG_FAILSLAB) += failslab.o
- obj-$(CONFIG_MEMORY_HOTPLUG) += memory_hotplug.o
-+obj-$(CONFIG_MEMTEST)		+= memtest.o
- obj-$(CONFIG_MIGRATION) += migrate.o
- obj-$(CONFIG_QUICKLIST) += quicklist.o
- obj-$(CONFIG_TRANSPARENT_HUGEPAGE) += huge_memory.o
-diff -puN /dev/null mm/memtest.c
---- /dev/null
-+++ a/mm/memtest.c
-@@ -0,0 +1,118 @@
-+#include <linux/kernel.h>
-+#include <linux/errno.h>
-+#include <linux/string.h>
-+#include <linux/types.h>
-+#include <linux/mm.h>
-+#include <linux/smp.h>
-+#include <linux/init.h>
-+#include <linux/pfn.h>
-+#include <linux/memblock.h>
-+
-+static u64 patterns[] __initdata = {
-+	/* The first entry has to be 0 to leave memtest with zeroed memory */
-+	0,
-+	0xffffffffffffffffULL,
-+	0x5555555555555555ULL,
-+	0xaaaaaaaaaaaaaaaaULL,
-+	0x1111111111111111ULL,
-+	0x2222222222222222ULL,
-+	0x4444444444444444ULL,
-+	0x8888888888888888ULL,
-+	0x3333333333333333ULL,
-+	0x6666666666666666ULL,
-+	0x9999999999999999ULL,
-+	0xccccccccccccccccULL,
-+	0x7777777777777777ULL,
-+	0xbbbbbbbbbbbbbbbbULL,
-+	0xddddddddddddddddULL,
-+	0xeeeeeeeeeeeeeeeeULL,
-+	0x7a6c7258554e494cULL, /* yeah ;-) */
-+};
-+
-+static void __init reserve_bad_mem(u64 pattern, u64 start_bad, u64 end_bad)
-+{
-+	printk(KERN_INFO "  %016llx bad mem addr %010llx - %010llx reserved\n",
-+	       (unsigned long long) pattern,
-+	       (unsigned long long) start_bad,
-+	       (unsigned long long) end_bad);
-+	memblock_reserve(start_bad, end_bad - start_bad);
-+}
-+
-+static void __init memtest(u64 pattern, u64 start_phys, u64 size)
-+{
-+	u64 *p, *start, *end;
-+	u64 start_bad, last_bad;
-+	u64 start_phys_aligned;
-+	const size_t incr = sizeof(pattern);
-+
-+	start_phys_aligned = ALIGN(start_phys, incr);
-+	start = __va(start_phys_aligned);
-+	end = start + (size - (start_phys_aligned - start_phys)) / incr;
-+	start_bad = 0;
-+	last_bad = 0;
-+
-+	for (p = start; p < end; p++)
-+		*p = pattern;
-+
-+	for (p = start; p < end; p++, start_phys_aligned += incr) {
-+		if (*p == pattern)
-+			continue;
-+		if (start_phys_aligned == last_bad + incr) {
-+			last_bad += incr;
-+			continue;
-+		}
-+		if (start_bad)
-+			reserve_bad_mem(pattern, start_bad, last_bad + incr);
-+		start_bad = last_bad = start_phys_aligned;
-+	}
-+	if (start_bad)
-+		reserve_bad_mem(pattern, start_bad, last_bad + incr);
-+}
-+
-+static void __init do_one_pass(u64 pattern, u64 start, u64 end)
-+{
-+	u64 i;
-+	phys_addr_t this_start, this_end;
-+
-+	for_each_free_mem_range(i, NUMA_NO_NODE, &this_start, &this_end, NULL) {
-+		this_start = clamp_t(phys_addr_t, this_start, start, end);
-+		this_end = clamp_t(phys_addr_t, this_end, start, end);
-+		if (this_start < this_end) {
-+			printk(KERN_INFO "  %010llx - %010llx pattern %016llx\n",
-+			       (unsigned long long)this_start,
-+			       (unsigned long long)this_end,
-+			       (unsigned long long)cpu_to_be64(pattern));
-+			memtest(pattern, this_start, this_end - this_start);
-+		}
-+	}
-+}
-+
-+/* default is disabled */
-+static int memtest_pattern __initdata;
-+
-+static int __init parse_memtest(char *arg)
-+{
-+	if (arg)
-+		memtest_pattern = simple_strtoul(arg, NULL, 0);
-+	else
-+		memtest_pattern = ARRAY_SIZE(patterns);
-+
-+	return 0;
-+}
-+
-+early_param("memtest", parse_memtest);
-+
-+void __init early_memtest(unsigned long start, unsigned long end)
-+{
-+	unsigned int i;
-+	unsigned int idx = 0;
-+
-+	if (!memtest_pattern)
-+		return;
-+
-+	printk(KERN_INFO "early_memtest: # of tests: %d\n", memtest_pattern);
-+	for (i = memtest_pattern-1; i < UINT_MAX; --i) {
-+		idx = i % ARRAY_SIZE(patterns);
-+		do_one_pass(patterns[idx], start, end);
-+	}
-+}
+ 	unsigned int i;
+ 	unsigned int idx = 0;
 _
 
 Patches currently in -mm which might be from vladimir.murzin@arm.com are
