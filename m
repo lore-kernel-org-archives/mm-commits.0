@@ -1,64 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- powerpc-expose-number-of-page-table-levels-on-kconfig-level.patch removed
- from -mm tree
-Date: Wed, 15 Apr 2015 12:10:07 -0700
-Message-ID: <552eb78f.jJz2RUtJ87ol24c8%akpm@linux-foundation.org>
+Subject: [merged] um-expose-number-of-page-table-levels.patch removed from -mm tree
+Date: Wed, 15 Apr 2015 12:10:17 -0700
+Message-ID: <552eb799.x0bLqYwo0t6FQtWi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48109 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48128 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755421AbbDOTKI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:10:08 -0400
+	with ESMTP id S1756314AbbDOTKS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:10:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, benh@kernel.crashing.org, linux@roeck-us.net, mpe@ellerman.id.au, paulus@samba.org, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, jdike@addtoit.com, linux@roeck-us.net, richard@nod.at, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc: expose number of page table levels on Kconfig level
+     Subject: um: expose number of page table levels
 has been removed from the -mm tree.  Its filename was
-     powerpc-expose-number-of-page-table-levels-on-kconfig-level.patch
+     um-expose-number-of-page-table-levels.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: powerpc: expose number of page table levels on Kconfig level
+Subject: um: expose number of page table levels
 
 We would want to use number of page table level to define mm_struct.
 Let's expose it as CONFIG_PGTABLE_LEVELS.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+Acked-by: Richard Weinberger <richard@nod.at>
+Cc: Jeff Dike <jdike@addtoit.com>
 Tested-by: Guenter Roeck <linux@roeck-us.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/Kconfig |    6 ++++++
- 1 file changed, 6 insertions(+)
+ arch/um/Kconfig.um |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN arch/powerpc/Kconfig~powerpc-expose-number-of-page-table-levels-on-kconfig-level arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~powerpc-expose-number-of-page-table-levels-on-kconfig-level
-+++ a/arch/powerpc/Kconfig
-@@ -297,6 +297,12 @@ config ZONE_DMA32
- 	bool
- 	default y if PPC64
+diff -puN arch/um/Kconfig.um~um-expose-number-of-page-table-levels arch/um/Kconfig.um
+--- a/arch/um/Kconfig.um~um-expose-number-of-page-table-levels
++++ a/arch/um/Kconfig.um
+@@ -155,3 +155,8 @@ config MMAPPER
  
+ config NO_DMA
+ 	def_bool y
++
 +config PGTABLE_LEVELS
 +	int
-+	default 2 if !PPC64
-+	default 3 if PPC_64K_PAGES
-+	default 4
-+
- source "init/Kconfig"
- 
- source "kernel/Kconfig.freezer"
++	default 3 if 3_LEVEL_PGTABLES
++	default 2
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
