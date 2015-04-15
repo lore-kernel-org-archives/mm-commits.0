@@ -1,77 +1,228 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- ocfs2-remove-goto-statement-in-ocfs2_check_dir_for_entry.patch removed from -mm tree
-Date: Wed, 15 Apr 2015 12:08:24 -0700
-Message-ID: <552eb728.1f0q4ol7OXYBnTOj%akpm@linux-foundation.org>
+Subject: [merged] ocfs2-incorrect-check-for-debugfs-returns.patch removed
+ from -mm tree
+Date: Wed, 15 Apr 2015 12:08:30 -0700
+Message-ID: <552eb72e.JkeckuI8oasY0fxM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47858 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47865 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932595AbbDOTIY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:08:24 -0400
+	with ESMTP id S932595AbbDOTIa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:08:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: daeseok.youn@gmail.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.com, mm-commits@vger.kernel.org
+To: csong84@gatech.edu, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: remove goto statement in ocfs2_check_dir_for_entry()
+     Subject: ocfs2: incorrect check for debugfs returns
 has been removed from the -mm tree.  Its filename was
-     ocfs2-remove-goto-statement-in-ocfs2_check_dir_for_entry.patch
+     ocfs2-incorrect-check-for-debugfs-returns.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Daeseok Youn <daeseok.youn@gmail.com>
-Subject: ocfs2: remove goto statement in ocfs2_check_dir_for_entry()
+From: Chengyu Song <csong84@gatech.edu>
+Subject: ocfs2: incorrect check for debugfs returns
 
-Signed-off-by: Daeseok Youn <daeseok.youn@gmail.com>
-Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
+debugfs_create_dir and debugfs_create_file may return -ENODEV when debugfs
+is not configured, so the return value should be checked against
+ERROR_VALUE as well, otherwise the later dereference of the dentry pointer
+would crash the kernel.
+
+This patch tries to solve this problem by fixing certain checks. However,
+I have that found other call sites are protected by #ifdef CONFIG_DEBUG_FS.
+In current implementation, if CONFIG_DEBUG_FS is defined, then the above
+two functions will never return any ERROR_VALUE. So another possibility
+to fix this is to surround all the buggy checks/functions with the same
+#ifdef CONFIG_DEBUG_FS. But I'm not sure if this would break any functionality,
+as only OCFS2_FS_STATS declares dependency on DEBUG_FS.
+
+Signed-off-by: Chengyu Song <csong84@gatech.edu>
 Cc: Mark Fasheh <mfasheh@suse.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dir.c |   13 +++++--------
- 1 file changed, 5 insertions(+), 8 deletions(-)
+ fs/ocfs2/cluster/heartbeat.c |   42 ++++++++++++++++++++++++---------
+ fs/ocfs2/dlmglue.c           |    2 -
+ fs/ocfs2/super.c             |    9 +++----
+ 3 files changed, 37 insertions(+), 16 deletions(-)
 
-diff -puN fs/ocfs2/dir.c~ocfs2-remove-goto-statement-in-ocfs2_check_dir_for_entry fs/ocfs2/dir.c
---- a/fs/ocfs2/dir.c~ocfs2-remove-goto-statement-in-ocfs2_check_dir_for_entry
-+++ a/fs/ocfs2/dir.c
-@@ -2047,22 +2047,19 @@ int ocfs2_check_dir_for_entry(struct ino
- 			      const char *name,
- 			      int namelen)
- {
--	int ret;
-+	int ret = 0;
- 	struct ocfs2_dir_lookup_result lookup = { NULL, };
+diff -puN fs/ocfs2/cluster/heartbeat.c~ocfs2-incorrect-check-for-debugfs-returns fs/ocfs2/cluster/heartbeat.c
+--- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-incorrect-check-for-debugfs-returns
++++ a/fs/ocfs2/cluster/heartbeat.c
+@@ -1312,7 +1312,9 @@ static int o2hb_debug_init(void)
+ 	int ret = -ENOMEM;
  
- 	trace_ocfs2_check_dir_for_entry(
- 		(unsigned long long)OCFS2_I(dir)->ip_blkno, namelen, name);
+ 	o2hb_debug_dir = debugfs_create_dir(O2HB_DEBUG_DIR, NULL);
+-	if (!o2hb_debug_dir) {
++	if (IS_ERR_OR_NULL(o2hb_debug_dir)) {
++		ret = o2hb_debug_dir ?
++			PTR_ERR(o2hb_debug_dir) : -ENOMEM;
+ 		mlog_errno(ret);
+ 		goto bail;
+ 	}
+@@ -1325,7 +1327,9 @@ static int o2hb_debug_init(void)
+ 						 sizeof(o2hb_live_node_bitmap),
+ 						 O2NM_MAX_NODES,
+ 						 o2hb_live_node_bitmap);
+-	if (!o2hb_debug_livenodes) {
++	if (IS_ERR_OR_NULL(o2hb_debug_livenodes)) {
++		ret = o2hb_debug_livenodes ?
++			PTR_ERR(o2hb_debug_livenodes) : -ENOMEM;
+ 		mlog_errno(ret);
+ 		goto bail;
+ 	}
+@@ -1338,7 +1342,9 @@ static int o2hb_debug_init(void)
+ 						   sizeof(o2hb_live_region_bitmap),
+ 						   O2NM_MAX_REGIONS,
+ 						   o2hb_live_region_bitmap);
+-	if (!o2hb_debug_liveregions) {
++	if (IS_ERR_OR_NULL(o2hb_debug_liveregions)) {
++		ret = o2hb_debug_liveregions ?
++			PTR_ERR(o2hb_debug_liveregions) : -ENOMEM;
+ 		mlog_errno(ret);
+ 		goto bail;
+ 	}
+@@ -1352,7 +1358,9 @@ static int o2hb_debug_init(void)
+ 					  sizeof(o2hb_quorum_region_bitmap),
+ 					  O2NM_MAX_REGIONS,
+ 					  o2hb_quorum_region_bitmap);
+-	if (!o2hb_debug_quorumregions) {
++	if (IS_ERR_OR_NULL(o2hb_debug_quorumregions)) {
++		ret = o2hb_debug_quorumregions ?
++			PTR_ERR(o2hb_debug_quorumregions) : -ENOMEM;
+ 		mlog_errno(ret);
+ 		goto bail;
+ 	}
+@@ -1366,7 +1374,9 @@ static int o2hb_debug_init(void)
+ 					  sizeof(o2hb_failed_region_bitmap),
+ 					  O2NM_MAX_REGIONS,
+ 					  o2hb_failed_region_bitmap);
+-	if (!o2hb_debug_failedregions) {
++	if (IS_ERR_OR_NULL(o2hb_debug_failedregions)) {
++		ret = o2hb_debug_failedregions ?
++			PTR_ERR(o2hb_debug_failedregions) : -ENOMEM;
+ 		mlog_errno(ret);
+ 		goto bail;
+ 	}
+@@ -2000,7 +2010,8 @@ static int o2hb_debug_region_init(struct
  
--	ret = -EEXIST;
--	if (ocfs2_find_entry(name, namelen, dir, &lookup) == 0)
--		goto bail;
-+	if (ocfs2_find_entry(name, namelen, dir, &lookup) == 0) {
-+		ret = -EEXIST;
-+		mlog_errno(ret);
-+	}
+ 	reg->hr_debug_dir =
+ 		debugfs_create_dir(config_item_name(&reg->hr_item), dir);
+-	if (!reg->hr_debug_dir) {
++	if (IS_ERR_OR_NULL(reg->hr_debug_dir)) {
++		ret = reg->hr_debug_dir ? PTR_ERR(reg->hr_debug_dir) : -ENOMEM;
+ 		mlog_errno(ret);
+ 		goto bail;
+ 	}
+@@ -2013,7 +2024,9 @@ static int o2hb_debug_region_init(struct
+ 					  O2HB_DB_TYPE_REGION_LIVENODES,
+ 					  sizeof(reg->hr_live_node_bitmap),
+ 					  O2NM_MAX_NODES, reg);
+-	if (!reg->hr_debug_livenodes) {
++	if (IS_ERR_OR_NULL(reg->hr_debug_livenodes)) {
++		ret = reg->hr_debug_livenodes ?
++			PTR_ERR(reg->hr_debug_livenodes) : -ENOMEM;
+ 		mlog_errno(ret);
+ 		goto bail;
+ 	}
+@@ -2025,7 +2038,9 @@ static int o2hb_debug_region_init(struct
+ 					  sizeof(*(reg->hr_db_regnum)),
+ 					  O2HB_DB_TYPE_REGION_NUMBER,
+ 					  0, O2NM_MAX_NODES, reg);
+-	if (!reg->hr_debug_regnum) {
++	if (IS_ERR_OR_NULL(reg->hr_debug_regnum)) {
++		ret = reg->hr_debug_regnum ?
++			PTR_ERR(reg->hr_debug_regnum) : -ENOMEM;
+ 		mlog_errno(ret);
+ 		goto bail;
+ 	}
+@@ -2037,7 +2052,9 @@ static int o2hb_debug_region_init(struct
+ 					  sizeof(*(reg->hr_db_elapsed_time)),
+ 					  O2HB_DB_TYPE_REGION_ELAPSED_TIME,
+ 					  0, 0, reg);
+-	if (!reg->hr_debug_elapsed_time) {
++	if (IS_ERR_OR_NULL(reg->hr_debug_elapsed_time)) {
++		ret = reg->hr_debug_elapsed_time ?
++			PTR_ERR(reg->hr_debug_elapsed_time) : -ENOMEM;
+ 		mlog_errno(ret);
+ 		goto bail;
+ 	}
+@@ -2049,13 +2066,16 @@ static int o2hb_debug_region_init(struct
+ 					  sizeof(*(reg->hr_db_pinned)),
+ 					  O2HB_DB_TYPE_REGION_PINNED,
+ 					  0, 0, reg);
+-	if (!reg->hr_debug_pinned) {
++	if (IS_ERR_OR_NULL(reg->hr_debug_pinned)) {
++		ret = reg->hr_debug_pinned ?
++			PTR_ERR(reg->hr_debug_pinned) : -ENOMEM;
+ 		mlog_errno(ret);
+ 		goto bail;
+ 	}
  
 -	ret = 0;
--bail:
- 	ocfs2_free_dir_lookup_result(&lookup);
- 
--	if (ret)
--		mlog_errno(ret);
++	return 0;
+ bail:
++	debugfs_remove_recursive(reg->hr_debug_dir);
  	return ret;
  }
  
+diff -puN fs/ocfs2/dlmglue.c~ocfs2-incorrect-check-for-debugfs-returns fs/ocfs2/dlmglue.c
+--- a/fs/ocfs2/dlmglue.c~ocfs2-incorrect-check-for-debugfs-returns
++++ a/fs/ocfs2/dlmglue.c
+@@ -2954,7 +2954,7 @@ static int ocfs2_dlm_init_debug(struct o
+ 							 osb->osb_debug_root,
+ 							 osb,
+ 							 &ocfs2_dlm_debug_fops);
+-	if (!dlm_debug->d_locking_state) {
++	if (IS_ERR_OR_NULL(dlm_debug->d_locking_state)) {
+ 		ret = -EINVAL;
+ 		mlog(ML_ERROR,
+ 		     "Unable to create locking state debugfs file.\n");
+diff -puN fs/ocfs2/super.c~ocfs2-incorrect-check-for-debugfs-returns fs/ocfs2/super.c
+--- a/fs/ocfs2/super.c~ocfs2-incorrect-check-for-debugfs-returns
++++ a/fs/ocfs2/super.c
+@@ -1112,7 +1112,7 @@ static int ocfs2_fill_super(struct super
+ 
+ 	osb->osb_debug_root = debugfs_create_dir(osb->uuid_str,
+ 						 ocfs2_debugfs_root);
+-	if (!osb->osb_debug_root) {
++	if (IS_ERR_OR_NULL(osb->osb_debug_root)) {
+ 		status = -EINVAL;
+ 		mlog(ML_ERROR, "Unable to create per-mount debugfs root.\n");
+ 		goto read_super_error;
+@@ -1122,7 +1122,7 @@ static int ocfs2_fill_super(struct super
+ 					    osb->osb_debug_root,
+ 					    osb,
+ 					    &ocfs2_osb_debug_fops);
+-	if (!osb->osb_ctxt) {
++	if (IS_ERR_OR_NULL(osb->osb_ctxt)) {
+ 		status = -EINVAL;
+ 		mlog_errno(status);
+ 		goto read_super_error;
+@@ -1606,8 +1606,9 @@ static int __init ocfs2_init(void)
+ 	}
+ 
+ 	ocfs2_debugfs_root = debugfs_create_dir("ocfs2", NULL);
+-	if (!ocfs2_debugfs_root) {
+-		status = -ENOMEM;
++	if (IS_ERR_OR_NULL(ocfs2_debugfs_root)) {
++		status = ocfs2_debugfs_root ?
++			PTR_ERR(ocfs2_debugfs_root) : -ENOMEM;
+ 		mlog(ML_ERROR, "Unable to create ocfs2 debugfs root.\n");
+ 		goto out4;
+ 	}
 _
 
-Patches currently in -mm which might be from daeseok.youn@gmail.com are
+Patches currently in -mm which might be from csong84@gatech.edu are
 
 origin.patch
+hfs-incorrect-return-values.patch
+hfsplus-incorrect-return-value.patch
+linux-next.patch
 
