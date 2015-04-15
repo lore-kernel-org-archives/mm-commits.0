@@ -1,84 +1,157 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- watchdog-introduce-the-proc_watchdog_update-function.patch removed from -mm tree
-Date: Wed, 15 Apr 2015 12:08:40 -0700
-Message-ID: <552eb738.O8hUnkMSSwc27Ogh%akpm@linux-foundation.org>
+ ocfs2-logging-remove-static-buffer-use-vsprintf-extension-%pv.patch removed from -mm tree
+Date: Wed, 15 Apr 2015 12:08:32 -0700
+Message-ID: <552eb730.BdL0tK+4UQq3gqMH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47892 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47868 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932667AbbDOTIk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:08:40 -0400
+	with ESMTP id S932631AbbDOTIc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:08:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: uobergfe@redhat.com, dzickus@redhat.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: joe@perches.com, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: watchdog: introduce the proc_watchdog_update() function
+     Subject: ocfs2: logging: remove static buffer, use vsprintf extension %pV
 has been removed from the -mm tree.  Its filename was
-     watchdog-introduce-the-proc_watchdog_update-function.patch
+     ocfs2-logging-remove-static-buffer-use-vsprintf-extension-%pv.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ulrich Obergfell <uobergfe@redhat.com>
-Subject: watchdog: introduce the proc_watchdog_update() function
+From: Joe Perches <joe@perches.com>
+Subject: ocfs2: logging: remove static buffer, use vsprintf extension %pV
 
-This series introduces a separate handler for each watchdog parameter in
-/proc/sys/kernel.  The separate handlers need a common function that they
-can call to update the run state of the lockup detectors, or to have the
-lockup detectors use a new sample period.
+Use the vsprintf %pV extension to avoid using a static buffer and remove
+the now unnecessary buffer.
 
-Signed-off-by: Ulrich Obergfell <uobergfe@redhat.com>
-Signed-off-by: Don Zickus <dzickus@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |   23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+ fs/ocfs2/super.c |   33 ++++++++++++++++++---------------
+ 1 file changed, 18 insertions(+), 15 deletions(-)
 
-diff -puN kernel/watchdog.c~watchdog-introduce-the-proc_watchdog_update-function kernel/watchdog.c
---- a/kernel/watchdog.c~watchdog-introduce-the-proc_watchdog_update-function
-+++ a/kernel/watchdog.c
-@@ -679,6 +679,29 @@ static void watchdog_disable_all_cpus(vo
+diff -puN fs/ocfs2/super.c~ocfs2-logging-remove-static-buffer-use-vsprintf-extension-%pv fs/ocfs2/super.c
+--- a/fs/ocfs2/super.c~ocfs2-logging-remove-static-buffer-use-vsprintf-extension-%pv
++++ a/fs/ocfs2/super.c
+@@ -2564,22 +2564,22 @@ static void ocfs2_handle_error(struct su
+ 	ocfs2_set_ro_flag(osb, 0);
  }
  
- /*
-+ * Update the run state of the lockup detectors.
-+ */
-+static int proc_watchdog_update(void)
-+{
-+	int err = 0;
-+
-+	/*
-+	 * Watchdog threads won't be started if they are already active.
-+	 * The 'watchdog_running' variable in watchdog_*_all_cpus() takes
-+	 * care of this. If those threads are already active, the sample
-+	 * period will be updated and the lockup detectors will be enabled
-+	 * or disabled 'on the fly'.
-+	 */
-+	if (watchdog_enabled && watchdog_thresh)
-+		err = watchdog_enable_all_cpus(true);
-+	else
-+		watchdog_disable_all_cpus();
-+
-+	return err;
-+
-+}
-+
-+/*
-  * proc handler for /proc/sys/kernel/nmi_watchdog,watchdog_thresh
-  */
+-static char error_buf[1024];
+-
+-void __ocfs2_error(struct super_block *sb,
+-		   const char *function,
+-		   const char *fmt, ...)
++void __ocfs2_error(struct super_block *sb, const char *function,
++		  const char *fmt, ...)
+ {
++	struct va_format vaf;
+ 	va_list args;
  
+ 	va_start(args, fmt);
+-	vsnprintf(error_buf, sizeof(error_buf), fmt, args);
+-	va_end(args);
++	vaf.fmt = fmt;
++	vaf.va = &args;
+ 
+ 	/* Not using mlog here because we want to show the actual
+ 	 * function the error came from. */
+-	printk(KERN_CRIT "OCFS2: ERROR (device %s): %s: %s\n",
+-	       sb->s_id, function, error_buf);
++	printk(KERN_CRIT "OCFS2: ERROR (device %s): %s: %pV\n",
++	       sb->s_id, function, &vaf);
++
++	va_end(args);
+ 
+ 	ocfs2_handle_error(sb);
+ }
+@@ -2587,18 +2587,21 @@ void __ocfs2_error(struct super_block *s
+ /* Handle critical errors. This is intentionally more drastic than
+  * ocfs2_handle_error, so we only use for things like journal errors,
+  * etc. */
+-void __ocfs2_abort(struct super_block* sb,
+-		   const char *function,
++void __ocfs2_abort(struct super_block *sb, const char *function,
+ 		   const char *fmt, ...)
+ {
++	struct va_format vaf;
+ 	va_list args;
+ 
+ 	va_start(args, fmt);
+-	vsnprintf(error_buf, sizeof(error_buf), fmt, args);
+-	va_end(args);
+ 
+-	printk(KERN_CRIT "OCFS2: abort (device %s): %s: %s\n",
+-	       sb->s_id, function, error_buf);
++	vaf.fmt = fmt;
++	vaf.va = &args;
++
++	printk(KERN_CRIT "OCFS2: abort (device %s): %s: %pV\n",
++	       sb->s_id, function, &vaf);
++
++	va_end(args);
+ 
+ 	/* We don't have the cluster support yet to go straight to
+ 	 * hard readonly in here. Until then, we want to keep
 _
 
-Patches currently in -mm which might be from uobergfe@redhat.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
+ocfs2-neaten-do_error-ocfs2_error-and-ocfs2_abort.patch
+maintainers-use-tabs-consistently.patch
+maintainers-credits-remove-stefano-brivio-from-b43.patch
+x86-mtrr-if-remove-use-of-seq_printf-return-value.patch
+power-wakeup-remove-use-of-seq_printf-return-value.patch
+rtc-remove-use-of-seq_printf-return-value.patch
+ipc-remove-use-of-seq_printf-return-value.patch
+microblaze-mb-remove-use-of-seq_printf-return-value.patch
+microblaze-mb-remove-use-of-seq_printf-return-value-fix.patch
+nios2-cpuinfo-remove-use-of-seq_printf-return-value.patch
+arm-plat-pxa-remove-use-of-seq_printf-return-value.patch
+openrisc-remove-use-of-seq_printf-return-value.patch
+cris-remove-use-of-seq_printf-return-value.patch
+cris-fasttimer-remove-use-of-seq_printf-return-value.patch
+s390-remove-use-of-seq_printf-return-value.patch
+proc-remove-use-of-seq_printf-return-value.patch
+cgroup-remove-use-of-seq_printf-return-value.patch
+tracing-remove-use-of-seq_printf-return-value.patch
+lru_cache-remove-use-of-seq_printf-return-value.patch
+parisc-remove-use-of-seq_printf-return-value.patch
+lib-vsprintfc-even-faster-decimal-conversion.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-improve-no-space-is-necessary-after-a-cast-test.patch
+checkpatch-add-spell-checking-of-email-subject-line.patch
+checkpatch-spell-check-reudce.patch
+checkpatch-add-optional-codespell-dictionary-to-find-more-typos.patch
+checkpatch-match-more-world-writable-permissions.patch
+checkpatch-match-more-world-writable-permissions-fix.patch
+checkpatch-improve-return-negative-errno-check.patch
+checkpatch-add-test-for-repeated-const-uses.patch
+checkpatch-dont-ask-for-asm-fileh-to-linux-fileh-unconditionally.patch
+checkpatch-submittingpatches-suggest-line-wrapping-commit-messages-at-75-columns.patch
+checkpatch-add-define-foo-string-long-line-exception.patch
+checkpatch-add-uart_ops-to-normally-const-structs.patch
+checkpatch-add-prefer-array_size-test.patch
+checkpatch-improve-operator-spacing-check.patch
+checkpatch-add-a-test-for-const-with-__read_mostly-uses.patch
+checkpatchpl-new-instances-of-enosys-are-errors.patch
+errnoh-improve-enosyss-comment.patch
+checkpatch-fix-fix-use-with-a-patch-of-multiple-files.patch
+checkpatch-avoid-spaces-required-around-that-false-positive.patch
+rtc-use-more-standard-kernel-logging-styles.patch
+adfs-returning-correct-return-values.patch
 linux-next.patch
+proc-show-locks-in-proc-pid-fdinfo-x.patch
+proc-show-locks-in-proc-pid-fdinfo-x-v2.patch
 
