@@ -1,55 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] zsmalloc-support-compaction-fix.patch removed
- from -mm tree
-Date: Wed, 15 Apr 2015 15:44:15 -0700
-Message-ID: <552ee9bf.2z3jV0U/mL8i21Mn%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ proc-pid-status-show-all-sets-of-pid-according-to-ns-fix.patch removed from -mm tree
+Date: Wed, 15 Apr 2015 15:44:46 -0700
+Message-ID: <552ee9de.1d4Z1GO7AF7fXoko%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51952 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52006 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752856AbbDOWoQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 18:44:16 -0400
+	with ESMTP id S1752030AbbDOWor (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 18:44:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, fengguang.wu@gmail.com, minchan@kernel.org, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, chenhanxiao@cn.fujitsu.com, ebiederm@xmission.com, nathans@redhat.com, serge.hallyn@canonical.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc-support-compaction-fix
+     Subject: proc-pid-status-show-all-sets-of-pid-according-to-ns-fix
 has been removed from the -mm tree.  Its filename was
-     zsmalloc-support-compaction-fix.patch
+     proc-pid-status-show-all-sets-of-pid-according-to-ns-fix.patch
 
-This patch was dropped because it was folded into zsmalloc-support-compaction.patch
+This patch was dropped because it was folded into proc-pid-status-show-all-sets-of-pid-according-to-ns.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: zsmalloc-support-compaction-fix
+Subject: proc-pid-status-show-all-sets-of-pid-according-to-ns-fix
 
-zsmalloc.c needs sched.h for cond_resched()
+add CONFIG_PID_NS ifdef
 
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Reported-by: Fengguang Wu <fengguang.wu@gmail.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Chen Hanxiao <chenhanxiao@cn.fujitsu.com>
+Cc: Nathan Scott <nathans@redhat.com>
+Cc: Serge Hallyn <serge.hallyn@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/proc/array.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/zsmalloc.c~zsmalloc-support-compaction-fix mm/zsmalloc.c
---- a/mm/zsmalloc.c~zsmalloc-support-compaction-fix
-+++ a/mm/zsmalloc.c
-@@ -78,6 +78,7 @@
+diff -puN fs/proc/array.c~proc-pid-status-show-all-sets-of-pid-according-to-ns-fix fs/proc/array.c
+--- a/fs/proc/array.c~proc-pid-status-show-all-sets-of-pid-according-to-ns-fix
++++ a/fs/proc/array.c
+@@ -188,6 +188,7 @@ static inline void task_state(struct seq
+ 			   from_kgid_munged(user_ns, GROUP_AT(group_info, g)));
+ 	put_cred(cred);
  
- #include <linux/module.h>
- #include <linux/kernel.h>
-+#include <linux/sched.h>
- #include <linux/bitops.h>
- #include <linux/errno.h>
- #include <linux/highmem.h>
++#ifdef CONFIG_PID_NS
+ 	seq_puts(m, "\nNStgid:");
+ 	for (g = ns->level; g <= pid->level; g++)
+ 		seq_printf(m, "\t%d",
+@@ -204,6 +205,7 @@ static inline void task_state(struct seq
+ 	for (g = ns->level; g <= pid->level; g++)
+ 		seq_printf(m, "\t%d",
+ 			task_session_nr_ns(p, pid->numbers[g].ns));
++#endif
+ 	seq_putc(m, '\n');
+ }
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -69,7 +78,7 @@ mm-cma_debugc-remove-blank-lines-before-define_simple_attribute.patch
 mm-memory-print-also-a_ops-readpage-in-print_bad_pte.patch
 mm-compactionc-fix-suitable_migration_target-unused-warning.patch
 zsmalloc-support-compaction.patch
-proc-pid-status-show-all-sets-of-pid-according-to-ns-fix.patch
+proc-pid-status-show-all-sets-of-pid-according-to-ns.patch
 kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes.patch
 lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix.patch
 
