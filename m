@@ -1,270 +1,148 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-page_alloc-factor-out-fallback-freepage-checking.patch removed from -mm
- tree
-Date: Wed, 15 Apr 2015 12:09:37 -0700
-Message-ID: <552eb771.gfWp2aqQbMqqgN3y%akpm@linux-foundation.org>
+ mm-incorporate-zero-pages-into-transparent-huge-pages.patch removed from
+ -mm tree
+Date: Wed, 15 Apr 2015 12:09:42 -0700
+Message-ID: <552eb776.L7wbi2dByZbl5K+p%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48021 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48034 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932749AbbDOTJi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:09:38 -0400
+	with ESMTP id S933166AbbDOTJn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:09:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, mgorman@suse.de, riel@redhat.com, rientjes@google.com, vbabka@suse.cz, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: ebru.akagunduz@gmail.com, aarcange@redhat.com, hannes@cmpxchg.org, hughd@google.com, kirill.shutemov@linux.intel.com, mel@csn.ul.ie, riel@redhat.com, rientjes@google.com, sasha.levin@oracle.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: factor out fallback freepage checking
+     Subject: mm: incorporate zero pages into transparent huge pages
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-factor-out-fallback-freepage-checking.patch
+     mm-incorporate-zero-pages-into-transparent-huge-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/page_alloc: factor out fallback freepage checking
+From: Ebru Akagunduz <ebru.akagunduz@gmail.com>
+Subject: mm: incorporate zero pages into transparent huge pages
 
-This is preparation step to use page allocator's anti fragmentation logic
-in compaction.  This patch just separates fallback freepage checking part
-from fallback freepage management part.  Therefore, there is no functional
-change.
+This patch improves THP collapse rates, by allowing zero pages.
 
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Currently THP can collapse 4kB pages into a THP when there are up to
+khugepaged_max_ptes_none pte_none ptes in a 2MB range.  This patch counts
+pte none and mapped zero pages with the same variable.
+
+The patch was tested with a program that allocates 800MB of
+memory, and performs interleaved reads and writes, in a pattern
+that causes some 2MB areas to first see read accesses, resulting
+in the zero pfn being mapped there.
+
+To simulate memory fragmentation at allocation time, I modified
+do_huge_pmd_anonymous_page to return VM_FAULT_FALLBACK for read faults.
+
+Without the patch, only %50 of the program was collapsed into THP and the
+percentage did not increase over time.
+
+With this patch after 10 minutes of waiting khugepaged had collapsed %99
+of the program's memory.
+
+[aarcange@redhat.com: fix bogus BUG()]
+Signed-off-by: Ebru Akagunduz <ebru.akagunduz@gmail.com>
+Reviewed-by: Rik van Riel <riel@redhat.com>
+Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@suse.de>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Sasha Levin <sasha.levin@oracle.com>
 Cc: David Rientjes <rientjes@google.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |  153 ++++++++++++++++++++++++++++------------------
- 1 file changed, 96 insertions(+), 57 deletions(-)
+ mm/huge_memory.c |   28 ++++++++++++++++++++--------
+ 1 file changed, 20 insertions(+), 8 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-factor-out-fallback-freepage-checking mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-factor-out-fallback-freepage-checking
-+++ a/mm/page_alloc.c
-@@ -1145,14 +1145,40 @@ static void change_pageblock_range(struc
-  * as fragmentation caused by those allocations polluting movable pageblocks
-  * is worse than movable allocations stealing from unmovable and reclaimable
-  * pageblocks.
-- *
-- * If we claim more than half of the pageblock, change pageblock's migratetype
-- * as well.
-  */
--static void try_to_steal_freepages(struct zone *zone, struct page *page,
--				  int start_type, int fallback_type)
-+static bool can_steal_fallback(unsigned int order, int start_mt)
-+{
-+	/*
-+	 * Leaving this order check is intended, although there is
-+	 * relaxed order check in next check. The reason is that
-+	 * we can actually steal whole pageblock if this condition met,
-+	 * but, below check doesn't guarantee it and that is just heuristic
-+	 * so could be changed anytime.
-+	 */
-+	if (order >= pageblock_order)
-+		return true;
-+
-+	if (order >= pageblock_order / 2 ||
-+		start_mt == MIGRATE_RECLAIMABLE ||
-+		start_mt == MIGRATE_UNMOVABLE ||
-+		page_group_by_mobility_disabled)
-+		return true;
-+
-+	return false;
-+}
-+
-+/*
-+ * This function implements actual steal behaviour. If order is large enough,
-+ * we can steal whole pageblock. If not, we first move freepages in this
-+ * pageblock and check whether half of pages are moved or not. If half of
-+ * pages are moved, we can change migratetype of pageblock and permanently
-+ * use it's pages as requested migratetype in the future.
-+ */
-+static void steal_suitable_fallback(struct zone *zone, struct page *page,
-+							  int start_type)
+diff -puN mm/huge_memory.c~mm-incorporate-zero-pages-into-transparent-huge-pages mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-incorporate-zero-pages-into-transparent-huge-pages
++++ a/mm/huge_memory.c
+@@ -2109,7 +2109,7 @@ static void release_pte_pages(pte_t *pte
  {
- 	int current_order = page_order(page);
-+	int pages;
- 
- 	/* Take ownership for orders >= pageblock_order */
- 	if (current_order >= pageblock_order) {
-@@ -1160,19 +1186,40 @@ static void try_to_steal_freepages(struc
- 		return;
+ 	while (--_pte >= pte) {
+ 		pte_t pteval = *_pte;
+-		if (!pte_none(pteval))
++		if (!pte_none(pteval) && !is_zero_pfn(pte_pfn(pteval)))
+ 			release_pte_page(pte_page(pteval));
  	}
- 
--	if (current_order >= pageblock_order / 2 ||
--	    start_type == MIGRATE_RECLAIMABLE ||
--	    start_type == MIGRATE_UNMOVABLE ||
--	    page_group_by_mobility_disabled) {
--		int pages;
--
--		pages = move_freepages_block(zone, page, start_type);
--
--		/* Claim the whole block if over half of it is free */
--		if (pages >= (1 << (pageblock_order-1)) ||
--				page_group_by_mobility_disabled)
--			set_pageblock_migratetype(page, start_type);
-+	pages = move_freepages_block(zone, page, start_type);
-+
-+	/* Claim the whole block if over half of it is free */
-+	if (pages >= (1 << (pageblock_order-1)) ||
-+			page_group_by_mobility_disabled)
-+		set_pageblock_migratetype(page, start_type);
-+}
-+
-+/* Check whether there is a suitable fallback freepage with requested order. */
-+static int find_suitable_fallback(struct free_area *area, unsigned int order,
-+					int migratetype, bool *can_steal)
-+{
-+	int i;
-+	int fallback_mt;
-+
-+	if (area->nr_free == 0)
-+		return -1;
-+
-+	*can_steal = false;
-+	for (i = 0;; i++) {
-+		fallback_mt = fallbacks[migratetype][i];
-+		if (fallback_mt == MIGRATE_RESERVE)
-+			break;
-+
-+		if (list_empty(&area->free_list[fallback_mt]))
-+			continue;
-+
-+		if (can_steal_fallback(order, migratetype))
-+			*can_steal = true;
-+
-+		return fallback_mt;
- 	}
-+
-+	return -1;
  }
- 
- /* Remove an element from the buddy allocator from the fallback list */
-@@ -1182,53 +1229,45 @@ __rmqueue_fallback(struct zone *zone, un
- 	struct free_area *area;
- 	unsigned int current_order;
+@@ -2120,13 +2120,13 @@ static int __collapse_huge_page_isolate(
+ {
  	struct page *page;
-+	int fallback_mt;
-+	bool can_steal;
+ 	pte_t *_pte;
+-	int none = 0;
++	int none_or_zero = 0;
+ 	bool referenced = false, writable = false;
+ 	for (_pte = pte; _pte < pte+HPAGE_PMD_NR;
+ 	     _pte++, address += PAGE_SIZE) {
+ 		pte_t pteval = *_pte;
+-		if (pte_none(pteval)) {
+-			if (++none <= khugepaged_max_ptes_none)
++		if (pte_none(pteval) || is_zero_pfn(pte_pfn(pteval))) {
++			if (++none_or_zero <= khugepaged_max_ptes_none)
+ 				continue;
+ 			else
+ 				goto out;
+@@ -2207,9 +2207,21 @@ static void __collapse_huge_page_copy(pt
+ 		pte_t pteval = *_pte;
+ 		struct page *src_page;
  
- 	/* Find the largest possible block of pages in the other list */
- 	for (current_order = MAX_ORDER-1;
- 				current_order >= order && current_order <= MAX_ORDER-1;
- 				--current_order) {
--		int i;
--		for (i = 0;; i++) {
--			int migratetype = fallbacks[start_migratetype][i];
--			int buddy_type = start_migratetype;
--
--			/* MIGRATE_RESERVE handled later if necessary */
--			if (migratetype == MIGRATE_RESERVE)
--				break;
--
--			area = &(zone->free_area[current_order]);
--			if (list_empty(&area->free_list[migratetype]))
--				continue;
--
--			page = list_entry(area->free_list[migratetype].next,
--					struct page, lru);
--			area->nr_free--;
--
--			try_to_steal_freepages(zone, page, start_migratetype,
--								migratetype);
--
--			/* Remove the page from the freelists */
--			list_del(&page->lru);
--			rmv_page_order(page);
--
--			expand(zone, page, order, current_order, area,
--					buddy_type);
--
--			/*
--			 * The freepage_migratetype may differ from pageblock's
--			 * migratetype depending on the decisions in
--			 * try_to_steal_freepages(). This is OK as long as it
--			 * does not differ for MIGRATE_CMA pageblocks. For CMA
--			 * we need to make sure unallocated pages flushed from
--			 * pcp lists are returned to the correct freelist.
--			 */
--			set_freepage_migratetype(page, buddy_type);
-+		area = &(zone->free_area[current_order]);
-+		fallback_mt = find_suitable_fallback(area, current_order,
-+				start_migratetype, &can_steal);
-+		if (fallback_mt == -1)
-+			continue;
-+
-+		page = list_entry(area->free_list[fallback_mt].next,
-+						struct page, lru);
-+		if (can_steal)
-+			steal_suitable_fallback(zone, page, start_migratetype);
-+
-+		/* Remove the page from the freelists */
-+		area->nr_free--;
-+		list_del(&page->lru);
-+		rmv_page_order(page);
-+
-+		expand(zone, page, order, current_order, area,
-+					start_migratetype);
-+		/*
-+		 * The freepage_migratetype may differ from pageblock's
-+		 * migratetype depending on the decisions in
-+		 * try_to_steal_freepages(). This is OK as long as it
-+		 * does not differ for MIGRATE_CMA pageblocks. For CMA
-+		 * we need to make sure unallocated pages flushed from
-+		 * pcp lists are returned to the correct freelist.
-+		 */
-+		set_freepage_migratetype(page, start_migratetype);
- 
--			trace_mm_page_alloc_extfrag(page, order, current_order,
--				start_migratetype, migratetype);
-+		trace_mm_page_alloc_extfrag(page, order, current_order,
-+			start_migratetype, fallback_mt);
- 
--			return page;
--		}
-+		return page;
- 	}
- 
- 	return NULL;
+-		if (pte_none(pteval)) {
++		if (pte_none(pteval) || is_zero_pfn(pte_pfn(pteval))) {
+ 			clear_user_highpage(page, address);
+ 			add_mm_counter(vma->vm_mm, MM_ANONPAGES, 1);
++			if (is_zero_pfn(pte_pfn(pteval))) {
++				/*
++				 * ptl mostly unnecessary.
++				 */
++				spin_lock(ptl);
++				/*
++				 * paravirt calls inside pte_clear here are
++				 * superfluous.
++				 */
++				pte_clear(vma->vm_mm, address, _pte);
++				spin_unlock(ptl);
++			}
+ 		} else {
+ 			src_page = pte_page(pteval);
+ 			copy_user_highpage(page, src_page, address, vma);
+@@ -2543,7 +2555,7 @@ static int khugepaged_scan_pmd(struct mm
+ {
+ 	pmd_t *pmd;
+ 	pte_t *pte, *_pte;
+-	int ret = 0, none = 0;
++	int ret = 0, none_or_zero = 0;
+ 	struct page *page;
+ 	unsigned long _address;
+ 	spinlock_t *ptl;
+@@ -2561,8 +2573,8 @@ static int khugepaged_scan_pmd(struct mm
+ 	for (_address = address, _pte = pte; _pte < pte+HPAGE_PMD_NR;
+ 	     _pte++, _address += PAGE_SIZE) {
+ 		pte_t pteval = *_pte;
+-		if (pte_none(pteval)) {
+-			if (++none <= khugepaged_max_ptes_none)
++		if (pte_none(pteval) || is_zero_pfn(pte_pfn(pteval))) {
++			if (++none_or_zero <= khugepaged_max_ptes_none)
+ 				continue;
+ 			else
+ 				goto out_unmap;
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from ebru.akagunduz@gmail.com are
 
 origin.patch
-slab-infrastructure-for-bulk-object-allocation-and-freeing-v3.patch
-slub-bulk-alloc-extract-objects-from-the-per-cpu-slab.patch
-slub-bulk-allocation-from-per-cpu-partial-pages.patch
-slub-bulk-allocation-from-per-cpu-partial-pages-fix.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-mm-compaction-reset-compaction-scanner-positions.patch
-hugetlbfs-add-minimum-size-tracking-fields-to-subpool-structure.patch
-hugetlbfs-add-minimum-size-accounting-to-subpools.patch
-hugetlbfs-accept-subpool-min_size-mount-option-and-setup-accordingly.patch
-hugetlbfs-document-min_size-mount-option-and-cleanup.patch
-mm-vmalloc-fix-possible-exhaustion-of-vmalloc-space-caused-by-vm_map_ram-allocator.patch
-mm-vmalloc-occupy-newly-allocated-vmap-block-just-after-allocation.patch
-mm-vmalloc-get-rid-of-dirty-bitmap-inside-vmap_block-structure.patch
-mm-cma-add-trace-events-for-cma-allocations-and-freeings.patch
-mm-cma-add-trace-events-for-cma-allocations-and-freeings-fix.patch
-mm-cma-add-functions-to-get-region-pages-counters.patch
-mm-cma-add-functions-to-get-region-pages-counters-fix.patch
-mm-cma-add-functions-to-get-region-pages-counters-fix-2.patch
-mm-cma-add-functions-to-get-region-pages-counters-fix-3.patch
-mm-cma_debugc-remove-blank-lines-before-define_simple_attribute.patch
-zsmalloc-decouple-handle-and-object.patch
-zsmalloc-factor-out-obj_.patch
-zsmalloc-support-compaction.patch
-zsmalloc-adjust-zs_almost_full.patch
-zram-support-compaction.patch
-zsmalloc-record-handle-in-page-private-for-huge-object.patch
-zsmalloc-add-fullness-into-stat.patch
-zsmalloc-zsmalloc-documentation.patch
+linux-next.patch
 
