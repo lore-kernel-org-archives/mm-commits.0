@@ -1,64 +1,129 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- proc-pid-status-show-all-sets-of-pid-according-to-ns-fix.patch removed from -mm tree
-Date: Wed, 15 Apr 2015 15:44:46 -0700
-Message-ID: <552ee9de.1d4Z1GO7AF7fXoko%akpm@linux-foundation.org>
+ kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 15 Apr 2015 15:45:12 -0700
+Message-ID: <552ee9f8./L2fmHcz6/ejbgBM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52006 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52032 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752030AbbDOWor (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 18:44:47 -0400
+	with ESMTP id S932203AbbDOWpM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 18:45:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, chenhanxiao@cn.fujitsu.com, ebiederm@xmission.com, nathans@redhat.com, serge.hallyn@canonical.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, iulia.manda21@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc-pid-status-show-all-sets-of-pid-according-to-ns-fix
+     Subject: kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     proc-pid-status-show-all-sets-of-pid-according-to-ns-fix.patch
+     kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into proc-pid-status-show-all-sets-of-pid-according-to-ns.patch
+This patch was dropped because it was folded into kernel-conditionally-support-non-root-users-groups-and-capabilities.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: proc-pid-status-show-all-sets-of-pid-according-to-ns-fix
+Subject: kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes
 
-add CONFIG_PID_NS ifdef
+ERROR: code indent should use tabs where possible
+#120: FILE: include/linux/capability.h:220:
++        return true;$
 
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Chen Hanxiao <chenhanxiao@cn.fujitsu.com>
-Cc: Nathan Scott <nathans@redhat.com>
-Cc: Serge Hallyn <serge.hallyn@canonical.com>
+WARNING: please, no spaces at the start of a line
+#120: FILE: include/linux/capability.h:220:
++        return true;$
+
+ERROR: code indent should use tabs where possible
+#125: FILE: include/linux/capability.h:225:
++        return true;$
+
+WARNING: please, no spaces at the start of a line
+#125: FILE: include/linux/capability.h:225:
++        return true;$
+
+ERROR: code indent should use tabs where possible
+#129: FILE: include/linux/capability.h:229:
++        return true;$
+
+WARNING: please, no spaces at the start of a line
+#129: FILE: include/linux/capability.h:229:
++        return true;$
+
+ERROR: code indent should use tabs where possible
+#134: FILE: include/linux/capability.h:234:
++        return true;$
+
+WARNING: please, no spaces at the start of a line
+#134: FILE: include/linux/capability.h:234:
++        return true;$
+
+ERROR: code indent should use tabs where possible
+#170: FILE: include/linux/cred.h:79:
++        return 1;$
+
+WARNING: please, no spaces at the start of a line
+#170: FILE: include/linux/cred.h:79:
++        return 1;$
+
+ERROR: code indent should use tabs where possible
+#174: FILE: include/linux/cred.h:83:
++        return 1;$
+
+WARNING: please, no spaces at the start of a line
+#174: FILE: include/linux/cred.h:83:
++        return 1;$
+
+total: 6 errors, 6 warnings, 310 lines checked
+
+NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
+      scripts/cleanfile
+
+./patches/kernel-conditionally-support-non-root-users-groups-and-capabilities.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Iulia Manda <iulia.manda21@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/capability.h |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/proc/array.c~proc-pid-status-show-all-sets-of-pid-according-to-ns-fix fs/proc/array.c
---- a/fs/proc/array.c~proc-pid-status-show-all-sets-of-pid-according-to-ns-fix
-+++ a/fs/proc/array.c
-@@ -188,6 +188,7 @@ static inline void task_state(struct seq
- 			   from_kgid_munged(user_ns, GROUP_AT(group_info, g)));
- 	put_cred(cred);
- 
-+#ifdef CONFIG_PID_NS
- 	seq_puts(m, "\nNStgid:");
- 	for (g = ns->level; g <= pid->level; g++)
- 		seq_printf(m, "\t%d",
-@@ -204,6 +205,7 @@ static inline void task_state(struct seq
- 	for (g = ns->level; g <= pid->level; g++)
- 		seq_printf(m, "\t%d",
- 			task_session_nr_ns(p, pid->numbers[g].ns));
-+#endif
- 	seq_putc(m, '\n');
+diff -puN include/linux/capability.h~kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes include/linux/capability.h
+--- a/include/linux/capability.h~kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes
++++ a/include/linux/capability.h
+@@ -217,21 +217,21 @@ extern bool ns_capable(struct user_names
+ #else
+ static inline bool has_capability(struct task_struct *t, int cap)
+ {
+-        return true;
++	return true;
  }
- 
+ static inline bool has_ns_capability(struct task_struct *t,
+ 			      struct user_namespace *ns, int cap)
+ {
+-        return true;
++	return true;
+ }
+ static inline bool has_capability_noaudit(struct task_struct *t, int cap)
+ {
+-        return true;
++	return true;
+ }
+ static inline bool has_ns_capability_noaudit(struct task_struct *t,
+ 				      struct user_namespace *ns, int cap)
+ {
+-        return true;
++	return true;
+ }
+ static inline bool capable(int cap)
+ {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -79,6 +144,6 @@ mm-memory-print-also-a_ops-readpage-in-print_bad_pte.patch
 mm-compactionc-fix-suitable_migration_target-unused-warning.patch
 zsmalloc-support-compaction.patch
 proc-pid-status-show-all-sets-of-pid-according-to-ns.patch
-kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes.patch
+kernel-conditionally-support-non-root-users-groups-and-capabilities.patch
 lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix.patch
 
