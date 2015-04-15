@@ -1,283 +1,164 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-remove-gfp_thisnode.patch removed from -mm tree
-Date: Wed, 15 Apr 2015 12:10:53 -0700
-Message-ID: <552eb7bd.MTm+uhQyibkkWVvT%akpm@linux-foundation.org>
+Subject: [merged] cleancache-forbid-overriding-cleancache_ops.patch
+ removed from -mm tree
+Date: Wed, 15 Apr 2015 12:10:45 -0700
+Message-ID: <552eb7b5.9i36KojNiIuVAOfb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48276 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48251 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932588AbbDOTKy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:10:54 -0400
+	with ESMTP id S932583AbbDOTKq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:10:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, cl@linux.com, gthelen@google.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, jrajahalme@nicira.com, lizefan@huawei.com, mgorman@suse.de, penberg@kernel.org, pshelar@nicira.com, tj@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: vdavydov@parallels.com, andor.daam@googlemail.com, boris.ostrovsky@oracle.com, dan.magenheimer@oracle.com, david.vrabel@citrix.com, fschmaus@gmail.com, ilendir@googlemail.com, jlbec@evilplan.org, konrad.wilk@oracle.com, lliubbo@gmail.com, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove GFP_THISNODE
+     Subject: cleancache: forbid overriding cleancache_ops
 has been removed from the -mm tree.  Its filename was
-     mm-remove-gfp_thisnode.patch
+     cleancache-forbid-overriding-cleancache_ops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm: remove GFP_THISNODE
+From: Vladimir Davydov <vdavydov@parallels.com>
+Subject: cleancache: forbid overriding cleancache_ops
 
-NOTE: this is not about __GFP_THISNODE, this is only about GFP_THISNODE.
+Currently, cleancache_register_ops returns the previous value of
+cleancache_ops to allow chaining.  However, chaining, as it is implemented
+now, is extremely dangerous due to possible pool id collisions.  Suppose,
+a new cleancache driver is registered after the previous one assigned an
+id to a super block.  If the new driver assigns the same id to another
+super block, which is perfectly possible, we will have two different
+filesystems using the same id.  No matter if the new driver implements
+chaining or not, we are likely to get data corruption with such a
+configuration eventually.
 
-GFP_THISNODE is a secret combination of gfp bits that have different
-behavior than expected.  It is a combination of __GFP_THISNODE,
-__GFP_NORETRY, and __GFP_NOWARN and is special-cased in the page allocator
-slowpath to fail without trying reclaim even though it may be used in
-combination with __GFP_WAIT.
+This patch therefore disables the ability to override cleancache_ops
+altogether as potentially dangerous.  If there is already cleancache
+driver registered, all further calls to cleancache_register_ops will
+return EBUSY.  Since no user of cleancache implements chaining, we only
+need to make minor changes to the code outside the cleancache core.
 
-An example of the problem this creates: commit e97ca8e5b864 ("mm: fix
-GFP_THISNODE callers and clarify") fixed up many users of GFP_THISNODE
-that really just wanted __GFP_THISNODE.  The problem doesn't end there,
-however, because even it was a no-op for alloc_misplaced_dst_page(), which
-also sets __GFP_NORETRY and __GFP_NOWARN, and
-migrate_misplaced_transhuge_page(), where __GFP_NORETRY and __GFP_NOWAIT
-is set in GFP_TRANSHUGE.  Converting GFP_THISNODE to __GFP_THISNODE is a
-no-op in these cases since the page allocator special-cases __GFP_THISNODE
-&& __GFP_NORETRY && __GFP_NOWARN.
-
-It's time to just remove GFP_THISNODE entirely.  We leave __GFP_THISNODE
-to restrict an allocation to a local node, but remove GFP_THISNODE and its
-obscurity.  Instead, we require that a caller clear __GFP_WAIT if it wants
-to avoid reclaim.
-
-This allows the aforementioned functions to actually reclaim as they
-should.  It also enables any future callers that want to do __GFP_THISNODE
-but also __GFP_NORETRY && __GFP_NOWARN to reclaim.  The rule is simple: if
-you don't want to reclaim, then don't set __GFP_WAIT.
-
-Aside: ovs_flow_stats_update() really wants to avoid reclaim as well, so
-it is unchanged.
-
-Signed-off-by: David Rientjes <rientjes@google.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Christoph Lameter <cl@linux.com>
-Acked-by: Pekka Enberg <penberg@kernel.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Pravin Shelar <pshelar@nicira.com>
-Cc: Jarno Rajahalme <jrajahalme@nicira.com>
-Cc: Li Zefan <lizefan@huawei.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Tejun Heo <tj@kernel.org>
+Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Cc: David Vrabel <david.vrabel@citrix.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Stefan Hengelein <ilendir@googlemail.com>
+Cc: Florian Schmaus <fschmaus@gmail.com>
+Cc: Andor Daam <andor.daam@googlemail.com>
+Cc: Dan Magenheimer <dan.magenheimer@oracle.com>
+Cc: Bob Liu <lliubbo@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h    |   10 ----------
- mm/page_alloc.c        |   22 ++++++----------------
- mm/slab.c              |   22 ++++++++++++++++++----
- net/openvswitch/flow.c |    4 +++-
- 4 files changed, 27 insertions(+), 31 deletions(-)
+ Documentation/vm/cleancache.txt |    4 +---
+ drivers/xen/tmem.c              |   16 +++++++++-------
+ include/linux/cleancache.h      |    3 +--
+ mm/cleancache.c                 |   12 +++++++-----
+ 4 files changed, 18 insertions(+), 17 deletions(-)
 
-diff -puN include/linux/gfp.h~mm-remove-gfp_thisnode include/linux/gfp.h
---- a/include/linux/gfp.h~mm-remove-gfp_thisnode
-+++ a/include/linux/gfp.h
-@@ -117,16 +117,6 @@ struct vm_area_struct;
- 			 __GFP_NOMEMALLOC | __GFP_NORETRY | __GFP_NOWARN | \
- 			 __GFP_NO_KSWAPD)
+diff -puN Documentation/vm/cleancache.txt~cleancache-forbid-overriding-cleancache_ops Documentation/vm/cleancache.txt
+--- a/Documentation/vm/cleancache.txt~cleancache-forbid-overriding-cleancache_ops
++++ a/Documentation/vm/cleancache.txt
+@@ -28,9 +28,7 @@ IMPLEMENTATION OVERVIEW
+ A cleancache "backend" that provides transcendent memory registers itself
+ to the kernel's cleancache "frontend" by calling cleancache_register_ops,
+ passing a pointer to a cleancache_ops structure with funcs set appropriately.
+-Note that cleancache_register_ops returns the previous settings so that
+-chaining can be performed if desired. The functions provided must conform to
+-certain semantics as follows:
++The functions provided must conform to certain semantics as follows:
  
--/*
-- * GFP_THISNODE does not perform any reclaim, you most likely want to
-- * use __GFP_THISNODE to allocate from a given node without fallback!
-- */
--#ifdef CONFIG_NUMA
--#define GFP_THISNODE	(__GFP_THISNODE | __GFP_NOWARN | __GFP_NORETRY)
--#else
--#define GFP_THISNODE	((__force gfp_t)0)
--#endif
--
- /* This mask makes up all the page movable related flags */
- #define GFP_MOVABLE_MASK (__GFP_RECLAIMABLE|__GFP_MOVABLE)
- 
-diff -puN mm/page_alloc.c~mm-remove-gfp_thisnode mm/page_alloc.c
---- a/mm/page_alloc.c~mm-remove-gfp_thisnode
-+++ a/mm/page_alloc.c
-@@ -2412,13 +2412,7 @@ __alloc_pages_may_oom(gfp_t gfp_mask, un
- 			*did_some_progress = 1;
- 			goto out;
- 		}
--		/*
--		 * GFP_THISNODE contains __GFP_NORETRY and we never hit this.
--		 * Sanity check for bare calls of __GFP_THISNODE, not real OOM.
--		 * The caller should handle page allocation failure by itself if
--		 * it specifies __GFP_THISNODE.
--		 * Note: Hugepage uses it but will hit PAGE_ALLOC_COSTLY_ORDER.
--		 */
-+		/* The OOM killer may not free memory on a specific node */
- 		if (gfp_mask & __GFP_THISNODE)
- 			goto out;
- 	}
-@@ -2673,15 +2667,11 @@ __alloc_pages_slowpath(gfp_t gfp_mask, u
- 	}
- 
- 	/*
--	 * GFP_THISNODE (meaning __GFP_THISNODE, __GFP_NORETRY and
--	 * __GFP_NOWARN set) should not cause reclaim since the subsystem
--	 * (f.e. slab) using GFP_THISNODE may choose to trigger reclaim
--	 * using a larger set of nodes after it has established that the
--	 * allowed per node queues are empty and that nodes are
--	 * over allocated.
-+	 * If this allocation cannot block and it is for a specific node, then
-+	 * fail early.  There's no need to wakeup kswapd or retry for a
-+	 * speculative node-specific allocation.
- 	 */
--	if (IS_ENABLED(CONFIG_NUMA) &&
--	    (gfp_mask & GFP_THISNODE) == GFP_THISNODE)
-+	if (IS_ENABLED(CONFIG_NUMA) && (gfp_mask & __GFP_THISNODE) && !wait)
- 		goto nopage;
- 
- retry:
-@@ -2874,7 +2864,7 @@ __alloc_pages_nodemask(gfp_t gfp_mask, u
- 	/*
- 	 * Check the zones suitable for the gfp_mask contain at least one
- 	 * valid zone. It's possible to have an empty zonelist as a result
--	 * of GFP_THISNODE and a memoryless node
-+	 * of __GFP_THISNODE and a memoryless node
- 	 */
- 	if (unlikely(!zonelist->_zonerefs->zone))
- 		return NULL;
-diff -puN mm/slab.c~mm-remove-gfp_thisnode mm/slab.c
---- a/mm/slab.c~mm-remove-gfp_thisnode
-+++ a/mm/slab.c
-@@ -857,6 +857,11 @@ static inline void *____cache_alloc_node
- 	return NULL;
- }
- 
-+static inline gfp_t gfp_exact_node(gfp_t flags)
-+{
-+	return flags;
-+}
+ Most important, cleancache is "ephemeral".  Pages which are copied into
+ cleancache have an indefinite lifetime which is completely unknowable
+diff -puN drivers/xen/tmem.c~cleancache-forbid-overriding-cleancache_ops drivers/xen/tmem.c
+--- a/drivers/xen/tmem.c~cleancache-forbid-overriding-cleancache_ops
++++ a/drivers/xen/tmem.c
+@@ -397,13 +397,15 @@ static int __init xen_tmem_init(void)
+ #ifdef CONFIG_CLEANCACHE
+ 	BUG_ON(sizeof(struct cleancache_filekey) != sizeof(struct tmem_oid));
+ 	if (tmem_enabled && cleancache) {
+-		char *s = "";
+-		struct cleancache_ops *old_ops =
+-			cleancache_register_ops(&tmem_cleancache_ops);
+-		if (old_ops)
+-			s = " (WARNING: cleancache_ops overridden)";
+-		pr_info("cleancache enabled, RAM provided by Xen Transcendent Memory%s\n",
+-			s);
++		int err;
 +
- #else	/* CONFIG_NUMA */
- 
- static void *____cache_alloc_node(struct kmem_cache *, gfp_t, int);
-@@ -1023,6 +1028,15 @@ static inline int cache_free_alien(struc
- 
- 	return __cache_free_alien(cachep, objp, node, page_node);
- }
-+
-+/*
-+ * Construct gfp mask to allocate from a specific node but do not invoke reclaim
-+ * or warn about failures.
-+ */
-+static inline gfp_t gfp_exact_node(gfp_t flags)
-+{
-+	return (flags | __GFP_THISNODE | __GFP_NOWARN) & ~__GFP_WAIT;
-+}
++		err = cleancache_register_ops(&tmem_cleancache_ops);
++		if (err)
++			pr_warn("xen-tmem: failed to enable cleancache: %d\n",
++				err);
++		else
++			pr_info("cleancache enabled, RAM provided by "
++				"Xen Transcendent Memory\n");
+ 	}
  #endif
+ #ifdef CONFIG_XEN_SELFBALLOONING
+diff -puN include/linux/cleancache.h~cleancache-forbid-overriding-cleancache_ops include/linux/cleancache.h
+--- a/include/linux/cleancache.h~cleancache-forbid-overriding-cleancache_ops
++++ a/include/linux/cleancache.h
+@@ -33,8 +33,7 @@ struct cleancache_ops {
+ 	void (*invalidate_fs)(int);
+ };
+ 
+-extern struct cleancache_ops *
+-	cleancache_register_ops(struct cleancache_ops *ops);
++extern int cleancache_register_ops(struct cleancache_ops *ops);
+ extern void __cleancache_init_fs(struct super_block *);
+ extern void __cleancache_init_shared_fs(struct super_block *);
+ extern int  __cleancache_get_page(struct page *);
+diff -puN mm/cleancache.c~cleancache-forbid-overriding-cleancache_ops mm/cleancache.c
+--- a/mm/cleancache.c~cleancache-forbid-overriding-cleancache_ops
++++ a/mm/cleancache.c
+@@ -106,15 +106,17 @@ static DEFINE_MUTEX(poolid_mutex);
+  */
  
  /*
-@@ -2825,7 +2839,7 @@ alloc_done:
- 	if (unlikely(!ac->avail)) {
- 		int x;
- force_grow:
--		x = cache_grow(cachep, flags | GFP_THISNODE, node, NULL);
-+		x = cache_grow(cachep, gfp_exact_node(flags), node, NULL);
+- * Register operations for cleancache, returning previous thus allowing
+- * detection of multiple backends and possible nesting.
++ * Register operations for cleancache. Returns 0 on success.
+  */
+-struct cleancache_ops *cleancache_register_ops(struct cleancache_ops *ops)
++int cleancache_register_ops(struct cleancache_ops *ops)
+ {
+-	struct cleancache_ops *old = cleancache_ops;
+ 	int i;
  
- 		/* cache_grow can reenable interrupts, then ac could change. */
- 		ac = cpu_cache_get(cachep);
-@@ -3019,7 +3033,7 @@ retry:
- 			get_node(cache, nid) &&
- 			get_node(cache, nid)->free_objects) {
- 				obj = ____cache_alloc_node(cache,
--					flags | GFP_THISNODE, nid);
-+					gfp_exact_node(flags), nid);
- 				if (obj)
- 					break;
- 		}
-@@ -3047,7 +3061,7 @@ retry:
- 			nid = page_to_nid(page);
- 			if (cache_grow(cache, flags, nid, page)) {
- 				obj = ____cache_alloc_node(cache,
--					flags | GFP_THISNODE, nid);
-+					gfp_exact_node(flags), nid);
- 				if (!obj)
- 					/*
- 					 * Another processor may allocate the
-@@ -3118,7 +3132,7 @@ retry:
+ 	mutex_lock(&poolid_mutex);
++	if (cleancache_ops) {
++		mutex_unlock(&poolid_mutex);
++		return -EBUSY;
++	}
+ 	for (i = 0; i < MAX_INITIALIZABLE_FS; i++) {
+ 		if (fs_poolid_map[i] == FS_NO_BACKEND)
+ 			fs_poolid_map[i] = ops->init_fs(PAGE_SIZE);
+@@ -130,7 +132,7 @@ struct cleancache_ops *cleancache_regist
+ 	barrier();
+ 	cleancache_ops = ops;
+ 	mutex_unlock(&poolid_mutex);
+-	return old;
++	return 0;
+ }
+ EXPORT_SYMBOL(cleancache_register_ops);
  
- must_grow:
- 	spin_unlock(&n->list_lock);
--	x = cache_grow(cachep, flags | GFP_THISNODE, nodeid, NULL);
-+	x = cache_grow(cachep, gfp_exact_node(flags), nodeid, NULL);
- 	if (x)
- 		goto retry;
- 
-diff -puN net/openvswitch/flow.c~mm-remove-gfp_thisnode net/openvswitch/flow.c
---- a/net/openvswitch/flow.c~mm-remove-gfp_thisnode
-+++ a/net/openvswitch/flow.c
-@@ -100,7 +100,9 @@ void ovs_flow_stats_update(struct sw_flo
- 
- 				new_stats =
- 					kmem_cache_alloc_node(flow_stats_cache,
--							      GFP_THISNODE |
-+							      GFP_NOWAIT |
-+							      __GFP_THISNODE |
-+							      __GFP_NOWARN |
- 							      __GFP_NOMEMALLOC,
- 							      node);
- 				if (likely(new_stats)) {
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from vdavydov@parallels.com are
 
 origin.patch
-mm-mempool-do-not-allow-atomic-resizing.patch
-mm-hugetlb-abort-__get_user_pages-if-current-has-been-oom-killed.patch
-cxgb4-drop-__gfp_nofail-allocation.patch
-jbd2-revert-must-not-fail-allocation-loops-back-to-gfp_nofail.patch
-slab-infrastructure-for-bulk-object-allocation-and-freeing-v3.patch
-slub-bulk-alloc-extract-objects-from-the-per-cpu-slab.patch
-slub-bulk-allocation-from-per-cpu-partial-pages.patch
-slub-bulk-allocation-from-per-cpu-partial-pages-fix.patch
-mm-refactor-zone_movable_is_highmem.patch
-mm-memory-failurec-define-page-types-for-action_result-in-one-place.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-allow-compaction-of-unevictable-pages.patch
-document-interaction-between-compaction-and-the-unevictable-lru.patch
-document-interaction-between-compaction-and-the-unevictable-lru-fix.patch
-mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp.patch
-mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp-fix-fix.patch
-mm-compaction-reset-compaction-scanner-positions.patch
-hugetlbfs-add-minimum-size-tracking-fields-to-subpool-structure.patch
-hugetlbfs-add-minimum-size-accounting-to-subpools.patch
-hugetlbfs-accept-subpool-min_size-mount-option-and-setup-accordingly.patch
-hugetlbfs-document-min_size-mount-option-and-cleanup.patch
-mm-vmalloc-fix-possible-exhaustion-of-vmalloc-space-caused-by-vm_map_ram-allocator.patch
-mm-vmalloc-occupy-newly-allocated-vmap-block-just-after-allocation.patch
-mm-vmalloc-get-rid-of-dirty-bitmap-inside-vmap_block-structure.patch
-mremap-should-return-enomem-when-__vm_enough_memory-fail.patch
-clean-up-goto-just-return-err_ptr.patch
-fs-jfs-remove-slab-object-constructor.patch
-mm-mempool-disallow-mempools-based-on-slab-caches-with-constructors.patch
-mm-mempool-poison-elements-backed-by-slab-allocator.patch
-mm-mempool-poison-elements-backed-by-page-allocator.patch
-mm-mempool-poison-elements-backed-by-page-allocator-fix.patch
-mm-mempool-poison-elements-backed-by-page-allocator-fix-fix.patch
-mm-mempool-poison-elements-backed-by-page-allocator-fix-fix-fix.patch
-thp-handle-errors-in-hugepage_init-properly.patch
-thp-do-not-adjust-zone-water-marks-if-khugepaged-is-not-started.patch
-mm-doc-cleanup-and-clarify-munmap-behavior-for-hugetlb-memory.patch
-mm-doc-cleanup-and-clarify-munmap-behavior-for-hugetlb-memory-fix.patch
-mm-selftests-test-return-value-of-munmap-for-map_hugetlb-memory.patch
-mm-dont-call-__page_cache_release-for-hugetlb.patch
-mm-hugetlb-introduce-pagehugeactive-flag.patch
-mm-hugetlb-introduce-pagehugeactive-flag-fix.patch
-mm-hugetlb-cleanup-using-pagehugeactive-flag.patch
-mm-hugetlb-cleanup-using-pagehugeactive-flag-fix.patch
-thp-cleanup-khugepaged-startup.patch
-mm-mempool-kasan-poison-mempool-elements.patch
-hung_task-change-hung_taskc-to-use-for_each_process_thread.patch
-mm-utilc-add-kstrimdup.patch
+memcg-zap-mem_cgroup_lookup.patch
+memcg-remove-obsolete-comment.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+signal-remove-warning-about-using-si_tkill-in-rt_sigqueueinfo.patch
 linux-next.patch
 
