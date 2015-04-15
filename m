@@ -1,100 +1,153 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-migrate-mark-unmap_and_move-noinline-to-avoid-ice-in-gcc-473.patch
- removed from -mm tree
-Date: Wed, 15 Apr 2015 12:08:56 -0700
-Message-ID: <552eb748.F3HGrgfoaH2uDRTb%akpm@linux-foundation.org>
+ slub-use-bool-function-return-values-of-true-false-not-1-0.patch removed
+ from -mm tree
+Date: Wed, 15 Apr 2015 12:09:02 -0700
+Message-ID: <552eb74e.H6LKiB+E2cBiOlYA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47915 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47934 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932695AbbDOTI5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:08:57 -0400
+	with ESMTP id S1756581AbbDOTJD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:09:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geert+renesas@glider.be, khilman@kernel.org, khilman@linaro.org, lina.iyer@linaro.org, marc.zyngier@arm.com, mm-commits@vger.kernel.org
+To: joe@perches.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/migrate: mark unmap_and_move() "noinline" to avoid ICE in gcc 4.7.3
+     Subject: slub: use bool function return values of true/false not 1/0
 has been removed from the -mm tree.  Its filename was
-     mm-migrate-mark-unmap_and_move-noinline-to-avoid-ice-in-gcc-473.patch
+     slub-use-bool-function-return-values-of-true-false-not-1-0.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert+renesas@glider.be>
-Subject: mm/migrate: mark unmap_and_move() "noinline" to avoid ICE in gcc 4.7.3
+From: Joe Perches <joe@perches.com>
+Subject: slub: use bool function return values of true/false not 1/0
 
-With gcc version 4.7.3 (Ubuntu/Linaro 4.7.3-12ubuntu1) :
+Use the normal return values for bool functions
 
-    mm/migrate.c: In function `migrate_pages':
-    mm/migrate.c:1148:1: internal compiler error: in push_minipool_fix, at config/arm/arm.c:13500
-    Please submit a full bug report,
-    with preprocessed source if appropriate.
-    See <file:///usr/share/doc/gcc-4.7/README.Bugs> for instructions.
-    Preprocessed source stored into /tmp/ccPoM1tr.out file, please attach this to your bugreport.
-    make[1]: *** [mm/migrate.o] Error 1
-    make: *** [mm/migrate.o] Error 2
-
-Mark unmap_and_move() (which is used in a single place only) "noinline"
-to work around this compiler bug.
-
-[akpm@linux-foundation.org: make it conditional on gcc-4.7.3 and arm]
-[khilman@kernel.org: fine-tune compiler versions]
-[akpm@linux-foundation.org: fix comment]
-Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
-Reported-by: Kevin Hilman <khilman@kernel.org>
-Cc: Marc Zyngier <marc.zyngier@arm.com>
-Tested-by: Kevin Hilman <khilman@linaro.org>
-Tested-by: Lina Iyer <lina.iyer@linaro.org>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   17 ++++++++++++++---
- 1 file changed, 14 insertions(+), 3 deletions(-)
+ mm/slub.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN mm/migrate.c~mm-migrate-mark-unmap_and_move-noinline-to-avoid-ice-in-gcc-473 mm/migrate.c
---- a/mm/migrate.c~mm-migrate-mark-unmap_and_move-noinline-to-avoid-ice-in-gcc-473
-+++ a/mm/migrate.c
-@@ -901,12 +901,23 @@ out:
+diff -puN mm/slub.c~slub-use-bool-function-return-values-of-true-false-not-1-0 mm/slub.c
+--- a/mm/slub.c~slub-use-bool-function-return-values-of-true-false-not-1-0
++++ a/mm/slub.c
+@@ -374,7 +374,7 @@ static inline bool __cmpxchg_double_slab
+ 		if (cmpxchg_double(&page->freelist, &page->counters,
+ 				   freelist_old, counters_old,
+ 				   freelist_new, counters_new))
+-			return 1;
++			return true;
+ 	} else
+ #endif
+ 	{
+@@ -384,7 +384,7 @@ static inline bool __cmpxchg_double_slab
+ 			page->freelist = freelist_new;
+ 			set_page_slub_counters(page, counters_new);
+ 			slab_unlock(page);
+-			return 1;
++			return true;
+ 		}
+ 		slab_unlock(page);
+ 	}
+@@ -396,7 +396,7 @@ static inline bool __cmpxchg_double_slab
+ 	pr_info("%s %s: cmpxchg double redo ", n, s->name);
+ #endif
+ 
+-	return 0;
++	return false;
  }
  
- /*
-+ * gcc 4.7 and 4.8 on arm get an ICEs when inlining unmap_and_move().  Work
-+ * around it.
-+ */
-+#if (GCC_VERSION >= 40700 && GCC_VERSION < 40900) && defined(CONFIG_ARM)
-+#define ICE_noinline noinline
-+#else
-+#define ICE_noinline
-+#endif
-+
-+/*
-  * Obtain the lock on page, remove all ptes and migrate the page
-  * to the newly allocated page in newpage.
-  */
--static int unmap_and_move(new_page_t get_new_page, free_page_t put_new_page,
--			unsigned long private, struct page *page, int force,
--			enum migrate_mode mode)
-+static ICE_noinline int unmap_and_move(new_page_t get_new_page,
-+				   free_page_t put_new_page,
-+				   unsigned long private, struct page *page,
-+				   int force, enum migrate_mode mode)
- {
- 	int rc = 0;
- 	int *result = NULL;
+ static inline bool cmpxchg_double_slab(struct kmem_cache *s, struct page *page,
+@@ -410,7 +410,7 @@ static inline bool cmpxchg_double_slab(s
+ 		if (cmpxchg_double(&page->freelist, &page->counters,
+ 				   freelist_old, counters_old,
+ 				   freelist_new, counters_new))
+-			return 1;
++			return true;
+ 	} else
+ #endif
+ 	{
+@@ -424,7 +424,7 @@ static inline bool cmpxchg_double_slab(s
+ 			set_page_slub_counters(page, counters_new);
+ 			slab_unlock(page);
+ 			local_irq_restore(flags);
+-			return 1;
++			return true;
+ 		}
+ 		slab_unlock(page);
+ 		local_irq_restore(flags);
+@@ -437,7 +437,7 @@ static inline bool cmpxchg_double_slab(s
+ 	pr_info("%s %s: cmpxchg double redo ", n, s->name);
+ #endif
+ 
+-	return 0;
++	return false;
+ }
+ 
+ #ifdef CONFIG_SLUB_DEBUG
 _
 
-Patches currently in -mm which might be from geert+renesas@glider.be are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
-lib-vsprintf-document-%p-parameters-passed-by-reference.patch
-lib-vsprintf-move-integer-format-types-to-the-top.patch
-lib-vsprintf-add-%pcnr-format-specifiers-for-clocks.patch
-lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix.patch
+ocfs2-neaten-do_error-ocfs2_error-and-ocfs2_abort.patch
+maintainers-use-tabs-consistently.patch
+maintainers-credits-remove-stefano-brivio-from-b43.patch
+x86-mtrr-if-remove-use-of-seq_printf-return-value.patch
+power-wakeup-remove-use-of-seq_printf-return-value.patch
+rtc-remove-use-of-seq_printf-return-value.patch
+ipc-remove-use-of-seq_printf-return-value.patch
+microblaze-mb-remove-use-of-seq_printf-return-value.patch
+microblaze-mb-remove-use-of-seq_printf-return-value-fix.patch
+nios2-cpuinfo-remove-use-of-seq_printf-return-value.patch
+arm-plat-pxa-remove-use-of-seq_printf-return-value.patch
+openrisc-remove-use-of-seq_printf-return-value.patch
+cris-remove-use-of-seq_printf-return-value.patch
+cris-fasttimer-remove-use-of-seq_printf-return-value.patch
+s390-remove-use-of-seq_printf-return-value.patch
+proc-remove-use-of-seq_printf-return-value.patch
+cgroup-remove-use-of-seq_printf-return-value.patch
+tracing-remove-use-of-seq_printf-return-value.patch
+lru_cache-remove-use-of-seq_printf-return-value.patch
+parisc-remove-use-of-seq_printf-return-value.patch
+lib-vsprintfc-even-faster-decimal-conversion.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-improve-no-space-is-necessary-after-a-cast-test.patch
+checkpatch-add-spell-checking-of-email-subject-line.patch
+checkpatch-spell-check-reudce.patch
+checkpatch-add-optional-codespell-dictionary-to-find-more-typos.patch
+checkpatch-match-more-world-writable-permissions.patch
+checkpatch-match-more-world-writable-permissions-fix.patch
+checkpatch-improve-return-negative-errno-check.patch
+checkpatch-add-test-for-repeated-const-uses.patch
+checkpatch-dont-ask-for-asm-fileh-to-linux-fileh-unconditionally.patch
+checkpatch-submittingpatches-suggest-line-wrapping-commit-messages-at-75-columns.patch
+checkpatch-add-define-foo-string-long-line-exception.patch
+checkpatch-add-uart_ops-to-normally-const-structs.patch
+checkpatch-add-prefer-array_size-test.patch
+checkpatch-improve-operator-spacing-check.patch
+checkpatch-add-a-test-for-const-with-__read_mostly-uses.patch
+checkpatchpl-new-instances-of-enosys-are-errors.patch
+errnoh-improve-enosyss-comment.patch
+checkpatch-fix-fix-use-with-a-patch-of-multiple-files.patch
+checkpatch-avoid-spaces-required-around-that-false-positive.patch
+rtc-use-more-standard-kernel-logging-styles.patch
+adfs-returning-correct-return-values.patch
 linux-next.patch
+proc-show-locks-in-proc-pid-fdinfo-x.patch
+proc-show-locks-in-proc-pid-fdinfo-x-v2.patch
 
