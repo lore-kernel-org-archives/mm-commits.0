@@ -1,204 +1,420 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-mempool-do-not-allow-atomic-resizing.patch removed
- from -mm tree
-Date: Wed, 15 Apr 2015 12:30:44 -0700
-Message-ID: <552ebc64.5h/cHiYIhPi04m/T%akpm@linux-foundation.org>
+Subject: [merged] mm-move-memtest-under-mm.patch removed from -mm tree
+Date: Wed, 15 Apr 2015 12:30:50 -0700
+Message-ID: <552ebc6a.OJgOlbZdvG4Yf7kc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48632 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48646 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932192AbbDOTZ1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:25:27 -0400
+	with ESMTP id S1751905AbbDOTZd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:25:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, heiko.carstens@de.ibm.com, maier@linux.vnet.ibm.com, schwidefsky@de.ibm.com, sfrench@samba.org, mm-commits@vger.kernel.org
+To: vladimir.murzin@arm.com, catalin.marinas@arm.com, hpa@zytor.com, mark.rutland@arm.com, mingo@elte.hu, pebolle@tiscali.nl, rmk@arm.linux.org.uk, tglx@linutronix.de, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, mempool: do not allow atomic resizing
+     Subject: mm: move memtest under mm
 has been removed from the -mm tree.  Its filename was
-     mm-mempool-do-not-allow-atomic-resizing.patch
+     mm-move-memtest-under-mm.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, mempool: do not allow atomic resizing
+From: Vladimir Murzin <vladimir.murzin@arm.com>
+Subject: mm: move memtest under mm
 
-Allocating a large number of elements in atomic context could quickly
-deplete memory reserves, so just disallow atomic resizing entirely.
+Memtest is a simple feature which fills the memory with a given set of
+patterns and validates memory contents, if bad memory regions is detected
+it reserves them via memblock API.  Since memblock API is widely used by
+other architectures this feature can be enabled outside of x86 world.
 
-Nothing currently uses mempool_resize() with anything other than
-GFP_KERNEL, so convert existing callers to drop the gfp_mask.
+This patch set promotes memtest to live under generic mm umbrella and
+enables memtest feature for arm/arm64.
 
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: David Rientjes <rientjes@google.com>
-Acked-by: Steffen Maier <maier@linux.vnet.ibm.com>	[zfcp]
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Steve French <sfrench@samba.org>
+It was reported that this patch set was useful for tracking down an issue
+with some errant DMA on an arm64 platform.
+
+
+
+This patch (of 6):
+
+There is nothing platform dependent in the core memtest code, so other
+platforms might benefit from this feature too.
+
+[linux@roeck-us.net: MEMTEST depends on MEMBLOCK]
+Signed-off-by: Vladimir Murzin <vladimir.murzin@arm.com>
+Acked-by: Will Deacon <will.deacon@arm.com>
+Tested-by: Mark Rutland <mark.rutland@arm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Paul Bolle <pebolle@tiscali.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/s390/scsi/zfcp_erp.c |    4 ++--
- fs/cifs/connect.c            |    6 ++----
- include/linux/mempool.h      |    2 +-
- mm/mempool.c                 |   10 ++++++----
- 4 files changed, 11 insertions(+), 11 deletions(-)
+ arch/x86/Kconfig            |   11 ---
+ arch/x86/include/asm/e820.h |    8 --
+ arch/x86/mm/Makefile        |    2 
+ arch/x86/mm/memtest.c       |  118 ----------------------------------
+ include/linux/memblock.h    |    8 ++
+ lib/Kconfig.debug           |   12 +++
+ mm/Makefile                 |    1 
+ mm/memtest.c                |  118 ++++++++++++++++++++++++++++++++++
+ 8 files changed, 139 insertions(+), 139 deletions(-)
 
-diff -puN drivers/s390/scsi/zfcp_erp.c~mm-mempool-do-not-allow-atomic-resizing drivers/s390/scsi/zfcp_erp.c
---- a/drivers/s390/scsi/zfcp_erp.c~mm-mempool-do-not-allow-atomic-resizing
-+++ a/drivers/s390/scsi/zfcp_erp.c
-@@ -738,11 +738,11 @@ static int zfcp_erp_adapter_strategy_ope
- 		return ZFCP_ERP_FAILED;
+diff -puN arch/x86/Kconfig~mm-move-memtest-under-mm arch/x86/Kconfig
+--- a/arch/x86/Kconfig~mm-move-memtest-under-mm
++++ a/arch/x86/Kconfig
+@@ -721,17 +721,6 @@ endif #HYPERVISOR_GUEST
+ config NO_BOOTMEM
+ 	def_bool y
  
- 	if (mempool_resize(act->adapter->pool.sr_data,
--			   act->adapter->stat_read_buf_num, GFP_KERNEL))
-+			   act->adapter->stat_read_buf_num))
- 		return ZFCP_ERP_FAILED;
+-config MEMTEST
+-	bool "Memtest"
+-	---help---
+-	  This option adds a kernel parameter 'memtest', which allows memtest
+-	  to be set.
+-	        memtest=0, mean disabled; -- default
+-	        memtest=1, mean do 1 test pattern;
+-	        ...
+-	        memtest=4, mean do 4 test patterns.
+-	  If you are unsure how to answer this question, answer N.
+-
+ source "arch/x86/Kconfig.cpu"
  
- 	if (mempool_resize(act->adapter->pool.status_read_req,
--			   act->adapter->stat_read_buf_num, GFP_KERNEL))
-+			   act->adapter->stat_read_buf_num))
- 		return ZFCP_ERP_FAILED;
- 
- 	atomic_set(&act->adapter->stat_miss, act->adapter->stat_read_buf_num);
-diff -puN fs/cifs/connect.c~mm-mempool-do-not-allow-atomic-resizing fs/cifs/connect.c
---- a/fs/cifs/connect.c~mm-mempool-do-not-allow-atomic-resizing
-+++ a/fs/cifs/connect.c
-@@ -773,8 +773,7 @@ static void clean_demultiplex_info(struc
- 
- 	length = atomic_dec_return(&tcpSesAllocCount);
- 	if (length > 0)
--		mempool_resize(cifs_req_poolp, length + cifs_min_rcv,
--				GFP_KERNEL);
-+		mempool_resize(cifs_req_poolp, length + cifs_min_rcv);
+ config HPET_TIMER
+diff -puN arch/x86/include/asm/e820.h~mm-move-memtest-under-mm arch/x86/include/asm/e820.h
+--- a/arch/x86/include/asm/e820.h~mm-move-memtest-under-mm
++++ a/arch/x86/include/asm/e820.h
+@@ -40,14 +40,6 @@ static inline void e820_mark_nosave_regi
  }
+ #endif
  
- static int
-@@ -848,8 +847,7 @@ cifs_demultiplex_thread(void *p)
+-#ifdef CONFIG_MEMTEST
+-extern void early_memtest(unsigned long start, unsigned long end);
+-#else
+-static inline void early_memtest(unsigned long start, unsigned long end)
+-{
+-}
+-#endif
+-
+ extern unsigned long e820_end_of_ram_pfn(void);
+ extern unsigned long e820_end_of_low_ram_pfn(void);
+ extern u64 early_reserve_e820(u64 sizet, u64 align);
+diff -puN arch/x86/mm/Makefile~mm-move-memtest-under-mm arch/x86/mm/Makefile
+--- a/arch/x86/mm/Makefile~mm-move-memtest-under-mm
++++ a/arch/x86/mm/Makefile
+@@ -32,6 +32,4 @@ obj-$(CONFIG_AMD_NUMA)		+= amdtopology.o
+ obj-$(CONFIG_ACPI_NUMA)		+= srat.o
+ obj-$(CONFIG_NUMA_EMU)		+= numa_emulation.o
  
- 	length = atomic_inc_return(&tcpSesAllocCount);
- 	if (length > 1)
--		mempool_resize(cifs_req_poolp, length + cifs_min_rcv,
--				GFP_KERNEL);
-+		mempool_resize(cifs_req_poolp, length + cifs_min_rcv);
+-obj-$(CONFIG_MEMTEST)		+= memtest.o
+-
+ obj-$(CONFIG_X86_INTEL_MPX)	+= mpx.o
+diff -puN arch/x86/mm/memtest.c~mm-move-memtest-under-mm /dev/null
+--- a/arch/x86/mm/memtest.c
++++ /dev/null
+@@ -1,118 +0,0 @@
+-#include <linux/kernel.h>
+-#include <linux/errno.h>
+-#include <linux/string.h>
+-#include <linux/types.h>
+-#include <linux/mm.h>
+-#include <linux/smp.h>
+-#include <linux/init.h>
+-#include <linux/pfn.h>
+-#include <linux/memblock.h>
+-
+-static u64 patterns[] __initdata = {
+-	/* The first entry has to be 0 to leave memtest with zeroed memory */
+-	0,
+-	0xffffffffffffffffULL,
+-	0x5555555555555555ULL,
+-	0xaaaaaaaaaaaaaaaaULL,
+-	0x1111111111111111ULL,
+-	0x2222222222222222ULL,
+-	0x4444444444444444ULL,
+-	0x8888888888888888ULL,
+-	0x3333333333333333ULL,
+-	0x6666666666666666ULL,
+-	0x9999999999999999ULL,
+-	0xccccccccccccccccULL,
+-	0x7777777777777777ULL,
+-	0xbbbbbbbbbbbbbbbbULL,
+-	0xddddddddddddddddULL,
+-	0xeeeeeeeeeeeeeeeeULL,
+-	0x7a6c7258554e494cULL, /* yeah ;-) */
+-};
+-
+-static void __init reserve_bad_mem(u64 pattern, u64 start_bad, u64 end_bad)
+-{
+-	printk(KERN_INFO "  %016llx bad mem addr %010llx - %010llx reserved\n",
+-	       (unsigned long long) pattern,
+-	       (unsigned long long) start_bad,
+-	       (unsigned long long) end_bad);
+-	memblock_reserve(start_bad, end_bad - start_bad);
+-}
+-
+-static void __init memtest(u64 pattern, u64 start_phys, u64 size)
+-{
+-	u64 *p, *start, *end;
+-	u64 start_bad, last_bad;
+-	u64 start_phys_aligned;
+-	const size_t incr = sizeof(pattern);
+-
+-	start_phys_aligned = ALIGN(start_phys, incr);
+-	start = __va(start_phys_aligned);
+-	end = start + (size - (start_phys_aligned - start_phys)) / incr;
+-	start_bad = 0;
+-	last_bad = 0;
+-
+-	for (p = start; p < end; p++)
+-		*p = pattern;
+-
+-	for (p = start; p < end; p++, start_phys_aligned += incr) {
+-		if (*p == pattern)
+-			continue;
+-		if (start_phys_aligned == last_bad + incr) {
+-			last_bad += incr;
+-			continue;
+-		}
+-		if (start_bad)
+-			reserve_bad_mem(pattern, start_bad, last_bad + incr);
+-		start_bad = last_bad = start_phys_aligned;
+-	}
+-	if (start_bad)
+-		reserve_bad_mem(pattern, start_bad, last_bad + incr);
+-}
+-
+-static void __init do_one_pass(u64 pattern, u64 start, u64 end)
+-{
+-	u64 i;
+-	phys_addr_t this_start, this_end;
+-
+-	for_each_free_mem_range(i, NUMA_NO_NODE, &this_start, &this_end, NULL) {
+-		this_start = clamp_t(phys_addr_t, this_start, start, end);
+-		this_end = clamp_t(phys_addr_t, this_end, start, end);
+-		if (this_start < this_end) {
+-			printk(KERN_INFO "  %010llx - %010llx pattern %016llx\n",
+-			       (unsigned long long)this_start,
+-			       (unsigned long long)this_end,
+-			       (unsigned long long)cpu_to_be64(pattern));
+-			memtest(pattern, this_start, this_end - this_start);
+-		}
+-	}
+-}
+-
+-/* default is disabled */
+-static int memtest_pattern __initdata;
+-
+-static int __init parse_memtest(char *arg)
+-{
+-	if (arg)
+-		memtest_pattern = simple_strtoul(arg, NULL, 0);
+-	else
+-		memtest_pattern = ARRAY_SIZE(patterns);
+-
+-	return 0;
+-}
+-
+-early_param("memtest", parse_memtest);
+-
+-void __init early_memtest(unsigned long start, unsigned long end)
+-{
+-	unsigned int i;
+-	unsigned int idx = 0;
+-
+-	if (!memtest_pattern)
+-		return;
+-
+-	printk(KERN_INFO "early_memtest: # of tests: %d\n", memtest_pattern);
+-	for (i = memtest_pattern-1; i < UINT_MAX; --i) {
+-		idx = i % ARRAY_SIZE(patterns);
+-		do_one_pass(patterns[idx], start, end);
+-	}
+-}
+diff -puN include/linux/memblock.h~mm-move-memtest-under-mm include/linux/memblock.h
+--- a/include/linux/memblock.h~mm-move-memtest-under-mm
++++ a/include/linux/memblock.h
+@@ -365,6 +365,14 @@ static inline unsigned long memblock_reg
+ #define __initdata_memblock
+ #endif
  
- 	set_freezable();
- 	while (server->tcpStatus != CifsExiting) {
-diff -puN include/linux/mempool.h~mm-mempool-do-not-allow-atomic-resizing include/linux/mempool.h
---- a/include/linux/mempool.h~mm-mempool-do-not-allow-atomic-resizing
-+++ a/include/linux/mempool.h
-@@ -29,7 +29,7 @@ extern mempool_t *mempool_create_node(in
- 			mempool_free_t *free_fn, void *pool_data,
- 			gfp_t gfp_mask, int nid);
- 
--extern int mempool_resize(mempool_t *pool, int new_min_nr, gfp_t gfp_mask);
-+extern int mempool_resize(mempool_t *pool, int new_min_nr);
- extern void mempool_destroy(mempool_t *pool);
- extern void * mempool_alloc(mempool_t *pool, gfp_t gfp_mask);
- extern void mempool_free(void *element, mempool_t *pool);
-diff -puN mm/mempool.c~mm-mempool-do-not-allow-atomic-resizing mm/mempool.c
---- a/mm/mempool.c~mm-mempool-do-not-allow-atomic-resizing
-+++ a/mm/mempool.c
-@@ -113,23 +113,24 @@ EXPORT_SYMBOL(mempool_create_node);
-  *              mempool_create().
-  * @new_min_nr: the new minimum number of elements guaranteed to be
-  *              allocated for this pool.
-- * @gfp_mask:   the usual allocation bitmask.
-  *
-  * This function shrinks/grows the pool. In the case of growing,
-  * it cannot be guaranteed that the pool will be grown to the new
-  * size immediately, but new mempool_free() calls will refill it.
-+ * This function may sleep.
-  *
-  * Note, the caller must guarantee that no mempool_destroy is called
-  * while this function is running. mempool_alloc() & mempool_free()
-  * might be called (eg. from IRQ contexts) while this function executes.
-  */
--int mempool_resize(mempool_t *pool, int new_min_nr, gfp_t gfp_mask)
-+int mempool_resize(mempool_t *pool, int new_min_nr)
++#ifdef CONFIG_MEMTEST
++extern void early_memtest(unsigned long start, unsigned long end);
++#else
++static inline void early_memtest(unsigned long start, unsigned long end)
++{
++}
++#endif
++
+ #else
+ static inline phys_addr_t memblock_alloc(phys_addr_t size, phys_addr_t align)
  {
- 	void *element;
- 	void **new_elements;
- 	unsigned long flags;
+diff -puN lib/Kconfig.debug~mm-move-memtest-under-mm lib/Kconfig.debug
+--- a/lib/Kconfig.debug~mm-move-memtest-under-mm
++++ a/lib/Kconfig.debug
+@@ -1745,6 +1745,18 @@ config TEST_UDELAY
  
- 	BUG_ON(new_min_nr <= 0);
-+	might_sleep();
+ 	  If unsure, say N.
  
- 	spin_lock_irqsave(&pool->lock, flags);
- 	if (new_min_nr <= pool->min_nr) {
-@@ -145,7 +146,8 @@ int mempool_resize(mempool_t *pool, int
- 	spin_unlock_irqrestore(&pool->lock, flags);
++config MEMTEST
++	bool "Memtest"
++	depends on HAVE_MEMBLOCK
++	---help---
++	  This option adds a kernel parameter 'memtest', which allows memtest
++	  to be set.
++	        memtest=0, mean disabled; -- default
++	        memtest=1, mean do 1 test pattern;
++	        ...
++	        memtest=4, mean do 4 test patterns.
++	  If you are unsure how to answer this question, answer N.
++
+ source "samples/Kconfig"
  
- 	/* Grow the pool */
--	new_elements = kmalloc(new_min_nr * sizeof(*new_elements), gfp_mask);
-+	new_elements = kmalloc_array(new_min_nr, sizeof(*new_elements),
-+				     GFP_KERNEL);
- 	if (!new_elements)
- 		return -ENOMEM;
- 
-@@ -164,7 +166,7 @@ int mempool_resize(mempool_t *pool, int
- 
- 	while (pool->curr_nr < pool->min_nr) {
- 		spin_unlock_irqrestore(&pool->lock, flags);
--		element = pool->alloc(gfp_mask, pool->pool_data);
-+		element = pool->alloc(GFP_KERNEL, pool->pool_data);
- 		if (!element)
- 			goto out;
- 		spin_lock_irqsave(&pool->lock, flags);
+ source "lib/Kconfig.kgdb"
+diff -puN mm/Makefile~mm-move-memtest-under-mm mm/Makefile
+--- a/mm/Makefile~mm-move-memtest-under-mm
++++ a/mm/Makefile
+@@ -55,6 +55,7 @@ obj-$(CONFIG_KMEMCHECK) += kmemcheck.o
+ obj-$(CONFIG_KASAN)	+= kasan/
+ obj-$(CONFIG_FAILSLAB) += failslab.o
+ obj-$(CONFIG_MEMORY_HOTPLUG) += memory_hotplug.o
++obj-$(CONFIG_MEMTEST)		+= memtest.o
+ obj-$(CONFIG_MIGRATION) += migrate.o
+ obj-$(CONFIG_QUICKLIST) += quicklist.o
+ obj-$(CONFIG_TRANSPARENT_HUGEPAGE) += huge_memory.o
+diff -puN /dev/null mm/memtest.c
+--- /dev/null
++++ a/mm/memtest.c
+@@ -0,0 +1,118 @@
++#include <linux/kernel.h>
++#include <linux/errno.h>
++#include <linux/string.h>
++#include <linux/types.h>
++#include <linux/mm.h>
++#include <linux/smp.h>
++#include <linux/init.h>
++#include <linux/pfn.h>
++#include <linux/memblock.h>
++
++static u64 patterns[] __initdata = {
++	/* The first entry has to be 0 to leave memtest with zeroed memory */
++	0,
++	0xffffffffffffffffULL,
++	0x5555555555555555ULL,
++	0xaaaaaaaaaaaaaaaaULL,
++	0x1111111111111111ULL,
++	0x2222222222222222ULL,
++	0x4444444444444444ULL,
++	0x8888888888888888ULL,
++	0x3333333333333333ULL,
++	0x6666666666666666ULL,
++	0x9999999999999999ULL,
++	0xccccccccccccccccULL,
++	0x7777777777777777ULL,
++	0xbbbbbbbbbbbbbbbbULL,
++	0xddddddddddddddddULL,
++	0xeeeeeeeeeeeeeeeeULL,
++	0x7a6c7258554e494cULL, /* yeah ;-) */
++};
++
++static void __init reserve_bad_mem(u64 pattern, u64 start_bad, u64 end_bad)
++{
++	printk(KERN_INFO "  %016llx bad mem addr %010llx - %010llx reserved\n",
++	       (unsigned long long) pattern,
++	       (unsigned long long) start_bad,
++	       (unsigned long long) end_bad);
++	memblock_reserve(start_bad, end_bad - start_bad);
++}
++
++static void __init memtest(u64 pattern, u64 start_phys, u64 size)
++{
++	u64 *p, *start, *end;
++	u64 start_bad, last_bad;
++	u64 start_phys_aligned;
++	const size_t incr = sizeof(pattern);
++
++	start_phys_aligned = ALIGN(start_phys, incr);
++	start = __va(start_phys_aligned);
++	end = start + (size - (start_phys_aligned - start_phys)) / incr;
++	start_bad = 0;
++	last_bad = 0;
++
++	for (p = start; p < end; p++)
++		*p = pattern;
++
++	for (p = start; p < end; p++, start_phys_aligned += incr) {
++		if (*p == pattern)
++			continue;
++		if (start_phys_aligned == last_bad + incr) {
++			last_bad += incr;
++			continue;
++		}
++		if (start_bad)
++			reserve_bad_mem(pattern, start_bad, last_bad + incr);
++		start_bad = last_bad = start_phys_aligned;
++	}
++	if (start_bad)
++		reserve_bad_mem(pattern, start_bad, last_bad + incr);
++}
++
++static void __init do_one_pass(u64 pattern, u64 start, u64 end)
++{
++	u64 i;
++	phys_addr_t this_start, this_end;
++
++	for_each_free_mem_range(i, NUMA_NO_NODE, &this_start, &this_end, NULL) {
++		this_start = clamp_t(phys_addr_t, this_start, start, end);
++		this_end = clamp_t(phys_addr_t, this_end, start, end);
++		if (this_start < this_end) {
++			printk(KERN_INFO "  %010llx - %010llx pattern %016llx\n",
++			       (unsigned long long)this_start,
++			       (unsigned long long)this_end,
++			       (unsigned long long)cpu_to_be64(pattern));
++			memtest(pattern, this_start, this_end - this_start);
++		}
++	}
++}
++
++/* default is disabled */
++static int memtest_pattern __initdata;
++
++static int __init parse_memtest(char *arg)
++{
++	if (arg)
++		memtest_pattern = simple_strtoul(arg, NULL, 0);
++	else
++		memtest_pattern = ARRAY_SIZE(patterns);
++
++	return 0;
++}
++
++early_param("memtest", parse_memtest);
++
++void __init early_memtest(unsigned long start, unsigned long end)
++{
++	unsigned int i;
++	unsigned int idx = 0;
++
++	if (!memtest_pattern)
++		return;
++
++	printk(KERN_INFO "early_memtest: # of tests: %d\n", memtest_pattern);
++	for (i = memtest_pattern-1; i < UINT_MAX; --i) {
++		idx = i % ARRAY_SIZE(patterns);
++		do_one_pass(patterns[idx], start, end);
++	}
++}
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from vladimir.murzin@arm.com are
 
 origin.patch
-cxgb4-drop-__gfp_nofail-allocation.patch
-jbd2-revert-must-not-fail-allocation-loops-back-to-gfp_nofail.patch
-slab-infrastructure-for-bulk-object-allocation-and-freeing-v3.patch
-slub-bulk-alloc-extract-objects-from-the-per-cpu-slab.patch
-slub-bulk-allocation-from-per-cpu-partial-pages.patch
-slub-bulk-allocation-from-per-cpu-partial-pages-fix.patch
-mm-refactor-zone_movable_is_highmem.patch
-mm-memory-failurec-define-page-types-for-action_result-in-one-place.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-allow-compaction-of-unevictable-pages.patch
-document-interaction-between-compaction-and-the-unevictable-lru.patch
-document-interaction-between-compaction-and-the-unevictable-lru-fix.patch
-mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp.patch
-mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp-fix-fix.patch
-mm-compaction-reset-compaction-scanner-positions.patch
-hugetlbfs-add-minimum-size-tracking-fields-to-subpool-structure.patch
-hugetlbfs-add-minimum-size-accounting-to-subpools.patch
-hugetlbfs-accept-subpool-min_size-mount-option-and-setup-accordingly.patch
-hugetlbfs-document-min_size-mount-option-and-cleanup.patch
-mm-vmalloc-fix-possible-exhaustion-of-vmalloc-space-caused-by-vm_map_ram-allocator.patch
-mm-vmalloc-occupy-newly-allocated-vmap-block-just-after-allocation.patch
-mm-vmalloc-get-rid-of-dirty-bitmap-inside-vmap_block-structure.patch
-mremap-should-return-enomem-when-__vm_enough_memory-fail.patch
-clean-up-goto-just-return-err_ptr.patch
-fs-jfs-remove-slab-object-constructor.patch
-mm-mempool-disallow-mempools-based-on-slab-caches-with-constructors.patch
-mm-mempool-poison-elements-backed-by-slab-allocator.patch
-mm-mempool-poison-elements-backed-by-page-allocator.patch
-mm-mempool-poison-elements-backed-by-page-allocator-fix.patch
-mm-mempool-poison-elements-backed-by-page-allocator-fix-fix.patch
-mm-mempool-poison-elements-backed-by-page-allocator-fix-fix-fix.patch
-thp-handle-errors-in-hugepage_init-properly.patch
-thp-do-not-adjust-zone-water-marks-if-khugepaged-is-not-started.patch
-mm-doc-cleanup-and-clarify-munmap-behavior-for-hugetlb-memory.patch
-mm-doc-cleanup-and-clarify-munmap-behavior-for-hugetlb-memory-fix.patch
-mm-selftests-test-return-value-of-munmap-for-map_hugetlb-memory.patch
-mm-dont-call-__page_cache_release-for-hugetlb.patch
-mm-hugetlb-introduce-pagehugeactive-flag.patch
-mm-hugetlb-introduce-pagehugeactive-flag-fix.patch
-mm-hugetlb-cleanup-using-pagehugeactive-flag.patch
-mm-hugetlb-cleanup-using-pagehugeactive-flag-fix.patch
-thp-cleanup-khugepaged-startup.patch
-mm-mempool-kasan-poison-mempool-elements.patch
-hung_task-change-hung_taskc-to-use-for_each_process_thread.patch
-mm-utilc-add-kstrimdup.patch
-linux-next.patch
 
