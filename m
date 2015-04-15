@@ -1,85 +1,73 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-uninline-and-cleanup-page-mapping-related-helpers-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 15 Apr 2015 15:42:01 -0700
-Message-ID: <552ee939.w4vqydFnUzUUSF22%akpm@linux-foundation.org>
+ mm-cma-add-functions-to-get-region-pages-counters-fix-3.patch removed from
+ -mm tree
+Date: Wed, 15 Apr 2015 15:42:41 -0700
+Message-ID: <552ee961.N9ickb+juuuqwsUH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51927 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51944 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756727AbbDOWmC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 18:42:02 -0400
+	with ESMTP id S1752916AbbDOWmm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 18:42:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
+To: d.safonov@partner.samsung.com, iamjoonsoo.kim@lge.com, m.szyprowski@samsung.com, mina86@mina86.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-uninline-and-cleanup-page-mapping-related-helpers-checkpatch-fixes
+     Subject: mm-cma-add-functions-to-get-region-pages-counters-fix-3
 has been removed from the -mm tree.  Its filename was
-     mm-uninline-and-cleanup-page-mapping-related-helpers-checkpatch-fixes.patch
+     mm-cma-add-functions-to-get-region-pages-counters-fix-3.patch
 
-This patch was dropped because it was folded into mm-uninline-and-cleanup-page-mapping-related-helpers.patch
+This patch was dropped because it was folded into mm-cma-add-functions-to-get-region-pages-counters.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-uninline-and-cleanup-page-mapping-related-helpers-checkpatch-fixes
+From: Dmitry Safonov <d.safonov@partner.samsung.com>
+Subject: mm-cma-add-functions-to-get-region-pages-counters-fix-3
 
-ERROR: "foo * bar" should be "foo *bar"
-#73: FILE: mm/util.c:328:
-+static inline void * __page_rmapping(struct page *page)
+Fix for the next compiler warnings:
+mm/cma_debug.c:45 cma_used_get() warn: should 'used << cma->order_per_bit' be a 64 bit type?
+mm/cma_debug.c:67 cma_maxchunk_get() warn: should 'maxchunk << cma->order_per_bit' be a 64 bit type?
 
-total: 1 errors, 0 warnings, 90 lines checked
-
-./patches/mm-uninline-and-cleanup-page-mapping-related-helpers.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Signed-off-by: Dmitry Safonov <d.safonov@partner.samsung.com>
+Acked-by: Michal Nazarewicz <mina86@mina86.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/util.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/cma_debug.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/util.c~mm-uninline-and-cleanup-page-mapping-related-helpers-checkpatch-fixes mm/util.c
---- a/mm/util.c~mm-uninline-and-cleanup-page-mapping-related-helpers-checkpatch-fixes
-+++ a/mm/util.c
-@@ -325,7 +325,7 @@ void kvfree(const void *addr)
+diff -puN mm/cma_debug.c~mm-cma-add-functions-to-get-region-pages-counters-fix-3 mm/cma_debug.c
+--- a/mm/cma_debug.c~mm-cma-add-functions-to-get-region-pages-counters-fix-3
++++ a/mm/cma_debug.c
+@@ -42,7 +42,7 @@ static int cma_used_get(void *data, u64
+ 	/* pages counter is smaller than sizeof(int) */
+ 	used = bitmap_weight(cma->bitmap, (int)cma->count);
+ 	mutex_unlock(&cma->lock);
+-	*val = used << cma->order_per_bit;
++	*val = (u64)used << cma->order_per_bit;
+ 
+ 	return 0;
  }
- EXPORT_SYMBOL(kvfree);
+@@ -64,7 +64,7 @@ static int cma_maxchunk_get(void *data,
+ 		maxchunk = max(end - start, maxchunk);
+ 	}
+ 	mutex_unlock(&cma->lock);
+-	*val = maxchunk << cma->order_per_bit;
++	*val = (u64)maxchunk << cma->order_per_bit;
  
--static inline void * __page_rmapping(struct page *page)
-+static inline void *__page_rmapping(struct page *page)
- {
- 	unsigned long mapping;
- 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from d.safonov@partner.samsung.com are
 
-origin.patch
-mm-memory-failurec-define-page-types-for-action_result-in-one-place.patch
-document-interaction-between-compaction-and-the-unevictable-lru.patch
-mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp.patch
-mm-vmalloc-occupy-newly-allocated-vmap-block-just-after-allocation.patch
-mm-mmapc-use-while-instead-of-ifgoto.patch
-mm-hugetlb-introduce-pagehugeactive-flag.patch
-mm-hugetlb-cleanup-using-pagehugeactive-flag.patch
-mm-memblock-add-debug-output-for-the-memblock_add.patch
-mm-uninline-and-cleanup-page-mapping-related-helpers.patch
-mm-cma-add-functions-to-get-region-pages-counters-fix.patch
+mm-cma-add-functions-to-get-region-pages-counters.patch
 mm-cma_debugc-remove-blank-lines-before-define_simple_attribute.patch
-mm-memory-print-also-a_ops-readpage-in-print_bad_pte-fix.patch
-mm-compactionc-fix-suitable_migration_target-unused-warning.patch
-zsmalloc-support-compaction-fix.patch
-proc-pid-status-show-all-sets-of-pid-according-to-ns-fix.patch
-kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes.patch
-lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix.patch
 
