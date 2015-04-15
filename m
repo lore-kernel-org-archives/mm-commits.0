@@ -1,164 +1,163 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cleancache-forbid-overriding-cleancache_ops.patch
+Subject: [merged]
+ mm-thp-really-limit-transparent-hugepage-allocation-to-local-node.patch
  removed from -mm tree
-Date: Wed, 15 Apr 2015 12:10:45 -0700
-Message-ID: <552eb7b5.9i36KojNiIuVAOfb%akpm@linux-foundation.org>
+Date: Wed, 15 Apr 2015 12:10:56 -0700
+Message-ID: <552eb7c0.AXeMRTYb+wrHRYJ6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48251 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48287 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932583AbbDOTKq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:10:46 -0400
+	with ESMTP id S932588AbbDOTK5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:10:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@parallels.com, andor.daam@googlemail.com, boris.ostrovsky@oracle.com, dan.magenheimer@oracle.com, david.vrabel@citrix.com, fschmaus@gmail.com, ilendir@googlemail.com, jlbec@evilplan.org, konrad.wilk@oracle.com, lliubbo@gmail.com, mfasheh@suse.com, mm-commits@vger.kernel.org
+To: rientjes@google.com, cl@linux.com, gthelen@google.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, jrajahalme@nicira.com, lizefan@huawei.com, mgorman@suse.de, penberg@kernel.org, pshelar@nicira.com, tj@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cleancache: forbid overriding cleancache_ops
+     Subject: mm, thp: really limit transparent hugepage allocation to local node
 has been removed from the -mm tree.  Its filename was
-     cleancache-forbid-overriding-cleancache_ops.patch
+     mm-thp-really-limit-transparent-hugepage-allocation-to-local-node.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: cleancache: forbid overriding cleancache_ops
+From: David Rientjes <rientjes@google.com>
+Subject: mm, thp: really limit transparent hugepage allocation to local node
 
-Currently, cleancache_register_ops returns the previous value of
-cleancache_ops to allow chaining.  However, chaining, as it is implemented
-now, is extremely dangerous due to possible pool id collisions.  Suppose,
-a new cleancache driver is registered after the previous one assigned an
-id to a super block.  If the new driver assigns the same id to another
-super block, which is perfectly possible, we will have two different
-filesystems using the same id.  No matter if the new driver implements
-chaining or not, we are likely to get data corruption with such a
-configuration eventually.
+Commit 077fcf116c8c ("mm/thp: allocate transparent hugepages on local
+node") restructured alloc_hugepage_vma() with the intent of only
+allocating transparent hugepages locally when there was not an effective
+interleave mempolicy.
 
-This patch therefore disables the ability to override cleancache_ops
-altogether as potentially dangerous.  If there is already cleancache
-driver registered, all further calls to cleancache_register_ops will
-return EBUSY.  Since no user of cleancache implements chaining, we only
-need to make minor changes to the code outside the cleancache core.
+alloc_pages_exact_node() does not limit the allocation to the single node,
+however, but rather prefers it.  This is because __GFP_THISNODE is not set
+which would cause the node-local nodemask to be passed.  Without it, only
+a nodemask that prefers the local node is passed.
 
-Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Cc: David Vrabel <david.vrabel@citrix.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Stefan Hengelein <ilendir@googlemail.com>
-Cc: Florian Schmaus <fschmaus@gmail.com>
-Cc: Andor Daam <andor.daam@googlemail.com>
-Cc: Dan Magenheimer <dan.magenheimer@oracle.com>
-Cc: Bob Liu <lliubbo@gmail.com>
+Fix this by passing __GFP_THISNODE and falling back to small pages when
+the allocation fails.
+
+Commit 9f1b868a13ac ("mm: thp: khugepaged: add policy for finding target
+node") suffers from a similar problem for khugepaged, which is also fixed.
+
+Fixes: 077fcf116c8c ("mm/thp: allocate transparent hugepages on local node")
+Fixes: 9f1b868a13ac ("mm: thp: khugepaged: add policy for finding target node")
+Signed-off-by: David Rientjes <rientjes@google.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Pravin Shelar <pshelar@nicira.com>
+Cc: Jarno Rajahalme <jrajahalme@nicira.com>
+Cc: Li Zefan <lizefan@huawei.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/cleancache.txt |    4 +---
- drivers/xen/tmem.c              |   16 +++++++++-------
- include/linux/cleancache.h      |    3 +--
- mm/cleancache.c                 |   12 +++++++-----
- 4 files changed, 18 insertions(+), 17 deletions(-)
+ mm/huge_memory.c |    9 +++++++--
+ mm/mempolicy.c   |    3 ++-
+ 2 files changed, 9 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/vm/cleancache.txt~cleancache-forbid-overriding-cleancache_ops Documentation/vm/cleancache.txt
---- a/Documentation/vm/cleancache.txt~cleancache-forbid-overriding-cleancache_ops
-+++ a/Documentation/vm/cleancache.txt
-@@ -28,9 +28,7 @@ IMPLEMENTATION OVERVIEW
- A cleancache "backend" that provides transcendent memory registers itself
- to the kernel's cleancache "frontend" by calling cleancache_register_ops,
- passing a pointer to a cleancache_ops structure with funcs set appropriately.
--Note that cleancache_register_ops returns the previous settings so that
--chaining can be performed if desired. The functions provided must conform to
--certain semantics as follows:
-+The functions provided must conform to certain semantics as follows:
- 
- Most important, cleancache is "ephemeral".  Pages which are copied into
- cleancache have an indefinite lifetime which is completely unknowable
-diff -puN drivers/xen/tmem.c~cleancache-forbid-overriding-cleancache_ops drivers/xen/tmem.c
---- a/drivers/xen/tmem.c~cleancache-forbid-overriding-cleancache_ops
-+++ a/drivers/xen/tmem.c
-@@ -397,13 +397,15 @@ static int __init xen_tmem_init(void)
- #ifdef CONFIG_CLEANCACHE
- 	BUG_ON(sizeof(struct cleancache_filekey) != sizeof(struct tmem_oid));
- 	if (tmem_enabled && cleancache) {
--		char *s = "";
--		struct cleancache_ops *old_ops =
--			cleancache_register_ops(&tmem_cleancache_ops);
--		if (old_ops)
--			s = " (WARNING: cleancache_ops overridden)";
--		pr_info("cleancache enabled, RAM provided by Xen Transcendent Memory%s\n",
--			s);
-+		int err;
-+
-+		err = cleancache_register_ops(&tmem_cleancache_ops);
-+		if (err)
-+			pr_warn("xen-tmem: failed to enable cleancache: %d\n",
-+				err);
-+		else
-+			pr_info("cleancache enabled, RAM provided by "
-+				"Xen Transcendent Memory\n");
- 	}
- #endif
- #ifdef CONFIG_XEN_SELFBALLOONING
-diff -puN include/linux/cleancache.h~cleancache-forbid-overriding-cleancache_ops include/linux/cleancache.h
---- a/include/linux/cleancache.h~cleancache-forbid-overriding-cleancache_ops
-+++ a/include/linux/cleancache.h
-@@ -33,8 +33,7 @@ struct cleancache_ops {
- 	void (*invalidate_fs)(int);
- };
- 
--extern struct cleancache_ops *
--	cleancache_register_ops(struct cleancache_ops *ops);
-+extern int cleancache_register_ops(struct cleancache_ops *ops);
- extern void __cleancache_init_fs(struct super_block *);
- extern void __cleancache_init_shared_fs(struct super_block *);
- extern int  __cleancache_get_page(struct page *);
-diff -puN mm/cleancache.c~cleancache-forbid-overriding-cleancache_ops mm/cleancache.c
---- a/mm/cleancache.c~cleancache-forbid-overriding-cleancache_ops
-+++ a/mm/cleancache.c
-@@ -106,15 +106,17 @@ static DEFINE_MUTEX(poolid_mutex);
-  */
- 
- /*
-- * Register operations for cleancache, returning previous thus allowing
-- * detection of multiple backends and possible nesting.
-+ * Register operations for cleancache. Returns 0 on success.
-  */
--struct cleancache_ops *cleancache_register_ops(struct cleancache_ops *ops)
-+int cleancache_register_ops(struct cleancache_ops *ops)
+diff -puN mm/huge_memory.c~mm-thp-really-limit-transparent-hugepage-allocation-to-local-node mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-thp-really-limit-transparent-hugepage-allocation-to-local-node
++++ a/mm/huge_memory.c
+@@ -2328,8 +2328,14 @@ static struct page
+ 		       struct vm_area_struct *vma, unsigned long address,
+ 		       int node)
  {
--	struct cleancache_ops *old = cleancache_ops;
- 	int i;
++	gfp_t flags;
++
+ 	VM_BUG_ON_PAGE(*hpage, *hpage);
  
- 	mutex_lock(&poolid_mutex);
-+	if (cleancache_ops) {
-+		mutex_unlock(&poolid_mutex);
-+		return -EBUSY;
-+	}
- 	for (i = 0; i < MAX_INITIALIZABLE_FS; i++) {
- 		if (fs_poolid_map[i] == FS_NO_BACKEND)
- 			fs_poolid_map[i] = ops->init_fs(PAGE_SIZE);
-@@ -130,7 +132,7 @@ struct cleancache_ops *cleancache_regist
- 	barrier();
- 	cleancache_ops = ops;
- 	mutex_unlock(&poolid_mutex);
--	return old;
-+	return 0;
- }
- EXPORT_SYMBOL(cleancache_register_ops);
++	/* Only allocate from the target node */
++	flags = alloc_hugepage_gfpmask(khugepaged_defrag(), __GFP_OTHER_NODE) |
++	        __GFP_THISNODE;
++
+ 	/*
+ 	 * Before allocating the hugepage, release the mmap_sem read lock.
+ 	 * The allocation can take potentially a long time if it involves
+@@ -2338,8 +2344,7 @@ static struct page
+ 	 */
+ 	up_read(&mm->mmap_sem);
  
+-	*hpage = alloc_pages_exact_node(node, alloc_hugepage_gfpmask(
+-		khugepaged_defrag(), __GFP_OTHER_NODE), HPAGE_PMD_ORDER);
++	*hpage = alloc_pages_exact_node(node, flags, HPAGE_PMD_ORDER);
+ 	if (unlikely(!*hpage)) {
+ 		count_vm_event(THP_COLLAPSE_ALLOC_FAILED);
+ 		*hpage = ERR_PTR(-ENOMEM);
+diff -puN mm/mempolicy.c~mm-thp-really-limit-transparent-hugepage-allocation-to-local-node mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-thp-really-limit-transparent-hugepage-allocation-to-local-node
++++ a/mm/mempolicy.c
+@@ -1986,7 +1986,8 @@ retry_cpuset:
+ 		nmask = policy_nodemask(gfp, pol);
+ 		if (!nmask || node_isset(node, *nmask)) {
+ 			mpol_cond_put(pol);
+-			page = alloc_pages_exact_node(node, gfp, order);
++			page = alloc_pages_exact_node(node,
++						gfp | __GFP_THISNODE, order);
+ 			goto out;
+ 		}
+ 	}
 _
 
-Patches currently in -mm which might be from vdavydov@parallels.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
 origin.patch
-memcg-zap-mem_cgroup_lookup.patch
-memcg-remove-obsolete-comment.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-signal-remove-warning-about-using-si_tkill-in-rt_sigqueueinfo.patch
+mm-mempool-do-not-allow-atomic-resizing.patch
+mm-hugetlb-abort-__get_user_pages-if-current-has-been-oom-killed.patch
+cxgb4-drop-__gfp_nofail-allocation.patch
+jbd2-revert-must-not-fail-allocation-loops-back-to-gfp_nofail.patch
+slab-infrastructure-for-bulk-object-allocation-and-freeing-v3.patch
+slub-bulk-alloc-extract-objects-from-the-per-cpu-slab.patch
+slub-bulk-allocation-from-per-cpu-partial-pages.patch
+slub-bulk-allocation-from-per-cpu-partial-pages-fix.patch
+mm-refactor-zone_movable_is_highmem.patch
+mm-memory-failurec-define-page-types-for-action_result-in-one-place.patch
+page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
+allow-compaction-of-unevictable-pages.patch
+document-interaction-between-compaction-and-the-unevictable-lru.patch
+document-interaction-between-compaction-and-the-unevictable-lru-fix.patch
+mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp.patch
+mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp-fix-fix.patch
+mm-compaction-reset-compaction-scanner-positions.patch
+hugetlbfs-add-minimum-size-tracking-fields-to-subpool-structure.patch
+hugetlbfs-add-minimum-size-accounting-to-subpools.patch
+hugetlbfs-accept-subpool-min_size-mount-option-and-setup-accordingly.patch
+hugetlbfs-document-min_size-mount-option-and-cleanup.patch
+mm-vmalloc-fix-possible-exhaustion-of-vmalloc-space-caused-by-vm_map_ram-allocator.patch
+mm-vmalloc-occupy-newly-allocated-vmap-block-just-after-allocation.patch
+mm-vmalloc-get-rid-of-dirty-bitmap-inside-vmap_block-structure.patch
+mremap-should-return-enomem-when-__vm_enough_memory-fail.patch
+clean-up-goto-just-return-err_ptr.patch
+fs-jfs-remove-slab-object-constructor.patch
+mm-mempool-disallow-mempools-based-on-slab-caches-with-constructors.patch
+mm-mempool-poison-elements-backed-by-slab-allocator.patch
+mm-mempool-poison-elements-backed-by-page-allocator.patch
+mm-mempool-poison-elements-backed-by-page-allocator-fix.patch
+mm-mempool-poison-elements-backed-by-page-allocator-fix-fix.patch
+mm-mempool-poison-elements-backed-by-page-allocator-fix-fix-fix.patch
+thp-handle-errors-in-hugepage_init-properly.patch
+thp-do-not-adjust-zone-water-marks-if-khugepaged-is-not-started.patch
+mm-doc-cleanup-and-clarify-munmap-behavior-for-hugetlb-memory.patch
+mm-doc-cleanup-and-clarify-munmap-behavior-for-hugetlb-memory-fix.patch
+mm-selftests-test-return-value-of-munmap-for-map_hugetlb-memory.patch
+mm-dont-call-__page_cache_release-for-hugetlb.patch
+mm-hugetlb-introduce-pagehugeactive-flag.patch
+mm-hugetlb-introduce-pagehugeactive-flag-fix.patch
+mm-hugetlb-cleanup-using-pagehugeactive-flag.patch
+mm-hugetlb-cleanup-using-pagehugeactive-flag-fix.patch
+thp-cleanup-khugepaged-startup.patch
+mm-mempool-kasan-poison-mempool-elements.patch
+hung_task-change-hung_taskc-to-use-for_each_process_thread.patch
+mm-utilc-add-kstrimdup.patch
 linux-next.patch
 
