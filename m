@@ -1,236 +1,134 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-fold-arch_randomize_brk-into-arch_has_elf_randomize.patch removed from
- -mm tree
-Date: Wed, 15 Apr 2015 12:30:36 -0700
-Message-ID: <552ebc5c.05FIuu0Asa5G5uvD%akpm@linux-foundation.org>
+ memcg-print-cgroup-information-when-system-panics-due-to-panic_on_oom.patch removed from -mm tree
+Date: Wed, 15 Apr 2015 12:30:41 -0700
+Message-ID: <552ebc61.sKWmDFVRfyHx4peT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48620 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48626 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754373AbbDOTZU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:25:20 -0400
+	with ESMTP id S932192AbbDOTZY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:25:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: keescook@chromium.org, a.ryabinin@samsung.com, achandran@mvista.com, alex@alex-smith.me.uk, behanw@converseincode.com, ben@decadent.org.uk, benh@kernel.crashing.org, catalin.marinas@arm.com, dave.long@linaro.org, dl9pf@gmx.de, hecmargi@upv.es, heiko.carstens@de.ibm.com, holzheu@linux.vnet.ibm.com, iripoll@upv.es, jeffbailey@google.com, linux@arm.linux.org.uk, luto@amacapital.net, markos.chandras@imgtec.com, mingo@kernel.org, mpe@ellerman.id.au, oleg@redhat.com, orca.chen@gmail.com, paul.burton@imgtec.com, paulus@samba.org, ralf@linux-mips.org, schwidefsky@de.ibm.com, viro@zeniv.linux.org.uk, vvijayan@mvista.com, will.deacon@arm.com, ydroneaud@opteya.com, mm-commits@vger.kernel.org
+To: balu252@gmail.com, balasubramani_vivekanandan@mentor.com, hannes@cmpxchg.org, mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fold arch_randomize_brk into ARCH_HAS_ELF_RANDOMIZE
+     Subject: memcg: print cgroup information when system panics due to panic_on_oom
 has been removed from the -mm tree.  Its filename was
-     mm-fold-arch_randomize_brk-into-arch_has_elf_randomize.patch
+     memcg-print-cgroup-information-when-system-panics-due-to-panic_on_oom.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: mm: fold arch_randomize_brk into ARCH_HAS_ELF_RANDOMIZE
+From: Balasubramani Vivekanandan <balu252@gmail.com>
+Subject: memcg: print cgroup information when system panics due to panic_on_oom
 
-The arch_randomize_brk() function is used on several architectures,
-even those that don't support ET_DYN ASLR. To avoid bulky extern/#define
-tricks, consolidate the support under CONFIG_ARCH_HAS_ELF_RANDOMIZE for
-the architectures that support it, while still handling CONFIG_COMPAT_BRK.
+If kernel panics due to oom, caused by a cgroup reaching its limit, when
+'compulsory panic_on_oom' is enabled, then we will only see that the OOM
+happened because of "compulsory panic_on_oom is enabled" but this doesn't
+tell the difference between mempolicy and memcg.  And dumping system wide
+information is plain wrong and more confusing.  This patch provides the
+information of the cgroup whose limit triggerred panic
 
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Cc: Hector Marco-Gisbert <hecmargi@upv.es>
-Cc: Russell King <linux@arm.linux.org.uk>
-Reviewed-by: Ingo Molnar <mingo@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Andy Lutomirski <luto@amacapital.net>
-Cc: "David A. Long" <dave.long@linaro.org>
-Cc: Andrey Ryabinin <a.ryabinin@samsung.com>
-Cc: Arun Chandran <achandran@mvista.com>
-Cc: Yann Droneaud <ydroneaud@opteya.com>
-Cc: Min-Hua Chen <orca.chen@gmail.com>
-Cc: Paul Burton <paul.burton@imgtec.com>
-Cc: Alex Smith <alex@alex-smith.me.uk>
-Cc: Markos Chandras <markos.chandras@imgtec.com>
-Cc: Vineeth Vijayan <vvijayan@mvista.com>
-Cc: Jeff Bailey <jeffbailey@google.com>
-Cc: Michael Holzheu <holzheu@linux.vnet.ibm.com>
-Cc: Ben Hutchings <ben@decadent.org.uk>
-Cc: Behan Webster <behanw@converseincode.com>
-Cc: Ismael Ripoll <iripoll@upv.es>
-Cc: Jan-Simon Mller <dl9pf@gmx.de>
+Signed-off-by: Balasubramani Vivekanandan <balasubramani_vivekanandan@mentor.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/Kconfig                   |    1 +
- arch/arm/include/asm/elf.h     |    4 ----
- arch/arm64/include/asm/elf.h   |    4 ----
- arch/mips/include/asm/elf.h    |    4 ----
- arch/powerpc/include/asm/elf.h |    4 ----
- arch/s390/include/asm/elf.h    |    3 ---
- arch/x86/include/asm/elf.h     |    3 ---
- fs/binfmt_elf.c                |    4 +---
- include/linux/elf-randomize.h  |   12 ++++++++++++
- 9 files changed, 14 insertions(+), 25 deletions(-)
+ include/linux/oom.h |    3 ++-
+ mm/memcontrol.c     |   16 +++++++++-------
+ mm/oom_kill.c       |    7 ++++---
+ 3 files changed, 15 insertions(+), 11 deletions(-)
 
-diff -puN arch/Kconfig~mm-fold-arch_randomize_brk-into-arch_has_elf_randomize arch/Kconfig
---- a/arch/Kconfig~mm-fold-arch_randomize_brk-into-arch_has_elf_randomize
-+++ a/arch/Kconfig
-@@ -497,6 +497,7 @@ config ARCH_HAS_ELF_RANDOMIZE
- 	  An architecture supports choosing randomized locations for
- 	  stack, mmap, brk, and ET_DYN. Defined functions:
- 	  - arch_mmap_rnd()
-+	  - arch_randomize_brk()
+diff -puN include/linux/oom.h~memcg-print-cgroup-information-when-system-panics-due-to-panic_on_oom include/linux/oom.h
+--- a/include/linux/oom.h~memcg-print-cgroup-information-when-system-panics-due-to-panic_on_oom
++++ a/include/linux/oom.h
+@@ -66,7 +66,8 @@ extern bool oom_zonelist_trylock(struct
+ extern void oom_zonelist_unlock(struct zonelist *zonelist, gfp_t gfp_flags);
  
- #
- # ABI hall of shame
-diff -puN arch/arm/include/asm/elf.h~mm-fold-arch_randomize_brk-into-arch_has_elf_randomize arch/arm/include/asm/elf.h
---- a/arch/arm/include/asm/elf.h~mm-fold-arch_randomize_brk-into-arch_has_elf_randomize
-+++ a/arch/arm/include/asm/elf.h
-@@ -125,10 +125,6 @@ int dump_task_regs(struct task_struct *t
- extern void elf_set_personality(const struct elf32_hdr *);
- #define SET_PERSONALITY(ex)	elf_set_personality(&(ex))
+ extern void check_panic_on_oom(enum oom_constraint constraint, gfp_t gfp_mask,
+-			       int order, const nodemask_t *nodemask);
++			       int order, const nodemask_t *nodemask,
++			       struct mem_cgroup *memcg);
  
--struct mm_struct;
--extern unsigned long arch_randomize_brk(struct mm_struct *mm);
--#define arch_randomize_brk arch_randomize_brk
+ extern enum oom_scan_t oom_scan_process_thread(struct task_struct *task,
+ 		unsigned long totalpages, const nodemask_t *nodemask,
+diff -puN mm/memcontrol.c~memcg-print-cgroup-information-when-system-panics-due-to-panic_on_oom mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-print-cgroup-information-when-system-panics-due-to-panic_on_oom
++++ a/mm/memcontrol.c
+@@ -1442,15 +1442,17 @@ void mem_cgroup_print_oom_info(struct me
+ 	struct mem_cgroup *iter;
+ 	unsigned int i;
+ 
+-	if (!p)
+-		return;
 -
- #ifdef CONFIG_MMU
- #define ARCH_HAS_SETUP_ADDITIONAL_PAGES 1
- struct linux_binprm;
-diff -puN arch/arm64/include/asm/elf.h~mm-fold-arch_randomize_brk-into-arch_has_elf_randomize arch/arm64/include/asm/elf.h
---- a/arch/arm64/include/asm/elf.h~mm-fold-arch_randomize_brk-into-arch_has_elf_randomize
-+++ a/arch/arm64/include/asm/elf.h
-@@ -156,10 +156,6 @@ extern int arch_setup_additional_pages(s
- #define STACK_RND_MASK			(0x3ffff >> (PAGE_SHIFT - 12))
- #endif
+ 	mutex_lock(&oom_info_lock);
+ 	rcu_read_lock();
  
--struct mm_struct;
--extern unsigned long arch_randomize_brk(struct mm_struct *mm);
--#define arch_randomize_brk arch_randomize_brk
--
- #ifdef CONFIG_COMPAT
- 
- #ifdef __AARCH64EB__
-diff -puN arch/mips/include/asm/elf.h~mm-fold-arch_randomize_brk-into-arch_has_elf_randomize arch/mips/include/asm/elf.h
---- a/arch/mips/include/asm/elf.h~mm-fold-arch_randomize_brk-into-arch_has_elf_randomize
-+++ a/arch/mips/include/asm/elf.h
-@@ -410,10 +410,6 @@ struct linux_binprm;
- extern int arch_setup_additional_pages(struct linux_binprm *bprm,
- 				       int uses_interp);
- 
--struct mm_struct;
--extern unsigned long arch_randomize_brk(struct mm_struct *mm);
--#define arch_randomize_brk arch_randomize_brk
--
- struct arch_elf_state {
- 	int fp_abi;
- 	int interp_fp_abi;
-diff -puN arch/powerpc/include/asm/elf.h~mm-fold-arch_randomize_brk-into-arch_has_elf_randomize arch/powerpc/include/asm/elf.h
---- a/arch/powerpc/include/asm/elf.h~mm-fold-arch_randomize_brk-into-arch_has_elf_randomize
-+++ a/arch/powerpc/include/asm/elf.h
-@@ -128,10 +128,6 @@ extern int arch_setup_additional_pages(s
- 	(0x7ff >> (PAGE_SHIFT - 12)) : \
- 	(0x3ffff >> (PAGE_SHIFT - 12)))
- 
--extern unsigned long arch_randomize_brk(struct mm_struct *mm);
--#define arch_randomize_brk arch_randomize_brk
--
--
- #ifdef CONFIG_SPU_BASE
- /* Notes used in ET_CORE. Note name is "SPU/<fd>/<filename>". */
- #define NT_SPU		1
-diff -puN arch/s390/include/asm/elf.h~mm-fold-arch_randomize_brk-into-arch_has_elf_randomize arch/s390/include/asm/elf.h
---- a/arch/s390/include/asm/elf.h~mm-fold-arch_randomize_brk-into-arch_has_elf_randomize
-+++ a/arch/s390/include/asm/elf.h
-@@ -226,9 +226,6 @@ struct linux_binprm;
- #define ARCH_HAS_SETUP_ADDITIONAL_PAGES 1
- int arch_setup_additional_pages(struct linux_binprm *, int);
- 
--extern unsigned long arch_randomize_brk(struct mm_struct *mm);
--#define arch_randomize_brk arch_randomize_brk
--
- void *fill_cpu_elf_notes(void *ptr, struct save_area *sa, __vector128 *vxrs);
- 
- #endif
-diff -puN arch/x86/include/asm/elf.h~mm-fold-arch_randomize_brk-into-arch_has_elf_randomize arch/x86/include/asm/elf.h
---- a/arch/x86/include/asm/elf.h~mm-fold-arch_randomize_brk-into-arch_has_elf_randomize
-+++ a/arch/x86/include/asm/elf.h
-@@ -339,9 +339,6 @@ extern int compat_arch_setup_additional_
- 					      int uses_interp);
- #define compat_arch_setup_additional_pages compat_arch_setup_additional_pages
- 
--extern unsigned long arch_randomize_brk(struct mm_struct *mm);
--#define arch_randomize_brk arch_randomize_brk
--
- /*
-  * True on X86_32 or when emulating IA32 on X86_64
-  */
-diff -puN fs/binfmt_elf.c~mm-fold-arch_randomize_brk-into-arch_has_elf_randomize fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~mm-fold-arch_randomize_brk-into-arch_has_elf_randomize
-+++ a/fs/binfmt_elf.c
-@@ -1050,15 +1050,13 @@ static int load_elf_binary(struct linux_
- 	current->mm->end_data = end_data;
- 	current->mm->start_stack = bprm->p;
- 
--#ifdef arch_randomize_brk
- 	if ((current->flags & PF_RANDOMIZE) && (randomize_va_space > 1)) {
- 		current->mm->brk = current->mm->start_brk =
- 			arch_randomize_brk(current->mm);
--#ifdef CONFIG_COMPAT_BRK
-+#ifdef compat_brk_randomized
- 		current->brk_randomized = 1;
- #endif
- 	}
--#endif
- 
- 	if (current->personality & MMAP_PAGE_ZERO) {
- 		/* Why this, you ask???  Well SVr4 maps page 0 as read-only,
-diff -puN include/linux/elf-randomize.h~mm-fold-arch_randomize_brk-into-arch_has_elf_randomize include/linux/elf-randomize.h
---- a/include/linux/elf-randomize.h~mm-fold-arch_randomize_brk-into-arch_has_elf_randomize
-+++ a/include/linux/elf-randomize.h
-@@ -1,10 +1,22 @@
- #ifndef _ELF_RANDOMIZE_H
- #define _ELF_RANDOMIZE_H
- 
-+struct mm_struct;
+-	pr_info("Task in ");
+-	pr_cont_cgroup_path(task_cgroup(p, memory_cgrp_id));
+-	pr_cont(" killed as a result of limit of ");
++	if (p) {
++		pr_info("Task in ");
++		pr_cont_cgroup_path(task_cgroup(p, memory_cgrp_id));
++		pr_cont(" killed as a result of limit of ");
++	} else {
++		pr_info("Memory limit reached of cgroup ");
++	}
 +
- #ifndef CONFIG_ARCH_HAS_ELF_RANDOMIZE
- static inline unsigned long arch_mmap_rnd(void) { return 0; }
-+# if defined(arch_randomize_brk) && defined(CONFIG_COMPAT_BRK)
-+#  define compat_brk_randomized
-+# endif
-+# ifndef arch_randomize_brk
-+#  define arch_randomize_brk(mm)	(mm->brk)
-+# endif
- #else
- extern unsigned long arch_mmap_rnd(void);
-+extern unsigned long arch_randomize_brk(struct mm_struct *mm);
-+# ifdef CONFIG_COMPAT_BRK
-+#  define compat_brk_randomized
-+# endif
- #endif
+ 	pr_cont_cgroup_path(memcg->css.cgroup);
+ 	pr_cont("\n");
  
- #endif
+@@ -1537,7 +1539,7 @@ static void mem_cgroup_out_of_memory(str
+ 		return;
+ 	}
+ 
+-	check_panic_on_oom(CONSTRAINT_MEMCG, gfp_mask, order, NULL);
++	check_panic_on_oom(CONSTRAINT_MEMCG, gfp_mask, order, NULL, memcg);
+ 	totalpages = mem_cgroup_get_limit(memcg) ? : 1;
+ 	for_each_mem_cgroup_tree(iter, memcg) {
+ 		struct css_task_iter it;
+diff -puN mm/oom_kill.c~memcg-print-cgroup-information-when-system-panics-due-to-panic_on_oom mm/oom_kill.c
+--- a/mm/oom_kill.c~memcg-print-cgroup-information-when-system-panics-due-to-panic_on_oom
++++ a/mm/oom_kill.c
+@@ -612,7 +612,8 @@ void oom_kill_process(struct task_struct
+  * Determines whether the kernel must panic because of the panic_on_oom sysctl.
+  */
+ void check_panic_on_oom(enum oom_constraint constraint, gfp_t gfp_mask,
+-			int order, const nodemask_t *nodemask)
++			int order, const nodemask_t *nodemask,
++			struct mem_cgroup *memcg)
+ {
+ 	if (likely(!sysctl_panic_on_oom))
+ 		return;
+@@ -625,7 +626,7 @@ void check_panic_on_oom(enum oom_constra
+ 		if (constraint != CONSTRAINT_NONE)
+ 			return;
+ 	}
+-	dump_header(NULL, gfp_mask, order, NULL, nodemask);
++	dump_header(NULL, gfp_mask, order, memcg, nodemask);
+ 	panic("Out of memory: %s panic_on_oom is enabled\n",
+ 		sysctl_panic_on_oom == 2 ? "compulsory" : "system-wide");
+ }
+@@ -740,7 +741,7 @@ static void __out_of_memory(struct zonel
+ 	constraint = constrained_alloc(zonelist, gfp_mask, nodemask,
+ 						&totalpages);
+ 	mpol_mask = (constraint == CONSTRAINT_MEMORY_POLICY) ? nodemask : NULL;
+-	check_panic_on_oom(constraint, gfp_mask, order, mpol_mask);
++	check_panic_on_oom(constraint, gfp_mask, order, mpol_mask, NULL);
+ 
+ 	if (sysctl_oom_kill_allocating_task && current->mm &&
+ 	    !oom_unkillable_task(current, NULL, nodemask) &&
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from balu252@gmail.com are
 
 origin.patch
-lib-vsprintf-add-%pt-format-specifier.patch
-checkpatch-add-optional-codespell-dictionary-to-find-more-typos.patch
-seccomp-allow-compat-sigreturn-overrides.patch
-arm-use-asm-generic-for-seccomph.patch
-microblaze-use-asm-generic-for-seccomph.patch
-mips-switch-to-using-asm-generic-for-seccomph.patch
-parisc-switch-to-using-asm-generic-for-seccomph.patch
-powerpc-switch-to-using-asm-generic-for-seccomph.patch
-sparc-switch-to-using-asm-generic-for-seccomph.patch
-x86-switch-to-using-asm-generic-for-seccomph.patch
-linux-next.patch
 
