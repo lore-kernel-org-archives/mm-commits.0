@@ -1,47 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-change-__get_vm_area_node-to-use-fls_long.patch
- removed from -mm tree
-Date: Wed, 15 Apr 2015 12:11:12 -0700
-Message-ID: <552eb7d0.dLwilkybIqtIo7Bi%akpm@linux-foundation.org>
+Subject: [merged] x86-mm-support-huge-kva-mappings-on-x86.patch removed
+ from -mm tree
+Date: Wed, 15 Apr 2015 12:11:28 -0700
+Message-ID: <552eb7e0.Z4o22MNsOAE+ILdr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48331 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48368 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933585AbbDOTLN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:11:13 -0400
+	with ESMTP id S933580AbbDOTL3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:11:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: toshi.kani@hp.com, Elliott@hp.com, arnd@arndb.de, dave.hansen@intel.com, hpa@zytor.com, mingo@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: toshi.kani@hp.com, Elliott@hp.com, arnd@arndb.de, dave.hansen@intel.com, fengguang.wu@intel.com, hpa@zytor.com, mingo@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: change __get_vm_area_node() to use fls_long()
+     Subject: x86, mm: support huge KVA mappings on x86
 has been removed from the -mm tree.  Its filename was
-     mm-change-__get_vm_area_node-to-use-fls_long.patch
+     x86-mm-support-huge-kva-mappings-on-x86.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: mm: change __get_vm_area_node() to use fls_long()
+Subject: x86, mm: support huge KVA mappings on x86
 
-ioremap() and its related interfaces are used to create I/O mappings to
-memory-mapped I/O devices.  The mapping sizes of the traditional I/O
-devices are relatively small.  Non-volatile memory (NVM), however, has
-many GB and is going to have TB soon.  It is not very efficient to create
-large I/O mappings with 4KB.  
-
-This patchset extends the ioremap() interfaces to transparently create I/O
-mappings with huge pages whenever possible.  ioremap() continues to use
-4KB mappings when a huge page does not fit into a requested range.  There
-is no change necessary to the drivers using ioremap().  A requested
-physical address must be aligned by a huge page size (1GB or 2MB on x86)
-for using huge page mapping, though.  The kernel huge I/O mapping will
-improve performance of NVM and other devices with large memory, and reduce
-the time to create their mappings as well.
+Implement huge KVA mapping interfaces on x86.
 
 On x86, MTRRs can override PAT memory types with a 4KB granularity.  When
 using a huge page, MTRRs can override the memory type of the huge page,
@@ -52,26 +39,16 @@ code falls back to use a smaller page size toward 4KB when a mapping range
 is covered by non-WB type of MTRRs.  The WB type of MTRRs has no affect on
 the PAT memory types.
 
-The patchset introduces HAVE_ARCH_HUGE_VMAP, which indicates that the arch
-supports huge KVA mappings for ioremap().  User may specify a new kernel
-option "nohugeiomap" to disable the huge I/O mapping capability of
-ioremap() when necessary.
+pud_set_huge() and pmd_set_huge() call mtrr_type_lookup() to see if a
+given range is covered by MTRRs.  MTRR_TYPE_WRBACK indicates that the
+range is either covered by WB or not covered and the MTRR default value is
+set to WB.  0xFF indicates that MTRRs are disabled.
 
-Patch 1-4 change common files to support huge I/O mappings.  There is no
-change in the functinalities unless HAVE_ARCH_HUGE_VMAP is defined on the
-architecture of the system.
+HAVE_ARCH_HUGE_VMAP is selected when X86_64 or X86_32 with X86_PAE is set.
+ X86_32 without X86_PAE is not supported since such config can unlikey be
+benefited from this feature, and there was an issue found in testing.
 
-Patch 5-6 implement the HAVE_ARCH_HUGE_VMAP funcs on x86, and set
-HAVE_ARCH_HUGE_VMAP on x86.
-
-
-
-This patch (of 6):
-
-__get_vm_area_node() takes unsigned long size, which is a 64-bit value on
-a 64-bit kernel.  However, fls(size) simply ignores the upper 32-bit. 
-Change to use fls_long() to handle the size properly.
-
+[fengguang.wu@intel.com: ioremap_pud_capable can be static]
 Signed-off-by: Toshi Kani <toshi.kani@hp.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
@@ -79,33 +56,121 @@ Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Dave Hansen <dave.hansen@intel.com>
 Cc: Robert Elliott <Elliott@hp.com>
+Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ arch/x86/Kconfig      |    1 
+ arch/x86/mm/pgtable.c |   65 ++++++++++++++++++++++++++++++++++++++++
+ lib/ioremap.c         |    6 +--
+ 3 files changed, 69 insertions(+), 3 deletions(-)
 
-diff -puN mm/vmalloc.c~mm-change-__get_vm_area_node-to-use-fls_long mm/vmalloc.c
---- a/mm/vmalloc.c~mm-change-__get_vm_area_node-to-use-fls_long
-+++ a/mm/vmalloc.c
-@@ -29,6 +29,7 @@
- #include <linux/atomic.h>
- #include <linux/compiler.h>
- #include <linux/llist.h>
-+#include <linux/bitops.h>
+diff -puN arch/x86/Kconfig~x86-mm-support-huge-kva-mappings-on-x86 arch/x86/Kconfig
+--- a/arch/x86/Kconfig~x86-mm-support-huge-kva-mappings-on-x86
++++ a/arch/x86/Kconfig
+@@ -99,6 +99,7 @@ config X86
+ 	select IRQ_FORCED_THREADING
+ 	select HAVE_BPF_JIT if X86_64
+ 	select HAVE_ARCH_TRANSPARENT_HUGEPAGE
++	select HAVE_ARCH_HUGE_VMAP if X86_64 || (X86_32 && X86_PAE)
+ 	select ARCH_HAS_SG_CHAIN
+ 	select CLKEVT_I8253
+ 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
+diff -puN arch/x86/mm/pgtable.c~x86-mm-support-huge-kva-mappings-on-x86 arch/x86/mm/pgtable.c
+--- a/arch/x86/mm/pgtable.c~x86-mm-support-huge-kva-mappings-on-x86
++++ a/arch/x86/mm/pgtable.c
+@@ -4,6 +4,7 @@
+ #include <asm/pgtable.h>
+ #include <asm/tlb.h>
+ #include <asm/fixmap.h>
++#include <asm/mtrr.h>
  
- #include <asm/uaccess.h>
- #include <asm/tlbflush.h>
-@@ -1314,7 +1315,8 @@ static struct vm_struct *__get_vm_area_n
+ #define PGALLOC_GFP GFP_KERNEL | __GFP_NOTRACK | __GFP_REPEAT | __GFP_ZERO
  
- 	BUG_ON(in_interrupt());
- 	if (flags & VM_IOREMAP)
--		align = 1ul << clamp(fls(size), PAGE_SHIFT, IOREMAP_MAX_ORDER);
-+		align = 1ul << clamp_t(int, fls_long(size),
-+				       PAGE_SHIFT, IOREMAP_MAX_ORDER);
+@@ -560,3 +561,67 @@ void native_set_fixmap(enum fixed_addres
+ {
+ 	__native_set_fixmap(idx, pfn_pte(phys >> PAGE_SHIFT, flags));
+ }
++
++#ifdef CONFIG_HAVE_ARCH_HUGE_VMAP
++int pud_set_huge(pud_t *pud, phys_addr_t addr, pgprot_t prot)
++{
++	u8 mtrr;
++
++	/*
++	 * Do not use a huge page when the range is covered by non-WB type
++	 * of MTRRs.
++	 */
++	mtrr = mtrr_type_lookup(addr, addr + PUD_SIZE);
++	if ((mtrr != MTRR_TYPE_WRBACK) && (mtrr != 0xFF))
++		return 0;
++
++	prot = pgprot_4k_2_large(prot);
++
++	set_pte((pte_t *)pud, pfn_pte(
++		(u64)addr >> PAGE_SHIFT,
++		__pgprot(pgprot_val(prot) | _PAGE_PSE)));
++
++	return 1;
++}
++
++int pmd_set_huge(pmd_t *pmd, phys_addr_t addr, pgprot_t prot)
++{
++	u8 mtrr;
++
++	/*
++	 * Do not use a huge page when the range is covered by non-WB type
++	 * of MTRRs.
++	 */
++	mtrr = mtrr_type_lookup(addr, addr + PMD_SIZE);
++	if ((mtrr != MTRR_TYPE_WRBACK) && (mtrr != 0xFF))
++		return 0;
++
++	prot = pgprot_4k_2_large(prot);
++
++	set_pte((pte_t *)pmd, pfn_pte(
++		(u64)addr >> PAGE_SHIFT,
++		__pgprot(pgprot_val(prot) | _PAGE_PSE)));
++
++	return 1;
++}
++
++int pud_clear_huge(pud_t *pud)
++{
++	if (pud_large(*pud)) {
++		pud_clear(pud);
++		return 1;
++	}
++
++	return 0;
++}
++
++int pmd_clear_huge(pmd_t *pmd)
++{
++	if (pmd_large(*pmd)) {
++		pmd_clear(pmd);
++		return 1;
++	}
++
++	return 0;
++}
++#endif	/* CONFIG_HAVE_ARCH_HUGE_VMAP */
+diff -puN lib/ioremap.c~x86-mm-support-huge-kva-mappings-on-x86 lib/ioremap.c
+--- a/lib/ioremap.c~x86-mm-support-huge-kva-mappings-on-x86
++++ a/lib/ioremap.c
+@@ -14,9 +14,9 @@
+ #include <asm/pgtable.h>
  
- 	size = PAGE_ALIGN(size);
- 	if (unlikely(!size))
+ #ifdef CONFIG_HAVE_ARCH_HUGE_VMAP
+-int __read_mostly ioremap_pud_capable;
+-int __read_mostly ioremap_pmd_capable;
+-int __read_mostly ioremap_huge_disabled;
++static int __read_mostly ioremap_pud_capable;
++static int __read_mostly ioremap_pmd_capable;
++static int __read_mostly ioremap_huge_disabled;
+ 
+ static int __init set_nohugeiomap(char *str)
+ {
 _
 
 Patches currently in -mm which might be from toshi.kani@hp.com are
