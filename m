@@ -1,113 +1,141 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-change-vunmap-to-tear-down-huge-kva-mappings.patch
- removed from -mm tree
-Date: Wed, 15 Apr 2015 12:11:21 -0700
-Message-ID: <552eb7d9.wzSjc3DOgxKSk3tt%akpm@linux-foundation.org>
+Subject: [merged] x86-standardize-mmap_rnd-usage.patch removed from -mm
+ tree
+Date: Wed, 15 Apr 2015 12:30:14 -0700
+Message-ID: <552ebc46./HYHRFk285Ao9dWq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48355 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48515 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933580AbbDOTLX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:11:23 -0400
+	with ESMTP id S1751859AbbDOTY5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:24:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: toshi.kani@hp.com, Elliott@hp.com, arnd@arndb.de, dave.hansen@intel.com, hpa@zytor.com, mingo@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: keescook@chromium.org, luto@amacapital.net, mingo@kernel.org, oleg@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: change vunmap to tear down huge KVA mappings
+     Subject: x86: standardize mmap_rnd() usage
 has been removed from the -mm tree.  Its filename was
-     mm-change-vunmap-to-tear-down-huge-kva-mappings.patch
+     x86-standardize-mmap_rnd-usage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: mm: change vunmap to tear down huge KVA mappings
+From: Kees Cook <keescook@chromium.org>
+Subject: x86: standardize mmap_rnd() usage
 
-Change vunmap_pmd_range() and vunmap_pud_range() to tear down huge KVA
-mappings when they are set.  pud_clear_huge() and pmd_clear_huge() return
-zero when no-operation is performed, i.e.  huge page mapping was not used.
+In preparation for splitting out ET_DYN ASLR, this refactors the use of
+mmap_rnd() to be used similarly to arm, and extracts the checking of
+PF_RANDOMIZE.
 
-These changes are only enabled when CONFIG_HAVE_ARCH_HUGE_VMAP is defined
-on the architecture.
-
-[akpm@linux-foundation.org: use consistent code layout]
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Robert Elliott <Elliott@hp.com>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Reviewed-by: Ingo Molnar <mingo@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Andy Lutomirski <luto@amacapital.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/pgtable.h |   10 ++++++++++
- mm/vmalloc.c                  |    4 ++++
- 2 files changed, 14 insertions(+)
+ arch/x86/mm/mmap.c |   36 ++++++++++++++++++++----------------
+ 1 file changed, 20 insertions(+), 16 deletions(-)
 
-diff -puN include/asm-generic/pgtable.h~mm-change-vunmap-to-tear-down-huge-kva-mappings include/asm-generic/pgtable.h
---- a/include/asm-generic/pgtable.h~mm-change-vunmap-to-tear-down-huge-kva-mappings
-+++ a/include/asm-generic/pgtable.h
-@@ -700,6 +700,8 @@ static inline int pmd_protnone(pmd_t pmd
- #ifdef CONFIG_HAVE_ARCH_HUGE_VMAP
- int pud_set_huge(pud_t *pud, phys_addr_t addr, pgprot_t prot);
- int pmd_set_huge(pmd_t *pmd, phys_addr_t addr, pgprot_t prot);
-+int pud_clear_huge(pud_t *pud);
-+int pmd_clear_huge(pmd_t *pmd);
- #else	/* !CONFIG_HAVE_ARCH_HUGE_VMAP */
- static inline int pud_set_huge(pud_t *pud, phys_addr_t addr, pgprot_t prot)
- {
-@@ -709,6 +711,14 @@ static inline int pmd_set_huge(pmd_t *pm
- {
- 	return 0;
- }
-+static inline int pud_clear_huge(pud_t *pud)
-+{
-+	return 0;
-+}
-+static inline int pmd_clear_huge(pmd_t *pmd)
-+{
-+	return 0;
-+}
- #endif	/* CONFIG_HAVE_ARCH_HUGE_VMAP */
+diff -puN arch/x86/mm/mmap.c~x86-standardize-mmap_rnd-usage arch/x86/mm/mmap.c
+--- a/arch/x86/mm/mmap.c~x86-standardize-mmap_rnd-usage
++++ a/arch/x86/mm/mmap.c
+@@ -67,22 +67,21 @@ static int mmap_is_legacy(void)
  
- #endif /* !__ASSEMBLY__ */
-diff -puN mm/vmalloc.c~mm-change-vunmap-to-tear-down-huge-kva-mappings mm/vmalloc.c
---- a/mm/vmalloc.c~mm-change-vunmap-to-tear-down-huge-kva-mappings
-+++ a/mm/vmalloc.c
-@@ -75,6 +75,8 @@ static void vunmap_pmd_range(pud_t *pud,
- 	pmd = pmd_offset(pud, addr);
- 	do {
- 		next = pmd_addr_end(addr, end);
-+		if (pmd_clear_huge(pmd))
-+			continue;
- 		if (pmd_none_or_clear_bad(pmd))
- 			continue;
- 		vunmap_pte_range(pmd, addr, next);
-@@ -89,6 +91,8 @@ static void vunmap_pud_range(pgd_t *pgd,
- 	pud = pud_offset(pgd, addr);
- 	do {
- 		next = pud_addr_end(addr, end);
-+		if (pud_clear_huge(pud))
-+			continue;
- 		if (pud_none_or_clear_bad(pud))
- 			continue;
- 		vunmap_pmd_range(pud, addr, next);
+ static unsigned long mmap_rnd(void)
+ {
+-	unsigned long rnd = 0;
++	unsigned long rnd;
+ 
+ 	/*
+-	*  8 bits of randomness in 32bit mmaps, 20 address space bits
+-	* 28 bits of randomness in 64bit mmaps, 40 address space bits
+-	*/
+-	if (current->flags & PF_RANDOMIZE) {
+-		if (mmap_is_ia32())
+-			rnd = get_random_int() % (1<<8);
+-		else
+-			rnd = get_random_int() % (1<<28);
+-	}
++	 *  8 bits of randomness in 32bit mmaps, 20 address space bits
++	 * 28 bits of randomness in 64bit mmaps, 40 address space bits
++	 */
++	if (mmap_is_ia32())
++		rnd = (unsigned long)get_random_int() % (1<<8);
++	else
++		rnd = (unsigned long)get_random_int() % (1<<28);
++
+ 	return rnd << PAGE_SHIFT;
+ }
+ 
+-static unsigned long mmap_base(void)
++static unsigned long mmap_base(unsigned long rnd)
+ {
+ 	unsigned long gap = rlimit(RLIMIT_STACK);
+ 
+@@ -91,19 +90,19 @@ static unsigned long mmap_base(void)
+ 	else if (gap > MAX_GAP)
+ 		gap = MAX_GAP;
+ 
+-	return PAGE_ALIGN(TASK_SIZE - gap - mmap_rnd());
++	return PAGE_ALIGN(TASK_SIZE - gap - rnd);
+ }
+ 
+ /*
+  * Bottom-up (legacy) layout on X86_32 did not support randomization, X86_64
+  * does, but not when emulating X86_32
+  */
+-static unsigned long mmap_legacy_base(void)
++static unsigned long mmap_legacy_base(unsigned long rnd)
+ {
+ 	if (mmap_is_ia32())
+ 		return TASK_UNMAPPED_BASE;
+ 	else
+-		return TASK_UNMAPPED_BASE + mmap_rnd();
++		return TASK_UNMAPPED_BASE + rnd;
+ }
+ 
+ /*
+@@ -112,13 +111,18 @@ static unsigned long mmap_legacy_base(vo
+  */
+ void arch_pick_mmap_layout(struct mm_struct *mm)
+ {
+-	mm->mmap_legacy_base = mmap_legacy_base();
+-	mm->mmap_base = mmap_base();
++	unsigned long random_factor = 0UL;
++
++	if (current->flags & PF_RANDOMIZE)
++		random_factor = mmap_rnd();
++
++	mm->mmap_legacy_base = mmap_legacy_base(random_factor);
+ 
+ 	if (mmap_is_legacy()) {
+ 		mm->mmap_base = mm->mmap_legacy_base;
+ 		mm->get_unmapped_area = arch_get_unmapped_area;
+ 	} else {
++		mm->mmap_base = mmap_base(random_factor);
+ 		mm->get_unmapped_area = arch_get_unmapped_area_topdown;
+ 	}
+ }
 _
 
-Patches currently in -mm which might be from toshi.kani@hp.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
 origin.patch
-mm-x86-document-return-values-of-mapping-funcs.patch
-mtrr-x86-fix-mtrr-lookup-to-handle-inclusive-entry.patch
-mtrr-x86-remove-a-wrong-address-check-in-__mtrr_type_lookup.patch
-mtrr-x86-fix-mtrr-state-checks-in-mtrr_type_lookup.patch
-mtrr-x86-define-mtrr_type_invalid-for-mtrr_type_lookup.patch
-mtrr-x86-clean-up-mtrr_type_lookup.patch
-mtrr-mm-x86-enhance-mtrr-checks-for-kva-huge-page-mapping.patch
+lib-vsprintf-add-%pt-format-specifier.patch
+checkpatch-add-optional-codespell-dictionary-to-find-more-typos.patch
+seccomp-allow-compat-sigreturn-overrides.patch
+arm-use-asm-generic-for-seccomph.patch
+microblaze-use-asm-generic-for-seccomph.patch
+mips-switch-to-using-asm-generic-for-seccomph.patch
+parisc-switch-to-using-asm-generic-for-seccomph.patch
+powerpc-switch-to-using-asm-generic-for-seccomph.patch
+sparc-switch-to-using-asm-generic-for-seccomph.patch
+x86-switch-to-using-asm-generic-for-seccomph.patch
+linux-next.patch
 
