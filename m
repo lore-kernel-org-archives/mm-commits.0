@@ -1,116 +1,243 @@
 From: akpm@linux-foundation.org
-Subject: [merged] x86-mm-support-huge-i-o-mapping-capability-i-f.patch
- removed from -mm tree
-Date: Wed, 15 Apr 2015 12:11:25 -0700
-Message-ID: <552eb7dd.ATs9TNf42SZ3YkSB%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-memcontrol-let-mem_cgroup_move_account-have-effect-only-if-mmu-enabled.patch removed from -mm tree
+Date: Wed, 15 Apr 2015 12:11:31 -0700
+Message-ID: <552eb7e3.IaQQ5dFCSkX8BOch%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48361 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48373 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933597AbbDOTL0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:11:26 -0400
+	with ESMTP id S932554AbbDOTLc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:11:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: toshi.kani@hp.com, Elliott@hp.com, arnd@arndb.de, dave.hansen@intel.com, hpa@zytor.com, mingo@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: 762976180@qq.com, gang.chen.5i5j@gmail.com, hannes@cmpxchg.org, mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86, mm: support huge I/O mapping capability I/F
+     Subject: mm: memcontrol: let mem_cgroup_move_account() have effect only if MMU enabled
 has been removed from the -mm tree.  Its filename was
-     x86-mm-support-huge-i-o-mapping-capability-i-f.patch
+     mm-memcontrol-let-mem_cgroup_move_account-have-effect-only-if-mmu-enabled.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: x86, mm: support huge I/O mapping capability I/F
+From: Chen Gang <762976180@qq.com>
+Subject: mm: memcontrol: let mem_cgroup_move_account() have effect only if MMU enabled
 
-Implement huge I/O mapping capability interfaces for ioremap() on x86.
+When !MMU, it will report warning. The related warning with allmodconfig
+under c6x:
 
-IOREMAP_MAX_ORDER is defined to PUD_SHIFT on x86/64 and PMD_SHIFT on
-x86/32, which overrides the default value defined in <linux/vmalloc.h>.
+    CC      mm/memcontrol.o
+  mm/memcontrol.c:2802:12: warning: 'mem_cgroup_move_account' defined but not used [-Wunused-function]
+   static int mem_cgroup_move_account(struct page *page,
+              ^
 
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Robert Elliott <Elliott@hp.com>
+Signed-off-by: Chen Gang <gang.chen.5i5j@gmail.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/page_types.h |    2 ++
- arch/x86/mm/ioremap.c             |   23 +++++++++++++++++++++--
- 2 files changed, 23 insertions(+), 2 deletions(-)
+ mm/memcontrol.c |  172 +++++++++++++++++++++++-----------------------
+ 1 file changed, 86 insertions(+), 86 deletions(-)
 
-diff -puN arch/x86/include/asm/page_types.h~x86-mm-support-huge-i-o-mapping-capability-i-f arch/x86/include/asm/page_types.h
---- a/arch/x86/include/asm/page_types.h~x86-mm-support-huge-i-o-mapping-capability-i-f
-+++ a/arch/x86/include/asm/page_types.h
-@@ -40,8 +40,10 @@
- 
- #ifdef CONFIG_X86_64
- #include <asm/page_64_types.h>
-+#define IOREMAP_MAX_ORDER       (PUD_SHIFT)
- #else
- #include <asm/page_32_types.h>
-+#define IOREMAP_MAX_ORDER       (PMD_SHIFT)
- #endif	/* CONFIG_X86_64 */
- 
- #ifndef __ASSEMBLY__
-diff -puN arch/x86/mm/ioremap.c~x86-mm-support-huge-i-o-mapping-capability-i-f arch/x86/mm/ioremap.c
---- a/arch/x86/mm/ioremap.c~x86-mm-support-huge-i-o-mapping-capability-i-f
-+++ a/arch/x86/mm/ioremap.c
-@@ -67,8 +67,13 @@ static int __ioremap_check_ram(unsigned
- 
- /*
-  * Remap an arbitrary physical address space into the kernel virtual
-- * address space. Needed when the kernel wants to access high addresses
-- * directly.
-+ * address space. It transparently creates kernel huge I/O mapping when
-+ * the physical address is aligned by a huge page size (1GB or 2MB) and
-+ * the requested size is at least the huge page size.
-+ *
-+ * NOTE: MTRRs can override PAT memory types with a 4KB granularity.
-+ * Therefore, the mapping code falls back to use a smaller page toward 4KB
-+ * when a mapping range is covered by non-WB type of MTRRs.
-  *
-  * NOTE! We need to allow non-page-aligned mappings too: we will obviously
-  * have to convert them into an offset in a page-aligned mapping, but the
-@@ -326,6 +331,20 @@ void iounmap(volatile void __iomem *addr
+diff -puN mm/memcontrol.c~mm-memcontrol-let-mem_cgroup_move_account-have-effect-only-if-mmu-enabled mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-let-mem_cgroup_move_account-have-effect-only-if-mmu-enabled
++++ a/mm/memcontrol.c
+@@ -2785,92 +2785,6 @@ void mem_cgroup_split_huge_fixup(struct
  }
- EXPORT_SYMBOL(iounmap);
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
  
-+int arch_ioremap_pud_supported(void)
+-/**
+- * mem_cgroup_move_account - move account of the page
+- * @page: the page
+- * @nr_pages: number of regular pages (>1 for huge pages)
+- * @from: mem_cgroup which the page is moved from.
+- * @to:	mem_cgroup which the page is moved to. @from != @to.
+- *
+- * The caller must confirm following.
+- * - page is not on LRU (isolate_page() is useful.)
+- * - compound_lock is held when nr_pages > 1
+- *
+- * This function doesn't do "charge" to new cgroup and doesn't do "uncharge"
+- * from old cgroup.
+- */
+-static int mem_cgroup_move_account(struct page *page,
+-				   unsigned int nr_pages,
+-				   struct mem_cgroup *from,
+-				   struct mem_cgroup *to)
+-{
+-	unsigned long flags;
+-	int ret;
+-
+-	VM_BUG_ON(from == to);
+-	VM_BUG_ON_PAGE(PageLRU(page), page);
+-	/*
+-	 * The page is isolated from LRU. So, collapse function
+-	 * will not handle this page. But page splitting can happen.
+-	 * Do this check under compound_page_lock(). The caller should
+-	 * hold it.
+-	 */
+-	ret = -EBUSY;
+-	if (nr_pages > 1 && !PageTransHuge(page))
+-		goto out;
+-
+-	/*
+-	 * Prevent mem_cgroup_migrate() from looking at page->mem_cgroup
+-	 * of its source page while we change it: page migration takes
+-	 * both pages off the LRU, but page cache replacement doesn't.
+-	 */
+-	if (!trylock_page(page))
+-		goto out;
+-
+-	ret = -EINVAL;
+-	if (page->mem_cgroup != from)
+-		goto out_unlock;
+-
+-	spin_lock_irqsave(&from->move_lock, flags);
+-
+-	if (!PageAnon(page) && page_mapped(page)) {
+-		__this_cpu_sub(from->stat->count[MEM_CGROUP_STAT_FILE_MAPPED],
+-			       nr_pages);
+-		__this_cpu_add(to->stat->count[MEM_CGROUP_STAT_FILE_MAPPED],
+-			       nr_pages);
+-	}
+-
+-	if (PageWriteback(page)) {
+-		__this_cpu_sub(from->stat->count[MEM_CGROUP_STAT_WRITEBACK],
+-			       nr_pages);
+-		__this_cpu_add(to->stat->count[MEM_CGROUP_STAT_WRITEBACK],
+-			       nr_pages);
+-	}
+-
+-	/*
+-	 * It is safe to change page->mem_cgroup here because the page
+-	 * is referenced, charged, and isolated - we can't race with
+-	 * uncharging, charging, migration, or LRU putback.
+-	 */
+-
+-	/* caller should have done css_get */
+-	page->mem_cgroup = to;
+-	spin_unlock_irqrestore(&from->move_lock, flags);
+-
+-	ret = 0;
+-
+-	local_irq_disable();
+-	mem_cgroup_charge_statistics(to, page, nr_pages);
+-	memcg_check_events(to, page);
+-	mem_cgroup_charge_statistics(from, page, -nr_pages);
+-	memcg_check_events(from, page);
+-	local_irq_enable();
+-out_unlock:
+-	unlock_page(page);
+-out:
+-	return ret;
+-}
+-
+ #ifdef CONFIG_MEMCG_SWAP
+ static void mem_cgroup_swap_statistics(struct mem_cgroup *memcg,
+ 					 bool charge)
+@@ -4822,6 +4736,92 @@ static struct page *mc_handle_file_pte(s
+ 	return page;
+ }
+ 
++/**
++ * mem_cgroup_move_account - move account of the page
++ * @page: the page
++ * @nr_pages: number of regular pages (>1 for huge pages)
++ * @from: mem_cgroup which the page is moved from.
++ * @to:	mem_cgroup which the page is moved to. @from != @to.
++ *
++ * The caller must confirm following.
++ * - page is not on LRU (isolate_page() is useful.)
++ * - compound_lock is held when nr_pages > 1
++ *
++ * This function doesn't do "charge" to new cgroup and doesn't do "uncharge"
++ * from old cgroup.
++ */
++static int mem_cgroup_move_account(struct page *page,
++				   unsigned int nr_pages,
++				   struct mem_cgroup *from,
++				   struct mem_cgroup *to)
 +{
-+#ifdef CONFIG_X86_64
-+	return cpu_has_gbpages;
-+#else
-+	return 0;
-+#endif
++	unsigned long flags;
++	int ret;
++
++	VM_BUG_ON(from == to);
++	VM_BUG_ON_PAGE(PageLRU(page), page);
++	/*
++	 * The page is isolated from LRU. So, collapse function
++	 * will not handle this page. But page splitting can happen.
++	 * Do this check under compound_page_lock(). The caller should
++	 * hold it.
++	 */
++	ret = -EBUSY;
++	if (nr_pages > 1 && !PageTransHuge(page))
++		goto out;
++
++	/*
++	 * Prevent mem_cgroup_migrate() from looking at page->mem_cgroup
++	 * of its source page while we change it: page migration takes
++	 * both pages off the LRU, but page cache replacement doesn't.
++	 */
++	if (!trylock_page(page))
++		goto out;
++
++	ret = -EINVAL;
++	if (page->mem_cgroup != from)
++		goto out_unlock;
++
++	spin_lock_irqsave(&from->move_lock, flags);
++
++	if (!PageAnon(page) && page_mapped(page)) {
++		__this_cpu_sub(from->stat->count[MEM_CGROUP_STAT_FILE_MAPPED],
++			       nr_pages);
++		__this_cpu_add(to->stat->count[MEM_CGROUP_STAT_FILE_MAPPED],
++			       nr_pages);
++	}
++
++	if (PageWriteback(page)) {
++		__this_cpu_sub(from->stat->count[MEM_CGROUP_STAT_WRITEBACK],
++			       nr_pages);
++		__this_cpu_add(to->stat->count[MEM_CGROUP_STAT_WRITEBACK],
++			       nr_pages);
++	}
++
++	/*
++	 * It is safe to change page->mem_cgroup here because the page
++	 * is referenced, charged, and isolated - we can't race with
++	 * uncharging, charging, migration, or LRU putback.
++	 */
++
++	/* caller should have done css_get */
++	page->mem_cgroup = to;
++	spin_unlock_irqrestore(&from->move_lock, flags);
++
++	ret = 0;
++
++	local_irq_disable();
++	mem_cgroup_charge_statistics(to, page, nr_pages);
++	memcg_check_events(to, page);
++	mem_cgroup_charge_statistics(from, page, -nr_pages);
++	memcg_check_events(from, page);
++	local_irq_enable();
++out_unlock:
++	unlock_page(page);
++out:
++	return ret;
 +}
 +
-+int arch_ioremap_pmd_supported(void)
-+{
-+	return cpu_has_pse;
-+}
-+
- /*
-  * Convert a physical pointer to a virtual kernel pointer for /dev/mem
-  * access
+ static enum mc_target_type get_mctgt_type(struct vm_area_struct *vma,
+ 		unsigned long addr, pte_t ptent, union mc_target *target)
+ {
 _
 
-Patches currently in -mm which might be from toshi.kani@hp.com are
+Patches currently in -mm which might be from 762976180@qq.com are
 
 origin.patch
-mm-x86-document-return-values-of-mapping-funcs.patch
-mtrr-x86-fix-mtrr-lookup-to-handle-inclusive-entry.patch
-mtrr-x86-remove-a-wrong-address-check-in-__mtrr_type_lookup.patch
-mtrr-x86-fix-mtrr-state-checks-in-mtrr_type_lookup.patch
-mtrr-x86-define-mtrr_type_invalid-for-mtrr_type_lookup.patch
-mtrr-x86-clean-up-mtrr_type_lookup.patch
-mtrr-mm-x86-enhance-mtrr-checks-for-kva-huge-page-mapping.patch
+linux-next.patch
 
