@@ -1,66 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- documentation-update-arch-list-in-the-memtest-entry.patch removed from -mm
- tree
-Date: Wed, 15 Apr 2015 12:31:05 -0700
-Message-ID: <552ebc79.T7yeKC09djswqAUo%akpm@linux-foundation.org>
+Subject: + proc-pid-status-show-all-sets-of-pid-according-to-ns-fix.patch
+ added to -mm tree
+Date: Wed, 15 Apr 2015 14:05:12 -0700
+Message-ID: <552ed288.gM3qRb9wTuwTKDKw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48677 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49955 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932192AbbDOTZs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:25:48 -0400
+	with ESMTP id S1752040AbbDOVFN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 17:05:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vladimir.murzin@arm.com, catalin.marinas@arm.com, hpa@zytor.com, mark.rutland@arm.com, mingo@elte.hu, rmk@arm.linux.org.uk, tglx@linutronix.de, will.deacon@arm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, chenhanxiao@cn.fujitsu.com, ebiederm@xmission.com, nathans@redhat.com, serge.hallyn@canonical.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Documentation: update arch list in the 'memtest' entry
-has been removed from the -mm tree.  Its filename was
-     documentation-update-arch-list-in-the-memtest-entry.patch
+     Subject: proc-pid-status-show-all-sets-of-pid-according-to-ns-fix
+has been added to the -mm tree.  Its filename is
+     proc-pid-status-show-all-sets-of-pid-according-to-ns-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/proc-pid-status-show-all-sets-of-pid-according-to-ns-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/proc-pid-status-show-all-sets-of-pid-according-to-ns-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Vladimir Murzin <vladimir.murzin@arm.com>
-Subject: Documentation: update arch list in the 'memtest' entry
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: proc-pid-status-show-all-sets-of-pid-according-to-ns-fix
 
-Since arm64/arm support memtest command line option update the "memtest"
-entry.
+add CONFIG_PID_NS ifdef
 
-Signed-off-by: Vladimir Murzin <vladimir.murzin@arm.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Will Deacon <will.deacon@arm.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Chen Hanxiao <chenhanxiao@cn.fujitsu.com>
+Cc: Nathan Scott <nathans@redhat.com>
+Cc: Serge Hallyn <serge.hallyn@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/array.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN Documentation/kernel-parameters.txt~documentation-update-arch-list-in-the-memtest-entry Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~documentation-update-arch-list-in-the-memtest-entry
-+++ a/Documentation/kernel-parameters.txt
-@@ -1989,7 +1989,7 @@ bytes respectively. Such letter suffixes
- 			seconds.  Use this parameter to check at some
- 			other rate.  0 disables periodic checking.
+diff -puN fs/proc/array.c~proc-pid-status-show-all-sets-of-pid-according-to-ns-fix fs/proc/array.c
+--- a/fs/proc/array.c~proc-pid-status-show-all-sets-of-pid-according-to-ns-fix
++++ a/fs/proc/array.c
+@@ -188,6 +188,7 @@ static inline void task_state(struct seq
+ 			   from_kgid_munged(user_ns, GROUP_AT(group_info, g)));
+ 	put_cred(cred);
  
--	memtest=	[KNL,X86] Enable memtest
-+	memtest=	[KNL,X86,ARM] Enable memtest
- 			Format: <integer>
- 			default : 0 <disable>
- 			Specifies the number of memtest passes to be
++#ifdef CONFIG_PID_NS
+ 	seq_puts(m, "\nNStgid:");
+ 	for (g = ns->level; g <= pid->level; g++)
+ 		seq_printf(m, "\t%d",
+@@ -204,6 +205,7 @@ static inline void task_state(struct seq
+ 	for (g = ns->level; g <= pid->level; g++)
+ 		seq_printf(m, "\t%d",
+ 			task_session_nr_ns(p, pid->numbers[g].ns));
++#endif
+ 	seq_putc(m, '\n');
+ }
+ 
 _
 
-Patches currently in -mm which might be from vladimir.murzin@arm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+mm-memory-failurec-define-page-types-for-action_result-in-one-place.patch
+document-interaction-between-compaction-and-the-unevictable-lru-fix.patch
+mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp-fix.patch
+mm-vmalloc-occupy-newly-allocated-vmap-block-just-after-allocation.patch
+mm-mmapc-use-while-instead-of-ifgoto-fix.patch
+mm-hugetlb-introduce-pagehugeactive-flag-fix.patch
+mm-hugetlb-cleanup-using-pagehugeactive-flag-fix.patch
+mm-memblock-add-debug-output-for-the-memblock_add-fix.patch
+mm-uninline-and-cleanup-page-mapping-related-helpers-checkpatch-fixes.patch
+mm-cma-add-functions-to-get-region-pages-counters-fix.patch
+mm-cma_debugc-remove-blank-lines-before-define_simple_attribute.patch
+mm-memory-print-also-a_ops-readpage-in-print_bad_pte-fix.patch
+mm-compactionc-fix-suitable_migration_target-unused-warning.patch
+zsmalloc-support-compaction-fix.patch
+proc-pid-status-show-all-sets-of-pid-according-to-ns-fix.patch
 
