@@ -1,82 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ocfs2-no-need-get-dinode-bh-when-zeroing-extend.patch
- removed from -mm tree
-Date: Wed, 15 Apr 2015 12:08:08 -0700
-Message-ID: <552eb718.RGmpXjPC15sfaILb%akpm@linux-foundation.org>
+Subject: [merged]
+ ocfs2-dereferencing-freed-pointers-in-ocfs2_reflink.patch removed from -mm
+ tree
+Date: Wed, 15 Apr 2015 12:08:16 -0700
+Message-ID: <552eb720.HMqdZnx31DxV6jPN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47822 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47840 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932192AbbDOTII (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:08:08 -0400
+	with ESMTP id S932249AbbDOTIQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:08:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joseph.qi@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
+To: dan.carpenter@oracle.com, jlbec@evilplan.org, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: no need get dinode bh when zeroing extend
+     Subject: ocfs2: dereferencing freed pointers in ocfs2_reflink()
 has been removed from the -mm tree.  Its filename was
-     ocfs2-no-need-get-dinode-bh-when-zeroing-extend.patch
+     ocfs2-dereferencing-freed-pointers-in-ocfs2_reflink.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@huawei.com>
-Subject: ocfs2: no need get dinode bh when zeroing extend
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: ocfs2: dereferencing freed pointers in ocfs2_reflink()
 
-Since di_bh won't be used when zeroing extend, set it to NULL.
+The code at the "out" label assumes that "default_acl" and "acl" are NULL,
+but actually the pointers can be NULL, unitialized, or freed.
 
-Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Reviewed-by: Mark Fasheh <mfasheh@suse.de>
 Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/aops.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ fs/ocfs2/refcounttree.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/aops.c~ocfs2-no-need-get-dinode-bh-when-zeroing-extend fs/ocfs2/aops.c
---- a/fs/ocfs2/aops.c~ocfs2-no-need-get-dinode-bh-when-zeroing-extend
-+++ a/fs/ocfs2/aops.c
-@@ -706,7 +706,7 @@ static ssize_t ocfs2_direct_IO_write(str
+diff -puN fs/ocfs2/refcounttree.c~ocfs2-dereferencing-freed-pointers-in-ocfs2_reflink fs/ocfs2/refcounttree.c
+--- a/fs/ocfs2/refcounttree.c~ocfs2-dereferencing-freed-pointers-in-ocfs2_reflink
++++ a/fs/ocfs2/refcounttree.c
+@@ -4276,7 +4276,7 @@ static int ocfs2_reflink(struct dentry *
+ 	error = posix_acl_create(dir, &mode, &default_acl, &acl);
+ 	if (error) {
+ 		mlog_errno(error);
+-		goto out;
++		return error;
  	}
  
- 	if (append_write) {
--		ret = ocfs2_inode_lock(inode, &di_bh, 1);
-+		ret = ocfs2_inode_lock(inode, NULL, 1);
- 		if (ret < 0) {
- 			mlog_errno(ret);
- 			goto clean_orphan;
-@@ -720,7 +720,6 @@ static ssize_t ocfs2_direct_IO_write(str
- 		if (ret < 0) {
- 			mlog_errno(ret);
- 			ocfs2_inode_unlock(inode, 1);
--			brelse(di_bh);
- 			goto clean_orphan;
- 		}
- 
-@@ -728,13 +727,10 @@ static ssize_t ocfs2_direct_IO_write(str
- 		if (is_overwrite < 0) {
- 			mlog_errno(is_overwrite);
- 			ocfs2_inode_unlock(inode, 1);
--			brelse(di_bh);
- 			goto clean_orphan;
- 		}
- 
- 		ocfs2_inode_unlock(inode, 1);
--		brelse(di_bh);
--		di_bh = NULL;
- 	}
- 
- 	written = __blockdev_direct_IO(WRITE, iocb, inode, inode->i_sb->s_bdev,
+ 	error = ocfs2_create_inode_in_orphan(dir, mode,
 _
 
-Patches currently in -mm which might be from joseph.qi@huawei.com are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
 origin.patch
-ocfs2-avoid-access-invalid-address-when-read-o2dlm-debug-messages.patch
+posix_acl-make-posix_acl_create-safer-and-cleaner.patch
+paride-fix-the-verbose-module-param.patch
+nilfs2-add-bmap-function-to-seek-a-valid-key-fix.patch
+hfsplus-add-missing-curly-braces-in-hfsplus_delete_cat.patch
+memstick-mspro_block-add-missing-curly-braces.patch
+linux-next.patch
 
