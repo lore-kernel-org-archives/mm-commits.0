@@ -1,145 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-cma-release-trigger.patch removed from -mm tree
-Date: Wed, 15 Apr 2015 12:09:24 -0700
-Message-ID: <552eb764.ey+ORoo2cRvLFL2z%akpm@linux-foundation.org>
+Subject: [merged] mm-cma-allocation-trigger-fix.patch removed from -mm
+ tree
+Date: Wed, 15 Apr 2015 12:09:27 -0700
+Message-ID: <552eb767.7MXRecImPz4Cx1iD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47985 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47990 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756698AbbDOTJZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:09:25 -0400
+	with ESMTP id S1756726AbbDOTJ2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:09:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sasha.levin@oracle.com, iamjoonsoo.kim@lge.com, konrad.wilk@oracle.com, lauraa@codeaurora.org, m.szyprowski@samsung.com, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, iamjoonsoo.kim@lge.com, konrad.wilk@oracle.com, lauraa@codeaurora.org, m.szyprowski@samsung.com, sasha.levin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: cma: release trigger
+     Subject: mm-cma-allocation-trigger-fix
 has been removed from the -mm tree.  Its filename was
-     mm-cma-release-trigger.patch
+     mm-cma-allocation-trigger-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sasha Levin <sasha.levin@oracle.com>
-Subject: mm: cma: release trigger
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-cma-allocation-trigger-fix
 
-Provides a userspace interface to trigger a CMA release.
+s/CONFIG_CMA_ALIGNMENT/0/, per Joonsoo
 
-Usage:
-
-	echo [pages] > free
-
-This would provide testing/fuzzing access to the CMA release paths.
-
-[akpm@linux-foundation.org: coding-style fixes]
-[mhocko@suse.cz: fix build]
-Signed-off-by: Sasha Levin <sasha.levin@oracle.com>
-Acked-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Laura Abbott <lauraa@codeaurora.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Cc: Laura Abbott <lauraa@codeaurora.org>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Sasha Levin <sasha.levin@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma_debug.c |   58 +++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 58 insertions(+)
+ mm/cma_debug.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/cma_debug.c~mm-cma-release-trigger mm/cma_debug.c
---- a/mm/cma_debug.c~mm-cma-release-trigger
+diff -puN mm/cma_debug.c~mm-cma-allocation-trigger-fix mm/cma_debug.c
+--- a/mm/cma_debug.c~mm-cma-allocation-trigger-fix
 +++ a/mm/cma_debug.c
-@@ -10,6 +10,7 @@
- #include <linux/list.h>
- #include <linux/kernel.h>
- #include <linux/slab.h>
-+#include <linux/mm_types.h>
+@@ -103,7 +103,7 @@ static int cma_alloc_mem(struct cma *cma
+ 	if (!mem)
+ 		return -ENOMEM;
  
- #include "cma.h"
- 
-@@ -39,6 +40,60 @@ static void cma_add_to_cma_mem_list(stru
- 	spin_unlock(&cma->mem_head_lock);
- }
- 
-+static struct cma_mem *cma_get_entry_from_list(struct cma *cma)
-+{
-+	struct cma_mem *mem = NULL;
-+
-+	spin_lock(&cma->mem_head_lock);
-+	if (!hlist_empty(&cma->mem_head)) {
-+		mem = hlist_entry(cma->mem_head.first, struct cma_mem, node);
-+		hlist_del_init(&mem->node);
-+	}
-+	spin_unlock(&cma->mem_head_lock);
-+
-+	return mem;
-+}
-+
-+static int cma_free_mem(struct cma *cma, int count)
-+{
-+	struct cma_mem *mem = NULL;
-+
-+	while (count) {
-+		mem = cma_get_entry_from_list(cma);
-+		if (mem == NULL)
-+			return 0;
-+
-+		if (mem->n <= count) {
-+			cma_release(cma, mem->p, mem->n);
-+			count -= mem->n;
-+			kfree(mem);
-+		} else if (cma->order_per_bit == 0) {
-+			cma_release(cma, mem->p, count);
-+			mem->p += count;
-+			mem->n -= count;
-+			count = 0;
-+			cma_add_to_cma_mem_list(cma, mem);
-+		} else {
-+			pr_debug("cma: cannot release partial block when order_per_bit != 0\n");
-+			cma_add_to_cma_mem_list(cma, mem);
-+			break;
-+		}
-+	}
-+
-+	return 0;
-+
-+}
-+
-+static int cma_free_write(void *data, u64 val)
-+{
-+	int pages = val;
-+	struct cma *cma = data;
-+
-+	return cma_free_mem(cma, pages);
-+}
-+
-+DEFINE_SIMPLE_ATTRIBUTE(cma_free_fops, NULL, cma_free_write, "%llu\n");
-+
- static int cma_alloc_mem(struct cma *cma, int count)
- {
- 	struct cma_mem *mem;
-@@ -85,6 +140,9 @@ static void cma_debugfs_add_one(struct c
- 	debugfs_create_file("alloc", S_IWUSR, cma_debugfs_root, cma,
- 				&cma_alloc_fops);
- 
-+	debugfs_create_file("free", S_IWUSR, cma_debugfs_root, cma,
-+				&cma_free_fops);
-+
- 	debugfs_create_file("base_pfn", S_IRUGO, tmp,
- 				&cma->base_pfn, &cma_debugfs_fops);
- 	debugfs_create_file("count", S_IRUGO, tmp,
+-	p = cma_alloc(cma, count, CONFIG_CMA_ALIGNMENT);
++	p = cma_alloc(cma, count, 0);
+ 	if (!p) {
+ 		kfree(mem);
+ 		return -ENOMEM;
 _
 
-Patches currently in -mm which might be from sasha.levin@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-mmapc-use-while-instead-of-ifgoto.patch
+mm-mempool-do-not-allow-atomic-resizing.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+mm.patch
+slub-bulk-allocation-from-per-cpu-partial-pages-fix.patch
+mm-memory-failurec-define-page-types-for-action_result-in-one-place.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
+document-interaction-between-compaction-and-the-unevictable-lru-fix.patch
+mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp-fix.patch
+mm-vmalloc-occupy-newly-allocated-vmap-block-just-after-allocation.patch
 mm-mmapc-use-while-instead-of-ifgoto-fix.patch
-mm-memory-print-also-a_ops-readpage-in-print_bad_pte.patch
+mm-hugetlb-introduce-pagehugeactive-flag-fix.patch
+mm-hugetlb-cleanup-using-pagehugeactive-flag-fix.patch
+mm-memblock-add-debug-output-for-the-memblock_add-fix.patch
+mm-uninline-and-cleanup-page-mapping-related-helpers-checkpatch-fixes.patch
+mm-cma-add-functions-to-get-region-pages-counters-fix.patch
+mm-cma_debugc-remove-blank-lines-before-define_simple_attribute.patch
 mm-memory-print-also-a_ops-readpage-in-print_bad_pte-fix.patch
+mm-compactionc-fix-suitable_migration_target-unused-warning.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
+zram-add-dynamic-device-add-remove-functionality-fix.patch
+zram-introduce-automatic-device_id-generation-fix.patch
+zsmalloc-support-compaction-fix.patch
+kernel-conditionally-support-non-root-users-groups-and-capabilities-checkpatch-fixes.patch
+lib-vsprintf-add-%pcnr-format-specifiers-for-clocks-fix.patch
+lib-find__bit-reimplementation-fix.patch
+checkpatch-match-more-world-writable-permissions-fix.patch
+binfmt_misc-simplify-entry_status-fix.patch
+rtc-driver-for-conexant-digicolor-cx92755-on-chip-rtc-fix.patch
+rtc-omap-add-external-32k-clock-feature-fix.patch
+fs-fat-remove-unnecessary-includes-fix.patch
+kernel-forkc-avoid-division-by-zero-fix.patch
+kernel-forkc-avoid-division-by-zero-fix-fix.patch
+doc-sysctl-kerneltxt-document-threads-max-fix.patch
+mm-rcu-protected-get_mm_exe_file-fix-2.patch
+affs-kstrdup-memory-handling-fix.patch
+kconfig-use-macros-which-are-already-defined-fix.patch
 linux-next.patch
+linux-next-rejects.patch
+lib-kconfig-fix-up-have_arch_bitreverse-help-text.patch
+oprofile-reduce-mmap_sem-hold-for-mm-exe_file-fix.patch
+tomoyo-reduce-mmap_sem-hold-for-mm-exe_file-checkpatch-fixes.patch
+documentation-spi-spidev_testc-fix-warning.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
