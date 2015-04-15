@@ -1,39 +1,39 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-rename-foll_mlock-to-foll_populate.patch removed from -mm tree
-Date: Wed, 15 Apr 2015 12:09:06 -0700
-Message-ID: <552eb752.elPL+bH3SI3USBY8%akpm@linux-foundation.org>
+Subject: [merged] mm-move-mm_populate-related-code-to-mm-gupc.patch
+ removed from -mm tree
+Date: Wed, 15 Apr 2015 12:09:12 -0700
+Message-ID: <552eb758.o8bSALANZvhTVZ26%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47944 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47960 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756581AbbDOTJH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:09:07 -0400
+	with ESMTP id S1756670AbbDOTJN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:09:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, riel@redhat.com, rientjes@google.com, torvalds@linux-foundation.org, walken@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: rename FOLL_MLOCK to FOLL_POPULATE
+     Subject: mm: move mm_populate()-related code to mm/gup.c
 has been removed from the -mm tree.  Its filename was
-     mm-rename-foll_mlock-to-foll_populate.patch
+     mm-move-mm_populate-related-code-to-mm-gupc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: rename FOLL_MLOCK to FOLL_POPULATE
+Subject: mm: move mm_populate()-related code to mm/gup.c
 
-After a1fde08c74e9 ("VM: skip the stack guard page lookup in
-get_user_pages only for mlock") FOLL_MLOCK has lost its original meaning:
-we don't necessarily mlock the page if the flags is set -- we also take
-VM_LOCKED into consideration.
+It's odd that we have populate_vma_page_range() and __mm_populate() in
+mm/mlock.c.  It's implementation of generic memory population and mlocking
+is one of possible side effect, if VM_LOCKED is set.
 
-Since we use the same codepath for __mm_populate(), let's rename
-FOLL_MLOCK to FOLL_POPULATE.
+__get_user_pages() is core of the implementation.  Let's move the code
+into mm/gup.c.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
@@ -43,71 +43,273 @@ Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 +-
- mm/gup.c           |    6 +++---
- mm/huge_memory.c   |    2 +-
- mm/mlock.c         |    2 +-
- 4 files changed, 6 insertions(+), 6 deletions(-)
+ mm/gup.c   |  118 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ mm/mlock.c |  118 ---------------------------------------------------
+ 2 files changed, 118 insertions(+), 118 deletions(-)
 
-diff -puN include/linux/mm.h~mm-rename-foll_mlock-to-foll_populate include/linux/mm.h
---- a/include/linux/mm.h~mm-rename-foll_mlock-to-foll_populate
-+++ a/include/linux/mm.h
-@@ -2109,7 +2109,7 @@ static inline struct page *follow_page(s
- #define FOLL_FORCE	0x10	/* get_user_pages read/write w/o permission */
- #define FOLL_NOWAIT	0x20	/* if a disk transfer is needed, start the IO
- 				 * and return without waiting upon it */
--#define FOLL_MLOCK	0x40	/* mark page as mlocked */
-+#define FOLL_POPULATE	0x40	/* fault in page */
- #define FOLL_SPLIT	0x80	/* don't return transhuge pages, split them */
- #define FOLL_HWPOISON	0x100	/* check page is hwpoisoned */
- #define FOLL_NUMA	0x200	/* force NUMA hinting page fault */
-diff -puN mm/gup.c~mm-rename-foll_mlock-to-foll_populate mm/gup.c
---- a/mm/gup.c~mm-rename-foll_mlock-to-foll_populate
+diff -puN mm/gup.c~mm-move-mm_populate-related-code-to-mm-gupc mm/gup.c
+--- a/mm/gup.c~mm-move-mm_populate-related-code-to-mm-gupc
 +++ a/mm/gup.c
-@@ -92,7 +92,7 @@ retry:
- 		 */
- 		mark_page_accessed(page);
- 	}
--	if ((flags & FOLL_MLOCK) && (vma->vm_flags & VM_LOCKED)) {
-+	if ((flags & FOLL_POPULATE) && (vma->vm_flags & VM_LOCKED)) {
- 		/*
- 		 * The preliminary mapping check is mainly to avoid the
- 		 * pointless overhead of lock_page on the ZERO_PAGE
-@@ -265,8 +265,8 @@ static int faultin_page(struct task_stru
- 	unsigned int fault_flags = 0;
- 	int ret;
+@@ -819,6 +819,124 @@ long get_user_pages(struct task_struct *
+ EXPORT_SYMBOL(get_user_pages);
  
--	/* For mlock, just skip the stack guard page. */
--	if ((*flags & FOLL_MLOCK) &&
-+	/* For mm_populate(), just skip the stack guard page. */
-+	if ((*flags & FOLL_POPULATE) &&
- 			(stack_guard_page_start(vma, address) ||
- 			 stack_guard_page_end(vma, address + PAGE_SIZE)))
- 		return -ENOENT;
-diff -puN mm/huge_memory.c~mm-rename-foll_mlock-to-foll_populate mm/huge_memory.c
---- a/mm/huge_memory.c~mm-rename-foll_mlock-to-foll_populate
-+++ a/mm/huge_memory.c
-@@ -1231,7 +1231,7 @@ struct page *follow_trans_huge_pmd(struc
- 					  pmd, _pmd,  1))
- 			update_mmu_cache_pmd(vma, addr, pmd);
- 	}
--	if ((flags & FOLL_MLOCK) && (vma->vm_flags & VM_LOCKED)) {
-+	if ((flags & FOLL_POPULATE) && (vma->vm_flags & VM_LOCKED)) {
- 		if (page->mapping && trylock_page(page)) {
- 			lru_add_drain();
- 			if (page->mapping)
-diff -puN mm/mlock.c~mm-rename-foll_mlock-to-foll_populate mm/mlock.c
---- a/mm/mlock.c~mm-rename-foll_mlock-to-foll_populate
-+++ a/mm/mlock.c
-@@ -237,7 +237,7 @@ long __mlock_vma_pages_range(struct vm_a
- 	VM_BUG_ON_VMA(end   > vma->vm_end, vma);
- 	VM_BUG_ON_MM(!rwsem_is_locked(&mm->mmap_sem), mm);
- 
--	gup_flags = FOLL_TOUCH | FOLL_MLOCK;
+ /**
++ * populate_vma_page_range() -  populate a range of pages in the vma.
++ * @vma:   target vma
++ * @start: start address
++ * @end:   end address
++ * @nonblocking:
++ *
++ * This takes care of mlocking the pages too if VM_LOCKED is set.
++ *
++ * return 0 on success, negative error code on error.
++ *
++ * vma->vm_mm->mmap_sem must be held.
++ *
++ * If @nonblocking is NULL, it may be held for read or write and will
++ * be unperturbed.
++ *
++ * If @nonblocking is non-NULL, it must held for read only and may be
++ * released.  If it's released, *@nonblocking will be set to 0.
++ */
++long populate_vma_page_range(struct vm_area_struct *vma,
++		unsigned long start, unsigned long end, int *nonblocking)
++{
++	struct mm_struct *mm = vma->vm_mm;
++	unsigned long nr_pages = (end - start) / PAGE_SIZE;
++	int gup_flags;
++
++	VM_BUG_ON(start & ~PAGE_MASK);
++	VM_BUG_ON(end   & ~PAGE_MASK);
++	VM_BUG_ON_VMA(start < vma->vm_start, vma);
++	VM_BUG_ON_VMA(end   > vma->vm_end, vma);
++	VM_BUG_ON_MM(!rwsem_is_locked(&mm->mmap_sem), mm);
++
 +	gup_flags = FOLL_TOUCH | FOLL_POPULATE;
- 	/*
- 	 * We want to touch writable mappings with a write fault in order
- 	 * to break COW, except for shared mappings because these don't COW
++	/*
++	 * We want to touch writable mappings with a write fault in order
++	 * to break COW, except for shared mappings because these don't COW
++	 * and we would not want to dirty them for nothing.
++	 */
++	if ((vma->vm_flags & (VM_WRITE | VM_SHARED)) == VM_WRITE)
++		gup_flags |= FOLL_WRITE;
++
++	/*
++	 * We want mlock to succeed for regions that have any permissions
++	 * other than PROT_NONE.
++	 */
++	if (vma->vm_flags & (VM_READ | VM_WRITE | VM_EXEC))
++		gup_flags |= FOLL_FORCE;
++
++	/*
++	 * We made sure addr is within a VMA, so the following will
++	 * not result in a stack expansion that recurses back here.
++	 */
++	return __get_user_pages(current, mm, start, nr_pages, gup_flags,
++				NULL, NULL, nonblocking);
++}
++
++/*
++ * __mm_populate - populate and/or mlock pages within a range of address space.
++ *
++ * This is used to implement mlock() and the MAP_POPULATE / MAP_LOCKED mmap
++ * flags. VMAs must be already marked with the desired vm_flags, and
++ * mmap_sem must not be held.
++ */
++int __mm_populate(unsigned long start, unsigned long len, int ignore_errors)
++{
++	struct mm_struct *mm = current->mm;
++	unsigned long end, nstart, nend;
++	struct vm_area_struct *vma = NULL;
++	int locked = 0;
++	long ret = 0;
++
++	VM_BUG_ON(start & ~PAGE_MASK);
++	VM_BUG_ON(len != PAGE_ALIGN(len));
++	end = start + len;
++
++	for (nstart = start; nstart < end; nstart = nend) {
++		/*
++		 * We want to fault in pages for [nstart; end) address range.
++		 * Find first corresponding VMA.
++		 */
++		if (!locked) {
++			locked = 1;
++			down_read(&mm->mmap_sem);
++			vma = find_vma(mm, nstart);
++		} else if (nstart >= vma->vm_end)
++			vma = vma->vm_next;
++		if (!vma || vma->vm_start >= end)
++			break;
++		/*
++		 * Set [nstart; nend) to intersection of desired address
++		 * range with the first VMA. Also, skip undesirable VMA types.
++		 */
++		nend = min(end, vma->vm_end);
++		if (vma->vm_flags & (VM_IO | VM_PFNMAP))
++			continue;
++		if (nstart < vma->vm_start)
++			nstart = vma->vm_start;
++		/*
++		 * Now fault in a range of pages. populate_vma_page_range()
++		 * double checks the vma flags, so that it won't mlock pages
++		 * if the vma was already munlocked.
++		 */
++		ret = populate_vma_page_range(vma, nstart, nend, &locked);
++		if (ret < 0) {
++			if (ignore_errors) {
++				ret = 0;
++				continue;	/* continue at next VMA */
++			}
++			break;
++		}
++		nend = nstart + ret * PAGE_SIZE;
++		ret = 0;
++	}
++	if (locked)
++		up_read(&mm->mmap_sem);
++	return ret;	/* 0 or negative error code */
++}
++
++/**
+  * get_dump_page() - pin user page in memory while writing it to core dump
+  * @addr: user address
+  *
+diff -puN mm/mlock.c~mm-move-mm_populate-related-code-to-mm-gupc mm/mlock.c
+--- a/mm/mlock.c~mm-move-mm_populate-related-code-to-mm-gupc
++++ a/mm/mlock.c
+@@ -205,62 +205,6 @@ out:
+ 	return nr_pages - 1;
+ }
+ 
+-/**
+- * populate_vma_page_range() -  populate a range of pages in the vma.
+- * @vma:   target vma
+- * @start: start address
+- * @end:   end address
+- * @nonblocking:
+- *
+- * This takes care of mlocking the pages too if VM_LOCKED is set.
+- *
+- * return 0 on success, negative error code on error.
+- *
+- * vma->vm_mm->mmap_sem must be held.
+- *
+- * If @nonblocking is NULL, it may be held for read or write and will
+- * be unperturbed.
+- *
+- * If @nonblocking is non-NULL, it must held for read only and may be
+- * released.  If it's released, *@nonblocking will be set to 0.
+- */
+-long populate_vma_page_range(struct vm_area_struct *vma,
+-		unsigned long start, unsigned long end, int *nonblocking)
+-{
+-	struct mm_struct *mm = vma->vm_mm;
+-	unsigned long nr_pages = (end - start) / PAGE_SIZE;
+-	int gup_flags;
+-
+-	VM_BUG_ON(start & ~PAGE_MASK);
+-	VM_BUG_ON(end   & ~PAGE_MASK);
+-	VM_BUG_ON_VMA(start < vma->vm_start, vma);
+-	VM_BUG_ON_VMA(end   > vma->vm_end, vma);
+-	VM_BUG_ON_MM(!rwsem_is_locked(&mm->mmap_sem), mm);
+-
+-	gup_flags = FOLL_TOUCH | FOLL_POPULATE;
+-	/*
+-	 * We want to touch writable mappings with a write fault in order
+-	 * to break COW, except for shared mappings because these don't COW
+-	 * and we would not want to dirty them for nothing.
+-	 */
+-	if ((vma->vm_flags & (VM_WRITE | VM_SHARED)) == VM_WRITE)
+-		gup_flags |= FOLL_WRITE;
+-
+-	/*
+-	 * We want mlock to succeed for regions that have any permissions
+-	 * other than PROT_NONE.
+-	 */
+-	if (vma->vm_flags & (VM_READ | VM_WRITE | VM_EXEC))
+-		gup_flags |= FOLL_FORCE;
+-
+-	/*
+-	 * We made sure addr is within a VMA, so the following will
+-	 * not result in a stack expansion that recurses back here.
+-	 */
+-	return __get_user_pages(current, mm, start, nr_pages, gup_flags,
+-				NULL, NULL, nonblocking);
+-}
+-
+ /*
+  * convert get_user_pages() return value to posix mlock() error
+  */
+@@ -660,68 +604,6 @@ static int do_mlock(unsigned long start,
+ 	return error;
+ }
+ 
+-/*
+- * __mm_populate - populate and/or mlock pages within a range of address space.
+- *
+- * This is used to implement mlock() and the MAP_POPULATE / MAP_LOCKED mmap
+- * flags. VMAs must be already marked with the desired vm_flags, and
+- * mmap_sem must not be held.
+- */
+-int __mm_populate(unsigned long start, unsigned long len, int ignore_errors)
+-{
+-	struct mm_struct *mm = current->mm;
+-	unsigned long end, nstart, nend;
+-	struct vm_area_struct *vma = NULL;
+-	int locked = 0;
+-	long ret = 0;
+-
+-	VM_BUG_ON(start & ~PAGE_MASK);
+-	VM_BUG_ON(len != PAGE_ALIGN(len));
+-	end = start + len;
+-
+-	for (nstart = start; nstart < end; nstart = nend) {
+-		/*
+-		 * We want to fault in pages for [nstart; end) address range.
+-		 * Find first corresponding VMA.
+-		 */
+-		if (!locked) {
+-			locked = 1;
+-			down_read(&mm->mmap_sem);
+-			vma = find_vma(mm, nstart);
+-		} else if (nstart >= vma->vm_end)
+-			vma = vma->vm_next;
+-		if (!vma || vma->vm_start >= end)
+-			break;
+-		/*
+-		 * Set [nstart; nend) to intersection of desired address
+-		 * range with the first VMA. Also, skip undesirable VMA types.
+-		 */
+-		nend = min(end, vma->vm_end);
+-		if (vma->vm_flags & (VM_IO | VM_PFNMAP))
+-			continue;
+-		if (nstart < vma->vm_start)
+-			nstart = vma->vm_start;
+-		/*
+-		 * Now fault in a range of pages. populate_vma_page_range()
+-		 * double checks the vma flags, so that it won't mlock pages
+-		 * if the vma was already munlocked.
+-		 */
+-		ret = populate_vma_page_range(vma, nstart, nend, &locked);
+-		if (ret < 0) {
+-			if (ignore_errors) {
+-				ret = 0;
+-				continue;	/* continue at next VMA */
+-			}
+-			break;
+-		}
+-		nend = nstart + ret * PAGE_SIZE;
+-		ret = 0;
+-	}
+-	if (locked)
+-		up_read(&mm->mmap_sem);
+-	return ret;	/* 0 or negative error code */
+-}
+-
+ SYSCALL_DEFINE2(mlock, unsigned long, start, size_t, len)
+ {
+ 	unsigned long locked;
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
