@@ -1,39 +1,39 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- ocfs2-less-function-calls-in-ocfs2_figure_merge_contig_type-after-error-detection.patch removed from -mm tree
-Date: Wed, 15 Apr 2015 12:07:54 -0700
-Message-ID: <552eb70a.yRzyCVNp11cPj5m1%akpm@linux-foundation.org>
+ ocfs2-deletion-of-unnecessary-checks-before-three-function-calls.patch
+ removed from -mm tree
+Date: Wed, 15 Apr 2015 12:07:50 -0700
+Message-ID: <552eb706.IWN59xFzcXs4enlX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47800 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47789 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756689AbbDOTHy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:07:54 -0400
+	with ESMTP id S1756681AbbDOTHu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:07:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: elfring@users.sourceforge.net, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: less function calls in ocfs2_figure_merge_contig_type() after error detection
+     Subject: ocfs2: delete unnecessary checks before three function calls
 has been removed from the -mm tree.  Its filename was
-     ocfs2-less-function-calls-in-ocfs2_figure_merge_contig_type-after-error-detection.patch
+     ocfs2-deletion-of-unnecessary-checks-before-three-function-calls.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Markus Elfring <elfring@users.sourceforge.net>
-Subject: ocfs2: less function calls in ocfs2_figure_merge_contig_type() after error detection
+Subject: ocfs2: delete unnecessary checks before three function calls
 
-ocfs2_free_path() was called in some cases by
-ocfs2_figure_merge_contig_type() during error handling even if the passed
-variables "left_path" and "right_path" contained still a null pointer.
+kfree(), ocfs2_free_path() and __ocfs2_free_slot_info() test whether their
+argument is NULL and then return immediately.  Thus the test around their
+calls is not needed.
 
-Corresponding implementation details could be improved by adjustments for
-jump labels according to the current Linux coding style convention.
+This issue was detected by using the Coccinelle software.
 
 Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 Cc: Mark Fasheh <mfasheh@suse.com>
@@ -41,88 +41,83 @@ Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/alloc.c |   24 +++++++++++++-----------
- 1 file changed, 13 insertions(+), 11 deletions(-)
+ fs/ocfs2/alloc.c      |   17 +++++------------
+ fs/ocfs2/slot_map.c   |    2 +-
+ fs/ocfs2/stack_user.c |    2 +-
+ 3 files changed, 7 insertions(+), 14 deletions(-)
 
-diff -puN fs/ocfs2/alloc.c~ocfs2-less-function-calls-in-ocfs2_figure_merge_contig_type-after-error-detection fs/ocfs2/alloc.c
---- a/fs/ocfs2/alloc.c~ocfs2-less-function-calls-in-ocfs2_figure_merge_contig_type-after-error-detection
+diff -puN fs/ocfs2/alloc.c~ocfs2-deletion-of-unnecessary-checks-before-three-function-calls fs/ocfs2/alloc.c
+--- a/fs/ocfs2/alloc.c~ocfs2-deletion-of-unnecessary-checks-before-three-function-calls
 +++ a/fs/ocfs2/alloc.c
-@@ -4332,17 +4332,17 @@ ocfs2_figure_merge_contig_type(struct oc
- 	} else if (path->p_tree_depth > 0) {
- 		status = ocfs2_find_cpos_for_left_leaf(sb, path, &left_cpos);
- 		if (status)
--			goto out;
-+			goto exit;
- 
- 		if (left_cpos != 0) {
- 			left_path = ocfs2_new_path_from_path(path);
- 			if (!left_path)
--				goto out;
-+				goto exit;
- 
- 			status = ocfs2_find_path(et->et_ci, left_path,
- 						 left_cpos);
- 			if (status)
--				goto out;
-+				goto free_left_path;
- 
- 			new_el = path_leaf_el(left_path);
- 
-@@ -4359,7 +4359,7 @@ ocfs2_figure_merge_contig_type(struct oc
- 					    le16_to_cpu(new_el->l_next_free_rec),
- 					    le16_to_cpu(new_el->l_count));
- 				status = -EINVAL;
--				goto out;
-+				goto free_left_path;
- 			}
- 			rec = &new_el->l_recs[
- 				le16_to_cpu(new_el->l_next_free_rec) - 1];
-@@ -4386,18 +4386,18 @@ ocfs2_figure_merge_contig_type(struct oc
- 		 path->p_tree_depth > 0) {
- 		status = ocfs2_find_cpos_for_right_leaf(sb, path, &right_cpos);
- 		if (status)
--			goto out;
-+			goto free_left_path;
- 
- 		if (right_cpos == 0)
--			goto out;
-+			goto free_left_path;
- 
- 		right_path = ocfs2_new_path_from_path(path);
- 		if (!right_path)
--			goto out;
-+			goto free_left_path;
- 
- 		status = ocfs2_find_path(et->et_ci, right_path, right_cpos);
- 		if (status)
--			goto out;
-+			goto free_right_path;
- 
- 		new_el = path_leaf_el(right_path);
- 		rec = &new_el->l_recs[0];
-@@ -4411,7 +4411,7 @@ ocfs2_figure_merge_contig_type(struct oc
- 					    (unsigned long long)le64_to_cpu(eb->h_blkno),
- 					    le16_to_cpu(new_el->l_next_free_rec));
- 				status = -EINVAL;
--				goto out;
-+				goto free_right_path;
- 			}
- 			rec = &new_el->l_recs[1];
- 		}
-@@ -4428,9 +4428,11 @@ ocfs2_figure_merge_contig_type(struct oc
- 			ret = contig_type;
+@@ -3453,8 +3453,7 @@ static int ocfs2_merge_rec_right(struct
+ 					   subtree_index);
  	}
- 
--out:
--	ocfs2_free_path(left_path);
-+free_right_path:
- 	ocfs2_free_path(right_path);
-+free_left_path:
-+	ocfs2_free_path(left_path);
-+exit:
+ out:
+-	if (right_path)
+-		ocfs2_free_path(right_path);
++	ocfs2_free_path(right_path);
  	return ret;
  }
  
+@@ -3647,8 +3646,7 @@ static int ocfs2_merge_rec_left(struct o
+ 						   right_path, subtree_index);
+ 	}
+ out:
+-	if (left_path)
+-		ocfs2_free_path(left_path);
++	ocfs2_free_path(left_path);
+ 	return ret;
+ }
+ 
+@@ -4431,11 +4429,8 @@ ocfs2_figure_merge_contig_type(struct oc
+ 	}
+ 
+ out:
+-	if (left_path)
+-		ocfs2_free_path(left_path);
+-	if (right_path)
+-		ocfs2_free_path(right_path);
+-
++	ocfs2_free_path(left_path);
++	ocfs2_free_path(right_path);
+ 	return ret;
+ }
+ 
+@@ -6996,9 +6991,7 @@ out_commit:
+ out:
+ 	if (data_ac)
+ 		ocfs2_free_alloc_context(data_ac);
+-	if (pages)
+-		kfree(pages);
+-
++	kfree(pages);
+ 	return ret;
+ }
+ 
+diff -puN fs/ocfs2/slot_map.c~ocfs2-deletion-of-unnecessary-checks-before-three-function-calls fs/ocfs2/slot_map.c
+--- a/fs/ocfs2/slot_map.c~ocfs2-deletion-of-unnecessary-checks-before-three-function-calls
++++ a/fs/ocfs2/slot_map.c
+@@ -452,7 +452,7 @@ int ocfs2_init_slot_info(struct ocfs2_su
+ 
+ 	osb->slot_info = (struct ocfs2_slot_info *)si;
+ bail:
+-	if (status < 0 && si)
++	if (status < 0)
+ 		__ocfs2_free_slot_info(si);
+ 
+ 	return status;
+diff -puN fs/ocfs2/stack_user.c~ocfs2-deletion-of-unnecessary-checks-before-three-function-calls fs/ocfs2/stack_user.c
+--- a/fs/ocfs2/stack_user.c~ocfs2-deletion-of-unnecessary-checks-before-three-function-calls
++++ a/fs/ocfs2/stack_user.c
+@@ -1063,7 +1063,7 @@ static int user_cluster_connect(struct o
+ 	}
+ 
+ out:
+-	if (rc && lc)
++	if (rc)
+ 		kfree(lc);
+ 	return rc;
+ }
 _
 
 Patches currently in -mm which might be from elfring@users.sourceforge.net are
