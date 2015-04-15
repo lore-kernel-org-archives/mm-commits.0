@@ -1,123 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- watchdog-introduce-the-hardlockup_detector_disable-function.patch removed
+Subject: [merged] mm-slab-correct-config-option-in-comment.patch removed
  from -mm tree
-Date: Wed, 15 Apr 2015 12:08:54 -0700
-Message-ID: <552eb746.xWEfFDtJxQS29bXs%akpm@linux-foundation.org>
+Date: Wed, 15 Apr 2015 12:09:00 -0700
+Message-ID: <552eb74c.6KFYpO4YZLDGdCzX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47913 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47928 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932695AbbDOTIy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:08:54 -0400
+	with ESMTP id S932739AbbDOTJB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Apr 2015 15:09:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: uobergfe@redhat.com, dzickus@redhat.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: rientjes@google.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: watchdog: introduce the hardlockup_detector_disable() function
+     Subject: mm, slab: correct config option in comment
 has been removed from the -mm tree.  Its filename was
-     watchdog-introduce-the-hardlockup_detector_disable-function.patch
+     mm-slab-correct-config-option-in-comment.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ulrich Obergfell <uobergfe@redhat.com>
-Subject: watchdog: introduce the hardlockup_detector_disable() function
+From: David Rientjes <rientjes@google.com>
+Subject: mm, slab: correct config option in comment
 
-Have kvm_guest_init() use hardlockup_detector_disable() instead of
-watchdog_enable_hardlockup_detector(false).
+CONFIG_SLAB_DEBUG doesn't exist, CONFIG_DEBUG_SLAB does.
 
-Remove the watchdog_hardlockup_detector_is_enabled() and the
-watchdog_enable_hardlockup_detector() function which are no longer needed.
-
-Signed-off-by: Ulrich Obergfell <uobergfe@redhat.com>
-Signed-off-by: Don Zickus <dzickus@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: David Rientjes <rientjes@google.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/kvm.c |    2 +-
- include/linux/nmi.h   |    9 ++-------
- kernel/watchdog.c     |   21 ++-------------------
- 3 files changed, 5 insertions(+), 27 deletions(-)
+ include/linux/slab.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/kvm.c~watchdog-introduce-the-hardlockup_detector_disable-function arch/x86/kernel/kvm.c
---- a/arch/x86/kernel/kvm.c~watchdog-introduce-the-hardlockup_detector_disable-function
-+++ a/arch/x86/kernel/kvm.c
-@@ -513,7 +513,7 @@ void __init kvm_guest_init(void)
- 	 * can get false positives too easily, for example if the host is
- 	 * overcommitted.
- 	 */
--	watchdog_enable_hardlockup_detector(false);
-+	hardlockup_detector_disable();
- }
- 
- static noinline uint32_t __kvm_cpuid_base(void)
-diff -puN include/linux/nmi.h~watchdog-introduce-the-hardlockup_detector_disable-function include/linux/nmi.h
---- a/include/linux/nmi.h~watchdog-introduce-the-hardlockup_detector_disable-function
-+++ a/include/linux/nmi.h
-@@ -25,16 +25,11 @@ static inline void touch_nmi_watchdog(vo
- #endif
- 
- #if defined(CONFIG_HARDLOCKUP_DETECTOR)
--extern void watchdog_enable_hardlockup_detector(bool val);
--extern bool watchdog_hardlockup_detector_is_enabled(void);
-+extern void hardlockup_detector_disable(void);
- #else
--static inline void watchdog_enable_hardlockup_detector(bool val)
-+static inline void hardlockup_detector_disable(void)
- {
- }
--static inline bool watchdog_hardlockup_detector_is_enabled(void)
--{
--	return true;
--}
- #endif
+diff -puN include/linux/slab.h~mm-slab-correct-config-option-in-comment include/linux/slab.h
+--- a/include/linux/slab.h~mm-slab-correct-config-option-in-comment
++++ a/include/linux/slab.h
+@@ -18,7 +18,7 @@
  
  /*
-diff -puN kernel/watchdog.c~watchdog-introduce-the-hardlockup_detector_disable-function kernel/watchdog.c
---- a/kernel/watchdog.c~watchdog-introduce-the-hardlockup_detector_disable-function
-+++ a/kernel/watchdog.c
-@@ -83,8 +83,6 @@ static unsigned long soft_lockup_nmi_war
- #ifdef CONFIG_HARDLOCKUP_DETECTOR
- static int hardlockup_panic =
- 			CONFIG_BOOTPARAM_HARDLOCKUP_PANIC_VALUE;
--
--static bool hardlockup_detector_enabled = true;
- /*
-  * We may not want to enable hard lockup detection by default in all cases,
-  * for example when running the kernel as a guest on a hypervisor. In these
-@@ -93,14 +91,9 @@ static bool hardlockup_detector_enabled
-  * kernel command line parameters are parsed, because otherwise it is not
-  * possible to override this in hardlockup_panic_setup().
+  * Flags to pass to kmem_cache_create().
+- * The ones marked DEBUG are only valid if CONFIG_SLAB_DEBUG is set.
++ * The ones marked DEBUG are only valid if CONFIG_DEBUG_SLAB is set.
   */
--void watchdog_enable_hardlockup_detector(bool val)
--{
--	hardlockup_detector_enabled = val;
--}
--
--bool watchdog_hardlockup_detector_is_enabled(void)
-+void hardlockup_detector_disable(void)
- {
--	return hardlockup_detector_enabled;
-+	watchdog_enabled &= ~NMI_WATCHDOG_ENABLED;
- }
- 
- static int __init hardlockup_panic_setup(char *str)
-@@ -530,15 +523,6 @@ static int watchdog_nmi_enable(unsigned
- 	if (!(watchdog_enabled & NMI_WATCHDOG_ENABLED))
- 		goto out;
- 
--	/*
--	 * Some kernels need to default hard lockup detection to
--	 * 'disabled', for example a guest on a hypervisor.
--	 */
--	if (!watchdog_hardlockup_detector_is_enabled()) {
--		event = ERR_PTR(-ENOENT);
--		goto handle_err;
--	}
+ #define SLAB_DEBUG_FREE		0x00000100UL	/* DEBUG: Perform (expensive) checks on free */
+ #define SLAB_RED_ZONE		0x00000400UL	/* DEBUG: Red zone objs in a cache */
+_
+
+Patches currently in -mm which might be from rientjes@google.com are
+
+origin.patch
+mm-mempool-do-not-allow-atomic-resizing.patch
+mm-hugetlb-abort-__get_user_pages-if-current-has-been-oom-killed.patch
+cxgb4-drop-__gfp_nofail-allocation.patch
+jbd2-revert-must-not-fail-allocation-loops-back-to-gfp_nofail.patch
+slab-infrastructure-for-bulk-object-allocation-and-freeing-v3.patch
+slub-bulk-alloc-extract-objects-from-the-per-cpu-slab.patch
+slub-bulk-allocation-from-per-cpu-partial-pages.patch
+slub-bulk-allocation-from-per-cpu-partial-pages-fix.patch
+mm-refactor-zone_movable_is_highmem.patch
+mm-memory-failurec-define-page-types-for-action_result-in-one-place.patch
+page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
+allow-compaction-of-unevictable-pages.patch
+document-interaction-between-compaction-and-the-unevictable-lru.patch
+document-interaction-between-compaction-and-the-unevictable-lru-fix.patch
+mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp.patch
+mm-memcg-sync-allocation-and-memcg-charge-gfp-flags-for-thp-fix-fix.patch
+mm-compaction-reset-compaction-scanner-positions.patch
+hugetlbfs-add-minimum-size-tracking-fields-to-subpool-structure.patch
+hugetlbfs-add-minimum-size-accounting-to-subpools.patch
+hugetlbfs-accept-subpool-min_size-mount-option-and-setup-accordingly.patch
+hugetlbfs-document-min_size-mount-option-and-cleanup.patch
+mm-vmalloc-fix-possible-exhaustion-of-vmalloc-space-caused-by-vm_map_ram-allocator.patch
+mm-vmalloc-occupy-newly-allocated-vmap-block-just-after-allocation.patch
+mm-vmalloc-get-rid-of-dirty-bitmap-inside-vmap_block-structure.patch
+mremap-should-return-enomem-when-__vm_enough_memory-fail.patch
+clean-up-goto-just-return-err_ptr.patch
+fs-jfs-remove-slab-object-constructor.patch
+mm-mempool-disallow-mempools-based-on-slab-caches-with-constructors.patch
+mm-mempool-poison-elements-backed-by-slab-allocator.patch
+mm-mempool-poison-elements-backed-by-page-allocator.patch
+mm-mempool-poison-elements-backed-by-page-allocator-fix.patch
+mm-mempool-poison-elements-backed-by-page-allocator-fix-fix.patch
+mm-mempool-poison-elements-backed-by-page-allocator-fix-fix-fix.patch
+thp-handle-errors-in-hugepage_init-properly.patch
+thp-do-not-adjust-zone-water-marks-if-khugepaged-is-not-started.patch
+mm-doc-cleanup-and-clarify-munmap-behavior-for-hugetlb-memory.patch
+mm-doc-cleanup-and-clarify-munmap-behavior-for-hugetlb-memory-fix.patch
+mm-selftests-test-return-value-of-munmap-for-map_hugetlb-memory.patch
+mm-dont-call-__page_cache_release-for-hugetlb.patch
+mm-hugetlb-introduce-pagehugeactive-flag.patch
+mm-hugetlb-introduce-pagehugeactive-flag-fix.patch
+mm-hugetlb-cleanup-using-pagehugeactive-flag.patch
+mm-hugetlb-cleanup-using-pagehugeactive-flag-fix.patch
+thp-cleanup-khugepaged-startup.patch
+mm-mempool-kasan-poison-mempool-elements.patch
+hung_task-change-hung_taskc-to-use-for_each_process_thread.patch
+mm-utilc-add-kstrimdup.patch
+linux-next.patch
+
