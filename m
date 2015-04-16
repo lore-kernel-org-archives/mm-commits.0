@@ -1,92 +1,116 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-doc-cleanup-and-clarify-munmap-behavior-for-hugetlb-memory.patch removed from -mm tree
-Date: Thu, 16 Apr 2015 09:52:25 -0700
-Message-ID: <552fe8c9.mWK1A4K2ADX7cuRV%akpm@linux-foundation.org>
+ mm-selftests-test-return-value-of-munmap-for-map_hugetlb-memory.patch
+ removed from -mm tree
+Date: Thu, 16 Apr 2015 09:52:28 -0700
+Message-ID: <552fe8cc.Y6ic4qXu9Wjk9lbc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42770 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42787 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753223AbbDPQq5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:46:57 -0400
+	with ESMTP id S1753223AbbDPQrA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:47:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: rientjes@google.com, aarcange@redhat.com, corbet@lwn.net, davidel@xmailserver.org, emunson@akamai.com, hughd@google.com, joern@logfs.org, lcapitulino@redhat.com, mpe@ellerman.id.au, shuahkh@osg.samsung.com, wujianguo@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, doc: cleanup and clarify munmap behavior for hugetlb memory
+     Subject: mm, selftests: test return value of munmap for MAP_HUGETLB memory
 has been removed from the -mm tree.  Its filename was
-     mm-doc-cleanup-and-clarify-munmap-behavior-for-hugetlb-memory.patch
+     mm-selftests-test-return-value-of-munmap-for-map_hugetlb-memory.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: David Rientjes <rientjes@google.com>
-Subject: mm, doc: cleanup and clarify munmap behavior for hugetlb memory
+Subject: mm, selftests: test return value of munmap for MAP_HUGETLB memory
 
-munmap(2) of hugetlb memory requires a length that is hugepage aligned,
-otherwise it may fail.  Add this to the documentation.
+When MAP_HUGETLB memory is unmapped, the length must be hugepage aligned,
+otherwise it fails with -EINVAL.
 
-This also cleans up the documentation and separates it into logical units:
-one part refers to MAP_HUGETLB and another part refers to requirements for
-shared memory segments.
+All tests currently behave correctly, but it's better to explcitly test
+the return value for completeness and document the requirement, especially
+if users copy map_hugetlb.c as a sample implementation.
 
 Signed-off-by: David Rientjes <rientjes@google.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Davide Libenzi <davidel@xmailserver.org>
 Cc: Luiz Capitulino <lcapitulino@redhat.com>
 Cc: Shuah Khan <shuahkh@osg.samsung.com>
-Acked-by: Hugh Dickins <hughd@google.com>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Joern Engel <joern@logfs.org>
 Cc: Jianguo Wu <wujianguo@huawei.com>
 Cc: Eric B Munson <emunson@akamai.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+Acked-by: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/hugetlbpage.txt |   24 ++++++++++++++++--------
- 1 file changed, 16 insertions(+), 8 deletions(-)
+ tools/testing/selftests/powerpc/mm/hugetlb_vs_thp_test.c |    8 ++++++--
+ tools/testing/selftests/vm/hugetlbfstest.c               |    4 +++-
+ tools/testing/selftests/vm/map_hugetlb.c                 |    6 +++++-
+ 3 files changed, 14 insertions(+), 4 deletions(-)
 
-diff -puN Documentation/vm/hugetlbpage.txt~mm-doc-cleanup-and-clarify-munmap-behavior-for-hugetlb-memory Documentation/vm/hugetlbpage.txt
---- a/Documentation/vm/hugetlbpage.txt~mm-doc-cleanup-and-clarify-munmap-behavior-for-hugetlb-memory
-+++ a/Documentation/vm/hugetlbpage.txt
-@@ -302,15 +302,23 @@ file systems, write system calls are not
- Regular chown, chgrp, and chmod commands (with right permissions) could be
- used to change the file attributes on hugetlbfs.
+diff -puN tools/testing/selftests/powerpc/mm/hugetlb_vs_thp_test.c~mm-selftests-test-return-value-of-munmap-for-map_hugetlb-memory tools/testing/selftests/powerpc/mm/hugetlb_vs_thp_test.c
+--- a/tools/testing/selftests/powerpc/mm/hugetlb_vs_thp_test.c~mm-selftests-test-return-value-of-munmap-for-map_hugetlb-memory
++++ a/tools/testing/selftests/powerpc/mm/hugetlb_vs_thp_test.c
+@@ -21,9 +21,13 @@ static int test_body(void)
+ 		 * Typically the mmap will fail because no huge pages are
+ 		 * allocated on the system. But if there are huge pages
+ 		 * allocated the mmap will succeed. That's fine too, we just
+-		 * munmap here before continuing.
++		 * munmap here before continuing.  munmap() length of
++		 * MAP_HUGETLB memory must be hugepage aligned.
+ 		 */
+-		munmap(addr, SIZE);
++		if (munmap(addr, SIZE)) {
++			perror("munmap");
++			return 1;
++		}
+ 	}
  
--Also, it is important to note that no such mount command is required if the
-+Also, it is important to note that no such mount command is required if
- applications are going to use only shmat/shmget system calls or mmap with
--MAP_HUGETLB.  Users who wish to use hugetlb page via shared memory segment
--should be a member of a supplementary group and system admin needs to
--configure that gid into /proc/sys/vm/hugetlb_shm_group.  It is possible for
--same or different applications to use any combination of mmaps and shm*
--calls, though the mount of filesystem will be required for using mmap calls
--without MAP_HUGETLB.  For an example of how to use mmap with MAP_HUGETLB see
--map_hugetlb.c.
-+MAP_HUGETLB.  For an example of how to use mmap with MAP_HUGETLB see map_hugetlb
-+below.
-+
-+Users who wish to use hugetlb memory via shared memory segment should be a
-+member of a supplementary group and system admin needs to configure that gid
-+into /proc/sys/vm/hugetlb_shm_group.  It is possible for same or different
-+applications to use any combination of mmaps and shm* calls, though the mount of
-+filesystem will be required for using mmap calls without MAP_HUGETLB.
-+
-+Syscalls that operate on memory backed by hugetlb pages only have their lengths
-+aligned to the native page size of the processor; they will normally fail with
-+errno set to EINVAL or exclude hugetlb pages that extend beyond the length if
-+not hugepage aligned.  For example, munmap(2) will fail if memory is backed by
-+a hugetlb page and the length is smaller than the hugepage size.
-+
+ 	p = mmap(addr, SIZE, PROT_READ | PROT_WRITE,
+diff -puN tools/testing/selftests/vm/hugetlbfstest.c~mm-selftests-test-return-value-of-munmap-for-map_hugetlb-memory tools/testing/selftests/vm/hugetlbfstest.c
+--- a/tools/testing/selftests/vm/hugetlbfstest.c~mm-selftests-test-return-value-of-munmap-for-map_hugetlb-memory
++++ a/tools/testing/selftests/vm/hugetlbfstest.c
+@@ -34,6 +34,7 @@ static void do_mmap(int fd, int extra_fl
+ 	int *p;
+ 	int flags = MAP_PRIVATE | MAP_POPULATE | extra_flags;
+ 	u64 before, after;
++	int ret;
  
- Examples
- ========
+ 	before = read_rss();
+ 	p = mmap(NULL, length, PROT_READ | PROT_WRITE, flags, fd, 0);
+@@ -44,7 +45,8 @@ static void do_mmap(int fd, int extra_fl
+ 			!"rss didn't grow as expected");
+ 	if (!unmap)
+ 		return;
+-	munmap(p, length);
++	ret = munmap(p, length);
++	assert(!ret || !"munmap returned an unexpected error");
+ 	after = read_rss();
+ 	assert(llabs(after - before) < 0x40000 ||
+ 			!"rss didn't shrink as expected");
+diff -puN tools/testing/selftests/vm/map_hugetlb.c~mm-selftests-test-return-value-of-munmap-for-map_hugetlb-memory tools/testing/selftests/vm/map_hugetlb.c
+--- a/tools/testing/selftests/vm/map_hugetlb.c~mm-selftests-test-return-value-of-munmap-for-map_hugetlb-memory
++++ a/tools/testing/selftests/vm/map_hugetlb.c
+@@ -73,7 +73,11 @@ int main(void)
+ 	write_bytes(addr);
+ 	ret = read_bytes(addr);
+ 
+-	munmap(addr, LENGTH);
++	/* munmap() length of MAP_HUGETLB memory must be hugepage aligned */
++	if (munmap(addr, LENGTH)) {
++		perror("munmap");
++		exit(1);
++	}
+ 
+ 	return ret;
+ }
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
