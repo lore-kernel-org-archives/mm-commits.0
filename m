@@ -1,152 +1,77 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- tomoyo-reduce-mmap_sem-hold-for-mm-exe_file-checkpatch-fixes.patch removed
- from -mm tree
-Date: Thu, 16 Apr 2015 12:10:48 -0700
-Message-ID: <55300938.VENFuylgp/U34sbr%akpm@linux-foundation.org>
+ rtc-s5m-allow-usage-on-device-type-different-than-main-mfd-type-v2.patch
+ removed from -mm tree
+Date: Thu, 16 Apr 2015 12:11:08 -0700
+Message-ID: <5530094c.HA0gJV9lVNjKyISG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45539 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45543 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751424AbbDPTKt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 15:10:49 -0400
+	with ESMTP id S1750715AbbDPTLJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 15:11:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dbueso@suse.de, jmorris@namei.org, penguin-kernel@I-love.SAKURA.ne.jp, mm-commits@vger.kernel.org
+To: k.kozlowski@samsung.com, a.zummo@towertech.it, cw00.choi@samsung.com, kyungmin.park@samsung.com, m.szyprowski@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tomoyo-reduce-mmap_sem-hold-for-mm-exe_file-checkpatch-fixes
+     Subject: rtc-s5m-allow-usage-on-device-type-different-than-main-mfd-type-v2
 has been removed from the -mm tree.  Its filename was
-     tomoyo-reduce-mmap_sem-hold-for-mm-exe_file-checkpatch-fixes.patch
+     rtc-s5m-allow-usage-on-device-type-different-than-main-mfd-type-v2.patch
 
-This patch was dropped because it was folded into tomoyo-reduce-mmap_sem-hold-for-mm-exe_file.patch
+This patch was dropped because it was folded into rtc-s5m-allow-usage-on-device-type-different-than-main-mfd-type.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: tomoyo-reduce-mmap_sem-hold-for-mm-exe_file-checkpatch-fixes
+From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Subject: rtc-s5m-allow-usage-on-device-type-different-than-main-mfd-type-v2
 
-Sumeone needs to buy a tab key.
+Consistently use platform_get_device_id() instead of pdev->id_entry.
 
-
-WARNING: please, no spaces at the start of a line
-#29: FILE: security/tomoyo/util.c:951:
-+       struct file *exe_file;$
-
-WARNING: please, no spaces at the start of a line
-#30: FILE: security/tomoyo/util.c:952:
-+       const char *cp;$
-
-WARNING: please, no spaces at the start of a line
-#31: FILE: security/tomoyo/util.c:953:
-+       struct mm_struct *mm = current->mm;$
-
-WARNING: please, no spaces at the start of a line
-#40: FILE: security/tomoyo/util.c:955:
-+       if (!mm)$
-
-WARNING: suspect code indent for conditional statements (7, 15)
-#40: FILE: security/tomoyo/util.c:955:
-+       if (!mm)
-+	       return NULL;
-
-WARNING: please, no spaces at the start of a line
-#42: FILE: security/tomoyo/util.c:957:
-+       exe_file = get_mm_exe_file(mm);$
-
-WARNING: please, no spaces at the start of a line
-#43: FILE: security/tomoyo/util.c:958:
-+       if (!exe_file)$
-
-WARNING: suspect code indent for conditional statements (7, 15)
-#43: FILE: security/tomoyo/util.c:958:
-+       if (!exe_file)
-+	       return NULL;
-
-WARNING: please, no spaces at the start of a line
-#46: FILE: security/tomoyo/util.c:961:
-+       cp = tomoyo_realpath_from_path(&exe_file->f_path);$
-
-WARNING: please, no spaces at the start of a line
-#47: FILE: security/tomoyo/util.c:962:
-+       fput(exe_file);$
-
-WARNING: please, no spaces at the start of a line
-#48: FILE: security/tomoyo/util.c:963:
-+       return cp;$
-
-total: 0 errors, 11 warnings, 28 lines checked
-
-./patches/tomoyo-reduce-mmap_sem-hold-for-mm-exe_file.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Davidlohr Bueso <dbueso@suse.de>
-Cc: James Morris <jmorris@namei.org>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Chanwoo Choi <cw00.choi@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/tomoyo/util.c |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ drivers/rtc/rtc-s5m.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN security/tomoyo/util.c~tomoyo-reduce-mmap_sem-hold-for-mm-exe_file-checkpatch-fixes security/tomoyo/util.c
---- a/security/tomoyo/util.c~tomoyo-reduce-mmap_sem-hold-for-mm-exe_file-checkpatch-fixes
-+++ a/security/tomoyo/util.c
-@@ -948,19 +948,19 @@ bool tomoyo_path_matches_pattern(const s
-  */
- const char *tomoyo_get_exe(void)
- {
--       struct file *exe_file;
--       const char *cp;
--       struct mm_struct *mm = current->mm;
-+	struct file *exe_file;
-+	const char *cp;
-+	struct mm_struct *mm = current->mm;
+diff -puN drivers/rtc/rtc-s5m.c~rtc-s5m-allow-usage-on-device-type-different-than-main-mfd-type-v2 drivers/rtc/rtc-s5m.c
+--- a/drivers/rtc/rtc-s5m.c~rtc-s5m-allow-usage-on-device-type-different-than-main-mfd-type-v2
++++ a/drivers/rtc/rtc-s5m.c
+@@ -688,7 +688,7 @@ static int s5m_rtc_probe(struct platform
+ 	default:
+ 		dev_err(&pdev->dev,
+ 				"Device type %lu is not supported by RTC driver\n",
+-				pdev->id_entry->driver_data);
++				platform_get_device_id(pdev)->driver_data);
+ 		return -ENODEV;
+ 	}
  
--       if (!mm)
--	       return NULL;
--       exe_file = get_mm_exe_file(mm);
--       if (!exe_file)
--	       return NULL;
-+	if (!mm)
-+		return NULL;
-+	exe_file = get_mm_exe_file(mm);
-+	if (!exe_file)
-+		return NULL;
+@@ -708,7 +708,7 @@ static int s5m_rtc_probe(struct platform
  
--       cp = tomoyo_realpath_from_path(&exe_file->f_path);
--       fput(exe_file);
--       return cp;
-+	cp = tomoyo_realpath_from_path(&exe_file->f_path);
-+	fput(exe_file);
-+	return cp;
- }
+ 	info->dev = &pdev->dev;
+ 	info->s5m87xx = s5m87xx;
+-	info->device_type = pdev->id_entry->driver_data;
++	info->device_type = platform_get_device_id(pdev)->driver_data;
  
- /**
+ 	if (s5m87xx->irq_data) {
+ 		info->irq = regmap_irq_get_virq(s5m87xx->irq_data, alarm_irq);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from k.kozlowski@samsung.com are
 
 origin.patch
-lib-find__bit-reimplementation.patch
-checkpatch-match-more-world-writable-permissions.patch
-binfmt_misc-simplify-entry_status.patch
-rtc-driver-for-conexant-digicolor-cx92755-on-chip-rtc.patch
-fs-fat-remove-unnecessary-includes.patch
-kernel-forkc-avoid-division-by-zero.patch
-doc-sysctl-kerneltxt-document-threads-max.patch
-mm-rcu-protected-get_mm_exe_file.patch
-affs-kstrdup-memory-handling.patch
-kconfig-use-macros-which-are-already-defined.patch
-lib-kconfig-fix-up-have_arch_bitreverse-help-text.patch
-oprofile-reduce-mmap_sem-hold-for-mm-exe_file-fix.patch
-tomoyo-reduce-mmap_sem-hold-for-mm-exe_file.patch
-documentation-spi-spidev_testc-fix-warning.patch
+rtc-rtc-ab-b5ze-s3-constify-struct-regmap_config.patch
+rtc-s5m-add-support-for-s2mps13-rtc.patch
+rtc-rtc-s3c-fix-failed-first-read-of-rtc-time.patch
+rtc-rtc-s3c-remove-one-superfluous-rtc_valid_tm-check.patch
+rtc-use-more-standard-kernel-logging-styles.patch
+rtc-s5m-allow-usage-on-device-type-different-than-main-mfd-type.patch
 
