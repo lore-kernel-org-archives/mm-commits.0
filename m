@@ -1,186 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-use-tabs-consistently.patch removed from -mm tree
-Date: Thu, 16 Apr 2015 09:55:01 -0700
-Message-ID: <552fe965.dbxT4lkYYO7MKw0c%akpm@linux-foundation.org>
+Subject: [merged] x86-mtrr-if-remove-use-of-seq_printf-return-value.patch
+ removed from -mm tree
+Date: Thu, 16 Apr 2015 09:55:11 -0700
+Message-ID: <552fe96f.Vb7ZiHcOcbDT5iWR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43149 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43165 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752857AbbDPQtc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:49:32 -0400
+	with ESMTP id S1754013AbbDPQtm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:49:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: joe@perches.com, hpa@zytor.com, mingo@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: Use tabs consistently
+     Subject: x86: mtrr: if: remove use of seq_printf return value
 has been removed from the -mm tree.  Its filename was
-     maintainers-use-tabs-consistently.patch
+     x86-mtrr-if-remove-use-of-seq_printf-return-value.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: Use tabs consistently
+Subject: x86: mtrr: if: remove use of seq_printf return value
 
-Consistently use a single tab after the "specifier:" type.
+The seq_printf return value, because it's frequently misused,
+will eventually be converted to void.
+
+See: commit 1f33c41c03da ("seq_file: Rename seq_overflow() to
+     seq_has_overflowed() and make public")
 
 Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   70 +++++++++++++++++++++++++-------------------------
- 1 file changed, 35 insertions(+), 35 deletions(-)
+ arch/x86/kernel/cpu/mtrr/if.c |   12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-use-tabs-consistently MAINTAINERS
---- a/MAINTAINERS~maintainers-use-tabs-consistently
-+++ a/MAINTAINERS
-@@ -625,16 +625,16 @@ F:	drivers/iommu/amd_iommu*.[ch]
- F:	include/linux/amd-iommu.h
+diff -puN arch/x86/kernel/cpu/mtrr/if.c~x86-mtrr-if-remove-use-of-seq_printf-return-value arch/x86/kernel/cpu/mtrr/if.c
+--- a/arch/x86/kernel/cpu/mtrr/if.c~x86-mtrr-if-remove-use-of-seq_printf-return-value
++++ a/arch/x86/kernel/cpu/mtrr/if.c
+@@ -404,11 +404,10 @@ static const struct file_operations mtrr
+ static int mtrr_seq_show(struct seq_file *seq, void *offset)
+ {
+ 	char factor;
+-	int i, max, len;
++	int i, max;
+ 	mtrr_type type;
+ 	unsigned long base, size;
  
- AMD KFD
--M:      Oded Gabbay <oded.gabbay@amd.com>
--L:      dri-devel@lists.freedesktop.org
--T:      git git://people.freedesktop.org/~gabbayo/linux.git
--S:      Supported
--F:      drivers/gpu/drm/amd/amdkfd/
-+M:	Oded Gabbay <oded.gabbay@amd.com>
-+L:	dri-devel@lists.freedesktop.org
-+T:	git git://people.freedesktop.org/~gabbayo/linux.git
-+S:	Supported
-+F:	drivers/gpu/drm/amd/amdkfd/
- F:	drivers/gpu/drm/amd/include/cik_structs.h
- F:	drivers/gpu/drm/amd/include/kgd_kfd_interface.h
--F:      drivers/gpu/drm/radeon/radeon_kfd.c
--F:      drivers/gpu/drm/radeon/radeon_kfd.h
--F:      include/uapi/linux/kfd_ioctl.h
-+F:	drivers/gpu/drm/radeon/radeon_kfd.c
-+F:	drivers/gpu/drm/radeon/radeon_kfd.h
-+F:	include/uapi/linux/kfd_ioctl.h
- 
- AMD MICROCODE UPDATE SUPPORT
- M:	Borislav Petkov <bp@alien8.de>
-@@ -1967,10 +1967,10 @@ F:	Documentation/filesystems/befs.txt
- F:	fs/befs/
- 
- BECKHOFF CX5020 ETHERCAT MASTER DRIVER
--M: Dariusz Marcinkiewicz <reksio@newterm.pl>
--L: netdev@vger.kernel.org
--S: Maintained
--F: drivers/net/ethernet/ec_bhf.c
-+M:	Dariusz Marcinkiewicz <reksio@newterm.pl>
-+L:	netdev@vger.kernel.org
-+S:	Maintained
-+F:	drivers/net/ethernet/ec_bhf.c
- 
- BFS FILE SYSTEM
- M:	"Tigran A. Aivazian" <tigran@aivazian.fsnet.co.uk>
-@@ -2895,11 +2895,11 @@ S:	Supported
- F:	drivers/net/ethernet/chelsio/cxgb3/
- 
- CXGB3 ISCSI DRIVER (CXGB3I)
--M:      Karen Xie <kxie@chelsio.com>
--L:      linux-scsi@vger.kernel.org
--W:      http://www.chelsio.com
--S:      Supported
--F:      drivers/scsi/cxgbi/cxgb3i
-+M:	Karen Xie <kxie@chelsio.com>
-+L:	linux-scsi@vger.kernel.org
-+W:	http://www.chelsio.com
-+S:	Supported
-+F:	drivers/scsi/cxgbi/cxgb3i
- 
- CXGB3 IWARP RNIC DRIVER (IW_CXGB3)
- M:	Steve Wise <swise@chelsio.com>
-@@ -2916,11 +2916,11 @@ S:	Supported
- F:	drivers/net/ethernet/chelsio/cxgb4/
- 
- CXGB4 ISCSI DRIVER (CXGB4I)
--M:      Karen Xie <kxie@chelsio.com>
--L:      linux-scsi@vger.kernel.org
--W:      http://www.chelsio.com
--S:      Supported
--F:      drivers/scsi/cxgbi/cxgb4i
-+M:	Karen Xie <kxie@chelsio.com>
-+L:	linux-scsi@vger.kernel.org
-+W:	http://www.chelsio.com
-+S:	Supported
-+F:	drivers/scsi/cxgbi/cxgb4i
- 
- CXGB4 IWARP RNIC DRIVER (IW_CXGB4)
- M:	Steve Wise <swise@chelsio.com>
-@@ -5222,7 +5222,7 @@ F:	arch/x86/kernel/tboot.c
- INTEL WIRELESS WIMAX CONNECTION 2400
- M:	Inaky Perez-Gonzalez <inaky.perez-gonzalez@intel.com>
- M:	linux-wimax@intel.com
--L:     wimax@linuxwimax.org (subscribers-only)
-+L:	wimax@linuxwimax.org (subscribers-only)
- S:	Supported
- W:	http://linuxwimax.org
- F:	Documentation/wimax/README.i2400m
-@@ -5918,7 +5918,7 @@ F:	arch/powerpc/platforms/512x/
- F:	arch/powerpc/platforms/52xx/
- 
- LINUX FOR POWERPC EMBEDDED PPC4XX
--M:  Alistair Popple <alistair@popple.id.au>
-+M:	Alistair Popple <alistair@popple.id.au>
- M:	Matt Porter <mporter@kernel.crashing.org>
- W:	http://www.penguinppc.org/
- L:	linuxppc-dev@lists.ozlabs.org
-@@ -6391,7 +6391,7 @@ S:	Supported
- F:	drivers/watchdog/mena21_wdt.c
- 
- MEN CHAMELEON BUS (mcb)
--M:  	Johannes Thumshirn <johannes.thumshirn@men.de>
-+M:	Johannes Thumshirn <johannes.thumshirn@men.de>
- S:	Supported
- F:	drivers/mcb/
- F:	include/linux/mcb.h
-@@ -7947,10 +7947,10 @@ L:	rtc-linux@googlegroups.com
- S:	Maintained
- 
- QAT DRIVER
--M:      Tadeusz Struk <tadeusz.struk@intel.com>
--L:      qat-linux@intel.com
--S:      Supported
--F:      drivers/crypto/qat/
-+M:	Tadeusz Struk <tadeusz.struk@intel.com>
-+L:	qat-linux@intel.com
-+S:	Supported
-+F:	drivers/crypto/qat/
- 
- QIB DRIVER
- M:	Mike Marciniszyn <infinipath@intel.com>
-@@ -10120,11 +10120,11 @@ F:	include/linux/cdrom.h
- F:	include/uapi/linux/cdrom.h
- 
- UNISYS S-PAR DRIVERS
--M:     Benjamin Romer <benjamin.romer@unisys.com>
--M:     David Kershner <david.kershner@unisys.com>
--L:     sparmaintainer@unisys.com (Unisys internal)
--S:     Supported
--F:     drivers/staging/unisys/
-+M:	Benjamin Romer <benjamin.romer@unisys.com>
-+M:	David Kershner <david.kershner@unisys.com>
-+L:	sparmaintainer@unisys.com (Unisys internal)
-+S:	Supported
-+F:	drivers/staging/unisys/
- 
- UNIVERSAL FLASH STORAGE HOST CONTROLLER DRIVER
- M:	Vinayak Holikatti <vinholikatti@gmail.com>
-@@ -10681,7 +10681,7 @@ F:	drivers/media/rc/winbond-cir.c
- WIMAX STACK
- M:	Inaky Perez-Gonzalez <inaky.perez-gonzalez@intel.com>
- M:	linux-wimax@intel.com
--L:     wimax@linuxwimax.org (subscribers-only)
-+L:	wimax@linuxwimax.org (subscribers-only)
- S:	Supported
- W:	http://linuxwimax.org
- F:	Documentation/wimax/README.wimax
+-	len = 0;
+ 	max = num_var_ranges;
+ 	for (i = 0; i < max; i++) {
+ 		mtrr_if->get(i, &base, &size, &type);
+@@ -425,11 +424,10 @@ static int mtrr_seq_show(struct seq_file
+ 			size >>= 20 - PAGE_SHIFT;
+ 		}
+ 		/* Base can be > 32bit */
+-		len += seq_printf(seq, "reg%02i: base=0x%06lx000 "
+-			"(%5luMB), size=%5lu%cB, count=%d: %s\n",
+-			i, base, base >> (20 - PAGE_SHIFT), size,
+-			factor, mtrr_usage_table[i],
+-			mtrr_attrib_to_str(type));
++		seq_printf(seq, "reg%02i: base=0x%06lx000 (%5luMB), size=%5lu%cB, count=%d: %s\n",
++			   i, base, base >> (20 - PAGE_SHIFT),
++			   size, factor,
++			   mtrr_usage_table[i], mtrr_attrib_to_str(type));
+ 	}
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from joe@perches.com are
