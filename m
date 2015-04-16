@@ -1,128 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-selftests-test-return-value-of-munmap-for-map_hugetlb-memory.patch
- removed from -mm tree
-Date: Thu, 16 Apr 2015 09:52:28 -0700
-Message-ID: <552fe8cc.Y6ic4qXu9Wjk9lbc%akpm@linux-foundation.org>
+Subject: [merged] mm-mmapc-use-while-instead-of-ifgoto.patch removed from
+ -mm tree
+Date: Thu, 16 Apr 2015 09:52:31 -0700
+Message-ID: <552fe8cf.n7HFbZ+CuY+5+eQo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42787 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42789 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753223AbbDPQrA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:47:00 -0400
+	with ESMTP id S1753845AbbDPQrC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:47:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, aarcange@redhat.com, corbet@lwn.net, davidel@xmailserver.org, emunson@akamai.com, hughd@google.com, joern@logfs.org, lcapitulino@redhat.com, mpe@ellerman.id.au, shuahkh@osg.samsung.com, wujianguo@huawei.com, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, gorcunov@openvz.org, hughd@google.com, kirill.shutemov@linux.intel.com, klamm@yandex-team.ru, sasha.levin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, selftests: test return value of munmap for MAP_HUGETLB memory
+     Subject: mm/mmap.c: use while instead of if+goto
 has been removed from the -mm tree.  Its filename was
-     mm-selftests-test-return-value-of-munmap-for-map_hugetlb-memory.patch
+     mm-mmapc-use-while-instead-of-ifgoto.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, selftests: test return value of munmap for MAP_HUGETLB memory
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: mm/mmap.c: use while instead of if+goto
 
-When MAP_HUGETLB memory is unmapped, the length must be hugepage aligned,
-otherwise it fails with -EINVAL.
+The creators of the C language gave us the while keyword. Let's use
+that instead of synthesizing it from if+goto.
 
-All tests currently behave correctly, but it's better to explcitly test
-the return value for completeness and document the requirement, especially
-if users copy map_hugetlb.c as a sample implementation.
+Made possible by 6597d783397a ("mm/mmap.c: replace find_vma_prepare()
+with clearer find_vma_links()").
 
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Davide Libenzi <davidel@xmailserver.org>
-Cc: Luiz Capitulino <lcapitulino@redhat.com>
-Cc: Shuah Khan <shuahkh@osg.samsung.com>
+[akpm@linux-foundation.org: fix 80-col overflows]
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Sasha Levin <sasha.levin@oracle.com>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Roman Gushchin <klamm@yandex-team.ru>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Joern Engel <joern@logfs.org>
-Cc: Jianguo Wu <wujianguo@huawei.com>
-Cc: Eric B Munson <emunson@akamai.com>
-Acked-by: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/powerpc/mm/hugetlb_vs_thp_test.c |    8 ++++++--
- tools/testing/selftests/vm/hugetlbfstest.c               |    4 +++-
- tools/testing/selftests/vm/map_hugetlb.c                 |    6 +++++-
- 3 files changed, 14 insertions(+), 4 deletions(-)
+ mm/mmap.c |   13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN tools/testing/selftests/powerpc/mm/hugetlb_vs_thp_test.c~mm-selftests-test-return-value-of-munmap-for-map_hugetlb-memory tools/testing/selftests/powerpc/mm/hugetlb_vs_thp_test.c
---- a/tools/testing/selftests/powerpc/mm/hugetlb_vs_thp_test.c~mm-selftests-test-return-value-of-munmap-for-map_hugetlb-memory
-+++ a/tools/testing/selftests/powerpc/mm/hugetlb_vs_thp_test.c
-@@ -21,9 +21,13 @@ static int test_body(void)
- 		 * Typically the mmap will fail because no huge pages are
- 		 * allocated on the system. But if there are huge pages
- 		 * allocated the mmap will succeed. That's fine too, we just
--		 * munmap here before continuing.
-+		 * munmap here before continuing.  munmap() length of
-+		 * MAP_HUGETLB memory must be hugepage aligned.
- 		 */
--		munmap(addr, SIZE);
-+		if (munmap(addr, SIZE)) {
-+			perror("munmap");
-+			return 1;
-+		}
+diff -puN mm/mmap.c~mm-mmapc-use-while-instead-of-ifgoto mm/mmap.c
+--- a/mm/mmap.c~mm-mmapc-use-while-instead-of-ifgoto
++++ a/mm/mmap.c
+@@ -1551,11 +1551,10 @@ unsigned long mmap_region(struct file *f
+ 
+ 	/* Clear old maps */
+ 	error = -ENOMEM;
+-munmap_back:
+-	if (find_vma_links(mm, addr, addr + len, &prev, &rb_link, &rb_parent)) {
++	while (find_vma_links(mm, addr, addr + len, &prev, &rb_link,
++			      &rb_parent)) {
+ 		if (do_munmap(mm, addr, len))
+ 			return -ENOMEM;
+-		goto munmap_back;
  	}
  
- 	p = mmap(addr, SIZE, PROT_READ | PROT_WRITE,
-diff -puN tools/testing/selftests/vm/hugetlbfstest.c~mm-selftests-test-return-value-of-munmap-for-map_hugetlb-memory tools/testing/selftests/vm/hugetlbfstest.c
---- a/tools/testing/selftests/vm/hugetlbfstest.c~mm-selftests-test-return-value-of-munmap-for-map_hugetlb-memory
-+++ a/tools/testing/selftests/vm/hugetlbfstest.c
-@@ -34,6 +34,7 @@ static void do_mmap(int fd, int extra_fl
- 	int *p;
- 	int flags = MAP_PRIVATE | MAP_POPULATE | extra_flags;
- 	u64 before, after;
-+	int ret;
+ 	/*
+@@ -1571,7 +1570,8 @@ munmap_back:
+ 	/*
+ 	 * Can we just expand an old mapping?
+ 	 */
+-	vma = vma_merge(mm, prev, addr, addr + len, vm_flags, NULL, file, pgoff, NULL);
++	vma = vma_merge(mm, prev, addr, addr + len, vm_flags, NULL, file, pgoff,
++			NULL);
+ 	if (vma)
+ 		goto out;
  
- 	before = read_rss();
- 	p = mmap(NULL, length, PROT_READ | PROT_WRITE, flags, fd, 0);
-@@ -44,7 +45,8 @@ static void do_mmap(int fd, int extra_fl
- 			!"rss didn't grow as expected");
- 	if (!unmap)
- 		return;
--	munmap(p, length);
-+	ret = munmap(p, length);
-+	assert(!ret || !"munmap returned an unexpected error");
- 	after = read_rss();
- 	assert(llabs(after - before) < 0x40000 ||
- 			!"rss didn't shrink as expected");
-diff -puN tools/testing/selftests/vm/map_hugetlb.c~mm-selftests-test-return-value-of-munmap-for-map_hugetlb-memory tools/testing/selftests/vm/map_hugetlb.c
---- a/tools/testing/selftests/vm/map_hugetlb.c~mm-selftests-test-return-value-of-munmap-for-map_hugetlb-memory
-+++ a/tools/testing/selftests/vm/map_hugetlb.c
-@@ -73,7 +73,11 @@ int main(void)
- 	write_bytes(addr);
- 	ret = read_bytes(addr);
+@@ -2739,11 +2739,10 @@ static unsigned long do_brk(unsigned lon
+ 	/*
+ 	 * Clear old maps.  this also does some error checking for us
+ 	 */
+- munmap_back:
+-	if (find_vma_links(mm, addr, addr + len, &prev, &rb_link, &rb_parent)) {
++	while (find_vma_links(mm, addr, addr + len, &prev, &rb_link,
++			      &rb_parent)) {
+ 		if (do_munmap(mm, addr, len))
+ 			return -ENOMEM;
+-		goto munmap_back;
+ 	}
  
--	munmap(addr, LENGTH);
-+	/* munmap() length of MAP_HUGETLB memory must be hugepage aligned */
-+	if (munmap(addr, LENGTH)) {
-+		perror("munmap");
-+		exit(1);
-+	}
- 
- 	return ret;
- }
+ 	/* Check against address space limits *after* clearing old maps... */
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
 
 origin.patch
-jbd2-revert-must-not-fail-allocation-loops-back-to-gfp_nofail.patch
-slab-infrastructure-for-bulk-object-allocation-and-freeing-v3.patch
-slub-bulk-alloc-extract-objects-from-the-per-cpu-slab.patch
-slub-bulk-allocation-from-per-cpu-partial-pages.patch
-slub-bulk-allocation-from-per-cpu-partial-pages-fix.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-mm-utilc-add-kstrimdup.patch
+lib-find__bit-reimplementation.patch
+lib-find__bit-reimplementation-fix.patch
+lib-move-find_last_bit-to-lib-find_next_bitc.patch
+lib-rename-lib-find_next_bitc-to-lib-find_bitc.patch
+lib-vsprintfc-even-faster-decimal-conversion.patch
+lib-vsprintfc-even-faster-decimal-conversion-fix.patch
+lib-vsprintfc-improve-put_dec_trunc8-slightly.patch
+lib-bitmap_-remove-code-duplication.patch
+binfmt_misc-simplify-entry_status.patch
+binfmt_misc-simplify-entry_status-fix.patch
 linux-next.patch
-cxgb4-drop-__gfp_nofail-allocation.patch
 
