@@ -1,33 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] kernel-forkc-avoid-division-by-zero-fix-fix.patch removed from -mm tree
-Date: Thu, 16 Apr 2015 12:08:53 -0700
-Message-ID: <553008c5.NLDrtbZ2MBPqFhIJ%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ doc-sysctl-kerneltxt-document-threads-max-fix.patch removed from -mm tree
+Date: Thu, 16 Apr 2015 12:09:26 -0700
+Message-ID: <553008e6./vicl66TnYEZkz3n%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45493 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45501 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750820AbbDPTIy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 15:08:54 -0400
+	with ESMTP id S1751424AbbDPTJ1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 15:09:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, linux@roeck-us.net, mingo@kernel.org, oleg@redhat.com, xypron.glpk@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel-forkc-avoid-division-by-zero-fix-fix
+     Subject: doc-sysctl-kerneltxt-document-threads-max-fix
 has been removed from the -mm tree.  Its filename was
-     kernel-forkc-avoid-division-by-zero-fix-fix.patch
+     doc-sysctl-kerneltxt-document-threads-max-fix.patch
 
-This patch was dropped because it was folded into kernel-forkc-avoid-division-by-zero.patch
+This patch was dropped because it was folded into doc-sysctl-kerneltxt-document-threads-max.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kernel-forkc-avoid-division-by-zero-fix-fix
+Subject: doc-sysctl-kerneltxt-document-threads-max-fix
 
-s/clamp/clamp_t/
+fix typo, per Guenter
 
 Cc: Guenter Roeck <linux@roeck-us.net>
 Cc: Heinrich Schuchardt <xypron.glpk@gmx.de>
@@ -36,21 +37,21 @@ Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |    2 +-
+ Documentation/sysctl/kernel.txt |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/fork.c~kernel-forkc-avoid-division-by-zero-fix-fix kernel/fork.c
---- a/kernel/fork.c~kernel-forkc-avoid-division-by-zero-fix-fix
-+++ a/kernel/fork.c
-@@ -280,7 +280,7 @@ static void set_max_threads(void)
- 		threads = div64_u64((u64) totalram_pages * (u64) PAGE_SIZE,
- 				    (u64) THREAD_SIZE * 8UL);
+diff -puN Documentation/sysctl/kernel.txt~doc-sysctl-kerneltxt-document-threads-max-fix Documentation/sysctl/kernel.txt
+--- a/Documentation/sysctl/kernel.txt~doc-sysctl-kerneltxt-document-threads-max-fix
++++ a/Documentation/sysctl/kernel.txt
+@@ -882,7 +882,7 @@ maximum number of threads is created, th
+ a part (1/8th) of the available RAM pages.
  
--	max_threads = clamp(threads, MIN_THREADS, MAX_THREADS);
-+	max_threads = clamp_t(u64, threads, MIN_THREADS, MAX_THREADS);
- }
- 
- void __init fork_init(void)
+ The minimum value that can be written to threads-max is 20.
+-The maximum vlaue that can be written to threads-max is given by the
++The maximum value that can be written to threads-max is given by the
+ constant FUTEX_TID_MASK (0x3fffffff).
+ If a value outside of this range is written to threads-max an error
+ EINVAL occurs.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -62,7 +63,7 @@ binfmt_misc-simplify-entry_status.patch
 rtc-driver-for-conexant-digicolor-cx92755-on-chip-rtc.patch
 fs-fat-remove-unnecessary-includes.patch
 kernel-forkc-avoid-division-by-zero.patch
-doc-sysctl-kerneltxt-document-threads-max-fix.patch
+doc-sysctl-kerneltxt-document-threads-max.patch
 mm-rcu-protected-get_mm_exe_file.patch
 affs-kstrdup-memory-handling-fix.patch
 kconfig-use-macros-which-are-already-defined-fix.patch
