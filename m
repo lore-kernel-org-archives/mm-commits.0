@@ -1,162 +1,174 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-cma-add-trace-events-for-cma-allocations-and-freeings.patch removed from -mm tree
-Date: Thu, 16 Apr 2015 09:52:48 -0700
-Message-ID: <552fe8e0.5ys2439hsAVCIRKj%akpm@linux-foundation.org>
+ mm-uninline-and-cleanup-page-mapping-related-helpers.patch removed from -mm tree
+Date: Thu, 16 Apr 2015 09:52:51 -0700
+Message-ID: <552fe8e3.2yaWSURmv8UQVIyO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42829 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42839 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753882AbbDPQrT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:47:19 -0400
+	with ESMTP id S1753882AbbDPQrW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:47:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: s.strogin@partner.samsung.com, iamjoonsoo.kim@lge.com, laurent.pinchart+renesas@ideasonboard.com, m.szyprowski@samsung.com, mingo@elte.hu, mpn@google.com, rostedt@goodmis.org, stefan.strogin@gmail.com, treding@nvidia.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, cl@linux.com, koct9i@gmail.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: cma: add trace events for CMA allocations and freeings
+     Subject: mm: uninline and cleanup page-mapping related helpers
 has been removed from the -mm tree.  Its filename was
-     mm-cma-add-trace-events-for-cma-allocations-and-freeings.patch
+     mm-uninline-and-cleanup-page-mapping-related-helpers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Stefan Strogin <s.strogin@partner.samsung.com>
-Subject: mm: cma: add trace events for CMA allocations and freeings
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm: uninline and cleanup page-mapping related helpers
 
-Add trace events for cma_alloc() and cma_release().
+Most-used page->mapping helper -- page_mapping() -- has already uninlined.
+ Let's uninline also page_rmapping() and page_anon_vma().  It saves us
+depending on configuration around 400 bytes in text:
 
-The cma_alloc tracepoint is used both for successful and failed allocations,
-in case of allocation failure pfn=-1UL is stored and printed.
+   text	   data	    bss	    dec	    hex	filename
+ 660318	  99254	 410000	1169572	 11d8a4	mm/built-in.o-before
+ 659854	  99254	 410000	1169108	 11d6d4	mm/built-in.o
 
-Signed-off-by: Stefan Strogin <stefan.strogin@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Michal Nazarewicz <mpn@google.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Cc: Thierry Reding <treding@nvidia.com>
+I also tried to make code a bit more clean.
+
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/cma.h |   66 +++++++++++++++++++++++++++++++++++
- mm/cma.c                   |    5 ++
- 2 files changed, 71 insertions(+)
+ include/linux/mm.h   |    8 ++------
+ include/linux/rmap.h |    8 --------
+ mm/util.c            |   41 ++++++++++++++++++++++++++++++++++++-----
+ 3 files changed, 38 insertions(+), 19 deletions(-)
 
-diff -puN /dev/null include/trace/events/cma.h
---- /dev/null
-+++ a/include/trace/events/cma.h
-@@ -0,0 +1,66 @@
-+#undef TRACE_SYSTEM
-+#define TRACE_SYSTEM cma
-+
-+#if !defined(_TRACE_CMA_H) || defined(TRACE_HEADER_MULTI_READ)
-+#define _TRACE_CMA_H
-+
-+#include <linux/types.h>
-+#include <linux/tracepoint.h>
-+
-+TRACE_EVENT(cma_alloc,
-+
-+	TP_PROTO(unsigned long pfn, const struct page *page,
-+		 unsigned int count, unsigned int align),
-+
-+	TP_ARGS(pfn, page, count, align),
-+
-+	TP_STRUCT__entry(
-+		__field(unsigned long, pfn)
-+		__field(const struct page *, page)
-+		__field(unsigned int, count)
-+		__field(unsigned int, align)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->pfn = pfn;
-+		__entry->page = page;
-+		__entry->count = count;
-+		__entry->align = align;
-+	),
-+
-+	TP_printk("pfn=%lx page=%p count=%u align=%u",
-+		  __entry->pfn,
-+		  __entry->page,
-+		  __entry->count,
-+		  __entry->align)
-+);
-+
-+TRACE_EVENT(cma_release,
-+
-+	TP_PROTO(unsigned long pfn, const struct page *page,
-+		 unsigned int count),
-+
-+	TP_ARGS(pfn, page, count),
-+
-+	TP_STRUCT__entry(
-+		__field(unsigned long, pfn)
-+		__field(const struct page *, page)
-+		__field(unsigned int, count)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->pfn = pfn;
-+		__entry->page = page;
-+		__entry->count = count;
-+	),
-+
-+	TP_printk("pfn=%lx page=%p count=%u",
-+		  __entry->pfn,
-+		  __entry->page,
-+		  __entry->count)
-+);
-+
-+#endif /* _TRACE_CMA_H */
-+
-+/* This part must be outside protection */
-+#include <trace/define_trace.h>
-diff -puN mm/cma.c~mm-cma-add-trace-events-for-cma-allocations-and-freeings mm/cma.c
---- a/mm/cma.c~mm-cma-add-trace-events-for-cma-allocations-and-freeings
-+++ a/mm/cma.c
-@@ -23,6 +23,7 @@
- #  define DEBUG
+diff -puN include/linux/mm.h~mm-uninline-and-cleanup-page-mapping-related-helpers include/linux/mm.h
+--- a/include/linux/mm.h~mm-uninline-and-cleanup-page-mapping-related-helpers
++++ a/include/linux/mm.h
+@@ -950,14 +950,10 @@ void page_address_init(void);
+ #define page_address_init()  do { } while(0)
  #endif
- #endif
-+#define CREATE_TRACE_POINTS
  
- #include <linux/memblock.h>
- #include <linux/err.h>
-@@ -34,6 +35,7 @@
- #include <linux/cma.h>
- #include <linux/highmem.h>
- #include <linux/io.h>
-+#include <trace/events/cma.h>
++extern void *page_rmapping(struct page *page);
++extern struct anon_vma *page_anon_vma(struct page *page);
+ extern struct address_space *page_mapping(struct page *page);
  
- #include "cma.h"
+-/* Neutral page->mapping pointer to address_space or anon_vma or other */
+-static inline void *page_rmapping(struct page *page)
+-{
+-	return (void *)((unsigned long)page->mapping & ~PAGE_MAPPING_FLAGS);
+-}
+-
+ extern struct address_space *__page_file_mapping(struct page *);
  
-@@ -414,6 +416,8 @@ struct page *cma_alloc(struct cma *cma,
- 		start = bitmap_no + mask + 1;
- 	}
+ static inline
+diff -puN include/linux/rmap.h~mm-uninline-and-cleanup-page-mapping-related-helpers include/linux/rmap.h
+--- a/include/linux/rmap.h~mm-uninline-and-cleanup-page-mapping-related-helpers
++++ a/include/linux/rmap.h
+@@ -105,14 +105,6 @@ static inline void put_anon_vma(struct a
+ 		__put_anon_vma(anon_vma);
+ }
  
-+	trace_cma_alloc(page ? pfn : -1UL, page, count, align);
+-static inline struct anon_vma *page_anon_vma(struct page *page)
+-{
+-	if (((unsigned long)page->mapping & PAGE_MAPPING_FLAGS) !=
+-					    PAGE_MAPPING_ANON)
+-		return NULL;
+-	return page_rmapping(page);
+-}
+-
+ static inline void vma_lock_anon_vma(struct vm_area_struct *vma)
+ {
+ 	struct anon_vma *anon_vma = vma->anon_vma;
+diff -puN mm/util.c~mm-uninline-and-cleanup-page-mapping-related-helpers mm/util.c
+--- a/mm/util.c~mm-uninline-and-cleanup-page-mapping-related-helpers
++++ a/mm/util.c
+@@ -325,9 +325,37 @@ void kvfree(const void *addr)
+ }
+ EXPORT_SYMBOL(kvfree);
+ 
++static inline void *__page_rmapping(struct page *page)
++{
++	unsigned long mapping;
 +
- 	pr_debug("%s(): returned %p\n", __func__, page);
- 	return page;
- }
-@@ -446,6 +450,7 @@ bool cma_release(struct cma *cma, const
++	mapping = (unsigned long)page->mapping;
++	mapping &= ~PAGE_MAPPING_FLAGS;
++
++	return (void *)mapping;
++}
++
++/* Neutral page->mapping pointer to address_space or anon_vma or other */
++void *page_rmapping(struct page *page)
++{
++	page = compound_head(page);
++	return __page_rmapping(page);
++}
++
++struct anon_vma *page_anon_vma(struct page *page)
++{
++	unsigned long mapping;
++
++	page = compound_head(page);
++	mapping = (unsigned long)page->mapping;
++	if ((mapping & PAGE_MAPPING_FLAGS) != PAGE_MAPPING_ANON)
++		return NULL;
++	return __page_rmapping(page);
++}
++
+ struct address_space *page_mapping(struct page *page)
+ {
+-	struct address_space *mapping = page->mapping;
++	unsigned long mapping;
  
- 	free_contig_range(pfn, count);
- 	cma_clear_bitmap(cma, pfn, count);
-+	trace_cma_release(pfn, pages, count);
+ 	/* This happens if someone calls flush_dcache_page on slab page */
+ 	if (unlikely(PageSlab(page)))
+@@ -337,10 +365,13 @@ struct address_space *page_mapping(struc
+ 		swp_entry_t entry;
  
- 	return true;
+ 		entry.val = page_private(page);
+-		mapping = swap_address_space(entry);
+-	} else if ((unsigned long)mapping & PAGE_MAPPING_ANON)
+-		mapping = NULL;
+-	return mapping;
++		return swap_address_space(entry);
++	}
++
++	mapping = (unsigned long)page->mapping;
++	if (mapping & PAGE_MAPPING_FLAGS)
++		return NULL;
++	return page->mapping;
  }
+ 
+ int overcommit_ratio_handler(struct ctl_table *table, int write,
 _
 
-Patches currently in -mm which might be from s.strogin@partner.samsung.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
 origin.patch
+page-flags-trivial-cleanup-for-pagetrans-helpers.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
+page-flags-define-pg_locked-behavior-on-compound-pages.patch
+page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
+page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
+page-flags-define-pg_reserved-behavior-on-compound-pages.patch
+page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
+page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
+page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
+page-flags-define-pg_uncached-behavior-on-compound-pages.patch
+page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
+page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
+mm-sanitize-page-mapping-for-tail-pages.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
+linux-next.patch
 
