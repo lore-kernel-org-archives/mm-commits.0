@@ -1,90 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mremap-should-return-enomem-when-__vm_enough_memory-fail.patch removed from -mm tree
-Date: Thu, 16 Apr 2015 09:52:04 -0700
-Message-ID: <552fe8b4.gpu9pPwd+7uIvRw8%akpm@linux-foundation.org>
+Subject: [merged] mm-use-read_once-for-non-scalar-types.patch removed from -mm tree
+Date: Thu, 16 Apr 2015 09:52:08 -0700
+Message-ID: <552fe8b8.Jfp227BF8pdqDlie%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42709 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42720 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751355AbbDPQqf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:46:35 -0400
+	with ESMTP id S1753820AbbDPQqj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:46:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: denc716@gmail.com, crquan@ymail.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: jason.low2@hp.com, borntraeger@de.ibm.com, dave@stgolabs.net, mhocko@suse.cz, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mremap should return -ENOMEM when __vm_enough_memory fail
+     Subject: mm: use READ_ONCE() for non-scalar types
 has been removed from the -mm tree.  Its filename was
-     mremap-should-return-enomem-when-__vm_enough_memory-fail.patch
+     mm-use-read_once-for-non-scalar-types.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Derek <denc716@gmail.com>
-Subject: mremap should return -ENOMEM when __vm_enough_memory fail
+From: Jason Low <jason.low2@hp.com>
+Subject: mm: use READ_ONCE() for non-scalar types
 
-Recently I straced bash behavior in this dd zero pipe to read test, in
-part of testing under vm.overcommit_memory=2 (OVERCOMMIT_NEVER mode):
+Commit 38c5ce936a08 ("mm/gup: Replace ACCESS_ONCE with READ_ONCE")
+converted ACCESS_ONCE usage in gup_pmd_range() to READ_ONCE, since
+ACCESS_ONCE doesn't work reliably on non-scalar types.
 
-    # dd if=/dev/zero | read x
+This patch also fixes the other ACCESS_ONCE usages in gup_pte_range()
+and __get_user_pages_fast() in mm/gup.c
 
-The bash sub shell is calling mremap to reallocate more and more memory
-untill it finally failed -ENOMEM (I expect), or to be killed by system OOM
-killer (which should not happen under OVERCOMMIT_NEVER mode); But the
-mremap system call actually failed of -EFAULT, which is a surprise to me,
-I think it's supposed to be -ENOMEM?  then I wrote this piece of C code
-testing confirmed it: https://gist.github.com/crquan/326bde37e1ddda8effe5
-
-    $ ./remap
-    allocated one page @0x7f686bf71000, (PAGE_SIZE: 4096)
-    grabbed 7680512000 bytes of memory (1875125 pages) @ 00007f6690993000.
-    mremap failed Bad address (14).
-
-The -EFAULT comes from the branch of security_vm_enough_memory_mm failure,
-underlyingly it calls __vm_enough_memory which returns only 0 for success
-or -ENOMEM; So why vma_to_resize needs to return -EFAULT in this case? 
-this sounds like a mistake to me.
-
-Some more digging into git history:
-
-1) Before commit 119f657c7 ("RLIMIT_AS checking fix") in May 1 2005
-   (pre 2.6.12 days) it was returning -ENOMEM for this failure;
-
-2) but commit 119f657c7 ("untangling do_mremap(), part 1") changed it
-   accidentally, to what ever is preserved in local ret, which happened to
-   be -EFAULT, in a previous assignment;
-
-3) then in commit 54f5de709 code refactoring, it's explicitly returning
-   -EFAULT, should be wrong.
-
-Signed-off-by: Derek Che <crquan@ymail.com>
-Acked-by: David Rientjes <rientjes@google.com>
+Signed-off-by: Jason Low <jason.low2@hp.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: Davidlohr Bueso <dave@stgolabs.net>
+Acked-by: Rik van Riel <riel@redhat.com>
+Reviewed-by: Christian Borntraeger <borntraeger@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mremap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/gup.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/mremap.c~mremap-should-return-enomem-when-__vm_enough_memory-fail mm/mremap.c
---- a/mm/mremap.c~mremap-should-return-enomem-when-__vm_enough_memory-fail
-+++ a/mm/mremap.c
-@@ -381,7 +381,7 @@ static struct vm_area_struct *vma_to_res
- 	if (vma->vm_flags & VM_ACCOUNT) {
- 		unsigned long charged = (new_len - old_len) >> PAGE_SHIFT;
- 		if (security_vm_enough_memory_mm(mm, charged))
--			goto Efault;
-+			goto Enomem;
- 		*p = charged;
- 	}
+diff -puN mm/gup.c~mm-use-read_once-for-non-scalar-types mm/gup.c
+--- a/mm/gup.c~mm-use-read_once-for-non-scalar-types
++++ a/mm/gup.c
+@@ -1019,7 +1019,7 @@ static int gup_pte_range(pmd_t pmd, unsi
+ 		 *
+ 		 * for an example see gup_get_pte in arch/x86/mm/gup.c
+ 		 */
+-		pte_t pte = ACCESS_ONCE(*ptep);
++		pte_t pte = READ_ONCE(*ptep);
+ 		struct page *page;
  
+ 		/*
+@@ -1309,7 +1309,7 @@ int __get_user_pages_fast(unsigned long
+ 	local_irq_save(flags);
+ 	pgdp = pgd_offset(mm, addr);
+ 	do {
+-		pgd_t pgd = ACCESS_ONCE(*pgdp);
++		pgd_t pgd = READ_ONCE(*pgdp);
+ 
+ 		next = pgd_addr_end(addr, end);
+ 		if (pgd_none(pgd))
 _
 
-Patches currently in -mm which might be from denc716@gmail.com are
+Patches currently in -mm which might be from jason.low2@hp.com are
 
 origin.patch
 
