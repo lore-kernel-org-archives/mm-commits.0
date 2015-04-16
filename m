@@ -1,53 +1,47 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-jfs-remove-slab-object-constructor.patch removed from -mm tree
-Date: Thu, 16 Apr 2015 09:52:12 -0700
-Message-ID: <552fe8bc.1/8cB/GOUkeXO/f1%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-mempool-disallow-mempools-based-on-slab-caches-with-constructors.patch
+ removed from -mm tree
+Date: Thu, 16 Apr 2015 09:52:15 -0700
+Message-ID: <552fe8bf.FQ/yoqsIvrGyVumW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42734 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42744 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752855AbbDPQqo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:46:44 -0400
+	with ESMTP id S1752855AbbDPQqq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:46:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, catalin.marinas@arm.com, dave.kleikamp@oracle.com, hch@lst.de, mpatocka@redhat.com, sebott@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: rientjes@google.com, catalin.marinas@arm.com, hch@lst.de, mpatocka@redhat.com, sebott@linux.vnet.ibm.com, shaggy@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs, jfs: remove slab object constructor
+     Subject: mm, mempool: disallow mempools based on slab caches with constructors
 has been removed from the -mm tree.  Its filename was
-     fs-jfs-remove-slab-object-constructor.patch
+     mm-mempool-disallow-mempools-based-on-slab-caches-with-constructors.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: David Rientjes <rientjes@google.com>
-Subject: fs, jfs: remove slab object constructor
+Subject: mm, mempool: disallow mempools based on slab caches with constructors
 
-Mempools based on slab caches with object constructors are risky because
-element allocation can happen either from the slab cache itself, meaning
-the constructor is properly called before returning, or from the mempool
-reserve pool, meaning the constructor is not called before returning,
-depending on the allocation context.
+All occurrences of mempools based on slab caches with object constructors
+have been removed from the tree, so disallow creating them.
 
-For this reason, we should disallow creating mempools based on slab caches
-that have object constructors.  Callers of mempool_alloc() will be
-responsible for properly initializing the returned element.
+We can only dereference mem->ctor in mm/mempool.c without including
+mm/slab.h in include/linux/mempool.h.  So simply note the restriction,
+just like the comment restricting usage of __GFP_ZERO, and warn on kernels
+with CONFIG_DEBUG_VM() if such a mempool is allocated from.
 
-Then, it doesn't matter if the element came from the slab cache or the
-mempool reserved pool.
-
-The only occurrence of a mempool being based on a slab cache with an
-object constructor in the tree is in fs/jfs/jfs_metapage.c.  Remove it and
-properly initialize the element in alloc_metapage().
-
-At the same time, META_free is never used, so remove it as well.
+We don't want to incur this check on every element allocation, so use
+VM_BUG_ON().
 
 Signed-off-by: David Rientjes <rientjes@google.com>
-Acked-by: Dave Kleikamp <dave.kleikamp@oracle.com>
+Cc: Dave Kleikamp <shaggy@kernel.org>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Sebastian Ott <sebott@linux.vnet.ibm.com>
 Cc: Mikulas Patocka <mpatocka@redhat.com>
@@ -55,75 +49,42 @@ Cc: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jfs/jfs_metapage.c |   31 ++++++++++++-------------------
- fs/jfs/jfs_metapage.h |    1 -
- 2 files changed, 12 insertions(+), 20 deletions(-)
+ include/linux/mempool.h |    3 ++-
+ mm/mempool.c            |    2 ++
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN fs/jfs/jfs_metapage.c~fs-jfs-remove-slab-object-constructor fs/jfs/jfs_metapage.c
---- a/fs/jfs/jfs_metapage.c~fs-jfs-remove-slab-object-constructor
-+++ a/fs/jfs/jfs_metapage.c
-@@ -183,30 +183,23 @@ static inline void remove_metapage(struc
+diff -puN include/linux/mempool.h~mm-mempool-disallow-mempools-based-on-slab-caches-with-constructors include/linux/mempool.h
+--- a/include/linux/mempool.h~mm-mempool-disallow-mempools-based-on-slab-caches-with-constructors
++++ a/include/linux/mempool.h
+@@ -36,7 +36,8 @@ extern void mempool_free(void *element,
  
- #endif
+ /*
+  * A mempool_alloc_t and mempool_free_t that get the memory from
+- * a slab that is passed in through pool_data.
++ * a slab cache that is passed in through pool_data.
++ * Note: the slab cache may not have a ctor function.
+  */
+ void *mempool_alloc_slab(gfp_t gfp_mask, void *pool_data);
+ void mempool_free_slab(void *element, void *pool_data);
+diff -puN mm/mempool.c~mm-mempool-disallow-mempools-based-on-slab-caches-with-constructors mm/mempool.c
+--- a/mm/mempool.c~mm-mempool-disallow-mempools-based-on-slab-caches-with-constructors
++++ a/mm/mempool.c
+@@ -15,6 +15,7 @@
+ #include <linux/mempool.h>
+ #include <linux/blkdev.h>
+ #include <linux/writeback.h>
++#include "slab.h"
  
--static void init_once(void *foo)
--{
--	struct metapage *mp = (struct metapage *)foo;
--
--	mp->lid = 0;
--	mp->lsn = 0;
--	mp->flag = 0;
--	mp->data = NULL;
--	mp->clsn = 0;
--	mp->log = NULL;
--	set_bit(META_free, &mp->flag);
--	init_waitqueue_head(&mp->wait);
--}
--
- static inline struct metapage *alloc_metapage(gfp_t gfp_mask)
+ static void add_element(mempool_t *pool, void *element)
  {
--	return mempool_alloc(metapage_mempool, gfp_mask);
-+	struct metapage *mp = mempool_alloc(metapage_mempool, gfp_mask);
-+
-+	if (mp) {
-+		mp->lid = 0;
-+		mp->lsn = 0;
-+		mp->data = NULL;
-+		mp->clsn = 0;
-+		mp->log = NULL;
-+		init_waitqueue_head(&mp->wait);
-+	}
-+	return mp;
- }
- 
- static inline void free_metapage(struct metapage *mp)
+@@ -334,6 +335,7 @@ EXPORT_SYMBOL(mempool_free);
+ void *mempool_alloc_slab(gfp_t gfp_mask, void *pool_data)
  {
--	mp->flag = 0;
--	set_bit(META_free, &mp->flag);
--
- 	mempool_free(mp, metapage_mempool);
+ 	struct kmem_cache *mem = pool_data;
++	VM_BUG_ON(mem->ctor);
+ 	return kmem_cache_alloc(mem, gfp_mask);
  }
- 
-@@ -216,7 +209,7 @@ int __init metapage_init(void)
- 	 * Allocate the metapage structures
- 	 */
- 	metapage_cache = kmem_cache_create("jfs_mp", sizeof(struct metapage),
--					   0, 0, init_once);
-+					   0, 0, NULL);
- 	if (metapage_cache == NULL)
- 		return -ENOMEM;
- 
-diff -puN fs/jfs/jfs_metapage.h~fs-jfs-remove-slab-object-constructor fs/jfs/jfs_metapage.h
---- a/fs/jfs/jfs_metapage.h~fs-jfs-remove-slab-object-constructor
-+++ a/fs/jfs/jfs_metapage.h
-@@ -48,7 +48,6 @@ struct metapage {
- 
- /* metapage flag */
- #define META_locked	0
--#define META_free	1
- #define META_dirty	2
- #define META_sync	3
- #define META_discard	4
+ EXPORT_SYMBOL(mempool_alloc_slab);
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
