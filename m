@@ -1,124 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-vsprintfc-eliminate-some-branches.patch removed from -mm tree
-Date: Thu, 16 Apr 2015 09:54:39 -0700
-Message-ID: <552fe94f.b8TonwRTsX29HVKi%akpm@linux-foundation.org>
+Subject: [merged]
+ lib-vsprintfc-fix-potential-null-deref-in-hex_string.patch removed from -mm tree
+Date: Thu, 16 Apr 2015 09:54:55 -0700
+Message-ID: <552fe95f.B35ohZaBh1XgR8/s%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43106 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43141 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753972AbbDPQtL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:49:11 -0400
+	with ESMTP id S1751392AbbDPQt0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:49:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, a.p.zijlstra@chello.nl, tj@kernel.org, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, andriy.shevchenko@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/vsprintf.c: eliminate some branches
+     Subject: lib/vsprintf.c: fix potential NULL deref in hex_string
 has been removed from the -mm tree.  Its filename was
-     lib-vsprintfc-eliminate-some-branches.patch
+     lib-vsprintfc-fix-potential-null-deref-in-hex_string.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/vsprintf.c: eliminate some branches
+Subject: lib/vsprintf.c: fix potential NULL deref in hex_string
 
-Since FORMAT_TYPE_INT is simply 1 more than FORMAT_TYPE_UINT, and
-similarly for BYTE/UBYTE, SHORT/USHORT, LONG/ULONG, we can eliminate a few
-instructions by making SIGN have the value 1 instead of 2, and then use
-arithmetic instead of branches for computing the right spec->type.  It's a
-little hacky, but certainly in the same spirit as SMALL needing to have
-the value 0x20.  For example for the spec->qualifier == 'l' case, gcc now
-generates
+The helper hex_string() is broken in two ways.  First, it doesn't
+increment buf regardless of whether there is room to print, so callers
+such as kasprintf() that try to probe the correct storage to allocate will
+get a too small return value.  But even worse, kasprintf() (and likely
+anyone else trying to find the size of the result) pass NULL for buf and 0
+for size, so we also have end == NULL.  But this means that the end-1 in
+hex_string() is (char*)-1, so buf < end-1 is true and we get a NULL
+pointer deref.  I double-checked this with a trivial kernel module that
+just did a kasprintf(GFP_KERNEL, "%14ph", "CrashBoomBang").
 
-     75e:       0f b6 53 01             movzbl 0x1(%rbx),%edx
-     762:       83 e2 01                and    $0x1,%edx
-     765:       83 c2 09                add    $0x9,%edx
-     768:       88 13                   mov    %dl,(%rbx)
-
-instead of
-
-     763:       0f b6 53 01             movzbl 0x1(%rbx),%edx
-     767:       83 e2 02                and    $0x2,%edx
-     76a:       80 fa 01                cmp    $0x1,%dl
-     76d:       19 d2                   sbb    %edx,%edx
-     76f:       83 c2 0a                add    $0xa,%edx
-     772:       88 13                   mov    %dl,(%rbx)
+Nobody seems to be using %ph with kasprintf, but we might as well fix it
+before it hits someone.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Tejun Heo <tj@kernel.org>
+Acked-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |   30 +++++++++++-------------------
- 1 file changed, 11 insertions(+), 19 deletions(-)
+ lib/vsprintf.c |   16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
 
-diff -puN lib/vsprintf.c~lib-vsprintfc-eliminate-some-branches lib/vsprintf.c
---- a/lib/vsprintf.c~lib-vsprintfc-eliminate-some-branches
+diff -puN lib/vsprintf.c~lib-vsprintfc-fix-potential-null-deref-in-hex_string lib/vsprintf.c
+--- a/lib/vsprintf.c~lib-vsprintfc-fix-potential-null-deref-in-hex_string
 +++ a/lib/vsprintf.c
-@@ -340,8 +340,8 @@ int num_to_str(char *buf, int size, unsi
- 	return len;
- }
+@@ -777,11 +777,19 @@ char *hex_string(char *buf, char *end, u
+ 	if (spec.field_width > 0)
+ 		len = min_t(int, spec.field_width, 64);
  
--#define ZEROPAD	1		/* pad with zero */
--#define SIGN	2		/* unsigned/signed long */
-+#define SIGN	1		/* unsigned/signed, must be 1 */
-+#define ZEROPAD	2		/* pad with zero */
- #define PLUS	4		/* show plus */
- #define SPACE	8		/* space if plus */
- #define LEFT	16		/* left justified */
-@@ -447,7 +447,7 @@ char *number(char *buf, char *end, unsig
- 		spec.precision = i;
- 	/* leading space padding */
- 	spec.field_width -= spec.precision;
--	if (!(spec.flags & (ZEROPAD+LEFT))) {
-+	if (!(spec.flags & (ZEROPAD | LEFT))) {
- 		while (--spec.field_width >= 0) {
- 			if (buf < end)
- 				*buf = ' ';
-@@ -1738,29 +1738,21 @@ qualifier:
- 	if (spec->qualifier == 'L')
- 		spec->type = FORMAT_TYPE_LONG_LONG;
- 	else if (spec->qualifier == 'l') {
--		if (spec->flags & SIGN)
--			spec->type = FORMAT_TYPE_LONG;
--		else
--			spec->type = FORMAT_TYPE_ULONG;
-+		BUILD_BUG_ON(FORMAT_TYPE_ULONG + SIGN != FORMAT_TYPE_LONG);
-+		spec->type = FORMAT_TYPE_ULONG + (spec->flags & SIGN);
- 	} else if (_tolower(spec->qualifier) == 'z') {
- 		spec->type = FORMAT_TYPE_SIZE_T;
- 	} else if (spec->qualifier == 't') {
- 		spec->type = FORMAT_TYPE_PTRDIFF;
- 	} else if (spec->qualifier == 'H') {
--		if (spec->flags & SIGN)
--			spec->type = FORMAT_TYPE_BYTE;
--		else
--			spec->type = FORMAT_TYPE_UBYTE;
-+		BUILD_BUG_ON(FORMAT_TYPE_UBYTE + SIGN != FORMAT_TYPE_BYTE);
-+		spec->type = FORMAT_TYPE_UBYTE + (spec->flags & SIGN);
- 	} else if (spec->qualifier == 'h') {
--		if (spec->flags & SIGN)
--			spec->type = FORMAT_TYPE_SHORT;
--		else
--			spec->type = FORMAT_TYPE_USHORT;
-+		BUILD_BUG_ON(FORMAT_TYPE_USHORT + SIGN != FORMAT_TYPE_SHORT);
-+		spec->type = FORMAT_TYPE_USHORT + (spec->flags & SIGN);
- 	} else {
--		if (spec->flags & SIGN)
--			spec->type = FORMAT_TYPE_INT;
--		else
--			spec->type = FORMAT_TYPE_UINT;
-+		BUILD_BUG_ON(FORMAT_TYPE_UINT + SIGN != FORMAT_TYPE_INT);
-+		spec->type = FORMAT_TYPE_UINT + (spec->flags & SIGN);
+-	for (i = 0; i < len && buf < end - 1; i++) {
+-		buf = hex_byte_pack(buf, addr[i]);
++	for (i = 0; i < len; ++i) {
++		if (buf < end)
++			*buf = hex_asc_hi(addr[i]);
++		++buf;
++		if (buf < end)
++			*buf = hex_asc_lo(addr[i]);
++		++buf;
+ 
+-		if (buf < end && separator && i != len - 1)
+-			*buf++ = separator;
++		if (separator && i != len - 1) {
++			if (buf < end)
++				*buf = separator;
++			++buf;
++		}
  	}
  
- 	return ++fmt - start;
+ 	return buf;
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
