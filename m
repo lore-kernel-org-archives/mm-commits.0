@@ -1,74 +1,135 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- kconfig-use-macros-which-are-already-defined-fix.patch removed from -mm
- tree
-Date: Thu, 16 Apr 2015 12:10:17 -0700
-Message-ID: <55300919.H+3/2P4l6o1rHWX0%akpm@linux-foundation.org>
+ tomoyo-reduce-mmap_sem-hold-for-mm-exe_file-checkpatch-fixes.patch removed
+ from -mm tree
+Date: Thu, 16 Apr 2015 12:10:48 -0700
+Message-ID: <55300938.VENFuylgp/U34sbr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45507 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45539 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751424AbbDPTKR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 15:10:17 -0400
+	with ESMTP id S1751424AbbDPTKt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 15:10:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, michal.simek@xilinx.com, monstr@monstr.eu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dbueso@suse.de, jmorris@namei.org, penguin-kernel@I-love.SAKURA.ne.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kconfig-use-macros-which-are-already-defined-fix
+     Subject: tomoyo-reduce-mmap_sem-hold-for-mm-exe_file-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     kconfig-use-macros-which-are-already-defined-fix.patch
+     tomoyo-reduce-mmap_sem-hold-for-mm-exe_file-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into kconfig-use-macros-which-are-already-defined.patch
+This patch was dropped because it was folded into tomoyo-reduce-mmap_sem-hold-for-mm-exe_file.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kconfig-use-macros-which-are-already-defined-fix
+Subject: tomoyo-reduce-mmap_sem-hold-for-mm-exe_file-checkpatch-fixes
 
-move IS_ENABLED definition to after the IS_BUILTIN and IS_MODULE definitions
+Sumeone needs to buy a tab key.
 
-Cc: Michal Simek <michal.simek@xilinx.com>
-Cc: Michal Simek <monstr@monstr.eu>
+
+WARNING: please, no spaces at the start of a line
+#29: FILE: security/tomoyo/util.c:951:
++       struct file *exe_file;$
+
+WARNING: please, no spaces at the start of a line
+#30: FILE: security/tomoyo/util.c:952:
++       const char *cp;$
+
+WARNING: please, no spaces at the start of a line
+#31: FILE: security/tomoyo/util.c:953:
++       struct mm_struct *mm = current->mm;$
+
+WARNING: please, no spaces at the start of a line
+#40: FILE: security/tomoyo/util.c:955:
++       if (!mm)$
+
+WARNING: suspect code indent for conditional statements (7, 15)
+#40: FILE: security/tomoyo/util.c:955:
++       if (!mm)
++	       return NULL;
+
+WARNING: please, no spaces at the start of a line
+#42: FILE: security/tomoyo/util.c:957:
++       exe_file = get_mm_exe_file(mm);$
+
+WARNING: please, no spaces at the start of a line
+#43: FILE: security/tomoyo/util.c:958:
++       if (!exe_file)$
+
+WARNING: suspect code indent for conditional statements (7, 15)
+#43: FILE: security/tomoyo/util.c:958:
++       if (!exe_file)
++	       return NULL;
+
+WARNING: please, no spaces at the start of a line
+#46: FILE: security/tomoyo/util.c:961:
++       cp = tomoyo_realpath_from_path(&exe_file->f_path);$
+
+WARNING: please, no spaces at the start of a line
+#47: FILE: security/tomoyo/util.c:962:
++       fput(exe_file);$
+
+WARNING: please, no spaces at the start of a line
+#48: FILE: security/tomoyo/util.c:963:
++       return cp;$
+
+total: 0 errors, 11 warnings, 28 lines checked
+
+./patches/tomoyo-reduce-mmap_sem-hold-for-mm-exe_file.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Davidlohr Bueso <dbueso@suse.de>
+Cc: James Morris <jmorris@namei.org>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kconfig.h |   15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
+ security/tomoyo/util.c |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/kconfig.h~kconfig-use-macros-which-are-already-defined-fix include/linux/kconfig.h
---- a/include/linux/kconfig.h~kconfig-use-macros-which-are-already-defined-fix
-+++ a/include/linux/kconfig.h
-@@ -23,14 +23,6 @@
- #define ___config_enabled(__ignored, val, ...) val
- 
- /*
-- * IS_ENABLED(CONFIG_FOO) evaluates to 1 if CONFIG_FOO is set to 'y' or 'm',
-- * 0 otherwise.
-- *
-- */
--#define IS_ENABLED(option) \
--	(IS_BUILTIN(option) || IS_MODULE(option))
--
--/*
-  * IS_BUILTIN(CONFIG_FOO) evaluates to 1 if CONFIG_FOO is set to 'y', 0
-  * otherwise. For boolean options, this is equivalent to
-  * IS_ENABLED(CONFIG_FOO).
-@@ -43,4 +35,11 @@
+diff -puN security/tomoyo/util.c~tomoyo-reduce-mmap_sem-hold-for-mm-exe_file-checkpatch-fixes security/tomoyo/util.c
+--- a/security/tomoyo/util.c~tomoyo-reduce-mmap_sem-hold-for-mm-exe_file-checkpatch-fixes
++++ a/security/tomoyo/util.c
+@@ -948,19 +948,19 @@ bool tomoyo_path_matches_pattern(const s
   */
- #define IS_MODULE(option) config_enabled(option##_MODULE)
+ const char *tomoyo_get_exe(void)
+ {
+-       struct file *exe_file;
+-       const char *cp;
+-       struct mm_struct *mm = current->mm;
++	struct file *exe_file;
++	const char *cp;
++	struct mm_struct *mm = current->mm;
  
-+/*
-+ * IS_ENABLED(CONFIG_FOO) evaluates to 1 if CONFIG_FOO is set to 'y' or 'm',
-+ * 0 otherwise.
-+ */
-+#define IS_ENABLED(option) \
-+	(IS_BUILTIN(option) || IS_MODULE(option))
-+
- #endif /* __LINUX_KCONFIG_H */
+-       if (!mm)
+-	       return NULL;
+-       exe_file = get_mm_exe_file(mm);
+-       if (!exe_file)
+-	       return NULL;
++	if (!mm)
++		return NULL;
++	exe_file = get_mm_exe_file(mm);
++	if (!exe_file)
++		return NULL;
+ 
+-       cp = tomoyo_realpath_from_path(&exe_file->f_path);
+-       fput(exe_file);
+-       return cp;
++	cp = tomoyo_realpath_from_path(&exe_file->f_path);
++	fput(exe_file);
++	return cp;
+ }
+ 
+ /**
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -86,6 +147,6 @@ affs-kstrdup-memory-handling.patch
 kconfig-use-macros-which-are-already-defined.patch
 lib-kconfig-fix-up-have_arch_bitreverse-help-text.patch
 oprofile-reduce-mmap_sem-hold-for-mm-exe_file-fix.patch
-tomoyo-reduce-mmap_sem-hold-for-mm-exe_file-checkpatch-fixes.patch
+tomoyo-reduce-mmap_sem-hold-for-mm-exe_file.patch
 documentation-spi-spidev_testc-fix-warning.patch
 
