@@ -1,56 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- nilfs2-add-bmap-function-to-seek-a-valid-key-fix.patch removed from -mm
- tree
-Date: Thu, 16 Apr 2015 12:07:32 -0700
-Message-ID: <55300874.V58bffsRywbeQ5x/%akpm@linux-foundation.org>
+Subject: [folded-merged] fs-fat-remove-unnecessary-includes-fix.patch
+ removed from -mm tree
+Date: Thu, 16 Apr 2015 12:08:04 -0700
+Message-ID: <55300894.bUXMhytgl+n04Vez%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45474 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45477 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750832AbbDPTHd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 15:07:33 -0400
+	with ESMTP id S1751160AbbDPTIF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 15:08:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: konishi.ryusuke@lab.ntt.co.jp, dan.carpenter@oracle.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hirofumi@mail.parknet.co.jp, kuleshovmail@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2-add-bmap-function-to-seek-a-valid-key-fix
+     Subject: fs-fat-remove-unnecessary-includes-fix
 has been removed from the -mm tree.  Its filename was
-     nilfs2-add-bmap-function-to-seek-a-valid-key-fix.patch
+     fs-fat-remove-unnecessary-includes-fix.patch
 
-This patch was dropped because it was folded into nilfs2-add-bmap-function-to-seek-a-valid-key.patch
+This patch was dropped because it was folded into fs-fat-remove-unnecessary-includes.patch
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Subject: nilfs2-add-bmap-function-to-seek-a-valid-key-fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fs-fat-remove-unnecessary-includes-fix
 
+fs/fat/iode.c needs seq_file.h
 
-I've got a report from Dan Carpenter that this range check causes a
-warning:
-
- fs/nilfs2/btree.c:1611 nilfs_btree_seek_key() warn: impossible condition '(start > (~0)) => (0-u64max > u64max)'
-
-A range check was needed there in a wip patch, but we no longer need
-it.
-
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Alexander Kuleshov <kuleshovmail@gmail.com>
+Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/btree.c |    3 ---
- 1 file changed, 3 deletions(-)
+ fs/fat/inode.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/nilfs2/btree.c~nilfs2-add-bmap-function-to-seek-a-valid-key-fix fs/nilfs2/btree.c
---- a/fs/nilfs2/btree.c~nilfs2-add-bmap-function-to-seek-a-valid-key-fix
-+++ a/fs/nilfs2/btree.c
-@@ -1608,9 +1608,6 @@ static int nilfs_btree_seek_key(const st
- 	const int minlevel = NILFS_BTREE_LEVEL_NODE_MIN;
- 	int ret;
- 
--	if (start > NILFS_BTREE_KEY_MAX)
--		return -ENOENT;
+diff -puN fs/fat/inode.c~fs-fat-remove-unnecessary-includes-fix fs/fat/inode.c
+--- a/fs/fat/inode.c~fs-fat-remove-unnecessary-includes-fix
++++ a/fs/fat/inode.c
+@@ -14,6 +14,7 @@
+ #include <linux/pagemap.h>
+ #include <linux/mpage.h>
+ #include <linux/vfs.h>
++#include <linux/seq_file.h>
+ #include <linux/parser.h>
+ #include <linux/blkdev.h>
+ #include <asm/unaligned.h>
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+lib-find__bit-reimplementation.patch
+checkpatch-match-more-world-writable-permissions.patch
+binfmt_misc-simplify-entry_status.patch
+rtc-driver-for-conexant-digicolor-cx92755-on-chip-rtc.patch
+fs-fat-remove-unnecessary-includes.patch
+kernel-forkc-avoid-division-by-zero-fix.patch
+kernel-forkc-avoid-division-by-zero-fix-fix.patch
+doc-sysctl-kerneltxt-document-threads-max-fix.patch
+mm-rcu-protected-get_mm_exe_file.patch
+affs-kstrdup-memory-handling-fix.patch
+kconfig-use-macros-which-are-already-defined-fix.patch
+lib-kconfig-fix-up-have_arch_bitreverse-help-text.patch
+oprofile-reduce-mmap_sem-hold-for-mm-exe_file-fix.patch
+tomoyo-reduce-mmap_sem-hold-for-mm-exe_file-checkpatch-fixes.patch
+documentation-spi-spidev_testc-fix-warning.patch
+
