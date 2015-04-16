@@ -1,172 +1,388 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-vmalloc-get-rid-of-dirty-bitmap-inside-vmap_block-structure.patch
- removed from -mm tree
-Date: Thu, 16 Apr 2015 09:52:01 -0700
-Message-ID: <552fe8b1.j+D97lVt/CEseVN6%akpm@linux-foundation.org>
+Subject: [merged] mm-remove-rest-of-access_once-usages.patch removed from
+ -mm tree
+Date: Thu, 16 Apr 2015 09:52:10 -0700
+Message-ID: <552fe8ba.xWZTJ114bZpAcL4L%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42707 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42728 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753796AbbDPQqc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:46:32 -0400
+	with ESMTP id S1752855AbbDPQql (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:46:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: r.peniaev@gmail.com, chaowang@redhat.com, cl@linux.com, edumazet@google.com, fabf@skynet.be, gioh.kim@lge.com, iamjoonsoo.kim@lge.com, rientjes@google.com, rob.jones@codethink.co.uk, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: jason.low2@hp.com, borntraeger@de.ibm.com, dave@stgolabs.net, mhocko@suse.cz, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmalloc: get rid of dirty bitmap inside vmap_block structure
+     Subject: mm: remove rest of ACCESS_ONCE() usages
 has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-get-rid-of-dirty-bitmap-inside-vmap_block-structure.patch
+     mm-remove-rest-of-access_once-usages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Roman Pen <r.peniaev@gmail.com>
-Subject: mm/vmalloc: get rid of dirty bitmap inside vmap_block structure
+From: Jason Low <jason.low2@hp.com>
+Subject: mm: remove rest of ACCESS_ONCE() usages
 
-In original implementation of vm_map_ram made by Nick Piggin there were
-two bitmaps: alloc_map and dirty_map.  None of them were used as supposed
-to be: finding a suitable free hole for next allocation in block. 
-vm_map_ram allocates space sequentially in block and on free call marks
-pages as dirty, so freed space can't be reused anymore.
+We converted some of the usages of ACCESS_ONCE to READ_ONCE in the mm/
+tree since it doesn't work reliably on non-scalar types.
 
-Actually it would be very interesting to know the real meaning of those
-bitmaps, maybe implementation was incomplete, etc.
+This patch removes the rest of the usages of ACCESS_ONCE, and use the new
+READ_ONCE API for the read accesses.  This makes things cleaner, instead
+of using separate/multiple sets of APIs.
 
-But long time ago Zhang Yanfei removed alloc_map by these two commits:
-
-  mm/vmalloc.c: remove dead code in vb_alloc
-     3fcd76e8028e0be37b02a2002b4f56755daeda06
-  mm/vmalloc.c: remove alloc_map from vmap_block
-     b8e748b6c32999f221ea4786557b8e7e6c4e4e7a
-
-In this patch I replaced dirty_map with two range variables: dirty min and
-max.  These variables store minimum and maximum position of dirty space in
-a block, since we need only to know the dirty range, not exact position of
-dirty pages.
-
-Why it was made?  Several reasons: at first glance it seems that
-vm_map_ram allocator concerns about fragmentation thus it uses bitmaps for
-finding free hole, but it is not true.  To avoid complexity seems it is
-better to use something simple, like min or max range values.  Secondly,
-code also becomes simpler, without iteration over bitmap, just comparing
-values in min and max macros.  Thirdly, bitmap occupies up to 1024 bits
-(4MB is a max size of a block).  Here I replaced the whole bitmap with two
-longs.
-
-Finally vm_unmap_aliases should be slightly faster and the whole
-vmap_block structure occupies less memory.
-
-Signed-off-by: Roman Pen <r.peniaev@gmail.com>
-Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Cc: Eric Dumazet <edumazet@google.com>
-Acked-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: WANG Chao <chaowang@redhat.com>
-Cc: Fabian Frederick <fabf@skynet.be>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Gioh Kim <gioh.kim@lge.com>
-Cc: Rob Jones <rob.jones@codethink.co.uk>
+Signed-off-by: Jason Low <jason.low2@hp.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: Davidlohr Bueso <dave@stgolabs.net>
+Acked-by: Rik van Riel <riel@redhat.com>
+Reviewed-by: Christian Borntraeger <borntraeger@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   35 +++++++++++++++++------------------
- 1 file changed, 17 insertions(+), 18 deletions(-)
+ mm/huge_memory.c |    4 ++--
+ mm/internal.h    |    4 ++--
+ mm/ksm.c         |   10 +++++-----
+ mm/memcontrol.c  |   18 +++++++++---------
+ mm/memory.c      |    2 +-
+ mm/mmap.c        |    8 ++++----
+ mm/page_alloc.c  |    6 +++---
+ mm/rmap.c        |    6 +++---
+ mm/slub.c        |    4 ++--
+ mm/swap_state.c  |    2 +-
+ mm/swapfile.c    |    2 +-
+ 11 files changed, 33 insertions(+), 33 deletions(-)
 
-diff -puN mm/vmalloc.c~mm-vmalloc-get-rid-of-dirty-bitmap-inside-vmap_block-structure mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmalloc-get-rid-of-dirty-bitmap-inside-vmap_block-structure
-+++ a/mm/vmalloc.c
-@@ -765,7 +765,7 @@ struct vmap_block {
- 	spinlock_t lock;
- 	struct vmap_area *va;
- 	unsigned long free, dirty;
--	DECLARE_BITMAP(dirty_map, VMAP_BBMAP_BITS);
-+	unsigned long dirty_min, dirty_max; /*< dirty range */
- 	struct list_head free_list;
- 	struct rcu_head rcu_head;
- 	struct list_head purge;
-@@ -851,7 +851,8 @@ static void *new_vmap_block(unsigned int
- 	BUG_ON(VMAP_BBMAP_BITS <= (1UL << order));
- 	vb->free = VMAP_BBMAP_BITS - (1UL << order);
- 	vb->dirty = 0;
--	bitmap_zero(vb->dirty_map, VMAP_BBMAP_BITS);
-+	vb->dirty_min = VMAP_BBMAP_BITS;
-+	vb->dirty_max = 0;
- 	INIT_LIST_HEAD(&vb->free_list);
+diff -puN mm/huge_memory.c~mm-remove-rest-of-access_once-usages mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-remove-rest-of-access_once-usages
++++ a/mm/huge_memory.c
+@@ -183,7 +183,7 @@ static struct page *get_huge_zero_page(v
+ 	struct page *zero_page;
+ retry:
+ 	if (likely(atomic_inc_not_zero(&huge_zero_refcount)))
+-		return ACCESS_ONCE(huge_zero_page);
++		return READ_ONCE(huge_zero_page);
  
- 	vb_idx = addr_to_vb_idx(va->va_start);
-@@ -902,7 +903,8 @@ static void purge_fragmented_blocks(int
- 		if (vb->free + vb->dirty == VMAP_BBMAP_BITS && vb->dirty != VMAP_BBMAP_BITS) {
- 			vb->free = 0; /* prevent further allocs after releasing lock */
- 			vb->dirty = VMAP_BBMAP_BITS; /* prevent purging it again */
--			bitmap_fill(vb->dirty_map, VMAP_BBMAP_BITS);
-+			vb->dirty_min = 0;
-+			vb->dirty_max = VMAP_BBMAP_BITS;
- 			spin_lock(&vbq->lock);
- 			list_del_rcu(&vb->free_list);
- 			spin_unlock(&vbq->lock);
-@@ -995,6 +997,7 @@ static void vb_free(const void *addr, un
- 	order = get_order(size);
+ 	zero_page = alloc_pages((GFP_TRANSHUGE | __GFP_ZERO) & ~__GFP_MOVABLE,
+ 			HPAGE_PMD_ORDER);
+@@ -202,7 +202,7 @@ retry:
+ 	/* We take additional reference here. It will be put back by shrinker */
+ 	atomic_set(&huge_zero_refcount, 2);
+ 	preempt_enable();
+-	return ACCESS_ONCE(huge_zero_page);
++	return READ_ONCE(huge_zero_page);
+ }
  
- 	offset = (unsigned long)addr & (VMAP_BLOCK_SIZE - 1);
-+	offset >>= PAGE_SHIFT;
+ static void put_huge_zero_page(void)
+diff -puN mm/internal.h~mm-remove-rest-of-access_once-usages mm/internal.h
+--- a/mm/internal.h~mm-remove-rest-of-access_once-usages
++++ a/mm/internal.h
+@@ -224,13 +224,13 @@ static inline unsigned long page_order(s
+  * PageBuddy() should be checked first by the caller to minimize race window,
+  * and invalid values must be handled gracefully.
+  *
+- * ACCESS_ONCE is used so that if the caller assigns the result into a local
++ * READ_ONCE is used so that if the caller assigns the result into a local
+  * variable and e.g. tests it for valid range before using, the compiler cannot
+  * decide to remove the variable and inline the page_private(page) multiple
+  * times, potentially observing different values in the tests and the actual
+  * use of the result.
+  */
+-#define page_order_unsafe(page)		ACCESS_ONCE(page_private(page))
++#define page_order_unsafe(page)		READ_ONCE(page_private(page))
  
- 	vb_idx = addr_to_vb_idx((unsigned long)addr);
+ static inline bool is_cow_mapping(vm_flags_t flags)
+ {
+diff -puN mm/ksm.c~mm-remove-rest-of-access_once-usages mm/ksm.c
+--- a/mm/ksm.c~mm-remove-rest-of-access_once-usages
++++ a/mm/ksm.c
+@@ -542,7 +542,7 @@ static struct page *get_ksm_page(struct
+ 	expected_mapping = (void *)stable_node +
+ 				(PAGE_MAPPING_ANON | PAGE_MAPPING_KSM);
+ again:
+-	kpfn = ACCESS_ONCE(stable_node->kpfn);
++	kpfn = READ_ONCE(stable_node->kpfn);
+ 	page = pfn_to_page(kpfn);
+ 
+ 	/*
+@@ -551,7 +551,7 @@ again:
+ 	 * but on Alpha we need to be more careful.
+ 	 */
+ 	smp_read_barrier_depends();
+-	if (ACCESS_ONCE(page->mapping) != expected_mapping)
++	if (READ_ONCE(page->mapping) != expected_mapping)
+ 		goto stale;
+ 
+ 	/*
+@@ -577,14 +577,14 @@ again:
+ 		cpu_relax();
+ 	}
+ 
+-	if (ACCESS_ONCE(page->mapping) != expected_mapping) {
++	if (READ_ONCE(page->mapping) != expected_mapping) {
+ 		put_page(page);
+ 		goto stale;
+ 	}
+ 
+ 	if (lock_it) {
+ 		lock_page(page);
+-		if (ACCESS_ONCE(page->mapping) != expected_mapping) {
++		if (READ_ONCE(page->mapping) != expected_mapping) {
+ 			unlock_page(page);
+ 			put_page(page);
+ 			goto stale;
+@@ -600,7 +600,7 @@ stale:
+ 	 * before checking whether node->kpfn has been changed.
+ 	 */
+ 	smp_rmb();
+-	if (ACCESS_ONCE(stable_node->kpfn) != kpfn)
++	if (READ_ONCE(stable_node->kpfn) != kpfn)
+ 		goto again;
+ 	remove_node_from_stable_tree(stable_node);
+ 	return NULL;
+diff -puN mm/memcontrol.c~mm-remove-rest-of-access_once-usages mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-remove-rest-of-access_once-usages
++++ a/mm/memcontrol.c
+@@ -674,7 +674,7 @@ static void mem_cgroup_remove_exceeded(s
+ static unsigned long soft_limit_excess(struct mem_cgroup *memcg)
+ {
+ 	unsigned long nr_pages = page_counter_read(&memcg->memory);
+-	unsigned long soft_limit = ACCESS_ONCE(memcg->soft_limit);
++	unsigned long soft_limit = READ_ONCE(memcg->soft_limit);
+ 	unsigned long excess = 0;
+ 
+ 	if (nr_pages > soft_limit)
+@@ -1042,7 +1042,7 @@ struct mem_cgroup *mem_cgroup_iter(struc
+ 			goto out_unlock;
+ 
+ 		do {
+-			pos = ACCESS_ONCE(iter->position);
++			pos = READ_ONCE(iter->position);
+ 			/*
+ 			 * A racing update may change the position and
+ 			 * put the last reference, hence css_tryget(),
+@@ -1359,13 +1359,13 @@ static unsigned long mem_cgroup_margin(s
+ 	unsigned long limit;
+ 
+ 	count = page_counter_read(&memcg->memory);
+-	limit = ACCESS_ONCE(memcg->memory.limit);
++	limit = READ_ONCE(memcg->memory.limit);
+ 	if (count < limit)
+ 		margin = limit - count;
+ 
+ 	if (do_swap_account) {
+ 		count = page_counter_read(&memcg->memsw);
+-		limit = ACCESS_ONCE(memcg->memsw.limit);
++		limit = READ_ONCE(memcg->memsw.limit);
+ 		if (count <= limit)
+ 			margin = min(margin, limit - count);
+ 	}
+@@ -2637,7 +2637,7 @@ struct kmem_cache *__memcg_kmem_get_cach
+ 		return cachep;
+ 
+ 	memcg = get_mem_cgroup_from_mm(current->mm);
+-	kmemcg_id = ACCESS_ONCE(memcg->kmemcg_id);
++	kmemcg_id = READ_ONCE(memcg->kmemcg_id);
+ 	if (kmemcg_id < 0)
+ 		goto out;
+ 
+@@ -5007,7 +5007,7 @@ static int mem_cgroup_can_attach(struct
+ 	 * tunable will only affect upcoming migrations, not the current one.
+ 	 * So we need to save it, and keep it going.
+ 	 */
+-	move_flags = ACCESS_ONCE(memcg->move_charge_at_immigrate);
++	move_flags = READ_ONCE(memcg->move_charge_at_immigrate);
+ 	if (move_flags) {
+ 		struct mm_struct *mm;
+ 		struct mem_cgroup *from = mem_cgroup_from_task(p);
+@@ -5241,7 +5241,7 @@ static u64 memory_current_read(struct cg
+ static int memory_low_show(struct seq_file *m, void *v)
+ {
+ 	struct mem_cgroup *memcg = mem_cgroup_from_css(seq_css(m));
+-	unsigned long low = ACCESS_ONCE(memcg->low);
++	unsigned long low = READ_ONCE(memcg->low);
+ 
+ 	if (low == PAGE_COUNTER_MAX)
+ 		seq_puts(m, "max\n");
+@@ -5271,7 +5271,7 @@ static ssize_t memory_low_write(struct k
+ static int memory_high_show(struct seq_file *m, void *v)
+ {
+ 	struct mem_cgroup *memcg = mem_cgroup_from_css(seq_css(m));
+-	unsigned long high = ACCESS_ONCE(memcg->high);
++	unsigned long high = READ_ONCE(memcg->high);
+ 
+ 	if (high == PAGE_COUNTER_MAX)
+ 		seq_puts(m, "max\n");
+@@ -5301,7 +5301,7 @@ static ssize_t memory_high_write(struct
+ static int memory_max_show(struct seq_file *m, void *v)
+ {
+ 	struct mem_cgroup *memcg = mem_cgroup_from_css(seq_css(m));
+-	unsigned long max = ACCESS_ONCE(memcg->memory.limit);
++	unsigned long max = READ_ONCE(memcg->memory.limit);
+ 
+ 	if (max == PAGE_COUNTER_MAX)
+ 		seq_puts(m, "max\n");
+diff -puN mm/memory.c~mm-remove-rest-of-access_once-usages mm/memory.c
+--- a/mm/memory.c~mm-remove-rest-of-access_once-usages
++++ a/mm/memory.c
+@@ -2845,7 +2845,7 @@ static void do_fault_around(struct vm_ar
+ 	struct vm_fault vmf;
+ 	int off;
+ 
+-	nr_pages = ACCESS_ONCE(fault_around_bytes) >> PAGE_SHIFT;
++	nr_pages = READ_ONCE(fault_around_bytes) >> PAGE_SHIFT;
+ 	mask = ~(nr_pages * PAGE_SIZE - 1) & PAGE_MASK;
+ 
+ 	start_addr = max(address & mask, vma->vm_start);
+diff -puN mm/mmap.c~mm-remove-rest-of-access_once-usages mm/mmap.c
+--- a/mm/mmap.c~mm-remove-rest-of-access_once-usages
++++ a/mm/mmap.c
+@@ -1133,7 +1133,7 @@ static int anon_vma_compatible(struct vm
+  * by another page fault trying to merge _that_. But that's ok: if it
+  * is being set up, that automatically means that it will be a singleton
+  * acceptable for merging, so we can do all of this optimistically. But
+- * we do that ACCESS_ONCE() to make sure that we never re-load the pointer.
++ * we do that READ_ONCE() to make sure that we never re-load the pointer.
+  *
+  * IOW: that the "list_is_singular()" test on the anon_vma_chain only
+  * matters for the 'stable anon_vma' case (ie the thing we want to avoid
+@@ -1147,7 +1147,7 @@ static int anon_vma_compatible(struct vm
+ static struct anon_vma *reusable_anon_vma(struct vm_area_struct *old, struct vm_area_struct *a, struct vm_area_struct *b)
+ {
+ 	if (anon_vma_compatible(a, b)) {
+-		struct anon_vma *anon_vma = ACCESS_ONCE(old->anon_vma);
++		struct anon_vma *anon_vma = READ_ONCE(old->anon_vma);
+ 
+ 		if (anon_vma && list_is_singular(&old->anon_vma_chain))
+ 			return anon_vma;
+@@ -2100,7 +2100,7 @@ static int acct_stack_growth(struct vm_a
+ 	actual_size = size;
+ 	if (size && (vma->vm_flags & (VM_GROWSUP | VM_GROWSDOWN)))
+ 		actual_size -= PAGE_SIZE;
+-	if (actual_size > ACCESS_ONCE(rlim[RLIMIT_STACK].rlim_cur))
++	if (actual_size > READ_ONCE(rlim[RLIMIT_STACK].rlim_cur))
+ 		return -ENOMEM;
+ 
+ 	/* mlock limit tests */
+@@ -2108,7 +2108,7 @@ static int acct_stack_growth(struct vm_a
+ 		unsigned long locked;
+ 		unsigned long limit;
+ 		locked = mm->locked_vm + grow;
+-		limit = ACCESS_ONCE(rlim[RLIMIT_MEMLOCK].rlim_cur);
++		limit = READ_ONCE(rlim[RLIMIT_MEMLOCK].rlim_cur);
+ 		limit >>= PAGE_SHIFT;
+ 		if (locked > limit && !capable(CAP_IPC_LOCK))
+ 			return -ENOMEM;
+diff -puN mm/page_alloc.c~mm-remove-rest-of-access_once-usages mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-remove-rest-of-access_once-usages
++++ a/mm/page_alloc.c
+@@ -1371,7 +1371,7 @@ void drain_zone_pages(struct zone *zone,
+ 	int to_drain, batch;
+ 
+ 	local_irq_save(flags);
+-	batch = ACCESS_ONCE(pcp->batch);
++	batch = READ_ONCE(pcp->batch);
+ 	to_drain = min(pcp->count, batch);
+ 	if (to_drain > 0) {
+ 		free_pcppages_bulk(zone, to_drain, pcp);
+@@ -1570,7 +1570,7 @@ void free_hot_cold_page(struct page *pag
+ 		list_add_tail(&page->lru, &pcp->lists[migratetype]);
+ 	pcp->count++;
+ 	if (pcp->count >= pcp->high) {
+-		unsigned long batch = ACCESS_ONCE(pcp->batch);
++		unsigned long batch = READ_ONCE(pcp->batch);
+ 		free_pcppages_bulk(zone, batch, pcp);
+ 		pcp->count -= batch;
+ 	}
+@@ -6207,7 +6207,7 @@ void set_pfnblock_flags_mask(struct page
+ 	mask <<= (BITS_PER_LONG - bitidx - 1);
+ 	flags <<= (BITS_PER_LONG - bitidx - 1);
+ 
+-	word = ACCESS_ONCE(bitmap[word_bitidx]);
++	word = READ_ONCE(bitmap[word_bitidx]);
+ 	for (;;) {
+ 		old_word = cmpxchg(&bitmap[word_bitidx], word, (word & ~mask) | flags);
+ 		if (word == old_word)
+diff -puN mm/rmap.c~mm-remove-rest-of-access_once-usages mm/rmap.c
+--- a/mm/rmap.c~mm-remove-rest-of-access_once-usages
++++ a/mm/rmap.c
+@@ -456,7 +456,7 @@ struct anon_vma *page_get_anon_vma(struc
+ 	unsigned long anon_mapping;
+ 
  	rcu_read_lock();
-@@ -1005,7 +1008,10 @@ static void vb_free(const void *addr, un
- 	vunmap_page_range((unsigned long)addr, (unsigned long)addr + size);
+-	anon_mapping = (unsigned long) ACCESS_ONCE(page->mapping);
++	anon_mapping = (unsigned long)READ_ONCE(page->mapping);
+ 	if ((anon_mapping & PAGE_MAPPING_FLAGS) != PAGE_MAPPING_ANON)
+ 		goto out;
+ 	if (!page_mapped(page))
+@@ -500,14 +500,14 @@ struct anon_vma *page_lock_anon_vma_read
+ 	unsigned long anon_mapping;
  
- 	spin_lock(&vb->lock);
--	BUG_ON(bitmap_allocate_region(vb->dirty_map, offset >> PAGE_SHIFT, order));
-+
-+	/* Expand dirty range */
-+	vb->dirty_min = min(vb->dirty_min, offset);
-+	vb->dirty_max = max(vb->dirty_max, offset + (1UL << order));
+ 	rcu_read_lock();
+-	anon_mapping = (unsigned long) ACCESS_ONCE(page->mapping);
++	anon_mapping = (unsigned long)READ_ONCE(page->mapping);
+ 	if ((anon_mapping & PAGE_MAPPING_FLAGS) != PAGE_MAPPING_ANON)
+ 		goto out;
+ 	if (!page_mapped(page))
+ 		goto out;
  
- 	vb->dirty += 1UL << order;
- 	if (vb->dirty == VMAP_BBMAP_BITS) {
-@@ -1044,25 +1050,18 @@ void vm_unmap_aliases(void)
+ 	anon_vma = (struct anon_vma *) (anon_mapping - PAGE_MAPPING_ANON);
+-	root_anon_vma = ACCESS_ONCE(anon_vma->root);
++	root_anon_vma = READ_ONCE(anon_vma->root);
+ 	if (down_read_trylock(&root_anon_vma->rwsem)) {
+ 		/*
+ 		 * If the page is still mapped, then this anon_vma is still
+diff -puN mm/slub.c~mm-remove-rest-of-access_once-usages mm/slub.c
+--- a/mm/slub.c~mm-remove-rest-of-access_once-usages
++++ a/mm/slub.c
+@@ -4277,7 +4277,7 @@ static ssize_t show_slab_objects(struct
+ 			int node;
+ 			struct page *page;
  
- 		rcu_read_lock();
- 		list_for_each_entry_rcu(vb, &vbq->free, free_list) {
--			int i, j;
--
- 			spin_lock(&vb->lock);
--			i = find_first_bit(vb->dirty_map, VMAP_BBMAP_BITS);
--			if (i < VMAP_BBMAP_BITS) {
-+			if (vb->dirty) {
-+				unsigned long va_start = vb->va->va_start;
- 				unsigned long s, e;
+-			page = ACCESS_ONCE(c->page);
++			page = READ_ONCE(c->page);
+ 			if (!page)
+ 				continue;
  
--				j = find_last_bit(vb->dirty_map,
--							VMAP_BBMAP_BITS);
--				j = j + 1; /* need exclusive index */
-+				s = va_start + (vb->dirty_min << PAGE_SHIFT);
-+				e = va_start + (vb->dirty_max << PAGE_SHIFT);
+@@ -4292,7 +4292,7 @@ static ssize_t show_slab_objects(struct
+ 			total += x;
+ 			nodes[node] += x;
  
--				s = vb->va->va_start + (i << PAGE_SHIFT);
--				e = vb->va->va_start + (j << PAGE_SHIFT);
--				flush = 1;
-+				start = min(s, start);
-+				end   = max(e, end);
+-			page = ACCESS_ONCE(c->partial);
++			page = READ_ONCE(c->partial);
+ 			if (page) {
+ 				node = page_to_nid(page);
+ 				if (flags & SO_TOTAL)
+diff -puN mm/swap_state.c~mm-remove-rest-of-access_once-usages mm/swap_state.c
+--- a/mm/swap_state.c~mm-remove-rest-of-access_once-usages
++++ a/mm/swap_state.c
+@@ -390,7 +390,7 @@ static unsigned long swapin_nr_pages(uns
+ 	unsigned int pages, max_pages, last_ra;
+ 	static atomic_t last_readahead_pages;
  
--				if (s < start)
--					start = s;
--				if (e > end)
--					end = e;
-+				flush = 1;
- 			}
- 			spin_unlock(&vb->lock);
+-	max_pages = 1 << ACCESS_ONCE(page_cluster);
++	max_pages = 1 << READ_ONCE(page_cluster);
+ 	if (max_pages <= 1)
+ 		return 1;
+ 
+diff -puN mm/swapfile.c~mm-remove-rest-of-access_once-usages mm/swapfile.c
+--- a/mm/swapfile.c~mm-remove-rest-of-access_once-usages
++++ a/mm/swapfile.c
+@@ -1312,7 +1312,7 @@ static unsigned int find_next_to_unuse(s
+ 			else
+ 				continue;
  		}
+-		count = ACCESS_ONCE(si->swap_map[i]);
++		count = READ_ONCE(si->swap_map[i]);
+ 		if (count && swap_count(count) != SWAP_MAP_BAD)
+ 			break;
+ 	}
 _
 
-Patches currently in -mm which might be from r.peniaev@gmail.com are
+Patches currently in -mm which might be from jason.low2@hp.com are
 
 origin.patch
-fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
 
