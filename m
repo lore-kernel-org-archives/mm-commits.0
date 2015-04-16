@@ -1,77 +1,151 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-credits-remove-stefano-brivio-from-b43.patch removed from -mm tree
-Date: Thu, 16 Apr 2015 09:55:07 -0700
-Message-ID: <552fe96b.sjGq7yfrOsDUoKGb%akpm@linux-foundation.org>
+Subject: [merged] rtc-remove-use-of-seq_printf-return-value.patch removed
+ from -mm tree
+Date: Thu, 16 Apr 2015 09:55:16 -0700
+Message-ID: <552fe974.JTG0N7GeOAuuN8u+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43156 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43174 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753820AbbDPQti (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:49:38 -0400
+	with ESMTP id S1754023AbbDPQtr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:49:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: CREDITS: remove Stefano Brivio from B43
+     Subject: rtc: remove use of seq_printf return value
 has been removed from the -mm tree.  Its filename was
-     maintainers-credits-remove-stefano-brivio-from-b43.patch
+     rtc-remove-use-of-seq_printf-return-value.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: CREDITS: remove Stefano Brivio from B43
+Subject: rtc: remove use of seq_printf return value
 
-This email address isn't working anymore
+The seq_printf return value, because it's frequently misused,
+will eventually be converted to void.
+
+See: commit 1f33c41c03da ("seq_file: Rename seq_overflow() to
+     seq_has_overflowed() and make public")
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- CREDITS     |    4 ++++
- MAINTAINERS |    4 +---
- 2 files changed, 5 insertions(+), 3 deletions(-)
+ drivers/rtc/rtc-cmos.c   |   36 +++++++++++++++++++-----------------
+ drivers/rtc/rtc-ds1305.c |    6 +++---
+ drivers/rtc/rtc-mrst.c   |   16 +++++++++-------
+ drivers/rtc/rtc-tegra.c  |    4 +++-
+ 4 files changed, 34 insertions(+), 28 deletions(-)
 
-diff -puN CREDITS~maintainers-credits-remove-stefano-brivio-from-b43 CREDITS
---- a/CREDITS~maintainers-credits-remove-stefano-brivio-from-b43
-+++ a/CREDITS
-@@ -508,6 +508,10 @@ E: paul@paulbristow.net
- W: http://paulbristow.net/linux/idefloppy.html
- D: Maintainer of IDE/ATAPI floppy driver
- 
-+N: Stefano Brivio
-+E: stefano.brivio@polimi.it
-+D: Broadcom B43 driver
+diff -puN drivers/rtc/rtc-cmos.c~rtc-remove-use-of-seq_printf-return-value drivers/rtc/rtc-cmos.c
+--- a/drivers/rtc/rtc-cmos.c~rtc-remove-use-of-seq_printf-return-value
++++ a/drivers/rtc/rtc-cmos.c
+@@ -459,23 +459,25 @@ static int cmos_procfs(struct device *de
+ 	/* NOTE:  at least ICH6 reports battery status using a different
+ 	 * (non-RTC) bit; and SQWE is ignored on many current systems.
+ 	 */
+-	return seq_printf(seq,
+-			"periodic_IRQ\t: %s\n"
+-			"update_IRQ\t: %s\n"
+-			"HPET_emulated\t: %s\n"
+-			// "square_wave\t: %s\n"
+-			"BCD\t\t: %s\n"
+-			"DST_enable\t: %s\n"
+-			"periodic_freq\t: %d\n"
+-			"batt_status\t: %s\n",
+-			(rtc_control & RTC_PIE) ? "yes" : "no",
+-			(rtc_control & RTC_UIE) ? "yes" : "no",
+-			is_hpet_enabled() ? "yes" : "no",
+-			// (rtc_control & RTC_SQWE) ? "yes" : "no",
+-			(rtc_control & RTC_DM_BINARY) ? "no" : "yes",
+-			(rtc_control & RTC_DST_EN) ? "yes" : "no",
+-			cmos->rtc->irq_freq,
+-			(valid & RTC_VRT) ? "okay" : "dead");
++	seq_printf(seq,
++		   "periodic_IRQ\t: %s\n"
++		   "update_IRQ\t: %s\n"
++		   "HPET_emulated\t: %s\n"
++		   // "square_wave\t: %s\n"
++		   "BCD\t\t: %s\n"
++		   "DST_enable\t: %s\n"
++		   "periodic_freq\t: %d\n"
++		   "batt_status\t: %s\n",
++		   (rtc_control & RTC_PIE) ? "yes" : "no",
++		   (rtc_control & RTC_UIE) ? "yes" : "no",
++		   is_hpet_enabled() ? "yes" : "no",
++		   // (rtc_control & RTC_SQWE) ? "yes" : "no",
++		   (rtc_control & RTC_DM_BINARY) ? "no" : "yes",
++		   (rtc_control & RTC_DST_EN) ? "yes" : "no",
++		   cmos->rtc->irq_freq,
++		   (valid & RTC_VRT) ? "okay" : "dead");
 +
- N: Dominik Brodowski
- E: linux@brodo.de
- W: http://www.brodo.de/
-diff -puN MAINTAINERS~maintainers-credits-remove-stefano-brivio-from-b43 MAINTAINERS
---- a/MAINTAINERS~maintainers-credits-remove-stefano-brivio-from-b43
-+++ a/MAINTAINERS
-@@ -1915,16 +1915,14 @@ S:	Maintained
- F:	drivers/media/radio/radio-aztech*
++	return 0;
+ }
  
- B43 WIRELESS DRIVER
--M:	Stefano Brivio <stefano.brivio@polimi.it>
- L:	linux-wireless@vger.kernel.org
- L:	b43-dev@lists.infradead.org
- W:	http://wireless.kernel.org/en/users/Drivers/b43
--S:	Maintained
-+S:	Odd Fixes
- F:	drivers/net/wireless/b43/
+ #else
+diff -puN drivers/rtc/rtc-ds1305.c~rtc-remove-use-of-seq_printf-return-value drivers/rtc/rtc-ds1305.c
+--- a/drivers/rtc/rtc-ds1305.c~rtc-remove-use-of-seq_printf-return-value
++++ a/drivers/rtc/rtc-ds1305.c
+@@ -434,9 +434,9 @@ static int ds1305_proc(struct device *de
+ 	}
  
- B43LEGACY WIRELESS DRIVER
- M:	Larry Finger <Larry.Finger@lwfinger.net>
--M:	Stefano Brivio <stefano.brivio@polimi.it>
- L:	linux-wireless@vger.kernel.org
- L:	b43-dev@lists.infradead.org
- W:	http://wireless.kernel.org/en/users/Drivers/b43
+ done:
+-	return seq_printf(seq,
+-			"trickle_charge\t: %s%s\n",
+-			diodes, resistors);
++	seq_printf(seq, "trickle_charge\t: %s%s\n", diodes, resistors);
++
++	return 0;
+ }
+ 
+ #else
+diff -puN drivers/rtc/rtc-mrst.c~rtc-remove-use-of-seq_printf-return-value drivers/rtc/rtc-mrst.c
+--- a/drivers/rtc/rtc-mrst.c~rtc-remove-use-of-seq_printf-return-value
++++ a/drivers/rtc/rtc-mrst.c
+@@ -277,13 +277,15 @@ static int mrst_procfs(struct device *de
+ 	valid = vrtc_cmos_read(RTC_VALID);
+ 	spin_unlock_irq(&rtc_lock);
+ 
+-	return seq_printf(seq,
+-			"periodic_IRQ\t: %s\n"
+-			"alarm\t\t: %s\n"
+-			"BCD\t\t: no\n"
+-			"periodic_freq\t: daily (not adjustable)\n",
+-			(rtc_control & RTC_PIE) ? "on" : "off",
+-			(rtc_control & RTC_AIE) ? "on" : "off");
++	seq_printf(seq,
++		   "periodic_IRQ\t: %s\n"
++		   "alarm\t\t: %s\n"
++		   "BCD\t\t: no\n"
++		   "periodic_freq\t: daily (not adjustable)\n",
++		   (rtc_control & RTC_PIE) ? "on" : "off",
++		   (rtc_control & RTC_AIE) ? "on" : "off");
++
++	return 0;
+ }
+ 
+ #else
+diff -puN drivers/rtc/rtc-tegra.c~rtc-remove-use-of-seq_printf-return-value drivers/rtc/rtc-tegra.c
+--- a/drivers/rtc/rtc-tegra.c~rtc-remove-use-of-seq_printf-return-value
++++ a/drivers/rtc/rtc-tegra.c
+@@ -261,7 +261,9 @@ static int tegra_rtc_proc(struct device
+ 	if (!dev || !dev->driver)
+ 		return 0;
+ 
+-	return seq_printf(seq, "name\t\t: %s\n", dev_name(dev));
++	seq_printf(seq, "name\t\t: %s\n", dev_name(dev));
++
++	return 0;
+ }
+ 
+ static irqreturn_t tegra_rtc_irq_handler(int irq, void *data)
 _
 
 Patches currently in -mm which might be from joe@perches.com are
