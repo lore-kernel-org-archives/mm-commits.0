@@ -1,96 +1,172 @@
 From: akpm@linux-foundation.org
-Subject: [merged] clean-up-goto-just-return-err_ptr.patch removed from -mm tree
-Date: Thu, 16 Apr 2015 09:52:06 -0700
-Message-ID: <552fe8b6.QZDEsIg7EQrcyB83%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-vmalloc-get-rid-of-dirty-bitmap-inside-vmap_block-structure.patch
+ removed from -mm tree
+Date: Thu, 16 Apr 2015 09:52:01 -0700
+Message-ID: <552fe8b1.j+D97lVt/CEseVN6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42713 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42707 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753806AbbDPQqh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:46:37 -0400
+	with ESMTP id S1753796AbbDPQqc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:46:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: denc716@gmail.com, crquan@ymail.com, kirill@shutemov.name, rientjes@google.com, mm-commits@vger.kernel.org
+To: r.peniaev@gmail.com, chaowang@redhat.com, cl@linux.com, edumazet@google.com, fabf@skynet.be, gioh.kim@lge.com, iamjoonsoo.kim@lge.com, rientjes@google.com, rob.jones@codethink.co.uk, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mremap.c: clean up goto just return ERR_PTR
+     Subject: mm/vmalloc: get rid of dirty bitmap inside vmap_block structure
 has been removed from the -mm tree.  Its filename was
-     clean-up-goto-just-return-err_ptr.patch
+     mm-vmalloc-get-rid-of-dirty-bitmap-inside-vmap_block-structure.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Derek <denc716@gmail.com>
-Subject: mm/mremap.c: clean up goto just return ERR_PTR
+From: Roman Pen <r.peniaev@gmail.com>
+Subject: mm/vmalloc: get rid of dirty bitmap inside vmap_block structure
 
-As suggested by Kirill the "goto"s in vma_to_resize aren't necessary, just
-change them to explicit return.
+In original implementation of vm_map_ram made by Nick Piggin there were
+two bitmaps: alloc_map and dirty_map.  None of them were used as supposed
+to be: finding a suitable free hole for next allocation in block. 
+vm_map_ram allocates space sequentially in block and on free call marks
+pages as dirty, so freed space can't be reused anymore.
 
-Signed-off-by: Derek Che <crquan@ymail.com>
-Suggested-by: "Kirill A. Shutemov" <kirill@shutemov.name>
-Acked-by: David Rientjes <rientjes@google.com>
+Actually it would be very interesting to know the real meaning of those
+bitmaps, maybe implementation was incomplete, etc.
+
+But long time ago Zhang Yanfei removed alloc_map by these two commits:
+
+  mm/vmalloc.c: remove dead code in vb_alloc
+     3fcd76e8028e0be37b02a2002b4f56755daeda06
+  mm/vmalloc.c: remove alloc_map from vmap_block
+     b8e748b6c32999f221ea4786557b8e7e6c4e4e7a
+
+In this patch I replaced dirty_map with two range variables: dirty min and
+max.  These variables store minimum and maximum position of dirty space in
+a block, since we need only to know the dirty range, not exact position of
+dirty pages.
+
+Why it was made?  Several reasons: at first glance it seems that
+vm_map_ram allocator concerns about fragmentation thus it uses bitmaps for
+finding free hole, but it is not true.  To avoid complexity seems it is
+better to use something simple, like min or max range values.  Secondly,
+code also becomes simpler, without iteration over bitmap, just comparing
+values in min and max macros.  Thirdly, bitmap occupies up to 1024 bits
+(4MB is a max size of a block).  Here I replaced the whole bitmap with two
+longs.
+
+Finally vm_unmap_aliases should be slightly faster and the whole
+vmap_block structure occupies less memory.
+
+Signed-off-by: Roman Pen <r.peniaev@gmail.com>
+Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Cc: Eric Dumazet <edumazet@google.com>
+Acked-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: WANG Chao <chaowang@redhat.com>
+Cc: Fabian Frederick <fabf@skynet.be>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Gioh Kim <gioh.kim@lge.com>
+Cc: Rob Jones <rob.jones@codethink.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mremap.c |   25 ++++++++-----------------
- 1 file changed, 8 insertions(+), 17 deletions(-)
+ mm/vmalloc.c |   35 +++++++++++++++++------------------
+ 1 file changed, 17 insertions(+), 18 deletions(-)
 
-diff -puN mm/mremap.c~clean-up-goto-just-return-err_ptr mm/mremap.c
---- a/mm/mremap.c~clean-up-goto-just-return-err_ptr
-+++ a/mm/mremap.c
-@@ -345,25 +345,25 @@ static struct vm_area_struct *vma_to_res
- 	struct vm_area_struct *vma = find_vma(mm, addr);
+diff -puN mm/vmalloc.c~mm-vmalloc-get-rid-of-dirty-bitmap-inside-vmap_block-structure mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmalloc-get-rid-of-dirty-bitmap-inside-vmap_block-structure
++++ a/mm/vmalloc.c
+@@ -765,7 +765,7 @@ struct vmap_block {
+ 	spinlock_t lock;
+ 	struct vmap_area *va;
+ 	unsigned long free, dirty;
+-	DECLARE_BITMAP(dirty_map, VMAP_BBMAP_BITS);
++	unsigned long dirty_min, dirty_max; /*< dirty range */
+ 	struct list_head free_list;
+ 	struct rcu_head rcu_head;
+ 	struct list_head purge;
+@@ -851,7 +851,8 @@ static void *new_vmap_block(unsigned int
+ 	BUG_ON(VMAP_BBMAP_BITS <= (1UL << order));
+ 	vb->free = VMAP_BBMAP_BITS - (1UL << order);
+ 	vb->dirty = 0;
+-	bitmap_zero(vb->dirty_map, VMAP_BBMAP_BITS);
++	vb->dirty_min = VMAP_BBMAP_BITS;
++	vb->dirty_max = 0;
+ 	INIT_LIST_HEAD(&vb->free_list);
  
- 	if (!vma || vma->vm_start > addr)
--		goto Efault;
-+		return ERR_PTR(-EFAULT);
+ 	vb_idx = addr_to_vb_idx(va->va_start);
+@@ -902,7 +903,8 @@ static void purge_fragmented_blocks(int
+ 		if (vb->free + vb->dirty == VMAP_BBMAP_BITS && vb->dirty != VMAP_BBMAP_BITS) {
+ 			vb->free = 0; /* prevent further allocs after releasing lock */
+ 			vb->dirty = VMAP_BBMAP_BITS; /* prevent purging it again */
+-			bitmap_fill(vb->dirty_map, VMAP_BBMAP_BITS);
++			vb->dirty_min = 0;
++			vb->dirty_max = VMAP_BBMAP_BITS;
+ 			spin_lock(&vbq->lock);
+ 			list_del_rcu(&vb->free_list);
+ 			spin_unlock(&vbq->lock);
+@@ -995,6 +997,7 @@ static void vb_free(const void *addr, un
+ 	order = get_order(size);
  
- 	if (is_vm_hugetlb_page(vma))
--		goto Einval;
-+		return ERR_PTR(-EINVAL);
+ 	offset = (unsigned long)addr & (VMAP_BLOCK_SIZE - 1);
++	offset >>= PAGE_SHIFT;
  
- 	/* We can't remap across vm area boundaries */
- 	if (old_len > vma->vm_end - addr)
--		goto Efault;
-+		return ERR_PTR(-EFAULT);
+ 	vb_idx = addr_to_vb_idx((unsigned long)addr);
+ 	rcu_read_lock();
+@@ -1005,7 +1008,10 @@ static void vb_free(const void *addr, un
+ 	vunmap_page_range((unsigned long)addr, (unsigned long)addr + size);
  
- 	/* Need to be careful about a growing mapping */
- 	if (new_len > old_len) {
- 		unsigned long pgoff;
+ 	spin_lock(&vb->lock);
+-	BUG_ON(bitmap_allocate_region(vb->dirty_map, offset >> PAGE_SHIFT, order));
++
++	/* Expand dirty range */
++	vb->dirty_min = min(vb->dirty_min, offset);
++	vb->dirty_max = max(vb->dirty_max, offset + (1UL << order));
  
- 		if (vma->vm_flags & (VM_DONTEXPAND | VM_PFNMAP))
--			goto Efault;
-+			return ERR_PTR(-EFAULT);
- 		pgoff = (addr - vma->vm_start) >> PAGE_SHIFT;
- 		pgoff += vma->vm_pgoff;
- 		if (pgoff + (new_len >> PAGE_SHIFT) < pgoff)
--			goto Einval;
-+			return ERR_PTR(-EINVAL);
- 	}
+ 	vb->dirty += 1UL << order;
+ 	if (vb->dirty == VMAP_BBMAP_BITS) {
+@@ -1044,25 +1050,18 @@ void vm_unmap_aliases(void)
  
- 	if (vma->vm_flags & VM_LOCKED) {
-@@ -372,29 +372,20 @@ static struct vm_area_struct *vma_to_res
- 		lock_limit = rlimit(RLIMIT_MEMLOCK);
- 		locked += new_len - old_len;
- 		if (locked > lock_limit && !capable(CAP_IPC_LOCK))
--			goto Eagain;
-+			return ERR_PTR(-EAGAIN);
- 	}
+ 		rcu_read_lock();
+ 		list_for_each_entry_rcu(vb, &vbq->free, free_list) {
+-			int i, j;
+-
+ 			spin_lock(&vb->lock);
+-			i = find_first_bit(vb->dirty_map, VMAP_BBMAP_BITS);
+-			if (i < VMAP_BBMAP_BITS) {
++			if (vb->dirty) {
++				unsigned long va_start = vb->va->va_start;
+ 				unsigned long s, e;
  
- 	if (!may_expand_vm(mm, (new_len - old_len) >> PAGE_SHIFT))
--		goto Enomem;
-+		return ERR_PTR(-ENOMEM);
+-				j = find_last_bit(vb->dirty_map,
+-							VMAP_BBMAP_BITS);
+-				j = j + 1; /* need exclusive index */
++				s = va_start + (vb->dirty_min << PAGE_SHIFT);
++				e = va_start + (vb->dirty_max << PAGE_SHIFT);
  
- 	if (vma->vm_flags & VM_ACCOUNT) {
- 		unsigned long charged = (new_len - old_len) >> PAGE_SHIFT;
- 		if (security_vm_enough_memory_mm(mm, charged))
--			goto Enomem;
-+			return ERR_PTR(-ENOMEM);
- 		*p = charged;
- 	}
+-				s = vb->va->va_start + (i << PAGE_SHIFT);
+-				e = vb->va->va_start + (j << PAGE_SHIFT);
+-				flush = 1;
++				start = min(s, start);
++				end   = max(e, end);
  
- 	return vma;
+-				if (s < start)
+-					start = s;
+-				if (e > end)
+-					end = e;
++				flush = 1;
+ 			}
+ 			spin_unlock(&vb->lock);
+ 		}
+_
+
+Patches currently in -mm which might be from r.peniaev@gmail.com are
+
+origin.patch
+fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
+
