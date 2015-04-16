@@ -1,75 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] proc-show-locks-in-proc-pid-fdinfo-x-v2.patch
- removed from -mm tree
-Date: Thu, 16 Apr 2015 12:17:05 -0700
-Message-ID: <55300ab1.NNZQlO9fwOxK+BGq%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ oprofile-reduce-mmap_sem-hold-for-mm-exe_file-fix.patch removed from -mm
+ tree
+Date: Thu, 16 Apr 2015 12:17:47 -0700
+Message-ID: <55300adb.pIXexzFEr2AV0E2T%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45563 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45571 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751896AbbDPTRG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 15:17:06 -0400
+	with ESMTP id S1750832AbbDPTRr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 15:17:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avagin@openvz.org, bfields@fieldses.org, corbet@lwn.net, gorcunov@openvz.org, jlayton@poochiereds.net, joe@perches.com, viro@zeniv.linux.org.uk, xemul@parallels.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dave@stgolabs.net, dbueso@suse.de, rric@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc-show-locks-in-proc-pid-fdinfo-x-v2
+     Subject: oprofile-reduce-mmap_sem-hold-for-mm-exe_file-fix
 has been removed from the -mm tree.  Its filename was
-     proc-show-locks-in-proc-pid-fdinfo-x-v2.patch
+     oprofile-reduce-mmap_sem-hold-for-mm-exe_file-fix.patch
 
-This patch was dropped because it was folded into proc-show-locks-in-proc-pid-fdinfo-x.patch
+This patch was dropped because it was folded into oprofile-reduce-mmap_sem-hold-for-mm-exe_file.patch
 
 ------------------------------------------------------
-From: Andrey Vagin <avagin@openvz.org>
-Subject: proc-show-locks-in-proc-pid-fdinfo-x-v2
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: oprofile-reduce-mmap_sem-hold-for-mm-exe_file-fix
 
-use seq_has_overflowed() properly
+export get_mm_exe_file for arch/x86/oprofile/oprofile.ko
 
-Signed-off-by: Andrey Vagin <avagin@openvz.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Jeff Layton <jlayton@poochiereds.net>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Pavel Emelyanov <xemul@parallels.com>
-Cc: Joe Perches <joe@perches.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Davidlohr Bueso <dbueso@suse.de>
+Cc: Robert Richter <rric@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/fd.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ kernel/fork.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/proc/fd.c~proc-show-locks-in-proc-pid-fdinfo-x-v2 fs/proc/fd.c
---- a/fs/proc/fd.c~proc-show-locks-in-proc-pid-fdinfo-x-v2
-+++ a/fs/proc/fd.c
-@@ -57,17 +57,15 @@ static int seq_show(struct seq_file *m,
- 		   real_mount(file->f_path.mnt)->mnt_id);
- 
- 	show_fd_locks(m, file, files);
--	ret = seq_has_overflowed(m);
--	if (ret)
-+	if (seq_has_overflowed(m))
- 		goto out;
- 
- 	if (file->f_op->show_fdinfo)
- 		file->f_op->show_fdinfo(m, file);
--	ret = seq_has_overflowed(m);
- 
- out:
- 	fput(file);
--	return ret;
-+	return 0;
+diff -puN kernel/fork.c~oprofile-reduce-mmap_sem-hold-for-mm-exe_file-fix kernel/fork.c
+--- a/kernel/fork.c~oprofile-reduce-mmap_sem-hold-for-mm-exe_file-fix
++++ a/kernel/fork.c
+@@ -752,6 +752,7 @@ struct file *get_mm_exe_file(struct mm_s
+ 	rcu_read_unlock();
+ 	return exe_file;
  }
++EXPORT_SYMBOL(get_mm_exe_file);
  
- static int seq_fdinfo_open(struct inode *inode, struct file *file)
+ /**
+  * get_task_mm - acquire a reference to the task's mm
 _
 
-Patches currently in -mm which might be from avagin@openvz.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-proc-show-locks-in-proc-pid-fdinfo-x.patch
+origin.patch
+lib-find__bit-reimplementation.patch
+checkpatch-match-more-world-writable-permissions.patch
+binfmt_misc-simplify-entry_status.patch
+rtc-driver-for-conexant-digicolor-cx92755-on-chip-rtc.patch
+fs-fat-remove-unnecessary-includes.patch
+kernel-forkc-avoid-division-by-zero.patch
+doc-sysctl-kerneltxt-document-threads-max.patch
+mm-rcu-protected-get_mm_exe_file.patch
+affs-kstrdup-memory-handling.patch
+kconfig-use-macros-which-are-already-defined.patch
+lib-kconfig-fix-up-have_arch_bitreverse-help-text.patch
+oprofile-reduce-mmap_sem-hold-for-mm-exe_file.patch
+tomoyo-reduce-mmap_sem-hold-for-mm-exe_file.patch
+documentation-spi-spidev_testc-fix-warning.patch
 
