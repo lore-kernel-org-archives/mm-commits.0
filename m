@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ipc-remove-use-of-seq_printf-return-value.patch removed
- from -mm tree
-Date: Thu, 16 Apr 2015 09:55:18 -0700
-Message-ID: <552fe976.c66UK2kMYbb5/Rjn%akpm@linux-foundation.org>
+Subject: [merged] s390-remove-use-of-seq_printf-return-value.patch removed from -mm tree
+Date: Thu, 16 Apr 2015 09:55:32 -0700
+Message-ID: <552fe984.XP4Im4ku9Yb4i3l4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43176 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43198 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754013AbbDPQtt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:49:49 -0400
+	with ESMTP id S1750753AbbDPQuD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:50:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: joe@perches.com, gerald.schaefer@de.ibm.com, heiko.carstens@de.ibm.com, oberpar@linux.vnet.ibm.com, schwidefsky@de.ibm.com, sebott@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc: remove use of seq_printf return value
+     Subject: s390: remove use of seq_printf return value
 has been removed from the -mm tree.  Its filename was
-     ipc-remove-use-of-seq_printf-return-value.patch
+     s390-remove-use-of-seq_printf-return-value.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: ipc: remove use of seq_printf return value
+Subject: s390: remove use of seq_printf return value
 
 The seq_printf return value, because it's frequently misused,
 will eventually be converted to void.
@@ -35,160 +34,62 @@ See: commit 1f33c41c03da ("seq_file: Rename seq_overflow() to
      seq_has_overflowed() and make public")
 
 Signed-off-by: Joe Perches <joe@perches.com>
+Acked-by: Sebastian Ott <sebott@linux.vnet.ibm.com>
+Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Cc: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msg.c  |   34 ++++++++++++++++++----------------
- ipc/sem.c  |   26 ++++++++++++++------------
- ipc/shm.c  |   42 ++++++++++++++++++++++--------------------
- ipc/util.c |    6 ++++--
- 4 files changed, 58 insertions(+), 50 deletions(-)
+ arch/s390/pci/pci_debug.c    |    6 ++++--
+ drivers/s390/cio/blacklist.c |   12 +++++++-----
+ 2 files changed, 11 insertions(+), 7 deletions(-)
 
-diff -puN ipc/msg.c~ipc-remove-use-of-seq_printf-return-value ipc/msg.c
---- a/ipc/msg.c~ipc-remove-use-of-seq_printf-return-value
-+++ a/ipc/msg.c
-@@ -1015,22 +1015,24 @@ static int sysvipc_msg_proc_show(struct
- 	struct user_namespace *user_ns = seq_user_ns(s);
- 	struct msg_queue *msq = it;
+diff -puN arch/s390/pci/pci_debug.c~s390-remove-use-of-seq_printf-return-value arch/s390/pci/pci_debug.c
+--- a/arch/s390/pci/pci_debug.c~s390-remove-use-of-seq_printf-return-value
++++ a/arch/s390/pci/pci_debug.c
+@@ -45,8 +45,10 @@ static int pci_perf_show(struct seq_file
  
--	return seq_printf(s,
--			"%10d %10d  %4o  %10lu %10lu %5u %5u %5u %5u %5u %5u %10lu %10lu %10lu\n",
--			msq->q_perm.key,
--			msq->q_perm.id,
--			msq->q_perm.mode,
--			msq->q_cbytes,
--			msq->q_qnum,
--			msq->q_lspid,
--			msq->q_lrpid,
--			from_kuid_munged(user_ns, msq->q_perm.uid),
--			from_kgid_munged(user_ns, msq->q_perm.gid),
--			from_kuid_munged(user_ns, msq->q_perm.cuid),
--			from_kgid_munged(user_ns, msq->q_perm.cgid),
--			msq->q_stime,
--			msq->q_rtime,
--			msq->q_ctime);
-+	seq_printf(s,
-+		   "%10d %10d  %4o  %10lu %10lu %5u %5u %5u %5u %5u %5u %10lu %10lu %10lu\n",
-+		   msq->q_perm.key,
-+		   msq->q_perm.id,
-+		   msq->q_perm.mode,
-+		   msq->q_cbytes,
-+		   msq->q_qnum,
-+		   msq->q_lspid,
-+		   msq->q_lrpid,
-+		   from_kuid_munged(user_ns, msq->q_perm.uid),
-+		   from_kgid_munged(user_ns, msq->q_perm.gid),
-+		   from_kuid_munged(user_ns, msq->q_perm.cuid),
-+		   from_kgid_munged(user_ns, msq->q_perm.cgid),
-+		   msq->q_stime,
-+		   msq->q_rtime,
-+		   msq->q_ctime);
-+
-+	return 0;
- }
- #endif
- 
-diff -puN ipc/sem.c~ipc-remove-use-of-seq_printf-return-value ipc/sem.c
---- a/ipc/sem.c~ipc-remove-use-of-seq_printf-return-value
-+++ a/ipc/sem.c
-@@ -2170,17 +2170,19 @@ static int sysvipc_sem_proc_show(struct
- 
- 	sem_otime = get_semotime(sma);
- 
--	return seq_printf(s,
--			  "%10d %10d  %4o %10u %5u %5u %5u %5u %10lu %10lu\n",
--			  sma->sem_perm.key,
--			  sma->sem_perm.id,
--			  sma->sem_perm.mode,
--			  sma->sem_nsems,
--			  from_kuid_munged(user_ns, sma->sem_perm.uid),
--			  from_kgid_munged(user_ns, sma->sem_perm.gid),
--			  from_kuid_munged(user_ns, sma->sem_perm.cuid),
--			  from_kgid_munged(user_ns, sma->sem_perm.cgid),
--			  sem_otime,
--			  sma->sem_ctime);
-+	seq_printf(s,
-+		   "%10d %10d  %4o %10u %5u %5u %5u %5u %10lu %10lu\n",
-+		   sma->sem_perm.key,
-+		   sma->sem_perm.id,
-+		   sma->sem_perm.mode,
-+		   sma->sem_nsems,
-+		   from_kuid_munged(user_ns, sma->sem_perm.uid),
-+		   from_kgid_munged(user_ns, sma->sem_perm.gid),
-+		   from_kuid_munged(user_ns, sma->sem_perm.cuid),
-+		   from_kgid_munged(user_ns, sma->sem_perm.cgid),
-+		   sem_otime,
-+		   sma->sem_ctime);
-+
-+	return 0;
- }
- #endif
-diff -puN ipc/shm.c~ipc-remove-use-of-seq_printf-return-value ipc/shm.c
---- a/ipc/shm.c~ipc-remove-use-of-seq_printf-return-value
-+++ a/ipc/shm.c
-@@ -1342,25 +1342,27 @@ static int sysvipc_shm_proc_show(struct
- #define SIZE_SPEC "%21lu"
- #endif
- 
--	return seq_printf(s,
--			  "%10d %10d  %4o " SIZE_SPEC " %5u %5u  "
--			  "%5lu %5u %5u %5u %5u %10lu %10lu %10lu "
--			  SIZE_SPEC " " SIZE_SPEC "\n",
--			  shp->shm_perm.key,
--			  shp->shm_perm.id,
--			  shp->shm_perm.mode,
--			  shp->shm_segsz,
--			  shp->shm_cprid,
--			  shp->shm_lprid,
--			  shp->shm_nattch,
--			  from_kuid_munged(user_ns, shp->shm_perm.uid),
--			  from_kgid_munged(user_ns, shp->shm_perm.gid),
--			  from_kuid_munged(user_ns, shp->shm_perm.cuid),
--			  from_kgid_munged(user_ns, shp->shm_perm.cgid),
--			  shp->shm_atim,
--			  shp->shm_dtim,
--			  shp->shm_ctim,
--			  rss * PAGE_SIZE,
--			  swp * PAGE_SIZE);
-+	seq_printf(s,
-+		   "%10d %10d  %4o " SIZE_SPEC " %5u %5u  "
-+		   "%5lu %5u %5u %5u %5u %10lu %10lu %10lu "
-+		   SIZE_SPEC " " SIZE_SPEC "\n",
-+		   shp->shm_perm.key,
-+		   shp->shm_perm.id,
-+		   shp->shm_perm.mode,
-+		   shp->shm_segsz,
-+		   shp->shm_cprid,
-+		   shp->shm_lprid,
-+		   shp->shm_nattch,
-+		   from_kuid_munged(user_ns, shp->shm_perm.uid),
-+		   from_kgid_munged(user_ns, shp->shm_perm.gid),
-+		   from_kuid_munged(user_ns, shp->shm_perm.cuid),
-+		   from_kgid_munged(user_ns, shp->shm_perm.cgid),
-+		   shp->shm_atim,
-+		   shp->shm_dtim,
-+		   shp->shm_ctim,
-+		   rss * PAGE_SIZE,
-+		   swp * PAGE_SIZE);
-+
-+	return 0;
- }
- #endif
-diff -puN ipc/util.c~ipc-remove-use-of-seq_printf-return-value ipc/util.c
---- a/ipc/util.c~ipc-remove-use-of-seq_printf-return-value
-+++ a/ipc/util.c
-@@ -837,8 +837,10 @@ static int sysvipc_proc_show(struct seq_
- 	struct ipc_proc_iter *iter = s->private;
- 	struct ipc_proc_iface *iface = iter->iface;
- 
--	if (it == SEQ_START_TOKEN)
--		return seq_puts(s, iface->header);
-+	if (it == SEQ_START_TOKEN) {
-+		seq_puts(s, iface->header);
+ 	if (!zdev)
+ 		return 0;
+-	if (!zdev->fmb)
+-		return seq_printf(m, "FMB statistics disabled\n");
++	if (!zdev->fmb) {
++		seq_puts(m, "FMB statistics disabled\n");
 +		return 0;
 +	}
  
- 	return iface->show(s, it);
+ 	/* header */
+ 	seq_printf(m, "FMB @ %p\n", zdev->fmb);
+diff -puN drivers/s390/cio/blacklist.c~s390-remove-use-of-seq_printf-return-value drivers/s390/cio/blacklist.c
+--- a/drivers/s390/cio/blacklist.c~s390-remove-use-of-seq_printf-return-value
++++ a/drivers/s390/cio/blacklist.c
+@@ -330,18 +330,20 @@ cio_ignore_proc_seq_show(struct seq_file
+ 	if (!iter->in_range) {
+ 		/* First device in range. */
+ 		if ((iter->devno == __MAX_SUBCHANNEL) ||
+-		    !is_blacklisted(iter->ssid, iter->devno + 1))
++		    !is_blacklisted(iter->ssid, iter->devno + 1)) {
+ 			/* Singular device. */
+-			return seq_printf(s, "0.%x.%04x\n",
+-					  iter->ssid, iter->devno);
++			seq_printf(s, "0.%x.%04x\n", iter->ssid, iter->devno);
++			return 0;
++		}
+ 		iter->in_range = 1;
+-		return seq_printf(s, "0.%x.%04x-", iter->ssid, iter->devno);
++		seq_printf(s, "0.%x.%04x-", iter->ssid, iter->devno);
++		return 0;
+ 	}
+ 	if ((iter->devno == __MAX_SUBCHANNEL) ||
+ 	    !is_blacklisted(iter->ssid, iter->devno + 1)) {
+ 		/* Last device in range. */
+ 		iter->in_range = 0;
+-		return seq_printf(s, "0.%x.%04x\n", iter->ssid, iter->devno);
++		seq_printf(s, "0.%x.%04x\n", iter->ssid, iter->devno);
+ 	}
+ 	return 0;
  }
 _
 
