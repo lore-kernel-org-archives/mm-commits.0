@@ -1,131 +1,180 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- dax-use-pfn_mkwrite-to-update-c-mtime-freeze-protection.patch removed from
- -mm tree
-Date: Thu, 16 Apr 2015 09:53:10 -0700
-Message-ID: <552fe8f6.1pJ6UG5j8bDJrVFC%akpm__24630.1421350383$1429202888$gmane$org@linux-foundation.org>
+Subject: [merged] zram-support-compaction.patch removed from -mm tree
+Date: Thu, 16 Apr 2015 09:53:30 -0700
+Message-ID: <552fe90a.3JotuPsKeuTGXZ8A%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42879 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42939 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751277AbbDPQrm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:47:42 -0400
+	with ESMTP id S1751277AbbDPQsC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:48:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: boaz@plexistor.com, david@fromorbit.com, hughd@google.com, jack@suse.cz, kirill.shutemov@linux.intel.com, matthew.r.wilcox@intel.com, mgorman@suse.de, stable@vger.kernel.org, yigal@plexistor.com, mm-commits@vger.kernel.org
+To: minchan@kernel.org, ddstreet@ieee.org, gunho.lee@lge.com, iamjoonsoo.kim@lge.com, jmarchan@redhat.com, juno.choi@lge.com, mel@csn.ul.ie, ngupta@vflare.org, semenzato@google.com, sergey.senozhatsky@gmail.com, sjennings@variantweb.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dax: use pfn_mkwrite to update c/mtime + freeze protection
+     Subject: zram: support compaction
 has been removed from the -mm tree.  Its filename was
-     dax-use-pfn_mkwrite-to-update-c-mtime-freeze-protection.patch
+     zram-support-compaction.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Boaz Harrosh <boaz@plexistor.com>
-Subject: dax: use pfn_mkwrite to update c/mtime + freeze protection
+From: Minchan Kim <minchan@kernel.org>
+Subject: zram: support compaction
 
-From: Yigal Korman <yigal@plexistor.com>
+Now that zsmalloc supports compaction, zram can use it.  For the first
+step, this patch exports compact knob via sysfs so user can do compaction
+via "echo 1 > /sys/block/zram0/compact".
 
-[v1]
-Without this patch, c/mtime is not updated correctly when mmap'ed page is
-first read from and then written to.
-
-A new xfstest is submitted for testing this (generic/080)
-
-[v2]
-Jan Kara has pointed out that if we add the
-sb_start/end_pagefault pair in the new pfn_mkwrite we
-are then fixing another bug where: A user could start
-writing to the page while filesystem is frozen.
-
-Signed-off-by: Yigal Korman <yigal@plexistor.com>
-Signed-off-by: Boaz Harrosh <boaz@plexistor.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Cc: Juneho Choi <juno.choi@lge.com>
+Cc: Gunho Lee <gunho.lee@lge.com>
+Cc: Luigi Semenzato <semenzato@google.com>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Seth Jennings <sjennings@variantweb.net>
+Cc: Nitin Gupta <ngupta@vflare.org>
+Cc: Jerome Marchand <jmarchan@redhat.com>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c           |   17 +++++++++++++++++
- fs/ext2/file.c     |    1 +
- fs/ext4/file.c     |    1 +
- include/linux/fs.h |    1 +
- 4 files changed, 20 insertions(+)
+ Documentation/ABI/testing/sysfs-block-zram |   15 +++++++++++
+ drivers/block/zram/zram_drv.c              |   25 +++++++++++++++++++
+ drivers/block/zram/zram_drv.h              |    1 
+ 3 files changed, 41 insertions(+)
 
-diff -puN fs/dax.c~dax-use-pfn_mkwrite-to-update-c-mtime-freeze-protection fs/dax.c
---- a/fs/dax.c~dax-use-pfn_mkwrite-to-update-c-mtime-freeze-protection
-+++ a/fs/dax.c
-@@ -464,6 +464,23 @@ int dax_fault(struct vm_area_struct *vma
- EXPORT_SYMBOL_GPL(dax_fault);
+diff -puN Documentation/ABI/testing/sysfs-block-zram~zram-support-compaction Documentation/ABI/testing/sysfs-block-zram
+--- a/Documentation/ABI/testing/sysfs-block-zram~zram-support-compaction
++++ a/Documentation/ABI/testing/sysfs-block-zram
+@@ -141,3 +141,18 @@ Description:
+ 		amount of memory ZRAM can use to store the compressed data.  The
+ 		limit could be changed in run time and "0" means disable the
+ 		limit.  No limit is the initial state.  Unit: bytes
++
++What:		/sys/block/zram<id>/compact
++Date:		August 2015
++Contact:	Minchan Kim <minchan@kernel.org>
++Description:
++		The compact file is write-only and trigger compaction for
++		allocator zrm uses. The allocator moves some objects so that
++		it could free fragment space.
++
++What:		/sys/block/zram<id>/num_migrated
++Date:		August 2015
++Contact:	Minchan Kim <minchan@kernel.org>
++Description:
++		The compact file is read-only and shows how many object
++		migrated by compaction.
+diff -puN drivers/block/zram/zram_drv.c~zram-support-compaction drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-support-compaction
++++ a/drivers/block/zram/zram_drv.c
+@@ -63,6 +63,27 @@ static inline struct zram *dev_to_zram(s
+ 	return (struct zram *)dev_to_disk(dev)->private_data;
+ }
  
- /**
-+ * dax_pfn_mkwrite - handle first write to DAX page
-+ * @vma: The virtual memory area where the fault occurred
-+ * @vmf: The description of the fault
-+ *
-+ */
-+int dax_pfn_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf)
++static ssize_t compact_store(struct device *dev,
++		struct device_attribute *attr, const char *buf, size_t len)
 +{
-+	struct super_block *sb = file_inode(vma->vm_file)->i_sb;
++	unsigned long nr_migrated;
++	struct zram *zram = dev_to_zram(dev);
++	struct zram_meta *meta;
 +
-+	sb_start_pagefault(sb);
-+	file_update_time(vma->vm_file);
-+	sb_end_pagefault(sb);
-+	return VM_FAULT_NOPAGE;
++	down_read(&zram->init_lock);
++	if (!init_done(zram)) {
++		up_read(&zram->init_lock);
++		return -EINVAL;
++	}
++
++	meta = zram->meta;
++	nr_migrated = zs_compact(meta->mem_pool);
++	atomic64_add(nr_migrated, &zram->stats.num_migrated);
++	up_read(&zram->init_lock);
++
++	return len;
 +}
-+EXPORT_SYMBOL_GPL(dax_pfn_mkwrite);
 +
-+/**
-  * dax_zero_page_range - zero a range within a page of a DAX file
-  * @inode: The file being truncated
-  * @from: The file offset that is being truncated to
-diff -puN fs/ext2/file.c~dax-use-pfn_mkwrite-to-update-c-mtime-freeze-protection fs/ext2/file.c
---- a/fs/ext2/file.c~dax-use-pfn_mkwrite-to-update-c-mtime-freeze-protection
-+++ a/fs/ext2/file.c
-@@ -39,6 +39,7 @@ static int ext2_dax_mkwrite(struct vm_ar
- static const struct vm_operations_struct ext2_dax_vm_ops = {
- 	.fault		= ext2_dax_fault,
- 	.page_mkwrite	= ext2_dax_mkwrite,
-+	.pfn_mkwrite	= dax_pfn_mkwrite,
+ static ssize_t disksize_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+ {
+@@ -1017,6 +1038,7 @@ static const struct block_device_operati
+ 	.owner = THIS_MODULE
  };
  
- static int ext2_file_mmap(struct file *file, struct vm_area_struct *vma)
-diff -puN fs/ext4/file.c~dax-use-pfn_mkwrite-to-update-c-mtime-freeze-protection fs/ext4/file.c
---- a/fs/ext4/file.c~dax-use-pfn_mkwrite-to-update-c-mtime-freeze-protection
-+++ a/fs/ext4/file.c
-@@ -206,6 +206,7 @@ static int ext4_dax_mkwrite(struct vm_ar
- static const struct vm_operations_struct ext4_dax_vm_ops = {
- 	.fault		= ext4_dax_fault,
- 	.page_mkwrite	= ext4_dax_mkwrite,
-+	.pfn_mkwrite	= dax_pfn_mkwrite,
- };
- #else
- #define ext4_dax_vm_ops	ext4_file_vm_ops
-diff -puN include/linux/fs.h~dax-use-pfn_mkwrite-to-update-c-mtime-freeze-protection include/linux/fs.h
---- a/include/linux/fs.h~dax-use-pfn_mkwrite-to-update-c-mtime-freeze-protection
-+++ a/include/linux/fs.h
-@@ -2620,6 +2620,7 @@ int dax_clear_blocks(struct inode *, sec
- int dax_zero_page_range(struct inode *, loff_t from, unsigned len, get_block_t);
- int dax_truncate_page(struct inode *, loff_t from, get_block_t);
- int dax_fault(struct vm_area_struct *, struct vm_fault *, get_block_t);
-+int dax_pfn_mkwrite(struct vm_area_struct *, struct vm_fault *);
- #define dax_mkwrite(vma, vmf, gb)	dax_fault(vma, vmf, gb)
++static DEVICE_ATTR_WO(compact);
+ static DEVICE_ATTR_RW(disksize);
+ static DEVICE_ATTR_RO(initstate);
+ static DEVICE_ATTR_WO(reset);
+@@ -1035,6 +1057,7 @@ ZRAM_ATTR_RO(invalid_io);
+ ZRAM_ATTR_RO(notify_free);
+ ZRAM_ATTR_RO(zero_pages);
+ ZRAM_ATTR_RO(compr_data_size);
++ZRAM_ATTR_RO(num_migrated);
  
- #ifdef CONFIG_BLOCK
+ static struct attribute *zram_disk_attrs[] = {
+ 	&dev_attr_disksize.attr,
+@@ -1044,6 +1067,8 @@ static struct attribute *zram_disk_attrs
+ 	&dev_attr_num_writes.attr,
+ 	&dev_attr_failed_reads.attr,
+ 	&dev_attr_failed_writes.attr,
++	&dev_attr_num_migrated.attr,
++	&dev_attr_compact.attr,
+ 	&dev_attr_invalid_io.attr,
+ 	&dev_attr_notify_free.attr,
+ 	&dev_attr_zero_pages.attr,
+diff -puN drivers/block/zram/zram_drv.h~zram-support-compaction drivers/block/zram/zram_drv.h
+--- a/drivers/block/zram/zram_drv.h~zram-support-compaction
++++ a/drivers/block/zram/zram_drv.h
+@@ -84,6 +84,7 @@ struct zram_stats {
+ 	atomic64_t compr_data_size;	/* compressed size of pages stored */
+ 	atomic64_t num_reads;	/* failed + successful */
+ 	atomic64_t num_writes;	/* --do-- */
++	atomic64_t num_migrated;	/* no. of migrated object */
+ 	atomic64_t failed_reads;	/* can happen when memory is too low */
+ 	atomic64_t failed_writes;	/* can happen when memory is too low */
+ 	atomic64_t invalid_io;	/* non-page-aligned I/O requests */
 _
 
-Patches currently in -mm which might be from boaz@plexistor.com are
+Patches currently in -mm which might be from minchan@kernel.org are
 
 origin.patch
-linux-next.patch
-gitignore-ignore-tar.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+mm-page_isolation-check-pfn-validity-before-access.patch
+x86-add-pmd_-for-thp.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp.patch
+sparc-add-pmd_-for-thp-fix.patch
+powerpc-add-pmd_-for-thp.patch
+arm-add-pmd_mkclean-for-thp.patch
+arm64-add-pmd_-for-thp.patch
+mm-support-madvisemadv_free.patch
+mm-support-madvisemadv_free-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-dont-split-thp-page-when-syscall-is-called.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-2.patch
+mm-free-swp_entry-in-madvise_free.patch
+mm-move-lazy-free-pages-to-inactive-list.patch
+mm-move-lazy-free-pages-to-inactive-list-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
+zram-cosmetic-zram_attr_ro-code-formatting-tweak.patch
+zram-use-idr-instead-of-zram_devices-array.patch
+zram-factor-out-device-reset-from-reset_store.patch
+zram-reorganize-code-layout.patch
+zram-add-dynamic-device-add-remove-functionality.patch
+zram-add-dynamic-device-add-remove-functionality-fix.patch
+zram-remove-max_num_devices-limitation.patch
+zram-report-every-added-and-removed-device.patch
+zram-trivial-correct-flag-operations-comment.patch
+zram-return-zram-device_id-value-from-zram_add.patch
+zram-introduce-automatic-device_id-generation.patch
+zram-introduce-automatic-device_id-generation-fix.patch
+zram-do-not-let-user-enforce-new-device-dev_id.patch
 
