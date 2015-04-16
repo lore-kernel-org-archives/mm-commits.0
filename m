@@ -1,89 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-vsprintf-move-integer-format-types-to-the-top.patch
- removed from -mm tree
-Date: Thu, 16 Apr 2015 09:54:50 -0700
-Message-ID: <552fe95a.Drx8wito0mSFLDZy%akpm@linux-foundation.org>
+Subject: [merged] mailmap-add-ricardo-ribalda.patch removed from -mm tree
+Date: Thu, 16 Apr 2015 09:55:05 -0700
+Message-ID: <552fe969.6/jV6/MVfZNCE/Tn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43132 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43153 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752100AbbDPQtV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:49:21 -0400
+	with ESMTP id S1752957AbbDPQtg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:49:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geert+renesas@glider.be, corbet@lwn.net, mturquette@linaro.org, penguin-kernel@I-love.SAKURA.ne.jp, sboyd@codeaurora.org, mm-commits@vger.kernel.org
+To: ricardo.ribalda@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/vsprintf: Move integer format types to the top
+     Subject: .mailmap: add Ricardo Ribalda
 has been removed from the -mm tree.  Its filename was
-     lib-vsprintf-move-integer-format-types-to-the-top.patch
+     mailmap-add-ricardo-ribalda.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert+renesas@glider.be>
-Subject: lib/vsprintf: Move integer format types to the top
+=46rom: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: .mailmap: add Ricardo Ribalda
 
-Move the format types for 64-bit integers and configurable size integers
-to the top, so they're next to the other integer format types.  While at
-it, add the missing format types for s32 and u32.
+Work and Home computer had different settings in the mail client.  Some
+contributions appear as Ricardo Ribalda, others as Ricardo Ribalda Delg=
+ado
+(and one as just Ricardo).
 
-Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Mike Turquette <mturquette@linaro.org>
-Cc: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/printk-formats.txt |   32 +++++++++++++----------------
- 1 file changed, 15 insertions(+), 17 deletions(-)
+ .mailmap |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN Documentation/printk-formats.txt~lib-vsprintf-move-integer-format-types-to-the-top Documentation/printk-formats.txt
---- a/Documentation/printk-formats.txt~lib-vsprintf-move-integer-format-types-to-the-top
-+++ a/Documentation/printk-formats.txt
-@@ -8,6 +8,21 @@ If variable is of Type,		use printk form
- 		unsigned long long	%llu or %llx
- 		size_t			%zu or %zx
- 		ssize_t			%zd or %zx
-+		s32			%d or %x
-+		u32			%u or %x
-+		s64			%lld or %llx
-+		u64			%llu or %llx
-+
-+If <type> is dependent on a config option for its size (e.g., sector_t,
-+blkcnt_t) or is architecture-dependent for its size (e.g., tcflag_t), use a
-+format specifier of its largest possible type and explicitly cast to it.
-+Example:
-+
-+	printk("test: sector number/total blocks: %llu/%llu\n",
-+		(unsigned long long)sector, (unsigned long long)blockcount);
-+
-+Reminder: sizeof() result is of type size_t.
-+
- 
- Raw pointer value SHOULD be printed with %p. The kernel supports
- the following extended format specifiers for pointer types:
-@@ -246,23 +261,6 @@ struct va_format:
- 
- 	Passed by reference.
- 
--u64 SHOULD be printed with %llu/%llx:
--
--	printk("%llu", u64_var);
--
--s64 SHOULD be printed with %lld/%llx:
--
--	printk("%lld", s64_var);
--
--If <type> is dependent on a config option for its size (e.g., sector_t,
--blkcnt_t) or is architecture-dependent for its size (e.g., tcflag_t), use a
--format specifier of its largest possible type and explicitly cast to it.
--Example:
--
--	printk("test: sector number/total blocks: %llu/%llu\n",
--		(unsigned long long)sector, (unsigned long long)blockcount);
+diff -puN .mailmap~mailmap-add-ricardo-ribalda .mailmap
+--- a/.mailmap~mailmap-add-ricardo-ribalda
++++ a/.mailmap
+@@ -100,6 +100,7 @@ Rajesh Shah <rajesh.shah@intel.com>
+ Ralf Baechle <ralf@linux-mips.org>
+ Ralf Wildenhues <Ralf.Wildenhues@gmx.de>
+ R=C3=A9mi Denis-Courmont <rdenis@simphalempin.com>
++Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+ Rudolf Marek <R.Marek@sh.cvut.cz>
+ Rui Saraiva <rmps@joel.ist.utl.pt>
+ Sachin P Sant <ssant@in.ibm.com>
+_
+
+Patches currently in -mm which might be from ricardo.ribalda@gmail.com =
+are
+
+origin.patch
+linux-next.patch
+
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
