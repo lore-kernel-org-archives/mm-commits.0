@@ -1,69 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged] powerpc-powernv-reboot-when-requested-by-firmware.patch
- removed from -mm tree
-Date: Thu, 16 Apr 2015 09:54:34 -0700
-Message-ID: <552fe94a.OMNn7nJcWqsqK8Ot%akpm@linux-foundation.org>
+Subject: [merged]
+ hung_task-change-hung_taskc-to-use-for_each_process_thread.patch removed
+ from -mm tree
+Date: Thu, 16 Apr 2015 09:54:26 -0700
+Message-ID: <552fe942.WOmL5y35S9CzPPgZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43089 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43064 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753736AbbDPQtF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:49:05 -0400
+	with ESMTP id S1752176AbbDPQs5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:48:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joel@jms.id.au, benh@kernel.crashing.org, davem@davemloft.net, fabf@skynet.be, jk@ozlabs.org, mpe@ellerman.id.au, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: atomlin@redhat.com, dwysocha@redhat.com, oleg@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc/powernv: reboot when requested by firmware
+     Subject: kernel/hung_task.c: change hung_task.c to use for_each_process_thread()
 has been removed from the -mm tree.  Its filename was
-     powerpc-powernv-reboot-when-requested-by-firmware.patch
+     hung_task-change-hung_taskc-to-use-for_each_process_thread.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joel Stanley <joel@jms.id.au>
-Subject: powerpc/powernv: reboot when requested by firmware
+From: Aaron Tomlin <atomlin@redhat.com>
+Subject: kernel/hung_task.c: change hung_task.c to use for_each_process_thread()
 
-Use orderly_reboot so userspace will to shut itself down via the reboot
-path.  This is required for graceful reboot initiated by the BMC, such as
-when a user uses ipmitool to issue a 'chassis power cycle' command.
+In check_hung_uninterruptible_tasks() avoid the use of deprecated
+while_each_thread().
 
-Signed-off-by: Joel Stanley <joel@jms.id.au>
-Acked-by: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Fabian Frederick <fabf@skynet.be>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Jeremy Kerr <jk@ozlabs.org>
-Cc: David S. Miller <davem@davemloft.net>
+The "max_count" logic will prevent a livelock - see commit 0c740d0a
+("introduce for_each_thread() to replace the buggy while_each_thread()"). 
+Having said this let's use for_each_process_thread().
+
+Signed-off-by: Aaron Tomlin <atomlin@redhat.com>
+Acked-by: Oleg Nesterov <oleg@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Dave Wysochanski <dwysocha@redhat.com>
+Cc: Aaron Tomlin <atomlin@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/powernv/opal-power.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ kernel/hung_task.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/powerpc/platforms/powernv/opal-power.c~powerpc-powernv-reboot-when-requested-by-firmware arch/powerpc/platforms/powernv/opal-power.c
---- a/arch/powerpc/platforms/powernv/opal-power.c~powerpc-powernv-reboot-when-requested-by-firmware
-+++ a/arch/powerpc/platforms/powernv/opal-power.c
-@@ -29,8 +29,9 @@ static int opal_power_control_event(stru
+diff -puN kernel/hung_task.c~hung_task-change-hung_taskc-to-use-for_each_process_thread kernel/hung_task.c
+--- a/kernel/hung_task.c~hung_task-change-hung_taskc-to-use-for_each_process_thread
++++ a/kernel/hung_task.c
+@@ -169,7 +169,7 @@ static void check_hung_uninterruptible_t
+ 		return;
  
- 	switch (type) {
- 	case SOFT_REBOOT:
--		/* Fall through. The service processor is responsible for
--		 * bringing the machine back up */
-+		pr_info("OPAL: reboot requested\n");
-+		orderly_reboot();
-+		break;
- 	case SOFT_OFF:
- 		pr_info("OPAL: poweroff requested\n");
- 		orderly_poweroff(true);
+ 	rcu_read_lock();
+-	do_each_thread(g, t) {
++	for_each_process_thread(g, t) {
+ 		if (!max_count--)
+ 			goto unlock;
+ 		if (!--batch_count) {
+@@ -180,7 +180,7 @@ static void check_hung_uninterruptible_t
+ 		/* use "==" to skip the TASK_KILLABLE tasks waiting on NFS */
+ 		if (t->state == TASK_UNINTERRUPTIBLE)
+ 			check_hung_task(t, timeout);
+-	} while_each_thread(g, t);
++	}
+  unlock:
+ 	rcu_read_unlock();
+ }
 _
 
-Patches currently in -mm which might be from joel@jms.id.au are
+Patches currently in -mm which might be from atomlin@redhat.com are
 
 origin.patch
-linux-next.patch
 
