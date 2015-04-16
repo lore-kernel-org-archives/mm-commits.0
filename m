@@ -1,141 +1,154 @@
 From: akpm@linux-foundation.org
-Subject: [merged] thp-cleanup-khugepaged-startup.patch removed from -mm
- tree
-Date: Thu, 16 Apr 2015 09:52:54 -0700
-Message-ID: <552fe8e6.hQnjFHBRWMWpPfZn%akpm@linux-foundation.org>
+Subject: [merged] mm-mempool-kasan-poison-mempool-elements.patch removed
+ from -mm tree
+Date: Thu, 16 Apr 2015 09:53:02 -0700
+Message-ID: <552fe8ee.yTI3cip+FvKrCqlA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42843 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42861 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750790AbbDPQrZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:47:25 -0400
+	with ESMTP id S1751277AbbDPQrd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:47:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: a.ryabinin@samsung.com, catalin.marinas@arm.com, drcheren@gmail.com, dvyukov@google.com, glider@google.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp: cleanup khugepaged startup
+     Subject: mm/mempool.c: kasan: poison mempool elements
 has been removed from the -mm tree.  Its filename was
-     thp-cleanup-khugepaged-startup.patch
+     mm-mempool-kasan-poison-mempool-elements.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: thp: cleanup khugepaged startup
+From: Andrey Ryabinin <a.ryabinin@samsung.com>
+Subject: mm/mempool.c: kasan: poison mempool elements
 
-Few trivial cleanups:
+Mempools keep allocated objects in reserved for situations when ordinary
+allocation may not be possible to satisfy.  These objects shouldn't be
+accessed before they leave the pool.
 
- - no need to call set_recommended_min_free_kbytes() from
-   late_initcall() -- start_khugepaged() calls it;
+This patch poison elements when get into the pool and unpoison when they
+leave it.  This will let KASan to detect use-after-free of mempool's
+elements.
 
- - no need to call set_recommended_min_free_kbytes() from
-   start_khugepaged() if khugepaged is not started;
-
- - there isn't much point in running start_khugepaged() if we've just
-   set transparent_hugepage_flags to zero;
-
- - start_khugepaged() is misnamed -- it also used to stop the thread;
-
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Signed-off-by: Andrey Ryabinin <a.ryabinin@samsung.com>
+Tested-by: David Rientjes <rientjes@google.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Dmitry Chernenkov <drcheren@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Alexander Potapenko <glider@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   18 ++++++++----------
- 1 file changed, 8 insertions(+), 10 deletions(-)
+ include/linux/kasan.h |    2 ++
+ mm/kasan/kasan.c      |   13 +++++++++++++
+ mm/mempool.c          |   23 +++++++++++++++++++++++
+ 3 files changed, 38 insertions(+)
 
-diff -puN mm/huge_memory.c~thp-cleanup-khugepaged-startup mm/huge_memory.c
---- a/mm/huge_memory.c~thp-cleanup-khugepaged-startup
-+++ a/mm/huge_memory.c
-@@ -110,10 +110,6 @@ static int set_recommended_min_free_kbyt
- 	int nr_zones = 0;
- 	unsigned long recommended_min;
+diff -puN include/linux/kasan.h~mm-mempool-kasan-poison-mempool-elements include/linux/kasan.h
+--- a/include/linux/kasan.h~mm-mempool-kasan-poison-mempool-elements
++++ a/include/linux/kasan.h
+@@ -44,6 +44,7 @@ void kasan_poison_object_data(struct kme
  
--	/* khugepaged thread has stopped to failed to start */
--	if (!khugepaged_thread)
--		return 0;
--
- 	for_each_populated_zone(zone)
- 		nr_zones++;
+ void kasan_kmalloc_large(const void *ptr, size_t size);
+ void kasan_kfree_large(const void *ptr);
++void kasan_kfree(void *ptr);
+ void kasan_kmalloc(struct kmem_cache *s, const void *object, size_t size);
+ void kasan_krealloc(const void *object, size_t new_size);
  
-@@ -145,9 +141,8 @@ static int set_recommended_min_free_kbyt
- 	setup_per_zone_wmarks();
- 	return 0;
+@@ -71,6 +72,7 @@ static inline void kasan_poison_object_d
+ 
+ static inline void kasan_kmalloc_large(void *ptr, size_t size) {}
+ static inline void kasan_kfree_large(const void *ptr) {}
++static inline void kasan_kfree(void *ptr) {}
+ static inline void kasan_kmalloc(struct kmem_cache *s, const void *object,
+ 				size_t size) {}
+ static inline void kasan_krealloc(const void *object, size_t new_size) {}
+diff -puN mm/kasan/kasan.c~mm-mempool-kasan-poison-mempool-elements mm/kasan/kasan.c
+--- a/mm/kasan/kasan.c~mm-mempool-kasan-poison-mempool-elements
++++ a/mm/kasan/kasan.c
+@@ -389,6 +389,19 @@ void kasan_krealloc(const void *object,
+ 		kasan_kmalloc(page->slab_cache, object, size);
  }
--late_initcall(set_recommended_min_free_kbytes);
  
--static int start_khugepaged(void)
-+static int start_stop_khugepaged(void)
++void kasan_kfree(void *ptr)
++{
++	struct page *page;
++
++	page = virt_to_head_page(ptr);
++
++	if (unlikely(!PageSlab(page)))
++		kasan_poison_shadow(ptr, PAGE_SIZE << compound_order(page),
++				KASAN_FREE_PAGE);
++	else
++		kasan_slab_free(page->slab_cache, ptr);
++}
++
+ void kasan_kfree_large(const void *ptr)
  {
- 	int err = 0;
- 	if (khugepaged_enabled()) {
-@@ -158,6 +153,7 @@ static int start_khugepaged(void)
- 			pr_err("khugepaged: kthread_run(khugepaged) failed\n");
- 			err = PTR_ERR(khugepaged_thread);
- 			khugepaged_thread = NULL;
-+			goto fail;
- 		}
+ 	struct page *page = virt_to_page(ptr);
+diff -puN mm/mempool.c~mm-mempool-kasan-poison-mempool-elements mm/mempool.c
+--- a/mm/mempool.c~mm-mempool-kasan-poison-mempool-elements
++++ a/mm/mempool.c
+@@ -12,6 +12,7 @@
+ #include <linux/mm.h>
+ #include <linux/slab.h>
+ #include <linux/highmem.h>
++#include <linux/kasan.h>
+ #include <linux/kmemleak.h>
+ #include <linux/export.h>
+ #include <linux/mempool.h>
+@@ -101,10 +102,31 @@ static inline void poison_element(mempoo
+ }
+ #endif /* CONFIG_DEBUG_SLAB || CONFIG_SLUB_DEBUG_ON */
  
- 		if (!list_empty(&khugepaged_scan.mm_head))
-@@ -168,7 +164,7 @@ static int start_khugepaged(void)
- 		kthread_stop(khugepaged_thread);
- 		khugepaged_thread = NULL;
- 	}
--
-+fail:
- 	return err;
++static void kasan_poison_element(mempool_t *pool, void *element)
++{
++	if (pool->alloc == mempool_alloc_slab)
++		kasan_slab_free(pool->pool_data, element);
++	if (pool->alloc == mempool_kmalloc)
++		kasan_kfree(element);
++	if (pool->alloc == mempool_alloc_pages)
++		kasan_free_pages(element, (unsigned long)pool->pool_data);
++}
++
++static void kasan_unpoison_element(mempool_t *pool, void *element)
++{
++	if (pool->alloc == mempool_alloc_slab)
++		kasan_slab_alloc(pool->pool_data, element);
++	if (pool->alloc == mempool_kmalloc)
++		kasan_krealloc(element, (size_t)pool->pool_data);
++	if (pool->alloc == mempool_alloc_pages)
++		kasan_alloc_pages(element, (unsigned long)pool->pool_data);
++}
++
+ static void add_element(mempool_t *pool, void *element)
+ {
+ 	BUG_ON(pool->curr_nr >= pool->min_nr);
+ 	poison_element(pool, element);
++	kasan_poison_element(pool, element);
+ 	pool->elements[pool->curr_nr++] = element;
  }
  
-@@ -302,7 +298,7 @@ static ssize_t enabled_store(struct kobj
- 		int err;
+@@ -114,6 +136,7 @@ static void *remove_element(mempool_t *p
  
- 		mutex_lock(&khugepaged_mutex);
--		err = start_khugepaged();
-+		err = start_stop_khugepaged();
- 		mutex_unlock(&khugepaged_mutex);
- 
- 		if (err)
-@@ -651,10 +647,12 @@ static int __init hugepage_init(void)
- 	 * where the extra memory used could hurt more than TLB overhead
- 	 * is likely to save.  The admin can still enable it through /sys.
- 	 */
--	if (totalram_pages < (512 << (20 - PAGE_SHIFT)))
-+	if (totalram_pages < (512 << (20 - PAGE_SHIFT))) {
- 		transparent_hugepage_flags = 0;
-+		return 0;
-+	}
- 
--	err = start_khugepaged();
-+	err = start_stop_khugepaged();
- 	if (err)
- 		goto err_khugepaged;
+ 	BUG_ON(pool->curr_nr < 0);
+ 	check_element(pool, element);
++	kasan_unpoison_element(pool, element);
+ 	return element;
+ }
  
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from a.ryabinin@samsung.com are
 
 origin.patch
-page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-mm-sanitize-page-mapping-for-tail-pages.patch
-include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
+kasan-makefile-shut-up-warnings-if-config_compile_test=y.patch
+gcov-fix-softlockups.patch
 linux-next.patch
 
