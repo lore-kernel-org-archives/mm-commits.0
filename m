@@ -1,41 +1,44 @@
 From: akpm@linux-foundation.org
-Subject: [merged] zram-use-generic-start-end-io-accounting.patch removed
- from -mm tree
-Date: Thu, 16 Apr 2015 09:53:48 -0700
-Message-ID: <552fe91c.HdH/BIVCVTDp0jxo%akpm@linux-foundation.org>
+Subject: [merged] zram-describe-device-attrs-in-documentation.patch
+ removed from -mm tree
+Date: Thu, 16 Apr 2015 09:53:50 -0700
+Message-ID: <552fe91e.HEYuQJ4OCBO/1v3V%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42987 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42991 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753263AbbDPQsT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:48:19 -0400
+	with ESMTP id S1753195AbbDPQsV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:48:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: sergey.senozhatsky@gmail.com, minchan@kernel.org, ngupta@vflare.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: use generic start/end io accounting
+     Subject: zram: describe device attrs in documentation
 has been removed from the -mm tree.  Its filename was
-     zram-use-generic-start-end-io-accounting.patch
+     zram-describe-device-attrs-in-documentation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: zram: use generic start/end io accounting
+Subject: zram: describe device attrs in documentation
 
-Use bio generic_start_io_acct() and generic_end_io_acct() to account
-device's block layer statistics.  This will let users to monitor zram
-activities using sysstat and similar packages/tools.
+Briefly describe exported device stat attrs in zram documentation.  We
+will eventually get rid of per-stat sysfs nodes and, thus, clean up
+Documentation/ABI/testing/sysfs-block-zram file, which is the only source
+of information about device sysfs nodes.
 
-Apart from the usual per-stat sysfs attr, zram IO stats are now also
-available in '/sys/block/zram<id>/stat' and '/proc/diskstats' files.
+Add `num_migrated' description, since there is no independent
+`num_migrated' sysfs node (and no corresponding sysfs-block-zram entry),
+it will be exported via zram<id>/mm_stat file.
 
-We will slowly get rid of per-stat sysfs files.
+At this point we can provide minimal description, because sysfs-block-zram
+still contains detailed information.
 
 Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Acked-by: Minchan Kim <minchan@kernel.org>
@@ -43,34 +46,67 @@ Cc: Nitin Gupta <ngupta@vflare.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ Documentation/blockdev/zram.txt |   48 +++++++++++++++++++++---------
+ 1 file changed, 34 insertions(+), 14 deletions(-)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-use-generic-start-end-io-accounting drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-use-generic-start-end-io-accounting
-+++ a/drivers/block/zram/zram_drv.c
-@@ -670,8 +670,12 @@ out:
- static int zram_bvec_rw(struct zram *zram, struct bio_vec *bvec, u32 index,
- 			int offset, int rw)
- {
-+	unsigned long start_time = jiffies;
- 	int ret;
+diff -puN Documentation/blockdev/zram.txt~zram-describe-device-attrs-in-documentation Documentation/blockdev/zram.txt
+--- a/Documentation/blockdev/zram.txt~zram-describe-device-attrs-in-documentation
++++ a/Documentation/blockdev/zram.txt
+@@ -98,20 +98,40 @@ size of the disk when not in use so a hu
+ 	mount /dev/zram1 /tmp
  
-+	generic_start_io_acct(rw, bvec->bv_len >> SECTOR_SHIFT,
-+			&zram->disk->part0);
+ 7) Stats:
+-	Per-device statistics are exported as various nodes under
+-	/sys/block/zram<id>/
+-		disksize
+-		num_reads
+-		num_writes
+-		failed_reads
+-		failed_writes
+-		invalid_io
+-		notify_free
+-		zero_pages
+-		orig_data_size
+-		compr_data_size
+-		mem_used_total
+-		mem_used_max
++Per-device statistics are exported as various nodes under /sys/block/zram<id>/
 +
- 	if (rw == READ) {
- 		atomic64_inc(&zram->stats.num_reads);
- 		ret = zram_bvec_read(zram, bvec, index, offset);
-@@ -680,6 +684,8 @@ static int zram_bvec_rw(struct zram *zra
- 		ret = zram_bvec_write(zram, bvec, index, offset);
- 	}
++A brief description of exported device attritbutes. For more details please
++read Documentation/ABI/testing/sysfs-block-zram.
++
++Name            access            description
++----            ------            -----------
++disksize          RW    show and set the device's disk size
++initstate         RO    shows the initialization state of the device
++reset             WO    trigger device reset
++num_reads         RO    the number of reads
++failed_reads      RO    the number of failed reads
++num_write         RO    the number of writes
++failed_writes     RO    the number of failed writes
++invalid_io        RO    the number of non-page-size-aligned I/O requests
++max_comp_streams  RW    the number of possible concurrent compress operations
++comp_algorithm    RW    show and change the compression algorithm
++notify_free       RO    the number of notifications to free pages (either
++                        slot free notifications or REQ_DISCARD requests)
++zero_pages        RO    the number of zero filled pages written to this disk
++orig_data_size    RO    uncompressed size of data stored in this disk
++compr_data_size   RO    compressed size of data stored in this disk
++mem_used_total    RO    the amount of memory allocated for this disk
++mem_used_max      RW    the maximum amount memory zram have consumed to
++                        store compressed data
++mem_limit         RW    the maximum amount of memory ZRAM can use to store
++                        the compressed data
++num_migrated      RO    the number of objects migrated migrated by compaction
++
++
++File /sys/block/zram<id>/stat
++
++Represents block layer statistics. Read Documentation/block/stat.txt for
++details.
  
-+	generic_end_io_acct(rw, &zram->disk->part0, start_time);
-+
- 	if (unlikely(ret)) {
- 		if (rw == READ)
- 			atomic64_inc(&zram->stats.failed_reads);
+ 8) Deactivate:
+ 	swapoff /dev/zram0
 _
 
 Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
