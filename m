@@ -1,84 +1,158 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- document-interaction-between-compaction-and-the-unevictable-lru.patch
- removed from -mm tree
-Date: Thu, 16 Apr 2015 09:51:36 -0700
-Message-ID: <552fe898.udN3zdb7ghVbJt5q%akpm@linux-foundation.org>
+Subject: [merged] allow-compaction-of-unevictable-pages.patch removed from -mm tree
+Date: Thu, 16 Apr 2015 09:51:33 -0700
+Message-ID: <552fe895.PTO/zUodD4cNLgwD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42633 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42622 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751334AbbDPQqH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:46:07 -0400
+	with ESMTP id S1751057AbbDPQqE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:46:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: emunson@akamai.com, cl@linux.com, mgorman@suse.de, mhocko@suse.cz, peterz@infradead.org, riel@redhat.com, rientjes@google.com, tglx@linutronix.de, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Documentation/vm/unevictable-lru.txt: document interaction between compaction and the unevictable LRU
+     Subject: mm: allow compaction of unevictable pages
 has been removed from the -mm tree.  Its filename was
-     document-interaction-between-compaction-and-the-unevictable-lru.patch
+     allow-compaction-of-unevictable-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Eric B Munson <emunson@akamai.com>
-Subject: Documentation/vm/unevictable-lru.txt: document interaction between compaction and the unevictable LRU
+Subject: mm: allow compaction of unevictable pages
 
-The memory compaction code uses the migration code to do most of the work
-in compaction.  However, the compaction code interacts with the
-unevictable LRU differently than migration code and this difference should
-be noted in the documentation.
+Currently, pages which are marked as unevictable are protected from
+compaction, but not from other types of migration.  The POSIX real time
+extension explicitly states that mlock() will prevent a major page fault,
+but the spirit of this is that mlock() should give a process the ability
+to control sources of latency, including minor page faults.  However, the
+mlock manpage only explicitly says that a locked page will not be written
+to swap and this can cause some confusion.  The compaction code today does
+not give a developer who wants to avoid swap but wants to have large
+contiguous areas available any method to achieve this state.  This patch
+introduces a sysctl for controlling compaction behavior with respect to
+the unevictable lru.  Users who demand no page faults after a page is
+present can set compact_unevictable_allowed to 0 and users who need the
+large contiguous areas can enable compaction on locked memory by leaving
+the default value of 1.
 
-[akpm@linux-foundation.org: identify /proc/sys/vm/compact_unevictable directly]
+To illustrate this problem I wrote a quick test program that mmaps a large
+number of 1MB files filled with random data.  These maps are created
+locked and read only.  Then every other mmap is unmapped and I attempt to
+allocate huge pages to the static huge page pool.  When the
+compact_unevictable_allowed sysctl is 0, I cannot allocate hugepages after
+fragmenting memory.  When the value is set to 1, allocations succeed.
+
 Signed-off-by: Eric B Munson <emunson@akamai.com>
-Cc: Michal Hocko <mhocko@suse.cz>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Christoph Lameter <cl@linux.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Acked-by: Rik van Riel <riel@redhat.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Rik van Riel <riel@redhat.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Christoph Lameter <cl@linux.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Mel Gorman <mgorman@suse.de>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/unevictable-lru.txt |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ Documentation/sysctl/vm.txt |   11 +++++++++++
+ include/linux/compaction.h  |    1 +
+ kernel/sysctl.c             |    9 +++++++++
+ mm/compaction.c             |    7 +++++++
+ 4 files changed, 28 insertions(+)
 
-diff -puN Documentation/vm/unevictable-lru.txt~document-interaction-between-compaction-and-the-unevictable-lru Documentation/vm/unevictable-lru.txt
---- a/Documentation/vm/unevictable-lru.txt~document-interaction-between-compaction-and-the-unevictable-lru
-+++ a/Documentation/vm/unevictable-lru.txt
-@@ -22,6 +22,7 @@ CONTENTS
-      - Filtering special vmas.
-      - munlock()/munlockall() system call handling.
-      - Migrating mlocked pages.
-+     - Compacting mlocked pages.
-      - mmap(MAP_LOCKED) system call handling.
-      - munmap()/exit()/exec() system call handling.
-      - try_to_unmap().
-@@ -450,6 +451,17 @@ list because of a race between munlock a
- putback_lru_page() function to add migrated pages back to the LRU.
+diff -puN Documentation/sysctl/vm.txt~allow-compaction-of-unevictable-pages Documentation/sysctl/vm.txt
+--- a/Documentation/sysctl/vm.txt~allow-compaction-of-unevictable-pages
++++ a/Documentation/sysctl/vm.txt
+@@ -21,6 +21,7 @@ Currently, these files are in /proc/sys/
+ - admin_reserve_kbytes
+ - block_dump
+ - compact_memory
++- compact_unevictable_allowed
+ - dirty_background_bytes
+ - dirty_background_ratio
+ - dirty_bytes
+@@ -106,6 +107,16 @@ huge pages although processes will also
  
+ ==============================================================
  
-+COMPACTING MLOCKED PAGES
-+------------------------
++compact_unevictable_allowed
 +
-+The unevictable LRU can be scanned for compactable regions and the default
-+behavior is to do so.  /proc/sys/vm/compact_unevictable_allowed controls
-+this behavior (see Documentation/sysctl/vm.txt).  Once scanning of the
-+unevictable LRU is enabled, the work of compaction is mostly handled by
-+the page migration code and the same work flow as described in MIGRATING
-+MLOCKED PAGES will apply.
++Available only when CONFIG_COMPACTION is set. When set to 1, compaction is
++allowed to examine the unevictable lru (mlocked pages) for pages to compact.
++This should be used on systems where stalls for minor page faults are an
++acceptable trade for large contiguous free memory.  Set to 0 to prevent
++compaction from moving pages that are unevictable.  Default value is 1.
 +
++==============================================================
 +
- mmap(MAP_LOCKED) SYSTEM CALL HANDLING
- -------------------------------------
+ dirty_background_bytes
  
+ Contains the amount of dirty memory at which the background kernel
+diff -puN include/linux/compaction.h~allow-compaction-of-unevictable-pages include/linux/compaction.h
+--- a/include/linux/compaction.h~allow-compaction-of-unevictable-pages
++++ a/include/linux/compaction.h
+@@ -34,6 +34,7 @@ extern int sysctl_compaction_handler(str
+ extern int sysctl_extfrag_threshold;
+ extern int sysctl_extfrag_handler(struct ctl_table *table, int write,
+ 			void __user *buffer, size_t *length, loff_t *ppos);
++extern int sysctl_compact_unevictable_allowed;
+ 
+ extern int fragmentation_index(struct zone *zone, unsigned int order);
+ extern unsigned long try_to_compact_pages(gfp_t gfp_mask, unsigned int order,
+diff -puN kernel/sysctl.c~allow-compaction-of-unevictable-pages kernel/sysctl.c
+--- a/kernel/sysctl.c~allow-compaction-of-unevictable-pages
++++ a/kernel/sysctl.c
+@@ -1335,6 +1335,15 @@ static struct ctl_table vm_table[] = {
+ 		.extra1		= &min_extfrag_threshold,
+ 		.extra2		= &max_extfrag_threshold,
+ 	},
++	{
++		.procname	= "compact_unevictable_allowed",
++		.data		= &sysctl_compact_unevictable_allowed,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= proc_dointvec,
++		.extra1		= &zero,
++		.extra2		= &one,
++	},
+ 
+ #endif /* CONFIG_COMPACTION */
+ 	{
+diff -puN mm/compaction.c~allow-compaction-of-unevictable-pages mm/compaction.c
+--- a/mm/compaction.c~allow-compaction-of-unevictable-pages
++++ a/mm/compaction.c
+@@ -1047,6 +1047,12 @@ typedef enum {
+ } isolate_migrate_t;
+ 
+ /*
++ * Allow userspace to control policy on scanning the unevictable LRU for
++ * compactable pages.
++ */
++int sysctl_compact_unevictable_allowed __read_mostly = 1;
++
++/*
+  * Isolate all pages that can be migrated from the first suitable block,
+  * starting at the block pointed to by the migrate scanner pfn within
+  * compact_control.
+@@ -1057,6 +1063,7 @@ static isolate_migrate_t isolate_migrate
+ 	unsigned long low_pfn, end_pfn;
+ 	struct page *page;
+ 	const isolate_mode_t isolate_mode =
++		(sysctl_compact_unevictable_allowed ? ISOLATE_UNEVICTABLE : 0) |
+ 		(cc->mode == MIGRATE_ASYNC ? ISOLATE_ASYNC_MIGRATE : 0);
+ 
+ 	/*
 _
 
 Patches currently in -mm which might be from emunson@akamai.com are
