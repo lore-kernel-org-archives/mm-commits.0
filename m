@@ -1,378 +1,275 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-consolidate-all-page-flags-helpers-in-linux-page-flagsh.patch removed
- from -mm tree
-Date: Thu, 16 Apr 2015 09:51:24 -0700
-Message-ID: <552fe88c.8ZnPc5E5+4VgABls%akpm@linux-foundation.org>
+ mm-memory-failurec-define-page-types-for-action_result-in-one-place.patch
+ removed from -mm tree
+Date: Thu, 16 Apr 2015 09:51:21 -0700
+Message-ID: <552fe889.pmEHeDK6muex7GG1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42598 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42584 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753700AbbDPQp4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:45:56 -0400
+	with ESMTP id S1753110AbbDPQpw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:45:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, cl@linux.com, dave.hansen@intel.com, hannes@cmpxchg.org, hughd@google.com, jmarchan@redhat.com, mgorman@suse.de, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, riel@redhat.com, steve.capper@linaro.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, ak@linux.intel.com, gong.chen@linux.intel.com, rientjes@google.com, rostedt@goodmis.org, tony.luck@intel.com, xiexiuqi@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: consolidate all page-flags helpers in <linux/page-flags.h>
+     Subject: mm/memory-failure.c: define page types for action_result() in one place
 has been removed from the -mm tree.  Its filename was
-     mm-consolidate-all-page-flags-helpers-in-linux-page-flagsh.patch
+     mm-memory-failurec-define-page-types-for-action_result-in-one-place.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: consolidate all page-flags helpers in <linux/page-flags.h>
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm/memory-failure.c: define page types for action_result() in one place
 
-Currently we take a naive approach to page flags on compound pages - we
-set the flag on the page without consideration if the flag makes sense for
-tail page or for compound page in general.  This patchset try to sort this
-out by defining per-flag policy on what need to be done if page-flag
-helper operate on compound page.
+This cleanup patch moves all strings passed to action_result() into a
+singl= e array action_page_type so that a reader can easily find which
+kind of actio= n results are possible.  And this patch also fixes the odd
+lines to be printed out, like "unknown page state page" or "free buddy,
+2nd try page".
 
-The last patch in the patchset also sanitizes usege of page->mapping for
-tail pages.  We don't define the meaning of page->mapping for tail pages. 
-Currently it's always NULL, which can be inconsistent with head page and
-potentially lead to problems.
-
-For now I caught one case of illegal usage of page flags or ->mapping:
-sound subsystem allocates pages with __GFP_COMP and maps them with PTEs. 
-It leads to setting dirty bit on tail pages and access to tail_page's
-->mapping.  I don't see any bad behaviour caused by this, but worth fixing
-anyway.
-
-This patchset makes more sense if you take my THP refcounting into
-account: we will see more compound pages mapped with PTEs and we need to
-define behaviour of flags on compound pages to avoid bugs.
-
-
-
-This patch (of 16):
-
-We have page-flags helper function declarations/definitions spread over
-several header files.  Let's consolidate them in <linux/page-flags.h>.
-
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Acked-by: Hugh Dickins <hughd@google.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Steve Capper <steve.capper@linaro.org>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Jerome Marchand <jmarchan@redhat.com>
+[akpm@linux-foundation.org: rename messages, per David]
+[akpm@linux-foundation.org: s/DIRTY_UNEVICTABLE_LRU/CLEAN_UNEVICTABLE_LRU', per Andi]
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Reviewed-by: Andi Kleen <ak@linux.intel.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: "Xie XiuQi" <xiexiuqi@huawei.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Chen Gong <gong.chen@linux.intel.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h    |    7 --
- include/linux/ksm.h        |   17 ------
- include/linux/mm.h         |   81 -----------------------------
- include/linux/page-flags.h |   96 +++++++++++++++++++++++++++++++++++
- 4 files changed, 96 insertions(+), 105 deletions(-)
+ mm/memory-failure.c |  108 +++++++++++++++++++++++++++++-------------
+ 1 file changed, 77 insertions(+), 31 deletions(-)
 
-diff -puN include/linux/hugetlb.h~mm-consolidate-all-page-flags-helpers-in-linux-page-flagsh include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~mm-consolidate-all-page-flags-helpers-in-linux-page-flagsh
-+++ a/include/linux/hugetlb.h
-@@ -41,8 +41,6 @@ extern int hugetlb_max_hstate __read_mos
- struct hugepage_subpool *hugepage_new_subpool(long nr_blocks);
- void hugepage_put_subpool(struct hugepage_subpool *spool);
+diff -puN mm/memory-failure.c~mm-memory-failurec-define-page-types-for-action_result-in-one-place mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-memory-failurec-define-page-types-for-action_result-in-one-place
++++ a/mm/memory-failure.c
+@@ -521,6 +521,52 @@ static const char *action_name[] = {
+ 	[RECOVERED] = "Recovered",
+ };
  
--int PageHuge(struct page *page);
--
- void reset_vma_resv_huge_pages(struct vm_area_struct *vma);
- int hugetlb_sysctl_handler(struct ctl_table *, int, void __user *, size_t *, loff_t *);
- int hugetlb_overcommit_handler(struct ctl_table *, int, void __user *, size_t *, loff_t *);
-@@ -109,11 +107,6 @@ unsigned long hugetlb_change_protection(
++enum action_page_type {
++	MSG_KERNEL,
++	MSG_KERNEL_HIGH_ORDER,
++	MSG_SLAB,
++	MSG_DIFFERENT_COMPOUND,
++	MSG_POISONED_HUGE,
++	MSG_HUGE,
++	MSG_FREE_HUGE,
++	MSG_UNMAP_FAILED,
++	MSG_DIRTY_SWAPCACHE,
++	MSG_CLEAN_SWAPCACHE,
++	MSG_DIRTY_MLOCKED_LRU,
++	MSG_CLEAN_MLOCKED_LRU,
++	MSG_DIRTY_UNEVICTABLE_LRU,
++	MSG_CLEAN_UNEVICTABLE_LRU,
++	MSG_DIRTY_LRU,
++	MSG_CLEAN_LRU,
++	MSG_TRUNCATED_LRU,
++	MSG_BUDDY,
++	MSG_BUDDY_2ND,
++	MSG_UNKNOWN,
++};
++
++static const char * const action_page_types[] = {
++	[MSG_KERNEL]			= "reserved kernel page",
++	[MSG_KERNEL_HIGH_ORDER]		= "high-order kernel page",
++	[MSG_SLAB]			= "kernel slab page",
++	[MSG_DIFFERENT_COMPOUND]	= "different compound page after locking",
++	[MSG_POISONED_HUGE]		= "huge page already hardware poisoned",
++	[MSG_HUGE]			= "huge page",
++	[MSG_FREE_HUGE]			= "free huge page",
++	[MSG_UNMAP_FAILED]		= "unmapping failed page",
++	[MSG_DIRTY_SWAPCACHE]		= "dirty swapcache page",
++	[MSG_CLEAN_SWAPCACHE]		= "clean swapcache page",
++	[MSG_DIRTY_MLOCKED_LRU]		= "dirty mlocked LRU page",
++	[MSG_CLEAN_MLOCKED_LRU]		= "clean mlocked LRU page",
++	[MSG_DIRTY_UNEVICTABLE_LRU]	= "dirty unevictable LRU page",
++	[MSG_CLEAN_UNEVICTABLE_LRU]	= "clean unevictable LRU page",
++	[MSG_DIRTY_LRU]			= "dirty LRU page",
++	[MSG_CLEAN_LRU]			= "clean LRU page",
++	[MSG_TRUNCATED_LRU]		= "already truncated LRU page",
++	[MSG_BUDDY]			= "free buddy page",
++	[MSG_BUDDY_2ND]			= "free buddy page (2nd try)",
++	[MSG_UNKNOWN]			= "unknown page",
++};
++
+ /*
+  * XXX: It is possible that a page is isolated from LRU cache,
+  * and then kept in swap cache or failed to remove from page cache.
+@@ -777,10 +823,10 @@ static int me_huge_page(struct page *p,
+ static struct page_state {
+ 	unsigned long mask;
+ 	unsigned long res;
+-	char *msg;
++	enum action_page_type type;
+ 	int (*action)(struct page *p, unsigned long pfn);
+ } error_states[] = {
+-	{ reserved,	reserved,	"reserved kernel",	me_kernel },
++	{ reserved,	reserved,	MSG_KERNEL,	me_kernel },
+ 	/*
+ 	 * free pages are specially detected outside this table:
+ 	 * PG_buddy pages only make a small fraction of all free pages.
+@@ -791,31 +837,31 @@ static struct page_state {
+ 	 * currently unused objects without touching them. But just
+ 	 * treat it as standard kernel for now.
+ 	 */
+-	{ slab,		slab,		"kernel slab",	me_kernel },
++	{ slab,		slab,		MSG_SLAB,	me_kernel },
  
- #else /* !CONFIG_HUGETLB_PAGE */
- 
--static inline int PageHuge(struct page *page)
--{
--	return 0;
--}
--
- static inline void reset_vma_resv_huge_pages(struct vm_area_struct *vma)
- {
- }
-diff -puN include/linux/ksm.h~mm-consolidate-all-page-flags-helpers-in-linux-page-flagsh include/linux/ksm.h
---- a/include/linux/ksm.h~mm-consolidate-all-page-flags-helpers-in-linux-page-flagsh
-+++ a/include/linux/ksm.h
-@@ -35,18 +35,6 @@ static inline void ksm_exit(struct mm_st
- 		__ksm_exit(mm);
- }
- 
--/*
-- * A KSM page is one of those write-protected "shared pages" or "merged pages"
-- * which KSM maps into multiple mms, wherever identical anonymous page content
-- * is found in VM_MERGEABLE vmas.  It's a PageAnon page, pointing not to any
-- * anon_vma, but to that page's node of the stable tree.
-- */
--static inline int PageKsm(struct page *page)
--{
--	return ((unsigned long)page->mapping & PAGE_MAPPING_FLAGS) ==
--				(PAGE_MAPPING_ANON | PAGE_MAPPING_KSM);
--}
--
- static inline struct stable_node *page_stable_node(struct page *page)
- {
- 	return PageKsm(page) ? page_rmapping(page) : NULL;
-@@ -87,11 +75,6 @@ static inline void ksm_exit(struct mm_st
- {
- }
- 
--static inline int PageKsm(struct page *page)
--{
--	return 0;
--}
--
- #ifdef CONFIG_MMU
- static inline int ksm_madvise(struct vm_area_struct *vma, unsigned long start,
- 		unsigned long end, int advice, unsigned long *vm_flags)
-diff -puN include/linux/mm.h~mm-consolidate-all-page-flags-helpers-in-linux-page-flagsh include/linux/mm.h
---- a/include/linux/mm.h~mm-consolidate-all-page-flags-helpers-in-linux-page-flagsh
-+++ a/include/linux/mm.h
-@@ -494,15 +494,6 @@ static inline int page_count(struct page
- 	return atomic_read(&compound_head(page)->_count);
- }
- 
--#ifdef CONFIG_HUGETLB_PAGE
--extern int PageHeadHuge(struct page *page_head);
--#else /* CONFIG_HUGETLB_PAGE */
--static inline int PageHeadHuge(struct page *page_head)
--{
--	return 0;
--}
--#endif /* CONFIG_HUGETLB_PAGE */
--
- static inline bool __compound_tail_refcounted(struct page *page)
- {
- 	return !PageSlab(page) && !PageHeadHuge(page);
-@@ -571,53 +562,6 @@ static inline void init_page_count(struc
- 	atomic_set(&page->_count, 1);
- }
- 
--/*
-- * PageBuddy() indicate that the page is free and in the buddy system
-- * (see mm/page_alloc.c).
-- *
-- * PAGE_BUDDY_MAPCOUNT_VALUE must be <= -2 but better not too close to
-- * -2 so that an underflow of the page_mapcount() won't be mistaken
-- * for a genuine PAGE_BUDDY_MAPCOUNT_VALUE. -128 can be created very
-- * efficiently by most CPU architectures.
-- */
--#define PAGE_BUDDY_MAPCOUNT_VALUE (-128)
--
--static inline int PageBuddy(struct page *page)
--{
--	return atomic_read(&page->_mapcount) == PAGE_BUDDY_MAPCOUNT_VALUE;
--}
--
--static inline void __SetPageBuddy(struct page *page)
--{
--	VM_BUG_ON_PAGE(atomic_read(&page->_mapcount) != -1, page);
--	atomic_set(&page->_mapcount, PAGE_BUDDY_MAPCOUNT_VALUE);
--}
--
--static inline void __ClearPageBuddy(struct page *page)
--{
--	VM_BUG_ON_PAGE(!PageBuddy(page), page);
--	atomic_set(&page->_mapcount, -1);
--}
--
--#define PAGE_BALLOON_MAPCOUNT_VALUE (-256)
--
--static inline int PageBalloon(struct page *page)
--{
--	return atomic_read(&page->_mapcount) == PAGE_BALLOON_MAPCOUNT_VALUE;
--}
--
--static inline void __SetPageBalloon(struct page *page)
--{
--	VM_BUG_ON_PAGE(atomic_read(&page->_mapcount) != -1, page);
--	atomic_set(&page->_mapcount, PAGE_BALLOON_MAPCOUNT_VALUE);
--}
--
--static inline void __ClearPageBalloon(struct page *page)
--{
--	VM_BUG_ON_PAGE(!PageBalloon(page), page);
--	atomic_set(&page->_mapcount, -1);
--}
--
- void put_page(struct page *page);
- void put_pages_list(struct list_head *pages);
- 
-@@ -1006,26 +950,6 @@ void page_address_init(void);
- #define page_address_init()  do { } while(0)
+ #ifdef CONFIG_PAGEFLAGS_EXTENDED
+-	{ head,		head,		"huge",		me_huge_page },
+-	{ tail,		tail,		"huge",		me_huge_page },
++	{ head,		head,		MSG_HUGE,		me_huge_page },
++	{ tail,		tail,		MSG_HUGE,		me_huge_page },
+ #else
+-	{ compound,	compound,	"huge",		me_huge_page },
++	{ compound,	compound,	MSG_HUGE,		me_huge_page },
  #endif
  
--/*
-- * On an anonymous page mapped into a user virtual memory area,
-- * page->mapping points to its anon_vma, not to a struct address_space;
-- * with the PAGE_MAPPING_ANON bit set to distinguish it.  See rmap.h.
-- *
-- * On an anonymous page in a VM_MERGEABLE area, if CONFIG_KSM is enabled,
-- * the PAGE_MAPPING_KSM bit may be set along with the PAGE_MAPPING_ANON bit;
-- * and then page->mapping points, not to an anon_vma, but to a private
-- * structure which KSM associates with that merged page.  See ksm.h.
-- *
-- * PAGE_MAPPING_KSM without PAGE_MAPPING_ANON is currently never used.
-- *
-- * Please note that, confusingly, "page_mapping" refers to the inode
-- * address_space which maps the page from disk; whereas "page_mapped"
-- * refers to user virtual address space into which the page is mapped.
-- */
--#define PAGE_MAPPING_ANON	1
--#define PAGE_MAPPING_KSM	2
--#define PAGE_MAPPING_FLAGS	(PAGE_MAPPING_ANON | PAGE_MAPPING_KSM)
--
- extern struct address_space *page_mapping(struct page *page);
+-	{ sc|dirty,	sc|dirty,	"dirty swapcache",	me_swapcache_dirty },
+-	{ sc|dirty,	sc,		"clean swapcache",	me_swapcache_clean },
++	{ sc|dirty,	sc|dirty,	MSG_DIRTY_SWAPCACHE,	me_swapcache_dirty },
++	{ sc|dirty,	sc,		MSG_CLEAN_SWAPCACHE,	me_swapcache_clean },
  
- /* Neutral page->mapping pointer to address_space or anon_vma or other */
-@@ -1045,11 +969,6 @@ struct address_space *page_file_mapping(
- 	return page->mapping;
- }
+-	{ mlock|dirty,	mlock|dirty,	"dirty mlocked LRU",	me_pagecache_dirty },
+-	{ mlock|dirty,	mlock,		"clean mlocked LRU",	me_pagecache_clean },
++	{ mlock|dirty,	mlock|dirty,	MSG_DIRTY_MLOCKED_LRU,	me_pagecache_dirty },
++	{ mlock|dirty,	mlock,		MSG_CLEAN_MLOCKED_LRU,	me_pagecache_clean },
  
--static inline int PageAnon(struct page *page)
--{
--	return ((unsigned long)page->mapping & PAGE_MAPPING_ANON) != 0;
--}
--
- /*
-  * Return the pagecache index of the passed page.  Regular pagecache pages
-  * use ->index whereas swapcache pages use ->private
-diff -puN include/linux/page-flags.h~mm-consolidate-all-page-flags-helpers-in-linux-page-flagsh include/linux/page-flags.h
---- a/include/linux/page-flags.h~mm-consolidate-all-page-flags-helpers-in-linux-page-flagsh
-+++ a/include/linux/page-flags.h
-@@ -289,6 +289,47 @@ PAGEFLAG_FALSE(HWPoison)
- #define __PG_HWPOISON 0
- #endif
+-	{ unevict|dirty, unevict|dirty,	"dirty unevictable LRU", me_pagecache_dirty },
+-	{ unevict|dirty, unevict,	"clean unevictable LRU", me_pagecache_clean },
++	{ unevict|dirty, unevict|dirty,	MSG_DIRTY_UNEVICTABLE_LRU,	me_pagecache_dirty },
++	{ unevict|dirty, unevict,	MSG_CLEAN_UNEVICTABLE_LRU,	me_pagecache_clean },
  
-+/*
-+ * On an anonymous page mapped into a user virtual memory area,
-+ * page->mapping points to its anon_vma, not to a struct address_space;
-+ * with the PAGE_MAPPING_ANON bit set to distinguish it.  See rmap.h.
-+ *
-+ * On an anonymous page in a VM_MERGEABLE area, if CONFIG_KSM is enabled,
-+ * the PAGE_MAPPING_KSM bit may be set along with the PAGE_MAPPING_ANON bit;
-+ * and then page->mapping points, not to an anon_vma, but to a private
-+ * structure which KSM associates with that merged page.  See ksm.h.
-+ *
-+ * PAGE_MAPPING_KSM without PAGE_MAPPING_ANON is currently never used.
-+ *
-+ * Please note that, confusingly, "page_mapping" refers to the inode
-+ * address_space which maps the page from disk; whereas "page_mapped"
-+ * refers to user virtual address space into which the page is mapped.
-+ */
-+#define PAGE_MAPPING_ANON	1
-+#define PAGE_MAPPING_KSM	2
-+#define PAGE_MAPPING_FLAGS	(PAGE_MAPPING_ANON | PAGE_MAPPING_KSM)
-+
-+static inline int PageAnon(struct page *page)
-+{
-+	return ((unsigned long)page->mapping & PAGE_MAPPING_ANON) != 0;
-+}
-+
-+#ifdef CONFIG_KSM
-+/*
-+ * A KSM page is one of those write-protected "shared pages" or "merged pages"
-+ * which KSM maps into multiple mms, wherever identical anonymous page content
-+ * is found in VM_MERGEABLE vmas.  It's a PageAnon page, pointing not to any
-+ * anon_vma, but to that page's node of the stable tree.
-+ */
-+static inline int PageKsm(struct page *page)
-+{
-+	return ((unsigned long)page->mapping & PAGE_MAPPING_FLAGS) ==
-+				(PAGE_MAPPING_ANON | PAGE_MAPPING_KSM);
-+}
-+#else
-+TESTPAGEFLAG_FALSE(Ksm)
-+#endif
-+
- u64 stable_page_flags(struct page *page);
+-	{ lru|dirty,	lru|dirty,	"dirty LRU",	me_pagecache_dirty },
+-	{ lru|dirty,	lru,		"clean LRU",	me_pagecache_clean },
++	{ lru|dirty,	lru|dirty,	MSG_DIRTY_LRU,	me_pagecache_dirty },
++	{ lru|dirty,	lru,		MSG_CLEAN_LRU,	me_pagecache_clean },
  
- static inline int PageUptodate(struct page *page)
-@@ -426,6 +467,14 @@ static inline void ClearPageCompound(str
+ 	/*
+ 	 * Catchall entry: must be at end.
+ 	 */
+-	{ 0,		0,		"unknown page state",	me_unknown },
++	{ 0,		0,		MSG_UNKNOWN,	me_unknown },
+ };
  
- #endif /* !PAGEFLAGS_EXTENDED */
- 
-+#ifdef CONFIG_HUGETLB_PAGE
-+int PageHuge(struct page *page);
-+int PageHeadHuge(struct page *page);
-+#else
-+TESTPAGEFLAG_FALSE(Huge)
-+TESTPAGEFLAG_FALSE(HeadHuge)
-+#endif
-+
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- /*
-  * PageHuge() only returns true for hugetlbfs pages, but not for
-@@ -480,6 +529,53 @@ static inline int PageTransTail(struct p
- #endif
- 
- /*
-+ * PageBuddy() indicate that the page is free and in the buddy system
-+ * (see mm/page_alloc.c).
-+ *
-+ * PAGE_BUDDY_MAPCOUNT_VALUE must be <= -2 but better not too close to
-+ * -2 so that an underflow of the page_mapcount() won't be mistaken
-+ * for a genuine PAGE_BUDDY_MAPCOUNT_VALUE. -128 can be created very
-+ * efficiently by most CPU architectures.
-+ */
-+#define PAGE_BUDDY_MAPCOUNT_VALUE (-128)
-+
-+static inline int PageBuddy(struct page *page)
-+{
-+	return atomic_read(&page->_mapcount) == PAGE_BUDDY_MAPCOUNT_VALUE;
-+}
-+
-+static inline void __SetPageBuddy(struct page *page)
-+{
-+	VM_BUG_ON_PAGE(atomic_read(&page->_mapcount) != -1, page);
-+	atomic_set(&page->_mapcount, PAGE_BUDDY_MAPCOUNT_VALUE);
-+}
-+
-+static inline void __ClearPageBuddy(struct page *page)
-+{
-+	VM_BUG_ON_PAGE(!PageBuddy(page), page);
-+	atomic_set(&page->_mapcount, -1);
-+}
-+
-+#define PAGE_BALLOON_MAPCOUNT_VALUE (-256)
-+
-+static inline int PageBalloon(struct page *page)
-+{
-+	return atomic_read(&page->_mapcount) == PAGE_BALLOON_MAPCOUNT_VALUE;
-+}
-+
-+static inline void __SetPageBalloon(struct page *page)
-+{
-+	VM_BUG_ON_PAGE(atomic_read(&page->_mapcount) != -1, page);
-+	atomic_set(&page->_mapcount, PAGE_BALLOON_MAPCOUNT_VALUE);
-+}
-+
-+static inline void __ClearPageBalloon(struct page *page)
-+{
-+	VM_BUG_ON_PAGE(!PageBalloon(page), page);
-+	atomic_set(&page->_mapcount, -1);
-+}
-+
-+/*
-  * If network-based swap is enabled, sl*b must keep track of whether pages
-  * were allocated from pfmemalloc reserves.
+ #undef dirty
+@@ -835,10 +881,10 @@ static struct page_state {
+  * "Dirty/Clean" indication is not 100% accurate due to the possibility of
+  * setting PG_dirty outside page lock. See also comment above set_page_dirty().
   */
+-static void action_result(unsigned long pfn, char *msg, int result)
++static void action_result(unsigned long pfn, enum action_page_type type, int result)
+ {
+-	pr_err("MCE %#lx: %s page recovery: %s\n",
+-		pfn, msg, action_name[result]);
++	pr_err("MCE %#lx: recovery action for %s: %s\n",
++		pfn, action_page_types[type], action_name[result]);
+ }
+ 
+ static int page_action(struct page_state *ps, struct page *p,
+@@ -854,11 +900,11 @@ static int page_action(struct page_state
+ 		count--;
+ 	if (count != 0) {
+ 		printk(KERN_ERR
+-		       "MCE %#lx: %s page still referenced by %d users\n",
+-		       pfn, ps->msg, count);
++		       "MCE %#lx: %s still referenced by %d users\n",
++		       pfn, action_page_types[ps->type], count);
+ 		result = FAILED;
+ 	}
+-	action_result(pfn, ps->msg, result);
++	action_result(pfn, ps->type, result);
+ 
+ 	/* Could do more checks here if page looks ok */
+ 	/*
+@@ -1106,7 +1152,7 @@ int memory_failure(unsigned long pfn, in
+ 	if (!(flags & MF_COUNT_INCREASED) &&
+ 		!get_page_unless_zero(hpage)) {
+ 		if (is_free_buddy_page(p)) {
+-			action_result(pfn, "free buddy", DELAYED);
++			action_result(pfn, MSG_BUDDY, DELAYED);
+ 			return 0;
+ 		} else if (PageHuge(hpage)) {
+ 			/*
+@@ -1123,12 +1169,12 @@ int memory_failure(unsigned long pfn, in
+ 			}
+ 			set_page_hwpoison_huge_page(hpage);
+ 			res = dequeue_hwpoisoned_huge_page(hpage);
+-			action_result(pfn, "free huge",
++			action_result(pfn, MSG_FREE_HUGE,
+ 				      res ? IGNORED : DELAYED);
+ 			unlock_page(hpage);
+ 			return res;
+ 		} else {
+-			action_result(pfn, "high order kernel", IGNORED);
++			action_result(pfn, MSG_KERNEL_HIGH_ORDER, IGNORED);
+ 			return -EBUSY;
+ 		}
+ 	}
+@@ -1150,9 +1196,10 @@ int memory_failure(unsigned long pfn, in
+ 			 */
+ 			if (is_free_buddy_page(p)) {
+ 				if (flags & MF_COUNT_INCREASED)
+-					action_result(pfn, "free buddy", DELAYED);
++					action_result(pfn, MSG_BUDDY, DELAYED);
+ 				else
+-					action_result(pfn, "free buddy, 2nd try", DELAYED);
++					action_result(pfn, MSG_BUDDY_2ND,
++						      DELAYED);
+ 				return 0;
+ 			}
+ 		}
+@@ -1165,7 +1212,7 @@ int memory_failure(unsigned long pfn, in
+ 	 * If this happens just bail out.
+ 	 */
+ 	if (compound_head(p) != hpage) {
+-		action_result(pfn, "different compound page after locking", IGNORED);
++		action_result(pfn, MSG_DIFFERENT_COMPOUND, IGNORED);
+ 		res = -EBUSY;
+ 		goto out;
+ 	}
+@@ -1205,8 +1252,7 @@ int memory_failure(unsigned long pfn, in
+ 	 * on the head page to show that the hugepage is hwpoisoned
+ 	 */
+ 	if (PageHuge(p) && PageTail(p) && TestSetPageHWPoison(hpage)) {
+-		action_result(pfn, "hugepage already hardware poisoned",
+-				IGNORED);
++		action_result(pfn, MSG_POISONED_HUGE, IGNORED);
+ 		unlock_page(hpage);
+ 		put_page(hpage);
+ 		return 0;
+@@ -1235,7 +1281,7 @@ int memory_failure(unsigned long pfn, in
+ 	 */
+ 	if (hwpoison_user_mappings(p, pfn, trapno, flags, &hpage)
+ 	    != SWAP_SUCCESS) {
+-		action_result(pfn, "unmapping failed", IGNORED);
++		action_result(pfn, MSG_UNMAP_FAILED, IGNORED);
+ 		res = -EBUSY;
+ 		goto out;
+ 	}
+@@ -1244,7 +1290,7 @@ int memory_failure(unsigned long pfn, in
+ 	 * Torn down by someone else?
+ 	 */
+ 	if (PageLRU(p) && !PageSwapCache(p) && p->mapping == NULL) {
+-		action_result(pfn, "already truncated LRU", IGNORED);
++		action_result(pfn, MSG_TRUNCATED_LRU, IGNORED);
+ 		res = -EBUSY;
+ 		goto out;
+ 	}
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
 origin.patch
 page-flags-trivial-cleanup-for-pagetrans-helpers.patch
@@ -390,6 +287,5 @@ page-flags-define-pg_uncached-behavior-on-compound-pages.patch
 page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
 page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
 mm-sanitize-page-mapping-for-tail-pages.patch
-include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
-linux-next.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
 
