@@ -1,76 +1,172 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- hung_task-change-hung_taskc-to-use-for_each_process_thread.patch removed
- from -mm tree
-Date: Thu, 16 Apr 2015 09:54:26 -0700
-Message-ID: <552fe942.WOmL5y35S9CzPPgZ%akpm@linux-foundation.org>
+ kernel-rebootc-add-orderly_reboot-for-graceful-reboot.patch removed from
+ -mm tree
+Date: Thu, 16 Apr 2015 09:54:31 -0700
+Message-ID: <552fe947.nygQzk+Cv/qRfZyA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43064 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43080 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752176AbbDPQs5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:48:57 -0400
+	with ESMTP id S1753736AbbDPQtC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:49:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: atomlin@redhat.com, dwysocha@redhat.com, oleg@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: joel@jms.id.au, benh@kernel.crashing.org, davem@davemloft.net, fabf@skynet.be, jk@ozlabs.org, mpe@ellerman.id.au, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/hung_task.c: change hung_task.c to use for_each_process_thread()
+     Subject: kernel/reboot.c: add orderly_reboot for graceful reboot
 has been removed from the -mm tree.  Its filename was
-     hung_task-change-hung_taskc-to-use-for_each_process_thread.patch
+     kernel-rebootc-add-orderly_reboot-for-graceful-reboot.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Aaron Tomlin <atomlin@redhat.com>
-Subject: kernel/hung_task.c: change hung_task.c to use for_each_process_thread()
+From: Joel Stanley <joel@jms.id.au>
+Subject: kernel/reboot.c: add orderly_reboot for graceful reboot
 
-In check_hung_uninterruptible_tasks() avoid the use of deprecated
-while_each_thread().
+The kernel has orderly_poweroff which allows the kernel to initiate a
+graceful shutdown of userspace, by running /sbin/poweroff.  This adds
+orderly_reboot that will cause userspace to shut itself down by calling
+/sbin/reboot.
 
-The "max_count" logic will prevent a livelock - see commit 0c740d0a
-("introduce for_each_thread() to replace the buggy while_each_thread()"). 
-Having said this let's use for_each_process_thread().
+This will be used for shutdown initiated by a system controller on
+platforms that do not use ACPI.
 
-Signed-off-by: Aaron Tomlin <atomlin@redhat.com>
-Acked-by: Oleg Nesterov <oleg@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Dave Wysochanski <dwysocha@redhat.com>
-Cc: Aaron Tomlin <atomlin@redhat.com>
+orderly_reboot() should be used when the system wants to allow userspace
+to gracefully shut itself down.  For cases where the system may imminently
+catch on fire, the existing emergency_restart() provides an immediate
+reboot without involving userspace.
+
+Signed-off-by: Joel Stanley <joel@jms.id.au>
+Cc: Fabian Frederick <fabf@skynet.be>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Jeremy Kerr <jk@ozlabs.org>
+Cc: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/hung_task.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/reboot.h |    3 +-
+ kernel/reboot.c        |   53 +++++++++++++++++++++++++++++++++++----
+ 2 files changed, 50 insertions(+), 6 deletions(-)
 
-diff -puN kernel/hung_task.c~hung_task-change-hung_taskc-to-use-for_each_process_thread kernel/hung_task.c
---- a/kernel/hung_task.c~hung_task-change-hung_taskc-to-use-for_each_process_thread
-+++ a/kernel/hung_task.c
-@@ -169,7 +169,7 @@ static void check_hung_uninterruptible_t
- 		return;
+diff -puN include/linux/reboot.h~kernel-rebootc-add-orderly_reboot-for-graceful-reboot include/linux/reboot.h
+--- a/include/linux/reboot.h~kernel-rebootc-add-orderly_reboot-for-graceful-reboot
++++ a/include/linux/reboot.h
+@@ -70,7 +70,8 @@ void ctrl_alt_del(void);
+ #define POWEROFF_CMD_PATH_LEN	256
+ extern char poweroff_cmd[POWEROFF_CMD_PATH_LEN];
  
- 	rcu_read_lock();
--	do_each_thread(g, t) {
-+	for_each_process_thread(g, t) {
- 		if (!max_count--)
- 			goto unlock;
- 		if (!--batch_count) {
-@@ -180,7 +180,7 @@ static void check_hung_uninterruptible_t
- 		/* use "==" to skip the TASK_KILLABLE tasks waiting on NFS */
- 		if (t->state == TASK_UNINTERRUPTIBLE)
- 			check_hung_task(t, timeout);
--	} while_each_thread(g, t);
-+	}
-  unlock:
- 	rcu_read_unlock();
+-extern int orderly_poweroff(bool force);
++extern void orderly_poweroff(bool force);
++extern void orderly_reboot(void);
+ 
+ /*
+  * Emergency restart, callable from an interrupt handler.
+diff -puN kernel/reboot.c~kernel-rebootc-add-orderly_reboot-for-graceful-reboot kernel/reboot.c
+--- a/kernel/reboot.c~kernel-rebootc-add-orderly_reboot-for-graceful-reboot
++++ a/kernel/reboot.c
+@@ -387,8 +387,9 @@ void ctrl_alt_del(void)
  }
+ 
+ char poweroff_cmd[POWEROFF_CMD_PATH_LEN] = "/sbin/poweroff";
++static const char reboot_cmd[] = "/sbin/reboot";
+ 
+-static int __orderly_poweroff(bool force)
++static int run_cmd(const char *cmd)
+ {
+ 	char **argv;
+ 	static char *envp[] = {
+@@ -397,8 +398,7 @@ static int __orderly_poweroff(bool force
+ 		NULL
+ 	};
+ 	int ret;
+-
+-	argv = argv_split(GFP_KERNEL, poweroff_cmd, NULL);
++	argv = argv_split(GFP_KERNEL, cmd, NULL);
+ 	if (argv) {
+ 		ret = call_usermodehelper(argv[0], argv, envp, UMH_WAIT_EXEC);
+ 		argv_free(argv);
+@@ -406,8 +406,33 @@ static int __orderly_poweroff(bool force
+ 		ret = -ENOMEM;
+ 	}
+ 
++	return ret;
++}
++
++static int __orderly_reboot(void)
++{
++	int ret;
++
++	ret = run_cmd(reboot_cmd);
++
++	if (ret) {
++		pr_warn("Failed to start orderly reboot: forcing the issue\n");
++		emergency_sync();
++		kernel_restart(NULL);
++	}
++
++	return ret;
++}
++
++static int __orderly_poweroff(bool force)
++{
++	int ret;
++
++	ret = run_cmd(poweroff_cmd);
++
+ 	if (ret && force) {
+ 		pr_warn("Failed to start orderly shutdown: forcing the issue\n");
++
+ 		/*
+ 		 * I guess this should try to kick off some daemon to sync and
+ 		 * poweroff asap.  Or not even bother syncing if we're doing an
+@@ -436,15 +461,33 @@ static DECLARE_WORK(poweroff_work, power
+  * This may be called from any context to trigger a system shutdown.
+  * If the orderly shutdown fails, it will force an immediate shutdown.
+  */
+-int orderly_poweroff(bool force)
++void orderly_poweroff(bool force)
+ {
+ 	if (force) /* do not override the pending "true" */
+ 		poweroff_force = true;
+ 	schedule_work(&poweroff_work);
+-	return 0;
+ }
+ EXPORT_SYMBOL_GPL(orderly_poweroff);
+ 
++static void reboot_work_func(struct work_struct *work)
++{
++	__orderly_reboot();
++}
++
++static DECLARE_WORK(reboot_work, reboot_work_func);
++
++/**
++ * orderly_reboot - Trigger an orderly system reboot
++ *
++ * This may be called from any context to trigger a system reboot.
++ * If the orderly reboot fails, it will force an immediate reboot.
++ */
++void orderly_reboot(void)
++{
++	schedule_work(&reboot_work);
++}
++EXPORT_SYMBOL_GPL(orderly_reboot);
++
+ static int __init reboot_setup(char *str)
+ {
+ 	for (;;) {
 _
 
-Patches currently in -mm which might be from atomlin@redhat.com are
+Patches currently in -mm which might be from joel@jms.id.au are
 
 origin.patch
+linux-next.patch
 
