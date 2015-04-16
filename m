@@ -1,34 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: [merged] zsmalloc-zsmalloc-documentation.patch removed from -mm
+Subject: [merged] zsmalloc-add-fullness-into-stat.patch removed from -mm
  tree
-Date: Thu, 16 Apr 2015 09:53:39 -0700
-Message-ID: <552fe913.00ztGp8yG5hwLqQG%akpm@linux-foundation.org>
+Date: Thu, 16 Apr 2015 09:53:36 -0700
+Message-ID: <552fe910.8qIFoPwqZ+mnYG/C%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42971 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42958 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751329AbbDPQsK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:48:10 -0400
+	with ESMTP id S1751277AbbDPQsI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:48:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, ddstreet@ieee.org, gunho.lee@lge.com, iamjoonsoo.kim@lge.com, jmarchan@redhat.com, juno.choi@lge.com, ngupta@vflare.org, semenzato@google.com, sergey.senozhatsky@gmail.com, sjennings@variantweb.net, mm-commits@vger.kernel.org
+To: minchan@kernel.org, ddstreet@ieee.org, gunho.lee@lge.com, iamjoonsoo.kim@lge.com, jmarchan@redhat.com, juno.choi@lge.com, mel@csn.ul.ie, ngupta@vflare.org, semenzato@google.com, sergey.senozhatsky@gmail.com, sjennings@variantweb.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: zsmalloc documentation
+     Subject: zsmalloc: add fullness into stat
 has been removed from the -mm tree.  Its filename was
-     zsmalloc-zsmalloc-documentation.patch
+     zsmalloc-add-fullness-into-stat.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Minchan Kim <minchan@kernel.org>
-Subject: zsmalloc: zsmalloc documentation
+Subject: zsmalloc: add fullness into stat
 
-Create zsmalloc doc which explains design concept and stat information.
+During investigating compaction, fullness information of each class is
+helpful for investigating how the compaction works well.  With that, we
+could know how compaction works well more clear on each size class.
 
 Signed-off-by: Minchan Kim <minchan@kernel.org>
 Cc: Juneho Choi <juno.choi@lge.com>
@@ -40,138 +42,414 @@ Cc: Nitin Gupta <ngupta@vflare.org>
 Cc: Jerome Marchand <jmarchan@redhat.com>
 Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/zsmalloc.txt |   70 ++++++++++++++++++++++++++++++++
- MAINTAINERS                   |    1 
- mm/zsmalloc.c                 |   29 -------------
- 3 files changed, 71 insertions(+), 29 deletions(-)
+ mm/zsmalloc.c |  349 +++++++++++++++++++++++++-----------------------
+ 1 file changed, 184 insertions(+), 165 deletions(-)
 
-diff -puN /dev/null Documentation/vm/zsmalloc.txt
---- /dev/null
-+++ a/Documentation/vm/zsmalloc.txt
-@@ -0,0 +1,70 @@
-+zsmalloc
-+--------
-+
-+This allocator is designed for use with zram. Thus, the allocator is
-+supposed to work well under low memory conditions. In particular, it
-+never attempts higher order page allocation which is very likely to
-+fail under memory pressure. On the other hand, if we just use single
-+(0-order) pages, it would suffer from very high fragmentation --
-+any object of size PAGE_SIZE/2 or larger would occupy an entire page.
-+This was one of the major issues with its predecessor (xvmalloc).
-+
-+To overcome these issues, zsmalloc allocates a bunch of 0-order pages
-+and links them together using various 'struct page' fields. These linked
-+pages act as a single higher-order page i.e. an object can span 0-order
-+page boundaries. The code refers to these linked pages as a single entity
-+called zspage.
-+
-+For simplicity, zsmalloc can only allocate objects of size up to PAGE_SIZE
-+since this satisfies the requirements of all its current users (in the
-+worst case, page is incompressible and is thus stored "as-is" i.e. in
-+uncompressed form). For allocation requests larger than this size, failure
-+is returned (see zs_malloc).
-+
-+Additionally, zs_malloc() does not return a dereferenceable pointer.
-+Instead, it returns an opaque handle (unsigned long) which encodes actual
-+location of the allocated object. The reason for this indirection is that
-+zsmalloc does not keep zspages permanently mapped since that would cause
-+issues on 32-bit systems where the VA region for kernel space mappings
-+is very small. So, before using the allocating memory, the object has to
-+be mapped using zs_map_object() to get a usable pointer and subsequently
-+unmapped using zs_unmap_object().
-+
-+stat
-+----
-+
-+With CONFIG_ZSMALLOC_STAT, we could see zsmalloc internal information via
-+/sys/kernel/debug/zsmalloc/<user name>. Here is a sample of stat output:
-+
-+# cat /sys/kernel/debug/zsmalloc/zram0/classes
-+
-+ class  size almost_full almost_empty obj_allocated   obj_used pages_used pages_per_zspage
-+    ..
-+    ..
-+     9   176           0            1           186        129          8                4
-+    10   192           1            0          2880       2872        135                3
-+    11   208           0            1           819        795         42                2
-+    12   224           0            1           219        159         12                4
-+    ..
-+    ..
-+
-+
-+class: index
-+size: object size zspage stores
-+almost_empty: the number of ZS_ALMOST_EMPTY zspages(see below)
-+almost_full: the number of ZS_ALMOST_FULL zspages(see below)
-+obj_allocated: the number of objects allocated
-+obj_used: the number of objects allocated to the user
-+pages_used: the number of pages allocated for the class
-+pages_per_zspage: the number of 0-order pages to make a zspage
-+
-+We assign a zspage to ZS_ALMOST_EMPTY fullness group when:
-+      n <= N / f, where
-+n = number of allocated objects
-+N = total number of objects zspage can store
-+f = fullness_threshold_frac(ie, 4 at the moment)
-+
-+Similarly, we assign zspage to:
-+      ZS_ALMOST_FULL  when n > N / f
-+      ZS_EMPTY        when n == 0
-+      ZS_FULL         when n == N
-diff -puN MAINTAINERS~zsmalloc-zsmalloc-documentation MAINTAINERS
---- a/MAINTAINERS~zsmalloc-zsmalloc-documentation
-+++ a/MAINTAINERS
-@@ -10972,6 +10972,7 @@ L:	linux-mm@kvack.org
- S:	Maintained
- F:	mm/zsmalloc.c
- F:	include/linux/zsmalloc.h
-+F:	Documentation/vm/zsmalloc.txt
- 
- ZSWAP COMPRESSED SWAP CACHING
- M:	Seth Jennings <sjennings@variantweb.net>
-diff -puN mm/zsmalloc.c~zsmalloc-zsmalloc-documentation mm/zsmalloc.c
---- a/mm/zsmalloc.c~zsmalloc-zsmalloc-documentation
+diff -puN mm/zsmalloc.c~zsmalloc-add-fullness-into-stat mm/zsmalloc.c
+--- a/mm/zsmalloc.c~zsmalloc-add-fullness-into-stat
 +++ a/mm/zsmalloc.c
-@@ -12,35 +12,6 @@
-  */
+@@ -197,6 +197,8 @@ enum fullness_group {
+ enum zs_stat_type {
+ 	OBJ_ALLOCATED,
+ 	OBJ_USED,
++	CLASS_ALMOST_FULL,
++	CLASS_ALMOST_EMPTY,
+ 	NR_ZS_STAT_TYPE,
+ };
+ 
+@@ -412,6 +414,11 @@ static struct zpool_driver zs_zpool_driv
+ MODULE_ALIAS("zpool-zsmalloc");
+ #endif /* CONFIG_ZPOOL */
+ 
++static unsigned int get_maxobj_per_zspage(int size, int pages_per_zspage)
++{
++	return pages_per_zspage * PAGE_SIZE / size;
++}
++
+ /* per-cpu VM mapping areas for zspage accesses that cross page boundaries */
+ static DEFINE_PER_CPU(struct mapping_area, zs_map_area);
+ 
+@@ -465,6 +472,179 @@ static int get_size_class_index(int size
+ 	return min(zs_size_classes - 1, idx);
+ }
+ 
++#ifdef CONFIG_ZSMALLOC_STAT
++
++static inline void zs_stat_inc(struct size_class *class,
++				enum zs_stat_type type, unsigned long cnt)
++{
++	class->stats.objs[type] += cnt;
++}
++
++static inline void zs_stat_dec(struct size_class *class,
++				enum zs_stat_type type, unsigned long cnt)
++{
++	class->stats.objs[type] -= cnt;
++}
++
++static inline unsigned long zs_stat_get(struct size_class *class,
++				enum zs_stat_type type)
++{
++	return class->stats.objs[type];
++}
++
++static int __init zs_stat_init(void)
++{
++	if (!debugfs_initialized())
++		return -ENODEV;
++
++	zs_stat_root = debugfs_create_dir("zsmalloc", NULL);
++	if (!zs_stat_root)
++		return -ENOMEM;
++
++	return 0;
++}
++
++static void __exit zs_stat_exit(void)
++{
++	debugfs_remove_recursive(zs_stat_root);
++}
++
++static int zs_stats_size_show(struct seq_file *s, void *v)
++{
++	int i;
++	struct zs_pool *pool = s->private;
++	struct size_class *class;
++	int objs_per_zspage;
++	unsigned long class_almost_full, class_almost_empty;
++	unsigned long obj_allocated, obj_used, pages_used;
++	unsigned long total_class_almost_full = 0, total_class_almost_empty = 0;
++	unsigned long total_objs = 0, total_used_objs = 0, total_pages = 0;
++
++	seq_printf(s, " %5s %5s %11s %12s %13s %10s %10s %16s\n",
++			"class", "size", "almost_full", "almost_empty",
++			"obj_allocated", "obj_used", "pages_used",
++			"pages_per_zspage");
++
++	for (i = 0; i < zs_size_classes; i++) {
++		class = pool->size_class[i];
++
++		if (class->index != i)
++			continue;
++
++		spin_lock(&class->lock);
++		class_almost_full = zs_stat_get(class, CLASS_ALMOST_FULL);
++		class_almost_empty = zs_stat_get(class, CLASS_ALMOST_EMPTY);
++		obj_allocated = zs_stat_get(class, OBJ_ALLOCATED);
++		obj_used = zs_stat_get(class, OBJ_USED);
++		spin_unlock(&class->lock);
++
++		objs_per_zspage = get_maxobj_per_zspage(class->size,
++				class->pages_per_zspage);
++		pages_used = obj_allocated / objs_per_zspage *
++				class->pages_per_zspage;
++
++		seq_printf(s, " %5u %5u %11lu %12lu %13lu %10lu %10lu %16d\n",
++			i, class->size, class_almost_full, class_almost_empty,
++			obj_allocated, obj_used, pages_used,
++			class->pages_per_zspage);
++
++		total_class_almost_full += class_almost_full;
++		total_class_almost_empty += class_almost_empty;
++		total_objs += obj_allocated;
++		total_used_objs += obj_used;
++		total_pages += pages_used;
++	}
++
++	seq_puts(s, "\n");
++	seq_printf(s, " %5s %5s %11lu %12lu %13lu %10lu %10lu\n",
++			"Total", "", total_class_almost_full,
++			total_class_almost_empty, total_objs,
++			total_used_objs, total_pages);
++
++	return 0;
++}
++
++static int zs_stats_size_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, zs_stats_size_show, inode->i_private);
++}
++
++static const struct file_operations zs_stat_size_ops = {
++	.open           = zs_stats_size_open,
++	.read           = seq_read,
++	.llseek         = seq_lseek,
++	.release        = single_release,
++};
++
++static int zs_pool_stat_create(char *name, struct zs_pool *pool)
++{
++	struct dentry *entry;
++
++	if (!zs_stat_root)
++		return -ENODEV;
++
++	entry = debugfs_create_dir(name, zs_stat_root);
++	if (!entry) {
++		pr_warn("debugfs dir <%s> creation failed\n", name);
++		return -ENOMEM;
++	}
++	pool->stat_dentry = entry;
++
++	entry = debugfs_create_file("classes", S_IFREG | S_IRUGO,
++			pool->stat_dentry, pool, &zs_stat_size_ops);
++	if (!entry) {
++		pr_warn("%s: debugfs file entry <%s> creation failed\n",
++				name, "classes");
++		return -ENOMEM;
++	}
++
++	return 0;
++}
++
++static void zs_pool_stat_destroy(struct zs_pool *pool)
++{
++	debugfs_remove_recursive(pool->stat_dentry);
++}
++
++#else /* CONFIG_ZSMALLOC_STAT */
++
++static inline void zs_stat_inc(struct size_class *class,
++				enum zs_stat_type type, unsigned long cnt)
++{
++}
++
++static inline void zs_stat_dec(struct size_class *class,
++				enum zs_stat_type type, unsigned long cnt)
++{
++}
++
++static inline unsigned long zs_stat_get(struct size_class *class,
++				enum zs_stat_type type)
++{
++	return 0;
++}
++
++static int __init zs_stat_init(void)
++{
++	return 0;
++}
++
++static void __exit zs_stat_exit(void)
++{
++}
++
++static inline int zs_pool_stat_create(char *name, struct zs_pool *pool)
++{
++	return 0;
++}
++
++static inline void zs_pool_stat_destroy(struct zs_pool *pool)
++{
++}
++
++#endif
++
++
+ /*
+  * For each size class, zspages are divided into different groups
+  * depending on how "full" they are. This was done so that we could
+@@ -514,6 +694,8 @@ static void insert_zspage(struct page *p
+ 		list_add_tail(&page->lru, &(*head)->lru);
+ 
+ 	*head = page;
++	zs_stat_inc(class, fullness == ZS_ALMOST_EMPTY ?
++			CLASS_ALMOST_EMPTY : CLASS_ALMOST_FULL, 1);
+ }
  
  /*
-- * This allocator is designed for use with zram. Thus, the allocator is
-- * supposed to work well under low memory conditions. In particular, it
-- * never attempts higher order page allocation which is very likely to
-- * fail under memory pressure. On the other hand, if we just use single
-- * (0-order) pages, it would suffer from very high fragmentation --
-- * any object of size PAGE_SIZE/2 or larger would occupy an entire page.
-- * This was one of the major issues with its predecessor (xvmalloc).
-- *
-- * To overcome these issues, zsmalloc allocates a bunch of 0-order pages
-- * and links them together using various 'struct page' fields. These linked
-- * pages act as a single higher-order page i.e. an object can span 0-order
-- * page boundaries. The code refers to these linked pages as a single entity
-- * called zspage.
-- *
-- * For simplicity, zsmalloc can only allocate objects of size up to PAGE_SIZE
-- * since this satisfies the requirements of all its current users (in the
-- * worst case, page is incompressible and is thus stored "as-is" i.e. in
-- * uncompressed form). For allocation requests larger than this size, failure
-- * is returned (see zs_malloc).
-- *
-- * Additionally, zs_malloc() does not return a dereferenceable pointer.
-- * Instead, it returns an opaque handle (unsigned long) which encodes actual
-- * location of the allocated object. The reason for this indirection is that
-- * zsmalloc does not keep zspages permanently mapped since that would cause
-- * issues on 32-bit systems where the VA region for kernel space mappings
-- * is very small. So, before using the allocating memory, the object has to
-- * be mapped using zs_map_object() to get a usable pointer and subsequently
-- * unmapped using zs_unmap_object().
-- *
-  * Following is how we use various fields and flags of underlying
-  * struct page(s) to form a zspage.
-  *
+@@ -539,6 +721,8 @@ static void remove_zspage(struct page *p
+ 					struct page, lru);
+ 
+ 	list_del_init(&page->lru);
++	zs_stat_dec(class, fullness == ZS_ALMOST_EMPTY ?
++			CLASS_ALMOST_EMPTY : CLASS_ALMOST_FULL, 1);
+ }
+ 
+ /*
+@@ -1057,11 +1241,6 @@ static void init_zs_size_classes(void)
+ 	zs_size_classes = nr;
+ }
+ 
+-static unsigned int get_maxobj_per_zspage(int size, int pages_per_zspage)
+-{
+-	return pages_per_zspage * PAGE_SIZE / size;
+-}
+-
+ static bool can_merge(struct size_class *prev, int size, int pages_per_zspage)
+ {
+ 	if (prev->pages_per_zspage != pages_per_zspage)
+@@ -1081,166 +1260,6 @@ static bool zspage_full(struct page *pag
+ 	return page->inuse == page->objects;
+ }
+ 
+-#ifdef CONFIG_ZSMALLOC_STAT
+-
+-static inline void zs_stat_inc(struct size_class *class,
+-				enum zs_stat_type type, unsigned long cnt)
+-{
+-	class->stats.objs[type] += cnt;
+-}
+-
+-static inline void zs_stat_dec(struct size_class *class,
+-				enum zs_stat_type type, unsigned long cnt)
+-{
+-	class->stats.objs[type] -= cnt;
+-}
+-
+-static inline unsigned long zs_stat_get(struct size_class *class,
+-				enum zs_stat_type type)
+-{
+-	return class->stats.objs[type];
+-}
+-
+-static int __init zs_stat_init(void)
+-{
+-	if (!debugfs_initialized())
+-		return -ENODEV;
+-
+-	zs_stat_root = debugfs_create_dir("zsmalloc", NULL);
+-	if (!zs_stat_root)
+-		return -ENOMEM;
+-
+-	return 0;
+-}
+-
+-static void __exit zs_stat_exit(void)
+-{
+-	debugfs_remove_recursive(zs_stat_root);
+-}
+-
+-static int zs_stats_size_show(struct seq_file *s, void *v)
+-{
+-	int i;
+-	struct zs_pool *pool = s->private;
+-	struct size_class *class;
+-	int objs_per_zspage;
+-	unsigned long obj_allocated, obj_used, pages_used;
+-	unsigned long total_objs = 0, total_used_objs = 0, total_pages = 0;
+-
+-	seq_printf(s, " %5s %5s %13s %10s %10s\n", "class", "size",
+-				"obj_allocated", "obj_used", "pages_used");
+-
+-	for (i = 0; i < zs_size_classes; i++) {
+-		class = pool->size_class[i];
+-
+-		if (class->index != i)
+-			continue;
+-
+-		spin_lock(&class->lock);
+-		obj_allocated = zs_stat_get(class, OBJ_ALLOCATED);
+-		obj_used = zs_stat_get(class, OBJ_USED);
+-		spin_unlock(&class->lock);
+-
+-		objs_per_zspage = get_maxobj_per_zspage(class->size,
+-				class->pages_per_zspage);
+-		pages_used = obj_allocated / objs_per_zspage *
+-				class->pages_per_zspage;
+-
+-		seq_printf(s, " %5u %5u    %10lu %10lu %10lu\n", i,
+-			class->size, obj_allocated, obj_used, pages_used);
+-
+-		total_objs += obj_allocated;
+-		total_used_objs += obj_used;
+-		total_pages += pages_used;
+-	}
+-
+-	seq_puts(s, "\n");
+-	seq_printf(s, " %5s %5s    %10lu %10lu %10lu\n", "Total", "",
+-			total_objs, total_used_objs, total_pages);
+-
+-	return 0;
+-}
+-
+-static int zs_stats_size_open(struct inode *inode, struct file *file)
+-{
+-	return single_open(file, zs_stats_size_show, inode->i_private);
+-}
+-
+-static const struct file_operations zs_stat_size_ops = {
+-	.open           = zs_stats_size_open,
+-	.read           = seq_read,
+-	.llseek         = seq_lseek,
+-	.release        = single_release,
+-};
+-
+-static int zs_pool_stat_create(char *name, struct zs_pool *pool)
+-{
+-	struct dentry *entry;
+-
+-	if (!zs_stat_root)
+-		return -ENODEV;
+-
+-	entry = debugfs_create_dir(name, zs_stat_root);
+-	if (!entry) {
+-		pr_warn("debugfs dir <%s> creation failed\n", name);
+-		return -ENOMEM;
+-	}
+-	pool->stat_dentry = entry;
+-
+-	entry = debugfs_create_file("obj_in_classes", S_IFREG | S_IRUGO,
+-			pool->stat_dentry, pool, &zs_stat_size_ops);
+-	if (!entry) {
+-		pr_warn("%s: debugfs file entry <%s> creation failed\n",
+-				name, "obj_in_classes");
+-		return -ENOMEM;
+-	}
+-
+-	return 0;
+-}
+-
+-static void zs_pool_stat_destroy(struct zs_pool *pool)
+-{
+-	debugfs_remove_recursive(pool->stat_dentry);
+-}
+-
+-#else /* CONFIG_ZSMALLOC_STAT */
+-
+-static inline void zs_stat_inc(struct size_class *class,
+-				enum zs_stat_type type, unsigned long cnt)
+-{
+-}
+-
+-static inline void zs_stat_dec(struct size_class *class,
+-				enum zs_stat_type type, unsigned long cnt)
+-{
+-}
+-
+-static inline unsigned long zs_stat_get(struct size_class *class,
+-				enum zs_stat_type type)
+-{
+-	return 0;
+-}
+-
+-static int __init zs_stat_init(void)
+-{
+-	return 0;
+-}
+-
+-static void __exit zs_stat_exit(void)
+-{
+-}
+-
+-static inline int zs_pool_stat_create(char *name, struct zs_pool *pool)
+-{
+-	return 0;
+-}
+-
+-static inline void zs_pool_stat_destroy(struct zs_pool *pool)
+-{
+-}
+-
+-#endif
+-
+ unsigned long zs_get_total_pages(struct zs_pool *pool)
+ {
+ 	return atomic_long_read(&pool->pages_allocated);
 _
 
 Patches currently in -mm which might be from minchan@kernel.org are
