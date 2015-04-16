@@ -1,87 +1,194 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-memory-print-also-a_ops-readpage-in-print_bad_pte.patch removed from -mm tree
-Date: Thu, 16 Apr 2015 09:53:05 -0700
-Message-ID: <552fe8f1.BAyYq0r/cf1hJ1DT%akpm@linux-foundation.org>
+ mmv41-new-pfn_mkwrite-same-as-page_mkwrite-for-vm_pfnmap.patch removed from -mm tree
+Date: Thu, 16 Apr 2015 09:53:07 -0700
+Message-ID: <552fe8f3.KYWFqkAi0EPkeGxu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42865 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42870 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751277AbbDPQrg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:47:36 -0400
+	with ESMTP id S1753895AbbDPQri (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:47:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khlebnikov@yandex-team.ru, kirill@shutemov.name, sasha.levin@oracle.com, mm-commits@vger.kernel.org
+To: boaz@plexistor.com, david@fromorbit.com, hughd@google.com, jack@suse.cz, kirill.shutemov@linux.intel.com, matthew.r.wilcox@intel.com, mgorman@suse.de, yigal@plexistor.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory: also print a_ops->readpage in print_bad_pte()
+     Subject: mm: new pfn_mkwrite same as page_mkwrite for VM_PFNMAP
 has been removed from the -mm tree.  Its filename was
-     mm-memory-print-also-a_ops-readpage-in-print_bad_pte.patch
+     mmv41-new-pfn_mkwrite-same-as-page_mkwrite-for-vm_pfnmap.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Subject: mm/memory: also print a_ops->readpage in print_bad_pte()
+From: Boaz Harrosh <boaz@plexistor.com>
+Subject: mm: new pfn_mkwrite same as page_mkwrite for VM_PFNMAP
 
-A lot of filesystems use generic_file_mmap() and filemap_fault(),
-f_op->mmap and vm_ops->fault aren't enough to identify filesystem.
+This will allow FS that uses VM_PFNMAP | VM_MIXEDMAP (no page structs) to
+get notified when access is a write to a read-only PFN.
 
-This prints file name, vm_ops->fault, f_op->mmap and a_ops->readpage
-(which is almost always implemented and filesystem-specific).
+This can happen if we mmap() a file then first mmap-read from it to
+page-in a read-only PFN, than we mmap-write to the same page.
 
-Example:
+We need this functionality to fix a DAX bug, where in the scenario above
+we fail to set ctime/mtime though we modified the file.  An xfstest is
+attached to this patchset that shows the failure and the fix.  (A DAX
+patch will follow)
 
-[   23.676410] BUG: Bad page map in process sh  pte:1b7e6025 pmd:19bbd067
-[   23.676887] page:ffffea00006df980 count:4 mapcount:1 mapping:ffff8800196426c0 index:0x97
-[   23.677481] flags: 0x10000000000000c(referenced|uptodate)
-[   23.677896] page dumped because: bad pte
-[   23.678205] addr:00007f52fcb17000 vm_flags:00000075 anon_vma:          (null) mapping:ffff8800196426c0 index:97
-[   23.678922] file:libc-2.19.so fault:filemap_fault mmap:generic_file_readonly_mmap readpage:v9fs_vfs_readpage
+This functionality is extra important for us, because upon dirtying of a
+pmem page we also want to RDMA the page to a remote cluster node.
 
-[akpm@linux-foundation.org: use pr_alert, per Kirill]
-Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Cc: Sasha Levin <sasha.levin@oracle.com>
-Acked-by: Kirill A. Shutemov <kirill@shutemov.name>
+We define a new pfn_mkwrite and do not reuse page_mkwrite because
+  1 - The name ;-)
+  2 - But mainly because it would take a very long and tedious
+      audit of all page_mkwrite functions of VM_MIXEDMAP/VM_PFNMAP
+      users. To make sure they do not now CRASH. For example current
+      DAX code (which this is for) would crash.
+      If we would want to reuse page_mkwrite, We will need to first
+      patch all users, so to not-crash-on-no-page. Then enable this
+      patch. But even if I did that I would not sleep so well at night.
+      Adding a new vector is the safest thing to do, and is not that
+      expensive. an extra pointer at a static function vector per driver.
+      Also the new vector is better for performance, because else we
+      Will call all current Kernel vectors, so to:
+	check-ha-no-page-do-nothing and return.
+
+No need to call it from do_shared_fault because do_wp_page is called to
+change pte permissions anyway.
+
+Signed-off-by: Yigal Korman <yigal@plexistor.com>
+Signed-off-by: Boaz Harrosh <boaz@plexistor.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Dave Chinner <david@fromorbit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ Documentation/filesystems/Locking |    8 +++++
+ include/linux/mm.h                |    3 +
+ mm/memory.c                       |   43 +++++++++++++++++++++++++---
+ 3 files changed, 50 insertions(+), 4 deletions(-)
 
-diff -puN mm/memory.c~mm-memory-print-also-a_ops-readpage-in-print_bad_pte mm/memory.c
---- a/mm/memory.c~mm-memory-print-also-a_ops-readpage-in-print_bad_pte
-+++ a/mm/memory.c
-@@ -690,12 +690,11 @@ static void print_bad_pte(struct vm_area
- 	/*
- 	 * Choose text because data symbols depend on CONFIG_KALLSYMS_ALL=y
+diff -puN Documentation/filesystems/Locking~mmv41-new-pfn_mkwrite-same-as-page_mkwrite-for-vm_pfnmap Documentation/filesystems/Locking
+--- a/Documentation/filesystems/Locking~mmv41-new-pfn_mkwrite-same-as-page_mkwrite-for-vm_pfnmap
++++ a/Documentation/filesystems/Locking
+@@ -525,6 +525,7 @@ prototypes:
+ 	void (*close)(struct vm_area_struct*);
+ 	int (*fault)(struct vm_area_struct*, struct vm_fault *);
+ 	int (*page_mkwrite)(struct vm_area_struct *, struct vm_fault *);
++	int (*pfn_mkwrite)(struct vm_area_struct *, struct vm_fault *);
+ 	int (*access)(struct vm_area_struct *, unsigned long, void*, int, int);
+ 
+ locking rules:
+@@ -534,6 +535,7 @@ close:		yes
+ fault:		yes		can return with page locked
+ map_pages:	yes
+ page_mkwrite:	yes		can return with page locked
++pfn_mkwrite:	yes
+ access:		yes
+ 
+ 	->fault() is called when a previously not present pte is about
+@@ -560,6 +562,12 @@ the page has been truncated, the filesys
+ like the ->fault() handler, but simply return with VM_FAULT_NOPAGE, which
+ will cause the VM to retry the fault.
+ 
++	->pfn_mkwrite() is the same as page_mkwrite but when the pte is
++VM_PFNMAP or VM_MIXEDMAP with a page-less entry. Expected return is
++VM_FAULT_NOPAGE. Or one of the VM_FAULT_ERROR types. The default behavior
++after this call is to make the pte read-write, unless pfn_mkwrite returns
++an error.
++
+ 	->access() is called when get_user_pages() fails in
+ access_process_vm(), typically used to debug a process through
+ /proc/pid/mem or ptrace.  This function is needed only for
+diff -puN include/linux/mm.h~mmv41-new-pfn_mkwrite-same-as-page_mkwrite-for-vm_pfnmap include/linux/mm.h
+--- a/include/linux/mm.h~mmv41-new-pfn_mkwrite-same-as-page_mkwrite-for-vm_pfnmap
++++ a/include/linux/mm.h
+@@ -251,6 +251,9 @@ struct vm_operations_struct {
+ 	 * writable, if an error is returned it will cause a SIGBUS */
+ 	int (*page_mkwrite)(struct vm_area_struct *vma, struct vm_fault *vmf);
+ 
++	/* same as page_mkwrite when using VM_PFNMAP|VM_MIXEDMAP */
++	int (*pfn_mkwrite)(struct vm_area_struct *vma, struct vm_fault *vmf);
++
+ 	/* called by access_process_vm when get_user_pages() fails, typically
+ 	 * for use by special VMAs that can switch between memory and hardware
  	 */
--	if (vma->vm_ops)
--		printk(KERN_ALERT "vma->vm_ops->fault: %pSR\n",
--		       vma->vm_ops->fault);
--	if (vma->vm_file)
--		printk(KERN_ALERT "vma->vm_file->f_op->mmap: %pSR\n",
--		       vma->vm_file->f_op->mmap);
-+	pr_alert("file:%pD fault:%pf mmap:%pf readpage:%pf\n",
-+		 vma->vm_file,
-+		 vma->vm_ops ? vma->vm_ops->fault : NULL,
-+		 vma->vm_file ? vma->vm_file->f_op->mmap : NULL,
-+		 mapping ? mapping->a_ops->readpage : NULL);
- 	dump_stack();
- 	add_taint(TAINT_BAD_PAGE, LOCKDEP_NOW_UNRELIABLE);
+diff -puN mm/memory.c~mmv41-new-pfn_mkwrite-same-as-page_mkwrite-for-vm_pfnmap mm/memory.c
+--- a/mm/memory.c~mmv41-new-pfn_mkwrite-same-as-page_mkwrite-for-vm_pfnmap
++++ a/mm/memory.c
+@@ -2180,6 +2180,42 @@ oom:
+ 	return VM_FAULT_OOM;
  }
+ 
++/*
++ * Handle write page faults for VM_MIXEDMAP or VM_PFNMAP for a VM_SHARED
++ * mapping
++ */
++static int wp_pfn_shared(struct mm_struct *mm,
++			struct vm_area_struct *vma, unsigned long address,
++			pte_t *page_table, spinlock_t *ptl, pte_t orig_pte,
++			pmd_t *pmd)
++{
++	if (vma->vm_ops && vma->vm_ops->pfn_mkwrite) {
++		struct vm_fault vmf = {
++			.page = NULL,
++			.pgoff = linear_page_index(vma, address),
++			.virtual_address = (void __user *)(address & PAGE_MASK),
++			.flags = FAULT_FLAG_WRITE | FAULT_FLAG_MKWRITE,
++		};
++		int ret;
++
++		pte_unmap_unlock(page_table, ptl);
++		ret = vma->vm_ops->pfn_mkwrite(vma, &vmf);
++		if (ret & VM_FAULT_ERROR)
++			return ret;
++		page_table = pte_offset_map_lock(mm, pmd, address, &ptl);
++		/*
++		 * We might have raced with another page fault while we
++		 * released the pte_offset_map_lock.
++		 */
++		if (!pte_same(*page_table, orig_pte)) {
++			pte_unmap_unlock(page_table, ptl);
++			return 0;
++		}
++	}
++	return wp_page_reuse(mm, vma, address, page_table, ptl, orig_pte,
++			     NULL, 0, 0);
++}
++
+ static int wp_page_shared(struct mm_struct *mm, struct vm_area_struct *vma,
+ 			  unsigned long address, pte_t *page_table,
+ 			  pmd_t *pmd, spinlock_t *ptl, pte_t orig_pte,
+@@ -2258,13 +2294,12 @@ static int do_wp_page(struct mm_struct *
+ 		 * VM_PFNMAP VMA.
+ 		 *
+ 		 * We should not cow pages in a shared writeable mapping.
+-		 * Just mark the pages writable as we can't do any dirty
+-		 * accounting on raw pfn maps.
++		 * Just mark the pages writable and/or call ops->pfn_mkwrite.
+ 		 */
+ 		if ((vma->vm_flags & (VM_WRITE|VM_SHARED)) ==
+ 				     (VM_WRITE|VM_SHARED))
+-			return wp_page_reuse(mm, vma, address, page_table, ptl,
+-					     orig_pte, old_page, 0, 0);
++			return wp_pfn_shared(mm, vma, address, page_table, ptl,
++					     orig_pte, pmd);
+ 
+ 		pte_unmap_unlock(page_table, ptl);
+ 		return wp_page_copy(mm, vma, address, page_table, pmd,
 _
 
-Patches currently in -mm which might be from khlebnikov@yandex-team.ru are
+Patches currently in -mm which might be from boaz@plexistor.com are
 
 origin.patch
-mm-rcu-protected-get_mm_exe_file.patch
-mm-rcu-protected-get_mm_exe_file-fix.patch
-mm-rcu-protected-get_mm_exe_file-fix-2.patch
 linux-next.patch
-prctl-avoid-using-mmap_sem-for-exe_file-serialization.patch
+gitignore-ignore-tar.patch
 
