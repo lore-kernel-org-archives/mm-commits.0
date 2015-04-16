@@ -1,226 +1,219 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- microblaze-mb-remove-use-of-seq_printf-return-value.patch removed from -mm
- tree
-Date: Thu, 16 Apr 2015 09:55:20 -0700
-Message-ID: <552fe978.4S/J4xViVhq29+b3%akpm@linux-foundation.org>
+Subject: [merged] arm-plat-pxa-remove-use-of-seq_printf-return-value.patch removed from -mm tree
+Date: Thu, 16 Apr 2015 09:55:24 -0700
+Message-ID: <552fe97c.X7hFHpgc/U/q0Iu/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43178 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43184 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754013AbbDPQtv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:49:51 -0400
+	with ESMTP id S1754013AbbDPQtz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:49:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, monstr@monstr.eu, mm-commits@vger.kernel.org
+To: joe@perches.com, linux@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: microblaze: mb: remove use of seq_printf return value
+     Subject: ARM: plat-pxa: remove use of seq_printf return value
 has been removed from the -mm tree.  Its filename was
-     microblaze-mb-remove-use-of-seq_printf-return-value.patch
+     arm-plat-pxa-remove-use-of-seq_printf-return-value.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: microblaze: mb: remove use of seq_printf return value
+Subject: ARM: plat-pxa: remove use of seq_printf return value
 
 The seq_printf return value, because it's frequently misused,
-will eventually be converted to void.
+(as it is here, it doesn't return # of chars emitted) will
+eventually be converted to void.
 
 See: commit 1f33c41c03da ("seq_file: Rename seq_overflow() to
      seq_has_overflowed() and make public")
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Michal Simek <monstr@monstr.eu>
+Cc: Russell King <linux@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/microblaze/kernel/cpu/mb.c |  153 ++++++++++++++----------------
- 1 file changed, 75 insertions(+), 78 deletions(-)
+ arch/arm/plat-pxa/dma.c |  111 ++++++++++++++++++--------------------
+ 1 file changed, 53 insertions(+), 58 deletions(-)
 
-diff -puN arch/microblaze/kernel/cpu/mb.c~microblaze-mb-remove-use-of-seq_printf-return-value arch/microblaze/kernel/cpu/mb.c
---- a/arch/microblaze/kernel/cpu/mb.c~microblaze-mb-remove-use-of-seq_printf-return-value
-+++ a/arch/microblaze/kernel/cpu/mb.c
-@@ -27,7 +27,6 @@
+diff -puN arch/arm/plat-pxa/dma.c~arm-plat-pxa-remove-use-of-seq_printf-return-value arch/arm/plat-pxa/dma.c
+--- a/arch/arm/plat-pxa/dma.c~arm-plat-pxa-remove-use-of-seq_printf-return-value
++++ a/arch/arm/plat-pxa/dma.c
+@@ -51,19 +51,19 @@ static struct dentry *dbgfs_root, *dbgfs
  
- static int show_cpuinfo(struct seq_file *m, void *v)
+ static int dbg_show_requester_chan(struct seq_file *s, void *p)
  {
--	int count = 0;
- 	char *fpga_family = "Unknown";
- 	char *cpu_ver = "Unknown";
+-	int pos = 0;
+ 	int chan = (int)s->private;
  	int i;
-@@ -48,91 +47,89 @@ static int show_cpuinfo(struct seq_file
- 		}
+ 	u32 drcmr;
+ 
+-	pos += seq_printf(s, "DMA channel %d requesters list :\n", chan);
++	seq_printf(s, "DMA channel %d requesters list :\n", chan);
+ 	for (i = 0; i < DMA_MAX_REQUESTERS; i++) {
+ 		drcmr = DRCMR(i);
+ 		if ((drcmr & DRCMR_CHLNUM) == chan)
+-			pos += seq_printf(s, "\tRequester %d (MAPVLD=%d)\n", i,
+-					  !!(drcmr & DRCMR_MAPVLD));
++			seq_printf(s, "\tRequester %d (MAPVLD=%d)\n",
++				   i, !!(drcmr & DRCMR_MAPVLD));
  	}
- 
--	count = seq_printf(m,
--			"CPU-Family:	MicroBlaze\n"
--			"FPGA-Arch:	%s\n"
--			"CPU-Ver:	%s, %s endian\n"
--			"CPU-MHz:	%d.%02d\n"
--			"BogoMips:	%lu.%02lu\n",
--			fpga_family,
--			cpu_ver,
--			cpuinfo.endian ? "little" : "big",
--			cpuinfo.cpu_clock_freq /
--			1000000,
--			cpuinfo.cpu_clock_freq %
--			1000000,
--			loops_per_jiffy / (500000 / HZ),
--			(loops_per_jiffy / (5000 / HZ)) % 100);
--
--	count += seq_printf(m,
--		"HW:\n Shift:\t\t%s\n"
--		" MSR:\t\t%s\n"
--		" PCMP:\t\t%s\n"
--		" DIV:\t\t%s\n",
--		(cpuinfo.use_instr & PVR0_USE_BARREL_MASK) ? "yes" : "no",
--		(cpuinfo.use_instr & PVR2_USE_MSR_INSTR) ? "yes" : "no",
--		(cpuinfo.use_instr & PVR2_USE_PCMP_INSTR) ? "yes" : "no",
--		(cpuinfo.use_instr & PVR0_USE_DIV_MASK) ? "yes" : "no");
--
--	count += seq_printf(m,
--			" MMU:\t\t%x\n",
--			cpuinfo.mmu);
--
--	count += seq_printf(m,
--		" MUL:\t\t%s\n"
--		" FPU:\t\t%s\n",
--		(cpuinfo.use_mult & PVR2_USE_MUL64_MASK) ? "v2" :
--			(cpuinfo.use_mult & PVR0_USE_HW_MUL_MASK) ? "v1" : "no",
--		(cpuinfo.use_fpu & PVR2_USE_FPU2_MASK) ? "v2" :
--			(cpuinfo.use_fpu & PVR0_USE_FPU_MASK) ? "v1" : "no");
--
--	count += seq_printf(m,
--		" Exc:\t\t%s%s%s%s%s%s%s%s\n",
--		(cpuinfo.use_exc & PVR2_OPCODE_0x0_ILL_MASK) ? "op0x0 " : "",
--		(cpuinfo.use_exc & PVR2_UNALIGNED_EXC_MASK) ? "unal " : "",
--		(cpuinfo.use_exc & PVR2_ILL_OPCODE_EXC_MASK) ? "ill " : "",
--		(cpuinfo.use_exc & PVR2_IOPB_BUS_EXC_MASK) ? "iopb " : "",
--		(cpuinfo.use_exc & PVR2_DOPB_BUS_EXC_MASK) ? "dopb " : "",
--		(cpuinfo.use_exc & PVR2_DIV_ZERO_EXC_MASK) ? "zero " : "",
--		(cpuinfo.use_exc & PVR2_FPU_EXC_MASK) ? "fpu " : "",
--		(cpuinfo.use_exc & PVR2_USE_FSL_EXC) ? "fsl " : "");
--
--	count += seq_printf(m,
--			"Stream-insns:\t%sprivileged\n",
--			cpuinfo.mmu_privins ? "un" : "");
-+	seq_printf(m,
-+		   "CPU-Family:	MicroBlaze\n"
-+		   "FPGA-Arch:	%s\n"
-+		   "CPU-Ver:	%s, %s endian\n"
-+		   "CPU-MHz:	%d.%02d\n"
-+		   "BogoMips:	%lu.%02lu\n",
-+		   fpga_family,
-+		   cpu_ver,
-+		   cpuinfo.endian ? "little" : "big",
-+		   cpuinfo.cpu_clock_freq / 1000000,
-+		   cpuinfo.cpu_clock_freq % 1000000,
-+		   loops_per_jiffy / (500000 / HZ),
-+		   (loops_per_jiffy / (5000 / HZ)) % 100);
+-	return pos;
 +
-+	seq_printf(m,
-+		   "HW:\n Shift:\t\t%s\n"
-+		   " MSR:\t\t%s\n"
-+		   " PCMP:\t\t%s\n"
-+		   " DIV:\t\t%s\n",
-+		   (cpuinfo.use_instr & PVR0_USE_BARREL_MASK) ? "yes" : "no",
-+		   (cpuinfo.use_instr & PVR2_USE_MSR_INSTR) ? "yes" : "no",
-+		   (cpuinfo.use_instr & PVR2_USE_PCMP_INSTR) ? "yes" : "no",
-+		   (cpuinfo.use_instr & PVR0_USE_DIV_MASK) ? "yes" : "no");
-+
-+	seq_printf(m, " MMU:\t\t%x\n", cpuinfo.mmu);
-+
-+	seq_printf(m,
-+		   " MUL:\t\t%s\n"
-+		   " FPU:\t\t%s\n",
-+		   (cpuinfo.use_mult & PVR2_USE_MUL64_MASK) ? "v2" :
-+		   (cpuinfo.use_mult & PVR0_USE_HW_MUL_MASK) ? "v1" : "no",
-+		   (cpuinfo.use_fpu & PVR2_USE_FPU2_MASK) ? "v2" :
-+		   (cpuinfo.use_fpu & PVR0_USE_FPU_MASK) ? "v1" : "no");
-+
-+	seq_printf(m,
-+		   " Exc:\t\t%s%s%s%s%s%s%s%s\n",
-+		   (cpuinfo.use_exc & PVR2_OPCODE_0x0_ILL_MASK) ? "op0x0 " : "",
-+		   (cpuinfo.use_exc & PVR2_UNALIGNED_EXC_MASK) ? "unal " : "",
-+		   (cpuinfo.use_exc & PVR2_ILL_OPCODE_EXC_MASK) ? "ill " : "",
-+		   (cpuinfo.use_exc & PVR2_IOPB_BUS_EXC_MASK) ? "iopb " : "",
-+		   (cpuinfo.use_exc & PVR2_DOPB_BUS_EXC_MASK) ? "dopb " : "",
-+		   (cpuinfo.use_exc & PVR2_DIV_ZERO_EXC_MASK) ? "zero " : "",
-+		   (cpuinfo.use_exc & PVR2_FPU_EXC_MASK) ? "fpu " : "",
-+		   (cpuinfo.use_exc & PVR2_USE_FSL_EXC) ? "fsl " : "");
-+
-+	seq_printf(m,
-+		   "Stream-insns:\t%sprivileged\n",
-+		   cpuinfo.mmu_privins ? "un" : "");
- 
- 	if (cpuinfo.use_icache)
--		count += seq_printf(m,
--				"Icache:\t\t%ukB\tline length:\t%dB\n",
--				cpuinfo.icache_size >> 10,
--				cpuinfo.icache_line_length);
-+		seq_printf(m,
-+			   "Icache:\t\t%ukB\tline length:\t%dB\n",
-+			   cpuinfo.icache_size >> 10,
-+			   cpuinfo.icache_line_length);
- 	else
--		count += seq_printf(m, "Icache:\t\tno\n");
-+		seq_puts(m, "Icache:\t\tno\n");
- 
- 	if (cpuinfo.use_dcache) {
--		count += seq_printf(m,
--				"Dcache:\t\t%ukB\tline length:\t%dB\n",
--				cpuinfo.dcache_size >> 10,
--				cpuinfo.dcache_line_length);
--		seq_printf(m, "Dcache-Policy:\t");
-+		seq_printf(m,
-+			   "Dcache:\t\t%ukB\tline length:\t%dB\n",
-+			   cpuinfo.dcache_size >> 10,
-+			   cpuinfo.dcache_line_length);
-+		seq_puts(m, "Dcache-Policy:\t");
- 		if (cpuinfo.dcache_wb)
--			count += seq_printf(m, "write-back\n");
-+			seq_puts(m, "write-back\n");
- 		else
--			count += seq_printf(m, "write-through\n");
--	} else
--		count += seq_printf(m, "Dcache:\t\tno\n");
--
--	count += seq_printf(m,
--			"HW-Debug:\t%s\n",
--			cpuinfo.hw_debug ? "yes" : "no");
--
--	count += seq_printf(m,
--			"PVR-USR1:\t%02x\n"
--			"PVR-USR2:\t%08x\n",
--			cpuinfo.pvr_user1,
--			cpuinfo.pvr_user2);
-+			seq_puts(m, "write-through\n");
-+	} else {
-+		seq_puts(m, "Dcache:\t\tno\n");
-+	}
-+
-+	seq_printf(m,
-+		   "HW-Debug:\t%s\n",
-+		   cpuinfo.hw_debug ? "yes" : "no");
-+
-+	seq_printf(m,
-+		   "PVR-USR1:\t%02x\n"
-+		   "PVR-USR2:\t%08x\n",
-+		   cpuinfo.pvr_user1,
-+		   cpuinfo.pvr_user2);
-+
-+	seq_printf(m, "Page size:\t%lu\n", PAGE_SIZE);
- 
--	count += seq_printf(m, "Page size:\t%lu\n", PAGE_SIZE);
- 	return 0;
++	return 0;
  }
  
+ static inline int dbg_burst_from_dcmd(u32 dcmd)
+@@ -83,7 +83,6 @@ static int is_phys_valid(unsigned long a
+ 
+ static int dbg_show_descriptors(struct seq_file *s, void *p)
+ {
+-	int pos = 0;
+ 	int chan = (int)s->private;
+ 	int i, max_show = 20, burst, width;
+ 	u32 dcmd;
+@@ -94,44 +93,43 @@ static int dbg_show_descriptors(struct s
+ 	spin_lock_irqsave(&dma_channels[chan].lock, flags);
+ 	phys_desc = DDADR(chan);
+ 
+-	pos += seq_printf(s, "DMA channel %d descriptors :\n", chan);
+-	pos += seq_printf(s, "[%03d] First descriptor unknown\n", 0);
++	seq_printf(s, "DMA channel %d descriptors :\n", chan);
++	seq_printf(s, "[%03d] First descriptor unknown\n", 0);
+ 	for (i = 1; i < max_show && is_phys_valid(phys_desc); i++) {
+ 		desc = phys_to_virt(phys_desc);
+ 		dcmd = desc->dcmd;
+ 		burst = dbg_burst_from_dcmd(dcmd);
+ 		width = (1 << ((dcmd >> 14) & 0x3)) >> 1;
+ 
+-		pos += seq_printf(s, "[%03d] Desc at %08lx(virt %p)\n",
+-				  i, phys_desc, desc);
+-		pos += seq_printf(s, "\tDDADR = %08x\n", desc->ddadr);
+-		pos += seq_printf(s, "\tDSADR = %08x\n", desc->dsadr);
+-		pos += seq_printf(s, "\tDTADR = %08x\n", desc->dtadr);
+-		pos += seq_printf(s, "\tDCMD  = %08x (%s%s%s%s%s%s%sburst=%d"
+-				  " width=%d len=%d)\n",
+-				  dcmd,
+-				  DCMD_STR(INCSRCADDR), DCMD_STR(INCTRGADDR),
+-				  DCMD_STR(FLOWSRC), DCMD_STR(FLOWTRG),
+-				  DCMD_STR(STARTIRQEN), DCMD_STR(ENDIRQEN),
+-				  DCMD_STR(ENDIAN), burst, width,
+-				  dcmd & DCMD_LENGTH);
++		seq_printf(s, "[%03d] Desc at %08lx(virt %p)\n",
++			   i, phys_desc, desc);
++		seq_printf(s, "\tDDADR = %08x\n", desc->ddadr);
++		seq_printf(s, "\tDSADR = %08x\n", desc->dsadr);
++		seq_printf(s, "\tDTADR = %08x\n", desc->dtadr);
++		seq_printf(s, "\tDCMD  = %08x (%s%s%s%s%s%s%sburst=%d width=%d len=%d)\n",
++			   dcmd,
++			   DCMD_STR(INCSRCADDR), DCMD_STR(INCTRGADDR),
++			   DCMD_STR(FLOWSRC), DCMD_STR(FLOWTRG),
++			   DCMD_STR(STARTIRQEN), DCMD_STR(ENDIRQEN),
++			   DCMD_STR(ENDIAN), burst, width,
++			   dcmd & DCMD_LENGTH);
+ 		phys_desc = desc->ddadr;
+ 	}
+ 	if (i == max_show)
+-		pos += seq_printf(s, "[%03d] Desc at %08lx ... max display reached\n",
+-				  i, phys_desc);
++		seq_printf(s, "[%03d] Desc at %08lx ... max display reached\n",
++			   i, phys_desc);
+ 	else
+-		pos += seq_printf(s, "[%03d] Desc at %08lx is %s\n",
+-				  i, phys_desc, phys_desc == DDADR_STOP ?
+-				  "DDADR_STOP" : "invalid");
++		seq_printf(s, "[%03d] Desc at %08lx is %s\n",
++			   i, phys_desc, phys_desc == DDADR_STOP ?
++			   "DDADR_STOP" : "invalid");
+ 
+ 	spin_unlock_irqrestore(&dma_channels[chan].lock, flags);
+-	return pos;
++
++	return 0;
+ }
+ 
+ static int dbg_show_chan_state(struct seq_file *s, void *p)
+ {
+-	int pos = 0;
+ 	int chan = (int)s->private;
+ 	u32 dcsr, dcmd;
+ 	int burst, width;
+@@ -142,42 +140,39 @@ static int dbg_show_chan_state(struct se
+ 	burst = dbg_burst_from_dcmd(dcmd);
+ 	width = (1 << ((dcmd >> 14) & 0x3)) >> 1;
+ 
+-	pos += seq_printf(s, "DMA channel %d\n", chan);
+-	pos += seq_printf(s, "\tPriority : %s\n",
+-			  str_prio[dma_channels[chan].prio]);
+-	pos += seq_printf(s, "\tUnaligned transfer bit: %s\n",
+-			  DALGN & (1 << chan) ? "yes" : "no");
+-	pos += seq_printf(s, "\tDCSR  = %08x (%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s)\n",
+-			  dcsr, DCSR_STR(RUN), DCSR_STR(NODESC),
+-			  DCSR_STR(STOPIRQEN), DCSR_STR(EORIRQEN),
+-			  DCSR_STR(EORJMPEN), DCSR_STR(EORSTOPEN),
+-			  DCSR_STR(SETCMPST), DCSR_STR(CLRCMPST),
+-			  DCSR_STR(CMPST), DCSR_STR(EORINTR), DCSR_STR(REQPEND),
+-			  DCSR_STR(STOPSTATE), DCSR_STR(ENDINTR),
+-			  DCSR_STR(STARTINTR), DCSR_STR(BUSERR));
+-
+-	pos += seq_printf(s, "\tDCMD  = %08x (%s%s%s%s%s%s%sburst=%d width=%d"
+-			  " len=%d)\n",
+-			  dcmd,
+-			  DCMD_STR(INCSRCADDR), DCMD_STR(INCTRGADDR),
+-			  DCMD_STR(FLOWSRC), DCMD_STR(FLOWTRG),
+-			  DCMD_STR(STARTIRQEN), DCMD_STR(ENDIRQEN),
+-			  DCMD_STR(ENDIAN), burst, width, dcmd & DCMD_LENGTH);
+-	pos += seq_printf(s, "\tDSADR = %08x\n", DSADR(chan));
+-	pos += seq_printf(s, "\tDTADR = %08x\n", DTADR(chan));
+-	pos += seq_printf(s, "\tDDADR = %08x\n", DDADR(chan));
+-	return pos;
++	seq_printf(s, "DMA channel %d\n", chan);
++	seq_printf(s, "\tPriority : %s\n", str_prio[dma_channels[chan].prio]);
++	seq_printf(s, "\tUnaligned transfer bit: %s\n",
++		   DALGN & (1 << chan) ? "yes" : "no");
++	seq_printf(s, "\tDCSR  = %08x (%s%s%s%s%s%s%s%s%s%s%s%s%s%s%s)\n",
++		   dcsr, DCSR_STR(RUN), DCSR_STR(NODESC),
++		   DCSR_STR(STOPIRQEN), DCSR_STR(EORIRQEN),
++		   DCSR_STR(EORJMPEN), DCSR_STR(EORSTOPEN),
++		   DCSR_STR(SETCMPST), DCSR_STR(CLRCMPST),
++		   DCSR_STR(CMPST), DCSR_STR(EORINTR), DCSR_STR(REQPEND),
++		   DCSR_STR(STOPSTATE), DCSR_STR(ENDINTR),
++		   DCSR_STR(STARTINTR), DCSR_STR(BUSERR));
++
++	seq_printf(s, "\tDCMD  = %08x (%s%s%s%s%s%s%sburst=%d width=%d len=%d)\n",
++		   dcmd,
++		   DCMD_STR(INCSRCADDR), DCMD_STR(INCTRGADDR),
++		   DCMD_STR(FLOWSRC), DCMD_STR(FLOWTRG),
++		   DCMD_STR(STARTIRQEN), DCMD_STR(ENDIRQEN),
++		   DCMD_STR(ENDIAN), burst, width, dcmd & DCMD_LENGTH);
++	seq_printf(s, "\tDSADR = %08x\n", DSADR(chan));
++	seq_printf(s, "\tDTADR = %08x\n", DTADR(chan));
++	seq_printf(s, "\tDDADR = %08x\n", DDADR(chan));
++
++	return 0;
+ }
+ 
+ static int dbg_show_state(struct seq_file *s, void *p)
+ {
+-	int pos = 0;
+-
+ 	/* basic device status */
+-	pos += seq_printf(s, "DMA engine status\n");
+-	pos += seq_printf(s, "\tChannel number: %d\n", num_dma_channels);
++	seq_puts(s, "DMA engine status\n");
++	seq_printf(s, "\tChannel number: %d\n", num_dma_channels);
+ 
+-	return pos;
++	return 0;
+ }
+ 
+ #define DBGFS_FUNC_DECL(name) \
 _
 
 Patches currently in -mm which might be from joe@perches.com are
