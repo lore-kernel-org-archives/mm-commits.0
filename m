@@ -1,35 +1,39 @@
 From: akpm@linux-foundation.org
-Subject: [merged] zram-support-compaction.patch removed from -mm tree
-Date: Thu, 16 Apr 2015 09:53:30 -0700
-Message-ID: <552fe90a.3JotuPsKeuTGXZ8A%akpm@linux-foundation.org>
+Subject: [merged] zsmalloc-adjust-zs_almost_full.patch removed from -mm
+ tree
+Date: Thu, 16 Apr 2015 09:53:27 -0700
+Message-ID: <552fe907.k7ri6y+AJkUa/Awm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42939 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42932 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751277AbbDPQsC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:48:02 -0400
+	with ESMTP id S1753908AbbDPQr6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:47:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: minchan@kernel.org, ddstreet@ieee.org, gunho.lee@lge.com, iamjoonsoo.kim@lge.com, jmarchan@redhat.com, juno.choi@lge.com, mel@csn.ul.ie, ngupta@vflare.org, semenzato@google.com, sergey.senozhatsky@gmail.com, sjennings@variantweb.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: support compaction
+     Subject: zsmalloc: adjust ZS_ALMOST_FULL
 has been removed from the -mm tree.  Its filename was
-     zram-support-compaction.patch
+     zsmalloc-adjust-zs_almost_full.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Minchan Kim <minchan@kernel.org>
-Subject: zram: support compaction
+Subject: zsmalloc: adjust ZS_ALMOST_FULL
 
-Now that zsmalloc supports compaction, zram can use it.  For the first
-step, this patch exports compact knob via sysfs so user can do compaction
-via "echo 1 > /sys/block/zram0/compact".
+Curretly, zsmalloc regards a zspage as ZS_ALMOST_EMPTY if the zspage has
+under 1/4 used objects(ie, fullness_threshold_frac).  It could make result
+in loose packing since zsmalloc migrates only ZS_ALMOST_EMPTY zspage out.
+
+This patch changes the rule so that zsmalloc makes zspage which has above
+3/4 used object ZS_ALMOST_FULL so it could make tight packing.
 
 Signed-off-by: Minchan Kim <minchan@kernel.org>
 Cc: Juneho Choi <juno.choi@lge.com>
@@ -45,100 +49,21 @@ Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-block-zram |   15 +++++++++++
- drivers/block/zram/zram_drv.c              |   25 +++++++++++++++++++
- drivers/block/zram/zram_drv.h              |    1 
- 3 files changed, 41 insertions(+)
+ mm/zsmalloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/ABI/testing/sysfs-block-zram~zram-support-compaction Documentation/ABI/testing/sysfs-block-zram
---- a/Documentation/ABI/testing/sysfs-block-zram~zram-support-compaction
-+++ a/Documentation/ABI/testing/sysfs-block-zram
-@@ -141,3 +141,18 @@ Description:
- 		amount of memory ZRAM can use to store the compressed data.  The
- 		limit could be changed in run time and "0" means disable the
- 		limit.  No limit is the initial state.  Unit: bytes
-+
-+What:		/sys/block/zram<id>/compact
-+Date:		August 2015
-+Contact:	Minchan Kim <minchan@kernel.org>
-+Description:
-+		The compact file is write-only and trigger compaction for
-+		allocator zrm uses. The allocator moves some objects so that
-+		it could free fragment space.
-+
-+What:		/sys/block/zram<id>/num_migrated
-+Date:		August 2015
-+Contact:	Minchan Kim <minchan@kernel.org>
-+Description:
-+		The compact file is read-only and shows how many object
-+		migrated by compaction.
-diff -puN drivers/block/zram/zram_drv.c~zram-support-compaction drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-support-compaction
-+++ a/drivers/block/zram/zram_drv.c
-@@ -63,6 +63,27 @@ static inline struct zram *dev_to_zram(s
- 	return (struct zram *)dev_to_disk(dev)->private_data;
- }
- 
-+static ssize_t compact_store(struct device *dev,
-+		struct device_attribute *attr, const char *buf, size_t len)
-+{
-+	unsigned long nr_migrated;
-+	struct zram *zram = dev_to_zram(dev);
-+	struct zram_meta *meta;
-+
-+	down_read(&zram->init_lock);
-+	if (!init_done(zram)) {
-+		up_read(&zram->init_lock);
-+		return -EINVAL;
-+	}
-+
-+	meta = zram->meta;
-+	nr_migrated = zs_compact(meta->mem_pool);
-+	atomic64_add(nr_migrated, &zram->stats.num_migrated);
-+	up_read(&zram->init_lock);
-+
-+	return len;
-+}
-+
- static ssize_t disksize_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
- {
-@@ -1017,6 +1038,7 @@ static const struct block_device_operati
- 	.owner = THIS_MODULE
- };
- 
-+static DEVICE_ATTR_WO(compact);
- static DEVICE_ATTR_RW(disksize);
- static DEVICE_ATTR_RO(initstate);
- static DEVICE_ATTR_WO(reset);
-@@ -1035,6 +1057,7 @@ ZRAM_ATTR_RO(invalid_io);
- ZRAM_ATTR_RO(notify_free);
- ZRAM_ATTR_RO(zero_pages);
- ZRAM_ATTR_RO(compr_data_size);
-+ZRAM_ATTR_RO(num_migrated);
- 
- static struct attribute *zram_disk_attrs[] = {
- 	&dev_attr_disksize.attr,
-@@ -1044,6 +1067,8 @@ static struct attribute *zram_disk_attrs
- 	&dev_attr_num_writes.attr,
- 	&dev_attr_failed_reads.attr,
- 	&dev_attr_failed_writes.attr,
-+	&dev_attr_num_migrated.attr,
-+	&dev_attr_compact.attr,
- 	&dev_attr_invalid_io.attr,
- 	&dev_attr_notify_free.attr,
- 	&dev_attr_zero_pages.attr,
-diff -puN drivers/block/zram/zram_drv.h~zram-support-compaction drivers/block/zram/zram_drv.h
---- a/drivers/block/zram/zram_drv.h~zram-support-compaction
-+++ a/drivers/block/zram/zram_drv.h
-@@ -84,6 +84,7 @@ struct zram_stats {
- 	atomic64_t compr_data_size;	/* compressed size of pages stored */
- 	atomic64_t num_reads;	/* failed + successful */
- 	atomic64_t num_writes;	/* --do-- */
-+	atomic64_t num_migrated;	/* no. of migrated object */
- 	atomic64_t failed_reads;	/* can happen when memory is too low */
- 	atomic64_t failed_writes;	/* can happen when memory is too low */
- 	atomic64_t invalid_io;	/* non-page-aligned I/O requests */
+diff -puN mm/zsmalloc.c~zsmalloc-adjust-zs_almost_full mm/zsmalloc.c
+--- a/mm/zsmalloc.c~zsmalloc-adjust-zs_almost_full
++++ a/mm/zsmalloc.c
+@@ -480,7 +480,7 @@ static enum fullness_group get_fullness_
+ 		fg = ZS_EMPTY;
+ 	else if (inuse == max_objects)
+ 		fg = ZS_FULL;
+-	else if (inuse <= max_objects / fullness_threshold_frac)
++	else if (inuse <= 3 * max_objects / fullness_threshold_frac)
+ 		fg = ZS_ALMOST_EMPTY;
+ 	else
+ 		fg = ZS_ALMOST_FULL;
 _
 
 Patches currently in -mm which might be from minchan@kernel.org are
