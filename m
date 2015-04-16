@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- cris-fasttimer-remove-use-of-seq_printf-return-value.patch removed from -mm tree
-Date: Thu, 16 Apr 2015 09:55:30 -0700
-Message-ID: <552fe982.bN9SQktpOKgsUm1V%akpm@linux-foundation.org>
+Subject: [merged] ipc-remove-use-of-seq_printf-return-value.patch removed
+ from -mm tree
+Date: Thu, 16 Apr 2015 09:55:18 -0700
+Message-ID: <552fe976.c66UK2kMYbb5/Rjn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43194 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43176 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752391AbbDPQuB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:50:01 -0400
+	with ESMTP id S1754013AbbDPQtt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:49:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, jesper.nilsson@axis.com, starvik@axis.com, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cris fasttimer: remove use of seq_printf return value
+     Subject: ipc: remove use of seq_printf return value
 has been removed from the -mm tree.  Its filename was
-     cris-fasttimer-remove-use-of-seq_printf-return-value.patch
+     ipc-remove-use-of-seq_printf-return-value.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: cris fasttimer: remove use of seq_printf return value
+Subject: ipc: remove use of seq_printf return value
 
 The seq_printf return value, because it's frequently misused,
 will eventually be converted to void.
@@ -34,277 +34,162 @@ will eventually be converted to void.
 See: commit 1f33c41c03da ("seq_file: Rename seq_overflow() to
      seq_has_overflowed() and make public")
 
-Miscellanea:
-
-o Coalesce formats, realign arguments
-
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Mikael Starvik <starvik@axis.com>
-Cc: Jesper Nilsson <jesper.nilsson@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/arch-v10/kernel/fasttimer.c |   85 +++++++++++-------------
- arch/cris/arch-v32/kernel/fasttimer.c |   85 +++++++++++-------------
- 2 files changed, 78 insertions(+), 92 deletions(-)
+ ipc/msg.c  |   34 ++++++++++++++++++----------------
+ ipc/sem.c  |   26 ++++++++++++++------------
+ ipc/shm.c  |   42 ++++++++++++++++++++++--------------------
+ ipc/util.c |    6 ++++--
+ 4 files changed, 58 insertions(+), 50 deletions(-)
 
-diff -puN arch/cris/arch-v10/kernel/fasttimer.c~cris-fasttimer-remove-use-of-seq_printf-return-value arch/cris/arch-v10/kernel/fasttimer.c
---- a/arch/cris/arch-v10/kernel/fasttimer.c~cris-fasttimer-remove-use-of-seq_printf-return-value
-+++ a/arch/cris/arch-v10/kernel/fasttimer.c
-@@ -527,7 +527,8 @@ static int proc_fasttimer_show(struct se
- 			i = debug_log_cnt;
+diff -puN ipc/msg.c~ipc-remove-use-of-seq_printf-return-value ipc/msg.c
+--- a/ipc/msg.c~ipc-remove-use-of-seq_printf-return-value
++++ a/ipc/msg.c
+@@ -1015,22 +1015,24 @@ static int sysvipc_msg_proc_show(struct
+ 	struct user_namespace *user_ns = seq_user_ns(s);
+ 	struct msg_queue *msq = it;
  
- 		while (i != end_i || debug_log_cnt_wrapped) {
--			if (seq_printf(m, debug_log_string[i], debug_log_value[i]) < 0)
-+			seq_printf(m, debug_log_string[i], debug_log_value[i]);
-+			if (seq_has_overflowed(m))
- 				return 0;
- 			i = (i+1) % DEBUG_LOG_MAX;
- 		}
-@@ -542,24 +543,22 @@ static int proc_fasttimer_show(struct se
- 		int cur = (fast_timers_started - i - 1) % NUM_TIMER_STATS;
+-	return seq_printf(s,
+-			"%10d %10d  %4o  %10lu %10lu %5u %5u %5u %5u %5u %5u %10lu %10lu %10lu\n",
+-			msq->q_perm.key,
+-			msq->q_perm.id,
+-			msq->q_perm.mode,
+-			msq->q_cbytes,
+-			msq->q_qnum,
+-			msq->q_lspid,
+-			msq->q_lrpid,
+-			from_kuid_munged(user_ns, msq->q_perm.uid),
+-			from_kgid_munged(user_ns, msq->q_perm.gid),
+-			from_kuid_munged(user_ns, msq->q_perm.cuid),
+-			from_kgid_munged(user_ns, msq->q_perm.cgid),
+-			msq->q_stime,
+-			msq->q_rtime,
+-			msq->q_ctime);
++	seq_printf(s,
++		   "%10d %10d  %4o  %10lu %10lu %5u %5u %5u %5u %5u %5u %10lu %10lu %10lu\n",
++		   msq->q_perm.key,
++		   msq->q_perm.id,
++		   msq->q_perm.mode,
++		   msq->q_cbytes,
++		   msq->q_qnum,
++		   msq->q_lspid,
++		   msq->q_lrpid,
++		   from_kuid_munged(user_ns, msq->q_perm.uid),
++		   from_kgid_munged(user_ns, msq->q_perm.gid),
++		   from_kuid_munged(user_ns, msq->q_perm.cuid),
++		   from_kgid_munged(user_ns, msq->q_perm.cgid),
++		   msq->q_stime,
++		   msq->q_rtime,
++		   msq->q_ctime);
++
++	return 0;
+ }
+ #endif
  
- #if 1 //ndef FAST_TIMER_LOG
--		seq_printf(m, "div: %i freq: %i delay: %i"
--			   "\n",
-+		seq_printf(m, "div: %i freq: %i delay: %i\n",
- 			   timer_div_settings[cur],
- 			   timer_freq_settings[cur],
- 			   timer_delay_settings[cur]);
- #endif
- #ifdef FAST_TIMER_LOG
- 		t = &timer_started_log[cur];
--		if (seq_printf(m, "%-14s s: %6lu.%06lu e: %6lu.%06lu "
--			       "d: %6li us data: 0x%08lX"
--			       "\n",
--			       t->name,
--			       (unsigned long)t->tv_set.tv_jiff,
--			       (unsigned long)t->tv_set.tv_usec,
--			       (unsigned long)t->tv_expires.tv_jiff,
--			       (unsigned long)t->tv_expires.tv_usec,
--			       t->delay_us,
--			       t->data) < 0)
-+		seq_printf(m, "%-14s s: %6lu.%06lu e: %6lu.%06lu d: %6li us data: 0x%08lX\n",
-+			   t->name,
-+			   (unsigned long)t->tv_set.tv_jiff,
-+			   (unsigned long)t->tv_set.tv_usec,
-+			   (unsigned long)t->tv_expires.tv_jiff,
-+			   (unsigned long)t->tv_expires.tv_usec,
-+			   t->delay_us,
-+			   t->data);
-+		if (seq_has_overflowed(m))
- 			return 0;
- #endif
- 	}
-@@ -571,16 +570,15 @@ static int proc_fasttimer_show(struct se
- 	seq_printf(m, "Timers added: %i\n", fast_timers_added);
- 	for (i = 0; i < num_to_show; i++) {
- 		t = &timer_added_log[(fast_timers_added - i - 1) % NUM_TIMER_STATS];
--		if (seq_printf(m, "%-14s s: %6lu.%06lu e: %6lu.%06lu "
--			       "d: %6li us data: 0x%08lX"
--			       "\n",
--			       t->name,
--			       (unsigned long)t->tv_set.tv_jiff,
--			       (unsigned long)t->tv_set.tv_usec,
--			       (unsigned long)t->tv_expires.tv_jiff,
--			       (unsigned long)t->tv_expires.tv_usec,
--			       t->delay_us,
--			       t->data) < 0)
-+		seq_printf(m, "%-14s s: %6lu.%06lu e: %6lu.%06lu d: %6li us data: 0x%08lX\n",
-+			   t->name,
-+			   (unsigned long)t->tv_set.tv_jiff,
-+			   (unsigned long)t->tv_set.tv_usec,
-+			   (unsigned long)t->tv_expires.tv_jiff,
-+			   (unsigned long)t->tv_expires.tv_usec,
-+			   t->delay_us,
-+			   t->data);
-+		if (seq_has_overflowed(m))
- 			return 0;
- 	}
- 	seq_putc(m, '\n');
-@@ -590,16 +588,15 @@ static int proc_fasttimer_show(struct se
- 	seq_printf(m, "Timers expired: %i\n", fast_timers_expired);
- 	for (i = 0; i < num_to_show; i++) {
- 		t = &timer_expired_log[(fast_timers_expired - i - 1) % NUM_TIMER_STATS];
--		if (seq_printf(m, "%-14s s: %6lu.%06lu e: %6lu.%06lu "
--			       "d: %6li us data: 0x%08lX"
--			       "\n",
--			       t->name,
--			       (unsigned long)t->tv_set.tv_jiff,
--			       (unsigned long)t->tv_set.tv_usec,
--			       (unsigned long)t->tv_expires.tv_jiff,
--			       (unsigned long)t->tv_expires.tv_usec,
--			       t->delay_us,
--			       t->data) < 0)
-+		seq_printf(m, "%-14s s: %6lu.%06lu e: %6lu.%06lu d: %6li us data: 0x%08lX\n",
-+			   t->name,
-+			   (unsigned long)t->tv_set.tv_jiff,
-+			   (unsigned long)t->tv_set.tv_usec,
-+			   (unsigned long)t->tv_expires.tv_jiff,
-+			   (unsigned long)t->tv_expires.tv_usec,
-+			   t->delay_us,
-+			   t->data);
-+		if (seq_has_overflowed(m))
- 			return 0;
- 	}
- 	seq_putc(m, '\n');
-@@ -611,19 +608,15 @@ static int proc_fasttimer_show(struct se
- 	while (t) {
- 		nextt = t->next;
- 		local_irq_restore(flags);
--		if (seq_printf(m, "%-14s s: %6lu.%06lu e: %6lu.%06lu "
--			       "d: %6li us data: 0x%08lX"
--/*                      " func: 0x%08lX" */
--			       "\n",
--			       t->name,
--			       (unsigned long)t->tv_set.tv_jiff,
--			       (unsigned long)t->tv_set.tv_usec,
--			       (unsigned long)t->tv_expires.tv_jiff,
--			       (unsigned long)t->tv_expires.tv_usec,
--			       t->delay_us,
--			       t->data
--/*                      , t->function */
--			       ) < 0)
-+		seq_printf(m, "%-14s s: %6lu.%06lu e: %6lu.%06lu d: %6li us data: 0x%08lX\n",
-+			   t->name,
-+			   (unsigned long)t->tv_set.tv_jiff,
-+			   (unsigned long)t->tv_set.tv_usec,
-+			   (unsigned long)t->tv_expires.tv_jiff,
-+			   (unsigned long)t->tv_expires.tv_usec,
-+			   t->delay_us,
-+			   t->data);
-+		if (seq_has_overflowed(m))
- 			return 0;
- 		local_irq_save(flags);
- 		if (t->next != nextt)
-diff -puN arch/cris/arch-v32/kernel/fasttimer.c~cris-fasttimer-remove-use-of-seq_printf-return-value arch/cris/arch-v32/kernel/fasttimer.c
---- a/arch/cris/arch-v32/kernel/fasttimer.c~cris-fasttimer-remove-use-of-seq_printf-return-value
-+++ a/arch/cris/arch-v32/kernel/fasttimer.c
-@@ -501,7 +501,8 @@ static int proc_fasttimer_show(struct se
- 			i = debug_log_cnt;
+diff -puN ipc/sem.c~ipc-remove-use-of-seq_printf-return-value ipc/sem.c
+--- a/ipc/sem.c~ipc-remove-use-of-seq_printf-return-value
++++ a/ipc/sem.c
+@@ -2170,17 +2170,19 @@ static int sysvipc_sem_proc_show(struct
  
- 		while ((i != end_i || debug_log_cnt_wrapped)) {
--			if (seq_printf(m, debug_log_string[i], debug_log_value[i]) < 0)
-+			seq_printf(m, debug_log_string[i], debug_log_value[i]);
-+			if (seq_has_overflowed(m))
- 				return 0;
- 			i = (i+1) % DEBUG_LOG_MAX;
- 		}
-@@ -516,23 +517,21 @@ static int proc_fasttimer_show(struct se
- 		int cur = (fast_timers_started - i - 1) % NUM_TIMER_STATS;
+ 	sem_otime = get_semotime(sma);
  
- #if 1 //ndef FAST_TIMER_LOG
--		seq_printf(m, "div: %i delay: %i"
--			   "\n",
-+		seq_printf(m, "div: %i delay: %i\n",
- 			   timer_div_settings[cur],
- 			   timer_delay_settings[cur]);
+-	return seq_printf(s,
+-			  "%10d %10d  %4o %10u %5u %5u %5u %5u %10lu %10lu\n",
+-			  sma->sem_perm.key,
+-			  sma->sem_perm.id,
+-			  sma->sem_perm.mode,
+-			  sma->sem_nsems,
+-			  from_kuid_munged(user_ns, sma->sem_perm.uid),
+-			  from_kgid_munged(user_ns, sma->sem_perm.gid),
+-			  from_kuid_munged(user_ns, sma->sem_perm.cuid),
+-			  from_kgid_munged(user_ns, sma->sem_perm.cgid),
+-			  sem_otime,
+-			  sma->sem_ctime);
++	seq_printf(s,
++		   "%10d %10d  %4o %10u %5u %5u %5u %5u %10lu %10lu\n",
++		   sma->sem_perm.key,
++		   sma->sem_perm.id,
++		   sma->sem_perm.mode,
++		   sma->sem_nsems,
++		   from_kuid_munged(user_ns, sma->sem_perm.uid),
++		   from_kgid_munged(user_ns, sma->sem_perm.gid),
++		   from_kuid_munged(user_ns, sma->sem_perm.cuid),
++		   from_kgid_munged(user_ns, sma->sem_perm.cgid),
++		   sem_otime,
++		   sma->sem_ctime);
++
++	return 0;
+ }
  #endif
- #ifdef FAST_TIMER_LOG
- 		t = &timer_started_log[cur];
--		if (seq_printf(m, "%-14s s: %6lu.%06lu e: %6lu.%06lu "
--			       "d: %6li us data: 0x%08lX"
--			       "\n",
--			       t->name,
--			       (unsigned long)t->tv_set.tv_jiff,
--			       (unsigned long)t->tv_set.tv_usec,
--			       (unsigned long)t->tv_expires.tv_jiff,
--			       (unsigned long)t->tv_expires.tv_usec,
--			       t->delay_us,
--			       t->data) < 0)
-+		seq_printf(m, "%-14s s: %6lu.%06lu e: %6lu.%06lu d: %6li us data: 0x%08lX\n",
-+			   t->name,
-+			   (unsigned long)t->tv_set.tv_jiff,
-+			   (unsigned long)t->tv_set.tv_usec,
-+			   (unsigned long)t->tv_expires.tv_jiff,
-+			   (unsigned long)t->tv_expires.tv_usec,
-+			   t->delay_us,
-+			   t->data);
-+		if (seq_has_overflowed(m))
- 			return 0;
+diff -puN ipc/shm.c~ipc-remove-use-of-seq_printf-return-value ipc/shm.c
+--- a/ipc/shm.c~ipc-remove-use-of-seq_printf-return-value
++++ a/ipc/shm.c
+@@ -1342,25 +1342,27 @@ static int sysvipc_shm_proc_show(struct
+ #define SIZE_SPEC "%21lu"
  #endif
- 	}
-@@ -544,16 +543,15 @@ static int proc_fasttimer_show(struct se
- 	seq_printf(m, "Timers added: %i\n", fast_timers_added);
- 	for (i = 0; i < num_to_show; i++) {
- 		t = &timer_added_log[(fast_timers_added - i - 1) % NUM_TIMER_STATS];
--		if (seq_printf(m, "%-14s s: %6lu.%06lu e: %6lu.%06lu "
--			       "d: %6li us data: 0x%08lX"
--			       "\n",
--			       t->name,
--			       (unsigned long)t->tv_set.tv_jiff,
--			       (unsigned long)t->tv_set.tv_usec,
--			       (unsigned long)t->tv_expires.tv_jiff,
--			       (unsigned long)t->tv_expires.tv_usec,
--			       t->delay_us,
--			       t->data) < 0)
-+		seq_printf(m, "%-14s s: %6lu.%06lu e: %6lu.%06lu d: %6li us data: 0x%08lX\n",
-+			   t->name,
-+			   (unsigned long)t->tv_set.tv_jiff,
-+			   (unsigned long)t->tv_set.tv_usec,
-+			   (unsigned long)t->tv_expires.tv_jiff,
-+			   (unsigned long)t->tv_expires.tv_usec,
-+			   t->delay_us,
-+			   t->data);
-+		if (seq_has_overflowed(m))
- 			return 0;
- 	}
- 	seq_putc(m, '\n');
-@@ -563,16 +561,15 @@ static int proc_fasttimer_show(struct se
- 	seq_printf(m, "Timers expired: %i\n", fast_timers_expired);
- 	for (i = 0; i < num_to_show; i++){
- 		t = &timer_expired_log[(fast_timers_expired - i - 1) % NUM_TIMER_STATS];
--		if (seq_printf(m, "%-14s s: %6lu.%06lu e: %6lu.%06lu "
--			       "d: %6li us data: 0x%08lX"
--			       "\n",
--			       t->name,
--			       (unsigned long)t->tv_set.tv_jiff,
--			       (unsigned long)t->tv_set.tv_usec,
--			       (unsigned long)t->tv_expires.tv_jiff,
--			       (unsigned long)t->tv_expires.tv_usec,
--			       t->delay_us,
--			       t->data) < 0)
-+		seq_printf(m, "%-14s s: %6lu.%06lu e: %6lu.%06lu d: %6li us data: 0x%08lX\n",
-+			   t->name,
-+			   (unsigned long)t->tv_set.tv_jiff,
-+			   (unsigned long)t->tv_set.tv_usec,
-+			   (unsigned long)t->tv_expires.tv_jiff,
-+			   (unsigned long)t->tv_expires.tv_usec,
-+			   t->delay_us,
-+			   t->data);
-+		if (seq_has_overflowed(m))
- 			return 0;
- 	}
- 	seq_putc(m, '\n');
-@@ -584,19 +581,15 @@ static int proc_fasttimer_show(struct se
- 	while (t != NULL){
- 		nextt = t->next;
- 		local_irq_restore(flags);
--		if (seq_printf(m, "%-14s s: %6lu.%06lu e: %6lu.%06lu "
--			       "d: %6li us data: 0x%08lX"
--/*			" func: 0x%08lX" */
--			       "\n",
--			       t->name,
--			       (unsigned long)t->tv_set.tv_jiff,
--			       (unsigned long)t->tv_set.tv_usec,
--			       (unsigned long)t->tv_expires.tv_jiff,
--			       (unsigned long)t->tv_expires.tv_usec,
--			       t->delay_us,
--			       t->data
--/*                      , t->function */
--			       ) < 0)
-+		seq_printf(m, "%-14s s: %6lu.%06lu e: %6lu.%06lu d: %6li us data: 0x%08lX\n",
-+			   t->name,
-+			   (unsigned long)t->tv_set.tv_jiff,
-+			   (unsigned long)t->tv_set.tv_usec,
-+			   (unsigned long)t->tv_expires.tv_jiff,
-+			   (unsigned long)t->tv_expires.tv_usec,
-+			   t->delay_us,
-+			   t->data);
-+		if (seq_has_overflowed(m))
- 			return 0;
- 		local_irq_save(flags);
- 		if (t->next != nextt)
+ 
+-	return seq_printf(s,
+-			  "%10d %10d  %4o " SIZE_SPEC " %5u %5u  "
+-			  "%5lu %5u %5u %5u %5u %10lu %10lu %10lu "
+-			  SIZE_SPEC " " SIZE_SPEC "\n",
+-			  shp->shm_perm.key,
+-			  shp->shm_perm.id,
+-			  shp->shm_perm.mode,
+-			  shp->shm_segsz,
+-			  shp->shm_cprid,
+-			  shp->shm_lprid,
+-			  shp->shm_nattch,
+-			  from_kuid_munged(user_ns, shp->shm_perm.uid),
+-			  from_kgid_munged(user_ns, shp->shm_perm.gid),
+-			  from_kuid_munged(user_ns, shp->shm_perm.cuid),
+-			  from_kgid_munged(user_ns, shp->shm_perm.cgid),
+-			  shp->shm_atim,
+-			  shp->shm_dtim,
+-			  shp->shm_ctim,
+-			  rss * PAGE_SIZE,
+-			  swp * PAGE_SIZE);
++	seq_printf(s,
++		   "%10d %10d  %4o " SIZE_SPEC " %5u %5u  "
++		   "%5lu %5u %5u %5u %5u %10lu %10lu %10lu "
++		   SIZE_SPEC " " SIZE_SPEC "\n",
++		   shp->shm_perm.key,
++		   shp->shm_perm.id,
++		   shp->shm_perm.mode,
++		   shp->shm_segsz,
++		   shp->shm_cprid,
++		   shp->shm_lprid,
++		   shp->shm_nattch,
++		   from_kuid_munged(user_ns, shp->shm_perm.uid),
++		   from_kgid_munged(user_ns, shp->shm_perm.gid),
++		   from_kuid_munged(user_ns, shp->shm_perm.cuid),
++		   from_kgid_munged(user_ns, shp->shm_perm.cgid),
++		   shp->shm_atim,
++		   shp->shm_dtim,
++		   shp->shm_ctim,
++		   rss * PAGE_SIZE,
++		   swp * PAGE_SIZE);
++
++	return 0;
+ }
+ #endif
+diff -puN ipc/util.c~ipc-remove-use-of-seq_printf-return-value ipc/util.c
+--- a/ipc/util.c~ipc-remove-use-of-seq_printf-return-value
++++ a/ipc/util.c
+@@ -837,8 +837,10 @@ static int sysvipc_proc_show(struct seq_
+ 	struct ipc_proc_iter *iter = s->private;
+ 	struct ipc_proc_iface *iface = iter->iface;
+ 
+-	if (it == SEQ_START_TOKEN)
+-		return seq_puts(s, iface->header);
++	if (it == SEQ_START_TOKEN) {
++		seq_puts(s, iface->header);
++		return 0;
++	}
+ 
+ 	return iface->show(s, it);
+ }
 _
 
 Patches currently in -mm which might be from joe@perches.com are
