@@ -1,61 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] binfmt_misc-simplify-entry_status-fix.patch
- removed from -mm tree
-Date: Thu, 16 Apr 2015 12:01:13 -0700
-Message-ID: <553006f9.Sr7WIoP8ATNjBBVI%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ rtc-driver-for-conexant-digicolor-cx92755-on-chip-rtc-fix.patch removed
+ from -mm tree
+Date: Thu, 16 Apr 2015 12:06:03 -0700
+Message-ID: <5530081b.BjCsk8qez59I1H4t%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45453 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45465 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753411AbbDPTBO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 15:01:14 -0400
+	with ESMTP id S1754960AbbDPTGE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 15:06:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.zummo@towertech.it, baruch@tkos.co.il, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: binfmt_misc-simplify-entry_status-fix
+     Subject: rtc-driver-for-conexant-digicolor-cx92755-on-chip-rtc-fix
 has been removed from the -mm tree.  Its filename was
-     binfmt_misc-simplify-entry_status-fix.patch
+     rtc-driver-for-conexant-digicolor-cx92755-on-chip-rtc-fix.patch
 
-This patch was dropped because it was folded into binfmt_misc-simplify-entry_status.patch
+This patch was dropped because it was folded into rtc-driver-for-conexant-digicolor-cx92755-on-chip-rtc.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: binfmt_misc-simplify-entry_status-fix
+Subject: rtc-driver-for-conexant-digicolor-cx92755-on-chip-rtc-fix
 
-it's odd to include kernel.h after everything else
+build command arrays at compile-time
 
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Baruch Siach <baruch@tkos.co.il>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_misc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-digicolor.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/binfmt_misc.c~binfmt_misc-simplify-entry_status-fix fs/binfmt_misc.c
---- a/fs/binfmt_misc.c~binfmt_misc-simplify-entry_status-fix
-+++ a/fs/binfmt_misc.c
-@@ -9,6 +9,7 @@
+diff -puN drivers/rtc/rtc-digicolor.c~rtc-driver-for-conexant-digicolor-cx92755-on-chip-rtc-fix drivers/rtc/rtc-digicolor.c
+--- a/drivers/rtc/rtc-digicolor.c~rtc-driver-for-conexant-digicolor-cx92755-on-chip-rtc-fix
++++ a/drivers/rtc/rtc-digicolor.c
+@@ -42,7 +42,7 @@ struct dc_rtc {
+ 	void __iomem		*regs;
+ };
  
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+-static int dc_rtc_cmds(struct dc_rtc *rtc, u8 *cmds, int len)
++static int dc_rtc_cmds(struct dc_rtc *rtc, const u8 *cmds, int len)
+ {
+ 	u8 val;
+ 	int i, ret;
+@@ -62,7 +62,7 @@ static int dc_rtc_cmds(struct dc_rtc *rt
  
-+#include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/sched.h>
-@@ -24,7 +25,6 @@
- #include <linux/syscalls.h>
- #include <linux/fs.h>
- #include <linux/uaccess.h>
--#include <linux/kernel.h>
+ static int dc_rtc_read(struct dc_rtc *rtc, unsigned long *val)
+ {
+-	u8 read_cmds[] = {CMD_READ, CMD_NOP};
++	static const u8 read_cmds[] = {CMD_READ, CMD_NOP};
+ 	u32 reference, time1, time2;
+ 	int ret;
  
- #ifdef DEBUG
- # define USE_DEBUG 1
+@@ -86,7 +86,7 @@ static int dc_rtc_read(struct dc_rtc *rt
+ 
+ static int dc_rtc_write(struct dc_rtc *rtc, u32 val)
+ {
+-	u8 write_cmds[] = {CMD_WRITE, CMD_NOP, CMD_RESET, CMD_NOP};
++	static const u8 write_cmds[] = {CMD_WRITE, CMD_NOP, CMD_RESET, CMD_NOP};
+ 
+ 	writel_relaxed(val, rtc->regs + DC_RTC_REFERENCE);
+ 	return dc_rtc_cmds(rtc, write_cmds, ARRAY_SIZE(write_cmds));
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -64,7 +77,7 @@ origin.patch
 lib-find__bit-reimplementation.patch
 checkpatch-match-more-world-writable-permissions.patch
 binfmt_misc-simplify-entry_status.patch
-rtc-driver-for-conexant-digicolor-cx92755-on-chip-rtc-fix.patch
+rtc-driver-for-conexant-digicolor-cx92755-on-chip-rtc.patch
 fs-fat-remove-unnecessary-includes-fix.patch
 kernel-forkc-avoid-division-by-zero-fix.patch
 kernel-forkc-avoid-division-by-zero-fix-fix.patch
