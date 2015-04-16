@@ -1,36 +1,41 @@
 From: akpm@linux-foundation.org
-Subject: [merged] zram-move-compact_store-to-sysfs-functions-area.patch
- removed from -mm tree
-Date: Thu, 16 Apr 2015 09:53:46 -0700
-Message-ID: <552fe91a.RcKHYcCJNzJZAQ7O%akpm@linux-foundation.org>
+Subject: [merged] zram-use-generic-start-end-io-accounting.patch removed
+ from -mm tree
+Date: Thu, 16 Apr 2015 09:53:48 -0700
+Message-ID: <552fe91c.HdH/BIVCVTDp0jxo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42983 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42987 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751277AbbDPQsR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:48:17 -0400
+	with ESMTP id S1753263AbbDPQsT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:48:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: sergey.senozhatsky@gmail.com, minchan@kernel.org, ngupta@vflare.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: move compact_store() to sysfs functions area
+     Subject: zram: use generic start/end io accounting
 has been removed from the -mm tree.  Its filename was
-     zram-move-compact_store-to-sysfs-functions-area.patch
+     zram-use-generic-start-end-io-accounting.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: zram: move compact_store() to sysfs functions area
+Subject: zram: use generic start/end io accounting
 
-A cosmetic change.  We have a new code layout and keep zram per-device
-sysfs store and show functions in one place.  Move compact_store() to that
-handlers block to conform to current layout.
+Use bio generic_start_io_acct() and generic_end_io_acct() to account
+device's block layer statistics.  This will let users to monitor zram
+activities using sysstat and similar packages/tools.
+
+Apart from the usual per-stat sysfs attr, zram IO stats are now also
+available in '/sys/block/zram<id>/stat' and '/proc/diskstats' files.
+
+We will slowly get rid of per-stat sysfs files.
 
 Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Acked-by: Minchan Kim <minchan@kernel.org>
@@ -38,56 +43,34 @@ Cc: Nitin Gupta <ngupta@vflare.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   23 -----------------------
- 1 file changed, 23 deletions(-)
+ drivers/block/zram/zram_drv.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-move-compact_store-to-sysfs-functions-area drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-move-compact_store-to-sysfs-functions-area
+diff -puN drivers/block/zram/zram_drv.c~zram-use-generic-start-end-io-accounting drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-use-generic-start-end-io-accounting
 +++ a/drivers/block/zram/zram_drv.c
-@@ -63,27 +63,6 @@ static inline struct zram *dev_to_zram(s
- 	return (struct zram *)dev_to_disk(dev)->private_data;
- }
- 
--static ssize_t compact_store(struct device *dev,
--		struct device_attribute *attr, const char *buf, size_t len)
--{
--	unsigned long nr_migrated;
--	struct zram *zram = dev_to_zram(dev);
--	struct zram_meta *meta;
--
--	down_read(&zram->init_lock);
--	if (!init_done(zram)) {
--		up_read(&zram->init_lock);
--		return -EINVAL;
--	}
--
--	meta = zram->meta;
--	nr_migrated = zs_compact(meta->mem_pool);
--	atomic64_add(nr_migrated, &zram->stats.num_migrated);
--	up_read(&zram->init_lock);
--
--	return len;
--}
--
- static ssize_t disksize_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
+@@ -670,8 +670,12 @@ out:
+ static int zram_bvec_rw(struct zram *zram, struct bio_vec *bvec, u32 index,
+ 			int offset, int rw)
  {
-@@ -1038,7 +1017,6 @@ static const struct block_device_operati
- 	.owner = THIS_MODULE
- };
++	unsigned long start_time = jiffies;
+ 	int ret;
  
--static DEVICE_ATTR_WO(compact);
- static DEVICE_ATTR_RW(disksize);
- static DEVICE_ATTR_RO(initstate);
- static DEVICE_ATTR_WO(reset);
-@@ -1066,7 +1044,6 @@ static struct attribute *zram_disk_attrs
- 	&dev_attr_num_writes.attr,
- 	&dev_attr_failed_reads.attr,
- 	&dev_attr_failed_writes.attr,
--	&dev_attr_compact.attr,
- 	&dev_attr_invalid_io.attr,
- 	&dev_attr_notify_free.attr,
- 	&dev_attr_zero_pages.attr,
++	generic_start_io_acct(rw, bvec->bv_len >> SECTOR_SHIFT,
++			&zram->disk->part0);
++
+ 	if (rw == READ) {
+ 		atomic64_inc(&zram->stats.num_reads);
+ 		ret = zram_bvec_read(zram, bvec, index, offset);
+@@ -680,6 +684,8 @@ static int zram_bvec_rw(struct zram *zra
+ 		ret = zram_bvec_write(zram, bvec, index, offset);
+ 	}
+ 
++	generic_end_io_acct(rw, &zram->disk->part0, start_time);
++
+ 	if (unlikely(ret)) {
+ 		if (rw == READ)
+ 			atomic64_inc(&zram->stats.failed_reads);
 _
 
 Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
