@@ -1,172 +1,72 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- kernel-rebootc-add-orderly_reboot-for-graceful-reboot.patch removed from
- -mm tree
-Date: Thu, 16 Apr 2015 09:54:31 -0700
-Message-ID: <552fe947.nygQzk+Cv/qRfZyA%akpm@linux-foundation.org>
+ printk-comment-pr_cont-stating-it-is-only-to-continue-a-line.patch removed
+ from -mm tree
+Date: Thu, 16 Apr 2015 09:54:37 -0700
+Message-ID: <552fe94d.FOJNH9y32WewYtXk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43080 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43105 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753736AbbDPQtC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:49:02 -0400
+	with ESMTP id S1753058AbbDPQtI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:49:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joel@jms.id.au, benh@kernel.crashing.org, davem@davemloft.net, fabf@skynet.be, jk@ozlabs.org, mpe@ellerman.id.au, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: rostedt@goodmis.org, bp@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/reboot.c: add orderly_reboot for graceful reboot
+     Subject: printk: comment pr_cont() stating it is only to continue a line
 has been removed from the -mm tree.  Its filename was
-     kernel-rebootc-add-orderly_reboot-for-graceful-reboot.patch
+     printk-comment-pr_cont-stating-it-is-only-to-continue-a-line.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joel Stanley <joel@jms.id.au>
-Subject: kernel/reboot.c: add orderly_reboot for graceful reboot
+From: Steven Rostedt <rostedt@goodmis.org>
+Subject: printk: comment pr_cont() stating it is only to continue a line
 
-The kernel has orderly_poweroff which allows the kernel to initiate a
-graceful shutdown of userspace, by running /sbin/poweroff.  This adds
-orderly_reboot that will cause userspace to shut itself down by calling
-/sbin/reboot.
+KERN_CONT is nicely commented in kern_levels.h, but pr_cont() is now used
+more often, and it lacks the comment stating what it is used for.  It can
+be confused as continuing the log level, but that is not its purpose.  Its
+purpose is to continue a line that had no newline enclosed.  This should
+be documented by pr_cont() as well.
 
-This will be used for shutdown initiated by a system controller on
-platforms that do not use ACPI.
-
-orderly_reboot() should be used when the system wants to allow userspace
-to gracefully shut itself down.  For cases where the system may imminently
-catch on fire, the existing emergency_restart() provides an immediate
-reboot without involving userspace.
-
-Signed-off-by: Joel Stanley <joel@jms.id.au>
-Cc: Fabian Frederick <fabf@skynet.be>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Jeremy Kerr <jk@ozlabs.org>
-Cc: David S. Miller <davem@davemloft.net>
+Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
+Acked-by: Borislav Petkov <bp@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/reboot.h |    3 +-
- kernel/reboot.c        |   53 +++++++++++++++++++++++++++++++++++----
- 2 files changed, 50 insertions(+), 6 deletions(-)
+ include/linux/printk.h |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN include/linux/reboot.h~kernel-rebootc-add-orderly_reboot-for-graceful-reboot include/linux/reboot.h
---- a/include/linux/reboot.h~kernel-rebootc-add-orderly_reboot-for-graceful-reboot
-+++ a/include/linux/reboot.h
-@@ -70,7 +70,8 @@ void ctrl_alt_del(void);
- #define POWEROFF_CMD_PATH_LEN	256
- extern char poweroff_cmd[POWEROFF_CMD_PATH_LEN];
- 
--extern int orderly_poweroff(bool force);
-+extern void orderly_poweroff(bool force);
-+extern void orderly_reboot(void);
- 
- /*
-  * Emergency restart, callable from an interrupt handler.
-diff -puN kernel/reboot.c~kernel-rebootc-add-orderly_reboot-for-graceful-reboot kernel/reboot.c
---- a/kernel/reboot.c~kernel-rebootc-add-orderly_reboot-for-graceful-reboot
-+++ a/kernel/reboot.c
-@@ -387,8 +387,9 @@ void ctrl_alt_del(void)
- }
- 
- char poweroff_cmd[POWEROFF_CMD_PATH_LEN] = "/sbin/poweroff";
-+static const char reboot_cmd[] = "/sbin/reboot";
- 
--static int __orderly_poweroff(bool force)
-+static int run_cmd(const char *cmd)
- {
- 	char **argv;
- 	static char *envp[] = {
-@@ -397,8 +398,7 @@ static int __orderly_poweroff(bool force
- 		NULL
- 	};
- 	int ret;
--
--	argv = argv_split(GFP_KERNEL, poweroff_cmd, NULL);
-+	argv = argv_split(GFP_KERNEL, cmd, NULL);
- 	if (argv) {
- 		ret = call_usermodehelper(argv[0], argv, envp, UMH_WAIT_EXEC);
- 		argv_free(argv);
-@@ -406,8 +406,33 @@ static int __orderly_poweroff(bool force
- 		ret = -ENOMEM;
- 	}
- 
-+	return ret;
-+}
-+
-+static int __orderly_reboot(void)
-+{
-+	int ret;
-+
-+	ret = run_cmd(reboot_cmd);
-+
-+	if (ret) {
-+		pr_warn("Failed to start orderly reboot: forcing the issue\n");
-+		emergency_sync();
-+		kernel_restart(NULL);
-+	}
-+
-+	return ret;
-+}
-+
-+static int __orderly_poweroff(bool force)
-+{
-+	int ret;
-+
-+	ret = run_cmd(poweroff_cmd);
-+
- 	if (ret && force) {
- 		pr_warn("Failed to start orderly shutdown: forcing the issue\n");
-+
- 		/*
- 		 * I guess this should try to kick off some daemon to sync and
- 		 * poweroff asap.  Or not even bother syncing if we're doing an
-@@ -436,15 +461,33 @@ static DECLARE_WORK(poweroff_work, power
-  * This may be called from any context to trigger a system shutdown.
-  * If the orderly shutdown fails, it will force an immediate shutdown.
-  */
--int orderly_poweroff(bool force)
-+void orderly_poweroff(bool force)
- {
- 	if (force) /* do not override the pending "true" */
- 		poweroff_force = true;
- 	schedule_work(&poweroff_work);
--	return 0;
- }
- EXPORT_SYMBOL_GPL(orderly_poweroff);
- 
-+static void reboot_work_func(struct work_struct *work)
-+{
-+	__orderly_reboot();
-+}
-+
-+static DECLARE_WORK(reboot_work, reboot_work_func);
-+
-+/**
-+ * orderly_reboot - Trigger an orderly system reboot
-+ *
-+ * This may be called from any context to trigger a system reboot.
-+ * If the orderly reboot fails, it will force an immediate reboot.
+diff -puN include/linux/printk.h~printk-comment-pr_cont-stating-it-is-only-to-continue-a-line include/linux/printk.h
+--- a/include/linux/printk.h~printk-comment-pr_cont-stating-it-is-only-to-continue-a-line
++++ a/include/linux/printk.h
+@@ -255,6 +255,11 @@ extern asmlinkage void dump_stack(void)
+ 	printk(KERN_NOTICE pr_fmt(fmt), ##__VA_ARGS__)
+ #define pr_info(fmt, ...) \
+ 	printk(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
++/*
++ * Like KERN_CONT, pr_cont() should only be used when continuing
++ * a line with no newline ('\n') enclosed. Otherwise it defaults
++ * back to KERN_DEFAULT.
 + */
-+void orderly_reboot(void)
-+{
-+	schedule_work(&reboot_work);
-+}
-+EXPORT_SYMBOL_GPL(orderly_reboot);
-+
- static int __init reboot_setup(char *str)
- {
- 	for (;;) {
+ #define pr_cont(fmt, ...) \
+ 	printk(KERN_CONT fmt, ##__VA_ARGS__)
+ 
 _
 
-Patches currently in -mm which might be from joel@jms.id.au are
+Patches currently in -mm which might be from rostedt@goodmis.org are
 
 origin.patch
+util_macrosh-add-find_closest-macro.patch
+documentation-update-codingstyle-on-local-variables-naming-in-macros.patch
+hwmon-ina2xx-replace-ina226_avg_bits-with-find_closest.patch
+hwmon-lm85-use-find_closest-in-x_to_reg-functions.patch
+hwmon-w83795-use-find_closest_descending-in-pwm_freq_to_reg.patch
 linux-next.patch
 
