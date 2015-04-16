@@ -1,95 +1,153 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- lib-vsprintfc-fix-potential-null-deref-in-hex_string.patch removed from -mm tree
-Date: Thu, 16 Apr 2015 09:54:55 -0700
-Message-ID: <552fe95f.B35ohZaBh1XgR8/s%akpm@linux-foundation.org>
+ lib-vsprintf-add-%pcnr-format-specifiers-for-clocks.patch removed from -mm
+ tree
+Date: Thu, 16 Apr 2015 09:54:53 -0700
+Message-ID: <552fe95d.bfebmz8VNw4zF/4f%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43141 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43137 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751392AbbDPQt0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:49:26 -0400
+	with ESMTP id S1751392AbbDPQtY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:49:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, andriy.shevchenko@linux.intel.com, mm-commits@vger.kernel.org
+To: geert+renesas@glider.be, corbet@lwn.net, mturquette@linaro.org, penguin-kernel@I-love.SAKURA.ne.jp, sboyd@codeaurora.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/vsprintf.c: fix potential NULL deref in hex_string
+     Subject: lib/vsprintf: add %pC{,n,r} format specifiers for clocks
 has been removed from the -mm tree.  Its filename was
-     lib-vsprintfc-fix-potential-null-deref-in-hex_string.patch
+     lib-vsprintf-add-%pcnr-format-specifiers-for-clocks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/vsprintf.c: fix potential NULL deref in hex_string
+From: Geert Uytterhoeven <geert+renesas@glider.be>
+Subject: lib/vsprintf: add %pC{,n,r} format specifiers for clocks
 
-The helper hex_string() is broken in two ways.  First, it doesn't
-increment buf regardless of whether there is room to print, so callers
-such as kasprintf() that try to probe the correct storage to allocate will
-get a too small return value.  But even worse, kasprintf() (and likely
-anyone else trying to find the size of the result) pass NULL for buf and 0
-for size, so we also have end == NULL.  But this means that the end-1 in
-hex_string() is (char*)-1, so buf < end-1 is true and we get a NULL
-pointer deref.  I double-checked this with a trivial kernel module that
-just did a kasprintf(GFP_KERNEL, "%14ph", "CrashBoomBang").
+Add format specifiers for printing struct clk:
+  - '%pC' or '%pCn': name (Common Clock Framework) or address (legacy
+    clock framework) of the clock,
+  - '%pCr': rate of the clock.
 
-Nobody seems to be using %ph with kasprintf, but we might as well fix it
-before it hits someone.
-
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Acked-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+[akpm@linux-foundation.org: omit code if !CONFIG_HAVE_CLK]
+Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Mike Turquette <mturquette@linaro.org>
+Cc: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |   16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+ Documentation/printk-formats.txt |   12 +++++++++
+ lib/vsprintf.c                   |   37 +++++++++++++++++++++++++++++
+ 2 files changed, 49 insertions(+)
 
-diff -puN lib/vsprintf.c~lib-vsprintfc-fix-potential-null-deref-in-hex_string lib/vsprintf.c
---- a/lib/vsprintf.c~lib-vsprintfc-fix-potential-null-deref-in-hex_string
+diff -puN Documentation/printk-formats.txt~lib-vsprintf-add-%pcnr-format-specifiers-for-clocks Documentation/printk-formats.txt
+--- a/Documentation/printk-formats.txt~lib-vsprintf-add-%pcnr-format-specifiers-for-clocks
++++ a/Documentation/printk-formats.txt
+@@ -261,6 +261,18 @@ struct va_format:
+ 
+ 	Passed by reference.
+ 
++struct clk:
++
++	%pC	pll1
++	%pCn	pll1
++	%pCr	1560000000
++
++	For printing struct clk structures. '%pC' and '%pCn' print the name
++	(Common Clock Framework) or address (legacy clock framework) of the
++	structure; '%pCr' prints the current clock rate.
++
++	Passed by reference.
++
+ 
+ Thank you for your cooperation and attention.
+ 
+diff -puN lib/vsprintf.c~lib-vsprintf-add-%pcnr-format-specifiers-for-clocks lib/vsprintf.c
+--- a/lib/vsprintf.c~lib-vsprintf-add-%pcnr-format-specifiers-for-clocks
 +++ a/lib/vsprintf.c
-@@ -777,11 +777,19 @@ char *hex_string(char *buf, char *end, u
- 	if (spec.field_width > 0)
- 		len = min_t(int, spec.field_width, 64);
+@@ -17,6 +17,7 @@
+  */
  
--	for (i = 0; i < len && buf < end - 1; i++) {
--		buf = hex_byte_pack(buf, addr[i]);
-+	for (i = 0; i < len; ++i) {
-+		if (buf < end)
-+			*buf = hex_asc_hi(addr[i]);
-+		++buf;
-+		if (buf < end)
-+			*buf = hex_asc_lo(addr[i]);
-+		++buf;
+ #include <stdarg.h>
++#include <linux/clk-provider.h>
+ #include <linux/module.h>	/* for KSYM_SYMBOL_LEN */
+ #include <linux/types.h>
+ #include <linux/string.h>
+@@ -1315,6 +1316,30 @@ char *address_val(char *buf, char *end,
+ 	return number(buf, end, num, spec);
+ }
  
--		if (buf < end && separator && i != len - 1)
--			*buf++ = separator;
-+		if (separator && i != len - 1) {
-+			if (buf < end)
-+				*buf = separator;
-+			++buf;
-+		}
- 	}
++static noinline_for_stack
++char *clock(char *buf, char *end, struct clk *clk, struct printf_spec spec,
++	    const char *fmt)
++{
++	if (!IS_ENABLED(CONFIG_HAVE_CLK) || !clk)
++		return string(buf, end, NULL, spec);
++
++	switch (fmt[1]) {
++	case 'r':
++		return number(buf, end, clk_get_rate(clk), spec);
++
++	case 'n':
++	default:
++#ifdef CONFIG_COMMON_CLK
++		return string(buf, end, __clk_get_name(clk), spec);
++#else
++		spec.base = 16;
++		spec.field_width = sizeof(unsigned long) * 2 + 2;
++		spec.flags |= SPECIAL | SMALL | ZEROPAD;
++		return number(buf, end, (unsigned long)clk, spec);
++#endif
++	}
++}
++
+ int kptr_restrict __read_mostly;
  
- 	return buf;
+ /*
+@@ -1397,6 +1422,11 @@ int kptr_restrict __read_mostly;
+  *           (default assumed to be phys_addr_t, passed by reference)
+  * - 'd[234]' For a dentry name (optionally 2-4 last components)
+  * - 'D[234]' Same as 'd' but for a struct file
++ * - 'C' For a clock, it prints the name (Common Clock Framework) or address
++ *       (legacy clock framework) of the clock
++ * - 'Cn' For a clock, it prints the name (Common Clock Framework) or address
++ *        (legacy clock framework) of the clock
++ * - 'Cr' For a clock, it prints the current rate of the clock
+  *
+  * Note: The difference between 'S' and 'F' is that on ia64 and ppc64
+  * function pointers are really function descriptors, which contain a
+@@ -1541,6 +1571,8 @@ char *pointer(const char *fmt, char *buf
+ 		return address_val(buf, end, ptr, spec, fmt);
+ 	case 'd':
+ 		return dentry_name(buf, end, ptr, spec, fmt);
++	case 'C':
++		return clock(buf, end, ptr, spec, fmt);
+ 	case 'D':
+ 		return dentry_name(buf, end,
+ 				   ((const struct file *)ptr)->f_path.dentry,
+@@ -1785,6 +1817,11 @@ qualifier:
+  * %*pE[achnops] print an escaped buffer
+  * %*ph[CDN] a variable-length hex string with a separator (supports up to 64
+  *           bytes of the input)
++ * %pC output the name (Common Clock Framework) or address (legacy clock
++ *     framework) of a clock
++ * %pCn output the name (Common Clock Framework) or address (legacy clock
++ *      framework) of a clock
++ * %pCr output the current rate of a clock
+  * %n is ignored
+  *
+  * ** Please update Documentation/printk-formats.txt when making changes **
 _
 
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
+Patches currently in -mm which might be from geert+renesas@glider.be are
 
 origin.patch
-lib-find__bit-reimplementation.patch
-lib-find__bit-reimplementation-fix.patch
-lib-move-find_last_bit-to-lib-find_next_bitc.patch
-lib-rename-lib-find_next_bitc-to-lib-find_bitc.patch
-lib-vsprintfc-even-faster-decimal-conversion.patch
-lib-vsprintfc-even-faster-decimal-conversion-fix.patch
-lib-vsprintfc-improve-put_dec_trunc8-slightly.patch
-lib-bitmap_-remove-code-duplication.patch
-binfmt_misc-simplify-entry_status.patch
-binfmt_misc-simplify-entry_status-fix.patch
 linux-next.patch
 
