@@ -1,64 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- thp-do-not-adjust-zone-water-marks-if-khugepaged-is-not-started.patch
+Subject: [merged] thp-handle-errors-in-hugepage_init-properly.patch
  removed from -mm tree
-Date: Thu, 16 Apr 2015 09:52:23 -0700
-Message-ID: <552fe8c7.MYgibzdfcEC+i8le%akpm@linux-foundation.org>
+Date: Thu, 16 Apr 2015 09:52:21 -0700
+Message-ID: <552fe8c5.QsJbIz3/nHUBEyXU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42765 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42760 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753223AbbDPQqy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:46:54 -0400
+	with ESMTP id S1752855AbbDPQqw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:46:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp: do not adjust zone water marks if khugepaged is not started
+     Subject: thp: handle errors in hugepage_init() properly
 has been removed from the -mm tree.  Its filename was
-     thp-do-not-adjust-zone-water-marks-if-khugepaged-is-not-started.patch
+     thp-handle-errors-in-hugepage_init-properly.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: thp: do not adjust zone water marks if khugepaged is not started
+Subject: thp: handle errors in hugepage_init() properly
 
-set_recommended_min_free_kbytes() adjusts zone water marks to be suitable
-for khugepaged. We avoid doing this if khugepaged is disabled, but don't
-catch the case when khugepaged is failed to start.
-
-Let's address this by checking khugepaged_thread instead of
-khugepaged_enabled() in set_recommended_min_free_kbytes().
-It's NULL if the kernel thread is stopped or failed to start.
+We miss error-handling in few cases hugepage_init(). Let's fix that.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: David Rientjes <rientjes@google.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/huge_memory.c |   25 ++++++++++++++++++++-----
+ 1 file changed, 20 insertions(+), 5 deletions(-)
 
-diff -puN mm/huge_memory.c~thp-do-not-adjust-zone-water-marks-if-khugepaged-is-not-started mm/huge_memory.c
---- a/mm/huge_memory.c~thp-do-not-adjust-zone-water-marks-if-khugepaged-is-not-started
+diff -puN mm/huge_memory.c~thp-handle-errors-in-hugepage_init-properly mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-handle-errors-in-hugepage_init-properly
 +++ a/mm/huge_memory.c
-@@ -110,7 +110,8 @@ static int set_recommended_min_free_kbyt
- 	int nr_zones = 0;
- 	unsigned long recommended_min;
+@@ -67,6 +67,7 @@ static unsigned int khugepaged_max_ptes_
  
--	if (!khugepaged_enabled())
-+	/* khugepaged thread has stopped to failed to start */
-+	if (!khugepaged_thread)
- 		return 0;
+ static int khugepaged(void *none);
+ static int khugepaged_slab_init(void);
++static void khugepaged_slab_exit(void);
  
- 	for_each_populated_zone(zone)
+ #define MM_SLOTS_HASH_BITS 10
+ static __read_mostly DEFINE_HASHTABLE(mm_slots_hash, MM_SLOTS_HASH_BITS);
+@@ -634,13 +635,15 @@ static int __init hugepage_init(void)
+ 
+ 	err = hugepage_init_sysfs(&hugepage_kobj);
+ 	if (err)
+-		return err;
++		goto err_sysfs;
+ 
+ 	err = khugepaged_slab_init();
+ 	if (err)
+-		goto out;
++		goto err_slab;
+ 
+-	register_shrinker(&huge_zero_page_shrinker);
++	err = register_shrinker(&huge_zero_page_shrinker);
++	if (err)
++		goto err_hzp_shrinker;
+ 
+ 	/*
+ 	 * By default disable transparent hugepages on smaller systems,
+@@ -650,11 +653,18 @@ static int __init hugepage_init(void)
+ 	if (totalram_pages < (512 << (20 - PAGE_SHIFT)))
+ 		transparent_hugepage_flags = 0;
+ 
+-	start_khugepaged();
++	err = start_khugepaged();
++	if (err)
++		goto err_khugepaged;
+ 
+ 	return 0;
+-out:
++err_khugepaged:
++	unregister_shrinker(&huge_zero_page_shrinker);
++err_hzp_shrinker:
++	khugepaged_slab_exit();
++err_slab:
+ 	hugepage_exit_sysfs(hugepage_kobj);
++err_sysfs:
+ 	return err;
+ }
+ subsys_initcall(hugepage_init);
+@@ -1974,6 +1984,11 @@ static int __init khugepaged_slab_init(v
+ 	return 0;
+ }
+ 
++static void __init khugepaged_slab_exit(void)
++{
++	kmem_cache_destroy(mm_slot_cache);
++}
++
+ static inline struct mm_slot *alloc_mm_slot(void)
+ {
+ 	if (!mm_slot_cache)	/* initialization failed */
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
