@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: [merged] openrisc-remove-use-of-seq_printf-return-value.patch
- removed from -mm tree
-Date: Thu, 16 Apr 2015 09:55:26 -0700
-Message-ID: <552fe97e.v/5t9au1kjx/Lx92%akpm@linux-foundation.org>
+Subject: [merged] cris-remove-use-of-seq_printf-return-value.patch removed from -mm tree
+Date: Thu, 16 Apr 2015 09:55:28 -0700
+Message-ID: <552fe980.bkDE/BfKvoPd3roi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43187 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43190 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754036AbbDPQt5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:49:57 -0400
+	with ESMTP id S1754048AbbDPQt7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:49:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, jonas@southpole.se, mm-commits@vger.kernel.org
+To: joe@perches.com, jesper.nilsson@axis.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: openrisc: remove use of seq_printf return value
+     Subject: cris: remove use of seq_printf return value
 has been removed from the -mm tree.  Its filename was
-     openrisc-remove-use-of-seq_printf-return-value.patch
+     cris-remove-use-of-seq_printf-return-value.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: openrisc: remove use of seq_printf return value
+Subject: cris: remove use of seq_printf return value
 
 The seq_printf return value, because it's frequently misused,
 will eventually be converted to void.
@@ -35,73 +34,154 @@ See: commit 1f33c41c03da ("seq_file: Rename seq_overflow() to
      seq_has_overflowed() and make public")
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Jonas Bonn <jonas@southpole.se>
+Acked-by: Jesper Nilsson <jesper.nilsson@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/openrisc/kernel/setup.c |   50 +++++++++++++++++----------------
- 1 file changed, 26 insertions(+), 24 deletions(-)
+ arch/cris/arch-v10/kernel/setup.c |   58 ++++++++++++++-------------
+ arch/cris/arch-v32/kernel/setup.c |   60 ++++++++++++++--------------
+ 2 files changed, 61 insertions(+), 57 deletions(-)
 
-diff -puN arch/openrisc/kernel/setup.c~openrisc-remove-use-of-seq_printf-return-value arch/openrisc/kernel/setup.c
---- a/arch/openrisc/kernel/setup.c~openrisc-remove-use-of-seq_printf-return-value
-+++ a/arch/openrisc/kernel/setup.c
-@@ -329,30 +329,32 @@ static int show_cpuinfo(struct seq_file
- 	version = (vr & SPR_VR_VER) >> 24;
- 	revision = vr & SPR_VR_REV;
+diff -puN arch/cris/arch-v10/kernel/setup.c~cris-remove-use-of-seq_printf-return-value arch/cris/arch-v10/kernel/setup.c
+--- a/arch/cris/arch-v10/kernel/setup.c~cris-remove-use-of-seq_printf-return-value
++++ a/arch/cris/arch-v10/kernel/setup.c
+@@ -63,35 +63,37 @@ int show_cpuinfo(struct seq_file *m, voi
+ 	else
+ 		info = &cpu_info[revision];
  
 -	return seq_printf(m,
--			  "cpu\t\t: OpenRISC-%x\n"
--			  "revision\t: %d\n"
--			  "frequency\t: %ld\n"
--			  "dcache size\t: %d bytes\n"
--			  "dcache block size\t: %d bytes\n"
--			  "icache size\t: %d bytes\n"
--			  "icache block size\t: %d bytes\n"
--			  "immu\t\t: %d entries, %lu ways\n"
--			  "dmmu\t\t: %d entries, %lu ways\n"
--			  "bogomips\t: %lu.%02lu\n",
--			  version,
--			  revision,
--			  loops_per_jiffy * HZ,
--			  cpuinfo.dcache_size,
--			  cpuinfo.dcache_block_size,
--			  cpuinfo.icache_size,
--			  cpuinfo.icache_block_size,
--			  1 << ((mfspr(SPR_DMMUCFGR) & SPR_DMMUCFGR_NTS) >> 2),
--			  1 + (mfspr(SPR_DMMUCFGR) & SPR_DMMUCFGR_NTW),
--			  1 << ((mfspr(SPR_IMMUCFGR) & SPR_IMMUCFGR_NTS) >> 2),
--			  1 + (mfspr(SPR_IMMUCFGR) & SPR_IMMUCFGR_NTW),
--			  (loops_per_jiffy * HZ) / 500000,
--			  ((loops_per_jiffy * HZ) / 5000) % 100);
+-		       "processor\t: 0\n" 
+-		       "cpu\t\t: CRIS\n"
+-		       "cpu revision\t: %lu\n"
+-		       "cpu model\t: %s\n"
+-		       "cache size\t: %d kB\n"
+-		       "fpu\t\t: %s\n"
+-		       "mmu\t\t: %s\n"
+-		       "mmu DMA bug\t: %s\n"
+-		       "ethernet\t: %s Mbps\n"
+-		       "token ring\t: %s\n"
+-		       "scsi\t\t: %s\n"
+-		       "ata\t\t: %s\n"
+-		       "usb\t\t: %s\n"
+-		       "bogomips\t: %lu.%02lu\n",
 +	seq_printf(m,
-+		   "cpu\t\t: OpenRISC-%x\n"
-+		   "revision\t: %d\n"
-+		   "frequency\t: %ld\n"
-+		   "dcache size\t: %d bytes\n"
-+		   "dcache block size\t: %d bytes\n"
-+		   "icache size\t: %d bytes\n"
-+		   "icache block size\t: %d bytes\n"
-+		   "immu\t\t: %d entries, %lu ways\n"
-+		   "dmmu\t\t: %d entries, %lu ways\n"
++		   "processor\t: 0\n"
++		   "cpu\t\t: CRIS\n"
++		   "cpu revision\t: %lu\n"
++		   "cpu model\t: %s\n"
++		   "cache size\t: %d kB\n"
++		   "fpu\t\t: %s\n"
++		   "mmu\t\t: %s\n"
++		   "mmu DMA bug\t: %s\n"
++		   "ethernet\t: %s Mbps\n"
++		   "token ring\t: %s\n"
++		   "scsi\t\t: %s\n"
++		   "ata\t\t: %s\n"
++		   "usb\t\t: %s\n"
 +		   "bogomips\t: %lu.%02lu\n",
-+		   version,
+ 
+-		       revision,
+-		       info->model,
+-		       info->cache,
+-		       info->flags & HAS_FPU ? "yes" : "no",
+-		       info->flags & HAS_MMU ? "yes" : "no",
+-		       info->flags & HAS_MMU_BUG ? "yes" : "no",
+-		       info->flags & HAS_ETHERNET100 ? "10/100" : "10",
+-		       info->flags & HAS_TOKENRING ? "4/16 Mbps" : "no",
+-		       info->flags & HAS_SCSI ? "yes" : "no",
+-		       info->flags & HAS_ATA ? "yes" : "no",
+-		       info->flags & HAS_USB ? "yes" : "no",
+-		       (loops_per_jiffy * HZ + 500) / 500000,
+-		       ((loops_per_jiffy * HZ + 500) / 5000) % 100);
 +		   revision,
-+		   loops_per_jiffy * HZ,
-+		   cpuinfo.dcache_size,
-+		   cpuinfo.dcache_block_size,
-+		   cpuinfo.icache_size,
-+		   cpuinfo.icache_block_size,
-+		   1 << ((mfspr(SPR_DMMUCFGR) & SPR_DMMUCFGR_NTS) >> 2),
-+		   1 + (mfspr(SPR_DMMUCFGR) & SPR_DMMUCFGR_NTW),
-+		   1 << ((mfspr(SPR_IMMUCFGR) & SPR_IMMUCFGR_NTS) >> 2),
-+		   1 + (mfspr(SPR_IMMUCFGR) & SPR_IMMUCFGR_NTW),
-+		   (loops_per_jiffy * HZ) / 500000,
-+		   ((loops_per_jiffy * HZ) / 5000) % 100);
++		   info->model,
++		   info->cache,
++		   info->flags & HAS_FPU ? "yes" : "no",
++		   info->flags & HAS_MMU ? "yes" : "no",
++		   info->flags & HAS_MMU_BUG ? "yes" : "no",
++		   info->flags & HAS_ETHERNET100 ? "10/100" : "10",
++		   info->flags & HAS_TOKENRING ? "4/16 Mbps" : "no",
++		   info->flags & HAS_SCSI ? "yes" : "no",
++		   info->flags & HAS_ATA ? "yes" : "no",
++		   info->flags & HAS_USB ? "yes" : "no",
++		   (loops_per_jiffy * HZ + 500) / 500000,
++		   ((loops_per_jiffy * HZ + 500) / 5000) % 100);
 +
 +	return 0;
  }
  
- static void *c_start(struct seq_file *m, loff_t * pos)
+ #endif /* CONFIG_PROC_FS */
+diff -puN arch/cris/arch-v32/kernel/setup.c~cris-remove-use-of-seq_printf-return-value arch/cris/arch-v32/kernel/setup.c
+--- a/arch/cris/arch-v32/kernel/setup.c~cris-remove-use-of-seq_printf-return-value
++++ a/arch/cris/arch-v32/kernel/setup.c
+@@ -77,36 +77,38 @@ int show_cpuinfo(struct seq_file *m, voi
+ 		}
+ 	}
+ 
+-	return seq_printf(m,
+-		"processor\t: %d\n"
+-		"cpu\t\t: CRIS\n"
+-		"cpu revision\t: %lu\n"
+-		"cpu model\t: %s\n"
+-		"cache size\t: %d KB\n"
+-		"fpu\t\t: %s\n"
+-		"mmu\t\t: %s\n"
+-		"mmu DMA bug\t: %s\n"
+-		"ethernet\t: %s Mbps\n"
+-		"token ring\t: %s\n"
+-		"scsi\t\t: %s\n"
+-		"ata\t\t: %s\n"
+-		"usb\t\t: %s\n"
+-		"bogomips\t: %lu.%02lu\n\n",
++	seq_printf(m,
++		   "processor\t: %d\n"
++		   "cpu\t\t: CRIS\n"
++		   "cpu revision\t: %lu\n"
++		   "cpu model\t: %s\n"
++		   "cache size\t: %d KB\n"
++		   "fpu\t\t: %s\n"
++		   "mmu\t\t: %s\n"
++		   "mmu DMA bug\t: %s\n"
++		   "ethernet\t: %s Mbps\n"
++		   "token ring\t: %s\n"
++		   "scsi\t\t: %s\n"
++		   "ata\t\t: %s\n"
++		   "usb\t\t: %s\n"
++		   "bogomips\t: %lu.%02lu\n\n",
+ 
+-		cpu,
+-		revision,
+-		info->cpu_model,
+-		info->cache_size,
+-		info->flags & HAS_FPU ? "yes" : "no",
+-		info->flags & HAS_MMU ? "yes" : "no",
+-		info->flags & HAS_MMU_BUG ? "yes" : "no",
+-		info->flags & HAS_ETHERNET100 ? "10/100" : "10",
+-		info->flags & HAS_TOKENRING ? "4/16 Mbps" : "no",
+-		info->flags & HAS_SCSI ? "yes" : "no",
+-		info->flags & HAS_ATA ? "yes" : "no",
+-		info->flags & HAS_USB ? "yes" : "no",
+-		(loops_per_jiffy * HZ + 500) / 500000,
+-		((loops_per_jiffy * HZ + 500) / 5000) % 100);
++		   cpu,
++		   revision,
++		   info->cpu_model,
++		   info->cache_size,
++		   info->flags & HAS_FPU ? "yes" : "no",
++		   info->flags & HAS_MMU ? "yes" : "no",
++		   info->flags & HAS_MMU_BUG ? "yes" : "no",
++		   info->flags & HAS_ETHERNET100 ? "10/100" : "10",
++		   info->flags & HAS_TOKENRING ? "4/16 Mbps" : "no",
++		   info->flags & HAS_SCSI ? "yes" : "no",
++		   info->flags & HAS_ATA ? "yes" : "no",
++		   info->flags & HAS_USB ? "yes" : "no",
++		   (loops_per_jiffy * HZ + 500) / 500000,
++		   ((loops_per_jiffy * HZ + 500) / 5000) % 100);
++
++	return 0;
+ }
+ 
+ #endif /* CONFIG_PROC_FS */
 _
 
 Patches currently in -mm which might be from joe@perches.com are
