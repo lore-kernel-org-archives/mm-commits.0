@@ -1,190 +1,92 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-mempool-poison-elements-backed-by-slab-allocator.patch removed from -mm
- tree
-Date: Thu, 16 Apr 2015 09:52:18 -0700
-Message-ID: <552fe8c2.GScQTVSn9gY0JYzh%akpm@linux-foundation.org>
+ mm-doc-cleanup-and-clarify-munmap-behavior-for-hugetlb-memory.patch removed from -mm tree
+Date: Thu, 16 Apr 2015 09:52:25 -0700
+Message-ID: <552fe8c9.mWK1A4K2ADX7cuRV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42753 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42770 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752176AbbDPQqt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:46:49 -0400
+	with ESMTP id S1753223AbbDPQq5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:46:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, arnd@arndb.de, catalin.marinas@arm.com, fabio.estevam@freescale.com, hch@lst.de, mpatocka@redhat.com, sebott@linux.vnet.ibm.com, shaggy@kernel.org, mm-commits@vger.kernel.org
+To: rientjes@google.com, aarcange@redhat.com, corbet@lwn.net, davidel@xmailserver.org, emunson@akamai.com, hughd@google.com, joern@logfs.org, lcapitulino@redhat.com, mpe@ellerman.id.au, shuahkh@osg.samsung.com, wujianguo@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, mempool: poison elements backed by slab allocator
+     Subject: mm, doc: cleanup and clarify munmap behavior for hugetlb memory
 has been removed from the -mm tree.  Its filename was
-     mm-mempool-poison-elements-backed-by-slab-allocator.patch
+     mm-doc-cleanup-and-clarify-munmap-behavior-for-hugetlb-memory.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: David Rientjes <rientjes@google.com>
-Subject: mm, mempool: poison elements backed by slab allocator
+Subject: mm, doc: cleanup and clarify munmap behavior for hugetlb memory
 
-Mempools keep elements in a reserved pool for contexts in which allocation
-may not be possible.  When an element is allocated from the reserved pool,
-its memory contents is the same as when it was added to the reserved pool.
+munmap(2) of hugetlb memory requires a length that is hugepage aligned,
+otherwise it may fail.  Add this to the documentation.
 
-Because of this, elements lack any free poisoning to detect use-after-free
-errors.
+This also cleans up the documentation and separates it into logical units:
+one part refers to MAP_HUGETLB and another part refers to requirements for
+shared memory segments.
 
-This patch adds free poisoning for elements backed by the slab allocator. 
-This is possible because the mempool layer knows the object size of each
-element.
-
-When an element is added to the reserved pool, it is poisoned with
-POISON_FREE.  When it is removed from the reserved pool, the contents are
-checked for POISON_FREE.  If there is a mismatch, a warning is emitted to
-the kernel log.
-
-This is only effective for configs with CONFIG_DEBUG_SLAB or
-CONFIG_SLUB_DEBUG_ON.
-
-[fabio.estevam@freescale.com: use '%zu' for printing 'size_t' variable]
-[arnd@arndb.de: add missing include]
 Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Dave Kleikamp <shaggy@kernel.org>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Sebastian Ott <sebott@linux.vnet.ibm.com>
-Cc: Mikulas Patocka <mpatocka@redhat.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Davide Libenzi <davidel@xmailserver.org>
+Cc: Luiz Capitulino <lcapitulino@redhat.com>
+Cc: Shuah Khan <shuahkh@osg.samsung.com>
+Acked-by: Hugh Dickins <hughd@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Joern Engel <joern@logfs.org>
+Cc: Jianguo Wu <wujianguo@huawei.com>
+Cc: Eric B Munson <emunson@akamai.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempool.c |   92 +++++++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 90 insertions(+), 2 deletions(-)
+ Documentation/vm/hugetlbpage.txt |   24 ++++++++++++++++--------
+ 1 file changed, 16 insertions(+), 8 deletions(-)
 
-diff -puN mm/mempool.c~mm-mempool-poison-elements-backed-by-slab-allocator mm/mempool.c
---- a/mm/mempool.c~mm-mempool-poison-elements-backed-by-slab-allocator
-+++ a/mm/mempool.c
-@@ -6,10 +6,12 @@
-  *  extreme VM load.
-  *
-  *  started by Ingo Molnar, Copyright (C) 2001
-+ *  debugging by David Rientjes, Copyright (C) 2015
-  */
+diff -puN Documentation/vm/hugetlbpage.txt~mm-doc-cleanup-and-clarify-munmap-behavior-for-hugetlb-memory Documentation/vm/hugetlbpage.txt
+--- a/Documentation/vm/hugetlbpage.txt~mm-doc-cleanup-and-clarify-munmap-behavior-for-hugetlb-memory
++++ a/Documentation/vm/hugetlbpage.txt
+@@ -302,15 +302,23 @@ file systems, write system calls are not
+ Regular chown, chgrp, and chmod commands (with right permissions) could be
+ used to change the file attributes on hugetlbfs.
  
- #include <linux/mm.h>
- #include <linux/slab.h>
-+#include <linux/highmem.h>
- #include <linux/kmemleak.h>
- #include <linux/export.h>
- #include <linux/mempool.h>
-@@ -17,16 +19,102 @@
- #include <linux/writeback.h>
- #include "slab.h"
+-Also, it is important to note that no such mount command is required if the
++Also, it is important to note that no such mount command is required if
+ applications are going to use only shmat/shmget system calls or mmap with
+-MAP_HUGETLB.  Users who wish to use hugetlb page via shared memory segment
+-should be a member of a supplementary group and system admin needs to
+-configure that gid into /proc/sys/vm/hugetlb_shm_group.  It is possible for
+-same or different applications to use any combination of mmaps and shm*
+-calls, though the mount of filesystem will be required for using mmap calls
+-without MAP_HUGETLB.  For an example of how to use mmap with MAP_HUGETLB see
+-map_hugetlb.c.
++MAP_HUGETLB.  For an example of how to use mmap with MAP_HUGETLB see map_hugetlb
++below.
++
++Users who wish to use hugetlb memory via shared memory segment should be a
++member of a supplementary group and system admin needs to configure that gid
++into /proc/sys/vm/hugetlb_shm_group.  It is possible for same or different
++applications to use any combination of mmaps and shm* calls, though the mount of
++filesystem will be required for using mmap calls without MAP_HUGETLB.
++
++Syscalls that operate on memory backed by hugetlb pages only have their lengths
++aligned to the native page size of the processor; they will normally fail with
++errno set to EINVAL or exclude hugetlb pages that extend beyond the length if
++not hugepage aligned.  For example, munmap(2) will fail if memory is backed by
++a hugetlb page and the length is smaller than the hugepage size.
++
  
-+#if defined(CONFIG_DEBUG_SLAB) || defined(CONFIG_SLUB_DEBUG_ON)
-+static void poison_error(mempool_t *pool, void *element, size_t size,
-+			 size_t byte)
-+{
-+	const int nr = pool->curr_nr;
-+	const int start = max_t(int, byte - (BITS_PER_LONG / 8), 0);
-+	const int end = min_t(int, byte + (BITS_PER_LONG / 8), size);
-+	int i;
-+
-+	pr_err("BUG: mempool element poison mismatch\n");
-+	pr_err("Mempool %p size %zu\n", pool, size);
-+	pr_err(" nr=%d @ %p: %s0x", nr, element, start > 0 ? "... " : "");
-+	for (i = start; i < end; i++)
-+		pr_cont("%x ", *(u8 *)(element + i));
-+	pr_cont("%s\n", end < size ? "..." : "");
-+	dump_stack();
-+}
-+
-+static void __check_element(mempool_t *pool, void *element, size_t size)
-+{
-+	u8 *obj = element;
-+	size_t i;
-+
-+	for (i = 0; i < size; i++) {
-+		u8 exp = (i < size - 1) ? POISON_FREE : POISON_END;
-+
-+		if (obj[i] != exp) {
-+			poison_error(pool, element, size, i);
-+			return;
-+		}
-+	}
-+	memset(obj, POISON_INUSE, size);
-+}
-+
-+static void check_element(mempool_t *pool, void *element)
-+{
-+	/* Mempools backed by slab allocator */
-+	if (pool->free == mempool_free_slab || pool->free == mempool_kfree)
-+		__check_element(pool, element, ksize(element));
-+
-+	/* Mempools backed by page allocator */
-+	if (pool->free == mempool_free_pages) {
-+		int order = (int)(long)pool->pool_data;
-+		void *addr = kmap_atomic((struct page *)element);
-+
-+		__check_element(pool, addr, 1UL << (PAGE_SHIFT + order));
-+		kunmap_atomic(addr);
-+	}
-+}
-+
-+static void __poison_element(void *element, size_t size)
-+{
-+	u8 *obj = element;
-+
-+	memset(obj, POISON_FREE, size - 1);
-+	obj[size - 1] = POISON_END;
-+}
-+
-+static void poison_element(mempool_t *pool, void *element)
-+{
-+	/* Mempools backed by slab allocator */
-+	if (pool->alloc == mempool_alloc_slab || pool->alloc == mempool_kmalloc)
-+		__poison_element(element, ksize(element));
-+
-+	/* Mempools backed by page allocator */
-+	if (pool->alloc == mempool_alloc_pages) {
-+		int order = (int)(long)pool->pool_data;
-+		void *addr = kmap_atomic((struct page *)element);
-+
-+		__poison_element(addr, 1UL << (PAGE_SHIFT + order));
-+		kunmap_atomic(addr);
-+	}
-+}
-+#else /* CONFIG_DEBUG_SLAB || CONFIG_SLUB_DEBUG_ON */
-+static inline void check_element(mempool_t *pool, void *element)
-+{
-+}
-+static inline void poison_element(mempool_t *pool, void *element)
-+{
-+}
-+#endif /* CONFIG_DEBUG_SLAB || CONFIG_SLUB_DEBUG_ON */
-+
- static void add_element(mempool_t *pool, void *element)
- {
- 	BUG_ON(pool->curr_nr >= pool->min_nr);
-+	poison_element(pool, element);
- 	pool->elements[pool->curr_nr++] = element;
- }
- 
- static void *remove_element(mempool_t *pool)
- {
--	BUG_ON(pool->curr_nr <= 0);
--	return pool->elements[--pool->curr_nr];
-+	void *element = pool->elements[--pool->curr_nr];
-+
-+	BUG_ON(pool->curr_nr < 0);
-+	check_element(pool, element);
-+	return element;
- }
- 
- /**
+ Examples
+ ========
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
