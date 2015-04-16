@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: [merged] tracing-remove-use-of-seq_printf-return-value.patch
+Subject: [merged] lru_cache-remove-use-of-seq_printf-return-value.patch
  removed from -mm tree
-Date: Thu, 16 Apr 2015 09:55:39 -0700
-Message-ID: <552fe98b.YdOU69al99DjcxVs%akpm@linux-foundation.org>
+Date: Thu, 16 Apr 2015 09:55:41 -0700
+Message-ID: <552fe98d.cfmasqQDd80Gd44K%akpm__14989.6151306622$1429203032$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43209 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43211 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750753AbbDPQuK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:50:10 -0400
+	with ESMTP id S1750753AbbDPQuM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:50:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, rostedt@goodmis.org, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
+To: joe@perches.com, drbd-dev@lists.linbit.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tracing: remove use of seq_printf return value
+     Subject: lru_cache: remove use of seq_printf return value
 has been removed from the -mm tree.  Its filename was
-     tracing-remove-use-of-seq_printf-return-value.patch
+     lru_cache-remove-use-of-seq_printf-return-value.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: tracing: remove use of seq_printf return value
+Subject: lru_cache: remove use of seq_printf return value
 
 The seq_printf return value, because it's frequently misused,
 will eventually be converted to void.
@@ -34,36 +34,33 @@ will eventually be converted to void.
 See: commit 1f33c41c03da ("seq_file: Rename seq_overflow() to
      seq_has_overflowed() and make public")
 
-Miscellanea:
-
-o Remove unused return value from trace_lookup_stack
-
 Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Steven Rostedt <rostedt@goodmis.org>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Lars Ellenberg <drbd-dev@lists.linbit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/trace/trace_stack.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/lru_cache.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN kernel/trace/trace_stack.c~tracing-remove-use-of-seq_printf-return-value kernel/trace/trace_stack.c
---- a/kernel/trace/trace_stack.c~tracing-remove-use-of-seq_printf-return-value
-+++ a/kernel/trace/trace_stack.c
-@@ -327,11 +327,11 @@ static void t_stop(struct seq_file *m, v
- 	local_irq_enable();
+diff -puN lib/lru_cache.c~lru_cache-remove-use-of-seq_printf-return-value lib/lru_cache.c
+--- a/lib/lru_cache.c~lru_cache-remove-use-of-seq_printf-return-value
++++ a/lib/lru_cache.c
+@@ -247,10 +247,11 @@ size_t lc_seq_printf_stats(struct seq_fi
+ 	 * progress) and "changed", when this in fact lead to an successful
+ 	 * update of the cache.
+ 	 */
+-	return seq_printf(seq, "\t%s: used:%u/%u "
+-		"hits:%lu misses:%lu starving:%lu locked:%lu changed:%lu\n",
+-		lc->name, lc->used, lc->nr_elements,
+-		lc->hits, lc->misses, lc->starving, lc->locked, lc->changed);
++	seq_printf(seq, "\t%s: used:%u/%u hits:%lu misses:%lu starving:%lu locked:%lu changed:%lu\n",
++		   lc->name, lc->used, lc->nr_elements,
++		   lc->hits, lc->misses, lc->starving, lc->locked, lc->changed);
++
++	return 0;
  }
  
--static int trace_lookup_stack(struct seq_file *m, long i)
-+static void trace_lookup_stack(struct seq_file *m, long i)
- {
- 	unsigned long addr = stack_dump_trace[i];
- 
--	return seq_printf(m, "%pS\n", (void *)addr);
-+	seq_printf(m, "%pS\n", (void *)addr);
- }
- 
- static void print_disabled(struct seq_file *m)
+ static struct hlist_head *lc_hash_slot(struct lru_cache *lc, unsigned int enr)
 _
 
 Patches currently in -mm which might be from joe@perches.com are
