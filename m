@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: [merged] cgroup-remove-use-of-seq_printf-return-value.patch
+Subject: [merged] tracing-remove-use-of-seq_printf-return-value.patch
  removed from -mm tree
-Date: Thu, 16 Apr 2015 09:55:37 -0700
-Message-ID: <552fe989.qSu4KScgEzm+P9p6%akpm@linux-foundation.org>
+Date: Thu, 16 Apr 2015 09:55:39 -0700
+Message-ID: <552fe98b.YdOU69al99DjcxVs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43204 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43209 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751579AbbDPQuJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:50:09 -0400
+	with ESMTP id S1750753AbbDPQuK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:50:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, tj@kernel.org, mm-commits@vger.kernel.org
+To: joe@perches.com, rostedt@goodmis.org, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cgroup: remove use of seq_printf return value
+     Subject: tracing: remove use of seq_printf return value
 has been removed from the -mm tree.  Its filename was
-     cgroup-remove-use-of-seq_printf-return-value.patch
+     tracing-remove-use-of-seq_printf-return-value.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: cgroup: remove use of seq_printf return value
+Subject: tracing: remove use of seq_printf return value
 
 The seq_printf return value, because it's frequently misused,
 will eventually be converted to void.
@@ -34,28 +34,36 @@ will eventually be converted to void.
 See: commit 1f33c41c03da ("seq_file: Rename seq_overflow() to
      seq_has_overflowed() and make public")
 
+Miscellanea:
+
+o Remove unused return value from trace_lookup_stack
+
 Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Tejun Heo <tj@kernel.org>
+Acked-by: Steven Rostedt <rostedt@goodmis.org>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ kernel/trace/trace_stack.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/cgroup.c~cgroup-remove-use-of-seq_printf-return-value kernel/cgroup.c
---- a/kernel/cgroup.c~cgroup-remove-use-of-seq_printf-return-value
-+++ a/kernel/cgroup.c
-@@ -4196,7 +4196,9 @@ static void *cgroup_pidlist_next(struct
- 
- static int cgroup_pidlist_show(struct seq_file *s, void *v)
- {
--	return seq_printf(s, "%d\n", *(int *)v);
-+	seq_printf(s, "%d\n", *(int *)v);
-+
-+	return 0;
+diff -puN kernel/trace/trace_stack.c~tracing-remove-use-of-seq_printf-return-value kernel/trace/trace_stack.c
+--- a/kernel/trace/trace_stack.c~tracing-remove-use-of-seq_printf-return-value
++++ a/kernel/trace/trace_stack.c
+@@ -327,11 +327,11 @@ static void t_stop(struct seq_file *m, v
+ 	local_irq_enable();
  }
  
- static u64 cgroup_read_notify_on_release(struct cgroup_subsys_state *css,
+-static int trace_lookup_stack(struct seq_file *m, long i)
++static void trace_lookup_stack(struct seq_file *m, long i)
+ {
+ 	unsigned long addr = stack_dump_trace[i];
+ 
+-	return seq_printf(m, "%pS\n", (void *)addr);
++	seq_printf(m, "%pS\n", (void *)addr);
+ }
+ 
+ static void print_disabled(struct seq_file *m)
 _
 
 Patches currently in -mm which might be from joe@perches.com are
