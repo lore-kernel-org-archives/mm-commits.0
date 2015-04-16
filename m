@@ -1,194 +1,146 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mmv41-new-pfn_mkwrite-same-as-page_mkwrite-for-vm_pfnmap.patch removed from -mm tree
-Date: Thu, 16 Apr 2015 09:53:07 -0700
-Message-ID: <552fe8f3.KYWFqkAi0EPkeGxu%akpm@linux-foundation.org>
+ mm-compactionc-fix-suitable_migration_target-unused-warning.patch removed
+ from -mm tree
+Date: Thu, 16 Apr 2015 09:53:16 -0700
+Message-ID: <552fe8fc.VM7QwmYExx2bJVkV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42870 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42892 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753895AbbDPQri (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:47:38 -0400
+	with ESMTP id S1751329AbbDPQrr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:47:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: boaz@plexistor.com, david@fromorbit.com, hughd@google.com, jack@suse.cz, kirill.shutemov@linux.intel.com, matthew.r.wilcox@intel.com, mgorman@suse.de, yigal@plexistor.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, fengguang.wu@gmail.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: new pfn_mkwrite same as page_mkwrite for VM_PFNMAP
+     Subject: mm/compaction.c: fix "suitable_migration_target() unused" warning
 has been removed from the -mm tree.  Its filename was
-     mmv41-new-pfn_mkwrite-same-as-page_mkwrite-for-vm_pfnmap.patch
+     mm-compactionc-fix-suitable_migration_target-unused-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Boaz Harrosh <boaz@plexistor.com>
-Subject: mm: new pfn_mkwrite same as page_mkwrite for VM_PFNMAP
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm/compaction.c: fix "suitable_migration_target() unused" warning
 
-This will allow FS that uses VM_PFNMAP | VM_MIXEDMAP (no page structs) to
-get notified when access is a write to a read-only PFN.
+mm/compaction.c:250:13: warning: 'suitable_migration_target' defined but not used [-Wunused-function]
 
-This can happen if we mmap() a file then first mmap-read from it to
-page-in a read-only PFN, than we mmap-write to the same page.
-
-We need this functionality to fix a DAX bug, where in the scenario above
-we fail to set ctime/mtime though we modified the file.  An xfstest is
-attached to this patchset that shows the failure and the fix.  (A DAX
-patch will follow)
-
-This functionality is extra important for us, because upon dirtying of a
-pmem page we also want to RDMA the page to a remote cluster node.
-
-We define a new pfn_mkwrite and do not reuse page_mkwrite because
-  1 - The name ;-)
-  2 - But mainly because it would take a very long and tedious
-      audit of all page_mkwrite functions of VM_MIXEDMAP/VM_PFNMAP
-      users. To make sure they do not now CRASH. For example current
-      DAX code (which this is for) would crash.
-      If we would want to reuse page_mkwrite, We will need to first
-      patch all users, so to not-crash-on-no-page. Then enable this
-      patch. But even if I did that I would not sleep so well at night.
-      Adding a new vector is the safest thing to do, and is not that
-      expensive. an extra pointer at a static function vector per driver.
-      Also the new vector is better for performance, because else we
-      Will call all current Kernel vectors, so to:
-	check-ha-no-page-do-nothing and return.
-
-No need to call it from do_shared_fault because do_wp_page is called to
-change pte permissions anyway.
-
-Signed-off-by: Yigal Korman <yigal@plexistor.com>
-Signed-off-by: Boaz Harrosh <boaz@plexistor.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Dave Chinner <david@fromorbit.com>
+Reported-by: Fengguang Wu <fengguang.wu@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/Locking |    8 +++++
- include/linux/mm.h                |    3 +
- mm/memory.c                       |   43 +++++++++++++++++++++++++---
- 3 files changed, 50 insertions(+), 4 deletions(-)
+ mm/compaction.c |   45 +++++++++++++++++++++++----------------------
+ 1 file changed, 23 insertions(+), 22 deletions(-)
 
-diff -puN Documentation/filesystems/Locking~mmv41-new-pfn_mkwrite-same-as-page_mkwrite-for-vm_pfnmap Documentation/filesystems/Locking
---- a/Documentation/filesystems/Locking~mmv41-new-pfn_mkwrite-same-as-page_mkwrite-for-vm_pfnmap
-+++ a/Documentation/filesystems/Locking
-@@ -525,6 +525,7 @@ prototypes:
- 	void (*close)(struct vm_area_struct*);
- 	int (*fault)(struct vm_area_struct*, struct vm_fault *);
- 	int (*page_mkwrite)(struct vm_area_struct *, struct vm_fault *);
-+	int (*pfn_mkwrite)(struct vm_area_struct *, struct vm_fault *);
- 	int (*access)(struct vm_area_struct *, unsigned long, void*, int, int);
- 
- locking rules:
-@@ -534,6 +535,7 @@ close:		yes
- fault:		yes		can return with page locked
- map_pages:	yes
- page_mkwrite:	yes		can return with page locked
-+pfn_mkwrite:	yes
- access:		yes
- 
- 	->fault() is called when a previously not present pte is about
-@@ -560,6 +562,12 @@ the page has been truncated, the filesys
- like the ->fault() handler, but simply return with VM_FAULT_NOPAGE, which
- will cause the VM to retry the fault.
- 
-+	->pfn_mkwrite() is the same as page_mkwrite but when the pte is
-+VM_PFNMAP or VM_MIXEDMAP with a page-less entry. Expected return is
-+VM_FAULT_NOPAGE. Or one of the VM_FAULT_ERROR types. The default behavior
-+after this call is to make the pte read-write, unless pfn_mkwrite returns
-+an error.
-+
- 	->access() is called when get_user_pages() fails in
- access_process_vm(), typically used to debug a process through
- /proc/pid/mem or ptrace.  This function is needed only for
-diff -puN include/linux/mm.h~mmv41-new-pfn_mkwrite-same-as-page_mkwrite-for-vm_pfnmap include/linux/mm.h
---- a/include/linux/mm.h~mmv41-new-pfn_mkwrite-same-as-page_mkwrite-for-vm_pfnmap
-+++ a/include/linux/mm.h
-@@ -251,6 +251,9 @@ struct vm_operations_struct {
- 	 * writable, if an error is returned it will cause a SIGBUS */
- 	int (*page_mkwrite)(struct vm_area_struct *vma, struct vm_fault *vmf);
- 
-+	/* same as page_mkwrite when using VM_PFNMAP|VM_MIXEDMAP */
-+	int (*pfn_mkwrite)(struct vm_area_struct *vma, struct vm_fault *vmf);
-+
- 	/* called by access_process_vm when get_user_pages() fails, typically
- 	 * for use by special VMAs that can switch between memory and hardware
- 	 */
-diff -puN mm/memory.c~mmv41-new-pfn_mkwrite-same-as-page_mkwrite-for-vm_pfnmap mm/memory.c
---- a/mm/memory.c~mmv41-new-pfn_mkwrite-same-as-page_mkwrite-for-vm_pfnmap
-+++ a/mm/memory.c
-@@ -2180,6 +2180,42 @@ oom:
- 	return VM_FAULT_OOM;
+diff -puN mm/compaction.c~mm-compactionc-fix-suitable_migration_target-unused-warning mm/compaction.c
+--- a/mm/compaction.c~mm-compactionc-fix-suitable_migration_target-unused-warning
++++ a/mm/compaction.c
+@@ -391,28 +391,6 @@ static inline bool compact_should_abort(
+ 	return false;
  }
  
-+/*
-+ * Handle write page faults for VM_MIXEDMAP or VM_PFNMAP for a VM_SHARED
-+ * mapping
-+ */
-+static int wp_pfn_shared(struct mm_struct *mm,
-+			struct vm_area_struct *vma, unsigned long address,
-+			pte_t *page_table, spinlock_t *ptl, pte_t orig_pte,
-+			pmd_t *pmd)
-+{
-+	if (vma->vm_ops && vma->vm_ops->pfn_mkwrite) {
-+		struct vm_fault vmf = {
-+			.page = NULL,
-+			.pgoff = linear_page_index(vma, address),
-+			.virtual_address = (void __user *)(address & PAGE_MASK),
-+			.flags = FAULT_FLAG_WRITE | FAULT_FLAG_MKWRITE,
-+		};
-+		int ret;
+-/* Returns true if the page is within a block suitable for migration to */
+-static bool suitable_migration_target(struct page *page)
+-{
+-	/* If the page is a large free page, then disallow migration */
+-	if (PageBuddy(page)) {
+-		/*
+-		 * We are checking page_order without zone->lock taken. But
+-		 * the only small danger is that we skip a potentially suitable
+-		 * pageblock, so it's not worth to check order for valid range.
+-		 */
+-		if (page_order_unsafe(page) >= pageblock_order)
+-			return false;
+-	}
+-
+-	/* If the block is MIGRATE_MOVABLE or MIGRATE_CMA, allow migration */
+-	if (migrate_async_suitable(get_pageblock_migratetype(page)))
+-		return true;
+-
+-	/* Otherwise skip the block */
+-	return false;
+-}
+-
+ /*
+  * Isolate free pages onto a private freelist. If @strict is true, will abort
+  * returning 0 on any invalid PFNs or non-free pages inside of the pageblock
+@@ -896,6 +874,29 @@ isolate_migratepages_range(struct compac
+ 
+ #endif /* CONFIG_COMPACTION || CONFIG_CMA */
+ #ifdef CONFIG_COMPACTION
 +
-+		pte_unmap_unlock(page_table, ptl);
-+		ret = vma->vm_ops->pfn_mkwrite(vma, &vmf);
-+		if (ret & VM_FAULT_ERROR)
-+			return ret;
-+		page_table = pte_offset_map_lock(mm, pmd, address, &ptl);
++/* Returns true if the page is within a block suitable for migration to */
++static bool suitable_migration_target(struct page *page)
++{
++	/* If the page is a large free page, then disallow migration */
++	if (PageBuddy(page)) {
 +		/*
-+		 * We might have raced with another page fault while we
-+		 * released the pte_offset_map_lock.
++		 * We are checking page_order without zone->lock taken. But
++		 * the only small danger is that we skip a potentially suitable
++		 * pageblock, so it's not worth to check order for valid range.
 +		 */
-+		if (!pte_same(*page_table, orig_pte)) {
-+			pte_unmap_unlock(page_table, ptl);
-+			return 0;
-+		}
++		if (page_order_unsafe(page) >= pageblock_order)
++			return false;
 +	}
-+	return wp_page_reuse(mm, vma, address, page_table, ptl, orig_pte,
-+			     NULL, 0, 0);
++
++	/* If the block is MIGRATE_MOVABLE or MIGRATE_CMA, allow migration */
++	if (migrate_async_suitable(get_pageblock_migratetype(page)))
++		return true;
++
++	/* Otherwise skip the block */
++	return false;
 +}
 +
- static int wp_page_shared(struct mm_struct *mm, struct vm_area_struct *vma,
- 			  unsigned long address, pte_t *page_table,
- 			  pmd_t *pmd, spinlock_t *ptl, pte_t orig_pte,
-@@ -2258,13 +2294,12 @@ static int do_wp_page(struct mm_struct *
- 		 * VM_PFNMAP VMA.
- 		 *
- 		 * We should not cow pages in a shared writeable mapping.
--		 * Just mark the pages writable as we can't do any dirty
--		 * accounting on raw pfn maps.
-+		 * Just mark the pages writable and/or call ops->pfn_mkwrite.
- 		 */
- 		if ((vma->vm_flags & (VM_WRITE|VM_SHARED)) ==
- 				     (VM_WRITE|VM_SHARED))
--			return wp_page_reuse(mm, vma, address, page_table, ptl,
--					     orig_pte, old_page, 0, 0);
-+			return wp_pfn_shared(mm, vma, address, page_table, ptl,
-+					     orig_pte, pmd);
- 
- 		pte_unmap_unlock(page_table, ptl);
- 		return wp_page_copy(mm, vma, address, page_table, pmd,
+ /*
+  * Based on information in the current compact_control, find blocks
+  * suitable for isolating free pages from and then isolate them.
 _
 
-Patches currently in -mm which might be from boaz@plexistor.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+mm.patch
+slub-bulk-allocation-from-per-cpu-partial-pages-fix.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
+zram-add-dynamic-device-add-remove-functionality-fix.patch
+zram-introduce-automatic-device_id-generation-fix.patch
+lib-find__bit-reimplementation-fix.patch
+checkpatch-match-more-world-writable-permissions-fix.patch
+binfmt_misc-simplify-entry_status-fix.patch
+rtc-driver-for-conexant-digicolor-cx92755-on-chip-rtc-fix.patch
+rtc-omap-add-external-32k-clock-feature-fix.patch
+fs-fat-remove-unnecessary-includes-fix.patch
+kernel-forkc-avoid-division-by-zero-fix.patch
+kernel-forkc-avoid-division-by-zero-fix-fix.patch
+doc-sysctl-kerneltxt-document-threads-max-fix.patch
+mm-rcu-protected-get_mm_exe_file-fix-2.patch
+affs-kstrdup-memory-handling-fix.patch
+kconfig-use-macros-which-are-already-defined-fix.patch
 linux-next.patch
-gitignore-ignore-tar.patch
+linux-next-rejects.patch
+lib-kconfig-fix-up-have_arch_bitreverse-help-text.patch
+oprofile-reduce-mmap_sem-hold-for-mm-exe_file-fix.patch
+tomoyo-reduce-mmap_sem-hold-for-mm-exe_file-checkpatch-fixes.patch
+documentation-spi-spidev_testc-fix-warning.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
