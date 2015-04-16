@@ -1,74 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-use-read_once-for-non-scalar-types.patch removed from -mm tree
-Date: Thu, 16 Apr 2015 09:52:08 -0700
-Message-ID: <552fe8b8.Jfp227BF8pdqDlie%akpm@linux-foundation.org>
+Subject: [merged] clean-up-goto-just-return-err_ptr.patch removed from -mm tree
+Date: Thu, 16 Apr 2015 09:52:06 -0700
+Message-ID: <552fe8b6.QZDEsIg7EQrcyB83%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42720 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42713 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753820AbbDPQqj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:46:39 -0400
+	with ESMTP id S1753806AbbDPQqh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Apr 2015 12:46:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jason.low2@hp.com, borntraeger@de.ibm.com, dave@stgolabs.net, mhocko@suse.cz, riel@redhat.com, mm-commits@vger.kernel.org
+To: denc716@gmail.com, crquan@ymail.com, kirill@shutemov.name, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: use READ_ONCE() for non-scalar types
+     Subject: mm/mremap.c: clean up goto just return ERR_PTR
 has been removed from the -mm tree.  Its filename was
-     mm-use-read_once-for-non-scalar-types.patch
+     clean-up-goto-just-return-err_ptr.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jason Low <jason.low2@hp.com>
-Subject: mm: use READ_ONCE() for non-scalar types
+From: Derek <denc716@gmail.com>
+Subject: mm/mremap.c: clean up goto just return ERR_PTR
 
-Commit 38c5ce936a08 ("mm/gup: Replace ACCESS_ONCE with READ_ONCE")
-converted ACCESS_ONCE usage in gup_pmd_range() to READ_ONCE, since
-ACCESS_ONCE doesn't work reliably on non-scalar types.
+As suggested by Kirill the "goto"s in vma_to_resize aren't necessary, just
+change them to explicit return.
 
-This patch also fixes the other ACCESS_ONCE usages in gup_pte_range()
-and __get_user_pages_fast() in mm/gup.c
-
-Signed-off-by: Jason Low <jason.low2@hp.com>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Acked-by: Davidlohr Bueso <dave@stgolabs.net>
-Acked-by: Rik van Riel <riel@redhat.com>
-Reviewed-by: Christian Borntraeger <borntraeger@de.ibm.com>
+Signed-off-by: Derek Che <crquan@ymail.com>
+Suggested-by: "Kirill A. Shutemov" <kirill@shutemov.name>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/mremap.c |   25 ++++++++-----------------
+ 1 file changed, 8 insertions(+), 17 deletions(-)
 
-diff -puN mm/gup.c~mm-use-read_once-for-non-scalar-types mm/gup.c
---- a/mm/gup.c~mm-use-read_once-for-non-scalar-types
-+++ a/mm/gup.c
-@@ -1019,7 +1019,7 @@ static int gup_pte_range(pmd_t pmd, unsi
- 		 *
- 		 * for an example see gup_get_pte in arch/x86/mm/gup.c
- 		 */
--		pte_t pte = ACCESS_ONCE(*ptep);
-+		pte_t pte = READ_ONCE(*ptep);
- 		struct page *page;
+diff -puN mm/mremap.c~clean-up-goto-just-return-err_ptr mm/mremap.c
+--- a/mm/mremap.c~clean-up-goto-just-return-err_ptr
++++ a/mm/mremap.c
+@@ -345,25 +345,25 @@ static struct vm_area_struct *vma_to_res
+ 	struct vm_area_struct *vma = find_vma(mm, addr);
  
- 		/*
-@@ -1309,7 +1309,7 @@ int __get_user_pages_fast(unsigned long
- 	local_irq_save(flags);
- 	pgdp = pgd_offset(mm, addr);
- 	do {
--		pgd_t pgd = ACCESS_ONCE(*pgdp);
-+		pgd_t pgd = READ_ONCE(*pgdp);
+ 	if (!vma || vma->vm_start > addr)
+-		goto Efault;
++		return ERR_PTR(-EFAULT);
  
- 		next = pgd_addr_end(addr, end);
- 		if (pgd_none(pgd))
-_
-
-Patches currently in -mm which might be from jason.low2@hp.com are
-
-origin.patch
-
+ 	if (is_vm_hugetlb_page(vma))
+-		goto Einval;
++		return ERR_PTR(-EINVAL);
+ 
+ 	/* We can't remap across vm area boundaries */
+ 	if (old_len > vma->vm_end - addr)
+-		goto Efault;
++		return ERR_PTR(-EFAULT);
+ 
+ 	/* Need to be careful about a growing mapping */
+ 	if (new_len > old_len) {
+ 		unsigned long pgoff;
+ 
+ 		if (vma->vm_flags & (VM_DONTEXPAND | VM_PFNMAP))
+-			goto Efault;
++			return ERR_PTR(-EFAULT);
+ 		pgoff = (addr - vma->vm_start) >> PAGE_SHIFT;
+ 		pgoff += vma->vm_pgoff;
+ 		if (pgoff + (new_len >> PAGE_SHIFT) < pgoff)
+-			goto Einval;
++			return ERR_PTR(-EINVAL);
+ 	}
+ 
+ 	if (vma->vm_flags & VM_LOCKED) {
+@@ -372,29 +372,20 @@ static struct vm_area_struct *vma_to_res
+ 		lock_limit = rlimit(RLIMIT_MEMLOCK);
+ 		locked += new_len - old_len;
+ 		if (locked > lock_limit && !capable(CAP_IPC_LOCK))
+-			goto Eagain;
++			return ERR_PTR(-EAGAIN);
+ 	}
+ 
+ 	if (!may_expand_vm(mm, (new_len - old_len) >> PAGE_SHIFT))
+-		goto Enomem;
++		return ERR_PTR(-ENOMEM);
+ 
+ 	if (vma->vm_flags & VM_ACCOUNT) {
+ 		unsigned long charged = (new_len - old_len) >> PAGE_SHIFT;
+ 		if (security_vm_enough_memory_mm(mm, charged))
+-			goto Enomem;
++			return ERR_PTR(-ENOMEM);
+ 		*p = charged;
+ 	}
+ 
+ 	return vma;
