@@ -1,388 +1,149 @@
 From: akpm@linux-foundation.org
-Subject: + compiler-gcc-integrate-the-various-compiler-gcch-files.patch
- added to -mm tree
-Date: Mon, 20 Apr 2015 14:56:43 -0700
-Message-ID: <5535761b.KtEUZPU5DNIORkfC%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ lto-add-__noreorder-and-mark-initcalls-__noreorder.patch removed from -mm
+ tree
+Date: Mon, 20 Apr 2015 14:56:55 -0700
+Message-ID: <55357627.NYVk7KjhxPwT5Gab%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43976 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44021 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754457AbbDTV4o (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 17:56:44 -0400
+	with ESMTP id S1755581AbbDTV44 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 17:56:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, amodra@gmail.com, andi@firstfloor.org, anton@samba.org, levinsasha928@gmail.com, mmarek@suse.cz, segher@kernel.crashing.org, mm-commits@vger.kernel.org
+To: ak@linux.intel.com, mmarek@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: compiler-gcc: integrate the various compiler-gcc[345].h files
-has been added to the -mm tree.  Its filename is
-     compiler-gcc-integrate-the-various-compiler-gcch-files.patch
+     Subject: lto: add __noreorder and mark initcalls __noreorder
+has been removed from the -mm tree.  Its filename was
+     lto-add-__noreorder-and-mark-initcalls-__noreorder.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/compiler-gcc-integrate-the-various-compiler-gcch-files.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/compiler-gcc-integrate-the-various-compiler-gcch-files.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: compiler-gcc: integrate the various compiler-gcc[345].h files
+From: Andi Kleen <ak@linux.intel.com>
+Subject: lto: add __noreorder and mark initcalls __noreorder
 
-As gcc major version numbers are going to advance rather rapidly in the
-future, there's no real value in separate files for each compiler version.
+gcc 5 has a new no_reorder attribute that prevents top level reordering
+only for that symbol.
 
-Deduplicate some of the macros #defined in each file too.
+Kernels don't like any reordering of initcalls between files, as several
+initcalls depend on each other.  LTO previously needed to use
+-fno-toplevel-reorder to prevent boot failures.
 
-Neaten comments using normal kernel commenting style.
+Add a __noreorder wrapper for the no_reorder attribute and use
+it for initcalls.
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Andi Kleen <andi@firstfloor.org>
+Background:
+
+The original gcc a long time was function at a time: it read one function,
+optimizes and writes it out, then the next.  Then gcc 3.x added
+unit-at-a-time where it reads one complete file, optimizes it completely
+and writes it out.  This has the advantage that it can make better
+inlining decisions, it can remove unused statics, it can propagate
+execution frequencies over the call tree before optimizing, and some other
+things.  Then it writes it out the unit in the call tree order, which can
+also lead to better executable layout.  One side effect of this is that
+the order of top level statements gets lost, unless you specify
+-fno-toplevel-reorder
+
+We had to fix Linux for this sometime in early 2.6, late 2.4.  Most
+problems were in top level asm() statements, assuming they had a defined
+order to other variables.  To still support programs doing that gcc added
+-fno-toplevel-reorder, which avoided such reordering, but also disabled a
+small number of optimizations.
+
+Now 4.x added LTO, where it takes unit-at-a-time one step further and
+optimizes the complete program in the same way at link time.  It actually
+does not keep it in memory all the time, but uses various tricks to only
+look at it in pieces and distribute the work to multiple cores.  To do
+that it uses partitioning, where the program is split into different
+partitions based on its global call tree, and then each partition is
+assigned to a compiler process.  The result is a changed order for
+everything in the final program.
+
+Modern Linux was generally fine with reordering, except for initcalls.  We
+have a lot of initcalls that assume that some other initcalls already ran
+before them, without using priorities.  The order is defined in the
+Makefile's object file order for the linker.  Linkers generally do not
+reorder, unless told to.  Unfortunately that gets lost with LTO.  
+
+When I started the LTO patchkit I tried to debug and fix some of these
+init calls, but it was hopeless.  It was like a many-headed hydra.  So I
+needed to use -fno-toplevel-reorder for LTO.  In LTO this both gives worse
+partitioning (so the build is less balanced between different cores) and
+also disables some optimizations, like eliminating unused variables or
+some cross file optimizations.
+
+gcc 5 finally gained a way to specify the no-toplevel-reorder attribute
+per symbol with this new attribute.  So it can be only done for the
+initcall symbols, and everything else left alone.
+
+That is what this patch is about.
+
+It's not needed without LTO, but I belive it's useful documentation even
+without it.
+
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
 Cc: Michal Marek <mmarek@suse.cz>
-Cc: Segher Boessenkool <segher@kernel.crashing.org>
-Cc: Sasha Levin <levinsasha928@gmail.com>
-Cc: Anton Blanchard <anton@samba.org>
-Cc: Alan Modra <amodra@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler-gcc.h  |  120 ++++++++++++++++++++++++++++++--
- include/linux/compiler-gcc3.h |   23 ------
- include/linux/compiler-gcc4.h |   91 ------------------------
- include/linux/compiler-gcc5.h |   67 -----------------
- 4 files changed, 116 insertions(+), 185 deletions(-)
+ include/linux/compiler-gcc5.h |    3 +++
+ include/linux/compiler.h      |    4 ++++
+ include/linux/init.h          |    2 +-
+ 3 files changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/compiler-gcc.h~compiler-gcc-integrate-the-various-compiler-gcch-files include/linux/compiler-gcc.h
---- a/include/linux/compiler-gcc.h~compiler-gcc-integrate-the-various-compiler-gcch-files
-+++ a/include/linux/compiler-gcc.h
-@@ -108,10 +108,122 @@
- #define __maybe_unused		__attribute__((unused))
- #define __always_unused		__attribute__((unused))
+diff -puN include/linux/compiler-gcc5.h~lto-add-__noreorder-and-mark-initcalls-__noreorder include/linux/compiler-gcc5.h
+--- a/include/linux/compiler-gcc5.h~lto-add-__noreorder-and-mark-initcalls-__noreorder
++++ a/include/linux/compiler-gcc5.h
+@@ -42,6 +42,9 @@
+ /* Mark a function definition as prohibited from being cloned. */
+ #define __noclone	__attribute__((__noclone__))
  
--#define __gcc_header(x) #x
--#define _gcc_header(x) __gcc_header(linux/compiler-gcc##x.h)
--#define gcc_header(x) _gcc_header(x)
--#include gcc_header(__GNUC__)
-+/* gcc version specific checks */
++/* Avoid reordering a top level statement */
++#define __noreorder	__attribute__((no_reorder))
 +
-+#if GCC_VERSION < 30200
-+# error Sorry, your compiler is too old - please upgrade it.
-+#endif
-+
-+#if GCC_VERSION < 30300
-+# define __used			__attribute__((__unused__))
-+#else
-+# define __used			__attribute__((__used__))
-+#endif
-+
-+#ifdef CONFIG_GCOV_KERNEL
-+# if GCC_VERSION < 30400
-+#   error "GCOV profiling support for gcc versions below 3.4 not included"
-+# endif /* __GNUC_MINOR__ */
-+#endif /* CONFIG_GCOV_KERNEL */
-+
-+#if GCC_VERSION >= 30400
-+#define __must_check		__attribute__((warn_unused_result))
-+#endif
-+
-+#if GCC_VERSION >= 40000
-+
-+/* GCC 4.1.[01] miscompiles __weak */
-+#ifdef __KERNEL__
-+# if GCC_VERSION >= 40100 &&  GCC_VERSION <= 40101
-+#  error Your version of gcc miscompiles the __weak directive
-+# endif
-+#endif
-+
-+#define __used			__attribute__((__used__))
-+#define __compiler_offsetof(a, b)					\
-+	__builtin_offsetof(a, b)
-+
-+#if GCC_VERSION >= 40100 && GCC_VERSION < 40600
-+# define __compiletime_object_size(obj) __builtin_object_size(obj, 0)
-+#endif
-+
-+#if GCC_VERSION >= 40300
-+/* Mark functions as cold. gcc will assume any path leading to a call
-+ * to them will be unlikely.  This means a lot of manual unlikely()s
-+ * are unnecessary now for any paths leading to the usual suspects
-+ * like BUG(), printk(), panic() etc. [but let's keep them for now for
-+ * older compilers]
-+ *
-+ * Early snapshots of gcc 4.3 don't support this and we can't detect this
-+ * in the preprocessor, but we can live with this because they're unreleased.
-+ * Maketime probing would be overkill here.
-+ *
-+ * gcc also has a __attribute__((__hot__)) to move hot functions into
-+ * a special section, but I don't see any sense in this right now in
-+ * the kernel context
-+ */
-+#define __cold			__attribute__((__cold__))
-+
-+#define __UNIQUE_ID(prefix) __PASTE(__PASTE(__UNIQUE_ID_, prefix), __COUNTER__)
-+
-+#ifndef __CHECKER__
-+# define __compiletime_warning(message) __attribute__((warning(message)))
-+# define __compiletime_error(message) __attribute__((error(message)))
-+#endif /* __CHECKER__ */
-+#endif /* GCC_VERSION >= 40300 */
-+
-+#if GCC_VERSION >= 40500
-+/*
-+ * Mark a position in code as unreachable.  This can be used to
-+ * suppress control flow warnings after asm blocks that transfer
-+ * control elsewhere.
-+ *
-+ * Early snapshots of gcc 4.5 don't support this and we can't detect
-+ * this in the preprocessor, but we can live with this because they're
-+ * unreleased.  Really, we need to have autoconf for the kernel.
-+ */
-+#define unreachable() __builtin_unreachable()
-+
-+/* Mark a function definition as prohibited from being cloned. */
-+#define __noclone	__attribute__((__noclone__))
-+
-+#endif /* GCC_VERSION >= 40500 */
-+
-+#if GCC_VERSION >= 40600
-+/*
-+ * Tell the optimizer that something else uses this function or variable.
-+ */
-+#define __visible	__attribute__((externally_visible))
-+#endif
-+
-+/*
-+ * GCC 'asm goto' miscompiles certain code sequences:
-+ *
-+ *   http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58670
-+ *
-+ * Work it around via a compiler barrier quirk suggested by Jakub Jelinek.
-+ *
-+ * (asm goto is automatically volatile - the naming reflects this.)
-+ */
-+#define asm_volatile_goto(x...)	do { asm goto(x); asm (""); } while (0)
-+
-+#ifdef CONFIG_ARCH_USE_BUILTIN_BSWAP
-+#if GCC_VERSION >= 40400
-+#define __HAVE_BUILTIN_BSWAP32__
-+#define __HAVE_BUILTIN_BSWAP64__
-+#endif
-+#if GCC_VERSION >= 40800 || (defined(__powerpc__) && GCC_VERSION >= 40600)
-+#define __HAVE_BUILTIN_BSWAP16__
-+#endif
-+#endif /* CONFIG_ARCH_USE_BUILTIN_BSWAP */
-+
-+#if GCC_VERSION >= 50000
-+#define KASAN_ABI_VERSION 4
-+#elif GCC_VERSION >= 40902
-+#define KASAN_ABI_VERSION 3
-+#endif
-+
-+#endif	/* gcc version >= 40000 specific checks */
+ /*
+  * Tell the optimizer that something else uses this function or variable.
+  */
+diff -puN include/linux/compiler.h~lto-add-__noreorder-and-mark-initcalls-__noreorder include/linux/compiler.h
+--- a/include/linux/compiler.h~lto-add-__noreorder-and-mark-initcalls-__noreorder
++++ a/include/linux/compiler.h
+@@ -318,6 +318,10 @@ static __always_inline void __write_once
+ #define noinline
+ #endif
  
- #if !defined(__noclone)
- #define __noclone	/* not needed */
-diff -puN include/linux/compiler-gcc3.h~compiler-gcc-integrate-the-various-compiler-gcch-files /dev/null
---- a/include/linux/compiler-gcc3.h
-+++ /dev/null
-@@ -1,23 +0,0 @@
--#ifndef __LINUX_COMPILER_H
--#error "Please don't include <linux/compiler-gcc3.h> directly, include <linux/compiler.h> instead."
--#endif
--
--#if GCC_VERSION < 30200
--# error Sorry, your compiler is too old - please upgrade it.
--#endif
--
--#if GCC_VERSION >= 30300
--# define __used			__attribute__((__used__))
--#else
--# define __used			__attribute__((__unused__))
--#endif
--
--#if GCC_VERSION >= 30400
--#define __must_check		__attribute__((warn_unused_result))
--#endif
--
--#ifdef CONFIG_GCOV_KERNEL
--# if GCC_VERSION < 30400
--#   error "GCOV profiling support for gcc versions below 3.4 not included"
--# endif /* __GNUC_MINOR__ */
--#endif /* CONFIG_GCOV_KERNEL */
-diff -puN include/linux/compiler-gcc4.h~compiler-gcc-integrate-the-various-compiler-gcch-files /dev/null
---- a/include/linux/compiler-gcc4.h
-+++ /dev/null
-@@ -1,91 +0,0 @@
--#ifndef __LINUX_COMPILER_H
--#error "Please don't include <linux/compiler-gcc4.h> directly, include <linux/compiler.h> instead."
--#endif
--
--/* GCC 4.1.[01] miscompiles __weak */
--#ifdef __KERNEL__
--# if GCC_VERSION >= 40100 &&  GCC_VERSION <= 40101
--#  error Your version of gcc miscompiles the __weak directive
--# endif
--#endif
--
--#define __used			__attribute__((__used__))
--#define __must_check 		__attribute__((warn_unused_result))
--#define __compiler_offsetof(a,b) __builtin_offsetof(a,b)
--
--#if GCC_VERSION >= 40100 && GCC_VERSION < 40600
--# define __compiletime_object_size(obj) __builtin_object_size(obj, 0)
--#endif
--
--#if GCC_VERSION >= 40300
--/* Mark functions as cold. gcc will assume any path leading to a call
--   to them will be unlikely.  This means a lot of manual unlikely()s
--   are unnecessary now for any paths leading to the usual suspects
--   like BUG(), printk(), panic() etc. [but let's keep them for now for
--   older compilers]
--
--   Early snapshots of gcc 4.3 don't support this and we can't detect this
--   in the preprocessor, but we can live with this because they're unreleased.
--   Maketime probing would be overkill here.
--
--   gcc also has a __attribute__((__hot__)) to move hot functions into
--   a special section, but I don't see any sense in this right now in
--   the kernel context */
--#define __cold			__attribute__((__cold__))
--
--#define __UNIQUE_ID(prefix) __PASTE(__PASTE(__UNIQUE_ID_, prefix), __COUNTER__)
--
--#ifndef __CHECKER__
--# define __compiletime_warning(message) __attribute__((warning(message)))
--# define __compiletime_error(message) __attribute__((error(message)))
--#endif /* __CHECKER__ */
--#endif /* GCC_VERSION >= 40300 */
--
--#if GCC_VERSION >= 40500
--/*
-- * Mark a position in code as unreachable.  This can be used to
-- * suppress control flow warnings after asm blocks that transfer
-- * control elsewhere.
-- *
-- * Early snapshots of gcc 4.5 don't support this and we can't detect
-- * this in the preprocessor, but we can live with this because they're
-- * unreleased.  Really, we need to have autoconf for the kernel.
-- */
--#define unreachable() __builtin_unreachable()
--
--/* Mark a function definition as prohibited from being cloned. */
--#define __noclone	__attribute__((__noclone__))
--
--#endif /* GCC_VERSION >= 40500 */
--
--#if GCC_VERSION >= 40600
--/*
-- * Tell the optimizer that something else uses this function or variable.
-- */
--#define __visible __attribute__((externally_visible))
--#endif
--
--/*
-- * GCC 'asm goto' miscompiles certain code sequences:
-- *
-- *   http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58670
-- *
-- * Work it around via a compiler barrier quirk suggested by Jakub Jelinek.
-- *
-- * (asm goto is automatically volatile - the naming reflects this.)
-- */
--#define asm_volatile_goto(x...)	do { asm goto(x); asm (""); } while (0)
--
--#ifdef CONFIG_ARCH_USE_BUILTIN_BSWAP
--#if GCC_VERSION >= 40400
--#define __HAVE_BUILTIN_BSWAP32__
--#define __HAVE_BUILTIN_BSWAP64__
--#endif
--#if GCC_VERSION >= 40800 || (defined(__powerpc__) && GCC_VERSION >= 40600)
--#define __HAVE_BUILTIN_BSWAP16__
--#endif
--#endif /* CONFIG_ARCH_USE_BUILTIN_BSWAP */
--
--#if GCC_VERSION >= 40902
--#define KASAN_ABI_VERSION 3
--#endif
-diff -puN include/linux/compiler-gcc5.h~compiler-gcc-integrate-the-various-compiler-gcch-files /dev/null
---- a/include/linux/compiler-gcc5.h
-+++ /dev/null
-@@ -1,67 +0,0 @@
--#ifndef __LINUX_COMPILER_H
--#error "Please don't include <linux/compiler-gcc5.h> directly, include <linux/compiler.h> instead."
--#endif
--
--#define __used				__attribute__((__used__))
--#define __must_check			__attribute__((warn_unused_result))
--#define __compiler_offsetof(a, b)	__builtin_offsetof(a, b)
--
--/* Mark functions as cold. gcc will assume any path leading to a call
--   to them will be unlikely.  This means a lot of manual unlikely()s
--   are unnecessary now for any paths leading to the usual suspects
--   like BUG(), printk(), panic() etc. [but let's keep them for now for
--   older compilers]
--
--   Early snapshots of gcc 4.3 don't support this and we can't detect this
--   in the preprocessor, but we can live with this because they're unreleased.
--   Maketime probing would be overkill here.
--
--   gcc also has a __attribute__((__hot__)) to move hot functions into
--   a special section, but I don't see any sense in this right now in
--   the kernel context */
--#define __cold			__attribute__((__cold__))
--
--#define __UNIQUE_ID(prefix) __PASTE(__PASTE(__UNIQUE_ID_, prefix), __COUNTER__)
--
--#ifndef __CHECKER__
--# define __compiletime_warning(message) __attribute__((warning(message)))
--# define __compiletime_error(message) __attribute__((error(message)))
--#endif /* __CHECKER__ */
--
--/*
-- * Mark a position in code as unreachable.  This can be used to
-- * suppress control flow warnings after asm blocks that transfer
-- * control elsewhere.
-- *
-- * Early snapshots of gcc 4.5 don't support this and we can't detect
-- * this in the preprocessor, but we can live with this because they're
-- * unreleased.  Really, we need to have autoconf for the kernel.
-- */
--#define unreachable() __builtin_unreachable()
--
--/* Mark a function definition as prohibited from being cloned. */
--#define __noclone	__attribute__((__noclone__))
--
--/*
-- * Tell the optimizer that something else uses this function or variable.
-- */
--#define __visible __attribute__((externally_visible))
--
--/*
-- * GCC 'asm goto' miscompiles certain code sequences:
-- *
-- *   http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58670
-- *
-- * Work it around via a compiler barrier quirk suggested by Jakub Jelinek.
-- *
-- * (asm goto is automatically volatile - the naming reflects this.)
-- */
--#define asm_volatile_goto(x...)	do { asm goto(x); asm (""); } while (0)
--
--#ifdef CONFIG_ARCH_USE_BUILTIN_BSWAP
--#define __HAVE_BUILTIN_BSWAP32__
--#define __HAVE_BUILTIN_BSWAP64__
--#define __HAVE_BUILTIN_BSWAP16__
--#endif /* CONFIG_ARCH_USE_BUILTIN_BSWAP */
++#ifndef __noreorder
++#define __noreorder		/* unimplemented */
++#endif
++
+ /*
+  * Rather then using noinline to prevent stack consumption, use
+  * noinline_for_stack instead.  For documentation reasons.
+diff -puN include/linux/init.h~lto-add-__noreorder-and-mark-initcalls-__noreorder include/linux/init.h
+--- a/include/linux/init.h~lto-add-__noreorder-and-mark-initcalls-__noreorder
++++ a/include/linux/init.h
+@@ -191,7 +191,7 @@ extern bool initcall_debug;
+  */
+ 
+ #define __define_initcall(fn, id) \
+-	static initcall_t __initcall_##fn##id __used \
++	static initcall_t __initcall_##fn##id __used __noreorder \
+ 	__attribute__((__section__(".initcall" #id ".init"))) = fn; \
+ 	LTO_REFERENCE_INITCALL(__initcall_##fn##id)
+ 
+_
+
+Patches currently in -mm which might be from ak@linux.intel.com are
+
+origin.patch
+mm-memory-failure-call-shake_page-when-error-hits-thp-tail-page.patch
+linux-next.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+
