@@ -1,87 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- checkpatch-dont-ask-for-asm-fileh-to-linux-fileh-unconditionally.patch
+Subject: [merged] checkpatch-add-test-for-repeated-const-uses.patch
  removed from -mm tree
-Date: Mon, 20 Apr 2015 12:17:03 -0700
-Message-ID: <553550af.eQx9cOGau8yvqXw+%akpm@linux-foundation.org>
+Date: Mon, 20 Apr 2015 12:17:01 -0700
+Message-ID: <553550ad.17L3nQjeeSqMraOt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40098 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40095 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753177AbbDTTKm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:10:42 -0400
+	with ESMTP id S1753194AbbDTTKk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:10:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, apw@canonical.com, joe@perches.com, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: don't ask for asm/file.h to linux/file.h unconditionally
+     Subject: checkpatch: add test for repeated const uses
 has been removed from the -mm tree.  Its filename was
-     checkpatch-dont-ask-for-asm-fileh-to-linux-fileh-unconditionally.patch
+     checkpatch-add-test-for-repeated-const-uses.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: checkpatch: don't ask for asm/file.h to linux/file.h unconditionally
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: add test for repeated const uses
 
-Currently checkpatch warns when asm/file.h is included and linux/file.h
-exists.  That conversion can be made when linux/file.h includes asm/file.h
-which is not always the case.(See signal.h)
+Using 'const <type> const *' is generally meant to be written 'const
+<type> * const'.
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Andy Whitcroft <apw@canonical.com>
-Acked-by: Joe Perches <joe@perches.com>
+Add a test for the miswritten form.
+
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   18 +++++++++++-------
- 1 file changed, 11 insertions(+), 7 deletions(-)
+ scripts/checkpatch.pl |   18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-dont-ask-for-asm-fileh-to-linux-fileh-unconditionally scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-dont-ask-for-asm-fileh-to-linux-fileh-unconditionally
+diff -puN scripts/checkpatch.pl~checkpatch-add-test-for-repeated-const-uses scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-test-for-repeated-const-uses
 +++ a/scripts/checkpatch.pl
-@@ -4242,7 +4242,8 @@ sub process {
- 			}
- 		}
+@@ -323,6 +323,7 @@ our $Operators	= qr{
  
--#warn if <asm/foo.h> is #included and <linux/foo.h> is available (uses RAW line)
-+# warn if <asm/foo.h> is #included and <linux/foo.h> is available and includes
-+# itself <asm/foo.h> (uses RAW line)
- 		if ($tree && $rawline =~ m{^.\s*\#\s*include\s*\<asm\/(.*)\.h\>}) {
- 			my $file = "$1.h";
- 			my $checkfile = "include/linux/$file";
-@@ -4250,12 +4251,15 @@ sub process {
- 			    $realfile ne $checkfile &&
- 			    $1 !~ /$allowed_asm_includes/)
- 			{
--				if ($realfile =~ m{^arch/}) {
--					CHK("ARCH_INCLUDE_LINUX",
--					    "Consider using #include <linux/$file> instead of <asm/$file>\n" . $herecurr);
--				} else {
--					WARN("INCLUDE_LINUX",
--					     "Use #include <linux/$file> instead of <asm/$file>\n" . $herecurr);
-+				my $asminclude = `grep -Ec "#include\\s+<asm/$file>" $root/$checkfile`;
-+				if ($asminclude > 0) {
-+					if ($realfile =~ m{^arch/}) {
-+						CHK("ARCH_INCLUDE_LINUX",
-+						    "Consider using #include <linux/$file> instead of <asm/$file>\n" . $herecurr);
-+					} else {
-+						WARN("INCLUDE_LINUX",
-+						     "Use #include <linux/$file> instead of <asm/$file>\n" . $herecurr);
-+					}
- 				}
- 			}
- 		}
+ our $c90_Keywords = qr{do|for|while|if|else|return|goto|continue|switch|default|case|break}x;
+ 
++our $BasicType;
+ our $NonptrType;
+ our $NonptrTypeMisordered;
+ our $NonptrTypeWithAttr;
+@@ -514,6 +515,11 @@ sub build_types {
+ 	my $Misordered = "(?x:  \n" . join("|\n  ", @typeListMisordered) . "\n)";
+ 	my $allWithAttr = "(?x:  \n" . join("|\n  ", @typeListWithAttr) . "\n)";
+ 	$Modifier	= qr{(?:$Attribute|$Sparse|$mods)};
++	$BasicType	= qr{
++				(?:$typeOtherOSTypedefs\b)|
++				(?:$typeTypedefs\b)|
++				(?:${all}\b)
++		}x;
+ 	$NonptrType	= qr{
+ 			(?:$Modifier\s+|const\s+)*
+ 			(?:
+@@ -3192,6 +3198,18 @@ sub process {
+ 				$herecurr);
+                }
+ 
++# check for const <foo> const where <foo> is not a pointer or array type
++		if ($sline =~ /\bconst\s+($BasicType)\s+const\b/) {
++			my $found = $1;
++			if ($sline =~ /\bconst\s+\Q$found\E\s+const\b\s*\*/) {
++				WARN("CONST_CONST",
++				     "'const $found const *' should probably be 'const $found * const'\n" . $herecurr);
++			} elsif ($sline !~ /\bconst\s+\Q$found\E\s+const\s+\w+\s*\[/) {
++				WARN("CONST_CONST",
++				     "'const $found const' should probably be 'const $found'\n" . $herecurr);
++			}
++		}
++
+ # check for non-global char *foo[] = {"bar", ...} declarations.
+ 		if ($line =~ /^.\s+(?:static\s+|const\s+)?char\s+\*\s*\w+\s*\[\s*\]\s*=\s*\{/) {
+ 			WARN("STATIC_CONST_CHAR_ARRAY",
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+ocfs2-neaten-do_error-ocfs2_error-and-ocfs2_abort.patch
+mm-utilc-add-kstrimdup.patch
 linux-next.patch
 
