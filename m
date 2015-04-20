@@ -1,108 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [merged] x86-switch-to-using-asm-generic-for-seccomph.patch
+Subject: [merged] lib-kconfig-fix-up-have_arch_bitreverse-help-text.patch
  removed from -mm tree
-Date: Mon, 20 Apr 2015 12:20:43 -0700
-Message-ID: <5535518b.cffyIDL6v6SzD5Sg%akpm@linux-foundation.org>
+Date: Mon, 20 Apr 2015 12:20:46 -0700
+Message-ID: <5535518e.dYMjwMW/6H0GSKpd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40497 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40502 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751544AbbDTTOW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:14:22 -0400
+	with ESMTP id S1750872AbbDTTOZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:14:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: keescook@chromium.org, hpa@zytor.com, mingo@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, linux@arm.linux.org.uk, yalin.wang@sonymobile.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86: switch to using asm-generic for seccomp.h
+     Subject: lib/Kconfig: fix up HAVE_ARCH_BITREVERSE help text
 has been removed from the -mm tree.  Its filename was
-     x86-switch-to-using-asm-generic-for-seccomph.patch
+     lib-kconfig-fix-up-have_arch_bitreverse-help-text.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: x86: switch to using asm-generic for seccomp.h
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lib/Kconfig: fix up HAVE_ARCH_BITREVERSE help text
 
-Switch to using the newly created asm-generic/seccomp.h for the seccomp
-strict mode syscall definitions. The obsolete sigreturn syscall override
-is retained in 32-bit mode, and the ia32 syscall overrides are used in
-the compat case. Remaining definitions were identical.
-
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Yalin Wang <yalin.wang@sonymobile.com>
+Cc: Russell King <linux@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/seccomp.h    |   21 ++++++++++++++++++---
- arch/x86/include/asm/seccomp_32.h |   11 -----------
- arch/x86/include/asm/seccomp_64.h |   17 -----------------
- 3 files changed, 18 insertions(+), 31 deletions(-)
+ lib/Kconfig |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86/include/asm/seccomp.h~x86-switch-to-using-asm-generic-for-seccomph arch/x86/include/asm/seccomp.h
---- a/arch/x86/include/asm/seccomp.h~x86-switch-to-using-asm-generic-for-seccomph
-+++ a/arch/x86/include/asm/seccomp.h
-@@ -1,5 +1,20 @@
-+#ifndef _ASM_X86_SECCOMP_H
-+#define _ASM_X86_SECCOMP_H
-+
-+#include <asm/unistd.h>
-+
- #ifdef CONFIG_X86_32
--# include <asm/seccomp_32.h>
--#else
--# include <asm/seccomp_64.h>
-+#define __NR_seccomp_sigreturn		__NR_sigreturn
- #endif
-+
-+#ifdef CONFIG_COMPAT
-+#include <asm/ia32_unistd.h>
-+#define __NR_seccomp_read_32		__NR_ia32_read
-+#define __NR_seccomp_write_32		__NR_ia32_write
-+#define __NR_seccomp_exit_32		__NR_ia32_exit
-+#define __NR_seccomp_sigreturn_32	__NR_ia32_sigreturn
-+#endif
-+
-+#include <asm-generic/seccomp.h>
-+
-+#endif /* _ASM_X86_SECCOMP_H */
-diff -puN arch/x86/include/asm/seccomp_32.h~x86-switch-to-using-asm-generic-for-seccomph /dev/null
---- a/arch/x86/include/asm/seccomp_32.h
-+++ /dev/null
-@@ -1,11 +0,0 @@
--#ifndef _ASM_X86_SECCOMP_32_H
--#define _ASM_X86_SECCOMP_32_H
--
--#include <linux/unistd.h>
--
--#define __NR_seccomp_read __NR_read
--#define __NR_seccomp_write __NR_write
--#define __NR_seccomp_exit __NR_exit
--#define __NR_seccomp_sigreturn __NR_sigreturn
--
--#endif /* _ASM_X86_SECCOMP_32_H */
-diff -puN arch/x86/include/asm/seccomp_64.h~x86-switch-to-using-asm-generic-for-seccomph /dev/null
---- a/arch/x86/include/asm/seccomp_64.h
-+++ /dev/null
-@@ -1,17 +0,0 @@
--#ifndef _ASM_X86_SECCOMP_64_H
--#define _ASM_X86_SECCOMP_64_H
--
--#include <linux/unistd.h>
--#include <asm/ia32_unistd.h>
--
--#define __NR_seccomp_read __NR_read
--#define __NR_seccomp_write __NR_write
--#define __NR_seccomp_exit __NR_exit
--#define __NR_seccomp_sigreturn __NR_rt_sigreturn
--
--#define __NR_seccomp_read_32 __NR_ia32_read
--#define __NR_seccomp_write_32 __NR_ia32_write
--#define __NR_seccomp_exit_32 __NR_ia32_exit
--#define __NR_seccomp_sigreturn_32 __NR_ia32_sigreturn
+diff -puN lib/Kconfig~lib-kconfig-fix-up-have_arch_bitreverse-help-text lib/Kconfig
+--- a/lib/Kconfig~lib-kconfig-fix-up-have_arch_bitreverse-help-text
++++ a/lib/Kconfig
+@@ -18,9 +18,8 @@ config HAVE_ARCH_BITREVERSE
+ 	default n
+ 	depends on BITREVERSE
+ 	help
+-	  This option provides an config for the architecture which have instruction
+-	  can do bitreverse operation, we use the hardware instruction if the architecture
+-	  have this capability.
++	  This option enables the use of hardware bit-reversal instructions on
++	  architectures which support such operations.
+ 
+ config RATIONAL
+ 	bool
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+mm.patch
+slub-bulk-allocation-from-per-cpu-partial-pages-fix.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
+zram-add-dynamic-device-add-remove-functionality-fix.patch
+zram-introduce-automatic-device_id-generation-fix.patch
+rtc-omap-add-external-32k-clock-feature-fix.patch
+linux-next.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+
