@@ -1,132 +1,95 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- hfsplus-dont-store-special-osx-xattr-prefix-on-disk.patch removed from -mm
- tree
-Date: Mon, 20 Apr 2015 12:19:19 -0700
-Message-ID: <55355137.ev9EglNG741IxSDY%akpm@linux-foundation.org>
+ ptrace-ptrace_detach-can-no-longer-race-with-sigkill.patch removed from -mm tree
+Date: Mon, 20 Apr 2015 12:19:31 -0700
+Message-ID: <55355143.sqYCZgkSJ81M5dTi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40338 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40357 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753161AbbDTTM6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:12:58 -0400
+	with ESMTP id S1753176AbbDTTNK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:13:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tommyhebb@gmail.com, anton@tuxera.com, fabf@skynet.be, hch@infradead.org, htl10@users.sourceforge.net, lists@nerdbynature.de, saproj@gmail.com, slava@dubeyko.com, stable@vger.kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: oleg@redhat.com, labath@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hfsplus: don't store special "osx" xattr prefix on-disk
+     Subject: ptrace: ptrace_detach() can no longer race with SIGKILL
 has been removed from the -mm tree.  Its filename was
-     hfsplus-dont-store-special-osx-xattr-prefix-on-disk.patch
+     ptrace-ptrace_detach-can-no-longer-race-with-sigkill.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Thomas Hebb <tommyhebb@gmail.com>
-Subject: hfsplus: don't store special "osx" xattr prefix on-disk
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: ptrace: ptrace_detach() can no longer race with SIGKILL
 
-On Mac OS X, HFS+ extended attributes are not namespaced.  Since we want
-to be compatible with OS X filesystems and yet still support the Linux
-namespacing system, the hfsplus driver implements a special "osx"
-namespace that is reported for any attribute that is not namespaced
-on-disk.  However, the current code for getting and setting these
-unprefixed attributes is broken.
+ptrace_detach() re-checks ->ptrace under tasklist lock and calls
+release_task() if __ptrace_detach() returns true.  This was needed because
+the __TASK_TRACED tracee could be killed/untraced, and it could even pass
+exit_notify() before we take tasklist_lock.
 
-hfsplus_osx_setattr() and hfsplus_osx_getattr() are passed names that have
-already had their "osx." prefixes stripped by the generic functions.  The
-functions first, quite correctly, check those names to make sure that they
-aren't prefixed with a known namespace, which would allow namespace access
-restrictions to be bypassed.  However, the functions then prepend "osx."
-to the name they're given before passing it on to hfsplus_getattr() and
-hfsplus_setattr().  Not only does this cause the "osx." prefix to be
-stored on-disk, defeating its purpose, it also breaks the check for the
-special "com.apple.FinderInfo" attribute, which is reported for all files,
-and as a consequence makes some userspace applications (e.g.  GNU patch)
-fail even when extended attributes are not otherwise in use.
+But this is no longer possible after 9899d11f6544 "ptrace: ensure
+arch_ptrace/ptrace_request can never race with SIGKILL".  We can turn
+these checks into WARN_ON() and remove release_task().
 
-There are five commits which have touched this particular code:
+While at it, document the setting of child->exit_code.
 
-  127e5f5ae51e ("hfsplus: rework functionality of getting, setting and deleting of extended attributes")
-  b168fff72109 ("hfsplus: use xattr handlers for removexattr")
-  bf29e886b242 ("hfsplus: correct usage of HFSPLUS_ATTR_MAX_STRLEN for non-English attributes")
-  fcacbd95e121 ("fs/hfsplus: move xattr_name allocation in hfsplus_getxattr()")
-  ec1bbd346f18 ("fs/hfsplus: move xattr_name allocation in hfsplus_setxattr()")
-
-The first commit creates the functions to begin with.  The namespace is
-prepended by the original code, which I believe was correct at the time,
-since hfsplus_?etattr() stripped the prefix if found.  The second commit
-removes this behavior from hfsplus_?etattr() and appears to have been
-intended to also remove the prefixing from hfsplus_osx_?etattr(). 
-However, what it actually does is remove a necessary strncpy() call
-completely, breaking the osx namespace entirely.  The third commit re-adds
-the strncpy() call as it was originally, but doesn't mention it in its
-commit message.  The final two commits refactor the code and don't affect
-its functionality.
-
-This commit does what b168fff attempted to do (prevent the prefix from
-being added), but does it properly, instead of passing in an empty buffer
-(which is what b168fff actually did).
-
-Fixes: b168fff72109 ("hfsplus: use xattr handlers for removexattr")
-Signed-off-by: Thomas Hebb <tommyhebb@gmail.com>
-Cc: Hin-Tak Leung <htl10@users.sourceforge.net>
-Cc: Sergei Antonov <saproj@gmail.com>
-Cc: Anton Altaparmakov <anton@tuxera.com>
-Cc: Fabian Frederick <fabf@skynet.be>
-Cc: Christian Kujau <lists@nerdbynature.de>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Viacheslav Dubeyko <slava@dubeyko.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Pavel Labath <labath@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/xattr.c |   19 ++++++++++++++-----
- 1 file changed, 14 insertions(+), 5 deletions(-)
+ kernel/ptrace.c |   19 +++++++++----------
+ 1 file changed, 9 insertions(+), 10 deletions(-)
 
-diff -puN fs/hfsplus/xattr.c~hfsplus-dont-store-special-osx-xattr-prefix-on-disk fs/hfsplus/xattr.c
---- a/fs/hfsplus/xattr.c~hfsplus-dont-store-special-osx-xattr-prefix-on-disk
-+++ a/fs/hfsplus/xattr.c
-@@ -862,8 +862,13 @@ static int hfsplus_osx_getxattr(struct d
- 	if (is_known_namespace(name))
- 		return -EOPNOTSUPP;
+diff -puN kernel/ptrace.c~ptrace-ptrace_detach-can-no-longer-race-with-sigkill kernel/ptrace.c
+--- a/kernel/ptrace.c~ptrace-ptrace_detach-can-no-longer-race-with-sigkill
++++ a/kernel/ptrace.c
+@@ -456,8 +456,6 @@ static bool __ptrace_detach(struct task_
  
--	return hfsplus_getxattr(dentry, name, buffer, size,
--				XATTR_MAC_OSX_PREFIX, XATTR_MAC_OSX_PREFIX_LEN);
-+	/*
-+	 * osx is the namespace we use to indicate an unprefixed
-+	 * attribute on the filesystem (like the ones that OS X
-+	 * creates), so we pass the name through unmodified (after
-+	 * ensuring it doesn't conflict with another namespace).
+ static int ptrace_detach(struct task_struct *child, unsigned int data)
+ {
+-	bool dead = false;
+-
+ 	if (!valid_signal(data))
+ 		return -EIO;
+ 
+@@ -467,18 +465,19 @@ static int ptrace_detach(struct task_str
+ 
+ 	write_lock_irq(&tasklist_lock);
+ 	/*
+-	 * This child can be already killed. Make sure de_thread() or
+-	 * our sub-thread doing do_wait() didn't do release_task() yet.
++	 * We rely on ptrace_freeze_traced(). It can't be killed and
++	 * untraced by another thread, it can't be a zombie.
 +	 */
-+	return __hfsplus_getxattr(dentry->d_inode, name, buffer, size);
- }
- 
- static int hfsplus_osx_setxattr(struct dentry *dentry, const char *name,
-@@ -879,9 +884,13 @@ static int hfsplus_osx_setxattr(struct d
- 	if (is_known_namespace(name))
- 		return -EOPNOTSUPP;
- 
--	return hfsplus_setxattr(dentry, name, buffer, size, flags,
--				XATTR_MAC_OSX_PREFIX,
--				XATTR_MAC_OSX_PREFIX_LEN);
++	WARN_ON(!child->ptrace || child->exit_state);
 +	/*
-+	 * osx is the namespace we use to indicate an unprefixed
-+	 * attribute on the filesystem (like the ones that OS X
-+	 * creates), so we pass the name through unmodified (after
-+	 * ensuring it doesn't conflict with another namespace).
-+	 */
-+	return __hfsplus_setxattr(dentry->d_inode, name, buffer, size, flags);
- }
++	 * tasklist_lock avoids the race with wait_task_stopped(), see
++	 * the comment in ptrace_resume().
+ 	 */
+-	if (child->ptrace) {
+-		child->exit_code = data;
+-		dead = __ptrace_detach(current, child);
+-	}
++	child->exit_code = data;
++	__ptrace_detach(current, child);
+ 	write_unlock_irq(&tasklist_lock);
  
- static size_t hfsplus_osx_listxattr(struct dentry *dentry, char *list,
+ 	proc_ptrace_connector(child, PTRACE_DETACH);
+-	if (unlikely(dead))
+-		release_task(child);
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from tommyhebb@gmail.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 origin.patch
 
