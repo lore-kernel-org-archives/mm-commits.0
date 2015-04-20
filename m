@@ -1,107 +1,150 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-bitmap_-remove-code-duplication.patch removed from
- -mm tree
-Date: Mon, 20 Apr 2015 12:16:45 -0700
-Message-ID: <5535509d.zK+IGAu3DvbT8TS8%akpm@linux-foundation.org>
+Subject: [merged]
+ checkpatch-add-optional-codespell-dictionary-to-find-more-typos.patch
+ removed from -mm tree
+Date: Mon, 20 Apr 2015 12:16:55 -0700
+Message-ID: <553550a7.zZrh8kk95c6NyJUc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40066 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40084 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753000AbbDTTKY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:10:24 -0400
+	with ESMTP id S1751764AbbDTTKe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:10:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yury.norov@gmail.com, klimov.linux@gmail.com, linux@horizon.com, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
+To: joe@perches.com, apw@canonical.com, keescook@chromium.org, lucas.de.marchi@gmail.com, standby24x7@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/bitmap.c: bitmap_[empty,full]: remove code duplication
+     Subject: checkpatch: add optional --codespell dictionary to find more typos
 has been removed from the -mm tree.  Its filename was
-     lib-bitmap_-remove-code-duplication.patch
+     checkpatch-add-optional-codespell-dictionary-to-find-more-typos.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yury Norov <yury.norov@gmail.com>
-Subject: lib/bitmap.c: bitmap_[empty,full]: remove code duplication
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: add optional --codespell dictionary to find more typos
 
-bitmap_empty() has its own implementation.  But it's clearly as simple as:
+If a codespell dictionary exists, use it if desired.  default is off,
+maybe it could be turned on later.
 
-	find_first_bit(src, nbits) == nbits
-	
-The same is true for 'bitmap_full'.
+codespell's dictionary format allows multiple possible corrections, ignore
+that for now and only use the first suggestion.
 
-Signed-off-by: Yury Norov <yury.norov@gmail.com>
-Cc: George Spelvin <linux@horizon.com>
-Cc: Alexey Klimov <klimov.linux@gmail.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Also add \b to spelling test so that consecutive misspelled words
+are found properly.
+
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Andy Whitcroft <apw@canonical.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Masanari Iida <standby24x7@gmail.com>
+Cc: Lucas De Marchi <lucas.de.marchi@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bitmap.h |    8 ++++----
- lib/bitmap.c           |   30 ------------------------------
- 2 files changed, 4 insertions(+), 34 deletions(-)
+ scripts/checkpatch.pl |   38 ++++++++++++++++++++++++++++++++++----
+ 1 file changed, 34 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/bitmap.h~lib-bitmap_-remove-code-duplication include/linux/bitmap.h
---- a/include/linux/bitmap.h~lib-bitmap_-remove-code-duplication
-+++ a/include/linux/bitmap.h
-@@ -283,16 +283,16 @@ static inline int bitmap_empty(const uns
- {
- 	if (small_const_nbits(nbits))
- 		return ! (*src & BITMAP_LAST_WORD_MASK(nbits));
--	else
--		return __bitmap_empty(src, nbits);
-+
-+	return find_first_bit(src, nbits) == nbits;
+diff -puN scripts/checkpatch.pl~checkpatch-add-optional-codespell-dictionary-to-find-more-typos scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-optional-codespell-dictionary-to-find-more-typos
++++ a/scripts/checkpatch.pl
+@@ -47,6 +47,8 @@ my $ignore_perl_version = 0;
+ my $minimum_perl_version = 5.10.0;
+ my $min_conf_desc_length = 4;
+ my $spelling_file = "$D/spelling.txt";
++my $codespell = 0;
++my $codespellfile = "/usr/local/share/codespell/dictionary.txt";
+ 
+ sub help {
+ 	my ($exitcode) = @_;
+@@ -88,6 +90,9 @@ Options:
+                              file.  It's your fault if there's no backup or git
+   --ignore-perl-version      override checking of perl version.  expect
+                              runtime errors.
++  --codespell                Use the codespell dictionary for spelling/typos
++                             (default:/usr/local/share/codespell/dictionary.txt)
++  --codespellfile            Use this codespell dictionary
+   -h, --help, --version      display this help and exit
+ 
+ When FILE is - read standard input.
+@@ -146,6 +151,8 @@ GetOptions(
+ 	'ignore-perl-version!' => \$ignore_perl_version,
+ 	'debug=s'	=> \%debug,
+ 	'test-only=s'	=> \$tst_only,
++	'codespell!'	=> \$codespell,
++	'codespellfile=s'	=> \$codespellfile,
+ 	'h|help'	=> \$help,
+ 	'version'	=> \$help
+ ) or help(1);
+@@ -449,7 +456,6 @@ my $misspellings;
+ my %spelling_fix;
+ 
+ if (open(my $spelling, '<', $spelling_file)) {
+-	my @spelling_list;
+ 	while (<$spelling>) {
+ 		my $line = $_;
+ 
+@@ -461,15 +467,39 @@ if (open(my $spelling, '<', $spelling_fi
+ 
+ 		my ($suspect, $fix) = split(/\|\|/, $line);
+ 
+-		push(@spelling_list, $suspect);
+ 		$spelling_fix{$suspect} = $fix;
+ 	}
+ 	close($spelling);
+-	$misspellings = join("|", @spelling_list);
+ } else {
+ 	warn "No typos will be found - file '$spelling_file': $!\n";
  }
  
- static inline int bitmap_full(const unsigned long *src, unsigned int nbits)
- {
- 	if (small_const_nbits(nbits))
- 		return ! (~(*src) & BITMAP_LAST_WORD_MASK(nbits));
--	else
--		return __bitmap_full(src, nbits);
++if ($codespell) {
++	if (open(my $spelling, '<', $codespellfile)) {
++		while (<$spelling>) {
++			my $line = $_;
 +
-+	return find_first_zero_bit(src, nbits) == nbits;
- }
- 
- static inline int bitmap_weight(const unsigned long *src, unsigned int nbits)
-diff -puN lib/bitmap.c~lib-bitmap_-remove-code-duplication lib/bitmap.c
---- a/lib/bitmap.c~lib-bitmap_-remove-code-duplication
-+++ a/lib/bitmap.c
-@@ -42,36 +42,6 @@
-  * for the best explanations of this ordering.
-  */
- 
--int __bitmap_empty(const unsigned long *bitmap, unsigned int bits)
--{
--	unsigned int k, lim = bits/BITS_PER_LONG;
--	for (k = 0; k < lim; ++k)
--		if (bitmap[k])
--			return 0;
--
--	if (bits % BITS_PER_LONG)
--		if (bitmap[k] & BITMAP_LAST_WORD_MASK(bits))
--			return 0;
--
--	return 1;
--}
--EXPORT_SYMBOL(__bitmap_empty);
--
--int __bitmap_full(const unsigned long *bitmap, unsigned int bits)
--{
--	unsigned int k, lim = bits/BITS_PER_LONG;
--	for (k = 0; k < lim; ++k)
--		if (~bitmap[k])
--			return 0;
--
--	if (bits % BITS_PER_LONG)
--		if (~bitmap[k] & BITMAP_LAST_WORD_MASK(bits))
--			return 0;
--
--	return 1;
--}
--EXPORT_SYMBOL(__bitmap_full);
++			$line =~ s/\s*\n?$//g;
++			$line =~ s/^\s*//g;
++
++			next if ($line =~ m/^\s*#/);
++			next if ($line =~ m/^\s*$/);
++			next if ($line =~ m/, disabled/i);
++
++			$line =~ s/,.*$//;
++
++			my ($suspect, $fix) = split(/->/, $line);
++
++			$spelling_fix{$suspect} = $fix;
++		}
++		close($spelling);
++	} else {
++		warn "No codespell typos will be found - file '$codespellfile': $!\n";
++	}
++}
++
++$misspellings = join("|", sort keys %spelling_fix) if keys %spelling_fix;
++
+ sub build_types {
+ 	my $mods = "(?x:  \n" . join("|\n  ", @modifierList) . "\n)";
+ 	my $all = "(?x:  \n" . join("|\n  ", @typeList) . "\n)";
+@@ -2305,7 +2335,7 @@ sub process {
+ # Check for various typo / spelling mistakes
+ 		if (defined($misspellings) &&
+ 		    ($in_commit_log || $line =~ /^(?:\+|Subject:)/i)) {
+-			while ($rawline =~ /(?:^|[^a-z@])($misspellings)(?:$|[^a-z@])/gi) {
++			while ($rawline =~ /(?:^|[^a-z@])($misspellings)(?:\b|$|[^a-z@])/gi) {
+ 				my $typo = $1;
+ 				my $typo_fix = $spelling_fix{lc($typo)};
+ 				$typo_fix = ucfirst($typo_fix) if ($typo =~ /^[A-Z]/);
+_
+
+Patches currently in -mm which might be from joe@perches.com are
+
+origin.patch
+ocfs2-neaten-do_error-ocfs2_error-and-ocfs2_abort.patch
+mm-utilc-add-kstrimdup.patch
+linux-next.patch
+
