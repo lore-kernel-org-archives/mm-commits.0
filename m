@@ -1,177 +1,314 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-s5m-add-support-for-s2mps13-rtc.patch removed from
+Subject: [merged]
+ rtc-driver-for-conexant-digicolor-cx92755-on-chip-rtc.patch removed from
  -mm tree
-Date: Mon, 20 Apr 2015 12:18:04 -0700
-Message-ID: <553550ec.ZlL2v9EbYPWOPUmE%akpm@linux-foundation.org>
+Date: Mon, 20 Apr 2015 12:18:00 -0700
+Message-ID: <553550e8.kWDNjf1/Dw5HC978%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40214 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40205 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753489AbbDTTLn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:11:43 -0400
+	with ESMTP id S1752848AbbDTTLj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:11:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: k.kozlowski@samsung.com, a.zummo@towertech.it, alexandre.belloni@free-electrons.com, mm-commits@vger.kernel.org
+To: baruch@tkos.co.il, a.zummo@towertech.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-s5m.c: add support for S2MPS13 RTC
+     Subject: rtc: driver for Conexant Digicolor CX92755 on-chip RTC
 has been removed from the -mm tree.  Its filename was
-     rtc-s5m-add-support-for-s2mps13-rtc.patch
+     rtc-driver-for-conexant-digicolor-cx92755-on-chip-rtc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: drivers/rtc/rtc-s5m.c: add support for S2MPS13 RTC
+From: Baruch Siach <baruch@tkos.co.il>
+Subject: rtc: driver for Conexant Digicolor CX92755 on-chip RTC
 
-The S2MPS13 RTC is almost the same as S2MPS14. The differences when
-updating alarm are:
-1. Set WUDR+AUDR field instead of WUDR+RUDR.
-2. Clear the AUDR field later (it is not auto-cleared).
+Add driver for the RTC hardware block on the Conexant CX92755 SoC, from
+the Digicolor series of SoCs.  Tested on the Equinox evaluation board for
+the CX92755 chip.
 
-Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Cc: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+[akpm@linux-foundation.org: build command arrays at compile-time]
+Signed-off-by: Baruch Siach <baruch@tkos.co.il>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-s5m.c           |   20 +++++++++++++++++++-
- include/linux/mfd/samsung/rtc.h |    2 ++
- 2 files changed, 21 insertions(+), 1 deletion(-)
+ drivers/rtc/Kconfig         |   10 +
+ drivers/rtc/Makefile        |    1 
+ drivers/rtc/rtc-digicolor.c |  227 ++++++++++++++++++++++++++++++++++
+ 3 files changed, 238 insertions(+)
 
-diff -puN drivers/rtc/rtc-s5m.c~rtc-s5m-add-support-for-s2mps13-rtc drivers/rtc/rtc-s5m.c
---- a/drivers/rtc/rtc-s5m.c~rtc-s5m-add-support-for-s2mps13-rtc
-+++ a/drivers/rtc/rtc-s5m.c
-@@ -187,6 +187,7 @@ static inline int s5m_check_peding_alarm
- 		val &= S5M_ALARM0_STATUS;
- 		break;
- 	case S2MPS14X:
-+	case S2MPS13X:
- 		ret = regmap_read(info->s5m87xx->regmap_pmic, S2MPS14_REG_ST2,
- 				&val);
- 		val &= S2MPS_ALARM0_STATUS;
-@@ -252,6 +253,9 @@ static inline int s5m8767_rtc_set_alarm_
- 	case S2MPS14X:
- 		data |= S2MPS_RTC_RUDR_MASK;
- 		break;
-+	case S2MPS13X:
-+		data |= S2MPS13_RTC_AUDR_MASK;
-+		break;
- 	default:
- 		return -EINVAL;
- 	}
-@@ -265,6 +269,11 @@ static inline int s5m8767_rtc_set_alarm_
+diff -puN drivers/rtc/Kconfig~rtc-driver-for-conexant-digicolor-cx92755-on-chip-rtc drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-driver-for-conexant-digicolor-cx92755-on-chip-rtc
++++ a/drivers/rtc/Kconfig
+@@ -1111,6 +1111,16 @@ config RTC_DRV_DAVINCI
+ 	  This driver can also be built as a module. If so, the module
+ 	  will be called rtc-davinci.
  
- 	ret = s5m8767_wait_for_udr_update(info);
- 
-+	/* On S2MPS13 the AUDR is not auto-cleared */
-+	if (info->device_type == S2MPS13X)
-+		regmap_update_bits(info->regmap, info->regs->rtc_udr_update,
-+				   S2MPS13_RTC_AUDR_MASK, 0);
++config RTC_DRV_DIGICOLOR
++	tristate "Conexant Digicolor RTC"
++	depends on ARCH_DIGICOLOR
++	help
++	  If you say yes here you get support for the RTC on Conexant
++	  Digicolor platforms. This currently includes the CX92755 SoC.
 +
- 	return ret;
- }
- 
-@@ -306,7 +315,7 @@ static int s5m_rtc_read_time(struct devi
- 	u8 data[info->regs->regs_count];
- 	int ret;
- 
--	if (info->device_type == S2MPS14X) {
-+	if (info->device_type == S2MPS14X || info->device_type == S2MPS13X) {
- 		ret = regmap_update_bits(info->regmap,
- 				info->regs->rtc_udr_update,
- 				S2MPS_RTC_RUDR_MASK, S2MPS_RTC_RUDR_MASK);
-@@ -329,6 +338,7 @@ static int s5m_rtc_read_time(struct devi
- 
- 	case S5M8767X:
- 	case S2MPS14X:
-+	case S2MPS13X:
- 		s5m8767_data_to_tm(data, tm, info->rtc_24hr_mode);
- 		break;
- 
-@@ -355,6 +365,7 @@ static int s5m_rtc_set_time(struct devic
- 		break;
- 	case S5M8767X:
- 	case S2MPS14X:
-+	case S2MPS13X:
- 		ret = s5m8767_tm_to_data(tm, data);
- 		break;
- 	default:
-@@ -402,6 +413,7 @@ static int s5m_rtc_read_alarm(struct dev
- 
- 	case S5M8767X:
- 	case S2MPS14X:
-+	case S2MPS13X:
- 		s5m8767_data_to_tm(data, &alrm->time, info->rtc_24hr_mode);
- 		alrm->enabled = 0;
- 		for (i = 0; i < info->regs->regs_count; i++) {
-@@ -450,6 +462,7 @@ static int s5m_rtc_stop_alarm(struct s5m
- 
- 	case S5M8767X:
- 	case S2MPS14X:
-+	case S2MPS13X:
- 		for (i = 0; i < info->regs->regs_count; i++)
- 			data[i] &= ~ALARM_ENABLE_MASK;
- 
-@@ -494,6 +507,7 @@ static int s5m_rtc_start_alarm(struct s5
- 
- 	case S5M8767X:
- 	case S2MPS14X:
-+	case S2MPS13X:
- 		data[RTC_SEC] |= ALARM_ENABLE_MASK;
- 		data[RTC_MIN] |= ALARM_ENABLE_MASK;
- 		data[RTC_HOUR] |= ALARM_ENABLE_MASK;
-@@ -533,6 +547,7 @@ static int s5m_rtc_set_alarm(struct devi
- 
- 	case S5M8767X:
- 	case S2MPS14X:
-+	case S2MPS13X:
- 		s5m8767_tm_to_data(&alrm->time, data);
- 		break;
- 
-@@ -615,6 +630,7 @@ static int s5m8767_rtc_init_reg(struct s
- 		break;
- 
- 	case S2MPS14X:
-+	case S2MPS13X:
- 		data[0] = (0 << BCD_EN_SHIFT) | (1 << MODEL24_SHIFT);
- 		ret = regmap_write(info->regmap, info->regs->ctrl, data[0]);
- 		break;
-@@ -652,6 +668,7 @@ static int s5m_rtc_probe(struct platform
- 
- 	switch (pdata->device_type) {
- 	case S2MPS14X:
-+	case S2MPS13X:
- 		regmap_cfg = &s2mps14_rtc_regmap_config;
- 		info->regs = &s2mps_rtc_regs;
- 		alarm_irq = S2MPS14_IRQ_RTCA0;
-@@ -772,6 +789,7 @@ static SIMPLE_DEV_PM_OPS(s5m_rtc_pm_ops,
- 
- static const struct platform_device_id s5m_rtc_id[] = {
- 	{ "s5m-rtc",		S5M8767X },
-+	{ "s2mps13-rtc",	S2MPS13X },
- 	{ "s2mps14-rtc",	S2MPS14X },
- 	{ },
- };
-diff -puN include/linux/mfd/samsung/rtc.h~rtc-s5m-add-support-for-s2mps13-rtc include/linux/mfd/samsung/rtc.h
---- a/include/linux/mfd/samsung/rtc.h~rtc-s5m-add-support-for-s2mps13-rtc
-+++ a/include/linux/mfd/samsung/rtc.h
-@@ -105,6 +105,8 @@ enum s2mps_rtc_reg {
- #define S5M_RTC_UDR_MASK	(1 << S5M_RTC_UDR_SHIFT)
- #define S2MPS_RTC_WUDR_SHIFT	4
- #define S2MPS_RTC_WUDR_MASK	(1 << S2MPS_RTC_WUDR_SHIFT)
-+#define S2MPS13_RTC_AUDR_SHIFT	1
-+#define S2MPS13_RTC_AUDR_MASK	(1 << S2MPS13_RTC_AUDR_SHIFT)
- #define S2MPS_RTC_RUDR_SHIFT	0
- #define S2MPS_RTC_RUDR_MASK	(1 << S2MPS_RTC_RUDR_SHIFT)
- #define RTC_TCON_SHIFT		1
++	  This driver can also be built as a module. If so, the module
++	  will be called rtc-digicolor.
++
+ config RTC_DRV_IMXDI
+ 	tristate "Freescale IMX DryIce Real Time Clock"
+ 	depends on ARCH_MXC
+diff -puN drivers/rtc/Makefile~rtc-driver-for-conexant-digicolor-cx92755-on-chip-rtc drivers/rtc/Makefile
+--- a/drivers/rtc/Makefile~rtc-driver-for-conexant-digicolor-cx92755-on-chip-rtc
++++ a/drivers/rtc/Makefile
+@@ -40,6 +40,7 @@ obj-$(CONFIG_RTC_DRV_DA9052)	+= rtc-da90
+ obj-$(CONFIG_RTC_DRV_DA9055)	+= rtc-da9055.o
+ obj-$(CONFIG_RTC_DRV_DA9063)	+= rtc-da9063.o
+ obj-$(CONFIG_RTC_DRV_DAVINCI)	+= rtc-davinci.o
++obj-$(CONFIG_RTC_DRV_DIGICOLOR)	+= rtc-digicolor.o
+ obj-$(CONFIG_RTC_DRV_DM355EVM)	+= rtc-dm355evm.o
+ obj-$(CONFIG_RTC_DRV_VRTC)	+= rtc-mrst.o
+ obj-$(CONFIG_RTC_DRV_DS1216)	+= rtc-ds1216.o
+diff -puN /dev/null drivers/rtc/rtc-digicolor.c
+--- /dev/null
++++ a/drivers/rtc/rtc-digicolor.c
+@@ -0,0 +1,227 @@
++/*
++ * Real Time Clock driver for Conexant Digicolor
++ *
++ * Copyright (C) 2015 Paradox Innovation Ltd.
++ *
++ * Author: Baruch Siach <baruch@tkos.co.il>
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by the
++ * Free Software Foundation; either version 2 of the License, or (at your
++ * option) any later version.
++ */
++
++#include <linux/io.h>
++#include <linux/iopoll.h>
++#include <linux/delay.h>
++#include <linux/module.h>
++#include <linux/platform_device.h>
++#include <linux/rtc.h>
++#include <linux/of.h>
++
++#define DC_RTC_CONTROL		0x0
++#define DC_RTC_TIME		0x8
++#define DC_RTC_REFERENCE	0xc
++#define DC_RTC_ALARM		0x10
++#define DC_RTC_INTFLAG_CLEAR	0x14
++#define DC_RTC_INTENABLE	0x16
++
++#define DC_RTC_CMD_MASK		0xf
++#define DC_RTC_GO_BUSY		BIT(7)
++
++#define CMD_NOP			0
++#define CMD_RESET		1
++#define CMD_WRITE		3
++#define CMD_READ		4
++
++#define CMD_DELAY_US		(10*1000)
++#define CMD_TIMEOUT_US		(500*CMD_DELAY_US)
++
++struct dc_rtc {
++	struct rtc_device	*rtc_dev;
++	void __iomem		*regs;
++};
++
++static int dc_rtc_cmds(struct dc_rtc *rtc, const u8 *cmds, int len)
++{
++	u8 val;
++	int i, ret;
++
++	for (i = 0; i < len; i++) {
++		writeb_relaxed((cmds[i] & DC_RTC_CMD_MASK) | DC_RTC_GO_BUSY,
++			       rtc->regs + DC_RTC_CONTROL);
++		ret = readb_relaxed_poll_timeout(
++			rtc->regs + DC_RTC_CONTROL, val,
++			!(val & DC_RTC_GO_BUSY), CMD_DELAY_US, CMD_TIMEOUT_US);
++		if (ret < 0)
++			return ret;
++	}
++
++	return 0;
++}
++
++static int dc_rtc_read(struct dc_rtc *rtc, unsigned long *val)
++{
++	static const u8 read_cmds[] = {CMD_READ, CMD_NOP};
++	u32 reference, time1, time2;
++	int ret;
++
++	ret = dc_rtc_cmds(rtc, read_cmds, ARRAY_SIZE(read_cmds));
++	if (ret < 0)
++		return ret;
++
++	reference = readl_relaxed(rtc->regs + DC_RTC_REFERENCE);
++	time1 = readl_relaxed(rtc->regs + DC_RTC_TIME);
++	/* Read twice to ensure consistency */
++	while (1) {
++		time2 = readl_relaxed(rtc->regs + DC_RTC_TIME);
++		if (time1 == time2)
++			break;
++		time1 = time2;
++	}
++
++	*val = reference + time1;
++	return 0;
++}
++
++static int dc_rtc_write(struct dc_rtc *rtc, u32 val)
++{
++	static const u8 write_cmds[] = {CMD_WRITE, CMD_NOP, CMD_RESET, CMD_NOP};
++
++	writel_relaxed(val, rtc->regs + DC_RTC_REFERENCE);
++	return dc_rtc_cmds(rtc, write_cmds, ARRAY_SIZE(write_cmds));
++}
++
++static int dc_rtc_read_time(struct device *dev, struct rtc_time *tm)
++{
++	struct dc_rtc *rtc = dev_get_drvdata(dev);
++	unsigned long now;
++	int ret;
++
++	ret = dc_rtc_read(rtc, &now);
++	if (ret < 0)
++		return ret;
++	rtc_time64_to_tm(now, tm);
++
++	return 0;
++}
++
++static int dc_rtc_set_mmss(struct device *dev, unsigned long secs)
++{
++	struct dc_rtc *rtc = dev_get_drvdata(dev);
++
++	return dc_rtc_write(rtc, secs);
++}
++
++static int dc_rtc_read_alarm(struct device *dev, struct rtc_wkalrm *alarm)
++{
++	struct dc_rtc *rtc = dev_get_drvdata(dev);
++	u32 alarm_reg, reference;
++	unsigned long now;
++	int ret;
++
++	alarm_reg = readl_relaxed(rtc->regs + DC_RTC_ALARM);
++	reference = readl_relaxed(rtc->regs + DC_RTC_REFERENCE);
++	rtc_time64_to_tm(reference + alarm_reg, &alarm->time);
++
++	ret = dc_rtc_read(rtc, &now);
++	if (ret < 0)
++		return ret;
++
++	alarm->pending = alarm_reg + reference > now;
++	alarm->enabled = readl_relaxed(rtc->regs + DC_RTC_INTENABLE);
++
++	return 0;
++}
++
++static int dc_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alarm)
++{
++	struct dc_rtc *rtc = dev_get_drvdata(dev);
++	time64_t alarm_time;
++	u32 reference;
++
++	alarm_time = rtc_tm_to_time64(&alarm->time);
++
++	reference = readl_relaxed(rtc->regs + DC_RTC_REFERENCE);
++	writel_relaxed(alarm_time - reference, rtc->regs + DC_RTC_ALARM);
++
++	writeb_relaxed(!!alarm->enabled, rtc->regs + DC_RTC_INTENABLE);
++
++	return 0;
++}
++
++static int dc_rtc_alarm_irq_enable(struct device *dev, unsigned int enabled)
++{
++	struct dc_rtc *rtc = dev_get_drvdata(dev);
++
++	writeb_relaxed(!!enabled, rtc->regs + DC_RTC_INTENABLE);
++
++	return 0;
++}
++
++static struct rtc_class_ops dc_rtc_ops = {
++	.read_time		= dc_rtc_read_time,
++	.set_mmss		= dc_rtc_set_mmss,
++	.read_alarm		= dc_rtc_read_alarm,
++	.set_alarm		= dc_rtc_set_alarm,
++	.alarm_irq_enable	= dc_rtc_alarm_irq_enable,
++};
++
++static irqreturn_t dc_rtc_irq(int irq, void *dev_id)
++{
++	struct dc_rtc *rtc = dev_id;
++
++	writeb_relaxed(1, rtc->regs + DC_RTC_INTFLAG_CLEAR);
++	rtc_update_irq(rtc->rtc_dev, 1, RTC_AF | RTC_IRQF);
++
++	return IRQ_HANDLED;
++}
++
++static int __init dc_rtc_probe(struct platform_device *pdev)
++{
++	struct resource *res;
++	struct dc_rtc *rtc;
++	int irq, ret;
++
++	rtc = devm_kzalloc(&pdev->dev, sizeof(*rtc), GFP_KERNEL);
++	if (!rtc)
++		return -ENOMEM;
++
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	rtc->regs = devm_ioremap_resource(&pdev->dev, res);
++	if (IS_ERR(rtc->regs))
++		return PTR_ERR(rtc->regs);
++
++	irq = platform_get_irq(pdev, 0);
++	if (irq < 0)
++		return irq;
++	ret = devm_request_irq(&pdev->dev, irq, dc_rtc_irq, 0, pdev->name, rtc);
++	if (ret < 0)
++		return ret;
++
++	platform_set_drvdata(pdev, rtc);
++	rtc->rtc_dev = devm_rtc_device_register(&pdev->dev, pdev->name,
++						&dc_rtc_ops, THIS_MODULE);
++	if (IS_ERR(rtc->rtc_dev))
++		return PTR_ERR(rtc->rtc_dev);
++
++	return 0;
++}
++
++static const struct of_device_id dc_dt_ids[] = {
++	{ .compatible = "cnxt,cx92755-rtc" },
++	{ /* sentinel */ }
++};
++MODULE_DEVICE_TABLE(of, dc_dt_ids);
++
++static struct platform_driver dc_rtc_driver = {
++	.driver = {
++		.name = "digicolor_rtc",
++		.of_match_table = of_match_ptr(dc_dt_ids),
++	},
++};
++module_platform_driver_probe(dc_rtc_driver, dc_rtc_probe);
++
++MODULE_AUTHOR("Baruch Siach <baruch@tkos.co.il>");
++MODULE_DESCRIPTION("Conexant Digicolor Realtime Clock Driver (RTC)");
++MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from k.kozlowski@samsung.com are
+Patches currently in -mm which might be from baruch@tkos.co.il are
 
 origin.patch
 linux-next.patch
