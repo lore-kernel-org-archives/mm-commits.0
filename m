@@ -1,74 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatchpl-new-instances-of-enosys-are-errors.patch
- removed from -mm tree
-Date: Mon, 20 Apr 2015 12:17:15 -0700
-Message-ID: <553550bb.GWzx/pume9axYXx1%akpm@linux-foundation.org>
+Subject: [merged] checkpatch-improve-operator-spacing-check.patch removed
+ from -mm tree
+Date: Mon, 20 Apr 2015 12:17:13 -0700
+Message-ID: <553550b9.Ie9+XkW/wHWP9Icm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40122 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40119 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753223AbbDTTKy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:10:54 -0400
+	with ESMTP id S1753223AbbDTTKw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:10:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: luto@amacapital.net, joe@perches.com, mtk.manpages@gmail.com, pavel@ucw.cz, mm-commits@vger.kernel.org
+To: sam.bobroff@au1.ibm.com, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch.pl: new instances of ENOSYS are errors
+     Subject: checkpatch: improve operator spacing check
 has been removed from the -mm tree.  Its filename was
-     checkpatchpl-new-instances-of-enosys-are-errors.patch
+     checkpatch-improve-operator-spacing-check.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andy Lutomirski <luto@amacapital.net>
-Subject: checkpatch.pl: new instances of ENOSYS are errors
+From: Sam Bobroff <sam.bobroff@au1.ibm.com>
+Subject: checkpatch: improve operator spacing check
 
-ENOSYS means that a nonexistent system call was called.  We have a
-bad habit of using it for things like invalid operations on
-otherwise valid syscalls.  We should avoid this in new code.
+Code such as:
+       x = timercmp(&now, &end, <);
+Will currently trigger a checkpatch error. e.g.
 
-Pervasive incorrect usage of ENOSYS came up at the kernel summit ABI
-review discussion.  Let's see if checkpatch can help.
+ERROR: spaces required around that '<'
 
-I'll submit a separate patch for include/uapi/asm-generic/errno.h.
+This is because the "Ignore operators passed as parameters" check looks
+only for a comma following the operator.  Improve the check by also
+looking for a close parenthesis.
 
-Signed-off-by: Andy Lutomirski <luto@amacapital.net>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Signed-off-by: Sam Bobroff <sam.bobroff@au1.ibm.com>
 Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatchpl-new-instances-of-enosys-are-errors scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatchpl-new-instances-of-enosys-are-errors
+diff -puN scripts/checkpatch.pl~checkpatch-improve-operator-spacing-check scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-improve-operator-spacing-check
 +++ a/scripts/checkpatch.pl
-@@ -3396,6 +3396,14 @@ sub process {
- 			     "Prefer dev_$level(... to dev_printk(KERN_$orig, ...\n" . $herecurr);
- 		}
+@@ -3652,7 +3652,7 @@ sub process {
  
-+# ENOSYS means "bad syscall nr" and nothing else.  This will have a small
-+# number of false positives, but assembly files are not checked, so at
-+# least the arch entry code will not trigger this warning.
-+		if ($line =~ /\bENOSYS\b/) {
-+			WARN("ENOSYS",
-+			     "ENOSYS means 'invalid syscall nr' and nothing else\n" . $herecurr);
-+		}
-+
- # function brace can't be on same line, except for #defines of do while,
- # or if closed on same line
- 		if (($line=~/$Type\s*$Ident\(.*\).*\s*{/) and
+ 				# Ignore operators passed as parameters.
+ 				if ($op_type ne 'V' &&
+-				    $ca =~ /\s$/ && $cc =~ /^\s*,/) {
++				    $ca =~ /\s$/ && $cc =~ /^\s*[,\)]/) {
+ 
+ #				# Ignore comments
+ #				} elsif ($op =~ /^$;+$/) {
 _
 
-Patches currently in -mm which might be from luto@amacapital.net are
+Patches currently in -mm which might be from sam.bobroff@au1.ibm.com are
 
 origin.patch
-linux-next.patch
 
