@@ -1,70 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- asoc-pcm512x-use-div_round_closest_ull-from-kernelh.patch removed from -mm
- tree
-Date: Mon, 20 Apr 2015 12:16:42 -0700
-Message-ID: <5535509a.iYDKSGthI3a9lbIg%akpm@linux-foundation.org>
+Subject: [merged] kernelh-implement-div_round_closest_ull.patch removed
+ from -mm tree
+Date: Mon, 20 Apr 2015 12:16:33 -0700
+Message-ID: <55355091.fjN2kBod6/1Kq5pZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40058 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40045 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753000AbbDTTKW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:10:22 -0400
+	with ESMTP id S1752641AbbDTTKS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:10:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: javi.merino@arm.com, broonie@kernel.org, fengguang.wu@intel.com, lgirdwood@gmail.com, peda@axentia.se, perex@perex.cz, tiwai@suse.de, mm-commits@vger.kernel.org
+To: javi.merino@arm.com, airlied@linux.ie, crope@iki.fi, daniel.vetter@ffwll.ch, elder@linaro.org, jani.nikula@linux.intel.com, jepler@unpythonic.net, linux@roeck-us.net, mchehab@osg.samsung.com, mgorman@suse.de, mturquette@linaro.org, rafael.j.wysocki@intel.com, sboyd@codeaurora.org, shemminger@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ASoC: pcm512x: use DIV_ROUND_CLOSEST_ULL() from kernel.h
+     Subject: kernel.h: implement DIV_ROUND_CLOSEST_ULL
 has been removed from the -mm tree.  Its filename was
-     asoc-pcm512x-use-div_round_closest_ull-from-kernelh.patch
+     kernelh-implement-div_round_closest_ull.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Javi Merino <javi.merino@arm.com>
-Subject: ASoC: pcm512x: use DIV_ROUND_CLOSEST_ULL() from kernel.h
+Subject: kernel.h: implement DIV_ROUND_CLOSEST_ULL
 
-Now that the kernel provides DIV_ROUND_CLOSEST_ULL(), drop the internal
-implementation and use the kernel one.
+We have grown a number of different implementations of
+DIV_ROUND_CLOSEST_ULL throughout the kernel.  Move the i915 one to
+kernel.h so that it can be reused.
 
 Signed-off-by: Javi Merino <javi.merino@arm.com>
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
-Cc: Peter Rosin <peda@axentia.se>
-Acked-by: Mark Brown <broonie@kernel.org>
-Cc: Liam Girdwood <lgirdwood@gmail.com>
-Cc: Jaroslav Kysela <perex@perex.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
+Reviewed-by: Jeff Epler <jepler@unpythonic.net>
+Cc: Jani Nikula <jani.nikula@linux.intel.com>
+Cc: David Airlie <airlied@linux.ie>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: Alex Elder <elder@linaro.org>
+Cc: Antti Palosaari <crope@iki.fi>
+Cc: Javi Merino <javi.merino@arm.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Mike Turquette <mturquette@linaro.org>
+Cc: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Stephen Hemminger <shemminger@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/soc/codecs/pcm512x.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/gpu/drm/i915/intel_drv.h   |    3 ---
+ drivers/gpu/drm/i915/intel_panel.c |    1 +
+ include/linux/kernel.h             |   12 ++++++++++++
+ 3 files changed, 13 insertions(+), 3 deletions(-)
 
-diff -puN sound/soc/codecs/pcm512x.c~asoc-pcm512x-use-div_round_closest_ull-from-kernelh sound/soc/codecs/pcm512x.c
---- a/sound/soc/codecs/pcm512x.c~asoc-pcm512x-use-div_round_closest_ull-from-kernelh
-+++ a/sound/soc/codecs/pcm512x.c
-@@ -18,6 +18,7 @@
- #include <linux/init.h>
- #include <linux/module.h>
- #include <linux/clk.h>
+diff -puN drivers/gpu/drm/i915/intel_drv.h~kernelh-implement-div_round_closest_ull drivers/gpu/drm/i915/intel_drv.h
+--- a/drivers/gpu/drm/i915/intel_drv.h~kernelh-implement-div_round_closest_ull
++++ a/drivers/gpu/drm/i915/intel_drv.h
+@@ -36,9 +36,6 @@
+ #include <drm/drm_dp_mst_helper.h>
+ #include <drm/drm_rect.h>
+ 
+-#define DIV_ROUND_CLOSEST_ULL(ll, d)	\
+-({ unsigned long long _tmp = (ll)+(d)/2; do_div(_tmp, d); _tmp; })
+-
+ /**
+  * _wait_for - magic (register) wait macro
+  *
+diff -puN drivers/gpu/drm/i915/intel_panel.c~kernelh-implement-div_round_closest_ull drivers/gpu/drm/i915/intel_panel.c
+--- a/drivers/gpu/drm/i915/intel_panel.c~kernelh-implement-div_round_closest_ull
++++ a/drivers/gpu/drm/i915/intel_panel.c
+@@ -30,6 +30,7 @@
+ 
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+ 
 +#include <linux/kernel.h>
- #include <linux/pm_runtime.h>
- #include <linux/regmap.h>
- #include <linux/regulator/consumer.h>
-@@ -31,8 +32,6 @@
+ #include <linux/moduleparam.h>
+ #include "intel_drv.h"
  
- #define DIV_ROUND_DOWN_ULL(ll, d) \
- 	({ unsigned long long _tmp = (ll); do_div(_tmp, d); _tmp; })
--#define DIV_ROUND_CLOSEST_ULL(ll, d) \
--	({ unsigned long long _tmp = (ll)+(d)/2; do_div(_tmp, d); _tmp; })
+diff -puN include/linux/kernel.h~kernelh-implement-div_round_closest_ull include/linux/kernel.h
+--- a/include/linux/kernel.h~kernelh-implement-div_round_closest_ull
++++ a/include/linux/kernel.h
+@@ -103,6 +103,18 @@
+ 		(((__x) - ((__d) / 2)) / (__d));	\
+ }							\
+ )
++/*
++ * Same as above but for u64 dividends. divisor must be a 32-bit
++ * number.
++ */
++#define DIV_ROUND_CLOSEST_ULL(x, divisor)(		\
++{							\
++	typeof(divisor) __d = divisor;			\
++	unsigned long long _tmp = (x) + (__d) / 2;	\
++	do_div(_tmp, __d);				\
++	_tmp;						\
++}							\
++)
  
- #define PCM512x_NUM_SUPPLIES 3
- static const char * const pcm512x_supply_names[PCM512x_NUM_SUPPLIES] = {
+ /*
+  * Multiplies an integer by a fraction, while avoiding unnecessary
 _
 
 Patches currently in -mm which might be from javi.merino@arm.com are
