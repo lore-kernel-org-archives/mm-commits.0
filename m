@@ -1,65 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- checkpatch-add-spell-checking-of-email-subject-line.patch removed from -mm
+Subject: [merged] checkpatch-spell-check-reudce.patch removed from -mm
  tree
-Date: Mon, 20 Apr 2015 12:16:51 -0700
-Message-ID: <553550a3.E2P4zALTBXoIitXf%akpm@linux-foundation.org>
+Date: Mon, 20 Apr 2015 12:16:53 -0700
+Message-ID: <553550a5.l3vM5AAduzq1hB7R%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40078 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40081 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753034AbbDTTKa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:10:30 -0400
+	with ESMTP id S1751764AbbDTTKc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:10:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, jani.nikula@intel.com, jani.nikula@linux.intel.com, mm-commits@vger.kernel.org
+To: jani.nikula@intel.com, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add spell checking of email subject line
+     Subject: checkpatch: spell check reudce
 has been removed from the -mm tree.  Its filename was
-     checkpatch-add-spell-checking-of-email-subject-line.patch
+     checkpatch-spell-check-reudce.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add spell checking of email subject line
+From: Jani Nikula <jani.nikula@intel.com>
+Subject: checkpatch: spell check reudce
 
-Only commit log and patch additions are checked for typos and spelling
-errors currently.  Add a check of the email subject line too.
+References: http://mid.gmane.org/1424977312-24902-1-git-send-email-ville.syrjala@linux.intel.com
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Suggested-by: Jani Nikula <jani.nikula@linux.intel.com>
-Tested-by: Jani Nikula <jani.nikula@intel.com>
+Signed-off-by: Jani Nikula <jani.nikula@intel.com>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ scripts/spelling.txt |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-spell-checking-of-email-subject-line scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-spell-checking-of-email-subject-line
-+++ a/scripts/checkpatch.pl
-@@ -2303,7 +2303,8 @@ sub process {
- 		}
- 
- # Check for various typo / spelling mistakes
--		if (defined($misspellings) && ($in_commit_log || $line =~ /^\+/)) {
-+		if (defined($misspellings) &&
-+		    ($in_commit_log || $line =~ /^(?:\+|Subject:)/i)) {
- 			while ($rawline =~ /(?:^|[^a-z@])($misspellings)(?:$|[^a-z@])/gi) {
- 				my $typo = $1;
- 				my $typo_fix = $spelling_fix{lc($typo)};
+diff -puN scripts/spelling.txt~checkpatch-spell-check-reudce scripts/spelling.txt
+--- a/scripts/spelling.txt~checkpatch-spell-check-reudce
++++ a/scripts/spelling.txt
+@@ -825,6 +825,7 @@ retreived||retrieved
+ retreive||retrieve
+ retrive||retrieve
+ retuned||returned
++reudce||reduce
+ reuest||request
+ reuqest||request
+ reutnred||returned
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from jani.nikula@intel.com are
 
 origin.patch
-ocfs2-neaten-do_error-ocfs2_error-and-ocfs2_abort.patch
-mm-utilc-add-kstrimdup.patch
 linux-next.patch
 
