@@ -1,54 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kconfig-use-macros-which-are-already-defined.patch
- removed from -mm tree
-Date: Mon, 20 Apr 2015 12:20:22 -0700
-Message-ID: <55355176.b4xAl8ul0uxP10Lv%akpm@linux-foundation.org>
+Subject: [merged] arm-use-asm-generic-for-seccomph.patch removed from -mm
+ tree
+Date: Mon, 20 Apr 2015 12:20:29 -0700
+Message-ID: <5535517d./vhr4CRvr3ac1JBn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40447 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40475 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754016AbbDTTOB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:14:01 -0400
+	with ESMTP id S1752390AbbDTTOI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:14:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: monstr@monstr.eu, michal.simek@xilinx.com, mm-commits@vger.kernel.org
+To: keescook@chromium.org, lauraa@codeaurora.org, linux@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/kconfig.h: ese macros which are already defined
+     Subject: arm: use asm-generic for seccomp.h
 has been removed from the -mm tree.  Its filename was
-     kconfig-use-macros-which-are-already-defined.patch
+     arm-use-asm-generic-for-seccomph.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Simek <monstr@monstr.eu>
-Subject: include/linux/kconfig.h: ese macros which are already defined
+From: Kees Cook <keescook@chromium.org>
+Subject: arm: use asm-generic for seccomp.h
 
-It is better to use macros which are already available because then there
-is just one location which needs to be change.
+Switch to using the newly created asm-generic/seccomp.h for the seccomp
+strict mode syscall definitions. Definitions were identical.
 
-[akpm@linux-foundation.org: move IS_ENABLED definition to after the IS_BUILTIN and IS_MODULE definitions]
-Signed-off-by: Michal Simek <michal.simek@xilinx.com>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Laura Abbott <lauraa@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kconfig.h |   15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
+ arch/arm/include/asm/Kbuild    |    1 +
+ arch/arm/include/asm/seccomp.h |   11 -----------
+ 2 files changed, 1 insertion(+), 11 deletions(-)
 
-diff -puN include/linux/kconfig.h~kconfig-use-macros-which-are-already-defined include/linux/kconfig.h
---- a/include/linux/kconfig.h~kconfig-use-macros-which-are-already-defined
-+++ a/include/linux/kconfig.h
-@@ -23,14 +23,6 @@
- #define ___config_enabled(__ignored, val, ...) val
- 
- /*
-- * IS_ENABLED(CONFIG_FOO) evaluates to 1 if CONFIG_FOO is set to 'y' or 'm',
-- * 0 otherwise.
-- *
-- */
--#define IS_ENABLED(option) \
--	(config_enabled(option) || config_enabled(option##_MODULE))
+diff -puN arch/arm/include/asm/Kbuild~arm-use-asm-generic-for-seccomph arch/arm/include/asm/Kbuild
+--- a/arch/arm/include/asm/Kbuild~arm-use-asm-generic-for-seccomph
++++ a/arch/arm/include/asm/Kbuild
+@@ -21,6 +21,7 @@ generic-y += preempt.h
+ generic-y += resource.h
+ generic-y += rwsem.h
+ generic-y += scatterlist.h
++generic-y += seccomp.h
+ generic-y += sections.h
+ generic-y += segment.h
+ generic-y += sembuf.h
+diff -puN arch/arm/include/asm/seccomp.h~arm-use-asm-generic-for-seccomph /dev/null
+--- a/arch/arm/include/asm/seccomp.h
++++ /dev/null
+@@ -1,11 +0,0 @@
+-#ifndef _ASM_ARM_SECCOMP_H
+-#define _ASM_ARM_SECCOMP_H
+-
+-#include <linux/unistd.h>
+-
+-#define __NR_seccomp_read __NR_read
+-#define __NR_seccomp_write __NR_write
+-#define __NR_seccomp_exit __NR_exit
+-#define __NR_seccomp_sigreturn __NR_rt_sigreturn
