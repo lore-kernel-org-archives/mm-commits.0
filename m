@@ -1,124 +1,75 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- nilfs2-add-helper-to-find-existent-block-on-metadata-file.patch removed
- from -mm tree
-Date: Mon, 20 Apr 2015 12:18:49 -0700
-Message-ID: <55355119.X2unfdtma2XAA5SS%akpm@linux-foundation.org>
+ nilfs2-put-out-gfp-mask-manipulation-from-nilfs_set_inode_flags.patch
+ removed from -mm tree
+Date: Mon, 20 Apr 2015 12:18:55 -0700
+Message-ID: <5535511f.wqS9cxSXNtuijL6B%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40291 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40299 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752466AbbDTTM2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:12:28 -0400
+	with ESMTP id S1751623AbbDTTMe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:12:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: add helper to find existent block on metadata file
+     Subject: nilfs2: put out gfp mask manipulation from nilfs_set_inode_flags()
 has been removed from the -mm tree.  Its filename was
-     nilfs2-add-helper-to-find-existent-block-on-metadata-file.patch
+     nilfs2-put-out-gfp-mask-manipulation-from-nilfs_set_inode_flags.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Subject: nilfs2: add helper to find existent block on metadata file
+Subject: nilfs2: put out gfp mask manipulation from nilfs_set_inode_flags()
 
-Add a new metadata file function, nilfs_mdt_find_block(), which finds
-an existent block on a metadata file in a given range of blocks.  This
-function skips continuous hole blocks efficiently by using
-nilfs_bmap_seek_key().
+nilfs_set_inode_flags() function adjusts gfp-mask of inode->i_mapping as
+well as i_flags, however, this coupling of operations is not appropriate.
+
+For instance, nilfs_ioctl_setflags(), one of three callers of
+nilfs_set_inode_flags(), doesn't need to reinitialize the gfp-mask at all.
+ In addition, nilfs_new_inode(), another caller of
+nilfs_set_inode_flags(), doesn't either because it has already initialized
+the gfp-mask.
+
+Only __nilfs_read_inode(), the remaining caller, needs it.  So, this moves
+the gfp mask manipulation to __nilfs_read_inode() from
+nilfs_set_inode_flags().
 
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/mdt.c |   54 ++++++++++++++++++++++++++++++++++++++++++++++
- fs/nilfs2/mdt.h |    3 ++
- 2 files changed, 57 insertions(+)
+ fs/nilfs2/inode.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/nilfs2/mdt.c~nilfs2-add-helper-to-find-existent-block-on-metadata-file fs/nilfs2/mdt.c
---- a/fs/nilfs2/mdt.c~nilfs2-add-helper-to-find-existent-block-on-metadata-file
-+++ a/fs/nilfs2/mdt.c
-@@ -261,6 +261,60 @@ int nilfs_mdt_get_block(struct inode *in
+diff -puN fs/nilfs2/inode.c~nilfs2-put-out-gfp-mask-manipulation-from-nilfs_set_inode_flags fs/nilfs2/inode.c
+--- a/fs/nilfs2/inode.c~nilfs2-put-out-gfp-mask-manipulation-from-nilfs_set_inode_flags
++++ a/fs/nilfs2/inode.c
+@@ -456,8 +456,6 @@ void nilfs_set_inode_flags(struct inode
+ 		inode->i_flags |= S_NOATIME;
+ 	if (flags & FS_DIRSYNC_FL)
+ 		inode->i_flags |= S_DIRSYNC;
+-	mapping_set_gfp_mask(inode->i_mapping,
+-			     mapping_gfp_mask(inode->i_mapping) & ~__GFP_FS);
  }
  
- /**
-+ * nilfs_mdt_find_block - find and get a buffer on meta data file.
-+ * @inode: inode of the meta data file
-+ * @start: start block offset (inclusive)
-+ * @end: end block offset (inclusive)
-+ * @blkoff: block offset
-+ * @out_bh: place to store a pointer to buffer_head struct
-+ *
-+ * nilfs_mdt_find_block() looks up an existing block in range of
-+ * [@start, @end] and stores pointer to a buffer head of the block to
-+ * @out_bh, and block offset to @blkoff, respectively.  @out_bh and
-+ * @blkoff are substituted only when zero is returned.
-+ *
-+ * Return Value: On success, it returns 0. On error, the following negative
-+ * error code is returned.
-+ *
-+ * %-ENOMEM - Insufficient memory available.
-+ *
-+ * %-EIO - I/O error
-+ *
-+ * %-ENOENT - no block was found in the range
-+ */
-+int nilfs_mdt_find_block(struct inode *inode, unsigned long start,
-+			 unsigned long end, unsigned long *blkoff,
-+			 struct buffer_head **out_bh)
-+{
-+	__u64 next;
-+	int ret;
-+
-+	if (unlikely(start > end))
-+		return -ENOENT;
-+
-+	ret = nilfs_mdt_read_block(inode, start, true, out_bh);
-+	if (!ret) {
-+		*blkoff = start;
-+		goto out;
-+	}
-+	if (unlikely(ret != -ENOENT || start == ULONG_MAX))
-+		goto out;
-+
-+	ret = nilfs_bmap_seek_key(NILFS_I(inode)->i_bmap, start + 1, &next);
-+	if (!ret) {
-+		if (next <= end) {
-+			ret = nilfs_mdt_read_block(inode, next, true, out_bh);
-+			if (!ret)
-+				*blkoff = next;
-+		} else {
-+			ret = -ENOENT;
-+		}
-+	}
-+out:
-+	return ret;
-+}
-+
-+/**
-  * nilfs_mdt_delete_block - make a hole on the meta data file.
-  * @inode: inode of the meta data file
-  * @block: block offset
-diff -puN fs/nilfs2/mdt.h~nilfs2-add-helper-to-find-existent-block-on-metadata-file fs/nilfs2/mdt.h
---- a/fs/nilfs2/mdt.h~nilfs2-add-helper-to-find-existent-block-on-metadata-file
-+++ a/fs/nilfs2/mdt.h
-@@ -78,6 +78,9 @@ int nilfs_mdt_get_block(struct inode *,
- 			void (*init_block)(struct inode *,
- 					   struct buffer_head *, void *),
- 			struct buffer_head **);
-+int nilfs_mdt_find_block(struct inode *inode, unsigned long start,
-+			 unsigned long end, unsigned long *blkoff,
-+			 struct buffer_head **out_bh);
- int nilfs_mdt_delete_block(struct inode *, unsigned long);
- int nilfs_mdt_forget_block(struct inode *, unsigned long);
- int nilfs_mdt_mark_block_dirty(struct inode *, unsigned long);
+ int nilfs_read_inode_common(struct inode *inode,
+@@ -542,6 +540,8 @@ static int __nilfs_read_inode(struct sup
+ 	brelse(bh);
+ 	up_read(&NILFS_MDT(nilfs->ns_dat)->mi_sem);
+ 	nilfs_set_inode_flags(inode);
++	mapping_set_gfp_mask(inode->i_mapping,
++			     mapping_gfp_mask(inode->i_mapping) & ~__GFP_FS);
+ 	return 0;
+ 
+  failed_unmap:
 _
 
 Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
