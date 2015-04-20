@@ -1,149 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- lto-add-__noreorder-and-mark-initcalls-__noreorder.patch removed from -mm
- tree
-Date: Mon, 20 Apr 2015 14:56:55 -0700
-Message-ID: <55357627.NYVk7KjhxPwT5Gab%akpm@linux-foundation.org>
+Subject: +
+ kasan-show-gcc-version-requirements-in-kconfig-and-documentation.patch
+ added to -mm tree
+Date: Mon, 20 Apr 2015 15:48:07 -0700
+Message-ID: <55358227.5MJMTdEMRRjEeyFL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44021 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44216 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755581AbbDTV44 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 17:56:56 -0400
+	with ESMTP id S1750998AbbDTWsI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 18:48:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ak@linux.intel.com, mmarek@suse.cz, mm-commits@vger.kernel.org
+To: joe@perches.com, a.ryabinin@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lto: add __noreorder and mark initcalls __noreorder
-has been removed from the -mm tree.  Its filename was
-     lto-add-__noreorder-and-mark-initcalls-__noreorder.patch
+     Subject: kasan: show gcc version requirements in Kconfig and Documentation
+has been added to the -mm tree.  Its filename is
+     kasan-show-gcc-version-requirements-in-kconfig-and-documentation.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/kasan-show-gcc-version-requirements-in-kconfig-and-documentation.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-show-gcc-version-requirements-in-kconfig-and-documentation.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andi Kleen <ak@linux.intel.com>
-Subject: lto: add __noreorder and mark initcalls __noreorder
+From: Joe Perches <joe@perches.com>
+Subject: kasan: show gcc version requirements in Kconfig and Documentation
 
-gcc 5 has a new no_reorder attribute that prevents top level reordering
-only for that symbol.
+The documentation shows a need for gcc > 4.9.2, but it's really >=.  The
+Kconfig entries don't show require versions so add them.  Correct a
+latter/later typo too.  Also mention that gcc 5 required to catch out of
+bounds accesses to global and stack variables.
 
-Kernels don't like any reordering of initcalls between files, as several
-initcalls depend on each other.  LTO previously needed to use
--fno-toplevel-reorder to prevent boot failures.
-
-Add a __noreorder wrapper for the no_reorder attribute and use
-it for initcalls.
-
-Background:
-
-The original gcc a long time was function at a time: it read one function,
-optimizes and writes it out, then the next.  Then gcc 3.x added
-unit-at-a-time where it reads one complete file, optimizes it completely
-and writes it out.  This has the advantage that it can make better
-inlining decisions, it can remove unused statics, it can propagate
-execution frequencies over the call tree before optimizing, and some other
-things.  Then it writes it out the unit in the call tree order, which can
-also lead to better executable layout.  One side effect of this is that
-the order of top level statements gets lost, unless you specify
--fno-toplevel-reorder
-
-We had to fix Linux for this sometime in early 2.6, late 2.4.  Most
-problems were in top level asm() statements, assuming they had a defined
-order to other variables.  To still support programs doing that gcc added
--fno-toplevel-reorder, which avoided such reordering, but also disabled a
-small number of optimizations.
-
-Now 4.x added LTO, where it takes unit-at-a-time one step further and
-optimizes the complete program in the same way at link time.  It actually
-does not keep it in memory all the time, but uses various tricks to only
-look at it in pieces and distribute the work to multiple cores.  To do
-that it uses partitioning, where the program is split into different
-partitions based on its global call tree, and then each partition is
-assigned to a compiler process.  The result is a changed order for
-everything in the final program.
-
-Modern Linux was generally fine with reordering, except for initcalls.  We
-have a lot of initcalls that assume that some other initcalls already ran
-before them, without using priorities.  The order is defined in the
-Makefile's object file order for the linker.  Linkers generally do not
-reorder, unless told to.  Unfortunately that gets lost with LTO.  
-
-When I started the LTO patchkit I tried to debug and fix some of these
-init calls, but it was hopeless.  It was like a many-headed hydra.  So I
-needed to use -fno-toplevel-reorder for LTO.  In LTO this both gives worse
-partitioning (so the build is less balanced between different cores) and
-also disables some optimizations, like eliminating unused variables or
-some cross file optimizations.
-
-gcc 5 finally gained a way to specify the no-toplevel-reorder attribute
-per symbol with this new attribute.  So it can be only done for the
-initcall symbols, and everything else left alone.
-
-That is what this patch is about.
-
-It's not needed without LTO, but I belive it's useful documentation even
-without it.
-
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: Michal Marek <mmarek@suse.cz>
+Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Andrey Ryabinin <a.ryabinin@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler-gcc5.h |    3 +++
- include/linux/compiler.h      |    4 ++++
- include/linux/init.h          |    2 +-
- 3 files changed, 8 insertions(+), 1 deletion(-)
+ Documentation/kasan.txt |    8 +++++---
+ lib/Kconfig.kasan       |    8 ++++++--
+ 2 files changed, 11 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/compiler-gcc5.h~lto-add-__noreorder-and-mark-initcalls-__noreorder include/linux/compiler-gcc5.h
---- a/include/linux/compiler-gcc5.h~lto-add-__noreorder-and-mark-initcalls-__noreorder
-+++ a/include/linux/compiler-gcc5.h
-@@ -42,6 +42,9 @@
- /* Mark a function definition as prohibited from being cloned. */
- #define __noclone	__attribute__((__noclone__))
+diff -puN Documentation/kasan.txt~kasan-show-gcc-version-requirements-in-kconfig-and-documentation Documentation/kasan.txt
+--- a/Documentation/kasan.txt~kasan-show-gcc-version-requirements-in-kconfig-and-documentation
++++ a/Documentation/kasan.txt
+@@ -9,7 +9,9 @@ a fast and comprehensive solution for fi
+ bugs.
  
-+/* Avoid reordering a top level statement */
-+#define __noreorder	__attribute__((no_reorder))
-+
- /*
-  * Tell the optimizer that something else uses this function or variable.
-  */
-diff -puN include/linux/compiler.h~lto-add-__noreorder-and-mark-initcalls-__noreorder include/linux/compiler.h
---- a/include/linux/compiler.h~lto-add-__noreorder-and-mark-initcalls-__noreorder
-+++ a/include/linux/compiler.h
-@@ -318,6 +318,10 @@ static __always_inline void __write_once
- #define noinline
- #endif
+ KASan uses compile-time instrumentation for checking every memory access,
+-therefore you will need a certain version of GCC > 4.9.2
++therefore you will need a gcc version of 4.9.2 or later. KASan could detect out
++of bounds accesses to stack or global variables, but only if gcc 5.0 or later was
++used to built the kernel.
  
-+#ifndef __noreorder
-+#define __noreorder		/* unimplemented */
-+#endif
-+
- /*
-  * Rather then using noinline to prevent stack consumption, use
-  * noinline_for_stack instead.  For documentation reasons.
-diff -puN include/linux/init.h~lto-add-__noreorder-and-mark-initcalls-__noreorder include/linux/init.h
---- a/include/linux/init.h~lto-add-__noreorder-and-mark-initcalls-__noreorder
-+++ a/include/linux/init.h
-@@ -191,7 +191,7 @@ extern bool initcall_debug;
-  */
+ Currently KASan is supported only for x86_64 architecture and requires that the
+ kernel be built with the SLUB allocator.
+@@ -23,8 +25,8 @@ To enable KASAN configure kernel with:
  
- #define __define_initcall(fn, id) \
--	static initcall_t __initcall_##fn##id __used \
-+	static initcall_t __initcall_##fn##id __used __noreorder \
- 	__attribute__((__section__(".initcall" #id ".init"))) = fn; \
- 	LTO_REFERENCE_INITCALL(__initcall_##fn##id)
+ and choose between CONFIG_KASAN_OUTLINE and CONFIG_KASAN_INLINE. Outline/inline
+ is compiler instrumentation types. The former produces smaller binary the
+-latter is 1.1 - 2 times faster. Inline instrumentation requires GCC 5.0 or
+-latter.
++latter is 1.1 - 2 times faster. Inline instrumentation requires a gcc version
++of 5.0 or later.
+ 
+ Currently KASAN works only with the SLUB memory allocator.
+ For better bug detection and nicer report, enable CONFIG_STACKTRACE and put
+diff -puN lib/Kconfig.kasan~kasan-show-gcc-version-requirements-in-kconfig-and-documentation lib/Kconfig.kasan
+--- a/lib/Kconfig.kasan~kasan-show-gcc-version-requirements-in-kconfig-and-documentation
++++ a/lib/Kconfig.kasan
+@@ -10,8 +10,11 @@ config KASAN
+ 	help
+ 	  Enables kernel address sanitizer - runtime memory debugger,
+ 	  designed to find out-of-bounds accesses and use-after-free bugs.
+-	  This is strictly debugging feature. It consumes about 1/8
+-	  of available memory and brings about ~x3 performance slowdown.
++	  This is strictly a debugging feature and it requires a gcc version
++	  of 4.9.2 or later. Detection of out of bounds accesses to stack or
++	  global variables requires gcc 5.0 or later.
++	  This feature consumes about 1/8 of available memory and brings about
++	  ~x3 performance slowdown.
+ 	  For better error detection enable CONFIG_STACKTRACE,
+ 	  and add slub_debug=U to boot cmdline.
+ 
+@@ -40,6 +43,7 @@ config KASAN_INLINE
+ 	  memory accesses. This is faster than outline (in some workloads
+ 	  it gives about x2 boost over outline instrumentation), but
+ 	  make kernel's .text size much bigger.
++	  This requires a gcc version of 5.0 or later.
+ 
+ endchoice
  
 _
 
-Patches currently in -mm which might be from ak@linux.intel.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
-mm-memory-failure-call-shake_page-when-error-hits-thp-tail-page.patch
+compiler-gcch-neatening.patch
+compiler-gcc-integrate-the-various-compiler-gcch-files.patch
+kasan-show-gcc-version-requirements-in-kconfig-and-documentation.patch
+ocfs2-neaten-do_error-ocfs2_error-and-ocfs2_abort.patch
+mm-utilc-add-kstrimdup.patch
 linux-next.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
 
