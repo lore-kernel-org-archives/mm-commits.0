@@ -1,363 +1,163 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mips-ip32-add-platform-data-hooks-to-use-ds1685-driver.patch removed from
- -mm tree
-Date: Mon, 20 Apr 2015 12:20:48 -0700
-Message-ID: <55355190.BF50sC+KOa6wpYFZ%akpm@linux-foundation.org>
+Subject: [merged] oprofile-reduce-mmap_sem-hold-for-mm-exe_file.patch
+ removed from -mm tree
+Date: Mon, 20 Apr 2015 12:20:50 -0700
+Message-ID: <55355192.94L5G4XKfAOyICgn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40505 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40510 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750872AbbDTTO1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:14:27 -0400
+	with ESMTP id S1751544AbbDTTO3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:14:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kumba@gentoo.org, a.zummo@towertech.it, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: dave@stgolabs.net, dbueso@suse.de, rric@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mips: ip32: add platform data hooks to use DS1685 driver
+     Subject: oprofile: reduce mmap_sem hold for mm->exe_file
 has been removed from the -mm tree.  Its filename was
-     mips-ip32-add-platform-data-hooks-to-use-ds1685-driver.patch
+     oprofile-reduce-mmap_sem-hold-for-mm-exe_file.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joshua Kinard <kumba@gentoo.org>
-Subject: mips: ip32: add platform data hooks to use DS1685 driver
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: oprofile: reduce mmap_sem hold for mm->exe_file
 
-This modifies the IP32 (SGI O2) platform and reset code to utilize the new
-rtc-ds1685 driver.  The old mc146818rtc.h header is removed and ip32_defconfig
-is updated as well.
+sync_buffer() needs the mmap_sem for two distinct operations, both only
+occurring upon user context switch handling:
 
-Signed-off-by: Joshua Kinard <kumba@gentoo.org>
-Acked-by: Ralf Baechle <ralf@linux-mips.org>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+ 1) Dealing with the exe_file.
+
+ 2) Adding the dcookie data as we need to lookup the vma that
+   backs it. This is done via add_sample() and add_data().
+
+This patch isolates 1), for it will no longer need the mmap_sem for
+serialization.  However, for now, make of the more standard
+get_mm_exe_file(), requiring only holding the mmap_sem to read the value,
+and relying on reference counting to make sure that the exe file won't
+dissappear underneath us while doing the get dcookie.
+
+As a consequence, for 2) we move the mmap_sem locking into where we really
+need it, in lookup_dcookie().  The benefits are twofold: reduce mmap_sem
+hold times, and cleaner code.
+
+[akpm@linux-foundation.org: export get_mm_exe_file for arch/x86/oprofile/oprofile.ko]
+Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+Cc: Robert Richter <rric@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/configs/ip32_defconfig              |    3 
- arch/mips/include/asm/mach-ip32/mc146818rtc.h |   36 ----
- arch/mips/sgi-ip32/ip32-platform.c            |   46 ++++-
- arch/mips/sgi-ip32/ip32-reset.c               |  129 ++++------------
- 4 files changed, 79 insertions(+), 135 deletions(-)
+ drivers/oprofile/buffer_sync.c |   30 ++++++++++++++++--------------
+ kernel/fork.c                  |    1 +
+ 2 files changed, 17 insertions(+), 14 deletions(-)
 
-diff -puN arch/mips/configs/ip32_defconfig~mips-ip32-add-platform-data-hooks-to-use-ds1685-driver arch/mips/configs/ip32_defconfig
---- a/arch/mips/configs/ip32_defconfig~mips-ip32-add-platform-data-hooks-to-use-ds1685-driver
-+++ a/arch/mips/configs/ip32_defconfig
-@@ -105,7 +105,8 @@ CONFIG_RTC_CLASS=y
- # CONFIG_RTC_HCTOSYS is not set
- # CONFIG_RTC_INTF_SYSFS is not set
- # CONFIG_RTC_INTF_PROC is not set
--CONFIG_RTC_DRV_CMOS=y
-+CONFIG_RTC_DRV_DS1685_FAMILY=y
-+CONFIG_RTC_DRV_DS1685=y
- CONFIG_EXT2_FS=y
- CONFIG_EXT2_FS_XATTR=y
- CONFIG_EXT2_FS_POSIX_ACL=y
-diff -puN arch/mips/include/asm/mach-ip32/mc146818rtc.h~mips-ip32-add-platform-data-hooks-to-use-ds1685-driver /dev/null
---- a/arch/mips/include/asm/mach-ip32/mc146818rtc.h
-+++ /dev/null
-@@ -1,36 +0,0 @@
--/*
-- * This file is subject to the terms and conditions of the GNU General Public
-- * License.  See the file "COPYING" in the main directory of this archive
-- * for more details.
-- *
-- * Copyright (C) 1998, 2001, 03 by Ralf Baechle
-- * Copyright (C) 2000 Harald Koerfgen
-- *
-- * RTC routines for IP32 style attached Dallas chip.
-- */
--#ifndef __ASM_MACH_IP32_MC146818RTC_H
--#define __ASM_MACH_IP32_MC146818RTC_H
--
--#include <asm/ip32/mace.h>
--
--#define RTC_PORT(x)	(0x70 + (x))
--
--static unsigned char CMOS_READ(unsigned long addr)
--{
--	return mace->isa.rtc[addr << 8];
--}
--
--static inline void CMOS_WRITE(unsigned char data, unsigned long addr)
--{
--	mace->isa.rtc[addr << 8] = data;
--}
--
--/*
-- * FIXME: Do it right. For now just assume that no one lives in 20th century
-- * and no O2 user in 22th century ;-)
-- */
--#define mc146818_decode_year(year) ((year) + 2000)
--
--#define RTC_ALWAYS_BCD	0
--
--#endif /* __ASM_MACH_IP32_MC146818RTC_H */
-diff -puN arch/mips/sgi-ip32/ip32-platform.c~mips-ip32-add-platform-data-hooks-to-use-ds1685-driver arch/mips/sgi-ip32/ip32-platform.c
---- a/arch/mips/sgi-ip32/ip32-platform.c~mips-ip32-add-platform-data-hooks-to-use-ds1685-driver
-+++ a/arch/mips/sgi-ip32/ip32-platform.c
-@@ -9,10 +9,13 @@
- #include <linux/init.h>
- #include <linux/platform_device.h>
- #include <linux/serial_8250.h>
-+#include <linux/rtc/ds1685.h>
+diff -puN drivers/oprofile/buffer_sync.c~oprofile-reduce-mmap_sem-hold-for-mm-exe_file drivers/oprofile/buffer_sync.c
+--- a/drivers/oprofile/buffer_sync.c~oprofile-reduce-mmap_sem-hold-for-mm-exe_file
++++ a/drivers/oprofile/buffer_sync.c
+@@ -21,6 +21,7 @@
+  * objects.
+  */
  
- #include <asm/ip32/mace.h>
- #include <asm/ip32/ip32_ints.h>
- 
-+extern void ip32_prepare_poweroff(void);
-+
- #define MACEISA_SERIAL1_OFFS   offsetof(struct sgi_mace, isa.serial1)
- #define MACEISA_SERIAL2_OFFS   offsetof(struct sgi_mace, isa.serial2)
- 
-@@ -90,18 +93,47 @@ static __init int sgio2btns_devinit(void
- 
- device_initcall(sgio2btns_devinit);
- 
--static struct resource sgio2_cmos_rsrc[] = {
-+#define MACE_RTC_RES_START (MACE_BASE + offsetof(struct sgi_mace, isa.rtc))
-+#define MACE_RTC_RES_END (MACE_RTC_RES_START + 32767)
-+
-+static struct resource ip32_rtc_resources[] = {
- 	{
--		.start = 0x70,
--		.end   = 0x71,
--		.flags = IORESOURCE_IO
-+		.start	= MACEISA_RTC_IRQ,
-+		.end	= MACEISA_RTC_IRQ,
-+		.flags	= IORESOURCE_IRQ
-+	}, {
-+		.start	= MACE_RTC_RES_START,
-+		.end	= MACE_RTC_RES_END,
-+		.flags	= IORESOURCE_MEM,
- 	}
- };
- 
--static __init int sgio2_cmos_devinit(void)
-+/* RTC registers on IP32 are each padded by 256 bytes (0x100). */
-+static struct ds1685_rtc_platform_data
-+ip32_rtc_platform_data[] = {
-+	{
-+		.regstep = 0x100,
-+		.bcd_mode = true,
-+		.no_irq = false,
-+		.uie_unsupported = false,
-+		.alloc_io_resources = true,
-+		.plat_prepare_poweroff = ip32_prepare_poweroff,
-+	},
-+};
-+
-+struct platform_device ip32_rtc_device = {
-+	.name			= "rtc-ds1685",
-+	.id			= -1,
-+	.dev			= {
-+		.platform_data	= ip32_rtc_platform_data,
-+	},
-+	.num_resources		= ARRAY_SIZE(ip32_rtc_resources),
-+	.resource		= ip32_rtc_resources,
-+};
-+
-++static int __init sgio2_rtc_devinit(void)
- {
--	return IS_ERR(platform_device_register_simple("rtc_cmos", -1,
--						      sgio2_cmos_rsrc, 1));
-+	return platform_device_register(&ip32_rtc_device);
- }
- 
- device_initcall(sgio2_cmos_devinit);
-diff -puN arch/mips/sgi-ip32/ip32-reset.c~mips-ip32-add-platform-data-hooks-to-use-ds1685-driver arch/mips/sgi-ip32/ip32-reset.c
---- a/arch/mips/sgi-ip32/ip32-reset.c~mips-ip32-add-platform-data-hooks-to-use-ds1685-driver
-+++ a/arch/mips/sgi-ip32/ip32-reset.c
-@@ -11,10 +11,11 @@
- #include <linux/compiler.h>
- #include <linux/init.h>
- #include <linux/kernel.h>
-+#include <linux/module.h>
- #include <linux/sched.h>
++#include <linux/file.h>
+ #include <linux/mm.h>
+ #include <linux/workqueue.h>
  #include <linux/notifier.h>
- #include <linux/delay.h>
--#include <linux/ds17287rtc.h>
-+#include <linux/rtc/ds1685.h>
- #include <linux/interrupt.h>
- #include <linux/pm.h>
- 
-@@ -33,53 +34,40 @@
- #define POWERDOWN_FREQ		(HZ / 4)
- #define PANIC_FREQ		(HZ / 8)
- 
--static struct timer_list power_timer, blink_timer, debounce_timer;
--static int has_panicked, shuting_down;
-+extern struct platform_device ip32_rtc_device;
- 
--static void ip32_machine_restart(char *command) __noreturn;
--static void ip32_machine_halt(void) __noreturn;
--static void ip32_machine_power_off(void) __noreturn;
-+static struct timer_list power_timer, blink_timer;
-+static int has_panicked, shutting_down;
- 
--static void ip32_machine_restart(char *cmd)
--{
--	crime->control = CRIME_CONTROL_HARD_RESET;
--	while (1);
--}
--
--static inline void ip32_machine_halt(void)
--{
--	ip32_machine_power_off();
--}
--
--static void ip32_machine_power_off(void)
-+static __noreturn void ip32_poweroff(void *data)
+@@ -224,10 +225,18 @@ static inline unsigned long fast_get_dco
+ static unsigned long get_exec_dcookie(struct mm_struct *mm)
  {
--	unsigned char reg_a, xctrl_a, xctrl_b;
-+	void (*poweroff_func)(struct platform_device *) =
-+		symbol_get(ds1685_rtc_poweroff);
+ 	unsigned long cookie = NO_COOKIE;
++	struct file *exe_file;
  
--	disable_irq(MACEISA_RTC_IRQ);
--	reg_a = CMOS_READ(RTC_REG_A);
-+#ifdef CONFIG_MODULES
-+	/* If the first __symbol_get failed, our module wasn't loaded. */
-+	if (!poweroff_func) {
-+		request_module("rtc-ds1685");
-+		poweroff_func = symbol_get(ds1685_rtc_poweroff);
-+	}
-+#endif
+-	if (mm && mm->exe_file)
+-		cookie = fast_get_dcookie(&mm->exe_file->f_path);
++	if (!mm)
++		goto done;
  
--	/* setup for kickstart & wake-up (DS12287 Ref. Man. p. 19) */
--	reg_a &= ~DS_REGA_DV2;
--	reg_a |= DS_REGA_DV1;
-+	if (!poweroff_func)
-+		pr_emerg("RTC not available for power-off.  Spinning forever ...\n");
-+	else {
-+		(*poweroff_func)((struct platform_device *)data);
-+		symbol_put(ds1685_rtc_poweroff);
-+	}
- 
--	CMOS_WRITE(reg_a | DS_REGA_DV0, RTC_REG_A);
--	wbflush();
--	xctrl_b = CMOS_READ(DS_B1_XCTRL4B)
--		   | DS_XCTRL4B_ABE | DS_XCTRL4B_KFE;
--	CMOS_WRITE(xctrl_b, DS_B1_XCTRL4B);
--	xctrl_a = CMOS_READ(DS_B1_XCTRL4A) & ~DS_XCTRL4A_IFS;
--	CMOS_WRITE(xctrl_a, DS_B1_XCTRL4A);
--	wbflush();
--	/* adios amigos... */
--	CMOS_WRITE(xctrl_a | DS_XCTRL4A_PAB, DS_B1_XCTRL4A);
--	CMOS_WRITE(reg_a, RTC_REG_A);
--	wbflush();
--	while (1);
-+	unreachable();
++	exe_file = get_mm_exe_file(mm);
++	if (!exe_file)
++		goto done;
++
++	cookie = fast_get_dcookie(&exe_file->f_path);
++	fput(exe_file);
++done:
+ 	return cookie;
  }
  
--static void power_timeout(unsigned long data)
-+static void ip32_machine_restart(char *cmd) __noreturn;
-+static void ip32_machine_restart(char *cmd)
- {
--	ip32_machine_power_off();
-+	msleep(20);
-+	crime->control = CRIME_CONTROL_HARD_RESET;
-+	unreachable();
+@@ -236,6 +245,8 @@ static unsigned long get_exec_dcookie(st
+  * pair that can then be added to the global event buffer. We make
+  * sure to do this lookup before a mm->mmap modification happens so
+  * we don't lose track.
++ *
++ * The caller must ensure the mm is not nil (ie: not a kernel thread).
+  */
+ static unsigned long
+ lookup_dcookie(struct mm_struct *mm, unsigned long addr, off_t *offset)
+@@ -243,6 +254,7 @@ lookup_dcookie(struct mm_struct *mm, uns
+ 	unsigned long cookie = NO_COOKIE;
+ 	struct vm_area_struct *vma;
+ 
++	down_read(&mm->mmap_sem);
+ 	for (vma = find_vma(mm, addr); vma; vma = vma->vm_next) {
+ 
+ 		if (addr < vma->vm_start || addr >= vma->vm_end)
+@@ -262,6 +274,7 @@ lookup_dcookie(struct mm_struct *mm, uns
+ 
+ 	if (!vma)
+ 		cookie = INVALID_COOKIE;
++	up_read(&mm->mmap_sem);
+ 
+ 	return cookie;
  }
- 
- static void blink_timeout(unsigned long data)
-@@ -89,44 +77,27 @@ static void blink_timeout(unsigned long
- 	mod_timer(&blink_timer, jiffies + data);
- }
- 
--static void debounce(unsigned long data)
-+static void ip32_machine_halt(void)
+@@ -402,20 +415,9 @@ static void release_mm(struct mm_struct
  {
--	unsigned char reg_a, reg_c, xctrl_a;
--
--	reg_c = CMOS_READ(RTC_INTR_FLAGS);
--	reg_a = CMOS_READ(RTC_REG_A);
--	CMOS_WRITE(reg_a | DS_REGA_DV0, RTC_REG_A);
--	wbflush();
--	xctrl_a = CMOS_READ(DS_B1_XCTRL4A);
--	if ((xctrl_a & DS_XCTRL4A_IFS) || (reg_c & RTC_IRQF )) {
--		/* Interrupt still being sent. */
--		debounce_timer.expires = jiffies + 50;
--		add_timer(&debounce_timer);
--
--		/* clear interrupt source */
--		CMOS_WRITE(xctrl_a & ~DS_XCTRL4A_IFS, DS_B1_XCTRL4A);
--		CMOS_WRITE(reg_a & ~DS_REGA_DV0, RTC_REG_A);
--		return;
--	}
--	CMOS_WRITE(reg_a & ~DS_REGA_DV0, RTC_REG_A);
--
--	if (has_panicked)
--		ip32_machine_restart(NULL);
-+	ip32_poweroff(&ip32_rtc_device);
-+}
- 
--	enable_irq(MACEISA_RTC_IRQ);
-+static void power_timeout(unsigned long data)
-+{
-+	ip32_poweroff(&ip32_rtc_device);
- }
- 
--static inline void ip32_power_button(void)
-+void ip32_prepare_poweroff(void)
- {
- 	if (has_panicked)
+ 	if (!mm)
  		return;
- 
--	if (shuting_down || kill_cad_pid(SIGINT, 1)) {
-+	if (shutting_down || kill_cad_pid(SIGINT, 1)) {
- 		/* No init process or button pressed twice.  */
--		ip32_machine_power_off();
-+		ip32_poweroff(&ip32_rtc_device);
- 	}
- 
--	shuting_down = 1;
-+	shutting_down = 1;
- 	blink_timer.data = POWERDOWN_FREQ;
- 	blink_timeout(POWERDOWN_FREQ);
- 
-@@ -136,27 +107,6 @@ static inline void ip32_power_button(voi
- 	add_timer(&power_timer);
+-	up_read(&mm->mmap_sem);
+ 	mmput(mm);
  }
  
--static irqreturn_t ip32_rtc_int(int irq, void *dev_id)
+-
+-static struct mm_struct *take_tasks_mm(struct task_struct *task)
 -{
--	unsigned char reg_c;
--
--	reg_c = CMOS_READ(RTC_INTR_FLAGS);
--	if (!(reg_c & RTC_IRQF)) {
--		printk(KERN_WARNING
--			"%s: RTC IRQ without RTC_IRQF\n", __func__);
--	}
--	/* Wait until interrupt goes away */
--	disable_irq_nosync(MACEISA_RTC_IRQ);
--	init_timer(&debounce_timer);
--	debounce_timer.function = debounce;
--	debounce_timer.expires = jiffies + 50;
--	add_timer(&debounce_timer);
--
--	printk(KERN_DEBUG "Power button pressed\n");
--	ip32_power_button();
--	return IRQ_HANDLED;
+-	struct mm_struct *mm = get_task_mm(task);
+-	if (mm)
+-		down_read(&mm->mmap_sem);
+-	return mm;
 -}
 -
- static int panic_event(struct notifier_block *this, unsigned long event,
- 		       void *ptr)
+-
+ static inline int is_code(unsigned long val)
  {
-@@ -190,15 +140,12 @@ static __init int ip32_reboot_setup(void
+ 	return val == ESCAPE_CODE;
+@@ -532,7 +534,7 @@ void sync_buffer(int cpu)
+ 				new = (struct task_struct *)val;
+ 				oldmm = mm;
+ 				release_mm(oldmm);
+-				mm = take_tasks_mm(new);
++				mm = get_task_mm(new);
+ 				if (mm != oldmm)
+ 					cookie = get_exec_dcookie(mm);
+ 				add_user_ctx_switch(new, cookie);
+diff -puN kernel/fork.c~oprofile-reduce-mmap_sem-hold-for-mm-exe_file kernel/fork.c
+--- a/kernel/fork.c~oprofile-reduce-mmap_sem-hold-for-mm-exe_file
++++ a/kernel/fork.c
+@@ -752,6 +752,7 @@ struct file *get_mm_exe_file(struct mm_s
+ 	rcu_read_unlock();
+ 	return exe_file;
+ }
++EXPORT_SYMBOL(get_mm_exe_file);
  
- 	_machine_restart = ip32_machine_restart;
- 	_machine_halt = ip32_machine_halt;
--	pm_power_off = ip32_machine_power_off;
-+	pm_power_off = ip32_machine_halt;
- 
- 	init_timer(&blink_timer);
- 	blink_timer.function = blink_timeout;
- 	atomic_notifier_chain_register(&panic_notifier_list, &panic_block);
- 
--	if (request_irq(MACEISA_RTC_IRQ, ip32_rtc_int, 0, "rtc", NULL))
--		panic("Can't allocate MACEISA RTC IRQ");
+ /**
+  * get_task_mm - acquire a reference to the task's mm
+_
+
+Patches currently in -mm which might be from dave@stgolabs.net are
+
+origin.patch
+linux-next.patch
+
