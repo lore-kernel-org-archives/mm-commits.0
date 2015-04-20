@@ -1,64 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-pcf8563-simplify-return-from-function.patch removed
- from -mm tree
-Date: Mon, 20 Apr 2015 12:17:30 -0700
-Message-ID: <553550ca.dMm0aBu7rQmR9vH/%akpm@linux-foundation.org>
+Subject: [merged]
+ rtc-hctosys-do-not-treat-lack-of-rtc-device-as-error.patch removed from -mm tree
+Date: Mon, 20 Apr 2015 12:17:39 -0700
+Message-ID: <553550d3.9BxUZChBwX0GcpIz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40148 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40164 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752646AbbDTTLJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:11:09 -0400
+	with ESMTP id S1752711AbbDTTLS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:11:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: robert.r.kmiec@gmail.com, mm-commits@vger.kernel.org
+To: bos@je-eigen-domein.nl, a.zummo@towertech.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-pcf8563.c: simplify return from function
+     Subject: rtc: hctosys: do not treat lack of RTC device as error
 has been removed from the -mm tree.  Its filename was
-     rtc-pcf8563-simplify-return-from-function.patch
+     rtc-hctosys-do-not-treat-lack-of-rtc-device-as-error.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Robert Kmiec <robert.r.kmiec@gmail.com>
-Subject: drivers/rtc/rtc-pcf8563.c: simplify return from function
+From: Floris Bos <bos@je-eigen-domein.nl>
+Subject: rtc: hctosys: do not treat lack of RTC device as error
 
-This commit does not change any logic here.  It just makes the code easier
-to read.
+When using device trees on the ARM platform, it is not certain at compile
+time whether or not the system will have a RTC.
 
-This is how it looked like:
-If err != 0 return err;
-else return 0;
+If one enables CONFIG_HCTOSYS just in case the system booted has a RTC,
+and it turns out not to be, this will result in a big fat "unable to open
+rtc device" error being printed to console, even when "quiet" is set in
+the kernel cmdline.
 
-Signed-off-by: Robert Kmiec <robert.r.kmiec@gmail.com>
+Fix this by outputting the message with loglevel info instead.
+
+Signed-off-by: Floris Bos <bos@je-eigen-domein.nl>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pcf8563.c |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ drivers/rtc/hctosys.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-pcf8563.c~rtc-pcf8563-simplify-return-from-function drivers/rtc/rtc-pcf8563.c
---- a/drivers/rtc/rtc-pcf8563.c~rtc-pcf8563-simplify-return-from-function
-+++ a/drivers/rtc/rtc-pcf8563.c
-@@ -246,7 +246,6 @@ static int pcf8563_get_datetime(struct i
- static int pcf8563_set_datetime(struct i2c_client *client, struct rtc_time *tm)
- {
- 	struct pcf8563 *pcf8563 = i2c_get_clientdata(client);
--	int err;
- 	unsigned char buf[9];
+diff -puN drivers/rtc/hctosys.c~rtc-hctosys-do-not-treat-lack-of-rtc-device-as-error drivers/rtc/hctosys.c
+--- a/drivers/rtc/hctosys.c~rtc-hctosys-do-not-treat-lack-of-rtc-device-as-error
++++ a/drivers/rtc/hctosys.c
+@@ -32,7 +32,7 @@ static int __init rtc_hctosys(void)
+ 	struct rtc_device *rtc = rtc_class_open(CONFIG_RTC_HCTOSYS_DEVICE);
  
- 	dev_dbg(&client->dev, "%s: secs=%d, mins=%d, hours=%d, "
-@@ -272,12 +271,8 @@ static int pcf8563_set_datetime(struct i
- 
- 	buf[PCF8563_REG_DW] = tm->tm_wday & 0x07;
- 
--	err = pcf8563_write_block_data(client, PCF8563_REG_SC,
-+	return pcf8563_write_block_data(client, PCF8563_REG_SC,
- 				9 - PCF8563_REG_SC, buf + PCF8563_REG_SC);
--	if (err)
--		return err;
+ 	if (rtc == NULL) {
+-		pr_err("%s: unable to open rtc device (%s)\n",
++		pr_info("%s: unable to open rtc device (%s)\n",
+ 			__FILE__, CONFIG_RTC_HCTOSYS_DEVICE);
+ 		goto err_open;
+ 	}
+_
+
+Patches currently in -mm which might be from bos@je-eigen-domein.nl are
+
+origin.patch
+
