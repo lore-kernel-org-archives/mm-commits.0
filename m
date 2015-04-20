@@ -1,107 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hwmon-lm85-use-find_closest-in-x_to_reg-functions.patch
- removed from -mm tree
-Date: Mon, 20 Apr 2015 12:16:27 -0700
-Message-ID: <5535508b.7feLZkKqJANq5zpX%akpm@linux-foundation.org>
+Subject: [merged] media-cxd2820r-use-div_round_closest_ull.patch removed
+ from -mm tree
+Date: Mon, 20 Apr 2015 12:16:40 -0700
+Message-ID: <55355098.96dbybBEuI64sWWB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39902 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40056 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752603AbbDTTKG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:10:06 -0400
+	with ESMTP id S1753000AbbDTTKT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:10:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bgolaszewski@baylibre.com, linux@roeck-us.net, rostedt@goodmis.org, mm-commits@vger.kernel.org
+To: javi.merino@arm.com, crope@iki.fi, mchehab@osg.samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hwmon: (lm85) use find_closest() in x_TO_REG() functions
+     Subject: media: cxd2820r: use DIV_ROUND_CLOSEST_ULL()
 has been removed from the -mm tree.  Its filename was
-     hwmon-lm85-use-find_closest-in-x_to_reg-functions.patch
+     media-cxd2820r-use-div_round_closest_ull.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Subject: hwmon: (lm85) use find_closest() in x_TO_REG() functions
+From: Javi Merino <javi.merino@arm.com>
+Subject: media: cxd2820r: use DIV_ROUND_CLOSEST_ULL()
 
-Replace RANGE_TO_REG() and FREQ_TO_REG() implementations with
-calls to find_closest().
+Now that the kernel provides DIV_ROUND_CLOSEST_ULL(), drop the internal
+implementation and use the kernel one.
 
-Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Cc: Guenter Roeck <linux@roeck-us.net>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Signed-off-by: Javi Merino <javi.merino@arm.com>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Acked-by: Antti Palosaari <crope@iki.fi>
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/lm85.c |   26 ++++++++------------------
- 1 file changed, 8 insertions(+), 18 deletions(-)
+ drivers/media/dvb-frontends/cxd2820r_c.c    |    2 +-
+ drivers/media/dvb-frontends/cxd2820r_core.c |    6 ------
+ drivers/media/dvb-frontends/cxd2820r_priv.h |    2 --
+ drivers/media/dvb-frontends/cxd2820r_t.c    |    2 +-
+ drivers/media/dvb-frontends/cxd2820r_t2.c   |    2 +-
+ 5 files changed, 3 insertions(+), 11 deletions(-)
 
-diff -puN drivers/hwmon/lm85.c~hwmon-lm85-use-find_closest-in-x_to_reg-functions drivers/hwmon/lm85.c
---- a/drivers/hwmon/lm85.c~hwmon-lm85-use-find_closest-in-x_to_reg-functions
-+++ a/drivers/hwmon/lm85.c
-@@ -34,6 +34,7 @@
- #include <linux/hwmon-sysfs.h>
- #include <linux/err.h>
- #include <linux/mutex.h>
-+#include <linux/util_macros.h>
+diff -puN drivers/media/dvb-frontends/cxd2820r_c.c~media-cxd2820r-use-div_round_closest_ull drivers/media/dvb-frontends/cxd2820r_c.c
+--- a/drivers/media/dvb-frontends/cxd2820r_c.c~media-cxd2820r-use-div_round_closest_ull
++++ a/drivers/media/dvb-frontends/cxd2820r_c.c
+@@ -79,7 +79,7 @@ int cxd2820r_set_frontend_c(struct dvb_f
  
- /* Addresses to scan */
- static const unsigned short normal_i2c[] = { 0x2c, 0x2d, 0x2e, I2C_CLIENT_END };
-@@ -190,15 +191,7 @@ static const int lm85_range_map[] = {
+ 	num = if_freq / 1000; /* Hz => kHz */
+ 	num *= 0x4000;
+-	if_ctl = 0x4000 - cxd2820r_div_u64_round_closest(num, 41000);
++	if_ctl = 0x4000 - DIV_ROUND_CLOSEST_ULL(num, 41000);
+ 	buf[0] = (if_ctl >> 8) & 0x3f;
+ 	buf[1] = (if_ctl >> 0) & 0xff;
  
- static int RANGE_TO_REG(long range)
- {
--	int i;
--
--	/* Find the closest match */
--	for (i = 0; i < 15; ++i) {
--		if (range <= (lm85_range_map[i] + lm85_range_map[i + 1]) / 2)
--			break;
--	}
--
--	return i;
-+	return find_closest(range, lm85_range_map, ARRAY_SIZE(lm85_range_map));
- }
- #define RANGE_FROM_REG(val)	lm85_range_map[(val) & 0x0f]
- 
-@@ -209,16 +202,12 @@ static const int lm85_freq_map[8] = { /*
- static const int adm1027_freq_map[8] = { /* 1 Hz */
- 	11, 15, 22, 29, 35, 44, 59, 88
- };
-+#define FREQ_MAP_LEN	8
- 
--static int FREQ_TO_REG(const int *map, unsigned long freq)
-+static int FREQ_TO_REG(const int *map,
-+		       unsigned int map_size, unsigned long freq)
- {
--	int i;
--
--	/* Find the closest match */
--	for (i = 0; i < 7; ++i)
--		if (freq <= (map[i] + map[i + 1]) / 2)
--			break;
--	return i;
-+	return find_closest(freq, map, map_size);
+diff -puN drivers/media/dvb-frontends/cxd2820r_core.c~media-cxd2820r-use-div_round_closest_ull drivers/media/dvb-frontends/cxd2820r_core.c
+--- a/drivers/media/dvb-frontends/cxd2820r_core.c~media-cxd2820r-use-div_round_closest_ull
++++ a/drivers/media/dvb-frontends/cxd2820r_core.c
+@@ -244,12 +244,6 @@ error:
+ 	return ret;
  }
  
- static int FREQ_FROM_REG(const int *map, u8 reg)
-@@ -828,7 +817,8 @@ static ssize_t set_pwm_freq(struct devic
- 		data->cfg5 &= ~ADT7468_HFPWM;
- 		lm85_write_value(client, ADT7468_REG_CFG5, data->cfg5);
- 	} else {					/* Low freq. mode */
--		data->pwm_freq[nr] = FREQ_TO_REG(data->freq_map, val);
-+		data->pwm_freq[nr] = FREQ_TO_REG(data->freq_map,
-+						 FREQ_MAP_LEN, val);
- 		lm85_write_value(client, LM85_REG_AFAN_RANGE(nr),
- 				 (data->zone[nr].range << 4)
- 				 | data->pwm_freq[nr]);
+-/* 64 bit div with round closest, like DIV_ROUND_CLOSEST but 64 bit */
+-u32 cxd2820r_div_u64_round_closest(u64 dividend, u32 divisor)
+-{
+-	return div_u64(dividend + (divisor / 2), divisor);
+-}
+-
+ static int cxd2820r_set_frontend(struct dvb_frontend *fe)
+ {
+ 	struct cxd2820r_priv *priv = fe->demodulator_priv;
+diff -puN drivers/media/dvb-frontends/cxd2820r_priv.h~media-cxd2820r-use-div_round_closest_ull drivers/media/dvb-frontends/cxd2820r_priv.h
+--- a/drivers/media/dvb-frontends/cxd2820r_priv.h~media-cxd2820r-use-div_round_closest_ull
++++ a/drivers/media/dvb-frontends/cxd2820r_priv.h
+@@ -64,8 +64,6 @@ int cxd2820r_wr_reg_mask(struct cxd2820r
+ int cxd2820r_wr_regs(struct cxd2820r_priv *priv, u32 reginfo, u8 *val,
+ 	int len);
+ 
+-u32 cxd2820r_div_u64_round_closest(u64 dividend, u32 divisor);
+-
+ int cxd2820r_wr_regs(struct cxd2820r_priv *priv, u32 reginfo, u8 *val,
+ 	int len);
+ 
+diff -puN drivers/media/dvb-frontends/cxd2820r_t.c~media-cxd2820r-use-div_round_closest_ull drivers/media/dvb-frontends/cxd2820r_t.c
+--- a/drivers/media/dvb-frontends/cxd2820r_t.c~media-cxd2820r-use-div_round_closest_ull
++++ a/drivers/media/dvb-frontends/cxd2820r_t.c
+@@ -103,7 +103,7 @@ int cxd2820r_set_frontend_t(struct dvb_f
+ 
+ 	num = if_freq / 1000; /* Hz => kHz */
+ 	num *= 0x1000000;
+-	if_ctl = cxd2820r_div_u64_round_closest(num, 41000);
++	if_ctl = DIV_ROUND_CLOSEST_ULL(num, 41000);
+ 	buf[0] = ((if_ctl >> 16) & 0xff);
+ 	buf[1] = ((if_ctl >>  8) & 0xff);
+ 	buf[2] = ((if_ctl >>  0) & 0xff);
+diff -puN drivers/media/dvb-frontends/cxd2820r_t2.c~media-cxd2820r-use-div_round_closest_ull drivers/media/dvb-frontends/cxd2820r_t2.c
+--- a/drivers/media/dvb-frontends/cxd2820r_t2.c~media-cxd2820r-use-div_round_closest_ull
++++ a/drivers/media/dvb-frontends/cxd2820r_t2.c
+@@ -120,7 +120,7 @@ int cxd2820r_set_frontend_t2(struct dvb_
+ 
+ 	num = if_freq / 1000; /* Hz => kHz */
+ 	num *= 0x1000000;
+-	if_ctl = cxd2820r_div_u64_round_closest(num, 41000);
++	if_ctl = DIV_ROUND_CLOSEST_ULL(num, 41000);
+ 	buf[0] = ((if_ctl >> 16) & 0xff);
+ 	buf[1] = ((if_ctl >>  8) & 0xff);
+ 	buf[2] = ((if_ctl >>  0) & 0xff);
 _
 
-Patches currently in -mm which might be from bgolaszewski@baylibre.com are
+Patches currently in -mm which might be from javi.merino@arm.com are
 
 origin.patch
+linux-next.patch
 
