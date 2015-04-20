@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- ocfs2-set-filesytem-read-only-when-ocfs2_delete_entry-failed.patch added to -mm tree
-Date: Mon, 20 Apr 2015 14:24:45 -0700
-Message-ID: <55356e9d.y4gqTGrQopImG1+S%akpm@linux-foundation.org>
+Subject: + zram-add-designated-reviewer-for-zram-in-maintainers.patch
+ added to -mm tree
+Date: Mon, 20 Apr 2015 14:25:24 -0700
+Message-ID: <55356ec4.kP2mF+XCZWH11xSt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43488 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43490 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751712AbbDTVYq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 17:24:46 -0400
+	with ESMTP id S1751997AbbDTVZY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 17:25:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jiangyiwen@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.com, mm-commits@vger.kernel.org
+To: minchan@kernel.org, sergey.senozhatsky.work@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: set filesytem read-only when ocfs2_delete_entry failed.
+     Subject: zram: add Designated Reviewer for zram in MAINTAINERS
 has been added to the -mm tree.  Its filename is
-     ocfs2-set-filesytem-read-only-when-ocfs2_delete_entry-failed.patch
+     zram-add-designated-reviewer-for-zram-in-maintainers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-set-filesytem-read-only-when-ocfs2_delete_entry-failed.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zram-add-designated-reviewer-for-zram-in-maintainers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-set-filesytem-read-only-when-ocfs2_delete_entry-failed.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zram-add-designated-reviewer-for-zram-in-maintainers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,65 +39,69 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: jiangyiwen <jiangyiwen@huawei.com>
-Subject: ocfs2: set filesytem read-only when ocfs2_delete_entry failed.
+From: Minchan Kim <minchan@kernel.org>
+Subject: zram: add Designated Reviewer for zram in MAINTAINERS
 
-In ocfs2_rename, it will lead to an inode with two entried(old and new) if
-ocfs2_delete_entry(old) failed.  Thus, filesystem will be inconsistent.
+Sergey Senozhatsky has contributed/reviewed to zram for a long time.  He
+is really helpful for maintaining zram so I want for him to continue
+helping me as Designated Reviewer unless he hates it.
 
-The case is described below:
-
-ocfs2_rename
-    -> ocfs2_start_trans
-    -> ocfs2_add_entry(new)
-    -> ocfs2_delete_entry(old)
-        -> __ocfs2_journal_access *failed* because of -ENOMEM
-    -> ocfs2_commit_trans
-
-So filesystem should be set to read-only at the moment.
-
-Signed-off-by: Yiwen Jiang <jiangyiwen@huawei.com>
-Cc: Joseph Qi <joseph.qi@huawei.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/namei.c |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/ocfs2/namei.c~ocfs2-set-filesytem-read-only-when-ocfs2_delete_entry-failed fs/ocfs2/namei.c
---- a/fs/ocfs2/namei.c~ocfs2-set-filesytem-read-only-when-ocfs2_delete_entry-failed
-+++ a/fs/ocfs2/namei.c
-@@ -1551,12 +1551,21 @@ static int ocfs2_rename(struct inode *ol
- 	status = ocfs2_find_entry(old_dentry->d_name.name,
- 				  old_dentry->d_name.len, old_dir,
- 				  &old_entry_lookup);
--	if (status)
-+	if (status) {
-+		ocfs2_error(osb->sb, "new entry %.*s is added, but old entry %.*s "
-+				"is not deleted.",
-+				new_dentry->d_name.len, new_dentry->d_name.name,
-+				old_dentry->d_name.len, old_dentry->d_name.name);
- 		goto bail;
-+	}
- 
- 	status = ocfs2_delete_entry(handle, old_dir, &old_entry_lookup);
- 	if (status < 0) {
- 		mlog_errno(status);
-+		ocfs2_error(osb->sb, "new entry %.*s is added, but old entry %.*s "
-+				"is not deleted.",
-+				new_dentry->d_name.len, new_dentry->d_name.name,
-+				old_dentry->d_name.len, old_dentry->d_name.name);
- 		goto bail;
- 	}
- 
+diff -puN MAINTAINERS~zram-add-designated-reviewer-for-zram-in-maintainers MAINTAINERS
+--- a/MAINTAINERS~zram-add-designated-reviewer-for-zram-in-maintainers
++++ a/MAINTAINERS
+@@ -10985,6 +10985,7 @@ F:	drivers/media/pci/zoran/
+ ZRAM COMPRESSED RAM BLOCK DEVICE DRVIER
+ M:	Minchan Kim <minchan@kernel.org>
+ M:	Nitin Gupta <ngupta@vflare.org>
++R:	Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+ L:	linux-kernel@vger.kernel.org
+ S:	Maintained
+ F:	drivers/block/zram/
 _
 
-Patches currently in -mm which might be from jiangyiwen@huawei.com are
+Patches currently in -mm which might be from minchan@kernel.org are
 
 origin.patch
-ocfs2-set-filesytem-read-only-when-ocfs2_delete_entry-failed.patch
-ocfs2-fix-a-tiny-case-that-inode-can-not-removed.patch
-ocfs2-avoid-access-invalid-address-when-read-o2dlm-debug-messages.patch
+zram-add-designated-reviewer-for-zram-in-maintainers.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+mm-page_isolation-check-pfn-validity-before-access.patch
+x86-add-pmd_-for-thp.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp.patch
+sparc-add-pmd_-for-thp-fix.patch
+powerpc-add-pmd_-for-thp.patch
+arm-add-pmd_mkclean-for-thp.patch
+arm64-add-pmd_-for-thp.patch
+mm-support-madvisemadv_free.patch
+mm-support-madvisemadv_free-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-dont-split-thp-page-when-syscall-is-called.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-2.patch
+mm-free-swp_entry-in-madvise_free.patch
+mm-move-lazy-free-pages-to-inactive-list.patch
+mm-move-lazy-free-pages-to-inactive-list-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
+zram-cosmetic-zram_attr_ro-code-formatting-tweak.patch
+zram-use-idr-instead-of-zram_devices-array.patch
+zram-factor-out-device-reset-from-reset_store.patch
+zram-reorganize-code-layout.patch
+zram-add-dynamic-device-add-remove-functionality.patch
+zram-add-dynamic-device-add-remove-functionality-fix.patch
+zram-remove-max_num_devices-limitation.patch
+zram-report-every-added-and-removed-device.patch
+zram-trivial-correct-flag-operations-comment.patch
+zram-return-zram-device_id-value-from-zram_add.patch
+zram-introduce-automatic-device_id-generation.patch
+zram-introduce-automatic-device_id-generation-fix.patch
+zram-do-not-let-user-enforce-new-device-dev_id.patch
 
