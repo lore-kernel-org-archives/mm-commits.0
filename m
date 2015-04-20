@@ -1,73 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rtc-ds1685-fix-sparse-warnings.patch removed from -mm
- tree
-Date: Mon, 20 Apr 2015 12:17:48 -0700
-Message-ID: <553550dc.BUK1n/5baPmUABK5%akpm@linux-foundation.org>
+Subject: [merged] rtc-rtc-ab-b5ze-s3-constify-struct-regmap_config.patch
+ removed from -mm tree
+Date: Mon, 20 Apr 2015 12:17:44 -0700
+Message-ID: <553550d8.qECxOwT3HoOXfHzQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40181 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40175 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751180AbbDTTL1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:11:27 -0400
+	with ESMTP id S1752741AbbDTTLX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:11:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kumba@gentoo.org, mm-commits@vger.kernel.org
+To: k.kozlowski@samsung.com, a.zummo@towertech.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-ds1685.c: fix sparse warnings
+     Subject: drivers/rtc/rtc-ab-b5ze-s3.c: constify struct regmap_config
 has been removed from the -mm tree.  Its filename was
-     rtc-ds1685-fix-sparse-warnings.patch
+     rtc-rtc-ab-b5ze-s3-constify-struct-regmap_config.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joshua Kinard <kumba@gentoo.org>
-Subject: drivers/rtc/rtc-ds1685.c: fix sparse warnings
+From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Subject: drivers/rtc/rtc-ab-b5ze-s3.c: constify struct regmap_config
 
-Fix two minor sparse warnings:
+The regmap_config struct may be const because it is not modified by the
+driver and regmap_init() accepts pointer to const.
 
-  CHECK   drivers/rtc/rtc-ds1685.c
-drivers/rtc/rtc-ds1685.c:2178:1: warning: function 'ds1685_rtc_poweroff'
-with external linkage has definition
-drivers/rtc/rtc-ds1685.c:802:23: warning: Using plain integer as NULL
-pointer
-
-Fixes: aaaf5fbf56f1 ("rtc: add driver for DS1685 family of real time clocks")
-Signed-off-by: Joshua Kinard <kumba@gentoo.org>
+Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1685.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/rtc/rtc-ab-b5ze-s3.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-ds1685.c~rtc-ds1685-fix-sparse-warnings drivers/rtc/rtc-ds1685.c
---- a/drivers/rtc/rtc-ds1685.c~rtc-ds1685-fix-sparse-warnings
-+++ a/drivers/rtc/rtc-ds1685.c
-@@ -799,7 +799,7 @@ ds1685_rtc_proc(struct device *dev, stru
- 	struct platform_device *pdev = to_platform_device(dev);
- 	struct ds1685_priv *rtc = platform_get_drvdata(pdev);
- 	u8 ctrla, ctrlb, ctrlc, ctrld, ctrl4a, ctrl4b, ssn[8];
--	char *model = '\0';
-+	char *model;
- #ifdef CONFIG_RTC_DS1685_PROC_REGS
- 	char bits[NUM_REGS][(NUM_BITS * NUM_SPACES) + NUM_BITS + 1];
- #endif
-@@ -2174,7 +2174,7 @@ module_exit(ds1685_rtc_exit);
-  * ds1685_rtc_poweroff - uses the RTC chip to power the system off.
-  * @pdev: pointer to platform_device structure.
-  */
--extern void __noreturn
-+void __noreturn
- ds1685_rtc_poweroff(struct platform_device *pdev)
- {
- 	u8 ctrla, ctrl4a, ctrl4b;
+diff -puN drivers/rtc/rtc-ab-b5ze-s3.c~rtc-rtc-ab-b5ze-s3-constify-struct-regmap_config drivers/rtc/rtc-ab-b5ze-s3.c
+--- a/drivers/rtc/rtc-ab-b5ze-s3.c~rtc-rtc-ab-b5ze-s3-constify-struct-regmap_config
++++ a/drivers/rtc/rtc-ab-b5ze-s3.c
+@@ -881,7 +881,7 @@ static const struct rtc_class_ops rtc_op
+ 	.alarm_irq_enable = abb5zes3_rtc_alarm_irq_enable,
+ };
+ 
+-static struct regmap_config abb5zes3_rtc_regmap_config = {
++static const struct regmap_config abb5zes3_rtc_regmap_config = {
+ 	.reg_bits = 8,
+ 	.val_bits = 8,
+ };
 _
 
-Patches currently in -mm which might be from kumba@gentoo.org are
+Patches currently in -mm which might be from k.kozlowski@samsung.com are
 
 origin.patch
+linux-next.patch
 
