@@ -1,203 +1,184 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- fs-hfsplus-move-xattr_name-allocation-in-hfsplus_setxattr.patch removed
- from -mm tree
-Date: Mon, 20 Apr 2015 12:19:06 -0700
-Message-ID: <5535512a.6tHWVUrJpfPTiUay%akpm@linux-foundation.org>
+ nilfs2-unify-type-of-key-arguments-in-bmap-interface.patch removed from -mm tree
+Date: Mon, 20 Apr 2015 12:18:45 -0700
+Message-ID: <55355115.tXwwhRjIvtleer9Q%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40312 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40286 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752466AbbDTTMp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:12:45 -0400
+	with ESMTP id S1752175AbbDTTMY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:12:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, mm-commits@vger.kernel.org
+To: konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/hfsplus: move xattr_name allocation in hfsplus_setxattr()
+     Subject: nilfs2: unify type of key arguments in bmap interface
 has been removed from the -mm tree.  Its filename was
-     fs-hfsplus-move-xattr_name-allocation-in-hfsplus_setxattr.patch
+     nilfs2-unify-type-of-key-arguments-in-bmap-interface.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/hfsplus: move xattr_name allocation in hfsplus_setxattr()
+From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Subject: nilfs2: unify type of key arguments in bmap interface
 
-security/trusted/user/osx setxattr did the same
-xattr_name initialization. Move that operation in hfsplus_setxattr().
+The type of key arguments in block mapping interface varies depending
+on function.  For instance, nilfs_bmap_lookup_at_level() takes "__u64"
+for its key argument whereas nilfs_bmap_lookup() takes "unsigned
+long".
 
-Tested with security/trusted/user getfattr/setfattr
+This fits them to "__u64" to eliminate the variation.
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/xattr.c          |   37 ++++++++++++++++++++++------------
- fs/hfsplus/xattr.h          |    8 ++-----
- fs/hfsplus/xattr_security.c |   19 ++---------------
- fs/hfsplus/xattr_trusted.c  |   18 +---------------
- fs/hfsplus/xattr_user.c     |   18 +---------------
- 5 files changed, 35 insertions(+), 65 deletions(-)
+ fs/nilfs2/alloc.c |    5 +++--
+ fs/nilfs2/bmap.c  |   17 ++++++-----------
+ fs/nilfs2/bmap.h  |    8 ++++----
+ fs/nilfs2/inode.c |    6 +++---
+ 4 files changed, 16 insertions(+), 20 deletions(-)
 
-diff -puN fs/hfsplus/xattr.c~fs-hfsplus-move-xattr_name-allocation-in-hfsplus_setxattr fs/hfsplus/xattr.c
---- a/fs/hfsplus/xattr.c~fs-hfsplus-move-xattr_name-allocation-in-hfsplus_setxattr
-+++ a/fs/hfsplus/xattr.c
-@@ -424,6 +424,28 @@ static int copy_name(char *buffer, const
- 	return len;
+diff -puN fs/nilfs2/alloc.c~nilfs2-unify-type-of-key-arguments-in-bmap-interface fs/nilfs2/alloc.c
+--- a/fs/nilfs2/alloc.c~nilfs2-unify-type-of-key-arguments-in-bmap-interface
++++ a/fs/nilfs2/alloc.c
+@@ -405,13 +405,14 @@ nilfs_palloc_rest_groups_in_desc_block(c
+ static int nilfs_palloc_count_desc_blocks(struct inode *inode,
+ 					    unsigned long *desc_blocks)
+ {
+-	unsigned long blknum;
++	__u64 blknum;
+ 	int ret;
+ 
+ 	ret = nilfs_bmap_last_key(NILFS_I(inode)->i_bmap, &blknum);
+ 	if (likely(!ret))
+ 		*desc_blocks = DIV_ROUND_UP(
+-			blknum, NILFS_MDT(inode)->mi_blocks_per_desc_block);
++			(unsigned long)blknum,
++			NILFS_MDT(inode)->mi_blocks_per_desc_block);
+ 	return ret;
  }
  
-+int hfsplus_setxattr(struct dentry *dentry, const char *name,
-+		     const void *value, size_t size, int flags,
-+		     const char *prefix, size_t prefixlen)
-+{
-+	char *xattr_name;
-+	int res;
-+
-+	if (!strcmp(name, ""))
-+		return -EINVAL;
-+
-+	xattr_name = kmalloc(NLS_MAX_CHARSET_SIZE * HFSPLUS_ATTR_MAX_STRLEN + 1,
-+		GFP_KERNEL);
-+	if (!xattr_name)
-+		return -ENOMEM;
-+	strcpy(xattr_name, prefix);
-+	strcpy(xattr_name + prefixlen, name);
-+	res = __hfsplus_setxattr(dentry->d_inode, xattr_name, value, size,
-+				 flags);
-+	kfree(xattr_name);
-+	return res;
-+}
-+
- static ssize_t hfsplus_getxattr_finder_info(struct inode *inode,
- 						void *value, size_t size)
+diff -puN fs/nilfs2/bmap.c~nilfs2-unify-type-of-key-arguments-in-bmap-interface fs/nilfs2/bmap.c
+--- a/fs/nilfs2/bmap.c~nilfs2-unify-type-of-key-arguments-in-bmap-interface
++++ a/fs/nilfs2/bmap.c
+@@ -152,9 +152,7 @@ static int nilfs_bmap_do_insert(struct n
+  *
+  * %-EEXIST - A record associated with @key already exist.
+  */
+-int nilfs_bmap_insert(struct nilfs_bmap *bmap,
+-		      unsigned long key,
+-		      unsigned long rec)
++int nilfs_bmap_insert(struct nilfs_bmap *bmap, __u64 key, unsigned long rec)
  {
-@@ -847,9 +869,6 @@ static int hfsplus_osx_getxattr(struct d
- static int hfsplus_osx_setxattr(struct dentry *dentry, const char *name,
- 		const void *buffer, size_t size, int flags, int type)
- {
--	char *xattr_name;
--	int res;
--
- 	if (!strcmp(name, ""))
- 		return -EINVAL;
+ 	int ret;
  
-@@ -859,16 +878,10 @@ static int hfsplus_osx_setxattr(struct d
- 	 */
- 	if (is_known_namespace(name))
- 		return -EOPNOTSUPP;
--	xattr_name = kmalloc(NLS_MAX_CHARSET_SIZE * HFSPLUS_ATTR_MAX_STRLEN
--		+ XATTR_MAC_OSX_PREFIX_LEN + 1, GFP_KERNEL);
--	if (!xattr_name)
--		return -ENOMEM;
--	strcpy(xattr_name, XATTR_MAC_OSX_PREFIX);
--	strcpy(xattr_name + XATTR_MAC_OSX_PREFIX_LEN, name);
- 
--	res = hfsplus_setxattr(dentry, xattr_name, buffer, size, flags);
--	kfree(xattr_name);
--	return res;
-+	return hfsplus_setxattr(dentry, name, buffer, size, flags,
-+				XATTR_MAC_OSX_PREFIX,
-+				XATTR_MAC_OSX_PREFIX_LEN);
+@@ -191,19 +189,16 @@ static int nilfs_bmap_do_delete(struct n
+ 	return bmap->b_ops->bop_delete(bmap, key);
  }
  
- static size_t hfsplus_osx_listxattr(struct dentry *dentry, char *list,
-diff -puN fs/hfsplus/xattr.h~fs-hfsplus-move-xattr_name-allocation-in-hfsplus_setxattr fs/hfsplus/xattr.h
---- a/fs/hfsplus/xattr.h~fs-hfsplus-move-xattr_name-allocation-in-hfsplus_setxattr
-+++ a/fs/hfsplus/xattr.h
-@@ -21,11 +21,9 @@ extern const struct xattr_handler *hfspl
- int __hfsplus_setxattr(struct inode *inode, const char *name,
- 			const void *value, size_t size, int flags);
- 
--static inline int hfsplus_setxattr(struct dentry *dentry, const char *name,
--			const void *value, size_t size, int flags)
--{
--	return __hfsplus_setxattr(dentry->d_inode, name, value, size, flags);
--}
-+int hfsplus_setxattr(struct dentry *dentry, const char *name,
-+				   const void *value, size_t size, int flags,
-+				   const char *prefix, size_t prefixlen);
- 
- ssize_t __hfsplus_getxattr(struct inode *inode, const char *name,
- 			   void *value, size_t size);
-diff -puN fs/hfsplus/xattr_security.c~fs-hfsplus-move-xattr_name-allocation-in-hfsplus_setxattr fs/hfsplus/xattr_security.c
---- a/fs/hfsplus/xattr_security.c~fs-hfsplus-move-xattr_name-allocation-in-hfsplus_setxattr
-+++ a/fs/hfsplus/xattr_security.c
-@@ -24,22 +24,9 @@ static int hfsplus_security_getxattr(str
- static int hfsplus_security_setxattr(struct dentry *dentry, const char *name,
- 		const void *buffer, size_t size, int flags, int type)
+-int nilfs_bmap_last_key(struct nilfs_bmap *bmap, unsigned long *key)
++int nilfs_bmap_last_key(struct nilfs_bmap *bmap, __u64 *keyp)
  {
--	char *xattr_name;
--	int res;
--
--	if (!strcmp(name, ""))
--		return -EINVAL;
--
--	xattr_name = kmalloc(NLS_MAX_CHARSET_SIZE * HFSPLUS_ATTR_MAX_STRLEN + 1,
--		GFP_KERNEL);
--	if (!xattr_name)
--		return -ENOMEM;
--	strcpy(xattr_name, XATTR_SECURITY_PREFIX);
--	strcpy(xattr_name + XATTR_SECURITY_PREFIX_LEN, name);
--
--	res = hfsplus_setxattr(dentry, xattr_name, buffer, size, flags);
--	kfree(xattr_name);
--	return res;
-+	return hfsplus_setxattr(dentry, name, buffer, size, flags,
-+				XATTR_SECURITY_PREFIX,
-+				XATTR_SECURITY_PREFIX_LEN);
+-	__u64 lastkey;
+ 	int ret;
+ 
+ 	down_read(&bmap->b_sem);
+-	ret = bmap->b_ops->bop_last_key(bmap, &lastkey);
++	ret = bmap->b_ops->bop_last_key(bmap, keyp);
+ 	up_read(&bmap->b_sem);
+ 
+ 	if (ret < 0)
+ 		ret = nilfs_bmap_convert_error(bmap, __func__, ret);
+-	else
+-		*key = lastkey;
+ 	return ret;
  }
  
- static size_t hfsplus_security_listxattr(struct dentry *dentry, char *list,
-diff -puN fs/hfsplus/xattr_trusted.c~fs-hfsplus-move-xattr_name-allocation-in-hfsplus_setxattr fs/hfsplus/xattr_trusted.c
---- a/fs/hfsplus/xattr_trusted.c~fs-hfsplus-move-xattr_name-allocation-in-hfsplus_setxattr
-+++ a/fs/hfsplus/xattr_trusted.c
-@@ -22,22 +22,8 @@ static int hfsplus_trusted_getxattr(stru
- static int hfsplus_trusted_setxattr(struct dentry *dentry, const char *name,
- 		const void *buffer, size_t size, int flags, int type)
+@@ -224,7 +219,7 @@ int nilfs_bmap_last_key(struct nilfs_bma
+  *
+  * %-ENOENT - A record associated with @key does not exist.
+  */
+-int nilfs_bmap_delete(struct nilfs_bmap *bmap, unsigned long key)
++int nilfs_bmap_delete(struct nilfs_bmap *bmap, __u64 key)
  {
--	char *xattr_name;
--	int res;
--
--	if (!strcmp(name, ""))
--		return -EINVAL;
--
--	xattr_name = kmalloc(NLS_MAX_CHARSET_SIZE * HFSPLUS_ATTR_MAX_STRLEN + 1,
--		GFP_KERNEL);
--	if (!xattr_name)
--		return -ENOMEM;
--	strcpy(xattr_name, XATTR_TRUSTED_PREFIX);
--	strcpy(xattr_name + XATTR_TRUSTED_PREFIX_LEN, name);
--
--	res = hfsplus_setxattr(dentry, xattr_name, buffer, size, flags);
--	kfree(xattr_name);
--	return res;
-+	return hfsplus_setxattr(dentry, name, buffer, size, flags,
-+				XATTR_TRUSTED_PREFIX, XATTR_TRUSTED_PREFIX_LEN);
+ 	int ret;
+ 
+@@ -235,7 +230,7 @@ int nilfs_bmap_delete(struct nilfs_bmap
+ 	return nilfs_bmap_convert_error(bmap, __func__, ret);
  }
  
- static size_t hfsplus_trusted_listxattr(struct dentry *dentry, char *list,
-diff -puN fs/hfsplus/xattr_user.c~fs-hfsplus-move-xattr_name-allocation-in-hfsplus_setxattr fs/hfsplus/xattr_user.c
---- a/fs/hfsplus/xattr_user.c~fs-hfsplus-move-xattr_name-allocation-in-hfsplus_setxattr
-+++ a/fs/hfsplus/xattr_user.c
-@@ -22,22 +22,8 @@ static int hfsplus_user_getxattr(struct
- static int hfsplus_user_setxattr(struct dentry *dentry, const char *name,
- 		const void *buffer, size_t size, int flags, int type)
+-static int nilfs_bmap_do_truncate(struct nilfs_bmap *bmap, unsigned long key)
++static int nilfs_bmap_do_truncate(struct nilfs_bmap *bmap, __u64 key)
  {
--	char *xattr_name;
--	int res;
--
--	if (!strcmp(name, ""))
--		return -EINVAL;
--
--	xattr_name = kmalloc(NLS_MAX_CHARSET_SIZE * HFSPLUS_ATTR_MAX_STRLEN + 1,
--		GFP_KERNEL);
--	if (!xattr_name)
--		return -ENOMEM;
--	strcpy(xattr_name, XATTR_USER_PREFIX);
--	strcpy(xattr_name + XATTR_USER_PREFIX_LEN, name);
+ 	__u64 lastkey;
+ 	int ret;
+@@ -276,7 +271,7 @@ static int nilfs_bmap_do_truncate(struct
+  *
+  * %-ENOMEM - Insufficient amount of memory available.
+  */
+-int nilfs_bmap_truncate(struct nilfs_bmap *bmap, unsigned long key)
++int nilfs_bmap_truncate(struct nilfs_bmap *bmap, __u64 key)
+ {
+ 	int ret;
+ 
+diff -puN fs/nilfs2/bmap.h~nilfs2-unify-type-of-key-arguments-in-bmap-interface fs/nilfs2/bmap.h
+--- a/fs/nilfs2/bmap.h~nilfs2-unify-type-of-key-arguments-in-bmap-interface
++++ a/fs/nilfs2/bmap.h
+@@ -153,10 +153,10 @@ int nilfs_bmap_test_and_clear_dirty(stru
+ int nilfs_bmap_read(struct nilfs_bmap *, struct nilfs_inode *);
+ void nilfs_bmap_write(struct nilfs_bmap *, struct nilfs_inode *);
+ int nilfs_bmap_lookup_contig(struct nilfs_bmap *, __u64, __u64 *, unsigned);
+-int nilfs_bmap_insert(struct nilfs_bmap *, unsigned long, unsigned long);
+-int nilfs_bmap_delete(struct nilfs_bmap *, unsigned long);
+-int nilfs_bmap_last_key(struct nilfs_bmap *, unsigned long *);
+-int nilfs_bmap_truncate(struct nilfs_bmap *, unsigned long);
++int nilfs_bmap_insert(struct nilfs_bmap *bmap, __u64 key, unsigned long rec);
++int nilfs_bmap_delete(struct nilfs_bmap *bmap, __u64 key);
++int nilfs_bmap_last_key(struct nilfs_bmap *bmap, __u64 *keyp);
++int nilfs_bmap_truncate(struct nilfs_bmap *bmap, __u64 key);
+ void nilfs_bmap_clear(struct nilfs_bmap *);
+ int nilfs_bmap_propagate(struct nilfs_bmap *, struct buffer_head *);
+ void nilfs_bmap_lookup_dirty_buffers(struct nilfs_bmap *, struct list_head *);
+diff -puN fs/nilfs2/inode.c~nilfs2-unify-type-of-key-arguments-in-bmap-interface fs/nilfs2/inode.c
+--- a/fs/nilfs2/inode.c~nilfs2-unify-type-of-key-arguments-in-bmap-interface
++++ a/fs/nilfs2/inode.c
+@@ -106,7 +106,7 @@ int nilfs_get_block(struct inode *inode,
+ 		err = nilfs_transaction_begin(inode->i_sb, &ti, 1);
+ 		if (unlikely(err))
+ 			goto out;
+-		err = nilfs_bmap_insert(ii->i_bmap, (unsigned long)blkoff,
++		err = nilfs_bmap_insert(ii->i_bmap, blkoff,
+ 					(unsigned long)bh_result);
+ 		if (unlikely(err != 0)) {
+ 			if (err == -EEXIST) {
+@@ -714,7 +714,7 @@ void nilfs_update_inode(struct inode *in
+ static void nilfs_truncate_bmap(struct nilfs_inode_info *ii,
+ 				unsigned long from)
+ {
+-	unsigned long b;
++	__u64 b;
+ 	int ret;
+ 
+ 	if (!test_bit(NILFS_I_BMAP, &ii->i_state))
+@@ -729,7 +729,7 @@ repeat:
+ 	if (b < from)
+ 		return;
+ 
+-	b -= min_t(unsigned long, NILFS_MAX_TRUNCATE_BLOCKS, b - from);
++	b -= min_t(__u64, NILFS_MAX_TRUNCATE_BLOCKS, b - from);
+ 	ret = nilfs_bmap_truncate(ii->i_bmap, b);
+ 	nilfs_relax_pressure_in_lock(ii->vfs_inode.i_sb);
+ 	if (!ret || (ret == -ENOMEM &&
+_
+
+Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
+
+origin.patch
+
