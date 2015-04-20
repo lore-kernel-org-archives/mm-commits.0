@@ -1,52 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: [merged] util_macrosh-add-find_closest-macro.patch removed from
- -mm tree
-Date: Mon, 20 Apr 2015 12:16:21 -0700
-Message-ID: <55355085.WucOON6hybJXtg3o%akpm@linux-foundation.org>
+Subject: [merged]
+ documentation-update-codingstyle-on-local-variables-naming-in-macros.patch
+ removed from -mm tree
+Date: Mon, 20 Apr 2015 12:16:23 -0700
+Message-ID: <55355087.lyG9SaQl30kNI14d%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39888 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39894 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752603AbbDTTKA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:10:00 -0400
+	with ESMTP id S1752603AbbDTTKC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:10:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bgolaszewski@baylibre.com, linux@roeck-us.net, rostedt@goodmis.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: util_macros.h: add find_closest() macro
+     Subject: documentation: update CodingStyle on local variables naming in macros
 has been removed from the -mm tree.  Its filename was
-     util_macrosh-add-find_closest-macro.patch
+     documentation-update-codingstyle-on-local-variables-naming-in-macros.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-Subject: util_macros.h: add find_closest() macro
+Subject: documentation: update CodingStyle on local variables naming in macros
 
-This series unduplicates the code used to find the member in an array
-closest to 'x'.
-
-The first patch adds a macro implementing the algorithm in two flavors -
-for arrays sorted in ascending and descending order.  The second updates
-Documentation/CodingStyle on the naming convention for local variables in
-macros resembling functions.  Other three patches replace duplicated code
-with calls to one of these macros in some hwmon drivers.
-
-
-This patch (of 5):
-
-Searching for the member of an array closest to 'x' is duplicated in
-several places.
-
-Add a new include - util_macros.h - and two macros that implement this
-algorithm for arrays sorted both in ascending and descending order.
-
-Uses linear search.
+Describe proper naming convention for local variables in macros
+resembling functions.
 
 Signed-off-by: Bartosz Golaszewski <bgolaszewski@baylibre.com>
 Cc: Guenter Roeck <linux@roeck-us.net>
@@ -54,53 +38,32 @@ Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/util_macros.h |   40 ++++++++++++++++++++++++++++++++++
- 1 file changed, 40 insertions(+)
+ Documentation/CodingStyle |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff -puN /dev/null include/linux/util_macros.h
---- /dev/null
-+++ a/include/linux/util_macros.h
-@@ -0,0 +1,40 @@
-+#ifndef _LINUX_HELPER_MACROS_H_
-+#define _LINUX_HELPER_MACROS_H_
+diff -puN Documentation/CodingStyle~documentation-update-codingstyle-on-local-variables-naming-in-macros Documentation/CodingStyle
+--- a/Documentation/CodingStyle~documentation-update-codingstyle-on-local-variables-naming-in-macros
++++ a/Documentation/CodingStyle
+@@ -659,6 +659,19 @@ macros using parameters.
+ #define CONSTANT 0x4000
+ #define CONSTEXP (CONSTANT | 3)
+ 
++5) namespace collisions when defining local variables in macros resembling
++functions:
 +
-+#define __find_closest(x, a, as, op)					\
-+({									\
-+	typeof(as) __fc_i, __fc_as = (as) - 1;				\
-+	typeof(x) __fc_x = (x);						\
-+	typeof(*a) *__fc_a = (a);					\
-+	for (__fc_i = 0; __fc_i < __fc_as; __fc_i++) {			\
-+		if (__fc_x op DIV_ROUND_CLOSEST(__fc_a[__fc_i] +	\
-+						__fc_a[__fc_i + 1], 2))	\
-+			break;						\
-+	}								\
-+	(__fc_i);							\
-+})
++#define FOO(x)				\
++({					\
++	typeof(x) ret;			\
++	ret = calc_ret(x);		\
++	(ret);				\
++)}
 +
-+/**
-+ * find_closest - locate the closest element in a sorted array
-+ * @x: The reference value.
-+ * @a: The array in which to look for the closest element. Must be sorted
-+ *  in ascending order.
-+ * @as: Size of 'a'.
-+ *
-+ * Returns the index of the element closest to 'x'.
-+ */
-+#define find_closest(x, a, as) __find_closest(x, a, as, <=)
++ret is a common name for a local variable - __foo_ret is less likely
++to collide with an existing variable.
 +
-+/**
-+ * find_closest_descending - locate the closest element in a sorted array
-+ * @x: The reference value.
-+ * @a: The array in which to look for the closest element. Must be sorted
-+ *  in descending order.
-+ * @as: Size of 'a'.
-+ *
-+ * Similar to find_closest() but 'a' is expected to be sorted in descending
-+ * order.
-+ */
-+#define find_closest_descending(x, a, as) __find_closest(x, a, as, >=)
-+
-+#endif
+ The cpp manual deals with macros exhaustively. The gcc internals manual also
+ covers RTL which is used frequently with assembly language in the kernel.
+ 
 _
 
 Patches currently in -mm which might be from bgolaszewski@baylibre.com are
