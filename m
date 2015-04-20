@@ -1,185 +1,157 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- ptrace-x86-fix-the-tif_forced_tf-logic-in-handle_signal.patch removed from
+Subject: [merged] cxgb4-drop-__gfp_nofail-allocation.patch removed from
  -mm tree
-Date: Mon, 20 Apr 2015 12:21:16 -0700
-Message-ID: <553551ac.sQ8rnEKpGnU+6YS4%akpm@linux-foundation.org>
+Date: Mon, 20 Apr 2015 12:21:21 -0700
+Message-ID: <553551b1.OQRRGdBWZQBOneCH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40564 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40575 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753378AbbDTTOz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:14:55 -0400
+	with ESMTP id S1754282AbbDTTPA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:15:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, andres@anarazel.de, eteran@alum.rit.edu, hpa@zytor.com, mingo@elte.hu, palves@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mhocko@suse.cz, davem@davemloft.net, david@fromorbit.com, hannes@cmpxchg.org, hariprasad@chelsio.com, jack@suse.cz, mgorman@suse.de, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ptrace/x86: fix the TIF_FORCED_TF logic in handle_signal()
+     Subject: cxgb4: drop __GFP_NOFAIL allocation
 has been removed from the -mm tree.  Its filename was
-     ptrace-x86-fix-the-tif_forced_tf-logic-in-handle_signal.patch
+     cxgb4-drop-__gfp_nofail-allocation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: ptrace/x86: fix the TIF_FORCED_TF logic in handle_signal()
+From: Michal Hocko <mhocko@suse.cz>
+Subject: cxgb4: drop __GFP_NOFAIL allocation
 
-When the TIF_SINGLESTEP tracee dequeues a signal, handle_signal() clears
-TIF_FORCED_TF and X86_EFLAGS_TF but leaves TIF_SINGLESTEP set.
+set_filter_wr is requesting __GFP_NOFAIL allocation although it can return
+ENOMEM without any problems obviously (t4_l2t_set_switching does that
+already).  So the non-failing requirement is too strong without any
+obvious reason.  Drop __GFP_NOFAIL and reorganize the code to have the
+failure paths easier.
 
-If the tracer does PTRACE_SINGLESTEP again, enable_single_step() sets
-X86_EFLAGS_TF but not TIF_FORCED_TF.  This means that the subsequent
-PTRACE_CONT doesn't not clear X86_EFLAGS_TF, and the tracee gets the wrong
-SIGTRAP.
+The same applies to _c4iw_write_mem_dma_aligned which uses __GFP_NOFAIL
+and then checks the return value and returns -ENOMEM on failure.  This
+doesn't make any sense what so ever.  Either the allocation cannot fail or
+it can.
 
-Test-case (needs -O2 to avoid prologue insns in signal handler):
+del_filter_wr seems to be safe as well because the filter entry is not
+marked as pending and the return value is propagated up the stack up to
+c4iw_destroy_listen.
 
-	#include <unistd.h>
-	#include <stdio.h>
-	#include <sys/ptrace.h>
-	#include <sys/wait.h>
-	#include <sys/user.h>
-	#include <assert.h>
-	#include <stddef.h>
-
-	void handler(int n)
-	{
-		asm("nop");
-	}
-
-	int child(void)
-	{
-		assert(ptrace(PTRACE_TRACEME, 0,0,0) == 0);
-		signal(SIGALRM, handler);
-		kill(getpid(), SIGALRM);
-		return 0x23;
-	}
-
-	void *getip(int pid)
-	{
-		return (void*)ptrace(PTRACE_PEEKUSER, pid,
-					offsetof(struct user, regs.rip), 0);
-	}
-
-	int main(void)
-	{
-		int pid, status;
-
-		pid = fork();
-		if (!pid)
-			return child();
-
-		assert(wait(&status) == pid);
-		assert(WIFSTOPPED(status) && WSTOPSIG(status) == SIGALRM);
-
-		assert(ptrace(PTRACE_SINGLESTEP, pid, 0, SIGALRM) == 0);
-		assert(wait(&status) == pid);
-		assert(WIFSTOPPED(status) && WSTOPSIG(status) == SIGTRAP);
-		assert((getip(pid) - (void*)handler) == 0);
-
-		assert(ptrace(PTRACE_SINGLESTEP, pid, 0, SIGALRM) == 0);
-		assert(wait(&status) == pid);
-		assert(WIFSTOPPED(status) && WSTOPSIG(status) == SIGTRAP);
-		assert((getip(pid) - (void*)handler) == 1);
-
-		assert(ptrace(PTRACE_CONT, pid, 0,0) == 0);
-		assert(wait(&status) == pid);
-		assert(WIFEXITED(status) && WEXITSTATUS(status) == 0x23);
-
-		return 0;
-	}
-
-The last assert() fails because PTRACE_CONT wrongly triggers another
-single-step and X86_EFLAGS_TF can't be cleared by debugger until the
-tracee does sys_rt_sigreturn().
-
-Change handle_signal() to do user_disable_single_step() if stepping, we do
-not need to preserve TIF_SINGLESTEP because we are going to do
-ptrace_notify(), and it is simply wrong to leak this bit.
-
-While at it, change the comment to explain why we also need to clear TF
-unconditionally after setup_rt_frame().
-
-Note: in the longer term we should probably change setup_sigcontext() to
-use get_flags() and then just remove this user_disable_single_step(). 
-And, the state of TIF_FORCED_TF can be wrong after restore_sigcontext()
-which can set/clear TF, this needs another fix.
-
-Reported-by: Evan Teran <eteran@alum.rit.edu>
-Reported-by: Pedro Alves <palves@redhat.com>
-Tested-by: Andres Freund <andres@anarazel.de>
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Hariprasad S <hariprasad@chelsio.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/signal.c |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ drivers/infiniband/hw/cxgb4/mem.c               |    2 -
+ drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c |   15 +++++++++++---
+ 2 files changed, 13 insertions(+), 4 deletions(-)
 
-diff -puN arch/x86/kernel/signal.c~ptrace-x86-fix-the-tif_forced_tf-logic-in-handle_signal arch/x86/kernel/signal.c
---- a/arch/x86/kernel/signal.c~ptrace-x86-fix-the-tif_forced_tf-logic-in-handle_signal
-+++ a/arch/x86/kernel/signal.c
-@@ -616,7 +616,8 @@ setup_rt_frame(struct ksignal *ksig, str
- static void
- handle_signal(struct ksignal *ksig, struct pt_regs *regs)
- {
--	bool failed;
-+	bool stepping, failed;
+diff -puN drivers/infiniband/hw/cxgb4/mem.c~cxgb4-drop-__gfp_nofail-allocation drivers/infiniband/hw/cxgb4/mem.c
+--- a/drivers/infiniband/hw/cxgb4/mem.c~cxgb4-drop-__gfp_nofail-allocation
++++ a/drivers/infiniband/hw/cxgb4/mem.c
+@@ -73,7 +73,7 @@ static int _c4iw_write_mem_dma_aligned(s
+ 		c4iw_init_wr_wait(&wr_wait);
+ 	wr_len = roundup(sizeof(*req) + sizeof(*sgl), 16);
+ 
+-	skb = alloc_skb(wr_len, GFP_KERNEL | __GFP_NOFAIL);
++	skb = alloc_skb(wr_len, GFP_KERNEL);
+ 	if (!skb)
+ 		return -ENOMEM;
+ 	set_wr_txq(skb, CPL_PRIORITY_CONTROL, 0);
+diff -puN drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c~cxgb4-drop-__gfp_nofail-allocation drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
+--- a/drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c~cxgb4-drop-__gfp_nofail-allocation
++++ a/drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
+@@ -1140,6 +1140,10 @@ static int set_filter_wr(struct adapter
+ 	struct fw_filter_wr *fwr;
+ 	unsigned int ftid;
+ 
++	skb = alloc_skb(sizeof(*fwr), GFP_KERNEL);
++	if (!skb)
++		return -ENOMEM;
 +
- 	/* Are we from a system call? */
- 	if (syscall_get_nr(current, regs) >= 0) {
- 		/* If so, check system call restarting.. */
-@@ -640,12 +641,13 @@ handle_signal(struct ksignal *ksig, stru
+ 	/* If the new filter requires loopback Destination MAC and/or VLAN
+ 	 * rewriting then we need to allocate a Layer 2 Table (L2T) entry for
+ 	 * the filter.
+@@ -1147,19 +1151,21 @@ static int set_filter_wr(struct adapter
+ 	if (f->fs.newdmac || f->fs.newvlan) {
+ 		/* allocate L2T entry for new filter */
+ 		f->l2t = t4_l2t_alloc_switching(adapter->l2t);
+-		if (f->l2t == NULL)
++		if (f->l2t == NULL) {
++			kfree_skb(skb);
+ 			return -EAGAIN;
++		}
+ 		if (t4_l2t_set_switching(adapter, f->l2t, f->fs.vlan,
+ 					f->fs.eport, f->fs.dmac)) {
+ 			cxgb4_l2t_release(f->l2t);
+ 			f->l2t = NULL;
++			kfree_skb(skb);
+ 			return -ENOMEM;
+ 		}
  	}
  
- 	/*
--	 * If TF is set due to a debugger (TIF_FORCED_TF), clear the TF
--	 * flag so that register information in the sigcontext is correct.
-+	 * If TF is set due to a debugger (TIF_FORCED_TF), clear TF now
-+	 * so that register information in the sigcontext is correct and
-+	 * then notify the tracer before entering the signal handler.
- 	 */
--	if (unlikely(regs->flags & X86_EFLAGS_TF) &&
--	    likely(test_and_clear_thread_flag(TIF_FORCED_TF)))
--		regs->flags &= ~X86_EFLAGS_TF;
-+	stepping = test_thread_flag(TIF_SINGLESTEP);
-+	if (stepping)
-+		user_disable_single_step(current);
+ 	ftid = adapter->tids.ftid_base + fidx;
  
- 	failed = (setup_rt_frame(ksig, regs) < 0);
- 	if (!failed) {
-@@ -656,10 +658,8 @@ handle_signal(struct ksignal *ksig, stru
- 		 * it might disable possible debug exception from the
- 		 * signal handler.
- 		 *
--		 * Clear TF when entering the signal handler, but
--		 * notify any tracer that was single-stepping it.
--		 * The tracer may want to single-step inside the
--		 * handler too.
-+		 * Clear TF for the case when it wasn't set by debugger to
-+		 * avoid the recursive send_sigtrap() in SIGTRAP handler.
- 		 */
- 		regs->flags &= ~(X86_EFLAGS_DF|X86_EFLAGS_RF|X86_EFLAGS_TF);
- 		/*
-@@ -668,7 +668,7 @@ handle_signal(struct ksignal *ksig, stru
- 		if (used_math())
- 			fpu_reset_state(current);
- 	}
--	signal_setup_done(failed, ksig, test_thread_flag(TIF_SINGLESTEP));
-+	signal_setup_done(failed, ksig, stepping);
- }
+-	skb = alloc_skb(sizeof(*fwr), GFP_KERNEL | __GFP_NOFAIL);
+ 	fwr = (struct fw_filter_wr *)__skb_put(skb, sizeof(*fwr));
+ 	memset(fwr, 0, sizeof(*fwr));
  
- #ifdef CONFIG_X86_32
+@@ -1257,7 +1263,10 @@ static int del_filter_wr(struct adapter
+ 	len = sizeof(*fwr);
+ 	ftid = adapter->tids.ftid_base + fidx;
+ 
+-	skb = alloc_skb(len, GFP_KERNEL | __GFP_NOFAIL);
++	skb = alloc_skb(len, GFP_KERNEL);
++	if (!skb)
++		return -ENOMEM;
++
+ 	fwr = (struct fw_filter_wr *)__skb_put(skb, len);
+ 	t4_mk_filtdelwr(ftid, fwr, adapter->sge.fw_evtq.abs_id);
+ 
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
 origin.patch
+jbd2-revert-must-not-fail-allocation-loops-back-to-gfp_nofail.patch
+page-flags-trivial-cleanup-for-pagetrans-helpers.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
+page-flags-define-pg_locked-behavior-on-compound-pages.patch
+page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
+page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
+page-flags-define-pg_reserved-behavior-on-compound-pages.patch
+page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
+page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
+page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
+page-flags-define-pg_uncached-behavior-on-compound-pages.patch
+page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
+page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
+mm-sanitize-page-mapping-for-tail-pages.patch
+mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-reclaimable-pages.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+mm-page_isolation-check-pfn-validity-before-access.patch
+mm-support-madvisemadv_free.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-dont-split-thp-page-when-syscall-is-called.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-2.patch
+mm-move-lazy-free-pages-to-inactive-list.patch
+mm-move-lazy-free-pages-to-inactive-list-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
 
