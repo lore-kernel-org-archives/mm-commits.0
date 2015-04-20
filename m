@@ -1,109 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kernelh-implement-div_round_closest_ull.patch removed
- from -mm tree
-Date: Mon, 20 Apr 2015 12:16:33 -0700
-Message-ID: <55355091.fjN2kBod6/1Kq5pZ%akpm@linux-foundation.org>
+Subject: [merged] ihex-restore-missing-default-in-switch-statement.patch
+ removed from -mm tree
+Date: Mon, 20 Apr 2015 12:16:47 -0700
+Message-ID: <5535509f./pXvJi7WP4WoBgEy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40045 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40070 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752641AbbDTTKS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:10:18 -0400
+	with ESMTP id S1753034AbbDTTK0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:10:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: javi.merino@arm.com, airlied@linux.ie, crope@iki.fi, daniel.vetter@ffwll.ch, elder@linaro.org, jani.nikula@linux.intel.com, jepler@unpythonic.net, linux@roeck-us.net, mchehab@osg.samsung.com, mgorman@suse.de, mturquette@linaro.org, rafael.j.wysocki@intel.com, sboyd@codeaurora.org, shemminger@linux-foundation.org, mm-commits@vger.kernel.org
+To: nicolas.iooss_linux@m4x.org, broonie@opensource.wolfsonmicro.com, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel.h: implement DIV_ROUND_CLOSEST_ULL
+     Subject: firmware/ihex2fw.c: restore missing default in switch statement
 has been removed from the -mm tree.  Its filename was
-     kernelh-implement-div_round_closest_ull.patch
+     ihex-restore-missing-default-in-switch-statement.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Javi Merino <javi.merino@arm.com>
-Subject: kernel.h: implement DIV_ROUND_CLOSEST_ULL
+From: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
+Subject: firmware/ihex2fw.c: restore missing default in switch statement
 
-We have grown a number of different implementations of
-DIV_ROUND_CLOSEST_ULL throughout the kernel.  Move the i915 one to
-kernel.h so that it can be reused.
+Commit 2473238eac95 ("ihex: add support for CS:IP/EIP records") removes
+the "default:" statement in the switch block, making the "return usage();"
+line dead code and ihex2fw silently ignoring unknown options.  Restore
+this statement.
 
-Signed-off-by: Javi Merino <javi.merino@arm.com>
-Reviewed-by: Jeff Epler <jepler@unpythonic.net>
-Cc: Jani Nikula <jani.nikula@linux.intel.com>
-Cc: David Airlie <airlied@linux.ie>
-Cc: Guenter Roeck <linux@roeck-us.net>
-Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Cc: Alex Elder <elder@linaro.org>
-Cc: Antti Palosaari <crope@iki.fi>
-Cc: Javi Merino <javi.merino@arm.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Mike Turquette <mturquette@linaro.org>
-Cc: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Stephen Hemminger <shemminger@linux-foundation.org>
+This bug was found by building with HOSTCC=clang and adding
+-Wunreachable-code-return to HOSTCFLAGS.
+
+Fixes: 2473238eac95 ("ihex: add support for CS:IP/EIP records")
+Signed-off-by: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/intel_drv.h   |    3 ---
- drivers/gpu/drm/i915/intel_panel.c |    1 +
- include/linux/kernel.h             |   12 ++++++++++++
- 3 files changed, 13 insertions(+), 3 deletions(-)
+ firmware/ihex2fw.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/gpu/drm/i915/intel_drv.h~kernelh-implement-div_round_closest_ull drivers/gpu/drm/i915/intel_drv.h
---- a/drivers/gpu/drm/i915/intel_drv.h~kernelh-implement-div_round_closest_ull
-+++ a/drivers/gpu/drm/i915/intel_drv.h
-@@ -36,9 +36,6 @@
- #include <drm/drm_dp_mst_helper.h>
- #include <drm/drm_rect.h>
- 
--#define DIV_ROUND_CLOSEST_ULL(ll, d)	\
--({ unsigned long long _tmp = (ll)+(d)/2; do_div(_tmp, d); _tmp; })
--
- /**
-  * _wait_for - magic (register) wait macro
-  *
-diff -puN drivers/gpu/drm/i915/intel_panel.c~kernelh-implement-div_round_closest_ull drivers/gpu/drm/i915/intel_panel.c
---- a/drivers/gpu/drm/i915/intel_panel.c~kernelh-implement-div_round_closest_ull
-+++ a/drivers/gpu/drm/i915/intel_panel.c
-@@ -30,6 +30,7 @@
- 
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
- 
-+#include <linux/kernel.h>
- #include <linux/moduleparam.h>
- #include "intel_drv.h"
- 
-diff -puN include/linux/kernel.h~kernelh-implement-div_round_closest_ull include/linux/kernel.h
---- a/include/linux/kernel.h~kernelh-implement-div_round_closest_ull
-+++ a/include/linux/kernel.h
-@@ -103,6 +103,18 @@
- 		(((__x) - ((__d) / 2)) / (__d));	\
- }							\
- )
-+/*
-+ * Same as above but for u64 dividends. divisor must be a 32-bit
-+ * number.
-+ */
-+#define DIV_ROUND_CLOSEST_ULL(x, divisor)(		\
-+{							\
-+	typeof(divisor) __d = divisor;			\
-+	unsigned long long _tmp = (x) + (__d) / 2;	\
-+	do_div(_tmp, __d);				\
-+	_tmp;						\
-+}							\
-+)
- 
- /*
-  * Multiplies an integer by a fraction, while avoiding unnecessary
+diff -puN firmware/ihex2fw.c~ihex-restore-missing-default-in-switch-statement firmware/ihex2fw.c
+--- a/firmware/ihex2fw.c~ihex-restore-missing-default-in-switch-statement
++++ a/firmware/ihex2fw.c
+@@ -86,6 +86,7 @@ int main(int argc, char **argv)
+ 		case 'j':
+ 			include_jump = 1;
+ 			break;
++		default:
+ 			return usage();
+ 		}
+ 	}
 _
 
-Patches currently in -mm which might be from javi.merino@arm.com are
+Patches currently in -mm which might be from nicolas.iooss_linux@m4x.org are
 
 origin.patch
 linux-next.patch
