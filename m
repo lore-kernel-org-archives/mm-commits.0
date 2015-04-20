@@ -1,135 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- nilfs2-use-set_mask_bits-for-operations-on-buffer-state-bitmap.patch
+Subject: [merged] befs-replace-typedef-befs_inode_info-by-structure.patch
  removed from -mm tree
-Date: Mon, 20 Apr 2015 12:18:41 -0700
-Message-ID: <55355111.WS1oZj2KZy9LvjZv%akpm@linux-foundation.org>
+Date: Mon, 20 Apr 2015 12:18:37 -0700
+Message-ID: <5535510d.sygq+ijIUPr3naNW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40282 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40278 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752071AbbDTTMU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:12:20 -0400
+	with ESMTP id S1753750AbbDTTMQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:12:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
+To: fabf@skynet.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: use set_mask_bits() for operations on buffer state bitmap
+     Subject: befs: replace typedef befs_inode_info by structure
 has been removed from the -mm tree.  Its filename was
-     nilfs2-use-set_mask_bits-for-operations-on-buffer-state-bitmap.patch
+     befs-replace-typedef-befs_inode_info-by-structure.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Subject: nilfs2: use set_mask_bits() for operations on buffer state bitmap
+From: Fabian Frederick <fabf@skynet.be>
+Subject: befs: replace typedef befs_inode_info by structure
 
-nilfs_forget_buffer(), nilfs_clear_dirty_page(), and
-nilfs_segctor_complete_write() are using a bunch of atomic bit operations
-against buffer state bitmap.
+See Documentation/CodingStyle
 
-This reduces the number of them by utilizing set_mask_bits() macro.
-
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/page.c    |   24 ++++++++++--------------
- fs/nilfs2/segment.c |   14 ++++++++------
- 2 files changed, 18 insertions(+), 20 deletions(-)
+ fs/befs/befs.h     |    7 +++----
+ fs/befs/linuxvfs.c |    7 ++++---
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN fs/nilfs2/page.c~nilfs2-use-set_mask_bits-for-operations-on-buffer-state-bitmap fs/nilfs2/page.c
---- a/fs/nilfs2/page.c~nilfs2-use-set_mask_bits-for-operations-on-buffer-state-bitmap
-+++ a/fs/nilfs2/page.c
-@@ -89,18 +89,16 @@ struct buffer_head *nilfs_grab_buffer(st
- void nilfs_forget_buffer(struct buffer_head *bh)
+diff -puN fs/befs/befs.h~befs-replace-typedef-befs_inode_info-by-structure fs/befs/befs.h
+--- a/fs/befs/befs.h~befs-replace-typedef-befs_inode_info-by-structure
++++ a/fs/befs/befs.h
+@@ -56,7 +56,7 @@ struct befs_sb_info {
+ 	struct nls_table *nls;
+ };
+ 
+-typedef struct befs_inode_info {
++struct befs_inode_info {
+ 	u32 i_flags;
+ 	u32 i_type;
+ 
+@@ -70,8 +70,7 @@ typedef struct befs_inode_info {
+ 	} i_data;
+ 
+ 	struct inode vfs_inode;
+-
+-} befs_inode_info;
++};
+ 
+ enum befs_err {
+ 	BEFS_OK,
+@@ -110,7 +109,7 @@ BEFS_SB(const struct super_block *super)
+ 	return (struct befs_sb_info *) super->s_fs_info;
+ }
+ 
+-static inline befs_inode_info *
++static inline struct befs_inode_info *
+ BEFS_I(const struct inode *inode)
  {
- 	struct page *page = bh->b_page;
-+	const unsigned long clear_bits =
-+		(1 << BH_Uptodate | 1 << BH_Dirty | 1 << BH_Mapped |
-+		 1 << BH_Async_Write | 1 << BH_NILFS_Volatile |
-+		 1 << BH_NILFS_Checked | 1 << BH_NILFS_Redirected);
+ 	return list_entry(inode, struct befs_inode_info, vfs_inode);
+diff -puN fs/befs/linuxvfs.c~befs-replace-typedef-befs_inode_info-by-structure fs/befs/linuxvfs.c
+--- a/fs/befs/linuxvfs.c~befs-replace-typedef-befs_inode_info-by-structure
++++ a/fs/befs/linuxvfs.c
+@@ -305,7 +305,7 @@ static struct inode *befs_iget(struct su
+ 	struct buffer_head *bh = NULL;
+ 	befs_inode *raw_inode = NULL;
+ 	struct befs_sb_info *befs_sb = BEFS_SB(sb);
+-	befs_inode_info *befs_ino = NULL;
++	struct befs_inode_info *befs_ino = NULL;
+ 	struct inode *inode;
+ 	long ret = -EIO;
  
- 	lock_buffer(bh);
--	clear_buffer_nilfs_volatile(bh);
--	clear_buffer_nilfs_checked(bh);
--	clear_buffer_nilfs_redirected(bh);
--	clear_buffer_async_write(bh);
--	clear_buffer_dirty(bh);
-+	set_mask_bits(&bh->b_state, clear_bits, 0);
- 	if (nilfs_page_buffers_clean(page))
- 		__nilfs_clear_page_dirty(page);
- 
--	clear_buffer_uptodate(bh);
--	clear_buffer_mapped(bh);
- 	bh->b_blocknr = -1;
- 	ClearPageUptodate(page);
- 	ClearPageMappedToDisk(page);
-@@ -421,6 +419,10 @@ void nilfs_clear_dirty_page(struct page
- 
- 	if (page_has_buffers(page)) {
- 		struct buffer_head *bh, *head;
-+		const unsigned long clear_bits =
-+			(1 << BH_Uptodate | 1 << BH_Dirty | 1 << BH_Mapped |
-+			 1 << BH_Async_Write | 1 << BH_NILFS_Volatile |
-+			 1 << BH_NILFS_Checked | 1 << BH_NILFS_Redirected);
- 
- 		bh = head = page_buffers(page);
- 		do {
-@@ -430,13 +432,7 @@ void nilfs_clear_dirty_page(struct page
- 					"discard block %llu, size %zu",
- 					(u64)bh->b_blocknr, bh->b_size);
- 			}
--			clear_buffer_async_write(bh);
--			clear_buffer_dirty(bh);
--			clear_buffer_nilfs_volatile(bh);
--			clear_buffer_nilfs_checked(bh);
--			clear_buffer_nilfs_redirected(bh);
--			clear_buffer_uptodate(bh);
--			clear_buffer_mapped(bh);
-+			set_mask_bits(&bh->b_state, clear_bits, 0);
- 			unlock_buffer(bh);
- 		} while (bh = bh->b_this_page, bh != head);
- 	}
-diff -puN fs/nilfs2/segment.c~nilfs2-use-set_mask_bits-for-operations-on-buffer-state-bitmap fs/nilfs2/segment.c
---- a/fs/nilfs2/segment.c~nilfs2-use-set_mask_bits-for-operations-on-buffer-state-bitmap
-+++ a/fs/nilfs2/segment.c
-@@ -24,6 +24,7 @@
- #include <linux/pagemap.h>
- #include <linux/buffer_head.h>
- #include <linux/writeback.h>
-+#include <linux/bitops.h>
- #include <linux/bio.h>
- #include <linux/completion.h>
- #include <linux/blkdev.h>
-@@ -1785,12 +1786,13 @@ static void nilfs_segctor_complete_write
- 		 */
- 		list_for_each_entry(bh, &segbuf->sb_payload_buffers,
- 				    b_assoc_buffers) {
--			set_buffer_uptodate(bh);
--			clear_buffer_dirty(bh);
--			clear_buffer_async_write(bh);
--			clear_buffer_delay(bh);
--			clear_buffer_nilfs_volatile(bh);
--			clear_buffer_nilfs_redirected(bh);
-+			const unsigned long set_bits = (1 << BH_Uptodate);
-+			const unsigned long clear_bits =
-+				(1 << BH_Dirty | 1 << BH_Async_Write |
-+				 1 << BH_Delay | 1 << BH_NILFS_Volatile |
-+				 1 << BH_NILFS_Redirected);
+@@ -471,7 +471,7 @@ static void *
+ befs_follow_link(struct dentry *dentry, struct nameidata *nd)
+ {
+ 	struct super_block *sb = dentry->d_sb;
+-	befs_inode_info *befs_ino = BEFS_I(dentry->d_inode);
++	struct befs_inode_info *befs_ino = BEFS_I(dentry->d_inode);
+ 	befs_data_stream *data = &befs_ino->i_data.ds;
+ 	befs_off_t len = data->size;
+ 	char *link;
+@@ -501,7 +501,8 @@ befs_follow_link(struct dentry *dentry,
+ static void *
+ befs_fast_follow_link(struct dentry *dentry, struct nameidata *nd)
+ {
+-	befs_inode_info *befs_ino = BEFS_I(dentry->d_inode);
++	struct befs_inode_info *befs_ino = BEFS_I(dentry->d_inode);
 +
-+			set_mask_bits(&bh->b_state, clear_bits, set_bits);
- 			if (bh == segbuf->sb_super_root) {
- 				if (bh->b_page != bd_page) {
- 					end_page_writeback(bd_page);
+ 	nd_set_link(nd, befs_ino->i_data.symlink);
+ 	return NULL;
+ }
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
+Patches currently in -mm which might be from fabf@skynet.be are
 
 origin.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+linux-next.patch
 
