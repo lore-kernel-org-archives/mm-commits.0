@@ -1,62 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: [merged] alpha-forward-declare-struct-pt_regs-in-processorh.patch removed from -mm tree
-Date: Mon, 20 Apr 2015 13:24:35 -0700
-Message-ID: <55356083.Ql/9dI2xhCKdck3A%akpm@linux-foundation.org>
+Subject: +
+ ocfs2-set-filesytem-read-only-when-ocfs2_delete_entry-failed.patch added to -mm tree
+Date: Mon, 20 Apr 2015 14:24:45 -0700
+Message-ID: <55356e9d.y4gqTGrQopImG1+S%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42500 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43488 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753384AbbDTUYf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 16:24:35 -0400
+	with ESMTP id S1751712AbbDTVYq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 17:24:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: richard@nod.at, ink@jurassic.park.msu.ru, mattst88@gmail.com, rth@twiddle.net, mm-commits@vger.kernel.org
+To: jiangyiwen@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: alpha: forward declare struct pt_regs in processor.h
-has been removed from the -mm tree.  Its filename was
-     alpha-forward-declare-struct-pt_regs-in-processorh.patch
+     Subject: ocfs2: set filesytem read-only when ocfs2_delete_entry failed.
+has been added to the -mm tree.  Its filename is
+     ocfs2-set-filesytem-read-only-when-ocfs2_delete_entry-failed.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-set-filesytem-read-only-when-ocfs2_delete_entry-failed.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-set-filesytem-read-only-when-ocfs2_delete_entry-failed.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Richard Weinberger <richard@nod.at>
-Subject: alpha: forward declare struct pt_regs in processor.h
+From: jiangyiwen <jiangyiwen@huawei.com>
+Subject: ocfs2: set filesytem read-only when ocfs2_delete_entry failed.
 
-Removal of exec domains uncovered this new warning.  processor.h re-used
-struct pt_regs from personality.h which is now gone.
+In ocfs2_rename, it will lead to an inode with two entried(old and new) if
+ocfs2_delete_entry(old) failed.  Thus, filesystem will be inconsistent.
 
-./arch/alpha/include/asm/processor.h:47:33: warning: 'struct pt_regs' declared inside parameter list [enabled by default]
+The case is described below:
 
-Signed-off-by: Richard Weinberger <richard@nod.at>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
+ocfs2_rename
+    -> ocfs2_start_trans
+    -> ocfs2_add_entry(new)
+    -> ocfs2_delete_entry(old)
+        -> __ocfs2_journal_access *failed* because of -ENOMEM
+    -> ocfs2_commit_trans
+
+So filesystem should be set to read-only at the moment.
+
+Signed-off-by: Yiwen Jiang <jiangyiwen@huawei.com>
+Cc: Joseph Qi <joseph.qi@huawei.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/processor.h |    1 +
- 1 file changed, 1 insertion(+)
+ fs/ocfs2/namei.c |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
-diff -puN arch/alpha/include/asm/processor.h~alpha-forward-declare-struct-pt_regs-in-processorh arch/alpha/include/asm/processor.h
---- a/arch/alpha/include/asm/processor.h~alpha-forward-declare-struct-pt_regs-in-processorh
-+++ a/arch/alpha/include/asm/processor.h
-@@ -44,6 +44,7 @@ struct task_struct;
- extern unsigned long thread_saved_pc(struct task_struct *);
+diff -puN fs/ocfs2/namei.c~ocfs2-set-filesytem-read-only-when-ocfs2_delete_entry-failed fs/ocfs2/namei.c
+--- a/fs/ocfs2/namei.c~ocfs2-set-filesytem-read-only-when-ocfs2_delete_entry-failed
++++ a/fs/ocfs2/namei.c
+@@ -1551,12 +1551,21 @@ static int ocfs2_rename(struct inode *ol
+ 	status = ocfs2_find_entry(old_dentry->d_name.name,
+ 				  old_dentry->d_name.len, old_dir,
+ 				  &old_entry_lookup);
+-	if (status)
++	if (status) {
++		ocfs2_error(osb->sb, "new entry %.*s is added, but old entry %.*s "
++				"is not deleted.",
++				new_dentry->d_name.len, new_dentry->d_name.name,
++				old_dentry->d_name.len, old_dentry->d_name.name);
+ 		goto bail;
++	}
  
- /* Do necessary setup to start up a newly executed thread.  */
-+struct pt_regs;
- extern void start_thread(struct pt_regs *, unsigned long, unsigned long);
+ 	status = ocfs2_delete_entry(handle, old_dir, &old_entry_lookup);
+ 	if (status < 0) {
+ 		mlog_errno(status);
++		ocfs2_error(osb->sb, "new entry %.*s is added, but old entry %.*s "
++				"is not deleted.",
++				new_dentry->d_name.len, new_dentry->d_name.name,
++				old_dentry->d_name.len, old_dentry->d_name.name);
+ 		goto bail;
+ 	}
  
- /* Free all resources held by a thread. */
 _
 
-Patches currently in -mm which might be from richard@nod.at are
+Patches currently in -mm which might be from jiangyiwen@huawei.com are
 
 origin.patch
-linux-next.patch
+ocfs2-set-filesytem-read-only-when-ocfs2_delete_entry-failed.patch
+ocfs2-fix-a-tiny-case-that-inode-can-not-removed.patch
+ocfs2-avoid-access-invalid-address-when-read-o2dlm-debug-messages.patch
 
