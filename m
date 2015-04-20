@@ -1,68 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [merged] powerpc-oprofile-reduce-mmap_sem-hold-for-exe_file.patch removed from -mm tree
-Date: Mon, 20 Apr 2015 12:20:52 -0700
-Message-ID: <55355194.t0dXcnpyTzTgUbFs%akpm@linux-foundation.org>
+Subject: [merged] documentation-spi-spidev_testc-fix-warning.patch removed from -mm tree
+Date: Mon, 20 Apr 2015 12:21:05 -0700
+Message-ID: <553551a1.n9uqTGy/+NSOYAX1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40516 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40540 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751544AbbDTTOb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:14:31 -0400
+	with ESMTP id S1754185AbbDTTOo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:14:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave@stgolabs.net, arnd@arndb.de, benh@kernel.crashing.org, dbueso@suse.de, rric@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, broonie@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc/oprofile: reduce mmap_sem hold for exe_file
+     Subject: Documentation/spi/spidev_test.c: fix warning
 has been removed from the -mm tree.  Its filename was
-     powerpc-oprofile-reduce-mmap_sem-hold-for-exe_file.patch
+     documentation-spi-spidev_testc-fix-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: powerpc/oprofile: reduce mmap_sem hold for exe_file
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Documentation/spi/spidev_test.c: fix warning
 
-In the future mm->exe_file will be done without mmap_sem serialization,
-thus isolate and reorganize the related code to make the transition
-easier.  Good users will, make use of the more standard get_mm_exe_file(),
-requiring only holding the mmap_sem to read the value, and relying on
-reference counting to make sure that the exe file won't dissappear
-underneath us while getting the dcookie.
+Documentation/spi/spidev_test.c:83:5: warning: no previous prototype for 'unespcape' [-Wmissing-prototypes]
 
-Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Robert Richter <rric@kernel.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+fix spelling too.
+
+Cc: Mark Brown <broonie@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/oprofile/cell/spu_task_sync.c |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ Documentation/spi/spidev_test.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/powerpc/oprofile/cell/spu_task_sync.c~powerpc-oprofile-reduce-mmap_sem-hold-for-exe_file arch/powerpc/oprofile/cell/spu_task_sync.c
---- a/arch/powerpc/oprofile/cell/spu_task_sync.c~powerpc-oprofile-reduce-mmap_sem-hold-for-exe_file
-+++ a/arch/powerpc/oprofile/cell/spu_task_sync.c
-@@ -22,6 +22,7 @@
- #include <linux/kref.h>
- #include <linux/mm.h>
- #include <linux/fs.h>
-+#include <linux/file.h>
- #include <linux/module.h>
- #include <linux/notifier.h>
- #include <linux/numa.h>
-@@ -322,18 +323,20 @@ get_exec_dcookie_and_offset(struct spu *
- 	unsigned long app_cookie = 0;
- 	unsigned int my_offset = 0;
- 	struct vm_area_struct *vma;
-+	struct file *exe_file;
- 	struct mm_struct *mm = spu->mm;
- 
- 	if (!mm)
- 		goto out;
- 
--	down_read(&mm->mmap_sem);
+diff -puN Documentation/spi/spidev_test.c~documentation-spi-spidev_testc-fix-warning Documentation/spi/spidev_test.c
+--- a/Documentation/spi/spidev_test.c~documentation-spi-spidev_testc-fix-warning
++++ a/Documentation/spi/spidev_test.c
+@@ -80,7 +80,7 @@ static void hex_dump(const void *src, si
+  *  Unescape - process hexadecimal escape character
+  *      converts shell input "\x23" -> 0x23
+  */
+-int unespcape(char *_dst, char *_src, size_t len)
++static int unescape(char *_dst, char *_src, size_t len)
+ {
+ 	int ret = 0;
+ 	char *src = _src;
+@@ -304,7 +304,7 @@ int main(int argc, char *argv[])
+ 		size = strlen(input_tx+1);
+ 		tx = malloc(size);
+ 		rx = malloc(size);
+-		size = unespcape((char *)tx, input_tx, size);
++		size = unescape((char *)tx, input_tx, size);
+ 		transfer(fd, tx, rx, size);
+ 		free(rx);
+ 		free(tx);
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+i-need-old-gcc.patch
+mm.patch
+slub-bulk-allocation-from-per-cpu-partial-pages-fix.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
+zram-add-dynamic-device-add-remove-functionality-fix.patch
+zram-introduce-automatic-device_id-generation-fix.patch
+rtc-omap-add-external-32k-clock-feature-fix.patch
+linux-next.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+
