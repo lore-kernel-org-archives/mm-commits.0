@@ -1,74 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- checkpatch-avoid-spaces-required-around-that-false-positive.patch removed
+Subject: [merged] rtc-pcf8563-simplify-return-from-function.patch removed
  from -mm tree
-Date: Mon, 20 Apr 2015 12:17:24 -0700
-Message-ID: <553550c4.PQu2iK7nQ1BJQjKI%akpm@linux-foundation.org>
+Date: Mon, 20 Apr 2015 12:17:30 -0700
+Message-ID: <553550ca.dMm0aBu7rQmR9vH/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40139 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40148 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753223AbbDTTLD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:11:03 -0400
+	with ESMTP id S1752646AbbDTTLJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:11:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, yehuday@marvell.com, mm-commits@vger.kernel.org
+To: robert.r.kmiec@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: avoid "spaces required around that ':'" false positive
+     Subject: drivers/rtc/rtc-pcf8563.c: simplify return from function
 has been removed from the -mm tree.  Its filename was
-     checkpatch-avoid-spaces-required-around-that-false-positive.patch
+     rtc-pcf8563-simplify-return-from-function.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: avoid "spaces required around that ':'" false positive
+From: Robert Kmiec <robert.r.kmiec@gmail.com>
+Subject: drivers/rtc/rtc-pcf8563.c: simplify return from function
 
-Since commit 1f65f947a6a8 ("checkpatch: add checks for question mark and
-colon spacing") back in 2008, checkpatch has reported false positive for
-asm volatile uses of "::" checkpatch thinks colons should always have
-spaces around it.
+This commit does not change any logic here.  It just makes the code easier
+to read.
 
-Add an exception for colons with colons on either side for this valid asm
-volatile (and c++) use.
+This is how it looked like:
+If err != 0 return err;
+else return 0;
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Reported-by: Yehuda Yitschak <yehuday@marvell.com>
+Signed-off-by: Robert Kmiec <robert.r.kmiec@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/rtc/rtc-pcf8563.c |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-avoid-spaces-required-around-that-false-positive scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-avoid-spaces-required-around-that-false-positive
-+++ a/scripts/checkpatch.pl
-@@ -3845,6 +3845,14 @@ sub process {
- 					    	$ok = 1;
- 					}
+diff -puN drivers/rtc/rtc-pcf8563.c~rtc-pcf8563-simplify-return-from-function drivers/rtc/rtc-pcf8563.c
+--- a/drivers/rtc/rtc-pcf8563.c~rtc-pcf8563-simplify-return-from-function
++++ a/drivers/rtc/rtc-pcf8563.c
+@@ -246,7 +246,6 @@ static int pcf8563_get_datetime(struct i
+ static int pcf8563_set_datetime(struct i2c_client *client, struct rtc_time *tm)
+ {
+ 	struct pcf8563 *pcf8563 = i2c_get_clientdata(client);
+-	int err;
+ 	unsigned char buf[9];
  
-+					# for asm volatile statements
-+					# ignore a colon with another
-+					# colon immediately before or after
-+					if (($op eq ':') &&
-+					    ($ca =~ /:$/ || $cc =~ /^:/)) {
-+						$ok = 1;
-+					}
-+
- 					# messages are ERROR, but ?: are CHK
- 					if ($ok == 0) {
- 						my $msg_type = \&ERROR;
-_
-
-Patches currently in -mm which might be from joe@perches.com are
-
-origin.patch
-ocfs2-neaten-do_error-ocfs2_error-and-ocfs2_abort.patch
-mm-utilc-add-kstrimdup.patch
-linux-next.patch
-
+ 	dev_dbg(&client->dev, "%s: secs=%d, mins=%d, hours=%d, "
+@@ -272,12 +271,8 @@ static int pcf8563_set_datetime(struct i
+ 
+ 	buf[PCF8563_REG_DW] = tm->tm_wday & 0x07;
+ 
+-	err = pcf8563_write_block_data(client, PCF8563_REG_SC,
++	return pcf8563_write_block_data(client, PCF8563_REG_SC,
+ 				9 - PCF8563_REG_SC, buf + PCF8563_REG_SC);
+-	if (err)
+-		return err;
