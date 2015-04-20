@@ -1,97 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: + lib-delete-lib-find_last_bitc.patch added to -mm tree
-Date: Mon, 20 Apr 2015 13:19:23 -0700
-Message-ID: <55355f4b.oAUlBFLtpE8d7XxW%akpm@linux-foundation.org>
+Subject: [to-be-updated] documentation-bindings-add-abraconabx80x.patch
+ removed from -mm tree
+Date: Mon, 20 Apr 2015 13:22:58 -0700
+Message-ID: <55356022.P1VMwAcZ/aLULU03%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42239 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42484 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751295AbbDTUTX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 16:19:23 -0400
+	with ESMTP id S1751575AbbDTUW7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 16:22:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yury.norov@gmail.com, mm-commits@vger.kernel.org
+To: alexandre.belloni@free-electrons.com, a.zummo@towertech.it, arnd@arndb.de, pebolle@tiscali.nl, phdm@macqel.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: delete lib/find_last_bit.c
-has been added to the -mm tree.  Its filename is
-     lib-delete-lib-find_last_bitc.patch
+     Subject: Documentation: bindings: add abracon,abx80x
+has been removed from the -mm tree.  Its filename was
+     documentation-bindings-add-abraconabx80x.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-delete-lib-find_last_bitc.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-delete-lib-find_last_bitc.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Yury Norov <yury.norov@gmail.com>
-Subject: lib: delete lib/find_last_bit.c
+From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+Subject: Documentation: bindings: add abracon,abx80x
 
-File find_next_bit.c was deleted in patch "lib: move find_last_bit to
-lib/find_next_bit.c" from Feb, 22, but not in master (commit 8f6f19dd51). 
-This is just a fix for wrong merge.
+Document the bindings for abracon,abx80x and related compatibles.
 
-Signed-off-by: Yury Norov <yury.norov@gmail.com>
+Signed-off-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+Cc: Philippe De Muyter <phdm@macqel.be>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Paul Bolle <pebolle@tiscali.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/find_last_bit.c |   41 -----------------------------------------
- 1 file changed, 41 deletions(-)
+ Documentation/devicetree/bindings/rtc/abracon,abx80x.txt |   32 ++++++++++
+ 1 file changed, 32 insertions(+)
 
-diff -puN lib/find_last_bit.c~lib-delete-lib-find_last_bitc /dev/null
---- a/lib/find_last_bit.c
-+++ /dev/null
-@@ -1,41 +0,0 @@
--/* find_last_bit.c: fallback find next bit implementation
-- *
-- * Copyright (C) 2008 IBM Corporation
-- * Written by Rusty Russell <rusty@rustcorp.com.au>
-- * (Inspired by David Howell's find_next_bit implementation)
-- *
-- * Rewritten by Yury Norov <yury.norov@gmail.com> to decrease
-- * size and improve performance, 2015.
-- *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License
-- * as published by the Free Software Foundation; either version
-- * 2 of the License, or (at your option) any later version.
-- */
--
--#include <linux/bitops.h>
--#include <linux/bitmap.h>
--#include <linux/export.h>
--#include <linux/kernel.h>
--
--#ifndef find_last_bit
--
--unsigned long find_last_bit(const unsigned long *addr, unsigned long size)
--{
--	if (size) {
--		unsigned long val = BITMAP_LAST_WORD_MASK(size);
--		unsigned long idx = (size-1) / BITS_PER_LONG;
--
--		do {
--			val &= addr[idx];
--			if (val)
--				return idx * BITS_PER_LONG + __fls(val);
--
--			val = ~0ul;
--		} while (idx--);
--	}
--	return size;
--}
--EXPORT_SYMBOL(find_last_bit);
+diff -puN /dev/null Documentation/devicetree/bindings/rtc/abracon,abx80x.txt
+--- /dev/null
++++ a/Documentation/devicetree/bindings/rtc/abracon,abx80x.txt
+@@ -0,0 +1,32 @@
++Abracon ABX80X I2C ultra low power RTC/Alarm chip
++
++The Abracon ABX80X family consist of the ab0801, ab0803, ab0804, ab0805, ab1801,
++ab1803, ab1804 and ab1805. The ab0805 is the superset of ab080x and the ab1805
++is the superset of ab180x.
++
++Required properties:
++
++ - "compatible": should one of:
++        "abracon,abx80x"
++        "abracon,ab0801"
++        "abracon,ab0803"
++        "abracon,ab0804"
++        "abracon,ab0805"
++        "abracon,ab1801"
++        "abracon,ab1803"
++        "abracon,ab1804"
++        "abracon,ab1805"
++	Using "abracon,abx80x" will enable chip autodetection.
++ - "reg": I2C bus address of the device
++
++Optional properties:
++
++The abx804 and abx805 have a trickle charger that is able to charge the
++connected battery or supercap. Both the following properties have to be defined
++and valid to enable charging:
++
++ - "abracon,tc-diode": should be "standard" (0.6V) or "schottky" (0.3V)
++ - "abracon,tc-resistor": should be <0>, <3>, <6> or <11>. 0 disables the output
++                          resistor, the other values are in ohm.
++
++
+_
+
+Patches currently in -mm which might be from alexandre.belloni@free-electrons.com are
+
+origin.patch
+rtc-add-rtc-abx80x-a-driver-for-the-abracon-ab-x80x-i2c-rtc.patch
+linux-next.patch
+
