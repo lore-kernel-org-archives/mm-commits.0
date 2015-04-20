@@ -1,58 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [merged] nilfs2-use-bgl_lock_ptr.patch removed from -mm tree
-Date: Mon, 20 Apr 2015 12:18:43 -0700
-Message-ID: <55355113.ZwvFJmCnG5BqXEzo%akpm@linux-foundation.org>
+Subject: [merged]
+ nilfs2-fix-gcc-warning-at-nilfs_checkpoint_is_mounted.patch removed from
+ -mm tree
+Date: Mon, 20 Apr 2015 12:18:53 -0700
+Message-ID: <5535511d.LuqGJPWMYVfoJ1Zx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40284 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40296 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752175AbbDTTMW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:12:22 -0400
+	with ESMTP id S1751623AbbDTTMc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:12:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
+To: konishi.ryusuke@lab.ntt.co.jp, dcb314@hotmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: use bgl_lock_ptr()
+     Subject: nilfs2: fix gcc warning at nilfs_checkpoint_is_mounted()
 has been removed from the -mm tree.  Its filename was
-     nilfs2-use-bgl_lock_ptr.patch
+     nilfs2-fix-gcc-warning-at-nilfs_checkpoint_is_mounted.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Subject: nilfs2: use bgl_lock_ptr()
+Subject: nilfs2: fix gcc warning at nilfs_checkpoint_is_mounted()
 
-Simplify nilfs_mdt_bgl_lock() by utilizing bgl_lock_ptr() helper in
-<linux/blockgroup_lock.h>.
+Fix the following build warning:
+
+ fs/nilfs2/super.c: In function 'nilfs_checkpoint_is_mounted':
+ fs/nilfs2/super.c:1023:10: warning: comparison of unsigned expression < 0 is always false [-Wtype-limits]
+   if (cno < 0 || cno > nilfs->ns_cno)
+           ^
+
+This warning indicates that the comparision "cno < 0" is useless because
+variable "cno" has an unsigned integer type "__u64".
 
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Reported-by: David Binderman <dcb314@hotmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/mdt.h |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ fs/nilfs2/super.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/nilfs2/mdt.h~nilfs2-use-bgl_lock_ptr fs/nilfs2/mdt.h
---- a/fs/nilfs2/mdt.h~nilfs2-use-bgl_lock_ptr
-+++ a/fs/nilfs2/mdt.h
-@@ -111,7 +111,10 @@ static inline __u64 nilfs_mdt_cno(struct
- 	return ((struct the_nilfs *)inode->i_sb->s_fs_info)->ns_cno;
- }
+diff -puN fs/nilfs2/super.c~nilfs2-fix-gcc-warning-at-nilfs_checkpoint_is_mounted fs/nilfs2/super.c
+--- a/fs/nilfs2/super.c~nilfs2-fix-gcc-warning-at-nilfs_checkpoint_is_mounted
++++ a/fs/nilfs2/super.c
+@@ -1020,7 +1020,7 @@ int nilfs_checkpoint_is_mounted(struct s
+ 	struct dentry *dentry;
+ 	int ret;
  
--#define nilfs_mdt_bgl_lock(inode, bg) \
--	(&NILFS_MDT(inode)->mi_bgl->locks[(bg) & (NR_BG_LOCKS-1)].lock)
-+static inline spinlock_t *
-+nilfs_mdt_bgl_lock(struct inode *inode, unsigned int block_group)
-+{
-+	return bgl_lock_ptr(NILFS_MDT(inode)->mi_bgl, block_group);
-+}
+-	if (cno < 0 || cno > nilfs->ns_cno)
++	if (cno > nilfs->ns_cno)
+ 		return false;
  
- #endif /* _NILFS_MDT_H */
+ 	if (cno >= nilfs_last_cno(nilfs))
 _
 
 Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
