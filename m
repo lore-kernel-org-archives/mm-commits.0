@@ -1,67 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [merged] arc-do-not-export-symbols-in-troubleshootc.patch removed from -mm tree
-Date: Mon, 20 Apr 2015 12:20:24 -0700
-Message-ID: <55355178.0YO2nGNhaGViM/07%akpm@linux-foundation.org>
+Subject: [merged] seccomp-allow-compat-sigreturn-overrides.patch removed
+ from -mm tree
+Date: Mon, 20 Apr 2015 12:20:26 -0700
+Message-ID: <5535517a.cU5vKw/bbu/LjYs5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40451 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40461 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754016AbbDTTOD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:14:03 -0400
+	with ESMTP id S1752390AbbDTTOG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:14:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave@stgolabs.net, dbueso@suse.de, vgupta@synoipsys.com, mm-commits@vger.kernel.org
+To: keescook@chromium.org, arnd@arndb.de, benh@kernel.crashing.org, davem@davemloft.net, dborkman@redhat.com, deller@gmx.de, fweisbec@gmail.com, hpa@zytor.com, james.hogan@imgtec.com, jejb@parisc-linux.org, lauraa@codeaurora.org, linux@arm.linux.org.uk, mingo@redhat.com, monstr@monstr.eu, mpe@ellerman.id.au, paulus@samba.org, peterz@infradead.org, ralf@linux-mips.org, tglx@linutronix.de, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arc: do not export symbols in troubleshoot.c
+     Subject: seccomp: allow COMPAT sigreturn overrides
 has been removed from the -mm tree.  Its filename was
-     arc-do-not-export-symbols-in-troubleshootc.patch
+     seccomp-allow-compat-sigreturn-overrides.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: arc: do not export symbols in troubleshoot.c
+From: Kees Cook <keescook@chromium.org>
+Subject: seccomp: allow COMPAT sigreturn overrides
 
-print_task_path_n_nm() is local to this file, its only user being
-show_regs().  Mark the function static and avoid the EXPORT_SYMBOL.
+Most architectures don't need to do much special for the strict-mode
+seccomp syscall entries.  Remove the redundant headers and reduce the
+others.
 
-Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
-Acked-by: Vineet Gupta <vgupta@synoipsys.com>
+This patch (of 8):
+
+Some architectures may need to override the compat sigreturn definition,
+as is already possible in the non-compat case.
+
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Michal Simek <monstr@monstr.eu>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Daniel Borkmann <dborkman@redhat.com>
+Cc: Laura Abbott <lauraa@codeaurora.org>
+Cc: James Hogan <james.hogan@imgtec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arc/kernel/troubleshoot.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ include/asm-generic/seccomp.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/arc/kernel/troubleshoot.c~arc-do-not-export-symbols-in-troubleshootc arch/arc/kernel/troubleshoot.c
---- a/arch/arc/kernel/troubleshoot.c~arc-do-not-export-symbols-in-troubleshootc
-+++ a/arch/arc/kernel/troubleshoot.c
-@@ -52,7 +52,7 @@ static void show_callee_regs(struct call
- 	print_reg_file(&(cregs->r13), 13);
- }
+diff -puN include/asm-generic/seccomp.h~seccomp-allow-compat-sigreturn-overrides include/asm-generic/seccomp.h
+--- a/include/asm-generic/seccomp.h~seccomp-allow-compat-sigreturn-overrides
++++ a/include/asm-generic/seccomp.h
+@@ -17,7 +17,9 @@
+ #define __NR_seccomp_read_32		__NR_read
+ #define __NR_seccomp_write_32		__NR_write
+ #define __NR_seccomp_exit_32		__NR_exit
++#ifndef __NR_seccomp_sigreturn_32
+ #define __NR_seccomp_sigreturn_32	__NR_rt_sigreturn
++#endif
+ #endif /* CONFIG_COMPAT && ! already defined */
  
--void print_task_path_n_nm(struct task_struct *tsk, char *buf)
-+static void print_task_path_n_nm(struct task_struct *tsk, char *buf)
- {
- 	struct path path;
- 	char *path_nm = NULL;
-@@ -77,7 +77,6 @@ void print_task_path_n_nm(struct task_st
- done:
- 	pr_info("Path: %s\n", path_nm);
- }
--EXPORT_SYMBOL(print_task_path_n_nm);
- 
- static void show_faulting_vma(unsigned long address, char *buf)
- {
+ #define __NR_seccomp_read		__NR_read
 _
 
-Patches currently in -mm which might be from dave@stgolabs.net are
+Patches currently in -mm which might be from keescook@chromium.org are
 
 origin.patch
-linux-next.patch
+lib-vsprintf-add-%pt-format-specifier.patch
 
