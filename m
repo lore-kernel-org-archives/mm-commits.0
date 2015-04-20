@@ -1,63 +1,60 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- rtc-hym8563-return-clock-rate-even-when-clock-is-disabled.patch removed
- from -mm tree
-Date: Mon, 20 Apr 2015 12:17:56 -0700
-Message-ID: <553550e4.pzWQLhxSm0n9lDQx%akpm@linux-foundation.org>
+ rtc-ds1685-remove-owner-assignment-from-platform_driver.patch removed from
+ -mm tree
+Date: Mon, 20 Apr 2015 12:17:46 -0700
+Message-ID: <553550da.b4Wo9xqiCbYot6r+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40196 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40177 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752848AbbDTTLf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:11:35 -0400
+	with ESMTP id S1751180AbbDTTLZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:11:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: heiko@sntech.de, a.zummo@towertech.it, mm-commits@vger.kernel.org
+To: kumba@gentoo.org, fengguang.wu@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-hym8563.c: return clock rate even when clock is disabled
+     Subject: drivers/rtc/rtc-ds1685.c: remove .owner assignment from platform_driver
 has been removed from the -mm tree.  Its filename was
-     rtc-hym8563-return-clock-rate-even-when-clock-is-disabled.patch
+     rtc-ds1685-remove-owner-assignment-from-platform_driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Heiko Stuebner <heiko@sntech.de>
-Subject: drivers/rtc/rtc-hym8563.c: return clock rate even when clock is disabled
+From: Joshua Kinard <kumba@gentoo.org>
+Subject: drivers/rtc/rtc-ds1685.c: remove .owner assignment from platform_driver
 
-When the clock is disabled, do not return a rate of 0 but instead return
-the rate the clock will be running at after it gets enabled.  This
-prevents problems when the core clock code is trying to determine a
-suitable rate, while the clock is still off.
+The rtc driver core now sets the platform_driver 'owner' property, so
+remove the assignment from the DS1685 driver.
 
-Signed-off-by: Heiko Stuebner <heiko@sntech.de>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Fixes: aaaf5fbf56f1: "rtc: add driver for DS1685 family of real time clocks"
+Signed-off-by: Joshua Kinard <kumba@gentoo.org>
+Reported-by: kbuild test robot <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-hym8563.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-ds1685.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-hym8563.c~rtc-hym8563-return-clock-rate-even-when-clock-is-disabled drivers/rtc/rtc-hym8563.c
---- a/drivers/rtc/rtc-hym8563.c~rtc-hym8563-return-clock-rate-even-when-clock-is-disabled
-+++ a/drivers/rtc/rtc-hym8563.c
-@@ -309,7 +309,7 @@ static unsigned long hym8563_clkout_reca
- 	struct i2c_client *client = hym8563->client;
- 	int ret = i2c_smbus_read_byte_data(client, HYM8563_CLKOUT);
- 
--	if (ret < 0 || ret & HYM8563_CLKOUT_DISABLE)
-+	if (ret < 0)
- 		return 0;
- 
- 	ret &= HYM8563_CLKOUT_MASK;
+diff -puN drivers/rtc/rtc-ds1685.c~rtc-ds1685-remove-owner-assignment-from-platform_driver drivers/rtc/rtc-ds1685.c
+--- a/drivers/rtc/rtc-ds1685.c~rtc-ds1685-remove-owner-assignment-from-platform_driver
++++ a/drivers/rtc/rtc-ds1685.c
+@@ -2139,7 +2139,6 @@ ds1685_rtc_remove(struct platform_device
+ static struct platform_driver ds1685_rtc_driver = {
+ 	.driver		= {
+ 		.name	= "rtc-ds1685",
+-		.owner	= THIS_MODULE,
+ 	},
+ 	.probe		= ds1685_rtc_probe,
+ 	.remove		= ds1685_rtc_remove,
 _
 
-Patches currently in -mm which might be from heiko@sntech.de are
+Patches currently in -mm which might be from kumba@gentoo.org are
 
 origin.patch
-linux-next.patch
 
