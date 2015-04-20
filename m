@@ -1,85 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged] de_thread-move-notify_count-write-under-lock.patch
+Subject: [merged] sysctl-detect-overflows-when-converting-to-int.patch
  removed from -mm tree
-Date: Mon, 20 Apr 2015 12:19:55 -0700
-Message-ID: <5535515b.NV7qulNA9AMFxj18%akpm@linux-foundation.org>
+Date: Mon, 20 Apr 2015 12:20:00 -0700
+Message-ID: <55355160.btihHl/qVROMZY/3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40405 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40413 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751309AbbDTTNe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:13:34 -0400
+	with ESMTP id S1753978AbbDTTNj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Apr 2015 15:13:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ktkhai@parallels.com, oleg@redhat.com, mm-commits@vger.kernel.org
+To: xypron.glpk@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/exec.c:de_thread: move notify_count write under lock
+     Subject: kernel/sysctl.c: detect overflows when converting to int
 has been removed from the -mm tree.  Its filename was
-     de_thread-move-notify_count-write-under-lock.patch
+     sysctl-detect-overflows-when-converting-to-int.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Kirill Tkhai <ktkhai@parallels.com>
-Subject: fs/exec.c:de_thread: move notify_count write under lock
+From: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Subject: kernel/sysctl.c: detect overflows when converting to int
 
-We set sig->notify_count = -1 between RELEASE and ACQUIRE operations:
+When converting unsigned long to int overflows may occur.  These currently
+are not detected when writing to the sysctl file system.
 
-	spin_unlock_irq(lock);
-	...
-	if (!thread_group_leader(tsk)) {
-		...
-                for (;;) {
-			sig->notify_count = -1;
-                        write_lock_irq(&tasklist_lock);
+E.g. on a system where int has 32 bits and long has 64 bits
+  echo 0x800001234 > /proc/sys/kernel/threads-max
+has the same effect as
+  echo 0x1234 > /proc/sys/kernel/threads-max
 
-There are no restriction on it so other processors may see this STORE
-mixed with other STOREs in both areas limited by the spinlocks.
+The patch adds the missing check in do_proc_dointvec_conv.
 
-Probably, it may be reordered with the above
+With the patch an overflow will result in an error EINVAL when writing to
+the the sysctl file system.
 
-	sig->group_exit_task = tsk;
-	sig->notify_count = zap_other_threads(tsk);
-
-in some way.
-
-Set it under tasklist_lock locked to be sure nothing will be reordered.
-
-Signed-off-by: Kirill Tkhai <ktkhai@parallels.com>
-Acked-by: Oleg Nesterov <oleg@redhat.com>
+Signed-off-by: Heinrich Schuchardt <xypron.glpk@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ kernel/sysctl.c |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff -puN fs/exec.c~de_thread-move-notify_count-write-under-lock fs/exec.c
---- a/fs/exec.c~de_thread-move-notify_count-write-under-lock
-+++ a/fs/exec.c
-@@ -926,10 +926,14 @@ static int de_thread(struct task_struct
- 	if (!thread_group_leader(tsk)) {
- 		struct task_struct *leader = tsk->group_leader;
- 
--		sig->notify_count = -1;	/* for exit_notify() */
- 		for (;;) {
- 			threadgroup_change_begin(tsk);
- 			write_lock_irq(&tasklist_lock);
-+			/*
-+			 * Do this under tasklist_lock to ensure that
-+			 * exit_notify() can't miss ->group_exit_task
-+			 */
-+			sig->notify_count = -1;
- 			if (likely(leader->exit_state))
- 				break;
- 			__set_current_state(TASK_KILLABLE);
+diff -puN kernel/sysctl.c~sysctl-detect-overflows-when-converting-to-int kernel/sysctl.c
+--- a/kernel/sysctl.c~sysctl-detect-overflows-when-converting-to-int
++++ a/kernel/sysctl.c
+@@ -1981,7 +1981,15 @@ static int do_proc_dointvec_conv(bool *n
+ 				 int write, void *data)
+ {
+ 	if (write) {
+-		*valp = *negp ? -*lvalp : *lvalp;
++		if (*negp) {
++			if (*lvalp > (unsigned long) INT_MAX + 1)
++				return -EINVAL;
++			*valp = -*lvalp;
++		} else {
++			if (*lvalp > (unsigned long) INT_MAX)
++				return -EINVAL;
++			*valp = *lvalp;
++		}
+ 	} else {
+ 		int val = *valp;
+ 		if (val < 0) {
 _
 
-Patches currently in -mm which might be from ktkhai@parallels.com are
+Patches currently in -mm which might be from xypron.glpk@gmx.de are
 
 origin.patch
 
