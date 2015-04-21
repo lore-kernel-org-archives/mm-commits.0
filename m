@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-bindings-add-abraconabx80x.patch added to -mm
- tree
-Date: Tue, 21 Apr 2015 10:14:29 -0700
-Message-ID: <55368575.og9AWV057M0qANRN%akpm@linux-foundation.org>
+Subject: +
+ rtc-add-rtc-abx80x-a-driver-for-the-abracon-ab-x80x-i2c-rtc-v3.patch added
+ to -mm tree
+Date: Tue, 21 Apr 2015 12:05:52 -0700
+Message-ID: <55369f90.3xDJ75DlvYDsvlmX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58562 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60131 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755298AbbDURH5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Apr 2015 13:07:57 -0400
+	with ESMTP id S1753817AbbDUTFx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Apr 2015 15:05:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexandre.belloni@free-electrons.com, a.zummo@towertech.it, arnd@arndb.de, pebolle@tiscali.nl, phdm@macqel.be, mm-commits@vger.kernel.org
+To: alexandre.belloni@free-electrons.com, a.zummo@towertech.it, arnd@arndb.de, phdm@macqel.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Documentation: bindings: add abracon,abx80x
+     Subject: rtc-add-rtc-abx80x-a-driver-for-the-abracon-ab-x80x-i2c-rtc-v3
 has been added to the -mm tree.  Its filename is
-     documentation-bindings-add-abraconabx80x.patch
+     rtc-add-rtc-abx80x-a-driver-for-the-abracon-ab-x80x-i2c-rtc-v3.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/documentation-bindings-add-abraconabx80x.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rtc-add-rtc-abx80x-a-driver-for-the-abracon-ab-x80x-i2c-rtc-v3.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/documentation-bindings-add-abraconabx80x.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rtc-add-rtc-abx80x-a-driver-for-the-abracon-ab-x80x-i2c-rtc-v3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,63 +41,63 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
-Subject: Documentation: bindings: add abracon,abx80x
+Subject: rtc-add-rtc-abx80x-a-driver-for-the-abracon-ab-x80x-i2c-rtc-v3
 
-Document the bindings for abracon,abx80x and related compatibles.
+ - renamed buffer from date to buf in abx80x_rtc_read_time()
 
+Signed-off-by: Philippe De Muyter <phdm@macqel.be>
 Signed-off-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
-Cc: Philippe De Muyter <phdm@macqel.be>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
 Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Paul Bolle <pebolle@tiscali.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/devicetree/bindings/rtc/abracon,abx80x.txt |   32 ++++++++++
- 1 file changed, 32 insertions(+)
+ drivers/rtc/rtc-abx80x.c |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN /dev/null Documentation/devicetree/bindings/rtc/abracon,abx80x.txt
---- /dev/null
-+++ a/Documentation/devicetree/bindings/rtc/abracon,abx80x.txt
-@@ -0,0 +1,32 @@
-+Abracon ABX80X I2C ultra low power RTC/Alarm chip
-+
-+The Abracon ABX80X family consist of the ab0801, ab0803, ab0804, ab0805, ab1801,
-+ab1803, ab1804 and ab1805. The ab0805 is the superset of ab080x and the ab1805
-+is the superset of ab180x.
-+
-+Required properties:
-+
-+ - "compatible": should one of:
-+        "abracon,abx80x"
-+        "abracon,ab0801"
-+        "abracon,ab0803"
-+        "abracon,ab0804"
-+        "abracon,ab0805"
-+        "abracon,ab1801"
-+        "abracon,ab1803"
-+        "abracon,ab1804"
-+        "abracon,ab1805"
-+	Using "abracon,abx80x" will enable chip autodetection.
-+ - "reg": I2C bus address of the device
-+
-+Optional properties:
-+
-+The abx804 and abx805 have a trickle charger that is able to charge the
-+connected battery or supercap. Both the following properties have to be defined
-+and valid to enable charging:
-+
-+ - "abracon,tc-diode": should be "standard" (0.6V) or "schottky" (0.3V)
-+ - "abracon,tc-resistor": should be <0>, <3>, <6> or <11>. 0 disables the output
-+                          resistor, the other values are in ohm.
-+
-+
+diff -puN drivers/rtc/rtc-abx80x.c~rtc-add-rtc-abx80x-a-driver-for-the-abracon-ab-x80x-i2c-rtc-v3 drivers/rtc/rtc-abx80x.c
+--- a/drivers/rtc/rtc-abx80x.c~rtc-add-rtc-abx80x-a-driver-for-the-abracon-ab-x80x-i2c-rtc-v3
++++ a/drivers/rtc/rtc-abx80x.c
+@@ -95,23 +95,23 @@ static int abx80x_enable_trickle_charger
+ static int abx80x_rtc_read_time(struct device *dev, struct rtc_time *tm)
+ {
+ 	struct i2c_client *client = to_i2c_client(dev);
+-	unsigned char date[8];
++	unsigned char buf[8];
+ 	int err;
+ 
+ 	err = i2c_smbus_read_i2c_block_data(client, ABX8XX_REG_HTH,
+-					    sizeof(date), date);
++					    sizeof(buf), buf);
+ 	if (err < 0) {
+ 		dev_err(&client->dev, "Unable to read date\n");
+ 		return -EIO;
+ 	}
+ 
+-	tm->tm_sec = bcd2bin(date[ABX8XX_REG_SC] & 0x7F);
+-	tm->tm_min = bcd2bin(date[ABX8XX_REG_MN] & 0x7F);
+-	tm->tm_hour = bcd2bin(date[ABX8XX_REG_HR] & 0x3F);
+-	tm->tm_wday = date[ABX8XX_REG_WD] & 0x7;
+-	tm->tm_mday = bcd2bin(date[ABX8XX_REG_DA] & 0x3F);
+-	tm->tm_mon = bcd2bin(date[ABX8XX_REG_MO] & 0x1F) - 1;
+-	tm->tm_year = bcd2bin(date[ABX8XX_REG_YR]) + 100;
++	tm->tm_sec = bcd2bin(buf[ABX8XX_REG_SC] & 0x7F);
++	tm->tm_min = bcd2bin(buf[ABX8XX_REG_MN] & 0x7F);
++	tm->tm_hour = bcd2bin(buf[ABX8XX_REG_HR] & 0x3F);
++	tm->tm_wday = buf[ABX8XX_REG_WD] & 0x7;
++	tm->tm_mday = bcd2bin(buf[ABX8XX_REG_DA] & 0x3F);
++	tm->tm_mon = bcd2bin(buf[ABX8XX_REG_MO] & 0x1F) - 1;
++	tm->tm_year = bcd2bin(buf[ABX8XX_REG_YR]) + 100;
+ 
+ 	err = rtc_valid_tm(tm);
+ 	if (err < 0)
 _
 
 Patches currently in -mm which might be from alexandre.belloni@free-electrons.com are
 
 origin.patch
 documentation-bindings-add-abraconabx80x.patch
+rtc-add-rtc-abx80x-a-driver-for-the-abracon-ab-x80x-i2c-rtc.patch
+rtc-add-rtc-abx80x-a-driver-for-the-abracon-ab-x80x-i2c-rtc-v3.patch
 linux-next.patch
-documentation-bindings-add-abraconabx80x.patch
 
