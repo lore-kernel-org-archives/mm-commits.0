@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Wed, 22 Apr 2015 11:04:22 -0700
-Message-ID: <5537e2a6.iZtr6Aj3afpnZn8W%akpm@linux-foundation.org>
+Subject: + revert-zram-move-compact_store-to-sysfs-functions-area.patch
+ added to -mm tree
+Date: Wed, 22 Apr 2015 12:39:38 -0700
+Message-ID: <5537f8fa.WCs++YfbHLNqExgM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48090 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49179 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751620AbbDVSEX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Apr 2015 14:04:23 -0400
+	with ESMTP id S1753838AbbDVTcw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Apr 2015 15:32:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, minchan@kernel.org, ngupta@vflare.org, sergey.senozhatsky@gmail.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: revert "zram: move compact_store() to sysfs functions area"
 has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     revert-zram-move-compact_store-to-sysfs-functions-area.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/revert-zram-move-compact_store-to-sysfs-functions-area.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/revert-zram-move-compact_store-to-sysfs-functions-area.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,75 +40,87 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+Subject: revert "zram: move compact_store() to sysfs functions area"
 
+Revert
+
+: commit c72c6160d967ed26a0b136dbab337f821d233509
+: Author:     Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+: AuthorDate: Wed Apr 15 16:15:55 2015 -0700
+: Commit:     Linus Torvalds <torvalds@linux-foundation.org>
+: CommitDate: Wed Apr 15 16:35:21 2015 -0700
+: 
+:     zram: move compact_store() to sysfs functions area
+
+it was intended to be a cosmetic change that w/o any functional change and
+was part of a bigger change:
+
+  http://lkml.iu.edu/hypermail/linux/kernel/1503.1/01818.html
+
+Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/Makefile |    4 ----
- MAINTAINERS            |    7 -------
- drivers/bus/Makefile   |    6 ------
- 3 files changed, 17 deletions(-)
+ drivers/block/zram/zram_drv.c |   23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
-diff -puN Documentation/Makefile~linux-next-git-rejects Documentation/Makefile
---- a/Documentation/Makefile~linux-next-git-rejects
-+++ a/Documentation/Makefile
-@@ -1,8 +1,4 @@
- subdir-y := accounting auxdisplay blackfin connector \
--<<<<<<< HEAD
--	filesystems filesystems ia64 laptops mic misc-devices \
--=======
- 	filesystems filesystems ia64 kdbus laptops mic misc-devices \
-->>>>>>> linux-next/akpm-base
- 	networking pcmcia prctl ptp spi timers vDSO video4linux \
- 	watchdog
-diff -puN MAINTAINERS~linux-next-git-rejects MAINTAINERS
---- a/MAINTAINERS~linux-next-git-rejects
-+++ a/MAINTAINERS
-@@ -1323,18 +1323,11 @@ L:	linux-soc@vger.kernel.org
- S:	Maintained
- F:	arch/arm/mach-qcom/
- F:	drivers/soc/qcom/
--<<<<<<< HEAD
--=======
- F:	drivers/firmware/qcom_scm.c
-->>>>>>> linux-next/akpm-base
- F:	drivers/tty/serial/msm_serial.h
- F:	drivers/tty/serial/msm_serial.c
- F:	drivers/*/pm8???-*
- F:	drivers/mfd/ssbi.c
--<<<<<<< HEAD
--F:	drivers/firmware/qcom_scm.c
--=======
-->>>>>>> linux-next/akpm-base
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/galak/linux-qcom.git
+diff -puN drivers/block/zram/zram_drv.c~revert-zram-move-compact_store-to-sysfs-functions-area drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~revert-zram-move-compact_store-to-sysfs-functions-area
++++ a/drivers/block/zram/zram_drv.c
+@@ -74,6 +74,27 @@ static inline struct zram *dev_to_zram(s
+ 	return (struct zram *)dev_to_disk(dev)->private_data;
+ }
  
- ARM/RADISYS ENP2611 MACHINE SUPPORT
-diff -puN drivers/bus/Makefile~linux-next-git-rejects drivers/bus/Makefile
---- a/drivers/bus/Makefile~linux-next-git-rejects
-+++ a/drivers/bus/Makefile
-@@ -7,15 +7,9 @@ obj-$(CONFIG_ARM_CCI)		+= arm-cci.o
- obj-$(CONFIG_ARM_CCN)		+= arm-ccn.o
++static ssize_t compact_store(struct device *dev,
++		struct device_attribute *attr, const char *buf, size_t len)
++{
++	unsigned long nr_migrated;
++	struct zram *zram = dev_to_zram(dev);
++	struct zram_meta *meta;
++
++	down_read(&zram->init_lock);
++	if (!init_done(zram)) {
++		up_read(&zram->init_lock);
++		return -EINVAL;
++	}
++
++	meta = zram->meta;
++	nr_migrated = zs_compact(meta->mem_pool);
++	atomic64_add(nr_migrated, &zram->stats.num_migrated);
++	up_read(&zram->init_lock);
++
++	return len;
++}
++
+ static ssize_t disksize_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+ {
+@@ -1038,6 +1059,7 @@ static const struct block_device_operati
+ 	.owner = THIS_MODULE
+ };
  
- obj-$(CONFIG_BRCMSTB_GISB_ARB)	+= brcmstb_gisb.o
--<<<<<<< HEAD
--obj-$(CONFIG_IMX_WEIM)		+= imx-weim.o
--obj-$(CONFIG_MIPS_CDMM)		+= mips_cdmm.o
--obj-$(CONFIG_MVEBU_MBUS) 	+= mvebu-mbus.o
--=======
- obj-$(CONFIG_IMX_WEIM)	+= imx-weim.o
- obj-$(CONFIG_MIPS_CDMM) += mips_cdmm.o
- obj-$(CONFIG_MVEBU_MBUS) += mvebu-mbus.o
-->>>>>>> linux-next/akpm-base
- 
- # Interconnect bus driver for OMAP SoCs.
- obj-$(CONFIG_OMAP_INTERCONNECT)	+= omap_l3_smx.o omap_l3_noc.o
++static DEVICE_ATTR_WO(compact);
+ static DEVICE_ATTR_RW(disksize);
+ static DEVICE_ATTR_RO(initstate);
+ static DEVICE_ATTR_WO(reset);
+@@ -1114,6 +1136,7 @@ static struct attribute *zram_disk_attrs
+ 	&dev_attr_num_writes.attr,
+ 	&dev_attr_failed_reads.attr,
+ 	&dev_attr_failed_writes.attr,
++	&dev_attr_compact.attr,
+ 	&dev_attr_invalid_io.attr,
+ 	&dev_attr_notify_free.attr,
+ 	&dev_attr_zero_pages.attr,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
+revert-zram-move-compact_store-to-sysfs-functions-area.patch
 mm.patch
 slub-bulk-allocation-from-per-cpu-partial-pages-fix.patch
 include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
@@ -127,5 +140,4 @@ journal_add_journal_head-debug-fix.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
 mutex-subsystem-synchro-test-module.patch
 slab-leaks3-default-y.patch
-linux-next-git-rejects.patch
 
