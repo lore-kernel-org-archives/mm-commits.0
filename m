@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + zram-remove-obsolete-zram_debug-option.patch added to -mm tree
-Date: Wed, 22 Apr 2015 13:38:43 -0700
-Message-ID: <553806d3.YiMBpEZzUM6itHlI%akpm@linux-foundation.org>
+Subject: +
+ kasan-remove-duplicate-definition-of-the-macro-kasan_free_page.patch added
+ to -mm tree
+Date: Wed, 22 Apr 2015 14:18:13 -0700
+Message-ID: <55381015.vwNc9ESPjXakGUNx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49734 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50027 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753505AbbDVUio (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Apr 2015 16:38:44 -0400
+	with ESMTP id S1753419AbbDVVSO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Apr 2015 17:18:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: m.jabrzyk@samsung.com, minchan@kernel.org, ngupta@vflare.org, sergey.senozhatsky.work@gmail.com, mm-commits@vger.kernel.org
+To: long.wanglong@huawei.com, a.ryabinin@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: remove obsolete ZRAM_DEBUG option
+     Subject: kasan: remove duplicate definition of the macro KASAN_FREE_PAGE
 has been added to the -mm tree.  Its filename is
-     zram-remove-obsolete-zram_debug-option.patch
+     kasan-remove-duplicate-definition-of-the-macro-kasan_free_page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zram-remove-obsolete-zram_debug-option.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kasan-remove-duplicate-definition-of-the-macro-kasan_free_page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zram-remove-obsolete-zram_debug-option.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-remove-duplicate-definition-of-the-macro-kasan_free_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,47 +40,35 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Marcin Jabrzyk <m.jabrzyk@samsung.com>
-Subject: zram: remove obsolete ZRAM_DEBUG option
+From: Wang Long <long.wanglong@huawei.com>
+Subject: kasan: remove duplicate definition of the macro KASAN_FREE_PAGE
 
-This config option doesn't provide any usage for zram.
+Remove duplicate definition of the macro KASAN_FREE_PAGE in
+mm/kasan/kasan.h
 
-Signed-off-by: Marcin Jabrzyk <m.jabrzyk@samsung.com>
-Acked-by: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Nitin Gupta <ngupta@vflare.org>
+Signed-off-by: Wang Long <long.wanglong@huawei.com>
+Acked-by: Andrey Ryabinin <a.ryabinin@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/Kconfig    |   10 +---------
- drivers/block/zram/zram_drv.c |    4 ----
- 2 files changed, 1 insertion(+), 13 deletions(-)
+ mm/kasan/kasan.h |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/block/zram/Kconfig~zram-remove-obsolete-zram_debug-option drivers/block/zram/Kconfig
---- a/drivers/block/zram/Kconfig~zram-remove-obsolete-zram_debug-option
-+++ a/drivers/block/zram/Kconfig
-@@ -23,12 +23,4 @@ config ZRAM_LZ4_COMPRESS
- 	default n
- 	help
- 	  This option enables LZ4 compression algorithm support. Compression
--	  algorithm can be changed using `comp_algorithm' device attribute.
--
--config ZRAM_DEBUG
--	bool "Compressed RAM block device debug support"
--	depends on ZRAM
--	default n
--	help
--	  This option adds additional debugging code to the compressed
--	  RAM block device driver.
-+	  algorithm can be changed using `comp_algorithm' device attribute.
-\ No newline at end of file
-diff -puN drivers/block/zram/zram_drv.c~zram-remove-obsolete-zram_debug-option drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-remove-obsolete-zram_debug-option
-+++ a/drivers/block/zram/zram_drv.c
-@@ -15,10 +15,6 @@
- #define KMSG_COMPONENT "zram"
- #define pr_fmt(fmt) KMSG_COMPONENT ": " fmt
+diff -puN mm/kasan/kasan.h~kasan-remove-duplicate-definition-of-the-macro-kasan_free_page mm/kasan/kasan.h
+--- a/mm/kasan/kasan.h~kasan-remove-duplicate-definition-of-the-macro-kasan_free_page
++++ a/mm/kasan/kasan.h
+@@ -7,7 +7,6 @@
+ #define KASAN_SHADOW_MASK       (KASAN_SHADOW_SCALE_SIZE - 1)
  
--#ifdef CONFIG_ZRAM_DEBUG
--#define DEBUG
--#endif
+ #define KASAN_FREE_PAGE         0xFF  /* page was freed */
+-#define KASAN_FREE_PAGE         0xFF  /* page was freed */
+ #define KASAN_PAGE_REDZONE      0xFE  /* redzone for kmalloc_large allocations */
+ #define KASAN_KMALLOC_REDZONE   0xFC  /* redzone inside slub object */
+ #define KASAN_KMALLOC_FREE      0xFB  /* object was freed (kmem_cache_free/kfree) */
+_
+
+Patches currently in -mm which might be from long.wanglong@huawei.com are
+
+origin.patch
+kasan-remove-duplicate-definition-of-the-macro-kasan_free_page.patch
+
