@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hwpoison-inject-check-pagelru-of-hpage.patch added to -mm
- tree
-Date: Wed, 22 Apr 2015 16:01:24 -0700
-Message-ID: <55382844.Z08p223xePRKcSD2%akpm@linux-foundation.org>
+Subject: + mm-hwpoison-inject-fix-refcounting-in-no-injection-case.patch
+ added to -mm tree
+Date: Wed, 22 Apr 2015 16:01:22 -0700
+Message-ID: <55382842.g+vriJ1rPzYFiDaz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50467 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50460 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753341AbbDVXBZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Apr 2015 19:01:25 -0400
+	with ESMTP id S1750960AbbDVXBX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Apr 2015 19:01:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: n-horiguchi@ah.jp.nec.com, aarcange@redhat.com, andi@firstfloor.org, dnelson@redhat.com, seto.hidetoshi@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hwpoison-inject: check PageLRU of hpage
+     Subject: mm/hwpoison-inject: fix refcounting in no-injection case
 has been added to the -mm tree.  Its filename is
-     mm-hwpoison-inject-check-pagelru-of-hpage.patch
+     mm-hwpoison-inject-fix-refcounting-in-no-injection-case.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-inject-check-pagelru-of-hpage.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-inject-fix-refcounting-in-no-injection-case.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-inject-check-pagelru-of-hpage.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-inject-fix-refcounting-in-no-injection-case.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,12 +40,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm/hwpoison-inject: check PageLRU of hpage
+Subject: mm/hwpoison-inject: fix refcounting in no-injection case
 
-Hwpoison injector checks PageLRU of the raw target page to find out
-whether the page is an appropriate target, but current code now filters
-out thp tail pages, which prevents us from testing for such cases via this
-interface.  So let's check hpage instead of p.
+Hwpoison injection via debugfs:hwpoison/corrupt-pfn takes a refcount of
+the target page.  But current code doesn't release it if the target page
+is not supposed to be injected, which results in memory leak.  This patch
+simply adds the refcount releasing code.
 
 Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Dean Nelson <dnelson@redhat.com>
@@ -55,28 +55,37 @@ Cc: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hwpoison-inject.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/hwpoison-inject.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN mm/hwpoison-inject.c~mm-hwpoison-inject-check-pagelru-of-hpage mm/hwpoison-inject.c
---- a/mm/hwpoison-inject.c~mm-hwpoison-inject-check-pagelru-of-hpage
+diff -puN mm/hwpoison-inject.c~mm-hwpoison-inject-fix-refcounting-in-no-injection-case mm/hwpoison-inject.c
+--- a/mm/hwpoison-inject.c~mm-hwpoison-inject-fix-refcounting-in-no-injection-case
 +++ a/mm/hwpoison-inject.c
-@@ -34,12 +34,12 @@ static int hwpoison_inject(void *data, u
- 	if (!hwpoison_filter_enable)
- 		goto inject;
- 
--	if (!PageLRU(p) && !PageHuge(p))
--		shake_page(p, 0);
-+	if (!PageLRU(hpage) && !PageHuge(p))
-+		shake_page(hpage, 0);
- 	/*
+@@ -40,7 +40,7 @@ static int hwpoison_inject(void *data, u
  	 * This implies unable to support non-LRU pages.
  	 */
--	if (!PageLRU(p) && !PageHuge(p))
-+	if (!PageLRU(hpage) && !PageHuge(p))
- 		goto put_out;
+ 	if (!PageLRU(p) && !PageHuge(p))
+-		return 0;
++		goto put_out;
  
  	/*
+ 	 * do a racy check with elevated page count, to make sure PG_hwpoison
+@@ -52,11 +52,14 @@ static int hwpoison_inject(void *data, u
+ 	err = hwpoison_filter(hpage);
+ 	unlock_page(hpage);
+ 	if (err)
+-		return 0;
++		goto put_out;
+ 
+ inject:
+ 	pr_info("Injecting memory failure at pfn %#lx\n", pfn);
+ 	return memory_failure(pfn, 18, MF_COUNT_INCREASED);
++put_out:
++	put_page(hpage);
++	return 0;
+ }
+ 
+ static int hwpoison_unpoison(void *data, u64 val)
 _
 
 Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
