@@ -1,81 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] zram-remove-max_num_devices-limitation.patch
- removed from -mm tree
-Date: Wed, 22 Apr 2015 13:30:11 -0700
-Message-ID: <553804d3.KFIm468nU1Dz1RsU%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ zram-add-dynamic-device-add-remove-functionality-fix.patch removed from -mm tree
+Date: Wed, 22 Apr 2015 13:30:09 -0700
+Message-ID: <553804d1.pzW7tZsOBqupcao/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49682 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49678 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754145AbbDVUaL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Apr 2015 16:30:11 -0400
+	with ESMTP id S1754115AbbDVUaK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Apr 2015 16:30:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sergey.senozhatsky@gmail.com, minchan@kernel.org, ngupta@vflare.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, minchan@kernel.org, ngupta@vflare.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: remove max_num_devices limitation
+     Subject: zram-add-dynamic-device-add-remove-functionality-fix
 has been removed from the -mm tree.  Its filename was
-     zram-remove-max_num_devices-limitation.patch
+     zram-add-dynamic-device-add-remove-functionality-fix.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: zram: remove max_num_devices limitation
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: zram-add-dynamic-device-add-remove-functionality-fix
 
-Limiting the number of zram devices to 32 (default max_num_devices value)
-is confusing, let's drop it.  A user with 2TB or 4TB of RAM, for example,
-can request as many devices as he can handle.
+fix comment layout
 
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Nitin Gupta <ngupta@vflare.org>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    8 +-------
- drivers/block/zram/zram_drv.h |    6 ------
- 2 files changed, 1 insertion(+), 13 deletions(-)
+ drivers/block/zram/zram_drv.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-remove-max_num_devices-limitation drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-remove-max_num_devices-limitation
+diff -puN drivers/block/zram/zram_drv.c~zram-add-dynamic-device-add-remove-functionality-fix drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-add-dynamic-device-add-remove-functionality-fix
 +++ a/drivers/block/zram/zram_drv.c
-@@ -1369,12 +1369,6 @@ static int __init zram_init(void)
- {
- 	int ret, dev_id;
+@@ -1283,8 +1283,10 @@ static int zram_control(int cmd, const c
+ 			break;
+ 		}
  
--	if (num_devices > max_num_devices) {
--		pr_warn("Invalid value for num_devices: %u\n",
--				num_devices);
--		return -EINVAL;
--	}
--
- 	ret = class_register(&zram_control_class);
- 	if (ret) {
- 		pr_warn("Unable to register zram-control class\n");
-@@ -1413,7 +1407,7 @@ module_init(zram_init);
- module_exit(zram_exit);
+-		/* First, make ->disksize device attr RO, closing
+-		 * ZRAM_CTL_REMOVE vs disksize_store() race window */
++		/*
++		 * First, make ->disksize device attr RO, closing
++		 * ZRAM_CTL_REMOVE vs disksize_store() race window
++		 */
+ 		ret = sysfs_chmod_file(&disk_to_dev(zram->disk)->kobj,
+ 				&dev_attr_disksize.attr, S_IRUGO);
+ 		if (ret)
+@@ -1297,10 +1299,12 @@ static int zram_control(int cmd, const c
+ 			break;
+ 		}
  
- module_param(num_devices, uint, 0);
--MODULE_PARM_DESC(num_devices, "Number of zram devices");
-+MODULE_PARM_DESC(num_devices, "Number of pre-created zram devices");
- 
- MODULE_LICENSE("Dual BSD/GPL");
- MODULE_AUTHOR("Nitin Gupta <ngupta@vflare.org>");
-diff -puN drivers/block/zram/zram_drv.h~zram-remove-max_num_devices-limitation drivers/block/zram/zram_drv.h
---- a/drivers/block/zram/zram_drv.h~zram-remove-max_num_devices-limitation
-+++ a/drivers/block/zram/zram_drv.h
-@@ -20,12 +20,6 @@
- 
- #include "zcomp.h"
- 
--/*
-- * Some arbitrary value. This is just to catch
-- * invalid value for num_devices module parameter.
-- */
--static const unsigned max_num_devices = 32;
+-		/* If there are still device bd_openers, try to make ->disksize
++		/*
++		 * If there are still device bd_openers, try to make ->disksize
+ 		 * RW again and return. even if we fail to make ->disksize RW,
+ 		 * user still has RW ->reset attr. so it's possible to destroy
+-		 * that device */
++		 * that device.
++		 */
+ 		err = sysfs_chmod_file(&disk_to_dev(zram->disk)->kobj,
+ 				&dev_attr_disksize.attr,
+ 				S_IWUSR | S_IRUGO);
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+revert-zram-move-compact_store-to-sysfs-functions-area.patch
+mm.patch
+slub-bulk-allocation-from-per-cpu-partial-pages-fix.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
+zram-introduce-automatic-device_id-generation-fix.patch
+rtc-omap-add-external-32k-clock-feature-fix.patch
+linux-next.patch
+linux-next-git-rejects.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+
