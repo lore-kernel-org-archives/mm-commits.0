@@ -1,40 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] zram-use-idr-instead-of-zram_devices-array.patch
- removed from -mm tree
-Date: Wed, 22 Apr 2015 13:30:00 -0700
-Message-ID: <553804c8.WoCeZguklLh5T56k%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ zram-factor-out-device-reset-from-reset_store.patch removed from -mm tree
+Date: Wed, 22 Apr 2015 13:30:02 -0700
+Message-ID: <553804ca.8aqxS/mwi9jQ/p2r%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49661 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49666 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751927AbbDVUaA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Apr 2015 16:30:00 -0400
+	with ESMTP id S1753383AbbDVUaD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Apr 2015 16:30:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: sergey.senozhatsky@gmail.com, minchan@kernel.org, ngupta@vflare.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: use idr instead of `zram_devices' array
+     Subject: zram: factor out device reset from reset_store()
 has been removed from the -mm tree.  Its filename was
-     zram-use-idr-instead-of-zram_devices-array.patch
+     zram-factor-out-device-reset-from-reset_store.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: zram: use idr instead of `zram_devices' array
+Subject: zram: factor out device reset from reset_store()
 
-This patch makes some preparations for dynamic device ADD/REMOVE
-functionality via /dev/zram-control interface.
+Device reset currently consists of two steps:
+a) holding ->bd_mutex we ensure that there are no device users
+(bdev->bd_openers)
 
-Remove `zram_devices' array and switch to id-to-pointer translation (idr).
- idr doesn't bloat zram struct with additional members, f.e.  list_head,
-yet still provides ability to match the device_id with the device pointer.
- No user-space visible changes.
+b) and internal part (executed under bdev->bd_mutex and partially
+under zram->init_lock) that resets the device - frees allocated
+memory and returns the device back to its initial (un-init) state.
+
+Dynamic device removal requires the same amount of work and checks.
+We can reuse internal cleanup part (b) zram_reset_device(), but step (a)
+is done in sysfs ATTR reset_store() handler.
+
+Rename step (b) from zram_reset_device() to zram_reset_device_internal()
+and factor out step (a) to zram_reset_device(). Both reset_store() and
+dynamic device removal will use zram_reset_device().
+
+For readability let's keep them separated.
 
 Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Cc: Minchan Kim <minchan@kernel.org>
@@ -42,163 +52,191 @@ Cc: Nitin Gupta <ngupta@vflare.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   81 ++++++++++++++++++--------------
- 1 file changed, 46 insertions(+), 35 deletions(-)
+ drivers/block/zram/zram_drv.c |  135 +++++++++++++++-----------------
+ 1 file changed, 67 insertions(+), 68 deletions(-)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-use-idr-instead-of-zram_devices-array drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-use-idr-instead-of-zram_devices-array
+diff -puN drivers/block/zram/zram_drv.c~zram-factor-out-device-reset-from-reset_store drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-factor-out-device-reset-from-reset_store
 +++ a/drivers/block/zram/zram_drv.c
-@@ -28,12 +28,12 @@
- #include <linux/string.h>
- #include <linux/vmalloc.h>
- #include <linux/err.h>
-+#include <linux/idr.h>
+@@ -746,48 +746,6 @@ static void zram_bio_discard(struct zram
+ 	}
+ }
  
- #include "zram_drv.h"
- 
--/* Globals */
-+static DEFINE_IDR(zram_index_idr);
- static int zram_major;
--static struct zram *zram_devices;
- static const char *default_compressor = "lzo";
- 
- /* Module params (documentation at end) */
-@@ -1129,18 +1129,28 @@ static struct attribute_group zram_disk_
- 	.attrs = zram_disk_attrs,
- };
- 
--static int create_device(struct zram *zram, int device_id)
-+static int zram_add(int device_id)
+-static void zram_reset_device(struct zram *zram)
+-{
+-	struct zram_meta *meta;
+-	struct zcomp *comp;
+-	u64 disksize;
+-
+-	down_write(&zram->init_lock);
+-
+-	zram->limit_pages = 0;
+-
+-	if (!init_done(zram)) {
+-		up_write(&zram->init_lock);
+-		return;
+-	}
+-
+-	meta = zram->meta;
+-	comp = zram->comp;
+-	disksize = zram->disksize;
+-	/*
+-	 * Refcount will go down to 0 eventually and r/w handler
+-	 * cannot handle further I/O so it will bail out by
+-	 * check zram_meta_get.
+-	 */
+-	zram_meta_put(zram);
+-	/*
+-	 * We want to free zram_meta in process context to avoid
+-	 * deadlock between reclaim path and any other locks.
+-	 */
+-	wait_event(zram->io_done, atomic_read(&zram->refcount) == 0);
+-
+-	/* Reset stats */
+-	memset(&zram->stats, 0, sizeof(zram->stats));
+-	zram->disksize = 0;
+-	zram->max_comp_streams = 1;
+-	set_capacity(zram->disk, 0);
+-
+-	up_write(&zram->init_lock);
+-	/* I/O operation under all of CPU are done so let's free */
+-	zram_meta_free(meta, disksize);
+-	zcomp_destroy(comp);
+-}
+-
+ static ssize_t disksize_store(struct device *dev,
+ 		struct device_attribute *attr, const char *buf, size_t len)
  {
-+	struct zram *zram;
- 	struct request_queue *queue;
- 	int ret = -ENOMEM;
+@@ -846,16 +804,54 @@ out_free_meta:
+ 	return err;
+ }
  
-+	zram = kzalloc(sizeof(struct zram), GFP_KERNEL);
-+	if (!zram)
+-static ssize_t reset_store(struct device *dev,
+-		struct device_attribute *attr, const char *buf, size_t len)
++/* internal device reset part -- cleanup allocated memory and
++ * return back to initial state */
++static void zram_reset_device_internal(struct zram *zram)
+ {
+-	int ret;
+-	unsigned short do_reset;
+-	struct zram *zram;
+-	struct block_device *bdev;
++	struct zram_meta *meta;
++	struct zcomp *comp;
++	u64 disksize;
+ 
+-	zram = dev_to_zram(dev);
+-	bdev = bdget_disk(zram->disk, 0);
++	down_write(&zram->init_lock);
++
++	zram->limit_pages = 0;
++
++	if (!init_done(zram)) {
++		up_write(&zram->init_lock);
++		return;
++	}
++
++	meta = zram->meta;
++	comp = zram->comp;
++	disksize = zram->disksize;
++	/*
++	 * Refcount will go down to 0 eventually and r/w handler
++	 * cannot handle further I/O so it will bail out by
++	 * check zram_meta_get.
++	 */
++	zram_meta_put(zram);
++	/*
++	 * We want to free zram_meta in process context to avoid
++	 * deadlock between reclaim path and any other locks.
++	 */
++	wait_event(zram->io_done, atomic_read(&zram->refcount) == 0);
++
++	/* Reset stats */
++	memset(&zram->stats, 0, sizeof(zram->stats));
++	zram->disksize = 0;
++	zram->max_comp_streams = 1;
++	set_capacity(zram->disk, 0);
++
++	up_write(&zram->init_lock);
++	/* I/O operation under all of CPU are done so let's free */
++	zram_meta_free(meta, disksize);
++	zcomp_destroy(comp);
++}
++
++static int zram_reset_device(struct zram *zram)
++{
++	int ret = 0;
++	struct block_device *bdev = bdget_disk(zram->disk, 0);
+ 
+ 	if (!bdev)
+ 		return -ENOMEM;
+@@ -867,31 +863,34 @@ static ssize_t reset_store(struct device
+ 		goto out;
+ 	}
+ 
+-	ret = kstrtou16(buf, 10, &do_reset);
+-	if (ret)
+-		goto out;
+-
+-	if (!do_reset) {
+-		ret = -EINVAL;
+-		goto out;
+-	}
+-
+ 	/* Make sure all pending I/O is finished */
+ 	fsync_bdev(bdev);
+-	zram_reset_device(zram);
+-
+-	mutex_unlock(&bdev->bd_mutex);
+-	revalidate_disk(zram->disk);
+-	bdput(bdev);
+-
+-	return len;
+-
++	zram_reset_device_internal(zram);
+ out:
+ 	mutex_unlock(&bdev->bd_mutex);
+ 	bdput(bdev);
+ 	return ret;
+ }
+ 
++static ssize_t reset_store(struct device *dev,
++		struct device_attribute *attr, const char *buf, size_t len)
++{
++	int ret;
++	unsigned short do_reset;
++	struct zram *zram;
++
++	zram = dev_to_zram(dev);
++	ret = kstrtou16(buf, 10, &do_reset);
++	if (ret)
 +		return ret;
 +
-+	ret = idr_alloc(&zram_index_idr, zram, device_id,
-+			device_id + 1, GFP_KERNEL);
-+	if (ret < 0)
-+		goto out_free_dev;
++	if (!do_reset)
++		return -EINVAL;
 +
- 	init_rwsem(&zram->init_lock);
- 
- 	queue = blk_alloc_queue(GFP_KERNEL);
- 	if (!queue) {
- 		pr_err("Error allocating disk queue for device %d\n",
- 			device_id);
--		goto out;
-+		goto out_free_idr;
- 	}
- 
- 	blk_queue_make_request(queue, zram_make_request);
-@@ -1210,34 +1220,42 @@ out_free_disk:
- 	put_disk(zram->disk);
- out_free_queue:
- 	blk_cleanup_queue(queue);
--out:
-+out_free_idr:
-+	idr_remove(&zram_index_idr, device_id);
-+out_free_dev:
-+	kfree(zram);
- 	return ret;
- }
- 
--static void destroy_devices(unsigned int nr)
-+static void zram_remove(struct zram *zram)
- {
--	struct zram *zram;
--	unsigned int i;
--
--	for (i = 0; i < nr; i++) {
--		zram = &zram_devices[i];
--		/*
--		 * Remove sysfs first, so no one will perform a disksize
--		 * store while we destroy the devices
--		 */
--		sysfs_remove_group(&disk_to_dev(zram->disk)->kobj,
--				&zram_disk_attr_group);
-+	/*
-+	 * Remove sysfs first, so no one will perform a disksize
-+	 * store while we destroy the devices
-+	 */
-+	sysfs_remove_group(&disk_to_dev(zram->disk)->kobj,
-+			&zram_disk_attr_group);
- 
--		zram_reset_device(zram);
-+	zram_reset_device(zram);
-+	idr_remove(&zram_index_idr, zram->disk->first_minor);
-+	blk_cleanup_queue(zram->disk->queue);
-+	del_gendisk(zram->disk);
-+	put_disk(zram->disk);
-+	kfree(zram);
++	ret = zram_reset_device(zram);
++	return ret ? ret : len;
 +}
- 
--		blk_cleanup_queue(zram->disk->queue);
--		del_gendisk(zram->disk);
--		put_disk(zram->disk);
--	}
-+static int zram_exit_cb(int id, void *ptr, void *data)
-+{
-+	zram_remove(ptr);
-+	return 0;
-+}
- 
--	kfree(zram_devices);
-+static void destroy_devices(void)
-+{
-+	idr_for_each(&zram_index_idr, &zram_exit_cb, NULL);
-+	idr_destroy(&zram_index_idr);
- 	unregister_blkdev(zram_major, "zram");
--	pr_info("Destroyed %u device(s)\n", nr);
-+	pr_info("Destroyed device(s)\n");
- }
- 
- static int __init zram_init(void)
-@@ -1256,16 +1274,9 @@ static int __init zram_init(void)
- 		return -EBUSY;
- 	}
- 
--	/* Allocate the device array and initialize each one */
--	zram_devices = kzalloc(num_devices * sizeof(struct zram), GFP_KERNEL);
--	if (!zram_devices) {
--		unregister_blkdev(zram_major, "zram");
--		return -ENOMEM;
--	}
--
- 	for (dev_id = 0; dev_id < num_devices; dev_id++) {
--		ret = create_device(&zram_devices[dev_id], dev_id);
--		if (ret)
-+		ret = zram_add(dev_id);
-+		if (ret != 0)
- 			goto out_error;
- 	}
- 
-@@ -1273,13 +1284,13 @@ static int __init zram_init(void)
- 	return 0;
- 
- out_error:
--	destroy_devices(dev_id);
-+	destroy_devices();
- 	return ret;
- }
- 
- static void __exit zram_exit(void)
++
+ static void __zram_make_request(struct zram *zram, struct bio *bio)
  {
--	destroy_devices(num_devices);
-+	destroy_devices();
- }
+ 	int offset, rw;
+@@ -1236,7 +1235,7 @@ static void zram_remove(struct zram *zra
+ 	sysfs_remove_group(&disk_to_dev(zram->disk)->kobj,
+ 			&zram_disk_attr_group);
  
- module_init(zram_init);
+-	zram_reset_device(zram);
++	zram_reset_device_internal(zram);
+ 	idr_remove(&zram_index_idr, zram->disk->first_minor);
+ 	blk_cleanup_queue(zram->disk->queue);
+ 	del_gendisk(zram->disk);
 _
 
 Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
 
 origin.patch
 revert-zram-move-compact_store-to-sysfs-functions-area.patch
-zram-factor-out-device-reset-from-reset_store.patch
 zram-reorganize-code-layout.patch
 zram-add-dynamic-device-add-remove-functionality.patch
 zram-add-dynamic-device-add-remove-functionality-fix.patch
