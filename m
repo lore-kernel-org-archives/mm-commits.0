@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + linux-slabh-fix-three-off-by-one-typos-in-comment.patch added
- to -mm tree
-Date: Thu, 23 Apr 2015 14:21:13 -0700
-Message-ID: <55396249.v0k9hWpajF/mwX4b%akpm@linux-foundation.org>
+Subject: + exitstats-obey-this-comment.patch added to -mm tree
+Date: Thu, 23 Apr 2015 14:47:41 -0700
+Message-ID: <5539687d.AEUr/81o59Af/u8a%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35755 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35886 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030920AbbDWVVO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Apr 2015 17:21:14 -0400
+	with ESMTP id S1030908AbbDWVrm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Apr 2015 17:47:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, cl@linux.com, mm-commits@vger.kernel.org
+To: riel@redhat.com, mhocko@suse.cz, oleg@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux/slab.h: fix three off-by-one typos in comment
+     Subject: exit,stats: /* obey this comment */
 has been added to the -mm tree.  Its filename is
-     linux-slabh-fix-three-off-by-one-typos-in-comment.patch
+     exitstats-obey-this-comment.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-slabh-fix-three-off-by-one-typos-in-comment.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/exitstats-obey-this-comment.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-slabh-fix-three-off-by-one-typos-in-comment.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/exitstats-obey-this-comment.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,38 +38,65 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: linux/slab.h: fix three off-by-one typos in comment
+From: Rik van Riel <riel@redhat.com>
+Subject: exit,stats: /* obey this comment */
 
-The first is a keyboard-off-by-one, the other two the ordinary mathy kind.
+There is a helpful comment in do_exit() that states we sync the mm's RSS
+info before statistics gathering.
 
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Acked-by: Christoph Lameter <cl@linux.com>
+The function that does the statistics gathering is called right above that
+comment.
+
+Change the code to obey the comment.
+
+Signed-off-by: Rik van Riel <riel@redhat.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slab.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/exit.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/slab.h~linux-slabh-fix-three-off-by-one-typos-in-comment include/linux/slab.h
---- a/include/linux/slab.h~linux-slabh-fix-three-off-by-one-typos-in-comment
-+++ a/include/linux/slab.h
-@@ -262,8 +262,8 @@ extern struct kmem_cache *kmalloc_dma_ca
-  * belongs to.
-  * 0 = zero alloc
-  * 1 =  65 .. 96 bytes
-- * 2 = 120 .. 192 bytes
-- * n = 2^(n-1) .. 2^n -1
-+ * 2 = 129 .. 192 bytes
-+ * n = 2^(n-1)+1 .. 2^n
-  */
- static __always_inline int kmalloc_index(size_t size)
- {
+diff -puN kernel/exit.c~exitstats-obey-this-comment kernel/exit.c
+--- a/kernel/exit.c~exitstats-obey-this-comment
++++ a/kernel/exit.c
+@@ -711,10 +711,10 @@ void do_exit(long code)
+ 			current->comm, task_pid_nr(current),
+ 			preempt_count());
+ 
+-	acct_update_integrals(tsk);
+ 	/* sync mm's RSS info before statistics gathering */
+ 	if (tsk->mm)
+ 		sync_mm_rss(tsk->mm);
++	acct_update_integrals(tsk);
+ 	group_dead = atomic_dec_and_test(&tsk->signal->live);
+ 	if (group_dead) {
+ 		hrtimer_cancel(&tsk->signal->real_timer);
 _
 
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
+Patches currently in -mm which might be from riel@redhat.com are
 
 origin.patch
-linux-slabh-fix-three-off-by-one-typos-in-comment.patch
-__bitmap_parselist-fix-bug-in-empty-string-handling.patch
+page-flags-trivial-cleanup-for-pagetrans-helpers.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
+page-flags-define-pg_locked-behavior-on-compound-pages.patch
+page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
+page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
+page-flags-define-pg_reserved-behavior-on-compound-pages.patch
+page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
+page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
+page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
+page-flags-define-pg_uncached-behavior-on-compound-pages.patch
+page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
+page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
+mm-sanitize-page-mapping-for-tail-pages.patch
+mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-reclaimable-pages.patch
+mm-move-lazy-free-pages-to-inactive-list.patch
+mm-move-lazy-free-pages-to-inactive-list-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+exitstats-obey-this-comment.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
 
