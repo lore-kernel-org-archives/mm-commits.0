@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + adfs-remove-unneeded-cast.patch added to -mm tree
-Date: Thu, 23 Apr 2015 14:50:42 -0700
-Message-ID: <55396932.mO1rqbubHVNjG5aU%akpm@linux-foundation.org>
+Subject: + minix-no-need-to-cast-alloction-return-value-in-minix.patch
+ added to -mm tree
+Date: Thu, 23 Apr 2015 14:50:37 -0700
+Message-ID: <5539692d.mddF+HK8sog+U1ql%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35963 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35960 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030853AbbDWVun (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Apr 2015 17:50:43 -0400
+	with ESMTP id S1754541AbbDWVuj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Apr 2015 17:50:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: firogm@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/adfs: remove unneeded cast
+     Subject: fs/minix: remove unneeded cast
 has been added to the -mm tree.  Its filename is
-     adfs-remove-unneeded-cast.patch
+     minix-no-need-to-cast-alloction-return-value-in-minix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/adfs-remove-unneeded-cast.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/minix-no-need-to-cast-alloction-return-value-in-minix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/adfs-remove-unneeded-cast.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/minix-no-need-to-cast-alloction-return-value-in-minix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,7 +40,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Firo Yang <firogm@gmail.com>
-Subject: fs/adfs: remove unneeded cast
+Subject: fs/minix: remove unneeded cast
 
 kmem_cache_alloc() returns void*.
 
@@ -47,18 +48,18 @@ Signed-off-by: Firo Yang <firogm@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/adfs/super.c |    2 +-
+ fs/minix/inode.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/adfs/super.c~adfs-remove-unneeded-cast fs/adfs/super.c
---- a/fs/adfs/super.c~adfs-remove-unneeded-cast
-+++ a/fs/adfs/super.c
-@@ -242,7 +242,7 @@ static struct kmem_cache *adfs_inode_cac
- static struct inode *adfs_alloc_inode(struct super_block *sb)
+diff -puN fs/minix/inode.c~minix-no-need-to-cast-alloction-return-value-in-minix fs/minix/inode.c
+--- a/fs/minix/inode.c~minix-no-need-to-cast-alloction-return-value-in-minix
++++ a/fs/minix/inode.c
+@@ -62,7 +62,7 @@ static struct kmem_cache * minix_inode_c
+ static struct inode *minix_alloc_inode(struct super_block *sb)
  {
- 	struct adfs_inode_info *ei;
--	ei = (struct adfs_inode_info *)kmem_cache_alloc(adfs_inode_cachep, GFP_KERNEL);
-+	ei = kmem_cache_alloc(adfs_inode_cachep, GFP_KERNEL);
+ 	struct minix_inode_info *ei;
+-	ei = (struct minix_inode_info *)kmem_cache_alloc(minix_inode_cachep, GFP_KERNEL);
++	ei = kmem_cache_alloc(minix_inode_cachep, GFP_KERNEL);
  	if (!ei)
  		return NULL;
  	return &ei->vfs_inode;
