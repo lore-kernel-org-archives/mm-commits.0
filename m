@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare.patch added to -mm tree
-Date: Thu, 23 Apr 2015 15:11:24 -0700
-Message-ID: <55396e0c.S87ODDek44ReieBa%akpm@linux-foundation.org>
+Subject: + memstick-remove-deprecated-use-of-pci-api.patch added to -mm
+ tree
+Date: Thu, 23 Apr 2015 15:17:31 -0700
+Message-ID: <55396f7b.p69MFeFS/FZZ7qyz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36050 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36067 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758429AbbDWWLZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Apr 2015 18:11:25 -0400
+	with ESMTP id S1758227AbbDWWRc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Apr 2015 18:17:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zhenzhang.zhang@huawei.com, James.Yang@freescale.com, aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, catalin.marinas@arm.com, cmetcalf@ezchip.com, james.hogan@imgtec.com, linux@arm.linux.org.uk, ralf@linux-mips.org, rientjes@google.com, schwidefsky@de.ibm.com, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: lambert.quentin@gmail.com, greg@kroah.com, maximlevitsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: reduce arch dependent code about huge_pmd_unshare
+     Subject: memstick: remove deprecated use of pci api
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare.patch
+     memstick-remove-deprecated-use-of-pci-api.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memstick-remove-deprecated-use-of-pci-api.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memstick-remove-deprecated-use-of-pci-api.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,215 +39,151 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Zhang Zhen <zhenzhang.zhang@huawei.com>
-Subject: mm/hugetlb: reduce arch dependent code about huge_pmd_unshare
+From: Quentin Lambert <lambert.quentin@gmail.com>
+Subject: memstick: remove deprecated use of pci api
 
-Currently we have many duplicates in definitions of huge_pmd_unshare.  In
-all architectures this function just returns 0 when
-CONFIG_ARCH_WANT_HUGE_PMD_SHARE is N.
+Replace occurences of the pci api by appropriate call to the dma api.
 
-This patch puts the default implementation in mm/hugetlb.c and lets these
-architectures use the common code.
+A simplified version of the semantic patch that finds this problem is as
+follows: (http://coccinelle.lip6.fr)
 
-Signed-off-by: Zhang Zhen <zhenzhang.zhang@huawei.com>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: James Hogan <james.hogan@imgtec.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Chris Metcalf <cmetcalf@ezchip.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: James Yang <James.Yang@freescale.com>
-Cc: Aneesh Kumar <aneesh.kumar@linux.vnet.ibm.com>
+@deprecated@
+idexpression id;
+position p;
+@@
+
+(
+  pci_dma_supported@p ( id, ...)
+|
+  pci_alloc_consistent@p ( id, ...)
+)
+
+@bad1@
+idexpression id;
+position deprecated.p;
+@@
+...when != &id->dev
+   when != pci_get_drvdata ( id )
+   when != pci_enable_device ( id )
+(
+  pci_dma_supported@p ( id, ...)
+|
+  pci_alloc_consistent@p ( id, ...)
+)
+
+@depends on !bad1@
+idexpression id;
+expression direction;
+position deprecated.p;
+@@
+
+(
+- pci_dma_supported@p ( id,
++ dma_supported ( &id->dev,
+...
++ , GFP_ATOMIC
+  )
+|
+- pci_alloc_consistent@p ( id,
++ dma_alloc_coherent ( &id->dev,
+...
++ , GFP_ATOMIC
+  )
+)
+
+Signed-off-by: Quentin Lambert <lambert.quentin@gmail.com>
+Cc: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mm/hugetlbpage.c     |    5 -----
- arch/arm64/mm/hugetlbpage.c   |    7 -------
- arch/ia64/mm/hugetlbpage.c    |    5 -----
- arch/metag/mm/hugetlbpage.c   |    5 -----
- arch/mips/mm/hugetlbpage.c    |    5 -----
- arch/powerpc/mm/hugetlbpage.c |    5 -----
- arch/s390/mm/hugetlbpage.c    |    5 -----
- arch/sh/mm/hugetlbpage.c      |    5 -----
- arch/sparc/mm/hugetlbpage.c   |    5 -----
- arch/tile/mm/hugetlbpage.c    |    5 -----
- mm/hugetlb.c                  |    5 +++++
- 11 files changed, 5 insertions(+), 52 deletions(-)
+ drivers/memstick/host/jmb38x_ms.c |   12 ++++++------
+ drivers/memstick/host/r592.c      |   10 +++++-----
+ 2 files changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN arch/arm/mm/hugetlbpage.c~mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare arch/arm/mm/hugetlbpage.c
---- a/arch/arm/mm/hugetlbpage.c~mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare
-+++ a/arch/arm/mm/hugetlbpage.c
-@@ -41,11 +41,6 @@ int pud_huge(pud_t pud)
- 	return 0;
+diff -puN drivers/memstick/host/jmb38x_ms.c~memstick-remove-deprecated-use-of-pci-api drivers/memstick/host/jmb38x_ms.c
+--- a/drivers/memstick/host/jmb38x_ms.c~memstick-remove-deprecated-use-of-pci-api
++++ a/drivers/memstick/host/jmb38x_ms.c
+@@ -419,10 +419,10 @@ static int jmb38x_ms_issue_cmd(struct me
+ 	}
+ 
+ 	if (host->cmd_flags & DMA_DATA) {
+-		if (1 != pci_map_sg(host->chip->pdev, &host->req->sg, 1,
++		if (1 != dma_map_sg(&host->chip->pdev->dev, &host->req->sg, 1,
+ 				    host->req->data_dir == READ
+-				    ? PCI_DMA_FROMDEVICE
+-				    : PCI_DMA_TODEVICE)) {
++				    ? DMA_FROM_DEVICE
++				    : DMA_TO_DEVICE)) {
+ 			host->req->error = -ENOMEM;
+ 			return host->req->error;
+ 		}
+@@ -487,9 +487,9 @@ static void jmb38x_ms_complete_cmd(struc
+ 	writel(0, host->addr + DMA_CONTROL);
+ 
+ 	if (host->cmd_flags & DMA_DATA) {
+-		pci_unmap_sg(host->chip->pdev, &host->req->sg, 1,
++		dma_unmap_sg(&host->chip->pdev->dev, &host->req->sg, 1,
+ 			     host->req->data_dir == READ
+-			     ? PCI_DMA_FROMDEVICE : PCI_DMA_TODEVICE);
++			     ? DMA_FROM_DEVICE : DMA_TO_DEVICE);
+ 	} else {
+ 		t_val = readl(host->addr + INT_STATUS_ENABLE);
+ 		if (host->req->data_dir == READ)
+@@ -925,7 +925,7 @@ static int jmb38x_ms_probe(struct pci_de
+ 	int pci_dev_busy = 0;
+ 	int rc, cnt;
+ 
+-	rc = pci_set_dma_mask(pdev, DMA_BIT_MASK(32));
++	rc = dma_set_mask(&pdev->dev, DMA_BIT_MASK(32));
+ 	if (rc)
+ 		return rc;
+ 
+diff -puN drivers/memstick/host/r592.c~memstick-remove-deprecated-use-of-pci-api drivers/memstick/host/r592.c
+--- a/drivers/memstick/host/r592.c~memstick-remove-deprecated-use-of-pci-api
++++ a/drivers/memstick/host/r592.c
+@@ -754,7 +754,7 @@ static int r592_probe(struct pci_dev *pd
+ 		goto error2;
+ 
+ 	pci_set_master(pdev);
+-	error = pci_set_dma_mask(pdev, DMA_BIT_MASK(32));
++	error = dma_set_mask(&pdev->dev, DMA_BIT_MASK(32));
+ 	if (error)
+ 		goto error3;
+ 
+@@ -787,8 +787,8 @@ static int r592_probe(struct pci_dev *pd
+ 	}
+ 
+ 	/* This is just a precation, so don't fail */
+-	dev->dummy_dma_page = pci_alloc_consistent(pdev, PAGE_SIZE,
+-		&dev->dummy_dma_page_physical_address);
++	dev->dummy_dma_page = dma_alloc_coherent(&pdev->dev, PAGE_SIZE,
++		&dev->dummy_dma_page_physical_address, GFP_KERNEL);
+ 	r592_stop_dma(dev , 0);
+ 
+ 	if (request_irq(dev->irq, &r592_irq, IRQF_SHARED,
+@@ -805,7 +805,7 @@ error7:
+ 	free_irq(dev->irq, dev);
+ error6:
+ 	if (dev->dummy_dma_page)
+-		pci_free_consistent(pdev, PAGE_SIZE, dev->dummy_dma_page,
++		dma_free_coherent(&pdev->dev, PAGE_SIZE, dev->dummy_dma_page,
+ 			dev->dummy_dma_page_physical_address);
+ 
+ 	kthread_stop(dev->io_thread);
+@@ -845,7 +845,7 @@ static void r592_remove(struct pci_dev *
+ 	memstick_free_host(dev->host);
+ 
+ 	if (dev->dummy_dma_page)
+-		pci_free_consistent(pdev, PAGE_SIZE, dev->dummy_dma_page,
++		dma_free_coherent(&pdev->dev, PAGE_SIZE, dev->dummy_dma_page,
+ 			dev->dummy_dma_page_physical_address);
  }
- 
--int huge_pmd_unshare(struct mm_struct *mm, unsigned long *addr, pte_t *ptep)
--{
--	return 0;
--}
--
- int pmd_huge(pmd_t pmd)
- {
- 	return pmd_val(pmd) && !(pmd_val(pmd) & PMD_TABLE_BIT);
-diff -puN arch/arm64/mm/hugetlbpage.c~mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare arch/arm64/mm/hugetlbpage.c
---- a/arch/arm64/mm/hugetlbpage.c~mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare
-+++ a/arch/arm64/mm/hugetlbpage.c
-@@ -31,13 +31,6 @@
- #include <asm/tlbflush.h>
- #include <asm/pgalloc.h>
- 
--#ifndef CONFIG_ARCH_WANT_HUGE_PMD_SHARE
--int huge_pmd_unshare(struct mm_struct *mm, unsigned long *addr, pte_t *ptep)
--{
--	return 0;
--}
--#endif
--
- int pmd_huge(pmd_t pmd)
- {
- 	return !(pmd_val(pmd) & PMD_TABLE_BIT);
-diff -puN arch/ia64/mm/hugetlbpage.c~mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare arch/ia64/mm/hugetlbpage.c
---- a/arch/ia64/mm/hugetlbpage.c~mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare
-+++ a/arch/ia64/mm/hugetlbpage.c
-@@ -65,11 +65,6 @@ huge_pte_offset (struct mm_struct *mm, u
- 	return pte;
- }
- 
--int huge_pmd_unshare(struct mm_struct *mm, unsigned long *addr, pte_t *ptep)
--{
--	return 0;
--}
--
- #define mk_pte_huge(entry) { pte_val(entry) |= _PAGE_P; }
- 
- /*
-diff -puN arch/metag/mm/hugetlbpage.c~mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare arch/metag/mm/hugetlbpage.c
---- a/arch/metag/mm/hugetlbpage.c~mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare
-+++ a/arch/metag/mm/hugetlbpage.c
-@@ -89,11 +89,6 @@ pte_t *huge_pte_offset(struct mm_struct
- 	return pte;
- }
- 
--int huge_pmd_unshare(struct mm_struct *mm, unsigned long *addr, pte_t *ptep)
--{
--	return 0;
--}
--
- int pmd_huge(pmd_t pmd)
- {
- 	return pmd_page_shift(pmd) > PAGE_SHIFT;
-diff -puN arch/mips/mm/hugetlbpage.c~mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare arch/mips/mm/hugetlbpage.c
---- a/arch/mips/mm/hugetlbpage.c~mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare
-+++ a/arch/mips/mm/hugetlbpage.c
-@@ -51,11 +51,6 @@ pte_t *huge_pte_offset(struct mm_struct
- 	return (pte_t *) pmd;
- }
- 
--int huge_pmd_unshare(struct mm_struct *mm, unsigned long *addr, pte_t *ptep)
--{
--	return 0;
--}
--
- /*
-  * This function checks for proper alignment of input addr and len parameters.
-  */
-diff -puN arch/powerpc/mm/hugetlbpage.c~mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare arch/powerpc/mm/hugetlbpage.c
---- a/arch/powerpc/mm/hugetlbpage.c~mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare
-+++ a/arch/powerpc/mm/hugetlbpage.c
-@@ -439,11 +439,6 @@ int alloc_bootmem_huge_page(struct hstat
- }
- #endif
- 
--int huge_pmd_unshare(struct mm_struct *mm, unsigned long *addr, pte_t *ptep)
--{
--	return 0;
--}
--
- #ifdef CONFIG_PPC_FSL_BOOK3E
- #define HUGEPD_FREELIST_SIZE \
- 	((PAGE_SIZE - sizeof(struct hugepd_freelist)) / sizeof(pte_t))
-diff -puN arch/s390/mm/hugetlbpage.c~mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare arch/s390/mm/hugetlbpage.c
---- a/arch/s390/mm/hugetlbpage.c~mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare
-+++ a/arch/s390/mm/hugetlbpage.c
-@@ -187,11 +187,6 @@ pte_t *huge_pte_offset(struct mm_struct
- 	return (pte_t *) pmdp;
- }
- 
--int huge_pmd_unshare(struct mm_struct *mm, unsigned long *addr, pte_t *ptep)
--{
--	return 0;
--}
--
- int pmd_huge(pmd_t pmd)
- {
- 	if (!MACHINE_HAS_HPAGE)
-diff -puN arch/sh/mm/hugetlbpage.c~mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare arch/sh/mm/hugetlbpage.c
---- a/arch/sh/mm/hugetlbpage.c~mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare
-+++ a/arch/sh/mm/hugetlbpage.c
-@@ -62,11 +62,6 @@ pte_t *huge_pte_offset(struct mm_struct
- 	return pte;
- }
- 
--int huge_pmd_unshare(struct mm_struct *mm, unsigned long *addr, pte_t *ptep)
--{
--	return 0;
--}
--
- int pmd_huge(pmd_t pmd)
- {
- 	return 0;
-diff -puN arch/sparc/mm/hugetlbpage.c~mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare arch/sparc/mm/hugetlbpage.c
---- a/arch/sparc/mm/hugetlbpage.c~mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare
-+++ a/arch/sparc/mm/hugetlbpage.c
-@@ -172,11 +172,6 @@ pte_t *huge_pte_offset(struct mm_struct
- 	return pte;
- }
- 
--int huge_pmd_unshare(struct mm_struct *mm, unsigned long *addr, pte_t *ptep)
--{
--	return 0;
--}
--
- void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
- 		     pte_t *ptep, pte_t entry)
- {
-diff -puN arch/tile/mm/hugetlbpage.c~mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare arch/tile/mm/hugetlbpage.c
---- a/arch/tile/mm/hugetlbpage.c~mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare
-+++ a/arch/tile/mm/hugetlbpage.c
-@@ -160,11 +160,6 @@ int pud_huge(pud_t pud)
- 	return !!(pud_val(pud) & _PAGE_HUGE_PAGE);
- }
- 
--int huge_pmd_unshare(struct mm_struct *mm, unsigned long *addr, pte_t *ptep)
--{
--	return 0;
--}
--
- #ifdef HAVE_ARCH_HUGETLB_UNMAPPED_AREA
- static unsigned long hugetlb_get_unmapped_area_bottomup(struct file *file,
- 		unsigned long addr, unsigned long len,
-diff -puN mm/hugetlb.c~mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare
-+++ a/mm/hugetlb.c
-@@ -3789,6 +3789,11 @@ pte_t *huge_pmd_share(struct mm_struct *
- {
- 	return NULL;
- }
-+
-+int huge_pmd_unshare(struct mm_struct *mm, unsigned long *addr, pte_t *ptep)
-+{
-+	return 0;
-+}
- #define want_pmd_share()	(0)
- #endif /* CONFIG_ARCH_WANT_HUGE_PMD_SHARE */
  
 _
 
-Patches currently in -mm which might be from zhenzhang.zhang@huawei.com are
+Patches currently in -mm which might be from lambert.quentin@gmail.com are
 
 origin.patch
-mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare.patch
+memstick-remove-deprecated-use-of-pci-api.patch
 
