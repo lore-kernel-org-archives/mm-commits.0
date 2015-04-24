@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-add-co-maintainer-for-led-subsystem.patch added to
- -mm tree
-Date: Fri, 24 Apr 2015 12:04:56 -0700
-Message-ID: <553a93d8.YY0XFCrjY+IlmkAP%akpm@linux-foundation.org>
+Subject: + lib-scatterlist-fix-kerneldoc-for-sg_pcopy_tofrom_buffer.patch
+ added to -mm tree
+Date: Fri, 24 Apr 2015 12:36:12 -0700
+Message-ID: <553a9b2c.cxQjCcXMe1KalHEl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54317 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54655 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755734AbbDXTE5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Apr 2015 15:04:57 -0400
+	with ESMTP id S1031537AbbDXTgN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Apr 2015 15:36:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cooloney@gmail.com, j.anaszewski@samsung.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: david.s.gordon@intel.com, akinobu.mita@gmail.com, martin.petersen@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: add co-maintainer for LED subsystem
+     Subject: lib/scatterlist.c: fix kerneldoc for sg_pcopy_{to,from}_buffer()
 has been added to the -mm tree.  Its filename is
-     maintainers-add-co-maintainer-for-led-subsystem.patch
+     lib-scatterlist-fix-kerneldoc-for-sg_pcopy_tofrom_buffer.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-co-maintainer-for-led-subsystem.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-scatterlist-fix-kerneldoc-for-sg_pcopy_tofrom_buffer.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-co-maintainer-for-led-subsystem.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-scatterlist-fix-kerneldoc-for-sg_pcopy_tofrom_buffer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,62 +39,63 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: MAINTAINERS: add co-maintainer for LED subsystem
+From: Dave Gordon <david.s.gordon@intel.com>
+Subject: lib/scatterlist.c: fix kerneldoc for sg_pcopy_{to,from}_buffer()
 
-Add myself (Jacek Anaszewski) as a co-maintainer for the LED subsystem.
+The kerneldoc for the functions doesn't match the code; the last two
+parameters (buflen, skip) have been transposed, which is confusing,
+especially as they're both integral types and the compiler won't warn
+about swapping them.
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Bryan Wu <cooloney@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+These functions and the kerneldoc were introduced in commit:
+    df642cea lib/scatterlist: introduce sg_pcopy_from_buffer() ...
+    Author: Akinobu Mita <akinobu.mita@gmail.com>
+    Date:   Mon Jul 8 16:01:54 2013 -0700
+
+    The only difference between sg_pcopy_{from,to}_buffer() and
+    sg_copy_{from,to}_buffer() is an additional argument that
+    specifies the number of bytes to skip the SG list before
+    copying.
+
+The functions have the extra argument at the end, but the kerneldoc
+lists it in penultimate position.
+
+Signed-off-by: Dave Gordon <david.s.gordon@intel.com>
+Reviewed-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: "Martin K. Petersen" <martin.petersen@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 +
- 1 file changed, 1 insertion(+)
+ lib/scatterlist.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-add-co-maintainer-for-led-subsystem MAINTAINERS
---- a/MAINTAINERS~maintainers-add-co-maintainer-for-led-subsystem
-+++ a/MAINTAINERS
-@@ -5792,6 +5792,7 @@ F:	drivers/scsi/53c700*
- LED SUBSYSTEM
- M:	Bryan Wu <cooloney@gmail.com>
- M:	Richard Purdie <rpurdie@rpsys.net>
-+M:	Jacek Anaszewski <j.anaszewski@samsung.com>
- L:	linux-leds@vger.kernel.org
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/cooloney/linux-leds.git
- S:	Maintained
+diff -puN lib/scatterlist.c~lib-scatterlist-fix-kerneldoc-for-sg_pcopy_tofrom_buffer lib/scatterlist.c
+--- a/lib/scatterlist.c~lib-scatterlist-fix-kerneldoc-for-sg_pcopy_tofrom_buffer
++++ a/lib/scatterlist.c
+@@ -697,8 +697,8 @@ EXPORT_SYMBOL(sg_copy_to_buffer);
+  * @sgl:		 The SG list
+  * @nents:		 Number of SG entries
+  * @buf:		 Where to copy from
+- * @skip:		 Number of bytes to skip before copying
+  * @buflen:		 The number of bytes to copy
++ * @skip:		 Number of bytes to skip before copying
+  *
+  * Returns the number of copied bytes.
+  *
+@@ -715,8 +715,8 @@ EXPORT_SYMBOL(sg_pcopy_from_buffer);
+  * @sgl:		 The SG list
+  * @nents:		 Number of SG entries
+  * @buf:		 Where to copy to
+- * @skip:		 Number of bytes to skip before copying
+  * @buflen:		 The number of bytes to copy
++ * @skip:		 Number of bytes to skip before copying
+  *
+  * Returns the number of copied bytes.
+  *
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from david.s.gordon@intel.com are
 
 origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-revert-zram-move-compact_store-to-sysfs-functions-area.patch
-maintainers-add-co-maintainer-for-led-subsystem.patch
-revert-fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask.patch
-ocfs2-reduce-object-size-of-mlog-uses-fix.patch
-ocfs2-remove-__mlog_cpu_guess.patch
-ocfs2-remove-__mlog_cpu_guess-fix.patch
-mm.patch
-mm-slab_common-support-the-slub_debug-boot-option-on-specific-object-size-fix.patch
-slub-bulk-allocation-from-per-cpu-partial-pages-fix.patch
-mm-fix-mprotect-behaviour-on-vm_locked-vmas-fix.patch
-mm-new-mm-hook-framework.patch
-include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
-rtc-omap-add-external-32k-clock-feature-fix.patch
-linux-next.patch
-linux-next-git-rejects.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
+lib-scatterlist-fix-kerneldoc-for-sg_pcopy_tofrom_buffer.patch
 
