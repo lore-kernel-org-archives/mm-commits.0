@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Fri, 24 Apr 2015 10:04:28 -0700
-Message-ID: <553a779c./hxhDH8ANqYmloCM%akpm@linux-foundation.org>
+Subject: +
+ revert-fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask.patch added to -mm tree
+Date: Fri, 24 Apr 2015 10:42:37 -0700
+Message-ID: <553a808d.tMp1rMVhqI2gdG9C%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49906 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51702 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031327AbbDXRE3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Apr 2015 13:04:29 -0400
+	with ESMTP id S1754505AbbDXRmi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 24 Apr 2015 13:42:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, LinoSanfilippo@gmx.de, eparis@redhat.com, jack@suse.cz, torvalds@linux-foundation.org, ying.huang@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: revert "fanotify: don't set FAN_ONDIR implicitly on a marks ignored mask"
 has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     revert-fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/revert-fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/revert-fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,67 +40,83 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+Subject: revert "fanotify: don't set FAN_ONDIR implicitly on a marks ignored mask"
 
+Revert
+
+: commit 66ba93c0d7fe63def447ad0afe380307ff9ebcad
+: Author:     Lino Sanfilippo <LinoSanfilippo@gmx.de>
+: AuthorDate: Tue Feb 10 14:08:27 2015 -0800
+: Commit:     Linus Torvalds <torvalds@linux-foundation.org>
+: CommitDate: Tue Feb 10 14:30:28 2015 -0800
+: 
+:     fanotify: don't set FAN_ONDIR implicitly on a marks ignored mask
+
+Due to the regression reported by Huang Ling
+(http://lkml.iu.edu/hypermail/linux/kernel/1504.2/04392.html).
+
+Reported-by: Huang Ying <ying.huang@intel.com>
+Cc: Lino Sanfilippo <LinoSanfilippo@gmx.de>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Eric Paris <eparis@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/btrfs/xattr.c  |   12 ------------
- fs/xfs/xfs_iops.c |    4 ----
- 2 files changed, 16 deletions(-)
+ fs/notify/fanotify/fanotify_user.c |   25 ++++++++-----------------
+ 1 file changed, 8 insertions(+), 17 deletions(-)
 
-diff -puN fs/btrfs/xattr.c~linux-next-git-rejects fs/btrfs/xattr.c
---- a/fs/btrfs/xattr.c~linux-next-git-rejects
-+++ a/fs/btrfs/xattr.c
-@@ -411,21 +411,13 @@ ssize_t btrfs_getxattr(struct dentry *de
- 	ret = btrfs_is_valid_xattr(name);
- 	if (ret)
- 		return ret;
--<<<<<<< HEAD
--	return __btrfs_getxattr(dentry->d_inode, name, buffer, size);
--=======
- 	return __btrfs_getxattr(d_inode(dentry), name, buffer, size);
-->>>>>>> linux-next/akpm-base
- }
+diff -puN fs/notify/fanotify/fanotify_user.c~revert-fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask fs/notify/fanotify/fanotify_user.c
+--- a/fs/notify/fanotify/fanotify_user.c~revert-fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask
++++ a/fs/notify/fanotify/fanotify_user.c
+@@ -491,17 +491,10 @@ static __u32 fanotify_mark_remove_from_m
  
- int btrfs_setxattr(struct dentry *dentry, const char *name, const void *value,
- 		   size_t size, int flags)
- {
--<<<<<<< HEAD
--	struct btrfs_root *root = BTRFS_I(dentry->d_inode)->root;
--=======
- 	struct btrfs_root *root = BTRFS_I(d_inode(dentry))->root;
-->>>>>>> linux-next/akpm-base
- 	int ret;
+ 	spin_lock(&fsn_mark->lock);
+ 	if (!(flags & FAN_MARK_IGNORED_MASK)) {
+-		__u32 tmask = fsn_mark->mask & ~mask;
+-
+-		if (flags & FAN_MARK_ONDIR)
+-			tmask &= ~FAN_ONDIR;
+-
+ 		oldmask = fsn_mark->mask;
+-		fsnotify_set_mark_mask_locked(fsn_mark, tmask);
++		fsnotify_set_mark_mask_locked(fsn_mark, (oldmask & ~mask));
+ 	} else {
+ 		__u32 tmask = fsn_mark->ignored_mask & ~mask;
+-		if (flags & FAN_MARK_ONDIR)
+-			tmask &= ~FAN_ONDIR;
  
- 	/*
-@@ -460,11 +452,7 @@ int btrfs_setxattr(struct dentry *dentry
+ 		fsnotify_set_mark_ignored_mask_locked(fsn_mark, tmask);
+ 	}
+@@ -576,22 +569,20 @@ static __u32 fanotify_mark_add_to_mask(s
  
- int btrfs_removexattr(struct dentry *dentry, const char *name)
- {
--<<<<<<< HEAD
--	struct btrfs_root *root = BTRFS_I(dentry->d_inode)->root;
--=======
- 	struct btrfs_root *root = BTRFS_I(d_inode(dentry))->root;
-->>>>>>> linux-next/akpm-base
- 	int ret;
+ 	spin_lock(&fsn_mark->lock);
+ 	if (!(flags & FAN_MARK_IGNORED_MASK)) {
+-		__u32 tmask = fsn_mark->mask | mask;
+-
+-		if (flags & FAN_MARK_ONDIR)
+-			tmask |= FAN_ONDIR;
+-
+ 		oldmask = fsn_mark->mask;
+-		fsnotify_set_mark_mask_locked(fsn_mark, tmask);
++		fsnotify_set_mark_mask_locked(fsn_mark, (oldmask | mask));
+ 	} else {
+ 		__u32 tmask = fsn_mark->ignored_mask | mask;
+-		if (flags & FAN_MARK_ONDIR)
+-			tmask |= FAN_ONDIR;
+-
+ 		fsnotify_set_mark_ignored_mask_locked(fsn_mark, tmask);
+ 		if (flags & FAN_MARK_IGNORED_SURV_MODIFY)
+ 			fsn_mark->flags |= FSNOTIFY_MARK_FLAG_IGNORED_SURV_MODIFY;
+ 	}
++
++	if (!(flags & FAN_MARK_ONDIR)) {
++		__u32 tmask = fsn_mark->ignored_mask | FAN_ONDIR;
++		fsnotify_set_mark_ignored_mask_locked(fsn_mark, tmask);
++	}
++
+ 	spin_unlock(&fsn_mark->lock);
  
- 	/*
-diff -puN fs/xfs/xfs_iops.c~linux-next-git-rejects fs/xfs/xfs_iops.c
---- a/fs/xfs/xfs_iops.c~linux-next-git-rejects
-+++ a/fs/xfs/xfs_iops.c
-@@ -953,11 +953,7 @@ xfs_vn_setattr(
- 		uint		iolock = XFS_IOLOCK_EXCL;
- 
- 		xfs_ilock(ip, iolock);
--<<<<<<< HEAD
--		error = xfs_break_layouts(dentry->d_inode, &iolock, true);
--=======
- 		error = xfs_break_layouts(d_inode(dentry), &iolock, true);
-->>>>>>> linux-next/akpm-base
- 		if (!error) {
- 			xfs_ilock(ip, XFS_MMAPLOCK_EXCL);
- 			iolock |= XFS_MMAPLOCK_EXCL;
+ 	return mask & ~oldmask;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -107,6 +124,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 revert-zram-move-compact_store-to-sysfs-functions-area.patch
+revert-fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask.patch
 ocfs2-reduce-object-size-of-mlog-uses-fix.patch
 ocfs2-remove-__mlog_cpu_guess.patch
 ocfs2-remove-__mlog_cpu_guess-fix.patch
@@ -124,11 +142,11 @@ mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
 mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
 rtc-omap-add-external-32k-clock-feature-fix.patch
 linux-next.patch
+linux-next-git-rejects.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
 journal_add_journal_head-debug.patch
 journal_add_journal_head-debug-fix.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
 mutex-subsystem-synchro-test-module.patch
 slab-leaks3-default-y.patch
-linux-next-git-rejects.patch
 
