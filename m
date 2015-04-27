@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set-fix.patch added to -mm tree
-Date: Mon, 27 Apr 2015 15:34:36 -0700
-Message-ID: <553eb97c.iPIA/aysp9GWe+ei%akpm@linux-foundation.org>
+ mm-meminit-minimise-number-of-pfn-page-lookups-during-initialisation.patch
+ added to -mm tree
+Date: Mon, 27 Apr 2015 15:34:43 -0700
+Message-ID: <553eb983.U7HA28N41MqPnzXn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39988 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40007 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965241AbbD0Weh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Apr 2015 18:34:37 -0400
+	with ESMTP id S965262AbbD0Weo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Apr 2015 18:34:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mgorman@suse.de, daniel@numascale.com, dave.hansen@intel.com, holt@sgi.com, hpa@zytor.com, mingo@elte.hu, nzimmer@sgi.com, scott.norton@hp.com, tglx@linutronix.de, tony.luck@intel.com, waiman.long@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set-fix
+     Subject: mm: meminit: minimise number of pfn->page lookups during initialisation
 has been added to the -mm tree.  Its filename is
-     mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set-fix.patch
+     mm-meminit-minimise-number-of-pfn-page-lookups-during-initialisation.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-meminit-minimise-number-of-pfn-page-lookups-during-initialisation.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-meminit-minimise-number-of-pfn-page-lookups-during-initialisation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,18 +41,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set-fix
+Subject: mm: meminit: minimise number of pfn->page lookups during initialisation
 
-On Thu, Apr 23, 2015 at 11:33:10AM +0100, Mel Gorman wrote:
-> This patch initalises all low memory struct pages and 2G of the highest zone
-> on each node during memory initialisation if CONFIG_DEFERRED_STRUCT_PAGE_INIT
-> is set. That config option cannot be set but will be available in a later
-> patch.  Parallel initialisation of struct page depends on some features
-> from memory hotplug and it is necessary to alter alter section annotations.
->
-
-I belatedly noticed that this causes section warnings. It'll be harmless
-for testing but the next (hopefully last) version will have this on top
+Deferred struct page initialisation is using pfn_to_page() on every PFN
+unnecessarily.  This patch minimises the number of lookups and scheduler
+checks.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Cc: Daniel J Blueman <daniel@numascale.com>
@@ -67,55 +61,65 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ mm/page_alloc.c |   29 ++++++++++++++++++++++++-----
+ 1 file changed, 24 insertions(+), 5 deletions(-)
 
-diff -puN drivers/base/node.c~mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set-fix drivers/base/node.c
---- a/drivers/base/node.c~mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set-fix
-+++ a/drivers/base/node.c
-@@ -359,14 +359,14 @@ int unregister_cpu_under_node(unsigned i
- #ifdef CONFIG_MEMORY_HOTPLUG_SPARSE
- #define page_initialized(page)  (page->lru.next)
+diff -puN mm/page_alloc.c~mm-meminit-minimise-number-of-pfn-page-lookups-during-initialisation mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-meminit-minimise-number-of-pfn-page-lookups-during-initialisation
++++ a/mm/page_alloc.c
+@@ -1080,6 +1080,7 @@ void __defermem_init deferred_init_memma
  
--static int get_nid_for_pfn(struct pglist_data *pgdat, unsigned long pfn)
-+static int __init_refok get_nid_for_pfn(unsigned long pfn)
- {
- 	struct page *page;
+ 		for_each_mem_pfn_range(i, nid, &walk_start, &walk_end, NULL) {
+ 			unsigned long pfn, end_pfn;
++			struct page *page = NULL;
  
- 	if (!pfn_valid_within(pfn))
- 		return -1;
- #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
--	if (pgdat && pfn >= pgdat->first_deferred_pfn)
-+	if (system_state == SYSTEM_BOOTING)
- 		return early_pfn_to_nid(pfn);
- #endif
- 	page = pfn_to_page(pfn);
-@@ -380,7 +380,6 @@ int register_mem_sect_under_node(struct
- {
- 	int ret;
- 	unsigned long pfn, sect_start_pfn, sect_end_pfn;
--	struct pglist_data *pgdat = NODE_DATA(nid);
+ 			end_pfn = min(walk_end, zone_end_pfn(zone));
+ 			pfn = first_init_pfn;
+@@ -1089,13 +1090,32 @@ void __defermem_init deferred_init_memma
+ 				pfn = zone->zone_start_pfn;
  
- 	if (!mem_blk)
- 		return -EFAULT;
-@@ -393,7 +392,7 @@ int register_mem_sect_under_node(struct
- 	for (pfn = sect_start_pfn; pfn <= sect_end_pfn; pfn++) {
- 		int page_nid;
+ 			for (; pfn < end_pfn; pfn++) {
+-				struct page *page;
+-
+-				if (!pfn_valid(pfn))
++				if (!pfn_valid_within(pfn))
+ 					continue;
  
--		page_nid = get_nid_for_pfn(pgdat, pfn);
-+		page_nid = get_nid_for_pfn(pfn);
- 		if (page_nid < 0)
- 			continue;
- 		if (page_nid != nid)
-@@ -432,7 +431,7 @@ int unregister_mem_sect_under_nodes(stru
- 	for (pfn = sect_start_pfn; pfn <= sect_end_pfn; pfn++) {
- 		int nid;
+-				if (!meminit_pfn_in_nid(pfn, nid, &nid_init_state))
++				/*
++				 * Ensure pfn_valid is checked every
++				 * MAX_ORDER_NR_PAGES for memory holes
++				 */
++				if ((pfn & (MAX_ORDER_NR_PAGES - 1)) == 0) {
++					if (!pfn_valid(pfn)) {
++						page = NULL;
++						continue;
++					}
++				}
++
++				if (!meminit_pfn_in_nid(pfn, nid, &nid_init_state)) {
++					page = NULL;
+ 					continue;
++				}
++
++				/* Minimise pfn page lookups and scheduler checks */
++				if (page && (pfn & (MAX_ORDER_NR_PAGES - 1)) != 0) {
++					page++;
++				} else {
++					page = pfn_to_page(pfn);
++					cond_resched();
++				}
  
--		nid = get_nid_for_pfn(NULL, pfn);
-+		nid = get_nid_for_pfn(pfn);
- 		if (nid < 0)
- 			continue;
- 		if (!node_online(nid))
+ 				if (page->flags) {
+ 					VM_BUG_ON(page_zone(page) != zone);
+@@ -1104,7 +1124,6 @@ void __defermem_init deferred_init_memma
+ 
+ 				__init_single_page(page, pfn, zid, nid);
+ 				__free_pages_boot_core(page, pfn, 0);
+-				cond_resched();
+ 			}
+ 			first_init_pfn = max(end_pfn, first_init_pfn);
+ 		}
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
