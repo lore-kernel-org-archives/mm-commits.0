@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-meminit-only-set-page-reserved-in-the-memblock-region.patch
- added to -mm tree
-Date: Mon, 27 Apr 2015 15:34:20 -0700
-Message-ID: <553eb96c.BSJ46646neYTGDw+%akpm@linux-foundation.org>
+Subject: + mm-page_alloc-pass-pfn-to-__free_pages_bootmem.patch added to
+ -mm tree
+Date: Mon, 27 Apr 2015 15:34:22 -0700
+Message-ID: <553eb96e.YX0mbApMJfgHDOJK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39950 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39958 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965115AbbD0WeV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Apr 2015 18:34:21 -0400
+	with ESMTP id S965161AbbD0WeX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Apr 2015 18:34:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nzimmer@sgi.com, daniel@numascale.com, dave.hansen@intel.com, holt@sgi.com, hpa@zytor.com, mgorman@suse.de, mingo@elte.hu, scott.norton@hp.com, tglx@linutronix.de, tony.luck@intel.com, waiman.long@hp.com, mm-commits@vger.kernel.org
+To: mgorman@suse.de, daniel@numascale.com, dave.hansen@intel.com, holt@sgi.com, hpa@zytor.com, mingo@elte.hu, nzimmer@sgi.com, scott.norton@hp.com, tglx@linutronix.de, tony.luck@intel.com, waiman.long@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: meminit: only set page reserved in the memblock region
+     Subject: mm: page_alloc: pass PFN to __free_pages_bootmem
 has been added to the -mm tree.  Its filename is
-     mm-meminit-only-set-page-reserved-in-the-memblock-region.patch
+     mm-page_alloc-pass-pfn-to-__free_pages_bootmem.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-meminit-only-set-page-reserved-in-the-memblock-region.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-pass-pfn-to-__free_pages_bootmem.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-meminit-only-set-page-reserved-in-the-memblock-region.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-pass-pfn-to-__free_pages_bootmem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,18 +39,20 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Nathan Zimmer <nzimmer@sgi.com>
-Subject: mm: meminit: only set page reserved in the memblock region
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm: page_alloc: pass PFN to __free_pages_bootmem
 
-Currently each page struct is set as reserved upon initialization.  This
-changes to starting with the reserved bit clear and then only setting the
-bit in the reserved region.
+__free_pages_bootmem prepares a page for release to the buddy allocator
+and assumes that the struct page is initialised.  Parallel initialisation
+of struct pages defers initialisation and __free_pages_bootmem can be
+called for struct pages that cannot yet map struct page to PFN.  This
+patch passes PFN to __free_pages_bootmem with no other functional change.
 
-Signed-off-by: Robin Holt <holt@sgi.com>
-Signed-off-by: Nathan Zimmer <nzimmer@sgi.com>
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Cc: Daniel J Blueman <daniel@numascale.com>
 Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Nathan Zimmer <nzimmer@sgi.com>
+Cc: Robin Holt <holt@sgi.com>
 Cc: Scott Norton <scott.norton@hp.com>
 Cc: Waiman Long <waiman.long@hp.com>
 Cc: "Luck, Tony" <tony.luck@intel.com>
@@ -60,68 +62,120 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 ++
- mm/nobootmem.c     |    3 +++
- mm/page_alloc.c    |   11 ++++++++++-
- 3 files changed, 15 insertions(+), 1 deletion(-)
+ mm/bootmem.c    |    8 ++++----
+ mm/internal.h   |    3 ++-
+ mm/memblock.c   |    2 +-
+ mm/nobootmem.c  |    4 ++--
+ mm/page_alloc.c |    3 ++-
+ 5 files changed, 11 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/mm.h~mm-meminit-only-set-page-reserved-in-the-memblock-region include/linux/mm.h
---- a/include/linux/mm.h~mm-meminit-only-set-page-reserved-in-the-memblock-region
-+++ a/include/linux/mm.h
-@@ -1631,6 +1631,8 @@ extern void free_highmem_page(struct pag
- extern void adjust_managed_page_count(struct page *page, long count);
- extern void mem_init_print_info(const char *str);
+diff -puN mm/bootmem.c~mm-page_alloc-pass-pfn-to-__free_pages_bootmem mm/bootmem.c
+--- a/mm/bootmem.c~mm-page_alloc-pass-pfn-to-__free_pages_bootmem
++++ a/mm/bootmem.c
+@@ -164,7 +164,7 @@ void __init free_bootmem_late(unsigned l
+ 	end = PFN_DOWN(physaddr + size);
  
-+extern void reserve_bootmem_region(unsigned long start, unsigned long end);
-+
- /* Free the reserved page into the buddy system, so it gets managed. */
- static inline void __free_reserved_page(struct page *page)
- {
-diff -puN mm/nobootmem.c~mm-meminit-only-set-page-reserved-in-the-memblock-region mm/nobootmem.c
---- a/mm/nobootmem.c~mm-meminit-only-set-page-reserved-in-the-memblock-region
-+++ a/mm/nobootmem.c
-@@ -121,6 +121,9 @@ static unsigned long __init free_low_mem
+ 	for (; cursor < end; cursor++) {
+-		__free_pages_bootmem(pfn_to_page(cursor), 0);
++		__free_pages_bootmem(pfn_to_page(cursor), cursor, 0);
+ 		totalram_pages++;
+ 	}
+ }
+@@ -210,7 +210,7 @@ static unsigned long __init free_all_boo
+ 		if (IS_ALIGNED(start, BITS_PER_LONG) && vec == ~0UL) {
+ 			int order = ilog2(BITS_PER_LONG);
  
- 	memblock_clear_hotplug(0, -1);
+-			__free_pages_bootmem(pfn_to_page(start), order);
++			__free_pages_bootmem(pfn_to_page(start), start, order);
+ 			count += BITS_PER_LONG;
+ 			start += BITS_PER_LONG;
+ 		} else {
+@@ -220,7 +220,7 @@ static unsigned long __init free_all_boo
+ 			while (vec && cur != start) {
+ 				if (vec & 1) {
+ 					page = pfn_to_page(cur);
+-					__free_pages_bootmem(page, 0);
++					__free_pages_bootmem(page, cur, 0);
+ 					count++;
+ 				}
+ 				vec >>= 1;
+@@ -234,7 +234,7 @@ static unsigned long __init free_all_boo
+ 	pages = bootmem_bootmap_pages(pages);
+ 	count += pages;
+ 	while (pages--)
+-		__free_pages_bootmem(page++, 0);
++		__free_pages_bootmem(page++, cur++, 0);
  
-+	for_each_reserved_mem_region(i, &start, &end)
-+		reserve_bootmem_region(start, end);
-+
- 	for_each_free_mem_range(i, NUMA_NO_NODE, &start, &end, NULL)
- 		count += __free_memory_core(start, end);
+ 	bdebug("nid=%td released=%lx\n", bdata - bootmem_node_data, count);
  
-diff -puN mm/page_alloc.c~mm-meminit-only-set-page-reserved-in-the-memblock-region mm/page_alloc.c
---- a/mm/page_alloc.c~mm-meminit-only-set-page-reserved-in-the-memblock-region
-+++ a/mm/page_alloc.c
-@@ -788,7 +788,6 @@ static void __meminit __init_single_page
- 	init_page_count(page);
- 	page_mapcount_reset(page);
- 	page_cpupid_reset_last(page);
--	SetPageReserved(page);
- 
- 	/*
- 	 * Mark the block movable so that blocks are reserved for
-@@ -823,6 +822,16 @@ static void __meminit __init_single_pfn(
- 	return __init_single_page(pfn_to_page(pfn), pfn, zone, nid);
+diff -puN mm/internal.h~mm-page_alloc-pass-pfn-to-__free_pages_bootmem mm/internal.h
+--- a/mm/internal.h~mm-page_alloc-pass-pfn-to-__free_pages_bootmem
++++ a/mm/internal.h
+@@ -155,7 +155,8 @@ __find_buddy_index(unsigned long page_id
  }
  
-+void reserve_bootmem_region(unsigned long start, unsigned long end)
-+{
-+	unsigned long start_pfn = PFN_DOWN(start);
-+	unsigned long end_pfn = PFN_UP(end);
-+
-+	for (; start_pfn < end_pfn; start_pfn++)
-+		if (pfn_valid(start_pfn))
-+			SetPageReserved(pfn_to_page(start_pfn));
-+}
-+
- static bool free_pages_prepare(struct page *page, unsigned int order)
+ extern int __isolate_free_page(struct page *page, unsigned int order);
+-extern void __free_pages_bootmem(struct page *page, unsigned int order);
++extern void __free_pages_bootmem(struct page *page, unsigned long pfn,
++					unsigned int order);
+ extern void prep_compound_page(struct page *page, unsigned long order);
+ #ifdef CONFIG_MEMORY_FAILURE
+ extern bool is_free_buddy_page(struct page *page);
+diff -puN mm/memblock.c~mm-page_alloc-pass-pfn-to-__free_pages_bootmem mm/memblock.c
+--- a/mm/memblock.c~mm-page_alloc-pass-pfn-to-__free_pages_bootmem
++++ a/mm/memblock.c
+@@ -1348,7 +1348,7 @@ void __init __memblock_free_late(phys_ad
+ 	end = PFN_DOWN(base + size);
+ 
+ 	for (; cursor < end; cursor++) {
+-		__free_pages_bootmem(pfn_to_page(cursor), 0);
++		__free_pages_bootmem(pfn_to_page(cursor), cursor, 0);
+ 		totalram_pages++;
+ 	}
+ }
+diff -puN mm/nobootmem.c~mm-page_alloc-pass-pfn-to-__free_pages_bootmem mm/nobootmem.c
+--- a/mm/nobootmem.c~mm-page_alloc-pass-pfn-to-__free_pages_bootmem
++++ a/mm/nobootmem.c
+@@ -77,7 +77,7 @@ void __init free_bootmem_late(unsigned l
+ 	end = PFN_DOWN(addr + size);
+ 
+ 	for (; cursor < end; cursor++) {
+-		__free_pages_bootmem(pfn_to_page(cursor), 0);
++		__free_pages_bootmem(pfn_to_page(cursor), cursor, 0);
+ 		totalram_pages++;
+ 	}
+ }
+@@ -92,7 +92,7 @@ static void __init __free_pages_memory(u
+ 		while (start + (1UL << order) > end)
+ 			order--;
+ 
+-		__free_pages_bootmem(pfn_to_page(start), order);
++		__free_pages_bootmem(pfn_to_page(start), start, order);
+ 
+ 		start += (1UL << order);
+ 	}
+diff -puN mm/page_alloc.c~mm-page_alloc-pass-pfn-to-__free_pages_bootmem mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-pass-pfn-to-__free_pages_bootmem
++++ a/mm/page_alloc.c
+@@ -886,7 +886,8 @@ static void __free_pages_ok(struct page
+ 	local_irq_restore(flags);
+ }
+ 
+-void __init __free_pages_bootmem(struct page *page, unsigned int order)
++void __init __free_pages_bootmem(struct page *page, unsigned long pfn,
++							unsigned int order)
  {
- 	bool compound = PageCompound(page);
+ 	unsigned int nr_pages = 1 << order;
+ 	struct page *p = page;
 _
 
-Patches currently in -mm which might be from nzimmer@sgi.com are
+Patches currently in -mm which might be from mgorman@suse.de are
 
+jbd2-revert-must-not-fail-allocation-loops-back-to-gfp_nofail.patch
+thp-cleanup-how-khugepaged-enters-freezer.patch
+mm-new-mm-hook-framework.patch
+mm-new-arch_remap-hook.patch
+powerpc-mm-tracking-vdso-remap.patch
 memblock-introduce-a-for_each_reserved_mem_region-iterator.patch
 mm-meminit-move-page-initialization-into-a-separate-function.patch
 mm-meminit-only-set-page-reserved-in-the-memblock-region.patch
@@ -131,9 +185,31 @@ mm-meminit-inline-some-helper-functions.patch
 mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set.patch
 mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set-fix.patch
 mm-meminit-initialise-remaining-struct-pages-in-parallel-with-kswapd.patch
+mm-meminit-initialise-remaining-struct-pages-in-parallel-with-kswapd-fix.patch
 mm-meminit-minimise-number-of-pfn-page-lookups-during-initialisation.patch
 x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
 mm-meminit-free-pages-in-large-chunks-where-possible.patch
 mm-meminit-reduce-number-of-times-pageblocks-are-set-during-struct-page-init.patch
 mm-meminit-remove-mminit_verify_page_links.patch
+page-flags-trivial-cleanup-for-pagetrans-helpers.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
+page-flags-define-pg_locked-behavior-on-compound-pages.patch
+page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
+page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
+page-flags-define-pg_reserved-behavior-on-compound-pages.patch
+page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
+page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
+page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
+page-flags-define-pg_uncached-behavior-on-compound-pages.patch
+page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
+page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
+mm-sanitize-page-mapping-for-tail-pages.patch
+mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-reclaimable-pages.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+mm-move-lazy-free-pages-to-inactive-list.patch
+mm-move-lazy-free-pages-to-inactive-list-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
 
