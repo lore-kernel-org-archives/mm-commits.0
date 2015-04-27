@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-meminit-reduce-number-of-times-pageblocks-are-set-during-struct-page-init.patch added to -mm tree
-Date: Mon, 27 Apr 2015 15:34:49 -0700
-Message-ID: <553eb989.N6A+HxIdNSQmNng/%akpm@linux-foundation.org>
+Subject: + mm-meminit-inline-some-helper-functions-checkpatch-fixes.patch
+ added to -mm tree
+Date: Mon, 27 Apr 2015 15:42:59 -0700
+Message-ID: <553ebb73.tqwL6b5bDMFMa0J7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40029 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40063 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965280AbbD0Weu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Apr 2015 18:34:50 -0400
+	with ESMTP id S965070AbbD0WnA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Apr 2015 18:43:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, daniel@numascale.com, dave.hansen@intel.com, holt@sgi.com, hpa@zytor.com, mingo@elte.hu, nzimmer@sgi.com, scott.norton@hp.com, tglx@linutronix.de, tony.luck@intel.com, waiman.long@hp.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mgorman@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: meminit: reduce number of times pageblocks are set during struct page init
+     Subject: mm-meminit-inline-some-helper-functions-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     mm-meminit-reduce-number-of-times-pageblocks-are-set-during-struct-page-init.patch
+     mm-meminit-inline-some-helper-functions-checkpatch-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-meminit-reduce-number-of-times-pageblocks-are-set-during-struct-page-init.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-meminit-inline-some-helper-functions-checkpatch-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-meminit-reduce-number-of-times-pageblocks-are-set-during-struct-page-init.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-meminit-inline-some-helper-functions-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,148 +39,80 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: meminit: reduce number of times pageblocks are set during struct page init
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-meminit-inline-some-helper-functions-checkpatch-fixes
 
-During parallel sturct page initialisation, ranges are checked for every
-PFN unnecessarily which increases boot times.  This patch alters when the
-ranges are checked.
+ERROR: code indent should use tabs where possible
+#54: FILE: mm/page_alloc.c:911:
++        defined(CONFIG_HAVE_MEMBLOCK_NODE_MAP)$
 
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Cc: Daniel J Blueman <daniel@numascale.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Nathan Zimmer <nzimmer@sgi.com>
-Cc: Robin Holt <holt@sgi.com>
-Cc: Scott Norton <scott.norton@hp.com>
-Cc: Waiman Long <waiman.long@hp.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+WARNING: please, no spaces at the start of a line
+#54: FILE: mm/page_alloc.c:911:
++        defined(CONFIG_HAVE_MEMBLOCK_NODE_MAP)$
+
+total: 1 errors, 1 warnings, 102 lines checked
+
+NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
+      scripts/cleanfile
+
+./patches/mm-meminit-inline-some-helper-functions.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   45 +++++++++++++++++++++++----------------------
- 1 file changed, 23 insertions(+), 22 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-meminit-reduce-number-of-times-pageblocks-are-set-during-struct-page-init mm/page_alloc.c
---- a/mm/page_alloc.c~mm-meminit-reduce-number-of-times-pageblocks-are-set-during-struct-page-init
+diff -puN mm/page_alloc.c~mm-meminit-inline-some-helper-functions-checkpatch-fixes mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-meminit-inline-some-helper-functions-checkpatch-fixes
 +++ a/mm/page_alloc.c
-@@ -852,33 +852,12 @@ static int free_tail_pages_check(struct
- static void __meminit __init_single_page(struct page *page, unsigned long pfn,
- 				unsigned long zone, int nid)
- {
--	struct zone *z = &NODE_DATA(nid)->node_zones[zone];
--
- 	set_page_links(page, zone, nid, pfn);
- 	mminit_verify_page_links(page, zone, nid, pfn);
- 	init_page_count(page);
- 	page_mapcount_reset(page);
- 	page_cpupid_reset_last(page);
- 
--	/*
--	 * Mark the block movable so that blocks are reserved for
--	 * movable at startup. This will force kernel allocations
--	 * to reserve their blocks rather than leaking throughout
--	 * the address space during boot when many long-lived
--	 * kernel allocations are made. Later some blocks near
--	 * the start are marked MIGRATE_RESERVE by
--	 * setup_zone_migrate_reserve()
--	 *
--	 * bitmap is created for zone's valid pfn range. but memmap
--	 * can be created for invalid pages (for alignment)
--	 * check here not to call set_pageblock_migratetype() against
--	 * pfn out of zone.
--	 */
--	if ((z->zone_start_pfn <= pfn)
--	    && (pfn < zone_end_pfn(z))
--	    && !(pfn & (pageblock_nr_pages - 1)))
--		set_pageblock_migratetype(page, MIGRATE_MOVABLE);
--
- 	INIT_LIST_HEAD(&page->lru);
- #ifdef WANT_PAGE_VIRTUAL
- 	/* The shift won't overflow because ZONE_NORMAL is below 4G. */
-@@ -1062,6 +1041,7 @@ void __defermem_init deferred_free_range
- 	int i;
- 
- 	if (nr_pages == MAX_ORDER_NR_PAGES && (pfn & (MAX_ORDER_NR_PAGES-1)) == 0) {
-+		set_pageblock_migratetype(page, MIGRATE_MOVABLE);
- 		__free_pages_boot_core(page, pfn, MAX_ORDER-1);
- 		return;
- 	}
-@@ -4513,7 +4493,28 @@ void __meminit memmap_init_zone(unsigned
- 						&nr_initialised))
- 				break;
- 		}
--		__init_single_pfn(pfn, zone, nid);
-+
-+		/*
-+		 * Mark the block movable so that blocks are reserved for
-+		 * movable at startup. This will force kernel allocations
-+		 * to reserve their blocks rather than leaking throughout
-+		 * the address space during boot when many long-lived
-+		 * kernel allocations are made. Later some blocks near
-+		 * the start are marked MIGRATE_RESERVE by
-+		 * setup_zone_migrate_reserve()
-+		 *
-+		 * bitmap is created for zone's valid pfn range. but memmap
-+		 * can be created for invalid pages (for alignment)
-+		 * check here not to call set_pageblock_migratetype() against
-+		 * pfn out of zone.
-+		 */
-+		if (!(pfn & (pageblock_nr_pages - 1))) {
-+			struct page *page = pfn_to_page(pfn);
-+			set_pageblock_migratetype(page, MIGRATE_MOVABLE);
-+			__init_single_page(page, pfn, zone, nid);
-+		} else {
-+			__init_single_pfn(pfn, zone, nid);
-+		}
- 	}
+@@ -908,7 +908,7 @@ void __init __free_pages_bootmem(struct
  }
  
+ #if defined(CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID) || \
+-        defined(CONFIG_HAVE_MEMBLOCK_NODE_MAP)
++	defined(CONFIG_HAVE_MEMBLOCK_NODE_MAP)
+ /* Only safe to use early in boot when initialisation is single-threaded */
+ struct __meminitdata mminit_pfnnid_cache global_init_state;
+ int __meminit early_pfn_to_nid(unsigned long pfn)
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-jbd2-revert-must-not-fail-allocation-loops-back-to-gfp_nofail.patch
-thp-cleanup-how-khugepaged-enters-freezer.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+revert-zram-move-compact_store-to-sysfs-functions-area.patch
+maintainers-add-co-maintainer-for-led-subsystem.patch
+revert-fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask.patch
+ocfs2-reduce-object-size-of-mlog-uses-fix.patch
+ocfs2-remove-__mlog_cpu_guess.patch
+ocfs2-remove-__mlog_cpu_guess-fix.patch
+mm.patch
+mm-slab_common-support-the-slub_debug-boot-option-on-specific-object-size-fix.patch
+slub-bulk-allocation-from-per-cpu-partial-pages-fix.patch
+mm-fix-mprotect-behaviour-on-vm_locked-vmas-fix.patch
 mm-new-mm-hook-framework.patch
-mm-new-arch_remap-hook.patch
-powerpc-mm-tracking-vdso-remap.patch
-memblock-introduce-a-for_each_reserved_mem_region-iterator.patch
-mm-meminit-move-page-initialization-into-a-separate-function.patch
-mm-meminit-only-set-page-reserved-in-the-memblock-region.patch
-mm-page_alloc-pass-pfn-to-__free_pages_bootmem.patch
-mm-meminit-make-__early_pfn_to_nid-smp-safe-and-introduce-meminit_pfn_in_nid.patch
-mm-meminit-inline-some-helper-functions.patch
-mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set.patch
-mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set-fix.patch
-mm-meminit-initialise-remaining-struct-pages-in-parallel-with-kswapd.patch
+mm-meminit-inline-some-helper-functions-checkpatch-fixes.patch
 mm-meminit-initialise-remaining-struct-pages-in-parallel-with-kswapd-fix.patch
-mm-meminit-minimise-number-of-pfn-page-lookups-during-initialisation.patch
-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
-mm-meminit-free-pages-in-large-chunks-where-possible.patch
-mm-meminit-reduce-number-of-times-pageblocks-are-set-during-struct-page-init.patch
-mm-meminit-remove-mminit_verify_page_links.patch
-page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-mm-sanitize-page-mapping-for-tail-pages.patch
-mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-reclaimable-pages.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
 mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-mm-move-lazy-free-pages-to-inactive-list.patch
-mm-move-lazy-free-pages-to-inactive-list-fix.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
 mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
+rtc-omap-add-external-32k-clock-feature-fix.patch
+linux-next.patch
+linux-next-git-rejects.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
