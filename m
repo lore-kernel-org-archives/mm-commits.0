@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-meminit-inline-some-helper-functions.patch added to -mm tree
-Date: Mon, 27 Apr 2015 15:34:26 -0700
-Message-ID: <553eb972.1exmR/fVntJl0N/9%akpm@linux-foundation.org>
+Subject: +
+ mm-meminit-initialise-remaining-struct-pages-in-parallel-with-kswapd.patch
+ added to -mm tree
+Date: Mon, 27 Apr 2015 15:34:38 -0700
+Message-ID: <553eb97e.9Ngim0P5CrmtXohY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39974 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39996 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965213AbbD0We1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Apr 2015 18:34:27 -0400
+	with ESMTP id S965241AbbD0Wej (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Apr 2015 18:34:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mgorman@suse.de, daniel@numascale.com, dave.hansen@intel.com, holt@sgi.com, hpa@zytor.com, mingo@elte.hu, nzimmer@sgi.com, scott.norton@hp.com, tglx@linutronix.de, tony.luck@intel.com, waiman.long@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: meminit: inline some helper functions
+     Subject: mm: meminit: initialise remaining struct pages in parallel with kswapd
 has been added to the -mm tree.  Its filename is
-     mm-meminit-inline-some-helper-functions.patch
+     mm-meminit-initialise-remaining-struct-pages-in-parallel-with-kswapd.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-meminit-inline-some-helper-functions.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-meminit-initialise-remaining-struct-pages-in-parallel-with-kswapd.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-meminit-inline-some-helper-functions.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-meminit-initialise-remaining-struct-pages-in-parallel-with-kswapd.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,12 +41,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: meminit: inline some helper functions
+Subject: mm: meminit: initialise remaining struct pages in parallel with kswapd
 
-early_pfn_in_nid() and meminit_pfn_in_nid() are small functions that are
-unnecessarily visible outside memory initialisation.  As well as
-unnecessary visibility, it's unnecessary function call overhead when
-initialising pages.  This patch moves the helpers inline.
+Only a subset of struct pages are initialised at the moment.  When this
+patch is applied kswapd initialises the remaining struct pages in parallel.
+This should boot faster by spreading the work to multiple CPUs and
+initialising data that is local to the CPU.  The user-visible effect on
+large machines is that free memory will appear to rapidly increase early
+in the lifetime of the system until kswapd reports that all memory is
+initialised in the kernel log.  Once initialised there should be no other
+user-visible effects.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Cc: Daniel J Blueman <daniel@numascale.com>
@@ -60,121 +66,230 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    9 ----
- mm/page_alloc.c        |   75 +++++++++++++++++++--------------------
- 2 files changed, 38 insertions(+), 46 deletions(-)
+ mm/internal.h   |    6 ++
+ mm/mm_init.c    |    1 
+ mm/page_alloc.c |  116 ++++++++++++++++++++++++++++++++++++++++++++--
+ mm/vmscan.c     |    6 +-
+ 4 files changed, 123 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/mmzone.h~mm-meminit-inline-some-helper-functions include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-meminit-inline-some-helper-functions
-+++ a/include/linux/mmzone.h
-@@ -1227,15 +1227,6 @@ struct mminit_pfnnid_cache {
- 	int last_nid;
- };
- 
--#ifdef CONFIG_NODES_SPAN_OTHER_NODES
--bool early_pfn_in_nid(unsigned long pfn, int nid);
--bool meminit_pfn_in_nid(unsigned long pfn, int node,
--			struct mminit_pfnnid_cache *state);
--#else
--#define early_pfn_in_nid(pfn, nid)		(1)
--#define meminit_pfn_in_nid(pfn, nid, state)	(1)
--#endif
--
- #ifndef early_pfn_valid
- #define early_pfn_valid(pfn)	(1)
+diff -puN mm/internal.h~mm-meminit-initialise-remaining-struct-pages-in-parallel-with-kswapd mm/internal.h
+--- a/mm/internal.h~mm-meminit-initialise-remaining-struct-pages-in-parallel-with-kswapd
++++ a/mm/internal.h
+@@ -390,9 +390,15 @@ static inline void mminit_verify_zonelis
+ #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
+ #define __defermem_init __meminit
+ #define __defer_init    __meminit
++
++void deferred_init_memmap(int nid);
+ #else
+ #define __defermem_init
+ #define __defer_init __init
++
++static inline void deferred_init_memmap(int nid)
++{
++}
  #endif
-diff -puN mm/page_alloc.c~mm-meminit-inline-some-helper-functions mm/page_alloc.c
---- a/mm/page_alloc.c~mm-meminit-inline-some-helper-functions
+ 
+ /* mminit_validate_memmodel_limits is independent of CONFIG_DEBUG_MEMORY_INIT */
+diff -puN mm/mm_init.c~mm-meminit-initialise-remaining-struct-pages-in-parallel-with-kswapd mm/mm_init.c
+--- a/mm/mm_init.c~mm-meminit-initialise-remaining-struct-pages-in-parallel-with-kswapd
++++ a/mm/mm_init.c
+@@ -11,6 +11,7 @@
+ #include <linux/export.h>
+ #include <linux/memory.h>
+ #include <linux/notifier.h>
++#include <linux/sched.h>
+ #include "internal.h"
+ 
+ #ifdef CONFIG_DEBUG_MEMORY_INIT
+diff -puN mm/page_alloc.c~mm-meminit-initialise-remaining-struct-pages-in-parallel-with-kswapd mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-meminit-initialise-remaining-struct-pages-in-parallel-with-kswapd
 +++ a/mm/page_alloc.c
-@@ -907,6 +907,44 @@ void __init __free_pages_bootmem(struct
- 	__free_pages(page, order);
+@@ -252,6 +252,14 @@ static inline bool __defermem_init early
+ 	return false;
  }
  
-+#if defined(CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID) || \
-+        defined(CONFIG_HAVE_MEMBLOCK_NODE_MAP)
-+/* Only safe to use early in boot when initialisation is single-threaded */
-+struct __meminitdata mminit_pfnnid_cache global_init_state;
-+int __meminit early_pfn_to_nid(unsigned long pfn)
++static inline bool early_page_nid_uninitialised(unsigned long pfn, int nid)
 +{
-+	int nid;
++	if (pfn >= NODE_DATA(nid)->first_deferred_pfn)
++		return true;
 +
-+	/* The system will behave unpredictably otherwise */
-+	BUG_ON(system_state != SYSTEM_BOOTING);
-+
-+	nid = __early_pfn_to_nid(pfn, &global_init_state);
-+	if (nid >= 0)
-+		return nid;
-+	/* just returns 0 */
-+	return 0;
-+}
-+#endif
-+
-+#ifdef CONFIG_NODES_SPAN_OTHER_NODES
-+static inline bool __meminit meminit_pfn_in_nid(unsigned long pfn, int node,
-+					struct mminit_pfnnid_cache *state)
-+{
-+	int nid;
-+
-+	nid = __early_pfn_to_nid(pfn, state);
-+	if (nid >= 0 && nid != node)
-+		return false;
-+	return true;
++	return false;
 +}
 +
-+/* Only safe to use early in boot when initialisation is single-threaded */
-+static inline bool __meminit early_pfn_in_nid(unsigned long pfn, int node)
+ /*
+  * Returns false when the remaining initialisation should be deferred until
+  * later in the boot cycle when it can be parallelised.
+@@ -284,6 +292,11 @@ static inline bool early_page_uninitiali
+ 	return false;
+ }
+ 
++static inline bool early_page_nid_uninitialised(unsigned long pfn, int nid)
 +{
-+	return meminit_pfn_in_nid(pfn, node, &global_init_state);
++	return false;
 +}
-+#endif
++
+ static inline bool update_defer_init(pg_data_t *pgdat,
+ 				unsigned long pfn, unsigned long zone_end,
+ 				unsigned long *nr_initialised)
+@@ -880,14 +893,45 @@ static void __meminit __init_single_pfn(
+ 	return __init_single_page(pfn_to_page(pfn), pfn, zone, nid);
+ }
+ 
+-void reserve_bootmem_region(unsigned long start, unsigned long end)
++#ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
++static void init_reserved_page(unsigned long pfn)
++{
++	pg_data_t *pgdat;
++	int nid, zid;
++
++	if (!early_page_uninitialised(pfn))
++		return;
++
++	nid = early_pfn_to_nid(pfn);
++	pgdat = NODE_DATA(nid);
++
++	for (zid = 0; zid < MAX_NR_ZONES; zid++) {
++		struct zone *zone = &pgdat->node_zones[zid];
++
++		if (pfn >= zone->zone_start_pfn && pfn < zone_end_pfn(zone))
++			break;
++	}
++	__init_single_pfn(pfn, zid, nid);
++}
++#else
++static inline void init_reserved_page(unsigned long pfn)
++{
++}
++#endif /* CONFIG_DEFERRED_STRUCT_PAGE_INIT */
++
++void __meminit reserve_bootmem_region(unsigned long start, unsigned long end)
+ {
+ 	unsigned long start_pfn = PFN_DOWN(start);
+ 	unsigned long end_pfn = PFN_UP(end);
+ 
+-	for (; start_pfn < end_pfn; start_pfn++)
+-		if (pfn_valid(start_pfn))
+-			SetPageReserved(pfn_to_page(start_pfn));
++	for (; start_pfn < end_pfn; start_pfn++) {
++		if (pfn_valid(start_pfn)) {
++			struct page *page = pfn_to_page(start_pfn);
++
++			init_reserved_page(start_pfn);
++			SetPageReserved(page);
++		}
++	}
+ }
+ 
+ static bool free_pages_prepare(struct page *page, unsigned int order)
+@@ -1011,6 +1055,67 @@ void __defer_init __free_pages_bootmem(s
+ 	return __free_pages_boot_core(page, pfn, order);
+ }
+ 
++#ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
++/* Initialise remaining memory on a node */
++void __defermem_init deferred_init_memmap(int nid)
++{
++	unsigned long start = jiffies;
++	struct mminit_pfnnid_cache nid_init_state = { };
++
++	pg_data_t *pgdat = NODE_DATA(nid);
++	int zid;
++	unsigned long first_init_pfn = pgdat->first_deferred_pfn;
++
++	if (first_init_pfn == ULONG_MAX)
++		return;
++
++	/* Sanity check boundaries */
++	BUG_ON(pgdat->first_deferred_pfn < pgdat->node_start_pfn);
++	BUG_ON(pgdat->first_deferred_pfn > pgdat_end_pfn(pgdat));
++	pgdat->first_deferred_pfn = ULONG_MAX;
++
++	for (zid = 0; zid < MAX_NR_ZONES; zid++) {
++		struct zone *zone = pgdat->node_zones + zid;
++		unsigned long walk_start, walk_end;
++		int i;
++
++		for_each_mem_pfn_range(i, nid, &walk_start, &walk_end, NULL) {
++			unsigned long pfn, end_pfn;
++
++			end_pfn = min(walk_end, zone_end_pfn(zone));
++			pfn = first_init_pfn;
++			if (pfn < walk_start)
++				pfn = walk_start;
++			if (pfn < zone->zone_start_pfn)
++				pfn = zone->zone_start_pfn;
++
++			for (; pfn < end_pfn; pfn++) {
++				struct page *page;
++
++				if (!pfn_valid(pfn))
++					continue;
++
++				if (!meminit_pfn_in_nid(pfn, nid, &nid_init_state))
++					continue;
++
++				if (page->flags) {
++					VM_BUG_ON(page_zone(page) != zone);
++					continue;
++				}
++
++				__init_single_page(page, pfn, zid, nid);
++				__free_pages_boot_core(page, pfn, 0);
++				cond_resched();
++			}
++			first_init_pfn = max(end_pfn, first_init_pfn);
++		}
++	}
++
++	pr_info("kswapd %d initialised deferred memory in %ums\n", nid,
++					jiffies_to_msecs(jiffies - start));
++}
++#endif /* CONFIG_DEFERRED_STRUCT_PAGE_INIT */
 +
  #ifdef CONFIG_CMA
  /* Free whole pageblock and set its migration type to MIGRATE_CMA. */
  void __init init_cma_reserved_pageblock(struct page *page)
-@@ -4524,43 +4562,6 @@ int __meminit __early_pfn_to_nid(unsigne
- }
- #endif /* CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID */
+@@ -4264,6 +4369,9 @@ static void setup_zone_migrate_reserve(s
+ 	zone->nr_migrate_reserve_block = reserve;
  
--struct __meminitdata mminit_pfnnid_cache global_init_state;
--
--/* Only safe to use early in boot when initialisation is single-threaded */
--int __meminit early_pfn_to_nid(unsigned long pfn)
--{
--	int nid;
--
--	/* The system will behave unpredictably otherwise */
--	BUG_ON(system_state != SYSTEM_BOOTING);
--
--	nid = __early_pfn_to_nid(pfn, &global_init_state);
--	if (nid >= 0)
--		return nid;
--	/* just returns 0 */
--	return 0;
--}
--
--#ifdef CONFIG_NODES_SPAN_OTHER_NODES
--bool __meminit meminit_pfn_in_nid(unsigned long pfn, int node,
--					struct mminit_pfnnid_cache *state)
--{
--	int nid;
--
--	nid = __early_pfn_to_nid(pfn, state);
--	if (nid >= 0 && nid != node)
--		return false;
--	return true;
--}
--
--/* Only safe to use early in boot when initialisation is single-threaded */
--bool __meminit early_pfn_in_nid(unsigned long pfn, int node)
--{
--	return meminit_pfn_in_nid(pfn, node, &global_init_state);
--}
--
--#endif
--
- /**
-  * free_bootmem_with_active_regions - Call memblock_free_early_nid for each active range
-  * @nid: The node to free memory on. If MAX_NUMNODES, all nodes are freed.
+ 	for (pfn = start_pfn; pfn < end_pfn; pfn += pageblock_nr_pages) {
++		if (!early_page_nid_uninitialised(pfn, zone_to_nid(zone)))
++			return;
++
+ 		if (!pfn_valid(pfn))
+ 			continue;
+ 		page = pfn_to_page(pfn);
+diff -puN mm/vmscan.c~mm-meminit-initialise-remaining-struct-pages-in-parallel-with-kswapd mm/vmscan.c
+--- a/mm/vmscan.c~mm-meminit-initialise-remaining-struct-pages-in-parallel-with-kswapd
++++ a/mm/vmscan.c
+@@ -3348,7 +3348,7 @@ static void kswapd_try_to_sleep(pg_data_
+  * If there are applications that are active memory-allocators
+  * (most normal use), this basically shouldn't matter.
+  */
+-static int kswapd(void *p)
++static int __defermem_init kswapd(void *p)
+ {
+ 	unsigned long order, new_order;
+ 	unsigned balanced_order;
+@@ -3383,6 +3383,8 @@ static int kswapd(void *p)
+ 	tsk->flags |= PF_MEMALLOC | PF_SWAPWRITE | PF_KSWAPD;
+ 	set_freezable();
+ 
++	deferred_init_memmap(pgdat->node_id);
++
+ 	order = new_order = 0;
+ 	balanced_order = 0;
+ 	classzone_idx = new_classzone_idx = pgdat->nr_zones - 1;
+@@ -3538,7 +3540,7 @@ static int cpu_callback(struct notifier_
+  * This kswapd start function will be called by init and node-hot-add.
+  * On node-hot-add, kswapd will moved to proper cpus if cpus are hot-added.
+  */
+-int kswapd_run(int nid)
++int __defermem_init kswapd_run(int nid)
+ {
+ 	pg_data_t *pgdat = NODE_DATA(nid);
+ 	int ret = 0;
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
