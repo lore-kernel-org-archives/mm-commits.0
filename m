@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-meminit-remove-mminit_verify_page_links.patch added to -mm
- tree
-Date: Mon, 27 Apr 2015 15:34:51 -0700
-Message-ID: <553eb98b.TXK7SFUG4us7m3wh%akpm@linux-foundation.org>
+Subject: +
+ mm-meminit-initialise-remaining-struct-pages-in-parallel-with-kswapd-fix.patch added to -mm tree
+Date: Mon, 27 Apr 2015 15:34:41 -0700
+Message-ID: <553eb981.U08Ys4QQc6JSqEr9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40036 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40002 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965339AbbD0Wew (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Apr 2015 18:34:52 -0400
+	with ESMTP id S965241AbbD0Wem (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Apr 2015 18:34:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, daniel@numascale.com, dave.hansen@intel.com, holt@sgi.com, hpa@zytor.com, mingo@elte.hu, nzimmer@sgi.com, scott.norton@hp.com, tglx@linutronix.de, tony.luck@intel.com, waiman.long@hp.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mgorman@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: meminit: remove mminit_verify_page_links
+     Subject: mm-meminit-initialise-remaining-struct-pages-in-parallel-with-kswapd-fix
 has been added to the -mm tree.  Its filename is
-     mm-meminit-remove-mminit_verify_page_links.patch
+     mm-meminit-initialise-remaining-struct-pages-in-parallel-with-kswapd-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-meminit-remove-mminit_verify_page_links.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-meminit-initialise-remaining-struct-pages-in-parallel-with-kswapd-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-meminit-remove-mminit_verify_page_links.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-meminit-initialise-remaining-struct-pages-in-parallel-with-kswapd-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,134 +39,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: meminit: remove mminit_verify_page_links
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-meminit-initialise-remaining-struct-pages-in-parallel-with-kswapd-fix
 
-mminit_verify_page_links() is an extremely paranoid check that was
-introduced when memory initialisation was being heavily reworked. 
-Profiles indicated that up to 10% of parallel memory initialisation was
-spent on checking this for every page.  The cost could be reduced but in
-practice this check only found problems very early during the
-initialisation rewrite and has found nothing since.  This patch removes an
-expensive unnecessary check.
+remove extraneous newline
 
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Cc: Daniel J Blueman <daniel@numascale.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Nathan Zimmer <nzimmer@sgi.com>
-Cc: Robin Holt <holt@sgi.com>
-Cc: Scott Norton <scott.norton@hp.com>
-Cc: Waiman Long <waiman.long@hp.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h   |    8 --------
- mm/mm_init.c    |    8 --------
  mm/page_alloc.c |    1 -
- 3 files changed, 17 deletions(-)
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/internal.h~mm-meminit-remove-mminit_verify_page_links mm/internal.h
---- a/mm/internal.h~mm-meminit-remove-mminit_verify_page_links
-+++ a/mm/internal.h
-@@ -362,10 +362,7 @@ do { \
- } while (0)
- 
- extern void mminit_verify_pageflags_layout(void);
--extern void mminit_verify_page_links(struct page *page,
--		enum zone_type zone, unsigned long nid, unsigned long pfn);
- extern void mminit_verify_zonelist(void);
--
- #else
- 
- static inline void mminit_dprintk(enum mminit_level level,
-@@ -377,11 +374,6 @@ static inline void mminit_verify_pagefla
- {
- }
- 
--static inline void mminit_verify_page_links(struct page *page,
--		enum zone_type zone, unsigned long nid, unsigned long pfn)
--{
--}
--
- static inline void mminit_verify_zonelist(void)
- {
- }
-diff -puN mm/mm_init.c~mm-meminit-remove-mminit_verify_page_links mm/mm_init.c
---- a/mm/mm_init.c~mm-meminit-remove-mminit_verify_page_links
-+++ a/mm/mm_init.c
-@@ -131,14 +131,6 @@ void __init mminit_verify_pageflags_layo
- 	BUG_ON(or_mask != add_mask);
- }
- 
--void __meminit mminit_verify_page_links(struct page *page, enum zone_type zone,
--			unsigned long nid, unsigned long pfn)
--{
--	BUG_ON(page_to_nid(page) != nid);
--	BUG_ON(page_zonenum(page) != zone);
--	BUG_ON(page_to_pfn(page) != pfn);
--}
--
- static __init int set_mminit_loglevel(char *str)
- {
- 	get_option(&str, &mminit_loglevel);
-diff -puN mm/page_alloc.c~mm-meminit-remove-mminit_verify_page_links mm/page_alloc.c
---- a/mm/page_alloc.c~mm-meminit-remove-mminit_verify_page_links
+diff -puN mm/page_alloc.c~mm-meminit-initialise-remaining-struct-pages-in-parallel-with-kswapd-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-meminit-initialise-remaining-struct-pages-in-parallel-with-kswapd-fix
 +++ a/mm/page_alloc.c
-@@ -853,7 +853,6 @@ static void __meminit __init_single_page
- 				unsigned long zone, int nid)
+@@ -1061,7 +1061,6 @@ void __defermem_init deferred_init_memma
  {
- 	set_page_links(page, zone, nid, pfn);
--	mminit_verify_page_links(page, zone, nid, pfn);
- 	init_page_count(page);
- 	page_mapcount_reset(page);
- 	page_cpupid_reset_last(page);
+ 	unsigned long start = jiffies;
+ 	struct mminit_pfnnid_cache nid_init_state = { };
+-
+ 	pg_data_t *pgdat = NODE_DATA(nid);
+ 	int zid;
+ 	unsigned long first_init_pfn = pgdat->first_deferred_pfn;
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-jbd2-revert-must-not-fail-allocation-loops-back-to-gfp_nofail.patch
-thp-cleanup-how-khugepaged-enters-freezer.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+revert-zram-move-compact_store-to-sysfs-functions-area.patch
+maintainers-add-co-maintainer-for-led-subsystem.patch
+revert-fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask.patch
+ocfs2-reduce-object-size-of-mlog-uses-fix.patch
+ocfs2-remove-__mlog_cpu_guess.patch
+ocfs2-remove-__mlog_cpu_guess-fix.patch
+mm.patch
+mm-slab_common-support-the-slub_debug-boot-option-on-specific-object-size-fix.patch
+slub-bulk-allocation-from-per-cpu-partial-pages-fix.patch
+mm-fix-mprotect-behaviour-on-vm_locked-vmas-fix.patch
 mm-new-mm-hook-framework.patch
-mm-new-arch_remap-hook.patch
-powerpc-mm-tracking-vdso-remap.patch
-memblock-introduce-a-for_each_reserved_mem_region-iterator.patch
-mm-meminit-move-page-initialization-into-a-separate-function.patch
-mm-meminit-only-set-page-reserved-in-the-memblock-region.patch
-mm-page_alloc-pass-pfn-to-__free_pages_bootmem.patch
-mm-meminit-make-__early_pfn_to_nid-smp-safe-and-introduce-meminit_pfn_in_nid.patch
-mm-meminit-inline-some-helper-functions.patch
-mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set.patch
-mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set-fix.patch
-mm-meminit-initialise-remaining-struct-pages-in-parallel-with-kswapd.patch
 mm-meminit-initialise-remaining-struct-pages-in-parallel-with-kswapd-fix.patch
-mm-meminit-minimise-number-of-pfn-page-lookups-during-initialisation.patch
-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
-mm-meminit-free-pages-in-large-chunks-where-possible.patch
-mm-meminit-reduce-number-of-times-pageblocks-are-set-during-struct-page-init.patch
-mm-meminit-remove-mminit_verify_page_links.patch
-page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-mm-sanitize-page-mapping-for-tail-pages.patch
-mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-reclaimable-pages.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
 mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-mm-move-lazy-free-pages-to-inactive-list.patch
-mm-move-lazy-free-pages-to-inactive-list-fix.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
 mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
+rtc-omap-add-external-32k-clock-feature-fix.patch
+linux-next.patch
+linux-next-git-rejects.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
