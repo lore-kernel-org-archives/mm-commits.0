@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + compaction-fix-isolate_migratepages_block-for-thp=n.patch added to -mm tree
-Date: Tue, 28 Apr 2015 15:14:26 -0700
-Message-ID: <55400642.NJEomI5KcNXKtH68%akpm@linux-foundation.org>
+Subject: +
+ util_macrosh-have-array-pointer-point-to-array-of-constants.patch added to
+ -mm tree
+Date: Tue, 28 Apr 2015 15:17:53 -0700
+Message-ID: <55400711.yhuqNMyMdvRA1N/X%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35019 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35025 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030853AbbD1WO1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Apr 2015 18:14:27 -0400
+	with ESMTP id S1031048AbbD1WRy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Apr 2015 18:17:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, mel@csn.ul.ie, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: linux@roeck-us.net, bgolaszewski@baylibre.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,compaction: fix isolate_migratepages_block() for THP=n
+     Subject: util_macros.h: have array pointer point to array of constants
 has been added to the -mm tree.  Its filename is
-     compaction-fix-isolate_migratepages_block-for-thp=n.patch
+     util_macrosh-have-array-pointer-point-to-array-of-constants.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/compaction-fix-isolate_migratepages_block-for-thp%3Dn.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/util_macrosh-have-array-pointer-point-to-array-of-constants.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/compaction-fix-isolate_migratepages_block-for-thp%3Dn.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/util_macrosh-have-array-pointer-point-to-array-of-constants.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,105 +40,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm,compaction: fix isolate_migratepages_block() for THP=n
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: util_macros.h: have array pointer point to array of constants
 
-PageTrans* helpers are always false if THP is disabled at compile-time. 
-It means isolate_migratepages_block() will fail to detect hugetlb pages in
-this case.
+Using the new find_closest() macro can result in the following sparse
+warnings.
 
-Let's use PageCompound() instead.  With a small tweak to how we calculate
-next low_pfn it will make isolate_migratepages_block() ready to see tail
-pages.
+drivers/hwmon/lm85.c:194:16: warning:
+		incorrect type in initializer (different modifiers)
+drivers/hwmon/lm85.c:194:16:    expected int *__fc_a
+drivers/hwmon/lm85.c:194:16:    got int static const [toplevel] *<noident>
+drivers/hwmon/lm85.c:210:16: warning:
+		incorrect type in initializer (different modifiers)
+drivers/hwmon/lm85.c:210:16:    expected int *__fc_a
+drivers/hwmon/lm85.c:210:16:    got int const *map
 
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mel@csn.ul.ie>
+This is because the array passed to find_closest() will typically be
+declared as array of constants, but the macro declares a non-constant
+pointer to it.
+
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Cc: Bartosz Golaszewski <bgolaszewski@baylibre.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   25 +++++++++++++------------
- 1 file changed, 13 insertions(+), 12 deletions(-)
+ include/linux/util_macros.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/compaction.c~compaction-fix-isolate_migratepages_block-for-thp=n mm/compaction.c
---- a/mm/compaction.c~compaction-fix-isolate_migratepages_block-for-thp=n
-+++ a/mm/compaction.c
-@@ -732,18 +732,18 @@ isolate_migratepages_block(struct compac
- 		 * splitting and collapsing (collapsing has already happened
- 		 * if PageLRU is set) but the lock is not necessarily taken
- 		 * here and it is wasteful to take it just to check transhuge.
--		 * Check TransHuge without lock and skip the whole pageblock if
--		 * it's either a transhuge or hugetlbfs page, as calling
-+		 * Check PageCompound without lock and skip the whole pageblock
-+		 * if it's either a transhuge or hugetlbfs page, as calling
- 		 * compound_order() without preventing THP from splitting the
- 		 * page underneath us may return surprising results.
- 		 */
--		if (PageTransHuge(page)) {
--			if (!locked)
--				low_pfn = ALIGN(low_pfn + 1,
--						pageblock_nr_pages) - 1;
-+		if (PageCompound(page)) {
-+			int nr;
-+			if (locked)
-+				nr = 1 << compound_order(page);
- 			else
--				low_pfn += (1 << compound_order(page)) - 1;
--
-+				nr = pageblock_nr_pages;
-+			low_pfn = ALIGN(low_pfn + 1, nr) - 1;
- 			continue;
- 		}
- 
-@@ -763,11 +763,12 @@ isolate_migratepages_block(struct compac
- 			if (!locked)
- 				break;
- 
--			/* Recheck PageLRU and PageTransHuge under lock */
-+			/* Recheck PageLRU and PageCompound under lock */
- 			if (!PageLRU(page))
- 				continue;
--			if (PageTransHuge(page)) {
--				low_pfn += (1 << compound_order(page)) - 1;
-+			if (PageCompound(page)) {
-+				int nr = 1 << compound_order(page);
-+				low_pfn = ALIGN(low_pfn + 1, nr) - 1;
- 				continue;
- 			}
- 		}
-@@ -778,7 +779,7 @@ isolate_migratepages_block(struct compac
- 		if (__isolate_lru_page(page, isolate_mode) != 0)
- 			continue;
- 
--		VM_BUG_ON_PAGE(PageTransCompound(page), page);
-+		VM_BUG_ON_PAGE(PageCompound(page), page);
- 
- 		/* Successfully isolated */
- 		del_page_from_lru_list(page, lruvec, page_lru(page));
+diff -puN include/linux/util_macros.h~util_macrosh-have-array-pointer-point-to-array-of-constants include/linux/util_macros.h
+--- a/include/linux/util_macros.h~util_macrosh-have-array-pointer-point-to-array-of-constants
++++ a/include/linux/util_macros.h
+@@ -5,7 +5,7 @@
+ ({									\
+ 	typeof(as) __fc_i, __fc_as = (as) - 1;				\
+ 	typeof(x) __fc_x = (x);						\
+-	typeof(*a) *__fc_a = (a);					\
++	typeof(*a) const *__fc_a = (a);					\
+ 	for (__fc_i = 0; __fc_i < __fc_as; __fc_i++) {			\
+ 		if (__fc_x op DIV_ROUND_CLOSEST(__fc_a[__fc_i] +	\
+ 						__fc_a[__fc_i + 1], 2))	\
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from linux@roeck-us.net are
 
-mm-fix-mprotect-behaviour-on-vm_locked-vmas.patch
-mm-fix-mprotect-behaviour-on-vm_locked-vmas-fix.patch
-mm-new-mm-hook-framework.patch
-mm-new-arch_remap-hook.patch
-powerpc-mm-tracking-vdso-remap.patch
-compaction-fix-isolate_migratepages_block-for-thp=n.patch
-page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-mm-sanitize-page-mapping-for-tail-pages.patch
-include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
+util_macrosh-have-array-pointer-point-to-array-of-constants.patch
+linux-next.patch
 
