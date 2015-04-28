@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- page-flags-define-behavior-of-lru-related-flags-on-compound-pages-fix.patch added to -mm tree
-Date: Tue, 28 Apr 2015 16:17:42 -0700
-Message-ID: <55401516.o8qZg65qtPreZhHD%akpm@linux-foundation.org>
+Subject: + ocfs2-do-not-bug-if-jbd2_journal_dirty_metadata-fails.patch
+ added to -mm tree
+Date: Tue, 28 Apr 2015 16:37:00 -0700
+Message-ID: <5540199c.ySp+UpePg5qrsNLg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36443 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36537 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031051AbbD1XRn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Apr 2015 19:17:43 -0400
+	with ESMTP id S1031135AbbD1XhB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Apr 2015 19:37:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, mel@csn.ul.ie, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: joseph.qi@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,compaction: fix isolate_migratepages_block() for THP=n
+     Subject: ocfs2: do not BUG if jbd2_journal_dirty_metadata fails
 has been added to the -mm tree.  Its filename is
-     page-flags-define-behavior-of-lru-related-flags-on-compound-pages-fix.patch
+     ocfs2-do-not-bug-if-jbd2_journal_dirty_metadata-fails.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/page-flags-define-behavior-of-lru-related-flags-on-compound-pages-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-do-not-bug-if-jbd2_journal_dirty_metadata-fails.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/page-flags-define-behavior-of-lru-related-flags-on-compound-pages-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-do-not-bug-if-jbd2_journal_dirty_metadata-fails.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,105 +39,52 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm,compaction: fix isolate_migratepages_block() for THP=n
+From: Joseph Qi <joseph.qi@huawei.com>
+Subject: ocfs2: do not BUG if jbd2_journal_dirty_metadata fails
 
-PageTrans* helpers are always false if THP is disabled at compile-time. 
-It means isolate_migratepages_block() will fail to detect hugetlb pages in
-this case.
+jbd2_journal_dirty_metadata may fail.  Currently it cannot take care of
+non zero return value and just BUG in ocfs2_journal_dirty.  This patch is
+aborting the handle instead of BUG.
 
-Let's use PageCompound() instead.  With a small tweak to how we calculate
-next low_pfn it will make isolate_migratepages_block() ready to see tail
-pages.
-
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   25 +++++++++++++------------
- 1 file changed, 13 insertions(+), 12 deletions(-)
+ fs/ocfs2/journal.c |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff -puN mm/compaction.c~page-flags-define-behavior-of-lru-related-flags-on-compound-pages-fix mm/compaction.c
---- a/mm/compaction.c~page-flags-define-behavior-of-lru-related-flags-on-compound-pages-fix
-+++ a/mm/compaction.c
-@@ -732,18 +732,18 @@ isolate_migratepages_block(struct compac
- 		 * splitting and collapsing (collapsing has already happened
- 		 * if PageLRU is set) but the lock is not necessarily taken
- 		 * here and it is wasteful to take it just to check transhuge.
--		 * Check TransHuge without lock and skip the whole pageblock if
--		 * it's either a transhuge or hugetlbfs page, as calling
-+		 * Check PageCompound without lock and skip the whole pageblock
-+		 * if it's either a transhuge or hugetlbfs page, as calling
- 		 * compound_order() without preventing THP from splitting the
- 		 * page underneath us may return surprising results.
- 		 */
--		if (PageTransHuge(page)) {
--			if (!locked)
--				low_pfn = ALIGN(low_pfn + 1,
--						pageblock_nr_pages) - 1;
-+		if (PageCompound(page)) {
-+			int nr;
-+			if (locked)
-+				nr = 1 << compound_order(page);
- 			else
--				low_pfn += (1 << compound_order(page)) - 1;
--
-+				nr = pageblock_nr_pages;
-+			low_pfn = ALIGN(low_pfn + 1, nr) - 1;
- 			continue;
- 		}
+diff -puN fs/ocfs2/journal.c~ocfs2-do-not-bug-if-jbd2_journal_dirty_metadata-fails fs/ocfs2/journal.c
+--- a/fs/ocfs2/journal.c~ocfs2-do-not-bug-if-jbd2_journal_dirty_metadata-fails
++++ a/fs/ocfs2/journal.c
+@@ -775,7 +775,15 @@ void ocfs2_journal_dirty(handle_t *handl
+ 	trace_ocfs2_journal_dirty((unsigned long long)bh->b_blocknr);
  
-@@ -763,11 +763,12 @@ isolate_migratepages_block(struct compac
- 			if (!locked)
- 				break;
+ 	status = jbd2_journal_dirty_metadata(handle, bh);
+-	BUG_ON(status);
++	if (status) {
++		mlog_errno(status);
++		if (!is_handle_aborted(handle)) {
++			handle->h_err = status;
++			mlog(ML_ERROR, "jbd2_journal_dirty_metadata failed. "
++					"Aborting transaction.");
++			jbd2_journal_abort_handle(handle);
++		}
++	}
+ }
  
--			/* Recheck PageLRU and PageTransHuge under lock */
-+			/* Recheck PageLRU and PageCompound under lock */
- 			if (!PageLRU(page))
- 				continue;
--			if (PageTransHuge(page)) {
--				low_pfn += (1 << compound_order(page)) - 1;
-+			if (PageCompound(page)) {
-+				int nr = 1 << compound_order(page);
-+				low_pfn = ALIGN(low_pfn + 1, nr) - 1;
- 				continue;
- 			}
- 		}
-@@ -778,7 +779,7 @@ isolate_migratepages_block(struct compac
- 		if (__isolate_lru_page(page, isolate_mode) != 0)
- 			continue;
- 
--		VM_BUG_ON_PAGE(PageTransCompound(page), page);
-+		VM_BUG_ON_PAGE(PageCompound(page), page);
- 
- 		/* Successfully isolated */
- 		del_page_from_lru_list(page, lruvec, page_lru(page));
+ #define OCFS2_DEFAULT_COMMIT_INTERVAL	(HZ * JBD2_DEFAULT_MAX_COMMIT_AGE)
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from joseph.qi@huawei.com are
 
-mm-fix-mprotect-behaviour-on-vm_locked-vmas.patch
-mm-fix-mprotect-behaviour-on-vm_locked-vmas-fix.patch
-mm-new-mm-hook-framework.patch
-mm-new-arch_remap-hook.patch
-powerpc-mm-tracking-vdso-remap.patch
-page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages-fix.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-mm-sanitize-page-mapping-for-tail-pages.patch
-include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
+ocfs2-fix-a-tiny-race-when-truncate-dio-orohaned-entry.patch
+ocfs2-use-retval-instead-of-status-for-checking-error.patch
+ocfs2-dlm-cleanup-unused-function-__dlm_wait_on_lockres_flags_set.patch
+ocfs2-do-not-bug-if-jbd2_journal_dirty_metadata-fails.patch
+ocfs2-dlm-fix-race-between-purge-and-get-lock-resource.patch
+ocfs2-set-filesytem-read-only-when-ocfs2_delete_entry-failed.patch
+ocfs2-set-filesytem-read-only-when-ocfs2_delete_entry-failed-v2.patch
+ocfs2-avoid-access-invalid-address-when-read-o2dlm-debug-messages.patch
 
