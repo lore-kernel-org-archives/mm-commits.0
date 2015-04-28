@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + fs-befs-btreec-remove-unneeded-initializations.patch added to
+Subject: +
+ ocfs2-remove-bug_onempty_extent-in-__ocfs2_rotate_tree_left.patch added to
  -mm tree
-Date: Tue, 28 Apr 2015 13:51:00 -0700
-Message-ID: <553ff2b4.ji46PtTvxADBslKl%akpm@linux-foundation.org>
+Date: Tue, 28 Apr 2015 14:23:02 -0700
+Message-ID: <553ffa36.OuVR4GQIojlACYhg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33219 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33485 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965792AbbD1UvB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Apr 2015 16:51:01 -0400
+	with ESMTP id S965987AbbD1VXD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Apr 2015 17:23:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, mm-commits@vger.kernel.org
+To: xuejiufei@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/befs/btree.c: remove unneeded initializations
+     Subject: ocfs2: remove BUG_ON(!empty_extent) in __ocfs2_rotate_tree_left()
 has been added to the -mm tree.  Its filename is
-     fs-befs-btreec-remove-unneeded-initializations.patch
+     ocfs2-remove-bug_onempty_extent-in-__ocfs2_rotate_tree_left.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-befs-btreec-remove-unneeded-initializations.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-remove-bug_onempty_extent-in-__ocfs2_rotate_tree_left.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-befs-btreec-remove-unneeded-initializations.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-remove-bug_onempty_extent-in-__ocfs2_rotate_tree_left.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,48 +40,73 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/befs/btree.c: remove unneeded initializations
+From: Xue jiufei <xuejiufei@huawei.com>
+Subject: ocfs2: remove BUG_ON(!empty_extent) in __ocfs2_rotate_tree_left()
 
-bh, od_sup and this_node are unconditionally initialized in
-befs_bt_read_super() and befs_btree_find()
+ocfs2_rotate_tree_left() calls __ocfs2_rotate_tree_left() for left
+rotation while non-rightmost path containing an empty extent in the leaf
+block.  __ocfs2_rotate_tree_left() returns -EAGAIN if right subtree having an
+empty extent and pass the empty_extent_path to caller.  The caller
+ocfs2_rotate_tree_left() will restart rotation from the returned path.
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
+It will trigger the BUG_ON(!ocfs2_is_empty_extent) when the et on disk
+is as follows:
+
+eb0 is the leaf block of path(say path_a) passed to
+ocfs2_rotate_tree_left, which has an empty rec[0].
+
+eb1 is the leaf block of path(say path_b) that just right to path_a, which
+has no empty record.
+
+eb2 is the leaf block of path(say path_c) that just right to path_b, which
+has an empty rec[0].  And path_c is also the rightmost path.
+
+Now we want to remove the empty rec[0] in eb0:
+
+ocfs2_rotate_tree_left:
+  -> call __ocfs2_rotate_tree_left with path_a as its input *path*
+    -> call ocfs2_rotate_subtree_left with path_a as its input
+       *left_path* and path_b as its input *right_path*. it will move
+       rec[0] in eb1 to eb0, and rec[0] in eb0 is not empty now.
+    -> continue to call ocfs2_rotate_subtree_left with path_b as its
+       input *left_path* and path_c as its input *right_path*, and
+       return -EAGAIN because eb2 has an empty rec[0]
+  -> call __ocfs2_rotate_tree_left with path_c as it input, rotate all
+     records in eb2 to left and return 0.
+  -> call __ocfs2_rotate_tree_left with path_a as its input, and triggers
+     the BUG_ON(!ocfs2_is_empty_extent) as the rec[0] in eb0 is not empty.
+
+So the BUG_ON() should be removed and return 0 if rec[0] is no longer an
+empty extent.
+
+Signed-off-by: joyce.xue <xuejiufei@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/befs/btree.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/ocfs2/alloc.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/befs/btree.c~fs-befs-btreec-remove-unneeded-initializations fs/befs/btree.c
---- a/fs/befs/btree.c~fs-befs-btreec-remove-unneeded-initializations
-+++ a/fs/befs/btree.c
-@@ -137,8 +137,8 @@ static int
- befs_bt_read_super(struct super_block *sb, befs_data_stream * ds,
- 		   befs_btree_super * sup)
- {
--	struct buffer_head *bh = NULL;
--	befs_disk_btree_super *od_sup = NULL;
-+	struct buffer_head *bh;
-+	befs_disk_btree_super *od_sup;
+diff -puN fs/ocfs2/alloc.c~ocfs2-remove-bug_onempty_extent-in-__ocfs2_rotate_tree_left fs/ocfs2/alloc.c
+--- a/fs/ocfs2/alloc.c~ocfs2-remove-bug_onempty_extent-in-__ocfs2_rotate_tree_left
++++ a/fs/ocfs2/alloc.c
+@@ -2925,7 +2925,8 @@ static int __ocfs2_rotate_tree_left(hand
+ 	struct ocfs2_path *right_path = NULL;
+ 	struct super_block *sb = ocfs2_metadata_cache_get_super(et->et_ci);
  
- 	befs_debug(sb, "---> %s", __func__);
+-	BUG_ON(!ocfs2_is_empty_extent(&(path_leaf_el(path)->l_recs[0])));
++	if (!ocfs2_is_empty_extent(&(path_leaf_el(path)->l_recs[0])))
++		return 0;
  
-@@ -250,7 +250,7 @@ int
- befs_btree_find(struct super_block *sb, befs_data_stream * ds,
- 		const char *key, befs_off_t * value)
- {
--	struct befs_btree_node *this_node = NULL;
-+	struct befs_btree_node *this_node;
- 	befs_btree_super bt_super;
- 	befs_off_t node_off;
- 	int res;
+ 	*empty_extent_path = NULL;
+ 
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from xuejiufei@huawei.com are
 
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-fs-affs-amigaffsc-remove-unneeded-initialization.patch
-fs-affs-inodec-remove-unneeded-initialization.patch
-fs-befs-btreec-remove-unneeded-initializations.patch
+ocfs2-return-error-while-ocfs2_figure_merge_contig_type-failing.patch
+ocfs2-remove-bug_onempty_extent-in-__ocfs2_rotate_tree_left.patch
+ocfs2-dlm-fix-race-between-purge-and-get-lock-resource.patch
+ocfs2-flush-inode-data-to-disk-and-free-inode-when-i_count-becomes-zero.patch
 
