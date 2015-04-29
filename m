@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_alloc-pass-pfn-to-__free_pages_bootmem.patch added to
- -mm tree
-Date: Wed, 29 Apr 2015 14:19:31 -0700
-Message-ID: <55414ae3.nVfH8XqsSNs45a9a%akpm@linux-foundation.org>
+Subject: + mm-meminit-inline-some-helper-functions.patch added to -mm tree
+Date: Wed, 29 Apr 2015 14:19:35 -0700
+Message-ID: <55414ae7.9mTA+S9zOr4NoeEf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58458 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58479 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751367AbbD2VTc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Apr 2015 17:19:32 -0400
+	with ESMTP id S1751367AbbD2VTg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Apr 2015 17:19:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mgorman@suse.de, daniel@numascale.com, dave.hansen@intel.com, hpa@zytor.com, mingo@elte.hu, nzimmer@sgi.com, penberg@kernel.org, robinmholt@gmail.com, scott.norton@hp.com, tglx@linutronix.de, tony.luck@intel.com, waiman.long@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: page_alloc: pass PFN to __free_pages_bootmem
+     Subject: mm: meminit: inline some helper functions
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-pass-pfn-to-__free_pages_bootmem.patch
+     mm-meminit-inline-some-helper-functions.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-pass-pfn-to-__free_pages_bootmem.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-meminit-inline-some-helper-functions.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-pass-pfn-to-__free_pages_bootmem.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-meminit-inline-some-helper-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,13 +39,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: page_alloc: pass PFN to __free_pages_bootmem
+Subject: mm: meminit: inline some helper functions
 
-__free_pages_bootmem prepares a page for release to the buddy allocator
-and assumes that the struct page is initialised.  Parallel initialisation
-of struct pages defers initialisation and __free_pages_bootmem can be
-called for struct pages that cannot yet map struct page to PFN.  This
-patch passes PFN to __free_pages_bootmem with no other functional change.
+early_pfn_in_nid() and meminit_pfn_in_nid() are small functions that are
+unnecessarily visible outside memory initialisation.  As well as
+unnecessary visibility, it's unnecessary function call overhead when
+initialising pages.  This patch moves the helpers inline.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Tested-by: Nate Zimmer <nzimmer@sgi.com>
@@ -65,111 +63,122 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/bootmem.c    |    8 ++++----
- mm/internal.h   |    3 ++-
- mm/memblock.c   |    2 +-
- mm/nobootmem.c  |    4 ++--
- mm/page_alloc.c |    3 ++-
- 5 files changed, 11 insertions(+), 9 deletions(-)
+ include/linux/mmzone.h |    9 ----
+ mm/page_alloc.c        |   76 ++++++++++++++++++++-------------------
+ 2 files changed, 39 insertions(+), 46 deletions(-)
 
-diff -puN mm/bootmem.c~mm-page_alloc-pass-pfn-to-__free_pages_bootmem mm/bootmem.c
---- a/mm/bootmem.c~mm-page_alloc-pass-pfn-to-__free_pages_bootmem
-+++ a/mm/bootmem.c
-@@ -164,7 +164,7 @@ void __init free_bootmem_late(unsigned l
- 	end = PFN_DOWN(physaddr + size);
+diff -puN include/linux/mmzone.h~mm-meminit-inline-some-helper-functions include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-meminit-inline-some-helper-functions
++++ a/include/linux/mmzone.h
+@@ -1227,15 +1227,6 @@ struct mminit_pfnnid_cache {
+ 	int last_nid;
+ };
  
- 	for (; cursor < end; cursor++) {
--		__free_pages_bootmem(pfn_to_page(cursor), 0);
-+		__free_pages_bootmem(pfn_to_page(cursor), cursor, 0);
- 		totalram_pages++;
- 	}
- }
-@@ -210,7 +210,7 @@ static unsigned long __init free_all_boo
- 		if (IS_ALIGNED(start, BITS_PER_LONG) && vec == ~0UL) {
- 			int order = ilog2(BITS_PER_LONG);
- 
--			__free_pages_bootmem(pfn_to_page(start), order);
-+			__free_pages_bootmem(pfn_to_page(start), start, order);
- 			count += BITS_PER_LONG;
- 			start += BITS_PER_LONG;
- 		} else {
-@@ -220,7 +220,7 @@ static unsigned long __init free_all_boo
- 			while (vec && cur != start) {
- 				if (vec & 1) {
- 					page = pfn_to_page(cur);
--					__free_pages_bootmem(page, 0);
-+					__free_pages_bootmem(page, cur, 0);
- 					count++;
- 				}
- 				vec >>= 1;
-@@ -234,7 +234,7 @@ static unsigned long __init free_all_boo
- 	pages = bootmem_bootmap_pages(pages);
- 	count += pages;
- 	while (pages--)
--		__free_pages_bootmem(page++, 0);
-+		__free_pages_bootmem(page++, cur++, 0);
- 
- 	bdebug("nid=%td released=%lx\n", bdata - bootmem_node_data, count);
- 
-diff -puN mm/internal.h~mm-page_alloc-pass-pfn-to-__free_pages_bootmem mm/internal.h
---- a/mm/internal.h~mm-page_alloc-pass-pfn-to-__free_pages_bootmem
-+++ a/mm/internal.h
-@@ -155,7 +155,8 @@ __find_buddy_index(unsigned long page_id
- }
- 
- extern int __isolate_free_page(struct page *page, unsigned int order);
--extern void __free_pages_bootmem(struct page *page, unsigned int order);
-+extern void __free_pages_bootmem(struct page *page, unsigned long pfn,
-+					unsigned int order);
- extern void prep_compound_page(struct page *page, unsigned long order);
- #ifdef CONFIG_MEMORY_FAILURE
- extern bool is_free_buddy_page(struct page *page);
-diff -puN mm/memblock.c~mm-page_alloc-pass-pfn-to-__free_pages_bootmem mm/memblock.c
---- a/mm/memblock.c~mm-page_alloc-pass-pfn-to-__free_pages_bootmem
-+++ a/mm/memblock.c
-@@ -1348,7 +1348,7 @@ void __init __memblock_free_late(phys_ad
- 	end = PFN_DOWN(base + size);
- 
- 	for (; cursor < end; cursor++) {
--		__free_pages_bootmem(pfn_to_page(cursor), 0);
-+		__free_pages_bootmem(pfn_to_page(cursor), cursor, 0);
- 		totalram_pages++;
- 	}
- }
-diff -puN mm/nobootmem.c~mm-page_alloc-pass-pfn-to-__free_pages_bootmem mm/nobootmem.c
---- a/mm/nobootmem.c~mm-page_alloc-pass-pfn-to-__free_pages_bootmem
-+++ a/mm/nobootmem.c
-@@ -77,7 +77,7 @@ void __init free_bootmem_late(unsigned l
- 	end = PFN_DOWN(addr + size);
- 
- 	for (; cursor < end; cursor++) {
--		__free_pages_bootmem(pfn_to_page(cursor), 0);
-+		__free_pages_bootmem(pfn_to_page(cursor), cursor, 0);
- 		totalram_pages++;
- 	}
- }
-@@ -92,7 +92,7 @@ static void __init __free_pages_memory(u
- 		while (start + (1UL << order) > end)
- 			order--;
- 
--		__free_pages_bootmem(pfn_to_page(start), order);
-+		__free_pages_bootmem(pfn_to_page(start), start, order);
- 
- 		start += (1UL << order);
- 	}
-diff -puN mm/page_alloc.c~mm-page_alloc-pass-pfn-to-__free_pages_bootmem mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-pass-pfn-to-__free_pages_bootmem
+-#ifdef CONFIG_NODES_SPAN_OTHER_NODES
+-bool early_pfn_in_nid(unsigned long pfn, int nid);
+-bool meminit_pfn_in_nid(unsigned long pfn, int node,
+-			struct mminit_pfnnid_cache *state);
+-#else
+-#define early_pfn_in_nid(pfn, nid)		(1)
+-#define meminit_pfn_in_nid(pfn, nid, state)	(1)
+-#endif
+-
+ #ifndef early_pfn_valid
+ #define early_pfn_valid(pfn)	(1)
+ #endif
+diff -puN mm/page_alloc.c~mm-meminit-inline-some-helper-functions mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-meminit-inline-some-helper-functions
 +++ a/mm/page_alloc.c
-@@ -892,7 +892,8 @@ static void __free_pages_ok(struct page
- 	local_irq_restore(flags);
+@@ -913,6 +913,45 @@ void __init __free_pages_bootmem(struct
+ 	__free_pages(page, order);
  }
  
--void __init __free_pages_bootmem(struct page *page, unsigned int order)
-+void __init __free_pages_bootmem(struct page *page, unsigned long pfn,
-+							unsigned int order)
- {
- 	unsigned int nr_pages = 1 << order;
- 	struct page *p = page;
++#if defined(CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID) || \
++	defined(CONFIG_HAVE_MEMBLOCK_NODE_MAP)
++/* Only safe to use early in boot when initialisation is single-threaded */
++static struct mminit_pfnnid_cache early_pfnnid_cache __meminitdata;
++
++int __meminit early_pfn_to_nid(unsigned long pfn)
++{
++	int nid;
++
++	/* The system will behave unpredictably otherwise */
++	BUG_ON(system_state != SYSTEM_BOOTING);
++
++	nid = __early_pfn_to_nid(pfn, &early_pfnnid_cache);
++	if (nid >= 0)
++		return nid;
++	/* just returns 0 */
++	return 0;
++}
++#endif
++
++#ifdef CONFIG_NODES_SPAN_OTHER_NODES
++static inline bool __meminit meminit_pfn_in_nid(unsigned long pfn, int node,
++					struct mminit_pfnnid_cache *state)
++{
++	int nid;
++
++	nid = __early_pfn_to_nid(pfn, state);
++	if (nid >= 0 && nid != node)
++		return false;
++	return true;
++}
++
++/* Only safe to use early in boot when initialisation is single-threaded */
++static inline bool __meminit early_pfn_in_nid(unsigned long pfn, int node)
++{
++	return meminit_pfn_in_nid(pfn, node, &early_pfnnid_cache);
++}
++#endif
++
+ #ifdef CONFIG_CMA
+ /* Free whole pageblock and set its migration type to MIGRATE_CMA. */
+ void __init init_cma_reserved_pageblock(struct page *page)
+@@ -4530,43 +4569,6 @@ int __meminit __early_pfn_to_nid(unsigne
+ }
+ #endif /* CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID */
+ 
+-static struct mminit_pfnnid_cache early_pfnnid_cache __meminitdata;
+-
+-/* Only safe to use early in boot when initialisation is single-threaded */
+-int __meminit early_pfn_to_nid(unsigned long pfn)
+-{
+-	int nid;
+-
+-	/* The system will behave unpredictably otherwise */
+-	BUG_ON(system_state != SYSTEM_BOOTING);
+-
+-	nid = __early_pfn_to_nid(pfn, &early_pfnnid_cache);
+-	if (nid >= 0)
+-		return nid;
+-	/* just returns 0 */
+-	return 0;
+-}
+-
+-#ifdef CONFIG_NODES_SPAN_OTHER_NODES
+-bool __meminit meminit_pfn_in_nid(unsigned long pfn, int node,
+-					struct mminit_pfnnid_cache *state)
+-{
+-	int nid;
+-
+-	nid = __early_pfn_to_nid(pfn, state);
+-	if (nid >= 0 && nid != node)
+-		return false;
+-	return true;
+-}
+-
+-/* Only safe to use early in boot when initialisation is single-threaded */
+-bool __meminit early_pfn_in_nid(unsigned long pfn, int node)
+-{
+-	return meminit_pfn_in_nid(pfn, node, &early_pfnnid_cache);
+-}
+-
+-#endif
+-
+ /**
+  * free_bootmem_with_active_regions - Call memblock_free_early_nid for each active range
+  * @nid: The node to free memory on. If MAX_NUMNODES, all nodes are freed.
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
