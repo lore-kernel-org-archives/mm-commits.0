@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-meminit-inline-some-helper-functions.patch added to -mm tree
-Date: Wed, 29 Apr 2015 14:19:35 -0700
-Message-ID: <55414ae7.9mTA+S9zOr4NoeEf%akpm@linux-foundation.org>
+Subject: +
+ mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set.patch added to -mm tree
+Date: Wed, 29 Apr 2015 14:19:37 -0700
+Message-ID: <55414ae9.p1K/HoQM4bTXCDht%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58479 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58483 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751367AbbD2VTg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Apr 2015 17:19:36 -0400
+	with ESMTP id S1751319AbbD2VTi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Apr 2015 17:19:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mgorman@suse.de, daniel@numascale.com, dave.hansen@intel.com, hpa@zytor.com, mingo@elte.hu, nzimmer@sgi.com, penberg@kernel.org, robinmholt@gmail.com, scott.norton@hp.com, tglx@linutronix.de, tony.luck@intel.com, waiman.long@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: meminit: inline some helper functions
+     Subject: mm: meminit: initialise a subset of struct pages if CONFIG_DEFERRED_STRUCT_PAGE_INIT is set
 has been added to the -mm tree.  Its filename is
-     mm-meminit-inline-some-helper-functions.patch
+     mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-meminit-inline-some-helper-functions.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-meminit-inline-some-helper-functions.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,12 +40,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: meminit: inline some helper functions
+Subject: mm: meminit: initialise a subset of struct pages if CONFIG_DEFERRED_STRUCT_PAGE_INIT is set
 
-early_pfn_in_nid() and meminit_pfn_in_nid() are small functions that are
-unnecessarily visible outside memory initialisation.  As well as
-unnecessary visibility, it's unnecessary function call overhead when
-initialising pages.  This patch moves the helpers inline.
+This patch initalises all low memory struct pages and 2G of the highest
+zone on each node during memory initialisation if
+CONFIG_DEFERRED_STRUCT_PAGE_INIT is set.  That config option cannot be set
+but will be available in a later patch.  Parallel initialisation of struct
+page depends on some features from memory hotplug and it is necessary to
+alter alter section annotations.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Tested-by: Nate Zimmer <nzimmer@sgi.com>
@@ -63,122 +66,231 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    9 ----
- mm/page_alloc.c        |   76 ++++++++++++++++++++-------------------
- 2 files changed, 39 insertions(+), 46 deletions(-)
+ drivers/base/node.c    |    6 ++-
+ include/linux/mmzone.h |    8 ++++
+ mm/Kconfig             |   18 +++++++++
+ mm/internal.h          |   14 +++++++
+ mm/page_alloc.c        |   78 +++++++++++++++++++++++++++++++++++++--
+ 5 files changed, 120 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/mmzone.h~mm-meminit-inline-some-helper-functions include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-meminit-inline-some-helper-functions
+diff -puN drivers/base/node.c~mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set drivers/base/node.c
+--- a/drivers/base/node.c~mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set
++++ a/drivers/base/node.c
+@@ -359,12 +359,16 @@ int unregister_cpu_under_node(unsigned i
+ #ifdef CONFIG_MEMORY_HOTPLUG_SPARSE
+ #define page_initialized(page)  (page->lru.next)
+ 
+-static int get_nid_for_pfn(unsigned long pfn)
++static int __init_refok get_nid_for_pfn(unsigned long pfn)
+ {
+ 	struct page *page;
+ 
+ 	if (!pfn_valid_within(pfn))
+ 		return -1;
++#ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
++	if (system_state == SYSTEM_BOOTING)
++		return early_pfn_to_nid(pfn);
++#endif
+ 	page = pfn_to_page(pfn);
+ 	if (!page_initialized(page))
+ 		return -1;
+diff -puN include/linux/mmzone.h~mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set
 +++ a/include/linux/mmzone.h
-@@ -1227,15 +1227,6 @@ struct mminit_pfnnid_cache {
- 	int last_nid;
- };
- 
--#ifdef CONFIG_NODES_SPAN_OTHER_NODES
--bool early_pfn_in_nid(unsigned long pfn, int nid);
--bool meminit_pfn_in_nid(unsigned long pfn, int node,
--			struct mminit_pfnnid_cache *state);
--#else
--#define early_pfn_in_nid(pfn, nid)		(1)
--#define meminit_pfn_in_nid(pfn, nid, state)	(1)
--#endif
--
- #ifndef early_pfn_valid
- #define early_pfn_valid(pfn)	(1)
+@@ -762,6 +762,14 @@ typedef struct pglist_data {
+ 	/* Number of pages migrated during the rate limiting time interval */
+ 	unsigned long numabalancing_migrate_nr_pages;
  #endif
-diff -puN mm/page_alloc.c~mm-meminit-inline-some-helper-functions mm/page_alloc.c
---- a/mm/page_alloc.c~mm-meminit-inline-some-helper-functions
-+++ a/mm/page_alloc.c
-@@ -913,6 +913,45 @@ void __init __free_pages_bootmem(struct
- 	__free_pages(page, order);
- }
++
++#ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
++	/*
++	 * If memory initialisation on large machines is deferred then this
++	 * is the first PFN that needs to be initialised.
++	 */
++	unsigned long first_deferred_pfn;
++#endif /* CONFIG_DEFERRED_STRUCT_PAGE_INIT */
+ } pg_data_t;
  
-+#if defined(CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID) || \
-+	defined(CONFIG_HAVE_MEMBLOCK_NODE_MAP)
-+/* Only safe to use early in boot when initialisation is single-threaded */
-+static struct mminit_pfnnid_cache early_pfnnid_cache __meminitdata;
+ #define node_present_pages(nid)	(NODE_DATA(nid)->node_present_pages)
+diff -puN mm/Kconfig~mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set mm/Kconfig
+--- a/mm/Kconfig~mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set
++++ a/mm/Kconfig
+@@ -635,3 +635,21 @@ config MAX_STACK_SIZE_MB
+ 	  changed to a smaller value in which case that is used.
+ 
+ 	  A sane initial value is 80 MB.
 +
-+int __meminit early_pfn_to_nid(unsigned long pfn)
-+{
-+	int nid;
++# For architectures that support deferred memory initialisation
++config ARCH_SUPPORTS_DEFERRED_STRUCT_PAGE_INIT
++	bool
 +
-+	/* The system will behave unpredictably otherwise */
-+	BUG_ON(system_state != SYSTEM_BOOTING);
-+
-+	nid = __early_pfn_to_nid(pfn, &early_pfnnid_cache);
-+	if (nid >= 0)
-+		return nid;
-+	/* just returns 0 */
-+	return 0;
-+}
++config DEFERRED_STRUCT_PAGE_INIT
++	bool "Defer initialisation of struct pages to kswapd"
++	default n
++	depends on ARCH_SUPPORTS_DEFERRED_STRUCT_PAGE_INIT
++	depends on MEMORY_HOTPLUG
++	help
++	  Ordinarily all struct pages are initialised during early boot in a
++	  single thread. On very large machines this can take a considerable
++	  amount of time. If this option is set, large machines will bring up
++	  a subset of memmap at boot and then initialise the rest in parallel
++	  when kswapd starts. This has a potential performance impact on
++	  processes running early in the lifetime of the systemm until kswapd
++	  finishes the initialisation.
+diff -puN mm/internal.h~mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set mm/internal.h
+--- a/mm/internal.h~mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set
++++ a/mm/internal.h
+@@ -387,6 +387,20 @@ static inline void mminit_verify_zonelis
+ }
+ #endif /* CONFIG_DEBUG_MEMORY_INIT */
+ 
++/*
++ * Deferred struct page initialisation requires some early init functions that
++ * are removed before kswapd is up and running. The feature depends on memory
++ * hotplug so put the data and code required by deferred initialisation into
++ * the __meminit section where they are preserved.
++ */
++#ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
++#define __defermem_init __meminit
++#define __defer_init    __meminit
++#else
++#define __defermem_init
++#define __defer_init __init
 +#endif
 +
-+#ifdef CONFIG_NODES_SPAN_OTHER_NODES
-+static inline bool __meminit meminit_pfn_in_nid(unsigned long pfn, int node,
-+					struct mminit_pfnnid_cache *state)
+ /* mminit_validate_memmodel_limits is independent of CONFIG_DEBUG_MEMORY_INIT */
+ #if defined(CONFIG_SPARSEMEM)
+ extern void mminit_validate_memmodel_limits(unsigned long *start_pfn,
+diff -puN mm/page_alloc.c~mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set
++++ a/mm/page_alloc.c
+@@ -235,6 +235,64 @@ EXPORT_SYMBOL(nr_online_nodes);
+ 
+ int page_group_by_mobility_disabled __read_mostly;
+ 
++#ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
++static inline void reset_deferred_meminit(pg_data_t *pgdat)
 +{
-+	int nid;
++	pgdat->first_deferred_pfn = ULONG_MAX;
++}
 +
-+	nid = __early_pfn_to_nid(pfn, state);
-+	if (nid >= 0 && nid != node)
++/* Returns true if the struct page for the pfn is uninitialised */
++static inline bool __defermem_init early_page_uninitialised(unsigned long pfn)
++{
++	int nid = early_pfn_to_nid(pfn);
++
++	if (pfn >= NODE_DATA(nid)->first_deferred_pfn)
++		return true;
++
++	return false;
++}
++
++/*
++ * Returns false when the remaining initialisation should be deferred until
++ * later in the boot cycle when it can be parallelised.
++ */
++static inline bool update_defer_init(pg_data_t *pgdat,
++				unsigned long pfn, unsigned long zone_end,
++				unsigned long *nr_initialised)
++{
++	/* Always populate low zones for address-contrained allocations */
++	if (zone_end < pgdat_end_pfn(pgdat))
++		return true;
++
++	/* Initialise at least 2G of the highest zone */
++	(*nr_initialised)++;
++	if (*nr_initialised > (2UL << (30 - PAGE_SHIFT)) &&
++	    (pfn & (PAGES_PER_SECTION - 1)) == 0) {
++		pgdat->first_deferred_pfn = pfn;
 +		return false;
++	}
++
 +	return true;
 +}
-+
-+/* Only safe to use early in boot when initialisation is single-threaded */
-+static inline bool __meminit early_pfn_in_nid(unsigned long pfn, int node)
++#else
++static inline void reset_deferred_meminit(pg_data_t *pgdat)
 +{
-+	return meminit_pfn_in_nid(pfn, node, &early_pfnnid_cache);
++}
++
++static inline bool early_page_uninitialised(unsigned long pfn)
++{
++	return false;
++}
++
++static inline bool update_defer_init(pg_data_t *pgdat,
++				unsigned long pfn, unsigned long zone_end,
++				unsigned long *nr_initialised)
++{
++	return true;
 +}
 +#endif
++
++
+ void set_pageblock_migratetype(struct page *page, int migratetype)
+ {
+ 	if (unlikely(page_group_by_mobility_disabled &&
+@@ -892,8 +950,8 @@ static void __free_pages_ok(struct page
+ 	local_irq_restore(flags);
+ }
+ 
+-void __init __free_pages_bootmem(struct page *page, unsigned long pfn,
+-							unsigned int order)
++static void __defer_init __free_pages_boot_core(struct page *page,
++					unsigned long pfn, unsigned int order)
+ {
+ 	unsigned int nr_pages = 1 << order;
+ 	struct page *p = page;
+@@ -952,6 +1010,14 @@ static inline bool __meminit early_pfn_i
+ }
+ #endif
+ 
++void __defer_init __free_pages_bootmem(struct page *page, unsigned long pfn,
++							unsigned int order)
++{
++	if (early_page_uninitialised(pfn))
++		return;
++	return __free_pages_boot_core(page, pfn, order);
++}
 +
  #ifdef CONFIG_CMA
  /* Free whole pageblock and set its migration type to MIGRATE_CMA. */
  void __init init_cma_reserved_pageblock(struct page *page)
-@@ -4530,43 +4569,6 @@ int __meminit __early_pfn_to_nid(unsigne
- }
- #endif /* CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID */
+@@ -4267,14 +4333,16 @@ static void setup_zone_migrate_reserve(s
+ void __meminit memmap_init_zone(unsigned long size, int nid, unsigned long zone,
+ 		unsigned long start_pfn, enum memmap_context context)
+ {
++	pg_data_t *pgdat = NODE_DATA(nid);
+ 	unsigned long end_pfn = start_pfn + size;
+ 	unsigned long pfn;
+ 	struct zone *z;
++	unsigned long nr_initialised = 0;
  
--static struct mminit_pfnnid_cache early_pfnnid_cache __meminitdata;
--
--/* Only safe to use early in boot when initialisation is single-threaded */
--int __meminit early_pfn_to_nid(unsigned long pfn)
--{
--	int nid;
--
--	/* The system will behave unpredictably otherwise */
--	BUG_ON(system_state != SYSTEM_BOOTING);
--
--	nid = __early_pfn_to_nid(pfn, &early_pfnnid_cache);
--	if (nid >= 0)
--		return nid;
--	/* just returns 0 */
--	return 0;
--}
--
--#ifdef CONFIG_NODES_SPAN_OTHER_NODES
--bool __meminit meminit_pfn_in_nid(unsigned long pfn, int node,
--					struct mminit_pfnnid_cache *state)
--{
--	int nid;
--
--	nid = __early_pfn_to_nid(pfn, state);
--	if (nid >= 0 && nid != node)
--		return false;
--	return true;
--}
--
--/* Only safe to use early in boot when initialisation is single-threaded */
--bool __meminit early_pfn_in_nid(unsigned long pfn, int node)
--{
--	return meminit_pfn_in_nid(pfn, node, &early_pfnnid_cache);
--}
--
--#endif
--
- /**
-  * free_bootmem_with_active_regions - Call memblock_free_early_nid for each active range
-  * @nid: The node to free memory on. If MAX_NUMNODES, all nodes are freed.
+ 	if (highest_memmap_pfn < end_pfn - 1)
+ 		highest_memmap_pfn = end_pfn - 1;
+ 
+-	z = &NODE_DATA(nid)->node_zones[zone];
++	z = &pgdat->node_zones[zone];
+ 	for (pfn = start_pfn; pfn < end_pfn; pfn++) {
+ 		/*
+ 		 * There can be holes in boot-time mem_map[]s
+@@ -4286,6 +4354,9 @@ void __meminit memmap_init_zone(unsigned
+ 				continue;
+ 			if (!early_pfn_in_nid(pfn, nid))
+ 				continue;
++			if (!update_defer_init(pgdat, pfn, end_pfn,
++						&nr_initialised))
++				break;
+ 		}
+ 		__init_single_pfn(pfn, zone, nid);
+ 	}
+@@ -5087,6 +5158,7 @@ void __paginginit free_area_init_node(in
+ 	/* pg_data_t should be reset to zero when it's allocated */
+ 	WARN_ON(pgdat->nr_zones || pgdat->classzone_idx);
+ 
++	reset_deferred_meminit(pgdat);
+ 	pgdat->node_id = nid;
+ 	pgdat->node_start_pfn = node_start_pfn;
+ #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
