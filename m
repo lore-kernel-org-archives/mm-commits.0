@@ -1,114 +1,198 @@
 From: akpm@linux-foundation.org
-Subject: + lib-scatterlist-mark-input-buffer-parameters-as-const.patch
- added to -mm tree
-Date: Wed, 29 Apr 2015 13:15:17 -0700
-Message-ID: <55413bd5.LCeeCm62a5b89Nn8%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ mm-page_alloc-pass-pfn-to-__free_pages_bootmem.patch removed from -mm tree
+Date: Wed, 29 Apr 2015 13:36:32 -0700
+Message-ID: <554140d0.yHsCOEA92x628sWP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57303 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57663 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751286AbbD2UPS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Apr 2015 16:15:18 -0400
+	with ESMTP id S1751120AbbD2Ugd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Apr 2015 16:36:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david.s.gordon@intel.com, akinobu.mita@gmail.com, martin.petersen@oracle.com, mm-commits@vger.kernel.org
+To: mgorman@suse.de, daniel@numascale.com, dave.hansen@intel.com, holt@sgi.com, hpa@zytor.com, mingo@elte.hu, nzimmer@sgi.com, scott.norton@hp.com, tglx@linutronix.de, tony.luck@intel.com, waiman.long@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/scatterlist: mark input buffer parameters as 'const'
-has been added to the -mm tree.  Its filename is
-     lib-scatterlist-mark-input-buffer-parameters-as-const.patch
+     Subject: mm: page_alloc: pass PFN to __free_pages_bootmem
+has been removed from the -mm tree.  Its filename was
+     mm-page_alloc-pass-pfn-to-__free_pages_bootmem.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-scatterlist-mark-input-buffer-parameters-as-const.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-scatterlist-mark-input-buffer-parameters-as-const.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Dave Gordon <david.s.gordon@intel.com>
-Subject: lib/scatterlist: mark input buffer parameters as 'const'
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm: page_alloc: pass PFN to __free_pages_bootmem
 
-The 'buf' parameter of sg(p)copy_from_buffer() can and should be
-const-qualified, although because of the shared implementation of
-_to_buffer() and _from_buffer(), we have to cast this away internally.
+__free_pages_bootmem prepares a page for release to the buddy allocator
+and assumes that the struct page is initialised.  Parallel initialisation
+of struct pages defers initialisation and __free_pages_bootmem can be
+called for struct pages that cannot yet map struct page to PFN.  This
+patch passes PFN to __free_pages_bootmem with no other functional change.
 
-This means that callers who have a 'const' buffer containing the data to
-be copied to the sg-list no longer have to cast away the const-ness
-themselves.  It also enables improved coverage by code analysis tools.
-
-Signed-off-by: Dave Gordon <david.s.gordon@intel.com>
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: "Martin K. Petersen" <martin.petersen@oracle.com>
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Cc: Daniel J Blueman <daniel@numascale.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Nathan Zimmer <nzimmer@sgi.com>
+Cc: Robin Holt <holt@sgi.com>
+Cc: Scott Norton <scott.norton@hp.com>
+Cc: Waiman Long <waiman.long@hp.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/scatterlist.h |    4 ++--
- lib/scatterlist.c           |    8 ++++----
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ mm/bootmem.c    |    8 ++++----
+ mm/internal.h   |    3 ++-
+ mm/memblock.c   |    2 +-
+ mm/nobootmem.c  |    4 ++--
+ mm/page_alloc.c |    3 ++-
+ 5 files changed, 11 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/scatterlist.h~lib-scatterlist-mark-input-buffer-parameters-as-const include/linux/scatterlist.h
---- a/include/linux/scatterlist.h~lib-scatterlist-mark-input-buffer-parameters-as-const
-+++ a/include/linux/scatterlist.h
-@@ -240,12 +240,12 @@ int sg_alloc_table_from_pages(struct sg_
- 	gfp_t gfp_mask);
+diff -puN mm/bootmem.c~mm-page_alloc-pass-pfn-to-__free_pages_bootmem mm/bootmem.c
+--- a/mm/bootmem.c~mm-page_alloc-pass-pfn-to-__free_pages_bootmem
++++ a/mm/bootmem.c
+@@ -164,7 +164,7 @@ void __init free_bootmem_late(unsigned l
+ 	end = PFN_DOWN(physaddr + size);
  
- size_t sg_copy_from_buffer(struct scatterlist *sgl, unsigned int nents,
--			   void *buf, size_t buflen);
-+			   const void *buf, size_t buflen);
- size_t sg_copy_to_buffer(struct scatterlist *sgl, unsigned int nents,
- 			 void *buf, size_t buflen);
- 
- size_t sg_pcopy_from_buffer(struct scatterlist *sgl, unsigned int nents,
--			    void *buf, size_t buflen, off_t skip);
-+			    const void *buf, size_t buflen, off_t skip);
- size_t sg_pcopy_to_buffer(struct scatterlist *sgl, unsigned int nents,
- 			  void *buf, size_t buflen, off_t skip);
- 
-diff -puN lib/scatterlist.c~lib-scatterlist-mark-input-buffer-parameters-as-const lib/scatterlist.c
---- a/lib/scatterlist.c~lib-scatterlist-mark-input-buffer-parameters-as-const
-+++ a/lib/scatterlist.c
-@@ -669,9 +669,9 @@ static size_t sg_copy_buffer(struct scat
-  *
-  **/
- size_t sg_copy_from_buffer(struct scatterlist *sgl, unsigned int nents,
--			   void *buf, size_t buflen)
-+			   const void *buf, size_t buflen)
- {
--	return sg_copy_buffer(sgl, nents, buf, buflen, 0, false);
-+	return sg_copy_buffer(sgl, nents, (void *)buf, buflen, 0, false);
+ 	for (; cursor < end; cursor++) {
+-		__free_pages_bootmem(pfn_to_page(cursor), 0);
++		__free_pages_bootmem(pfn_to_page(cursor), cursor, 0);
+ 		totalram_pages++;
+ 	}
  }
- EXPORT_SYMBOL(sg_copy_from_buffer);
+@@ -210,7 +210,7 @@ static unsigned long __init free_all_boo
+ 		if (IS_ALIGNED(start, BITS_PER_LONG) && vec == ~0UL) {
+ 			int order = ilog2(BITS_PER_LONG);
  
-@@ -704,9 +704,9 @@ EXPORT_SYMBOL(sg_copy_to_buffer);
-  *
-  **/
- size_t sg_pcopy_from_buffer(struct scatterlist *sgl, unsigned int nents,
--			    void *buf, size_t buflen, off_t skip)
-+			    const void *buf, size_t buflen, off_t skip)
- {
--	return sg_copy_buffer(sgl, nents, buf, buflen, skip, false);
-+	return sg_copy_buffer(sgl, nents, (void *)buf, buflen, skip, false);
+-			__free_pages_bootmem(pfn_to_page(start), order);
++			__free_pages_bootmem(pfn_to_page(start), start, order);
+ 			count += BITS_PER_LONG;
+ 			start += BITS_PER_LONG;
+ 		} else {
+@@ -220,7 +220,7 @@ static unsigned long __init free_all_boo
+ 			while (vec && cur != start) {
+ 				if (vec & 1) {
+ 					page = pfn_to_page(cur);
+-					__free_pages_bootmem(page, 0);
++					__free_pages_bootmem(page, cur, 0);
+ 					count++;
+ 				}
+ 				vec >>= 1;
+@@ -234,7 +234,7 @@ static unsigned long __init free_all_boo
+ 	pages = bootmem_bootmap_pages(pages);
+ 	count += pages;
+ 	while (pages--)
+-		__free_pages_bootmem(page++, 0);
++		__free_pages_bootmem(page++, cur++, 0);
+ 
+ 	bdebug("nid=%td released=%lx\n", bdata - bootmem_node_data, count);
+ 
+diff -puN mm/internal.h~mm-page_alloc-pass-pfn-to-__free_pages_bootmem mm/internal.h
+--- a/mm/internal.h~mm-page_alloc-pass-pfn-to-__free_pages_bootmem
++++ a/mm/internal.h
+@@ -155,7 +155,8 @@ __find_buddy_index(unsigned long page_id
  }
- EXPORT_SYMBOL(sg_pcopy_from_buffer);
  
+ extern int __isolate_free_page(struct page *page, unsigned int order);
+-extern void __free_pages_bootmem(struct page *page, unsigned int order);
++extern void __free_pages_bootmem(struct page *page, unsigned long pfn,
++					unsigned int order);
+ extern void prep_compound_page(struct page *page, unsigned long order);
+ #ifdef CONFIG_MEMORY_FAILURE
+ extern bool is_free_buddy_page(struct page *page);
+diff -puN mm/memblock.c~mm-page_alloc-pass-pfn-to-__free_pages_bootmem mm/memblock.c
+--- a/mm/memblock.c~mm-page_alloc-pass-pfn-to-__free_pages_bootmem
++++ a/mm/memblock.c
+@@ -1348,7 +1348,7 @@ void __init __memblock_free_late(phys_ad
+ 	end = PFN_DOWN(base + size);
+ 
+ 	for (; cursor < end; cursor++) {
+-		__free_pages_bootmem(pfn_to_page(cursor), 0);
++		__free_pages_bootmem(pfn_to_page(cursor), cursor, 0);
+ 		totalram_pages++;
+ 	}
+ }
+diff -puN mm/nobootmem.c~mm-page_alloc-pass-pfn-to-__free_pages_bootmem mm/nobootmem.c
+--- a/mm/nobootmem.c~mm-page_alloc-pass-pfn-to-__free_pages_bootmem
++++ a/mm/nobootmem.c
+@@ -77,7 +77,7 @@ void __init free_bootmem_late(unsigned l
+ 	end = PFN_DOWN(addr + size);
+ 
+ 	for (; cursor < end; cursor++) {
+-		__free_pages_bootmem(pfn_to_page(cursor), 0);
++		__free_pages_bootmem(pfn_to_page(cursor), cursor, 0);
+ 		totalram_pages++;
+ 	}
+ }
+@@ -92,7 +92,7 @@ static void __init __free_pages_memory(u
+ 		while (start + (1UL << order) > end)
+ 			order--;
+ 
+-		__free_pages_bootmem(pfn_to_page(start), order);
++		__free_pages_bootmem(pfn_to_page(start), start, order);
+ 
+ 		start += (1UL << order);
+ 	}
+diff -puN mm/page_alloc.c~mm-page_alloc-pass-pfn-to-__free_pages_bootmem mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-pass-pfn-to-__free_pages_bootmem
++++ a/mm/page_alloc.c
+@@ -886,7 +886,8 @@ static void __free_pages_ok(struct page
+ 	local_irq_restore(flags);
+ }
+ 
+-void __init __free_pages_bootmem(struct page *page, unsigned int order)
++void __init __free_pages_bootmem(struct page *page, unsigned long pfn,
++							unsigned int order)
+ {
+ 	unsigned int nr_pages = 1 << order;
+ 	struct page *p = page;
 _
 
-Patches currently in -mm which might be from david.s.gordon@intel.com are
+Patches currently in -mm which might be from mgorman@suse.de are
 
-lib-scatterlist-fix-kerneldoc-for-sg_pcopy_tofrom_buffer.patch
-lib-scatterlist-mark-input-buffer-parameters-as-const.patch
+jbd2-revert-must-not-fail-allocation-loops-back-to-gfp_nofail.patch
+thp-cleanup-how-khugepaged-enters-freezer.patch
+mm-new-mm-hook-framework.patch
+mm-new-arch_remap-hook.patch
+powerpc-mm-tracking-vdso-remap.patch
+mm-meminit-make-__early_pfn_to_nid-smp-safe-and-introduce-meminit_pfn_in_nid.patch
+mm-meminit-inline-some-helper-functions.patch
+mm-meminit-inline-some-helper-functions-checkpatch-fixes.patch
+mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set.patch
+mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set-fix.patch
+mm-meminit-initialise-remaining-struct-pages-in-parallel-with-kswapd.patch
+mm-meminit-initialise-remaining-struct-pages-in-parallel-with-kswapd-fix.patch
+mm-meminit-minimise-number-of-pfn-page-lookups-during-initialisation.patch
+x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
+mm-meminit-free-pages-in-large-chunks-where-possible.patch
+mm-meminit-reduce-number-of-times-pageblocks-are-set-during-struct-page-init.patch
+mm-meminit-remove-mminit_verify_page_links.patch
+page-flags-trivial-cleanup-for-pagetrans-helpers.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
+page-flags-define-pg_locked-behavior-on-compound-pages.patch
+page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
+page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
+page-flags-define-pg_reserved-behavior-on-compound-pages.patch
+page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
+page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
+page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
+page-flags-define-pg_uncached-behavior-on-compound-pages.patch
+page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
+page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
+mm-sanitize-page-mapping-for-tail-pages.patch
+mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-reclaimable-pages.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+mm-move-lazy-free-pages-to-inactive-list.patch
+mm-move-lazy-free-pages-to-inactive-list-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
 
