@@ -1,78 +1,51 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- memblock-introduce-a-for_each_reserved_mem_region-iterator.patch removed
- from -mm tree
-Date: Wed, 29 Apr 2015 13:36:23 -0700
-Message-ID: <554140c7.rToP+w4NdHT2cg6I%akpm@linux-foundation.org>
+ mm-meminit-make-__early_pfn_to_nid-smp-safe-and-introduce-meminit_pfn_in_nid.patch removed from -mm tree
+Date: Wed, 29 Apr 2015 13:36:35 -0700
+Message-ID: <554140d3.cnnH/NUFy9W9fgcx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57632 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57672 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750729AbbD2UgY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Apr 2015 16:36:24 -0400
+	with ESMTP id S1751120AbbD2Ugg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Apr 2015 16:36:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: holt@sgi.com, daniel@numascale.com, dave.hansen@intel.com, hpa@zytor.com, mgorman@suse.de, mingo@elte.hu, nzimmer@sgi.com, scott.norton@hp.com, tglx@linutronix.de, tony.luck@intel.com, waiman.long@hp.com, mm-commits@vger.kernel.org
+To: mgorman@suse.de, daniel@numascale.com, dave.hansen@intel.com, holt@sgi.com, hpa@zytor.com, mingo@elte.hu, nzimmer@sgi.com, scott.norton@hp.com, tglx@linutronix.de, tony.luck@intel.com, waiman.long@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memblock: introduce a for_each_reserved_mem_region iterator
+     Subject: mm: meminit: make __early_pfn_to_nid SMP-safe and introduce meminit_pfn_in_nid
 has been removed from the -mm tree.  Its filename was
-     memblock-introduce-a-for_each_reserved_mem_region-iterator.patch
+     mm-meminit-make-__early_pfn_to_nid-smp-safe-and-introduce-meminit_pfn_in_nid.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Robin Holt <holt@sgi.com>
-Subject: memblock: introduce a for_each_reserved_mem_region iterator
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm: meminit: make __early_pfn_to_nid SMP-safe and introduce meminit_pfn_in_nid
 
-Struct page initialisation had been identified as one of the reasons why
-large machines take a long time to boot. Patches were posted a long time ago
-to defer initialisation until they were first used.  This was rejected on
-the grounds it should not be necessary to hurt the fast paths. This series
-reuses much of the work from that time but defers the initialisation of
-memory to kswapd so that one thread per node initialises memory local to
-that node.
+__early_pfn_to_nid() in the generic and arch-specific implementations use
+static variables to cache recent lookups.  Without the cache boot times
+are much higher due to the excessive memblock lookups but it assumes that
+memory initialisation is single-threaded.  Parallel initialisation of
+struct pages will break that assumption so this patch makes
+__early_pfn_to_nid() SMP-safe by requiring the caller to cache recent
+search information.  early_pfn_to_nid() keeps the same interface but is
+only safe to use early in boot due to the use of a global static variable.
+ meminit_pfn_in_nid() is an SMP-safe version that callers must maintain
+their own state for.
 
-After applying the series and setting the appropriate Kconfig variable I
-see this in the boot log on a 64G machine
-
-[    7.383764] kswapd 0 initialised deferred memory in 188ms
-[    7.404253] kswapd 1 initialised deferred memory in 208ms
-[    7.411044] kswapd 3 initialised deferred memory in 216ms
-[    7.411551] kswapd 2 initialised deferred memory in 216ms
-
-On a 1TB machine, I see
-
-[    8.406511] kswapd 3 initialised deferred memory in 1116ms
-[    8.428518] kswapd 1 initialised deferred memory in 1140ms
-[    8.435977] kswapd 0 initialised deferred memory in 1148ms
-[    8.437416] kswapd 2 initialised deferred memory in 1148ms
-
-Once booted the machine appears to work as normal. Boot times were measured
-from the time shutdown was called until ssh was available again.  In the
-64G case, the boot time savings are negligible. On the 1TB machine, the
-savings were 16 seconds.
-
-
-This patch (of 13):
-
-As part of initializing struct page's in 2MiB chunks, we noticed that at
-the end of free_all_bootmem(), there was nothing which had forced the
-reserved/allocated 4KiB pages to be initialized.
-
-This helper function will be used for that expansion.
-
-Signed-off-by: Robin Holt <holt@sgi.com>
-Signed-off-by: Nate Zimmer <nzimmer@sgi.com>
 Signed-off-by: Mel Gorman <mgorman@suse.de>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Waiman Long <waiman.long@hp.com>
-Cc: Scott Norton <scott.norton@hp.com>
 Cc: Daniel J Blueman <daniel@numascale.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Nathan Zimmer <nzimmer@sgi.com>
+Cc: Robin Holt <holt@sgi.com>
+Cc: Scott Norton <scott.norton@hp.com>
+Cc: Waiman Long <waiman.long@hp.com>
 Cc: "Luck, Tony" <tony.luck@intel.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
@@ -80,102 +53,225 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memblock.h |   18 ++++++++++++++++++
- mm/memblock.c            |   32 ++++++++++++++++++++++++++++++++
- 2 files changed, 50 insertions(+)
+ arch/ia64/mm/numa.c    |   19 ++++++------------
+ include/linux/mm.h     |    6 +++--
+ include/linux/mmzone.h |   16 ++++++++++++++-
+ mm/page_alloc.c        |   40 ++++++++++++++++++++++++---------------
+ 4 files changed, 51 insertions(+), 30 deletions(-)
 
-diff -puN include/linux/memblock.h~memblock-introduce-a-for_each_reserved_mem_region-iterator include/linux/memblock.h
---- a/include/linux/memblock.h~memblock-introduce-a-for_each_reserved_mem_region-iterator
-+++ a/include/linux/memblock.h
-@@ -93,6 +93,9 @@ void __next_mem_range_rev(u64 *idx, int
- 			  struct memblock_type *type_b, phys_addr_t *out_start,
- 			  phys_addr_t *out_end, int *out_nid);
- 
-+void __next_reserved_mem_region(u64 *idx, phys_addr_t *out_start,
-+			       phys_addr_t *out_end);
-+
- /**
-  * for_each_mem_range - iterate through memblock areas from type_a and not
-  * included in type_b. Or just type_a if type_b is NULL.
-@@ -132,6 +135,21 @@ void __next_mem_range_rev(u64 *idx, int
- 	     __next_mem_range_rev(&i, nid, type_a, type_b,		\
- 				  p_start, p_end, p_nid))
- 
-+/**
-+ * for_each_reserved_mem_region - iterate over all reserved memblock areas
-+ * @i: u64 used as loop variable
-+ * @p_start: ptr to phys_addr_t for start address of the range, can be %NULL
-+ * @p_end: ptr to phys_addr_t for end address of the range, can be %NULL
-+ *
-+ * Walks over reserved areas of memblock. Available as soon as memblock
-+ * is initialized.
-+ */
-+#define for_each_reserved_mem_region(i, p_start, p_end)			\
-+	for (i = 0UL,							\
-+	     __next_reserved_mem_region(&i, p_start, p_end);		\
-+	     i != (u64)ULLONG_MAX;					\
-+	     __next_reserved_mem_region(&i, p_start, p_end))
-+
- #ifdef CONFIG_MOVABLE_NODE
- static inline bool memblock_is_hotpluggable(struct memblock_region *m)
+diff -puN arch/ia64/mm/numa.c~mm-meminit-make-__early_pfn_to_nid-smp-safe-and-introduce-meminit_pfn_in_nid arch/ia64/mm/numa.c
+--- a/arch/ia64/mm/numa.c~mm-meminit-make-__early_pfn_to_nid-smp-safe-and-introduce-meminit_pfn_in_nid
++++ a/arch/ia64/mm/numa.c
+@@ -58,27 +58,22 @@ paddr_to_nid(unsigned long paddr)
+  * SPARSEMEM to allocate the SPARSEMEM sectionmap on the NUMA node where
+  * the section resides.
+  */
+-int __meminit __early_pfn_to_nid(unsigned long pfn)
++int __meminit __early_pfn_to_nid(unsigned long pfn,
++					struct mminit_pfnnid_cache *state)
  {
-diff -puN mm/memblock.c~memblock-introduce-a-for_each_reserved_mem_region-iterator mm/memblock.c
---- a/mm/memblock.c~memblock-introduce-a-for_each_reserved_mem_region-iterator
-+++ a/mm/memblock.c
-@@ -779,6 +779,38 @@ int __init_memblock memblock_clear_hotpl
+ 	int i, section = pfn >> PFN_SECTION_SHIFT, ssec, esec;
+-	/*
+-	 * NOTE: The following SMP-unsafe globals are only used early in boot
+-	 * when the kernel is running single-threaded.
+-	 */
+-	static int __meminitdata last_ssec, last_esec;
+-	static int __meminitdata last_nid;
+ 
+-	if (section >= last_ssec && section < last_esec)
+-		return last_nid;
++	if (section >= state->last_start && section < state->last_end)
++		return state->last_nid;
+ 
+ 	for (i = 0; i < num_node_memblks; i++) {
+ 		ssec = node_memblk[i].start_paddr >> PA_SECTION_SHIFT;
+ 		esec = (node_memblk[i].start_paddr + node_memblk[i].size +
+ 			((1L << PA_SECTION_SHIFT) - 1)) >> PA_SECTION_SHIFT;
+ 		if (section >= ssec && section < esec) {
+-			last_ssec = ssec;
+-			last_esec = esec;
+-			last_nid = node_memblk[i].nid;
++			state->last_start = ssec;
++			state->last_end = esec;
++			state->last_nid = node_memblk[i].nid;
+ 			return node_memblk[i].nid;
+ 		}
+ 	}
+diff -puN include/linux/mm.h~mm-meminit-make-__early_pfn_to_nid-smp-safe-and-introduce-meminit_pfn_in_nid include/linux/mm.h
+--- a/include/linux/mm.h~mm-meminit-make-__early_pfn_to_nid-smp-safe-and-introduce-meminit_pfn_in_nid
++++ a/include/linux/mm.h
+@@ -1722,7 +1722,8 @@ extern void sparse_memory_present_with_a
+ 
+ #if !defined(CONFIG_HAVE_MEMBLOCK_NODE_MAP) && \
+     !defined(CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID)
+-static inline int __early_pfn_to_nid(unsigned long pfn)
++static inline int __early_pfn_to_nid(unsigned long pfn,
++					struct mminit_pfnnid_cache *state)
+ {
+ 	return 0;
+ }
+@@ -1730,7 +1731,8 @@ static inline int __early_pfn_to_nid(uns
+ /* please see mm/page_alloc.c */
+ extern int __meminit early_pfn_to_nid(unsigned long pfn);
+ /* there is a per-arch backend function. */
+-extern int __meminit __early_pfn_to_nid(unsigned long pfn);
++extern int __meminit __early_pfn_to_nid(unsigned long pfn,
++					struct mminit_pfnnid_cache *state);
+ #endif
+ 
+ extern void set_dma_reserve(unsigned long new_dma_reserve);
+diff -puN include/linux/mmzone.h~mm-meminit-make-__early_pfn_to_nid-smp-safe-and-introduce-meminit_pfn_in_nid include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-meminit-make-__early_pfn_to_nid-smp-safe-and-introduce-meminit_pfn_in_nid
++++ a/include/linux/mmzone.h
+@@ -1216,10 +1216,24 @@ void sparse_init(void);
+ #define sparse_index_init(_sec, _nid)  do {} while (0)
+ #endif /* CONFIG_SPARSEMEM */
+ 
++/*
++ * During memory init memblocks map pfns to nids. The search is expensive and
++ * this caches recent lookups. The implementation of __early_pfn_to_nid
++ * may treat start/end as pfns or sections.
++ */
++struct mminit_pfnnid_cache {
++	unsigned long last_start;
++	unsigned long last_end;
++	int last_nid;
++};
++
+ #ifdef CONFIG_NODES_SPAN_OTHER_NODES
+ bool early_pfn_in_nid(unsigned long pfn, int nid);
++bool meminit_pfn_in_nid(unsigned long pfn, int node,
++			struct mminit_pfnnid_cache *state);
+ #else
+-#define early_pfn_in_nid(pfn, nid)	(1)
++#define early_pfn_in_nid(pfn, nid)		(1)
++#define meminit_pfn_in_nid(pfn, nid, state)	(1)
+ #endif
+ 
+ #ifndef early_pfn_valid
+diff -puN mm/page_alloc.c~mm-meminit-make-__early_pfn_to_nid-smp-safe-and-introduce-meminit_pfn_in_nid mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-meminit-make-__early_pfn_to_nid-smp-safe-and-introduce-meminit_pfn_in_nid
++++ a/mm/page_alloc.c
+@@ -4500,39 +4500,41 @@ int __meminit init_currently_empty_zone(
+ 
+ #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
+ #ifndef CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID
++
+ /*
+  * Required by SPARSEMEM. Given a PFN, return what node the PFN is on.
+  */
+-int __meminit __early_pfn_to_nid(unsigned long pfn)
++int __meminit __early_pfn_to_nid(unsigned long pfn,
++					struct mminit_pfnnid_cache *state)
+ {
+ 	unsigned long start_pfn, end_pfn;
+ 	int nid;
+-	/*
+-	 * NOTE: The following SMP-unsafe globals are only used early in boot
+-	 * when the kernel is running single-threaded.
+-	 */
+-	static unsigned long __meminitdata last_start_pfn, last_end_pfn;
+-	static int __meminitdata last_nid;
+ 
+-	if (last_start_pfn <= pfn && pfn < last_end_pfn)
+-		return last_nid;
++	if (state->last_start <= pfn && pfn < state->last_end)
++		return state->last_nid;
+ 
+ 	nid = memblock_search_pfn_nid(pfn, &start_pfn, &end_pfn);
+ 	if (nid != -1) {
+-		last_start_pfn = start_pfn;
+-		last_end_pfn = end_pfn;
+-		last_nid = nid;
++		state->last_start = start_pfn;
++		state->last_end = end_pfn;
++		state->last_nid = nid;
+ 	}
+ 
+ 	return nid;
+ }
+ #endif /* CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID */
+ 
++struct __meminitdata mminit_pfnnid_cache global_init_state;
++
++/* Only safe to use early in boot when initialisation is single-threaded */
+ int __meminit early_pfn_to_nid(unsigned long pfn)
+ {
+ 	int nid;
+ 
+-	nid = __early_pfn_to_nid(pfn);
++	/* The system will behave unpredictably otherwise */
++	BUG_ON(system_state != SYSTEM_BOOTING);
++
++	nid = __early_pfn_to_nid(pfn, &global_init_state);
+ 	if (nid >= 0)
+ 		return nid;
+ 	/* just returns 0 */
+@@ -4540,15 +4542,23 @@ int __meminit early_pfn_to_nid(unsigned
  }
  
- /**
-+ * __next_reserved_mem_region - next function for for_each_reserved_region()
-+ * @idx: pointer to u64 loop variable
-+ * @out_start: ptr to phys_addr_t for start address of the region, can be %NULL
-+ * @out_end: ptr to phys_addr_t for end address of the region, can be %NULL
-+ *
-+ * Iterate over all reserved memory regions.
-+ */
-+void __init_memblock __next_reserved_mem_region(u64 *idx,
-+					   phys_addr_t *out_start,
-+					   phys_addr_t *out_end)
+ #ifdef CONFIG_NODES_SPAN_OTHER_NODES
+-bool __meminit early_pfn_in_nid(unsigned long pfn, int node)
++bool __meminit meminit_pfn_in_nid(unsigned long pfn, int node,
++					struct mminit_pfnnid_cache *state)
+ {
+ 	int nid;
+ 
+-	nid = __early_pfn_to_nid(pfn);
++	nid = __early_pfn_to_nid(pfn, state);
+ 	if (nid >= 0 && nid != node)
+ 		return false;
+ 	return true;
+ }
++
++/* Only safe to use early in boot when initialisation is single-threaded */
++bool __meminit early_pfn_in_nid(unsigned long pfn, int node)
 +{
-+	struct memblock_type *rsv = &memblock.reserved;
-+
-+	if (*idx >= 0 && *idx < rsv->cnt) {
-+		struct memblock_region *r = &rsv->regions[*idx];
-+		phys_addr_t base = r->base;
-+		phys_addr_t size = r->size;
-+
-+		if (out_start)
-+			*out_start = base;
-+		if (out_end)
-+			*out_end = base + size - 1;
-+
-+		*idx += 1;
-+		return;
-+	}
-+
-+	/* signal end of iteration */
-+	*idx = ULLONG_MAX;
++	return meminit_pfn_in_nid(pfn, node, &global_init_state);
 +}
 +
-+/**
-  * __next__mem_range - next function for for_each_free_mem_range() etc.
-  * @idx: pointer to u64 loop variable
-  * @nid: node selector, %NUMA_NO_NODE for all nodes
+ #endif
+ 
+ /**
 _
 
-Patches currently in -mm which might be from holt@sgi.com are
+Patches currently in -mm which might be from mgorman@suse.de are
 
-mm-meminit-move-page-initialization-into-a-separate-function.patch
-mm-meminit-only-set-page-reserved-in-the-memblock-region.patch
-mm-page_alloc-pass-pfn-to-__free_pages_bootmem.patch
-mm-meminit-make-__early_pfn_to_nid-smp-safe-and-introduce-meminit_pfn_in_nid.patch
+jbd2-revert-must-not-fail-allocation-loops-back-to-gfp_nofail.patch
+thp-cleanup-how-khugepaged-enters-freezer.patch
+mm-new-mm-hook-framework.patch
+mm-new-arch_remap-hook.patch
+powerpc-mm-tracking-vdso-remap.patch
 mm-meminit-inline-some-helper-functions.patch
+mm-meminit-inline-some-helper-functions-checkpatch-fixes.patch
 mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set.patch
 mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set-fix.patch
 mm-meminit-initialise-remaining-struct-pages-in-parallel-with-kswapd.patch
+mm-meminit-initialise-remaining-struct-pages-in-parallel-with-kswapd-fix.patch
 mm-meminit-minimise-number-of-pfn-page-lookups-during-initialisation.patch
 x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
 mm-meminit-free-pages-in-large-chunks-where-possible.patch
 mm-meminit-reduce-number-of-times-pageblocks-are-set-during-struct-page-init.patch
 mm-meminit-remove-mminit_verify_page_links.patch
+page-flags-trivial-cleanup-for-pagetrans-helpers.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
+page-flags-define-pg_locked-behavior-on-compound-pages.patch
+page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
+page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
+page-flags-define-pg_reserved-behavior-on-compound-pages.patch
+page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
+page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
+page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
+page-flags-define-pg_uncached-behavior-on-compound-pages.patch
+page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
+page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
+mm-sanitize-page-mapping-for-tail-pages.patch
+mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-reclaimable-pages.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+mm-move-lazy-free-pages-to-inactive-list.patch
+mm-move-lazy-free-pages-to-inactive-list-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
 
