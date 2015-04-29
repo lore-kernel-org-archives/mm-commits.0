@@ -1,205 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] mm-meminit-inline-some-helper-functions.patch
- removed from -mm tree
-Date: Wed, 29 Apr 2015 13:36:38 -0700
-Message-ID: <554140d6.8bCOilrdurXOK368%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ mm-meminit-inline-some-helper-functions-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 29 Apr 2015 13:36:41 -0700
+Message-ID: <554140d9.foOni7WuUMczaOes%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57678 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57682 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750804AbbD2Ugj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Apr 2015 16:36:39 -0400
+	with ESMTP id S1750804AbbD2Ugm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Apr 2015 16:36:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, daniel@numascale.com, dave.hansen@intel.com, holt@sgi.com, hpa@zytor.com, mingo@elte.hu, nzimmer@sgi.com, scott.norton@hp.com, tglx@linutronix.de, tony.luck@intel.com, waiman.long@hp.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mgorman@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: meminit: inline some helper functions
+     Subject: mm-meminit-inline-some-helper-functions-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     mm-meminit-inline-some-helper-functions.patch
+     mm-meminit-inline-some-helper-functions-checkpatch-fixes.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: meminit: inline some helper functions
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-meminit-inline-some-helper-functions-checkpatch-fixes
 
-early_pfn_in_nid() and meminit_pfn_in_nid() are small functions that are
-unnecessarily visible outside memory initialisation.  As well as
-unnecessary visibility, it's unnecessary function call overhead when
-initialising pages.  This patch moves the helpers inline.
+ERROR: code indent should use tabs where possible
+#54: FILE: mm/page_alloc.c:911:
++        defined(CONFIG_HAVE_MEMBLOCK_NODE_MAP)$
 
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Cc: Daniel J Blueman <daniel@numascale.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Nathan Zimmer <nzimmer@sgi.com>
-Cc: Robin Holt <holt@sgi.com>
-Cc: Scott Norton <scott.norton@hp.com>
-Cc: Waiman Long <waiman.long@hp.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+WARNING: please, no spaces at the start of a line
+#54: FILE: mm/page_alloc.c:911:
++        defined(CONFIG_HAVE_MEMBLOCK_NODE_MAP)$
+
+total: 1 errors, 1 warnings, 102 lines checked
+
+NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
+      scripts/cleanfile
+
+./patches/mm-meminit-inline-some-helper-functions.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    9 ----
- mm/page_alloc.c        |   75 +++++++++++++++++++--------------------
- 2 files changed, 38 insertions(+), 46 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/mmzone.h~mm-meminit-inline-some-helper-functions include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-meminit-inline-some-helper-functions
-+++ a/include/linux/mmzone.h
-@@ -1227,15 +1227,6 @@ struct mminit_pfnnid_cache {
- 	int last_nid;
- };
- 
--#ifdef CONFIG_NODES_SPAN_OTHER_NODES
--bool early_pfn_in_nid(unsigned long pfn, int nid);
--bool meminit_pfn_in_nid(unsigned long pfn, int node,
--			struct mminit_pfnnid_cache *state);
--#else
--#define early_pfn_in_nid(pfn, nid)		(1)
--#define meminit_pfn_in_nid(pfn, nid, state)	(1)
--#endif
--
- #ifndef early_pfn_valid
- #define early_pfn_valid(pfn)	(1)
- #endif
-diff -puN mm/page_alloc.c~mm-meminit-inline-some-helper-functions mm/page_alloc.c
---- a/mm/page_alloc.c~mm-meminit-inline-some-helper-functions
+diff -puN mm/page_alloc.c~mm-meminit-inline-some-helper-functions-checkpatch-fixes mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-meminit-inline-some-helper-functions-checkpatch-fixes
 +++ a/mm/page_alloc.c
-@@ -907,6 +907,44 @@ void __init __free_pages_bootmem(struct
- 	__free_pages(page, order);
+@@ -908,7 +908,7 @@ void __init __free_pages_bootmem(struct
  }
  
-+#if defined(CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID) || \
-+        defined(CONFIG_HAVE_MEMBLOCK_NODE_MAP)
-+/* Only safe to use early in boot when initialisation is single-threaded */
-+struct __meminitdata mminit_pfnnid_cache global_init_state;
-+int __meminit early_pfn_to_nid(unsigned long pfn)
-+{
-+	int nid;
-+
-+	/* The system will behave unpredictably otherwise */
-+	BUG_ON(system_state != SYSTEM_BOOTING);
-+
-+	nid = __early_pfn_to_nid(pfn, &global_init_state);
-+	if (nid >= 0)
-+		return nid;
-+	/* just returns 0 */
-+	return 0;
-+}
-+#endif
-+
-+#ifdef CONFIG_NODES_SPAN_OTHER_NODES
-+static inline bool __meminit meminit_pfn_in_nid(unsigned long pfn, int node,
-+					struct mminit_pfnnid_cache *state)
-+{
-+	int nid;
-+
-+	nid = __early_pfn_to_nid(pfn, state);
-+	if (nid >= 0 && nid != node)
-+		return false;
-+	return true;
-+}
-+
-+/* Only safe to use early in boot when initialisation is single-threaded */
-+static inline bool __meminit early_pfn_in_nid(unsigned long pfn, int node)
-+{
-+	return meminit_pfn_in_nid(pfn, node, &global_init_state);
-+}
-+#endif
-+
- #ifdef CONFIG_CMA
- /* Free whole pageblock and set its migration type to MIGRATE_CMA. */
- void __init init_cma_reserved_pageblock(struct page *page)
-@@ -4524,43 +4562,6 @@ int __meminit __early_pfn_to_nid(unsigne
- }
- #endif /* CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID */
- 
--struct __meminitdata mminit_pfnnid_cache global_init_state;
--
--/* Only safe to use early in boot when initialisation is single-threaded */
--int __meminit early_pfn_to_nid(unsigned long pfn)
--{
--	int nid;
--
--	/* The system will behave unpredictably otherwise */
--	BUG_ON(system_state != SYSTEM_BOOTING);
--
--	nid = __early_pfn_to_nid(pfn, &global_init_state);
--	if (nid >= 0)
--		return nid;
--	/* just returns 0 */
--	return 0;
--}
--
--#ifdef CONFIG_NODES_SPAN_OTHER_NODES
--bool __meminit meminit_pfn_in_nid(unsigned long pfn, int node,
--					struct mminit_pfnnid_cache *state)
--{
--	int nid;
--
--	nid = __early_pfn_to_nid(pfn, state);
--	if (nid >= 0 && nid != node)
--		return false;
--	return true;
--}
--
--/* Only safe to use early in boot when initialisation is single-threaded */
--bool __meminit early_pfn_in_nid(unsigned long pfn, int node)
--{
--	return meminit_pfn_in_nid(pfn, node, &global_init_state);
--}
--
--#endif
--
- /**
-  * free_bootmem_with_active_regions - Call memblock_free_early_nid for each active range
-  * @nid: The node to free memory on. If MAX_NUMNODES, all nodes are freed.
+ #if defined(CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID) || \
+-        defined(CONFIG_HAVE_MEMBLOCK_NODE_MAP)
++	defined(CONFIG_HAVE_MEMBLOCK_NODE_MAP)
+ /* Only safe to use early in boot when initialisation is single-threaded */
+ struct __meminitdata mminit_pfnnid_cache global_init_state;
+ int __meminit early_pfn_to_nid(unsigned long pfn)
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-jbd2-revert-must-not-fail-allocation-loops-back-to-gfp_nofail.patch
-thp-cleanup-how-khugepaged-enters-freezer.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+revert-zram-move-compact_store-to-sysfs-functions-area.patch
+maintainers-add-co-maintainer-for-led-subsystem.patch
+revert-fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask.patch
+ocfs2-reduce-object-size-of-mlog-uses-fix.patch
+ocfs2-remove-__mlog_cpu_guess.patch
+ocfs2-remove-__mlog_cpu_guess-fix.patch
+mm.patch
+mm-slab_common-support-the-slub_debug-boot-option-on-specific-object-size-fix.patch
+slub-bulk-allocation-from-per-cpu-partial-pages-fix.patch
+mm-fix-mprotect-behaviour-on-vm_locked-vmas-fix.patch
 mm-new-mm-hook-framework.patch
-mm-new-arch_remap-hook.patch
-powerpc-mm-tracking-vdso-remap.patch
-mm-meminit-inline-some-helper-functions-checkpatch-fixes.patch
-mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set.patch
-mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set-fix.patch
-mm-meminit-initialise-remaining-struct-pages-in-parallel-with-kswapd.patch
 mm-meminit-initialise-remaining-struct-pages-in-parallel-with-kswapd-fix.patch
-mm-meminit-minimise-number-of-pfn-page-lookups-during-initialisation.patch
-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
-mm-meminit-free-pages-in-large-chunks-where-possible.patch
-mm-meminit-reduce-number-of-times-pageblocks-are-set-during-struct-page-init.patch
-mm-meminit-remove-mminit_verify_page_links.patch
-page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-mm-sanitize-page-mapping-for-tail-pages.patch
-mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-reclaimable-pages.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
 mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-mm-move-lazy-free-pages-to-inactive-list.patch
-mm-move-lazy-free-pages-to-inactive-list-fix.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
 mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
+rtc-omap-add-external-32k-clock-feature-fix.patch
+linux-next.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
