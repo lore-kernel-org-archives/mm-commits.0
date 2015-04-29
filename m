@@ -1,40 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] mm-meminit-remove-mminit_verify_page_links.patch
- removed from -mm tree
-Date: Wed, 29 Apr 2015 13:37:05 -0700
-Message-ID: <554140f1.Y0cJrt4y1gzgl/9h%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ mm-meminit-reduce-number-of-times-pageblocks-are-set-during-struct-page-init.patch removed from -mm tree
+Date: Wed, 29 Apr 2015 13:37:02 -0700
+Message-ID: <554140ee.Lgr9zGMMTJOVLb62%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57747 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57741 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750788AbbD2UhG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Apr 2015 16:37:06 -0400
+	with ESMTP id S1750788AbbD2UhD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Apr 2015 16:37:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mgorman@suse.de, daniel@numascale.com, dave.hansen@intel.com, holt@sgi.com, hpa@zytor.com, mingo@elte.hu, nzimmer@sgi.com, scott.norton@hp.com, tglx@linutronix.de, tony.luck@intel.com, waiman.long@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: meminit: remove mminit_verify_page_links
+     Subject: mm: meminit: reduce number of times pageblocks are set during struct page init
 has been removed from the -mm tree.  Its filename was
-     mm-meminit-remove-mminit_verify_page_links.patch
+     mm-meminit-reduce-number-of-times-pageblocks-are-set-during-struct-page-init.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: meminit: remove mminit_verify_page_links
+Subject: mm: meminit: reduce number of times pageblocks are set during struct page init
 
-mminit_verify_page_links() is an extremely paranoid check that was
-introduced when memory initialisation was being heavily reworked. 
-Profiles indicated that up to 10% of parallel memory initialisation was
-spent on checking this for every page.  The cost could be reduced but in
-practice this check only found problems very early during the
-initialisation rewrite and has found nothing since.  This patch removes an
-expensive unnecessary check.
+During parallel sturct page initialisation, ranges are checked for every
+PFN unnecessarily which increases boot times.  This patch alters when the
+ranges are checked.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Cc: Daniel J Blueman <daniel@numascale.com>
@@ -50,66 +46,84 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h   |    8 --------
- mm/mm_init.c    |    8 --------
- mm/page_alloc.c |    1 -
- 3 files changed, 17 deletions(-)
+ mm/page_alloc.c |   45 +++++++++++++++++++++++----------------------
+ 1 file changed, 23 insertions(+), 22 deletions(-)
 
-diff -puN mm/internal.h~mm-meminit-remove-mminit_verify_page_links mm/internal.h
---- a/mm/internal.h~mm-meminit-remove-mminit_verify_page_links
-+++ a/mm/internal.h
-@@ -362,10 +362,7 @@ do { \
- } while (0)
- 
- extern void mminit_verify_pageflags_layout(void);
--extern void mminit_verify_page_links(struct page *page,
--		enum zone_type zone, unsigned long nid, unsigned long pfn);
- extern void mminit_verify_zonelist(void);
--
- #else
- 
- static inline void mminit_dprintk(enum mminit_level level,
-@@ -377,11 +374,6 @@ static inline void mminit_verify_pagefla
- {
- }
- 
--static inline void mminit_verify_page_links(struct page *page,
--		enum zone_type zone, unsigned long nid, unsigned long pfn)
--{
--}
--
- static inline void mminit_verify_zonelist(void)
- {
- }
-diff -puN mm/mm_init.c~mm-meminit-remove-mminit_verify_page_links mm/mm_init.c
---- a/mm/mm_init.c~mm-meminit-remove-mminit_verify_page_links
-+++ a/mm/mm_init.c
-@@ -131,14 +131,6 @@ void __init mminit_verify_pageflags_layo
- 	BUG_ON(or_mask != add_mask);
- }
- 
--void __meminit mminit_verify_page_links(struct page *page, enum zone_type zone,
--			unsigned long nid, unsigned long pfn)
--{
--	BUG_ON(page_to_nid(page) != nid);
--	BUG_ON(page_zonenum(page) != zone);
--	BUG_ON(page_to_pfn(page) != pfn);
--}
--
- static __init int set_mminit_loglevel(char *str)
- {
- 	get_option(&str, &mminit_loglevel);
-diff -puN mm/page_alloc.c~mm-meminit-remove-mminit_verify_page_links mm/page_alloc.c
---- a/mm/page_alloc.c~mm-meminit-remove-mminit_verify_page_links
+diff -puN mm/page_alloc.c~mm-meminit-reduce-number-of-times-pageblocks-are-set-during-struct-page-init mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-meminit-reduce-number-of-times-pageblocks-are-set-during-struct-page-init
 +++ a/mm/page_alloc.c
-@@ -853,7 +853,6 @@ static void __meminit __init_single_page
+@@ -852,33 +852,12 @@ static int free_tail_pages_check(struct
+ static void __meminit __init_single_page(struct page *page, unsigned long pfn,
  				unsigned long zone, int nid)
  {
+-	struct zone *z = &NODE_DATA(nid)->node_zones[zone];
+-
  	set_page_links(page, zone, nid, pfn);
--	mminit_verify_page_links(page, zone, nid, pfn);
+ 	mminit_verify_page_links(page, zone, nid, pfn);
  	init_page_count(page);
  	page_mapcount_reset(page);
  	page_cpupid_reset_last(page);
+ 
+-	/*
+-	 * Mark the block movable so that blocks are reserved for
+-	 * movable at startup. This will force kernel allocations
+-	 * to reserve their blocks rather than leaking throughout
+-	 * the address space during boot when many long-lived
+-	 * kernel allocations are made. Later some blocks near
+-	 * the start are marked MIGRATE_RESERVE by
+-	 * setup_zone_migrate_reserve()
+-	 *
+-	 * bitmap is created for zone's valid pfn range. but memmap
+-	 * can be created for invalid pages (for alignment)
+-	 * check here not to call set_pageblock_migratetype() against
+-	 * pfn out of zone.
+-	 */
+-	if ((z->zone_start_pfn <= pfn)
+-	    && (pfn < zone_end_pfn(z))
+-	    && !(pfn & (pageblock_nr_pages - 1)))
+-		set_pageblock_migratetype(page, MIGRATE_MOVABLE);
+-
+ 	INIT_LIST_HEAD(&page->lru);
+ #ifdef WANT_PAGE_VIRTUAL
+ 	/* The shift won't overflow because ZONE_NORMAL is below 4G. */
+@@ -1062,6 +1041,7 @@ void __defermem_init deferred_free_range
+ 	int i;
+ 
+ 	if (nr_pages == MAX_ORDER_NR_PAGES && (pfn & (MAX_ORDER_NR_PAGES-1)) == 0) {
++		set_pageblock_migratetype(page, MIGRATE_MOVABLE);
+ 		__free_pages_boot_core(page, pfn, MAX_ORDER-1);
+ 		return;
+ 	}
+@@ -4513,7 +4493,28 @@ void __meminit memmap_init_zone(unsigned
+ 						&nr_initialised))
+ 				break;
+ 		}
+-		__init_single_pfn(pfn, zone, nid);
++
++		/*
++		 * Mark the block movable so that blocks are reserved for
++		 * movable at startup. This will force kernel allocations
++		 * to reserve their blocks rather than leaking throughout
++		 * the address space during boot when many long-lived
++		 * kernel allocations are made. Later some blocks near
++		 * the start are marked MIGRATE_RESERVE by
++		 * setup_zone_migrate_reserve()
++		 *
++		 * bitmap is created for zone's valid pfn range. but memmap
++		 * can be created for invalid pages (for alignment)
++		 * check here not to call set_pageblock_migratetype() against
++		 * pfn out of zone.
++		 */
++		if (!(pfn & (pageblock_nr_pages - 1))) {
++			struct page *page = pfn_to_page(pfn);
++			set_pageblock_migratetype(page, MIGRATE_MOVABLE);
++			__init_single_page(page, pfn, zone, nid);
++		} else {
++			__init_single_pfn(pfn, zone, nid);
++		}
+ 	}
+ }
+ 
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
@@ -119,6 +133,7 @@ thp-cleanup-how-khugepaged-enters-freezer.patch
 mm-new-mm-hook-framework.patch
 mm-new-arch_remap-hook.patch
 powerpc-mm-tracking-vdso-remap.patch
+mm-meminit-remove-mminit_verify_page_links.patch
 page-flags-trivial-cleanup-for-pagetrans-helpers.patch
 page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
 page-flags-define-pg_locked-behavior-on-compound-pages.patch
