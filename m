@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-meminit-make-__early_pfn_to_nid-smp-safe-and-introduce-meminit_pfn_in_nid.patch added to -mm tree
-Date: Wed, 29 Apr 2015 14:19:33 -0700
-Message-ID: <55414ae5.GggoWoBLVyTe7goJ%akpm@linux-foundation.org>
+Subject: + mm-page_alloc-pass-pfn-to-__free_pages_bootmem.patch added to
+ -mm tree
+Date: Wed, 29 Apr 2015 14:19:31 -0700
+Message-ID: <55414ae3.nVfH8XqsSNs45a9a%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58469 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58458 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751166AbbD2VTe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Apr 2015 17:19:34 -0400
+	with ESMTP id S1751367AbbD2VTc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Apr 2015 17:19:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mgorman@suse.de, daniel@numascale.com, dave.hansen@intel.com, hpa@zytor.com, mingo@elte.hu, nzimmer@sgi.com, penberg@kernel.org, robinmholt@gmail.com, scott.norton@hp.com, tglx@linutronix.de, tony.luck@intel.com, waiman.long@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: meminit: make __early_pfn_to_nid SMP-safe and introduce meminit_pfn_in_nid
+     Subject: mm: page_alloc: pass PFN to __free_pages_bootmem
 has been added to the -mm tree.  Its filename is
-     mm-meminit-make-__early_pfn_to_nid-smp-safe-and-introduce-meminit_pfn_in_nid.patch
+     mm-page_alloc-pass-pfn-to-__free_pages_bootmem.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-meminit-make-__early_pfn_to_nid-smp-safe-and-introduce-meminit_pfn_in_nid.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-pass-pfn-to-__free_pages_bootmem.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-meminit-make-__early_pfn_to_nid-smp-safe-and-introduce-meminit_pfn_in_nid.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-pass-pfn-to-__free_pages_bootmem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,16 +40,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: meminit: make __early_pfn_to_nid SMP-safe and introduce meminit_pfn_in_nid
+Subject: mm: page_alloc: pass PFN to __free_pages_bootmem
 
-__early_pfn_to_nid() use static variables to cache recent lookups as
-memblock lookups are very expensive but it assumes that memory
-initialisation is single-threaded.  Parallel initialisation of struct
-pages will break that assumption so this patch makes __early_pfn_to_nid()
-SMP-safe by requiring the caller to cache recent search information. 
-early_pfn_to_nid() keeps the same interface but is only safe to use early
-in boot due to the use of a global static variable.  meminit_pfn_in_nid()
-is an SMP-safe version that callers must maintain their own state for.
+__free_pages_bootmem prepares a page for release to the buddy allocator
+and assumes that the struct page is initialised.  Parallel initialisation
+of struct pages defers initialisation and __free_pages_bootmem can be
+called for struct pages that cannot yet map struct page to PFN.  This
+patch passes PFN to __free_pages_bootmem with no other functional change.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Tested-by: Nate Zimmer <nzimmer@sgi.com>
@@ -68,186 +65,111 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/mm/numa.c    |   19 ++++++------------
- include/linux/mm.h     |    6 +++--
- include/linux/mmzone.h |   16 ++++++++++++++-
- mm/page_alloc.c        |   40 ++++++++++++++++++++++++---------------
- 4 files changed, 51 insertions(+), 30 deletions(-)
+ mm/bootmem.c    |    8 ++++----
+ mm/internal.h   |    3 ++-
+ mm/memblock.c   |    2 +-
+ mm/nobootmem.c  |    4 ++--
+ mm/page_alloc.c |    3 ++-
+ 5 files changed, 11 insertions(+), 9 deletions(-)
 
-diff -puN arch/ia64/mm/numa.c~mm-meminit-make-__early_pfn_to_nid-smp-safe-and-introduce-meminit_pfn_in_nid arch/ia64/mm/numa.c
---- a/arch/ia64/mm/numa.c~mm-meminit-make-__early_pfn_to_nid-smp-safe-and-introduce-meminit_pfn_in_nid
-+++ a/arch/ia64/mm/numa.c
-@@ -58,27 +58,22 @@ paddr_to_nid(unsigned long paddr)
-  * SPARSEMEM to allocate the SPARSEMEM sectionmap on the NUMA node where
-  * the section resides.
-  */
--int __meminit __early_pfn_to_nid(unsigned long pfn)
-+int __meminit __early_pfn_to_nid(unsigned long pfn,
-+					struct mminit_pfnnid_cache *state)
- {
- 	int i, section = pfn >> PFN_SECTION_SHIFT, ssec, esec;
--	/*
--	 * NOTE: The following SMP-unsafe globals are only used early in boot
--	 * when the kernel is running single-threaded.
--	 */
--	static int __meminitdata last_ssec, last_esec;
--	static int __meminitdata last_nid;
+diff -puN mm/bootmem.c~mm-page_alloc-pass-pfn-to-__free_pages_bootmem mm/bootmem.c
+--- a/mm/bootmem.c~mm-page_alloc-pass-pfn-to-__free_pages_bootmem
++++ a/mm/bootmem.c
+@@ -164,7 +164,7 @@ void __init free_bootmem_late(unsigned l
+ 	end = PFN_DOWN(physaddr + size);
  
--	if (section >= last_ssec && section < last_esec)
--		return last_nid;
-+	if (section >= state->last_start && section < state->last_end)
-+		return state->last_nid;
- 
- 	for (i = 0; i < num_node_memblks; i++) {
- 		ssec = node_memblk[i].start_paddr >> PA_SECTION_SHIFT;
- 		esec = (node_memblk[i].start_paddr + node_memblk[i].size +
- 			((1L << PA_SECTION_SHIFT) - 1)) >> PA_SECTION_SHIFT;
- 		if (section >= ssec && section < esec) {
--			last_ssec = ssec;
--			last_esec = esec;
--			last_nid = node_memblk[i].nid;
-+			state->last_start = ssec;
-+			state->last_end = esec;
-+			state->last_nid = node_memblk[i].nid;
- 			return node_memblk[i].nid;
- 		}
+ 	for (; cursor < end; cursor++) {
+-		__free_pages_bootmem(pfn_to_page(cursor), 0);
++		__free_pages_bootmem(pfn_to_page(cursor), cursor, 0);
+ 		totalram_pages++;
  	}
-diff -puN include/linux/mm.h~mm-meminit-make-__early_pfn_to_nid-smp-safe-and-introduce-meminit_pfn_in_nid include/linux/mm.h
---- a/include/linux/mm.h~mm-meminit-make-__early_pfn_to_nid-smp-safe-and-introduce-meminit_pfn_in_nid
-+++ a/include/linux/mm.h
-@@ -1722,7 +1722,8 @@ extern void sparse_memory_present_with_a
- 
- #if !defined(CONFIG_HAVE_MEMBLOCK_NODE_MAP) && \
-     !defined(CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID)
--static inline int __early_pfn_to_nid(unsigned long pfn)
-+static inline int __early_pfn_to_nid(unsigned long pfn,
-+					struct mminit_pfnnid_cache *state)
- {
- 	return 0;
  }
-@@ -1730,7 +1731,8 @@ static inline int __early_pfn_to_nid(uns
- /* please see mm/page_alloc.c */
- extern int __meminit early_pfn_to_nid(unsigned long pfn);
- /* there is a per-arch backend function. */
--extern int __meminit __early_pfn_to_nid(unsigned long pfn);
-+extern int __meminit __early_pfn_to_nid(unsigned long pfn,
-+					struct mminit_pfnnid_cache *state);
- #endif
+@@ -210,7 +210,7 @@ static unsigned long __init free_all_boo
+ 		if (IS_ALIGNED(start, BITS_PER_LONG) && vec == ~0UL) {
+ 			int order = ilog2(BITS_PER_LONG);
  
- extern void set_dma_reserve(unsigned long new_dma_reserve);
-diff -puN include/linux/mmzone.h~mm-meminit-make-__early_pfn_to_nid-smp-safe-and-introduce-meminit_pfn_in_nid include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-meminit-make-__early_pfn_to_nid-smp-safe-and-introduce-meminit_pfn_in_nid
-+++ a/include/linux/mmzone.h
-@@ -1216,10 +1216,24 @@ void sparse_init(void);
- #define sparse_index_init(_sec, _nid)  do {} while (0)
- #endif /* CONFIG_SPARSEMEM */
+-			__free_pages_bootmem(pfn_to_page(start), order);
++			__free_pages_bootmem(pfn_to_page(start), start, order);
+ 			count += BITS_PER_LONG;
+ 			start += BITS_PER_LONG;
+ 		} else {
+@@ -220,7 +220,7 @@ static unsigned long __init free_all_boo
+ 			while (vec && cur != start) {
+ 				if (vec & 1) {
+ 					page = pfn_to_page(cur);
+-					__free_pages_bootmem(page, 0);
++					__free_pages_bootmem(page, cur, 0);
+ 					count++;
+ 				}
+ 				vec >>= 1;
+@@ -234,7 +234,7 @@ static unsigned long __init free_all_boo
+ 	pages = bootmem_bootmap_pages(pages);
+ 	count += pages;
+ 	while (pages--)
+-		__free_pages_bootmem(page++, 0);
++		__free_pages_bootmem(page++, cur++, 0);
  
-+/*
-+ * During memory init memblocks map pfns to nids. The search is expensive and
-+ * this caches recent lookups. The implementation of __early_pfn_to_nid
-+ * may treat start/end as pfns or sections.
-+ */
-+struct mminit_pfnnid_cache {
-+	unsigned long last_start;
-+	unsigned long last_end;
-+	int last_nid;
-+};
-+
- #ifdef CONFIG_NODES_SPAN_OTHER_NODES
- bool early_pfn_in_nid(unsigned long pfn, int nid);
-+bool meminit_pfn_in_nid(unsigned long pfn, int node,
-+			struct mminit_pfnnid_cache *state);
- #else
--#define early_pfn_in_nid(pfn, nid)	(1)
-+#define early_pfn_in_nid(pfn, nid)		(1)
-+#define meminit_pfn_in_nid(pfn, nid, state)	(1)
- #endif
+ 	bdebug("nid=%td released=%lx\n", bdata - bootmem_node_data, count);
  
- #ifndef early_pfn_valid
-diff -puN mm/page_alloc.c~mm-meminit-make-__early_pfn_to_nid-smp-safe-and-introduce-meminit_pfn_in_nid mm/page_alloc.c
---- a/mm/page_alloc.c~mm-meminit-make-__early_pfn_to_nid-smp-safe-and-introduce-meminit_pfn_in_nid
+diff -puN mm/internal.h~mm-page_alloc-pass-pfn-to-__free_pages_bootmem mm/internal.h
+--- a/mm/internal.h~mm-page_alloc-pass-pfn-to-__free_pages_bootmem
++++ a/mm/internal.h
+@@ -155,7 +155,8 @@ __find_buddy_index(unsigned long page_id
+ }
+ 
+ extern int __isolate_free_page(struct page *page, unsigned int order);
+-extern void __free_pages_bootmem(struct page *page, unsigned int order);
++extern void __free_pages_bootmem(struct page *page, unsigned long pfn,
++					unsigned int order);
+ extern void prep_compound_page(struct page *page, unsigned long order);
+ #ifdef CONFIG_MEMORY_FAILURE
+ extern bool is_free_buddy_page(struct page *page);
+diff -puN mm/memblock.c~mm-page_alloc-pass-pfn-to-__free_pages_bootmem mm/memblock.c
+--- a/mm/memblock.c~mm-page_alloc-pass-pfn-to-__free_pages_bootmem
++++ a/mm/memblock.c
+@@ -1348,7 +1348,7 @@ void __init __memblock_free_late(phys_ad
+ 	end = PFN_DOWN(base + size);
+ 
+ 	for (; cursor < end; cursor++) {
+-		__free_pages_bootmem(pfn_to_page(cursor), 0);
++		__free_pages_bootmem(pfn_to_page(cursor), cursor, 0);
+ 		totalram_pages++;
+ 	}
+ }
+diff -puN mm/nobootmem.c~mm-page_alloc-pass-pfn-to-__free_pages_bootmem mm/nobootmem.c
+--- a/mm/nobootmem.c~mm-page_alloc-pass-pfn-to-__free_pages_bootmem
++++ a/mm/nobootmem.c
+@@ -77,7 +77,7 @@ void __init free_bootmem_late(unsigned l
+ 	end = PFN_DOWN(addr + size);
+ 
+ 	for (; cursor < end; cursor++) {
+-		__free_pages_bootmem(pfn_to_page(cursor), 0);
++		__free_pages_bootmem(pfn_to_page(cursor), cursor, 0);
+ 		totalram_pages++;
+ 	}
+ }
+@@ -92,7 +92,7 @@ static void __init __free_pages_memory(u
+ 		while (start + (1UL << order) > end)
+ 			order--;
+ 
+-		__free_pages_bootmem(pfn_to_page(start), order);
++		__free_pages_bootmem(pfn_to_page(start), start, order);
+ 
+ 		start += (1UL << order);
+ 	}
+diff -puN mm/page_alloc.c~mm-page_alloc-pass-pfn-to-__free_pages_bootmem mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-pass-pfn-to-__free_pages_bootmem
 +++ a/mm/page_alloc.c
-@@ -4506,39 +4506,41 @@ int __meminit init_currently_empty_zone(
- 
- #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
- #ifndef CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID
-+
- /*
-  * Required by SPARSEMEM. Given a PFN, return what node the PFN is on.
-  */
--int __meminit __early_pfn_to_nid(unsigned long pfn)
-+int __meminit __early_pfn_to_nid(unsigned long pfn,
-+					struct mminit_pfnnid_cache *state)
- {
- 	unsigned long start_pfn, end_pfn;
- 	int nid;
--	/*
--	 * NOTE: The following SMP-unsafe globals are only used early in boot
--	 * when the kernel is running single-threaded.
--	 */
--	static unsigned long __meminitdata last_start_pfn, last_end_pfn;
--	static int __meminitdata last_nid;
- 
--	if (last_start_pfn <= pfn && pfn < last_end_pfn)
--		return last_nid;
-+	if (state->last_start <= pfn && pfn < state->last_end)
-+		return state->last_nid;
- 
- 	nid = memblock_search_pfn_nid(pfn, &start_pfn, &end_pfn);
- 	if (nid != -1) {
--		last_start_pfn = start_pfn;
--		last_end_pfn = end_pfn;
--		last_nid = nid;
-+		state->last_start = start_pfn;
-+		state->last_end = end_pfn;
-+		state->last_nid = nid;
- 	}
- 
- 	return nid;
- }
- #endif /* CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID */
- 
-+static struct mminit_pfnnid_cache early_pfnnid_cache __meminitdata;
-+
-+/* Only safe to use early in boot when initialisation is single-threaded */
- int __meminit early_pfn_to_nid(unsigned long pfn)
- {
- 	int nid;
- 
--	nid = __early_pfn_to_nid(pfn);
-+	/* The system will behave unpredictably otherwise */
-+	BUG_ON(system_state != SYSTEM_BOOTING);
-+
-+	nid = __early_pfn_to_nid(pfn, &early_pfnnid_cache);
- 	if (nid >= 0)
- 		return nid;
- 	/* just returns 0 */
-@@ -4546,15 +4548,23 @@ int __meminit early_pfn_to_nid(unsigned
+@@ -892,7 +892,8 @@ static void __free_pages_ok(struct page
+ 	local_irq_restore(flags);
  }
  
- #ifdef CONFIG_NODES_SPAN_OTHER_NODES
--bool __meminit early_pfn_in_nid(unsigned long pfn, int node)
-+bool __meminit meminit_pfn_in_nid(unsigned long pfn, int node,
-+					struct mminit_pfnnid_cache *state)
+-void __init __free_pages_bootmem(struct page *page, unsigned int order)
++void __init __free_pages_bootmem(struct page *page, unsigned long pfn,
++							unsigned int order)
  {
- 	int nid;
- 
--	nid = __early_pfn_to_nid(pfn);
-+	nid = __early_pfn_to_nid(pfn, state);
- 	if (nid >= 0 && nid != node)
- 		return false;
- 	return true;
- }
-+
-+/* Only safe to use early in boot when initialisation is single-threaded */
-+bool __meminit early_pfn_in_nid(unsigned long pfn, int node)
-+{
-+	return meminit_pfn_in_nid(pfn, node, &early_pfnnid_cache);
-+}
-+
- #endif
- 
- /**
+ 	unsigned int nr_pages = 1 << order;
+ 	struct page *p = page;
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
