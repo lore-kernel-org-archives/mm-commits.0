@@ -1,43 +1,49 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- mm-meminit-move-page-initialization-into-a-separate-function.patch removed
- from -mm tree
-Date: Wed, 29 Apr 2015 13:36:26 -0700
-Message-ID: <554140ca.GPw2JDgFhmG4gpij%akpm@linux-foundation.org>
+ mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set-fix.patch removed from -mm tree
+Date: Wed, 29 Apr 2015 13:36:46 -0700
+Message-ID: <554140de.VXZWiREYD742O6J6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57645 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57698 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750729AbbD2Ug1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Apr 2015 16:36:27 -0400
+	with ESMTP id S1751132AbbD2Ugr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Apr 2015 16:36:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: holt@sgi.com, daniel@numascale.com, dave.hansen@intel.com, hpa@zytor.com, mgorman@suse.de, mingo@elte.hu, nzimmer@sgi.com, scott.norton@hp.com, tglx@linutronix.de, tony.luck@intel.com, waiman.long@hp.com, mm-commits@vger.kernel.org
+To: mgorman@suse.de, daniel@numascale.com, dave.hansen@intel.com, holt@sgi.com, hpa@zytor.com, mingo@elte.hu, nzimmer@sgi.com, scott.norton@hp.com, tglx@linutronix.de, tony.luck@intel.com, waiman.long@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: meminit: move page initialization into a separate function
+     Subject: mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set-fix
 has been removed from the -mm tree.  Its filename was
-     mm-meminit-move-page-initialization-into-a-separate-function.patch
+     mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set-fix.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Robin Holt <holt@sgi.com>
-Subject: mm: meminit: move page initialization into a separate function
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set-fix
 
-Currently, memmap_init_zone() has all the smarts for initializing a single
-page.  A subset of this is required for parallel page initialisation and
-so this patch breaks up the monolithic function in preparation.
+On Thu, Apr 23, 2015 at 11:33:10AM +0100, Mel Gorman wrote:
+> This patch initalises all low memory struct pages and 2G of the highest zone
+> on each node during memory initialisation if CONFIG_DEFERRED_STRUCT_PAGE_INIT
+> is set. That config option cannot be set but will be available in a later
+> patch.  Parallel initialisation of struct page depends on some features
+> from memory hotplug and it is necessary to alter alter section annotations.
+>
 
-Signed-off-by: Robin Holt <holt@sgi.com>
-Signed-off-by: Nathan Zimmer <nzimmer@sgi.com>
+I belatedly noticed that this causes section warnings. It'll be harmless
+for testing but the next (hopefully last) version will have this on top
+
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Cc: Daniel J Blueman <daniel@numascale.com>
 Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Nathan Zimmer <nzimmer@sgi.com>
+Cc: Robin Holt <holt@sgi.com>
 Cc: Scott Norton <scott.norton@hp.com>
 Cc: Waiman Long <waiman.long@hp.com>
 Cc: "Luck, Tony" <tony.luck@intel.com>
@@ -47,126 +53,90 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   79 ++++++++++++++++++++++++++--------------------
- 1 file changed, 46 insertions(+), 33 deletions(-)
+ drivers/base/node.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-meminit-move-page-initialization-into-a-separate-function mm/page_alloc.c
---- a/mm/page_alloc.c~mm-meminit-move-page-initialization-into-a-separate-function
-+++ a/mm/page_alloc.c
-@@ -778,6 +778,51 @@ static int free_tail_pages_check(struct
- 	return 0;
- }
+diff -puN drivers/base/node.c~mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set-fix drivers/base/node.c
+--- a/drivers/base/node.c~mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set-fix
++++ a/drivers/base/node.c
+@@ -359,14 +359,14 @@ int unregister_cpu_under_node(unsigned i
+ #ifdef CONFIG_MEMORY_HOTPLUG_SPARSE
+ #define page_initialized(page)  (page->lru.next)
  
-+static void __meminit __init_single_page(struct page *page, unsigned long pfn,
-+				unsigned long zone, int nid)
-+{
-+	struct zone *z = &NODE_DATA(nid)->node_zones[zone];
-+
-+	set_page_links(page, zone, nid, pfn);
-+	mminit_verify_page_links(page, zone, nid, pfn);
-+	init_page_count(page);
-+	page_mapcount_reset(page);
-+	page_cpupid_reset_last(page);
-+	SetPageReserved(page);
-+
-+	/*
-+	 * Mark the block movable so that blocks are reserved for
-+	 * movable at startup. This will force kernel allocations
-+	 * to reserve their blocks rather than leaking throughout
-+	 * the address space during boot when many long-lived
-+	 * kernel allocations are made. Later some blocks near
-+	 * the start are marked MIGRATE_RESERVE by
-+	 * setup_zone_migrate_reserve()
-+	 *
-+	 * bitmap is created for zone's valid pfn range. but memmap
-+	 * can be created for invalid pages (for alignment)
-+	 * check here not to call set_pageblock_migratetype() against
-+	 * pfn out of zone.
-+	 */
-+	if ((z->zone_start_pfn <= pfn)
-+	    && (pfn < zone_end_pfn(z))
-+	    && !(pfn & (pageblock_nr_pages - 1)))
-+		set_pageblock_migratetype(page, MIGRATE_MOVABLE);
-+
-+	INIT_LIST_HEAD(&page->lru);
-+#ifdef WANT_PAGE_VIRTUAL
-+	/* The shift won't overflow because ZONE_NORMAL is below 4G. */
-+	if (!is_highmem_idx(zone))
-+		set_page_address(page, __va(pfn << PAGE_SHIFT));
-+#endif
-+}
-+
-+static void __meminit __init_single_pfn(unsigned long pfn, unsigned long zone,
-+					int nid)
-+{
-+	return __init_single_page(pfn_to_page(pfn), pfn, zone, nid);
-+}
-+
- static bool free_pages_prepare(struct page *page, unsigned int order)
+-static int get_nid_for_pfn(struct pglist_data *pgdat, unsigned long pfn)
++static int __init_refok get_nid_for_pfn(unsigned long pfn)
  {
- 	bool compound = PageCompound(page);
-@@ -4167,7 +4212,6 @@ static void setup_zone_migrate_reserve(s
- void __meminit memmap_init_zone(unsigned long size, int nid, unsigned long zone,
- 		unsigned long start_pfn, enum memmap_context context)
- {
--	struct page *page;
- 	unsigned long end_pfn = start_pfn + size;
- 	unsigned long pfn;
- 	struct zone *z;
-@@ -4188,38 +4232,7 @@ void __meminit memmap_init_zone(unsigned
- 			if (!early_pfn_in_nid(pfn, nid))
- 				continue;
- 		}
--		page = pfn_to_page(pfn);
--		set_page_links(page, zone, nid, pfn);
--		mminit_verify_page_links(page, zone, nid, pfn);
--		init_page_count(page);
--		page_mapcount_reset(page);
--		page_cpupid_reset_last(page);
--		SetPageReserved(page);
--		/*
--		 * Mark the block movable so that blocks are reserved for
--		 * movable at startup. This will force kernel allocations
--		 * to reserve their blocks rather than leaking throughout
--		 * the address space during boot when many long-lived
--		 * kernel allocations are made. Later some blocks near
--		 * the start are marked MIGRATE_RESERVE by
--		 * setup_zone_migrate_reserve()
--		 *
--		 * bitmap is created for zone's valid pfn range. but memmap
--		 * can be created for invalid pages (for alignment)
--		 * check here not to call set_pageblock_migratetype() against
--		 * pfn out of zone.
--		 */
--		if ((z->zone_start_pfn <= pfn)
--		    && (pfn < zone_end_pfn(z))
--		    && !(pfn & (pageblock_nr_pages - 1)))
--			set_pageblock_migratetype(page, MIGRATE_MOVABLE);
--
--		INIT_LIST_HEAD(&page->lru);
--#ifdef WANT_PAGE_VIRTUAL
--		/* The shift won't overflow because ZONE_NORMAL is below 4G. */
--		if (!is_highmem_idx(zone))
--			set_page_address(page, __va(pfn << PAGE_SHIFT));
--#endif
-+		__init_single_pfn(pfn, zone, nid);
- 	}
- }
+ 	struct page *page;
  
+ 	if (!pfn_valid_within(pfn))
+ 		return -1;
+ #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
+-	if (pgdat && pfn >= pgdat->first_deferred_pfn)
++	if (system_state == SYSTEM_BOOTING)
+ 		return early_pfn_to_nid(pfn);
+ #endif
+ 	page = pfn_to_page(pfn);
+@@ -380,7 +380,6 @@ int register_mem_sect_under_node(struct
+ {
+ 	int ret;
+ 	unsigned long pfn, sect_start_pfn, sect_end_pfn;
+-	struct pglist_data *pgdat = NODE_DATA(nid);
+ 
+ 	if (!mem_blk)
+ 		return -EFAULT;
+@@ -393,7 +392,7 @@ int register_mem_sect_under_node(struct
+ 	for (pfn = sect_start_pfn; pfn <= sect_end_pfn; pfn++) {
+ 		int page_nid;
+ 
+-		page_nid = get_nid_for_pfn(pgdat, pfn);
++		page_nid = get_nid_for_pfn(pfn);
+ 		if (page_nid < 0)
+ 			continue;
+ 		if (page_nid != nid)
+@@ -432,7 +431,7 @@ int unregister_mem_sect_under_nodes(stru
+ 	for (pfn = sect_start_pfn; pfn <= sect_end_pfn; pfn++) {
+ 		int nid;
+ 
+-		nid = get_nid_for_pfn(NULL, pfn);
++		nid = get_nid_for_pfn(pfn);
+ 		if (nid < 0)
+ 			continue;
+ 		if (!node_online(nid))
 _
 
-Patches currently in -mm which might be from holt@sgi.com are
+Patches currently in -mm which might be from mgorman@suse.de are
 
-mm-meminit-only-set-page-reserved-in-the-memblock-region.patch
-mm-page_alloc-pass-pfn-to-__free_pages_bootmem.patch
-mm-meminit-make-__early_pfn_to_nid-smp-safe-and-introduce-meminit_pfn_in_nid.patch
-mm-meminit-inline-some-helper-functions.patch
-mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set.patch
-mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set-fix.patch
+jbd2-revert-must-not-fail-allocation-loops-back-to-gfp_nofail.patch
+thp-cleanup-how-khugepaged-enters-freezer.patch
+mm-new-mm-hook-framework.patch
+mm-new-arch_remap-hook.patch
+powerpc-mm-tracking-vdso-remap.patch
 mm-meminit-initialise-remaining-struct-pages-in-parallel-with-kswapd.patch
+mm-meminit-initialise-remaining-struct-pages-in-parallel-with-kswapd-fix.patch
 mm-meminit-minimise-number-of-pfn-page-lookups-during-initialisation.patch
 x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
 mm-meminit-free-pages-in-large-chunks-where-possible.patch
 mm-meminit-reduce-number-of-times-pageblocks-are-set-during-struct-page-init.patch
 mm-meminit-remove-mminit_verify_page_links.patch
+page-flags-trivial-cleanup-for-pagetrans-helpers.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
+page-flags-define-pg_locked-behavior-on-compound-pages.patch
+page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
+page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
+page-flags-define-pg_reserved-behavior-on-compound-pages.patch
+page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
+page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
+page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
+page-flags-define-pg_uncached-behavior-on-compound-pages.patch
+page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
+page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
+mm-sanitize-page-mapping-for-tail-pages.patch
+mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-reclaimable-pages.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+mm-move-lazy-free-pages-to-inactive-list.patch
+mm-move-lazy-free-pages-to-inactive-list-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
 
