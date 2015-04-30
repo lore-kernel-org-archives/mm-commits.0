@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-rejects.patch added to -mm tree
-Date: Thu, 30 Apr 2015 12:58:28 -0700
-Message-ID: <55428964.+CvUt7Dtgp+xzwBy%akpm@linux-foundation.org>
+Subject: + procfs-treat-parked-tasks-as-sleeping-for-task-state.patch
+ added to -mm tree
+Date: Thu, 30 Apr 2015 14:19:21 -0700
+Message-ID: <55429c59.TiGxNPMLoO71kiGO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48806 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50011 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751149AbbD3T63 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 30 Apr 2015 15:58:29 -0400
+	with ESMTP id S1751206AbbD3VTX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 30 Apr 2015 17:19:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: cmetcalf@ezchip.com, dzickus@redhat.com, mingo@kernel.org, peterz@infradead.org, tglx@linutronix.de, uobergfe@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-rejects
+     Subject: procfs: treat parked tasks as sleeping for task state
 has been added to the -mm tree.  Its filename is
-     linux-next-rejects.patch
+     procfs-treat-parked-tasks-as-sleeping-for-task-state.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-rejects.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/procfs-treat-parked-tasks-as-sleeping-for-task-state.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-rejects.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/procfs-treat-parked-tasks-as-sleeping-for-task-state.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,59 +39,72 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-rejects
+From: Chris Metcalf <cmetcalf@ezchip.com>
+Subject: procfs: treat parked tasks as sleeping for task state
 
+Allowing watchdog threads to be parked means that we now have the
+opportunity of actually seeing persistent parked threads in the output of
+/proc/<pid>/stat and /proc/<pid>/status.  The existing code reported such
+threads as "Running", which is kind-of true if you think of the case where
+we park them as part of taking cpus offline.  But if we allow parking them
+indefinitely, "Running" is pretty misleading, so we report them as
+"Sleeping" instead.
+
+We could simply report them with a new string, "Parked", but it feels like
+it's a bit risky for userspace to see unexpected new values; the output is
+already documented in Documentation/filesystems/proc.txt, and it seems
+like a mistake to change that lightly.
+
+The scheduler does report parked tasks with a "P" in debugging output from
+sched_show_task() or dump_cpu_task(), but that's a different API. 
+Similarly, the trace_ctxwake_* routines report a "P" for parked tasks, but
+again, different API.
+
+This change seemed slightly cleaner than updating the task_state_array to
+have additional rows.  TASK_DEAD should be subsumed by the exit_state
+bits; TASK_WAKEKILL is just a modifier; and TASK_WAKING can very
+reasonably be reported as "Running" (as it is now).  Only TASK_PARKED
+shows up with unreasonable output here.
+
+Signed-off-by: Chris Metcalf <cmetcalf@ezchip.com>
+Cc: Don Zickus <dzickus@redhat.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Ulrich Obergfell <uobergfe@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/machine_kexec_64.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/proc/array.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN arch/x86/kernel/machine_kexec_64.c~linux-next-rejects arch/x86/kernel/machine_kexec_64.c
---- a/arch/x86/kernel/machine_kexec_64.c~linux-next-rejects
-+++ a/arch/x86/kernel/machine_kexec_64.c
-@@ -334,8 +334,7 @@ void arch_crash_save_vmcoreinfo(void)
- 	VMCOREINFO_SYMBOL(node_data);
- 	VMCOREINFO_LENGTH(node_data, MAX_NUMNODES);
- #endif
--	vmcoreinfo_append_str("KERNELOFFSET=%lx\n",
--			      (unsigned long)&_text - __START_KERNEL);
-+	vmcoreinfo_append_str("KERNELOFFSET=%lx\n", kaslr_offset());
- 	VMCOREINFO_PHYS_BASE(phys_base);
- }
+diff -puN fs/proc/array.c~procfs-treat-parked-tasks-as-sleeping-for-task-state fs/proc/array.c
+--- a/fs/proc/array.c~procfs-treat-parked-tasks-as-sleeping-for-task-state
++++ a/fs/proc/array.c
+@@ -126,6 +126,14 @@ static inline const char *get_task_state
+ {
+ 	unsigned int state = (tsk->state | tsk->exit_state) & TASK_REPORT;
  
++	/*
++	 * Parked tasks do not run; they sit in __kthread_parkme().
++	 * Without this check, we would report them as running, which is
++	 * clearly wrong, so we report them as sleeping instead.
++	 */
++	if (tsk->state == TASK_PARKED)
++		state = TASK_INTERRUPTIBLE;
++
+ 	BUILD_BUG_ON(1 + ilog2(TASK_REPORT) != ARRAY_SIZE(task_state_array)-1);
+ 
+ 	return task_state_array[fls(state)];
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from cmetcalf@ezchip.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-revert-zram-move-compact_store-to-sysfs-functions-area.patch
-maintainers-add-co-maintainer-for-led-subsystem.patch
-revert-fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask.patch
-ocfs2-reduce-object-size-of-mlog-uses-fix.patch
-ocfs2-remove-__mlog_cpu_guess.patch
-ocfs2-remove-__mlog_cpu_guess-fix.patch
-mm.patch
-mm-slab_common-support-the-slub_debug-boot-option-on-specific-object-size-fix.patch
-slub-bulk-allocation-from-per-cpu-partial-pages-fix.patch
-mm-fix-mprotect-behaviour-on-vm_locked-vmas-fix.patch
-mm-new-mm-hook-framework.patch
-include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
-bitmap-remove-explicit-newline-handling-using-scnprintf-format-string-fix.patch
-rtc-omap-add-external-32k-clock-feature-fix.patch
+origin.patch
+smpboot-allow-excluding-cpus-from-the-smpboot-threads.patch
+watchdog-add-watchdog_cpumask-sysctl-to-assist-nohz.patch
+procfs-treat-parked-tasks-as-sleeping-for-task-state.patch
+mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare.patch
+__bitmap_parselist-fix-bug-in-empty-string-handling.patch
 linux-next.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-linux-next-rejects.patch
 
