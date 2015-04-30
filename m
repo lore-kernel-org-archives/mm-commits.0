@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- nilfs2-fix-sanity-check-of-btree-level-in-nilfs_btree_root_broken.patch
- added to -mm tree
-Date: Wed, 29 Apr 2015 16:31:47 -0700
-Message-ID: <554169e3.7MO5ajMgK3QJaGOJ%akpm__13580.6832848631$1430350326$gmane$org@linux-foundation.org>
+Subject: + linux-next-rejects.patch added to -mm tree
+Date: Thu, 30 Apr 2015 12:58:28 -0700
+Message-ID: <55428964.+CvUt7Dtgp+xzwBy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60498 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48806 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750883AbbD2Xbs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Apr 2015 19:31:48 -0400
+	with ESMTP id S1751149AbbD3T63 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 30 Apr 2015 15:58:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: konishi.ryusuke@lab.ntt.co.jp, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: fix sanity check of btree level in nilfs_btree_root_broken()
+     Subject: linux-next-rejects
 has been added to the -mm tree.  Its filename is
-     nilfs2-fix-sanity-check-of-btree-level-in-nilfs_btree_root_broken.patch
+     linux-next-rejects.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/nilfs2-fix-sanity-check-of-btree-level-in-nilfs_btree_root_broken.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-rejects.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-fix-sanity-check-of-btree-level-in-nilfs_btree_root_broken.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,58 +38,59 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Subject: nilfs2: fix sanity check of btree level in nilfs_btree_root_broken()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-rejects
 
-The range check for b-tree level parameter in nilfs_btree_root_broken() is
-wrong; it accepts the case of "level == NILFS_BTREE_LEVEL_MAX" even though
-the level is limited to values in the range of 0 to (NILFS_BTREE_LEVEL_MAX
-- 1).
-
-Since the level parameter is read from storage device and used to index
-nilfs_btree_path array whose element count is NILFS_BTREE_LEVEL_MAX, it
-can cause memory overrun during btree operations if the boundary value is
-set to the level parameter on device.
-
-This fixes the broken sanity check and adds a comment to clarify that the
-upper bound NILFS_BTREE_LEVEL_MAX is exclusive.
-
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/btree.c         |    2 +-
- include/linux/nilfs2_fs.h |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/x86/kernel/machine_kexec_64.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/nilfs2/btree.c~nilfs2-fix-sanity-check-of-btree-level-in-nilfs_btree_root_broken fs/nilfs2/btree.c
---- a/fs/nilfs2/btree.c~nilfs2-fix-sanity-check-of-btree-level-in-nilfs_btree_root_broken
-+++ a/fs/nilfs2/btree.c
-@@ -388,7 +388,7 @@ static int nilfs_btree_root_broken(const
- 	nchildren = nilfs_btree_node_get_nchildren(node);
+diff -puN arch/x86/kernel/machine_kexec_64.c~linux-next-rejects arch/x86/kernel/machine_kexec_64.c
+--- a/arch/x86/kernel/machine_kexec_64.c~linux-next-rejects
++++ a/arch/x86/kernel/machine_kexec_64.c
+@@ -334,8 +334,7 @@ void arch_crash_save_vmcoreinfo(void)
+ 	VMCOREINFO_SYMBOL(node_data);
+ 	VMCOREINFO_LENGTH(node_data, MAX_NUMNODES);
+ #endif
+-	vmcoreinfo_append_str("KERNELOFFSET=%lx\n",
+-			      (unsigned long)&_text - __START_KERNEL);
++	vmcoreinfo_append_str("KERNELOFFSET=%lx\n", kaslr_offset());
+ 	VMCOREINFO_PHYS_BASE(phys_base);
+ }
  
- 	if (unlikely(level < NILFS_BTREE_LEVEL_NODE_MIN ||
--		     level > NILFS_BTREE_LEVEL_MAX ||
-+		     level >= NILFS_BTREE_LEVEL_MAX ||
- 		     nchildren < 0 ||
- 		     nchildren > NILFS_BTREE_ROOT_NCHILDREN_MAX)) {
- 		pr_crit("NILFS: bad btree root (inode number=%lu): level = %d, flags = 0x%x, nchildren = %d\n",
-diff -puN include/linux/nilfs2_fs.h~nilfs2-fix-sanity-check-of-btree-level-in-nilfs_btree_root_broken include/linux/nilfs2_fs.h
---- a/include/linux/nilfs2_fs.h~nilfs2-fix-sanity-check-of-btree-level-in-nilfs_btree_root_broken
-+++ a/include/linux/nilfs2_fs.h
-@@ -460,7 +460,7 @@ struct nilfs_btree_node {
- /* level */
- #define NILFS_BTREE_LEVEL_DATA          0
- #define NILFS_BTREE_LEVEL_NODE_MIN      (NILFS_BTREE_LEVEL_DATA + 1)
--#define NILFS_BTREE_LEVEL_MAX           14
-+#define NILFS_BTREE_LEVEL_MAX           14	/* Max level (exclusive) */
- 
- /**
-  * struct nilfs_palloc_group_desc - block group descriptor
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-nilfs2-fix-sanity-check-of-btree-level-in-nilfs_btree_root_broken.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+revert-zram-move-compact_store-to-sysfs-functions-area.patch
+maintainers-add-co-maintainer-for-led-subsystem.patch
+revert-fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask.patch
+ocfs2-reduce-object-size-of-mlog-uses-fix.patch
+ocfs2-remove-__mlog_cpu_guess.patch
+ocfs2-remove-__mlog_cpu_guess-fix.patch
+mm.patch
+mm-slab_common-support-the-slub_debug-boot-option-on-specific-object-size-fix.patch
+slub-bulk-allocation-from-per-cpu-partial-pages-fix.patch
+mm-fix-mprotect-behaviour-on-vm_locked-vmas-fix.patch
+mm-new-mm-hook-framework.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
+bitmap-remove-explicit-newline-handling-using-scnprintf-format-string-fix.patch
+rtc-omap-add-external-32k-clock-feature-fix.patch
+linux-next.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+linux-next-rejects.patch
 
