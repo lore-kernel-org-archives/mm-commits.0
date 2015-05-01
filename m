@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mips-use-for_each_sg.patch added to -mm tree
-Date: Fri, 01 May 2015 14:40:20 -0700
-Message-ID: <5543f2c4.ELtJqTzRZdmOR6q2%akpm@linux-foundation.org>
+Subject: + avr32-use-for_each_sg.patch added to -mm tree
+Date: Fri, 01 May 2015 14:40:24 -0700
+Message-ID: <5543f2c8.UxKtyEwMEV6b8nXl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34053 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34059 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751087AbbEAVkV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 May 2015 17:40:21 -0400
+	with ESMTP id S1750990AbbEAVkZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 May 2015 17:40:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, egtvedt@samfundet.no, hskinnemoen@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mips: use for_each_sg()
+     Subject: avr32: use for_each_sg()
 has been added to the -mm tree.  Its filename is
-     mips-use-for_each_sg.patch
+     avr32-use-for_each_sg.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mips-use-for_each_sg.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/avr32-use-for_each_sg.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mips-use-for_each_sg.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/avr32-use-for_each_sg.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,100 +39,70 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: mips: use for_each_sg()
+Subject: avr32: use for_each_sg()
 
 This replaces the plain loop over the sglist array with for_each_sg()
-macro which consists of sg_next() function calls.  Since mips doesn't
+macro which consists of sg_next() function calls.  Since avr32 doesn't
 select ARCH_HAS_SG_CHAIN, it is not necessary to use for_each_sg() in
 order to loop over each sg element.  But this can help find problems with
 drivers that do not properly initialize their sg tables when
 CONFIG_DEBUG_SG is enabled.
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Haavard Skinnemoen <hskinnemoen@gmail.com>
+Cc: Hans-Christian Egtvedt <egtvedt@samfundet.no>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/mm/dma-default.c |   30 ++++++++++++++++++++----------
- 1 file changed, 20 insertions(+), 10 deletions(-)
+ arch/avr32/include/asm/dma-mapping.h |   19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
 
-diff -puN arch/mips/mm/dma-default.c~mips-use-for_each_sg arch/mips/mm/dma-default.c
---- a/arch/mips/mm/dma-default.c~mips-use-for_each_sg
-+++ a/arch/mips/mm/dma-default.c
-@@ -262,12 +262,13 @@ static void mips_dma_unmap_page(struct d
- 	plat_unmap_dma_mem(dev, dma_addr, size, direction);
- }
- 
--static int mips_dma_map_sg(struct device *dev, struct scatterlist *sg,
-+static int mips_dma_map_sg(struct device *dev, struct scatterlist *sglist,
- 	int nents, enum dma_data_direction direction, struct dma_attrs *attrs)
+diff -puN arch/avr32/include/asm/dma-mapping.h~avr32-use-for_each_sg arch/avr32/include/asm/dma-mapping.h
+--- a/arch/avr32/include/asm/dma-mapping.h~avr32-use-for_each_sg
++++ a/arch/avr32/include/asm/dma-mapping.h
+@@ -209,17 +209,18 @@ dma_unmap_page(struct device *dev, dma_a
+  * the same here.
+  */
+ static inline int
+-dma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
++dma_map_sg(struct device *dev, struct scatterlist *sglist, int nents,
+ 	   enum dma_data_direction direction)
  {
  	int i;
 +	struct scatterlist *sg;
  
--	for (i = 0; i < nents; i++, sg++) {
+-	for (i = 0; i < nents; i++) {
 +	for_each_sg(sglist, sg, nents, i) {
- 		if (!plat_device_is_coherent(dev))
- 			__dma_sync(sg_page(sg), sg->offset, sg->length,
- 				   direction);
-@@ -291,13 +292,14 @@ static dma_addr_t mips_dma_map_page(stru
- 	return plat_map_dma_mem_page(dev, page) + offset;
+ 		char *virt;
+ 
+-		sg[i].dma_address = page_to_bus(sg_page(&sg[i])) + sg[i].offset;
+-		virt = sg_virt(&sg[i]);
+-		dma_cache_sync(dev, virt, sg[i].length, direction);
++		sg->dma_address = page_to_bus(sg_page(sg)) + sg->offset;
++		virt = sg_virt(sg);
++		dma_cache_sync(dev, virt, sg->length, direction);
+ 	}
+ 
+ 	return nents;
+@@ -321,14 +322,14 @@ dma_sync_sg_for_cpu(struct device *dev,
  }
  
--static void mips_dma_unmap_sg(struct device *dev, struct scatterlist *sg,
-+static void mips_dma_unmap_sg(struct device *dev, struct scatterlist *sglist,
- 	int nhwentries, enum dma_data_direction direction,
- 	struct dma_attrs *attrs)
+ static inline void
+-dma_sync_sg_for_device(struct device *dev, struct scatterlist *sg,
++dma_sync_sg_for_device(struct device *dev, struct scatterlist *sglist,
+ 		       int nents, enum dma_data_direction direction)
  {
  	int i;
 +	struct scatterlist *sg;
  
--	for (i = 0; i < nhwentries; i++, sg++) {
-+	for_each_sg(sglist, sg, nhwentries, i) {
- 		if (!plat_device_is_coherent(dev) &&
- 		    direction != DMA_TO_DEVICE)
- 			__dma_sync(sg_page(sg), sg->offset, sg->length,
-@@ -324,26 +326,34 @@ static void mips_dma_sync_single_for_dev
+-	for (i = 0; i < nents; i++) {
+-		dma_cache_sync(dev, sg_virt(&sg[i]), sg[i].length, direction);
+-	}
++	for_each_sg(sglist, sg, nents, i)
++		dma_cache_sync(dev, sg_virt(sg), sg->length, direction);
  }
  
- static void mips_dma_sync_sg_for_cpu(struct device *dev,
--	struct scatterlist *sg, int nelems, enum dma_data_direction direction)
-+	struct scatterlist *sglist, int nelems,
-+	enum dma_data_direction direction)
- {
- 	int i;
-+	struct scatterlist *sg;
- 
--	if (cpu_needs_post_dma_flush(dev))
--		for (i = 0; i < nelems; i++, sg++)
-+	if (cpu_needs_post_dma_flush(dev)) {
-+		for_each_sg(sglist, sg, nelems, i) {
- 			__dma_sync(sg_page(sg), sg->offset, sg->length,
- 				   direction);
-+		}
-+	}
- 	plat_post_dma_flush(dev);
- }
- 
- static void mips_dma_sync_sg_for_device(struct device *dev,
--	struct scatterlist *sg, int nelems, enum dma_data_direction direction)
-+	struct scatterlist *sglist, int nelems,
-+	enum dma_data_direction direction)
- {
- 	int i;
-+	struct scatterlist *sg;
- 
--	if (!plat_device_is_coherent(dev))
--		for (i = 0; i < nelems; i++, sg++)
-+	if (!plat_device_is_coherent(dev)) {
-+		for_each_sg(sglist, sg, nelems, i) {
- 			__dma_sync(sg_page(sg), sg->offset, sg->length,
- 				   direction);
-+		}
-+	}
- }
- 
- int mips_dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
+ /* Now for the API extensions over the pci_ one */
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
