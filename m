@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + avr32-use-for_each_sg.patch added to -mm tree
-Date: Fri, 01 May 2015 14:40:24 -0700
-Message-ID: <5543f2c8.UxKtyEwMEV6b8nXl%akpm@linux-foundation.org>
+Subject: + xtensa-use-for_each_sg.patch added to -mm tree
+Date: Fri, 01 May 2015 14:40:18 -0700
+Message-ID: <5543f2c2.hnTK2oy0tJ8Ighdu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34059 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34050 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750990AbbEAVkZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 May 2015 17:40:25 -0400
+	with ESMTP id S1750844AbbEAVkT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 May 2015 17:40:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, egtvedt@samfundet.no, hskinnemoen@gmail.com, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, chris@zankel.net, jcmvbkbc@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: avr32: use for_each_sg()
+     Subject: xtensa: use for_each_sg()
 has been added to the -mm tree.  Its filename is
-     avr32-use-for_each_sg.patch
+     xtensa-use-for_each_sg.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/avr32-use-for_each_sg.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/xtensa-use-for_each_sg.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/avr32-use-for_each_sg.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/xtensa-use-for_each_sg.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,30 +39,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: avr32: use for_each_sg()
+Subject: xtensa: use for_each_sg()
 
 This replaces the plain loop over the sglist array with for_each_sg()
-macro which consists of sg_next() function calls.  Since avr32 doesn't
+macro which consists of sg_next() function calls.  Since xtensa doesn't
 select ARCH_HAS_SG_CHAIN, it is not necessary to use for_each_sg() in
 order to loop over each sg element.  But this can help find problems with
 drivers that do not properly initialize their sg tables when
 CONFIG_DEBUG_SG is enabled.
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Haavard Skinnemoen <hskinnemoen@gmail.com>
-Cc: Hans-Christian Egtvedt <egtvedt@samfundet.no>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/avr32/include/asm/dma-mapping.h |   19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
+ arch/xtensa/include/asm/dma-mapping.h |   19 ++++++++++++-------
+ 1 file changed, 12 insertions(+), 7 deletions(-)
 
-diff -puN arch/avr32/include/asm/dma-mapping.h~avr32-use-for_each_sg arch/avr32/include/asm/dma-mapping.h
---- a/arch/avr32/include/asm/dma-mapping.h~avr32-use-for_each_sg
-+++ a/arch/avr32/include/asm/dma-mapping.h
-@@ -209,17 +209,18 @@ dma_unmap_page(struct device *dev, dma_a
-  * the same here.
-  */
+diff -puN arch/xtensa/include/asm/dma-mapping.h~xtensa-use-for_each_sg arch/xtensa/include/asm/dma-mapping.h
+--- a/arch/xtensa/include/asm/dma-mapping.h~xtensa-use-for_each_sg
++++ a/arch/xtensa/include/asm/dma-mapping.h
+@@ -52,14 +52,15 @@ dma_unmap_single(struct device *dev, dma
+ }
+ 
  static inline int
 -dma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
 +dma_map_sg(struct device *dev, struct scatterlist *sglist, int nents,
@@ -71,38 +71,43 @@ diff -puN arch/avr32/include/asm/dma-mapping.h~avr32-use-for_each_sg arch/avr32/
  	int i;
 +	struct scatterlist *sg;
  
--	for (i = 0; i < nents; i++) {
+ 	BUG_ON(direction == DMA_NONE);
+ 
+-	for (i = 0; i < nents; i++, sg++ ) {
 +	for_each_sg(sglist, sg, nents, i) {
- 		char *virt;
+ 		BUG_ON(!sg_page(sg));
  
--		sg[i].dma_address = page_to_bus(sg_page(&sg[i])) + sg[i].offset;
--		virt = sg_virt(&sg[i]);
--		dma_cache_sync(dev, virt, sg[i].length, direction);
-+		sg->dma_address = page_to_bus(sg_page(sg)) + sg->offset;
-+		virt = sg_virt(sg);
-+		dma_cache_sync(dev, virt, sg->length, direction);
- 	}
- 
- 	return nents;
-@@ -321,14 +322,14 @@ dma_sync_sg_for_cpu(struct device *dev,
+ 		sg->dma_address = sg_phys(sg);
+@@ -124,20 +125,24 @@ dma_sync_single_range_for_device(struct
+ 	consistent_sync((void *)bus_to_virt(dma_handle)+offset,size,direction);
+ }
+ static inline void
+-dma_sync_sg_for_cpu(struct device *dev, struct scatterlist *sg, int nelems,
++dma_sync_sg_for_cpu(struct device *dev, struct scatterlist *sglist, int nelems,
+ 		 enum dma_data_direction dir)
+ {
+ 	int i;
+-	for (i = 0; i < nelems; i++, sg++)
++	struct scatterlist *sg;
++
++	for_each_sg(sglist, sg, nelems, i)
+ 		consistent_sync(sg_virt(sg), sg->length, dir);
  }
  
  static inline void
--dma_sync_sg_for_device(struct device *dev, struct scatterlist *sg,
+-dma_sync_sg_for_device(struct device *dev, struct scatterlist *sg, int nelems,
+-		 enum dma_data_direction dir)
 +dma_sync_sg_for_device(struct device *dev, struct scatterlist *sglist,
- 		       int nents, enum dma_data_direction direction)
++		       int nelems, enum dma_data_direction dir)
  {
  	int i;
+-	for (i = 0; i < nelems; i++, sg++)
 +	struct scatterlist *sg;
- 
--	for (i = 0; i < nents; i++) {
--		dma_cache_sync(dev, sg_virt(&sg[i]), sg[i].length, direction);
--	}
-+	for_each_sg(sglist, sg, nents, i)
-+		dma_cache_sync(dev, sg_virt(sg), sg->length, direction);
++
++	for_each_sg(sglist, sg, nelems, i)
+ 		consistent_sync(sg_virt(sg), sg->length, dir);
  }
- 
- /* Now for the API extensions over the pci_ one */
+ static inline int
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
