@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-use-for_each_sg.patch added to -mm tree
-Date: Fri, 01 May 2015 14:40:26 -0700
-Message-ID: <5543f2ca.oa/llElTinK7jSJa%akpm@linux-foundation.org>
+Subject: + parisc-use-for_each_sg.patch added to -mm tree
+Date: Fri, 01 May 2015 14:40:30 -0700
+Message-ID: <5543f2ce.4ZPW6bCZhjYLO0cS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34063 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34070 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750990AbbEAVk1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 May 2015 17:40:27 -0400
+	with ESMTP id S1751606AbbEAVkb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 May 2015 17:40:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, benh@kernel.crashing.org, mpe@ellerman.id.au, paulus@samba.org, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, deller@gmx.de, jejb@parisc-linux.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc: use for_each_sg()
+     Subject: parisc: use for_each_sg()
 has been added to the -mm tree.  Its filename is
-     powerpc-use-for_each_sg.patch
+     parisc-use-for_each_sg.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-use-for_each_sg.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/parisc-use-for_each_sg.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-use-for_each_sg.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/parisc-use-for_each_sg.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,64 +39,96 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: powerpc: use for_each_sg()
+Subject: parisc: use for_each_sg()
 
 This replaces the plain loop over the sglist array with for_each_sg()
-macro which consists of sg_next() function calls.  Since powerpc does
-select ARCH_HAS_SG_CHAIN, it is necessary to use for_each_sg() in order to
-loop over each sg element.  This also help find problems with drivers that
-do not properly initialize their sg tables when CONFIG_DEBUG_SG is
-enabled.
+macro which consists of sg_next() function calls.  Since parisc doesn't
+select ARCH_HAS_SG_CHAIN, it is not necessary to use for_each_sg() in
+order to loop over each sg element.  But this can help find problems with
+drivers that do not properly initialize their sg tables when
+CONFIG_DEBUG_SG is enabled.
 
 Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
+Cc: Helge Deller <deller@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/vio.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ arch/parisc/kernel/pci-dma.c |   27 ++++++++++++++++-----------
+ 1 file changed, 16 insertions(+), 11 deletions(-)
 
-diff -puN arch/powerpc/kernel/vio.c~powerpc-use-for_each_sg arch/powerpc/kernel/vio.c
---- a/arch/powerpc/kernel/vio.c~powerpc-use-for_each_sg
-+++ a/arch/powerpc/kernel/vio.c
-@@ -557,11 +557,11 @@ static int vio_dma_iommu_map_sg(struct d
- 	struct vio_dev *viodev = to_vio_dev(dev);
- 	struct iommu_table *tbl;
- 	struct scatterlist *sgl;
--	int ret, count = 0;
-+	int ret, count;
- 	size_t alloc_size = 0;
+diff -puN arch/parisc/kernel/pci-dma.c~parisc-use-for_each_sg arch/parisc/kernel/pci-dma.c
+--- a/arch/parisc/kernel/pci-dma.c~parisc-use-for_each_sg
++++ a/arch/parisc/kernel/pci-dma.c
+@@ -478,14 +478,16 @@ static void pa11_dma_unmap_single(struct
+ static int pa11_dma_map_sg(struct device *dev, struct scatterlist *sglist, int nents, enum dma_data_direction direction)
+ {
+ 	int i;
++	struct scatterlist *sg;
  
- 	tbl = get_iommu_table_base(dev);
--	for (sgl = sglist; count < nelems; count++, sgl++)
-+	for_each_sg(sglist, sgl, nelems, count)
- 		alloc_size += roundup(sgl->length, IOMMU_PAGE_SIZE(tbl));
+ 	BUG_ON(direction == DMA_NONE);
  
- 	if (vio_cmo_alloc(viodev, alloc_size)) {
-@@ -577,7 +577,7 @@ static int vio_dma_iommu_map_sg(struct d
- 		return ret;
+-	for (i = 0; i < nents; i++, sglist++ ) {
+-		unsigned long vaddr = (unsigned long)sg_virt(sglist);
+-		sg_dma_address(sglist) = (dma_addr_t) virt_to_phys(vaddr);
+-		sg_dma_len(sglist) = sglist->length;
+-		flush_kernel_dcache_range(vaddr, sglist->length);
++	for_each_sg(sglist, sg, nents, i) {
++		unsigned long vaddr = (unsigned long)sg_virt(sg);
++
++		sg_dma_address(sg) = (dma_addr_t) virt_to_phys(vaddr);
++		sg_dma_len(sg) = sg->length;
++		flush_kernel_dcache_range(vaddr, sg->length);
  	}
+ 	return nents;
+ }
+@@ -493,6 +495,7 @@ static int pa11_dma_map_sg(struct device
+ static void pa11_dma_unmap_sg(struct device *dev, struct scatterlist *sglist, int nents, enum dma_data_direction direction)
+ {
+ 	int i;
++	struct scatterlist *sg;
  
--	for (sgl = sglist, count = 0; count < ret; count++, sgl++)
-+	for_each_sg(sglist, sgl, ret, count)
- 		alloc_size -= roundup(sgl->dma_length, IOMMU_PAGE_SIZE(tbl));
- 	if (alloc_size)
- 		vio_cmo_dealloc(viodev, alloc_size);
-@@ -594,10 +594,10 @@ static void vio_dma_iommu_unmap_sg(struc
- 	struct iommu_table *tbl;
- 	struct scatterlist *sgl;
- 	size_t alloc_size = 0;
--	int count = 0;
-+	int count;
+ 	BUG_ON(direction == DMA_NONE);
  
- 	tbl = get_iommu_table_base(dev);
--	for (sgl = sglist; count < nelems; count++, sgl++)
-+	for_each_sg(sglist, sgl, nelems, count)
- 		alloc_size += roundup(sgl->dma_length, IOMMU_PAGE_SIZE(tbl));
+@@ -501,8 +504,8 @@ static void pa11_dma_unmap_sg(struct dev
  
- 	dma_iommu_ops.unmap_sg(dev, sglist, nelems, direction, attrs);
+ 	/* once we do combining we'll need to use phys_to_virt(sg_dma_address(sglist)) */
+ 
+-	for (i = 0; i < nents; i++, sglist++ )
+-		flush_kernel_vmap_range(sg_virt(sglist), sglist->length);
++	for_each_sg(sglist, sg, nents, i)
++		flush_kernel_vmap_range(sg_virt(sg), sg->length);
+ 	return;
+ }
+ 
+@@ -523,21 +526,23 @@ static void pa11_dma_sync_single_for_dev
+ static void pa11_dma_sync_sg_for_cpu(struct device *dev, struct scatterlist *sglist, int nents, enum dma_data_direction direction)
+ {
+ 	int i;
++	struct scatterlist *sg;
+ 
+ 	/* once we do combining we'll need to use phys_to_virt(sg_dma_address(sglist)) */
+ 
+-	for (i = 0; i < nents; i++, sglist++ )
+-		flush_kernel_vmap_range(sg_virt(sglist), sglist->length);
++	for_each_sg(sglist, sg, nents, i)
++		flush_kernel_vmap_range(sg_virt(sg), sg->length);
+ }
+ 
+ static void pa11_dma_sync_sg_for_device(struct device *dev, struct scatterlist *sglist, int nents, enum dma_data_direction direction)
+ {
+ 	int i;
++	struct scatterlist *sg;
+ 
+ 	/* once we do combining we'll need to use phys_to_virt(sg_dma_address(sglist)) */
+ 
+-	for (i = 0; i < nents; i++, sglist++ )
+-		flush_kernel_vmap_range(sg_virt(sglist), sglist->length);
++	for_each_sg(sglist, sg, nents, i)
++		flush_kernel_vmap_range(sg_virt(sg), sg->length);
+ }
+ 
+ struct hppa_dma_ops pcxl_dma_ops = {
 _
 
 Patches currently in -mm which might be from akinobu.mita@gmail.com are
