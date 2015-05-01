@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + smpboot-allow-excluding-cpus-from-the-smpboot-threads-fix.patch added to -mm tree
-Date: Fri, 01 May 2015 15:01:23 -0700
-Message-ID: <5543f7b3.1pkyp4QOcNfBnhRV%akpm@linux-foundation.org>
+Subject: + fix-a-misaligned-load-inside-ptrace_attach.patch added to -mm
+ tree
+Date: Fri, 01 May 2015 15:40:05 -0700
+Message-ID: <554400c5.wq4NYgSDpeVt9Ehd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34718 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34941 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750710AbbEAWBY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 May 2015 18:01:24 -0400
+	with ESMTP id S1750934AbbEAWkG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 May 2015 18:40:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cmetcalf@ezchip.com, dzickus@redhat.com, fweisbec@gmail.com, mingo@kernel.org, peterz@infradead.org, tglx@linutronix.de, uobergfe@redhat.com, mm-commits@vger.kernel.org
+To: palmer@dabbelt.com, bobby.prani@gmail.com, cmetcalf@ezchip.com, oleg@redhat.com, paulmck@linux.vnet.ibm.com, peterz@infradead.org, richard@nod.at, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: smpboot: dynamically allocate the cpumask
+     Subject: include/linux/sched.h: fix a misaligned load inside ptrace_attach()
 has been added to the -mm tree.  Its filename is
-     smpboot-allow-excluding-cpus-from-the-smpboot-threads-fix.patch
+     fix-a-misaligned-load-inside-ptrace_attach.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/smpboot-allow-excluding-cpus-from-the-smpboot-threads-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fix-a-misaligned-load-inside-ptrace_attach.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/smpboot-allow-excluding-cpus-from-the-smpboot-threads-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fix-a-misaligned-load-inside-ptrace_attach.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,98 +39,81 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Chris Metcalf <cmetcalf@ezchip.com>
-Subject: smpboot: dynamically allocate the cpumask
+From: Palmer Dabbelt <palmer@dabbelt.com>
+Subject: include/linux/sched.h: fix a misaligned load inside ptrace_attach()
 
-Frederic Weisbecker observed that we'd be better off to dynamically
-allocate the cpumask associated with smpboot threads to save memory.
+I ran across what I believe is a bug in some asm-generic code while
+working on the RISC-V Linux port.  Essentially the problem is that
+wait_on_bit() takes a void *, but then perfroms long-aligned operation. 
+As far as I can tell, this bug could manifest on any other architecture
+that doesn't support misaligned operations and uses this particular
+asm-generic implementation.
 
-Signed-off-by: Chris Metcalf <cmetcalf@ezchip.com>
-Cc: Don Zickus <dzickus@redhat.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Ulrich Obergfell <uobergfe@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+The patch set is split into three parts:
+
+* #1 fixes the bug by making task_struct.jobctl an unsigned long,
+   which ensures wait_on_bit() always ends up with a long-aligned
+   argument.
+
+* #2 changes the prototype of wait_on_bit() and friends to take a
+   "unsigned long *" instead of a "void *", with the intent of
+   ensuring these problems don't happen again.
+
+* #3 is a bit more intrusive: it goes and changes all uses of
+   task_struct.jobctl from int to long.
+
+I'm not sure if #3 has gone too far, but I think #1 and #2 are sane.  The
+cost is making task_struct larger on machines where
+sizeof(long)>sizeof(int), but since it's so big already this isn't too
+much cost.  I thought about making test_bit() perform byte-aligned
+accesses to avoid this cost, but since there are very similar looking
+atomic functions I thought that would be too odd.
+
+
+This patch (of 3):
+
+The misaligned load exception arises when running ptrace_attach() on the
+RISC-V (which hasn't been upstreamed yet).  The problem is that
+wait_on_bit() takes a void* but then proceeds to call test_bit(), which
+takes a long*.  This allows an int-aligned pointer to be passed to
+test_bit(), which promptly fails.  This will manifest on any other
+asm-generic port where unaligned loads trap, where sizeof(long) >
+sizeof(int), and where task_struct.jobctl ends up not being long-aligned.
+
+This patch changes task_struct.jobctl to be a long, which ensures it
+has the correct alignment.
+
+Signed-off-by: Palmer Dabbelt <palmer@dabbelt.com>
+Reviewed-by: Chris Metcalf <cmetcalf@ezchip.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Pranith Kumar <bobby.prani@gmail.com>
+Cc: Vladimir Davydov <vdavydov@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/smpboot.h |    2 +-
- kernel/smpboot.c        |   12 ++++++++----
- 2 files changed, 9 insertions(+), 5 deletions(-)
+ include/linux/sched.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/smpboot.h~smpboot-allow-excluding-cpus-from-the-smpboot-threads-fix include/linux/smpboot.h
---- a/include/linux/smpboot.h~smpboot-allow-excluding-cpus-from-the-smpboot-threads-fix
-+++ a/include/linux/smpboot.h
-@@ -43,7 +43,7 @@ struct smp_hotplug_thread {
- 	void				(*park)(unsigned int cpu);
- 	void				(*unpark)(unsigned int cpu);
- 	void				(*pre_unpark)(unsigned int cpu);
--	struct cpumask			cpumask;
-+	cpumask_var_t			cpumask;
- 	bool				selfparking;
- 	const char			*thread_comm;
- };
-diff -puN kernel/smpboot.c~smpboot-allow-excluding-cpus-from-the-smpboot-threads-fix kernel/smpboot.c
---- a/kernel/smpboot.c~smpboot-allow-excluding-cpus-from-the-smpboot-threads-fix
-+++ a/kernel/smpboot.c
-@@ -232,7 +232,7 @@ void smpboot_unpark_threads(unsigned int
+diff -puN include/linux/sched.h~fix-a-misaligned-load-inside-ptrace_attach include/linux/sched.h
+--- a/include/linux/sched.h~fix-a-misaligned-load-inside-ptrace_attach
++++ a/include/linux/sched.h
+@@ -1369,7 +1369,7 @@ struct task_struct {
+ 	int exit_state;
+ 	int exit_code, exit_signal;
+ 	int pdeath_signal;  /*  The signal sent when the parent dies  */
+-	unsigned int jobctl;	/* JOBCTL_*, siglock protected */
++	unsigned long jobctl;	/* JOBCTL_*, siglock protected */
  
- 	mutex_lock(&smpboot_threads_lock);
- 	list_for_each_entry(cur, &hotplug_threads, list)
--		if (cpumask_test_cpu(cpu, &cur->cpumask))
-+		if (cpumask_test_cpu(cpu, cur->cpumask))
- 			smpboot_unpark_thread(cur, cpu);
- 	mutex_unlock(&smpboot_threads_lock);
- }
-@@ -260,7 +260,7 @@ static void smpboot_destroy_threads(stru
- 	unsigned int cpu;
- 
- 	/* Unpark any threads that were voluntarily parked. */
--	for_each_cpu_not(cpu, &ht->cpumask) {
-+	for_each_cpu_not(cpu, ht->cpumask) {
- 		if (cpu_online(cpu)) {
- 			struct task_struct *tsk = *per_cpu_ptr(ht->store, cpu);
- 			if (tsk)
-@@ -291,7 +291,10 @@ int smpboot_register_percpu_thread(struc
- 	unsigned int cpu;
- 	int ret = 0;
- 
--	cpumask_copy(&plug_thread->cpumask, cpu_possible_mask);
-+	if (!alloc_cpumask_var(&plug_thread->cpumask, GFP_KERNEL))
-+		return -ENOMEM;
-+	cpumask_copy(plug_thread->cpumask, cpu_possible_mask);
-+
- 	get_online_cpus();
- 	mutex_lock(&smpboot_threads_lock);
- 	for_each_online_cpu(cpu) {
-@@ -324,6 +327,7 @@ void smpboot_unregister_percpu_thread(st
- 	smpboot_destroy_threads(plug_thread);
- 	mutex_unlock(&smpboot_threads_lock);
- 	put_online_cpus();
-+	free_cpumask_var(plug_thread->cpumask);
- }
- EXPORT_SYMBOL_GPL(smpboot_unregister_percpu_thread);
- 
-@@ -338,7 +342,7 @@ EXPORT_SYMBOL_GPL(smpboot_unregister_per
- int smpboot_update_cpumask_percpu_thread(struct smp_hotplug_thread *plug_thread,
- 					 const struct cpumask *new)
- {
--	struct cpumask *old = &plug_thread->cpumask;
-+	struct cpumask *old = plug_thread->cpumask;
- 	cpumask_var_t tmp;
- 	unsigned int cpu;
- 
+ 	/* Used for emulating ABI behavior of previous Linux versions */
+ 	unsigned int personality;
 _
 
-Patches currently in -mm which might be from cmetcalf@ezchip.com are
+Patches currently in -mm which might be from palmer@dabbelt.com are
 
-origin.patch
-smpboot-allow-excluding-cpus-from-the-smpboot-threads.patch
-smpboot-allow-excluding-cpus-from-the-smpboot-threads-fix.patch
-watchdog-add-watchdog_cpumask-sysctl-to-assist-nohz.patch
-procfs-treat-parked-tasks-as-sleeping-for-task-state.patch
-mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare.patch
-__bitmap_parselist-fix-bug-in-empty-string-handling.patch
-linux-next.patch
+fix-a-misaligned-load-inside-ptrace_attach.patch
+change-wait_on_bit-to-take-an-unsigned-long-not-a-void.patch
+change-all-uses-of-jobctl_-from-int-to-long.patch
 
