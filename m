@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- coredump-use-from_kuid-kgid_munged-when-formatting-corename.patch added to
- -mm tree
-Date: Mon, 04 May 2015 15:41:00 -0700
-Message-ID: <5547f57c.p5obUMLvdxy6+09q%akpm@linux-foundation.org>
+Subject: + coredump-add-__printf-attribute-to-cn_printf-functions.patch
+ added to -mm tree
+Date: Mon, 04 May 2015 15:41:02 -0700
+Message-ID: <5547f57e.A7YJJHf2aWvlxr7x%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41810 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41815 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750699AbbEDWlC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 May 2015 18:41:02 -0400
+	with ESMTP id S1750832AbbEDWlD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 May 2015 18:41:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: nicolas.iooss_linux@m4x.org, ebiederm@xmission.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: coredump: use from_kuid/kgid_munged when formatting corename
+     Subject: coredump: add __printf attribute to cn_*printf functions
 has been added to the -mm tree.  Its filename is
-     coredump-use-from_kuid-kgid_munged-when-formatting-corename.patch
+     coredump-add-__printf-attribute-to-cn_printf-functions.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/coredump-use-from_kuid-kgid_munged-when-formatting-corename.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/coredump-add-__printf-attribute-to-cn_printf-functions.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/coredump-use-from_kuid-kgid_munged-when-formatting-corename.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/coredump-add-__printf-attribute-to-cn_printf-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,31 +40,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
-Subject: coredump: use from_kuid/kgid_munged when formatting corename
+Subject: coredump: add __printf attribute to cn_*printf functions
 
-When adding __printf attribute to cn_printf, gcc reports some issues:
+This allows detecting improper format string at build time, like:
 
-  fs/coredump.c:213:5: warning: format '%d' expects argument of type
-  'int', but argument 3 has type 'kuid_t' [-Wformat=]
-       err = cn_printf(cn, "%d", cred->uid);
-       ^
-  fs/coredump.c:217:5: warning: format '%d' expects argument of type
-  'int', but argument 3 has type 'kgid_t' [-Wformat=]
-       err = cn_printf(cn, "%d", cred->gid);
+  fs/coredump.c:225:5: warning: format '%ld' expects argument of type
+  'long int', but argument 3 has type 'int' [-Wformat=]
+       err = cn_printf(cn, "%ld", cprm->siginfo->si_signo);
        ^
 
-These warnings come from the fact that the value of uid/gid needs to be
-extracted from the kuid_t/kgid_t structure before being used as an
-integer.  More precisely, cred->uid and cred->gid need to be converted to
-either user-namespace uid/gid or to init_user_ns uid/gid.
-
-As Documentation/sysctl/kernel.txt does not specify which user namespace
-is used to translate %u and %g in core_pattern, but lowercase %p and %i
-are used to format pid/tid in the current process namespace, it seems
-intuitive that lowercase %u and %g use the current user namespace.
-
-While at it, format uid and gid values with %u instead of %d because
-uid_t/__kernel_uid32_t and gid_t/__kernel_gid32_t are unsigned int.
+As si_signo is always an int, the format should be %d here.
 
 Signed-off-by: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -73,30 +57,50 @@ Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coredump.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ fs/coredump.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN fs/coredump.c~coredump-use-from_kuid-kgid_munged-when-formatting-corename fs/coredump.c
---- a/fs/coredump.c~coredump-use-from_kuid-kgid_munged-when-formatting-corename
+diff -puN fs/coredump.c~coredump-add-__printf-attribute-to-cn_printf-functions fs/coredump.c
+--- a/fs/coredump.c~coredump-add-__printf-attribute-to-cn_printf-functions
 +++ a/fs/coredump.c
-@@ -209,11 +209,15 @@ static int format_corename(struct core_n
+@@ -70,7 +70,8 @@ static int expand_corename(struct core_n
+ 	return 0;
+ }
+ 
+-static int cn_vprintf(struct core_name *cn, const char *fmt, va_list arg)
++static __printf(2, 0) int cn_vprintf(struct core_name *cn, const char *fmt,
++				     va_list arg)
+ {
+ 	int free, need;
+ 	va_list arg_copy;
+@@ -93,7 +94,7 @@ again:
+ 	return -ENOMEM;
+ }
+ 
+-static int cn_printf(struct core_name *cn, const char *fmt, ...)
++static __printf(2, 3) int cn_printf(struct core_name *cn, const char *fmt, ...)
+ {
+ 	va_list arg;
+ 	int ret;
+@@ -105,7 +106,8 @@ static int cn_printf(struct core_name *c
+ 	return ret;
+ }
+ 
+-static int cn_esc_printf(struct core_name *cn, const char *fmt, ...)
++static __printf(2, 3)
++int cn_esc_printf(struct core_name *cn, const char *fmt, ...)
+ {
+ 	int cur = cn->used;
+ 	va_list arg;
+@@ -225,7 +227,7 @@ static int format_corename(struct core_n
  				break;
- 			/* uid */
- 			case 'u':
--				err = cn_printf(cn, "%d", cred->uid);
-+				err = cn_printf(cn, "%u",
-+						from_kuid_munged(cred->user_ns,
-+								 cred->uid));
+ 			/* signal that caused the coredump */
+ 			case 's':
+-				err = cn_printf(cn, "%ld", cprm->siginfo->si_signo);
++				err = cn_printf(cn, "%d", cprm->siginfo->si_signo);
  				break;
- 			/* gid */
- 			case 'g':
--				err = cn_printf(cn, "%d", cred->gid);
-+				err = cn_printf(cn, "%u",
-+						from_kgid_munged(cred->user_ns,
-+								 cred->gid));
- 				break;
- 			case 'd':
- 				err = cn_printf(cn, "%d",
+ 			/* UNIX time of coredump */
+ 			case 't': {
 _
 
 Patches currently in -mm which might be from nicolas.iooss_linux@m4x.org are
