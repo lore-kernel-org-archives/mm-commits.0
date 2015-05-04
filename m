@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- coredump-add-__printf-attribute-to-cn_printf-functions-checkpatch-fixes.patch added to -mm tree
-Date: Mon, 04 May 2015 15:41:51 -0700
-Message-ID: <5547f5af.pSyqZHEH3cZOJy4L%akpm@linux-foundation.org>
+Subject: + zram-add-compact-sysfs-entry-to-documentation.patch added to
+ -mm tree
+Date: Mon, 04 May 2015 15:56:55 -0700
+Message-ID: <5547f937.3ngAUWT0jjOvtVbm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41820 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41968 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751010AbbEDWlw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 May 2015 18:41:52 -0400
+	with ESMTP id S1750699AbbEDW44 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 May 2015 18:56:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, nicolas.iooss_linux@m4x.org, mm-commits@vger.kernel.org
+To: sergey.senozhatsky@gmail.com, minchan@kernel.org, ngupta@vflare.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: coredump-add-__printf-attribute-to-cn_printf-functions-checkpatch-fixes
+     Subject: zram: add `compact` sysfs entry to documentation
 has been added to the -mm tree.  Its filename is
-     coredump-add-__printf-attribute-to-cn_printf-functions-checkpatch-fixes.patch
+     zram-add-compact-sysfs-entry-to-documentation.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/coredump-add-__printf-attribute-to-cn_printf-functions-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zram-add-compact-sysfs-entry-to-documentation.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/coredump-add-__printf-attribute-to-cn_printf-functions-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zram-add-compact-sysfs-entry-to-documentation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,75 +39,48 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: coredump-add-__printf-attribute-to-cn_printf-functions-checkpatch-fixes
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: zram: add `compact` sysfs entry to documentation
 
-WARNING: line over 80 characters
-#59: FILE: fs/coredump.c:230:
-+				err = cn_printf(cn, "%d", cprm->siginfo->si_signo);
+We currently don't support zram on-demand device creation.  The only way
+to have N zram devices is to specify num_devices module parameter (default
+value 1).  That means that if, for some reason, at some point, user wants
+to have N + 1 devies he/she must umount all the existing devices, unload
+the module, load the module passing num_devices equals to N + 1.
 
-total: 0 errors, 1 warnings, 34 lines checked
+This patchset introduces zram-control sysfs class, which has two sysfs
+attrs:
 
-./patches/coredump-add-__printf-attribute-to-cn_printf-functions.patch has style problems, please review.
+ - zram_add     -- add a new zram device
+ - zram_remove  -- remove a specific (device_id) zram device
 
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
+    Usage example:
+        # add a new specific zram device
+        cat /sys/class/zram-control/zram_add
+        1
 
-Please run checkpatch prior to sending patches
+        # remove a specific zram device
+        echo 4 > /sys/class/zram-control/zram_remove
 
-Cc: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
+
+
+This patch (of 10):
+
+Briefly describe missing `compact` sysfs entry.
+
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coredump.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ Documentation/blockdev/zram.txt |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/coredump.c~coredump-add-__printf-attribute-to-cn_printf-functions-checkpatch-fixes fs/coredump.c
---- a/fs/coredump.c~coredump-add-__printf-attribute-to-cn_printf-functions-checkpatch-fixes
-+++ a/fs/coredump.c
-@@ -227,7 +227,8 @@ static int format_corename(struct core_n
- 				break;
- 			/* signal that caused the coredump */
- 			case 's':
--				err = cn_printf(cn, "%d", cprm->siginfo->si_signo);
-+				err = cn_printf(cn, "%d",
-+						cprm->siginfo->si_signo);
- 				break;
- 			/* UNIX time of coredump */
- 			case 't': {
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-arch-alpha-kernel-systblss-remove-debug-check.patch
-revert-zram-move-compact_store-to-sysfs-functions-area.patch
-maintainers-add-co-maintainer-for-led-subsystem.patch
-revert-fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask.patch
-ocfs2-reduce-object-size-of-mlog-uses-fix.patch
-ocfs2-remove-__mlog_cpu_guess.patch
-ocfs2-remove-__mlog_cpu_guess-fix.patch
-mm.patch
-mm-slab_common-support-the-slub_debug-boot-option-on-specific-object-size-fix.patch
-slub-bulk-allocation-from-per-cpu-partial-pages-fix.patch
-mm-fix-mprotect-behaviour-on-vm_locked-vmas-fix.patch
-mm-new-mm-hook-framework.patch
-mm-meminit-inline-some-helper-functions-fix.patch
-include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
-bitmap-remove-explicit-newline-handling-using-scnprintf-format-string-fix.patch
-rtc-omap-add-external-32k-clock-feature-fix.patch
-coredump-add-__printf-attribute-to-cn_printf-functions-checkpatch-fixes.patch
-linux-next.patch
-linux-next-rejects.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-
+diff -puN Documentation/blockdev/zram.txt~zram-add-compact-sysfs-entry-to-documentation Documentation/blockdev/zram.txt
+--- a/Documentation/blockdev/zram.txt~zram-add-compact-sysfs-entry-to-documentation
++++ a/Documentation/blockdev/zram.txt
+@@ -126,7 +126,7 @@ mem_used_max      RW    the maximum amou
+ mem_limit         RW    the maximum amount of memory ZRAM can use to store
+                         the compressed data
+ num_migrated      RO    the number of objects migrated migrated by compaction
