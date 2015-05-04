@@ -1,106 +1,175 @@
 From: akpm@linux-foundation.org
-Subject: + mm-meminit-inline-some-helper-functions-fix2.patch added to -mm tree
-Date: Mon, 04 May 2015 14:01:12 -0700
-Message-ID: <5547de18.sWQaRzXjMaSE0sh5%akpm@linux-foundation.org>
+Subject: [alternative-merged]
+ ocfs2-dlm-fix-race-between-purge-and-get-lock-resource.patch removed from
+ -mm tree
+Date: Mon, 04 May 2015 14:08:26 -0700
+Message-ID: <5547dfca.DtzvWsLbxgssSmyu%akpm__47861.0540893444$1430773720$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41165 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41184 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753054AbbEDVBN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 May 2015 17:01:13 -0400
+	with ESMTP id S1751555AbbEDVI1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 May 2015 17:08:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.cz, mgorman@suse.de, mm-commits@vger.kernel.org
+To: joseph.qi@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, stable@vger.kernel.org, xuejiufei@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-meminit-inline-some-helper-functions-fix2
-has been added to the -mm tree.  Its filename is
-     mm-meminit-inline-some-helper-functions-fix2.patch
+     Subject: ocfs2/dlm: fix race between purge and get lock resource
+has been removed from the -mm tree.  Its filename was
+     ocfs2-dlm-fix-race-between-purge-and-get-lock-resource.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-meminit-inline-some-helper-functions-fix2.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-meminit-inline-some-helper-functions-fix2.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: mm-meminit-inline-some-helper-functions-fix2
+From: Joseph Qi <joseph.qi@huawei.com>
+Subject: ocfs2/dlm: fix race between purge and get lock resource
 
-mm/page_alloc.c: In function `deferred_init_memmap':
-mm/page_alloc.c:1135:4: error: implicit declaration of function `meminit_pfn_in_nid' [-Werror=implicit-function-declaration]
-    if (!meminit_pfn_in_nid(pfn, nid, &nid_init_state)) {
-    ^
+There is a race between purge and get lock resource, which will lead to
+ast unfinished and system hung.  The case is described below:
 
-because randconfig decided to disable CONFIG_NODES_SPAN_OTHER_NODES.
+mkdir                                  dlm_thread
+-----------------------------------------------------------------------
+o2cb_dlm_lock                        |
+-> dlmlock                           |
+  -> dlm_get_lock_resource           |
+    -> __dlm_lookup_lockres_full     |
+      -> spin_unlock(&dlm->spinlock) |
+                                     | dlm_run_purge_list
+                                     | -> dlm_purge_lockres
+                                     |   -> dlm_drop_lockres_ref
+                                     |   -> spin_lock(&dlm->spinlock)
+                                     |   -> spin_lock(&res->spinlock)
+                                     |   -> ~DLM_LOCK_RES_DROPPING_REF
+                                     |   -> spin_unlock(&res->spinlock)
+                                     |   -> spin_unlock(&dlm->spinlock)
+      -> spin_lock(&tmpres->spinlock)|
+      DLM_LOCK_RES_DROPPING_REF cleared |
+      -> spin_unlock(&tmpres->spinlock) |
+      return the purged lockres         |
 
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Cc: Mel Gorman <mgorman@suse.de>
+So after this, once ast comes, it will ignore the ast because the lockres
+cannot be found anymore.  Thus the OCFS2_LOCK_BUSY won't be cleared and
+corresponding thread hangs.
+
+The &dlm->spinlock was held when checking DLM_LOCK_RES_DROPPING_REF at the
+very beginning.  And commit 7b791d6856 ("ocfs2/dlm: Fix race during
+lockres mastery") moved it up because of the possible wait.  So take the
+&dlm->spinlock and introduce a new wait function to fix the race.
+
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
+Reviewed-by: joyce.xue <xuejiufei@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ fs/ocfs2/dlm/dlmcommon.h |    2 ++
+ fs/ocfs2/dlm/dlmmaster.c |   13 +++++++++----
+ fs/ocfs2/dlm/dlmthread.c |   23 +++++++++++++++++++++++
+ 3 files changed, 34 insertions(+), 4 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-meminit-inline-some-helper-functions-fix2 mm/page_alloc.c
---- a/mm/page_alloc.c~mm-meminit-inline-some-helper-functions-fix2
-+++ a/mm/page_alloc.c
-@@ -957,6 +957,11 @@ static inline bool __meminit early_pfn_i
- {
- 	return true;
+diff -puN fs/ocfs2/dlm/dlmcommon.h~ocfs2-dlm-fix-race-between-purge-and-get-lock-resource fs/ocfs2/dlm/dlmcommon.h
+--- a/fs/ocfs2/dlm/dlmcommon.h~ocfs2-dlm-fix-race-between-purge-and-get-lock-resource
++++ a/fs/ocfs2/dlm/dlmcommon.h
+@@ -1014,6 +1014,8 @@ void dlm_move_lockres_to_recovery_list(s
+ 
+ /* will exit holding res->spinlock, but may drop in function */
+ void __dlm_wait_on_lockres_flags(struct dlm_lock_resource *res, int flags);
++void __dlm_wait_on_lockres_flags_new(struct dlm_ctxt *dlm,
++		struct dlm_lock_resource *res, int flags);
+ 
+ /* will exit holding res->spinlock, but may drop in function */
+ static inline void __dlm_wait_on_lockres(struct dlm_lock_resource *res)
+diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-fix-race-between-purge-and-get-lock-resource fs/ocfs2/dlm/dlmmaster.c
+--- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-fix-race-between-purge-and-get-lock-resource
++++ a/fs/ocfs2/dlm/dlmmaster.c
+@@ -755,13 +755,16 @@ lookup:
+ 	spin_lock(&dlm->spinlock);
+ 	tmpres = __dlm_lookup_lockres_full(dlm, lockid, namelen, hash);
+ 	if (tmpres) {
+-		spin_unlock(&dlm->spinlock);
+ 		spin_lock(&tmpres->spinlock);
+ 		/* Wait on the thread that is mastering the resource */
+ 		if (tmpres->owner == DLM_LOCK_RES_OWNER_UNKNOWN) {
+-			__dlm_wait_on_lockres(tmpres);
++			__dlm_wait_on_lockres_flags_new(dlm, tmpres,
++					(DLM_LOCK_RES_IN_PROGRESS|
++					DLM_LOCK_RES_RECOVERING|
++					DLM_LOCK_RES_MIGRATING));
+ 			BUG_ON(tmpres->owner == DLM_LOCK_RES_OWNER_UNKNOWN);
+ 			spin_unlock(&tmpres->spinlock);
++			spin_unlock(&dlm->spinlock);
+ 			dlm_lockres_put(tmpres);
+ 			tmpres = NULL;
+ 			goto lookup;
+@@ -770,9 +773,10 @@ lookup:
+ 		/* Wait on the resource purge to complete before continuing */
+ 		if (tmpres->state & DLM_LOCK_RES_DROPPING_REF) {
+ 			BUG_ON(tmpres->owner == dlm->node_num);
+-			__dlm_wait_on_lockres_flags(tmpres,
+-						    DLM_LOCK_RES_DROPPING_REF);
++			__dlm_wait_on_lockres_flags_new(dlm, tmpres,
++				DLM_LOCK_RES_DROPPING_REF);
+ 			spin_unlock(&tmpres->spinlock);
++			spin_unlock(&dlm->spinlock);
+ 			dlm_lockres_put(tmpres);
+ 			tmpres = NULL;
+ 			goto lookup;
+@@ -782,6 +786,7 @@ lookup:
+ 		dlm_lockres_grab_inflight_ref(dlm, tmpres);
+ 
+ 		spin_unlock(&tmpres->spinlock);
++		spin_unlock(&dlm->spinlock);
+ 		if (res)
+ 			dlm_lockres_put(res);
+ 		res = tmpres;
+diff -puN fs/ocfs2/dlm/dlmthread.c~ocfs2-dlm-fix-race-between-purge-and-get-lock-resource fs/ocfs2/dlm/dlmthread.c
+--- a/fs/ocfs2/dlm/dlmthread.c~ocfs2-dlm-fix-race-between-purge-and-get-lock-resource
++++ a/fs/ocfs2/dlm/dlmthread.c
+@@ -77,6 +77,29 @@ repeat:
+ 	__set_current_state(TASK_RUNNING);
  }
-+static inline bool __meminit meminit_pfn_in_nid(unsigned long pfn, int node,
-+					struct mminit_pfnnid_cache *state)
+ 
++void __dlm_wait_on_lockres_flags_new(struct dlm_ctxt *dlm,
++		struct dlm_lock_resource *res, int flags)
 +{
-+	return true;
++	DECLARE_WAITQUEUE(wait, current);
++
++	assert_spin_locked(&dlm->spinlock);
++	assert_spin_locked(&res->spinlock);
++
++	add_wait_queue(&res->wq, &wait);
++repeat:
++	set_current_state(TASK_UNINTERRUPTIBLE);
++	if (res->state & flags) {
++		spin_unlock(&res->spinlock);
++		spin_unlock(&dlm->spinlock);
++		schedule();
++		spin_lock(&dlm->spinlock);
++		spin_lock(&res->spinlock);
++		goto repeat;
++	}
++	remove_wait_queue(&res->wq, &wait);
++	__set_current_state(TASK_RUNNING);
 +}
- #endif
- 
- 
++
+ int __dlm_lockres_has_locks(struct dlm_lock_resource *res)
+ {
+ 	if (list_empty(&res->granted) &&
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from joseph.qi@huawei.com are
 
-jbd2-revert-must-not-fail-allocation-loops-back-to-gfp_nofail.patch
-mm-meminit-inline-some-helper-functions-fix2.patch
-page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-mm-sanitize-page-mapping-for-tail-pages.patch
-mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-reclaimable-pages.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-mm-page_isolation-check-pfn-validity-before-access.patch
-mm-support-madvisemadv_free.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-dont-split-thp-page-when-syscall-is-called.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-2.patch
-mm-move-lazy-free-pages-to-inactive-list.patch
-mm-move-lazy-free-pages-to-inactive-list-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-exitstats-obey-this-comment.patch
+ocfs2-fix-a-tiny-race-when-truncate-dio-orohaned-entry.patch
+ocfs2-use-retval-instead-of-status-for-checking-error.patch
+ocfs2-dlm-cleanup-unused-function-__dlm_wait_on_lockres_flags_set.patch
+ocfs2-set-filesytem-read-only-when-ocfs2_delete_entry-failed.patch
+ocfs2-set-filesytem-read-only-when-ocfs2_delete_entry-failed-v2.patch
+ocfs2-avoid-access-invalid-address-when-read-o2dlm-debug-messages.patch
 
