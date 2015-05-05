@@ -1,99 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [nacked]
- coredump-add-__printf-attribute-to-cn_printf-functions-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 05 May 2015 13:32:52 -0700
-Message-ID: <554928f4.UDoZUjRWZFmeoIfT%akpm@linux-foundation.org>
+Subject: + maintainers-update-sound-soc-intel-patterns.patch added to -mm
+ tree
+Date: Tue, 05 May 2015 13:55:26 -0700
+Message-ID: <55492e3e.ySkTLLcKecQ7TwCI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33008 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33288 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752857AbbEEUcw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2015 16:32:52 -0400
+	with ESMTP id S1031448AbbEEUz1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2015 16:55:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, nicolas.iooss_linux@m4x.org, mm-commits@vger.kernel.org
+To: joe@perches.com, yang.jie@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: coredump-add-__printf-attribute-to-cn_printf-functions-checkpatch-fixes
-has been removed from the -mm tree.  Its filename was
-     coredump-add-__printf-attribute-to-cn_printf-functions-checkpatch-fixes.patch
+     Subject: MAINTAINERS: update sound soc intel patterns
+has been added to the -mm tree.  Its filename is
+     maintainers-update-sound-soc-intel-patterns.patch
 
-This patch was dropped because it was nacked
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-sound-soc-intel-patterns.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-sound-soc-intel-patterns.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: coredump-add-__printf-attribute-to-cn_printf-functions-checkpatch-fixes
+From: Joe Perches <joe@perches.com>
+Subject: MAINTAINERS: update sound soc intel patterns
 
-WARNING: line over 80 characters
-#59: FILE: fs/coredump.c:230:
-+				err = cn_printf(cn, "%d", cprm->siginfo->si_signo);
+commit 2106241a6803 ("ASoC: Intel: create common folder and move common
+files in") moved the files around.  Update the patterns.
 
-total: 0 errors, 1 warnings, 34 lines checked
-
-./patches/coredump-add-__printf-attribute-to-cn_printf-functions.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Jie Yang <yang.jie@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coredump.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ MAINTAINERS |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN fs/coredump.c~coredump-add-__printf-attribute-to-cn_printf-functions-checkpatch-fixes fs/coredump.c
---- a/fs/coredump.c~coredump-add-__printf-attribute-to-cn_printf-functions-checkpatch-fixes
-+++ a/fs/coredump.c
-@@ -227,7 +227,8 @@ static int format_corename(struct core_n
- 				break;
- 			/* signal that caused the coredump */
- 			case 's':
--				err = cn_printf(cn, "%d", cprm->siginfo->si_signo);
-+				err = cn_printf(cn, "%d",
-+						cprm->siginfo->si_signo);
- 				break;
- 			/* UNIX time of coredump */
- 			case 't': {
+diff -puN MAINTAINERS~maintainers-update-sound-soc-intel-patterns MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-sound-soc-intel-patterns
++++ a/MAINTAINERS
+@@ -5088,11 +5088,10 @@ INTEL ASoC BDW/HSW DRIVERS
+ M:	Jie Yang <yang.jie@linux.intel.com>
+ L:	alsa-devel@alsa-project.org
+ S:	Supported
+-F:	sound/soc/intel/sst-haswell*
+-F:	sound/soc/intel/sst-dsp*
+-F:	sound/soc/intel/sst-firmware.c
+-F:	sound/soc/intel/broadwell.c
+-F:	sound/soc/intel/haswell.c
++F:	sound/soc/intel/common/sst-dsp*
++F:	sound/soc/intel/common/sst-firmware.c
++F:	sound/soc/intel/boards/broadwell.c
++F:	sound/soc/intel/haswell/
+ 
+ INTEL C600 SERIES SAS CONTROLLER DRIVER
+ M:	Intel SCU Linux support <intel-linux-scu@intel.com>
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from joe@perches.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-revert-zram-move-compact_store-to-sysfs-functions-area.patch
-maintainers-add-co-maintainer-for-led-subsystem.patch
-revert-fanotify-dont-set-fan_ondir-implicitly-on-a-marks-ignored-mask.patch
+compiler-gcch-neatening.patch
+compiler-gcc-integrate-the-various-compiler-gcch-files.patch
+kasan-show-gcc-version-requirements-in-kconfig-and-documentation.patch
+ocfs2-reduce-object-size-of-mlog-uses.patch
 ocfs2-reduce-object-size-of-mlog-uses-fix.patch
 ocfs2-remove-__mlog_cpu_guess.patch
 ocfs2-remove-__mlog_cpu_guess-fix.patch
-watchdog-add-watchdog_cpumask-sysctl-to-assist-nohz-fix-checkpatch-fixes.patch
-mm.patch
-mm-slab_common-support-the-slub_debug-boot-option-on-specific-object-size-fix.patch
-slub-bulk-allocation-from-per-cpu-partial-pages-fix.patch
-mm-fix-mprotect-behaviour-on-vm_locked-vmas-fix.patch
-mm-new-mm-hook-framework.patch
-mm-meminit-inline-some-helper-functions-fix.patch
-include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
-bitmap-remove-explicit-newline-handling-using-scnprintf-format-string-fix.patch
-rtc-omap-add-external-32k-clock-feature-fix.patch
+ocfs2-neaten-do_error-ocfs2_error-and-ocfs2_abort.patch
+get_maintainerpl-add-get_maintainerignore-file-capability.patch
+maintainers-update-sound-soc-intel-patterns.patch
+maintainers-remove-section-broadcom-bcm33xx-mips-architecture.patch
+maintainers-update-brcm-dts-pattern.patch
+maintainers-update-brcm-gpio-filename-pattern.patch
+maintainers-remove-unused-nbdh-pattern.patch
+mm-utilc-add-kstrimdup.patch
 linux-next.patch
-linux-next-rejects.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
+printk-improve-the-description-of-dev-kmsg-line-format.patch
 
