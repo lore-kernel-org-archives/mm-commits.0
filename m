@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-remove-unused-nbdh-pattern.patch added to -mm tree
-Date: Tue, 05 May 2015 13:55:34 -0700
-Message-ID: <55492e46.ESzlY4ajBaR5raiI%akpm@linux-foundation.org>
+Subject: +
+ maintainers-remove-section-broadcom-bcm33xx-mips-architecture.patch added
+ to -mm tree
+Date: Tue, 05 May 2015 13:55:28 -0700
+Message-ID: <55492e40.Tj5XZP/DDckYpOq3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33301 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33291 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031499AbbEEUzf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2015 16:55:35 -0400
+	with ESMTP id S1031474AbbEEUz3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2015 16:55:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mpa@pengutronix.de, mm-commits@vger.kernel.org
+To: joe@perches.com, cernekee@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: remove unused nbd.h pattern
+     Subject: MAINTAINERS: remove section BROADCOM BCM33XX MIPS ARCHITECTURE
 has been added to the -mm tree.  Its filename is
-     maintainers-remove-unused-nbdh-pattern.patch
+     maintainers-remove-section-broadcom-bcm33xx-mips-architecture.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-remove-unused-nbdh-pattern.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-remove-section-broadcom-bcm33xx-mips-architecture.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-remove-unused-nbdh-pattern.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-remove-section-broadcom-bcm33xx-mips-architecture.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,30 +41,39 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: remove unused nbd.h pattern
+Subject: MAINTAINERS: remove section BROADCOM BCM33XX MIPS ARCHITECTURE
 
-commit 13e71d69cc74 ("nbd: Remove kernel internal header") deleted the
-file, remove the pattern.
+commit 5f2d44591fb3 ("MIPS: bcm3384: Rename "bcm3384" target to "bmips"")
+renamed the files and integrated them into an existing section.
+
+Remove the section.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Markus Pargmann <mpa@pengutronix.de>
+Acked-by: Kevin Cernekee <cernekee@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 -
- 1 file changed, 1 deletion(-)
+ MAINTAINERS |    8 --------
+ 1 file changed, 8 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-remove-unused-nbdh-pattern MAINTAINERS
---- a/MAINTAINERS~maintainers-remove-unused-nbdh-pattern
+diff -puN MAINTAINERS~maintainers-remove-section-broadcom-bcm33xx-mips-architecture MAINTAINERS
+--- a/MAINTAINERS~maintainers-remove-section-broadcom-bcm33xx-mips-architecture
 +++ a/MAINTAINERS
-@@ -6764,7 +6764,6 @@ L:	nbd-general@lists.sourceforge.net
- T:	git git://git.pengutronix.de/git/mpa/linux-nbd.git
- F:	Documentation/blockdev/nbd.txt
- F:	drivers/block/nbd.c
--F:	include/linux/nbd.h
- F:	include/uapi/linux/nbd.h
+@@ -2137,14 +2137,6 @@ T:	git git://git.kernel.org/pub/scm/linu
+ S:	Maintained
+ N:	bcm2835
  
- NETWORK DROP MONITOR
+-BROADCOM BCM33XX MIPS ARCHITECTURE
+-M:	Kevin Cernekee <cernekee@gmail.com>
+-L:	linux-mips@linux-mips.org
+-S:	Maintained
+-F:	arch/mips/bcm3384/*
+-F:	arch/mips/include/asm/mach-bcm3384/*
+-F:	arch/mips/kernel/*bmips*
+-
+ BROADCOM BCM5301X ARM ARCHITECTURE
+ M:	Hauke Mehrtens <hauke@hauke-m.de>
+ L:	linux-arm-kernel@lists.infradead.org
 _
 
 Patches currently in -mm which might be from joe@perches.com are
