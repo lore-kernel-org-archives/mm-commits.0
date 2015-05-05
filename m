@@ -1,33 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-update-brcm-gpio-filename-pattern.patch added to
- -mm tree
-Date: Tue, 05 May 2015 13:55:32 -0700
-Message-ID: <55492e44.XE/Ca97bXaPlJdfD%akpm@linux-foundation.org>
+Subject: + maintainers-update-brcm-dts-pattern.patch added to -mm tree
+Date: Tue, 05 May 2015 13:55:30 -0700
+Message-ID: <55492e42.BlPfNfDpaYeW+xel%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33297 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33294 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757676AbbEEUzd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2015 16:55:33 -0400
+	with ESMTP id S1031482AbbEEUzb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2015 16:55:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, sbranden@broadcom.com, mm-commits@vger.kernel.org
+To: joe@perches.com, abrestic@chromium.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: update brcm gpio filename pattern
+     Subject: MAINTAINERS: update brcm dts pattern
 has been added to the -mm tree.  Its filename is
-     maintainers-update-brcm-gpio-filename-pattern.patch
+     maintainers-update-brcm-dts-pattern.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-brcm-gp=
-io-filename-pattern.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-brcm-dts-pattern.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-brcm-gp=
-io-filename-pattern.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-brcm-dts-pattern.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,40 +32,38 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-=46rom: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: update brcm gpio filename pattern
+From: Joe Perches <joe@perches.com>
+Subject: MAINTAINERS: update brcm dts pattern
 
-commit 23a71fd616bf ("dt-bindings: brcm: rationalize Broadcom
-documentation naming") renamed the file, update the pattern.
+Commit 8c0b9ee8665c ("MIPS: Move device-trees into vendor
+sub-directories") moved the files, update the pattern.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Scott Branden <sbranden@broadcom.com>
+Cc: Andrew Bresticker <abrestic@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  MAINTAINERS |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-update-brcm-gpio-filename-pattern MAI=
-NTAINERS
---- a/MAINTAINERS~maintainers-update-brcm-gpio-filename-pattern
+diff -puN MAINTAINERS~maintainers-update-brcm-dts-pattern MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-brcm-dts-pattern
 +++ a/MAINTAINERS
-@@ -2232,7 +2232,7 @@ M:	Ray Jui <rjui@broadcom.com>
- L:	bcm-kernel-feedback-list@broadcom.com
- S:	Supported
- F:	drivers/gpio/gpio-bcm-kona.c
--F:	Documentation/devicetree/bindings/gpio/gpio-bcm-kona.txt
-+F:	Documentation/devicetree/bindings/gpio/brcm,kona-gpio.txt
-=20
- BROADCOM SPECIFIC AMBA DRIVER (BCMA)
- M:	Rafa=C5=82 Mi=C5=82ecki <zajec5@gmail.com>
+@@ -2180,7 +2180,7 @@ S:	Maintained
+ F:	arch/mips/bmips/*
+ F:	arch/mips/include/asm/mach-bmips/*
+ F:	arch/mips/kernel/*bmips*
+-F:	arch/mips/boot/dts/bcm*.dts*
++F:	arch/mips/boot/dts/brcm/bcm*.dts*
+ F:	drivers/irqchip/irq-bcm7*
+ F:	drivers/irqchip/irq-brcmstb*
+ 
 _
 
 Patches currently in -mm which might be from joe@perches.com are
@@ -91,8 +86,3 @@ mm-utilc-add-kstrimdup.patch
 linux-next.patch
 printk-improve-the-description-of-dev-kmsg-line-format.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
