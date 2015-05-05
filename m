@@ -1,105 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: [merged] m68k-use-for_each_sg.patch removed from -mm tree
-Date: Tue, 05 May 2015 11:24:21 -0700
-Message-ID: <55490ad5.F6aM/VMg+fqEQUhk%akpm@linux-foundation.org>
+Subject: + watchdog-add-watchdog_cpumask-sysctl-to-assist-nohz-fix.patch
+ added to -mm tree
+Date: Tue, 05 May 2015 12:50:16 -0700
+Message-ID: <55491ef8.oLKEdMAPkQJVpO38%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58943 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60325 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756082AbbEESYW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2015 14:24:22 -0400
+	with ESMTP id S1751807AbbEETuR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2015 15:50:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, geert@linux-m68k.org, mm-commits@vger.kernel.org
+To: jhubbard@nvidia.com, cmetcalf@ezchip.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: m68k: use for_each_sg()
-has been removed from the -mm tree.  Its filename was
-     m68k-use-for_each_sg.patch
+     Subject: watchdog: Fix a watchdog crash in some configurations
+has been added to the -mm tree.  Its filename is
+     watchdog-add-watchdog_cpumask-sysctl-to-assist-nohz-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/watchdog-add-watchdog_cpumask-sysctl-to-assist-nohz-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/watchdog-add-watchdog_cpumask-sysctl-to-assist-nohz-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: m68k: use for_each_sg()
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: watchdog: Fix a watchdog crash in some configurations
 
-This replaces the plain loop over the sglist array with for_each_sg()
-macro which consists of sg_next() function calls.  Since m68k doesn't
-select ARCH_HAS_SG_CHAIN, it is not necessary to use for_each_sg() in
-order to loop over each sg element.  But this can help find problems with
-drivers that do not properly initialize their sg tables when
-CONFIG_DEBUG_SG is enabled.
+Commit 8fcf2cc768acd845c1fed837bf9cfe2d7106336d in linux-next introduced a
+regression in some configurations.  Specifically, with CONFIG_NO_HZ_FULL
+set, and CONFIG_NO_HZ_FULL_ALL *not* set, the kernel will crash in
+lockup_detector_init(), due to a NULL tick_nohz_full_mask pointer.
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+This is because the above commit uses tick_nohz_full_mask (in
+lockup_detector_init), if CONFIG_NO_HZ_FULL is set, but
+tick_nohz_full_mask only gets allocated if either:
+
+    a) CONFIG_NO_HZ_FULL_ALL is set, or
+
+    b) Someone passes in nohz_full=<any_value> on the boot
+      args line.
+
+To correct this, change lockup_detector_init so that it does a runtime
+check instead of the ifdef check.  This fix is simpler than my original
+proposed fix, thanks to Chris Metcalf for that.
+
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Acked-by: Chris Metcalf <cmetcalf@ezchip.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/kernel/dma.c |   19 ++++++++++++-------
- 1 file changed, 12 insertions(+), 7 deletions(-)
+ kernel/watchdog.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN arch/m68k/kernel/dma.c~m68k-use-for_each_sg arch/m68k/kernel/dma.c
---- a/arch/m68k/kernel/dma.c~m68k-use-for_each_sg
-+++ a/arch/m68k/kernel/dma.c
-@@ -120,13 +120,16 @@ void dma_sync_single_for_device(struct d
- }
- EXPORT_SYMBOL(dma_sync_single_for_device);
- 
--void dma_sync_sg_for_device(struct device *dev, struct scatterlist *sg, int nents,
--			    enum dma_data_direction dir)
-+void dma_sync_sg_for_device(struct device *dev, struct scatterlist *sglist,
-+			    int nents, enum dma_data_direction dir)
+diff -puN kernel/watchdog.c~watchdog-add-watchdog_cpumask-sysctl-to-assist-nohz-fix kernel/watchdog.c
+--- a/kernel/watchdog.c~watchdog-add-watchdog_cpumask-sysctl-to-assist-nohz-fix
++++ a/kernel/watchdog.c
+@@ -920,14 +920,14 @@ void __init lockup_detector_init(void)
  {
- 	int i;
-+	struct scatterlist *sg;
+ 	set_sample_period();
  
--	for (i = 0; i < nents; sg++, i++)
--		dma_sync_single_for_device(dev, sg->dma_address, sg->length, dir);
-+	for_each_sg(sglist, sg, nents, i) {
-+		dma_sync_single_for_device(dev, sg->dma_address, sg->length,
-+					   dir);
+-#ifdef CONFIG_NO_HZ_FULL
+-	if (!cpumask_empty(tick_nohz_full_mask))
+-		pr_info("Disabling watchdog on nohz_full cores by default\n");
+-	cpumask_andnot(&watchdog_cpumask, cpu_possible_mask,
+-		       tick_nohz_full_mask);
+-#else
+-	cpumask_copy(&watchdog_cpumask, cpu_possible_mask);
+-#endif
++	if (tick_nohz_full_enabled()) {
++		if (!cpumask_empty(tick_nohz_full_mask))
++			pr_info("Disabling watchdog on nohz_full cores by default\n");
++		cpumask_andnot(&watchdog_cpumask, cpu_possible_mask,
++			       tick_nohz_full_mask);
 +	}
- }
- EXPORT_SYMBOL(dma_sync_sg_for_device);
++	else
++		cpumask_copy(&watchdog_cpumask, cpu_possible_mask);
  
-@@ -151,14 +154,16 @@ dma_addr_t dma_map_page(struct device *d
- }
- EXPORT_SYMBOL(dma_map_page);
- 
--int dma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
-+int dma_map_sg(struct device *dev, struct scatterlist *sglist, int nents,
- 	       enum dma_data_direction dir)
- {
- 	int i;
-+	struct scatterlist *sg;
- 
--	for (i = 0; i < nents; sg++, i++) {
-+	for_each_sg(sglist, sg, nents, i) {
- 		sg->dma_address = sg_phys(sg);
--		dma_sync_single_for_device(dev, sg->dma_address, sg->length, dir);
-+		dma_sync_single_for_device(dev, sg->dma_address, sg->length,
-+					   dir);
- 	}
- 	return nents;
- }
+ 	if (watchdog_enabled)
+ 		watchdog_enable_all_cpus();
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from jhubbard@nvidia.com are
 
-metag-use-for_each_sg.patch
-powerpc-use-for_each_sg.patch
-mips-use-for_each_sg.patch
-parisc-use-for_each_sg.patch
-sparc-use-for_each_sg.patch
-xtensa-use-for_each_sg.patch
-frv-use-for_each_sg.patch
-avr32-use-for_each_sg.patch
-arc-use-for_each_sg.patch
-lib-scatterlist-fix-kerneldoc-for-sg_pcopy_tofrom_buffer.patch
-lib-scatterlist-mark-input-buffer-parameters-as-const.patch
-linux-next.patch
+watchdog-add-watchdog_cpumask-sysctl-to-assist-nohz-fix.patch
 
