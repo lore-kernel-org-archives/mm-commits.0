@@ -1,73 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete]
- watchdog-add-watchdog_cpumask-sysctl-to-assist-nohz-fix-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 05 May 2015 15:12:40 -0700
-Message-ID: <55494058.gfVjdgzurDwtEcGT%akpm@linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Tue, 05 May 2015 15:28:55 -0700
+Message-ID: <55494427.1ZLaCKnJ1tx/c/Dk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34068 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34341 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750968AbbEEWMk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2015 18:12:40 -0400
+	with ESMTP id S1751434AbbEEW24 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2015 18:28:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jhubbard@nvidia.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: watchdog-add-watchdog_cpumask-sysctl-to-assist-nohz-fix-checkpatch-fixes
-has been removed from the -mm tree.  Its filename was
-     watchdog-add-watchdog_cpumask-sysctl-to-assist-nohz-fix-checkpatch-fixes.patch
+     Subject: linux-next-git-rejects
+has been added to the -mm tree.  Its filename is
+     linux-next-git-rejects.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: watchdog-add-watchdog_cpumask-sysctl-to-assist-nohz-fix-checkpatch-fixes
+Subject: linux-next-git-rejects
 
-ERROR: Please use git commit description style 'commit <12+ chars of sha1> ("<title line>")' - ie: 'Commit 0123456789ab ("commit description")'
-#4: 
-Commit 8fcf2cc768acd845c1fed837bf9cfe2d7106336d in linux-next introduced a
-
-ERROR: else should follow close brace '}'
-#52: FILE: kernel/watchdog.c:929:
-+	}
-+	else
-
-total: 2 errors, 0 warnings, 22 lines checked
-
-./patches/watchdog-add-watchdog_cpumask-sysctl-to-assist-nohz-fix.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: John Hubbard <jhubbard@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/platform/marvell-ccic/mcam-core.c |    7 -------
+ include/soc/tegra/emc.h                         |    4 ----
+ 2 files changed, 11 deletions(-)
 
-diff -puN kernel/watchdog.c~watchdog-add-watchdog_cpumask-sysctl-to-assist-nohz-fix-checkpatch-fixes kernel/watchdog.c
---- a/kernel/watchdog.c~watchdog-add-watchdog_cpumask-sysctl-to-assist-nohz-fix-checkpatch-fixes
-+++ a/kernel/watchdog.c
-@@ -925,9 +925,9 @@ void __init lockup_detector_init(void)
- 			pr_info("Disabling watchdog on nohz_full cores by default\n");
- 		cpumask_andnot(&watchdog_cpumask, cpu_possible_mask,
- 			       tick_nohz_full_mask);
--	}
--	else
-+	} else {
- 		cpumask_copy(&watchdog_cpumask, cpu_possible_mask);
-+	}
- 
- 	if (watchdog_enabled)
- 		watchdog_enable_all_cpus();
+diff -puN drivers/media/platform/marvell-ccic/mcam-core.c~linux-next-git-rejects drivers/media/platform/marvell-ccic/mcam-core.c
+--- a/drivers/media/platform/marvell-ccic/mcam-core.c~linux-next-git-rejects
++++ a/drivers/media/platform/marvell-ccic/mcam-core.c
+@@ -772,13 +772,6 @@ static void mcam_ctlr_image(struct mcam_
+ 	case V4L2_PIX_FMT_YUYV:
+ 		mcam_reg_write_mask(cam, REG_CTRL0,
+ 			C0_DF_YUV | C0_YUV_PACKED | C0_YUVE_NOSWAP, C0_DF_MASK);
+-<<<<<<< HEAD
+-		break;
+-	case V4L2_PIX_FMT_YVYU:
+-		mcam_reg_write_mask(cam, REG_CTRL0,
+-			C0_DF_YUV | C0_YUV_PACKED | C0_YUVE_SWAP24, C0_DF_MASK);
+-=======
+->>>>>>> linux-next/akpm-base
+ 		break;
+ 	case V4L2_PIX_FMT_YVYU:
+ 		mcam_reg_write_mask(cam, REG_CTRL0,
+diff -puN include/soc/tegra/emc.h~linux-next-git-rejects include/soc/tegra/emc.h
+--- a/include/soc/tegra/emc.h~linux-next-git-rejects
++++ a/include/soc/tegra/emc.h
+@@ -1,9 +1,5 @@
+ /*
+-<<<<<<< HEAD
+- * Copyright (c) 2014 NVIDIA Corporation. All rights reserved.
+-=======
+  * Copyright (C) 2014 NVIDIA Corporation
+->>>>>>> e45edb177253... memory: tegra: Add EMC (external memory controller) driver
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -96,6 +106,7 @@ bitmap-remove-explicit-newline-handling-using-scnprintf-format-string-fix.patch
 rtc-omap-add-external-32k-clock-feature-fix.patch
 linux-next.patch
 linux-next-rejects.patch
+linux-next-git-rejects.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
 journal_add_journal_head-debug.patch
 journal_add_journal_head-debug-fix.patch
