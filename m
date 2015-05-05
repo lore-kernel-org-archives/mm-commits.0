@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + get_maintainerpl-add-get_maintainerignore-file-capability.patch added to -mm tree
-Date: Tue, 05 May 2015 13:57:40 -0700
-Message-ID: <55492ec4.22rmJghXMQGHVMoN%akpm@linux-foundation.org>
+Subject: + maintainers-remove-unused-nbdh-pattern.patch added to -mm tree
+Date: Tue, 05 May 2015 13:55:34 -0700
+Message-ID: <55492e46.ESzlY4ajBaR5raiI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33303 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33301 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161257AbbEEU5l (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2015 16:57:41 -0400
+	with ESMTP id S1031499AbbEEUzf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2015 16:55:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: joe@perches.com, mpa@pengutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: get_maintainer.pl: add .get_maintainer.ignore file capability
+     Subject: MAINTAINERS: remove unused nbd.h pattern
 has been added to the -mm tree.  Its filename is
-     get_maintainerpl-add-get_maintainerignore-file-capability.patch
+     maintainers-remove-unused-nbdh-pattern.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/get_maintainerpl-add-get_maintainerignore-file-capability.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-remove-unused-nbdh-pattern.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/get_maintainerpl-add-get_maintainerignore-file-capability.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-remove-unused-nbdh-pattern.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,76 +39,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: get_maintainer.pl: add .get_maintainer.ignore file capability
+Subject: MAINTAINERS: remove unused nbd.h pattern
 
-Some people prefer not to be cc'd on patches.  Add an ability to have a
-file (.get_maintainer.ignore) with names and email addresses that are
-excluded from being listed except when specifically listed as a maintainer
-in a section.
+commit 13e71d69cc74 ("nbd: Remove kernel internal header") deleted the
+file, remove the pattern.
 
 Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Markus Pargmann <mpa@pengutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |   32 ++++++++++++++++++++++++++++++++
- 1 file changed, 32 insertions(+)
+ MAINTAINERS |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN scripts/get_maintainer.pl~get_maintainerpl-add-get_maintainerignore-file-capability scripts/get_maintainer.pl
---- a/scripts/get_maintainer.pl~get_maintainerpl-add-get_maintainerignore-file-capability
-+++ a/scripts/get_maintainer.pl
-@@ -186,6 +186,27 @@ if (-f $conf) {
-     unshift(@ARGV, @conf_args) if @conf_args;
- }
+diff -puN MAINTAINERS~maintainers-remove-unused-nbdh-pattern MAINTAINERS
+--- a/MAINTAINERS~maintainers-remove-unused-nbdh-pattern
++++ a/MAINTAINERS
+@@ -6764,7 +6764,6 @@ L:	nbd-general@lists.sourceforge.net
+ T:	git git://git.pengutronix.de/git/mpa/linux-nbd.git
+ F:	Documentation/blockdev/nbd.txt
+ F:	drivers/block/nbd.c
+-F:	include/linux/nbd.h
+ F:	include/uapi/linux/nbd.h
  
-+my @ignore_emails = ();
-+my $ignore_file = which_conf(".get_maintainer.ignore");
-+if (-f $ignore_file) {
-+    open(my $ignore, '<', "$ignore_file")
-+	or warn "$P: Can't find a readable .get_maintainer.ignore file $!\n";
-+    while (<$ignore>) {
-+	my $line = $_;
-+
-+	$line =~ s/\s*\n?$//;
-+	$line =~ s/^\s*//;
-+	$line =~ s/\s+$//;
-+	$line =~ s/#.*$//;
-+
-+	next if ($line =~ m/^\s*$/);
-+	if (rfc822_valid($line)) {
-+	    push(@ignore_emails, $line);
-+	}
-+    }
-+    close($ignore);
-+}
-+
- if (!GetOptions(
- 		'email!' => \$email,
- 		'git!' => \$email_git,
-@@ -513,6 +534,16 @@ if ($web) {
- 
- exit($exit);
- 
-+sub ignore_email_address {
-+    my ($address) = @_;
-+
-+    foreach my $ignore (@ignore_emails) {
-+	return 1 if ($ignore eq $address);
-+    }
-+
-+    return 0;
-+}
-+
- sub range_is_maintained {
-     my ($start, $end) = @_;
- 
-@@ -1868,6 +1899,7 @@ sub vcs_assign {
- 	my $percent = $sign_offs * 100 / $divisor;
- 
- 	$percent = 100 if ($percent > 100);
-+	next if (ignore_email_address($line));
- 	$count++;
- 	last if ($sign_offs < $email_git_min_signatures ||
- 		 $count > $email_git_max_maintainers ||
+ NETWORK DROP MONITOR
 _
 
 Patches currently in -mm which might be from joe@perches.com are
