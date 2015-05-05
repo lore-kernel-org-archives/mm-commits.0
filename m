@@ -1,32 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: +
- maintainers-remove-section-broadcom-bcm33xx-mips-architecture.patch added
- to -mm tree
-Date: Tue, 05 May 2015 13:55:28 -0700
-Message-ID: <55492e40.Tj5XZP/DDckYpOq3%akpm@linux-foundation.org>
+Subject: + maintainers-update-brcm-gpio-filename-pattern.patch added to
+ -mm tree
+Date: Tue, 05 May 2015 13:55:32 -0700
+Message-ID: <55492e44.XE/Ca97bXaPlJdfD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33291 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33297 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031474AbbEEUz3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2015 16:55:29 -0400
+	with ESMTP id S1757676AbbEEUzd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 May 2015 16:55:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, cernekee@gmail.com, mm-commits@vger.kernel.org
+To: joe@perches.com, sbranden@broadcom.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: remove section BROADCOM BCM33XX MIPS ARCHITECTURE
+     Subject: MAINTAINERS: update brcm gpio filename pattern
 has been added to the -mm tree.  Its filename is
-     maintainers-remove-section-broadcom-bcm33xx-mips-architecture.patch
+     maintainers-update-brcm-gpio-filename-pattern.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-remove-section-broadcom-bcm33xx-mips-architecture.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-brcm-gp=
+io-filename-pattern.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-remove-section-broadcom-bcm33xx-mips-architecture.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-brcm-gp=
+io-filename-pattern.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +35,40 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: remove section BROADCOM BCM33XX MIPS ARCHITECTURE
+=46rom: Joe Perches <joe@perches.com>
+Subject: MAINTAINERS: update brcm gpio filename pattern
 
-commit 5f2d44591fb3 ("MIPS: bcm3384: Rename "bcm3384" target to "bmips"")
-renamed the files and integrated them into an existing section.
-
-Remove the section.
+commit 23a71fd616bf ("dt-bindings: brcm: rationalize Broadcom
+documentation naming") renamed the file, update the pattern.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Kevin Cernekee <cernekee@gmail.com>
+Acked-by: Scott Branden <sbranden@broadcom.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    8 --------
- 1 file changed, 8 deletions(-)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-remove-section-broadcom-bcm33xx-mips-architecture MAINTAINERS
---- a/MAINTAINERS~maintainers-remove-section-broadcom-bcm33xx-mips-architecture
+diff -puN MAINTAINERS~maintainers-update-brcm-gpio-filename-pattern MAI=
+NTAINERS
+--- a/MAINTAINERS~maintainers-update-brcm-gpio-filename-pattern
 +++ a/MAINTAINERS
-@@ -2137,14 +2137,6 @@ T:	git git://git.kernel.org/pub/scm/linu
- S:	Maintained
- N:	bcm2835
- 
--BROADCOM BCM33XX MIPS ARCHITECTURE
--M:	Kevin Cernekee <cernekee@gmail.com>
--L:	linux-mips@linux-mips.org
--S:	Maintained
--F:	arch/mips/bcm3384/*
--F:	arch/mips/include/asm/mach-bcm3384/*
--F:	arch/mips/kernel/*bmips*
--
- BROADCOM BCM5301X ARM ARCHITECTURE
- M:	Hauke Mehrtens <hauke@hauke-m.de>
- L:	linux-arm-kernel@lists.infradead.org
+@@ -2232,7 +2232,7 @@ M:	Ray Jui <rjui@broadcom.com>
+ L:	bcm-kernel-feedback-list@broadcom.com
+ S:	Supported
+ F:	drivers/gpio/gpio-bcm-kona.c
+-F:	Documentation/devicetree/bindings/gpio/gpio-bcm-kona.txt
++F:	Documentation/devicetree/bindings/gpio/brcm,kona-gpio.txt
+=20
+ BROADCOM SPECIFIC AMBA DRIVER (BCMA)
+ M:	Rafa=C5=82 Mi=C5=82ecki <zajec5@gmail.com>
 _
 
 Patches currently in -mm which might be from joe@perches.com are
@@ -96,3 +91,8 @@ mm-utilc-add-kstrimdup.patch
 linux-next.patch
 printk-improve-the-description-of-dev-kmsg-line-format.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
