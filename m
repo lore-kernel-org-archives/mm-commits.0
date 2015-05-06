@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn] zram-remove-max_num_devices-limitation.patch removed
- from -mm tree
-Date: Wed, 06 May 2015 12:52:22 -0700
-Message-ID: <554a70f6.IaoWbqFUmvPERe4x%akpm@linux-foundation.org>
+Subject: [withdrawn] zram-return-zram-device_id-from-zram_add.patch
+ removed from -mm tree
+Date: Wed, 06 May 2015 12:52:27 -0700
+Message-ID: <554a70fb.WoDi7Bsebd9D6D/a%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53064 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53077 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750930AbbEFTwX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 May 2015 15:52:23 -0400
+	with ESMTP id S1751141AbbEFTw2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 May 2015 15:52:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: sergey.senozhatsky@gmail.com, minchan@kernel.org, ngupta@vflare.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: remove max_num_devices limitation
+     Subject: zram: return zram device_id from zram_add()
 has been removed from the -mm tree.  Its filename was
-     zram-remove-max_num_devices-limitation.patch
+     zram-return-zram-device_id-from-zram_add.patch
 
 This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: zram: remove max_num_devices limitation
+Subject: zram: return zram device_id from zram_add()
 
-Limiting the number of zram devices to 32 (default max_num_devices value)
-is confusing, let's drop it.  A user with 2TB or 4TB of RAM, for example,
-can request as many devices as he can handle.
+This patch prepares zram to enable on-demand device creation.
+zram_add() performs automatic device_id assignment and returns
+new device id (>= 0) or error code (< 0).
 
 Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Acked-by: Minchan Kim <minchan@kernel.org>
@@ -38,59 +38,78 @@ Cc: Nitin Gupta <ngupta@vflare.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/blockdev/zram.txt |    4 +++-
- drivers/block/zram/zram_drv.c   |    8 +-------
- drivers/block/zram/zram_drv.h   |    6 ------
- 3 files changed, 4 insertions(+), 14 deletions(-)
+ drivers/block/zram/zram_drv.c |   23 ++++++++++++++---------
+ 1 file changed, 14 insertions(+), 9 deletions(-)
 
-diff -puN Documentation/blockdev/zram.txt~zram-remove-max_num_devices-limitation Documentation/blockdev/zram.txt
---- a/Documentation/blockdev/zram.txt~zram-remove-max_num_devices-limitation
-+++ a/Documentation/blockdev/zram.txt
-@@ -19,7 +19,9 @@ Following shows a typical sequence of st
- 1) Load Module:
- 	modprobe zram num_devices=4
- 	This creates 4 devices: /dev/zram{0,1,2,3}
--	(num_devices parameter is optional. Default: 1)
-+
-+num_devices parameter is optional and tells zram how many devices should be
-+pre-created. Default: 1.
- 
- 2) Set max number of compression streams
- 	Compression backend may use up to max_comp_streams compression streams,
-diff -puN drivers/block/zram/zram_drv.c~zram-remove-max_num_devices-limitation drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-remove-max_num_devices-limitation
+diff -puN drivers/block/zram/zram_drv.c~zram-return-zram-device_id-from-zram_add drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-return-zram-device_id-from-zram_add
 +++ a/drivers/block/zram/zram_drv.c
-@@ -1285,12 +1285,6 @@ static int __init zram_init(void)
- {
- 	int ret, dev_id;
+@@ -1151,20 +1151,24 @@ static struct attribute_group zram_disk_
+ 	.attrs = zram_disk_attrs,
+ };
  
--	if (num_devices > max_num_devices) {
--		pr_warn("Invalid value for num_devices: %u\n",
--				num_devices);
--		return -EINVAL;
--	}
--
+-static int zram_add(int device_id)
++/*
++ * Allocate and initialize new zram device. the function returns
++ * '>= 0' device_id upon success, and negative value otherwise.
++ */
++static int zram_add(void)
+ {
+ 	struct zram *zram;
+ 	struct request_queue *queue;
+-	int ret;
++	int ret, device_id;
+ 
+ 	zram = kzalloc(sizeof(struct zram), GFP_KERNEL);
+ 	if (!zram)
+ 		return -ENOMEM;
+ 
+-	ret = idr_alloc(&zram_index_idr, zram, device_id,
+-			device_id + 1, GFP_KERNEL);
++	ret = idr_alloc(&zram_index_idr, zram, 0, 0, GFP_KERNEL);
+ 	if (ret < 0)
+ 		goto out_free_dev;
++	device_id = ret;
+ 
+ 	init_rwsem(&zram->init_lock);
+ 
+@@ -1238,7 +1242,7 @@ static int zram_add(int device_id)
+ 	zram->max_comp_streams = 1;
+ 
+ 	pr_info("Added device: %s\n", zram->disk->disk_name);
+-	return 0;
++	return device_id;
+ 
+ out_free_disk:
+ 	del_gendisk(zram->disk);
+@@ -1285,7 +1289,7 @@ static void destroy_devices(void)
+ 
+ static int __init zram_init(void)
+ {
+-	int ret, dev_id;
++	int ret;
+ 
  	zram_major = register_blkdev(0, "zram");
  	if (zram_major <= 0) {
- 		pr_warn("Unable to get major number\n");
-@@ -1320,7 +1314,7 @@ module_init(zram_init);
- module_exit(zram_exit);
+@@ -1293,10 +1297,11 @@ static int __init zram_init(void)
+ 		return -EBUSY;
+ 	}
  
- module_param(num_devices, uint, 0);
--MODULE_PARM_DESC(num_devices, "Number of zram devices");
-+MODULE_PARM_DESC(num_devices, "Number of pre-created zram devices");
+-	for (dev_id = 0; dev_id < num_devices; dev_id++) {
+-		ret = zram_add(dev_id);
+-		if (ret != 0)
++	while (num_devices != 0) {
++		ret = zram_add();
++		if (ret < 0)
+ 			goto out_error;
++		num_devices--;
+ 	}
  
- MODULE_LICENSE("Dual BSD/GPL");
- MODULE_AUTHOR("Nitin Gupta <ngupta@vflare.org>");
-diff -puN drivers/block/zram/zram_drv.h~zram-remove-max_num_devices-limitation drivers/block/zram/zram_drv.h
---- a/drivers/block/zram/zram_drv.h~zram-remove-max_num_devices-limitation
-+++ a/drivers/block/zram/zram_drv.h
-@@ -20,12 +20,6 @@
- 
- #include "zcomp.h"
- 
--/*
-- * Some arbitrary value. This is just to catch
-- * invalid value for num_devices module parameter.
-- */
--static const unsigned max_num_devices = 32;
+ 	return 0;
+_
+
+Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
+
+zram-close-race-by-open-overriding.patch
+zram-add-dynamic-device-add-remove-functionality.patch
+
