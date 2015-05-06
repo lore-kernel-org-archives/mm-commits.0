@@ -1,102 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- rtc-armada38x-fix-concurrency-access-in-armada38x_rtc_set_time.patch
- removed from -mm tree
-Date: Wed, 06 May 2015 11:58:35 -0700
-Message-ID: <554a645b.o8+CrH/AMlfgHBi9%akpm__20066.5368386128$1430938722$gmane$org@linux-foundation.org>
+Subject: [merged] configfs-init-configfs-module-earlier-at-boot-time.patch removed from -mm tree
+Date: Wed, 06 May 2015 11:58:28 -0700
+Message-ID: <554a6454.3zStYZoPZ0YHh5j9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51952 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51934 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751535AbbEFS6g (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 May 2015 14:58:36 -0400
+	with ESMTP id S1751475AbbEFS62 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 May 2015 14:58:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gregory.clement@free-electrons.com, a.zummo@towertech.it, alexandre.belloni@free-electrons.com, andrew@lunn.ch, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: daniel.baluta@intel.com, hch@lst.de, jlbec@evilplan.org, lars@metafoo.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: armada38x: fix concurrency access in armada38x_rtc_set_time
+     Subject: configfs: init configfs module earlier at boot time
 has been removed from the -mm tree.  Its filename was
-     rtc-armada38x-fix-concurrency-access-in-armada38x_rtc_set_time.patch
+     configfs-init-configfs-module-earlier-at-boot-time.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Gregory CLEMENT <gregory.clement@free-electrons.com>
-Subject: rtc: armada38x: fix concurrency access in armada38x_rtc_set_time
+From: Daniel Baluta <daniel.baluta@intel.com>
+Subject: configfs: init configfs module earlier at boot time
 
-While setting the time, the RTC TIME register should not be accessed. 
-However due to hardware constraints, setting the RTC time involves
-sleeping during 100ms.  This sleep was done outside the critical section
-protected by the spinlock, so it was possible to read the RTC TIME
-register and get an incorrect value.  This patch introduces a mutex for
-protecting the RTC TIME access, unlike the spinlock it is allowed to sleep
-in a critical section protected by a mutex.  The RTC STATUS register can
-still be used from the interrupt handler but it has no effect on setting
-the time.
+We need this earlier in the boot process to allow various subsystems to
+use configfs (e.g Industrial IIO).
 
-Signed-off-by: Gregory CLEMENT <gregory.clement@free-electrons.com>
-Acked-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
-Acked-by: Andrew Lunn <andrew@lunn.ch>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: <stable@vger.kernel.org>	[4.0]
+Also, debugfs is at core_initcall level and configfs should be on the same
+level from infrastructure point of view.
+
+Signed-off-by: Daniel Baluta <daniel.baluta@intel.com>
+Suggested-by: Lars-Peter Clausen <lars@metafoo.de>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-armada38x.c |   24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+ fs/configfs/mount.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-armada38x.c~rtc-armada38x-fix-concurrency-access-in-armada38x_rtc_set_time drivers/rtc/rtc-armada38x.c
---- a/drivers/rtc/rtc-armada38x.c~rtc-armada38x-fix-concurrency-access-in-armada38x_rtc_set_time
-+++ a/drivers/rtc/rtc-armada38x.c
-@@ -40,6 +40,13 @@ struct armada38x_rtc {
- 	void __iomem	    *regs;
- 	void __iomem	    *regs_soc;
- 	spinlock_t	    lock;
-+	/*
-+	 * While setting the time, the RTC TIME register should not be
-+	 * accessed. Setting the RTC time involves sleeping during
-+	 * 100ms, so a mutex instead of a spinlock is used to protect
-+	 * it
-+	 */
-+	struct mutex	    mutex_time;
- 	int		    irq;
- };
+diff -puN fs/configfs/mount.c~configfs-init-configfs-module-earlier-at-boot-time fs/configfs/mount.c
+--- a/fs/configfs/mount.c~configfs-init-configfs-module-earlier-at-boot-time
++++ a/fs/configfs/mount.c
+@@ -173,5 +173,5 @@ MODULE_LICENSE("GPL");
+ MODULE_VERSION("0.0.2");
+ MODULE_DESCRIPTION("Simple RAM filesystem for user driven kernel subsystem configuration.");
  
-@@ -59,8 +66,7 @@ static int armada38x_rtc_read_time(struc
- 	struct armada38x_rtc *rtc = dev_get_drvdata(dev);
- 	unsigned long time, time_check, flags;
- 
--	spin_lock_irqsave(&rtc->lock, flags);
--
-+	mutex_lock(&rtc->mutex_time);
- 	time = readl(rtc->regs + RTC_TIME);
- 	/*
- 	 * WA for failing time set attempts. As stated in HW ERRATA if
-@@ -71,7 +77,7 @@ static int armada38x_rtc_read_time(struc
- 	if ((time_check - time) > 1)
- 		time_check = readl(rtc->regs + RTC_TIME);
- 
--	spin_unlock_irqrestore(&rtc->lock, flags);
-+	mutex_unlock(&rtc->mutex_time);
- 
- 	rtc_time_to_tm(time_check, tm);
- 
-@@ -94,19 +100,12 @@ static int armada38x_rtc_set_time(struct
- 	 * then wait for 100ms before writing to the time register to be
- 	 * sure that the data will be taken into account.
- 	 */
--	spin_lock_irqsave(&rtc->lock, flags);
--
-+	mutex_lock(&rtc->mutex_time);
- 	rtc_delayed_write(0, rtc, RTC_STATUS);
--
--	spin_unlock_irqrestore(&rtc->lock, flags);
--
- 	msleep(100);
--
--	spin_lock_irqsave(&rtc->lock, flags);
+-module_init(configfs_init);
++core_initcall(configfs_init);
+ module_exit(configfs_exit);
+_
+
+Patches currently in -mm which might be from daniel.baluta@intel.com are
+
+origin.patch
+
