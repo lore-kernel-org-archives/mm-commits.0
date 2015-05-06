@@ -1,83 +1,90 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- nilfs2-fix-sanity-check-of-btree-level-in-nilfs_btree_root_broken.patch
- removed from -mm tree
-Date: Wed, 06 May 2015 11:58:32 -0700
-Message-ID: <554a6458./bWsmxn8fB/YOsfr%akpm__20337.1073971086$1430938724$gmane$org@linux-foundation.org>
+ ocfs2-dlm-fix-race-between-purge-and-get-lock-resource.patch removed from
+ -mm tree
+Date: Wed, 06 May 2015 11:58:34 -0700
+Message-ID: <554a645a.Wii1S5u2Os8PdNoj%akpm__26513.4933325045$1430938732$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51943 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51947 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751475AbbEFS6c (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 May 2015 14:58:32 -0400
+	with ESMTP id S1751535AbbEFS6f (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 May 2015 14:58:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: konishi.ryusuke@lab.ntt.co.jp, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: junxiao.bi@oracle.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: fix sanity check of btree level in nilfs_btree_root_broken()
+     Subject: ocfs2: dlm: fix race between purge and get lock resource
 has been removed from the -mm tree.  Its filename was
-     nilfs2-fix-sanity-check-of-btree-level-in-nilfs_btree_root_broken.patch
+     ocfs2-dlm-fix-race-between-purge-and-get-lock-resource.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Subject: nilfs2: fix sanity check of btree level in nilfs_btree_root_broken()
+From: Junxiao Bi <junxiao.bi@oracle.com>
+Subject: ocfs2: dlm: fix race between purge and get lock resource
 
-The range check for b-tree level parameter in nilfs_btree_root_broken() is
-wrong; it accepts the case of "level == NILFS_BTREE_LEVEL_MAX" even though
-the level is limited to values in the range of 0 to (NILFS_BTREE_LEVEL_MAX
-- 1).
+There is a race window in dlm_get_lock_resource(), which may return a lock
+resource which has been purged.  This will cause the process to hang
+forever in dlmlock() as the ast msg can't be handled due to its lock
+resource not existing.
 
-Since the level parameter is read from storage device and used to index
-nilfs_btree_path array whose element count is NILFS_BTREE_LEVEL_MAX, it
-can cause memory overrun during btree operations if the boundary value is
-set to the level parameter on device.
+dlm_get_lock_resource {
+	...
+	spin_lock(&dlm->spinlock);
+	tmpres = __dlm_lookup_lockres_full(dlm, lockid, namelen, hash);
+	if (tmpres) {
+		spin_unlock(&dlm->spinlock);
+		>>>>>>>> race window, dlm_run_purge_list() may run and purge
+				 the lock resource
+		spin_lock(&tmpres->spinlock);
+		...
+		spin_unlock(&tmpres->spinlock);
+	}
+}
 
-This fixes the broken sanity check and adds a comment to clarify that the
-upper bound NILFS_BTREE_LEVEL_MAX is exclusive.
-
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <joseph.qi@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/btree.c         |    2 +-
- include/linux/nilfs2_fs.h |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ fs/ocfs2/dlm/dlmmaster.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff -puN fs/nilfs2/btree.c~nilfs2-fix-sanity-check-of-btree-level-in-nilfs_btree_root_broken fs/nilfs2/btree.c
---- a/fs/nilfs2/btree.c~nilfs2-fix-sanity-check-of-btree-level-in-nilfs_btree_root_broken
-+++ a/fs/nilfs2/btree.c
-@@ -388,7 +388,7 @@ static int nilfs_btree_root_broken(const
- 	nchildren = nilfs_btree_node_get_nchildren(node);
- 
- 	if (unlikely(level < NILFS_BTREE_LEVEL_NODE_MIN ||
--		     level > NILFS_BTREE_LEVEL_MAX ||
-+		     level >= NILFS_BTREE_LEVEL_MAX ||
- 		     nchildren < 0 ||
- 		     nchildren > NILFS_BTREE_ROOT_NCHILDREN_MAX)) {
- 		pr_crit("NILFS: bad btree root (inode number=%lu): level = %d, flags = 0x%x, nchildren = %d\n",
-diff -puN include/linux/nilfs2_fs.h~nilfs2-fix-sanity-check-of-btree-level-in-nilfs_btree_root_broken include/linux/nilfs2_fs.h
---- a/include/linux/nilfs2_fs.h~nilfs2-fix-sanity-check-of-btree-level-in-nilfs_btree_root_broken
-+++ a/include/linux/nilfs2_fs.h
-@@ -460,7 +460,7 @@ struct nilfs_btree_node {
- /* level */
- #define NILFS_BTREE_LEVEL_DATA          0
- #define NILFS_BTREE_LEVEL_NODE_MIN      (NILFS_BTREE_LEVEL_DATA + 1)
--#define NILFS_BTREE_LEVEL_MAX           14
-+#define NILFS_BTREE_LEVEL_MAX           14	/* Max level (exclusive) */
- 
- /**
-  * struct nilfs_palloc_group_desc - block group descriptor
+diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-fix-race-between-purge-and-get-lock-resource fs/ocfs2/dlm/dlmmaster.c
+--- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-fix-race-between-purge-and-get-lock-resource
++++ a/fs/ocfs2/dlm/dlmmaster.c
+@@ -757,6 +757,19 @@ lookup:
+ 	if (tmpres) {
+ 		spin_unlock(&dlm->spinlock);
+ 		spin_lock(&tmpres->spinlock);
++
++		/*
++		 * Right after dlm spinlock was released, dlm_thread could have
++		 * purged the lockres. Check if lockres got unhashed. If so
++		 * start over.
++		 */
++		if (hlist_unhashed(&tmpres->hash_node)) {
++			spin_unlock(&tmpres->spinlock);
++			dlm_lockres_put(tmpres);
++			tmpres = NULL;
++			goto lookup;
++		}
++
+ 		/* Wait on the thread that is mastering the resource */
+ 		if (tmpres->owner == DLM_LOCK_RES_OWNER_UNKNOWN) {
+ 			__dlm_wait_on_lockres(tmpres);
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
+Patches currently in -mm which might be from junxiao.bi@oracle.com are
 
 origin.patch
 
