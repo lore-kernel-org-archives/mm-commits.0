@@ -1,89 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-hwpoison-inject-check-pagelru-of-hpage.patch removed
- from -mm tree
-Date: Wed, 06 May 2015 11:58:26 -0700
-Message-ID: <554a6452.C13CDoyYxQigqdeM%akpm@linux-foundation.org>
+Subject: [merged]
+ rtc-armada38x-fix-concurrency-access-in-armada38x_rtc_set_time.patch
+ removed from -mm tree
+Date: Wed, 06 May 2015 11:58:35 -0700
+Message-ID: <554a645b.o8+CrH/AMlfgHBi9%akpm__20066.5368386128$1430938722$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51932 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51952 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751475AbbEFS61 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 May 2015 14:58:27 -0400
+	with ESMTP id S1751535AbbEFS6g (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 May 2015 14:58:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: n-horiguchi@ah.jp.nec.com, aarcange@redhat.com, andi@firstfloor.org, dnelson@redhat.com, seto.hidetoshi@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: gregory.clement@free-electrons.com, a.zummo@towertech.it, alexandre.belloni@free-electrons.com, andrew@lunn.ch, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hwpoison-inject: check PageLRU of hpage
+     Subject: rtc: armada38x: fix concurrency access in armada38x_rtc_set_time
 has been removed from the -mm tree.  Its filename was
-     mm-hwpoison-inject-check-pagelru-of-hpage.patch
+     rtc-armada38x-fix-concurrency-access-in-armada38x_rtc_set_time.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm/hwpoison-inject: check PageLRU of hpage
+From: Gregory CLEMENT <gregory.clement@free-electrons.com>
+Subject: rtc: armada38x: fix concurrency access in armada38x_rtc_set_time
 
-Hwpoison injector checks PageLRU of the raw target page to find out
-whether the page is an appropriate target, but current code now filters
-out thp tail pages, which prevents us from testing for such cases via this
-interface.  So let's check hpage instead of p.
+While setting the time, the RTC TIME register should not be accessed. 
+However due to hardware constraints, setting the RTC time involves
+sleeping during 100ms.  This sleep was done outside the critical section
+protected by the spinlock, so it was possible to read the RTC TIME
+register and get an incorrect value.  This patch introduces a mutex for
+protecting the RTC TIME access, unlike the spinlock it is allowed to sleep
+in a critical section protected by a mutex.  The RTC STATUS register can
+still be used from the interrupt handler but it has no effect on setting
+the time.
 
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Acked-by: Dean Nelson <dnelson@redhat.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
+Signed-off-by: Gregory CLEMENT <gregory.clement@free-electrons.com>
+Acked-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+Acked-by: Andrew Lunn <andrew@lunn.ch>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: <stable@vger.kernel.org>	[4.0]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hwpoison-inject.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/rtc/rtc-armada38x.c |   24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN mm/hwpoison-inject.c~mm-hwpoison-inject-check-pagelru-of-hpage mm/hwpoison-inject.c
---- a/mm/hwpoison-inject.c~mm-hwpoison-inject-check-pagelru-of-hpage
-+++ a/mm/hwpoison-inject.c
-@@ -34,12 +34,12 @@ static int hwpoison_inject(void *data, u
- 	if (!hwpoison_filter_enable)
- 		goto inject;
+diff -puN drivers/rtc/rtc-armada38x.c~rtc-armada38x-fix-concurrency-access-in-armada38x_rtc_set_time drivers/rtc/rtc-armada38x.c
+--- a/drivers/rtc/rtc-armada38x.c~rtc-armada38x-fix-concurrency-access-in-armada38x_rtc_set_time
++++ a/drivers/rtc/rtc-armada38x.c
+@@ -40,6 +40,13 @@ struct armada38x_rtc {
+ 	void __iomem	    *regs;
+ 	void __iomem	    *regs_soc;
+ 	spinlock_t	    lock;
++	/*
++	 * While setting the time, the RTC TIME register should not be
++	 * accessed. Setting the RTC time involves sleeping during
++	 * 100ms, so a mutex instead of a spinlock is used to protect
++	 * it
++	 */
++	struct mutex	    mutex_time;
+ 	int		    irq;
+ };
  
--	if (!PageLRU(p) && !PageHuge(p))
--		shake_page(p, 0);
-+	if (!PageLRU(hpage) && !PageHuge(p))
-+		shake_page(hpage, 0);
+@@ -59,8 +66,7 @@ static int armada38x_rtc_read_time(struc
+ 	struct armada38x_rtc *rtc = dev_get_drvdata(dev);
+ 	unsigned long time, time_check, flags;
+ 
+-	spin_lock_irqsave(&rtc->lock, flags);
+-
++	mutex_lock(&rtc->mutex_time);
+ 	time = readl(rtc->regs + RTC_TIME);
  	/*
- 	 * This implies unable to support non-LRU pages.
+ 	 * WA for failing time set attempts. As stated in HW ERRATA if
+@@ -71,7 +77,7 @@ static int armada38x_rtc_read_time(struc
+ 	if ((time_check - time) > 1)
+ 		time_check = readl(rtc->regs + RTC_TIME);
+ 
+-	spin_unlock_irqrestore(&rtc->lock, flags);
++	mutex_unlock(&rtc->mutex_time);
+ 
+ 	rtc_time_to_tm(time_check, tm);
+ 
+@@ -94,19 +100,12 @@ static int armada38x_rtc_set_time(struct
+ 	 * then wait for 100ms before writing to the time register to be
+ 	 * sure that the data will be taken into account.
  	 */
--	if (!PageLRU(p) && !PageHuge(p))
-+	if (!PageLRU(hpage) && !PageHuge(p))
- 		goto put_out;
- 
- 	/*
-_
-
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
-
-origin.patch
-mm-hwpoison-add-comment-describing-when-to-add-new-cases.patch
-mm-hwpoison-remove-obsolete-notebook-todo-list.patch
-page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-mm-sanitize-page-mapping-for-tail-pages.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-
+-	spin_lock_irqsave(&rtc->lock, flags);
+-
++	mutex_lock(&rtc->mutex_time);
+ 	rtc_delayed_write(0, rtc, RTC_STATUS);
+-
+-	spin_unlock_irqrestore(&rtc->lock, flags);
+-
+ 	msleep(100);
+-
+-	spin_lock_irqsave(&rtc->lock, flags);
