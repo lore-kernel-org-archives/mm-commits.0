@@ -1,84 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-delete-lib-find_last_bitc.patch removed from -mm
- tree
-Date: Wed, 06 May 2015 11:58:11 -0700
-Message-ID: <554a6443.g0cZpL8LAbTh4fM0%akpm@linux-foundation.org>
+Subject: [merged] mm-hwpoison-inject-check-pagelru-of-hpage.patch removed
+ from -mm tree
+Date: Wed, 06 May 2015 11:58:26 -0700
+Message-ID: <554a6452.C13CDoyYxQigqdeM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51843 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51932 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751158AbbEFS6L (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 May 2015 14:58:11 -0400
+	with ESMTP id S1751475AbbEFS61 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 May 2015 14:58:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yury.norov@gmail.com, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, aarcange@redhat.com, andi@firstfloor.org, dnelson@redhat.com, seto.hidetoshi@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: delete lib/find_last_bit.c
+     Subject: mm/hwpoison-inject: check PageLRU of hpage
 has been removed from the -mm tree.  Its filename was
-     lib-delete-lib-find_last_bitc.patch
+     mm-hwpoison-inject-check-pagelru-of-hpage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yury Norov <yury.norov@gmail.com>
-Subject: lib: delete lib/find_last_bit.c
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm/hwpoison-inject: check PageLRU of hpage
 
-File find_next_bit.c was deleted in patch "lib: move find_last_bit to
-lib/find_next_bit.c" from Feb, 22, but not in master (commit 8f6f19dd51). 
-This is just a fix for wrong merge.
+Hwpoison injector checks PageLRU of the raw target page to find out
+whether the page is an appropriate target, but current code now filters
+out thp tail pages, which prevents us from testing for such cases via this
+interface.  So let's check hpage instead of p.
 
-Signed-off-by: Yury Norov <yury.norov@gmail.com>
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Acked-by: Dean Nelson <dnelson@redhat.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/find_last_bit.c |   41 -----------------------------------------
- 1 file changed, 41 deletions(-)
+ mm/hwpoison-inject.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN lib/find_last_bit.c~lib-delete-lib-find_last_bitc /dev/null
---- a/lib/find_last_bit.c
-+++ /dev/null
-@@ -1,41 +0,0 @@
--/* find_last_bit.c: fallback find next bit implementation
-- *
-- * Copyright (C) 2008 IBM Corporation
-- * Written by Rusty Russell <rusty@rustcorp.com.au>
-- * (Inspired by David Howell's find_next_bit implementation)
-- *
-- * Rewritten by Yury Norov <yury.norov@gmail.com> to decrease
-- * size and improve performance, 2015.
-- *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License
-- * as published by the Free Software Foundation; either version
-- * 2 of the License, or (at your option) any later version.
-- */
--
--#include <linux/bitops.h>
--#include <linux/bitmap.h>
--#include <linux/export.h>
--#include <linux/kernel.h>
--
--#ifndef find_last_bit
--
--unsigned long find_last_bit(const unsigned long *addr, unsigned long size)
--{
--	if (size) {
--		unsigned long val = BITMAP_LAST_WORD_MASK(size);
--		unsigned long idx = (size-1) / BITS_PER_LONG;
--
--		do {
--			val &= addr[idx];
--			if (val)
--				return idx * BITS_PER_LONG + __fls(val);
--
--			val = ~0ul;
--		} while (idx--);
--	}
--	return size;
--}
--EXPORT_SYMBOL(find_last_bit);
+diff -puN mm/hwpoison-inject.c~mm-hwpoison-inject-check-pagelru-of-hpage mm/hwpoison-inject.c
+--- a/mm/hwpoison-inject.c~mm-hwpoison-inject-check-pagelru-of-hpage
++++ a/mm/hwpoison-inject.c
+@@ -34,12 +34,12 @@ static int hwpoison_inject(void *data, u
+ 	if (!hwpoison_filter_enable)
+ 		goto inject;
+ 
+-	if (!PageLRU(p) && !PageHuge(p))
+-		shake_page(p, 0);
++	if (!PageLRU(hpage) && !PageHuge(p))
++		shake_page(hpage, 0);
+ 	/*
+ 	 * This implies unable to support non-LRU pages.
+ 	 */
+-	if (!PageLRU(p) && !PageHuge(p))
++	if (!PageLRU(hpage) && !PageHuge(p))
+ 		goto put_out;
+ 
+ 	/*
+_
+
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+
+origin.patch
+mm-hwpoison-add-comment-describing-when-to-add-new-cases.patch
+mm-hwpoison-remove-obsolete-notebook-todo-list.patch
+page-flags-trivial-cleanup-for-pagetrans-helpers.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
+page-flags-define-pg_locked-behavior-on-compound-pages.patch
+page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
+page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
+page-flags-define-pg_reserved-behavior-on-compound-pages.patch
+page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
+page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
+page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
+page-flags-define-pg_uncached-behavior-on-compound-pages.patch
+page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
+page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
+mm-sanitize-page-mapping-for-tail-pages.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+
