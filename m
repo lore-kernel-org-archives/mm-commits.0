@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + cma-page_isolation-check-buddy-before-access-it-fix.patch added to -mm tree
-Date: Wed, 06 May 2015 15:38:03 -0700
-Message-ID: <554a97cb.MBNTbY3GoFtby1A5%akpm@linux-foundation.org>
+Subject: + mohit-kumar-has-moved.patch added to -mm tree
+Date: Wed, 06 May 2015 15:39:42 -0700
+Message-ID: <554a982e.gb05ac4iK9PsJLx3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55788 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55793 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751285AbbEFWiE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 May 2015 18:38:04 -0400
+	with ESMTP id S1751285AbbEFWjn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 May 2015 18:39:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, zhuhui@xiaomi.com, mm-commits@vger.kernel.org
+To: pratyush.anand@gmail.com, mohit.kumar.dhaka@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cma-page_isolation-check-buddy-before-access-it-fix
+     Subject: Mohit Kumar has moved
 has been added to the -mm tree.  Its filename is
-     cma-page_isolation-check-buddy-before-access-it-fix.patch
+     mohit-kumar-has-moved.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/cma-page_isolation-check-buddy-before-access-it-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mohit-kumar-has-moved.patc=
+h
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/cma-page_isolation-check-buddy-before-access-it-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mohit-kumar-has-moved.patc=
+h
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -32,72 +34,92 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: cma-page_isolation-check-buddy-before-access-it-fix
+=46rom: Pratyush Anand <pratyush.anand@gmail.com>
+Subject: Mohit Kumar has moved
 
-use conventional coding style
+Mohit's email-id doesn't exist anymore as he has left the company.=20
+Replace ST's id with mohit.kumar.dhaka@gmail.com.
 
-Cc: Hui Zhu <zhuhui@xiaomi.com>
+Signed-off-by: Pratyush Anand <pratyush.anand@gmail.com>
+Cc: Mohit Kumar <mohit.kumar.dhaka@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_isolation.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ .mailmap                          |    1 +
+ drivers/pci/host/pcie-spear13xx.c |    2 +-
+ drivers/phy/phy-spear1310-miphy.c |    2 +-
+ drivers/phy/phy-spear1340-miphy.c |    2 +-
+ 4 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN mm/page_isolation.c~cma-page_isolation-check-buddy-before-access-it-fix mm/page_isolation.c
---- a/mm/page_isolation.c~cma-page_isolation-check-buddy-before-access-it-fix
-+++ a/mm/page_isolation.c
-@@ -101,8 +101,8 @@ void unset_migratetype_isolate(struct pa
- 			buddy_idx = __find_buddy_index(page_idx, order);
- 			buddy = page + (buddy_idx - page_idx);
- 
--			if (!pfn_valid_within(page_to_pfn(buddy))
--			    || !is_migrate_isolate_page(buddy)) {
-+			if (!pfn_valid_within(page_to_pfn(buddy)) ||
-+			    !is_migrate_isolate_page(buddy)) {
- 				__isolate_free_page(page, order);
- 				kernel_map_pages(page, (1 << order), 1);
- 				set_page_refcounted(page);
+diff -puN .mailmap~mohit-kumar-has-moved .mailmap
+--- a/.mailmap~mohit-kumar-has-moved
++++ a/.mailmap
+@@ -84,6 +84,7 @@ Mayuresh Janorkar <mayur@ti.com>
+ Michael Buesch <m@bues.ch>
+ Michel D=C3=A4nzer <michel@tungstengraphics.com>
+ Mitesh shah <mshah@teja.com>
++Mohit Kumar <mohit.kumar@st.com> <mohit.kumar.dhaka@gmail.com>
+ Morten Welinder <terra@gnome.org>
+ Morten Welinder <welinder@anemone.rentec.com>
+ Morten Welinder <welinder@darter.rentec.com>
+diff -puN drivers/pci/host/pcie-spear13xx.c~mohit-kumar-has-moved drive=
+rs/pci/host/pcie-spear13xx.c
+--- a/drivers/pci/host/pcie-spear13xx.c~mohit-kumar-has-moved
++++ a/drivers/pci/host/pcie-spear13xx.c
+@@ -5,7 +5,7 @@
+  *
+  * Copyright (C) 2010-2014 ST Microelectronics
+  * Pratyush Anand <pratyush.anand@gmail.com>
+- * Mohit Kumar <mohit.kumar@st.com>
++ * Mohit Kumar <mohit.kumar.dhaka@gmail.com>
+  *
+  * This file is licensed under the terms of the GNU General Public
+  * License version 2. This program is licensed "as is" without any
+diff -puN drivers/phy/phy-spear1310-miphy.c~mohit-kumar-has-moved drive=
+rs/phy/phy-spear1310-miphy.c
+--- a/drivers/phy/phy-spear1310-miphy.c~mohit-kumar-has-moved
++++ a/drivers/phy/phy-spear1310-miphy.c
+@@ -3,7 +3,7 @@
+  *
+  * Copyright (C) 2014 ST Microelectronics
+  * Pratyush Anand <pratyush.anand@gmail.com>
+- * Mohit Kumar <mohit.kumar@st.com>
++ * Mohit Kumar <mohit.kumar.dhaka@gmail.com>
+  *
+  * This program is free software; you can redistribute it and/or modif=
+y
+  * it under the terms of the GNU General Public License version 2 as
+diff -puN drivers/phy/phy-spear1340-miphy.c~mohit-kumar-has-moved drive=
+rs/phy/phy-spear1340-miphy.c
+--- a/drivers/phy/phy-spear1340-miphy.c~mohit-kumar-has-moved
++++ a/drivers/phy/phy-spear1340-miphy.c
+@@ -3,7 +3,7 @@
+  *
+  * Copyright (C) 2014 ST Microelectronics
+  * Pratyush Anand <pratyush.anand@gmail.com>
+- * Mohit Kumar <mohit.kumar@st.com>
++ * Mohit Kumar <mohit.kumar.dhaka@gmail.com>
+  *
+  * This program is free software; you can redistribute it and/or modif=
+y
+  * it under the terms of the GNU General Public License version 2 as
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from pratyush.anand@gmail.com a=
+re
 
-origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-rtc-rtc-armada38xc-remove-unused-local-flags.patch
-gfp-add-__gfp_noaccount-v2-fix.patch
-cma-page_isolation-check-buddy-before-access-it-fix.patch
-ocfs2-reduce-object-size-of-mlog-uses-fix.patch
-ocfs2-remove-__mlog_cpu_guess.patch
-ocfs2-remove-__mlog_cpu_guess-fix.patch
-mm.patch
-mm-slab_common-support-the-slub_debug-boot-option-on-specific-object-size-fix.patch
-slub-bulk-allocation-from-per-cpu-partial-pages-fix.patch
-mm-fix-mprotect-behaviour-on-vm_locked-vmas-fix.patch
-mm-new-mm-hook-framework.patch
-mm-meminit-inline-some-helper-functions-fix.patch
-include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
-bitmap-remove-explicit-newline-handling-using-scnprintf-format-string-fix.patch
-rtc-omap-add-external-32k-clock-feature-fix.patch
-linux-next.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
+pratyush-anand-has-moved.patch
+mohit-kumar-has-moved.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
