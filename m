@@ -1,75 +1,99 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- util_macrosh-have-array-pointer-point-to-array-of-constants.patch removed
- from -mm tree
-Date: Wed, 06 May 2015 11:58:30 -0700
-Message-ID: <554a6456.JwcsziBXC85T/ZgC%akpm@linux-foundation.org>
+ mm-hwpoison-inject-fix-refcounting-in-no-injection-case.patch removed from
+ -mm tree
+Date: Wed, 06 May 2015 11:58:24 -0700
+Message-ID: <554a6450.0qRpWv12JZ10iX/G%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51939 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51923 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751475AbbEFS6a (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 May 2015 14:58:30 -0400
+	with ESMTP id S1751438AbbEFS6Z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 May 2015 14:58:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@roeck-us.net, bgolaszewski@baylibre.com, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, aarcange@redhat.com, andi@firstfloor.org, dnelson@redhat.com, seto.hidetoshi@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: util_macros.h: have array pointer point to array of constants
+     Subject: mm/hwpoison-inject: fix refcounting in no-injection case
 has been removed from the -mm tree.  Its filename was
-     util_macrosh-have-array-pointer-point-to-array-of-constants.patch
+     mm-hwpoison-inject-fix-refcounting-in-no-injection-case.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Guenter Roeck <linux@roeck-us.net>
-Subject: util_macros.h: have array pointer point to array of constants
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm/hwpoison-inject: fix refcounting in no-injection case
 
-Using the new find_closest() macro can result in the following sparse
-warnings.
+Hwpoison injection via debugfs:hwpoison/corrupt-pfn takes a refcount of
+the target page.  But current code doesn't release it if the target page
+is not supposed to be injected, which results in memory leak.  This patch
+simply adds the refcount releasing code.
 
-drivers/hwmon/lm85.c:194:16: warning:
-		incorrect type in initializer (different modifiers)
-drivers/hwmon/lm85.c:194:16:    expected int *__fc_a
-drivers/hwmon/lm85.c:194:16:    got int static const [toplevel] *<noident>
-drivers/hwmon/lm85.c:210:16: warning:
-		incorrect type in initializer (different modifiers)
-drivers/hwmon/lm85.c:210:16:    expected int *__fc_a
-drivers/hwmon/lm85.c:210:16:    got int const *map
-
-This is because the array passed to find_closest() will typically be
-declared as array of constants, but the macro declares a non-constant
-pointer to it.
-
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-Cc: Bartosz Golaszewski <bgolaszewski@baylibre.com>
-
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Acked-by: Dean Nelson <dnelson@redhat.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/util_macros.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/hwpoison-inject.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/util_macros.h~util_macrosh-have-array-pointer-point-to-array-of-constants include/linux/util_macros.h
---- a/include/linux/util_macros.h~util_macrosh-have-array-pointer-point-to-array-of-constants
-+++ a/include/linux/util_macros.h
-@@ -5,7 +5,7 @@
- ({									\
- 	typeof(as) __fc_i, __fc_as = (as) - 1;				\
- 	typeof(x) __fc_x = (x);						\
--	typeof(*a) *__fc_a = (a);					\
-+	typeof(*a) const *__fc_a = (a);					\
- 	for (__fc_i = 0; __fc_i < __fc_as; __fc_i++) {			\
- 		if (__fc_x op DIV_ROUND_CLOSEST(__fc_a[__fc_i] +	\
- 						__fc_a[__fc_i + 1], 2))	\
+diff -puN mm/hwpoison-inject.c~mm-hwpoison-inject-fix-refcounting-in-no-injection-case mm/hwpoison-inject.c
+--- a/mm/hwpoison-inject.c~mm-hwpoison-inject-fix-refcounting-in-no-injection-case
++++ a/mm/hwpoison-inject.c
+@@ -40,7 +40,7 @@ static int hwpoison_inject(void *data, u
+ 	 * This implies unable to support non-LRU pages.
+ 	 */
+ 	if (!PageLRU(p) && !PageHuge(p))
+-		return 0;
++		goto put_out;
+ 
+ 	/*
+ 	 * do a racy check with elevated page count, to make sure PG_hwpoison
+@@ -52,11 +52,14 @@ static int hwpoison_inject(void *data, u
+ 	err = hwpoison_filter(hpage);
+ 	unlock_page(hpage);
+ 	if (err)
+-		return 0;
++		goto put_out;
+ 
+ inject:
+ 	pr_info("Injecting memory failure at pfn %#lx\n", pfn);
+ 	return memory_failure(pfn, 18, MF_COUNT_INCREASED);
++put_out:
++	put_page(hpage);
++	return 0;
+ }
+ 
+ static int hwpoison_unpoison(void *data, u64 val)
 _
 
-Patches currently in -mm which might be from linux@roeck-us.net are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
 origin.patch
-linux-next.patch
+mm-hwpoison-add-comment-describing-when-to-add-new-cases.patch
+mm-hwpoison-remove-obsolete-notebook-todo-list.patch
+page-flags-trivial-cleanup-for-pagetrans-helpers.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
+page-flags-define-pg_locked-behavior-on-compound-pages.patch
+page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
+page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
+page-flags-define-pg_reserved-behavior-on-compound-pages.patch
+page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
+page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
+page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
+page-flags-define-pg_uncached-behavior-on-compound-pages.patch
+page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
+page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
+mm-sanitize-page-mapping-for-tail-pages.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
 
