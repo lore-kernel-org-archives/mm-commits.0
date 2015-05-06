@@ -1,62 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [merged] configfs-init-configfs-module-earlier-at-boot-time.patch removed from -mm tree
-Date: Wed, 06 May 2015 11:58:28 -0700
-Message-ID: <554a6454.3zStYZoPZ0YHh5j9%akpm@linux-foundation.org>
+Subject: [merged]
+ nilfs2-fix-sanity-check-of-btree-level-in-nilfs_btree_root_broken.patch
+ removed from -mm tree
+Date: Wed, 06 May 2015 11:58:32 -0700
+Message-ID: <554a6458./bWsmxn8fB/YOsfr%akpm__20337.1073971086$1430938724$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51934 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51943 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751475AbbEFS62 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 May 2015 14:58:28 -0400
+	with ESMTP id S1751475AbbEFS6c (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 May 2015 14:58:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: daniel.baluta@intel.com, hch@lst.de, jlbec@evilplan.org, lars@metafoo.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: konishi.ryusuke@lab.ntt.co.jp, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: configfs: init configfs module earlier at boot time
+     Subject: nilfs2: fix sanity check of btree level in nilfs_btree_root_broken()
 has been removed from the -mm tree.  Its filename was
-     configfs-init-configfs-module-earlier-at-boot-time.patch
+     nilfs2-fix-sanity-check-of-btree-level-in-nilfs_btree_root_broken.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Daniel Baluta <daniel.baluta@intel.com>
-Subject: configfs: init configfs module earlier at boot time
+From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Subject: nilfs2: fix sanity check of btree level in nilfs_btree_root_broken()
 
-We need this earlier in the boot process to allow various subsystems to
-use configfs (e.g Industrial IIO).
+The range check for b-tree level parameter in nilfs_btree_root_broken() is
+wrong; it accepts the case of "level == NILFS_BTREE_LEVEL_MAX" even though
+the level is limited to values in the range of 0 to (NILFS_BTREE_LEVEL_MAX
+- 1).
 
-Also, debugfs is at core_initcall level and configfs should be on the same
-level from infrastructure point of view.
+Since the level parameter is read from storage device and used to index
+nilfs_btree_path array whose element count is NILFS_BTREE_LEVEL_MAX, it
+can cause memory overrun during btree operations if the boundary value is
+set to the level parameter on device.
 
-Signed-off-by: Daniel Baluta <daniel.baluta@intel.com>
-Suggested-by: Lars-Peter Clausen <lars@metafoo.de>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Joel Becker <jlbec@evilplan.org>
+This fixes the broken sanity check and adds a comment to clarify that the
+upper bound NILFS_BTREE_LEVEL_MAX is exclusive.
+
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/configfs/mount.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/nilfs2/btree.c         |    2 +-
+ include/linux/nilfs2_fs.h |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/configfs/mount.c~configfs-init-configfs-module-earlier-at-boot-time fs/configfs/mount.c
---- a/fs/configfs/mount.c~configfs-init-configfs-module-earlier-at-boot-time
-+++ a/fs/configfs/mount.c
-@@ -173,5 +173,5 @@ MODULE_LICENSE("GPL");
- MODULE_VERSION("0.0.2");
- MODULE_DESCRIPTION("Simple RAM filesystem for user driven kernel subsystem configuration.");
+diff -puN fs/nilfs2/btree.c~nilfs2-fix-sanity-check-of-btree-level-in-nilfs_btree_root_broken fs/nilfs2/btree.c
+--- a/fs/nilfs2/btree.c~nilfs2-fix-sanity-check-of-btree-level-in-nilfs_btree_root_broken
++++ a/fs/nilfs2/btree.c
+@@ -388,7 +388,7 @@ static int nilfs_btree_root_broken(const
+ 	nchildren = nilfs_btree_node_get_nchildren(node);
  
--module_init(configfs_init);
-+core_initcall(configfs_init);
- module_exit(configfs_exit);
+ 	if (unlikely(level < NILFS_BTREE_LEVEL_NODE_MIN ||
+-		     level > NILFS_BTREE_LEVEL_MAX ||
++		     level >= NILFS_BTREE_LEVEL_MAX ||
+ 		     nchildren < 0 ||
+ 		     nchildren > NILFS_BTREE_ROOT_NCHILDREN_MAX)) {
+ 		pr_crit("NILFS: bad btree root (inode number=%lu): level = %d, flags = 0x%x, nchildren = %d\n",
+diff -puN include/linux/nilfs2_fs.h~nilfs2-fix-sanity-check-of-btree-level-in-nilfs_btree_root_broken include/linux/nilfs2_fs.h
+--- a/include/linux/nilfs2_fs.h~nilfs2-fix-sanity-check-of-btree-level-in-nilfs_btree_root_broken
++++ a/include/linux/nilfs2_fs.h
+@@ -460,7 +460,7 @@ struct nilfs_btree_node {
+ /* level */
+ #define NILFS_BTREE_LEVEL_DATA          0
+ #define NILFS_BTREE_LEVEL_NODE_MIN      (NILFS_BTREE_LEVEL_DATA + 1)
+-#define NILFS_BTREE_LEVEL_MAX           14
++#define NILFS_BTREE_LEVEL_MAX           14	/* Max level (exclusive) */
+ 
+ /**
+  * struct nilfs_palloc_group_desc - block group descriptor
 _
 
-Patches currently in -mm which might be from daniel.baluta@intel.com are
+Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
 
 origin.patch
 
