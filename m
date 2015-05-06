@@ -1,117 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- kasan-show-gcc-version-requirements-in-kconfig-and-documentation.patch
- removed from -mm tree
-Date: Wed, 06 May 2015 11:58:16 -0700
-Message-ID: <554a6448.FmWcMc/wg+xgyGqU%akpm@linux-foundation.org>
+Subject: [merged] documentation-bindings-add-abraconabx80x.patch removed
+ from -mm tree
+Date: Wed, 06 May 2015 11:58:18 -0700
+Message-ID: <554a644a.qgyzcIQj9qNNUbv1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51852 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51855 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751303AbbEFS6Q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 May 2015 14:58:16 -0400
+	with ESMTP id S1751041AbbEFS6S (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 May 2015 14:58:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, a.ryabinin@samsung.com, mm-commits@vger.kernel.org
+To: alexandre.belloni@free-electrons.com, a.zummo@towertech.it, arnd@arndb.de, pebolle@tiscali.nl, phdm@macqel.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: show gcc version requirements in Kconfig and Documentation
+     Subject: Documentation: bindings: add abracon,abx80x
 has been removed from the -mm tree.  Its filename was
-     kasan-show-gcc-version-requirements-in-kconfig-and-documentation.patch
+     documentation-bindings-add-abraconabx80x.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: kasan: show gcc version requirements in Kconfig and Documentation
+From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+Subject: Documentation: bindings: add abracon,abx80x
 
-The documentation shows a need for gcc > 4.9.2, but it's really >=.  The
-Kconfig entries don't show require versions so add them.  Correct a
-latter/later typo too.  Also mention that gcc 5 required to catch out of
-bounds accesses to global and stack variables.
+Document the bindings for abracon,abx80x and related compatibles.
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Signed-off-by: Andrey Ryabinin <a.ryabinin@samsung.com>
+Signed-off-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+Cc: Philippe De Muyter <phdm@macqel.be>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Paul Bolle <pebolle@tiscali.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kasan.txt |    8 +++++---
- lib/Kconfig.kasan       |    8 ++++++--
- 2 files changed, 11 insertions(+), 5 deletions(-)
+ Documentation/devicetree/bindings/rtc/abracon,abx80x.txt |   32 ++++++++++
+ 1 file changed, 32 insertions(+)
 
-diff -puN Documentation/kasan.txt~kasan-show-gcc-version-requirements-in-kconfig-and-documentation Documentation/kasan.txt
---- a/Documentation/kasan.txt~kasan-show-gcc-version-requirements-in-kconfig-and-documentation
-+++ a/Documentation/kasan.txt
-@@ -9,7 +9,9 @@ a fast and comprehensive solution for fi
- bugs.
- 
- KASan uses compile-time instrumentation for checking every memory access,
--therefore you will need a certain version of GCC > 4.9.2
-+therefore you will need a gcc version of 4.9.2 or later. KASan could detect out
-+of bounds accesses to stack or global variables, but only if gcc 5.0 or later was
-+used to built the kernel.
- 
- Currently KASan is supported only for x86_64 architecture and requires that the
- kernel be built with the SLUB allocator.
-@@ -23,8 +25,8 @@ To enable KASAN configure kernel with:
- 
- and choose between CONFIG_KASAN_OUTLINE and CONFIG_KASAN_INLINE. Outline/inline
- is compiler instrumentation types. The former produces smaller binary the
--latter is 1.1 - 2 times faster. Inline instrumentation requires GCC 5.0 or
--latter.
-+latter is 1.1 - 2 times faster. Inline instrumentation requires a gcc version
-+of 5.0 or later.
- 
- Currently KASAN works only with the SLUB memory allocator.
- For better bug detection and nicer report, enable CONFIG_STACKTRACE and put
-diff -puN lib/Kconfig.kasan~kasan-show-gcc-version-requirements-in-kconfig-and-documentation lib/Kconfig.kasan
---- a/lib/Kconfig.kasan~kasan-show-gcc-version-requirements-in-kconfig-and-documentation
-+++ a/lib/Kconfig.kasan
-@@ -10,8 +10,11 @@ config KASAN
- 	help
- 	  Enables kernel address sanitizer - runtime memory debugger,
- 	  designed to find out-of-bounds accesses and use-after-free bugs.
--	  This is strictly debugging feature. It consumes about 1/8
--	  of available memory and brings about ~x3 performance slowdown.
-+	  This is strictly a debugging feature and it requires a gcc version
-+	  of 4.9.2 or later. Detection of out of bounds accesses to stack or
-+	  global variables requires gcc 5.0 or later.
-+	  This feature consumes about 1/8 of available memory and brings about
-+	  ~x3 performance slowdown.
- 	  For better error detection enable CONFIG_STACKTRACE,
- 	  and add slub_debug=U to boot cmdline.
- 
-@@ -40,6 +43,7 @@ config KASAN_INLINE
- 	  memory accesses. This is faster than outline (in some workloads
- 	  it gives about x2 boost over outline instrumentation), but
- 	  make kernel's .text size much bigger.
-+	  This requires a gcc version of 5.0 or later.
- 
- endchoice
- 
+diff -puN /dev/null Documentation/devicetree/bindings/rtc/abracon,abx80x.txt
+--- /dev/null
++++ a/Documentation/devicetree/bindings/rtc/abracon,abx80x.txt
+@@ -0,0 +1,32 @@
++Abracon ABX80X I2C ultra low power RTC/Alarm chip
++
++The Abracon ABX80X family consist of the ab0801, ab0803, ab0804, ab0805, ab1801,
++ab1803, ab1804 and ab1805. The ab0805 is the superset of ab080x and the ab1805
++is the superset of ab180x.
++
++Required properties:
++
++ - "compatible": should one of:
++        "abracon,abx80x"
++        "abracon,ab0801"
++        "abracon,ab0803"
++        "abracon,ab0804"
++        "abracon,ab0805"
++        "abracon,ab1801"
++        "abracon,ab1803"
++        "abracon,ab1804"
++        "abracon,ab1805"
++	Using "abracon,abx80x" will enable chip autodetection.
++ - "reg": I2C bus address of the device
++
++Optional properties:
++
++The abx804 and abx805 have a trickle charger that is able to charge the
++connected battery or supercap. Both the following properties have to be defined
++and valid to enable charging:
++
++ - "abracon,tc-diode": should be "standard" (0.6V) or "schottky" (0.3V)
++ - "abracon,tc-resistor": should be <0>, <3>, <6> or <11>. 0 disables the output
++                          resistor, the other values are in ohm.
++
++
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from alexandre.belloni@free-electrons.com are
 
 origin.patch
-ocfs2-reduce-object-size-of-mlog-uses.patch
-ocfs2-reduce-object-size-of-mlog-uses-fix.patch
-ocfs2-remove-__mlog_cpu_guess.patch
-ocfs2-remove-__mlog_cpu_guess-fix.patch
-ocfs2-neaten-do_error-ocfs2_error-and-ocfs2_abort.patch
-compiler-gcch-neatening.patch
-compiler-gcc-integrate-the-various-compiler-gcch-files.patch
-get_maintainerpl-add-get_maintainerignore-file-capability.patch
-maintainers-update-sound-soc-intel-patterns.patch
-maintainers-remove-section-broadcom-bcm33xx-mips-architecture.patch
-maintainers-update-brcm-dts-pattern.patch
-maintainers-update-brcm-gpio-filename-pattern.patch
-maintainers-remove-unused-nbdh-pattern.patch
-mm-utilc-add-kstrimdup.patch
+drivers-rtc-rtc-ds1307c-enable-the-mcp794xx-alarm-after-programming-time.patch
 linux-next.patch
-printk-improve-the-description-of-dev-kmsg-line-format.patch
 
