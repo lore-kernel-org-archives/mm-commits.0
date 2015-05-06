@@ -1,55 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-add-co-maintainer-for-led-subsystem.patch
- removed from -mm tree
-Date: Wed, 06 May 2015 11:58:09 -0700
-Message-ID: <554a6441.0oC1SCrNcfEeIDfl%akpm@linux-foundation.org>
+Subject: [merged]
+ revert-zram-move-compact_store-to-sysfs-functions-area.patch removed from
+ -mm tree
+Date: Wed, 06 May 2015 11:58:04 -0700
+Message-ID: <554a643c.d7zqngovv2Yq6aCX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51840 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51834 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750997AbbEFS6J (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 May 2015 14:58:09 -0400
+	with ESMTP id S1750808AbbEFS6F (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 6 May 2015 14:58:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cooloney@gmail.com, j.anaszewski@samsung.com, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, minchan@kernel.org, ngupta@vflare.org, sergey.senozhatsky@gmail.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: add co-maintainer for LED subsystem
+     Subject: revert "zram: move compact_store() to sysfs functions area"
 has been removed from the -mm tree.  Its filename was
-     maintainers-add-co-maintainer-for-led-subsystem.patch
+     revert-zram-move-compact_store-to-sysfs-functions-area.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: MAINTAINERS: add co-maintainer for LED subsystem
+Subject: revert "zram: move compact_store() to sysfs functions area"
 
-Add myself (Jacek Anaszewski) as a co-maintainer for the LED subsystem.
+Revert
 
-Signed-off-by: Jacek Anaszewski <j.anaszewski@samsung.com>
-Acked-by: Bryan Wu <cooloney@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+: commit c72c6160d967ed26a0b136dbab337f821d233509
+: Author:     Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+: AuthorDate: Wed Apr 15 16:15:55 2015 -0700
+: Commit:     Linus Torvalds <torvalds@linux-foundation.org>
+: CommitDate: Wed Apr 15 16:35:21 2015 -0700
+: 
+:     zram: move compact_store() to sysfs functions area
+
+it was intended to be a cosmetic change that w/o any functional change and
+was part of a bigger change:
+
+  http://lkml.iu.edu/hypermail/linux/kernel/1503.1/01818.html
+
+Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/block/zram/zram_drv.c |   23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
-diff -puN MAINTAINERS~maintainers-add-co-maintainer-for-led-subsystem MAINTAINERS
---- a/MAINTAINERS~maintainers-add-co-maintainer-for-led-subsystem
-+++ a/MAINTAINERS
-@@ -5805,6 +5805,7 @@ F:	drivers/scsi/53c700*
- LED SUBSYSTEM
- M:	Bryan Wu <cooloney@gmail.com>
- M:	Richard Purdie <rpurdie@rpsys.net>
-+M:	Jacek Anaszewski <j.anaszewski@samsung.com>
- L:	linux-leds@vger.kernel.org
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/cooloney/linux-leds.git
- S:	Maintained
+diff -puN drivers/block/zram/zram_drv.c~revert-zram-move-compact_store-to-sysfs-functions-area drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~revert-zram-move-compact_store-to-sysfs-functions-area
++++ a/drivers/block/zram/zram_drv.c
+@@ -74,6 +74,27 @@ static inline struct zram *dev_to_zram(s
+ 	return (struct zram *)dev_to_disk(dev)->private_data;
+ }
+ 
++static ssize_t compact_store(struct device *dev,
++		struct device_attribute *attr, const char *buf, size_t len)
++{
++	unsigned long nr_migrated;
++	struct zram *zram = dev_to_zram(dev);
++	struct zram_meta *meta;
++
++	down_read(&zram->init_lock);
++	if (!init_done(zram)) {
++		up_read(&zram->init_lock);
++		return -EINVAL;
++	}
++
++	meta = zram->meta;
++	nr_migrated = zs_compact(meta->mem_pool);
++	atomic64_add(nr_migrated, &zram->stats.num_migrated);
++	up_read(&zram->init_lock);
++
++	return len;
++}
++
+ static ssize_t disksize_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
+ {
+@@ -1038,6 +1059,7 @@ static const struct block_device_operati
+ 	.owner = THIS_MODULE
+ };
+ 
++static DEVICE_ATTR_WO(compact);
+ static DEVICE_ATTR_RW(disksize);
+ static DEVICE_ATTR_RO(initstate);
+ static DEVICE_ATTR_WO(reset);
+@@ -1114,6 +1136,7 @@ static struct attribute *zram_disk_attrs
+ 	&dev_attr_num_writes.attr,
+ 	&dev_attr_failed_reads.attr,
+ 	&dev_attr_failed_writes.attr,
++	&dev_attr_compact.attr,
+ 	&dev_attr_invalid_io.attr,
+ 	&dev_attr_notify_free.attr,
+ 	&dev_attr_zero_pages.attr,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
