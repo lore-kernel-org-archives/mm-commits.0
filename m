@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx.patch
+ devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx-fix.patch
  added to -mm tree
-Date: Thu, 07 May 2015 16:00:47 -0700
-Message-ID: <554bee9f.TjU421GzYDTH/i8V%akpm@linux-foundation.org>
+Date: Thu, 07 May 2015 16:00:49 -0700
+Message-ID: <554beea1.upvG5CNLJFrOFltz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45958 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45960 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752129AbbEGXAs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 May 2015 19:00:48 -0400
+	with ESMTP id S1752006AbbEGXAu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 May 2015 19:00:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: josh@joshtriplett.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, josh@joshtriplett.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: devpts: if initialization failed, don't crash when opening /dev/ptmx
+     Subject: devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx-fix
 has been added to the -mm tree.  Its filename is
-     devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx.patch
+     devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,99 +40,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Josh Triplett <josh@joshtriplett.org>
-Subject: devpts: if initialization failed, don't crash when opening /dev/ptmx
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx-fix
 
-If devpts failed to initialize, it would store an ERR_PTR in the global
-devpts_mnt.  A subsequent open of /dev/ptmx would call devpts_new_index,
-which would dereference devpts_mnt and crash.
+remove unneeded static
 
-Avoid storing invalid values in devpts_mnt; leave it NULL instead.  Make
-both devpts_new_index and devpts_pty_new fail gracefully with ENODEV in
-that case, which then becomes the return value to the userspace open call
-on /dev/ptmx.
-
-Signed-off-by: Josh Triplett <josh@joshtriplett.org>
+Cc: Josh Triplett <josh@joshtriplett.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/devpts/inode.c |   30 +++++++++++++++++++++++-------
- 1 file changed, 23 insertions(+), 7 deletions(-)
+ fs/devpts/inode.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/devpts/inode.c~devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx fs/devpts/inode.c
---- a/fs/devpts/inode.c~devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx
+diff -puN fs/devpts/inode.c~devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx-fix fs/devpts/inode.c
+--- a/fs/devpts/inode.c~devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx-fix
 +++ a/fs/devpts/inode.c
-@@ -142,6 +142,8 @@ static inline struct super_block *pts_sb
- 	if (inode->i_sb->s_magic == DEVPTS_SUPER_MAGIC)
- 		return inode->i_sb;
- #endif
-+	if (!devpts_mnt)
-+		return NULL;
- 	return devpts_mnt->mnt_sb;
- }
- 
-@@ -525,10 +527,14 @@ static struct file_system_type devpts_fs
- int devpts_new_index(struct inode *ptmx_inode)
- {
- 	struct super_block *sb = pts_sb_from_inode(ptmx_inode);
--	struct pts_fs_info *fsi = DEVPTS_SB(sb);
-+	struct pts_fs_info *fsi;
- 	int index;
- 	int ida_ret;
- 
-+	if (!sb)
-+		return -ENODEV;
-+
-+	fsi = DEVPTS_SB(sb);
- retry:
- 	if (!ida_pre_get(&fsi->allocated_ptys, GFP_KERNEL))
- 		return -ENOMEM;
-@@ -584,11 +590,18 @@ struct inode *devpts_pty_new(struct inod
- 	struct dentry *dentry;
- 	struct super_block *sb = pts_sb_from_inode(ptmx_inode);
- 	struct inode *inode;
--	struct dentry *root = sb->s_root;
--	struct pts_fs_info *fsi = DEVPTS_SB(sb);
--	struct pts_mount_opts *opts = &fsi->mount_opts;
-+	struct dentry *root;
-+	struct pts_fs_info *fsi;
-+	struct pts_mount_opts *opts;
- 	char s[12];
- 
-+	if (!sb)
-+		return ERR_PTR(-ENODEV);
-+
-+	root = sb->s_root;
-+	fsi = DEVPTS_SB(sb);
-+	opts = &fsi->mount_opts;
-+
- 	inode = new_inode(sb);
- 	if (!inode)
- 		return ERR_PTR(-ENOMEM);
-@@ -676,12 +689,15 @@ static int __init init_devpts_fs(void)
+@@ -689,7 +689,8 @@ static int __init init_devpts_fs(void)
  	struct ctl_table_header *table;
  
  	if (!err) {
-+		static struct vfsmount *mnt;
+-		static struct vfsmount *mnt;
++		struct vfsmount *mnt;
++
  		table = register_sysctl_table(pty_root_table);
--		devpts_mnt = kern_mount(&devpts_fs_type);
--		if (IS_ERR(devpts_mnt)) {
--			err = PTR_ERR(devpts_mnt);
-+		mnt = kern_mount(&devpts_fs_type);
-+		if (IS_ERR(mnt)) {
-+			err = PTR_ERR(mnt);
- 			unregister_filesystem(&devpts_fs_type);
- 			unregister_sysctl_table(table);
-+		} else {
-+			devpts_mnt = mnt;
- 		}
- 	}
- 	return err;
+ 		mnt = kern_mount(&devpts_fs_type);
+ 		if (IS_ERR(mnt)) {
 _
 
-Patches currently in -mm which might be from josh@joshtriplett.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx.patch
+origin.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-rtc-rtc-armada38xc-remove-unused-local-flags.patch
+gfp-add-__gfp_noaccount-v2-fix.patch
+cma-page_isolation-check-buddy-before-access-it-fix.patch
+ocfs2-reduce-object-size-of-mlog-uses-fix.patch
+ocfs2-remove-__mlog_cpu_guess.patch
+ocfs2-remove-__mlog_cpu_guess-fix.patch
+mm.patch
+mm-slab_common-support-the-slub_debug-boot-option-on-specific-object-size-fix.patch
+slub-bulk-allocation-from-per-cpu-partial-pages-fix.patch
+mm-fix-mprotect-behaviour-on-vm_locked-vmas-fix.patch
+mm-new-mm-hook-framework.patch
+mm-meminit-inline-some-helper-functions-fix.patch
+mm-meminit-finish-initialisation-of-struct-pages-before-basic-setup-fix.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
+bitmap-remove-explicit-newline-handling-using-scnprintf-format-string-fix.patch
+rtc-omap-add-external-32k-clock-feature-fix.patch
 devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx-fix.patch
 linux-next.patch
+linux-next-rejects.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
