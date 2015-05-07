@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + tools-vm-fix-page-flags-build.patch added to -mm tree
-Date: Thu, 07 May 2015 15:49:22 -0700
-Message-ID: <554bebf2.mh0IvAiMBkxdKHHq%akpm__2924.08620375699$1431038981$gmane$org@linux-foundation.org>
+Subject: +
+ devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx.patch
+ added to -mm tree
+Date: Thu, 07 May 2015 16:00:47 -0700
+Message-ID: <554bee9f.TjU421GzYDTH/i8V%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45760 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45958 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751407AbbEGWtX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 May 2015 18:49:23 -0400
+	with ESMTP id S1752129AbbEGXAs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 May 2015 19:00:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ak@linux.intel.com, n-horiguchi@ah.jp.nec.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: josh@joshtriplett.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tools/vm: fix page-flags build
+     Subject: devpts: if initialization failed, don't crash when opening /dev/ptmx
 has been added to the -mm tree.  Its filename is
-     tools-vm-fix-page-flags-build.patch
+     devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/tools-vm-fix-page-flags-build.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/tools-vm-fix-page-flags-build.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,41 +40,99 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andi Kleen <ak@linux.intel.com>
-Subject: tools/vm: fix page-flags build
+From: Josh Triplett <josh@joshtriplett.org>
+Subject: devpts: if initialization failed, don't crash when opening /dev/ptmx
 
-libabikfs.a doesn't exist anymore, so we now need to link with libapi.a.
+If devpts failed to initialize, it would store an ERR_PTR in the global
+devpts_mnt.  A subsequent open of /dev/ptmx would call devpts_new_index,
+which would dereference devpts_mnt and crash.
 
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: <stable@vger.kernel.org>
+Avoid storing invalid values in devpts_mnt; leave it NULL instead.  Make
+both devpts_new_index and devpts_pty_new fail gracefully with ENODEV in
+that case, which then becomes the return value to the userspace open call
+on /dev/ptmx.
+
+Signed-off-by: Josh Triplett <josh@joshtriplett.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/vm/Makefile |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/devpts/inode.c |   30 +++++++++++++++++++++++-------
+ 1 file changed, 23 insertions(+), 7 deletions(-)
 
-diff -puN tools/vm/Makefile~tools-vm-fix-page-flags-build tools/vm/Makefile
---- a/tools/vm/Makefile~tools-vm-fix-page-flags-build
-+++ a/tools/vm/Makefile
-@@ -3,7 +3,7 @@
- TARGETS=page-types slabinfo page_owner_sort
+diff -puN fs/devpts/inode.c~devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx fs/devpts/inode.c
+--- a/fs/devpts/inode.c~devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx
++++ a/fs/devpts/inode.c
+@@ -142,6 +142,8 @@ static inline struct super_block *pts_sb
+ 	if (inode->i_sb->s_magic == DEVPTS_SUPER_MAGIC)
+ 		return inode->i_sb;
+ #endif
++	if (!devpts_mnt)
++		return NULL;
+ 	return devpts_mnt->mnt_sb;
+ }
  
- LIB_DIR = ../lib/api
--LIBS = $(LIB_DIR)/libapikfs.a
-+LIBS = $(LIB_DIR)/libapi.a
+@@ -525,10 +527,14 @@ static struct file_system_type devpts_fs
+ int devpts_new_index(struct inode *ptmx_inode)
+ {
+ 	struct super_block *sb = pts_sb_from_inode(ptmx_inode);
+-	struct pts_fs_info *fsi = DEVPTS_SB(sb);
++	struct pts_fs_info *fsi;
+ 	int index;
+ 	int ida_ret;
  
- CC = $(CROSS_COMPILE)gcc
- CFLAGS = -Wall -Wextra -I../lib/
++	if (!sb)
++		return -ENODEV;
++
++	fsi = DEVPTS_SB(sb);
+ retry:
+ 	if (!ida_pre_get(&fsi->allocated_ptys, GFP_KERNEL))
+ 		return -ENOMEM;
+@@ -584,11 +590,18 @@ struct inode *devpts_pty_new(struct inod
+ 	struct dentry *dentry;
+ 	struct super_block *sb = pts_sb_from_inode(ptmx_inode);
+ 	struct inode *inode;
+-	struct dentry *root = sb->s_root;
+-	struct pts_fs_info *fsi = DEVPTS_SB(sb);
+-	struct pts_mount_opts *opts = &fsi->mount_opts;
++	struct dentry *root;
++	struct pts_fs_info *fsi;
++	struct pts_mount_opts *opts;
+ 	char s[12];
+ 
++	if (!sb)
++		return ERR_PTR(-ENODEV);
++
++	root = sb->s_root;
++	fsi = DEVPTS_SB(sb);
++	opts = &fsi->mount_opts;
++
+ 	inode = new_inode(sb);
+ 	if (!inode)
+ 		return ERR_PTR(-ENOMEM);
+@@ -676,12 +689,15 @@ static int __init init_devpts_fs(void)
+ 	struct ctl_table_header *table;
+ 
+ 	if (!err) {
++		static struct vfsmount *mnt;
+ 		table = register_sysctl_table(pty_root_table);
+-		devpts_mnt = kern_mount(&devpts_fs_type);
+-		if (IS_ERR(devpts_mnt)) {
+-			err = PTR_ERR(devpts_mnt);
++		mnt = kern_mount(&devpts_fs_type);
++		if (IS_ERR(mnt)) {
++			err = PTR_ERR(mnt);
+ 			unregister_filesystem(&devpts_fs_type);
+ 			unregister_sysctl_table(table);
++		} else {
++			devpts_mnt = mnt;
+ 		}
+ 	}
+ 	return err;
 _
 
-Patches currently in -mm which might be from ak@linux.intel.com are
+Patches currently in -mm which might be from josh@joshtriplett.org are
 
-origin.patch
-tools-vm-fix-page-flags-build.patch
-mm-hwpoison-add-comment-describing-when-to-add-new-cases.patch
-mm-hwpoison-remove-obsolete-notebook-todo-list.patch
-hexdump-make-test-data-really-const.patch
+devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx.patch
+devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx-fix.patch
 linux-next.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
 
