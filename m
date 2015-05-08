@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + zram-use-idr-instead-of-zram_devices-array.patch added to -mm
- tree
-Date: Fri, 08 May 2015 14:35:48 -0700
-Message-ID: <554d2c34.RDtq60OBtEXAgYd+%akpm@linux-foundation.org>
+Subject: + zram-close-race-by-open-overriding.patch added to -mm tree
+Date: Fri, 08 May 2015 14:36:00 -0700
+Message-ID: <554d2c40.XPCKYJ61yNM9cZkN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33221 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33238 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932276AbbEHVft (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 May 2015 17:35:49 -0400
+	with ESMTP id S932141AbbEHVgB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 May 2015 17:36:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sergey.senozhatsky@gmail.com, Julia.Lawall@lip6.fr, minchan@kernel.org, mm-commits@vger.kernel.org
+To: sergey.senozhatsky@gmail.com, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: use idr instead of `zram_devices' array
+     Subject: zram: close race by open overriding
 has been added to the -mm tree.  Its filename is
-     zram-use-idr-instead-of-zram_devices-array.patch
+     zram-close-race-by-open-overriding.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zram-use-idr-instead-of-zram_devices-array.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zram-close-race-by-open-overriding.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zram-use-idr-instead-of-zram_devices-array.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zram-close-race-by-open-overriding.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,182 +39,148 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: zram: use idr instead of `zram_devices' array
+Subject: zram: close race by open overriding
 
-This patch makes some preparations for on-demand device add/remove
-functionality.
 
-Remove `zram_devices' array and switch to id-to-pointer translation (idr).
-idr doesn't bloat zram struct with additional members, f.e.  list_head,
-yet still provides ability to match the device_id with the device pointer.
+ba6b17d68c8e3aa8d ("zram: fix umount-reset_store-mount race condition")
+introduced bdev->bd_mutex to protect a race between mount and reset.  At
+that time, we don't have dynamic zram-add/remove feature so it was okay.
 
-No user-space visible changes.
+However, as we introduce dynamic device feature, bd_mutex became
+trouble.
 
-[Julia.Lawall@lip6.fr: return -ENOMEM when `queue' alloc fails]
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Reported-by: Julia Lawall <Julia.Lawall@lip6.fr>
-Acked-by: Minchan Kim <minchan@kernel.org>
+	CPU 0
+
+echo 1 > /sys/block/zram<id>/reset
+  -> kernfs->s_active(A)
+    -> zram:reset_store->bd_mutex(B)
+
+	CPU 1
+
+echo <id> > /sys/class/zram/zram-remove
+  ->zram:zram_remove: bd_mutex(B)
+  -> sysfs_remove_group
+    -> kernfs->s_active(A)
+
+IOW, AB -> BA deadlock
+
+The reason we are holding bd_mutex for zram_remove is to prevent
+any incoming open /dev/zram[0-9]. Otherwise, we could remove zram
+others already have opened. But it causes above deadlock problem.
+
+To fix the problem, this patch overrides block_device.open and
+it returns -EBUSY if zram asserts he claims zram to reset so any
+incoming open will be failed so we don't need to hold bd_mutex
+for zram_remove ayn more.
+
+This patch is to prepare for zram-add/remove feature.
+
+[sergey.senozhatsky@gmail.com: simplify reset_store()]
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Acked-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |   86 ++++++++++++++++++--------------
- 1 file changed, 49 insertions(+), 37 deletions(-)
+ drivers/block/zram/zram_drv.c |   53 ++++++++++++++++++++------------
+ drivers/block/zram/zram_drv.h |    4 ++
+ 2 files changed, 38 insertions(+), 19 deletions(-)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-use-idr-instead-of-zram_devices-array drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-use-idr-instead-of-zram_devices-array
+diff -puN drivers/block/zram/zram_drv.c~zram-close-race-by-open-overriding drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-close-race-by-open-overriding
 +++ a/drivers/block/zram/zram_drv.c
-@@ -28,12 +28,12 @@
- #include <linux/string.h>
- #include <linux/vmalloc.h>
- #include <linux/err.h>
-+#include <linux/idr.h>
+@@ -1068,45 +1068,60 @@ static ssize_t reset_store(struct device
+ 	struct zram *zram;
+ 	struct block_device *bdev;
  
- #include "zram_drv.h"
- 
--/* Globals */
-+static DEFINE_IDR(zram_index_idr);
- static int zram_major;
--static struct zram *zram_devices;
- static const char *default_compressor = "lzo";
- 
- /* Module params (documentation at end) */
-@@ -1152,10 +1152,20 @@ static struct attribute_group zram_disk_
- 	.attrs = zram_disk_attrs,
- };
- 
--static int create_device(struct zram *zram, int device_id)
-+static int zram_add(int device_id)
- {
-+	struct zram *zram;
- 	struct request_queue *queue;
--	int ret = -ENOMEM;
-+	int ret;
++	ret = kstrtou16(buf, 10, &do_reset);
++	if (ret)
++		return ret;
 +
-+	zram = kzalloc(sizeof(struct zram), GFP_KERNEL);
-+	if (!zram)
-+		return -ENOMEM;
++	if (!do_reset)
++		return -EINVAL;
 +
-+	ret = idr_alloc(&zram_index_idr, zram, device_id,
-+			device_id + 1, GFP_KERNEL);
-+	if (ret < 0)
-+		goto out_free_dev;
+ 	zram = dev_to_zram(dev);
+ 	bdev = bdget_disk(zram->disk, 0);
+-
+ 	if (!bdev)
+ 		return -ENOMEM;
  
- 	init_rwsem(&zram->init_lock);
- 
-@@ -1163,12 +1173,13 @@ static int create_device(struct zram *zr
- 	if (!queue) {
- 		pr_err("Error allocating disk queue for device %d\n",
- 			device_id);
+ 	mutex_lock(&bdev->bd_mutex);
+-	/* Do not reset an active device! */
+-	if (bdev->bd_openers) {
+-		ret = -EBUSY;
 -		goto out;
-+		ret = -ENOMEM;
-+		goto out_free_idr;
++	/* Do not reset an active device or claimed device */
++	if (bdev->bd_openers || zram->claim) {
++		mutex_unlock(&bdev->bd_mutex);
++		bdput(bdev);
++		return -EBUSY;
  	}
  
- 	blk_queue_make_request(queue, zram_make_request);
+-	ret = kstrtou16(buf, 10, &do_reset);
+-	if (ret)
+-		goto out;
+-
+-	if (!do_reset) {
+-		ret = -EINVAL;
+-		goto out;
+-	}
++	/* From now on, anyone can't open /dev/zram[0-9] */
++	zram->claim = true;
++	mutex_unlock(&bdev->bd_mutex);
  
--	 /* gendisk structure */
-+	/* gendisk structure */
- 	zram->disk = alloc_disk(1);
- 	if (!zram->disk) {
- 		pr_warn("Error allocating disk structure for device %d\n",
-@@ -1233,34 +1244,42 @@ out_free_disk:
- 	put_disk(zram->disk);
- out_free_queue:
- 	blk_cleanup_queue(queue);
+-	/* Make sure all pending I/O is finished */
++	/* Make sure all the pending I/O are finished */
+ 	fsync_bdev(bdev);
+ 	zram_reset_device(zram);
+-
+-	mutex_unlock(&bdev->bd_mutex);
+ 	revalidate_disk(zram->disk);
+ 	bdput(bdev);
+ 
++	mutex_lock(&bdev->bd_mutex);
++	zram->claim = false;
++	mutex_unlock(&bdev->bd_mutex);
++
+ 	return len;
++}
++
++static int zram_open(struct block_device *bdev, fmode_t mode)
++{
++	int ret = 0;
++	struct zram *zram;
++
++	WARN_ON(!mutex_is_locked(&bdev->bd_mutex));
++
++	zram = bdev->bd_disk->private_data;
++	/* zram was claimed to reset so open request fails */
++	if (zram->claim)
++		ret = -EBUSY;
+ 
 -out:
-+out_free_idr:
-+	idr_remove(&zram_index_idr, device_id);
-+out_free_dev:
-+	kfree(zram);
+-	mutex_unlock(&bdev->bd_mutex);
+-	bdput(bdev);
  	return ret;
  }
  
--static void destroy_devices(unsigned int nr)
-+static void zram_remove(struct zram *zram)
- {
--	struct zram *zram;
--	unsigned int i;
--
--	for (i = 0; i < nr; i++) {
--		zram = &zram_devices[i];
--		/*
--		 * Remove sysfs first, so no one will perform a disksize
--		 * store while we destroy the devices
--		 */
--		sysfs_remove_group(&disk_to_dev(zram->disk)->kobj,
--				&zram_disk_attr_group);
+ static const struct block_device_operations zram_devops = {
++	.open = zram_open,
+ 	.swap_slot_free_notify = zram_slot_free_notify,
+ 	.rw_page = zram_rw_page,
+ 	.owner = THIS_MODULE
+diff -puN drivers/block/zram/zram_drv.h~zram-close-race-by-open-overriding drivers/block/zram/zram_drv.h
+--- a/drivers/block/zram/zram_drv.h~zram-close-race-by-open-overriding
++++ a/drivers/block/zram/zram_drv.h
+@@ -115,5 +115,9 @@ struct zram {
+ 	 */
+ 	u64 disksize;	/* bytes */
+ 	char compressor[10];
 +	/*
-+	 * Remove sysfs first, so no one will perform a disksize
-+	 * store while we destroy the devices
++	 * zram is claimed so open request will be failed
 +	 */
-+	sysfs_remove_group(&disk_to_dev(zram->disk)->kobj,
-+			&zram_disk_attr_group);
- 
--		zram_reset_device(zram);
-+	zram_reset_device(zram);
-+	idr_remove(&zram_index_idr, zram->disk->first_minor);
-+	blk_cleanup_queue(zram->disk->queue);
-+	del_gendisk(zram->disk);
-+	put_disk(zram->disk);
-+	kfree(zram);
-+}
- 
--		blk_cleanup_queue(zram->disk->queue);
--		del_gendisk(zram->disk);
--		put_disk(zram->disk);
--	}
-+static int zram_remove_cb(int id, void *ptr, void *data)
-+{
-+	zram_remove(ptr);
-+	return 0;
-+}
- 
--	kfree(zram_devices);
-+static void destroy_devices(void)
-+{
-+	idr_for_each(&zram_index_idr, &zram_remove_cb, NULL);
-+	idr_destroy(&zram_index_idr);
- 	unregister_blkdev(zram_major, "zram");
--	pr_info("Destroyed %u device(s)\n", nr);
-+	pr_info("Destroyed device(s)\n");
- }
- 
- static int __init zram_init(void)
-@@ -1279,16 +1298,9 @@ static int __init zram_init(void)
- 		return -EBUSY;
- 	}
- 
--	/* Allocate the device array and initialize each one */
--	zram_devices = kzalloc(num_devices * sizeof(struct zram), GFP_KERNEL);
--	if (!zram_devices) {
--		unregister_blkdev(zram_major, "zram");
--		return -ENOMEM;
--	}
--
- 	for (dev_id = 0; dev_id < num_devices; dev_id++) {
--		ret = create_device(&zram_devices[dev_id], dev_id);
--		if (ret)
-+		ret = zram_add(dev_id);
-+		if (ret != 0)
- 			goto out_error;
- 	}
- 
-@@ -1296,13 +1308,13 @@ static int __init zram_init(void)
- 	return 0;
- 
- out_error:
--	destroy_devices(dev_id);
-+	destroy_devices();
- 	return ret;
- }
- 
- static void __exit zram_exit(void)
- {
--	destroy_devices(num_devices);
-+	destroy_devices();
- }
- 
- module_init(zram_init);
++	bool claim; /* Protected by bdev->bd_mutex */
+ };
+ #endif
 _
 
 Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
