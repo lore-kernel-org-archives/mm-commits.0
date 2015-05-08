@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + zram-report-every-added-and-removed-device.patch added to -mm
- tree
-Date: Fri, 08 May 2015 14:35:54 -0700
-Message-ID: <554d2c3a.Z/nhOj+GKyR0rUXL%akpm@linux-foundation.org>
+Subject: + zram-cosmetic-zram_attr_ro-code-formatting-tweak.patch added to -mm tree
+Date: Fri, 08 May 2015 14:35:46 -0700
+Message-ID: <554d2c32.zcBUf5sP5+7NBIPE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33229 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33216 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932141AbbEHVfz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 May 2015 17:35:55 -0400
+	with ESMTP id S932141AbbEHVfr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 May 2015 17:35:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: sergey.senozhatsky@gmail.com, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: report every added and removed device
+     Subject: zram: cosmetic ZRAM_ATTR_RO code formatting tweak
 has been added to the -mm tree.  Its filename is
-     zram-report-every-added-and-removed-device.patch
+     zram-cosmetic-zram_attr_ro-code-formatting-tweak.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zram-report-every-added-and-removed-device.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zram-cosmetic-zram_attr_ro-code-formatting-tweak.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zram-report-every-added-and-removed-device.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zram-cosmetic-zram_attr_ro-code-formatting-tweak.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,66 +39,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: zram: report every added and removed device
+Subject: zram: cosmetic ZRAM_ATTR_RO code formatting tweak
 
-With dynamic device creation/removal (which will be introduced later in
-the series) printing num_devices in zram_init() will not make a lot of
-sense, as well as printing the number of destroyed devices in
-destroy_devices().  Print per-device action (added/removed) in zram_add()
-and zram_remove() instead.
-
-Example:
-
-[ 3645.259652] zram: Added device: zram5
-[ 3646.152074] zram: Added device: zram6
-[ 3650.585012] zram: Removed device: zram5
-[ 3655.845584] zram: Added device: zram8
-[ 3660.975223] zram: Removed device: zram6
+Fix a misplaced backslash.
 
 Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Acked-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/block/zram/zram_drv.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-report-every-added-and-removed-device drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-report-every-added-and-removed-device
+diff -puN drivers/block/zram/zram_drv.c~zram-cosmetic-zram_attr_ro-code-formatting-tweak drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-cosmetic-zram_attr_ro-code-formatting-tweak
 +++ a/drivers/block/zram/zram_drv.c
-@@ -1236,6 +1236,8 @@ static int zram_add(int device_id)
- 	strlcpy(zram->compressor, default_compressor, sizeof(zram->compressor));
- 	zram->meta = NULL;
- 	zram->max_comp_streams = 1;
-+
-+	pr_info("Added device: %s\n", zram->disk->disk_name);
- 	return 0;
- 
- out_free_disk:
-@@ -1252,6 +1254,7 @@ out_free_dev:
- 
- static void zram_remove(struct zram *zram)
- {
-+	pr_info("Removed device: %s\n", zram->disk->disk_name);
- 	/*
- 	 * Remove sysfs first, so no one will perform a disksize
- 	 * store while we destroy the devices
-@@ -1278,7 +1281,6 @@ static void destroy_devices(void)
- 	idr_for_each(&zram_index_idr, &zram_remove_cb, NULL);
- 	idr_destroy(&zram_index_idr);
- 	unregister_blkdev(zram_major, "zram");
--	pr_info("Destroyed device(s)\n");
+@@ -49,7 +49,7 @@ static inline void deprecated_attr_warn(
  }
  
- static int __init zram_init(void)
-@@ -1297,7 +1299,6 @@ static int __init zram_init(void)
- 			goto out_error;
- 	}
- 
--	pr_info("Created %u device(s)\n", num_devices);
- 	return 0;
- 
- out_error:
+ #define ZRAM_ATTR_RO(name)						\
+-static ssize_t name##_show(struct device *d,		\
++static ssize_t name##_show(struct device *d,				\
+ 				struct device_attribute *attr, char *b)	\
+ {									\
+ 	struct zram *zram = dev_to_zram(d);				\
 _
 
 Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
