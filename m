@@ -1,72 +1,41 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fix-a-misaligned-load-inside-ptrace_attach.patch removed from -mm tree
-Date: Mon, 11 May 2015 10:58:29 -0700
-Message-ID: <5550edc5.eXvWP728TNV+HFH1%akpm@linux-foundation.org>
+Subject: [merged] change-all-uses-of-jobctl_-from-int-to-long.patch
+ removed from -mm tree
+Date: Mon, 11 May 2015 10:58:35 -0700
+Message-ID: <5550edcb.dI04xxfbAtAyOF8e%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36720 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36745 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752356AbbEKR6a (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 May 2015 13:58:30 -0400
+	with ESMTP id S1751904AbbEKR6g (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 May 2015 13:58:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: palmer@dabbelt.com, bobby.prani@gmail.com, cmetcalf@ezchip.com, oleg@redhat.com, paulmck@linux.vnet.ibm.com, peterz@infradead.org, richard@nod.at, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/sched.h: fix a misaligned load inside ptrace_attach()
+     Subject: include/linux/sched.h: change all uses of JOBCTL_* from int to long
 has been removed from the -mm tree.  Its filename was
-     fix-a-misaligned-load-inside-ptrace_attach.patch
+     change-all-uses-of-jobctl_-from-int-to-long.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Palmer Dabbelt <palmer@dabbelt.com>
-Subject: include/linux/sched.h: fix a misaligned load inside ptrace_attach()
+Subject: include/linux/sched.h: change all uses of JOBCTL_* from int to long
 
-I ran across what I believe is a bug in some asm-generic code while
-working on the RISC-V Linux port.  Essentially the problem is that
-wait_on_bit() takes a void *, but then perfroms long-aligned operation. 
-As far as I can tell, this bug could manifest on any other architecture
-that doesn't support misaligned operations and uses this particular
-asm-generic implementation.
+c56fb6564dcd ("Fix a misaligned load inside ptrace_attach()") makes jobctl
+an "unsigned long".  It makes sense to have the masks applied to it match
+that type.  This is currently just a cosmetic change, but it will prevent
+the mask from being unexpectedly truncated if we ever end up with masks
+with more bits.
 
-The patch set is split into three parts:
-
-* #1 fixes the bug by making task_struct.jobctl an unsigned long,
-   which ensures wait_on_bit() always ends up with a long-aligned
-   argument.
-
-* #2 changes the prototype of wait_on_bit() and friends to take a
-   "unsigned long *" instead of a "void *", with the intent of
-   ensuring these problems don't happen again.
-
-* #3 is a bit more intrusive: it goes and changes all uses of
-   task_struct.jobctl from int to long.
-
-I'm not sure if #3 has gone too far, but I think #1 and #2 are sane.  The
-cost is making task_struct larger on machines where
-sizeof(long)>sizeof(int), but since it's so big already this isn't too
-much cost.  I thought about making test_bit() perform byte-aligned
-accesses to avoid this cost, but since there are very similar looking
-atomic functions I thought that would be too odd.
-
-
-This patch (of 3):
-
-The misaligned load exception arises when running ptrace_attach() on the
-RISC-V (which hasn't been upstreamed yet).  The problem is that
-wait_on_bit() takes a void* but then proceeds to call test_bit(), which
-takes a long*.  This allows an int-aligned pointer to be passed to
-test_bit(), which promptly fails.  This will manifest on any other
-asm-generic port where unaligned loads trap, where sizeof(long) >
-sizeof(int), and where task_struct.jobctl ends up not being long-aligned.
-
-This patch changes task_struct.jobctl to be a long, which ensures it
-has the correct alignment.
+One instance of "signr" is an int, but I left this alone because the mask
+ensures that it will never overflow.
 
 Signed-off-by: Palmer Dabbelt <palmer@dabbelt.com>
 Reviewed-by: Chris Metcalf <cmetcalf@ezchip.com>
@@ -79,21 +48,75 @@ Cc: Vladimir Davydov <vdavydov@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/sched.h |   18 +++++++++---------
+ kernel/signal.c       |    6 +++---
+ 2 files changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN include/linux/sched.h~fix-a-misaligned-load-inside-ptrace_attach include/linux/sched.h
---- a/include/linux/sched.h~fix-a-misaligned-load-inside-ptrace_attach
+diff -puN include/linux/sched.h~change-all-uses-of-jobctl_-from-int-to-long include/linux/sched.h
+--- a/include/linux/sched.h~change-all-uses-of-jobctl_-from-int-to-long
 +++ a/include/linux/sched.h
-@@ -1369,7 +1369,7 @@ struct task_struct {
- 	int exit_state;
- 	int exit_code, exit_signal;
- 	int pdeath_signal;  /*  The signal sent when the parent dies  */
--	unsigned int jobctl;	/* JOBCTL_*, siglock protected */
-+	unsigned long jobctl;	/* JOBCTL_*, siglock protected */
+@@ -2077,22 +2077,22 @@ TASK_PFA_CLEAR(SPREAD_SLAB, spread_slab)
+ #define JOBCTL_TRAPPING_BIT	21	/* switching to TRACED */
+ #define JOBCTL_LISTENING_BIT	22	/* ptracer is listening for events */
  
- 	/* Used for emulating ABI behavior of previous Linux versions */
- 	unsigned int personality;
+-#define JOBCTL_STOP_DEQUEUED	(1 << JOBCTL_STOP_DEQUEUED_BIT)
+-#define JOBCTL_STOP_PENDING	(1 << JOBCTL_STOP_PENDING_BIT)
+-#define JOBCTL_STOP_CONSUME	(1 << JOBCTL_STOP_CONSUME_BIT)
+-#define JOBCTL_TRAP_STOP	(1 << JOBCTL_TRAP_STOP_BIT)
+-#define JOBCTL_TRAP_NOTIFY	(1 << JOBCTL_TRAP_NOTIFY_BIT)
+-#define JOBCTL_TRAPPING		(1 << JOBCTL_TRAPPING_BIT)
+-#define JOBCTL_LISTENING	(1 << JOBCTL_LISTENING_BIT)
++#define JOBCTL_STOP_DEQUEUED	(1UL << JOBCTL_STOP_DEQUEUED_BIT)
++#define JOBCTL_STOP_PENDING	(1UL << JOBCTL_STOP_PENDING_BIT)
++#define JOBCTL_STOP_CONSUME	(1UL << JOBCTL_STOP_CONSUME_BIT)
++#define JOBCTL_TRAP_STOP	(1UL << JOBCTL_TRAP_STOP_BIT)
++#define JOBCTL_TRAP_NOTIFY	(1UL << JOBCTL_TRAP_NOTIFY_BIT)
++#define JOBCTL_TRAPPING		(1UL << JOBCTL_TRAPPING_BIT)
++#define JOBCTL_LISTENING	(1UL << JOBCTL_LISTENING_BIT)
+ 
+ #define JOBCTL_TRAP_MASK	(JOBCTL_TRAP_STOP | JOBCTL_TRAP_NOTIFY)
+ #define JOBCTL_PENDING_MASK	(JOBCTL_STOP_PENDING | JOBCTL_TRAP_MASK)
+ 
+ extern bool task_set_jobctl_pending(struct task_struct *task,
+-				    unsigned int mask);
++				    unsigned long mask);
+ extern void task_clear_jobctl_trapping(struct task_struct *task);
+ extern void task_clear_jobctl_pending(struct task_struct *task,
+-				      unsigned int mask);
++				      unsigned long mask);
+ 
+ static inline void rcu_copy_process(struct task_struct *p)
+ {
+diff -puN kernel/signal.c~change-all-uses-of-jobctl_-from-int-to-long kernel/signal.c
+--- a/kernel/signal.c~change-all-uses-of-jobctl_-from-int-to-long
++++ a/kernel/signal.c
+@@ -245,7 +245,7 @@ static inline void print_dropped_signal(
+  * RETURNS:
+  * %true if @mask is set, %false if made noop because @task was dying.
+  */
+-bool task_set_jobctl_pending(struct task_struct *task, unsigned int mask)
++bool task_set_jobctl_pending(struct task_struct *task, unsigned long mask)
+ {
+ 	BUG_ON(mask & ~(JOBCTL_PENDING_MASK | JOBCTL_STOP_CONSUME |
+ 			JOBCTL_STOP_SIGMASK | JOBCTL_TRAPPING));
+@@ -297,7 +297,7 @@ void task_clear_jobctl_trapping(struct t
+  * CONTEXT:
+  * Must be called with @task->sighand->siglock held.
+  */
+-void task_clear_jobctl_pending(struct task_struct *task, unsigned int mask)
++void task_clear_jobctl_pending(struct task_struct *task, unsigned long mask)
+ {
+ 	BUG_ON(mask & ~JOBCTL_PENDING_MASK);
+ 
+@@ -1995,7 +1995,7 @@ static bool do_signal_stop(int signr)
+ 	struct signal_struct *sig = current->signal;
+ 
+ 	if (!(current->jobctl & JOBCTL_STOP_PENDING)) {
+-		unsigned int gstop = JOBCTL_STOP_PENDING | JOBCTL_STOP_CONSUME;
++		unsigned long gstop = JOBCTL_STOP_PENDING | JOBCTL_STOP_CONSUME;
+ 		struct task_struct *t;
+ 
+ 		/* signr will be recorded in task->jobctl for retries */
 _
 
 Patches currently in -mm which might be from palmer@dabbelt.com are
