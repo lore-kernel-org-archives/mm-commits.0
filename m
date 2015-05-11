@@ -1,106 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: + cma-page_isolation-check-buddy-before-access-it-fix.patch added to -mm tree
-Date: Fri, 08 May 2015 15:53:19 -0700
-Message-ID: <554d3e5f.62T+F5yWUV1TcwXr%akpm@linux-foundation.org>
+Subject: [merged] fix-a-misaligned-load-inside-ptrace_attach.patch removed from -mm tree
+Date: Mon, 11 May 2015 10:58:29 -0700
+Message-ID: <5550edc5.eXvWP728TNV+HFH1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34664 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36720 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753365AbbEHWxT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 May 2015 18:53:19 -0400
+	with ESMTP id S1752356AbbEKR6a (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 May 2015 13:58:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, zhuhui@xiaomi.com, mm-commits@vger.kernel.org
+To: palmer@dabbelt.com, bobby.prani@gmail.com, cmetcalf@ezchip.com, oleg@redhat.com, paulmck@linux.vnet.ibm.com, peterz@infradead.org, richard@nod.at, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cma-page_isolation-check-buddy-before-access-it-fix
-has been added to the -mm tree.  Its filename is
-     cma-page_isolation-check-buddy-before-access-it-fix.patch
+     Subject: include/linux/sched.h: fix a misaligned load inside ptrace_attach()
+has been removed from the -mm tree.  Its filename was
+     fix-a-misaligned-load-inside-ptrace_attach.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/cma-page_isolation-check-buddy-before-access-it-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/cma-page_isolation-check-buddy-before-access-it-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: cma-page_isolation-check-buddy-before-access-it-fix
+From: Palmer Dabbelt <palmer@dabbelt.com>
+Subject: include/linux/sched.h: fix a misaligned load inside ptrace_attach()
 
-use conventional code layout
+I ran across what I believe is a bug in some asm-generic code while
+working on the RISC-V Linux port.  Essentially the problem is that
+wait_on_bit() takes a void *, but then perfroms long-aligned operation. 
+As far as I can tell, this bug could manifest on any other architecture
+that doesn't support misaligned operations and uses this particular
+asm-generic implementation.
 
-Cc: Hui Zhu <zhuhui@xiaomi.com>
+The patch set is split into three parts:
 
+* #1 fixes the bug by making task_struct.jobctl an unsigned long,
+   which ensures wait_on_bit() always ends up with a long-aligned
+   argument.
+
+* #2 changes the prototype of wait_on_bit() and friends to take a
+   "unsigned long *" instead of a "void *", with the intent of
+   ensuring these problems don't happen again.
+
+* #3 is a bit more intrusive: it goes and changes all uses of
+   task_struct.jobctl from int to long.
+
+I'm not sure if #3 has gone too far, but I think #1 and #2 are sane.  The
+cost is making task_struct larger on machines where
+sizeof(long)>sizeof(int), but since it's so big already this isn't too
+much cost.  I thought about making test_bit() perform byte-aligned
+accesses to avoid this cost, but since there are very similar looking
+atomic functions I thought that would be too odd.
+
+
+This patch (of 3):
+
+The misaligned load exception arises when running ptrace_attach() on the
+RISC-V (which hasn't been upstreamed yet).  The problem is that
+wait_on_bit() takes a void* but then proceeds to call test_bit(), which
+takes a long*.  This allows an int-aligned pointer to be passed to
+test_bit(), which promptly fails.  This will manifest on any other
+asm-generic port where unaligned loads trap, where sizeof(long) >
+sizeof(int), and where task_struct.jobctl ends up not being long-aligned.
+
+This patch changes task_struct.jobctl to be a long, which ensures it
+has the correct alignment.
+
+Signed-off-by: Palmer Dabbelt <palmer@dabbelt.com>
+Reviewed-by: Chris Metcalf <cmetcalf@ezchip.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Pranith Kumar <bobby.prani@gmail.com>
+Cc: Vladimir Davydov <vdavydov@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_isolation.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/sched.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_isolation.c~cma-page_isolation-check-buddy-before-access-it-fix mm/page_isolation.c
---- a/mm/page_isolation.c~cma-page_isolation-check-buddy-before-access-it-fix
-+++ a/mm/page_isolation.c
-@@ -101,8 +101,8 @@ void unset_migratetype_isolate(struct pa
- 			buddy_idx = __find_buddy_index(page_idx, order);
- 			buddy = page + (buddy_idx - page_idx);
+diff -puN include/linux/sched.h~fix-a-misaligned-load-inside-ptrace_attach include/linux/sched.h
+--- a/include/linux/sched.h~fix-a-misaligned-load-inside-ptrace_attach
++++ a/include/linux/sched.h
+@@ -1369,7 +1369,7 @@ struct task_struct {
+ 	int exit_state;
+ 	int exit_code, exit_signal;
+ 	int pdeath_signal;  /*  The signal sent when the parent dies  */
+-	unsigned int jobctl;	/* JOBCTL_*, siglock protected */
++	unsigned long jobctl;	/* JOBCTL_*, siglock protected */
  
--			if (pfn_valid_within(page_to_pfn(buddy))
--			    && !is_migrate_isolate_page(buddy)) {
-+			if (pfn_valid_within(page_to_pfn(buddy)) &&
-+			    !is_migrate_isolate_page(buddy)) {
- 				__isolate_free_page(page, order);
- 				kernel_map_pages(page, (1 << order), 1);
- 				set_page_refcounted(page);
+ 	/* Used for emulating ABI behavior of previous Linux versions */
+ 	unsigned int personality;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from palmer@dabbelt.com are
 
-origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-rtc-rtc-armada38xc-remove-unused-local-flags.patch
-gfp-add-__gfp_noaccount-v2-fix.patch
-ocfs2-reduce-object-size-of-mlog-uses-fix.patch
-ocfs2-remove-__mlog_cpu_guess.patch
-ocfs2-remove-__mlog_cpu_guess-fix.patch
-mm.patch
-mm-slab_common-support-the-slub_debug-boot-option-on-specific-object-size-fix.patch
-slub-bulk-allocation-from-per-cpu-partial-pages-fix.patch
-mm-fix-mprotect-behaviour-on-vm_locked-vmas-fix.patch
-mm-new-mm-hook-framework.patch
-mm-meminit-inline-some-helper-functions-fix.patch
-mm-meminit-finish-initialisation-of-struct-pages-before-basic-setup-fix.patch
-include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
-proc-fix-page_size-limit-of-proc-pid-cmdline-fix.patch
-bitmap-remove-explicit-newline-handling-using-scnprintf-format-string-fix.patch
-rtc-omap-add-external-32k-clock-feature-fix.patch
-devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx-fix.patch
 linux-next.patch
-linux-next-rejects.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-cma-page_isolation-check-buddy-before-access-it-fix.patch
 
