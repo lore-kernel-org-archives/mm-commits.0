@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list.patch
+ mm-thp-split-out-pmd-collpase-flush-into-a-separate-functions-fix.patch
  added to -mm tree
-Date: Tue, 12 May 2015 15:28:48 -0700
-Message-ID: <55527ea0.WBUp1VUFJV1DJpa8%akpm@linux-foundation.org>
+Date: Tue, 12 May 2015 15:54:12 -0700
+Message-ID: <55528494.cKU1mP2vW2ofhCfW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33607 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33870 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754036AbbELW2t (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 May 2015 18:28:49 -0400
+	with ESMTP id S933868AbbELWyN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 May 2015 18:54:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@parallels.com, hughd@google.com, kirill.shutemov@linux.intel.com, paulmck@linux.vnet.ibm.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, kirill.shutemov@linux.intel.com, mpe@ellerman.id.au, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rmap: fix theoretical race between do_wp_page and shrink_active_list
+     Subject: mm-thp-split-out-pmd-collpase-flush-into-a-separate-functions-fix
 has been added to the -mm tree.  Its filename is
-     rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list.patch
+     mm-thp-split-out-pmd-collpase-flush-into-a-separate-functions-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-split-out-pmd-collpase-flush-into-a-separate-functions-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-split-out-pmd-collpase-flush-into-a-separate-functions-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,79 +40,96 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: rmap: fix theoretical race between do_wp_page and shrink_active_list
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-thp-split-out-pmd-collpase-flush-into-a-separate-functions-fix
 
-As noted by Paul the compiler is free to store a temporary result in a
-variable on stack, heap or global unless it is explicitly marked as
-volatile, see:
+fix up pmdp_collapse_flush defining
 
-  http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4455.html#sample-optimizations
-
-This can result in a race between do_wp_page() and shrink_active_list() as
-follows.
-
-In do_wp_page() we can call page_move_anon_rmap(), which sets
-page->mapping as follows:
-
-  anon_vma = (void *) anon_vma + PAGE_MAPPING_ANON;
-  page->mapping = (struct address_space *) anon_vma;
-
-The page in question may be on an LRU list, because nowhere in
-do_wp_page() we remove it from the list, neither do we take any LRU
-related locks.  Although the page is locked, shrink_active_list() can
-still call page_referenced() on it concurrently, because the latter does
-not require an anonymous page to be locked:
-
-  CPU0                          CPU1
-  ----                          ----
-  do_wp_page                    shrink_active_list
-   lock_page                     page_referenced
-                                  PageAnon->yes, so skip trylock_page
-   page_move_anon_rmap
-    page->mapping = anon_vma
-                                  rmap_walk
-                                   PageAnon->no
-                                   rmap_walk_file
-                                    BUG
-    page->mapping += PAGE_MAPPING_ANON
-
-This patch fixes this race by explicitly forbidding the compiler to split
-page->mapping store in page_move_anon_rmap() with the aid of WRITE_ONCE.
-
-Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/powerpc/include/asm/pgtable-ppc64.h |    2 +-
+ include/asm-generic/pgtable.h            |    2 ++
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/rmap.c~rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list mm/rmap.c
---- a/mm/rmap.c~rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list
-+++ a/mm/rmap.c
-@@ -950,7 +950,7 @@ void page_move_anon_rmap(struct page *pa
- 	VM_BUG_ON_PAGE(page->index != linear_page_index(vma, address), page);
+diff -puN arch/powerpc/include/asm/pgtable-ppc64.h~mm-thp-split-out-pmd-collpase-flush-into-a-separate-functions-fix arch/powerpc/include/asm/pgtable-ppc64.h
+--- a/arch/powerpc/include/asm/pgtable-ppc64.h~mm-thp-split-out-pmd-collpase-flush-into-a-separate-functions-fix
++++ a/arch/powerpc/include/asm/pgtable-ppc64.h
+@@ -576,9 +576,9 @@ static inline void pmdp_set_wrprotect(st
+ extern void pmdp_splitting_flush(struct vm_area_struct *vma,
+ 				 unsigned long address, pmd_t *pmdp);
  
- 	anon_vma = (void *) anon_vma + PAGE_MAPPING_ANON;
--	page->mapping = (struct address_space *) anon_vma;
-+	WRITE_ONCE(page->mapping, (struct address_space *) anon_vma);
+-#define pmdp_collapse_flush pmdp_collapse_flush
+ extern pmd_t pmdp_collapse_flush(struct vm_area_struct *vma,
+ 				 unsigned long address, pmd_t *pmdp);
++#define pmdp_collapse_flush pmdp_collapse_flush
+ 
+ #define __HAVE_ARCH_PGTABLE_DEPOSIT
+ extern void pgtable_trans_huge_deposit(struct mm_struct *mm, pmd_t *pmdp,
+diff -puN include/asm-generic/pgtable.h~mm-thp-split-out-pmd-collpase-flush-into-a-separate-functions-fix include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~mm-thp-split-out-pmd-collpase-flush-into-a-separate-functions-fix
++++ a/include/asm-generic/pgtable.h
+@@ -197,6 +197,7 @@ static inline pmd_t pmdp_collapse_flush(
+ {
+ 	return pmdp_clear_flush(vma, address, pmdp);
  }
++#define pmdp_collapse_flush pmdp_collapse_flush
+ #else
+ static inline pmd_t pmdp_collapse_flush(struct vm_area_struct *vma,
+ 					unsigned long address,
+@@ -205,6 +206,7 @@ static inline pmd_t pmdp_collapse_flush(
+ 	BUILD_BUG();
+ 	return __pmd(0);
+ }
++#define pmdp_collapse_flush pmdp_collapse_flush
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ #endif
  
- /**
 _
 
-Patches currently in -mm which might be from vdavydov@parallels.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-gfp-add-__gfp_noaccount.patch
-gfp-add-__gfp_noaccount-v2.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-rtc-rtc-armada38xc-remove-unused-local-flags.patch
 gfp-add-__gfp_noaccount-v2-fix.patch
-kernfs-do-not-account-ino_ida-allocations-to-memcg.patch
-rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list.patch
+cma-page_isolation-check-buddy-before-access-it-fix.patch
+ocfs2-reduce-object-size-of-mlog-uses-fix.patch
+ocfs2-remove-__mlog_cpu_guess.patch
+ocfs2-remove-__mlog_cpu_guess-fix.patch
+mm.patch
+mm-slab_common-support-the-slub_debug-boot-option-on-specific-object-size-fix.patch
+slub-bulk-allocation-from-per-cpu-partial-pages-fix.patch
+mm-fix-mprotect-behaviour-on-vm_locked-vmas-fix.patch
+mm-new-mm-hook-framework.patch
+mm-meminit-inline-some-helper-functions-fix.patch
+mm-meminit-finish-initialisation-of-struct-pages-before-basic-setup-fix.patch
 rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix.patch
+mm-thp-split-out-pmd-collpase-flush-into-a-separate-functions-fix.patch
+mm-clarify-that-the-function-operateds-on-hugepage-pte-fix.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
 mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
+proc-fix-page_size-limit-of-proc-pid-cmdline-fix.patch
+bitmap-remove-explicit-newline-handling-using-scnprintf-format-string-fix.patch
+rtc-omap-add-external-32k-clock-feature-fix.patch
+devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx-fix.patch
 linux-next.patch
+linux-next-rejects.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
