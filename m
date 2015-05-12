@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-memory-failure-split-thp-earlier-in-memory-error-handling.patch added to -mm tree
-Date: Tue, 12 May 2015 15:00:40 -0700
-Message-ID: <55527808.wbSsmEuD/577QOYI%akpm@linux-foundation.org>
+ mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling.patch added to -mm tree
+Date: Tue, 12 May 2015 15:00:42 -0700
+Message-ID: <5552780a.x9oUlTjwtwZrpXtz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33298 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33304 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964799AbbELWAl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 May 2015 18:00:41 -0400
+	with ESMTP id S933812AbbELWAn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 May 2015 18:00:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: n-horiguchi@ah.jp.nec.com, andi@firstfloor.org, kirill@shutemov.name, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory-failure: split thp earlier in memory error handling
+     Subject: mm/memory-failure: introduce get_hwpoison_page() for consistent refcount handling
 has been added to the -mm tree.  Its filename is
-     mm-memory-failure-split-thp-earlier-in-memory-error-handling.patch
+     mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory-failure-split-thp-earlier-in-memory-error-handling.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory-failure-split-thp-earlier-in-memory-error-handling.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,24 +40,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm/memory-failure: split thp earlier in memory error handling
+Subject: mm/memory-failure: introduce get_hwpoison_page() for consistent refcount handling
 
-memory_failure() doesn't handle thp itself at this time and need to split
-it before doing isolation.  Currently thp is split in the middle of
-hwpoison_user_mappings(), but there're corner cases where memory_failure()
-wrongly tries to handle thp without splitting.
+memory_failure() can run in 2 different mode (specified by
+MF_COUNT_INCREASED) in page refcount perspective.  When
+MF_COUNT_INCREASED is set, memory_failure() assumes that the caller
+takes a refcount of the target page.  And if cleared, memory_failure()
+takes it in it's own.
 
-1) "non anonymous" thp, which is not a normal operating mode of thp,
-   but a memory error could hit a thp before anon_vma is initialized.  In
-   such case, split_huge_page() fails and me_huge_page() (intended for
-   hugetlb) is called for thp, which triggers BUG_ON in page_hstate().
+In current code, however, refcounting is done differently in each caller. 
+For example, madvise_hwpoison() uses get_user_pages_fast() and
+hwpoison_inject() uses get_page_unless_zero().  So this inconsistent
+refcounting causes refcount failure especially for thp tail pages. 
+Typical user visible effects are like memory leak or
+VM_BUG_ON_PAGE(!page_count(page)) in isolate_lru_page().
 
-2) !PageLRU case, where hwpoison_user_mappings() returns with
-   SWAP_SUCCESS and the result is the same as case 1.
+To fix this refcounting issue, this patch introduces get_hwpoison_page()
+to handle thp tail pages in the same manner for each caller of hwpoison
+code.
 
-memory_failure() can't avoid splitting, so let's split it more earlier,
-which also reduces code which are prepared for both of normal page and
-thp.
+There's a non-trivial change around unpoisoning, which now returns
+immediately for thp with "MCE: Memory failure is now running on %#lx\n"
+message.  This is not right when split_huge_page() fails.  So this patch
+also allows unpoison_memory() to handle thp.
 
 Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Andi Kleen <andi@firstfloor.org>
@@ -66,166 +71,153 @@ Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   88 +++++++++++-------------------------------
- 1 file changed, 25 insertions(+), 63 deletions(-)
+ include/linux/mm.h   |    1 
+ mm/hwpoison-inject.c |    4 +--
+ mm/memory-failure.c  |   50 ++++++++++++++++++++++++++---------------
+ mm/swap.c            |    2 -
+ 4 files changed, 35 insertions(+), 22 deletions(-)
 
-diff -puN mm/memory-failure.c~mm-memory-failure-split-thp-earlier-in-memory-error-handling mm/memory-failure.c
---- a/mm/memory-failure.c~mm-memory-failure-split-thp-earlier-in-memory-error-handling
-+++ a/mm/memory-failure.c
-@@ -898,7 +898,6 @@ static int hwpoison_user_mappings(struct
- 	int ret;
- 	int kill = 1, forcekill;
- 	struct page *hpage = *hpagep;
--	struct page *ppage;
- 
+diff -puN include/linux/mm.h~mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling include/linux/mm.h
+--- a/include/linux/mm.h~mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling
++++ a/include/linux/mm.h
+@@ -2150,6 +2150,7 @@ enum mf_flags {
+ extern int memory_failure(unsigned long pfn, int trapno, int flags);
+ extern void memory_failure_queue(unsigned long pfn, int trapno, int flags);
+ extern int unpoison_memory(unsigned long pfn);
++extern int get_hwpoison_page(struct page *page);
+ extern int sysctl_memory_failure_early_kill;
+ extern int sysctl_memory_failure_recovery;
+ extern void shake_page(struct page *p, int access);
+diff -puN mm/hwpoison-inject.c~mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling mm/hwpoison-inject.c
+--- a/mm/hwpoison-inject.c~mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling
++++ a/mm/hwpoison-inject.c
+@@ -28,7 +28,7 @@ static int hwpoison_inject(void *data, u
  	/*
- 	 * Here we are interested only in user-mapped pages, so skip any
-@@ -948,59 +947,6 @@ static int hwpoison_user_mappings(struct
+ 	 * This implies unable to support free buddy pages.
+ 	 */
+-	if (!get_page_unless_zero(hpage))
++	if (!get_hwpoison_page(p))
+ 		return 0;
+ 
+ 	if (!hwpoison_filter_enable)
+@@ -58,7 +58,7 @@ inject:
+ 	pr_info("Injecting memory failure at pfn %#lx\n", pfn);
+ 	return memory_failure(pfn, 18, MF_COUNT_INCREASED);
+ put_out:
+-	put_page(hpage);
++	put_page(p);
+ 	return 0;
+ }
+ 
+diff -puN mm/memory-failure.c~mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling
++++ a/mm/memory-failure.c
+@@ -886,6 +886,28 @@ static int page_action(struct page_state
+ }
+ 
+ /*
++ * Get refcount for memory error handling:
++ * - @page: raw page
++ */
++inline int get_hwpoison_page(struct page *page)
++{
++	struct page *head = compound_head(page);
++
++	if (PageHuge(head))
++		return get_page_unless_zero(head);
++	else if (PageTransHuge(head))
++		if (get_page_unless_zero(head)) {
++			if (PageTail(page))
++				get_page(page);
++			return 1;
++		} else {
++			return 0;
++		}
++	else
++		return get_page_unless_zero(page);
++}
++
++/*
+  * Do all that is necessary to remove user space mappings. Unmap
+  * the pages and send SIGBUS to the processes if the data was dirty.
+  */
+@@ -1067,8 +1089,7 @@ int memory_failure(unsigned long pfn, in
+ 	 * In fact it's dangerous to directly bump up page count from 0,
+ 	 * that may make page_freeze_refs()/page_unfreeze_refs() mismatch.
+ 	 */
+-	if (!(flags & MF_COUNT_INCREASED) &&
+-		!get_page_unless_zero(hpage)) {
++	if (!(flags & MF_COUNT_INCREASED) && !get_hwpoison_page(p)) {
+ 		if (is_free_buddy_page(p)) {
+ 			action_result(pfn, MF_MSG_BUDDY, MF_DELAYED);
+ 			return 0;
+@@ -1376,19 +1397,12 @@ int unpoison_memory(unsigned long pfn)
+ 		return 0;
  	}
  
- 	/*
--	 * ppage: poisoned page
--	 *   if p is regular page(4k page)
--	 *        ppage == real poisoned page;
--	 *   else p is hugetlb or THP, ppage == head page.
+-	/*
+-	 * unpoison_memory() can encounter thp only when the thp is being
+-	 * worked by memory_failure() and the page lock is not held yet.
+-	 * In such case, we yield to memory_failure() and make unpoison fail.
 -	 */
--	ppage = hpage;
--
--	if (PageTransHuge(hpage)) {
--		/*
--		 * Verify that this isn't a hugetlbfs head page, the check for
--		 * PageAnon is just for avoid tripping a split_huge_page
--		 * internal debug check, as split_huge_page refuses to deal with
--		 * anything that isn't an anon page. PageAnon can't go away fro
--		 * under us because we hold a refcount on the hpage, without a
--		 * refcount on the hpage. split_huge_page can't be safely called
--		 * in the first place, having a refcount on the tail isn't
--		 * enough * to be safe.
--		 */
--		if (!PageHuge(hpage) && PageAnon(hpage)) {
--			if (unlikely(split_huge_page(hpage))) {
--				/*
--				 * FIXME: if splitting THP is failed, it is
--				 * better to stop the following operation rather
--				 * than causing panic by unmapping. System might
--				 * survive if the page is freed later.
--				 */
--				printk(KERN_INFO
--					"MCE %#lx: failed to split THP\n", pfn);
--
--				BUG_ON(!PageHWPoison(p));
--				return SWAP_FAIL;
--			}
--			/*
--			 * We pinned the head page for hwpoison handling,
--			 * now we split the thp and we are interested in
--			 * the hwpoisoned raw page, so move the refcount
--			 * to it. Similarly, page lock is shifted.
--			 */
--			if (hpage != p) {
--				if (!(flags & MF_COUNT_INCREASED)) {
--					put_page(hpage);
--					get_page(p);
--				}
--				lock_page(p);
--				unlock_page(hpage);
--				*hpagep = p;
--			}
--			/* THP is split, so ppage should be the real poisoned page. */
--			ppage = p;
--		}
+-	if (!PageHuge(page) && PageTransHuge(page)) {
+-		pr_info("MCE: Memory failure is now running on %#lx\n", pfn);
+-			return 0;
 -	}
 -
--	/*
- 	 * First collect all the processes that have the page
- 	 * mapped in dirty form.  This has to be done before try_to_unmap,
- 	 * because ttu takes the rmap data structures down.
-@@ -1009,12 +955,12 @@ static int hwpoison_user_mappings(struct
- 	 * there's nothing that can be done.
+-	nr_pages = 1 << compound_order(page);
++	if (PageHuge(page))
++		nr_pages = 1 << compound_order(page);
++	else
++		nr_pages = 1;
+ 
+-	if (!get_page_unless_zero(page)) {
++	if (!get_hwpoison_page(p)) {
+ 		/*
+ 		 * Since HWPoisoned hugepage should have non-zero refcount,
+ 		 * race between memory failure and unpoison seems to happen.
+@@ -1412,7 +1426,7 @@ int unpoison_memory(unsigned long pfn)
+ 	 * the PG_hwpoison page will be caught and isolated on the entrance to
+ 	 * the free buddy page pool.
  	 */
- 	if (kill)
--		collect_procs(ppage, &tokill, flags & MF_ACTION_REQUIRED);
-+		collect_procs(hpage, &tokill, flags & MF_ACTION_REQUIRED);
- 
--	ret = try_to_unmap(ppage, ttu);
-+	ret = try_to_unmap(hpage, ttu);
- 	if (ret != SWAP_SUCCESS)
- 		printk(KERN_ERR "MCE %#lx: failed to unmap page (mapcount=%d)\n",
--				pfn, page_mapcount(ppage));
-+				pfn, page_mapcount(hpage));
- 
- 	/*
- 	 * Now that the dirty bit has been propagated to the
-@@ -1026,7 +972,7 @@ static int hwpoison_user_mappings(struct
- 	 * use a more force-full uncatchable kill to prevent
- 	 * any accesses to the poisoned memory.
- 	 */
--	forcekill = PageDirty(ppage) || (flags & MF_MUST_KILL);
-+	forcekill = PageDirty(hpage) || (flags & MF_MUST_KILL);
- 	kill_procs(&tokill, forcekill, trapno,
- 		      ret != SWAP_SUCCESS, p, pfn, flags);
- 
-@@ -1072,6 +1018,7 @@ int memory_failure(unsigned long pfn, in
- 	struct page_state *ps;
- 	struct page *p;
- 	struct page *hpage;
-+	struct page *orig_head;
- 	int res;
- 	unsigned int nr_pages;
- 	unsigned long page_flags;
-@@ -1087,7 +1034,7 @@ int memory_failure(unsigned long pfn, in
+-	if (TestClearPageHWPoison(page)) {
++	if (TestClearPageHWPoison(p)) {
+ 		pr_info("MCE: Software-unpoisoned page %#lx\n", pfn);
+ 		atomic_long_sub(nr_pages, &num_poisoned_pages);
+ 		freeit = 1;
+@@ -1421,9 +1435,9 @@ int unpoison_memory(unsigned long pfn)
  	}
+ 	unlock_page(page);
  
- 	p = pfn_to_page(pfn);
--	hpage = compound_head(p);
-+	orig_head = hpage = compound_head(p);
- 	if (TestSetPageHWPoison(p)) {
- 		printk(KERN_ERR "MCE %#lx: already hardware poisoned\n", pfn);
- 		return 0;
-@@ -1150,6 +1097,21 @@ int memory_failure(unsigned long pfn, in
- 		}
- 	}
+-	put_page(page);
++	put_page(p);
+ 	if (freeit && !(pfn == my_zero_pfn(0) && page_count(p) == 1))
+-		put_page(page);
++		put_page(p);
  
-+	if (!PageHuge(p) && PageTransHuge(hpage)) {
-+		if (!PageAnon(hpage)) {
-+			pr_info("MCE: %#lx: non anonymous thp", pfn);
-+			put_page(p);
-+			return -EBUSY;
-+		}
-+		if (unlikely(split_huge_page(hpage))) {
-+			pr_info("MCE: %#lx: thp split failed", pfn);
-+			put_page(p);
-+			return -EBUSY;
-+		}
-+		VM_BUG_ON_PAGE(!page_count(p), p);
-+		hpage = compound_head(p);
-+	}
-+
- 	/*
- 	 * We ignore non-LRU pages for good reasons.
- 	 * - PG_locked is only well defined for LRU pages and a few others
-@@ -1159,9 +1121,9 @@ int memory_failure(unsigned long pfn, in
- 	 * walked by the page reclaim code, however that's not a big loss.
+ 	return 0;
+ }
+@@ -1456,7 +1470,7 @@ static int __get_any_page(struct page *p
+ 	 * When the target page is a free hugepage, just remove it
+ 	 * from free hugepage list.
  	 */
- 	if (!PageHuge(p)) {
--		if (!PageLRU(hpage))
--			shake_page(hpage, 0);
--		if (!PageLRU(hpage)) {
-+		if (!PageLRU(p))
-+			shake_page(p, 0);
-+		if (!PageLRU(p)) {
- 			/*
- 			 * shake_page could have turned it free.
- 			 */
-@@ -1182,7 +1144,7 @@ int memory_failure(unsigned long pfn, in
- 	 * The page could have changed compound pages during the locking.
- 	 * If this happens just bail out.
- 	 */
--	if (compound_head(p) != hpage) {
-+	if (PageCompound(p) && compound_head(p) != orig_head) {
- 		action_result(pfn, MF_MSG_DIFFERENT_COMPOUND, MF_IGNORED);
- 		res = -EBUSY;
- 		goto out;
+-	if (!get_page_unless_zero(compound_head(p))) {
++	if (!get_hwpoison_page(p)) {
+ 		if (PageHuge(p)) {
+ 			pr_info("%s: %#lx free huge page\n", __func__, pfn);
+ 			ret = 0;
+diff -puN mm/swap.c~mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling mm/swap.c
+--- a/mm/swap.c~mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling
++++ a/mm/swap.c
+@@ -209,8 +209,6 @@ out_put_single:
+ 		 */
+ 		if (put_page_testzero(page_head))
+ 			VM_BUG_ON_PAGE(1, page_head);
+-		/* __split_huge_page_refcount will wait now */
+-		VM_BUG_ON_PAGE(page_mapcount(page) <= 0, page);
+ 		atomic_dec(&page->_mapcount);
+ 		VM_BUG_ON_PAGE(atomic_read(&page_head->_count) <= 0, page_head);
+ 		VM_BUG_ON_PAGE(atomic_read(&page->_count) != 0, page);
 _
 
 Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
