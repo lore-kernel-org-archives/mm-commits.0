@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-mm-use-generic-version-of-pmdp_clear_flush.patch added
- to -mm tree
-Date: Tue, 12 May 2015 15:54:14 -0700
-Message-ID: <55528496.YmpN2LlZ1hmrg/wm%akpm@linux-foundation.org>
+Subject: +
+ mm-clarify-that-the-function-operateds-on-hugepage-pte-fix.patch added to
+ -mm tree
+Date: Tue, 12 May 2015 15:54:18 -0700
+Message-ID: <5552849a.ac6X/FF1nk86d1D0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33881 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33898 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751379AbbELWyP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 May 2015 18:54:15 -0400
+	with ESMTP id S934003AbbELWyT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 May 2015 18:54:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.vnet.ibm.com, aarcange@redhat.com, benh@kernel.crashing.org, kirill.shutemov@linux.intel.com, mpe@ellerman.id.au, paulus@samba.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc/mm: use generic version of pmdp_clear_flush
+     Subject: mm-clarify-that-the-function-operateds-on-hugepage-pte-fix
 has been added to the -mm tree.  Its filename is
-     powerpc-mm-use-generic-version-of-pmdp_clear_flush.patch
+     mm-clarify-that-the-function-operateds-on-hugepage-pte-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-mm-use-generic-version-of-pmdp_clear_flush.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-clarify-that-the-function-operateds-on-hugepage-pte-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-mm-use-generic-version-of-pmdp_clear_flush.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-clarify-that-the-function-operateds-on-hugepage-pte-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,95 +40,68 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: powerpc/mm: use generic version of pmdp_clear_flush
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-clarify-that-the-function-operateds-on-hugepage-pte-fix
 
-Also move the pmd_trans_huge check to generic code.
+fix comment
 
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/pgtable-ppc64.h |    4 ----
- arch/powerpc/mm/pgtable_64.c             |   11 -----------
- mm/pgtable-generic.c                     |    1 +
- 3 files changed, 1 insertion(+), 15 deletions(-)
+ include/asm-generic/pgtable.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/powerpc/include/asm/pgtable-ppc64.h~powerpc-mm-use-generic-version-of-pmdp_clear_flush arch/powerpc/include/asm/pgtable-ppc64.h
---- a/arch/powerpc/include/asm/pgtable-ppc64.h~powerpc-mm-use-generic-version-of-pmdp_clear_flush
-+++ a/arch/powerpc/include/asm/pgtable-ppc64.h
-@@ -557,10 +557,6 @@ extern int pmdp_clear_flush_young(struct
- extern pmd_t pmdp_get_and_clear(struct mm_struct *mm,
- 				unsigned long addr, pmd_t *pmdp);
- 
--#define __HAVE_ARCH_PMDP_CLEAR_FLUSH
--extern pmd_t pmdp_clear_flush(struct vm_area_struct *vma, unsigned long address,
--			      pmd_t *pmdp);
--
- #define __HAVE_ARCH_PMDP_SET_WRPROTECT
- static inline void pmdp_set_wrprotect(struct mm_struct *mm, unsigned long addr,
- 				      pmd_t *pmdp)
-diff -puN arch/powerpc/mm/pgtable_64.c~powerpc-mm-use-generic-version-of-pmdp_clear_flush arch/powerpc/mm/pgtable_64.c
---- a/arch/powerpc/mm/pgtable_64.c~powerpc-mm-use-generic-version-of-pmdp_clear_flush
-+++ a/arch/powerpc/mm/pgtable_64.c
-@@ -554,17 +554,6 @@ unsigned long pmd_hugepage_update(struct
- 	return old;
- }
- 
--pmd_t pmdp_clear_flush(struct vm_area_struct *vma, unsigned long address,
--		       pmd_t *pmdp)
--{
--	pmd_t pmd;
--
--	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
--	VM_BUG_ON(!pmd_trans_huge(*pmdp));
--	pmd = pmdp_get_and_clear(vma->vm_mm, address, pmdp);
--	return pmd;
--}
--
- pmd_t pmdp_collapse_flush(struct vm_area_struct *vma, unsigned long address,
- 			  pmd_t *pmdp)
+diff -puN include/asm-generic/pgtable.h~mm-clarify-that-the-function-operateds-on-hugepage-pte-fix include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~mm-clarify-that-the-function-operateds-on-hugepage-pte-fix
++++ a/include/asm-generic/pgtable.h
+@@ -196,7 +196,7 @@ static inline pmd_t pmdp_collapse_flush(
+ 					pmd_t *pmdp)
  {
-diff -puN mm/pgtable-generic.c~powerpc-mm-use-generic-version-of-pmdp_clear_flush mm/pgtable-generic.c
---- a/mm/pgtable-generic.c~powerpc-mm-use-generic-version-of-pmdp_clear_flush
-+++ a/mm/pgtable-generic.c
-@@ -126,6 +126,7 @@ pmd_t pmdp_clear_flush(struct vm_area_st
- {
- 	pmd_t pmd;
- 	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
-+	VM_BUG_ON(!pmd_trans_huge(*pmdp));
- 	pmd = pmdp_get_and_clear(vma->vm_mm, address, pmdp);
- 	flush_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
- 	return pmd;
+ 	/*
+-	 * pmd and hugepage pte format are same. So we could
++	 * pmd and hugepage pte format are the same.  So we could
+ 	 * use the same function.
+ 	 */
+ 	return pmdp_huge_clear_flush(vma, address, pmdp);
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-tracing-mm-dont-trace-kmem_cache_free-on-offline-cpus.patch
-mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare.patch
-mm-thp-split-out-pmd-collpase-flush-into-a-separate-functions.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-rtc-rtc-armada38xc-remove-unused-local-flags.patch
+gfp-add-__gfp_noaccount-v2-fix.patch
+cma-page_isolation-check-buddy-before-access-it-fix.patch
+ocfs2-reduce-object-size-of-mlog-uses-fix.patch
+ocfs2-remove-__mlog_cpu_guess.patch
+ocfs2-remove-__mlog_cpu_guess-fix.patch
+mm.patch
+mm-slab_common-support-the-slub_debug-boot-option-on-specific-object-size-fix.patch
+slub-bulk-allocation-from-per-cpu-partial-pages-fix.patch
+mm-fix-mprotect-behaviour-on-vm_locked-vmas-fix.patch
+mm-new-mm-hook-framework.patch
+mm-meminit-inline-some-helper-functions-fix.patch
+mm-meminit-finish-initialisation-of-struct-pages-before-basic-setup-fix.patch
+rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix.patch
 mm-thp-split-out-pmd-collpase-flush-into-a-separate-functions-fix.patch
-powerpc-mm-use-generic-version-of-pmdp_clear_flush.patch
-mm-clarify-that-the-function-operateds-on-hugepage-pte.patch
 mm-clarify-that-the-function-operateds-on-hugepage-pte-fix.patch
-page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-mm-sanitize-page-mapping-for-tail-pages.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
+proc-fix-page_size-limit-of-proc-pid-cmdline-fix.patch
+bitmap-remove-explicit-newline-handling-using-scnprintf-format-string-fix.patch
+rtc-omap-add-external-32k-clock-feature-fix.patch
+devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx-fix.patch
+linux-next.patch
+linux-next-rejects.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
