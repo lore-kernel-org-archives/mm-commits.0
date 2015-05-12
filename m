@@ -1,70 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mtrr-x86-remove-a-wrong-address-check-in-__mtrr_type_lookup.patch removed
- from -mm tree
-Date: Tue, 12 May 2015 12:57:56 -0700
-Message-ID: <55525b44.YbMG3taxEl7l0wxU%akpm@linux-foundation.org>
+Subject: + tracing-mm-dont-trace-kmem_cache_free-on-offline-cpus.patch
+ added to -mm tree
+Date: Tue, 12 May 2015 13:33:38 -0700
+Message-ID: <555263a2.JJu3TBhZdcPS6kjs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58062 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60298 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933488AbbELT55 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 May 2015 15:57:57 -0400
+	with ESMTP id S1753674AbbELUdj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 May 2015 16:33:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: toshi.kani@hp.com, Elliott@hp.com, dave.hansen@intel.com, hpa@zytor.com, mingo@redhat.com, pebolle@tiscali.nl, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: shreyas@linux.vnet.ibm.com, aneesh.kumar@linux.vnet.ibm.com, preeti@linux.vnet.ibm.com, rostedt@goodmis.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mtrr, x86: remove a wrong address check in __mtrr_type_lookup()
-has been removed from the -mm tree.  Its filename was
-     mtrr-x86-remove-a-wrong-address-check-in-__mtrr_type_lookup.patch
+     Subject: tracing/mm: don't trace kmem_cache_free on offline cpus
+has been added to the -mm tree.  Its filename is
+     tracing-mm-dont-trace-kmem_cache_free-on-offline-cpus.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/tracing-mm-dont-trace-kmem_cache_free-on-offline-cpus.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/tracing-mm-dont-trace-kmem_cache_free-on-offline-cpus.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: mtrr, x86: remove a wrong address check in __mtrr_type_lookup()
+From: "Shreyas B. Prabhu" <shreyas@linux.vnet.ibm.com>
+Subject: tracing/mm: don't trace kmem_cache_free on offline cpus
 
-__mtrr_type_lookup() checks MTRR fixed ranges when mtrr_state.have_fixed
-is set and start is less than 0x100000.  However, the 'else if (start <
-0x1000000)' in the code checks with a wrong address as it has an
-extra-zero in the address.  The code still runs correctly as this check is
-meaningless, though.
+Since tracepoints use RCU for protection, they must not be called on
+offline cpus.  trace_kmem_cache_free can be called on an offline cpu in
+this scenario caught by LOCKDEP:
 
-This patch replaces the wrong address check with 'else' with no condition.
+===============================
+[ INFO: suspicious RCU usage. ]
+4.1.0-rc1+ #9 Not tainted
+-------------------------------
+include/trace/events/kmem.h:148 suspicious rcu_dereference_check() usage!
 
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Robert Elliott <Elliott@hp.com>
-Cc: Paul Bolle <pebolle@tiscali.nl>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
+other info that might help us debug this:
+
+RCU used illegally from offline CPU!
+rcu_scheduler_active = 1, debug_locks = 1
+no locks held by swapper/1/0.
+
+stack backtrace:
+CPU: 1 PID: 0 Comm: swapper/1 Not tainted 4.1.0-rc1+ #9
+Call Trace:
+[c000001fed2f78f0] [c0000000009dee8c] .dump_stack+0x98/0xd4 (unreliable)
+[c000001fed2f7970] [c000000000128d88] .lockdep_rcu_suspicious+0x108/0x170
+[c000001fed2f7a00] [c00000000026f924] .kmem_cache_free+0x344/0x4b0
+[c000001fed2f7ab0] [c0000000000bd1cc] .__mmdrop+0x4c/0x160
+[c000001fed2f7b40] [c0000000001068e0] .idle_task_exit+0xf0/0x100
+[c000001fed2f7bc0] [c000000000066948] .pnv_smp_cpu_kill_self+0x58/0x2c0
+[c000001fed2f7ca0] [c00000000003ce34] .cpu_die+0x34/0x50
+[c000001fed2f7d10] [c0000000000176d0] .arch_cpu_idle_dead+0x20/0x40
+[c000001fed2f7d80] [c00000000011f9a8] .cpu_startup_entry+0x708/0x7a0
+[c000001fed2f7ec0] [c00000000003cb6c] .start_secondary+0x36c/0x3a0
+[c000001fed2f7f90] [c000000000008b6c] start_secondary_prolog+0x10/0x14
+
+Fix this by converting kmem_cache_free trace point into
+TRACE_EVENT_CONDITION where condition is cpu_online(smp_processor_id())
+
+Signed-off-by: Shreyas B. Prabhu <shreyas@linux.vnet.ibm.com>
+Reported-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Reviewed-by: Preeti U Murthy <preeti@linux.vnet.ibm.com>
+Acked-by: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/mtrr/generic.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/trace/events/kmem.h |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/mtrr/generic.c~mtrr-x86-remove-a-wrong-address-check-in-__mtrr_type_lookup arch/x86/kernel/cpu/mtrr/generic.c
---- a/arch/x86/kernel/cpu/mtrr/generic.c~mtrr-x86-remove-a-wrong-address-check-in-__mtrr_type_lookup
-+++ a/arch/x86/kernel/cpu/mtrr/generic.c
-@@ -137,7 +137,7 @@ static u8 __mtrr_type_lookup(u64 start,
- 			idx = 1 * 8;
- 			idx += ((start - 0x80000) >> 14);
- 			return mtrr_state.fixed_ranges[idx];
--		} else if (start < 0x1000000) {
-+		} else {
- 			idx = 3 * 8;
- 			idx += ((start - 0xC0000) >> 12);
- 			return mtrr_state.fixed_ranges[idx];
+diff -puN include/trace/events/kmem.h~tracing-mm-dont-trace-kmem_cache_free-on-offline-cpus include/trace/events/kmem.h
+--- a/include/trace/events/kmem.h~tracing-mm-dont-trace-kmem_cache_free-on-offline-cpus
++++ a/include/trace/events/kmem.h
+@@ -140,11 +140,13 @@ DEFINE_EVENT(kmem_free, kfree,
+ 	TP_ARGS(call_site, ptr)
+ );
+ 
+-DEFINE_EVENT(kmem_free, kmem_cache_free,
++DEFINE_EVENT_CONDITION(kmem_free, kmem_cache_free,
+ 
+ 	TP_PROTO(unsigned long call_site, const void *ptr),
+ 
+-	TP_ARGS(call_site, ptr)
++	TP_ARGS(call_site, ptr),
++
++	TP_CONDITION(cpu_online(smp_processor_id()))
+ );
+ 
+ TRACE_EVENT(mm_page_free,
 _
 
-Patches currently in -mm which might be from toshi.kani@hp.com are
+Patches currently in -mm which might be from shreyas@linux.vnet.ibm.com are
 
-linux-next.patch
+tracing-mm-dont-trace-kmem_cache_free-on-offline-cpus.patch
+tracing-mm-dont-trace-mm_page_free-on-offline-cpus.patch
+tracing-mm-dont-trace-mm_page_pcpu_drain-on-offline-cpus.patch
 
