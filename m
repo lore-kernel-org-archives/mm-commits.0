@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- prepend-elfcorehdr-instead-of-appending-it-to-the-crash-kernel-command-line.patch added to -mm tree
-Date: Wed, 13 May 2015 14:50:09 -0700
-Message-ID: <5553c711.9Q4MunF9toRuw3OZ%akpm@linux-foundation.org>
+Subject: + ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work-v2.patch
+ added to -mm tree
+Date: Wed, 13 May 2015 15:07:07 -0700
+Message-ID: <5553cb0b.W1YkxWg2EMO4ndES%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56184 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56468 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934442AbbEMVuK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 May 2015 17:50:10 -0400
+	with ESMTP id S933971AbbEMWHI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 May 2015 18:07:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: karahmed@amazon.de, ebiederm@xmission.com, hbabu@us.ibm.com, hpa@zytor.com, mingo@redhat.com, tglx@linutronix.de, vgoyal@redhat.com, mm-commits@vger.kernel.org
+To: joseph.qi@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86/kexec: prepend elfcorehdr instead of appending it to the crash-kernel command-line.
+     Subject: ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work-v2
 has been added to the -mm tree.  Its filename is
-     prepend-elfcorehdr-instead-of-appending-it-to-the-crash-kernel-command-line.patch
+     ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work-v2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/prepend-elfcorehdr-instead-of-appending-it-to-the-crash-kernel-command-line.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work-v2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/prepend-elfcorehdr-instead-of-appending-it-to-the-crash-kernel-command-line.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,69 +39,105 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: KarimAllah Ahmed <karahmed@amazon.de>
-Subject: x86/kexec: prepend elfcorehdr instead of appending it to the crash-kernel command-line.
+From: Joseph Qi <joseph.qi@huawei.com>
+Subject: ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work-v2
 
-Any parameter passed after '--' in the kernel command-line will not be
-parsed by the kernel at all, instead it will be passed directly to init
-process.
+Changes since v1:
+As Mark suggested, we can only add it to loop condition and explain the
+case with comments instead of BUG.
 
-Currently the kernel appends elfcorehdr=<paddr> to the cmdline passed from
-kexec load, and if this command-line is used to pass parameters to init
-process this means that 'elfcorehdr' will not be parsed as a kernel
-parameter at all which will be a problem for vmcore subsystem since it
-will know nothing about the location of the ELF structure!
-
-Prepending 'elfcorehdr' instead of appending it fixes this problem since
-it ensures that it always comes before '--' and so it's always parsed as a
-kernel command-line parameter.
-
-Even with this patch things can still go wrong if 'CONFIG_CMDLINE' was
-also used to embedd a command-line to the crash dump kernel and this
-command-line contains '--' since the current behavior of the kernel is to
-actually append the boot loader command-line to the embedded command-line.
-
-Signed-off-by: KarimAllah Ahmed <karahmed@amazon.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Haren Myneni <hbabu@us.ibm.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/kexec-bzimage64.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ fs/ocfs2/dlmglue.c |   18 ++++++++++++------
+ fs/ocfs2/ocfs2.h   |    1 -
+ fs/ocfs2/super.c   |    1 -
+ 3 files changed, 12 insertions(+), 8 deletions(-)
 
-diff -puN arch/x86/kernel/kexec-bzimage64.c~prepend-elfcorehdr-instead-of-appending-it-to-the-crash-kernel-command-line arch/x86/kernel/kexec-bzimage64.c
---- a/arch/x86/kernel/kexec-bzimage64.c~prepend-elfcorehdr-instead-of-appending-it-to-the-crash-kernel-command-line
-+++ a/arch/x86/kernel/kexec-bzimage64.c
-@@ -72,15 +72,16 @@ static int setup_cmdline(struct kimage *
- 			 unsigned long cmdline_len)
+diff -puN fs/ocfs2/dlmglue.c~ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work-v2 fs/ocfs2/dlmglue.c
+--- a/fs/ocfs2/dlmglue.c~ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work-v2
++++ a/fs/ocfs2/dlmglue.c
+@@ -3198,7 +3198,6 @@ void ocfs2_mark_lockres_freeing(struct o
+ 		spin_lock_irqsave(&osb->dc_task_lock, flags2);
+ 		list_del_init(&lockres->l_blocked_list);
+ 		osb->blocked_lock_count--;
+-		osb->blocked_lock_processed--;
+ 		spin_unlock_irqrestore(&osb->dc_task_lock, flags2);
+ 		/*
+ 		 * Warn if we recurse into another post_unlock call.  Strictly
+@@ -4016,6 +4015,7 @@ static void ocfs2_schedule_blocked_lock(
+ 
+ static void ocfs2_downconvert_thread_do_work(struct ocfs2_super *osb)
  {
- 	char *cmdline_ptr = ((char *)params) + cmdline_offset;
--	unsigned long cmdline_ptr_phys, len;
-+	unsigned long cmdline_ptr_phys, len = 0;
- 	uint32_t cmdline_low_32, cmdline_ext_32;
++	unsigned long processed;
+ 	unsigned long flags;
+ 	struct ocfs2_lock_res *lockres;
  
--	memcpy(cmdline_ptr, cmdline, cmdline_len);
- 	if (image->type == KEXEC_TYPE_CRASH) {
--		len = sprintf(cmdline_ptr + cmdline_len - 1,
--			" elfcorehdr=0x%lx", image->arch.elf_load_addr);
--		cmdline_len += len;
-+		len = sprintf(cmdline_ptr,
-+			"elfcorehdr=0x%lx ", image->arch.elf_load_addr);
- 	}
-+	memcpy(cmdline_ptr + len, cmdline, cmdline_len);
-+	cmdline_len += len;
+@@ -4024,17 +4024,23 @@ static void ocfs2_downconvert_thread_do_
+ 	 * wake happens part-way through our work  */
+ 	osb->dc_work_sequence = osb->dc_wake_sequence;
+ 
+-	osb->blocked_lock_processed = osb->blocked_lock_count;
+-	while (osb->blocked_lock_processed) {
+-		BUG_ON(list_empty(&osb->blocked_lock_list));
+-
++	processed = osb->blocked_lock_count;
++	/*
++	 * blocked lock processing in this loop might call iput which can
++	 * remove items off osb->blocked_lock_list. Downconvert up to
++	 * 'processed' number of locks, but stop short if we had some
++	 * removed in ocfs2_mark_lockres_freeing when downconverting.
++	 */
++	while (processed && !list_empty(&osb->blocked_lock_list)) {
+ 		lockres = list_entry(osb->blocked_lock_list.next,
+ 				     struct ocfs2_lock_res, l_blocked_list);
+ 		list_del_init(&lockres->l_blocked_list);
+ 		osb->blocked_lock_count--;
+-		osb->blocked_lock_processed--;
+ 		spin_unlock_irqrestore(&osb->dc_task_lock, flags);
+ 
++		BUG_ON(!processed);
++		processed--;
 +
- 	cmdline_ptr[cmdline_len - 1] = '\0';
+ 		ocfs2_process_blocked_lock(osb, lockres);
  
- 	pr_debug("Final command line is: %s\n", cmdline_ptr);
+ 		spin_lock_irqsave(&osb->dc_task_lock, flags);
+diff -puN fs/ocfs2/ocfs2.h~ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work-v2 fs/ocfs2/ocfs2.h
+--- a/fs/ocfs2/ocfs2.h~ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work-v2
++++ a/fs/ocfs2/ocfs2.h
+@@ -424,7 +424,6 @@ struct ocfs2_super
+ 	 */
+ 	struct list_head blocked_lock_list;
+ 	unsigned long blocked_lock_count;
+-	unsigned long blocked_lock_processed;
+ 
+ 	/* List of dquot structures to drop last reference to */
+ 	struct llist_head dquot_drop_list;
+diff -puN fs/ocfs2/super.c~ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work-v2 fs/ocfs2/super.c
+--- a/fs/ocfs2/super.c~ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work-v2
++++ a/fs/ocfs2/super.c
+@@ -2089,7 +2089,6 @@ static int ocfs2_initialize_super(struct
+ 	osb->dc_wake_sequence = 0;
+ 	INIT_LIST_HEAD(&osb->blocked_lock_list);
+ 	osb->blocked_lock_count = 0;
+-	osb->blocked_lock_processed = 0;
+ 	spin_lock_init(&osb->osb_lock);
+ 	spin_lock_init(&osb->osb_xattr_lock);
+ 	ocfs2_init_steal_slots(osb);
 _
 
-Patches currently in -mm which might be from karahmed@amazon.de are
+Patches currently in -mm which might be from joseph.qi@huawei.com are
 
-prepend-elfcorehdr-instead-of-appending-it-to-the-crash-kernel-command-line.patch
+ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work.patch
+ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work-v2.patch
+ocfs2-fix-a-tiny-race-when-truncate-dio-orohaned-entry.patch
+ocfs2-use-retval-instead-of-status-for-checking-error.patch
+ocfs2-dlm-cleanup-unused-function-__dlm_wait_on_lockres_flags_set.patch
+ocfs2-do-not-bug-if-jbd2_journal_dirty_metadata-fails.patch
+ocfs2-set-filesytem-read-only-when-ocfs2_delete_entry-failed.patch
+ocfs2-set-filesytem-read-only-when-ocfs2_delete_entry-failed-v2.patch
+ocfs2-avoid-access-invalid-address-when-read-o2dlm-debug-messages.patch
 
