@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work-v2.patch
- added to -mm tree
-Date: Wed, 13 May 2015 15:07:07 -0700
-Message-ID: <5553cb0b.W1YkxWg2EMO4ndES%akpm@linux-foundation.org>
+Subject: + mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch added to -mm tree
+Date: Wed, 13 May 2015 15:22:40 -0700
+Message-ID: <5553ceb0.hiT/DFVnxIz7CnOl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56468 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56611 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933971AbbEMWHI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 May 2015 18:07:08 -0400
+	with ESMTP id S965390AbbEMWWl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 May 2015 18:22:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joseph.qi@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mhocko@suse.cz, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work-v2
+     Subject: mm-dont-split-thp-page-when-syscall-is-called-fix-3
 has been added to the -mm tree.  Its filename is
-     ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work-v2.patch
+     mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work-v2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work-v2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,105 +38,77 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@huawei.com>
-Subject: ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work-v2
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-dont-split-thp-page-when-syscall-is-called-fix-3
 
-Changes since v1:
-As Mark suggested, we can only add it to loop condition and explain the
-case with comments instead of BUG.
+fix it for mm-clarify-that-the-function-operateds-on-hugepage-pte.patch
 
-Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlmglue.c |   18 ++++++++++++------
- fs/ocfs2/ocfs2.h   |    1 -
- fs/ocfs2/super.c   |    1 -
- 3 files changed, 12 insertions(+), 8 deletions(-)
+ mm/huge_memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/dlmglue.c~ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work-v2 fs/ocfs2/dlmglue.c
---- a/fs/ocfs2/dlmglue.c~ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work-v2
-+++ a/fs/ocfs2/dlmglue.c
-@@ -3198,7 +3198,6 @@ void ocfs2_mark_lockres_freeing(struct o
- 		spin_lock_irqsave(&osb->dc_task_lock, flags2);
- 		list_del_init(&lockres->l_blocked_list);
- 		osb->blocked_lock_count--;
--		osb->blocked_lock_processed--;
- 		spin_unlock_irqrestore(&osb->dc_task_lock, flags2);
- 		/*
- 		 * Warn if we recurse into another post_unlock call.  Strictly
-@@ -4016,6 +4015,7 @@ static void ocfs2_schedule_blocked_lock(
+diff -puN include/linux/huge_mm.h~mm-dont-split-thp-page-when-syscall-is-called-fix-3 include/linux/huge_mm.h
+diff -puN mm/huge_memory.c~mm-dont-split-thp-page-when-syscall-is-called-fix-3 mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-dont-split-thp-page-when-syscall-is-called-fix-3
++++ a/mm/huge_memory.c
+@@ -1396,7 +1396,7 @@ int madvise_free_huge_pmd(struct mmu_gat
+ 		struct page *page;
+ 		pmd_t orig_pmd;
  
- static void ocfs2_downconvert_thread_do_work(struct ocfs2_super *osb)
- {
-+	unsigned long processed;
- 	unsigned long flags;
- 	struct ocfs2_lock_res *lockres;
+-		orig_pmd = pmdp_get_and_clear(mm, addr, pmd);
++		orig_pmd = pmdp_huge_get_and_clear(mm, addr, pmd);
  
-@@ -4024,17 +4024,23 @@ static void ocfs2_downconvert_thread_do_
- 	 * wake happens part-way through our work  */
- 	osb->dc_work_sequence = osb->dc_wake_sequence;
- 
--	osb->blocked_lock_processed = osb->blocked_lock_count;
--	while (osb->blocked_lock_processed) {
--		BUG_ON(list_empty(&osb->blocked_lock_list));
--
-+	processed = osb->blocked_lock_count;
-+	/*
-+	 * blocked lock processing in this loop might call iput which can
-+	 * remove items off osb->blocked_lock_list. Downconvert up to
-+	 * 'processed' number of locks, but stop short if we had some
-+	 * removed in ocfs2_mark_lockres_freeing when downconverting.
-+	 */
-+	while (processed && !list_empty(&osb->blocked_lock_list)) {
- 		lockres = list_entry(osb->blocked_lock_list.next,
- 				     struct ocfs2_lock_res, l_blocked_list);
- 		list_del_init(&lockres->l_blocked_list);
- 		osb->blocked_lock_count--;
--		osb->blocked_lock_processed--;
- 		spin_unlock_irqrestore(&osb->dc_task_lock, flags);
- 
-+		BUG_ON(!processed);
-+		processed--;
-+
- 		ocfs2_process_blocked_lock(osb, lockres);
- 
- 		spin_lock_irqsave(&osb->dc_task_lock, flags);
-diff -puN fs/ocfs2/ocfs2.h~ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work-v2 fs/ocfs2/ocfs2.h
---- a/fs/ocfs2/ocfs2.h~ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work-v2
-+++ a/fs/ocfs2/ocfs2.h
-@@ -424,7 +424,6 @@ struct ocfs2_super
- 	 */
- 	struct list_head blocked_lock_list;
- 	unsigned long blocked_lock_count;
--	unsigned long blocked_lock_processed;
- 
- 	/* List of dquot structures to drop last reference to */
- 	struct llist_head dquot_drop_list;
-diff -puN fs/ocfs2/super.c~ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work-v2 fs/ocfs2/super.c
---- a/fs/ocfs2/super.c~ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work-v2
-+++ a/fs/ocfs2/super.c
-@@ -2089,7 +2089,6 @@ static int ocfs2_initialize_super(struct
- 	osb->dc_wake_sequence = 0;
- 	INIT_LIST_HEAD(&osb->blocked_lock_list);
- 	osb->blocked_lock_count = 0;
--	osb->blocked_lock_processed = 0;
- 	spin_lock_init(&osb->osb_lock);
- 	spin_lock_init(&osb->osb_xattr_lock);
- 	ocfs2_init_steal_slots(osb);
+ 		/* No hugepage in swapcache */
+ 		page = pmd_page(orig_pmd);
+diff -puN mm/madvise.c~mm-dont-split-thp-page-when-syscall-is-called-fix-3 mm/madvise.c
+diff -puN mm/rmap.c~mm-dont-split-thp-page-when-syscall-is-called-fix-3 mm/rmap.c
+diff -puN mm/vmscan.c~mm-dont-split-thp-page-when-syscall-is-called-fix-3 mm/vmscan.c
 _
 
-Patches currently in -mm which might be from joseph.qi@huawei.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work.patch
-ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work-v2.patch
-ocfs2-fix-a-tiny-race-when-truncate-dio-orohaned-entry.patch
-ocfs2-use-retval-instead-of-status-for-checking-error.patch
-ocfs2-dlm-cleanup-unused-function-__dlm_wait_on_lockres_flags_set.patch
-ocfs2-do-not-bug-if-jbd2_journal_dirty_metadata-fails.patch
-ocfs2-set-filesytem-read-only-when-ocfs2_delete_entry-failed.patch
-ocfs2-set-filesytem-read-only-when-ocfs2_delete_entry-failed-v2.patch
-ocfs2-avoid-access-invalid-address-when-read-o2dlm-debug-messages.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-rtc-rtc-armada38xc-remove-unused-local-flags.patch
+gfp-add-__gfp_noaccount-v2-fix.patch
+cma-page_isolation-check-buddy-before-access-it-fix.patch
+ocfs2-reduce-object-size-of-mlog-uses-fix.patch
+ocfs2-remove-__mlog_cpu_guess.patch
+ocfs2-remove-__mlog_cpu_guess-fix.patch
+mm.patch
+mm-slab_common-support-the-slub_debug-boot-option-on-specific-object-size-fix.patch
+slub-bulk-allocation-from-per-cpu-partial-pages-fix.patch
+mm-fix-mprotect-behaviour-on-vm_locked-vmas-fix.patch
+mm-new-mm-hook-framework.patch
+mm-meminit-inline-some-helper-functions-fix.patch
+mm-meminit-finish-initialisation-of-struct-pages-before-basic-setup-fix.patch
+rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix.patch
+rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix-fix.patch
+mm-thp-split-out-pmd-collpase-flush-into-a-separate-functions-fix.patch
+mm-clarify-that-the-function-operateds-on-hugepage-pte-fix.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
+proc-fix-page_size-limit-of-proc-pid-cmdline-fix.patch
+bitmap-remove-explicit-newline-handling-using-scnprintf-format-string-fix.patch
+radix-tree-replace-preallocated-node-array-with-linked-list-fix.patch
+rtc-omap-add-external-32k-clock-feature-fix.patch
+devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx-fix.patch
+linux-next.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
