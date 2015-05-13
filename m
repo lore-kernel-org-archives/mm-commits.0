@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- net-switchdev-switchdevc-work-around-gcc-444-initializer-bug.patch added to -mm tree
-Date: Wed, 13 May 2015 15:51:19 -0700
-Message-ID: <5553d567.vj+QBREaArQ7c4Mb%akpm@linux-foundation.org>
+Subject: + make-drivers-misc-kgdbtsc-link.patch added to -mm tree
+Date: Wed, 13 May 2015 15:56:37 -0700
+Message-ID: <5553d6a5.HYsHr6JWKOJQpyKA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56979 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57100 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934657AbbEMWvU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 May 2015 18:51:20 -0400
+	with ESMTP id S934426AbbEMW4i (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 May 2015 18:56:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davem@davemloft.net, jiri@resnulli.us, sfeldma@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, josh@joshtriplett.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: net/switchdev/switchdev.c: work around gcc-4.4.4 initializer bug
+     Subject: make drivers/misc/kgdbts.c link
 has been added to the -mm tree.  Its filename is
-     net-switchdev-switchdevc-work-around-gcc-444-initializer-bug.patch
+     make-drivers-misc-kgdbtsc-link.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/net-switchdev-switchdevc-work-around-gcc-444-initializer-bug.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/make-drivers-misc-kgdbtsc-link.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/net-switchdev-switchdevc-work-around-gcc-444-initializer-bug.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/make-drivers-misc-kgdbtsc-link.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,91 +39,34 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: net/switchdev/switchdev.c: work around gcc-4.4.4 initializer bug
+Subject: make drivers/misc/kgdbts.c link
 
-gcc-4.4.4 (at least) doesn't like mixing anonymous unions with initializers.
-
-This workaround is pretty lame and maybe there's a better way, but it
-doesn't increase net/switchdev/switchdev.o's object size with gcc-4.8.2.
-
-Cc: Scott Feldman <sfeldma@gmail.com>
-Cc: Jiri Pirko <jiri@resnulli.us>
-Cc: David S. Miller <davem@davemloft.net>
+Cc: Josh Triplett <josh@joshtriplett.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/switchdev/switchdev.c |   40 +++++++++++++++++++-----------------
- 1 file changed, 22 insertions(+), 18 deletions(-)
+ kernel/fork.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN net/switchdev/switchdev.c~net-switchdev-switchdevc-work-around-gcc-444-initializer-bug net/switchdev/switchdev.c
---- a/net/switchdev/switchdev.c~net-switchdev-switchdevc-work-around-gcc-444-initializer-bug
-+++ a/net/switchdev/switchdev.c
-@@ -641,21 +641,23 @@ static struct net_device *switchdev_get_
- int switchdev_fib_ipv4_add(u32 dst, int dst_len, struct fib_info *fi,
- 			   u8 tos, u8 type, u32 nlflags, u32 tb_id)
- {
-+	struct switchdev_obj_ipv4_fib ipv4_fib = {
-+		.dst = htonl(dst),
-+		.dst_len = dst_len,
-+		.fi = fi,
-+		.tos = tos,
-+		.type = type,
-+		.nlflags = nlflags,
-+		.tb_id = tb_id,
-+	};
- 	struct switchdev_obj fib_obj = {
- 		.id = SWITCHDEV_OBJ_IPV4_FIB,
--		.ipv4_fib = {
--			.dst = htonl(dst),
--			.dst_len = dst_len,
--			.fi = fi,
--			.tos = tos,
--			.type = type,
--			.nlflags = nlflags,
--			.tb_id = tb_id,
--		},
- 	};
- 	struct net_device *dev;
- 	int err = 0;
+diff -puN kernel/fork.c~make-drivers-misc-kgdbtsc-link kernel/fork.c
+--- a/kernel/fork.c~make-drivers-misc-kgdbtsc-link
++++ a/kernel/fork.c
+@@ -1744,7 +1744,6 @@ static long _do_fork(
+ 	return nr;
+ }
  
-+	fib_obj.ipv4_fib = ipv4_fib;
-+
- 	/* Don't offload route if using custom ip rules or if
- 	 * IPv4 FIB offloading has been disabled completely.
- 	 */
-@@ -695,21 +697,23 @@ EXPORT_SYMBOL_GPL(switchdev_fib_ipv4_add
- int switchdev_fib_ipv4_del(u32 dst, int dst_len, struct fib_info *fi,
- 			   u8 tos, u8 type, u32 tb_id)
- {
-+	struct switchdev_obj_ipv4_fib ipv4_fib = {
-+		.dst = htonl(dst),
-+		.dst_len = dst_len,
-+		.fi = fi,
-+		.tos = tos,
-+		.type = type,
-+		.nlflags = 0,
-+		.tb_id = tb_id,
-+	};
- 	struct switchdev_obj fib_obj = {
- 		.id = SWITCHDEV_OBJ_IPV4_FIB,
--		.ipv4_fib = {
--			.dst = htonl(dst),
--			.dst_len = dst_len,
--			.fi = fi,
--			.tos = tos,
--			.type = type,
--			.nlflags = 0,
--			.tb_id = tb_id,
--		},
- 	};
- 	struct net_device *dev;
- 	int err = 0;
+-#ifndef CONFIG_HAVE_COPY_THREAD_TLS
+ /* For compatibility with architectures that call do_fork directly rather than
+  * using the syscall entry points below. */
+ long do_fork(unsigned long clone_flags,
+@@ -1756,7 +1755,6 @@ long do_fork(unsigned long clone_flags,
+ 	return _do_fork(clone_flags, stack_start, stack_size,
+ 			parent_tidptr, child_tidptr, 0);
+ }
+-#endif
  
-+	fib_obj.ipv4_fib = ipv4_fib;
-+
- 	if (!(fi->fib_flags & RTNH_F_EXTERNAL))
- 		return 0;
- 
+ /*
+  * Create a kernel thread.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -164,11 +106,12 @@ linux-next.patch
 linux-next-rejects.patch
 linux-next-git-rejects.patch
 net-bridge-br_stpc-work-around-gcc-444-initializer-bug.patch
+net-switchdev-switchdevc-work-around-gcc-444-initializer-bug.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
 journal_add_journal_head-debug.patch
 journal_add_journal_head-debug-fix.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
 mutex-subsystem-synchro-test-module.patch
 slab-leaks3-default-y.patch
-net-switchdev-switchdevc-work-around-gcc-444-initializer-bug.patch
+make-drivers-misc-kgdbtsc-link.patch
 
