@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + printk-implement-support-for-extended-console-drivers.patch
- added to -mm tree
-Date: Thu, 14 May 2015 13:28:52 -0700
-Message-ID: <55550584.bJ5CtA8nx5/cIo4c%akpm@linux-foundation.org>
+Subject: + netconsole-implement-extended-console-support.patch added to
+ -mm tree
+Date: Thu, 14 May 2015 13:29:00 -0700
+Message-ID: <5555058c.TAjcf+lr7SxvFvxp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46709 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46731 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932472AbbENU2x (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 May 2015 16:28:53 -0400
+	with ESMTP id S932953AbbENU3B (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 May 2015 16:29:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: tj@kernel.org, davem@davemloft.net, kay@vrfy.org, penguin-kernel@I-love.SAKURA.ne.jp, pmladek@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: printk: implement support for extended console drivers
+     Subject: netconsole: implement extended console support
 has been added to the -mm tree.  Its filename is
-     printk-implement-support-for-extended-console-drivers.patch
+     netconsole-implement-extended-console-support.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/printk-implement-support-for-extended-console-drivers.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/netconsole-implement-extended-console-support.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/printk-implement-support-for-extended-console-drivers.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/netconsole-implement-extended-console-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,34 +40,44 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: printk: implement support for extended console drivers
+Subject: netconsole: implement extended console support
 
-printk log_buf keeps various metadata for each message including its
-sequence number and timestamp.  The metadata is currently available only
-through /dev/kmsg and stripped out before passed onto console drivers.  We
-want this metadata to be available to console drivers too so that console
-consumers can get full information including the metadata and dictionary,
-which among other things can be used to detect whether messages got lost
-in transit.
+printk logbuf keeps various metadata and optional key=value dictionary for
+structured messages, both of which are stripped when messages are handed
+to regular console drivers.
 
-This patch implements support for extended console drivers.  Consoles can
-indicate that they want extended messages by setting the new CON_EXTENDED
-flag and they'll be fed messages formatted the same way as /dev/kmsg.
+It can be useful to have this metadata and dictionary available to
+netconsole consumers.  This obviously makes logging via netconsole more
+complete and the sequence number in particular is useful in environments
+where messages may be lost or reordered in transit - e.g.  when netconsole
+is used to collect messages in a large cluster where packets may have to
+travel congested hops to reach the aggregator.  The lost and reordered
+messages can easily be identified and handled accordingly using the
+sequence numbers.
 
- "<level>,<sequnum>,<timestamp>,<contflag>;<message text>\n"
+printk recently added extended console support which can be selected by
+setting CON_EXTENDED flag.  From console driver side, not much changes. 
+The only difference is that the text passed to the write callback is
+formatted the same way as /dev/kmsg.
 
-If extended consoles exist, in-kernel fragment assembly is disabled.  This
-ensures that all messages emitted to consoles have full metadata including
-sequence number.  The contflag carries enough information to reassemble
-the fragments from the reader side trivially.  Note that this only affects
-/dev/kmsg.  Regular console and /proc/kmsg outputs are not affected by
-this change.
+This patch implements extended console support for netconsole which can be
+enabled by either prepending "+" to a netconsole boot param entry or
+echoing 1 to "extended" file in configfs.  When enabled, netconsole
+transmits extended log messages with headers identical to /dev/kmsg
+output.
 
-* Extended message formatting for console drivers is enabled iff there
-  are registered extended consoles.
+There's one complication due to message fragments.  netconsole limits the
+maximum message size to 1k and messages longer than that are split into
+multiple fragments.  As all extended console messages should carry
+matching headers and be uniquely identifiable, each extended message
+fragment carries full copy of the metadata and an extra header field to
+identify the specific fragment.  The optional header is of the form
+"ncfrag=OFF/LEN" where OFF is the byte offset into the message body and
+LEN is the total length.
 
-* Comment describing /dev/kmsg message format updated to add missing
-  contflag field and help distinguishing variable from verbatim terms.
+To avoid unnecessarily making printk format extended messages, Extended
+netconsole is registered with printk when the first extended netconsole is
+configured.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
 Cc: David Miller <davem@davemloft.net>
@@ -77,200 +87,320 @@ Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/dev-kmsg |    9 +++
- include/linux/console.h            |    1 
- kernel/printk/printk.c             |   66 +++++++++++++++++++++++----
- 3 files changed, 68 insertions(+), 8 deletions(-)
+ Documentation/networking/netconsole.txt |   35 +++++
+ drivers/net/netconsole.c                |  141 +++++++++++++++++++++-
+ 2 files changed, 173 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/ABI/testing/dev-kmsg~printk-implement-support-for-extended-console-drivers Documentation/ABI/testing/dev-kmsg
---- a/Documentation/ABI/testing/dev-kmsg~printk-implement-support-for-extended-console-drivers
-+++ a/Documentation/ABI/testing/dev-kmsg
-@@ -98,4 +98,13 @@ Description:	The /dev/kmsg character dev
- 		logic is used internally when messages are printed to the
- 		console, /proc/kmsg or the syslog() syscall.
+diff -puN Documentation/networking/netconsole.txt~netconsole-implement-extended-console-support Documentation/networking/netconsole.txt
+--- a/Documentation/networking/netconsole.txt~netconsole-implement-extended-console-support
++++ a/Documentation/networking/netconsole.txt
+@@ -2,6 +2,7 @@
+ started by Ingo Molnar <mingo@redhat.com>, 2001.09.17
+ 2.6 port and netpoll api by Matt Mackall <mpm@selenic.com>, Sep 9 2003
+ IPv6 support by Cong Wang <xiyou.wangcong@gmail.com>, Jan 1 2013
++Extended console support by Tejun Heo <tj@kernel.org>, May 1 2015
  
-+		By default, kernel tries to avoid fragments by concatenating
-+		when it can and fragments are rare; however, when extended
-+		console support is enabled, the in-kernel concatenation is
-+		disabled and /dev/kmsg output will contain more fragments. If
-+		the log consumer performs concatenation, the end result
-+		should be the same. In the future, the in-kernel concatenation
-+		may be removed entirely and /dev/kmsg users are recommended to
-+		implement fragment handling.
+ Please send bug reports to Matt Mackall <mpm@selenic.com>
+ Satyam Sharma <satyam.sharma@gmail.com>, and Cong Wang <xiyou.wangcong@gmail.com>
+@@ -24,9 +25,10 @@ Sender and receiver configuration:
+ It takes a string configuration parameter "netconsole" in the
+ following format:
+ 
+- netconsole=[src-port]@[src-ip]/[<dev>],[tgt-port]@<tgt-ip>/[tgt-macaddr]
++ netconsole=[+][src-port]@[src-ip]/[<dev>],[tgt-port]@<tgt-ip>/[tgt-macaddr]
+ 
+    where
++        +             if present, enable extended console support
+         src-port      source for UDP packets (defaults to 6665)
+         src-ip        source IP to use (interface address)
+         dev           network interface (eth0)
+@@ -107,6 +109,7 @@ To remove a target:
+ The interface exposes these parameters of a netconsole target to userspace:
+ 
+ 	enabled		Is this target currently enabled?	(read-write)
++	extended	Extended mode enabled			(read-write)
+ 	dev_name	Local network interface name		(read-write)
+ 	local_port	Source UDP port to use			(read-write)
+ 	remote_port	Remote agent's UDP port			(read-write)
+@@ -132,6 +135,36 @@ You can also update the local interface
+ useful if you want to use interfaces that have newly come up (and may not
+ have existed when netconsole was loaded / initialized).
+ 
++Extended console:
++=================
 +
- Users:		dmesg(1), userspace kernel log consumers
-diff -puN include/linux/console.h~printk-implement-support-for-extended-console-drivers include/linux/console.h
---- a/include/linux/console.h~printk-implement-support-for-extended-console-drivers
-+++ a/include/linux/console.h
-@@ -115,6 +115,7 @@ static inline int con_debug_leave(void)
- #define CON_BOOT	(8)
- #define CON_ANYTIME	(16) /* Safe to call when cpu is offline */
- #define CON_BRL		(32) /* Used for a braille device */
-+#define CON_EXTENDED	(64) /* Use the extended output format a la /dev/kmsg */
- 
- struct console {
- 	char	name[16];
-diff -puN kernel/printk/printk.c~printk-implement-support-for-extended-console-drivers kernel/printk/printk.c
---- a/kernel/printk/printk.c~printk-implement-support-for-extended-console-drivers
-+++ a/kernel/printk/printk.c
-@@ -85,6 +85,18 @@ static struct lockdep_map console_lock_d
- #endif
- 
- /*
-+ * Number of registered extended console drivers.
-+ *
-+ * If extended consoles are present, in-kernel cont reassembly is disabled
-+ * and each fragment is stored as a separate log entry with proper
-+ * continuation flag so that every emitted message has full metadata.  This
-+ * doesn't change the result for regular consoles or /proc/kmsg.  For
-+ * /dev/kmsg, as long as the reader concatenates messages according to
-+ * consecutive continuation flags, the end result should be the same too.
-+ */
-+static int nr_ext_console_drivers;
++If '+' is prefixed to the configuration line or "extended" config file
++is set to 1, extended console support is enabled. An example boot
++param follows.
 +
++ linux netconsole=+4444@10.0.0.1/eth1,9353@10.0.0.2/12:34:56:78:9a:bc
++
++Log messages are transmitted with extended metadata header in the
++following format which is the same as /dev/kmsg.
++
++ <level>,<sequnum>,<timestamp>,<contflag>;<message text>
++
++Non printable characters in <message text> are escaped using "\xff"
++notation. If the message contains optional dictionary, verbatim
++newline is used as the delimeter.
++
++If a message doesn't fit in certain number of bytes (currently 1000),
++the message is split into multiple fragments by netconsole. These
++fragments are transmitted with "ncfrag" header field added.
++
++ ncfrag=<byte-offset>/<total-bytes>
++
++For example, assuming a lot smaller chunk size, a message "the first
++chunk, the 2nd chunk." may be split as follows.
++
++ 6,416,1758426,-,ncfrag=0/31;the first chunk,
++ 6,416,1758426,-,ncfrag=16/31; the 2nd chunk.
++
+ Miscellaneous notes:
+ ====================
+ 
+diff -puN drivers/net/netconsole.c~netconsole-implement-extended-console-support drivers/net/netconsole.c
+--- a/drivers/net/netconsole.c~netconsole-implement-extended-console-support
++++ a/drivers/net/netconsole.c
+@@ -79,6 +79,12 @@ static LIST_HEAD(target_list);
+ /* This needs to be a spinlock because write_msg() cannot sleep */
+ static DEFINE_SPINLOCK(target_list_lock);
+ 
 +/*
-  * Helper macros to handle lockdep when locking/unlocking console_sem. We use
-  * macros instead of functions so that _RET_IP_ contains useful information.
-  */
-@@ -195,7 +207,7 @@ static int console_may_schedule;
-  * need to be changed in the future, when the requirements change.
-  *
-  * /dev/kmsg exports the structured data in the following line format:
-- *   "level,sequnum,timestamp;<message text>\n"
-+ *   "<level>,<sequnum>,<timestamp>,<contflag>;<message text>\n"
-  *
-  * The optional key/value pairs are attached as continuation lines starting
-  * with a space character and terminated by a newline. All possible
-@@ -1417,7 +1429,9 @@ SYSCALL_DEFINE3(syslog, int, type, char
-  * log_buf[start] to log_buf[end - 1].
-  * The console_lock must be held.
-  */
--static void call_console_drivers(int level, const char *text, size_t len)
-+static void call_console_drivers(int level,
-+				 const char *ext_text, size_t ext_len,
-+				 const char *text, size_t len)
- {
- 	struct console *con;
++ * Console driver for extended netconsoles.  Registered on the first use to
++ * avoid unnecessarily enabling ext message formatting.
++ */
++static struct console netconsole_ext;
++
+ /**
+  * struct netconsole_target - Represents a configured netconsole target.
+  * @list:	Links this target into the target_list.
+@@ -105,6 +111,7 @@ struct netconsole_target {
+ 	struct config_item	item;
+ #endif
+ 	bool			enabled;
++	bool			extended;
+ 	struct netpoll		np;
+ };
  
-@@ -1438,7 +1452,10 @@ static void call_console_drivers(int lev
- 		if (!cpu_online(smp_processor_id()) &&
- 		    !(con->flags & CON_ANYTIME))
- 			continue;
--		con->write(con, text, len);
-+		if (con->flags & CON_EXTENDED)
-+			con->write(con, ext_text, ext_len);
-+		else
-+			con->write(con, text, len);
- 	}
+@@ -187,6 +194,11 @@ static struct netconsole_target *alloc_p
+ 	nt->np.remote_port = 6666;
+ 	eth_broadcast_addr(nt->np.remote_mac);
+ 
++	if (*target_config == '+') {
++		nt->extended = true;
++		target_config++;
++	}
++
+ 	/* Parse parameters and setup netpoll */
+ 	err = netpoll_parse_options(&nt->np, target_config);
+ 	if (err)
+@@ -257,6 +269,11 @@ static ssize_t show_enabled(struct netco
+ 	return snprintf(buf, PAGE_SIZE, "%d\n", nt->enabled);
  }
  
-@@ -1581,8 +1598,12 @@ static bool cont_add(int facility, int l
- 	if (cont.len && cont.flushed)
- 		return false;
- 
--	if (cont.len + len > sizeof(cont.buf)) {
--		/* the line gets too long, split it up in separate records */
-+	/*
-+	 * If ext consoles are present, flush and skip in-kernel
-+	 * continuation.  See nr_ext_console_drivers definition.  Also, if
-+	 * the line gets too long, split it up in separate records.
-+	 */
-+	if (nr_ext_console_drivers || cont.len + len > sizeof(cont.buf)) {
- 		cont_flush(LOG_CONT);
- 		return false;
- 	}
-@@ -1917,9 +1938,19 @@ static struct cont {
- 	u8 level;
- 	bool flushed:1;
- } cont;
-+static char *log_text(const struct printk_log *msg) { return NULL; }
-+static char *log_dict(const struct printk_log *msg) { return NULL; }
- static struct printk_log *log_from_idx(u32 idx) { return NULL; }
- static u32 log_next(u32 idx) { return 0; }
--static void call_console_drivers(int level, const char *text, size_t len) {}
-+static ssize_t msg_print_ext_header(char *buf, size_t size,
-+				    struct printk_log *msg, u64 seq,
-+				    enum log_flags prev_flags) { return 0; }
-+static ssize_t msg_print_ext_body(char *buf, size_t size,
-+				  char *dict, size_t dict_len,
-+				  char *text, size_t text_len) { return 0; }
-+static void call_console_drivers(int level,
-+				 const char *ext_text, size_t ext_len,
-+				 const char *text, size_t len) {}
- static size_t msg_print_text(const struct printk_log *msg, enum log_flags prev,
- 			     bool syslog, char *buf, size_t size) { return 0; }
- static size_t cont_print_text(char *text, size_t size) { return 0; }
-@@ -2172,7 +2203,7 @@ static void console_cont_flush(char *tex
- 	len = cont_print_text(text, size);
- 	raw_spin_unlock(&logbuf_lock);
- 	stop_critical_timings();
--	call_console_drivers(cont.level, text, len);
-+	call_console_drivers(cont.level, NULL, 0, text, len);
- 	start_critical_timings();
- 	local_irq_restore(flags);
- 	return;
-@@ -2196,6 +2227,7 @@ out:
-  */
- void console_unlock(void)
++static ssize_t show_extended(struct netconsole_target *nt, char *buf)
++{
++	return snprintf(buf, PAGE_SIZE, "%d\n", nt->extended);
++}
++
+ static ssize_t show_dev_name(struct netconsole_target *nt, char *buf)
  {
-+	static char ext_text[CONSOLE_EXT_LOG_MAX];
- 	static char text[LOG_LINE_MAX + PREFIX_MAX];
- 	static u64 seen_seq;
- 	unsigned long flags;
-@@ -2214,6 +2246,7 @@ void console_unlock(void)
- again:
- 	for (;;) {
- 		struct printk_log *msg;
-+		size_t ext_len = 0;
- 		size_t len;
- 		int level;
+ 	return snprintf(buf, PAGE_SIZE, "%s\n", nt->np.dev_name);
+@@ -328,6 +345,11 @@ static ssize_t store_enabled(struct netc
+ 	}
  
-@@ -2259,13 +2292,22 @@ skip:
- 		level = msg->level;
- 		len += msg_print_text(msg, console_prev, false,
- 				      text + len, sizeof(text) - len);
-+		if (nr_ext_console_drivers) {
-+			ext_len = msg_print_ext_header(ext_text,
-+						sizeof(ext_text),
-+						msg, console_seq, console_prev);
-+			ext_len += msg_print_ext_body(ext_text + ext_len,
-+						sizeof(ext_text) - ext_len,
-+						log_dict(msg), msg->dict_len,
-+						log_text(msg), msg->text_len);
+ 	if (enabled) {	/* true */
++		if (nt->extended && !(netconsole_ext.flags & CON_ENABLED)) {
++			netconsole_ext.flags |= CON_ENABLED;
++			register_console(&netconsole_ext);
 +		}
- 		console_idx = log_next(console_idx);
- 		console_seq++;
- 		console_prev = msg->flags;
- 		raw_spin_unlock(&logbuf_lock);
- 
- 		stop_critical_timings();	/* don't trace print latency */
--		call_console_drivers(level, text, len);
-+		call_console_drivers(level, ext_text, ext_len, text, len);
- 		start_critical_timings();
- 		local_irq_restore(flags);
- 	}
-@@ -2521,6 +2563,11 @@ void register_console(struct console *ne
- 		newcon->next = console_drivers->next;
- 		console_drivers->next = newcon;
- 	}
 +
-+	if (newcon->flags & CON_EXTENDED)
-+		if (!nr_ext_console_drivers++)
-+			pr_info("printk: continuation disabled due to ext consoles, expect more fragments in /dev/kmsg\n");
-+
- 	if (newcon->flags & CON_PRINTBUFFER) {
  		/*
- 		 * console_unlock(); will print out the buffered messages
-@@ -2593,6 +2640,9 @@ int unregister_console(struct console *c
- 		}
- 	}
+ 		 * Skip netpoll_parse_options() -- all the attributes are
+ 		 * already configured via configfs. Just print them out.
+@@ -355,6 +377,30 @@ static ssize_t store_enabled(struct netc
+ 	return strnlen(buf, count);
+ }
  
-+	if (!res && (console->flags & CON_EXTENDED))
-+		nr_ext_console_drivers--;
++static ssize_t store_extended(struct netconsole_target *nt,
++			      const char *buf,
++			      size_t count)
++{
++	int extended;
++	int err;
 +
- 	/*
- 	 * If this isn't the last console and it has CON_CONSDEV set, we
- 	 * need to set it on the next preferred console.
++	if (nt->enabled) {
++		pr_err("target (%s) is enabled, disable to update parameters\n",
++		       config_item_name(&nt->item));
++		return -EINVAL;
++	}
++
++	err = kstrtoint(buf, 10, &extended);
++	if (err < 0)
++		return err;
++	if (extended < 0 || extended > 1)
++		return -EINVAL;
++
++	nt->extended = extended;
++
++	return strnlen(buf, count);
++}
++
+ static ssize_t store_dev_name(struct netconsole_target *nt,
+ 			      const char *buf,
+ 			      size_t count)
+@@ -507,6 +553,7 @@ static struct netconsole_target_attr net
+ 	__CONFIGFS_ATTR(_name, S_IRUGO | S_IWUSR, show_##_name, store_##_name)
+ 
+ NETCONSOLE_TARGET_ATTR_RW(enabled);
++NETCONSOLE_TARGET_ATTR_RW(extended);
+ NETCONSOLE_TARGET_ATTR_RW(dev_name);
+ NETCONSOLE_TARGET_ATTR_RW(local_port);
+ NETCONSOLE_TARGET_ATTR_RW(remote_port);
+@@ -517,6 +564,7 @@ NETCONSOLE_TARGET_ATTR_RW(remote_mac);
+ 
+ static struct configfs_attribute *netconsole_target_attrs[] = {
+ 	&netconsole_target_enabled.attr,
++	&netconsole_target_extended.attr,
+ 	&netconsole_target_dev_name.attr,
+ 	&netconsole_target_local_port.attr,
+ 	&netconsole_target_remote_port.attr,
+@@ -727,6 +775,82 @@ static struct notifier_block netconsole_
+ 	.notifier_call  = netconsole_netdev_event,
+ };
+ 
++/**
++ * send_ext_msg_udp - send extended log message to target
++ * @nt: target to send message to
++ * @msg: extended log message to send
++ * @msg_len: length of message
++ *
++ * Transfer extended log @msg to @nt.  If @msg is longer than
++ * MAX_PRINT_CHUNK, it'll be split and transmitted in multiple chunks with
++ * ncfrag header field added to identify them.
++ */
++static void send_ext_msg_udp(struct netconsole_target *nt, const char *msg,
++			     int msg_len)
++{
++	static char buf[MAX_PRINT_CHUNK]; /* protected by target_list_lock */
++	const char *header, *body;
++	int offset = 0;
++	int header_len, body_len;
++
++	if (msg_len <= MAX_PRINT_CHUNK) {
++		netpoll_send_udp(&nt->np, msg, msg_len);
++		return;
++	}
++
++	/* need to insert extra header fields, detect header and body */
++	header = msg;
++	body = memchr(msg, ';', msg_len);
++	if (WARN_ON_ONCE(!body))
++		return;
++
++	header_len = body - header;
++	body_len = msg_len - header_len - 1;
++	body++;
++
++	/*
++	 * Transfer multiple chunks with the following extra header.
++	 * "ncfrag=<byte-offset>/<total-bytes>"
++	 */
++	memcpy(buf, header, header_len);
++
++	while (offset < body_len) {
++		int this_header = header_len;
++		int this_chunk;
++
++		this_header += scnprintf(buf + this_header,
++					 sizeof(buf) - this_header,
++					 ",ncfrag=%d/%d;", offset, body_len);
++
++		this_chunk = min(body_len - offset,
++				 MAX_PRINT_CHUNK - this_header);
++		if (WARN_ON_ONCE(this_chunk <= 0))
++			return;
++
++		memcpy(buf + this_header, body + offset, this_chunk);
++
++		netpoll_send_udp(&nt->np, buf, this_header + this_chunk);
++
++		offset += this_chunk;
++	}
++}
++
++static void write_ext_msg(struct console *con, const char *msg,
++			  unsigned int len)
++{
++	struct netconsole_target *nt;
++	unsigned long flags;
++
++	if ((oops_only && !oops_in_progress) || list_empty(&target_list))
++		return;
++
++	spin_lock_irqsave(&target_list_lock, flags);
++	list_for_each_entry(nt, &target_list, list)
++		if (nt->extended && nt->enabled && netif_running(nt->np.dev))
++			send_ext_msg_udp(nt, msg, len);
++	spin_unlock_irqrestore(&target_list_lock, flags);
++}
++
+ static void write_msg(struct console *con, const char *msg, unsigned int len)
+ {
+ 	int frag, left;
+@@ -742,7 +866,7 @@ static void write_msg(struct console *co
+ 
+ 	spin_lock_irqsave(&target_list_lock, flags);
+ 	list_for_each_entry(nt, &target_list, list) {
+-		if (nt->enabled && netif_running(nt->np.dev)) {
++		if (!nt->extended && nt->enabled && netif_running(nt->np.dev)) {
+ 			/*
+ 			 * We nest this inside the for-each-target loop above
+ 			 * so that we're able to get as much logging out to
+@@ -761,6 +885,12 @@ static void write_msg(struct console *co
+ 	spin_unlock_irqrestore(&target_list_lock, flags);
+ }
+ 
++static struct console netconsole_ext = {
++	.name	= "netcon_ext",
++	.flags	= CON_EXTENDED,	/* starts disabled, registered on first use */
++	.write	= write_ext_msg,
++};
++
+ static struct console netconsole = {
+ 	.name	= "netcon",
+ 	.flags	= CON_ENABLED,
+@@ -783,7 +913,11 @@ static int __init init_netconsole(void)
+ 				goto fail;
+ 			}
+ 			/* Dump existing printks when we register */
+-			netconsole.flags |= CON_PRINTBUFFER;
++			if (nt->extended)
++				netconsole_ext.flags |= CON_PRINTBUFFER |
++							CON_ENABLED;
++			else
++				netconsole.flags |= CON_PRINTBUFFER;
+ 
+ 			spin_lock_irqsave(&target_list_lock, flags);
+ 			list_add(&nt->list, &target_list);
+@@ -799,6 +933,8 @@ static int __init init_netconsole(void)
+ 	if (err)
+ 		goto undonotifier;
+ 
++	if (netconsole_ext.flags & CON_ENABLED)
++		register_console(&netconsole_ext);
+ 	register_console(&netconsole);
+ 	pr_info("network logging started\n");
+ 
+@@ -827,6 +963,7 @@ static void __exit cleanup_netconsole(vo
+ {
+ 	struct netconsole_target *nt, *tmp;
+ 
++	unregister_console(&netconsole_ext);
+ 	unregister_console(&netconsole);
+ 	dynamic_netconsole_exit();
+ 	unregister_netdevice_notifier(&netconsole_netdev_notifier);
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
