@@ -1,64 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] gfp-add-__gfp_noaccount-v2-fix.patch removed from -mm tree
-Date: Thu, 14 May 2015 15:14:03 -0700
-Message-ID: <55551e2b.IYb8PZCTBZjEqtrK%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ cma-page_isolation-check-buddy-before-access-it-fix.patch removed from -mm
+ tree
+Date: Thu, 14 May 2015 15:14:26 -0700
+Message-ID: <55551e42.1XyNYMVJHJo5UuIv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50463 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50464 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1422694AbbENWOE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 May 2015 18:14:04 -0400
+	with ESMTP id S1422752AbbENWO1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 May 2015 18:14:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, mhocko@suse.cz, tj@kernel.org, vdavydov@parallels.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, zhuhui@xiaomi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: gfp-add-__gfp_noaccount-v2-fix
+     Subject: cma-page_isolation-check-buddy-before-access-it-fix
 has been removed from the -mm tree.  Its filename was
-     gfp-add-__gfp_noaccount-v2-fix.patch
+     cma-page_isolation-check-buddy-before-access-it-fix.patch
 
-This patch was dropped because it was folded into gfp-add-__gfp_noaccount.patch
+This patch was dropped because it was folded into cma-page_isolation-check-buddy-before-access-it.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: gfp-add-__gfp_noaccount-v2-fix
+Subject: cma-page_isolation-check-buddy-before-access-it-fix
 
-revert the WARN_ON
+use conventional code layout
 
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Vladimir Davydov <vdavydov@parallels.com>
+Cc: Hui Zhu <zhuhui@xiaomi.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/page_isolation.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/memcontrol.c~gfp-add-__gfp_noaccount-v2-fix mm/memcontrol.c
---- a/mm/memcontrol.c~gfp-add-__gfp_noaccount-v2-fix
-+++ a/mm/memcontrol.c
-@@ -5462,8 +5462,6 @@ int mem_cgroup_try_charge(struct page *p
- 	unsigned int nr_pages = 1;
- 	int ret = 0;
+diff -puN mm/page_isolation.c~cma-page_isolation-check-buddy-before-access-it-fix mm/page_isolation.c
+--- a/mm/page_isolation.c~cma-page_isolation-check-buddy-before-access-it-fix
++++ a/mm/page_isolation.c
+@@ -101,8 +101,8 @@ void unset_migratetype_isolate(struct pa
+ 			buddy_idx = __find_buddy_index(page_idx, order);
+ 			buddy = page + (buddy_idx - page_idx);
  
--	WARN_ON_ONCE(gfp_mask & __GFP_NOACCOUNT);
--
- 	if (mem_cgroup_disabled())
- 		goto out;
- 
+-			if (pfn_valid_within(page_to_pfn(buddy))
+-			    && !is_migrate_isolate_page(buddy)) {
++			if (pfn_valid_within(page_to_pfn(buddy)) &&
++			    !is_migrate_isolate_page(buddy)) {
+ 				__isolate_free_page(page, order);
+ 				kernel_map_pages(page, (1 << order), 1);
+ 				set_page_refcounted(page);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 arch-alpha-kernel-systblss-remove-debug-check.patch
 drivers-rtc-rtc-armada38xc-remove-unused-local-flags.patch
-gfp-add-__gfp_noaccount.patch
-cma-page_isolation-check-buddy-before-access-it-fix.patch
+cma-page_isolation-check-buddy-before-access-it.patch
 ocfs2-reduce-object-size-of-mlog-uses-fix.patch
 ocfs2-remove-__mlog_cpu_guess.patch
 ocfs2-remove-__mlog_cpu_guess-fix.patch
