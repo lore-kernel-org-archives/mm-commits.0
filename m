@@ -1,108 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- mm-hugetlb-initialize-order-with-uint_max-in-dissolve_free_huge_pages.patch removed from -mm tree
-Date: Thu, 14 May 2015 14:50:05 -0700
-Message-ID: <5555188d.31ZT8hUzLHaxEFGS%akpm@linux-foundation.org>
+Subject: [folded-merged] gfp-add-__gfp_noaccount-v2.patch removed from -mm tree
+Date: Thu, 14 May 2015 15:13:54 -0700
+Message-ID: <55551e22.EHRoPijwaL8MZJ/7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50341 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50456 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1422688AbbENVuG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 May 2015 17:50:06 -0400
+	with ESMTP id S1422694AbbENWN4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 May 2015 18:13:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: n-horiguchi@ah.jp.nec.com, dan.carpenter@oracle.com, mm-commits@vger.kernel.org
+To: vdavydov@parallels.com, hannes@cmpxchg.org, mhocko@suse.cz, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: initialize order with UINT_MAX in dissolve_free_huge_pages()
+     Subject: gfp: add __GFP_NOACCOUNT
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-initialize-order-with-uint_max-in-dissolve_free_huge_pages.patch
+     gfp-add-__gfp_noaccount-v2.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was folded into gfp-add-__gfp_noaccount.patch
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm/hugetlb: initialize order with UINT_MAX in dissolve_free_huge_pages()
+From: Vladimir Davydov <vdavydov@parallels.com>
+Subject: gfp: add __GFP_NOACCOUNT
 
-Currently the initial value of order in dissolve_free_huge_page is 64 or
-32, which leads to the following warning in static checker:
+ - explain drawbacks of per kmem cache flag disabling accounting as a possible
+   alternative to a GFP flag in commit message (Michal)
+ - warn if __GFP_NOACCOUNT is passed to mem_cgroup_try_charge (Michal)
 
-  mm/hugetlb.c:1203 dissolve_free_huge_pages()
-  warn: potential right shift more than type allows '9,18,64'
-
-This is a potential risk of infinite loop, because 1 << order (== 0)
-is used in for-loop like this:
-
-  for (pfn =3D start_pfn; pfn < end_pfn; pfn +=3D 1 << order)
-      ...
-
-So this patch simply avoids the risk by initializing with UINT_MAX.
-
-Fixes: c8721bbbdd36 ("mm: memory-hotplug: enable memory hotplug to handle hugepage")
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/gfp.h |    2 +-
+ mm/memcontrol.c     |    2 ++
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-initialize-order-with-uint_max-in-dissolve_free_huge_pages mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-initialize-order-with-uint_max-in-dissolve_free_huge_pages
-+++ a/mm/hugetlb.c
-@@ -1188,7 +1188,7 @@ static void dissolve_free_huge_page(stru
-  */
- void dissolve_free_huge_pages(unsigned long start_pfn, unsigned long end_pfn)
- {
--	unsigned int order = 8 * sizeof(void *);
-+	unsigned int order = UINT_MAX;
- 	unsigned long pfn;
- 	struct hstate *h;
+diff -puN include/linux/gfp.h~gfp-add-__gfp_noaccount-v2 include/linux/gfp.h
+--- a/include/linux/gfp.h~gfp-add-__gfp_noaccount-v2
++++ a/include/linux/gfp.h
+@@ -88,7 +88,7 @@ struct vm_area_struct;
+ #define __GFP_HARDWALL   ((__force gfp_t)___GFP_HARDWALL) /* Enforce hardwall cpuset memory allocs */
+ #define __GFP_THISNODE	((__force gfp_t)___GFP_THISNODE)/* No fallback, no policies */
+ #define __GFP_RECLAIMABLE ((__force gfp_t)___GFP_RECLAIMABLE) /* Page is reclaimable */
+-#define __GFP_NOACCOUNT	((__force gfp_t)___GFP_NOACCOUNT) /* Don't account to memcg */
++#define __GFP_NOACCOUNT	((__force gfp_t)___GFP_NOACCOUNT) /* Don't account to kmemcg */
+ #define __GFP_NOTRACK	((__force gfp_t)___GFP_NOTRACK)  /* Don't track with kmemcheck */
  
-@@ -1200,6 +1200,7 @@ void dissolve_free_huge_pages(unsigned l
- 		if (order > huge_page_order(h))
- 			order = huge_page_order(h);
- 	VM_BUG_ON(!IS_ALIGNED(start_pfn, 1 << order));
-+	VM_BUG_ON(order == UINT_MAX);
- 	for (pfn = start_pfn; pfn < end_pfn; pfn += 1 << order)
- 		dissolve_free_huge_page(pfn_to_page(pfn));
- }
+ #define __GFP_NO_KSWAPD	((__force gfp_t)___GFP_NO_KSWAPD)
+diff -puN mm/memcontrol.c~gfp-add-__gfp_noaccount-v2 mm/memcontrol.c
+--- a/mm/memcontrol.c~gfp-add-__gfp_noaccount-v2
++++ a/mm/memcontrol.c
+@@ -5462,6 +5462,8 @@ int mem_cgroup_try_charge(struct page *p
+ 	unsigned int nr_pages = 1;
+ 	int ret = 0;
+ 
++	WARN_ON_ONCE(gfp_mask & __GFP_NOACCOUNT);
++
+ 	if (mem_cgroup_disabled())
+ 		goto out;
+ 
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from vdavydov@parallels.com are
 
-tools-vm-fix-page-flags-build.patch
-mm-hwpoison-add-comment-describing-when-to-add-new-cases.patch
-mm-hwpoison-remove-obsolete-notebook-todo-list.patch
-memory-failure-export-page_type-and-action-result.patch
-memory-failure-change-type-of-action_results-param-3-to-enum.patch
-tracing-add-trace-event-for-memory-failure.patch
-mm-memory-failure-split-thp-earlier-in-memory-error-handling.patch
-mm-memory-failure-split-thp-earlier-in-memory-error-handling-v2.patch
-mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling.patch
-mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling-v2.patch
-mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling-fix.patch
-mm-soft-offline-dont-free-target-page-in-successful-page-migration.patch
-mm-memory-failure-me_huge_page-does-nothing-for-thp.patch
-mm-hugetlb-introduce-minimum-hugepage-order.patch
-page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-mm-sanitize-page-mapping-for-tail-pages.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
+gfp-add-__gfp_noaccount.patch
+gfp-add-__gfp_noaccount-v2-fix.patch
+kernfs-do-not-account-ino_ida-allocations-to-memcg.patch
+rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list.patch
+rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix.patch
+rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix-fix.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+linux-next.patch
 
