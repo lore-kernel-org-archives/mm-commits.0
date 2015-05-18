@@ -1,134 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: [merged] gfp-add-__gfp_noaccount.patch removed from -mm tree
-Date: Mon, 18 May 2015 11:44:14 -0700
-Message-ID: <555a32fe.lwMkvuD8DK1f8QyJ%akpm@linux-foundation.org>
+Subject: [merged] maintainers-update-jingoo-hans-email-address.patch
+ removed from -mm tree
+Date: Mon, 18 May 2015 11:44:22 -0700
+Message-ID: <555a3306.vFdk+G3XW9uDRLed%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51018 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51046 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754550AbbERSoP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 May 2015 14:44:15 -0400
+	with ESMTP id S1755090AbbERSoX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 May 2015 14:44:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@parallels.com, cl@linux.com, gregkh@linuxfoundation.org, gthelen@google.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@suse.cz, penberg@kernel.org, rientjes@google.com, stable@vger.kernel.org, tj@kernel.org, mm-commits@vger.kernel.org
+To: jingoohan1@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: gfp: add __GFP_NOACCOUNT
+     Subject: MAINTAINERS: update Jingoo Han's email address
 has been removed from the -mm tree.  Its filename was
-     gfp-add-__gfp_noaccount.patch
+     maintainers-update-jingoo-hans-email-address.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: gfp: add __GFP_NOACCOUNT
+From: "Jingoo Han" <jingoohan1@gmail.com>
+Subject: MAINTAINERS: update Jingoo Han's email address
 
-Not all kmem allocations should be accounted to memcg.  The following
-patch gives an example when accounting of a certain type of allocations to
-memcg can effectively result in a memory leak.  This patch adds the
-__GFP_NOACCOUNT flag which if passed to kmalloc and friends will force the
-allocation to go through the root cgroup.  It will be used by the next
-patch.
+Change my private email address.
 
-Note, since in case of kmemleak enabled each kmalloc implies yet another
-allocation from the kmemleak_object cache, we add __GFP_NOACCOUNT to
-gfp_kmemleak_mask.
-
-Alternatively, we could introduce a per kmem cache flag disabling
-accounting for all allocations of a particular kind, but (a) we would not
-be able to bypass accounting for kmalloc then and (b) a kmem cache with
-this flag set could not be merged with a kmem cache without this flag,
-which would increase the number of global caches and therefore
-fragmentation even if the memory cgroup controller is not used.
-
-Despite its generic name, currently __GFP_NOACCOUNT disables accounting
-only for kmem allocations while user page allocations are always charged. 
-To catch abusing of this flag, a warning is issued on an attempt of
-passing it to mem_cgroup_try_charge.
-
-Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: <stable@vger.kernel.org>	[4.0.x]
+Signed-off-by: Jingoo Han <jingoohan1@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h        |    2 ++
- include/linux/memcontrol.h |    4 ++++
- mm/kmemleak.c              |    3 ++-
- 3 files changed, 8 insertions(+), 1 deletion(-)
+ MAINTAINERS |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/gfp.h~gfp-add-__gfp_noaccount include/linux/gfp.h
---- a/include/linux/gfp.h~gfp-add-__gfp_noaccount
-+++ a/include/linux/gfp.h
-@@ -30,6 +30,7 @@ struct vm_area_struct;
- #define ___GFP_HARDWALL		0x20000u
- #define ___GFP_THISNODE		0x40000u
- #define ___GFP_RECLAIMABLE	0x80000u
-+#define ___GFP_NOACCOUNT	0x100000u
- #define ___GFP_NOTRACK		0x200000u
- #define ___GFP_NO_KSWAPD	0x400000u
- #define ___GFP_OTHER_NODE	0x800000u
-@@ -87,6 +88,7 @@ struct vm_area_struct;
- #define __GFP_HARDWALL   ((__force gfp_t)___GFP_HARDWALL) /* Enforce hardwall cpuset memory allocs */
- #define __GFP_THISNODE	((__force gfp_t)___GFP_THISNODE)/* No fallback, no policies */
- #define __GFP_RECLAIMABLE ((__force gfp_t)___GFP_RECLAIMABLE) /* Page is reclaimable */
-+#define __GFP_NOACCOUNT	((__force gfp_t)___GFP_NOACCOUNT) /* Don't account to kmemcg */
- #define __GFP_NOTRACK	((__force gfp_t)___GFP_NOTRACK)  /* Don't track with kmemcheck */
+diff -puN MAINTAINERS~maintainers-update-jingoo-hans-email-address MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-jingoo-hans-email-address
++++ a/MAINTAINERS
+@@ -1935,7 +1935,7 @@ S:	Maintained
+ F:	drivers/net/wireless/b43legacy/
  
- #define __GFP_NO_KSWAPD	((__force gfp_t)___GFP_NO_KSWAPD)
-diff -puN include/linux/memcontrol.h~gfp-add-__gfp_noaccount include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~gfp-add-__gfp_noaccount
-+++ a/include/linux/memcontrol.h
-@@ -463,6 +463,8 @@ memcg_kmem_newpage_charge(gfp_t gfp, str
- 	if (!memcg_kmem_enabled())
- 		return true;
+ BACKLIGHT CLASS/SUBSYSTEM
+-M:	Jingoo Han <jg1.han@samsung.com>
++M:	Jingoo Han <jingoohan1@gmail.com>
+ M:	Lee Jones <lee.jones@linaro.org>
+ S:	Maintained
+ F:	drivers/video/backlight/
+@@ -3918,7 +3918,7 @@ F:	drivers/extcon/
+ F:	Documentation/extcon/
  
-+	if (gfp & __GFP_NOACCOUNT)
-+		return true;
- 	/*
- 	 * __GFP_NOFAIL allocations will move on even if charging is not
- 	 * possible. Therefore we don't even try, and have this allocation
-@@ -522,6 +524,8 @@ memcg_kmem_get_cache(struct kmem_cache *
- {
- 	if (!memcg_kmem_enabled())
- 		return cachep;
-+	if (gfp & __GFP_NOACCOUNT)
-+		return cachep;
- 	if (gfp & __GFP_NOFAIL)
- 		return cachep;
- 	if (in_interrupt() || (!current->mm) || (current->flags & PF_KTHREAD))
-diff -puN mm/kmemleak.c~gfp-add-__gfp_noaccount mm/kmemleak.c
---- a/mm/kmemleak.c~gfp-add-__gfp_noaccount
-+++ a/mm/kmemleak.c
-@@ -115,7 +115,8 @@
- #define BYTES_PER_POINTER	sizeof(void *)
+ EXYNOS DP DRIVER
+-M:	Jingoo Han <jg1.han@samsung.com>
++M:	Jingoo Han <jingoohan1@gmail.com>
+ L:	dri-devel@lists.freedesktop.org
+ S:	Maintained
+ F:	drivers/gpu/drm/exynos/exynos_dp*
+@@ -7557,7 +7557,7 @@ S:	Maintained
+ F:	drivers/pci/host/*rcar*
  
- /* GFP bitmask for kmemleak internal allocations */
--#define gfp_kmemleak_mask(gfp)	(((gfp) & (GFP_KERNEL | GFP_ATOMIC)) | \
-+#define gfp_kmemleak_mask(gfp)	(((gfp) & (GFP_KERNEL | GFP_ATOMIC | \
-+					   __GFP_NOACCOUNT)) | \
- 				 __GFP_NORETRY | __GFP_NOMEMALLOC | \
- 				 __GFP_NOWARN)
+ PCI DRIVER FOR SAMSUNG EXYNOS
+-M:	Jingoo Han <jg1.han@samsung.com>
++M:	Jingoo Han <jingoohan1@gmail.com>
+ L:	linux-pci@vger.kernel.org
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+ L:	linux-samsung-soc@vger.kernel.org (moderated for non-subscribers)
+@@ -7565,7 +7565,7 @@ S:	Maintained
+ F:	drivers/pci/host/pci-exynos.c
  
+ PCI DRIVER FOR SYNOPSIS DESIGNWARE
+-M:	Jingoo Han <jg1.han@samsung.com>
++M:	Jingoo Han <jingoohan1@gmail.com>
+ L:	linux-pci@vger.kernel.org
+ S:	Maintained
+ F:	drivers/pci/host/*designware*
+@@ -8521,7 +8521,7 @@ S:	Supported
+ F:	sound/soc/samsung/
+ 
+ SAMSUNG FRAMEBUFFER DRIVER
+-M:	Jingoo Han <jg1.han@samsung.com>
++M:	Jingoo Han <jingoohan1@gmail.com>
+ L:	linux-fbdev@vger.kernel.org
+ S:	Maintained
+ F:	drivers/video/fbdev/s3c-fb.c
 _
 
-Patches currently in -mm which might be from vdavydov@parallels.com are
+Patches currently in -mm which might be from jingoohan1@gmail.com are
 
-rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list.patch
-rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix.patch
-rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix-fix.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-linux-next.patch
 
