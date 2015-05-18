@@ -1,65 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- cma-page_isolation-check-buddy-before-access-it-fix.patch removed from -mm
- tree
-Date: Thu, 14 May 2015 15:14:26 -0700
-Message-ID: <55551e42.1XyNYMVJHJo5UuIv%akpm@linux-foundation.org>
+Subject: [merged]
+ drivers-rtc-rtc-armada38xc-remove-unused-local-flags.patch removed from -mm tree
+Date: Mon, 18 May 2015 11:44:09 -0700
+Message-ID: <555a32f9.imGJHN+T7XXTN9h6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50464 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51009 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1422752AbbENWO1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 May 2015 18:14:27 -0400
+	with ESMTP id S1754550AbbERSoL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 May 2015 14:44:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, zhuhui@xiaomi.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, fengguang.wu@gmail.com, gregory.clement@free-electrons.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cma-page_isolation-check-buddy-before-access-it-fix
+     Subject: drivers/rtc/rtc-armada38x.c: remove unused local `flags'
 has been removed from the -mm tree.  Its filename was
-     cma-page_isolation-check-buddy-before-access-it-fix.patch
+     drivers-rtc-rtc-armada38xc-remove-unused-local-flags.patch
 
-This patch was dropped because it was folded into cma-page_isolation-check-buddy-before-access-it.patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: cma-page_isolation-check-buddy-before-access-it-fix
+Subject: drivers/rtc/rtc-armada38x.c: remove unused local `flags'
 
-use conventional code layout
-
-Cc: Hui Zhu <zhuhui@xiaomi.com>
-
+Reported-by: Fengguang Wu <fengguang.wu@gmail.com>
+Cc: Gregory CLEMENT <gregory.clement@free-electrons.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_isolation.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/rtc/rtc-armada38x.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_isolation.c~cma-page_isolation-check-buddy-before-access-it-fix mm/page_isolation.c
---- a/mm/page_isolation.c~cma-page_isolation-check-buddy-before-access-it-fix
-+++ a/mm/page_isolation.c
-@@ -101,8 +101,8 @@ void unset_migratetype_isolate(struct pa
- 			buddy_idx = __find_buddy_index(page_idx, order);
- 			buddy = page + (buddy_idx - page_idx);
+diff -puN drivers/rtc/rtc-armada38x.c~drivers-rtc-rtc-armada38xc-remove-unused-local-flags drivers/rtc/rtc-armada38x.c
+--- a/drivers/rtc/rtc-armada38x.c~drivers-rtc-rtc-armada38xc-remove-unused-local-flags
++++ a/drivers/rtc/rtc-armada38x.c
+@@ -64,7 +64,7 @@ static void rtc_delayed_write(u32 val, s
+ static int armada38x_rtc_read_time(struct device *dev, struct rtc_time *tm)
+ {
+ 	struct armada38x_rtc *rtc = dev_get_drvdata(dev);
+-	unsigned long time, time_check, flags;
++	unsigned long time, time_check;
  
--			if (pfn_valid_within(page_to_pfn(buddy))
--			    && !is_migrate_isolate_page(buddy)) {
-+			if (pfn_valid_within(page_to_pfn(buddy)) &&
-+			    !is_migrate_isolate_page(buddy)) {
- 				__isolate_free_page(page, order);
- 				kernel_map_pages(page, (1 << order), 1);
- 				set_page_refcounted(page);
+ 	mutex_lock(&rtc->mutex_time);
+ 	time = readl(rtc->regs + RTC_TIME);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-rtc-rtc-armada38xc-remove-unused-local-flags.patch
-cma-page_isolation-check-buddy-before-access-it.patch
 ocfs2-reduce-object-size-of-mlog-uses-fix.patch
 ocfs2-remove-__mlog_cpu_guess.patch
 ocfs2-remove-__mlog_cpu_guess-fix.patch
