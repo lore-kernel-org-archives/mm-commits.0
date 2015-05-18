@@ -1,80 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- uidgid-make-uid_valid-and-gid_valid-work-with-config_multiuser.patch
- removed from -mm tree
-Date: Mon, 18 May 2015 11:44:19 -0700
-Message-ID: <555a3303.nm1cWTGYXDmG5dX+%akpm@linux-foundation.org>
+Subject: [merged] kernfs-do-not-account-ino_ida-allocations-to-memcg.patch removed from -mm tree
+Date: Mon, 18 May 2015 11:44:16 -0700
+Message-ID: <555a3300.3ykrE364uI8b6QhH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51037 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51030 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754645AbbERSoT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 May 2015 14:44:19 -0400
+	with ESMTP id S1755080AbbERSoR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 May 2015 14:44:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: josh@joshtriplett.org, fengguang.wu@intel.com, peter@hurleysoftware.com, mm-commits@vger.kernel.org
+To: vdavydov@parallels.com, cl@linux.com, gregkh@linuxfoundation.org, gthelen@google.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@suse.cz, penberg@kernel.org, rientjes@google.com, stable@vger.kernel.org, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: uidgid: make uid_valid and gid_valid work with !CONFIG_MULTIUSER
+     Subject: kernfs: do not account ino_ida allocations to memcg
 has been removed from the -mm tree.  Its filename was
-     uidgid-make-uid_valid-and-gid_valid-work-with-config_multiuser.patch
+     kernfs-do-not-account-ino_ida-allocations-to-memcg.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Josh Triplett <josh@joshtriplett.org>
-Subject: uidgid: make uid_valid and gid_valid work with !CONFIG_MULTIUSER
+From: Vladimir Davydov <vdavydov@parallels.com>
+Subject: kernfs: do not account ino_ida allocations to memcg
 
-{u,g}id_valid call {u,g}id_eq, which calls __k{u,g}id_val on both
-arguments and compares.  With !CONFIG_MULTIUSER, __k{u,g}id_val return a
-constant 0, which makes {u,g}id_valid always return false.  Change
-{u,g}id_valid to compare their argument against -1 instead.  That produces
-identical results in the normal CONFIG_MULTIUSER=y case, but with
-!CONFIG_MULTIUSER will make {u,g}id_valid constant-fold into "return
-true;" rather than "return false;".
+root->ino_ida is used for kernfs inode number allocations. Since IDA has
+a layered structure, different IDs can reside on the same layer, which
+is currently accounted to some memory cgroup. The problem is that each
+kmem cache of a memory cgroup has its own directory on sysfs (under
+/sys/fs/kernel/<cache-name>/cgroup). If the inode number of such a
+directory or any file in it gets allocated from a layer accounted to the
+cgroup which the cache is created for, the cgroup will get pinned for
+good, because one has to free all kmem allocations accounted to a cgroup
+in order to release it and destroy all its kmem caches. That said we
+must not account layers of ino_ida to any memory cgroup.
 
-This fixes uses of devpts without CONFIG_MULTIUSER.
+Since per net init operations may create new sysfs entries directly
+(e.g. lo device) or indirectly (nf_conntrack creates a new kmem cache
+per each namespace, which, in turn, creates new sysfs entries), an easy
+way to reproduce this issue is by creating network namespace(s) from
+inside a kmem-active memory cgroup.
 
-Signed-off-by: Josh Triplett <josh@joshtriplett.org>
-Reported-by: Fengguang Wu <fengguang.wu@intel.com>,
-Cc: Peter Hurley <peter@hurleysoftware.com>
+Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
+Acked-by: Tejun Heo <tj@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: <stable@vger.kernel.org>	[4.0.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/uidgid.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/kernfs/dir.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/uidgid.h~uidgid-make-uid_valid-and-gid_valid-work-with-config_multiuser include/linux/uidgid.h
---- a/include/linux/uidgid.h~uidgid-make-uid_valid-and-gid_valid-work-with-config_multiuser
-+++ a/include/linux/uidgid.h
-@@ -109,12 +109,12 @@ static inline bool gid_lte(kgid_t left,
+diff -puN fs/kernfs/dir.c~kernfs-do-not-account-ino_ida-allocations-to-memcg fs/kernfs/dir.c
+--- a/fs/kernfs/dir.c~kernfs-do-not-account-ino_ida-allocations-to-memcg
++++ a/fs/kernfs/dir.c
+@@ -518,7 +518,14 @@ static struct kernfs_node *__kernfs_new_
+ 	if (!kn)
+ 		goto err_out1;
  
- static inline bool uid_valid(kuid_t uid)
- {
--	return !uid_eq(uid, INVALID_UID);
-+	return __kuid_val(uid) != (uid_t) -1;
- }
- 
- static inline bool gid_valid(kgid_t gid)
- {
--	return !gid_eq(gid, INVALID_GID);
-+	return __kgid_val(gid) != (gid_t) -1;
- }
- 
- #ifdef CONFIG_USER_NS
+-	ret = ida_simple_get(&root->ino_ida, 1, 0, GFP_KERNEL);
++	/*
++	 * If the ino of the sysfs entry created for a kmem cache gets
++	 * allocated from an ida layer, which is accounted to the memcg that
++	 * owns the cache, the memcg will get pinned forever. So do not account
++	 * ino ida allocations.
++	 */
++	ret = ida_simple_get(&root->ino_ida, 1, 0,
++			     GFP_KERNEL | __GFP_NOACCOUNT);
+ 	if (ret < 0)
+ 		goto err_out2;
+ 	kn->ino = ret;
 _
 
-Patches currently in -mm which might be from josh@joshtriplett.org are
+Patches currently in -mm which might be from vdavydov@parallels.com are
 
-clone-support-passing-tls-argument-via-c-rather-than-pt_regs-magic.patch
-clone-support-passing-tls-argument-via-c-rather-than-pt_regs-magic-fix.patch
-clone-support-passing-tls-argument-via-c-rather-than-pt_regs-magic-fix-2.patch
-x86-opt-into-have_copy_thread_tls-for-both-32-bit-and-64-bit.patch
-devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx.patch
-devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx-fix.patch
+rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list.patch
+rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix.patch
+rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix-fix.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
 linux-next.patch
 
