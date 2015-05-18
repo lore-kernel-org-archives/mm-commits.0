@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- tracing-mm-dont-trace-mm_page_pcpu_drain-on-offline-cpus-fix.patch added to -mm tree
-Date: Mon, 18 May 2015 15:01:49 -0700
-Message-ID: <555a614d.hRaLIMW3pkBz6raW%akpm@linux-foundation.org>
+Subject: + coredump-add-__printf-attribute-to-cn_printf-functions.patch
+ added to -mm tree
+Date: Mon, 18 May 2015 15:45:23 -0700
+Message-ID: <555a6b83.XaKeMB3bv4gpd1yA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53855 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54460 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753820AbbERWBu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 May 2015 18:01:50 -0400
+	with ESMTP id S1753984AbbERWpY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 May 2015 18:45:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shreyas@linux.vnet.ibm.com, preeti@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: nicolas.iooss_linux@m4x.org, ebiederm@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tracing-mm-dont-trace-mm_page_pcpu_drain-on-offline-cpus-fix
+     Subject: coredump: add __printf attribute to cn_*printf functions
 has been added to the -mm tree.  Its filename is
-     tracing-mm-dont-trace-mm_page_pcpu_drain-on-offline-cpus-fix.patch
+     coredump-add-__printf-attribute-to-cn_printf-functions.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/tracing-mm-dont-trace-mm_page_pcpu_drain-on-offline-cpus-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/coredump-add-__printf-attribute-to-cn_printf-functions.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/tracing-mm-dont-trace-mm_page_pcpu_drain-on-offline-cpus-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/coredump-add-__printf-attribute-to-cn_printf-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,48 +39,73 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Shreyas B. Prabhu" <shreyas@linux.vnet.ibm.com>
-Subject: tracing-mm-dont-trace-mm_page_pcpu_drain-on-offline-cpus-fix
+From: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
+Subject: coredump: add __printf attribute to cn_*printf functions
 
-use raw_smp_processor_id()
+This allows detecting improper format string at build time, like:
 
-Cc: Preeti U Murthy <preeti@linux.vnet.ibm.com>
+  fs/coredump.c:225:5: warning: format '%ld' expects argument of type
+  'long int', but argument 3 has type 'int' [-Wformat=]
+       err = cn_printf(cn, "%ld", cprm->siginfo->si_signo);
+       ^
+
+As si_signo is always an int, the format should be %d here.
+
+Signed-off-by: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
+Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/kmem.h |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ fs/coredump.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN include/trace/events/kmem.h~tracing-mm-dont-trace-mm_page_pcpu_drain-on-offline-cpus-fix include/trace/events/kmem.h
---- a/include/trace/events/kmem.h~tracing-mm-dont-trace-mm_page_pcpu_drain-on-offline-cpus-fix
-+++ a/include/trace/events/kmem.h
-@@ -282,7 +282,16 @@ TRACE_EVENT_CONDITION(mm_page_pcpu_drain
+diff -puN fs/coredump.c~coredump-add-__printf-attribute-to-cn_printf-functions fs/coredump.c
+--- a/fs/coredump.c~coredump-add-__printf-attribute-to-cn_printf-functions
++++ a/fs/coredump.c
+@@ -70,7 +70,8 @@ static int expand_corename(struct core_n
+ 	return 0;
+ }
  
- 	TP_ARGS(page, order, migratetype),
+-static int cn_vprintf(struct core_name *cn, const char *fmt, va_list arg)
++static __printf(2, 0) int cn_vprintf(struct core_name *cn, const char *fmt,
++				     va_list arg)
+ {
+ 	int free, need;
+ 	va_list arg_copy;
+@@ -93,7 +94,7 @@ again:
+ 	return -ENOMEM;
+ }
  
--	TP_CONDITION(cpu_online(smp_processor_id())),
-+	/*
-+	 * This trace can be potentially called from an offlined cpu.
-+	 * Since trace points use RCU and RCU should not be used from
-+	 * offline cpus, filter such calls out.
-+	 * While this trace can be called from a preemptable section,
-+	 * it has no impact on the condition since tasks can migrate
-+	 * only from online cpus to other online cpus. Thus its safe
-+	 * to use raw_smp_processor_id.
-+	 */
-+	TP_CONDITION(cpu_online(raw_smp_processor_id())),
+-static int cn_printf(struct core_name *cn, const char *fmt, ...)
++static __printf(2, 3) int cn_printf(struct core_name *cn, const char *fmt, ...)
+ {
+ 	va_list arg;
+ 	int ret;
+@@ -105,7 +106,8 @@ static int cn_printf(struct core_name *c
+ 	return ret;
+ }
  
- 	TP_STRUCT__entry(
- 		__field(	unsigned long,	pfn		)
+-static int cn_esc_printf(struct core_name *cn, const char *fmt, ...)
++static __printf(2, 3)
++int cn_esc_printf(struct core_name *cn, const char *fmt, ...)
+ {
+ 	int cur = cn->used;
+ 	va_list arg;
+@@ -225,7 +227,8 @@ static int format_corename(struct core_n
+ 				break;
+ 			/* signal that caused the coredump */
+ 			case 's':
+-				err = cn_printf(cn, "%ld", cprm->siginfo->si_signo);
++				err = cn_printf(cn, "%d",
++						cprm->siginfo->si_signo);
+ 				break;
+ 			/* UNIX time of coredump */
+ 			case 't': {
 _
 
-Patches currently in -mm which might be from shreyas@linux.vnet.ibm.com are
+Patches currently in -mm which might be from nicolas.iooss_linux@m4x.org are
 
-tracing-mm-dont-trace-kmem_cache_free-on-offline-cpus.patch
-tracing-mm-dont-trace-kmem_cache_free-on-offline-cpus-fix.patch
-tracing-mm-dont-trace-mm_page_free-on-offline-cpus.patch
-tracing-mm-dont-trace-mm_page_free-on-offline-cpus-fix.patch
-tracing-mm-dont-trace-mm_page_pcpu_drain-on-offline-cpus.patch
-tracing-mm-dont-trace-mm_page_pcpu_drain-on-offline-cpus-fix.patch
-a.patch
+coredump-use-from_kuid-kgid-when-formatting-corename.patch
+coredump-add-__printf-attribute-to-cn_printf-functions.patch
+linux-next.patch
 
