@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + coredump-use-from_kuid-kgid-when-formatting-corename.patch
- added to -mm tree
-Date: Mon, 18 May 2015 15:45:21 -0700
-Message-ID: <555a6b81.fEoYiIobLfYkqG97%akpm@linux-foundation.org>
+Subject: + ocfs2-remove-ocfs2_iocb_sem-lock-type-in-direct-io.patch added
+ to -mm tree
+Date: Mon, 18 May 2015 16:12:35 -0700
+Message-ID: <555a71e3.3jx10bkqtKnQMYtZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54456 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55084 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753970AbbERWpW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 May 2015 18:45:22 -0400
+	with ESMTP id S1754758AbbERXMg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 May 2015 19:12:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nicolas.iooss_linux@m4x.org, ebiederm@xmission.com, mm-commits@vger.kernel.org
+To: wangww631@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: coredump: use from_kuid/kgid when formatting corename
+     Subject: ocfs2: remove OCFS2_IOCB_SEM lock type in direct io
 has been added to the -mm tree.  Its filename is
-     coredump-use-from_kuid-kgid-when-formatting-corename.patch
+     ocfs2-remove-ocfs2_iocb_sem-lock-type-in-direct-io.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/coredump-use-from_kuid-kgid-when-formatting-corename.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-remove-ocfs2_iocb_sem-lock-type-in-direct-io.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/coredump-use-from_kuid-kgid-when-formatting-corename.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-remove-ocfs2_iocb_sem-lock-type-in-direct-io.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,80 +39,161 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
-Subject: coredump: use from_kuid/kgid when formatting corename
+From: WeiWei Wang <wangww631@huawei.com>
+Subject: ocfs2: remove OCFS2_IOCB_SEM lock type in direct io
 
-When adding __printf attribute to cn_printf, gcc reports some issues:
+In ocfs2 direct read/write, OCFS2_IOCB_SEM lock type is used to protect
+inode->i_alloc_sem rw semaphore lock in the earlier kernel version. 
+However, in the latest kernel, inode->i_alloc_sem rw semaphore lock is not
+used at all, so OCFS2_IOCB_SEM lock type needs to be removed.
 
-  fs/coredump.c:213:5: warning: format '%d' expects argument of type
-  'int', but argument 3 has type 'kuid_t' [-Wformat=]
-       err = cn_printf(cn, "%d", cred->uid);
-       ^
-  fs/coredump.c:217:5: warning: format '%d' expects argument of type
-  'int', but argument 3 has type 'kgid_t' [-Wformat=]
-       err = cn_printf(cn, "%d", cred->gid);
-       ^
-
-These warnings come from the fact that the value of uid/gid needs to be
-extracted from the kuid_t/kgid_t structure before being used as an
-integer.  More precisely, cred->uid and cred->gid need to be converted to
-either user-namespace uid/gid or to init_user_ns uid/gid.
-
-Use init_user_ns in order not to break existing ABI, and document this in
-Documentation/sysctl/kernel.txt.
-
-While at it, format uid and gid values with %u instead of %d because
-uid_t/__kernel_uid32_t and gid_t/__kernel_gid32_t are unsigned int.
-
-Signed-off-by: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
-Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Weiwei Wang <wangww631@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/kernel.txt |    4 ++--
- fs/coredump.c                   |    8 ++++++--
- 2 files changed, 8 insertions(+), 4 deletions(-)
+ fs/ocfs2/aops.c |    3 ---
+ fs/ocfs2/aops.h |    7 -------
+ fs/ocfs2/file.c |   31 ++++---------------------------
+ 3 files changed, 4 insertions(+), 37 deletions(-)
 
-diff -puN Documentation/sysctl/kernel.txt~coredump-use-from_kuid-kgid-when-formatting-corename Documentation/sysctl/kernel.txt
---- a/Documentation/sysctl/kernel.txt~coredump-use-from_kuid-kgid-when-formatting-corename
-+++ a/Documentation/sysctl/kernel.txt
-@@ -197,8 +197,8 @@ core_pattern is used to specify a core d
- 	%P	global pid (init PID namespace)
- 	%i	tid
- 	%I	global tid (init PID namespace)
--	%u	uid
--	%g	gid
-+	%u	uid (in initial user namespace)
-+	%g	gid (in initial user namespace)
- 	%d	dump mode, matches PR_SET_DUMPABLE and
- 		/proc/sys/fs/suid_dumpable
- 	%s	signal number
-diff -puN fs/coredump.c~coredump-use-from_kuid-kgid-when-formatting-corename fs/coredump.c
---- a/fs/coredump.c~coredump-use-from_kuid-kgid-when-formatting-corename
-+++ a/fs/coredump.c
-@@ -209,11 +209,15 @@ static int format_corename(struct core_n
- 				break;
- 			/* uid */
- 			case 'u':
--				err = cn_printf(cn, "%d", cred->uid);
-+				err = cn_printf(cn, "%u",
-+						from_kuid(&init_user_ns,
-+							  cred->uid));
- 				break;
- 			/* gid */
- 			case 'g':
--				err = cn_printf(cn, "%d", cred->gid);
-+				err = cn_printf(cn, "%u",
-+						from_kgid(&init_user_ns,
-+							  cred->gid));
- 				break;
- 			case 'd':
- 				err = cn_printf(cn, "%d",
-_
-
-Patches currently in -mm which might be from nicolas.iooss_linux@m4x.org are
-
-coredump-use-from_kuid-kgid-when-formatting-corename.patch
-coredump-add-__printf-attribute-to-cn_printf-functions.patch
-linux-next.patch
-
+diff -puN fs/ocfs2/aops.c~ocfs2-remove-ocfs2_iocb_sem-lock-type-in-direct-io fs/ocfs2/aops.c
+--- a/fs/ocfs2/aops.c~ocfs2-remove-ocfs2_iocb_sem-lock-type-in-direct-io
++++ a/fs/ocfs2/aops.c
+@@ -628,9 +628,6 @@ static void ocfs2_dio_end_io(struct kioc
+ 	/* this io's submitter should not have unlocked this before we could */
+ 	BUG_ON(!ocfs2_iocb_is_rw_locked(iocb));
+ 
+-	if (ocfs2_iocb_is_sem_locked(iocb))
+-		ocfs2_iocb_clear_sem_locked(iocb);
+-
+ 	if (ocfs2_iocb_is_unaligned_aio(iocb)) {
+ 		ocfs2_iocb_clear_unaligned_aio(iocb);
+ 
+diff -puN fs/ocfs2/aops.h~ocfs2-remove-ocfs2_iocb_sem-lock-type-in-direct-io fs/ocfs2/aops.h
+--- a/fs/ocfs2/aops.h~ocfs2-remove-ocfs2_iocb_sem-lock-type-in-direct-io
++++ a/fs/ocfs2/aops.h
+@@ -79,7 +79,6 @@ static inline void ocfs2_iocb_set_rw_loc
+ enum ocfs2_iocb_lock_bits {
+ 	OCFS2_IOCB_RW_LOCK = 0,
+ 	OCFS2_IOCB_RW_LOCK_LEVEL,
+-	OCFS2_IOCB_SEM,
+ 	OCFS2_IOCB_UNALIGNED_IO,
+ 	OCFS2_IOCB_NUM_LOCKS
+ };
+@@ -88,12 +87,6 @@ enum ocfs2_iocb_lock_bits {
+ 	clear_bit(OCFS2_IOCB_RW_LOCK, (unsigned long *)&iocb->private)
+ #define ocfs2_iocb_rw_locked_level(iocb) \
+ 	test_bit(OCFS2_IOCB_RW_LOCK_LEVEL, (unsigned long *)&iocb->private)
+-#define ocfs2_iocb_set_sem_locked(iocb) \
+-	set_bit(OCFS2_IOCB_SEM, (unsigned long *)&iocb->private)
+-#define ocfs2_iocb_clear_sem_locked(iocb) \
+-	clear_bit(OCFS2_IOCB_SEM, (unsigned long *)&iocb->private)
+-#define ocfs2_iocb_is_sem_locked(iocb) \
+-	test_bit(OCFS2_IOCB_SEM, (unsigned long *)&iocb->private)
+ 
+ #define ocfs2_iocb_set_unaligned_aio(iocb) \
+ 	set_bit(OCFS2_IOCB_UNALIGNED_IO, (unsigned long *)&iocb->private)
+diff -puN fs/ocfs2/file.c~ocfs2-remove-ocfs2_iocb_sem-lock-type-in-direct-io fs/ocfs2/file.c
+--- a/fs/ocfs2/file.c~ocfs2-remove-ocfs2_iocb_sem-lock-type-in-direct-io
++++ a/fs/ocfs2/file.c
+@@ -2250,7 +2250,7 @@ out:
+ static ssize_t ocfs2_file_write_iter(struct kiocb *iocb,
+ 				    struct iov_iter *from)
+ {
+-	int direct_io, appending, rw_level, have_alloc_sem  = 0;
++	int direct_io, appending, rw_level;
+ 	int can_do_direct, has_refcount = 0;
+ 	ssize_t written = 0;
+ 	ssize_t ret;
+@@ -2279,16 +2279,7 @@ static ssize_t ocfs2_file_write_iter(str
+ 
+ 	mutex_lock(&inode->i_mutex);
+ 
+-	ocfs2_iocb_clear_sem_locked(iocb);
+-
+ relock:
+-	/* to match setattr's i_mutex -> rw_lock ordering */
+-	if (direct_io) {
+-		have_alloc_sem = 1;
+-		/* communicate with ocfs2_dio_end_io */
+-		ocfs2_iocb_set_sem_locked(iocb);
+-	}
+-
+ 	/*
+ 	 * Concurrent O_DIRECT writes are allowed with
+ 	 * mount_option "coherency=buffered".
+@@ -2298,7 +2289,7 @@ relock:
+ 	ret = ocfs2_rw_lock(inode, rw_level);
+ 	if (ret < 0) {
+ 		mlog_errno(ret);
+-		goto out_sems;
++		goto out_mutex;
+ 	}
+ 
+ 	/*
+@@ -2347,7 +2338,6 @@ relock:
+ 	if (direct_io && !can_do_direct) {
+ 		ocfs2_rw_unlock(inode, rw_level);
+ 
+-		have_alloc_sem = 0;
+ 		rw_level = -1;
+ 
+ 		direct_io = 0;
+@@ -2416,7 +2406,6 @@ no_sync:
+ 	 */
+ 	if ((ret == -EIOCBQUEUED) || (!ocfs2_iocb_is_rw_locked(iocb))) {
+ 		rw_level = -1;
+-		have_alloc_sem = 0;
+ 		unaligned_dio = 0;
+ 	}
+ 
+@@ -2429,10 +2418,7 @@ out:
+ 	if (rw_level != -1)
+ 		ocfs2_rw_unlock(inode, rw_level);
+ 
+-out_sems:
+-	if (have_alloc_sem)
+-		ocfs2_iocb_clear_sem_locked(iocb);
+-
++out_mutex:
+ 	mutex_unlock(&inode->i_mutex);
+ 
+ 	if (written)
+@@ -2473,7 +2459,7 @@ bail:
+ static ssize_t ocfs2_file_read_iter(struct kiocb *iocb,
+ 				   struct iov_iter *to)
+ {
+-	int ret = 0, rw_level = -1, have_alloc_sem = 0, lock_level = 0;
++	int ret = 0, rw_level = -1, lock_level = 0;
+ 	struct file *filp = iocb->ki_filp;
+ 	struct inode *inode = file_inode(filp);
+ 
+@@ -2490,16 +2476,11 @@ static ssize_t ocfs2_file_read_iter(stru
+ 		goto bail;
+ 	}
+ 
+-	ocfs2_iocb_clear_sem_locked(iocb);
+-
+ 	/*
+ 	 * buffered reads protect themselves in ->readpage().  O_DIRECT reads
+ 	 * need locks to protect pending reads from racing with truncate.
+ 	 */
+ 	if (iocb->ki_flags & IOCB_DIRECT) {
+-		have_alloc_sem = 1;
+-		ocfs2_iocb_set_sem_locked(iocb);
+-
+ 		ret = ocfs2_rw_lock(inode, 0);
+ 		if (ret < 0) {
+ 			mlog_errno(ret);
+@@ -2535,13 +2516,9 @@ static ssize_t ocfs2_file_read_iter(stru
+ 	/* see ocfs2_file_write_iter */
+ 	if (ret == -EIOCBQUEUED || !ocfs2_iocb_is_rw_locked(iocb)) {
+ 		rw_level = -1;
+-		have_alloc_sem = 0;
+ 	}
+ 
+ bail:
+-	if (have_alloc_sem)
+-		ocfs2_iocb_clear_sem_locked(iocb);
