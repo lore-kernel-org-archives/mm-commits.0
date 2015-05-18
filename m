@@ -1,51 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kernfs-do-not-account-ino_ida-allocations-to-memcg.patch removed from -mm tree
-Date: Mon, 18 May 2015 11:44:16 -0700
-Message-ID: <555a3300.3ykrE364uI8b6QhH%akpm@linux-foundation.org>
+Subject: [merged] gfp-add-__gfp_noaccount.patch removed from -mm tree
+Date: Mon, 18 May 2015 11:44:14 -0700
+Message-ID: <555a32fe.lwMkvuD8DK1f8QyJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51030 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51018 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755080AbbERSoR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 May 2015 14:44:17 -0400
+	with ESMTP id S1754550AbbERSoP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 May 2015 14:44:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vdavydov@parallels.com, cl@linux.com, gregkh@linuxfoundation.org, gthelen@google.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@suse.cz, penberg@kernel.org, rientjes@google.com, stable@vger.kernel.org, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernfs: do not account ino_ida allocations to memcg
+     Subject: gfp: add __GFP_NOACCOUNT
 has been removed from the -mm tree.  Its filename was
-     kernfs-do-not-account-ino_ida-allocations-to-memcg.patch
+     gfp-add-__gfp_noaccount.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: kernfs: do not account ino_ida allocations to memcg
+Subject: gfp: add __GFP_NOACCOUNT
 
-root->ino_ida is used for kernfs inode number allocations. Since IDA has
-a layered structure, different IDs can reside on the same layer, which
-is currently accounted to some memory cgroup. The problem is that each
-kmem cache of a memory cgroup has its own directory on sysfs (under
-/sys/fs/kernel/<cache-name>/cgroup). If the inode number of such a
-directory or any file in it gets allocated from a layer accounted to the
-cgroup which the cache is created for, the cgroup will get pinned for
-good, because one has to free all kmem allocations accounted to a cgroup
-in order to release it and destroy all its kmem caches. That said we
-must not account layers of ino_ida to any memory cgroup.
+Not all kmem allocations should be accounted to memcg.  The following
+patch gives an example when accounting of a certain type of allocations to
+memcg can effectively result in a memory leak.  This patch adds the
+__GFP_NOACCOUNT flag which if passed to kmalloc and friends will force the
+allocation to go through the root cgroup.  It will be used by the next
+patch.
 
-Since per net init operations may create new sysfs entries directly
-(e.g. lo device) or indirectly (nf_conntrack creates a new kmem cache
-per each namespace, which, in turn, creates new sysfs entries), an easy
-way to reproduce this issue is by creating network namespace(s) from
-inside a kmem-active memory cgroup.
+Note, since in case of kmemleak enabled each kmalloc implies yet another
+allocation from the kmemleak_object cache, we add __GFP_NOACCOUNT to
+gfp_kmemleak_mask.
+
+Alternatively, we could introduce a per kmem cache flag disabling
+accounting for all allocations of a particular kind, but (a) we would not
+be able to bypass accounting for kmalloc then and (b) a kmem cache with
+this flag set could not be merged with a kmem cache without this flag,
+which would increase the number of global caches and therefore
+fragmentation even if the memory cgroup controller is not used.
+
+Despite its generic name, currently __GFP_NOACCOUNT disables accounting
+only for kmem allocations while user page allocations are always charged. 
+To catch abusing of this flag, a warning is issued on an attempt of
+passing it to mem_cgroup_try_charge.
 
 Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
-Acked-by: Tejun Heo <tj@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@suse.cz>
 Cc: Christoph Lameter <cl@linux.com>
@@ -58,28 +64,64 @@ Cc: <stable@vger.kernel.org>	[4.0.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/kernfs/dir.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ include/linux/gfp.h        |    2 ++
+ include/linux/memcontrol.h |    4 ++++
+ mm/kmemleak.c              |    3 ++-
+ 3 files changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN fs/kernfs/dir.c~kernfs-do-not-account-ino_ida-allocations-to-memcg fs/kernfs/dir.c
---- a/fs/kernfs/dir.c~kernfs-do-not-account-ino_ida-allocations-to-memcg
-+++ a/fs/kernfs/dir.c
-@@ -518,7 +518,14 @@ static struct kernfs_node *__kernfs_new_
- 	if (!kn)
- 		goto err_out1;
+diff -puN include/linux/gfp.h~gfp-add-__gfp_noaccount include/linux/gfp.h
+--- a/include/linux/gfp.h~gfp-add-__gfp_noaccount
++++ a/include/linux/gfp.h
+@@ -30,6 +30,7 @@ struct vm_area_struct;
+ #define ___GFP_HARDWALL		0x20000u
+ #define ___GFP_THISNODE		0x40000u
+ #define ___GFP_RECLAIMABLE	0x80000u
++#define ___GFP_NOACCOUNT	0x100000u
+ #define ___GFP_NOTRACK		0x200000u
+ #define ___GFP_NO_KSWAPD	0x400000u
+ #define ___GFP_OTHER_NODE	0x800000u
+@@ -87,6 +88,7 @@ struct vm_area_struct;
+ #define __GFP_HARDWALL   ((__force gfp_t)___GFP_HARDWALL) /* Enforce hardwall cpuset memory allocs */
+ #define __GFP_THISNODE	((__force gfp_t)___GFP_THISNODE)/* No fallback, no policies */
+ #define __GFP_RECLAIMABLE ((__force gfp_t)___GFP_RECLAIMABLE) /* Page is reclaimable */
++#define __GFP_NOACCOUNT	((__force gfp_t)___GFP_NOACCOUNT) /* Don't account to kmemcg */
+ #define __GFP_NOTRACK	((__force gfp_t)___GFP_NOTRACK)  /* Don't track with kmemcheck */
  
--	ret = ida_simple_get(&root->ino_ida, 1, 0, GFP_KERNEL);
-+	/*
-+	 * If the ino of the sysfs entry created for a kmem cache gets
-+	 * allocated from an ida layer, which is accounted to the memcg that
-+	 * owns the cache, the memcg will get pinned forever. So do not account
-+	 * ino ida allocations.
-+	 */
-+	ret = ida_simple_get(&root->ino_ida, 1, 0,
-+			     GFP_KERNEL | __GFP_NOACCOUNT);
- 	if (ret < 0)
- 		goto err_out2;
- 	kn->ino = ret;
+ #define __GFP_NO_KSWAPD	((__force gfp_t)___GFP_NO_KSWAPD)
+diff -puN include/linux/memcontrol.h~gfp-add-__gfp_noaccount include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~gfp-add-__gfp_noaccount
++++ a/include/linux/memcontrol.h
+@@ -463,6 +463,8 @@ memcg_kmem_newpage_charge(gfp_t gfp, str
+ 	if (!memcg_kmem_enabled())
+ 		return true;
+ 
++	if (gfp & __GFP_NOACCOUNT)
++		return true;
+ 	/*
+ 	 * __GFP_NOFAIL allocations will move on even if charging is not
+ 	 * possible. Therefore we don't even try, and have this allocation
+@@ -522,6 +524,8 @@ memcg_kmem_get_cache(struct kmem_cache *
+ {
+ 	if (!memcg_kmem_enabled())
+ 		return cachep;
++	if (gfp & __GFP_NOACCOUNT)
++		return cachep;
+ 	if (gfp & __GFP_NOFAIL)
+ 		return cachep;
+ 	if (in_interrupt() || (!current->mm) || (current->flags & PF_KTHREAD))
+diff -puN mm/kmemleak.c~gfp-add-__gfp_noaccount mm/kmemleak.c
+--- a/mm/kmemleak.c~gfp-add-__gfp_noaccount
++++ a/mm/kmemleak.c
+@@ -115,7 +115,8 @@
+ #define BYTES_PER_POINTER	sizeof(void *)
+ 
+ /* GFP bitmask for kmemleak internal allocations */
+-#define gfp_kmemleak_mask(gfp)	(((gfp) & (GFP_KERNEL | GFP_ATOMIC)) | \
++#define gfp_kmemleak_mask(gfp)	(((gfp) & (GFP_KERNEL | GFP_ATOMIC | \
++					   __GFP_NOACCOUNT)) | \
+ 				 __GFP_NORETRY | __GFP_NOMEMALLOC | \
+ 				 __GFP_NOWARN)
+ 
 _
 
 Patches currently in -mm which might be from vdavydov@parallels.com are
