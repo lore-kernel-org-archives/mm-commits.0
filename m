@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + target-use-kvfree-in-session-alloc-and-free.patch added to -mm
- tree
-Date: Tue, 19 May 2015 15:25:45 -0700
-Message-ID: <555bb869.tiMIqd6NcDeAx6Bx%akpm@linux-foundation.org>
+Subject: + ib-ehca-use-kvfree-in-ipz_queue_cdtor.patch added to -mm tree
+Date: Tue, 19 May 2015 15:25:43 -0700
+Message-ID: <555bb867.oREPZG4fonGFs+qV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51899 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51896 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751676AbbESWZq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 May 2015 18:25:46 -0400
+	with ESMTP id S1751657AbbESWZo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 May 2015 18:25:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: penberg@kernel.org, nab@linux-iscsi.org, mm-commits@vger.kernel.org
+To: penberg@kernel.org, hnguyen@de.ibm.com, raisch@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: target: use kvfree() in session alloc and free
+     Subject: IB/ehca: use kvfree() in ipz_queue_{cd}tor()
 has been added to the -mm tree.  Its filename is
-     target-use-kvfree-in-session-alloc-and-free.patch
+     ib-ehca-use-kvfree-in-ipz_queue_cdtor.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/target-use-kvfree-in-session-alloc-and-free.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ib-ehca-use-kvfree-in-ipz_queue_cdtor.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/target-use-kvfree-in-session-alloc-and-free.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ib-ehca-use-kvfree-in-ipz_queue_cdtor.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,44 +39,45 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Pekka Enberg <penberg@kernel.org>
-Subject: target: use kvfree() in session alloc and free
+Subject: IB/ehca: use kvfree() in ipz_queue_{cd}tor()
 
 Use kvfree() instead of open-coding it.
 
 Signed-off-by: Pekka Enberg <penberg@kernel.org>
-Cc: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
+Cc: Hoang-Nam Nguyen <hnguyen@de.ibm.com>
+Cc: Christoph Raisch <raisch@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/target/target_core_transport.c |   10 ++--------
+ drivers/infiniband/hw/ehca/ipz_pt_fn.c |   10 ++--------
  1 file changed, 2 insertions(+), 8 deletions(-)
 
-diff -puN drivers/target/target_core_transport.c~target-use-kvfree-in-session-alloc-and-free drivers/target/target_core_transport.c
---- a/drivers/target/target_core_transport.c~target-use-kvfree-in-session-alloc-and-free
-+++ a/drivers/target/target_core_transport.c
-@@ -279,10 +279,7 @@ int transport_alloc_session_tags(struct
- 	if (rc < 0) {
- 		pr_err("Unable to init se_sess->sess_tag_pool,"
- 			" tag_num: %u\n", tag_num);
--		if (is_vmalloc_addr(se_sess->sess_cmd_map))
--			vfree(se_sess->sess_cmd_map);
--		else
--			kfree(se_sess->sess_cmd_map);
-+		kvfree(se_sess->sess_cmd_map);
- 		se_sess->sess_cmd_map = NULL;
- 		return -ENOMEM;
+diff -puN drivers/infiniband/hw/ehca/ipz_pt_fn.c~ib-ehca-use-kvfree-in-ipz_queue_cdtor drivers/infiniband/hw/ehca/ipz_pt_fn.c
+--- a/drivers/infiniband/hw/ehca/ipz_pt_fn.c~ib-ehca-use-kvfree-in-ipz_queue_cdtor
++++ a/drivers/infiniband/hw/ehca/ipz_pt_fn.c
+@@ -245,10 +245,7 @@ int ipz_queue_ctor(struct ehca_pd *pd, s
+ ipz_queue_ctor_exit0:
+ 	ehca_gen_err("Couldn't alloc pages queue=%p "
+ 		 "nr_of_pages=%x",  queue, nr_of_pages);
+-	if (is_vmalloc_addr(queue->queue_pages))
+-		vfree(queue->queue_pages);
+-	else
+-		kfree(queue->queue_pages);
++	kvfree(queue->queue_pages);
+ 
+ 	return 0;
+ }
+@@ -270,10 +267,7 @@ int ipz_queue_dtor(struct ehca_pd *pd, s
+ 			free_page((unsigned long)queue->queue_pages[i]);
  	}
-@@ -483,10 +480,7 @@ void transport_free_session(struct se_se
- {
- 	if (se_sess->sess_cmd_map) {
- 		percpu_ida_destroy(&se_sess->sess_tag_pool);
--		if (is_vmalloc_addr(se_sess->sess_cmd_map))
--			vfree(se_sess->sess_cmd_map);
--		else
--			kfree(se_sess->sess_cmd_map);
-+		kvfree(se_sess->sess_cmd_map);
- 	}
- 	kmem_cache_free(se_sess_cache, se_sess);
+ 
+-	if (is_vmalloc_addr(queue->queue_pages))
+-		vfree(queue->queue_pages);
+-	else
+-		kfree(queue->queue_pages);
++	kvfree(queue->queue_pages);
+ 
+ 	return 1;
  }
 _
 
