@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-relayc-use-kvfree-in-relay_free_page_array.patch added
- to -mm tree
-Date: Tue, 19 May 2015 15:25:33 -0700
-Message-ID: <555bb85d.b1VM+trggMKLue5r%akpm@linux-foundation.org>
+Subject: + bcache-use-kvfree-in-various-places.patch added to -mm tree
+Date: Tue, 19 May 2015 15:25:49 -0700
+Message-ID: <555bb86d.iTnsSfhOZvLVP2r3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51881 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51905 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750884AbbESWZe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 May 2015 18:25:34 -0400
+	with ESMTP id S1751761AbbESWZu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 May 2015 18:25:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: penberg@kernel.org, mm-commits@vger.kernel.org
+To: penberg@kernel.org, kmo@daterainc.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/relay.c: use kvfree() in relay_free_page_array()
+     Subject: bcache: use kvfree() in various places
 has been added to the -mm tree.  Its filename is
-     kernel-relayc-use-kvfree-in-relay_free_page_array.patch
+     bcache-use-kvfree-in-various-places.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-relayc-use-kvfree-in-relay_free_page_array.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/bcache-use-kvfree-in-various-places.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-relayc-use-kvfree-in-relay_free_page_array.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/bcache-use-kvfree-in-various-places.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,32 +39,66 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Pekka Enberg <penberg@kernel.org>
-Subject: kernel/relay.c: use kvfree() in relay_free_page_array()
+Subject: bcache: use kvfree() in various places
 
 Use kvfree() instead of open-coding it.
 
 Signed-off-by: Pekka Enberg <penberg@kernel.org>
+Cc: Kent Overstreet <kmo@daterainc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/relay.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/md/bcache/super.c |   10 ++--------
+ drivers/md/bcache/util.h  |   10 ++--------
+ 2 files changed, 4 insertions(+), 16 deletions(-)
 
-diff -puN kernel/relay.c~kernel-relayc-use-kvfree-in-relay_free_page_array kernel/relay.c
---- a/kernel/relay.c~kernel-relayc-use-kvfree-in-relay_free_page_array
-+++ a/kernel/relay.c
-@@ -81,10 +81,7 @@ static struct page **relay_alloc_page_ar
-  */
- static void relay_free_page_array(struct page **array)
- {
--	if (is_vmalloc_addr(array))
--		vfree(array);
+diff -puN drivers/md/bcache/super.c~bcache-use-kvfree-in-various-places drivers/md/bcache/super.c
+--- a/drivers/md/bcache/super.c~bcache-use-kvfree-in-various-places
++++ a/drivers/md/bcache/super.c
+@@ -760,14 +760,8 @@ static void bcache_device_free(struct bc
+ 	bio_split_pool_free(&d->bio_split_hook);
+ 	if (d->bio_split)
+ 		bioset_free(d->bio_split);
+-	if (is_vmalloc_addr(d->full_dirty_stripes))
+-		vfree(d->full_dirty_stripes);
 -	else
--		kfree(array);
-+	kvfree(array);
- }
+-		kfree(d->full_dirty_stripes);
+-	if (is_vmalloc_addr(d->stripe_sectors_dirty))
+-		vfree(d->stripe_sectors_dirty);
+-	else
+-		kfree(d->stripe_sectors_dirty);
++	kvfree(d->full_dirty_stripes);
++	kvfree(d->stripe_sectors_dirty);
  
- /**
+ 	closure_debug_destroy(&d->cl);
+ }
+diff -puN drivers/md/bcache/util.h~bcache-use-kvfree-in-various-places drivers/md/bcache/util.h
+--- a/drivers/md/bcache/util.h~bcache-use-kvfree-in-various-places
++++ a/drivers/md/bcache/util.h
+@@ -52,10 +52,7 @@ struct closure;
+ 
+ #define free_heap(heap)							\
+ do {									\
+-	if (is_vmalloc_addr((heap)->data))				\
+-		vfree((heap)->data);					\
+-	else								\
+-		kfree((heap)->data);					\
++	kvfree((heap)->data);						\
+ 	(heap)->data = NULL;						\
+ } while (0)
+ 
+@@ -163,10 +160,7 @@ do {									\
+ 
+ #define free_fifo(fifo)							\
+ do {									\
+-	if (is_vmalloc_addr((fifo)->data))				\
+-		vfree((fifo)->data);					\
+-	else								\
+-		kfree((fifo)->data);					\
++	kvfree((fifo)->data);						\
+ 	(fifo)->data = NULL;						\
+ } while (0)
+ 
 _
 
 Patches currently in -mm which might be from penberg@kernel.org are
