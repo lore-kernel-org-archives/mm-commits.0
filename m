@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + lib-sort-add-64-bit-swap-function-v2-fix.patch added to -mm
- tree
-Date: Tue, 19 May 2015 16:17:32 -0700
-Message-ID: <555bc48c.oux4O2dPVZWbNY0F%akpm@linux-foundation.org>
+Subject: + omfs-set-error-return-when-d_make_root-fails.patch added to -mm tree
+Date: Tue, 19 May 2015 16:20:15 -0700
+Message-ID: <555bc52f.N+OS5XaodvtUQ7Cx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52388 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52400 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751275AbbESXRd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 May 2015 19:17:33 -0400
+	with ESMTP id S1751880AbbESXUQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 May 2015 19:20:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: daniel.wagner@bmw-carit.de, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
+To: me@bobcopeland.com, dan.carpenter@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/sort: Move the alignment check into a function
+     Subject: omfs: set error return when d_make_root() fails
 has been added to the -mm tree.  Its filename is
-     lib-sort-add-64-bit-swap-function-v2-fix.patch
+     omfs-set-error-return-when-d_make_root-fails.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-sort-add-64-bit-swap-function-v2-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/omfs-set-error-return-when-d_make_root-fails.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-sort-add-64-bit-swap-function-v2-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/omfs-set-error-return-when-d_make_root-fails.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,81 +38,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Daniel Wagner <daniel.wagner@bmw-carit.de>
-Subject: lib/sort: Move the alignment check into a function
+From: Bob Copeland <me@bobcopeland.com>
+Subject: omfs: set error return when d_make_root() fails
 
-Rasmus Villemoes suggestes to move the aliment check into a separate
-function in order to improve the readability.
+A static checker found the following issue in the error path for
+omfs_fill_super:
 
-Furthermore, let's avoid the switch statement since gcc might mess it
-up. My gcc 4.9.2 produces the same code for the x86_64
-configuration. That is
+	fs/omfs/inode.c:552 omfs_fill_super()
+	warn: missing error code here? 'd_make_root()' failed. 'ret' = '0'
 
-	switch (size) {
-		case 4:
-			if (alignment_ok(base, 4))
-				swap_func = u32_swap;
-			       break;
-		case 8:
-			if (alignment_ok(base, 8))
-				swap_func = u64_swap;
-			break;
-		}
-		if (!swap_func)
-			swap_func = generic_swap;
-	}
+Fix by returning -ENOMEM in this case.
 
-resulted into the same object code.
-
-Link: https://lkml.org/lkml/2015/5/15/89
-Signed-off-by: Daniel Wagner <daniel.wagner@bmw-carit.de>
-Suggested-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Signed-off-by: Bob Copeland <me@bobcopeland.com>
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/sort.c |   30 +++++++++---------------------
- 1 file changed, 9 insertions(+), 21 deletions(-)
+ fs/omfs/inode.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN lib/sort.c~lib-sort-add-64-bit-swap-function-v2-fix lib/sort.c
---- a/lib/sort.c~lib-sort-add-64-bit-swap-function-v2-fix
-+++ a/lib/sort.c
-@@ -8,6 +8,12 @@
- #include <linux/export.h>
- #include <linux/sort.h>
+diff -puN fs/omfs/inode.c~omfs-set-error-return-when-d_make_root-fails fs/omfs/inode.c
+--- a/fs/omfs/inode.c~omfs-set-error-return-when-d_make_root-fails
++++ a/fs/omfs/inode.c
+@@ -549,8 +549,10 @@ static int omfs_fill_super(struct super_
+ 	}
  
-+static int alignment_ok(const void *base, int align)
-+{
-+	return IS_ENABLED(CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS) ||
-+		((unsigned long)base & (align - 1)) == 0;
-+}
-+
- static void u32_swap(void *a, void *b, int size)
- {
- 	u32 t = *(u32 *)a;
-@@ -58,29 +64,11 @@ void sort(void *base, size_t num, size_t
- 	int i = (num/2 - 1) * size, n = num * size, c, r;
+ 	sb->s_root = d_make_root(root);
+-	if (!sb->s_root)
++	if (!sb->s_root) {
++		ret = -ENOMEM;
+ 		goto out_brelse_bh2;
++	}
+ 	printk(KERN_DEBUG "omfs: Mounted volume %s\n", omfs_rb->r_name);
  
- 	if (!swap_func) {
--#if defined(CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS)
--		switch (size) {
--		case 4:
-+		if (size == 4 && alignment_ok(base, 4))
- 			swap_func = u32_swap;
--			break;
--		case 8:
-+		else if (size == 8 && alignment_ok(base, 8))
- 			swap_func = u64_swap;
--			break;
--		}
--#else
--		switch (size) {
--		case 4:
--			if (((unsigned long)base & 3) == 0)
--				swap_func = u32_swap;
--			break;
--		case 8:
--			if (((unsigned long)base & 7) == 0)
--				swap_func = u64_swap;
--			break;
--		}
--#endif /* CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS */
+ 	ret = 0;
+_
+
+Patches currently in -mm which might be from me@bobcopeland.com are
+
+fs-omfs-add-null-terminator-in-the-end-up-the-token-list.patch
+omfs-set-error-return-when-d_make_root-fails.patch
+omfs-fix-sign-confusion-for-bitmap-loop-counter.patch
+omfs-fix-potential-integer-overflow-in-allocator.patch
+linux-next.patch
+
