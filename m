@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + cxgb3-use-kvfree-in-cxgb_free_mem.patch added to -mm tree
-Date: Tue, 19 May 2015 15:25:35 -0700
-Message-ID: <555bb85f.l5TEmYfjgP8RBJAi%akpm@linux-foundation.org>
+Subject: + drm-nouveau-gem-use-kvfree-in-u_free.patch added to -mm tree
+Date: Tue, 19 May 2015 15:25:41 -0700
+Message-ID: <555bb865.kul3BgKmLBnuMiEM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51883 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51893 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751583AbbESWZg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 May 2015 18:25:36 -0400
+	with ESMTP id S1751339AbbESWZm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 May 2015 18:25:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: penberg@kernel.org, santosh@chelsio.com, mm-commits@vger.kernel.org
+To: penberg@kernel.org, airlied@linux.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cxgb3: use kvfree() in cxgb_free_mem()
+     Subject: drm/nouveau/gem: use kvfree() in u_free()
 has been added to the -mm tree.  Its filename is
-     cxgb3-use-kvfree-in-cxgb_free_mem.patch
+     drm-nouveau-gem-use-kvfree-in-u_free.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/cxgb3-use-kvfree-in-cxgb_free_mem.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drm-nouveau-gem-use-kvfree-in-u_free.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/cxgb3-use-kvfree-in-cxgb_free_mem.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drm-nouveau-gem-use-kvfree-in-u_free.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,33 +39,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Pekka Enberg <penberg@kernel.org>
-Subject: cxgb3: use kvfree() in cxgb_free_mem()
+Subject: drm/nouveau/gem: use kvfree() in u_free()
 
 Use kvfree() instead of open-coding it.
 
 Signed-off-by: Pekka Enberg <penberg@kernel.org>
-Cc: Santosh Raspatur <santosh@chelsio.com>
+Cc: David Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ethernet/chelsio/cxgb3/cxgb3_offload.c |    5 +----
+ drivers/gpu/drm/nouveau/nouveau_gem.c |    5 +----
  1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN drivers/net/ethernet/chelsio/cxgb3/cxgb3_offload.c~cxgb3-use-kvfree-in-cxgb_free_mem drivers/net/ethernet/chelsio/cxgb3/cxgb3_offload.c
---- a/drivers/net/ethernet/chelsio/cxgb3/cxgb3_offload.c~cxgb3-use-kvfree-in-cxgb_free_mem
-+++ a/drivers/net/ethernet/chelsio/cxgb3/cxgb3_offload.c
-@@ -1169,10 +1169,7 @@ void *cxgb_alloc_mem(unsigned long size)
-  */
- void cxgb_free_mem(void *addr)
+diff -puN drivers/gpu/drm/nouveau/nouveau_gem.c~drm-nouveau-gem-use-kvfree-in-u_free drivers/gpu/drm/nouveau/nouveau_gem.c
+--- a/drivers/gpu/drm/nouveau/nouveau_gem.c~drm-nouveau-gem-use-kvfree-in-u_free
++++ a/drivers/gpu/drm/nouveau/nouveau_gem.c
+@@ -555,10 +555,7 @@ nouveau_gem_pushbuf_validate(struct nouv
+ static inline void
+ u_free(void *addr)
  {
--	if (is_vmalloc_addr(addr))
--		vfree(addr);
--	else
+-	if (!is_vmalloc_addr(addr))
 -		kfree(addr);
+-	else
+-		vfree(addr);
 +	kvfree(addr);
  }
  
- /*
+ static inline void *
 _
 
 Patches currently in -mm which might be from penberg@kernel.org are
