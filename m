@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + userfaultfd-uffdio_copyuffdio_zeropage-uapi.patch added to -mm
- tree
-Date: Tue, 19 May 2015 14:39:02 -0700
-Message-ID: <555bad76.2Z+Y9MFY3mR+3lVl%akpm@linux-foundation.org>
+Subject: + userfaultfd-rename-uffd_apibits-into-features-fixup.patch added to -mm tree
+Date: Tue, 19 May 2015 14:38:45 -0700
+Message-ID: <555bad65.EaA5Q2TqbxnPlf1l%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51120 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50941 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752153AbbESVjH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 May 2015 17:39:07 -0400
+	with ESMTP id S1752144AbbESVir (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 May 2015 17:38:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, andreslc@google.com, dave.hansen@intel.com, dgilbert@redhat.com, hannes@cmpxchg.org, hughd@google.com, kirill@shutemov.name, luto@amacapital.net, mgorman@suse.de, pbonzini@redhat.com, peter.huangpeng@huawei.com, pfeiner@google.com, riel@redhat.com, sanidhya.gatech@gmail.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: UFFDIO_COPY|UFFDIO_ZEROPAGE uAPI
+     Subject: userfaultfd: rename uffd_api.bits into .features fixup
 has been added to the -mm tree.  Its filename is
-     userfaultfd-uffdio_copyuffdio_zeropage-uapi.patch
+     userfaultfd-rename-uffd_apibits-into-features-fixup.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-uffdio_copyuffdio_zeropage-uapi.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-rename-uffd_apibits-into-features-fixup.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-uffdio_copyuffdio_zeropage-uapi.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-rename-uffd_apibits-into-features-fixup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,9 +39,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: userfaultfd: UFFDIO_COPY|UFFDIO_ZEROPAGE uAPI
+Subject: userfaultfd: rename uffd_api.bits into .features fixup
 
-This implements the uABI of UFFDIO_COPY and UFFDIO_ZEROPAGE.
+Update comment.
 
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Acked-by: Pavel Emelyanov <xemul@parallels.com>
@@ -63,80 +62,21 @@ Cc: "Huangpeng (Peter)" <peter.huangpeng@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/linux/userfaultfd.h |   42 ++++++++++++++++++++++++++++-
- 1 file changed, 41 insertions(+), 1 deletion(-)
+ include/uapi/linux/userfaultfd.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/uapi/linux/userfaultfd.h~userfaultfd-uffdio_copyuffdio_zeropage-uapi include/uapi/linux/userfaultfd.h
---- a/include/uapi/linux/userfaultfd.h~userfaultfd-uffdio_copyuffdio_zeropage-uapi
+diff -puN include/uapi/linux/userfaultfd.h~userfaultfd-rename-uffd_apibits-into-features-fixup include/uapi/linux/userfaultfd.h
+--- a/include/uapi/linux/userfaultfd.h~userfaultfd-rename-uffd_apibits-into-features-fixup
 +++ a/include/uapi/linux/userfaultfd.h
-@@ -21,7 +21,9 @@
- 	 (__u64)1 << _UFFDIO_UNREGISTER |	\
- 	 (__u64)1 << _UFFDIO_API)
- #define UFFD_API_RANGE_IOCTLS			\
--	((__u64)1 << _UFFDIO_WAKE)
-+	((__u64)1 << _UFFDIO_WAKE |		\
-+	 (__u64)1 << _UFFDIO_COPY |		\
-+	 (__u64)1 << _UFFDIO_ZEROPAGE)
+@@ -10,7 +10,7 @@
+ #define _LINUX_USERFAULTFD_H
  
- /*
-  * Valid ioctl command number range with this API is from 0x00 to
-@@ -34,6 +36,8 @@
- #define _UFFDIO_REGISTER		(0x00)
- #define _UFFDIO_UNREGISTER		(0x01)
- #define _UFFDIO_WAKE			(0x02)
-+#define _UFFDIO_COPY			(0x03)
-+#define _UFFDIO_ZEROPAGE		(0x04)
- #define _UFFDIO_API			(0x3F)
- 
- /* userfaultfd ioctl ids */
-@@ -46,6 +50,10 @@
- 				     struct uffdio_range)
- #define UFFDIO_WAKE		_IOR(UFFDIO, _UFFDIO_WAKE,	\
- 				     struct uffdio_range)
-+#define UFFDIO_COPY		_IOWR(UFFDIO, _UFFDIO_COPY,	\
-+				      struct uffdio_copy)
-+#define UFFDIO_ZEROPAGE		_IOWR(UFFDIO, _UFFDIO_ZEROPAGE,	\
-+				      struct uffdio_zeropage)
- 
- /* read() structure */
- struct uffd_msg {
-@@ -118,4 +126,36 @@ struct uffdio_register {
- 	__u64 ioctls;
- };
- 
-+struct uffdio_copy {
-+	__u64 dst;
-+	__u64 src;
-+	__u64 len;
-+	/*
-+	 * There will be a wrprotection flag later that allows to map
-+	 * pages wrprotected on the fly. And such a flag will be
-+	 * available if the wrprotection ioctl are implemented for the
-+	 * range according to the uffdio_register.ioctls.
-+	 */
-+#define UFFDIO_COPY_MODE_DONTWAKE		((__u64)1<<0)
-+	__u64 mode;
-+
-+	/*
-+	 * "copy" is written by the ioctl and must be at the end: the
-+	 * copy_from_user will not read the last 8 bytes.
-+	 */
-+	__s64 copy;
-+};
-+
-+struct uffdio_zeropage {
-+	struct uffdio_range range;
-+#define UFFDIO_ZEROPAGE_MODE_DONTWAKE		((__u64)1<<0)
-+	__u64 mode;
-+
-+	/*
-+	 * "zeropage" is written by the ioctl and must be at the end:
-+	 * the copy_from_user will not read the last 8 bytes.
-+	 */
-+	__s64 zeropage;
-+};
-+
- #endif /* _LINUX_USERFAULTFD_H */
+ #define UFFD_API ((__u64)0xAA)
+-/* FIXME: add "|UFFD_BIT_WP" to UFFD_API_BITS after implementing it */
++/* FIXME: add "|UFFD_FEATURE_WP" to UFFD_API_FEATURES after implementing it */
+ #define UFFD_API_FEATURES (UFFD_FEATURE_WRITE_BIT)
+ #define UFFD_API_IOCTLS				\
+ 	((__u64)1 << _UFFDIO_REGISTER |		\
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
