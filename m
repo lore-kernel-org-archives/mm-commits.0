@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- kernel-panic-kexec-fix-crash_kexec_post_notifiers-option-issue-in-oops-path.patch added to -mm tree
-Date: Mon, 18 May 2015 16:27:14 -0700
-Message-ID: <555a7552.jXX5rDI+dg5jF7bU%akpm@linux-foundation.org>
+ fs-binfmt_elfc-load_elf_binary-return-einval-on-zero-length-mappings.patch
+ added to -mm tree
+Date: Tue, 19 May 2015 12:52:19 -0700
+Message-ID: <555b9473.jKjI5I34LEFfdPZz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55294 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48866 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754517AbbERX1P (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 18 May 2015 19:27:15 -0400
+	with ESMTP id S1750782AbbESTwU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 May 2015 15:52:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: d.hatayama@jp.fujitsu.com, bhe@redhat.com, hidehiro.kawai.ez@hitachi.com, masami.hiramatsu.pt@hitachi.com, mingo@kernel.org, vgoyal@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, james.hogan@imgtec.com, md@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/panic/kexec: fix "crash_kexec_post_notifiers" option issue in oops path
+     Subject: fs/binfmt_elf.c:load_elf_binary(): return -EINVAL on zero-length mappings
 has been added to the -mm tree.  Its filename is
-     kernel-panic-kexec-fix-crash_kexec_post_notifiers-option-issue-in-oops-path.patch
+     fs-binfmt_elfc-load_elf_binary-return-einval-on-zero-length-mappings.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-panic-kexec-fix-crash_kexec_post_notifiers-option-issue-in-oops-path.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-binfmt_elfc-load_elf_binary-return-einval-on-zero-length-mappings.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-panic-kexec-fix-crash_kexec_post_notifiers-option-issue-in-oops-path.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-binfmt_elfc-load_elf_binary-return-einval-on-zero-length-mappings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,91 +40,73 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
-Subject: kernel/panic/kexec: fix "crash_kexec_post_notifiers" option issue in oops path
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fs/binfmt_elf.c:load_elf_binary(): return -EINVAL on zero-length mappings
 
-Commit f06e5153f4ae2e ("kernel/panic.c: add "crash_kexec_post_notifiers"
-option for kdump after panic_notifers") introduced
-"crash_kexec_post_notifiers" kernel boot option, which toggles wheather
-panic() calls crash_kexec() before panic_notifiers and dump kmsg or after.
+load_elf_binary() returns `retval', not `error'.
 
-The problem is that the commit overlooks panic_on_oops kernel boot option.
- If it is enabled, crash_kexec() is called directly without going through
-panic() in oops path.
-
-To fix this issue, this patch adds a check to "crash_kexec_post_notifiers"
-in the condition of kexec_should_crash().
-
-Also, put a comment in kexec_should_crash() to explain not obvious things
-on this patch.
-
-Signed-off-by: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
-Acked-by: Baoquan He <bhe@redhat.com>
-Tested-by: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
-Reviewed-by: Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
-Cc: Baoquan He <bhe@redhat.com>
+Fixes: a87938b2e246b81b4fb ("fs/binfmt_elf.c: fix bug in loading of PIE binaries")
+Reported-by: James Hogan <james.hogan@imgtec.com>
+Cc: Michael Davidson <md@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |    3 +++
- kernel/kexec.c         |   11 +++++++++++
- kernel/panic.c         |    2 +-
- 3 files changed, 15 insertions(+), 1 deletion(-)
+ fs/binfmt_elf.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/kernel.h~kernel-panic-kexec-fix-crash_kexec_post_notifiers-option-issue-in-oops-path include/linux/kernel.h
---- a/include/linux/kernel.h~kernel-panic-kexec-fix-crash_kexec_post_notifiers-option-issue-in-oops-path
-+++ a/include/linux/kernel.h
-@@ -438,6 +438,9 @@ extern int panic_on_unrecovered_nmi;
- extern int panic_on_io_nmi;
- extern int panic_on_warn;
- extern int sysctl_panic_on_stackoverflow;
-+
-+extern bool crash_kexec_post_notifiers;
-+
- /*
-  * Only to be used by arch init code. If the user over-wrote the default
-  * CONFIG_PANIC_TIMEOUT, honor it.
-diff -puN kernel/kexec.c~kernel-panic-kexec-fix-crash_kexec_post_notifiers-option-issue-in-oops-path kernel/kexec.c
---- a/kernel/kexec.c~kernel-panic-kexec-fix-crash_kexec_post_notifiers-option-issue-in-oops-path
-+++ a/kernel/kexec.c
-@@ -84,6 +84,17 @@ struct resource crashk_low_res = {
- 
- int kexec_should_crash(struct task_struct *p)
- {
-+	/*
-+	 * If crash_kexec_post_notifiers is enabled, don't run
-+	 * crash_kexec() here yet, which must be run after panic
-+	 * notifiers in panic().
-+	 */
-+	if (crash_kexec_post_notifiers)
-+		return 0;
-+	/*
-+	 * There are 4 panic() calls in do_exit() path, each of which
-+	 * corresponds to each of these 4 conditions.
-+	 */
- 	if (in_interrupt() || !p->pid || is_global_init(p) || panic_on_oops)
- 		return 1;
- 	return 0;
-diff -puN kernel/panic.c~kernel-panic-kexec-fix-crash_kexec_post_notifiers-option-issue-in-oops-path kernel/panic.c
---- a/kernel/panic.c~kernel-panic-kexec-fix-crash_kexec_post_notifiers-option-issue-in-oops-path
-+++ a/kernel/panic.c
-@@ -32,7 +32,7 @@ static unsigned long tainted_mask;
- static int pause_on_oops;
- static int pause_on_oops_flag;
- static DEFINE_SPINLOCK(pause_on_oops_lock);
--static bool crash_kexec_post_notifiers;
-+bool crash_kexec_post_notifiers;
- int panic_on_warn __read_mostly;
- 
- int panic_timeout = CONFIG_PANIC_TIMEOUT;
+diff -puN fs/binfmt_elf.c~fs-binfmt_elfc-load_elf_binary-return-einval-on-zero-length-mappings fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~fs-binfmt_elfc-load_elf_binary-return-einval-on-zero-length-mappings
++++ a/fs/binfmt_elf.c
+@@ -918,7 +918,7 @@ static int load_elf_binary(struct linux_
+ 			total_size = total_mapping_size(elf_phdata,
+ 							loc->elf_ex.e_phnum);
+ 			if (!total_size) {
+-				error = -EINVAL;
++				retval = -EINVAL;
+ 				goto out_free_dentry;
+ 			}
+ 		}
 _
 
-Patches currently in -mm which might be from d.hatayama@jp.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-kernel-panic-call-the-2nd-crash_kexec-only-if-crash_kexec_post_notifiers-is-enabled.patch
-kernel-panic-kexec-fix-crash_kexec_post_notifiers-option-issue-in-oops-path.patch
-kdump-vmcoreinfo-report-actual-value-of-phys_base.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+fs-binfmt_elfc-load_elf_binary-return-einval-on-zero-length-mappings.patch
+ocfs2-reduce-object-size-of-mlog-uses-fix.patch
+ocfs2-remove-__mlog_cpu_guess.patch
+ocfs2-remove-__mlog_cpu_guess-fix.patch
+mm.patch
+mm-slab_common-support-the-slub_debug-boot-option-on-specific-object-size-fix.patch
+slub-bulk-allocation-from-per-cpu-partial-pages-fix.patch
+mm-fix-mprotect-behaviour-on-vm_locked-vmas-fix.patch
+mm-new-mm-hook-framework.patch
+mm-meminit-inline-some-helper-functions-fix.patch
+mm-meminit-finish-initialisation-of-struct-pages-before-basic-setup-fix.patch
+mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling-fix.patch
+rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix.patch
+rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix-fix.patch
+mm-thp-split-out-pmd-collpase-flush-into-a-separate-functions-fix.patch
+mm-thp-split-out-pmd-collpase-flush-into-a-separate-functions-fix-2.patch
+mm-clarify-that-the-function-operateds-on-hugepage-pte-fix.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
+proc-fix-page_size-limit-of-proc-pid-cmdline-fix.patch
+bitmap-remove-explicit-newline-handling-using-scnprintf-format-string-fix.patch
+radix-tree-replace-preallocated-node-array-with-linked-list-fix.patch
+rtc-omap-add-external-32k-clock-feature-fix.patch
+devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx-fix.patch
+linux-next.patch
+linux-next-rejects.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
