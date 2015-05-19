@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + userfaultfd-uapi.patch added to -mm tree
-Date: Tue, 19 May 2015 14:38:21 -0700
-Message-ID: <555bad4d.YgktpCwZjeqPuyeP%akpm@linux-foundation.org>
+Subject: + userfaultfd-add-vm_userfaultfd_ctx-to-the-vm_area_struct.patch
+ added to -mm tree
+Date: Tue, 19 May 2015 14:38:26 -0700
+Message-ID: <555bad52.yyMAU/63+cCJ8WA4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50846 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50863 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752101AbbESViX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 May 2015 17:38:23 -0400
+	with ESMTP id S1751512AbbESVi2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 May 2015 17:38:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, andreslc@google.com, dave.hansen@intel.com, dgilbert@redhat.com, hannes@cmpxchg.org, hughd@google.com, kirill@shutemov.name, luto@amacapital.net, mgorman@suse.de, pbonzini@redhat.com, peter.huangpeng@huawei.com, pfeiner@google.com, riel@redhat.com, sanidhya.gatech@gmail.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: uAPI
+     Subject: userfaultfd: add vm_userfaultfd_ctx to the vm_area_struct
 has been added to the -mm tree.  Its filename is
-     userfaultfd-uapi.patch
+     userfaultfd-add-vm_userfaultfd_ctx-to-the-vm_area_struct.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-uapi.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-add-vm_userfaultfd_ctx-to-the-vm_area_struct.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-uapi.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-add-vm_userfaultfd_ctx-to-the-vm_area_struct.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,9 +40,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: userfaultfd: uAPI
+Subject: userfaultfd: add vm_userfaultfd_ctx to the vm_area_struct
 
-Defines the uAPI of the userfaultfd, notably the ioctl numbers and protocol.
+This adds the vm_userfaultfd_ctx to the vm_area_struct.
 
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Acked-by: Pavel Emelyanov <xemul@parallels.com>
@@ -62,115 +63,49 @@ Cc: "Huangpeng (Peter)" <peter.huangpeng@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ioctl/ioctl-number.txt |    1 
- include/uapi/linux/Kbuild            |    1 
- include/uapi/linux/userfaultfd.h     |   81 +++++++++++++++++++++++++
- 3 files changed, 83 insertions(+)
+ include/linux/mm_types.h |   11 +++++++++++
+ kernel/fork.c            |    1 +
+ 2 files changed, 12 insertions(+)
 
-diff -puN Documentation/ioctl/ioctl-number.txt~userfaultfd-uapi Documentation/ioctl/ioctl-number.txt
---- a/Documentation/ioctl/ioctl-number.txt~userfaultfd-uapi
-+++ a/Documentation/ioctl/ioctl-number.txt
-@@ -301,6 +301,7 @@ Code  Seq#(hex)	Include File		Comments
- 0xA3	80-8F	Port ACL		in development:
- 					<mailto:tlewis@mindspring.com>
- 0xA3	90-9F	linux/dtlk.h
-+0xAA	00-3F	linux/uapi/linux/userfaultfd.h
- 0xAB	00-1F	linux/nbd.h
- 0xAC	00-1F	linux/raw.h
- 0xAD	00	Netfilter device	in development:
-diff -puN include/uapi/linux/Kbuild~userfaultfd-uapi include/uapi/linux/Kbuild
---- a/include/uapi/linux/Kbuild~userfaultfd-uapi
-+++ a/include/uapi/linux/Kbuild
-@@ -451,3 +451,4 @@ header-y += xfrm.h
- header-y += xilinx-v4l2-controls.h
- header-y += zorro.h
- header-y += zorro_ids.h
-+header-y += userfaultfd.h
-diff -puN /dev/null include/uapi/linux/userfaultfd.h
---- /dev/null
-+++ a/include/uapi/linux/userfaultfd.h
-@@ -0,0 +1,81 @@
-+/*
-+ *  include/linux/userfaultfd.h
-+ *
-+ *  Copyright (C) 2007  Davide Libenzi <davidel@xmailserver.org>
-+ *  Copyright (C) 2015  Red Hat, Inc.
-+ *
-+ */
-+
-+#ifndef _LINUX_USERFAULTFD_H
-+#define _LINUX_USERFAULTFD_H
-+
-+#define UFFD_API ((__u64)0xAA)
-+/* FIXME: add "|UFFD_BIT_WP" to UFFD_API_BITS after implementing it */
-+#define UFFD_API_BITS (UFFD_BIT_WRITE)
-+#define UFFD_API_IOCTLS				\
-+	((__u64)1 << _UFFDIO_REGISTER |		\
-+	 (__u64)1 << _UFFDIO_UNREGISTER |	\
-+	 (__u64)1 << _UFFDIO_API)
-+#define UFFD_API_RANGE_IOCTLS			\
-+	((__u64)1 << _UFFDIO_WAKE)
-+
-+/*
-+ * Valid ioctl command number range with this API is from 0x00 to
-+ * 0x3F.  UFFDIO_API is the fixed number, everything else can be
-+ * changed by implementing a different UFFD_API. If sticking to the
-+ * same UFFD_API more ioctl can be added and userland will be aware of
-+ * which ioctl the running kernel implements through the ioctl command
-+ * bitmask written by the UFFDIO_API.
-+ */
-+#define _UFFDIO_REGISTER		(0x00)
-+#define _UFFDIO_UNREGISTER		(0x01)
-+#define _UFFDIO_WAKE			(0x02)
-+#define _UFFDIO_API			(0x3F)
-+
-+/* userfaultfd ioctl ids */
-+#define UFFDIO 0xAA
-+#define UFFDIO_API		_IOWR(UFFDIO, _UFFDIO_API,	\
-+				      struct uffdio_api)
-+#define UFFDIO_REGISTER		_IOWR(UFFDIO, _UFFDIO_REGISTER, \
-+				      struct uffdio_register)
-+#define UFFDIO_UNREGISTER	_IOR(UFFDIO, _UFFDIO_UNREGISTER,	\
-+				     struct uffdio_range)
-+#define UFFDIO_WAKE		_IOR(UFFDIO, _UFFDIO_WAKE,	\
-+				     struct uffdio_range)
-+
-+/*
-+ * Valid bits below PAGE_SHIFT in the userfault address read through
-+ * the read() syscall.
-+ */
-+#define UFFD_BIT_WRITE	(1<<0)	/* this was a write fault, MISSING or WP */
-+#define UFFD_BIT_WP	(1<<1)	/* handle_userfault() reason VM_UFFD_WP */
-+#define UFFD_BITS	2	/* two above bits used for UFFD_BIT_* mask */
-+
-+struct uffdio_api {
-+	/* userland asks for an API number */
-+	__u64 api;
-+
-+	/* kernel answers below with the available features for the API */
-+	__u64 bits;
-+	__u64 ioctls;
+diff -puN include/linux/mm_types.h~userfaultfd-add-vm_userfaultfd_ctx-to-the-vm_area_struct include/linux/mm_types.h
+--- a/include/linux/mm_types.h~userfaultfd-add-vm_userfaultfd_ctx-to-the-vm_area_struct
++++ a/include/linux/mm_types.h
+@@ -247,6 +247,16 @@ struct vm_region {
+ 						* this region */
+ };
+ 
++#ifdef CONFIG_USERFAULTFD
++#define NULL_VM_UFFD_CTX ((struct vm_userfaultfd_ctx) { NULL, })
++struct vm_userfaultfd_ctx {
++	struct userfaultfd_ctx *ctx;
 +};
++#else /* CONFIG_USERFAULTFD */
++#define NULL_VM_UFFD_CTX ((struct vm_userfaultfd_ctx) {})
++struct vm_userfaultfd_ctx {};
++#endif /* CONFIG_USERFAULTFD */
 +
-+struct uffdio_range {
-+	__u64 start;
-+	__u64 len;
-+};
-+
-+struct uffdio_register {
-+	struct uffdio_range range;
-+#define UFFDIO_REGISTER_MODE_MISSING	((__u64)1<<0)
-+#define UFFDIO_REGISTER_MODE_WP		((__u64)1<<1)
-+	__u64 mode;
-+
-+	/*
-+	 * kernel answers which ioctl commands are available for the
-+	 * range, keep at the end as the last 8 bytes aren't read.
-+	 */
-+	__u64 ioctls;
-+};
-+
-+#endif /* _LINUX_USERFAULTFD_H */
+ /*
+  * This struct defines a memory VMM memory area. There is one of these
+  * per VM-area/task.  A VM area is any part of the process virtual memory
+@@ -313,6 +323,7 @@ struct vm_area_struct {
+ #ifdef CONFIG_NUMA
+ 	struct mempolicy *vm_policy;	/* NUMA policy for the VMA */
+ #endif
++	struct vm_userfaultfd_ctx vm_userfaultfd_ctx;
+ };
+ 
+ struct core_thread {
+diff -puN kernel/fork.c~userfaultfd-add-vm_userfaultfd_ctx-to-the-vm_area_struct kernel/fork.c
+--- a/kernel/fork.c~userfaultfd-add-vm_userfaultfd_ctx-to-the-vm_area_struct
++++ a/kernel/fork.c
+@@ -451,6 +451,7 @@ static int dup_mmap(struct mm_struct *mm
+ 			goto fail_nomem_anon_vma_fork;
+ 		tmp->vm_flags &= ~VM_LOCKED;
+ 		tmp->vm_next = tmp->vm_prev = NULL;
++		tmp->vm_userfaultfd_ctx = NULL_VM_UFFD_CTX;
+ 		file = tmp->vm_file;
+ 		if (file) {
+ 			struct inode *inode = file_inode(file);
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
