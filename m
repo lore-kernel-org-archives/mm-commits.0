@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + libcxgbi-use-kvfree-in-cxgbi_free_big_mem.patch added to -mm
- tree
-Date: Tue, 19 May 2015 15:25:47 -0700
-Message-ID: <555bb86b.eODOqKq86b3loKtc%akpm@linux-foundation.org>
+Subject: + cxgb3-use-kvfree-in-cxgb_free_mem.patch added to -mm tree
+Date: Tue, 19 May 2015 15:25:35 -0700
+Message-ID: <555bb85f.l5TEmYfjgP8RBJAi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51902 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51883 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751664AbbESWZs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 May 2015 18:25:48 -0400
+	with ESMTP id S1751583AbbESWZg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 May 2015 18:25:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: penberg@kernel.org, JBottomley@odin.com, mm-commits@vger.kernel.org
+To: penberg@kernel.org, santosh@chelsio.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: libcxgbi: use kvfree() in cxgbi_free_big_mem()
+     Subject: cxgb3: use kvfree() in cxgb_free_mem()
 has been added to the -mm tree.  Its filename is
-     libcxgbi-use-kvfree-in-cxgbi_free_big_mem.patch
+     cxgb3-use-kvfree-in-cxgb_free_mem.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/libcxgbi-use-kvfree-in-cxgbi_free_big_mem.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/cxgb3-use-kvfree-in-cxgb_free_mem.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/libcxgbi-use-kvfree-in-cxgbi_free_big_mem.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/cxgb3-use-kvfree-in-cxgb_free_mem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,24 +39,24 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Pekka Enberg <penberg@kernel.org>
-Subject: libcxgbi: use kvfree() in cxgbi_free_big_mem()
+Subject: cxgb3: use kvfree() in cxgb_free_mem()
 
 Use kvfree() instead of open-coding it.
 
 Signed-off-by: Pekka Enberg <penberg@kernel.org>
-Cc: "James E.J. Bottomley" <JBottomley@odin.com>
+Cc: Santosh Raspatur <santosh@chelsio.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/cxgbi/libcxgbi.h |    5 +----
+ drivers/net/ethernet/chelsio/cxgb3/cxgb3_offload.c |    5 +----
  1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN drivers/scsi/cxgbi/libcxgbi.h~libcxgbi-use-kvfree-in-cxgbi_free_big_mem drivers/scsi/cxgbi/libcxgbi.h
---- a/drivers/scsi/cxgbi/libcxgbi.h~libcxgbi-use-kvfree-in-cxgbi_free_big_mem
-+++ a/drivers/scsi/cxgbi/libcxgbi.h
-@@ -685,10 +685,7 @@ static inline void *cxgbi_alloc_big_mem(
- 
- static inline void cxgbi_free_big_mem(void *addr)
+diff -puN drivers/net/ethernet/chelsio/cxgb3/cxgb3_offload.c~cxgb3-use-kvfree-in-cxgb_free_mem drivers/net/ethernet/chelsio/cxgb3/cxgb3_offload.c
+--- a/drivers/net/ethernet/chelsio/cxgb3/cxgb3_offload.c~cxgb3-use-kvfree-in-cxgb_free_mem
++++ a/drivers/net/ethernet/chelsio/cxgb3/cxgb3_offload.c
+@@ -1169,10 +1169,7 @@ void *cxgb_alloc_mem(unsigned long size)
+  */
+ void cxgb_free_mem(void *addr)
  {
 -	if (is_vmalloc_addr(addr))
 -		vfree(addr);
@@ -66,7 +65,7 @@ diff -puN drivers/scsi/cxgbi/libcxgbi.h~libcxgbi-use-kvfree-in-cxgbi_free_big_me
 +	kvfree(addr);
  }
  
- static inline void cxgbi_set_iscsi_ipv4(struct cxgbi_hba *chba, __be32 ipaddr)
+ /*
 _
 
 Patches currently in -mm which might be from penberg@kernel.org are
