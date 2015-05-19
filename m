@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + cxgb4-use-kvfree-in-t4_free_mem.patch added to -mm tree
-Date: Tue, 19 May 2015 15:25:37 -0700
-Message-ID: <555bb861.3YyFMhyDIxktrsKA%akpm@linux-foundation.org>
+Subject: + kernel-relayc-use-kvfree-in-relay_free_page_array.patch added
+ to -mm tree
+Date: Tue, 19 May 2015 15:25:33 -0700
+Message-ID: <555bb85d.b1VM+trggMKLue5r%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51887 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51881 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751645AbbESWZi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 May 2015 18:25:38 -0400
+	with ESMTP id S1750884AbbESWZe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 May 2015 18:25:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: penberg@kernel.org, hariprasad@chelsio.com, mm-commits@vger.kernel.org
+To: penberg@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cxgb4: use kvfree() in t4_free_mem()
+     Subject: kernel/relay.c: use kvfree() in relay_free_page_array()
 has been added to the -mm tree.  Its filename is
-     cxgb4-use-kvfree-in-t4_free_mem.patch
+     kernel-relayc-use-kvfree-in-relay_free_page_array.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/cxgb4-use-kvfree-in-t4_free_mem.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-relayc-use-kvfree-in-relay_free_page_array.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/cxgb4-use-kvfree-in-t4_free_mem.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-relayc-use-kvfree-in-relay_free_page_array.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,33 +40,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Pekka Enberg <penberg@kernel.org>
-Subject: cxgb4: use kvfree() in t4_free_mem()
+Subject: kernel/relay.c: use kvfree() in relay_free_page_array()
 
 Use kvfree() instead of open-coding it.
 
 Signed-off-by: Pekka Enberg <penberg@kernel.org>
-Cc: Hariprasad S <hariprasad@chelsio.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c |    5 +----
+ kernel/relay.c |    5 +----
  1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c~cxgb4-use-kvfree-in-t4_free_mem drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
---- a/drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c~cxgb4-use-kvfree-in-t4_free_mem
-+++ a/drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
-@@ -1143,10 +1143,7 @@ void *t4_alloc_mem(size_t size)
+diff -puN kernel/relay.c~kernel-relayc-use-kvfree-in-relay_free_page_array kernel/relay.c
+--- a/kernel/relay.c~kernel-relayc-use-kvfree-in-relay_free_page_array
++++ a/kernel/relay.c
+@@ -81,10 +81,7 @@ static struct page **relay_alloc_page_ar
   */
- void t4_free_mem(void *addr)
+ static void relay_free_page_array(struct page **array)
  {
--	if (is_vmalloc_addr(addr))
--		vfree(addr);
+-	if (is_vmalloc_addr(array))
+-		vfree(array);
 -	else
--		kfree(addr);
-+	kvfree(addr);
+-		kfree(array);
++	kvfree(array);
  }
  
- /* Send a Work Request to write the filter at a specified index.  We construct
+ /**
 _
 
 Patches currently in -mm which might be from penberg@kernel.org are
