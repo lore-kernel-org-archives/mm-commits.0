@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + ib-ehca-use-kvfree-in-ipz_queue_cdtor.patch added to -mm tree
-Date: Tue, 19 May 2015 15:25:43 -0700
-Message-ID: <555bb867.oREPZG4fonGFs+qV%akpm@linux-foundation.org>
+Subject: + cxgb4-use-kvfree-in-t4_free_mem.patch added to -mm tree
+Date: Tue, 19 May 2015 15:25:37 -0700
+Message-ID: <555bb861.3YyFMhyDIxktrsKA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51896 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51887 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751657AbbESWZo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 May 2015 18:25:44 -0400
+	with ESMTP id S1751645AbbESWZi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 May 2015 18:25:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: penberg@kernel.org, hnguyen@de.ibm.com, raisch@de.ibm.com, mm-commits@vger.kernel.org
+To: penberg@kernel.org, hariprasad@chelsio.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: IB/ehca: use kvfree() in ipz_queue_{cd}tor()
+     Subject: cxgb4: use kvfree() in t4_free_mem()
 has been added to the -mm tree.  Its filename is
-     ib-ehca-use-kvfree-in-ipz_queue_cdtor.patch
+     cxgb4-use-kvfree-in-t4_free_mem.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ib-ehca-use-kvfree-in-ipz_queue_cdtor.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/cxgb4-use-kvfree-in-t4_free_mem.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ib-ehca-use-kvfree-in-ipz_queue_cdtor.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/cxgb4-use-kvfree-in-t4_free_mem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,46 +39,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Pekka Enberg <penberg@kernel.org>
-Subject: IB/ehca: use kvfree() in ipz_queue_{cd}tor()
+Subject: cxgb4: use kvfree() in t4_free_mem()
 
 Use kvfree() instead of open-coding it.
 
 Signed-off-by: Pekka Enberg <penberg@kernel.org>
-Cc: Hoang-Nam Nguyen <hnguyen@de.ibm.com>
-Cc: Christoph Raisch <raisch@de.ibm.com>
+Cc: Hariprasad S <hariprasad@chelsio.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/hw/ehca/ipz_pt_fn.c |   10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+ drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN drivers/infiniband/hw/ehca/ipz_pt_fn.c~ib-ehca-use-kvfree-in-ipz_queue_cdtor drivers/infiniband/hw/ehca/ipz_pt_fn.c
---- a/drivers/infiniband/hw/ehca/ipz_pt_fn.c~ib-ehca-use-kvfree-in-ipz_queue_cdtor
-+++ a/drivers/infiniband/hw/ehca/ipz_pt_fn.c
-@@ -245,10 +245,7 @@ int ipz_queue_ctor(struct ehca_pd *pd, s
- ipz_queue_ctor_exit0:
- 	ehca_gen_err("Couldn't alloc pages queue=%p "
- 		 "nr_of_pages=%x",  queue, nr_of_pages);
--	if (is_vmalloc_addr(queue->queue_pages))
--		vfree(queue->queue_pages);
+diff -puN drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c~cxgb4-use-kvfree-in-t4_free_mem drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
+--- a/drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c~cxgb4-use-kvfree-in-t4_free_mem
++++ a/drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
+@@ -1143,10 +1143,7 @@ void *t4_alloc_mem(size_t size)
+  */
+ void t4_free_mem(void *addr)
+ {
+-	if (is_vmalloc_addr(addr))
+-		vfree(addr);
 -	else
--		kfree(queue->queue_pages);
-+	kvfree(queue->queue_pages);
- 
- 	return 0;
+-		kfree(addr);
++	kvfree(addr);
  }
-@@ -270,10 +267,7 @@ int ipz_queue_dtor(struct ehca_pd *pd, s
- 			free_page((unsigned long)queue->queue_pages[i]);
- 	}
  
--	if (is_vmalloc_addr(queue->queue_pages))
--		vfree(queue->queue_pages);
--	else
--		kfree(queue->queue_pages);
-+	kvfree(queue->queue_pages);
- 
- 	return 1;
- }
+ /* Send a Work Request to write the filter at a specified index.  We construct
 _
 
 Patches currently in -mm which might be from penberg@kernel.org are
