@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + userfaultfd-linux-userfaultfd_kh.patch added to -mm tree
-Date: Tue, 19 May 2015 14:38:24 -0700
-Message-ID: <555bad50.ZT5KYGAoF0SZemN2%akpm@linux-foundation.org>
+Subject: + userfaultfd-add-vm_uffd_missing-and-vm_uffd_wp.patch added to
+ -mm tree
+Date: Tue, 19 May 2015 14:38:28 -0700
+Message-ID: <555bad54.Uaj03gryaVPG8Ucy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50857 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50874 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752101AbbESVi0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 May 2015 17:38:26 -0400
+	with ESMTP id S1751288AbbESVia (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 May 2015 17:38:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, andreslc@google.com, dave.hansen@intel.com, dgilbert@redhat.com, hannes@cmpxchg.org, hughd@google.com, kirill@shutemov.name, luto@amacapital.net, mgorman@suse.de, pbonzini@redhat.com, peter.huangpeng@huawei.com, pfeiner@google.com, riel@redhat.com, sanidhya.gatech@gmail.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: linux/userfaultfd_k.h
+     Subject: userfaultfd: add VM_UFFD_MISSING and VM_UFFD_WP
 has been added to the -mm tree.  Its filename is
-     userfaultfd-linux-userfaultfd_kh.patch
+     userfaultfd-add-vm_uffd_missing-and-vm_uffd_wp.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-linux-userfaultfd_kh.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-add-vm_uffd_missing-and-vm_uffd_wp.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-linux-userfaultfd_kh.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-add-vm_uffd_missing-and-vm_uffd_wp.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,10 +40,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: userfaultfd: linux/userfaultfd_k.h
+Subject: userfaultfd: add VM_UFFD_MISSING and VM_UFFD_WP
 
-Kernel header defining the methods needed by the VM common code to
-interact with the userfaultfd.
+These two flags gets set in vma->vm_flags to tell the VM common code
+if the userfaultfd is armed and in which mode (only tracking missing
+faults, only tracking wrprotect faults or both). If neither flags is
+set it means the userfaultfd is not armed on the vma.
 
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Acked-by: Pavel Emelyanov <xemul@parallels.com>
@@ -63,92 +66,49 @@ Cc: "Huangpeng (Peter)" <peter.huangpeng@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/userfaultfd_k.h |   79 ++++++++++++++++++++++++++++++++
- 1 file changed, 79 insertions(+)
+ fs/proc/task_mmu.c |    2 ++
+ include/linux/mm.h |    2 ++
+ kernel/fork.c      |    2 +-
+ 3 files changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN /dev/null include/linux/userfaultfd_k.h
---- /dev/null
-+++ a/include/linux/userfaultfd_k.h
-@@ -0,0 +1,79 @@
-+/*
-+ *  include/linux/userfaultfd_k.h
-+ *
-+ *  Copyright (C) 2015  Red Hat, Inc.
-+ *
-+ */
-+
-+#ifndef _LINUX_USERFAULTFD_K_H
-+#define _LINUX_USERFAULTFD_K_H
-+
-+#ifdef CONFIG_USERFAULTFD
-+
-+#include <linux/userfaultfd.h> /* linux/include/uapi/linux/userfaultfd.h */
-+
-+#include <linux/fcntl.h>
-+
-+/*
-+ * CAREFUL: Check include/uapi/asm-generic/fcntl.h when defining
-+ * new flags, since they might collide with O_* ones. We want
-+ * to re-use O_* flags that couldn't possibly have a meaning
-+ * from userfaultfd, in order to leave a free define-space for
-+ * shared O_* flags.
-+ */
-+#define UFFD_CLOEXEC O_CLOEXEC
-+#define UFFD_NONBLOCK O_NONBLOCK
-+
-+#define UFFD_SHARED_FCNTL_FLAGS (O_CLOEXEC | O_NONBLOCK)
-+#define UFFD_FLAGS_SET (EFD_SHARED_FCNTL_FLAGS)
-+
-+extern int handle_userfault(struct vm_area_struct *vma, unsigned long address,
-+			    unsigned int flags, unsigned long reason);
-+
-+/* mm helpers */
-+static inline bool is_mergeable_vm_userfaultfd_ctx(struct vm_area_struct *vma,
-+					struct vm_userfaultfd_ctx vm_ctx)
-+{
-+	return vma->vm_userfaultfd_ctx.ctx == vm_ctx.ctx;
-+}
-+
-+static inline bool userfaultfd_missing(struct vm_area_struct *vma)
-+{
-+	return vma->vm_flags & VM_UFFD_MISSING;
-+}
-+
-+static inline bool userfaultfd_armed(struct vm_area_struct *vma)
-+{
-+	return vma->vm_flags & (VM_UFFD_MISSING | VM_UFFD_WP);
-+}
-+
-+#else /* CONFIG_USERFAULTFD */
-+
-+/* mm helpers */
-+static inline int handle_userfault(struct vm_area_struct *vma,
-+				   unsigned long address,
-+				   unsigned int flags,
-+				   unsigned long reason)
-+{
-+	return VM_FAULT_SIGBUS;
-+}
-+
-+static inline bool is_mergeable_vm_userfaultfd_ctx(struct vm_area_struct *vma,
-+					struct vm_userfaultfd_ctx vm_ctx)
-+{
-+	return true;
-+}
-+
-+static inline bool userfaultfd_missing(struct vm_area_struct *vma)
-+{
-+	return false;
-+}
-+
-+static inline bool userfaultfd_armed(struct vm_area_struct *vma)
-+{
-+	return false;
-+}
-+
-+#endif /* CONFIG_USERFAULTFD */
-+
-+#endif /* _LINUX_USERFAULTFD_K_H */
+diff -puN fs/proc/task_mmu.c~userfaultfd-add-vm_uffd_missing-and-vm_uffd_wp fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~userfaultfd-add-vm_uffd_missing-and-vm_uffd_wp
++++ a/fs/proc/task_mmu.c
+@@ -597,6 +597,8 @@ static void show_smap_vma_flags(struct s
+ 		[ilog2(VM_HUGEPAGE)]	= "hg",
+ 		[ilog2(VM_NOHUGEPAGE)]	= "nh",
+ 		[ilog2(VM_MERGEABLE)]	= "mg",
++		[ilog2(VM_UFFD_MISSING)]= "um",
++		[ilog2(VM_UFFD_WP)]	= "uw",
+ 	};
+ 	size_t i;
+ 
+diff -puN include/linux/mm.h~userfaultfd-add-vm_uffd_missing-and-vm_uffd_wp include/linux/mm.h
+--- a/include/linux/mm.h~userfaultfd-add-vm_uffd_missing-and-vm_uffd_wp
++++ a/include/linux/mm.h
+@@ -123,8 +123,10 @@ extern unsigned int kobjsize(const void
+ #define VM_MAYSHARE	0x00000080
+ 
+ #define VM_GROWSDOWN	0x00000100	/* general info on the segment */
++#define VM_UFFD_MISSING	0x00000200	/* missing pages tracking */
+ #define VM_PFNMAP	0x00000400	/* Page-ranges managed without "struct page", just pure PFN */
+ #define VM_DENYWRITE	0x00000800	/* ETXTBSY on write attempts.. */
++#define VM_UFFD_WP	0x00001000	/* wrprotect pages tracking */
+ 
+ #define VM_LOCKED	0x00002000
+ #define VM_IO           0x00004000	/* Memory mapped I/O or similar */
+diff -puN kernel/fork.c~userfaultfd-add-vm_uffd_missing-and-vm_uffd_wp kernel/fork.c
+--- a/kernel/fork.c~userfaultfd-add-vm_uffd_missing-and-vm_uffd_wp
++++ a/kernel/fork.c
+@@ -449,7 +449,7 @@ static int dup_mmap(struct mm_struct *mm
+ 		tmp->vm_mm = mm;
+ 		if (anon_vma_fork(tmp, mpnt))
+ 			goto fail_nomem_anon_vma_fork;
+-		tmp->vm_flags &= ~VM_LOCKED;
++		tmp->vm_flags &= ~(VM_LOCKED|VM_UFFD_MISSING|VM_UFFD_WP);
+ 		tmp->vm_next = tmp->vm_prev = NULL;
+ 		tmp->vm_userfaultfd_ctx = NULL_VM_UFFD_CTX;
+ 		file = tmp->vm_file;
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
