@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-clarify-that-the-function-operates-on-hugepage-pte-v5.patch
+Subject: + powerpc-mm-use-generic-version-of-pmdp_clear_flush-v5.patch
  added to -mm tree
-Date: Tue, 19 May 2015 15:21:09 -0700
-Message-ID: <555bb755.B2jF+RO0cbn/SFde%akpm@linux-foundation.org>
+Date: Tue, 19 May 2015 15:21:07 -0700
+Message-ID: <555bb753.iwkQTBh5Gt8MfQi2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51744 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51740 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751830AbbESWVK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 May 2015 18:21:10 -0400
+	with ESMTP id S1751830AbbESWVI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 May 2015 18:21:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aneesh.kumar@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-clarify-that-the-function-operates-on-hugepage-pte-v5
+     Subject: powerpc-mm-use-generic-version-of-pmdp_clear_flush-v5
 has been added to the -mm tree.  Its filename is
-     mm-clarify-that-the-function-operates-on-hugepage-pte-v5.patch
+     powerpc-mm-use-generic-version-of-pmdp_clear_flush-v5.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-clarify-that-the-function-operates-on-hugepage-pte-v5.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-mm-use-generic-version-of-pmdp_clear_flush-v5.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-clarify-that-the-function-operates-on-hugepage-pte-v5.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-mm-use-generic-version-of-pmdp_clear_flush-v5.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,48 +40,59 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: mm-clarify-that-the-function-operates-on-hugepage-pte-v5
+Subject: powerpc-mm-use-generic-version-of-pmdp_clear_flush-v5
+
+Fix VM_BUG_ON on x86.
+
+The default implementation of pmdp_collapse_flush used the hugepage
+variant and hence can be called on pmd_t pointing to pgtable.  This
+resulting in us hitting VM_BUG_ON in pmdp_clear_flush.  Update powerpc/mm:
+Use generic version of pmdp_clear_flush to handle this.
 
 Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/pgtable.h |    2 +-
- include/asm-generic/pgtable.h   |    6 +++++-
- 2 files changed, 6 insertions(+), 2 deletions(-)
+ arch/s390/include/asm/pgtable.h |    8 ++++++++
+ include/asm-generic/pgtable.h   |    7 ++++++-
+ 2 files changed, 14 insertions(+), 1 deletion(-)
 
-diff -puN arch/s390/include/asm/pgtable.h~mm-clarify-that-the-function-operates-on-hugepage-pte-v5 arch/s390/include/asm/pgtable.h
---- a/arch/s390/include/asm/pgtable.h~mm-clarify-that-the-function-operates-on-hugepage-pte-v5
+diff -puN arch/s390/include/asm/pgtable.h~powerpc-mm-use-generic-version-of-pmdp_clear_flush-v5 arch/s390/include/asm/pgtable.h
+--- a/arch/s390/include/asm/pgtable.h~powerpc-mm-use-generic-version-of-pmdp_clear_flush-v5
 +++ a/arch/s390/include/asm/pgtable.h
-@@ -1552,7 +1552,7 @@ static inline pmd_t pmdp_collapse_flush(
+@@ -1548,6 +1548,14 @@ static inline void pmdp_set_wrprotect(st
+ 	}
+ }
+ 
++static inline pmd_t pmdp_collapse_flush(struct vm_area_struct *vma,
++					unsigned long address,
++					pmd_t *pmdp)
++{
++	return pmdp_get_and_clear(vma->vm_mm, address, pmdp);
++}
++#define pmdp_collapse_flush pmdp_collapse_flush
++
+ #define pfn_pmd(pfn, pgprot)	mk_pmd_phys(__pa((pfn) << PAGE_SHIFT), (pgprot))
+ #define mk_pmd(page, pgprot)	pfn_pmd(page_to_pfn(page), (pgprot))
+ 
+diff -puN include/asm-generic/pgtable.h~powerpc-mm-use-generic-version-of-pmdp_clear_flush-v5 include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~powerpc-mm-use-generic-version-of-pmdp_clear_flush-v5
++++ a/include/asm-generic/pgtable.h
+@@ -195,7 +195,12 @@ static inline pmd_t pmdp_collapse_flush(
  					unsigned long address,
  					pmd_t *pmdp)
  {
--	return pmdp_get_and_clear(vma->vm_mm, address, pmdp);
-+	return pmdp_huge_get_and_clear(vma->vm_mm, address, pmdp);
+-	return pmdp_clear_flush(vma, address, pmdp);
++	pmd_t pmd;
++	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
++	VM_BUG_ON(pmd_trans_huge(*pmdp));
++	pmd = pmdp_get_and_clear(vma->vm_mm, address, pmdp);
++	flush_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
++	return pmd;
  }
  #define pmdp_collapse_flush pmdp_collapse_flush
- 
-diff -puN include/asm-generic/pgtable.h~mm-clarify-that-the-function-operates-on-hugepage-pte-v5 include/asm-generic/pgtable.h
---- a/include/asm-generic/pgtable.h~mm-clarify-that-the-function-operates-on-hugepage-pte-v5
-+++ a/include/asm-generic/pgtable.h
-@@ -195,10 +195,14 @@ static inline pmd_t pmdp_collapse_flush(
- 					unsigned long address,
- 					pmd_t *pmdp)
- {
-+	/*
-+	 * pmd and hugepage pte formats are the same. So we could use the same
-+	 * function.
-+	 */
- 	pmd_t pmd;
- 	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
- 	VM_BUG_ON(pmd_trans_huge(*pmdp));
--	pmd = pmdp_get_and_clear(vma->vm_mm, address, pmdp);
-+	pmd = pmdp_huge_get_and_clear(vma->vm_mm, address, pmdp);
- 	flush_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
- 	return pmd;
- }
+ #else
 _
 
 Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
