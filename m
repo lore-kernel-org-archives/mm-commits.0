@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + omfs-fix-sign-confusion-for-bitmap-loop-counter.patch added to
- -mm tree
-Date: Tue, 19 May 2015 16:20:17 -0700
-Message-ID: <555bc531.k79XBiDpWO5/0vQe%akpm__8508.56559486619$1432077639$gmane$org@linux-foundation.org>
+Subject: + checkpatch-make-types-found-in-a-source-file-patch-local.patch
+ added to -mm tree
+Date: Tue, 19 May 2015 16:21:17 -0700
+Message-ID: <555bc56d.4A9H8cHpaKOJZAz5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52402 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52408 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751664AbbESXUS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 May 2015 19:20:18 -0400
+	with ESMTP id S1751738AbbESXVS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 May 2015 19:21:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: me@bobcopeland.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: alexinbeijing@gmail.com, apw@canonical.com, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: omfs: fix sign confusion for bitmap loop counter
+     Subject: checkpatch: make types found in a source file/patch local
 has been added to the -mm tree.  Its filename is
-     omfs-fix-sign-confusion-for-bitmap-loop-counter.patch
+     checkpatch-make-types-found-in-a-source-file-patch-local.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/omfs-fix-sign-confusion-for-bitmap-loop-counter.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-make-types-found-in-a-source-file-patch-local.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/omfs-fix-sign-confusion-for-bitmap-loop-counter.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-make-types-found-in-a-source-file-patch-local.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,51 +39,108 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Bob Copeland <me@bobcopeland.com>
-Subject: omfs: fix sign confusion for bitmap loop counter
+From: Alex Dowad <alexinbeijing@gmail.com>
+Subject: checkpatch: make types found in a source file/patch local
 
-The count variable is used to iterate down to (below) zero from the size
-of the bitmap and handle the one-filling the remainder of the last partial
-bitmap block.  The loop conditional expects count to be signed in order to
-detect when the final block is processed, after which count goes negative.
+checkpatch uses various cues in its input patches and files to discover
+the names of user-defined types and modifiers.  It then uses that
+information when processing expressions to discover potential style
+issues.
 
-Unfortunately, a recent change made this unsigned along with some other
-related fields.  The result of is this is that during mount, omfs_get_imap
-will overrun the bitmap array and corrupt memory unless number of blocks
-happens to be a multiple of 8 * blocksize.
+Unfortunately, in rare cases, this means that checkpatch may give
+different results if you run it on several input files in one execution,
+or one by one!
 
-Fix by changing count back to signed: it is guaranteed to fit in an s32
-without overflow due to an enforced limit on the number of blocks in the
-filesystem.
+The reason is that it may identify a type (or something that looks like a
+type) in one file, and then carry this information over when processing a
+different file.
 
-Signed-off-by: Bob Copeland <me@bobcopeland.com>
-Cc: <stable@vger.kernel.org>
+For example, drivers/staging/media/bcm2048/radio-bcm2048.c contains this
+line (in a macro):
+
+	size value;
+
+and drivers/staging/media/davinci_vpfe/vpfe_video.c has this line:
+
+	while (size * *nbuffers > vpfe_dev->video_limit)
+
+If checkpatch processes these 2 files in a single command like:
+	./scripts/checkpatch.pl -f $file1 $file2
+the (spurious) "size" type detected in the first file will cause it to flag
+the second file for improper use of the pointer dereference operator.
+
+To fix this, store types and modifiers found in a file in separate arrays
+from built-in ones, and reset the arrays of types and modifiers found in
+files at the beginning of each new source file.
+
+Signed-off-by: Alex Dowad <alexinbeijing@gmail.com>
+Signed-off-by: Joe Perches <joe@perches.com>
+Acked-by: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/omfs/inode.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ scripts/checkpatch.pl |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-diff -puN fs/omfs/inode.c~omfs-fix-sign-confusion-for-bitmap-loop-counter fs/omfs/inode.c
---- a/fs/omfs/inode.c~omfs-fix-sign-confusion-for-bitmap-loop-counter
-+++ a/fs/omfs/inode.c
-@@ -306,7 +306,8 @@ static const struct super_operations omf
-  */
- static int omfs_get_imap(struct super_block *sb)
- {
--	unsigned int bitmap_size, count, array_size;
-+	unsigned int bitmap_size, array_size;
-+	int count;
- 	struct omfs_sb_info *sbi = OMFS_SB(sb);
- 	struct buffer_head *bh;
- 	unsigned long **ptr;
+diff -puN scripts/checkpatch.pl~checkpatch-make-types-found-in-a-source-file-patch-local scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-make-types-found-in-a-source-file-patch-local
++++ a/scripts/checkpatch.pl
+@@ -423,6 +423,7 @@ our @typeList = (
+ 	qr{${Ident}_handler_fn},
+ 	@typeListMisordered,
+ );
++our @typeListFile = ();
+ our @typeListWithAttr = (
+ 	@typeList,
+ 	qr{struct\s+$InitAttribute\s+$Ident},
+@@ -432,6 +433,7 @@ our @typeListWithAttr = (
+ our @modifierList = (
+ 	qr{fastcall},
+ );
++our @modifierListFile = ();
+ 
+ our @mode_permission_funcs = (
+ 	["module_param", 3],
+@@ -515,8 +517,8 @@ if ($codespell) {
+ $misspellings = join("|", sort keys %spelling_fix) if keys %spelling_fix;
+ 
+ sub build_types {
+-	my $mods = "(?x:  \n" . join("|\n  ", @modifierList) . "\n)";
+-	my $all = "(?x:  \n" . join("|\n  ", @typeList) . "\n)";
++	my $mods = "(?x:  \n" . join("|\n  ", (@modifierList, @modifierListFile)) . "\n)";
++	my $all = "(?x:  \n" . join("|\n  ", (@typeList, @typeListFile)) . "\n)";
+ 	my $Misordered = "(?x:  \n" . join("|\n  ", @typeListMisordered) . "\n)";
+ 	my $allWithAttr = "(?x:  \n" . join("|\n  ", @typeListWithAttr) . "\n)";
+ 	$Modifier	= qr{(?:$Attribute|$Sparse|$mods)};
+@@ -748,6 +750,9 @@ for my $filename (@ARGV) {
+ 	@fixed_inserted = ();
+ 	@fixed_deleted = ();
+ 	$fixlinenr = -1;
++	@modifierListFile = ();
++	@typeListFile = ();
++	build_types();
+ }
+ 
+ exit($exit);
+@@ -1612,13 +1617,13 @@ sub possible {
+ 			for my $modifier (split(' ', $possible)) {
+ 				if ($modifier !~ $notPermitted) {
+ 					warn "MODIFIER: $modifier ($possible) ($line)\n" if ($dbg_possible);
+-					push(@modifierList, $modifier);
++					push(@modifierListFile, $modifier);
+ 				}
+ 			}
+ 
+ 		} else {
+ 			warn "POSSIBLE: $possible ($line)\n" if ($dbg_possible);
+-			push(@typeList, $possible);
++			push(@typeListFile, $possible);
+ 		}
+ 		build_types();
+ 	} else {
 _
 
-Patches currently in -mm which might be from me@bobcopeland.com are
+Patches currently in -mm which might be from alexinbeijing@gmail.com are
 
-fs-omfs-add-null-terminator-in-the-end-up-the-token-list.patch
-omfs-set-error-return-when-d_make_root-fails.patch
-omfs-fix-sign-confusion-for-bitmap-loop-counter.patch
-omfs-fix-potential-integer-overflow-in-allocator.patch
-linux-next.patch
+checkpatch-make-types-found-in-a-source-file-patch-local.patch
 
