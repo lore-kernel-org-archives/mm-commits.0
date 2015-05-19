@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + userfaultfd-uffdio_copy-and-uffdio_zeropage.patch added to -mm
- tree
-Date: Tue, 19 May 2015 14:39:10 -0700
-Message-ID: <555bad7e.fA3+S7et9yK/BYPI%akpm@linux-foundation.org>
+Subject: + mm-clarify-that-the-function-operates-on-hugepage-pte-v5.patch
+ added to -mm tree
+Date: Tue, 19 May 2015 15:21:09 -0700
+Message-ID: <555bb755.B2jF+RO0cbn/SFde%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51315 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51744 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751170AbbESVjX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 May 2015 17:39:23 -0400
+	with ESMTP id S1751830AbbESWVK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 May 2015 18:21:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, andreslc@google.com, dave.hansen@intel.com, dgilbert@redhat.com, hannes@cmpxchg.org, hughd@google.com, kirill@shutemov.name, luto@amacapital.net, mgorman@suse.de, pbonzini@redhat.com, peter.huangpeng@huawei.com, pfeiner@google.com, riel@redhat.com, sanidhya.gatech@gmail.com, xemul@parallels.com, mm-commits@vger.kernel.org
+To: aneesh.kumar@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: UFFDIO_COPY and UFFDIO_ZEROPAGE
+     Subject: mm-clarify-that-the-function-operates-on-hugepage-pte-v5
 has been added to the -mm tree.  Its filename is
-     userfaultfd-uffdio_copy-and-uffdio_zeropage.patch
+     mm-clarify-that-the-function-operates-on-hugepage-pte-v5.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-uffdio_copy-and-uffdio_zeropage.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-clarify-that-the-function-operates-on-hugepage-pte-v5.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-uffdio_copy-and-uffdio_zeropage.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-clarify-that-the-function-operates-on-hugepage-pte-v5.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,183 +39,63 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: userfaultfd: UFFDIO_COPY and UFFDIO_ZEROPAGE
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Subject: mm-clarify-that-the-function-operates-on-hugepage-pte-v5
 
-These two ioctl allows to either atomically copy or to map zeropages
-into the virtual address space. This is used by the thread that opened
-the userfaultfd to resolve the userfaults.
-
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Acked-by: Pavel Emelyanov <xemul@parallels.com>
-Cc: Sanidhya Kashyap <sanidhya.gatech@gmail.com>
-Cc: zhang.zhanghailiang@huawei.com
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Andres Lagar-Cavilla <andreslc@google.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Andy Lutomirski <luto@amacapital.net>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Peter Feiner <pfeiner@google.com>
-Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: "Huangpeng (Peter)" <peter.huangpeng@huawei.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c |   96 +++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 96 insertions(+)
+ arch/s390/include/asm/pgtable.h |    2 +-
+ include/asm-generic/pgtable.h   |    6 +++++-
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN fs/userfaultfd.c~userfaultfd-uffdio_copy-and-uffdio_zeropage fs/userfaultfd.c
---- a/fs/userfaultfd.c~userfaultfd-uffdio_copy-and-uffdio_zeropage
-+++ a/fs/userfaultfd.c
-@@ -957,6 +957,96 @@ out:
- 	return ret;
+diff -puN arch/s390/include/asm/pgtable.h~mm-clarify-that-the-function-operates-on-hugepage-pte-v5 arch/s390/include/asm/pgtable.h
+--- a/arch/s390/include/asm/pgtable.h~mm-clarify-that-the-function-operates-on-hugepage-pte-v5
++++ a/arch/s390/include/asm/pgtable.h
+@@ -1552,7 +1552,7 @@ static inline pmd_t pmdp_collapse_flush(
+ 					unsigned long address,
+ 					pmd_t *pmdp)
+ {
+-	return pmdp_get_and_clear(vma->vm_mm, address, pmdp);
++	return pmdp_huge_get_and_clear(vma->vm_mm, address, pmdp);
  }
+ #define pmdp_collapse_flush pmdp_collapse_flush
  
-+static int userfaultfd_copy(struct userfaultfd_ctx *ctx,
-+			    unsigned long arg)
-+{
-+	__s64 ret;
-+	struct uffdio_copy uffdio_copy;
-+	struct uffdio_copy __user *user_uffdio_copy;
-+	struct userfaultfd_wake_range range;
-+
-+	user_uffdio_copy = (struct uffdio_copy __user *) arg;
-+
-+	ret = -EFAULT;
-+	if (copy_from_user(&uffdio_copy, user_uffdio_copy,
-+			   /* don't copy "copy" last field */
-+			   sizeof(uffdio_copy)-sizeof(__s64)))
-+		goto out;
-+
-+	ret = validate_range(ctx->mm, uffdio_copy.dst, uffdio_copy.len);
-+	if (ret)
-+		goto out;
+diff -puN include/asm-generic/pgtable.h~mm-clarify-that-the-function-operates-on-hugepage-pte-v5 include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~mm-clarify-that-the-function-operates-on-hugepage-pte-v5
++++ a/include/asm-generic/pgtable.h
+@@ -195,10 +195,14 @@ static inline pmd_t pmdp_collapse_flush(
+ 					unsigned long address,
+ 					pmd_t *pmdp)
+ {
 +	/*
-+	 * double check for wraparound just in case. copy_from_user()
-+	 * will later check uffdio_copy.src + uffdio_copy.len to fit
-+	 * in the userland range.
++	 * pmd and hugepage pte formats are the same. So we could use the same
++	 * function.
 +	 */
-+	ret = -EINVAL;
-+	if (uffdio_copy.src + uffdio_copy.len <= uffdio_copy.src)
-+		goto out;
-+	if (uffdio_copy.mode & ~UFFDIO_COPY_MODE_DONTWAKE)
-+		goto out;
-+
-+	ret = mcopy_atomic(ctx->mm, uffdio_copy.dst, uffdio_copy.src,
-+			   uffdio_copy.len);
-+	if (unlikely(put_user(ret, &user_uffdio_copy->copy)))
-+		return -EFAULT;
-+	if (ret < 0)
-+		goto out;
-+	BUG_ON(!ret);
-+	/* len == 0 would wake all */
-+	range.len = ret;
-+	if (!(uffdio_copy.mode & UFFDIO_COPY_MODE_DONTWAKE)) {
-+		range.start = uffdio_copy.dst;
-+		wake_userfault(ctx, &range);
-+	}
-+	ret = range.len == uffdio_copy.len ? 0 : -EAGAIN;
-+out:
-+	return ret;
-+}
-+
-+static int userfaultfd_zeropage(struct userfaultfd_ctx *ctx,
-+				unsigned long arg)
-+{
-+	__s64 ret;
-+	struct uffdio_zeropage uffdio_zeropage;
-+	struct uffdio_zeropage __user *user_uffdio_zeropage;
-+	struct userfaultfd_wake_range range;
-+
-+	user_uffdio_zeropage = (struct uffdio_zeropage __user *) arg;
-+
-+	ret = -EFAULT;
-+	if (copy_from_user(&uffdio_zeropage, user_uffdio_zeropage,
-+			   /* don't copy "zeropage" last field */
-+			   sizeof(uffdio_zeropage)-sizeof(__s64)))
-+		goto out;
-+
-+	ret = validate_range(ctx->mm, uffdio_zeropage.range.start,
-+			     uffdio_zeropage.range.len);
-+	if (ret)
-+		goto out;
-+	ret = -EINVAL;
-+	if (uffdio_zeropage.mode & ~UFFDIO_ZEROPAGE_MODE_DONTWAKE)
-+		goto out;
-+
-+	ret = mfill_zeropage(ctx->mm, uffdio_zeropage.range.start,
-+			     uffdio_zeropage.range.len);
-+	if (unlikely(put_user(ret, &user_uffdio_zeropage->zeropage)))
-+		return -EFAULT;
-+	if (ret < 0)
-+		goto out;
-+	/* len == 0 would wake all */
-+	BUG_ON(!ret);
-+	range.len = ret;
-+	if (!(uffdio_zeropage.mode & UFFDIO_ZEROPAGE_MODE_DONTWAKE)) {
-+		range.start = uffdio_zeropage.range.start;
-+		wake_userfault(ctx, &range);
-+	}
-+	ret = range.len == uffdio_zeropage.range.len ? 0 : -EAGAIN;
-+out:
-+	return ret;
-+}
-+
- /*
-  * userland asks for a certain API version and we return which bits
-  * and ioctl commands are implemented in this kernel for such API
-@@ -1012,6 +1102,12 @@ static long userfaultfd_ioctl(struct fil
- 	case UFFDIO_WAKE:
- 		ret = userfaultfd_wake(ctx, arg);
- 		break;
-+	case UFFDIO_COPY:
-+		ret = userfaultfd_copy(ctx, arg);
-+		break;
-+	case UFFDIO_ZEROPAGE:
-+		ret = userfaultfd_zeropage(ctx, arg);
-+		break;
- 	}
- 	return ret;
+ 	pmd_t pmd;
+ 	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
+ 	VM_BUG_ON(pmd_trans_huge(*pmdp));
+-	pmd = pmdp_get_and_clear(vma->vm_mm, address, pmdp);
++	pmd = pmdp_huge_get_and_clear(vma->vm_mm, address, pmdp);
+ 	flush_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
+ 	return pmd;
  }
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
-thp-cleanup-how-khugepaged-enters-freezer.patch
-mm-drop-bogus-vm_bug_on_page-assert-in-put_page-codepath.patch
-mm-avoid-tail-page-refcounting-on-non-thp-compound-pages.patch
+origin.patch
+tracing-mm-dont-trace-kmem_cache_free-on-offline-cpus.patch
+mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare.patch
 mm-thp-split-out-pmd-collpase-flush-into-a-separate-functions.patch
 mm-thp-split-out-pmd-collpase-flush-into-a-separate-functions-fix.patch
+mm-thp-split-out-pmd-collpase-flush-into-a-separate-functions-fix-2.patch
 powerpc-mm-use-generic-version-of-pmdp_clear_flush.patch
+powerpc-mm-use-generic-version-of-pmdp_clear_flush-v5.patch
 mm-clarify-that-the-function-operateds-on-hugepage-pte.patch
-userfaultfd-linux-documentation-vm-userfaultfdtxt.patch
-userfaultfd-waitqueue-add-nr-wake-parameter-to-__wake_up_locked_key.patch
-userfaultfd-uapi.patch
-userfaultfd-linux-userfaultfd_kh.patch
-userfaultfd-add-vm_userfaultfd_ctx-to-the-vm_area_struct.patch
-userfaultfd-add-vm_uffd_missing-and-vm_uffd_wp.patch
-userfaultfd-call-handle_userfault-for-userfaultfd_missing-faults.patch
-userfaultfd-teach-vma_merge-to-merge-across-vma-vm_userfaultfd_ctx.patch
-userfaultfd-prevent-khugepaged-to-merge-if-userfaultfd-is-armed.patch
-userfaultfd-add-new-syscall-to-provide-memory-externalization.patch
-userfaultfd-add-new-syscall-to-provide-memory-externalization-fix.patch
-userfaultfd-rename-uffd_apibits-into-features.patch
-userfaultfd-rename-uffd_apibits-into-features-fixup.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg.patch
-userfaultfd-wake-pending-userfaults.patch
-userfaultfd-optimize-read-and-poll-to-be-o1.patch
-userfaultfd-allocate-the-userfaultfd_ctx-cacheline-aligned.patch
-userfaultfd-solve-the-race-between-uffdio_copyzeropage-and-read.patch
-userfaultfd-buildsystem-activation.patch
-userfaultfd-activate-syscall.patch
-userfaultfd-uffdio_copyuffdio_zeropage-uapi.patch
-userfaultfd-mcopy_atomicmfill_zeropage-uffdio_copyuffdio_zeropage-preparation.patch
-userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic.patch
-userfaultfd-uffdio_copy-and-uffdio_zeropage.patch
+mm-clarify-that-the-function-operates-on-hugepage-pte-v5.patch
 page-flags-trivial-cleanup-for-pagetrans-helpers.patch
 page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
 page-flags-define-pg_locked-behavior-on-compound-pages.patch
@@ -231,4 +111,5 @@ page-flags-define-pg_uncached-behavior-on-compound-pages.patch
 page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
 page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
 mm-sanitize-page-mapping-for-tail-pages.patch
+linux-next.patch
 
