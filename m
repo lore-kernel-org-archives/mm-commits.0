@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + drm-nouveau-gem-use-kvfree-in-u_free.patch added to -mm tree
-Date: Tue, 19 May 2015 15:25:41 -0700
-Message-ID: <555bb865.kul3BgKmLBnuMiEM%akpm@linux-foundation.org>
+Subject: + target-use-kvfree-in-session-alloc-and-free.patch added to -mm
+ tree
+Date: Tue, 19 May 2015 15:25:45 -0700
+Message-ID: <555bb869.tiMIqd6NcDeAx6Bx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51893 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51899 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751339AbbESWZm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 May 2015 18:25:42 -0400
+	with ESMTP id S1751676AbbESWZq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 May 2015 18:25:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: penberg@kernel.org, airlied@linux.ie, mm-commits@vger.kernel.org
+To: penberg@kernel.org, nab@linux-iscsi.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drm/nouveau/gem: use kvfree() in u_free()
+     Subject: target: use kvfree() in session alloc and free
 has been added to the -mm tree.  Its filename is
-     drm-nouveau-gem-use-kvfree-in-u_free.patch
+     target-use-kvfree-in-session-alloc-and-free.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drm-nouveau-gem-use-kvfree-in-u_free.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/target-use-kvfree-in-session-alloc-and-free.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drm-nouveau-gem-use-kvfree-in-u_free.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/target-use-kvfree-in-session-alloc-and-free.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,33 +40,45 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Pekka Enberg <penberg@kernel.org>
-Subject: drm/nouveau/gem: use kvfree() in u_free()
+Subject: target: use kvfree() in session alloc and free
 
 Use kvfree() instead of open-coding it.
 
 Signed-off-by: Pekka Enberg <penberg@kernel.org>
-Cc: David Airlie <airlied@linux.ie>
+Cc: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/nouveau/nouveau_gem.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/target/target_core_transport.c |   10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
 
-diff -puN drivers/gpu/drm/nouveau/nouveau_gem.c~drm-nouveau-gem-use-kvfree-in-u_free drivers/gpu/drm/nouveau/nouveau_gem.c
---- a/drivers/gpu/drm/nouveau/nouveau_gem.c~drm-nouveau-gem-use-kvfree-in-u_free
-+++ a/drivers/gpu/drm/nouveau/nouveau_gem.c
-@@ -555,10 +555,7 @@ nouveau_gem_pushbuf_validate(struct nouv
- static inline void
- u_free(void *addr)
+diff -puN drivers/target/target_core_transport.c~target-use-kvfree-in-session-alloc-and-free drivers/target/target_core_transport.c
+--- a/drivers/target/target_core_transport.c~target-use-kvfree-in-session-alloc-and-free
++++ a/drivers/target/target_core_transport.c
+@@ -279,10 +279,7 @@ int transport_alloc_session_tags(struct
+ 	if (rc < 0) {
+ 		pr_err("Unable to init se_sess->sess_tag_pool,"
+ 			" tag_num: %u\n", tag_num);
+-		if (is_vmalloc_addr(se_sess->sess_cmd_map))
+-			vfree(se_sess->sess_cmd_map);
+-		else
+-			kfree(se_sess->sess_cmd_map);
++		kvfree(se_sess->sess_cmd_map);
+ 		se_sess->sess_cmd_map = NULL;
+ 		return -ENOMEM;
+ 	}
+@@ -483,10 +480,7 @@ void transport_free_session(struct se_se
  {
--	if (!is_vmalloc_addr(addr))
--		kfree(addr);
--	else
--		vfree(addr);
-+	kvfree(addr);
+ 	if (se_sess->sess_cmd_map) {
+ 		percpu_ida_destroy(&se_sess->sess_tag_pool);
+-		if (is_vmalloc_addr(se_sess->sess_cmd_map))
+-			vfree(se_sess->sess_cmd_map);
+-		else
+-			kfree(se_sess->sess_cmd_map);
++		kvfree(se_sess->sess_cmd_map);
+ 	}
+ 	kmem_cache_free(se_sess_cache, se_sess);
  }
- 
- static inline void *
 _
 
 Patches currently in -mm which might be from penberg@kernel.org are
