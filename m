@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + zram-cosmetic-zram_bvec_write-cleanup.patch added to -mm tree
-Date: Tue, 19 May 2015 16:10:12 -0700
-Message-ID: <555bc2d4.xla5pK/a6A81QdgC%akpm@linux-foundation.org>
+Subject: + lib-sort-add-64-bit-swap-function-v2-fix.patch added to -mm
+ tree
+Date: Tue, 19 May 2015 16:17:32 -0700
+Message-ID: <555bc48c.oux4O2dPVZWbNY0F%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52306 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52388 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751555AbbESXKN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 May 2015 19:10:13 -0400
+	with ESMTP id S1751275AbbESXRd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 May 2015 19:17:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sergey.senozhatsky@gmail.com, minchan@kernel.org, mm-commits@vger.kernel.org
+To: daniel.wagner@bmw-carit.de, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: cosmetic zram_bvec_write() cleanup
+     Subject: lib/sort: Move the alignment check into a function
 has been added to the -mm tree.  Its filename is
-     zram-cosmetic-zram_bvec_write-cleanup.patch
+     lib-sort-add-64-bit-swap-function-v2-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zram-cosmetic-zram_bvec_write-cleanup.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-sort-add-64-bit-swap-function-v2-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zram-cosmetic-zram_bvec_write-cleanup.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-sort-add-64-bit-swap-function-v2-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,75 +39,81 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: zram: cosmetic zram_bvec_write() cleanup
+From: Daniel Wagner <daniel.wagner@bmw-carit.de>
+Subject: lib/sort: Move the alignment check into a function
 
-`bool locked' local variable tells us if we should perform
-zcomp_strm_release() or not (jumped to `out' label before
-zcomp_strm_find() occurred), which is equivalent to `zstrm' being or not
-being NULL.  remove `locked' and check `zstrm' instead.
+Rasmus Villemoes suggestes to move the aliment check into a separate
+function in order to improve the readability.
 
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
+Furthermore, let's avoid the switch statement since gcc might mess it
+up. My gcc 4.9.2 produces the same code for the x86_64
+configuration. That is
+
+	switch (size) {
+		case 4:
+			if (alignment_ok(base, 4))
+				swap_func = u32_swap;
+			       break;
+		case 8:
+			if (alignment_ok(base, 8))
+				swap_func = u64_swap;
+			break;
+		}
+		if (!swap_func)
+			swap_func = generic_swap;
+	}
+
+resulted into the same object code.
+
+Link: https://lkml.org/lkml/2015/5/15/89
+Signed-off-by: Daniel Wagner <daniel.wagner@bmw-carit.de>
+Suggested-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ lib/sort.c |   30 +++++++++---------------------
+ 1 file changed, 9 insertions(+), 21 deletions(-)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-cosmetic-zram_bvec_write-cleanup drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-cosmetic-zram_bvec_write-cleanup
-+++ a/drivers/block/zram/zram_drv.c
-@@ -642,8 +642,7 @@ static int zram_bvec_write(struct zram *
- 	struct page *page;
- 	unsigned char *user_mem, *cmem, *src, *uncmem = NULL;
- 	struct zram_meta *meta = zram->meta;
--	struct zcomp_strm *zstrm;
--	bool locked = false;
-+	struct zcomp_strm *zstrm = NULL;
- 	unsigned long alloced_pages;
+diff -puN lib/sort.c~lib-sort-add-64-bit-swap-function-v2-fix lib/sort.c
+--- a/lib/sort.c~lib-sort-add-64-bit-swap-function-v2-fix
++++ a/lib/sort.c
+@@ -8,6 +8,12 @@
+ #include <linux/export.h>
+ #include <linux/sort.h>
  
- 	page = bvec->bv_page;
-@@ -663,7 +662,6 @@ static int zram_bvec_write(struct zram *
- 	}
++static int alignment_ok(const void *base, int align)
++{
++	return IS_ENABLED(CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS) ||
++		((unsigned long)base & (align - 1)) == 0;
++}
++
+ static void u32_swap(void *a, void *b, int size)
+ {
+ 	u32 t = *(u32 *)a;
+@@ -58,29 +64,11 @@ void sort(void *base, size_t num, size_t
+ 	int i = (num/2 - 1) * size, n = num * size, c, r;
  
- 	zstrm = zcomp_strm_find(zram->comp);
--	locked = true;
- 	user_mem = kmap_atomic(page);
- 
- 	if (is_partial_io(bvec)) {
-@@ -735,7 +733,7 @@ static int zram_bvec_write(struct zram *
- 	}
- 
- 	zcomp_strm_release(zram->comp, zstrm);
--	locked = false;
-+	zstrm = NULL;
- 	zs_unmap_object(meta->mem_pool, handle);
- 
- 	/*
-@@ -753,7 +751,7 @@ static int zram_bvec_write(struct zram *
- 	atomic64_add(clen, &zram->stats.compr_data_size);
- 	atomic64_inc(&zram->stats.pages_stored);
- out:
--	if (locked)
-+	if (zstrm)
- 		zcomp_strm_release(zram->comp, zstrm);
- 	if (is_partial_io(bvec))
- 		kfree(uncmem);
-_
-
-Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
-
-zram-add-compact-sysfs-entry-to-documentation.patch
-zram-cosmetic-zram_attr_ro-code-formatting-tweak.patch
-zram-use-idr-instead-of-zram_devices-array.patch
-zram-reorganize-code-layout.patch
-zram-remove-max_num_devices-limitation.patch
-zram-report-every-added-and-removed-device.patch
-zram-trivial-correct-flag-operations-comment.patch
-zram-return-zram-device_id-from-zram_add.patch
-zram-close-race-by-open-overriding.patch
-zram-add-dynamic-device-add-remove-functionality.patch
-zram-cosmetic-zram_bvec_write-cleanup.patch
-linux-next.patch
-
+ 	if (!swap_func) {
+-#if defined(CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS)
+-		switch (size) {
+-		case 4:
++		if (size == 4 && alignment_ok(base, 4))
+ 			swap_func = u32_swap;
+-			break;
+-		case 8:
++		else if (size == 8 && alignment_ok(base, 8))
+ 			swap_func = u64_swap;
+-			break;
+-		}
+-#else
+-		switch (size) {
+-		case 4:
+-			if (((unsigned long)base & 3) == 0)
+-				swap_func = u32_swap;
+-			break;
+-		case 8:
+-			if (((unsigned long)base & 7) == 0)
+-				swap_func = u64_swap;
+-			break;
+-		}
+-#endif /* CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS */
