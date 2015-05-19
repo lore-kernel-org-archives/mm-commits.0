@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- userfaultfd-allocate-the-userfaultfd_ctx-cacheline-aligned.patch added to
- -mm tree
-Date: Tue, 19 May 2015 14:38:53 -0700
-Message-ID: <555bad6d.TLsG0Q5Vsd0r1kl/%akpm@linux-foundation.org>
+Subject: + userfaultfd-buildsystem-activation.patch added to -mm tree
+Date: Tue, 19 May 2015 14:38:58 -0700
+Message-ID: <555bad72.0KXB6mP0rtwpEr2g%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50983 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51014 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752144AbbESViz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 May 2015 17:38:55 -0400
+	with ESMTP id S1752153AbbESVjA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 May 2015 17:39:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, andreslc@google.com, dave.hansen@intel.com, dgilbert@redhat.com, hannes@cmpxchg.org, hughd@google.com, kirill@shutemov.name, luto@amacapital.net, mgorman@suse.de, pbonzini@redhat.com, peter.huangpeng@huawei.com, pfeiner@google.com, riel@redhat.com, sanidhya.gatech@gmail.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: allocate the userfaultfd_ctx cacheline aligned
+     Subject: userfaultfd: buildsystem activation
 has been added to the -mm tree.  Its filename is
-     userfaultfd-allocate-the-userfaultfd_ctx-cacheline-aligned.patch
+     userfaultfd-buildsystem-activation.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-allocate-the-userfaultfd_ctx-cacheline-aligned.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-buildsystem-activation.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-allocate-the-userfaultfd_ctx-cacheline-aligned.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-buildsystem-activation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,9 +39,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: userfaultfd: allocate the userfaultfd_ctx cacheline aligned
+Subject: userfaultfd: buildsystem activation
 
-Use proper slab to guarantee alignment.
+This allows to select the userfaultfd during configuration to build it.
 
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Acked-by: Pavel Emelyanov <xemul@parallels.com>
@@ -64,106 +62,42 @@ Cc: "Huangpeng (Peter)" <peter.huangpeng@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c |   39 +++++++++++++++++++++++++++++++--------
- 1 file changed, 31 insertions(+), 8 deletions(-)
+ fs/Makefile  |    1 +
+ init/Kconfig |   11 +++++++++++
+ 2 files changed, 12 insertions(+)
 
-diff -puN fs/userfaultfd.c~userfaultfd-allocate-the-userfaultfd_ctx-cacheline-aligned fs/userfaultfd.c
---- a/fs/userfaultfd.c~userfaultfd-allocate-the-userfaultfd_ctx-cacheline-aligned
-+++ a/fs/userfaultfd.c
-@@ -27,20 +27,26 @@
- #include <linux/ioctl.h>
- #include <linux/security.h>
+diff -puN fs/Makefile~userfaultfd-buildsystem-activation fs/Makefile
+--- a/fs/Makefile~userfaultfd-buildsystem-activation
++++ a/fs/Makefile
+@@ -27,6 +27,7 @@ obj-$(CONFIG_ANON_INODES)	+= anon_inodes
+ obj-$(CONFIG_SIGNALFD)		+= signalfd.o
+ obj-$(CONFIG_TIMERFD)		+= timerfd.o
+ obj-$(CONFIG_EVENTFD)		+= eventfd.o
++obj-$(CONFIG_USERFAULTFD)	+= userfaultfd.o
+ obj-$(CONFIG_AIO)               += aio.o
+ obj-$(CONFIG_FS_DAX)		+= dax.o
+ obj-$(CONFIG_FILE_LOCKING)      += locks.o
+diff -puN init/Kconfig~userfaultfd-buildsystem-activation init/Kconfig
+--- a/init/Kconfig~userfaultfd-buildsystem-activation
++++ a/init/Kconfig
+@@ -1574,6 +1574,17 @@ config ADVISE_SYSCALLS
+ 	  applications use these syscalls, you can disable this option to save
+ 	  space.
  
-+static struct kmem_cache *userfaultfd_ctx_cachep __read_mostly;
++config USERFAULTFD
++	bool "Enable userfaultfd() system call"
++	select ANON_INODES
++	default y
++	depends on MMU
++	help
++	  Enable the userfaultfd() system call that allows to intercept and
++	  handle page faults in userland.
 +
- enum userfaultfd_state {
- 	UFFD_STATE_WAIT_API,
- 	UFFD_STATE_RUNNING,
- };
- 
-+/*
-+ * Start with fault_pending_wqh and fault_wqh so they're more likely
-+ * to be in the same cacheline.
-+ */
- struct userfaultfd_ctx {
--	/* pseudo fd refcounting */
--	atomic_t refcount;
- 	/* waitqueue head for the pending (i.e. not read) userfaults */
- 	wait_queue_head_t fault_pending_wqh;
- 	/* waitqueue head for the userfaults */
- 	wait_queue_head_t fault_wqh;
- 	/* waitqueue head for the pseudo fd to wakeup poll/read */
- 	wait_queue_head_t fd_wqh;
-+	/* pseudo fd refcounting */
-+	atomic_t refcount;
- 	/* userfaultfd syscall flags */
- 	unsigned int flags;
- 	/* state machine */
-@@ -117,7 +123,7 @@ static void userfaultfd_ctx_put(struct u
- 		VM_BUG_ON(spin_is_locked(&ctx->fd_wqh.lock));
- 		VM_BUG_ON(waitqueue_active(&ctx->fd_wqh));
- 		mmput(ctx->mm);
--		kfree(ctx);
-+		kmem_cache_free(userfaultfd_ctx_cachep, ctx);
- 	}
- }
- 
-@@ -1002,6 +1008,15 @@ static const struct file_operations user
- 	.llseek		= noop_llseek,
- };
- 
-+static void init_once_userfaultfd_ctx(void *mem)
-+{
-+	struct userfaultfd_ctx *ctx = (struct userfaultfd_ctx *) mem;
++	  If unsure, say Y.
 +
-+	init_waitqueue_head(&ctx->fault_pending_wqh);
-+	init_waitqueue_head(&ctx->fault_wqh);
-+	init_waitqueue_head(&ctx->fd_wqh);
-+}
-+
- /**
-  * userfaultfd_file_create - Creates an userfaultfd file pointer.
-  * @flags: Flags for the userfaultfd file.
-@@ -1032,14 +1047,11 @@ static struct file *userfaultfd_file_cre
- 		goto out;
- 
- 	file = ERR_PTR(-ENOMEM);
--	ctx = kmalloc(sizeof(*ctx), GFP_KERNEL);
-+	ctx = kmem_cache_alloc(userfaultfd_ctx_cachep, GFP_KERNEL);
- 	if (!ctx)
- 		goto out;
- 
- 	atomic_set(&ctx->refcount, 1);
--	init_waitqueue_head(&ctx->fault_pending_wqh);
--	init_waitqueue_head(&ctx->fault_wqh);
--	init_waitqueue_head(&ctx->fd_wqh);
- 	ctx->flags = flags;
- 	ctx->state = UFFD_STATE_WAIT_API;
- 	ctx->released = false;
-@@ -1050,7 +1062,7 @@ static struct file *userfaultfd_file_cre
- 	file = anon_inode_getfile("[userfaultfd]", &userfaultfd_fops, ctx,
- 				  O_RDWR | (flags & UFFD_SHARED_FCNTL_FLAGS));
- 	if (IS_ERR(file))
--		kfree(ctx);
-+		kmem_cache_free(userfaultfd_ctx_cachep, ctx);
- out:
- 	return file;
- }
-@@ -1079,3 +1091,14 @@ err_put_unused_fd:
- 
- 	return error;
- }
-+
-+static int __init userfaultfd_init(void)
-+{
-+	userfaultfd_ctx_cachep = kmem_cache_create("userfaultfd_ctx_cache",
-+						sizeof(struct userfaultfd_ctx),
-+						0,
-+						SLAB_HWCACHE_ALIGN|SLAB_PANIC,
-+						init_once_userfaultfd_ctx);
-+	return 0;
-+}
-+__initcall(userfaultfd_init);
+ config PCI_QUIRKS
+ 	default y
+ 	bool "Enable PCI quirk workarounds" if EXPERT
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
