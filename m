@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-oom_kill-remove-unnecessary-locking-in-exit_oom_victim.patch added to -mm tree
-Date: Wed, 20 May 2015 13:25:22 -0700
-Message-ID: <555cedb2.JsmY7VfnPTJ6s/Qa%akpm@linux-foundation.org>
+Subject: + mm-oom_kill-generalize-oom-progress-waitqueue.patch added to
+ -mm tree
+Date: Wed, 20 May 2015 13:25:19 -0700
+Message-ID: <555cedaf.Zo++T4vfpoBQEpLi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40818 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40812 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753055AbbETUZX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 May 2015 16:25:23 -0400
+	with ESMTP id S1753055AbbETUZV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 May 2015 16:25:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@cmpxchg.org, aarcange@redhat.com, david@fromorbit.com, mhocko@suse.cz, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: oom_kill: remove unnecessary locking in exit_oom_victim()
+     Subject: mm: oom_kill: generalize OOM progress waitqueue
 has been added to the -mm tree.  Its filename is
-     mm-oom_kill-remove-unnecessary-locking-in-exit_oom_victim.patch
+     mm-oom_kill-generalize-oom-progress-waitqueue.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom_kill-remove-unnecessary-locking-in-exit_oom_victim.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom_kill-generalize-oom-progress-waitqueue.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom_kill-remove-unnecessary-locking-in-exit_oom_victim.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom_kill-generalize-oom-progress-waitqueue.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,14 +40,24 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: oom_kill: remove unnecessary locking in exit_oom_victim()
+Subject: mm: oom_kill: generalize OOM progress waitqueue
 
-Disabling the OOM killer needs to exclude allocators from entering, not
-existing victims from exiting.
+It turns out that the mechanism to wait for exiting OOM victims is less
+generic than it looks: it won't issue wakeups unless the OOM killer is
+disabled.
 
-Right now the only waiter is suspend code, which achieves quiescence by
-disabling the OOM killer.  But later on we want to add waits that hold the
-lock instead to stop new victims from showing up.
+The reason this check was added was the thought that, since only the OOM
+disabling code would wait on this queue, wakeup operations could be saved
+when that specific consumer is known to be absent.
+
+However, this is quite the handgrenade.  Later attempts to reuse the
+waitqueue for other purposes will lead to completely unexpected bugs and
+the failure mode will appear seemingly illogical.  Generally, providers
+shouldn't make unnecessary assumptions about consumers.
+
+This could have been replaced with waitqueue_active(), but it only saves a
+few instructions in one of the coldest paths in the kernel.  Simply remove
+it.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: Michal Hocko <mhocko@suse.cz>
@@ -58,23 +69,25 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/oom_kill.c |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN mm/oom_kill.c~mm-oom_kill-remove-unnecessary-locking-in-exit_oom_victim mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom_kill-remove-unnecessary-locking-in-exit_oom_victim
+diff -puN mm/oom_kill.c~mm-oom_kill-generalize-oom-progress-waitqueue mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom_kill-generalize-oom-progress-waitqueue
 +++ a/mm/oom_kill.c
-@@ -437,10 +437,8 @@ void exit_oom_victim(void)
- {
+@@ -438,11 +438,7 @@ void exit_oom_victim(void)
  	clear_thread_flag(TIF_MEMDIE);
  
--	down_read(&oom_sem);
- 	if (!atomic_dec_return(&oom_victims))
+ 	down_read(&oom_sem);
+-	/*
+-	 * There is no need to signal the lasst oom_victim if there
+-	 * is nobody who cares.
+-	 */
+-	if (!atomic_dec_return(&oom_victims) && oom_killer_disabled)
++	if (!atomic_dec_return(&oom_victims))
  		wake_up_all(&oom_victims_wait);
--	up_read(&oom_sem);
+ 	up_read(&oom_sem);
  }
- 
- /**
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
