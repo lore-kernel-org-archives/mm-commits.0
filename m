@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void.patch
+ mm-hugetlb-handle-races-in-alloc_huge_page-and-hugetlb_reserve_pages.patch
  added to -mm tree
-Date: Thu, 21 May 2015 15:47:36 -0700
-Message-ID: <555e6088.dxEYWMCdqxLiltr6%akpm@linux-foundation.org>
+Date: Thu, 21 May 2015 16:18:33 -0700
+Message-ID: <555e67c9.I1pC2bfWeFX9xIUZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59477 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59787 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753397AbbEUWrh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 May 2015 18:47:37 -0400
+	with ESMTP id S1750964AbbEUXSe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 May 2015 19:18:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, rostedt@goodmis.org, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
+To: mike.kravetz@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/seq_file: convert int seq_vprint/seq_printf/etc... returns to void
+     Subject: mm/hugetlb: handle races in alloc_huge_page and hugetlb_reserve_pages
 has been added to the -mm tree.  Its filename is
-     fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void.patch
+     mm-hugetlb-handle-races-in-alloc_huge_page-and-hugetlb_reserve_pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-handle-races-in-alloc_huge_page-and-hugetlb_reserve_pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-handle-races-in-alloc_huge_page-and-hugetlb_reserve_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,262 +40,104 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: fs/seq_file: convert int seq_vprint/seq_printf/etc... returns to void
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: mm/hugetlb: handle races in alloc_huge_page and hugetlb_reserve_pages
 
-The seq_<foo> function return values were frequently misused.
+alloc_huge_page and hugetlb_reserve_pages use region_chg to
+calculate the number of pages which will be added to the reserve
+map.  Subpool and global reserve counts are adjusted based on
+the output of region_chg.  Before the pages are actually added
+to the reserve map, these routines could race and add fewer
+pages than expected.  If this happens, the subpool and global
+reserve counts are not correct.
 
-See: commit 1f33c41c03da ("seq_file: Rename seq_overflow() to
-     seq_has_overflowed() and make public")
+Compare the number of pages actually added (region_add) to those
+expected to added (region_chg).  If fewer pages are actually added,
+this indicates a race and adjust counters accordingly.
 
-All uses of these return values have been removed, so convert the
-return types to void.
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+---
+ 1 file changed, 33 insertions(+), 4 deletions(-)
 
-Miscellanea:
-
-o Move seq_put_decimal_<type> and seq_escape prototypes closer the
-  other seq_vprintf prototypes
-o Reorder seq_putc and seq_puts to return early on overflow
-o Add argument names to seq_vprintf and seq_printf
-o Update the seq_escape kernel-doc
-o Convert a couple of leading spaces to tabs in seq_escape
-
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+index 7f64034..63f6d43 100644
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/seq_file.c            |   70 ++++++++++++++++---------------------
- include/linux/seq_file.h |   19 +++++-----
- 2 files changed, 41 insertions(+), 48 deletions(-)
+ mm/hugetlb.c |   37 +++++++++++++++++++++++++++++++++----
+ 1 file changed, 33 insertions(+), 4 deletions(-)
 
-diff -puN fs/seq_file.c~fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void fs/seq_file.c
---- a/fs/seq_file.c~fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void
-+++ a/fs/seq_file.c
-@@ -368,16 +368,16 @@ EXPORT_SYMBOL(seq_release);
-  *	@esc:	set of characters that need escaping
-  *
-  *	Puts string into buffer, replacing each occurrence of character from
-- *	@esc with usual octal escape.  Returns 0 in case of success, -1 - in
-- *	case of overflow.
-+ *	@esc with usual octal escape.
-+ *	Use seq_has_overflowed() to check for errors.
-  */
--int seq_escape(struct seq_file *m, const char *s, const char *esc)
-+void seq_escape(struct seq_file *m, const char *s, const char *esc)
- {
- 	char *end = m->buf + m->size;
--        char *p;
-+	char *p;
- 	char c;
+diff -puN mm/hugetlb.c~mm-hugetlb-handle-races-in-alloc_huge_page-and-hugetlb_reserve_pages mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-handle-races-in-alloc_huge_page-and-hugetlb_reserve_pages
++++ a/mm/hugetlb.c
+@@ -1475,13 +1475,16 @@ static long vma_commit_reservation(struc
+ 		return 0;
+ }
  
--        for (p = m->buf + m->count; (c = *s) != '\0' && p < end; s++) {
-+	for (p = m->buf + m->count; (c = *s) != '\0' && p < end; s++) {
- 		if (!strchr(esc, c)) {
- 			*p++ = c;
- 			continue;
-@@ -390,14 +390,13 @@ int seq_escape(struct seq_file *m, const
- 			continue;
- 		}
- 		seq_set_overflow(m);
--		return -1;
--        }
-+		return;
++/* Forward declaration */
++static int hugetlb_acct_memory(struct hstate *h, long delta);
++
+ static struct page *alloc_huge_page(struct vm_area_struct *vma,
+ 				    unsigned long addr, int avoid_reserve)
+ {
+ 	struct hugepage_subpool *spool = subpool_vma(vma);
+ 	struct hstate *h = hstate_vma(vma);
+ 	struct page *page;
+-	long chg;
++	long chg, commit;
+ 	int ret, idx;
+ 	struct hugetlb_cgroup *h_cg;
+ 
+@@ -1522,7 +1525,20 @@ static struct page *alloc_huge_page(stru
+ 
+ 	set_page_private(page, (unsigned long)spool);
+ 
+-	vma_commit_reservation(h, vma, addr);
++	commit = vma_commit_reservation(h, vma, addr);
++	if (unlikely(chg > commit)) {
++		/*
++		 * The page was added to the reservation map between
++		 * vma_needs_reservation and vma_commit_reservation.
++		 * This indicates a race with hugetlb_reserve_pages.
++		 * Adjust for the subpool count incremented above AND
++		 * in hugetlb_reserve_pages for the same page.  Also,
++		 * the reservation count added in hugetlb_reserve_pages
++		 * no longer applies.
++		 */
++		hugepage_subpool_put_pages(spool, 1);
++		hugetlb_acct_memory(h, -1);
 +	}
- 	m->count = p - m->buf;
--        return 0;
- }
- EXPORT_SYMBOL(seq_escape);
+ 	return page;
  
--int seq_vprintf(struct seq_file *m, const char *f, va_list args)
-+void seq_vprintf(struct seq_file *m, const char *f, va_list args)
- {
- 	int len;
- 
-@@ -405,24 +404,20 @@ int seq_vprintf(struct seq_file *m, cons
- 		len = vsnprintf(m->buf + m->count, m->size - m->count, f, args);
- 		if (m->count + len < m->size) {
- 			m->count += len;
--			return 0;
-+			return;
- 		}
- 	}
- 	seq_set_overflow(m);
--	return -1;
- }
- EXPORT_SYMBOL(seq_vprintf);
- 
--int seq_printf(struct seq_file *m, const char *f, ...)
-+void seq_printf(struct seq_file *m, const char *f, ...)
- {
--	int ret;
- 	va_list args;
- 
- 	va_start(args, f);
--	ret = seq_vprintf(m, f, args);
-+	seq_vprintf(m, f, args);
- 	va_end(args);
--
--	return ret;
- }
- EXPORT_SYMBOL(seq_printf);
- 
-@@ -645,26 +640,25 @@ int seq_open_private(struct file *filp,
- }
- EXPORT_SYMBOL(seq_open_private);
- 
--int seq_putc(struct seq_file *m, char c)
-+void seq_putc(struct seq_file *m, char c)
- {
--	if (m->count < m->size) {
--		m->buf[m->count++] = c;
--		return 0;
--	}
--	return -1;
-+	if (m->count >= m->size)
-+		return;
+ out_uncharge_cgroup:
+@@ -3640,8 +3656,21 @@ int hugetlb_reserve_pages(struct inode *
+ 	 * consumed reservations are stored in the map. Hence, nothing
+ 	 * else has to be done for private mappings here
+ 	 */
+-	if (!vma || vma->vm_flags & VM_MAYSHARE)
+-		region_add(resv_map, from, to);
++	if (!vma || vma->vm_flags & VM_MAYSHARE) {
++		long add = region_add(resv_map, from, to);
 +
-+	m->buf[m->count++] = c;
- }
- EXPORT_SYMBOL(seq_putc);
- 
--int seq_puts(struct seq_file *m, const char *s)
-+void seq_puts(struct seq_file *m, const char *s)
- {
- 	int len = strlen(s);
--	if (m->count + len < m->size) {
--		memcpy(m->buf + m->count, s, len);
--		m->count += len;
--		return 0;
-+
-+	if (m->count + len >= m->size) {
-+		seq_set_overflow(m);
-+		return;
- 	}
--	seq_set_overflow(m);
--	return -1;
-+	memcpy(m->buf + m->count, s, len);
-+	m->count += len;
- }
- EXPORT_SYMBOL(seq_puts);
- 
-@@ -675,8 +669,8 @@ EXPORT_SYMBOL(seq_puts);
-  * This routine is very quick when you show lots of numbers.
-  * In usual cases, it will be better to use seq_printf(). It's easier to read.
-  */
--int seq_put_decimal_ull(struct seq_file *m, char delimiter,
--			unsigned long long num)
-+void seq_put_decimal_ull(struct seq_file *m, char delimiter,
-+			 unsigned long long num)
- {
- 	int len;
- 
-@@ -688,35 +682,33 @@ int seq_put_decimal_ull(struct seq_file
- 
- 	if (num < 10) {
- 		m->buf[m->count++] = num + '0';
--		return 0;
-+		return;
- 	}
- 
- 	len = num_to_str(m->buf + m->count, m->size - m->count, num);
- 	if (!len)
- 		goto overflow;
- 	m->count += len;
--	return 0;
-+	return;
-+
- overflow:
- 	seq_set_overflow(m);
--	return -1;
- }
- EXPORT_SYMBOL(seq_put_decimal_ull);
- 
--int seq_put_decimal_ll(struct seq_file *m, char delimiter,
--			long long num)
-+void seq_put_decimal_ll(struct seq_file *m, char delimiter, long long num)
- {
- 	if (num < 0) {
- 		if (m->count + 3 >= m->size) {
- 			seq_set_overflow(m);
--			return -1;
-+			return;
- 		}
- 		if (delimiter)
- 			m->buf[m->count++] = delimiter;
- 		num = -num;
- 		delimiter = '-';
- 	}
--	return seq_put_decimal_ull(m, delimiter, num);
--
-+	seq_put_decimal_ull(m, delimiter, num);
- }
- EXPORT_SYMBOL(seq_put_decimal_ll);
- 
-diff -puN include/linux/seq_file.h~fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void include/linux/seq_file.h
---- a/include/linux/seq_file.h~fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void
-+++ a/include/linux/seq_file.h
-@@ -114,13 +114,18 @@ int seq_open(struct file *, const struct
- ssize_t seq_read(struct file *, char __user *, size_t, loff_t *);
- loff_t seq_lseek(struct file *, loff_t, int);
- int seq_release(struct inode *, struct file *);
--int seq_escape(struct seq_file *, const char *, const char *);
--int seq_putc(struct seq_file *m, char c);
--int seq_puts(struct seq_file *m, const char *s);
- int seq_write(struct seq_file *seq, const void *data, size_t len);
- 
--__printf(2, 3) int seq_printf(struct seq_file *, const char *, ...);
--__printf(2, 0) int seq_vprintf(struct seq_file *, const char *, va_list args);
-+__printf(2, 0)
-+void seq_vprintf(struct seq_file *m, const char *fmt, va_list args);
-+__printf(2, 3)
-+void seq_printf(struct seq_file *m, const char *fmt, ...);
-+void seq_putc(struct seq_file *m, char c);
-+void seq_puts(struct seq_file *m, const char *s);
-+void seq_put_decimal_ull(struct seq_file *m, char delimiter,
-+			 unsigned long long num);
-+void seq_put_decimal_ll(struct seq_file *m, char delimiter, long long num);
-+void seq_escape(struct seq_file *m, const char *s, const char *esc);
- 
- int seq_path(struct seq_file *, const struct path *, const char *);
- int seq_dentry(struct seq_file *, struct dentry *, const char *);
-@@ -133,10 +138,6 @@ int single_release(struct inode *, struc
- void *__seq_open_private(struct file *, const struct seq_operations *, int);
- int seq_open_private(struct file *, const struct seq_operations *, int);
- int seq_release_private(struct inode *, struct file *);
--int seq_put_decimal_ull(struct seq_file *m, char delimiter,
--			unsigned long long num);
--int seq_put_decimal_ll(struct seq_file *m, char delimiter,
--			long long num);
- 
- static inline struct user_namespace *seq_user_ns(struct seq_file *seq)
- {
++		if (unlikely(chg > add)) {
++			/*
++			 * pages in this range were added to the reserve
++			 * map between region_chg and region_add.  This
++			 * indicates a race with alloc_huge_page.  Adjust
++			 * the subpool and reserve counts modified above
++			 * based on the difference.
++			 */
++			hugepage_subpool_put_pages(spool, chg - add);
++			hugetlb_acct_memory(h, -(chg - ret));
++		}
++	}
+ 	return 0;
+ out_err:
+ 	if (vma && is_vma_resv_set(vma, HPAGE_RESV_OWNER))
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
-maintainers-update-capabilities-pattern.patch
-ocfs2-reduce-object-size-of-mlog-uses.patch
-ocfs2-reduce-object-size-of-mlog-uses-fix.patch
-ocfs2-remove-__mlog_cpu_guess.patch
-ocfs2-remove-__mlog_cpu_guess-fix.patch
-ocfs2-neaten-do_error-ocfs2_error-and-ocfs2_abort.patch
-compiler-gcch-neatening.patch
-compiler-gcc-integrate-the-various-compiler-gcch-files.patch
-get_maintainerpl-add-get_maintainerignore-file-capability.patch
-maintainers-update-sound-soc-intel-patterns.patch
-maintainers-remove-section-broadcom-bcm33xx-mips-architecture.patch
-maintainers-update-brcm-dts-pattern.patch
-maintainers-update-brcm-gpio-filename-pattern.patch
-maintainers-remove-unused-nbdh-pattern.patch
-maintainers-move-jens-osterkamp-to-credits.patch
-maintainers-bcache-kent-overstreet-has-changed-email-address.patch
-mm-utilc-add-kstrimdup.patch
-checkpatch-check-for-uncommented-waitqueue_active.patch
-checkpatch-add-strict-warning-for-c99-fixed-size-typedefs-intsize_t.patch
-checkpatch-make-types-found-in-a-source-file-patch-local.patch
-linux-next.patch
-printk-improve-the-description-of-dev-kmsg-line-format.patch
-fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void.patch
+hugetlb-do-not-account-hugetlb-pages-as-nr_file_pages.patch
+mm-hugetlb-compute-return-the-number-of-regions-added-by-region_add.patch
+mm-hugetlb-handle-races-in-alloc_huge_page-and-hugetlb_reserve_pages.patch
 
