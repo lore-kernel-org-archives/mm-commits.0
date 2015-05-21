@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-move-jens-osterkamp-to-credits.patch added to -mm
- tree
-Date: Thu, 21 May 2015 14:24:50 -0700
-Message-ID: <555e4d22.OaEoNeOsoTne/nZ5%akpm@linux-foundation.org>
+Subject: +
+ maintainers-bcache-kent-overstreet-has-changed-email-address.patch added to -mm tree
+Date: Thu, 21 May 2015 14:26:19 -0700
+Message-ID: <555e4d7b.LQnOkCfBhv25SF8J%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57713 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57727 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755347AbbEUVYv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 May 2015 17:24:51 -0400
+	with ESMTP id S1755347AbbEUV0U (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 May 2015 17:26:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, benh@kernel.crashing.org, jens@linux.vnet.ibm.com, kou.ishizaki@toshiba.co.jp, mm-commits@vger.kernel.org
+To: joe@perches.com, kent.overstreet@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: move Jens Osterkamp to CREDITS
+     Subject: MAINTAINERS: BCACHE: Kent Overstreet has changed email address
 has been added to the -mm tree.  Its filename is
-     maintainers-move-jens-osterkamp-to-credits.patch
+     maintainers-bcache-kent-overstreet-has-changed-email-address.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-move-jens-osterkamp-to-credits.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-bcache-kent-overstreet-has-changed-email-address.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-move-jens-osterkamp-to-credits.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-bcache-kent-overstreet-has-changed-email-address.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,46 +40,50 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: move Jens Osterkamp to CREDITS
+Subject: MAINTAINERS: BCACHE: Kent Overstreet has changed email address
 
-Jens' email address bounces, so move his name and entry to CREDITS.
+Kent's email address in MAINTAINERS seems to be invalid.
+This was his last sign-off address, so use that if appropriate.
+
+Fix the S: status entry while there.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Ishizaki Kou <kou.ishizaki@toshiba.co.jp>
-Cc: Jens Osterkamp <jens@linux.vnet.ibm.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Kent Overstreet <kent.overstreet@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- CREDITS     |    4 ++++
- MAINTAINERS |    1 -
- 2 files changed, 4 insertions(+), 1 deletion(-)
+ MAINTAINERS                 |    4 ++--
+ drivers/md/bcache/journal.c |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN CREDITS~maintainers-move-jens-osterkamp-to-credits CREDITS
---- a/CREDITS~maintainers-move-jens-osterkamp-to-credits
-+++ a/CREDITS
-@@ -2740,6 +2740,10 @@ S: C/ Mieses 20, 9-B
- S: Valladolid 47009
- S: Spain
- 
-+N: Jens Osterkamp
-+E: jens@de.ibm.com
-+D: Maintainer of Spidernet network driver for Cell
-+
- N: Gadi Oxman
- E: gadio@netvision.net.il
- D: Original author and maintainer of IDE/ATAPI floppy/tape drivers
-diff -puN MAINTAINERS~maintainers-move-jens-osterkamp-to-credits MAINTAINERS
---- a/MAINTAINERS~maintainers-move-jens-osterkamp-to-credits
+diff -puN MAINTAINERS~maintainers-bcache-kent-overstreet-has-changed-email-address MAINTAINERS
+--- a/MAINTAINERS~maintainers-bcache-kent-overstreet-has-changed-email-address
 +++ a/MAINTAINERS
-@@ -9336,7 +9336,6 @@ F:	include/uapi/linux/spi/
+@@ -1967,10 +1967,10 @@ S:	Maintained
+ F:	drivers/net/hamradio/baycom*
  
- SPIDERNET NETWORK DRIVER for CELL
- M:	Ishizaki Kou <kou.ishizaki@toshiba.co.jp>
--M:	Jens Osterkamp <jens@de.ibm.com>
- L:	netdev@vger.kernel.org
- S:	Supported
- F:	Documentation/networking/spider_net.txt
+ BCACHE (BLOCK LAYER CACHE)
+-M:	Kent Overstreet <kmo@daterainc.com>
++M:	Kent Overstreet <kent.overstreet@gmail.com>
+ L:	linux-bcache@vger.kernel.org
+ W:	http://bcache.evilpiepirate.org
+-S:	Maintained:
++S:	Maintained
+ F:	drivers/md/bcache/
+ 
+ BEFS FILE SYSTEM
+diff -puN drivers/md/bcache/journal.c~maintainers-bcache-kent-overstreet-has-changed-email-address drivers/md/bcache/journal.c
+--- a/drivers/md/bcache/journal.c~maintainers-bcache-kent-overstreet-has-changed-email-address
++++ a/drivers/md/bcache/journal.c
+@@ -157,7 +157,7 @@ int bch_journal_read(struct cache_set *c
+ 
+ 	for_each_cache(ca, c, iter) {
+ 		struct journal_device *ja = &ca->journal;
+-		unsigned long bitmap[SB_JOURNAL_BUCKETS / BITS_PER_LONG];
++		DECLARE_BITMAP(bitmap, SB_JOURNAL_BUCKETS);
+ 		unsigned i, l, r, m;
+ 		uint64_t seq;
+ 
 _
 
 Patches currently in -mm which might be from joe@perches.com are
@@ -99,6 +103,7 @@ maintainers-update-brcm-dts-pattern.patch
 maintainers-update-brcm-gpio-filename-pattern.patch
 maintainers-remove-unused-nbdh-pattern.patch
 maintainers-move-jens-osterkamp-to-credits.patch
+maintainers-bcache-kent-overstreet-has-changed-email-address.patch
 mm-utilc-add-kstrimdup.patch
 checkpatch-check-for-uncommented-waitqueue_active.patch
 checkpatch-add-strict-warning-for-c99-fixed-size-typedefs-intsize_t.patch
