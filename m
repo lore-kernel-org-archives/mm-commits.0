@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix.patch
- added to -mm tree
-Date: Thu, 21 May 2015 14:12:23 -0700
-Message-ID: <555e4a37.3h8JleB8wyGrClF7%akpm@linux-foundation.org>
+Subject: + userfaultfd-optimize-read-and-poll-to-be-o1-fix.patch added to
+ -mm tree
+Date: Thu, 21 May 2015 14:12:25 -0700
+Message-ID: <555e4a39.UwfzPDN1fHjAszdj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56857 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56859 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964831AbbEUVMY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 May 2015 17:12:24 -0400
+	with ESMTP id S964842AbbEUVM0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 May 2015 17:12:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: documentation update
+     Subject: userfaultfd: fs/userfaultfd.c add more comments
 has been added to the -mm tree.  Its filename is
-     userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix.patch
+     userfaultfd-optimize-read-and-poll-to-be-o1-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-optimize-read-and-poll-to-be-o1-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-optimize-read-and-poll-to-be-o1-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,33 +40,40 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: userfaultfd: documentation update
+Subject: userfaultfd: fs/userfaultfd.c add more comments
+
+Add more commentary.
 
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/userfaultfd.txt |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ fs/userfaultfd.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff -puN Documentation/vm/userfaultfd.txt~userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix Documentation/vm/userfaultfd.txt
---- a/Documentation/vm/userfaultfd.txt~userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix
-+++ a/Documentation/vm/userfaultfd.txt
-@@ -47,10 +47,10 @@ When first opened the userfaultfd must b
- UFFDIO_API ioctl specifying a uffdio_api.api value set to UFFD_API (or
- a later API version) which will specify the read/POLLIN protocol
- userland intends to speak on the UFFD and the uffdio_api.features
--userland needs to be enabled. The UFFDIO_API ioctl if successful
--(i.e. if the requested uffdio_api.api is spoken also by the running
--kernel and the requested features are going to be enabled) will return
--into uffdio_api.features and uffdio_api.ioctls two 64bit bitmasks of
-+userland requires. The UFFDIO_API ioctl if successful (i.e. if the
-+requested uffdio_api.api is spoken also by the running kernel and the
-+requested features are going to be enabled) will return into
-+uffdio_api.features and uffdio_api.ioctls two 64bit bitmasks of
- respectively all the available features of the read(2) protocol and
- the generic ioctl available.
- 
+diff -puN fs/userfaultfd.c~userfaultfd-optimize-read-and-poll-to-be-o1-fix fs/userfaultfd.c
+--- a/fs/userfaultfd.c~userfaultfd-optimize-read-and-poll-to-be-o1-fix
++++ a/fs/userfaultfd.c
+@@ -456,6 +456,19 @@ static ssize_t userfaultfd_ctx_read(stru
+ 			 * Refile this userfault from
+ 			 * fault_pending_wqh to fault_wqh, it's not
+ 			 * pending anymore after we read it.
++			 *
++			 * Use list_del() by hand (as
++			 * userfaultfd_wake_function also uses
++			 * list_del_init() by hand) to be sure nobody
++			 * changes __remove_wait_queue() to use
++			 * list_del_init() in turn breaking the
++			 * !list_empty_careful() check in
++			 * handle_userfault(). The uwq->wq.task_list
++			 * must never be empty at any time during the
++			 * refile, or the waitqueue could disappear
++			 * from under us. The "wait_queue_head_t"
++			 * parameter of __remove_wait_queue() is unused
++			 * anyway.
+ 			 */
+ 			list_del(&uwq->wq.task_list);
+ 			__add_wait_queue(&ctx->fault_wqh, &uwq->wq);
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
