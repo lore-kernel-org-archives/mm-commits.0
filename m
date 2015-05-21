@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + userfaultfd-linux-documentation-vm-userfaultfdtxt-fix.patch
- added to -mm tree
-Date: Thu, 21 May 2015 14:12:15 -0700
-Message-ID: <555e4a2f.TQgCioLLDDI1NM8t%akpm@linux-foundation.org>
+Subject: +
+ userfaultfd-add-new-syscall-to-provide-memory-externalization-fix-fix.patch added to -mm tree
+Date: Thu, 21 May 2015 14:12:20 -0700
+Message-ID: <555e4a34.YDPdbqaWPT2RQUOL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56853 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56855 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964830AbbEUVMQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 May 2015 17:12:16 -0400
+	with ESMTP id S964831AbbEUVMV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 May 2015 17:12:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: documentation update
+     Subject: userfaultfd: fs/userfaultfd.c add more comments
 has been added to the -mm tree.  Its filename is
-     userfaultfd-linux-documentation-vm-userfaultfdtxt-fix.patch
+     userfaultfd-add-new-syscall-to-provide-memory-externalization-fix-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-linux-documentation-vm-userfaultfdtxt-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-add-new-syscall-to-provide-memory-externalization-fix-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-linux-documentation-vm-userfaultfdtxt-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-add-new-syscall-to-provide-memory-externalization-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,40 +40,42 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: userfaultfd: documentation update
+Subject: userfaultfd: fs/userfaultfd.c add more comments
+
+Add more commentary.
 
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/userfaultfd.txt |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ fs/userfaultfd.c |   15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/vm/userfaultfd.txt~userfaultfd-linux-documentation-vm-userfaultfdtxt-fix Documentation/vm/userfaultfd.txt
---- a/Documentation/vm/userfaultfd.txt~userfaultfd-linux-documentation-vm-userfaultfdtxt-fix
-+++ a/Documentation/vm/userfaultfd.txt
-@@ -3,8 +3,8 @@
- == Objective ==
- 
- Userfaults allow the implementation of on-demand paging from userland
--and more generally they allow userland to take control various memory
--page faults, something otherwise only the kernel code could do.
-+and more generally they allow userland to take control of various
-+memory page faults, something otherwise only the kernel code could do.
- 
- For example userfaults allows a proper and more optimal implementation
- of the PROT_NONE+SIGSEGV trick.
-@@ -75,7 +75,9 @@ The primary ioctl to resolve userfaults
- atomically copies a page into the userfault registered range and wakes
- up the blocked userfaults (unless uffdio_copy.mode &
- UFFDIO_COPY_MODE_DONTWAKE is set). Other ioctl works similarly to
--UFFDIO_COPY.
-+UFFDIO_COPY. They're atomic as in guaranteeing that nothing can see an
-+half copied page since it'll keep userfaulting until the copy has
-+finished.
- 
- == QEMU/KVM ==
- 
+diff -puN fs/userfaultfd.c~userfaultfd-add-new-syscall-to-provide-memory-externalization-fix-fix fs/userfaultfd.c
+--- a/fs/userfaultfd.c~userfaultfd-add-new-syscall-to-provide-memory-externalization-fix-fix
++++ a/fs/userfaultfd.c
+@@ -81,7 +81,20 @@ static int userfaultfd_wake_function(wai
+ 		goto out;
+ 	ret = wake_up_state(wq->private, mode);
+ 	if (ret)
+-		/* wake only once, autoremove behavior */
++		/*
++		 * Wake only once, autoremove behavior.
++		 *
++		 * After the effect of list_del_init is visible to the
++		 * other CPUs, the waitqueue may disappear from under
++		 * us, see the !list_empty_careful() in
++		 * handle_userfault(). try_to_wake_up() has an
++		 * implicit smp_mb__before_spinlock, and the
++		 * wq->private is read before calling the extern
++		 * function "wake_up_state" (which in turns calls
++		 * try_to_wake_up). While the spin_lock;spin_unlock;
++		 * wouldn't be enough, the smp_mb__before_spinlock is
++		 * enough to avoid an explicit smp_mb() here.
++		 */
+ 		list_del_init(&wq->task_list);
+ out:
+ 	return ret;
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
