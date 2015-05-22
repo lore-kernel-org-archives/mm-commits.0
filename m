@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-gpu-drm-i915-intel_tvc-fix-build.patch added to -mm
- tree
-Date: Fri, 22 May 2015 13:53:17 -0700
-Message-ID: <555f973d.Hb7ITniAdkryoXf3%akpm@linux-foundation.org>
+Subject: +
+ drivers-gpu-drm-i915-i915_gem_gttc-hack-around-build-error-on-i386.patch
+ added to -mm tree
+Date: Fri, 22 May 2015 14:17:39 -0700
+Message-ID: <555f9cf3.K9Sd24ACpbfBlm2C%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47588 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47976 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161007AbbEVUxS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 May 2015 16:53:18 -0400
+	with ESMTP id S1946007AbbEVVRk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 May 2015 17:17:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, airlied@linux.ie, daniel.vetter@intel.com, jani.nikula@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/gpu/drm/i915/intel_tv.c: fix build
+     Subject: drivers/gpu/drm/i915/i915_gem_gtt.c: hack around build error on i386
 has been added to the -mm tree.  Its filename is
-     drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+     drivers-gpu-drm-i915-i915_gem_gttc-hack-around-build-error-on-i386.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-gpu-drm-i915-i915_gem_gttc-hack-around-build-error-on-i386.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-gpu-drm-i915-i915_gem_gttc-hack-around-build-error-on-i386.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,13 +41,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/gpu/drm/i915/intel_tv.c: fix build
-
-gcc-4.4.4:
-
-cc1: warnings being treated as errors
-drivers/gpu/drm/i915/intel_tv.c: In function 'intel_tv_detect':
-drivers/gpu/drm/i915/intel_tv.c:1319: error: 'type' may be used uninitialized in this function
+Subject: drivers/gpu/drm/i915/i915_gem_gtt.c: hack around build error on i386
 
 Cc: Daniel Vetter <daniel.vetter@intel.com>
 Cc: Jani Nikula <jani.nikula@linux.intel.com>
@@ -54,21 +49,24 @@ Cc: David Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/intel_tv.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/gpu/drm/i915/i915_gem_gtt.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/gpu/drm/i915/intel_tv.c~drivers-gpu-drm-i915-intel_tvc-fix-build drivers/gpu/drm/i915/intel_tv.c
---- a/drivers/gpu/drm/i915/intel_tv.c~drivers-gpu-drm-i915-intel_tvc-fix-build
-+++ a/drivers/gpu/drm/i915/intel_tv.c
-@@ -1316,7 +1316,7 @@ intel_tv_detect(struct drm_connector *co
- 	struct drm_display_mode mode;
- 	struct intel_tv *intel_tv = intel_attached_tv(connector);
- 	enum drm_connector_status status;
--	int type;
-+	int type = 0;
+diff -puN drivers/gpu/drm/i915/i915_gem_gtt.c~drivers-gpu-drm-i915-i915_gem_gttc-hack-around-build-error-on-i386 drivers/gpu/drm/i915/i915_gem_gtt.c
+--- a/drivers/gpu/drm/i915/i915_gem_gtt.c~drivers-gpu-drm-i915-i915_gem_gttc-hack-around-build-error-on-i386
++++ a/drivers/gpu/drm/i915/i915_gem_gtt.c
+@@ -951,7 +951,11 @@ static int gen8_ppgtt_init(struct i915_h
+ 	gen8_initialize_pd(&ppgtt->base, ppgtt->scratch_pd);
  
- 	DRM_DEBUG_KMS("[CONNECTOR:%d:%s] force=%d\n",
- 		      connector->base.id, connector->name,
+ 	ppgtt->base.start = 0;
++#if BITS_PER_LONG == 64
+ 	ppgtt->base.total = 1ULL << 32;
++#else
++	ppgtt->base.total = 0;
++#endif
+ 	ppgtt->base.cleanup = gen8_ppgtt_cleanup;
+ 	ppgtt->base.allocate_va_range = gen8_alloc_va_range;
+ 	ppgtt->base.insert_entries = gen8_ppgtt_insert_entries;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -111,11 +109,13 @@ linux-next-rejects.patch
 linux-next-git-rejects.patch
 arch-x86-kvm-mmuc-work-around-gcc-444-bug.patch
 drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
 journal_add_journal_head-debug.patch
 journal_add_journal_head-debug-fix.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
 mutex-subsystem-synchro-test-module.patch
 slab-leaks3-default-y.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+drivers-gpu-drm-i915-i915_gem_gttc-hack-around-build-error-on-i386.patch
+drivers-gpu-drm-i915-i915_gem_gttc-hack-around-build-error-on-i386.patch
 
