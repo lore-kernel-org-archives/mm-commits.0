@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-gpu-drm-i915-intel_spritec-fix-build.patch added to -mm tree
-Date: Fri, 22 May 2015 13:51:31 -0700
-Message-ID: <555f96d3.E5cqy5ePb/LlUc6Q%akpm@linux-foundation.org>
+Subject: + drivers-gpu-drm-i915-intel_tvc-fix-build.patch added to -mm
+ tree
+Date: Fri, 22 May 2015 13:53:17 -0700
+Message-ID: <555f973d.Hb7ITniAdkryoXf3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47583 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47588 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756963AbbEVUvd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 May 2015 16:51:33 -0400
+	with ESMTP id S1161007AbbEVUxS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 May 2015 16:53:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, daniel.vetter@ffwll.ch, gustavo.padovan@collabora.co.uk, ville.syrjala@linux.intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, airlied@linux.ie, daniel.vetter@intel.com, jani.nikula@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/gpu/drm/i915/intel_sprite.c: fix build
+     Subject: drivers/gpu/drm/i915/intel_tv.c: fix build
 has been added to the -mm tree.  Its filename is
-     drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+     drivers-gpu-drm-i915-intel_tvc-fix-build.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-gpu-drm-i915-intel_tvc-fix-build.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-gpu-drm-i915-intel_tvc-fix-build.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,39 +40,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/gpu/drm/i915/intel_sprite.c: fix build
+Subject: drivers/gpu/drm/i915/intel_tv.c: fix build
 
 gcc-4.4.4:
 
 cc1: warnings being treated as errors
-drivers/gpu/drm/i915/intel_sprite.c: In function 'intel_check_sprite_plane':
-drivers/gpu/drm/i915/intel_sprite.c:767: error: 'src_x' may be used uninitialized in this function
-drivers/gpu/drm/i915/intel_sprite.c:767: error: 'src_y' may be used uninitialized in this function
-drivers/gpu/drm/i915/intel_sprite.c:767: error: 'src_w' may be used uninitialized in this function
-drivers/gpu/drm/i915/intel_sprite.c:767: error: 'src_h' may be used uninitialized in this function
+drivers/gpu/drm/i915/intel_tv.c: In function 'intel_tv_detect':
+drivers/gpu/drm/i915/intel_tv.c:1319: error: 'type' may be used uninitialized in this function
 
-Fixes: 96d61a7f267f ("drm/i915: split intel_update_plane into check() and commit()")
-Cc: Gustavo Padovan <gustavo.padovan@collabora.co.uk>
-Cc: Ville Syrjala <ville.syrjala@linux.intel.com>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Daniel Vetter <daniel.vetter@intel.com>
+Cc: Jani Nikula <jani.nikula@linux.intel.com>
+Cc: David Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/intel_sprite.c |    2 +-
+ drivers/gpu/drm/i915/intel_tv.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/gpu/drm/i915/intel_sprite.c~drivers-gpu-drm-i915-intel_spritec-fix-build drivers/gpu/drm/i915/intel_sprite.c
---- a/drivers/gpu/drm/i915/intel_sprite.c~drivers-gpu-drm-i915-intel_spritec-fix-build
-+++ a/drivers/gpu/drm/i915/intel_sprite.c
-@@ -764,7 +764,7 @@ intel_check_sprite_plane(struct drm_plan
- 	struct drm_framebuffer *fb = state->base.fb;
- 	int crtc_x, crtc_y;
- 	unsigned int crtc_w, crtc_h;
--	uint32_t src_x, src_y, src_w, src_h;
-+	uint32_t src_x = 0, src_y = 0, src_w = 0, src_h = 0;
- 	struct drm_rect *src = &state->src;
- 	struct drm_rect *dst = &state->dst;
- 	const struct drm_rect *clip = &state->clip;
+diff -puN drivers/gpu/drm/i915/intel_tv.c~drivers-gpu-drm-i915-intel_tvc-fix-build drivers/gpu/drm/i915/intel_tv.c
+--- a/drivers/gpu/drm/i915/intel_tv.c~drivers-gpu-drm-i915-intel_tvc-fix-build
++++ a/drivers/gpu/drm/i915/intel_tv.c
+@@ -1316,7 +1316,7 @@ intel_tv_detect(struct drm_connector *co
+ 	struct drm_display_mode mode;
+ 	struct intel_tv *intel_tv = intel_attached_tv(connector);
+ 	enum drm_connector_status status;
+-	int type;
++	int type = 0;
+ 
+ 	DRM_DEBUG_KMS("[CONNECTOR:%d:%s] force=%d\n",
+ 		      connector->base.id, connector->name,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -113,11 +110,12 @@ linux-next.patch
 linux-next-rejects.patch
 linux-next-git-rejects.patch
 arch-x86-kvm-mmuc-work-around-gcc-444-bug.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
 journal_add_journal_head-debug.patch
 journal_add_journal_head-debug-fix.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
 mutex-subsystem-synchro-test-module.patch
 slab-leaks3-default-y.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
 
