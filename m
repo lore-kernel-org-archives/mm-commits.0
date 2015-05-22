@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch added
- to -mm tree
-Date: Fri, 22 May 2015 13:19:33 -0700
-Message-ID: <555f8f55.QnhoFYZgulEfESUH%akpm@linux-foundation.org>
+Subject: + scsi-resolve-sg-buffer-const-ness-issue-fix.patch added to -mm
+ tree
+Date: Fri, 22 May 2015 13:34:32 -0700
+Message-ID: <555f92d8.g+p1/lMIBKOlBjDE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47294 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47352 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756645AbbEVUTe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 May 2015 16:19:34 -0400
+	with ESMTP id S1756757AbbEVUed (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 May 2015 16:34:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aarcange@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, arnd@arndb.de, david.s.gordon@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix
+     Subject: scsi-resolve-sg-buffer-const-ness-issue-fix
 has been added to the -mm tree.  Its filename is
-     userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
+     scsi-resolve-sg-buffer-const-ness-issue-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/scsi-resolve-sg-buffer-const-ness-issue-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/scsi-resolve-sg-buffer-const-ness-issue-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,28 +40,57 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix
+Subject: scsi-resolve-sg-buffer-const-ness-issue-fix
 
-delete weird BUILD_BUG_ON()
+fix very broken build
 
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Dave Gordon <david.s.gordon@intel.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/userfaultfd.c |    1 -
- 1 file changed, 1 deletion(-)
+ include/linux/scatterlist.h |    3 +++
+ lib/scatterlist.c           |    6 +++---
+ 2 files changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN mm/userfaultfd.c~userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix mm/userfaultfd.c
---- a/mm/userfaultfd.c~userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix
-+++ a/mm/userfaultfd.c
-@@ -256,7 +256,6 @@ retry:
- 		if (unlikely(err == -EFAULT)) {
- 			void *page_kaddr;
+diff -puN drivers/scsi/scsi_debug.c~scsi-resolve-sg-buffer-const-ness-issue-fix drivers/scsi/scsi_debug.c
+diff -puN lib/scatterlist.c~scsi-resolve-sg-buffer-const-ness-issue-fix lib/scatterlist.c
+--- a/lib/scatterlist.c~scsi-resolve-sg-buffer-const-ness-issue-fix
++++ a/lib/scatterlist.c
+@@ -618,9 +618,8 @@ EXPORT_SYMBOL(sg_miter_stop);
+  * Returns the number of copied bytes.
+  *
+  **/
+-static size_t sg_copy_buffer(struct scatterlist *sgl, unsigned int nents,
+-			     void *buf, size_t buflen, off_t skip,
+-			     bool to_buffer)
++size_t sg_copy_buffer(struct scatterlist *sgl, unsigned int nents, void *buf,
++		      size_t buflen, off_t skip, bool to_buffer)
+ {
+ 	unsigned int offset = 0;
+ 	struct sg_mapping_iter miter;
+@@ -657,6 +656,7 @@ static size_t sg_copy_buffer(struct scat
+ 	local_irq_restore(flags);
+ 	return offset;
+ }
++EXPORT_SYMBOL(sg_copy_buffer);
  
--			BUILD_BUG_ON(zeropage);
- 			up_read(&dst_mm->mmap_sem);
- 			BUG_ON(!page);
+ /**
+  * sg_copy_from_buffer - Copy from a linear buffer to an SG list
+diff -puN include/linux/scatterlist.h~scsi-resolve-sg-buffer-const-ness-issue-fix include/linux/scatterlist.h
+--- a/include/linux/scatterlist.h~scsi-resolve-sg-buffer-const-ness-issue-fix
++++ a/include/linux/scatterlist.h
+@@ -239,6 +239,9 @@ int sg_alloc_table_from_pages(struct sg_
+ 	unsigned long offset, unsigned long size,
+ 	gfp_t gfp_mask);
  
++size_t sg_copy_buffer(struct scatterlist *sgl, unsigned int nents, void *buf,
++		      size_t buflen, off_t skip, bool to_buffer);
++
+ size_t sg_copy_from_buffer(struct scatterlist *sgl, unsigned int nents,
+ 			   const void *buf, size_t buflen);
+ size_t sg_copy_to_buffer(struct scatterlist *sgl, unsigned int nents,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -99,6 +127,7 @@ bitmap-remove-explicit-newline-handling-using-scnprintf-format-string-fix.patch
 radix-tree-replace-preallocated-node-array-with-linked-list-fix.patch
 rtc-omap-add-external-32k-clock-feature-fix.patch
 devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx-fix.patch
+scsi-resolve-sg-buffer-const-ness-issue-fix.patch
 linux-next.patch
 linux-next-rejects.patch
 linux-next-git-rejects.patch
