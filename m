@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-resolve-sg-buffer-const-ness-issue-fix.patch added to -mm
- tree
-Date: Fri, 22 May 2015 13:34:32 -0700
-Message-ID: <555f92d8.g+p1/lMIBKOlBjDE%akpm@linux-foundation.org>
+Subject: + drivers-gpu-drm-i915-intel_spritec-fix-build.patch added to -mm tree
+Date: Fri, 22 May 2015 13:51:31 -0700
+Message-ID: <555f96d3.E5cqy5ePb/LlUc6Q%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47352 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47583 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756757AbbEVUed (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 May 2015 16:34:33 -0400
+	with ESMTP id S1756963AbbEVUvd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 May 2015 16:51:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, arnd@arndb.de, david.s.gordon@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, daniel.vetter@ffwll.ch, gustavo.padovan@collabora.co.uk, ville.syrjala@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scsi-resolve-sg-buffer-const-ness-issue-fix
+     Subject: drivers/gpu/drm/i915/intel_sprite.c: fix build
 has been added to the -mm tree.  Its filename is
-     scsi-resolve-sg-buffer-const-ness-issue-fix.patch
+     drivers-gpu-drm-i915-intel_spritec-fix-build.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scsi-resolve-sg-buffer-const-ness-issue-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-gpu-drm-i915-intel_spritec-fix-build.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scsi-resolve-sg-buffer-const-ness-issue-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-gpu-drm-i915-intel_spritec-fix-build.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,57 +39,39 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: scsi-resolve-sg-buffer-const-ness-issue-fix
+Subject: drivers/gpu/drm/i915/intel_sprite.c: fix build
 
-fix very broken build
+gcc-4.4.4:
 
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Dave Gordon <david.s.gordon@intel.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+cc1: warnings being treated as errors
+drivers/gpu/drm/i915/intel_sprite.c: In function 'intel_check_sprite_plane':
+drivers/gpu/drm/i915/intel_sprite.c:767: error: 'src_x' may be used uninitialized in this function
+drivers/gpu/drm/i915/intel_sprite.c:767: error: 'src_y' may be used uninitialized in this function
+drivers/gpu/drm/i915/intel_sprite.c:767: error: 'src_w' may be used uninitialized in this function
+drivers/gpu/drm/i915/intel_sprite.c:767: error: 'src_h' may be used uninitialized in this function
+
+Fixes: 96d61a7f267f ("drm/i915: split intel_update_plane into check() and commit()")
+Cc: Gustavo Padovan <gustavo.padovan@collabora.co.uk>
+Cc: Ville Syrjala <ville.syrjala@linux.intel.com>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/scatterlist.h |    3 +++
- lib/scatterlist.c           |    6 +++---
- 2 files changed, 6 insertions(+), 3 deletions(-)
+ drivers/gpu/drm/i915/intel_sprite.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/scsi_debug.c~scsi-resolve-sg-buffer-const-ness-issue-fix drivers/scsi/scsi_debug.c
-diff -puN lib/scatterlist.c~scsi-resolve-sg-buffer-const-ness-issue-fix lib/scatterlist.c
---- a/lib/scatterlist.c~scsi-resolve-sg-buffer-const-ness-issue-fix
-+++ a/lib/scatterlist.c
-@@ -618,9 +618,8 @@ EXPORT_SYMBOL(sg_miter_stop);
-  * Returns the number of copied bytes.
-  *
-  **/
--static size_t sg_copy_buffer(struct scatterlist *sgl, unsigned int nents,
--			     void *buf, size_t buflen, off_t skip,
--			     bool to_buffer)
-+size_t sg_copy_buffer(struct scatterlist *sgl, unsigned int nents, void *buf,
-+		      size_t buflen, off_t skip, bool to_buffer)
- {
- 	unsigned int offset = 0;
- 	struct sg_mapping_iter miter;
-@@ -657,6 +656,7 @@ static size_t sg_copy_buffer(struct scat
- 	local_irq_restore(flags);
- 	return offset;
- }
-+EXPORT_SYMBOL(sg_copy_buffer);
- 
- /**
-  * sg_copy_from_buffer - Copy from a linear buffer to an SG list
-diff -puN include/linux/scatterlist.h~scsi-resolve-sg-buffer-const-ness-issue-fix include/linux/scatterlist.h
---- a/include/linux/scatterlist.h~scsi-resolve-sg-buffer-const-ness-issue-fix
-+++ a/include/linux/scatterlist.h
-@@ -239,6 +239,9 @@ int sg_alloc_table_from_pages(struct sg_
- 	unsigned long offset, unsigned long size,
- 	gfp_t gfp_mask);
- 
-+size_t sg_copy_buffer(struct scatterlist *sgl, unsigned int nents, void *buf,
-+		      size_t buflen, off_t skip, bool to_buffer);
-+
- size_t sg_copy_from_buffer(struct scatterlist *sgl, unsigned int nents,
- 			   const void *buf, size_t buflen);
- size_t sg_copy_to_buffer(struct scatterlist *sgl, unsigned int nents,
+diff -puN drivers/gpu/drm/i915/intel_sprite.c~drivers-gpu-drm-i915-intel_spritec-fix-build drivers/gpu/drm/i915/intel_sprite.c
+--- a/drivers/gpu/drm/i915/intel_sprite.c~drivers-gpu-drm-i915-intel_spritec-fix-build
++++ a/drivers/gpu/drm/i915/intel_sprite.c
+@@ -764,7 +764,7 @@ intel_check_sprite_plane(struct drm_plan
+ 	struct drm_framebuffer *fb = state->base.fb;
+ 	int crtc_x, crtc_y;
+ 	unsigned int crtc_w, crtc_h;
+-	uint32_t src_x, src_y, src_w, src_h;
++	uint32_t src_x = 0, src_y = 0, src_w = 0, src_h = 0;
+ 	struct drm_rect *src = &state->src;
+ 	struct drm_rect *dst = &state->dst;
+ 	const struct drm_rect *clip = &state->clip;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -138,4 +119,5 @@ journal_add_journal_head-debug-fix.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
 mutex-subsystem-synchro-test-module.patch
 slab-leaks3-default-y.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
 
