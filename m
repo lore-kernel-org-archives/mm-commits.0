@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + arch-x86-kvm-mmuc-work-around-gcc-444-bug.patch added to -mm
- tree
-Date: Fri, 22 May 2015 13:01:19 -0700
-Message-ID: <555f8b0f.o22UeRxDf2t9H+ol%akpm@linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Fri, 22 May 2015 13:07:27 -0700
+Message-ID: <555f8c7f.eHb2J5C+jPQ3JGhk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47174 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47187 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756929AbbEVUBU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 May 2015 16:01:20 -0400
+	with ESMTP id S1756048AbbEVUH2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 May 2015 16:07:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, guangrong.xiao@linux.intel.com, pbonzini@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch/x86/kvm/mmu.c: work around gcc-4.4.4 bug
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     arch-x86-kvm-mmuc-work-around-gcc-444-bug.patch
+     linux-next-git-rejects.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arch-x86-kvm-mmuc-work-around-gcc-444-bug.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arch-x86-kvm-mmuc-work-around-gcc-444-bug.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,51 +39,88 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: arch/x86/kvm/mmu.c: work around gcc-4.4.4 bug
+Subject: linux-next-git-rejects
 
-arch/x86/kvm/mmu.c: In function 'kvm_mmu_pte_write':
-arch/x86/kvm/mmu.c:4256: error: unknown field 'cr0_wp' specified in initializer
-arch/x86/kvm/mmu.c:4257: error: unknown field 'cr4_pae' specified in initializer
-arch/x86/kvm/mmu.c:4257: warning: excess elements in union initializer
-...
-
-gcc-4.4.4 (at least) has issues when using anonymous unions in
-initializers.
-
-Fixes: edc90b7dc4ceef6 ("KVM: MMU: fix SMAP virtualization")
-Cc: Xiao Guangrong <guangrong.xiao@linux.intel.com>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kvm/mmu.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ arch/x86/kvm/x86.c      |    6 ------
+ drivers/clk/clk.c       |   10 ----------
+ drivers/hid/wacom_wac.c |    6 ------
+ 3 files changed, 22 deletions(-)
 
-diff -puN arch/x86/kvm/mmu.c~arch-x86-kvm-mmuc-work-around-gcc-444-bug arch/x86/kvm/mmu.c
---- a/arch/x86/kvm/mmu.c~arch-x86-kvm-mmuc-work-around-gcc-444-bug
-+++ a/arch/x86/kvm/mmu.c
-@@ -4252,13 +4252,13 @@ void kvm_mmu_pte_write(struct kvm_vcpu *
- 	u64 entry, gentry, *spte;
- 	int npte;
- 	bool remote_flush, local_flush, zap_page;
--	union kvm_mmu_page_role mask = (union kvm_mmu_page_role) {
--		.cr0_wp = 1,
--		.cr4_pae = 1,
--		.nxe = 1,
--		.smep_andnot_wp = 1,
--		.smap_andnot_wp = 1,
--	};
-+	union kvm_mmu_page_role mask = { };
-+
-+	mask.cr0_wp = 1;
-+	mask.cr4_pae = 1;
-+	mask.nxe = 1;
-+	mask.smep_andnot_wp = 1;
-+	mask.smap_andnot_wp = 1;
- 
+diff -puN arch/x86/kvm/x86.c~linux-next-git-rejects arch/x86/kvm/x86.c
+--- a/arch/x86/kvm/x86.c~linux-next-git-rejects
++++ a/arch/x86/kvm/x86.c
+@@ -7151,11 +7151,6 @@ void kvm_put_guest_fpu(struct kvm_vcpu *
+ 	fpu_save_init(&vcpu->arch.guest_fpu);
+ 	__kernel_fpu_end();
+ 	++vcpu->stat.fpu_reload;
+-<<<<<<< HEAD
+-	if (!vcpu->arch.eager_fpu)
+-		kvm_make_request(KVM_REQ_DEACTIVATE_FPU, vcpu);
+-
+-=======
  	/*
- 	 * If we don't have indirect shadow pages, it means no page is
-diff -puN arch/x86/include/asm/kvm_host.h~arch-x86-kvm-mmuc-work-around-gcc-444-bug arch/x86/include/asm/kvm_host.h
+ 	 * If using eager FPU mode, or if the guest is a frequent user
+ 	 * of the FPU, just leave the FPU active for next time.
+@@ -7166,7 +7161,6 @@ void kvm_put_guest_fpu(struct kvm_vcpu *
+ 		if (++vcpu->fpu_counter < 5)
+ 			kvm_make_request(KVM_REQ_DEACTIVATE_FPU, vcpu);
+ 	}
+->>>>>>> linux-next/akpm-base
+ 	trace_kvm_fpu(0);
+ }
+ 
+diff -puN drivers/clk/clk.c~linux-next-git-rejects drivers/clk/clk.c
+--- a/drivers/clk/clk.c~linux-next-git-rejects
++++ a/drivers/clk/clk.c
+@@ -1108,11 +1108,7 @@ static struct clk_core *__clk_set_parent
+ 		clk_core_prepare(parent);
+ 		flags = clk_enable_lock();
+ 		clk_core_enable(parent);
+-<<<<<<< HEAD
+-		clk_core_enable(clk);
+-=======
+ 		clk_core_enable(core);
+->>>>>>> linux-next/akpm-base
+ 		clk_enable_unlock(flags);
+ 	}
+ 
+@@ -1165,15 +1161,9 @@ static int __clk_set_parent(struct clk_c
+ 		clk_reparent(core, old_parent);
+ 		clk_enable_unlock(flags);
+ 
+-<<<<<<< HEAD
+-		if (clk->prepare_count) {
+-			flags = clk_enable_lock();
+-			clk_core_disable(clk);
+-=======
+ 		if (core->prepare_count) {
+ 			flags = clk_enable_lock();
+ 			clk_core_disable(core);
+->>>>>>> linux-next/akpm-base
+ 			clk_core_disable(parent);
+ 			clk_enable_unlock(flags);
+ 			clk_core_unprepare(parent);
+diff -puN drivers/hid/wacom_wac.c~linux-next-git-rejects drivers/hid/wacom_wac.c
+--- a/drivers/hid/wacom_wac.c~linux-next-git-rejects
++++ a/drivers/hid/wacom_wac.c
+@@ -1075,14 +1075,8 @@ static int wacom_wac_finger_count_touche
+ 	if (!touch_max)
+ 		return 0;
+ 
+-<<<<<<< HEAD
+-	/* non-HID_GENERIC single touch input doesn't call this routine */
+-	if ((touch_max == 1) && (wacom->features.type == HID_GENERIC))
+-		return wacom->hid_data.tipswitch &&
+-=======
+ 	if (touch_max == 1)
+ 		return test_bit(BTN_TOUCH, input->key) &&
+->>>>>>> linux-next/akpm-base
+ 		       !wacom->shared->stylus_in_proximity;
+ 
+ 	for (i = 0; i < input->mt->num_slots; i++) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -129,4 +165,5 @@ journal_add_journal_head-debug-fix.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
 mutex-subsystem-synchro-test-module.patch
 slab-leaks3-default-y.patch
+linux-next-git-rejects.patch
 
