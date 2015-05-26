@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch added to
- -mm tree
-Date: Tue, 26 May 2015 15:52:44 -0700
-Message-ID: <5564f93c.yq6K8ZRj0YxlTJs1%akpm@linux-foundation.org>
+ userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch added
+ to -mm tree
+Date: Tue, 26 May 2015 15:53:49 -0700
+Message-ID: <5564f97d.TSy543AWVmNXDikS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34288 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34297 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751085AbbEZWwp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 May 2015 18:52:45 -0400
+	with ESMTP id S1751628AbbEZWxu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 May 2015 18:53:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aarcange@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: update the uffd_msg structure to be the same on 32/64bit
+     Subject: userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix
 has been added to the -mm tree.  Its filename is
-     userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
+     userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,141 +40,90 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: userfaultfd: update the uffd_msg structure to be the same on 32/64bit
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix
 
-Avoiding to using packed allowed the code to be nicer and it avoided
-the reserved1/2/3 but the structure must be the same for 32bit and
-64bit archs so x86 applications built with the 32bit ABI can run on
-the 64bit kernel without requiring translation of the data read
-through the read syscall.
+use __packed
 
-$ gcc -m64 p.c && ./a.out
-32
-0
-16
-8
-8
-16
-24
-$ gcc -m32 p.c && ./a.out
-32
-0
-16
-8
-8
-16
-24
-
-int main()
-{
-	printf("%lu\n", sizeof(struct uffd_msg));
-	printf("%lu\n", (unsigned long) &((struct uffd_msg *) 0)->event);
-	printf("%lu\n", (unsigned long) &((struct uffd_msg *) 0)->arg.pagefault.address);
-	printf("%lu\n", (unsigned long) &((struct uffd_msg *) 0)->arg.pagefault.flags);
-	printf("%lu\n", (unsigned long) &((struct uffd_msg *) 0)->arg.reserved.reserved1);
-	printf("%lu\n", (unsigned long) &((struct uffd_msg *) 0)->arg.reserved.reserved2);
-	printf("%lu\n", (unsigned long) &((struct uffd_msg *) 0)->arg.reserved.reserved3);
-}
-
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Reported-by: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/linux/userfaultfd.h |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ include/uapi/linux/userfaultfd.h |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN include/uapi/linux/userfaultfd.h~userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2 include/uapi/linux/userfaultfd.h
---- a/include/uapi/linux/userfaultfd.h~userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2
+diff -puN include/uapi/linux/userfaultfd.h~userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix include/uapi/linux/userfaultfd.h
+--- a/include/uapi/linux/userfaultfd.h~userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix
 +++ a/include/uapi/linux/userfaultfd.h
-@@ -51,9 +51,13 @@
- struct uffd_msg {
- 	__u8	event;
+@@ -9,6 +9,8 @@
+ #ifndef _LINUX_USERFAULTFD_H
+ #define _LINUX_USERFAULTFD_H
  
-+	__u8	reserved1;
-+	__u16	reserved2;
-+	__u32	reserved3;
++#include <linux/compiler.h>
 +
- 	union {
- 		struct {
--			__u32	flags;
-+			__u64	flags;
- 			__u64	address;
- 		} pagefault;
- 
-@@ -64,7 +68,7 @@ struct uffd_msg {
+ #define UFFD_API ((__u64)0xAA)
+ /*
+  * After implementing the respective features it will become:
+@@ -68,7 +70,7 @@ struct uffd_msg {
  			__u64	reserved3;
  		} reserved;
  	} arg;
--};
-+} __attribute__((packed));
+-} __attribute__((packed));
++} __packed;
  
  /*
   * Start at 0x12 and not at 0 to be more strict against bugs.
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-thp-cleanup-how-khugepaged-enters-freezer.patch
-mm-drop-bogus-vm_bug_on_page-assert-in-put_page-codepath.patch
-mm-avoid-tail-page-refcounting-on-non-thp-compound-pages.patch
-userfaultfd-linux-documentation-vm-userfaultfdtxt.patch
-userfaultfd-linux-documentation-vm-userfaultfdtxt-fix.patch
-userfaultfd-waitqueue-add-nr-wake-parameter-to-__wake_up_locked_key.patch
-userfaultfd-uapi.patch
-userfaultfd-linux-userfaultfd_kh.patch
-userfaultfd-add-vm_userfaultfd_ctx-to-the-vm_area_struct.patch
-userfaultfd-add-vm_uffd_missing-and-vm_uffd_wp.patch
-userfaultfd-call-handle_userfault-for-userfaultfd_missing-faults.patch
-userfaultfd-teach-vma_merge-to-merge-across-vma-vm_userfaultfd_ctx.patch
-userfaultfd-prevent-khugepaged-to-merge-if-userfaultfd-is-armed.patch
-userfaultfd-add-new-syscall-to-provide-memory-externalization.patch
-userfaultfd-add-new-syscall-to-provide-memory-externalization-fix.patch
-userfaultfd-add-new-syscall-to-provide-memory-externalization-fix-fix.patch
-userfaultfd-add-new-syscall-to-provide-memory-externalization-fix-fix-fix.patch
-userfaultfd-rename-uffd_apibits-into-features.patch
-userfaultfd-rename-uffd_apibits-into-features-fixup.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+fs-binfmt_elfc-load_elf_binary-return-einval-on-zero-length-mappings.patch
+ocfs2-reduce-object-size-of-mlog-uses-fix.patch
+ocfs2-remove-__mlog_cpu_guess.patch
+ocfs2-remove-__mlog_cpu_guess-fix.patch
+ocfs2-fix-null-pointer-dereference-in-function-ocfs2_abort_trigger-fix.patch
+mm.patch
+mm-slab_common-support-the-slub_debug-boot-option-on-specific-object-size-fix.patch
+slub-bulk-allocation-from-per-cpu-partial-pages-fix.patch
+mm-fix-mprotect-behaviour-on-vm_locked-vmas-fix.patch
+mm-new-mm-hook-framework.patch
+mm-meminit-inline-some-helper-functions-fix.patch
+mm-meminit-finish-initialisation-of-struct-pages-before-basic-setup-fix.patch
+mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling-fix.patch
+rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix.patch
+rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix-fix.patch
 userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
-userfaultfd-wake-pending-userfaults.patch
-userfaultfd-optimize-read-and-poll-to-be-o1.patch
-userfaultfd-optimize-read-and-poll-to-be-o1-fix.patch
-userfaultfd-allocate-the-userfaultfd_ctx-cacheline-aligned.patch
-userfaultfd-solve-the-race-between-uffdio_copyzeropage-and-read.patch
-userfaultfd-buildsystem-activation.patch
-userfaultfd-activate-syscall.patch
-userfaultfd-activate-syscall-fix.patch
-userfaultfd-uffdio_copyuffdio_zeropage-uapi.patch
-userfaultfd-mcopy_atomicmfill_zeropage-uffdio_copyuffdio_zeropage-preparation.patch
-userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic.patch
+userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
 userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
-userfaultfd-uffdio_copy-and-uffdio_zeropage.patch
 fs-userfaultfdc-work-around-i386-build-error.patch
-mm-oom_kill-remove-unnecessary-locking-in-oom_enable.patch
-mm-oom_kill-clean-up-victim-marking-and-exiting-interfaces.patch
-mm-oom_kill-switch-test-and-clear-of-known-tif_memdie-to-clear.patch
-mm-oom_kill-generalize-oom-progress-waitqueue.patch
-mm-oom_kill-remove-unnecessary-locking-in-exit_oom_victim.patch
-mm-oom_kill-simplify-oom-killer-locking.patch
-mm-page_alloc-inline-should_alloc_retry.patch
-mm-thp-split-out-pmd-collpase-flush-into-a-separate-functions.patch
-powerpc-mm-use-generic-version-of-pmdp_clear_flush.patch
-mm-clarify-that-the-function-operates-on-hugepage-pte.patch
-page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-mm-sanitize-page-mapping-for-tail-pages.patch
+hugetlb-do-not-account-hugetlb-pages-as-nr_file_pages-fix.patch
+mm-hugetlb-handle-races-in-alloc_huge_page-and-hugetlb_reserve_pages.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
+proc-fix-page_size-limit-of-proc-pid-cmdline-fix.patch
+bitmap-remove-explicit-newline-handling-using-scnprintf-format-string-fix.patch
+radix-tree-replace-preallocated-node-array-with-linked-list-fix.patch
+rtc-omap-add-external-32k-clock-feature-fix.patch
+devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx-fix.patch
+scsi-resolve-sg-buffer-const-ness-issue-fix.patch
+linux-next.patch
+linux-next-rejects.patch
+arch-x86-kvm-mmuc-work-around-gcc-444-bug.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+drivers-gpu-drm-i915-i915_gem_gttc-hack-around-build-error-on-i386.patch
+drivers-gpu-drm-i915-i915_gem_gttc-hack-around-build-error-on-i386.patch
 
