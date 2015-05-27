@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-hugetlb-handle-races-in-alloc_huge_page-and-hugetlb_reserve_pages.patch
- added to -mm tree
-Date: Wed, 27 May 2015 14:47:08 -0700
-Message-ID: <55663b5c.tr1HWywalH/5JfZl%akpm@linux-foundation.org>
+Subject: + checkpatch-use-string-consistently.patch added to -mm tree
+Date: Wed, 27 May 2015 14:48:48 -0700
+Message-ID: <55663bc0.MXTfOjex/NimyVpz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58008 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58016 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752205AbbE0VrJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 May 2015 17:47:09 -0400
+	with ESMTP id S1751660AbbE0Vst (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 May 2015 17:48:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mike.kravetz@oracle.com, dave@stgolabs.net, lcapitulino@redhat.com, n-horiguchi@ah.jp.nec.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: joe@perches.com, apw@canonical.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: handle races in alloc_huge_page and hugetlb_reserve_pages
+     Subject: checkpatch: use $String consistently
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-handle-races-in-alloc_huge_page-and-hugetlb_reserve_pages.patch
+     checkpatch-use-string-consistently.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-handle-races-in-alloc_huge_page-and-hugetlb_reserve_pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-use-string-consistently.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-handle-races-in-alloc_huge_page-and-hugetlb_reserve_pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-use-string-consistently.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,95 +38,100 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: mm/hugetlb: handle races in alloc_huge_page and hugetlb_reserve_pages
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: use $String consistently
 
-alloc_huge_page and hugetlb_reserve_pages use region_chg to calculate the
-number of pages which will be added to the reserve map.  Subpool and
-global reserve counts are adjusted based on the output of region_chg. 
-Before the pages are actually added to the reserve map, these routines
-could race and add fewer pages than expected.  If this happens, the
-subpool and global reserve counts are not correct.
+String detection where a source line with a string constant is converted
+can either have an X or a space.
 
-Compare the number of pages actually added (region_add) to those expected
-to added (region_chg).  If fewer pages are actually added, this indicates
-a race and adjust counters accordingly.
+Some of the string detection regexes do not allow the space character, but
+there is a handy $String variable that does.
 
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Luiz Capitulino <lcapitulino@redhat.com>
+Convert the remaining uses of string detection regexes to use the $String
+variable to reduce possible false negatives.
+
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   34 ++++++++++++++++++++++++++++++----
- 1 file changed, 30 insertions(+), 4 deletions(-)
+ scripts/checkpatch.pl |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-handle-races-in-alloc_huge_page-and-hugetlb_reserve_pages mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-handle-races-in-alloc_huge_page-and-hugetlb_reserve_pages
-+++ a/mm/hugetlb.c
-@@ -1542,7 +1542,7 @@ static struct page *alloc_huge_page(stru
- 	struct hugepage_subpool *spool = subpool_vma(vma);
- 	struct hstate *h = hstate_vma(vma);
- 	struct page *page;
--	long chg;
-+	long chg, commit;
- 	int ret, idx;
- 	struct hugetlb_cgroup *h_cg;
+diff -puN scripts/checkpatch.pl~checkpatch-use-string-consistently scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-use-string-consistently
++++ a/scripts/checkpatch.pl
+@@ -1008,7 +1008,7 @@ sub sanitise_line {
+ sub get_quoted_string {
+ 	my ($line, $rawline) = @_;
  
-@@ -1583,7 +1583,20 @@ static struct page *alloc_huge_page(stru
+-	return "" if ($line !~ m/(\"[X\t]+\")/g);
++	return "" if ($line !~ m/($String)/g);
+ 	return substr($rawline, $-[0], $+[0] - $-[0]);
+ }
  
- 	set_page_private(page, (unsigned long)spool);
+@@ -4343,8 +4343,8 @@ sub process {
+ 			}
  
--	vma_commit_reservation(h, vma, addr);
-+	commit = vma_commit_reservation(h, vma, addr);
-+	if (unlikely(chg > commit)) {
-+		/*
-+		 * The page was added to the reservation map between
-+		 * vma_needs_reservation and vma_commit_reservation.
-+		 * This indicates a race with hugetlb_reserve_pages.
-+		 * Adjust for the subpool count incremented above AND
-+		 * in hugetlb_reserve_pages for the same page.  Also,
-+		 * the reservation count added in hugetlb_reserve_pages
-+		 * no longer applies.
-+		 */
-+		hugepage_subpool_put_pages(spool, 1);
-+		hugetlb_acct_memory(h, -1);
-+	}
- 	return page;
+ 			# Flatten any obvious string concatentation.
+-			while ($dstat =~ s/("X*")\s*$Ident/$1/ ||
+-			       $dstat =~ s/$Ident\s*("X*")/$1/)
++			while ($dstat =~ s/($String)\s*$Ident/$1/ ||
++			       $dstat =~ s/$Ident\s*($String)/$1/)
+ 			{
+ 			}
  
- out_uncharge_cgroup:
-@@ -3701,8 +3714,21 @@ int hugetlb_reserve_pages(struct inode *
- 	 * consumed reservations are stored in the map. Hence, nothing
- 	 * else has to be done for private mappings here
- 	 */
--	if (!vma || vma->vm_flags & VM_MAYSHARE)
--		region_add(resv_map, from, to);
-+	if (!vma || vma->vm_flags & VM_MAYSHARE) {
-+		long add = region_add(resv_map, from, to);
-+
-+		if (unlikely(chg > add)) {
-+			/*
-+			 * pages in this range were added to the reserve
-+			 * map between region_chg and region_add.  This
-+			 * indicates a race with alloc_huge_page.  Adjust
-+			 * the subpool and reserve counts modified above
-+			 * based on the difference.
-+			 */
-+			hugepage_subpool_put_pages(spool, chg - add);
-+			hugetlb_acct_memory(h, -(chg - ret));
-+		}
-+	}
- 	return 0;
- out_err:
- 	if (vma && is_vma_resv_set(vma, HPAGE_RESV_OWNER))
+@@ -4625,7 +4625,7 @@ sub process {
+ # to grep for the string.  Make exceptions when the previous string ends in a
+ # newline (multiple lines in one string constant) or '\t', '\r', ';', or '{'
+ # (common in inline assembly) or is a octal \123 or hexadecimal \xaf value
+-		if ($line =~ /^\+\s*"[X\t]*"/ &&
++		if ($line =~ /^\+\s*$String/ &&
+ 		    $prevline =~ /"\s*$/ &&
+ 		    $prevrawline !~ /(?:\\(?:[ntr]|[0-7]{1,3}|x[0-9a-fA-F]{1,2})|;\s*|\{\s*)"\s*$/) {
+ 			if (WARN("SPLIT_STRING",
+@@ -4671,13 +4671,13 @@ sub process {
+ 		}
+ 
+ # concatenated string without spaces between elements
+-		if ($line =~ /"X+"[A-Z_]+/ || $line =~ /[A-Z_]+"X+"/) {
++		if ($line =~ /$String[A-Z_]/ || $line =~ /[A-Za-z0-9_]$String/) {
+ 			CHK("CONCATENATED_STRING",
+ 			    "Concatenated strings should use spaces between elements\n" . $herecurr);
+ 		}
+ 
+ # uncoalesced string fragments
+-		if ($line =~ /"X*"\s*"/) {
++		if ($line =~ /$String\s*"/) {
+ 			WARN("STRING_FRAGMENTS",
+ 			     "Consecutive strings are generally better as a single string\n" . $herecurr);
+ 		}
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-hugetlb-do-not-account-hugetlb-pages-as-nr_file_pages.patch
-mm-hugetlb-document-the-reserve-map-region-tracking-routines.patch
-mm-hugetlb-compute-return-the-number-of-regions-added-by-region_add.patch
-mm-hugetlb-handle-races-in-alloc_huge_page-and-hugetlb_reserve_pages.patch
+maintainers-update-capabilities-pattern.patch
+ocfs2-reduce-object-size-of-mlog-uses.patch
+ocfs2-reduce-object-size-of-mlog-uses-fix.patch
+ocfs2-remove-__mlog_cpu_guess.patch
+ocfs2-remove-__mlog_cpu_guess-fix.patch
+ocfs2-neaten-do_error-ocfs2_error-and-ocfs2_abort.patch
+compiler-gcch-neatening.patch
+compiler-gcc-integrate-the-various-compiler-gcch-files.patch
+get_maintainerpl-add-get_maintainerignore-file-capability.patch
+maintainers-update-sound-soc-intel-patterns.patch
+maintainers-remove-section-broadcom-bcm33xx-mips-architecture.patch
+maintainers-update-brcm-dts-pattern.patch
+maintainers-update-brcm-gpio-filename-pattern.patch
+maintainers-remove-unused-nbdh-pattern.patch
+maintainers-move-jens-osterkamp-to-credits.patch
+maintainers-bcache-kent-overstreet-has-changed-email-address.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-check-for-uncommented-waitqueue_active.patch
+checkpatch-add-strict-warning-for-c99-fixed-size-typedefs-intsize_t.patch
+checkpatch-make-types-found-in-a-source-file-patch-local.patch
+checkpatch-use-string-consistently.patch
+linux-next.patch
+printk-improve-the-description-of-dev-kmsg-line-format.patch
+fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void.patch
 
