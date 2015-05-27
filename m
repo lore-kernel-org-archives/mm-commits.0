@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + init-do_mounts-add-create_dev-failure-log-fix.patch added to
- -mm tree
-Date: Wed, 27 May 2015 16:28:20 -0700
-Message-ID: <55665314.qmrtS5D/AmnsFvhN%akpm@linux-foundation.org>
+Subject: + security_syslog-should-be-called-once-only.patch added to -mm
+ tree
+Date: Wed, 27 May 2015 16:43:17 -0700
+Message-ID: <55665695.jpfE9V2Vn2XiWnEt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59018 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59044 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751790AbbE0X2V (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 May 2015 19:28:21 -0400
+	with ESMTP id S1753061AbbE0XnS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 May 2015 19:43:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dehrenberg@chromium.org, mszeredi@suse.cz, paul.gortmaker@windriver.com, pavel@ucw.cz, snitzer@redhat.com, vishnu.ps@samsung.com, mm-commits@vger.kernel.org
+To: vvs@virtuozzo.com, eparis@redhat.com, jwboyer@redhat.com, keescook@chromium.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: init-do_mounts-add-create_dev-failure-log-fix
+     Subject: security_syslog() should be called once only
 has been added to the -mm tree.  Its filename is
-     init-do_mounts-add-create_dev-failure-log-fix.patch
+     security_syslog-should-be-called-once-only.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/init-do_mounts-add-create_dev-failure-log-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/security_syslog-should-be-called-once-only.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/init-do_mounts-add-create_dev-failure-log-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/security_syslog-should-be-called-once-only.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,96 +39,69 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: init-do_mounts-add-create_dev-failure-log-fix
+From: Vasily Averin <vvs@virtuozzo.com>
+Subject: security_syslog() should be called once only
 
-simplify printk(), use pr_emerg(), display errno
+The final version of 637241a900cb ("kmsg: honor dmesg_restrict sysctl on
+/dev/kmsg") lost few hooks, as result security_syslog() are processed
+incorrectly:
 
-Cc: Dan Ehrenberg <dehrenberg@chromium.org>
-Cc: Mike Snitzer <snitzer@redhat.com>
-Cc: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Vishnu Pratap Singh <vishnu.ps@samsung.com>
+- open of /dev/kmsg checks syslog access permissions by using
+  check_syslog_permissions() where security_syslog() is not called if
+  dmesg_restrict is set.
+
+- syslog syscall and /proc/kmsg calls do_syslog() where security_syslog
+  can be executed twice (inside check_syslog_permissions() and then
+  directly in do_syslog())
+
+With this patch security_syslog() is called once only in all
+syslog-related operations regardless of dmesg_restrict value.
+
+Fixes: 637241a900cb ("kmsg: honor dmesg_restrict sysctl on /dev/kmsg")
+Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Josh Boyer <jwboyer@redhat.com>
+Cc: Eric Paris <eparis@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/do_mounts.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ kernel/printk/printk.c |   11 ++++-------
+ 1 file changed, 4 insertions(+), 7 deletions(-)
 
-diff -puN init/do_mounts.c~init-do_mounts-add-create_dev-failure-log-fix init/do_mounts.c
---- a/init/do_mounts.c~init-do_mounts-add-create_dev-failure-log-fix
-+++ a/init/do_mounts.c
-@@ -533,9 +533,13 @@ void __init mount_root(void)
+diff -puN kernel/printk/printk.c~security_syslog-should-be-called-once-only kernel/printk/printk.c
+--- a/kernel/printk/printk.c~security_syslog-should-be-called-once-only
++++ a/kernel/printk/printk.c
+@@ -496,11 +496,11 @@ int check_syslog_permissions(int type, b
+ 	 * already done the capabilities checks at open time.
+ 	 */
+ 	if (from_file && type != SYSLOG_ACTION_OPEN)
+-		return 0;
++		goto ok;
+ 
+ 	if (syslog_action_restricted(type)) {
+ 		if (capable(CAP_SYSLOG))
+-			return 0;
++			goto ok;
+ 		/*
+ 		 * For historical reasons, accept CAP_SYS_ADMIN too, with
+ 		 * a warning.
+@@ -510,10 +510,11 @@ int check_syslog_permissions(int type, b
+ 				     "CAP_SYS_ADMIN but no CAP_SYSLOG "
+ 				     "(deprecated).\n",
+ 				 current->comm, task_pid_nr(current));
+-			return 0;
++			goto ok;
+ 		}
+ 		return -EPERM;
  	}
- #endif
- #ifdef CONFIG_BLOCK
--	if (create_dev("/dev/root", ROOT_DEV) < 0)
--		pr_err("Failed to create %s device !\n", "/dev/root");
--	mount_block_root("/dev/root", root_mountflags);
-+	{
-+		int err = create_dev("/dev/root", ROOT_DEV);
-+
-+		if (err < 0)
-+			pr_emerg("Failed to create /dev/root: %d\n", err);
-+		mount_block_root("/dev/root", root_mountflags);
-+	}
- #endif
++ok:
+ 	return security_syslog(type);
  }
  
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-fs-binfmt_elfc-load_elf_binary-return-einval-on-zero-length-mappings.patch
-ocfs2-reduce-object-size-of-mlog-uses-fix.patch
-ocfs2-remove-__mlog_cpu_guess.patch
-ocfs2-remove-__mlog_cpu_guess-fix.patch
-ocfs2-fix-null-pointer-dereference-in-function-ocfs2_abort_trigger-fix.patch
-mm.patch
-mm-slab_common-support-the-slub_debug-boot-option-on-specific-object-size-fix.patch
-slub-bulk-allocation-from-per-cpu-partial-pages-fix.patch
-mm-fix-mprotect-behaviour-on-vm_locked-vmas-fix.patch
-mm-new-mm-hook-framework.patch
-mm-meminit-inline-some-helper-functions-fix.patch
-mm-meminit-finish-initialisation-of-struct-pages-before-basic-setup-fix.patch
-mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling-fix.patch
-rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix.patch
-rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix-fix.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
-userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
-fs-userfaultfdc-work-around-i386-build-error.patch
-hugetlb-do-not-account-hugetlb-pages-as-nr_file_pages-fix.patch
-include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
-proc-fix-page_size-limit-of-proc-pid-cmdline-fix.patch
-bitmap-remove-explicit-newline-handling-using-scnprintf-format-string-fix.patch
-radix-tree-replace-preallocated-node-array-with-linked-list-fix.patch
-init-do_mounts-add-create_dev-failure-log-fix.patch
-rtc-omap-add-external-32k-clock-feature-fix.patch
-devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx-fix.patch
-scsi-resolve-sg-buffer-const-ness-issue-fix.patch
-linux-next.patch
-linux-next-rejects.patch
-arch-x86-kvm-mmuc-work-around-gcc-444-bug.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-drivers-gpu-drm-i915-i915_gem_gttc-hack-around-build-error-on-i386.patch
-drivers-gpu-drm-i915-i915_gem_gttc-hack-around-build-error-on-i386.patch
-a.patch
-
+@@ -1299,10 +1300,6 @@ int do_syslog(int type, char __user *buf
+ 	if (error)
+ 		goto out;
+ 
+-	error = security_syslog(type);
+-	if (error)
+-		return error;
