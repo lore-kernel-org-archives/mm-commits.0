@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-use-string-consistently.patch added to -mm tree
-Date: Wed, 27 May 2015 14:48:48 -0700
-Message-ID: <55663bc0.MXTfOjex/NimyVpz%akpm@linux-foundation.org>
+Subject: + revert-ufs-fix-deadlocks-introduced-by-sb-mutex-merge.patch
+ added to -mm tree
+Date: Wed, 27 May 2015 14:51:37 -0700
+Message-ID: <55663c69.qgRhN8ZL+ODEf+AY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58016 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58024 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751660AbbE0Vst (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 May 2015 17:48:49 -0400
+	with ESMTP id S1752162AbbE0Vvi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 May 2015 17:51:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, apw@canonical.com, mm-commits@vger.kernel.org
+To: fabf@skynet.be, Ian.Jackson@eu.citrix.com, dushistov@mail.ru, ian.campbell@citrix.com, jack@suse.cz, khoroshilov@ispras.ru, roger.pau@citrix.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: use $String consistently
+     Subject: fs/ufs: revert "ufs: fix deadlocks introduced by sb mutex merge"
 has been added to the -mm tree.  Its filename is
-     checkpatch-use-string-consistently.patch
+     revert-ufs-fix-deadlocks-introduced-by-sb-mutex-merge.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-use-string-consistently.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/revert-ufs-fix-deadlocks-introduced-by-sb-mutex-merge.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-use-string-consistently.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/revert-ufs-fix-deadlocks-introduced-by-sb-mutex-merge.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,100 +39,104 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: use $String consistently
+From: Fabian Frederick <fabf@skynet.be>
+Subject: fs/ufs: revert "ufs: fix deadlocks introduced by sb mutex merge"
 
-String detection where a source line with a string constant is converted
-can either have an X or a space.
+This reverts commit 9ef7db7f38d0 ("ufs: fix deadlocks introduced by sb
+mutex merge") That patch tried to solve commit 0244756edc4b98c ("ufs: sb
+mutex merge + mutex_destroy") which is itself partially reverted due to
+multiple deadlocks.
 
-Some of the string detection regexes do not allow the space character, but
-there is a handy $String variable that does.
-
-Convert the remaining uses of string detection regexes to use the $String
-variable to reduce possible false negatives.
-
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Andy Whitcroft <apw@canonical.com>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Suggested-by: Jan Kara <jack@suse.cz>
+Cc: Ian Campbell <ian.campbell@citrix.com>
+Cc: Evgeniy Dushistov <dushistov@mail.ru>
+Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>
+Cc: Roger Pau Monne <roger.pau@citrix.com>
+Cc: Ian Jackson <Ian.Jackson@eu.citrix.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ fs/ufs/inode.c |    5 ++++-
+ fs/ufs/namei.c |   14 ++++++++------
+ 2 files changed, 12 insertions(+), 7 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-use-string-consistently scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-use-string-consistently
-+++ a/scripts/checkpatch.pl
-@@ -1008,7 +1008,7 @@ sub sanitise_line {
- sub get_quoted_string {
- 	my ($line, $rawline) = @_;
+diff -puN fs/ufs/inode.c~revert-ufs-fix-deadlocks-introduced-by-sb-mutex-merge fs/ufs/inode.c
+--- a/fs/ufs/inode.c~revert-ufs-fix-deadlocks-introduced-by-sb-mutex-merge
++++ a/fs/ufs/inode.c
+@@ -902,6 +902,9 @@ void ufs_evict_inode(struct inode * inod
+ 	invalidate_inode_buffers(inode);
+ 	clear_inode(inode);
  
--	return "" if ($line !~ m/(\"[X\t]+\")/g);
-+	return "" if ($line !~ m/($String)/g);
- 	return substr($rawline, $-[0], $+[0] - $-[0]);
+-	if (want_delete)
++	if (want_delete) {
++		lock_ufs(inode->i_sb);
+ 		ufs_free_inode(inode);
++		unlock_ufs(inode->i_sb);
++	}
  }
+diff -puN fs/ufs/namei.c~revert-ufs-fix-deadlocks-introduced-by-sb-mutex-merge fs/ufs/namei.c
+--- a/fs/ufs/namei.c~revert-ufs-fix-deadlocks-introduced-by-sb-mutex-merge
++++ a/fs/ufs/namei.c
+@@ -128,12 +128,12 @@ static int ufs_symlink (struct inode * d
+ 	if (l > sb->s_blocksize)
+ 		goto out_notlocked;
  
-@@ -4343,8 +4343,8 @@ sub process {
- 			}
++	lock_ufs(dir->i_sb);
+ 	inode = ufs_new_inode(dir, S_IFLNK | S_IRWXUGO);
+ 	err = PTR_ERR(inode);
+ 	if (IS_ERR(inode))
+-		goto out_notlocked;
++		goto out;
  
- 			# Flatten any obvious string concatentation.
--			while ($dstat =~ s/("X*")\s*$Ident/$1/ ||
--			       $dstat =~ s/$Ident\s*("X*")/$1/)
-+			while ($dstat =~ s/($String)\s*$Ident/$1/ ||
-+			       $dstat =~ s/$Ident\s*($String)/$1/)
- 			{
- 			}
+-	lock_ufs(dir->i_sb);
+ 	if (l > UFS_SB(sb)->s_uspi->s_maxsymlinklen) {
+ 		/* slow symlink */
+ 		inode->i_op = &ufs_symlink_inode_operations;
+@@ -184,9 +184,13 @@ static int ufs_mkdir(struct inode * dir,
+ 	struct inode * inode;
+ 	int err;
  
-@@ -4625,7 +4625,7 @@ sub process {
- # to grep for the string.  Make exceptions when the previous string ends in a
- # newline (multiple lines in one string constant) or '\t', '\r', ';', or '{'
- # (common in inline assembly) or is a octal \123 or hexadecimal \xaf value
--		if ($line =~ /^\+\s*"[X\t]*"/ &&
-+		if ($line =~ /^\+\s*$String/ &&
- 		    $prevline =~ /"\s*$/ &&
- 		    $prevrawline !~ /(?:\\(?:[ntr]|[0-7]{1,3}|x[0-9a-fA-F]{1,2})|;\s*|\{\s*)"\s*$/) {
- 			if (WARN("SPLIT_STRING",
-@@ -4671,13 +4671,13 @@ sub process {
- 		}
++	lock_ufs(dir->i_sb);
++	inode_inc_link_count(dir);
++
+ 	inode = ufs_new_inode(dir, S_IFDIR|mode);
++	err = PTR_ERR(inode);
+ 	if (IS_ERR(inode))
+-		return PTR_ERR(inode);
++		goto out_dir;
  
- # concatenated string without spaces between elements
--		if ($line =~ /"X+"[A-Z_]+/ || $line =~ /[A-Z_]+"X+"/) {
-+		if ($line =~ /$String[A-Z_]/ || $line =~ /[A-Za-z0-9_]$String/) {
- 			CHK("CONCATENATED_STRING",
- 			    "Concatenated strings should use spaces between elements\n" . $herecurr);
- 		}
+ 	inode->i_op = &ufs_dir_inode_operations;
+ 	inode->i_fop = &ufs_dir_operations;
+@@ -194,9 +198,6 @@ static int ufs_mkdir(struct inode * dir,
  
- # uncoalesced string fragments
--		if ($line =~ /"X*"\s*"/) {
-+		if ($line =~ /$String\s*"/) {
- 			WARN("STRING_FRAGMENTS",
- 			     "Consecutive strings are generally better as a single string\n" . $herecurr);
- 		}
+ 	inode_inc_link_count(inode);
+ 
+-	lock_ufs(dir->i_sb);
+-	inode_inc_link_count(dir);
+-
+ 	err = ufs_make_empty(inode, dir);
+ 	if (err)
+ 		goto out_fail;
+@@ -215,6 +216,7 @@ out_fail:
+ 	inode_dec_link_count(inode);
+ 	unlock_new_inode(inode);
+ 	iput (inode);
++out_dir:
+ 	inode_dec_link_count(dir);
+ 	unlock_ufs(dir->i_sb);
+ 	goto out;
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from fabf@skynet.be are
 
-maintainers-update-capabilities-pattern.patch
-ocfs2-reduce-object-size-of-mlog-uses.patch
-ocfs2-reduce-object-size-of-mlog-uses-fix.patch
-ocfs2-remove-__mlog_cpu_guess.patch
-ocfs2-remove-__mlog_cpu_guess-fix.patch
-ocfs2-neaten-do_error-ocfs2_error-and-ocfs2_abort.patch
-compiler-gcch-neatening.patch
-compiler-gcc-integrate-the-various-compiler-gcch-files.patch
-get_maintainerpl-add-get_maintainerignore-file-capability.patch
-maintainers-update-sound-soc-intel-patterns.patch
-maintainers-remove-section-broadcom-bcm33xx-mips-architecture.patch
-maintainers-update-brcm-dts-pattern.patch
-maintainers-update-brcm-gpio-filename-pattern.patch
-maintainers-remove-unused-nbdh-pattern.patch
-maintainers-move-jens-osterkamp-to-credits.patch
-maintainers-bcache-kent-overstreet-has-changed-email-address.patch
-mm-utilc-add-kstrimdup.patch
-checkpatch-check-for-uncommented-waitqueue_active.patch
-checkpatch-add-strict-warning-for-c99-fixed-size-typedefs-intsize_t.patch
-checkpatch-make-types-found-in-a-source-file-patch-local.patch
-checkpatch-use-string-consistently.patch
+configfs-unexport-make-static-config_item_init.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+fs-befs-btreec-remove-unneeded-initializations.patch
+revert-ufs-fix-deadlocks-introduced-by-sb-mutex-merge.patch
+ufs-restore-s_lock-mutex.patch
+fs-affs-inodec-remove-unneeded-initialization.patch
+fs-affs-amigaffsc-remove-unneeded-initialization.patch
+fs-affs-symlinkc-remove-unneeded-err-variable.patch
 linux-next.patch
-printk-improve-the-description-of-dev-kmsg-line-format.patch
-fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void.patch
 
