@@ -1,89 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: + nilfs2-support-nfsv2-export.patch added to -mm tree
-Date: Wed, 27 May 2015 14:09:17 -0700
-Message-ID: <5566327d.jx+KL/Aspzd5kIWQ%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ mm-hugetlb-compute-return-the-number-of-regions-added-by-region_add.patch
+ removed from -mm tree
+Date: Wed, 27 May 2015 14:20:46 -0700
+Message-ID: <5566352e.OXCW2ChPeX0ejgrS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57403 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57616 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751575AbbE0VJS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 May 2015 17:09:18 -0400
+	with ESMTP id S1752614AbbE0VUr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 May 2015 17:20:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: neilb@suse.de, konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
+To: mike.kravetz@oracle.com, dave@stgolabs.net, lcapitulino@redhat.com, n-horiguchi@ah.jp.nec.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: NILFS2: support NFSv2 export
-has been added to the -mm tree.  Its filename is
-     nilfs2-support-nfsv2-export.patch
+     Subject: mm/hugetlb: compute/return the number of regions added by region_add()
+has been removed from the -mm tree.  Its filename was
+     mm-hugetlb-compute-return-the-number-of-regions-added-by-region_add.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/nilfs2-support-nfsv2-export.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-support-nfsv2-export.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: NeilBrown <neilb@suse.de>
-Subject: NILFS2: support NFSv2 export
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: mm/hugetlb: compute/return the number of regions added by region_add()
 
-The "fh_len" passed to ->fh_to_* is not guaranteed to be that same as that
-returned by encode_fh - it may be larger.
+Modify region_add() to keep track of regions(pages) added to the reserve
+map and return this value.  The return value can be compared to the return
+value of region_chg() to determine if the map was modified between calls.
 
-With NFSv2, the filehandle is fixed length, so it may appear longer than
-expected and be zero-padded.
+Add documentation to the reserve/region map routines.
 
-So we must test that fh_len is at least some value, not exactly equal to
-it.
+Make vma_commit_reservation() also pass along the return value of
+region_add().  In the normal case, we want vma_commit_reservation to
+return the same value as the preceding call to vma_needs_reservation. 
+Create a common __vma_reservation_common routine to help keep the special
+case return values in sync.
 
-Signed-off-by: NeilBrown <neilb@suse.de>
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Luiz Capitulino <lcapitulino@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/namei.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ mm/hugetlb.c |   19 +++++++++++++++----
+ 1 file changed, 15 insertions(+), 4 deletions(-)
 
-diff -puN fs/nilfs2/namei.c~nilfs2-support-nfsv2-export fs/nilfs2/namei.c
---- a/fs/nilfs2/namei.c~nilfs2-support-nfsv2-export
-+++ a/fs/nilfs2/namei.c
-@@ -496,8 +496,7 @@ static struct dentry *nilfs_fh_to_dentry
+diff -puN mm/hugetlb.c~mm-hugetlb-compute-return-the-number-of-regions-added-by-region_add mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-compute-return-the-number-of-regions-added-by-region_add
++++ a/mm/hugetlb.c
+@@ -230,6 +230,7 @@ static long region_add(struct resv_map *
  {
- 	struct nilfs_fid *fid = (struct nilfs_fid *)fh;
+ 	struct list_head *head = &resv->regions;
+ 	struct file_region *rg, *nrg, *trg;
++	long chg = 0;
  
--	if ((fh_len != NILFS_FID_SIZE_NON_CONNECTABLE &&
--	     fh_len != NILFS_FID_SIZE_CONNECTABLE) ||
-+	if (fh_len < NILFS_FID_SIZE_NON_CONNECTABLE ||
- 	    (fh_type != FILEID_NILFS_WITH_PARENT &&
- 	     fh_type != FILEID_NILFS_WITHOUT_PARENT))
- 		return NULL;
-@@ -510,7 +509,7 @@ static struct dentry *nilfs_fh_to_parent
+ 	spin_lock(&resv->lock);
+ 	/* Locate the region we are either in or before. */
+@@ -255,14 +256,17 @@ static long region_add(struct resv_map *
+ 		if (rg->to > t)
+ 			t = rg->to;
+ 		if (rg != nrg) {
++			chg -= (rg->to - rg->from);
+ 			list_del(&rg->link);
+ 			kfree(rg);
+ 		}
+ 	}
++	chg += (nrg->from - f);
+ 	nrg->from = f;
++	chg += t - nrg->to;
+ 	nrg->to = t;
+ 	spin_unlock(&resv->lock);
+-	return 0;
++	return chg;
+ }
+ 
+ static long region_chg(struct resv_map *resv, long f, long t)
+@@ -1450,18 +1454,25 @@ static long vma_needs_reservation(struct
+ 	else
+ 		return chg < 0 ? chg : 0;
+ }
+-static void vma_commit_reservation(struct hstate *h,
++
++static long vma_commit_reservation(struct hstate *h,
+ 			struct vm_area_struct *vma, unsigned long addr)
  {
- 	struct nilfs_fid *fid = (struct nilfs_fid *)fh;
+ 	struct resv_map *resv;
+ 	pgoff_t idx;
++	long add;
  
--	if (fh_len != NILFS_FID_SIZE_CONNECTABLE ||
-+	if (fh_len < NILFS_FID_SIZE_CONNECTABLE ||
- 	    fh_type != FILEID_NILFS_WITH_PARENT)
- 		return NULL;
+ 	resv = vma_resv_map(vma);
+ 	if (!resv)
+-		return;
++		return 1;
  
+ 	idx = vma_hugecache_offset(h, vma, addr);
+-	region_add(resv, idx, idx + 1);
++	add = region_add(resv, idx, idx + 1);
++
++	if (vma->vm_flags & VM_MAYSHARE)
++		return add;
++	else
++		return 0;
+ }
+ 
+ static struct page *alloc_huge_page(struct vm_area_struct *vma,
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
-nilfs2-support-nfsv2-export.patch
-linux-next.patch
+hugetlb-do-not-account-hugetlb-pages-as-nr_file_pages.patch
+mm-hugetlb-compute-return-the-number-of-regions-added-by-region_add-v2.patch
+mm-hugetlb-handle-races-in-alloc_huge_page-and-hugetlb_reserve_pages.patch
+mm-hugetlb-handle-races-in-alloc_huge_page-and-hugetlb_reserve_pages-v2.patch
 
