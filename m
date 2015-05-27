@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- resubmit-bug_onlockres-l_level-=-dlm_lock_ex-checkpointed-tripped-in-ocfs2_ci_checkpointed.patch added to -mm tree
-Date: Wed, 27 May 2015 13:50:57 -0700
-Message-ID: <55662e31.t4+GiauFqGdKEL9a%akpm@linux-foundation.org>
+Subject: + ocfs2-fix-race-between-crashed-dio-and-rm.patch added to -mm
+ tree
+Date: Wed, 27 May 2015 14:08:14 -0700
+Message-ID: <5566323e.KYKmSjQaquSMICqe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56914 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57402 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751064AbbE0Uu6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 May 2015 16:50:58 -0400
+	with ESMTP id S1751575AbbE0VIP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 May 2015 17:08:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tariq.x.saeed@oracle.com, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
+To: joseph.qi@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix BUG_ON() in ocfs2_ci_checkpointed()
+     Subject: ocfs2: fix race between crashed dio and rm
 has been added to the -mm tree.  Its filename is
-     resubmit-bug_onlockres-l_level-=-dlm_lock_ex-checkpointed-tripped-in-ocfs2_ci_checkpointed.patch
+     ocfs2-fix-race-between-crashed-dio-and-rm.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/resubmit-bug_onlockres-l_level-%3D-dlm_lock_ex-checkpointed-tripped-in-ocfs2_ci_checkpointed.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-race-between-crashed-dio-and-rm.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/resubmit-bug_onlockres-l_level-%3D-dlm_lock_ex-checkpointed-tripped-in-ocfs2_ci_checkpointed.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-race-between-crashed-dio-and-rm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,152 +39,92 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tariq Saeed <tariq.x.saeed@oracle.com>
-Subject: ocfs2: fix BUG_ON() in ocfs2_ci_checkpointed()
+From: Joseph Qi <joseph.qi@huawei.com>
+Subject: ocfs2: fix race between crashed dio and rm
 
-Orabug: 20189959
+There is a race case between crashed dio and rm, which will lead to
+OCFS2_VALID_FL not set read-only.
 
-PID: 614    TASK: ffff882a739da580  CPU: 3   COMMAND: "ocfs2dc"
-  #0 [ffff882ecc3759b0] machine_kexec at ffffffff8103b35d
-  #1 [ffff882ecc375a20] crash_kexec at ffffffff810b95b5
-  #2 [ffff882ecc375af0] oops_end at ffffffff815091d8
-  #3 [ffff882ecc375b20] die at ffffffff8101868b
-  #4 [ffff882ecc375b50] do_trap at ffffffff81508bb0
-  #5 [ffff882ecc375ba0] do_invalid_op at ffffffff810165e5
-  #6 [ffff882ecc375c40] invalid_op at ffffffff815116fb
-     [exception RIP: ocfs2_ci_checkpointed+208]
-     RIP: ffffffffa0a7e940  RSP: ffff882ecc375cf0  RFLAGS: 00010002
-     RAX: 0000000000000001  RBX: 000000000000654b  RCX: ffff8812dc83f1f8
-     RDX: 00000000000017d9  RSI: ffff8812dc83f1f8  RDI: ffffffffa0b2c318
-     RBP: ffff882ecc375d20   R8: ffff882ef6ecfa60   R9: ffff88301f272200
-     R10: 0000000000000000  R11: 0000000000000000  R12: ffffffffffffffff
-     R13: ffff8812dc83f4f0  R14: 0000000000000000  R15: ffff8812dc83f1f8
-     ORIG_RAX: ffffffffffffffff  CS: 0010  SS: 0018
-  #7 [ffff882ecc375d28] ocfs2_check_meta_downconvert at ffffffffa0a7edbd [ocfs2]
-  #8 [ffff882ecc375d38] ocfs2_unblock_lock at ffffffffa0a84af8 [ocfs2]
-  #9 [ffff882ecc375dc8] ocfs2_process_blocked_lock at ffffffffa0a85285 [ocfs2]
-#10 [ffff882ecc375e18] ocfs2_downconvert_thread_do_work at ffffffffa0a85445 [ocfs2]
-#11 [ffff882ecc375e68] ocfs2_downconvert_thread at ffffffffa0a854de [ocfs2]
-#12 [ffff882ecc375ee8] kthread at ffffffff81090da7
-#13 [ffff882ecc375f48] kernel_thread_helper at ffffffff81511884
-assert is tripped because the tran is not checkpointed and the lock level is PR.
+N1                              N2
+------------------------------------------------------------------------
+dd with direct flag
+                                rm file
+crashed with an dio entry left
+in orphan dir
+                                clear OCFS2_VALID_FL in
+                                ocfs2_remove_inode
+                                recover N1 and read the corrupted inode,
+                                and set filesystem read-only
 
-Some time ago, chmod command had been executed. As result, the following call
-chain left the inode cluster lock in PR state, latter on causing the assert.
-system_call_fastpath
-  -> my_chmod
-   -> sys_chmod
-    -> sys_fchmodat
-     -> notify_change
-      -> ocfs2_setattr
-       -> posix_acl_chmod
-        -> ocfs2_iop_set_acl
-         -> ocfs2_set_acl
-          -> ocfs2_acl_set_mode
-Here is how.
-1119 int ocfs2_setattr(struct dentry *dentry, struct iattr *attr)
-1120 {
-1247         ocfs2_inode_unlock(inode, 1); <<< WRONG thing to do.
-..
-1258         if (!status && attr->ia_valid & ATTR_MODE) {
-1259                 status =  posix_acl_chmod(inode, inode->i_mode);
+So we skip the inode deletion this time and wait for dio entry
+recovered first.
 
-519 posix_acl_chmod(struct inode *inode, umode_t mode)
-520 {
-..
-539         ret = inode->i_op->set_acl(inode, acl, ACL_TYPE_ACCESS);
-
-287 int ocfs2_iop_set_acl(struct inode *inode, struct posix_acl *acl, ...
-288 {
-289         return ocfs2_set_acl(NULL, inode, NULL, type, acl, NULL, NULL);
-
-224 int ocfs2_set_acl(handle_t *handle,
-225                          struct inode *inode, ...
-231 {
-..
-252                                 ret = ocfs2_acl_set_mode(inode, di_bh,
-253                                                          handle, mode);
-
-168 static int ocfs2_acl_set_mode(struct inode *inode, struct buffer_head ...
-170 {
-183         if (handle == NULL) {
-                    >>> BUG: inode lock not held in ex at this point <<<
-184                 handle = ocfs2_start_trans(OCFS2_SB(inode->i_sb),
-185                                            OCFS2_INODE_UPDATE_CREDITS);
-
-ocfs2_setattr.#1247 we unlock and at #1259 call posix_acl_chmod. When we reach
-ocfs2_acl_set_mode.#181 and do trans, the inode cluster lock is not held in EX
-mode (it should be). How this could have happended?
-
-We are the lock master, were holding lock EX and have released it in
-ocfs2_setattr.#1247. Note that there are no holders of this lock at
-this point. Another node needs the lock in PR, and we downconvert from
-EX to PR. So the inode lock is PR when do the trans in
-ocfs2_acl_set_mode.#184. The trans stays in core (not flushed to disc).
-Now another node want the lock in EX, downconvert thread gets kicked (the
-one that tripped assert abovt), finds an unflushed trans but the lock is
-not EX (it is PR). If the lock was at EX, it would have flushed the trans
-ocfs2_ci_checkpointed -> ocfs2_start_checkpoint before downconverting (to NULL)
-for the request.
-
-ocfs2_setattr must not drop inode lock ex in this code path. If it does,
-takes it again before the trans, say in ocfs2_set_acl, another cluster node can
-get in between, execute another setattr, overwriting the one in progress
-on this node, resulting in a mode acl size combo that is a mix of the two.
-
-Signed-off-by: Tariq Saeed <tariq.x.saeed@oracle.com>
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
 Cc: Mark Fasheh <mfasheh@suse.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/file.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ fs/ocfs2/inode.c   |    9 +++++++++
+ fs/ocfs2/journal.c |    4 +++-
+ 2 files changed, 12 insertions(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/file.c~resubmit-bug_onlockres-l_level-=-dlm_lock_ex-checkpointed-tripped-in-ocfs2_ci_checkpointed fs/ocfs2/file.c
---- a/fs/ocfs2/file.c~resubmit-bug_onlockres-l_level-=-dlm_lock_ex-checkpointed-tripped-in-ocfs2_ci_checkpointed
-+++ a/fs/ocfs2/file.c
-@@ -1126,6 +1126,7 @@ out:
- int ocfs2_setattr(struct dentry *dentry, struct iattr *attr)
- {
- 	int status = 0, size_change;
-+	int inode_locked = 0;
- 	struct inode *inode = d_inode(dentry);
- 	struct super_block *sb = inode->i_sb;
- 	struct ocfs2_super *osb = OCFS2_SB(sb);
-@@ -1171,6 +1172,7 @@ int ocfs2_setattr(struct dentry *dentry,
- 			mlog_errno(status);
- 		goto bail_unlock_rw;
- 	}
-+	inode_locked = 1;
+diff -puN fs/ocfs2/inode.c~ocfs2-fix-race-between-crashed-dio-and-rm fs/ocfs2/inode.c
+--- a/fs/ocfs2/inode.c~ocfs2-fix-race-between-crashed-dio-and-rm
++++ a/fs/ocfs2/inode.c
+@@ -971,6 +971,7 @@ static void ocfs2_delete_inode(struct in
+ 	int wipe, status;
+ 	sigset_t oldset;
+ 	struct buffer_head *di_bh = NULL;
++	struct ocfs2_dinode *di = NULL;
  
- 	if (size_change) {
- 		status = inode_newsize_ok(inode, attr->ia_size);
-@@ -1251,7 +1253,10 @@ int ocfs2_setattr(struct dentry *dentry,
- bail_commit:
- 	ocfs2_commit_trans(osb, handle);
- bail_unlock:
--	ocfs2_inode_unlock(inode, 1);
-+	if (status) {
-+		ocfs2_inode_unlock(inode, 1);
-+		inode_locked = 0;
+ 	trace_ocfs2_delete_inode(inode->i_ino,
+ 				 (unsigned long long)OCFS2_I(inode)->ip_blkno,
+@@ -1025,6 +1026,14 @@ static void ocfs2_delete_inode(struct in
+ 		goto bail_unlock_nfs_sync;
+ 	}
+ 
++	di = (struct ocfs2_dinode *)di_bh->b_data;
++	/* Skip inode deletion and wait for dio orphan entry recovered
++	 * first */
++	if (unlikely(di->i_flags & cpu_to_le32(OCFS2_DIO_ORPHANED_FL))) {
++		ocfs2_cleanup_delete_inode(inode, 0);
++		goto bail_unlock_inode;
 +	}
- bail_unlock_rw:
- 	if (size_change)
- 		ocfs2_rw_unlock(inode, 1);
-@@ -1267,6 +1272,8 @@ bail:
- 		if (status < 0)
- 			mlog_errno(status);
- 	}
-+	if (inode_locked)
-+		ocfs2_inode_unlock(inode, 1);
- 
- 	return status;
- }
++
+ 	/* Query the cluster. This will be the final decision made
+ 	 * before we go ahead and wipe the inode. */
+ 	status = ocfs2_query_inode_wipe(inode, di_bh, &wipe);
+diff -puN fs/ocfs2/journal.c~ocfs2-fix-race-between-crashed-dio-and-rm fs/ocfs2/journal.c
+--- a/fs/ocfs2/journal.c~ocfs2-fix-race-between-crashed-dio-and-rm
++++ a/fs/ocfs2/journal.c
+@@ -2193,7 +2193,9 @@ static int ocfs2_recover_orphans(struct
+ 			 * ocfs2_delete_inode. */
+ 			oi->ip_flags |= OCFS2_INODE_MAYBE_ORPHANED;
+ 			spin_unlock(&oi->ip_lock);
+-		} else if ((orphan_reco_type == ORPHAN_NEED_TRUNCATE) &&
++		}
++
++		if ((orphan_reco_type == ORPHAN_NEED_TRUNCATE) &&
+ 				(di->i_flags & cpu_to_le32(OCFS2_DIO_ORPHANED_FL))) {
+ 			ret = ocfs2_truncate_file(inode, di_bh,
+ 					i_size_read(inode));
 _
 
-Patches currently in -mm which might be from tariq.x.saeed@oracle.com are
+Patches currently in -mm which might be from joseph.qi@huawei.com are
 
-resubmit-bug_onlockres-l_level-=-dlm_lock_ex-checkpointed-tripped-in-ocfs2_ci_checkpointed.patch
-resubmit-ocfs2_iop_set-get_acl-called-from-the-vfs-so-take-inode-lock-v2second-version.patch
+ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work.patch
+ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work-v2.patch
+ocfs2-fix-a-tiny-race-when-truncate-dio-orohaned-entry.patch
+ocfs2-use-retval-instead-of-status-for-checking-error.patch
+ocfs2-dlm-cleanup-unused-function-__dlm_wait_on_lockres_flags_set.patch
+ocfs2-do-not-bug-if-jbd2_journal_dirty_metadata-fails.patch
+ocfs2-do-not-bug-if-jbd2_journal_dirty_metadata-fails-v3.patch
+ocfs2-o2net-should-remove-debugfs-in-o2net_init-out-branch.patch
+ocfs2-fix-null-pointer-dereference-in-function-ocfs2_abort_trigger.patch
+ocfs2-fix-null-pointer-dereference-in-function-ocfs2_abort_trigger-fix.patch
+ocfs2-set-filesytem-read-only-when-ocfs2_delete_entry-failed.patch
+ocfs2-set-filesytem-read-only-when-ocfs2_delete_entry-failed-v2.patch
+ocfs2-fix-race-between-crashed-dio-and-rm.patch
+ocfs2-avoid-access-invalid-address-when-read-o2dlm-debug-messages.patch
 
