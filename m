@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-hugetlb-compute-return-the-number-of-regions-added-by-region_add.patch
+ mm-hugetlb-handle-races-in-alloc_huge_page-and-hugetlb_reserve_pages.patch
  added to -mm tree
-Date: Wed, 27 May 2015 14:47:06 -0700
-Message-ID: <55663b5a.udt4EUZWjtroQSj9%akpm@linux-foundation.org>
+Date: Wed, 27 May 2015 14:47:08 -0700
+Message-ID: <55663b5c.tr1HWywalH/5JfZl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58002 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58008 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752035AbbE0VrH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 May 2015 17:47:07 -0400
+	with ESMTP id S1752205AbbE0VrJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 May 2015 17:47:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mike.kravetz@oracle.com, dave@stgolabs.net, lcapitulino@redhat.com, n-horiguchi@ah.jp.nec.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: compute/return the number of regions added by region_add()
+     Subject: mm/hugetlb: handle races in alloc_huge_page and hugetlb_reserve_pages
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-compute-return-the-number-of-regions-added-by-region_add.patch
+     mm-hugetlb-handle-races-in-alloc_huge_page-and-hugetlb_reserve_pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-compute-return-the-number-of-regions-added-by-region_add.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-handle-races-in-alloc_huge_page-and-hugetlb_reserve_pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-compute-return-the-number-of-regions-added-by-region_add.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-handle-races-in-alloc_huge_page-and-hugetlb_reserve_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,17 +41,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: mm/hugetlb: compute/return the number of regions added by region_add()
+Subject: mm/hugetlb: handle races in alloc_huge_page and hugetlb_reserve_pages
 
-Modify region_add() to keep track of regions(pages) added to the reserve
-map and return this value.  The return value can be compared to the return
-value of region_chg() to determine if the map was modified between calls.
+alloc_huge_page and hugetlb_reserve_pages use region_chg to calculate the
+number of pages which will be added to the reserve map.  Subpool and
+global reserve counts are adjusted based on the output of region_chg. 
+Before the pages are actually added to the reserve map, these routines
+could race and add fewer pages than expected.  If this happens, the
+subpool and global reserve counts are not correct.
 
-Make vma_commit_reservation() also pass along the return value of
-region_add().  In the normal case, we want vma_commit_reservation to
-return the same value as the preceding call to vma_needs_reservation. 
-Create a common __vma_reservation_common routine to help keep the special
-case return values in sync
+Compare the number of pages actually added (region_add) to those expected
+to added (region_chg).  If fewer pages are actually added, this indicates
+a race and adjust counters accordingly.
 
 Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
@@ -61,116 +62,73 @@ Cc: Luiz Capitulino <lcapitulino@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   74 ++++++++++++++++++++++++++++++++-----------------
- 1 file changed, 49 insertions(+), 25 deletions(-)
+ mm/hugetlb.c |   34 ++++++++++++++++++++++++++++++----
+ 1 file changed, 30 insertions(+), 4 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-compute-return-the-number-of-regions-added-by-region_add mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-compute-return-the-number-of-regions-added-by-region_add
+diff -puN mm/hugetlb.c~mm-hugetlb-handle-races-in-alloc_huge_page-and-hugetlb_reserve_pages mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-handle-races-in-alloc_huge_page-and-hugetlb_reserve_pages
 +++ a/mm/hugetlb.c
-@@ -245,11 +245,15 @@ struct file_region {
-  * expanded, because region_add is only called after region_chg
-  * with the same range.  If a new file_region structure must
-  * be allocated, it is done in region_chg.
-+ *
-+ * Return the number of new huge pages added to the map.  This
-+ * number is greater than or equal to zero.
-  */
- static long region_add(struct resv_map *resv, long f, long t)
- {
- 	struct list_head *head = &resv->regions;
- 	struct file_region *rg, *nrg, *trg;
-+	long add = 0;
- 
- 	spin_lock(&resv->lock);
- 	/* Locate the region we are either in or before. */
-@@ -275,14 +279,24 @@ static long region_add(struct resv_map *
- 		if (rg->to > t)
- 			t = rg->to;
- 		if (rg != nrg) {
-+			/* Decrement return value by the deleted range.
-+			 * Another range will span this area so that by
-+			 * end of routine add will be >= zero
-+			 */
-+			add -= (rg->to - rg->from);
- 			list_del(&rg->link);
- 			kfree(rg);
- 		}
- 	}
-+
-+	add += (nrg->from - f);		/* Added to beginning of region */
- 	nrg->from = f;
-+	add += t - nrg->to;		/* Added to end of region */
- 	nrg->to = t;
-+
- 	spin_unlock(&resv->lock);
--	return 0;
-+	VM_BUG_ON(add < 0);
-+	return add;
- }
- 
- /*
-@@ -1470,46 +1484,56 @@ static void return_unused_surplus_pages(
- }
- 
- /*
-- * Determine if the huge page at addr within the vma has an associated
-- * reservation.  Where it does not we will need to logically increase
-- * reservation and actually increase subpool usage before an allocation
-- * can occur.  Where any new reservation would be required the
-- * reservation change is prepared, but not committed.  Once the page
-- * has been allocated from the subpool and instantiated the change should
-- * be committed via vma_commit_reservation.  No action is required on
-- * failure.
-- */
--static long vma_needs_reservation(struct hstate *h,
--			struct vm_area_struct *vma, unsigned long addr)
-+ * vma_needs_reservation and vma_commit_reservation are used by the huge
-+ * page allocation routines to manage reservations.
-+ *
-+ * vma_needs_reservation is called to determine if the huge page at addr
-+ * within the vma has an associated reservation.  If a reservation is
-+ * needed, the value 1 is returned.  The caller is then responsible for
-+ * managing the global reservation and subpool usage counts.  After
-+ * the huge page has been allocated, vma_commit_reservation is called
-+ * to add the page to the reservation map.
-+ *
-+ * In the normal case, vma_commit_reservation returns the same value
-+ * as the preceding vma_needs_reservation call.  The only time this
-+ * is not the case is if a reserve map was changed between calls.  It
-+ * is the responsibility of the caller to notice the difference and
-+ * take appropriate action.
-+ */
-+static long __vma_reservation_common(struct hstate *h,
-+				struct vm_area_struct *vma, unsigned long addr,
-+				bool commit)
- {
- 	struct resv_map *resv;
- 	pgoff_t idx;
+@@ -1542,7 +1542,7 @@ static struct page *alloc_huge_page(stru
+ 	struct hugepage_subpool *spool = subpool_vma(vma);
+ 	struct hstate *h = hstate_vma(vma);
+ 	struct page *page;
 -	long chg;
-+	long ret;
++	long chg, commit;
+ 	int ret, idx;
+ 	struct hugetlb_cgroup *h_cg;
  
- 	resv = vma_resv_map(vma);
- 	if (!resv)
- 		return 1;
+@@ -1583,7 +1583,20 @@ static struct page *alloc_huge_page(stru
  
- 	idx = vma_hugecache_offset(h, vma, addr);
--	chg = region_chg(resv, idx, idx + 1);
-+	if (commit)
-+		ret = region_add(resv, idx, idx + 1);
-+	else
-+		ret = region_chg(resv, idx, idx + 1);
+ 	set_page_private(page, (unsigned long)spool);
  
- 	if (vma->vm_flags & VM_MAYSHARE)
--		return chg;
-+		return ret;
- 	else
--		return chg < 0 ? chg : 0;
-+		return ret < 0 ? ret : 0;
- }
--static void vma_commit_reservation(struct hstate *h,
+-	vma_commit_reservation(h, vma, addr);
++	commit = vma_commit_reservation(h, vma, addr);
++	if (unlikely(chg > commit)) {
++		/*
++		 * The page was added to the reservation map between
++		 * vma_needs_reservation and vma_commit_reservation.
++		 * This indicates a race with hugetlb_reserve_pages.
++		 * Adjust for the subpool count incremented above AND
++		 * in hugetlb_reserve_pages for the same page.  Also,
++		 * the reservation count added in hugetlb_reserve_pages
++		 * no longer applies.
++		 */
++		hugepage_subpool_put_pages(spool, 1);
++		hugetlb_acct_memory(h, -1);
++	}
+ 	return page;
+ 
+ out_uncharge_cgroup:
+@@ -3701,8 +3714,21 @@ int hugetlb_reserve_pages(struct inode *
+ 	 * consumed reservations are stored in the map. Hence, nothing
+ 	 * else has to be done for private mappings here
+ 	 */
+-	if (!vma || vma->vm_flags & VM_MAYSHARE)
+-		region_add(resv_map, from, to);
++	if (!vma || vma->vm_flags & VM_MAYSHARE) {
++		long add = region_add(resv_map, from, to);
 +
-+static long vma_needs_reservation(struct hstate *h,
- 			struct vm_area_struct *vma, unsigned long addr)
- {
--	struct resv_map *resv;
--	pgoff_t idx;
++		if (unlikely(chg > add)) {
++			/*
++			 * pages in this range were added to the reserve
++			 * map between region_chg and region_add.  This
++			 * indicates a race with alloc_huge_page.  Adjust
++			 * the subpool and reserve counts modified above
++			 * based on the difference.
++			 */
++			hugepage_subpool_put_pages(spool, chg - add);
++			hugetlb_acct_memory(h, -(chg - ret));
++		}
++	}
+ 	return 0;
+ out_err:
+ 	if (vma && is_vma_resv_set(vma, HPAGE_RESV_OWNER))
+_
+
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
+
+hugetlb-do-not-account-hugetlb-pages-as-nr_file_pages.patch
+mm-hugetlb-document-the-reserve-map-region-tracking-routines.patch
+mm-hugetlb-compute-return-the-number-of-regions-added-by-region_add.patch
+mm-hugetlb-handle-races-in-alloc_huge_page-and-hugetlb_reserve_pages.patch
+
