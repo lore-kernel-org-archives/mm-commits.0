@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-memory_hotplug-set-zone-wait_table-to-null-after-free-it.patch added to
- -mm tree
-Date: Thu, 28 May 2015 13:53:19 -0700
-Message-ID: <5567803f.ktU2UbMxDLZWnXPp%akpm__42684.1799672276$1432846417$gmane$org@linux-foundation.org>
+Subject: + prctl-more-prctlpr_set_mm_-checks.patch added to -mm tree
+Date: Thu, 28 May 2015 14:05:40 -0700
+Message-ID: <55678324./D2HfSkS74eVZVLL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58808 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58906 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753826AbbE1UxU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 May 2015 16:53:20 -0400
+	with ESMTP id S1751812AbbE1VFl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 May 2015 17:05:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: guz.fnst@cn.fujitsu.com, izumi.taku@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, stable@vger.kernel.org, tangchen@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, gorcunov@openvz.org, jarod@redhat.com, jstancek@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory_hotplug.c: set zone->wait_table to null after freeing it
+     Subject: prctl: more prctl(PR_SET_MM_*) checks
 has been added to the -mm tree.  Its filename is
-     mm-memory_hotplug-set-zone-wait_table-to-null-after-free-it.patch
+     prctl-more-prctlpr_set_mm_-checks.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-set-zone-wait_table-to-null-after-free-it.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/prctl-more-prctlpr_set_mm_-checks.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-set-zone-wait_table-to-null-after-free-it.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/prctl-more-prctlpr_set_mm_-checks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,108 +38,290 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Gu Zheng <guz.fnst@cn.fujitsu.com>
-Subject: mm/memory_hotplug.c: set zone->wait_table to null after freeing it
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: prctl: more prctl(PR_SET_MM_*) checks
 
-Izumi found the following oops when hot re-adding a node:
+Individual prctl(PR_SET_MM_*) calls do some checking to maintain a
+consistent view of mm->arg_start et al fields, but not enough.  In
+particular
+PR_SET_MM_ARG_START/PR_SET_MM_ARG_END/PR_SET_MM_ENV_START/PR_SET_MM_ENV_END
+only check that the address lies in an existing VMA, but don't check that
+the start address is lower than the end address _at all_.
 
-[ 1481.759192] BUG: unable to handle kernel paging request at ffffc90008963690
-[ 1481.760192] IP: [<ffffffff810dff80>] __wake_up_bit+0x20/0x70
-[ 1481.770098] PGD 86e919067 PUD 207cf003067 PMD 20796d3b067 PTE 0
-[ 1481.770098] Oops: 0000 [#1] SMP
-[ 1481.770098] CPU: 68 PID: 1237 Comm: rs:main Q:Reg Not tainted 4.1.0-rc5 #80
-[ 1481.770098] Hardware name: FUJITSU PRIMEQUEST2800E/SB, BIOS PRIMEQUEST 2000 Series BIOS Version 1.87 04/28/2015
-[ 1481.770098] task: ffff880838df8000 ti: ffff880017b94000 task.ti: ffff880017b94000
-[ 1481.770098] RIP: 0010:[<ffffffff810dff80>]  [<ffffffff810dff80>] __wake_up_bit+0x20/0x70
-[ 1481.770098] RSP: 0018:ffff880017b97be8  EFLAGS: 00010246
-[ 1481.770098] RAX: ffffc90008963690 RBX: 00000000003c0000 RCX: 000000000000a4c9
-[ 1481.770098] RDX: 0000000000000000 RSI: ffffea101bffd500 RDI: ffffc90008963648
-[ 1481.770098] RBP: ffff880017b97c08 R08: 0000000002000020 R09: 0000000000000000
-[ 1481.770098] R10: 0000000000000000 R11: 0000000000000000 R12: ffff8a0797c73800
-[ 1481.770098] R13: ffffea101bffd500 R14: 0000000000000001 R15: 00000000003c0000
-[ 1481.770098] FS:  00007fcc7ffff700(0000) GS:ffff880874800000(0000) knlGS:0000000000000000
-[ 1481.770098] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[ 1481.770098] CR2: ffffc90008963690 CR3: 0000000836761000 CR4: 00000000001407e0
-[ 1481.770098] Stack:
-[ 1481.770098]  ffff8a0797c73800 ffffea1000000000 0000100000000000 0000000069c53212
-[ 1481.770098]  ffff880017b97c18 ffffffff811c2a5d ffff880017b97c68 ffffffff8128a0e3
-[ 1481.770098]  0000000000000001 000000281bffd500 00000000003c0000 0000000000000028
-[ 1481.770098] Call Trace:
-[ 1481.770098]  [<ffffffff811c2a5d>] unlock_page+0x6d/0x70
-[ 1481.770098]  [<ffffffff8128a0e3>] generic_write_end+0x53/0xb0
-[ 1481.770098]  [<ffffffffa0496559>] xfs_vm_write_end+0x29/0x80 [xfs]
-[ 1481.770098]  [<ffffffff811c25da>] generic_perform_write+0x10a/0x1e0
-[ 1481.770098]  [<ffffffffa04acb4d>] xfs_file_buffered_aio_write+0x14d/0x3e0 [xfs]
-[ 1481.770098]  [<ffffffffa04ace59>] xfs_file_write_iter+0x79/0x120 [xfs]
-[ 1481.770098]  [<ffffffff8124aac4>] __vfs_write+0xd4/0x110
-[ 1481.770098]  [<ffffffff8124b1ac>] vfs_write+0xac/0x1c0
-[ 1481.770098]  [<ffffffff8124c0a8>] SyS_write+0x58/0xd0
-[ 1481.770098]  [<ffffffff8177eb6e>] system_call_fastpath+0x12/0x76
-[ 1481.770098] Code: 5d c3 66 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 55 48 89 e5
- 48 83 ec 20 65 48 8b 04 25 28 00 00 00 48 89 45 f8 31 c0 48 8d 47 48 <48> 39 47
- 48 48 c7 45 e8 00 00 00 00 48 c7 45 f0 00 00 00 00 48
-[ 1481.770098] RIP  [<ffffffff810dff80>] __wake_up_bit+0x20/0x70
-[ 1481.770098]  RSP <ffff880017b97be8>
-[ 1481.770098] CR2: ffffc90008963690
-[ 1481.770098] ---[ end trace 25c9882ad3f72923 ]---
-[ 1481.770098] Kernel panic - not syncing: Fatal exception
-[ 1481.770098] Kernel Offset: disabled
-[ 1481.770098] drm_kms_helper: panic occurred, switching back to text console
-[ 1481.770098] ---[ end Kernel panic - not syncing: Fatal exception
+Consolidate all consistency checks, so there will be no difference in the
+future between PR_SET_MM_MAP and individual PR_SET_MM_* calls.
 
-Reproduce method (re-add a node):
-Hot-add nodeA --> remove nodeA --> hot-add nodeA (panic)
+The program below makes both ARGV and ENVP areas be reversed.  It makes
+/proc/$PID/cmdline show garbage (it doesn't oops by luck).
 
-This seems an use-after-free problem, and the root cause is
-zone->wait_table was not set to *NULL* after free it in try_offline_node.
+#include <sys/mman.h>
+#include <sys/prctl.h>
+#include <unistd.h>
 
-When hot re-add a node, we will reuse the pgdat of it, so does the zone
-struct, and when add pages to the target zone, it will init the zone first
-(including the wait_table) if the zone is not initialized.  The judgement
-of zone initialized is based on zone->wait_table:
+enum {PAGE_SIZE=4096};
 
-	static inline bool zone_is_initialized(struct zone *zone)
-	{
-		return !!zone->wait_table;
-	}
+int main(void)
+{
+	void *p;
 
-so if we do not set the zone->wait_table to *NULL* after free it, the
-memory hotplug routine will skip the init of new zone when hot re-add the
-node, and the wait_table still points to the freed memory, then we will
-access the invalid address when trying to wake up the waiting people after
-the i/o operation with the page is done, such as mentioned above.
+	p = mmap(NULL, PAGE_SIZE, PROT_NONE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
 
-Signed-off-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
-Reported-by: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Reviewed by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: <stable@vger.kernel.org>
+#define PR_SET_MM               35
+#define PR_SET_MM_ARG_START     8
+#define PR_SET_MM_ARG_END       9
+#define PR_SET_MM_ENV_START     10
+#define PR_SET_MM_ENV_END       11
+	prctl(PR_SET_MM, PR_SET_MM_ARG_START, (unsigned long)p + PAGE_SIZE - 1, 0, 0);
+	prctl(PR_SET_MM, PR_SET_MM_ARG_END,   (unsigned long)p, 0, 0);
+	prctl(PR_SET_MM, PR_SET_MM_ENV_START, (unsigned long)p + PAGE_SIZE - 1, 0, 0);
+	prctl(PR_SET_MM, PR_SET_MM_ENV_END,   (unsigned long)p, 0, 0);
+
+	pause();
+	return 0;
+}
+
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Acked-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Jarod Wilson <jarod@redhat.com>
+Cc: Jan Stancek <jstancek@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ kernel/sys.c |  159 ++++++++++++++++++++++++++++---------------------
+ 1 file changed, 92 insertions(+), 67 deletions(-)
 
-diff -puN mm/memory_hotplug.c~mm-memory_hotplug-set-zone-wait_table-to-null-after-free-it mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory_hotplug-set-zone-wait_table-to-null-after-free-it
-+++ a/mm/memory_hotplug.c
-@@ -1969,8 +1969,10 @@ void try_offline_node(int nid)
- 		 * wait_table may be allocated from boot memory,
- 		 * here only free if it's allocated by vmalloc.
- 		 */
--		if (is_vmalloc_addr(zone->wait_table))
-+		if (is_vmalloc_addr(zone->wait_table)) {
- 			vfree(zone->wait_table);
-+			zone->wait_table = NULL;
-+		}
- 	}
+diff -puN kernel/sys.c~prctl-more-prctlpr_set_mm_-checks kernel/sys.c
+--- a/kernel/sys.c~prctl-more-prctlpr_set_mm_-checks
++++ a/kernel/sys.c
+@@ -1722,7 +1722,6 @@ exit_err:
+ 	goto exit;
  }
- EXPORT_SYMBOL(try_offline_node);
+ 
+-#ifdef CONFIG_CHECKPOINT_RESTORE
+ /*
+  * WARNING: we don't require any capability here so be very careful
+  * in what is allowed for modification from userspace.
+@@ -1818,6 +1817,7 @@ out:
+ 	return error;
+ }
+ 
++#ifdef CONFIG_CHECKPOINT_RESTORE
+ static int prctl_set_mm_map(int opt, const void __user *addr, unsigned long data_size)
+ {
+ 	struct prctl_mm_map prctl_map = { .exe_fd = (u32)-1, };
+@@ -1902,10 +1902,42 @@ out:
+ }
+ #endif /* CONFIG_CHECKPOINT_RESTORE */
+ 
++static int prctl_set_auxv(struct mm_struct *mm, unsigned long addr, unsigned long len)
++{
++	/*
++	 * This doesn't move auxiliary vector itself
++	 * since it's pinned to mm_struct, but allow
++	 * to fill vector with new values. It's up
++	 * to a caller to provide sane values here
++	 * otherwise user space tools which use this
++	 * vector might be unhappy.
++	 */
++	unsigned long user_auxv[AT_VECTOR_SIZE];
++
++	if (len > sizeof(user_auxv))
++		return -EINVAL;
++
++	if (copy_from_user(user_auxv, (const void __user *)addr, len))
++		return -EFAULT;
++
++	/* Make sure the last entry is always AT_NULL */
++	user_auxv[AT_VECTOR_SIZE - 2] = 0;
++	user_auxv[AT_VECTOR_SIZE - 1] = 0;
++
++	BUILD_BUG_ON(sizeof(user_auxv) != sizeof(mm->saved_auxv));
++
++	task_lock(current);
++	memcpy(mm->saved_auxv, user_auxv, len);
++	task_unlock(current);
++
++	return 0;
++}
++
+ static int prctl_set_mm(int opt, unsigned long addr,
+ 			unsigned long arg4, unsigned long arg5)
+ {
+ 	struct mm_struct *mm = current->mm;
++	struct prctl_mm_map prctl_map;
+ 	struct vm_area_struct *vma;
+ 	int error;
+ 
+@@ -1925,6 +1957,9 @@ static int prctl_set_mm(int opt, unsigne
+ 	if (opt == PR_SET_MM_EXE_FILE)
+ 		return prctl_set_mm_exe_file(mm, (unsigned int)addr);
+ 
++	if (opt == PR_SET_MM_AUXV)
++		return prctl_set_auxv(mm, addr, arg4);
++
+ 	if (addr >= TASK_SIZE || addr < mmap_min_addr)
+ 		return -EINVAL;
+ 
+@@ -1933,42 +1968,64 @@ static int prctl_set_mm(int opt, unsigne
+ 	down_read(&mm->mmap_sem);
+ 	vma = find_vma(mm, addr);
+ 
++	prctl_map.start_code	= mm->start_code;
++	prctl_map.end_code	= mm->end_code;
++	prctl_map.start_data	= mm->start_data;
++	prctl_map.end_data	= mm->end_data;
++	prctl_map.start_brk	= mm->start_brk;
++	prctl_map.brk		= mm->brk;
++	prctl_map.start_stack	= mm->start_stack;
++	prctl_map.arg_start	= mm->arg_start;
++	prctl_map.arg_end	= mm->arg_end;
++	prctl_map.env_start	= mm->env_start;
++	prctl_map.env_end	= mm->env_end;
++	prctl_map.auxv		= NULL;
++	prctl_map.auxv_size	= 0;
++	prctl_map.exe_fd	= -1;
++
+ 	switch (opt) {
+ 	case PR_SET_MM_START_CODE:
+-		mm->start_code = addr;
++		prctl_map.start_code = addr;
+ 		break;
+ 	case PR_SET_MM_END_CODE:
+-		mm->end_code = addr;
++		prctl_map.end_code = addr;
+ 		break;
+ 	case PR_SET_MM_START_DATA:
+-		mm->start_data = addr;
++		prctl_map.start_data = addr;
+ 		break;
+ 	case PR_SET_MM_END_DATA:
+-		mm->end_data = addr;
++		prctl_map.end_data = addr;
++		break;
++	case PR_SET_MM_START_STACK:
++		prctl_map.start_stack = addr;
+ 		break;
+-
+ 	case PR_SET_MM_START_BRK:
+-		if (addr <= mm->end_data)
+-			goto out;
+-
+-		if (check_data_rlimit(rlimit(RLIMIT_DATA), mm->brk, addr,
+-				      mm->end_data, mm->start_data))
+-			goto out;
+-
+-		mm->start_brk = addr;
++		prctl_map.start_brk = addr;
+ 		break;
+-
+ 	case PR_SET_MM_BRK:
+-		if (addr <= mm->end_data)
+-			goto out;
+-
+-		if (check_data_rlimit(rlimit(RLIMIT_DATA), addr, mm->start_brk,
+-				      mm->end_data, mm->start_data))
+-			goto out;
+-
+-		mm->brk = addr;
++		prctl_map.brk = addr;
++		break;
++	case PR_SET_MM_ARG_START:
++		prctl_map.arg_start = addr;
++		break;
++	case PR_SET_MM_ARG_END:
++		prctl_map.arg_end = addr;
++		break;
++	case PR_SET_MM_ENV_START:
++		prctl_map.env_start = addr;
+ 		break;
++	case PR_SET_MM_ENV_END:
++		prctl_map.env_end = addr;
++		break;
++	default:
++		goto out;
++	}
+ 
++	error = validate_prctl_map(&prctl_map);
++	if (error)
++		goto out;
++
++	switch (opt) {
+ 	/*
+ 	 * If command line arguments and environment
+ 	 * are placed somewhere else on stack, we can
+@@ -1985,52 +2042,20 @@ static int prctl_set_mm(int opt, unsigne
+ 			error = -EFAULT;
+ 			goto out;
+ 		}
+-		if (opt == PR_SET_MM_START_STACK)
+-			mm->start_stack = addr;
+-		else if (opt == PR_SET_MM_ARG_START)
+-			mm->arg_start = addr;
+-		else if (opt == PR_SET_MM_ARG_END)
+-			mm->arg_end = addr;
+-		else if (opt == PR_SET_MM_ENV_START)
+-			mm->env_start = addr;
+-		else if (opt == PR_SET_MM_ENV_END)
+-			mm->env_end = addr;
+-		break;
+-
+-	/*
+-	 * This doesn't move auxiliary vector itself
+-	 * since it's pinned to mm_struct, but allow
+-	 * to fill vector with new values. It's up
+-	 * to a caller to provide sane values here
+-	 * otherwise user space tools which use this
+-	 * vector might be unhappy.
+-	 */
+-	case PR_SET_MM_AUXV: {
+-		unsigned long user_auxv[AT_VECTOR_SIZE];
+-
+-		if (arg4 > sizeof(user_auxv))
+-			goto out;
+-		up_read(&mm->mmap_sem);
+-
+-		if (copy_from_user(user_auxv, (const void __user *)addr, arg4))
+-			return -EFAULT;
+-
+-		/* Make sure the last entry is always AT_NULL */
+-		user_auxv[AT_VECTOR_SIZE - 2] = 0;
+-		user_auxv[AT_VECTOR_SIZE - 1] = 0;
+-
+-		BUILD_BUG_ON(sizeof(user_auxv) != sizeof(mm->saved_auxv));
+-
+-		task_lock(current);
+-		memcpy(mm->saved_auxv, user_auxv, arg4);
+-		task_unlock(current);
+-
+-		return 0;
+-	}
+-	default:
+-		goto out;
+ 	}
+ 
++	mm->start_code	= prctl_map.start_code;
++	mm->end_code	= prctl_map.end_code;
++	mm->start_data	= prctl_map.start_data;
++	mm->end_data	= prctl_map.end_data;
++	mm->start_brk	= prctl_map.start_brk;
++	mm->brk		= prctl_map.brk;
++	mm->start_stack	= prctl_map.start_stack;
++	mm->arg_start	= prctl_map.arg_start;
++	mm->arg_end	= prctl_map.arg_end;
++	mm->env_start	= prctl_map.env_start;
++	mm->env_end	= prctl_map.env_end;
++
+ 	error = 0;
+ out:
+ 	up_read(&mm->mmap_sem);
 _
 
-Patches currently in -mm which might be from guz.fnst@cn.fujitsu.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-mm-memory_hotplug-set-zone-wait_table-to-null-after-free-it.patch
-mm-memory-hotplug-init-the-zones-size-when-calculate-node-totalpages.patch
+prctl-more-prctlpr_set_mm_-checks.patch
+prctl-more-prctlpr_set_mm_-checks-fix.patch
+proc-fix-page_size-limit-of-proc-pid-cmdline.patch
+proc-fix-page_size-limit-of-proc-pid-cmdline-fix.patch
+proc-fix-page_size-limit-of-proc-pid-cmdline-update.patch
+linux-next.patch
 
