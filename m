@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + security_syslog-should-be-called-once-only.patch added to -mm
- tree
-Date: Wed, 27 May 2015 16:43:17 -0700
-Message-ID: <55665695.jpfE9V2Vn2XiWnEt%akpm@linux-foundation.org>
+Subject: + memcg-do-not-call-reclaim-if-__gfp_wait.patch added to -mm tree
+Date: Thu, 28 May 2015 12:56:42 -0700
+Message-ID: <556772fa.yK9exxBda1QGcteM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59044 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57144 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753061AbbE0XnS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 May 2015 19:43:18 -0400
+	with ESMTP id S1752271AbbE1T4n (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 May 2015 15:56:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vvs@virtuozzo.com, eparis@redhat.com, jwboyer@redhat.com, keescook@chromium.org, mm-commits@vger.kernel.org
+To: vdavydov@parallels.com, hannes@cmpxchg.org, mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: security_syslog() should be called once only
+     Subject: memcg: do not call reclaim if !__GFP_WAIT
 has been added to the -mm tree.  Its filename is
-     security_syslog-should-be-called-once-only.patch
+     memcg-do-not-call-reclaim-if-__gfp_wait.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/security_syslog-should-be-called-once-only.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-do-not-call-reclaim-if-__gfp_wait.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/security_syslog-should-be-called-once-only.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-do-not-call-reclaim-if-__gfp_wait.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,69 +38,43 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vasily Averin <vvs@virtuozzo.com>
-Subject: security_syslog() should be called once only
+From: Vladimir Davydov <vdavydov@parallels.com>
+Subject: memcg: do not call reclaim if !__GFP_WAIT
 
-The final version of 637241a900cb ("kmsg: honor dmesg_restrict sysctl on
-/dev/kmsg") lost few hooks, as result security_syslog() are processed
-incorrectly:
+When trimming memcg consumption excess (see memory.high), we call
+try_to_free_mem_cgroup_pages without checking if we are allowed to sleep
+in the current context, which can result in a deadlock.  Fix this.
 
-- open of /dev/kmsg checks syslog access permissions by using
-  check_syslog_permissions() where security_syslog() is not called if
-  dmesg_restrict is set.
-
-- syslog syscall and /proc/kmsg calls do_syslog() where security_syslog
-  can be executed twice (inside check_syslog_permissions() and then
-  directly in do_syslog())
-
-With this patch security_syslog() is called once only in all
-syslog-related operations regardless of dmesg_restrict value.
-
-Fixes: 637241a900cb ("kmsg: honor dmesg_restrict sysctl on /dev/kmsg")
-Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Josh Boyer <jwboyer@redhat.com>
-Cc: Eric Paris <eparis@redhat.com>
+Fixes: 241994ed8649 ("mm: memcontrol: default hierarchy interface for memory")
+Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/printk.c |   11 ++++-------
- 1 file changed, 4 insertions(+), 7 deletions(-)
+ mm/memcontrol.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN kernel/printk/printk.c~security_syslog-should-be-called-once-only kernel/printk/printk.c
---- a/kernel/printk/printk.c~security_syslog-should-be-called-once-only
-+++ a/kernel/printk/printk.c
-@@ -496,11 +496,11 @@ int check_syslog_permissions(int type, b
- 	 * already done the capabilities checks at open time.
- 	 */
- 	if (from_file && type != SYSLOG_ACTION_OPEN)
--		return 0;
-+		goto ok;
- 
- 	if (syslog_action_restricted(type)) {
- 		if (capable(CAP_SYSLOG))
--			return 0;
-+			goto ok;
- 		/*
- 		 * For historical reasons, accept CAP_SYS_ADMIN too, with
- 		 * a warning.
-@@ -510,10 +510,11 @@ int check_syslog_permissions(int type, b
- 				     "CAP_SYS_ADMIN but no CAP_SYSLOG "
- 				     "(deprecated).\n",
- 				 current->comm, task_pid_nr(current));
--			return 0;
-+			goto ok;
- 		}
- 		return -EPERM;
- 	}
-+ok:
- 	return security_syslog(type);
- }
- 
-@@ -1299,10 +1300,6 @@ int do_syslog(int type, char __user *buf
- 	if (error)
- 		goto out;
- 
--	error = security_syslog(type);
--	if (error)
--		return error;
+diff -puN mm/memcontrol.c~memcg-do-not-call-reclaim-if-__gfp_wait mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-do-not-call-reclaim-if-__gfp_wait
++++ a/mm/memcontrol.c
+@@ -2323,6 +2323,8 @@ done_restock:
+ 	css_get_many(&memcg->css, batch);
+ 	if (batch > nr_pages)
+ 		refill_stock(memcg, batch - nr_pages);
++	if (!(gfp_mask & __GFP_WAIT))
++		goto done;
+ 	/*
+ 	 * If the hierarchy is above the normal consumption range,
+ 	 * make the charging task trim their excess contribution.
+_
+
+Patches currently in -mm which might be from vdavydov@parallels.com are
+
+memcg-do-not-call-reclaim-if-__gfp_wait.patch
+rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list.patch
+rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix.patch
+rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix-fix.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+linux-next.patch
+
