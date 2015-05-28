@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + prctl-more-prctlpr_set_mm_-checks-fix.patch added to -mm tree
-Date: Thu, 28 May 2015 14:05:42 -0700
-Message-ID: <55678326.5UULuP/OtT4jxIQm%akpm@linux-foundation.org>
+Subject: + proc-fix-page_size-limit-of-proc-pid-cmdline-update.patch added to -mm tree
+Date: Thu, 28 May 2015 14:05:44 -0700
+Message-ID: <55678328.cb79MxhlbYGaWPEG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58908 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58914 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751812AbbE1VFn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 May 2015 17:05:43 -0400
+	with ESMTP id S1754461AbbE1VFp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 May 2015 17:05:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adobriyan@gmail.com, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, gorcunov@openvz.org, jarod@redhat.com, jstancek@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: prctl-more-prctlpr_set_mm_-checks-fix
+     Subject: proc-fix-page_size-limit-of-proc-pid-cmdline-update
 has been added to the -mm tree.  Its filename is
-     prctl-more-prctlpr_set_mm_-checks-fix.patch
+     proc-fix-page_size-limit-of-proc-pid-cmdline-update.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/prctl-more-prctlpr_set_mm_-checks-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/proc-fix-page_size-limit-of-proc-pid-cmdline-update.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/prctl-more-prctlpr_set_mm_-checks-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/proc-fix-page_size-limit-of-proc-pid-cmdline-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,96 +38,41 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: prctl-more-prctlpr_set_mm_-checks-fix
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: proc-fix-page_size-limit-of-proc-pid-cmdline-update
 
-tidy code, tweak comment
-
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Tested-by: Jarod Wilson <jarod@redhat.com>
+Acked-by: Jarod Wilson <jarod@redhat.com>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Jan Stancek <jstancek@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |   13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ fs/proc/base.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN kernel/sys.c~prctl-more-prctlpr_set_mm_-checks-fix kernel/sys.c
---- a/kernel/sys.c~prctl-more-prctlpr_set_mm_-checks-fix
-+++ a/kernel/sys.c
-@@ -1902,15 +1902,14 @@ out:
- }
- #endif /* CONFIG_CHECKPOINT_RESTORE */
- 
--static int prctl_set_auxv(struct mm_struct *mm, unsigned long addr, unsigned long len)
-+static int prctl_set_auxv(struct mm_struct *mm, unsigned long addr,
-+			  unsigned long len)
- {
- 	/*
--	 * This doesn't move auxiliary vector itself
--	 * since it's pinned to mm_struct, but allow
--	 * to fill vector with new values. It's up
--	 * to a caller to provide sane values here
--	 * otherwise user space tools which use this
--	 * vector might be unhappy.
-+	 * This doesn't move the auxiliary vector itself since it's pinned to
-+	 * mm_struct, but it permits filling the vector with new values.  It's
-+	 * up to the caller to provide sane values here, otherwise userspace
-+	 * tools which use this vector might be unhappy.
- 	 */
- 	unsigned long user_auxv[AT_VECTOR_SIZE];
- 
+diff -puN fs/proc/base.c~proc-fix-page_size-limit-of-proc-pid-cmdline-update fs/proc/base.c
+--- a/fs/proc/base.c~proc-fix-page_size-limit-of-proc-pid-cmdline-update
++++ a/fs/proc/base.c
+@@ -218,7 +218,8 @@ static ssize_t proc_pid_cmdline_read(str
+ 	put_task_struct(tsk);
+ 	if (!mm)
+ 		return 0;
+-	if (!mm->arg_end) {
++	/* Check if process spawned far enough to have cmdline. */
++	if (!mm->env_end) {
+ 		rv = 0;
+ 		goto out_mmput;
+ 	}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-fs-binfmt_elfc-load_elf_binary-return-einval-on-zero-length-mappings.patch
-ocfs2-reduce-object-size-of-mlog-uses-fix.patch
-ocfs2-remove-__mlog_cpu_guess.patch
-ocfs2-remove-__mlog_cpu_guess-fix.patch
-ocfs2-fix-null-pointer-dereference-in-function-ocfs2_abort_trigger-fix.patch
-mm.patch
-mm-slab_common-support-the-slub_debug-boot-option-on-specific-object-size-fix.patch
-slub-bulk-allocation-from-per-cpu-partial-pages-fix.patch
-mm-fix-mprotect-behaviour-on-vm_locked-vmas-fix.patch
-mm-new-mm-hook-framework.patch
-mm-meminit-inline-some-helper-functions-fix.patch
-mm-meminit-finish-initialisation-of-struct-pages-before-basic-setup-fix.patch
-mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling-fix.patch
-rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix.patch
-rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix-fix.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
-userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
-fs-userfaultfdc-work-around-i386-build-error.patch
-hugetlb-do-not-account-hugetlb-pages-as-nr_file_pages-fix.patch
-include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
+prctl-more-prctlpr_set_mm_-checks.patch
 prctl-more-prctlpr_set_mm_-checks-fix.patch
+proc-fix-page_size-limit-of-proc-pid-cmdline.patch
 proc-fix-page_size-limit-of-proc-pid-cmdline-fix.patch
-bitmap-remove-explicit-newline-handling-using-scnprintf-format-string-fix.patch
-radix-tree-replace-preallocated-node-array-with-linked-list-fix.patch
-init-do_mounts-add-create_dev-failure-log-fix.patch
-rtc-omap-add-external-32k-clock-feature-fix.patch
-devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx-fix.patch
-scsi-resolve-sg-buffer-const-ness-issue-fix.patch
+proc-fix-page_size-limit-of-proc-pid-cmdline-update.patch
 linux-next.patch
-linux-next-rejects.patch
-arch-x86-kvm-mmuc-work-around-gcc-444-bug.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-drivers-gpu-drm-i915-i915_gem_gttc-hack-around-build-error-on-i386.patch
-drivers-gpu-drm-i915-i915_gem_gttc-hack-around-build-error-on-i386.patch
 
