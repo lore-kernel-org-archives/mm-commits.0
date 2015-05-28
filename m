@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + oom-print-points-as-unsigned-int.patch added to -mm tree
-Date: Thu, 28 May 2015 13:35:45 -0700
-Message-ID: <55677c21.7QoKBPPuKoa6TxvI%akpm@linux-foundation.org>
+Subject: +
+ mm-memory_hotplug-set-zone-wait_table-to-null-after-free-it.patch added to
+ -mm tree
+Date: Thu, 28 May 2015 13:53:19 -0700
+Message-ID: <5567803f.ktU2UbMxDLZWnXPp%akpm__42684.1799672276$1432846417$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58642 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58808 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752271AbbE1Ufp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 May 2015 16:35:45 -0400
+	with ESMTP id S1753826AbbE1UxU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 May 2015 16:53:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: long.wanglong@huawei.com, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: guz.fnst@cn.fujitsu.com, izumi.taku@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, stable@vger.kernel.org, tangchen@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/oom_kill.c: print points as unsigned int
+     Subject: mm/memory_hotplug.c: set zone->wait_table to null after freeing it
 has been added to the -mm tree.  Its filename is
-     oom-print-points-as-unsigned-int.patch
+     mm-memory_hotplug-set-zone-wait_table-to-null-after-free-it.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/oom-print-points-as-unsigned-int.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-set-zone-wait_table-to-null-after-free-it.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/oom-print-points-as-unsigned-int.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-set-zone-wait_table-to-null-after-free-it.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,37 +40,108 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wang Long <long.wanglong@huawei.com>
-Subject: mm/oom_kill.c: print points as unsigned int
+From: Gu Zheng <guz.fnst@cn.fujitsu.com>
+Subject: mm/memory_hotplug.c: set zone->wait_table to null after freeing it
 
-In oom_kill_process(), the variable 'points' is unsigned int.  Print it as
-such.
+Izumi found the following oops when hot re-adding a node:
 
-Signed-off-by: Wang Long <long.wanglong@huawei.com>
-Acked-by: Michal Hocko <mhocko@suse.cz>
+[ 1481.759192] BUG: unable to handle kernel paging request at ffffc90008963690
+[ 1481.760192] IP: [<ffffffff810dff80>] __wake_up_bit+0x20/0x70
+[ 1481.770098] PGD 86e919067 PUD 207cf003067 PMD 20796d3b067 PTE 0
+[ 1481.770098] Oops: 0000 [#1] SMP
+[ 1481.770098] CPU: 68 PID: 1237 Comm: rs:main Q:Reg Not tainted 4.1.0-rc5 #80
+[ 1481.770098] Hardware name: FUJITSU PRIMEQUEST2800E/SB, BIOS PRIMEQUEST 2000 Series BIOS Version 1.87 04/28/2015
+[ 1481.770098] task: ffff880838df8000 ti: ffff880017b94000 task.ti: ffff880017b94000
+[ 1481.770098] RIP: 0010:[<ffffffff810dff80>]  [<ffffffff810dff80>] __wake_up_bit+0x20/0x70
+[ 1481.770098] RSP: 0018:ffff880017b97be8  EFLAGS: 00010246
+[ 1481.770098] RAX: ffffc90008963690 RBX: 00000000003c0000 RCX: 000000000000a4c9
+[ 1481.770098] RDX: 0000000000000000 RSI: ffffea101bffd500 RDI: ffffc90008963648
+[ 1481.770098] RBP: ffff880017b97c08 R08: 0000000002000020 R09: 0000000000000000
+[ 1481.770098] R10: 0000000000000000 R11: 0000000000000000 R12: ffff8a0797c73800
+[ 1481.770098] R13: ffffea101bffd500 R14: 0000000000000001 R15: 00000000003c0000
+[ 1481.770098] FS:  00007fcc7ffff700(0000) GS:ffff880874800000(0000) knlGS:0000000000000000
+[ 1481.770098] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[ 1481.770098] CR2: ffffc90008963690 CR3: 0000000836761000 CR4: 00000000001407e0
+[ 1481.770098] Stack:
+[ 1481.770098]  ffff8a0797c73800 ffffea1000000000 0000100000000000 0000000069c53212
+[ 1481.770098]  ffff880017b97c18 ffffffff811c2a5d ffff880017b97c68 ffffffff8128a0e3
+[ 1481.770098]  0000000000000001 000000281bffd500 00000000003c0000 0000000000000028
+[ 1481.770098] Call Trace:
+[ 1481.770098]  [<ffffffff811c2a5d>] unlock_page+0x6d/0x70
+[ 1481.770098]  [<ffffffff8128a0e3>] generic_write_end+0x53/0xb0
+[ 1481.770098]  [<ffffffffa0496559>] xfs_vm_write_end+0x29/0x80 [xfs]
+[ 1481.770098]  [<ffffffff811c25da>] generic_perform_write+0x10a/0x1e0
+[ 1481.770098]  [<ffffffffa04acb4d>] xfs_file_buffered_aio_write+0x14d/0x3e0 [xfs]
+[ 1481.770098]  [<ffffffffa04ace59>] xfs_file_write_iter+0x79/0x120 [xfs]
+[ 1481.770098]  [<ffffffff8124aac4>] __vfs_write+0xd4/0x110
+[ 1481.770098]  [<ffffffff8124b1ac>] vfs_write+0xac/0x1c0
+[ 1481.770098]  [<ffffffff8124c0a8>] SyS_write+0x58/0xd0
+[ 1481.770098]  [<ffffffff8177eb6e>] system_call_fastpath+0x12/0x76
+[ 1481.770098] Code: 5d c3 66 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 55 48 89 e5
+ 48 83 ec 20 65 48 8b 04 25 28 00 00 00 48 89 45 f8 31 c0 48 8d 47 48 <48> 39 47
+ 48 48 c7 45 e8 00 00 00 00 48 c7 45 f0 00 00 00 00 48
+[ 1481.770098] RIP  [<ffffffff810dff80>] __wake_up_bit+0x20/0x70
+[ 1481.770098]  RSP <ffff880017b97be8>
+[ 1481.770098] CR2: ffffc90008963690
+[ 1481.770098] ---[ end trace 25c9882ad3f72923 ]---
+[ 1481.770098] Kernel panic - not syncing: Fatal exception
+[ 1481.770098] Kernel Offset: disabled
+[ 1481.770098] drm_kms_helper: panic occurred, switching back to text console
+[ 1481.770098] ---[ end Kernel panic - not syncing: Fatal exception
+
+Reproduce method (re-add a node):
+Hot-add nodeA --> remove nodeA --> hot-add nodeA (panic)
+
+This seems an use-after-free problem, and the root cause is
+zone->wait_table was not set to *NULL* after free it in try_offline_node.
+
+When hot re-add a node, we will reuse the pgdat of it, so does the zone
+struct, and when add pages to the target zone, it will init the zone first
+(including the wait_table) if the zone is not initialized.  The judgement
+of zone initialized is based on zone->wait_table:
+
+	static inline bool zone_is_initialized(struct zone *zone)
+	{
+		return !!zone->wait_table;
+	}
+
+so if we do not set the zone->wait_table to *NULL* after free it, the
+memory hotplug routine will skip the init of new zone when hot re-add the
+node, and the wait_table still points to the freed memory, then we will
+access the invalid address when trying to wake up the waiting people after
+the i/o operation with the page is done, such as mentioned above.
+
+Signed-off-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
+Reported-by: Taku Izumi <izumi.taku@jp.fujitsu.com>
+Reviewed by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory_hotplug.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/oom_kill.c~oom-print-points-as-unsigned-int mm/oom_kill.c
---- a/mm/oom_kill.c~oom-print-points-as-unsigned-int
-+++ a/mm/oom_kill.c
-@@ -517,7 +517,7 @@ void oom_kill_process(struct task_struct
- 		dump_header(p, gfp_mask, order, memcg, nodemask);
- 
- 	task_lock(p);
--	pr_err("%s: Kill process %d (%s) score %d or sacrifice child\n",
-+	pr_err("%s: Kill process %d (%s) score %u or sacrifice child\n",
- 		message, task_pid_nr(p), p->comm, points);
- 	task_unlock(p);
- 
+diff -puN mm/memory_hotplug.c~mm-memory_hotplug-set-zone-wait_table-to-null-after-free-it mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-set-zone-wait_table-to-null-after-free-it
++++ a/mm/memory_hotplug.c
+@@ -1969,8 +1969,10 @@ void try_offline_node(int nid)
+ 		 * wait_table may be allocated from boot memory,
+ 		 * here only free if it's allocated by vmalloc.
+ 		 */
+-		if (is_vmalloc_addr(zone->wait_table))
++		if (is_vmalloc_addr(zone->wait_table)) {
+ 			vfree(zone->wait_table);
++			zone->wait_table = NULL;
++		}
+ 	}
+ }
+ EXPORT_SYMBOL(try_offline_node);
 _
 
-Patches currently in -mm which might be from long.wanglong@huawei.com are
+Patches currently in -mm which might be from guz.fnst@cn.fujitsu.com are
 
-oom-print-points-as-unsigned-int.patch
-kasan-remove-duplicate-definition-of-the-macro-kasan_free_page.patch
-linux-next.patch
+mm-memory_hotplug-set-zone-wait_table-to-null-after-free-it.patch
+mm-memory-hotplug-init-the-zones-size-when-calculate-node-totalpages.patch
 
