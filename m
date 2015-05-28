@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + s390-mm-make-hugepages_supported-a-boot-time-decision.patch
+Subject: +
+ mm-hugetlb-remove-arch_prepare-release_hugepage-from-arch-headers.patch
  added to -mm tree
-Date: Thu, 28 May 2015 13:35:03 -0700
-Message-ID: <55677bf7.59HDU0jc1lgSbpsb%akpm@linux-foundation.org>
+Date: Thu, 28 May 2015 13:35:07 -0700
+Message-ID: <55677bfb.lX1X91IGTmkUEQYy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58619 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58627 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754562AbbE1UfE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 May 2015 16:35:04 -0400
+	with ESMTP id S1754668AbbE1UfI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 28 May 2015 16:35:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dingel@linux.vnet.ibm.com, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: dingel@linux.vnet.ibm.com, heiko.carstens@de.ibm.com, ralf@linux-mips.org, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: s390/mm: make hugepages_supported a boot time decision
+     Subject: mm/hugetlb: remove arch_prepare/release_hugepage from arch headers
 has been added to the -mm tree.  Its filename is
-     s390-mm-make-hugepages_supported-a-boot-time-decision.patch
+     mm-hugetlb-remove-arch_prepare-release_hugepage-from-arch-headers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/s390-mm-make-hugepages_supported-a-boot-time-decision.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-remove-arch_prepare-release_hugepage-from-arch-headers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/s390-mm-make-hugepages_supported-a-boot-time-decision.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-remove-arch_prepare-release_hugepage-from-arch-headers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,94 +41,213 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dominik Dingel <dingel@linux.vnet.ibm.com>
-Subject: s390/mm: make hugepages_supported a boot time decision
+Subject: mm/hugetlb: remove arch_prepare/release_hugepage from arch headers
 
-There is a potential bug with KVM and hugetlbfs if the hardware does not
-support hugepages (EDAT1).  We fix this by making EDAT1 a hard requirement
-for hugepages and therefore removing and simplifying code.
-
-As s390, with the sw-emulated hugepages, was the only user of
-arch_prepare/release_hugepage I also removed theses calls from common and
-other architecture code.
-
-
-This patch (of 5):
-
-By dropping support for hugepages on machines which do not have the
-hardware feature EDAT1, we fix a potential s390 KVM bug.
-
-The bug would happen if a guest is backed by hugetlbfs (not supported
-currently), but does not get pagetables with PGSTE.  This would lead to
-random memory overwrites.
+Nobody used these hooks so they were removed from common code, and can now
+be removed from the architectures.
 
 Signed-off-by: Dominik Dingel <dingel@linux.vnet.ibm.com>
 Acked-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Acked-by: Ralf Baechle <ralf@linux-mips.org>
 Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/page.h |    8 ++++----
- arch/s390/kernel/setup.c     |    2 ++
- arch/s390/mm/pgtable.c       |    2 ++
- 3 files changed, 8 insertions(+), 4 deletions(-)
+ arch/arm/include/asm/hugetlb.h     |    9 ---------
+ arch/arm64/include/asm/hugetlb.h   |    9 ---------
+ arch/ia64/include/asm/hugetlb.h    |    9 ---------
+ arch/metag/include/asm/hugetlb.h   |    9 ---------
+ arch/mips/include/asm/hugetlb.h    |    9 ---------
+ arch/powerpc/include/asm/hugetlb.h |    9 ---------
+ arch/sh/include/asm/hugetlb.h      |    9 ---------
+ arch/sparc/include/asm/hugetlb.h   |    9 ---------
+ arch/tile/include/asm/hugetlb.h    |    9 ---------
+ arch/x86/include/asm/hugetlb.h     |    9 ---------
+ 10 files changed, 90 deletions(-)
 
-diff -puN arch/s390/include/asm/page.h~s390-mm-make-hugepages_supported-a-boot-time-decision arch/s390/include/asm/page.h
---- a/arch/s390/include/asm/page.h~s390-mm-make-hugepages_supported-a-boot-time-decision
-+++ a/arch/s390/include/asm/page.h
-@@ -17,7 +17,10 @@
- #define PAGE_DEFAULT_ACC	0
- #define PAGE_DEFAULT_KEY	(PAGE_DEFAULT_ACC << 4)
+diff -puN arch/arm/include/asm/hugetlb.h~mm-hugetlb-remove-arch_prepare-release_hugepage-from-arch-headers arch/arm/include/asm/hugetlb.h
+--- a/arch/arm/include/asm/hugetlb.h~mm-hugetlb-remove-arch_prepare-release_hugepage-from-arch-headers
++++ a/arch/arm/include/asm/hugetlb.h
+@@ -63,15 +63,6 @@ static inline pte_t huge_pte_wrprotect(p
+ 	return pte_wrprotect(pte);
+ }
  
--#define HPAGE_SHIFT	20
-+#include <asm/setup.h>
-+#ifndef __ASSEMBLY__
-+
-+extern unsigned int HPAGE_SHIFT;
- #define HPAGE_SIZE	(1UL << HPAGE_SHIFT)
- #define HPAGE_MASK	(~(HPAGE_SIZE - 1))
- #define HUGETLB_PAGE_ORDER	(HPAGE_SHIFT - PAGE_SHIFT)
-@@ -27,9 +30,6 @@
- #define ARCH_HAS_PREPARE_HUGEPAGE
- #define ARCH_HAS_HUGEPAGE_CLEAR_FLUSH
- 
--#include <asm/setup.h>
--#ifndef __ASSEMBLY__
+-static inline int arch_prepare_hugepage(struct page *page)
+-{
+-	return 0;
+-}
 -
- static inline void storage_key_init_range(unsigned long start, unsigned long end)
+-static inline void arch_release_hugepage(struct page *page)
+-{
+-}
+-
+ static inline void arch_clear_hugepage_flags(struct page *page)
  {
- #if PAGE_DEFAULT_KEY
-diff -puN arch/s390/kernel/setup.c~s390-mm-make-hugepages_supported-a-boot-time-decision arch/s390/kernel/setup.c
---- a/arch/s390/kernel/setup.c~s390-mm-make-hugepages_supported-a-boot-time-decision
-+++ a/arch/s390/kernel/setup.c
-@@ -875,6 +875,8 @@ void __init setup_arch(char **cmdline_p)
- 	 */
- 	setup_hwcaps();
+ 	clear_bit(PG_dcache_clean, &page->flags);
+diff -puN arch/arm64/include/asm/hugetlb.h~mm-hugetlb-remove-arch_prepare-release_hugepage-from-arch-headers arch/arm64/include/asm/hugetlb.h
+--- a/arch/arm64/include/asm/hugetlb.h~mm-hugetlb-remove-arch_prepare-release_hugepage-from-arch-headers
++++ a/arch/arm64/include/asm/hugetlb.h
+@@ -96,15 +96,6 @@ static inline pte_t huge_pte_wrprotect(p
+ 	return pte_wrprotect(pte);
+ }
  
-+	HPAGE_SHIFT = MACHINE_HAS_HPAGE ? 20 : 0;
-+
- 	/*
- 	 * Create kernel page tables and switch to virtual addressing.
- 	 */
-diff -puN arch/s390/mm/pgtable.c~s390-mm-make-hugepages_supported-a-boot-time-decision arch/s390/mm/pgtable.c
---- a/arch/s390/mm/pgtable.c~s390-mm-make-hugepages_supported-a-boot-time-decision
-+++ a/arch/s390/mm/pgtable.c
-@@ -31,6 +31,8 @@
- #define ALLOC_ORDER	2
- #define FRAG_MASK	0x03
- 
-+unsigned int HPAGE_SHIFT;
-+
- unsigned long *crst_table_alloc(struct mm_struct *mm)
+-static inline int arch_prepare_hugepage(struct page *page)
+-{
+-	return 0;
+-}
+-
+-static inline void arch_release_hugepage(struct page *page)
+-{
+-}
+-
+ static inline void arch_clear_hugepage_flags(struct page *page)
  {
- 	struct page *page = alloc_pages(GFP_KERNEL, ALLOC_ORDER);
-_
-
-Patches currently in -mm which might be from dingel@linux.vnet.ibm.com are
-
-s390-mm-make-hugepages_supported-a-boot-time-decision.patch
-mm-hugetlb-remove-unused-arch-hook-prepare-release_hugepage.patch
-mm-hugetlb-remove-arch_prepare-release_hugepage-from-arch-headers.patch
-s390-hugetlb-remove-dead-code-for-sw-emulated-huge-pages.patch
-s390-mm-forward-check-for-huge-pmds-to-pmd_large.patch
-linux-next.patch
-
+ 	clear_bit(PG_dcache_clean, &page->flags);
+diff -puN arch/ia64/include/asm/hugetlb.h~mm-hugetlb-remove-arch_prepare-release_hugepage-from-arch-headers arch/ia64/include/asm/hugetlb.h
+--- a/arch/ia64/include/asm/hugetlb.h~mm-hugetlb-remove-arch_prepare-release_hugepage-from-arch-headers
++++ a/arch/ia64/include/asm/hugetlb.h
+@@ -65,15 +65,6 @@ static inline pte_t huge_ptep_get(pte_t
+ 	return *ptep;
+ }
+ 
+-static inline int arch_prepare_hugepage(struct page *page)
+-{
+-	return 0;
+-}
+-
+-static inline void arch_release_hugepage(struct page *page)
+-{
+-}
+-
+ static inline void arch_clear_hugepage_flags(struct page *page)
+ {
+ }
+diff -puN arch/metag/include/asm/hugetlb.h~mm-hugetlb-remove-arch_prepare-release_hugepage-from-arch-headers arch/metag/include/asm/hugetlb.h
+--- a/arch/metag/include/asm/hugetlb.h~mm-hugetlb-remove-arch_prepare-release_hugepage-from-arch-headers
++++ a/arch/metag/include/asm/hugetlb.h
+@@ -67,15 +67,6 @@ static inline pte_t huge_ptep_get(pte_t
+ 	return *ptep;
+ }
+ 
+-static inline int arch_prepare_hugepage(struct page *page)
+-{
+-	return 0;
+-}
+-
+-static inline void arch_release_hugepage(struct page *page)
+-{
+-}
+-
+ static inline void arch_clear_hugepage_flags(struct page *page)
+ {
+ }
+diff -puN arch/mips/include/asm/hugetlb.h~mm-hugetlb-remove-arch_prepare-release_hugepage-from-arch-headers arch/mips/include/asm/hugetlb.h
+--- a/arch/mips/include/asm/hugetlb.h~mm-hugetlb-remove-arch_prepare-release_hugepage-from-arch-headers
++++ a/arch/mips/include/asm/hugetlb.h
+@@ -110,15 +110,6 @@ static inline pte_t huge_ptep_get(pte_t
+ 	return *ptep;
+ }
+ 
+-static inline int arch_prepare_hugepage(struct page *page)
+-{
+-	return 0;
+-}
+-
+-static inline void arch_release_hugepage(struct page *page)
+-{
+-}
+-
+ static inline void arch_clear_hugepage_flags(struct page *page)
+ {
+ }
+diff -puN arch/powerpc/include/asm/hugetlb.h~mm-hugetlb-remove-arch_prepare-release_hugepage-from-arch-headers arch/powerpc/include/asm/hugetlb.h
+--- a/arch/powerpc/include/asm/hugetlb.h~mm-hugetlb-remove-arch_prepare-release_hugepage-from-arch-headers
++++ a/arch/powerpc/include/asm/hugetlb.h
+@@ -168,15 +168,6 @@ static inline pte_t huge_ptep_get(pte_t
+ 	return *ptep;
+ }
+ 
+-static inline int arch_prepare_hugepage(struct page *page)
+-{
+-	return 0;
+-}
+-
+-static inline void arch_release_hugepage(struct page *page)
+-{
+-}
+-
+ static inline void arch_clear_hugepage_flags(struct page *page)
+ {
+ }
+diff -puN arch/sh/include/asm/hugetlb.h~mm-hugetlb-remove-arch_prepare-release_hugepage-from-arch-headers arch/sh/include/asm/hugetlb.h
+--- a/arch/sh/include/asm/hugetlb.h~mm-hugetlb-remove-arch_prepare-release_hugepage-from-arch-headers
++++ a/arch/sh/include/asm/hugetlb.h
+@@ -79,15 +79,6 @@ static inline pte_t huge_ptep_get(pte_t
+ 	return *ptep;
+ }
+ 
+-static inline int arch_prepare_hugepage(struct page *page)
+-{
+-	return 0;
+-}
+-
+-static inline void arch_release_hugepage(struct page *page)
+-{
+-}
+-
+ static inline void arch_clear_hugepage_flags(struct page *page)
+ {
+ 	clear_bit(PG_dcache_clean, &page->flags);
+diff -puN arch/sparc/include/asm/hugetlb.h~mm-hugetlb-remove-arch_prepare-release_hugepage-from-arch-headers arch/sparc/include/asm/hugetlb.h
+--- a/arch/sparc/include/asm/hugetlb.h~mm-hugetlb-remove-arch_prepare-release_hugepage-from-arch-headers
++++ a/arch/sparc/include/asm/hugetlb.h
+@@ -78,15 +78,6 @@ static inline pte_t huge_ptep_get(pte_t
+ 	return *ptep;
+ }
+ 
+-static inline int arch_prepare_hugepage(struct page *page)
+-{
+-	return 0;
+-}
+-
+-static inline void arch_release_hugepage(struct page *page)
+-{
+-}
+-
+ static inline void arch_clear_hugepage_flags(struct page *page)
+ {
+ }
+diff -puN arch/tile/include/asm/hugetlb.h~mm-hugetlb-remove-arch_prepare-release_hugepage-from-arch-headers arch/tile/include/asm/hugetlb.h
+--- a/arch/tile/include/asm/hugetlb.h~mm-hugetlb-remove-arch_prepare-release_hugepage-from-arch-headers
++++ a/arch/tile/include/asm/hugetlb.h
+@@ -94,15 +94,6 @@ static inline pte_t huge_ptep_get(pte_t
+ 	return *ptep;
+ }
+ 
+-static inline int arch_prepare_hugepage(struct page *page)
+-{
+-	return 0;
+-}
+-
+-static inline void arch_release_hugepage(struct page *page)
+-{
+-}
+-
+ static inline void arch_clear_hugepage_flags(struct page *page)
+ {
+ }
+diff -puN arch/x86/include/asm/hugetlb.h~mm-hugetlb-remove-arch_prepare-release_hugepage-from-arch-headers arch/x86/include/asm/hugetlb.h
+--- a/arch/x86/include/asm/hugetlb.h~mm-hugetlb-remove-arch_prepare-release_hugepage-from-arch-headers
++++ a/arch/x86/include/asm/hugetlb.h
+@@ -80,15 +80,6 @@ static inline pte_t huge_ptep_get(pte_t
+ 	return *ptep;
+ }
+ 
+-static inline int arch_prepare_hugepage(struct page *page)
+-{
+-	return 0;
+-}
+-
+-static inline void arch_release_hugepage(struct page *page)
+-{
+-}
