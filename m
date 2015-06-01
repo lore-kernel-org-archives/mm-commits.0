@@ -1,133 +1,153 @@
 From: akpm@linux-foundation.org
-Subject: + ipcshm-move-bug_on-check-into-shm_lock-fix.patch added to -mm
- tree
-Date: Mon, 01 Jun 2015 15:52:33 -0700
-Message-ID: <556ce231.aZ3S7QLSRGLoKqub%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ ocfs2-call-ocfs2_journal_access_di-before-ocfs2_journal_dirty-in-ocfs2_write_end_nolock.patch removed from -mm tree
+Date: Mon, 01 Jun 2015 15:58:23 -0700
+Message-ID: <556ce38f.hBrfdeyO/I/hh/Rn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50138 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50162 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752852AbbFAWwe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jun 2015 18:52:34 -0400
+	with ESMTP id S1752447AbbFAW6Y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jun 2015 18:58:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dave@stgolabs.net, dbueso@suse.de, manfred@colorfullife.com, mm-commits@vger.kernel.org
+To: vicky.yangwenfang@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipcshm-move-bug_on-check-into-shm_lock-fix
-has been added to the -mm tree.  Its filename is
-     ipcshm-move-bug_on-check-into-shm_lock-fix.patch
+     Subject: ocfs2: call ocfs2_journal_access_di() before ocfs2_journal_dirty() in ocfs2_write_end_nolock()
+has been removed from the -mm tree.  Its filename was
+     ocfs2-call-ocfs2_journal_access_di-before-ocfs2_journal_dirty-in-ocfs2_write_end_nolock.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipcshm-move-bug_on-check-into-shm_lock-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipcshm-move-bug_on-check-into-shm_lock-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ipcshm-move-bug_on-check-into-shm_lock-fix
+From: yangwenfang <vicky.yangwenfang@huawei.com>
+Subject: ocfs2: call ocfs2_journal_access_di() before ocfs2_journal_dirty() in ocfs2_write_end_nolock()
 
-simplify code
+After we call ocfs2_journal_access_di() in ocfs2_write_begin(),
+jbd2_journal_restart() may also be called, in this function transaction
+A's t_updates-- and obtains a new transaction B.  If
+jbd2_journal_commit_transaction() is happened to commit transaction A,
+when t_updates==0, it will continue to complete commit and unfile buffer.
 
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Davidlohr Bueso <dbueso@suse.de>
-Cc: Manfred Spraul <manfred@colorfullife.com>
+So when jbd2_journal_dirty_metadata(), the handle is pointed a new
+transaction B, and the buffer head's journal head is already freed,
+jh->b_transaction == NULL, jh->b_next_transaction == NULL, it returns
+EINVAL, So it triggers the BUG_ON(status).
+
+thread 1:                             jbd2:
+ocfs2_write_begin                     jbd2_journal_commit_transaction
+ocfs2_write_begin_nolock
+  ocfs2_start_trans
+    jbd2__journal_start(t_updates+1,
+                       transaction A)
+    ocfs2_journal_access_di
+    ocfs2_write_cluster_by_desc
+      ocfs2_mark_extent_written
+        ocfs2_change_extent_flag
+          ocfs2_split_extent
+            ocfs2_extend_rotate_transaction
+              jbd2_journal_restart
+              (t_updates-1,transaction B) t_updates==0
+                                        __jbd2_journal_refile_buffer
+
+ocfs2_write_end
+ocfs2_write_end_nolock
+    ocfs2_journal_dirty
+        jbd2_journal_dirty_metadata(bug)
+   ocfs2_commit_trans
+
+In ext4, I found that: jbd2_journal_get_write_access() called by
+
+ext4_write_end.
+ext4_write_begin
+    ext4_journal_start
+        __ext4_journal_start_sb
+            ext4_journal_check_start
+            jbd2__journal_start
+
+ext4_write_end
+    ext4_mark_inode_dirty
+        ext4_reserve_inode_write
+            ext4_journal_get_write_access
+                jbd2_journal_get_write_access
+        ext4_mark_iloc_dirty
+            ext4_do_update_inode
+                ext4_handle_dirty_metadata
+                    jbd2_journal_dirty_metadata
+
+
+So I think we should put ocfs2_journal_access_di before
+  ocfs2_journal_dirty in the ocfs2_write_end.  and it works well after my
+  modification.
+
+Signed-off-by: vicky <vicky.yangwenfang@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/shm.c |   13 +++++--------
- 1 file changed, 5 insertions(+), 8 deletions(-)
+ fs/ocfs2/aops.c |   21 ++++++++++-----------
+ 1 file changed, 10 insertions(+), 11 deletions(-)
 
-diff -puN ipc/shm.c~ipcshm-move-bug_on-check-into-shm_lock-fix ipc/shm.c
---- a/ipc/shm.c~ipcshm-move-bug_on-check-into-shm_lock-fix
-+++ a/ipc/shm.c
-@@ -155,14 +155,11 @@ static inline struct shmid_kernel *shm_l
- {
- 	struct kern_ipc_perm *ipcp = ipc_lock(&shm_ids(ns), id);
- 
--	if (IS_ERR(ipcp)) {
--		/*
--		 * We raced in the idr lookup or with RMID,
--		 * either way, the ID is busted.
--		 */
--		BUG();
--		return (struct shmid_kernel *)ipcp;
+diff -puN fs/ocfs2/aops.c~ocfs2-call-ocfs2_journal_access_di-before-ocfs2_journal_dirty-in-ocfs2_write_end_nolock fs/ocfs2/aops.c
+--- a/fs/ocfs2/aops.c~ocfs2-call-ocfs2_journal_access_di-before-ocfs2_journal_dirty-in-ocfs2_write_end_nolock
++++ a/fs/ocfs2/aops.c
+@@ -2199,16 +2199,6 @@ try_again:
+ 		if (ret)
+ 			goto out_commit;
+ 	}
+-	/*
+-	 * We don't want this to fail in ocfs2_write_end(), so do it
+-	 * here.
+-	 */
+-	ret = ocfs2_journal_access_di(handle, INODE_CACHE(inode), wc->w_di_bh,
+-				      OCFS2_JOURNAL_ACCESS_WRITE);
+-	if (ret) {
+-		mlog_errno(ret);
+-		goto out_quota;
 -	}
-+	/*
-+	 * We raced in the idr lookup or with RMID.  Either way, the ID is
-+	 * busted.
-+	 */
-+	BUG_ON(IS_ERR(ipcp));
  
- 	return container_of(ipcp, struct shmid_kernel, shm_perm);
- }
+ 	/*
+ 	 * Fill our page array first. That way we've grabbed enough so
+@@ -2359,7 +2349,7 @@ int ocfs2_write_end_nolock(struct addres
+ 			   loff_t pos, unsigned len, unsigned copied,
+ 			   struct page *page, void *fsdata)
+ {
+-	int i;
++	int i, ret;
+ 	unsigned from, to, start = pos & (PAGE_CACHE_SIZE - 1);
+ 	struct inode *inode = mapping->host;
+ 	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
+@@ -2409,6 +2399,14 @@ int ocfs2_write_end_nolock(struct addres
+ 		}
+ 	}
+ 
++	ret = ocfs2_journal_access_di(handle, INODE_CACHE(inode), wc->w_di_bh,
++				      OCFS2_JOURNAL_ACCESS_WRITE);
++	if (ret) {
++		copied = ret;
++		mlog_errno(ret);
++		goto out;
++	}
++
+ out_write_size:
+ 	pos += copied;
+ 	if (pos > i_size_read(inode)) {
+@@ -2430,6 +2428,7 @@ out_write_size:
+ 	 */
+ 	ocfs2_unlock_pages(wc);
+ 
++out:
+ 	ocfs2_commit_trans(osb, handle);
+ 
+ 	ocfs2_run_deallocs(osb, &wc->w_dealloc);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vicky.yangwenfang@huawei.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-ocfs2-reduce-object-size-of-mlog-uses-fix.patch
-ocfs2-remove-__mlog_cpu_guess.patch
-ocfs2-remove-__mlog_cpu_guess-fix.patch
-ocfs2-fix-null-pointer-dereference-in-function-ocfs2_abort_trigger-fix.patch
-mm.patch
-mm-slab_common-support-the-slub_debug-boot-option-on-specific-object-size-fix.patch
-slub-bulk-allocation-from-per-cpu-partial-pages-fix.patch
-mm-fix-mprotect-behaviour-on-vm_locked-vmas-fix.patch
-mm-new-mm-hook-framework.patch
-mm-meminit-inline-some-helper-functions-fix.patch
-mm-meminit-finish-initialisation-of-struct-pages-before-basic-setup-fix.patch
-mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling-fix.patch
-rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix.patch
-rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix-fix.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
-userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
-fs-userfaultfdc-work-around-i386-build-error.patch
-hugetlb-do-not-account-hugetlb-pages-as-nr_file_pages-fix.patch
-frontswap-allow-multiple-backends-fix.patch
-include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
-prctl-more-prctlpr_set_mm_-checks-fix.patch
-proc-fix-page_size-limit-of-proc-pid-cmdline-fix.patch
-bitmap-remove-explicit-newline-handling-using-scnprintf-format-string-fix.patch
-radix-tree-replace-preallocated-node-array-with-linked-list-fix.patch
-init-do_mounts-add-create_dev-failure-log-fix.patch
-rtc-omap-add-external-32k-clock-feature-fix.patch
-devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx-fix.patch
-ipcshm-move-bug_on-check-into-shm_lock-fix-2.patch
-ipcshm-move-bug_on-check-into-shm_lock-fix.patch
-scsi-resolve-sg-buffer-const-ness-issue-fix.patch
-linux-next.patch
-linux-next-rejects.patch
-drivers-block-nvme-corec-fix-build-with-gcc-444.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
 
