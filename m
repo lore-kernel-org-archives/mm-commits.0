@@ -1,108 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- fs-binfmt_elfc-load_elf_binary-return-einval-on-zero-length-mappings.patch
- removed from -mm tree
-Date: Mon, 01 Jun 2015 12:15:52 -0700
-Message-ID: <556caf68.gZEWwrvQzX2mNGu5%akpm@linux-foundation.org>
+Subject: [merged] maintainers-update-capabilities-pattern.patch removed
+ from -mm tree
+Date: Mon, 01 Jun 2015 12:15:54 -0700
+Message-ID: <556caf6a.Vze6rjfeSRR2BjvC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47423 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47426 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751588AbbFATPw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jun 2015 15:15:52 -0400
+	with ESMTP id S1753013AbbFATPy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jun 2015 15:15:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, james.hogan@imgtec.com, md@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: joe@perches.com, casey@schaufler-ca.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/binfmt_elf.c:load_elf_binary(): return -EINVAL on zero-length mappings
+     Subject: MAINTAINERS: update CAPABILITIES pattern
 has been removed from the -mm tree.  Its filename was
-     fs-binfmt_elfc-load_elf_binary-return-einval-on-zero-length-mappings.patch
+     maintainers-update-capabilities-pattern.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fs/binfmt_elf.c:load_elf_binary(): return -EINVAL on zero-length mappings
+From: Joe Perches <joe@perches.com>
+Subject: MAINTAINERS: update CAPABILITIES pattern
 
-load_elf_binary() returns `retval', not `error'.
+commit 1ddd3b4e07a4 ("LSM: Remove unused capability.c") removed the file,
+remove the file pattern.
 
-Fixes: a87938b2e246b81b4fb ("fs/binfmt_elf.c: fix bug in loading of PIE binaries")
-Reported-by: James Hogan <james.hogan@imgtec.com>
-Cc: Michael Davidson <md@google.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Joe Perches <joe@perches.com>
+Acked-by: Casey Schaufler <casey@schaufler-ca.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN fs/binfmt_elf.c~fs-binfmt_elfc-load_elf_binary-return-einval-on-zero-length-mappings fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~fs-binfmt_elfc-load_elf_binary-return-einval-on-zero-length-mappings
-+++ a/fs/binfmt_elf.c
-@@ -918,7 +918,7 @@ static int load_elf_binary(struct linux_
- 			total_size = total_mapping_size(elf_phdata,
- 							loc->elf_ex.e_phnum);
- 			if (!total_size) {
--				error = -EINVAL;
-+				retval = -EINVAL;
- 				goto out_free_dentry;
- 			}
- 		}
+diff -puN MAINTAINERS~maintainers-update-capabilities-pattern MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-capabilities-pattern
++++ a/MAINTAINERS
+@@ -2427,7 +2427,6 @@ L:	linux-security-module@vger.kernel.org
+ S:	Supported
+ F:	include/linux/capability.h
+ F:	include/uapi/linux/capability.h
+-F:	security/capability.c
+ F:	security/commoncap.c
+ F:	kernel/capability.c
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from joe@perches.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
+checkpatch-fix-global_initialisers-test.patch
+ocfs2-reduce-object-size-of-mlog-uses.patch
 ocfs2-reduce-object-size-of-mlog-uses-fix.patch
 ocfs2-remove-__mlog_cpu_guess.patch
 ocfs2-remove-__mlog_cpu_guess-fix.patch
-ocfs2-fix-null-pointer-dereference-in-function-ocfs2_abort_trigger-fix.patch
-mm.patch
-mm-slab_common-support-the-slub_debug-boot-option-on-specific-object-size-fix.patch
-slub-bulk-allocation-from-per-cpu-partial-pages-fix.patch
-mm-fix-mprotect-behaviour-on-vm_locked-vmas-fix.patch
-mm-new-mm-hook-framework.patch
-mm-meminit-inline-some-helper-functions-fix.patch
-mm-meminit-finish-initialisation-of-struct-pages-before-basic-setup-fix.patch
-mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling-fix.patch
-rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix.patch
-rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix-fix.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
-userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
-fs-userfaultfdc-work-around-i386-build-error.patch
-hugetlb-do-not-account-hugetlb-pages-as-nr_file_pages-fix.patch
-frontswap-allow-multiple-backends-fix.patch
-include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
-prctl-more-prctlpr_set_mm_-checks-fix.patch
-proc-fix-page_size-limit-of-proc-pid-cmdline-fix.patch
-bitmap-remove-explicit-newline-handling-using-scnprintf-format-string-fix.patch
-radix-tree-replace-preallocated-node-array-with-linked-list-fix.patch
-init-do_mounts-add-create_dev-failure-log-fix.patch
-rtc-omap-add-external-32k-clock-feature-fix.patch
-devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx-fix.patch
-scsi-resolve-sg-buffer-const-ness-issue-fix.patch
+ocfs2-neaten-do_error-ocfs2_error-and-ocfs2_abort.patch
+compiler-gcch-neatening.patch
+compiler-gcc-integrate-the-various-compiler-gcch-files.patch
+get_maintainerpl-add-get_maintainerignore-file-capability.patch
+maintainers-update-sound-soc-intel-patterns.patch
+maintainers-remove-section-broadcom-bcm33xx-mips-architecture.patch
+maintainers-update-brcm-dts-pattern.patch
+maintainers-update-brcm-gpio-filename-pattern.patch
+maintainers-remove-unused-nbdh-pattern.patch
+maintainers-move-jens-osterkamp-to-credits.patch
+maintainers-bcache-kent-overstreet-has-changed-email-address.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-check-for-uncommented-waitqueue_active.patch
+checkpatch-add-strict-warning-for-c99-fixed-size-typedefs-intsize_t.patch
+checkpatch-make-types-found-in-a-source-file-patch-local.patch
+checkpatch-use-string-consistently.patch
+checkpatch-categorize-some-long-line-length-checks.patch
 linux-next.patch
-linux-next-rejects.patch
-drivers-block-nvme-corec-fix-build-with-gcc-444.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
+printk-improve-the-description-of-dev-kmsg-line-format.patch
+fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void.patch
 
