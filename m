@@ -1,82 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged] arch-x86-kvm-mmuc-work-around-gcc-444-bug.patch removed
- from -mm tree
-Date: Fri, 29 May 2015 16:38:07 -0700
-Message-ID: <5568f85f.n3ZCiIZPcy4Fsale%akpm@linux-foundation.org>
+Subject: [obsolete]
+ drivers-gpu-drm-i915-i915_gem_gttc-hack-around-build-error-on-i386.patch
+ removed from -mm tree
+Date: Mon, 01 Jun 2015 12:15:30 -0700
+Message-ID: <556caf52.R3gv4eEBMcIQlRjr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57594 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47408 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753912AbbE2XiI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 29 May 2015 19:38:08 -0400
+	with ESMTP id S1750851AbbFATPc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jun 2015 15:15:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, guangrong.xiao@linux.intel.com, pbonzini@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, airlied@linux.ie, daniel.vetter@intel.com, jani.nikula@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch/x86/kvm/mmu.c: work around gcc-4.4.4 bug
+     Subject: drivers/gpu/drm/i915/i915_gem_gtt.c: hack around build error on i386
 has been removed from the -mm tree.  Its filename was
-     arch-x86-kvm-mmuc-work-around-gcc-444-bug.patch
+     drivers-gpu-drm-i915-i915_gem_gttc-hack-around-build-error-on-i386.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: arch/x86/kvm/mmu.c: work around gcc-4.4.4 bug
+Subject: drivers/gpu/drm/i915/i915_gem_gtt.c: hack around build error on i386
 
-arch/x86/kvm/mmu.c: In function 'kvm_mmu_pte_write':
-arch/x86/kvm/mmu.c:4256: error: unknown field 'cr0_wp' specified in initializer
-arch/x86/kvm/mmu.c:4257: error: unknown field 'cr4_pae' specified in initializer
-arch/x86/kvm/mmu.c:4257: warning: excess elements in union initializer
-...
-
-gcc-4.4.4 (at least) has issues when using anonymous unions in
-initializers.
-
-Fixes: edc90b7dc4ceef6 ("KVM: MMU: fix SMAP virtualization")
-Cc: Xiao Guangrong <guangrong.xiao@linux.intel.com>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Daniel Vetter <daniel.vetter@intel.com>
+Cc: Jani Nikula <jani.nikula@linux.intel.com>
+Cc: David Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kvm/mmu.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ drivers/gpu/drm/i915/i915_gem_gtt.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN arch/x86/kvm/mmu.c~arch-x86-kvm-mmuc-work-around-gcc-444-bug arch/x86/kvm/mmu.c
---- a/arch/x86/kvm/mmu.c~arch-x86-kvm-mmuc-work-around-gcc-444-bug
-+++ a/arch/x86/kvm/mmu.c
-@@ -4252,13 +4252,13 @@ void kvm_mmu_pte_write(struct kvm_vcpu *
- 	u64 entry, gentry, *spte;
- 	int npte;
- 	bool remote_flush, local_flush, zap_page;
--	union kvm_mmu_page_role mask = (union kvm_mmu_page_role) {
--		.cr0_wp = 1,
--		.cr4_pae = 1,
--		.nxe = 1,
--		.smep_andnot_wp = 1,
--		.smap_andnot_wp = 1,
--	};
-+	union kvm_mmu_page_role mask = { };
-+
-+	mask.cr0_wp = 1;
-+	mask.cr4_pae = 1;
-+	mask.nxe = 1;
-+	mask.smep_andnot_wp = 1;
-+	mask.smap_andnot_wp = 1;
+diff -puN drivers/gpu/drm/i915/i915_gem_gtt.c~drivers-gpu-drm-i915-i915_gem_gttc-hack-around-build-error-on-i386 drivers/gpu/drm/i915/i915_gem_gtt.c
+--- a/drivers/gpu/drm/i915/i915_gem_gtt.c~drivers-gpu-drm-i915-i915_gem_gttc-hack-around-build-error-on-i386
++++ a/drivers/gpu/drm/i915/i915_gem_gtt.c
+@@ -951,7 +951,11 @@ static int gen8_ppgtt_init(struct i915_h
+ 	gen8_initialize_pd(&ppgtt->base, ppgtt->scratch_pd);
  
- 	/*
- 	 * If we don't have indirect shadow pages, it means no page is
+ 	ppgtt->base.start = 0;
++#if BITS_PER_LONG == 64
+ 	ppgtt->base.total = 1ULL << 32;
++#else
++	ppgtt->base.total = 0;
++#endif
+ 	ppgtt->base.cleanup = gen8_ppgtt_cleanup;
+ 	ppgtt->base.allocate_va_range = gen8_alloc_va_range;
+ 	ppgtt->base.insert_entries = gen8_ppgtt_insert_entries;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-origin.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
-fs-binfmt_elfc-load_elf_binary-return-einval-on-zero-length-mappings.patch
 ocfs2-reduce-object-size-of-mlog-uses-fix.patch
 ocfs2-remove-__mlog_cpu_guess.patch
 ocfs2-remove-__mlog_cpu_guess-fix.patch
@@ -124,6 +105,4 @@ journal_add_journal_head-debug-fix.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
 mutex-subsystem-synchro-test-module.patch
 slab-leaks3-default-y.patch
-drivers-gpu-drm-i915-i915_gem_gttc-hack-around-build-error-on-i386.patch
-drivers-gpu-drm-i915-i915_gem_gttc-hack-around-build-error-on-i386.patch
 
