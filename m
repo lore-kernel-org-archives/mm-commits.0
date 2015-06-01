@@ -1,109 +1,108 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- tracing-mm-dont-trace-kmem_cache_free-on-offline-cpus.patch removed from
- -mm tree
-Date: Mon, 01 Jun 2015 12:15:45 -0700
-Message-ID: <556caf61.FOrTp1BVYOGr72b/%akpm@linux-foundation.org>
+ fs-binfmt_elfc-load_elf_binary-return-einval-on-zero-length-mappings.patch
+ removed from -mm tree
+Date: Mon, 01 Jun 2015 12:15:52 -0700
+Message-ID: <556caf68.gZEWwrvQzX2mNGu5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47412 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47423 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751220AbbFATPq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jun 2015 15:15:46 -0400
+	with ESMTP id S1751588AbbFATPw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Jun 2015 15:15:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shreyas@linux.vnet.ibm.com, aneesh.kumar@linux.vnet.ibm.com, preeti@linux.vnet.ibm.com, rostedt@goodmis.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, james.hogan@imgtec.com, md@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tracing/mm: don't trace kmem_cache_free on offline cpus
+     Subject: fs/binfmt_elf.c:load_elf_binary(): return -EINVAL on zero-length mappings
 has been removed from the -mm tree.  Its filename was
-     tracing-mm-dont-trace-kmem_cache_free-on-offline-cpus.patch
+     fs-binfmt_elfc-load_elf_binary-return-einval-on-zero-length-mappings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Shreyas B. Prabhu" <shreyas@linux.vnet.ibm.com>
-Subject: tracing/mm: don't trace kmem_cache_free on offline cpus
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fs/binfmt_elf.c:load_elf_binary(): return -EINVAL on zero-length mappings
 
-Since tracepoints use RCU for protection, they must not be called on
-offline cpus.  trace_kmem_cache_free can be called on an offline cpu in
-this scenario caught by LOCKDEP:
+load_elf_binary() returns `retval', not `error'.
 
-===============================
-[ INFO: suspicious RCU usage. ]
-4.1.0-rc1+ #9 Not tainted
--------------------------------
-include/trace/events/kmem.h:148 suspicious rcu_dereference_check() usage!
-
-other info that might help us debug this:
-
-RCU used illegally from offline CPU!
-rcu_scheduler_active = 1, debug_locks = 1
-no locks held by swapper/1/0.
-
-stack backtrace:
-CPU: 1 PID: 0 Comm: swapper/1 Not tainted 4.1.0-rc1+ #9
-Call Trace:
-[c000001fed2f78f0] [c0000000009dee8c] .dump_stack+0x98/0xd4 (unreliable)
-[c000001fed2f7970] [c000000000128d88] .lockdep_rcu_suspicious+0x108/0x170
-[c000001fed2f7a00] [c00000000026f924] .kmem_cache_free+0x344/0x4b0
-[c000001fed2f7ab0] [c0000000000bd1cc] .__mmdrop+0x4c/0x160
-[c000001fed2f7b40] [c0000000001068e0] .idle_task_exit+0xf0/0x100
-[c000001fed2f7bc0] [c000000000066948] .pnv_smp_cpu_kill_self+0x58/0x2c0
-[c000001fed2f7ca0] [c00000000003ce34] .cpu_die+0x34/0x50
-[c000001fed2f7d10] [c0000000000176d0] .arch_cpu_idle_dead+0x20/0x40
-[c000001fed2f7d80] [c00000000011f9a8] .cpu_startup_entry+0x708/0x7a0
-[c000001fed2f7ec0] [c00000000003cb6c] .start_secondary+0x36c/0x3a0
-[c000001fed2f7f90] [c000000000008b6c] start_secondary_prolog+0x10/0x14
-
-Fix this by converting kmem_cache_free trace point into
-TRACE_EVENT_CONDITION where condition is cpu_online(smp_processor_id())
-
-Signed-off-by: Shreyas B. Prabhu <shreyas@linux.vnet.ibm.com>
-Reported-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Reviewed-by: Preeti U Murthy <preeti@linux.vnet.ibm.com>
-Acked-by: Steven Rostedt <rostedt@goodmis.org>
+Fixes: a87938b2e246b81b4fb ("fs/binfmt_elf.c: fix bug in loading of PIE binaries")
+Reported-by: James Hogan <james.hogan@imgtec.com>
+Cc: Michael Davidson <md@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/kmem.h |   15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
+ fs/binfmt_elf.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/trace/events/kmem.h~tracing-mm-dont-trace-kmem_cache_free-on-offline-cpus include/trace/events/kmem.h
---- a/include/trace/events/kmem.h~tracing-mm-dont-trace-kmem_cache_free-on-offline-cpus
-+++ a/include/trace/events/kmem.h
-@@ -140,11 +140,22 @@ DEFINE_EVENT(kmem_free, kfree,
- 	TP_ARGS(call_site, ptr)
- );
- 
--DEFINE_EVENT(kmem_free, kmem_cache_free,
-+DEFINE_EVENT_CONDITION(kmem_free, kmem_cache_free,
- 
- 	TP_PROTO(unsigned long call_site, const void *ptr),
- 
--	TP_ARGS(call_site, ptr)
-+	TP_ARGS(call_site, ptr),
-+
-+	/*
-+	 * This trace can be potentially called from an offlined cpu.
-+	 * Since trace points use RCU and RCU should not be used from
-+	 * offline cpus, filter such calls out.
-+	 * While this trace can be called from a preemptable section,
-+	 * it has no impact on the condition since tasks can migrate
-+	 * only from online cpus to other online cpus. Thus its safe
-+	 * to use raw_smp_processor_id.
-+	 */
-+	TP_CONDITION(cpu_online(raw_smp_processor_id()))
- );
- 
- TRACE_EVENT(mm_page_free,
+diff -puN fs/binfmt_elf.c~fs-binfmt_elfc-load_elf_binary-return-einval-on-zero-length-mappings fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~fs-binfmt_elfc-load_elf_binary-return-einval-on-zero-length-mappings
++++ a/fs/binfmt_elf.c
+@@ -918,7 +918,7 @@ static int load_elf_binary(struct linux_
+ 			total_size = total_mapping_size(elf_phdata,
+ 							loc->elf_ex.e_phnum);
+ 			if (!total_size) {
+-				error = -EINVAL;
++				retval = -EINVAL;
+ 				goto out_free_dentry;
+ 			}
+ 		}
 _
 
-Patches currently in -mm which might be from shreyas@linux.vnet.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+arch-alpha-kernel-systblss-remove-debug-check.patch
+ocfs2-reduce-object-size-of-mlog-uses-fix.patch
+ocfs2-remove-__mlog_cpu_guess.patch
+ocfs2-remove-__mlog_cpu_guess-fix.patch
+ocfs2-fix-null-pointer-dereference-in-function-ocfs2_abort_trigger-fix.patch
+mm.patch
+mm-slab_common-support-the-slub_debug-boot-option-on-specific-object-size-fix.patch
+slub-bulk-allocation-from-per-cpu-partial-pages-fix.patch
+mm-fix-mprotect-behaviour-on-vm_locked-vmas-fix.patch
+mm-new-mm-hook-framework.patch
+mm-meminit-inline-some-helper-functions-fix.patch
+mm-meminit-finish-initialisation-of-struct-pages-before-basic-setup-fix.patch
+mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling-fix.patch
+rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix.patch
+rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix-fix.patch
+userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
+userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
+userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
+fs-userfaultfdc-work-around-i386-build-error.patch
+hugetlb-do-not-account-hugetlb-pages-as-nr_file_pages-fix.patch
+frontswap-allow-multiple-backends-fix.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
+prctl-more-prctlpr_set_mm_-checks-fix.patch
+proc-fix-page_size-limit-of-proc-pid-cmdline-fix.patch
+bitmap-remove-explicit-newline-handling-using-scnprintf-format-string-fix.patch
+radix-tree-replace-preallocated-node-array-with-linked-list-fix.patch
+init-do_mounts-add-create_dev-failure-log-fix.patch
+rtc-omap-add-external-32k-clock-feature-fix.patch
+devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx-fix.patch
+scsi-resolve-sg-buffer-const-ness-issue-fix.patch
 linux-next.patch
+linux-next-rejects.patch
+drivers-block-nvme-corec-fix-build-with-gcc-444.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
