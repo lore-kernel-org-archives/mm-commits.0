@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Tue, 02 Jun 2015 11:26:34 -0700
-Message-ID: <556df55a.rhOJ8LpPqOauPLTE%akpm@linux-foundation.org>
+Subject: + oom-always-panic-on-oom-when-panic_on_oom-is-configured.patch
+ added to -mm tree
+Date: Tue, 02 Jun 2015 13:05:41 -0700
+Message-ID: <556e0c95.bvJMunbx9i1PQHVJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43893 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45168 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753867AbbFBS0f (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Jun 2015 14:26:35 -0400
+	with ESMTP id S1751287AbbFBUFm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Jun 2015 16:05:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mhocko@suse.cz, emunson@akamai.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: oom: always panic on OOM when panic_on_oom is configured
 has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     oom-always-panic-on-oom-when-panic_on_oom-is-configured.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/oom-always-panic-on-oom-when-panic_on_oom-is-configured.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/oom-always-panic-on-oom-when-panic_on_oom-is-configured.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,172 +39,144 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Michal Hocko <mhocko@suse.cz>
+Subject: oom: always panic on OOM when panic_on_oom is configured
 
+panic_on_oom allows administrator to set OOM policy to panic the system
+when it is out of memory to reduce failover time e.g.  when resolving the
+OOM condition would take much more time than rebooting the system.
+
+out_of_memory tries to be clever and prevent from premature panics by
+checking the current task and prevent from panic when the task has fatal
+signal pending and so it should die shortly and release some memory.  This
+is fair enough but Tetsuo Handa has noted that this might lead to a silent
+deadlock when current cannot exit because of dependencies invisible to the
+OOM killer.
+
+panic_on_oom is disabled by default and if somebody enables it then any
+risk of potential deadlock is certainly unwelcome.  The risk is really low
+because there are usually more sources of allocation requests and one of
+them would eventually trigger the panic but it is better to reduce the
+risk as much as possible.
+
+Let's move check_panic_on_oom up before the current task is checked so
+that the knob value is .  Do the same for the memcg in
+mem_cgroup_out_of_memory.
+
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Reported-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: David Rientjes <rientjes@google.com>
+Reviewed-by: Eric B Munson <emunson@akamai.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/include/asm/topology_64.h |    4 ----
- include/net/mac80211.h               |    4 ----
- net/ipv4/esp4.c                      |   18 ------------------
- net/ipv6/esp6.c                      |   18 ------------------
- 4 files changed, 44 deletions(-)
+ mm/memcontrol.c |    3 ++-
+ mm/oom_kill.c   |   18 +++++++++---------
+ 2 files changed, 11 insertions(+), 10 deletions(-)
 
-diff -puN arch/sparc/include/asm/topology_64.h~linux-next-git-rejects arch/sparc/include/asm/topology_64.h
---- a/arch/sparc/include/asm/topology_64.h~linux-next-git-rejects
-+++ a/arch/sparc/include/asm/topology_64.h
-@@ -41,11 +41,7 @@ static inline int pcibus_to_node(struct
- #define topology_physical_package_id(cpu)	(cpu_data(cpu).proc_id)
- #define topology_core_id(cpu)			(cpu_data(cpu).core_id)
- #define topology_core_cpumask(cpu)		(&cpu_core_sib_map[cpu])
--<<<<<<< HEAD
--#define topology_thread_cpumask(cpu)		(&per_cpu(cpu_sibling_map, cpu))
--=======
- #define topology_sibling_cpumask(cpu)		(&per_cpu(cpu_sibling_map, cpu))
-->>>>>>> linux-next/akpm-base
- #endif /* CONFIG_SMP */
+diff -puN mm/memcontrol.c~oom-always-panic-on-oom-when-panic_on_oom-is-configured mm/memcontrol.c
+--- a/mm/memcontrol.c~oom-always-panic-on-oom-when-panic_on_oom-is-configured
++++ a/mm/memcontrol.c
+@@ -1532,6 +1532,8 @@ static void mem_cgroup_out_of_memory(str
  
- extern cpumask_t cpu_core_map[NR_CPUS];
-diff -puN include/net/mac80211.h~linux-next-git-rejects include/net/mac80211.h
---- a/include/net/mac80211.h~linux-next-git-rejects
-+++ a/include/net/mac80211.h
-@@ -422,12 +422,8 @@ struct ieee80211_ba_event {
-  * @type: The event itself. See &enum ieee80211_event_type.
-  * @rssi: relevant if &type is %RSSI_EVENT
-  * @mlme: relevant if &type is %AUTH_EVENT
--<<<<<<< HEAD
-- * @u:    union holding the above two fields
--=======
-  * @ba: relevant if &type is %BAR_RX_EVENT or %BA_FRAME_TIMEOUT
-  * @u:union holding the fields above
-->>>>>>> linux-next/akpm-base
-  */
- struct ieee80211_event {
- 	enum ieee80211_event_type type;
-diff -puN net/ipv4/esp4.c~linux-next-git-rejects net/ipv4/esp4.c
---- a/net/ipv4/esp4.c~linux-next-git-rejects
-+++ a/net/ipv4/esp4.c
-@@ -260,23 +260,6 @@ static int esp_output(struct xfrm_state
- 		     (unsigned char *)esph - skb->data,
- 		     assoclen + ivlen + clen + alen);
+ 	mutex_lock(&oom_lock);
  
--<<<<<<< HEAD
--	if ((x->props.flags & XFRM_STATE_ESN)) {
--		sg_init_table(asg, 3);
--		sg_set_buf(asg, &esph->spi, sizeof(__be32));
--		*seqhi = htonl(XFRM_SKB_CB(skb)->seq.output.hi);
--		sg_set_buf(asg + 1, seqhi, seqhilen);
--		sg_set_buf(asg + 2, &esph->seq_no, sizeof(__be32));
--	} else
--		sg_init_one(asg, esph, sizeof(*esph));
++	check_panic_on_oom(CONSTRAINT_MEMCG, gfp_mask, order, NULL, memcg);
++
+ 	/*
+ 	 * If current has a pending SIGKILL or is exiting, then automatically
+ 	 * select it.  The goal is to allow it to allocate so that it may
+@@ -1542,7 +1544,6 @@ static void mem_cgroup_out_of_memory(str
+ 		goto unlock;
+ 	}
+ 
+-	check_panic_on_oom(CONSTRAINT_MEMCG, gfp_mask, order, NULL, memcg);
+ 	totalpages = mem_cgroup_get_limit(memcg) ? : 1;
+ 	for_each_mem_cgroup_tree(iter, memcg) {
+ 		struct css_task_iter it;
+diff -puN mm/oom_kill.c~oom-always-panic-on-oom-when-panic_on_oom-is-configured mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-always-panic-on-oom-when-panic_on_oom-is-configured
++++ a/mm/oom_kill.c
+@@ -667,6 +667,15 @@ bool out_of_memory(struct zonelist *zone
+ 		goto out;
+ 
+ 	/*
++	 * Check if there were limitations on the allocation (only relevant for
++	 * NUMA) that may require different handling.
++	 */
++	constraint = constrained_alloc(zonelist, gfp_mask, nodemask,
++						&totalpages);
++	mpol_mask = (constraint == CONSTRAINT_MEMORY_POLICY) ? nodemask : NULL;
++	check_panic_on_oom(constraint, gfp_mask, order, mpol_mask, NULL);
++
++	/*
+ 	 * If current has a pending SIGKILL or is exiting, then automatically
+ 	 * select it.  The goal is to allow it to allocate so that it may
+ 	 * quickly exit and free its memory.
+@@ -680,15 +689,6 @@ bool out_of_memory(struct zonelist *zone
+ 		goto out;
+ 	}
+ 
+-	/*
+-	 * Check if there were limitations on the allocation (only relevant for
+-	 * NUMA) that may require different handling.
+-	 */
+-	constraint = constrained_alloc(zonelist, gfp_mask, nodemask,
+-						&totalpages);
+-	mpol_mask = (constraint == CONSTRAINT_MEMORY_POLICY) ? nodemask : NULL;
+-	check_panic_on_oom(constraint, gfp_mask, order, mpol_mask, NULL);
 -
--	aead_givcrypt_set_callback(req, 0, esp_output_done, skb);
--	aead_givcrypt_set_crypt(req, sg, sg, clen, iv);
--	aead_givcrypt_set_assoc(req, asg, assoclen);
--	aead_givcrypt_set_giv(req, esph->enc_data,
--			      XFRM_SKB_CB(skb)->seq.output.low +
--			      ((u64)XFRM_SKB_CB(skb)->seq.output.hi << 32));
--=======
- 	aead_request_set_crypt(req, sg, sg, ivlen + clen, iv);
- 	aead_request_set_ad(req, assoclen);
- 
-@@ -286,7 +269,6 @@ static int esp_output(struct xfrm_state
- 	memset(iv, 0, ivlen);
- 	memcpy(iv + ivlen - min(ivlen, 8), (u8 *)&seqno + 8 - min(ivlen, 8),
- 	       min(ivlen, 8));
-->>>>>>> linux-next/akpm-base
- 
- 	ESP_SKB_CB(skb)->tmp = tmp;
- 	err = crypto_aead_encrypt(req);
-diff -puN net/ipv6/esp6.c~linux-next-git-rejects net/ipv6/esp6.c
---- a/net/ipv6/esp6.c~linux-next-git-rejects
-+++ a/net/ipv6/esp6.c
-@@ -252,23 +252,6 @@ static int esp6_output(struct xfrm_state
- 		     (unsigned char *)esph - skb->data,
- 		     assoclen + ivlen + clen + alen);
- 
--<<<<<<< HEAD
--	if ((x->props.flags & XFRM_STATE_ESN)) {
--		sg_init_table(asg, 3);
--		sg_set_buf(asg, &esph->spi, sizeof(__be32));
--		*seqhi = htonl(XFRM_SKB_CB(skb)->seq.output.hi);
--		sg_set_buf(asg + 1, seqhi, seqhilen);
--		sg_set_buf(asg + 2, &esph->seq_no, sizeof(__be32));
--	} else
--		sg_init_one(asg, esph, sizeof(*esph));
--
--	aead_givcrypt_set_callback(req, 0, esp_output_done, skb);
--	aead_givcrypt_set_crypt(req, sg, sg, clen, iv);
--	aead_givcrypt_set_assoc(req, asg, assoclen);
--	aead_givcrypt_set_giv(req, esph->enc_data,
--			      XFRM_SKB_CB(skb)->seq.output.low +
--			      ((u64)XFRM_SKB_CB(skb)->seq.output.hi << 32));
--=======
- 	aead_request_set_crypt(req, sg, sg, ivlen + clen, iv);
- 	aead_request_set_ad(req, assoclen);
- 
-@@ -278,7 +261,6 @@ static int esp6_output(struct xfrm_state
- 	memset(iv, 0, ivlen);
- 	memcpy(iv + ivlen - min(ivlen, 8), (u8 *)&seqno + 8 - min(ivlen, 8),
- 	       min(ivlen, 8));
-->>>>>>> linux-next/akpm-base
- 
- 	ESP_SKB_CB(skb)->tmp = tmp;
- 	err = crypto_aead_encrypt(req);
+ 	if (sysctl_oom_kill_allocating_task && current->mm &&
+ 	    !oom_unkillable_task(current, NULL, nodemask) &&
+ 	    current->signal->oom_score_adj != OOM_SCORE_ADJ_MIN) {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-ocfs2-reduce-object-size-of-mlog-uses-fix.patch
-ocfs2-remove-__mlog_cpu_guess.patch
-ocfs2-remove-__mlog_cpu_guess-fix.patch
-ocfs2-fix-null-pointer-dereference-in-function-ocfs2_abort_trigger-fix.patch
-mm.patch
-mm-slab_common-support-the-slub_debug-boot-option-on-specific-object-size-fix.patch
-slub-bulk-allocation-from-per-cpu-partial-pages-fix.patch
-mm-fix-mprotect-behaviour-on-vm_locked-vmas-fix.patch
-mm-new-mm-hook-framework.patch
-mm-meminit-inline-some-helper-functions-fix.patch
-mm-meminit-finish-initialisation-of-struct-pages-before-basic-setup-fix.patch
-mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling-fix.patch
-rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix.patch
-rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix-fix.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
-userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
-fs-userfaultfdc-work-around-i386-build-error.patch
+memcg-do-not-call-reclaim-if-__gfp_wait.patch
+jbd2-revert-must-not-fail-allocation-loops-back-to-gfp_nofail.patch
+mm-meminit-inline-some-helper-functions-fix2.patch
+mm-only-define-hashdist-variable-when-needed.patch
+mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-reclaimable-pages.patch
+rename-reclaim_swap-to-reclaim_unmap.patch
+mm-oom_kill-remove-unnecessary-locking-in-oom_enable.patch
+mm-oom_kill-clean-up-victim-marking-and-exiting-interfaces.patch
+mm-oom_kill-switch-test-and-clear-of-known-tif_memdie-to-clear.patch
+mm-oom_kill-generalize-oom-progress-waitqueue.patch
+mm-oom_kill-remove-unnecessary-locking-in-exit_oom_victim.patch
+mm-oom_kill-simplify-oom-killer-locking.patch
+mm-page_alloc-inline-should_alloc_retry.patch
+hugetlb-do-not-account-hugetlb-pages-as-nr_file_pages.patch
 hugetlb-do-not-account-hugetlb-pages-as-nr_file_pages-fix.patch
-frontswap-allow-multiple-backends-fix.patch
-include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
+mm-memcg-try-charging-a-page-before-setting-page-up-to-date.patch
+documentation-vm-unevictable-lrutxt-clarify-map_locked-behavior.patch
+oom-print-points-as-unsigned-int.patch
+oom-always-panic-on-oom-when-panic_on_oom-is-configured.patch
+page-flags-trivial-cleanup-for-pagetrans-helpers.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
+page-flags-define-pg_locked-behavior-on-compound-pages.patch
+page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
+page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
+page-flags-define-pg_reserved-behavior-on-compound-pages.patch
+page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
+page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
+page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
+page-flags-define-pg_uncached-behavior-on-compound-pages.patch
+page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
+page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
+mm-sanitize-page-mapping-for-tail-pages.patch
 mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
+mm-page_isolation-check-pfn-validity-before-access.patch
+mm-support-madvisemadv_free.patch
 mm-support-madvisemadv_free-fix-2.patch
+mm-dont-split-thp-page-when-syscall-is-called.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-2.patch
 mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
+mm-move-lazy-free-pages-to-inactive-list.patch
+mm-move-lazy-free-pages-to-inactive-list-fix.patch
 mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
-prctl-more-prctlpr_set_mm_-checks-fix.patch
-proc-fix-page_size-limit-of-proc-pid-cmdline-fix.patch
-bitmap-remove-explicit-newline-handling-using-scnprintf-format-string-fix.patch
-radix-tree-replace-preallocated-node-array-with-linked-list-fix.patch
-init-do_mounts-add-create_dev-failure-log-fix.patch
-rtc-omap-add-external-32k-clock-feature-fix.patch
-devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx-fix.patch
-ipcshm-move-bug_on-check-into-shm_lock-fix-2.patch
-ipcshm-move-bug_on-check-into-shm_lock-fix.patch
-scsi-resolve-sg-buffer-const-ness-issue-fix.patch
+exitstats-obey-this-comment.patch
 linux-next.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-drivers-block-nvme-corec-fix-build-with-gcc-444.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
 
