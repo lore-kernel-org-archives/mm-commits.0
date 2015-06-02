@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + x86-mirror-x86-enabling-find-mirrored-memory-ranges.patch added to -mm tree
-Date: Tue, 02 Jun 2015 14:37:34 -0700
-Message-ID: <556e221e.qFFG5zXzvh8MV+fN%akpm@linux-foundation.org>
+Subject: + fs-use-seq_open_private-for-proc_mounts.patch added to -mm tree
+Date: Tue, 02 Jun 2015 14:42:48 -0700
+Message-ID: <556e2358.EMSGqnxPpAIubiGo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46395 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46405 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751721AbbFBVhf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Jun 2015 17:37:35 -0400
+	with ESMTP id S1751627AbbFBVmt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Jun 2015 17:42:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tony.luck@intel.com, guohanjun@huawei.com, hpa@zytor.com, mingo@elte.hu, nao.horiguchi@gmail.com, qiuxishi@huawei.com, tglx@linutronix.de, xiexiuqi@huawei.com, yinghai@kernel.org, mm-commits@vger.kernel.org
+To: ydroneaud@opteya.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86, mirror: x86 enabling - find mirrored memory ranges
+     Subject: fs: use seq_open_private() for proc_mounts
 has been added to the -mm tree.  Its filename is
-     x86-mirror-x86-enabling-find-mirrored-memory-ranges.patch
+     fs-use-seq_open_private-for-proc_mounts.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86-mirror-x86-enabling-find-mirrored-memory-ranges.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-use-seq_open_private-for-proc_mounts.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86-mirror-x86-enabling-find-mirrored-memory-ranges.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-use-seq_open_private-for-proc_mounts.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,126 +38,225 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tony Luck <tony.luck@intel.com>
-Subject: x86, mirror: x86 enabling - find mirrored memory ranges
+From: Yann Droneaud <ydroneaud@opteya.com>
+Subject: fs: use seq_open_private() for proc_mounts
 
-UEFI GetMemoryMap() uses a new attribute bit to mark mirrored memory
-address ranges.  See UEFI 2.5 spec pages 157-158:
+A patchset to remove support for passing pre-allocated struct seq_file to
+seq_open().  Such feature is undocumented and prone to error.
 
-  http://www.uefi.org/sites/default/files/resources/UEFI%202_5.pdf
+In particular, if seq_release() is used in release handler, it will
+kfree() a pointer which was not allocated by seq_open().
 
-On EFI enabled systems scan the memory map and tell memblock about any
-mirrored ranges.
+So this patchset drops support for pre-allocated struct seq_file: it's
+only of use in proc_namespace.c and can be easily replaced by using
+seq_open_private()/seq_release_private().
 
-Signed-off-by: Tony Luck <tony.luck@intel.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Hanjun Guo <guohanjun@huawei.com>
-Cc: Xiexiuqi <xiexiuqi@huawei.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Additionally, it documents the use of file->private_data to hold pointer
+to struct seq_file by seq_open().
+
+
+
+This patch (of 3):
+
+Since patch described below, from v2.6.15-rc1, seq_open() could use a
+struct seq_file already allocated by the caller if the pointer to the
+structure is stored in file->private_data before calling the function.
+
+    Commit 1abe77b0fc4b485927f1f798ae81a752677e1d05
+    Author: Al Viro <viro@zeniv.linux.org.uk>
+    Date:   Mon Nov 7 17:15:34 2005 -0500
+
+        [PATCH] allow callers of seq_open do allocation themselves
+
+        Allow caller of seq_open() to kmalloc() seq_file + whatever else they
+        want and set ->private_data to it.  seq_open() will then abstain from
+        doing allocation itself.
+
+Such behavior is only used by mounts_open_common().
+
+In order to drop support for such uncommon feature, proc_mounts is
+converted to use seq_open_private(), which take care of allocating the
+proc_mounts structure, making it available through ->private in struct
+seq_file.
+
+Conversely, proc_mounts is converted to use seq_release_private(), in
+order to release the private structure allocated by seq_open_private().
+
+Then, ->private is used directly instead of proc_mounts() macro to access
+to the proc_mounts structure.
+
+Link: http://lkml.kernel.org/r/cover.1433193673.git.ydroneaud@opteya.com
+Signed-off-by: Yann Droneaud <ydroneaud@opteya.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/setup.c     |    3 +++
- arch/x86/platform/efi/efi.c |   21 +++++++++++++++++++++
- include/linux/efi.h         |    3 +++
- 3 files changed, 27 insertions(+)
+ fs/mount.h          |    3 ---
+ fs/namespace.c      |    6 +++---
+ fs/proc_namespace.c |   34 ++++++++++++++++------------------
+ 3 files changed, 19 insertions(+), 24 deletions(-)
 
-diff -puN arch/x86/kernel/setup.c~x86-mirror-x86-enabling-find-mirrored-memory-ranges arch/x86/kernel/setup.c
---- a/arch/x86/kernel/setup.c~x86-mirror-x86-enabling-find-mirrored-memory-ranges
-+++ a/arch/x86/kernel/setup.c
-@@ -1103,6 +1103,9 @@ void __init setup_arch(char **cmdline_p)
- 	memblock_set_current_limit(ISA_END_ADDRESS);
- 	memblock_x86_fill();
- 
-+	if (efi_enabled(EFI_BOOT))
-+		efi_find_mirror();
-+
- 	/*
- 	 * The EFI specification says that boot service code won't be called
- 	 * after ExitBootServices(). This is, in fact, a lie.
-diff -puN arch/x86/platform/efi/efi.c~x86-mirror-x86-enabling-find-mirrored-memory-ranges arch/x86/platform/efi/efi.c
---- a/arch/x86/platform/efi/efi.c~x86-mirror-x86-enabling-find-mirrored-memory-ranges
-+++ a/arch/x86/platform/efi/efi.c
-@@ -117,6 +117,27 @@ void efi_get_time(struct timespec *now)
- 	now->tv_nsec = 0;
+diff -puN fs/mount.h~fs-use-seq_open_private-for-proc_mounts fs/mount.h
+--- a/fs/mount.h~fs-use-seq_open_private-for-proc_mounts
++++ a/fs/mount.h
+@@ -117,7 +117,6 @@ static inline void unlock_mount_hash(voi
  }
  
-+void __init efi_find_mirror(void)
-+{
-+	void *p;
-+	u64 mirror_size = 0, total_size = 0;
-+
-+	for (p = memmap.map; p < memmap.map_end; p += memmap.desc_size) {
-+		efi_memory_desc_t *md = p;
-+		unsigned long long start = md->phys_addr;
-+		unsigned long long size = md->num_pages << EFI_PAGE_SHIFT;
-+
-+		total_size += size;
-+		if (md->attribute & EFI_MEMORY_MORE_RELIABLE) {
-+			memblock_mark_mirror(start, size);
-+			mirror_size += size;
-+		}
-+	}
-+	if (mirror_size)
-+		pr_info("Memory: %lldM/%lldM mirrored memory\n",
-+			mirror_size>>20, total_size>>20);
-+}
-+
- /*
-  * Tell the kernel about the EFI memory map.  This might include
-  * more than the max 128 entries that can fit in the e820 legacy
-diff -puN include/linux/efi.h~x86-mirror-x86-enabling-find-mirrored-memory-ranges include/linux/efi.h
---- a/include/linux/efi.h~x86-mirror-x86-enabling-find-mirrored-memory-ranges
-+++ a/include/linux/efi.h
-@@ -96,6 +96,8 @@ typedef	struct {
- #define EFI_MEMORY_WP		((u64)0x0000000000001000ULL)	/* write-protect */
- #define EFI_MEMORY_RP		((u64)0x0000000000002000ULL)	/* read-protect */
- #define EFI_MEMORY_XP		((u64)0x0000000000004000ULL)	/* execute-protect */
-+#define EFI_MEMORY_MORE_RELIABLE \
-+				((u64)0x0000000000010000ULL)	/* higher reliability */
- #define EFI_MEMORY_RUNTIME	((u64)0x8000000000000000ULL)	/* range requires runtime mapping */
- #define EFI_MEMORY_DESCRIPTOR_VERSION	1
+ struct proc_mounts {
+-	struct seq_file m;
+ 	struct mnt_namespace *ns;
+ 	struct path root;
+ 	int (*show)(struct seq_file *, struct vfsmount *);
+@@ -126,8 +125,6 @@ struct proc_mounts {
+ 	loff_t cached_index;
+ };
  
-@@ -864,6 +866,7 @@ extern void efi_enter_virtual_mode (void
- extern void efi_late_init(void);
- extern void efi_free_boot_services(void);
- extern efi_status_t efi_query_variable_store(u32 attributes, unsigned long size);
-+extern void efi_find_mirror(void);
- #else
- static inline void efi_late_init(void) {}
- static inline void efi_free_boot_services(void) {}
+-#define proc_mounts(p) (container_of((p), struct proc_mounts, m))
+-
+ extern const struct seq_operations mounts_op;
+ 
+ extern bool __is_local_mountpoint(struct dentry *dentry);
+diff -puN fs/namespace.c~fs-use-seq_open_private-for-proc_mounts fs/namespace.c
+--- a/fs/namespace.c~fs-use-seq_open_private-for-proc_mounts
++++ a/fs/namespace.c
+@@ -1215,7 +1215,7 @@ EXPORT_SYMBOL(replace_mount_options);
+ /* iterator; we want it to have access to namespace_sem, thus here... */
+ static void *m_start(struct seq_file *m, loff_t *pos)
+ {
+-	struct proc_mounts *p = proc_mounts(m);
++	struct proc_mounts *p = m->private;
+ 
+ 	down_read(&namespace_sem);
+ 	if (p->cached_event == p->ns->event) {
+@@ -1236,7 +1236,7 @@ static void *m_start(struct seq_file *m,
+ 
+ static void *m_next(struct seq_file *m, void *v, loff_t *pos)
+ {
+-	struct proc_mounts *p = proc_mounts(m);
++	struct proc_mounts *p = m->private;
+ 
+ 	p->cached_mount = seq_list_next(v, &p->ns->list, pos);
+ 	p->cached_index = *pos;
+@@ -1250,7 +1250,7 @@ static void m_stop(struct seq_file *m, v
+ 
+ static int m_show(struct seq_file *m, void *v)
+ {
+-	struct proc_mounts *p = proc_mounts(m);
++	struct proc_mounts *p = m->private;
+ 	struct mount *r = list_entry(v, struct mount, mnt_list);
+ 	return p->show(m, &r->mnt);
+ }
+diff -puN fs/proc_namespace.c~fs-use-seq_open_private-for-proc_mounts fs/proc_namespace.c
+--- a/fs/proc_namespace.c~fs-use-seq_open_private-for-proc_mounts
++++ a/fs/proc_namespace.c
+@@ -17,7 +17,8 @@
+ 
+ static unsigned mounts_poll(struct file *file, poll_table *wait)
+ {
+-	struct proc_mounts *p = proc_mounts(file->private_data);
++	struct seq_file *m = file->private_data;
++	struct proc_mounts *p = m->private;
+ 	struct mnt_namespace *ns = p->ns;
+ 	unsigned res = POLLIN | POLLRDNORM;
+ 	int event;
+@@ -25,8 +26,8 @@ static unsigned mounts_poll(struct file
+ 	poll_wait(file, &p->ns->poll, wait);
+ 
+ 	event = ACCESS_ONCE(ns->event);
+-	if (p->m.poll_event != event) {
+-		p->m.poll_event = event;
++	if (m->poll_event != event) {
++		m->poll_event = event;
+ 		res |= POLLERR | POLLPRI;
+ 	}
+ 
+@@ -92,7 +93,7 @@ static void show_type(struct seq_file *m
+ 
+ static int show_vfsmnt(struct seq_file *m, struct vfsmount *mnt)
+ {
+-	struct proc_mounts *p = proc_mounts(m);
++	struct proc_mounts *p = m->private;
+ 	struct mount *r = real_mount(mnt);
+ 	int err = 0;
+ 	struct path mnt_path = { .dentry = mnt->mnt_root, .mnt = mnt };
+@@ -126,7 +127,7 @@ out:
+ 
+ static int show_mountinfo(struct seq_file *m, struct vfsmount *mnt)
+ {
+-	struct proc_mounts *p = proc_mounts(m);
++	struct proc_mounts *p = m->private;
+ 	struct mount *r = real_mount(mnt);
+ 	struct super_block *sb = mnt->mnt_sb;
+ 	struct path mnt_path = { .dentry = mnt->mnt_root, .mnt = mnt };
+@@ -186,7 +187,7 @@ out:
+ 
+ static int show_vfsstat(struct seq_file *m, struct vfsmount *mnt)
+ {
+-	struct proc_mounts *p = proc_mounts(m);
++	struct proc_mounts *p = m->private;
+ 	struct mount *r = real_mount(mnt);
+ 	struct path mnt_path = { .dentry = mnt->mnt_root, .mnt = mnt };
+ 	struct super_block *sb = mnt_path.dentry->d_sb;
+@@ -236,6 +237,7 @@ static int mounts_open_common(struct ino
+ 	struct mnt_namespace *ns = NULL;
+ 	struct path root;
+ 	struct proc_mounts *p;
++	struct seq_file *m;
+ 	int ret = -EINVAL;
+ 
+ 	if (!task)
+@@ -260,26 +262,21 @@ static int mounts_open_common(struct ino
+ 	task_unlock(task);
+ 	put_task_struct(task);
+ 
+-	ret = -ENOMEM;
+-	p = kmalloc(sizeof(struct proc_mounts), GFP_KERNEL);
+-	if (!p)
++	ret = seq_open_private(file, &mounts_op, sizeof(struct proc_mounts));
++	if (ret)
+ 		goto err_put_path;
+ 
+-	file->private_data = &p->m;
+-	ret = seq_open(file, &mounts_op);
+-	if (ret)
+-		goto err_free;
++	m = file->private_data;
++	m->poll_event = ns->event;
+ 
++	p = m->private;
+ 	p->ns = ns;
+ 	p->root = root;
+-	p->m.poll_event = ns->event;
+ 	p->show = show;
+ 	p->cached_event = ~0ULL;
+ 
+ 	return 0;
+ 
+- err_free:
+-	kfree(p);
+  err_put_path:
+ 	path_put(&root);
+  err_put_ns:
+@@ -290,10 +287,11 @@ static int mounts_open_common(struct ino
+ 
+ static int mounts_release(struct inode *inode, struct file *file)
+ {
+-	struct proc_mounts *p = proc_mounts(file->private_data);
++	struct seq_file *m = file->private_data;
++	struct proc_mounts *p = m->private;
+ 	path_put(&p->root);
+ 	put_mnt_ns(p->ns);
+-	return seq_release(inode, file);
++	return seq_release_private(inode, file);
+ }
+ 
+ static int mounts_open(struct inode *inode, struct file *file)
 _
 
-Patches currently in -mm which might be from tony.luck@intel.com are
+Patches currently in -mm which might be from ydroneaud@opteya.com are
 
-mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare.patch
-memblock-introduce-a-for_each_reserved_mem_region-iterator.patch
-mm-meminit-move-page-initialization-into-a-separate-function.patch
-mm-meminit-only-set-page-reserved-in-the-memblock-region.patch
-mm-page_alloc-pass-pfn-to-__free_pages_bootmem.patch
-mm-meminit-make-__early_pfn_to_nid-smp-safe-and-introduce-meminit_pfn_in_nid.patch
-mm-meminit-inline-some-helper-functions.patch
-mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set.patch
-mm-meminit-initialise-remaining-struct-pages-in-parallel-with-kswapd.patch
-mm-meminit-minimise-number-of-pfn-page-lookups-during-initialisation.patch
-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
-mm-meminit-free-pages-in-large-chunks-where-possible.patch
-mm-meminit-reduce-number-of-times-pageblocks-are-set-during-struct-page-init.patch
-mm-meminit-remove-mminit_verify_page_links.patch
-mm-memory-failure-split-thp-earlier-in-memory-error-handling.patch
-mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling.patch
-mm-soft-offline-dont-free-target-page-in-successful-page-migration.patch
-mm-memory-failure-me_huge_page-does-nothing-for-thp.patch
-memory-failure-export-page_type-and-action-result.patch
-memory-failure-change-type-of-action_results-param-3-to-enum.patch
-tracing-add-trace-event-for-memory-failure.patch
-tracing-add-trace-event-for-memory-failure-fix.patch
-mm-memblock-add-extra-flags-to-memblock-to-allow-selection-of-memory-based-on-attribute.patch
-mm-memblock-allocate-boot-time-data-structures-from-mirrored-memory.patch
-x86-mirror-x86-enabling-find-mirrored-memory-ranges.patch
+fs-use-seq_open_private-for-proc_mounts.patch
+fs-allocate-structure-unconditionally-in-seq_open.patch
+fs-documents-seq_opens-usage-of-file-private_data.patch
 linux-next.patch
 
