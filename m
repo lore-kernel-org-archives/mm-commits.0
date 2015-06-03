@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- page-flags-define-behavior-of-lru-related-flags-on-compound-pages-fix-fix.patch added to -mm tree
-Date: Wed, 03 Jun 2015 16:06:58 -0700
-Message-ID: <556f8892.Hbf3K25m8XdNoX3S%akpm@linux-foundation.org>
+Subject: + mm-kmemleak-fix-crashing-during-kmemleak-disabling.patch added
+ to -mm tree
+Date: Wed, 03 Jun 2015 16:29:52 -0700
+Message-ID: <556f8df0.p6u9ephQnKxtfIUO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42717 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43228 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751885AbbFCXG7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jun 2015 19:06:59 -0400
+	with ESMTP id S1753281AbbFCX3x (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jun 2015 19:29:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, kirill@shutemov.name, mel@csn.ul.ie, mm-commits@vger.kernel.org
+To: catalin.marinas@arm.com, stable@vger.kernel.org, vigneshr@codeaurora.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: page-flags-define-behavior-of-lru-related-flags-on-compound-pages-fix-fix
+     Subject: mm: kmemleak: fix crashing during kmemleak disabling
 has been added to the -mm tree.  Its filename is
-     page-flags-define-behavior-of-lru-related-flags-on-compound-pages-fix-fix.patch
+     mm-kmemleak-fix-crashing-during-kmemleak-disabling.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/page-flags-define-behavior-of-lru-related-flags-on-compound-pages-fix-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-kmemleak-fix-crashing-during-kmemleak-disabling.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/page-flags-define-behavior-of-lru-related-flags-on-compound-pages-fix-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-kmemleak-fix-crashing-during-kmemleak-disabling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,86 +39,102 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: page-flags-define-behavior-of-lru-related-flags-on-compound-pages-fix-fix
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: mm: kmemleak: fix crashing during kmemleak disabling
 
-Mentioning hugetlbfs is misleading, because PageLRU() checks skip over
-hugetlb pages.  The ALIGN() parts are useless, because
-compound_order(page) returns 0 for tail pages.
+With the current implementation, if kmemleak is disabled because of an
+error condition (e.g.  fails to allocate metadata), alloc/free calls are
+no longer tracked.  Usually this is not a problem since the kmemleak
+metadata is being removed via kmemleak_do_cleanup().  However, if the
+scanning thread is running at the time of disabling, kmemleak would no
+longer notice a potential vfree() call and the freed/unmapped object may
+still be accessed, causing a fault.
 
-Acked-by: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Mel Gorman <mel@csn.ul.ie>
+This patch separates the kmemleak_free() enabling/disabling from the
+overall kmemleak_enabled nob so that we can defer the disabling of the
+object freeing tracking until the scanning thread completed.  The
+kmemleak_free_part() is deliberately ignored by this patch since this is
+only called during boot before the scanning thread started.
+
+Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
+Reported-by: Vignesh Radhakrishnan <vigneshr@codeaurora.org>
+Tested-by: Vignesh Radhakrishnan <vigneshr@codeaurora.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ mm/kmemleak.c |   18 +++++++++++++++---
+ 1 file changed, 15 insertions(+), 3 deletions(-)
 
-diff -puN mm/compaction.c~page-flags-define-behavior-of-lru-related-flags-on-compound-pages-fix-fix mm/compaction.c
---- a/mm/compaction.c~page-flags-define-behavior-of-lru-related-flags-on-compound-pages-fix-fix
-+++ a/mm/compaction.c
-@@ -733,9 +733,12 @@ isolate_migratepages_block(struct compac
- 		 * if PageLRU is set) but the lock is not necessarily taken
- 		 * here and it is wasteful to take it just to check transhuge.
- 		 * Check PageCompound without lock and skip the whole pageblock
--		 * if it's either a transhuge or hugetlbfs page, as calling
--		 * compound_order() without preventing THP from splitting the
--		 * page underneath us may return surprising results.
-+		 * if it's a transhuge page, as calling compound_order()
-+		 * without preventing THP from splitting the page underneath us
-+		 * may return surprising results.
-+		 * If we happen to check a THP tail page, compound_order()
-+		 * returns 0. It should be rare enough to not bother with
-+		 * using compound_head() in that case.
- 		 */
- 		if (PageCompound(page)) {
- 			int nr;
-@@ -743,7 +746,7 @@ isolate_migratepages_block(struct compac
- 				nr = 1 << compound_order(page);
- 			else
- 				nr = pageblock_nr_pages;
--			low_pfn = ALIGN(low_pfn + 1, nr) - 1;
-+			low_pfn += nr - 1;
- 			continue;
- 		}
+diff -puN mm/kmemleak.c~mm-kmemleak-fix-crashing-during-kmemleak-disabling mm/kmemleak.c
+--- a/mm/kmemleak.c~mm-kmemleak-fix-crashing-during-kmemleak-disabling
++++ a/mm/kmemleak.c
+@@ -195,6 +195,8 @@ static struct kmem_cache *scan_area_cach
  
-@@ -768,7 +771,7 @@ isolate_migratepages_block(struct compac
- 				continue;
- 			if (PageCompound(page)) {
- 				int nr = 1 << compound_order(page);
--				low_pfn = ALIGN(low_pfn + 1, nr) - 1;
-+				low_pfn += nr - 1;
- 				continue;
- 			}
- 		}
+ /* set if tracing memory operations is enabled */
+ static int kmemleak_enabled;
++/* same as above but only for the kmemleak_free() callback */
++static int kmemleak_free_enabled;
+ /* set in the late_initcall if there were no errors */
+ static int kmemleak_initialized;
+ /* enables or disables early logging of the memory operations */
+@@ -942,7 +944,7 @@ void __ref kmemleak_free(const void *ptr
+ {
+ 	pr_debug("%s(0x%p)\n", __func__, ptr);
+ 
+-	if (kmemleak_enabled && ptr && !IS_ERR(ptr))
++	if (kmemleak_free_enabled && ptr && !IS_ERR(ptr))
+ 		delete_object_full((unsigned long)ptr);
+ 	else if (kmemleak_early_log)
+ 		log_early(KMEMLEAK_FREE, ptr, 0, 0);
+@@ -982,7 +984,7 @@ void __ref kmemleak_free_percpu(const vo
+ 
+ 	pr_debug("%s(0x%p)\n", __func__, ptr);
+ 
+-	if (kmemleak_enabled && ptr && !IS_ERR(ptr))
++	if (kmemleak_free_enabled && ptr && !IS_ERR(ptr))
+ 		for_each_possible_cpu(cpu)
+ 			delete_object_full((unsigned long)per_cpu_ptr(ptr,
+ 								      cpu));
+@@ -1750,6 +1752,12 @@ static void kmemleak_do_cleanup(struct w
+ 	mutex_lock(&scan_mutex);
+ 	stop_scan_thread();
+ 
++	/*
++	 * Once the scan thread has stopped, it is safe to no longer track
++	 * object freeing.
++	 */
++	kmemleak_free_enabled = 0;
++
+ 	if (!kmemleak_found_leaks)
+ 		__kmemleak_do_cleanup();
+ 	else
+@@ -1776,6 +1784,8 @@ static void kmemleak_disable(void)
+ 	/* check whether it is too early for a kernel thread */
+ 	if (kmemleak_initialized)
+ 		schedule_work(&cleanup_work);
++	else
++		kmemleak_free_enabled = 0;
+ 
+ 	pr_info("Kernel memory leak detector disabled\n");
+ }
+@@ -1840,8 +1850,10 @@ void __init kmemleak_init(void)
+ 	if (kmemleak_error) {
+ 		local_irq_restore(flags);
+ 		return;
+-	} else
++	} else {
+ 		kmemleak_enabled = 1;
++		kmemleak_free_enabled = 1;
++	}
+ 	local_irq_restore(flags);
+ 
+ 	/*
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from catalin.marinas@arm.com are
 
-mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-reclaimable-pages.patch
-mm-oom_kill-remove-unnecessary-locking-in-oom_enable.patch
-mm-oom_kill-clean-up-victim-marking-and-exiting-interfaces.patch
-mm-oom_kill-switch-test-and-clear-of-known-tif_memdie-to-clear.patch
-mm-oom_kill-generalize-oom-progress-waitqueue.patch
-mm-oom_kill-remove-unnecessary-locking-in-exit_oom_victim.patch
-mm-oom_kill-simplify-oom-killer-locking.patch
-mm-page_alloc-inline-should_alloc_retry.patch
-page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages-fix.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages-fix-fix.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-mm-sanitize-page-mapping-for-tail-pages.patch
+mm-kmemleak-fix-crashing-during-kmemleak-disabling.patch
+mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare.patch
 linux-next.patch
 
