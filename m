@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-remove-unused-mem_cgroup-oom_wakeups.patch added to -mm
- tree
-Date: Wed, 03 Jun 2015 15:47:33 -0700
-Message-ID: <556f8405.HmYCYE5u63WaOI6t%akpm@linux-foundation.org>
+Subject: +
+ page-flags-define-behavior-of-lru-related-flags-on-compound-pages-fix-fix.patch added to -mm tree
+Date: Wed, 03 Jun 2015 16:06:58 -0700
+Message-ID: <556f8892.Hbf3K25m8XdNoX3S%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42353 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42717 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753643AbbFCWre (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jun 2015 18:47:34 -0400
+	with ESMTP id S1751885AbbFCXG7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Jun 2015 19:06:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, hannes@cmpxchg.org, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, kirill@shutemov.name, mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: remove unused mem_cgroup->oom_wakeups
+     Subject: page-flags-define-behavior-of-lru-related-flags-on-compound-pages-fix-fix
 has been added to the -mm tree.  Its filename is
-     memcg-remove-unused-mem_cgroup-oom_wakeups.patch
+     page-flags-define-behavior-of-lru-related-flags-on-compound-pages-fix-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-remove-unused-mem_cgroup-oom_wakeups.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/page-flags-define-behavior-of-lru-related-flags-on-compound-pages-fix-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-remove-unused-mem_cgroup-oom_wakeups.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/page-flags-define-behavior-of-lru-related-flags-on-compound-pages-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,74 +39,86 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tejun Heo <tj@kernel.org>
-Subject: memcg: remove unused mem_cgroup->oom_wakeups
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: page-flags-define-behavior-of-lru-related-flags-on-compound-pages-fix-fix
 
-Since 4942642080ea ("mm: memcg: handle non-error OOM situations more
-gracefully"), nobody uses mem_cgroup->oom_wakeups.  Remove it.
+Mentioning hugetlbfs is misleading, because PageLRU() checks skip over
+hugetlb pages.  The ALIGN() parts are useless, because
+compound_order(page) returns 0 for tail pages.
 
-While at it, also fold memcg_wakeup_oom() into memcg_oom_recover() which
-is its only user.  This cleanup was suggested by Michal.
-
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   10 +---------
- 1 file changed, 1 insertion(+), 9 deletions(-)
+ mm/compaction.c |   13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-remove-unused-mem_cgroup-oom_wakeups mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-remove-unused-mem_cgroup-oom_wakeups
-+++ a/mm/memcontrol.c
-@@ -287,7 +287,6 @@ struct mem_cgroup {
+diff -puN mm/compaction.c~page-flags-define-behavior-of-lru-related-flags-on-compound-pages-fix-fix mm/compaction.c
+--- a/mm/compaction.c~page-flags-define-behavior-of-lru-related-flags-on-compound-pages-fix-fix
++++ a/mm/compaction.c
+@@ -733,9 +733,12 @@ isolate_migratepages_block(struct compac
+ 		 * if PageLRU is set) but the lock is not necessarily taken
+ 		 * here and it is wasteful to take it just to check transhuge.
+ 		 * Check PageCompound without lock and skip the whole pageblock
+-		 * if it's either a transhuge or hugetlbfs page, as calling
+-		 * compound_order() without preventing THP from splitting the
+-		 * page underneath us may return surprising results.
++		 * if it's a transhuge page, as calling compound_order()
++		 * without preventing THP from splitting the page underneath us
++		 * may return surprising results.
++		 * If we happen to check a THP tail page, compound_order()
++		 * returns 0. It should be rare enough to not bother with
++		 * using compound_head() in that case.
+ 		 */
+ 		if (PageCompound(page)) {
+ 			int nr;
+@@ -743,7 +746,7 @@ isolate_migratepages_block(struct compac
+ 				nr = 1 << compound_order(page);
+ 			else
+ 				nr = pageblock_nr_pages;
+-			low_pfn = ALIGN(low_pfn + 1, nr) - 1;
++			low_pfn += nr - 1;
+ 			continue;
+ 		}
  
- 	bool		oom_lock;
- 	atomic_t	under_oom;
--	atomic_t	oom_wakeups;
- 
- 	int	swappiness;
- 	/* OOM-Killer disable */
-@@ -1851,17 +1850,10 @@ static int memcg_oom_wake_function(wait_
- 	return autoremove_wake_function(wait, mode, sync, arg);
- }
- 
--static void memcg_wakeup_oom(struct mem_cgroup *memcg)
--{
--	atomic_inc(&memcg->oom_wakeups);
--	/* for filtering, pass "memcg" as argument. */
--	__wake_up(&memcg_oom_waitq, TASK_NORMAL, 0, memcg);
--}
--
- static void memcg_oom_recover(struct mem_cgroup *memcg)
- {
- 	if (memcg && atomic_read(&memcg->under_oom))
--		memcg_wakeup_oom(memcg);
-+		__wake_up(&memcg_oom_waitq, TASK_NORMAL, 0, memcg);
- }
- 
- static void mem_cgroup_oom(struct mem_cgroup *memcg, gfp_t mask, int order)
+@@ -768,7 +771,7 @@ isolate_migratepages_block(struct compac
+ 				continue;
+ 			if (PageCompound(page)) {
+ 				int nr = 1 << compound_order(page);
+-				low_pfn = ALIGN(low_pfn + 1, nr) - 1;
++				low_pfn += nr - 1;
+ 				continue;
+ 			}
+ 		}
 _
 
-Patches currently in -mm which might be from tj@kernel.org are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
-mm-memcg-try-charging-a-page-before-setting-page-up-to-date.patch
-memcg-remove-unused-mem_cgroup-oom_wakeups.patch
-memcg-convert-mem_cgroup-under_oom-from-atomic_t-to-int.patch
-fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
-printk-guard-the-amount-written-per-line-by-devkmsg_read.patch
-printk-factor-out-message-formatting-from-devkmsg_read.patch
-printk-implement-support-for-extended-console-drivers.patch
-netconsole-remove-unnecessary-netconsole_target_get-out-from-write_msg.patch
-netconsole-make-netconsole_target-enabled-a-bool.patch
-netconsole-make-all-dynamic-netconsoles-share-a-mutex.patch
-netconsole-implement-extended-console-support.patch
-bitmap-remove-explicit-newline-handling-using-scnprintf-format-string.patch
-bitmap-remove-explicit-newline-handling-using-scnprintf-format-string-fix.patch
-ipc-msgc-msgsnd-use-freezable-blocking-call.patch
-msgrcv-use-freezable-blocking-call.patch
+mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-reclaimable-pages.patch
+mm-oom_kill-remove-unnecessary-locking-in-oom_enable.patch
+mm-oom_kill-clean-up-victim-marking-and-exiting-interfaces.patch
+mm-oom_kill-switch-test-and-clear-of-known-tif_memdie-to-clear.patch
+mm-oom_kill-generalize-oom-progress-waitqueue.patch
+mm-oom_kill-remove-unnecessary-locking-in-exit_oom_victim.patch
+mm-oom_kill-simplify-oom-killer-locking.patch
+mm-page_alloc-inline-should_alloc_retry.patch
+page-flags-trivial-cleanup-for-pagetrans-helpers.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
+page-flags-define-pg_locked-behavior-on-compound-pages.patch
+page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-lru-related-flags-on-compound-pages-fix.patch
+page-flags-define-behavior-of-lru-related-flags-on-compound-pages-fix-fix.patch
+page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
+page-flags-define-pg_reserved-behavior-on-compound-pages.patch
+page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
+page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
+page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
+page-flags-define-pg_uncached-behavior-on-compound-pages.patch
+page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
+page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
+mm-sanitize-page-mapping-for-tail-pages.patch
 linux-next.patch
-printk-improve-the-description-of-dev-kmsg-line-format.patch
 
