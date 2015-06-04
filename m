@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-colorize-output-to-terminal.patch added to -mm tree
-Date: Thu, 04 Jun 2015 14:57:01 -0700
-Message-ID: <5570c9ad.NivwIYTsQvia+xGE%akpm@linux-foundation.org>
+Subject: +
+ checkpatch-add-showfile-to-allow-input-via-pipe-to-show-filenames.patch
+ added to -mm tree
+Date: Thu, 04 Jun 2015 14:57:03 -0700
+Message-ID: <5570c9af.6ei0sX9G1NQsRrCz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43452 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43455 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932068AbbFDV5C (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Jun 2015 17:57:02 -0400
+	with ESMTP id S932068AbbFDV5E (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Jun 2015 17:57:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: joe@perches.com, apw@canonical.com, pmladek@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: colorize output to terminal
+     Subject: checkpatch: add --showfile to allow input via pipe to show filenames
 has been added to the -mm tree.  Its filename is
-     checkpatch-colorize-output-to-terminal.patch
+     checkpatch-add-showfile-to-allow-input-via-pipe-to-show-filenames.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-colorize-output-to-terminal.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-showfile-to-allow-input-via-pipe-to-show-filenames.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-colorize-output-to-terminal.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-showfile-to-allow-input-via-pipe-to-show-filenames.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,92 +41,99 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: colorize output to terminal
+Subject: checkpatch: add --showfile to allow input via pipe to show filenames
 
-Add optional colors to make seeing message types a bit easier.
+Using "git diff | ./scripts/checkpatch -" does not have an
+easy mechanism to see the files and lines actually modified.
 
-Add --color command line switch, default:on
+Add --showfile to see the file and line specified in the diff.
 
-Error is RED, warning is YELLOW, check is GREEN.  The message type, if
-shown, is BLUE.
+When --showfile is used without --terse, the second line of each
+message output is redundant, so it is removed.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Tested-by: Petr Mladek <pmladek@suse.cz>
+Cc: Petr Mladek <pmladek@suse.cz>
 Cc: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   27 +++++++++++++++++++++------
- 1 file changed, 21 insertions(+), 6 deletions(-)
+ scripts/checkpatch.pl |   22 +++++++++++++++++-----
+ 1 file changed, 17 insertions(+), 5 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-colorize-output-to-terminal scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-colorize-output-to-terminal
+diff -puN scripts/checkpatch.pl~checkpatch-add-showfile-to-allow-input-via-pipe-to-show-filenames scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-showfile-to-allow-input-via-pipe-to-show-filenames
 +++ a/scripts/checkpatch.pl
-@@ -9,6 +9,7 @@ use strict;
- use POSIX;
- use File::Basename;
- use Cwd 'abs_path';
-+use Term::ANSIColor qw(:constants);
- 
- my $P = $0;
- my $D = dirname(abs_path($P));
-@@ -49,6 +50,7 @@ my $min_conf_desc_length = 4;
- my $spelling_file = "$D/spelling.txt";
- my $codespell = 0;
- my $codespellfile = "/usr/local/share/codespell/dictionary.txt";
-+my $color = 1;
- 
- sub help {
- 	my ($exitcode) = @_;
-@@ -93,6 +95,7 @@ Options:
-   --codespell                Use the codespell dictionary for spelling/typos
-                              (default:/usr/local/share/codespell/dictionary.txt)
-   --codespellfile            Use this codespell dictionary
-+  --color                    Use colors when output is STDOUT (default: on)
-   -h, --help, --version      display this help and exit
- 
- When FILE is - read standard input.
-@@ -153,6 +156,7 @@ GetOptions(
- 	'test-only=s'	=> \$tst_only,
- 	'codespell!'	=> \$codespell,
- 	'codespellfile=s'	=> \$codespellfile,
-+	'color!'	=> \$color,
- 	'h|help'	=> \$help,
- 	'version'	=> \$help
- ) or help(1);
-@@ -1672,15 +1676,26 @@ sub report {
- 	    (defined $tst_only && $msg !~ /\Q$tst_only\E/)) {
- 		return 0;
+@@ -25,6 +25,7 @@ my $chk_patch = 1;
+ my $tst_only;
+ my $emacs = 0;
+ my $terse = 0;
++my $showfile = 0;
+ my $file = 0;
+ my $check = 0;
+ my $check_orig = 0;
+@@ -66,6 +67,7 @@ Options:
+   --patch                    treat FILE as patchfile (default)
+   --emacs                    emacs compile window format
+   --terse                    one line per report
++  --showfile                 emit diffed file position, not input file position
+   -f, --file                 treat FILE as regular source file
+   --subjective, --strict     enable more subjective tests
+   --types TYPE(,TYPE2...)    show only these comma separated message types
+@@ -137,6 +139,7 @@ GetOptions(
+ 	'patch!'	=> \$chk_patch,
+ 	'emacs!'	=> \$emacs,
+ 	'terse!'	=> \$terse,
++	'showfile!'	=> \$showfile,
+ 	'f|file!'	=> \$file,
+ 	'subjective!'	=> \$check,
+ 	'strict!'	=> \$check,
+@@ -1693,6 +1696,12 @@ sub report {
  	}
--	my $line;
-+	my $output = '';
-+	if (-t STDOUT && $color) {
-+		if ($level eq 'ERROR') {
-+			$output .= RED;
-+		} elsif ($level eq 'WARNING') {
-+			$output .= YELLOW;
-+		} else {
-+			$output .= GREEN;
-+		}
+ 	$output .= RESET if (-t STDOUT && $color);
+ 	$output .= ' ' . $msg . "\n";
++
++	if ($showfile) {
++		my @lines = split("\n", $output, -1);
++		splice(@lines, 1, 1);
++		$output = join("\n", @lines);
 +	}
-+	$output .= $prefix . $level . ':';
- 	if ($show_types) {
--		$line = "$prefix$level:$type: $msg\n";
--	} else {
--		$line = "$prefix$level: $msg\n";
-+		$output .= BLUE if (-t STDOUT && $color);
-+		$output .= "$type:";
+ 	$output = (split('\n', $output))[0] . "\n" if ($terse);
+ 
+ 	push(our @report, $output);
+@@ -2119,10 +2128,6 @@ sub process {
+ 
+ 		my $hunk_line = ($realcnt != 0);
+ 
+-#make up the handle for any error we report on this line
+-		$prefix = "$filename:$realline: " if ($emacs && $file);
+-		$prefix = "$filename:$linenr: " if ($emacs && !$file);
+-
+ 		$here = "#$linenr: " if (!$file);
+ 		$here = "#$realline: " if ($file);
+ 
+@@ -2152,6 +2157,13 @@ sub process {
+ 			$found_file = 1;
+ 		}
+ 
++#make up the handle for any error we report on this line
++		if ($showfile) {
++			$prefix = "$realfile:$realline: "
++		} elsif ($emacs) {
++			$prefix = "$filename:$linenr: ";
++		}
++
+ 		if ($found_file) {
+ 			if ($realfile =~ m@^(drivers/net/|net/)@) {
+ 				$check = 1;
+@@ -5606,7 +5618,7 @@ sub process {
+ 		ERROR("NOT_UNIFIED_DIFF",
+ 		      "Does not appear to be a unified-diff format patch\n");
  	}
--	$line = (split('\n', $line))[0] . "\n" if ($terse);
-+	$output .= RESET if (-t STDOUT && $color);
-+	$output .= ' ' . $msg . "\n";
-+	$output = (split('\n', $output))[0] . "\n" if ($terse);
- 
--	push(our @report, $line);
-+	push(our @report, $output);
- 
- 	return 1;
- }
+-	if ($is_patch && $chk_signoff && $signoff == 0) {
++	if ($is_patch && $filename ne '-' && $chk_signoff && $signoff == 0) {
+ 		ERROR("MISSING_SIGN_OFF",
+ 		      "Missing Signed-off-by: line(s)\n");
+ 	}
 _
 
 Patches currently in -mm which might be from joe@perches.com are
