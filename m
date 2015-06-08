@@ -1,495 +1,338 @@
 From: akpm@linux-foundation.org
-Subject: mmotm 2015-06-04-16-23 uploaded
-Date: Thu, 04 Jun 2015 16:24:12 -0700
-Message-ID: <5570de1c.E+5zS4mSE7hEwyqR%akpm__12868.678107816$1433460305$gmane$org@linux-foundation.org>
+Subject: + linux-next-rejects-git-rejects.patch added to -mm tree
+Date: Mon, 08 Jun 2015 13:09:16 -0700
+Message-ID: <5575f66c.G5VCpr4rtKhqkY4W%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44511 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57437 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752486AbbFDXYN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Jun 2015 19:24:13 -0400
+	with ESMTP id S1753513AbbFHUJR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jun 2015 16:09:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-next@vger.kernel.org, sfr@canb.auug.org.au, mhocko@suse.cz
-
-The mm-of-the-moment snapshot 2015-06-04-16-23 has been uploaded to
-
-   http://www.ozlabs.org/~akpm/mmotm/
-
-mmotm-readme.txt says
-
-README for mm-of-the-moment:
-
-http://www.ozlabs.org/~akpm/mmotm/
-
-This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
-more than once a week.
-
-You will need quilt to apply these patches to the latest Linus release (4.x
-or 4.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
-http://ozlabs.org/~akpm/mmotm/series
-
-The file broken-out.tar.gz contains two datestamp files: .DATE and
-.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
-followed by the base kernel version against which this patch series is to
-be applied.
-
-This tree is partially included in linux-next.  To see which patches are
-included in linux-next, consult the `series' file.  Only the patches
-within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
-linux-next.
-
-A git tree which contains the memory management portion of this tree is
-maintained at git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
-by Michal Hocko.  It contains the patches which are between the
-"#NEXT_PATCHES_START mm" and "#NEXT_PATCHES_END" markers, from the series
-file, http://www.ozlabs.org/~akpm/mmotm/series.
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
-A full copy of the full kernel tree with the linux-next and mmotm patches
-already applied is available through git within an hour of the mmotm
-release.  Individual mmotm releases are tagged.  The master branch always
-points to the latest release, so it's constantly rebasing.
+The patch titled
+     Subject: linux-next-rejects-git-rejects
+has been added to the -mm tree.  Its filename is
+     linux-next-rejects-git-rejects.patch
 
-http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-rejects-git-rejects.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-rejects-git-rejects.patch
 
-To develop on top of mmotm git:
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-  $ git remote add mmotm git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
-  $ git remote update mmotm
-  $ git checkout -b topic mmotm/master
-  <make changes, commit>
-  $ git send-email mmotm/master.. [...]
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-To rebase a branch with older patches to a new mmotm release:
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
-  $ git remote update mmotm
-  $ git rebase --onto mmotm/master <topic base> topic
+------------------------------------------------------
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-rejects-git-rejects
 
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
+ arch/x86/kernel/cpu/perf_event.h          |    5 -
+ arch/x86/kernel/cpu/perf_event_intel.c    |   69 --------------------
+ arch/x86/kernel/cpu/perf_event_intel_pt.c |    6 -
+ drivers/gpu/drm/i915/intel_ringbuffer.c   |    3 
+ drivers/tty/serial/amba-pl011.c           |   17 ----
+ drivers/usb/musb/musb_core.c              |    4 -
+ tools/testing/selftests/x86/Makefile      |    4 -
+ 7 files changed, 108 deletions(-)
 
+diff -puN arch/x86/kernel/cpu/perf_event.h~linux-next-rejects-git-rejects arch/x86/kernel/cpu/perf_event.h
+--- a/arch/x86/kernel/cpu/perf_event.h~linux-next-rejects-git-rejects
++++ a/arch/x86/kernel/cpu/perf_event.h
+@@ -526,11 +526,6 @@ struct x86_pmu {
+ 	void		(*put_event_constraints)(struct cpu_hw_events *cpuc,
+ 						 struct perf_event *event);
+ 
+-<<<<<<< HEAD
+-	void		(*commit_scheduling)(struct cpu_hw_events *cpuc, int idx, int cntr);
+-
+-=======
+->>>>>>> linux-next/akpm-base
+ 	void		(*start_scheduling)(struct cpu_hw_events *cpuc);
+ 
+ 	void		(*commit_scheduling)(struct cpu_hw_events *cpuc, int idx, int cntr);
+diff -puN arch/x86/kernel/cpu/perf_event_intel.c~linux-next-rejects-git-rejects arch/x86/kernel/cpu/perf_event_intel.c
+--- a/arch/x86/kernel/cpu/perf_event_intel.c~linux-next-rejects-git-rejects
++++ a/arch/x86/kernel/cpu/perf_event_intel.c
+@@ -2003,28 +2003,6 @@ intel_get_excl_constraints(struct cpu_hw
+ 	 */
+ 	if (WARN_ON_ONCE(!excl_cntrs))
+ 		return c;
+-<<<<<<< HEAD
+-	/*
+-	 * event requires exclusive counter access
+-	 * across HT threads
+-	 */
+-	is_excl = c->flags & PERF_X86_EVENT_EXCL;
+-	if (is_excl && !(event->hw.flags & PERF_X86_EVENT_EXCL_ACCT)) {
+-		event->hw.flags |= PERF_X86_EVENT_EXCL_ACCT;
+-		if (!cpuc->n_excl++)
+-			WRITE_ONCE(excl_cntrs->has_exclusive[tid], 1);
+-	}
+-
+-	/*
+-	 * xl = state of current HT
+-	 * xlo = state of sibling HT
+-	 */
+-	xl = &excl_cntrs->states[tid];
+-	xlo = &excl_cntrs->states[o_tid];
+-
+-	cx = c;
+-=======
+->>>>>>> linux-next/akpm-base
+ 
+ 	/*
+ 	 * because we modify the constraint, we need
+@@ -2162,11 +2140,6 @@ static void intel_put_excl_constraints(s
+ 	if (WARN_ON_ONCE(!excl_cntrs))
+ 		return;
+ 
+-<<<<<<< HEAD
+-	xl = &excl_cntrs->states[tid];
+-	xlo = &excl_cntrs->states[o_tid];
+-=======
+->>>>>>> linux-next/akpm-base
+ 	if (hwc->flags & PERF_X86_EVENT_EXCL_ACCT) {
+ 		hwc->flags &= ~PERF_X86_EVENT_EXCL_ACCT;
+ 		if (!--cpuc->n_excl)
+@@ -2222,44 +2195,6 @@ static void intel_put_event_constraints(
+ 	 */
+ 	if (cpuc->excl_cntrs)
+ 		intel_put_excl_constraints(cpuc, event);
+-<<<<<<< HEAD
+-}
+-
+-static void intel_commit_scheduling(struct cpu_hw_events *cpuc, int idx, int cntr)
+-{
+-	struct intel_excl_cntrs *excl_cntrs = cpuc->excl_cntrs;
+-	struct event_constraint *c = cpuc->event_constraint[idx];
+-	struct intel_excl_states *xlo, *xl;
+-	int tid = cpuc->excl_thread_id;
+-	int o_tid = 1 - tid;
+-	int is_excl;
+-
+-	if (cpuc->is_fake || !c)
+-		return;
+-
+-	is_excl = c->flags & PERF_X86_EVENT_EXCL;
+-
+-	if (!(c->flags & PERF_X86_EVENT_DYNAMIC))
+-		return;
+-
+-	WARN_ON_ONCE(!excl_cntrs);
+-
+-	if (!excl_cntrs)
+-		return;
+-
+-	xl = &excl_cntrs->states[tid];
+-	xlo = &excl_cntrs->states[o_tid];
+-
+-	WARN_ON_ONCE(!raw_spin_is_locked(&excl_cntrs->lock));
+-
+-	if (cntr >= 0) {
+-		if (is_excl)
+-			xlo->init_state[cntr] = INTEL_EXCL_EXCLUSIVE;
+-		else
+-			xlo->init_state[cntr] = INTEL_EXCL_SHARED;
+-	}
+-=======
+->>>>>>> linux-next/akpm-base
+ }
+ 
+ static void intel_pebs_aliases_core2(struct perf_event *event)
+@@ -2652,11 +2587,7 @@ static void intel_pmu_cpu_starting(int c
+ 		cpuc->lbr_sel = &cpuc->shared_regs->regs[EXTRA_REG_LBR];
+ 
+ 	if (x86_pmu.flags & PMU_FL_EXCL_CNTRS) {
+-<<<<<<< HEAD
+-		for_each_cpu(i, topology_thread_cpumask(cpu)) {
+-=======
+ 		for_each_cpu(i, topology_sibling_cpumask(cpu)) {
+->>>>>>> linux-next/akpm-base
+ 			struct intel_excl_cntrs *c;
+ 
+ 			c = per_cpu(cpu_hw_events, i).excl_cntrs;
+diff -puN arch/x86/kernel/cpu/perf_event_intel_pt.c~linux-next-rejects-git-rejects arch/x86/kernel/cpu/perf_event_intel_pt.c
+--- a/arch/x86/kernel/cpu/perf_event_intel_pt.c~linux-next-rejects-git-rejects
++++ a/arch/x86/kernel/cpu/perf_event_intel_pt.c
+@@ -613,12 +613,6 @@ static int pt_buffer_reset_markers(struc
+ {
+ 	unsigned long head = local64_read(&buf->head);
+ 	unsigned long idx, npages, wakeup;
+-<<<<<<< HEAD
+-
+-	if (buf->snapshot)
+-		return 0;
+-=======
+->>>>>>> linux-next/akpm-base
+ 
+ 	/* can't stop in the middle of an output region */
+ 	if (buf->output_off + handle->size + 1 <
+diff -puN drivers/gpu/drm/i915/intel_ringbuffer.c~linux-next-rejects-git-rejects drivers/gpu/drm/i915/intel_ringbuffer.c
+--- a/drivers/gpu/drm/i915/intel_ringbuffer.c~linux-next-rejects-git-rejects
++++ a/drivers/gpu/drm/i915/intel_ringbuffer.c
+@@ -1030,8 +1030,6 @@ static int skl_init_workarounds(struct i
+ 				  HDC_FENCE_DEST_SLM_DISABLE |
+ 				  HDC_BARRIER_PERFORMANCE_DISABLE);
+ 
+-<<<<<<< HEAD
+-=======
+ 	if (INTEL_REVID(dev) <= SKL_REVID_D0) {
+ 		/*
+ 		 *Use Force Non-Coherent whenever executing a 3D context. This
+@@ -1043,7 +1041,6 @@ static int skl_init_workarounds(struct i
+ 				  HDC_FORCE_NON_COHERENT);
+ 	}
+ 
+->>>>>>> linux-next/akpm-base
+ 	return skl_tune_iz_hashing(ring);
+ }
+ 
+diff -puN drivers/tty/serial/amba-pl011.c~linux-next-rejects-git-rejects drivers/tty/serial/amba-pl011.c
+--- a/drivers/tty/serial/amba-pl011.c~linux-next-rejects-git-rejects
++++ a/drivers/tty/serial/amba-pl011.c
+@@ -1259,23 +1259,11 @@ __acquires(&uap->port.lock)
+ 	spin_lock(&uap->port.lock);
+ }
+ 
+-<<<<<<< HEAD
+-/*
+- * Transmit a character
+- *
+- * Returns true if the character was successfully queued to the FIFO.
+- * Returns false otherwise.
+- */
+-static bool pl011_tx_char(struct uart_amba_port *uap, unsigned char c)
+-{
+-	if (readw(uap->port.membase + UART01x_FR) & UART01x_FR_TXFF)
+-=======
+ static bool pl011_tx_char(struct uart_amba_port *uap, unsigned char c,
+ 			  bool from_irq)
+ {
+ 	if (unlikely(!from_irq) &&
+ 	    readw(uap->port.membase + UART01x_FR) & UART01x_FR_TXFF)
+->>>>>>> linux-next/akpm-base
+ 		return false; /* unable to transmit character */
+ 
+ 	writew(c, uap->port.membase + UART01x_DR);
+@@ -1290,13 +1278,8 @@ static void pl011_tx_chars(struct uart_a
+ 	int count = uap->fifosize >> 1;
+ 
+ 	if (uap->port.x_char) {
+-<<<<<<< HEAD
+-		if (!pl011_tx_char(uap, uap->port.x_char))
+-			goto done;
+-=======
+ 		if (!pl011_tx_char(uap, uap->port.x_char, from_irq))
+ 			return;
+->>>>>>> linux-next/akpm-base
+ 		uap->port.x_char = 0;
+ 		--count;
+ 	}
+diff -puN drivers/usb/musb/musb_core.c~linux-next-rejects-git-rejects drivers/usb/musb/musb_core.c
+--- a/drivers/usb/musb/musb_core.c~linux-next-rejects-git-rejects
++++ a/drivers/usb/musb/musb_core.c
+@@ -2032,11 +2032,7 @@ musb_init_controller(struct device *dev,
+ 	if (musb->ops->quirks)
+ 		musb->io.quirks = musb->ops->quirks;
+ 
+-<<<<<<< HEAD
+-	/* Most devices use indexed offset or flat offset */
+-=======
+ 	/* Set default ep access to indexed offset or flat offset ops */
+->>>>>>> linux-next/akpm-base
+ 	if (musb->io.quirks & MUSB_INDEXED_EP) {
+ 		musb->io.ep_offset = musb_indexed_ep_offset;
+ 		musb->io.ep_select = musb_indexed_ep_select;
+diff -puN tools/testing/selftests/x86/Makefile~linux-next-rejects-git-rejects tools/testing/selftests/x86/Makefile
+--- a/tools/testing/selftests/x86/Makefile~linux-next-rejects-git-rejects
++++ a/tools/testing/selftests/x86/Makefile
+@@ -4,11 +4,7 @@ include ../lib.mk
+ 
+ .PHONY: all all_32 all_64 warn_32bit_failure clean
+ 
+-<<<<<<< HEAD
+-TARGETS_C_BOTHBITS := sigreturn single_step_syscall
+-=======
+ TARGETS_C_BOTHBITS := sigreturn single_step_syscall sysret_ss_attrs
+->>>>>>> linux-next/akpm-base
+ TARGETS_C_32BIT_ONLY := entry_from_vm86
+ 
+ TARGETS_C_32BIT_ALL := $(TARGETS_C_BOTHBITS) $(TARGETS_C_32BIT_ONLY)
+_
 
-The directory http://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
-contains daily snapshots of the -mm tree.  It is updated more frequently
-than mmotm, and is untested.
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-A git copy of this tree is available at
+arch-alpha-kernel-systblss-remove-debug-check.patch
+ocfs2-reduce-object-size-of-mlog-uses-fix.patch
+ocfs2-remove-__mlog_cpu_guess.patch
+ocfs2-remove-__mlog_cpu_guess-fix.patch
+ocfs2-fix-null-pointer-dereference-in-function-ocfs2_abort_trigger-fix.patch
+mm.patch
+mm-slab_common-support-the-slub_debug-boot-option-on-specific-object-size-fix.patch
+slub-bulk-allocation-from-per-cpu-partial-pages-fix.patch
+mm-fix-mprotect-behaviour-on-vm_locked-vmas-fix.patch
+mm-new-mm-hook-framework.patch
+mm-meminit-inline-some-helper-functions-fix.patch
+mm-meminit-finish-initialisation-of-struct-pages-before-basic-setup-fix.patch
+mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling-fix.patch
+rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix.patch
+rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix-fix.patch
+userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
+userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
+userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
+fs-userfaultfdc-work-around-i386-build-error.patch
+hugetlb-do-not-account-hugetlb-pages-as-nr_file_pages-fix.patch
+mm-do-not-ignore-mapping_gfp_mask-in-page-cache-allocation-paths-checkpatch-fixes.patch
+oom-split-out-forced-oom-killer-checkpatch-fixes.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
+zswap-runtime-enable-disable-fix.patch
+prctl-more-prctlpr_set_mm_-checks-fix.patch
+proc-fix-page_size-limit-of-proc-pid-cmdline-fix.patch
+bitmap-remove-explicit-newline-handling-using-scnprintf-format-string-fix.patch
+radix-tree-replace-preallocated-node-array-with-linked-list-fix.patch
+init-do_mounts-add-create_dev-failure-log-fix.patch
+rtc-omap-add-external-32k-clock-feature-fix.patch
+devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx-fix.patch
+ipcshm-move-bug_on-check-into-shm_lock-fix-2.patch
+ipcshm-move-bug_on-check-into-shm_lock-fix.patch
+scsi-resolve-sg-buffer-const-ness-issue-fix.patch
+revert-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
+linux-next.patch
+reapply-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
+linux-next-rejects.patch
+drivers-block-nvme-corec-fix-build-with-gcc-444.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+linux-next-rejects-git-rejects.patch
 
-	http://git.cmpxchg.org/cgit.cgi/linux-mmots.git/
-
-and use of this tree is similar to
-http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/, described above.
-
-
-This mmotm tree contains the following patches against 4.1-rc6:
-(patches marked "*" will be included in linux-next)
-
-  origin.patch
-  arch-alpha-kernel-systblss-remove-debug-check.patch
-* mm-memory_hotplug-set-zone-wait_table-to-null-after-free-it.patch
-* memcg-do-not-call-reclaim-if-__gfp_wait.patch
-* zram-clear-disk-io-accounting-when-reset-zram-device.patch
-* checkpatch-fix-global_initialisers-test.patch
-* mm-memcontrol-fix-false-positive-vm_bug_on-on-rt.patch
-* mm-kmemleak-fix-crashing-during-kmemleak-disabling.patch
-* revert-ufs-fix-deadlocks-introduced-by-sb-mutex-merge.patch
-* ufs-restore-s_lock-mutex.patch
-* ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work.patch
-* ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work-v2.patch
-  metag-use-for_each_sg.patch
-* powerpc-use-for_each_sg.patch
-* fsnotify-remove-obsolete-documentation.patch
-* mips-use-for_each_sg.patch
-* ntfs-use-kvfree-in-ntfs_free.patch
-* configfs-unexport-make-static-config_item_init.patch
-* fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-* jbd2-revert-must-not-fail-allocation-loops-back-to-gfp_nofail.patch
-* ocfs2-reduce-object-size-of-mlog-uses.patch
-* ocfs2-reduce-object-size-of-mlog-uses-fix.patch
-* ocfs2-remove-__mlog_cpu_guess.patch
-* ocfs2-remove-__mlog_cpu_guess-fix.patch
-* ocfs2-fix-a-tiny-race-when-truncate-dio-orohaned-entry.patch
-* ocfs2-use-retval-instead-of-status-for-checking-error.patch
-* ocfs2-dlm-cleanup-unused-function-__dlm_wait_on_lockres_flags_set.patch
-* ocfs2-return-error-while-ocfs2_figure_merge_contig_type-failing.patch
-* ocfs2-remove-bug_onempty_extent-in-__ocfs2_rotate_tree_left.patch
-* ocfs2-do-not-bug-if-jbd2_journal_dirty_metadata-fails.patch
-* ocfs2-do-not-bug-if-jbd2_journal_dirty_metadata-fails-v3.patch
-* ocfs2-remove-ocfs2_iocb_sem-lock-type-in-direct-io.patch
-* ocfs2-o2net-should-remove-debugfs-in-o2net_init-out-branch.patch
-* ocfs2-fix-null-pointer-dereference-in-function-ocfs2_abort_trigger.patch
-* ocfs2-fix-null-pointer-dereference-in-function-ocfs2_abort_trigger-fix.patch
-* ocfs2-fix-wrong-check-in-ocfs2_direct_io_get_blocks.patch
-* ocfs2-set-filesytem-read-only-when-ocfs2_delete_entry-failed.patch
-* ocfs2-set-filesytem-read-only-when-ocfs2_delete_entry-failed-v2.patch
-* ocfs2-trusted-xattr-missing-cap_sys_admin-check.patch
-* ocfs2-flush-inode-data-to-disk-and-free-inode-when-i_count-becomes-zero.patch
-* add-errors=continue.patch
-* acknowledge-return-value-of-ocfs2_error.patch
-* clear-the-rest-of-the-buffers-on-error.patch
-* ocfs2-fix-a-tiny-case-that-inode-can-not-removed.patch
-* ocfs2-add-ip_alloc_sem-in-direct-io-to-protect-allocation-changes.patch
-* ocfs2-extend-transaction-for-ocfs2_remove_rightmost_path-and-ocfs2_update_edge_lengths-before-to-avoid-inconsistency-between-inode-and-et.patch
-* ocfs2-do-not-set-fs-read-only-if-rec-is-empty-while-committing-truncate.patch
-* extend-enough-credits-for-freeing-one-truncate-record-while-replaying-truncate-records.patch
-* resubmit-bug_onlockres-l_level-=-dlm_lock_ex-checkpointed-tripped-in-ocfs2_ci_checkpointed.patch
-* resubmit-ocfs2_iop_set-get_acl-called-from-the-vfs-so-take-inode-lock-v2second-version.patch
-* ocfs2-fix-race-between-crashed-dio-and-rm.patch
-* ocfs2-use-64bit-variables-to-track-heartbeat-time.patch
-* ocfs2-call-ocfs2_journal_access_di-before-ocfs2_journal_dirty-in-ocfs2_write_end_nolock.patch
-* ocfs2-avoid-access-invalid-address-when-read-o2dlm-debug-messages.patch
-* ocfs2-neaten-do_error-ocfs2_error-and-ocfs2_abort.patch
-* parisc-use-for_each_sg.patch
-* block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
-* sparc-use-for_each_sg.patch
-* posix_acl-make-posix_acl_create-safer-and-cleaner.patch
-* smpboot-allow-excluding-cpus-from-the-smpboot-threads.patch
-* smpboot-allow-excluding-cpus-from-the-smpboot-threads-fix.patch
-* watchdog-add-watchdog_cpumask-sysctl-to-assist-nohz.patch
-* watchdog-add-watchdog_cpumask-sysctl-to-assist-nohz-fix-2.patch
-* watchdog-add-watchdog_cpumask-sysctl-to-assist-nohz-fix-3.patch
-* procfs-treat-parked-tasks-as-sleeping-for-task-state.patch
-* xtensa-use-for_each_sg.patch
-  mm.patch
-* mm-slab_common-support-the-slub_debug-boot-option-on-specific-object-size.patch
-* mm-slab_common-support-the-slub_debug-boot-option-on-specific-object-size-fix.patch
-* slab-correct-size_index-table-before-replacing-the-bootstrap-kmem_cache_node.patch
-* linux-slabh-fix-three-off-by-one-typos-in-comment.patch
-* slab-infrastructure-for-bulk-object-allocation-and-freeing-v3.patch
-* slub-bulk-alloc-extract-objects-from-the-per-cpu-slab.patch
-* slub-bulk-allocation-from-per-cpu-partial-pages.patch
-* slub-bulk-allocation-from-per-cpu-partial-pages-fix.patch
-* mm-hwpoison-add-comment-describing-when-to-add-new-cases.patch
-* mm-hwpoison-remove-obsolete-notebook-todo-list.patch
-* thp-cleanup-how-khugepaged-enters-freezer.patch
-* mm-fix-mprotect-behaviour-on-vm_locked-vmas.patch
-* mm-fix-mprotect-behaviour-on-vm_locked-vmas-fix.patch
-* mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare.patch
-* mm-new-mm-hook-framework.patch
-* mm-new-arch_remap-hook.patch
-* powerpc-mm-tracking-vdso-remap.patch
-* mm-hugetlb-reduce-arch-dependent-code-about-hugetlb_prefault_arch_hook.patch
-* memblock-introduce-a-for_each_reserved_mem_region-iterator.patch
-* mm-meminit-move-page-initialization-into-a-separate-function.patch
-* mm-meminit-only-set-page-reserved-in-the-memblock-region.patch
-* mm-page_alloc-pass-pfn-to-__free_pages_bootmem.patch
-* mm-page_alloc-pass-pfn-to-__free_pages_bootmem-fix.patch
-* mm-meminit-make-__early_pfn_to_nid-smp-safe-and-introduce-meminit_pfn_in_nid.patch
-* mm-meminit-inline-some-helper-functions.patch
-* mm-meminit-inline-some-helper-functions-fix.patch
-* mm-meminit-inline-some-helper-functions-fix2.patch
-* mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set.patch
-* mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set-fix.patch
-* mm-meminit-initialise-remaining-struct-pages-in-parallel-with-kswapd.patch
-* mm-meminit-minimise-number-of-pfn-page-lookups-during-initialisation.patch
-* x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
-* mm-meminit-free-pages-in-large-chunks-where-possible.patch
-* mm-meminit-reduce-number-of-times-pageblocks-are-set-during-struct-page-init.patch
-* mm-meminit-reduce-number-of-times-pageblocks-are-set-during-struct-page-init-fix.patch
-* mm-meminit-remove-mminit_verify_page_links.patch
-* mm-meminit-finish-initialisation-of-struct-pages-before-basic-setup.patch
-* mm-meminit-finish-initialisation-of-struct-pages-before-basic-setup-fix.patch
-* mm-only-define-hashdist-variable-when-needed.patch
-* mm-drop-bogus-vm_bug_on_page-assert-in-put_page-codepath.patch
-* mm-avoid-tail-page-refcounting-on-non-thp-compound-pages.patch
-* mm-page_allocc-cleanup-obsolete-km_user.patch
-* mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-reclaimable-pages.patch
-* rename-reclaim_swap-to-reclaim_unmap.patch
-* mm-memory-failure-split-thp-earlier-in-memory-error-handling.patch
-* mm-memory-failure-split-thp-earlier-in-memory-error-handling-v2.patch
-* mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling.patch
-* mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling-v2.patch
-* mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling-fix.patch
-* mm-soft-offline-dont-free-target-page-in-successful-page-migration.patch
-* mm-memory-failure-me_huge_page-does-nothing-for-thp.patch
-* rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list.patch
-* rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix.patch
-* rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix-fix.patch
-* mm-hugetlb-introduce-minimum-hugepage-order.patch
-* mm-memory-hotplug-init-the-zones-size-when-calculate-node-totalpages.patch
-* userfaultfd-linux-documentation-vm-userfaultfdtxt.patch
-* userfaultfd-linux-documentation-vm-userfaultfdtxt-fix.patch
-* userfaultfd-waitqueue-add-nr-wake-parameter-to-__wake_up_locked_key.patch
-* userfaultfd-uapi.patch
-* userfaultfd-uapi-add-missing-include-typesh.patch
-* userfaultfd-linux-userfaultfd_kh.patch
-* userfaultfd-add-vm_userfaultfd_ctx-to-the-vm_area_struct.patch
-* userfaultfd-add-vm_uffd_missing-and-vm_uffd_wp.patch
-* userfaultfd-call-handle_userfault-for-userfaultfd_missing-faults.patch
-* userfaultfd-teach-vma_merge-to-merge-across-vma-vm_userfaultfd_ctx.patch
-* userfaultfd-prevent-khugepaged-to-merge-if-userfaultfd-is-armed.patch
-* userfaultfd-add-new-syscall-to-provide-memory-externalization.patch
-* userfaultfd-add-new-syscall-to-provide-memory-externalization-fix.patch
-* userfaultfd-add-new-syscall-to-provide-memory-externalization-fix-fix.patch
-* userfaultfd-add-new-syscall-to-provide-memory-externalization-fix-fix-fix.patch
-* userfaultfd-rename-uffd_apibits-into-features.patch
-* userfaultfd-rename-uffd_apibits-into-features-fixup.patch
-* userfaultfd-change-the-read-api-to-return-a-uffd_msg.patch
-* userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix.patch
-* userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
-* userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
-* userfaultfd-wake-pending-userfaults.patch
-* userfaultfd-optimize-read-and-poll-to-be-o1.patch
-* userfaultfd-optimize-read-and-poll-to-be-o1-fix.patch
-* userfaultfd-allocate-the-userfaultfd_ctx-cacheline-aligned.patch
-* userfaultfd-solve-the-race-between-uffdio_copyzeropage-and-read.patch
-* userfaultfd-buildsystem-activation.patch
-* userfaultfd-activate-syscall.patch
-* userfaultfd-activate-syscall-fix.patch
-* userfaultfd-uffdio_copyuffdio_zeropage-uapi.patch
-* userfaultfd-mcopy_atomicmfill_zeropage-uffdio_copyuffdio_zeropage-preparation.patch
-* userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic.patch
-* userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
-* userfaultfd-uffdio_copy-and-uffdio_zeropage.patch
-* fs-userfaultfdc-work-around-i386-build-error.patch
-* mm-oom_kill-remove-unnecessary-locking-in-oom_enable.patch
-* mm-oom_kill-clean-up-victim-marking-and-exiting-interfaces.patch
-* mm-oom_kill-switch-test-and-clear-of-known-tif_memdie-to-clear.patch
-* mm-oom_kill-generalize-oom-progress-waitqueue.patch
-* mm-oom_kill-remove-unnecessary-locking-in-exit_oom_victim.patch
-* mm-oom_kill-simplify-oom-killer-locking.patch
-* mm-page_alloc-inline-should_alloc_retry.patch
-* hugetlb-do-not-account-hugetlb-pages-as-nr_file_pages.patch
-* hugetlb-do-not-account-hugetlb-pages-as-nr_file_pages-fix.patch
-* mm-memcg-try-charging-a-page-before-setting-page-up-to-date.patch
-* memory-failure-export-page_type-and-action-result.patch
-* memory-failure-change-type-of-action_results-param-3-to-enum.patch
-* tracing-add-trace-event-for-memory-failure.patch
-* tracing-add-trace-event-for-memory-failure-fix.patch
-* mm-thp-split-out-pmd-collpase-flush-into-a-separate-functions.patch
-* powerpc-mm-use-generic-version-of-pmdp_clear_flush.patch
-* mm-clarify-that-the-function-operates-on-hugepage-pte.patch
-* mm-nommu-refactor-debug-and-warning-prints.patch
-* documentation-vm-unevictable-lrutxt-clarify-map_locked-behavior.patch
-* mm-hugetlb-document-the-reserve-map-region-tracking-routines.patch
-* mm-hugetlb-compute-return-the-number-of-regions-added-by-region_add.patch
-* mm-hugetlb-handle-races-in-alloc_huge_page-and-hugetlb_reserve_pages.patch
-* mm-hugetlb-handle-races-in-alloc_huge_page-and-hugetlb_reserve_pages-v4.patch
-* s390-mm-make-hugepages_supported-a-boot-time-decision.patch
-* mm-hugetlb-remove-unused-arch-hook-prepare-release_hugepage.patch
-* mm-hugetlb-remove-arch_prepare-release_hugepage-from-arch-headers.patch
-* s390-hugetlb-remove-dead-code-for-sw-emulated-huge-pages.patch
-* s390-mm-forward-check-for-huge-pmds-to-pmd_large.patch
-* oom-print-points-as-unsigned-int.patch
-* mm-cma-fix-for-typos-in-comments.patch
-* oom-always-panic-on-oom-when-panic_on_oom-is-configured.patch
-* mm-do-not-ignore-mapping_gfp_mask-in-page-cache-allocation-paths.patch
-* mm-do-not-ignore-mapping_gfp_mask-in-page-cache-allocation-paths-checkpatch-fixes.patch
-* mm-memblock-add-extra-flags-to-memblock-to-allow-selection-of-memory-based-on-attribute.patch
-* mm-memblock-allocate-boot-time-data-structures-from-mirrored-memory.patch
-* x86-mirror-x86-enabling-find-mirrored-memory-ranges.patch
-* oom-split-out-forced-oom-killer.patch
-* oom-split-out-forced-oom-killer-checkpatch-fixes.patch
-* frontswap-allow-multiple-backends.patch
-* memcg-remove-unused-mem_cgroup-oom_wakeups.patch
-* memcg-convert-mem_cgroup-under_oom-from-atomic_t-to-int.patch
-* page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-* page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-* page-flags-define-pg_locked-behavior-on-compound-pages.patch
-* page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-* page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-* page-flags-define-behavior-of-lru-related-flags-on-compound-pages-fix.patch
-* page-flags-define-behavior-of-lru-related-flags-on-compound-pages-fix-fix.patch
-* page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-* page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-* page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-* page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-* page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-* page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-* page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-* page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-* page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-* mm-sanitize-page-mapping-for-tail-pages.patch
-* include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
-* mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-* mm-page_isolation-check-pfn-validity-before-access.patch
-* mm-fix-invalid-use-of-pfn_valid_within-in-test_pages_in_a_zone.patch
-* fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
-* x86-add-pmd_-for-thp.patch
-* x86-add-pmd_-for-thp-fix.patch
-* sparc-add-pmd_-for-thp.patch
-* sparc-add-pmd_-for-thp-fix.patch
-* powerpc-add-pmd_-for-thp.patch
-* arm-add-pmd_mkclean-for-thp.patch
-* arm64-add-pmd_-for-thp.patch
-* mm-support-madvisemadv_free.patch
-* mm-support-madvisemadv_free-fix.patch
-* mm-support-madvisemadv_free-fix-2.patch
-* mm-dont-split-thp-page-when-syscall-is-called.patch
-* mm-dont-split-thp-page-when-syscall-is-called-fix.patch
-* mm-dont-split-thp-page-when-syscall-is-called-fix-2.patch
-* mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
-* mm-free-swp_entry-in-madvise_free.patch
-* mm-move-lazy-free-pages-to-inactive-list.patch
-* mm-move-lazy-free-pages-to-inactive-list-fix.patch
-* mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-* mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
-* zram-remove-obsolete-zram_debug-option.patch
-* zsmalloc-remove-obsolete-zsmalloc_debug.patch
-* zram-add-compact-sysfs-entry-to-documentation.patch
-* zram-cosmetic-zram_attr_ro-code-formatting-tweak.patch
-* zram-use-idr-instead-of-zram_devices-array.patch
-* zram-reorganize-code-layout.patch
-* zram-remove-max_num_devices-limitation.patch
-* zram-report-every-added-and-removed-device.patch
-* zram-trivial-correct-flag-operations-comment.patch
-* zram-return-zram-device_id-from-zram_add.patch
-* zram-close-race-by-open-overriding.patch
-* zram-add-dynamic-device-add-remove-functionality.patch
-* zram-cosmetic-zram_bvec_write-cleanup.patch
-* zram-cut-trailing-newline-in-algorithm-name.patch
-* zram-check-comp-algorithm-availability-earlier.patch
-* zram-check-comp-algorithm-availability-earlier-v2.patch
-* zswap-runtime-enable-disable.patch
-* zswap-runtime-enable-disable-fix.patch
-* zpool-change-pr_info-to-pr_debug.patch
-* zpool-remove-zpool_evict.patch
-* frv-remove-unused-inline-function-is_in_rom.patch
-* frv-use-for_each_sg.patch
-* avr32-use-for_each_sg.patch
-* prctl-more-prctlpr_set_mm_-checks.patch
-* prctl-more-prctlpr_set_mm_-checks-fix.patch
-* proc-fix-page_size-limit-of-proc-pid-cmdline.patch
-* proc-fix-page_size-limit-of-proc-pid-cmdline-fix.patch
-* proc-fix-page_size-limit-of-proc-pid-cmdline-update.patch
-* fs-proc-introduce-config_proc_children.patch
-* compiler-gcch-neatening.patch
-* compiler-gcc-integrate-the-various-compiler-gcch-files.patch
-* compiler-intel-fix-wrong-compiler-barrier-macro.patch
-* pratyush-anand-has-moved.patch
-* mohit-kumar-has-moved.patch
-* clone-support-passing-tls-argument-via-c-rather-than-pt_regs-magic.patch
-* clone-support-passing-tls-argument-via-c-rather-than-pt_regs-magic-fix.patch
-* clone-support-passing-tls-argument-via-c-rather-than-pt_regs-magic-fix-2.patch
-* printk-guard-the-amount-written-per-line-by-devkmsg_read.patch
-* printk-factor-out-message-formatting-from-devkmsg_read.patch
-* printk-implement-support-for-extended-console-drivers.patch
-* netconsole-remove-unnecessary-netconsole_target_get-out-from-write_msg.patch
-* netconsole-make-netconsole_target-enabled-a-bool.patch
-* netconsole-make-all-dynamic-netconsoles-share-a-mutex.patch
-* netconsole-implement-extended-console-support.patch
-* security_syslog-should-be-called-once-only.patch
-* check_syslog_permissions-cleanup.patch
-* lib-vsprintf-add-%pt-format-specifier.patch
-* get_maintainerpl-add-get_maintainerignore-file-capability.patch
-* __bitmap_parselist-fix-bug-in-empty-string-handling.patch
-* hexdump-make-test-data-really-const.patch
-* lib-sort-add-64-bit-swap-function.patch
-* lib-sort-add-64-bit-swap-function-v2.patch
-* lib-sort-add-64-bit-swap-function-v2-fix.patch
-* bitmap-remove-explicit-newline-handling-using-scnprintf-format-string.patch
-* bitmap-remove-explicit-newline-handling-using-scnprintf-format-string-fix.patch
-* radix-tree-replace-preallocated-node-array-with-linked-list.patch
-* radix-tree-replace-preallocated-node-array-with-linked-list-fix.patch
-* mm-utilc-add-kstrimdup.patch
-* lib-add-crc64-ecma-module.patch
-* checkpatch-check-for-uncommented-waitqueue_active.patch
-* checkpatch-add-strict-warning-for-c99-fixed-size-typedefs-intsize_t.patch
-* checkpatch-make-types-found-in-a-source-file-patch-local.patch
-* checkpatch-use-string-consistently.patch
-* checkpatch-categorize-some-long-line-length-checks.patch
-* checkpatch-improve-output-with-multiple-command-line-files.patch
-* checkpatch-colorize-output-to-terminal.patch
-* checkpatch-add-showfile-to-allow-input-via-pipe-to-show-filenames.patch
-* checkpatch-remove-local-from-codespell-path.patch
-* checkpatch-avoid-not_unified_diff-errors-on-cover-letterpatch-files.patch
-* efs-remove-unneeded-cast.patch
-* kasan-remove-duplicate-definition-of-the-macro-kasan_free_page.patch
-* init-do_mounts-add-create_dev-failure-log.patch
-* init-do_mounts-add-create_dev-failure-log-fix.patch
-* drivers-rtc-rtc-ds1307c-enable-the-mcp794xx-alarm-after-programming-time.patch
-* rtc-omap-add-external-32k-clock-feature.patch
-* rtc-omap-add-external-32k-clock-feature-fix.patch
-* drivers-rtc-interfacec-check-the-error-after-__rtc_read_time.patch
-* rtc-restore-alarm-after-resume.patch
-* minix-no-need-to-cast-alloction-return-value-in-minix.patch
-* fs-befs-btreec-remove-unneeded-initializations.patch
-* nilfs2-support-nfsv2-export.patch
-* reiserfs-avoid-pointless-casts-in-alloc-codes.patch
-* fat-add-fat_fallocate-operation.patch
-* fat-skip-cluster-allocation-on-fallocated-region.patch
-* fat-permit-to-return-phy-block-number-by-fibmap-in-fallocated-region.patch
-* documentation-filesystems-vfattxt-update-the-limitation-for-fat-fallocate.patch
-* coredump-use-from_kuid-kgid-when-formatting-corename.patch
-* coredump-add-__printf-attribute-to-cn_printf-functions.patch
-* exitstats-obey-this-comment.patch
-* fs-use-seq_open_private-for-proc_mounts.patch
-* fs-allocate-structure-unconditionally-in-seq_open.patch
-* fs-documents-seq_opens-usage-of-file-private_data.patch
-* prepend-elfcorehdr-instead-of-appending-it-to-the-crash-kernel-command-line.patch
-* kernel-panic-call-the-2nd-crash_kexec-only-if-crash_kexec_post_notifiers-is-enabled.patch
-* kernel-panic-kexec-fix-crash_kexec_post_notifiers-option-issue-in-oops-path.patch
-* kdump-vmcoreinfo-report-actual-value-of-phys_base.patch
-* gcov-add-support-for-gcc-51.patch
-* adfs-remove-unneeded-cast.patch
-* fs-affs-inodec-remove-unneeded-initialization.patch
-* fs-affs-amigaffsc-remove-unneeded-initialization.patch
-* fs-affs-symlinkc-remove-unneeded-err-variable.patch
-* memstick-remove-deprecated-use-of-pci-api.patch
-* w1-masters-omap_hdq-add-support-for-1-wire-mode.patch
-* scripts-gdb-add-command-to-check-list-consistency.patch
-* scripts-gdb-also-allow-list_head-pointer-as-lx-list-check-paramter.patch
-* scripts-gdb-enable-completion-for-lx-list-check-parameter.patch
-* scripts-gdb-fix-typo-in-exception-name.patch
-* scripts-gdb-fix-pep8-compliance.patch
-* scripts-gdb-add-ps-command.patch
-* scripts-gdb-remove-useless-global-instruction.patch
-* devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx.patch
-* devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx-fix.patch
-* arc-use-for_each_sg.patch
-* ipc-msgc-msgsnd-use-freezable-blocking-call.patch
-* ipc-utilc-use-kvfree-in-ipc_rcu_free.patch
-* ipcshm-move-bug_on-check-into-shm_lock.patch
-* ipcshm-move-bug_on-check-into-shm_lock-fix-2.patch
-* ipcshm-move-bug_on-check-into-shm_lock-fix.patch
-* ipcmsg-provide-barrier-pairings-for-lockless-receive.patch
-* msgrcv-use-freezable-blocking-call.patch
-* lib-scatterlist-fix-kerneldoc-for-sg_pcopy_tofrom_buffer.patch
-* lib-scatterlist-mark-input-buffer-parameters-as-const.patch
-* scsi-resolve-sg-buffer-const-ness-issue.patch
-* scsi-resolve-sg-buffer-const-ness-issue-fix.patch
-  revert-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
-  linux-next.patch
-  reapply-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
-  linux-next-rejects.patch
-* drivers-block-nvme-corec-fix-build-with-gcc-444.patch
-* drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-* drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-* unicore32-remove-unnecessary-kern_err-in-fpu-ucf64c.patch
-* printk-improve-the-description-of-dev-kmsg-line-format.patch
-* kernel-relayc-use-kvfree-in-relay_free_page_array.patch
-* cxgb3-use-kvfree-in-cxgb_free_mem.patch
-* cxgb4-use-kvfree-in-t4_free_mem.patch
-* drm-use-kvfree-in-drm_free_large.patch
-* drm-nouveau-gem-use-kvfree-in-u_free.patch
-* ib-ehca-use-kvfree-in-ipz_queue_cdtor.patch
-* target-use-kvfree-in-session-alloc-and-free.patch
-* libcxgbi-use-kvfree-in-cxgbi_free_big_mem.patch
-* bcache-use-kvfree-in-various-places.patch
-* fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void.patch
-* maintainers-update-emulex-ocrdma-email-addresses.patch
-* maintainers-remove-website-for-paride.patch
-* maintainers-update-sound-soc-intel-patterns.patch
-* maintainers-update-brcm-dts-pattern.patch
-* maintainers-update-brcm-gpio-filename-pattern.patch
-* maintainers-remove-unused-nbdh-pattern.patch
-* maintainers-move-jens-osterkamp-to-credits.patch
-* maintainers-bcache-kent-overstreet-has-changed-email-address.patch
-* maintainers-add-zpool.patch
-* x86-opt-into-have_copy_thread_tls-for-both-32-bit-and-64-bit.patch
-* w1-call-put_device-if-device_register-fails.patch
-  mm-add-strictlimit-knob-v2.patch
-  do_shared_fault-check-that-mmap_sem-is-held.patch
-  make-sure-nobodys-leaking-resources.patch
-  journal_add_journal_head-debug.patch
-  journal_add_journal_head-debug-fix.patch
-  releasing-resources-with-children.patch
-  make-frame_pointer-default=y.patch
-  kernel-forkc-export-kernel_thread-to-modules.patch
-  mutex-subsystem-synchro-test-module.patch
-  slab-leaks3-default-y.patch
-  add-debugging-aid-for-memory-initialisation-problems.patch
-  workaround-for-a-pci-restoring-bug.patch
