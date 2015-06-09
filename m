@@ -1,324 +1,170 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-rejects-git-rejects.patch removed from -mm
- tree
-Date: Tue, 09 Jun 2015 12:50:36 -0700
-Message-ID: <5577438c.OJWPTlrjypZgiHmd%akpm@linux-foundation.org>
+Subject: [merged]
+ jbd2-revert-must-not-fail-allocation-loops-back-to-gfp_nofail.patch removed from -mm tree
+Date: Tue, 09 Jun 2015 12:53:04 -0700
+Message-ID: <55774420.Mwn5f0JkTqnyWJ99%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:32992 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33003 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752630AbbFITuh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jun 2015 15:50:37 -0400
+	with ESMTP id S1752460AbbFITxF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jun 2015 15:53:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mhocko@suse.cz, davem@davemloft.net, david@fromorbit.com, hannes@cmpxchg.org, jack@suse.cz, mgorman@suse.de, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, tytso@mit.edu, vipul@chelsio.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-rejects-git-rejects
+     Subject: jbd2: revert must-not-fail allocation loops back to GFP_NOFAIL
 has been removed from the -mm tree.  Its filename was
-     linux-next-rejects-git-rejects.patch
+     jbd2-revert-must-not-fail-allocation-loops-back-to-gfp_nofail.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-rejects-git-rejects
+From: Michal Hocko <mhocko@suse.cz>
+Subject: jbd2: revert must-not-fail allocation loops back to GFP_NOFAIL
 
+This basically reverts 47def82672b3 ("jbd2: Remove __GFP_NOFAIL from jbd2
+layer").  The deprecation of __GFP_NOFAIL was a bad choice because it led
+to open coding the endless loop around the allocator rather than removing
+the dependency on the non failing allocation.  So the deprecation was a
+clear failure and the reality tells us that __GFP_NOFAIL is not even close
+to go away.
+
+It is still true that __GFP_NOFAIL allocations are generally discouraged
+and new uses should be evaluated and an alternative (pre-allocations or
+reservations) should be considered but it doesn't make any sense to lie
+the allocator about the requirements.  Allocator can take steps to help
+making a progress if it knows the requirements.
+
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Vipul Pandya <vipul@chelsio.com>
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/perf_event.h          |    5 -
- arch/x86/kernel/cpu/perf_event_intel.c    |   69 --------------------
- arch/x86/kernel/cpu/perf_event_intel_pt.c |    6 -
- drivers/gpu/drm/i915/intel_ringbuffer.c   |    3 
- drivers/tty/serial/amba-pl011.c           |   17 ----
- drivers/usb/musb/musb_core.c              |    4 -
- tools/testing/selftests/x86/Makefile      |    4 -
- 7 files changed, 108 deletions(-)
+ fs/jbd2/journal.c     |   11 +----------
+ fs/jbd2/transaction.c |   20 +++++++-------------
+ 2 files changed, 8 insertions(+), 23 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/perf_event.h~linux-next-rejects-git-rejects arch/x86/kernel/cpu/perf_event.h
---- a/arch/x86/kernel/cpu/perf_event.h~linux-next-rejects-git-rejects
-+++ a/arch/x86/kernel/cpu/perf_event.h
-@@ -526,11 +526,6 @@ struct x86_pmu {
- 	void		(*put_event_constraints)(struct cpu_hw_events *cpuc,
- 						 struct perf_event *event);
- 
--<<<<<<< HEAD
--	void		(*commit_scheduling)(struct cpu_hw_events *cpuc, int idx, int cntr);
--
--=======
-->>>>>>> linux-next/akpm-base
- 	void		(*start_scheduling)(struct cpu_hw_events *cpuc);
- 
- 	void		(*commit_scheduling)(struct cpu_hw_events *cpuc, int idx, int cntr);
-diff -puN arch/x86/kernel/cpu/perf_event_intel.c~linux-next-rejects-git-rejects arch/x86/kernel/cpu/perf_event_intel.c
---- a/arch/x86/kernel/cpu/perf_event_intel.c~linux-next-rejects-git-rejects
-+++ a/arch/x86/kernel/cpu/perf_event_intel.c
-@@ -2003,28 +2003,6 @@ intel_get_excl_constraints(struct cpu_hw
+diff -puN fs/jbd2/journal.c~jbd2-revert-must-not-fail-allocation-loops-back-to-gfp_nofail fs/jbd2/journal.c
+--- a/fs/jbd2/journal.c~jbd2-revert-must-not-fail-allocation-loops-back-to-gfp_nofail
++++ a/fs/jbd2/journal.c
+@@ -371,16 +371,7 @@ int jbd2_journal_write_metadata_buffer(t
  	 */
- 	if (WARN_ON_ONCE(!excl_cntrs))
- 		return c;
--<<<<<<< HEAD
--	/*
--	 * event requires exclusive counter access
--	 * across HT threads
--	 */
--	is_excl = c->flags & PERF_X86_EVENT_EXCL;
--	if (is_excl && !(event->hw.flags & PERF_X86_EVENT_EXCL_ACCT)) {
--		event->hw.flags |= PERF_X86_EVENT_EXCL_ACCT;
--		if (!cpuc->n_excl++)
--			WRITE_ONCE(excl_cntrs->has_exclusive[tid], 1);
+ 	J_ASSERT_BH(bh_in, buffer_jbddirty(bh_in));
+ 
+-retry_alloc:
+-	new_bh = alloc_buffer_head(GFP_NOFS);
+-	if (!new_bh) {
+-		/*
+-		 * Failure is not an option, but __GFP_NOFAIL is going
+-		 * away; so we retry ourselves here.
+-		 */
+-		congestion_wait(BLK_RW_ASYNC, HZ/50);
+-		goto retry_alloc;
 -	}
--
--	/*
--	 * xl = state of current HT
--	 * xlo = state of sibling HT
--	 */
--	xl = &excl_cntrs->states[tid];
--	xlo = &excl_cntrs->states[o_tid];
--
--	cx = c;
--=======
-->>>>>>> linux-next/akpm-base
++	new_bh = alloc_buffer_head(GFP_NOFS|__GFP_NOFAIL);
  
- 	/*
- 	 * because we modify the constraint, we need
-@@ -2162,11 +2140,6 @@ static void intel_put_excl_constraints(s
- 	if (WARN_ON_ONCE(!excl_cntrs))
- 		return;
+ 	/* keep subsequent assertions sane */
+ 	atomic_set(&new_bh->b_count, 1);
+diff -puN fs/jbd2/transaction.c~jbd2-revert-must-not-fail-allocation-loops-back-to-gfp_nofail fs/jbd2/transaction.c
+--- a/fs/jbd2/transaction.c~jbd2-revert-must-not-fail-allocation-loops-back-to-gfp_nofail
++++ a/fs/jbd2/transaction.c
+@@ -278,22 +278,16 @@ static int start_this_handle(journal_t *
  
--<<<<<<< HEAD
--	xl = &excl_cntrs->states[tid];
--	xlo = &excl_cntrs->states[o_tid];
--=======
-->>>>>>> linux-next/akpm-base
- 	if (hwc->flags & PERF_X86_EVENT_EXCL_ACCT) {
- 		hwc->flags &= ~PERF_X86_EVENT_EXCL_ACCT;
- 		if (!--cpuc->n_excl)
-@@ -2222,44 +2195,6 @@ static void intel_put_event_constraints(
- 	 */
- 	if (cpuc->excl_cntrs)
- 		intel_put_excl_constraints(cpuc, event);
--<<<<<<< HEAD
--}
--
--static void intel_commit_scheduling(struct cpu_hw_events *cpuc, int idx, int cntr)
--{
--	struct intel_excl_cntrs *excl_cntrs = cpuc->excl_cntrs;
--	struct event_constraint *c = cpuc->event_constraint[idx];
--	struct intel_excl_states *xlo, *xl;
--	int tid = cpuc->excl_thread_id;
--	int o_tid = 1 - tid;
--	int is_excl;
--
--	if (cpuc->is_fake || !c)
--		return;
--
--	is_excl = c->flags & PERF_X86_EVENT_EXCL;
--
--	if (!(c->flags & PERF_X86_EVENT_DYNAMIC))
--		return;
--
--	WARN_ON_ONCE(!excl_cntrs);
--
--	if (!excl_cntrs)
--		return;
--
--	xl = &excl_cntrs->states[tid];
--	xlo = &excl_cntrs->states[o_tid];
--
--	WARN_ON_ONCE(!raw_spin_is_locked(&excl_cntrs->lock));
--
--	if (cntr >= 0) {
--		if (is_excl)
--			xlo->init_state[cntr] = INTEL_EXCL_EXCLUSIVE;
--		else
--			xlo->init_state[cntr] = INTEL_EXCL_SHARED;
--	}
--=======
-->>>>>>> linux-next/akpm-base
- }
- 
- static void intel_pebs_aliases_core2(struct perf_event *event)
-@@ -2652,11 +2587,7 @@ static void intel_pmu_cpu_starting(int c
- 		cpuc->lbr_sel = &cpuc->shared_regs->regs[EXTRA_REG_LBR];
- 
- 	if (x86_pmu.flags & PMU_FL_EXCL_CNTRS) {
--<<<<<<< HEAD
--		for_each_cpu(i, topology_thread_cpumask(cpu)) {
--=======
- 		for_each_cpu(i, topology_sibling_cpumask(cpu)) {
-->>>>>>> linux-next/akpm-base
- 			struct intel_excl_cntrs *c;
- 
- 			c = per_cpu(cpu_hw_events, i).excl_cntrs;
-diff -puN arch/x86/kernel/cpu/perf_event_intel_pt.c~linux-next-rejects-git-rejects arch/x86/kernel/cpu/perf_event_intel_pt.c
---- a/arch/x86/kernel/cpu/perf_event_intel_pt.c~linux-next-rejects-git-rejects
-+++ a/arch/x86/kernel/cpu/perf_event_intel_pt.c
-@@ -613,12 +613,6 @@ static int pt_buffer_reset_markers(struc
- {
- 	unsigned long head = local64_read(&buf->head);
- 	unsigned long idx, npages, wakeup;
--<<<<<<< HEAD
--
--	if (buf->snapshot)
--		return 0;
--=======
-->>>>>>> linux-next/akpm-base
- 
- 	/* can't stop in the middle of an output region */
- 	if (buf->output_off + handle->size + 1 <
-diff -puN drivers/gpu/drm/i915/intel_ringbuffer.c~linux-next-rejects-git-rejects drivers/gpu/drm/i915/intel_ringbuffer.c
---- a/drivers/gpu/drm/i915/intel_ringbuffer.c~linux-next-rejects-git-rejects
-+++ a/drivers/gpu/drm/i915/intel_ringbuffer.c
-@@ -1030,8 +1030,6 @@ static int skl_init_workarounds(struct i
- 				  HDC_FENCE_DEST_SLM_DISABLE |
- 				  HDC_BARRIER_PERFORMANCE_DISABLE);
- 
--<<<<<<< HEAD
--=======
- 	if (INTEL_REVID(dev) <= SKL_REVID_D0) {
- 		/*
- 		 *Use Force Non-Coherent whenever executing a 3D context. This
-@@ -1043,7 +1041,6 @@ static int skl_init_workarounds(struct i
- 				  HDC_FORCE_NON_COHERENT);
+ alloc_transaction:
+ 	if (!journal->j_running_transaction) {
++		/*
++		 * If __GFP_FS is not present, then we may be being called from
++		 * inside the fs writeback layer, so we MUST NOT fail.
++		 */
++		if ((gfp_mask & __GFP_FS) == 0)
++			gfp_mask |= __GFP_NOFAIL;
+ 		new_transaction = kmem_cache_zalloc(transaction_cache,
+ 						    gfp_mask);
+-		if (!new_transaction) {
+-			/*
+-			 * If __GFP_FS is not present, then we may be
+-			 * being called from inside the fs writeback
+-			 * layer, so we MUST NOT fail.  Since
+-			 * __GFP_NOFAIL is going away, we will arrange
+-			 * to retry the allocation ourselves.
+-			 */
+-			if ((gfp_mask & __GFP_FS) == 0) {
+-				congestion_wait(BLK_RW_ASYNC, HZ/50);
+-				goto alloc_transaction;
+-			}
++		if (!new_transaction)
+ 			return -ENOMEM;
+-		}
  	}
  
-->>>>>>> linux-next/akpm-base
- 	return skl_tune_iz_hashing(ring);
- }
- 
-diff -puN drivers/tty/serial/amba-pl011.c~linux-next-rejects-git-rejects drivers/tty/serial/amba-pl011.c
---- a/drivers/tty/serial/amba-pl011.c~linux-next-rejects-git-rejects
-+++ a/drivers/tty/serial/amba-pl011.c
-@@ -1259,23 +1259,11 @@ __acquires(&uap->port.lock)
- 	spin_lock(&uap->port.lock);
- }
- 
--<<<<<<< HEAD
--/*
-- * Transmit a character
-- *
-- * Returns true if the character was successfully queued to the FIFO.
-- * Returns false otherwise.
-- */
--static bool pl011_tx_char(struct uart_amba_port *uap, unsigned char c)
--{
--	if (readw(uap->port.membase + UART01x_FR) & UART01x_FR_TXFF)
--=======
- static bool pl011_tx_char(struct uart_amba_port *uap, unsigned char c,
- 			  bool from_irq)
- {
- 	if (unlikely(!from_irq) &&
- 	    readw(uap->port.membase + UART01x_FR) & UART01x_FR_TXFF)
-->>>>>>> linux-next/akpm-base
- 		return false; /* unable to transmit character */
- 
- 	writew(c, uap->port.membase + UART01x_DR);
-@@ -1290,13 +1278,8 @@ static void pl011_tx_chars(struct uart_a
- 	int count = uap->fifosize >> 1;
- 
- 	if (uap->port.x_char) {
--<<<<<<< HEAD
--		if (!pl011_tx_char(uap, uap->port.x_char))
--			goto done;
--=======
- 		if (!pl011_tx_char(uap, uap->port.x_char, from_irq))
- 			return;
-->>>>>>> linux-next/akpm-base
- 		uap->port.x_char = 0;
- 		--count;
- 	}
-diff -puN drivers/usb/musb/musb_core.c~linux-next-rejects-git-rejects drivers/usb/musb/musb_core.c
---- a/drivers/usb/musb/musb_core.c~linux-next-rejects-git-rejects
-+++ a/drivers/usb/musb/musb_core.c
-@@ -2032,11 +2032,7 @@ musb_init_controller(struct device *dev,
- 	if (musb->ops->quirks)
- 		musb->io.quirks = musb->ops->quirks;
- 
--<<<<<<< HEAD
--	/* Most devices use indexed offset or flat offset */
--=======
- 	/* Set default ep access to indexed offset or flat offset ops */
-->>>>>>> linux-next/akpm-base
- 	if (musb->io.quirks & MUSB_INDEXED_EP) {
- 		musb->io.ep_offset = musb_indexed_ep_offset;
- 		musb->io.ep_select = musb_indexed_ep_select;
-diff -puN tools/testing/selftests/x86/Makefile~linux-next-rejects-git-rejects tools/testing/selftests/x86/Makefile
---- a/tools/testing/selftests/x86/Makefile~linux-next-rejects-git-rejects
-+++ a/tools/testing/selftests/x86/Makefile
-@@ -4,11 +4,7 @@ include ../lib.mk
- 
- .PHONY: all all_32 all_64 warn_32bit_failure clean
- 
--<<<<<<< HEAD
--TARGETS_C_BOTHBITS := sigreturn single_step_syscall
--=======
- TARGETS_C_BOTHBITS := sigreturn single_step_syscall sysret_ss_attrs
-->>>>>>> linux-next/akpm-base
- TARGETS_C_32BIT_ONLY := entry_from_vm86
- 
- TARGETS_C_32BIT_ALL := $(TARGETS_C_BOTHBITS) $(TARGETS_C_32BIT_ONLY)
+ 	jbd_debug(3, "New handle %p going live.\n", handle);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-ocfs2-reduce-object-size-of-mlog-uses-fix.patch
-ocfs2-remove-__mlog_cpu_guess.patch
-ocfs2-remove-__mlog_cpu_guess-fix.patch
-ocfs2-fix-null-pointer-dereference-in-function-ocfs2_abort_trigger-fix.patch
-mm.patch
-mm-slab_common-support-the-slub_debug-boot-option-on-specific-object-size-fix.patch
-slub-bulk-allocation-from-per-cpu-partial-pages-fix.patch
-mm-fix-mprotect-behaviour-on-vm_locked-vmas-fix.patch
-mm-new-mm-hook-framework.patch
-mm-meminit-inline-some-helper-functions-fix.patch
-mm-meminit-finish-initialisation-of-struct-pages-before-basic-setup-fix.patch
-mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling-fix.patch
-rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix.patch
-rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix-fix.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
-userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
-fs-userfaultfdc-work-around-i386-build-error.patch
+memcg-do-not-call-reclaim-if-__gfp_wait.patch
+mm-meminit-inline-some-helper-functions-fix2.patch
+mm-only-define-hashdist-variable-when-needed.patch
+mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-reclaimable-pages.patch
+rename-reclaim_swap-to-reclaim_unmap.patch
+mm-oom_kill-remove-unnecessary-locking-in-oom_enable.patch
+mm-oom_kill-clean-up-victim-marking-and-exiting-interfaces.patch
+mm-oom_kill-switch-test-and-clear-of-known-tif_memdie-to-clear.patch
+mm-oom_kill-generalize-oom-progress-waitqueue.patch
+mm-oom_kill-remove-unnecessary-locking-in-exit_oom_victim.patch
+mm-oom_kill-simplify-oom-killer-locking.patch
+mm-page_alloc-inline-should_alloc_retry.patch
+hugetlb-do-not-account-hugetlb-pages-as-nr_file_pages.patch
 hugetlb-do-not-account-hugetlb-pages-as-nr_file_pages-fix.patch
+mm-memcg-try-charging-a-page-before-setting-page-up-to-date.patch
+documentation-vm-unevictable-lrutxt-clarify-map_locked-behavior.patch
+oom-print-points-as-unsigned-int.patch
+oom-always-panic-on-oom-when-panic_on_oom-is-configured.patch
+mm-do-not-ignore-mapping_gfp_mask-in-page-cache-allocation-paths.patch
 mm-do-not-ignore-mapping_gfp_mask-in-page-cache-allocation-paths-checkpatch-fixes.patch
+oom-split-out-forced-oom-killer.patch
 oom-split-out-forced-oom-killer-checkpatch-fixes.patch
-include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
+memcg-remove-unused-mem_cgroup-oom_wakeups.patch
+memcg-convert-mem_cgroup-under_oom-from-atomic_t-to-int.patch
+page-flags-trivial-cleanup-for-pagetrans-helpers.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
+page-flags-define-pg_locked-behavior-on-compound-pages.patch
+page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
+page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
+page-flags-define-pg_reserved-behavior-on-compound-pages.patch
+page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
+page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
+page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
+page-flags-define-pg_uncached-behavior-on-compound-pages.patch
+page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
+page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
+mm-sanitize-page-mapping-for-tail-pages.patch
 mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
+mm-page_isolation-check-pfn-validity-before-access.patch
+mm-support-madvisemadv_free.patch
 mm-support-madvisemadv_free-fix-2.patch
+mm-dont-split-thp-page-when-syscall-is-called.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-2.patch
 mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
+mm-move-lazy-free-pages-to-inactive-list.patch
+mm-move-lazy-free-pages-to-inactive-list-fix.patch
 mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
-zswap-runtime-enable-disable-fix.patch
-prctl-more-prctlpr_set_mm_-checks-fix.patch
-proc-fix-page_size-limit-of-proc-pid-cmdline-fix.patch
-bitmap-remove-explicit-newline-handling-using-scnprintf-format-string-fix.patch
-radix-tree-replace-preallocated-node-array-with-linked-list-fix.patch
-init-do_mounts-add-create_dev-failure-log-fix.patch
-rtc-omap-add-external-32k-clock-feature-fix.patch
-devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx-fix.patch
-ipcshm-move-bug_on-check-into-shm_lock-fix-2.patch
-ipcshm-move-bug_on-check-into-shm_lock-fix.patch
-scsi-resolve-sg-buffer-const-ness-issue-fix.patch
-revert-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
+exitstats-obey-this-comment.patch
 linux-next.patch
-reapply-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
-linux-next-rejects.patch
-drivers-block-nvme-corec-fix-build-with-gcc-444.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
 
