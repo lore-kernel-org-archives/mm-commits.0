@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-trace-trace_events_filterc-use-strreplace.patch added to -mm tree
-Date: Tue, 09 Jun 2015 14:02:56 -0700
-Message-ID: <55775480.zj3jLsUYFZBg8Ewj%akpm@linux-foundation.org>
+Subject: + drivers-md-mdc-use-strreplace.patch added to -mm tree
+Date: Tue, 09 Jun 2015 14:03:04 -0700
+Message-ID: <55775488.6UTYbpt7XoAPF4Ea%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33966 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33978 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964811AbbFIVC5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jun 2015 17:02:57 -0400
+	with ESMTP id S964811AbbFIVDF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jun 2015 17:03:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, rostedt@goodmis.org, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/trace/trace_events_filter.c: use strreplace()
+     Subject: drivers/md/md.c: use strreplace()
 has been added to the -mm tree.  Its filename is
-     kernel-trace-trace_events_filterc-use-strreplace.patch
+     drivers-md-mdc-use-strreplace.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-trace-trace_events_filterc-use-strreplace.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-md-mdc-use-strreplace.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-trace-trace_events_filterc-use-strreplace.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-md-mdc-use-strreplace.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,40 +39,40 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: kernel/trace/trace_events_filter.c: use strreplace()
+Subject: drivers/md/md.c: use strreplace()
 
-There's no point in starting over every time we see a ','...
+There's no point in starting over when we meet a '/'.  This also
+eliminates a stack variable and a little .text.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Acked-by: Steven Rostedt <rostedt@goodmis.org>
+Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/trace/trace_events_filter.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/md/md.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN kernel/trace/trace_events_filter.c~kernel-trace-trace_events_filterc-use-strreplace kernel/trace/trace_events_filter.c
---- a/kernel/trace/trace_events_filter.c~kernel-trace-trace_events_filterc-use-strreplace
-+++ a/kernel/trace/trace_events_filter.c
-@@ -2075,7 +2075,7 @@ struct function_filter_data {
- static char **
- ftrace_function_filter_re(char *buf, int len, int *count)
+diff -puN drivers/md/md.c~drivers-md-mdc-use-strreplace drivers/md/md.c
+--- a/drivers/md/md.c~drivers-md-mdc-use-strreplace
++++ a/drivers/md/md.c
+@@ -2024,7 +2024,6 @@ static int bind_rdev_to_array(struct md_
  {
--	char *str, *sep, **re;
-+	char *str, **re;
+ 	char b[BDEVNAME_SIZE];
+ 	struct kobject *ko;
+-	char *s;
+ 	int err;
  
- 	str = kstrndup(buf, len, GFP_KERNEL);
- 	if (!str)
-@@ -2085,8 +2085,7 @@ ftrace_function_filter_re(char *buf, int
- 	 * The argv_split function takes white space
- 	 * as a separator, so convert ',' into spaces.
- 	 */
--	while ((sep = strchr(str, ',')))
--		*sep = ' ';
-+	strreplace(str, ',', ' ');
+ 	/* prevent duplicates */
+@@ -2070,8 +2069,7 @@ static int bind_rdev_to_array(struct md_
+ 		return -EBUSY;
+ 	}
+ 	bdevname(rdev->bdev,b);
+-	while ( (s=strchr(b, '/')) != NULL)
+-		*s = '!';
++	strreplace(b, '/', '!');
  
- 	re = argv_split(GFP_KERNEL, str, count);
- 	kfree(str);
+ 	rdev->mddev = mddev;
+ 	printk(KERN_INFO "md: bind<%s>\n", b);
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
