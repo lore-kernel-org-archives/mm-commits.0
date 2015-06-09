@@ -1,136 +1,171 @@
 From: akpm@linux-foundation.org
-Subject: + ipcshm-move-bug_on-check-into-shm_lock-fix.patch added to -mm
- tree
-Date: Tue, 09 Jun 2015 15:28:43 -0700
-Message-ID: <5577689b.vpPrcy8ufFxwaVNX%akpm@linux-foundation.org>
+Subject: [-] oom-always-panic-on-oom-when-panic_on_oom-is-configured.patch removed from -mm tree
+Date: Tue, 09 Jun 2015 15:35:51 -0700
+Message-ID: <55776a47.BFeLukHefGWSPOXq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35998 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36025 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932668AbbFIW2o (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jun 2015 18:28:44 -0400
+	with ESMTP id S1753470AbbFIWfw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jun 2015 18:35:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dave@stgolabs.net, dbueso@suse.de, manfred@colorfullife.com, mm-commits@vger.kernel.org
+To: mhocko@suse.cz, emunson@akamai.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipcshm-move-bug_on-check-into-shm_lock-fix
-has been added to the -mm tree.  Its filename is
-     ipcshm-move-bug_on-check-into-shm_lock-fix.patch
+     Subject: oom: always panic on OOM when panic_on_oom is configured
+has been removed from the -mm tree.  Its filename was
+     oom-always-panic-on-oom-when-panic_on_oom-is-configured.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipcshm-move-bug_on-check-into-shm_lock-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipcshm-move-bug_on-check-into-shm_lock-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because bunfight
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ipcshm-move-bug_on-check-into-shm_lock-fix
+From: Michal Hocko <mhocko@suse.cz>
+Subject: oom: always panic on OOM when panic_on_oom is configured
 
-simplify code
+panic_on_oom allows administrator to set OOM policy to panic the system
+when it is out of memory to reduce failover time e.g.  when resolving the
+OOM condition would take much more time than rebooting the system.
 
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Davidlohr Bueso <dbueso@suse.de>
-Cc: Manfred Spraul <manfred@colorfullife.com>
+out_of_memory tries to be clever and prevent from premature panics by
+checking the current task and prevent from panic when the task has fatal
+signal pending and so it should die shortly and release some memory.  This
+is fair enough but Tetsuo Handa has noted that this might lead to a silent
+deadlock when current cannot exit because of dependencies invisible to the
+OOM killer.
+
+panic_on_oom is disabled by default and if somebody enables it then any
+risk of potential deadlock is certainly unwelcome.  The risk is really low
+because there are usually more sources of allocation requests and one of
+them would eventually trigger the panic but it is better to reduce the
+risk as much as possible.
+
+Let's move check_panic_on_oom up before the current task is checked so
+that the knob value is .  Do the same for the memcg in
+mem_cgroup_out_of_memory.
+
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Reported-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: David Rientjes <rientjes@google.com>
+Reviewed-by: Eric B Munson <emunson@akamai.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/shm.c |   13 +++++--------
- 1 file changed, 5 insertions(+), 8 deletions(-)
+ mm/memcontrol.c |    3 ++-
+ mm/oom_kill.c   |   18 +++++++++---------
+ 2 files changed, 11 insertions(+), 10 deletions(-)
 
-diff -puN ipc/shm.c~ipcshm-move-bug_on-check-into-shm_lock-fix ipc/shm.c
---- a/ipc/shm.c~ipcshm-move-bug_on-check-into-shm_lock-fix
-+++ a/ipc/shm.c
-@@ -155,14 +155,11 @@ static inline struct shmid_kernel *shm_l
- {
- 	struct kern_ipc_perm *ipcp = ipc_lock(&shm_ids(ns), id);
+diff -puN mm/memcontrol.c~oom-always-panic-on-oom-when-panic_on_oom-is-configured mm/memcontrol.c
+--- a/mm/memcontrol.c~oom-always-panic-on-oom-when-panic_on_oom-is-configured
++++ a/mm/memcontrol.c
+@@ -1532,6 +1532,8 @@ static void mem_cgroup_out_of_memory(str
  
--	if (IS_ERR(ipcp)) {
--		/*
--		 * We raced in the idr lookup or with shm_destroy(),
--		 * either way, the ID is busted.
--		 */
--		BUG();
--		return (struct shmid_kernel *)ipcp;
--	}
-+	/*
-+	 * We raced in the idr lookup or with shm_destroy().  Either way, the
-+	 * ID is busted.
+ 	mutex_lock(&oom_lock);
+ 
++	check_panic_on_oom(CONSTRAINT_MEMCG, gfp_mask, order, NULL, memcg);
++
+ 	/*
+ 	 * If current has a pending SIGKILL or is exiting, then automatically
+ 	 * select it.  The goal is to allow it to allocate so that it may
+@@ -1542,7 +1544,6 @@ static void mem_cgroup_out_of_memory(str
+ 		goto unlock;
+ 	}
+ 
+-	check_panic_on_oom(CONSTRAINT_MEMCG, gfp_mask, order, NULL, memcg);
+ 	totalpages = mem_cgroup_get_limit(memcg) ? : 1;
+ 	for_each_mem_cgroup_tree(iter, memcg) {
+ 		struct css_task_iter it;
+diff -puN mm/oom_kill.c~oom-always-panic-on-oom-when-panic_on_oom-is-configured mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-always-panic-on-oom-when-panic_on_oom-is-configured
++++ a/mm/oom_kill.c
+@@ -667,6 +667,15 @@ bool out_of_memory(struct zonelist *zone
+ 		goto out;
+ 
+ 	/*
++	 * Check if there were limitations on the allocation (only relevant for
++	 * NUMA) that may require different handling.
 +	 */
-+	BUG_ON(IS_ERR(ipcp));
++	constraint = constrained_alloc(zonelist, gfp_mask, nodemask,
++						&totalpages);
++	mpol_mask = (constraint == CONSTRAINT_MEMORY_POLICY) ? nodemask : NULL;
++	check_panic_on_oom(constraint, gfp_mask, order, mpol_mask, NULL);
++
++	/*
+ 	 * If current has a pending SIGKILL or is exiting, then automatically
+ 	 * select it.  The goal is to allow it to allocate so that it may
+ 	 * quickly exit and free its memory.
+@@ -680,15 +689,6 @@ bool out_of_memory(struct zonelist *zone
+ 		goto out;
+ 	}
  
- 	return container_of(ipcp, struct shmid_kernel, shm_perm);
- }
+-	/*
+-	 * Check if there were limitations on the allocation (only relevant for
+-	 * NUMA) that may require different handling.
+-	 */
+-	constraint = constrained_alloc(zonelist, gfp_mask, nodemask,
+-						&totalpages);
+-	mpol_mask = (constraint == CONSTRAINT_MEMORY_POLICY) ? nodemask : NULL;
+-	check_panic_on_oom(constraint, gfp_mask, order, mpol_mask, NULL);
+-
+ 	if (sysctl_oom_kill_allocating_task && current->mm &&
+ 	    !oom_unkillable_task(current, NULL, nodemask) &&
+ 	    current->signal->oom_score_adj != OOM_SCORE_ADJ_MIN) {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-ocfs2-reduce-object-size-of-mlog-uses-fix.patch
-ocfs2-remove-__mlog_cpu_guess.patch
-ocfs2-remove-__mlog_cpu_guess-fix.patch
-ocfs2-fix-null-pointer-dereference-in-function-ocfs2_abort_trigger-fix.patch
-mm.patch
-mm-slab_common-support-the-slub_debug-boot-option-on-specific-object-size-fix.patch
-slub-bulk-allocation-from-per-cpu-partial-pages-fix.patch
-mm-fix-mprotect-behaviour-on-vm_locked-vmas-fix.patch
-mm-new-mm-hook-framework.patch
-mm-meminit-inline-some-helper-functions-fix.patch
-mm-meminit-finish-initialisation-of-struct-pages-before-basic-setup-fix.patch
-mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling-fix.patch
-rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix.patch
-rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix-fix.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
-userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
-fs-userfaultfdc-work-around-i386-build-error.patch
+memcg-do-not-call-reclaim-if-__gfp_wait.patch
+mm-meminit-inline-some-helper-functions-fix2.patch
+mm-only-define-hashdist-variable-when-needed.patch
+mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-reclaimable-pages.patch
+rename-reclaim_swap-to-reclaim_unmap.patch
+mm-oom_kill-remove-unnecessary-locking-in-oom_enable.patch
+mm-oom_kill-clean-up-victim-marking-and-exiting-interfaces.patch
+mm-oom_kill-switch-test-and-clear-of-known-tif_memdie-to-clear.patch
+mm-oom_kill-generalize-oom-progress-waitqueue.patch
+mm-oom_kill-remove-unnecessary-locking-in-exit_oom_victim.patch
+mm-oom_kill-simplify-oom-killer-locking.patch
+mm-page_alloc-inline-should_alloc_retry.patch
+hugetlb-do-not-account-hugetlb-pages-as-nr_file_pages.patch
 hugetlb-do-not-account-hugetlb-pages-as-nr_file_pages-fix.patch
+mm-memcg-try-charging-a-page-before-setting-page-up-to-date.patch
+documentation-vm-unevictable-lrutxt-clarify-map_locked-behavior.patch
+oom-print-points-as-unsigned-int.patch
+mm-do-not-ignore-mapping_gfp_mask-in-page-cache-allocation-paths.patch
 mm-do-not-ignore-mapping_gfp_mask-in-page-cache-allocation-paths-checkpatch-fixes.patch
+oom-split-out-forced-oom-killer.patch
 oom-split-out-forced-oom-killer-checkpatch-fixes.patch
-include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
+memcg-remove-unused-mem_cgroup-oom_wakeups.patch
+memcg-convert-mem_cgroup-under_oom-from-atomic_t-to-int.patch
+page-flags-trivial-cleanup-for-pagetrans-helpers.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
+page-flags-define-pg_locked-behavior-on-compound-pages.patch
+page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
+page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
+page-flags-define-pg_reserved-behavior-on-compound-pages.patch
+page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
+page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
+page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
+page-flags-define-pg_uncached-behavior-on-compound-pages.patch
+page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
+page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
+mm-sanitize-page-mapping-for-tail-pages.patch
 mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
+mm-page_isolation-check-pfn-validity-before-access.patch
+mm-support-madvisemadv_free.patch
 mm-support-madvisemadv_free-fix-2.patch
+mm-dont-split-thp-page-when-syscall-is-called.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-2.patch
 mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
+mm-move-lazy-free-pages-to-inactive-list.patch
+mm-move-lazy-free-pages-to-inactive-list-fix.patch
 mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
-zswap-runtime-enable-disable-fix.patch
-prctl-more-prctlpr_set_mm_-checks-fix.patch
-proc-fix-page_size-limit-of-proc-pid-cmdline-fix.patch
-bitmap-remove-explicit-newline-handling-using-scnprintf-format-string-fix.patch
-radix-tree-replace-preallocated-node-array-with-linked-list-fix.patch
-init-do_mounts-add-create_dev-failure-log-fix.patch
-rtc-omap-add-external-32k-clock-feature-fix.patch
-devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx-fix.patch
-ipcshm-move-bug_on-check-into-shm_lock-fix.patch
-scsi-resolve-sg-buffer-const-ness-issue-fix.patch
-revert-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
+exitstats-obey-this-comment.patch
 linux-next.patch
-reapply-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
-linux-next-rejects.patch
-drivers-block-nvme-corec-fix-build-with-gcc-444.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
 
