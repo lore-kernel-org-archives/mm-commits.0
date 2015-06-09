@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-rename-ipc_obtain_object.patch added to -mm tree
-Date: Tue, 09 Jun 2015 15:24:23 -0700
-Message-ID: <55776797.h+Fb4RFUDQU1WBLJ%akpm@linux-foundation.org>
+Subject: +
+ ipcsysv-make-return-eidrm-when-racing-with-rmid-consistent.patch added to
+ -mm tree
+Date: Tue, 09 Jun 2015 15:24:25 -0700
+Message-ID: <55776799.zELfsripR8PrOrMw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35794 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35799 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752884AbbFIWYY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jun 2015 18:24:24 -0400
+	with ESMTP id S1753352AbbFIWY0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jun 2015 18:24:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: dave@stgolabs.net, dbueso@suse.de, manfred@colorfullife.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc: rename ipc_obtain_object
+     Subject: ipc,sysv: make return -EIDRM when racing with RMID consistent
 has been added to the -mm tree.  Its filename is
-     ipc-rename-ipc_obtain_object.patch
+     ipcsysv-make-return-eidrm-when-racing-with-rmid-consistent.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipc-rename-ipc_obtain_object.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipcsysv-make-return-eidrm-when-racing-with-rmid-consistent.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-rename-ipc_obtain_object.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipcsysv-make-return-eidrm-when-racing-with-rmid-consistent.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,119 +41,83 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: ipc: rename ipc_obtain_object
+Subject: ipc,sysv: make return -EIDRM when racing with RMID consistent
 
-...  to ipc_obtain_object_idr, which is more meaningful and makes the code
-slightly easier to follow.
+The ipc_lock helper is used by all forms of sysv ipc to acquire the ipc
+object's spinlock.  Upon error (bogus identifier), we always return
+-EINVAL, whether the problem be in the idr path or because we raced with a
+task performing RMID.  For the later, however, all ipc related manpages,
+state the that for:
+
+       EIDRM  <ID> points to a removed identifier.
+
+And return:
+
+       EINVAL Invalid <ID> value, or unaligned, etc.
+
+Which (EINVAL) should only return once the ipc resource is deleted.  For
+all types of ipc this is done immediately upon a RMID command.  However,
+shared memory behaves slightly different as it can merely mark a segment
+for deletion, and delay the actual freeing until there are no more active
+consumers.  Per shmctl(IPC_RMID) manpage:
+
+""
+Mark  the  segment to be destroyed.  The segment will only actually
+be destroyed after the last process detaches it (i.e., when the
+shm_nattch member of the associated structure shmid_ds is zero).
+""
+
+Unlike ipc_lock, paths that behave "correctly", at least per the manpage,
+involve controlling the ipc resource via *ctl(), doing the exact same
+validity check as ipc_lock after right acquiring the spinlock:
+
+	if (!ipc_valid_object()) {
+		err = -EIDRM;
+		goto out_unlock;
+	}
+
+Thus make ipc_lock consistent with the rest of ipc code and return -EIDRM
+in ipc_lock when !ipc_valid_object().
 
 Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
 Cc: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msg.c  |    2 +-
- ipc/sem.c  |    4 ++--
- ipc/shm.c  |    2 +-
- ipc/util.c |    8 ++++----
- ipc/util.h |    2 +-
- 5 files changed, 9 insertions(+), 9 deletions(-)
+ ipc/util.c |   13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
-diff -puN ipc/msg.c~ipc-rename-ipc_obtain_object ipc/msg.c
---- a/ipc/msg.c~ipc-rename-ipc_obtain_object
-+++ a/ipc/msg.c
-@@ -76,7 +76,7 @@ struct msg_sender {
- 
- static inline struct msg_queue *msq_obtain_object(struct ipc_namespace *ns, int id)
- {
--	struct kern_ipc_perm *ipcp = ipc_obtain_object(&msg_ids(ns), id);
-+	struct kern_ipc_perm *ipcp = ipc_obtain_object_idr(&msg_ids(ns), id);
- 
- 	if (IS_ERR(ipcp))
- 		return ERR_CAST(ipcp);
-diff -puN ipc/sem.c~ipc-rename-ipc_obtain_object ipc/sem.c
---- a/ipc/sem.c~ipc-rename-ipc_obtain_object
-+++ a/ipc/sem.c
-@@ -391,7 +391,7 @@ static inline struct sem_array *sem_obta
- 	struct kern_ipc_perm *ipcp;
- 	struct sem_array *sma;
- 
--	ipcp = ipc_obtain_object(&sem_ids(ns), id);
-+	ipcp = ipc_obtain_object_idr(&sem_ids(ns), id);
- 	if (IS_ERR(ipcp))
- 		return ERR_CAST(ipcp);
- 
-@@ -410,7 +410,7 @@ static inline struct sem_array *sem_obta
- 
- static inline struct sem_array *sem_obtain_object(struct ipc_namespace *ns, int id)
- {
--	struct kern_ipc_perm *ipcp = ipc_obtain_object(&sem_ids(ns), id);
-+	struct kern_ipc_perm *ipcp = ipc_obtain_object_idr(&sem_ids(ns), id);
- 
- 	if (IS_ERR(ipcp))
- 		return ERR_CAST(ipcp);
-diff -puN ipc/shm.c~ipc-rename-ipc_obtain_object ipc/shm.c
---- a/ipc/shm.c~ipc-rename-ipc_obtain_object
-+++ a/ipc/shm.c
-@@ -129,7 +129,7 @@ void __init shm_init(void)
- 
- static inline struct shmid_kernel *shm_obtain_object(struct ipc_namespace *ns, int id)
- {
--	struct kern_ipc_perm *ipcp = ipc_obtain_object(&shm_ids(ns), id);
-+	struct kern_ipc_perm *ipcp = ipc_obtain_object_idr(&shm_ids(ns), id);
- 
- 	if (IS_ERR(ipcp))
- 		return ERR_CAST(ipcp);
-diff -puN ipc/util.c~ipc-rename-ipc_obtain_object ipc/util.c
---- a/ipc/util.c~ipc-rename-ipc_obtain_object
+diff -puN ipc/util.c~ipcsysv-make-return-eidrm-when-racing-with-rmid-consistent ipc/util.c
+--- a/ipc/util.c~ipcsysv-make-return-eidrm-when-racing-with-rmid-consistent
 +++ a/ipc/util.c
-@@ -555,7 +555,7 @@ void ipc64_perm_to_ipc_perm(struct ipc64
-  * Call inside the RCU critical section.
-  * The ipc object is *not* locked on exit.
-  */
--struct kern_ipc_perm *ipc_obtain_object(struct ipc_ids *ids, int id)
-+struct kern_ipc_perm *ipc_obtain_object_idr(struct ipc_ids *ids, int id)
- {
- 	struct kern_ipc_perm *out;
- 	int lid = ipcid_to_idx(id);
-@@ -581,7 +581,7 @@ struct kern_ipc_perm *ipc_lock(struct ip
- 	struct kern_ipc_perm *out;
- 
+@@ -583,19 +583,22 @@ struct kern_ipc_perm *ipc_lock(struct ip
  	rcu_read_lock();
--	out = ipc_obtain_object(ids, id);
-+	out = ipc_obtain_object_idr(ids, id);
+ 	out = ipc_obtain_object_idr(ids, id);
  	if (IS_ERR(out))
- 		goto err1;
+-		goto err1;
++		goto err;
  
-@@ -605,7 +605,7 @@ err1:
-  * @ids: ipc identifier set
-  * @id: ipc id to look for
-  *
-- * Similar to ipc_obtain_object() but also checks
-+ * Similar to ipc_obtain_object_idr() but also checks
-  * the ipc object reference counter.
-  *
-  * Call inside the RCU critical section.
-@@ -613,7 +613,7 @@ err1:
-  */
- struct kern_ipc_perm *ipc_obtain_object_check(struct ipc_ids *ids, int id)
- {
--	struct kern_ipc_perm *out = ipc_obtain_object(ids, id);
-+	struct kern_ipc_perm *out = ipc_obtain_object_idr(ids, id);
+ 	spin_lock(&out->lock);
  
- 	if (IS_ERR(out))
- 		goto out;
-diff -puN ipc/util.h~ipc-rename-ipc_obtain_object ipc/util.h
---- a/ipc/util.h~ipc-rename-ipc_obtain_object
-+++ a/ipc/util.h
-@@ -132,7 +132,7 @@ void ipc_rcu_putref(void *ptr, void (*fu
- void ipc_rcu_free(struct rcu_head *head);
+-	/* ipc_rmid() may have already freed the ID while ipc_lock
+-	 * was spinning: here verify that the structure is still valid
++	/*
++	 * ipc_rmid() may have already freed the ID while ipc_lock()
++	 * was spinning: here verify that the structure is still valid.
++	 * Upon races with RMID, return -EIDRM, thus indicating that
++	 * the ID points to a removed identifier.
+ 	 */
+ 	if (ipc_valid_object(out))
+ 		return out;
  
- struct kern_ipc_perm *ipc_lock(struct ipc_ids *, int);
--struct kern_ipc_perm *ipc_obtain_object(struct ipc_ids *ids, int id);
-+struct kern_ipc_perm *ipc_obtain_object_idr(struct ipc_ids *ids, int id);
- 
- void kernel_to_ipc64_perm(struct kern_ipc_perm *in, struct ipc64_perm *out);
- void ipc64_perm_to_ipc_perm(struct ipc64_perm *in, struct ipc_perm *out);
+ 	spin_unlock(&out->lock);
+-	out = ERR_PTR(-EINVAL);
+-err1:
++	out = ERR_PTR(-EIDRM);
++err:
+ 	rcu_read_unlock();
+ 	return out;
+ }
 _
 
 Patches currently in -mm which might be from dave@stgolabs.net are
