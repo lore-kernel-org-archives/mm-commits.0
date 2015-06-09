@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + ipcshm-move-bug_on-check-into-shm_lock.patch added to -mm tree
-Date: Tue, 09 Jun 2015 15:24:19 -0700
-Message-ID: <55776793.Xa8eKIYTS0ME20W7%akpm@linux-foundation.org>
+Subject: + ipcmsg-provide-barrier-pairings-for-lockless-receive.patch
+ added to -mm tree
+Date: Tue, 09 Jun 2015 15:24:21 -0700
+Message-ID: <55776795.Czm5xsA7IXuSUvCD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35787 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35790 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753722AbbFIWYU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jun 2015 18:24:20 -0400
+	with ESMTP id S1752289AbbFIWYW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jun 2015 18:24:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: dave@stgolabs.net, dbueso@suse.de, manfred@colorfullife.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc,shm: move BUG_ON check into shm_lock
+     Subject: ipc,msg: provide barrier pairings for lockless receive
 has been added to the -mm tree.  Its filename is
-     ipcshm-move-bug_on-check-into-shm_lock.patch
+     ipcmsg-provide-barrier-pairings-for-lockless-receive.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipcshm-move-bug_on-check-into-shm_lock.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipcmsg-provide-barrier-pairings-for-lockless-receive.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipcshm-move-bug_on-check-into-shm_lock.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipcmsg-provide-barrier-pairings-for-lockless-receive.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,62 +40,110 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: ipc,shm: move BUG_ON check into shm_lock
+Subject: ipc,msg: provide barrier pairings for lockless receive
 
-Upon every shm_lock call, we BUG_ON if an error was returned, indicating
-racing either in idr or in shm_destroy.  Move this logic into the locking.
+We currently use a full barrier on the sender side to to avoid receiver
+tasks disappearing on us while still performing on the sender side wakeup.
+ We lack however, the proper CPU-CPU interactions pairing on the receiver
+side which busy-waits for the message.  Similarly, we do not need a full
+smp_mb, and can relax the semantics for the writer and reader sides of the
+message.  This is safe as we are only ordering loads and stores to r_msg. 
+And in both smp_wmb and smp_rmb, there are no stores after the calls
+_anyway_.
+
+This obviously applies for pipelined_send and expunge_all, for EIRDM when
+destroying a queue.
 
 Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
 Cc: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/shm.c |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ ipc/msg.c |   48 ++++++++++++++++++++++++++++++++++++++----------
+ 1 file changed, 38 insertions(+), 10 deletions(-)
 
-diff -puN ipc/shm.c~ipcshm-move-bug_on-check-into-shm_lock ipc/shm.c
---- a/ipc/shm.c~ipcshm-move-bug_on-check-into-shm_lock
-+++ a/ipc/shm.c
-@@ -155,8 +155,14 @@ static inline struct shmid_kernel *shm_l
- {
- 	struct kern_ipc_perm *ipcp = ipc_lock(&shm_ids(ns), id);
- 
--	if (IS_ERR(ipcp))
-+	if (IS_ERR(ipcp)) {
-+		/*
-+		 * We raced in the idr lookup or with shm_destroy(),
-+		 * either way, the ID is busted.
-+		 */
-+		BUG();
- 		return (struct shmid_kernel *)ipcp;
-+	}
- 
- 	return container_of(ipcp, struct shmid_kernel, shm_perm);
+diff -puN ipc/msg.c~ipcmsg-provide-barrier-pairings-for-lockless-receive ipc/msg.c
+--- a/ipc/msg.c~ipcmsg-provide-barrier-pairings-for-lockless-receive
++++ a/ipc/msg.c
+@@ -196,7 +196,7 @@ static void expunge_all(struct msg_queue
+ 		 * or dealing with -EAGAIN cases. See lockless receive part 1
+ 		 * and 2 in do_msgrcv().
+ 		 */
+-		smp_mb();
++		smp_wmb(); /* barrier (B) */
+ 		msr->r_msg = ERR_PTR(res);
+ 	}
  }
-@@ -191,7 +197,6 @@ static void shm_open(struct vm_area_stru
- 	struct shmid_kernel *shp;
+@@ -580,7 +580,8 @@ static inline int pipelined_send(struct
+ 				/* initialize pipelined send ordering */
+ 				msr->r_msg = NULL;
+ 				wake_up_process(msr->r_tsk);
+-				smp_mb(); /* see barrier comment below */
++				/* barrier (B) see barrier comment below */
++				smp_wmb();
+ 				msr->r_msg = ERR_PTR(-E2BIG);
+ 			} else {
+ 				msr->r_msg = NULL;
+@@ -589,11 +590,12 @@ static inline int pipelined_send(struct
+ 				wake_up_process(msr->r_tsk);
+ 				/*
+ 				 * Ensure that the wakeup is visible before
+-				 * setting r_msg, as the receiving end depends
+-				 * on it. See lockless receive part 1 and 2 in
+-				 * do_msgrcv().
++				 * setting r_msg, as the receiving can otherwise
++				 * exit - once r_msg is set, the receiver can
++				 * continue. See lockless receive part 1 and 2
++				 * in do_msgrcv(). Barrier (B).
+ 				 */
+-				smp_mb();
++				smp_wmb();
+ 				msr->r_msg = msg;
  
- 	shp = shm_lock(sfd->ns, sfd->id);
--	BUG_ON(IS_ERR(shp));
- 	shp->shm_atim = get_seconds();
- 	shp->shm_lprid = task_tgid_vnr(current);
- 	shp->shm_nattch++;
-@@ -258,7 +263,6 @@ static void shm_close(struct vm_area_str
- 	down_write(&shm_ids(ns).rwsem);
- 	/* remove from the list of attaches of the shm segment */
- 	shp = shm_lock(ns, sfd->id);
--	BUG_ON(IS_ERR(shp));
- 	shp->shm_lprid = task_tgid_vnr(current);
- 	shp->shm_dtim = get_seconds();
- 	shp->shm_nattch--;
-@@ -1191,7 +1195,6 @@ out_fput:
- out_nattch:
- 	down_write(&shm_ids(ns).rwsem);
- 	shp = shm_lock(ns, shmid);
--	BUG_ON(IS_ERR(shp));
- 	shp->shm_nattch--;
- 	if (shm_may_destroy(ns, shp))
- 		shm_destroy(ns, shp);
+ 				return 1;
+@@ -932,12 +934,38 @@ long do_msgrcv(int msqid, void __user *b
+ 		/* Lockless receive, part 2:
+ 		 * Wait until pipelined_send or expunge_all are outside of
+ 		 * wake_up_process(). There is a race with exit(), see
+-		 * ipc/mqueue.c for the details.
++		 * ipc/mqueue.c for the details. The correct serialization
++		 * ensures that a receiver cannot continue without the wakeup
++		 * being visibible _before_ setting r_msg:
++		 *
++		 * CPU 0                             CPU 1
++		 * <loop receiver>
++		 *   smp_rmb(); (A) <-- pair -.      <waker thread>
++		 *   <load ->r_msg>           |        msr->r_msg = NULL;
++		 *                            |        wake_up_process();
++		 * <continue>                 `------> smp_wmb(); (B)
++		 *                                     msr->r_msg = msg;
++		 *
++		 * Where (A) orders the message value read and where (B) orders
++		 * the write to the r_msg -- done in both pipelined_send and
++		 * expunge_all.
+ 		 */
+-		msg = (struct msg_msg *)msr_d.r_msg;
+-		while (msg == NULL) {
+-			cpu_relax();
++		for (;;) {
++			/*
++			 * Pairs with writer barrier in pipelined_send
++			 * or expunge_all.
++			 */
++			smp_rmb(); /* barrier (A) */
+ 			msg = (struct msg_msg *)msr_d.r_msg;
++			if (msg)
++				break;
++
++			/*
++			 * The cpu_relax() call is a compiler barrier
++			 * which forces everything in this loop to be
++			 * re-loaded.
++			 */
++			cpu_relax();
+ 		}
+ 
+ 		/* Lockless receive, part 3:
 _
 
 Patches currently in -mm which might be from dave@stgolabs.net are
