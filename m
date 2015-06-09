@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- ipcsysv-make-return-eidrm-when-racing-with-rmid-consistent.patch added to
+Subject: + ipcsysv-return-einval-upon-incorrect-id-seqnum.patch added to
  -mm tree
-Date: Tue, 09 Jun 2015 15:24:25 -0700
-Message-ID: <55776799.zELfsripR8PrOrMw%akpm@linux-foundation.org>
+Date: Tue, 09 Jun 2015 15:24:27 -0700
+Message-ID: <5577679b.bAsdO+KaXD5kdhdI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35799 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35802 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753352AbbFIWY0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jun 2015 18:24:26 -0400
+	with ESMTP id S1753352AbbFIWY2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jun 2015 18:24:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: dave@stgolabs.net, dbueso@suse.de, manfred@colorfullife.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc,sysv: make return -EIDRM when racing with RMID consistent
+     Subject: ipc,sysv: return -EINVAL upon incorrect id/seqnum
 has been added to the -mm tree.  Its filename is
-     ipcsysv-make-return-eidrm-when-racing-with-rmid-consistent.patch
+     ipcsysv-return-einval-upon-incorrect-id-seqnum.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipcsysv-make-return-eidrm-when-racing-with-rmid-consistent.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipcsysv-return-einval-upon-incorrect-id-seqnum.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipcsysv-make-return-eidrm-when-racing-with-rmid-consistent.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipcsysv-return-einval-upon-incorrect-id-seqnum.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,81 +40,37 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: ipc,sysv: make return -EIDRM when racing with RMID consistent
+Subject: ipc,sysv: return -EINVAL upon incorrect id/seqnum
 
-The ipc_lock helper is used by all forms of sysv ipc to acquire the ipc
-object's spinlock.  Upon error (bogus identifier), we always return
--EINVAL, whether the problem be in the idr path or because we raced with a
-task performing RMID.  For the later, however, all ipc related manpages,
-state the that for:
+In ipc_obtain_object_check we return -EIDRM when a bogus sequence number
+is detected via ipc_checkid, while the ipc manpages state the following
+return codes for such errors:
 
-       EIDRM  <ID> points to a removed identifier.
+   EIDRM  <ID> points to a removed identifier.
+   EINVAL Invalid <ID> value, or unaligned, etc.
 
-And return:
-
-       EINVAL Invalid <ID> value, or unaligned, etc.
-
-Which (EINVAL) should only return once the ipc resource is deleted.  For
-all types of ipc this is done immediately upon a RMID command.  However,
-shared memory behaves slightly different as it can merely mark a segment
-for deletion, and delay the actual freeing until there are no more active
-consumers.  Per shmctl(IPC_RMID) manpage:
-
-""
-Mark  the  segment to be destroyed.  The segment will only actually
-be destroyed after the last process detaches it (i.e., when the
-shm_nattch member of the associated structure shmid_ds is zero).
-""
-
-Unlike ipc_lock, paths that behave "correctly", at least per the manpage,
-involve controlling the ipc resource via *ctl(), doing the exact same
-validity check as ipc_lock after right acquiring the spinlock:
-
-	if (!ipc_valid_object()) {
-		err = -EIDRM;
-		goto out_unlock;
-	}
-
-Thus make ipc_lock consistent with the rest of ipc code and return -EIDRM
-in ipc_lock when !ipc_valid_object().
+EIDRM should only be returned upon a RMID call (->deleted check), and thus
+return EINVAL for wrong seq.  This difference in semantics has also caused
+real bugs, ie: https://bugzilla.redhat.com/show_bug.cgi?id=246509
 
 Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
 Cc: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/util.c |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ ipc/util.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN ipc/util.c~ipcsysv-make-return-eidrm-when-racing-with-rmid-consistent ipc/util.c
---- a/ipc/util.c~ipcsysv-make-return-eidrm-when-racing-with-rmid-consistent
+diff -puN ipc/util.c~ipcsysv-return-einval-upon-incorrect-id-seqnum ipc/util.c
+--- a/ipc/util.c~ipcsysv-return-einval-upon-incorrect-id-seqnum
 +++ a/ipc/util.c
-@@ -583,19 +583,22 @@ struct kern_ipc_perm *ipc_lock(struct ip
- 	rcu_read_lock();
- 	out = ipc_obtain_object_idr(ids, id);
- 	if (IS_ERR(out))
--		goto err1;
-+		goto err;
+@@ -622,7 +622,7 @@ struct kern_ipc_perm *ipc_obtain_object_
+ 		goto out;
  
- 	spin_lock(&out->lock);
- 
--	/* ipc_rmid() may have already freed the ID while ipc_lock
--	 * was spinning: here verify that the structure is still valid
-+	/*
-+	 * ipc_rmid() may have already freed the ID while ipc_lock()
-+	 * was spinning: here verify that the structure is still valid.
-+	 * Upon races with RMID, return -EIDRM, thus indicating that
-+	 * the ID points to a removed identifier.
- 	 */
- 	if (ipc_valid_object(out))
- 		return out;
- 
- 	spin_unlock(&out->lock);
--	out = ERR_PTR(-EINVAL);
--err1:
-+	out = ERR_PTR(-EIDRM);
-+err:
- 	rcu_read_unlock();
+ 	if (ipc_checkid(out, id))
+-		return ERR_PTR(-EIDRM);
++		return ERR_PTR(-EINVAL);
+ out:
  	return out;
  }
 _
