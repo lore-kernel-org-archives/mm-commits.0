@@ -1,171 +1,324 @@
 From: akpm@linux-foundation.org
-Subject: +
- sched-numa-do-not-hint-for-numa-balancing-on-vm_mixedmap-mappings.patch
- added to -mm tree
-Date: Mon, 08 Jun 2015 14:55:27 -0700
-Message-ID: <55760f4f./qEyMLzwsom6ZRhK%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-rejects-git-rejects.patch removed from -mm
+ tree
+Date: Tue, 09 Jun 2015 12:50:36 -0700
+Message-ID: <5577438c.OJWPTlrjypZgiHmd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58377 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:32992 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752966AbbFHVz2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Jun 2015 17:55:28 -0400
+	with ESMTP id S1752630AbbFITuh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Jun 2015 15:50:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, a.p.zijlstra@chello.nl, jovi@cloudflare.com, mingo@elte.hu, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sched, numa: do not hint for NUMA balancing on VM_MIXEDMAP mappings
-has been added to the -mm tree.  Its filename is
-     sched-numa-do-not-hint-for-numa-balancing-on-vm_mixedmap-mappings.patch
+     Subject: linux-next-rejects-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-rejects-git-rejects.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sched-numa-do-not-hint-for-numa-balancing-on-vm_mixedmap-mappings.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sched-numa-do-not-hint-for-numa-balancing-on-vm_mixedmap-mappings.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: sched, numa: do not hint for NUMA balancing on VM_MIXEDMAP mappings
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-rejects-git-rejects
 
-Jovi Zhangwei reported the following problem
-
-  Below kernel vm bug can be triggered by tcpdump which mmaped a lot of pages
-  with GFP_COMP flag.
-
-  [Mon May 25 05:29:33 2015] page:ffffea0015414000 count:66 mapcount:1 mapping:          (null) index:0x0
-  [Mon May 25 05:29:33 2015] flags: 0x20047580004000(head)
-  [Mon May 25 05:29:33 2015] page dumped because: VM_BUG_ON_PAGE(compound_order(page) && !PageTransHuge(page))
-  [Mon May 25 05:29:33 2015] ------------[ cut here ]------------
-  [Mon May 25 05:29:33 2015] kernel BUG at mm/migrate.c:1661!
-  [Mon May 25 05:29:33 2015] invalid opcode: 0000 [#1] SMP
-
-In this case it was triggered by running tcpdump but it's not necessary
-reproducible on all systems.
-
-  sudo tcpdump -i bond0.100 'tcp port 4242' -c 100000000000 -w 4242.pcap
-
-Compound pages cannot be migrated and it was not expected that such pages
-be marked for NUMA balancing.  This did not take into account that drivers
-such as net/packet/af_packet.c may insert compound pages into userspace
-with vm_insert_page.  This patch tells the NUMA balancing protection
-scanner to skip all VM_MIXEDMAP mappings which avoids the possibility that
-compound pages are marked for migration.
-
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Reported-by: Jovi Zhangwei <jovi@cloudflare.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched/fair.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/kernel/cpu/perf_event.h          |    5 -
+ arch/x86/kernel/cpu/perf_event_intel.c    |   69 --------------------
+ arch/x86/kernel/cpu/perf_event_intel_pt.c |    6 -
+ drivers/gpu/drm/i915/intel_ringbuffer.c   |    3 
+ drivers/tty/serial/amba-pl011.c           |   17 ----
+ drivers/usb/musb/musb_core.c              |    4 -
+ tools/testing/selftests/x86/Makefile      |    4 -
+ 7 files changed, 108 deletions(-)
 
-diff -puN kernel/sched/fair.c~sched-numa-do-not-hint-for-numa-balancing-on-vm_mixedmap-mappings kernel/sched/fair.c
---- a/kernel/sched/fair.c~sched-numa-do-not-hint-for-numa-balancing-on-vm_mixedmap-mappings
-+++ a/kernel/sched/fair.c
-@@ -2181,7 +2181,7 @@ void task_numa_work(struct callback_head
- 	}
- 	for (; vma; vma = vma->vm_next) {
- 		if (!vma_migratable(vma) || !vma_policy_mof(vma) ||
--			is_vm_hugetlb_page(vma)) {
-+			is_vm_hugetlb_page(vma) || (vma->vm_flags & VM_MIXEDMAP)) {
- 			continue;
- 		}
+diff -puN arch/x86/kernel/cpu/perf_event.h~linux-next-rejects-git-rejects arch/x86/kernel/cpu/perf_event.h
+--- a/arch/x86/kernel/cpu/perf_event.h~linux-next-rejects-git-rejects
++++ a/arch/x86/kernel/cpu/perf_event.h
+@@ -526,11 +526,6 @@ struct x86_pmu {
+ 	void		(*put_event_constraints)(struct cpu_hw_events *cpuc,
+ 						 struct perf_event *event);
  
+-<<<<<<< HEAD
+-	void		(*commit_scheduling)(struct cpu_hw_events *cpuc, int idx, int cntr);
+-
+-=======
+->>>>>>> linux-next/akpm-base
+ 	void		(*start_scheduling)(struct cpu_hw_events *cpuc);
+ 
+ 	void		(*commit_scheduling)(struct cpu_hw_events *cpuc, int idx, int cntr);
+diff -puN arch/x86/kernel/cpu/perf_event_intel.c~linux-next-rejects-git-rejects arch/x86/kernel/cpu/perf_event_intel.c
+--- a/arch/x86/kernel/cpu/perf_event_intel.c~linux-next-rejects-git-rejects
++++ a/arch/x86/kernel/cpu/perf_event_intel.c
+@@ -2003,28 +2003,6 @@ intel_get_excl_constraints(struct cpu_hw
+ 	 */
+ 	if (WARN_ON_ONCE(!excl_cntrs))
+ 		return c;
+-<<<<<<< HEAD
+-	/*
+-	 * event requires exclusive counter access
+-	 * across HT threads
+-	 */
+-	is_excl = c->flags & PERF_X86_EVENT_EXCL;
+-	if (is_excl && !(event->hw.flags & PERF_X86_EVENT_EXCL_ACCT)) {
+-		event->hw.flags |= PERF_X86_EVENT_EXCL_ACCT;
+-		if (!cpuc->n_excl++)
+-			WRITE_ONCE(excl_cntrs->has_exclusive[tid], 1);
+-	}
+-
+-	/*
+-	 * xl = state of current HT
+-	 * xlo = state of sibling HT
+-	 */
+-	xl = &excl_cntrs->states[tid];
+-	xlo = &excl_cntrs->states[o_tid];
+-
+-	cx = c;
+-=======
+->>>>>>> linux-next/akpm-base
+ 
+ 	/*
+ 	 * because we modify the constraint, we need
+@@ -2162,11 +2140,6 @@ static void intel_put_excl_constraints(s
+ 	if (WARN_ON_ONCE(!excl_cntrs))
+ 		return;
+ 
+-<<<<<<< HEAD
+-	xl = &excl_cntrs->states[tid];
+-	xlo = &excl_cntrs->states[o_tid];
+-=======
+->>>>>>> linux-next/akpm-base
+ 	if (hwc->flags & PERF_X86_EVENT_EXCL_ACCT) {
+ 		hwc->flags &= ~PERF_X86_EVENT_EXCL_ACCT;
+ 		if (!--cpuc->n_excl)
+@@ -2222,44 +2195,6 @@ static void intel_put_event_constraints(
+ 	 */
+ 	if (cpuc->excl_cntrs)
+ 		intel_put_excl_constraints(cpuc, event);
+-<<<<<<< HEAD
+-}
+-
+-static void intel_commit_scheduling(struct cpu_hw_events *cpuc, int idx, int cntr)
+-{
+-	struct intel_excl_cntrs *excl_cntrs = cpuc->excl_cntrs;
+-	struct event_constraint *c = cpuc->event_constraint[idx];
+-	struct intel_excl_states *xlo, *xl;
+-	int tid = cpuc->excl_thread_id;
+-	int o_tid = 1 - tid;
+-	int is_excl;
+-
+-	if (cpuc->is_fake || !c)
+-		return;
+-
+-	is_excl = c->flags & PERF_X86_EVENT_EXCL;
+-
+-	if (!(c->flags & PERF_X86_EVENT_DYNAMIC))
+-		return;
+-
+-	WARN_ON_ONCE(!excl_cntrs);
+-
+-	if (!excl_cntrs)
+-		return;
+-
+-	xl = &excl_cntrs->states[tid];
+-	xlo = &excl_cntrs->states[o_tid];
+-
+-	WARN_ON_ONCE(!raw_spin_is_locked(&excl_cntrs->lock));
+-
+-	if (cntr >= 0) {
+-		if (is_excl)
+-			xlo->init_state[cntr] = INTEL_EXCL_EXCLUSIVE;
+-		else
+-			xlo->init_state[cntr] = INTEL_EXCL_SHARED;
+-	}
+-=======
+->>>>>>> linux-next/akpm-base
+ }
+ 
+ static void intel_pebs_aliases_core2(struct perf_event *event)
+@@ -2652,11 +2587,7 @@ static void intel_pmu_cpu_starting(int c
+ 		cpuc->lbr_sel = &cpuc->shared_regs->regs[EXTRA_REG_LBR];
+ 
+ 	if (x86_pmu.flags & PMU_FL_EXCL_CNTRS) {
+-<<<<<<< HEAD
+-		for_each_cpu(i, topology_thread_cpumask(cpu)) {
+-=======
+ 		for_each_cpu(i, topology_sibling_cpumask(cpu)) {
+->>>>>>> linux-next/akpm-base
+ 			struct intel_excl_cntrs *c;
+ 
+ 			c = per_cpu(cpu_hw_events, i).excl_cntrs;
+diff -puN arch/x86/kernel/cpu/perf_event_intel_pt.c~linux-next-rejects-git-rejects arch/x86/kernel/cpu/perf_event_intel_pt.c
+--- a/arch/x86/kernel/cpu/perf_event_intel_pt.c~linux-next-rejects-git-rejects
++++ a/arch/x86/kernel/cpu/perf_event_intel_pt.c
+@@ -613,12 +613,6 @@ static int pt_buffer_reset_markers(struc
+ {
+ 	unsigned long head = local64_read(&buf->head);
+ 	unsigned long idx, npages, wakeup;
+-<<<<<<< HEAD
+-
+-	if (buf->snapshot)
+-		return 0;
+-=======
+->>>>>>> linux-next/akpm-base
+ 
+ 	/* can't stop in the middle of an output region */
+ 	if (buf->output_off + handle->size + 1 <
+diff -puN drivers/gpu/drm/i915/intel_ringbuffer.c~linux-next-rejects-git-rejects drivers/gpu/drm/i915/intel_ringbuffer.c
+--- a/drivers/gpu/drm/i915/intel_ringbuffer.c~linux-next-rejects-git-rejects
++++ a/drivers/gpu/drm/i915/intel_ringbuffer.c
+@@ -1030,8 +1030,6 @@ static int skl_init_workarounds(struct i
+ 				  HDC_FENCE_DEST_SLM_DISABLE |
+ 				  HDC_BARRIER_PERFORMANCE_DISABLE);
+ 
+-<<<<<<< HEAD
+-=======
+ 	if (INTEL_REVID(dev) <= SKL_REVID_D0) {
+ 		/*
+ 		 *Use Force Non-Coherent whenever executing a 3D context. This
+@@ -1043,7 +1041,6 @@ static int skl_init_workarounds(struct i
+ 				  HDC_FORCE_NON_COHERENT);
+ 	}
+ 
+->>>>>>> linux-next/akpm-base
+ 	return skl_tune_iz_hashing(ring);
+ }
+ 
+diff -puN drivers/tty/serial/amba-pl011.c~linux-next-rejects-git-rejects drivers/tty/serial/amba-pl011.c
+--- a/drivers/tty/serial/amba-pl011.c~linux-next-rejects-git-rejects
++++ a/drivers/tty/serial/amba-pl011.c
+@@ -1259,23 +1259,11 @@ __acquires(&uap->port.lock)
+ 	spin_lock(&uap->port.lock);
+ }
+ 
+-<<<<<<< HEAD
+-/*
+- * Transmit a character
+- *
+- * Returns true if the character was successfully queued to the FIFO.
+- * Returns false otherwise.
+- */
+-static bool pl011_tx_char(struct uart_amba_port *uap, unsigned char c)
+-{
+-	if (readw(uap->port.membase + UART01x_FR) & UART01x_FR_TXFF)
+-=======
+ static bool pl011_tx_char(struct uart_amba_port *uap, unsigned char c,
+ 			  bool from_irq)
+ {
+ 	if (unlikely(!from_irq) &&
+ 	    readw(uap->port.membase + UART01x_FR) & UART01x_FR_TXFF)
+->>>>>>> linux-next/akpm-base
+ 		return false; /* unable to transmit character */
+ 
+ 	writew(c, uap->port.membase + UART01x_DR);
+@@ -1290,13 +1278,8 @@ static void pl011_tx_chars(struct uart_a
+ 	int count = uap->fifosize >> 1;
+ 
+ 	if (uap->port.x_char) {
+-<<<<<<< HEAD
+-		if (!pl011_tx_char(uap, uap->port.x_char))
+-			goto done;
+-=======
+ 		if (!pl011_tx_char(uap, uap->port.x_char, from_irq))
+ 			return;
+->>>>>>> linux-next/akpm-base
+ 		uap->port.x_char = 0;
+ 		--count;
+ 	}
+diff -puN drivers/usb/musb/musb_core.c~linux-next-rejects-git-rejects drivers/usb/musb/musb_core.c
+--- a/drivers/usb/musb/musb_core.c~linux-next-rejects-git-rejects
++++ a/drivers/usb/musb/musb_core.c
+@@ -2032,11 +2032,7 @@ musb_init_controller(struct device *dev,
+ 	if (musb->ops->quirks)
+ 		musb->io.quirks = musb->ops->quirks;
+ 
+-<<<<<<< HEAD
+-	/* Most devices use indexed offset or flat offset */
+-=======
+ 	/* Set default ep access to indexed offset or flat offset ops */
+->>>>>>> linux-next/akpm-base
+ 	if (musb->io.quirks & MUSB_INDEXED_EP) {
+ 		musb->io.ep_offset = musb_indexed_ep_offset;
+ 		musb->io.ep_select = musb_indexed_ep_select;
+diff -puN tools/testing/selftests/x86/Makefile~linux-next-rejects-git-rejects tools/testing/selftests/x86/Makefile
+--- a/tools/testing/selftests/x86/Makefile~linux-next-rejects-git-rejects
++++ a/tools/testing/selftests/x86/Makefile
+@@ -4,11 +4,7 @@ include ../lib.mk
+ 
+ .PHONY: all all_32 all_64 warn_32bit_failure clean
+ 
+-<<<<<<< HEAD
+-TARGETS_C_BOTHBITS := sigreturn single_step_syscall
+-=======
+ TARGETS_C_BOTHBITS := sigreturn single_step_syscall sysret_ss_attrs
+->>>>>>> linux-next/akpm-base
+ TARGETS_C_32BIT_ONLY := entry_from_vm86
+ 
+ TARGETS_C_32BIT_ALL := $(TARGETS_C_BOTHBITS) $(TARGETS_C_32BIT_ONLY)
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-sched-numa-do-not-hint-for-numa-balancing-on-vm_mixedmap-mappings.patch
-jbd2-revert-must-not-fail-allocation-loops-back-to-gfp_nofail.patch
-thp-cleanup-how-khugepaged-enters-freezer.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+ocfs2-reduce-object-size-of-mlog-uses-fix.patch
+ocfs2-remove-__mlog_cpu_guess.patch
+ocfs2-remove-__mlog_cpu_guess-fix.patch
+ocfs2-fix-null-pointer-dereference-in-function-ocfs2_abort_trigger-fix.patch
+mm.patch
+mm-slab_common-support-the-slub_debug-boot-option-on-specific-object-size-fix.patch
+slub-bulk-allocation-from-per-cpu-partial-pages-fix.patch
+mm-fix-mprotect-behaviour-on-vm_locked-vmas-fix.patch
 mm-new-mm-hook-framework.patch
-mm-new-arch_remap-hook.patch
-powerpc-mm-tracking-vdso-remap.patch
-memblock-introduce-a-for_each_reserved_mem_region-iterator.patch
-mm-meminit-move-page-initialization-into-a-separate-function.patch
-mm-meminit-only-set-page-reserved-in-the-memblock-region.patch
-mm-page_alloc-pass-pfn-to-__free_pages_bootmem.patch
-mm-page_alloc-pass-pfn-to-__free_pages_bootmem-fix.patch
-mm-meminit-make-__early_pfn_to_nid-smp-safe-and-introduce-meminit_pfn_in_nid.patch
-mm-meminit-inline-some-helper-functions.patch
 mm-meminit-inline-some-helper-functions-fix.patch
-mm-meminit-inline-some-helper-functions-fix2.patch
-mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set.patch
-mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set-fix.patch
-mm-meminit-initialise-remaining-struct-pages-in-parallel-with-kswapd.patch
-mm-meminit-minimise-number-of-pfn-page-lookups-during-initialisation.patch
-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
-mm-meminit-free-pages-in-large-chunks-where-possible.patch
-mm-meminit-reduce-number-of-times-pageblocks-are-set-during-struct-page-init.patch
-mm-meminit-reduce-number-of-times-pageblocks-are-set-during-struct-page-init-fix.patch
-mm-meminit-remove-mminit_verify_page_links.patch
-mm-meminit-finish-initialisation-of-struct-pages-before-basic-setup.patch
 mm-meminit-finish-initialisation-of-struct-pages-before-basic-setup-fix.patch
-mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-reclaimable-pages.patch
-userfaultfd-linux-documentation-vm-userfaultfdtxt.patch
-userfaultfd-waitqueue-add-nr-wake-parameter-to-__wake_up_locked_key.patch
-userfaultfd-uapi.patch
-userfaultfd-linux-userfaultfd_kh.patch
-userfaultfd-add-vm_userfaultfd_ctx-to-the-vm_area_struct.patch
-userfaultfd-add-vm_uffd_missing-and-vm_uffd_wp.patch
-userfaultfd-call-handle_userfault-for-userfaultfd_missing-faults.patch
-userfaultfd-teach-vma_merge-to-merge-across-vma-vm_userfaultfd_ctx.patch
-userfaultfd-prevent-khugepaged-to-merge-if-userfaultfd-is-armed.patch
-userfaultfd-add-new-syscall-to-provide-memory-externalization.patch
-userfaultfd-rename-uffd_apibits-into-features.patch
-userfaultfd-rename-uffd_apibits-into-features-fixup.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg.patch
-userfaultfd-wake-pending-userfaults.patch
-userfaultfd-optimize-read-and-poll-to-be-o1.patch
-userfaultfd-allocate-the-userfaultfd_ctx-cacheline-aligned.patch
-userfaultfd-solve-the-race-between-uffdio_copyzeropage-and-read.patch
-userfaultfd-buildsystem-activation.patch
-userfaultfd-activate-syscall.patch
-userfaultfd-uffdio_copyuffdio_zeropage-uapi.patch
-userfaultfd-mcopy_atomicmfill_zeropage-uffdio_copyuffdio_zeropage-preparation.patch
-userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic.patch
-userfaultfd-uffdio_copy-and-uffdio_zeropage.patch
-hugetlb-do-not-account-hugetlb-pages-as-nr_file_pages.patch
-mm-memcg-try-charging-a-page-before-setting-page-up-to-date.patch
-mm-do-not-ignore-mapping_gfp_mask-in-page-cache-allocation-paths.patch
-page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-mm-sanitize-page-mapping-for-tail-pages.patch
+mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling-fix.patch
+rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix.patch
+rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix-fix.patch
+userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
+userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
+userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
+fs-userfaultfdc-work-around-i386-build-error.patch
+hugetlb-do-not-account-hugetlb-pages-as-nr_file_pages-fix.patch
+mm-do-not-ignore-mapping_gfp_mask-in-page-cache-allocation-paths-checkpatch-fixes.patch
+oom-split-out-forced-oom-killer-checkpatch-fixes.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
 mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-mm-move-lazy-free-pages-to-inactive-list.patch
-mm-move-lazy-free-pages-to-inactive-list-fix.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
 mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
+zswap-runtime-enable-disable-fix.patch
+prctl-more-prctlpr_set_mm_-checks-fix.patch
+proc-fix-page_size-limit-of-proc-pid-cmdline-fix.patch
+bitmap-remove-explicit-newline-handling-using-scnprintf-format-string-fix.patch
+radix-tree-replace-preallocated-node-array-with-linked-list-fix.patch
+init-do_mounts-add-create_dev-failure-log-fix.patch
+rtc-omap-add-external-32k-clock-feature-fix.patch
+devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx-fix.patch
+ipcshm-move-bug_on-check-into-shm_lock-fix-2.patch
+ipcshm-move-bug_on-check-into-shm_lock-fix.patch
+scsi-resolve-sg-buffer-const-ness-issue-fix.patch
+revert-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
 linux-next.patch
+reapply-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
+linux-next-rejects.patch
+drivers-block-nvme-corec-fix-build-with-gcc-444.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
