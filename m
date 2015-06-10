@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-suggest-using-ether_addr_equal.patch added to -mm
- tree
-Date: Wed, 10 Jun 2015 13:46:50 -0700
-Message-ID: <5578a23a.bZ6ZKgVYSNbapKi1%akpm@linux-foundation.org>
+Subject: +
+ checkpatch-suggest-using-eth_zero_addr-and-eth_broadcast_addr.patch added
+ to -mm tree
+Date: Wed, 10 Jun 2015 13:46:54 -0700
+Message-ID: <5578a23e.gGRY34dFyYejqAVs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57963 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57972 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965070AbbFJUqv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Jun 2015 16:46:51 -0400
+	with ESMTP id S965070AbbFJUqz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Jun 2015 16:46:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mateusz.kulikowski@gmail.com, davem@davemloft.net, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: suggest using ether_addr_equal*()
+     Subject: checkpatch: suggest using eth_zero_addr() and eth_broadcast_addr()
 has been added to the -mm tree.  Its filename is
-     checkpatch-suggest-using-ether_addr_equal.patch
+     checkpatch-suggest-using-eth_zero_addr-and-eth_broadcast_addr.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-suggest-using-ether_addr_equal.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-suggest-using-eth_zero_addr-and-eth_broadcast_addr.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-suggest-using-ether_addr_equal.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-suggest-using-eth_zero_addr-and-eth_broadcast_addr.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,10 +41,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mateusz Kulikowski <mateusz.kulikowski@gmail.com>
-Subject: checkpatch: suggest using ether_addr_equal*()
+Subject: checkpatch: suggest using eth_zero_addr() and eth_broadcast_addr()
 
-Check if memcmp() is used to compare ethernet addresses and suggest using
-ether_addr_equal() or ether_addr_equal_unaligned()
+Suggest using eth_zero_addr() or eth_broadcast_addr() instead of memset().
 
 Signed-off-by: Mateusz Kulikowski <mateusz.kulikowski@gmail.com>
 Acked-by: Joe Perches <joe@perches.com>
@@ -51,22 +51,37 @@ Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ scripts/checkpatch.pl |   23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-suggest-using-ether_addr_equal scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-suggest-using-ether_addr_equal
+diff -puN scripts/checkpatch.pl~checkpatch-suggest-using-eth_zero_addr-and-eth_broadcast_addr scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-suggest-using-eth_zero_addr-and-eth_broadcast_addr
 +++ a/scripts/checkpatch.pl
-@@ -5157,6 +5157,14 @@ sub process {
- 			}
+@@ -5165,6 +5165,29 @@ sub process {
+ 			     "Prefer ether_addr_equal() or ether_addr_equal_unaligned() over memcmp()\n" . "$here\n$stat\n")
  		}
  
-+# Check for memcmp(foo, bar, ETH_ALEN) that could be ether_addr_equal*(foo, bar)
++# check for memset(foo, 0x0, ETH_ALEN) that could be eth_zero_addr
++# check for memset(foo, 0xFF, ETH_ALEN) that could be eth_broadcast_addr
 +		if ($^V && $^V ge 5.10.0 &&
 +		    defined $stat &&
-+		    $stat =~ /^\+(?:.*?)\bmemcmp\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*\,\s*ETH_ALEN\s*\)/) {
-+			WARN("PREFER_ETHER_ADDR_EQUAL",
-+			     "Prefer ether_addr_equal() or ether_addr_equal_unaligned() over memcmp()\n" . "$here\n$stat\n")
++		    $stat =~ /^\+(?:.*?)\bmemset\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*\,\s*ETH_ALEN\s*\)/) {
++
++			my $ms_val = $7;
++
++			if ($ms_val =~ /^(?:0x|)0+$/i) {
++				if (WARN("PREFER_ETH_ZERO_ADDR",
++					 "Prefer eth_zero_addr over memset()\n" . "$here\n$stat\n") &&
++				    $fix) {
++					$fixed[$fixlinenr] =~ s/\bmemset\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*,\s*ETH_ALEN\s*\)/eth_zero_addr($2)/;
++				}
++			} elsif ($ms_val =~ /^(?:0xff|255)$/i) {
++				if (WARN("PREFER_ETH_BROADCAST_ADDR",
++					 "Prefer eth_broadcast_addr() over memset()\n" . "$here\n$stat\n") &&
++				    $fix) {
++					$fixed[$fixlinenr] =~ s/\bmemset\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*,\s*ETH_ALEN\s*\)/eth_broadcast_addr($2)/;
++				}
++			}
 +		}
 +
  # typecasts on min/max could be min_t/max_t
