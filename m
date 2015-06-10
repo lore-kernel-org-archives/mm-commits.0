@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + vb2-provide-helpers-for-mapping-virtual-addresses.patch added
- to -mm tree
-Date: Wed, 10 Jun 2015 14:16:13 -0700
-Message-ID: <5578a91d.Ma4w6yHDqoMDkUCq%akpm@linux-foundation.org>
+Subject: +
+ media-omap_vout-convert-omap_vout_uservirt_to_phys-to-use-get_vaddr_pfns.patch added to -mm tree
+Date: Wed, 10 Jun 2015 14:16:10 -0700
+Message-ID: <5578a91a.FuiUNLQIO0RWDhqu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58150 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58140 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752640AbbFJVQP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Jun 2015 17:16:15 -0400
+	with ESMTP id S1751389AbbFJVQM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Jun 2015 17:16:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jack@suse.cz, airlied@linux.ie, fabf@skynet.be, hans.verkuil@cisco.com, inki.dae@samsung.com, jy0922.shim@samsung.com, kgene@kernel.org, kyungmin.park@samsung.com, laurent.pinchart+renesas@ideasonboard.com, m.szyprowski@samsung.com, mchehab@osg.samsung.com, mgorman@suse.de, pawel@osciak.com, prabhakar.csengg@gmail.com, sw0312.kim@samsung.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: vb2: provide helpers for mapping virtual addresses
+     Subject: media: omap_vout: convert omap_vout_uservirt_to_phys() to use get_vaddr_pfns()
 has been added to the -mm tree.  Its filename is
-     vb2-provide-helpers-for-mapping-virtual-addresses.patch
+     media-omap_vout-convert-omap_vout_uservirt_to_phys-to-use-get_vaddr_pfns.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/vb2-provide-helpers-for-mapping-virtual-addresses.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/media-omap_vout-convert-omap_vout_uservirt_to_phys-to-use-get_vaddr_pfns.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/vb2-provide-helpers-for-mapping-virtual-addresses.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/media-omap_vout-convert-omap_vout_uservirt_to_phys-to-use-get_vaddr_pfns.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,15 +40,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jan Kara <jack@suse.cz>
-Subject: vb2: provide helpers for mapping virtual addresses
+Subject: media: omap_vout: convert omap_vout_uservirt_to_phys() to use get_vaddr_pfns()
 
-Provide simple helper functions to map virtual address range into an array
-of pfns / pages.
+Convert omap_vout_uservirt_to_phys() to use get_vaddr_pfns() instead of
+hand made mapping of virtual address to physical address.  Also the
+function leaked page reference from get_user_pages() so fix that by
+properly release the reference when omap_vout_buffer_release() is called.
 
+[hans.verkuil@cisco.com: remove unused struct omap_vout_device *vout variable]
 Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
 Cc: "Prabhakar Lad" <prabhakar.csengg@gmail.com>
 Cc: David Airlie <airlied@linux.ie>
 Cc: Fabian Frederick <fabf@skynet.be>
@@ -57,6 +59,7 @@ Cc: Joonyoung Shim <jy0922.shim@samsung.com>
 Cc: Kukjin Kim <kgene@kernel.org>
 Cc: Kyungmin Park <kyungmin.park@samsung.com>
 Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Pawel Osciak <pawel@osciak.com>
 Cc: Seung-Woo Kim <sw0312.kim@samsung.com>
@@ -64,99 +67,116 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/v4l2-core/videobuf2-memops.c |   58 +++++++++++++++++++
- include/media/videobuf2-memops.h           |    5 +
- 2 files changed, 63 insertions(+)
+ drivers/media/platform/omap/omap_vout.c |   71 +++++++++-------------
+ 1 file changed, 32 insertions(+), 39 deletions(-)
 
-diff -puN drivers/media/v4l2-core/videobuf2-memops.c~vb2-provide-helpers-for-mapping-virtual-addresses drivers/media/v4l2-core/videobuf2-memops.c
---- a/drivers/media/v4l2-core/videobuf2-memops.c~vb2-provide-helpers-for-mapping-virtual-addresses
-+++ a/drivers/media/v4l2-core/videobuf2-memops.c
-@@ -137,6 +137,64 @@ int vb2_get_contig_userptr(unsigned long
- EXPORT_SYMBOL_GPL(vb2_get_contig_userptr);
+diff -puN drivers/media/platform/omap/omap_vout.c~media-omap_vout-convert-omap_vout_uservirt_to_phys-to-use-get_vaddr_pfns drivers/media/platform/omap/omap_vout.c
+--- a/drivers/media/platform/omap/omap_vout.c~media-omap_vout-convert-omap_vout_uservirt_to_phys-to-use-get_vaddr_pfns
++++ a/drivers/media/platform/omap/omap_vout.c
+@@ -195,46 +195,34 @@ static int omap_vout_try_format(struct v
+ }
  
- /**
-+ * vb2_create_framevec() - map virtual addresses to pfns
-+ * @start:	Virtual user address where we start mapping
-+ * @length:	Length of a range to map
-+ * @write:	Should we map for writing into the area
-+ *
-+ * This function allocates and fills in a vector with pfns corresponding to
-+ * virtual address range passed in arguments. If pfns have corresponding pages,
-+ * page references are also grabbed to pin pages in memory. The function
-+ * returns pointer to the vector on success and error pointer in case of
-+ * failure. Returned vector needs to be freed via vb2_destroy_pfnvec().
-+ */
-+struct frame_vector *vb2_create_framevec(unsigned long start,
-+					 unsigned long length,
-+					 bool write)
-+{
-+	int ret;
-+	unsigned long first, last;
-+	unsigned long nr;
+ /*
+- * omap_vout_uservirt_to_phys: This inline function is used to convert user
+- * space virtual address to physical address.
++ * omap_vout_get_userptr: Convert user space virtual address to physical
++ * address.
+  */
+-static unsigned long omap_vout_uservirt_to_phys(unsigned long virtp)
++static int omap_vout_get_userptr(struct videobuf_buffer *vb, u32 virtp,
++				 u32 *physp)
+ {
+-	unsigned long physp = 0;
+-	struct vm_area_struct *vma;
+-	struct mm_struct *mm = current->mm;
 +	struct frame_vector *vec;
-+
-+	first = start >> PAGE_SHIFT;
-+	last = (start + length - 1) >> PAGE_SHIFT;
-+	nr = last - first + 1;
-+	vec = frame_vector_create(nr);
-+	if (!vec)
-+		return ERR_PTR(-ENOMEM);
-+	ret = get_vaddr_frames(start, nr, write, 1, vec);
-+	if (ret < 0)
-+		goto out_destroy;
-+	/* We accept only complete set of PFNs */
-+	if (ret != nr) {
-+		ret = -EFAULT;
-+		goto out_release;
++	int ret;
+ 
+ 	/* For kernel direct-mapped memory, take the easy way */
+-	if (virtp >= PAGE_OFFSET)
+-		return virt_to_phys((void *) virtp);
++	if (virtp >= PAGE_OFFSET) {
++		*physp = virt_to_phys((void *)virtp);
++		return 0;
 +	}
-+	return vec;
-+out_release:
-+	put_vaddr_frames(vec);
-+out_destroy:
-+	frame_vector_destroy(vec);
-+	return ERR_PTR(ret);
-+}
-+EXPORT_SYMBOL(vb2_create_framevec);
+ 
+-	down_read(&current->mm->mmap_sem);
+-	vma = find_vma(mm, virtp);
+-	if (vma && (vma->vm_flags & VM_IO) && vma->vm_pgoff) {
+-		/* this will catch, kernel-allocated, mmaped-to-usermode
+-		   addresses */
+-		physp = (vma->vm_pgoff << PAGE_SHIFT) + (virtp - vma->vm_start);
+-		up_read(&current->mm->mmap_sem);
+-	} else {
+-		/* otherwise, use get_user_pages() for general userland pages */
+-		int res, nr_pages = 1;
+-		struct page *pages;
+-
+-		res = get_user_pages(current, current->mm, virtp, nr_pages, 1,
+-				0, &pages, NULL);
+-		up_read(&current->mm->mmap_sem);
+-
+-		if (res == nr_pages) {
+-			physp =  __pa(page_address(&pages[0]) +
+-					(virtp & ~PAGE_MASK));
+-		} else {
+-			printk(KERN_WARNING VOUT_NAME
+-					"get_user_pages failed\n");
+-			return 0;
+-		}
++	vec = frame_vector_create(1);
++	if (!vec)
++		return -ENOMEM;
 +
-+/**
-+ * vb2_destroy_framevec() - release vector of mapped pfns
-+ * @vec:	vector of pfns / pages to release
-+ *
-+ * This releases references to all pages in the vector @vec (if corresponding
-+ * pfns are backed by pages) and frees the passed vector.
-+ */
-+void vb2_destroy_framevec(struct frame_vector *vec)
-+{
-+	put_vaddr_frames(vec);
-+	frame_vector_destroy(vec);
-+}
-+EXPORT_SYMBOL(vb2_destroy_framevec);
++	ret = get_vaddr_frames(virtp, 1, true, false, vec);
++	if (ret != 1) {
++		frame_vector_destroy(vec);
++		return -EINVAL;
+ 	}
++	*physp = __pfn_to_phys(frame_vector_pfns(vec)[0]);
++	vb->priv = vec;
+ 
+-	return physp;
++	return 0;
+ }
+ 
+ /*
+@@ -784,11 +772,15 @@ static int omap_vout_buffer_prepare(stru
+ 	 * address of the buffer
+ 	 */
+ 	if (V4L2_MEMORY_USERPTR == vb->memory) {
++		int ret;
 +
-+/**
-  * vb2_common_vm_open() - increase refcount of the vma
-  * @vma:	virtual memory region for the mapping
-  *
-diff -puN include/media/videobuf2-memops.h~vb2-provide-helpers-for-mapping-virtual-addresses include/media/videobuf2-memops.h
---- a/include/media/videobuf2-memops.h~vb2-provide-helpers-for-mapping-virtual-addresses
-+++ a/include/media/videobuf2-memops.h
-@@ -15,6 +15,7 @@
- #define _MEDIA_VIDEOBUF2_MEMOPS_H
+ 		if (0 == vb->baddr)
+ 			return -EINVAL;
+ 		/* Physical address */
+-		vout->queued_buf_addr[vb->i] = (u8 *)
+-			omap_vout_uservirt_to_phys(vb->baddr);
++		ret = omap_vout_get_userptr(vb, vb->baddr,
++				(u32 *)&vout->queued_buf_addr[vb->i]);
++		if (ret < 0)
++			return ret;
+ 	} else {
+ 		unsigned long addr, dma_addr;
+ 		unsigned long size;
+@@ -834,12 +826,13 @@ static void omap_vout_buffer_queue(struc
+ static void omap_vout_buffer_release(struct videobuf_queue *q,
+ 			    struct videobuf_buffer *vb)
+ {
+-	struct omap_vout_device *vout = q->priv_data;
+-
+ 	vb->state = VIDEOBUF_NEEDS_INIT;
++	if (vb->memory == V4L2_MEMORY_USERPTR && vb->priv) {
++		struct frame_vector *vec = vb->priv;
  
- #include <media/videobuf2-core.h>
-+#include <linux/mm.h>
+-	if (V4L2_MEMORY_MMAP != vout->memory)
+-		return;
++		put_vaddr_frames(vec);
++		frame_vector_destroy(vec);
++	}
+ }
  
- /**
-  * vb2_vmarea_handler - common vma refcount tracking handler
-@@ -36,5 +37,9 @@ int vb2_get_contig_userptr(unsigned long
- struct vm_area_struct *vb2_get_vma(struct vm_area_struct *vma);
- void vb2_put_vma(struct vm_area_struct *vma);
- 
-+struct frame_vector *vb2_create_framevec(unsigned long start,
-+					 unsigned long length,
-+					 bool write);
-+void vb2_destroy_framevec(struct frame_vector *vec);
- 
- #endif
+ /*
 _
 
 Patches currently in -mm which might be from jack@suse.cz are
