@@ -1,90 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: + arch-x86-kvm-mmuc-work-around-gcc-444-bug.patch added to -mm
+Subject: [folded-merged]
+ slub-bulk-allocation-from-per-cpu-partial-pages-fix.patch removed from -mm
  tree
-Date: Wed, 10 Jun 2015 11:09:54 -0700
-Message-ID: <55787d72.DOuSdCWO+Th53RiD%akpm@linux-foundation.org>
+Date: Wed, 10 Jun 2015 12:30:55 -0700
+Message-ID: <5578906f.dpsDCZ1iPDoqRtVS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56405 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57052 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754432AbbFJSJz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Jun 2015 14:09:55 -0400
+	with ESMTP id S932164AbbFJTa5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Jun 2015 15:30:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dave@stgolabs.net, guangrong.xiao@linux.intel.com, pbonzini@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, brouer@redhat.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch/x86/kvm/mmu.c: work around gcc-4.4.4 bug
-has been added to the -mm tree.  Its filename is
-     arch-x86-kvm-mmuc-work-around-gcc-444-bug.patch
+     Subject: slub-bulk-allocation-from-per-cpu-partial-pages-fix
+has been removed from the -mm tree.  Its filename was
+     slub-bulk-allocation-from-per-cpu-partial-pages-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arch-x86-kvm-mmuc-work-around-gcc-444-bug.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arch-x86-kvm-mmuc-work-around-gcc-444-bug.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into slub-bulk-allocation-from-per-cpu-partial-pages.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: arch/x86/kvm/mmu.c: work around gcc-4.4.4 bug
+Subject: slub-bulk-allocation-from-per-cpu-partial-pages-fix
 
-arch/x86/kvm/mmu.c: In function 'kvm_mmu_pte_write':
-arch/x86/kvm/mmu.c:4256: error: unknown field 'cr0_wp' specified in initializer
-arch/x86/kvm/mmu.c:4257: error: unknown field 'cr4_pae' specified in initializer
-arch/x86/kvm/mmu.c:4257: warning: excess elements in union initializer
-...
+fix comments, code layout
 
-gcc-4.4.4 (at least) has issues when using anonymous unions in
-initializers.
-
-Fixes: edc90b7dc4ceef6 ("KVM: MMU: fix SMAP virtualization")
-Cc: Xiao Guangrong <guangrong.xiao@linux.intel.com>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kvm/mmu.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ mm/slub.c |   15 ++++++---------
+ 1 file changed, 6 insertions(+), 9 deletions(-)
 
-diff -puN arch/x86/kvm/mmu.c~arch-x86-kvm-mmuc-work-around-gcc-444-bug arch/x86/kvm/mmu.c
---- a/arch/x86/kvm/mmu.c~arch-x86-kvm-mmuc-work-around-gcc-444-bug
-+++ a/arch/x86/kvm/mmu.c
-@@ -4215,13 +4215,13 @@ void kvm_mmu_pte_write(struct kvm_vcpu *
- 	u64 entry, gentry, *spte;
- 	int npte;
- 	bool remote_flush, local_flush, zap_page;
--	union kvm_mmu_page_role mask = (union kvm_mmu_page_role) {
--		.cr0_wp = 1,
--		.cr4_pae = 1,
--		.nxe = 1,
--		.smep_andnot_wp = 1,
--		.smap_andnot_wp = 1,
--	};
-+	union kvm_mmu_page_role mask = { };
-+
-+	mask.cr0_wp = 1;
-+	mask.cr4_pae = 1;
-+	mask.nxe = 1;
-+	mask.smep_andnot_wp = 1;
-+	mask.smap_andnot_wp = 1;
+diff -puN mm/slub.c~slub-bulk-allocation-from-per-cpu-partial-pages-fix mm/slub.c
+--- a/mm/slub.c~slub-bulk-allocation-from-per-cpu-partial-pages-fix
++++ a/mm/slub.c
+@@ -2771,17 +2771,16 @@ bool kmem_cache_alloc_bulk(struct kmem_c
  
- 	/*
- 	 * If we don't have indirect shadow pages, it means no page is
+ 			if (unlikely(!object)) {
+ 				/*
+-				 * Check if there remotely freed objects
+-				 * availalbe in the page.
++				 * Check if there are remotely freed objects
++				 * available in the page.
+ 				 */
+ 				object = get_freelist(s, c->page);
+ 
+ 				if (!object) {
+ 					/*
+-					 * All objects in use lets check if
+-					 * we have other per cpu partial
+-					 * pages that have available
+-					 * objects.
++					 * All objects in use.  Let's check if
++					 * we have other per cpu partial pages
++					 * that have available objects.
+ 					 */
+ 					c->page = c->partial;
+ 					if (!c->page) {
+@@ -2792,14 +2791,12 @@ bool kmem_cache_alloc_bulk(struct kmem_c
+ 
+ 					/* Next per cpu partial page */
+ 					c->partial = c->page->next;
+-					c->freelist = get_freelist(s,
+-							c->page);
++					c->freelist = get_freelist(s, c->page);
+ 					continue;
+ 				}
+ 
+ 			}
+ 
+-
+ 			*p++ = object;
+ 			size--;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -97,7 +96,7 @@ ocfs2-remove-__mlog_cpu_guess-fix.patch
 ocfs2-fix-null-pointer-dereference-in-function-ocfs2_abort_trigger-fix.patch
 mm.patch
 mm-slab_common-support-the-slub_debug-boot-option-on-specific-object-size-fix.patch
-slub-bulk-allocation-from-per-cpu-partial-pages-fix.patch
+slub-bulk-allocation-from-per-cpu-partial-pages.patch
 mm-fix-mprotect-behaviour-on-vm_locked-vmas-fix.patch
 mm-new-mm-hook-framework.patch
 mm-meminit-inline-some-helper-functions-fix.patch
