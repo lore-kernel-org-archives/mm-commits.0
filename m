@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- media-vb2-convert-vb2_vmalloc_get_userptr-to-use-frame-vector.patch added
+Subject: + vb2-provide-helpers-for-mapping-virtual-addresses.patch added
  to -mm tree
-Date: Wed, 10 Jun 2015 14:16:18 -0700
-Message-ID: <5578a922.lVv2Q0UVAq9D0ZXx%akpm@linux-foundation.org>
+Date: Wed, 10 Jun 2015 14:16:13 -0700
+Message-ID: <5578a91d.Ma4w6yHDqoMDkUCq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58173 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58150 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752640AbbFJVQU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Jun 2015 17:16:20 -0400
+	with ESMTP id S1752640AbbFJVQP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Jun 2015 17:16:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jack@suse.cz, airlied@linux.ie, fabf@skynet.be, hans.verkuil@cisco.com, inki.dae@samsung.com, jy0922.shim@samsung.com, kgene@kernel.org, kyungmin.park@samsung.com, laurent.pinchart+renesas@ideasonboard.com, m.szyprowski@samsung.com, mchehab@osg.samsung.com, mgorman@suse.de, pawel@osciak.com, prabhakar.csengg@gmail.com, sw0312.kim@samsung.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: media: vb2: Convert vb2_vmalloc_get_userptr() to use frame vector
+     Subject: vb2: provide helpers for mapping virtual addresses
 has been added to the -mm tree.  Its filename is
-     media-vb2-convert-vb2_vmalloc_get_userptr-to-use-frame-vector.patch
+     vb2-provide-helpers-for-mapping-virtual-addresses.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/media-vb2-convert-vb2_vmalloc_get_userptr-to-use-frame-vector.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/vb2-provide-helpers-for-mapping-virtual-addresses.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/media-vb2-convert-vb2_vmalloc_get_userptr-to-use-frame-vector.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/vb2-provide-helpers-for-mapping-virtual-addresses.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,11 +40,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jan Kara <jack@suse.cz>
-Subject: media: vb2: Convert vb2_vmalloc_get_userptr() to use frame vector
+Subject: vb2: provide helpers for mapping virtual addresses
 
-Convert vb2_vmalloc_get_userptr() to use frame vector infrastructure. 
-When we are doing that there's no need to allocate page array and some
-code can be simplified.
+Provide simple helper functions to map virtual address range into an array
+of pfns / pages.
 
 Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
@@ -66,148 +64,99 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/v4l2-core/videobuf2-vmalloc.c |   94 ++++++------------
- 1 file changed, 36 insertions(+), 58 deletions(-)
+ drivers/media/v4l2-core/videobuf2-memops.c |   58 +++++++++++++++++++
+ include/media/videobuf2-memops.h           |    5 +
+ 2 files changed, 63 insertions(+)
 
-diff -puN drivers/media/v4l2-core/videobuf2-vmalloc.c~media-vb2-convert-vb2_vmalloc_get_userptr-to-use-frame-vector drivers/media/v4l2-core/videobuf2-vmalloc.c
---- a/drivers/media/v4l2-core/videobuf2-vmalloc.c~media-vb2-convert-vb2_vmalloc_get_userptr-to-use-frame-vector
-+++ a/drivers/media/v4l2-core/videobuf2-vmalloc.c
-@@ -23,11 +23,9 @@
+diff -puN drivers/media/v4l2-core/videobuf2-memops.c~vb2-provide-helpers-for-mapping-virtual-addresses drivers/media/v4l2-core/videobuf2-memops.c
+--- a/drivers/media/v4l2-core/videobuf2-memops.c~vb2-provide-helpers-for-mapping-virtual-addresses
++++ a/drivers/media/v4l2-core/videobuf2-memops.c
+@@ -137,6 +137,64 @@ int vb2_get_contig_userptr(unsigned long
+ EXPORT_SYMBOL_GPL(vb2_get_contig_userptr);
  
- struct vb2_vmalloc_buf {
- 	void				*vaddr;
--	struct page			**pages;
--	struct vm_area_struct		*vma;
-+	struct frame_vector		*vec;
- 	enum dma_data_direction		dma_dir;
- 	unsigned long			size;
--	unsigned int			n_pages;
- 	atomic_t			refcount;
- 	struct vb2_vmarea_handler	handler;
- 	struct dma_buf			*dbuf;
-@@ -76,10 +74,8 @@ static void *vb2_vmalloc_get_userptr(voi
- 				     enum dma_data_direction dma_dir)
- {
- 	struct vb2_vmalloc_buf *buf;
--	unsigned long first, last;
--	int n_pages, offset;
--	struct vm_area_struct *vma;
--	dma_addr_t physp;
+ /**
++ * vb2_create_framevec() - map virtual addresses to pfns
++ * @start:	Virtual user address where we start mapping
++ * @length:	Length of a range to map
++ * @write:	Should we map for writing into the area
++ *
++ * This function allocates and fills in a vector with pfns corresponding to
++ * virtual address range passed in arguments. If pfns have corresponding pages,
++ * page references are also grabbed to pin pages in memory. The function
++ * returns pointer to the vector on success and error pointer in case of
++ * failure. Returned vector needs to be freed via vb2_destroy_pfnvec().
++ */
++struct frame_vector *vb2_create_framevec(unsigned long start,
++					 unsigned long length,
++					 bool write)
++{
++	int ret;
++	unsigned long first, last;
++	unsigned long nr;
 +	struct frame_vector *vec;
-+	int n_pages, offset, i;
- 
- 	buf = kzalloc(sizeof(*buf), GFP_KERNEL);
- 	if (!buf)
-@@ -88,53 +84,36 @@ static void *vb2_vmalloc_get_userptr(voi
- 	buf->dma_dir = dma_dir;
- 	offset = vaddr & ~PAGE_MASK;
- 	buf->size = size;
--
--	down_read(&current->mm->mmap_sem);
--	vma = find_vma(current->mm, vaddr);
--	if (vma && (vma->vm_flags & VM_PFNMAP) && (vma->vm_pgoff)) {
--		if (vb2_get_contig_userptr(vaddr, size, &vma, &physp))
--			goto fail_pages_array_alloc;
--		buf->vma = vma;
--		buf->vaddr = (__force void *)ioremap_nocache(physp, size);
--		if (!buf->vaddr)
--			goto fail_pages_array_alloc;
-+	vec = vb2_create_framevec(vaddr, size, dma_dir == DMA_FROM_DEVICE);
-+	if (IS_ERR(vec))
-+		goto fail_pfnvec_create;
-+	buf->vec = vec;
-+	n_pages = frame_vector_count(vec);
-+	if (frame_vector_to_pages(vec) < 0) {
-+		unsigned long *nums = frame_vector_pfns(vec);
 +
-+		/*
-+		 * We cannot get page pointers for these pfns. Check memory is
-+		 * physically contiguous and use direct mapping.
-+		 */
-+		for (i = 1; i < n_pages; i++)
-+			if (nums[i-1] + 1 != nums[i])
-+				goto fail_map;
-+		buf->vaddr = (__force void *)
-+				ioremap_nocache(nums[0] << PAGE_SHIFT, size);
- 	} else {
--		first = vaddr >> PAGE_SHIFT;
--		last  = (vaddr + size - 1) >> PAGE_SHIFT;
--		buf->n_pages = last - first + 1;
--		buf->pages = kzalloc(buf->n_pages * sizeof(struct page *),
--				     GFP_KERNEL);
--		if (!buf->pages)
--			goto fail_pages_array_alloc;
--
--		/* current->mm->mmap_sem is taken by videobuf2 core */
--		n_pages = get_user_pages(current, current->mm,
--					 vaddr & PAGE_MASK, buf->n_pages,
--					 dma_dir == DMA_FROM_DEVICE,
--					 1, /* force */
--					 buf->pages, NULL);
--		if (n_pages != buf->n_pages)
--			goto fail_get_user_pages;
--
--		buf->vaddr = vm_map_ram(buf->pages, buf->n_pages, -1,
-+		buf->vaddr = vm_map_ram(frame_vector_pages(vec), n_pages, -1,
- 					PAGE_KERNEL);
--		if (!buf->vaddr)
--			goto fail_get_user_pages;
- 	}
--	up_read(&current->mm->mmap_sem);
++	first = start >> PAGE_SHIFT;
++	last = (start + length - 1) >> PAGE_SHIFT;
++	nr = last - first + 1;
++	vec = frame_vector_create(nr);
++	if (!vec)
++		return ERR_PTR(-ENOMEM);
++	ret = get_vaddr_frames(start, nr, write, 1, vec);
++	if (ret < 0)
++		goto out_destroy;
++	/* We accept only complete set of PFNs */
++	if (ret != nr) {
++		ret = -EFAULT;
++		goto out_release;
++	}
++	return vec;
++out_release:
++	put_vaddr_frames(vec);
++out_destroy:
++	frame_vector_destroy(vec);
++	return ERR_PTR(ret);
++}
++EXPORT_SYMBOL(vb2_create_framevec);
++
++/**
++ * vb2_destroy_framevec() - release vector of mapped pfns
++ * @vec:	vector of pfns / pages to release
++ *
++ * This releases references to all pages in the vector @vec (if corresponding
++ * pfns are backed by pages) and frees the passed vector.
++ */
++void vb2_destroy_framevec(struct frame_vector *vec)
++{
++	put_vaddr_frames(vec);
++	frame_vector_destroy(vec);
++}
++EXPORT_SYMBOL(vb2_destroy_framevec);
++
++/**
+  * vb2_common_vm_open() - increase refcount of the vma
+  * @vma:	virtual memory region for the mapping
+  *
+diff -puN include/media/videobuf2-memops.h~vb2-provide-helpers-for-mapping-virtual-addresses include/media/videobuf2-memops.h
+--- a/include/media/videobuf2-memops.h~vb2-provide-helpers-for-mapping-virtual-addresses
++++ a/include/media/videobuf2-memops.h
+@@ -15,6 +15,7 @@
+ #define _MEDIA_VIDEOBUF2_MEMOPS_H
  
-+	if (!buf->vaddr)
-+		goto fail_map;
- 	buf->vaddr += offset;
- 	return buf;
+ #include <media/videobuf2-core.h>
++#include <linux/mm.h>
  
--fail_get_user_pages:
--	pr_debug("get_user_pages requested/got: %d/%d]\n", n_pages,
--		 buf->n_pages);
--	while (--n_pages >= 0)
--		put_page(buf->pages[n_pages]);
--	kfree(buf->pages);
--
--fail_pages_array_alloc:
--	up_read(&current->mm->mmap_sem);
-+fail_map:
-+	vb2_destroy_framevec(vec);
-+fail_pfnvec_create:
- 	kfree(buf);
+ /**
+  * vb2_vmarea_handler - common vma refcount tracking handler
+@@ -36,5 +37,9 @@ int vb2_get_contig_userptr(unsigned long
+ struct vm_area_struct *vb2_get_vma(struct vm_area_struct *vma);
+ void vb2_put_vma(struct vm_area_struct *vma);
  
- 	return NULL;
-@@ -145,22 +124,21 @@ static void vb2_vmalloc_put_userptr(void
- 	struct vb2_vmalloc_buf *buf = buf_priv;
- 	unsigned long vaddr = (unsigned long)buf->vaddr & PAGE_MASK;
- 	unsigned int i;
-+	struct page **pages;
-+	unsigned int n_pages;
++struct frame_vector *vb2_create_framevec(unsigned long start,
++					 unsigned long length,
++					 bool write);
++void vb2_destroy_framevec(struct frame_vector *vec);
  
--	down_read(&current->mm->mmap_sem);
--	if (buf->pages) {
-+	if (!buf->vec->is_pfns) {
-+		n_pages = frame_vector_count(buf->vec);
-+		pages = frame_vector_pages(buf->vec);
- 		if (vaddr)
--			vm_unmap_ram((void *)vaddr, buf->n_pages);
--		for (i = 0; i < buf->n_pages; ++i) {
--			if (buf->dma_dir == DMA_FROM_DEVICE)
--				set_page_dirty_lock(buf->pages[i]);
--			put_page(buf->pages[i]);
--		}
--		kfree(buf->pages);
-+			vm_unmap_ram((void *)vaddr, n_pages);
-+		if (buf->dma_dir == DMA_FROM_DEVICE)
-+			for (i = 0; i < n_pages; i++)
-+				set_page_dirty_lock(pages[i]);
- 	} else {
--		vb2_put_vma(buf->vma);
- 		iounmap((__force void __iomem *)buf->vaddr);
- 	}
--	up_read(&current->mm->mmap_sem);
-+	vb2_destroy_framevec(buf->vec);
- 	kfree(buf);
- }
- 
+ #endif
 _
 
 Patches currently in -mm which might be from jack@suse.cz are
