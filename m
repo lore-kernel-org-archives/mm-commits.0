@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- checkpatch-add-multi-line-handling-for-prefer_ether_addr_copy.patch added
- to -mm tree
-Date: Wed, 10 Jun 2015 13:46:56 -0700
-Message-ID: <5578a240.m8KlnYYaAwqcEFJg%akpm@linux-foundation.org>
+ media-vb2-convert-vb2_dma_sg_get_userptr-to-use-frame-vector.patch added to -mm tree
+Date: Wed, 10 Jun 2015 14:16:15 -0700
+Message-ID: <5578a91f.5OqaPEsfXQLIW9wJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57976 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58159 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965088AbbFJUq5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Jun 2015 16:46:57 -0400
+	with ESMTP id S1752847AbbFJVQQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Jun 2015 17:16:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mateusz.kulikowski@gmail.com, davem@davemloft.net, joe@perches.com, mm-commits@vger.kernel.org
+To: jack@suse.cz, airlied@linux.ie, fabf@skynet.be, hans.verkuil@cisco.com, inki.dae@samsung.com, jy0922.shim@samsung.com, kgene@kernel.org, kyungmin.park@samsung.com, laurent.pinchart+renesas@ideasonboard.com, m.szyprowski@samsung.com, mchehab@osg.samsung.com, mgorman@suse.de, pawel@osciak.com, prabhakar.csengg@gmail.com, sw0312.kim@samsung.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add multi-line handling for PREFER_ETHER_ADDR_COPY
+     Subject: media: vb2: convert vb2_dma_sg_get_userptr() to use frame vector
 has been added to the -mm tree.  Its filename is
-     checkpatch-add-multi-line-handling-for-prefer_ether_addr_copy.patch
+     media-vb2-convert-vb2_dma_sg_get_userptr-to-use-frame-vector.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-multi-line-handling-for-prefer_ether_addr_copy.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/media-vb2-convert-vb2_dma_sg_get_userptr-to-use-frame-vector.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-multi-line-handling-for-prefer_ether_addr_copy.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/media-vb2-convert-vb2_dma_sg_get_userptr-to-use-frame-vector.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,43 +39,209 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mateusz Kulikowski <mateusz.kulikowski@gmail.com>
-Subject: checkpatch: add multi-line handling for PREFER_ETHER_ADDR_COPY
+From: Jan Kara <jack@suse.cz>
+Subject: media: vb2: convert vb2_dma_sg_get_userptr() to use frame vector
 
-Handle multi-line memcpy() properly.
+Simplify the VMA code by using frame_vector_pages() & friends on VB2.
 
-Signed-off-by: Mateusz Kulikowski <mateusz.kulikowski@gmail.com>
-Acked-by: Joe Perches <joe@perches.com>
-Cc: David Miller <davem@davemloft.net>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: "Prabhakar Lad" <prabhakar.csengg@gmail.com>
+Cc: David Airlie <airlied@linux.ie>
+Cc: Fabian Frederick <fabf@skynet.be>
+Cc: Inki Dae <inki.dae@samsung.com>
+Cc: Joonyoung Shim <jy0922.shim@samsung.com>
+Cc: Kukjin Kim <kgene@kernel.org>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Pawel Osciak <pawel@osciak.com>
+Cc: Seung-Woo Kim <sw0312.kim@samsung.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/media/v4l2-core/videobuf2-dma-sg.c |   99 +++----------------
+ 1 file changed, 16 insertions(+), 83 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-multi-line-handling-for-prefer_ether_addr_copy scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-multi-line-handling-for-prefer_ether_addr_copy
-+++ a/scripts/checkpatch.pl
-@@ -5149,9 +5149,10 @@ sub process {
+diff -puN drivers/media/v4l2-core/videobuf2-dma-sg.c~media-vb2-convert-vb2_dma_sg_get_userptr-to-use-frame-vector drivers/media/v4l2-core/videobuf2-dma-sg.c
+--- a/drivers/media/v4l2-core/videobuf2-dma-sg.c~media-vb2-convert-vb2_dma_sg_get_userptr-to-use-frame-vector
++++ a/drivers/media/v4l2-core/videobuf2-dma-sg.c
+@@ -38,6 +38,7 @@ struct vb2_dma_sg_buf {
+ 	struct device			*dev;
+ 	void				*vaddr;
+ 	struct page			**pages;
++	struct frame_vector		*vec;
+ 	int				offset;
+ 	enum dma_data_direction		dma_dir;
+ 	struct sg_table			sg_table;
+@@ -51,7 +52,6 @@ struct vb2_dma_sg_buf {
+ 	unsigned int			num_pages;
+ 	atomic_t			refcount;
+ 	struct vb2_vmarea_handler	handler;
+-	struct vm_area_struct		*vma;
  
- # Check for memcpy(foo, bar, ETH_ALEN) that could be ether_addr_copy(foo, bar)
- 		if ($^V && $^V ge 5.10.0 &&
--		    $line =~ /^\+(?:.*?)\bmemcpy\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*\,\s*ETH_ALEN\s*\)/s) {
-+		    defined $stat &&
-+		    $stat =~ /^\+(?:.*?)\bmemcpy\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*\,\s*ETH_ALEN\s*\)/) {
- 			if (WARN("PREFER_ETHER_ADDR_COPY",
--				 "Prefer ether_addr_copy() over memcpy() if the Ethernet addresses are __aligned(2)\n" . $herecurr) &&
-+				 "Prefer ether_addr_copy() over memcpy() if the Ethernet addresses are __aligned(2)\n" . "$here\n$stat\n") &&
- 			    $fix) {
- 				$fixed[$fixlinenr] =~ s/\bmemcpy\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*\,\s*ETH_ALEN\s*\)/ether_addr_copy($2, $7)/;
- 			}
+ 	struct dma_buf_attachment	*db_attach;
+ };
+@@ -225,25 +225,17 @@ static void vb2_dma_sg_finish(void *buf_
+ 	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
+ }
+ 
+-static inline int vma_is_io(struct vm_area_struct *vma)
+-{
+-	return !!(vma->vm_flags & (VM_IO | VM_PFNMAP));
+-}
+-
+ static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 				    unsigned long size,
+ 				    enum dma_data_direction dma_dir)
+ {
+ 	struct vb2_dma_sg_conf *conf = alloc_ctx;
+ 	struct vb2_dma_sg_buf *buf;
+-	unsigned long first, last;
+-	int num_pages_from_user;
+-	struct vm_area_struct *vma;
+ 	struct sg_table *sgt;
+ 	DEFINE_DMA_ATTRS(attrs);
++	struct frame_vector *vec;
+ 
+ 	dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &attrs);
+-
+ 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
+ 	if (!buf)
+ 		return NULL;
+@@ -254,63 +246,19 @@ static void *vb2_dma_sg_get_userptr(void
+ 	buf->offset = vaddr & ~PAGE_MASK;
+ 	buf->size = size;
+ 	buf->dma_sgt = &buf->sg_table;
+-
+-	first = (vaddr           & PAGE_MASK) >> PAGE_SHIFT;
+-	last  = ((vaddr + size - 1) & PAGE_MASK) >> PAGE_SHIFT;
+-	buf->num_pages = last - first + 1;
+-
+-	buf->pages = kzalloc(buf->num_pages * sizeof(struct page *),
+-			     GFP_KERNEL);
+-	if (!buf->pages)
+-		goto userptr_fail_alloc_pages;
+-
+-	down_read(&current->mm->mmap_sem);
+-	vma = find_vma(current->mm, vaddr);
+-	if (!vma) {
+-		dprintk(1, "no vma for address %lu\n", vaddr);
+-		goto userptr_fail_find_vma;
+-	}
+-
+-	if (vma->vm_end < vaddr + size) {
+-		dprintk(1, "vma at %lu is too small for %lu bytes\n",
+-			vaddr, size);
+-		goto userptr_fail_find_vma;
+-	}
+-
+-	buf->vma = vb2_get_vma(vma);
+-	if (!buf->vma) {
+-		dprintk(1, "failed to copy vma\n");
+-		goto userptr_fail_find_vma;
+-	}
+-
+-	if (vma_is_io(buf->vma)) {
+-		for (num_pages_from_user = 0;
+-		     num_pages_from_user < buf->num_pages;
+-		     ++num_pages_from_user, vaddr += PAGE_SIZE) {
+-			unsigned long pfn;
+-
+-			if (follow_pfn(vma, vaddr, &pfn)) {
+-				dprintk(1, "no page for address %lu\n", vaddr);
+-				break;
+-			}
+-			buf->pages[num_pages_from_user] = pfn_to_page(pfn);
+-		}
+-	} else
+-		num_pages_from_user = get_user_pages(current, current->mm,
+-					     vaddr & PAGE_MASK,
+-					     buf->num_pages,
+-					     buf->dma_dir == DMA_FROM_DEVICE,
+-					     1, /* force */
+-					     buf->pages,
+-					     NULL);
+-	up_read(&current->mm->mmap_sem);
+-
+-	if (num_pages_from_user != buf->num_pages)
+-		goto userptr_fail_get_user_pages;
++	vec = vb2_create_framevec(vaddr, size, buf->dma_dir == DMA_FROM_DEVICE);
++	if (IS_ERR(vec))
++		goto userptr_fail_pfnvec;
++	buf->vec = vec;
++
++	buf->pages = frame_vector_pages(vec);
++	if (IS_ERR(buf->pages))
++		goto userptr_fail_sgtable;
++	buf->num_pages = frame_vector_count(vec);
+ 
+ 	if (sg_alloc_table_from_pages(buf->dma_sgt, buf->pages,
+ 			buf->num_pages, buf->offset, size, 0))
+-		goto userptr_fail_alloc_table_from_pages;
++		goto userptr_fail_sgtable;
+ 
+ 	sgt = &buf->sg_table;
+ 	/*
+@@ -326,19 +274,9 @@ static void *vb2_dma_sg_get_userptr(void
+ 
+ userptr_fail_map:
+ 	sg_free_table(&buf->sg_table);
+-userptr_fail_alloc_table_from_pages:
+-userptr_fail_get_user_pages:
+-	dprintk(1, "get_user_pages requested/got: %d/%d]\n",
+-		buf->num_pages, num_pages_from_user);
+-	if (!vma_is_io(buf->vma))
+-		while (--num_pages_from_user >= 0)
+-			put_page(buf->pages[num_pages_from_user]);
+-	down_read(&current->mm->mmap_sem);
+-	vb2_put_vma(buf->vma);
+-userptr_fail_find_vma:
+-	up_read(&current->mm->mmap_sem);
+-	kfree(buf->pages);
+-userptr_fail_alloc_pages:
++userptr_fail_sgtable:
++	vb2_destroy_framevec(vec);
++userptr_fail_pfnvec:
+ 	kfree(buf);
+ 	return NULL;
+ }
+@@ -366,13 +304,8 @@ static void vb2_dma_sg_put_userptr(void
+ 	while (--i >= 0) {
+ 		if (buf->dma_dir == DMA_FROM_DEVICE)
+ 			set_page_dirty_lock(buf->pages[i]);
+-		if (!vma_is_io(buf->vma))
+-			put_page(buf->pages[i]);
+ 	}
+-	kfree(buf->pages);
+-	down_read(&current->mm->mmap_sem);
+-	vb2_put_vma(buf->vma);
+-	up_read(&current->mm->mmap_sem);
++	vb2_destroy_framevec(buf->vec);
+ 	kfree(buf);
+ }
+ 
 _
 
-Patches currently in -mm which might be from mateusz.kulikowski@gmail.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
-checkpatch-suggest-using-ether_addr_equal.patch
-checkpatch-fix-processing-of-memset-issues.patch
-checkpatch-suggest-using-eth_zero_addr-and-eth_broadcast_addr.patch
-checkpatch-add-multi-line-handling-for-prefer_ether_addr_copy.patch
+revert-ufs-fix-deadlocks-introduced-by-sb-mutex-merge.patch
+ufs-restore-s_lock-mutex.patch
+fsnotify-remove-obsolete-documentation.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
 linux-next.patch
+mm-provide-new-get_vaddr_frames-helper.patch
+media-omap_vout-convert-omap_vout_uservirt_to_phys-to-use-get_vaddr_pfns.patch
+vb2-provide-helpers-for-mapping-virtual-addresses.patch
+media-vb2-convert-vb2_dma_sg_get_userptr-to-use-frame-vector.patch
+media-vb2-convert-vb2_vmalloc_get_userptr-to-use-frame-vector.patch
+media-vb2-convert-vb2_dc_get_userptr-to-use-frame-vector.patch
+media-vb2-remove-unused-functions.patch
+drm-exynos-convert-g2d_userptr_get_dma_addr-to-use-get_vaddr_frames.patch
+mm-move-get_vaddr_frames-behind-a-config-option.patch
+mm-add-strictlimit-knob-v2.patch
 
