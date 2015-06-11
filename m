@@ -1,165 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- sched-numa-do-not-hint-for-numa-balancing-on-vm_mixedmap-mappings.patch
- removed from -mm tree
-Date: Thu, 11 Jun 2015 14:01:33 -0700
-Message-ID: <5579f72d./nYi9ix42aukam70%akpm@linux-foundation.org>
+Subject: [merged] arch-x86-kvm-mmuc-work-around-gcc-444-bug.patch removed
+ from -mm tree
+Date: Thu, 11 Jun 2015 14:01:35 -0700
+Message-ID: <5579f72f.T+TvvYSMKnd/DQTQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55559 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55564 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751920AbbFKVBe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Jun 2015 17:01:34 -0400
+	with ESMTP id S1754482AbbFKVBg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Jun 2015 17:01:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, a.p.zijlstra@chello.nl, jovi@cloudflare.com, mingo@kernel.org, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dave@stgolabs.net, guangrong.xiao@linux.intel.com, pbonzini@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sched, numa: do not hint for NUMA balancing on VM_MIXEDMAP mappings
+     Subject: arch/x86/kvm/mmu.c: work around gcc-4.4.4 bug
 has been removed from the -mm tree.  Its filename was
-     sched-numa-do-not-hint-for-numa-balancing-on-vm_mixedmap-mappings.patch
+     arch-x86-kvm-mmuc-work-around-gcc-444-bug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: sched, numa: do not hint for NUMA balancing on VM_MIXEDMAP mappings
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: arch/x86/kvm/mmu.c: work around gcc-4.4.4 bug
 
-Jovi Zhangwei reported the following problem
+arch/x86/kvm/mmu.c: In function 'kvm_mmu_pte_write':
+arch/x86/kvm/mmu.c:4256: error: unknown field 'cr0_wp' specified in initializer
+arch/x86/kvm/mmu.c:4257: error: unknown field 'cr4_pae' specified in initializer
+arch/x86/kvm/mmu.c:4257: warning: excess elements in union initializer
+...
 
-  Below kernel vm bug can be triggered by tcpdump which mmaped a lot of pages
-  with GFP_COMP flag.
+gcc-4.4.4 (at least) has issues when using anonymous unions in
+initializers.
 
-  [Mon May 25 05:29:33 2015] page:ffffea0015414000 count:66 mapcount:1 mapping:          (null) index:0x0
-  [Mon May 25 05:29:33 2015] flags: 0x20047580004000(head)
-  [Mon May 25 05:29:33 2015] page dumped because: VM_BUG_ON_PAGE(compound_order(page) && !PageTransHuge(page))
-  [Mon May 25 05:29:33 2015] ------------[ cut here ]------------
-  [Mon May 25 05:29:33 2015] kernel BUG at mm/migrate.c:1661!
-  [Mon May 25 05:29:33 2015] invalid opcode: 0000 [#1] SMP
-
-In this case it was triggered by running tcpdump but it's not necessary
-reproducible on all systems.
-
-  sudo tcpdump -i bond0.100 'tcp port 4242' -c 100000000000 -w 4242.pcap
-
-Compound pages cannot be migrated and it was not expected that such pages
-be marked for NUMA balancing.  This did not take into account that drivers
-such as net/packet/af_packet.c may insert compound pages into userspace
-with vm_insert_page.  This patch tells the NUMA balancing protection
-scanner to skip all VM_MIXEDMAP mappings which avoids the possibility that
-compound pages are marked for migration.
-
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Reported-by: Jovi Zhangwei <jovi@cloudflare.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: <stable@vger.kernel.org>
+Fixes: edc90b7dc4ceef6 ("KVM: MMU: fix SMAP virtualization")
+Cc: Xiao Guangrong <guangrong.xiao@linux.intel.com>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched/fair.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/kvm/mmu.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN kernel/sched/fair.c~sched-numa-do-not-hint-for-numa-balancing-on-vm_mixedmap-mappings kernel/sched/fair.c
---- a/kernel/sched/fair.c~sched-numa-do-not-hint-for-numa-balancing-on-vm_mixedmap-mappings
-+++ a/kernel/sched/fair.c
-@@ -2181,7 +2181,7 @@ void task_numa_work(struct callback_head
- 	}
- 	for (; vma; vma = vma->vm_next) {
- 		if (!vma_migratable(vma) || !vma_policy_mof(vma) ||
--			is_vm_hugetlb_page(vma)) {
-+			is_vm_hugetlb_page(vma) || (vma->vm_flags & VM_MIXEDMAP)) {
- 			continue;
- 		}
+diff -puN arch/x86/kvm/mmu.c~arch-x86-kvm-mmuc-work-around-gcc-444-bug arch/x86/kvm/mmu.c
+--- a/arch/x86/kvm/mmu.c~arch-x86-kvm-mmuc-work-around-gcc-444-bug
++++ a/arch/x86/kvm/mmu.c
+@@ -4215,13 +4215,13 @@ void kvm_mmu_pte_write(struct kvm_vcpu *
+ 	u64 entry, gentry, *spte;
+ 	int npte;
+ 	bool remote_flush, local_flush, zap_page;
+-	union kvm_mmu_page_role mask = (union kvm_mmu_page_role) {
+-		.cr0_wp = 1,
+-		.cr4_pae = 1,
+-		.nxe = 1,
+-		.smep_andnot_wp = 1,
+-		.smap_andnot_wp = 1,
+-	};
++	union kvm_mmu_page_role mask = { };
++
++	mask.cr0_wp = 1;
++	mask.cr4_pae = 1;
++	mask.nxe = 1;
++	mask.smep_andnot_wp = 1;
++	mask.smap_andnot_wp = 1;
  
+ 	/*
+ 	 * If we don't have indirect shadow pages, it means no page is
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-thp-cleanup-how-khugepaged-enters-freezer.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+ocfs2-reduce-object-size-of-mlog-uses-fix.patch
+ocfs2-remove-__mlog_cpu_guess.patch
+ocfs2-remove-__mlog_cpu_guess-fix.patch
+ocfs2-fix-null-pointer-dereference-in-function-ocfs2_abort_trigger-fix.patch
+mm.patch
+mm-slab_common-support-the-slub_debug-boot-option-on-specific-object-size-fix.patch
+mm-fix-mprotect-behaviour-on-vm_locked-vmas-fix.patch
 mm-new-mm-hook-framework.patch
-mm-new-arch_remap-hook.patch
-powerpc-mm-tracking-vdso-remap.patch
-memblock-introduce-a-for_each_reserved_mem_region-iterator.patch
-mm-meminit-move-page-initialization-into-a-separate-function.patch
-mm-meminit-only-set-page-reserved-in-the-memblock-region.patch
-mm-page_alloc-pass-pfn-to-__free_pages_bootmem.patch
-mm-page_alloc-pass-pfn-to-__free_pages_bootmem-fix.patch
-mm-meminit-make-__early_pfn_to_nid-smp-safe-and-introduce-meminit_pfn_in_nid.patch
-mm-meminit-inline-some-helper-functions.patch
 mm-meminit-inline-some-helper-functions-fix.patch
-mm-meminit-inline-some-helper-functions-fix2.patch
-mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set.patch
-mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set-fix.patch
-mm-meminit-initialise-remaining-struct-pages-in-parallel-with-kswapd.patch
-mm-meminit-minimise-number-of-pfn-page-lookups-during-initialisation.patch
-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
-mm-meminit-free-pages-in-large-chunks-where-possible.patch
-mm-meminit-reduce-number-of-times-pageblocks-are-set-during-struct-page-init.patch
-mm-meminit-reduce-number-of-times-pageblocks-are-set-during-struct-page-init-fix.patch
-mm-meminit-remove-mminit_verify_page_links.patch
-mm-meminit-finish-initialisation-of-struct-pages-before-basic-setup.patch
 mm-meminit-finish-initialisation-of-struct-pages-before-basic-setup-fix.patch
-mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-reclaimable-pages.patch
-userfaultfd-linux-documentation-vm-userfaultfdtxt.patch
-userfaultfd-waitqueue-add-nr-wake-parameter-to-__wake_up_locked_key.patch
-userfaultfd-uapi.patch
-userfaultfd-linux-userfaultfd_kh.patch
-userfaultfd-add-vm_userfaultfd_ctx-to-the-vm_area_struct.patch
-userfaultfd-add-vm_uffd_missing-and-vm_uffd_wp.patch
-userfaultfd-call-handle_userfault-for-userfaultfd_missing-faults.patch
-userfaultfd-teach-vma_merge-to-merge-across-vma-vm_userfaultfd_ctx.patch
-userfaultfd-prevent-khugepaged-to-merge-if-userfaultfd-is-armed.patch
-userfaultfd-add-new-syscall-to-provide-memory-externalization.patch
-userfaultfd-rename-uffd_apibits-into-features.patch
-userfaultfd-rename-uffd_apibits-into-features-fixup.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg.patch
-userfaultfd-wake-pending-userfaults.patch
-userfaultfd-optimize-read-and-poll-to-be-o1.patch
-userfaultfd-allocate-the-userfaultfd_ctx-cacheline-aligned.patch
-userfaultfd-solve-the-race-between-uffdio_copyzeropage-and-read.patch
-userfaultfd-buildsystem-activation.patch
-userfaultfd-activate-syscall.patch
-userfaultfd-uffdio_copyuffdio_zeropage-uapi.patch
-userfaultfd-mcopy_atomicmfill_zeropage-uffdio_copyuffdio_zeropage-preparation.patch
-userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic.patch
-userfaultfd-uffdio_copy-and-uffdio_zeropage.patch
-hugetlb-do-not-account-hugetlb-pages-as-nr_file_pages.patch
-mm-memcg-try-charging-a-page-before-setting-page-up-to-date.patch
-mm-do-not-ignore-mapping_gfp_mask-in-page-cache-allocation-paths.patch
-page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-mm-sanitize-page-mapping-for-tail-pages.patch
+mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling-fix.patch
+rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix.patch
+rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix-fix.patch
+userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
+userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
+userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
+fs-userfaultfdc-work-around-i386-build-error.patch
+hugetlb-do-not-account-hugetlb-pages-as-nr_file_pages-fix.patch
+mm-do-not-ignore-mapping_gfp_mask-in-page-cache-allocation-paths-checkpatch-fixes.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
 mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-mm-move-lazy-free-pages-to-inactive-list.patch
-mm-move-lazy-free-pages-to-inactive-list-fix.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
 mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
+zswap-runtime-enable-disable-fix.patch
+prctl-more-prctlpr_set_mm_-checks-fix.patch
+proc-fix-page_size-limit-of-proc-pid-cmdline-fix.patch
+bitmap-remove-explicit-newline-handling-using-scnprintf-format-string-fix.patch
+radix-tree-replace-preallocated-node-array-with-linked-list-fix.patch
+init-do_mounts-add-create_dev-failure-log-fix.patch
+rtc-omap-add-external-32k-clock-feature-fix.patch
+devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx-fix.patch
+ipcshm-move-bug_on-check-into-shm_lock-fix.patch
+scsi-resolve-sg-buffer-const-ness-issue-fix.patch
+revert-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
 linux-next.patch
-mm-provide-new-get_vaddr_frames-helper.patch
-media-omap_vout-convert-omap_vout_uservirt_to_phys-to-use-get_vaddr_pfns.patch
-vb2-provide-helpers-for-mapping-virtual-addresses.patch
-media-vb2-convert-vb2_dma_sg_get_userptr-to-use-frame-vector.patch
-media-vb2-convert-vb2_vmalloc_get_userptr-to-use-frame-vector.patch
-media-vb2-convert-vb2_dc_get_userptr-to-use-frame-vector.patch
-media-vb2-remove-unused-functions.patch
-drm-exynos-convert-g2d_userptr_get_dma_addr-to-use-get_vaddr_frames.patch
+reapply-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
+linux-next-rejects.patch
+drivers-block-nvme-corec-fix-build-with-gcc-444.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
 mm-move-get_vaddr_frames-behind-a-config-option.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
