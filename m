@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + genalloc-rename-dev_get_gen_pool-to-gen_pool_get.patch added to -mm tree
-Date: Thu, 11 Jun 2015 14:52:19 -0700
-Message-ID: <557a0313.O1SCn4BleVLHxGpl%akpm@linux-foundation.org>
+Subject: + genalloc-rename-of_get_named_gen_pool-to-of_gen_pool_get.patch
+ added to -mm tree
+Date: Thu, 11 Jun 2015 14:52:21 -0700
+Message-ID: <557a0315.5SCxw1RFncYHFtzB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57111 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57125 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752462AbbFKVwU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Jun 2015 17:52:20 -0400
+	with ESMTP id S1751708AbbFKVwX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Jun 2015 17:52:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vladimir_zapolskiy@mentor.com, alexandre.belloni@free-electrons.com, kernel@pengutronix.de, linux@arm.linux.org.uk, mchehab@osg.samsung.com, nicolas.ferre@atmel.com, p.zabel@pengutronix.de, perex@perex.cz, shawn.guo@linaro.org, tiwai@suse.de, vinod.koul@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: genalloc: rename dev_get_gen_pool() to gen_pool_get()
+     Subject: genalloc: rename of_get_named_gen_pool() to of_gen_pool_get()
 has been added to the -mm tree.  Its filename is
-     genalloc-rename-dev_get_gen_pool-to-gen_pool_get.patch
+     genalloc-rename-of_get_named_gen_pool-to-of_gen_pool_get.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/genalloc-rename-dev_get_gen_pool-to-gen_pool_get.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/genalloc-rename-of_get_named_gen_pool-to-of_gen_pool_get.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/genalloc-rename-dev_get_gen_pool-to-gen_pool_get.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/genalloc-rename-of_get_named_gen_pool-to-of_gen_pool_get.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,15 +40,19 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
-Subject: genalloc: rename dev_get_gen_pool() to gen_pool_get()
+Subject: genalloc: rename of_get_named_gen_pool() to of_gen_pool_get()
 
-To be consistent with other genalloc interface namings, rename
-dev_get_gen_pool() to gen_pool_get().  The original omitted "dev_" prefix
-is removed, since it points to argument type of the function, and so it
-does not bring any useful information.
+To be consistent with other kernel interface namings, rename
+of_get_named_gen_pool() to of_gen_pool_get().  In the original function
+name "_named" suffix references to a device tree property, which contains
+a phandle to a device and the corresponding device driver is assumed to
+register a gen_pool object.
+
+Due to a weak relation and to avoid any confusion (e.g.  in future
+possible scenario if gen_pool objects are named) the suffix is removed.
 
 Signed-off-by: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
-Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
+Cc: Nicolas Ferre <nicolas.ferre@atmel.com>
 Cc: Philipp Zabel <p.zabel@pengutronix.de>
 Cc: Shawn Guo <shawn.guo@linaro.org>
 Cc: Sascha Hauer <kernel@pengutronix.de>
@@ -60,110 +65,93 @@ Cc: Jaroslav Kysela <perex@perex.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-at91/pm.c                   |    2 +-
- arch/arm/mach-imx/pm-imx5.c               |    2 +-
- arch/arm/mach-imx/pm-imx6.c               |    2 +-
+ drivers/dma/mmp_tdma.c                    |    2 +-
  drivers/media/platform/coda/coda-common.c |    2 +-
- include/linux/genalloc.h                  |    2 +-
- lib/genalloc.c                            |    8 ++++----
- 6 files changed, 9 insertions(+), 9 deletions(-)
+ include/linux/genalloc.h                  |    4 ++--
+ lib/genalloc.c                            |    6 +++---
+ sound/core/memalloc.c                     |    2 +-
+ 5 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN arch/arm/mach-at91/pm.c~genalloc-rename-dev_get_gen_pool-to-gen_pool_get arch/arm/mach-at91/pm.c
---- a/arch/arm/mach-at91/pm.c~genalloc-rename-dev_get_gen_pool-to-gen_pool_get
-+++ a/arch/arm/mach-at91/pm.c
-@@ -369,7 +369,7 @@ static void __init at91_pm_sram_init(voi
- 		return;
- 	}
+diff -puN drivers/dma/mmp_tdma.c~genalloc-rename-of_get_named_gen_pool-to-of_gen_pool_get drivers/dma/mmp_tdma.c
+--- a/drivers/dma/mmp_tdma.c~genalloc-rename-of_get_named_gen_pool-to-of_gen_pool_get
++++ a/drivers/dma/mmp_tdma.c
+@@ -657,7 +657,7 @@ static int mmp_tdma_probe(struct platfor
+ 	INIT_LIST_HEAD(&tdev->device.channels);
  
--	sram_pool = dev_get_gen_pool(&pdev->dev);
-+	sram_pool = gen_pool_get(&pdev->dev);
- 	if (!sram_pool) {
- 		pr_warn("%s: sram pool unavailable!\n", __func__);
- 		return;
-diff -puN arch/arm/mach-imx/pm-imx5.c~genalloc-rename-dev_get_gen_pool-to-gen_pool_get arch/arm/mach-imx/pm-imx5.c
---- a/arch/arm/mach-imx/pm-imx5.c~genalloc-rename-dev_get_gen_pool-to-gen_pool_get
-+++ a/arch/arm/mach-imx/pm-imx5.c
-@@ -297,7 +297,7 @@ static int __init imx_suspend_alloc_ocra
- 		goto put_node;
- 	}
- 
--	ocram_pool = dev_get_gen_pool(&pdev->dev);
-+	ocram_pool = gen_pool_get(&pdev->dev);
- 	if (!ocram_pool) {
- 		pr_warn("%s: ocram pool unavailable!\n", __func__);
- 		ret = -ENODEV;
-diff -puN arch/arm/mach-imx/pm-imx6.c~genalloc-rename-dev_get_gen_pool-to-gen_pool_get arch/arm/mach-imx/pm-imx6.c
---- a/arch/arm/mach-imx/pm-imx6.c~genalloc-rename-dev_get_gen_pool-to-gen_pool_get
-+++ a/arch/arm/mach-imx/pm-imx6.c
-@@ -451,7 +451,7 @@ static int __init imx6q_suspend_init(con
- 		goto put_node;
- 	}
- 
--	ocram_pool = dev_get_gen_pool(&pdev->dev);
-+	ocram_pool = gen_pool_get(&pdev->dev);
- 	if (!ocram_pool) {
- 		pr_warn("%s: ocram pool unavailable!\n", __func__);
- 		ret = -ENODEV;
-diff -puN drivers/media/platform/coda/coda-common.c~genalloc-rename-dev_get_gen_pool-to-gen_pool_get drivers/media/platform/coda/coda-common.c
---- a/drivers/media/platform/coda/coda-common.c~genalloc-rename-dev_get_gen_pool-to-gen_pool_get
-+++ a/drivers/media/platform/coda/coda-common.c
-@@ -2157,7 +2157,7 @@ static int coda_probe(struct platform_de
- 	/* Get IRAM pool from device tree or platform data */
- 	pool = of_get_named_gen_pool(np, "iram", 0);
- 	if (!pool && pdata)
--		pool = dev_get_gen_pool(pdata->iram_dev);
-+		pool = gen_pool_get(pdata->iram_dev);
+ 	if (pdev->dev.of_node)
+-		pool = of_get_named_gen_pool(pdev->dev.of_node, "asram", 0);
++		pool = of_gen_pool_get(pdev->dev.of_node, "asram", 0);
+ 	else
+ 		pool = sram_get_gpool("asram");
  	if (!pool) {
- 		dev_err(&pdev->dev, "iram pool not available\n");
- 		return -ENOMEM;
-diff -puN include/linux/genalloc.h~genalloc-rename-dev_get_gen_pool-to-gen_pool_get include/linux/genalloc.h
---- a/include/linux/genalloc.h~genalloc-rename-dev_get_gen_pool-to-gen_pool_get
+diff -puN drivers/media/platform/coda/coda-common.c~genalloc-rename-of_get_named_gen_pool-to-of_gen_pool_get drivers/media/platform/coda/coda-common.c
+--- a/drivers/media/platform/coda/coda-common.c~genalloc-rename-of_get_named_gen_pool-to-of_gen_pool_get
++++ a/drivers/media/platform/coda/coda-common.c
+@@ -2155,7 +2155,7 @@ static int coda_probe(struct platform_de
+ 	}
+ 
+ 	/* Get IRAM pool from device tree or platform data */
+-	pool = of_get_named_gen_pool(np, "iram", 0);
++	pool = of_gen_pool_get(np, "iram", 0);
+ 	if (!pool && pdata)
+ 		pool = gen_pool_get(pdata->iram_dev);
+ 	if (!pool) {
+diff -puN include/linux/genalloc.h~genalloc-rename-of_get_named_gen_pool-to-of_gen_pool_get include/linux/genalloc.h
+--- a/include/linux/genalloc.h~genalloc-rename-of_get_named_gen_pool-to-of_gen_pool_get
 +++ a/include/linux/genalloc.h
-@@ -119,7 +119,7 @@ extern unsigned long gen_pool_best_fit(u
- 
- extern struct gen_pool *devm_gen_pool_create(struct device *dev,
- 		int min_alloc_order, int nid);
--extern struct gen_pool *dev_get_gen_pool(struct device *dev);
-+extern struct gen_pool *gen_pool_get(struct device *dev);
- 
- bool addr_in_gen_pool(struct gen_pool *pool, unsigned long start,
+@@ -125,10 +125,10 @@ bool addr_in_gen_pool(struct gen_pool *p
  			size_t size);
-diff -puN lib/genalloc.c~genalloc-rename-dev_get_gen_pool-to-gen_pool_get lib/genalloc.c
---- a/lib/genalloc.c~genalloc-rename-dev_get_gen_pool-to-gen_pool_get
-+++ a/lib/genalloc.c
-@@ -602,12 +602,12 @@ struct gen_pool *devm_gen_pool_create(st
- EXPORT_SYMBOL(devm_gen_pool_create);
  
- /**
-- * dev_get_gen_pool - Obtain the gen_pool (if any) for a device
-+ * gen_pool_get - Obtain the gen_pool (if any) for a device
-  * @dev: device to retrieve the gen_pool from
-  *
-  * Returns the gen_pool for the device if one is present, or NULL.
-  */
--struct gen_pool *dev_get_gen_pool(struct device *dev)
-+struct gen_pool *gen_pool_get(struct device *dev)
+ #ifdef CONFIG_OF
+-extern struct gen_pool *of_get_named_gen_pool(struct device_node *np,
++extern struct gen_pool *of_gen_pool_get(struct device_node *np,
+ 	const char *propname, int index);
+ #else
+-static inline struct gen_pool *of_get_named_gen_pool(struct device_node *np,
++static inline struct gen_pool *of_gen_pool_get(struct device_node *np,
+ 	const char *propname, int index)
  {
- 	struct gen_pool **p = devres_find(dev, devm_gen_pool_release, NULL,
- 					NULL);
-@@ -616,7 +616,7 @@ struct gen_pool *dev_get_gen_pool(struct
- 		return NULL;
- 	return *p;
- }
--EXPORT_SYMBOL_GPL(dev_get_gen_pool);
-+EXPORT_SYMBOL_GPL(gen_pool_get);
+ 	return NULL;
+diff -puN lib/genalloc.c~genalloc-rename-of_get_named_gen_pool-to-of_gen_pool_get lib/genalloc.c
+--- a/lib/genalloc.c~genalloc-rename-of_get_named_gen_pool-to-of_gen_pool_get
++++ a/lib/genalloc.c
+@@ -620,7 +620,7 @@ EXPORT_SYMBOL_GPL(gen_pool_get);
  
  #ifdef CONFIG_OF
  /**
-@@ -642,7 +642,7 @@ struct gen_pool *of_get_named_gen_pool(s
- 	of_node_put(np_pool);
- 	if (!pdev)
+- * of_get_named_gen_pool - find a pool by phandle property
++ * of_gen_pool_get - find a pool by phandle property
+  * @np: device node
+  * @propname: property name containing phandle(s)
+  * @index: index into the phandle array
+@@ -629,7 +629,7 @@ EXPORT_SYMBOL_GPL(gen_pool_get);
+  * address of the device tree node pointed at by the phandle property,
+  * or NULL if not found.
+  */
+-struct gen_pool *of_get_named_gen_pool(struct device_node *np,
++struct gen_pool *of_gen_pool_get(struct device_node *np,
+ 	const char *propname, int index)
+ {
+ 	struct platform_device *pdev;
+@@ -644,5 +644,5 @@ struct gen_pool *of_get_named_gen_pool(s
  		return NULL;
--	return dev_get_gen_pool(&pdev->dev);
-+	return gen_pool_get(&pdev->dev);
+ 	return gen_pool_get(&pdev->dev);
  }
- EXPORT_SYMBOL_GPL(of_get_named_gen_pool);
+-EXPORT_SYMBOL_GPL(of_get_named_gen_pool);
++EXPORT_SYMBOL_GPL(of_gen_pool_get);
  #endif /* CONFIG_OF */
+diff -puN sound/core/memalloc.c~genalloc-rename-of_get_named_gen_pool-to-of_gen_pool_get sound/core/memalloc.c
+--- a/sound/core/memalloc.c~genalloc-rename-of_get_named_gen_pool-to-of_gen_pool_get
++++ a/sound/core/memalloc.c
+@@ -124,7 +124,7 @@ static void snd_malloc_dev_iram(struct s
+ 	dmab->addr = 0;
+ 
+ 	if (dev->of_node)
+-		pool = of_get_named_gen_pool(dev->of_node, "iram", 0);
++		pool = of_gen_pool_get(dev->of_node, "iram", 0);
+ 
+ 	if (!pool)
+ 		return;
 _
 
 Patches currently in -mm which might be from vladimir_zapolskiy@mentor.com are
