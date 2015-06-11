@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + genalloc-rename-of_get_named_gen_pool-to-of_gen_pool_get.patch
- added to -mm tree
-Date: Thu, 11 Jun 2015 14:52:21 -0700
-Message-ID: <557a0315.5SCxw1RFncYHFtzB%akpm@linux-foundation.org>
+Subject: + fs-filec-dont-acquire-files-file_lock-in-fd_install.patch added to -mm tree
+Date: Thu, 11 Jun 2015 15:10:02 -0700
+Message-ID: <557a073a.Xp8ded8uMj/L80Ry%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57125 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57342 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751708AbbFKVwX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Jun 2015 17:52:23 -0400
+	with ESMTP id S1752273AbbFKWKD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Jun 2015 18:10:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vladimir_zapolskiy@mentor.com, alexandre.belloni@free-electrons.com, kernel@pengutronix.de, linux@arm.linux.org.uk, mchehab@osg.samsung.com, nicolas.ferre@atmel.com, p.zabel@pengutronix.de, perex@perex.cz, shawn.guo@linaro.org, tiwai@suse.de, vinod.koul@intel.com, mm-commits@vger.kernel.org
+To: edumazet@google.com, khlebnikov@yandex-team.ru, mguzik@redhat.com, paulmck@linux.vnet.ibm.com, viro@ZenIV.linux.org.uk, ydroneaud@opteya.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: genalloc: rename of_get_named_gen_pool() to of_gen_pool_get()
+     Subject: fs/file.c: don't acquire files->file_lock in fd_install()
 has been added to the -mm tree.  Its filename is
-     genalloc-rename-of_get_named_gen_pool-to-of_gen_pool_get.patch
+     fs-filec-dont-acquire-files-file_lock-in-fd_install.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/genalloc-rename-of_get_named_gen_pool-to-of_gen_pool_get.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-filec-dont-acquire-files-file_lock-in-fd_install.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/genalloc-rename-of_get_named_gen_pool-to-of_gen_pool_get.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-filec-dont-acquire-files-file_lock-in-fd_install.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,124 +38,190 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
-Subject: genalloc: rename of_get_named_gen_pool() to of_gen_pool_get()
+From: Eric Dumazet <edumazet@google.com>
+Subject: fs/file.c: don't acquire files->file_lock in fd_install()
 
-To be consistent with other kernel interface namings, rename
-of_get_named_gen_pool() to of_gen_pool_get().  In the original function
-name "_named" suffix references to a device tree property, which contains
-a phandle to a device and the corresponding device driver is assumed to
-register a gen_pool object.
+Mateusz Guzik reported :
 
-Due to a weak relation and to avoid any confusion (e.g.  in future
-possible scenario if gen_pool objects are named) the suffix is removed.
+ Currently obtaining a new file descriptor results in locking fdtable
+ twice - once in order to reserve a slot and second time to fill it.
 
-Signed-off-by: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
-Cc: Nicolas Ferre <nicolas.ferre@atmel.com>
-Cc: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Shawn Guo <shawn.guo@linaro.org>
-Cc: Sascha Hauer <kernel@pengutronix.de>
-Cc: Alexandre Belloni <alexandre.belloni@free-electrons.com>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Vinod Koul <vinod.koul@intel.com>
-Cc: Takashi Iwai <tiwai@suse.de>
-Cc: Jaroslav Kysela <perex@perex.cz>
+Holding the spinlock in __fd_install() is needed in case a resize is
+done, or to prevent a resize.
+
+Mateusz provided an RFC patch and a micro benchmark :
+  http://people.redhat.com/~mguzik/pipebench.c
+
+A resize is an unlikely operation in a process lifetime,
+as table size is at least doubled at every resize.
+
+We can use RCU instead of the spinlock :
+
+__fd_install() must wait if a resize is in progress.
+
+The resize must block new __fd_install() callers from starting,
+and wait that ongoing install are finished (synchronize_sched())
+
+resize should be attempted by a single thread to not waste resources.
+
+rcu_sched variant is used, as __fd_install() and expand_fdtable() run
+from process context.
+
+It gives us a ~30% speedup using pipebench with 16 threads, and a ~10%
+speedup with another program using TCP sockets.
+
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Reported-by: Mateusz Guzik <mguzik@redhat.com>
+Acked-by: Mateusz Guzik <mguzik@redhat.com>
+Tested-by: Mateusz Guzik <mguzik@redhat.com>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Yann Droneaud <ydroneaud@opteya.com>
+Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/mmp_tdma.c                    |    2 +-
- drivers/media/platform/coda/coda-common.c |    2 +-
- include/linux/genalloc.h                  |    4 ++--
- lib/genalloc.c                            |    6 +++---
- sound/core/memalloc.c                     |    2 +-
- 5 files changed, 8 insertions(+), 8 deletions(-)
+ fs/file.c               |   66 +++++++++++++++++++++++++++-----------
+ include/linux/fdtable.h |    3 +
+ 2 files changed, 50 insertions(+), 19 deletions(-)
 
-diff -puN drivers/dma/mmp_tdma.c~genalloc-rename-of_get_named_gen_pool-to-of_gen_pool_get drivers/dma/mmp_tdma.c
---- a/drivers/dma/mmp_tdma.c~genalloc-rename-of_get_named_gen_pool-to-of_gen_pool_get
-+++ a/drivers/dma/mmp_tdma.c
-@@ -657,7 +657,7 @@ static int mmp_tdma_probe(struct platfor
- 	INIT_LIST_HEAD(&tdev->device.channels);
+diff -puN fs/file.c~fs-filec-dont-acquire-files-file_lock-in-fd_install fs/file.c
+--- a/fs/file.c~fs-filec-dont-acquire-files-file_lock-in-fd_install
++++ a/fs/file.c
+@@ -147,6 +147,13 @@ static int expand_fdtable(struct files_s
  
- 	if (pdev->dev.of_node)
--		pool = of_get_named_gen_pool(pdev->dev.of_node, "asram", 0);
-+		pool = of_gen_pool_get(pdev->dev.of_node, "asram", 0);
- 	else
- 		pool = sram_get_gpool("asram");
- 	if (!pool) {
-diff -puN drivers/media/platform/coda/coda-common.c~genalloc-rename-of_get_named_gen_pool-to-of_gen_pool_get drivers/media/platform/coda/coda-common.c
---- a/drivers/media/platform/coda/coda-common.c~genalloc-rename-of_get_named_gen_pool-to-of_gen_pool_get
-+++ a/drivers/media/platform/coda/coda-common.c
-@@ -2155,7 +2155,7 @@ static int coda_probe(struct platform_de
+ 	spin_unlock(&files->file_lock);
+ 	new_fdt = alloc_fdtable(nr);
++
++	/* make sure all __fd_install() have seen resize_in_progress
++	 * or have finished their rcu_read_lock_sched() section.
++	 */
++	if (atomic_read(&files->count) > 1)
++		synchronize_sched();
++
+ 	spin_lock(&files->file_lock);
+ 	if (!new_fdt)
+ 		return -ENOMEM;
+@@ -158,21 +165,14 @@ static int expand_fdtable(struct files_s
+ 		__free_fdtable(new_fdt);
+ 		return -EMFILE;
  	}
- 
- 	/* Get IRAM pool from device tree or platform data */
--	pool = of_get_named_gen_pool(np, "iram", 0);
-+	pool = of_gen_pool_get(np, "iram", 0);
- 	if (!pool && pdata)
- 		pool = gen_pool_get(pdata->iram_dev);
- 	if (!pool) {
-diff -puN include/linux/genalloc.h~genalloc-rename-of_get_named_gen_pool-to-of_gen_pool_get include/linux/genalloc.h
---- a/include/linux/genalloc.h~genalloc-rename-of_get_named_gen_pool-to-of_gen_pool_get
-+++ a/include/linux/genalloc.h
-@@ -125,10 +125,10 @@ bool addr_in_gen_pool(struct gen_pool *p
- 			size_t size);
- 
- #ifdef CONFIG_OF
--extern struct gen_pool *of_get_named_gen_pool(struct device_node *np,
-+extern struct gen_pool *of_gen_pool_get(struct device_node *np,
- 	const char *propname, int index);
- #else
--static inline struct gen_pool *of_get_named_gen_pool(struct device_node *np,
-+static inline struct gen_pool *of_gen_pool_get(struct device_node *np,
- 	const char *propname, int index)
- {
- 	return NULL;
-diff -puN lib/genalloc.c~genalloc-rename-of_get_named_gen_pool-to-of_gen_pool_get lib/genalloc.c
---- a/lib/genalloc.c~genalloc-rename-of_get_named_gen_pool-to-of_gen_pool_get
-+++ a/lib/genalloc.c
-@@ -620,7 +620,7 @@ EXPORT_SYMBOL_GPL(gen_pool_get);
- 
- #ifdef CONFIG_OF
- /**
-- * of_get_named_gen_pool - find a pool by phandle property
-+ * of_gen_pool_get - find a pool by phandle property
-  * @np: device node
-  * @propname: property name containing phandle(s)
-  * @index: index into the phandle array
-@@ -629,7 +629,7 @@ EXPORT_SYMBOL_GPL(gen_pool_get);
-  * address of the device tree node pointed at by the phandle property,
-  * or NULL if not found.
-  */
--struct gen_pool *of_get_named_gen_pool(struct device_node *np,
-+struct gen_pool *of_gen_pool_get(struct device_node *np,
- 	const char *propname, int index)
- {
- 	struct platform_device *pdev;
-@@ -644,5 +644,5 @@ struct gen_pool *of_get_named_gen_pool(s
- 		return NULL;
- 	return gen_pool_get(&pdev->dev);
+-	/*
+-	 * Check again since another task may have expanded the fd table while
+-	 * we dropped the lock
+-	 */
+ 	cur_fdt = files_fdtable(files);
+-	if (nr >= cur_fdt->max_fds) {
+-		/* Continue as planned */
+-		copy_fdtable(new_fdt, cur_fdt);
+-		rcu_assign_pointer(files->fdt, new_fdt);
+-		if (cur_fdt != &files->fdtab)
+-			call_rcu(&cur_fdt->rcu, free_fdtable_rcu);
+-	} else {
+-		/* Somebody else expanded, so undo our attempt */
+-		__free_fdtable(new_fdt);
+-	}
++	BUG_ON(nr < cur_fdt->max_fds);
++	copy_fdtable(new_fdt, cur_fdt);
++	rcu_assign_pointer(files->fdt, new_fdt);
++	if (cur_fdt != &files->fdtab)
++		call_rcu(&cur_fdt->rcu, free_fdtable_rcu);
++	/* coupled with smp_rmb() in __fd_install() */
++	smp_wmb();
+ 	return 1;
  }
--EXPORT_SYMBOL_GPL(of_get_named_gen_pool);
-+EXPORT_SYMBOL_GPL(of_gen_pool_get);
- #endif /* CONFIG_OF */
-diff -puN sound/core/memalloc.c~genalloc-rename-of_get_named_gen_pool-to-of_gen_pool_get sound/core/memalloc.c
---- a/sound/core/memalloc.c~genalloc-rename-of_get_named_gen_pool-to-of_gen_pool_get
-+++ a/sound/core/memalloc.c
-@@ -124,7 +124,7 @@ static void snd_malloc_dev_iram(struct s
- 	dmab->addr = 0;
  
- 	if (dev->of_node)
--		pool = of_get_named_gen_pool(dev->of_node, "iram", 0);
-+		pool = of_gen_pool_get(dev->of_node, "iram", 0);
+@@ -185,21 +185,38 @@ static int expand_fdtable(struct files_s
+  * The files->file_lock should be held on entry, and will be held on exit.
+  */
+ static int expand_files(struct files_struct *files, int nr)
++	__releases(files->file_lock)
++	__acquires(files->file_lock)
+ {
+ 	struct fdtable *fdt;
++	int expanded = 0;
  
- 	if (!pool)
- 		return;
++repeat:
+ 	fdt = files_fdtable(files);
+ 
+ 	/* Do we need to expand? */
+ 	if (nr < fdt->max_fds)
+-		return 0;
++		return expanded;
+ 
+ 	/* Can we expand? */
+ 	if (nr >= sysctl_nr_open)
+ 		return -EMFILE;
+ 
++	if (unlikely(files->resize_in_progress)) {
++		spin_unlock(&files->file_lock);
++		expanded = 1;
++		wait_event(files->resize_wait, !files->resize_in_progress);
++		spin_lock(&files->file_lock);
++		goto repeat;
++	}
++
+ 	/* All good, so we try */
+-	return expand_fdtable(files, nr);
++	files->resize_in_progress = true;
++	expanded = expand_fdtable(files, nr);
++	files->resize_in_progress = false;
++
++	wake_up_all(&files->resize_wait);
++	return expanded;
+ }
+ 
+ static inline void __set_close_on_exec(int fd, struct fdtable *fdt)
+@@ -256,6 +273,8 @@ struct files_struct *dup_fd(struct files
+ 	atomic_set(&newf->count, 1);
+ 
+ 	spin_lock_init(&newf->file_lock);
++	newf->resize_in_progress = false;
++	init_waitqueue_head(&newf->resize_wait);
+ 	newf->next_fd = 0;
+ 	new_fdt = &newf->fdtab;
+ 	new_fdt->max_fds = NR_OPEN_DEFAULT;
+@@ -553,11 +572,20 @@ void __fd_install(struct files_struct *f
+ 		struct file *file)
+ {
+ 	struct fdtable *fdt;
+-	spin_lock(&files->file_lock);
+-	fdt = files_fdtable(files);
++
++	rcu_read_lock_sched();
++
++	while (unlikely(files->resize_in_progress)) {
++		rcu_read_unlock_sched();
++		wait_event(files->resize_wait, !files->resize_in_progress);
++		rcu_read_lock_sched();
++	}
++	/* coupled with smp_wmb() in expand_fdtable() */
++	smp_rmb();
++	fdt = rcu_dereference_sched(files->fdt);
+ 	BUG_ON(fdt->fd[fd] != NULL);
+ 	rcu_assign_pointer(fdt->fd[fd], file);
+-	spin_unlock(&files->file_lock);
++	rcu_read_unlock_sched();
+ }
+ 
+ void fd_install(unsigned int fd, struct file *file)
+diff -puN include/linux/fdtable.h~fs-filec-dont-acquire-files-file_lock-in-fd_install include/linux/fdtable.h
+--- a/include/linux/fdtable.h~fs-filec-dont-acquire-files-file_lock-in-fd_install
++++ a/include/linux/fdtable.h
+@@ -47,6 +47,9 @@ struct files_struct {
+    * read mostly part
+    */
+ 	atomic_t count;
++	bool resize_in_progress;
++	wait_queue_head_t resize_wait;
++
+ 	struct fdtable __rcu *fdt;
+ 	struct fdtable fdtab;
+   /*
 _
 
-Patches currently in -mm which might be from vladimir_zapolskiy@mentor.com are
+Patches currently in -mm which might be from edumazet@google.com are
 
+fs-filec-dont-acquire-files-file_lock-in-fd_install.patch
 linux-next.patch
-genalloc-rename-dev_get_gen_pool-to-gen_pool_get.patch
-genalloc-rename-of_get_named_gen_pool-to-of_gen_pool_get.patch
 
