@@ -1,133 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-memory_hotplug-set-zone-wait_table-to-null-after-free-it.patch removed
- from -mm tree
-Date: Thu, 11 Jun 2015 14:01:20 -0700
-Message-ID: <5579f720.PBVc/E7DYg5TUBJG%akpm__13647.0062345781$1434056491$gmane$org@linux-foundation.org>
+Subject: [merged] mm-memcontrol-fix-false-positive-vm_bug_on-on-rt.patch
+ removed from -mm tree
+Date: Thu, 11 Jun 2015 14:01:29 -0700
+Message-ID: <5579f729.KtZPBkqbxSjMJUMY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55535 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55552 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751605AbbFKVBV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Jun 2015 17:01:21 -0400
+	with ESMTP id S1751920AbbFKVBa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Jun 2015 17:01:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: guz.fnst@cn.fujitsu.com, izumi.taku@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, stable@vger.kernel.org, tangchen@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, nando@ccrma.Stanford.EDU, rostedt@goodmis.org, tglx@linutronix.de, williams@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory_hotplug.c: set zone->wait_table to null after freeing it
+     Subject: mm: memcontrol: fix false-positive VM_BUG_ON() on -rt
 has been removed from the -mm tree.  Its filename was
-     mm-memory_hotplug-set-zone-wait_table-to-null-after-free-it.patch
+     mm-memcontrol-fix-false-positive-vm_bug_on-on-rt.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Gu Zheng <guz.fnst@cn.fujitsu.com>
-Subject: mm/memory_hotplug.c: set zone->wait_table to null after freeing it
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memcontrol: fix false-positive VM_BUG_ON() on -rt
 
-Izumi found the following oops when hot re-adding a node:
+On -rt, the VM_BUG_ON(!irqs_disabled()) triggers inside the memcg swapout
+path because the spin_lock_irq(&mapping->tree_lock) in the caller doesn't
+actually disable the hardware interrupts - which is fine, because on -rt
+the tophalves run in process context and so we are still safe from
+preemption while updating the statistics.
 
-[ 1481.759192] BUG: unable to handle kernel paging request at ffffc90008963690
-[ 1481.760192] IP: [<ffffffff810dff80>] __wake_up_bit+0x20/0x70
-[ 1481.770098] PGD 86e919067 PUD 207cf003067 PMD 20796d3b067 PTE 0
-[ 1481.770098] Oops: 0000 [#1] SMP
-[ 1481.770098] CPU: 68 PID: 1237 Comm: rs:main Q:Reg Not tainted 4.1.0-rc5 #80
-[ 1481.770098] Hardware name: FUJITSU PRIMEQUEST2800E/SB, BIOS PRIMEQUEST 2000 Series BIOS Version 1.87 04/28/2015
-[ 1481.770098] task: ffff880838df8000 ti: ffff880017b94000 task.ti: ffff880017b94000
-[ 1481.770098] RIP: 0010:[<ffffffff810dff80>]  [<ffffffff810dff80>] __wake_up_bit+0x20/0x70
-[ 1481.770098] RSP: 0018:ffff880017b97be8  EFLAGS: 00010246
-[ 1481.770098] RAX: ffffc90008963690 RBX: 00000000003c0000 RCX: 000000000000a4c9
-[ 1481.770098] RDX: 0000000000000000 RSI: ffffea101bffd500 RDI: ffffc90008963648
-[ 1481.770098] RBP: ffff880017b97c08 R08: 0000000002000020 R09: 0000000000000000
-[ 1481.770098] R10: 0000000000000000 R11: 0000000000000000 R12: ffff8a0797c73800
-[ 1481.770098] R13: ffffea101bffd500 R14: 0000000000000001 R15: 00000000003c0000
-[ 1481.770098] FS:  00007fcc7ffff700(0000) GS:ffff880874800000(0000) knlGS:0000000000000000
-[ 1481.770098] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[ 1481.770098] CR2: ffffc90008963690 CR3: 0000000836761000 CR4: 00000000001407e0
-[ 1481.770098] Stack:
-[ 1481.770098]  ffff8a0797c73800 ffffea1000000000 0000100000000000 0000000069c53212
-[ 1481.770098]  ffff880017b97c18 ffffffff811c2a5d ffff880017b97c68 ffffffff8128a0e3
-[ 1481.770098]  0000000000000001 000000281bffd500 00000000003c0000 0000000000000028
-[ 1481.770098] Call Trace:
-[ 1481.770098]  [<ffffffff811c2a5d>] unlock_page+0x6d/0x70
-[ 1481.770098]  [<ffffffff8128a0e3>] generic_write_end+0x53/0xb0
-[ 1481.770098]  [<ffffffffa0496559>] xfs_vm_write_end+0x29/0x80 [xfs]
-[ 1481.770098]  [<ffffffff811c25da>] generic_perform_write+0x10a/0x1e0
-[ 1481.770098]  [<ffffffffa04acb4d>] xfs_file_buffered_aio_write+0x14d/0x3e0 [xfs]
-[ 1481.770098]  [<ffffffffa04ace59>] xfs_file_write_iter+0x79/0x120 [xfs]
-[ 1481.770098]  [<ffffffff8124aac4>] __vfs_write+0xd4/0x110
-[ 1481.770098]  [<ffffffff8124b1ac>] vfs_write+0xac/0x1c0
-[ 1481.770098]  [<ffffffff8124c0a8>] SyS_write+0x58/0xd0
-[ 1481.770098]  [<ffffffff8177eb6e>] system_call_fastpath+0x12/0x76
-[ 1481.770098] Code: 5d c3 66 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 55 48 89 e5
- 48 83 ec 20 65 48 8b 04 25 28 00 00 00 48 89 45 f8 31 c0 48 8d 47 48 <48> 39 47
- 48 48 c7 45 e8 00 00 00 00 48 c7 45 f0 00 00 00 00 48
-[ 1481.770098] RIP  [<ffffffff810dff80>] __wake_up_bit+0x20/0x70
-[ 1481.770098]  RSP <ffff880017b97be8>
-[ 1481.770098] CR2: ffffc90008963690
-[ 1481.770098] ---[ end trace 25c9882ad3f72923 ]---
-[ 1481.770098] Kernel panic - not syncing: Fatal exception
-[ 1481.770098] Kernel Offset: disabled
-[ 1481.770098] drm_kms_helper: panic occurred, switching back to text console
-[ 1481.770098] ---[ end Kernel panic - not syncing: Fatal exception
+Remove the VM_BUG_ON() but keep the comment of what we rely on.
 
-Reproduce method (re-add a node):
-Hot-add nodeA --> remove nodeA --> hot-add nodeA (panic)
-
-This seems an use-after-free problem, and the root cause is
-zone->wait_table was not set to *NULL* after free it in try_offline_node.
-
-When hot re-add a node, we will reuse the pgdat of it, so does the zone
-struct, and when add pages to the target zone, it will init the zone first
-(including the wait_table) if the zone is not initialized.  The judgement
-of zone initialized is based on zone->wait_table:
-
-	static inline bool zone_is_initialized(struct zone *zone)
-	{
-		return !!zone->wait_table;
-	}
-
-so if we do not set the zone->wait_table to *NULL* after free it, the
-memory hotplug routine will skip the init of new zone when hot re-add the
-node, and the wait_table still points to the freed memory, then we will
-access the invalid address when trying to wake up the waiting people after
-the i/o operation with the page is done, such as mentioned above.
-
-Signed-off-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
-Reported-by: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Reviewed by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: Clark Williams <williams@redhat.com>
+Cc: Fernando Lopez-Lezcano <nando@ccrma.Stanford.EDU>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN mm/memory_hotplug.c~mm-memory_hotplug-set-zone-wait_table-to-null-after-free-it mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory_hotplug-set-zone-wait_table-to-null-after-free-it
-+++ a/mm/memory_hotplug.c
-@@ -1969,8 +1969,10 @@ void try_offline_node(int nid)
- 		 * wait_table may be allocated from boot memory,
- 		 * here only free if it's allocated by vmalloc.
- 		 */
--		if (is_vmalloc_addr(zone->wait_table))
-+		if (is_vmalloc_addr(zone->wait_table)) {
- 			vfree(zone->wait_table);
-+			zone->wait_table = NULL;
-+		}
- 	}
+diff -puN mm/memcontrol.c~mm-memcontrol-fix-false-positive-vm_bug_on-on-rt mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-fix-false-positive-vm_bug_on-on-rt
++++ a/mm/memcontrol.c
+@@ -5835,9 +5835,7 @@ void mem_cgroup_swapout(struct page *pag
+ 	if (!mem_cgroup_is_root(memcg))
+ 		page_counter_uncharge(&memcg->memory, 1);
+ 
+-	/* XXX: caller holds IRQ-safe mapping->tree_lock */
+-	VM_BUG_ON(!irqs_disabled());
+-
++	/* Caller disabled preemption with mapping->tree_lock */
+ 	mem_cgroup_charge_statistics(memcg, page, -1);
+ 	memcg_check_events(memcg, page);
  }
- EXPORT_SYMBOL(try_offline_node);
 _
 
-Patches currently in -mm which might be from guz.fnst@cn.fujitsu.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 origin.patch
-mm-memory-hotplug-init-the-zones-size-when-calculate-node-totalpages.patch
+mm-vmscan-do-not-throttle-based-on-pfmemalloc-reserves-if-node-has-no-reclaimable-pages.patch
+rename-reclaim_swap-to-reclaim_unmap.patch
+userfaultfd-linux-documentation-vm-userfaultfdtxt.patch
+userfaultfd-waitqueue-add-nr-wake-parameter-to-__wake_up_locked_key.patch
+userfaultfd-uapi.patch
+userfaultfd-linux-userfaultfd_kh.patch
+userfaultfd-add-vm_userfaultfd_ctx-to-the-vm_area_struct.patch
+userfaultfd-add-vm_uffd_missing-and-vm_uffd_wp.patch
+userfaultfd-call-handle_userfault-for-userfaultfd_missing-faults.patch
+userfaultfd-teach-vma_merge-to-merge-across-vma-vm_userfaultfd_ctx.patch
+userfaultfd-prevent-khugepaged-to-merge-if-userfaultfd-is-armed.patch
+userfaultfd-add-new-syscall-to-provide-memory-externalization.patch
+userfaultfd-rename-uffd_apibits-into-features.patch
+userfaultfd-rename-uffd_apibits-into-features-fixup.patch
+userfaultfd-change-the-read-api-to-return-a-uffd_msg.patch
+userfaultfd-wake-pending-userfaults.patch
+userfaultfd-optimize-read-and-poll-to-be-o1.patch
+userfaultfd-allocate-the-userfaultfd_ctx-cacheline-aligned.patch
+userfaultfd-solve-the-race-between-uffdio_copyzeropage-and-read.patch
+userfaultfd-buildsystem-activation.patch
+userfaultfd-activate-syscall.patch
+userfaultfd-uffdio_copyuffdio_zeropage-uapi.patch
+userfaultfd-mcopy_atomicmfill_zeropage-uffdio_copyuffdio_zeropage-preparation.patch
+userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic.patch
+userfaultfd-uffdio_copy-and-uffdio_zeropage.patch
+mm-oom_kill-remove-unnecessary-locking-in-oom_enable.patch
+mm-oom_kill-clean-up-victim-marking-and-exiting-interfaces.patch
+mm-oom_kill-switch-test-and-clear-of-known-tif_memdie-to-clear.patch
+mm-oom_kill-generalize-oom-progress-waitqueue.patch
+mm-oom_kill-remove-unnecessary-locking-in-exit_oom_victim.patch
+mm-oom_kill-simplify-oom-killer-locking.patch
+mm-page_alloc-inline-should_alloc_retry.patch
+hugetlb-do-not-account-hugetlb-pages-as-nr_file_pages.patch
+mm-memcg-try-charging-a-page-before-setting-page-up-to-date.patch
+mm-do-not-ignore-mapping_gfp_mask-in-page-cache-allocation-paths.patch
+memcg-remove-unused-mem_cgroup-oom_wakeups.patch
+memcg-convert-mem_cgroup-under_oom-from-atomic_t-to-int.patch
+page-flags-trivial-cleanup-for-pagetrans-helpers.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
+page-flags-define-pg_locked-behavior-on-compound-pages.patch
+page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
+page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
+page-flags-define-pg_reserved-behavior-on-compound-pages.patch
+page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
+page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
+page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
+page-flags-define-pg_uncached-behavior-on-compound-pages.patch
+page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
+page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
+mm-sanitize-page-mapping-for-tail-pages.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+mm-move-lazy-free-pages-to-inactive-list.patch
+mm-move-lazy-free-pages-to-inactive-list-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+radix-tree-replace-preallocated-node-array-with-linked-list.patch
+linux-next.patch
 
