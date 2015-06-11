@@ -1,67 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-do-not-call-reclaim-if-__gfp_wait.patch removed
- from -mm tree
-Date: Thu, 11 Jun 2015 14:01:23 -0700
-Message-ID: <5579f723.yXj1gQ/KJquHFJHU%akpm@linux-foundation.org>
+Subject: [merged]
+ zsmalloc-fix-a-null-pointer-dereference-in-destroy_handle_cache.patch
+ removed from -mm tree
+Date: Thu, 11 Jun 2015 14:01:31 -0700
+Message-ID: <5579f72b.5L6Sg7TAwZeFr69b%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55539 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55555 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751920AbbFKVBX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Jun 2015 17:01:23 -0400
+	with ESMTP id S1751920AbbFKVBb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Jun 2015 17:01:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@parallels.com, hannes@cmpxchg.org, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: sergey.senozhatsky@gmail.com, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: do not call reclaim if !__GFP_WAIT
+     Subject: zsmalloc: fix a null pointer dereference in destroy_handle_cache()
 has been removed from the -mm tree.  Its filename was
-     memcg-do-not-call-reclaim-if-__gfp_wait.patch
+     zsmalloc-fix-a-null-pointer-dereference-in-destroy_handle_cache.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: memcg: do not call reclaim if !__GFP_WAIT
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: zsmalloc: fix a null pointer dereference in destroy_handle_cache()
 
-When trimming memcg consumption excess (see memory.high), we call
-try_to_free_mem_cgroup_pages without checking if we are allowed to sleep
-in the current context, which can result in a deadlock.  Fix this.
+If zs_create_pool()->create_handle_cache()->kmem_cache_create() or
+pool->name allocation fails, zs_create_pool()->destroy_handle_cache()
+will dereference the NULL pool->handle_cachep.
 
-Fixes: 241994ed8649 ("mm: memcontrol: default hierarchy interface for memory")
-Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.cz>
+Modify destroy_handle_cache() to avoid this.
+
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/zsmalloc.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memcg-do-not-call-reclaim-if-__gfp_wait mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-do-not-call-reclaim-if-__gfp_wait
-+++ a/mm/memcontrol.c
-@@ -2323,6 +2323,8 @@ done_restock:
- 	css_get_many(&memcg->css, batch);
- 	if (batch > nr_pages)
- 		refill_stock(memcg, batch - nr_pages);
-+	if (!(gfp_mask & __GFP_WAIT))
-+		goto done;
- 	/*
- 	 * If the hierarchy is above the normal consumption range,
- 	 * make the charging task trim their excess contribution.
+diff -puN mm/zsmalloc.c~zsmalloc-fix-a-null-pointer-dereference-in-destroy_handle_cache mm/zsmalloc.c
+--- a/mm/zsmalloc.c~zsmalloc-fix-a-null-pointer-dereference-in-destroy_handle_cache
++++ a/mm/zsmalloc.c
+@@ -289,7 +289,8 @@ static int create_handle_cache(struct zs
+ 
+ static void destroy_handle_cache(struct zs_pool *pool)
+ {
+-	kmem_cache_destroy(pool->handle_cachep);
++	if (pool->handle_cachep)
++		kmem_cache_destroy(pool->handle_cachep);
+ }
+ 
+ static unsigned long alloc_handle(struct zs_pool *pool)
 _
 
-Patches currently in -mm which might be from vdavydov@parallels.com are
+Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
 
 origin.patch
-rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list.patch
-rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix.patch
-rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix-fix.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+zram-add-compact-sysfs-entry-to-documentation.patch
+zram-cosmetic-zram_attr_ro-code-formatting-tweak.patch
+zram-use-idr-instead-of-zram_devices-array.patch
+zram-reorganize-code-layout.patch
+zram-remove-max_num_devices-limitation.patch
+zram-report-every-added-and-removed-device.patch
+zram-trivial-correct-flag-operations-comment.patch
+zram-return-zram-device_id-from-zram_add.patch
+zram-close-race-by-open-overriding.patch
+zram-add-dynamic-device-add-remove-functionality.patch
+zram-cosmetic-zram_bvec_write-cleanup.patch
+zram-cut-trailing-newline-in-algorithm-name.patch
+zram-check-comp-algorithm-availability-earlier.patch
+zram-check-comp-algorithm-availability-earlier-v2.patch
 linux-next.patch
 
