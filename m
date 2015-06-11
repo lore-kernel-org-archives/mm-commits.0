@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + linux-typesh-remove-prehistoric-ifndefs.patch added to -mm tree
-Date: Thu, 11 Jun 2015 14:44:14 -0700
-Message-ID: <557a012e.BTLqRNDxXaLdJ8io%akpm@linux-foundation.org>
+Subject: + genalloc-rename-dev_get_gen_pool-to-gen_pool_get.patch added to -mm tree
+Date: Thu, 11 Jun 2015 14:52:19 -0700
+Message-ID: <557a0313.O1SCn4BleVLHxGpl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57100 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57111 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750905AbbFKVoO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Jun 2015 17:44:14 -0400
+	with ESMTP id S1752462AbbFKVwU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Jun 2015 17:52:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
+To: vladimir_zapolskiy@mentor.com, alexandre.belloni@free-electrons.com, kernel@pengutronix.de, linux@arm.linux.org.uk, mchehab@osg.samsung.com, nicolas.ferre@atmel.com, p.zabel@pengutronix.de, perex@perex.cz, shawn.guo@linaro.org, tiwai@suse.de, vinod.koul@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux/types.h: remove prehistoric ifndefs
+     Subject: genalloc: rename dev_get_gen_pool() to gen_pool_get()
 has been added to the -mm tree.  Its filename is
-     linux-typesh-remove-prehistoric-ifndefs.patch
+     genalloc-rename-dev_get_gen_pool-to-gen_pool_get.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-typesh-remove-prehistoric-ifndefs.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/genalloc-rename-dev_get_gen_pool-to-gen_pool_get.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-typesh-remove-prehistoric-ifndefs.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/genalloc-rename-dev_get_gen_pool-to-gen_pool_get.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,86 +38,137 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: linux/types.h: remove prehistoric ifndefs
+From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+Subject: genalloc: rename dev_get_gen_pool() to gen_pool_get()
 
-Whatever the "historical reasons" were back around 1996 when this comment
-was added,
+To be consistent with other genalloc interface namings, rename
+dev_get_gen_pool() to gen_pool_get().  The original omitted "dev_" prefix
+is removed, since it points to argument type of the function, and so it
+does not bring any useful information.
 
-  git grep -E '\b_(S?SIZE|TIME|CLOCK|PTRDIFF|CADDR)_T\b'
-
-seems to say that they are no longer relevant. Relieve the
-preprocessor from a little work.
-
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Signed-off-by: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Shawn Guo <shawn.guo@linaro.org>
+Cc: Sascha Hauer <kernel@pengutronix.de>
+Cc: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Vinod Koul <vinod.koul@intel.com>
+Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Jaroslav Kysela <perex@perex.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/types.h |   27 ---------------------------
- 1 file changed, 27 deletions(-)
+ arch/arm/mach-at91/pm.c                   |    2 +-
+ arch/arm/mach-imx/pm-imx5.c               |    2 +-
+ arch/arm/mach-imx/pm-imx6.c               |    2 +-
+ drivers/media/platform/coda/coda-common.c |    2 +-
+ include/linux/genalloc.h                  |    2 +-
+ lib/genalloc.c                            |    8 ++++----
+ 6 files changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/types.h~linux-typesh-remove-prehistoric-ifndefs include/linux/types.h
---- a/include/linux/types.h~linux-typesh-remove-prehistoric-ifndefs
-+++ a/include/linux/types.h
-@@ -45,39 +45,12 @@ typedef __kernel_old_gid_t	old_gid_t;
- typedef __kernel_loff_t		loff_t;
- #endif
+diff -puN arch/arm/mach-at91/pm.c~genalloc-rename-dev_get_gen_pool-to-gen_pool_get arch/arm/mach-at91/pm.c
+--- a/arch/arm/mach-at91/pm.c~genalloc-rename-dev_get_gen_pool-to-gen_pool_get
++++ a/arch/arm/mach-at91/pm.c
+@@ -369,7 +369,7 @@ static void __init at91_pm_sram_init(voi
+ 		return;
+ 	}
  
--/*
-- * The following typedefs are also protected by individual ifdefs for
-- * historical reasons:
-- */
--#ifndef _SIZE_T
--#define _SIZE_T
- typedef __kernel_size_t		size_t;
--#endif
--
--#ifndef _SSIZE_T
--#define _SSIZE_T
- typedef __kernel_ssize_t	ssize_t;
--#endif
--
--#ifndef _PTRDIFF_T
--#define _PTRDIFF_T
- typedef __kernel_ptrdiff_t	ptrdiff_t;
--#endif
--
--#ifndef _TIME_T
--#define _TIME_T
- typedef __kernel_time_t		time_t;
--#endif
--
--#ifndef _CLOCK_T
--#define _CLOCK_T
- typedef __kernel_clock_t	clock_t;
--#endif
--
--#ifndef _CADDR_T
--#define _CADDR_T
- typedef __kernel_caddr_t	caddr_t;
--#endif
+-	sram_pool = dev_get_gen_pool(&pdev->dev);
++	sram_pool = gen_pool_get(&pdev->dev);
+ 	if (!sram_pool) {
+ 		pr_warn("%s: sram pool unavailable!\n", __func__);
+ 		return;
+diff -puN arch/arm/mach-imx/pm-imx5.c~genalloc-rename-dev_get_gen_pool-to-gen_pool_get arch/arm/mach-imx/pm-imx5.c
+--- a/arch/arm/mach-imx/pm-imx5.c~genalloc-rename-dev_get_gen_pool-to-gen_pool_get
++++ a/arch/arm/mach-imx/pm-imx5.c
+@@ -297,7 +297,7 @@ static int __init imx_suspend_alloc_ocra
+ 		goto put_node;
+ 	}
  
- /* bsd */
- typedef unsigned char		u_char;
+-	ocram_pool = dev_get_gen_pool(&pdev->dev);
++	ocram_pool = gen_pool_get(&pdev->dev);
+ 	if (!ocram_pool) {
+ 		pr_warn("%s: ocram pool unavailable!\n", __func__);
+ 		ret = -ENODEV;
+diff -puN arch/arm/mach-imx/pm-imx6.c~genalloc-rename-dev_get_gen_pool-to-gen_pool_get arch/arm/mach-imx/pm-imx6.c
+--- a/arch/arm/mach-imx/pm-imx6.c~genalloc-rename-dev_get_gen_pool-to-gen_pool_get
++++ a/arch/arm/mach-imx/pm-imx6.c
+@@ -451,7 +451,7 @@ static int __init imx6q_suspend_init(con
+ 		goto put_node;
+ 	}
+ 
+-	ocram_pool = dev_get_gen_pool(&pdev->dev);
++	ocram_pool = gen_pool_get(&pdev->dev);
+ 	if (!ocram_pool) {
+ 		pr_warn("%s: ocram pool unavailable!\n", __func__);
+ 		ret = -ENODEV;
+diff -puN drivers/media/platform/coda/coda-common.c~genalloc-rename-dev_get_gen_pool-to-gen_pool_get drivers/media/platform/coda/coda-common.c
+--- a/drivers/media/platform/coda/coda-common.c~genalloc-rename-dev_get_gen_pool-to-gen_pool_get
++++ a/drivers/media/platform/coda/coda-common.c
+@@ -2157,7 +2157,7 @@ static int coda_probe(struct platform_de
+ 	/* Get IRAM pool from device tree or platform data */
+ 	pool = of_get_named_gen_pool(np, "iram", 0);
+ 	if (!pool && pdata)
+-		pool = dev_get_gen_pool(pdata->iram_dev);
++		pool = gen_pool_get(pdata->iram_dev);
+ 	if (!pool) {
+ 		dev_err(&pdev->dev, "iram pool not available\n");
+ 		return -ENOMEM;
+diff -puN include/linux/genalloc.h~genalloc-rename-dev_get_gen_pool-to-gen_pool_get include/linux/genalloc.h
+--- a/include/linux/genalloc.h~genalloc-rename-dev_get_gen_pool-to-gen_pool_get
++++ a/include/linux/genalloc.h
+@@ -119,7 +119,7 @@ extern unsigned long gen_pool_best_fit(u
+ 
+ extern struct gen_pool *devm_gen_pool_create(struct device *dev,
+ 		int min_alloc_order, int nid);
+-extern struct gen_pool *dev_get_gen_pool(struct device *dev);
++extern struct gen_pool *gen_pool_get(struct device *dev);
+ 
+ bool addr_in_gen_pool(struct gen_pool *pool, unsigned long start,
+ 			size_t size);
+diff -puN lib/genalloc.c~genalloc-rename-dev_get_gen_pool-to-gen_pool_get lib/genalloc.c
+--- a/lib/genalloc.c~genalloc-rename-dev_get_gen_pool-to-gen_pool_get
++++ a/lib/genalloc.c
+@@ -602,12 +602,12 @@ struct gen_pool *devm_gen_pool_create(st
+ EXPORT_SYMBOL(devm_gen_pool_create);
+ 
+ /**
+- * dev_get_gen_pool - Obtain the gen_pool (if any) for a device
++ * gen_pool_get - Obtain the gen_pool (if any) for a device
+  * @dev: device to retrieve the gen_pool from
+  *
+  * Returns the gen_pool for the device if one is present, or NULL.
+  */
+-struct gen_pool *dev_get_gen_pool(struct device *dev)
++struct gen_pool *gen_pool_get(struct device *dev)
+ {
+ 	struct gen_pool **p = devres_find(dev, devm_gen_pool_release, NULL,
+ 					NULL);
+@@ -616,7 +616,7 @@ struct gen_pool *dev_get_gen_pool(struct
+ 		return NULL;
+ 	return *p;
+ }
+-EXPORT_SYMBOL_GPL(dev_get_gen_pool);
++EXPORT_SYMBOL_GPL(gen_pool_get);
+ 
+ #ifdef CONFIG_OF
+ /**
+@@ -642,7 +642,7 @@ struct gen_pool *of_get_named_gen_pool(s
+ 	of_node_put(np_pool);
+ 	if (!pdev)
+ 		return NULL;
+-	return dev_get_gen_pool(&pdev->dev);
++	return gen_pool_get(&pdev->dev);
+ }
+ EXPORT_SYMBOL_GPL(of_get_named_gen_pool);
+ #endif /* CONFIG_OF */
 _
 
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
+Patches currently in -mm which might be from vladimir_zapolskiy@mentor.com are
 
-linux-slabh-fix-three-off-by-one-typos-in-comment.patch
-mm-only-define-hashdist-variable-when-needed.patch
-linux-typesh-remove-prehistoric-ifndefs.patch
-__bitmap_parselist-fix-bug-in-empty-string-handling.patch
-lib-sort-add-64-bit-swap-function.patch
-lib-sort-add-64-bit-swap-function-v2.patch
-lib-sort-add-64-bit-swap-function-v2-fix.patch
-lib-string-introduce-strreplace.patch
-kernel-trace-trace_events_filterc-use-strreplace.patch
-blktrace-use-strreplace-in-do_blk_trace_setup.patch
-lib-kobjectc-use-strreplace.patch
-drivers-base-corec-use-strreplace.patch
-drivers-md-mdc-use-strreplace.patch
-fs-jbd2-journalc-use-strreplace.patch
-fs-ext4-superc-use-strreplace-in-ext4_fill_super.patch
-checkpatch-avoid-not_unified_diff-errors-on-cover-letterpatch-files.patch
 linux-next.patch
+genalloc-rename-dev_get_gen_pool-to-gen_pool_get.patch
+genalloc-rename-of_get_named_gen_pool-to-of_gen_pool_get.patch
 
