@@ -1,101 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-memory-hotplug-print-the-last-vmemmap-region-at-the-end-of-hot-add-memory.patch added to -mm tree
-Date: Thu, 11 Jun 2015 13:31:39 -0700
-Message-ID: <5579f02b.DqIpmDVRLbY8BgaT%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-memory_hotplug-set-zone-wait_table-to-null-after-free-it.patch removed
+ from -mm tree
+Date: Thu, 11 Jun 2015 14:01:20 -0700
+Message-ID: <5579f720.PBVc/E7DYg5TUBJG%akpm__13647.0062345781$1434056491$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55211 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55535 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751656AbbFKUbk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Jun 2015 16:31:40 -0400
+	with ESMTP id S1751605AbbFKVBV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Jun 2015 17:01:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zhugh.fnst@cn.fujitsu.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
+To: guz.fnst@cn.fujitsu.com, izumi.taku@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, stable@vger.kernel.org, tangchen@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory hotplug: print the last vmemmap region at the end of hot add memory
-has been added to the -mm tree.  Its filename is
-     mm-memory-hotplug-print-the-last-vmemmap-region-at-the-end-of-hot-add-memory.patch
+     Subject: mm/memory_hotplug.c: set zone->wait_table to null after freeing it
+has been removed from the -mm tree.  Its filename was
+     mm-memory_hotplug-set-zone-wait_table-to-null-after-free-it.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory-hotplug-print-the-last-vmemmap-region-at-the-end-of-hot-add-memory.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory-hotplug-print-the-last-vmemmap-region-at-the-end-of-hot-add-memory.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Zhu Guihua <zhugh.fnst@cn.fujitsu.com>
-Subject: mm/memory hotplug: print the last vmemmap region at the end of hot add memory
+From: Gu Zheng <guz.fnst@cn.fujitsu.com>
+Subject: mm/memory_hotplug.c: set zone->wait_table to null after freeing it
 
-When hot add two nodes continuously, we found the vmemmap region info is a
-bit messed. The last region of node 2 is printed when node 3 hot added,
-like the following:
-Initmem setup node 2 [mem 0x0000000000000000-0xffffffffffffffff]
- On node 2 totalpages: 0
- Built 2 zonelists in Node order, mobility grouping on.  Total pages: 16090539
- Policy zone: Normal
- init_memory_mapping: [mem 0x40000000000-0x407ffffffff]
-  [mem 0x40000000000-0x407ffffffff] page 1G
-  [ffffea1000000000-ffffea10001fffff] PMD -> [ffff8a077d800000-ffff8a077d9fffff] on node 2
-  [ffffea1000200000-ffffea10003fffff] PMD -> [ffff8a077de00000-ffff8a077dffffff] on node 2
-...
-  [ffffea101f600000-ffffea101f9fffff] PMD -> [ffff8a074ac00000-ffff8a074affffff] on node 2
-  [ffffea101fa00000-ffffea101fdfffff] PMD -> [ffff8a074a800000-ffff8a074abfffff] on node 2
-Initmem setup node 3 [mem 0x0000000000000000-0xffffffffffffffff]
- On node 3 totalpages: 0
- Built 3 zonelists in Node order, mobility grouping on.  Total pages: 16090539
- Policy zone: Normal
- init_memory_mapping: [mem 0x60000000000-0x607ffffffff]
-  [mem 0x60000000000-0x607ffffffff] page 1G
-  [ffffea101fe00000-ffffea101fffffff] PMD -> [ffff8a074a400000-ffff8a074a5fffff] on node 2 <=== node 2 ???
-  [ffffea1800000000-ffffea18001fffff] PMD -> [ffff8a074a600000-ffff8a074a7fffff] on node 3
-  [ffffea1800200000-ffffea18005fffff] PMD -> [ffff8a074a000000-ffff8a074a3fffff] on node 3
-  [ffffea1800600000-ffffea18009fffff] PMD -> [ffff8a0749c00000-ffff8a0749ffffff] on node 3
-...
+Izumi found the following oops when hot re-adding a node:
 
-The cause is the last region was missed at the and of hot add memory, and
-p_start, p_end, node_start were not reset, so when hot add memory to a new
-node, it will consider they are not contiguous blocks and print the
-previous one. So we print the last vmemmap region at the end of hot add
-memory to avoid the confusion.
+[ 1481.759192] BUG: unable to handle kernel paging request at ffffc90008963690
+[ 1481.760192] IP: [<ffffffff810dff80>] __wake_up_bit+0x20/0x70
+[ 1481.770098] PGD 86e919067 PUD 207cf003067 PMD 20796d3b067 PTE 0
+[ 1481.770098] Oops: 0000 [#1] SMP
+[ 1481.770098] CPU: 68 PID: 1237 Comm: rs:main Q:Reg Not tainted 4.1.0-rc5 #80
+[ 1481.770098] Hardware name: FUJITSU PRIMEQUEST2800E/SB, BIOS PRIMEQUEST 2000 Series BIOS Version 1.87 04/28/2015
+[ 1481.770098] task: ffff880838df8000 ti: ffff880017b94000 task.ti: ffff880017b94000
+[ 1481.770098] RIP: 0010:[<ffffffff810dff80>]  [<ffffffff810dff80>] __wake_up_bit+0x20/0x70
+[ 1481.770098] RSP: 0018:ffff880017b97be8  EFLAGS: 00010246
+[ 1481.770098] RAX: ffffc90008963690 RBX: 00000000003c0000 RCX: 000000000000a4c9
+[ 1481.770098] RDX: 0000000000000000 RSI: ffffea101bffd500 RDI: ffffc90008963648
+[ 1481.770098] RBP: ffff880017b97c08 R08: 0000000002000020 R09: 0000000000000000
+[ 1481.770098] R10: 0000000000000000 R11: 0000000000000000 R12: ffff8a0797c73800
+[ 1481.770098] R13: ffffea101bffd500 R14: 0000000000000001 R15: 00000000003c0000
+[ 1481.770098] FS:  00007fcc7ffff700(0000) GS:ffff880874800000(0000) knlGS:0000000000000000
+[ 1481.770098] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[ 1481.770098] CR2: ffffc90008963690 CR3: 0000000836761000 CR4: 00000000001407e0
+[ 1481.770098] Stack:
+[ 1481.770098]  ffff8a0797c73800 ffffea1000000000 0000100000000000 0000000069c53212
+[ 1481.770098]  ffff880017b97c18 ffffffff811c2a5d ffff880017b97c68 ffffffff8128a0e3
+[ 1481.770098]  0000000000000001 000000281bffd500 00000000003c0000 0000000000000028
+[ 1481.770098] Call Trace:
+[ 1481.770098]  [<ffffffff811c2a5d>] unlock_page+0x6d/0x70
+[ 1481.770098]  [<ffffffff8128a0e3>] generic_write_end+0x53/0xb0
+[ 1481.770098]  [<ffffffffa0496559>] xfs_vm_write_end+0x29/0x80 [xfs]
+[ 1481.770098]  [<ffffffff811c25da>] generic_perform_write+0x10a/0x1e0
+[ 1481.770098]  [<ffffffffa04acb4d>] xfs_file_buffered_aio_write+0x14d/0x3e0 [xfs]
+[ 1481.770098]  [<ffffffffa04ace59>] xfs_file_write_iter+0x79/0x120 [xfs]
+[ 1481.770098]  [<ffffffff8124aac4>] __vfs_write+0xd4/0x110
+[ 1481.770098]  [<ffffffff8124b1ac>] vfs_write+0xac/0x1c0
+[ 1481.770098]  [<ffffffff8124c0a8>] SyS_write+0x58/0xd0
+[ 1481.770098]  [<ffffffff8177eb6e>] system_call_fastpath+0x12/0x76
+[ 1481.770098] Code: 5d c3 66 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 55 48 89 e5
+ 48 83 ec 20 65 48 8b 04 25 28 00 00 00 48 89 45 f8 31 c0 48 8d 47 48 <48> 39 47
+ 48 48 c7 45 e8 00 00 00 00 48 c7 45 f0 00 00 00 00 48
+[ 1481.770098] RIP  [<ffffffff810dff80>] __wake_up_bit+0x20/0x70
+[ 1481.770098]  RSP <ffff880017b97be8>
+[ 1481.770098] CR2: ffffc90008963690
+[ 1481.770098] ---[ end trace 25c9882ad3f72923 ]---
+[ 1481.770098] Kernel panic - not syncing: Fatal exception
+[ 1481.770098] Kernel Offset: disabled
+[ 1481.770098] drm_kms_helper: panic occurred, switching back to text console
+[ 1481.770098] ---[ end Kernel panic - not syncing: Fatal exception
 
-Signed-off-by: Zhu Guihua <zhugh.fnst@cn.fujitsu.com>
-Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Reproduce method (re-add a node):
+Hot-add nodeA --> remove nodeA --> hot-add nodeA (panic)
+
+This seems an use-after-free problem, and the root cause is
+zone->wait_table was not set to *NULL* after free it in try_offline_node.
+
+When hot re-add a node, we will reuse the pgdat of it, so does the zone
+struct, and when add pages to the target zone, it will init the zone first
+(including the wait_table) if the zone is not initialized.  The judgement
+of zone initialized is based on zone->wait_table:
+
+	static inline bool zone_is_initialized(struct zone *zone)
+	{
+		return !!zone->wait_table;
+	}
+
+so if we do not set the zone->wait_table to *NULL* after free it, the
+memory hotplug routine will skip the init of new zone when hot re-add the
+node, and the wait_table still points to the freed memory, then we will
+access the invalid address when trying to wake up the waiting people after
+the i/o operation with the page is done, such as mentioned above.
+
+Signed-off-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
+Reported-by: Taku Izumi <izumi.taku@jp.fujitsu.com>
+Reviewed by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/memory_hotplug.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/memory_hotplug.c~mm-memory-hotplug-print-the-last-vmemmap-region-at-the-end-of-hot-add-memory mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory-hotplug-print-the-last-vmemmap-region-at-the-end-of-hot-add-memory
+diff -puN mm/memory_hotplug.c~mm-memory_hotplug-set-zone-wait_table-to-null-after-free-it mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-set-zone-wait_table-to-null-after-free-it
 +++ a/mm/memory_hotplug.c
-@@ -513,6 +513,7 @@ int __ref __add_pages(int nid, struct zo
- 			break;
- 		err = 0;
+@@ -1969,8 +1969,10 @@ void try_offline_node(int nid)
+ 		 * wait_table may be allocated from boot memory,
+ 		 * here only free if it's allocated by vmalloc.
+ 		 */
+-		if (is_vmalloc_addr(zone->wait_table))
++		if (is_vmalloc_addr(zone->wait_table)) {
+ 			vfree(zone->wait_table);
++			zone->wait_table = NULL;
++		}
  	}
-+	vmemmap_populate_print_last();
- 
- 	return err;
  }
+ EXPORT_SYMBOL(try_offline_node);
 _
 
-Patches currently in -mm which might be from zhugh.fnst@cn.fujitsu.com are
+Patches currently in -mm which might be from guz.fnst@cn.fujitsu.com are
 
-mm-memory-hotplug-print-the-last-vmemmap-region-at-the-end-of-hot-add-memory.patch
+origin.patch
+mm-memory-hotplug-init-the-zones-size-when-calculate-node-totalpages.patch
 
