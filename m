@@ -1,157 +1,360 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Tue, 16 Jun 2015 11:59:38 -0700
-Message-ID: <5580721a.d4mNF0MC1TjiVS07%akpm@linux-foundation.org>
+Subject: [merged] ufs-restore-s_lock-mutex.patch removed from -mm tree
+Date: Tue, 16 Jun 2015 12:00:33 -0700
+Message-ID: <55807251.g05IOVOIVl3NRMEE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34237 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34257 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754828AbbFPS7j (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Jun 2015 14:59:39 -0400
+	with ESMTP id S1754654AbbFPTAe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Jun 2015 15:00:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: fabf@skynet.be, Ian.Jackson@eu.citrix.com, dushistov@mail.ru, ian.campbell@citrix.com, jack@suse.cz, khoroshilov@ispras.ru, roger.pau@citrix.com, stable@vger.kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     Subject: fs/ufs: restore s_lock mutex
+has been removed from the -mm tree.  Its filename was
+     ufs-restore-s_lock-mutex.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Fabian Frederick <fabf@skynet.be>
+Subject: fs/ufs: restore s_lock mutex
 
+Commit 0244756edc4b98c ("ufs: sb mutex merge + mutex_destroy") generated
+deadlocks in read/write mode on mkdir.
+
+This patch partially reverts it keeping fixes by Andrew Morton and
+mutex_destroy()
+
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Reported-by: Ian Campbell <ian.campbell@citrix.com>
+Suggested-by: Jan Kara <jack@suse.cz>
+Cc: Ian Campbell <ian.campbell@citrix.com>
+Cc: Evgeniy Dushistov <dushistov@mail.ru>
+Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>
+Cc: Roger Pau Monne <roger.pau@citrix.com>
+Cc: Ian Jackson <Ian.Jackson@eu.citrix.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/pci/hda/hda_codec.c |    4 ----
- sound/pci/hda/hda_intel.c |    9 ---------
- 2 files changed, 13 deletions(-)
+ fs/ufs/balloc.c |   34 +++++++++++++++++-----------------
+ fs/ufs/ialloc.c |   16 ++++++++--------
+ fs/ufs/super.c  |    9 +++++++++
+ fs/ufs/ufs.h    |    1 +
+ 4 files changed, 35 insertions(+), 25 deletions(-)
 
-diff -puN sound/pci/hda/hda_codec.c~linux-next-git-rejects sound/pci/hda/hda_codec.c
---- a/sound/pci/hda/hda_codec.c~linux-next-git-rejects
-+++ a/sound/pci/hda/hda_codec.c
-@@ -437,11 +437,7 @@ static unsigned int get_num_devices(stru
- 		return 0;
+diff -puN fs/ufs/balloc.c~ufs-restore-s_lock-mutex fs/ufs/balloc.c
+--- a/fs/ufs/balloc.c~ufs-restore-s_lock-mutex
++++ a/fs/ufs/balloc.c
+@@ -51,8 +51,8 @@ void ufs_free_fragments(struct inode *in
+ 	
+ 	if (ufs_fragnum(fragment) + count > uspi->s_fpg)
+ 		ufs_error (sb, "ufs_free_fragments", "internal error");
+-	
+-	lock_ufs(sb);
++
++	mutex_lock(&UFS_SB(sb)->s_lock);
+ 	
+ 	cgno = ufs_dtog(uspi, fragment);
+ 	bit = ufs_dtogd(uspi, fragment);
+@@ -115,13 +115,13 @@ void ufs_free_fragments(struct inode *in
+ 	if (sb->s_flags & MS_SYNCHRONOUS)
+ 		ubh_sync_block(UCPI_UBH(ucpi));
+ 	ufs_mark_sb_dirty(sb);
+-	
+-	unlock_ufs(sb);
++
++	mutex_unlock(&UFS_SB(sb)->s_lock);
+ 	UFSD("EXIT\n");
+ 	return;
  
- 	parm = snd_hdac_read_parm_uncached(&codec->core, nid, AC_PAR_DEVLIST_LEN);
--<<<<<<< HEAD
--	if (parm == -1 && codec->bus->rirb_error)
--=======
- 	if (parm == -1)
-->>>>>>> linux-next/akpm-base
- 		parm = 0;
- 	return parm & AC_DEV_LIST_LEN_MASK;
+ failed:
+-	unlock_ufs(sb);
++	mutex_unlock(&UFS_SB(sb)->s_lock);
+ 	UFSD("EXIT (FAILED)\n");
+ 	return;
  }
-diff -puN sound/pci/hda/hda_intel.c~linux-next-git-rejects sound/pci/hda/hda_intel.c
---- a/sound/pci/hda/hda_intel.c~linux-next-git-rejects
-+++ a/sound/pci/hda/hda_intel.c
-@@ -1981,16 +1981,11 @@ static int azx_probe_continue(struct azx
- 	 * display codec needs the power and it can be released after probe.
- 	 */
- 	if (chip->driver_caps & AZX_DCAPS_I915_POWERWELL) {
--<<<<<<< HEAD
--#ifdef CONFIG_SND_HDA_I915
--		err = hda_i915_init(hda);
--=======
- 		/* HSW/BDW controllers need this power */
- 		if (CONTROLLER_IN_GPU(pci))
- 			hda->need_i915_power = 1;
+@@ -151,7 +151,7 @@ void ufs_free_blocks(struct inode *inode
+ 		goto failed;
+ 	}
  
- 		err = snd_hdac_i915_init(bus);
-->>>>>>> linux-next/akpm-base
- 		if (err < 0) {
- 			/* if the controller is bound only with HDMI/DP
- 			 * (for HSW and BDW), we need to abort the probe;
-@@ -2002,12 +1997,8 @@ static int azx_probe_continue(struct azx
- 			else
- 				goto skip_i915;
+-	lock_ufs(sb);
++	mutex_lock(&UFS_SB(sb)->s_lock);
+ 	
+ do_more:
+ 	overflow = 0;
+@@ -211,12 +211,12 @@ do_more:
+ 	}
+ 
+ 	ufs_mark_sb_dirty(sb);
+-	unlock_ufs(sb);
++	mutex_unlock(&UFS_SB(sb)->s_lock);
+ 	UFSD("EXIT\n");
+ 	return;
+ 
+ failed_unlock:
+-	unlock_ufs(sb);
++	mutex_unlock(&UFS_SB(sb)->s_lock);
+ failed:
+ 	UFSD("EXIT (FAILED)\n");
+ 	return;
+@@ -357,7 +357,7 @@ u64 ufs_new_fragments(struct inode *inod
+ 	usb1 = ubh_get_usb_first(uspi);
+ 	*err = -ENOSPC;
+ 
+-	lock_ufs(sb);
++	mutex_lock(&UFS_SB(sb)->s_lock);
+ 	tmp = ufs_data_ptr_to_cpu(sb, p);
+ 
+ 	if (count + ufs_fragnum(fragment) > uspi->s_fpb) {
+@@ -378,19 +378,19 @@ u64 ufs_new_fragments(struct inode *inod
+ 				  "fragment %llu, tmp %llu\n",
+ 				  (unsigned long long)fragment,
+ 				  (unsigned long long)tmp);
+-			unlock_ufs(sb);
++			mutex_unlock(&UFS_SB(sb)->s_lock);
+ 			return INVBLOCK;
  		}
--<<<<<<< HEAD
--		err = hda_display_power(hda, true);
--=======
+ 		if (fragment < UFS_I(inode)->i_lastfrag) {
+ 			UFSD("EXIT (ALREADY ALLOCATED)\n");
+-			unlock_ufs(sb);
++			mutex_unlock(&UFS_SB(sb)->s_lock);
+ 			return 0;
+ 		}
+ 	}
+ 	else {
+ 		if (tmp) {
+ 			UFSD("EXIT (ALREADY ALLOCATED)\n");
+-			unlock_ufs(sb);
++			mutex_unlock(&UFS_SB(sb)->s_lock);
+ 			return 0;
+ 		}
+ 	}
+@@ -399,7 +399,7 @@ u64 ufs_new_fragments(struct inode *inod
+ 	 * There is not enough space for user on the device
+ 	 */
+ 	if (!capable(CAP_SYS_RESOURCE) && ufs_freespace(uspi, UFS_MINFREE) <= 0) {
+-		unlock_ufs(sb);
++		mutex_unlock(&UFS_SB(sb)->s_lock);
+ 		UFSD("EXIT (FAILED)\n");
+ 		return 0;
+ 	}
+@@ -424,7 +424,7 @@ u64 ufs_new_fragments(struct inode *inod
+ 			ufs_clear_frags(inode, result + oldcount,
+ 					newcount - oldcount, locked_page != NULL);
+ 		}
+-		unlock_ufs(sb);
++		mutex_unlock(&UFS_SB(sb)->s_lock);
+ 		UFSD("EXIT, result %llu\n", (unsigned long long)result);
+ 		return result;
+ 	}
+@@ -439,7 +439,7 @@ u64 ufs_new_fragments(struct inode *inod
+ 						fragment + count);
+ 		ufs_clear_frags(inode, result + oldcount, newcount - oldcount,
+ 				locked_page != NULL);
+-		unlock_ufs(sb);
++		mutex_unlock(&UFS_SB(sb)->s_lock);
+ 		UFSD("EXIT, result %llu\n", (unsigned long long)result);
+ 		return result;
+ 	}
+@@ -477,7 +477,7 @@ u64 ufs_new_fragments(struct inode *inod
+ 		*err = 0;
+ 		UFS_I(inode)->i_lastfrag = max(UFS_I(inode)->i_lastfrag,
+ 						fragment + count);
+-		unlock_ufs(sb);
++		mutex_unlock(&UFS_SB(sb)->s_lock);
+ 		if (newcount < request)
+ 			ufs_free_fragments (inode, result + newcount, request - newcount);
+ 		ufs_free_fragments (inode, tmp, oldcount);
+@@ -485,7 +485,7 @@ u64 ufs_new_fragments(struct inode *inod
+ 		return result;
+ 	}
  
- 		err = snd_hdac_display_power(bus, true);
-->>>>>>> linux-next/akpm-base
- 		if (err < 0) {
- 			dev_err(chip->card->dev,
- 				"Cannot turn on display power on i915\n");
+-	unlock_ufs(sb);
++	mutex_unlock(&UFS_SB(sb)->s_lock);
+ 	UFSD("EXIT (FAILED)\n");
+ 	return 0;
+ }		
+diff -puN fs/ufs/ialloc.c~ufs-restore-s_lock-mutex fs/ufs/ialloc.c
+--- a/fs/ufs/ialloc.c~ufs-restore-s_lock-mutex
++++ a/fs/ufs/ialloc.c
+@@ -69,11 +69,11 @@ void ufs_free_inode (struct inode * inod
+ 	
+ 	ino = inode->i_ino;
+ 
+-	lock_ufs(sb);
++	mutex_lock(&UFS_SB(sb)->s_lock);
+ 
+ 	if (!((ino > 1) && (ino < (uspi->s_ncg * uspi->s_ipg )))) {
+ 		ufs_warning(sb, "ufs_free_inode", "reserved inode or nonexistent inode %u\n", ino);
+-		unlock_ufs(sb);
++		mutex_unlock(&UFS_SB(sb)->s_lock);
+ 		return;
+ 	}
+ 	
+@@ -81,7 +81,7 @@ void ufs_free_inode (struct inode * inod
+ 	bit = ufs_inotocgoff (ino);
+ 	ucpi = ufs_load_cylinder (sb, cg);
+ 	if (!ucpi) {
+-		unlock_ufs(sb);
++		mutex_unlock(&UFS_SB(sb)->s_lock);
+ 		return;
+ 	}
+ 	ucg = ubh_get_ucg(UCPI_UBH(ucpi));
+@@ -115,7 +115,7 @@ void ufs_free_inode (struct inode * inod
+ 		ubh_sync_block(UCPI_UBH(ucpi));
+ 	
+ 	ufs_mark_sb_dirty(sb);
+-	unlock_ufs(sb);
++	mutex_unlock(&UFS_SB(sb)->s_lock);
+ 	UFSD("EXIT\n");
+ }
+ 
+@@ -193,7 +193,7 @@ struct inode *ufs_new_inode(struct inode
+ 	sbi = UFS_SB(sb);
+ 	uspi = sbi->s_uspi;
+ 
+-	lock_ufs(sb);
++	mutex_lock(&sbi->s_lock);
+ 
+ 	/*
+ 	 * Try to place the inode in its parent directory
+@@ -331,21 +331,21 @@ cg_found:
+ 			sync_dirty_buffer(bh);
+ 		brelse(bh);
+ 	}
+-	unlock_ufs(sb);
++	mutex_unlock(&sbi->s_lock);
+ 
+ 	UFSD("allocating inode %lu\n", inode->i_ino);
+ 	UFSD("EXIT\n");
+ 	return inode;
+ 
+ fail_remove_inode:
+-	unlock_ufs(sb);
++	mutex_unlock(&sbi->s_lock);
+ 	clear_nlink(inode);
+ 	unlock_new_inode(inode);
+ 	iput(inode);
+ 	UFSD("EXIT (FAILED): err %d\n", err);
+ 	return ERR_PTR(err);
+ failed:
+-	unlock_ufs(sb);
++	mutex_unlock(&sbi->s_lock);
+ 	make_bad_inode(inode);
+ 	iput (inode);
+ 	UFSD("EXIT (FAILED): err %d\n", err);
+diff -puN fs/ufs/super.c~ufs-restore-s_lock-mutex fs/ufs/super.c
+--- a/fs/ufs/super.c~ufs-restore-s_lock-mutex
++++ a/fs/ufs/super.c
+@@ -694,6 +694,7 @@ static int ufs_sync_fs(struct super_bloc
+ 	unsigned flags;
+ 
+ 	lock_ufs(sb);
++	mutex_lock(&UFS_SB(sb)->s_lock);
+ 
+ 	UFSD("ENTER\n");
+ 
+@@ -711,6 +712,7 @@ static int ufs_sync_fs(struct super_bloc
+ 	ufs_put_cstotal(sb);
+ 
+ 	UFSD("EXIT\n");
++	mutex_unlock(&UFS_SB(sb)->s_lock);
+ 	unlock_ufs(sb);
+ 
+ 	return 0;
+@@ -1290,6 +1292,7 @@ static int ufs_remount (struct super_blo
+ 	new_mount_opt = 0;
+ 	ufs_set_opt (new_mount_opt, ONERROR_LOCK);
+ 	if (!ufs_parse_options (data, &new_mount_opt)) {
++		mutex_unlock(&UFS_SB(sb)->s_lock);
+ 		unlock_ufs(sb);
+ 		return -EINVAL;
+ 	}
+@@ -1297,12 +1300,14 @@ static int ufs_remount (struct super_blo
+ 		new_mount_opt |= ufstype;
+ 	} else if ((new_mount_opt & UFS_MOUNT_UFSTYPE) != ufstype) {
+ 		pr_err("ufstype can't be changed during remount\n");
++		mutex_unlock(&UFS_SB(sb)->s_lock);
+ 		unlock_ufs(sb);
+ 		return -EINVAL;
+ 	}
+ 
+ 	if ((*mount_flags & MS_RDONLY) == (sb->s_flags & MS_RDONLY)) {
+ 		UFS_SB(sb)->s_mount_opt = new_mount_opt;
++		mutex_unlock(&UFS_SB(sb)->s_lock);
+ 		unlock_ufs(sb);
+ 		return 0;
+ 	}
+@@ -1326,6 +1331,7 @@ static int ufs_remount (struct super_blo
+ 	 */
+ #ifndef CONFIG_UFS_FS_WRITE
+ 		pr_err("ufs was compiled with read-only support, can't be mounted as read-write\n");
++		mutex_unlock(&UFS_SB(sb)->s_lock);
+ 		unlock_ufs(sb);
+ 		return -EINVAL;
+ #else
+@@ -1335,11 +1341,13 @@ static int ufs_remount (struct super_blo
+ 		    ufstype != UFS_MOUNT_UFSTYPE_SUNx86 &&
+ 		    ufstype != UFS_MOUNT_UFSTYPE_UFS2) {
+ 			pr_err("this ufstype is read-only supported\n");
++			mutex_unlock(&UFS_SB(sb)->s_lock);
+ 			unlock_ufs(sb);
+ 			return -EINVAL;
+ 		}
+ 		if (!ufs_read_cylinder_structures(sb)) {
+ 			pr_err("failed during remounting\n");
++			mutex_unlock(&UFS_SB(sb)->s_lock);
+ 			unlock_ufs(sb);
+ 			return -EPERM;
+ 		}
+@@ -1347,6 +1355,7 @@ static int ufs_remount (struct super_blo
+ #endif
+ 	}
+ 	UFS_SB(sb)->s_mount_opt = new_mount_opt;
++	mutex_unlock(&UFS_SB(sb)->s_lock);
+ 	unlock_ufs(sb);
+ 	return 0;
+ }
+diff -puN fs/ufs/ufs.h~ufs-restore-s_lock-mutex fs/ufs/ufs.h
+--- a/fs/ufs/ufs.h~ufs-restore-s_lock-mutex
++++ a/fs/ufs/ufs.h
+@@ -30,6 +30,7 @@ struct ufs_sb_info {
+ 	int work_queued; /* non-zero if the delayed work is queued */
+ 	struct delayed_work sync_work; /* FS sync delayed work */
+ 	spinlock_t work_lock; /* protects sync_work and work_queued */
++	struct mutex s_lock;
+ };
+ 
+ struct ufs_inode_info {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from fabf@skynet.be are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-ocfs2-reduce-object-size-of-mlog-uses-fix.patch
-ocfs2-remove-__mlog_cpu_guess.patch
-ocfs2-remove-__mlog_cpu_guess-fix.patch
-ocfs2-fix-null-pointer-dereference-in-function-ocfs2_abort_trigger-fix.patch
-mm.patch
-mm-slab_common-support-the-slub_debug-boot-option-on-specific-object-size-fix.patch
-mm-fix-mprotect-behaviour-on-vm_locked-vmas-fix.patch
-mm-new-mm-hook-framework.patch
-mm-meminit-inline-some-helper-functions-fix.patch
-mm-meminit-finish-initialisation-of-struct-pages-before-basic-setup-fix.patch
-mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling-fix.patch
-rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix.patch
-rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix-fix.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
-userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
-fs-userfaultfdc-work-around-i386-build-error.patch
-hugetlb-do-not-account-hugetlb-pages-as-nr_file_pages-fix.patch
-mm-do-not-ignore-mapping_gfp_mask-in-page-cache-allocation-paths-checkpatch-fixes.patch
-include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
-zswap-runtime-enable-disable-fix.patch
-prctl-more-prctlpr_set_mm_-checks-fix.patch
-proc-fix-page_size-limit-of-proc-pid-cmdline-fix.patch
-bitmap-remove-explicit-newline-handling-using-scnprintf-format-string-fix.patch
-radix-tree-replace-preallocated-node-array-with-linked-list-fix.patch
-init-do_mounts-add-create_dev-failure-log-fix.patch
-rtc-omap-add-external-32k-clock-feature-fix.patch
-devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx-fix.patch
-ipcshm-move-bug_on-check-into-shm_lock-fix.patch
-scsi-resolve-sg-buffer-const-ness-issue-fix.patch
-revert-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
+configfs-unexport-make-static-config_item_init.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+fs-befs-btreec-remove-unneeded-initializations.patch
+fs-affs-inodec-remove-unneeded-initialization.patch
+fs-affs-amigaffsc-remove-unneeded-initialization.patch
+fs-affs-symlinkc-remove-unneeded-err-variable.patch
+w1-masters-omap_hdq-add-support-for-1-wire-mode.patch
 linux-next.patch
-reapply-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-drivers-block-nvme-corec-fix-build-with-gcc-444.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-mm-provide-new-get_vaddr_frames-helper-fix.patch
+mm-provide-new-get_vaddr_frames-helper.patch
+media-omap_vout-convert-omap_vout_uservirt_to_phys-to-use-get_vaddr_pfns.patch
+vb2-provide-helpers-for-mapping-virtual-addresses.patch
+media-vb2-convert-vb2_dma_sg_get_userptr-to-use-frame-vector.patch
+media-vb2-convert-vb2_vmalloc_get_userptr-to-use-frame-vector.patch
+media-vb2-convert-vb2_dc_get_userptr-to-use-frame-vector.patch
+media-vb2-remove-unused-functions.patch
+drm-exynos-convert-g2d_userptr_get_dma_addr-to-use-get_vaddr_frames.patch
 mm-move-get_vaddr_frames-behind-a-config-option.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
 
