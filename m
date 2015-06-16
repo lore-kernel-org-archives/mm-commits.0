@@ -1,144 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: [-] rtc-restore-alarm-after-resume.patch removed from -mm tree
-Date: Tue, 16 Jun 2015 13:04:53 -0700
-Message-ID: <55808165.hiH35JcNS5jJCs3A%akpm@linux-foundation.org>
+Subject: +
+ revert-cpumask-dont-perform-while-loop-in-cpumask_next_and.patch added to
+ -mm tree
+Date: Tue, 16 Jun 2015 13:13:09 -0700
+Message-ID: <55808355.qKv9IaB32yyELaa5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35759 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35832 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757204AbbFPUEy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Jun 2015 16:04:54 -0400
+	with ESMTP id S1753246AbbFPUNK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Jun 2015 16:13:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matthew.garrett@nebula.com, a.zummo@towertech.it, alexandre.belloni@free-electrons.com, gabriele.mzt@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, amirv@mellanox.com, davem@davemloft.net, peterz@infradead.org, sergey.senozhatsky@gmail.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rtc: restore alarm after resume
-has been removed from the -mm tree.  Its filename was
-     rtc-restore-alarm-after-resume.patch
+     Subject: revert "cpumask: don't perform while loop in cpumask_next_and()"
+has been added to the -mm tree.  Its filename is
+     revert-cpumask-dont-perform-while-loop-in-cpumask_next_and.patch
 
-This patch was dropped because Alexandre is taking care of it
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/revert-cpumask-dont-perform-while-loop-in-cpumask_next_and.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/revert-cpumask-dont-perform-while-loop-in-cpumask_next_and.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Matthew Garrett <matthew.garrett@nebula.com>
-Subject: rtc: restore alarm after resume
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: revert "cpumask: don't perform while loop in cpumask_next_and()"
 
-Some platform firmware may interfere with the RTC alarm over suspend,
-resulting in the kernel and hardware having different ideas about system
-state but also potentially causing problems with firmware that assumes the
-OS will clean this case up.  This patch saves the RTC alarm state on
-suspend and will restore it on resume if the alarm has not yet fired - if
-it has, it will clear the RTC alarm.
+Revert
 
+: commit 534b483a86e6b96f1b5cc03bbe4b696f3daead6d
+: Author: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+: Date:   Thu Apr 16 12:48:04 2015 -0700
+: 
+:     cpumask: don't perform while loop in cpumask_next_and()
 
+This was a minor optimization, but it puts a `struct cpumask' on the
+stack, which consumes too much stack space.
 
-The case we've seen is Intel Rapid Start, which is a firmware-mediated
-feature that automatically transitions systems from suspend-to-RAM to
-suspend-to-disk without OS involvement.  It does this by setting the RTC
-alarm and a flag that indicates that on wake it should perform the
-transition rather than re-starting the OS.  However, if the OS has set a
-wakeup alarm that would wake the machine earlier, it refuses to overwrite
-it and allows the system to wake instead.
-
-This fails in the following situation:
-
-1) User configures Intel Rapid Start to transition after (say) 15
-minutes
-2) User suspends to RAM. Firmware sets the wakeup alarm for 15 minutes
-in the future
-3) User resumes after 5 minutes. Firmware does not reset the alarm, and
-as such it is still set for 10 minutes in the future
-4) User suspends after 5 minutes. Firmware notices that the alarm is set
-for 5 minutes in the future, which is less than the 15 minute transition
-threshold. It therefore assumes that the user wants the machine to wake
-in 5 minutes
-5) System resumes after 5 minutes
-
-The worst case scenario here is that the user may have put the system in a
-bag between (4) and (5), resulting in it running in a confined space and
-potentially overheating.  This seems reasonably important.  The Rapid
-Start support code got added in 3.11, but it can be configured in the
-firmware regardless of kernel support.
-
-Signed-off-by: Matthew Garrett <matthew.garrett@nebula.com>
-Tested-by: Gabriele Mazzotta <gabriele.mzt@gmail.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Reported-by: Peter Zijlstra <peterz@infradead.org>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Amir Vadai <amirv@mellanox.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/class.c |   24 ++++++++++++++++++++++++
- include/linux/rtc.h |    4 ++++
- 2 files changed, 28 insertions(+)
+ lib/cpumask.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN drivers/rtc/class.c~rtc-restore-alarm-after-resume drivers/rtc/class.c
---- a/drivers/rtc/class.c~rtc-restore-alarm-after-resume
-+++ a/drivers/rtc/class.c
-@@ -61,6 +61,8 @@ static int rtc_suspend(struct device *de
- 	if (strcmp(dev_name(&rtc->dev), CONFIG_RTC_HCTOSYS_DEVICE) != 0)
- 		return 0;
- 
-+	rtc->valid_alarm = !rtc_read_alarm(rtc, &rtc->alarm);
-+
- 	/* snapshot the current RTC and system time at suspend*/
- 	err = rtc_read_time(rtc, &tm);
- 	if (err < 0) {
-@@ -105,6 +107,27 @@ static int rtc_resume(struct device *dev
- 	if (timekeeping_rtc_skipresume())
- 		return 0;
- 
-+	/*
-+	 * Ensure that the platform hasn't overwritten a pending alarm while
-+	 * suspended
-+	 */
-+	if (rtc->valid_alarm) {
-+		long now, scheduled;
-+
-+		rtc_read_time(rtc, &tm);
-+		rtc_tm_to_time(&rtc->alarm.time, &scheduled);
-+		rtc_tm_to_time(&tm, &now);
-+
-+		/* Clear the alarm registers if it went off during suspend */
-+		if (scheduled <= now) {
-+			rtc_time_to_tm(0, &rtc->alarm.time);
-+			rtc->alarm.enabled = 0;
-+		}
-+
-+		if (rtc->ops && rtc->ops->set_alarm)
-+			rtc->ops->set_alarm(rtc->dev.parent, &rtc->alarm);
-+	}
-+
- 	rtc_hctosys_ret = -ENODEV;
- 	if (strcmp(dev_name(&rtc->dev), CONFIG_RTC_HCTOSYS_DEVICE) != 0)
- 		return 0;
-@@ -141,6 +164,7 @@ static int rtc_resume(struct device *dev
- 	if (sleep_time.tv_sec >= 0)
- 		timekeeping_inject_sleeptime64(&sleep_time);
- 	rtc_hctosys_ret = 0;
-+
- 	return 0;
+diff -puN lib/cpumask.c~revert-cpumask-dont-perform-while-loop-in-cpumask_next_and lib/cpumask.c
+--- a/lib/cpumask.c~revert-cpumask-dont-perform-while-loop-in-cpumask_next_and
++++ a/lib/cpumask.c
+@@ -16,11 +16,10 @@
+ int cpumask_next_and(int n, const struct cpumask *src1p,
+ 		     const struct cpumask *src2p)
+ {
+-	struct cpumask tmp;
+-
+-	if (cpumask_and(&tmp, src1p, src2p))
+-		return cpumask_next(n, &tmp);
+-	return nr_cpu_ids;
++	while ((n = cpumask_next(n, src1p)) < nr_cpu_ids)
++		if (cpumask_test_cpu(n, src2p))
++			break;
++	return n;
  }
+ EXPORT_SYMBOL(cpumask_next_and);
  
-diff -puN include/linux/rtc.h~rtc-restore-alarm-after-resume include/linux/rtc.h
---- a/include/linux/rtc.h~rtc-restore-alarm-after-resume
-+++ a/include/linux/rtc.h
-@@ -134,6 +134,10 @@ struct rtc_device
- 	/* Some hardware can't support UIE mode */
- 	int uie_unsupported;
- 
-+#ifdef CONFIG_PM_SLEEP
-+	struct rtc_wkalrm alarm;
-+	bool valid_alarm;
-+#endif
- #ifdef CONFIG_RTC_INTF_DEV_UIE_EMUL
- 	struct work_struct uie_task;
- 	struct timer_list uie_timer;
 _
 
-Patches currently in -mm which might be from matthew.garrett@nebula.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+arch-alpha-kernel-systblss-remove-debug-check.patch
+revert-cpumask-dont-perform-while-loop-in-cpumask_next_and.patch
+ocfs2-reduce-object-size-of-mlog-uses-fix.patch
+ocfs2-remove-__mlog_cpu_guess.patch
+ocfs2-remove-__mlog_cpu_guess-fix.patch
+ocfs2-fix-null-pointer-dereference-in-function-ocfs2_abort_trigger-fix.patch
+mm.patch
+mm-slab_common-support-the-slub_debug-boot-option-on-specific-object-size-fix.patch
+mm-fix-mprotect-behaviour-on-vm_locked-vmas-fix.patch
+mm-new-mm-hook-framework.patch
+mm-meminit-inline-some-helper-functions-fix.patch
+mm-meminit-finish-initialisation-of-struct-pages-before-basic-setup-fix.patch
+mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling-fix.patch
+rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix.patch
+rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix-fix.patch
+userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
+userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
+userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
+fs-userfaultfdc-work-around-i386-build-error.patch
+hugetlb-do-not-account-hugetlb-pages-as-nr_file_pages-fix.patch
+mm-do-not-ignore-mapping_gfp_mask-in-page-cache-allocation-paths-checkpatch-fixes.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
+zswap-runtime-enable-disable-fix.patch
+prctl-more-prctlpr_set_mm_-checks-fix.patch
+proc-fix-page_size-limit-of-proc-pid-cmdline-fix.patch
+bitmap-remove-explicit-newline-handling-using-scnprintf-format-string-fix.patch
+radix-tree-replace-preallocated-node-array-with-linked-list-fix.patch
+init-do_mounts-add-create_dev-failure-log-fix.patch
+devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx-fix.patch
+ipcshm-move-bug_on-check-into-shm_lock-fix.patch
+scsi-resolve-sg-buffer-const-ness-issue-fix.patch
+revert-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
+linux-next.patch
+reapply-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+drivers-block-nvme-corec-fix-build-with-gcc-444.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+mm-provide-new-get_vaddr_frames-helper-fix.patch
+mm-move-get_vaddr_frames-behind-a-config-option.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
