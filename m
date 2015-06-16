@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + fs-filec-dont-acquire-files-file_lock-in-fd_install.patch added to -mm tree
-Date: Thu, 11 Jun 2015 15:10:02 -0700
-Message-ID: <557a073a.Xp8ded8uMj/L80Ry%akpm@linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Tue, 16 Jun 2015 11:59:38 -0700
+Message-ID: <5580721a.d4mNF0MC1TjiVS07%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57342 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34237 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752273AbbFKWKD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Jun 2015 18:10:03 -0400
+	with ESMTP id S1754828AbbFPS7j (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Jun 2015 14:59:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: edumazet@google.com, khlebnikov@yandex-team.ru, mguzik@redhat.com, paulmck@linux.vnet.ibm.com, viro@ZenIV.linux.org.uk, ydroneaud@opteya.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/file.c: don't acquire files->file_lock in fd_install()
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     fs-filec-dont-acquire-files-file_lock-in-fd_install.patch
+     linux-next-git-rejects.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-filec-dont-acquire-files-file_lock-in-fd_install.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-filec-dont-acquire-files-file_lock-in-fd_install.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,190 +38,120 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Eric Dumazet <edumazet@google.com>
-Subject: fs/file.c: don't acquire files->file_lock in fd_install()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-Mateusz Guzik reported :
-
- Currently obtaining a new file descriptor results in locking fdtable
- twice - once in order to reserve a slot and second time to fill it.
-
-Holding the spinlock in __fd_install() is needed in case a resize is
-done, or to prevent a resize.
-
-Mateusz provided an RFC patch and a micro benchmark :
-  http://people.redhat.com/~mguzik/pipebench.c
-
-A resize is an unlikely operation in a process lifetime,
-as table size is at least doubled at every resize.
-
-We can use RCU instead of the spinlock :
-
-__fd_install() must wait if a resize is in progress.
-
-The resize must block new __fd_install() callers from starting,
-and wait that ongoing install are finished (synchronize_sched())
-
-resize should be attempted by a single thread to not waste resources.
-
-rcu_sched variant is used, as __fd_install() and expand_fdtable() run
-from process context.
-
-It gives us a ~30% speedup using pipebench with 16 threads, and a ~10%
-speedup with another program using TCP sockets.
-
-Signed-off-by: Eric Dumazet <edumazet@google.com>
-Reported-by: Mateusz Guzik <mguzik@redhat.com>
-Acked-by: Mateusz Guzik <mguzik@redhat.com>
-Tested-by: Mateusz Guzik <mguzik@redhat.com>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Cc: Yann Droneaud <ydroneaud@opteya.com>
-Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/file.c               |   66 +++++++++++++++++++++++++++-----------
- include/linux/fdtable.h |    3 +
- 2 files changed, 50 insertions(+), 19 deletions(-)
+ sound/pci/hda/hda_codec.c |    4 ----
+ sound/pci/hda/hda_intel.c |    9 ---------
+ 2 files changed, 13 deletions(-)
 
-diff -puN fs/file.c~fs-filec-dont-acquire-files-file_lock-in-fd_install fs/file.c
---- a/fs/file.c~fs-filec-dont-acquire-files-file_lock-in-fd_install
-+++ a/fs/file.c
-@@ -147,6 +147,13 @@ static int expand_fdtable(struct files_s
+diff -puN sound/pci/hda/hda_codec.c~linux-next-git-rejects sound/pci/hda/hda_codec.c
+--- a/sound/pci/hda/hda_codec.c~linux-next-git-rejects
++++ a/sound/pci/hda/hda_codec.c
+@@ -437,11 +437,7 @@ static unsigned int get_num_devices(stru
+ 		return 0;
  
- 	spin_unlock(&files->file_lock);
- 	new_fdt = alloc_fdtable(nr);
-+
-+	/* make sure all __fd_install() have seen resize_in_progress
-+	 * or have finished their rcu_read_lock_sched() section.
-+	 */
-+	if (atomic_read(&files->count) > 1)
-+		synchronize_sched();
-+
- 	spin_lock(&files->file_lock);
- 	if (!new_fdt)
- 		return -ENOMEM;
-@@ -158,21 +165,14 @@ static int expand_fdtable(struct files_s
- 		__free_fdtable(new_fdt);
- 		return -EMFILE;
- 	}
--	/*
--	 * Check again since another task may have expanded the fd table while
--	 * we dropped the lock
--	 */
- 	cur_fdt = files_fdtable(files);
--	if (nr >= cur_fdt->max_fds) {
--		/* Continue as planned */
--		copy_fdtable(new_fdt, cur_fdt);
--		rcu_assign_pointer(files->fdt, new_fdt);
--		if (cur_fdt != &files->fdtab)
--			call_rcu(&cur_fdt->rcu, free_fdtable_rcu);
--	} else {
--		/* Somebody else expanded, so undo our attempt */
--		__free_fdtable(new_fdt);
--	}
-+	BUG_ON(nr < cur_fdt->max_fds);
-+	copy_fdtable(new_fdt, cur_fdt);
-+	rcu_assign_pointer(files->fdt, new_fdt);
-+	if (cur_fdt != &files->fdtab)
-+		call_rcu(&cur_fdt->rcu, free_fdtable_rcu);
-+	/* coupled with smp_rmb() in __fd_install() */
-+	smp_wmb();
- 	return 1;
+ 	parm = snd_hdac_read_parm_uncached(&codec->core, nid, AC_PAR_DEVLIST_LEN);
+-<<<<<<< HEAD
+-	if (parm == -1 && codec->bus->rirb_error)
+-=======
+ 	if (parm == -1)
+->>>>>>> linux-next/akpm-base
+ 		parm = 0;
+ 	return parm & AC_DEV_LIST_LEN_MASK;
  }
+diff -puN sound/pci/hda/hda_intel.c~linux-next-git-rejects sound/pci/hda/hda_intel.c
+--- a/sound/pci/hda/hda_intel.c~linux-next-git-rejects
++++ a/sound/pci/hda/hda_intel.c
+@@ -1981,16 +1981,11 @@ static int azx_probe_continue(struct azx
+ 	 * display codec needs the power and it can be released after probe.
+ 	 */
+ 	if (chip->driver_caps & AZX_DCAPS_I915_POWERWELL) {
+-<<<<<<< HEAD
+-#ifdef CONFIG_SND_HDA_I915
+-		err = hda_i915_init(hda);
+-=======
+ 		/* HSW/BDW controllers need this power */
+ 		if (CONTROLLER_IN_GPU(pci))
+ 			hda->need_i915_power = 1;
  
-@@ -185,21 +185,38 @@ static int expand_fdtable(struct files_s
-  * The files->file_lock should be held on entry, and will be held on exit.
-  */
- static int expand_files(struct files_struct *files, int nr)
-+	__releases(files->file_lock)
-+	__acquires(files->file_lock)
- {
- 	struct fdtable *fdt;
-+	int expanded = 0;
+ 		err = snd_hdac_i915_init(bus);
+->>>>>>> linux-next/akpm-base
+ 		if (err < 0) {
+ 			/* if the controller is bound only with HDMI/DP
+ 			 * (for HSW and BDW), we need to abort the probe;
+@@ -2002,12 +1997,8 @@ static int azx_probe_continue(struct azx
+ 			else
+ 				goto skip_i915;
+ 		}
+-<<<<<<< HEAD
+-		err = hda_display_power(hda, true);
+-=======
  
-+repeat:
- 	fdt = files_fdtable(files);
- 
- 	/* Do we need to expand? */
- 	if (nr < fdt->max_fds)
--		return 0;
-+		return expanded;
- 
- 	/* Can we expand? */
- 	if (nr >= sysctl_nr_open)
- 		return -EMFILE;
- 
-+	if (unlikely(files->resize_in_progress)) {
-+		spin_unlock(&files->file_lock);
-+		expanded = 1;
-+		wait_event(files->resize_wait, !files->resize_in_progress);
-+		spin_lock(&files->file_lock);
-+		goto repeat;
-+	}
-+
- 	/* All good, so we try */
--	return expand_fdtable(files, nr);
-+	files->resize_in_progress = true;
-+	expanded = expand_fdtable(files, nr);
-+	files->resize_in_progress = false;
-+
-+	wake_up_all(&files->resize_wait);
-+	return expanded;
- }
- 
- static inline void __set_close_on_exec(int fd, struct fdtable *fdt)
-@@ -256,6 +273,8 @@ struct files_struct *dup_fd(struct files
- 	atomic_set(&newf->count, 1);
- 
- 	spin_lock_init(&newf->file_lock);
-+	newf->resize_in_progress = false;
-+	init_waitqueue_head(&newf->resize_wait);
- 	newf->next_fd = 0;
- 	new_fdt = &newf->fdtab;
- 	new_fdt->max_fds = NR_OPEN_DEFAULT;
-@@ -553,11 +572,20 @@ void __fd_install(struct files_struct *f
- 		struct file *file)
- {
- 	struct fdtable *fdt;
--	spin_lock(&files->file_lock);
--	fdt = files_fdtable(files);
-+
-+	rcu_read_lock_sched();
-+
-+	while (unlikely(files->resize_in_progress)) {
-+		rcu_read_unlock_sched();
-+		wait_event(files->resize_wait, !files->resize_in_progress);
-+		rcu_read_lock_sched();
-+	}
-+	/* coupled with smp_wmb() in expand_fdtable() */
-+	smp_rmb();
-+	fdt = rcu_dereference_sched(files->fdt);
- 	BUG_ON(fdt->fd[fd] != NULL);
- 	rcu_assign_pointer(fdt->fd[fd], file);
--	spin_unlock(&files->file_lock);
-+	rcu_read_unlock_sched();
- }
- 
- void fd_install(unsigned int fd, struct file *file)
-diff -puN include/linux/fdtable.h~fs-filec-dont-acquire-files-file_lock-in-fd_install include/linux/fdtable.h
---- a/include/linux/fdtable.h~fs-filec-dont-acquire-files-file_lock-in-fd_install
-+++ a/include/linux/fdtable.h
-@@ -47,6 +47,9 @@ struct files_struct {
-    * read mostly part
-    */
- 	atomic_t count;
-+	bool resize_in_progress;
-+	wait_queue_head_t resize_wait;
-+
- 	struct fdtable __rcu *fdt;
- 	struct fdtable fdtab;
-   /*
+ 		err = snd_hdac_display_power(bus, true);
+->>>>>>> linux-next/akpm-base
+ 		if (err < 0) {
+ 			dev_err(chip->card->dev,
+ 				"Cannot turn on display power on i915\n");
 _
 
-Patches currently in -mm which might be from edumazet@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-fs-filec-dont-acquire-files-file_lock-in-fd_install.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+ocfs2-reduce-object-size-of-mlog-uses-fix.patch
+ocfs2-remove-__mlog_cpu_guess.patch
+ocfs2-remove-__mlog_cpu_guess-fix.patch
+ocfs2-fix-null-pointer-dereference-in-function-ocfs2_abort_trigger-fix.patch
+mm.patch
+mm-slab_common-support-the-slub_debug-boot-option-on-specific-object-size-fix.patch
+mm-fix-mprotect-behaviour-on-vm_locked-vmas-fix.patch
+mm-new-mm-hook-framework.patch
+mm-meminit-inline-some-helper-functions-fix.patch
+mm-meminit-finish-initialisation-of-struct-pages-before-basic-setup-fix.patch
+mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling-fix.patch
+rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix.patch
+rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix-fix.patch
+userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
+userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
+userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
+fs-userfaultfdc-work-around-i386-build-error.patch
+hugetlb-do-not-account-hugetlb-pages-as-nr_file_pages-fix.patch
+mm-do-not-ignore-mapping_gfp_mask-in-page-cache-allocation-paths-checkpatch-fixes.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
+zswap-runtime-enable-disable-fix.patch
+prctl-more-prctlpr_set_mm_-checks-fix.patch
+proc-fix-page_size-limit-of-proc-pid-cmdline-fix.patch
+bitmap-remove-explicit-newline-handling-using-scnprintf-format-string-fix.patch
+radix-tree-replace-preallocated-node-array-with-linked-list-fix.patch
+init-do_mounts-add-create_dev-failure-log-fix.patch
+rtc-omap-add-external-32k-clock-feature-fix.patch
+devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx-fix.patch
+ipcshm-move-bug_on-check-into-shm_lock-fix.patch
+scsi-resolve-sg-buffer-const-ness-issue-fix.patch
+revert-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
 linux-next.patch
+reapply-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+drivers-block-nvme-corec-fix-build-with-gcc-444.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+mm-provide-new-get_vaddr_frames-helper-fix.patch
+mm-move-get_vaddr_frames-behind-a-config-option.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
