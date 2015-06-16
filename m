@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- revert-cpumask-dont-perform-while-loop-in-cpumask_next_and.patch added to
- -mm tree
-Date: Tue, 16 Jun 2015 13:13:09 -0700
-Message-ID: <55808355.qKv9IaB32yyELaa5%akpm@linux-foundation.org>
+Subject: + tmpfs-truncate-prealloc-blocks-past-i_size.patch added to -mm
+ tree
+Date: Tue, 16 Jun 2015 13:14:07 -0700
+Message-ID: <5580838f.hTbajlU80bIw0KwA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35832 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35840 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753246AbbFPUNK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Jun 2015 16:13:10 -0400
+	with ESMTP id S1756924AbbFPUOH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Jun 2015 16:14:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, amirv@mellanox.com, davem@davemloft.net, peterz@infradead.org, sergey.senozhatsky@gmail.com, tj@kernel.org, mm-commits@vger.kernel.org
+To: jbacik@fb.com, hughd@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: revert "cpumask: don't perform while loop in cpumask_next_and()"
+     Subject: tmpfs: truncate prealloc blocks past i_size
 has been added to the -mm tree.  Its filename is
-     revert-cpumask-dont-perform-while-loop-in-cpumask_next_and.patch
+     tmpfs-truncate-prealloc-blocks-past-i_size.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/revert-cpumask-dont-perform-while-loop-in-cpumask_next_and.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/tmpfs-truncate-prealloc-blocks-past-i_size.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/revert-cpumask-dont-perform-while-loop-in-cpumask_next_and.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/tmpfs-truncate-prealloc-blocks-past-i_size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,107 +39,51 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: revert "cpumask: don't perform while loop in cpumask_next_and()"
+From: Josef Bacik <jbacik@fb.com>
+Subject: tmpfs: truncate prealloc blocks past i_size
 
-Revert
+One of the rocksdb people noticed that when you do something like this
 
-: commit 534b483a86e6b96f1b5cc03bbe4b696f3daead6d
-: Author: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-: Date:   Thu Apr 16 12:48:04 2015 -0700
-: 
-:     cpumask: don't perform while loop in cpumask_next_and()
+fallocate(fd, FALLOC_FL_KEEP_SIZE, 0, 10M)
+pwrite(fd, buf, 5M, 0)
+ftruncate(5M)
 
-This was a minor optimization, but it puts a `struct cpumask' on the
-stack, which consumes too much stack space.
+on tmpfs, the file would still take up 10M: which led to super fun issues
+because we were getting ENOSPC before we thought we should be getting
+ENOSPC.  This patch fixes the problem, and mirrors what all the other
+fs'es do (and was agreed to be the correct behaviour at LSF).
 
-Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Reported-by: Peter Zijlstra <peterz@infradead.org>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Amir Vadai <amirv@mellanox.com>
+I tested it locally to make sure it worked properly with the following
+
+xfs_io -f -c "falloc -k 0 10M" -c "pwrite 0 5M" -c "truncate 5M" file
+
+Without the patch we have "Blocks: 20480", with the patch we have the
+correct value of "Blocks: 10240".
+
+Signed-off-by: Josef Bacik <jbacik@fb.com>
+Signed-off-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/cpumask.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ mm/shmem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/cpumask.c~revert-cpumask-dont-perform-while-loop-in-cpumask_next_and lib/cpumask.c
---- a/lib/cpumask.c~revert-cpumask-dont-perform-while-loop-in-cpumask_next_and
-+++ a/lib/cpumask.c
-@@ -16,11 +16,10 @@
- int cpumask_next_and(int n, const struct cpumask *src1p,
- 		     const struct cpumask *src2p)
- {
--	struct cpumask tmp;
--
--	if (cpumask_and(&tmp, src1p, src2p))
--		return cpumask_next(n, &tmp);
--	return nr_cpu_ids;
-+	while ((n = cpumask_next(n, src1p)) < nr_cpu_ids)
-+		if (cpumask_test_cpu(n, src2p))
-+			break;
-+	return n;
- }
- EXPORT_SYMBOL(cpumask_next_and);
- 
+diff -puN mm/shmem.c~tmpfs-truncate-prealloc-blocks-past-i_size mm/shmem.c
+--- a/mm/shmem.c~tmpfs-truncate-prealloc-blocks-past-i_size
++++ a/mm/shmem.c
+@@ -569,7 +569,7 @@ static int shmem_setattr(struct dentry *
+ 			i_size_write(inode, newsize);
+ 			inode->i_ctime = inode->i_mtime = CURRENT_TIME;
+ 		}
+-		if (newsize < oldsize) {
++		if (newsize <= oldsize) {
+ 			loff_t holebegin = round_up(newsize, PAGE_SIZE);
+ 			unmap_mapping_range(inode->i_mapping, holebegin, 0, 1);
+ 			shmem_truncate_range(inode, newsize, (loff_t)-1);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jbacik@fb.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-revert-cpumask-dont-perform-while-loop-in-cpumask_next_and.patch
-ocfs2-reduce-object-size-of-mlog-uses-fix.patch
-ocfs2-remove-__mlog_cpu_guess.patch
-ocfs2-remove-__mlog_cpu_guess-fix.patch
-ocfs2-fix-null-pointer-dereference-in-function-ocfs2_abort_trigger-fix.patch
-mm.patch
-mm-slab_common-support-the-slub_debug-boot-option-on-specific-object-size-fix.patch
-mm-fix-mprotect-behaviour-on-vm_locked-vmas-fix.patch
-mm-new-mm-hook-framework.patch
-mm-meminit-inline-some-helper-functions-fix.patch
-mm-meminit-finish-initialisation-of-struct-pages-before-basic-setup-fix.patch
-mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling-fix.patch
-rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix.patch
-rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix-fix.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
-userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
-fs-userfaultfdc-work-around-i386-build-error.patch
-hugetlb-do-not-account-hugetlb-pages-as-nr_file_pages-fix.patch
-mm-do-not-ignore-mapping_gfp_mask-in-page-cache-allocation-paths-checkpatch-fixes.patch
-include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
-zswap-runtime-enable-disable-fix.patch
-prctl-more-prctlpr_set_mm_-checks-fix.patch
-proc-fix-page_size-limit-of-proc-pid-cmdline-fix.patch
-bitmap-remove-explicit-newline-handling-using-scnprintf-format-string-fix.patch
-radix-tree-replace-preallocated-node-array-with-linked-list-fix.patch
-init-do_mounts-add-create_dev-failure-log-fix.patch
-devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx-fix.patch
-ipcshm-move-bug_on-check-into-shm_lock-fix.patch
-scsi-resolve-sg-buffer-const-ness-issue-fix.patch
-revert-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
+tmpfs-truncate-prealloc-blocks-past-i_size.patch
 linux-next.patch
-reapply-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-drivers-block-nvme-corec-fix-build-with-gcc-444.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-mm-provide-new-get_vaddr_frames-helper-fix.patch
-mm-move-get_vaddr_frames-behind-a-config-option.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
 
