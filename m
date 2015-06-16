@@ -1,87 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [-]
- drivers-rtc-rtc-ds1307c-enable-the-mcp794xx-alarm-after-programming-time.patch removed from -mm tree
-Date: Tue, 16 Jun 2015 13:04:45 -0700
-Message-ID: <5580815d.wtI4A/uSTd5bTlfY%akpm@linux-foundation.org>
+Subject: [-] rtc-omap-add-external-32k-clock-feature.patch removed from
+ -mm tree
+Date: Tue, 16 Jun 2015 13:04:48 -0700
+Message-ID: <55808160.hRkJk5FUPPG+VH/8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35738 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35743 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757187AbbFPUEr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Jun 2015 16:04:47 -0400
+	with ESMTP id S1757187AbbFPUEs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Jun 2015 16:04:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nm@ti.com, a.zummo@towertech.it, alexandre.belloni@free-electrons.com, grygorii.strashko@linaro.org, mm-commits@vger.kernel.org
+To: j-keerthy@ti.com, a.zummo@towertech.it, alexandre.belloni@free-electrons.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-ds1307.c: enable the mcp794xx alarm after programming time
+     Subject: drivers/rtc/rtc-omap.c: add external 32k clock feature
 has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-ds1307c-enable-the-mcp794xx-alarm-after-programming-time.patch
+     rtc-omap-add-external-32k-clock-feature.patch
 
 This patch was dropped because Alexandre is taking care of it
 
 ------------------------------------------------------
-From: Nishanth Menon <nm@ti.com>
-Subject: drivers/rtc/rtc-ds1307.c: enable the mcp794xx alarm after programming time
+From: Keerthy <j-keerthy@ti.com>
+Subject: drivers/rtc/rtc-omap.c: add external 32k clock feature
 
-Alarm interrupt enable register is at offset 0x7, while the time registers
-for the alarm follow that.  When we program Alarm interrupt enable prior
-to programming the time, it is possible that previous time value could be
-close or match at the time of alarm enable resulting in interrupt trigger
-which is unexpected (and does not match the time we expect it to trigger).
+Add external 32k clock feature.  The internal clock will be gated during
+suspend.  Hence make use of the external 32k clock so that rtc is
+functional accross suspend/resume.
 
-To prevent this scenario from occuring, program the ALM0_EN bit only after
-the alarm time is appropriately programmed.
-
-Ofcourse, I2C programming is non-atomic, so there are loopholes where the
-interrupt wont trigger if the time requested is in the past at the time of
-programming the ALM0_EN bit.  However, we will not have unexpected
-interrupts while the time is programmed after the interrupt are enabled.
-
-Signed-off-by: Nishanth Menon <nm@ti.com>
-Acked-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+Signed-off-by: Keerthy <j-keerthy@ti.com>
 Cc: Alessandro Zummo <a.zummo@towertech.it>
-Reviewed-by: Grygorii Strashko <grygorii.strashko@linaro.org>
+Cc: Alexandre Belloni <alexandre.belloni@free-electrons.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1307.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/rtc/rtc-omap.c |   15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-ds1307.c~drivers-rtc-rtc-ds1307c-enable-the-mcp794xx-alarm-after-programming-time drivers/rtc/rtc-ds1307.c
---- a/drivers/rtc/rtc-ds1307.c~drivers-rtc-rtc-ds1307c-enable-the-mcp794xx-alarm-after-programming-time
-+++ a/drivers/rtc/rtc-ds1307.c
-@@ -742,17 +742,17 @@ static int mcp794xx_set_alarm(struct dev
- 	regs[6] &= ~MCP794XX_BIT_ALMX_IF;
- 	/* Set alarm match: second, minute, hour, day, date, month. */
- 	regs[6] |= MCP794XX_MSK_ALMX_MATCH;
--
--	if (t->enabled)
--		regs[0] |= MCP794XX_BIT_ALM0_EN;
--	else
--		regs[0] &= ~MCP794XX_BIT_ALM0_EN;
-+	/* Disable interrupt. We will not enable until completely programmed */
-+	regs[0] &= ~MCP794XX_BIT_ALM0_EN;
+diff -puN drivers/rtc/rtc-omap.c~rtc-omap-add-external-32k-clock-feature drivers/rtc/rtc-omap.c
+--- a/drivers/rtc/rtc-omap.c~rtc-omap-add-external-32k-clock-feature
++++ a/drivers/rtc/rtc-omap.c
+@@ -107,6 +107,8 @@
  
- 	ret = ds1307->write_block_data(client, MCP794XX_REG_CONTROL, 10, regs);
- 	if (ret < 0)
- 		return ret;
+ /* OMAP_RTC_OSC_REG bit fields: */
+ #define OMAP_RTC_OSC_32KCLK_EN		BIT(6)
++#define OMAP_RTC_OSC_OSC32K_GZ		BIT(4)
++#define OMAP_RTC_OSC_EXT_32K		BIT(3)
  
--	return 0;
-+	if (!t->enabled)
-+		return 0;
-+	regs[0] |= MCP794XX_BIT_ALM0_EN;
-+	return i2c_smbus_write_byte_data(client, MCP794XX_REG_CONTROL, regs[0]);
- }
+ /* OMAP_RTC_IRQWAKEEN bit fields: */
+ #define OMAP_RTC_IRQWAKEEN_ALARM_WAKEEN	BIT(1)
+@@ -122,6 +124,7 @@ struct omap_rtc;
  
- static int mcp794xx_alarm_irq_enable(struct device *dev, unsigned int enabled)
+ struct omap_rtc_device_type {
+ 	bool has_32kclk_en;
++	bool has_osc_ext_32k;
+ 	bool has_irqwakeen;
+ 	bool has_pmic_mode;
+ 	bool has_power_up_reset;
+@@ -481,6 +484,7 @@ static const struct omap_rtc_device_type
+ 
+ static const struct omap_rtc_device_type omap_rtc_am3352_type = {
+ 	.has_32kclk_en	= true,
++	.has_osc_ext_32k = true,
+ 	.has_irqwakeen	= true,
+ 	.has_pmic_mode	= true,
+ 	.lock		= am3352_rtc_lock,
+@@ -577,7 +581,16 @@ static int omap_rtc_probe(struct platfor
+ 	if (rtc->type->has_32kclk_en) {
+ 		reg = rtc_read(rtc, OMAP_RTC_OSC_REG);
+ 		rtc_writel(rtc, OMAP_RTC_OSC_REG,
+-				reg | OMAP_RTC_OSC_32KCLK_EN);
++			   reg | OMAP_RTC_OSC_32KCLK_EN);
++	}
++
++	/* Enable External clock as the source */
++
++	if (rtc->type->has_osc_ext_32k) {
++		rtc_writel(rtc, OMAP_RTC_OSC_REG,
++			   (OMAP_RTC_OSC_EXT_32K |
++			   rtc_read(rtc, OMAP_RTC_OSC_REG)) &
++			   (~OMAP_RTC_OSC_OSC32K_GZ));
+ 	}
+ 
+ 	/* clear old status */
 _
 
-Patches currently in -mm which might be from nm@ti.com are
+Patches currently in -mm which might be from j-keerthy@ti.com are
 
+rtc-omap-add-external-32k-clock-feature-fix.patch
 linux-next.patch
 
