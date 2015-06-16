@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-use-swap-in-swap_refcount_rec.patch added to -mm tree
-Date: Tue, 16 Jun 2015 13:42:37 -0700
-Message-ID: <55808a3d.Rp1X/LxL2+oomO2l%akpm@linux-foundation.org>
+Subject: +
+ checkpatch-emit-an-error-when-theres-a-diff-in-a-changelog.patch added to
+ -mm tree
+Date: Tue, 16 Jun 2015 13:43:27 -0700
+Message-ID: <55808a6f.YtQ4egl73f4Q4R7M%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36421 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36428 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754473AbbFPUmi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Jun 2015 16:42:38 -0400
+	with ESMTP id S1757383AbbFPUn1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Jun 2015 16:43:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, jlbec@evilplan.org, julia.lawall@lip6.fr, mfasheh@suse.com, mm-commits@vger.kernel.org
+To: joe@perches.com, akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: use swap() in swap_refcount_rec()
+     Subject: checkpatch: emit an error when there's a diff in a changelog
 has been added to the -mm tree.  Its filename is
-     ocfs2-use-swap-in-swap_refcount_rec.patch
+     checkpatch-emit-an-error-when-theres-a-diff-in-a-changelog.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-use-swap-in-swap_refcount_rec.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-emit-an-error-when-theres-a-diff-in-a-changelog.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-use-swap-in-swap_refcount_rec.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-emit-an-error-when-theres-a-diff-in-a-changelog.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,62 +40,99 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: ocfs2: use swap() in swap_refcount_rec()
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: emit an error when there's a diff in a changelog
 
-Use kernel.h macro definition.
+People often put diff snippets in changelogs.  This causes problems when
+one tries to apply a file containing both the changelog and the changelog.
 
-Thanks to Julia Lawall for Coccinelle scripting support.
+Warn once when what seems to be a diff snippet in the changelog exists.
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Julia Lawall <julia.lawall@lip6.fr>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+Signed-off-by: Joe Perches <joe@perches.com>
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/refcounttree.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ scripts/checkpatch.pl |   15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/refcounttree.c~ocfs2-use-swap-in-swap_refcount_rec fs/ocfs2/refcounttree.c
---- a/fs/ocfs2/refcounttree.c~ocfs2-use-swap-in-swap_refcount_rec
-+++ a/fs/ocfs2/refcounttree.c
-@@ -1406,11 +1406,9 @@ static int cmp_refcount_rec_by_cpos(cons
+diff -puN scripts/checkpatch.pl~checkpatch-emit-an-error-when-theres-a-diff-in-a-changelog scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-emit-an-error-when-theres-a-diff-in-a-changelog
++++ a/scripts/checkpatch.pl
+@@ -1954,6 +1954,7 @@ sub process {
+ 	my $in_header_lines = $file ? 0 : 1;
+ 	my $in_commit_log = 0;		#Scanning lines before patch
+ 	my $commit_log_long_line = 0;
++	my $commit_log_has_diff = 0;
+ 	my $reported_maintainer_file = 0;
+ 	my $non_utf8_charset = 0;
  
- static void swap_refcount_rec(void *a, void *b, int size)
- {
--	struct ocfs2_refcount_rec *l = a, *r = b, tmp;
-+	struct ocfs2_refcount_rec *l = a, *r = b;
+@@ -2087,7 +2088,8 @@ sub process {
+ 		my $rawline = $rawlines[$linenr - 1];
  
--	tmp = *l;
--	*l = *r;
--	*r = tmp;
-+	swap(*l, *r);
- }
+ #extract the line range in the file after the patch is applied
+-		if ($line=~/^\@\@ -\d+(?:,\d+)? \+(\d+)(,(\d+))? \@\@/) {
++		if (!$in_commit_log &&
++		    $line =~ /^\@\@ -\d+(?:,\d+)? \+(\d+)(,(\d+))? \@\@/) {
+ 			$is_patch = 1;
+ 			$first_line = $linenr + 1;
+ 			$realline=$1-1;
+@@ -2181,6 +2183,17 @@ sub process {
  
- /*
+ 		$cnt_lines++ if ($realcnt != 0);
+ 
++# Check if the commit log has what seems like a diff which can confuse patch
++		if ($in_commit_log && !$commit_log_has_diff &&
++		    (($line =~ m@^\s+diff\b.*a/[\w/]+@ &&
++		      $line =~ m@^\s+diff\b.*a/([\w/]+)\s+b/$1\b@) ||
++		     $line =~ m@^\s*(?:\-\-\-\s+a/|\+\+\+\s+b/)@ ||
++		     $line =~ m/^\s*\@\@ \-\d+,\d+ \+\d+,\d+ \@\@/)) {
++			ERROR("DIFF_IN_COMMIT_MSG",
++			      "Avoid using diff content in the commit message - patch(1) might not work\n" . $herecurr);
++			$commit_log_has_diff = 1;
++		}
++
+ # Check for incorrect file permissions
+ 		if ($line =~ /^new (file )?mode.*[7531]\d{0,2}$/) {
+ 			my $permhere = $here . "FILE: $realfile\n";
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from joe@perches.com are
 
-configfs-unexport-make-static-config_item_init.patch
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-ocfs2-use-swap-in-dx_leaf_sort_swap.patch
-ocfs2-use-swap-in-swap_refcount_rec.patch
-ocfs2-use-swap-in-ocfs2_double_lock.patch
-fs-befs-btreec-remove-unneeded-initializations.patch
-fs-affs-inodec-remove-unneeded-initialization.patch
-fs-affs-amigaffsc-remove-unneeded-initialization.patch
-fs-affs-symlinkc-remove-unneeded-err-variable.patch
-w1-masters-omap_hdq-add-support-for-1-wire-mode.patch
+ocfs2-reduce-object-size-of-mlog-uses.patch
+ocfs2-reduce-object-size-of-mlog-uses-fix.patch
+ocfs2-remove-__mlog_cpu_guess.patch
+ocfs2-remove-__mlog_cpu_guess-fix.patch
+ocfs2-neaten-do_error-ocfs2_error-and-ocfs2_abort.patch
+compiler-gcch-neatening.patch
+compiler-gcc-integrate-the-various-compiler-gcch-files.patch
+get_maintainerpl-add-get_maintainerignore-file-capability.patch
+maintainers-alsa-devel-alsa-projectorg-is-moderated-for-non-subscribers.patch
+lib-string-introduce-strreplace.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-check-for-uncommented-waitqueue_active.patch
+checkpatch-add-strict-warning-for-c99-fixed-size-typedefs-intsize_t.patch
+checkpatch-make-types-found-in-a-source-file-patch-local.patch
+checkpatch-use-string-consistently.patch
+checkpatch-categorize-some-long-line-length-checks.patch
+checkpatch-improve-output-with-multiple-command-line-files.patch
+checkpatch-colorize-output-to-terminal.patch
+checkpatch-add-showfile-to-allow-input-via-pipe-to-show-filenames.patch
+checkpatch-remove-local-from-codespell-path.patch
+checkpatch-avoid-not_unified_diff-errors-on-cover-letterpatch-files.patch
+checkpatch-suggest-using-ether_addr_equal.patch
+checkpatch-fix-processing-of-memset-issues.patch
+checkpatch-suggest-using-eth_zero_addr-and-eth_broadcast_addr.patch
+checkpatch-add-multi-line-handling-for-prefer_ether_addr_copy.patch
+checkpatch-validate-module_license-content.patch
+checkpatch-emit-an-error-when-theres-a-diff-in-a-changelog.patch
 linux-next.patch
-mm-provide-new-get_vaddr_frames-helper.patch
-media-omap_vout-convert-omap_vout_uservirt_to_phys-to-use-get_vaddr_pfns.patch
-vb2-provide-helpers-for-mapping-virtual-addresses.patch
-media-vb2-convert-vb2_dma_sg_get_userptr-to-use-frame-vector.patch
-media-vb2-convert-vb2_vmalloc_get_userptr-to-use-frame-vector.patch
-media-vb2-convert-vb2_dc_get_userptr-to-use-frame-vector.patch
-media-vb2-remove-unused-functions.patch
-drm-exynos-convert-g2d_userptr_get_dma_addr-to-use-get_vaddr_frames.patch
-mm-move-get_vaddr_frames-behind-a-config-option.patch
+printk-improve-the-description-of-dev-kmsg-line-format.patch
+fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void.patch
+maintainers-update-sound-soc-intel-patterns.patch
+maintainers-update-brcm-dts-pattern.patch
+maintainers-update-brcm-gpio-filename-pattern.patch
+maintainers-remove-unused-nbdh-pattern.patch
+maintainers-move-jens-osterkamp-to-credits.patch
+maintainers-bcache-kent-overstreet-has-changed-email-address.patch
 
