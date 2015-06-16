@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- slab-infrastructure-for-bulk-object-allocation-and-freeing-v3-fix.patch
+Subject: + maintainers-add-quotation-marks-around-names-with-commas.patch
  added to -mm tree
-Date: Tue, 16 Jun 2015 14:44:45 -0700
-Message-ID: <558098cd.O+RXGTsi5WyDEm5L%akpm@linux-foundation.org>
+Date: Tue, 16 Jun 2015 15:05:45 -0700
+Message-ID: <55809db9.Im7fKls1xucX5+51%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37171 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37574 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752532AbbFPVoq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Jun 2015 17:44:46 -0400
+	with ESMTP id S1752925AbbFPWFq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Jun 2015 18:05:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, brouer@redhat.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slab-infrastructure-for-bulk-object-allocation-and-freeing-v3-fix
+     Subject: MAINTAINERS: Add quotation marks around names with commas
 has been added to the -mm tree.  Its filename is
-     slab-infrastructure-for-bulk-object-allocation-and-freeing-v3-fix.patch
+     maintainers-add-quotation-marks-around-names-with-commas.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/slab-infrastructure-for-bulk-object-allocation-and-freeing-v3-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-quotation-marks-around-names-with-commas.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/slab-infrastructure-for-bulk-object-allocation-and-freeing-v3-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-quotation-marks-around-names-with-commas.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,92 +39,99 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: slab-infrastructure-for-bulk-object-allocation-and-freeing-v3-fix
+From: Joe Perches <joe@perches.com>
+Subject: MAINTAINERS: Add quotation marks around names with commas
 
-fix kmem_cache_alloc_bulk() thinko
+This makes it easier to copy/paste names with periods to email clients.
 
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Jesper Dangaard Brouer <brouer@redhat.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Pekka Enberg <penberg@kernel.org>
+All the other names with commas already have quotation marks.
+
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/slab.c~slab-infrastructure-for-bulk-object-allocation-and-freeing-v3-fix mm/slab.c
---- a/mm/slab.c~slab-infrastructure-for-bulk-object-allocation-and-freeing-v3-fix
-+++ a/mm/slab.c
-@@ -3425,7 +3425,7 @@ EXPORT_SYMBOL(kmem_cache_free_bulk);
- bool kmem_cache_alloc_bulk(struct kmem_cache *s, gfp_t flags, size_t size,
- 								void **p)
- {
--	return kmem_cache_alloc_bulk(s, flags, size, p);
-+	return __kmem_cache_alloc_bulk(s, flags, size, p);
- }
- EXPORT_SYMBOL(kmem_cache_alloc_bulk);
+diff -puN MAINTAINERS~maintainers-add-quotation-marks-around-names-with-commas MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-quotation-marks-around-names-with-commas
++++ a/MAINTAINERS
+@@ -2457,7 +2457,7 @@ F:	arch/powerpc/oprofile/*cell*
+ F:	arch/powerpc/platforms/cell/
  
+ CEPH DISTRIBUTED FILE SYSTEM CLIENT
+-M:	Yan, Zheng <zyan@redhat.com>
++M:	"Yan, Zheng" <zyan@redhat.com>
+ M:	Sage Weil <sage@redhat.com>
+ L:	ceph-devel@vger.kernel.org
+ W:	http://ceph.com/
+@@ -9013,7 +9013,7 @@ F:	arch/arm/mach-davinci/
+ F:	drivers/i2c/busses/i2c-davinci.c
+ 
+ TI DAVINCI SERIES MEDIA DRIVER
+-M:	Lad, Prabhakar <prabhakar.csengg@gmail.com>
++M:	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+ L:	linux-media@vger.kernel.org
+ W:	http://linuxtv.org/
+ Q:	http://patchwork.linuxtv.org/project/linux-media/list/
+@@ -9023,7 +9023,7 @@ F:	drivers/media/platform/davinci/
+ F:	include/media/davinci/
+ 
+ TI AM437X VPFE DRIVER
+-M:	Lad, Prabhakar <prabhakar.csengg@gmail.com>
++M:	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+ L:	linux-media@vger.kernel.org
+ W:	http://linuxtv.org/
+ Q:	http://patchwork.linuxtv.org/project/linux-media/list/
+@@ -9032,7 +9032,7 @@ S:	Maintained
+ F:	drivers/media/platform/am437x/
+ 
+ OV2659 OMNIVISION SENSOR DRIVER
+-M:	Lad, Prabhakar <prabhakar.csengg@gmail.com>
++M:	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+ L:	linux-media@vger.kernel.org
+ W:	http://linuxtv.org/
+ Q:	http://patchwork.linuxtv.org/project/linux-media/list/
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from joe@perches.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-revert-cpumask-dont-perform-while-loop-in-cpumask_next_and.patch
+ocfs2-reduce-object-size-of-mlog-uses.patch
 ocfs2-reduce-object-size-of-mlog-uses-fix.patch
 ocfs2-remove-__mlog_cpu_guess.patch
 ocfs2-remove-__mlog_cpu_guess-fix.patch
-ocfs2-fix-null-pointer-dereference-in-function-ocfs2_abort_trigger-fix.patch
-mm.patch
-mm-slab_common-support-the-slub_debug-boot-option-on-specific-object-size-fix.patch
-slab-infrastructure-for-bulk-object-allocation-and-freeing-v3-fix.patch
-mm-fix-mprotect-behaviour-on-vm_locked-vmas-fix.patch
-mm-new-mm-hook-framework.patch
-mm-meminit-inline-some-helper-functions-fix.patch
-mm-meminit-finish-initialisation-of-struct-pages-before-basic-setup-fix.patch
-mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling-fix.patch
-rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix.patch
-rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix-fix.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
-userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
-fs-userfaultfdc-work-around-i386-build-error.patch
-hugetlb-do-not-account-hugetlb-pages-as-nr_file_pages-fix.patch
-mm-do-not-ignore-mapping_gfp_mask-in-page-cache-allocation-paths-checkpatch-fixes.patch
-include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
-zswap-runtime-enable-disable-fix.patch
-prctl-more-prctlpr_set_mm_-checks-fix.patch
-proc-fix-page_size-limit-of-proc-pid-cmdline-fix.patch
-bitmap-remove-explicit-newline-handling-using-scnprintf-format-string-fix.patch
-radix-tree-replace-preallocated-node-array-with-linked-list-fix.patch
+ocfs2-neaten-do_error-ocfs2_error-and-ocfs2_abort.patch
+compiler-gcch-neatening.patch
+compiler-gcc-integrate-the-various-compiler-gcch-files.patch
+get_maintainerpl-add-get_maintainerignore-file-capability.patch
+maintainers-alsa-devel-alsa-projectorg-is-moderated-for-non-subscribers.patch
+maintainers-add-quotation-marks-around-names-with-periods.patch
+maintainers-add-quotation-marks-around-names-with-commas.patch
+lib-string-introduce-strreplace.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-check-for-uncommented-waitqueue_active.patch
+checkpatch-add-strict-warning-for-c99-fixed-size-typedefs-intsize_t.patch
+checkpatch-make-types-found-in-a-source-file-patch-local.patch
+checkpatch-use-string-consistently.patch
+checkpatch-categorize-some-long-line-length-checks.patch
+checkpatch-improve-output-with-multiple-command-line-files.patch
+checkpatch-colorize-output-to-terminal.patch
+checkpatch-add-showfile-to-allow-input-via-pipe-to-show-filenames.patch
+checkpatch-remove-local-from-codespell-path.patch
+checkpatch-avoid-not_unified_diff-errors-on-cover-letterpatch-files.patch
+checkpatch-suggest-using-ether_addr_equal.patch
+checkpatch-fix-processing-of-memset-issues.patch
+checkpatch-suggest-using-eth_zero_addr-and-eth_broadcast_addr.patch
+checkpatch-add-multi-line-handling-for-prefer_ether_addr_copy.patch
+checkpatch-validate-module_license-content.patch
 checkpatch-emit-an-error-when-theres-a-diff-in-a-changelog.patch
-init-do_mounts-add-create_dev-failure-log-fix.patch
-devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx-fix.patch
-ipcshm-move-bug_on-check-into-shm_lock-fix.patch
-scsi-resolve-sg-buffer-const-ness-issue-fix.patch
-revert-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
 linux-next.patch
-reapply-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-drivers-block-nvme-corec-fix-build-with-gcc-444.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-mm-provide-new-get_vaddr_frames-helper-fix.patch
-mm-move-get_vaddr_frames-behind-a-config-option.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
+printk-improve-the-description-of-dev-kmsg-line-format.patch
+fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void.patch
+maintainers-update-sound-soc-intel-patterns.patch
+maintainers-update-brcm-dts-pattern.patch
+maintainers-update-brcm-gpio-filename-pattern.patch
+maintainers-remove-unused-nbdh-pattern.patch
+maintainers-move-jens-osterkamp-to-credits.patch
+maintainers-bcache-kent-overstreet-has-changed-email-address.patch
 
