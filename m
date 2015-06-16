@@ -1,109 +1,145 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] linux-typesh-remove-prehistoric-ifndefs.patch removed
- from -mm tree
-Date: Tue, 16 Jun 2015 13:18:16 -0700
-Message-ID: <55808488.HT4sOW3o5SYzhuxW%akpm@linux-foundation.org>
+Subject: + drivers-firmware-memmapc-fix-kernel-doc-format.patch added to
+ -mm tree
+Date: Tue, 16 Jun 2015 13:32:16 -0700
+Message-ID: <558087d0.VCuRQJ5QFHMDdsc/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35985 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36294 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757316AbbFPUSR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Jun 2015 16:18:17 -0400
+	with ESMTP id S1757314AbbFPUcR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Jun 2015 16:32:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
+To: michal.simek@xilinx.com, isimatu.yasuaki@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux/types.h: remove prehistoric ifndefs
-has been removed from the -mm tree.  Its filename was
-     linux-typesh-remove-prehistoric-ifndefs.patch
+     Subject: drivers/firmware/memmap.c: fix kernel-doc format
+has been added to the -mm tree.  Its filename is
+     drivers-firmware-memmapc-fix-kernel-doc-format.patch
 
-This patch was dropped because it was nacked
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-firmware-memmapc-fix-kernel-doc-format.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-firmware-memmapc-fix-kernel-doc-format.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: linux/types.h: remove prehistoric ifndefs
+From: Michal Simek <michal.simek@xilinx.com>
+Subject: drivers/firmware/memmap.c: fix kernel-doc format
 
-Whatever the "historical reasons" were back around 1996 when this comment
-was added,
+Fix kernel-doc format validation to be able to use kernel-doc script for
+checking it.
 
-  git grep -E '\b_(S?SIZE|TIME|CLOCK|PTRDIFF|CADDR)_T\b'
-
-seems to say that they are no longer relevant. Relieve the
-preprocessor from a little work.
-
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Signed-off-by: Michal Simek <michal.simek@xilinx.com>
+Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/types.h |   27 ---------------------------
- 1 file changed, 27 deletions(-)
+ drivers/firmware/memmap.c |   24 +++++++++++++-----------
+ 1 file changed, 13 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/types.h~linux-typesh-remove-prehistoric-ifndefs include/linux/types.h
---- a/include/linux/types.h~linux-typesh-remove-prehistoric-ifndefs
-+++ a/include/linux/types.h
-@@ -45,39 +45,12 @@ typedef __kernel_old_gid_t	old_gid_t;
- typedef __kernel_loff_t		loff_t;
- #endif
+diff -puN drivers/firmware/memmap.c~drivers-firmware-memmapc-fix-kernel-doc-format drivers/firmware/memmap.c
+--- a/drivers/firmware/memmap.c~drivers-firmware-memmapc-fix-kernel-doc-format
++++ a/drivers/firmware/memmap.c
+@@ -144,7 +144,9 @@ static struct kobj_type __refdata memmap
+  *
+  * Common implementation of firmware_map_add() and firmware_map_add_early()
+  * which expects a pre-allocated struct firmware_map_entry.
+- **/
++ *
++ * Return: 0 always
++ */
+ static int firmware_map_add_entry(u64 start, u64 end,
+ 				  const char *type,
+ 				  struct firmware_map_entry *entry)
+@@ -170,7 +172,7 @@ static int firmware_map_add_entry(u64 st
+  * @entry: removed entry.
+  *
+  * The caller must hold map_entries_lock, and release it properly.
+- **/
++ */
+ static inline void firmware_map_remove_entry(struct firmware_map_entry *entry)
+ {
+ 	list_del(&entry->list);
+@@ -208,7 +210,7 @@ static inline void remove_sysfs_fw_map_e
+ 	kobject_put(&entry->kobj);
+ }
  
 -/*
-- * The following typedefs are also protected by individual ifdefs for
-- * historical reasons:
-- */
--#ifndef _SIZE_T
--#define _SIZE_T
- typedef __kernel_size_t		size_t;
--#endif
--
--#ifndef _SSIZE_T
--#define _SSIZE_T
- typedef __kernel_ssize_t	ssize_t;
--#endif
--
--#ifndef _PTRDIFF_T
--#define _PTRDIFF_T
- typedef __kernel_ptrdiff_t	ptrdiff_t;
--#endif
--
--#ifndef _TIME_T
--#define _TIME_T
- typedef __kernel_time_t		time_t;
--#endif
--
--#ifndef _CLOCK_T
--#define _CLOCK_T
- typedef __kernel_clock_t	clock_t;
--#endif
--
--#ifndef _CADDR_T
--#define _CADDR_T
- typedef __kernel_caddr_t	caddr_t;
--#endif
++/**
+  * firmware_map_find_entry_in_list() - Search memmap entry in a given list.
+  * @start: Start of the memory range.
+  * @end:   End of the memory range (exclusive).
+@@ -236,7 +238,7 @@ firmware_map_find_entry_in_list(u64 star
+ 	return NULL;
+ }
  
- /* bsd */
- typedef unsigned char		u_char;
+-/*
++/**
+  * firmware_map_find_entry() - Search memmap entry in map_entries.
+  * @start: Start of the memory range.
+  * @end:   End of the memory range (exclusive).
+@@ -254,7 +256,7 @@ firmware_map_find_entry(u64 start, u64 e
+ 	return firmware_map_find_entry_in_list(start, end, type, &map_entries);
+ }
+ 
+-/*
++/**
+  * firmware_map_find_entry_bootmem() - Search memmap entry in map_entries_bootmem.
+  * @start: Start of the memory range.
+  * @end:   End of the memory range (exclusive).
+@@ -283,8 +285,8 @@ firmware_map_find_entry_bootmem(u64 star
+  * similar to function firmware_map_add_early(). The only difference is that
+  * it will create the syfs entry dynamically.
+  *
+- * Returns 0 on success, or -ENOMEM if no memory could be allocated.
+- **/
++ * Return: 0 on success, or -ENOMEM if no memory could be allocated.
++ */
+ int __meminit firmware_map_add_hotplug(u64 start, u64 end, const char *type)
+ {
+ 	struct firmware_map_entry *entry;
+@@ -325,8 +327,8 @@ int __meminit firmware_map_add_hotplug(u
+  *
+  * That function must be called before late_initcall.
+  *
+- * Returns 0 on success, or -ENOMEM if no memory could be allocated.
+- **/
++ * Return: 0 on success, or -ENOMEM if no memory could be allocated.
++ */
+ int __init firmware_map_add_early(u64 start, u64 end, const char *type)
+ {
+ 	struct firmware_map_entry *entry;
+@@ -346,8 +348,8 @@ int __init firmware_map_add_early(u64 st
+  *
+  * removes a firmware mapping entry.
+  *
+- * Returns 0 on success, or -EINVAL if no entry.
+- **/
++ * Return: 0 on success, or -EINVAL if no entry.
++ */
+ int __meminit firmware_map_remove(u64 start, u64 end, const char *type)
+ {
+ 	struct firmware_map_entry *entry;
 _
 
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
+Patches currently in -mm which might be from michal.simek@xilinx.com are
 
-linux-slabh-fix-three-off-by-one-typos-in-comment.patch
-mm-only-define-hashdist-variable-when-needed.patch
-__bitmap_parselist-fix-bug-in-empty-string-handling.patch
-lib-sort-add-64-bit-swap-function.patch
-lib-sort-add-64-bit-swap-function-v2.patch
-lib-sort-add-64-bit-swap-function-v2-fix.patch
-lib-string-introduce-strreplace.patch
-kernel-trace-trace_events_filterc-use-strreplace.patch
-blktrace-use-strreplace-in-do_blk_trace_setup.patch
-lib-kobjectc-use-strreplace.patch
-drivers-base-corec-use-strreplace.patch
-drivers-md-mdc-use-strreplace.patch
-fs-jbd2-journalc-use-strreplace.patch
-fs-ext4-superc-use-strreplace-in-ext4_fill_super.patch
-checkpatch-avoid-not_unified_diff-errors-on-cover-letterpatch-files.patch
+drivers-firmware-memmapc-fix-kernel-doc-format.patch
 linux-next.patch
 
