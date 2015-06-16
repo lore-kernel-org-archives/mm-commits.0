@@ -1,146 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-shmem_zero_setup-skip-security-check-and-lockdep-conflict-with-xfs.patch added to -mm tree
-Date: Tue, 16 Jun 2015 13:16:26 -0700
-Message-ID: <5580841a.PzUYjy9QY+uy1VfJ%akpm@linux-foundation.org>
+Subject: [nacked] linux-typesh-remove-prehistoric-ifndefs.patch removed
+ from -mm tree
+Date: Tue, 16 Jun 2015 13:18:16 -0700
+Message-ID: <55808488.HT4sOW3o5SYzhuxW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35972 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35985 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754885AbbFPUQ1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Jun 2015 16:16:27 -0400
+	with ESMTP id S1757316AbbFPUSR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Jun 2015 16:18:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, david@fromorbit.com, eparis@redhat.com, esandeen@redhat.com, mstevens@fedoraproject.org, prarit@redhat.com, wagi@monom.org, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: shmem_zero_setup: skip security check and lockdep conflict with XFS
-has been added to the -mm tree.  Its filename is
-     mm-shmem_zero_setup-skip-security-check-and-lockdep-conflict-with-xfs.patch
+     Subject: linux/types.h: remove prehistoric ifndefs
+has been removed from the -mm tree.  Its filename was
+     linux-typesh-remove-prehistoric-ifndefs.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-shmem_zero_setup-skip-security-check-and-lockdep-conflict-with-xfs.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-shmem_zero_setup-skip-security-check-and-lockdep-conflict-with-xfs.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm: shmem_zero_setup: skip security check and lockdep conflict with XFS
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: linux/types.h: remove prehistoric ifndefs
 
-It appears that, at some point last year, XFS made directory handling
-changes which bring it into lockdep conflict with shmem_zero_setup(): it
-is surprising that mmap() can clone an inode while holding mmap_sem, but
-that has been so for many years.
+Whatever the "historical reasons" were back around 1996 when this comment
+was added,
 
-Since those few lockdep traces that I've seen all implicated selinux, I'm
-hoping that we can use the __shmem_file_setup(,,,S_PRIVATE) which v3.13's
-commit c7277090927a ("security: shmem: implement kernel private shmem
-inodes") introduced to avoid LSM checks on kernel-internal inodes: the
-mmap("/dev/zero") cloned inode is indeed a kernel-internal detail.
+  git grep -E '\b_(S?SIZE|TIME|CLOCK|PTRDIFF|CADDR)_T\b'
 
-This also covers the !CONFIG_SHMEM use of ramfs to support /dev/zero (and
-MAP_SHARED|MAP_ANONYMOUS).  I thought there were also drivers which cloned
-inode in mmap(), but if so, I cannot locate them now.
+seems to say that they are no longer relevant. Relieve the
+preprocessor from a little work.
 
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Reported-by: Prarit Bhargava <prarit@redhat.com>
-Tested-by: Prarit Bhargava <prarit@redhat.com>
-Reported-by: Daniel Wagner <wagi@monom.org>
-Tested-by: Daniel Wagner <wagi@monom.org>
-Reported-by: Morten Stevens <mstevens@fedoraproject.org>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Eric Paris <eparis@redhat.com>
-Cc: Eric Sandeen <esandeen@redhat.com>
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ include/linux/types.h |   27 ---------------------------
+ 1 file changed, 27 deletions(-)
 
-diff -puN mm/shmem.c~mm-shmem_zero_setup-skip-security-check-and-lockdep-conflict-with-xfs mm/shmem.c
---- a/mm/shmem.c~mm-shmem_zero_setup-skip-security-check-and-lockdep-conflict-with-xfs
-+++ a/mm/shmem.c
-@@ -3401,7 +3401,13 @@ int shmem_zero_setup(struct vm_area_stru
- 	struct file *file;
- 	loff_t size = vma->vm_end - vma->vm_start;
+diff -puN include/linux/types.h~linux-typesh-remove-prehistoric-ifndefs include/linux/types.h
+--- a/include/linux/types.h~linux-typesh-remove-prehistoric-ifndefs
++++ a/include/linux/types.h
+@@ -45,39 +45,12 @@ typedef __kernel_old_gid_t	old_gid_t;
+ typedef __kernel_loff_t		loff_t;
+ #endif
  
--	file = shmem_file_setup("dev/zero", size, vma->vm_flags);
-+	/*
-+	 * Cloning a new file under mmap_sem leads to a lock ordering conflict
-+	 * between XFS directory reading and selinux: since this file is only
-+	 * accessible to the user through its mapping, use S_PRIVATE flag to
-+	 * bypass file security, in the same way as shmem_kernel_file_setup().
-+	 */
-+	file = __shmem_file_setup("dev/zero", size, vma->vm_flags, S_PRIVATE);
- 	if (IS_ERR(file))
- 		return PTR_ERR(file);
+-/*
+- * The following typedefs are also protected by individual ifdefs for
+- * historical reasons:
+- */
+-#ifndef _SIZE_T
+-#define _SIZE_T
+ typedef __kernel_size_t		size_t;
+-#endif
+-
+-#ifndef _SSIZE_T
+-#define _SSIZE_T
+ typedef __kernel_ssize_t	ssize_t;
+-#endif
+-
+-#ifndef _PTRDIFF_T
+-#define _PTRDIFF_T
+ typedef __kernel_ptrdiff_t	ptrdiff_t;
+-#endif
+-
+-#ifndef _TIME_T
+-#define _TIME_T
+ typedef __kernel_time_t		time_t;
+-#endif
+-
+-#ifndef _CLOCK_T
+-#define _CLOCK_T
+ typedef __kernel_clock_t	clock_t;
+-#endif
+-
+-#ifndef _CADDR_T
+-#define _CADDR_T
+ typedef __kernel_caddr_t	caddr_t;
+-#endif
  
+ /* bsd */
+ typedef unsigned char		u_char;
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
 
-mm-shmem_zero_setup-skip-security-check-and-lockdep-conflict-with-xfs.patch
-mm-new-mm-hook-framework.patch
-mm-new-arch_remap-hook.patch
-powerpc-mm-tracking-vdso-remap.patch
-mm-drop-bogus-vm_bug_on_page-assert-in-put_page-codepath.patch
-mm-avoid-tail-page-refcounting-on-non-thp-compound-pages.patch
-rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list.patch
-rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix.patch
-rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix-fix.patch
-userfaultfd-linux-documentation-vm-userfaultfdtxt.patch
-userfaultfd-waitqueue-add-nr-wake-parameter-to-__wake_up_locked_key.patch
-userfaultfd-uapi.patch
-userfaultfd-linux-userfaultfd_kh.patch
-userfaultfd-add-vm_userfaultfd_ctx-to-the-vm_area_struct.patch
-userfaultfd-add-vm_uffd_missing-and-vm_uffd_wp.patch
-userfaultfd-call-handle_userfault-for-userfaultfd_missing-faults.patch
-userfaultfd-teach-vma_merge-to-merge-across-vma-vm_userfaultfd_ctx.patch
-userfaultfd-prevent-khugepaged-to-merge-if-userfaultfd-is-armed.patch
-userfaultfd-add-new-syscall-to-provide-memory-externalization.patch
-userfaultfd-rename-uffd_apibits-into-features.patch
-userfaultfd-rename-uffd_apibits-into-features-fixup.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg.patch
-userfaultfd-wake-pending-userfaults.patch
-userfaultfd-optimize-read-and-poll-to-be-o1.patch
-userfaultfd-allocate-the-userfaultfd_ctx-cacheline-aligned.patch
-userfaultfd-solve-the-race-between-uffdio_copyzeropage-and-read.patch
-userfaultfd-buildsystem-activation.patch
-userfaultfd-activate-syscall.patch
-userfaultfd-uffdio_copyuffdio_zeropage-uapi.patch
-userfaultfd-mcopy_atomicmfill_zeropage-uffdio_copyuffdio_zeropage-preparation.patch
-userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic.patch
-userfaultfd-uffdio_copy-and-uffdio_zeropage.patch
-tmpfs-truncate-prealloc-blocks-past-i_size.patch
-page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-mm-sanitize-page-mapping-for-tail-pages.patch
+linux-slabh-fix-three-off-by-one-typos-in-comment.patch
+mm-only-define-hashdist-variable-when-needed.patch
+__bitmap_parselist-fix-bug-in-empty-string-handling.patch
+lib-sort-add-64-bit-swap-function.patch
+lib-sort-add-64-bit-swap-function-v2.patch
+lib-sort-add-64-bit-swap-function-v2-fix.patch
+lib-string-introduce-strreplace.patch
+kernel-trace-trace_events_filterc-use-strreplace.patch
+blktrace-use-strreplace-in-do_blk_trace_setup.patch
+lib-kobjectc-use-strreplace.patch
+drivers-base-corec-use-strreplace.patch
+drivers-md-mdc-use-strreplace.patch
+fs-jbd2-journalc-use-strreplace.patch
+fs-ext4-superc-use-strreplace-in-ext4_fill_super.patch
+checkpatch-avoid-not_unified_diff-errors-on-cover-letterpatch-files.patch
 linux-next.patch
 
