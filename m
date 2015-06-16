@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-add-quotation-marks-around-names-with-commas.patch
- added to -mm tree
-Date: Tue, 16 Jun 2015 15:05:45 -0700
-Message-ID: <55809db9.Im7fKls1xucX5+51%akpm@linux-foundation.org>
+Subject: + maintainers-add-quotation-marks-around-names-with-periods.patch added to -mm tree
+Date: Tue, 16 Jun 2015 15:05:43 -0700
+Message-ID: <55809db7.xdGyO10Cn6j4Fte/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37574 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37571 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752925AbbFPWFq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Jun 2015 18:05:46 -0400
+	with ESMTP id S1752367AbbFPWFo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Jun 2015 18:05:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: Add quotation marks around names with commas
+     Subject: MAINTAINERS: add quotation marks around names with periods
 has been added to the -mm tree.  Its filename is
-     maintainers-add-quotation-marks-around-names-with-commas.patch
+     maintainers-add-quotation-marks-around-names-with-periods.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-quotation-marks-around-names-with-commas.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-quotation-marks-around-names-with-periods.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-quotation-marks-around-names-with-commas.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-quotation-marks-around-names-with-periods.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,58 +39,121 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: Add quotation marks around names with commas
+Subject: MAINTAINERS: add quotation marks around names with periods
 
 This makes it easier to copy/paste names with periods to email clients.
 
-All the other names with commas already have quotation marks.
+All the other names with periods already have quotation marks.
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ MAINTAINERS |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-add-quotation-marks-around-names-with-commas MAINTAINERS
---- a/MAINTAINERS~maintainers-add-quotation-marks-around-names-with-commas
+diff -puN MAINTAINERS~maintainers-add-quotation-marks-around-names-with-periods MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-quotation-marks-around-names-with-periods
 +++ a/MAINTAINERS
-@@ -2457,7 +2457,7 @@ F:	arch/powerpc/oprofile/*cell*
- F:	arch/powerpc/platforms/cell/
+@@ -259,7 +259,7 @@ S:	Maintained
+ F:	drivers/platform/x86/acer-wmi.c
  
- CEPH DISTRIBUTED FILE SYSTEM CLIENT
--M:	Yan, Zheng <zyan@redhat.com>
-+M:	"Yan, Zheng" <zyan@redhat.com>
- M:	Sage Weil <sage@redhat.com>
- L:	ceph-devel@vger.kernel.org
- W:	http://ceph.com/
-@@ -9013,7 +9013,7 @@ F:	arch/arm/mach-davinci/
- F:	drivers/i2c/busses/i2c-davinci.c
+ ACPI
+-M:	Rafael J. Wysocki <rjw@rjwysocki.net>
++M:	"Rafael J. Wysocki" <rjw@rjwysocki.net>
+ M:	Len Brown <lenb@kernel.org>
+ L:	linux-acpi@vger.kernel.org
+ W:	https://01.org/linux-acpi
+@@ -280,7 +280,7 @@ F:	tools/power/acpi/
+ ACPI COMPONENT ARCHITECTURE (ACPICA)
+ M:	Robert Moore <robert.moore@intel.com>
+ M:	Lv Zheng <lv.zheng@intel.com>
+-M:	Rafael J. Wysocki <rafael.j.wysocki@intel.com>
++M:	"Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+ L:	linux-acpi@vger.kernel.org
+ L:	devel@acpica.org
+ W:	https://acpica.org/
+@@ -2756,7 +2756,7 @@ S:	Maintained
+ F:	drivers/net/ethernet/ti/cpmac.c
  
- TI DAVINCI SERIES MEDIA DRIVER
--M:	Lad, Prabhakar <prabhakar.csengg@gmail.com>
-+M:	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
- L:	linux-media@vger.kernel.org
- W:	http://linuxtv.org/
- Q:	http://patchwork.linuxtv.org/project/linux-media/list/
-@@ -9023,7 +9023,7 @@ F:	drivers/media/platform/davinci/
- F:	include/media/davinci/
+ CPU FREQUENCY DRIVERS
+-M:	Rafael J. Wysocki <rjw@rjwysocki.net>
++M:	"Rafael J. Wysocki" <rjw@rjwysocki.net>
+ M:	Viresh Kumar <viresh.kumar@linaro.org>
+ L:	linux-pm@vger.kernel.org
+ S:	Maintained
+@@ -2795,7 +2795,7 @@ F:	drivers/cpuidle/cpuidle-exynos.c
+ F:	arch/arm/mach-exynos/pm.c
  
- TI AM437X VPFE DRIVER
--M:	Lad, Prabhakar <prabhakar.csengg@gmail.com>
-+M:	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
- L:	linux-media@vger.kernel.org
- W:	http://linuxtv.org/
- Q:	http://patchwork.linuxtv.org/project/linux-media/list/
-@@ -9032,7 +9032,7 @@ S:	Maintained
- F:	drivers/media/platform/am437x/
+ CPUIDLE DRIVERS
+-M:	Rafael J. Wysocki <rjw@rjwysocki.net>
++M:	"Rafael J. Wysocki" <rjw@rjwysocki.net>
+ M:	Daniel Lezcano <daniel.lezcano@linaro.org>
+ L:	linux-pm@vger.kernel.org
+ S:	Maintained
+@@ -4004,7 +4004,7 @@ F:	include/uapi/scsi/fc/
  
- OV2659 OMNIVISION SENSOR DRIVER
--M:	Lad, Prabhakar <prabhakar.csengg@gmail.com>
-+M:	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
- L:	linux-media@vger.kernel.org
- W:	http://linuxtv.org/
- Q:	http://patchwork.linuxtv.org/project/linux-media/list/
+ FILE LOCKING (flock() and fcntl()/lockf())
+ M:	Jeff Layton <jlayton@poochiereds.net>
+-M:	J. Bruce Fields <bfields@fieldses.org>
++M:	"J. Bruce Fields" <bfields@fieldses.org>
+ L:	linux-fsdevel@vger.kernel.org
+ S:	Maintained
+ F:	include/linux/fcntl.h
+@@ -4200,7 +4200,7 @@ F:	sound/soc/fsl/imx*
+ F:	sound/soc/fsl/mpc8610_hpcd.c
+ 
+ FREESCALE QORIQ MANAGEMENT COMPLEX DRIVER
+-M:	J. German Rivera <German.Rivera@freescale.com>
++M:	"J. German Rivera" <German.Rivera@freescale.com>
+ L:	linux-kernel@vger.kernel.org
+ S:	Maintained
+ F:	drivers/staging/fsl-mc/
+@@ -4749,7 +4749,7 @@ S:	Maintained
+ F:	fs/hugetlbfs/
+ 
+ Hyper-V CORE AND DRIVERS
+-M:	K. Y. Srinivasan <kys@microsoft.com>
++M:	"K. Y. Srinivasan" <kys@microsoft.com>
+ M:	Haiyang Zhang <haiyangz@microsoft.com>
+ L:	devel@linuxdriverproject.org
+ S:	Maintained
+@@ -7792,7 +7792,7 @@ F:	include/linux/power_supply.h
+ F:	drivers/power/
+ 
+ PNP SUPPORT
+-M:	Rafael J. Wysocki <rafael.j.wysocki@intel.com>
++M:	"Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+ S:	Maintained
+ F:	drivers/pnp/
+ 
+@@ -8793,7 +8793,7 @@ F:	drivers/mmc/host/sdhci-spear.c
+ 
+ SECURITY SUBSYSTEM
+ M:	James Morris <james.l.morris@oracle.com>
+-M:	Serge E. Hallyn <serge@hallyn.com>
++M:	"Serge E. Hallyn" <serge@hallyn.com>
+ L:	linux-security-module@vger.kernel.org (suggested Cc:)
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/jmorris/linux-security.git
+ W:	http://kernsec.org/
+@@ -9591,7 +9591,7 @@ F:	fs/sysv/
+ F:	include/linux/sysv_fs.h
+ 
+ TARGET SUBSYSTEM
+-M:	Nicholas A. Bellinger <nab@linux-iscsi.org>
++M:	"Nicholas A. Bellinger" <nab@linux-iscsi.org>
+ L:	linux-scsi@vger.kernel.org
+ L:	target-devel@vger.kernel.org
+ W:	http://www.linux-iscsi.org
+@@ -9733,7 +9733,7 @@ F:	include/linux/if_team.h
+ F:	include/uapi/linux/if_team.h
+ 
+ TECHNOLOGIC SYSTEMS TS-5500 PLATFORM SUPPORT
+-M:	Savoir-faire Linux Inc. <kernel@savoirfairelinux.com>
++M:	"Savoir-faire Linux Inc." <kernel@savoirfairelinux.com>
+ S:	Maintained
+ F:	arch/x86/platform/ts5500/
+ 
 _
 
 Patches currently in -mm which might be from joe@perches.com are
