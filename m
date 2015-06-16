@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-firmware-memmapc-fix-kernel-doc-format.patch added to
- -mm tree
-Date: Tue, 16 Jun 2015 13:32:16 -0700
-Message-ID: <558087d0.VCuRQJ5QFHMDdsc/%akpm@linux-foundation.org>
+Subject: + ocfs2-use-swap-in-dx_leaf_sort_swap.patch added to -mm tree
+Date: Tue, 16 Jun 2015 13:41:20 -0700
+Message-ID: <558089f0.MsWxpvMIJdrw29ZV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36294 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36403 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757314AbbFPUcR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Jun 2015 16:32:17 -0400
+	with ESMTP id S1755457AbbFPUlV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Jun 2015 16:41:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: michal.simek@xilinx.com, isimatu.yasuaki@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: fabf@skynet.be, jlbec@evilplan.org, julia.lawall@lip6.fr, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/firmware/memmap.c: fix kernel-doc format
+     Subject: ocfs2: use swap() in dx_leaf_sort_swap()
 has been added to the -mm tree.  Its filename is
-     drivers-firmware-memmapc-fix-kernel-doc-format.patch
+     ocfs2-use-swap-in-dx_leaf_sort_swap.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-firmware-memmapc-fix-kernel-doc-format.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-use-swap-in-dx_leaf_sort_swap.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-firmware-memmapc-fix-kernel-doc-format.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-use-swap-in-dx_leaf_sort_swap.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,107 +38,61 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Simek <michal.simek@xilinx.com>
-Subject: drivers/firmware/memmap.c: fix kernel-doc format
+From: Fabian Frederick <fabf@skynet.be>
+Subject: ocfs2: use swap() in dx_leaf_sort_swap()
 
-Fix kernel-doc format validation to be able to use kernel-doc script for
-checking it.
+Use kernel.h macro definition.
 
-Signed-off-by: Michal Simek <michal.simek@xilinx.com>
-Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Thanks to Julia Lawall for Coccinelle scripting support.
+
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: Julia Lawall <julia.lawall@lip6.fr>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/memmap.c |   24 +++++++++++++-----------
- 1 file changed, 13 insertions(+), 11 deletions(-)
+ fs/ocfs2/dir.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN drivers/firmware/memmap.c~drivers-firmware-memmapc-fix-kernel-doc-format drivers/firmware/memmap.c
---- a/drivers/firmware/memmap.c~drivers-firmware-memmapc-fix-kernel-doc-format
-+++ a/drivers/firmware/memmap.c
-@@ -144,7 +144,9 @@ static struct kobj_type __refdata memmap
-  *
-  * Common implementation of firmware_map_add() and firmware_map_add_early()
-  * which expects a pre-allocated struct firmware_map_entry.
-- **/
-+ *
-+ * Return: 0 always
-+ */
- static int firmware_map_add_entry(u64 start, u64 end,
- 				  const char *type,
- 				  struct firmware_map_entry *entry)
-@@ -170,7 +172,7 @@ static int firmware_map_add_entry(u64 st
-  * @entry: removed entry.
-  *
-  * The caller must hold map_entries_lock, and release it properly.
-- **/
-+ */
- static inline void firmware_map_remove_entry(struct firmware_map_entry *entry)
+diff -puN fs/ocfs2/dir.c~ocfs2-use-swap-in-dx_leaf_sort_swap fs/ocfs2/dir.c
+--- a/fs/ocfs2/dir.c~ocfs2-use-swap-in-dx_leaf_sort_swap
++++ a/fs/ocfs2/dir.c
+@@ -3543,13 +3543,10 @@ static void dx_leaf_sort_swap(void *a, v
  {
- 	list_del(&entry->list);
-@@ -208,7 +210,7 @@ static inline void remove_sysfs_fw_map_e
- 	kobject_put(&entry->kobj);
+ 	struct ocfs2_dx_entry *entry1 = a;
+ 	struct ocfs2_dx_entry *entry2 = b;
+-	struct ocfs2_dx_entry tmp;
+ 
+ 	BUG_ON(size != sizeof(*entry1));
+ 
+-	tmp = *entry1;
+-	*entry1 = *entry2;
+-	*entry2 = tmp;
++	swap(*entry1, *entry2);
  }
  
--/*
-+/**
-  * firmware_map_find_entry_in_list() - Search memmap entry in a given list.
-  * @start: Start of the memory range.
-  * @end:   End of the memory range (exclusive).
-@@ -236,7 +238,7 @@ firmware_map_find_entry_in_list(u64 star
- 	return NULL;
- }
- 
--/*
-+/**
-  * firmware_map_find_entry() - Search memmap entry in map_entries.
-  * @start: Start of the memory range.
-  * @end:   End of the memory range (exclusive).
-@@ -254,7 +256,7 @@ firmware_map_find_entry(u64 start, u64 e
- 	return firmware_map_find_entry_in_list(start, end, type, &map_entries);
- }
- 
--/*
-+/**
-  * firmware_map_find_entry_bootmem() - Search memmap entry in map_entries_bootmem.
-  * @start: Start of the memory range.
-  * @end:   End of the memory range (exclusive).
-@@ -283,8 +285,8 @@ firmware_map_find_entry_bootmem(u64 star
-  * similar to function firmware_map_add_early(). The only difference is that
-  * it will create the syfs entry dynamically.
-  *
-- * Returns 0 on success, or -ENOMEM if no memory could be allocated.
-- **/
-+ * Return: 0 on success, or -ENOMEM if no memory could be allocated.
-+ */
- int __meminit firmware_map_add_hotplug(u64 start, u64 end, const char *type)
- {
- 	struct firmware_map_entry *entry;
-@@ -325,8 +327,8 @@ int __meminit firmware_map_add_hotplug(u
-  *
-  * That function must be called before late_initcall.
-  *
-- * Returns 0 on success, or -ENOMEM if no memory could be allocated.
-- **/
-+ * Return: 0 on success, or -ENOMEM if no memory could be allocated.
-+ */
- int __init firmware_map_add_early(u64 start, u64 end, const char *type)
- {
- 	struct firmware_map_entry *entry;
-@@ -346,8 +348,8 @@ int __init firmware_map_add_early(u64 st
-  *
-  * removes a firmware mapping entry.
-  *
-- * Returns 0 on success, or -EINVAL if no entry.
-- **/
-+ * Return: 0 on success, or -EINVAL if no entry.
-+ */
- int __meminit firmware_map_remove(u64 start, u64 end, const char *type)
- {
- 	struct firmware_map_entry *entry;
+ static int ocfs2_dx_leaf_same_major(struct ocfs2_dx_leaf *dx_leaf)
 _
 
-Patches currently in -mm which might be from michal.simek@xilinx.com are
+Patches currently in -mm which might be from fabf@skynet.be are
 
-drivers-firmware-memmapc-fix-kernel-doc-format.patch
+configfs-unexport-make-static-config_item_init.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+ocfs2-use-swap-in-dx_leaf_sort_swap.patch
+fs-befs-btreec-remove-unneeded-initializations.patch
+fs-affs-inodec-remove-unneeded-initialization.patch
+fs-affs-amigaffsc-remove-unneeded-initialization.patch
+fs-affs-symlinkc-remove-unneeded-err-variable.patch
+w1-masters-omap_hdq-add-support-for-1-wire-mode.patch
 linux-next.patch
+mm-provide-new-get_vaddr_frames-helper.patch
+media-omap_vout-convert-omap_vout_uservirt_to_phys-to-use-get_vaddr_pfns.patch
+vb2-provide-helpers-for-mapping-virtual-addresses.patch
+media-vb2-convert-vb2_dma_sg_get_userptr-to-use-frame-vector.patch
+media-vb2-convert-vb2_vmalloc_get_userptr-to-use-frame-vector.patch
+media-vb2-convert-vb2_dc_get_userptr-to-use-frame-vector.patch
+media-vb2-remove-unused-functions.patch
+drm-exynos-convert-g2d_userptr_get_dma_addr-to-use-get_vaddr_frames.patch
+mm-move-get_vaddr_frames-behind-a-config-option.patch
 
