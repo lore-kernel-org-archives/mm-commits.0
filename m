@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- checkpatch-emit-note-types-message-only-once-after-multiple-files.patch
- added to -mm tree
-Date: Wed, 17 Jun 2015 13:26:39 -0700
-Message-ID: <5581d7ff.6gPZJod8MwJd6HPU%akpm@linux-foundation.org>
+Subject: + get_maintainer-emit-longer-section-headers.patch added to -mm
+ tree
+Date: Wed, 17 Jun 2015 13:27:20 -0700
+Message-ID: <5581d828.Frh9GRsrRp2FisW3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60006 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60010 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752681AbbFQU0k (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Jun 2015 16:26:40 -0400
+	with ESMTP id S1753272AbbFQU1U (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Jun 2015 16:27:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, apw@canonical.com, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: emit "NOTE: <types>" message only once after multiple files
+     From: Joe Perches <joe@perches.com>
 has been added to the -mm tree.  Its filename is
-     checkpatch-emit-note-types-message-only-once-after-multiple-files.patch
+     get_maintainer-emit-longer-section-headers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-emit-note-types-message-only-once-after-multiple-files.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/get_maintainer-emit-longer-section-headers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-emit-note-types-message-only-once-after-multiple-files.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/get_maintainer-emit-longer-section-headers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,51 +40,68 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: emit "NOTE: <types>" message only once after multiple files
+Subject: get_maintainer: emit longer section headers
 
-Make this message similar to the "false positives" message and emit it
-only once when scanning multiple files instead of after each file scanned.
+Section headers can be quite long and some are very long and duplicated
+for many initial characters.
+
+The current maximum length emitted for a section header is 20 bytes (or 17
+bytes then ...  when the section header length is > 20).
+
+Change that length to 50 so more of the section is shown.
+
+Example new output:
+$ ./scripts/get_maintainer.pl -f drivers/net/ethernet/broadcom/bnx2x/
+Ariel Elior <ariel.elior@qlogic.com> (supporter:BROADCOM BNX2X 10 GIGABIT ETHERNET DRIVER)
+netdev@vger.kernel.org (open list:BROADCOM BNX2X 10 GIGABIT ETHERNET DRIVER)
+linux-kernel@vger.kernel.org (open list)
+
+Old:
+$ ./scripts/get_maintainer.pl -f drivers/net/ethernet/broadcom/bnx2x/
+Ariel Elior <ariel.elior@qlogic.com> (supporter:BROADCOM BNX2X 10...)
+netdev@vger.kernel.org (open list:BROADCOM BNX2X 10...)
+linux-kernel@vger.kernel.org (open list)
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ scripts/get_maintainer.pl |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-emit-note-types-message-only-once-after-multiple-files scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-emit-note-types-message-only-once-after-multiple-files
-+++ a/scripts/checkpatch.pl
-@@ -203,7 +203,7 @@ sub hash_save_array_words {
- sub hash_show_words {
- 	my ($hashRef, $prefix) = @_;
+diff -puN scripts/get_maintainer.pl~get_maintainer-emit-longer-section-headers scripts/get_maintainer.pl
+--- a/scripts/get_maintainer.pl~get_maintainer-emit-longer-section-headers
++++ a/scripts/get_maintainer.pl
+@@ -42,6 +42,7 @@ my $output_multiline = 1;
+ my $output_separator = ", ";
+ my $output_roles = 0;
+ my $output_rolestats = 1;
++my $output_section_maxlen = 50;
+ my $scm = 0;
+ my $web = 0;
+ my $subsystem = 0;
+@@ -978,8 +979,8 @@ sub get_maintainer_role {
  
--	if ($quiet == 0 && keys %$hashRef) {
-+	if (keys %$hashRef) {
- 		print "\nNOTE: $prefix message types:";
- 		foreach my $word (sort keys %$hashRef) {
- 			print " $word";
-@@ -770,6 +770,9 @@ for my $filename (@ARGV) {
- }
+     my $role = "unknown";
+     my $subsystem = $typevalue[$start];
+-    if (length($subsystem) > 20) {
+-	$subsystem = substr($subsystem, 0, 17);
++    if ($output_section_maxlen && length($subsystem) > $output_section_maxlen) {
++	$subsystem = substr($subsystem, 0, $output_section_maxlen - 3);
+ 	$subsystem =~ s/\s*$//;
+ 	$subsystem = $subsystem . "...";
+     }
+@@ -1021,8 +1022,8 @@ sub get_list_role {
+     my $end = find_ending_index($index);
  
- if (!$quiet) {
-+	hash_show_words(\%use_type, "Used");
-+	hash_show_words(\%ignore_type, "Ignored");
-+
- 	if ($^V lt 5.10.0) {
- 		print << "EOM"
- 
-@@ -5707,9 +5710,6 @@ EOM
- 		}
- 	}
- 
--	hash_show_words(\%use_type, "Used");
--	hash_show_words(\%ignore_type, "Ignored");
--
- 	if ($clean == 0 && $fix &&
- 	    ("@rawlines" ne "@fixed" ||
- 	     $#fixed_inserted >= 0 || $#fixed_deleted >= 0)) {
+     my $subsystem = $typevalue[$start];
+-    if (length($subsystem) > 20) {
+-	$subsystem = substr($subsystem, 0, 17);
++    if ($output_section_maxlen && length($subsystem) > $output_section_maxlen) {
++	$subsystem = substr($subsystem, 0, $output_section_maxlen - 3);
+ 	$subsystem =~ s/\s*$//;
+ 	$subsystem = $subsystem . "...";
+     }
 _
 
 Patches currently in -mm which might be from joe@perches.com are
@@ -98,6 +114,7 @@ ocfs2-neaten-do_error-ocfs2_error-and-ocfs2_abort.patch
 compiler-gcch-neatening.patch
 compiler-gcc-integrate-the-various-compiler-gcch-files.patch
 get_maintainerpl-add-get_maintainerignore-file-capability.patch
+get_maintainer-emit-longer-section-headers.patch
 maintainers-alsa-devel-alsa-projectorg-is-moderated-for-non-subscribers.patch
 maintainers-add-quotation-marks-around-names-with-periods.patch
 maintainers-add-quotation-marks-around-names-with-commas.patch
