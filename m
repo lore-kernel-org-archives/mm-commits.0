@@ -1,144 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Wed, 17 Jun 2015 11:52:40 -0700
-Message-ID: <5581c1f8.Ty4vLkE+KvTkFht1%akpm@linux-foundation.org>
+Subject: +
+ checkpatch-emit-note-types-message-only-once-after-multiple-files.patch
+ added to -mm tree
+Date: Wed, 17 Jun 2015 13:26:39 -0700
+Message-ID: <5581d7ff.6gPZJod8MwJd6HPU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58739 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60006 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756276AbbFQSwo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Jun 2015 14:52:44 -0400
+	with ESMTP id S1752681AbbFQU0k (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Jun 2015 16:26:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: joe@perches.com, apw@canonical.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     Subject: checkpatch: emit "NOTE: <types>" message only once after multiple files
+has been added to the -mm tree.  Its filename is
+     checkpatch-emit-note-types-message-only-once-after-multiple-files.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-emit-note-types-message-only-once-after-multiple-files.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-emit-note-types-message-only-once-after-multiple-files.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: emit "NOTE: <types>" message only once after multiple files
 
+Make this message similar to the "false positives" message and emit it
+only once when scanning multiple files instead of after each file scanned.
+
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/pci/hda/hda_codec.c |    4 ----
- sound/pci/hda/hda_intel.c |    9 ---------
- 2 files changed, 13 deletions(-)
+ scripts/checkpatch.pl |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN sound/pci/hda/hda_codec.c~linux-next-git-rejects sound/pci/hda/hda_codec.c
---- a/sound/pci/hda/hda_codec.c~linux-next-git-rejects
-+++ a/sound/pci/hda/hda_codec.c
-@@ -437,11 +437,7 @@ static unsigned int get_num_devices(stru
- 		return 0;
+diff -puN scripts/checkpatch.pl~checkpatch-emit-note-types-message-only-once-after-multiple-files scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-emit-note-types-message-only-once-after-multiple-files
++++ a/scripts/checkpatch.pl
+@@ -203,7 +203,7 @@ sub hash_save_array_words {
+ sub hash_show_words {
+ 	my ($hashRef, $prefix) = @_;
  
- 	parm = snd_hdac_read_parm_uncached(&codec->core, nid, AC_PAR_DEVLIST_LEN);
--<<<<<<< HEAD
--	if (parm == -1 && codec->bus->rirb_error)
--=======
- 	if (parm == -1)
-->>>>>>> linux-next/akpm-base
- 		parm = 0;
- 	return parm & AC_DEV_LIST_LEN_MASK;
+-	if ($quiet == 0 && keys %$hashRef) {
++	if (keys %$hashRef) {
+ 		print "\nNOTE: $prefix message types:";
+ 		foreach my $word (sort keys %$hashRef) {
+ 			print " $word";
+@@ -770,6 +770,9 @@ for my $filename (@ARGV) {
  }
-diff -puN sound/pci/hda/hda_intel.c~linux-next-git-rejects sound/pci/hda/hda_intel.c
---- a/sound/pci/hda/hda_intel.c~linux-next-git-rejects
-+++ a/sound/pci/hda/hda_intel.c
-@@ -1981,16 +1981,11 @@ static int azx_probe_continue(struct azx
- 	 * display codec needs the power and it can be released after probe.
- 	 */
- 	if (chip->driver_caps & AZX_DCAPS_I915_POWERWELL) {
--<<<<<<< HEAD
--#ifdef CONFIG_SND_HDA_I915
--		err = hda_i915_init(hda);
--=======
- 		/* HSW/BDW controllers need this power */
- 		if (CONTROLLER_IN_GPU(pci))
- 			hda->need_i915_power = 1;
  
- 		err = snd_hdac_i915_init(bus);
-->>>>>>> linux-next/akpm-base
- 		if (err < 0) {
- 			/* if the controller is bound only with HDMI/DP
- 			 * (for HSW and BDW), we need to abort the probe;
-@@ -2002,12 +1997,8 @@ static int azx_probe_continue(struct azx
- 			else
- 				goto skip_i915;
+ if (!$quiet) {
++	hash_show_words(\%use_type, "Used");
++	hash_show_words(\%ignore_type, "Ignored");
++
+ 	if ($^V lt 5.10.0) {
+ 		print << "EOM"
+ 
+@@ -5707,9 +5710,6 @@ EOM
  		}
--<<<<<<< HEAD
--		err = hda_display_power(hda, true);
--=======
+ 	}
  
- 		err = snd_hdac_display_power(bus, true);
-->>>>>>> linux-next/akpm-base
- 		if (err < 0) {
- 			dev_err(chip->card->dev,
- 				"Cannot turn on display power on i915\n");
+-	hash_show_words(\%use_type, "Used");
+-	hash_show_words(\%ignore_type, "Ignored");
+-
+ 	if ($clean == 0 && $fix &&
+ 	    ("@rawlines" ne "@fixed" ||
+ 	     $#fixed_inserted >= 0 || $#fixed_deleted >= 0)) {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from joe@perches.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-revert-cpumask-dont-perform-while-loop-in-cpumask_next_and.patch
+ocfs2-reduce-object-size-of-mlog-uses.patch
 ocfs2-reduce-object-size-of-mlog-uses-fix.patch
 ocfs2-remove-__mlog_cpu_guess.patch
 ocfs2-remove-__mlog_cpu_guess-fix.patch
-ocfs2-fix-null-pointer-dereference-in-function-ocfs2_abort_trigger-fix.patch
-mm.patch
-mm-slab_common-support-the-slub_debug-boot-option-on-specific-object-size-fix.patch
-slab-infrastructure-for-bulk-object-allocation-and-freeing-v3-fix.patch
-mm-fix-mprotect-behaviour-on-vm_locked-vmas-fix.patch
-mm-new-mm-hook-framework.patch
-mm-meminit-inline-some-helper-functions-fix.patch
-mm-meminit-finish-initialisation-of-struct-pages-before-basic-setup-fix.patch
-mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling-fix.patch
-rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix.patch
-rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix-fix.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
-userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
-fs-userfaultfdc-work-around-i386-build-error.patch
-hugetlb-do-not-account-hugetlb-pages-as-nr_file_pages-fix.patch
-mm-do-not-ignore-mapping_gfp_mask-in-page-cache-allocation-paths-checkpatch-fixes.patch
-include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
-zswap-runtime-enable-disable-fix.patch
-prctl-more-prctlpr_set_mm_-checks-fix.patch
-proc-fix-page_size-limit-of-proc-pid-cmdline-fix.patch
-bitmap-remove-explicit-newline-handling-using-scnprintf-format-string-fix.patch
-radix-tree-replace-preallocated-node-array-with-linked-list-fix.patch
+ocfs2-neaten-do_error-ocfs2_error-and-ocfs2_abort.patch
+compiler-gcch-neatening.patch
+compiler-gcc-integrate-the-various-compiler-gcch-files.patch
+get_maintainerpl-add-get_maintainerignore-file-capability.patch
+maintainers-alsa-devel-alsa-projectorg-is-moderated-for-non-subscribers.patch
+maintainers-add-quotation-marks-around-names-with-periods.patch
+maintainers-add-quotation-marks-around-names-with-commas.patch
+lib-string-introduce-strreplace.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-check-for-uncommented-waitqueue_active.patch
+checkpatch-add-strict-warning-for-c99-fixed-size-typedefs-intsize_t.patch
+checkpatch-make-types-found-in-a-source-file-patch-local.patch
+checkpatch-use-string-consistently.patch
+checkpatch-categorize-some-long-line-length-checks.patch
+checkpatch-improve-output-with-multiple-command-line-files.patch
+checkpatch-colorize-output-to-terminal.patch
+checkpatch-add-showfile-to-allow-input-via-pipe-to-show-filenames.patch
+checkpatch-remove-local-from-codespell-path.patch
+checkpatch-avoid-not_unified_diff-errors-on-cover-letterpatch-files.patch
+checkpatch-suggest-using-ether_addr_equal.patch
+checkpatch-fix-processing-of-memset-issues.patch
+checkpatch-suggest-using-eth_zero_addr-and-eth_broadcast_addr.patch
+checkpatch-add-multi-line-handling-for-prefer_ether_addr_copy.patch
+checkpatch-validate-module_license-content.patch
 checkpatch-emit-an-error-when-theres-a-diff-in-a-changelog.patch
-init-do_mounts-add-create_dev-failure-log-fix.patch
-devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx-fix.patch
-ipcshm-move-bug_on-check-into-shm_lock-fix.patch
-scsi-resolve-sg-buffer-const-ness-issue-fix.patch
-revert-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
+checkpatch-emit-note-types-message-only-once-after-multiple-files.patch
 linux-next.patch
-reapply-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
-linux-next-rejects.patch
-drivers-block-nvme-corec-fix-build-with-gcc-444.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-mm-provide-new-get_vaddr_frames-helper-fix.patch
-mm-move-get_vaddr_frames-behind-a-config-option.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
+printk-improve-the-description-of-dev-kmsg-line-format.patch
+fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void.patch
+maintainers-update-sound-soc-intel-patterns.patch
+maintainers-update-brcm-dts-pattern.patch
+maintainers-update-brcm-gpio-filename-pattern.patch
+maintainers-remove-unused-nbdh-pattern.patch
+maintainers-move-jens-osterkamp-to-credits.patch
+maintainers-bcache-kent-overstreet-has-changed-email-address.patch
 
