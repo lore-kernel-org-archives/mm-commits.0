@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-mark-local-functions-as-static.patch added to -mm tree
-Date: Thu, 18 Jun 2015 11:32:15 -0700
-Message-ID: <55830eaf.8wrZGtXw7q7OdWl3%akpm@linux-foundation.org>
+Subject: +
+ mm-kmemleak_alloc_percpu-should-follow-the-gfp-from-per_alloc.patch added
+ to -mm tree
+Date: Thu, 18 Jun 2015 11:37:44 -0700
+Message-ID: <55830ff8.p6MtL4uB5zF4KaoG%akpm__35216.8166348294$1434652686$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55050 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55071 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752300AbbFRScQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Jun 2015 14:32:16 -0400
+	with ESMTP id S1752938AbbFRShp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Jun 2015 14:37:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joseph.qi@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
+To: Larry.Finger@lwfinger.net, catalin.marinas@arm.com, cl@linux-foundation.org, kafai@fb.com, kamalesh@linux.vnet.ibm.com, stable@vger.kernel.org, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: mark local functions as static
+     Subject: mm: kmemleak_alloc_percpu() should follow the gfp from per_alloc()
 has been added to the -mm tree.  Its filename is
-     ocfs2-mark-local-functions-as-static.patch
+     mm-kmemleak_alloc_percpu-should-follow-the-gfp-from-per_alloc.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-mark-local-functions-as-static.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-kmemleak_alloc_percpu-should-follow-the-gfp-from-per_alloc.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-mark-local-functions-as-static.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-kmemleak_alloc_percpu-should-follow-the-gfp-from-per_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,100 +40,135 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@huawei.com>
-Subject: ocfs2: mark local functions as static
+From: Larry Finger <Larry.Finger@lwfinger.net>
+Subject: mm: kmemleak_alloc_percpu() should follow the gfp from per_alloc()
 
-Some functions are only used locally, so mark them as static.
+Beginning at commit d52d3997f843 ("ipv6: Create percpu rt6_info"), the
+following INFO splat is logged:
 
-Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+===============================
+[ INFO: suspicious RCU usage. ]
+4.1.0-rc7-next-20150612 #1 Not tainted
+-------------------------------
+kernel/sched/core.c:7318 Illegal context switch in RCU-bh read-side critical section!
+other info that might help us debug this:
+rcu_scheduler_active = 1, debug_locks = 0
+ 3 locks held by systemd/1:
+ #0:  (rtnl_mutex){+.+.+.}, at: [<ffffffff815f0c8f>] rtnetlink_rcv+0x1f/0x40
+ #1:  (rcu_read_lock_bh){......}, at: [<ffffffff816a34e2>] ipv6_add_addr+0x62/0x540
+ #2:  (addrconf_hash_lock){+...+.}, at: [<ffffffff816a3604>] ipv6_add_addr+0x184/0x540
+stack backtrace:
+CPU: 0 PID: 1 Comm: systemd Not tainted 4.1.0-rc7-next-20150612 #1
+Hardware name: TOSHIBA TECRA A50-A/TECRA A50-A, BIOS Version 4.20   04/17/2014
+ 0000000000000001 ffff880224e07838 ffffffff817263a4 ffffffff810ccf2a
+ ffff880224e08000 ffff880224e07868 ffffffff810b6827 0000000000000000
+ ffffffff81a445d3 00000000000004f4 ffff88022682e100 ffff880224e07898
+Call Trace:
+ [<ffffffff817263a4>] dump_stack+0x4c/0x6e
+ [<ffffffff810ccf2a>] ? console_unlock+0x1ca/0x510
+ [<ffffffff810b6827>] lockdep_rcu_suspicious+0xe7/0x120
+ [<ffffffff8108cf05>] ___might_sleep+0x1d5/0x1f0
+ [<ffffffff8108cf6d>] __might_sleep+0x4d/0x90
+ [<ffffffff811f3789>] ? create_object+0x39/0x2e0
+ [<ffffffff811da427>] kmem_cache_alloc+0x47/0x250
+ [<ffffffff813c19ae>] ? find_next_zero_bit+0x1e/0x20
+ [<ffffffff811f3789>] create_object+0x39/0x2e0
+ [<ffffffff810b7eb6>] ? mark_held_locks+0x66/0x90
+ [<ffffffff8172efab>] ? _raw_spin_unlock_irqrestore+0x4b/0x60
+ [<ffffffff817193c1>] kmemleak_alloc_percpu+0x61/0xe0
+ [<ffffffff811a26f0>] pcpu_alloc+0x370/0x630
+
+Additional backtrace lines are truncated.  In addition, the above splat is
+followed by several "BUG: sleeping function called from invalid context at
+mm/slub.c:1268" outputs.  As suggested by Martin KaFai Lau, these are the
+clue to the fix.  Routine kmemleak_alloc_percpu() always uses GFP_KERNEL
+for its allocations, whereas it should follow the gfp from its callers.
+
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Reviewed-by: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
+Acked-by: Martin KaFai Lau <kafai@fb.com>
+Signed-off-by: Larry Finger <Larry.Finger@lwfinger.net>
+Cc: Martin KaFai Lau <kafai@fb.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: <stable@vger.kernel.org>	[3.18+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/journal.c |   10 +++++-----
- fs/ocfs2/xattr.c   |    2 +-
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ include/linux/kmemleak.h |    6 ++++--
+ mm/kmemleak.c            |    9 +++++----
+ mm/percpu.c              |    2 +-
+ 3 files changed, 10 insertions(+), 7 deletions(-)
 
-diff -puN fs/ocfs2/journal.c~ocfs2-mark-local-functions-as-static fs/ocfs2/journal.c
---- a/fs/ocfs2/journal.c~ocfs2-mark-local-functions-as-static
-+++ a/fs/ocfs2/journal.c
-@@ -108,7 +108,7 @@ struct ocfs2_replay_map {
- 	unsigned char rm_replay_slots[0];
- };
- 
--void ocfs2_replay_map_set_state(struct ocfs2_super *osb, int state)
-+static void ocfs2_replay_map_set_state(struct ocfs2_super *osb, int state)
+diff -puN include/linux/kmemleak.h~mm-kmemleak_alloc_percpu-should-follow-the-gfp-from-per_alloc include/linux/kmemleak.h
+--- a/include/linux/kmemleak.h~mm-kmemleak_alloc_percpu-should-follow-the-gfp-from-per_alloc
++++ a/include/linux/kmemleak.h
+@@ -28,7 +28,8 @@
+ extern void kmemleak_init(void) __ref;
+ extern void kmemleak_alloc(const void *ptr, size_t size, int min_count,
+ 			   gfp_t gfp) __ref;
+-extern void kmemleak_alloc_percpu(const void __percpu *ptr, size_t size) __ref;
++extern void kmemleak_alloc_percpu(const void __percpu *ptr, size_t size,
++				  gfp_t gfp) __ref;
+ extern void kmemleak_free(const void *ptr) __ref;
+ extern void kmemleak_free_part(const void *ptr, size_t size) __ref;
+ extern void kmemleak_free_percpu(const void __percpu *ptr) __ref;
+@@ -71,7 +72,8 @@ static inline void kmemleak_alloc_recurs
+ 					    gfp_t gfp)
  {
- 	if (!osb->replay_map)
- 		return;
-@@ -153,7 +153,7 @@ int ocfs2_compute_replay_slots(struct oc
- 	return 0;
  }
- 
--void ocfs2_queue_replay_slots(struct ocfs2_super *osb,
-+static void ocfs2_queue_replay_slots(struct ocfs2_super *osb,
- 		enum ocfs2_orphan_reco_type orphan_reco_type)
+-static inline void kmemleak_alloc_percpu(const void __percpu *ptr, size_t size)
++static inline void kmemleak_alloc_percpu(const void __percpu *ptr, size_t size,
++					 gfp_t gfp)
  {
- 	struct ocfs2_replay_map *replay_map = osb->replay_map;
-@@ -173,7 +173,7 @@ void ocfs2_queue_replay_slots(struct ocf
- 	replay_map->rm_state = REPLAY_DONE;
  }
- 
--void ocfs2_free_replay_slots(struct ocfs2_super *osb)
-+static void ocfs2_free_replay_slots(struct ocfs2_super *osb)
- {
- 	struct ocfs2_replay_map *replay_map = osb->replay_map;
- 
-@@ -1895,7 +1895,7 @@ static inline unsigned long ocfs2_orphan
-  * hasn't happened.  The node queues a scan and increments the
-  * sequence number in the LVB.
+ static inline void kmemleak_free(const void *ptr)
+diff -puN mm/kmemleak.c~mm-kmemleak_alloc_percpu-should-follow-the-gfp-from-per_alloc mm/kmemleak.c
+--- a/mm/kmemleak.c~mm-kmemleak_alloc_percpu-should-follow-the-gfp-from-per_alloc
++++ a/mm/kmemleak.c
+@@ -930,12 +930,13 @@ EXPORT_SYMBOL_GPL(kmemleak_alloc);
+  * kmemleak_alloc_percpu - register a newly allocated __percpu object
+  * @ptr:	__percpu pointer to beginning of the object
+  * @size:	size of the object
++ * @gfp:	flags used for kmemleak internal memory allocations
+  *
+  * This function is called from the kernel percpu allocator when a new object
+- * (memory block) is allocated (alloc_percpu). It assumes GFP_KERNEL
+- * allocation.
++ * (memory block) is allocated (alloc_percpu).
   */
--void ocfs2_queue_orphan_scan(struct ocfs2_super *osb)
-+static void ocfs2_queue_orphan_scan(struct ocfs2_super *osb)
+-void __ref kmemleak_alloc_percpu(const void __percpu *ptr, size_t size)
++void __ref kmemleak_alloc_percpu(const void __percpu *ptr, size_t size,
++				 gfp_t gfp)
  {
- 	struct ocfs2_orphan_scan *os;
- 	int status, i;
-@@ -1944,7 +1944,7 @@ out:
- }
+ 	unsigned int cpu;
  
- /* Worker task that gets fired every ORPHAN_SCAN_SCHEDULE_TIMEOUT millsec */
--void ocfs2_orphan_scan_work(struct work_struct *work)
-+static void ocfs2_orphan_scan_work(struct work_struct *work)
- {
- 	struct ocfs2_orphan_scan *os;
- 	struct ocfs2_super *osb;
-diff -puN fs/ocfs2/xattr.c~ocfs2-mark-local-functions-as-static fs/ocfs2/xattr.c
---- a/fs/ocfs2/xattr.c~ocfs2-mark-local-functions-as-static
-+++ a/fs/ocfs2/xattr.c
-@@ -7271,7 +7271,7 @@ static int ocfs2_xattr_security_set(stru
- 			       name, value, size, flags);
+@@ -948,7 +949,7 @@ void __ref kmemleak_alloc_percpu(const v
+ 	if (kmemleak_enabled && ptr && !IS_ERR(ptr))
+ 		for_each_possible_cpu(cpu)
+ 			create_object((unsigned long)per_cpu_ptr(ptr, cpu),
+-				      size, 0, GFP_KERNEL);
++				      size, 0, gfp);
+ 	else if (kmemleak_early_log)
+ 		log_early(KMEMLEAK_ALLOC_PERCPU, ptr, size, 0);
  }
+diff -puN mm/percpu.c~mm-kmemleak_alloc_percpu-should-follow-the-gfp-from-per_alloc mm/percpu.c
+--- a/mm/percpu.c~mm-kmemleak_alloc_percpu-should-follow-the-gfp-from-per_alloc
++++ a/mm/percpu.c
+@@ -1030,7 +1030,7 @@ area_found:
+ 		memset((void *)pcpu_chunk_addr(chunk, cpu, 0) + off, 0, size);
  
--int ocfs2_initxattrs(struct inode *inode, const struct xattr *xattr_array,
-+static int ocfs2_initxattrs(struct inode *inode, const struct xattr *xattr_array,
- 		     void *fs_info)
- {
- 	const struct xattr *xattr;
+ 	ptr = __addr_to_pcpu_ptr(chunk->base_addr + off);
+-	kmemleak_alloc_percpu(ptr, size);
++	kmemleak_alloc_percpu(ptr, size, gfp);
+ 	return ptr;
+ 
+ fail_unlock:
 _
 
-Patches currently in -mm which might be from joseph.qi@huawei.com are
+Patches currently in -mm which might be from Larry.Finger@lwfinger.net are
 
-ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work.patch
-ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work-v2.patch
-ocfs2-fix-a-tiny-race-when-truncate-dio-orohaned-entry.patch
-ocfs2-use-retval-instead-of-status-for-checking-error.patch
-ocfs2-dlm-cleanup-unused-function-__dlm_wait_on_lockres_flags_set.patch
-ocfs2-do-not-bug-if-jbd2_journal_dirty_metadata-fails.patch
-ocfs2-do-not-bug-if-jbd2_journal_dirty_metadata-fails-v3.patch
-ocfs2-o2net-should-remove-debugfs-in-o2net_init-out-branch.patch
-ocfs2-fix-null-pointer-dereference-in-function-ocfs2_abort_trigger.patch
-ocfs2-fix-null-pointer-dereference-in-function-ocfs2_abort_trigger-fix.patch
-ocfs2-fix-wrong-check-in-ocfs2_direct_io_get_blocks.patch
-ocfs2-mark-local-functions-as-static.patch
-ocfs2-set-filesytem-read-only-when-ocfs2_delete_entry-failed.patch
-ocfs2-set-filesytem-read-only-when-ocfs2_delete_entry-failed-v2.patch
-ocfs2-fix-race-between-crashed-dio-and-rm.patch
-ocfs2-avoid-access-invalid-address-when-read-o2dlm-debug-messages.patch
+mm-kmemleak_alloc_percpu-should-follow-the-gfp-from-per_alloc.patch
 linux-next.patch
 
