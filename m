@@ -1,130 +1,133 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- revert-cpumask-dont-perform-while-loop-in-cpumask_next_and.patch removed
- from -mm tree
-Date: Tue, 23 Jun 2015 11:21:46 -0700
-Message-ID: <5589a3ba.aoYfksQ5aqlJ1q2M%akpm@linux-foundation.org>
+ mm-shmem_zero_setup-skip-security-check-and-lockdep-conflict-with-xfs.patch removed from -mm tree
+Date: Tue, 23 Jun 2015 11:21:48 -0700
+Message-ID: <5589a3bc.h3lTfWh0pteUKpRS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57132 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57137 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932543AbbFWSVr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Jun 2015 14:21:47 -0400
+	with ESMTP id S1754568AbbFWSVt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Jun 2015 14:21:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, amirv@mellanox.com, davem@davemloft.net, peterz@infradead.org, sergey.senozhatsky@gmail.com, tj@kernel.org, mm-commits@vger.kernel.org
+To: hughd@google.com, david@fromorbit.com, eparis@redhat.com, esandeen@redhat.com, mstevens@fedoraproject.org, prarit@redhat.com, wagi@monom.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: revert "cpumask: don't perform while loop in cpumask_next_and()"
+     Subject: mm: shmem_zero_setup: skip security check and lockdep conflict with XFS
 has been removed from the -mm tree.  Its filename was
-     revert-cpumask-dont-perform-while-loop-in-cpumask_next_and.patch
+     mm-shmem_zero_setup-skip-security-check-and-lockdep-conflict-with-xfs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: revert "cpumask: don't perform while loop in cpumask_next_and()"
+From: Hugh Dickins <hughd@google.com>
+Subject: mm: shmem_zero_setup: skip security check and lockdep conflict with XFS
 
-Revert
+It appears that, at some point last year, XFS made directory handling
+changes which bring it into lockdep conflict with shmem_zero_setup(): it
+is surprising that mmap() can clone an inode while holding mmap_sem, but
+that has been so for many years.
 
-: commit 534b483a86e6b96f1b5cc03bbe4b696f3daead6d
-: Author: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-: Date:   Thu Apr 16 12:48:04 2015 -0700
-: 
-:     cpumask: don't perform while loop in cpumask_next_and()
+Since those few lockdep traces that I've seen all implicated selinux, I'm
+hoping that we can use the __shmem_file_setup(,,,S_PRIVATE) which v3.13's
+commit c7277090927a ("security: shmem: implement kernel private shmem
+inodes") introduced to avoid LSM checks on kernel-internal inodes: the
+mmap("/dev/zero") cloned inode is indeed a kernel-internal detail.
 
-This was a minor optimization, but it puts a `struct cpumask' on the
-stack, which consumes too much stack space.
+This also covers the !CONFIG_SHMEM use of ramfs to support /dev/zero (and
+MAP_SHARED|MAP_ANONYMOUS).  I thought there were also drivers which cloned
+inode in mmap(), but if so, I cannot locate them now.
 
-Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Reported-by: Peter Zijlstra <peterz@infradead.org>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Amir Vadai <amirv@mellanox.com>
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Reported-by: Prarit Bhargava <prarit@redhat.com>
+Tested-by: Prarit Bhargava <prarit@redhat.com>
+Reported-by: Daniel Wagner <wagi@monom.org>
+Tested-by: Daniel Wagner <wagi@monom.org>
+Reported-by: Morten Stevens <mstevens@fedoraproject.org>
+Tested-by: Morten Stevens <mstevens@fedoraproject.org>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Eric Paris <eparis@redhat.com>
+Cc: Eric Sandeen <esandeen@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/cpumask.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ mm/shmem.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN lib/cpumask.c~revert-cpumask-dont-perform-while-loop-in-cpumask_next_and lib/cpumask.c
---- a/lib/cpumask.c~revert-cpumask-dont-perform-while-loop-in-cpumask_next_and
-+++ a/lib/cpumask.c
-@@ -16,11 +16,10 @@
- int cpumask_next_and(int n, const struct cpumask *src1p,
- 		     const struct cpumask *src2p)
- {
--	struct cpumask tmp;
--
--	if (cpumask_and(&tmp, src1p, src2p))
--		return cpumask_next(n, &tmp);
--	return nr_cpu_ids;
-+	while ((n = cpumask_next(n, src1p)) < nr_cpu_ids)
-+		if (cpumask_test_cpu(n, src2p))
-+			break;
-+	return n;
- }
- EXPORT_SYMBOL(cpumask_next_and);
+diff -puN mm/shmem.c~mm-shmem_zero_setup-skip-security-check-and-lockdep-conflict-with-xfs mm/shmem.c
+--- a/mm/shmem.c~mm-shmem_zero_setup-skip-security-check-and-lockdep-conflict-with-xfs
++++ a/mm/shmem.c
+@@ -3401,7 +3401,13 @@ int shmem_zero_setup(struct vm_area_stru
+ 	struct file *file;
+ 	loff_t size = vma->vm_end - vma->vm_start;
+ 
+-	file = shmem_file_setup("dev/zero", size, vma->vm_flags);
++	/*
++	 * Cloning a new file under mmap_sem leads to a lock ordering conflict
++	 * between XFS directory reading and selinux: since this file is only
++	 * accessible to the user through its mapping, use S_PRIVATE flag to
++	 * bypass file security, in the same way as shmem_kernel_file_setup().
++	 */
++	file = __shmem_file_setup("dev/zero", size, vma->vm_flags, S_PRIVATE);
+ 	if (IS_ERR(file))
+ 		return PTR_ERR(file);
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hughd@google.com are
 
 origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-ocfs2-reduce-object-size-of-mlog-uses-fix.patch
-ocfs2-remove-__mlog_cpu_guess.patch
-ocfs2-remove-__mlog_cpu_guess-fix.patch
-ocfs2-fix-null-pointer-dereference-in-function-ocfs2_abort_trigger-fix.patch
-mm.patch
-mm-slab_common-support-the-slub_debug-boot-option-on-specific-object-size-fix.patch
-slab-infrastructure-for-bulk-object-allocation-and-freeing-v3-fix.patch
-mm-fix-mprotect-behaviour-on-vm_locked-vmas-fix.patch
 mm-new-mm-hook-framework.patch
-mm-meminit-inline-some-helper-functions-fix.patch
-mm-meminit-finish-initialisation-of-struct-pages-before-basic-setup-fix.patch
-mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling-fix.patch
+mm-new-arch_remap-hook.patch
+powerpc-mm-tracking-vdso-remap.patch
+mm-drop-bogus-vm_bug_on_page-assert-in-put_page-codepath.patch
+mm-avoid-tail-page-refcounting-on-non-thp-compound-pages.patch
+rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list.patch
 rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix.patch
 rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix-fix.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
-userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
-fs-userfaultfdc-work-around-i386-build-error.patch
-hugetlb-do-not-account-hugetlb-pages-as-nr_file_pages-fix.patch
-mm-do-not-ignore-mapping_gfp_mask-in-page-cache-allocation-paths-checkpatch-fixes.patch
-include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
-zswap-runtime-enable-disable-fix.patch
-prctl-more-prctlpr_set_mm_-checks-fix.patch
-proc-fix-page_size-limit-of-proc-pid-cmdline-fix.patch
-bitmap-remove-explicit-newline-handling-using-scnprintf-format-string-fix.patch
-radix-tree-replace-preallocated-node-array-with-linked-list-fix.patch
-checkpatch-emit-an-error-when-theres-a-diff-in-a-changelog.patch
-init-do_mounts-add-create_dev-failure-log-fix.patch
-devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx-fix.patch
-ipcshm-move-bug_on-check-into-shm_lock-fix.patch
-scsi-resolve-sg-buffer-const-ness-issue-fix.patch
+userfaultfd-linux-documentation-vm-userfaultfdtxt.patch
+userfaultfd-waitqueue-add-nr-wake-parameter-to-__wake_up_locked_key.patch
+userfaultfd-uapi.patch
+userfaultfd-linux-userfaultfd_kh.patch
+userfaultfd-add-vm_userfaultfd_ctx-to-the-vm_area_struct.patch
+userfaultfd-add-vm_uffd_missing-and-vm_uffd_wp.patch
+userfaultfd-call-handle_userfault-for-userfaultfd_missing-faults.patch
+userfaultfd-teach-vma_merge-to-merge-across-vma-vm_userfaultfd_ctx.patch
+userfaultfd-prevent-khugepaged-to-merge-if-userfaultfd-is-armed.patch
+userfaultfd-add-new-syscall-to-provide-memory-externalization.patch
+userfaultfd-rename-uffd_apibits-into-features.patch
+userfaultfd-rename-uffd_apibits-into-features-fixup.patch
+userfaultfd-change-the-read-api-to-return-a-uffd_msg.patch
+userfaultfd-wake-pending-userfaults.patch
+userfaultfd-optimize-read-and-poll-to-be-o1.patch
+userfaultfd-allocate-the-userfaultfd_ctx-cacheline-aligned.patch
+userfaultfd-solve-the-race-between-uffdio_copyzeropage-and-read.patch
+userfaultfd-buildsystem-activation.patch
+userfaultfd-activate-syscall.patch
+userfaultfd-uffdio_copyuffdio_zeropage-uapi.patch
+userfaultfd-mcopy_atomicmfill_zeropage-uffdio_copyuffdio_zeropage-preparation.patch
+userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic.patch
+userfaultfd-uffdio_copy-and-uffdio_zeropage.patch
+tmpfs-truncate-prealloc-blocks-past-i_size.patch
+page-flags-trivial-cleanup-for-pagetrans-helpers.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
+page-flags-define-pg_locked-behavior-on-compound-pages.patch
+page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
+page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
+page-flags-define-pg_reserved-behavior-on-compound-pages.patch
+page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
+page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
+page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
+page-flags-define-pg_uncached-behavior-on-compound-pages.patch
+page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
+page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
+mm-sanitize-page-mapping-for-tail-pages.patch
 linux-next.patch
-linux-next-rejects.patch
-drivers-block-nvme-corec-fix-build-with-gcc-444.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-net-netfilter-ipset-work-around-gcc-444-initializer-bug.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
 
