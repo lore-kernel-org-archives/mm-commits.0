@@ -1,51 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete]
- reapply-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
- removed from -mm tree
-Date: Tue, 23 Jun 2015 10:57:39 -0700
-Message-ID: <55899e13.QkIjC223FANPWoTC%akpm@linux-foundation.org>
+Subject: [merged]
+ revert-cpumask-dont-perform-while-loop-in-cpumask_next_and.patch removed
+ from -mm tree
+Date: Tue, 23 Jun 2015 11:21:46 -0700
+Message-ID: <5589a3ba.aoYfksQ5aqlJ1q2M%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56886 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57132 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932552AbbFWR5k (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Jun 2015 13:57:40 -0400
+	with ESMTP id S932543AbbFWSVr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Jun 2015 14:21:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, amirv@mellanox.com, davem@davemloft.net, peterz@infradead.org, sergey.senozhatsky@gmail.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: reapply-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64
+     Subject: revert "cpumask: don't perform while loop in cpumask_next_and()"
 has been removed from the -mm tree.  Its filename was
-     reapply-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
+     revert-cpumask-dont-perform-while-loop-in-cpumask_next_and.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: reapply-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64
+Subject: revert "cpumask: don't perform while loop in cpumask_next_and()"
 
+Revert
+
+: commit 534b483a86e6b96f1b5cc03bbe4b696f3daead6d
+: Author: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+: Date:   Thu Apr 16 12:48:04 2015 -0700
+: 
+:     cpumask: don't perform while loop in cpumask_next_and()
+
+This was a minor optimization, but it puts a `struct cpumask' on the
+stack, which consumes too much stack space.
+
+Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Reported-by: Peter Zijlstra <peterz@infradead.org>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Amir Vadai <amirv@mellanox.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ lib/cpumask.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN arch/x86/Kconfig~reapply-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64 arch/x86/Kconfig
---- a/arch/x86/Kconfig~reapply-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64
-+++ a/arch/x86/Kconfig
-@@ -33,6 +33,7 @@ config X86
- 	select ARCH_MIGHT_HAVE_PC_PARPORT
- 	select ARCH_MIGHT_HAVE_PC_SERIO
- 	select ARCH_SUPPORTS_ATOMIC_RMW
-+	select ARCH_SUPPORTS_DEFERRED_STRUCT_PAGE_INIT if X86_64
- 	select ARCH_SUPPORTS_INT128		if X86_64
- 	select ARCH_SUPPORTS_NUMA_BALANCING	if X86_64
- 	select ARCH_USE_BUILTIN_BSWAP
+diff -puN lib/cpumask.c~revert-cpumask-dont-perform-while-loop-in-cpumask_next_and lib/cpumask.c
+--- a/lib/cpumask.c~revert-cpumask-dont-perform-while-loop-in-cpumask_next_and
++++ a/lib/cpumask.c
+@@ -16,11 +16,10 @@
+ int cpumask_next_and(int n, const struct cpumask *src1p,
+ 		     const struct cpumask *src2p)
+ {
+-	struct cpumask tmp;
+-
+-	if (cpumask_and(&tmp, src1p, src2p))
+-		return cpumask_next(n, &tmp);
+-	return nr_cpu_ids;
++	while ((n = cpumask_next(n, src1p)) < nr_cpu_ids)
++		if (cpumask_test_cpu(n, src2p))
++			break;
++	return n;
+ }
+ EXPORT_SYMBOL(cpumask_next_and);
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
