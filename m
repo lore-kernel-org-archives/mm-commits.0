@@ -1,138 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: [merged] posix_acl-make-posix_acl_create-safer-and-cleaner.patch
- removed from -mm tree
-Date: Tue, 23 Jun 2015 11:21:51 -0700
-Message-ID: <5589a3bf.vsrgpmtE46Bu6Mwm%akpm@linux-foundation.org>
+Subject: + maintainers-davidlohr-has-moved.patch added to -mm tree
+Date: Tue, 23 Jun 2015 12:16:28 -0700
+Message-ID: <5589b08c.Al3ItCXCOT2q2rcC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57143 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58026 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932655AbbFWSVw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Jun 2015 14:21:52 -0400
+	with ESMTP id S1754900AbbFWTQ3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Jun 2015 15:16:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.carpenter@oracle.com, jlbec@evilplan.org, mfasheh@suse.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, bp@alien8.de, dave@stgolabs.net, rob@landley.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/posix_acl.c: make posix_acl_create() safer and cleaner
-has been removed from the -mm tree.  Its filename was
-     posix_acl-make-posix_acl_create-safer-and-cleaner.patch
+     Subject: MAINTAINERS: Davidlohr has moved
+has been added to the -mm tree.  Its filename is
+     maintainers-davidlohr-has-moved.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-davidlohr-has-moved.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-davidlohr-has-moved.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: fs/posix_acl.c: make posix_acl_create() safer and cleaner
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: MAINTAINERS: Davidlohr has moved
 
-If posix_acl_create() returns an error code then "*acl" and "*default_acl"
-can be uninitialized or point to freed memory.  This is a dangerous thing
-to do.  For example, it causes a problem in ocfs2_reflink():
-
-	fs/ocfs2/refcounttree.c:4327 ocfs2_reflink()
-	error: potentially using uninitialized 'default_acl'.
-
-I've re-written this so we set the pointers to NULL at the start.  I've
-added a temporary "clone" variable to hold the value of "*acl" until end. 
-Setting them to NULL means means we don't need the "no_acl" label.  We may
-as well remove the "apply_umask" stuff forward and remove that label as
-well.
-
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
+Reported-by: Rob Landley <rob@landley.net>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/posix_acl.c |   46 ++++++++++++++++++++--------------------------
- 1 file changed, 20 insertions(+), 26 deletions(-)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/posix_acl.c~posix_acl-make-posix_acl_create-safer-and-cleaner fs/posix_acl.c
---- a/fs/posix_acl.c~posix_acl-make-posix_acl_create-safer-and-cleaner
-+++ a/fs/posix_acl.c
-@@ -547,51 +547,45 @@ posix_acl_create(struct inode *dir, umod
- 		struct posix_acl **default_acl, struct posix_acl **acl)
- {
- 	struct posix_acl *p;
-+	struct posix_acl *clone;
- 	int ret;
+diff -puN MAINTAINERS~maintainers-davidlohr-has-moved MAINTAINERS
+--- a/MAINTAINERS~maintainers-davidlohr-has-moved
++++ a/MAINTAINERS
+@@ -4482,7 +4482,7 @@ S:	Maintained
+ F:	drivers/media/usb/gspca/
  
-+	*acl = NULL;
-+	*default_acl = NULL;
-+
- 	if (S_ISLNK(*mode) || !IS_POSIXACL(dir))
--		goto no_acl;
-+		return 0;
- 
- 	p = get_acl(dir, ACL_TYPE_DEFAULT);
--	if (IS_ERR(p)) {
--		if (p == ERR_PTR(-EOPNOTSUPP))
--			goto apply_umask;
--		return PTR_ERR(p);
-+	if (!p || p == ERR_PTR(-EOPNOTSUPP)) {
-+		*mode &= ~current_umask();
-+		return 0;
- 	}
-+	if (IS_ERR(p))
-+		return PTR_ERR(p);
- 
--	if (!p)
--		goto apply_umask;
--
--	*acl = posix_acl_clone(p, GFP_NOFS);
--	if (!*acl)
-+	clone = posix_acl_clone(p, GFP_NOFS);
-+	if (!clone)
- 		goto no_mem;
- 
--	ret = posix_acl_create_masq(*acl, mode);
-+	ret = posix_acl_create_masq(clone, mode);
- 	if (ret < 0)
- 		goto no_mem_clone;
- 
--	if (ret == 0) {
--		posix_acl_release(*acl);
--		*acl = NULL;
--	}
-+	if (ret == 0)
-+		posix_acl_release(clone);
-+	else
-+		*acl = clone;
- 
--	if (!S_ISDIR(*mode)) {
-+	if (!S_ISDIR(*mode))
- 		posix_acl_release(p);
--		*default_acl = NULL;
--	} else {
-+	else
- 		*default_acl = p;
--	}
--	return 0;
- 
--apply_umask:
--	*mode &= ~current_umask();
--no_acl:
--	*default_acl = NULL;
--	*acl = NULL;
- 	return 0;
- 
- no_mem_clone:
--	posix_acl_release(*acl);
-+	posix_acl_release(clone);
- no_mem:
- 	posix_acl_release(p);
- 	return -ENOMEM;
+ GUID PARTITION TABLE (GPT)
+-M:	Davidlohr Bueso <davidlohr@hp.com>
++M:	Davidlohr Bueso <dave@stgolabs.net>
+ L:	linux-efi@vger.kernel.org
+ S:	Maintained
+ F:	block/partitions/efi.*
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mm-hugetlb-introduce-minimum-hugepage-order.patch
-userfaultfd-add-new-syscall-to-provide-memory-externalization-fix-fix-fix.patch
-checkpatch-categorize-some-long-line-length-checks.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+ocfs2-reduce-object-size-of-mlog-uses-fix.patch
+ocfs2-remove-__mlog_cpu_guess.patch
+ocfs2-remove-__mlog_cpu_guess-fix.patch
+ocfs2-fix-null-pointer-dereference-in-function-ocfs2_abort_trigger-fix.patch
+mm.patch
+mm-slab_common-support-the-slub_debug-boot-option-on-specific-object-size-fix.patch
+slab-infrastructure-for-bulk-object-allocation-and-freeing-v3-fix.patch
+mm-fix-mprotect-behaviour-on-vm_locked-vmas-fix.patch
+mm-new-mm-hook-framework.patch
+mm-meminit-inline-some-helper-functions-fix.patch
+mm-meminit-finish-initialisation-of-struct-pages-before-basic-setup-fix.patch
+mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling-fix.patch
+rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix.patch
+rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix-fix.patch
+userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
+userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
+userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
+fs-userfaultfdc-work-around-i386-build-error.patch
+hugetlb-do-not-account-hugetlb-pages-as-nr_file_pages-fix.patch
+mm-do-not-ignore-mapping_gfp_mask-in-page-cache-allocation-paths-checkpatch-fixes.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
+zswap-runtime-enable-disable-fix.patch
+prctl-more-prctlpr_set_mm_-checks-fix.patch
+proc-fix-page_size-limit-of-proc-pid-cmdline-fix.patch
+maintainers-davidlohr-has-moved.patch
+bitmap-remove-explicit-newline-handling-using-scnprintf-format-string-fix.patch
+radix-tree-replace-preallocated-node-array-with-linked-list-fix.patch
+checkpatch-emit-an-error-when-theres-a-diff-in-a-changelog.patch
+init-do_mounts-add-create_dev-failure-log-fix.patch
+devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx-fix.patch
+ipcshm-move-bug_on-check-into-shm_lock-fix.patch
+scsi-resolve-sg-buffer-const-ness-issue-fix.patch
 linux-next.patch
+linux-next-rejects.patch
+drivers-block-nvme-corec-fix-build-with-gcc-444.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+net-netfilter-ipset-work-around-gcc-444-initializer-bug.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
