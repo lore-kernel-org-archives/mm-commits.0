@@ -1,174 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-kmemleak_alloc_percpu-should-follow-the-gfp-from-per_alloc.patch added
- to -mm tree
-Date: Thu, 18 Jun 2015 11:37:44 -0700
-Message-ID: <55830ff8.p6MtL4uB5zF4KaoG%akpm__35216.8166348294$1434652686$gmane$org@linux-foundation.org>
+Subject: [obsolete]
+ revert-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
+ removed from -mm tree
+Date: Tue, 23 Jun 2015 10:55:08 -0700
+Message-ID: <55899d7c.yqG6i0CNJSpLAbMv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55071 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56763 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752938AbbFRShp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 18 Jun 2015 14:37:45 -0400
+	with ESMTP id S932531AbbFWRzJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Jun 2015 13:55:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Larry.Finger@lwfinger.net, catalin.marinas@arm.com, cl@linux-foundation.org, kafai@fb.com, kamalesh@linux.vnet.ibm.com, stable@vger.kernel.org, tj@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: kmemleak_alloc_percpu() should follow the gfp from per_alloc()
-has been added to the -mm tree.  Its filename is
-     mm-kmemleak_alloc_percpu-should-follow-the-gfp-from-per_alloc.patch
+     Subject: revert-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64
+has been removed from the -mm tree.  Its filename was
+     revert-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-kmemleak_alloc_percpu-should-follow-the-gfp-from-per_alloc.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-kmemleak_alloc_percpu-should-follow-the-gfp-from-per_alloc.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Larry Finger <Larry.Finger@lwfinger.net>
-Subject: mm: kmemleak_alloc_percpu() should follow the gfp from per_alloc()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: revert-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: revert x86-mm-enable-deferred-struct-page-initialisation-on-x86-64
 
-Beginning at commit d52d3997f843 ("ipv6: Create percpu rt6_info"), the
-following INFO splat is logged:
-
-===============================
-[ INFO: suspicious RCU usage. ]
-4.1.0-rc7-next-20150612 #1 Not tainted
--------------------------------
-kernel/sched/core.c:7318 Illegal context switch in RCU-bh read-side critical section!
-other info that might help us debug this:
-rcu_scheduler_active = 1, debug_locks = 0
- 3 locks held by systemd/1:
- #0:  (rtnl_mutex){+.+.+.}, at: [<ffffffff815f0c8f>] rtnetlink_rcv+0x1f/0x40
- #1:  (rcu_read_lock_bh){......}, at: [<ffffffff816a34e2>] ipv6_add_addr+0x62/0x540
- #2:  (addrconf_hash_lock){+...+.}, at: [<ffffffff816a3604>] ipv6_add_addr+0x184/0x540
-stack backtrace:
-CPU: 0 PID: 1 Comm: systemd Not tainted 4.1.0-rc7-next-20150612 #1
-Hardware name: TOSHIBA TECRA A50-A/TECRA A50-A, BIOS Version 4.20   04/17/2014
- 0000000000000001 ffff880224e07838 ffffffff817263a4 ffffffff810ccf2a
- ffff880224e08000 ffff880224e07868 ffffffff810b6827 0000000000000000
- ffffffff81a445d3 00000000000004f4 ffff88022682e100 ffff880224e07898
-Call Trace:
- [<ffffffff817263a4>] dump_stack+0x4c/0x6e
- [<ffffffff810ccf2a>] ? console_unlock+0x1ca/0x510
- [<ffffffff810b6827>] lockdep_rcu_suspicious+0xe7/0x120
- [<ffffffff8108cf05>] ___might_sleep+0x1d5/0x1f0
- [<ffffffff8108cf6d>] __might_sleep+0x4d/0x90
- [<ffffffff811f3789>] ? create_object+0x39/0x2e0
- [<ffffffff811da427>] kmem_cache_alloc+0x47/0x250
- [<ffffffff813c19ae>] ? find_next_zero_bit+0x1e/0x20
- [<ffffffff811f3789>] create_object+0x39/0x2e0
- [<ffffffff810b7eb6>] ? mark_held_locks+0x66/0x90
- [<ffffffff8172efab>] ? _raw_spin_unlock_irqrestore+0x4b/0x60
- [<ffffffff817193c1>] kmemleak_alloc_percpu+0x61/0xe0
- [<ffffffff811a26f0>] pcpu_alloc+0x370/0x630
-
-Additional backtrace lines are truncated.  In addition, the above splat is
-followed by several "BUG: sleeping function called from invalid context at
-mm/slub.c:1268" outputs.  As suggested by Martin KaFai Lau, these are the
-clue to the fix.  Routine kmemleak_alloc_percpu() always uses GFP_KERNEL
-for its allocations, whereas it should follow the gfp from its callers.
-
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
-Reviewed-by: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
-Acked-by: Martin KaFai Lau <kafai@fb.com>
-Signed-off-by: Larry Finger <Larry.Finger@lwfinger.net>
-Cc: Martin KaFai Lau <kafai@fb.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Christoph Lameter <cl@linux-foundation.org>
-Cc: <stable@vger.kernel.org>	[3.18+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kmemleak.h |    6 ++++--
- mm/kmemleak.c            |    9 +++++----
- mm/percpu.c              |    2 +-
- 3 files changed, 10 insertions(+), 7 deletions(-)
+ arch/x86/Kconfig |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN include/linux/kmemleak.h~mm-kmemleak_alloc_percpu-should-follow-the-gfp-from-per_alloc include/linux/kmemleak.h
---- a/include/linux/kmemleak.h~mm-kmemleak_alloc_percpu-should-follow-the-gfp-from-per_alloc
-+++ a/include/linux/kmemleak.h
-@@ -28,7 +28,8 @@
- extern void kmemleak_init(void) __ref;
- extern void kmemleak_alloc(const void *ptr, size_t size, int min_count,
- 			   gfp_t gfp) __ref;
--extern void kmemleak_alloc_percpu(const void __percpu *ptr, size_t size) __ref;
-+extern void kmemleak_alloc_percpu(const void __percpu *ptr, size_t size,
-+				  gfp_t gfp) __ref;
- extern void kmemleak_free(const void *ptr) __ref;
- extern void kmemleak_free_part(const void *ptr, size_t size) __ref;
- extern void kmemleak_free_percpu(const void __percpu *ptr) __ref;
-@@ -71,7 +72,8 @@ static inline void kmemleak_alloc_recurs
- 					    gfp_t gfp)
- {
- }
--static inline void kmemleak_alloc_percpu(const void __percpu *ptr, size_t size)
-+static inline void kmemleak_alloc_percpu(const void __percpu *ptr, size_t size,
-+					 gfp_t gfp)
- {
- }
- static inline void kmemleak_free(const void *ptr)
-diff -puN mm/kmemleak.c~mm-kmemleak_alloc_percpu-should-follow-the-gfp-from-per_alloc mm/kmemleak.c
---- a/mm/kmemleak.c~mm-kmemleak_alloc_percpu-should-follow-the-gfp-from-per_alloc
-+++ a/mm/kmemleak.c
-@@ -930,12 +930,13 @@ EXPORT_SYMBOL_GPL(kmemleak_alloc);
-  * kmemleak_alloc_percpu - register a newly allocated __percpu object
-  * @ptr:	__percpu pointer to beginning of the object
-  * @size:	size of the object
-+ * @gfp:	flags used for kmemleak internal memory allocations
-  *
-  * This function is called from the kernel percpu allocator when a new object
-- * (memory block) is allocated (alloc_percpu). It assumes GFP_KERNEL
-- * allocation.
-+ * (memory block) is allocated (alloc_percpu).
-  */
--void __ref kmemleak_alloc_percpu(const void __percpu *ptr, size_t size)
-+void __ref kmemleak_alloc_percpu(const void __percpu *ptr, size_t size,
-+				 gfp_t gfp)
- {
- 	unsigned int cpu;
+diff -puN arch/x86/Kconfig~revert-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64 arch/x86/Kconfig
+--- a/arch/x86/Kconfig~revert-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64
++++ a/arch/x86/Kconfig
+@@ -18,7 +18,6 @@ config X86_64
+ 	select X86_DEV_DMA_OPS
+ 	select ARCH_USE_CMPXCHG_LOCKREF
+ 	select HAVE_LIVEPATCH
+-	select ARCH_SUPPORTS_DEFERRED_STRUCT_PAGE_INIT
  
-@@ -948,7 +949,7 @@ void __ref kmemleak_alloc_percpu(const v
- 	if (kmemleak_enabled && ptr && !IS_ERR(ptr))
- 		for_each_possible_cpu(cpu)
- 			create_object((unsigned long)per_cpu_ptr(ptr, cpu),
--				      size, 0, GFP_KERNEL);
-+				      size, 0, gfp);
- 	else if (kmemleak_early_log)
- 		log_early(KMEMLEAK_ALLOC_PERCPU, ptr, size, 0);
- }
-diff -puN mm/percpu.c~mm-kmemleak_alloc_percpu-should-follow-the-gfp-from-per_alloc mm/percpu.c
---- a/mm/percpu.c~mm-kmemleak_alloc_percpu-should-follow-the-gfp-from-per_alloc
-+++ a/mm/percpu.c
-@@ -1030,7 +1030,7 @@ area_found:
- 		memset((void *)pcpu_chunk_addr(chunk, cpu, 0) + off, 0, size);
- 
- 	ptr = __addr_to_pcpu_ptr(chunk->base_addr + off);
--	kmemleak_alloc_percpu(ptr, size);
-+	kmemleak_alloc_percpu(ptr, size, gfp);
- 	return ptr;
- 
- fail_unlock:
+ ### Arch settings
+ config X86
 _
 
-Patches currently in -mm which might be from Larry.Finger@lwfinger.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-kmemleak_alloc_percpu-should-follow-the-gfp-from-per_alloc.patch
+origin.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+ocfs2-reduce-object-size-of-mlog-uses-fix.patch
+ocfs2-remove-__mlog_cpu_guess.patch
+ocfs2-remove-__mlog_cpu_guess-fix.patch
+ocfs2-fix-null-pointer-dereference-in-function-ocfs2_abort_trigger-fix.patch
+mm.patch
+mm-slab_common-support-the-slub_debug-boot-option-on-specific-object-size-fix.patch
+slab-infrastructure-for-bulk-object-allocation-and-freeing-v3-fix.patch
+mm-fix-mprotect-behaviour-on-vm_locked-vmas-fix.patch
+mm-new-mm-hook-framework.patch
+mm-meminit-inline-some-helper-functions-fix.patch
+mm-meminit-finish-initialisation-of-struct-pages-before-basic-setup-fix.patch
+mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling-fix.patch
+rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix.patch
+rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list-fix-fix.patch
+userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
+userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
+userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
+fs-userfaultfdc-work-around-i386-build-error.patch
+hugetlb-do-not-account-hugetlb-pages-as-nr_file_pages-fix.patch
+mm-do-not-ignore-mapping_gfp_mask-in-page-cache-allocation-paths-checkpatch-fixes.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
+zswap-runtime-enable-disable-fix.patch
+prctl-more-prctlpr_set_mm_-checks-fix.patch
+proc-fix-page_size-limit-of-proc-pid-cmdline-fix.patch
+bitmap-remove-explicit-newline-handling-using-scnprintf-format-string-fix.patch
+radix-tree-replace-preallocated-node-array-with-linked-list-fix.patch
+checkpatch-emit-an-error-when-theres-a-diff-in-a-changelog.patch
+init-do_mounts-add-create_dev-failure-log-fix.patch
+devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx-fix.patch
+ipcshm-move-bug_on-check-into-shm_lock-fix.patch
+scsi-resolve-sg-buffer-const-ness-issue-fix.patch
 linux-next.patch
+reapply-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
+linux-next-rejects.patch
+drivers-block-nvme-corec-fix-build-with-gcc-444.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+net-netfilter-ipset-work-around-gcc-444-initializer-bug.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
