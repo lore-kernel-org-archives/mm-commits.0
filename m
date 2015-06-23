@@ -1,53 +1,51 @@
 From: akpm@linux-foundation.org
 Subject: [obsolete]
- revert-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
+ reapply-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
  removed from -mm tree
-Date: Tue, 23 Jun 2015 10:55:08 -0700
-Message-ID: <55899d7c.yqG6i0CNJSpLAbMv%akpm@linux-foundation.org>
+Date: Tue, 23 Jun 2015 10:57:39 -0700
+Message-ID: <55899e13.QkIjC223FANPWoTC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56763 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56886 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932531AbbFWRzJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Jun 2015 13:55:09 -0400
+	with ESMTP id S932552AbbFWR5k (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Jun 2015 13:57:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: revert-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64
+     Subject: reapply-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64
 has been removed from the -mm tree.  Its filename was
-     revert-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
+     reapply-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: revert-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: revert x86-mm-enable-deferred-struct-page-initialisation-on-x86-64
+Subject: reapply-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig |    1 -
- 1 file changed, 1 deletion(-)
+ arch/x86/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/x86/Kconfig~revert-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64 arch/x86/Kconfig
---- a/arch/x86/Kconfig~revert-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64
+diff -puN arch/x86/Kconfig~reapply-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64 arch/x86/Kconfig
+--- a/arch/x86/Kconfig~reapply-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64
 +++ a/arch/x86/Kconfig
-@@ -18,7 +18,6 @@ config X86_64
- 	select X86_DEV_DMA_OPS
- 	select ARCH_USE_CMPXCHG_LOCKREF
- 	select HAVE_LIVEPATCH
--	select ARCH_SUPPORTS_DEFERRED_STRUCT_PAGE_INIT
- 
- ### Arch settings
- config X86
+@@ -33,6 +33,7 @@ config X86
+ 	select ARCH_MIGHT_HAVE_PC_PARPORT
+ 	select ARCH_MIGHT_HAVE_PC_SERIO
+ 	select ARCH_SUPPORTS_ATOMIC_RMW
++	select ARCH_SUPPORTS_DEFERRED_STRUCT_PAGE_INIT if X86_64
+ 	select ARCH_SUPPORTS_INT128		if X86_64
+ 	select ARCH_SUPPORTS_NUMA_BALANCING	if X86_64
+ 	select ARCH_USE_BUILTIN_BSWAP
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -93,7 +91,6 @@ devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx-fix.patch
 ipcshm-move-bug_on-check-into-shm_lock-fix.patch
 scsi-resolve-sg-buffer-const-ness-issue-fix.patch
 linux-next.patch
-reapply-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
 linux-next-rejects.patch
 drivers-block-nvme-corec-fix-build-with-gcc-444.patch
 drivers-gpu-drm-i915-intel_spritec-fix-build.patch
