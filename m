@@ -1,83 +1,98 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-hugetlb-handle-races-in-alloc_huge_page-and-hugetlb_reserve_pages-v4.patch removed from -mm tree
-Date: Wed, 24 Jun 2015 16:48:38 -0700
-Message-ID: <558b41d6.F8lGYLZWcvLUYHzl%akpm@linux-foundation.org>
+ mm-do-not-ignore-mapping_gfp_mask-in-page-cache-allocation-paths-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 24 Jun 2015 16:48:55 -0700
+Message-ID: <558b41e7.Iuvz0l6NT7sZuQjk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40593 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40598 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752404AbbFXXsj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jun 2015 19:48:39 -0400
+	with ESMTP id S1752372AbbFXXs4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jun 2015 19:48:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mike.kravetz@oracle.com, dave@stgolabs.net, lcapitulino@redhat.com, n-horiguchi@ah.jp.nec.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: handle races in alloc_huge_page and hugetlb_reserve_pages
+     Subject: mm-do-not-ignore-mapping_gfp_mask-in-page-cache-allocation-paths-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-handle-races-in-alloc_huge_page-and-hugetlb_reserve_pages-v4.patch
+     mm-do-not-ignore-mapping_gfp_mask-in-page-cache-allocation-paths-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into mm-hugetlb-handle-races-in-alloc_huge_page-and-hugetlb_reserve_pages.patch
+This patch was dropped because it was folded into mm-do-not-ignore-mapping_gfp_mask-in-page-cache-allocation-paths.patch
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: mm/hugetlb: handle races in alloc_huge_page and hugetlb_reserve_pages
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-do-not-ignore-mapping_gfp_mask-in-page-cache-allocation-paths-checkpatch-fixes
 
-Reserve count adjustments need to take into account hugetlbfs min_size
-reservation pools
+WARNING: line over 80 characters
+#53: FILE: fs/splice.c:362:
++						GFP_KERNEL & mapping_gfp_mask(mapping));
 
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Luiz Capitulino <lcapitulino@redhat.com>
+WARNING: line over 80 characters
+#66: FILE: mm/filemap.c:1669:
++						GFP_KERNEL & mapping_gfp_mask(mapping));
+
+total: 0 errors, 2 warnings, 35 lines checked
+
+./patches/mm-do-not-ignore-mapping_gfp_mask-in-page-cache-allocation-paths.patch has style problems, please review.
+
+If any of these errors are false positives, please report
+them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ fs/splice.c  |    2 +-
+ mm/filemap.c |    5 ++---
+ 2 files changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-handle-races-in-alloc_huge_page-and-hugetlb_reserve_pages-v4 mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-handle-races-in-alloc_huge_page-and-hugetlb_reserve_pages-v4
-+++ a/mm/hugetlb.c
-@@ -1594,8 +1594,10 @@ static struct page *alloc_huge_page(stru
- 		 * the reservation count added in hugetlb_reserve_pages
- 		 * no longer applies.
- 		 */
--		hugepage_subpool_put_pages(spool, 1);
--		hugetlb_acct_memory(h, -1);
-+		long rsv_adjust;
-+
-+		rsv_adjust = hugepage_subpool_put_pages(spool, 1);
-+		hugetlb_acct_memory(h, -rsv_adjust);
- 	}
- 	return page;
+diff -puN fs/splice.c~mm-do-not-ignore-mapping_gfp_mask-in-page-cache-allocation-paths-checkpatch-fixes fs/splice.c
+--- a/fs/splice.c~mm-do-not-ignore-mapping_gfp_mask-in-page-cache-allocation-paths-checkpatch-fixes
++++ a/fs/splice.c
+@@ -359,7 +359,7 @@ __generic_file_splice_read(struct file *
+ 				break;
  
-@@ -3725,8 +3727,11 @@ int hugetlb_reserve_pages(struct inode *
- 			 * the subpool and reserve counts modified above
- 			 * based on the difference.
- 			 */
--			hugepage_subpool_put_pages(spool, chg - add);
--			hugetlb_acct_memory(h, -(chg - ret));
-+			long rsv_adjust;
-+
-+			rsv_adjust = hugepage_subpool_put_pages(spool,
-+								chg - add);
-+			hugetlb_acct_memory(h, -rsv_adjust);
+ 			error = add_to_page_cache_lru(page, mapping, index,
+-						GFP_KERNEL & mapping_gfp_mask(mapping));
++					GFP_KERNEL & mapping_gfp_mask(mapping));
+ 			if (unlikely(error)) {
+ 				page_cache_release(page);
+ 				if (error == -EEXIST)
+diff -puN mm/filemap.c~mm-do-not-ignore-mapping_gfp_mask-in-page-cache-allocation-paths-checkpatch-fixes mm/filemap.c
+--- a/mm/filemap.c~mm-do-not-ignore-mapping_gfp_mask-in-page-cache-allocation-paths-checkpatch-fixes
++++ a/mm/filemap.c
+@@ -1664,9 +1664,8 @@ no_cached_page:
+ 			error = -ENOMEM;
+ 			goto out;
  		}
- 	}
- 	return 0;
+-		error = add_to_page_cache_lru(page, mapping,
+-						index,
+-						GFP_KERNEL & mapping_gfp_mask(mapping));
++		error = add_to_page_cache_lru(page, mapping, index,
++					GFP_KERNEL & mapping_gfp_mask(mapping));
+ 		if (error) {
+ 			page_cache_release(page);
+ 			if (error == -EEXIST) {
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+ocfs2-reduce-object-size-of-mlog-uses.patch
+ocfs2-remove-__mlog_cpu_guess.patch
+ocfs2-fix-null-pointer-dereference-in-function-ocfs2_abort_trigger.patch
+mm-slab_common-support-the-slub_debug-boot-option-on-specific-object-size.patch
+mm-fix-mprotect-behaviour-on-vm_locked-vmas.patch
+mm-new-mm-hook-framework.patch
+mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling.patch
+rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list.patch
 hugetlb-do-not-account-hugetlb-pages-as-nr_file_pages.patch
-mm-hugetlb-document-the-reserve-map-region-tracking-routines.patch
-mm-hugetlb-compute-return-the-number-of-regions-added-by-region_add.patch
-mm-hugetlb-handle-races-in-alloc_huge_page-and-hugetlb_reserve_pages.patch
+mm-do-not-ignore-mapping_gfp_mask-in-page-cache-allocation-paths.patch
 
