@@ -1,98 +1,202 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-do-not-ignore-mapping_gfp_mask-in-page-cache-allocation-paths-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 24 Jun 2015 16:48:55 -0700
-Message-ID: <558b41e7.Iuvz0l6NT7sZuQjk%akpm@linux-foundation.org>
+ mm-kmemleak-optimise-kmemleak_lock-acquiring-during-kmemleak_scan-v2.patch
+ removed from -mm tree
+Date: Wed, 24 Jun 2015 16:49:20 -0700
+Message-ID: <558b4200.p9aVnaCSw6vyHcUq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40598 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40600 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752372AbbFXXs4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jun 2015 19:48:56 -0400
+	with ESMTP id S1752068AbbFXXtV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 24 Jun 2015 19:49:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: catalin.marinas@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-do-not-ignore-mapping_gfp_mask-in-page-cache-allocation-paths-checkpatch-fixes
+     Subject: mm-kmemleak-optimise-kmemleak_lock-acquiring-during-kmemleak_scan-v2
 has been removed from the -mm tree.  Its filename was
-     mm-do-not-ignore-mapping_gfp_mask-in-page-cache-allocation-paths-checkpatch-fixes.patch
+     mm-kmemleak-optimise-kmemleak_lock-acquiring-during-kmemleak_scan-v2.patch
 
-This patch was dropped because it was folded into mm-do-not-ignore-mapping_gfp_mask-in-page-cache-allocation-paths.patch
+This patch was dropped because it was folded into mm-kmemleak-optimise-kmemleak_lock-acquiring-during-kmemleak_scan.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-do-not-ignore-mapping_gfp_mask-in-page-cache-allocation-paths-checkpatch-fixes
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: mm-kmemleak-optimise-kmemleak_lock-acquiring-during-kmemleak_scan-v2
 
-WARNING: line over 80 characters
-#53: FILE: fs/splice.c:362:
-+						GFP_KERNEL & mapping_gfp_mask(mapping));
+- scan_block() allow_resched logic moved outside the function since the
+  interrupts inside kmemleak_lock region are disabled.
+- introduced a scan_large_block() function to split large memory blocks
+  in MAX_SCAN_SIZE chunks
+- redundant object->flags & OBJECT_NO_SCAN check removed
 
-WARNING: line over 80 characters
-#66: FILE: mm/filemap.c:1669:
-+						GFP_KERNEL & mapping_gfp_mask(mapping));
-
-total: 0 errors, 2 warnings, 35 lines checked
-
-./patches/mm-do-not-ignore-mapping_gfp_mask-in-page-cache-allocation-paths.patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Michal Hocko <mhocko@suse.cz>
+Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/splice.c  |    2 +-
- mm/filemap.c |    5 ++---
- 2 files changed, 3 insertions(+), 4 deletions(-)
+ mm/kmemleak.c |   66 ++++++++++++++++++++++++++----------------------
+ 1 file changed, 37 insertions(+), 29 deletions(-)
 
-diff -puN fs/splice.c~mm-do-not-ignore-mapping_gfp_mask-in-page-cache-allocation-paths-checkpatch-fixes fs/splice.c
---- a/fs/splice.c~mm-do-not-ignore-mapping_gfp_mask-in-page-cache-allocation-paths-checkpatch-fixes
-+++ a/fs/splice.c
-@@ -359,7 +359,7 @@ __generic_file_splice_read(struct file *
- 				break;
+diff -puN mm/kmemleak.c~mm-kmemleak-optimise-kmemleak_lock-acquiring-during-kmemleak_scan-v2 mm/kmemleak.c
+--- a/mm/kmemleak.c~mm-kmemleak-optimise-kmemleak_lock-acquiring-during-kmemleak_scan-v2
++++ a/mm/kmemleak.c
+@@ -1171,24 +1171,18 @@ static int scan_should_stop(void)
+  * found to the gray list.
+  */
+ static void scan_block(void *_start, void *_end,
+-		       struct kmemleak_object *scanned, int allow_resched)
++		       struct kmemleak_object *scanned)
+ {
+ 	unsigned long *ptr;
+ 	unsigned long *start = PTR_ALIGN(_start, BYTES_PER_POINTER);
+ 	unsigned long *end = _end - (BYTES_PER_POINTER - 1);
+-	unsigned long klflags;
++	unsigned long flags;
  
- 			error = add_to_page_cache_lru(page, mapping, index,
--						GFP_KERNEL & mapping_gfp_mask(mapping));
-+					GFP_KERNEL & mapping_gfp_mask(mapping));
- 			if (unlikely(error)) {
- 				page_cache_release(page);
- 				if (error == -EEXIST)
-diff -puN mm/filemap.c~mm-do-not-ignore-mapping_gfp_mask-in-page-cache-allocation-paths-checkpatch-fixes mm/filemap.c
---- a/mm/filemap.c~mm-do-not-ignore-mapping_gfp_mask-in-page-cache-allocation-paths-checkpatch-fixes
-+++ a/mm/filemap.c
-@@ -1664,9 +1664,8 @@ no_cached_page:
- 			error = -ENOMEM;
- 			goto out;
+-	read_lock_irqsave(&kmemleak_lock, klflags);
++	read_lock_irqsave(&kmemleak_lock, flags);
+ 	for (ptr = start; ptr < end; ptr++) {
+ 		struct kmemleak_object *object;
+-		unsigned long flags;
+ 		unsigned long pointer;
+ 
+-		if (allow_resched && need_resched()) {
+-			read_unlock_irqrestore(&kmemleak_lock, klflags);
+-			cond_resched();
+-			read_lock_irqsave(&kmemleak_lock, klflags);
+-		}
+ 		if (scan_should_stop())
+ 			break;
+ 
+@@ -1222,11 +1216,10 @@ static void scan_block(void *_start, voi
+ 		 * previously acquired in scan_object(). These locks are
+ 		 * enclosed by scan_mutex.
+ 		 */
+-		spin_lock_irqsave_nested(&object->lock, flags,
+-					 SINGLE_DEPTH_NESTING);
++		spin_lock_nested(&object->lock, SINGLE_DEPTH_NESTING);
+ 		if (!color_white(object)) {
+ 			/* non-orphan, ignored or new */
+-			spin_unlock_irqrestore(&object->lock, flags);
++			spin_unlock(&object->lock);
+ 			continue;
  		}
--		error = add_to_page_cache_lru(page, mapping,
--						index,
--						GFP_KERNEL & mapping_gfp_mask(mapping));
-+		error = add_to_page_cache_lru(page, mapping, index,
-+					GFP_KERNEL & mapping_gfp_mask(mapping));
- 		if (error) {
- 			page_cache_release(page);
- 			if (error == -EEXIST) {
+ 
+@@ -1241,13 +1234,25 @@ static void scan_block(void *_start, voi
+ 			/* put_object() called when removing from gray_list */
+ 			WARN_ON(!get_object(object));
+ 			list_add_tail(&object->gray_list, &gray_list);
+-			spin_unlock_irqrestore(&object->lock, flags);
+-			continue;
+ 		}
++		spin_unlock(&object->lock);
++	}
++	read_unlock_irqrestore(&kmemleak_lock, flags);
++}
+ 
+-		spin_unlock_irqrestore(&object->lock, flags);
++/*
++ * Scan a large memory block in MAX_SCAN_SIZE chunks to reduce the latency.
++ */
++static void scan_large_block(void *start, void *end)
++{
++	void *next;
++
++	while (start < end) {
++		next = min(start + MAX_SCAN_SIZE, end);
++		scan_block(start, next, NULL);
++		start = next;
++		cond_resched();
+ 	}
+-	read_unlock_irqrestore(&kmemleak_lock, klflags);
+ }
+ 
+ /*
+@@ -1272,22 +1277,25 @@ static void scan_object(struct kmemleak_
+ 	if (hlist_empty(&object->area_list)) {
+ 		void *start = (void *)object->pointer;
+ 		void *end = (void *)(object->pointer + object->size);
++		void *next;
+ 
+-		while (start < end && (object->flags & OBJECT_ALLOCATED) &&
+-		       !(object->flags & OBJECT_NO_SCAN)) {
+-			scan_block(start, min(start + MAX_SCAN_SIZE, end),
+-				   object, 0);
+-			start += MAX_SCAN_SIZE;
++		do {
++			next = min(start + MAX_SCAN_SIZE, end);
++			scan_block(start, next, object);
++
++			start = next;
++			if (start >= end)
++				break;
+ 
+ 			spin_unlock_irqrestore(&object->lock, flags);
+ 			cond_resched();
+ 			spin_lock_irqsave(&object->lock, flags);
+-		}
++		} while (object->flags & OBJECT_ALLOCATED);
+ 	} else
+ 		hlist_for_each_entry(area, &object->area_list, node)
+ 			scan_block((void *)area->start,
+ 				   (void *)(area->start + area->size),
+-				   object, 0);
++				   object);
+ out:
+ 	spin_unlock_irqrestore(&object->lock, flags);
+ }
+@@ -1364,14 +1372,14 @@ static void kmemleak_scan(void)
+ 	rcu_read_unlock();
+ 
+ 	/* data/bss scanning */
+-	scan_block(_sdata, _edata, NULL, 1);
+-	scan_block(__bss_start, __bss_stop, NULL, 1);
++	scan_large_block(_sdata, _edata);
++	scan_large_block(__bss_start, __bss_stop);
+ 
+ #ifdef CONFIG_SMP
+ 	/* per-cpu sections scanning */
+ 	for_each_possible_cpu(i)
+-		scan_block(__per_cpu_start + per_cpu_offset(i),
+-			   __per_cpu_end + per_cpu_offset(i), NULL, 1);
++		scan_large_block(__per_cpu_start + per_cpu_offset(i),
++				 __per_cpu_end + per_cpu_offset(i));
+ #endif
+ 
+ 	/*
+@@ -1392,7 +1400,7 @@ static void kmemleak_scan(void)
+ 			/* only scan if page is in use */
+ 			if (page_count(page) == 0)
+ 				continue;
+-			scan_block(page, page + 1, NULL, 1);
++			scan_block(page, page + 1, NULL);
+ 		}
+ 	}
+ 	put_online_mems();
+@@ -1406,7 +1414,7 @@ static void kmemleak_scan(void)
+ 		read_lock(&tasklist_lock);
+ 		do_each_thread(g, p) {
+ 			scan_block(task_stack_page(p), task_stack_page(p) +
+-				   THREAD_SIZE, NULL, 0);
++				   THREAD_SIZE, NULL);
+ 		} while_each_thread(g, p);
+ 		read_unlock(&tasklist_lock);
+ 	}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from catalin.marinas@arm.com are
 
 origin.patch
-ocfs2-reduce-object-size-of-mlog-uses.patch
-ocfs2-remove-__mlog_cpu_guess.patch
-ocfs2-fix-null-pointer-dereference-in-function-ocfs2_abort_trigger.patch
-mm-slab_common-support-the-slub_debug-boot-option-on-specific-object-size.patch
-mm-fix-mprotect-behaviour-on-vm_locked-vmas.patch
-mm-new-mm-hook-framework.patch
-mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling.patch
-rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list.patch
-hugetlb-do-not-account-hugetlb-pages-as-nr_file_pages.patch
-mm-do-not-ignore-mapping_gfp_mask-in-page-cache-allocation-paths.patch
+mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare.patch
+mm-kmemleak-allow-safe-memory-scanning-during-kmemleak-disabling.patch
+mm-kmemleak-fix-delete_object_-race-when-called-on-the-same-memory-block.patch
+mm-kmemleak-do-not-acquire-scan_mutex-in-kmemleak_do_cleanup.patch
+mm-kmemleak-avoid-deadlock-on-the-kmemleak-object-insertion-error-path.patch
+mm-kmemleak-optimise-kmemleak_lock-acquiring-during-kmemleak_scan.patch
+mm-kmemleak_alloc_percpu-should-follow-the-gfp-from-per_alloc.patch
 
