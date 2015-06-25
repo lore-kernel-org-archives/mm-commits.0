@@ -1,104 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- zram-check-comp-algorithm-availability-earlier-v2.patch removed from -mm
- tree
-Date: Thu, 25 Jun 2015 14:49:54 -0700
-Message-ID: <558c7782.32bxORe8Fx+USLFs%akpm@linux-foundation.org>
+Subject: [folded-merged] zswap-runtime-enable-disable-fix.patch removed
+ from -mm tree
+Date: Thu, 25 Jun 2015 14:50:12 -0700
+Message-ID: <558c7794./V1h7uNfmMZYBHtH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40644 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40647 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751201AbbFYVtz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 25 Jun 2015 17:49:55 -0400
+	with ESMTP id S1751201AbbFYVuO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 25 Jun 2015 17:50:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sergey.senozhatsky@gmail.com, m.jabrzyk@samsung.com, minchan@kernel.org, ngupta@vflare.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ddstreet@ieee.org, sjennings@variantweb.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram-check-comp-algorithm-availability-earlier-v2
+     Subject: zswap-runtime-enable-disable-fix
 has been removed from the -mm tree.  Its filename was
-     zram-check-comp-algorithm-availability-earlier-v2.patch
+     zswap-runtime-enable-disable-fix.patch
 
-This patch was dropped because it was folded into zram-check-comp-algorithm-availability-earlier.patch
+This patch was dropped because it was folded into zswap-runtime-enable-disable.patch
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: zram-check-comp-algorithm-availability-earlier-v2
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: zswap-runtime-enable-disable-fix
 
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Marcin Jabrzyk <m.jabrzyk@samsung.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Nitin Gupta <ngupta@vflare.org>
+tweak documentation
+
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Seth Jennings <sjennings@variantweb.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zcomp.c    |   10 +++++-----
- drivers/block/zram/zram_drv.c |    5 +----
- 2 files changed, 6 insertions(+), 9 deletions(-)
+ Documentation/vm/zswap.txt |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN drivers/block/zram/zcomp.c~zram-check-comp-algorithm-availability-earlier-v2 drivers/block/zram/zcomp.c
---- a/drivers/block/zram/zcomp.c~zram-check-comp-algorithm-availability-earlier-v2
-+++ a/drivers/block/zram/zcomp.c
-@@ -286,6 +286,11 @@ ssize_t zcomp_available_show(const char
- 	return sz;
- }
+diff -puN Documentation/vm/zswap.txt~zswap-runtime-enable-disable-fix Documentation/vm/zswap.txt
+--- a/Documentation/vm/zswap.txt~zswap-runtime-enable-disable-fix
++++ a/Documentation/vm/zswap.txt
+@@ -27,21 +27,21 @@ device when the compressed pool reaches
+ been identified in prior community discussions.
  
-+bool zcomp_available_algorithm(const char *comp)
-+{
-+	return find_backend(comp) != NULL;
-+}
-+
- bool zcomp_set_max_streams(struct zcomp *comp, int num_strm)
- {
- 	return comp->set_max_streams(comp, num_strm);
-@@ -320,11 +325,6 @@ void zcomp_destroy(struct zcomp *comp)
- 	kfree(comp);
- }
+ Zswap is disabled by default but can be enabled at boot time by setting
+-the "enabled" attribute to 1 at boot time. e.g. zswap.enabled=1. Zswap
++the "enabled" attribute to 1 at boot time. ie: zswap.enabled=1.  Zswap
+ can also be enabled and disabled at runtime using the sysfs interface.
+-An exmaple command to enable zswap at runtime, assuming sysfs is mounted
++An example command to enable zswap at runtime, assuming sysfs is mounted
+ at /sys, is:
  
--bool zcomp_available_algorithm(const char *comp)
--{
--	return find_backend(comp) != NULL;
--}
--
- /*
-  * search available compressors for requested algorithm.
-  * allocate new zcomp and initialize it. return compressing
-diff -puN drivers/block/zram/zram_drv.c~zram-check-comp-algorithm-availability-earlier-v2 drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-check-comp-algorithm-availability-earlier-v2
-+++ a/drivers/block/zram/zram_drv.c
-@@ -378,11 +378,8 @@ static ssize_t comp_algorithm_store(stru
- 	if (sz > 0 && zram->compressor[sz - 1] == '\n')
- 		zram->compressor[sz - 1] = 0x00;
+ echo 1 > /sys/modules/zswap/parameters/enabled
  
--	if (!zcomp_available_algorithm(zram->compressor)) {
--		pr_err("Error: unavailable compression algorithm: %s\n",
--				zram->compressor);
-+	if (!zcomp_available_algorithm(zram->compressor))
- 		len = -EINVAL;
--	}
+-When zswap is disabled at runtime, it will stop storing pages that are
+-being swapped out. However, it will _not_ immediately write out or
+-fault back into memory all of the pages stored in the compressed pool.
+-The pages stored in zswap will continue to remain in the compressed pool
+-until they are either invalidated or faulted back into memory. In order
+-to force all pages out of the compressed pool, a swapoff on the swap
+-device(s) will fault all swapped out pages, included those in the
+-compressed pool, back into memory.
++When zswap is disabled at runtime it will stop storing pages that are
++being swapped out.  However, it will _not_ immediately write out or fault
++back into memory all of the pages stored in the compressed pool.  The
++pages stored in zswap will remain in the compressed pool until they are
++either invalidated or faulted back into memory.  In order to force all
++pages out of the compressed pool, a swapoff on the swap device(s) will
++fault back into memory all swapped out pages, including those in the
++compressed pool.
  
- 	up_write(&zram->init_lock);
- 	return len;
+ Design:
+ 
 _
 
-Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-zram-add-compact-sysfs-entry-to-documentation.patch
-zram-cosmetic-zram_attr_ro-code-formatting-tweak.patch
-zram-use-idr-instead-of-zram_devices-array.patch
-zram-reorganize-code-layout.patch
-zram-remove-max_num_devices-limitation.patch
-zram-report-every-added-and-removed-device.patch
-zram-trivial-correct-flag-operations-comment.patch
-zram-return-zram-device_id-from-zram_add.patch
-zram-close-race-by-open-overriding.patch
-zram-add-dynamic-device-add-remove-functionality.patch
-zram-cosmetic-zram_bvec_write-cleanup.patch
-zram-cut-trailing-newline-in-algorithm-name.patch
-zram-check-comp-algorithm-availability-earlier.patch
+s390-mm-change-hpage_shift-type-to-int.patch
+zswap-runtime-enable-disable.patch
+prctl-more-prctlpr_set_mm_-checks-fix.patch
+proc-fix-page_size-limit-of-proc-pid-cmdline-fix.patch
+maintainers-davidlohr-has-moved.patch
+bitmap-remove-explicit-newline-handling-using-scnprintf-format-string-fix.patch
+radix-tree-replace-preallocated-node-array-with-linked-list-fix.patch
+checkpatch-emit-an-error-when-theres-a-diff-in-a-changelog.patch
+init-do_mounts-add-create_dev-failure-log-fix.patch
 
