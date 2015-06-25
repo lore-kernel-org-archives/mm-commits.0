@@ -1,77 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] zswap-runtime-enable-disable-fix.patch removed
- from -mm tree
-Date: Thu, 25 Jun 2015 14:50:12 -0700
-Message-ID: <558c7794./V1h7uNfmMZYBHtH%akpm@linux-foundation.org>
+Subject: [folded-merged] prctl-more-prctlpr_set_mm_-checks-fix.patch
+ removed from -mm tree
+Date: Thu, 25 Jun 2015 14:50:34 -0700
+Message-ID: <558c77aa.w2pPbllIptTVdFNZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40647 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40650 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751201AbbFYVuO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 25 Jun 2015 17:50:14 -0400
+	with ESMTP id S1751614AbbFYVuf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 25 Jun 2015 17:50:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ddstreet@ieee.org, sjennings@variantweb.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, adobriyan@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zswap-runtime-enable-disable-fix
+     Subject: prctl-more-prctlpr_set_mm_-checks-fix
 has been removed from the -mm tree.  Its filename was
-     zswap-runtime-enable-disable-fix.patch
+     prctl-more-prctlpr_set_mm_-checks-fix.patch
 
-This patch was dropped because it was folded into zswap-runtime-enable-disable.patch
+This patch was dropped because it was folded into prctl-more-prctlpr_set_mm_-checks.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: zswap-runtime-enable-disable-fix
+Subject: prctl-more-prctlpr_set_mm_-checks-fix
 
-tweak documentation
+tidy code, tweak comment
 
-Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: Seth Jennings <sjennings@variantweb.net>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/zswap.txt |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ kernel/sys.c |   13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN Documentation/vm/zswap.txt~zswap-runtime-enable-disable-fix Documentation/vm/zswap.txt
---- a/Documentation/vm/zswap.txt~zswap-runtime-enable-disable-fix
-+++ a/Documentation/vm/zswap.txt
-@@ -27,21 +27,21 @@ device when the compressed pool reaches
- been identified in prior community discussions.
+diff -puN kernel/sys.c~prctl-more-prctlpr_set_mm_-checks-fix kernel/sys.c
+--- a/kernel/sys.c~prctl-more-prctlpr_set_mm_-checks-fix
++++ a/kernel/sys.c
+@@ -1902,15 +1902,14 @@ out:
+ }
+ #endif /* CONFIG_CHECKPOINT_RESTORE */
  
- Zswap is disabled by default but can be enabled at boot time by setting
--the "enabled" attribute to 1 at boot time. e.g. zswap.enabled=1. Zswap
-+the "enabled" attribute to 1 at boot time. ie: zswap.enabled=1.  Zswap
- can also be enabled and disabled at runtime using the sysfs interface.
--An exmaple command to enable zswap at runtime, assuming sysfs is mounted
-+An example command to enable zswap at runtime, assuming sysfs is mounted
- at /sys, is:
- 
- echo 1 > /sys/modules/zswap/parameters/enabled
- 
--When zswap is disabled at runtime, it will stop storing pages that are
--being swapped out. However, it will _not_ immediately write out or
--fault back into memory all of the pages stored in the compressed pool.
--The pages stored in zswap will continue to remain in the compressed pool
--until they are either invalidated or faulted back into memory. In order
--to force all pages out of the compressed pool, a swapoff on the swap
--device(s) will fault all swapped out pages, included those in the
--compressed pool, back into memory.
-+When zswap is disabled at runtime it will stop storing pages that are
-+being swapped out.  However, it will _not_ immediately write out or fault
-+back into memory all of the pages stored in the compressed pool.  The
-+pages stored in zswap will remain in the compressed pool until they are
-+either invalidated or faulted back into memory.  In order to force all
-+pages out of the compressed pool, a swapoff on the swap device(s) will
-+fault back into memory all swapped out pages, including those in the
-+compressed pool.
- 
- Design:
+-static int prctl_set_auxv(struct mm_struct *mm, unsigned long addr, unsigned long len)
++static int prctl_set_auxv(struct mm_struct *mm, unsigned long addr,
++			  unsigned long len)
+ {
+ 	/*
+-	 * This doesn't move auxiliary vector itself
+-	 * since it's pinned to mm_struct, but allow
+-	 * to fill vector with new values. It's up
+-	 * to a caller to provide sane values here
+-	 * otherwise user space tools which use this
+-	 * vector might be unhappy.
++	 * This doesn't move the auxiliary vector itself since it's pinned to
++	 * mm_struct, but it permits filling the vector with new values.  It's
++	 * up to the caller to provide sane values here, otherwise userspace
++	 * tools which use this vector might be unhappy.
+ 	 */
+ 	unsigned long user_auxv[AT_VECTOR_SIZE];
  
 _
 
@@ -80,7 +69,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 s390-mm-change-hpage_shift-type-to-int.patch
 zswap-runtime-enable-disable.patch
-prctl-more-prctlpr_set_mm_-checks-fix.patch
+prctl-more-prctlpr_set_mm_-checks.patch
 proc-fix-page_size-limit-of-proc-pid-cmdline-fix.patch
 maintainers-davidlohr-has-moved.patch
 bitmap-remove-explicit-newline-handling-using-scnprintf-format-string-fix.patch
