@@ -1,61 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- clone-support-passing-tls-argument-via-c-rather-than-pt_regs-magic-fix-2.patch removed from -mm tree
-Date: Thu, 25 Jun 2015 14:51:50 -0700
-Message-ID: <558c77f6.kU5lUe+wRE/41S0P%akpm@linux-foundation.org>
+Subject: [folded-merged] lib-sort-add-64-bit-swap-function-v2.patch
+ removed from -mm tree
+Date: Thu, 25 Jun 2015 14:52:51 -0700
+Message-ID: <558c7833.u89APwIP5u510G9j%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40686 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40691 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752231AbbFYVvv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 25 Jun 2015 17:51:51 -0400
+	with ESMTP id S1752047AbbFYVww (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 25 Jun 2015 17:52:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: josh@joshtriplett.org, fengguang.wu@gmail.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: daniel.wagner@bmw-carit.de, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Fix "clone: Support passing tls argument via C rather than pt_regs magic" for s390
+     Subject: lib-sort-add-64-bit-swap-function-v2
 has been removed from the -mm tree.  Its filename was
-     clone-support-passing-tls-argument-via-c-rather-than-pt_regs-magic-fix-2.patch
+     lib-sort-add-64-bit-swap-function-v2.patch
 
-This patch was dropped because it was folded into clone-support-passing-tls-argument-via-c-rather-than-pt_regs-magic.patch
+This patch was dropped because it was folded into lib-sort-add-64-bit-swap-function.patch
 
 ------------------------------------------------------
-From: Josh Triplett <josh@joshtriplett.org>
-Subject: Fix "clone: Support passing tls argument via C rather than pt_regs magic" for s390
+From: Daniel Wagner <daniel.wagner@bmw-carit.de>
+Subject: lib-sort-add-64-bit-swap-function-v2
 
-s390 has duplicate syscall prototypes; change the type of tls to match
-the change to sys_clone.
+Changes since v0:
+	- Test for alignment of the array.
+	- Fixed compare function in test program according
+	  Rasmus' feedback
+	- Added an unaligned test cases (swap_72)
 
-Signed-off-by: Josh Triplett <josh@joshtriplett.org>
-Reported-by: Fengguang Wu <fengguang.wu@gmail.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Daniel Wagner <daniel.wagner@bmw-carit.de>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/kernel/compat_wrapper.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/sort.c |   18 ++++++++++++++++--
+ 1 file changed, 16 insertions(+), 2 deletions(-)
 
-diff -puN arch/s390/kernel/compat_wrapper.c~clone-support-passing-tls-argument-via-c-rather-than-pt_regs-magic-fix-2 arch/s390/kernel/compat_wrapper.c
---- a/arch/s390/kernel/compat_wrapper.c~clone-support-passing-tls-argument-via-c-rather-than-pt_regs-magic-fix-2
-+++ a/arch/s390/kernel/compat_wrapper.c
-@@ -202,7 +202,7 @@ COMPAT_SYSCALL_WRAP1(epoll_create1, int,
- COMPAT_SYSCALL_WRAP2(tkill, int, pid, int, sig);
- COMPAT_SYSCALL_WRAP3(tgkill, int, tgid, int, pid, int, sig);
- COMPAT_SYSCALL_WRAP5(perf_event_open, struct perf_event_attr __user *, attr_uptr, pid_t, pid, int, cpu, int, group_fd, unsigned long, flags);
--COMPAT_SYSCALL_WRAP5(clone, unsigned long, newsp, unsigned long, clone_flags, int __user *, parent_tidptr, int __user *, child_tidptr, int, tls_val);
-+COMPAT_SYSCALL_WRAP5(clone, unsigned long, newsp, unsigned long, clone_flags, int __user *, parent_tidptr, int __user *, child_tidptr, unsigned long, tls);
- COMPAT_SYSCALL_WRAP2(fanotify_init, unsigned int, flags, unsigned int, event_f_flags);
- COMPAT_SYSCALL_WRAP4(prlimit64, pid_t, pid, unsigned int, resource, const struct rlimit64 __user *, new_rlim, struct rlimit64 __user *, old_rlim);
- COMPAT_SYSCALL_WRAP5(name_to_handle_at, int, dfd, const char __user *, name, struct file_handle __user *, handle, int __user *, mnt_id, int, flag);
+diff -puN lib/sort.c~lib-sort-add-64-bit-swap-function-v2 lib/sort.c
+--- a/lib/sort.c~lib-sort-add-64-bit-swap-function-v2
++++ a/lib/sort.c
+@@ -58,6 +58,7 @@ void sort(void *base, size_t num, size_t
+ 	int i = (num/2 - 1) * size, n = num * size, c, r;
+ 
+ 	if (!swap_func) {
++#if defined(CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS)
+ 		switch (size) {
+ 		case 4:
+ 			swap_func = u32_swap;
+@@ -65,9 +66,22 @@ void sort(void *base, size_t num, size_t
+ 		case 8:
+ 			swap_func = u64_swap;
+ 			break;
+-		default:
+-			swap_func = generic_swap;
+ 		}
++#else
++		switch (size) {
++		case 4:
++			if (((unsigned long)base & 3) == 0)
++				swap_func = u32_swap;
++			break;
++		case 8:
++			if (((unsigned long)base & 7) == 0)
++				swap_func = u64_swap;
++			break;
++		}
++#endif /* CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS */
++
++		if (!swap_func)
++			swap_func = generic_swap;
+ 	}
+ 
+ 	/* heapify */
 _
 
-Patches currently in -mm which might be from josh@joshtriplett.org are
+Patches currently in -mm which might be from daniel.wagner@bmw-carit.de are
 
 origin.patch
-clone-support-passing-tls-argument-via-c-rather-than-pt_regs-magic.patch
+lib-sort-add-64-bit-swap-function.patch
+lib-sort-add-64-bit-swap-function-v2-fix.patch
 
