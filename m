@@ -1,132 +1,151 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- checkpatch-make-types-found-in-a-source-file-patch-local.patch removed from -mm tree
-Date: Mon, 29 Jun 2015 13:48:32 -0700
-Message-ID: <5591af20.uCqUb3SWbkrcMIsJ%akpm@linux-foundation.org>
+Subject: [merged] checkpatch-categorize-some-long-line-length-checks.patch removed from -mm tree
+Date: Mon, 29 Jun 2015 13:48:36 -0700
+Message-ID: <5591af24.zo9y9dFAqk3w+6W3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50952 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50767 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753746AbbF2Usd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:48:33 -0400
+	with ESMTP id S1753970AbbF2Ush (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:48:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexinbeijing@gmail.com, apw@canonical.com, joe@perches.com, mm-commits@vger.kernel.org
+To: joe@perches.com, dan.carpenter@oracle.com, julia.lawall@lip6.fr, shuey@purdue.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: make types found in a source file/patch local
+     Subject: checkpatch: categorize some long line length checks
 has been removed from the -mm tree.  Its filename was
-     checkpatch-make-types-found-in-a-source-file-patch-local.patch
+     checkpatch-categorize-some-long-line-length-checks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alex Dowad <alexinbeijing@gmail.com>
-Subject: checkpatch: make types found in a source file/patch local
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: categorize some long line length checks
 
-checkpatch uses various cues in its input patches and files to discover
-the names of user-defined types and modifiers.  It then uses that
-information when processing expressions to discover potential style
-issues.
+Many lines of code extend beyond the maximum line length.  Some of these
+are possibly justified by use type.
 
-Unfortunately, in rare cases, this means that checkpatch may give
-different results if you run it on several input files in one execution,
-or one by one!
+For instance:
 
-The reason is that it may identify a type (or something that looks like a
-type) in one file, and then carry this information over when processing a
-different file.
+structure definitions where comments are added per member like:
+struct foo {
+	type member;		/* some long description */
 
-For example, drivers/staging/media/bcm2048/radio-bcm2048.c contains this
-line (in a macro):
+And lines that don't fit the typical logging message style
+where a string constant is used like:
 
-	size value;
+        SOME_MACRO(args, "Some long string");
 
-and drivers/staging/media/davinci_vpfe/vpfe_video.c has this line:
+Categorize these long line types so that checkpatch can use a command-line
+--ignore=<type> option to avoid emitting some long line warnings.
 
-	while (size * *nbuffers > vpfe_dev->video_limit)
+One of the existing checkpatch exclusions allowed kernel-doc argument
+documentation to exceed 80 columns because old versions of kernel-doc
+required single line documentation.  The requirement was removed in 2009
+so remove that exclusion.
 
-If checkpatch processes these 2 files in a single command like:
-	./scripts/checkpatch.pl -f $file1 $file2
-the (spurious) "size" type detected in the first file will cause it to flag
-the second file for improper use of the pointer dereference operator.
+Add documentation to make the test a bit clearer.
 
-To fix this, store types and modifiers found in a file in separate arrays
-from built-in ones, and reset the arrays of types and modifiers found in
-files at the beginning of each new source file.
-
-Signed-off-by: Alex Dowad <alexinbeijing@gmail.com>
 Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Andy Whitcroft <apw@canonical.com>
+Cc: Julia Lawall <julia.lawall@lip6.fr>
+Cc: Michael Shuey <shuey@purdue.edu>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ scripts/checkpatch.pl |   60 +++++++++++++++++++++++++++++++++-------
+ 1 file changed, 50 insertions(+), 10 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-make-types-found-in-a-source-file-patch-local scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-make-types-found-in-a-source-file-patch-local
+diff -puN scripts/checkpatch.pl~checkpatch-categorize-some-long-line-length-checks scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-categorize-some-long-line-length-checks
 +++ a/scripts/checkpatch.pl
-@@ -423,6 +423,7 @@ our @typeList = (
- 	qr{${Ident}_handler_fn},
- 	@typeListMisordered,
- );
-+our @typeListFile = ();
- our @typeListWithAttr = (
- 	@typeList,
- 	qr{struct\s+$InitAttribute\s+$Ident},
-@@ -432,6 +433,7 @@ our @typeListWithAttr = (
- our @modifierList = (
- 	qr{fastcall},
- );
-+our @modifierListFile = ();
+@@ -2517,16 +2517,56 @@ sub process {
+ # check we are in a valid source file if not then ignore this hunk
+ 		next if ($realfile !~ /\.(h|c|s|S|pl|sh|dtsi|dts)$/);
  
- our @mode_permission_funcs = (
- 	["module_param", 3],
-@@ -515,8 +517,8 @@ if ($codespell) {
- $misspellings = join("|", sort keys %spelling_fix) if keys %spelling_fix;
- 
- sub build_types {
--	my $mods = "(?x:  \n" . join("|\n  ", @modifierList) . "\n)";
--	my $all = "(?x:  \n" . join("|\n  ", @typeList) . "\n)";
-+	my $mods = "(?x:  \n" . join("|\n  ", (@modifierList, @modifierListFile)) . "\n)";
-+	my $all = "(?x:  \n" . join("|\n  ", (@typeList, @typeListFile)) . "\n)";
- 	my $Misordered = "(?x:  \n" . join("|\n  ", @typeListMisordered) . "\n)";
- 	my $allWithAttr = "(?x:  \n" . join("|\n  ", @typeListWithAttr) . "\n)";
- 	$Modifier	= qr{(?:$Attribute|$Sparse|$mods)};
-@@ -748,6 +750,9 @@ for my $filename (@ARGV) {
- 	@fixed_inserted = ();
- 	@fixed_deleted = ();
- 	$fixlinenr = -1;
-+	@modifierListFile = ();
-+	@typeListFile = ();
-+	build_types();
- }
- 
- exit($exit);
-@@ -1612,13 +1617,13 @@ sub possible {
- 			for my $modifier (split(' ', $possible)) {
- 				if ($modifier !~ $notPermitted) {
- 					warn "MODIFIER: $modifier ($possible) ($line)\n" if ($dbg_possible);
--					push(@modifierList, $modifier);
-+					push(@modifierListFile, $modifier);
- 				}
- 			}
- 
- 		} else {
- 			warn "POSSIBLE: $possible ($line)\n" if ($dbg_possible);
--			push(@typeList, $possible);
-+			push(@typeListFile, $possible);
+-#line length limit
+-		if ($line =~ /^\+/ && $prevrawline !~ /\/\*\*/ &&
+-		    $rawline !~ /^.\s*\*\s*\@$Ident\s/ &&
+-		    !($line =~ /^\+\s*$logFunctions\s*\(\s*(?:(KERN_\S+\s*|[^"]*))?$String\s*(?:|,|\)\s*;)\s*$/ ||
+-		      $line =~ /^\+\s*$String\s*(?:\s*|,|\)\s*;)\s*$/ ||
+-		      $line =~ /^\+\s*#\s*define\s+\w+\s+$String$/) &&
+-		    $length > $max_line_length)
+-		{
+-			WARN("LONG_LINE",
+-			     "line over $max_line_length characters\n" . $herecurr);
++# line length limit (with some exclusions)
++#
++# There are a few types of lines that may extend beyond $max_line_length:
++#	logging functions like pr_info that end in a string
++#	lines with a single string
++#	#defines that are a single string
++#
++# There are 3 different line length message types:
++# LONG_LINE_COMMENT	a comment starts before but extends beyond $max_linelength
++# LONG_LINE_STRING	a string starts before but extends beyond $max_line_length
++# LONG_LINE		all other lines longer than $max_line_length
++#
++# if LONG_LINE is ignored, the other 2 types are also ignored
++#
++
++		if ($length > $max_line_length) {
++			my $msg_type = "LONG_LINE";
++
++			# Check the allowed long line types first
++
++			# logging functions that end in a string that starts
++			# before $max_line_length
++			if ($line =~ /^\+\s*$logFunctions\s*\(\s*(?:(?:KERN_\S+\s*|[^"]*))?($String\s*(?:|,|\)\s*;)\s*)$/ &&
++			    length(expand_tabs(substr($line, 1, length($line) - length($1) - 1))) <= $max_line_length) {
++				$msg_type = "";
++
++			# lines with only strings (w/ possible termination)
++			# #defines with only strings
++			} elsif ($line =~ /^\+\s*$String\s*(?:\s*|,|\)\s*;)\s*$/ ||
++				 $line =~ /^\+\s*#\s*define\s+\w+\s+$String$/) {
++				$msg_type = "";
++
++			# Otherwise set the alternate message types
++
++			# a comment starts before $max_line_length
++			} elsif ($line =~ /($;[\s$;]*)$/ &&
++				 length(expand_tabs(substr($line, 1, length($line) - length($1) - 1))) <= $max_line_length) {
++				$msg_type = "LONG_LINE_COMMENT"
++
++			# a quoted string starts before $max_line_length
++			} elsif ($sline =~ /\s*($String(?:\s*(?:\\|,\s*|\)\s*;\s*))?)$/ &&
++				 length(expand_tabs(substr($line, 1, length($line) - length($1) - 1))) <= $max_line_length) {
++				$msg_type = "LONG_LINE_STRING"
++			}
++
++			if ($msg_type ne "" &&
++			    (show_type("LONG_LINE") || show_type($msg_type))) {
++				WARN($msg_type,
++				     "line over $max_line_length characters\n" . $herecurr);
++			}
  		}
- 		build_types();
- 	} else {
+ 
+ # check for adding lines without a newline.
 _
 
-Patches currently in -mm which might be from alexinbeijing@gmail.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
+ocfs2-neaten-do_error-ocfs2_error-and-ocfs2_abort.patch
+mm-utilc-add-kstrimdup.patch
+linux-next.patch
+printk-improve-the-description-of-dev-kmsg-line-format.patch
+fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void.patch
+fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix.patch
+maintainers-update-sound-soc-intel-patterns.patch
+maintainers-update-brcm-dts-pattern.patch
+maintainers-update-brcm-gpio-filename-pattern.patch
+maintainers-remove-unused-nbdh-pattern.patch
+maintainers-move-jens-osterkamp-to-credits.patch
+maintainers-bcache-kent-overstreet-has-changed-email-address.patch
 
