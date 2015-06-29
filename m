@@ -1,223 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pratyush-anand-has-moved.patch removed from -mm tree
-Date: Mon, 29 Jun 2015 13:47:03 -0700
-Message-ID: <5591aec7.ub3uBok1SDil1FgM%akpm@linux-foundation.org>
+Subject: [merged]
+ netconsole-remove-unnecessary-netconsole_target_get-out-from-write_msg.patch removed from -mm tree
+Date: Mon, 29 Jun 2015 13:47:22 -0700
+Message-ID: <5591aeda.XWBJ5BO583gF/3+z%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50763 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50748 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754120AbbF2UrT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:47:19 -0400
+	with ESMTP id S1753886AbbF2UrW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:47:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pratyush.anand@gmail.com, mm-commits@vger.kernel.org
+To: tj@kernel.org, davem@davemloft.net, kay@vrfy.org, penguin-kernel@I-love.SAKURA.ne.jp, pmladek@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Pratyush Anand has moved
+     Subject: netconsole: remove unnecessary netconsole_target_get/out() from write_msg()
 has been removed from the -mm tree.  Its filename was
-     pratyush-anand-has-moved.patch
+     netconsole-remove-unnecessary-netconsole_target_get-out-from-write_msg.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Pratyush Anand <pratyush.anand@gmail.com>
-Subject: Pratyush Anand has moved
+From: Tejun Heo <tj@kernel.org>
+Subject: netconsole: remove unnecessary netconsole_target_get/out() from write_msg()
 
-pratyush.anand@st.com email-id doesn't exist anymore as I have left the
-company.  Replace ST's id with pratyush.anand@gmail.com.
+write_msg() grabs target_list_lock and walks target_list invoking
+netpool_send_udp() on each target.  Curiously, it protects each iteration
+with netconsole_target_get/put() even though it never releases
+target_list_lock which protects all the members.
 
-Signed-off-by: Pratyush Anand <pratyush.anand@gmail.com>
+While this doesn't harm anything, it doesn't serve any purpose either. 
+The items on the list can't go away while target_list_lock is held. 
+Remove the unnecessary get/put pair.
+
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Cc: David Miller <davem@davemloft.net>
+Cc: Kay Sievers <kay@vrfy.org>
+Cc: Petr Mladek <pmladek@suse.cz>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap                                             |    1 
- Documentation/ABI/testing/configfs-spear-pcie-gadget |    2 -
- Documentation/ABI/testing/sysfs-bus-usb-lvstest      |   12 +++++-----
- Documentation/misc-devices/spear-pcie-gadget.txt     |    2 -
- drivers/misc/spear13xx_pcie_gadget.c                 |    2 -
- drivers/pci/host/pcie-spear13xx.c                    |    4 +--
- drivers/phy/phy-spear1310-miphy.c                    |    4 +--
- drivers/phy/phy-spear1340-miphy.c                    |    4 +--
- drivers/usb/misc/lvstest.c                           |    2 -
- 9 files changed, 17 insertions(+), 16 deletions(-)
+ drivers/net/netconsole.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN .mailmap~pratyush-anand-has-moved .mailmap
---- a/.mailmap~pratyush-anand-has-moved
-+++ a/.mailmap
-@@ -95,6 +95,7 @@ Patrick Mochel <mochel@digitalimplant.or
- Peter A Jonsson <pj@ludd.ltu.se>
- Peter Oruba <peter@oruba.de>
- Peter Oruba <peter.oruba@amd.com>
-+Pratyush Anand <pratyush.anand@gmail.com> <pratyush.anand@st.com>
- Praveen BP <praveenbp@ti.com>
- Rajesh Shah <rajesh.shah@intel.com>
- Ralf Baechle <ralf@linux-mips.org>
-diff -puN Documentation/ABI/testing/configfs-spear-pcie-gadget~pratyush-anand-has-moved Documentation/ABI/testing/configfs-spear-pcie-gadget
---- a/Documentation/ABI/testing/configfs-spear-pcie-gadget~pratyush-anand-has-moved
-+++ a/Documentation/ABI/testing/configfs-spear-pcie-gadget
-@@ -1,7 +1,7 @@
- What:		/config/pcie-gadget
- Date:		Feb 2011
- KernelVersion:	2.6.37
--Contact:	Pratyush Anand <pratyush.anand@st.com>
-+Contact:	Pratyush Anand <pratyush.anand@gmail.com>
- Description:
+diff -puN drivers/net/netconsole.c~netconsole-remove-unnecessary-netconsole_target_get-out-from-write_msg drivers/net/netconsole.c
+--- a/drivers/net/netconsole.c~netconsole-remove-unnecessary-netconsole_target_get-out-from-write_msg
++++ a/drivers/net/netconsole.c
+@@ -744,7 +744,6 @@ static void write_msg(struct console *co
  
- 	Interface is used to configure selected dual mode PCIe controller
-diff -puN Documentation/ABI/testing/sysfs-bus-usb-lvstest~pratyush-anand-has-moved Documentation/ABI/testing/sysfs-bus-usb-lvstest
---- a/Documentation/ABI/testing/sysfs-bus-usb-lvstest~pratyush-anand-has-moved
-+++ a/Documentation/ABI/testing/sysfs-bus-usb-lvstest
-@@ -4,14 +4,14 @@ driver is bound with root hub device.
- 
- What:		/sys/bus/usb/devices/.../get_dev_desc
- Date:		March 2014
--Contact:	Pratyush Anand <pratyush.anand@st.com>
-+Contact:	Pratyush Anand <pratyush.anand@gmail.com>
- Description:
- 		Write to this node to issue "Get Device Descriptor"
- 		for Link Layer Validation device. It is needed for TD.7.06.
- 
- What:		/sys/bus/usb/devices/.../u1_timeout
- Date:		March 2014
--Contact:	Pratyush Anand <pratyush.anand@st.com>
-+Contact:	Pratyush Anand <pratyush.anand@gmail.com>
- Description:
- 		Set "U1 timeout" for the downstream port where Link Layer
- 		Validation device is connected. Timeout value must be between 0
-@@ -19,7 +19,7 @@ Description:
- 
- What:		/sys/bus/usb/devices/.../u2_timeout
- Date:		March 2014
--Contact:	Pratyush Anand <pratyush.anand@st.com>
-+Contact:	Pratyush Anand <pratyush.anand@gmail.com>
- Description:
- 		Set "U2 timeout" for the downstream port where Link Layer
- 		Validation device is connected. Timeout value must be between 0
-@@ -27,21 +27,21 @@ Description:
- 
- What:		/sys/bus/usb/devices/.../hot_reset
- Date:		March 2014
--Contact:	Pratyush Anand <pratyush.anand@st.com>
-+Contact:	Pratyush Anand <pratyush.anand@gmail.com>
- Description:
- 		Write to this node to issue "Reset" for Link Layer Validation
- 		device. It is needed for TD.7.29, TD.7.31, TD.7.34 and TD.7.35.
- 
- What:		/sys/bus/usb/devices/.../u3_entry
- Date:		March 2014
--Contact:	Pratyush Anand <pratyush.anand@st.com>
-+Contact:	Pratyush Anand <pratyush.anand@gmail.com>
- Description:
- 		Write to this node to issue "U3 entry" for Link Layer
- 		Validation device. It is needed for TD.7.35 and TD.7.36.
- 
- What:		/sys/bus/usb/devices/.../u3_exit
- Date:		March 2014
--Contact:	Pratyush Anand <pratyush.anand@st.com>
-+Contact:	Pratyush Anand <pratyush.anand@gmail.com>
- Description:
- 		Write to this node to issue "U3 exit" for Link Layer
- 		Validation device. It is needed for TD.7.36.
-diff -puN Documentation/misc-devices/spear-pcie-gadget.txt~pratyush-anand-has-moved Documentation/misc-devices/spear-pcie-gadget.txt
---- a/Documentation/misc-devices/spear-pcie-gadget.txt~pratyush-anand-has-moved
-+++ a/Documentation/misc-devices/spear-pcie-gadget.txt
-@@ -2,7 +2,7 @@ Spear PCIe Gadget Driver:
- 
- Author
- =============
--Pratyush Anand (pratyush.anand@st.com)
-+Pratyush Anand (pratyush.anand@gmail.com)
- 
- Location
- ============
-diff -puN drivers/misc/spear13xx_pcie_gadget.c~pratyush-anand-has-moved drivers/misc/spear13xx_pcie_gadget.c
---- a/drivers/misc/spear13xx_pcie_gadget.c~pratyush-anand-has-moved
-+++ a/drivers/misc/spear13xx_pcie_gadget.c
-@@ -2,7 +2,7 @@
-  * drivers/misc/spear13xx_pcie_gadget.c
-  *
-  * Copyright (C) 2010 ST Microelectronics
-- * Pratyush Anand<pratyush.anand@st.com>
-+ * Pratyush Anand<pratyush.anand@gmail.com>
-  *
-  * This file is licensed under the terms of the GNU General Public
-  * License version 2. This program is licensed "as is" without any
-diff -puN drivers/pci/host/pcie-spear13xx.c~pratyush-anand-has-moved drivers/pci/host/pcie-spear13xx.c
---- a/drivers/pci/host/pcie-spear13xx.c~pratyush-anand-has-moved
-+++ a/drivers/pci/host/pcie-spear13xx.c
-@@ -4,7 +4,7 @@
-  * SPEAr13xx PCIe Glue Layer Source Code
-  *
-  * Copyright (C) 2010-2014 ST Microelectronics
-- * Pratyush Anand <pratyush.anand@st.com>
-+ * Pratyush Anand <pratyush.anand@gmail.com>
-  * Mohit Kumar <mohit.kumar@st.com>
-  *
-  * This file is licensed under the terms of the GNU General Public
-@@ -386,5 +386,5 @@ static int __init spear13xx_pcie_init(vo
- module_init(spear13xx_pcie_init);
- 
- MODULE_DESCRIPTION("ST Microelectronics SPEAr13xx PCIe host controller driver");
--MODULE_AUTHOR("Pratyush Anand <pratyush.anand@st.com>");
-+MODULE_AUTHOR("Pratyush Anand <pratyush.anand@gmail.com>");
- MODULE_LICENSE("GPL v2");
-diff -puN drivers/phy/phy-spear1310-miphy.c~pratyush-anand-has-moved drivers/phy/phy-spear1310-miphy.c
---- a/drivers/phy/phy-spear1310-miphy.c~pratyush-anand-has-moved
-+++ a/drivers/phy/phy-spear1310-miphy.c
-@@ -2,7 +2,7 @@
-  * ST SPEAr1310-miphy driver
-  *
-  * Copyright (C) 2014 ST Microelectronics
-- * Pratyush Anand <pratyush.anand@st.com>
-+ * Pratyush Anand <pratyush.anand@gmail.com>
-  * Mohit Kumar <mohit.kumar@st.com>
-  *
-  * This program is free software; you can redistribute it and/or modify
-@@ -257,5 +257,5 @@ static struct platform_driver spear1310_
- module_platform_driver(spear1310_miphy_driver);
- 
- MODULE_DESCRIPTION("ST SPEAR1310-MIPHY driver");
--MODULE_AUTHOR("Pratyush Anand <pratyush.anand@st.com>");
-+MODULE_AUTHOR("Pratyush Anand <pratyush.anand@gmail.com>");
- MODULE_LICENSE("GPL v2");
-diff -puN drivers/phy/phy-spear1340-miphy.c~pratyush-anand-has-moved drivers/phy/phy-spear1340-miphy.c
---- a/drivers/phy/phy-spear1340-miphy.c~pratyush-anand-has-moved
-+++ a/drivers/phy/phy-spear1340-miphy.c
-@@ -2,7 +2,7 @@
-  * ST spear1340-miphy driver
-  *
-  * Copyright (C) 2014 ST Microelectronics
-- * Pratyush Anand <pratyush.anand@st.com>
-+ * Pratyush Anand <pratyush.anand@gmail.com>
-  * Mohit Kumar <mohit.kumar@st.com>
-  *
-  * This program is free software; you can redistribute it and/or modify
-@@ -290,5 +290,5 @@ static struct platform_driver spear1340_
- module_platform_driver(spear1340_miphy_driver);
- 
- MODULE_DESCRIPTION("ST SPEAR1340-MIPHY driver");
--MODULE_AUTHOR("Pratyush Anand <pratyush.anand@st.com>");
-+MODULE_AUTHOR("Pratyush Anand <pratyush.anand@gmail.com>");
- MODULE_LICENSE("GPL v2");
-diff -puN drivers/usb/misc/lvstest.c~pratyush-anand-has-moved drivers/usb/misc/lvstest.c
---- a/drivers/usb/misc/lvstest.c~pratyush-anand-has-moved
-+++ a/drivers/usb/misc/lvstest.c
-@@ -4,7 +4,7 @@
-  * Test pattern generation for Link Layer Validation System Tests
-  *
-  * Copyright (C) 2014 ST Microelectronics
-- * Pratyush Anand <pratyush.anand@st.com>
-+ * Pratyush Anand <pratyush.anand@gmail.com>
-  *
-  * This file is licensed under the terms of the GNU General Public
-  * License version 2. This program is licensed "as is" without any
+ 	spin_lock_irqsave(&target_list_lock, flags);
+ 	list_for_each_entry(nt, &target_list, list) {
+-		netconsole_target_get(nt);
+ 		if (nt->enabled && netif_running(nt->np.dev)) {
+ 			/*
+ 			 * We nest this inside the for-each-target loop above
+@@ -760,7 +759,6 @@ static void write_msg(struct console *co
+ 				left -= frag;
+ 			}
+ 		}
+-		netconsole_target_put(nt);
+ 	}
+ 	spin_unlock_irqrestore(&target_list_lock, flags);
+ }
 _
 
-Patches currently in -mm which might be from pratyush.anand@gmail.com are
+Patches currently in -mm which might be from tj@kernel.org are
 
 origin.patch
+block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
+fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
+ipc-msgc-msgsnd-use-freezable-blocking-call.patch
+msgrcv-use-freezable-blocking-call.patch
+linux-next.patch
+printk-improve-the-description-of-dev-kmsg-line-format.patch
 
