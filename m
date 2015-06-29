@@ -1,354 +1,162 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-nommu-refactor-debug-and-warning-prints.patch removed from -mm tree
-Date: Mon, 29 Jun 2015 13:38:46 -0700
-Message-ID: <5591acd6.ueQo6kPrI+pDUzUE%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-hugetlb-compute-return-the-number-of-regions-added-by-region_add.patch
+ removed from -mm tree
+Date: Mon, 29 Jun 2015 13:38:52 -0700
+Message-ID: <5591acdc.9MWWHCqYup24eYDj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50473 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50494 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753804AbbF2Uiq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:38:46 -0400
+	with ESMTP id S1754037AbbF2Uiy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:38:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: leon@leon.nu, mm-commits@vger.kernel.org
+To: mike.kravetz@oracle.com, dave@stgolabs.net, lcapitulino@redhat.com, n-horiguchi@ah.jp.nec.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: nommu: refactor debug and warning prints
+     Subject: mm/hugetlb: compute/return the number of regions added by region_add()
 has been removed from the -mm tree.  Its filename was
-     mm-nommu-refactor-debug-and-warning-prints.patch
+     mm-hugetlb-compute-return-the-number-of-regions-added-by-region_add.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Leon Romanovsky <leon@leon.nu>
-Subject: mm: nommu: refactor debug and warning prints
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: mm/hugetlb: compute/return the number of regions added by region_add()
 
-kenter/kleave/kdebug are wrapper macros to print functions flow and debug
-information.  This set was written before pr_devel() was introduced, so it
-was controlled by "#if 0" construction.  It is questionable if anyone is
-using them [1] now.
+Modify region_add() to keep track of regions(pages) added to the reserve
+map and return this value.  The return value can be compared to the return
+value of region_chg() to determine if the map was modified between calls.
 
-This patch removes these macros, converts numerous printk(KERN_WARNING,
-...) to use general pr_warn(...) and removes debug print line from
-validate_mmap_request() function.
+Make vma_commit_reservation() also pass along the return value of
+region_add().  In the normal case, we want vma_commit_reservation to
+return the same value as the preceding call to vma_needs_reservation. 
+Create a common __vma_reservation_common routine to help keep the special
+case return values in sync
 
-Signed-off-by: Leon Romanovsky <leon@leon.nu>
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Luiz Capitulino <lcapitulino@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nommu.c |  112 +++++++++------------------------------------------
- 1 file changed, 20 insertions(+), 92 deletions(-)
+ mm/hugetlb.c |   74 ++++++++++++++++++++++++++++++++-----------------
+ 1 file changed, 49 insertions(+), 25 deletions(-)
 
-diff -puN mm/nommu.c~mm-nommu-refactor-debug-and-warning-prints mm/nommu.c
---- a/mm/nommu.c~mm-nommu-refactor-debug-and-warning-prints
-+++ a/mm/nommu.c
-@@ -42,22 +42,6 @@
- #include <asm/mmu_context.h>
- #include "internal.h"
- 
--#if 0
--#define kenter(FMT, ...) \
--	printk(KERN_DEBUG "==> %s("FMT")\n", __func__, ##__VA_ARGS__)
--#define kleave(FMT, ...) \
--	printk(KERN_DEBUG "<== %s()"FMT"\n", __func__, ##__VA_ARGS__)
--#define kdebug(FMT, ...) \
--	printk(KERN_DEBUG "xxx" FMT"yyy\n", ##__VA_ARGS__)
--#else
--#define kenter(FMT, ...) \
--	no_printk(KERN_DEBUG "==> %s("FMT")\n", __func__, ##__VA_ARGS__)
--#define kleave(FMT, ...) \
--	no_printk(KERN_DEBUG "<== %s()"FMT"\n", __func__, ##__VA_ARGS__)
--#define kdebug(FMT, ...) \
--	no_printk(KERN_DEBUG FMT"\n", ##__VA_ARGS__)
--#endif
--
- void *high_memory;
- EXPORT_SYMBOL(high_memory);
- struct page *mem_map;
-@@ -665,11 +649,7 @@ static void free_page_series(unsigned lo
- 	for (; from < to; from += PAGE_SIZE) {
- 		struct page *page = virt_to_page(from);
- 
--		kdebug("- free %lx", from);
- 		atomic_long_dec(&mmap_pages_allocated);
--		if (page_count(page) != 1)
--			kdebug("free page %p: refcount not one: %d",
--			       page, page_count(page));
- 		put_page(page);
- 	}
- }
-@@ -683,8 +663,6 @@ static void free_page_series(unsigned lo
- static void __put_nommu_region(struct vm_region *region)
- 	__releases(nommu_region_sem)
- {
--	kenter("%p{%d}", region, region->vm_usage);
--
- 	BUG_ON(!nommu_region_tree.rb_node);
- 
- 	if (--region->vm_usage == 0) {
-@@ -697,10 +675,8 @@ static void __put_nommu_region(struct vm
- 
- 		/* IO memory and memory shared directly out of the pagecache
- 		 * from ramfs/tmpfs mustn't be released here */
--		if (region->vm_flags & VM_MAPPED_COPY) {
--			kdebug("free series");
-+		if (region->vm_flags & VM_MAPPED_COPY)
- 			free_page_series(region->vm_start, region->vm_top);
--		}
- 		kmem_cache_free(vm_region_jar, region);
- 	} else {
- 		up_write(&nommu_region_sem);
-@@ -744,8 +720,6 @@ static void add_vma_to_mm(struct mm_stru
- 	struct address_space *mapping;
- 	struct rb_node **p, *parent, *rb_prev;
- 
--	kenter(",%p", vma);
--
- 	BUG_ON(!vma->vm_region);
- 
- 	mm->map_count++;
-@@ -813,8 +787,6 @@ static void delete_vma_from_mm(struct vm
- 	struct mm_struct *mm = vma->vm_mm;
- 	struct task_struct *curr = current;
- 
--	kenter("%p", vma);
--
- 	protect_vma(vma, 0);
- 
- 	mm->map_count--;
-@@ -854,7 +826,6 @@ static void delete_vma_from_mm(struct vm
+diff -puN mm/hugetlb.c~mm-hugetlb-compute-return-the-number-of-regions-added-by-region_add mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-compute-return-the-number-of-regions-added-by-region_add
++++ a/mm/hugetlb.c
+@@ -245,11 +245,15 @@ struct file_region {
+  * expanded, because region_add is only called after region_chg
+  * with the same range.  If a new file_region structure must
+  * be allocated, it is done in region_chg.
++ *
++ * Return the number of new huge pages added to the map.  This
++ * number is greater than or equal to zero.
   */
- static void delete_vma(struct mm_struct *mm, struct vm_area_struct *vma)
+ static long region_add(struct resv_map *resv, long f, long t)
  {
--	kenter("%p", vma);
- 	if (vma->vm_ops && vma->vm_ops->close)
- 		vma->vm_ops->close(vma);
- 	if (vma->vm_file)
-@@ -957,12 +928,8 @@ static int validate_mmap_request(struct
- 	int ret;
+ 	struct list_head *head = &resv->regions;
+ 	struct file_region *rg, *nrg, *trg;
++	long add = 0;
  
- 	/* do the simple checks first */
--	if (flags & MAP_FIXED) {
--		printk(KERN_DEBUG
--		       "%d: Can't do fixed-address/overlay mmap of RAM\n",
--		       current->pid);
-+	if (flags & MAP_FIXED)
- 		return -EINVAL;
--	}
- 
- 	if ((flags & MAP_TYPE) != MAP_PRIVATE &&
- 	    (flags & MAP_TYPE) != MAP_SHARED)
-@@ -1060,8 +1027,7 @@ static int validate_mmap_request(struct
- 			    ) {
- 				capabilities &= ~NOMMU_MAP_DIRECT;
- 				if (flags & MAP_SHARED) {
--					printk(KERN_WARNING
--					       "MAP_SHARED not completely supported on !MMU\n");
-+					pr_warn("MAP_SHARED not completely supported on !MMU\n");
- 					return -EINVAL;
- 				}
- 			}
-@@ -1205,16 +1171,12 @@ static int do_mmap_private(struct vm_are
- 	 *   we're allocating is smaller than a page
- 	 */
- 	order = get_order(len);
--	kdebug("alloc order %d for %lx", order, len);
--
- 	total = 1 << order;
- 	point = len >> PAGE_SHIFT;
- 
- 	/* we don't want to allocate a power-of-2 sized page set */
--	if (sysctl_nr_trim_pages && total - point >= sysctl_nr_trim_pages) {
-+	if (sysctl_nr_trim_pages && total - point >= sysctl_nr_trim_pages)
- 		total = point;
--		kdebug("try to alloc exact %lu pages", total);
--	}
- 
- 	base = alloc_pages_exact(total << PAGE_SHIFT, GFP_KERNEL);
- 	if (!base)
-@@ -1285,18 +1247,14 @@ unsigned long do_mmap_pgoff(struct file
- 	unsigned long capabilities, vm_flags, result;
- 	int ret;
- 
--	kenter(",%lx,%lx,%lx,%lx,%lx", addr, len, prot, flags, pgoff);
--
- 	*populate = 0;
- 
- 	/* decide whether we should attempt the mapping, and if so what sort of
- 	 * mapping */
- 	ret = validate_mmap_request(file, addr, len, prot, flags, pgoff,
- 				    &capabilities);
--	if (ret < 0) {
--		kleave(" = %d [val]", ret);
-+	if (ret < 0)
- 		return ret;
--	}
- 
- 	/* we ignore the address hint */
- 	addr = 0;
-@@ -1383,11 +1341,9 @@ unsigned long do_mmap_pgoff(struct file
- 			vma->vm_start = start;
- 			vma->vm_end = start + len;
- 
--			if (pregion->vm_flags & VM_MAPPED_COPY) {
--				kdebug("share copy");
-+			if (pregion->vm_flags & VM_MAPPED_COPY)
- 				vma->vm_flags |= VM_MAPPED_COPY;
--			} else {
--				kdebug("share mmap");
-+			else {
- 				ret = do_mmap_shared_file(vma);
- 				if (ret < 0) {
- 					vma->vm_region = NULL;
-@@ -1467,7 +1423,6 @@ share:
- 
- 	up_write(&nommu_region_sem);
- 
--	kleave(" = %lx", result);
- 	return result;
- 
- error_just_free:
-@@ -1479,27 +1434,24 @@ error:
- 	if (vma->vm_file)
- 		fput(vma->vm_file);
- 	kmem_cache_free(vm_area_cachep, vma);
--	kleave(" = %d", ret);
- 	return ret;
- 
- sharing_violation:
- 	up_write(&nommu_region_sem);
--	printk(KERN_WARNING "Attempt to share mismatched mappings\n");
-+	pr_warn("Attempt to share mismatched mappings\n");
- 	ret = -EINVAL;
- 	goto error;
- 
- error_getting_vma:
- 	kmem_cache_free(vm_region_jar, region);
--	printk(KERN_WARNING "Allocation of vma for %lu byte allocation"
--	       " from process %d failed\n",
--	       len, current->pid);
-+	pr_warn("Allocation of vma for %lu byte allocation from process %d failed\n",
-+			len, current->pid);
- 	show_free_areas(0);
- 	return -ENOMEM;
- 
- error_getting_region:
--	printk(KERN_WARNING "Allocation of vm region for %lu byte allocation"
--	       " from process %d failed\n",
--	       len, current->pid);
-+	pr_warn("Allocation of vm region for %lu byte allocation from process %d failed\n",
-+			len, current->pid);
- 	show_free_areas(0);
- 	return -ENOMEM;
+ 	spin_lock(&resv->lock);
+ 	/* Locate the region we are either in or before. */
+@@ -275,14 +279,24 @@ static long region_add(struct resv_map *
+ 		if (rg->to > t)
+ 			t = rg->to;
+ 		if (rg != nrg) {
++			/* Decrement return value by the deleted range.
++			 * Another range will span this area so that by
++			 * end of routine add will be >= zero
++			 */
++			add -= (rg->to - rg->from);
+ 			list_del(&rg->link);
+ 			kfree(rg);
+ 		}
+ 	}
++
++	add += (nrg->from - f);		/* Added to beginning of region */
+ 	nrg->from = f;
++	add += t - nrg->to;		/* Added to end of region */
+ 	nrg->to = t;
++
+ 	spin_unlock(&resv->lock);
+-	return 0;
++	VM_BUG_ON(add < 0);
++	return add;
  }
-@@ -1563,8 +1515,6 @@ int split_vma(struct mm_struct *mm, stru
- 	struct vm_region *region;
- 	unsigned long npages;
  
--	kenter("");
--
- 	/* we're only permitted to split anonymous regions (these should have
- 	 * only a single usage on the region) */
- 	if (vma->vm_file)
-@@ -1628,8 +1578,6 @@ static int shrink_vma(struct mm_struct *
+ /*
+@@ -1470,46 +1484,56 @@ static void return_unused_surplus_pages(
+ }
+ 
+ /*
+- * Determine if the huge page at addr within the vma has an associated
+- * reservation.  Where it does not we will need to logically increase
+- * reservation and actually increase subpool usage before an allocation
+- * can occur.  Where any new reservation would be required the
+- * reservation change is prepared, but not committed.  Once the page
+- * has been allocated from the subpool and instantiated the change should
+- * be committed via vma_commit_reservation.  No action is required on
+- * failure.
+- */
+-static long vma_needs_reservation(struct hstate *h,
+-			struct vm_area_struct *vma, unsigned long addr)
++ * vma_needs_reservation and vma_commit_reservation are used by the huge
++ * page allocation routines to manage reservations.
++ *
++ * vma_needs_reservation is called to determine if the huge page at addr
++ * within the vma has an associated reservation.  If a reservation is
++ * needed, the value 1 is returned.  The caller is then responsible for
++ * managing the global reservation and subpool usage counts.  After
++ * the huge page has been allocated, vma_commit_reservation is called
++ * to add the page to the reservation map.
++ *
++ * In the normal case, vma_commit_reservation returns the same value
++ * as the preceding vma_needs_reservation call.  The only time this
++ * is not the case is if a reserve map was changed between calls.  It
++ * is the responsibility of the caller to notice the difference and
++ * take appropriate action.
++ */
++static long __vma_reservation_common(struct hstate *h,
++				struct vm_area_struct *vma, unsigned long addr,
++				bool commit)
  {
- 	struct vm_region *region;
+ 	struct resv_map *resv;
+ 	pgoff_t idx;
+-	long chg;
++	long ret;
  
--	kenter("");
--
- 	/* adjust the VMA's pointers, which may reposition it in the MM's tree
- 	 * and list */
- 	delete_vma_from_mm(vma);
-@@ -1669,8 +1617,6 @@ int do_munmap(struct mm_struct *mm, unsi
- 	unsigned long end;
- 	int ret;
+ 	resv = vma_resv_map(vma);
+ 	if (!resv)
+ 		return 1;
  
--	kenter(",%lx,%zx", start, len);
--
- 	len = PAGE_ALIGN(len);
- 	if (len == 0)
- 		return -EINVAL;
-@@ -1682,11 +1628,9 @@ int do_munmap(struct mm_struct *mm, unsi
- 	if (!vma) {
- 		static int limit;
- 		if (limit < 5) {
--			printk(KERN_WARNING
--			       "munmap of memory not mmapped by process %d"
--			       " (%s): 0x%lx-0x%lx\n",
--			       current->pid, current->comm,
--			       start, start + len - 1);
-+			pr_warn("munmap of memory not mmapped by process %d (%s): 0x%lx-0x%lx\n",
-+					current->pid, current->comm,
-+					start, start + len - 1);
- 			limit++;
- 		}
- 		return -EINVAL;
-@@ -1695,38 +1639,27 @@ int do_munmap(struct mm_struct *mm, unsi
- 	/* we're allowed to split an anonymous VMA but not a file-backed one */
- 	if (vma->vm_file) {
- 		do {
--			if (start > vma->vm_start) {
--				kleave(" = -EINVAL [miss]");
-+			if (start > vma->vm_start)
- 				return -EINVAL;
--			}
- 			if (end == vma->vm_end)
- 				goto erase_whole_vma;
- 			vma = vma->vm_next;
- 		} while (vma);
--		kleave(" = -EINVAL [split file]");
- 		return -EINVAL;
- 	} else {
- 		/* the chunk must be a subset of the VMA found */
- 		if (start == vma->vm_start && end == vma->vm_end)
- 			goto erase_whole_vma;
--		if (start < vma->vm_start || end > vma->vm_end) {
--			kleave(" = -EINVAL [superset]");
-+		if (start < vma->vm_start || end > vma->vm_end)
- 			return -EINVAL;
--		}
--		if (start & ~PAGE_MASK) {
--			kleave(" = -EINVAL [unaligned start]");
-+		if (start & ~PAGE_MASK)
- 			return -EINVAL;
--		}
--		if (end != vma->vm_end && end & ~PAGE_MASK) {
--			kleave(" = -EINVAL [unaligned split]");
-+		if (end != vma->vm_end && end & ~PAGE_MASK)
- 			return -EINVAL;
--		}
- 		if (start != vma->vm_start && end != vma->vm_end) {
- 			ret = split_vma(mm, vma, start, 1);
--			if (ret < 0) {
--				kleave(" = %d [split]", ret);
-+			if (ret < 0)
- 				return ret;
--			}
- 		}
- 		return shrink_vma(mm, vma, start, end);
- 	}
-@@ -1734,7 +1667,6 @@ int do_munmap(struct mm_struct *mm, unsi
- erase_whole_vma:
- 	delete_vma_from_mm(vma);
- 	delete_vma(mm, vma);
--	kleave(" = 0");
- 	return 0;
+ 	idx = vma_hugecache_offset(h, vma, addr);
+-	chg = region_chg(resv, idx, idx + 1);
++	if (commit)
++		ret = region_add(resv, idx, idx + 1);
++	else
++		ret = region_chg(resv, idx, idx + 1);
+ 
+ 	if (vma->vm_flags & VM_MAYSHARE)
+-		return chg;
++		return ret;
+ 	else
+-		return chg < 0 ? chg : 0;
++		return ret < 0 ? ret : 0;
  }
- EXPORT_SYMBOL(do_munmap);
-@@ -1766,8 +1698,6 @@ void exit_mmap(struct mm_struct *mm)
- 	if (!mm)
- 		return;
- 
--	kenter("");
--
- 	mm->total_vm = 0;
- 
- 	while ((vma = mm->mmap)) {
-@@ -1776,8 +1706,6 @@ void exit_mmap(struct mm_struct *mm)
- 		delete_vma(mm, vma);
- 		cond_resched();
- 	}
+-static void vma_commit_reservation(struct hstate *h,
++
++static long vma_needs_reservation(struct hstate *h,
+ 			struct vm_area_struct *vma, unsigned long addr)
+ {
+-	struct resv_map *resv;
+-	pgoff_t idx;
