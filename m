@@ -1,375 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- compiler-gcc-integrate-the-various-compiler-gcch-files.patch removed from
- -mm tree
-Date: Mon, 29 Jun 2015 13:46:57 -0700
-Message-ID: <5591aec1.1oaCHvhWuK+XsscW%akpm@linux-foundation.org>
+Subject: [merged] fs-proc-introduce-config_proc_children.patch removed
+ from -mm tree
+Date: Mon, 29 Jun 2015 13:46:52 -0700
+Message-ID: <5591aebc.gfVmC4vspc7L82e3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50756 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50797 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753760AbbF2UrB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:47:01 -0400
+	with ESMTP id S1750834AbbF2Uqx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:46:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, amodra@gmail.com, andi@firstfloor.org, anton@samba.org, levinsasha928@gmail.com, mmarek@suse.cz, segher@kernel.crashing.org, mm-commits@vger.kernel.org
+To: iago@endocode.com, alban@endocode.com, djalal@endocode.com, gorcunov@openvz.org, kamezawa.hiroyu@jp.fujitsu.com, keescook@chromium.org, luto@amacapital.net, oleg@redhat.com, serge.hallyn@canonical.com, viro@zeniv.linux.org.uk, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: compiler-gcc: integrate the various compiler-gcc[345].h files
+     Subject: fs, proc: introduce CONFIG_PROC_CHILDREN
 has been removed from the -mm tree.  Its filename was
-     compiler-gcc-integrate-the-various-compiler-gcch-files.patch
+     fs-proc-introduce-config_proc_children.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: compiler-gcc: integrate the various compiler-gcc[345].h files
+=46rom: Iago L=F3pez Galeiras <iago@endocode.com>
+Subject: fs, proc: introduce CONFIG_PROC_CHILDREN
 
-As gcc major version numbers are going to advance rather rapidly in the
-future, there's no real value in separate files for each compiler version.
+commit 818411616baf ("fs, proc: introduce /proc/<pid>/task/<tid>/childr=
+en
+entry") introduced the children entry for checkpoint restore and the fi=
+le
+is only available on kernels configured with CONFIG_EXPERT and
+CONFIG_CHECKPOINT_RESTORE.
 
-Deduplicate some of the macros #defined in each file too.
+This is available in most distributions (Fedora, Debian, Ubuntu, CoreOS=
+)
+because they usually enable CONFIG_EXPERT and CONFIG_CHECKPOINT_RESTORE=
+=2E=20
+But Arch does not enable CONFIG_EXPERT or CONFIG_CHECKPOINT_RESTORE.
 
-Neaten comments using normal kernel commenting style.
+However, the children proc file is useful outside of checkpoint restore=
+=2E=20
+I would like to use it in rkt.  The rkt process exec() another program =
+it
+does not control, and that other program will fork()+exec() a child
+process.  I would like to find the pid of the child process from an
+external tool without iterating in /proc over all processes to find whi=
+ch
+one has a parent pid equal to rkt.
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Michal Marek <mmarek@suse.cz>
-Cc: Segher Boessenkool <segher@kernel.crashing.org>
-Cc: Sasha Levin <levinsasha928@gmail.com>
-Cc: Anton Blanchard <anton@samba.org>
-Cc: Alan Modra <amodra@gmail.com>
+This commit introduces CONFIG_PROC_CHILDREN and makes
+CONFIG_CHECKPOINT_RESTORE select it.  This allows enabling
+/proc/<pid>/task/<tid>/children without needing to enable
+CONFIG_CHECKPOINT_RESTORE and CONFIG_EXPERT.
+
+Alban tested that /proc/<pid>/task/<tid>/children is present when the
+kernel is configured with CONFIG_PROC_CHILDREN=3Dy but without
+CONFIG_CHECKPOINT_RESTORE
+
+Signed-off-by: Iago L=F3pez Galeiras <iago@endocode.com>
+Tested-by: Alban Crequy <alban@endocode.com>
+Reviewed-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Serge Hallyn <serge.hallyn@canonical.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Djalal Harouni <djalal@endocode.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler-gcc.h  |  120 ++++++++++++++++++++++++++++++--
- include/linux/compiler-gcc3.h |   23 ------
- include/linux/compiler-gcc4.h |   91 ------------------------
- include/linux/compiler-gcc5.h |   67 -----------------
- 4 files changed, 116 insertions(+), 185 deletions(-)
+ fs/proc/Kconfig |    4 ++++
+ fs/proc/array.c |    4 ++--
+ fs/proc/base.c  |    2 +-
+ init/Kconfig    |    1 +
+ 4 files changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/compiler-gcc.h~compiler-gcc-integrate-the-various-compiler-gcch-files include/linux/compiler-gcc.h
---- a/include/linux/compiler-gcc.h~compiler-gcc-integrate-the-various-compiler-gcch-files
-+++ a/include/linux/compiler-gcc.h
-@@ -122,10 +122,122 @@
- #define __maybe_unused		__attribute__((unused))
- #define __always_unused		__attribute__((unused))
- 
--#define __gcc_header(x) #x
--#define _gcc_header(x) __gcc_header(linux/compiler-gcc##x.h)
--#define gcc_header(x) _gcc_header(x)
--#include gcc_header(__GNUC__)
-+/* gcc version specific checks */
+diff -puN fs/proc/Kconfig~fs-proc-introduce-config_proc_children fs/pro=
+c/Kconfig
+--- a/fs/proc/Kconfig~fs-proc-introduce-config_proc_children
++++ a/fs/proc/Kconfig
+@@ -71,3 +71,7 @@ config PROC_PAGE_MONITOR
+ 	  /proc/pid/smaps, /proc/pid/clear_refs, /proc/pid/pagemap,
+ 	  /proc/kpagecount, and /proc/kpageflags. Disabling these
+           interfaces will reduce the size of the kernel by approximate=
+ly 4kb.
 +
-+#if GCC_VERSION < 30200
-+# error Sorry, your compiler is too old - please upgrade it.
-+#endif
-+
-+#if GCC_VERSION < 30300
-+# define __used			__attribute__((__unused__))
-+#else
-+# define __used			__attribute__((__used__))
-+#endif
-+
-+#ifdef CONFIG_GCOV_KERNEL
-+# if GCC_VERSION < 30400
-+#   error "GCOV profiling support for gcc versions below 3.4 not included"
-+# endif /* __GNUC_MINOR__ */
-+#endif /* CONFIG_GCOV_KERNEL */
-+
-+#if GCC_VERSION >= 30400
-+#define __must_check		__attribute__((warn_unused_result))
-+#endif
-+
-+#if GCC_VERSION >= 40000
-+
-+/* GCC 4.1.[01] miscompiles __weak */
-+#ifdef __KERNEL__
-+# if GCC_VERSION >= 40100 &&  GCC_VERSION <= 40101
-+#  error Your version of gcc miscompiles the __weak directive
-+# endif
-+#endif
-+
-+#define __used			__attribute__((__used__))
-+#define __compiler_offsetof(a, b)					\
-+	__builtin_offsetof(a, b)
-+
-+#if GCC_VERSION >= 40100 && GCC_VERSION < 40600
-+# define __compiletime_object_size(obj) __builtin_object_size(obj, 0)
-+#endif
-+
-+#if GCC_VERSION >= 40300
-+/* Mark functions as cold. gcc will assume any path leading to a call
-+ * to them will be unlikely.  This means a lot of manual unlikely()s
-+ * are unnecessary now for any paths leading to the usual suspects
-+ * like BUG(), printk(), panic() etc. [but let's keep them for now for
-+ * older compilers]
-+ *
-+ * Early snapshots of gcc 4.3 don't support this and we can't detect this
-+ * in the preprocessor, but we can live with this because they're unreleased.
-+ * Maketime probing would be overkill here.
-+ *
-+ * gcc also has a __attribute__((__hot__)) to move hot functions into
-+ * a special section, but I don't see any sense in this right now in
-+ * the kernel context
-+ */
-+#define __cold			__attribute__((__cold__))
-+
-+#define __UNIQUE_ID(prefix) __PASTE(__PASTE(__UNIQUE_ID_, prefix), __COUNTER__)
-+
-+#ifndef __CHECKER__
-+# define __compiletime_warning(message) __attribute__((warning(message)))
-+# define __compiletime_error(message) __attribute__((error(message)))
-+#endif /* __CHECKER__ */
-+#endif /* GCC_VERSION >= 40300 */
-+
-+#if GCC_VERSION >= 40500
-+/*
-+ * Mark a position in code as unreachable.  This can be used to
-+ * suppress control flow warnings after asm blocks that transfer
-+ * control elsewhere.
-+ *
-+ * Early snapshots of gcc 4.5 don't support this and we can't detect
-+ * this in the preprocessor, but we can live with this because they're
-+ * unreleased.  Really, we need to have autoconf for the kernel.
-+ */
-+#define unreachable() __builtin_unreachable()
-+
-+/* Mark a function definition as prohibited from being cloned. */
-+#define __noclone	__attribute__((__noclone__))
-+
-+#endif /* GCC_VERSION >= 40500 */
-+
-+#if GCC_VERSION >= 40600
-+/*
-+ * Tell the optimizer that something else uses this function or variable.
-+ */
-+#define __visible	__attribute__((externally_visible))
-+#endif
-+
-+/*
-+ * GCC 'asm goto' miscompiles certain code sequences:
-+ *
-+ *   http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58670
-+ *
-+ * Work it around via a compiler barrier quirk suggested by Jakub Jelinek.
-+ *
-+ * (asm goto is automatically volatile - the naming reflects this.)
-+ */
-+#define asm_volatile_goto(x...)	do { asm goto(x); asm (""); } while (0)
-+
-+#ifdef CONFIG_ARCH_USE_BUILTIN_BSWAP
-+#if GCC_VERSION >= 40400
-+#define __HAVE_BUILTIN_BSWAP32__
-+#define __HAVE_BUILTIN_BSWAP64__
-+#endif
-+#if GCC_VERSION >= 40800 || (defined(__powerpc__) && GCC_VERSION >= 40600)
-+#define __HAVE_BUILTIN_BSWAP16__
-+#endif
-+#endif /* CONFIG_ARCH_USE_BUILTIN_BSWAP */
-+
-+#if GCC_VERSION >= 50000
-+#define KASAN_ABI_VERSION 4
-+#elif GCC_VERSION >= 40902
-+#define KASAN_ABI_VERSION 3
-+#endif
-+
-+#endif	/* gcc version >= 40000 specific checks */
- 
- #if !defined(__noclone)
- #define __noclone	/* not needed */
-diff -puN include/linux/compiler-gcc3.h~compiler-gcc-integrate-the-various-compiler-gcch-files /dev/null
---- a/include/linux/compiler-gcc3.h
-+++ /dev/null
-@@ -1,23 +0,0 @@
--#ifndef __LINUX_COMPILER_H
--#error "Please don't include <linux/compiler-gcc3.h> directly, include <linux/compiler.h> instead."
--#endif
--
--#if GCC_VERSION < 30200
--# error Sorry, your compiler is too old - please upgrade it.
--#endif
--
--#if GCC_VERSION >= 30300
--# define __used			__attribute__((__used__))
--#else
--# define __used			__attribute__((__unused__))
--#endif
--
--#if GCC_VERSION >= 30400
--#define __must_check		__attribute__((warn_unused_result))
--#endif
--
--#ifdef CONFIG_GCOV_KERNEL
--# if GCC_VERSION < 30400
--#   error "GCOV profiling support for gcc versions below 3.4 not included"
--# endif /* __GNUC_MINOR__ */
--#endif /* CONFIG_GCOV_KERNEL */
-diff -puN include/linux/compiler-gcc4.h~compiler-gcc-integrate-the-various-compiler-gcch-files /dev/null
---- a/include/linux/compiler-gcc4.h
-+++ /dev/null
-@@ -1,91 +0,0 @@
--#ifndef __LINUX_COMPILER_H
--#error "Please don't include <linux/compiler-gcc4.h> directly, include <linux/compiler.h> instead."
--#endif
--
--/* GCC 4.1.[01] miscompiles __weak */
--#ifdef __KERNEL__
--# if GCC_VERSION >= 40100 &&  GCC_VERSION <= 40101
--#  error Your version of gcc miscompiles the __weak directive
--# endif
--#endif
--
--#define __used			__attribute__((__used__))
--#define __must_check 		__attribute__((warn_unused_result))
--#define __compiler_offsetof(a,b) __builtin_offsetof(a,b)
--
--#if GCC_VERSION >= 40100 && GCC_VERSION < 40600
--# define __compiletime_object_size(obj) __builtin_object_size(obj, 0)
--#endif
--
--#if GCC_VERSION >= 40300
--/* Mark functions as cold. gcc will assume any path leading to a call
--   to them will be unlikely.  This means a lot of manual unlikely()s
--   are unnecessary now for any paths leading to the usual suspects
--   like BUG(), printk(), panic() etc. [but let's keep them for now for
--   older compilers]
--
--   Early snapshots of gcc 4.3 don't support this and we can't detect this
--   in the preprocessor, but we can live with this because they're unreleased.
--   Maketime probing would be overkill here.
--
--   gcc also has a __attribute__((__hot__)) to move hot functions into
--   a special section, but I don't see any sense in this right now in
--   the kernel context */
--#define __cold			__attribute__((__cold__))
--
--#define __UNIQUE_ID(prefix) __PASTE(__PASTE(__UNIQUE_ID_, prefix), __COUNTER__)
--
--#ifndef __CHECKER__
--# define __compiletime_warning(message) __attribute__((warning(message)))
--# define __compiletime_error(message) __attribute__((error(message)))
--#endif /* __CHECKER__ */
--#endif /* GCC_VERSION >= 40300 */
--
--#if GCC_VERSION >= 40500
--/*
-- * Mark a position in code as unreachable.  This can be used to
-- * suppress control flow warnings after asm blocks that transfer
-- * control elsewhere.
-- *
-- * Early snapshots of gcc 4.5 don't support this and we can't detect
-- * this in the preprocessor, but we can live with this because they're
-- * unreleased.  Really, we need to have autoconf for the kernel.
-- */
--#define unreachable() __builtin_unreachable()
--
--/* Mark a function definition as prohibited from being cloned. */
--#define __noclone	__attribute__((__noclone__))
--
--#endif /* GCC_VERSION >= 40500 */
--
--#if GCC_VERSION >= 40600
--/*
-- * Tell the optimizer that something else uses this function or variable.
-- */
--#define __visible __attribute__((externally_visible))
--#endif
--
--/*
-- * GCC 'asm goto' miscompiles certain code sequences:
-- *
-- *   http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58670
-- *
-- * Work it around via a compiler barrier quirk suggested by Jakub Jelinek.
-- *
-- * (asm goto is automatically volatile - the naming reflects this.)
-- */
--#define asm_volatile_goto(x...)	do { asm goto(x); asm (""); } while (0)
--
--#ifdef CONFIG_ARCH_USE_BUILTIN_BSWAP
--#if GCC_VERSION >= 40400
--#define __HAVE_BUILTIN_BSWAP32__
--#define __HAVE_BUILTIN_BSWAP64__
--#endif
--#if GCC_VERSION >= 40800 || (defined(__powerpc__) && GCC_VERSION >= 40600)
--#define __HAVE_BUILTIN_BSWAP16__
--#endif
--#endif /* CONFIG_ARCH_USE_BUILTIN_BSWAP */
--
--#if GCC_VERSION >= 40902
--#define KASAN_ABI_VERSION 3
--#endif
-diff -puN include/linux/compiler-gcc5.h~compiler-gcc-integrate-the-various-compiler-gcch-files /dev/null
---- a/include/linux/compiler-gcc5.h
-+++ /dev/null
-@@ -1,67 +0,0 @@
--#ifndef __LINUX_COMPILER_H
--#error "Please don't include <linux/compiler-gcc5.h> directly, include <linux/compiler.h> instead."
--#endif
--
--#define __used				__attribute__((__used__))
--#define __must_check			__attribute__((warn_unused_result))
--#define __compiler_offsetof(a, b)	__builtin_offsetof(a, b)
--
--/* Mark functions as cold. gcc will assume any path leading to a call
--   to them will be unlikely.  This means a lot of manual unlikely()s
--   are unnecessary now for any paths leading to the usual suspects
--   like BUG(), printk(), panic() etc. [but let's keep them for now for
--   older compilers]
--
--   Early snapshots of gcc 4.3 don't support this and we can't detect this
--   in the preprocessor, but we can live with this because they're unreleased.
--   Maketime probing would be overkill here.
--
--   gcc also has a __attribute__((__hot__)) to move hot functions into
--   a special section, but I don't see any sense in this right now in
--   the kernel context */
--#define __cold			__attribute__((__cold__))
--
--#define __UNIQUE_ID(prefix) __PASTE(__PASTE(__UNIQUE_ID_, prefix), __COUNTER__)
--
--#ifndef __CHECKER__
--# define __compiletime_warning(message) __attribute__((warning(message)))
--# define __compiletime_error(message) __attribute__((error(message)))
--#endif /* __CHECKER__ */
--
--/*
-- * Mark a position in code as unreachable.  This can be used to
-- * suppress control flow warnings after asm blocks that transfer
-- * control elsewhere.
-- *
-- * Early snapshots of gcc 4.5 don't support this and we can't detect
-- * this in the preprocessor, but we can live with this because they're
-- * unreleased.  Really, we need to have autoconf for the kernel.
-- */
--#define unreachable() __builtin_unreachable()
--
--/* Mark a function definition as prohibited from being cloned. */
--#define __noclone	__attribute__((__noclone__))
--
--/*
-- * Tell the optimizer that something else uses this function or variable.
-- */
--#define __visible __attribute__((externally_visible))
--
--/*
-- * GCC 'asm goto' miscompiles certain code sequences:
-- *
-- *   http://gcc.gnu.org/bugzilla/show_bug.cgi?id=58670
-- *
-- * Work it around via a compiler barrier quirk suggested by Jakub Jelinek.
-- *
-- * (asm goto is automatically volatile - the naming reflects this.)
-- */
--#define asm_volatile_goto(x...)	do { asm goto(x); asm (""); } while (0)
--
--#ifdef CONFIG_ARCH_USE_BUILTIN_BSWAP
--#define __HAVE_BUILTIN_BSWAP32__
--#define __HAVE_BUILTIN_BSWAP64__
--#define __HAVE_BUILTIN_BSWAP16__
--#endif /* CONFIG_ARCH_USE_BUILTIN_BSWAP */
++config PROC_CHILDREN
++	bool "Include /proc/<pid>/task/<tid>/children file"
++	default n
+diff -puN fs/proc/array.c~fs-proc-introduce-config_proc_children fs/pro=
+c/array.c
+--- a/fs/proc/array.c~fs-proc-introduce-config_proc_children
++++ a/fs/proc/array.c
+@@ -577,7 +577,7 @@ int proc_pid_statm(struct seq_file *m, s
+ 	return 0;
+ }
+=20
+-#ifdef CONFIG_CHECKPOINT_RESTORE
++#ifdef CONFIG_PROC_CHILDREN
+ static struct pid *
+ get_children_pid(struct inode *inode, struct pid *pid_prev, loff_t pos=
+)
+ {
+@@ -700,4 +700,4 @@ const struct file_operations proc_tid_ch
+ 	.llseek  =3D seq_lseek,
+ 	.release =3D children_seq_release,
+ };
+-#endif /* CONFIG_CHECKPOINT_RESTORE */
++#endif /* CONFIG_PROC_CHILDREN */
+diff -puN fs/proc/base.c~fs-proc-introduce-config_proc_children fs/proc=
+/base.c
+--- a/fs/proc/base.c~fs-proc-introduce-config_proc_children
++++ a/fs/proc/base.c
+@@ -3109,7 +3109,7 @@ static const struct pid_entry tid_base_s
+ 	ONE("stat",      S_IRUGO, proc_tid_stat),
+ 	ONE("statm",     S_IRUGO, proc_pid_statm),
+ 	REG("maps",      S_IRUGO, proc_tid_maps_operations),
+-#ifdef CONFIG_CHECKPOINT_RESTORE
++#ifdef CONFIG_PROC_CHILDREN
+ 	REG("children",  S_IRUGO, proc_tid_children_operations),
+ #endif
+ #ifdef CONFIG_NUMA
+diff -puN init/Kconfig~fs-proc-introduce-config_proc_children init/Kcon=
+fig
+--- a/init/Kconfig~fs-proc-introduce-config_proc_children
++++ a/init/Kconfig
+@@ -1131,6 +1131,7 @@ endif # CGROUPS
+=20
+ config CHECKPOINT_RESTORE
+ 	bool "Checkpoint/restore support" if EXPERT
++	select PROC_CHILDREN
+ 	default n
+ 	help
+ 	  Enables additional kernel features in a sake of checkpoint/restore.
+_
+
+Patches currently in -mm which might be from iago@endocode.com are
+
+origin.patch
+
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
