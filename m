@@ -1,97 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- coredump-add-__printf-attribute-to-cn_printf-functions.patch removed from
- -mm tree
-Date: Mon, 29 Jun 2015 13:49:21 -0700
-Message-ID: <5591af51.eRty9j1+odlt9y49%akpm@linux-foundation.org>
+Subject: [merged] fs-befs-btreec-remove-unneeded-initializations.patch
+ removed from -mm tree
+Date: Mon, 29 Jun 2015 13:49:13 -0700
+Message-ID: <5591af49.rt8eq5GJPfctqWGy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51025 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51014 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754186AbbF2UtV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:49:21 -0400
+	with ESMTP id S1754248AbbF2UtN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:49:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nicolas.iooss_linux@m4x.org, ebiederm@xmission.com, mm-commits@vger.kernel.org
+To: fabf@skynet.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: coredump: add __printf attribute to cn_*printf functions
+     Subject: fs/befs/btree.c: remove unneeded initializations
 has been removed from the -mm tree.  Its filename was
-     coredump-add-__printf-attribute-to-cn_printf-functions.patch
+     fs-befs-btreec-remove-unneeded-initializations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
-Subject: coredump: add __printf attribute to cn_*printf functions
+From: Fabian Frederick <fabf@skynet.be>
+Subject: fs/befs/btree.c: remove unneeded initializations
 
-This allows detecting improper format string at build time, like:
+bh, od_sup and this_node are unconditionally initialized in
+befs_bt_read_super() and befs_btree_find()
 
-  fs/coredump.c:225:5: warning: format '%ld' expects argument of type
-  'long int', but argument 3 has type 'int' [-Wformat=]
-       err = cn_printf(cn, "%ld", cprm->siginfo->si_signo);
-       ^
-
-As si_signo is always an int, the format should be %d here.
-
-Signed-off-by: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
-Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coredump.c |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ fs/befs/btree.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/coredump.c~coredump-add-__printf-attribute-to-cn_printf-functions fs/coredump.c
---- a/fs/coredump.c~coredump-add-__printf-attribute-to-cn_printf-functions
-+++ a/fs/coredump.c
-@@ -70,7 +70,8 @@ static int expand_corename(struct core_n
- 	return 0;
- }
- 
--static int cn_vprintf(struct core_name *cn, const char *fmt, va_list arg)
-+static __printf(2, 0) int cn_vprintf(struct core_name *cn, const char *fmt,
-+				     va_list arg)
+diff -puN fs/befs/btree.c~fs-befs-btreec-remove-unneeded-initializations fs/befs/btree.c
+--- a/fs/befs/btree.c~fs-befs-btreec-remove-unneeded-initializations
++++ a/fs/befs/btree.c
+@@ -137,8 +137,8 @@ static int
+ befs_bt_read_super(struct super_block *sb, befs_data_stream * ds,
+ 		   befs_btree_super * sup)
  {
- 	int free, need;
- 	va_list arg_copy;
-@@ -93,7 +94,7 @@ again:
- 	return -ENOMEM;
- }
+-	struct buffer_head *bh = NULL;
+-	befs_disk_btree_super *od_sup = NULL;
++	struct buffer_head *bh;
++	befs_disk_btree_super *od_sup;
  
--static int cn_printf(struct core_name *cn, const char *fmt, ...)
-+static __printf(2, 3) int cn_printf(struct core_name *cn, const char *fmt, ...)
- {
- 	va_list arg;
- 	int ret;
-@@ -105,7 +106,8 @@ static int cn_printf(struct core_name *c
- 	return ret;
- }
+ 	befs_debug(sb, "---> %s", __func__);
  
--static int cn_esc_printf(struct core_name *cn, const char *fmt, ...)
-+static __printf(2, 3)
-+int cn_esc_printf(struct core_name *cn, const char *fmt, ...)
+@@ -250,7 +250,7 @@ int
+ befs_btree_find(struct super_block *sb, befs_data_stream * ds,
+ 		const char *key, befs_off_t * value)
  {
- 	int cur = cn->used;
- 	va_list arg;
-@@ -225,7 +227,8 @@ static int format_corename(struct core_n
- 				break;
- 			/* signal that caused the coredump */
- 			case 's':
--				err = cn_printf(cn, "%ld", cprm->siginfo->si_signo);
-+				err = cn_printf(cn, "%d",
-+						cprm->siginfo->si_signo);
- 				break;
- 			/* UNIX time of coredump */
- 			case 't': {
+-	struct befs_btree_node *this_node = NULL;
++	struct befs_btree_node *this_node;
+ 	befs_btree_super bt_super;
+ 	befs_off_t node_off;
+ 	int res;
 _
 
-Patches currently in -mm which might be from nicolas.iooss_linux@m4x.org are
+Patches currently in -mm which might be from fabf@skynet.be are
 
 origin.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+fs-affs-inodec-remove-unneeded-initialization.patch
+fs-affs-amigaffsc-remove-unneeded-initialization.patch
+fs-affs-symlinkc-remove-unneeded-err-variable.patch
+w1-masters-omap_hdq-add-support-for-1-wire-mode.patch
 linux-next.patch
 
