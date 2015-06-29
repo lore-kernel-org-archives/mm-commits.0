@@ -1,103 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- coredump-use-from_kuid-kgid-when-formatting-corename.patch removed from -mm tree
-Date: Mon, 29 Jun 2015 13:49:19 -0700
-Message-ID: <5591af4f.Ppg9IZv2MO2FAsx5%akpm@linux-foundation.org>
+Subject: [merged] nilfs2-support-nfsv2-export.patch removed from -mm tree
+Date: Mon, 29 Jun 2015 13:49:15 -0700
+Message-ID: <5591af4b.bDkJbEOiwLjf8AB/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51020 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51016 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754323AbbF2UtU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:49:20 -0400
+	with ESMTP id S1754285AbbF2UtP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:49:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nicolas.iooss_linux@m4x.org, ebiederm@xmission.com, mm-commits@vger.kernel.org
+To: neilb@suse.de, konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: coredump: use from_kuid/kgid when formatting corename
+     Subject: NILFS2: support NFSv2 export
 has been removed from the -mm tree.  Its filename was
-     coredump-use-from_kuid-kgid-when-formatting-corename.patch
+     nilfs2-support-nfsv2-export.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
-Subject: coredump: use from_kuid/kgid when formatting corename
+From: NeilBrown <neilb@suse.de>
+Subject: NILFS2: support NFSv2 export
 
-When adding __printf attribute to cn_printf, gcc reports some issues:
+The "fh_len" passed to ->fh_to_* is not guaranteed to be that same as that
+returned by encode_fh - it may be larger.
 
-  fs/coredump.c:213:5: warning: format '%d' expects argument of type
-  'int', but argument 3 has type 'kuid_t' [-Wformat=]
-       err = cn_printf(cn, "%d", cred->uid);
-       ^
-  fs/coredump.c:217:5: warning: format '%d' expects argument of type
-  'int', but argument 3 has type 'kgid_t' [-Wformat=]
-       err = cn_printf(cn, "%d", cred->gid);
-       ^
+With NFSv2, the filehandle is fixed length, so it may appear longer than
+expected and be zero-padded.
 
-These warnings come from the fact that the value of uid/gid needs to be
-extracted from the kuid_t/kgid_t structure before being used as an
-integer.  More precisely, cred->uid and cred->gid need to be converted to
-either user-namespace uid/gid or to init_user_ns uid/gid.
+So we must test that fh_len is at least some value, not exactly equal to
+it.
 
-Use init_user_ns in order not to break existing ABI, and document this in
-Documentation/sysctl/kernel.txt.
-
-While at it, format uid and gid values with %u instead of %d because
-uid_t/__kernel_uid32_t and gid_t/__kernel_gid32_t are unsigned int.
-
-Signed-off-by: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
-Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: NeilBrown <neilb@suse.de>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/kernel.txt |    4 ++--
- fs/coredump.c                   |    8 ++++++--
- 2 files changed, 8 insertions(+), 4 deletions(-)
+ fs/nilfs2/namei.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/sysctl/kernel.txt~coredump-use-from_kuid-kgid-when-formatting-corename Documentation/sysctl/kernel.txt
---- a/Documentation/sysctl/kernel.txt~coredump-use-from_kuid-kgid-when-formatting-corename
-+++ a/Documentation/sysctl/kernel.txt
-@@ -197,8 +197,8 @@ core_pattern is used to specify a core d
- 	%P	global pid (init PID namespace)
- 	%i	tid
- 	%I	global tid (init PID namespace)
--	%u	uid
--	%g	gid
-+	%u	uid (in initial user namespace)
-+	%g	gid (in initial user namespace)
- 	%d	dump mode, matches PR_SET_DUMPABLE and
- 		/proc/sys/fs/suid_dumpable
- 	%s	signal number
-diff -puN fs/coredump.c~coredump-use-from_kuid-kgid-when-formatting-corename fs/coredump.c
---- a/fs/coredump.c~coredump-use-from_kuid-kgid-when-formatting-corename
-+++ a/fs/coredump.c
-@@ -209,11 +209,15 @@ static int format_corename(struct core_n
- 				break;
- 			/* uid */
- 			case 'u':
--				err = cn_printf(cn, "%d", cred->uid);
-+				err = cn_printf(cn, "%u",
-+						from_kuid(&init_user_ns,
-+							  cred->uid));
- 				break;
- 			/* gid */
- 			case 'g':
--				err = cn_printf(cn, "%d", cred->gid);
-+				err = cn_printf(cn, "%u",
-+						from_kgid(&init_user_ns,
-+							  cred->gid));
- 				break;
- 			case 'd':
- 				err = cn_printf(cn, "%d",
+diff -puN fs/nilfs2/namei.c~nilfs2-support-nfsv2-export fs/nilfs2/namei.c
+--- a/fs/nilfs2/namei.c~nilfs2-support-nfsv2-export
++++ a/fs/nilfs2/namei.c
+@@ -496,8 +496,7 @@ static struct dentry *nilfs_fh_to_dentry
+ {
+ 	struct nilfs_fid *fid = (struct nilfs_fid *)fh;
+ 
+-	if ((fh_len != NILFS_FID_SIZE_NON_CONNECTABLE &&
+-	     fh_len != NILFS_FID_SIZE_CONNECTABLE) ||
++	if (fh_len < NILFS_FID_SIZE_NON_CONNECTABLE ||
+ 	    (fh_type != FILEID_NILFS_WITH_PARENT &&
+ 	     fh_type != FILEID_NILFS_WITHOUT_PARENT))
+ 		return NULL;
+@@ -510,7 +509,7 @@ static struct dentry *nilfs_fh_to_parent
+ {
+ 	struct nilfs_fid *fid = (struct nilfs_fid *)fh;
+ 
+-	if (fh_len != NILFS_FID_SIZE_CONNECTABLE ||
++	if (fh_len < NILFS_FID_SIZE_CONNECTABLE ||
+ 	    fh_type != FILEID_NILFS_WITH_PARENT)
+ 		return NULL;
+ 
 _
 
-Patches currently in -mm which might be from nicolas.iooss_linux@m4x.org are
+Patches currently in -mm which might be from neilb@suse.de are
 
 origin.patch
+w1-masters-omap_hdq-add-support-for-1-wire-mode.patch
 linux-next.patch
 
