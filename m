@@ -1,75 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-kobjectc-use-strreplace.patch removed from -mm tree
-Date: Mon, 29 Jun 2015 13:48:11 -0700
-Message-ID: <5591af0b.BSZIL3g72NURNn8t%akpm@linux-foundation.org>
+Subject: [merged] fs-ext4-superc-use-strreplace-in-ext4_fill_super.patch
+ removed from -mm tree
+Date: Mon, 29 Jun 2015 13:48:20 -0700
+Message-ID: <5591af14.vxo/3DrbSSKpDirU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50889 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50897 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753876AbbF2UsL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:48:11 -0400
+	with ESMTP id S1754240AbbF2UsU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:48:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, gregkh@linuxfoundation.org, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/kobject.c: use strreplace()
+     Subject: fs/ext4/super.c: use strreplace() in ext4_fill_super()
 has been removed from the -mm tree.  Its filename was
-     lib-kobjectc-use-strreplace.patch
+     fs-ext4-superc-use-strreplace-in-ext4_fill_super.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/kobject.c: use strreplace()
+Subject: fs/ext4/super.c: use strreplace() in ext4_fill_super()
 
-There's probably not many slashes in the name, but starting over when
-we see one feels wrong.
+This makes a very large function a little smaller.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/kobject.c |   13 +++++--------
- 1 file changed, 5 insertions(+), 8 deletions(-)
+ fs/ext4/super.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN lib/kobject.c~lib-kobjectc-use-strreplace lib/kobject.c
---- a/lib/kobject.c~lib-kobjectc-use-strreplace
-+++ a/lib/kobject.c
-@@ -257,23 +257,20 @@ static int kobject_add_internal(struct k
- int kobject_set_name_vargs(struct kobject *kobj, const char *fmt,
- 				  va_list vargs)
- {
--	const char *old_name = kobj->name;
- 	char *s;
+diff -puN fs/ext4/super.c~fs-ext4-superc-use-strreplace-in-ext4_fill_super fs/ext4/super.c
+--- a/fs/ext4/super.c~fs-ext4-superc-use-strreplace-in-ext4_fill_super
++++ a/fs/ext4/super.c
+@@ -3420,7 +3420,6 @@ static int ext4_fill_super(struct super_
+ 	unsigned long journal_devnum = 0;
+ 	unsigned long def_mount_opts;
+ 	struct inode *root;
+-	char *cp;
+ 	const char *descr;
+ 	int ret = -ENOMEM;
+ 	int blocksize, clustersize;
+@@ -3456,8 +3455,7 @@ static int ext4_fill_super(struct super_
+ #endif
  
- 	if (kobj->name && !fmt)
- 		return 0;
+ 	/* Cleanup superblock name */
+-	for (cp = sb->s_id; (cp = strchr(cp, '/'));)
+-		*cp = '!';
++	strreplace(sb->s_id, '/', '!');
  
--	kobj->name = kvasprintf(GFP_KERNEL, fmt, vargs);
--	if (!kobj->name) {
--		kobj->name = old_name;
-+	s = kvasprintf(GFP_KERNEL, fmt, vargs);
-+	if (!s)
- 		return -ENOMEM;
--	}
- 
- 	/* ewww... some of these buggers have '/' in the name ... */
--	while ((s = strchr(kobj->name, '/')))
--		s[0] = '!';
-+	strreplace(s, '/', '!');
-+	kfree(kobj->name);
-+	kobj->name = s;
- 
--	kfree(old_name);
- 	return 0;
- }
- 
+ 	/* -EINVAL is default */
+ 	ret = -EINVAL;
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
