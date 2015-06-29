@@ -1,131 +1,206 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-hugetlb-introduce-minimum-hugepage-order.patch
- removed from -mm tree
-Date: Mon, 29 Jun 2015 13:38:06 -0700
-Message-ID: <5591acae.+cre3zr6FwjheYZH%akpm@linux-foundation.org>
+Subject: [merged]
+ smpboot-allow-excluding-cpus-from-the-smpboot-threads.patch removed from
+ -mm tree
+Date: Mon, 29 Jun 2015 13:37:01 -0700
+Message-ID: <5591ac6d.v8Wir9hcKGgF9OTO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50366 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50201 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754022AbbF2UiH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:38:07 -0400
+	with ESMTP id S1753979AbbF2UhC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:37:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: n-horiguchi@ah.jp.nec.com, dan.carpenter@oracle.com, mm-commits@vger.kernel.org
+To: cmetcalf@ezchip.com, dzickus@redhat.com, fweisbec@gmail.com, mingo@kernel.org, peterz@infradead.org, tglx@linutronix.de, uobergfe@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: introduce minimum hugepage order
+     Subject: smpboot: allow excluding cpus from the smpboot threads
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-introduce-minimum-hugepage-order.patch
+     smpboot-allow-excluding-cpus-from-the-smpboot-threads.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm/hugetlb: introduce minimum hugepage order
+From: Chris Metcalf <cmetcalf@ezchip.com>
+Subject: smpboot: allow excluding cpus from the smpboot threads
 
-Currently the initial value of order in dissolve_free_huge_page is 64 or
-32, which leads to the following warning in static checker:
+This patch series allows the watchdog to run by default only on the
+housekeeping cores when nohz_full is in effect; this seems to be a good
+compromise short of turning it off completely (since the nohz_full cores
+can't tolerate a watchdog).
 
-  mm/hugetlb.c:1203 dissolve_free_huge_pages()
-  warn: potential right shift more than type allows '9,18,64'
+To provide customizability, we add /proc/sys/kernel/watchdog_cpumask so
+that the set of cores running the watchdog can be tuned to different
+values after bootup.
 
-This is a potential risk of infinite loop, because 1 << order (== 0) is used
-in for-loop like this:
+To implement this customizability, we add a new
+smpboot_update_cpumask_percpu_thread() API to the smpboot_thread subsystem
+that lets us park or unpark "unwanted" threads.
 
-  for (pfn =3D start_pfn; pfn < end_pfn; pfn +=3D 1 << order)
-      ...
+And now that threads can be parked for long periods of time, we tweak the
+/proc/<pid>/stat and /proc/<pid>/status code so parked threads aren't
+reported as running, which is otherwise confusing.
 
-So this patch fixes it by using global minimum_order calculated at boot time.
 
-    text    data     bss     dec     hex filename
-   28313     469   84236  113018   1b97a mm/hugetlb.o
-   28256     473   84236  112965   1b945 mm/hugetlb.o (patched)
 
-Fixes: c8721bbbdd36 ("mm: memory-hotplug: enable memory hotplug to handle hugepage")
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+This patch (of 3):
+
+This change allows some cores to be excluded from running the
+smp_hotplug_thread tasks.  The following commit to update
+kernel/watchdog.c to use this functionality is the motivating example, and
+more information on the motivation is provided there.
+
+A new smp_hotplug_thread field is introduced, "cpumask", which is cpumask
+field managed by the smpboot subsystem that indicates whether or not the
+given smp_hotplug_thread should run on that core; the cpumask is checked
+when deciding whether to unpark the thread.
+
+To limit the cpumask to less than cpu_possible, you must call
+smpboot_update_cpumask_percpu_thread() after registering.
+
+Signed-off-by: Chris Metcalf <cmetcalf@ezchip.com>
+Cc: Don Zickus <dzickus@redhat.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Ulrich Obergfell <uobergfe@redhat.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   19 +++++++++++--------
- 1 file changed, 11 insertions(+), 8 deletions(-)
+ include/linux/smpboot.h |    5 +++
+ kernel/smpboot.c        |   59 +++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 63 insertions(+), 1 deletion(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-introduce-minimum-hugepage-order mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-introduce-minimum-hugepage-order
-+++ a/mm/hugetlb.c
-@@ -40,6 +40,11 @@ int hugepages_treat_as_movable;
- int hugetlb_max_hstate __read_mostly;
- unsigned int default_hstate_idx;
- struct hstate hstates[HUGE_MAX_HSTATE];
-+/*
-+ * Minimum page order among possible hugepage sizes, set to a proper value
-+ * at boot time.
-+ */
-+static unsigned int minimum_order __read_mostly = UINT_MAX;
- 
- __initdata LIST_HEAD(huge_boot_pages);
- 
-@@ -1188,19 +1193,13 @@ static void dissolve_free_huge_page(stru
+diff -puN include/linux/smpboot.h~smpboot-allow-excluding-cpus-from-the-smpboot-threads include/linux/smpboot.h
+--- a/include/linux/smpboot.h~smpboot-allow-excluding-cpus-from-the-smpboot-threads
++++ a/include/linux/smpboot.h
+@@ -27,6 +27,8 @@ struct smpboot_thread_data;
+  * @pre_unpark:		Optional unpark function, called before the thread is
+  *			unparked (cpu online). This is not guaranteed to be
+  *			called on the target cpu of the thread. Careful!
++ * @cpumask:		Internal state.  To update which threads are unparked,
++ *			call smpboot_update_cpumask_percpu_thread().
+  * @selfparking:	Thread is not parked by the park function.
+  * @thread_comm:	The base name of the thread
   */
- void dissolve_free_huge_pages(unsigned long start_pfn, unsigned long end_pfn)
+@@ -41,11 +43,14 @@ struct smp_hotplug_thread {
+ 	void				(*park)(unsigned int cpu);
+ 	void				(*unpark)(unsigned int cpu);
+ 	void				(*pre_unpark)(unsigned int cpu);
++	cpumask_var_t			cpumask;
+ 	bool				selfparking;
+ 	const char			*thread_comm;
+ };
+ 
+ int smpboot_register_percpu_thread(struct smp_hotplug_thread *plug_thread);
+ void smpboot_unregister_percpu_thread(struct smp_hotplug_thread *plug_thread);
++int smpboot_update_cpumask_percpu_thread(struct smp_hotplug_thread *plug_thread,
++					 const struct cpumask *);
+ 
+ #endif
+diff -puN kernel/smpboot.c~smpboot-allow-excluding-cpus-from-the-smpboot-threads kernel/smpboot.c
+--- a/kernel/smpboot.c~smpboot-allow-excluding-cpus-from-the-smpboot-threads
++++ a/kernel/smpboot.c
+@@ -232,7 +232,8 @@ void smpboot_unpark_threads(unsigned int
+ 
+ 	mutex_lock(&smpboot_threads_lock);
+ 	list_for_each_entry(cur, &hotplug_threads, list)
+-		smpboot_unpark_thread(cur, cpu);
++		if (cpumask_test_cpu(cpu, cur->cpumask))
++			smpboot_unpark_thread(cur, cpu);
+ 	mutex_unlock(&smpboot_threads_lock);
+ }
+ 
+@@ -258,6 +259,15 @@ static void smpboot_destroy_threads(stru
  {
--	unsigned int order = 8 * sizeof(void *);
- 	unsigned long pfn;
--	struct hstate *h;
+ 	unsigned int cpu;
  
- 	if (!hugepages_supported())
- 		return;
- 
--	/* Set scan step to minimum hugepage size */
--	for_each_hstate(h)
--		if (order > huge_page_order(h))
--			order = huge_page_order(h);
--	VM_BUG_ON(!IS_ALIGNED(start_pfn, 1 << order));
--	for (pfn = start_pfn; pfn < end_pfn; pfn += 1 << order)
-+	VM_BUG_ON(!IS_ALIGNED(start_pfn, 1 << minimum_order));
-+	for (pfn = start_pfn; pfn < end_pfn; pfn += 1 << minimum_order)
- 		dissolve_free_huge_page(pfn_to_page(pfn));
- }
- 
-@@ -1627,10 +1626,14 @@ static void __init hugetlb_init_hstates(
- 	struct hstate *h;
- 
- 	for_each_hstate(h) {
-+		if (minimum_order > huge_page_order(h))
-+			minimum_order = huge_page_order(h);
++	/* Unpark any threads that were voluntarily parked. */
++	for_each_cpu_not(cpu, ht->cpumask) {
++		if (cpu_online(cpu)) {
++			struct task_struct *tsk = *per_cpu_ptr(ht->store, cpu);
++			if (tsk)
++				kthread_unpark(tsk);
++		}
++	}
 +
- 		/* oversize hugepages were init'ed in early boot */
- 		if (!hstate_is_gigantic(h))
- 			hugetlb_hstate_alloc_pages(h);
- 	}
-+	VM_BUG_ON(minimum_order == UINT_MAX);
- }
+ 	/* We need to destroy also the parked threads of offline cpus */
+ 	for_each_possible_cpu(cpu) {
+ 		struct task_struct *tsk = *per_cpu_ptr(ht->store, cpu);
+@@ -281,6 +291,10 @@ int smpboot_register_percpu_thread(struc
+ 	unsigned int cpu;
+ 	int ret = 0;
  
- static char * __init memfmt(char *buf, unsigned long n)
++	if (!alloc_cpumask_var(&plug_thread->cpumask, GFP_KERNEL))
++		return -ENOMEM;
++	cpumask_copy(plug_thread->cpumask, cpu_possible_mask);
++
+ 	get_online_cpus();
+ 	mutex_lock(&smpboot_threads_lock);
+ 	for_each_online_cpu(cpu) {
+@@ -313,9 +327,52 @@ void smpboot_unregister_percpu_thread(st
+ 	smpboot_destroy_threads(plug_thread);
+ 	mutex_unlock(&smpboot_threads_lock);
+ 	put_online_cpus();
++	free_cpumask_var(plug_thread->cpumask);
+ }
+ EXPORT_SYMBOL_GPL(smpboot_unregister_percpu_thread);
+ 
++/**
++ * smpboot_update_cpumask_percpu_thread - Adjust which per_cpu hotplug threads stay parked
++ * @plug_thread:	Hotplug thread descriptor
++ * @new:		Revised mask to use
++ *
++ * The cpumask field in the smp_hotplug_thread must not be updated directly
++ * by the client, but only by calling this function.
++ */
++int smpboot_update_cpumask_percpu_thread(struct smp_hotplug_thread *plug_thread,
++					 const struct cpumask *new)
++{
++	struct cpumask *old = plug_thread->cpumask;
++	cpumask_var_t tmp;
++	unsigned int cpu;
++
++	if (!alloc_cpumask_var(&tmp, GFP_KERNEL))
++		return -ENOMEM;
++
++	get_online_cpus();
++	mutex_lock(&smpboot_threads_lock);
++
++	/* Park threads that were exclusively enabled on the old mask. */
++	cpumask_andnot(tmp, old, new);
++	for_each_cpu_and(cpu, tmp, cpu_online_mask)
++		smpboot_park_thread(plug_thread, cpu);
++
++	/* Unpark threads that are exclusively enabled on the new mask. */
++	cpumask_andnot(tmp, new, old);
++	for_each_cpu_and(cpu, tmp, cpu_online_mask)
++		smpboot_unpark_thread(plug_thread, cpu);
++
++	cpumask_copy(old, new);
++
++	mutex_unlock(&smpboot_threads_lock);
++	put_online_cpus();
++
++	free_cpumask_var(tmp);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(smpboot_update_cpumask_percpu_thread);
++
+ static DEFINE_PER_CPU(atomic_t, cpu_hotplug_state) = ATOMIC_INIT(CPU_POST_DEAD);
+ 
+ /*
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from cmetcalf@ezchip.com are
 
 origin.patch
-page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-mm-sanitize-page-mapping-for-tail-pages.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
+linux-next.patch
 
