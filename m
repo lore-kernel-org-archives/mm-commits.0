@@ -1,204 +1,439 @@
 From: akpm@linux-foundation.org
-Subject: [merged] tracing-add-trace-event-for-memory-failure.patch removed from -mm tree
-Date: Mon, 29 Jun 2015 13:38:37 -0700
-Message-ID: <5591accd.KAAJGjh302Apgj1S%akpm@linux-foundation.org>
+Subject: [merged] frontswap-allow-multiple-backends.patch removed from -mm tree
+Date: Mon, 29 Jun 2015 13:39:11 -0700
+Message-ID: <5591acef.z/RUsSDK2vqHBhj2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50445 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50535 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753539AbbF2Uii (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:38:38 -0400
+	with ESMTP id S1754184AbbF2UjM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:39:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xiexiuqi@huawei.com, gong.chen@linux.intel.com, jim.epost@gmail.com, n-horiguchi@ah.jp.nec.com, rostedt@goodmis.org, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: ddstreet@ieee.org, boris.ostrovsky@oracle.com, david.vrabel@citrix.com, konrad.wilk@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tracing: add trace event for memory-failure
+     Subject: frontswap: allow multiple backends
 has been removed from the -mm tree.  Its filename was
-     tracing-add-trace-event-for-memory-failure.patch
+     frontswap-allow-multiple-backends.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Xie XiuQi <xiexiuqi@huawei.com>
-Subject: tracing: add trace event for memory-failure
+From: Dan Streetman <ddstreet@ieee.org>
+Subject: frontswap: allow multiple backends
 
-RAS user space tools like rasdaemon which base on trace event, could
-receive mce error event, but no memory recovery result event.  So, I want
-to add this event to make this scenario complete.
+Change frontswap single pointer to a singly linked list of frontswap
+implementations.  Update Xen tmem implementation as register no longer
+returns anything.
 
-This patch add a event at ras group for memory-failure.
+Frontswap only keeps track of a single implementation; any implementation
+that registers second (or later) will replace the previously registered
+implementation, and gets a pointer to the previous implementation that the
+new implementation is expected to pass all frontswap functions to if it
+can't handle the function itself.  However that method doesn't really make
+much sense, as passing that work on to every implementation adds
+unnecessary work to implementations; instead, frontswap should simply keep
+a list of all registered implementations and try each implementation for
+any function.  Most importantly, neither of the two currently existing
+frontswap implementations in the kernel actually do anything with any
+previous frontswap implementation that they replace when registering.
 
-The output like below:
-#  tracer: nop
-#
-#  entries-in-buffer/entries-written: 2/2   #P:24
-#
-#                               _-----=> irqs-off
-#                              / _----=> need-resched
-#                             | / _---=> hardirq/softirq
-#                             || / _--=> preempt-depth
-#                             ||| /     delay
-#            TASK-PID   CPU#  ||||    TIMESTAMP  FUNCTION
-#               | |       |   ||||       |         |
-       mce-inject-13150 [001] ....   277.019359: memory_failure_event: pfn 0x19869: recovery action for free buddy page: Delayed
+This allows frontswap to successfully manage multiple implementations by
+keeping a list of them all.
 
-[xiexiuqi@huawei.com: fix build error]
-Signed-off-by: Xie XiuQi <xiexiuqi@huawei.com>
-Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Acked-by: Steven Rostedt <rostedt@goodmis.org>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Chen Gong <gong.chen@linux.intel.com>
-Cc: Jim Davis <jim.epost@gmail.com>
-Signed-off-by: Xie XiuQi <xiexiuqi@huawei.com>
+Signed-off-by: Dan Streetman <ddstreet@ieee.org>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Cc: David Vrabel <david.vrabel@citrix.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/ras/ras_event.h |   85 ++++++++++++++++++++++++++++++++++++++
- mm/Kconfig              |    1 
- mm/memory-failure.c     |    3 +
- 3 files changed, 89 insertions(+)
+ drivers/xen/tmem.c        |    8 -
+ include/linux/frontswap.h |   14 +-
+ mm/frontswap.c            |  213 +++++++++++++++++++++---------------
+ 3 files changed, 138 insertions(+), 97 deletions(-)
 
-diff -puN include/ras/ras_event.h~tracing-add-trace-event-for-memory-failure include/ras/ras_event.h
---- a/include/ras/ras_event.h~tracing-add-trace-event-for-memory-failure
-+++ a/include/ras/ras_event.h
-@@ -11,6 +11,7 @@
- #include <linux/pci.h>
- #include <linux/aer.h>
- #include <linux/cper.h>
-+#include <linux/mm.h>
+diff -puN drivers/xen/tmem.c~frontswap-allow-multiple-backends drivers/xen/tmem.c
+--- a/drivers/xen/tmem.c~frontswap-allow-multiple-backends
++++ a/drivers/xen/tmem.c
+@@ -381,15 +381,9 @@ static int __init xen_tmem_init(void)
+ #ifdef CONFIG_FRONTSWAP
+ 	if (tmem_enabled && frontswap) {
+ 		char *s = "";
+-		struct frontswap_ops *old_ops;
+ 
+ 		tmem_frontswap_poolid = -1;
+-		old_ops = frontswap_register_ops(&tmem_frontswap_ops);
+-		if (IS_ERR(old_ops) || old_ops) {
+-			if (IS_ERR(old_ops))
+-				return PTR_ERR(old_ops);
+-			s = " (WARNING: frontswap_ops overridden)";
+-		}
++		frontswap_register_ops(&tmem_frontswap_ops);
+ 		pr_info("frontswap enabled, RAM provided by Xen Transcendent Memory%s\n",
+ 			s);
+ 	}
+diff -puN include/linux/frontswap.h~frontswap-allow-multiple-backends include/linux/frontswap.h
+--- a/include/linux/frontswap.h~frontswap-allow-multiple-backends
++++ a/include/linux/frontswap.h
+@@ -6,16 +6,16 @@
+ #include <linux/bitops.h>
+ 
+ struct frontswap_ops {
+-	void (*init)(unsigned);
+-	int (*store)(unsigned, pgoff_t, struct page *);
+-	int (*load)(unsigned, pgoff_t, struct page *);
+-	void (*invalidate_page)(unsigned, pgoff_t);
+-	void (*invalidate_area)(unsigned);
++	void (*init)(unsigned); /* this swap type was just swapon'ed */
++	int (*store)(unsigned, pgoff_t, struct page *); /* store a page */
++	int (*load)(unsigned, pgoff_t, struct page *); /* load a page */
++	void (*invalidate_page)(unsigned, pgoff_t); /* page no longer needed */
++	void (*invalidate_area)(unsigned); /* swap type just swapoff'ed */
++	struct frontswap_ops *next; /* private pointer to next ops */
+ };
+ 
+ extern bool frontswap_enabled;
+-extern struct frontswap_ops *
+-	frontswap_register_ops(struct frontswap_ops *ops);
++extern void frontswap_register_ops(struct frontswap_ops *ops);
+ extern void frontswap_shrink(unsigned long);
+ extern unsigned long frontswap_curr_pages(void);
+ extern void frontswap_writethrough(bool);
+diff -puN mm/frontswap.c~frontswap-allow-multiple-backends mm/frontswap.c
+--- a/mm/frontswap.c~frontswap-allow-multiple-backends
++++ a/mm/frontswap.c
+@@ -21,11 +21,16 @@
+ #include <linux/swapfile.h>
  
  /*
-  * MCE Extended Error Log trace event
-@@ -232,6 +233,90 @@ TRACE_EVENT(aer_event,
- 		__print_flags(__entry->status, "|", aer_uncorrectable_errors))
- );
+- * frontswap_ops is set by frontswap_register_ops to contain the pointers
+- * to the frontswap "backend" implementation functions.
++ * frontswap_ops are added by frontswap_register_ops, and provide the
++ * frontswap "backend" implementation functions.  Multiple implementations
++ * may be registered, but implementations can never deregister.  This
++ * is a simple singly-linked list of all registered implementations.
+  */
+ static struct frontswap_ops *frontswap_ops __read_mostly;
  
-+/*
-+ * memory-failure recovery action result event
-+ *
-+ * unsigned long pfn -	Page Frame Number of the corrupted page
-+ * int type	-	Page types of the corrupted page
-+ * int result	-	Result of recovery action
-+ */
++#define for_each_frontswap_ops(ops)		\
++	for ((ops) = frontswap_ops; (ops); (ops) = (ops)->next)
 +
-+#ifdef CONFIG_MEMORY_FAILURE
-+#define MF_ACTION_RESULT	\
-+	EM ( MF_IGNORED, "Ignored" )	\
-+	EM ( MF_FAILED,  "Failed" )	\
-+	EM ( MF_DELAYED, "Delayed" )	\
-+	EMe ( MF_RECOVERED, "Recovered" )
-+
-+#define MF_PAGE_TYPE		\
-+	EM ( MF_MSG_KERNEL, "reserved kernel page" )			\
-+	EM ( MF_MSG_KERNEL_HIGH_ORDER, "high-order kernel page" )	\
-+	EM ( MF_MSG_SLAB, "kernel slab page" )				\
-+	EM ( MF_MSG_DIFFERENT_COMPOUND, "different compound page after locking" ) \
-+	EM ( MF_MSG_POISONED_HUGE, "huge page already hardware poisoned" )	\
-+	EM ( MF_MSG_HUGE, "huge page" )					\
-+	EM ( MF_MSG_FREE_HUGE, "free huge page" )			\
-+	EM ( MF_MSG_UNMAP_FAILED, "unmapping failed page" )		\
-+	EM ( MF_MSG_DIRTY_SWAPCACHE, "dirty swapcache page" )		\
-+	EM ( MF_MSG_CLEAN_SWAPCACHE, "clean swapcache page" )		\
-+	EM ( MF_MSG_DIRTY_MLOCKED_LRU, "dirty mlocked LRU page" )	\
-+	EM ( MF_MSG_CLEAN_MLOCKED_LRU, "clean mlocked LRU page" )	\
-+	EM ( MF_MSG_DIRTY_UNEVICTABLE_LRU, "dirty unevictable LRU page" )	\
-+	EM ( MF_MSG_CLEAN_UNEVICTABLE_LRU, "clean unevictable LRU page" )	\
-+	EM ( MF_MSG_DIRTY_LRU, "dirty LRU page" )			\
-+	EM ( MF_MSG_CLEAN_LRU, "clean LRU page" )			\
-+	EM ( MF_MSG_TRUNCATED_LRU, "already truncated LRU page" )	\
-+	EM ( MF_MSG_BUDDY, "free buddy page" )				\
-+	EM ( MF_MSG_BUDDY_2ND, "free buddy page (2nd try)" )		\
-+	EMe ( MF_MSG_UNKNOWN, "unknown page" )
-+
-+/*
-+ * First define the enums in MM_ACTION_RESULT to be exported to userspace
-+ * via TRACE_DEFINE_ENUM().
-+ */
-+#undef EM
-+#undef EMe
-+#define EM(a, b) TRACE_DEFINE_ENUM(a);
-+#define EMe(a, b)	TRACE_DEFINE_ENUM(a);
-+
-+MF_ACTION_RESULT
-+MF_PAGE_TYPE
-+
-+/*
-+ * Now redefine the EM() and EMe() macros to map the enums to the strings
-+ * that will be printed in the output.
-+ */
-+#undef EM
-+#undef EMe
-+#define EM(a, b)		{ a, b },
-+#define EMe(a, b)	{ a, b }
-+
-+TRACE_EVENT(memory_failure_event,
-+	TP_PROTO(unsigned long pfn,
-+		 int type,
-+		 int result),
-+
-+	TP_ARGS(pfn, type, result),
-+
-+	TP_STRUCT__entry(
-+		__field(unsigned long, pfn)
-+		__field(int, type)
-+		__field(int, result)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->pfn	= pfn;
-+		__entry->type	= type;
-+		__entry->result	= result;
-+	),
-+
-+	TP_printk("pfn %#lx: recovery action for %s: %s",
-+		__entry->pfn,
-+		__print_symbolic(__entry->type, MF_PAGE_TYPE),
-+		__print_symbolic(__entry->result, MF_ACTION_RESULT)
-+	)
-+);
-+#endif /* CONFIG_MEMORY_FAILURE */
- #endif /* _TRACE_HW_EVENT_MC_H */
+ /*
+  * If enabled, frontswap_store will return failure even on success.  As
+  * a result, the swap subsystem will always write the page to swap, in
+@@ -79,15 +84,6 @@ static inline void inc_frontswap_invalid
+  * on all frontswap functions to not call the backend until the backend
+  * has registered.
+  *
+- * Specifically when no backend is registered (nobody called
+- * frontswap_register_ops) all calls to frontswap_init (which is done via
+- * swapon -> enable_swap_info -> frontswap_init) are registered and remembered
+- * (via the setting of need_init bitmap) but fail to create tmem_pools. When a
+- * backend registers with frontswap at some later point the previous
+- * calls to frontswap_init are executed (by iterating over the need_init
+- * bitmap) to create tmem_pools and set the respective poolids. All of that is
+- * guarded by us using atomic bit operations on the 'need_init' bitmap.
+- *
+  * This would not guards us against the user deciding to call swapoff right as
+  * we are calling the backend to initialize (so swapon is in action).
+  * Fortunatly for us, the swapon_mutex has been taked by the callee so we are
+@@ -106,37 +102,64 @@ static inline void inc_frontswap_invalid
+  *
+  * Obviously the opposite (unloading the backend) must be done after all
+  * the frontswap_[store|load|invalidate_area|invalidate_page] start
+- * ignorning or failing the requests - at which point frontswap_ops
+- * would have to be made in some fashion atomic.
++ * ignoring or failing the requests.  However, there is currently no way
++ * to unload a backend once it is registered.
+  */
+-static DECLARE_BITMAP(need_init, MAX_SWAPFILES);
  
- /* This part must be outside protection */
-diff -puN mm/Kconfig~tracing-add-trace-event-for-memory-failure mm/Kconfig
---- a/mm/Kconfig~tracing-add-trace-event-for-memory-failure
-+++ a/mm/Kconfig
-@@ -368,6 +368,7 @@ config MEMORY_FAILURE
- 	depends on ARCH_SUPPORTS_MEMORY_FAILURE
- 	bool "Enable recovery from hardware memory errors"
- 	select MEMORY_ISOLATION
-+	select RAS
- 	help
- 	  Enables code to recover from some memory failures on systems
- 	  with MCA recovery. This allows a system to continue running
-diff -puN mm/memory-failure.c~tracing-add-trace-event-for-memory-failure mm/memory-failure.c
---- a/mm/memory-failure.c~tracing-add-trace-event-for-memory-failure
-+++ a/mm/memory-failure.c
-@@ -57,6 +57,7 @@
- #include <linux/mm_inline.h>
- #include <linux/kfifo.h>
- #include "internal.h"
-+#include "ras/ras_event.h"
- 
- int sysctl_memory_failure_early_kill __read_mostly = 0;
- 
-@@ -855,6 +856,8 @@ static struct page_state {
- static void action_result(unsigned long pfn, enum mf_action_page_type type,
- 			  enum mf_result result)
+ /*
+- * Register operations for frontswap, returning previous thus allowing
+- * detection of multiple backends and possible nesting.
++ * Register operations for frontswap
+  */
+-struct frontswap_ops *frontswap_register_ops(struct frontswap_ops *ops)
++void frontswap_register_ops(struct frontswap_ops *ops)
  {
-+	trace_memory_failure_event(pfn, type, result);
+-	struct frontswap_ops *old = frontswap_ops;
+-	int i;
++	DECLARE_BITMAP(a, MAX_SWAPFILES);
++	DECLARE_BITMAP(b, MAX_SWAPFILES);
++	struct swap_info_struct *si;
++	unsigned int i;
 +
- 	pr_err("MCE %#lx: recovery action for %s: %s\n",
- 		pfn, action_page_types[type], action_name[result]);
++	bitmap_zero(a, MAX_SWAPFILES);
++	bitmap_zero(b, MAX_SWAPFILES);
++
++	spin_lock(&swap_lock);
++	plist_for_each_entry(si, &swap_active_head, list) {
++		if (!WARN_ON(!si->frontswap_map))
++			set_bit(si->type, a);
++	}
++	spin_unlock(&swap_lock);
+ 
+-	for (i = 0; i < MAX_SWAPFILES; i++) {
+-		if (test_and_clear_bit(i, need_init)) {
+-			struct swap_info_struct *sis = swap_info[i];
+-			/* __frontswap_init _should_ have set it! */
+-			if (!sis->frontswap_map)
+-				return ERR_PTR(-EINVAL);
+-			ops->init(i);
+-		}
++	/* the new ops needs to know the currently active swap devices */
++	for_each_set_bit(i, a, MAX_SWAPFILES)
++		ops->init(i);
++
++	/*
++	 * Setting frontswap_ops must happen after the ops->init() calls
++	 * above; cmpxchg implies smp_mb() which will ensure the init is
++	 * complete at this point.
++	 */
++	do {
++		ops->next = frontswap_ops;
++	} while (cmpxchg(&frontswap_ops, ops->next, ops) != ops->next);
++
++	spin_lock(&swap_lock);
++	plist_for_each_entry(si, &swap_active_head, list) {
++		if (si->frontswap_map)
++			set_bit(si->type, b);
+ 	}
++	spin_unlock(&swap_lock);
++
+ 	/*
+-	 * We MUST have frontswap_ops set _after_ the frontswap_init's
+-	 * have been called. Otherwise __frontswap_store might fail. Hence
+-	 * the barrier to make sure compiler does not re-order us.
++	 * On the very unlikely chance that a swap device was added or
++	 * removed between setting the "a" list bits and the ops init
++	 * calls, we re-check and do init or invalidate for any changed
++	 * bits.
+ 	 */
+-	barrier();
+-	frontswap_ops = ops;
+-	return old;
++	if (unlikely(!bitmap_equal(a, b, MAX_SWAPFILES))) {
++		for (i = 0; i < MAX_SWAPFILES; i++) {
++			if (!test_bit(i, a) && test_bit(i, b))
++				ops->init(i);
++			else if (test_bit(i, a) && !test_bit(i, b))
++				ops->invalidate_area(i);
++		}
++	}
  }
+ EXPORT_SYMBOL(frontswap_register_ops);
+ 
+@@ -164,6 +187,7 @@ EXPORT_SYMBOL(frontswap_tmem_exclusive_g
+ void __frontswap_init(unsigned type, unsigned long *map)
+ {
+ 	struct swap_info_struct *sis = swap_info[type];
++	struct frontswap_ops *ops;
+ 
+ 	BUG_ON(sis == NULL);
+ 
+@@ -179,28 +203,30 @@ void __frontswap_init(unsigned type, uns
+ 	 * p->frontswap set to something valid to work properly.
+ 	 */
+ 	frontswap_map_set(sis, map);
+-	if (frontswap_ops)
+-		frontswap_ops->init(type);
+-	else {
+-		BUG_ON(type >= MAX_SWAPFILES);
+-		set_bit(type, need_init);
+-	}
++
++	for_each_frontswap_ops(ops)
++		ops->init(type);
+ }
+ EXPORT_SYMBOL(__frontswap_init);
+ 
+ bool __frontswap_test(struct swap_info_struct *sis,
+ 				pgoff_t offset)
+ {
+-	bool ret = false;
+-
+-	if (frontswap_ops && sis->frontswap_map)
+-		ret = test_bit(offset, sis->frontswap_map);
+-	return ret;
++	if (sis->frontswap_map)
++		return test_bit(offset, sis->frontswap_map);
++	return false;
+ }
+ EXPORT_SYMBOL(__frontswap_test);
+ 
++static inline void __frontswap_set(struct swap_info_struct *sis,
++				   pgoff_t offset)
++{
++	set_bit(offset, sis->frontswap_map);
++	atomic_inc(&sis->frontswap_pages);
++}
++
+ static inline void __frontswap_clear(struct swap_info_struct *sis,
+-				pgoff_t offset)
++				     pgoff_t offset)
+ {
+ 	clear_bit(offset, sis->frontswap_map);
+ 	atomic_dec(&sis->frontswap_pages);
+@@ -215,39 +241,46 @@ static inline void __frontswap_clear(str
+  */
+ int __frontswap_store(struct page *page)
+ {
+-	int ret = -1, dup = 0;
++	int ret = -1;
+ 	swp_entry_t entry = { .val = page_private(page), };
+ 	int type = swp_type(entry);
+ 	struct swap_info_struct *sis = swap_info[type];
+ 	pgoff_t offset = swp_offset(entry);
++	struct frontswap_ops *ops;
+ 
+ 	/*
+ 	 * Return if no backend registed.
+ 	 * Don't need to inc frontswap_failed_stores here.
+ 	 */
+ 	if (!frontswap_ops)
+-		return ret;
++		return -1;
+ 
+ 	BUG_ON(!PageLocked(page));
+ 	BUG_ON(sis == NULL);
+-	if (__frontswap_test(sis, offset))
+-		dup = 1;
+-	ret = frontswap_ops->store(type, offset, page);
++
++	/*
++	 * If a dup, we must remove the old page first; we can't leave the
++	 * old page no matter if the store of the new page succeeds or fails,
++	 * and we can't rely on the new page replacing the old page as we may
++	 * not store to the same implementation that contains the old page.
++	 */
++	if (__frontswap_test(sis, offset)) {
++		__frontswap_clear(sis, offset);
++		for_each_frontswap_ops(ops)
++			ops->invalidate_page(type, offset);
++	}
++
++	/* Try to store in each implementation, until one succeeds. */
++	for_each_frontswap_ops(ops) {
++		ret = ops->store(type, offset, page);
++		if (!ret) /* successful store */
++			break;
++	}
+ 	if (ret == 0) {
+-		set_bit(offset, sis->frontswap_map);
++		__frontswap_set(sis, offset);
+ 		inc_frontswap_succ_stores();
+-		if (!dup)
+-			atomic_inc(&sis->frontswap_pages);
+ 	} else {
+-		/*
+-		  failed dup always results in automatic invalidate of
+-		  the (older) page from frontswap
+-		 */
+ 		inc_frontswap_failed_stores();
+-		if (dup) {
+-			__frontswap_clear(sis, offset);
+-			frontswap_ops->invalidate_page(type, offset);
+-		}
+ 	}
+ 	if (frontswap_writethrough_enabled)
+ 		/* report failure so swap also writes to swap device */
+@@ -268,14 +301,22 @@ int __frontswap_load(struct page *page)
+ 	int type = swp_type(entry);
+ 	struct swap_info_struct *sis = swap_info[type];
+ 	pgoff_t offset = swp_offset(entry);
++	struct frontswap_ops *ops;
++
++	if (!frontswap_ops)
++		return -1;
+ 
+ 	BUG_ON(!PageLocked(page));
+ 	BUG_ON(sis == NULL);
+-	/*
+-	 * __frontswap_test() will check whether there is backend registered
+-	 */
+-	if (__frontswap_test(sis, offset))
+-		ret = frontswap_ops->load(type, offset, page);
++	if (!__frontswap_test(sis, offset))
++		return -1;
++
++	/* Try loading from each implementation, until one succeeds. */
++	for_each_frontswap_ops(ops) {
++		ret = ops->load(type, offset, page);
++		if (!ret) /* successful load */
++			break;
++	}
+ 	if (ret == 0) {
+ 		inc_frontswap_loads();
+ 		if (frontswap_tmem_exclusive_gets_enabled) {
+@@ -294,16 +335,19 @@ EXPORT_SYMBOL(__frontswap_load);
+ void __frontswap_invalidate_page(unsigned type, pgoff_t offset)
+ {
+ 	struct swap_info_struct *sis = swap_info[type];
++	struct frontswap_ops *ops;
++
++	if (!frontswap_ops)
++		return;
+ 
+ 	BUG_ON(sis == NULL);
+-	/*
+-	 * __frontswap_test() will check whether there is backend registered
+-	 */
+-	if (__frontswap_test(sis, offset)) {
+-		frontswap_ops->invalidate_page(type, offset);
+-		__frontswap_clear(sis, offset);
+-		inc_frontswap_invalidates();
+-	}
++	if (!__frontswap_test(sis, offset))
++		return;
++
++	for_each_frontswap_ops(ops)
++		ops->invalidate_page(type, offset);
++	__frontswap_clear(sis, offset);
++	inc_frontswap_invalidates();
+ }
+ EXPORT_SYMBOL(__frontswap_invalidate_page);
+ 
+@@ -314,16 +358,19 @@ EXPORT_SYMBOL(__frontswap_invalidate_pag
+ void __frontswap_invalidate_area(unsigned type)
+ {
+ 	struct swap_info_struct *sis = swap_info[type];
++	struct frontswap_ops *ops;
+ 
+-	if (frontswap_ops) {
+-		BUG_ON(sis == NULL);
+-		if (sis->frontswap_map == NULL)
+-			return;
+-		frontswap_ops->invalidate_area(type);
+-		atomic_set(&sis->frontswap_pages, 0);
+-		bitmap_zero(sis->frontswap_map, sis->max);
+-	}
+-	clear_bit(type, need_init);
++	if (!frontswap_ops)
++		return;
++
++	BUG_ON(sis == NULL);
++	if (sis->frontswap_map == NULL)
++		return;
++
++	for_each_frontswap_ops(ops)
++		ops->invalidate_area(type);
++	atomic_set(&sis->frontswap_pages, 0);
++	bitmap_zero(sis->frontswap_map, sis->max);
+ }
+ EXPORT_SYMBOL(__frontswap_invalidate_area);
+ 
 _
 
-Patches currently in -mm which might be from xiexiuqi@huawei.com are
+Patches currently in -mm which might be from ddstreet@ieee.org are
 
 origin.patch
+linux-next.patch
+maintainers-add-zpool.patch
 
