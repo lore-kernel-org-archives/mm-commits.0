@@ -1,71 +1,102 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- ocfs2-fix-null-pointer-dereference-in-function-ocfs2_abort_trigger.patch
- removed from -mm tree
-Date: Mon, 29 Jun 2015 13:36:45 -0700
-Message-ID: <5591ac5d.dfh6eUdrpSOwNqDy%akpm@linux-foundation.org>
+ ocfs2-fix-wrong-check-in-ocfs2_direct_io_get_blocks.patch removed from -mm
+ tree
+Date: Mon, 29 Jun 2015 13:36:47 -0700
+Message-ID: <5591ac5f.liV3OtVYKBGG5iEP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50162 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50165 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753755AbbF2Ugq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:36:46 -0400
+	with ESMTP id S1753961AbbF2Ugs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:36:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xuejiufei@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.com, mm-commits@vger.kernel.org
+To: joseph.qi@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, wangww631@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix NULL pointer dereference in function ocfs2_abort_trigger()
+     Subject: ocfs2: fix wrong check in ocfs2_direct_IO_get_blocks
 has been removed from the -mm tree.  Its filename was
-     ocfs2-fix-null-pointer-dereference-in-function-ocfs2_abort_trigger.patch
+     ocfs2-fix-wrong-check-in-ocfs2_direct_io_get_blocks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Xue jiufei <xuejiufei@huawei.com>
-Subject: ocfs2: fix NULL pointer dereference in function ocfs2_abort_trigger()
+From: Joseph Qi <joseph.qi@huawei.com>
+Subject: ocfs2: fix wrong check in ocfs2_direct_IO_get_blocks
 
-ocfs2_abort_trigger() use bh->b_assoc_map to get sb.  But there's no
-function to set bh->b_assoc_map in ocfs2, it will trigger NULL pointer
-dereference while calling this function.  We can get sb from
-bh->b_bdev->bd_super instead of b_assoc_map.
+contig_blocks gotten from ocfs2_extent_map_get_blocks cannot be compared
+with clusters_to_alloc. So convert it to clusters first.
 
-[akpm@linux-foundation.org: update comment, per Joseph]
-Signed-off-by: joyce.xue <xuejiufei@huawei.com>
-Cc: Joseph Qi <joseph.qi@huawei.com>
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
+Reviewed-by: Weiwei Wang <wangww631@huawei.com>
 Cc: Mark Fasheh <mfasheh@suse.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/journal.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ fs/ocfs2/aops.c  |    8 +++++---
+ fs/ocfs2/ocfs2.h |   10 ++++++++++
+ 2 files changed, 15 insertions(+), 3 deletions(-)
 
-diff -puN fs/ocfs2/journal.c~ocfs2-fix-null-pointer-dereference-in-function-ocfs2_abort_trigger fs/ocfs2/journal.c
---- a/fs/ocfs2/journal.c~ocfs2-fix-null-pointer-dereference-in-function-ocfs2_abort_trigger
-+++ a/fs/ocfs2/journal.c
-@@ -571,9 +571,7 @@ static void ocfs2_abort_trigger(struct j
- 	     (unsigned long)bh,
- 	     (unsigned long long)bh->b_blocknr);
+diff -puN fs/ocfs2/aops.c~ocfs2-fix-wrong-check-in-ocfs2_direct_io_get_blocks fs/ocfs2/aops.c
+--- a/fs/ocfs2/aops.c~ocfs2-fix-wrong-check-in-ocfs2_direct_io_get_blocks
++++ a/fs/ocfs2/aops.c
+@@ -523,7 +523,7 @@ static int ocfs2_direct_IO_get_blocks(st
+ 	unsigned char blocksize_bits = inode->i_sb->s_blocksize_bits;
+ 	unsigned long max_blocks = bh_result->b_size >> inode->i_blkbits;
+ 	unsigned long len = bh_result->b_size;
+-	unsigned int clusters_to_alloc = 0;
++	unsigned int clusters_to_alloc = 0, contig_clusters = 0;
  
--	/* We aren't guaranteed to have the superblock here - but if we
--	 * don't, it'll just crash. */
--	ocfs2_error(bh->b_assoc_map->host->i_sb,
-+	ocfs2_error(bh->b_bdev->bd_super,
- 		    "JBD2 has aborted our journal, ocfs2 cannot continue\n");
+ 	cpos = ocfs2_blocks_to_clusters(inode->i_sb, iblock);
+ 
+@@ -560,8 +560,10 @@ static int ocfs2_direct_IO_get_blocks(st
+ 		/* fill hole, allocate blocks can't be larger than the size
+ 		 * of the hole */
+ 		clusters_to_alloc = ocfs2_clusters_for_bytes(inode->i_sb, len);
+-		if (clusters_to_alloc > contig_blocks)
+-			clusters_to_alloc = contig_blocks;
++		contig_clusters = ocfs2_clusters_for_blocks(inode->i_sb,
++				contig_blocks);
++		if (clusters_to_alloc > contig_clusters)
++			clusters_to_alloc = contig_clusters;
+ 
+ 		/* allocate extent and insert them into the extent tree */
+ 		ret = ocfs2_extend_allocation(inode, cpos,
+diff -puN fs/ocfs2/ocfs2.h~ocfs2-fix-wrong-check-in-ocfs2_direct_io_get_blocks fs/ocfs2/ocfs2.h
+--- a/fs/ocfs2/ocfs2.h~ocfs2-fix-wrong-check-in-ocfs2_direct_io_get_blocks
++++ a/fs/ocfs2/ocfs2.h
+@@ -717,6 +717,16 @@ static inline u64 ocfs2_clusters_to_bloc
+ 	return (u64)clusters << c_to_b_bits;
  }
  
++static inline u32 ocfs2_clusters_for_blocks(struct super_block *sb,
++		u64 blocks)
++{
++	int b_to_c_bits = OCFS2_SB(sb)->s_clustersize_bits -
++			sb->s_blocksize_bits;
++
++	blocks += (1 << b_to_c_bits) - 1;
++	return (u32)(blocks >> b_to_c_bits);
++}
++
+ static inline u32 ocfs2_blocks_to_clusters(struct super_block *sb,
+ 					   u64 blocks)
+ {
 _
 
-Patches currently in -mm which might be from xuejiufei@huawei.com are
+Patches currently in -mm which might be from joseph.qi@huawei.com are
 
 origin.patch
-ocfs2-flush-inode-data-to-disk-and-free-inode-when-i_count-becomes-zero.patch
-ocfs2-extend-transaction-for-ocfs2_remove_rightmost_path-and-ocfs2_update_edge_lengths-before-to-avoid-inconsistency-between-inode-and-et.patch
-ocfs2-do-not-set-fs-read-only-if-rec-is-empty-while-committing-truncate.patch
-extend-enough-credits-for-freeing-one-truncate-record-while-replaying-truncate-records.patch
+ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work.patch
+ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work-v2.patch
+ocfs2-set-filesytem-read-only-when-ocfs2_delete_entry-failed.patch
+ocfs2-set-filesytem-read-only-when-ocfs2_delete_entry-failed-v2.patch
+ocfs2-fix-race-between-crashed-dio-and-rm.patch
+ocfs2-avoid-access-invalid-address-when-read-o2dlm-debug-messages.patch
 
