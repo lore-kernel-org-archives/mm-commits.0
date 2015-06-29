@@ -1,76 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: [merged] s390-mm-change-hpage_shift-type-to-int.patch removed
- from -mm tree
-Date: Mon, 29 Jun 2015 13:39:48 -0700
-Message-ID: <5591ad14.WNw3Tlb7xt3cN0Nu%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-hugetlb-handle-races-in-alloc_huge_page-and-hugetlb_reserve_pages.patch
+ removed from -mm tree
+Date: Mon, 29 Jun 2015 13:38:53 -0700
+Message-ID: <5591acdd.Mols6ofadgc1SMT+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50590 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50495 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753277AbbF2Ujt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:39:49 -0400
+	with ESMTP id S1752937AbbF2Uiz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:38:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dingel@linux.vnet.ibm.com, akpm@linux-foundation.org, borntraeger@de.ibm.com, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: mike.kravetz@oracle.com, dave@stgolabs.net, lcapitulino@redhat.com, n-horiguchi@ah.jp.nec.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: s390/mm: change HPAGE_SHIFT type to int
+     Subject: mm/hugetlb: handle races in alloc_huge_page and hugetlb_reserve_pages
 has been removed from the -mm tree.  Its filename was
-     s390-mm-change-hpage_shift-type-to-int.patch
+     mm-hugetlb-handle-races-in-alloc_huge_page-and-hugetlb_reserve_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dominik Dingel <dingel@linux.vnet.ibm.com>
-Subject: s390/mm: change HPAGE_SHIFT type to int
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: mm/hugetlb: handle races in alloc_huge_page and hugetlb_reserve_pages
 
-With making HPAGE_SHIFT an unsigned integer we also accidentally changed
-pageblock_order.  In order to avoid compiler warnings we make HPAGE_SHFIT
-an int again.
+alloc_huge_page and hugetlb_reserve_pages use region_chg to calculate the
+number of pages which will be added to the reserve map.  Subpool and
+global reserve counts are adjusted based on the output of region_chg. 
+Before the pages are actually added to the reserve map, these routines
+could race and add fewer pages than expected.  If this happens, the
+subpool and global reserve counts are not correct.
 
-Signed-off-by: Dominik Dingel <dingel@linux.vnet.ibm.com>
-Suggested-by: Andrew Morton <akpm@linux-foundation.org>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Compare the number of pages actually added (region_add) to those expected
+to added (region_chg).  If fewer pages are actually added, this indicates
+a race and adjust counters accordingly.
+
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Reviewed-by: Davidlohr Bueso <dave@stgolabs.net>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Luiz Capitulino <lcapitulino@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/page.h |    2 +-
- arch/s390/mm/pgtable.c       |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ mm/hugetlb.c |   39 +++++++++++++++++++++++++++++++++++----
+ 1 file changed, 35 insertions(+), 4 deletions(-)
 
-diff -puN arch/s390/include/asm/page.h~s390-mm-change-hpage_shift-type-to-int arch/s390/include/asm/page.h
---- a/arch/s390/include/asm/page.h~s390-mm-change-hpage_shift-type-to-int
-+++ a/arch/s390/include/asm/page.h
-@@ -20,7 +20,7 @@
- #include <asm/setup.h>
- #ifndef __ASSEMBLY__
+diff -puN mm/hugetlb.c~mm-hugetlb-handle-races-in-alloc_huge_page-and-hugetlb_reserve_pages mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-handle-races-in-alloc_huge_page-and-hugetlb_reserve_pages
++++ a/mm/hugetlb.c
+@@ -1542,7 +1542,7 @@ static struct page *alloc_huge_page(stru
+ 	struct hugepage_subpool *spool = subpool_vma(vma);
+ 	struct hstate *h = hstate_vma(vma);
+ 	struct page *page;
+-	long chg;
++	long chg, commit;
+ 	int ret, idx;
+ 	struct hugetlb_cgroup *h_cg;
  
--extern unsigned int HPAGE_SHIFT;
-+extern int HPAGE_SHIFT;
- #define HPAGE_SIZE	(1UL << HPAGE_SHIFT)
- #define HPAGE_MASK	(~(HPAGE_SIZE - 1))
- #define HUGETLB_PAGE_ORDER	(HPAGE_SHIFT - PAGE_SHIFT)
-diff -puN arch/s390/mm/pgtable.c~s390-mm-change-hpage_shift-type-to-int arch/s390/mm/pgtable.c
---- a/arch/s390/mm/pgtable.c~s390-mm-change-hpage_shift-type-to-int
-+++ a/arch/s390/mm/pgtable.c
-@@ -31,7 +31,7 @@
- #define ALLOC_ORDER	2
- #define FRAG_MASK	0x03
+@@ -1583,7 +1583,22 @@ static struct page *alloc_huge_page(stru
  
--unsigned int HPAGE_SHIFT;
-+int HPAGE_SHIFT;
+ 	set_page_private(page, (unsigned long)spool);
  
- unsigned long *crst_table_alloc(struct mm_struct *mm)
- {
+-	vma_commit_reservation(h, vma, addr);
++	commit = vma_commit_reservation(h, vma, addr);
++	if (unlikely(chg > commit)) {
++		/*
++		 * The page was added to the reservation map between
++		 * vma_needs_reservation and vma_commit_reservation.
++		 * This indicates a race with hugetlb_reserve_pages.
++		 * Adjust for the subpool count incremented above AND
++		 * in hugetlb_reserve_pages for the same page.  Also,
++		 * the reservation count added in hugetlb_reserve_pages
++		 * no longer applies.
++		 */
++		long rsv_adjust;
++
++		rsv_adjust = hugepage_subpool_put_pages(spool, 1);
++		hugetlb_acct_memory(h, -rsv_adjust);
++	}
+ 	return page;
+ 
+ out_uncharge_cgroup:
+@@ -3701,8 +3716,24 @@ int hugetlb_reserve_pages(struct inode *
+ 	 * consumed reservations are stored in the map. Hence, nothing
+ 	 * else has to be done for private mappings here
+ 	 */
+-	if (!vma || vma->vm_flags & VM_MAYSHARE)
+-		region_add(resv_map, from, to);
++	if (!vma || vma->vm_flags & VM_MAYSHARE) {
++		long add = region_add(resv_map, from, to);
++
++		if (unlikely(chg > add)) {
++			/*
++			 * pages in this range were added to the reserve
++			 * map between region_chg and region_add.  This
++			 * indicates a race with alloc_huge_page.  Adjust
++			 * the subpool and reserve counts modified above
++			 * based on the difference.
++			 */
++			long rsv_adjust;
++
++			rsv_adjust = hugepage_subpool_put_pages(spool,
++								chg - add);
++			hugetlb_acct_memory(h, -rsv_adjust);
++		}
++	}
+ 	return 0;
+ out_err:
+ 	if (vma && is_vma_resv_set(vma, HPAGE_RESV_OWNER))
 _
 
-Patches currently in -mm which might be from dingel@linux.vnet.ibm.com are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
 origin.patch
 
