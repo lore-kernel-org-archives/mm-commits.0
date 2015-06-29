@@ -1,461 +1,240 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memory-failure-export-page_type-and-action-result.patch
- removed from -mm tree
-Date: Mon, 29 Jun 2015 13:38:34 -0700
-Message-ID: <5591acca.uVWJU5Q2Cm36b482%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare.patch removed
+ from -mm tree
+Date: Mon, 29 Jun 2015 13:37:27 -0700
+Message-ID: <5591ac87./4v11P9Fz0lNdN/i%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50431 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50267 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754062AbbF2Uif (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:38:35 -0400
+	with ESMTP id S1753018AbbF2Uha (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:37:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xiexiuqi@huawei.com, gong.chen@linux.intel.com, jim.epost@gmail.com, n-horiguchi@ah.jp.nec.com, rostedt@goodmis.org, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: zhenzhang.zhang@huawei.com, James.Yang@freescale.com, aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, catalin.marinas@arm.com, cmetcalf@ezchip.com, james.hogan@imgtec.com, linux@arm.linux.org.uk, ralf@linux-mips.org, rientjes@google.com, schwidefsky@de.ibm.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memory-failure: export page_type and action result
+     Subject: mm/hugetlb: reduce arch dependent code about huge_pmd_unshare
 has been removed from the -mm tree.  Its filename was
-     memory-failure-export-page_type-and-action-result.patch
+     mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Xie XiuQi <xiexiuqi@huawei.com>
-Subject: memory-failure: export page_type and action result
+From: Zhang Zhen <zhenzhang.zhang@huawei.com>
+Subject: mm/hugetlb: reduce arch dependent code about huge_pmd_unshare
 
-Export 'outcome' and 'action_page_type' to mm.h, so we could use
-this emnus outside.
+Currently we have many duplicates in definitions of huge_pmd_unshare.  In
+all architectures this function just returns 0 when
+CONFIG_ARCH_WANT_HUGE_PMD_SHARE is N.
 
-This patch is preparation for adding trace events for memory-failure
-recovery action.
+This patch puts the default implementation in mm/hugetlb.c and lets these
+architectures use the common code.
 
-Signed-off-by: Xie XiuQi <xiexiuqi@huawei.com>
-Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Chen Gong <gong.chen@linux.intel.com>
-Cc: Jim Davis <jim.epost@gmail.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Signed-off-by: Zhang Zhen <zhenzhang.zhang@huawei.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Tony Luck <tony.luck@intel.com>
+Cc: James Hogan <james.hogan@imgtec.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Chris Metcalf <cmetcalf@ezchip.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: James Yang <James.Yang@freescale.com>
+Cc: Aneesh Kumar <aneesh.kumar@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h  |   34 ++++++++
- mm/memory-failure.c |  168 ++++++++++++++++--------------------------
- 2 files changed, 101 insertions(+), 101 deletions(-)
+ arch/arm/mm/hugetlbpage.c     |    5 -----
+ arch/arm64/mm/hugetlbpage.c   |    7 -------
+ arch/ia64/mm/hugetlbpage.c    |    5 -----
+ arch/metag/mm/hugetlbpage.c   |    5 -----
+ arch/mips/mm/hugetlbpage.c    |    5 -----
+ arch/powerpc/mm/hugetlbpage.c |    5 -----
+ arch/s390/mm/hugetlbpage.c    |    5 -----
+ arch/sh/mm/hugetlbpage.c      |    5 -----
+ arch/sparc/mm/hugetlbpage.c   |    5 -----
+ arch/tile/mm/hugetlbpage.c    |    5 -----
+ mm/hugetlb.c                  |    5 +++++
+ 11 files changed, 5 insertions(+), 52 deletions(-)
 
-diff -puN include/linux/mm.h~memory-failure-export-page_type-and-action-result include/linux/mm.h
---- a/include/linux/mm.h~memory-failure-export-page_type-and-action-result
-+++ a/include/linux/mm.h
-@@ -2153,6 +2153,40 @@ extern void shake_page(struct page *p, i
- extern atomic_long_t num_poisoned_pages;
- extern int soft_offline_page(struct page *page, int flags);
- 
-+
-+/*
-+ * Error handlers for various types of pages.
-+ */
-+enum mf_outcome {
-+	MF_IGNORED,	/* Error: cannot be handled */
-+	MF_FAILED,	/* Error: handling failed */
-+	MF_DELAYED,	/* Will be handled later */
-+	MF_RECOVERED,	/* Successfully recovered */
-+};
-+
-+enum mf_action_page_type {
-+	MF_MSG_KERNEL,
-+	MF_MSG_KERNEL_HIGH_ORDER,
-+	MF_MSG_SLAB,
-+	MF_MSG_DIFFERENT_COMPOUND,
-+	MF_MSG_POISONED_HUGE,
-+	MF_MSG_HUGE,
-+	MF_MSG_FREE_HUGE,
-+	MF_MSG_UNMAP_FAILED,
-+	MF_MSG_DIRTY_SWAPCACHE,
-+	MF_MSG_CLEAN_SWAPCACHE,
-+	MF_MSG_DIRTY_MLOCKED_LRU,
-+	MF_MSG_CLEAN_MLOCKED_LRU,
-+	MF_MSG_DIRTY_UNEVICTABLE_LRU,
-+	MF_MSG_CLEAN_UNEVICTABLE_LRU,
-+	MF_MSG_DIRTY_LRU,
-+	MF_MSG_CLEAN_LRU,
-+	MF_MSG_TRUNCATED_LRU,
-+	MF_MSG_BUDDY,
-+	MF_MSG_BUDDY_2ND,
-+	MF_MSG_UNKNOWN,
-+};
-+
- #if defined(CONFIG_TRANSPARENT_HUGEPAGE) || defined(CONFIG_HUGETLBFS)
- extern void clear_huge_page(struct page *page,
- 			    unsigned long addr,
-diff -puN mm/memory-failure.c~memory-failure-export-page_type-and-action-result mm/memory-failure.c
---- a/mm/memory-failure.c~memory-failure-export-page_type-and-action-result
-+++ a/mm/memory-failure.c
-@@ -504,68 +504,34 @@ static void collect_procs(struct page *p
- 	kfree(tk);
+diff -puN arch/arm/mm/hugetlbpage.c~mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare arch/arm/mm/hugetlbpage.c
+--- a/arch/arm/mm/hugetlbpage.c~mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare
++++ a/arch/arm/mm/hugetlbpage.c
+@@ -41,11 +41,6 @@ int pud_huge(pud_t pud)
+ 	return 0;
  }
  
--/*
-- * Error handlers for various types of pages.
-- */
+-int huge_pmd_unshare(struct mm_struct *mm, unsigned long *addr, pte_t *ptep)
+-{
+-	return 0;
+-}
 -
--enum outcome {
--	IGNORED,	/* Error: cannot be handled */
--	FAILED,		/* Error: handling failed */
--	DELAYED,	/* Will be handled later */
--	RECOVERED,	/* Successfully recovered */
--};
--
- static const char *action_name[] = {
--	[IGNORED] = "Ignored",
--	[FAILED] = "Failed",
--	[DELAYED] = "Delayed",
--	[RECOVERED] = "Recovered",
--};
--
--enum action_page_type {
--	MSG_KERNEL,
--	MSG_KERNEL_HIGH_ORDER,
--	MSG_SLAB,
--	MSG_DIFFERENT_COMPOUND,
--	MSG_POISONED_HUGE,
--	MSG_HUGE,
--	MSG_FREE_HUGE,
--	MSG_UNMAP_FAILED,
--	MSG_DIRTY_SWAPCACHE,
--	MSG_CLEAN_SWAPCACHE,
--	MSG_DIRTY_MLOCKED_LRU,
--	MSG_CLEAN_MLOCKED_LRU,
--	MSG_DIRTY_UNEVICTABLE_LRU,
--	MSG_CLEAN_UNEVICTABLE_LRU,
--	MSG_DIRTY_LRU,
--	MSG_CLEAN_LRU,
--	MSG_TRUNCATED_LRU,
--	MSG_BUDDY,
--	MSG_BUDDY_2ND,
--	MSG_UNKNOWN,
-+	[MF_IGNORED] = "Ignored",
-+	[MF_FAILED] = "Failed",
-+	[MF_DELAYED] = "Delayed",
-+	[MF_RECOVERED] = "Recovered",
- };
+ int pmd_huge(pmd_t pmd)
+ {
+ 	return pmd_val(pmd) && !(pmd_val(pmd) & PMD_TABLE_BIT);
+diff -puN arch/arm64/mm/hugetlbpage.c~mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare arch/arm64/mm/hugetlbpage.c
+--- a/arch/arm64/mm/hugetlbpage.c~mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare
++++ a/arch/arm64/mm/hugetlbpage.c
+@@ -31,13 +31,6 @@
+ #include <asm/tlbflush.h>
+ #include <asm/pgalloc.h>
  
- static const char * const action_page_types[] = {
--	[MSG_KERNEL]			= "reserved kernel page",
--	[MSG_KERNEL_HIGH_ORDER]		= "high-order kernel page",
--	[MSG_SLAB]			= "kernel slab page",
--	[MSG_DIFFERENT_COMPOUND]	= "different compound page after locking",
--	[MSG_POISONED_HUGE]		= "huge page already hardware poisoned",
--	[MSG_HUGE]			= "huge page",
--	[MSG_FREE_HUGE]			= "free huge page",
--	[MSG_UNMAP_FAILED]		= "unmapping failed page",
--	[MSG_DIRTY_SWAPCACHE]		= "dirty swapcache page",
--	[MSG_CLEAN_SWAPCACHE]		= "clean swapcache page",
--	[MSG_DIRTY_MLOCKED_LRU]		= "dirty mlocked LRU page",
--	[MSG_CLEAN_MLOCKED_LRU]		= "clean mlocked LRU page",
--	[MSG_DIRTY_UNEVICTABLE_LRU]	= "dirty unevictable LRU page",
--	[MSG_CLEAN_UNEVICTABLE_LRU]	= "clean unevictable LRU page",
--	[MSG_DIRTY_LRU]			= "dirty LRU page",
--	[MSG_CLEAN_LRU]			= "clean LRU page",
--	[MSG_TRUNCATED_LRU]		= "already truncated LRU page",
--	[MSG_BUDDY]			= "free buddy page",
--	[MSG_BUDDY_2ND]			= "free buddy page (2nd try)",
--	[MSG_UNKNOWN]			= "unknown page",
-+	[MF_MSG_KERNEL]			= "reserved kernel page",
-+	[MF_MSG_KERNEL_HIGH_ORDER]	= "high-order kernel page",
-+	[MF_MSG_SLAB]			= "kernel slab page",
-+	[MF_MSG_DIFFERENT_COMPOUND]	= "different compound page after locking",
-+	[MF_MSG_POISONED_HUGE]		= "huge page already hardware poisoned",
-+	[MF_MSG_HUGE]			= "huge page",
-+	[MF_MSG_FREE_HUGE]		= "free huge page",
-+	[MF_MSG_UNMAP_FAILED]		= "unmapping failed page",
-+	[MF_MSG_DIRTY_SWAPCACHE]	= "dirty swapcache page",
-+	[MF_MSG_CLEAN_SWAPCACHE]	= "clean swapcache page",
-+	[MF_MSG_DIRTY_MLOCKED_LRU]	= "dirty mlocked LRU page",
-+	[MF_MSG_CLEAN_MLOCKED_LRU]	= "clean mlocked LRU page",
-+	[MF_MSG_DIRTY_UNEVICTABLE_LRU]	= "dirty unevictable LRU page",
-+	[MF_MSG_CLEAN_UNEVICTABLE_LRU]	= "clean unevictable LRU page",
-+	[MF_MSG_DIRTY_LRU]		= "dirty LRU page",
-+	[MF_MSG_CLEAN_LRU]		= "clean LRU page",
-+	[MF_MSG_TRUNCATED_LRU]		= "already truncated LRU page",
-+	[MF_MSG_BUDDY]			= "free buddy page",
-+	[MF_MSG_BUDDY_2ND]		= "free buddy page (2nd try)",
-+	[MF_MSG_UNKNOWN]		= "unknown page",
- };
+-#ifndef CONFIG_ARCH_WANT_HUGE_PMD_SHARE
+-int huge_pmd_unshare(struct mm_struct *mm, unsigned long *addr, pte_t *ptep)
+-{
+-	return 0;
+-}
+-#endif
+-
+ int pmd_huge(pmd_t pmd)
+ {
+ 	return !(pmd_val(pmd) & PMD_TABLE_BIT);
+diff -puN arch/ia64/mm/hugetlbpage.c~mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare arch/ia64/mm/hugetlbpage.c
+--- a/arch/ia64/mm/hugetlbpage.c~mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare
++++ a/arch/ia64/mm/hugetlbpage.c
+@@ -65,11 +65,6 @@ huge_pte_offset (struct mm_struct *mm, u
+ 	return pte;
+ }
+ 
+-int huge_pmd_unshare(struct mm_struct *mm, unsigned long *addr, pte_t *ptep)
+-{
+-	return 0;
+-}
+-
+ #define mk_pte_huge(entry) { pte_val(entry) |= _PAGE_P; }
  
  /*
-@@ -599,7 +565,7 @@ static int delete_from_lru_cache(struct
+diff -puN arch/metag/mm/hugetlbpage.c~mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare arch/metag/mm/hugetlbpage.c
+--- a/arch/metag/mm/hugetlbpage.c~mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare
++++ a/arch/metag/mm/hugetlbpage.c
+@@ -89,11 +89,6 @@ pte_t *huge_pte_offset(struct mm_struct
+ 	return pte;
+ }
+ 
+-int huge_pmd_unshare(struct mm_struct *mm, unsigned long *addr, pte_t *ptep)
+-{
+-	return 0;
+-}
+-
+ int pmd_huge(pmd_t pmd)
+ {
+ 	return pmd_page_shift(pmd) > PAGE_SHIFT;
+diff -puN arch/mips/mm/hugetlbpage.c~mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare arch/mips/mm/hugetlbpage.c
+--- a/arch/mips/mm/hugetlbpage.c~mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare
++++ a/arch/mips/mm/hugetlbpage.c
+@@ -51,11 +51,6 @@ pte_t *huge_pte_offset(struct mm_struct
+ 	return (pte_t *) pmd;
+ }
+ 
+-int huge_pmd_unshare(struct mm_struct *mm, unsigned long *addr, pte_t *ptep)
+-{
+-	return 0;
+-}
+-
+ /*
+  * This function checks for proper alignment of input addr and len parameters.
   */
- static int me_kernel(struct page *p, unsigned long pfn)
- {
--	return IGNORED;
-+	return MF_IGNORED;
+diff -puN arch/powerpc/mm/hugetlbpage.c~mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare arch/powerpc/mm/hugetlbpage.c
+--- a/arch/powerpc/mm/hugetlbpage.c~mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare
++++ a/arch/powerpc/mm/hugetlbpage.c
+@@ -439,11 +439,6 @@ int alloc_bootmem_huge_page(struct hstat
  }
- 
- /*
-@@ -608,7 +574,7 @@ static int me_kernel(struct page *p, uns
- static int me_unknown(struct page *p, unsigned long pfn)
- {
- 	printk(KERN_ERR "MCE %#lx: Unknown page state\n", pfn);
--	return FAILED;
-+	return MF_FAILED;
- }
- 
- /*
-@@ -617,7 +583,7 @@ static int me_unknown(struct page *p, un
- static int me_pagecache_clean(struct page *p, unsigned long pfn)
- {
- 	int err;
--	int ret = FAILED;
-+	int ret = MF_FAILED;
- 	struct address_space *mapping;
- 
- 	delete_from_lru_cache(p);
-@@ -627,7 +593,7 @@ static int me_pagecache_clean(struct pag
- 	 * should be the one m_f() holds.
- 	 */
- 	if (PageAnon(p))
--		return RECOVERED;
-+		return MF_RECOVERED;
- 
- 	/*
- 	 * Now truncate the page in the page cache. This is really
-@@ -641,7 +607,7 @@ static int me_pagecache_clean(struct pag
- 		/*
- 		 * Page has been teared down in the meanwhile
- 		 */
--		return FAILED;
-+		return MF_FAILED;
- 	}
- 
- 	/*
-@@ -658,7 +624,7 @@ static int me_pagecache_clean(struct pag
- 				!try_to_release_page(p, GFP_NOIO)) {
- 			pr_info("MCE %#lx: failed to release buffers\n", pfn);
- 		} else {
--			ret = RECOVERED;
-+			ret = MF_RECOVERED;
- 		}
- 	} else {
- 		/*
-@@ -666,7 +632,7 @@ static int me_pagecache_clean(struct pag
- 		 * This fails on dirty or anything with private pages
- 		 */
- 		if (invalidate_inode_page(p))
--			ret = RECOVERED;
-+			ret = MF_RECOVERED;
- 		else
- 			printk(KERN_INFO "MCE %#lx: Failed to invalidate\n",
- 				pfn);
-@@ -752,9 +718,9 @@ static int me_swapcache_dirty(struct pag
- 	ClearPageUptodate(p);
- 
- 	if (!delete_from_lru_cache(p))
--		return DELAYED;
-+		return MF_DELAYED;
- 	else
--		return FAILED;
-+		return MF_FAILED;
- }
- 
- static int me_swapcache_clean(struct page *p, unsigned long pfn)
-@@ -762,9 +728,9 @@ static int me_swapcache_clean(struct pag
- 	delete_from_swap_cache(p);
- 
- 	if (!delete_from_lru_cache(p))
--		return RECOVERED;
-+		return MF_RECOVERED;
- 	else
--		return FAILED;
-+		return MF_FAILED;
- }
- 
- /*
-@@ -794,9 +760,9 @@ static int me_huge_page(struct page *p,
- 	if (!(page_mapping(hpage) || PageAnon(hpage))) {
- 		res = dequeue_hwpoisoned_huge_page(hpage);
- 		if (!res)
--			return RECOVERED;
-+			return MF_RECOVERED;
- 	}
--	return DELAYED;
-+	return MF_DELAYED;
- }
- 
- /*
-@@ -828,10 +794,10 @@ static int me_huge_page(struct page *p,
- static struct page_state {
- 	unsigned long mask;
- 	unsigned long res;
--	enum action_page_type type;
-+	enum mf_action_page_type type;
- 	int (*action)(struct page *p, unsigned long pfn);
- } error_states[] = {
--	{ reserved,	reserved,	MSG_KERNEL,	me_kernel },
-+	{ reserved,	reserved,	MF_MSG_KERNEL,	me_kernel },
- 	/*
- 	 * free pages are specially detected outside this table:
- 	 * PG_buddy pages only make a small fraction of all free pages.
-@@ -842,31 +808,31 @@ static struct page_state {
- 	 * currently unused objects without touching them. But just
- 	 * treat it as standard kernel for now.
- 	 */
--	{ slab,		slab,		MSG_SLAB,	me_kernel },
-+	{ slab,		slab,		MF_MSG_SLAB,	me_kernel },
- 
- #ifdef CONFIG_PAGEFLAGS_EXTENDED
--	{ head,		head,		MSG_HUGE,		me_huge_page },
--	{ tail,		tail,		MSG_HUGE,		me_huge_page },
-+	{ head,		head,		MF_MSG_HUGE,		me_huge_page },
-+	{ tail,		tail,		MF_MSG_HUGE,		me_huge_page },
- #else
--	{ compound,	compound,	MSG_HUGE,		me_huge_page },
-+	{ compound,	compound,	MF_MSG_HUGE,		me_huge_page },
  #endif
  
--	{ sc|dirty,	sc|dirty,	MSG_DIRTY_SWAPCACHE,	me_swapcache_dirty },
--	{ sc|dirty,	sc,		MSG_CLEAN_SWAPCACHE,	me_swapcache_clean },
-+	{ sc|dirty,	sc|dirty,	MF_MSG_DIRTY_SWAPCACHE,	me_swapcache_dirty },
-+	{ sc|dirty,	sc,		MF_MSG_CLEAN_SWAPCACHE,	me_swapcache_clean },
- 
--	{ mlock|dirty,	mlock|dirty,	MSG_DIRTY_MLOCKED_LRU,	me_pagecache_dirty },
--	{ mlock|dirty,	mlock,		MSG_CLEAN_MLOCKED_LRU,	me_pagecache_clean },
-+	{ mlock|dirty,	mlock|dirty,	MF_MSG_DIRTY_MLOCKED_LRU,	me_pagecache_dirty },
-+	{ mlock|dirty,	mlock,		MF_MSG_CLEAN_MLOCKED_LRU,	me_pagecache_clean },
- 
--	{ unevict|dirty, unevict|dirty,	MSG_DIRTY_UNEVICTABLE_LRU,	me_pagecache_dirty },
--	{ unevict|dirty, unevict,	MSG_CLEAN_UNEVICTABLE_LRU,	me_pagecache_clean },
-+	{ unevict|dirty, unevict|dirty,	MF_MSG_DIRTY_UNEVICTABLE_LRU,	me_pagecache_dirty },
-+	{ unevict|dirty, unevict,	MF_MSG_CLEAN_UNEVICTABLE_LRU,	me_pagecache_clean },
- 
--	{ lru|dirty,	lru|dirty,	MSG_DIRTY_LRU,	me_pagecache_dirty },
--	{ lru|dirty,	lru,		MSG_CLEAN_LRU,	me_pagecache_clean },
-+	{ lru|dirty,	lru|dirty,	MF_MSG_DIRTY_LRU,	me_pagecache_dirty },
-+	{ lru|dirty,	lru,		MF_MSG_CLEAN_LRU,	me_pagecache_clean },
- 
- 	/*
- 	 * Catchall entry: must be at end.
- 	 */
--	{ 0,		0,		MSG_UNKNOWN,	me_unknown },
-+	{ 0,		0,		MF_MSG_UNKNOWN,	me_unknown },
- };
- 
- #undef dirty
-@@ -886,7 +852,7 @@ static struct page_state {
-  * "Dirty/Clean" indication is not 100% accurate due to the possibility of
-  * setting PG_dirty outside page lock. See also comment above set_page_dirty().
-  */
--static void action_result(unsigned long pfn, enum action_page_type type, int result)
-+static void action_result(unsigned long pfn, enum mf_action_page_type type, int result)
- {
- 	pr_err("MCE %#lx: recovery action for %s: %s\n",
- 		pfn, action_page_types[type], action_name[result]);
-@@ -901,13 +867,13 @@ static int page_action(struct page_state
- 	result = ps->action(p, pfn);
- 
- 	count = page_count(p) - 1;
--	if (ps->action == me_swapcache_dirty && result == DELAYED)
-+	if (ps->action == me_swapcache_dirty && result == MF_DELAYED)
- 		count--;
- 	if (count != 0) {
- 		printk(KERN_ERR
- 		       "MCE %#lx: %s still referenced by %d users\n",
- 		       pfn, action_page_types[ps->type], count);
--		result = FAILED;
-+		result = MF_FAILED;
- 	}
- 	action_result(pfn, ps->type, result);
- 
-@@ -916,7 +882,7 @@ static int page_action(struct page_state
- 	 * Could adjust zone counters here to correct for the missing page.
- 	 */
- 
--	return (result == RECOVERED || result == DELAYED) ? 0 : -EBUSY;
-+	return (result == MF_RECOVERED || result == MF_DELAYED) ? 0 : -EBUSY;
+-int huge_pmd_unshare(struct mm_struct *mm, unsigned long *addr, pte_t *ptep)
+-{
+-	return 0;
+-}
+-
+ #ifdef CONFIG_PPC_FSL_BOOK3E
+ #define HUGEPD_FREELIST_SIZE \
+ 	((PAGE_SIZE - sizeof(struct hugepd_freelist)) / sizeof(pte_t))
+diff -puN arch/s390/mm/hugetlbpage.c~mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare arch/s390/mm/hugetlbpage.c
+--- a/arch/s390/mm/hugetlbpage.c~mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare
++++ a/arch/s390/mm/hugetlbpage.c
+@@ -193,11 +193,6 @@ pte_t *huge_pte_offset(struct mm_struct
+ 	return (pte_t *) pmdp;
  }
  
- /**
-@@ -1136,7 +1102,7 @@ int memory_failure(unsigned long pfn, in
- 	 */
- 	if (!(flags & MF_COUNT_INCREASED) && !get_hwpoison_page(p)) {
- 		if (is_free_buddy_page(p)) {
--			action_result(pfn, MSG_BUDDY, DELAYED);
-+			action_result(pfn, MF_MSG_BUDDY, MF_DELAYED);
- 			return 0;
- 		} else if (PageHuge(hpage)) {
- 			/*
-@@ -1153,12 +1119,12 @@ int memory_failure(unsigned long pfn, in
- 			}
- 			set_page_hwpoison_huge_page(hpage);
- 			res = dequeue_hwpoisoned_huge_page(hpage);
--			action_result(pfn, MSG_FREE_HUGE,
--				      res ? IGNORED : DELAYED);
-+			action_result(pfn, MF_MSG_FREE_HUGE,
-+				      res ? MF_IGNORED : MF_DELAYED);
- 			unlock_page(hpage);
- 			return res;
- 		} else {
--			action_result(pfn, MSG_KERNEL_HIGH_ORDER, IGNORED);
-+			action_result(pfn, MF_MSG_KERNEL_HIGH_ORDER, MF_IGNORED);
- 			return -EBUSY;
- 		}
- 	}
-@@ -1203,10 +1169,10 @@ int memory_failure(unsigned long pfn, in
- 			 */
- 			if (is_free_buddy_page(p)) {
- 				if (flags & MF_COUNT_INCREASED)
--					action_result(pfn, MSG_BUDDY, DELAYED);
-+					action_result(pfn, MF_MSG_BUDDY, MF_DELAYED);
- 				else
--					action_result(pfn, MSG_BUDDY_2ND,
--						      DELAYED);
-+					action_result(pfn, MF_MSG_BUDDY_2ND,
-+						      MF_DELAYED);
- 				return 0;
- 			}
- 		}
-@@ -1219,7 +1185,7 @@ int memory_failure(unsigned long pfn, in
- 	 * If this happens just bail out.
- 	 */
- 	if (PageCompound(p) && compound_head(p) != orig_head) {
--		action_result(pfn, MSG_DIFFERENT_COMPOUND, IGNORED);
-+		action_result(pfn, MF_MSG_DIFFERENT_COMPOUND, MF_IGNORED);
- 		res = -EBUSY;
- 		goto out;
- 	}
-@@ -1259,7 +1225,7 @@ int memory_failure(unsigned long pfn, in
- 	 * on the head page to show that the hugepage is hwpoisoned
- 	 */
- 	if (PageHuge(p) && PageTail(p) && TestSetPageHWPoison(hpage)) {
--		action_result(pfn, MSG_POISONED_HUGE, IGNORED);
-+		action_result(pfn, MF_MSG_POISONED_HUGE, MF_IGNORED);
- 		unlock_page(hpage);
- 		put_page(hpage);
- 		return 0;
-@@ -1288,7 +1254,7 @@ int memory_failure(unsigned long pfn, in
- 	 */
- 	if (hwpoison_user_mappings(p, pfn, trapno, flags, &hpage)
- 	    != SWAP_SUCCESS) {
--		action_result(pfn, MSG_UNMAP_FAILED, IGNORED);
-+		action_result(pfn, MF_MSG_UNMAP_FAILED, MF_IGNORED);
- 		res = -EBUSY;
- 		goto out;
- 	}
-@@ -1297,7 +1263,7 @@ int memory_failure(unsigned long pfn, in
- 	 * Torn down by someone else?
- 	 */
- 	if (PageLRU(p) && !PageSwapCache(p) && p->mapping == NULL) {
--		action_result(pfn, MSG_TRUNCATED_LRU, IGNORED);
-+		action_result(pfn, MF_MSG_TRUNCATED_LRU, MF_IGNORED);
- 		res = -EBUSY;
- 		goto out;
- 	}
+-int huge_pmd_unshare(struct mm_struct *mm, unsigned long *addr, pte_t *ptep)
+-{
+-	return 0;
+-}
+-
+ int pmd_huge(pmd_t pmd)
+ {
+ 	if (!MACHINE_HAS_HPAGE)
+diff -puN arch/sh/mm/hugetlbpage.c~mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare arch/sh/mm/hugetlbpage.c
+--- a/arch/sh/mm/hugetlbpage.c~mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare
++++ a/arch/sh/mm/hugetlbpage.c
+@@ -62,11 +62,6 @@ pte_t *huge_pte_offset(struct mm_struct
+ 	return pte;
+ }
+ 
+-int huge_pmd_unshare(struct mm_struct *mm, unsigned long *addr, pte_t *ptep)
+-{
+-	return 0;
+-}
+-
+ int pmd_huge(pmd_t pmd)
+ {
+ 	return 0;
+diff -puN arch/sparc/mm/hugetlbpage.c~mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare arch/sparc/mm/hugetlbpage.c
+--- a/arch/sparc/mm/hugetlbpage.c~mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare
++++ a/arch/sparc/mm/hugetlbpage.c
+@@ -172,11 +172,6 @@ pte_t *huge_pte_offset(struct mm_struct
+ 	return pte;
+ }
+ 
+-int huge_pmd_unshare(struct mm_struct *mm, unsigned long *addr, pte_t *ptep)
+-{
+-	return 0;
+-}
+-
+ void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
+ 		     pte_t *ptep, pte_t entry)
+ {
+diff -puN arch/tile/mm/hugetlbpage.c~mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare arch/tile/mm/hugetlbpage.c
+--- a/arch/tile/mm/hugetlbpage.c~mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare
++++ a/arch/tile/mm/hugetlbpage.c
+@@ -160,11 +160,6 @@ int pud_huge(pud_t pud)
+ 	return !!(pud_val(pud) & _PAGE_HUGE_PAGE);
+ }
+ 
+-int huge_pmd_unshare(struct mm_struct *mm, unsigned long *addr, pte_t *ptep)
+-{
+-	return 0;
+-}
+-
+ #ifdef HAVE_ARCH_HUGETLB_UNMAPPED_AREA
+ static unsigned long hugetlb_get_unmapped_area_bottomup(struct file *file,
+ 		unsigned long addr, unsigned long len,
+diff -puN mm/hugetlb.c~mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-reduce-arch-dependent-code-about-huge_pmd_unshare
++++ a/mm/hugetlb.c
+@@ -3789,6 +3789,11 @@ pte_t *huge_pmd_share(struct mm_struct *
+ {
+ 	return NULL;
+ }
++
++int huge_pmd_unshare(struct mm_struct *mm, unsigned long *addr, pte_t *ptep)
++{
++	return 0;
++}
+ #define want_pmd_share()	(0)
+ #endif /* CONFIG_ARCH_WANT_HUGE_PMD_SHARE */
+ 
 _
 
-Patches currently in -mm which might be from xiexiuqi@huawei.com are
+Patches currently in -mm which might be from zhenzhang.zhang@huawei.com are
 
 origin.patch
+linux-next.patch
 
