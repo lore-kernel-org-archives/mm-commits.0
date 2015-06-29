@@ -1,88 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-davidlohr-has-moved.patch removed from -mm
- tree
-Date: Mon, 29 Jun 2015 13:47:51 -0700
-Message-ID: <5591aef7.mshagzDrUkFTFk+l%akpm@linux-foundation.org>
+Subject: [merged]
+ radix-tree-replace-preallocated-node-array-with-linked-list.patch removed
+ from -mm tree
+Date: Mon, 29 Jun 2015 13:48:03 -0700
+Message-ID: <5591af03.xAIygGAPdxRjbSDo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50901 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50884 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753970AbbF2Urw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:47:52 -0400
+	with ESMTP id S1754019AbbF2UsD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:48:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bp@alien8.de, dave@stgolabs.net, rob@landley.net, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, hannes@cmpxchg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: Davidlohr has moved
+     Subject: radix-tree: replace preallocated node array with linked list
 has been removed from the -mm tree.  Its filename was
-     maintainers-davidlohr-has-moved.patch
+     radix-tree-replace-preallocated-node-array-with-linked-list.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: MAINTAINERS: Davidlohr has moved
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: radix-tree: replace preallocated node array with linked list
 
-Reported-by: Rob Landley <rob@landley.net>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
+Currently we use per-cpu array to hold pointers to preallocated nodes. 
+Let's replace it with linked list.  On x86_64 it saves 256 bytes in
+per-cpu ELF section which may translate into freeing up 2MB of memory for
+NR_CPUS==8192.
+
+[akpm@linux-foundation.org: fix comment, coding style]
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/radix-tree.c |   28 +++++++++++++++++-----------
+ 1 file changed, 17 insertions(+), 11 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-davidlohr-has-moved MAINTAINERS
---- a/MAINTAINERS~maintainers-davidlohr-has-moved
-+++ a/MAINTAINERS
-@@ -4537,7 +4537,7 @@ S:	Maintained
- F:	drivers/media/usb/gspca/
+diff -puN lib/radix-tree.c~radix-tree-replace-preallocated-node-array-with-linked-list lib/radix-tree.c
+--- a/lib/radix-tree.c~radix-tree-replace-preallocated-node-array-with-linked-list
++++ a/lib/radix-tree.c
+@@ -65,7 +65,8 @@ static struct kmem_cache *radix_tree_nod
+  */
+ struct radix_tree_preload {
+ 	int nr;
+-	struct radix_tree_node *nodes[RADIX_TREE_PRELOAD_SIZE];
++	/* nodes->private_data points to next preallocated node */
++	struct radix_tree_node *nodes;
+ };
+ static DEFINE_PER_CPU(struct radix_tree_preload, radix_tree_preloads) = { 0, };
  
- GUID PARTITION TABLE (GPT)
--M:	Davidlohr Bueso <davidlohr@hp.com>
-+M:	Davidlohr Bueso <dave@stgolabs.net>
- L:	linux-efi@vger.kernel.org
- S:	Maintained
- F:	block/partitions/efi.*
+@@ -197,8 +198,9 @@ radix_tree_node_alloc(struct radix_tree_
+ 		 */
+ 		rtp = this_cpu_ptr(&radix_tree_preloads);
+ 		if (rtp->nr) {
+-			ret = rtp->nodes[rtp->nr - 1];
+-			rtp->nodes[rtp->nr - 1] = NULL;
++			ret = rtp->nodes;
++			rtp->nodes = ret->private_data;
++			ret->private_data = NULL;
+ 			rtp->nr--;
+ 		}
+ 		/*
+@@ -257,17 +259,20 @@ static int __radix_tree_preload(gfp_t gf
+ 
+ 	preempt_disable();
+ 	rtp = this_cpu_ptr(&radix_tree_preloads);
+-	while (rtp->nr < ARRAY_SIZE(rtp->nodes)) {
++	while (rtp->nr < RADIX_TREE_PRELOAD_SIZE) {
+ 		preempt_enable();
+ 		node = kmem_cache_alloc(radix_tree_node_cachep, gfp_mask);
+ 		if (node == NULL)
+ 			goto out;
+ 		preempt_disable();
+ 		rtp = this_cpu_ptr(&radix_tree_preloads);
+-		if (rtp->nr < ARRAY_SIZE(rtp->nodes))
+-			rtp->nodes[rtp->nr++] = node;
+-		else
++		if (rtp->nr < RADIX_TREE_PRELOAD_SIZE) {
++			node->private_data = rtp->nodes;
++			rtp->nodes = node;
++			rtp->nr++;
++		} else {
+ 			kmem_cache_free(radix_tree_node_cachep, node);
++		}
+ 	}
+ 	ret = 0;
+ out:
+@@ -1463,15 +1468,16 @@ static int radix_tree_callback(struct no
+ {
+        int cpu = (long)hcpu;
+        struct radix_tree_preload *rtp;
++       struct radix_tree_node *node;
+ 
+        /* Free per-cpu pool of perloaded nodes */
+        if (action == CPU_DEAD || action == CPU_DEAD_FROZEN) {
+                rtp = &per_cpu(radix_tree_preloads, cpu);
+                while (rtp->nr) {
+-                       kmem_cache_free(radix_tree_node_cachep,
+-                                       rtp->nodes[rtp->nr-1]);
+-                       rtp->nodes[rtp->nr-1] = NULL;
+-                       rtp->nr--;
++			node = rtp->nodes;
++			rtp->nodes = node->private_data;
++			kmem_cache_free(radix_tree_node_cachep, node);
++			rtp->nr--;
+                }
+        }
+        return NOTIFY_OK;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
 origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-mm.patch
-slab-infrastructure-for-bulk-object-allocation-and-freeing-v3-fix.patch
-mm-meminit-inline-some-helper-functions-fix.patch
-mm-meminit-finish-initialisation-of-struct-pages-before-basic-setup-fix.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
-userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
-fs-userfaultfdc-work-around-i386-build-error.patch
+page-flags-trivial-cleanup-for-pagetrans-helpers.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
+page-flags-define-pg_locked-behavior-on-compound-pages.patch
+page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-lru-related-flags-on-compound-pages-fix.patch
+page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
+page-flags-define-pg_reserved-behavior-on-compound-pages.patch
+page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
+page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
+page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
+page-flags-define-pg_uncached-behavior-on-compound-pages.patch
+page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
+page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
+mm-sanitize-page-mapping-for-tail-pages.patch
 include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
-devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx-fix.patch
-ipcshm-move-bug_on-check-into-shm_lock-fix.patch
-scsi-resolve-sg-buffer-const-ness-issue-fix.patch
-linux-next.patch
-drivers-block-nvme-corec-fix-build-with-gcc-444.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-net-netfilter-ipset-work-around-gcc-444-initializer-bug.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
 
