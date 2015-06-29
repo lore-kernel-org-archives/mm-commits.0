@@ -1,82 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-jbd2-journalc-use-strreplace.patch removed from -mm
- tree
-Date: Mon, 29 Jun 2015 13:48:18 -0700
-Message-ID: <5591af12.EPF/aM9keREZWw37%akpm@linux-foundation.org>
+Subject: [merged] checkpatch-suggest-using-ether_addr_equal.patch removed
+ from -mm tree
+Date: Mon, 29 Jun 2015 13:48:49 -0700
+Message-ID: <5591af31.ih+u23lI7unMisGl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50937 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50952 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753504AbbF2UsS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:48:18 -0400
+	with ESMTP id S1754058AbbF2Ust (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:48:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, tytso@mit.edu, mm-commits@vger.kernel.org
+To: mateusz.kulikowski@gmail.com, davem@davemloft.net, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/jbd2/journal.c: use strreplace()
+     Subject: checkpatch: suggest using ether_addr_equal*()
 has been removed from the -mm tree.  Its filename was
-     fs-jbd2-journalc-use-strreplace.patch
+     checkpatch-suggest-using-ether_addr_equal.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: fs/jbd2/journal.c: use strreplace()
+From: Mateusz Kulikowski <mateusz.kulikowski@gmail.com>
+Subject: checkpatch: suggest using ether_addr_equal*()
 
-In one case, we eliminate a local variable; in the other a strlen()
-call and some .text.
+Check if memcmp() is used to compare ethernet addresses and suggest using
+ether_addr_equal() or ether_addr_equal_unaligned()
 
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
+Signed-off-by: Mateusz Kulikowski <mateusz.kulikowski@gmail.com>
+Acked-by: Joe Perches <joe@perches.com>
+Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd2/journal.c |   10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+ scripts/checkpatch.pl |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN fs/jbd2/journal.c~fs-jbd2-journalc-use-strreplace fs/jbd2/journal.c
---- a/fs/jbd2/journal.c~fs-jbd2-journalc-use-strreplace
-+++ a/fs/jbd2/journal.c
-@@ -1137,7 +1137,6 @@ journal_t * jbd2_journal_init_dev(struct
- {
- 	journal_t *journal = journal_init_common();
- 	struct buffer_head *bh;
--	char *p;
- 	int n;
+diff -puN scripts/checkpatch.pl~checkpatch-suggest-using-ether_addr_equal scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-suggest-using-ether_addr_equal
++++ a/scripts/checkpatch.pl
+@@ -5157,6 +5157,14 @@ sub process {
+ 			}
+ 		}
  
- 	if (!journal)
-@@ -1150,9 +1149,7 @@ journal_t * jbd2_journal_init_dev(struct
- 	journal->j_blk_offset = start;
- 	journal->j_maxlen = len;
- 	bdevname(journal->j_dev, journal->j_devname);
--	p = journal->j_devname;
--	while ((p = strchr(p, '/')))
--		*p = '!';
-+	strreplace(journal->j_devname, '/', '!');
- 	jbd2_stats_proc_init(journal);
- 	n = journal->j_blocksize / sizeof(journal_block_tag_t);
- 	journal->j_wbufsize = n;
-@@ -1204,10 +1201,7 @@ journal_t * jbd2_journal_init_inode (str
- 	journal->j_dev = journal->j_fs_dev = inode->i_sb->s_bdev;
- 	journal->j_inode = inode;
- 	bdevname(journal->j_dev, journal->j_devname);
--	p = journal->j_devname;
--	while ((p = strchr(p, '/')))
--		*p = '!';
--	p = journal->j_devname + strlen(journal->j_devname);
-+	p = strreplace(journal->j_devname, '/', '!');
- 	sprintf(p, "-%lu", journal->j_inode->i_ino);
- 	jbd_debug(1,
- 		  "journal %p: inode %s/%ld, size %Ld, bits %d, blksize %ld\n",
++# Check for memcmp(foo, bar, ETH_ALEN) that could be ether_addr_equal*(foo, bar)
++		if ($^V && $^V ge 5.10.0 &&
++		    defined $stat &&
++		    $stat =~ /^\+(?:.*?)\bmemcmp\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*\,\s*ETH_ALEN\s*\)/) {
++			WARN("PREFER_ETHER_ADDR_EQUAL",
++			     "Prefer ether_addr_equal() or ether_addr_equal_unaligned() over memcmp()\n" . "$here\n$stat\n")
++		}
++
+ # typecasts on min/max could be min_t/max_t
+ 		if ($^V && $^V ge 5.10.0 &&
+ 		    defined $stat &&
 _
 
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
+Patches currently in -mm which might be from mateusz.kulikowski@gmail.com are
 
 origin.patch
-linux-next.patch
 
