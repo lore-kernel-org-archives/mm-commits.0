@@ -1,94 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: [merged] blktrace-use-strreplace-in-do_blk_trace_setup.patch
- removed from -mm tree
-Date: Mon, 29 Jun 2015 13:48:09 -0700
-Message-ID: <5591af09.QH1wEF8k/UanqsJ2%akpm@linux-foundation.org>
+Subject: [merged] checkpatch-use-string-consistently.patch removed from
+ -mm tree
+Date: Mon, 29 Jun 2015 13:48:34 -0700
+Message-ID: <5591af22.oGWfCyG0mXh8s3I3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50926 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50956 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754117AbbF2UsJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:48:09 -0400
+	with ESMTP id S1753906AbbF2Use (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:48:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, axboe@fb.com, rostedt@goodmis.org, mm-commits@vger.kernel.org
+To: joe@perches.com, apw@canonical.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/trace/blktrace.c: use strreplace() in do_blk_trace_setup()
+     Subject: checkpatch: use $String consistently
 has been removed from the -mm tree.  Its filename was
-     blktrace-use-strreplace-in-do_blk_trace_setup.patch
+     checkpatch-use-string-consistently.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: kernel/trace/blktrace.c: use strreplace() in do_blk_trace_setup()
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: use $String consistently
 
-Part of the disassembly of do_blk_trace_setup:
+String detection where a source line with a string constant is converted
+can either have an X or a space.
 
-    231b:       e8 00 00 00 00          callq  2320 <do_blk_trace_setup+0x50>
-                        231c: R_X86_64_PC32     strlen+0xfffffffffffffffc
-    2320:       eb 0a                   jmp    232c <do_blk_trace_setup+0x5c>
-    2322:       66 0f 1f 44 00 00       nopw   0x0(%rax,%rax,1)
-    2328:       48 83 c3 01             add    $0x1,%rbx
-    232c:       48 39 d8                cmp    %rbx,%rax
-    232f:       76 47                   jbe    2378 <do_blk_trace_setup+0xa8>
-    2331:       41 80 3c 1c 2f          cmpb   $0x2f,(%r12,%rbx,1)
-    2336:       75 f0                   jne    2328 <do_blk_trace_setup+0x58>
-    2338:       41 c6 04 1c 5f          movb   $0x5f,(%r12,%rbx,1)
-    233d:       4c 89 e7                mov    %r12,%rdi
-    2340:       e8 00 00 00 00          callq  2345 <do_blk_trace_setup+0x75>
-                        2341: R_X86_64_PC32     strlen+0xfffffffffffffffc
-    2345:       eb e1                   jmp    2328 <do_blk_trace_setup+0x58>
+Some of the string detection regexes do not allow the space character, but
+there is a handy $String variable that does.
 
-Yep, that's right: gcc isn't smart enough to realize that replacing '/' by
-'_' cannot change the strlen(), so we call it again and again (at least
-when a '/' is found).  Even if gcc were that smart, this construction
-would still loop over the string twice, once for the initial strlen() call
-and then the open-coded loop.
+Convert the remaining uses of string detection regexes to use the $String
+variable to reduce possible false negatives.
 
-Let's simply use strreplace() instead.
-
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Acked-by: Steven Rostedt <rostedt@goodmis.org>
-Liked-by: Jens Axboe <axboe@fb.com>
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/trace/blktrace.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ scripts/checkpatch.pl |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN kernel/trace/blktrace.c~blktrace-use-strreplace-in-do_blk_trace_setup kernel/trace/blktrace.c
---- a/kernel/trace/blktrace.c~blktrace-use-strreplace-in-do_blk_trace_setup
-+++ a/kernel/trace/blktrace.c
-@@ -439,7 +439,7 @@ int do_blk_trace_setup(struct request_qu
- {
- 	struct blk_trace *old_bt, *bt = NULL;
- 	struct dentry *dir = NULL;
--	int ret, i;
-+	int ret;
+diff -puN scripts/checkpatch.pl~checkpatch-use-string-consistently scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-use-string-consistently
++++ a/scripts/checkpatch.pl
+@@ -1008,7 +1008,7 @@ sub sanitise_line {
+ sub get_quoted_string {
+ 	my ($line, $rawline) = @_;
  
- 	if (!buts->buf_size || !buts->buf_nr)
- 		return -EINVAL;
-@@ -451,9 +451,7 @@ int do_blk_trace_setup(struct request_qu
- 	 * some device names have larger paths - convert the slashes
- 	 * to underscores for this to work as expected
- 	 */
--	for (i = 0; i < strlen(buts->name); i++)
--		if (buts->name[i] == '/')
--			buts->name[i] = '_';
-+	strreplace(buts->name, '/', '_');
+-	return "" if ($line !~ m/(\"[X\t]+\")/g);
++	return "" if ($line !~ m/($String)/g);
+ 	return substr($rawline, $-[0], $+[0] - $-[0]);
+ }
  
- 	bt = kzalloc(sizeof(*bt), GFP_KERNEL);
- 	if (!bt)
+@@ -4343,8 +4343,8 @@ sub process {
+ 			}
+ 
+ 			# Flatten any obvious string concatentation.
+-			while ($dstat =~ s/("X*")\s*$Ident/$1/ ||
+-			       $dstat =~ s/$Ident\s*("X*")/$1/)
++			while ($dstat =~ s/($String)\s*$Ident/$1/ ||
++			       $dstat =~ s/$Ident\s*($String)/$1/)
+ 			{
+ 			}
+ 
+@@ -4625,7 +4625,7 @@ sub process {
+ # to grep for the string.  Make exceptions when the previous string ends in a
+ # newline (multiple lines in one string constant) or '\t', '\r', ';', or '{'
+ # (common in inline assembly) or is a octal \123 or hexadecimal \xaf value
+-		if ($line =~ /^\+\s*"[X\t]*"/ &&
++		if ($line =~ /^\+\s*$String/ &&
+ 		    $prevline =~ /"\s*$/ &&
+ 		    $prevrawline !~ /(?:\\(?:[ntr]|[0-7]{1,3}|x[0-9a-fA-F]{1,2})|;\s*|\{\s*)"\s*$/) {
+ 			if (WARN("SPLIT_STRING",
+@@ -4671,13 +4671,13 @@ sub process {
+ 		}
+ 
+ # concatenated string without spaces between elements
+-		if ($line =~ /"X+"[A-Z_]+/ || $line =~ /[A-Z_]+"X+"/) {
++		if ($line =~ /$String[A-Z_]/ || $line =~ /[A-Za-z0-9_]$String/) {
+ 			CHK("CONCATENATED_STRING",
+ 			    "Concatenated strings should use spaces between elements\n" . $herecurr);
+ 		}
+ 
+ # uncoalesced string fragments
+-		if ($line =~ /"X*"\s*"/) {
++		if ($line =~ /$String\s*"/) {
+ 			WARN("STRING_FRAGMENTS",
+ 			     "Consecutive strings are generally better as a single string\n" . $herecurr);
+ 		}
 _
 
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
+ocfs2-neaten-do_error-ocfs2_error-and-ocfs2_abort.patch
+mm-utilc-add-kstrimdup.patch
 linux-next.patch
+printk-improve-the-description-of-dev-kmsg-line-format.patch
+fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void.patch
+fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix.patch
+maintainers-update-sound-soc-intel-patterns.patch
+maintainers-update-brcm-dts-pattern.patch
+maintainers-update-brcm-gpio-filename-pattern.patch
+maintainers-remove-unused-nbdh-pattern.patch
+maintainers-move-jens-osterkamp-to-credits.patch
+maintainers-bcache-kent-overstreet-has-changed-email-address.patch
 
