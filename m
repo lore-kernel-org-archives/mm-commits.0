@@ -1,92 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-string-introduce-strreplace.patch removed from -mm
+Subject: [merged] fs-jbd2-journalc-use-strreplace.patch removed from -mm
  tree
-Date: Mon, 29 Jun 2015 13:48:05 -0700
-Message-ID: <5591af05.25VE4IEWKXvWFcNr%akpm@linux-foundation.org>
+Date: Mon, 29 Jun 2015 13:48:18 -0700
+Message-ID: <5591af12.EPF/aM9keREZWw37%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50918 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50937 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754039AbbF2UsG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:48:06 -0400
+	with ESMTP id S1753504AbbF2UsS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:48:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, gregkh@linuxfoundation.org, joe@perches.com, neilb@suse.de, rostedt@goodmis.org, tytso@mit.edu, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/string.c: introduce strreplace()
+     Subject: fs/jbd2/journal.c: use strreplace()
 has been removed from the -mm tree.  Its filename was
-     lib-string-introduce-strreplace.patch
+     fs-jbd2-journalc-use-strreplace.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/string.c: introduce strreplace()
+Subject: fs/jbd2/journal.c: use strreplace()
 
-Strings are sometimes sanitized by replacing a certain character (often
-'/') by another (often '!').  In a few places, this is done the same way
-Schlemiel the Painter would do it.  Others are slightly smarter but still
-do multiple strchr() calls.  Introduce strreplace() to do this using a
-single function call and a single pass over the string.
-
-One would expect the return value to be one of three things: void, s, or
-the number of replacements made.  I chose the fourth, returning a pointer
-to the end of the string.  This is more likely to be useful (for example
-allowing the caller to avoid a strlen call).
+In one case, we eliminate a local variable; in the other a strlen()
+call and some .text.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Neil Brown <neilb@suse.de>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/string.h |    1 +
- lib/string.c           |   17 +++++++++++++++++
- 2 files changed, 18 insertions(+)
+ fs/jbd2/journal.c |   10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/string.h~lib-string-introduce-strreplace include/linux/string.h
---- a/include/linux/string.h~lib-string-introduce-strreplace
-+++ a/include/linux/string.h
-@@ -111,6 +111,7 @@ extern int memcmp(const void *,const voi
- extern void * memchr(const void *,int,__kernel_size_t);
- #endif
- void *memchr_inv(const void *s, int c, size_t n);
-+char *strreplace(char *s, char old, char new);
+diff -puN fs/jbd2/journal.c~fs-jbd2-journalc-use-strreplace fs/jbd2/journal.c
+--- a/fs/jbd2/journal.c~fs-jbd2-journalc-use-strreplace
++++ a/fs/jbd2/journal.c
+@@ -1137,7 +1137,6 @@ journal_t * jbd2_journal_init_dev(struct
+ {
+ 	journal_t *journal = journal_init_common();
+ 	struct buffer_head *bh;
+-	char *p;
+ 	int n;
  
- extern void kfree_const(const void *x);
- 
-diff -puN lib/string.c~lib-string-introduce-strreplace lib/string.c
---- a/lib/string.c~lib-string-introduce-strreplace
-+++ a/lib/string.c
-@@ -849,3 +849,20 @@ void *memchr_inv(const void *start, int
- 	return check_bytes8(start, value, bytes % 8);
- }
- EXPORT_SYMBOL(memchr_inv);
-+
-+/**
-+ * strreplace - Replace all occurrences of character in string.
-+ * @s: The string to operate on.
-+ * @old: The character being replaced.
-+ * @new: The character @old is replaced with.
-+ *
-+ * Returns pointer to the nul byte at the end of @s.
-+ */
-+char *strreplace(char *s, char old, char new)
-+{
-+	for (; *s; ++s)
-+		if (*s == old)
-+			*s = new;
-+	return s;
-+}
-+EXPORT_SYMBOL(strreplace);
+ 	if (!journal)
+@@ -1150,9 +1149,7 @@ journal_t * jbd2_journal_init_dev(struct
+ 	journal->j_blk_offset = start;
+ 	journal->j_maxlen = len;
+ 	bdevname(journal->j_dev, journal->j_devname);
+-	p = journal->j_devname;
+-	while ((p = strchr(p, '/')))
+-		*p = '!';
++	strreplace(journal->j_devname, '/', '!');
+ 	jbd2_stats_proc_init(journal);
+ 	n = journal->j_blocksize / sizeof(journal_block_tag_t);
+ 	journal->j_wbufsize = n;
+@@ -1204,10 +1201,7 @@ journal_t * jbd2_journal_init_inode (str
+ 	journal->j_dev = journal->j_fs_dev = inode->i_sb->s_bdev;
+ 	journal->j_inode = inode;
+ 	bdevname(journal->j_dev, journal->j_devname);
+-	p = journal->j_devname;
+-	while ((p = strchr(p, '/')))
+-		*p = '!';
+-	p = journal->j_devname + strlen(journal->j_devname);
++	p = strreplace(journal->j_devname, '/', '!');
+ 	sprintf(p, "-%lu", journal->j_inode->i_ino);
+ 	jbd_debug(1,
+ 		  "journal %p: inode %s/%ld, size %Ld, bits %d, blksize %ld\n",
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
