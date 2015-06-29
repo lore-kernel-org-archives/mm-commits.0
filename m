@@ -1,136 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-categorize-some-long-line-length-checks.patch removed from -mm tree
-Date: Mon, 29 Jun 2015 13:48:36 -0700
-Message-ID: <5591af24.zo9y9dFAqk3w+6W3%akpm@linux-foundation.org>
+Subject: [merged]
+ checkpatch-add-showfile-to-allow-input-via-pipe-to-show-filenames.patch
+ removed from -mm tree
+Date: Mon, 29 Jun 2015 13:48:43 -0700
+Message-ID: <5591af2b.PO0nx8DvLPDv0Cmo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50767 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50889 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753970AbbF2Ush (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:48:37 -0400
+	with ESMTP id S1753472AbbF2Usn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:48:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, dan.carpenter@oracle.com, julia.lawall@lip6.fr, shuey@purdue.edu, mm-commits@vger.kernel.org
+To: joe@perches.com, apw@canonical.com, pmladek@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: categorize some long line length checks
+     Subject: checkpatch: add --showfile to allow input via pipe to show filenames
 has been removed from the -mm tree.  Its filename was
-     checkpatch-categorize-some-long-line-length-checks.patch
+     checkpatch-add-showfile-to-allow-input-via-pipe-to-show-filenames.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: categorize some long line length checks
+Subject: checkpatch: add --showfile to allow input via pipe to show filenames
 
-Many lines of code extend beyond the maximum line length.  Some of these
-are possibly justified by use type.
+Using "git diff | ./scripts/checkpatch -" does not have an
+easy mechanism to see the files and lines actually modified.
 
-For instance:
+Add --showfile to see the file and line specified in the diff.
 
-structure definitions where comments are added per member like:
-struct foo {
-	type member;		/* some long description */
-
-And lines that don't fit the typical logging message style
-where a string constant is used like:
-
-        SOME_MACRO(args, "Some long string");
-
-Categorize these long line types so that checkpatch can use a command-line
---ignore=<type> option to avoid emitting some long line warnings.
-
-One of the existing checkpatch exclusions allowed kernel-doc argument
-documentation to exceed 80 columns because old versions of kernel-doc
-required single line documentation.  The requirement was removed in 2009
-so remove that exclusion.
-
-Add documentation to make the test a bit clearer.
+When --showfile is used without --terse, the second line of each
+message output is redundant, so it is removed.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Julia Lawall <julia.lawall@lip6.fr>
-Cc: Michael Shuey <shuey@purdue.edu>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Petr Mladek <pmladek@suse.cz>
+Cc: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   60 +++++++++++++++++++++++++++++++++-------
- 1 file changed, 50 insertions(+), 10 deletions(-)
+ scripts/checkpatch.pl |   22 +++++++++++++++++-----
+ 1 file changed, 17 insertions(+), 5 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-categorize-some-long-line-length-checks scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-categorize-some-long-line-length-checks
+diff -puN scripts/checkpatch.pl~checkpatch-add-showfile-to-allow-input-via-pipe-to-show-filenames scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-showfile-to-allow-input-via-pipe-to-show-filenames
 +++ a/scripts/checkpatch.pl
-@@ -2517,16 +2517,56 @@ sub process {
- # check we are in a valid source file if not then ignore this hunk
- 		next if ($realfile !~ /\.(h|c|s|S|pl|sh|dtsi|dts)$/);
+@@ -25,6 +25,7 @@ my $chk_patch = 1;
+ my $tst_only;
+ my $emacs = 0;
+ my $terse = 0;
++my $showfile = 0;
+ my $file = 0;
+ my $check = 0;
+ my $check_orig = 0;
+@@ -66,6 +67,7 @@ Options:
+   --patch                    treat FILE as patchfile (default)
+   --emacs                    emacs compile window format
+   --terse                    one line per report
++  --showfile                 emit diffed file position, not input file position
+   -f, --file                 treat FILE as regular source file
+   --subjective, --strict     enable more subjective tests
+   --types TYPE(,TYPE2...)    show only these comma separated message types
+@@ -137,6 +139,7 @@ GetOptions(
+ 	'patch!'	=> \$chk_patch,
+ 	'emacs!'	=> \$emacs,
+ 	'terse!'	=> \$terse,
++	'showfile!'	=> \$showfile,
+ 	'f|file!'	=> \$file,
+ 	'subjective!'	=> \$check,
+ 	'strict!'	=> \$check,
+@@ -1693,6 +1696,12 @@ sub report {
+ 	}
+ 	$output .= RESET if (-t STDOUT && $color);
+ 	$output .= ' ' . $msg . "\n";
++
++	if ($showfile) {
++		my @lines = split("\n", $output, -1);
++		splice(@lines, 1, 1);
++		$output = join("\n", @lines);
++	}
+ 	$output = (split('\n', $output))[0] . "\n" if ($terse);
  
--#line length limit
--		if ($line =~ /^\+/ && $prevrawline !~ /\/\*\*/ &&
--		    $rawline !~ /^.\s*\*\s*\@$Ident\s/ &&
--		    !($line =~ /^\+\s*$logFunctions\s*\(\s*(?:(KERN_\S+\s*|[^"]*))?$String\s*(?:|,|\)\s*;)\s*$/ ||
--		      $line =~ /^\+\s*$String\s*(?:\s*|,|\)\s*;)\s*$/ ||
--		      $line =~ /^\+\s*#\s*define\s+\w+\s+$String$/) &&
--		    $length > $max_line_length)
--		{
--			WARN("LONG_LINE",
--			     "line over $max_line_length characters\n" . $herecurr);
-+# line length limit (with some exclusions)
-+#
-+# There are a few types of lines that may extend beyond $max_line_length:
-+#	logging functions like pr_info that end in a string
-+#	lines with a single string
-+#	#defines that are a single string
-+#
-+# There are 3 different line length message types:
-+# LONG_LINE_COMMENT	a comment starts before but extends beyond $max_linelength
-+# LONG_LINE_STRING	a string starts before but extends beyond $max_line_length
-+# LONG_LINE		all other lines longer than $max_line_length
-+#
-+# if LONG_LINE is ignored, the other 2 types are also ignored
-+#
-+
-+		if ($length > $max_line_length) {
-+			my $msg_type = "LONG_LINE";
-+
-+			# Check the allowed long line types first
-+
-+			# logging functions that end in a string that starts
-+			# before $max_line_length
-+			if ($line =~ /^\+\s*$logFunctions\s*\(\s*(?:(?:KERN_\S+\s*|[^"]*))?($String\s*(?:|,|\)\s*;)\s*)$/ &&
-+			    length(expand_tabs(substr($line, 1, length($line) - length($1) - 1))) <= $max_line_length) {
-+				$msg_type = "";
-+
-+			# lines with only strings (w/ possible termination)
-+			# #defines with only strings
-+			} elsif ($line =~ /^\+\s*$String\s*(?:\s*|,|\)\s*;)\s*$/ ||
-+				 $line =~ /^\+\s*#\s*define\s+\w+\s+$String$/) {
-+				$msg_type = "";
-+
-+			# Otherwise set the alternate message types
-+
-+			# a comment starts before $max_line_length
-+			} elsif ($line =~ /($;[\s$;]*)$/ &&
-+				 length(expand_tabs(substr($line, 1, length($line) - length($1) - 1))) <= $max_line_length) {
-+				$msg_type = "LONG_LINE_COMMENT"
-+
-+			# a quoted string starts before $max_line_length
-+			} elsif ($sline =~ /\s*($String(?:\s*(?:\\|,\s*|\)\s*;\s*))?)$/ &&
-+				 length(expand_tabs(substr($line, 1, length($line) - length($1) - 1))) <= $max_line_length) {
-+				$msg_type = "LONG_LINE_STRING"
-+			}
-+
-+			if ($msg_type ne "" &&
-+			    (show_type("LONG_LINE") || show_type($msg_type))) {
-+				WARN($msg_type,
-+				     "line over $max_line_length characters\n" . $herecurr);
-+			}
+ 	push(our @report, $output);
+@@ -2119,10 +2128,6 @@ sub process {
+ 
+ 		my $hunk_line = ($realcnt != 0);
+ 
+-#make up the handle for any error we report on this line
+-		$prefix = "$filename:$realline: " if ($emacs && $file);
+-		$prefix = "$filename:$linenr: " if ($emacs && !$file);
+-
+ 		$here = "#$linenr: " if (!$file);
+ 		$here = "#$realline: " if ($file);
+ 
+@@ -2152,6 +2157,13 @@ sub process {
+ 			$found_file = 1;
  		}
  
- # check for adding lines without a newline.
++#make up the handle for any error we report on this line
++		if ($showfile) {
++			$prefix = "$realfile:$realline: "
++		} elsif ($emacs) {
++			$prefix = "$filename:$linenr: ";
++		}
++
+ 		if ($found_file) {
+ 			if ($realfile =~ m@^(drivers/net/|net/)@) {
+ 				$check = 1;
+@@ -5606,7 +5618,7 @@ sub process {
+ 		ERROR("NOT_UNIFIED_DIFF",
+ 		      "Does not appear to be a unified-diff format patch\n");
+ 	}
+-	if ($is_patch && $chk_signoff && $signoff == 0) {
++	if ($is_patch && $filename ne '-' && $chk_signoff && $signoff == 0) {
+ 		ERROR("MISSING_SIGN_OFF",
+ 		      "Missing Signed-off-by: line(s)\n");
+ 	}
 _
 
 Patches currently in -mm which might be from joe@perches.com are
