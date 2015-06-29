@@ -1,65 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-remove-unused-mem_cgroup-oom_wakeups.patch removed from -mm tree
-Date: Mon, 29 Jun 2015 13:39:12 -0700
-Message-ID: <5591acf0.NaMe3fHFEkiF10yW%akpm@linux-foundation.org>
+Subject: [merged] oom-print-points-as-unsigned-int.patch removed from -mm
+ tree
+Date: Mon, 29 Jun 2015 13:38:55 -0700
+Message-ID: <5591acdf.sBHSGvoxj2VYj2pH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50541 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50498 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754086AbbF2UjN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:39:13 -0400
+	with ESMTP id S1753770AbbF2Ui4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:38:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, hannes@cmpxchg.org, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: long.wanglong@huawei.com, mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: remove unused mem_cgroup->oom_wakeups
+     Subject: mm/oom_kill.c: print points as unsigned int
 has been removed from the -mm tree.  Its filename was
-     memcg-remove-unused-mem_cgroup-oom_wakeups.patch
+     oom-print-points-as-unsigned-int.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tejun Heo <tj@kernel.org>
-Subject: memcg: remove unused mem_cgroup->oom_wakeups
+From: Wang Long <long.wanglong@huawei.com>
+Subject: mm/oom_kill.c: print points as unsigned int
 
-Since 4942642080ea ("mm: memcg: handle non-error OOM situations more
-gracefully"), nobody uses mem_cgroup->oom_wakeups.  Remove it.
+In oom_kill_process(), the variable 'points' is unsigned int.  Print it as
+such.
 
-While at it, also fold memcg_wakeup_oom() into memcg_oom_recover() which
-is its only user.  This cleanup was suggested by Michal.
-
-Signed-off-by: Tejun Heo <tj@kernel.org>
+Signed-off-by: Wang Long <long.wanglong@huawei.com>
 Acked-by: Michal Hocko <mhocko@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   10 +---------
- 1 file changed, 1 insertion(+), 9 deletions(-)
+ mm/oom_kill.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memcg-remove-unused-mem_cgroup-oom_wakeups mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-remove-unused-mem_cgroup-oom_wakeups
-+++ a/mm/memcontrol.c
-@@ -287,7 +287,6 @@ struct mem_cgroup {
+diff -puN mm/oom_kill.c~oom-print-points-as-unsigned-int mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-print-points-as-unsigned-int
++++ a/mm/oom_kill.c
+@@ -517,7 +517,7 @@ void oom_kill_process(struct task_struct
+ 		dump_header(p, gfp_mask, order, memcg, nodemask);
  
- 	bool		oom_lock;
- 	atomic_t	under_oom;
--	atomic_t	oom_wakeups;
+ 	task_lock(p);
+-	pr_err("%s: Kill process %d (%s) score %d or sacrifice child\n",
++	pr_err("%s: Kill process %d (%s) score %u or sacrifice child\n",
+ 		message, task_pid_nr(p), p->comm, points);
+ 	task_unlock(p);
  
- 	int	swappiness;
- 	/* OOM-Killer disable */
-@@ -1850,17 +1849,10 @@ static int memcg_oom_wake_function(wait_
- 	return autoremove_wake_function(wait, mode, sync, arg);
- }
- 
--static void memcg_wakeup_oom(struct mem_cgroup *memcg)
--{
--	atomic_inc(&memcg->oom_wakeups);
--	/* for filtering, pass "memcg" as argument. */
--	__wake_up(&memcg_oom_waitq, TASK_NORMAL, 0, memcg);
--}
+_
+
+Patches currently in -mm which might be from long.wanglong@huawei.com are
+
+origin.patch
+
