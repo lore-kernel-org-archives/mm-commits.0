@@ -1,114 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ocfs2-mark-local-functions-as-static.patch removed from
- -mm tree
-Date: Mon, 29 Jun 2015 13:36:55 -0700
-Message-ID: <5591ac67.7bMAg1FgxE0z/k7j%akpm@linux-foundation.org>
+Subject: [merged]
+ ocfs2-fix-null-pointer-dereference-in-function-ocfs2_abort_trigger.patch
+ removed from -mm tree
+Date: Mon, 29 Jun 2015 13:36:45 -0700
+Message-ID: <5591ac5d.dfh6eUdrpSOwNqDy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50185 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50162 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753755AbbF2Ug4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:36:56 -0400
+	with ESMTP id S1753755AbbF2Ugq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:36:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joseph.qi@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
+To: xuejiufei@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: mark local functions as static
+     Subject: ocfs2: fix NULL pointer dereference in function ocfs2_abort_trigger()
 has been removed from the -mm tree.  Its filename was
-     ocfs2-mark-local-functions-as-static.patch
+     ocfs2-fix-null-pointer-dereference-in-function-ocfs2_abort_trigger.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@huawei.com>
-Subject: ocfs2: mark local functions as static
+From: Xue jiufei <xuejiufei@huawei.com>
+Subject: ocfs2: fix NULL pointer dereference in function ocfs2_abort_trigger()
 
-Some functions are only used locally, so mark them as static.
+ocfs2_abort_trigger() use bh->b_assoc_map to get sb.  But there's no
+function to set bh->b_assoc_map in ocfs2, it will trigger NULL pointer
+dereference while calling this function.  We can get sb from
+bh->b_bdev->bd_super instead of b_assoc_map.
 
-Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
+[akpm@linux-foundation.org: update comment, per Joseph]
+Signed-off-by: joyce.xue <xuejiufei@huawei.com>
+Cc: Joseph Qi <joseph.qi@huawei.com>
 Cc: Mark Fasheh <mfasheh@suse.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/journal.c |   10 +++++-----
- fs/ocfs2/xattr.c   |    2 +-
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ fs/ocfs2/journal.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN fs/ocfs2/journal.c~ocfs2-mark-local-functions-as-static fs/ocfs2/journal.c
---- a/fs/ocfs2/journal.c~ocfs2-mark-local-functions-as-static
+diff -puN fs/ocfs2/journal.c~ocfs2-fix-null-pointer-dereference-in-function-ocfs2_abort_trigger fs/ocfs2/journal.c
+--- a/fs/ocfs2/journal.c~ocfs2-fix-null-pointer-dereference-in-function-ocfs2_abort_trigger
 +++ a/fs/ocfs2/journal.c
-@@ -108,7 +108,7 @@ struct ocfs2_replay_map {
- 	unsigned char rm_replay_slots[0];
- };
+@@ -571,9 +571,7 @@ static void ocfs2_abort_trigger(struct j
+ 	     (unsigned long)bh,
+ 	     (unsigned long long)bh->b_blocknr);
  
--void ocfs2_replay_map_set_state(struct ocfs2_super *osb, int state)
-+static void ocfs2_replay_map_set_state(struct ocfs2_super *osb, int state)
- {
- 	if (!osb->replay_map)
- 		return;
-@@ -153,7 +153,7 @@ int ocfs2_compute_replay_slots(struct oc
- 	return 0;
+-	/* We aren't guaranteed to have the superblock here - but if we
+-	 * don't, it'll just crash. */
+-	ocfs2_error(bh->b_assoc_map->host->i_sb,
++	ocfs2_error(bh->b_bdev->bd_super,
+ 		    "JBD2 has aborted our journal, ocfs2 cannot continue\n");
  }
  
--void ocfs2_queue_replay_slots(struct ocfs2_super *osb,
-+static void ocfs2_queue_replay_slots(struct ocfs2_super *osb,
- 		enum ocfs2_orphan_reco_type orphan_reco_type)
- {
- 	struct ocfs2_replay_map *replay_map = osb->replay_map;
-@@ -173,7 +173,7 @@ void ocfs2_queue_replay_slots(struct ocf
- 	replay_map->rm_state = REPLAY_DONE;
- }
- 
--void ocfs2_free_replay_slots(struct ocfs2_super *osb)
-+static void ocfs2_free_replay_slots(struct ocfs2_super *osb)
- {
- 	struct ocfs2_replay_map *replay_map = osb->replay_map;
- 
-@@ -1895,7 +1895,7 @@ static inline unsigned long ocfs2_orphan
-  * hasn't happened.  The node queues a scan and increments the
-  * sequence number in the LVB.
-  */
--void ocfs2_queue_orphan_scan(struct ocfs2_super *osb)
-+static void ocfs2_queue_orphan_scan(struct ocfs2_super *osb)
- {
- 	struct ocfs2_orphan_scan *os;
- 	int status, i;
-@@ -1944,7 +1944,7 @@ out:
- }
- 
- /* Worker task that gets fired every ORPHAN_SCAN_SCHEDULE_TIMEOUT millsec */
--void ocfs2_orphan_scan_work(struct work_struct *work)
-+static void ocfs2_orphan_scan_work(struct work_struct *work)
- {
- 	struct ocfs2_orphan_scan *os;
- 	struct ocfs2_super *osb;
-diff -puN fs/ocfs2/xattr.c~ocfs2-mark-local-functions-as-static fs/ocfs2/xattr.c
---- a/fs/ocfs2/xattr.c~ocfs2-mark-local-functions-as-static
-+++ a/fs/ocfs2/xattr.c
-@@ -7271,7 +7271,7 @@ static int ocfs2_xattr_security_set(stru
- 			       name, value, size, flags);
- }
- 
--int ocfs2_initxattrs(struct inode *inode, const struct xattr *xattr_array,
-+static int ocfs2_initxattrs(struct inode *inode, const struct xattr *xattr_array,
- 		     void *fs_info)
- {
- 	const struct xattr *xattr;
 _
 
-Patches currently in -mm which might be from joseph.qi@huawei.com are
+Patches currently in -mm which might be from xuejiufei@huawei.com are
 
 origin.patch
-ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work.patch
-ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work-v2.patch
-ocfs2-set-filesytem-read-only-when-ocfs2_delete_entry-failed.patch
-ocfs2-set-filesytem-read-only-when-ocfs2_delete_entry-failed-v2.patch
-ocfs2-fix-race-between-crashed-dio-and-rm.patch
-ocfs2-avoid-access-invalid-address-when-read-o2dlm-debug-messages.patch
+ocfs2-flush-inode-data-to-disk-and-free-inode-when-i_count-becomes-zero.patch
+ocfs2-extend-transaction-for-ocfs2_remove_rightmost_path-and-ocfs2_update_edge_lengths-before-to-avoid-inconsistency-between-inode-and-et.patch
+ocfs2-do-not-set-fs-read-only-if-rec-is-empty-while-committing-truncate.patch
+extend-enough-credits-for-freeing-one-truncate-record-while-replaying-truncate-records.patch
 
