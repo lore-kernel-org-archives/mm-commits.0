@@ -1,170 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-slab_common-support-the-slub_debug-boot-option-on-specific-object-size.patch removed from -mm tree
-Date: Mon, 29 Jun 2015 13:37:12 -0700
-Message-ID: <5591ac78.R7jiuYO70dAjRfZz%akpm@linux-foundation.org>
+Subject: [merged] parisc-use-for_each_sg.patch removed from -mm tree
+Date: Mon, 29 Jun 2015 13:36:57 -0700
+Message-ID: <5591ac69.sa+uIUedz4Qq4FhB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50223 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50190 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754011AbbF2UhO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:37:14 -0400
+	with ESMTP id S1752434AbbF2Ug6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:36:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gavin.guo@canonical.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, deller@gmx.de, jejb@parisc-linux.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slab_common: support the slub_debug boot option on specific object size
+     Subject: parisc: use for_each_sg()
 has been removed from the -mm tree.  Its filename was
-     mm-slab_common-support-the-slub_debug-boot-option-on-specific-object-size.patch
+     parisc-use-for_each_sg.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Gavin Guo <gavin.guo@canonical.com>
-Subject: mm/slab_common: support the slub_debug boot option on specific object size
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: parisc: use for_each_sg()
 
-The slub_debug=PU,kmalloc-xx cannot work because in the
-create_kmalloc_caches() the s->name is created after the
-create_kmalloc_cache() is called.  The name is NULL in the
-create_kmalloc_cache() so the kmem_cache_flags() would not set the
-slub_debug flags to the s->flags.  The fix here set up a kmalloc_names
-string array for the initialization purpose and delete the dynamic name
-creation of kmalloc_caches.
+This replaces the plain loop over the sglist array with for_each_sg()
+macro which consists of sg_next() function calls.  Since parisc doesn't
+select ARCH_HAS_SG_CHAIN, it is not necessary to use for_each_sg() in
+order to loop over each sg element.  But this can help find problems with
+drivers that do not properly initialize their sg tables when
+CONFIG_DEBUG_SG is enabled.
 
-[akpm@linux-foundation.org: s/kmalloc_names/kmalloc_info/, tweak comment text]
-Signed-off-by: Gavin Guo <gavin.guo@canonical.com>
-Acked-by: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
+Cc: Helge Deller <deller@gmx.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slab.h |   22 ++++++++++++++
- mm/slab_common.c     |   62 +++++++++++++++++++++++++----------------
- 2 files changed, 61 insertions(+), 23 deletions(-)
+ arch/parisc/kernel/pci-dma.c |   27 ++++++++++++++++-----------
+ 1 file changed, 16 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/slab.h~mm-slab_common-support-the-slub_debug-boot-option-on-specific-object-size include/linux/slab.h
---- a/include/linux/slab.h~mm-slab_common-support-the-slub_debug-boot-option-on-specific-object-size
-+++ a/include/linux/slab.h
-@@ -153,8 +153,30 @@ size_t ksize(const void *);
- #define ARCH_KMALLOC_MINALIGN ARCH_DMA_MINALIGN
- #define KMALLOC_MIN_SIZE ARCH_DMA_MINALIGN
- #define KMALLOC_SHIFT_LOW ilog2(ARCH_DMA_MINALIGN)
-+/*
-+ * The KMALLOC_LOOP_LOW is the definition for the for loop index start number
-+ * to create the kmalloc_caches object in create_kmalloc_caches(). The first
-+ * and the second are 96 and 192. You can see that in the kmalloc_index(), if
-+ * the KMALLOC_MIN_SIZE <= 32, then return 1 (96). If KMALLOC_MIN_SIZE <= 64,
-+ * then return 2 (192). If the KMALLOC_MIN_SIZE is bigger than 64, we don't
-+ * need to initialize 96 and 192. Go directly to start the KMALLOC_SHIFT_LOW.
-+ */
-+#if KMALLOC_MIN_SIZE <= 32
-+#define KMALLOC_LOOP_LOW 1
-+#elif KMALLOC_MIN_SIZE <= 64
-+#define KMALLOC_LOOP_LOW 2
-+#else
-+#define KMALLOC_LOOP_LOW KMALLOC_SHIFT_LOW
-+#endif
-+
- #else
- #define ARCH_KMALLOC_MINALIGN __alignof__(unsigned long long)
-+/*
-+ * The KMALLOC_MIN_SIZE of slub/slab/slob is 2^3/2^5/2^3. So, even slab is used.
-+ * The KMALLOC_MIN_SIZE <= 32. The kmalloc-96 and kmalloc-192 should also be
-+ * initialized.
-+ */
-+#define KMALLOC_LOOP_LOW 1
- #endif
+diff -puN arch/parisc/kernel/pci-dma.c~parisc-use-for_each_sg arch/parisc/kernel/pci-dma.c
+--- a/arch/parisc/kernel/pci-dma.c~parisc-use-for_each_sg
++++ a/arch/parisc/kernel/pci-dma.c
+@@ -478,14 +478,16 @@ static void pa11_dma_unmap_single(struct
+ static int pa11_dma_map_sg(struct device *dev, struct scatterlist *sglist, int nents, enum dma_data_direction direction)
+ {
+ 	int i;
++	struct scatterlist *sg;
  
- /*
-diff -puN mm/slab_common.c~mm-slab_common-support-the-slub_debug-boot-option-on-specific-object-size mm/slab_common.c
---- a/mm/slab_common.c~mm-slab_common-support-the-slub_debug-boot-option-on-specific-object-size
-+++ a/mm/slab_common.c
-@@ -784,6 +784,31 @@ struct kmem_cache *kmalloc_slab(size_t s
+ 	BUG_ON(direction == DMA_NONE);
+ 
+-	for (i = 0; i < nents; i++, sglist++ ) {
+-		unsigned long vaddr = (unsigned long)sg_virt(sglist);
+-		sg_dma_address(sglist) = (dma_addr_t) virt_to_phys(vaddr);
+-		sg_dma_len(sglist) = sglist->length;
+-		flush_kernel_dcache_range(vaddr, sglist->length);
++	for_each_sg(sglist, sg, nents, i) {
++		unsigned long vaddr = (unsigned long)sg_virt(sg);
++
++		sg_dma_address(sg) = (dma_addr_t) virt_to_phys(vaddr);
++		sg_dma_len(sg) = sg->length;
++		flush_kernel_dcache_range(vaddr, sg->length);
+ 	}
+ 	return nents;
+ }
+@@ -493,6 +495,7 @@ static int pa11_dma_map_sg(struct device
+ static void pa11_dma_unmap_sg(struct device *dev, struct scatterlist *sglist, int nents, enum dma_data_direction direction)
+ {
+ 	int i;
++	struct scatterlist *sg;
+ 
+ 	BUG_ON(direction == DMA_NONE);
+ 
+@@ -501,8 +504,8 @@ static void pa11_dma_unmap_sg(struct dev
+ 
+ 	/* once we do combining we'll need to use phys_to_virt(sg_dma_address(sglist)) */
+ 
+-	for (i = 0; i < nents; i++, sglist++ )
+-		flush_kernel_vmap_range(sg_virt(sglist), sglist->length);
++	for_each_sg(sglist, sg, nents, i)
++		flush_kernel_vmap_range(sg_virt(sg), sg->length);
+ 	return;
  }
  
- /*
-+ * kmalloc_info[] is to make slub_debug=,kmalloc-xx option work at boot time.
-+ * kmalloc_index() supports up to 2^26=64MB, so the final entry of the table is
-+ * kmalloc-67108864.
-+ */
-+static struct {
-+	const char *name;
-+	unsigned long size;
-+} const kmalloc_info[] __initconst = {
-+	{NULL,                      0},		{"kmalloc-96",             96},
-+	{"kmalloc-192",           192},		{"kmalloc-8",               8},
-+	{"kmalloc-16",             16},		{"kmalloc-32",             32},
-+	{"kmalloc-64",             64},		{"kmalloc-128",           128},
-+	{"kmalloc-256",           256},		{"kmalloc-512",           512},
-+	{"kmalloc-1024",         1024},		{"kmalloc-2048",         2048},
-+	{"kmalloc-4096",         4096},		{"kmalloc-8192",         8192},
-+	{"kmalloc-16384",       16384},		{"kmalloc-32768",       32768},
-+	{"kmalloc-65536",       65536},		{"kmalloc-131072",     131072},
-+	{"kmalloc-262144",     262144},		{"kmalloc-524288",     524288},
-+	{"kmalloc-1048576",   1048576},		{"kmalloc-2097152",   2097152},
-+	{"kmalloc-4194304",   4194304},		{"kmalloc-8388608",   8388608},
-+	{"kmalloc-16777216", 16777216},		{"kmalloc-33554432", 33554432},
-+	{"kmalloc-67108864", 67108864}
-+};
-+
-+/*
-  * Create the kmalloc array. Some of the regular kmalloc arrays
-  * may already have been created because they were needed to
-  * enable allocations for slab creation.
-@@ -833,39 +858,30 @@ void __init create_kmalloc_caches(unsign
- 		for (i = 128 + 8; i <= 192; i += 8)
- 			size_index[size_index_elem(i)] = 8;
- 	}
--	for (i = KMALLOC_SHIFT_LOW; i <= KMALLOC_SHIFT_HIGH; i++) {
-+	for (i = KMALLOC_LOOP_LOW; i <= KMALLOC_SHIFT_HIGH; i++) {
- 		if (!kmalloc_caches[i]) {
--			kmalloc_caches[i] = create_kmalloc_cache(NULL,
--							1 << i, flags);
-+			kmalloc_caches[i] = create_kmalloc_cache(
-+						kmalloc_info[i].name,
-+						kmalloc_info[i].size,
-+						flags);
- 		}
+@@ -523,21 +526,23 @@ static void pa11_dma_sync_single_for_dev
+ static void pa11_dma_sync_sg_for_cpu(struct device *dev, struct scatterlist *sglist, int nents, enum dma_data_direction direction)
+ {
+ 	int i;
++	struct scatterlist *sg;
  
- 		/*
--		 * Caches that are not of the two-to-the-power-of size.
--		 * These have to be created immediately after the
--		 * earlier power of two caches
-+		 * "i == 2" is the "kmalloc-192" case which is the last special
-+		 * case for initialization and it's the point to jump to
-+		 * allocate the minimize size of the object. In slab allocator,
-+		 * the KMALLOC_SHIFT_LOW = 5. So, it needs to skip 2^3 and 2^4
-+		 * and go straight to allocate 2^5. If the ARCH_DMA_MINALIGN is
-+		 * defined, it may be larger than 2^5 and here is also the
-+		 * trick to skip the empty gap.
- 		 */
--		if (KMALLOC_MIN_SIZE <= 32 && !kmalloc_caches[1] && i == 6)
--			kmalloc_caches[1] = create_kmalloc_cache(NULL, 96, flags);
--
--		if (KMALLOC_MIN_SIZE <= 64 && !kmalloc_caches[2] && i == 7)
--			kmalloc_caches[2] = create_kmalloc_cache(NULL, 192, flags);
-+		if (i == 2)
-+			i = (KMALLOC_SHIFT_LOW - 1);
- 	}
+ 	/* once we do combining we'll need to use phys_to_virt(sg_dma_address(sglist)) */
  
- 	/* Kmalloc array is now usable */
- 	slab_state = UP;
+-	for (i = 0; i < nents; i++, sglist++ )
+-		flush_kernel_vmap_range(sg_virt(sglist), sglist->length);
++	for_each_sg(sglist, sg, nents, i)
++		flush_kernel_vmap_range(sg_virt(sg), sg->length);
+ }
  
--	for (i = 0; i <= KMALLOC_SHIFT_HIGH; i++) {
--		struct kmem_cache *s = kmalloc_caches[i];
--		char *n;
--
--		if (s) {
--			n = kasprintf(GFP_NOWAIT, "kmalloc-%d", kmalloc_size(i));
--
--			BUG_ON(!n);
--			s->name = n;
--		}
--	}
+ static void pa11_dma_sync_sg_for_device(struct device *dev, struct scatterlist *sglist, int nents, enum dma_data_direction direction)
+ {
+ 	int i;
++	struct scatterlist *sg;
+ 
+ 	/* once we do combining we'll need to use phys_to_virt(sg_dma_address(sglist)) */
+ 
+-	for (i = 0; i < nents; i++, sglist++ )
+-		flush_kernel_vmap_range(sg_virt(sglist), sglist->length);
++	for_each_sg(sglist, sg, nents, i)
++		flush_kernel_vmap_range(sg_virt(sg), sg->length);
+ }
+ 
+ struct hppa_dma_ops pcxl_dma_ops = {
+_
+
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
+
+origin.patch
+arc-use-for_each_sg.patch
+lib-scatterlist-fix-kerneldoc-for-sg_pcopy_tofrom_buffer.patch
+lib-scatterlist-mark-input-buffer-parameters-as-const.patch
+linux-next.patch
+
