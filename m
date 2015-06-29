@@ -1,92 +1,157 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-drop-bogus-vm_bug_on_page-assert-in-put_page-codepath.patch removed from -mm tree
-Date: Mon, 29 Jun 2015 13:37:44 -0700
-Message-ID: <5591ac98.fLmxnSOdXtZ1Vken%akpm@linux-foundation.org>
+Subject: [merged] powerpc-mm-use-generic-version-of-pmdp_clear_flush.patch removed from -mm tree
+Date: Mon, 29 Jun 2015 13:38:41 -0700
+Message-ID: <5591acd1.w38Flw0iLctqiPnU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50312 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50462 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754037AbbF2Uhp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:37:45 -0400
+	with ESMTP id S1753771AbbF2Uim (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:38:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, bp@alien8.de, hughd@google.com, mm-commits@vger.kernel.org
+To: aneesh.kumar@linux.vnet.ibm.com, aarcange@redhat.com, benh@kernel.crashing.org, kirill.shutemov@linux.intel.com, mpe@ellerman.id.au, paulus@samba.org, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: drop bogus VM_BUG_ON_PAGE assert in put_page() codepath
+     Subject: powerpc/mm: use generic version of pmdp_clear_flush()
 has been removed from the -mm tree.  Its filename was
-     mm-drop-bogus-vm_bug_on_page-assert-in-put_page-codepath.patch
+     powerpc-mm-use-generic-version-of-pmdp_clear_flush.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: drop bogus VM_BUG_ON_PAGE assert in put_page() codepath
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Subject: powerpc/mm: use generic version of pmdp_clear_flush()
 
-My patch 8d63d99a5dfb ("mm: avoid tail page refcounting on non-THP
-compound pages") which was merged during 4.1 merge window caused
-regression:
+Also move the pmd_trans_huge check to generic code.
 
-  page:ffffea0010a15040 count:0 mapcount:1 mapping:          (null) index:0x0
-  flags: 0x8000000000008014(referenced|dirty|tail)
-  page dumped because: VM_BUG_ON_PAGE(page_mapcount(page) != 0)
-  ------------[ cut here ]------------
-  kernel BUG at mm/swap.c:134!
-
-The problem can be reproduced by playing *two* audio files at the same
-time and then stopping one of players.  I used two mplayers to trigger
-this.
-
-The VM_BUG_ON_PAGE() which triggers the bug is bogus:
-
-Sound subsystem uses compound pages for its buffers, but unlike most
-__GFP_COMP sound maps compound pages to userspace with PTEs.
-
-In our case with two players map the buffer twice and therefore elevates
-page_mapcount() on tail pages by two.  When one of players exits it unmaps
-the VMA and drops page_mapcount() to one and try to release reference on
-the page with put_page().
-
-My commit changes which path it takes under put_compound_page().  It hits
-put_unrefcounted_compound_page() where VM_BUG_ON_PAGE() is.  It sees
-page_mapcount() == 1.  The function wrongly assumes that subpages of
-compound page cannot be be mapped by itself with PTEs..
-
-The solution is simply drop the VM_BUG_ON_PAGE().
-
-Note: there's no need to move the check under put_page_testzero(). 
-Allocator will check the mapcount by itself before putting on free list.
-
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: Andrea Arcangeli <aarcange@redhat.com>
-Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
-Reported-by: Borislav Petkov <bp@alien8.de>
-Cc: Hugh Dickins <hughd@google.com>
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |    1 -
- 1 file changed, 1 deletion(-)
+ arch/powerpc/include/asm/pgtable-ppc64.h |    4 ----
+ arch/powerpc/mm/pgtable_64.c             |   11 -----------
+ arch/s390/include/asm/pgtable.h          |    8 ++++++++
+ include/asm-generic/pgtable.h            |    9 ++-------
+ mm/pgtable-generic.c                     |   17 +++++++++++++++++
+ 5 files changed, 27 insertions(+), 22 deletions(-)
 
-diff -puN mm/swap.c~mm-drop-bogus-vm_bug_on_page-assert-in-put_page-codepath mm/swap.c
---- a/mm/swap.c~mm-drop-bogus-vm_bug_on_page-assert-in-put_page-codepath
-+++ a/mm/swap.c
-@@ -131,7 +131,6 @@ void put_unrefcounted_compound_page(stru
- 		 * here, see the comment above this function.
- 		 */
- 		VM_BUG_ON_PAGE(!PageHead(page_head), page_head);
--		VM_BUG_ON_PAGE(page_mapcount(page) != 0, page);
- 		if (put_page_testzero(page_head)) {
- 			/*
- 			 * If this is the tail of a slab THP page,
+diff -puN arch/powerpc/include/asm/pgtable-ppc64.h~powerpc-mm-use-generic-version-of-pmdp_clear_flush arch/powerpc/include/asm/pgtable-ppc64.h
+--- a/arch/powerpc/include/asm/pgtable-ppc64.h~powerpc-mm-use-generic-version-of-pmdp_clear_flush
++++ a/arch/powerpc/include/asm/pgtable-ppc64.h
+@@ -573,10 +573,6 @@ extern int pmdp_clear_flush_young(struct
+ extern pmd_t pmdp_get_and_clear(struct mm_struct *mm,
+ 				unsigned long addr, pmd_t *pmdp);
+ 
+-#define __HAVE_ARCH_PMDP_CLEAR_FLUSH
+-extern pmd_t pmdp_clear_flush(struct vm_area_struct *vma, unsigned long address,
+-			      pmd_t *pmdp);
+-
+ #define __HAVE_ARCH_PMDP_SET_WRPROTECT
+ static inline void pmdp_set_wrprotect(struct mm_struct *mm, unsigned long addr,
+ 				      pmd_t *pmdp)
+diff -puN arch/powerpc/mm/pgtable_64.c~powerpc-mm-use-generic-version-of-pmdp_clear_flush arch/powerpc/mm/pgtable_64.c
+--- a/arch/powerpc/mm/pgtable_64.c~powerpc-mm-use-generic-version-of-pmdp_clear_flush
++++ a/arch/powerpc/mm/pgtable_64.c
+@@ -554,17 +554,6 @@ unsigned long pmd_hugepage_update(struct
+ 	return old;
+ }
+ 
+-pmd_t pmdp_clear_flush(struct vm_area_struct *vma, unsigned long address,
+-		       pmd_t *pmdp)
+-{
+-	pmd_t pmd;
+-
+-	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
+-	VM_BUG_ON(!pmd_trans_huge(*pmdp));
+-	pmd = pmdp_get_and_clear(vma->vm_mm, address, pmdp);
+-	return pmd;
+-}
+-
+ pmd_t pmdp_collapse_flush(struct vm_area_struct *vma, unsigned long address,
+ 			  pmd_t *pmdp)
+ {
+diff -puN arch/s390/include/asm/pgtable.h~powerpc-mm-use-generic-version-of-pmdp_clear_flush arch/s390/include/asm/pgtable.h
+--- a/arch/s390/include/asm/pgtable.h~powerpc-mm-use-generic-version-of-pmdp_clear_flush
++++ a/arch/s390/include/asm/pgtable.h
+@@ -1548,6 +1548,14 @@ static inline void pmdp_set_wrprotect(st
+ 	}
+ }
+ 
++static inline pmd_t pmdp_collapse_flush(struct vm_area_struct *vma,
++					unsigned long address,
++					pmd_t *pmdp)
++{
++	return pmdp_get_and_clear(vma->vm_mm, address, pmdp);
++}
++#define pmdp_collapse_flush pmdp_collapse_flush
++
+ #define pfn_pmd(pfn, pgprot)	mk_pmd_phys(__pa((pfn) << PAGE_SHIFT), (pgprot))
+ #define mk_pmd(page, pgprot)	pfn_pmd(page_to_pfn(page), (pgprot))
+ 
+diff -puN include/asm-generic/pgtable.h~powerpc-mm-use-generic-version-of-pmdp_clear_flush include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~powerpc-mm-use-generic-version-of-pmdp_clear_flush
++++ a/include/asm-generic/pgtable.h
+@@ -191,13 +191,8 @@ extern void pmdp_splitting_flush(struct
+ 
+ #ifndef pmdp_collapse_flush
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-static inline pmd_t pmdp_collapse_flush(struct vm_area_struct *vma,
+-					unsigned long address,
+-					pmd_t *pmdp)
+-{
+-	return pmdp_clear_flush(vma, address, pmdp);
+-}
+-#define pmdp_collapse_flush pmdp_collapse_flush
++extern pmd_t pmdp_collapse_flush(struct vm_area_struct *vma,
++				 unsigned long address, pmd_t *pmdp);
+ #else
+ static inline pmd_t pmdp_collapse_flush(struct vm_area_struct *vma,
+ 					unsigned long address,
+diff -puN mm/pgtable-generic.c~powerpc-mm-use-generic-version-of-pmdp_clear_flush mm/pgtable-generic.c
+--- a/mm/pgtable-generic.c~powerpc-mm-use-generic-version-of-pmdp_clear_flush
++++ a/mm/pgtable-generic.c
+@@ -126,6 +126,7 @@ pmd_t pmdp_clear_flush(struct vm_area_st
+ {
+ 	pmd_t pmd;
+ 	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
++	VM_BUG_ON(!pmd_trans_huge(*pmdp));
+ 	pmd = pmdp_get_and_clear(vma->vm_mm, address, pmdp);
+ 	flush_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
+ 	return pmd;
+@@ -198,3 +199,19 @@ void pmdp_invalidate(struct vm_area_stru
+ }
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ #endif
++
++#ifndef pmdp_collapse_flush
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++pmd_t pmdp_collapse_flush(struct vm_area_struct *vma, unsigned long address,
++			  pmd_t *pmdp)
++{
++	pmd_t pmd;
++
++	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
++	VM_BUG_ON(pmd_trans_huge(*pmdp));
++	pmd = pmdp_get_and_clear(vma->vm_mm, address, pmdp);
++	flush_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
++	return pmd;
++}
++#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
++#endif
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
 origin.patch
 page-flags-trivial-cleanup-for-pagetrans-helpers.patch
@@ -94,7 +159,6 @@ page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
 page-flags-define-pg_locked-behavior-on-compound-pages.patch
 page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
 page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages-fix.patch
 page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
 page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
 page-flags-define-pg_reserved-behavior-on-compound-pages.patch
@@ -105,5 +169,4 @@ page-flags-define-pg_uncached-behavior-on-compound-pages.patch
 page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
 page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
 mm-sanitize-page-mapping-for-tail-pages.patch
-include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
 
