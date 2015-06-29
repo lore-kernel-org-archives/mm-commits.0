@@ -1,122 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: [merged] check_syslog_permissions-cleanup.patch removed from -mm
- tree
-Date: Mon, 29 Jun 2015 13:47:32 -0700
-Message-ID: <5591aee4.f7hy2HMoWGdPQ8MB%akpm@linux-foundation.org>
+Subject: [merged] get_maintainer-emit-longer-section-headers.patch removed from -mm tree
+Date: Mon, 29 Jun 2015 13:47:37 -0700
+Message-ID: <5591aee9.Ng52/UJ5A8t9EFmi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50884 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50889 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753887AbbF2Ure (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:47:34 -0400
+	with ESMTP id S1753876AbbF2Url (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:47:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vvs@virtuozzo.com, eparis@redhat.com, jwboyer@redhat.com, keescook@chromium.org, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: check_syslog_permissions() cleanup
+     Subject: get_maintainer: emit longer section headers
 has been removed from the -mm tree.  Its filename was
-     check_syslog_permissions-cleanup.patch
+     get_maintainer-emit-longer-section-headers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vasily Averin <vvs@virtuozzo.com>
-Subject: check_syslog_permissions() cleanup
+From: Joe Perches <joe@perches.com>
+Subject: get_maintainer: emit longer section headers
 
-Patch fixes drawbacks in heck_syslog_permissions() noticed by AKPM:
-"from_file handling makes me cry.
+Section headers can be quite long and some are very long and duplicated
+for many initial characters.
 
-That's not a boolean - it's an enumerated value with two values
-currently defined.
+The current maximum length emitted for a section header is 20 bytes (or 17
+bytes then ...  when the section header length is > 20).
 
-But the code in check_syslog_permissions() treats it as a boolean and
-also hardwires the knowledge that SYSLOG_FROM_PROC == 1 (or == `true`).
+Change that length to 50 so more of the section is shown.
 
-And the name is wrong: it should be called from_proc to match
-SYSLOG_FROM_PROC."
+Example new output:
+$ ./scripts/get_maintainer.pl -f drivers/net/ethernet/broadcom/bnx2x/
+Ariel Elior <ariel.elior@qlogic.com> (supporter:BROADCOM BNX2X 10 GIGABIT ETHERNET DRIVER)
+netdev@vger.kernel.org (open list:BROADCOM BNX2X 10 GIGABIT ETHERNET DRIVER)
+linux-kernel@vger.kernel.org (open list)
 
-Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Josh Boyer <jwboyer@redhat.com>
-Cc: Eric Paris <eparis@redhat.com>
+Old:
+$ ./scripts/get_maintainer.pl -f drivers/net/ethernet/broadcom/bnx2x/
+Ariel Elior <ariel.elior@qlogic.com> (supporter:BROADCOM BNX2X 10...)
+netdev@vger.kernel.org (open list:BROADCOM BNX2X 10...)
+linux-kernel@vger.kernel.org (open list)
+
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/syslog.h |    6 +++---
- kernel/printk/printk.c |   10 +++++-----
- 2 files changed, 8 insertions(+), 8 deletions(-)
+ scripts/get_maintainer.pl |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/syslog.h~check_syslog_permissions-cleanup include/linux/syslog.h
---- a/include/linux/syslog.h~check_syslog_permissions-cleanup
-+++ a/include/linux/syslog.h
-@@ -47,12 +47,12 @@
- #define SYSLOG_FROM_READER           0
- #define SYSLOG_FROM_PROC             1
+diff -puN scripts/get_maintainer.pl~get_maintainer-emit-longer-section-headers scripts/get_maintainer.pl
+--- a/scripts/get_maintainer.pl~get_maintainer-emit-longer-section-headers
++++ a/scripts/get_maintainer.pl
+@@ -42,6 +42,7 @@ my $output_multiline = 1;
+ my $output_separator = ", ";
+ my $output_roles = 0;
+ my $output_rolestats = 1;
++my $output_section_maxlen = 50;
+ my $scm = 0;
+ my $web = 0;
+ my $subsystem = 0;
+@@ -978,8 +979,8 @@ sub get_maintainer_role {
  
--int do_syslog(int type, char __user *buf, int count, bool from_file);
-+int do_syslog(int type, char __user *buf, int count, int source);
+     my $role = "unknown";
+     my $subsystem = $typevalue[$start];
+-    if (length($subsystem) > 20) {
+-	$subsystem = substr($subsystem, 0, 17);
++    if ($output_section_maxlen && length($subsystem) > $output_section_maxlen) {
++	$subsystem = substr($subsystem, 0, $output_section_maxlen - 3);
+ 	$subsystem =~ s/\s*$//;
+ 	$subsystem = $subsystem . "...";
+     }
+@@ -1021,8 +1022,8 @@ sub get_list_role {
+     my $end = find_ending_index($index);
  
- #ifdef CONFIG_PRINTK
--int check_syslog_permissions(int type, bool from_file);
-+int check_syslog_permissions(int type, int source);
- #else
--static inline int check_syslog_permissions(int type, bool from_file)
-+static inline int check_syslog_permissions(int type, int source)
- {
- 	return 0;
- }
-diff -puN kernel/printk/printk.c~check_syslog_permissions-cleanup kernel/printk/printk.c
---- a/kernel/printk/printk.c~check_syslog_permissions-cleanup
-+++ a/kernel/printk/printk.c
-@@ -489,13 +489,13 @@ static int syslog_action_restricted(int
- 	       type != SYSLOG_ACTION_SIZE_BUFFER;
- }
- 
--int check_syslog_permissions(int type, bool from_file)
-+int check_syslog_permissions(int type, int source)
- {
- 	/*
- 	 * If this is from /proc/kmsg and we've already opened it, then we've
- 	 * already done the capabilities checks at open time.
- 	 */
--	if (from_file && type != SYSLOG_ACTION_OPEN)
-+	if (source == SYSLOG_FROM_PROC && type != SYSLOG_ACTION_OPEN)
- 		goto ok;
- 
- 	if (syslog_action_restricted(type)) {
-@@ -1290,13 +1290,13 @@ static int syslog_print_all(char __user
- 	return len;
- }
- 
--int do_syslog(int type, char __user *buf, int len, bool from_file)
-+int do_syslog(int type, char __user *buf, int len, int source)
- {
- 	bool clear = false;
- 	static int saved_console_loglevel = LOGLEVEL_DEFAULT;
- 	int error;
- 
--	error = check_syslog_permissions(type, from_file);
-+	error = check_syslog_permissions(type, source);
- 	if (error)
- 		goto out;
- 
-@@ -1379,7 +1379,7 @@ int do_syslog(int type, char __user *buf
- 			syslog_prev = 0;
- 			syslog_partial = 0;
- 		}
--		if (from_file) {
-+		if (source == SYSLOG_FROM_PROC) {
- 			/*
- 			 * Short-cut for poll(/"proc/kmsg") which simply checks
- 			 * for pending data, not the size; return the count of
+     my $subsystem = $typevalue[$start];
+-    if (length($subsystem) > 20) {
+-	$subsystem = substr($subsystem, 0, 17);
++    if ($output_section_maxlen && length($subsystem) > $output_section_maxlen) {
++	$subsystem = substr($subsystem, 0, $output_section_maxlen - 3);
+ 	$subsystem =~ s/\s*$//;
+ 	$subsystem = $subsystem . "...";
+     }
 _
 
-Patches currently in -mm which might be from vvs@virtuozzo.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
+ocfs2-neaten-do_error-ocfs2_error-and-ocfs2_abort.patch
+mm-utilc-add-kstrimdup.patch
+linux-next.patch
+printk-improve-the-description-of-dev-kmsg-line-format.patch
+fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void.patch
+fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix.patch
+maintainers-update-sound-soc-intel-patterns.patch
+maintainers-update-brcm-dts-pattern.patch
+maintainers-update-brcm-gpio-filename-pattern.patch
+maintainers-remove-unused-nbdh-pattern.patch
+maintainers-move-jens-osterkamp-to-credits.patch
+maintainers-bcache-kent-overstreet-has-changed-email-address.patch
 
