@@ -1,439 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: [merged] frontswap-allow-multiple-backends.patch removed from -mm tree
-Date: Mon, 29 Jun 2015 13:39:11 -0700
-Message-ID: <5591acef.z/RUsSDK2vqHBhj2%akpm@linux-foundation.org>
+Subject: [merged]
+ x86-mirror-x86-enabling-find-mirrored-memory-ranges.patch removed from -mm
+ tree
+Date: Mon, 29 Jun 2015 13:39:08 -0700
+Message-ID: <5591acec.rRlbpMU3lggj19IU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50535 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50530 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754184AbbF2UjM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:39:12 -0400
+	with ESMTP id S1753723AbbF2UjK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:39:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ddstreet@ieee.org, boris.ostrovsky@oracle.com, david.vrabel@citrix.com, konrad.wilk@oracle.com, mm-commits@vger.kernel.org
+To: tony.luck@intel.com, guohanjun@huawei.com, hpa@zytor.com, mingo@elte.hu, nao.horiguchi@gmail.com, qiuxishi@huawei.com, tglx@linutronix.de, xiexiuqi@huawei.com, yinghai@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: frontswap: allow multiple backends
+     Subject: x86, mirror: x86 enabling - find mirrored memory ranges
 has been removed from the -mm tree.  Its filename was
-     frontswap-allow-multiple-backends.patch
+     x86-mirror-x86-enabling-find-mirrored-memory-ranges.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dan Streetman <ddstreet@ieee.org>
-Subject: frontswap: allow multiple backends
+From: Tony Luck <tony.luck@intel.com>
+Subject: x86, mirror: x86 enabling - find mirrored memory ranges
 
-Change frontswap single pointer to a singly linked list of frontswap
-implementations.  Update Xen tmem implementation as register no longer
-returns anything.
+UEFI GetMemoryMap() uses a new attribute bit to mark mirrored memory
+address ranges.  See UEFI 2.5 spec pages 157-158:
 
-Frontswap only keeps track of a single implementation; any implementation
-that registers second (or later) will replace the previously registered
-implementation, and gets a pointer to the previous implementation that the
-new implementation is expected to pass all frontswap functions to if it
-can't handle the function itself.  However that method doesn't really make
-much sense, as passing that work on to every implementation adds
-unnecessary work to implementations; instead, frontswap should simply keep
-a list of all registered implementations and try each implementation for
-any function.  Most importantly, neither of the two currently existing
-frontswap implementations in the kernel actually do anything with any
-previous frontswap implementation that they replace when registering.
+  http://www.uefi.org/sites/default/files/resources/UEFI%202_5.pdf
 
-This allows frontswap to successfully manage multiple implementations by
-keeping a list of them all.
+On EFI enabled systems scan the memory map and tell memblock about any
+mirrored ranges.
 
-Signed-off-by: Dan Streetman <ddstreet@ieee.org>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Cc: David Vrabel <david.vrabel@citrix.com>
+Signed-off-by: Tony Luck <tony.luck@intel.com>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
+Cc: Hanjun Guo <guohanjun@huawei.com>
+Cc: Xiexiuqi <xiexiuqi@huawei.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/xen/tmem.c        |    8 -
- include/linux/frontswap.h |   14 +-
- mm/frontswap.c            |  213 +++++++++++++++++++++---------------
- 3 files changed, 138 insertions(+), 97 deletions(-)
+ arch/x86/kernel/setup.c     |    3 +++
+ arch/x86/platform/efi/efi.c |   21 +++++++++++++++++++++
+ include/linux/efi.h         |    3 +++
+ 3 files changed, 27 insertions(+)
 
-diff -puN drivers/xen/tmem.c~frontswap-allow-multiple-backends drivers/xen/tmem.c
---- a/drivers/xen/tmem.c~frontswap-allow-multiple-backends
-+++ a/drivers/xen/tmem.c
-@@ -381,15 +381,9 @@ static int __init xen_tmem_init(void)
- #ifdef CONFIG_FRONTSWAP
- 	if (tmem_enabled && frontswap) {
- 		char *s = "";
--		struct frontswap_ops *old_ops;
+diff -puN arch/x86/kernel/setup.c~x86-mirror-x86-enabling-find-mirrored-memory-ranges arch/x86/kernel/setup.c
+--- a/arch/x86/kernel/setup.c~x86-mirror-x86-enabling-find-mirrored-memory-ranges
++++ a/arch/x86/kernel/setup.c
+@@ -1105,6 +1105,9 @@ void __init setup_arch(char **cmdline_p)
+ 	memblock_set_current_limit(ISA_END_ADDRESS);
+ 	memblock_x86_fill();
  
- 		tmem_frontswap_poolid = -1;
--		old_ops = frontswap_register_ops(&tmem_frontswap_ops);
--		if (IS_ERR(old_ops) || old_ops) {
--			if (IS_ERR(old_ops))
--				return PTR_ERR(old_ops);
--			s = " (WARNING: frontswap_ops overridden)";
--		}
-+		frontswap_register_ops(&tmem_frontswap_ops);
- 		pr_info("frontswap enabled, RAM provided by Xen Transcendent Memory%s\n",
- 			s);
- 	}
-diff -puN include/linux/frontswap.h~frontswap-allow-multiple-backends include/linux/frontswap.h
---- a/include/linux/frontswap.h~frontswap-allow-multiple-backends
-+++ a/include/linux/frontswap.h
-@@ -6,16 +6,16 @@
- #include <linux/bitops.h>
- 
- struct frontswap_ops {
--	void (*init)(unsigned);
--	int (*store)(unsigned, pgoff_t, struct page *);
--	int (*load)(unsigned, pgoff_t, struct page *);
--	void (*invalidate_page)(unsigned, pgoff_t);
--	void (*invalidate_area)(unsigned);
-+	void (*init)(unsigned); /* this swap type was just swapon'ed */
-+	int (*store)(unsigned, pgoff_t, struct page *); /* store a page */
-+	int (*load)(unsigned, pgoff_t, struct page *); /* load a page */
-+	void (*invalidate_page)(unsigned, pgoff_t); /* page no longer needed */
-+	void (*invalidate_area)(unsigned); /* swap type just swapoff'ed */
-+	struct frontswap_ops *next; /* private pointer to next ops */
- };
- 
- extern bool frontswap_enabled;
--extern struct frontswap_ops *
--	frontswap_register_ops(struct frontswap_ops *ops);
-+extern void frontswap_register_ops(struct frontswap_ops *ops);
- extern void frontswap_shrink(unsigned long);
- extern unsigned long frontswap_curr_pages(void);
- extern void frontswap_writethrough(bool);
-diff -puN mm/frontswap.c~frontswap-allow-multiple-backends mm/frontswap.c
---- a/mm/frontswap.c~frontswap-allow-multiple-backends
-+++ a/mm/frontswap.c
-@@ -21,11 +21,16 @@
- #include <linux/swapfile.h>
- 
- /*
-- * frontswap_ops is set by frontswap_register_ops to contain the pointers
-- * to the frontswap "backend" implementation functions.
-+ * frontswap_ops are added by frontswap_register_ops, and provide the
-+ * frontswap "backend" implementation functions.  Multiple implementations
-+ * may be registered, but implementations can never deregister.  This
-+ * is a simple singly-linked list of all registered implementations.
-  */
- static struct frontswap_ops *frontswap_ops __read_mostly;
- 
-+#define for_each_frontswap_ops(ops)		\
-+	for ((ops) = frontswap_ops; (ops); (ops) = (ops)->next)
-+
- /*
-  * If enabled, frontswap_store will return failure even on success.  As
-  * a result, the swap subsystem will always write the page to swap, in
-@@ -79,15 +84,6 @@ static inline void inc_frontswap_invalid
-  * on all frontswap functions to not call the backend until the backend
-  * has registered.
-  *
-- * Specifically when no backend is registered (nobody called
-- * frontswap_register_ops) all calls to frontswap_init (which is done via
-- * swapon -> enable_swap_info -> frontswap_init) are registered and remembered
-- * (via the setting of need_init bitmap) but fail to create tmem_pools. When a
-- * backend registers with frontswap at some later point the previous
-- * calls to frontswap_init are executed (by iterating over the need_init
-- * bitmap) to create tmem_pools and set the respective poolids. All of that is
-- * guarded by us using atomic bit operations on the 'need_init' bitmap.
-- *
-  * This would not guards us against the user deciding to call swapoff right as
-  * we are calling the backend to initialize (so swapon is in action).
-  * Fortunatly for us, the swapon_mutex has been taked by the callee so we are
-@@ -106,37 +102,64 @@ static inline void inc_frontswap_invalid
-  *
-  * Obviously the opposite (unloading the backend) must be done after all
-  * the frontswap_[store|load|invalidate_area|invalidate_page] start
-- * ignorning or failing the requests - at which point frontswap_ops
-- * would have to be made in some fashion atomic.
-+ * ignoring or failing the requests.  However, there is currently no way
-+ * to unload a backend once it is registered.
-  */
--static DECLARE_BITMAP(need_init, MAX_SWAPFILES);
- 
- /*
-- * Register operations for frontswap, returning previous thus allowing
-- * detection of multiple backends and possible nesting.
-+ * Register operations for frontswap
-  */
--struct frontswap_ops *frontswap_register_ops(struct frontswap_ops *ops)
-+void frontswap_register_ops(struct frontswap_ops *ops)
- {
--	struct frontswap_ops *old = frontswap_ops;
--	int i;
-+	DECLARE_BITMAP(a, MAX_SWAPFILES);
-+	DECLARE_BITMAP(b, MAX_SWAPFILES);
-+	struct swap_info_struct *si;
-+	unsigned int i;
-+
-+	bitmap_zero(a, MAX_SWAPFILES);
-+	bitmap_zero(b, MAX_SWAPFILES);
-+
-+	spin_lock(&swap_lock);
-+	plist_for_each_entry(si, &swap_active_head, list) {
-+		if (!WARN_ON(!si->frontswap_map))
-+			set_bit(si->type, a);
-+	}
-+	spin_unlock(&swap_lock);
- 
--	for (i = 0; i < MAX_SWAPFILES; i++) {
--		if (test_and_clear_bit(i, need_init)) {
--			struct swap_info_struct *sis = swap_info[i];
--			/* __frontswap_init _should_ have set it! */
--			if (!sis->frontswap_map)
--				return ERR_PTR(-EINVAL);
--			ops->init(i);
--		}
-+	/* the new ops needs to know the currently active swap devices */
-+	for_each_set_bit(i, a, MAX_SWAPFILES)
-+		ops->init(i);
-+
-+	/*
-+	 * Setting frontswap_ops must happen after the ops->init() calls
-+	 * above; cmpxchg implies smp_mb() which will ensure the init is
-+	 * complete at this point.
-+	 */
-+	do {
-+		ops->next = frontswap_ops;
-+	} while (cmpxchg(&frontswap_ops, ops->next, ops) != ops->next);
-+
-+	spin_lock(&swap_lock);
-+	plist_for_each_entry(si, &swap_active_head, list) {
-+		if (si->frontswap_map)
-+			set_bit(si->type, b);
- 	}
-+	spin_unlock(&swap_lock);
++	if (efi_enabled(EFI_BOOT))
++		efi_find_mirror();
 +
  	/*
--	 * We MUST have frontswap_ops set _after_ the frontswap_init's
--	 * have been called. Otherwise __frontswap_store might fail. Hence
--	 * the barrier to make sure compiler does not re-order us.
-+	 * On the very unlikely chance that a swap device was added or
-+	 * removed between setting the "a" list bits and the ops init
-+	 * calls, we re-check and do init or invalidate for any changed
-+	 * bits.
- 	 */
--	barrier();
--	frontswap_ops = ops;
--	return old;
-+	if (unlikely(!bitmap_equal(a, b, MAX_SWAPFILES))) {
-+		for (i = 0; i < MAX_SWAPFILES; i++) {
-+			if (!test_bit(i, a) && test_bit(i, b))
-+				ops->init(i);
-+			else if (test_bit(i, a) && !test_bit(i, b))
-+				ops->invalidate_area(i);
+ 	 * The EFI specification says that boot service code won't be called
+ 	 * after ExitBootServices(). This is, in fact, a lie.
+diff -puN arch/x86/platform/efi/efi.c~x86-mirror-x86-enabling-find-mirrored-memory-ranges arch/x86/platform/efi/efi.c
+--- a/arch/x86/platform/efi/efi.c~x86-mirror-x86-enabling-find-mirrored-memory-ranges
++++ a/arch/x86/platform/efi/efi.c
+@@ -117,6 +117,27 @@ void efi_get_time(struct timespec *now)
+ 	now->tv_nsec = 0;
+ }
+ 
++void __init efi_find_mirror(void)
++{
++	void *p;
++	u64 mirror_size = 0, total_size = 0;
++
++	for (p = memmap.map; p < memmap.map_end; p += memmap.desc_size) {
++		efi_memory_desc_t *md = p;
++		unsigned long long start = md->phys_addr;
++		unsigned long long size = md->num_pages << EFI_PAGE_SHIFT;
++
++		total_size += size;
++		if (md->attribute & EFI_MEMORY_MORE_RELIABLE) {
++			memblock_mark_mirror(start, size);
++			mirror_size += size;
 +		}
 +	}
- }
- EXPORT_SYMBOL(frontswap_register_ops);
- 
-@@ -164,6 +187,7 @@ EXPORT_SYMBOL(frontswap_tmem_exclusive_g
- void __frontswap_init(unsigned type, unsigned long *map)
- {
- 	struct swap_info_struct *sis = swap_info[type];
-+	struct frontswap_ops *ops;
- 
- 	BUG_ON(sis == NULL);
- 
-@@ -179,28 +203,30 @@ void __frontswap_init(unsigned type, uns
- 	 * p->frontswap set to something valid to work properly.
- 	 */
- 	frontswap_map_set(sis, map);
--	if (frontswap_ops)
--		frontswap_ops->init(type);
--	else {
--		BUG_ON(type >= MAX_SWAPFILES);
--		set_bit(type, need_init);
--	}
-+
-+	for_each_frontswap_ops(ops)
-+		ops->init(type);
- }
- EXPORT_SYMBOL(__frontswap_init);
- 
- bool __frontswap_test(struct swap_info_struct *sis,
- 				pgoff_t offset)
- {
--	bool ret = false;
--
--	if (frontswap_ops && sis->frontswap_map)
--		ret = test_bit(offset, sis->frontswap_map);
--	return ret;
-+	if (sis->frontswap_map)
-+		return test_bit(offset, sis->frontswap_map);
-+	return false;
- }
- EXPORT_SYMBOL(__frontswap_test);
- 
-+static inline void __frontswap_set(struct swap_info_struct *sis,
-+				   pgoff_t offset)
-+{
-+	set_bit(offset, sis->frontswap_map);
-+	atomic_inc(&sis->frontswap_pages);
++	if (mirror_size)
++		pr_info("Memory: %lldM/%lldM mirrored memory\n",
++			mirror_size>>20, total_size>>20);
 +}
 +
- static inline void __frontswap_clear(struct swap_info_struct *sis,
--				pgoff_t offset)
-+				     pgoff_t offset)
- {
- 	clear_bit(offset, sis->frontswap_map);
- 	atomic_dec(&sis->frontswap_pages);
-@@ -215,39 +241,46 @@ static inline void __frontswap_clear(str
-  */
- int __frontswap_store(struct page *page)
- {
--	int ret = -1, dup = 0;
-+	int ret = -1;
- 	swp_entry_t entry = { .val = page_private(page), };
- 	int type = swp_type(entry);
- 	struct swap_info_struct *sis = swap_info[type];
- 	pgoff_t offset = swp_offset(entry);
-+	struct frontswap_ops *ops;
+ /*
+  * Tell the kernel about the EFI memory map.  This might include
+  * more than the max 128 entries that can fit in the e820 legacy
+diff -puN include/linux/efi.h~x86-mirror-x86-enabling-find-mirrored-memory-ranges include/linux/efi.h
+--- a/include/linux/efi.h~x86-mirror-x86-enabling-find-mirrored-memory-ranges
++++ a/include/linux/efi.h
+@@ -96,6 +96,8 @@ typedef	struct {
+ #define EFI_MEMORY_WP		((u64)0x0000000000001000ULL)	/* write-protect */
+ #define EFI_MEMORY_RP		((u64)0x0000000000002000ULL)	/* read-protect */
+ #define EFI_MEMORY_XP		((u64)0x0000000000004000ULL)	/* execute-protect */
++#define EFI_MEMORY_MORE_RELIABLE \
++				((u64)0x0000000000010000ULL)	/* higher reliability */
+ #define EFI_MEMORY_RUNTIME	((u64)0x8000000000000000ULL)	/* range requires runtime mapping */
+ #define EFI_MEMORY_DESCRIPTOR_VERSION	1
  
- 	/*
- 	 * Return if no backend registed.
- 	 * Don't need to inc frontswap_failed_stores here.
- 	 */
- 	if (!frontswap_ops)
--		return ret;
-+		return -1;
- 
- 	BUG_ON(!PageLocked(page));
- 	BUG_ON(sis == NULL);
--	if (__frontswap_test(sis, offset))
--		dup = 1;
--	ret = frontswap_ops->store(type, offset, page);
-+
-+	/*
-+	 * If a dup, we must remove the old page first; we can't leave the
-+	 * old page no matter if the store of the new page succeeds or fails,
-+	 * and we can't rely on the new page replacing the old page as we may
-+	 * not store to the same implementation that contains the old page.
-+	 */
-+	if (__frontswap_test(sis, offset)) {
-+		__frontswap_clear(sis, offset);
-+		for_each_frontswap_ops(ops)
-+			ops->invalidate_page(type, offset);
-+	}
-+
-+	/* Try to store in each implementation, until one succeeds. */
-+	for_each_frontswap_ops(ops) {
-+		ret = ops->store(type, offset, page);
-+		if (!ret) /* successful store */
-+			break;
-+	}
- 	if (ret == 0) {
--		set_bit(offset, sis->frontswap_map);
-+		__frontswap_set(sis, offset);
- 		inc_frontswap_succ_stores();
--		if (!dup)
--			atomic_inc(&sis->frontswap_pages);
- 	} else {
--		/*
--		  failed dup always results in automatic invalidate of
--		  the (older) page from frontswap
--		 */
- 		inc_frontswap_failed_stores();
--		if (dup) {
--			__frontswap_clear(sis, offset);
--			frontswap_ops->invalidate_page(type, offset);
--		}
- 	}
- 	if (frontswap_writethrough_enabled)
- 		/* report failure so swap also writes to swap device */
-@@ -268,14 +301,22 @@ int __frontswap_load(struct page *page)
- 	int type = swp_type(entry);
- 	struct swap_info_struct *sis = swap_info[type];
- 	pgoff_t offset = swp_offset(entry);
-+	struct frontswap_ops *ops;
-+
-+	if (!frontswap_ops)
-+		return -1;
- 
- 	BUG_ON(!PageLocked(page));
- 	BUG_ON(sis == NULL);
--	/*
--	 * __frontswap_test() will check whether there is backend registered
--	 */
--	if (__frontswap_test(sis, offset))
--		ret = frontswap_ops->load(type, offset, page);
-+	if (!__frontswap_test(sis, offset))
-+		return -1;
-+
-+	/* Try loading from each implementation, until one succeeds. */
-+	for_each_frontswap_ops(ops) {
-+		ret = ops->load(type, offset, page);
-+		if (!ret) /* successful load */
-+			break;
-+	}
- 	if (ret == 0) {
- 		inc_frontswap_loads();
- 		if (frontswap_tmem_exclusive_gets_enabled) {
-@@ -294,16 +335,19 @@ EXPORT_SYMBOL(__frontswap_load);
- void __frontswap_invalidate_page(unsigned type, pgoff_t offset)
- {
- 	struct swap_info_struct *sis = swap_info[type];
-+	struct frontswap_ops *ops;
-+
-+	if (!frontswap_ops)
-+		return;
- 
- 	BUG_ON(sis == NULL);
--	/*
--	 * __frontswap_test() will check whether there is backend registered
--	 */
--	if (__frontswap_test(sis, offset)) {
--		frontswap_ops->invalidate_page(type, offset);
--		__frontswap_clear(sis, offset);
--		inc_frontswap_invalidates();
--	}
-+	if (!__frontswap_test(sis, offset))
-+		return;
-+
-+	for_each_frontswap_ops(ops)
-+		ops->invalidate_page(type, offset);
-+	__frontswap_clear(sis, offset);
-+	inc_frontswap_invalidates();
- }
- EXPORT_SYMBOL(__frontswap_invalidate_page);
- 
-@@ -314,16 +358,19 @@ EXPORT_SYMBOL(__frontswap_invalidate_pag
- void __frontswap_invalidate_area(unsigned type)
- {
- 	struct swap_info_struct *sis = swap_info[type];
-+	struct frontswap_ops *ops;
- 
--	if (frontswap_ops) {
--		BUG_ON(sis == NULL);
--		if (sis->frontswap_map == NULL)
--			return;
--		frontswap_ops->invalidate_area(type);
--		atomic_set(&sis->frontswap_pages, 0);
--		bitmap_zero(sis->frontswap_map, sis->max);
--	}
--	clear_bit(type, need_init);
-+	if (!frontswap_ops)
-+		return;
-+
-+	BUG_ON(sis == NULL);
-+	if (sis->frontswap_map == NULL)
-+		return;
-+
-+	for_each_frontswap_ops(ops)
-+		ops->invalidate_area(type);
-+	atomic_set(&sis->frontswap_pages, 0);
-+	bitmap_zero(sis->frontswap_map, sis->max);
- }
- EXPORT_SYMBOL(__frontswap_invalidate_area);
- 
+@@ -868,6 +870,7 @@ extern void efi_enter_virtual_mode (void
+ extern void efi_late_init(void);
+ extern void efi_free_boot_services(void);
+ extern efi_status_t efi_query_variable_store(u32 attributes, unsigned long size);
++extern void efi_find_mirror(void);
+ #else
+ static inline void efi_late_init(void) {}
+ static inline void efi_free_boot_services(void) {}
 _
 
-Patches currently in -mm which might be from ddstreet@ieee.org are
+Patches currently in -mm which might be from tony.luck@intel.com are
 
 origin.patch
+memblock-introduce-a-for_each_reserved_mem_region-iterator.patch
+mm-meminit-move-page-initialization-into-a-separate-function.patch
+mm-meminit-only-set-page-reserved-in-the-memblock-region.patch
+mm-page_alloc-pass-pfn-to-__free_pages_bootmem.patch
+mm-meminit-make-__early_pfn_to_nid-smp-safe-and-introduce-meminit_pfn_in_nid.patch
+mm-meminit-inline-some-helper-functions.patch
+mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set.patch
+mm-meminit-initialise-remaining-struct-pages-in-parallel-with-kswapd.patch
+mm-meminit-minimise-number-of-pfn-page-lookups-during-initialisation.patch
+x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
+mm-meminit-free-pages-in-large-chunks-where-possible.patch
+mm-meminit-reduce-number-of-times-pageblocks-are-set-during-struct-page-init.patch
+mm-meminit-remove-mminit_verify_page_links.patch
 linux-next.patch
-maintainers-add-zpool.patch
 
