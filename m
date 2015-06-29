@@ -1,108 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-oom_kill-switch-test-and-clear-of-known-tif_memdie-to-clear.patch
- removed from -mm tree
-Date: Mon, 29 Jun 2015 13:38:15 -0700
-Message-ID: <5591acb7.lb1vUXa6b7H5CfgJ%akpm@linux-foundation.org>
+Subject: [merged] mm-new-arch_remap-hook.patch removed from -mm tree
+Date: Mon, 29 Jun 2015 13:37:33 -0700
+Message-ID: <5591ac8d.Km89HJTR5Podlfsh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50366 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50286 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754109AbbF2UiQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:38:16 -0400
+	with ESMTP id S1753945AbbF2Uhe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:37:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, aarcange@redhat.com, david@fromorbit.com, mhocko@suse.cz, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: ldufour@linux.vnet.ibm.com, benh@kernel.crashing.org, hughd@google.com, kirill.shutemov@linux.intel.com, mgorman@suse.de, mingo@kernel.org, mpe@ellerman.id.au, paulus@samba.org, riel@redhat.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: oom_kill: switch test-and-clear of known TIF_MEMDIE to clear
+     Subject: mm: new arch_remap() hook
 has been removed from the -mm tree.  Its filename was
-     mm-oom_kill-switch-test-and-clear-of-known-tif_memdie-to-clear.patch
+     mm-new-arch_remap-hook.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: oom_kill: switch test-and-clear of known TIF_MEMDIE to clear
+From: Laurent Dufour <ldufour@linux.vnet.ibm.com>
+Subject: mm: new arch_remap() hook
 
-exit_oom_victim() already knows that TIF_MEMDIE is set, and nobody else
-can clear it concurrently.  Use clear_thread_flag() directly.
+Some architectures would like to be triggered when a memory area is moved
+through the mremap system call.
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: David Rientjes <rientjes@google.com>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+This patch introduces a new arch_remap() mm hook which is placed in the
+path of mremap, and is called before the old area is unmapped (and the
+arch_unmap() hook is called).
+
+Signed-off-by: Laurent Dufour <ldufour@linux.vnet.ibm.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Ingo Molnar <mingo@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ include/linux/mm-arch-hooks.h |    9 +++++++++
+ mm/mremap.c                   |   17 +++++++++++------
+ 2 files changed, 20 insertions(+), 6 deletions(-)
 
-diff -puN mm/oom_kill.c~mm-oom_kill-switch-test-and-clear-of-known-tif_memdie-to-clear mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom_kill-switch-test-and-clear-of-known-tif_memdie-to-clear
-+++ a/mm/oom_kill.c
-@@ -435,8 +435,7 @@ void mark_oom_victim(struct task_struct
-  */
- void exit_oom_victim(void)
- {
--	if (!test_and_clear_thread_flag(TIF_MEMDIE))
--		return;
-+	clear_thread_flag(TIF_MEMDIE);
+diff -puN include/linux/mm-arch-hooks.h~mm-new-arch_remap-hook include/linux/mm-arch-hooks.h
+--- a/include/linux/mm-arch-hooks.h~mm-new-arch_remap-hook
++++ a/include/linux/mm-arch-hooks.h
+@@ -13,4 +13,13 @@
  
- 	down_read(&oom_sem);
- 	/*
+ #include <asm/mm-arch-hooks.h>
+ 
++#ifndef arch_remap
++static inline void arch_remap(struct mm_struct *mm,
++			      unsigned long old_start, unsigned long old_end,
++			      unsigned long new_start, unsigned long new_end)
++{
++}
++#define arch_remap arch_remap
++#endif
++
+ #endif /* _LINUX_MM_ARCH_HOOKS_H */
+diff -puN mm/mremap.c~mm-new-arch_remap-hook mm/mremap.c
+--- a/mm/mremap.c~mm-new-arch_remap-hook
++++ a/mm/mremap.c
+@@ -22,6 +22,7 @@
+ #include <linux/mmu_notifier.h>
+ #include <linux/sched/sysctl.h>
+ #include <linux/uaccess.h>
++#include <linux/mm-arch-hooks.h>
+ 
+ #include <asm/cacheflush.h>
+ #include <asm/tlbflush.h>
+@@ -286,13 +287,17 @@ static unsigned long move_vma(struct vm_
+ 		old_len = new_len;
+ 		old_addr = new_addr;
+ 		new_addr = -ENOMEM;
+-	} else if (vma->vm_file && vma->vm_file->f_op->mremap) {
+-		err = vma->vm_file->f_op->mremap(vma->vm_file, new_vma);
+-		if (err < 0) {
+-			move_page_tables(new_vma, new_addr, vma, old_addr,
+-					 moved_len, true);
+-			return err;
++	} else {
++		if (vma->vm_file && vma->vm_file->f_op->mremap) {
++			err = vma->vm_file->f_op->mremap(vma->vm_file, new_vma);
++			if (err < 0) {
++				move_page_tables(new_vma, new_addr, vma,
++						 old_addr, moved_len, true);
++				return err;
++			}
+ 		}
++		arch_remap(mm, old_addr, old_addr + old_len,
++			   new_addr, new_addr + new_len);
+ 	}
+ 
+ 	/* Conceal VM_ACCOUNT so old reservation is not undone */
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from ldufour@linux.vnet.ibm.com are
 
 origin.patch
-userfaultfd-linux-documentation-vm-userfaultfdtxt.patch
-userfaultfd-waitqueue-add-nr-wake-parameter-to-__wake_up_locked_key.patch
-userfaultfd-uapi.patch
-userfaultfd-linux-userfaultfd_kh.patch
-userfaultfd-add-vm_userfaultfd_ctx-to-the-vm_area_struct.patch
-userfaultfd-add-vm_uffd_missing-and-vm_uffd_wp.patch
-userfaultfd-call-handle_userfault-for-userfaultfd_missing-faults.patch
-userfaultfd-teach-vma_merge-to-merge-across-vma-vm_userfaultfd_ctx.patch
-userfaultfd-prevent-khugepaged-to-merge-if-userfaultfd-is-armed.patch
-userfaultfd-add-new-syscall-to-provide-memory-externalization.patch
-userfaultfd-rename-uffd_apibits-into-features.patch
-userfaultfd-rename-uffd_apibits-into-features-fixup.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg.patch
-userfaultfd-wake-pending-userfaults.patch
-userfaultfd-optimize-read-and-poll-to-be-o1.patch
-userfaultfd-allocate-the-userfaultfd_ctx-cacheline-aligned.patch
-userfaultfd-solve-the-race-between-uffdio_copyzeropage-and-read.patch
-userfaultfd-buildsystem-activation.patch
-userfaultfd-activate-syscall.patch
-userfaultfd-uffdio_copyuffdio_zeropage-uapi.patch
-userfaultfd-mcopy_atomicmfill_zeropage-uffdio_copyuffdio_zeropage-preparation.patch
-userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic.patch
-userfaultfd-uffdio_copy-and-uffdio_zeropage.patch
-page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-mm-sanitize-page-mapping-for-tail-pages.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-mm-move-lazy-free-pages-to-inactive-list.patch
-mm-move-lazy-free-pages-to-inactive-list-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
 
