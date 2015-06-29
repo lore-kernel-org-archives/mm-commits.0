@@ -1,130 +1,87 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-kmemleak-allow-safe-memory-scanning-during-kmemleak-disabling.patch
- removed from -mm tree
-Date: Mon, 29 Jun 2015 13:39:16 -0700
-Message-ID: <5591acf4.regD67qJCIngLHyf%akpm@linux-foundation.org>
+ mm-kmemleak-avoid-deadlock-on-the-kmemleak-object-insertion-error-path.patch removed from -mm tree
+Date: Mon, 29 Jun 2015 13:39:22 -0700
+Message-ID: <5591acfa.OfPANcTTPH7iKkkI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50513 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50552 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754194AbbF2UjR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:39:17 -0400
+	with ESMTP id S1753647AbbF2UjW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:39:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: catalin.marinas@arm.com, stable@vger.kernel.org, vigneshr@codeaurora.org, mm-commits@vger.kernel.org
+To: catalin.marinas@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: kmemleak: allow safe memory scanning during kmemleak disabling
+     Subject: mm: kmemleak: avoid deadlock on the kmemleak object insertion error path
 has been removed from the -mm tree.  Its filename was
-     mm-kmemleak-allow-safe-memory-scanning-during-kmemleak-disabling.patch
+     mm-kmemleak-avoid-deadlock-on-the-kmemleak-object-insertion-error-path.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: mm: kmemleak: allow safe memory scanning during kmemleak disabling
+Subject: mm: kmemleak: avoid deadlock on the kmemleak object insertion error path
 
-The kmemleak scanning thread can run for minutes.  Callbacks like
-kmemleak_free() are allowed during this time, the race being taken care of
-by the object->lock spinlock.  Such lock also prevents a memory block from
-being freed or unmapped while it is being scanned by blocking the
-kmemleak_free() -> ...  -> __delete_object() function until the lock is
-released in scan_object().
+While very unlikely (usually kmemleak or sl*b bug), the create_object()
+function in mm/kmemleak.c may fail to insert a newly allocated object into
+the rb tree.  When this happens, kmemleak disables itself and prints
+additional information about the object already found in the rb tree. 
+Such printing is done with the parent->lock acquired, however the
+kmemleak_lock is already held.  This is a potential race with the scanning
+thread which acquires object->lock and kmemleak_lock in a
 
-When a kmemleak error occurs (e.g.  it fails to allocate its metadata),
-kmemleak_enabled is set and __delete_object() is no longer called on freed
-objects.  If kmemleak_scan is running at the same time, kmemleak_free() no
-longer waits for the object scanning to complete, allowing the
-corresponding memory block to be freed or unmapped (in the case of
-vfree()).  This leads to kmemleak_scan potentially triggering a page
-fault.
-
-This patch separates the kmemleak_free() enabling/disabling from the
-overall kmemleak_enabled nob so that we can defer the disabling of the
-object freeing tracking until the scanning thread completed.  The
-kmemleak_free_part() is deliberately ignored by this patch since this is
-only called during boot before the scanning thread started.
+This patch removes the locking around the 'parent' object information
+printing.  Such object cannot be freed or removed from object_tree_root
+and object_list since kmemleak_lock is already held.  There is a very
+small risk that some of the object data is being modified on another CPU
+but the only downside is inconsistent information printing.
 
 Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
-Reported-by: Vignesh Radhakrishnan <vigneshr@codeaurora.org>
-Tested-by: Vignesh Radhakrishnan <vigneshr@codeaurora.org>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |   19 ++++++++++++++++---
- 1 file changed, 16 insertions(+), 3 deletions(-)
+ mm/kmemleak.c |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-diff -puN mm/kmemleak.c~mm-kmemleak-allow-safe-memory-scanning-during-kmemleak-disabling mm/kmemleak.c
---- a/mm/kmemleak.c~mm-kmemleak-allow-safe-memory-scanning-during-kmemleak-disabling
+diff -puN mm/kmemleak.c~mm-kmemleak-avoid-deadlock-on-the-kmemleak-object-insertion-error-path mm/kmemleak.c
+--- a/mm/kmemleak.c~mm-kmemleak-avoid-deadlock-on-the-kmemleak-object-insertion-error-path
 +++ a/mm/kmemleak.c
-@@ -195,6 +195,8 @@ static struct kmem_cache *scan_area_cach
- 
- /* set if tracing memory operations is enabled */
- static int kmemleak_enabled;
-+/* same as above but only for the kmemleak_free() callback */
-+static int kmemleak_free_enabled;
- /* set in the late_initcall if there were no errors */
- static int kmemleak_initialized;
- /* enables or disables early logging of the memory operations */
-@@ -942,7 +944,7 @@ void __ref kmemleak_free(const void *ptr
- {
- 	pr_debug("%s(0x%p)\n", __func__, ptr);
- 
--	if (kmemleak_enabled && ptr && !IS_ERR(ptr))
-+	if (kmemleak_free_enabled && ptr && !IS_ERR(ptr))
- 		delete_object_full((unsigned long)ptr);
- 	else if (kmemleak_early_log)
- 		log_early(KMEMLEAK_FREE, ptr, 0, 0);
-@@ -982,7 +984,7 @@ void __ref kmemleak_free_percpu(const vo
- 
- 	pr_debug("%s(0x%p)\n", __func__, ptr);
- 
--	if (kmemleak_enabled && ptr && !IS_ERR(ptr))
-+	if (kmemleak_free_enabled && ptr && !IS_ERR(ptr))
- 		for_each_possible_cpu(cpu)
- 			delete_object_full((unsigned long)per_cpu_ptr(ptr,
- 								      cpu));
-@@ -1750,6 +1752,13 @@ static void kmemleak_do_cleanup(struct w
- 	mutex_lock(&scan_mutex);
- 	stop_scan_thread();
- 
-+	/*
-+	 * Once the scan thread has stopped, it is safe to no longer track
-+	 * object freeing. Ordering of the scan thread stopping and the memory
-+	 * accesses below is guaranteed by the kthread_stop() function.
-+	 */
-+	kmemleak_free_enabled = 0;
-+
- 	if (!kmemleak_found_leaks)
- 		__kmemleak_do_cleanup();
- 	else
-@@ -1776,6 +1785,8 @@ static void kmemleak_disable(void)
- 	/* check whether it is too early for a kernel thread */
- 	if (kmemleak_initialized)
- 		schedule_work(&cleanup_work);
-+	else
-+		kmemleak_free_enabled = 0;
- 
- 	pr_info("Kernel memory leak detector disabled\n");
- }
-@@ -1840,8 +1851,10 @@ void __init kmemleak_init(void)
- 	if (kmemleak_error) {
- 		local_irq_restore(flags);
- 		return;
--	} else
-+	} else {
- 		kmemleak_enabled = 1;
-+		kmemleak_free_enabled = 1;
-+	}
- 	local_irq_restore(flags);
- 
- 	/*
+@@ -53,6 +53,11 @@
+  *   modifications to the memory scanning parameters including the scan_thread
+  *   pointer
+  *
++ * Locks and mutexes should only be acquired/nested in the following order:
++ *
++ *   scan_mutex -> object->lock -> other_object->lock (SINGLE_DEPTH_NESTING)
++ *				-> kmemleak_lock
++ *
+  * The kmemleak_object structures have a use_count incremented or decremented
+  * using the get_object()/put_object() functions. When the use_count becomes
+  * 0, this count can no longer be incremented and put_object() schedules the
+@@ -603,11 +608,13 @@ static struct kmemleak_object *create_ob
+ 			kmemleak_stop("Cannot insert 0x%lx into the object "
+ 				      "search tree (overlaps existing)\n",
+ 				      ptr);
++			/*
++			 * No need for parent->lock here since "parent" cannot
++			 * be freed while the kmemleak_lock is held.
++			 */
++			dump_object_info(parent);
+ 			kmem_cache_free(object_cache, object);
+-			object = parent;
+-			spin_lock(&object->lock);
+-			dump_object_info(object);
+-			spin_unlock(&object->lock);
++			object = NULL;
+ 			goto out;
+ 		}
+ 	}
 _
 
 Patches currently in -mm which might be from catalin.marinas@arm.com are
