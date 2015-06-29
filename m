@@ -1,78 +1,165 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sparc-use-for_each_sg.patch removed from -mm tree
-Date: Mon, 29 Jun 2015 13:36:59 -0700
-Message-ID: <5591ac6b.tN+5Nb33h0Pegixd%akpm@linux-foundation.org>
+Subject: [merged] mm-fix-mprotect-behaviour-on-vm_locked-vmas.patch
+ removed from -mm tree
+Date: Mon, 29 Jun 2015 13:37:25 -0700
+Message-ID: <5591ac85.4gwh8sTHG6rrTh4C%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50196 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50254 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753975AbbF2UhA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:37:00 -0400
+	with ESMTP id S1754021AbbF2Uh0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:37:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, davem@davemloft.net, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sparc: use for_each_sg()
+     Subject: mm: fix mprotect() behaviour on VM_LOCKED VMAs
 has been removed from the -mm tree.  Its filename was
-     sparc-use-for_each_sg.patch
+     mm-fix-mprotect-behaviour-on-vm_locked-vmas.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: sparc: use for_each_sg()
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm: fix mprotect() behaviour on VM_LOCKED VMAs
 
-This replaces the plain loop over the sglist array with for_each_sg()
-macro which consists of sg_next() function calls.  Since sparc does select
-ARCH_HAS_SG_CHAIN, it is necessary to use for_each_sg() in order to loop
-over each sg element.  This also help find problems with drivers that do
-not properly initialize their sg tables when CONFIG_DEBUG_SG is enabled.
+On mlock(2) we trigger COW on private writable VMA to avoid faults in
+future.
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+mm/gup.c:
+ 840 long populate_vma_page_range(struct vm_area_struct *vma,
+ 841                 unsigned long start, unsigned long end, int *nonblocking)
+ 842 {
+ ...
+ 855          * We want to touch writable mappings with a write fault in order
+ 856          * to break COW, except for shared mappings because these don't COW
+ 857          * and we would not want to dirty them for nothing.
+ 858          */
+ 859         if ((vma->vm_flags & (VM_WRITE | VM_SHARED)) == VM_WRITE)
+ 860                 gup_flags |= FOLL_WRITE;
+
+But we miss this case when we make VM_LOCKED VMA writeable via
+mprotect(2). The test case:
+
+	#define _GNU_SOURCE
+	#include <fcntl.h>
+	#include <stdio.h>
+	#include <stdlib.h>
+	#include <unistd.h>
+	#include <sys/mman.h>
+	#include <sys/resource.h>
+	#include <sys/stat.h>
+	#include <sys/time.h>
+	#include <sys/types.h>
+
+	#define PAGE_SIZE 4096
+
+	int main(int argc, char **argv)
+	{
+		struct rusage usage;
+		long before;
+		char *p;
+		int fd;
+
+		/* Create a file and populate first page of page cache */
+		fd = open("/tmp", O_TMPFILE | O_RDWR, S_IRUSR | S_IWUSR);
+		write(fd, "1", 1);
+
+		/* Create a *read-only* *private* mapping of the file */
+		p = mmap(NULL, PAGE_SIZE, PROT_READ, MAP_PRIVATE, fd, 0);
+
+		/*
+		 * Since the mapping is read-only, mlock() will populate the mapping
+		 * with PTEs pointing to page cache without triggering COW.
+		 */
+		mlock(p, PAGE_SIZE);
+
+		/*
+		 * Mapping became read-write, but it's still populated with PTEs
+		 * pointing to page cache.
+		 */
+		mprotect(p, PAGE_SIZE, PROT_READ | PROT_WRITE);
+
+		getrusage(RUSAGE_SELF, &usage);
+		before = usage.ru_minflt;
+
+		/* Trigger COW: fault in mlock()ed VMA. */
+		*p = 1;
+
+		getrusage(RUSAGE_SELF, &usage);
+		printf("faults: %ld\n", usage.ru_minflt - before);
+
+		return 0;
+	}
+
+	$ ./test
+	faults: 1
+
+Let's fix it by triggering populating of VMA in mprotect_fixup() on this
+condition. We don't care about population error as we don't in other
+similar cases i.e. mremap.
+
+[akpm@linux-foundation.org: tweak comment text]
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/kernel/ldc.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ mm/mprotect.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff -puN arch/sparc/kernel/ldc.c~sparc-use-for_each_sg arch/sparc/kernel/ldc.c
---- a/arch/sparc/kernel/ldc.c~sparc-use-for_each_sg
-+++ a/arch/sparc/kernel/ldc.c
-@@ -2086,6 +2086,7 @@ int ldc_map_sg(struct ldc_channel *lp,
- 	struct cookie_state state;
- 	struct ldc_iommu *iommu;
- 	int err;
-+	struct scatterlist *s;
+diff -puN mm/mprotect.c~mm-fix-mprotect-behaviour-on-vm_locked-vmas mm/mprotect.c
+--- a/mm/mprotect.c~mm-fix-mprotect-behaviour-on-vm_locked-vmas
++++ a/mm/mprotect.c
+@@ -29,6 +29,8 @@
+ #include <asm/cacheflush.h>
+ #include <asm/tlbflush.h>
  
- 	if (map_perm & ~LDC_MAP_ALL)
- 		return -EINVAL;
-@@ -2112,9 +2113,10 @@ int ldc_map_sg(struct ldc_channel *lp,
- 	state.pte_idx = (base - iommu->page_table);
- 	state.nc = 0;
++#include "internal.h"
++
+ /*
+  * For a prot_numa update we only hold mmap_sem for read so there is a
+  * potential race with faulting where a pmd was temporarily none. This
+@@ -322,6 +324,15 @@ success:
+ 	change_protection(vma, start, end, vma->vm_page_prot,
+ 			  dirty_accountable, 0);
  
--	for (i = 0; i < num_sg; i++)
--		fill_cookies(&state, page_to_pfn(sg_page(&sg[i])) << PAGE_SHIFT,
--			     sg[i].offset, sg[i].length);
-+	for_each_sg(sg, s, num_sg, i) {
-+		fill_cookies(&state, page_to_pfn(sg_page(s)) << PAGE_SHIFT,
-+			     s->offset, s->length);
++	/*
++	 * Private VM_LOCKED VMA becoming writable: trigger COW to avoid major
++	 * fault on access.
++	 */
++	if ((oldflags & (VM_WRITE | VM_SHARED | VM_LOCKED)) == VM_LOCKED &&
++			(newflags & VM_WRITE)) {
++		populate_vma_page_range(vma, start, end, NULL);
 +	}
- 
- 	return state.nc;
- }
++
+ 	vm_stat_account(mm, oldflags, vma->vm_file, -nrpages);
+ 	vm_stat_account(mm, newflags, vma->vm_file, nrpages);
+ 	perf_event_mmap(vma);
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
 origin.patch
-arc-use-for_each_sg.patch
-lib-scatterlist-fix-kerneldoc-for-sg_pcopy_tofrom_buffer.patch
-lib-scatterlist-mark-input-buffer-parameters-as-const.patch
-linux-next.patch
+page-flags-trivial-cleanup-for-pagetrans-helpers.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
+page-flags-define-pg_locked-behavior-on-compound-pages.patch
+page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-lru-related-flags-on-compound-pages-fix.patch
+page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
+page-flags-define-pg_reserved-behavior-on-compound-pages.patch
+page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
+page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
+page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
+page-flags-define-pg_uncached-behavior-on-compound-pages.patch
+page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
+page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
+mm-sanitize-page-mapping-for-tail-pages.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
 
