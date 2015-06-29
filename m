@@ -1,95 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [merged] zram-remove-max_num_devices-limitation.patch removed
- from -mm tree
-Date: Mon, 29 Jun 2015 13:46:20 -0700
-Message-ID: <5591ae9c.EIw5r2pQjR6iDqjG%akpm@linux-foundation.org>
+Subject: [merged] zram-report-every-added-and-removed-device.patch removed from -mm tree
+Date: Mon, 29 Jun 2015 13:46:22 -0700
+Message-ID: <5591ae9e.wTDALeJ0Fl16E0Kh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50720 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50723 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751754AbbF2UqV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:46:21 -0400
+	with ESMTP id S1753225AbbF2UqX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:46:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: sergey.senozhatsky@gmail.com, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: remove max_num_devices limitation
+     Subject: zram: report every added and removed device
 has been removed from the -mm tree.  Its filename was
-     zram-remove-max_num_devices-limitation.patch
+     zram-report-every-added-and-removed-device.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: zram: remove max_num_devices limitation
+Subject: zram: report every added and removed device
 
-Limiting the number of zram devices to 32 (default max_num_devices value)
-is confusing, let's drop it.  A user with 2TB or 4TB of RAM, for example,
-can request as many devices as he can handle.
+With dynamic device creation/removal (which will be introduced later in
+the series) printing num_devices in zram_init() will not make a lot of
+sense, as well as printing the number of destroyed devices in
+destroy_devices().  Print per-device action (added/removed) in zram_add()
+and zram_remove() instead.
+
+Example:
+
+[ 3645.259652] zram: Added device: zram5
+[ 3646.152074] zram: Added device: zram6
+[ 3650.585012] zram: Removed device: zram5
+[ 3655.845584] zram: Added device: zram8
+[ 3660.975223] zram: Removed device: zram6
 
 Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Acked-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/blockdev/zram.txt |    4 +++-
- drivers/block/zram/zram_drv.c   |    8 +-------
- drivers/block/zram/zram_drv.h   |    6 ------
- 3 files changed, 4 insertions(+), 14 deletions(-)
+ drivers/block/zram/zram_drv.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/blockdev/zram.txt~zram-remove-max_num_devices-limitation Documentation/blockdev/zram.txt
---- a/Documentation/blockdev/zram.txt~zram-remove-max_num_devices-limitation
-+++ a/Documentation/blockdev/zram.txt
-@@ -19,7 +19,9 @@ Following shows a typical sequence of st
- 1) Load Module:
- 	modprobe zram num_devices=4
- 	This creates 4 devices: /dev/zram{0,1,2,3}
--	(num_devices parameter is optional. Default: 1)
-+
-+num_devices parameter is optional and tells zram how many devices should be
-+pre-created. Default: 1.
- 
- 2) Set max number of compression streams
- 	Compression backend may use up to max_comp_streams compression streams,
-diff -puN drivers/block/zram/zram_drv.c~zram-remove-max_num_devices-limitation drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-remove-max_num_devices-limitation
+diff -puN drivers/block/zram/zram_drv.c~zram-report-every-added-and-removed-device drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-report-every-added-and-removed-device
 +++ a/drivers/block/zram/zram_drv.c
-@@ -1287,12 +1287,6 @@ static int __init zram_init(void)
+@@ -1238,6 +1238,8 @@ static int zram_add(int device_id)
+ 	strlcpy(zram->compressor, default_compressor, sizeof(zram->compressor));
+ 	zram->meta = NULL;
+ 	zram->max_comp_streams = 1;
++
++	pr_info("Added device: %s\n", zram->disk->disk_name);
+ 	return 0;
+ 
+ out_free_disk:
+@@ -1254,6 +1256,7 @@ out_free_dev:
+ 
+ static void zram_remove(struct zram *zram)
  {
- 	int ret, dev_id;
++	pr_info("Removed device: %s\n", zram->disk->disk_name);
+ 	/*
+ 	 * Remove sysfs first, so no one will perform a disksize
+ 	 * store while we destroy the devices
+@@ -1280,7 +1283,6 @@ static void destroy_devices(void)
+ 	idr_for_each(&zram_index_idr, &zram_remove_cb, NULL);
+ 	idr_destroy(&zram_index_idr);
+ 	unregister_blkdev(zram_major, "zram");
+-	pr_info("Destroyed device(s)\n");
+ }
  
--	if (num_devices > max_num_devices) {
--		pr_warn("Invalid value for num_devices: %u\n",
--				num_devices);
--		return -EINVAL;
--	}
--
- 	zram_major = register_blkdev(0, "zram");
- 	if (zram_major <= 0) {
- 		pr_warn("Unable to get major number\n");
-@@ -1322,7 +1316,7 @@ module_init(zram_init);
- module_exit(zram_exit);
+ static int __init zram_init(void)
+@@ -1299,7 +1301,6 @@ static int __init zram_init(void)
+ 			goto out_error;
+ 	}
  
- module_param(num_devices, uint, 0);
--MODULE_PARM_DESC(num_devices, "Number of zram devices");
-+MODULE_PARM_DESC(num_devices, "Number of pre-created zram devices");
+-	pr_info("Created %u device(s)\n", num_devices);
+ 	return 0;
  
- MODULE_LICENSE("Dual BSD/GPL");
- MODULE_AUTHOR("Nitin Gupta <ngupta@vflare.org>");
-diff -puN drivers/block/zram/zram_drv.h~zram-remove-max_num_devices-limitation drivers/block/zram/zram_drv.h
---- a/drivers/block/zram/zram_drv.h~zram-remove-max_num_devices-limitation
-+++ a/drivers/block/zram/zram_drv.h
-@@ -20,12 +20,6 @@
- 
- #include "zcomp.h"
- 
--/*
-- * Some arbitrary value. This is just to catch
-- * invalid value for num_devices module parameter.
-- */
--static const unsigned max_num_devices = 32;
+ out_error:
+_
+
+Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
+
+origin.patch
+
