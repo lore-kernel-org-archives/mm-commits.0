@@ -1,58 +1,185 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fsnotify-remove-obsolete-documentation.patch removed
- from -mm tree
-Date: Mon, 29 Jun 2015 13:36:19 -0700
-Message-ID: <5591ac43.xOjA1KPxbqa4yS/D%akpm@linux-foundation.org>
+Subject: [merged] ocfs2-reduce-object-size-of-mlog-uses.patch removed from -mm tree
+Date: Mon, 29 Jun 2015 13:36:25 -0700
+Message-ID: <5591ac49.Q9z9FAHlHiAZMg3m%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50116 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50126 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753919AbbF2UgU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:36:20 -0400
+	with ESMTP id S1753945AbbF2Ug0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:36:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kernel@kyup.com, jack@suse.cz, mm-commits@vger.kernel.org
+To: joe@perches.com, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fsnotify: remove obsolete documentation
+     Subject: ocfs2: reduce object size of mlog uses
 has been removed from the -mm tree.  Its filename was
-     fsnotify-remove-obsolete-documentation.patch
+     ocfs2-reduce-object-size-of-mlog-uses.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Nikolay Borisov <kernel@kyup.com>
-Subject: fsnotify: remove obsolete documentation
+From: Joe Perches <joe@perches.com>
+Subject: ocfs2: reduce object size of mlog uses
 
-should_send_event is no longer part of struct fsnotify_ops, so remove it.
+Using a function for __mlog_printk instead of a macro
+reduces the object size of built-in.o by about 190KB, or
+~18% overall (x86-64 defconfig with all ocfs2 options)
 
-Signed-off-by: Nikolay Borisov <kernel@kyup.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
+$ size fs/ocfs2/built-in.o*
+   text    data     bss     dec     hex filename
+ 870954	 118471	 134408	1123833	 1125f9	fs/ocfs2/built-in.o,new
+1064081  118071  134408 1316560  1416d0 fs/ocfs2/built-in.o.old
+
+Miscellanea:
+
+o Move the used-once __mlog_cpu_guess statement expression macro
+  to the masklog.c file above the use in __mlog_printk function
+o Simplify the mlog macro moving the and/or logic and level code
+  into __mlog_printk
+
+[akpm@linux-foundation.org: export __mlog_printk() to other ocfs2 modules]
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fsnotify_backend.h |    2 --
- 1 file changed, 2 deletions(-)
+ fs/ocfs2/cluster/masklog.c |   47 +++++++++++++++++++++++++++++++++++
+ fs/ocfs2/cluster/masklog.h |   42 ++++++++-----------------------
+ 2 files changed, 59 insertions(+), 30 deletions(-)
 
-diff -puN include/linux/fsnotify_backend.h~fsnotify-remove-obsolete-documentation include/linux/fsnotify_backend.h
---- a/include/linux/fsnotify_backend.h~fsnotify-remove-obsolete-documentation
-+++ a/include/linux/fsnotify_backend.h
-@@ -84,8 +84,6 @@ struct fsnotify_fname;
-  * Each group much define these ops.  The fsnotify infrastructure will call
-  * these operations for each relevant group.
-  *
-- * should_send_event - given a group, inode, and mask this function determines
-- *		if the group is interested in this event.
-  * handle_event - main call for a group to handle an fs event
-  * free_group_priv - called when a group refcnt hits 0 to clean up the private union
-  * freeing_mark - called when a mark is being destroyed for some reason.  The group
+diff -puN fs/ocfs2/cluster/masklog.c~ocfs2-reduce-object-size-of-mlog-uses fs/ocfs2/cluster/masklog.c
+--- a/fs/ocfs2/cluster/masklog.c~ocfs2-reduce-object-size-of-mlog-uses
++++ a/fs/ocfs2/cluster/masklog.c
+@@ -64,6 +64,53 @@ static ssize_t mlog_mask_store(u64 mask,
+ 	return count;
+ }
+ 
++/*
++ * smp_processor_id() "helpfully" screams when called outside preemptible
++ * regions in current kernels.  sles doesn't have the variants that don't
++ * scream.  just do this instead of trying to guess which we're building
++ * against.. *sigh*.
++ */
++#define __mlog_cpu_guess						\
++({									\
++	unsigned long _cpu = get_cpu();					\
++	put_cpu();							\
++	_cpu;								\
++})
++
++void __mlog_printk(const u64 *mask, const char *func, int line,
++		   const char *fmt, ...)
++{
++	struct va_format vaf;
++	va_list args;
++	const char *level;
++	const char *prefix = "";
++
++	if (!__mlog_test_u64(*mask, mlog_and_bits) ||
++	    __mlog_test_u64(*mask, mlog_not_bits))
++		return;
++
++	if (*mask & ML_ERROR) {
++		level = KERN_ERR;
++		prefix = "ERROR: ";
++	} else if (*mask & ML_NOTICE) {
++		level = KERN_NOTICE;
++	} else {
++		level = KERN_INFO;
++	}
++
++	va_start(args, fmt);
++
++	vaf.fmt = fmt;
++	vaf.va = &args;
++
++	printk("%s(%s,%u,%lu):%s:%d %s%pV",
++	       level, current->comm, task_pid_nr(current), __mlog_cpu_guess,
++	       func, line, prefix, &vaf);
++
++	va_end(args);
++}
++EXPORT_SYMBOL_GPL(__mlog_printk);
++
+ struct mlog_attribute {
+ 	struct attribute attr;
+ 	u64 mask;
+diff -puN fs/ocfs2/cluster/masklog.h~ocfs2-reduce-object-size-of-mlog-uses fs/ocfs2/cluster/masklog.h
+--- a/fs/ocfs2/cluster/masklog.h~ocfs2-reduce-object-size-of-mlog-uses
++++ a/fs/ocfs2/cluster/masklog.h
+@@ -162,38 +162,20 @@ extern struct mlog_bits mlog_and_bits, m
+ 
+ #endif
+ 
+-/*
+- * smp_processor_id() "helpfully" screams when called outside preemptible
+- * regions in current kernels.  sles doesn't have the variants that don't
+- * scream.  just do this instead of trying to guess which we're building
+- * against.. *sigh*.
+- */
+-#define __mlog_cpu_guess ({		\
+-	unsigned long _cpu = get_cpu();	\
+-	put_cpu();			\
+-	_cpu;				\
+-})
++__printf(4, 5)
++void __mlog_printk(const u64 *m, const char *func, int line,
++		   const char *fmt, ...);
+ 
+-/* In the following two macros, the whitespace after the ',' just
+- * before ##args is intentional. Otherwise, gcc 2.95 will eat the
+- * previous token if args expands to nothing.
++/*
++ * Testing before the __mlog_printk call lets the compiler eliminate the
++ * call completely when (m & ML_ALLOWED_BITS) is 0.
+  */
+-#define __mlog_printk(level, fmt, args...)				\
+-	printk(level "(%s,%u,%lu):%s:%d " fmt, current->comm,		\
+-	       task_pid_nr(current), __mlog_cpu_guess,			\
+-	       __PRETTY_FUNCTION__, __LINE__ , ##args)
+-
+-#define mlog(mask, fmt, args...) do {					\
+-	u64 __m = MLOG_MASK_PREFIX | (mask);				\
+-	if ((__m & ML_ALLOWED_BITS) &&					\
+-	    __mlog_test_u64(__m, mlog_and_bits) &&			\
+-	    !__mlog_test_u64(__m, mlog_not_bits)) {			\
+-		if (__m & ML_ERROR)					\
+-			__mlog_printk(KERN_ERR, "ERROR: "fmt , ##args);	\
+-		else if (__m & ML_NOTICE)				\
+-			__mlog_printk(KERN_NOTICE, fmt , ##args);	\
+-		else __mlog_printk(KERN_INFO, fmt , ##args);		\
+-	}								\
++#define mlog(mask, fmt, ...)						\
++do {									\
++	u64 _m = MLOG_MASK_PREFIX | (mask);				\
++	if (_m & ML_ALLOWED_BITS)					\
++		__mlog_printk(&_m, __func__, __LINE__, fmt,		\
++			      ##__VA_ARGS__);				\
+ } while (0)
+ 
+ #define mlog_errno(st) ({						\
 _
 
-Patches currently in -mm which might be from kernel@kyup.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
+ocfs2-neaten-do_error-ocfs2_error-and-ocfs2_abort.patch
+mm-utilc-add-kstrimdup.patch
+linux-next.patch
+printk-improve-the-description-of-dev-kmsg-line-format.patch
+fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void.patch
+fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix.patch
+maintainers-update-sound-soc-intel-patterns.patch
+maintainers-update-brcm-dts-pattern.patch
+maintainers-update-brcm-gpio-filename-pattern.patch
+maintainers-remove-unused-nbdh-pattern.patch
+maintainers-move-jens-osterkamp-to-credits.patch
+maintainers-bcache-kent-overstreet-has-changed-email-address.patch
 
