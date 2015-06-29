@@ -1,299 +1,204 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-memblock-allocate-boot-time-data-structures-from-mirrored-memory.patch
- removed from -mm tree
-Date: Mon, 29 Jun 2015 13:39:05 -0700
-Message-ID: <5591ace9.RB2UjI1n2QGluSsN%akpm@linux-foundation.org>
+Subject: [merged] tracing-add-trace-event-for-memory-failure.patch removed from -mm tree
+Date: Mon, 29 Jun 2015 13:38:37 -0700
+Message-ID: <5591accd.KAAJGjh302Apgj1S%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50524 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50445 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754150AbbF2UjG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:39:06 -0400
+	with ESMTP id S1753539AbbF2Uii (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:38:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tony.luck@intel.com, guohanjun@huawei.com, hpa@zytor.com, mingo@elte.hu, nao.horiguchi@gmail.com, qiuxishi@huawei.com, tglx@linutronix.de, xiexiuqi@huawei.com, yinghai@kernel.org, mm-commits@vger.kernel.org
+To: xiexiuqi@huawei.com, gong.chen@linux.intel.com, jim.epost@gmail.com, n-horiguchi@ah.jp.nec.com, rostedt@goodmis.org, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memblock: allocate boot time data structures from mirrored memory
+     Subject: tracing: add trace event for memory-failure
 has been removed from the -mm tree.  Its filename was
-     mm-memblock-allocate-boot-time-data-structures-from-mirrored-memory.patch
+     tracing-add-trace-event-for-memory-failure.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tony Luck <tony.luck@intel.com>
-Subject: mm/memblock: allocate boot time data structures from mirrored memory
+From: Xie XiuQi <xiexiuqi@huawei.com>
+Subject: tracing: add trace event for memory-failure
 
-Try to allocate all boot time kernel data structures from mirrored memory.
- If we run out of mirrored memory print warnings, but fall back to using
-non-mirrored memory to make sure that we still boot.
+RAS user space tools like rasdaemon which base on trace event, could
+receive mce error event, but no memory recovery result event.  So, I want
+to add this event to make this scenario complete.
 
-By number of bytes, most of what we allocate at boot time is the page
-structures.  64 bytes per 4K page on x86_64 ...  or about 1.5% of total
-system memory.  For workloads where the bulk of memory is allocated to
-applications this may represent a useful improvement to system
-availability since 1.5% of total memory might be a third of the memory
-allocated to the kernel.
+This patch add a event at ras group for memory-failure.
 
-Signed-off-by: Tony Luck <tony.luck@intel.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Hanjun Guo <guohanjun@huawei.com>
-Cc: Xiexiuqi <xiexiuqi@huawei.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+The output like below:
+#  tracer: nop
+#
+#  entries-in-buffer/entries-written: 2/2   #P:24
+#
+#                               _-----=> irqs-off
+#                              / _----=> need-resched
+#                             | / _---=> hardirq/softirq
+#                             || / _--=> preempt-depth
+#                             ||| /     delay
+#            TASK-PID   CPU#  ||||    TIMESTAMP  FUNCTION
+#               | |       |   ||||       |         |
+       mce-inject-13150 [001] ....   277.019359: memory_failure_event: pfn 0x19869: recovery action for free buddy page: Delayed
+
+[xiexiuqi@huawei.com: fix build error]
+Signed-off-by: Xie XiuQi <xiexiuqi@huawei.com>
+Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Acked-by: Steven Rostedt <rostedt@goodmis.org>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Chen Gong <gong.chen@linux.intel.com>
+Cc: Jim Davis <jim.epost@gmail.com>
+Signed-off-by: Xie XiuQi <xiexiuqi@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memblock.h |    8 +++
- mm/memblock.c            |   78 +++++++++++++++++++++++++++++++------
- mm/nobootmem.c           |   10 ++++
- 3 files changed, 84 insertions(+), 12 deletions(-)
+ include/ras/ras_event.h |   85 ++++++++++++++++++++++++++++++++++++++
+ mm/Kconfig              |    1 
+ mm/memory-failure.c     |    3 +
+ 3 files changed, 89 insertions(+)
 
-diff -puN include/linux/memblock.h~mm-memblock-allocate-boot-time-data-structures-from-mirrored-memory include/linux/memblock.h
---- a/include/linux/memblock.h~mm-memblock-allocate-boot-time-data-structures-from-mirrored-memory
-+++ a/include/linux/memblock.h
-@@ -24,6 +24,7 @@
- enum {
- 	MEMBLOCK_NONE		= 0x0,	/* No special request */
- 	MEMBLOCK_HOTPLUG	= 0x1,	/* hotpluggable region */
-+	MEMBLOCK_MIRROR		= 0x2,	/* mirrored region */
- };
+diff -puN include/ras/ras_event.h~tracing-add-trace-event-for-memory-failure include/ras/ras_event.h
+--- a/include/ras/ras_event.h~tracing-add-trace-event-for-memory-failure
++++ a/include/ras/ras_event.h
+@@ -11,6 +11,7 @@
+ #include <linux/pci.h>
+ #include <linux/aer.h>
+ #include <linux/cper.h>
++#include <linux/mm.h>
  
- struct memblock_region {
-@@ -78,6 +79,8 @@ int memblock_reserve(phys_addr_t base, p
- void memblock_trim_memory(phys_addr_t align);
- int memblock_mark_hotplug(phys_addr_t base, phys_addr_t size);
- int memblock_clear_hotplug(phys_addr_t base, phys_addr_t size);
-+int memblock_mark_mirror(phys_addr_t base, phys_addr_t size);
-+ulong choose_memblock_flags(void);
+ /*
+  * MCE Extended Error Log trace event
+@@ -232,6 +233,90 @@ TRACE_EVENT(aer_event,
+ 		__print_flags(__entry->status, "|", aer_uncorrectable_errors))
+ );
  
- /* Low level functions */
- int memblock_add_range(struct memblock_type *type,
-@@ -160,6 +163,11 @@ static inline bool movable_node_is_enabl
- }
- #endif
- 
-+static inline bool memblock_is_mirror(struct memblock_region *m)
-+{
-+	return m->flags & MEMBLOCK_MIRROR;
-+}
-+
- #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
- int memblock_search_pfn_nid(unsigned long pfn, unsigned long *start_pfn,
- 			    unsigned long  *end_pfn);
-diff -puN mm/memblock.c~mm-memblock-allocate-boot-time-data-structures-from-mirrored-memory mm/memblock.c
---- a/mm/memblock.c~mm-memblock-allocate-boot-time-data-structures-from-mirrored-memory
-+++ a/mm/memblock.c
-@@ -54,10 +54,16 @@ int memblock_debug __initdata_memblock;
- #ifdef CONFIG_MOVABLE_NODE
- bool movable_node_enabled __initdata_memblock = false;
- #endif
-+static bool system_has_some_mirror __initdata_memblock = false;
- static int memblock_can_resize __initdata_memblock;
- static int memblock_memory_in_slab __initdata_memblock = 0;
- static int memblock_reserved_in_slab __initdata_memblock = 0;
- 
-+ulong __init_memblock choose_memblock_flags(void)
-+{
-+	return system_has_some_mirror ? MEMBLOCK_MIRROR : MEMBLOCK_NONE;
-+}
-+
- /* inline so we don't get a warning when pr_debug is compiled out */
- static __init_memblock const char *
- memblock_type_name(struct memblock_type *type)
-@@ -259,8 +265,21 @@ phys_addr_t __init_memblock memblock_fin
- 					phys_addr_t end, phys_addr_t size,
- 					phys_addr_t align)
- {
--	return memblock_find_in_range_node(size, align, start, end,
--					    NUMA_NO_NODE, MEMBLOCK_NONE);
-+	phys_addr_t ret;
-+	ulong flags = choose_memblock_flags();
-+
-+again:
-+	ret = memblock_find_in_range_node(size, align, start, end,
-+					    NUMA_NO_NODE, flags);
-+
-+	if (!ret && (flags & MEMBLOCK_MIRROR)) {
-+		pr_warn("Could not allocate %pap bytes of mirrored memory\n",
-+			&size);
-+		flags &= ~MEMBLOCK_MIRROR;
-+		goto again;
-+	}
-+
-+	return ret;
- }
- 
- static void __init_memblock memblock_remove_region(struct memblock_type *type, unsigned long r)
-@@ -786,6 +805,21 @@ int __init_memblock memblock_clear_hotpl
- }
- 
- /**
-+ * memblock_mark_mirror - Mark mirrored memory with flag MEMBLOCK_MIRROR.
-+ * @base: the base phys addr of the region
-+ * @size: the size of the region
++/*
++ * memory-failure recovery action result event
 + *
-+ * Return 0 on succees, -errno on failure.
++ * unsigned long pfn -	Page Frame Number of the corrupted page
++ * int type	-	Page types of the corrupted page
++ * int result	-	Result of recovery action
 + */
-+int __init_memblock memblock_mark_mirror(phys_addr_t base, phys_addr_t size)
-+{
-+	system_has_some_mirror = true;
 +
-+	return memblock_setclr_flag(base, size, 1, MEMBLOCK_MIRROR);
-+}
++#ifdef CONFIG_MEMORY_FAILURE
++#define MF_ACTION_RESULT	\
++	EM ( MF_IGNORED, "Ignored" )	\
++	EM ( MF_FAILED,  "Failed" )	\
++	EM ( MF_DELAYED, "Delayed" )	\
++	EMe ( MF_RECOVERED, "Recovered" )
 +
++#define MF_PAGE_TYPE		\
++	EM ( MF_MSG_KERNEL, "reserved kernel page" )			\
++	EM ( MF_MSG_KERNEL_HIGH_ORDER, "high-order kernel page" )	\
++	EM ( MF_MSG_SLAB, "kernel slab page" )				\
++	EM ( MF_MSG_DIFFERENT_COMPOUND, "different compound page after locking" ) \
++	EM ( MF_MSG_POISONED_HUGE, "huge page already hardware poisoned" )	\
++	EM ( MF_MSG_HUGE, "huge page" )					\
++	EM ( MF_MSG_FREE_HUGE, "free huge page" )			\
++	EM ( MF_MSG_UNMAP_FAILED, "unmapping failed page" )		\
++	EM ( MF_MSG_DIRTY_SWAPCACHE, "dirty swapcache page" )		\
++	EM ( MF_MSG_CLEAN_SWAPCACHE, "clean swapcache page" )		\
++	EM ( MF_MSG_DIRTY_MLOCKED_LRU, "dirty mlocked LRU page" )	\
++	EM ( MF_MSG_CLEAN_MLOCKED_LRU, "clean mlocked LRU page" )	\
++	EM ( MF_MSG_DIRTY_UNEVICTABLE_LRU, "dirty unevictable LRU page" )	\
++	EM ( MF_MSG_CLEAN_UNEVICTABLE_LRU, "clean unevictable LRU page" )	\
++	EM ( MF_MSG_DIRTY_LRU, "dirty LRU page" )			\
++	EM ( MF_MSG_CLEAN_LRU, "clean LRU page" )			\
++	EM ( MF_MSG_TRUNCATED_LRU, "already truncated LRU page" )	\
++	EM ( MF_MSG_BUDDY, "free buddy page" )				\
++	EM ( MF_MSG_BUDDY_2ND, "free buddy page (2nd try)" )		\
++	EMe ( MF_MSG_UNKNOWN, "unknown page" )
 +
-+/**
-  * __next__mem_range - next function for for_each_free_mem_range() etc.
-  * @idx: pointer to u64 loop variable
-  * @nid: node selector, %NUMA_NO_NODE for all nodes
-@@ -839,6 +873,10 @@ void __init_memblock __next_mem_range(u6
- 		if (movable_node_is_enabled() && memblock_is_hotpluggable(m))
- 			continue;
++/*
++ * First define the enums in MM_ACTION_RESULT to be exported to userspace
++ * via TRACE_DEFINE_ENUM().
++ */
++#undef EM
++#undef EMe
++#define EM(a, b) TRACE_DEFINE_ENUM(a);
++#define EMe(a, b)	TRACE_DEFINE_ENUM(a);
++
++MF_ACTION_RESULT
++MF_PAGE_TYPE
++
++/*
++ * Now redefine the EM() and EMe() macros to map the enums to the strings
++ * that will be printed in the output.
++ */
++#undef EM
++#undef EMe
++#define EM(a, b)		{ a, b },
++#define EMe(a, b)	{ a, b }
++
++TRACE_EVENT(memory_failure_event,
++	TP_PROTO(unsigned long pfn,
++		 int type,
++		 int result),
++
++	TP_ARGS(pfn, type, result),
++
++	TP_STRUCT__entry(
++		__field(unsigned long, pfn)
++		__field(int, type)
++		__field(int, result)
++	),
++
++	TP_fast_assign(
++		__entry->pfn	= pfn;
++		__entry->type	= type;
++		__entry->result	= result;
++	),
++
++	TP_printk("pfn %#lx: recovery action for %s: %s",
++		__entry->pfn,
++		__print_symbolic(__entry->type, MF_PAGE_TYPE),
++		__print_symbolic(__entry->result, MF_ACTION_RESULT)
++	)
++);
++#endif /* CONFIG_MEMORY_FAILURE */
+ #endif /* _TRACE_HW_EVENT_MC_H */
  
-+		/* if we want mirror memory skip non-mirror memory regions */
-+		if ((flags & MEMBLOCK_MIRROR) && !memblock_is_mirror(m))
-+			continue;
-+
- 		if (!type_b) {
- 			if (out_start)
- 				*out_start = m_start;
-@@ -944,6 +982,10 @@ void __init_memblock __next_mem_range_re
- 		if (movable_node_is_enabled() && memblock_is_hotpluggable(m))
- 			continue;
+ /* This part must be outside protection */
+diff -puN mm/Kconfig~tracing-add-trace-event-for-memory-failure mm/Kconfig
+--- a/mm/Kconfig~tracing-add-trace-event-for-memory-failure
++++ a/mm/Kconfig
+@@ -368,6 +368,7 @@ config MEMORY_FAILURE
+ 	depends on ARCH_SUPPORTS_MEMORY_FAILURE
+ 	bool "Enable recovery from hardware memory errors"
+ 	select MEMORY_ISOLATION
++	select RAS
+ 	help
+ 	  Enables code to recover from some memory failures on systems
+ 	  with MCA recovery. This allows a system to continue running
+diff -puN mm/memory-failure.c~tracing-add-trace-event-for-memory-failure mm/memory-failure.c
+--- a/mm/memory-failure.c~tracing-add-trace-event-for-memory-failure
++++ a/mm/memory-failure.c
+@@ -57,6 +57,7 @@
+ #include <linux/mm_inline.h>
+ #include <linux/kfifo.h>
+ #include "internal.h"
++#include "ras/ras_event.h"
  
-+		/* if we want mirror memory skip non-mirror memory regions */
-+		if ((flags & MEMBLOCK_MIRROR) && !memblock_is_mirror(m))
-+			continue;
-+
- 		if (!type_b) {
- 			if (out_start)
- 				*out_start = m_start;
-@@ -1096,8 +1138,18 @@ static phys_addr_t __init memblock_alloc
+ int sysctl_memory_failure_early_kill __read_mostly = 0;
  
- phys_addr_t __init memblock_alloc_nid(phys_addr_t size, phys_addr_t align, int nid)
+@@ -855,6 +856,8 @@ static struct page_state {
+ static void action_result(unsigned long pfn, enum mf_action_page_type type,
+ 			  enum mf_result result)
  {
--	return memblock_alloc_base_nid(size, align, MEMBLOCK_ALLOC_ACCESSIBLE,
--				       nid, MEMBLOCK_NONE);
-+	ulong flags = choose_memblock_flags();
-+	phys_addr_t ret;
++	trace_memory_failure_event(pfn, type, result);
 +
-+again:
-+	ret = memblock_alloc_base_nid(size, align, MEMBLOCK_ALLOC_ACCESSIBLE,
-+				      nid, flags);
-+
-+	if (!ret && (flags & MEMBLOCK_MIRROR)) {
-+		flags &= ~MEMBLOCK_MIRROR;
-+		goto again;
-+	}
-+	return ret;
+ 	pr_err("MCE %#lx: recovery action for %s: %s\n",
+ 		pfn, action_page_types[type], action_name[result]);
  }
- 
- phys_addr_t __init __memblock_alloc_base(phys_addr_t size, phys_addr_t align, phys_addr_t max_addr)
-@@ -1167,6 +1219,7 @@ static void * __init memblock_virt_alloc
- {
- 	phys_addr_t alloc;
- 	void *ptr;
-+	ulong flags = choose_memblock_flags();
- 
- 	if (WARN_ONCE(nid == MAX_NUMNODES, "Usage of MAX_NUMNODES is deprecated. Use NUMA_NO_NODE instead\n"))
- 		nid = NUMA_NO_NODE;
-@@ -1187,14 +1240,14 @@ static void * __init memblock_virt_alloc
- 
- again:
- 	alloc = memblock_find_in_range_node(size, align, min_addr, max_addr,
--					    nid, MEMBLOCK_NONE);
-+					    nid, flags);
- 	if (alloc)
- 		goto done;
- 
- 	if (nid != NUMA_NO_NODE) {
- 		alloc = memblock_find_in_range_node(size, align, min_addr,
- 						    max_addr, NUMA_NO_NODE,
--						    MEMBLOCK_NONE);
-+						    flags);
- 		if (alloc)
- 			goto done;
- 	}
-@@ -1202,10 +1255,16 @@ again:
- 	if (min_addr) {
- 		min_addr = 0;
- 		goto again;
--	} else {
--		goto error;
- 	}
- 
-+	if (flags & MEMBLOCK_MIRROR) {
-+		flags &= ~MEMBLOCK_MIRROR;
-+		pr_warn("Could not allocate %pap bytes of mirrored memory\n",
-+			&size);
-+		goto again;
-+	}
-+
-+	return NULL;
- done:
- 	memblock_reserve(alloc, size);
- 	ptr = phys_to_virt(alloc);
-@@ -1220,9 +1279,6 @@ done:
- 	kmemleak_alloc(ptr, size, 0, 0);
- 
- 	return ptr;
--
--error:
--	return NULL;
- }
- 
- /**
-diff -puN mm/nobootmem.c~mm-memblock-allocate-boot-time-data-structures-from-mirrored-memory mm/nobootmem.c
---- a/mm/nobootmem.c~mm-memblock-allocate-boot-time-data-structures-from-mirrored-memory
-+++ a/mm/nobootmem.c
-@@ -37,12 +37,20 @@ static void * __init __alloc_memory_core
- {
- 	void *ptr;
- 	u64 addr;
-+	ulong flags = choose_memblock_flags();
- 
- 	if (limit > memblock.current_limit)
- 		limit = memblock.current_limit;
- 
-+again:
- 	addr = memblock_find_in_range_node(size, align, goal, limit, nid,
--					   MEMBLOCK_NONE);
-+					   flags);
-+	if (!addr && (flags & MEMBLOCK_MIRROR)) {
-+		flags &= ~MEMBLOCK_MIRROR;
-+		pr_warn("Could not allocate %pap bytes of mirrored memory\n",
-+			&size);
-+		goto again;
-+	}
- 	if (!addr)
- 		return NULL;
- 
 _
 
-Patches currently in -mm which might be from tony.luck@intel.com are
+Patches currently in -mm which might be from xiexiuqi@huawei.com are
 
 origin.patch
-memblock-introduce-a-for_each_reserved_mem_region-iterator.patch
-mm-meminit-move-page-initialization-into-a-separate-function.patch
-mm-meminit-only-set-page-reserved-in-the-memblock-region.patch
-mm-page_alloc-pass-pfn-to-__free_pages_bootmem.patch
-mm-meminit-make-__early_pfn_to_nid-smp-safe-and-introduce-meminit_pfn_in_nid.patch
-mm-meminit-inline-some-helper-functions.patch
-mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set.patch
-mm-meminit-initialise-remaining-struct-pages-in-parallel-with-kswapd.patch
-mm-meminit-minimise-number-of-pfn-page-lookups-during-initialisation.patch
-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
-mm-meminit-free-pages-in-large-chunks-where-possible.patch
-mm-meminit-reduce-number-of-times-pageblocks-are-set-during-struct-page-init.patch
-mm-meminit-remove-mminit_verify_page_links.patch
-linux-next.patch
 
