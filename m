@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- s390-hugetlb-remove-dead-code-for-sw-emulated-huge-pages.patch removed from -mm tree
-Date: Mon, 29 Jun 2015 13:39:44 -0700
-Message-ID: <5591ad10.Gbp2tgEALUmhF00F%akpm@linux-foundation.org>
+ mm-hugetlb-remove-unused-arch-hook-prepare-release_hugepage.patch removed
+ from -mm tree
+Date: Mon, 29 Jun 2015 13:39:40 -0700
+Message-ID: <5591ad0c.UbwUhYd6BLwF7tP6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50585 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50549 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754188AbbF2Ujp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:39:45 -0400
+	with ESMTP id S1754213AbbF2Ujk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:39:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: dingel@linux.vnet.ibm.com, borntraeger@de.ibm.com, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: s390/hugetlb: remove dead code for sw emulated huge pages
+     Subject: mm/hugetlb: remove unused arch hook prepare/release_hugepage
 has been removed from the -mm tree.  Its filename was
-     s390-hugetlb-remove-dead-code-for-sw-emulated-huge-pages.patch
+     mm-hugetlb-remove-unused-arch-hook-prepare-release_hugepage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Dominik Dingel <dingel@linux.vnet.ibm.com>
-Subject: s390/hugetlb: remove dead code for sw emulated huge pages
+Subject: mm/hugetlb: remove unused arch hook prepare/release_hugepage
 
-We now support only hugepages on hardware with EDAT1 support.  So we
-remove the prepare/release_hugepage hooks and simplify set_huge_pte_at and
-huge_ptep_get.
+With s390 dropping support for emulated hugepages, the last user of
+arch_prepare_hugepage and arch_release_hugepage is gone.
 
 Signed-off-by: Dominik Dingel <dingel@linux.vnet.ibm.com>
 Acked-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
@@ -39,100 +39,36 @@ Cc: Christian Borntraeger <borntraeger@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/hugetlb.h |    3 -
- arch/s390/mm/hugetlbpage.c      |   60 +-----------------------------
- 2 files changed, 3 insertions(+), 60 deletions(-)
+ mm/hugetlb.c |   10 ----------
+ 1 file changed, 10 deletions(-)
 
-diff -puN arch/s390/include/asm/hugetlb.h~s390-hugetlb-remove-dead-code-for-sw-emulated-huge-pages arch/s390/include/asm/hugetlb.h
---- a/arch/s390/include/asm/hugetlb.h~s390-hugetlb-remove-dead-code-for-sw-emulated-huge-pages
-+++ a/arch/s390/include/asm/hugetlb.h
-@@ -37,9 +37,6 @@ static inline int prepare_hugepage_range
- 
- #define arch_clear_hugepage_flags(page)		do { } while (0)
- 
--int arch_prepare_hugepage(struct page *page);
--void arch_release_hugepage(struct page *page);
--
- static inline void huge_pte_clear(struct mm_struct *mm, unsigned long addr,
- 				  pte_t *ptep)
- {
-diff -puN arch/s390/mm/hugetlbpage.c~s390-hugetlb-remove-dead-code-for-sw-emulated-huge-pages arch/s390/mm/hugetlbpage.c
---- a/arch/s390/mm/hugetlbpage.c~s390-hugetlb-remove-dead-code-for-sw-emulated-huge-pages
-+++ a/arch/s390/mm/hugetlbpage.c
-@@ -86,31 +86,16 @@ static inline pte_t __pmd_to_pte(pmd_t p
- void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
- 		     pte_t *ptep, pte_t pte)
- {
--	pmd_t pmd;
-+	pmd_t pmd = __pte_to_pmd(pte);
- 
--	pmd = __pte_to_pmd(pte);
--	if (!MACHINE_HAS_HPAGE) {
--		/* Emulated huge ptes loose the dirty and young bit */
--		pmd_val(pmd) &= ~_SEGMENT_ENTRY_ORIGIN;
--		pmd_val(pmd) |= pte_page(pte)[1].index;
--	} else
--		pmd_val(pmd) |= _SEGMENT_ENTRY_LARGE;
-+	pmd_val(pmd) |= _SEGMENT_ENTRY_LARGE;
- 	*(pmd_t *) ptep = pmd;
+diff -puN mm/hugetlb.c~mm-hugetlb-remove-unused-arch-hook-prepare-release_hugepage mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-remove-unused-arch-hook-prepare-release_hugepage
++++ a/mm/hugetlb.c
+@@ -975,7 +975,6 @@ static void update_and_free_page(struct
+ 		destroy_compound_gigantic_page(page, huge_page_order(h));
+ 		free_gigantic_page(page, huge_page_order(h));
+ 	} else {
+-		arch_release_hugepage(page);
+ 		__free_pages(page, huge_page_order(h));
+ 	}
  }
+@@ -1160,10 +1159,6 @@ static struct page *alloc_fresh_huge_pag
+ 						__GFP_REPEAT|__GFP_NOWARN,
+ 		huge_page_order(h));
+ 	if (page) {
+-		if (arch_prepare_hugepage(page)) {
+-			__free_pages(page, huge_page_order(h));
+-			return NULL;
+-		}
+ 		prep_new_huge_page(h, page, nid);
+ 	}
  
- pte_t huge_ptep_get(pte_t *ptep)
- {
--	unsigned long origin;
--	pmd_t pmd;
-+	pmd_t pmd = *(pmd_t *) ptep;
+@@ -1315,11 +1310,6 @@ static struct page *alloc_buddy_huge_pag
+ 			htlb_alloc_mask(h)|__GFP_COMP|__GFP_THISNODE|
+ 			__GFP_REPEAT|__GFP_NOWARN, huge_page_order(h));
  
--	pmd = *(pmd_t *) ptep;
--	if (!MACHINE_HAS_HPAGE && pmd_present(pmd)) {
--		origin = pmd_val(pmd) & _SEGMENT_ENTRY_ORIGIN;
--		pmd_val(pmd) &= ~_SEGMENT_ENTRY_ORIGIN;
--		pmd_val(pmd) |= *(unsigned long *) origin;
--		/* Emulated huge ptes are young and dirty by definition */
--		pmd_val(pmd) |= _SEGMENT_ENTRY_YOUNG | _SEGMENT_ENTRY_DIRTY;
+-	if (page && arch_prepare_hugepage(page)) {
+-		__free_pages(page, huge_page_order(h));
+-		page = NULL;
 -	}
- 	return __pmd_to_pte(pmd);
- }
- 
-@@ -125,45 +110,6 @@ pte_t huge_ptep_get_and_clear(struct mm_
- 	return pte;
- }
- 
--int arch_prepare_hugepage(struct page *page)
--{
--	unsigned long addr = page_to_phys(page);
--	pte_t pte;
--	pte_t *ptep;
--	int i;
--
--	if (MACHINE_HAS_HPAGE)
--		return 0;
--
--	ptep = (pte_t *) pte_alloc_one(&init_mm, addr);
--	if (!ptep)
--		return -ENOMEM;
--
--	pte_val(pte) = addr;
--	for (i = 0; i < PTRS_PER_PTE; i++) {
--		set_pte_at(&init_mm, addr + i * PAGE_SIZE, ptep + i, pte);
--		pte_val(pte) += PAGE_SIZE;
--	}
--	page[1].index = (unsigned long) ptep;
--	return 0;
--}
--
--void arch_release_hugepage(struct page *page)
--{
--	pte_t *ptep;
--
--	if (MACHINE_HAS_HPAGE)
--		return;
--
--	ptep = (pte_t *) page[1].index;
--	if (!ptep)
--		return;
--	clear_table((unsigned long *) ptep, _PAGE_INVALID,
--		    PTRS_PER_PTE * sizeof(pte_t));
--	page_table_free(&init_mm, (unsigned long *) ptep);
--	page[1].index = 0;
--}
