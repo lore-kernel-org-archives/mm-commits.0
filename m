@@ -1,108 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-avoid-tail-page-refcounting-on-non-thp-compound-pages.patch removed from -mm tree
-Date: Mon, 29 Jun 2015 13:37:46 -0700
-Message-ID: <5591ac9a.3meT7b5LvEXPbemS%akpm@linux-foundation.org>
+Subject: [merged] mm-only-define-hashdist-variable-when-needed.patch
+ removed from -mm tree
+Date: Mon, 29 Jun 2015 13:37:41 -0700
+Message-ID: <5591ac95.Z8k7BgX+djJxDUWd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50319 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50267 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753018AbbF2Uhr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:37:47 -0400
+	with ESMTP id S1754027AbbF2Uhm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:37:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, bp@alien8.de, hughd@google.com, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, mhocko@suse.cz, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: avoid tail page refcounting on non-THP compound pages
+     Subject: mm: only define hashdist variable when needed
 has been removed from the -mm tree.  Its filename was
-     mm-avoid-tail-page-refcounting-on-non-thp-compound-pages.patch
+     mm-only-define-hashdist-variable-when-needed.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: avoid tail page refcounting on non-THP compound pages
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: mm: only define hashdist variable when needed
 
-Reintroduce 8d63d99a5dfb ("mm: avoid tail page refcounting on non-THP
-compound pages") after removing bogus VM_BUG_ON_PAGE() in
-put_unrefcounted_compound_page().
+For !CONFIG_NUMA, hashdist will always be 0, since it's setter is
+otherwise compiled out.  So we can save 4 bytes of data and some .text
+(although mostly in __init functions) by only defining it for CONFIG_NUMA.
 
-THP uses tail page refcounting to be able to split huge pages at any time.
- Tail page refcounting is not needed for other users of compound pages and
-it's harmful because of overhead.
-
-We try to exclude non-THP pages from tail page refcounting using
-__compound_tail_refcounted() check.  It excludes most common non-THP
-compound pages: SL*B and hugetlb, but it doesn't catch rest of __GFP_COMP
-users -- drivers.
-
-And it's not only about overhead.
-
-Drivers might want to use compound pages to get refcounting semantics
-suitable for mapping high-order pages to userspace.  But tail page
-refcounting breaks it.
-
-Tail page refcounting uses ->_mapcount in tail pages to store GUP pins on
-them.  It means GUP pins would affect page_mapcount() for tail pages. 
-It's not a problem for THP, because it never maps tail pages.  But unlike
-THP, drivers map parts of compound pages with PTEs and it makes
-page_mapcount() be called for tail pages.
-
-In particular, GUP pins would shift PSS up and affect /proc/kpagecount for
-such pages.  But, I'm not aware about anything which can lead to crash or
-other serious misbehaviour.
-
-Since currently all THP pages are anonymous and all drivers pages are not,
-we can fix the __compound_tail_refcounted() check by requiring PageAnon()
-to enable tail page refcounting.
-
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Hugh Dickins <hughd@google.com>
-Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
-Reported-by: Borislav Petkov <bp@alien8.de>
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Acked-by: David Rientjes <rientjes@google.com>
+Reviewed-by: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/bootmem.h |    8 ++++----
+ mm/page_alloc.c         |    2 +-
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/mm.h~mm-avoid-tail-page-refcounting-on-non-thp-compound-pages include/linux/mm.h
---- a/include/linux/mm.h~mm-avoid-tail-page-refcounting-on-non-thp-compound-pages
-+++ a/include/linux/mm.h
-@@ -499,7 +499,7 @@ static inline int page_count(struct page
+diff -puN include/linux/bootmem.h~mm-only-define-hashdist-variable-when-needed include/linux/bootmem.h
+--- a/include/linux/bootmem.h~mm-only-define-hashdist-variable-when-needed
++++ a/include/linux/bootmem.h
+@@ -357,12 +357,12 @@ extern void *alloc_large_system_hash(con
+ /* Only NUMA needs hash distribution. 64bit NUMA architectures have
+  * sufficient vmalloc space.
+  */
+-#if defined(CONFIG_NUMA) && defined(CONFIG_64BIT)
+-#define HASHDIST_DEFAULT 1
++#ifdef CONFIG_NUMA
++#define HASHDIST_DEFAULT IS_ENABLED(CONFIG_64BIT)
++extern int hashdist;		/* Distribute hashes across NUMA nodes? */
+ #else
+-#define HASHDIST_DEFAULT 0
++#define hashdist (0)
+ #endif
+-extern int hashdist;		/* Distribute hashes across NUMA nodes? */
  
- static inline bool __compound_tail_refcounted(struct page *page)
- {
--	return !PageSlab(page) && !PageHeadHuge(page);
-+	return PageAnon(page) && !PageSlab(page) && !PageHeadHuge(page);
+ 
+ #endif /* _LINUX_BOOTMEM_H */
+diff -puN mm/page_alloc.c~mm-only-define-hashdist-variable-when-needed mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-only-define-hashdist-variable-when-needed
++++ a/mm/page_alloc.c
+@@ -6013,9 +6013,9 @@ out:
+ 	return ret;
  }
  
- /*
++#ifdef CONFIG_NUMA
+ int hashdist = HASHDIST_DEFAULT;
+ 
+-#ifdef CONFIG_NUMA
+ static int __init set_hashdist(char *str)
+ {
+ 	if (!str)
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
 
 origin.patch
-page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages-fix.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-mm-sanitize-page-mapping-for-tail-pages.patch
-include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
+linux-next.patch
 
