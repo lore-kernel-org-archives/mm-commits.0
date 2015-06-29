@@ -1,110 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: [merged] exitstats-obey-this-comment.patch removed from -mm tree
-Date: Mon, 29 Jun 2015 13:49:22 -0700
-Message-ID: <5591af52.KsmRfSo1MVuG1RPg%akpm@linux-foundation.org>
+Subject: [merged]
+ coredump-use-from_kuid-kgid-when-formatting-corename.patch removed from -mm tree
+Date: Mon, 29 Jun 2015 13:49:19 -0700
+Message-ID: <5591af4f.Ppg9IZv2MO2FAsx5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51028 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51020 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754329AbbF2UtX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:49:23 -0400
+	with ESMTP id S1754323AbbF2UtU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:49:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: riel@redhat.com, mhocko@suse.cz, oleg@redhat.com, mm-commits@vger.kernel.org
+To: nicolas.iooss_linux@m4x.org, ebiederm@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: exit,stats: /* obey this comment */
+     Subject: coredump: use from_kuid/kgid when formatting corename
 has been removed from the -mm tree.  Its filename was
-     exitstats-obey-this-comment.patch
+     coredump-use-from_kuid-kgid-when-formatting-corename.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rik van Riel <riel@redhat.com>
-Subject: exit,stats: /* obey this comment */
+From: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
+Subject: coredump: use from_kuid/kgid when formatting corename
 
-There is a helpful comment in do_exit() that states we sync the mm's RSS
-info before statistics gathering.
+When adding __printf attribute to cn_printf, gcc reports some issues:
 
-The function that does the statistics gathering is called right above that
-comment.
+  fs/coredump.c:213:5: warning: format '%d' expects argument of type
+  'int', but argument 3 has type 'kuid_t' [-Wformat=]
+       err = cn_printf(cn, "%d", cred->uid);
+       ^
+  fs/coredump.c:217:5: warning: format '%d' expects argument of type
+  'int', but argument 3 has type 'kgid_t' [-Wformat=]
+       err = cn_printf(cn, "%d", cred->gid);
+       ^
 
-Change the code to obey the comment.
+These warnings come from the fact that the value of uid/gid needs to be
+extracted from the kuid_t/kgid_t structure before being used as an
+integer.  More precisely, cred->uid and cred->gid need to be converted to
+either user-namespace uid/gid or to init_user_ns uid/gid.
 
-Signed-off-by: Rik van Riel <riel@redhat.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Michal Hocko <mhocko@suse.cz>
+Use init_user_ns in order not to break existing ABI, and document this in
+Documentation/sysctl/kernel.txt.
+
+While at it, format uid and gid values with %u instead of %d because
+uid_t/__kernel_uid32_t and gid_t/__kernel_gid32_t are unsigned int.
+
+Signed-off-by: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
+Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/sysctl/kernel.txt |    4 ++--
+ fs/coredump.c                   |    8 ++++++--
+ 2 files changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN kernel/exit.c~exitstats-obey-this-comment kernel/exit.c
---- a/kernel/exit.c~exitstats-obey-this-comment
-+++ a/kernel/exit.c
-@@ -711,10 +711,10 @@ void do_exit(long code)
- 			current->comm, task_pid_nr(current),
- 			preempt_count());
- 
--	acct_update_integrals(tsk);
- 	/* sync mm's RSS info before statistics gathering */
- 	if (tsk->mm)
- 		sync_mm_rss(tsk->mm);
-+	acct_update_integrals(tsk);
- 	group_dead = atomic_dec_and_test(&tsk->signal->live);
- 	if (group_dead) {
- 		hrtimer_cancel(&tsk->signal->real_timer);
+diff -puN Documentation/sysctl/kernel.txt~coredump-use-from_kuid-kgid-when-formatting-corename Documentation/sysctl/kernel.txt
+--- a/Documentation/sysctl/kernel.txt~coredump-use-from_kuid-kgid-when-formatting-corename
++++ a/Documentation/sysctl/kernel.txt
+@@ -197,8 +197,8 @@ core_pattern is used to specify a core d
+ 	%P	global pid (init PID namespace)
+ 	%i	tid
+ 	%I	global tid (init PID namespace)
+-	%u	uid
+-	%g	gid
++	%u	uid (in initial user namespace)
++	%g	gid (in initial user namespace)
+ 	%d	dump mode, matches PR_SET_DUMPABLE and
+ 		/proc/sys/fs/suid_dumpable
+ 	%s	signal number
+diff -puN fs/coredump.c~coredump-use-from_kuid-kgid-when-formatting-corename fs/coredump.c
+--- a/fs/coredump.c~coredump-use-from_kuid-kgid-when-formatting-corename
++++ a/fs/coredump.c
+@@ -209,11 +209,15 @@ static int format_corename(struct core_n
+ 				break;
+ 			/* uid */
+ 			case 'u':
+-				err = cn_printf(cn, "%d", cred->uid);
++				err = cn_printf(cn, "%u",
++						from_kuid(&init_user_ns,
++							  cred->uid));
+ 				break;
+ 			/* gid */
+ 			case 'g':
+-				err = cn_printf(cn, "%d", cred->gid);
++				err = cn_printf(cn, "%u",
++						from_kgid(&init_user_ns,
++							  cred->gid));
+ 				break;
+ 			case 'd':
+ 				err = cn_printf(cn, "%d",
 _
 
-Patches currently in -mm which might be from riel@redhat.com are
+Patches currently in -mm which might be from nicolas.iooss_linux@m4x.org are
 
 origin.patch
-userfaultfd-linux-documentation-vm-userfaultfdtxt.patch
-userfaultfd-waitqueue-add-nr-wake-parameter-to-__wake_up_locked_key.patch
-userfaultfd-uapi.patch
-userfaultfd-linux-userfaultfd_kh.patch
-userfaultfd-add-vm_userfaultfd_ctx-to-the-vm_area_struct.patch
-userfaultfd-add-vm_uffd_missing-and-vm_uffd_wp.patch
-userfaultfd-call-handle_userfault-for-userfaultfd_missing-faults.patch
-userfaultfd-teach-vma_merge-to-merge-across-vma-vm_userfaultfd_ctx.patch
-userfaultfd-prevent-khugepaged-to-merge-if-userfaultfd-is-armed.patch
-userfaultfd-add-new-syscall-to-provide-memory-externalization.patch
-userfaultfd-rename-uffd_apibits-into-features.patch
-userfaultfd-rename-uffd_apibits-into-features-fixup.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg.patch
-userfaultfd-wake-pending-userfaults.patch
-userfaultfd-optimize-read-and-poll-to-be-o1.patch
-userfaultfd-allocate-the-userfaultfd_ctx-cacheline-aligned.patch
-userfaultfd-solve-the-race-between-uffdio_copyzeropage-and-read.patch
-userfaultfd-buildsystem-activation.patch
-userfaultfd-activate-syscall.patch
-userfaultfd-uffdio_copyuffdio_zeropage-uapi.patch
-userfaultfd-mcopy_atomicmfill_zeropage-uffdio_copyuffdio_zeropage-preparation.patch
-userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic.patch
-userfaultfd-uffdio_copy-and-uffdio_zeropage.patch
-page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-mm-sanitize-page-mapping-for-tail-pages.patch
-mm-move-lazy-free-pages-to-inactive-list.patch
-mm-move-lazy-free-pages-to-inactive-list-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
 linux-next.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
 
