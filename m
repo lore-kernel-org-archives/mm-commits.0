@@ -1,140 +1,134 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- x86-mirror-x86-enabling-find-mirrored-memory-ranges.patch removed from -mm
- tree
-Date: Mon, 29 Jun 2015 13:39:08 -0700
-Message-ID: <5591acec.rRlbpMU3lggj19IU%akpm@linux-foundation.org>
+ mm-kmemleak-allow-safe-memory-scanning-during-kmemleak-disabling.patch
+ removed from -mm tree
+Date: Mon, 29 Jun 2015 13:39:16 -0700
+Message-ID: <5591acf4.regD67qJCIngLHyf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50530 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50513 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753723AbbF2UjK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:39:10 -0400
+	with ESMTP id S1754194AbbF2UjR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:39:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tony.luck@intel.com, guohanjun@huawei.com, hpa@zytor.com, mingo@elte.hu, nao.horiguchi@gmail.com, qiuxishi@huawei.com, tglx@linutronix.de, xiexiuqi@huawei.com, yinghai@kernel.org, mm-commits@vger.kernel.org
+To: catalin.marinas@arm.com, stable@vger.kernel.org, vigneshr@codeaurora.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86, mirror: x86 enabling - find mirrored memory ranges
+     Subject: mm: kmemleak: allow safe memory scanning during kmemleak disabling
 has been removed from the -mm tree.  Its filename was
-     x86-mirror-x86-enabling-find-mirrored-memory-ranges.patch
+     mm-kmemleak-allow-safe-memory-scanning-during-kmemleak-disabling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tony Luck <tony.luck@intel.com>
-Subject: x86, mirror: x86 enabling - find mirrored memory ranges
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: mm: kmemleak: allow safe memory scanning during kmemleak disabling
 
-UEFI GetMemoryMap() uses a new attribute bit to mark mirrored memory
-address ranges.  See UEFI 2.5 spec pages 157-158:
+The kmemleak scanning thread can run for minutes.  Callbacks like
+kmemleak_free() are allowed during this time, the race being taken care of
+by the object->lock spinlock.  Such lock also prevents a memory block from
+being freed or unmapped while it is being scanned by blocking the
+kmemleak_free() -> ...  -> __delete_object() function until the lock is
+released in scan_object().
 
-  http://www.uefi.org/sites/default/files/resources/UEFI%202_5.pdf
+When a kmemleak error occurs (e.g.  it fails to allocate its metadata),
+kmemleak_enabled is set and __delete_object() is no longer called on freed
+objects.  If kmemleak_scan is running at the same time, kmemleak_free() no
+longer waits for the object scanning to complete, allowing the
+corresponding memory block to be freed or unmapped (in the case of
+vfree()).  This leads to kmemleak_scan potentially triggering a page
+fault.
 
-On EFI enabled systems scan the memory map and tell memblock about any
-mirrored ranges.
+This patch separates the kmemleak_free() enabling/disabling from the
+overall kmemleak_enabled nob so that we can defer the disabling of the
+object freeing tracking until the scanning thread completed.  The
+kmemleak_free_part() is deliberately ignored by this patch since this is
+only called during boot before the scanning thread started.
 
-Signed-off-by: Tony Luck <tony.luck@intel.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Hanjun Guo <guohanjun@huawei.com>
-Cc: Xiexiuqi <xiexiuqi@huawei.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
+Reported-by: Vignesh Radhakrishnan <vigneshr@codeaurora.org>
+Tested-by: Vignesh Radhakrishnan <vigneshr@codeaurora.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/setup.c     |    3 +++
- arch/x86/platform/efi/efi.c |   21 +++++++++++++++++++++
- include/linux/efi.h         |    3 +++
- 3 files changed, 27 insertions(+)
+ mm/kmemleak.c |   19 ++++++++++++++++---
+ 1 file changed, 16 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86/kernel/setup.c~x86-mirror-x86-enabling-find-mirrored-memory-ranges arch/x86/kernel/setup.c
---- a/arch/x86/kernel/setup.c~x86-mirror-x86-enabling-find-mirrored-memory-ranges
-+++ a/arch/x86/kernel/setup.c
-@@ -1105,6 +1105,9 @@ void __init setup_arch(char **cmdline_p)
- 	memblock_set_current_limit(ISA_END_ADDRESS);
- 	memblock_x86_fill();
+diff -puN mm/kmemleak.c~mm-kmemleak-allow-safe-memory-scanning-during-kmemleak-disabling mm/kmemleak.c
+--- a/mm/kmemleak.c~mm-kmemleak-allow-safe-memory-scanning-during-kmemleak-disabling
++++ a/mm/kmemleak.c
+@@ -195,6 +195,8 @@ static struct kmem_cache *scan_area_cach
  
-+	if (efi_enabled(EFI_BOOT))
-+		efi_find_mirror();
+ /* set if tracing memory operations is enabled */
+ static int kmemleak_enabled;
++/* same as above but only for the kmemleak_free() callback */
++static int kmemleak_free_enabled;
+ /* set in the late_initcall if there were no errors */
+ static int kmemleak_initialized;
+ /* enables or disables early logging of the memory operations */
+@@ -942,7 +944,7 @@ void __ref kmemleak_free(const void *ptr
+ {
+ 	pr_debug("%s(0x%p)\n", __func__, ptr);
+ 
+-	if (kmemleak_enabled && ptr && !IS_ERR(ptr))
++	if (kmemleak_free_enabled && ptr && !IS_ERR(ptr))
+ 		delete_object_full((unsigned long)ptr);
+ 	else if (kmemleak_early_log)
+ 		log_early(KMEMLEAK_FREE, ptr, 0, 0);
+@@ -982,7 +984,7 @@ void __ref kmemleak_free_percpu(const vo
+ 
+ 	pr_debug("%s(0x%p)\n", __func__, ptr);
+ 
+-	if (kmemleak_enabled && ptr && !IS_ERR(ptr))
++	if (kmemleak_free_enabled && ptr && !IS_ERR(ptr))
+ 		for_each_possible_cpu(cpu)
+ 			delete_object_full((unsigned long)per_cpu_ptr(ptr,
+ 								      cpu));
+@@ -1750,6 +1752,13 @@ static void kmemleak_do_cleanup(struct w
+ 	mutex_lock(&scan_mutex);
+ 	stop_scan_thread();
+ 
++	/*
++	 * Once the scan thread has stopped, it is safe to no longer track
++	 * object freeing. Ordering of the scan thread stopping and the memory
++	 * accesses below is guaranteed by the kthread_stop() function.
++	 */
++	kmemleak_free_enabled = 0;
 +
- 	/*
- 	 * The EFI specification says that boot service code won't be called
- 	 * after ExitBootServices(). This is, in fact, a lie.
-diff -puN arch/x86/platform/efi/efi.c~x86-mirror-x86-enabling-find-mirrored-memory-ranges arch/x86/platform/efi/efi.c
---- a/arch/x86/platform/efi/efi.c~x86-mirror-x86-enabling-find-mirrored-memory-ranges
-+++ a/arch/x86/platform/efi/efi.c
-@@ -117,6 +117,27 @@ void efi_get_time(struct timespec *now)
- 	now->tv_nsec = 0;
+ 	if (!kmemleak_found_leaks)
+ 		__kmemleak_do_cleanup();
+ 	else
+@@ -1776,6 +1785,8 @@ static void kmemleak_disable(void)
+ 	/* check whether it is too early for a kernel thread */
+ 	if (kmemleak_initialized)
+ 		schedule_work(&cleanup_work);
++	else
++		kmemleak_free_enabled = 0;
+ 
+ 	pr_info("Kernel memory leak detector disabled\n");
  }
- 
-+void __init efi_find_mirror(void)
-+{
-+	void *p;
-+	u64 mirror_size = 0, total_size = 0;
-+
-+	for (p = memmap.map; p < memmap.map_end; p += memmap.desc_size) {
-+		efi_memory_desc_t *md = p;
-+		unsigned long long start = md->phys_addr;
-+		unsigned long long size = md->num_pages << EFI_PAGE_SHIFT;
-+
-+		total_size += size;
-+		if (md->attribute & EFI_MEMORY_MORE_RELIABLE) {
-+			memblock_mark_mirror(start, size);
-+			mirror_size += size;
-+		}
+@@ -1840,8 +1851,10 @@ void __init kmemleak_init(void)
+ 	if (kmemleak_error) {
+ 		local_irq_restore(flags);
+ 		return;
+-	} else
++	} else {
+ 		kmemleak_enabled = 1;
++		kmemleak_free_enabled = 1;
 +	}
-+	if (mirror_size)
-+		pr_info("Memory: %lldM/%lldM mirrored memory\n",
-+			mirror_size>>20, total_size>>20);
-+}
-+
- /*
-  * Tell the kernel about the EFI memory map.  This might include
-  * more than the max 128 entries that can fit in the e820 legacy
-diff -puN include/linux/efi.h~x86-mirror-x86-enabling-find-mirrored-memory-ranges include/linux/efi.h
---- a/include/linux/efi.h~x86-mirror-x86-enabling-find-mirrored-memory-ranges
-+++ a/include/linux/efi.h
-@@ -96,6 +96,8 @@ typedef	struct {
- #define EFI_MEMORY_WP		((u64)0x0000000000001000ULL)	/* write-protect */
- #define EFI_MEMORY_RP		((u64)0x0000000000002000ULL)	/* read-protect */
- #define EFI_MEMORY_XP		((u64)0x0000000000004000ULL)	/* execute-protect */
-+#define EFI_MEMORY_MORE_RELIABLE \
-+				((u64)0x0000000000010000ULL)	/* higher reliability */
- #define EFI_MEMORY_RUNTIME	((u64)0x8000000000000000ULL)	/* range requires runtime mapping */
- #define EFI_MEMORY_DESCRIPTOR_VERSION	1
+ 	local_irq_restore(flags);
  
-@@ -868,6 +870,7 @@ extern void efi_enter_virtual_mode (void
- extern void efi_late_init(void);
- extern void efi_free_boot_services(void);
- extern efi_status_t efi_query_variable_store(u32 attributes, unsigned long size);
-+extern void efi_find_mirror(void);
- #else
- static inline void efi_late_init(void) {}
- static inline void efi_free_boot_services(void) {}
+ 	/*
 _
 
-Patches currently in -mm which might be from tony.luck@intel.com are
+Patches currently in -mm which might be from catalin.marinas@arm.com are
 
 origin.patch
-memblock-introduce-a-for_each_reserved_mem_region-iterator.patch
-mm-meminit-move-page-initialization-into-a-separate-function.patch
-mm-meminit-only-set-page-reserved-in-the-memblock-region.patch
-mm-page_alloc-pass-pfn-to-__free_pages_bootmem.patch
-mm-meminit-make-__early_pfn_to_nid-smp-safe-and-introduce-meminit_pfn_in_nid.patch
-mm-meminit-inline-some-helper-functions.patch
-mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set.patch
-mm-meminit-initialise-remaining-struct-pages-in-parallel-with-kswapd.patch
-mm-meminit-minimise-number-of-pfn-page-lookups-during-initialisation.patch
-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
-mm-meminit-free-pages-in-large-chunks-where-possible.patch
-mm-meminit-reduce-number-of-times-pageblocks-are-set-during-struct-page-init.patch
-mm-meminit-remove-mminit_verify_page_links.patch
 linux-next.patch
 
