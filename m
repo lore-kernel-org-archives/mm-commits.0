@@ -1,116 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ocfs2-remove-__mlog_cpu_guess.patch removed from -mm
- tree
-Date: Mon, 29 Jun 2015 13:36:27 -0700
-Message-ID: <5591ac4b.SI71eBJOsacEG5ig%akpm@linux-foundation.org>
+Subject: [merged] metag-use-for_each_sg.patch removed from -mm tree
+Date: Mon, 29 Jun 2015 13:36:14 -0700
+Message-ID: <5591ac3e.5p6OJTN/CNLMCNNg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50132 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50108 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753947AbbF2Ug2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:36:28 -0400
+	with ESMTP id S1753909AbbF2UgP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:36:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jlbec@evilplan.org, joe@perches.com, mfasheh@suse.com, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, james.hogan@imgtec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: remove __mlog_cpu_guess
+     Subject: metag: use for_each_sg()
 has been removed from the -mm tree.  Its filename was
-     ocfs2-remove-__mlog_cpu_guess.patch
+     metag-use-for_each_sg.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ocfs2: remove __mlog_cpu_guess
+From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: metag: use for_each_sg()
 
-raw_smp_processor_id() is the means of avoiding the runtime preemptibility
-check.
+This replaces the plain loop over the sglist array with for_each_sg()
+macro which consists of sg_next() function calls.  Since metag doesn't
+select ARCH_HAS_SG_CHAIN, it is not necessary to use for_each_sg() in
+order to loop over each sg element.  But this can help find problems with
+drivers that do not properly initialize their sg tables when
+CONFIG_DEBUG_SG is enabled.
 
-[akpm@linux-foundation.org: fix printk warning]
-Cc: Joe Perches <joe@perches.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: James Hogan <james.hogan@imgtec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/cluster/masklog.c |   19 +++----------------
- 1 file changed, 3 insertions(+), 16 deletions(-)
+ arch/metag/include/asm/dma-mapping.h |   14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
-diff -puN fs/ocfs2/cluster/masklog.c~ocfs2-remove-__mlog_cpu_guess fs/ocfs2/cluster/masklog.c
---- a/fs/ocfs2/cluster/masklog.c~ocfs2-remove-__mlog_cpu_guess
-+++ a/fs/ocfs2/cluster/masklog.c
-@@ -64,19 +64,6 @@ static ssize_t mlog_mask_store(u64 mask,
- 	return count;
+diff -puN arch/metag/include/asm/dma-mapping.h~metag-use-for_each_sg arch/metag/include/asm/dma-mapping.h
+--- a/arch/metag/include/asm/dma-mapping.h~metag-use-for_each_sg
++++ a/arch/metag/include/asm/dma-mapping.h
+@@ -134,20 +134,24 @@ dma_sync_single_range_for_device(struct
  }
  
--/*
-- * smp_processor_id() "helpfully" screams when called outside preemptible
-- * regions in current kernels.  sles doesn't have the variants that don't
-- * scream.  just do this instead of trying to guess which we're building
-- * against.. *sigh*.
-- */
--#define __mlog_cpu_guess						\
--({									\
--	unsigned long _cpu = get_cpu();					\
--	put_cpu();							\
--	_cpu;								\
--})
--
- void __mlog_printk(const u64 *mask, const char *func, int line,
- 		   const char *fmt, ...)
+ static inline void
+-dma_sync_sg_for_cpu(struct device *dev, struct scatterlist *sg, int nelems,
++dma_sync_sg_for_cpu(struct device *dev, struct scatterlist *sglist, int nelems,
+ 		    enum dma_data_direction direction)
  {
-@@ -103,9 +90,9 @@ void __mlog_printk(const u64 *mask, cons
- 	vaf.fmt = fmt;
- 	vaf.va = &args;
- 
--	printk("%s(%s,%u,%lu):%s:%d %s%pV",
--	       level, current->comm, task_pid_nr(current), __mlog_cpu_guess,
--	       func, line, prefix, &vaf);
-+	printk("%s(%s,%u,%u):%s:%d %s%pV",
-+	       level, current->comm, task_pid_nr(current),
-+	       raw_smp_processor_id(), func, line, prefix, &vaf);
- 
- 	va_end(args);
+ 	int i;
+-	for (i = 0; i < nelems; i++, sg++)
++	struct scatterlist *sg;
++
++	for_each_sg(sglist, sg, nelems, i)
+ 		dma_sync_for_cpu(sg_virt(sg), sg->length, direction);
  }
+ 
+ static inline void
+-dma_sync_sg_for_device(struct device *dev, struct scatterlist *sg, int nelems,
+-		       enum dma_data_direction direction)
++dma_sync_sg_for_device(struct device *dev, struct scatterlist *sglist,
++		       int nelems, enum dma_data_direction direction)
+ {
+ 	int i;
+-	for (i = 0; i < nelems; i++, sg++)
++	struct scatterlist *sg;
++
++	for_each_sg(sglist, sg, nelems, i)
+ 		dma_sync_for_device(sg_virt(sg), sg->length, direction);
+ }
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-mm.patch
-slab-infrastructure-for-bulk-object-allocation-and-freeing-v3-fix.patch
-mm-meminit-inline-some-helper-functions-fix.patch
-mm-meminit-finish-initialisation-of-struct-pages-before-basic-setup-fix.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
-userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
-fs-userfaultfdc-work-around-i386-build-error.patch
-include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
-devpts-if-initialization-failed-dont-crash-when-opening-dev-ptmx-fix.patch
-ipcshm-move-bug_on-check-into-shm_lock-fix.patch
-scsi-resolve-sg-buffer-const-ness-issue-fix.patch
+arc-use-for_each_sg.patch
+lib-scatterlist-fix-kerneldoc-for-sg_pcopy_tofrom_buffer.patch
+lib-scatterlist-mark-input-buffer-parameters-as-const.patch
 linux-next.patch
-drivers-block-nvme-corec-fix-build-with-gcc-444.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-net-netfilter-ipset-work-around-gcc-444-initializer-bug.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
 
