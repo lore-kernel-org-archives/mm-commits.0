@@ -1,101 +1,185 @@
 From: akpm@linux-foundation.org
-Subject: [merged] avr32-use-for_each_sg.patch removed from -mm tree
-Date: Mon, 29 Jun 2015 13:46:47 -0700
-Message-ID: <5591aeb7.LZQT3RrbY9R9VfHs%akpm@linux-foundation.org>
+Subject: [merged] compiler-gcch-neatening.patch removed from -mm tree
+Date: Mon, 29 Jun 2015 13:46:55 -0700
+Message-ID: <5591aebf.b/JCuAEn5BU58Wmg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50748 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50805 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753967AbbF2Uqr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:46:47 -0400
+	with ESMTP id S1753110AbbF2Uq4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:46:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, egtvedt@samfundet.no, hskinnemoen@gmail.com, mm-commits@vger.kernel.org
+To: joe@perches.com, amodra@gmail.com, andi@firstfloor.org, anton@samba.org, levinsasha928@gmail.com, mmarek@suse.cz, segher@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: avr32: use for_each_sg()
+     Subject: compiler-gcc.h: neatening
 has been removed from the -mm tree.  Its filename was
-     avr32-use-for_each_sg.patch
+     compiler-gcch-neatening.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: avr32: use for_each_sg()
+From: Joe Perches <joe@perches.com>
+Subject: compiler-gcc.h: neatening
 
-This replaces the plain loop over the sglist array with for_each_sg()
-macro which consists of sg_next() function calls.  Since avr32 doesn't
-select ARCH_HAS_SG_CHAIN, it is not necessary to use for_each_sg() in
-order to loop over each sg element.  But this can help find problems with
-drivers that do not properly initialize their sg tables when
-CONFIG_DEBUG_SG is enabled.
+- Move the inline and noinline blocks together
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Haavard Skinnemoen <hskinnemoen@gmail.com>
-Acked-by: Hans-Christian Egtvedt <egtvedt@samfundet.no>
+- Comment neatening
+
+- Alignment of __attribute__ uses
+
+- Consistent naming of __must_be_array macro argument
+
+- Multiline macro neatening
+
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Michal Marek <mmarek@suse.cz>
+Cc: Segher Boessenkool <segher@kernel.crashing.org>
+Cc: Sasha Levin <levinsasha928@gmail.com>
+Cc: Anton Blanchard <anton@samba.org>
+Cc: Alan Modra <amodra@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/avr32/include/asm/dma-mapping.h |   19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
+ include/linux/compiler-gcc.h |   85 +++++++++++++++++----------------
+ 1 file changed, 45 insertions(+), 40 deletions(-)
 
-diff -puN arch/avr32/include/asm/dma-mapping.h~avr32-use-for_each_sg arch/avr32/include/asm/dma-mapping.h
---- a/arch/avr32/include/asm/dma-mapping.h~avr32-use-for_each_sg
-+++ a/arch/avr32/include/asm/dma-mapping.h
-@@ -209,17 +209,18 @@ dma_unmap_page(struct device *dev, dma_a
-  * the same here.
+diff -puN include/linux/compiler-gcc.h~compiler-gcch-neatening include/linux/compiler-gcc.h
+--- a/include/linux/compiler-gcc.h~compiler-gcch-neatening
++++ a/include/linux/compiler-gcc.h
+@@ -5,9 +5,9 @@
+ /*
+  * Common definitions for all gcc versions go here.
   */
- static inline int
--dma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
-+dma_map_sg(struct device *dev, struct scatterlist *sglist, int nents,
- 	   enum dma_data_direction direction)
- {
- 	int i;
-+	struct scatterlist *sg;
+-#define GCC_VERSION (__GNUC__ * 10000 \
+-		   + __GNUC_MINOR__ * 100 \
+-		   + __GNUC_PATCHLEVEL__)
++#define GCC_VERSION (__GNUC__ * 10000		\
++		     + __GNUC_MINOR__ * 100	\
++		     + __GNUC_PATCHLEVEL__)
  
--	for (i = 0; i < nents; i++) {
-+	for_each_sg(sglist, sg, nents, i) {
- 		char *virt;
+ /* Optimization barrier */
  
--		sg[i].dma_address = page_to_bus(sg_page(&sg[i])) + sg[i].offset;
--		virt = sg_virt(&sg[i]);
--		dma_cache_sync(dev, virt, sg[i].length, direction);
-+		sg->dma_address = page_to_bus(sg_page(sg)) + sg->offset;
-+		virt = sg_virt(sg);
-+		dma_cache_sync(dev, virt, sg->length, direction);
- 	}
+@@ -46,55 +46,63 @@
+  * the inline assembly constraint from =g to =r, in this particular
+  * case either is valid.
+  */
+-#define RELOC_HIDE(ptr, off)					\
+-  ({ unsigned long __ptr;					\
+-    __asm__ ("" : "=r"(__ptr) : "0"(ptr));		\
+-    (typeof(ptr)) (__ptr + (off)); })
++#define RELOC_HIDE(ptr, off)						\
++({									\
++	unsigned long __ptr;						\
++	__asm__ ("" : "=r"(__ptr) : "0"(ptr));				\
++	(typeof(ptr)) (__ptr + (off));					\
++})
  
- 	return nents;
-@@ -321,14 +322,14 @@ dma_sync_sg_for_cpu(struct device *dev,
- }
+ /* Make the optimizer believe the variable can be manipulated arbitrarily. */
+-#define OPTIMIZER_HIDE_VAR(var) __asm__ ("" : "=r" (var) : "0" (var))
++#define OPTIMIZER_HIDE_VAR(var)						\
++	__asm__ ("" : "=r" (var) : "0" (var))
  
- static inline void
--dma_sync_sg_for_device(struct device *dev, struct scatterlist *sg,
-+dma_sync_sg_for_device(struct device *dev, struct scatterlist *sglist,
- 		       int nents, enum dma_data_direction direction)
- {
- 	int i;
-+	struct scatterlist *sg;
+ #ifdef __CHECKER__
+-#define __must_be_array(arr) 0
++#define __must_be_array(a)	0
+ #else
+ /* &a[0] degrades to a pointer: a different type from an array */
+-#define __must_be_array(a) BUILD_BUG_ON_ZERO(__same_type((a), &(a)[0]))
++#define __must_be_array(a)	BUILD_BUG_ON_ZERO(__same_type((a), &(a)[0]))
+ #endif
  
--	for (i = 0; i < nents; i++) {
--		dma_cache_sync(dev, sg_virt(&sg[i]), sg[i].length, direction);
--	}
-+	for_each_sg(sglist, sg, nents, i)
-+		dma_cache_sync(dev, sg_virt(sg), sg->length, direction);
- }
+ /*
+  * Force always-inline if the user requests it so via the .config,
+  * or if gcc is too old:
+  */
+-#if !defined(CONFIG_ARCH_SUPPORTS_OPTIMIZED_INLINING) || \
++#if !defined(CONFIG_ARCH_SUPPORTS_OPTIMIZED_INLINING) ||		\
+     !defined(CONFIG_OPTIMIZE_INLINING) || (__GNUC__ < 4)
+-# define inline		inline		__attribute__((always_inline)) notrace
+-# define __inline__	__inline__	__attribute__((always_inline)) notrace
+-# define __inline	__inline	__attribute__((always_inline)) notrace
++#define inline		inline		__attribute__((always_inline)) notrace
++#define __inline__	__inline__	__attribute__((always_inline)) notrace
++#define __inline	__inline	__attribute__((always_inline)) notrace
+ #else
+ /* A lot of inline functions can cause havoc with function tracing */
+-# define inline		inline		notrace
+-# define __inline__	__inline__	notrace
+-# define __inline	__inline	notrace
++#define inline		inline		notrace
++#define __inline__	__inline__	notrace
++#define __inline	__inline	notrace
+ #endif
  
- /* Now for the API extensions over the pci_ one */
-_
-
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
-
-origin.patch
-arc-use-for_each_sg.patch
-lib-scatterlist-fix-kerneldoc-for-sg_pcopy_tofrom_buffer.patch
-lib-scatterlist-mark-input-buffer-parameters-as-const.patch
-linux-next.patch
-
+-#define __deprecated			__attribute__((deprecated))
+-#define __packed			__attribute__((packed))
+-#define __weak				__attribute__((weak))
+-#define __alias(symbol)		__attribute__((alias(#symbol)))
++#define __always_inline	inline __attribute__((always_inline))
++#define  noinline	__attribute__((noinline))
++
++#define __deprecated	__attribute__((deprecated))
++#define __packed	__attribute__((packed))
++#define __weak		__attribute__((weak))
++#define __alias(symbol)	__attribute__((alias(#symbol)))
+ 
+ /*
+- * it doesn't make sense on ARM (currently the only user of __naked) to trace
+- * naked functions because then mcount is called without stack and frame pointer
+- * being set up and there is no chance to restore the lr register to the value
+- * before mcount was called.
++ * it doesn't make sense on ARM (currently the only user of __naked)
++ * to trace naked functions because then mcount is called without
++ * stack and frame pointer being set up and there is no chance to
++ * restore the lr register to the value before mcount was called.
++ *
++ * The asm() bodies of naked functions often depend on standard calling
++ * conventions, therefore they must be noinline and noclone.
+  *
+- * The asm() bodies of naked functions often depend on standard calling conventions,
+- * therefore they must be noinline and noclone.  GCC 4.[56] currently fail to enforce
+- * this, so we must do so ourselves.  See GCC PR44290.
++ * GCC 4.[56] currently fail to enforce this, so we must do so ourselves.
++ * See GCC PR44290.
+  */
+-#define __naked				__attribute__((naked)) noinline __noclone notrace
++#define __naked		__attribute__((naked)) noinline __noclone notrace
+ 
+-#define __noreturn			__attribute__((noreturn))
++#define __noreturn	__attribute__((noreturn))
+ 
+ /*
+  * From the GCC manual:
+@@ -106,14 +114,13 @@
+  * would be.
+  * [...]
+  */
+-#define __pure				__attribute__((pure))
+-#define __aligned(x)			__attribute__((aligned(x)))
+-#define __printf(a, b)			__attribute__((format(printf, a, b)))
+-#define __scanf(a, b)			__attribute__((format(scanf, a, b)))
+-#define  noinline			__attribute__((noinline))
+-#define __attribute_const__		__attribute__((__const__))
+-#define __maybe_unused			__attribute__((unused))
+-#define __always_unused			__attribute__((unused))
++#define __pure			__attribute__((pure))
++#define __aligned(x)		__attribute__((aligned(x)))
++#define __printf(a, b)		__attribute__((format(printf, a, b)))
++#define __scanf(a, b)		__attribute__((format(scanf, a, b)))
++#define __attribute_const__	__attribute__((__const__))
++#define __maybe_unused		__attribute__((unused))
++#define __always_unused		__attribute__((unused))
+ 
+ #define __gcc_header(x) #x
+ #define _gcc_header(x) __gcc_header(linux/compiler-gcc##x.h)
+@@ -129,5 +136,3 @@
+  * code
+  */
+ #define uninitialized_var(x) x = x
