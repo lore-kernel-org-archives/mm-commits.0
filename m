@@ -1,205 +1,194 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling.patch removed from -mm tree
-Date: Mon, 29 Jun 2015 13:37:56 -0700
-Message-ID: <5591aca4.O3Urj4sytwJmFHGV%akpm@linux-foundation.org>
+ mm-memcg-try-charging-a-page-before-setting-page-up-to-date.patch removed
+ from -mm tree
+Date: Mon, 29 Jun 2015 13:38:32 -0700
+Message-ID: <5591acc8.rVNhnHvB976Psh15%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50345 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50426 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754089AbbF2Uh5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:37:57 -0400
+	with ESMTP id S1754073AbbF2Uid (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:38:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: n-horiguchi@ah.jp.nec.com, andi@firstfloor.org, kirill@shutemov.name, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: mgorman@suse.de, hannes@cmpxchg.org, mhocko@suse.cz, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory-failure: introduce get_hwpoison_page() for consistent refcount handling
+     Subject: mm, memcg: Try charging a page before setting page up to date
 has been removed from the -mm tree.  Its filename was
-     mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling.patch
+     mm-memcg-try-charging-a-page-before-setting-page-up-to-date.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm/memory-failure: introduce get_hwpoison_page() for consistent refcount handling
+From: Mel Gorman <mgorman@suse.de>
+Subject: mm, memcg: Try charging a page before setting page up to date
 
-memory_failure() can run in 2 different mode (specified by
-MF_COUNT_INCREASED) in page refcount perspective.  When
-MF_COUNT_INCREASED is set, memory_failure() assumes that the caller
-takes a refcount of the target page.  And if cleared, memory_failure()
-takes it in it's own.
+Historically memcg overhead was high even if memcg was unused. This has
+improved a lot but it still showed up in a profile summary as being a
+problem.
 
-In current code, however, refcounting is done differently in each caller. 
-For example, madvise_hwpoison() uses get_user_pages_fast() and
-hwpoison_inject() uses get_page_unless_zero().  So this inconsistent
-refcounting causes refcount failure especially for thp tail pages. 
-Typical user visible effects are like memory leak or
-VM_BUG_ON_PAGE(!page_count(page)) in isolate_lru_page().
+/usr/src/linux-4.0-vanilla/mm/memcontrol.c                           6.6441   395842
+  mem_cgroup_try_charge                                                        2.950%   175781
+  __mem_cgroup_count_vm_event                                                  1.431%    85239
+  mem_cgroup_page_lruvec                                                       0.456%    27156
+  mem_cgroup_commit_charge                                                     0.392%    23342
+  uncharge_list                                                                0.323%    19256
+  mem_cgroup_update_lru_size                                                   0.278%    16538
+  memcg_check_events                                                           0.216%    12858
+  mem_cgroup_charge_statistics.isra.22                                         0.188%    11172
+  try_charge                                                                   0.150%     8928
+  commit_charge                                                                0.141%     8388
+  get_mem_cgroup_from_mm                                                       0.121%     7184
 
-To fix this refcounting issue, this patch introduces get_hwpoison_page()
-to handle thp tail pages in the same manner for each caller of hwpoison
-code.
+That is showing that 6.64% of system CPU cycles were in memcontrol.c and
+dominated by mem_cgroup_try_charge. The annotation shows that the bulk of
+the cost was checking PageSwapCache which is expected to be cache hot but is
+very expensive. The problem appears to be that __SetPageUptodate is called
+just before the check which is a write barrier. It is required to make sure
+struct page and page data is written before the PTE is updated and the data
+visible to userspace. memcg charging does not require or need the barrier
+but gets unfairly hit with the cost so this patch attempts the charging
+before the barrier.  Aside from the accidental cost to memcg there is the
+added benefit that the barrier is avoided if the page cannot be charged.
+When applied the relevant profile summary is as follows.
 
-memory_failure() might fail to split thp and in such case it returns
-without completing page isolation.  This is not good because PageHWPoison
-on the thp is still set and there's no easy way to unpoison such thps.  So
-this patch try to roll back any action to the thp in "non anonymous thp"
-case and "thp split failed" case, expecting an MCE(SRAR) generated by
-later access afterward will properly free such thps.
+/usr/src/linux-4.0-chargefirst-v2r1/mm/memcontrol.c                  3.7907   223277
+  __mem_cgroup_count_vm_event                                                  1.143%    67312
+  mem_cgroup_page_lruvec                                                       0.465%    27403
+  mem_cgroup_commit_charge                                                     0.381%    22452
+  uncharge_list                                                                0.332%    19543
+  mem_cgroup_update_lru_size                                                   0.284%    16704
+  get_mem_cgroup_from_mm                                                       0.271%    15952
+  mem_cgroup_try_charge                                                        0.237%    13982
+  memcg_check_events                                                           0.222%    13058
+  mem_cgroup_charge_statistics.isra.22                                         0.185%    10920
+  commit_charge                                                                0.140%     8235
+  try_charge                                                                   0.131%     7716
 
-[akpm@linux-foundation.org: fix CONFIG_HWPOISON_INJECT=m]
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+That brings the overhead down to 3.79% and leaves the memcg fault accounting
+to the root cgroup but it's an improvement. The difference in headline
+performance of the page fault microbench is marginal as memcg is such a
+small component of it.
+
+pft faults
+                                       4.0.0                  4.0.0
+                                     vanilla            chargefirst
+Hmean    faults/cpu-1 1443258.1051 (  0.00%) 1509075.7561 (  4.56%)
+Hmean    faults/cpu-3 1340385.9270 (  0.00%) 1339160.7113 ( -0.09%)
+Hmean    faults/cpu-5  875599.0222 (  0.00%)  874174.1255 ( -0.16%)
+Hmean    faults/cpu-7  601146.6726 (  0.00%)  601370.9977 (  0.04%)
+Hmean    faults/cpu-8  510728.2754 (  0.00%)  510598.8214 ( -0.03%)
+Hmean    faults/sec-1 1432084.7845 (  0.00%) 1497935.5274 (  4.60%)
+Hmean    faults/sec-3 3943818.1437 (  0.00%) 3941920.1520 ( -0.05%)
+Hmean    faults/sec-5 3877573.5867 (  0.00%) 3869385.7553 ( -0.21%)
+Hmean    faults/sec-7 3991832.0418 (  0.00%) 3992181.4189 (  0.01%)
+Hmean    faults/sec-8 3987189.8167 (  0.00%) 3986452.2204 ( -0.02%)
+
+It's only visible at single threaded. The overhead is there for higher
+threads but other factors dominate.
+
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h   |    1 
- mm/hwpoison-inject.c |    4 +--
- mm/memory-failure.c  |   50 ++++++++++++++++++++++++++++++++++++-----
- 3 files changed, 48 insertions(+), 7 deletions(-)
+ mm/memory.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/mm.h~mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling include/linux/mm.h
---- a/include/linux/mm.h~mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling
-+++ a/include/linux/mm.h
-@@ -2146,6 +2146,7 @@ enum mf_flags {
- extern int memory_failure(unsigned long pfn, int trapno, int flags);
- extern void memory_failure_queue(unsigned long pfn, int trapno, int flags);
- extern int unpoison_memory(unsigned long pfn);
-+extern int get_hwpoison_page(struct page *page);
- extern int sysctl_memory_failure_early_kill;
- extern int sysctl_memory_failure_recovery;
- extern void shake_page(struct page *p, int access);
-diff -puN mm/hwpoison-inject.c~mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling mm/hwpoison-inject.c
---- a/mm/hwpoison-inject.c~mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling
-+++ a/mm/hwpoison-inject.c
-@@ -28,7 +28,7 @@ static int hwpoison_inject(void *data, u
- 	/*
- 	 * This implies unable to support free buddy pages.
- 	 */
--	if (!get_page_unless_zero(hpage))
-+	if (!get_hwpoison_page(p))
- 		return 0;
- 
- 	if (!hwpoison_filter_enable)
-@@ -58,7 +58,7 @@ inject:
- 	pr_info("Injecting memory failure at pfn %#lx\n", pfn);
- 	return memory_failure(pfn, 18, MF_COUNT_INCREASED);
- put_out:
--	put_page(hpage);
-+	put_page(p);
- 	return 0;
- }
- 
-diff -puN mm/memory-failure.c~mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling mm/memory-failure.c
---- a/mm/memory-failure.c~mm-memory-failure-introduce-get_hwpoison_page-for-consistent-refcount-handling
-+++ a/mm/memory-failure.c
-@@ -915,6 +915,39 @@ static int page_action(struct page_state
- 	return (result == RECOVERED || result == DELAYED) ? 0 : -EBUSY;
- }
- 
-+/**
-+ * get_hwpoison_page() - Get refcount for memory error handling:
-+ * @page:	raw error page (hit by memory error)
-+ *
-+ * Return: return 0 if failed to grab the refcount, otherwise true (some
-+ * non-zero value.)
-+ */
-+int get_hwpoison_page(struct page *page)
-+{
-+	struct page *head = compound_head(page);
-+
-+	if (PageHuge(head))
-+		return get_page_unless_zero(head);
-+
-+	/*
-+	 * Thp tail page has special refcounting rule (refcount of tail pages
-+	 * is stored in ->_mapcount,) so we can't call get_page_unless_zero()
-+	 * directly for tail pages.
-+	 */
-+	if (PageTransHuge(head)) {
-+		if (get_page_unless_zero(head)) {
-+			if (PageTail(page))
-+				get_page(page);
-+			return 1;
-+		} else {
-+			return 0;
-+		}
-+	}
-+
-+	return get_page_unless_zero(page);
-+}
-+EXPORT_SYMBOL_GPL(get_hwpoison_page);
-+
- /*
-  * Do all that is necessary to remove user space mappings. Unmap
-  * the pages and send SIGBUS to the processes if the data was dirty.
-@@ -1097,8 +1130,7 @@ int memory_failure(unsigned long pfn, in
- 	 * In fact it's dangerous to directly bump up page count from 0,
- 	 * that may make page_freeze_refs()/page_unfreeze_refs() mismatch.
- 	 */
--	if (!(flags & MF_COUNT_INCREASED) &&
--		!get_page_unless_zero(hpage)) {
-+	if (!(flags & MF_COUNT_INCREASED) && !get_hwpoison_page(p)) {
- 		if (is_free_buddy_page(p)) {
- 			action_result(pfn, MSG_BUDDY, DELAYED);
- 			return 0;
-@@ -1130,12 +1162,20 @@ int memory_failure(unsigned long pfn, in
- 	if (!PageHuge(p) && PageTransHuge(hpage)) {
- 		if (!PageAnon(hpage)) {
- 			pr_err("MCE: %#lx: non anonymous thp\n", pfn);
-+			if (TestClearPageHWPoison(p))
-+				atomic_long_sub(nr_pages, &num_poisoned_pages);
- 			put_page(p);
-+			if (p != hpage)
-+				put_page(hpage);
- 			return -EBUSY;
- 		}
- 		if (unlikely(split_huge_page(hpage))) {
- 			pr_err("MCE: %#lx: thp split failed\n", pfn);
-+			if (TestClearPageHWPoison(p))
-+				atomic_long_sub(nr_pages, &num_poisoned_pages);
- 			put_page(p);
-+			if (p != hpage)
-+				put_page(hpage);
- 			return -EBUSY;
- 		}
- 		VM_BUG_ON_PAGE(!page_count(p), p);
-@@ -1413,12 +1453,12 @@ int unpoison_memory(unsigned long pfn)
- 	 */
- 	if (!PageHuge(page) && PageTransHuge(page)) {
- 		pr_info("MCE: Memory failure is now running on %#lx\n", pfn);
--			return 0;
-+		return 0;
+diff -puN mm/memory.c~mm-memcg-try-charging-a-page-before-setting-page-up-to-date mm/memory.c
+--- a/mm/memory.c~mm-memcg-try-charging-a-page-before-setting-page-up-to-date
++++ a/mm/memory.c
+@@ -2081,11 +2081,12 @@ static int wp_page_copy(struct mm_struct
+ 			goto oom;
+ 		cow_user_page(new_page, old_page, address, vma);
  	}
+-	__SetPageUptodate(new_page);
  
- 	nr_pages = 1 << compound_order(page);
+ 	if (mem_cgroup_try_charge(new_page, mm, GFP_KERNEL, &memcg))
+ 		goto oom_free_new;
  
--	if (!get_page_unless_zero(page)) {
-+	if (!get_hwpoison_page(p)) {
- 		/*
- 		 * Since HWPoisoned hugepage should have non-zero refcount,
- 		 * race between memory failure and unpoison seems to happen.
-@@ -1486,7 +1526,7 @@ static int __get_any_page(struct page *p
- 	 * When the target page is a free hugepage, just remove it
- 	 * from free hugepage list.
++	__SetPageUptodate(new_page);
++
+ 	mmu_notifier_invalidate_range_start(mm, mmun_start, mmun_end);
+ 
+ 	/*
+@@ -2689,6 +2690,10 @@ static int do_anonymous_page(struct mm_s
+ 	page = alloc_zeroed_user_highpage_movable(vma, address);
+ 	if (!page)
+ 		goto oom;
++
++	if (mem_cgroup_try_charge(page, mm, GFP_KERNEL, &memcg))
++		goto oom_free_page;
++
+ 	/*
+ 	 * The memory barrier inside __SetPageUptodate makes sure that
+ 	 * preceeding stores to the page contents become visible before
+@@ -2696,9 +2701,6 @@ static int do_anonymous_page(struct mm_s
  	 */
--	if (!get_page_unless_zero(compound_head(p))) {
-+	if (!get_hwpoison_page(p)) {
- 		if (PageHuge(p)) {
- 			pr_info("%s: %#lx free huge page\n", __func__, pfn);
- 			ret = 0;
+ 	__SetPageUptodate(page);
+ 
+-	if (mem_cgroup_try_charge(page, mm, GFP_KERNEL, &memcg))
+-		goto oom_free_page;
+-
+ 	entry = mk_pte(page, vma->vm_page_prot);
+ 	if (vma->vm_flags & VM_WRITE)
+ 		entry = pte_mkwrite(pte_mkdirty(entry));
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from mgorman@suse.de are
 
 origin.patch
+memblock-introduce-a-for_each_reserved_mem_region-iterator.patch
+mm-meminit-move-page-initialization-into-a-separate-function.patch
+mm-meminit-only-set-page-reserved-in-the-memblock-region.patch
+mm-page_alloc-pass-pfn-to-__free_pages_bootmem.patch
+mm-page_alloc-pass-pfn-to-__free_pages_bootmem-fix.patch
+mm-meminit-make-__early_pfn_to_nid-smp-safe-and-introduce-meminit_pfn_in_nid.patch
+mm-meminit-inline-some-helper-functions.patch
+mm-meminit-inline-some-helper-functions-fix.patch
+mm-meminit-inline-some-helper-functions-fix2.patch
+mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set.patch
+mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set-fix.patch
+mm-meminit-initialise-remaining-struct-pages-in-parallel-with-kswapd.patch
+mm-meminit-minimise-number-of-pfn-page-lookups-during-initialisation.patch
+x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
+mm-meminit-free-pages-in-large-chunks-where-possible.patch
+mm-meminit-reduce-number-of-times-pageblocks-are-set-during-struct-page-init.patch
+mm-meminit-reduce-number-of-times-pageblocks-are-set-during-struct-page-init-fix.patch
+mm-meminit-remove-mminit_verify_page_links.patch
+mm-meminit-finish-initialisation-of-struct-pages-before-basic-setup.patch
+mm-meminit-finish-initialisation-of-struct-pages-before-basic-setup-fix.patch
+userfaultfd-linux-documentation-vm-userfaultfdtxt.patch
+userfaultfd-waitqueue-add-nr-wake-parameter-to-__wake_up_locked_key.patch
+userfaultfd-uapi.patch
+userfaultfd-linux-userfaultfd_kh.patch
+userfaultfd-add-vm_userfaultfd_ctx-to-the-vm_area_struct.patch
+userfaultfd-add-vm_uffd_missing-and-vm_uffd_wp.patch
+userfaultfd-call-handle_userfault-for-userfaultfd_missing-faults.patch
+userfaultfd-teach-vma_merge-to-merge-across-vma-vm_userfaultfd_ctx.patch
+userfaultfd-prevent-khugepaged-to-merge-if-userfaultfd-is-armed.patch
+userfaultfd-add-new-syscall-to-provide-memory-externalization.patch
+userfaultfd-rename-uffd_apibits-into-features.patch
+userfaultfd-rename-uffd_apibits-into-features-fixup.patch
+userfaultfd-change-the-read-api-to-return-a-uffd_msg.patch
+userfaultfd-wake-pending-userfaults.patch
+userfaultfd-optimize-read-and-poll-to-be-o1.patch
+userfaultfd-allocate-the-userfaultfd_ctx-cacheline-aligned.patch
+userfaultfd-solve-the-race-between-uffdio_copyzeropage-and-read.patch
+userfaultfd-buildsystem-activation.patch
+userfaultfd-activate-syscall.patch
+userfaultfd-uffdio_copyuffdio_zeropage-uapi.patch
+userfaultfd-mcopy_atomicmfill_zeropage-uffdio_copyuffdio_zeropage-preparation.patch
+userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic.patch
+userfaultfd-uffdio_copy-and-uffdio_zeropage.patch
 page-flags-trivial-cleanup-for-pagetrans-helpers.patch
 page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
 page-flags-define-pg_locked-behavior-on-compound-pages.patch
@@ -215,5 +204,10 @@ page-flags-define-pg_uncached-behavior-on-compound-pages.patch
 page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
 page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
 mm-sanitize-page-mapping-for-tail-pages.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+mm-move-lazy-free-pages-to-inactive-list.patch
+mm-move-lazy-free-pages-to-inactive-list-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+linux-next.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
 
