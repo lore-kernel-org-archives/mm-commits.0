@@ -1,44 +1,40 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-oom_kill-remove-unnecessary-locking-in-exit_oom_victim.patch removed
- from -mm tree
-Date: Mon, 29 Jun 2015 13:38:21 -0700
-Message-ID: <5591acbd.2zPj657ugBQKtPqX%akpm@linux-foundation.org>
+ mm-oom_kill-switch-test-and-clear-of-known-tif_memdie-to-clear.patch
+ removed from -mm tree
+Date: Mon, 29 Jun 2015 13:38:15 -0700
+Message-ID: <5591acb7.lb1vUXa6b7H5CfgJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50400 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50366 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754061AbbF2UiW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:38:22 -0400
+	with ESMTP id S1754109AbbF2UiQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:38:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@cmpxchg.org, aarcange@redhat.com, david@fromorbit.com, mhocko@suse.cz, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: oom_kill: remove unnecessary locking in exit_oom_victim()
+     Subject: mm: oom_kill: switch test-and-clear of known TIF_MEMDIE to clear
 has been removed from the -mm tree.  Its filename was
-     mm-oom_kill-remove-unnecessary-locking-in-exit_oom_victim.patch
+     mm-oom_kill-switch-test-and-clear-of-known-tif_memdie-to-clear.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: oom_kill: remove unnecessary locking in exit_oom_victim()
+Subject: mm: oom_kill: switch test-and-clear of known TIF_MEMDIE to clear
 
-Disabling the OOM killer needs to exclude allocators from entering, not
-existing victims from exiting.
-
-Right now the only waiter is suspend code, which achieves quiescence by
-disabling the OOM killer.  But later on we want to add waits that hold the
-lock instead to stop new victims from showing up.
+exit_oom_victim() already knows that TIF_MEMDIE is set, and nobody else
+can clear it concurrently.  Use clear_thread_flag() directly.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.cz>
 Acked-by: David Rientjes <rientjes@google.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
 Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Dave Chinner <david@fromorbit.com>
@@ -46,23 +42,22 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/oom_kill.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN mm/oom_kill.c~mm-oom_kill-remove-unnecessary-locking-in-exit_oom_victim mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom_kill-remove-unnecessary-locking-in-exit_oom_victim
+diff -puN mm/oom_kill.c~mm-oom_kill-switch-test-and-clear-of-known-tif_memdie-to-clear mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom_kill-switch-test-and-clear-of-known-tif_memdie-to-clear
 +++ a/mm/oom_kill.c
-@@ -437,10 +437,8 @@ void exit_oom_victim(void)
+@@ -435,8 +435,7 @@ void mark_oom_victim(struct task_struct
+  */
+ void exit_oom_victim(void)
  {
- 	clear_thread_flag(TIF_MEMDIE);
+-	if (!test_and_clear_thread_flag(TIF_MEMDIE))
+-		return;
++	clear_thread_flag(TIF_MEMDIE);
  
--	down_read(&oom_sem);
- 	if (!atomic_dec_return(&oom_victims))
- 		wake_up_all(&oom_victims_wait);
--	up_read(&oom_sem);
- }
- 
- /**
+ 	down_read(&oom_sem);
+ 	/*
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
