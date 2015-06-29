@@ -1,181 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- printk-guard-the-amount-written-per-line-by-devkmsg_read.patch removed from -mm tree
-Date: Mon, 29 Jun 2015 13:47:16 -0700
-Message-ID: <5591aed4.XIph0vwshDmL9Fot%akpm@linux-foundation.org>
+Subject: [merged] netconsole-make-netconsole_target-enabled-a-bool.patch
+ removed from -mm tree
+Date: Mon, 29 Jun 2015 13:47:24 -0700
+Message-ID: <5591aedc.dUyuMY1nf+FRHukX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50775 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50781 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754133AbbF2UrU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:47:20 -0400
+	with ESMTP id S1753967AbbF2UrY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:47:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: tj@kernel.org, davem@davemloft.net, kay@vrfy.org, penguin-kernel@I-love.SAKURA.ne.jp, pmladek@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: printk: guard the amount written per line by devkmsg_read()
+     Subject: netconsole: make netconsole_target->enabled a bool
 has been removed from the -mm tree.  Its filename was
-     printk-guard-the-amount-written-per-line-by-devkmsg_read.patch
+     netconsole-make-netconsole_target-enabled-a-bool.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Tejun Heo <tj@kernel.org>
-Subject: printk: guard the amount written per line by devkmsg_read()
+Subject: netconsole: make netconsole_target->enabled a bool
 
-This patchset updates netconsole so that it can emit messages with the
-same header as used in /dev/kmsg which gives neconsole receiver full
-log information which enables things like structured logging and
-detection of lost messages.
-
-
-This patch (of 7):
-
-devkmsg_read() uses 8k buffer and assumes that the formatted output
-message won't overrun which seems safe given LOG_LINE_MAX, the current use
-of dict and the escaping method being used; however, we're planning to use
-devkmsg formatting wider and accounting for the buffer size properly isn't
-that complicated.
-
-This patch defines CONSOLE_EXT_LOG_MAX as 8192 and updates devkmsg_read()
-so that it limits output accordingly.
+netconsole uses both bool and int for boolean values.  Let's convert
+nt->enabled to bool for consistency.
 
 Signed-off-by: Tejun Heo <tj@kernel.org>
 Cc: David Miller <davem@davemloft.net>
 Cc: Kay Sievers <kay@vrfy.org>
-Reviewed-by: Petr Mladek <pmladek@suse.cz>
+Cc: Petr Mladek <pmladek@suse.cz>
 Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/printk.h |    2 ++
- kernel/printk/printk.c |   34 ++++++++++++++++++++++------------
- 2 files changed, 24 insertions(+), 12 deletions(-)
+ drivers/net/netconsole.c |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/printk.h~printk-guard-the-amount-written-per-line-by-devkmsg_read include/linux/printk.h
---- a/include/linux/printk.h~printk-guard-the-amount-written-per-line-by-devkmsg_read
-+++ a/include/linux/printk.h
-@@ -30,6 +30,8 @@ static inline const char *printk_skip_le
- 	return buffer;
- }
- 
-+#define CONSOLE_EXT_LOG_MAX	8192
-+
- /* printk's without a loglevel use this.. */
- #define MESSAGE_LOGLEVEL_DEFAULT CONFIG_MESSAGE_LOGLEVEL_DEFAULT
- 
-diff -puN kernel/printk/printk.c~printk-guard-the-amount-written-per-line-by-devkmsg_read kernel/printk/printk.c
---- a/kernel/printk/printk.c~printk-guard-the-amount-written-per-line-by-devkmsg_read
-+++ a/kernel/printk/printk.c
-@@ -505,6 +505,11 @@ int check_syslog_permissions(int type, b
- 	return security_syslog(type);
- }
- 
-+static void append_char(char **pp, char *e, char c)
-+{
-+	if (*pp < e)
-+		*(*pp)++ = c;
-+}
- 
- /* /dev/kmsg - userspace message inject/listen interface */
- struct devkmsg_user {
-@@ -512,7 +517,7 @@ struct devkmsg_user {
- 	u32 idx;
- 	enum log_flags prev;
- 	struct mutex lock;
--	char buf[8192];
-+	char buf[CONSOLE_EXT_LOG_MAX];
+diff -puN drivers/net/netconsole.c~netconsole-make-netconsole_target-enabled-a-bool drivers/net/netconsole.c
+--- a/drivers/net/netconsole.c~netconsole-make-netconsole_target-enabled-a-bool
++++ a/drivers/net/netconsole.c
+@@ -104,7 +104,7 @@ struct netconsole_target {
+ #ifdef	CONFIG_NETCONSOLE_DYNAMIC
+ 	struct config_item	item;
+ #endif
+-	int			enabled;
++	bool			enabled;
+ 	struct mutex		mutex;
+ 	struct netpoll		np;
  };
+@@ -197,7 +197,7 @@ static struct netconsole_target *alloc_p
+ 	if (err)
+ 		goto fail;
  
- static ssize_t devkmsg_write(struct kiocb *iocb, struct iov_iter *from)
-@@ -570,6 +575,7 @@ static ssize_t devkmsg_read(struct file
- {
- 	struct devkmsg_user *user = file->private_data;
- 	struct printk_log *msg;
-+	char *p, *e;
- 	u64 ts_usec;
- 	size_t i;
- 	char cont = '-';
-@@ -579,6 +585,9 @@ static ssize_t devkmsg_read(struct file
- 	if (!user)
- 		return -EBADF;
+-	nt->enabled = 1;
++	nt->enabled = true;
  
-+	p = user->buf;
-+	e = user->buf + sizeof(user->buf);
-+
- 	ret = mutex_lock_interruptible(&user->lock);
- 	if (ret)
- 		return ret;
-@@ -625,9 +634,9 @@ static ssize_t devkmsg_read(struct file
- 		 ((user->prev & LOG_CONT) && !(msg->flags & LOG_PREFIX)))
- 		cont = '+';
+ 	return nt;
  
--	len = sprintf(user->buf, "%u,%llu,%llu,%c;",
--		      (msg->facility << 3) | msg->level,
--		      user->seq, ts_usec, cont);
-+	p += scnprintf(p, e - p, "%u,%llu,%llu,%c;",
-+		       (msg->facility << 3) | msg->level,
-+		       user->seq, ts_usec, cont);
- 	user->prev = msg->flags;
- 
- 	/* escape non-printable characters */
-@@ -635,11 +644,11 @@ static ssize_t devkmsg_read(struct file
- 		unsigned char c = log_text(msg)[i];
- 
- 		if (c < ' ' || c >= 127 || c == '\\')
--			len += sprintf(user->buf + len, "\\x%02x", c);
-+			p += scnprintf(p, e - p, "\\x%02x", c);
- 		else
--			user->buf[len++] = c;
-+			append_char(&p, e, c);
- 	}
--	user->buf[len++] = '\n';
-+	append_char(&p, e, '\n');
- 
- 	if (msg->dict_len) {
- 		bool line = true;
-@@ -648,30 +657,31 @@ static ssize_t devkmsg_read(struct file
- 			unsigned char c = log_dict(msg)[i];
- 
- 			if (line) {
--				user->buf[len++] = ' ';
-+				append_char(&p, e, ' ');
- 				line = false;
- 			}
- 
- 			if (c == '\0') {
--				user->buf[len++] = '\n';
-+				append_char(&p, e, '\n');
- 				line = true;
- 				continue;
- 			}
- 
- 			if (c < ' ' || c >= 127 || c == '\\') {
--				len += sprintf(user->buf + len, "\\x%02x", c);
-+				p += scnprintf(p, e - p, "\\x%02x", c);
- 				continue;
- 			}
- 
--			user->buf[len++] = c;
-+			append_char(&p, e, c);
- 		}
--		user->buf[len++] = '\n';
-+		append_char(&p, e, '\n');
+@@ -322,13 +322,13 @@ static ssize_t store_enabled(struct netc
+ 		return err;
+ 	if (enabled < 0 || enabled > 1)
+ 		return -EINVAL;
+-	if (enabled == nt->enabled) {
++	if ((bool)enabled == nt->enabled) {
+ 		pr_info("network logging has already %s\n",
+ 			nt->enabled ? "started" : "stopped");
+ 		return -EINVAL;
  	}
  
- 	user->idx = log_next(user->idx);
- 	user->seq++;
- 	raw_spin_unlock_irq(&logbuf_lock);
+-	if (enabled) {	/* 1 */
++	if (enabled) {	/* true */
+ 		/*
+ 		 * Skip netpoll_parse_options() -- all the attributes are
+ 		 * already configured via configfs. Just print them out.
+@@ -340,13 +340,13 @@ static ssize_t store_enabled(struct netc
+ 			return err;
  
-+	len = p - user->buf;
- 	if (len > count) {
- 		ret = -EINVAL;
- 		goto out;
+ 		pr_info("netconsole: network logging started\n");
+-	} else {	/* 0 */
++	} else {	/* false */
+ 		/* We need to disable the netconsole before cleaning it up
+ 		 * otherwise we might end up in write_msg() with
+-		 * nt->np.dev == NULL and nt->enabled == 1
++		 * nt->np.dev == NULL and nt->enabled == true
+ 		 */
+ 		spin_lock_irqsave(&target_list_lock, flags);
+-		nt->enabled = 0;
++		nt->enabled = false;
+ 		spin_unlock_irqrestore(&target_list_lock, flags);
+ 		netpoll_cleanup(&nt->np);
+ 	}
+@@ -594,7 +594,7 @@ static struct config_item *make_netconso
+ 
+ 	/*
+ 	 * Allocate and initialize with defaults.
+-	 * Target is disabled at creation (enabled == 0).
++	 * Target is disabled at creation (!enabled).
+ 	 */
+ 	nt = kzalloc(sizeof(*nt), GFP_KERNEL);
+ 	if (!nt)
+@@ -695,7 +695,7 @@ restart:
+ 				spin_lock_irqsave(&target_list_lock, flags);
+ 				dev_put(nt->np.dev);
+ 				nt->np.dev = NULL;
+-				nt->enabled = 0;
++				nt->enabled = false;
+ 				stopped = true;
+ 				netconsole_target_put(nt);
+ 				goto restart;
 _
 
 Patches currently in -mm which might be from tj@kernel.org are
