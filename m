@@ -1,116 +1,158 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- s390-mm-make-hugepages_supported-a-boot-time-decision.patch removed from
- -mm tree
-Date: Mon, 29 Jun 2015 13:39:38 -0700
-Message-ID: <5591ad0a.sUZG0j7sr7BCd0ax%akpm@linux-foundation.org>
+ mm-kmemleak_alloc_percpu-should-follow-the-gfp-from-per_alloc.patch removed from -mm tree
+Date: Mon, 29 Jun 2015 13:39:35 -0700
+Message-ID: <5591ad07.iIBsyD1m8LFoQ8Rb%akpm__6200.36303666911$1435610425$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50541 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50576 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754150AbbF2Ujj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:39:39 -0400
+	with ESMTP id S1751080AbbF2Ujg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:39:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dingel@linux.vnet.ibm.com, borntraeger@de.ibm.com, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: Larry.Finger@lwfinger.net, catalin.marinas@arm.com, cl@linux-foundation.org, kafai@fb.com, kamalesh@linux.vnet.ibm.com, stable@vger.kernel.org, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: s390/mm: make hugepages_supported a boot time decision
+     Subject: mm: kmemleak_alloc_percpu() should follow the gfp from per_alloc()
 has been removed from the -mm tree.  Its filename was
-     s390-mm-make-hugepages_supported-a-boot-time-decision.patch
+     mm-kmemleak_alloc_percpu-should-follow-the-gfp-from-per_alloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dominik Dingel <dingel@linux.vnet.ibm.com>
-Subject: s390/mm: make hugepages_supported a boot time decision
+From: Larry Finger <Larry.Finger@lwfinger.net>
+Subject: mm: kmemleak_alloc_percpu() should follow the gfp from per_alloc()
 
-There is a potential bug with KVM and hugetlbfs if the hardware does not
-support hugepages (EDAT1).  We fix this by making EDAT1 a hard requirement
-for hugepages and therefore removing and simplifying code.
+Beginning at commit d52d3997f843 ("ipv6: Create percpu rt6_info"), the
+following INFO splat is logged:
 
-As s390, with the sw-emulated hugepages, was the only user of
-arch_prepare/release_hugepage I also removed theses calls from common and
-other architecture code.
+===============================
+[ INFO: suspicious RCU usage. ]
+4.1.0-rc7-next-20150612 #1 Not tainted
+-------------------------------
+kernel/sched/core.c:7318 Illegal context switch in RCU-bh read-side critical section!
+other info that might help us debug this:
+rcu_scheduler_active = 1, debug_locks = 0
+ 3 locks held by systemd/1:
+ #0:  (rtnl_mutex){+.+.+.}, at: [<ffffffff815f0c8f>] rtnetlink_rcv+0x1f/0x40
+ #1:  (rcu_read_lock_bh){......}, at: [<ffffffff816a34e2>] ipv6_add_addr+0x62/0x540
+ #2:  (addrconf_hash_lock){+...+.}, at: [<ffffffff816a3604>] ipv6_add_addr+0x184/0x540
+stack backtrace:
+CPU: 0 PID: 1 Comm: systemd Not tainted 4.1.0-rc7-next-20150612 #1
+Hardware name: TOSHIBA TECRA A50-A/TECRA A50-A, BIOS Version 4.20   04/17/2014
+ 0000000000000001 ffff880224e07838 ffffffff817263a4 ffffffff810ccf2a
+ ffff880224e08000 ffff880224e07868 ffffffff810b6827 0000000000000000
+ ffffffff81a445d3 00000000000004f4 ffff88022682e100 ffff880224e07898
+Call Trace:
+ [<ffffffff817263a4>] dump_stack+0x4c/0x6e
+ [<ffffffff810ccf2a>] ? console_unlock+0x1ca/0x510
+ [<ffffffff810b6827>] lockdep_rcu_suspicious+0xe7/0x120
+ [<ffffffff8108cf05>] ___might_sleep+0x1d5/0x1f0
+ [<ffffffff8108cf6d>] __might_sleep+0x4d/0x90
+ [<ffffffff811f3789>] ? create_object+0x39/0x2e0
+ [<ffffffff811da427>] kmem_cache_alloc+0x47/0x250
+ [<ffffffff813c19ae>] ? find_next_zero_bit+0x1e/0x20
+ [<ffffffff811f3789>] create_object+0x39/0x2e0
+ [<ffffffff810b7eb6>] ? mark_held_locks+0x66/0x90
+ [<ffffffff8172efab>] ? _raw_spin_unlock_irqrestore+0x4b/0x60
+ [<ffffffff817193c1>] kmemleak_alloc_percpu+0x61/0xe0
+ [<ffffffff811a26f0>] pcpu_alloc+0x370/0x630
 
+Additional backtrace lines are truncated.  In addition, the above splat is
+followed by several "BUG: sleeping function called from invalid context at
+mm/slub.c:1268" outputs.  As suggested by Martin KaFai Lau, these are the
+clue to the fix.  Routine kmemleak_alloc_percpu() always uses GFP_KERNEL
+for its allocations, whereas it should follow the gfp from its callers.
 
-This patch (of 5):
-
-By dropping support for hugepages on machines which do not have the
-hardware feature EDAT1, we fix a potential s390 KVM bug.
-
-The bug would happen if a guest is backed by hugetlbfs (not supported
-currently), but does not get pagetables with PGSTE.  This would lead to
-random memory overwrites.
-
-Signed-off-by: Dominik Dingel <dingel@linux.vnet.ibm.com>
-Acked-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Reviewed-by: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
+Acked-by: Martin KaFai Lau <kafai@fb.com>
+Signed-off-by: Larry Finger <Larry.Finger@lwfinger.net>
+Cc: Martin KaFai Lau <kafai@fb.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Christoph Lameter <cl@linux-foundation.org>
+Cc: <stable@vger.kernel.org>	[3.18+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/page.h |    8 ++++----
- arch/s390/kernel/setup.c     |    2 ++
- arch/s390/mm/pgtable.c       |    2 ++
- 3 files changed, 8 insertions(+), 4 deletions(-)
+ include/linux/kmemleak.h |    6 ++++--
+ mm/kmemleak.c            |    9 +++++----
+ mm/percpu.c              |    2 +-
+ 3 files changed, 10 insertions(+), 7 deletions(-)
 
-diff -puN arch/s390/include/asm/page.h~s390-mm-make-hugepages_supported-a-boot-time-decision arch/s390/include/asm/page.h
---- a/arch/s390/include/asm/page.h~s390-mm-make-hugepages_supported-a-boot-time-decision
-+++ a/arch/s390/include/asm/page.h
-@@ -17,7 +17,10 @@
- #define PAGE_DEFAULT_ACC	0
- #define PAGE_DEFAULT_KEY	(PAGE_DEFAULT_ACC << 4)
- 
--#define HPAGE_SHIFT	20
-+#include <asm/setup.h>
-+#ifndef __ASSEMBLY__
-+
-+extern unsigned int HPAGE_SHIFT;
- #define HPAGE_SIZE	(1UL << HPAGE_SHIFT)
- #define HPAGE_MASK	(~(HPAGE_SIZE - 1))
- #define HUGETLB_PAGE_ORDER	(HPAGE_SHIFT - PAGE_SHIFT)
-@@ -27,9 +30,6 @@
- #define ARCH_HAS_PREPARE_HUGEPAGE
- #define ARCH_HAS_HUGEPAGE_CLEAR_FLUSH
- 
--#include <asm/setup.h>
--#ifndef __ASSEMBLY__
--
- static inline void storage_key_init_range(unsigned long start, unsigned long end)
+diff -puN include/linux/kmemleak.h~mm-kmemleak_alloc_percpu-should-follow-the-gfp-from-per_alloc include/linux/kmemleak.h
+--- a/include/linux/kmemleak.h~mm-kmemleak_alloc_percpu-should-follow-the-gfp-from-per_alloc
++++ a/include/linux/kmemleak.h
+@@ -28,7 +28,8 @@
+ extern void kmemleak_init(void) __ref;
+ extern void kmemleak_alloc(const void *ptr, size_t size, int min_count,
+ 			   gfp_t gfp) __ref;
+-extern void kmemleak_alloc_percpu(const void __percpu *ptr, size_t size) __ref;
++extern void kmemleak_alloc_percpu(const void __percpu *ptr, size_t size,
++				  gfp_t gfp) __ref;
+ extern void kmemleak_free(const void *ptr) __ref;
+ extern void kmemleak_free_part(const void *ptr, size_t size) __ref;
+ extern void kmemleak_free_percpu(const void __percpu *ptr) __ref;
+@@ -71,7 +72,8 @@ static inline void kmemleak_alloc_recurs
+ 					    gfp_t gfp)
  {
- #if PAGE_DEFAULT_KEY
-diff -puN arch/s390/kernel/setup.c~s390-mm-make-hugepages_supported-a-boot-time-decision arch/s390/kernel/setup.c
---- a/arch/s390/kernel/setup.c~s390-mm-make-hugepages_supported-a-boot-time-decision
-+++ a/arch/s390/kernel/setup.c
-@@ -880,6 +880,8 @@ void __init setup_arch(char **cmdline_p)
- 	 */
- 	setup_hwcaps();
- 
-+	HPAGE_SHIFT = MACHINE_HAS_HPAGE ? 20 : 0;
-+
- 	/*
- 	 * Create kernel page tables and switch to virtual addressing.
- 	 */
-diff -puN arch/s390/mm/pgtable.c~s390-mm-make-hugepages_supported-a-boot-time-decision arch/s390/mm/pgtable.c
---- a/arch/s390/mm/pgtable.c~s390-mm-make-hugepages_supported-a-boot-time-decision
-+++ a/arch/s390/mm/pgtable.c
-@@ -31,6 +31,8 @@
- #define ALLOC_ORDER	2
- #define FRAG_MASK	0x03
- 
-+unsigned int HPAGE_SHIFT;
-+
- unsigned long *crst_table_alloc(struct mm_struct *mm)
+ }
+-static inline void kmemleak_alloc_percpu(const void __percpu *ptr, size_t size)
++static inline void kmemleak_alloc_percpu(const void __percpu *ptr, size_t size,
++					 gfp_t gfp)
  {
- 	struct page *page = alloc_pages(GFP_KERNEL, ALLOC_ORDER);
+ }
+ static inline void kmemleak_free(const void *ptr)
+diff -puN mm/kmemleak.c~mm-kmemleak_alloc_percpu-should-follow-the-gfp-from-per_alloc mm/kmemleak.c
+--- a/mm/kmemleak.c~mm-kmemleak_alloc_percpu-should-follow-the-gfp-from-per_alloc
++++ a/mm/kmemleak.c
+@@ -930,12 +930,13 @@ EXPORT_SYMBOL_GPL(kmemleak_alloc);
+  * kmemleak_alloc_percpu - register a newly allocated __percpu object
+  * @ptr:	__percpu pointer to beginning of the object
+  * @size:	size of the object
++ * @gfp:	flags used for kmemleak internal memory allocations
+  *
+  * This function is called from the kernel percpu allocator when a new object
+- * (memory block) is allocated (alloc_percpu). It assumes GFP_KERNEL
+- * allocation.
++ * (memory block) is allocated (alloc_percpu).
+  */
+-void __ref kmemleak_alloc_percpu(const void __percpu *ptr, size_t size)
++void __ref kmemleak_alloc_percpu(const void __percpu *ptr, size_t size,
++				 gfp_t gfp)
+ {
+ 	unsigned int cpu;
+ 
+@@ -948,7 +949,7 @@ void __ref kmemleak_alloc_percpu(const v
+ 	if (kmemleak_enabled && ptr && !IS_ERR(ptr))
+ 		for_each_possible_cpu(cpu)
+ 			create_object((unsigned long)per_cpu_ptr(ptr, cpu),
+-				      size, 0, GFP_KERNEL);
++				      size, 0, gfp);
+ 	else if (kmemleak_early_log)
+ 		log_early(KMEMLEAK_ALLOC_PERCPU, ptr, size, 0);
+ }
+diff -puN mm/percpu.c~mm-kmemleak_alloc_percpu-should-follow-the-gfp-from-per_alloc mm/percpu.c
+--- a/mm/percpu.c~mm-kmemleak_alloc_percpu-should-follow-the-gfp-from-per_alloc
++++ a/mm/percpu.c
+@@ -1030,7 +1030,7 @@ area_found:
+ 		memset((void *)pcpu_chunk_addr(chunk, cpu, 0) + off, 0, size);
+ 
+ 	ptr = __addr_to_pcpu_ptr(chunk->base_addr + off);
+-	kmemleak_alloc_percpu(ptr, size);
++	kmemleak_alloc_percpu(ptr, size, gfp);
+ 	return ptr;
+ 
+ fail_unlock:
 _
 
-Patches currently in -mm which might be from dingel@linux.vnet.ibm.com are
+Patches currently in -mm which might be from Larry.Finger@lwfinger.net are
 
 origin.patch
 
