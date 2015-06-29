@@ -1,131 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-firmware-memmapc-fix-kernel-doc-format.patch
- removed from -mm tree
-Date: Mon, 29 Jun 2015 13:48:22 -0700
-Message-ID: <5591af16.NEsbGejOt1c5mMub%akpm@linux-foundation.org>
+Subject: [merged]
+ bitmap-remove-explicit-newline-handling-using-scnprintf-format-string.patch removed from -mm tree
+Date: Mon, 29 Jun 2015 13:48:00 -0700
+Message-ID: <5591af00.zq8EpZs8q3t07tYg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50943 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50910 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754248AbbF2Us0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:48:26 -0400
+	with ESMTP id S1753570AbbF2UsB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:48:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: michal.simek@xilinx.com, isimatu.yasuaki@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: sudeep.holla@arm.com, Pawel.Moll@arm.com, peterz@infradead.org, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/firmware/memmap.c: fix kernel-doc format
+     Subject: bitmap: remove explicit newline handling using scnprintf format string
 has been removed from the -mm tree.  Its filename was
-     drivers-firmware-memmapc-fix-kernel-doc-format.patch
+     bitmap-remove-explicit-newline-handling-using-scnprintf-format-string.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Simek <michal.simek@xilinx.com>
-Subject: drivers/firmware/memmap.c: fix kernel-doc format
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: bitmap: remove explicit newline handling using scnprintf format string
 
-Fix kernel-doc format validation to be able to use kernel-doc script for
-checking it.
+bitmap_print_to_pagebuf uses scnprintf to copy the cpumask/list to page
+buffer.  It handles the newline and trailing null character explicitly.
 
-Signed-off-by: Michal Simek <michal.simek@xilinx.com>
-Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+It's unnecessary and also partially duplicated as scnprintf already adds
+trailing null character.  The newline can be passed through format string
+to scnprintf.  This patch does that simplification.
+
+However theoretically there's one behavior difference: when the buffer is
+too small, the original code would still output '\n' at the end while the
+new code(with this patch) would just continue to print the formatted
+string.  Since this function is dealing with only page buffers, it's
+highly unlikely to hit that corner case.
+
+This patch will help in auditing the users of bitmap_print_to_pagebuf
+to verify that the buffer passed is large enough and get rid of it
+completely by replacing them with direct scnprintf()
+
+[akpm@linux-foundation.org: tweak comment]
+Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+Suggested-by: Pawel Moll <Pawel.Moll@arm.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: "Peter Zijlstra (Intel)" <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/memmap.c |   24 +++++++++++++-----------
- 1 file changed, 13 insertions(+), 11 deletions(-)
+ lib/bitmap.c |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
-diff -puN drivers/firmware/memmap.c~drivers-firmware-memmapc-fix-kernel-doc-format drivers/firmware/memmap.c
---- a/drivers/firmware/memmap.c~drivers-firmware-memmapc-fix-kernel-doc-format
-+++ a/drivers/firmware/memmap.c
-@@ -144,7 +144,9 @@ static struct kobj_type __refdata memmap
-  *
-  * Common implementation of firmware_map_add() and firmware_map_add_early()
-  * which expects a pre-allocated struct firmware_map_entry.
-- **/
+diff -puN lib/bitmap.c~bitmap-remove-explicit-newline-handling-using-scnprintf-format-string lib/bitmap.c
+--- a/lib/bitmap.c~bitmap-remove-explicit-newline-handling-using-scnprintf-format-string
++++ a/lib/bitmap.c
+@@ -462,19 +462,20 @@ EXPORT_SYMBOL(bitmap_parse_user);
+  * Output format is a comma-separated list of decimal numbers and
+  * ranges if list is specified or hex digits grouped into comma-separated
+  * sets of 8 digits/set. Returns the number of characters written to buf.
 + *
-+ * Return: 0 always
-+ */
- static int firmware_map_add_entry(u64 start, u64 end,
- 				  const char *type,
- 				  struct firmware_map_entry *entry)
-@@ -170,7 +172,7 @@ static int firmware_map_add_entry(u64 st
-  * @entry: removed entry.
-  *
-  * The caller must hold map_entries_lock, and release it properly.
-- **/
-+ */
- static inline void firmware_map_remove_entry(struct firmware_map_entry *entry)
++ * It is assumed that @buf is a pointer into a PAGE_SIZE area and that
++ * sufficient storage remains at @buf to accommodate the
++ * bitmap_print_to_pagebuf() output.
+  */
+ int bitmap_print_to_pagebuf(bool list, char *buf, const unsigned long *maskp,
+ 			    int nmaskbits)
  {
- 	list_del(&entry->list);
-@@ -208,7 +210,7 @@ static inline void remove_sysfs_fw_map_e
- 	kobject_put(&entry->kobj);
- }
+-	ptrdiff_t len = PTR_ALIGN(buf + PAGE_SIZE - 1, PAGE_SIZE) - buf - 2;
++	ptrdiff_t len = PTR_ALIGN(buf + PAGE_SIZE - 1, PAGE_SIZE) - buf;
+ 	int n = 0;
  
--/*
-+/**
-  * firmware_map_find_entry_in_list() - Search memmap entry in a given list.
-  * @start: Start of the memory range.
-  * @end:   End of the memory range (exclusive).
-@@ -236,7 +238,7 @@ firmware_map_find_entry_in_list(u64 star
- 	return NULL;
+-	if (len > 1) {
+-		n = list ? scnprintf(buf, len, "%*pbl", nmaskbits, maskp) :
+-			   scnprintf(buf, len, "%*pb", nmaskbits, maskp);
+-		buf[n++] = '\n';
+-		buf[n] = '\0';
+-	}
++	if (len > 1)
++		n = list ? scnprintf(buf, len, "%*pbl\n", nmaskbits, maskp) :
++			   scnprintf(buf, len, "%*pb\n", nmaskbits, maskp);
+ 	return n;
  }
- 
--/*
-+/**
-  * firmware_map_find_entry() - Search memmap entry in map_entries.
-  * @start: Start of the memory range.
-  * @end:   End of the memory range (exclusive).
-@@ -254,7 +256,7 @@ firmware_map_find_entry(u64 start, u64 e
- 	return firmware_map_find_entry_in_list(start, end, type, &map_entries);
- }
- 
--/*
-+/**
-  * firmware_map_find_entry_bootmem() - Search memmap entry in map_entries_bootmem.
-  * @start: Start of the memory range.
-  * @end:   End of the memory range (exclusive).
-@@ -283,8 +285,8 @@ firmware_map_find_entry_bootmem(u64 star
-  * similar to function firmware_map_add_early(). The only difference is that
-  * it will create the syfs entry dynamically.
-  *
-- * Returns 0 on success, or -ENOMEM if no memory could be allocated.
-- **/
-+ * Return: 0 on success, or -ENOMEM if no memory could be allocated.
-+ */
- int __meminit firmware_map_add_hotplug(u64 start, u64 end, const char *type)
- {
- 	struct firmware_map_entry *entry;
-@@ -325,8 +327,8 @@ int __meminit firmware_map_add_hotplug(u
-  *
-  * That function must be called before late_initcall.
-  *
-- * Returns 0 on success, or -ENOMEM if no memory could be allocated.
-- **/
-+ * Return: 0 on success, or -ENOMEM if no memory could be allocated.
-+ */
- int __init firmware_map_add_early(u64 start, u64 end, const char *type)
- {
- 	struct firmware_map_entry *entry;
-@@ -346,8 +348,8 @@ int __init firmware_map_add_early(u64 st
-  *
-  * removes a firmware mapping entry.
-  *
-- * Returns 0 on success, or -EINVAL if no entry.
-- **/
-+ * Return: 0 on success, or -EINVAL if no entry.
-+ */
- int __meminit firmware_map_remove(u64 start, u64 end, const char *type)
- {
- 	struct firmware_map_entry *entry;
+ EXPORT_SYMBOL(bitmap_print_to_pagebuf);
 _
 
-Patches currently in -mm which might be from michal.simek@xilinx.com are
+Patches currently in -mm which might be from sudeep.holla@arm.com are
 
 origin.patch
-linux-next.patch
 
