@@ -1,73 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ocfs2-use-swap-in-swap_refcount_rec.patch removed from
+Subject: [merged] ocfs2-mark-local-functions-as-static.patch removed from
  -mm tree
-Date: Mon, 29 Jun 2015 13:36:51 -0700
-Message-ID: <5591ac63.mrdHVMzEXVWdVWPQ%akpm@linux-foundation.org>
+Date: Mon, 29 Jun 2015 13:36:55 -0700
+Message-ID: <5591ac67.7bMAg1FgxE0z/k7j%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50175 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50185 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753976AbbF2Ugw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:36:52 -0400
+	with ESMTP id S1753755AbbF2Ug4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:36:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, jlbec@evilplan.org, julia.lawall@lip6.fr, mfasheh@suse.com, mm-commits@vger.kernel.org
+To: joseph.qi@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: use swap() in swap_refcount_rec()
+     Subject: ocfs2: mark local functions as static
 has been removed from the -mm tree.  Its filename was
-     ocfs2-use-swap-in-swap_refcount_rec.patch
+     ocfs2-mark-local-functions-as-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: ocfs2: use swap() in swap_refcount_rec()
+From: Joseph Qi <joseph.qi@huawei.com>
+Subject: ocfs2: mark local functions as static
 
-Use kernel.h macro definition.
+Some functions are only used locally, so mark them as static.
 
-Thanks to Julia Lawall for Coccinelle scripting support.
-
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
-Cc: Julia Lawall <julia.lawall@lip6.fr>
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
 Cc: Mark Fasheh <mfasheh@suse.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/refcounttree.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ fs/ocfs2/journal.c |   10 +++++-----
+ fs/ocfs2/xattr.c   |    2 +-
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN fs/ocfs2/refcounttree.c~ocfs2-use-swap-in-swap_refcount_rec fs/ocfs2/refcounttree.c
---- a/fs/ocfs2/refcounttree.c~ocfs2-use-swap-in-swap_refcount_rec
-+++ a/fs/ocfs2/refcounttree.c
-@@ -1406,11 +1406,9 @@ static int cmp_refcount_rec_by_cpos(cons
+diff -puN fs/ocfs2/journal.c~ocfs2-mark-local-functions-as-static fs/ocfs2/journal.c
+--- a/fs/ocfs2/journal.c~ocfs2-mark-local-functions-as-static
++++ a/fs/ocfs2/journal.c
+@@ -108,7 +108,7 @@ struct ocfs2_replay_map {
+ 	unsigned char rm_replay_slots[0];
+ };
  
- static void swap_refcount_rec(void *a, void *b, int size)
+-void ocfs2_replay_map_set_state(struct ocfs2_super *osb, int state)
++static void ocfs2_replay_map_set_state(struct ocfs2_super *osb, int state)
  {
--	struct ocfs2_refcount_rec *l = a, *r = b, tmp;
-+	struct ocfs2_refcount_rec *l = a, *r = b;
- 
--	tmp = *l;
--	*l = *r;
--	*r = tmp;
-+	swap(*l, *r);
+ 	if (!osb->replay_map)
+ 		return;
+@@ -153,7 +153,7 @@ int ocfs2_compute_replay_slots(struct oc
+ 	return 0;
  }
  
- /*
+-void ocfs2_queue_replay_slots(struct ocfs2_super *osb,
++static void ocfs2_queue_replay_slots(struct ocfs2_super *osb,
+ 		enum ocfs2_orphan_reco_type orphan_reco_type)
+ {
+ 	struct ocfs2_replay_map *replay_map = osb->replay_map;
+@@ -173,7 +173,7 @@ void ocfs2_queue_replay_slots(struct ocf
+ 	replay_map->rm_state = REPLAY_DONE;
+ }
+ 
+-void ocfs2_free_replay_slots(struct ocfs2_super *osb)
++static void ocfs2_free_replay_slots(struct ocfs2_super *osb)
+ {
+ 	struct ocfs2_replay_map *replay_map = osb->replay_map;
+ 
+@@ -1895,7 +1895,7 @@ static inline unsigned long ocfs2_orphan
+  * hasn't happened.  The node queues a scan and increments the
+  * sequence number in the LVB.
+  */
+-void ocfs2_queue_orphan_scan(struct ocfs2_super *osb)
++static void ocfs2_queue_orphan_scan(struct ocfs2_super *osb)
+ {
+ 	struct ocfs2_orphan_scan *os;
+ 	int status, i;
+@@ -1944,7 +1944,7 @@ out:
+ }
+ 
+ /* Worker task that gets fired every ORPHAN_SCAN_SCHEDULE_TIMEOUT millsec */
+-void ocfs2_orphan_scan_work(struct work_struct *work)
++static void ocfs2_orphan_scan_work(struct work_struct *work)
+ {
+ 	struct ocfs2_orphan_scan *os;
+ 	struct ocfs2_super *osb;
+diff -puN fs/ocfs2/xattr.c~ocfs2-mark-local-functions-as-static fs/ocfs2/xattr.c
+--- a/fs/ocfs2/xattr.c~ocfs2-mark-local-functions-as-static
++++ a/fs/ocfs2/xattr.c
+@@ -7271,7 +7271,7 @@ static int ocfs2_xattr_security_set(stru
+ 			       name, value, size, flags);
+ }
+ 
+-int ocfs2_initxattrs(struct inode *inode, const struct xattr *xattr_array,
++static int ocfs2_initxattrs(struct inode *inode, const struct xattr *xattr_array,
+ 		     void *fs_info)
+ {
+ 	const struct xattr *xattr;
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from joseph.qi@huawei.com are
 
 origin.patch
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-fs-affs-inodec-remove-unneeded-initialization.patch
-fs-affs-amigaffsc-remove-unneeded-initialization.patch
-fs-affs-symlinkc-remove-unneeded-err-variable.patch
-w1-masters-omap_hdq-add-support-for-1-wire-mode.patch
-linux-next.patch
+ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work.patch
+ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work-v2.patch
+ocfs2-set-filesytem-read-only-when-ocfs2_delete_entry-failed.patch
+ocfs2-set-filesytem-read-only-when-ocfs2_delete_entry-failed-v2.patch
+ocfs2-fix-race-between-crashed-dio-and-rm.patch
+ocfs2-avoid-access-invalid-address-when-read-o2dlm-debug-messages.patch
 
