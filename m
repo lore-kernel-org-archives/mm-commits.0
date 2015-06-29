@@ -1,67 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [merged] thp-cleanup-how-khugepaged-enters-freezer.patch removed
- from -mm tree
-Date: Mon, 29 Jun 2015 13:37:23 -0700
-Message-ID: <5591ac83.YQTdSVjI8+GJmThZ%akpm@linux-foundation.org>
+Subject: [merged] linux-slabh-fix-three-off-by-one-typos-in-comment.patch
+ removed from -mm tree
+Date: Mon, 29 Jun 2015 13:37:17 -0700
+Message-ID: <5591ac7d.hqe70lKtQEDX+NVy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50251 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50240 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754007AbbF2Uh0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:37:26 -0400
+	with ESMTP id S1754022AbbF2UhR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:37:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jkosina@suse.cz, aarcange@redhat.com, mgorman@suse.de, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, cl@linux.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp: cleanup how khugepaged enters freezer
+     Subject: linux/slab.h: fix three off-by-one typos in comment
 has been removed from the -mm tree.  Its filename was
-     thp-cleanup-how-khugepaged-enters-freezer.patch
+     linux-slabh-fix-three-off-by-one-typos-in-comment.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jiri Kosina <jkosina@suse.cz>
-Subject: thp: cleanup how khugepaged enters freezer
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: linux/slab.h: fix three off-by-one typos in comment
 
-khugepaged_do_scan() checks in every iteration whether freezing(current)
-is true, and in such case breaks out of the loop, which causes
-try_to_freeze() to be called immediately afterwards in
-khugepaged_wait_work().
+The first is a keyboard-off-by-one, the other two the ordinary mathy kind.
 
-If nothing else, this causes unnecessary freezing(current) test, and also
-makes the way khugepaged enters freezer a bit less obvious than necessary.
-
-Let's just try to freeze directly, instead of splitting it into two
-(directly adjacent) phases.
-
-Signed-off-by: Jiri Kosina <jkosina@suse.cz>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Acked-by: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ include/linux/slab.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/huge_memory.c~thp-cleanup-how-khugepaged-enters-freezer mm/huge_memory.c
---- a/mm/huge_memory.c~thp-cleanup-how-khugepaged-enters-freezer
-+++ a/mm/huge_memory.c
-@@ -2799,7 +2799,7 @@ static void khugepaged_do_scan(void)
- 
- 		cond_resched();
- 
--		if (unlikely(kthread_should_stop() || freezing(current)))
-+		if (unlikely(kthread_should_stop() || try_to_freeze()))
- 			break;
- 
- 		spin_lock(&khugepaged_mm_lock);
-@@ -2820,8 +2820,6 @@ static void khugepaged_do_scan(void)
- 
- static void khugepaged_wait_work(void)
+diff -puN include/linux/slab.h~linux-slabh-fix-three-off-by-one-typos-in-comment include/linux/slab.h
+--- a/include/linux/slab.h~linux-slabh-fix-three-off-by-one-typos-in-comment
++++ a/include/linux/slab.h
+@@ -262,8 +262,8 @@ extern struct kmem_cache *kmalloc_dma_ca
+  * belongs to.
+  * 0 = zero alloc
+  * 1 =  65 .. 96 bytes
+- * 2 = 120 .. 192 bytes
+- * n = 2^(n-1) .. 2^n -1
++ * 2 = 129 .. 192 bytes
++ * n = 2^(n-1)+1 .. 2^n
+  */
+ static __always_inline int kmalloc_index(size_t size)
  {
--	try_to_freeze();
+_
+
+Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
+
+origin.patch
+linux-next.patch
+
