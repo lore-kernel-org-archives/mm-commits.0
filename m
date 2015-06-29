@@ -1,313 +1,461 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- watchdog-add-watchdog_cpumask-sysctl-to-assist-nohz.patch removed from -mm
- tree
-Date: Mon, 29 Jun 2015 13:37:04 -0700
-Message-ID: <5591ac70.d0GzeaPkCcuMNNaL%akpm@linux-foundation.org>
+Subject: [merged] memory-failure-export-page_type-and-action-result.patch
+ removed from -mm tree
+Date: Mon, 29 Jun 2015 13:38:34 -0700
+Message-ID: <5591acca.uVWJU5Q2Cm36b482%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50212 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50431 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753994AbbF2UhF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:37:05 -0400
+	with ESMTP id S1754062AbbF2Uif (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:38:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cmetcalf@ezchip.com, dzickus@redhat.com, fweisbec@gmail.com, jhubbard@nvidia.com, mingo@kernel.org, peterz@infradead.org, tglx@linutronix.de, uobergfe@redhat.com, mm-commits@vger.kernel.org
+To: xiexiuqi@huawei.com, gong.chen@linux.intel.com, jim.epost@gmail.com, n-horiguchi@ah.jp.nec.com, rostedt@goodmis.org, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: watchdog: add watchdog_cpumask sysctl to assist nohz
+     Subject: memory-failure: export page_type and action result
 has been removed from the -mm tree.  Its filename was
-     watchdog-add-watchdog_cpumask-sysctl-to-assist-nohz.patch
+     memory-failure-export-page_type-and-action-result.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Chris Metcalf <cmetcalf@ezchip.com>
-Subject: watchdog: add watchdog_cpumask sysctl to assist nohz
+From: Xie XiuQi <xiexiuqi@huawei.com>
+Subject: memory-failure: export page_type and action result
 
-Change the default behavior of watchdog so it only runs on the
-housekeeping cores when nohz_full is enabled at build and boot time. 
-Allow modifying the set of cores the watchdog is currently running on with
-a new kernel.watchdog_cpumask sysctl.
+Export 'outcome' and 'action_page_type' to mm.h, so we could use
+this emnus outside.
 
-In the current system, the watchdog subsystem runs a periodic timer that
-schedules the watchdog kthread to run.  However, nohz_full cores are
-designed to allow userspace application code running on those cores to
-have 100% access to the CPU.  So the watchdog system prevents the
-nohz_full application code from being able to run the way it wants to,
-thus the motivation to suppress the watchdog on nohz_full cores, which
-this patchset provides by default.
+This patch is preparation for adding trace events for memory-failure
+recovery action.
 
-However, if we disable the watchdog globally, then the housekeeping cores
-can't benefit from the watchdog functionality.  So we allow disabling it
-only on some cores.  See Documentation/lockup-watchdogs.txt for more
-information.
-
-[jhubbard@nvidia.com: fix a watchdog crash in some configurations]
-Signed-off-by: Chris Metcalf <cmetcalf@ezchip.com>
-Acked-by: Don Zickus <dzickus@redhat.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Ulrich Obergfell <uobergfe@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Signed-off-by: Xie XiuQi <xiexiuqi@huawei.com>
+Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Chen Gong <gong.chen@linux.intel.com>
+Cc: Jim Davis <jim.epost@gmail.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/lockup-watchdogs.txt |   18 +++++++
- Documentation/sysctl/kernel.txt    |   21 ++++++++
- include/linux/nmi.h                |    3 +
- kernel/smpboot.c                   |    1 
- kernel/sysctl.c                    |    7 ++
- kernel/watchdog.c                  |   67 ++++++++++++++++++++++++---
- 6 files changed, 112 insertions(+), 5 deletions(-)
+ include/linux/mm.h  |   34 ++++++++
+ mm/memory-failure.c |  168 ++++++++++++++++--------------------------
+ 2 files changed, 101 insertions(+), 101 deletions(-)
 
-diff -puN Documentation/lockup-watchdogs.txt~watchdog-add-watchdog_cpumask-sysctl-to-assist-nohz Documentation/lockup-watchdogs.txt
---- a/Documentation/lockup-watchdogs.txt~watchdog-add-watchdog_cpumask-sysctl-to-assist-nohz
-+++ a/Documentation/lockup-watchdogs.txt
-@@ -61,3 +61,21 @@ As explained above, a kernel knob is pro
- administrators to configure the period of the hrtimer and the perf
- event. The right value for a particular environment is a trade-off
- between fast response to lockups and detection overhead.
-+
-+By default, the watchdog runs on all online cores.  However, on a
-+kernel configured with NO_HZ_FULL, by default the watchdog runs only
-+on the housekeeping cores, not the cores specified in the "nohz_full"
-+boot argument.  If we allowed the watchdog to run by default on
-+the "nohz_full" cores, we would have to run timer ticks to activate
-+the scheduler, which would prevent the "nohz_full" functionality
-+from protecting the user code on those cores from the kernel.
-+Of course, disabling it by default on the nohz_full cores means that
-+when those cores do enter the kernel, by default we will not be
-+able to detect if they lock up.  However, allowing the watchdog
-+to continue to run on the housekeeping (non-tickless) cores means
-+that we will continue to detect lockups properly on those cores.
-+
-+In either case, the set of cores excluded from running the watchdog
-+may be adjusted via the kernel.watchdog_cpumask sysctl.  For
-+nohz_full cores, this may be useful for debugging a case where the
-+kernel seems to be hanging on the nohz_full cores.
-diff -puN Documentation/sysctl/kernel.txt~watchdog-add-watchdog_cpumask-sysctl-to-assist-nohz Documentation/sysctl/kernel.txt
---- a/Documentation/sysctl/kernel.txt~watchdog-add-watchdog_cpumask-sysctl-to-assist-nohz
-+++ a/Documentation/sysctl/kernel.txt
-@@ -923,6 +923,27 @@ and nmi_watchdog.
+diff -puN include/linux/mm.h~memory-failure-export-page_type-and-action-result include/linux/mm.h
+--- a/include/linux/mm.h~memory-failure-export-page_type-and-action-result
++++ a/include/linux/mm.h
+@@ -2153,6 +2153,40 @@ extern void shake_page(struct page *p, i
+ extern atomic_long_t num_poisoned_pages;
+ extern int soft_offline_page(struct page *page, int flags);
  
- ==============================================================
- 
-+watchdog_cpumask:
-+
-+This value can be used to control on which cpus the watchdog may run.
-+The default cpumask is all possible cores, but if NO_HZ_FULL is
-+enabled in the kernel config, and cores are specified with the
-+nohz_full= boot argument, those cores are excluded by default.
-+Offline cores can be included in this mask, and if the core is later
-+brought online, the watchdog will be started based on the mask value.
-+
-+Typically this value would only be touched in the nohz_full case
-+to re-enable cores that by default were not running the watchdog,
-+if a kernel lockup was suspected on those cores.
-+
-+The argument value is the standard cpulist format for cpumasks,
-+so for example to enable the watchdog on cores 0, 2, 3, and 4 you
-+might say:
-+
-+  echo 0,2-4 > /proc/sys/kernel/watchdog_cpumask
-+
-+==============================================================
-+
- watchdog_thresh:
- 
- This value can be used to control the frequency of hrtimer and NMI
-diff -puN include/linux/nmi.h~watchdog-add-watchdog_cpumask-sysctl-to-assist-nohz include/linux/nmi.h
---- a/include/linux/nmi.h~watchdog-add-watchdog_cpumask-sysctl-to-assist-nohz
-+++ a/include/linux/nmi.h
-@@ -67,6 +67,7 @@ extern int nmi_watchdog_enabled;
- extern int soft_watchdog_enabled;
- extern int watchdog_user_enabled;
- extern int watchdog_thresh;
-+extern unsigned long *watchdog_cpumask_bits;
- extern int sysctl_softlockup_all_cpu_backtrace;
- struct ctl_table;
- extern int proc_watchdog(struct ctl_table *, int ,
-@@ -77,6 +78,8 @@ extern int proc_soft_watchdog(struct ctl
- 			      void __user *, size_t *, loff_t *);
- extern int proc_watchdog_thresh(struct ctl_table *, int ,
- 				void __user *, size_t *, loff_t *);
-+extern int proc_watchdog_cpumask(struct ctl_table *, int,
-+				 void __user *, size_t *, loff_t *);
- #endif
- 
- #ifdef CONFIG_HAVE_ACPI_APEI_NMI
-diff -puN kernel/smpboot.c~watchdog-add-watchdog_cpumask-sysctl-to-assist-nohz kernel/smpboot.c
---- a/kernel/smpboot.c~watchdog-add-watchdog_cpumask-sysctl-to-assist-nohz
-+++ a/kernel/smpboot.c
-@@ -338,6 +338,7 @@ EXPORT_SYMBOL_GPL(smpboot_unregister_per
-  *
-  * The cpumask field in the smp_hotplug_thread must not be updated directly
-  * by the client, but only by calling this function.
-+ * This function can only be called on a registered smp_hotplug_thread.
-  */
- int smpboot_update_cpumask_percpu_thread(struct smp_hotplug_thread *plug_thread,
- 					 const struct cpumask *new)
-diff -puN kernel/sysctl.c~watchdog-add-watchdog_cpumask-sysctl-to-assist-nohz kernel/sysctl.c
---- a/kernel/sysctl.c~watchdog-add-watchdog_cpumask-sysctl-to-assist-nohz
-+++ a/kernel/sysctl.c
-@@ -872,6 +872,13 @@ static struct ctl_table kern_table[] = {
- 		.extra2		= &one,
- 	},
- 	{
-+		.procname	= "watchdog_cpumask",
-+		.data		= &watchdog_cpumask_bits,
-+		.maxlen		= NR_CPUS,
-+		.mode		= 0644,
-+		.proc_handler	= proc_watchdog_cpumask,
-+	},
-+	{
- 		.procname	= "softlockup_panic",
- 		.data		= &softlockup_panic,
- 		.maxlen		= sizeof(int),
-diff -puN kernel/watchdog.c~watchdog-add-watchdog_cpumask-sysctl-to-assist-nohz kernel/watchdog.c
---- a/kernel/watchdog.c~watchdog-add-watchdog_cpumask-sysctl-to-assist-nohz
-+++ a/kernel/watchdog.c
-@@ -19,6 +19,7 @@
- #include <linux/sysctl.h>
- #include <linux/smpboot.h>
- #include <linux/sched/rt.h>
-+#include <linux/tick.h>
- 
- #include <asm/irq_regs.h>
- #include <linux/kvm_para.h>
-@@ -58,6 +59,12 @@ int __read_mostly sysctl_softlockup_all_
- #else
- #define sysctl_softlockup_all_cpu_backtrace 0
- #endif
-+static struct cpumask watchdog_cpumask __read_mostly;
-+unsigned long *watchdog_cpumask_bits = cpumask_bits(&watchdog_cpumask);
-+
-+/* Helper for online, unparked cpus. */
-+#define for_each_watchdog_cpu(cpu) \
-+	for_each_cpu_and((cpu), cpu_online_mask, &watchdog_cpumask)
- 
- static int __read_mostly watchdog_running;
- static u64 __read_mostly sample_period;
-@@ -207,7 +214,7 @@ void touch_all_softlockup_watchdogs(void
- 	 * do we care if a 0 races with a timestamp?
- 	 * all it means is the softlock check starts one cycle later
- 	 */
--	for_each_online_cpu(cpu)
-+	for_each_watchdog_cpu(cpu)
- 		per_cpu(watchdog_touch_ts, cpu) = 0;
- }
- 
-@@ -616,7 +623,7 @@ void watchdog_nmi_enable_all(void)
- 		goto unlock;
- 
- 	get_online_cpus();
--	for_each_online_cpu(cpu)
-+	for_each_watchdog_cpu(cpu)
- 		watchdog_nmi_enable(cpu);
- 	put_online_cpus();
- 
-@@ -634,7 +641,7 @@ void watchdog_nmi_disable_all(void)
- 		goto unlock;
- 
- 	get_online_cpus();
--	for_each_online_cpu(cpu)
-+	for_each_watchdog_cpu(cpu)
- 		watchdog_nmi_disable(cpu);
- 	put_online_cpus();
- 
-@@ -696,7 +703,7 @@ static void update_watchdog_all_cpus(voi
- 	int cpu;
- 
- 	get_online_cpus();
--	for_each_online_cpu(cpu)
-+	for_each_watchdog_cpu(cpu)
- 		update_watchdog(cpu);
- 	put_online_cpus();
- }
-@@ -709,8 +716,12 @@ static int watchdog_enable_all_cpus(void
- 		err = smpboot_register_percpu_thread(&watchdog_threads);
- 		if (err)
- 			pr_err("Failed to create watchdog threads, disabled\n");
--		else
-+		else {
-+			if (smpboot_update_cpumask_percpu_thread(
-+				    &watchdog_threads, &watchdog_cpumask))
-+				pr_err("Failed to set cpumask for watchdog threads\n");
- 			watchdog_running = 1;
-+		}
- 	} else {
- 		/*
- 		 * Enable/disable the lockup detectors or
-@@ -879,12 +890,58 @@ out:
- 	mutex_unlock(&watchdog_proc_mutex);
- 	return err;
- }
 +
 +/*
-+ * The cpumask is the mask of possible cpus that the watchdog can run
-+ * on, not the mask of cpus it is actually running on.  This allows the
-+ * user to specify a mask that will include cpus that have not yet
-+ * been brought online, if desired.
++ * Error handlers for various types of pages.
 + */
-+int proc_watchdog_cpumask(struct ctl_table *table, int write,
-+			  void __user *buffer, size_t *lenp, loff_t *ppos)
-+{
-+	int err;
++enum mf_outcome {
++	MF_IGNORED,	/* Error: cannot be handled */
++	MF_FAILED,	/* Error: handling failed */
++	MF_DELAYED,	/* Will be handled later */
++	MF_RECOVERED,	/* Successfully recovered */
++};
 +
-+	mutex_lock(&watchdog_proc_mutex);
-+	err = proc_do_large_bitmap(table, write, buffer, lenp, ppos);
-+	if (!err && write) {
-+		/* Remove impossible cpus to keep sysctl output cleaner. */
-+		cpumask_and(&watchdog_cpumask, &watchdog_cpumask,
-+			    cpu_possible_mask);
++enum mf_action_page_type {
++	MF_MSG_KERNEL,
++	MF_MSG_KERNEL_HIGH_ORDER,
++	MF_MSG_SLAB,
++	MF_MSG_DIFFERENT_COMPOUND,
++	MF_MSG_POISONED_HUGE,
++	MF_MSG_HUGE,
++	MF_MSG_FREE_HUGE,
++	MF_MSG_UNMAP_FAILED,
++	MF_MSG_DIRTY_SWAPCACHE,
++	MF_MSG_CLEAN_SWAPCACHE,
++	MF_MSG_DIRTY_MLOCKED_LRU,
++	MF_MSG_CLEAN_MLOCKED_LRU,
++	MF_MSG_DIRTY_UNEVICTABLE_LRU,
++	MF_MSG_CLEAN_UNEVICTABLE_LRU,
++	MF_MSG_DIRTY_LRU,
++	MF_MSG_CLEAN_LRU,
++	MF_MSG_TRUNCATED_LRU,
++	MF_MSG_BUDDY,
++	MF_MSG_BUDDY_2ND,
++	MF_MSG_UNKNOWN,
++};
 +
-+		if (watchdog_running) {
-+			/*
-+			 * Failure would be due to being unable to allocate
-+			 * a temporary cpumask, so we are likely not in a
-+			 * position to do much else to make things better.
-+			 */
-+			if (smpboot_update_cpumask_percpu_thread(
-+				    &watchdog_threads, &watchdog_cpumask) != 0)
-+				pr_err("cpumask update failed\n");
-+		}
-+	}
-+	mutex_unlock(&watchdog_proc_mutex);
-+	return err;
-+}
-+
- #endif /* CONFIG_SYSCTL */
- 
- void __init lockup_detector_init(void)
- {
- 	set_sample_period();
- 
-+#ifdef CONFIG_NO_HZ_FULL
-+	if (tick_nohz_full_enabled()) {
-+		if (!cpumask_empty(tick_nohz_full_mask))
-+			pr_info("Disabling watchdog on nohz_full cores by default\n");
-+		cpumask_andnot(&watchdog_cpumask, cpu_possible_mask,
-+			       tick_nohz_full_mask);
-+	} else
-+		cpumask_copy(&watchdog_cpumask, cpu_possible_mask);
-+#else
-+	cpumask_copy(&watchdog_cpumask, cpu_possible_mask);
-+#endif
-+
- 	if (watchdog_enabled)
- 		watchdog_enable_all_cpus();
+ #if defined(CONFIG_TRANSPARENT_HUGEPAGE) || defined(CONFIG_HUGETLBFS)
+ extern void clear_huge_page(struct page *page,
+ 			    unsigned long addr,
+diff -puN mm/memory-failure.c~memory-failure-export-page_type-and-action-result mm/memory-failure.c
+--- a/mm/memory-failure.c~memory-failure-export-page_type-and-action-result
++++ a/mm/memory-failure.c
+@@ -504,68 +504,34 @@ static void collect_procs(struct page *p
+ 	kfree(tk);
  }
+ 
+-/*
+- * Error handlers for various types of pages.
+- */
+-
+-enum outcome {
+-	IGNORED,	/* Error: cannot be handled */
+-	FAILED,		/* Error: handling failed */
+-	DELAYED,	/* Will be handled later */
+-	RECOVERED,	/* Successfully recovered */
+-};
+-
+ static const char *action_name[] = {
+-	[IGNORED] = "Ignored",
+-	[FAILED] = "Failed",
+-	[DELAYED] = "Delayed",
+-	[RECOVERED] = "Recovered",
+-};
+-
+-enum action_page_type {
+-	MSG_KERNEL,
+-	MSG_KERNEL_HIGH_ORDER,
+-	MSG_SLAB,
+-	MSG_DIFFERENT_COMPOUND,
+-	MSG_POISONED_HUGE,
+-	MSG_HUGE,
+-	MSG_FREE_HUGE,
+-	MSG_UNMAP_FAILED,
+-	MSG_DIRTY_SWAPCACHE,
+-	MSG_CLEAN_SWAPCACHE,
+-	MSG_DIRTY_MLOCKED_LRU,
+-	MSG_CLEAN_MLOCKED_LRU,
+-	MSG_DIRTY_UNEVICTABLE_LRU,
+-	MSG_CLEAN_UNEVICTABLE_LRU,
+-	MSG_DIRTY_LRU,
+-	MSG_CLEAN_LRU,
+-	MSG_TRUNCATED_LRU,
+-	MSG_BUDDY,
+-	MSG_BUDDY_2ND,
+-	MSG_UNKNOWN,
++	[MF_IGNORED] = "Ignored",
++	[MF_FAILED] = "Failed",
++	[MF_DELAYED] = "Delayed",
++	[MF_RECOVERED] = "Recovered",
+ };
+ 
+ static const char * const action_page_types[] = {
+-	[MSG_KERNEL]			= "reserved kernel page",
+-	[MSG_KERNEL_HIGH_ORDER]		= "high-order kernel page",
+-	[MSG_SLAB]			= "kernel slab page",
+-	[MSG_DIFFERENT_COMPOUND]	= "different compound page after locking",
+-	[MSG_POISONED_HUGE]		= "huge page already hardware poisoned",
+-	[MSG_HUGE]			= "huge page",
+-	[MSG_FREE_HUGE]			= "free huge page",
+-	[MSG_UNMAP_FAILED]		= "unmapping failed page",
+-	[MSG_DIRTY_SWAPCACHE]		= "dirty swapcache page",
+-	[MSG_CLEAN_SWAPCACHE]		= "clean swapcache page",
+-	[MSG_DIRTY_MLOCKED_LRU]		= "dirty mlocked LRU page",
+-	[MSG_CLEAN_MLOCKED_LRU]		= "clean mlocked LRU page",
+-	[MSG_DIRTY_UNEVICTABLE_LRU]	= "dirty unevictable LRU page",
+-	[MSG_CLEAN_UNEVICTABLE_LRU]	= "clean unevictable LRU page",
+-	[MSG_DIRTY_LRU]			= "dirty LRU page",
+-	[MSG_CLEAN_LRU]			= "clean LRU page",
+-	[MSG_TRUNCATED_LRU]		= "already truncated LRU page",
+-	[MSG_BUDDY]			= "free buddy page",
+-	[MSG_BUDDY_2ND]			= "free buddy page (2nd try)",
+-	[MSG_UNKNOWN]			= "unknown page",
++	[MF_MSG_KERNEL]			= "reserved kernel page",
++	[MF_MSG_KERNEL_HIGH_ORDER]	= "high-order kernel page",
++	[MF_MSG_SLAB]			= "kernel slab page",
++	[MF_MSG_DIFFERENT_COMPOUND]	= "different compound page after locking",
++	[MF_MSG_POISONED_HUGE]		= "huge page already hardware poisoned",
++	[MF_MSG_HUGE]			= "huge page",
++	[MF_MSG_FREE_HUGE]		= "free huge page",
++	[MF_MSG_UNMAP_FAILED]		= "unmapping failed page",
++	[MF_MSG_DIRTY_SWAPCACHE]	= "dirty swapcache page",
++	[MF_MSG_CLEAN_SWAPCACHE]	= "clean swapcache page",
++	[MF_MSG_DIRTY_MLOCKED_LRU]	= "dirty mlocked LRU page",
++	[MF_MSG_CLEAN_MLOCKED_LRU]	= "clean mlocked LRU page",
++	[MF_MSG_DIRTY_UNEVICTABLE_LRU]	= "dirty unevictable LRU page",
++	[MF_MSG_CLEAN_UNEVICTABLE_LRU]	= "clean unevictable LRU page",
++	[MF_MSG_DIRTY_LRU]		= "dirty LRU page",
++	[MF_MSG_CLEAN_LRU]		= "clean LRU page",
++	[MF_MSG_TRUNCATED_LRU]		= "already truncated LRU page",
++	[MF_MSG_BUDDY]			= "free buddy page",
++	[MF_MSG_BUDDY_2ND]		= "free buddy page (2nd try)",
++	[MF_MSG_UNKNOWN]		= "unknown page",
+ };
+ 
+ /*
+@@ -599,7 +565,7 @@ static int delete_from_lru_cache(struct
+  */
+ static int me_kernel(struct page *p, unsigned long pfn)
+ {
+-	return IGNORED;
++	return MF_IGNORED;
+ }
+ 
+ /*
+@@ -608,7 +574,7 @@ static int me_kernel(struct page *p, uns
+ static int me_unknown(struct page *p, unsigned long pfn)
+ {
+ 	printk(KERN_ERR "MCE %#lx: Unknown page state\n", pfn);
+-	return FAILED;
++	return MF_FAILED;
+ }
+ 
+ /*
+@@ -617,7 +583,7 @@ static int me_unknown(struct page *p, un
+ static int me_pagecache_clean(struct page *p, unsigned long pfn)
+ {
+ 	int err;
+-	int ret = FAILED;
++	int ret = MF_FAILED;
+ 	struct address_space *mapping;
+ 
+ 	delete_from_lru_cache(p);
+@@ -627,7 +593,7 @@ static int me_pagecache_clean(struct pag
+ 	 * should be the one m_f() holds.
+ 	 */
+ 	if (PageAnon(p))
+-		return RECOVERED;
++		return MF_RECOVERED;
+ 
+ 	/*
+ 	 * Now truncate the page in the page cache. This is really
+@@ -641,7 +607,7 @@ static int me_pagecache_clean(struct pag
+ 		/*
+ 		 * Page has been teared down in the meanwhile
+ 		 */
+-		return FAILED;
++		return MF_FAILED;
+ 	}
+ 
+ 	/*
+@@ -658,7 +624,7 @@ static int me_pagecache_clean(struct pag
+ 				!try_to_release_page(p, GFP_NOIO)) {
+ 			pr_info("MCE %#lx: failed to release buffers\n", pfn);
+ 		} else {
+-			ret = RECOVERED;
++			ret = MF_RECOVERED;
+ 		}
+ 	} else {
+ 		/*
+@@ -666,7 +632,7 @@ static int me_pagecache_clean(struct pag
+ 		 * This fails on dirty or anything with private pages
+ 		 */
+ 		if (invalidate_inode_page(p))
+-			ret = RECOVERED;
++			ret = MF_RECOVERED;
+ 		else
+ 			printk(KERN_INFO "MCE %#lx: Failed to invalidate\n",
+ 				pfn);
+@@ -752,9 +718,9 @@ static int me_swapcache_dirty(struct pag
+ 	ClearPageUptodate(p);
+ 
+ 	if (!delete_from_lru_cache(p))
+-		return DELAYED;
++		return MF_DELAYED;
+ 	else
+-		return FAILED;
++		return MF_FAILED;
+ }
+ 
+ static int me_swapcache_clean(struct page *p, unsigned long pfn)
+@@ -762,9 +728,9 @@ static int me_swapcache_clean(struct pag
+ 	delete_from_swap_cache(p);
+ 
+ 	if (!delete_from_lru_cache(p))
+-		return RECOVERED;
++		return MF_RECOVERED;
+ 	else
+-		return FAILED;
++		return MF_FAILED;
+ }
+ 
+ /*
+@@ -794,9 +760,9 @@ static int me_huge_page(struct page *p,
+ 	if (!(page_mapping(hpage) || PageAnon(hpage))) {
+ 		res = dequeue_hwpoisoned_huge_page(hpage);
+ 		if (!res)
+-			return RECOVERED;
++			return MF_RECOVERED;
+ 	}
+-	return DELAYED;
++	return MF_DELAYED;
+ }
+ 
+ /*
+@@ -828,10 +794,10 @@ static int me_huge_page(struct page *p,
+ static struct page_state {
+ 	unsigned long mask;
+ 	unsigned long res;
+-	enum action_page_type type;
++	enum mf_action_page_type type;
+ 	int (*action)(struct page *p, unsigned long pfn);
+ } error_states[] = {
+-	{ reserved,	reserved,	MSG_KERNEL,	me_kernel },
++	{ reserved,	reserved,	MF_MSG_KERNEL,	me_kernel },
+ 	/*
+ 	 * free pages are specially detected outside this table:
+ 	 * PG_buddy pages only make a small fraction of all free pages.
+@@ -842,31 +808,31 @@ static struct page_state {
+ 	 * currently unused objects without touching them. But just
+ 	 * treat it as standard kernel for now.
+ 	 */
+-	{ slab,		slab,		MSG_SLAB,	me_kernel },
++	{ slab,		slab,		MF_MSG_SLAB,	me_kernel },
+ 
+ #ifdef CONFIG_PAGEFLAGS_EXTENDED
+-	{ head,		head,		MSG_HUGE,		me_huge_page },
+-	{ tail,		tail,		MSG_HUGE,		me_huge_page },
++	{ head,		head,		MF_MSG_HUGE,		me_huge_page },
++	{ tail,		tail,		MF_MSG_HUGE,		me_huge_page },
+ #else
+-	{ compound,	compound,	MSG_HUGE,		me_huge_page },
++	{ compound,	compound,	MF_MSG_HUGE,		me_huge_page },
+ #endif
+ 
+-	{ sc|dirty,	sc|dirty,	MSG_DIRTY_SWAPCACHE,	me_swapcache_dirty },
+-	{ sc|dirty,	sc,		MSG_CLEAN_SWAPCACHE,	me_swapcache_clean },
++	{ sc|dirty,	sc|dirty,	MF_MSG_DIRTY_SWAPCACHE,	me_swapcache_dirty },
++	{ sc|dirty,	sc,		MF_MSG_CLEAN_SWAPCACHE,	me_swapcache_clean },
+ 
+-	{ mlock|dirty,	mlock|dirty,	MSG_DIRTY_MLOCKED_LRU,	me_pagecache_dirty },
+-	{ mlock|dirty,	mlock,		MSG_CLEAN_MLOCKED_LRU,	me_pagecache_clean },
++	{ mlock|dirty,	mlock|dirty,	MF_MSG_DIRTY_MLOCKED_LRU,	me_pagecache_dirty },
++	{ mlock|dirty,	mlock,		MF_MSG_CLEAN_MLOCKED_LRU,	me_pagecache_clean },
+ 
+-	{ unevict|dirty, unevict|dirty,	MSG_DIRTY_UNEVICTABLE_LRU,	me_pagecache_dirty },
+-	{ unevict|dirty, unevict,	MSG_CLEAN_UNEVICTABLE_LRU,	me_pagecache_clean },
++	{ unevict|dirty, unevict|dirty,	MF_MSG_DIRTY_UNEVICTABLE_LRU,	me_pagecache_dirty },
++	{ unevict|dirty, unevict,	MF_MSG_CLEAN_UNEVICTABLE_LRU,	me_pagecache_clean },
+ 
+-	{ lru|dirty,	lru|dirty,	MSG_DIRTY_LRU,	me_pagecache_dirty },
+-	{ lru|dirty,	lru,		MSG_CLEAN_LRU,	me_pagecache_clean },
++	{ lru|dirty,	lru|dirty,	MF_MSG_DIRTY_LRU,	me_pagecache_dirty },
++	{ lru|dirty,	lru,		MF_MSG_CLEAN_LRU,	me_pagecache_clean },
+ 
+ 	/*
+ 	 * Catchall entry: must be at end.
+ 	 */
+-	{ 0,		0,		MSG_UNKNOWN,	me_unknown },
++	{ 0,		0,		MF_MSG_UNKNOWN,	me_unknown },
+ };
+ 
+ #undef dirty
+@@ -886,7 +852,7 @@ static struct page_state {
+  * "Dirty/Clean" indication is not 100% accurate due to the possibility of
+  * setting PG_dirty outside page lock. See also comment above set_page_dirty().
+  */
+-static void action_result(unsigned long pfn, enum action_page_type type, int result)
++static void action_result(unsigned long pfn, enum mf_action_page_type type, int result)
+ {
+ 	pr_err("MCE %#lx: recovery action for %s: %s\n",
+ 		pfn, action_page_types[type], action_name[result]);
+@@ -901,13 +867,13 @@ static int page_action(struct page_state
+ 	result = ps->action(p, pfn);
+ 
+ 	count = page_count(p) - 1;
+-	if (ps->action == me_swapcache_dirty && result == DELAYED)
++	if (ps->action == me_swapcache_dirty && result == MF_DELAYED)
+ 		count--;
+ 	if (count != 0) {
+ 		printk(KERN_ERR
+ 		       "MCE %#lx: %s still referenced by %d users\n",
+ 		       pfn, action_page_types[ps->type], count);
+-		result = FAILED;
++		result = MF_FAILED;
+ 	}
+ 	action_result(pfn, ps->type, result);
+ 
+@@ -916,7 +882,7 @@ static int page_action(struct page_state
+ 	 * Could adjust zone counters here to correct for the missing page.
+ 	 */
+ 
+-	return (result == RECOVERED || result == DELAYED) ? 0 : -EBUSY;
++	return (result == MF_RECOVERED || result == MF_DELAYED) ? 0 : -EBUSY;
+ }
+ 
+ /**
+@@ -1136,7 +1102,7 @@ int memory_failure(unsigned long pfn, in
+ 	 */
+ 	if (!(flags & MF_COUNT_INCREASED) && !get_hwpoison_page(p)) {
+ 		if (is_free_buddy_page(p)) {
+-			action_result(pfn, MSG_BUDDY, DELAYED);
++			action_result(pfn, MF_MSG_BUDDY, MF_DELAYED);
+ 			return 0;
+ 		} else if (PageHuge(hpage)) {
+ 			/*
+@@ -1153,12 +1119,12 @@ int memory_failure(unsigned long pfn, in
+ 			}
+ 			set_page_hwpoison_huge_page(hpage);
+ 			res = dequeue_hwpoisoned_huge_page(hpage);
+-			action_result(pfn, MSG_FREE_HUGE,
+-				      res ? IGNORED : DELAYED);
++			action_result(pfn, MF_MSG_FREE_HUGE,
++				      res ? MF_IGNORED : MF_DELAYED);
+ 			unlock_page(hpage);
+ 			return res;
+ 		} else {
+-			action_result(pfn, MSG_KERNEL_HIGH_ORDER, IGNORED);
++			action_result(pfn, MF_MSG_KERNEL_HIGH_ORDER, MF_IGNORED);
+ 			return -EBUSY;
+ 		}
+ 	}
+@@ -1203,10 +1169,10 @@ int memory_failure(unsigned long pfn, in
+ 			 */
+ 			if (is_free_buddy_page(p)) {
+ 				if (flags & MF_COUNT_INCREASED)
+-					action_result(pfn, MSG_BUDDY, DELAYED);
++					action_result(pfn, MF_MSG_BUDDY, MF_DELAYED);
+ 				else
+-					action_result(pfn, MSG_BUDDY_2ND,
+-						      DELAYED);
++					action_result(pfn, MF_MSG_BUDDY_2ND,
++						      MF_DELAYED);
+ 				return 0;
+ 			}
+ 		}
+@@ -1219,7 +1185,7 @@ int memory_failure(unsigned long pfn, in
+ 	 * If this happens just bail out.
+ 	 */
+ 	if (PageCompound(p) && compound_head(p) != orig_head) {
+-		action_result(pfn, MSG_DIFFERENT_COMPOUND, IGNORED);
++		action_result(pfn, MF_MSG_DIFFERENT_COMPOUND, MF_IGNORED);
+ 		res = -EBUSY;
+ 		goto out;
+ 	}
+@@ -1259,7 +1225,7 @@ int memory_failure(unsigned long pfn, in
+ 	 * on the head page to show that the hugepage is hwpoisoned
+ 	 */
+ 	if (PageHuge(p) && PageTail(p) && TestSetPageHWPoison(hpage)) {
+-		action_result(pfn, MSG_POISONED_HUGE, IGNORED);
++		action_result(pfn, MF_MSG_POISONED_HUGE, MF_IGNORED);
+ 		unlock_page(hpage);
+ 		put_page(hpage);
+ 		return 0;
+@@ -1288,7 +1254,7 @@ int memory_failure(unsigned long pfn, in
+ 	 */
+ 	if (hwpoison_user_mappings(p, pfn, trapno, flags, &hpage)
+ 	    != SWAP_SUCCESS) {
+-		action_result(pfn, MSG_UNMAP_FAILED, IGNORED);
++		action_result(pfn, MF_MSG_UNMAP_FAILED, MF_IGNORED);
+ 		res = -EBUSY;
+ 		goto out;
+ 	}
+@@ -1297,7 +1263,7 @@ int memory_failure(unsigned long pfn, in
+ 	 * Torn down by someone else?
+ 	 */
+ 	if (PageLRU(p) && !PageSwapCache(p) && p->mapping == NULL) {
+-		action_result(pfn, MSG_TRUNCATED_LRU, IGNORED);
++		action_result(pfn, MF_MSG_TRUNCATED_LRU, MF_IGNORED);
+ 		res = -EBUSY;
+ 		goto out;
+ 	}
 _
 
-Patches currently in -mm which might be from cmetcalf@ezchip.com are
+Patches currently in -mm which might be from xiexiuqi@huawei.com are
 
 origin.patch
-linux-next.patch
 
