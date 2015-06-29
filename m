@@ -1,37 +1,69 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- ocfs2-return-error-while-ocfs2_figure_merge_contig_type-failing.patch
- removed from -mm tree
-Date: Mon, 29 Jun 2015 13:36:35 -0700
-Message-ID: <5591ac53.cYxBc0evcRpXFIam%akpm@linux-foundation.org>
+ ocfs2-remove-bug_onempty_extent-in-__ocfs2_rotate_tree_left.patch removed
+ from -mm tree
+Date: Mon, 29 Jun 2015 13:36:37 -0700
+Message-ID: <5591ac55.WI415S0SP2jbZFpP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50145 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50148 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753950AbbF2Ugg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:36:36 -0400
+	with ESMTP id S1753961AbbF2Ugi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:36:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: xuejiufei@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: return error when ocfs2_figure_merge_contig_type() fails
+     Subject: ocfs2: remove BUG_ON(!empty_extent) in __ocfs2_rotate_tree_left()
 has been removed from the -mm tree.  Its filename was
-     ocfs2-return-error-while-ocfs2_figure_merge_contig_type-failing.patch
+     ocfs2-remove-bug_onempty_extent-in-__ocfs2_rotate_tree_left.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Xue jiufei <xuejiufei@huawei.com>
-Subject: ocfs2: return error when ocfs2_figure_merge_contig_type() fails
+Subject: ocfs2: remove BUG_ON(!empty_extent) in __ocfs2_rotate_tree_left()
 
-ocfs2_figure_merge_contig_type() still returns CONTIG_NONE when some error
-occurs which will cause an unpredictable error.  So return a proper errno
-when ocfs2_figure_merge_contig_type() fails.
+ocfs2_rotate_tree_left() calls __ocfs2_rotate_tree_left() for left
+rotation while non-rightmost path containing an empty extent in the leaf
+block.  __ocfs2_rotate_tree_left() returns -EAGAIN if right subtree having an
+empty extent and pass the empty_extent_path to caller.  The caller
+ocfs2_rotate_tree_left() will restart rotation from the returned path.
+
+It will trigger the BUG_ON(!ocfs2_is_empty_extent) when the et on disk
+is as follows:
+
+eb0 is the leaf block of path(say path_a) passed to
+ocfs2_rotate_tree_left, which has an empty rec[0].
+
+eb1 is the leaf block of path(say path_b) that just right to path_a, which
+has no empty record.
+
+eb2 is the leaf block of path(say path_c) that just right to path_b, which
+has an empty rec[0].  And path_c is also the rightmost path.
+
+Now we want to remove the empty rec[0] in eb0:
+
+ocfs2_rotate_tree_left:
+  -> call __ocfs2_rotate_tree_left with path_a as its input *path*
+    -> call ocfs2_rotate_subtree_left with path_a as its input
+       *left_path* and path_b as its input *right_path*. it will move
+       rec[0] in eb1 to eb0, and rec[0] in eb0 is not empty now.
+    -> continue to call ocfs2_rotate_subtree_left with path_b as its
+       input *left_path* and path_c as its input *right_path*, and
+       return -EAGAIN because eb2 has an empty rec[0]
+  -> call __ocfs2_rotate_tree_left with path_c as it input, rotate all
+     records in eb2 to left and return 0.
+  -> call __ocfs2_rotate_tree_left with path_a as its input, and triggers
+     the BUG_ON(!ocfs2_is_empty_extent) as the rec[0] in eb0 is not empty.
+
+So the BUG_ON() should be removed and return 0 if rec[0] is no longer an
+empty extent.
 
 Signed-off-by: joyce.xue <xuejiufei@huawei.com>
 Cc: Mark Fasheh <mfasheh@suse.com>
@@ -39,86 +71,22 @@ Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/alloc.c |   34 ++++++++++++++++++++++++----------
- 1 file changed, 24 insertions(+), 10 deletions(-)
+ fs/ocfs2/alloc.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/alloc.c~ocfs2-return-error-while-ocfs2_figure_merge_contig_type-failing fs/ocfs2/alloc.c
---- a/fs/ocfs2/alloc.c~ocfs2-return-error-while-ocfs2_figure_merge_contig_type-failing
+diff -puN fs/ocfs2/alloc.c~ocfs2-remove-bug_onempty_extent-in-__ocfs2_rotate_tree_left fs/ocfs2/alloc.c
+--- a/fs/ocfs2/alloc.c~ocfs2-remove-bug_onempty_extent-in-__ocfs2_rotate_tree_left
 +++ a/fs/ocfs2/alloc.c
-@@ -4311,13 +4311,13 @@ out:
- 	return ret;
- }
+@@ -2925,7 +2925,8 @@ static int __ocfs2_rotate_tree_left(hand
+ 	struct ocfs2_path *right_path = NULL;
+ 	struct super_block *sb = ocfs2_metadata_cache_get_super(et->et_ci);
  
--static enum ocfs2_contig_type
--ocfs2_figure_merge_contig_type(struct ocfs2_extent_tree *et,
-+static int ocfs2_figure_merge_contig_type(struct ocfs2_extent_tree *et,
- 			       struct ocfs2_path *path,
- 			       struct ocfs2_extent_list *el, int index,
--			       struct ocfs2_extent_rec *split_rec)
-+			       struct ocfs2_extent_rec *split_rec,
-+			       struct ocfs2_merge_ctxt *ctxt)
- {
--	int status;
-+	int status = 0;
- 	enum ocfs2_contig_type ret = CONTIG_NONE;
- 	u32 left_cpos, right_cpos;
- 	struct ocfs2_extent_rec *rec = NULL;
-@@ -4336,8 +4336,11 @@ ocfs2_figure_merge_contig_type(struct oc
+-	BUG_ON(!ocfs2_is_empty_extent(&(path_leaf_el(path)->l_recs[0])));
++	if (!ocfs2_is_empty_extent(&(path_leaf_el(path)->l_recs[0])))
++		return 0;
  
- 		if (left_cpos != 0) {
- 			left_path = ocfs2_new_path_from_path(path);
--			if (!left_path)
-+			if (!left_path) {
-+				status = -ENOMEM;
-+				mlog_errno(status);
- 				goto exit;
-+			}
+ 	*empty_extent_path = NULL;
  
- 			status = ocfs2_find_path(et->et_ci, left_path,
- 						 left_cpos);
-@@ -4392,8 +4395,11 @@ ocfs2_figure_merge_contig_type(struct oc
- 			goto free_left_path;
- 
- 		right_path = ocfs2_new_path_from_path(path);
--		if (!right_path)
-+		if (!right_path) {
-+			status = -ENOMEM;
-+			mlog_errno(status);
- 			goto free_left_path;
-+		}
- 
- 		status = ocfs2_find_path(et->et_ci, right_path, right_cpos);
- 		if (status)
-@@ -4433,7 +4439,10 @@ free_right_path:
- free_left_path:
- 	ocfs2_free_path(left_path);
- exit:
--	return ret;
-+	if (status == 0)
-+		ctxt->c_contig_type = ret;
-+
-+	return status;
- }
- 
- static void ocfs2_figure_contig_type(struct ocfs2_extent_tree *et,
-@@ -5039,9 +5048,14 @@ int ocfs2_split_extent(handle_t *handle,
- 		goto out;
- 	}
- 
--	ctxt.c_contig_type = ocfs2_figure_merge_contig_type(et, path, el,
--							    split_index,
--							    split_rec);
-+	ret = ocfs2_figure_merge_contig_type(et, path, el,
-+					     split_index,
-+					     split_rec,
-+					     &ctxt);
-+	if (ret) {
-+		mlog_errno(ret);
-+		goto out;
-+	}
- 
- 	/*
- 	 * The core merge / split code wants to know how much room is
 _
 
 Patches currently in -mm which might be from xuejiufei@huawei.com are
