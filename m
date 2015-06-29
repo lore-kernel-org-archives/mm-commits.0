@@ -1,58 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged] efs-remove-unneeded-cast.patch removed from -mm tree
-Date: Mon, 29 Jun 2015 13:49:03 -0700
-Message-ID: <5591af3f.ULO/+w12Zvh3E+cj%akpm@linux-foundation.org>
+Subject: [merged]
+ checkpatch-add-multi-line-handling-for-prefer_ether_addr_copy.patch removed from -mm tree
+Date: Mon, 29 Jun 2015 13:48:55 -0700
+Message-ID: <5591af37.7hKpJCN8ut4zxf7O%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50997 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50987 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753694AbbF2UtD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:49:03 -0400
+	with ESMTP id S1753587AbbF2Us4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:48:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: firogm@gmail.com, mm-commits@vger.kernel.org
+To: mateusz.kulikowski@gmail.com, davem@davemloft.net, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/efs: femove unneeded cast
+     Subject: checkpatch: add multi-line handling for PREFER_ETHER_ADDR_COPY
 has been removed from the -mm tree.  Its filename was
-     efs-remove-unneeded-cast.patch
+     checkpatch-add-multi-line-handling-for-prefer_ether_addr_copy.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Firo Yang <firogm@gmail.com>
-Subject: fs/efs: femove unneeded cast
+From: Mateusz Kulikowski <mateusz.kulikowski@gmail.com>
+Subject: checkpatch: add multi-line handling for PREFER_ETHER_ADDR_COPY
 
-kmem_cache_alloc() returns void*.
+Handle multi-line memcpy() properly.
 
-Signed-off-by: Firo Yang <firogm@gmail.com>
+Signed-off-by: Mateusz Kulikowski <mateusz.kulikowski@gmail.com>
+Acked-by: Joe Perches <joe@perches.com>
+Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/efs/super.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN fs/efs/super.c~efs-remove-unneeded-cast fs/efs/super.c
---- a/fs/efs/super.c~efs-remove-unneeded-cast
-+++ a/fs/efs/super.c
-@@ -67,7 +67,7 @@ static struct kmem_cache * efs_inode_cac
- static struct inode *efs_alloc_inode(struct super_block *sb)
- {
- 	struct efs_inode_info *ei;
--	ei = (struct efs_inode_info *)kmem_cache_alloc(efs_inode_cachep, GFP_KERNEL);
-+	ei = kmem_cache_alloc(efs_inode_cachep, GFP_KERNEL);
- 	if (!ei)
- 		return NULL;
- 	return &ei->vfs_inode;
+diff -puN scripts/checkpatch.pl~checkpatch-add-multi-line-handling-for-prefer_ether_addr_copy scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-multi-line-handling-for-prefer_ether_addr_copy
++++ a/scripts/checkpatch.pl
+@@ -5149,9 +5149,10 @@ sub process {
+ 
+ # Check for memcpy(foo, bar, ETH_ALEN) that could be ether_addr_copy(foo, bar)
+ 		if ($^V && $^V ge 5.10.0 &&
+-		    $line =~ /^\+(?:.*?)\bmemcpy\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*\,\s*ETH_ALEN\s*\)/s) {
++		    defined $stat &&
++		    $stat =~ /^\+(?:.*?)\bmemcpy\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*\,\s*ETH_ALEN\s*\)/) {
+ 			if (WARN("PREFER_ETHER_ADDR_COPY",
+-				 "Prefer ether_addr_copy() over memcpy() if the Ethernet addresses are __aligned(2)\n" . $herecurr) &&
++				 "Prefer ether_addr_copy() over memcpy() if the Ethernet addresses are __aligned(2)\n" . "$here\n$stat\n") &&
+ 			    $fix) {
+ 				$fixed[$fixlinenr] =~ s/\bmemcpy\s*\(\s*$FuncArg\s*,\s*$FuncArg\s*\,\s*ETH_ALEN\s*\)/ether_addr_copy($2, $7)/;
+ 			}
 _
 
-Patches currently in -mm which might be from firogm@gmail.com are
+Patches currently in -mm which might be from mateusz.kulikowski@gmail.com are
 
 origin.patch
-adfs-remove-unneeded-cast.patch
-linux-next.patch
 
