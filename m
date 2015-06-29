@@ -1,90 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: [merged] zram-report-every-added-and-removed-device.patch removed from -mm tree
-Date: Mon, 29 Jun 2015 13:46:22 -0700
-Message-ID: <5591ae9e.wTDALeJ0Fl16E0Kh%akpm@linux-foundation.org>
+Subject: [merged] zram-check-comp-algorithm-availability-earlier.patch
+ removed from -mm tree
+Date: Mon, 29 Jun 2015 13:46:35 -0700
+Message-ID: <5591aeab.3QXE2aJ/Qh/DVwqJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50723 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50740 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753225AbbF2UqX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:46:23 -0400
+	with ESMTP id S1753840AbbF2Uqf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:46:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sergey.senozhatsky@gmail.com, minchan@kernel.org, mm-commits@vger.kernel.org
+To: sergey.senozhatsky@gmail.com, m.jabrzyk@samsung.com, minchan@kernel.org, ngupta@vflare.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: report every added and removed device
+     Subject: zram: check comp algorithm availability earlier
 has been removed from the -mm tree.  Its filename was
-     zram-report-every-added-and-removed-device.patch
+     zram-check-comp-algorithm-availability-earlier.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: zram: report every added and removed device
+Subject: zram: check comp algorithm availability earlier
 
-With dynamic device creation/removal (which will be introduced later in
-the series) printing num_devices in zram_init() will not make a lot of
-sense, as well as printing the number of destroyed devices in
-destroy_devices().  Print per-device action (added/removed) in zram_add()
-and zram_remove() instead.
+Improvement idea by Marcin Jabrzyk.
 
-Example:
+comp_algorithm_store() silently accepts any supplied algorithm name,
+because zram performs algorithm availability check later, during the
+device configuration phase in disksize_store() and emits the following
+error:
 
-[ 3645.259652] zram: Added device: zram5
-[ 3646.152074] zram: Added device: zram6
-[ 3650.585012] zram: Removed device: zram5
-[ 3655.845584] zram: Added device: zram8
-[ 3660.975223] zram: Removed device: zram6
+  "zram: Cannot initialise %s compressing backend"
+
+this error line is somewhat generic and, besides, can indicate a failed
+attempt to allocate compression backend's working buffers.
+
+add algorithm availability check to comp_algorithm_store():
+
+  echo lzz > /sys/block/zram0/comp_algorithm
+  -bash: echo: write error: Invalid argument
 
 Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Reported-by: Marcin Jabrzyk <m.jabrzyk@samsung.com>
 Acked-by: Minchan Kim <minchan@kernel.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/block/zram/zcomp.c    |    5 +++++
+ drivers/block/zram/zcomp.h    |    1 +
+ drivers/block/zram/zram_drv.c |    3 +++
+ 3 files changed, 9 insertions(+)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-report-every-added-and-removed-device drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-report-every-added-and-removed-device
-+++ a/drivers/block/zram/zram_drv.c
-@@ -1238,6 +1238,8 @@ static int zram_add(int device_id)
- 	strlcpy(zram->compressor, default_compressor, sizeof(zram->compressor));
- 	zram->meta = NULL;
- 	zram->max_comp_streams = 1;
-+
-+	pr_info("Added device: %s\n", zram->disk->disk_name);
- 	return 0;
- 
- out_free_disk:
-@@ -1254,6 +1256,7 @@ out_free_dev:
- 
- static void zram_remove(struct zram *zram)
- {
-+	pr_info("Removed device: %s\n", zram->disk->disk_name);
- 	/*
- 	 * Remove sysfs first, so no one will perform a disksize
- 	 * store while we destroy the devices
-@@ -1280,7 +1283,6 @@ static void destroy_devices(void)
- 	idr_for_each(&zram_index_idr, &zram_remove_cb, NULL);
- 	idr_destroy(&zram_index_idr);
- 	unregister_blkdev(zram_major, "zram");
--	pr_info("Destroyed device(s)\n");
+diff -puN drivers/block/zram/zcomp.c~zram-check-comp-algorithm-availability-earlier drivers/block/zram/zcomp.c
+--- a/drivers/block/zram/zcomp.c~zram-check-comp-algorithm-availability-earlier
++++ a/drivers/block/zram/zcomp.c
+@@ -286,6 +286,11 @@ ssize_t zcomp_available_show(const char
+ 	return sz;
  }
  
- static int __init zram_init(void)
-@@ -1299,7 +1301,6 @@ static int __init zram_init(void)
- 			goto out_error;
- 	}
++bool zcomp_available_algorithm(const char *comp)
++{
++	return find_backend(comp) != NULL;
++}
++
+ bool zcomp_set_max_streams(struct zcomp *comp, int num_strm)
+ {
+ 	return comp->set_max_streams(comp, num_strm);
+diff -puN drivers/block/zram/zcomp.h~zram-check-comp-algorithm-availability-earlier drivers/block/zram/zcomp.h
+--- a/drivers/block/zram/zcomp.h~zram-check-comp-algorithm-availability-earlier
++++ a/drivers/block/zram/zcomp.h
+@@ -51,6 +51,7 @@ struct zcomp {
+ };
  
--	pr_info("Created %u device(s)\n", num_devices);
- 	return 0;
+ ssize_t zcomp_available_show(const char *comp, char *buf);
++bool zcomp_available_algorithm(const char *comp);
  
- out_error:
+ struct zcomp *zcomp_create(const char *comp, int max_strm);
+ void zcomp_destroy(struct zcomp *comp);
+diff -puN drivers/block/zram/zram_drv.c~zram-check-comp-algorithm-availability-earlier drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-check-comp-algorithm-availability-earlier
++++ a/drivers/block/zram/zram_drv.c
+@@ -378,6 +378,9 @@ static ssize_t comp_algorithm_store(stru
+ 	if (sz > 0 && zram->compressor[sz - 1] == '\n')
+ 		zram->compressor[sz - 1] = 0x00;
+ 
++	if (!zcomp_available_algorithm(zram->compressor))
++		len = -EINVAL;
++
+ 	up_write(&zram->init_lock);
+ 	return len;
+ }
 _
 
 Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
