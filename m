@@ -1,110 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- __bitmap_parselist-fix-bug-in-empty-string-handling.patch removed from -mm
+Subject: [merged] check_syslog_permissions-cleanup.patch removed from -mm
  tree
-Date: Mon, 29 Jun 2015 13:47:53 -0700
-Message-ID: <5591aef9.FZ7IsYYs/JuMzYva%akpm@linux-foundation.org>
+Date: Mon, 29 Jun 2015 13:47:32 -0700
+Message-ID: <5591aee4.f7hy2HMoWGdPQ8MB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50770 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50884 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753762AbbF2Ury (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:47:54 -0400
+	with ESMTP id S1753887AbbF2Ure (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:47:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cmetcalf@ezchip.com, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
+To: vvs@virtuozzo.com, eparis@redhat.com, jwboyer@redhat.com, keescook@chromium.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: __bitmap_parselist: fix bug in empty string handling
+     Subject: check_syslog_permissions() cleanup
 has been removed from the -mm tree.  Its filename was
-     __bitmap_parselist-fix-bug-in-empty-string-handling.patch
+     check_syslog_permissions-cleanup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Chris Metcalf <cmetcalf@ezchip.com>
-Subject: __bitmap_parselist: fix bug in empty string handling
+From: Vasily Averin <vvs@virtuozzo.com>
+Subject: check_syslog_permissions() cleanup
 
-bitmap_parselist("", &mask, nmaskbits) will erroneously set bit zero in
-the mask.  The same bug is visible in cpumask_parselist() since it is
-layered on top of the bitmask code, e.g.  if you boot with "isolcpus=",
-you will actually end up with cpu zero isolated.
+Patch fixes drawbacks in heck_syslog_permissions() noticed by AKPM:
+"from_file handling makes me cry.
 
-The bug was introduced in commit 4b060420a596 ("bitmap, irq: add
-smp_affinity_list interface to /proc/irq") when bitmap_parselist() was
-generalized to support userspace as well as kernelspace.
+That's not a boolean - it's an enumerated value with two values
+currently defined.
 
-Fixes: 4b060420a596 ("bitmap, irq: add smp_affinity_list interface to /proc/irq")
-Signed-off-by: Chris Metcalf <cmetcalf@ezchip.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+But the code in check_syslog_permissions() treats it as a boolean and
+also hardwires the knowledge that SYSLOG_FROM_PROC == 1 (or == `true`).
+
+And the name is wrong: it should be called from_proc to match
+SYSLOG_FROM_PROC."
+
+Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Josh Boyer <jwboyer@redhat.com>
+Cc: Eric Paris <eparis@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/bitmap.c |   17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+ include/linux/syslog.h |    6 +++---
+ kernel/printk/printk.c |   10 +++++-----
+ 2 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN lib/bitmap.c~__bitmap_parselist-fix-bug-in-empty-string-handling lib/bitmap.c
---- a/lib/bitmap.c~__bitmap_parselist-fix-bug-in-empty-string-handling
-+++ a/lib/bitmap.c
-@@ -506,12 +506,12 @@ static int __bitmap_parselist(const char
- 	unsigned a, b;
- 	int c, old_c, totaldigits;
- 	const char __user __force *ubuf = (const char __user __force *)buf;
--	int exp_digit, in_range;
-+	int at_start, in_range;
+diff -puN include/linux/syslog.h~check_syslog_permissions-cleanup include/linux/syslog.h
+--- a/include/linux/syslog.h~check_syslog_permissions-cleanup
++++ a/include/linux/syslog.h
+@@ -47,12 +47,12 @@
+ #define SYSLOG_FROM_READER           0
+ #define SYSLOG_FROM_PROC             1
  
- 	totaldigits = c = 0;
- 	bitmap_zero(maskp, nmaskbits);
- 	do {
--		exp_digit = 1;
-+		at_start = 1;
- 		in_range = 0;
- 		a = b = 0;
+-int do_syslog(int type, char __user *buf, int count, bool from_file);
++int do_syslog(int type, char __user *buf, int count, int source);
  
-@@ -540,11 +540,10 @@ static int __bitmap_parselist(const char
- 				break;
- 
- 			if (c == '-') {
--				if (exp_digit || in_range)
-+				if (at_start || in_range)
- 					return -EINVAL;
- 				b = 0;
- 				in_range = 1;
--				exp_digit = 1;
- 				continue;
- 			}
- 
-@@ -554,16 +553,18 @@ static int __bitmap_parselist(const char
- 			b = b * 10 + (c - '0');
- 			if (!in_range)
- 				a = b;
--			exp_digit = 0;
-+			at_start = 0;
- 			totaldigits++;
- 		}
- 		if (!(a <= b))
- 			return -EINVAL;
- 		if (b >= nmaskbits)
- 			return -ERANGE;
--		while (a <= b) {
--			set_bit(a, maskp);
--			a++;
-+		if (!at_start) {
-+			while (a <= b) {
-+				set_bit(a, maskp);
-+				a++;
-+			}
- 		}
- 	} while (buflen && c == ',');
+ #ifdef CONFIG_PRINTK
+-int check_syslog_permissions(int type, bool from_file);
++int check_syslog_permissions(int type, int source);
+ #else
+-static inline int check_syslog_permissions(int type, bool from_file)
++static inline int check_syslog_permissions(int type, int source)
+ {
  	return 0;
+ }
+diff -puN kernel/printk/printk.c~check_syslog_permissions-cleanup kernel/printk/printk.c
+--- a/kernel/printk/printk.c~check_syslog_permissions-cleanup
++++ a/kernel/printk/printk.c
+@@ -489,13 +489,13 @@ static int syslog_action_restricted(int
+ 	       type != SYSLOG_ACTION_SIZE_BUFFER;
+ }
+ 
+-int check_syslog_permissions(int type, bool from_file)
++int check_syslog_permissions(int type, int source)
+ {
+ 	/*
+ 	 * If this is from /proc/kmsg and we've already opened it, then we've
+ 	 * already done the capabilities checks at open time.
+ 	 */
+-	if (from_file && type != SYSLOG_ACTION_OPEN)
++	if (source == SYSLOG_FROM_PROC && type != SYSLOG_ACTION_OPEN)
+ 		goto ok;
+ 
+ 	if (syslog_action_restricted(type)) {
+@@ -1290,13 +1290,13 @@ static int syslog_print_all(char __user
+ 	return len;
+ }
+ 
+-int do_syslog(int type, char __user *buf, int len, bool from_file)
++int do_syslog(int type, char __user *buf, int len, int source)
+ {
+ 	bool clear = false;
+ 	static int saved_console_loglevel = LOGLEVEL_DEFAULT;
+ 	int error;
+ 
+-	error = check_syslog_permissions(type, from_file);
++	error = check_syslog_permissions(type, source);
+ 	if (error)
+ 		goto out;
+ 
+@@ -1379,7 +1379,7 @@ int do_syslog(int type, char __user *buf
+ 			syslog_prev = 0;
+ 			syslog_partial = 0;
+ 		}
+-		if (from_file) {
++		if (source == SYSLOG_FROM_PROC) {
+ 			/*
+ 			 * Short-cut for poll(/"proc/kmsg") which simply checks
+ 			 * for pending data, not the size; return the count of
 _
 
-Patches currently in -mm which might be from cmetcalf@ezchip.com are
+Patches currently in -mm which might be from vvs@virtuozzo.com are
 
 origin.patch
-linux-next.patch
 
