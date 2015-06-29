@@ -1,95 +1,98 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- bitmap-remove-explicit-newline-handling-using-scnprintf-format-string.patch removed from -mm tree
-Date: Mon, 29 Jun 2015 13:48:00 -0700
-Message-ID: <5591af00.zq8EpZs8q3t07tYg%akpm@linux-foundation.org>
+ maintainers-add-quotation-marks-around-names-with-commas.patch removed from -mm tree
+Date: Mon, 29 Jun 2015 13:47:49 -0700
+Message-ID: <5591aef5.Q5S/cQLMoIGN/jRn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50910 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50767 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753570AbbF2UsB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:48:01 -0400
+	with ESMTP id S1753944AbbF2Urt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:47:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sudeep.holla@arm.com, Pawel.Moll@arm.com, peterz@infradead.org, tj@kernel.org, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: bitmap: remove explicit newline handling using scnprintf format string
+     Subject: MAINTAINERS: Add quotation marks around names with commas
 has been removed from the -mm tree.  Its filename was
-     bitmap-remove-explicit-newline-handling-using-scnprintf-format-string.patch
+     maintainers-add-quotation-marks-around-names-with-commas.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: bitmap: remove explicit newline handling using scnprintf format string
+From: Joe Perches <joe@perches.com>
+Subject: MAINTAINERS: Add quotation marks around names with commas
 
-bitmap_print_to_pagebuf uses scnprintf to copy the cpumask/list to page
-buffer.  It handles the newline and trailing null character explicitly.
+This makes it easier to copy/paste names with periods to email clients.
 
-It's unnecessary and also partially duplicated as scnprintf already adds
-trailing null character.  The newline can be passed through format string
-to scnprintf.  This patch does that simplification.
+All the other names with commas already have quotation marks.
 
-However theoretically there's one behavior difference: when the buffer is
-too small, the original code would still output '\n' at the end while the
-new code(with this patch) would just continue to print the formatted
-string.  Since this function is dealing with only page buffers, it's
-highly unlikely to hit that corner case.
-
-This patch will help in auditing the users of bitmap_print_to_pagebuf
-to verify that the buffer passed is large enough and get rid of it
-completely by replacing them with direct scnprintf()
-
-[akpm@linux-foundation.org: tweak comment]
-Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
-Suggested-by: Pawel Moll <Pawel.Moll@arm.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: "Peter Zijlstra (Intel)" <peterz@infradead.org>
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/bitmap.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ MAINTAINERS |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN lib/bitmap.c~bitmap-remove-explicit-newline-handling-using-scnprintf-format-string lib/bitmap.c
---- a/lib/bitmap.c~bitmap-remove-explicit-newline-handling-using-scnprintf-format-string
-+++ a/lib/bitmap.c
-@@ -462,19 +462,20 @@ EXPORT_SYMBOL(bitmap_parse_user);
-  * Output format is a comma-separated list of decimal numbers and
-  * ranges if list is specified or hex digits grouped into comma-separated
-  * sets of 8 digits/set. Returns the number of characters written to buf.
-+ *
-+ * It is assumed that @buf is a pointer into a PAGE_SIZE area and that
-+ * sufficient storage remains at @buf to accommodate the
-+ * bitmap_print_to_pagebuf() output.
-  */
- int bitmap_print_to_pagebuf(bool list, char *buf, const unsigned long *maskp,
- 			    int nmaskbits)
- {
--	ptrdiff_t len = PTR_ALIGN(buf + PAGE_SIZE - 1, PAGE_SIZE) - buf - 2;
-+	ptrdiff_t len = PTR_ALIGN(buf + PAGE_SIZE - 1, PAGE_SIZE) - buf;
- 	int n = 0;
+diff -puN MAINTAINERS~maintainers-add-quotation-marks-around-names-with-commas MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-quotation-marks-around-names-with-commas
++++ a/MAINTAINERS
+@@ -2498,7 +2498,7 @@ F:	arch/powerpc/oprofile/*cell*
+ F:	arch/powerpc/platforms/cell/
  
--	if (len > 1) {
--		n = list ? scnprintf(buf, len, "%*pbl", nmaskbits, maskp) :
--			   scnprintf(buf, len, "%*pb", nmaskbits, maskp);
--		buf[n++] = '\n';
--		buf[n] = '\0';
--	}
-+	if (len > 1)
-+		n = list ? scnprintf(buf, len, "%*pbl\n", nmaskbits, maskp) :
-+			   scnprintf(buf, len, "%*pb\n", nmaskbits, maskp);
- 	return n;
- }
- EXPORT_SYMBOL(bitmap_print_to_pagebuf);
+ CEPH DISTRIBUTED FILE SYSTEM CLIENT
+-M:	Yan, Zheng <zyan@redhat.com>
++M:	"Yan, Zheng" <zyan@redhat.com>
+ M:	Sage Weil <sage@redhat.com>
+ L:	ceph-devel@vger.kernel.org
+ W:	http://ceph.com/
+@@ -9105,7 +9105,7 @@ F:	arch/arm/mach-davinci/
+ F:	drivers/i2c/busses/i2c-davinci.c
+ 
+ TI DAVINCI SERIES MEDIA DRIVER
+-M:	Lad, Prabhakar <prabhakar.csengg@gmail.com>
++M:	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+ L:	linux-media@vger.kernel.org
+ W:	http://linuxtv.org/
+ Q:	http://patchwork.linuxtv.org/project/linux-media/list/
+@@ -9115,7 +9115,7 @@ F:	drivers/media/platform/davinci/
+ F:	include/media/davinci/
+ 
+ TI AM437X VPFE DRIVER
+-M:	Lad, Prabhakar <prabhakar.csengg@gmail.com>
++M:	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+ L:	linux-media@vger.kernel.org
+ W:	http://linuxtv.org/
+ Q:	http://patchwork.linuxtv.org/project/linux-media/list/
+@@ -9124,7 +9124,7 @@ S:	Maintained
+ F:	drivers/media/platform/am437x/
+ 
+ OV2659 OMNIVISION SENSOR DRIVER
+-M:	Lad, Prabhakar <prabhakar.csengg@gmail.com>
++M:	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+ L:	linux-media@vger.kernel.org
+ W:	http://linuxtv.org/
+ Q:	http://patchwork.linuxtv.org/project/linux-media/list/
 _
 
-Patches currently in -mm which might be from sudeep.holla@arm.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 origin.patch
+ocfs2-neaten-do_error-ocfs2_error-and-ocfs2_abort.patch
+mm-utilc-add-kstrimdup.patch
+linux-next.patch
+printk-improve-the-description-of-dev-kmsg-line-format.patch
+fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void.patch
+fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix.patch
+maintainers-update-sound-soc-intel-patterns.patch
+maintainers-update-brcm-dts-pattern.patch
+maintainers-update-brcm-gpio-filename-pattern.patch
+maintainers-remove-unused-nbdh-pattern.patch
+maintainers-move-jens-osterkamp-to-credits.patch
+maintainers-bcache-kent-overstreet-has-changed-email-address.patch
 
