@@ -1,586 +1,258 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-memblock-add-extra-flags-to-memblock-to-allow-selection-of-memory-based-on-attribute.patch removed from -mm tree
-Date: Mon, 29 Jun 2015 13:39:02 -0700
-Message-ID: <5591ace6.xijYGMOE0Z0Rb0F7%akpm@linux-foundation.org>
+ mm-kmemleak-optimise-kmemleak_lock-acquiring-during-kmemleak_scan.patch
+ removed from -mm tree
+Date: Mon, 29 Jun 2015 13:39:24 -0700
+Message-ID: <5591acfc.pNKYwEI6tw0WGJzq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50513 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50554 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753724AbbF2UjD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:39:03 -0400
+	with ESMTP id S1753277AbbF2Uj0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:39:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tony.luck@intel.com, guohanjun@huawei.com, hpa@zytor.com, mingo@elte.hu, nao.horiguchi@gmail.com, qiuxishi@huawei.com, tglx@linutronix.de, xiexiuqi@huawei.com, yinghai@kernel.org, mm-commits@vger.kernel.org
+To: catalin.marinas@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memblock: add extra "flags" to memblock to allow selection of memory based on attribute
+     Subject: mm: kmemleak: optimise kmemleak_lock acquiring during kmemleak_scan
 has been removed from the -mm tree.  Its filename was
-     mm-memblock-add-extra-flags-to-memblock-to-allow-selection-of-memory-based-on-attribute.patch
+     mm-kmemleak-optimise-kmemleak_lock-acquiring-during-kmemleak_scan.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tony Luck <tony.luck@intel.com>
-Subject: mm/memblock: add extra "flags" to memblock to allow selection of memory based on attribute
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: mm: kmemleak: optimise kmemleak_lock acquiring during kmemleak_scan
 
-Some high end Intel Xeon systems report uncorrectable memory errors as a
-recoverable machine check.  Linux has included code for some time to
-process these and just signal the affected processes (or even recover
-completely if the error was in a read only page that can be replaced by
-reading from disk).
+The kmemleak memory scanning uses finer grained object->lock spinlocks
+primarily to avoid races with the memory block freeing.  However, the
+pointer lookup in the rb tree requires the kmemleak_lock to be held.  This
+is currently done in the find_and_get_object() function for each
+pointer-like location read during scanning.  While this allows a low
+latency on kmemleak_*() callbacks on other CPUs, the memory scanning is
+slower.
 
-But we have no recovery path for errors encountered during kernel code
-execution.  Except for some very specific cases were are unlikely to ever
-be able to recover.
+This patch moves the kmemleak_lock outside the scan_block() loop,
+acquiring/releasing it only once per scanned memory block.  The
+allow_resched logic is moved outside scan_block() and a new
+scan_large_block() function is implemented which splits large blocks in
+MAX_SCAN_SIZE chunks with cond_resched() calls in-between.  A redundant
+(object->flags & OBJECT_NO_SCAN) check is also removed from scan_object().
 
-Enter memory mirroring. Actually 3rd generation of memory mirroing.
+With this patch, the kmemleak scanning performance is significantly
+improved: at least 50% with lock debugging disabled and over an order of
+magnitude with lock proving enabled (on an arm64 system).
 
-Gen1: All memory is mirrored
-	Pro: No s/w enabling - h/w just gets good data from other side of the
-	     mirror
-	Con: Halves effective memory capacity available to OS/applications
-
-Gen2: Partial memory mirror - just mirror memory begind some memory controllers
-	Pro: Keep more of the capacity
-	Con: Nightmare to enable. Have to choose between allocating from
-	     mirrored memory for safety vs. NUMA local memory for performance
-
-Gen3: Address range partial memory mirror - some mirror on each memory
-      controller
-	Pro: Can tune the amount of mirror and keep NUMA performance
-	Con: I have to write memory management code to implement
-
-The current plan is just to use mirrored memory for kernel allocations. 
-This has been broken into two phases:
-
-1) This patch series - find the mirrored memory, use it for boot time
-   allocations
-
-2) Wade into mm/page_alloc.c and define a ZONE_MIRROR to pick up the
-   unused mirrored memory from mm/memblock.c and only give it out to
-   select kernel allocations (this is still being scoped because
-   page_alloc.c is scary).
-
-
-This patch (of 3):
-
-
-Add extra "flags" to memblock to allow selection of memory based on
-attribute.  No functional changes
-
-Signed-off-by: Tony Luck <tony.luck@intel.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Hanjun Guo <guohanjun@huawei.com>
-Cc: Xiexiuqi <xiexiuqi@huawei.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
-Cc: Naoya Horiguchi <nao.horiguchi@gmail.com>
+Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/kernel/crash_dump.c |    5 +-
- arch/sparc/mm/init_64.c       |    6 ++-
- arch/x86/kernel/check.c       |    3 +
- arch/x86/kernel/e820.c        |    3 +
- arch/x86/mm/init_32.c         |    2 -
- include/linux/memblock.h      |   41 +++++++++++++++--------
- mm/cma.c                      |    6 ++-
- mm/memblock.c                 |   55 ++++++++++++++++++++------------
- mm/memtest.c                  |    3 +
- mm/nobootmem.c                |    6 ++-
- 10 files changed, 83 insertions(+), 47 deletions(-)
+ mm/kmemleak.c |   90 +++++++++++++++++++++++++++++-------------------
+ 1 file changed, 56 insertions(+), 34 deletions(-)
 
-diff -puN arch/s390/kernel/crash_dump.c~mm-memblock-add-extra-flags-to-memblock-to-allow-selection-of-memory-based-on-attribute arch/s390/kernel/crash_dump.c
---- a/arch/s390/kernel/crash_dump.c~mm-memblock-add-extra-flags-to-memblock-to-allow-selection-of-memory-based-on-attribute
-+++ a/arch/s390/kernel/crash_dump.c
-@@ -33,11 +33,12 @@ static struct memblock_type oldmem_type
- };
- 
- #define for_each_dump_mem_range(i, nid, p_start, p_end, p_nid)		\
--	for (i = 0, __next_mem_range(&i, nid, &memblock.physmem,	\
-+	for (i = 0, __next_mem_range(&i, nid, MEMBLOCK_NONE,		\
-+				     &memblock.physmem,			\
- 				     &oldmem_type, p_start,		\
- 				     p_end, p_nid);			\
- 	     i != (u64)ULLONG_MAX;					\
--	     __next_mem_range(&i, nid, &memblock.physmem,		\
-+	     __next_mem_range(&i, nid, MEMBLOCK_NONE, &memblock.physmem,\
- 			      &oldmem_type,				\
- 			      p_start, p_end, p_nid))
- 
-diff -puN arch/sparc/mm/init_64.c~mm-memblock-add-extra-flags-to-memblock-to-allow-selection-of-memory-based-on-attribute arch/sparc/mm/init_64.c
---- a/arch/sparc/mm/init_64.c~mm-memblock-add-extra-flags-to-memblock-to-allow-selection-of-memory-based-on-attribute
-+++ a/arch/sparc/mm/init_64.c
-@@ -1966,7 +1966,8 @@ static phys_addr_t __init available_memo
- 	phys_addr_t pa_start, pa_end;
- 	u64 i;
- 
--	for_each_free_mem_range(i, NUMA_NO_NODE, &pa_start, &pa_end, NULL)
-+	for_each_free_mem_range(i, NUMA_NO_NODE, MEMBLOCK_NONE, &pa_start,
-+				&pa_end, NULL)
- 		available = available + (pa_end  - pa_start);
- 
- 	return available;
-@@ -1992,7 +1993,8 @@ static void __init reduce_memory(phys_ad
- 	if (limit_ram >= avail_ram)
- 		return;
- 
--	for_each_free_mem_range(i, NUMA_NO_NODE, &pa_start, &pa_end, NULL) {
-+	for_each_free_mem_range(i, NUMA_NO_NODE, MEMBLOCK_NONE, &pa_start,
-+				&pa_end, NULL) {
- 		phys_addr_t region_size = pa_end - pa_start;
- 		phys_addr_t clip_start = pa_start;
- 
-diff -puN arch/x86/kernel/check.c~mm-memblock-add-extra-flags-to-memblock-to-allow-selection-of-memory-based-on-attribute arch/x86/kernel/check.c
---- a/arch/x86/kernel/check.c~mm-memblock-add-extra-flags-to-memblock-to-allow-selection-of-memory-based-on-attribute
-+++ a/arch/x86/kernel/check.c
-@@ -91,7 +91,8 @@ void __init setup_bios_corruption_check(
- 
- 	corruption_check_size = round_up(corruption_check_size, PAGE_SIZE);
- 
--	for_each_free_mem_range(i, NUMA_NO_NODE, &start, &end, NULL) {
-+	for_each_free_mem_range(i, NUMA_NO_NODE, MEMBLOCK_NONE, &start, &end,
-+				NULL) {
- 		start = clamp_t(phys_addr_t, round_up(start, PAGE_SIZE),
- 				PAGE_SIZE, corruption_check_size);
- 		end = clamp_t(phys_addr_t, round_down(end, PAGE_SIZE),
-diff -puN arch/x86/kernel/e820.c~mm-memblock-add-extra-flags-to-memblock-to-allow-selection-of-memory-based-on-attribute arch/x86/kernel/e820.c
---- a/arch/x86/kernel/e820.c~mm-memblock-add-extra-flags-to-memblock-to-allow-selection-of-memory-based-on-attribute
-+++ a/arch/x86/kernel/e820.c
-@@ -1123,7 +1123,8 @@ void __init memblock_find_dma_reserve(vo
- 		nr_pages += end_pfn - start_pfn;
- 	}
- 
--	for_each_free_mem_range(u, NUMA_NO_NODE, &start, &end, NULL) {
-+	for_each_free_mem_range(u, NUMA_NO_NODE, MEMBLOCK_NONE, &start, &end,
-+				NULL) {
- 		start_pfn = min_t(unsigned long, PFN_UP(start), MAX_DMA_PFN);
- 		end_pfn = min_t(unsigned long, PFN_DOWN(end), MAX_DMA_PFN);
- 		if (start_pfn < end_pfn)
-diff -puN arch/x86/mm/init_32.c~mm-memblock-add-extra-flags-to-memblock-to-allow-selection-of-memory-based-on-attribute arch/x86/mm/init_32.c
---- a/arch/x86/mm/init_32.c~mm-memblock-add-extra-flags-to-memblock-to-allow-selection-of-memory-based-on-attribute
-+++ a/arch/x86/mm/init_32.c
-@@ -433,7 +433,7 @@ void __init add_highpages_with_active_re
- 	phys_addr_t start, end;
- 	u64 i;
- 
--	for_each_free_mem_range(i, nid, &start, &end, NULL) {
-+	for_each_free_mem_range(i, nid, MEMBLOCK_NONE, &start, &end, NULL) {
- 		unsigned long pfn = clamp_t(unsigned long, PFN_UP(start),
- 					    start_pfn, end_pfn);
- 		unsigned long e_pfn = clamp_t(unsigned long, PFN_DOWN(end),
-diff -puN include/linux/memblock.h~mm-memblock-add-extra-flags-to-memblock-to-allow-selection-of-memory-based-on-attribute include/linux/memblock.h
---- a/include/linux/memblock.h~mm-memblock-add-extra-flags-to-memblock-to-allow-selection-of-memory-based-on-attribute
-+++ a/include/linux/memblock.h
-@@ -21,7 +21,10 @@
- #define INIT_PHYSMEM_REGIONS	4
- 
- /* Definition of memblock flags. */
--#define MEMBLOCK_HOTPLUG	0x1	/* hotpluggable region */
-+enum {
-+	MEMBLOCK_NONE		= 0x0,	/* No special request */
-+	MEMBLOCK_HOTPLUG	= 0x1,	/* hotpluggable region */
-+};
- 
- struct memblock_region {
- 	phys_addr_t base;
-@@ -61,7 +64,7 @@ extern bool movable_node_enabled;
- 
- phys_addr_t memblock_find_in_range_node(phys_addr_t size, phys_addr_t align,
- 					    phys_addr_t start, phys_addr_t end,
--					    int nid);
-+					    int nid, ulong flags);
- phys_addr_t memblock_find_in_range(phys_addr_t start, phys_addr_t end,
- 				   phys_addr_t size, phys_addr_t align);
- phys_addr_t get_allocated_memblock_reserved_regions_info(phys_addr_t *addr);
-@@ -85,11 +88,13 @@ int memblock_remove_range(struct membloc
- 			  phys_addr_t base,
- 			  phys_addr_t size);
- 
--void __next_mem_range(u64 *idx, int nid, struct memblock_type *type_a,
-+void __next_mem_range(u64 *idx, int nid, ulong flags,
-+		      struct memblock_type *type_a,
- 		      struct memblock_type *type_b, phys_addr_t *out_start,
- 		      phys_addr_t *out_end, int *out_nid);
- 
--void __next_mem_range_rev(u64 *idx, int nid, struct memblock_type *type_a,
-+void __next_mem_range_rev(u64 *idx, int nid, ulong flags,
-+			  struct memblock_type *type_a,
- 			  struct memblock_type *type_b, phys_addr_t *out_start,
- 			  phys_addr_t *out_end, int *out_nid);
- 
-@@ -100,16 +105,17 @@ void __next_mem_range_rev(u64 *idx, int
-  * @type_a: ptr to memblock_type to iterate
-  * @type_b: ptr to memblock_type which excludes from the iteration
-  * @nid: node selector, %NUMA_NO_NODE for all nodes
-+ * @flags: pick from blocks based on memory attributes
-  * @p_start: ptr to phys_addr_t for start address of the range, can be %NULL
-  * @p_end: ptr to phys_addr_t for end address of the range, can be %NULL
-  * @p_nid: ptr to int for nid of the range, can be %NULL
-  */
--#define for_each_mem_range(i, type_a, type_b, nid,			\
-+#define for_each_mem_range(i, type_a, type_b, nid, flags,		\
- 			   p_start, p_end, p_nid)			\
--	for (i = 0, __next_mem_range(&i, nid, type_a, type_b,		\
-+	for (i = 0, __next_mem_range(&i, nid, flags, type_a, type_b,	\
- 				     p_start, p_end, p_nid);		\
- 	     i != (u64)ULLONG_MAX;					\
--	     __next_mem_range(&i, nid, type_a, type_b,			\
-+	     __next_mem_range(&i, nid, flags, type_a, type_b,		\
- 			      p_start, p_end, p_nid))
- 
- /**
-@@ -119,17 +125,18 @@ void __next_mem_range_rev(u64 *idx, int
-  * @type_a: ptr to memblock_type to iterate
-  * @type_b: ptr to memblock_type which excludes from the iteration
-  * @nid: node selector, %NUMA_NO_NODE for all nodes
-+ * @flags: pick from blocks based on memory attributes
-  * @p_start: ptr to phys_addr_t for start address of the range, can be %NULL
-  * @p_end: ptr to phys_addr_t for end address of the range, can be %NULL
-  * @p_nid: ptr to int for nid of the range, can be %NULL
-  */
--#define for_each_mem_range_rev(i, type_a, type_b, nid,			\
-+#define for_each_mem_range_rev(i, type_a, type_b, nid, flags,		\
- 			       p_start, p_end, p_nid)			\
- 	for (i = (u64)ULLONG_MAX,					\
--		     __next_mem_range_rev(&i, nid, type_a, type_b,	\
-+		     __next_mem_range_rev(&i, nid, flags, type_a, type_b,\
- 					 p_start, p_end, p_nid);	\
- 	     i != (u64)ULLONG_MAX;					\
--	     __next_mem_range_rev(&i, nid, type_a, type_b,		\
-+	     __next_mem_range_rev(&i, nid, flags, type_a, type_b,	\
- 				  p_start, p_end, p_nid))
- 
- #ifdef CONFIG_MOVABLE_NODE
-@@ -181,13 +188,14 @@ void __next_mem_pfn_range(int *idx, int
-  * @p_start: ptr to phys_addr_t for start address of the range, can be %NULL
-  * @p_end: ptr to phys_addr_t for end address of the range, can be %NULL
-  * @p_nid: ptr to int for nid of the range, can be %NULL
-+ * @flags: pick from blocks based on memory attributes
+diff -puN mm/kmemleak.c~mm-kmemleak-optimise-kmemleak_lock-acquiring-during-kmemleak_scan mm/kmemleak.c
+--- a/mm/kmemleak.c~mm-kmemleak-optimise-kmemleak_lock-acquiring-during-kmemleak_scan
++++ a/mm/kmemleak.c
+@@ -53,10 +53,12 @@
+  *   modifications to the memory scanning parameters including the scan_thread
+  *   pointer
   *
-  * Walks over free (memory && !reserved) areas of memblock.  Available as
-  * soon as memblock is initialized.
-  */
--#define for_each_free_mem_range(i, nid, p_start, p_end, p_nid)		\
-+#define for_each_free_mem_range(i, nid, flags, p_start, p_end, p_nid)	\
- 	for_each_mem_range(i, &memblock.memory, &memblock.reserved,	\
--			   nid, p_start, p_end, p_nid)
-+			   nid, flags, p_start, p_end, p_nid)
- 
- /**
-  * for_each_free_mem_range_reverse - rev-iterate through free memblock areas
-@@ -196,13 +204,15 @@ void __next_mem_pfn_range(int *idx, int
-  * @p_start: ptr to phys_addr_t for start address of the range, can be %NULL
-  * @p_end: ptr to phys_addr_t for end address of the range, can be %NULL
-  * @p_nid: ptr to int for nid of the range, can be %NULL
-+ * @flags: pick from blocks based on memory attributes
+- * Locks and mutexes should only be acquired/nested in the following order:
++ * Locks and mutexes are acquired/nested in the following order:
   *
-  * Walks over free (memory && !reserved) areas of memblock in reverse
-  * order.  Available as soon as memblock is initialized.
+- *   scan_mutex -> object->lock -> other_object->lock (SINGLE_DEPTH_NESTING)
+- *				-> kmemleak_lock
++ *   scan_mutex [-> object->lock] -> kmemleak_lock -> other_object->lock (SINGLE_DEPTH_NESTING)
++ *
++ * No kmemleak_lock and object->lock nesting is allowed outside scan_mutex
++ * regions.
+  *
+  * The kmemleak_object structures have a use_count incremented or decremented
+  * using the get_object()/put_object() functions. When the use_count becomes
+@@ -490,8 +492,7 @@ static struct kmemleak_object *find_and_
+ 
+ 	rcu_read_lock();
+ 	read_lock_irqsave(&kmemleak_lock, flags);
+-	if (ptr >= min_addr && ptr < max_addr)
+-		object = lookup_object(ptr, alias);
++	object = lookup_object(ptr, alias);
+ 	read_unlock_irqrestore(&kmemleak_lock, flags);
+ 
+ 	/* check whether the object is still available */
+@@ -1170,19 +1171,18 @@ static int scan_should_stop(void)
+  * found to the gray list.
   */
--#define for_each_free_mem_range_reverse(i, nid, p_start, p_end, p_nid)	\
-+#define for_each_free_mem_range_reverse(i, nid, flags, p_start, p_end,	\
-+					p_nid)				\
- 	for_each_mem_range_rev(i, &memblock.memory, &memblock.reserved,	\
--			       nid, p_start, p_end, p_nid)
-+			       nid, flags, p_start, p_end, p_nid)
+ static void scan_block(void *_start, void *_end,
+-		       struct kmemleak_object *scanned, int allow_resched)
++		       struct kmemleak_object *scanned)
+ {
+ 	unsigned long *ptr;
+ 	unsigned long *start = PTR_ALIGN(_start, BYTES_PER_POINTER);
+ 	unsigned long *end = _end - (BYTES_PER_POINTER - 1);
++	unsigned long flags;
  
- static inline void memblock_set_region_flags(struct memblock_region *r,
- 					     unsigned long flags)
-@@ -273,7 +283,8 @@ static inline bool memblock_bottom_up(vo
- #define MEMBLOCK_ALLOC_ACCESSIBLE	0
++	read_lock_irqsave(&kmemleak_lock, flags);
+ 	for (ptr = start; ptr < end; ptr++) {
+ 		struct kmemleak_object *object;
+-		unsigned long flags;
+ 		unsigned long pointer;
  
- phys_addr_t __init memblock_alloc_range(phys_addr_t size, phys_addr_t align,
--					phys_addr_t start, phys_addr_t end);
-+					phys_addr_t start, phys_addr_t end,
-+					ulong flags);
- phys_addr_t memblock_alloc_base(phys_addr_t size, phys_addr_t align,
- 				phys_addr_t max_addr);
- phys_addr_t __memblock_alloc_base(phys_addr_t size, phys_addr_t align,
-diff -puN mm/cma.c~mm-memblock-add-extra-flags-to-memblock-to-allow-selection-of-memory-based-on-attribute mm/cma.c
---- a/mm/cma.c~mm-memblock-add-extra-flags-to-memblock-to-allow-selection-of-memory-based-on-attribute
-+++ a/mm/cma.c
-@@ -316,13 +316,15 @@ int __init cma_declare_contiguous(phys_a
+-		if (allow_resched)
+-			cond_resched();
+ 		if (scan_should_stop())
+ 			break;
+ 
+@@ -1195,26 +1195,31 @@ static void scan_block(void *_start, voi
+ 		pointer = *ptr;
+ 		kasan_enable_current();
+ 
+-		object = find_and_get_object(pointer, 1);
++		if (pointer < min_addr || pointer >= max_addr)
++			continue;
++
++		/*
++		 * No need for get_object() here since we hold kmemleak_lock.
++		 * object->use_count cannot be dropped to 0 while the object
++		 * is still present in object_tree_root and object_list
++		 * (with updates protected by kmemleak_lock).
++		 */
++		object = lookup_object(pointer, 1);
+ 		if (!object)
+ 			continue;
+-		if (object == scanned) {
++		if (object == scanned)
+ 			/* self referenced, ignore */
+-			put_object(object);
+ 			continue;
+-		}
+ 
+ 		/*
+ 		 * Avoid the lockdep recursive warning on object->lock being
+ 		 * previously acquired in scan_object(). These locks are
+ 		 * enclosed by scan_mutex.
  		 */
- 		if (base < highmem_start && limit > highmem_start) {
- 			addr = memblock_alloc_range(size, alignment,
--						    highmem_start, limit);
-+						    highmem_start, limit,
-+						    MEMBLOCK_NONE);
- 			limit = highmem_start;
+-		spin_lock_irqsave_nested(&object->lock, flags,
+-					 SINGLE_DEPTH_NESTING);
++		spin_lock_nested(&object->lock, SINGLE_DEPTH_NESTING);
+ 		if (!color_white(object)) {
+ 			/* non-orphan, ignored or new */
+-			spin_unlock_irqrestore(&object->lock, flags);
+-			put_object(object);
++			spin_unlock(&object->lock);
+ 			continue;
  		}
  
- 		if (!addr) {
- 			addr = memblock_alloc_range(size, alignment, base,
--						    limit);
-+						    limit,
-+						    MEMBLOCK_NONE);
- 			if (!addr) {
- 				ret = -ENOMEM;
- 				goto err;
-diff -puN mm/memblock.c~mm-memblock-add-extra-flags-to-memblock-to-allow-selection-of-memory-based-on-attribute mm/memblock.c
---- a/mm/memblock.c~mm-memblock-add-extra-flags-to-memblock-to-allow-selection-of-memory-based-on-attribute
-+++ a/mm/memblock.c
-@@ -107,6 +107,7 @@ static long __init_memblock memblock_ove
-  * @size: size of free area to find
-  * @align: alignment of free area to find
-  * @nid: nid of the free area to find, %NUMA_NO_NODE for any node
-+ * @flags: pick from blocks based on memory attributes
-  *
-  * Utility called from memblock_find_in_range_node(), find free area bottom-up.
-  *
-@@ -115,12 +116,13 @@ static long __init_memblock memblock_ove
-  */
- static phys_addr_t __init_memblock
- __memblock_find_range_bottom_up(phys_addr_t start, phys_addr_t end,
--				phys_addr_t size, phys_addr_t align, int nid)
-+				phys_addr_t size, phys_addr_t align, int nid,
-+				ulong flags)
- {
- 	phys_addr_t this_start, this_end, cand;
- 	u64 i;
+@@ -1226,13 +1231,27 @@ static void scan_block(void *_start, voi
+ 		 */
+ 		object->count++;
+ 		if (color_gray(object)) {
++			/* put_object() called when removing from gray_list */
++			WARN_ON(!get_object(object));
+ 			list_add_tail(&object->gray_list, &gray_list);
+-			spin_unlock_irqrestore(&object->lock, flags);
+-			continue;
+ 		}
++		spin_unlock(&object->lock);
++	}
++	read_unlock_irqrestore(&kmemleak_lock, flags);
++}
  
--	for_each_free_mem_range(i, nid, &this_start, &this_end, NULL) {
-+	for_each_free_mem_range(i, nid, flags, &this_start, &this_end, NULL) {
- 		this_start = clamp(this_start, start, end);
- 		this_end = clamp(this_end, start, end);
- 
-@@ -139,6 +141,7 @@ __memblock_find_range_bottom_up(phys_add
-  * @size: size of free area to find
-  * @align: alignment of free area to find
-  * @nid: nid of the free area to find, %NUMA_NO_NODE for any node
-+ * @flags: pick from blocks based on memory attributes
-  *
-  * Utility called from memblock_find_in_range_node(), find free area top-down.
-  *
-@@ -147,12 +150,14 @@ __memblock_find_range_bottom_up(phys_add
-  */
- static phys_addr_t __init_memblock
- __memblock_find_range_top_down(phys_addr_t start, phys_addr_t end,
--			       phys_addr_t size, phys_addr_t align, int nid)
-+			       phys_addr_t size, phys_addr_t align, int nid,
-+			       ulong flags)
- {
- 	phys_addr_t this_start, this_end, cand;
- 	u64 i;
- 
--	for_each_free_mem_range_reverse(i, nid, &this_start, &this_end, NULL) {
-+	for_each_free_mem_range_reverse(i, nid, flags, &this_start, &this_end,
-+					NULL) {
- 		this_start = clamp(this_start, start, end);
- 		this_end = clamp(this_end, start, end);
- 
-@@ -174,6 +179,7 @@ __memblock_find_range_top_down(phys_addr
-  * @start: start of candidate range
-  * @end: end of candidate range, can be %MEMBLOCK_ALLOC_{ANYWHERE|ACCESSIBLE}
-  * @nid: nid of the free area to find, %NUMA_NO_NODE for any node
-+ * @flags: pick from blocks based on memory attributes
-  *
-  * Find @size free area aligned to @align in the specified range and node.
-  *
-@@ -190,7 +196,7 @@ __memblock_find_range_top_down(phys_addr
-  */
- phys_addr_t __init_memblock memblock_find_in_range_node(phys_addr_t size,
- 					phys_addr_t align, phys_addr_t start,
--					phys_addr_t end, int nid)
-+					phys_addr_t end, int nid, ulong flags)
- {
- 	phys_addr_t kernel_end, ret;
- 
-@@ -215,7 +221,7 @@ phys_addr_t __init_memblock memblock_fin
- 
- 		/* ok, try bottom-up allocation first */
- 		ret = __memblock_find_range_bottom_up(bottom_up_start, end,
--						      size, align, nid);
-+						      size, align, nid, flags);
- 		if (ret)
- 			return ret;
- 
-@@ -233,7 +239,8 @@ phys_addr_t __init_memblock memblock_fin
- 			     "memory hotunplug may be affected\n");
+-		spin_unlock_irqrestore(&object->lock, flags);
+-		put_object(object);
++/*
++ * Scan a large memory block in MAX_SCAN_SIZE chunks to reduce the latency.
++ */
++static void scan_large_block(void *start, void *end)
++{
++	void *next;
++
++	while (start < end) {
++		next = min(start + MAX_SCAN_SIZE, end);
++		scan_block(start, next, NULL);
++		start = next;
++		cond_resched();
  	}
- 
--	return __memblock_find_range_top_down(start, end, size, align, nid);
-+	return __memblock_find_range_top_down(start, end, size, align, nid,
-+					      flags);
  }
  
- /**
-@@ -253,7 +260,7 @@ phys_addr_t __init_memblock memblock_fin
- 					phys_addr_t align)
- {
- 	return memblock_find_in_range_node(size, align, start, end,
--					    NUMA_NO_NODE);
-+					    NUMA_NO_NODE, MEMBLOCK_NONE);
+@@ -1258,22 +1277,25 @@ static void scan_object(struct kmemleak_
+ 	if (hlist_empty(&object->area_list)) {
+ 		void *start = (void *)object->pointer;
+ 		void *end = (void *)(object->pointer + object->size);
++		void *next;
+ 
+-		while (start < end && (object->flags & OBJECT_ALLOCATED) &&
+-		       !(object->flags & OBJECT_NO_SCAN)) {
+-			scan_block(start, min(start + MAX_SCAN_SIZE, end),
+-				   object, 0);
+-			start += MAX_SCAN_SIZE;
++		do {
++			next = min(start + MAX_SCAN_SIZE, end);
++			scan_block(start, next, object);
++
++			start = next;
++			if (start >= end)
++				break;
+ 
+ 			spin_unlock_irqrestore(&object->lock, flags);
+ 			cond_resched();
+ 			spin_lock_irqsave(&object->lock, flags);
+-		}
++		} while (object->flags & OBJECT_ALLOCATED);
+ 	} else
+ 		hlist_for_each_entry(area, &object->area_list, node)
+ 			scan_block((void *)area->start,
+ 				   (void *)(area->start + area->size),
+-				   object, 0);
++				   object);
+ out:
+ 	spin_unlock_irqrestore(&object->lock, flags);
  }
+@@ -1350,14 +1372,14 @@ static void kmemleak_scan(void)
+ 	rcu_read_unlock();
  
- static void __init_memblock memblock_remove_region(struct memblock_type *type, unsigned long r)
-@@ -782,6 +789,7 @@ int __init_memblock memblock_clear_hotpl
-  * __next__mem_range - next function for for_each_free_mem_range() etc.
-  * @idx: pointer to u64 loop variable
-  * @nid: node selector, %NUMA_NO_NODE for all nodes
-+ * @flags: pick from blocks based on memory attributes
-  * @type_a: pointer to memblock_type from where the range is taken
-  * @type_b: pointer to memblock_type which excludes memory from being taken
-  * @out_start: ptr to phys_addr_t for start address of the range, can be %NULL
-@@ -803,7 +811,7 @@ int __init_memblock memblock_clear_hotpl
-  * As both region arrays are sorted, the function advances the two indices
-  * in lockstep and returns each intersection.
-  */
--void __init_memblock __next_mem_range(u64 *idx, int nid,
-+void __init_memblock __next_mem_range(u64 *idx, int nid, ulong flags,
- 				      struct memblock_type *type_a,
- 				      struct memblock_type *type_b,
- 				      phys_addr_t *out_start,
-@@ -895,6 +903,7 @@ void __init_memblock __next_mem_range(u6
-  *
-  * @idx: pointer to u64 loop variable
-  * @nid: nid: node selector, %NUMA_NO_NODE for all nodes
-+ * @flags: pick from blocks based on memory attributes
-  * @type_a: pointer to memblock_type from where the range is taken
-  * @type_b: pointer to memblock_type which excludes memory from being taken
-  * @out_start: ptr to phys_addr_t for start address of the range, can be %NULL
-@@ -903,7 +912,7 @@ void __init_memblock __next_mem_range(u6
-  *
-  * Reverse of __next_mem_range().
-  */
--void __init_memblock __next_mem_range_rev(u64 *idx, int nid,
-+void __init_memblock __next_mem_range_rev(u64 *idx, int nid, ulong flags,
- 					  struct memblock_type *type_a,
- 					  struct memblock_type *type_b,
- 					  phys_addr_t *out_start,
-@@ -1050,14 +1059,15 @@ int __init_memblock memblock_set_node(ph
+ 	/* data/bss scanning */
+-	scan_block(_sdata, _edata, NULL, 1);
+-	scan_block(__bss_start, __bss_stop, NULL, 1);
++	scan_large_block(_sdata, _edata);
++	scan_large_block(__bss_start, __bss_stop);
  
- static phys_addr_t __init memblock_alloc_range_nid(phys_addr_t size,
- 					phys_addr_t align, phys_addr_t start,
--					phys_addr_t end, int nid)
-+					phys_addr_t end, int nid, ulong flags)
- {
- 	phys_addr_t found;
+ #ifdef CONFIG_SMP
+ 	/* per-cpu sections scanning */
+ 	for_each_possible_cpu(i)
+-		scan_block(__per_cpu_start + per_cpu_offset(i),
+-			   __per_cpu_end + per_cpu_offset(i), NULL, 1);
++		scan_large_block(__per_cpu_start + per_cpu_offset(i),
++				 __per_cpu_end + per_cpu_offset(i));
+ #endif
  
- 	if (!align)
- 		align = SMP_CACHE_BYTES;
- 
--	found = memblock_find_in_range_node(size, align, start, end, nid);
-+	found = memblock_find_in_range_node(size, align, start, end, nid,
-+					    flags);
- 	if (found && !memblock_reserve(found, size)) {
- 		/*
- 		 * The min_count is set to 0 so that memblock allocations are
-@@ -1070,26 +1080,30 @@ static phys_addr_t __init memblock_alloc
- }
- 
- phys_addr_t __init memblock_alloc_range(phys_addr_t size, phys_addr_t align,
--					phys_addr_t start, phys_addr_t end)
-+					phys_addr_t start, phys_addr_t end,
-+					ulong flags)
- {
--	return memblock_alloc_range_nid(size, align, start, end, NUMA_NO_NODE);
-+	return memblock_alloc_range_nid(size, align, start, end, NUMA_NO_NODE,
-+					flags);
- }
- 
- static phys_addr_t __init memblock_alloc_base_nid(phys_addr_t size,
- 					phys_addr_t align, phys_addr_t max_addr,
--					int nid)
-+					int nid, ulong flags)
- {
--	return memblock_alloc_range_nid(size, align, 0, max_addr, nid);
-+	return memblock_alloc_range_nid(size, align, 0, max_addr, nid, flags);
- }
- 
- phys_addr_t __init memblock_alloc_nid(phys_addr_t size, phys_addr_t align, int nid)
- {
--	return memblock_alloc_base_nid(size, align, MEMBLOCK_ALLOC_ACCESSIBLE, nid);
-+	return memblock_alloc_base_nid(size, align, MEMBLOCK_ALLOC_ACCESSIBLE,
-+				       nid, MEMBLOCK_NONE);
- }
- 
- phys_addr_t __init __memblock_alloc_base(phys_addr_t size, phys_addr_t align, phys_addr_t max_addr)
- {
--	return memblock_alloc_base_nid(size, align, max_addr, NUMA_NO_NODE);
-+	return memblock_alloc_base_nid(size, align, max_addr, NUMA_NO_NODE,
-+				       MEMBLOCK_NONE);
- }
- 
- phys_addr_t __init memblock_alloc_base(phys_addr_t size, phys_addr_t align, phys_addr_t max_addr)
-@@ -1173,13 +1187,14 @@ static void * __init memblock_virt_alloc
- 
- again:
- 	alloc = memblock_find_in_range_node(size, align, min_addr, max_addr,
--					    nid);
-+					    nid, MEMBLOCK_NONE);
- 	if (alloc)
- 		goto done;
- 
- 	if (nid != NUMA_NO_NODE) {
- 		alloc = memblock_find_in_range_node(size, align, min_addr,
--						    max_addr,  NUMA_NO_NODE);
-+						    max_addr, NUMA_NO_NODE,
-+						    MEMBLOCK_NONE);
- 		if (alloc)
- 			goto done;
+ 	/*
+@@ -1378,7 +1400,7 @@ static void kmemleak_scan(void)
+ 			/* only scan if page is in use */
+ 			if (page_count(page) == 0)
+ 				continue;
+-			scan_block(page, page + 1, NULL, 1);
++			scan_block(page, page + 1, NULL);
+ 		}
  	}
-diff -puN mm/memtest.c~mm-memblock-add-extra-flags-to-memblock-to-allow-selection-of-memory-based-on-attribute mm/memtest.c
---- a/mm/memtest.c~mm-memblock-add-extra-flags-to-memblock-to-allow-selection-of-memory-based-on-attribute
-+++ a/mm/memtest.c
-@@ -74,7 +74,8 @@ static void __init do_one_pass(u64 patte
- 	u64 i;
- 	phys_addr_t this_start, this_end;
- 
--	for_each_free_mem_range(i, NUMA_NO_NODE, &this_start, &this_end, NULL) {
-+	for_each_free_mem_range(i, NUMA_NO_NODE, MEMBLOCK_NONE, &this_start,
-+				&this_end, NULL) {
- 		this_start = clamp(this_start, start, end);
- 		this_end = clamp(this_end, start, end);
- 		if (this_start < this_end) {
-diff -puN mm/nobootmem.c~mm-memblock-add-extra-flags-to-memblock-to-allow-selection-of-memory-based-on-attribute mm/nobootmem.c
---- a/mm/nobootmem.c~mm-memblock-add-extra-flags-to-memblock-to-allow-selection-of-memory-based-on-attribute
-+++ a/mm/nobootmem.c
-@@ -41,7 +41,8 @@ static void * __init __alloc_memory_core
- 	if (limit > memblock.current_limit)
- 		limit = memblock.current_limit;
- 
--	addr = memblock_find_in_range_node(size, align, goal, limit, nid);
-+	addr = memblock_find_in_range_node(size, align, goal, limit, nid,
-+					   MEMBLOCK_NONE);
- 	if (!addr)
- 		return NULL;
- 
-@@ -121,7 +122,8 @@ static unsigned long __init free_low_mem
- 
- 	memblock_clear_hotplug(0, -1);
- 
--	for_each_free_mem_range(i, NUMA_NO_NODE, &start, &end, NULL)
-+	for_each_free_mem_range(i, NUMA_NO_NODE, MEMBLOCK_NONE, &start, &end,
-+				NULL)
- 		count += __free_memory_core(start, end);
- 
- #ifdef CONFIG_ARCH_DISCARD_MEMBLOCK
+ 	put_online_mems();
+@@ -1392,7 +1414,7 @@ static void kmemleak_scan(void)
+ 		read_lock(&tasklist_lock);
+ 		do_each_thread(g, p) {
+ 			scan_block(task_stack_page(p), task_stack_page(p) +
+-				   THREAD_SIZE, NULL, 0);
++				   THREAD_SIZE, NULL);
+ 		} while_each_thread(g, p);
+ 		read_unlock(&tasklist_lock);
+ 	}
 _
 
-Patches currently in -mm which might be from tony.luck@intel.com are
+Patches currently in -mm which might be from catalin.marinas@arm.com are
 
 origin.patch
-memblock-introduce-a-for_each_reserved_mem_region-iterator.patch
-mm-meminit-move-page-initialization-into-a-separate-function.patch
-mm-meminit-only-set-page-reserved-in-the-memblock-region.patch
-mm-page_alloc-pass-pfn-to-__free_pages_bootmem.patch
-mm-meminit-make-__early_pfn_to_nid-smp-safe-and-introduce-meminit_pfn_in_nid.patch
-mm-meminit-inline-some-helper-functions.patch
-mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set.patch
-mm-meminit-initialise-remaining-struct-pages-in-parallel-with-kswapd.patch
-mm-meminit-minimise-number-of-pfn-page-lookups-during-initialisation.patch
-x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
-mm-meminit-free-pages-in-large-chunks-where-possible.patch
-mm-meminit-reduce-number-of-times-pageblocks-are-set-during-struct-page-init.patch
-mm-meminit-remove-mminit_verify_page_links.patch
 linux-next.patch
 
