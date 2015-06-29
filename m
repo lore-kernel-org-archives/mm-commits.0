@@ -1,120 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: [merged] powerpc-mm-tracking-vdso-remap.patch removed from -mm
- tree
-Date: Mon, 29 Jun 2015 13:37:36 -0700
-Message-ID: <5591ac90.Ubyeez2fAqBDKmem%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-oom_kill-remove-unnecessary-locking-in-exit_oom_victim.patch removed
+ from -mm tree
+Date: Mon, 29 Jun 2015 13:38:21 -0700
+Message-ID: <5591acbd.2zPj657ugBQKtPqX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50267 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50400 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753963AbbF2Uhh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:37:37 -0400
+	with ESMTP id S1754061AbbF2UiW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:38:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ldufour@linux.vnet.ibm.com, benh@kernel.crashing.org, hughd@google.com, kirill.shutemov@linux.intel.com, mgorman@suse.de, mingo@kernel.org, mpe@ellerman.id.au, paulus@samba.org, riel@redhat.com, xemul@parallels.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, aarcange@redhat.com, david@fromorbit.com, mhocko@suse.cz, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc/mm: tracking vDSO remap
+     Subject: mm: oom_kill: remove unnecessary locking in exit_oom_victim()
 has been removed from the -mm tree.  Its filename was
-     powerpc-mm-tracking-vdso-remap.patch
+     mm-oom_kill-remove-unnecessary-locking-in-exit_oom_victim.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Laurent Dufour <ldufour@linux.vnet.ibm.com>
-Subject: powerpc/mm: tracking vDSO remap
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: oom_kill: remove unnecessary locking in exit_oom_victim()
 
-Some processes (CRIU) are moving the vDSO area using the mremap system
-call.  As a consequence the kernel reference to the vDSO base address is
-no more valid and the signal return frame built once the vDSO has been
-moved is not pointing to the new sigreturn address.
+Disabling the OOM killer needs to exclude allocators from entering, not
+existing victims from exiting.
 
-This patch handles vDSO remapping and unmapping.
+Right now the only waiter is suspend code, which achieves quiescence by
+disabling the OOM killer.  But later on we want to add waits that hold the
+lock instead to stop new victims from showing up.
 
-Signed-off-by: Laurent Dufour <ldufour@linux.vnet.ibm.com>
-Reviewed-by: Ingo Molnar <mingo@kernel.org>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Pavel Emelyanov <xemul@parallels.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/mm-arch-hooks.h |   13 +++++++++++
- arch/powerpc/include/asm/mmu_context.h   |   23 ++++++++++++++++++++-
- 2 files changed, 35 insertions(+), 1 deletion(-)
+ mm/oom_kill.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN arch/powerpc/include/asm/mm-arch-hooks.h~powerpc-mm-tracking-vdso-remap arch/powerpc/include/asm/mm-arch-hooks.h
---- a/arch/powerpc/include/asm/mm-arch-hooks.h~powerpc-mm-tracking-vdso-remap
-+++ a/arch/powerpc/include/asm/mm-arch-hooks.h
-@@ -12,4 +12,17 @@
- #ifndef _ASM_POWERPC_MM_ARCH_HOOKS_H
- #define _ASM_POWERPC_MM_ARCH_HOOKS_H
+diff -puN mm/oom_kill.c~mm-oom_kill-remove-unnecessary-locking-in-exit_oom_victim mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom_kill-remove-unnecessary-locking-in-exit_oom_victim
++++ a/mm/oom_kill.c
+@@ -437,10 +437,8 @@ void exit_oom_victim(void)
+ {
+ 	clear_thread_flag(TIF_MEMDIE);
  
-+static inline void arch_remap(struct mm_struct *mm,
-+			      unsigned long old_start, unsigned long old_end,
-+			      unsigned long new_start, unsigned long new_end)
-+{
-+	/*
-+	 * mremap() doesn't allow moving multiple vmas so we can limit the
-+	 * check to old_start == vdso_base.
-+	 */
-+	if (old_start == mm->context.vdso_base)
-+		mm->context.vdso_base = new_start;
-+}
-+#define arch_remap arch_remap
-+
- #endif /* _ASM_POWERPC_MM_ARCH_HOOKS_H */
-diff -puN arch/powerpc/include/asm/mmu_context.h~powerpc-mm-tracking-vdso-remap arch/powerpc/include/asm/mmu_context.h
---- a/arch/powerpc/include/asm/mmu_context.h~powerpc-mm-tracking-vdso-remap
-+++ a/arch/powerpc/include/asm/mmu_context.h
-@@ -8,7 +8,6 @@
- #include <linux/spinlock.h>
- #include <asm/mmu.h>	
- #include <asm/cputable.h>
--#include <asm-generic/mm_hooks.h>
- #include <asm/cputhreads.h>
- 
- /*
-@@ -127,5 +126,27 @@ static inline void enter_lazy_tlb(struct
- #endif
+-	down_read(&oom_sem);
+ 	if (!atomic_dec_return(&oom_victims))
+ 		wake_up_all(&oom_victims_wait);
+-	up_read(&oom_sem);
  }
  
-+static inline void arch_dup_mmap(struct mm_struct *oldmm,
-+				 struct mm_struct *mm)
-+{
-+}
-+
-+static inline void arch_exit_mmap(struct mm_struct *mm)
-+{
-+}
-+
-+static inline void arch_unmap(struct mm_struct *mm,
-+			      struct vm_area_struct *vma,
-+			      unsigned long start, unsigned long end)
-+{
-+	if (start <= mm->context.vdso_base && mm->context.vdso_base < end)
-+		mm->context.vdso_base = 0;
-+}
-+
-+static inline void arch_bprm_mm_init(struct mm_struct *mm,
-+				     struct vm_area_struct *vma)
-+{
-+}
-+
- #endif /* __KERNEL__ */
- #endif /* __ASM_POWERPC_MMU_CONTEXT_H */
+ /**
 _
 
-Patches currently in -mm which might be from ldufour@linux.vnet.ibm.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 origin.patch
+userfaultfd-linux-documentation-vm-userfaultfdtxt.patch
+userfaultfd-waitqueue-add-nr-wake-parameter-to-__wake_up_locked_key.patch
+userfaultfd-uapi.patch
+userfaultfd-linux-userfaultfd_kh.patch
+userfaultfd-add-vm_userfaultfd_ctx-to-the-vm_area_struct.patch
+userfaultfd-add-vm_uffd_missing-and-vm_uffd_wp.patch
+userfaultfd-call-handle_userfault-for-userfaultfd_missing-faults.patch
+userfaultfd-teach-vma_merge-to-merge-across-vma-vm_userfaultfd_ctx.patch
+userfaultfd-prevent-khugepaged-to-merge-if-userfaultfd-is-armed.patch
+userfaultfd-add-new-syscall-to-provide-memory-externalization.patch
+userfaultfd-rename-uffd_apibits-into-features.patch
+userfaultfd-rename-uffd_apibits-into-features-fixup.patch
+userfaultfd-change-the-read-api-to-return-a-uffd_msg.patch
+userfaultfd-wake-pending-userfaults.patch
+userfaultfd-optimize-read-and-poll-to-be-o1.patch
+userfaultfd-allocate-the-userfaultfd_ctx-cacheline-aligned.patch
+userfaultfd-solve-the-race-between-uffdio_copyzeropage-and-read.patch
+userfaultfd-buildsystem-activation.patch
+userfaultfd-activate-syscall.patch
+userfaultfd-uffdio_copyuffdio_zeropage-uapi.patch
+userfaultfd-mcopy_atomicmfill_zeropage-uffdio_copyuffdio_zeropage-preparation.patch
+userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic.patch
+userfaultfd-uffdio_copy-and-uffdio_zeropage.patch
+page-flags-trivial-cleanup-for-pagetrans-helpers.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
+page-flags-define-pg_locked-behavior-on-compound-pages.patch
+page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
+page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
+page-flags-define-pg_reserved-behavior-on-compound-pages.patch
+page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
+page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
+page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
+page-flags-define-pg_uncached-behavior-on-compound-pages.patch
+page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
+page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
+mm-sanitize-page-mapping-for-tail-pages.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+mm-move-lazy-free-pages-to-inactive-list.patch
+mm-move-lazy-free-pages-to-inactive-list-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
 
