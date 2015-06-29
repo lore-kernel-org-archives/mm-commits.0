@@ -1,85 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-only-define-hashdist-variable-when-needed.patch
+Subject: [merged]
+ rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list.patch
  removed from -mm tree
-Date: Mon, 29 Jun 2015 13:37:41 -0700
-Message-ID: <5591ac95.Z8k7BgX+djJxDUWd%akpm@linux-foundation.org>
+Date: Mon, 29 Jun 2015 13:38:03 -0700
+Message-ID: <5591acab.DOjpxr/IAcEAv6AN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50267 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50364 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754027AbbF2Uhm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:37:42 -0400
+	with ESMTP id S1754109AbbF2UiF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:38:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, mhocko@suse.cz, rientjes@google.com, mm-commits@vger.kernel.org
+To: vdavydov@parallels.com, hughd@google.com, kirill.shutemov@linux.intel.com, minchan@kernel.org, paulmck@linux.vnet.ibm.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: only define hashdist variable when needed
+     Subject: rmap: fix theoretical race between do_wp_page and shrink_active_list
 has been removed from the -mm tree.  Its filename was
-     mm-only-define-hashdist-variable-when-needed.patch
+     rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: mm: only define hashdist variable when needed
+From: Vladimir Davydov <vdavydov@parallels.com>
+Subject: rmap: fix theoretical race between do_wp_page and shrink_active_list
 
-For !CONFIG_NUMA, hashdist will always be 0, since it's setter is
-otherwise compiled out.  So we can save 4 bytes of data and some .text
-(although mostly in __init functions) by only defining it for CONFIG_NUMA.
+As noted by Paul the compiler is free to store a temporary result in a
+variable on stack, heap or global unless it is explicitly marked as
+volatile, see:
 
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Acked-by: David Rientjes <rientjes@google.com>
-Reviewed-by: Michal Hocko <mhocko@suse.cz>
+  http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4455.html#sample-optimizations
+
+This can result in a race between do_wp_page() and shrink_active_list() as
+follows.
+
+In do_wp_page() we can call page_move_anon_rmap(), which sets
+page->mapping as follows:
+
+  anon_vma = (void *) anon_vma + PAGE_MAPPING_ANON;
+  page->mapping = (struct address_space *) anon_vma;
+
+The page in question may be on an LRU list, because nowhere in
+do_wp_page() we remove it from the list, neither do we take any LRU
+related locks.  Although the page is locked, shrink_active_list() can
+still call page_referenced() on it concurrently, because the latter does
+not require an anonymous page to be locked:
+
+  CPU0                          CPU1
+  ----                          ----
+  do_wp_page                    shrink_active_list
+   lock_page                     page_referenced
+                                  PageAnon->yes, so skip trylock_page
+   page_move_anon_rmap
+    page->mapping = anon_vma
+                                  rmap_walk
+                                   PageAnon->no
+                                   rmap_walk_file
+                                    BUG
+    page->mapping += PAGE_MAPPING_ANON
+
+This patch fixes this race by explicitly forbidding the compiler to split
+page->mapping store in page_move_anon_rmap() with the aid of WRITE_ONCE.
+
+[akpm@linux-foundation.org: tweak comment, per Minchan]
+Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bootmem.h |    8 ++++----
- mm/page_alloc.c         |    2 +-
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ mm/rmap.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/bootmem.h~mm-only-define-hashdist-variable-when-needed include/linux/bootmem.h
---- a/include/linux/bootmem.h~mm-only-define-hashdist-variable-when-needed
-+++ a/include/linux/bootmem.h
-@@ -357,12 +357,12 @@ extern void *alloc_large_system_hash(con
- /* Only NUMA needs hash distribution. 64bit NUMA architectures have
-  * sufficient vmalloc space.
-  */
--#if defined(CONFIG_NUMA) && defined(CONFIG_64BIT)
--#define HASHDIST_DEFAULT 1
-+#ifdef CONFIG_NUMA
-+#define HASHDIST_DEFAULT IS_ENABLED(CONFIG_64BIT)
-+extern int hashdist;		/* Distribute hashes across NUMA nodes? */
- #else
--#define HASHDIST_DEFAULT 0
-+#define hashdist (0)
- #endif
--extern int hashdist;		/* Distribute hashes across NUMA nodes? */
+diff -puN mm/rmap.c~rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list mm/rmap.c
+--- a/mm/rmap.c~rmap-fix-theoretical-race-between-do_wp_page-and-shrink_active_list
++++ a/mm/rmap.c
+@@ -950,7 +950,12 @@ void page_move_anon_rmap(struct page *pa
+ 	VM_BUG_ON_PAGE(page->index != linear_page_index(vma, address), page);
  
- 
- #endif /* _LINUX_BOOTMEM_H */
-diff -puN mm/page_alloc.c~mm-only-define-hashdist-variable-when-needed mm/page_alloc.c
---- a/mm/page_alloc.c~mm-only-define-hashdist-variable-when-needed
-+++ a/mm/page_alloc.c
-@@ -6013,9 +6013,9 @@ out:
- 	return ret;
+ 	anon_vma = (void *) anon_vma + PAGE_MAPPING_ANON;
+-	page->mapping = (struct address_space *) anon_vma;
++	/*
++	 * Ensure that anon_vma and the PAGE_MAPPING_ANON bit are written
++	 * simultaneously, so a concurrent reader (eg page_referenced()'s
++	 * PageAnon()) will not see one without the other.
++	 */
++	WRITE_ONCE(page->mapping, (struct address_space *) anon_vma);
  }
  
-+#ifdef CONFIG_NUMA
- int hashdist = HASHDIST_DEFAULT;
- 
--#ifdef CONFIG_NUMA
- static int __init set_hashdist(char *str)
- {
- 	if (!str)
+ /**
 _
 
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
+Patches currently in -mm which might be from vdavydov@parallels.com are
 
 origin.patch
-linux-next.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
 
