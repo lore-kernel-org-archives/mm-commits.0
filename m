@@ -1,96 +1,190 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- stddefh-move-offsetofend-inside-ifndef-endif-guard-neaten.patch removed
- from -mm tree
-Date: Mon, 29 Jun 2015 13:47:09 -0700
-Message-ID: <5591aecd.Q5gSgn9zY6cMWwp6%akpm@linux-foundation.org>
+ printk-guard-the-amount-written-per-line-by-devkmsg_read.patch removed from -mm tree
+Date: Mon, 29 Jun 2015 13:47:16 -0700
+Message-ID: <5591aed4.XIph0vwshDmL9Fot%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50849 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50775 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754124AbbF2UrT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:47:19 -0400
+	with ESMTP id S1754133AbbF2UrU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:47:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, dvlasenk@redhat.com, mm-commits@vger.kernel.org
+To: tj@kernel.org, davem@davemloft.net, kay@vrfy.org, penguin-kernel@I-love.SAKURA.ne.jp, pmladek@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: stddef.h: move offsetofend inside #ifndef/#endif guard, neaten
+     Subject: printk: guard the amount written per line by devkmsg_read()
 has been removed from the -mm tree.  Its filename was
-     stddefh-move-offsetofend-inside-ifndef-endif-guard-neaten.patch
+     printk-guard-the-amount-written-per-line-by-devkmsg_read.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: stddef.h: move offsetofend inside #ifndef/#endif guard, neaten
+From: Tejun Heo <tj@kernel.org>
+Subject: printk: guard the amount written per line by devkmsg_read()
 
-commit 3876488444e7 ("include/stddef.h: Move offsetofend() from vfio.h to
-a generic kernel header") added offsetofend outside the normal include
-#ifndef/#endif guard.  Move it inside.
+This patchset updates netconsole so that it can emit messages with the
+same header as used in /dev/kmsg which gives neconsole receiver full
+log information which enables things like structured logging and
+detection of lost messages.
 
-Miscellanea:
 
-o remove unnecessary blank line
-o standardize offsetof macros whitespace style
+This patch (of 7):
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Denys Vlasenko <dvlasenk@redhat.com>
+devkmsg_read() uses 8k buffer and assumes that the formatted output
+message won't overrun which seems safe given LOG_LINE_MAX, the current use
+of dict and the escaping method being used; however, we're planning to use
+devkmsg formatting wider and accounting for the buffer size properly isn't
+that complicated.
+
+This patch defines CONSOLE_EXT_LOG_MAX as 8192 and updates devkmsg_read()
+so that it limits output accordingly.
+
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Cc: David Miller <davem@davemloft.net>
+Cc: Kay Sievers <kay@vrfy.org>
+Reviewed-by: Petr Mladek <pmladek@suse.cz>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/stddef.h |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/linux/printk.h |    2 ++
+ kernel/printk/printk.c |   34 ++++++++++++++++++++++------------
+ 2 files changed, 24 insertions(+), 12 deletions(-)
 
-diff -puN include/linux/stddef.h~stddefh-move-offsetofend-inside-ifndef-endif-guard-neaten include/linux/stddef.h
---- a/include/linux/stddef.h~stddefh-move-offsetofend-inside-ifndef-endif-guard-neaten
-+++ a/include/linux/stddef.h
-@@ -3,7 +3,6 @@
+diff -puN include/linux/printk.h~printk-guard-the-amount-written-per-line-by-devkmsg_read include/linux/printk.h
+--- a/include/linux/printk.h~printk-guard-the-amount-written-per-line-by-devkmsg_read
++++ a/include/linux/printk.h
+@@ -30,6 +30,8 @@ static inline const char *printk_skip_le
+ 	return buffer;
+ }
  
- #include <uapi/linux/stddef.h>
- 
--
- #undef NULL
- #define NULL ((void *)0)
- 
-@@ -14,10 +13,9 @@ enum {
- 
- #undef offsetof
- #ifdef __compiler_offsetof
--#define offsetof(TYPE,MEMBER) __compiler_offsetof(TYPE,MEMBER)
-+#define offsetof(TYPE, MEMBER)	__compiler_offsetof(TYPE, MEMBER)
- #else
--#define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
--#endif
-+#define offsetof(TYPE, MEMBER)	((size_t)&((TYPE *)0)->MEMBER)
- #endif
- 
- /**
-@@ -28,3 +26,5 @@ enum {
-  */
- #define offsetofend(TYPE, MEMBER) \
- 	(offsetof(TYPE, MEMBER)	+ sizeof(((TYPE *)0)->MEMBER))
++#define CONSOLE_EXT_LOG_MAX	8192
 +
-+#endif
+ /* printk's without a loglevel use this.. */
+ #define MESSAGE_LOGLEVEL_DEFAULT CONFIG_MESSAGE_LOGLEVEL_DEFAULT
+ 
+diff -puN kernel/printk/printk.c~printk-guard-the-amount-written-per-line-by-devkmsg_read kernel/printk/printk.c
+--- a/kernel/printk/printk.c~printk-guard-the-amount-written-per-line-by-devkmsg_read
++++ a/kernel/printk/printk.c
+@@ -505,6 +505,11 @@ int check_syslog_permissions(int type, b
+ 	return security_syslog(type);
+ }
+ 
++static void append_char(char **pp, char *e, char c)
++{
++	if (*pp < e)
++		*(*pp)++ = c;
++}
+ 
+ /* /dev/kmsg - userspace message inject/listen interface */
+ struct devkmsg_user {
+@@ -512,7 +517,7 @@ struct devkmsg_user {
+ 	u32 idx;
+ 	enum log_flags prev;
+ 	struct mutex lock;
+-	char buf[8192];
++	char buf[CONSOLE_EXT_LOG_MAX];
+ };
+ 
+ static ssize_t devkmsg_write(struct kiocb *iocb, struct iov_iter *from)
+@@ -570,6 +575,7 @@ static ssize_t devkmsg_read(struct file
+ {
+ 	struct devkmsg_user *user = file->private_data;
+ 	struct printk_log *msg;
++	char *p, *e;
+ 	u64 ts_usec;
+ 	size_t i;
+ 	char cont = '-';
+@@ -579,6 +585,9 @@ static ssize_t devkmsg_read(struct file
+ 	if (!user)
+ 		return -EBADF;
+ 
++	p = user->buf;
++	e = user->buf + sizeof(user->buf);
++
+ 	ret = mutex_lock_interruptible(&user->lock);
+ 	if (ret)
+ 		return ret;
+@@ -625,9 +634,9 @@ static ssize_t devkmsg_read(struct file
+ 		 ((user->prev & LOG_CONT) && !(msg->flags & LOG_PREFIX)))
+ 		cont = '+';
+ 
+-	len = sprintf(user->buf, "%u,%llu,%llu,%c;",
+-		      (msg->facility << 3) | msg->level,
+-		      user->seq, ts_usec, cont);
++	p += scnprintf(p, e - p, "%u,%llu,%llu,%c;",
++		       (msg->facility << 3) | msg->level,
++		       user->seq, ts_usec, cont);
+ 	user->prev = msg->flags;
+ 
+ 	/* escape non-printable characters */
+@@ -635,11 +644,11 @@ static ssize_t devkmsg_read(struct file
+ 		unsigned char c = log_text(msg)[i];
+ 
+ 		if (c < ' ' || c >= 127 || c == '\\')
+-			len += sprintf(user->buf + len, "\\x%02x", c);
++			p += scnprintf(p, e - p, "\\x%02x", c);
+ 		else
+-			user->buf[len++] = c;
++			append_char(&p, e, c);
+ 	}
+-	user->buf[len++] = '\n';
++	append_char(&p, e, '\n');
+ 
+ 	if (msg->dict_len) {
+ 		bool line = true;
+@@ -648,30 +657,31 @@ static ssize_t devkmsg_read(struct file
+ 			unsigned char c = log_dict(msg)[i];
+ 
+ 			if (line) {
+-				user->buf[len++] = ' ';
++				append_char(&p, e, ' ');
+ 				line = false;
+ 			}
+ 
+ 			if (c == '\0') {
+-				user->buf[len++] = '\n';
++				append_char(&p, e, '\n');
+ 				line = true;
+ 				continue;
+ 			}
+ 
+ 			if (c < ' ' || c >= 127 || c == '\\') {
+-				len += sprintf(user->buf + len, "\\x%02x", c);
++				p += scnprintf(p, e - p, "\\x%02x", c);
+ 				continue;
+ 			}
+ 
+-			user->buf[len++] = c;
++			append_char(&p, e, c);
+ 		}
+-		user->buf[len++] = '\n';
++		append_char(&p, e, '\n');
+ 	}
+ 
+ 	user->idx = log_next(user->idx);
+ 	user->seq++;
+ 	raw_spin_unlock_irq(&logbuf_lock);
+ 
++	len = p - user->buf;
+ 	if (len > count) {
+ 		ret = -EINVAL;
+ 		goto out;
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from tj@kernel.org are
 
 origin.patch
-ocfs2-neaten-do_error-ocfs2_error-and-ocfs2_abort.patch
-mm-utilc-add-kstrimdup.patch
+block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
+fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
+ipc-msgc-msgsnd-use-freezable-blocking-call.patch
+msgrcv-use-freezable-blocking-call.patch
 linux-next.patch
 printk-improve-the-description-of-dev-kmsg-line-format.patch
-fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void.patch
-fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix.patch
-maintainers-update-sound-soc-intel-patterns.patch
-maintainers-update-brcm-dts-pattern.patch
-maintainers-update-brcm-gpio-filename-pattern.patch
-maintainers-remove-unused-nbdh-pattern.patch
-maintainers-move-jens-osterkamp-to-credits.patch
-maintainers-bcache-kent-overstreet-has-changed-email-address.patch
 
