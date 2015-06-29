@@ -1,152 +1,223 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-proc-introduce-config_proc_children.patch removed
- from -mm tree
-Date: Mon, 29 Jun 2015 13:46:52 -0700
-Message-ID: <5591aebc.gfVmC4vspc7L82e3%akpm@linux-foundation.org>
+Subject: [merged] pratyush-anand-has-moved.patch removed from -mm tree
+Date: Mon, 29 Jun 2015 13:47:03 -0700
+Message-ID: <5591aec7.ub3uBok1SDil1FgM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50797 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50763 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750834AbbF2Uqx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:46:53 -0400
+	with ESMTP id S1754120AbbF2UrT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:47:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iago@endocode.com, alban@endocode.com, djalal@endocode.com, gorcunov@openvz.org, kamezawa.hiroyu@jp.fujitsu.com, keescook@chromium.org, luto@amacapital.net, oleg@redhat.com, serge.hallyn@canonical.com, viro@zeniv.linux.org.uk, xemul@parallels.com, mm-commits@vger.kernel.org
+To: pratyush.anand@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs, proc: introduce CONFIG_PROC_CHILDREN
+     Subject: Pratyush Anand has moved
 has been removed from the -mm tree.  Its filename was
-     fs-proc-introduce-config_proc_children.patch
+     pratyush-anand-has-moved.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-=46rom: Iago L=F3pez Galeiras <iago@endocode.com>
-Subject: fs, proc: introduce CONFIG_PROC_CHILDREN
+From: Pratyush Anand <pratyush.anand@gmail.com>
+Subject: Pratyush Anand has moved
 
-commit 818411616baf ("fs, proc: introduce /proc/<pid>/task/<tid>/childr=
-en
-entry") introduced the children entry for checkpoint restore and the fi=
-le
-is only available on kernels configured with CONFIG_EXPERT and
-CONFIG_CHECKPOINT_RESTORE.
+pratyush.anand@st.com email-id doesn't exist anymore as I have left the
+company.  Replace ST's id with pratyush.anand@gmail.com.
 
-This is available in most distributions (Fedora, Debian, Ubuntu, CoreOS=
-)
-because they usually enable CONFIG_EXPERT and CONFIG_CHECKPOINT_RESTORE=
-=2E=20
-But Arch does not enable CONFIG_EXPERT or CONFIG_CHECKPOINT_RESTORE.
-
-However, the children proc file is useful outside of checkpoint restore=
-=2E=20
-I would like to use it in rkt.  The rkt process exec() another program =
-it
-does not control, and that other program will fork()+exec() a child
-process.  I would like to find the pid of the child process from an
-external tool without iterating in /proc over all processes to find whi=
-ch
-one has a parent pid equal to rkt.
-
-This commit introduces CONFIG_PROC_CHILDREN and makes
-CONFIG_CHECKPOINT_RESTORE select it.  This allows enabling
-/proc/<pid>/task/<tid>/children without needing to enable
-CONFIG_CHECKPOINT_RESTORE and CONFIG_EXPERT.
-
-Alban tested that /proc/<pid>/task/<tid>/children is present when the
-kernel is configured with CONFIG_PROC_CHILDREN=3Dy but without
-CONFIG_CHECKPOINT_RESTORE
-
-Signed-off-by: Iago L=F3pez Galeiras <iago@endocode.com>
-Tested-by: Alban Crequy <alban@endocode.com>
-Reviewed-by: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Pavel Emelyanov <xemul@parallels.com>
-Cc: Serge Hallyn <serge.hallyn@canonical.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Andy Lutomirski <luto@amacapital.net>
-Cc: Djalal Harouni <djalal@endocode.com>
+Signed-off-by: Pratyush Anand <pratyush.anand@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/Kconfig |    4 ++++
- fs/proc/array.c |    4 ++--
- fs/proc/base.c  |    2 +-
- init/Kconfig    |    1 +
- 4 files changed, 8 insertions(+), 3 deletions(-)
+ .mailmap                                             |    1 
+ Documentation/ABI/testing/configfs-spear-pcie-gadget |    2 -
+ Documentation/ABI/testing/sysfs-bus-usb-lvstest      |   12 +++++-----
+ Documentation/misc-devices/spear-pcie-gadget.txt     |    2 -
+ drivers/misc/spear13xx_pcie_gadget.c                 |    2 -
+ drivers/pci/host/pcie-spear13xx.c                    |    4 +--
+ drivers/phy/phy-spear1310-miphy.c                    |    4 +--
+ drivers/phy/phy-spear1340-miphy.c                    |    4 +--
+ drivers/usb/misc/lvstest.c                           |    2 -
+ 9 files changed, 17 insertions(+), 16 deletions(-)
 
-diff -puN fs/proc/Kconfig~fs-proc-introduce-config_proc_children fs/pro=
-c/Kconfig
---- a/fs/proc/Kconfig~fs-proc-introduce-config_proc_children
-+++ a/fs/proc/Kconfig
-@@ -71,3 +71,7 @@ config PROC_PAGE_MONITOR
- 	  /proc/pid/smaps, /proc/pid/clear_refs, /proc/pid/pagemap,
- 	  /proc/kpagecount, and /proc/kpageflags. Disabling these
-           interfaces will reduce the size of the kernel by approximate=
-ly 4kb.
-+
-+config PROC_CHILDREN
-+	bool "Include /proc/<pid>/task/<tid>/children file"
-+	default n
-diff -puN fs/proc/array.c~fs-proc-introduce-config_proc_children fs/pro=
-c/array.c
---- a/fs/proc/array.c~fs-proc-introduce-config_proc_children
-+++ a/fs/proc/array.c
-@@ -577,7 +577,7 @@ int proc_pid_statm(struct seq_file *m, s
- 	return 0;
- }
-=20
--#ifdef CONFIG_CHECKPOINT_RESTORE
-+#ifdef CONFIG_PROC_CHILDREN
- static struct pid *
- get_children_pid(struct inode *inode, struct pid *pid_prev, loff_t pos=
-)
- {
-@@ -700,4 +700,4 @@ const struct file_operations proc_tid_ch
- 	.llseek  =3D seq_lseek,
- 	.release =3D children_seq_release,
- };
--#endif /* CONFIG_CHECKPOINT_RESTORE */
-+#endif /* CONFIG_PROC_CHILDREN */
-diff -puN fs/proc/base.c~fs-proc-introduce-config_proc_children fs/proc=
-/base.c
---- a/fs/proc/base.c~fs-proc-introduce-config_proc_children
-+++ a/fs/proc/base.c
-@@ -3109,7 +3109,7 @@ static const struct pid_entry tid_base_s
- 	ONE("stat",      S_IRUGO, proc_tid_stat),
- 	ONE("statm",     S_IRUGO, proc_pid_statm),
- 	REG("maps",      S_IRUGO, proc_tid_maps_operations),
--#ifdef CONFIG_CHECKPOINT_RESTORE
-+#ifdef CONFIG_PROC_CHILDREN
- 	REG("children",  S_IRUGO, proc_tid_children_operations),
- #endif
- #ifdef CONFIG_NUMA
-diff -puN init/Kconfig~fs-proc-introduce-config_proc_children init/Kcon=
-fig
---- a/init/Kconfig~fs-proc-introduce-config_proc_children
-+++ a/init/Kconfig
-@@ -1131,6 +1131,7 @@ endif # CGROUPS
-=20
- config CHECKPOINT_RESTORE
- 	bool "Checkpoint/restore support" if EXPERT
-+	select PROC_CHILDREN
- 	default n
- 	help
- 	  Enables additional kernel features in a sake of checkpoint/restore.
+diff -puN .mailmap~pratyush-anand-has-moved .mailmap
+--- a/.mailmap~pratyush-anand-has-moved
++++ a/.mailmap
+@@ -95,6 +95,7 @@ Patrick Mochel <mochel@digitalimplant.or
+ Peter A Jonsson <pj@ludd.ltu.se>
+ Peter Oruba <peter@oruba.de>
+ Peter Oruba <peter.oruba@amd.com>
++Pratyush Anand <pratyush.anand@gmail.com> <pratyush.anand@st.com>
+ Praveen BP <praveenbp@ti.com>
+ Rajesh Shah <rajesh.shah@intel.com>
+ Ralf Baechle <ralf@linux-mips.org>
+diff -puN Documentation/ABI/testing/configfs-spear-pcie-gadget~pratyush-anand-has-moved Documentation/ABI/testing/configfs-spear-pcie-gadget
+--- a/Documentation/ABI/testing/configfs-spear-pcie-gadget~pratyush-anand-has-moved
++++ a/Documentation/ABI/testing/configfs-spear-pcie-gadget
+@@ -1,7 +1,7 @@
+ What:		/config/pcie-gadget
+ Date:		Feb 2011
+ KernelVersion:	2.6.37
+-Contact:	Pratyush Anand <pratyush.anand@st.com>
++Contact:	Pratyush Anand <pratyush.anand@gmail.com>
+ Description:
+ 
+ 	Interface is used to configure selected dual mode PCIe controller
+diff -puN Documentation/ABI/testing/sysfs-bus-usb-lvstest~pratyush-anand-has-moved Documentation/ABI/testing/sysfs-bus-usb-lvstest
+--- a/Documentation/ABI/testing/sysfs-bus-usb-lvstest~pratyush-anand-has-moved
++++ a/Documentation/ABI/testing/sysfs-bus-usb-lvstest
+@@ -4,14 +4,14 @@ driver is bound with root hub device.
+ 
+ What:		/sys/bus/usb/devices/.../get_dev_desc
+ Date:		March 2014
+-Contact:	Pratyush Anand <pratyush.anand@st.com>
++Contact:	Pratyush Anand <pratyush.anand@gmail.com>
+ Description:
+ 		Write to this node to issue "Get Device Descriptor"
+ 		for Link Layer Validation device. It is needed for TD.7.06.
+ 
+ What:		/sys/bus/usb/devices/.../u1_timeout
+ Date:		March 2014
+-Contact:	Pratyush Anand <pratyush.anand@st.com>
++Contact:	Pratyush Anand <pratyush.anand@gmail.com>
+ Description:
+ 		Set "U1 timeout" for the downstream port where Link Layer
+ 		Validation device is connected. Timeout value must be between 0
+@@ -19,7 +19,7 @@ Description:
+ 
+ What:		/sys/bus/usb/devices/.../u2_timeout
+ Date:		March 2014
+-Contact:	Pratyush Anand <pratyush.anand@st.com>
++Contact:	Pratyush Anand <pratyush.anand@gmail.com>
+ Description:
+ 		Set "U2 timeout" for the downstream port where Link Layer
+ 		Validation device is connected. Timeout value must be between 0
+@@ -27,21 +27,21 @@ Description:
+ 
+ What:		/sys/bus/usb/devices/.../hot_reset
+ Date:		March 2014
+-Contact:	Pratyush Anand <pratyush.anand@st.com>
++Contact:	Pratyush Anand <pratyush.anand@gmail.com>
+ Description:
+ 		Write to this node to issue "Reset" for Link Layer Validation
+ 		device. It is needed for TD.7.29, TD.7.31, TD.7.34 and TD.7.35.
+ 
+ What:		/sys/bus/usb/devices/.../u3_entry
+ Date:		March 2014
+-Contact:	Pratyush Anand <pratyush.anand@st.com>
++Contact:	Pratyush Anand <pratyush.anand@gmail.com>
+ Description:
+ 		Write to this node to issue "U3 entry" for Link Layer
+ 		Validation device. It is needed for TD.7.35 and TD.7.36.
+ 
+ What:		/sys/bus/usb/devices/.../u3_exit
+ Date:		March 2014
+-Contact:	Pratyush Anand <pratyush.anand@st.com>
++Contact:	Pratyush Anand <pratyush.anand@gmail.com>
+ Description:
+ 		Write to this node to issue "U3 exit" for Link Layer
+ 		Validation device. It is needed for TD.7.36.
+diff -puN Documentation/misc-devices/spear-pcie-gadget.txt~pratyush-anand-has-moved Documentation/misc-devices/spear-pcie-gadget.txt
+--- a/Documentation/misc-devices/spear-pcie-gadget.txt~pratyush-anand-has-moved
++++ a/Documentation/misc-devices/spear-pcie-gadget.txt
+@@ -2,7 +2,7 @@ Spear PCIe Gadget Driver:
+ 
+ Author
+ =============
+-Pratyush Anand (pratyush.anand@st.com)
++Pratyush Anand (pratyush.anand@gmail.com)
+ 
+ Location
+ ============
+diff -puN drivers/misc/spear13xx_pcie_gadget.c~pratyush-anand-has-moved drivers/misc/spear13xx_pcie_gadget.c
+--- a/drivers/misc/spear13xx_pcie_gadget.c~pratyush-anand-has-moved
++++ a/drivers/misc/spear13xx_pcie_gadget.c
+@@ -2,7 +2,7 @@
+  * drivers/misc/spear13xx_pcie_gadget.c
+  *
+  * Copyright (C) 2010 ST Microelectronics
+- * Pratyush Anand<pratyush.anand@st.com>
++ * Pratyush Anand<pratyush.anand@gmail.com>
+  *
+  * This file is licensed under the terms of the GNU General Public
+  * License version 2. This program is licensed "as is" without any
+diff -puN drivers/pci/host/pcie-spear13xx.c~pratyush-anand-has-moved drivers/pci/host/pcie-spear13xx.c
+--- a/drivers/pci/host/pcie-spear13xx.c~pratyush-anand-has-moved
++++ a/drivers/pci/host/pcie-spear13xx.c
+@@ -4,7 +4,7 @@
+  * SPEAr13xx PCIe Glue Layer Source Code
+  *
+  * Copyright (C) 2010-2014 ST Microelectronics
+- * Pratyush Anand <pratyush.anand@st.com>
++ * Pratyush Anand <pratyush.anand@gmail.com>
+  * Mohit Kumar <mohit.kumar@st.com>
+  *
+  * This file is licensed under the terms of the GNU General Public
+@@ -386,5 +386,5 @@ static int __init spear13xx_pcie_init(vo
+ module_init(spear13xx_pcie_init);
+ 
+ MODULE_DESCRIPTION("ST Microelectronics SPEAr13xx PCIe host controller driver");
+-MODULE_AUTHOR("Pratyush Anand <pratyush.anand@st.com>");
++MODULE_AUTHOR("Pratyush Anand <pratyush.anand@gmail.com>");
+ MODULE_LICENSE("GPL v2");
+diff -puN drivers/phy/phy-spear1310-miphy.c~pratyush-anand-has-moved drivers/phy/phy-spear1310-miphy.c
+--- a/drivers/phy/phy-spear1310-miphy.c~pratyush-anand-has-moved
++++ a/drivers/phy/phy-spear1310-miphy.c
+@@ -2,7 +2,7 @@
+  * ST SPEAr1310-miphy driver
+  *
+  * Copyright (C) 2014 ST Microelectronics
+- * Pratyush Anand <pratyush.anand@st.com>
++ * Pratyush Anand <pratyush.anand@gmail.com>
+  * Mohit Kumar <mohit.kumar@st.com>
+  *
+  * This program is free software; you can redistribute it and/or modify
+@@ -257,5 +257,5 @@ static struct platform_driver spear1310_
+ module_platform_driver(spear1310_miphy_driver);
+ 
+ MODULE_DESCRIPTION("ST SPEAR1310-MIPHY driver");
+-MODULE_AUTHOR("Pratyush Anand <pratyush.anand@st.com>");
++MODULE_AUTHOR("Pratyush Anand <pratyush.anand@gmail.com>");
+ MODULE_LICENSE("GPL v2");
+diff -puN drivers/phy/phy-spear1340-miphy.c~pratyush-anand-has-moved drivers/phy/phy-spear1340-miphy.c
+--- a/drivers/phy/phy-spear1340-miphy.c~pratyush-anand-has-moved
++++ a/drivers/phy/phy-spear1340-miphy.c
+@@ -2,7 +2,7 @@
+  * ST spear1340-miphy driver
+  *
+  * Copyright (C) 2014 ST Microelectronics
+- * Pratyush Anand <pratyush.anand@st.com>
++ * Pratyush Anand <pratyush.anand@gmail.com>
+  * Mohit Kumar <mohit.kumar@st.com>
+  *
+  * This program is free software; you can redistribute it and/or modify
+@@ -290,5 +290,5 @@ static struct platform_driver spear1340_
+ module_platform_driver(spear1340_miphy_driver);
+ 
+ MODULE_DESCRIPTION("ST SPEAR1340-MIPHY driver");
+-MODULE_AUTHOR("Pratyush Anand <pratyush.anand@st.com>");
++MODULE_AUTHOR("Pratyush Anand <pratyush.anand@gmail.com>");
+ MODULE_LICENSE("GPL v2");
+diff -puN drivers/usb/misc/lvstest.c~pratyush-anand-has-moved drivers/usb/misc/lvstest.c
+--- a/drivers/usb/misc/lvstest.c~pratyush-anand-has-moved
++++ a/drivers/usb/misc/lvstest.c
+@@ -4,7 +4,7 @@
+  * Test pattern generation for Link Layer Validation System Tests
+  *
+  * Copyright (C) 2014 ST Microelectronics
+- * Pratyush Anand <pratyush.anand@st.com>
++ * Pratyush Anand <pratyush.anand@gmail.com>
+  *
+  * This file is licensed under the terms of the GNU General Public
+  * License version 2. This program is licensed "as is" without any
 _
 
-Patches currently in -mm which might be from iago@endocode.com are
+Patches currently in -mm which might be from pratyush.anand@gmail.com are
 
 origin.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
