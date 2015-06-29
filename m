@@ -1,240 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-hugetlb-remove-arch_prepare-release_hugepage-from-arch-headers.patch
+Subject: [merged] zram-trivial-correct-flag-operations-comment.patch
  removed from -mm tree
-Date: Mon, 29 Jun 2015 13:39:42 -0700
-Message-ID: <5591ad0e.r+1ryMddnV8OD6bC%akpm@linux-foundation.org>
+Date: Mon, 29 Jun 2015 13:46:24 -0700
+Message-ID: <5591aea0.TVOpCR/fgwAhJ/Re%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50554 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50731 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753935AbbF2Ujn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:39:43 -0400
+	with ESMTP id S1753805AbbF2UqZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:46:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dingel@linux.vnet.ibm.com, borntraeger@de.ibm.com, heiko.carstens@de.ibm.com, ralf@linux-mips.org, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: sergey.senozhatsky@gmail.com, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: remove arch_prepare/release_hugepage from arch headers
+     Subject: zram: trivial: correct flag operations comment
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-remove-arch_prepare-release_hugepage-from-arch-headers.patch
+     zram-trivial-correct-flag-operations-comment.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dominik Dingel <dingel@linux.vnet.ibm.com>
-Subject: mm/hugetlb: remove arch_prepare/release_hugepage from arch headers
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: zram: trivial: correct flag operations comment
 
-Nobody used these hooks so they were removed from common code, and can now
-be removed from the architectures.
+We don't have meta->tb_lock anymore and use meta table entry bit_spin_lock
+instead. update corresponding comment.
 
-Signed-off-by: Dominik Dingel <dingel@linux.vnet.ibm.com>
-Acked-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Acked-by: Ralf Baechle <ralf@linux-mips.org>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/hugetlb.h     |    9 ---------
- arch/arm64/include/asm/hugetlb.h   |    9 ---------
- arch/ia64/include/asm/hugetlb.h    |    9 ---------
- arch/metag/include/asm/hugetlb.h   |    9 ---------
- arch/mips/include/asm/hugetlb.h    |    9 ---------
- arch/powerpc/include/asm/hugetlb.h |    9 ---------
- arch/sh/include/asm/hugetlb.h      |    9 ---------
- arch/sparc/include/asm/hugetlb.h   |    9 ---------
- arch/tile/include/asm/hugetlb.h    |    9 ---------
- arch/x86/include/asm/hugetlb.h     |    9 ---------
- 10 files changed, 90 deletions(-)
+ drivers/block/zram/zram_drv.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/arm/include/asm/hugetlb.h~mm-hugetlb-remove-arch_prepare-release_hugepage-from-arch-headers arch/arm/include/asm/hugetlb.h
---- a/arch/arm/include/asm/hugetlb.h~mm-hugetlb-remove-arch_prepare-release_hugepage-from-arch-headers
-+++ a/arch/arm/include/asm/hugetlb.h
-@@ -63,15 +63,6 @@ static inline pte_t huge_pte_wrprotect(p
- 	return pte_wrprotect(pte);
+diff -puN drivers/block/zram/zram_drv.c~zram-trivial-correct-flag-operations-comment drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-trivial-correct-flag-operations-comment
++++ a/drivers/block/zram/zram_drv.c
+@@ -70,7 +70,7 @@ static inline struct zram *dev_to_zram(s
+ 	return (struct zram *)dev_to_disk(dev)->private_data;
  }
  
--static inline int arch_prepare_hugepage(struct page *page)
--{
--	return 0;
--}
--
--static inline void arch_release_hugepage(struct page *page)
--{
--}
--
- static inline void arch_clear_hugepage_flags(struct page *page)
+-/* flag operations needs meta->tb_lock */
++/* flag operations require table entry bit_spin_lock() being held */
+ static int zram_test_flag(struct zram_meta *meta, u32 index,
+ 			enum zram_pageflags flag)
  {
- 	clear_bit(PG_dcache_clean, &page->flags);
-diff -puN arch/arm64/include/asm/hugetlb.h~mm-hugetlb-remove-arch_prepare-release_hugepage-from-arch-headers arch/arm64/include/asm/hugetlb.h
---- a/arch/arm64/include/asm/hugetlb.h~mm-hugetlb-remove-arch_prepare-release_hugepage-from-arch-headers
-+++ a/arch/arm64/include/asm/hugetlb.h
-@@ -96,15 +96,6 @@ static inline pte_t huge_pte_wrprotect(p
- 	return pte_wrprotect(pte);
- }
- 
--static inline int arch_prepare_hugepage(struct page *page)
--{
--	return 0;
--}
--
--static inline void arch_release_hugepage(struct page *page)
--{
--}
--
- static inline void arch_clear_hugepage_flags(struct page *page)
- {
- 	clear_bit(PG_dcache_clean, &page->flags);
-diff -puN arch/ia64/include/asm/hugetlb.h~mm-hugetlb-remove-arch_prepare-release_hugepage-from-arch-headers arch/ia64/include/asm/hugetlb.h
---- a/arch/ia64/include/asm/hugetlb.h~mm-hugetlb-remove-arch_prepare-release_hugepage-from-arch-headers
-+++ a/arch/ia64/include/asm/hugetlb.h
-@@ -65,15 +65,6 @@ static inline pte_t huge_ptep_get(pte_t
- 	return *ptep;
- }
- 
--static inline int arch_prepare_hugepage(struct page *page)
--{
--	return 0;
--}
--
--static inline void arch_release_hugepage(struct page *page)
--{
--}
--
- static inline void arch_clear_hugepage_flags(struct page *page)
- {
- }
-diff -puN arch/metag/include/asm/hugetlb.h~mm-hugetlb-remove-arch_prepare-release_hugepage-from-arch-headers arch/metag/include/asm/hugetlb.h
---- a/arch/metag/include/asm/hugetlb.h~mm-hugetlb-remove-arch_prepare-release_hugepage-from-arch-headers
-+++ a/arch/metag/include/asm/hugetlb.h
-@@ -67,15 +67,6 @@ static inline pte_t huge_ptep_get(pte_t
- 	return *ptep;
- }
- 
--static inline int arch_prepare_hugepage(struct page *page)
--{
--	return 0;
--}
--
--static inline void arch_release_hugepage(struct page *page)
--{
--}
--
- static inline void arch_clear_hugepage_flags(struct page *page)
- {
- }
-diff -puN arch/mips/include/asm/hugetlb.h~mm-hugetlb-remove-arch_prepare-release_hugepage-from-arch-headers arch/mips/include/asm/hugetlb.h
---- a/arch/mips/include/asm/hugetlb.h~mm-hugetlb-remove-arch_prepare-release_hugepage-from-arch-headers
-+++ a/arch/mips/include/asm/hugetlb.h
-@@ -110,15 +110,6 @@ static inline pte_t huge_ptep_get(pte_t
- 	return *ptep;
- }
- 
--static inline int arch_prepare_hugepage(struct page *page)
--{
--	return 0;
--}
--
--static inline void arch_release_hugepage(struct page *page)
--{
--}
--
- static inline void arch_clear_hugepage_flags(struct page *page)
- {
- }
-diff -puN arch/powerpc/include/asm/hugetlb.h~mm-hugetlb-remove-arch_prepare-release_hugepage-from-arch-headers arch/powerpc/include/asm/hugetlb.h
---- a/arch/powerpc/include/asm/hugetlb.h~mm-hugetlb-remove-arch_prepare-release_hugepage-from-arch-headers
-+++ a/arch/powerpc/include/asm/hugetlb.h
-@@ -168,15 +168,6 @@ static inline pte_t huge_ptep_get(pte_t
- 	return *ptep;
- }
- 
--static inline int arch_prepare_hugepage(struct page *page)
--{
--	return 0;
--}
--
--static inline void arch_release_hugepage(struct page *page)
--{
--}
--
- static inline void arch_clear_hugepage_flags(struct page *page)
- {
- }
-diff -puN arch/sh/include/asm/hugetlb.h~mm-hugetlb-remove-arch_prepare-release_hugepage-from-arch-headers arch/sh/include/asm/hugetlb.h
---- a/arch/sh/include/asm/hugetlb.h~mm-hugetlb-remove-arch_prepare-release_hugepage-from-arch-headers
-+++ a/arch/sh/include/asm/hugetlb.h
-@@ -79,15 +79,6 @@ static inline pte_t huge_ptep_get(pte_t
- 	return *ptep;
- }
- 
--static inline int arch_prepare_hugepage(struct page *page)
--{
--	return 0;
--}
--
--static inline void arch_release_hugepage(struct page *page)
--{
--}
--
- static inline void arch_clear_hugepage_flags(struct page *page)
- {
- 	clear_bit(PG_dcache_clean, &page->flags);
-diff -puN arch/sparc/include/asm/hugetlb.h~mm-hugetlb-remove-arch_prepare-release_hugepage-from-arch-headers arch/sparc/include/asm/hugetlb.h
---- a/arch/sparc/include/asm/hugetlb.h~mm-hugetlb-remove-arch_prepare-release_hugepage-from-arch-headers
-+++ a/arch/sparc/include/asm/hugetlb.h
-@@ -78,15 +78,6 @@ static inline pte_t huge_ptep_get(pte_t
- 	return *ptep;
- }
- 
--static inline int arch_prepare_hugepage(struct page *page)
--{
--	return 0;
--}
--
--static inline void arch_release_hugepage(struct page *page)
--{
--}
--
- static inline void arch_clear_hugepage_flags(struct page *page)
- {
- }
-diff -puN arch/tile/include/asm/hugetlb.h~mm-hugetlb-remove-arch_prepare-release_hugepage-from-arch-headers arch/tile/include/asm/hugetlb.h
---- a/arch/tile/include/asm/hugetlb.h~mm-hugetlb-remove-arch_prepare-release_hugepage-from-arch-headers
-+++ a/arch/tile/include/asm/hugetlb.h
-@@ -94,15 +94,6 @@ static inline pte_t huge_ptep_get(pte_t
- 	return *ptep;
- }
- 
--static inline int arch_prepare_hugepage(struct page *page)
--{
--	return 0;
--}
--
--static inline void arch_release_hugepage(struct page *page)
--{
--}
--
- static inline void arch_clear_hugepage_flags(struct page *page)
- {
- }
-diff -puN arch/x86/include/asm/hugetlb.h~mm-hugetlb-remove-arch_prepare-release_hugepage-from-arch-headers arch/x86/include/asm/hugetlb.h
---- a/arch/x86/include/asm/hugetlb.h~mm-hugetlb-remove-arch_prepare-release_hugepage-from-arch-headers
-+++ a/arch/x86/include/asm/hugetlb.h
-@@ -80,15 +80,6 @@ static inline pte_t huge_ptep_get(pte_t
- 	return *ptep;
- }
- 
--static inline int arch_prepare_hugepage(struct page *page)
--{
--	return 0;
--}
--
--static inline void arch_release_hugepage(struct page *page)
--{
--}
+_
+
+Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
+
+origin.patch
+
