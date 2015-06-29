@@ -1,9 +1,8 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- netconsole-make-all-dynamic-netconsoles-share-a-mutex.patch removed from
- -mm tree
-Date: Mon, 29 Jun 2015 13:47:26 -0700
-Message-ID: <5591aede.gMhlYqJpAkBmPG4d%akpm@linux-foundation.org>
+Subject: [merged] proc-fix-page_size-limit-of-proc-pid-cmdline.patch
+ removed from -mm tree
+Date: Mon, 29 Jun 2015 13:46:51 -0700
+Message-ID: <5591aebb.R8VnW/11u2IzDIha%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -11,98 +10,297 @@ Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail.linuxfoundation.org ([140.211.169.12]:50785 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754169AbbF2Ur0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:47:26 -0400
+	with ESMTP id S1752597AbbF2Uqw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:46:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, davem@davemloft.net, kay@vrfy.org, penguin-kernel@I-love.SAKURA.ne.jp, pmladek@suse.cz, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, gorcunov@openvz.org, jarod@redhat.com, jstancek@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: netconsole: make all dynamic netconsoles share a mutex
+     Subject: proc: fix PAGE_SIZE limit of /proc/$PID/cmdline
 has been removed from the -mm tree.  Its filename was
-     netconsole-make-all-dynamic-netconsoles-share-a-mutex.patch
+     proc-fix-page_size-limit-of-proc-pid-cmdline.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tejun Heo <tj@kernel.org>
-Subject: netconsole: make all dynamic netconsoles share a mutex
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: proc: fix PAGE_SIZE limit of /proc/$PID/cmdline
 
-Currently, each dynamic netconsole_target uses its own separate mutex to
-synchronize the configuration operations.  This patch replaces the
-per-netconsole_target mutexes with a single mutex -
-dynamic_netconsole_mutex.  The reduced granularity doesn't hurt anything,
-the code is minutely simpler and this'd allow adding operations which
-should be synchronized across all dynamic netconsoles.
+/proc/$PID/cmdline truncates output at PAGE_SIZE. It is easy to see with
 
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Cc: David Miller <davem@davemloft.net>
-Cc: Kay Sievers <kay@vrfy.org>
-Cc: Petr Mladek <pmladek@suse.cz>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+	$ cat /proc/self/cmdline $(seq 1037) 2>/dev/null
+
+However, command line size was never limited to PAGE_SIZE but to 128 KB
+and relatively recently limitation was removed altogether.
+
+People noticed and ask questions:
+http://stackoverflow.com/questions/199130/how-do-i-increase-the-proc-pid-cmdline-4096-byte-limit
+
+seq file interface is not OK, because it kmalloc's for whole output and
+open + read(, 1) + sleep will pin arbitrary amounts of kernel memory.  To
+not do that, limit must be imposed which is incompatible with arbitrary
+sized command lines.
+
+I apologize for hairy code, but this it direct consequence of command line
+layout in memory and hacks to support things like "init [3]".
+
+The loops are "unrolled" otherwise it is either macros which hide control
+flow or functions with 7-8 arguments with equal line count.
+
+There should be real setproctitle(2) or something.
+
+[akpm@linux-foundation.org: fix a billion min() warnings]
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Tested-by: Jarod Wilson <jarod@redhat.com>
+Acked-by: Jarod Wilson <jarod@redhat.com>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Jan Stancek <jstancek@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/netconsole.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ fs/proc/base.c |  205 ++++++++++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 196 insertions(+), 9 deletions(-)
 
-diff -puN drivers/net/netconsole.c~netconsole-make-all-dynamic-netconsoles-share-a-mutex drivers/net/netconsole.c
---- a/drivers/net/netconsole.c~netconsole-make-all-dynamic-netconsoles-share-a-mutex
-+++ a/drivers/net/netconsole.c
-@@ -105,13 +105,13 @@ struct netconsole_target {
- 	struct config_item	item;
- #endif
- 	bool			enabled;
--	struct mutex		mutex;
- 	struct netpoll		np;
- };
- 
- #ifdef	CONFIG_NETCONSOLE_DYNAMIC
- 
- static struct configfs_subsystem netconsole_subsys;
-+static DEFINE_MUTEX(dynamic_netconsole_mutex);
- 
- static int __init dynamic_netconsole_init(void)
- {
-@@ -185,7 +185,6 @@ static struct netconsole_target *alloc_p
- 	strlcpy(nt->np.dev_name, "eth0", IFNAMSIZ);
- 	nt->np.local_port = 6665;
- 	nt->np.remote_port = 6666;
--	mutex_init(&nt->mutex);
- 	eth_broadcast_addr(nt->np.remote_mac);
- 
- 	/* Parse parameters and setup netpoll */
-@@ -562,10 +561,10 @@ static ssize_t netconsole_target_attr_st
- 	struct netconsole_target_attr *na =
- 		container_of(attr, struct netconsole_target_attr, attr);
- 
--	mutex_lock(&nt->mutex);
-+	mutex_lock(&dynamic_netconsole_mutex);
- 	if (na->store)
- 		ret = na->store(nt, buf, count);
--	mutex_unlock(&nt->mutex);
-+	mutex_unlock(&dynamic_netconsole_mutex);
- 
- 	return ret;
+diff -puN fs/proc/base.c~proc-fix-page_size-limit-of-proc-pid-cmdline fs/proc/base.c
+--- a/fs/proc/base.c~proc-fix-page_size-limit-of-proc-pid-cmdline
++++ a/fs/proc/base.c
+@@ -196,18 +196,205 @@ static int proc_root_link(struct dentry
+ 	return result;
  }
-@@ -604,7 +603,6 @@ static struct config_item *make_netconso
- 	strlcpy(nt->np.dev_name, "eth0", IFNAMSIZ);
- 	nt->np.local_port = 6665;
- 	nt->np.remote_port = 6666;
--	mutex_init(&nt->mutex);
- 	eth_broadcast_addr(nt->np.remote_mac);
  
- 	/* Initialize the config_item member */
+-static int proc_pid_cmdline(struct seq_file *m, struct pid_namespace *ns,
+-			    struct pid *pid, struct task_struct *task)
++static ssize_t proc_pid_cmdline_read(struct file *file, char __user *buf,
++				     size_t _count, loff_t *pos)
+ {
++	struct task_struct *tsk;
++	struct mm_struct *mm;
++	char *page;
++	unsigned long count = _count;
++	unsigned long arg_start, arg_end, env_start, env_end;
++	unsigned long len1, len2, len;
++	unsigned long p;
++	char c;
++	ssize_t rv;
++
++	BUG_ON(*pos < 0);
++
++	tsk = get_proc_task(file_inode(file));
++	if (!tsk)
++		return -ESRCH;
++	mm = get_task_mm(tsk);
++	put_task_struct(tsk);
++	if (!mm)
++		return 0;
++	/* Check if process spawned far enough to have cmdline. */
++	if (!mm->env_end) {
++		rv = 0;
++		goto out_mmput;
++	}
++
++	page = (char *)__get_free_page(GFP_TEMPORARY);
++	if (!page) {
++		rv = -ENOMEM;
++		goto out_mmput;
++	}
++
++	down_read(&mm->mmap_sem);
++	arg_start = mm->arg_start;
++	arg_end = mm->arg_end;
++	env_start = mm->env_start;
++	env_end = mm->env_end;
++	up_read(&mm->mmap_sem);
++
++	BUG_ON(arg_start > arg_end);
++	BUG_ON(env_start > env_end);
++
++	len1 = arg_end - arg_start;
++	len2 = env_end - env_start;
++
+ 	/*
+-	 * Rely on struct seq_operations::show() being called once
+-	 * per internal buffer allocation. See single_open(), traverse().
++	 * Inherently racy -- command line shares address space
++	 * with code and data.
+ 	 */
+-	BUG_ON(m->size < PAGE_SIZE);
+-	m->count += get_cmdline(task, m->buf, PAGE_SIZE);
+-	return 0;
++	rv = access_remote_vm(mm, arg_end - 1, &c, 1, 0);
++	if (rv <= 0)
++		goto out_free_page;
++
++	rv = 0;
++
++	if (c == '\0') {
++		/* Command line (set of strings) occupies whole ARGV. */
++		if (len1 <= *pos)
++			goto out_free_page;
++
++		p = arg_start + *pos;
++		len = len1 - *pos;
++		while (count > 0 && len > 0) {
++			unsigned int _count;
++			int nr_read;
++
++			_count = min3(count, len, PAGE_SIZE);
++			nr_read = access_remote_vm(mm, p, page, _count, 0);
++			if (nr_read < 0)
++				rv = nr_read;
++			if (nr_read <= 0)
++				goto out_free_page;
++
++			if (copy_to_user(buf, page, nr_read)) {
++				rv = -EFAULT;
++				goto out_free_page;
++			}
++
++			p	+= nr_read;
++			len	-= nr_read;
++			buf	+= nr_read;
++			count	-= nr_read;
++			rv	+= nr_read;
++		}
++	} else {
++		/*
++		 * Command line (1 string) occupies ARGV and maybe
++		 * extends into ENVP.
++		 */
++		if (len1 + len2 <= *pos)
++			goto skip_argv_envp;
++		if (len1 <= *pos)
++			goto skip_argv;
++
++		p = arg_start + *pos;
++		len = len1 - *pos;
++		while (count > 0 && len > 0) {
++			unsigned int _count, l;
++			int nr_read;
++			bool final;
++
++			_count = min3(count, len, PAGE_SIZE);
++			nr_read = access_remote_vm(mm, p, page, _count, 0);
++			if (nr_read < 0)
++				rv = nr_read;
++			if (nr_read <= 0)
++				goto out_free_page;
++
++			/*
++			 * Command line can be shorter than whole ARGV
++			 * even if last "marker" byte says it is not.
++			 */
++			final = false;
++			l = strnlen(page, nr_read);
++			if (l < nr_read) {
++				nr_read = l;
++				final = true;
++			}
++
++			if (copy_to_user(buf, page, nr_read)) {
++				rv = -EFAULT;
++				goto out_free_page;
++			}
++
++			p	+= nr_read;
++			len	-= nr_read;
++			buf	+= nr_read;
++			count	-= nr_read;
++			rv	+= nr_read;
++
++			if (final)
++				goto out_free_page;
++		}
++skip_argv:
++		/*
++		 * Command line (1 string) occupies ARGV and
++		 * extends into ENVP.
++		 */
++		if (len1 <= *pos) {
++			p = env_start + *pos - len1;
++			len = len1 + len2 - *pos;
++		} else {
++			p = env_start;
++			len = len2;
++		}
++		while (count > 0 && len > 0) {
++			unsigned int _count, l;
++			int nr_read;
++			bool final;
++
++			_count = min3(count, len, PAGE_SIZE);
++			nr_read = access_remote_vm(mm, p, page, _count, 0);
++			if (nr_read < 0)
++				rv = nr_read;
++			if (nr_read <= 0)
++				goto out_free_page;
++
++			/* Find EOS. */
++			final = false;
++			l = strnlen(page, nr_read);
++			if (l < nr_read) {
++				nr_read = l;
++				final = true;
++			}
++
++			if (copy_to_user(buf, page, nr_read)) {
++				rv = -EFAULT;
++				goto out_free_page;
++			}
++
++			p	+= nr_read;
++			len	-= nr_read;
++			buf	+= nr_read;
++			count	-= nr_read;
++			rv	+= nr_read;
++
++			if (final)
++				goto out_free_page;
++		}
++skip_argv_envp:
++		;
++	}
++
++out_free_page:
++	free_page((unsigned long)page);
++out_mmput:
++	mmput(mm);
++	if (rv > 0)
++		*pos += rv;
++	return rv;
+ }
+ 
++static const struct file_operations proc_pid_cmdline_ops = {
++	.read	= proc_pid_cmdline_read,
++	.llseek	= generic_file_llseek,
++};
++
+ static int proc_pid_auxv(struct seq_file *m, struct pid_namespace *ns,
+ 			 struct pid *pid, struct task_struct *task)
+ {
+@@ -2572,7 +2759,7 @@ static const struct pid_entry tgid_base_
+ #ifdef CONFIG_HAVE_ARCH_TRACEHOOK
+ 	ONE("syscall",    S_IRUSR, proc_pid_syscall),
+ #endif
+-	ONE("cmdline",    S_IRUGO, proc_pid_cmdline),
++	REG("cmdline",    S_IRUGO, proc_pid_cmdline_ops),
+ 	ONE("stat",       S_IRUGO, proc_tgid_stat),
+ 	ONE("statm",      S_IRUGO, proc_pid_statm),
+ 	REG("maps",       S_IRUGO, proc_pid_maps_operations),
+@@ -2918,7 +3105,7 @@ static const struct pid_entry tid_base_s
+ #ifdef CONFIG_HAVE_ARCH_TRACEHOOK
+ 	ONE("syscall",   S_IRUSR, proc_pid_syscall),
+ #endif
+-	ONE("cmdline",   S_IRUGO, proc_pid_cmdline),
++	REG("cmdline",   S_IRUGO, proc_pid_cmdline_ops),
+ 	ONE("stat",      S_IRUGO, proc_tid_stat),
+ 	ONE("statm",     S_IRUGO, proc_pid_statm),
+ 	REG("maps",      S_IRUGO, proc_tid_maps_operations),
 _
 
-Patches currently in -mm which might be from tj@kernel.org are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
 origin.patch
-block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
-fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
-ipc-msgc-msgsnd-use-freezable-blocking-call.patch
-msgrcv-use-freezable-blocking-call.patch
 linux-next.patch
-printk-improve-the-description-of-dev-kmsg-line-format.patch
 
