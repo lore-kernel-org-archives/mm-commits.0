@@ -1,95 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged] powerpc-use-for_each_sg.patch removed from -mm tree
-Date: Mon, 29 Jun 2015 13:36:17 -0700
-Message-ID: <5591ac41.4bqP6Sxu8AD0MvUu%akpm@linux-foundation.org>
+Subject: [merged] configfs-unexport-make-static-config_item_init.patch
+ removed from -mm tree
+Date: Mon, 29 Jun 2015 13:36:23 -0700
+Message-ID: <5591ac47.9wdzerJyHcZoKqau%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50112 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50122 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753846AbbF2UgS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:36:18 -0400
+	with ESMTP id S1752434AbbF2UgY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Jun 2015 16:36:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, benh@kernel.crashing.org, mpe@ellerman.id.au, paulus@samba.org, mm-commits@vger.kernel.org
+To: fabf@skynet.be, jlbec@evilplan.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc: use for_each_sg()
+     Subject: configfs: unexport/make static config_item_init()
 has been removed from the -mm tree.  Its filename was
-     powerpc-use-for_each_sg.patch
+     configfs-unexport-make-static-config_item_init.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: powerpc: use for_each_sg()
+From: Fabian Frederick <fabf@skynet.be>
+Subject: configfs: unexport/make static config_item_init()
 
-This replaces the plain loop over the sglist array with for_each_sg()
-macro which consists of sg_next() function calls.  Since powerpc does
-select ARCH_HAS_SG_CHAIN, it is necessary to use for_each_sg() in order to
-loop over each sg element.  This also help find problems with drivers that
-do not properly initialize their sg tables when CONFIG_DEBUG_SG is
-enabled.
+config_item_init() is only used in item.c
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/vio.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ fs/configfs/item.c       |    3 +--
+ include/linux/configfs.h |    1 -
+ 2 files changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN arch/powerpc/kernel/vio.c~powerpc-use-for_each_sg arch/powerpc/kernel/vio.c
---- a/arch/powerpc/kernel/vio.c~powerpc-use-for_each_sg
-+++ a/arch/powerpc/kernel/vio.c
-@@ -557,11 +557,11 @@ static int vio_dma_iommu_map_sg(struct d
- 	struct vio_dev *viodev = to_vio_dev(dev);
- 	struct iommu_table *tbl;
- 	struct scatterlist *sgl;
--	int ret, count = 0;
-+	int ret, count;
- 	size_t alloc_size = 0;
+diff -puN fs/configfs/item.c~configfs-unexport-make-static-config_item_init fs/configfs/item.c
+--- a/fs/configfs/item.c~configfs-unexport-make-static-config_item_init
++++ a/fs/configfs/item.c
+@@ -47,12 +47,11 @@ static void config_item_release(struct k
+  *	config_item_init - initialize item.
+  *	@item:	item in question.
+  */
+-void config_item_init(struct config_item *item)
++static void config_item_init(struct config_item *item)
+ {
+ 	kref_init(&item->ci_kref);
+ 	INIT_LIST_HEAD(&item->ci_entry);
+ }
+-EXPORT_SYMBOL(config_item_init);
  
- 	tbl = get_iommu_table_base(dev);
--	for (sgl = sglist; count < nelems; count++, sgl++)
-+	for_each_sg(sglist, sgl, nelems, count)
- 		alloc_size += roundup(sgl->length, IOMMU_PAGE_SIZE(tbl));
+ /**
+  *	config_item_set_name - Set the name of an item
+diff -puN include/linux/configfs.h~configfs-unexport-make-static-config_item_init include/linux/configfs.h
+--- a/include/linux/configfs.h~configfs-unexport-make-static-config_item_init
++++ a/include/linux/configfs.h
+@@ -71,7 +71,6 @@ static inline char *config_item_name(str
+ 	return item->ci_name;
+ }
  
- 	if (vio_cmo_alloc(viodev, alloc_size)) {
-@@ -577,7 +577,7 @@ static int vio_dma_iommu_map_sg(struct d
- 		return ret;
- 	}
- 
--	for (sgl = sglist, count = 0; count < ret; count++, sgl++)
-+	for_each_sg(sglist, sgl, ret, count)
- 		alloc_size -= roundup(sgl->dma_length, IOMMU_PAGE_SIZE(tbl));
- 	if (alloc_size)
- 		vio_cmo_dealloc(viodev, alloc_size);
-@@ -594,10 +594,10 @@ static void vio_dma_iommu_unmap_sg(struc
- 	struct iommu_table *tbl;
- 	struct scatterlist *sgl;
- 	size_t alloc_size = 0;
--	int count = 0;
-+	int count;
- 
- 	tbl = get_iommu_table_base(dev);
--	for (sgl = sglist; count < nelems; count++, sgl++)
-+	for_each_sg(sglist, sgl, nelems, count)
- 		alloc_size += roundup(sgl->dma_length, IOMMU_PAGE_SIZE(tbl));
- 
- 	dma_iommu_ops.unmap_sg(dev, sglist, nelems, direction, attrs);
+-extern void config_item_init(struct config_item *);
+ extern void config_item_init_type_name(struct config_item *item,
+ 				       const char *name,
+ 				       struct config_item_type *type);
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from fabf@skynet.be are
 
 origin.patch
-arc-use-for_each_sg.patch
-lib-scatterlist-fix-kerneldoc-for-sg_pcopy_tofrom_buffer.patch
-lib-scatterlist-mark-input-buffer-parameters-as-const.patch
+fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
+fs-affs-inodec-remove-unneeded-initialization.patch
+fs-affs-amigaffsc-remove-unneeded-initialization.patch
+fs-affs-symlinkc-remove-unneeded-err-variable.patch
+w1-masters-omap_hdq-add-support-for-1-wire-mode.patch
 linux-next.patch
 
