@@ -1,89 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: + openrisc-fix-config_uid16-setting.patch added to -mm tree
-Date: Mon, 06 Jul 2015 15:00:47 -0700
-Message-ID: <559afa8f.fR64UTH2yrzDHttJ%akpm@linux-foundation.org>
+Subject: [to-be-updated] mm-provide-new-get_vaddr_frames-helper-fix.patch
+ removed from -mm tree
+Date: Mon, 06 Jul 2015 15:19:07 -0700
+Message-ID: <559afedb.r4zSqyurnxGjjOyA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33281 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33682 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752695AbbGFWAs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jul 2015 18:00:48 -0400
+	with ESMTP id S1754506AbbGFWTH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jul 2015 18:19:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, fengguang.wu@gmail.com, iulia.manda21@gmail.com, josh@joshtriplett.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hans.verkuil@cisco.com, jack@suse.cz, mchehab@osg.samsung.com, sergey.senozhatsky.work@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: openrisc: fix CONFIG_UID16 setting
-has been added to the -mm tree.  Its filename is
-     openrisc-fix-config_uid16-setting.patch
+     Subject: mm-provide-new-get_vaddr_frames-helper-fix
+has been removed from the -mm tree.  Its filename was
+     mm-provide-new-get_vaddr_frames-helper-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/openrisc-fix-config_uid16-setting.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/openrisc-fix-config_uid16-setting.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: openrisc: fix CONFIG_UID16 setting
+Subject: mm-provide-new-get_vaddr_frames-helper-fix
 
-openrisc-allnoconfig:
+use kvfree(), per Sergey
 
-kernel/uid16.c: In function 'SYSC_setgroups16':
-kernel/uid16.c:184:2: error: implicit declaration of function 'groups_alloc'
-kernel/uid16.c:184:13: warning: assignment makes pointer from integer without a cast
-
-openrisc shouldn't be setting CONFIG_UID16 when CONFIG_MULTIUSER=n.
-
-Fixes: 2813893f8b197a1 ("kernel: conditionally support non-root users, groups and capabilities")
-Reported-by: Fengguang Wu <fengguang.wu@gmail.com>
-Cc: Iulia Manda <iulia.manda21@gmail.com>
-Cc: Josh Triplett <josh@joshtriplett.org>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/openrisc/Kconfig |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ mm/gup.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN arch/openrisc/Kconfig~openrisc-fix-config_uid16-setting arch/openrisc/Kconfig
---- a/arch/openrisc/Kconfig~openrisc-fix-config_uid16-setting
-+++ a/arch/openrisc/Kconfig
-@@ -17,6 +17,7 @@ config OPENRISC
- 	select GENERIC_IRQ_SHOW
- 	select GENERIC_IOMAP
- 	select GENERIC_CPU_DEVICES
-+	select HAVE_UID16
- 	select GENERIC_ATOMIC64
- 	select GENERIC_CLOCKEVENTS
- 	select GENERIC_STRNCPY_FROM_USER
-@@ -31,9 +32,6 @@ config MMU
- config HAVE_DMA_ATTRS
- 	def_bool y
- 
--config UID16
--	def_bool y
--
- config RWSEM_GENERIC_SPINLOCK
- 	def_bool y
+diff -puN mm/gup.c~mm-provide-new-get_vaddr_frames-helper-fix mm/gup.c
+--- a/mm/gup.c~mm-provide-new-get_vaddr_frames-helper-fix
++++ a/mm/gup.c
+@@ -1155,10 +1155,7 @@ void frame_vector_destroy(struct frame_v
+ {
+ 	/* Make sure put_vaddr_frames() got called properly... */
+ 	VM_BUG_ON(vec->nr_frames > 0);
+-	if (!is_vmalloc_addr(vec))
+-		kfree(vec);
+-	else
+-		vfree(vec);
++	kvfree(vec);
+ }
+ EXPORT_SYMBOL(frame_vector_destroy);
  
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+mm-move-get_vaddr_frames-behind-a-config-option.patch
+mm-move-get_vaddr_frames-behind-a-config-option-fix.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 openrisc-fix-config_uid16-setting.patch
 mm.patch
