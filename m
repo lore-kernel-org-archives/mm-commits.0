@@ -1,74 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-affs-symlinkc-remove-unneeded-err-variable.patch
- removed from -mm tree
-Date: Mon, 06 Jul 2015 12:46:58 -0700
-Message-ID: <559adb32.eWBgrXBpCrSmw66A%akpm@linux-foundation.org>
+Subject: [merged] adfs-remove-unneeded-cast.patch removed from -mm tree
+Date: Mon, 06 Jul 2015 12:46:52 -0700
+Message-ID: <559adb2c.oVYSTwBU4OenW5qP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59535 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59529 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755235AbbGFTq6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jul 2015 15:46:58 -0400
+	with ESMTP id S1755465AbbGFTqw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jul 2015 15:46:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fabf@skynet.be, mm-commits@vger.kernel.org
+To: firogm@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/affs/symlink.c: remove unneeded err variable
+     Subject: fs/adfs: remove unneeded cast
 has been removed from the -mm tree.  Its filename was
-     fs-affs-symlinkc-remove-unneeded-err-variable.patch
+     adfs-remove-unneeded-cast.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Fabian Frederick <fabf@skynet.be>
-Subject: fs/affs/symlink.c: remove unneeded err variable
+From: Firo Yang <firogm@gmail.com>
+Subject: fs/adfs: remove unneeded cast
 
-err is only assigned to -EIO.  Return that value at the end of fail
-context.
+kmem_cache_alloc() returns void*.
 
-Signed-off-by: Fabian Frederick <fabf@skynet.be>
+Signed-off-by: Firo Yang <firogm@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/affs/symlink.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ fs/adfs/super.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/affs/symlink.c~fs-affs-symlinkc-remove-unneeded-err-variable fs/affs/symlink.c
---- a/fs/affs/symlink.c~fs-affs-symlinkc-remove-unneeded-err-variable
-+++ a/fs/affs/symlink.c
-@@ -16,14 +16,12 @@ static int affs_symlink_readpage(struct
- 	struct inode *inode = page->mapping->host;
- 	char *link = kmap(page);
- 	struct slink_front *lf;
--	int err;
- 	int			 i, j;
- 	char			 c;
- 	char			 lc;
- 
- 	pr_debug("follow_link(ino=%lu)\n", inode->i_ino);
- 
--	err = -EIO;
- 	bh = affs_bread(inode->i_sb, inode->i_ino);
- 	if (!bh)
- 		goto fail;
-@@ -66,7 +64,7 @@ fail:
- 	SetPageError(page);
- 	kunmap(page);
- 	unlock_page(page);
--	return err;
-+	return -EIO;
- }
- 
- const struct address_space_operations affs_symlink_aops = {
+diff -puN fs/adfs/super.c~adfs-remove-unneeded-cast fs/adfs/super.c
+--- a/fs/adfs/super.c~adfs-remove-unneeded-cast
++++ a/fs/adfs/super.c
+@@ -242,7 +242,7 @@ static struct kmem_cache *adfs_inode_cac
+ static struct inode *adfs_alloc_inode(struct super_block *sb)
+ {
+ 	struct adfs_inode_info *ei;
+-	ei = (struct adfs_inode_info *)kmem_cache_alloc(adfs_inode_cachep, GFP_KERNEL);
++	ei = kmem_cache_alloc(adfs_inode_cachep, GFP_KERNEL);
+ 	if (!ei)
+ 		return NULL;
+ 	return &ei->vfs_inode;
 _
 
-Patches currently in -mm which might be from fabf@skynet.be are
+Patches currently in -mm which might be from firogm@gmail.com are
 
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-w1-masters-omap_hdq-add-support-for-1-wire-mode.patch
 
