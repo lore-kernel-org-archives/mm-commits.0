@@ -1,82 +1,145 @@
 From: akpm@linux-foundation.org
-Subject: [merged] arc-use-for_each_sg.patch removed from -mm tree
-Date: Mon, 06 Jul 2015 12:47:18 -0700
-Message-ID: <559adb46.t1qVLR/81WKIqCsk%akpm@linux-foundation.org>
+Subject: [merged] ipc-rename-ipc_obtain_object.patch removed from -mm tree
+Date: Mon, 06 Jul 2015 12:47:25 -0700
+Message-ID: <559adb4d.9LT3ne904xSXPWEW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59567 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59586 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755615AbbGFTrS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jul 2015 15:47:18 -0400
+	with ESMTP id S1755698AbbGFTr0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jul 2015 15:47:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, vgupta@synopsys.com, mm-commits@vger.kernel.org
+To: dave@stgolabs.net, dbueso@suse.de, manfred@colorfullife.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arc: use for_each_sg()
+     Subject: ipc: rename ipc_obtain_object
 has been removed from the -mm tree.  Its filename was
-     arc-use-for_each_sg.patch
+     ipc-rename-ipc_obtain_object.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: arc: use for_each_sg()
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: ipc: rename ipc_obtain_object
 
-This replaces the plain loop over the sglist array with for_each_sg()
-macro which consists of sg_next() function calls.  Since arc doesn't
-select ARCH_HAS_SG_CHAIN, it is not necessary to use for_each_sg() in
-order to loop over each sg element.  But this can help find problems with
-drivers that do not properly initialize their sg tables when
-CONFIG_DEBUG_SG is enabled.
+...  to ipc_obtain_object_idr, which is more meaningful and makes the code
+slightly easier to follow.
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Acked-by: Vineet Gupta <vgupta@synopsys.com>
+Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+Cc: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arc/include/asm/dma-mapping.h |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ ipc/msg.c  |    2 +-
+ ipc/sem.c  |    4 ++--
+ ipc/shm.c  |    2 +-
+ ipc/util.c |    8 ++++----
+ ipc/util.h |    2 +-
+ 5 files changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN arch/arc/include/asm/dma-mapping.h~arc-use-for_each_sg arch/arc/include/asm/dma-mapping.h
---- a/arch/arc/include/asm/dma-mapping.h~arc-use-for_each_sg
-+++ a/arch/arc/include/asm/dma-mapping.h
-@@ -157,22 +157,24 @@ dma_sync_single_range_for_device(struct
- }
+diff -puN ipc/msg.c~ipc-rename-ipc_obtain_object ipc/msg.c
+--- a/ipc/msg.c~ipc-rename-ipc_obtain_object
++++ a/ipc/msg.c
+@@ -76,7 +76,7 @@ struct msg_sender {
  
- static inline void
--dma_sync_sg_for_cpu(struct device *dev, struct scatterlist *sg, int nelems,
-+dma_sync_sg_for_cpu(struct device *dev, struct scatterlist *sglist, int nelems,
- 		    enum dma_data_direction dir)
+ static inline struct msg_queue *msq_obtain_object(struct ipc_namespace *ns, int id)
  {
- 	int i;
-+	struct scatterlist *sg;
+-	struct kern_ipc_perm *ipcp = ipc_obtain_object(&msg_ids(ns), id);
++	struct kern_ipc_perm *ipcp = ipc_obtain_object_idr(&msg_ids(ns), id);
  
--	for (i = 0; i < nelems; i++, sg++)
-+	for_each_sg(sglist, sg, nelems, i)
- 		_dma_cache_sync((unsigned int)sg_virt(sg), sg->length, dir);
- }
+ 	if (IS_ERR(ipcp))
+ 		return ERR_CAST(ipcp);
+diff -puN ipc/sem.c~ipc-rename-ipc_obtain_object ipc/sem.c
+--- a/ipc/sem.c~ipc-rename-ipc_obtain_object
++++ a/ipc/sem.c
+@@ -391,7 +391,7 @@ static inline struct sem_array *sem_obta
+ 	struct kern_ipc_perm *ipcp;
+ 	struct sem_array *sma;
  
- static inline void
--dma_sync_sg_for_device(struct device *dev, struct scatterlist *sg, int nelems,
--		       enum dma_data_direction dir)
-+dma_sync_sg_for_device(struct device *dev, struct scatterlist *sglist,
-+		       int nelems, enum dma_data_direction dir)
+-	ipcp = ipc_obtain_object(&sem_ids(ns), id);
++	ipcp = ipc_obtain_object_idr(&sem_ids(ns), id);
+ 	if (IS_ERR(ipcp))
+ 		return ERR_CAST(ipcp);
+ 
+@@ -410,7 +410,7 @@ static inline struct sem_array *sem_obta
+ 
+ static inline struct sem_array *sem_obtain_object(struct ipc_namespace *ns, int id)
  {
- 	int i;
-+	struct scatterlist *sg;
+-	struct kern_ipc_perm *ipcp = ipc_obtain_object(&sem_ids(ns), id);
++	struct kern_ipc_perm *ipcp = ipc_obtain_object_idr(&sem_ids(ns), id);
  
--	for (i = 0; i < nelems; i++, sg++)
-+	for_each_sg(sglist, sg, nelems, i)
- 		_dma_cache_sync((unsigned int)sg_virt(sg), sg->length, dir);
- }
+ 	if (IS_ERR(ipcp))
+ 		return ERR_CAST(ipcp);
+diff -puN ipc/shm.c~ipc-rename-ipc_obtain_object ipc/shm.c
+--- a/ipc/shm.c~ipc-rename-ipc_obtain_object
++++ a/ipc/shm.c
+@@ -129,7 +129,7 @@ void __init shm_init(void)
  
+ static inline struct shmid_kernel *shm_obtain_object(struct ipc_namespace *ns, int id)
+ {
+-	struct kern_ipc_perm *ipcp = ipc_obtain_object(&shm_ids(ns), id);
++	struct kern_ipc_perm *ipcp = ipc_obtain_object_idr(&shm_ids(ns), id);
+ 
+ 	if (IS_ERR(ipcp))
+ 		return ERR_CAST(ipcp);
+diff -puN ipc/util.c~ipc-rename-ipc_obtain_object ipc/util.c
+--- a/ipc/util.c~ipc-rename-ipc_obtain_object
++++ a/ipc/util.c
+@@ -555,7 +555,7 @@ void ipc64_perm_to_ipc_perm(struct ipc64
+  * Call inside the RCU critical section.
+  * The ipc object is *not* locked on exit.
+  */
+-struct kern_ipc_perm *ipc_obtain_object(struct ipc_ids *ids, int id)
++struct kern_ipc_perm *ipc_obtain_object_idr(struct ipc_ids *ids, int id)
+ {
+ 	struct kern_ipc_perm *out;
+ 	int lid = ipcid_to_idx(id);
+@@ -581,7 +581,7 @@ struct kern_ipc_perm *ipc_lock(struct ip
+ 	struct kern_ipc_perm *out;
+ 
+ 	rcu_read_lock();
+-	out = ipc_obtain_object(ids, id);
++	out = ipc_obtain_object_idr(ids, id);
+ 	if (IS_ERR(out))
+ 		goto err1;
+ 
+@@ -605,7 +605,7 @@ err1:
+  * @ids: ipc identifier set
+  * @id: ipc id to look for
+  *
+- * Similar to ipc_obtain_object() but also checks
++ * Similar to ipc_obtain_object_idr() but also checks
+  * the ipc object reference counter.
+  *
+  * Call inside the RCU critical section.
+@@ -613,7 +613,7 @@ err1:
+  */
+ struct kern_ipc_perm *ipc_obtain_object_check(struct ipc_ids *ids, int id)
+ {
+-	struct kern_ipc_perm *out = ipc_obtain_object(ids, id);
++	struct kern_ipc_perm *out = ipc_obtain_object_idr(ids, id);
+ 
+ 	if (IS_ERR(out))
+ 		goto out;
+diff -puN ipc/util.h~ipc-rename-ipc_obtain_object ipc/util.h
+--- a/ipc/util.h~ipc-rename-ipc_obtain_object
++++ a/ipc/util.h
+@@ -132,7 +132,7 @@ void ipc_rcu_putref(void *ptr, void (*fu
+ void ipc_rcu_free(struct rcu_head *head);
+ 
+ struct kern_ipc_perm *ipc_lock(struct ipc_ids *, int);
+-struct kern_ipc_perm *ipc_obtain_object(struct ipc_ids *ids, int id);
++struct kern_ipc_perm *ipc_obtain_object_idr(struct ipc_ids *ids, int id);
+ 
+ void kernel_to_ipc64_perm(struct kern_ipc_perm *in, struct ipc64_perm *out);
+ void ipc64_perm_to_ipc_perm(struct ipc64_perm *in, struct ipc_perm *out);
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from dave@stgolabs.net are
 
 
