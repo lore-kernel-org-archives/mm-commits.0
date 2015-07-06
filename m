@@ -1,59 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-documents-seq_opens-usage-of-file-private_data.patch
- removed from -mm tree
-Date: Mon, 06 Jul 2015 12:46:39 -0700
-Message-ID: <559adb1f.Dj8g+yvKEAv5FfFl%akpm@linux-foundation.org>
+Subject: [merged]
+ prepend-elfcorehdr-instead-of-appending-it-to-the-crash-kernel-command-line.patch removed from -mm tree
+Date: Mon, 06 Jul 2015 12:46:41 -0700
+Message-ID: <559adb21.Yf+EUOBRtSGOPhuq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59499 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59506 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754440AbbGFTqj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jul 2015 15:46:39 -0400
+	with ESMTP id S1755315AbbGFTqm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jul 2015 15:46:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ydroneaud@opteya.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: karahmed@amazon.de, ebiederm@xmission.com, hbabu@us.ibm.com, hpa@zytor.com, mingo@redhat.com, tglx@linutronix.de, vgoyal@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs: document seq_open()'s usage of file->private_data
+     Subject: x86/kexec: prepend elfcorehdr instead of appending it to the crash-kernel command-line.
 has been removed from the -mm tree.  Its filename was
-     fs-documents-seq_opens-usage-of-file-private_data.patch
+     prepend-elfcorehdr-instead-of-appending-it-to-the-crash-kernel-command-line.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yann Droneaud <ydroneaud@opteya.com>
-Subject: fs: document seq_open()'s usage of file->private_data
+From: KarimAllah Ahmed <karahmed@amazon.de>
+Subject: x86/kexec: prepend elfcorehdr instead of appending it to the crash-kernel command-line.
 
-seq_open() stores its struct seq_file in file->private_data, thus it must
-not be modified by user of seq_file.
+Any parameter passed after '--' in the kernel command-line will not be
+parsed by the kernel at all, instead it will be passed directly to init
+process.
 
-Link: http://lkml.kernel.org/r/cover.1433193673.git.ydroneaud@opteya.com
-Signed-off-by: Yann Droneaud <ydroneaud@opteya.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Currently the kernel appends elfcorehdr=<paddr> to the cmdline passed from
+kexec load, and if this command-line is used to pass parameters to init
+process this means that 'elfcorehdr' will not be parsed as a kernel
+parameter at all which will be a problem for vmcore subsystem since it
+will know nothing about the location of the ELF structure!
+
+Prepending 'elfcorehdr' instead of appending it fixes this problem since
+it ensures that it always comes before '--' and so it's always parsed as a
+kernel command-line parameter.
+
+Even with this patch things can still go wrong if 'CONFIG_CMDLINE' was
+also used to embedd a command-line to the crash dump kernel and this
+command-line contains '--' since the current behavior of the kernel is to
+actually append the boot loader command-line to the embedded command-line.
+
+Signed-off-by: KarimAllah Ahmed <karahmed@amazon.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Acked-by: Vivek Goyal <vgoyal@redhat.com>
+Cc: Haren Myneni <hbabu@us.ibm.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/seq_file.c |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/x86/kernel/kexec-bzimage64.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN fs/seq_file.c~fs-documents-seq_opens-usage-of-file-private_data fs/seq_file.c
---- a/fs/seq_file.c~fs-documents-seq_opens-usage-of-file-private_data
-+++ a/fs/seq_file.c
-@@ -48,6 +48,8 @@ static void *seq_buf_alloc(unsigned long
-  *	ERR_PTR(error).  In the end of sequence they return %NULL. ->show()
-  *	returns 0 in case of success and negative number in case of error.
-  *	Returning SEQ_SKIP means "discard this element and move on".
-+ *	Note: seq_open() will allocate a struct seq_file and store its
-+ *	pointer in @file->private_data. This pointer should not be modified.
-  */
- int seq_open(struct file *file, const struct seq_operations *op)
+diff -puN arch/x86/kernel/kexec-bzimage64.c~prepend-elfcorehdr-instead-of-appending-it-to-the-crash-kernel-command-line arch/x86/kernel/kexec-bzimage64.c
+--- a/arch/x86/kernel/kexec-bzimage64.c~prepend-elfcorehdr-instead-of-appending-it-to-the-crash-kernel-command-line
++++ a/arch/x86/kernel/kexec-bzimage64.c
+@@ -72,15 +72,16 @@ static int setup_cmdline(struct kimage *
+ 			 unsigned long cmdline_len)
  {
+ 	char *cmdline_ptr = ((char *)params) + cmdline_offset;
+-	unsigned long cmdline_ptr_phys, len;
++	unsigned long cmdline_ptr_phys, len = 0;
+ 	uint32_t cmdline_low_32, cmdline_ext_32;
+ 
+-	memcpy(cmdline_ptr, cmdline, cmdline_len);
+ 	if (image->type == KEXEC_TYPE_CRASH) {
+-		len = sprintf(cmdline_ptr + cmdline_len - 1,
+-			" elfcorehdr=0x%lx", image->arch.elf_load_addr);
+-		cmdline_len += len;
++		len = sprintf(cmdline_ptr,
++			"elfcorehdr=0x%lx ", image->arch.elf_load_addr);
+ 	}
++	memcpy(cmdline_ptr + len, cmdline, cmdline_len);
++	cmdline_len += len;
++
+ 	cmdline_ptr[cmdline_len - 1] = '\0';
+ 
+ 	pr_debug("Final command line is: %s\n", cmdline_ptr);
 _
 
-Patches currently in -mm which might be from ydroneaud@opteya.com are
+Patches currently in -mm which might be from karahmed@amazon.de are
 
 
