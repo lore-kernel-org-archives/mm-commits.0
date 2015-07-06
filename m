@@ -1,47 +1,47 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set.patch removed from -mm tree
-Date: Mon, 06 Jul 2015 12:46:18 -0700
-Message-ID: <559adb0a.xCFsCa02HTymwwnB%akpm@linux-foundation.org>
+ mm-meminit-only-set-page-reserved-in-the-memblock-region.patch removed from -mm tree
+Date: Mon, 06 Jul 2015 12:46:10 -0700
+Message-ID: <559adb02.Ix/FVxvob8LN1lMi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59427 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59389 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755054AbbGFTqT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jul 2015 15:46:19 -0400
+	with ESMTP id S1754354AbbGFTqL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jul 2015 15:46:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, daniel@numascale.com, dave.hansen@intel.com, hpa@zytor.com, mingo@elte.hu, nzimmer@sgi.com, penberg@kernel.org, robinmholt@gmail.com, scott.norton@hp.com, tglx@linutronix.de, tony.luck@intel.com, waiman.long@hp.com, mm-commits@vger.kernel.org
+To: nzimmer@sgi.com, daniel@numascale.com, dave.hansen@intel.com, holt@sgi.com, hpa@zytor.com, mgorman@suse.de, mingo@elte.hu, penberg@kernel.org, robinmholt@gmail.com, scott.norton@hp.com, tglx@linutronix.de, tony.luck@intel.com, waiman.long@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: meminit: initialise a subset of struct pages if CONFIG_DEFERRED_STRUCT_PAGE_INIT is set
+     Subject: mm: meminit: only set page reserved in the memblock region
 has been removed from the -mm tree.  Its filename was
-     mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set.patch
+     mm-meminit-only-set-page-reserved-in-the-memblock-region.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: meminit: initialise a subset of struct pages if CONFIG_DEFERRED_STRUCT_PAGE_INIT is set
+From: Nathan Zimmer <nzimmer@sgi.com>
+Subject: mm: meminit: only set page reserved in the memblock region
 
-This patch initalises all low memory struct pages and 2G of the highest
-zone on each node during memory initialisation if
-CONFIG_DEFERRED_STRUCT_PAGE_INIT is set.  That config option cannot be set
-but will be available in a later patch.  Parallel initialisation of struct
-page depends on some features from memory hotplug and it is necessary to
-alter alter section annotations.
+Currently each page struct is set as reserved upon initialization.  This
+patch leaves the reserved bit clear and only sets the reserved bit when it
+is known the memory was allocated by the bootmem allocator.  This makes it
+easier to distinguish between uninitialised struct pages and reserved
+struct pages in later patches.
 
+Signed-off-by: Robin Holt <holt@sgi.com>
+Signed-off-by: Nathan Zimmer <nzimmer@sgi.com>
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Tested-by: Nate Zimmer <nzimmer@sgi.com>
 Tested-by: Waiman Long <waiman.long@hp.com>
 Tested-by: Daniel J Blueman <daniel@numascale.com>
 Acked-by: Pekka Enberg <penberg@kernel.org>
 Cc: Robin Holt <robinmholt@gmail.com>
-Cc: Nate Zimmer <nzimmer@sgi.com>
 Cc: Dave Hansen <dave.hansen@intel.com>
 Cc: Waiman Long <waiman.long@hp.com>
 Cc: Scott Norton <scott.norton@hp.com>
@@ -52,281 +52,72 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c    |    6 ++-
- include/linux/mmzone.h |    8 ++++
- mm/Kconfig             |   18 +++++++++
- mm/internal.h          |   18 +++++++++
- mm/page_alloc.c        |   78 +++++++++++++++++++++++++++++++++++++--
- 5 files changed, 124 insertions(+), 4 deletions(-)
+ include/linux/mm.h |    2 ++
+ mm/nobootmem.c     |    3 +++
+ mm/page_alloc.c    |   17 ++++++++++++++++-
+ 3 files changed, 21 insertions(+), 1 deletion(-)
 
-diff -puN drivers/base/node.c~mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set drivers/base/node.c
---- a/drivers/base/node.c~mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set
-+++ a/drivers/base/node.c
-@@ -359,12 +359,16 @@ int unregister_cpu_under_node(unsigned i
- #ifdef CONFIG_MEMORY_HOTPLUG_SPARSE
- #define page_initialized(page)  (page->lru.next)
+diff -puN include/linux/mm.h~mm-meminit-only-set-page-reserved-in-the-memblock-region include/linux/mm.h
+--- a/include/linux/mm.h~mm-meminit-only-set-page-reserved-in-the-memblock-region
++++ a/include/linux/mm.h
+@@ -1635,6 +1635,8 @@ extern void free_highmem_page(struct pag
+ extern void adjust_managed_page_count(struct page *page, long count);
+ extern void mem_init_print_info(const char *str);
  
--static int get_nid_for_pfn(unsigned long pfn)
-+static int __init_refok get_nid_for_pfn(unsigned long pfn)
++extern void reserve_bootmem_region(unsigned long start, unsigned long end);
++
+ /* Free the reserved page into the buddy system, so it gets managed. */
+ static inline void __free_reserved_page(struct page *page)
  {
- 	struct page *page;
+diff -puN mm/nobootmem.c~mm-meminit-only-set-page-reserved-in-the-memblock-region mm/nobootmem.c
+--- a/mm/nobootmem.c~mm-meminit-only-set-page-reserved-in-the-memblock-region
++++ a/mm/nobootmem.c
+@@ -130,6 +130,9 @@ static unsigned long __init free_low_mem
  
- 	if (!pfn_valid_within(pfn))
- 		return -1;
-+#ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
-+	if (system_state == SYSTEM_BOOTING)
-+		return early_pfn_to_nid(pfn);
-+#endif
- 	page = pfn_to_page(pfn);
- 	if (!page_initialized(page))
- 		return -1;
-diff -puN include/linux/mmzone.h~mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set
-+++ a/include/linux/mmzone.h
-@@ -762,6 +762,14 @@ typedef struct pglist_data {
- 	/* Number of pages migrated during the rate limiting time interval */
- 	unsigned long numabalancing_migrate_nr_pages;
- #endif
-+
-+#ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
-+	/*
-+	 * If memory initialisation on large machines is deferred then this
-+	 * is the first PFN that needs to be initialised.
-+	 */
-+	unsigned long first_deferred_pfn;
-+#endif /* CONFIG_DEFERRED_STRUCT_PAGE_INIT */
- } pg_data_t;
+ 	memblock_clear_hotplug(0, -1);
  
- #define node_present_pages(nid)	(NODE_DATA(nid)->node_present_pages)
-diff -puN mm/Kconfig~mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set mm/Kconfig
---- a/mm/Kconfig~mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set
-+++ a/mm/Kconfig
-@@ -636,3 +636,21 @@ config MAX_STACK_SIZE_MB
- 	  changed to a smaller value in which case that is used.
- 
- 	  A sane initial value is 80 MB.
++	for_each_reserved_mem_region(i, &start, &end)
++		reserve_bootmem_region(start, end);
 +
-+# For architectures that support deferred memory initialisation
-+config ARCH_SUPPORTS_DEFERRED_STRUCT_PAGE_INIT
-+	bool
-+
-+config DEFERRED_STRUCT_PAGE_INIT
-+	bool "Defer initialisation of struct pages to kswapd"
-+	default n
-+	depends on ARCH_SUPPORTS_DEFERRED_STRUCT_PAGE_INIT
-+	depends on MEMORY_HOTPLUG
-+	help
-+	  Ordinarily all struct pages are initialised during early boot in a
-+	  single thread. On very large machines this can take a considerable
-+	  amount of time. If this option is set, large machines will bring up
-+	  a subset of memmap at boot and then initialise the rest in parallel
-+	  when kswapd starts. This has a potential performance impact on
-+	  processes running early in the lifetime of the systemm until kswapd
-+	  finishes the initialisation.
-diff -puN mm/internal.h~mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set mm/internal.h
---- a/mm/internal.h~mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set
-+++ a/mm/internal.h
-@@ -387,6 +387,24 @@ static inline void mminit_verify_zonelis
- }
- #endif /* CONFIG_DEBUG_MEMORY_INIT */
- 
-+/*
-+ * Deferred struct page initialisation requires init functions that are freed
-+ * before kswapd is available. Reuse the memory hotplug section annotation
-+ * to mark the required code.
-+ *
-+ * __defermem_init is code that always exists but is annotated __meminit to
-+ * 	avoid section warnings.
-+ * __defer_init code gets marked __meminit when deferring struct page
-+ *	initialistion but is otherwise in the init section.
-+ */
-+#ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
-+#define __defermem_init __meminit
-+#define __defer_init    __meminit
-+#else
-+#define __defermem_init
-+#define __defer_init __init
-+#endif
-+
- /* mminit_validate_memmodel_limits is independent of CONFIG_DEBUG_MEMORY_INIT */
- #if defined(CONFIG_SPARSEMEM)
- extern void mminit_validate_memmodel_limits(unsigned long *start_pfn,
-diff -puN mm/page_alloc.c~mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set mm/page_alloc.c
---- a/mm/page_alloc.c~mm-meminit-initialise-a-subset-of-struct-pages-if-config_deferred_struct_page_init-is-set
+ 	for_each_free_mem_range(i, NUMA_NO_NODE, MEMBLOCK_NONE, &start, &end,
+ 				NULL)
+ 		count += __free_memory_core(start, end);
+diff -puN mm/page_alloc.c~mm-meminit-only-set-page-reserved-in-the-memblock-region mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-meminit-only-set-page-reserved-in-the-memblock-region
 +++ a/mm/page_alloc.c
-@@ -235,6 +235,64 @@ EXPORT_SYMBOL(nr_online_nodes);
+@@ -774,7 +774,6 @@ static void __meminit __init_single_page
+ 	init_page_count(page);
+ 	page_mapcount_reset(page);
+ 	page_cpupid_reset_last(page);
+-	SetPageReserved(page);
  
- int page_group_by_mobility_disabled __read_mostly;
- 
-+#ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
-+static inline void reset_deferred_meminit(pg_data_t *pgdat)
-+{
-+	pgdat->first_deferred_pfn = ULONG_MAX;
-+}
-+
-+/* Returns true if the struct page for the pfn is uninitialised */
-+static inline bool __defermem_init early_page_uninitialised(unsigned long pfn)
-+{
-+	int nid = early_pfn_to_nid(pfn);
-+
-+	if (pfn >= NODE_DATA(nid)->first_deferred_pfn)
-+		return true;
-+
-+	return false;
-+}
-+
-+/*
-+ * Returns false when the remaining initialisation should be deferred until
-+ * later in the boot cycle when it can be parallelised.
-+ */
-+static inline bool update_defer_init(pg_data_t *pgdat,
-+				unsigned long pfn, unsigned long zone_end,
-+				unsigned long *nr_initialised)
-+{
-+	/* Always populate low zones for address-contrained allocations */
-+	if (zone_end < pgdat_end_pfn(pgdat))
-+		return true;
-+
-+	/* Initialise at least 2G of the highest zone */
-+	(*nr_initialised)++;
-+	if (*nr_initialised > (2UL << (30 - PAGE_SHIFT)) &&
-+	    (pfn & (PAGES_PER_SECTION - 1)) == 0) {
-+		pgdat->first_deferred_pfn = pfn;
-+		return false;
-+	}
-+
-+	return true;
-+}
-+#else
-+static inline void reset_deferred_meminit(pg_data_t *pgdat)
-+{
-+}
-+
-+static inline bool early_page_uninitialised(unsigned long pfn)
-+{
-+	return false;
-+}
-+
-+static inline bool update_defer_init(pg_data_t *pgdat,
-+				unsigned long pfn, unsigned long zone_end,
-+				unsigned long *nr_initialised)
-+{
-+	return true;
-+}
-+#endif
-+
-+
- void set_pageblock_migratetype(struct page *page, int migratetype)
- {
- 	if (unlikely(page_group_by_mobility_disabled &&
-@@ -878,8 +936,8 @@ static void __free_pages_ok(struct page
- 	local_irq_restore(flags);
+ 	/*
+ 	 * Mark the block movable so that blocks are reserved for
+@@ -809,6 +808,22 @@ static void __meminit __init_single_pfn(
+ 	return __init_single_page(pfn_to_page(pfn), pfn, zone, nid);
  }
  
--void __init __free_pages_bootmem(struct page *page, unsigned long pfn,
--							unsigned int order)
-+static void __defer_init __free_pages_boot_core(struct page *page,
-+					unsigned long pfn, unsigned int order)
- {
- 	unsigned int nr_pages = 1 << order;
- 	struct page *p = page;
-@@ -951,6 +1009,14 @@ static inline bool __meminit meminit_pfn
- #endif
- 
- 
-+void __defer_init __free_pages_bootmem(struct page *page, unsigned long pfn,
-+							unsigned int order)
++/*
++ * Initialised pages do not have PageReserved set. This function is
++ * called for each range allocated by the bootmem allocator and
++ * marks the pages PageReserved. The remaining valid pages are later
++ * sent to the buddy page allocator.
++ */
++void reserve_bootmem_region(unsigned long start, unsigned long end)
 +{
-+	if (early_page_uninitialised(pfn))
-+		return;
-+	return __free_pages_boot_core(page, pfn, order);
++	unsigned long start_pfn = PFN_DOWN(start);
++	unsigned long end_pfn = PFN_UP(end);
++
++	for (; start_pfn < end_pfn; start_pfn++)
++		if (pfn_valid(start_pfn))
++			SetPageReserved(pfn_to_page(start_pfn));
 +}
 +
- #ifdef CONFIG_CMA
- /* Free whole pageblock and set its migration type to MIGRATE_CMA. */
- void __init init_cma_reserved_pageblock(struct page *page)
-@@ -4325,14 +4391,16 @@ static void setup_zone_migrate_reserve(s
- void __meminit memmap_init_zone(unsigned long size, int nid, unsigned long zone,
- 		unsigned long start_pfn, enum memmap_context context)
+ static bool free_pages_prepare(struct page *page, unsigned int order)
  {
-+	pg_data_t *pgdat = NODE_DATA(nid);
- 	unsigned long end_pfn = start_pfn + size;
- 	unsigned long pfn;
- 	struct zone *z;
-+	unsigned long nr_initialised = 0;
- 
- 	if (highest_memmap_pfn < end_pfn - 1)
- 		highest_memmap_pfn = end_pfn - 1;
- 
--	z = &NODE_DATA(nid)->node_zones[zone];
-+	z = &pgdat->node_zones[zone];
- 	for (pfn = start_pfn; pfn < end_pfn; pfn++) {
- 		/*
- 		 * There can be holes in boot-time mem_map[]s
-@@ -4344,6 +4412,9 @@ void __meminit memmap_init_zone(unsigned
- 				continue;
- 			if (!early_pfn_in_nid(pfn, nid))
- 				continue;
-+			if (!update_defer_init(pgdat, pfn, end_pfn,
-+						&nr_initialised))
-+				break;
- 		}
- 		__init_single_pfn(pfn, zone, nid);
- 	}
-@@ -5144,6 +5215,7 @@ void __paginginit free_area_init_node(in
- 	/* pg_data_t should be reset to zero when it's allocated */
- 	WARN_ON(pgdat->nr_zones || pgdat->classzone_idx);
- 
-+	reset_deferred_meminit(pgdat);
- 	pgdat->node_id = nid;
- 	pgdat->node_start_pfn = node_start_pfn;
- #ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
+ 	bool compound = PageCompound(page);
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from nzimmer@sgi.com are
 
-userfaultfd-linux-documentation-vm-userfaultfdtxt.patch
-userfaultfd-waitqueue-add-nr-wake-parameter-to-__wake_up_locked_key.patch
-userfaultfd-uapi.patch
-userfaultfd-linux-userfaultfd_kh.patch
-userfaultfd-add-vm_userfaultfd_ctx-to-the-vm_area_struct.patch
-userfaultfd-add-vm_uffd_missing-and-vm_uffd_wp.patch
-userfaultfd-call-handle_userfault-for-userfaultfd_missing-faults.patch
-userfaultfd-teach-vma_merge-to-merge-across-vma-vm_userfaultfd_ctx.patch
-userfaultfd-prevent-khugepaged-to-merge-if-userfaultfd-is-armed.patch
-userfaultfd-add-new-syscall-to-provide-memory-externalization.patch
-userfaultfd-rename-uffd_apibits-into-features.patch
-userfaultfd-rename-uffd_apibits-into-features-fixup.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg.patch
-userfaultfd-wake-pending-userfaults.patch
-userfaultfd-optimize-read-and-poll-to-be-o1.patch
-userfaultfd-allocate-the-userfaultfd_ctx-cacheline-aligned.patch
-userfaultfd-solve-the-race-between-uffdio_copyzeropage-and-read.patch
-userfaultfd-buildsystem-activation.patch
-userfaultfd-activate-syscall.patch
-userfaultfd-uffdio_copyuffdio_zeropage-uapi.patch
-userfaultfd-mcopy_atomicmfill_zeropage-uffdio_copyuffdio_zeropage-preparation.patch
-userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic.patch
-userfaultfd-uffdio_copy-and-uffdio_zeropage.patch
-page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-mm-sanitize-page-mapping-for-tail-pages.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-mm-move-lazy-free-pages-to-inactive-list.patch
-mm-move-lazy-free-pages-to-inactive-list-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-linux-next.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
 
