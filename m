@@ -1,75 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- printk-improve-the-description-of-dev-kmsg-line-format.patch removed from
+Subject: [merged] drm-nouveau-gem-use-kvfree-in-u_free.patch removed from
  -mm tree
-Date: Mon, 06 Jul 2015 12:47:39 -0700
-Message-ID: <559adb5b.UbMfVQV0eAfYc+Sk%akpm@linux-foundation.org>
+Date: Mon, 06 Jul 2015 12:47:49 -0700
+Message-ID: <559adb65.pNvBZ3xvA7bEM9J/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59617 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59631 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751527AbbGFTrk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jul 2015 15:47:40 -0400
+	with ESMTP id S1755788AbbGFTru (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jul 2015 15:47:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ao2@ao2.it, corbet@lwn.net, joe@perches.com, tj@kernel.org, mm-commits@vger.kernel.org
+To: penberg@kernel.org, airlied@linux.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: printk: improve the description of /dev/kmsg line format
+     Subject: drm/nouveau/gem: use kvfree() in u_free()
 has been removed from the -mm tree.  Its filename was
-     printk-improve-the-description-of-dev-kmsg-line-format.patch
+     drm-nouveau-gem-use-kvfree-in-u_free.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Antonio Ospite <ao2@ao2.it>
-Subject: printk: improve the description of /dev/kmsg line format
+From: Pekka Enberg <penberg@kernel.org>
+Subject: drm/nouveau/gem: use kvfree() in u_free()
 
-The comment about /dev/kmsg does not mention the additional values which
-may actually be exported, fix that.
+Use kvfree() instead of open-coding it.
 
-Also move up the part of the comment instructing the users to ignore these
-additional values, this way the reading is more fluent and logically
-compact.
-
-Signed-off-by: Antonio Ospite <ao2@ao2.it>
-Cc: Joe Perches <joe@perches.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Tejun Heo <tj@kernel.org>
+Signed-off-by: Pekka Enberg <penberg@kernel.org>
+Cc: David Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/printk.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/gpu/drm/nouveau/nouveau_gem.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN kernel/printk/printk.c~printk-improve-the-description-of-dev-kmsg-line-format kernel/printk/printk.c
---- a/kernel/printk/printk.c~printk-improve-the-description-of-dev-kmsg-line-format
-+++ a/kernel/printk/printk.c
-@@ -207,14 +207,14 @@ static int console_may_schedule;
-  * need to be changed in the future, when the requirements change.
-  *
-  * /dev/kmsg exports the structured data in the following line format:
-- *   "<level>,<sequnum>,<timestamp>,<contflag>;<message text>\n"
-+ *   "<level>,<sequnum>,<timestamp>,<contflag>[,additional_values, ... ];<message text>\n"
-+ *
-+ * Users of the export format should ignore possible additional values
-+ * separated by ',', and find the message after the ';' character.
-  *
-  * The optional key/value pairs are attached as continuation lines starting
-  * with a space character and terminated by a newline. All possible
-  * non-prinatable characters are escaped in the "\xff" notation.
-- *
-- * Users of the export format should ignore possible additional values
-- * separated by ',', and find the message after the ';' character.
-  */
+diff -puN drivers/gpu/drm/nouveau/nouveau_gem.c~drm-nouveau-gem-use-kvfree-in-u_free drivers/gpu/drm/nouveau/nouveau_gem.c
+--- a/drivers/gpu/drm/nouveau/nouveau_gem.c~drm-nouveau-gem-use-kvfree-in-u_free
++++ a/drivers/gpu/drm/nouveau/nouveau_gem.c
+@@ -555,10 +555,7 @@ nouveau_gem_pushbuf_validate(struct nouv
+ static inline void
+ u_free(void *addr)
+ {
+-	if (!is_vmalloc_addr(addr))
+-		kfree(addr);
+-	else
+-		vfree(addr);
++	kvfree(addr);
+ }
  
- enum log_flags {
+ static inline void *
 _
 
-Patches currently in -mm which might be from ao2@ao2.it are
+Patches currently in -mm which might be from penberg@kernel.org are
 
+slab-infrastructure-for-bulk-object-allocation-and-freeing-v3.patch
+slab-infrastructure-for-bulk-object-allocation-and-freeing-v3-fix.patch
+slub-bulk-alloc-extract-objects-from-the-per-cpu-slab.patch
+page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
 
