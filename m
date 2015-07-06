@@ -1,163 +1,245 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-meminit-remove-mminit_verify_page_links.patch removed from -mm tree
-Date: Mon, 06 Jul 2015 12:46:30 -0700
-Message-ID: <559adb16.fxiZxpr2avTw9LSg%akpm@linux-foundation.org>
+Subject: [merged] fs-use-seq_open_private-for-proc_mounts.patch removed
+ from -mm tree
+Date: Mon, 06 Jul 2015 12:46:35 -0700
+Message-ID: <559adb1b.c7M/Dk3iB1/VH3lm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59480 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59494 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755090AbbGFTqb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jul 2015 15:46:31 -0400
+	with ESMTP id S1754440AbbGFTqg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jul 2015 15:46:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, daniel@numascale.com, dave.hansen@intel.com, hpa@zytor.com, mingo@elte.hu, nzimmer@sgi.com, penberg@kernel.org, robinmholt@gmail.com, scott.norton@hp.com, tglx@linutronix.de, tony.luck@intel.com, waiman.long@hp.com, mm-commits@vger.kernel.org
+To: ydroneaud@opteya.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: meminit: remove mminit_verify_page_links
+     Subject: fs: use seq_open_private() for proc_mounts
 has been removed from the -mm tree.  Its filename was
-     mm-meminit-remove-mminit_verify_page_links.patch
+     fs-use-seq_open_private-for-proc_mounts.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: meminit: remove mminit_verify_page_links
+From: Yann Droneaud <ydroneaud@opteya.com>
+Subject: fs: use seq_open_private() for proc_mounts
 
-mminit_verify_page_links() is an extremely paranoid check that was
-introduced when memory initialisation was being heavily reworked. 
-Profiles indicated that up to 10% of parallel memory initialisation was
-spent on checking this for every page.  The cost could be reduced but in
-practice this check only found problems very early during the
-initialisation rewrite and has found nothing since.  This patch removes an
-expensive unnecessary check.
+A patchset to remove support for passing pre-allocated struct seq_file to
+seq_open().  Such feature is undocumented and prone to error.
 
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Tested-by: Nate Zimmer <nzimmer@sgi.com>
-Tested-by: Waiman Long <waiman.long@hp.com>
-Tested-by: Daniel J Blueman <daniel@numascale.com>
-Acked-by: Pekka Enberg <penberg@kernel.org>
-Cc: Robin Holt <robinmholt@gmail.com>
-Cc: Nate Zimmer <nzimmer@sgi.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Waiman Long <waiman.long@hp.com>
-Cc: Scott Norton <scott.norton@hp.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+In particular, if seq_release() is used in release handler, it will
+kfree() a pointer which was not allocated by seq_open().
+
+So this patchset drops support for pre-allocated struct seq_file: it's
+only of use in proc_namespace.c and can be easily replaced by using
+seq_open_private()/seq_release_private().
+
+Additionally, it documents the use of file->private_data to hold pointer
+to struct seq_file by seq_open().
+
+
+
+This patch (of 3):
+
+Since patch described below, from v2.6.15-rc1, seq_open() could use a
+struct seq_file already allocated by the caller if the pointer to the
+structure is stored in file->private_data before calling the function.
+
+    Commit 1abe77b0fc4b485927f1f798ae81a752677e1d05
+    Author: Al Viro <viro@zeniv.linux.org.uk>
+    Date:   Mon Nov 7 17:15:34 2005 -0500
+
+        [PATCH] allow callers of seq_open do allocation themselves
+
+        Allow caller of seq_open() to kmalloc() seq_file + whatever else they
+        want and set ->private_data to it.  seq_open() will then abstain from
+        doing allocation itself.
+
+Such behavior is only used by mounts_open_common().
+
+In order to drop support for such uncommon feature, proc_mounts is
+converted to use seq_open_private(), which take care of allocating the
+proc_mounts structure, making it available through ->private in struct
+seq_file.
+
+Conversely, proc_mounts is converted to use seq_release_private(), in
+order to release the private structure allocated by seq_open_private().
+
+Then, ->private is used directly instead of proc_mounts() macro to access
+to the proc_mounts structure.
+
+Link: http://lkml.kernel.org/r/cover.1433193673.git.ydroneaud@opteya.com
+Signed-off-by: Yann Droneaud <ydroneaud@opteya.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h   |    8 --------
- mm/mm_init.c    |    8 --------
- mm/page_alloc.c |    1 -
- 3 files changed, 17 deletions(-)
+ fs/mount.h          |    3 ---
+ fs/namespace.c      |    6 +++---
+ fs/proc_namespace.c |   34 ++++++++++++++++------------------
+ 3 files changed, 19 insertions(+), 24 deletions(-)
 
-diff -puN mm/internal.h~mm-meminit-remove-mminit_verify_page_links mm/internal.h
---- a/mm/internal.h~mm-meminit-remove-mminit_verify_page_links
-+++ a/mm/internal.h
-@@ -362,10 +362,7 @@ do { \
- } while (0)
- 
- extern void mminit_verify_pageflags_layout(void);
--extern void mminit_verify_page_links(struct page *page,
--		enum zone_type zone, unsigned long nid, unsigned long pfn);
- extern void mminit_verify_zonelist(void);
--
- #else
- 
- static inline void mminit_dprintk(enum mminit_level level,
-@@ -377,11 +374,6 @@ static inline void mminit_verify_pagefla
- {
+diff -puN fs/mount.h~fs-use-seq_open_private-for-proc_mounts fs/mount.h
+--- a/fs/mount.h~fs-use-seq_open_private-for-proc_mounts
++++ a/fs/mount.h
+@@ -118,7 +118,6 @@ static inline void unlock_mount_hash(voi
  }
  
--static inline void mminit_verify_page_links(struct page *page,
--		enum zone_type zone, unsigned long nid, unsigned long pfn)
--{
--}
+ struct proc_mounts {
+-	struct seq_file m;
+ 	struct mnt_namespace *ns;
+ 	struct path root;
+ 	int (*show)(struct seq_file *, struct vfsmount *);
+@@ -127,8 +126,6 @@ struct proc_mounts {
+ 	loff_t cached_index;
+ };
+ 
+-#define proc_mounts(p) (container_of((p), struct proc_mounts, m))
 -
- static inline void mminit_verify_zonelist(void)
+ extern const struct seq_operations mounts_op;
+ 
+ extern bool __is_local_mountpoint(struct dentry *dentry);
+diff -puN fs/namespace.c~fs-use-seq_open_private-for-proc_mounts fs/namespace.c
+--- a/fs/namespace.c~fs-use-seq_open_private-for-proc_mounts
++++ a/fs/namespace.c
+@@ -1226,7 +1226,7 @@ EXPORT_SYMBOL(replace_mount_options);
+ /* iterator; we want it to have access to namespace_sem, thus here... */
+ static void *m_start(struct seq_file *m, loff_t *pos)
  {
+-	struct proc_mounts *p = proc_mounts(m);
++	struct proc_mounts *p = m->private;
+ 
+ 	down_read(&namespace_sem);
+ 	if (p->cached_event == p->ns->event) {
+@@ -1247,7 +1247,7 @@ static void *m_start(struct seq_file *m,
+ 
+ static void *m_next(struct seq_file *m, void *v, loff_t *pos)
+ {
+-	struct proc_mounts *p = proc_mounts(m);
++	struct proc_mounts *p = m->private;
+ 
+ 	p->cached_mount = seq_list_next(v, &p->ns->list, pos);
+ 	p->cached_index = *pos;
+@@ -1261,7 +1261,7 @@ static void m_stop(struct seq_file *m, v
+ 
+ static int m_show(struct seq_file *m, void *v)
+ {
+-	struct proc_mounts *p = proc_mounts(m);
++	struct proc_mounts *p = m->private;
+ 	struct mount *r = list_entry(v, struct mount, mnt_list);
+ 	return p->show(m, &r->mnt);
  }
-diff -puN mm/mm_init.c~mm-meminit-remove-mminit_verify_page_links mm/mm_init.c
---- a/mm/mm_init.c~mm-meminit-remove-mminit_verify_page_links
-+++ a/mm/mm_init.c
-@@ -131,14 +131,6 @@ void __init mminit_verify_pageflags_layo
- 	BUG_ON(or_mask != add_mask);
+diff -puN fs/proc_namespace.c~fs-use-seq_open_private-for-proc_mounts fs/proc_namespace.c
+--- a/fs/proc_namespace.c~fs-use-seq_open_private-for-proc_mounts
++++ a/fs/proc_namespace.c
+@@ -17,7 +17,8 @@
+ 
+ static unsigned mounts_poll(struct file *file, poll_table *wait)
+ {
+-	struct proc_mounts *p = proc_mounts(file->private_data);
++	struct seq_file *m = file->private_data;
++	struct proc_mounts *p = m->private;
+ 	struct mnt_namespace *ns = p->ns;
+ 	unsigned res = POLLIN | POLLRDNORM;
+ 	int event;
+@@ -25,8 +26,8 @@ static unsigned mounts_poll(struct file
+ 	poll_wait(file, &p->ns->poll, wait);
+ 
+ 	event = ACCESS_ONCE(ns->event);
+-	if (p->m.poll_event != event) {
+-		p->m.poll_event = event;
++	if (m->poll_event != event) {
++		m->poll_event = event;
+ 		res |= POLLERR | POLLPRI;
+ 	}
+ 
+@@ -92,7 +93,7 @@ static void show_type(struct seq_file *m
+ 
+ static int show_vfsmnt(struct seq_file *m, struct vfsmount *mnt)
+ {
+-	struct proc_mounts *p = proc_mounts(m);
++	struct proc_mounts *p = m->private;
+ 	struct mount *r = real_mount(mnt);
+ 	int err = 0;
+ 	struct path mnt_path = { .dentry = mnt->mnt_root, .mnt = mnt };
+@@ -126,7 +127,7 @@ out:
+ 
+ static int show_mountinfo(struct seq_file *m, struct vfsmount *mnt)
+ {
+-	struct proc_mounts *p = proc_mounts(m);
++	struct proc_mounts *p = m->private;
+ 	struct mount *r = real_mount(mnt);
+ 	struct super_block *sb = mnt->mnt_sb;
+ 	struct path mnt_path = { .dentry = mnt->mnt_root, .mnt = mnt };
+@@ -186,7 +187,7 @@ out:
+ 
+ static int show_vfsstat(struct seq_file *m, struct vfsmount *mnt)
+ {
+-	struct proc_mounts *p = proc_mounts(m);
++	struct proc_mounts *p = m->private;
+ 	struct mount *r = real_mount(mnt);
+ 	struct path mnt_path = { .dentry = mnt->mnt_root, .mnt = mnt };
+ 	struct super_block *sb = mnt_path.dentry->d_sb;
+@@ -236,6 +237,7 @@ static int mounts_open_common(struct ino
+ 	struct mnt_namespace *ns = NULL;
+ 	struct path root;
+ 	struct proc_mounts *p;
++	struct seq_file *m;
+ 	int ret = -EINVAL;
+ 
+ 	if (!task)
+@@ -260,26 +262,21 @@ static int mounts_open_common(struct ino
+ 	task_unlock(task);
+ 	put_task_struct(task);
+ 
+-	ret = -ENOMEM;
+-	p = kmalloc(sizeof(struct proc_mounts), GFP_KERNEL);
+-	if (!p)
++	ret = seq_open_private(file, &mounts_op, sizeof(struct proc_mounts));
++	if (ret)
+ 		goto err_put_path;
+ 
+-	file->private_data = &p->m;
+-	ret = seq_open(file, &mounts_op);
+-	if (ret)
+-		goto err_free;
++	m = file->private_data;
++	m->poll_event = ns->event;
+ 
++	p = m->private;
+ 	p->ns = ns;
+ 	p->root = root;
+-	p->m.poll_event = ns->event;
+ 	p->show = show;
+ 	p->cached_event = ~0ULL;
+ 
+ 	return 0;
+ 
+- err_free:
+-	kfree(p);
+  err_put_path:
+ 	path_put(&root);
+  err_put_ns:
+@@ -290,10 +287,11 @@ static int mounts_open_common(struct ino
+ 
+ static int mounts_release(struct inode *inode, struct file *file)
+ {
+-	struct proc_mounts *p = proc_mounts(file->private_data);
++	struct seq_file *m = file->private_data;
++	struct proc_mounts *p = m->private;
+ 	path_put(&p->root);
+ 	put_mnt_ns(p->ns);
+-	return seq_release(inode, file);
++	return seq_release_private(inode, file);
  }
  
--void __meminit mminit_verify_page_links(struct page *page, enum zone_type zone,
--			unsigned long nid, unsigned long pfn)
--{
--	BUG_ON(page_to_nid(page) != nid);
--	BUG_ON(page_zonenum(page) != zone);
--	BUG_ON(page_to_pfn(page) != pfn);
--}
--
- static __init int set_mminit_loglevel(char *str)
- {
- 	get_option(&str, &mminit_loglevel);
-diff -puN mm/page_alloc.c~mm-meminit-remove-mminit_verify_page_links mm/page_alloc.c
---- a/mm/page_alloc.c~mm-meminit-remove-mminit_verify_page_links
-+++ a/mm/page_alloc.c
-@@ -839,7 +839,6 @@ static void __meminit __init_single_page
- 				unsigned long zone, int nid)
- {
- 	set_page_links(page, zone, nid, pfn);
--	mminit_verify_page_links(page, zone, nid, pfn);
- 	init_page_count(page);
- 	page_mapcount_reset(page);
- 	page_cpupid_reset_last(page);
+ static int mounts_open(struct inode *inode, struct file *file)
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from ydroneaud@opteya.com are
 
-userfaultfd-linux-documentation-vm-userfaultfdtxt.patch
-userfaultfd-waitqueue-add-nr-wake-parameter-to-__wake_up_locked_key.patch
-userfaultfd-uapi.patch
-userfaultfd-linux-userfaultfd_kh.patch
-userfaultfd-add-vm_userfaultfd_ctx-to-the-vm_area_struct.patch
-userfaultfd-add-vm_uffd_missing-and-vm_uffd_wp.patch
-userfaultfd-call-handle_userfault-for-userfaultfd_missing-faults.patch
-userfaultfd-teach-vma_merge-to-merge-across-vma-vm_userfaultfd_ctx.patch
-userfaultfd-prevent-khugepaged-to-merge-if-userfaultfd-is-armed.patch
-userfaultfd-add-new-syscall-to-provide-memory-externalization.patch
-userfaultfd-rename-uffd_apibits-into-features.patch
-userfaultfd-rename-uffd_apibits-into-features-fixup.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg.patch
-userfaultfd-wake-pending-userfaults.patch
-userfaultfd-optimize-read-and-poll-to-be-o1.patch
-userfaultfd-allocate-the-userfaultfd_ctx-cacheline-aligned.patch
-userfaultfd-solve-the-race-between-uffdio_copyzeropage-and-read.patch
-userfaultfd-buildsystem-activation.patch
-userfaultfd-activate-syscall.patch
-userfaultfd-uffdio_copyuffdio_zeropage-uapi.patch
-userfaultfd-mcopy_atomicmfill_zeropage-uffdio_copyuffdio_zeropage-preparation.patch
-userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic.patch
-userfaultfd-uffdio_copy-and-uffdio_zeropage.patch
-page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-mm-sanitize-page-mapping-for-tail-pages.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-mm-move-lazy-free-pages-to-inactive-list.patch
-mm-move-lazy-free-pages-to-inactive-list-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-linux-next.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
 
