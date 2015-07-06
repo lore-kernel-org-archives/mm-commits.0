@@ -1,38 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-page_alloc-pass-pfn-to-__free_pages_bootmem.patch
- removed from -mm tree
-Date: Mon, 06 Jul 2015 12:46:12 -0700
-Message-ID: <559adb04.Pl+5aJONPeghptrH%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-meminit-reduce-number-of-times-pageblocks-are-set-during-struct-page-init.patch removed from -mm tree
+Date: Mon, 06 Jul 2015 12:46:28 -0700
+Message-ID: <559adb14.LKiY5uRY5onQOkrj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59401 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59473 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755144AbbGFTqO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jul 2015 15:46:14 -0400
+	with ESMTP id S1755090AbbGFTq3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jul 2015 15:46:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mgorman@suse.de, daniel@numascale.com, dave.hansen@intel.com, hpa@zytor.com, mingo@elte.hu, nzimmer@sgi.com, penberg@kernel.org, robinmholt@gmail.com, scott.norton@hp.com, tglx@linutronix.de, tony.luck@intel.com, waiman.long@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: page_alloc: pass PFN to __free_pages_bootmem
+     Subject: mm: meminit: reduce number of times pageblocks are set during struct page init
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-pass-pfn-to-__free_pages_bootmem.patch
+     mm-meminit-reduce-number-of-times-pageblocks-are-set-during-struct-page-init.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm: page_alloc: pass PFN to __free_pages_bootmem
+Subject: mm: meminit: reduce number of times pageblocks are set during struct page init
 
-__free_pages_bootmem prepares a page for release to the buddy allocator
-and assumes that the struct page is initialised.  Parallel initialisation
-of struct pages defers initialisation and __free_pages_bootmem can be
-called for struct pages that cannot yet map struct page to PFN.  This
-patch passes PFN to __free_pages_bootmem with no other functional change.
+During parallel sturct page initialisation, ranges are checked for every
+PFN unnecessarily which increases boot times.  This patch alters when the
+ranges are checked.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Tested-by: Nate Zimmer <nzimmer@sgi.com>
@@ -51,129 +49,85 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/bootmem.c    |   13 +++++++------
- mm/internal.h   |    3 ++-
- mm/memblock.c   |    2 +-
- mm/nobootmem.c  |    4 ++--
- mm/page_alloc.c |    3 ++-
- 5 files changed, 14 insertions(+), 11 deletions(-)
+ mm/page_alloc.c |   46 ++++++++++++++++++++++++----------------------
+ 1 file changed, 24 insertions(+), 22 deletions(-)
 
-diff -puN mm/bootmem.c~mm-page_alloc-pass-pfn-to-__free_pages_bootmem mm/bootmem.c
---- a/mm/bootmem.c~mm-page_alloc-pass-pfn-to-__free_pages_bootmem
-+++ a/mm/bootmem.c
-@@ -164,7 +164,7 @@ void __init free_bootmem_late(unsigned l
- 	end = PFN_DOWN(physaddr + size);
- 
- 	for (; cursor < end; cursor++) {
--		__free_pages_bootmem(pfn_to_page(cursor), 0);
-+		__free_pages_bootmem(pfn_to_page(cursor), cursor, 0);
- 		totalram_pages++;
- 	}
- }
-@@ -172,7 +172,7 @@ void __init free_bootmem_late(unsigned l
- static unsigned long __init free_all_bootmem_core(bootmem_data_t *bdata)
- {
- 	struct page *page;
--	unsigned long *map, start, end, pages, count = 0;
-+	unsigned long *map, start, end, pages, cur, count = 0;
- 
- 	if (!bdata->node_bootmem_map)
- 		return 0;
-@@ -210,17 +210,17 @@ static unsigned long __init free_all_boo
- 		if (IS_ALIGNED(start, BITS_PER_LONG) && vec == ~0UL) {
- 			int order = ilog2(BITS_PER_LONG);
- 
--			__free_pages_bootmem(pfn_to_page(start), order);
-+			__free_pages_bootmem(pfn_to_page(start), start, order);
- 			count += BITS_PER_LONG;
- 			start += BITS_PER_LONG;
- 		} else {
--			unsigned long cur = start;
-+			cur = start;
- 
- 			start = ALIGN(start + 1, BITS_PER_LONG);
- 			while (vec && cur != start) {
- 				if (vec & 1) {
- 					page = pfn_to_page(cur);
--					__free_pages_bootmem(page, 0);
-+					__free_pages_bootmem(page, cur, 0);
- 					count++;
- 				}
- 				vec >>= 1;
-@@ -229,12 +229,13 @@ static unsigned long __init free_all_boo
- 		}
- 	}
- 
-+	cur = bdata->node_min_pfn;
- 	page = virt_to_page(bdata->node_bootmem_map);
- 	pages = bdata->node_low_pfn - bdata->node_min_pfn;
- 	pages = bootmem_bootmap_pages(pages);
- 	count += pages;
- 	while (pages--)
--		__free_pages_bootmem(page++, 0);
-+		__free_pages_bootmem(page++, cur++, 0);
- 
- 	bdebug("nid=%td released=%lx\n", bdata - bootmem_node_data, count);
- 
-diff -puN mm/internal.h~mm-page_alloc-pass-pfn-to-__free_pages_bootmem mm/internal.h
---- a/mm/internal.h~mm-page_alloc-pass-pfn-to-__free_pages_bootmem
-+++ a/mm/internal.h
-@@ -155,7 +155,8 @@ __find_buddy_index(unsigned long page_id
- }
- 
- extern int __isolate_free_page(struct page *page, unsigned int order);
--extern void __free_pages_bootmem(struct page *page, unsigned int order);
-+extern void __free_pages_bootmem(struct page *page, unsigned long pfn,
-+					unsigned int order);
- extern void prep_compound_page(struct page *page, unsigned long order);
- #ifdef CONFIG_MEMORY_FAILURE
- extern bool is_free_buddy_page(struct page *page);
-diff -puN mm/memblock.c~mm-page_alloc-pass-pfn-to-__free_pages_bootmem mm/memblock.c
---- a/mm/memblock.c~mm-page_alloc-pass-pfn-to-__free_pages_bootmem
-+++ a/mm/memblock.c
-@@ -1419,7 +1419,7 @@ void __init __memblock_free_late(phys_ad
- 	end = PFN_DOWN(base + size);
- 
- 	for (; cursor < end; cursor++) {
--		__free_pages_bootmem(pfn_to_page(cursor), 0);
-+		__free_pages_bootmem(pfn_to_page(cursor), cursor, 0);
- 		totalram_pages++;
- 	}
- }
-diff -puN mm/nobootmem.c~mm-page_alloc-pass-pfn-to-__free_pages_bootmem mm/nobootmem.c
---- a/mm/nobootmem.c~mm-page_alloc-pass-pfn-to-__free_pages_bootmem
-+++ a/mm/nobootmem.c
-@@ -86,7 +86,7 @@ void __init free_bootmem_late(unsigned l
- 	end = PFN_DOWN(addr + size);
- 
- 	for (; cursor < end; cursor++) {
--		__free_pages_bootmem(pfn_to_page(cursor), 0);
-+		__free_pages_bootmem(pfn_to_page(cursor), cursor, 0);
- 		totalram_pages++;
- 	}
- }
-@@ -101,7 +101,7 @@ static void __init __free_pages_memory(u
- 		while (start + (1UL << order) > end)
- 			order--;
- 
--		__free_pages_bootmem(pfn_to_page(start), order);
-+		__free_pages_bootmem(pfn_to_page(start), start, order);
- 
- 		start += (1UL << order);
- 	}
-diff -puN mm/page_alloc.c~mm-page_alloc-pass-pfn-to-__free_pages_bootmem mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-pass-pfn-to-__free_pages_bootmem
+diff -puN mm/page_alloc.c~mm-meminit-reduce-number-of-times-pageblocks-are-set-during-struct-page-init mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-meminit-reduce-number-of-times-pageblocks-are-set-during-struct-page-init
 +++ a/mm/page_alloc.c
-@@ -878,7 +878,8 @@ static void __free_pages_ok(struct page
- 	local_irq_restore(flags);
+@@ -838,33 +838,12 @@ static int free_tail_pages_check(struct
+ static void __meminit __init_single_page(struct page *page, unsigned long pfn,
+ 				unsigned long zone, int nid)
+ {
+-	struct zone *z = &NODE_DATA(nid)->node_zones[zone];
+-
+ 	set_page_links(page, zone, nid, pfn);
+ 	mminit_verify_page_links(page, zone, nid, pfn);
+ 	init_page_count(page);
+ 	page_mapcount_reset(page);
+ 	page_cpupid_reset_last(page);
+ 
+-	/*
+-	 * Mark the block movable so that blocks are reserved for
+-	 * movable at startup. This will force kernel allocations
+-	 * to reserve their blocks rather than leaking throughout
+-	 * the address space during boot when many long-lived
+-	 * kernel allocations are made. Later some blocks near
+-	 * the start are marked MIGRATE_RESERVE by
+-	 * setup_zone_migrate_reserve()
+-	 *
+-	 * bitmap is created for zone's valid pfn range. but memmap
+-	 * can be created for invalid pages (for alignment)
+-	 * check here not to call set_pageblock_migratetype() against
+-	 * pfn out of zone.
+-	 */
+-	if ((z->zone_start_pfn <= pfn)
+-	    && (pfn < zone_end_pfn(z))
+-	    && !(pfn & (pageblock_nr_pages - 1)))
+-		set_pageblock_migratetype(page, MIGRATE_MOVABLE);
+-
+ 	INIT_LIST_HEAD(&page->lru);
+ #ifdef WANT_PAGE_VIRTUAL
+ 	/* The shift won't overflow because ZONE_NORMAL is below 4G. */
+@@ -1073,6 +1052,7 @@ static void __defermem_init deferred_fre
+ 	/* Free a large naturally-aligned chunk if possible */
+ 	if (nr_pages == MAX_ORDER_NR_PAGES &&
+ 	    (pfn & (MAX_ORDER_NR_PAGES-1)) == 0) {
++		set_pageblock_migratetype(page, MIGRATE_MOVABLE);
+ 		__free_pages_boot_core(page, pfn, MAX_ORDER-1);
+ 		return;
+ 	}
+@@ -4593,7 +4573,29 @@ void __meminit memmap_init_zone(unsigned
+ 						&nr_initialised))
+ 				break;
+ 		}
+-		__init_single_pfn(pfn, zone, nid);
++
++		/*
++		 * Mark the block movable so that blocks are reserved for
++		 * movable at startup. This will force kernel allocations
++		 * to reserve their blocks rather than leaking throughout
++		 * the address space during boot when many long-lived
++		 * kernel allocations are made. Later some blocks near
++		 * the start are marked MIGRATE_RESERVE by
++		 * setup_zone_migrate_reserve()
++		 *
++		 * bitmap is created for zone's valid pfn range. but memmap
++		 * can be created for invalid pages (for alignment)
++		 * check here not to call set_pageblock_migratetype() against
++		 * pfn out of zone.
++		 */
++		if (!(pfn & (pageblock_nr_pages - 1))) {
++			struct page *page = pfn_to_page(pfn);
++
++			__init_single_page(page, pfn, zone, nid);
++			set_pageblock_migratetype(page, MIGRATE_MOVABLE);
++		} else {
++			__init_single_pfn(pfn, zone, nid);
++		}
+ 	}
  }
  
--void __init __free_pages_bootmem(struct page *page, unsigned int order)
-+void __init __free_pages_bootmem(struct page *page, unsigned long pfn,
-+							unsigned int order)
- {
- 	unsigned int nr_pages = 1 << order;
- 	struct page *p = page;
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
