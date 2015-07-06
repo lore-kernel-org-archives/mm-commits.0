@@ -1,92 +1,40 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- memblock-introduce-a-for_each_reserved_mem_region-iterator.patch removed
+ mm-meminit-move-page-initialization-into-a-separate-function.patch removed
  from -mm tree
-Date: Mon, 06 Jul 2015 12:46:06 -0700
-Message-ID: <559adafe.Nts6rssjItyil/Qp%akpm@linux-foundation.org>
+Date: Mon, 06 Jul 2015 12:46:08 -0700
+Message-ID: <559adb00.hV3COU5Fg5fNE9zc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59365 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59379 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754354AbbGFTqH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jul 2015 15:46:07 -0400
+	with ESMTP id S1754354AbbGFTqJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jul 2015 15:46:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: holt@sgi.com, daniel@numascale.com, dave.hansen@intel.com, hpa@zytor.com, mgorman@suse.de, mingo@elte.hu, nzimmer@sgi.com, penberg@kernel.org, robinmholt@gmail.com, scott.norton@hp.com, tglx@linutronix.de, tony.luck@intel.com, waiman.long@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memblock: introduce a for_each_reserved_mem_region iterator
+     Subject: mm: meminit: move page initialization into a separate function
 has been removed from the -mm tree.  Its filename was
-     memblock-introduce-a-for_each_reserved_mem_region-iterator.patch
+     mm-meminit-move-page-initialization-into-a-separate-function.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Robin Holt <holt@sgi.com>
-Subject: memblock: introduce a for_each_reserved_mem_region iterator
+Subject: mm: meminit: move page initialization into a separate function
 
-Struct page initialisation had been identified as one of the reasons why
-large machines take a long time to boot. Patches were posted a long time ago
-to defer initialisation until they were first used.  This was rejected on
-the grounds it should not be necessary to hurt the fast paths. This series
-reuses much of the work from that time but defers the initialisation of
-memory to kswapd so that one thread per node initialises memory local to
-that node.
-
-After applying the series and setting the appropriate Kconfig variable I
-see this in the boot log on a 64G machine
-
-[    7.383764] kswapd 0 initialised deferred memory in 188ms
-[    7.404253] kswapd 1 initialised deferred memory in 208ms
-[    7.411044] kswapd 3 initialised deferred memory in 216ms
-[    7.411551] kswapd 2 initialised deferred memory in 216ms
-
-On a 1TB machine, I see
-
-[    8.406511] kswapd 3 initialised deferred memory in 1116ms
-[    8.428518] kswapd 1 initialised deferred memory in 1140ms
-[    8.435977] kswapd 0 initialised deferred memory in 1148ms
-[    8.437416] kswapd 2 initialised deferred memory in 1148ms
-
-Once booted the machine appears to work as normal. Boot times were measured
-from the time shutdown was called until ssh was available again.  In the
-64G case, the boot time savings are negligible. On the 1TB machine, the
-savings were 16 seconds.
-
-Nate Zimmer said:
-
-: On an older 8 TB box with lots and lots of cpus the boot time, as 
-: measure from grub to login prompt, the boot time improved from 1484 
-: seconds to exactly 1000 seconds.
-
-Waiman Long said:
-
-: I ran a bootup timing test on a 12-TB 16-socket IvyBridge-EX system.  From
-: grub menu to ssh login, the bootup time was 453s before the patch and 265s
-: after the patch - a saving of 188s (42%).
-
-Daniel Blueman said:
-
-: On a 7TB, 1728-core NumaConnect system with 108 NUMA nodes, we're seeing
-: stock 4.0 boot in 7136s.  This drops to 2159s, or a 70% reduction with
-: this patchset.  Non-temporal PMD init (https://lkml.org/lkml/2015/4/23/350)
-: drops this to 1045s.
-
-
-This patch (of 13):
-
-As part of initializing struct page's in 2MiB chunks, we noticed that at
-the end of free_all_bootmem(), there was nothing which had forced the
-reserved/allocated 4KiB pages to be initialized.
-
-This helper function will be used for that expansion.
+Currently, memmap_init_zone() has all the smarts for initializing a single
+page.  A subset of this is required for parallel page initialisation and
+so this patch breaks up the monolithic function in preparation.
 
 Signed-off-by: Robin Holt <holt@sgi.com>
-Signed-off-by: Nate Zimmer <nzimmer@sgi.com>
+Signed-off-by: Nathan Zimmer <nzimmer@sgi.com>
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Tested-by: Nate Zimmer <nzimmer@sgi.com>
 Tested-by: Waiman Long <waiman.long@hp.com>
@@ -103,89 +51,98 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memblock.h |   18 ++++++++++++++++++
- mm/memblock.c            |   32 ++++++++++++++++++++++++++++++++
- 2 files changed, 50 insertions(+)
+ mm/page_alloc.c |   79 ++++++++++++++++++++++++++--------------------
+ 1 file changed, 46 insertions(+), 33 deletions(-)
 
-diff -puN include/linux/memblock.h~memblock-introduce-a-for_each_reserved_mem_region-iterator include/linux/memblock.h
---- a/include/linux/memblock.h~memblock-introduce-a-for_each_reserved_mem_region-iterator
-+++ a/include/linux/memblock.h
-@@ -101,6 +101,9 @@ void __next_mem_range_rev(u64 *idx, int
- 			  struct memblock_type *type_b, phys_addr_t *out_start,
- 			  phys_addr_t *out_end, int *out_nid);
+diff -puN mm/page_alloc.c~mm-meminit-move-page-initialization-into-a-separate-function mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-meminit-move-page-initialization-into-a-separate-function
++++ a/mm/page_alloc.c
+@@ -764,6 +764,51 @@ static int free_tail_pages_check(struct
+ 	return 0;
+ }
  
-+void __next_reserved_mem_region(u64 *idx, phys_addr_t *out_start,
-+			       phys_addr_t *out_end);
-+
- /**
-  * for_each_mem_range - iterate through memblock areas from type_a and not
-  * included in type_b. Or just type_a if type_b is NULL.
-@@ -142,6 +145,21 @@ void __next_mem_range_rev(u64 *idx, int
- 	     __next_mem_range_rev(&i, nid, flags, type_a, type_b,	\
- 				  p_start, p_end, p_nid))
- 
-+/**
-+ * for_each_reserved_mem_region - iterate over all reserved memblock areas
-+ * @i: u64 used as loop variable
-+ * @p_start: ptr to phys_addr_t for start address of the range, can be %NULL
-+ * @p_end: ptr to phys_addr_t for end address of the range, can be %NULL
-+ *
-+ * Walks over reserved areas of memblock. Available as soon as memblock
-+ * is initialized.
-+ */
-+#define for_each_reserved_mem_region(i, p_start, p_end)			\
-+	for (i = 0UL,							\
-+	     __next_reserved_mem_region(&i, p_start, p_end);		\
-+	     i != (u64)ULLONG_MAX;					\
-+	     __next_reserved_mem_region(&i, p_start, p_end))
-+
- #ifdef CONFIG_MOVABLE_NODE
- static inline bool memblock_is_hotpluggable(struct memblock_region *m)
- {
-diff -puN mm/memblock.c~memblock-introduce-a-for_each_reserved_mem_region-iterator mm/memblock.c
---- a/mm/memblock.c~memblock-introduce-a-for_each_reserved_mem_region-iterator
-+++ a/mm/memblock.c
-@@ -820,6 +820,38 @@ int __init_memblock memblock_mark_mirror
- 
- 
- /**
-+ * __next_reserved_mem_region - next function for for_each_reserved_region()
-+ * @idx: pointer to u64 loop variable
-+ * @out_start: ptr to phys_addr_t for start address of the region, can be %NULL
-+ * @out_end: ptr to phys_addr_t for end address of the region, can be %NULL
-+ *
-+ * Iterate over all reserved memory regions.
-+ */
-+void __init_memblock __next_reserved_mem_region(u64 *idx,
-+					   phys_addr_t *out_start,
-+					   phys_addr_t *out_end)
++static void __meminit __init_single_page(struct page *page, unsigned long pfn,
++				unsigned long zone, int nid)
 +{
-+	struct memblock_type *rsv = &memblock.reserved;
++	struct zone *z = &NODE_DATA(nid)->node_zones[zone];
 +
-+	if (*idx >= 0 && *idx < rsv->cnt) {
-+		struct memblock_region *r = &rsv->regions[*idx];
-+		phys_addr_t base = r->base;
-+		phys_addr_t size = r->size;
++	set_page_links(page, zone, nid, pfn);
++	mminit_verify_page_links(page, zone, nid, pfn);
++	init_page_count(page);
++	page_mapcount_reset(page);
++	page_cpupid_reset_last(page);
++	SetPageReserved(page);
 +
-+		if (out_start)
-+			*out_start = base;
-+		if (out_end)
-+			*out_end = base + size - 1;
++	/*
++	 * Mark the block movable so that blocks are reserved for
++	 * movable at startup. This will force kernel allocations
++	 * to reserve their blocks rather than leaking throughout
++	 * the address space during boot when many long-lived
++	 * kernel allocations are made. Later some blocks near
++	 * the start are marked MIGRATE_RESERVE by
++	 * setup_zone_migrate_reserve()
++	 *
++	 * bitmap is created for zone's valid pfn range. but memmap
++	 * can be created for invalid pages (for alignment)
++	 * check here not to call set_pageblock_migratetype() against
++	 * pfn out of zone.
++	 */
++	if ((z->zone_start_pfn <= pfn)
++	    && (pfn < zone_end_pfn(z))
++	    && !(pfn & (pageblock_nr_pages - 1)))
++		set_pageblock_migratetype(page, MIGRATE_MOVABLE);
 +
-+		*idx += 1;
-+		return;
-+	}
-+
-+	/* signal end of iteration */
-+	*idx = ULLONG_MAX;
++	INIT_LIST_HEAD(&page->lru);
++#ifdef WANT_PAGE_VIRTUAL
++	/* The shift won't overflow because ZONE_NORMAL is below 4G. */
++	if (!is_highmem_idx(zone))
++		set_page_address(page, __va(pfn << PAGE_SHIFT));
++#endif
 +}
 +
-+/**
-  * __next__mem_range - next function for for_each_free_mem_range() etc.
-  * @idx: pointer to u64 loop variable
-  * @nid: node selector, %NUMA_NO_NODE for all nodes
-_
-
-Patches currently in -mm which might be from holt@sgi.com are
-
-
++static void __meminit __init_single_pfn(unsigned long pfn, unsigned long zone,
++					int nid)
++{
++	return __init_single_page(pfn_to_page(pfn), pfn, zone, nid);
++}
++
+ static bool free_pages_prepare(struct page *page, unsigned int order)
+ {
+ 	bool compound = PageCompound(page);
+@@ -4212,7 +4257,6 @@ static void setup_zone_migrate_reserve(s
+ void __meminit memmap_init_zone(unsigned long size, int nid, unsigned long zone,
+ 		unsigned long start_pfn, enum memmap_context context)
+ {
+-	struct page *page;
+ 	unsigned long end_pfn = start_pfn + size;
+ 	unsigned long pfn;
+ 	struct zone *z;
+@@ -4233,38 +4277,7 @@ void __meminit memmap_init_zone(unsigned
+ 			if (!early_pfn_in_nid(pfn, nid))
+ 				continue;
+ 		}
+-		page = pfn_to_page(pfn);
+-		set_page_links(page, zone, nid, pfn);
+-		mminit_verify_page_links(page, zone, nid, pfn);
+-		init_page_count(page);
+-		page_mapcount_reset(page);
+-		page_cpupid_reset_last(page);
+-		SetPageReserved(page);
+-		/*
+-		 * Mark the block movable so that blocks are reserved for
+-		 * movable at startup. This will force kernel allocations
+-		 * to reserve their blocks rather than leaking throughout
+-		 * the address space during boot when many long-lived
+-		 * kernel allocations are made. Later some blocks near
+-		 * the start are marked MIGRATE_RESERVE by
+-		 * setup_zone_migrate_reserve()
+-		 *
+-		 * bitmap is created for zone's valid pfn range. but memmap
+-		 * can be created for invalid pages (for alignment)
+-		 * check here not to call set_pageblock_migratetype() against
+-		 * pfn out of zone.
+-		 */
+-		if ((z->zone_start_pfn <= pfn)
+-		    && (pfn < zone_end_pfn(z))
+-		    && !(pfn & (pageblock_nr_pages - 1)))
+-			set_pageblock_migratetype(page, MIGRATE_MOVABLE);
