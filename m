@@ -1,61 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-update-brcm-dts-pattern.patch removed from
- -mm tree
-Date: Mon, 06 Jul 2015 12:48:05 -0700
-Message-ID: <559adb75.J97K9iONmRB4diNJ%akpm@linux-foundation.org>
+Subject: [merged] maintainers-remove-website-for-paride.patch removed from -mm tree
+Date: Mon, 06 Jul 2015 12:48:01 -0700
+Message-ID: <559adb71.SKVKKFJWkRg9Fw7p%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59656 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59649 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755271AbbGFTsG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jul 2015 15:48:06 -0400
+	with ESMTP id S1755800AbbGFTsB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jul 2015 15:48:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, abrestic@chromium.org, mm-commits@vger.kernel.org
+To: sudipm.mukherjee@gmail.com, sudip@vectorindia.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: update brcm dts pattern
+     Subject: MAINTAINERS: remove website for paride
 has been removed from the -mm tree.  Its filename was
-     maintainers-update-brcm-dts-pattern.patch
+     maintainers-remove-website-for-paride.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: update brcm dts pattern
+From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Subject: MAINTAINERS: remove website for paride
 
-Commit 8c0b9ee8665c ("MIPS: Move device-trees into vendor
-sub-directories") moved the files, update the pattern.
+The webpage mentioned is not working,
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Andrew Bresticker <abrestic@chromium.org>
+Signed-off-by: Sudip Mukherjee <sudip@vectorindia.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-update-brcm-dts-pattern MAINTAINERS
---- a/MAINTAINERS~maintainers-update-brcm-dts-pattern
+diff -puN MAINTAINERS~maintainers-remove-website-for-paride MAINTAINERS
+--- a/MAINTAINERS~maintainers-remove-website-for-paride
 +++ a/MAINTAINERS
-@@ -2280,7 +2280,7 @@ S:	Maintained
- F:	arch/mips/bmips/*
- F:	arch/mips/include/asm/mach-bmips/*
- F:	arch/mips/kernel/*bmips*
--F:	arch/mips/boot/dts/bcm*.dts*
-+F:	arch/mips/boot/dts/brcm/bcm*.dts*
- F:	drivers/irqchip/irq-bcm7*
- F:	drivers/irqchip/irq-brcmstb*
- 
+@@ -7647,7 +7647,6 @@ F:	arch/*/include/asm/paravirt.h
+ PARIDE DRIVERS FOR PARALLEL PORT IDE DEVICES
+ M:	Tim Waugh <tim@cyberelk.net>
+ L:	linux-parport@lists.infradead.org (subscribers-only)
+-W:	http://www.torque.net/linux-pp.html
+ S:	Maintained
+ F:	Documentation/blockdev/paride.txt
+ F:	drivers/block/paride/
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from sudipm.mukherjee@gmail.com are
 
-ocfs2-neaten-do_error-ocfs2_error-and-ocfs2_abort.patch
-mm-utilc-add-kstrimdup.patch
-fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void.patch
 
