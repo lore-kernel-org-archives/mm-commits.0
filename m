@@ -1,145 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ipc-rename-ipc_obtain_object.patch removed from -mm tree
-Date: Mon, 06 Jul 2015 12:47:25 -0700
-Message-ID: <559adb4d.9LT3ne904xSXPWEW%akpm@linux-foundation.org>
+Subject: [merged] ipc-utilc-use-kvfree-in-ipc_rcu_free.patch removed from
+ -mm tree
+Date: Mon, 06 Jul 2015 12:47:20 -0700
+Message-ID: <559adb48.cFEAgPhr/totTfkM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59586 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59570 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755698AbbGFTr0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jul 2015 15:47:26 -0400
+	with ESMTP id S1755633AbbGFTrU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jul 2015 15:47:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave@stgolabs.net, dbueso@suse.de, manfred@colorfullife.com, mm-commits@vger.kernel.org
+To: penberg@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc: rename ipc_obtain_object
+     Subject: ipc/util.c: use kvfree() in ipc_rcu_free()
 has been removed from the -mm tree.  Its filename was
-     ipc-rename-ipc_obtain_object.patch
+     ipc-utilc-use-kvfree-in-ipc_rcu_free.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: ipc: rename ipc_obtain_object
+From: Pekka Enberg <penberg@kernel.org>
+Subject: ipc/util.c: use kvfree() in ipc_rcu_free()
 
-...  to ipc_obtain_object_idr, which is more meaningful and makes the code
-slightly easier to follow.
+Use kvfree() instead of open-coding it.
 
-Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
-Cc: Manfred Spraul <manfred@colorfullife.com>
+Signed-off-by: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msg.c  |    2 +-
- ipc/sem.c  |    4 ++--
- ipc/shm.c  |    2 +-
- ipc/util.c |    8 ++++----
- ipc/util.h |    2 +-
- 5 files changed, 9 insertions(+), 9 deletions(-)
+ ipc/util.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN ipc/msg.c~ipc-rename-ipc_obtain_object ipc/msg.c
---- a/ipc/msg.c~ipc-rename-ipc_obtain_object
-+++ a/ipc/msg.c
-@@ -76,7 +76,7 @@ struct msg_sender {
- 
- static inline struct msg_queue *msq_obtain_object(struct ipc_namespace *ns, int id)
- {
--	struct kern_ipc_perm *ipcp = ipc_obtain_object(&msg_ids(ns), id);
-+	struct kern_ipc_perm *ipcp = ipc_obtain_object_idr(&msg_ids(ns), id);
- 
- 	if (IS_ERR(ipcp))
- 		return ERR_CAST(ipcp);
-diff -puN ipc/sem.c~ipc-rename-ipc_obtain_object ipc/sem.c
---- a/ipc/sem.c~ipc-rename-ipc_obtain_object
-+++ a/ipc/sem.c
-@@ -391,7 +391,7 @@ static inline struct sem_array *sem_obta
- 	struct kern_ipc_perm *ipcp;
- 	struct sem_array *sma;
- 
--	ipcp = ipc_obtain_object(&sem_ids(ns), id);
-+	ipcp = ipc_obtain_object_idr(&sem_ids(ns), id);
- 	if (IS_ERR(ipcp))
- 		return ERR_CAST(ipcp);
- 
-@@ -410,7 +410,7 @@ static inline struct sem_array *sem_obta
- 
- static inline struct sem_array *sem_obtain_object(struct ipc_namespace *ns, int id)
- {
--	struct kern_ipc_perm *ipcp = ipc_obtain_object(&sem_ids(ns), id);
-+	struct kern_ipc_perm *ipcp = ipc_obtain_object_idr(&sem_ids(ns), id);
- 
- 	if (IS_ERR(ipcp))
- 		return ERR_CAST(ipcp);
-diff -puN ipc/shm.c~ipc-rename-ipc_obtain_object ipc/shm.c
---- a/ipc/shm.c~ipc-rename-ipc_obtain_object
-+++ a/ipc/shm.c
-@@ -129,7 +129,7 @@ void __init shm_init(void)
- 
- static inline struct shmid_kernel *shm_obtain_object(struct ipc_namespace *ns, int id)
- {
--	struct kern_ipc_perm *ipcp = ipc_obtain_object(&shm_ids(ns), id);
-+	struct kern_ipc_perm *ipcp = ipc_obtain_object_idr(&shm_ids(ns), id);
- 
- 	if (IS_ERR(ipcp))
- 		return ERR_CAST(ipcp);
-diff -puN ipc/util.c~ipc-rename-ipc_obtain_object ipc/util.c
---- a/ipc/util.c~ipc-rename-ipc_obtain_object
+diff -puN ipc/util.c~ipc-utilc-use-kvfree-in-ipc_rcu_free ipc/util.c
+--- a/ipc/util.c~ipc-utilc-use-kvfree-in-ipc_rcu_free
 +++ a/ipc/util.c
-@@ -555,7 +555,7 @@ void ipc64_perm_to_ipc_perm(struct ipc64
-  * Call inside the RCU critical section.
-  * The ipc object is *not* locked on exit.
-  */
--struct kern_ipc_perm *ipc_obtain_object(struct ipc_ids *ids, int id)
-+struct kern_ipc_perm *ipc_obtain_object_idr(struct ipc_ids *ids, int id)
+@@ -467,10 +467,7 @@ void ipc_rcu_free(struct rcu_head *head)
  {
- 	struct kern_ipc_perm *out;
- 	int lid = ipcid_to_idx(id);
-@@ -581,7 +581,7 @@ struct kern_ipc_perm *ipc_lock(struct ip
- 	struct kern_ipc_perm *out;
+ 	struct ipc_rcu *p = container_of(head, struct ipc_rcu, rcu);
  
- 	rcu_read_lock();
--	out = ipc_obtain_object(ids, id);
-+	out = ipc_obtain_object_idr(ids, id);
- 	if (IS_ERR(out))
- 		goto err1;
+-	if (is_vmalloc_addr(p))
+-		vfree(p);
+-	else
+-		kfree(p);
++	kvfree(p);
+ }
  
-@@ -605,7 +605,7 @@ err1:
-  * @ids: ipc identifier set
-  * @id: ipc id to look for
-  *
-- * Similar to ipc_obtain_object() but also checks
-+ * Similar to ipc_obtain_object_idr() but also checks
-  * the ipc object reference counter.
-  *
-  * Call inside the RCU critical section.
-@@ -613,7 +613,7 @@ err1:
-  */
- struct kern_ipc_perm *ipc_obtain_object_check(struct ipc_ids *ids, int id)
- {
--	struct kern_ipc_perm *out = ipc_obtain_object(ids, id);
-+	struct kern_ipc_perm *out = ipc_obtain_object_idr(ids, id);
- 
- 	if (IS_ERR(out))
- 		goto out;
-diff -puN ipc/util.h~ipc-rename-ipc_obtain_object ipc/util.h
---- a/ipc/util.h~ipc-rename-ipc_obtain_object
-+++ a/ipc/util.h
-@@ -132,7 +132,7 @@ void ipc_rcu_putref(void *ptr, void (*fu
- void ipc_rcu_free(struct rcu_head *head);
- 
- struct kern_ipc_perm *ipc_lock(struct ipc_ids *, int);
--struct kern_ipc_perm *ipc_obtain_object(struct ipc_ids *ids, int id);
-+struct kern_ipc_perm *ipc_obtain_object_idr(struct ipc_ids *ids, int id);
- 
- void kernel_to_ipc64_perm(struct kern_ipc_perm *in, struct ipc64_perm *out);
- void ipc64_perm_to_ipc_perm(struct ipc64_perm *in, struct ipc_perm *out);
+ /**
 _
 
-Patches currently in -mm which might be from dave@stgolabs.net are
+Patches currently in -mm which might be from penberg@kernel.org are
 
+slab-infrastructure-for-bulk-object-allocation-and-freeing-v3.patch
+slab-infrastructure-for-bulk-object-allocation-and-freeing-v3-fix.patch
+slub-bulk-alloc-extract-objects-from-the-per-cpu-slab.patch
+page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
 
