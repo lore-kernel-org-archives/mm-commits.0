@@ -1,92 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- prepend-elfcorehdr-instead-of-appending-it-to-the-crash-kernel-command-line.patch removed from -mm tree
-Date: Mon, 06 Jul 2015 12:46:41 -0700
-Message-ID: <559adb21.Yf+EUOBRtSGOPhuq%akpm@linux-foundation.org>
+Subject: [merged] gcov-add-support-for-gcc-51.patch removed from -mm tree
+Date: Mon, 06 Jul 2015 12:46:50 -0700
+Message-ID: <559adb2a.kk4GAAJNZjpToPaj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59506 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59524 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755315AbbGFTqm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jul 2015 15:46:42 -0400
+	with ESMTP id S1755492AbbGFTqv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jul 2015 15:46:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: karahmed@amazon.de, ebiederm@xmission.com, hbabu@us.ibm.com, hpa@zytor.com, mingo@redhat.com, tglx@linutronix.de, vgoyal@redhat.com, mm-commits@vger.kernel.org
+To: lstoakes@gmail.com, a.ryabinin@samsung.com, coolypf@qq.com, oberpar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86/kexec: prepend elfcorehdr instead of appending it to the crash-kernel command-line.
+     Subject: gcov: add support for GCC 5.1
 has been removed from the -mm tree.  Its filename was
-     prepend-elfcorehdr-instead-of-appending-it-to-the-crash-kernel-command-line.patch
+     gcov-add-support-for-gcc-51.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: KarimAllah Ahmed <karahmed@amazon.de>
-Subject: x86/kexec: prepend elfcorehdr instead of appending it to the crash-kernel command-line.
+From: Lorenzo Stoakes <lstoakes@gmail.com>
+Subject: gcov: add support for GCC 5.1
 
-Any parameter passed after '--' in the kernel command-line will not be
-parsed by the kernel at all, instead it will be passed directly to init
-process.
+Fix kernel gcov support for GCC 5.1.  Similar to commit a992bf836f9
+("gcov: add support for GCC 4.9"), this patch takes into account the
+existence of a new gcov counter (see gcc's gcc/gcov-counter.def.)
 
-Currently the kernel appends elfcorehdr=<paddr> to the cmdline passed from
-kexec load, and if this command-line is used to pass parameters to init
-process this means that 'elfcorehdr' will not be parsed as a kernel
-parameter at all which will be a problem for vmcore subsystem since it
-will know nothing about the location of the ELF structure!
+Firstly, it increments GCOV_COUNTERS (to 10), which makes the data
+structure struct gcov_info compatible with GCC 5.1.
 
-Prepending 'elfcorehdr' instead of appending it fixes this problem since
-it ensures that it always comes before '--' and so it's always parsed as a
-kernel command-line parameter.
+Secondly, a corresponding counter function __gcov_merge_icall_topn (Top N
+value tracking for indirect calls) is included in base.c with the other
+gcov counters unused for kernel profiling.
 
-Even with this patch things can still go wrong if 'CONFIG_CMDLINE' was
-also used to embedd a command-line to the crash dump kernel and this
-command-line contains '--' since the current behavior of the kernel is to
-actually append the boot loader command-line to the embedded command-line.
-
-Signed-off-by: KarimAllah Ahmed <karahmed@amazon.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Acked-by: Vivek Goyal <vgoyal@redhat.com>
-Cc: Haren Myneni <hbabu@us.ibm.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
+Signed-off-by: Lorenzo Stoakes <lstoakes@gmail.com>
+Cc: Andrey Ryabinin <a.ryabinin@samsung.com>
+Cc: Yuan Pengfei <coolypf@qq.com>
+Tested-by: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
+Reviewed-by: Peter Oberparleiter <oberpar@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/kexec-bzimage64.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ kernel/gcov/base.c    |    6 ++++++
+ kernel/gcov/gcc_4_7.c |    4 +++-
+ 2 files changed, 9 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/kexec-bzimage64.c~prepend-elfcorehdr-instead-of-appending-it-to-the-crash-kernel-command-line arch/x86/kernel/kexec-bzimage64.c
---- a/arch/x86/kernel/kexec-bzimage64.c~prepend-elfcorehdr-instead-of-appending-it-to-the-crash-kernel-command-line
-+++ a/arch/x86/kernel/kexec-bzimage64.c
-@@ -72,15 +72,16 @@ static int setup_cmdline(struct kimage *
- 			 unsigned long cmdline_len)
- {
- 	char *cmdline_ptr = ((char *)params) + cmdline_offset;
--	unsigned long cmdline_ptr_phys, len;
-+	unsigned long cmdline_ptr_phys, len = 0;
- 	uint32_t cmdline_low_32, cmdline_ext_32;
+diff -puN kernel/gcov/base.c~gcov-add-support-for-gcc-51 kernel/gcov/base.c
+--- a/kernel/gcov/base.c~gcov-add-support-for-gcc-51
++++ a/kernel/gcov/base.c
+@@ -92,6 +92,12 @@ void __gcov_merge_time_profile(gcov_type
+ }
+ EXPORT_SYMBOL(__gcov_merge_time_profile);
  
--	memcpy(cmdline_ptr, cmdline, cmdline_len);
- 	if (image->type == KEXEC_TYPE_CRASH) {
--		len = sprintf(cmdline_ptr + cmdline_len - 1,
--			" elfcorehdr=0x%lx", image->arch.elf_load_addr);
--		cmdline_len += len;
-+		len = sprintf(cmdline_ptr,
-+			"elfcorehdr=0x%lx ", image->arch.elf_load_addr);
- 	}
-+	memcpy(cmdline_ptr + len, cmdline, cmdline_len);
-+	cmdline_len += len;
++void __gcov_merge_icall_topn(gcov_type *counters, unsigned int n_counters)
++{
++	/* Unused. */
++}
++EXPORT_SYMBOL(__gcov_merge_icall_topn);
 +
- 	cmdline_ptr[cmdline_len - 1] = '\0';
+ /**
+  * gcov_enable_events - enable event reporting through gcov_event()
+  *
+diff -puN kernel/gcov/gcc_4_7.c~gcov-add-support-for-gcc-51 kernel/gcov/gcc_4_7.c
+--- a/kernel/gcov/gcc_4_7.c~gcov-add-support-for-gcc-51
++++ a/kernel/gcov/gcc_4_7.c
+@@ -18,7 +18,9 @@
+ #include <linux/vmalloc.h>
+ #include "gcov.h"
  
- 	pr_debug("Final command line is: %s\n", cmdline_ptr);
+-#if __GNUC__ == 4 && __GNUC_MINOR__ >= 9
++#if __GNUC__ == 5 && __GNUC_MINOR__ >= 1
++#define GCOV_COUNTERS			10
++#elif __GNUC__ == 4 && __GNUC_MINOR__ >= 9
+ #define GCOV_COUNTERS			9
+ #else
+ #define GCOV_COUNTERS			8
 _
 
-Patches currently in -mm which might be from karahmed@amazon.de are
+Patches currently in -mm which might be from lstoakes@gmail.com are
 
 
