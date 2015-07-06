@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + revert-s390-mm-change-hpage_shift-type-to-int.patch added to
- -mm tree
-Date: Mon, 06 Jul 2015 15:35:26 -0700
-Message-ID: <559b02ae.Z19N7zrCTtUbEwMj%akpm@linux-foundation.org>
+Subject: +
+ mm-hugetlb-allow-hugepages_supported-to-be-architecture-specific.patch
+ added to -mm tree
+Date: Mon, 06 Jul 2015 15:35:30 -0700
+Message-ID: <559b02b2.uyxJ87MYYl5fXoPK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34013 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34019 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753344AbbGFWf1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jul 2015 18:35:27 -0400
+	with ESMTP id S1753715AbbGFWfb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jul 2015 18:35:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: dingel@linux.vnet.ibm.com, borntraeger@de.ibm.com, gerald.schaefer@de.ibm.com, heiko.carstens@de.ibm.com, holzheu@linux.vnet.ibm.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: revert "s390/mm: change HPAGE_SHIFT type to int"
+     Subject: mm: hugetlb: allow hugepages_supported to be architecture specific
 has been added to the -mm tree.  Its filename is
-     revert-s390-mm-change-hpage_shift-type-to-int.patch
+     mm-hugetlb-allow-hugepages_supported-to-be-architecture-specific.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/revert-s390-mm-change-hpage_shift-type-to-int.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-allow-hugepages_supported-to-be-architecture-specific.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/revert-s390-mm-change-hpage_shift-type-to-int.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-allow-hugepages_supported-to-be-architecture-specific.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,18 +41,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dominik Dingel <dingel@linux.vnet.ibm.com>
-Subject: revert "s390/mm: change HPAGE_SHIFT type to int"
+Subject: mm: hugetlb: allow hugepages_supported to be architecture specific
 
-Heiko noticed that the current check for hugepage support on s390 is a
-little bit to harsh as systems which do not support will crash.  The
-reason is that pageblock_order can now get negative when we set
-HPAGE_SHIFT to 0.  To avoid all this and to avoid opening another can of
-worms with enabling HUGETLB_PAGE_SIZE_VARIABLE I think it would be best to
-simply allow architectures to define their own hugepages_supported().
+s390 has a constant hugepage size, by setting HPAGE_SHIFT we also
+change e.g. the pageblock_order, which should be independent in
+respect to hugepage support.
 
-
-This patch (of 4): revert commit cf54e2fce51c7a ("s390/mm: change
-HPAGE_SHIFT type to int") in preparation.
+With this patch every architecture is free to define how to check
+for hugepage support.
 
 Signed-off-by: Dominik Dingel <dingel@linux.vnet.ibm.com>
 Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
@@ -62,34 +59,36 @@ Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/page.h |    2 +-
- arch/s390/mm/pgtable.c       |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ include/linux/hugetlb.h |   17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
-diff -puN arch/s390/include/asm/page.h~revert-s390-mm-change-hpage_shift-type-to-int arch/s390/include/asm/page.h
---- a/arch/s390/include/asm/page.h~revert-s390-mm-change-hpage_shift-type-to-int
-+++ a/arch/s390/include/asm/page.h
-@@ -20,7 +20,7 @@
- #include <asm/setup.h>
- #ifndef __ASSEMBLY__
+diff -puN include/linux/hugetlb.h~mm-hugetlb-allow-hugepages_supported-to-be-architecture-specific include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~mm-hugetlb-allow-hugepages_supported-to-be-architecture-specific
++++ a/include/linux/hugetlb.h
+@@ -460,15 +460,14 @@ static inline spinlock_t *huge_pte_lockp
+ 	return &mm->page_table_lock;
+ }
  
--extern int HPAGE_SHIFT;
-+extern unsigned int HPAGE_SHIFT;
- #define HPAGE_SIZE	(1UL << HPAGE_SHIFT)
- #define HPAGE_MASK	(~(HPAGE_SIZE - 1))
- #define HUGETLB_PAGE_ORDER	(HPAGE_SHIFT - PAGE_SHIFT)
-diff -puN arch/s390/mm/pgtable.c~revert-s390-mm-change-hpage_shift-type-to-int arch/s390/mm/pgtable.c
---- a/arch/s390/mm/pgtable.c~revert-s390-mm-change-hpage_shift-type-to-int
-+++ a/arch/s390/mm/pgtable.c
-@@ -31,7 +31,7 @@
- #define ALLOC_ORDER	2
- #define FRAG_MASK	0x03
+-static inline bool hugepages_supported(void)
+-{
+-	/*
+-	 * Some platform decide whether they support huge pages at boot
+-	 * time. On these, such as powerpc, HPAGE_SHIFT is set to 0 when
+-	 * there is no such support
+-	 */
+-	return HPAGE_SHIFT != 0;
+-}
++#ifndef hugepages_supported
++/*
++ * Some platform decide whether they support huge pages at boot
++ * time. Some of them, such as powerpc, set HPAGE_SHIFT to 0
++ * when there is no such support
++ */
++#define hugepages_supported() (HPAGE_SHIFT != 0)
++#endif
  
--int HPAGE_SHIFT;
-+unsigned int HPAGE_SHIFT;
- 
- unsigned long *crst_table_alloc(struct mm_struct *mm)
- {
+ #else	/* CONFIG_HUGETLB_PAGE */
+ struct hstate {};
 _
 
 Patches currently in -mm which might be from dingel@linux.vnet.ibm.com are
