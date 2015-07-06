@@ -1,58 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-update-brcm-gpio-filename-pattern.patch
- removed from -mm tree
-Date: Mon, 06 Jul 2015 12:48:07 -0700
-Message-ID: <559adb77.FO6S6Ga9C0VwC9Lt%akpm@linux-foundation.org>
+Subject: [merged] maintainers-move-jens-osterkamp-to-credits.patch removed from -mm tree
+Date: Mon, 06 Jul 2015 12:48:11 -0700
+Message-ID: <559adb7b.PbZYZ7GSKwzARSZv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59659 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59665 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755791AbbGFTsH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jul 2015 15:48:07 -0400
+	with ESMTP id S1752567AbbGFTsL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jul 2015 15:48:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, sbranden@broadcom.com, mm-commits@vger.kernel.org
+To: joe@perches.com, benh@kernel.crashing.org, jens@linux.vnet.ibm.com, kou.ishizaki@toshiba.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: update brcm gpio filename pattern
+     Subject: MAINTAINERS: move Jens Osterkamp to CREDITS
 has been removed from the -mm tree.  Its filename was
-     maintainers-update-brcm-gpio-filename-pattern.patch
+     maintainers-move-jens-osterkamp-to-credits.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-=46rom: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: update brcm gpio filename pattern
+From: Joe Perches <joe@perches.com>
+Subject: MAINTAINERS: move Jens Osterkamp to CREDITS
 
-commit 23a71fd616bf ("dt-bindings: brcm: rationalize Broadcom
-documentation naming") renamed the file, update the pattern.
+Jens' email address bounces, so move his name and entry to CREDITS.
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Scott Branden <sbranden@broadcom.com>
+Cc: Ishizaki Kou <kou.ishizaki@toshiba.co.jp>
+Cc: Jens Osterkamp <jens@linux.vnet.ibm.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ CREDITS     |    4 ++++
+ MAINTAINERS |    1 -
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-update-brcm-gpio-filename-pattern MAI=
-NTAINERS
---- a/MAINTAINERS~maintainers-update-brcm-gpio-filename-pattern
+diff -puN CREDITS~maintainers-move-jens-osterkamp-to-credits CREDITS
+--- a/CREDITS~maintainers-move-jens-osterkamp-to-credits
++++ a/CREDITS
+@@ -2740,6 +2740,10 @@ S: C/ Mieses 20, 9-B
+ S: Valladolid 47009
+ S: Spain
+ 
++N: Jens Osterkamp
++E: jens@de.ibm.com
++D: Maintainer of Spidernet network driver for Cell
++
+ N: Gadi Oxman
+ E: gadio@netvision.net.il
+ D: Original author and maintainer of IDE/ATAPI floppy/tape drivers
+diff -puN MAINTAINERS~maintainers-move-jens-osterkamp-to-credits MAINTAINERS
+--- a/MAINTAINERS~maintainers-move-jens-osterkamp-to-credits
 +++ a/MAINTAINERS
-@@ -2339,7 +2339,7 @@ M:	Ray Jui <rjui@broadcom.com>
- L:	bcm-kernel-feedback-list@broadcom.com
+@@ -9590,7 +9590,6 @@ F:	include/uapi/linux/spi/
+ 
+ SPIDERNET NETWORK DRIVER for CELL
+ M:	Ishizaki Kou <kou.ishizaki@toshiba.co.jp>
+-M:	Jens Osterkamp <jens@de.ibm.com>
+ L:	netdev@vger.kernel.org
  S:	Supported
- F:	drivers/gpio/gpio-bcm-kona.c
--F:	Documentation/devicetree/bindings/gpio/gpio-bcm-kona.txt
-+F:	Documentation/devicetree/bindings/gpio/brcm,kona-gpio.txt
-=20
- BROADCOM NVRAM DRIVER
- M:	Rafa=C5=82 Mi=C5=82ecki <zajec5@gmail.com>
+ F:	Documentation/networking/spider_net.txt
 _
 
 Patches currently in -mm which might be from joe@perches.com are
@@ -61,8 +73,3 @@ ocfs2-neaten-do_error-ocfs2_error-and-ocfs2_abort.patch
 mm-utilc-add-kstrimdup.patch
 fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
