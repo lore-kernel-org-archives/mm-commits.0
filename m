@@ -1,179 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: [merged] genalloc-rename-dev_get_gen_pool-to-gen_pool_get.patch
- removed from -mm tree
-Date: Mon, 06 Jul 2015 12:48:20 -0700
-Message-ID: <559adb84.vpxY2WBXcg30t7M4%akpm@linux-foundation.org>
+Subject: + kernel-uid16c-needs-credh.patch added to -mm tree
+Date: Mon, 06 Jul 2015 13:56:21 -0700
+Message-ID: <559aeb75.C5M03YlNRP/EWWaa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59688 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60547 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755877AbbGFTsV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jul 2015 15:48:21 -0400
+	with ESMTP id S1754788AbbGFU4W (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jul 2015 16:56:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vladimir_zapolskiy@mentor.com, alexandre.belloni@free-electrons.com, atull@opensource.altera.com, broonie@kernel.org, dinguyen@opensource.altera.com, kernel@pengutronix.de, khilman@linaro.org, linux@arm.linux.org.uk, mchehab@osg.samsung.com, nicolas.ferre@atmel.com, p.zabel@pengutronix.de, perex@perex.cz, sfr@canb.auug.org.au, shawn.guo@linaro.org, tiwai@suse.de, vinod.koul@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, fengguang.wu@gmail.com, iulia.manda21@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: genalloc: rename dev_get_gen_pool() to gen_pool_get()
-has been removed from the -mm tree.  Its filename was
-     genalloc-rename-dev_get_gen_pool-to-gen_pool_get.patch
+     Subject: kernel/uid16.c needs cred.h
+has been added to the -mm tree.  Its filename is
+     kernel-uid16c-needs-credh.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-uid16c-needs-credh.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-uid16c-needs-credh.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
-Subject: genalloc: rename dev_get_gen_pool() to gen_pool_get()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kernel/uid16.c needs cred.h
 
-To be consistent with other genalloc interface namings, rename
-dev_get_gen_pool() to gen_pool_get().  The original omitted "dev_" prefix
-is removed, since it points to argument type of the function, and so it
-does not bring any useful information.
+openrisc-allnoconfig:
 
-[akpm@linux-foundation.org: update arch/arm/mach-socfpga/pm.c]
-Signed-off-by: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
-Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
-Cc: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Shawn Guo <shawn.guo@linaro.org>
-Cc: Sascha Hauer <kernel@pengutronix.de>
-Cc: Alexandre Belloni <alexandre.belloni@free-electrons.com>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Vinod Koul <vinod.koul@intel.com>
-Cc: Takashi Iwai <tiwai@suse.de>
-Cc: Jaroslav Kysela <perex@perex.cz>
-Cc: Mark Brown <broonie@kernel.org>
-Cc: Nicolas Ferre <nicolas.ferre@atmel.com>
-Cc: Alan Tull <atull@opensource.altera.com>
-Cc: Dinh Nguyen <dinguyen@opensource.altera.com>
-Cc: Kevin Hilman <khilman@linaro.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+kernel/uid16.c: In function 'SYSC_setgroups16':
+kernel/uid16.c:184:2: error: implicit declaration of function 'groups_alloc'
+kernel/uid16.c:184:13: warning: assignment makes pointer from integer without a cast
+
+Fixes: 2813893f8b197a1 ("kernel: conditionally support non-root users, groups and capabilities")
+Reported-by: Fengguang Wu <fengguang.wu@gmail.com>
+Cc: Iulia Manda <iulia.manda21@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-at91/pm.c                   |    2 +-
- arch/arm/mach-imx/pm-imx5.c               |    2 +-
- arch/arm/mach-imx/pm-imx6.c               |    2 +-
- arch/arm/mach-socfpga/pm.c                |    2 +-
- drivers/media/platform/coda/coda-common.c |    2 +-
- include/linux/genalloc.h                  |    2 +-
- lib/genalloc.c                            |    8 ++++----
- 7 files changed, 10 insertions(+), 10 deletions(-)
+ include/linux/cred.h |    9 +++++++--
+ kernel/uid16.c       |    1 +
+ 2 files changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN arch/arm/mach-at91/pm.c~genalloc-rename-dev_get_gen_pool-to-gen_pool_get arch/arm/mach-at91/pm.c
---- a/arch/arm/mach-at91/pm.c~genalloc-rename-dev_get_gen_pool-to-gen_pool_get
-+++ a/arch/arm/mach-at91/pm.c
-@@ -369,7 +369,7 @@ static void __init at91_pm_sram_init(voi
- 		return;
- 	}
+diff -puN kernel/uid16.c~kernel-uid16c-needs-credh kernel/uid16.c
+--- a/kernel/uid16.c~kernel-uid16c-needs-credh
++++ a/kernel/uid16.c
+@@ -9,6 +9,7 @@
+ #include <linux/reboot.h>
+ #include <linux/prctl.h>
+ #include <linux/capability.h>
++#include <linux/cred.h>
+ #include <linux/init.h>
+ #include <linux/highuid.h>
+ #include <linux/security.h>
+diff -puN include/linux/cred.h~kernel-uid16c-needs-credh include/linux/cred.h
+--- a/include/linux/cred.h~kernel-uid16c-needs-credh
++++ a/include/linux/cred.h
+@@ -64,12 +64,17 @@ do {							\
  
--	sram_pool = dev_get_gen_pool(&pdev->dev);
-+	sram_pool = gen_pool_get(&pdev->dev);
- 	if (!sram_pool) {
- 		pr_warn("%s: sram pool unavailable!\n", __func__);
- 		return;
-diff -puN arch/arm/mach-imx/pm-imx5.c~genalloc-rename-dev_get_gen_pool-to-gen_pool_get arch/arm/mach-imx/pm-imx5.c
---- a/arch/arm/mach-imx/pm-imx5.c~genalloc-rename-dev_get_gen_pool-to-gen_pool_get
-+++ a/arch/arm/mach-imx/pm-imx5.c
-@@ -297,7 +297,7 @@ static int __init imx_suspend_alloc_ocra
- 		goto put_node;
- 	}
+ extern struct group_info init_groups;
+ #ifdef CONFIG_MULTIUSER
+-extern struct group_info *groups_alloc(int);
+-extern void groups_free(struct group_info *);
++extern struct group_info *groups_alloc(int gidsetsize);
++extern void groups_free(struct group_info *group_info);
  
--	ocram_pool = dev_get_gen_pool(&pdev->dev);
-+	ocram_pool = gen_pool_get(&pdev->dev);
- 	if (!ocram_pool) {
- 		pr_warn("%s: ocram pool unavailable!\n", __func__);
- 		ret = -ENODEV;
-diff -puN arch/arm/mach-imx/pm-imx6.c~genalloc-rename-dev_get_gen_pool-to-gen_pool_get arch/arm/mach-imx/pm-imx6.c
---- a/arch/arm/mach-imx/pm-imx6.c~genalloc-rename-dev_get_gen_pool-to-gen_pool_get
-+++ a/arch/arm/mach-imx/pm-imx6.c
-@@ -451,7 +451,7 @@ static int __init imx6q_suspend_init(con
- 		goto put_node;
- 	}
- 
--	ocram_pool = dev_get_gen_pool(&pdev->dev);
-+	ocram_pool = gen_pool_get(&pdev->dev);
- 	if (!ocram_pool) {
- 		pr_warn("%s: ocram pool unavailable!\n", __func__);
- 		ret = -ENODEV;
-diff -puN arch/arm/mach-socfpga/pm.c~genalloc-rename-dev_get_gen_pool-to-gen_pool_get arch/arm/mach-socfpga/pm.c
---- a/arch/arm/mach-socfpga/pm.c~genalloc-rename-dev_get_gen_pool-to-gen_pool_get
-+++ a/arch/arm/mach-socfpga/pm.c
-@@ -56,7 +56,7 @@ static int socfpga_setup_ocram_self_refr
- 		goto put_node;
- 	}
- 
--	ocram_pool = dev_get_gen_pool(&pdev->dev);
-+	ocram_pool = get_gen_pool(&pdev->dev);
- 	if (!ocram_pool) {
- 		pr_warn("%s: ocram pool unavailable!\n", __func__);
- 		ret = -ENODEV;
-diff -puN drivers/media/platform/coda/coda-common.c~genalloc-rename-dev_get_gen_pool-to-gen_pool_get drivers/media/platform/coda/coda-common.c
---- a/drivers/media/platform/coda/coda-common.c~genalloc-rename-dev_get_gen_pool-to-gen_pool_get
-+++ a/drivers/media/platform/coda/coda-common.c
-@@ -2157,7 +2157,7 @@ static int coda_probe(struct platform_de
- 	/* Get IRAM pool from device tree or platform data */
- 	pool = of_get_named_gen_pool(np, "iram", 0);
- 	if (!pool && pdata)
--		pool = dev_get_gen_pool(pdata->iram_dev);
-+		pool = gen_pool_get(pdata->iram_dev);
- 	if (!pool) {
- 		dev_err(&pdev->dev, "iram pool not available\n");
- 		return -ENOMEM;
-diff -puN include/linux/genalloc.h~genalloc-rename-dev_get_gen_pool-to-gen_pool_get include/linux/genalloc.h
---- a/include/linux/genalloc.h~genalloc-rename-dev_get_gen_pool-to-gen_pool_get
-+++ a/include/linux/genalloc.h
-@@ -119,7 +119,7 @@ extern unsigned long gen_pool_best_fit(u
- 
- extern struct gen_pool *devm_gen_pool_create(struct device *dev,
- 		int min_alloc_order, int nid);
--extern struct gen_pool *dev_get_gen_pool(struct device *dev);
-+extern struct gen_pool *gen_pool_get(struct device *dev);
- 
- bool addr_in_gen_pool(struct gen_pool *pool, unsigned long start,
- 			size_t size);
-diff -puN lib/genalloc.c~genalloc-rename-dev_get_gen_pool-to-gen_pool_get lib/genalloc.c
---- a/lib/genalloc.c~genalloc-rename-dev_get_gen_pool-to-gen_pool_get
-+++ a/lib/genalloc.c
-@@ -602,12 +602,12 @@ struct gen_pool *devm_gen_pool_create(st
- EXPORT_SYMBOL(devm_gen_pool_create);
- 
- /**
-- * dev_get_gen_pool - Obtain the gen_pool (if any) for a device
-+ * gen_pool_get - Obtain the gen_pool (if any) for a device
-  * @dev: device to retrieve the gen_pool from
-  *
-  * Returns the gen_pool for the device if one is present, or NULL.
-  */
--struct gen_pool *dev_get_gen_pool(struct device *dev)
-+struct gen_pool *gen_pool_get(struct device *dev)
+ extern int in_group_p(kgid_t);
+ extern int in_egroup_p(kgid_t);
+ #else
++extern struct group_info *groups_alloc(int gidsetsize)
++{
++	return NULL;
++}
++
+ static inline void groups_free(struct group_info *group_info)
  {
- 	struct gen_pool **p = devres_find(dev, devm_gen_pool_release, NULL,
- 					NULL);
-@@ -616,7 +616,7 @@ struct gen_pool *dev_get_gen_pool(struct
- 		return NULL;
- 	return *p;
  }
--EXPORT_SYMBOL_GPL(dev_get_gen_pool);
-+EXPORT_SYMBOL_GPL(gen_pool_get);
- 
- #ifdef CONFIG_OF
- /**
-@@ -642,7 +642,7 @@ struct gen_pool *of_get_named_gen_pool(s
- 	of_node_put(np_pool);
- 	if (!pdev)
- 		return NULL;
--	return dev_get_gen_pool(&pdev->dev);
-+	return gen_pool_get(&pdev->dev);
- }
- EXPORT_SYMBOL_GPL(of_get_named_gen_pool);
- #endif /* CONFIG_OF */
 _
 
-Patches currently in -mm which might be from vladimir_zapolskiy@mentor.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+arch-alpha-kernel-systblss-remove-debug-check.patch
+kernel-uid16c-needs-credh.patch
+mm.patch
+slab-infrastructure-for-bulk-object-allocation-and-freeing-v3-fix.patch
+userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
+userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
+userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
+fs-userfaultfdc-work-around-i386-build-error.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
 linux-next.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+net-netfilter-ipset-work-around-gcc-444-initializer-bug.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
