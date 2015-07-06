@@ -1,60 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-remove-unused-nbdh-pattern.patch removed
- from -mm tree
-Date: Mon, 06 Jul 2015 12:48:09 -0700
-Message-ID: <559adb79.LxjVMjm7djoGv+PQ%akpm@linux-foundation.org>
+Subject: [merged] maintainers-add-zpool.patch removed from -mm tree
+Date: Mon, 06 Jul 2015 12:48:15 -0700
+Message-ID: <559adb7f.LcbyyaF1UyYEPyna%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59662 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59673 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753017AbbGFTsJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jul 2015 15:48:09 -0400
+	with ESMTP id S1752567AbbGFTsQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jul 2015 15:48:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mpa@pengutronix.de, mm-commits@vger.kernel.org
+To: ddstreet@ieee.org, minchan@kernel.org, ngupta@vflare.org, sjennings@variantweb.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: remove unused nbd.h pattern
+     Subject: MAINTAINERS: add zpool
 has been removed from the -mm tree.  Its filename was
-     maintainers-remove-unused-nbdh-pattern.patch
+     maintainers-add-zpool.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: remove unused nbd.h pattern
+From: Dan Streetman <ddstreet@ieee.org>
+Subject: MAINTAINERS: add zpool
 
-commit 13e71d69cc74 ("nbd: Remove kernel internal header") deleted the
-file, remove the pattern.
+Add entry for zpool to MAINTAINERS file.
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Acked-by: Markus Pargmann <mpa@pengutronix.de>
+Signed-off-by: Dan Streetman <ddstreet@ieee.org>
+Cc: Seth Jennings <sjennings@variantweb.net>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 -
- 1 file changed, 1 deletion(-)
+ MAINTAINERS |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN MAINTAINERS~maintainers-remove-unused-nbdh-pattern MAINTAINERS
---- a/MAINTAINERS~maintainers-remove-unused-nbdh-pattern
+diff -puN MAINTAINERS~maintainers-add-zpool MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-zpool
 +++ a/MAINTAINERS
-@@ -7018,7 +7018,6 @@ L:	nbd-general@lists.sourceforge.net
- T:	git git://git.pengutronix.de/git/mpa/linux-nbd.git
- F:	Documentation/blockdev/nbd.txt
- F:	drivers/block/nbd.c
--F:	include/linux/nbd.h
- F:	include/uapi/linux/nbd.h
+@@ -11350,6 +11350,13 @@ L:	zd1211-devs@lists.sourceforge.net (su
+ S:	Maintained
+ F:	drivers/net/wireless/zd1211rw/
  
- NETWORK DROP MONITOR
++ZPOOL COMPRESSED PAGE STORAGE API
++M:	Dan Streetman <ddstreet@ieee.org>
++L:	linux-mm@kvack.org
++S:	Maintained
++F:	mm/zpool.c
++F:	include/linux/zpool.h
++
+ ZR36067 VIDEO FOR LINUX DRIVER
+ L:	mjpeg-users@lists.sourceforge.net
+ L:	linux-media@vger.kernel.org
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from ddstreet@ieee.org are
 
-ocfs2-neaten-do_error-ocfs2_error-and-ocfs2_abort.patch
-mm-utilc-add-kstrimdup.patch
-fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void.patch
 
