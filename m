@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- vb2-provide-helpers-for-mapping-virtual-addresses.patch removed from -mm
- tree
-Date: Mon, 06 Jul 2015 15:19:12 -0700
-Message-ID: <559afee0.xXvchwQeir55Qm9W%akpm@linux-foundation.org>
+ media-vb2-convert-vb2_dc_get_userptr-to-use-frame-vector.patch removed from -mm tree
+Date: Mon, 06 Jul 2015 15:19:21 -0700
+Message-ID: <559afee9.HhskxSJZsfkbOU2j%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33706 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33739 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754506AbbGFWTN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jul 2015 18:19:13 -0400
+	with ESMTP id S1753861AbbGFWTW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jul 2015 18:19:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jack@suse.cz, airlied@linux.ie, fabf@skynet.be, hans.verkuil@cisco.com, inki.dae@samsung.com, jy0922.shim@samsung.com, kgene@kernel.org, kyungmin.park@samsung.com, laurent.pinchart+renesas@ideasonboard.com, m.szyprowski@samsung.com, mchehab@osg.samsung.com, mgorman@suse.de, pawel@osciak.com, prabhakar.csengg@gmail.com, sw0312.kim@samsung.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: vb2: provide helpers for mapping virtual addresses
+     Subject: media: vb2: convert vb2_dc_get_userptr() to use frame vector
 has been removed from the -mm tree.  Its filename was
-     vb2-provide-helpers-for-mapping-virtual-addresses.patch
+     media-vb2-convert-vb2_dc_get_userptr-to-use-frame-vector.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Jan Kara <jack@suse.cz>
-Subject: vb2: provide helpers for mapping virtual addresses
+Subject: media: vb2: convert vb2_dc_get_userptr() to use frame vector
 
-Provide simple helper functions to map virtual address range into an array
-of pfns / pages.
+Convert vb2_dc_get_userptr() to use frame vector infrastructure.  When we
+are doing that there's no need to allocate page array and some code can be
+simplified.
 
 Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
@@ -51,113 +51,309 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/v4l2-core/videobuf2-memops.c |   58 +++++++++++++++++++
- include/media/videobuf2-memops.h           |    5 +
- 2 files changed, 63 insertions(+)
+ drivers/media/v4l2-core/videobuf2-dma-contig.c |  214 ++-------------
+ 1 file changed, 34 insertions(+), 180 deletions(-)
 
-diff -puN drivers/media/v4l2-core/videobuf2-memops.c~vb2-provide-helpers-for-mapping-virtual-addresses drivers/media/v4l2-core/videobuf2-memops.c
---- a/drivers/media/v4l2-core/videobuf2-memops.c~vb2-provide-helpers-for-mapping-virtual-addresses
-+++ a/drivers/media/v4l2-core/videobuf2-memops.c
-@@ -137,6 +137,64 @@ int vb2_get_contig_userptr(unsigned long
- EXPORT_SYMBOL_GPL(vb2_get_contig_userptr);
+diff -puN drivers/media/v4l2-core/videobuf2-dma-contig.c~media-vb2-convert-vb2_dc_get_userptr-to-use-frame-vector drivers/media/v4l2-core/videobuf2-dma-contig.c
+--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c~media-vb2-convert-vb2_dc_get_userptr-to-use-frame-vector
++++ a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+@@ -32,15 +32,13 @@ struct vb2_dc_buf {
+ 	dma_addr_t			dma_addr;
+ 	enum dma_data_direction		dma_dir;
+ 	struct sg_table			*dma_sgt;
++	struct frame_vector		*vec;
  
- /**
-+ * vb2_create_framevec() - map virtual addresses to pfns
-+ * @start:	Virtual user address where we start mapping
-+ * @length:	Length of a range to map
-+ * @write:	Should we map for writing into the area
-+ *
-+ * This function allocates and fills in a vector with pfns corresponding to
-+ * virtual address range passed in arguments. If pfns have corresponding pages,
-+ * page references are also grabbed to pin pages in memory. The function
-+ * returns pointer to the vector on success and error pointer in case of
-+ * failure. Returned vector needs to be freed via vb2_destroy_pfnvec().
-+ */
-+struct frame_vector *vb2_create_framevec(unsigned long start,
-+					 unsigned long length,
-+					 bool write)
-+{
-+	int ret;
-+	unsigned long first, last;
-+	unsigned long nr;
+ 	/* MMAP related */
+ 	struct vb2_vmarea_handler	handler;
+ 	atomic_t			refcount;
+ 	struct sg_table			*sgt_base;
+ 
+-	/* USERPTR related */
+-	struct vm_area_struct		*vma;
+-
+ 	/* DMABUF related */
+ 	struct dma_buf_attachment	*db_attach;
+ };
+@@ -49,24 +47,6 @@ struct vb2_dc_buf {
+ /*        scatterlist table functions        */
+ /*********************************************/
+ 
+-
+-static void vb2_dc_sgt_foreach_page(struct sg_table *sgt,
+-	void (*cb)(struct page *pg))
+-{
+-	struct scatterlist *s;
+-	unsigned int i;
+-
+-	for_each_sg(sgt->sgl, s, sgt->orig_nents, i) {
+-		struct page *page = sg_page(s);
+-		unsigned int n_pages = PAGE_ALIGN(s->offset + s->length)
+-			>> PAGE_SHIFT;
+-		unsigned int j;
+-
+-		for (j = 0; j < n_pages; ++j, ++page)
+-			cb(page);
+-	}
+-}
+-
+ static unsigned long vb2_dc_get_contiguous_size(struct sg_table *sgt)
+ {
+ 	struct scatterlist *s;
+@@ -429,92 +409,12 @@ static struct dma_buf *vb2_dc_get_dmabuf
+ /*       callbacks for USERPTR buffers       */
+ /*********************************************/
+ 
+-static inline int vma_is_io(struct vm_area_struct *vma)
+-{
+-	return !!(vma->vm_flags & (VM_IO | VM_PFNMAP));
+-}
+-
+-static int vb2_dc_get_user_pfn(unsigned long start, int n_pages,
+-	struct vm_area_struct *vma, unsigned long *res)
+-{
+-	unsigned long pfn, start_pfn, prev_pfn;
+-	unsigned int i;
+-	int ret;
+-
+-	if (!vma_is_io(vma))
+-		return -EFAULT;
+-
+-	ret = follow_pfn(vma, start, &pfn);
+-	if (ret)
+-		return ret;
+-
+-	start_pfn = pfn;
+-	start += PAGE_SIZE;
+-
+-	for (i = 1; i < n_pages; ++i, start += PAGE_SIZE) {
+-		prev_pfn = pfn;
+-		ret = follow_pfn(vma, start, &pfn);
+-
+-		if (ret) {
+-			pr_err("no page for address %lu\n", start);
+-			return ret;
+-		}
+-		if (pfn != prev_pfn + 1)
+-			return -EINVAL;
+-	}
+-
+-	*res = start_pfn;
+-	return 0;
+-}
+-
+-static int vb2_dc_get_user_pages(unsigned long start, struct page **pages,
+-	int n_pages, struct vm_area_struct *vma,
+-	enum dma_data_direction dma_dir)
+-{
+-	if (vma_is_io(vma)) {
+-		unsigned int i;
+-
+-		for (i = 0; i < n_pages; ++i, start += PAGE_SIZE) {
+-			unsigned long pfn;
+-			int ret = follow_pfn(vma, start, &pfn);
+-
+-			if (!pfn_valid(pfn))
+-				return -EINVAL;
+-
+-			if (ret) {
+-				pr_err("no page for address %lu\n", start);
+-				return ret;
+-			}
+-			pages[i] = pfn_to_page(pfn);
+-		}
+-	} else {
+-		int n;
+-
+-		n = get_user_pages(current, current->mm, start & PAGE_MASK,
+-			n_pages, dma_dir == DMA_FROM_DEVICE, 1, pages, NULL);
+-		/* negative error means that no page was pinned */
+-		n = max(n, 0);
+-		if (n != n_pages) {
+-			pr_err("got only %d of %d user pages\n", n, n_pages);
+-			while (n)
+-				put_page(pages[--n]);
+-			return -EFAULT;
+-		}
+-	}
+-
+-	return 0;
+-}
+-
+-static void vb2_dc_put_dirty_page(struct page *page)
+-{
+-	set_page_dirty_lock(page);
+-	put_page(page);
+-}
+-
+ static void vb2_dc_put_userptr(void *buf_priv)
+ {
+ 	struct vb2_dc_buf *buf = buf_priv;
+ 	struct sg_table *sgt = buf->dma_sgt;
++	int i;
++	struct page **pages;
+ 
+ 	if (sgt) {
+ 		DEFINE_DMA_ATTRS(attrs);
+@@ -526,15 +426,15 @@ static void vb2_dc_put_userptr(void *buf
+ 		 */
+ 		dma_unmap_sg_attrs(buf->dev, sgt->sgl, sgt->orig_nents,
+ 				   buf->dma_dir, &attrs);
+-		if (!vma_is_io(buf->vma))
+-			vb2_dc_sgt_foreach_page(sgt, vb2_dc_put_dirty_page);
+-
++		pages = frame_vector_pages(buf->vec);
++		/* sgt should exist only if vector contains pages... */
++		BUG_ON(IS_ERR(pages));
++		for (i = 0; i < frame_vector_count(buf->vec); i++)
++			set_page_dirty_lock(pages[i]);
+ 		sg_free_table(sgt);
+ 		kfree(sgt);
+ 	}
+-	down_read(&current->mm->mmap_sem);
+-	vb2_put_vma(buf->vma);
+-	up_read(&current->mm->mmap_sem);
++	vb2_destroy_framevec(buf->vec);
+ 	kfree(buf);
+ }
+ 
+@@ -574,13 +474,10 @@ static void *vb2_dc_get_userptr(void *al
+ {
+ 	struct vb2_dc_conf *conf = alloc_ctx;
+ 	struct vb2_dc_buf *buf;
+-	unsigned long start;
+-	unsigned long end;
 +	struct frame_vector *vec;
-+
-+	first = start >> PAGE_SHIFT;
-+	last = (start + length - 1) >> PAGE_SHIFT;
-+	nr = last - first + 1;
-+	vec = frame_vector_create(nr);
-+	if (!vec)
-+		return ERR_PTR(-ENOMEM);
-+	ret = get_vaddr_frames(start, nr, write, 1, vec);
-+	if (ret < 0)
-+		goto out_destroy;
-+	/* We accept only complete set of PFNs */
-+	if (ret != nr) {
-+		ret = -EFAULT;
-+		goto out_release;
-+	}
-+	return vec;
-+out_release:
-+	put_vaddr_frames(vec);
-+out_destroy:
-+	frame_vector_destroy(vec);
-+	return ERR_PTR(ret);
-+}
-+EXPORT_SYMBOL(vb2_create_framevec);
-+
-+/**
-+ * vb2_destroy_framevec() - release vector of mapped pfns
-+ * @vec:	vector of pfns / pages to release
-+ *
-+ * This releases references to all pages in the vector @vec (if corresponding
-+ * pfns are backed by pages) and frees the passed vector.
-+ */
-+void vb2_destroy_framevec(struct frame_vector *vec)
-+{
-+	put_vaddr_frames(vec);
-+	frame_vector_destroy(vec);
-+}
-+EXPORT_SYMBOL(vb2_destroy_framevec);
-+
-+/**
-  * vb2_common_vm_open() - increase refcount of the vma
-  * @vma:	virtual memory region for the mapping
-  *
-diff -puN include/media/videobuf2-memops.h~vb2-provide-helpers-for-mapping-virtual-addresses include/media/videobuf2-memops.h
---- a/include/media/videobuf2-memops.h~vb2-provide-helpers-for-mapping-virtual-addresses
-+++ a/include/media/videobuf2-memops.h
-@@ -15,6 +15,7 @@
- #define _MEDIA_VIDEOBUF2_MEMOPS_H
+ 	unsigned long offset;
+-	struct page **pages;
+-	int n_pages;
++	int n_pages, i;
+ 	int ret = 0;
+-	struct vm_area_struct *vma;
+ 	struct sg_table *sgt;
+ 	unsigned long contig_size;
+ 	unsigned long dma_align = dma_get_cache_alignment();
+@@ -606,75 +503,43 @@ static void *vb2_dc_get_userptr(void *al
+ 	buf->dev = conf->dev;
+ 	buf->dma_dir = dma_dir;
  
- #include <media/videobuf2-core.h>
-+#include <linux/mm.h>
+-	start = vaddr & PAGE_MASK;
+ 	offset = vaddr & ~PAGE_MASK;
+-	end = PAGE_ALIGN(vaddr + size);
+-	n_pages = (end - start) >> PAGE_SHIFT;
+-
+-	pages = kmalloc(n_pages * sizeof(pages[0]), GFP_KERNEL);
+-	if (!pages) {
+-		ret = -ENOMEM;
+-		pr_err("failed to allocate pages table\n");
++	vec = vb2_create_framevec(vaddr, size, dma_dir == DMA_FROM_DEVICE);
++	if (IS_ERR(vec)) {
++		ret = PTR_ERR(vec);
+ 		goto fail_buf;
+ 	}
++	buf->vec = vec;
++	n_pages = frame_vector_count(vec);
++	ret = frame_vector_to_pages(vec);
++	if (ret < 0) {
++		unsigned long *nums = frame_vector_pfns(vec);
  
- /**
-  * vb2_vmarea_handler - common vma refcount tracking handler
-@@ -36,5 +37,9 @@ int vb2_get_contig_userptr(unsigned long
- struct vm_area_struct *vb2_get_vma(struct vm_area_struct *vma);
- void vb2_put_vma(struct vm_area_struct *vma);
+-	down_read(&current->mm->mmap_sem);
+-	/* current->mm->mmap_sem is taken by videobuf2 core */
+-	vma = find_vma(current->mm, vaddr);
+-	if (!vma) {
+-		pr_err("no vma for address %lu\n", vaddr);
+-		ret = -EFAULT;
+-		goto fail_pages;
+-	}
+-
+-	if (vma->vm_end < vaddr + size) {
+-		pr_err("vma at %lu is too small for %lu bytes\n", vaddr, size);
+-		ret = -EFAULT;
+-		goto fail_pages;
+-	}
+-
+-	buf->vma = vb2_get_vma(vma);
+-	if (!buf->vma) {
+-		pr_err("failed to copy vma\n");
+-		ret = -ENOMEM;
+-		goto fail_pages;
+-	}
+-
+-	/* extract page list from userspace mapping */
+-	ret = vb2_dc_get_user_pages(start, pages, n_pages, vma, dma_dir);
+-	if (ret) {
+-		unsigned long pfn;
+-		if (vb2_dc_get_user_pfn(start, n_pages, vma, &pfn) == 0) {
+-			up_read(&current->mm->mmap_sem);
+-			buf->dma_addr = vb2_dc_pfn_to_dma(buf->dev, pfn);
+-			buf->size = size;
+-			kfree(pages);
+-			return buf;
+-		}
+-
+-		pr_err("failed to get user pages\n");
+-		goto fail_vma;
++		/*
++		 * Failed to convert to pages... Check the memory is physically
++		 * contiguous and use direct mapping
++		 */
++		for (i = 1; i < n_pages; i++)
++			if (nums[i-1] + 1 != nums[i])
++				goto fail_pfnvec;
++		buf->dma_addr = vb2_dc_pfn_to_dma(buf->dev, nums[0]);
++		goto out;
+ 	}
+-	up_read(&current->mm->mmap_sem);
  
-+struct frame_vector *vb2_create_framevec(unsigned long start,
-+					 unsigned long length,
-+					 bool write);
-+void vb2_destroy_framevec(struct frame_vector *vec);
+ 	sgt = kzalloc(sizeof(*sgt), GFP_KERNEL);
+ 	if (!sgt) {
+ 		pr_err("failed to allocate sg table\n");
+ 		ret = -ENOMEM;
+-		goto fail_get_user_pages;
++		goto fail_pfnvec;
+ 	}
  
- #endif
-_
-
-Patches currently in -mm which might be from jack@suse.cz are
-
-origin.patch
-media-vb2-convert-vb2_dma_sg_get_userptr-to-use-frame-vector.patch
-media-vb2-convert-vb2_vmalloc_get_userptr-to-use-frame-vector.patch
-media-vb2-convert-vb2_dc_get_userptr-to-use-frame-vector.patch
-media-vb2-remove-unused-functions.patch
-drm-exynos-convert-g2d_userptr_get_dma_addr-to-use-get_vaddr_frames.patch
-mm-move-get_vaddr_frames-behind-a-config-option.patch
-mm-move-get_vaddr_frames-behind-a-config-option-fix.patch
-fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
-linux-next.patch
-mm-add-strictlimit-knob-v2.patch
-
+-	ret = sg_alloc_table_from_pages(sgt, pages, n_pages,
++	ret = sg_alloc_table_from_pages(sgt, frame_vector_pages(vec), n_pages,
+ 		offset, size, GFP_KERNEL);
+ 	if (ret) {
+ 		pr_err("failed to initialize sg table\n");
+ 		goto fail_sgt;
+ 	}
+ 
+-	/* pages are no longer needed */
+-	kfree(pages);
+-	pages = NULL;
+-
+ 	/*
+ 	 * No need to sync to the device, this will happen later when the
+ 	 * prepare() memop is called.
+@@ -696,8 +561,9 @@ static void *vb2_dc_get_userptr(void *al
+ 	}
+ 
+ 	buf->dma_addr = sg_dma_address(sgt->sgl);
+-	buf->size = size;
+ 	buf->dma_sgt = sgt;
++out:
++	buf->size = size;
+ 
+ 	return buf;
+ 
+@@ -706,25 +572,13 @@ fail_map_sg:
+ 			   buf->dma_dir, &attrs);
+ 
+ fail_sgt_init:
+-	if (!vma_is_io(buf->vma))
+-		vb2_dc_sgt_foreach_page(sgt, put_page);
+ 	sg_free_table(sgt);
+ 
+ fail_sgt:
+ 	kfree(sgt);
+ 
+-fail_get_user_pages:
+-	if (pages && !vma_is_io(buf->vma))
+-		while (n_pages)
+-			put_page(pages[--n_pages]);
+-
+-	down_read(&current->mm->mmap_sem);
+-fail_vma:
+-	vb2_put_vma(buf->vma);
