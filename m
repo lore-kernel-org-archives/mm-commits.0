@@ -1,76 +1,137 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- scripts-gdb-also-allow-list_head-pointer-as-lx-list-check-paramter.patch
- removed from -mm tree
-Date: Mon, 06 Jul 2015 12:47:04 -0700
-Message-ID: <559adb38.Mt4Es2wIcYW9uO/R%akpm@linux-foundation.org>
+ ipcmsg-provide-barrier-pairings-for-lockless-receive.patch removed from -mm tree
+Date: Mon, 06 Jul 2015 12:47:23 -0700
+Message-ID: <559adb4b.I+8nJEYVx4EkGh/6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59543 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59583 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755612AbbGFTrE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jul 2015 15:47:04 -0400
+	with ESMTP id S1755686AbbGFTrY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jul 2015 15:47:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jan.kiszka@siemens.com, thiebaud@weksteen.fr, mm-commits@vger.kernel.org
+To: dave@stgolabs.net, dbueso@suse.de, manfred@colorfullife.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/gdb: also allow list_head pointer as lx-list-chec=
-k paramter
+     Subject: ipc,msg: provide barrier pairings for lockless receive
 has been removed from the -mm tree.  Its filename was
-     scripts-gdb-also-allow-list_head-pointer-as-lx-list-check-paramter=
-=2Epatch
+     ipcmsg-provide-barrier-pairings-for-lockless-receive.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-=46rom: Jan Kiszka <jan.kiszka@siemens.com>
-Subject: scripts/gdb: also allow list_head pointer as lx-list-check par=
-amter
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: ipc,msg: provide barrier pairings for lockless receive
 
-This makes the usage more flexible.
+We currently use a full barrier on the sender side to to avoid receiver
+tasks disappearing on us while still performing on the sender side wakeup.
+ We lack however, the proper CPU-CPU interactions pairing on the receiver
+side which busy-waits for the message.  Similarly, we do not need a full
+smp_mb, and can relax the semantics for the writer and reader sides of the
+message.  This is safe as we are only ordering loads and stores to r_msg. 
+And in both smp_wmb and smp_rmb, there are no stores after the calls
+_anyway_.
 
-Signed-off-by: Jan Kiszka <jan.kiszka@siemens.com>
-Cc: Thi=E9baud Weksteen <thiebaud@weksteen.fr>
+This obviously applies for pipelined_send and expunge_all, for EIRDM when
+destroying a queue.
+
+Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+Cc: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/lists.py |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ ipc/msg.c |   48 ++++++++++++++++++++++++++++++++++++++----------
+ 1 file changed, 38 insertions(+), 10 deletions(-)
 
-diff -puN scripts/gdb/linux/lists.py~scripts-gdb-also-allow-list_head-p=
-ointer-as-lx-list-check-paramter scripts/gdb/linux/lists.py
---- a/scripts/gdb/linux/lists.py~scripts-gdb-also-allow-list_head-point=
-er-as-lx-list-check-paramter
-+++ a/scripts/gdb/linux/lists.py
-@@ -20,9 +20,11 @@ list_head =3D utils.CachedType("struct lis
-=20
- def list_check(head):
-     nb =3D 0
-+    if (head.type =3D=3D list_head.get_type().pointer()):
-+        head =3D head.dereference()
-+    elif (head.type !=3D list_head.get_type()):
-+        raise gdb.GdbError('argument must be of type (struct list_head=
- [*])')
-     c =3D head
--    if (c.type !=3D list_head.get_type()):
--        raise gdb.GdbError('The argument should be of type (struct lis=
-t_head)')
-     try:
-         gdb.write("Starting with: {}\n".format(c))
-     except gdb.MemoryError:
+diff -puN ipc/msg.c~ipcmsg-provide-barrier-pairings-for-lockless-receive ipc/msg.c
+--- a/ipc/msg.c~ipcmsg-provide-barrier-pairings-for-lockless-receive
++++ a/ipc/msg.c
+@@ -196,7 +196,7 @@ static void expunge_all(struct msg_queue
+ 		 * or dealing with -EAGAIN cases. See lockless receive part 1
+ 		 * and 2 in do_msgrcv().
+ 		 */
+-		smp_mb();
++		smp_wmb(); /* barrier (B) */
+ 		msr->r_msg = ERR_PTR(res);
+ 	}
+ }
+@@ -580,7 +580,8 @@ static inline int pipelined_send(struct
+ 				/* initialize pipelined send ordering */
+ 				msr->r_msg = NULL;
+ 				wake_up_process(msr->r_tsk);
+-				smp_mb(); /* see barrier comment below */
++				/* barrier (B) see barrier comment below */
++				smp_wmb();
+ 				msr->r_msg = ERR_PTR(-E2BIG);
+ 			} else {
+ 				msr->r_msg = NULL;
+@@ -589,11 +590,12 @@ static inline int pipelined_send(struct
+ 				wake_up_process(msr->r_tsk);
+ 				/*
+ 				 * Ensure that the wakeup is visible before
+-				 * setting r_msg, as the receiving end depends
+-				 * on it. See lockless receive part 1 and 2 in
+-				 * do_msgrcv().
++				 * setting r_msg, as the receiving can otherwise
++				 * exit - once r_msg is set, the receiver can
++				 * continue. See lockless receive part 1 and 2
++				 * in do_msgrcv(). Barrier (B).
+ 				 */
+-				smp_mb();
++				smp_wmb();
+ 				msr->r_msg = msg;
+ 
+ 				return 1;
+@@ -932,12 +934,38 @@ long do_msgrcv(int msqid, void __user *b
+ 		/* Lockless receive, part 2:
+ 		 * Wait until pipelined_send or expunge_all are outside of
+ 		 * wake_up_process(). There is a race with exit(), see
+-		 * ipc/mqueue.c for the details.
++		 * ipc/mqueue.c for the details. The correct serialization
++		 * ensures that a receiver cannot continue without the wakeup
++		 * being visibible _before_ setting r_msg:
++		 *
++		 * CPU 0                             CPU 1
++		 * <loop receiver>
++		 *   smp_rmb(); (A) <-- pair -.      <waker thread>
++		 *   <load ->r_msg>           |        msr->r_msg = NULL;
++		 *                            |        wake_up_process();
++		 * <continue>                 `------> smp_wmb(); (B)
++		 *                                     msr->r_msg = msg;
++		 *
++		 * Where (A) orders the message value read and where (B) orders
++		 * the write to the r_msg -- done in both pipelined_send and
++		 * expunge_all.
+ 		 */
+-		msg = (struct msg_msg *)msr_d.r_msg;
+-		while (msg == NULL) {
+-			cpu_relax();
++		for (;;) {
++			/*
++			 * Pairs with writer barrier in pipelined_send
++			 * or expunge_all.
++			 */
++			smp_rmb(); /* barrier (A) */
+ 			msg = (struct msg_msg *)msr_d.r_msg;
++			if (msg)
++				break;
++
++			/*
++			 * The cpu_relax() call is a compiler barrier
++			 * which forces everything in this loop to be
++			 * re-loaded.
++			 */
++			cpu_relax();
+ 		}
+ 
+ 		/* Lockless receive, part 3:
 _
 
-Patches currently in -mm which might be from jan.kiszka@siemens.com are
+Patches currently in -mm which might be from dave@stgolabs.net are
 
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
