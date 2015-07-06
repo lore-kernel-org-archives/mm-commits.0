@@ -1,36 +1,38 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch removed
- from -mm tree
-Date: Mon, 06 Jul 2015 12:46:24 -0700
-Message-ID: <559adb10.Mv33/2PJ7wYP+KdU%akpm@linux-foundation.org>
+Subject: [merged] mm-page_alloc-pass-pfn-to-__free_pages_bootmem.patch
+ removed from -mm tree
+Date: Mon, 06 Jul 2015 12:46:12 -0700
+Message-ID: <559adb04.Pl+5aJONPeghptrH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59452 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59401 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752765AbbGFTqZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jul 2015 15:46:25 -0400
+	with ESMTP id S1755144AbbGFTqO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jul 2015 15:46:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mgorman@suse.de, daniel@numascale.com, dave.hansen@intel.com, hpa@zytor.com, mingo@elte.hu, nzimmer@sgi.com, penberg@kernel.org, robinmholt@gmail.com, scott.norton@hp.com, tglx@linutronix.de, tony.luck@intel.com, waiman.long@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86: mm: enable deferred struct page initialisation on x86-64
+     Subject: mm: page_alloc: pass PFN to __free_pages_bootmem
 has been removed from the -mm tree.  Its filename was
-     x86-mm-enable-deferred-struct-page-initialisation-on-x86-64.patch
+     mm-page_alloc-pass-pfn-to-__free_pages_bootmem.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: x86: mm: enable deferred struct page initialisation on x86-64
+Subject: mm: page_alloc: pass PFN to __free_pages_bootmem
 
-Subject says it all.  Other architectures may enable on a case-by-case
-basis after auditing early_pfn_to_nid and testing.
+__free_pages_bootmem prepares a page for release to the buddy allocator
+and assumes that the struct page is initialised.  Parallel initialisation
+of struct pages defers initialisation and __free_pages_bootmem can be
+called for struct pages that cannot yet map struct page to PFN.  This
+patch passes PFN to __free_pages_bootmem with no other functional change.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
 Tested-by: Nate Zimmer <nzimmer@sgi.com>
@@ -49,20 +51,129 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ mm/bootmem.c    |   13 +++++++------
+ mm/internal.h   |    3 ++-
+ mm/memblock.c   |    2 +-
+ mm/nobootmem.c  |    4 ++--
+ mm/page_alloc.c |    3 ++-
+ 5 files changed, 14 insertions(+), 11 deletions(-)
 
-diff -puN arch/x86/Kconfig~x86-mm-enable-deferred-struct-page-initialisation-on-x86-64 arch/x86/Kconfig
---- a/arch/x86/Kconfig~x86-mm-enable-deferred-struct-page-initialisation-on-x86-64
-+++ a/arch/x86/Kconfig
-@@ -34,6 +34,7 @@ config X86
- 	select ARCH_MIGHT_HAVE_PC_PARPORT
- 	select ARCH_MIGHT_HAVE_PC_SERIO
- 	select ARCH_SUPPORTS_ATOMIC_RMW
-+	select ARCH_SUPPORTS_DEFERRED_STRUCT_PAGE_INIT
- 	select ARCH_SUPPORTS_INT128		if X86_64
- 	select ARCH_SUPPORTS_NUMA_BALANCING	if X86_64
- 	select ARCH_USE_BUILTIN_BSWAP
+diff -puN mm/bootmem.c~mm-page_alloc-pass-pfn-to-__free_pages_bootmem mm/bootmem.c
+--- a/mm/bootmem.c~mm-page_alloc-pass-pfn-to-__free_pages_bootmem
++++ a/mm/bootmem.c
+@@ -164,7 +164,7 @@ void __init free_bootmem_late(unsigned l
+ 	end = PFN_DOWN(physaddr + size);
+ 
+ 	for (; cursor < end; cursor++) {
+-		__free_pages_bootmem(pfn_to_page(cursor), 0);
++		__free_pages_bootmem(pfn_to_page(cursor), cursor, 0);
+ 		totalram_pages++;
+ 	}
+ }
+@@ -172,7 +172,7 @@ void __init free_bootmem_late(unsigned l
+ static unsigned long __init free_all_bootmem_core(bootmem_data_t *bdata)
+ {
+ 	struct page *page;
+-	unsigned long *map, start, end, pages, count = 0;
++	unsigned long *map, start, end, pages, cur, count = 0;
+ 
+ 	if (!bdata->node_bootmem_map)
+ 		return 0;
+@@ -210,17 +210,17 @@ static unsigned long __init free_all_boo
+ 		if (IS_ALIGNED(start, BITS_PER_LONG) && vec == ~0UL) {
+ 			int order = ilog2(BITS_PER_LONG);
+ 
+-			__free_pages_bootmem(pfn_to_page(start), order);
++			__free_pages_bootmem(pfn_to_page(start), start, order);
+ 			count += BITS_PER_LONG;
+ 			start += BITS_PER_LONG;
+ 		} else {
+-			unsigned long cur = start;
++			cur = start;
+ 
+ 			start = ALIGN(start + 1, BITS_PER_LONG);
+ 			while (vec && cur != start) {
+ 				if (vec & 1) {
+ 					page = pfn_to_page(cur);
+-					__free_pages_bootmem(page, 0);
++					__free_pages_bootmem(page, cur, 0);
+ 					count++;
+ 				}
+ 				vec >>= 1;
+@@ -229,12 +229,13 @@ static unsigned long __init free_all_boo
+ 		}
+ 	}
+ 
++	cur = bdata->node_min_pfn;
+ 	page = virt_to_page(bdata->node_bootmem_map);
+ 	pages = bdata->node_low_pfn - bdata->node_min_pfn;
+ 	pages = bootmem_bootmap_pages(pages);
+ 	count += pages;
+ 	while (pages--)
+-		__free_pages_bootmem(page++, 0);
++		__free_pages_bootmem(page++, cur++, 0);
+ 
+ 	bdebug("nid=%td released=%lx\n", bdata - bootmem_node_data, count);
+ 
+diff -puN mm/internal.h~mm-page_alloc-pass-pfn-to-__free_pages_bootmem mm/internal.h
+--- a/mm/internal.h~mm-page_alloc-pass-pfn-to-__free_pages_bootmem
++++ a/mm/internal.h
+@@ -155,7 +155,8 @@ __find_buddy_index(unsigned long page_id
+ }
+ 
+ extern int __isolate_free_page(struct page *page, unsigned int order);
+-extern void __free_pages_bootmem(struct page *page, unsigned int order);
++extern void __free_pages_bootmem(struct page *page, unsigned long pfn,
++					unsigned int order);
+ extern void prep_compound_page(struct page *page, unsigned long order);
+ #ifdef CONFIG_MEMORY_FAILURE
+ extern bool is_free_buddy_page(struct page *page);
+diff -puN mm/memblock.c~mm-page_alloc-pass-pfn-to-__free_pages_bootmem mm/memblock.c
+--- a/mm/memblock.c~mm-page_alloc-pass-pfn-to-__free_pages_bootmem
++++ a/mm/memblock.c
+@@ -1419,7 +1419,7 @@ void __init __memblock_free_late(phys_ad
+ 	end = PFN_DOWN(base + size);
+ 
+ 	for (; cursor < end; cursor++) {
+-		__free_pages_bootmem(pfn_to_page(cursor), 0);
++		__free_pages_bootmem(pfn_to_page(cursor), cursor, 0);
+ 		totalram_pages++;
+ 	}
+ }
+diff -puN mm/nobootmem.c~mm-page_alloc-pass-pfn-to-__free_pages_bootmem mm/nobootmem.c
+--- a/mm/nobootmem.c~mm-page_alloc-pass-pfn-to-__free_pages_bootmem
++++ a/mm/nobootmem.c
+@@ -86,7 +86,7 @@ void __init free_bootmem_late(unsigned l
+ 	end = PFN_DOWN(addr + size);
+ 
+ 	for (; cursor < end; cursor++) {
+-		__free_pages_bootmem(pfn_to_page(cursor), 0);
++		__free_pages_bootmem(pfn_to_page(cursor), cursor, 0);
+ 		totalram_pages++;
+ 	}
+ }
+@@ -101,7 +101,7 @@ static void __init __free_pages_memory(u
+ 		while (start + (1UL << order) > end)
+ 			order--;
+ 
+-		__free_pages_bootmem(pfn_to_page(start), order);
++		__free_pages_bootmem(pfn_to_page(start), start, order);
+ 
+ 		start += (1UL << order);
+ 	}
+diff -puN mm/page_alloc.c~mm-page_alloc-pass-pfn-to-__free_pages_bootmem mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-pass-pfn-to-__free_pages_bootmem
++++ a/mm/page_alloc.c
+@@ -878,7 +878,8 @@ static void __free_pages_ok(struct page
+ 	local_irq_restore(flags);
+ }
+ 
+-void __init __free_pages_bootmem(struct page *page, unsigned int order)
++void __init __free_pages_bootmem(struct page *page, unsigned long pfn,
++							unsigned int order)
+ {
+ 	unsigned int nr_pages = 1 << order;
+ 	struct page *p = page;
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
