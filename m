@@ -1,35 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- media-vb2-convert-vb2_dma_sg_get_userptr-to-use-frame-vector.patch removed
- from -mm tree
-Date: Mon, 06 Jul 2015 15:19:15 -0700
-Message-ID: <559afee3.foZ2Y9RVATC5X+fl%akpm@linux-foundation.org>
+ media-vb2-convert-vb2_vmalloc_get_userptr-to-use-frame-vector.patch removed from -mm tree
+Date: Mon, 06 Jul 2015 15:19:18 -0700
+Message-ID: <559afee6.CghhHaM+7/LptVLL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33716 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33728 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754506AbbGFWTQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jul 2015 18:19:16 -0400
+	with ESMTP id S1755370AbbGFWTT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 6 Jul 2015 18:19:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jack@suse.cz, airlied@linux.ie, fabf@skynet.be, hans.verkuil@cisco.com, inki.dae@samsung.com, jy0922.shim@samsung.com, kgene@kernel.org, kyungmin.park@samsung.com, laurent.pinchart+renesas@ideasonboard.com, m.szyprowski@samsung.com, mchehab@osg.samsung.com, mgorman@suse.de, pawel@osciak.com, prabhakar.csengg@gmail.com, sw0312.kim@samsung.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: media: vb2: convert vb2_dma_sg_get_userptr() to use frame vector
+     Subject: media: vb2: Convert vb2_vmalloc_get_userptr() to use frame vector
 has been removed from the -mm tree.  Its filename was
-     media-vb2-convert-vb2_dma_sg_get_userptr-to-use-frame-vector.patch
+     media-vb2-convert-vb2_vmalloc_get_userptr-to-use-frame-vector.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Jan Kara <jack@suse.cz>
-Subject: media: vb2: convert vb2_dma_sg_get_userptr() to use frame vector
+Subject: media: vb2: Convert vb2_vmalloc_get_userptr() to use frame vector
 
-Simplify the VMA code by using frame_vector_pages() & friends on VB2.
+Convert vb2_vmalloc_get_userptr() to use frame vector infrastructure. 
+When we are doing that there's no need to allocate page array and some
+code can be simplified.
 
 Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
@@ -50,162 +51,143 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/v4l2-core/videobuf2-dma-sg.c |   99 +++----------------
- 1 file changed, 16 insertions(+), 83 deletions(-)
+ drivers/media/v4l2-core/videobuf2-vmalloc.c |   94 ++++++------------
+ 1 file changed, 36 insertions(+), 58 deletions(-)
 
-diff -puN drivers/media/v4l2-core/videobuf2-dma-sg.c~media-vb2-convert-vb2_dma_sg_get_userptr-to-use-frame-vector drivers/media/v4l2-core/videobuf2-dma-sg.c
---- a/drivers/media/v4l2-core/videobuf2-dma-sg.c~media-vb2-convert-vb2_dma_sg_get_userptr-to-use-frame-vector
-+++ a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-@@ -38,6 +38,7 @@ struct vb2_dma_sg_buf {
- 	struct device			*dev;
+diff -puN drivers/media/v4l2-core/videobuf2-vmalloc.c~media-vb2-convert-vb2_vmalloc_get_userptr-to-use-frame-vector drivers/media/v4l2-core/videobuf2-vmalloc.c
+--- a/drivers/media/v4l2-core/videobuf2-vmalloc.c~media-vb2-convert-vb2_vmalloc_get_userptr-to-use-frame-vector
++++ a/drivers/media/v4l2-core/videobuf2-vmalloc.c
+@@ -23,11 +23,9 @@
+ 
+ struct vb2_vmalloc_buf {
  	void				*vaddr;
- 	struct page			**pages;
+-	struct page			**pages;
+-	struct vm_area_struct		*vma;
 +	struct frame_vector		*vec;
- 	int				offset;
  	enum dma_data_direction		dma_dir;
- 	struct sg_table			sg_table;
-@@ -51,7 +52,6 @@ struct vb2_dma_sg_buf {
- 	unsigned int			num_pages;
+ 	unsigned long			size;
+-	unsigned int			n_pages;
  	atomic_t			refcount;
  	struct vb2_vmarea_handler	handler;
--	struct vm_area_struct		*vma;
- 
- 	struct dma_buf_attachment	*db_attach;
- };
-@@ -225,25 +225,17 @@ static void vb2_dma_sg_finish(void *buf_
- 	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
- }
- 
--static inline int vma_is_io(struct vm_area_struct *vma)
--{
--	return !!(vma->vm_flags & (VM_IO | VM_PFNMAP));
--}
--
- static void *vb2_dma_sg_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 				    unsigned long size,
- 				    enum dma_data_direction dma_dir)
+ 	struct dma_buf			*dbuf;
+@@ -76,10 +74,8 @@ static void *vb2_vmalloc_get_userptr(voi
+ 				     enum dma_data_direction dma_dir)
  {
- 	struct vb2_dma_sg_conf *conf = alloc_ctx;
- 	struct vb2_dma_sg_buf *buf;
+ 	struct vb2_vmalloc_buf *buf;
 -	unsigned long first, last;
--	int num_pages_from_user;
+-	int n_pages, offset;
 -	struct vm_area_struct *vma;
- 	struct sg_table *sgt;
- 	DEFINE_DMA_ATTRS(attrs);
+-	dma_addr_t physp;
 +	struct frame_vector *vec;
++	int n_pages, offset, i;
  
- 	dma_set_attr(DMA_ATTR_SKIP_CPU_SYNC, &attrs);
--
- 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
+ 	buf = kzalloc(sizeof(*buf), GFP_KERNEL);
  	if (!buf)
- 		return NULL;
-@@ -254,63 +246,19 @@ static void *vb2_dma_sg_get_userptr(void
- 	buf->offset = vaddr & ~PAGE_MASK;
+@@ -88,53 +84,36 @@ static void *vb2_vmalloc_get_userptr(voi
+ 	buf->dma_dir = dma_dir;
+ 	offset = vaddr & ~PAGE_MASK;
  	buf->size = size;
- 	buf->dma_sgt = &buf->sg_table;
--
--	first = (vaddr           & PAGE_MASK) >> PAGE_SHIFT;
--	last  = ((vaddr + size - 1) & PAGE_MASK) >> PAGE_SHIFT;
--	buf->num_pages = last - first + 1;
--
--	buf->pages = kzalloc(buf->num_pages * sizeof(struct page *),
--			     GFP_KERNEL);
--	if (!buf->pages)
--		goto userptr_fail_alloc_pages;
 -
 -	down_read(&current->mm->mmap_sem);
 -	vma = find_vma(current->mm, vaddr);
--	if (!vma) {
--		dprintk(1, "no vma for address %lu\n", vaddr);
--		goto userptr_fail_find_vma;
--	}
--
--	if (vma->vm_end < vaddr + size) {
--		dprintk(1, "vma at %lu is too small for %lu bytes\n",
--			vaddr, size);
--		goto userptr_fail_find_vma;
--	}
--
--	buf->vma = vb2_get_vma(vma);
--	if (!buf->vma) {
--		dprintk(1, "failed to copy vma\n");
--		goto userptr_fail_find_vma;
--	}
--
--	if (vma_is_io(buf->vma)) {
--		for (num_pages_from_user = 0;
--		     num_pages_from_user < buf->num_pages;
--		     ++num_pages_from_user, vaddr += PAGE_SIZE) {
--			unsigned long pfn;
--
--			if (follow_pfn(vma, vaddr, &pfn)) {
--				dprintk(1, "no page for address %lu\n", vaddr);
--				break;
--			}
--			buf->pages[num_pages_from_user] = pfn_to_page(pfn);
--		}
--	} else
--		num_pages_from_user = get_user_pages(current, current->mm,
--					     vaddr & PAGE_MASK,
--					     buf->num_pages,
--					     buf->dma_dir == DMA_FROM_DEVICE,
--					     1, /* force */
--					     buf->pages,
--					     NULL);
--	up_read(&current->mm->mmap_sem);
--
--	if (num_pages_from_user != buf->num_pages)
--		goto userptr_fail_get_user_pages;
-+	vec = vb2_create_framevec(vaddr, size, buf->dma_dir == DMA_FROM_DEVICE);
+-	if (vma && (vma->vm_flags & VM_PFNMAP) && (vma->vm_pgoff)) {
+-		if (vb2_get_contig_userptr(vaddr, size, &vma, &physp))
+-			goto fail_pages_array_alloc;
+-		buf->vma = vma;
+-		buf->vaddr = (__force void *)ioremap_nocache(physp, size);
+-		if (!buf->vaddr)
+-			goto fail_pages_array_alloc;
++	vec = vb2_create_framevec(vaddr, size, dma_dir == DMA_FROM_DEVICE);
 +	if (IS_ERR(vec))
-+		goto userptr_fail_pfnvec;
++		goto fail_pfnvec_create;
 +	buf->vec = vec;
++	n_pages = frame_vector_count(vec);
++	if (frame_vector_to_pages(vec) < 0) {
++		unsigned long *nums = frame_vector_pfns(vec);
 +
-+	buf->pages = frame_vector_pages(vec);
-+	if (IS_ERR(buf->pages))
-+		goto userptr_fail_sgtable;
-+	buf->num_pages = frame_vector_count(vec);
- 
- 	if (sg_alloc_table_from_pages(buf->dma_sgt, buf->pages,
- 			buf->num_pages, buf->offset, size, 0))
--		goto userptr_fail_alloc_table_from_pages;
-+		goto userptr_fail_sgtable;
- 
- 	sgt = &buf->sg_table;
- 	/*
-@@ -326,19 +274,9 @@ static void *vb2_dma_sg_get_userptr(void
- 
- userptr_fail_map:
- 	sg_free_table(&buf->sg_table);
--userptr_fail_alloc_table_from_pages:
--userptr_fail_get_user_pages:
--	dprintk(1, "get_user_pages requested/got: %d/%d]\n",
--		buf->num_pages, num_pages_from_user);
--	if (!vma_is_io(buf->vma))
--		while (--num_pages_from_user >= 0)
--			put_page(buf->pages[num_pages_from_user]);
--	down_read(&current->mm->mmap_sem);
--	vb2_put_vma(buf->vma);
--userptr_fail_find_vma:
--	up_read(&current->mm->mmap_sem);
--	kfree(buf->pages);
--userptr_fail_alloc_pages:
-+userptr_fail_sgtable:
-+	vb2_destroy_framevec(vec);
-+userptr_fail_pfnvec:
- 	kfree(buf);
- 	return NULL;
- }
-@@ -366,13 +304,8 @@ static void vb2_dma_sg_put_userptr(void
- 	while (--i >= 0) {
- 		if (buf->dma_dir == DMA_FROM_DEVICE)
- 			set_page_dirty_lock(buf->pages[i]);
--		if (!vma_is_io(buf->vma))
--			put_page(buf->pages[i]);
++		/*
++		 * We cannot get page pointers for these pfns. Check memory is
++		 * physically contiguous and use direct mapping.
++		 */
++		for (i = 1; i < n_pages; i++)
++			if (nums[i-1] + 1 != nums[i])
++				goto fail_map;
++		buf->vaddr = (__force void *)
++				ioremap_nocache(nums[0] << PAGE_SHIFT, size);
+ 	} else {
+-		first = vaddr >> PAGE_SHIFT;
+-		last  = (vaddr + size - 1) >> PAGE_SHIFT;
+-		buf->n_pages = last - first + 1;
+-		buf->pages = kzalloc(buf->n_pages * sizeof(struct page *),
+-				     GFP_KERNEL);
+-		if (!buf->pages)
+-			goto fail_pages_array_alloc;
+-
+-		/* current->mm->mmap_sem is taken by videobuf2 core */
+-		n_pages = get_user_pages(current, current->mm,
+-					 vaddr & PAGE_MASK, buf->n_pages,
+-					 dma_dir == DMA_FROM_DEVICE,
+-					 1, /* force */
+-					 buf->pages, NULL);
+-		if (n_pages != buf->n_pages)
+-			goto fail_get_user_pages;
+-
+-		buf->vaddr = vm_map_ram(buf->pages, buf->n_pages, -1,
++		buf->vaddr = vm_map_ram(frame_vector_pages(vec), n_pages, -1,
+ 					PAGE_KERNEL);
+-		if (!buf->vaddr)
+-			goto fail_get_user_pages;
  	}
+-	up_read(&current->mm->mmap_sem);
+ 
++	if (!buf->vaddr)
++		goto fail_map;
+ 	buf->vaddr += offset;
+ 	return buf;
+ 
+-fail_get_user_pages:
+-	pr_debug("get_user_pages requested/got: %d/%d]\n", n_pages,
+-		 buf->n_pages);
+-	while (--n_pages >= 0)
+-		put_page(buf->pages[n_pages]);
 -	kfree(buf->pages);
+-
+-fail_pages_array_alloc:
+-	up_read(&current->mm->mmap_sem);
++fail_map:
++	vb2_destroy_framevec(vec);
++fail_pfnvec_create:
+ 	kfree(buf);
+ 
+ 	return NULL;
+@@ -145,22 +124,21 @@ static void vb2_vmalloc_put_userptr(void
+ 	struct vb2_vmalloc_buf *buf = buf_priv;
+ 	unsigned long vaddr = (unsigned long)buf->vaddr & PAGE_MASK;
+ 	unsigned int i;
++	struct page **pages;
++	unsigned int n_pages;
+ 
 -	down_read(&current->mm->mmap_sem);
--	vb2_put_vma(buf->vma);
+-	if (buf->pages) {
++	if (!buf->vec->is_pfns) {
++		n_pages = frame_vector_count(buf->vec);
++		pages = frame_vector_pages(buf->vec);
+ 		if (vaddr)
+-			vm_unmap_ram((void *)vaddr, buf->n_pages);
+-		for (i = 0; i < buf->n_pages; ++i) {
+-			if (buf->dma_dir == DMA_FROM_DEVICE)
+-				set_page_dirty_lock(buf->pages[i]);
+-			put_page(buf->pages[i]);
+-		}
+-		kfree(buf->pages);
++			vm_unmap_ram((void *)vaddr, n_pages);
++		if (buf->dma_dir == DMA_FROM_DEVICE)
++			for (i = 0; i < n_pages; i++)
++				set_page_dirty_lock(pages[i]);
+ 	} else {
+-		vb2_put_vma(buf->vma);
+ 		iounmap((__force void __iomem *)buf->vaddr);
+ 	}
 -	up_read(&current->mm->mmap_sem);
 +	vb2_destroy_framevec(buf->vec);
  	kfree(buf);
@@ -216,7 +198,6 @@ _
 Patches currently in -mm which might be from jack@suse.cz are
 
 origin.patch
-media-vb2-convert-vb2_vmalloc_get_userptr-to-use-frame-vector.patch
 media-vb2-convert-vb2_dc_get_userptr-to-use-frame-vector.patch
 media-vb2-remove-unused-functions.patch
 drm-exynos-convert-g2d_userptr_get_dma_addr-to-use-get_vaddr_frames.patch
