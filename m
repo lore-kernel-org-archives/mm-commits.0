@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + kmemleak-use-seq_hex_dump-to-dump-buffers.patch added to -mm
- tree
-Date: Tue, 07 Jul 2015 13:59:46 -0700
-Message-ID: <559c3dc2.RhUeSPTk6vviWdlk%akpm@linux-foundation.org>
+Subject: + parisc-use-seq_hex_dump-to-dump-buffers.patch added to -mm tree
+Date: Tue, 07 Jul 2015 13:59:42 -0700
+Message-ID: <559c3dbe.RQv0qj7RkP/ItFqG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57610 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57595 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932745AbbGGU7r (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jul 2015 16:59:47 -0400
+	with ESMTP id S932745AbbGGU7n (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jul 2015 16:59:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: andriy.shevchenko@linux.intel.com, catalin.marinas@arm.com, deller@gmx.de, ingo.tuchscherer@de.ibm.com, joe@perches.com, qca_vkondrat@qca.qualcomm.com, tadeusz.struk@intel.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kmemleak: use seq_hex_dump() to dump buffers
+     Subject: parisc: use seq_hex_dump() to dump buffers
 has been added to the -mm tree.  Its filename is
-     kmemleak-use-seq_hex_dump-to-dump-buffers.patch
+     parisc-use-seq_hex_dump-to-dump-buffers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kmemleak-use-seq_hex_dump-to-dump-buffers.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/parisc-use-seq_hex_dump-to-dump-buffers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kmemleak-use-seq_hex_dump-to-dump-buffers.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/parisc-use-seq_hex_dump-to-dump-buffers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,41 +39,85 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: kmemleak: use seq_hex_dump() to dump buffers
+Subject: parisc: use seq_hex_dump() to dump buffers
 
 Instead of custom approach let's use recently introduced seq_hex_dump()
 helper.
 
+In one case it changes the output from
+	1111111122222222333333334444444455555555666666667777777788888888
+to
+	11111111 22222222 33333333 44444444 55555555 66666666 77777777 88888888
+
+though it seems it prints same data (by meaning) in both cases.  I decide
+to choose to use the space divided one.
+
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Acked-by: Helge Deller <deller@gmx.de>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Joe Perches <joe@perches.com>
 Cc: Tadeusz Struk <tadeusz.struk@intel.com>
-Cc: Helge Deller <deller@gmx.de>
 Cc: Ingo Tuchscherer <ingo.tuchscherer@de.ibm.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Vladimir Kondratiev <qca_vkondrat@qca.qualcomm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |   19 +++++--------------
- 1 file changed, 5 insertions(+), 14 deletions(-)
+ drivers/parisc/ccio-dma.c  |   13 +++----------
+ drivers/parisc/sba_iommu.c |    9 ++-------
+ 2 files changed, 5 insertions(+), 17 deletions(-)
 
-diff -puN mm/kmemleak.c~kmemleak-use-seq_hex_dump-to-dump-buffers mm/kmemleak.c
---- a/mm/kmemleak.c~kmemleak-use-seq_hex_dump-to-dump-buffers
-+++ a/mm/kmemleak.c
-@@ -302,23 +302,14 @@ static void hex_dump_object(struct seq_f
- 			    struct kmemleak_object *object)
+diff -puN drivers/parisc/ccio-dma.c~parisc-use-seq_hex_dump-to-dump-buffers drivers/parisc/ccio-dma.c
+--- a/drivers/parisc/ccio-dma.c~parisc-use-seq_hex_dump-to-dump-buffers
++++ a/drivers/parisc/ccio-dma.c
+@@ -1103,16 +1103,9 @@ static int ccio_proc_bitmap_info(struct
+ 	struct ioc *ioc = ioc_list;
+ 
+ 	while (ioc != NULL) {
+-		u32 *res_ptr = (u32 *)ioc->res_map;
+-		int j;
+-
+-		for (j = 0; j < (ioc->res_size / sizeof(u32)); j++) {
+-			if ((j & 7) == 0)
+-				seq_puts(m, "\n   ");
+-			seq_printf(m, "%08x", *res_ptr);
+-			res_ptr++;
+-		}
+-		seq_puts(m, "\n\n");
++		seq_hex_dump(m, "   ", DUMP_PREFIX_NONE, 32, 4, ioc->res_map,
++			     ioc->res_size, false);
++		seq_putc(m, '\n');
+ 		ioc = ioc->next;
+ 		break; /* XXX - remove me */
+ 	}
+diff -puN drivers/parisc/sba_iommu.c~parisc-use-seq_hex_dump-to-dump-buffers drivers/parisc/sba_iommu.c
+--- a/drivers/parisc/sba_iommu.c~parisc-use-seq_hex_dump-to-dump-buffers
++++ a/drivers/parisc/sba_iommu.c
+@@ -1854,14 +1854,9 @@ sba_proc_bitmap_info(struct seq_file *m,
  {
- 	const u8 *ptr = (const u8 *)object->pointer;
--	int i, len, remaining;
--	unsigned char linebuf[HEX_ROW_SIZE * 5];
-+	size_t len;
+ 	struct sba_device *sba_dev = sba_list;
+ 	struct ioc *ioc = &sba_dev->ioc[0];	/* FIXME: Multi-IOC support! */
+-	unsigned int *res_ptr = (unsigned int *)ioc->res_map;
+-	int i;
  
- 	/* limit the number of lines to HEX_MAX_LINES */
--	remaining = len =
--		min(object->size, (size_t)(HEX_MAX_LINES * HEX_ROW_SIZE));
-+	len = min_t(size_t, object->size, HEX_MAX_LINES * HEX_ROW_SIZE);
+-	for (i = 0; i < (ioc->res_size/sizeof(unsigned int)); ++i, ++res_ptr) {
+-		if ((i & 7) == 0)
+-			seq_puts(m, "\n   ");
+-		seq_printf(m, " %08x", *res_ptr);
+-	}
++	seq_hex_dump(m, "   ", DUMP_PREFIX_NONE, 32, 4, ioc->res_map,
++		     ioc->res_size, false);
+ 	seq_putc(m, '\n');
  
--	seq_printf(seq, "  hex dump (first %d bytes):\n", len);
--	for (i = 0; i < len; i += HEX_ROW_SIZE) {
--		int linelen = min(remaining, HEX_ROW_SIZE);
+ 	return 0;
+_
+
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+
+seq_file-provide-an-analogue-of-print_hex_dump.patch
+crypto-qat-use-seq_hex_dump-to-dump-buffers.patch
+parisc-use-seq_hex_dump-to-dump-buffers.patch
+zcrypt-use-seq_hex_dump-to-dump-buffers.patch
+kmemleak-use-seq_hex_dump-to-dump-buffers.patch
+wil6210-use-seq_hex_dump-to-dump-buffers.patch
+
