@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + x86-mm-trace-when-an-ipi-is-about-to-be-sent.patch added to -mm tree
-Date: Tue, 07 Jul 2015 16:25:41 -0700
-Message-ID: <559c5ff5.MrSX8IMapFodEZ9L%akpm@linux-foundation.org>
+Subject: + mm-increase-swap_cluster_max-to-batch-tlb-flushes.patch added
+ to -mm tree
+Date: Tue, 07 Jul 2015 16:25:47 -0700
+Message-ID: <559c5ffb.WpsLOHwNUYKcXtMU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33176 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33195 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752043AbbGGXZm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jul 2015 19:25:42 -0400
+	with ESMTP id S1757168AbbGGXZt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jul 2015 19:25:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mgorman@suse.de, dave.hansen@intel.com, mingo@kernel.org, riel@redhat.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86, mm: trace when an IPI is about to be sent
+     Subject: mm: increase SWAP_CLUSTER_MAX to batch TLB flushes
 has been added to the -mm tree.  Its filename is
-     x86-mm-trace-when-an-ipi-is-about-to-be-sent.patch
+     mm-increase-swap_cluster_max-to-batch-tlb-flushes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86-mm-trace-when-an-ipi-is-about-to-be-sent.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-increase-swap_cluster_max-to-batch-tlb-flushes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86-mm-trace-when-an-ipi-is-about-to-be-sent.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-increase-swap_cluster_max-to-batch-tlb-flushes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,87 +40,67 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: x86, mm: trace when an IPI is about to be sent
+Subject: mm: increase SWAP_CLUSTER_MAX to batch TLB flushes
 
-When unmapping pages it is necessary to flush the TLB.  If that page was
-accessed by another CPU then an IPI is used to flush the remote CPU.  That
-is a lot of IPIs if kswapd is scanning and unmapping >100K pages per
-second.
+Pages that are unmapped for reclaim must be flushed before being freed to
+avoid corruption due to a page being freed and reallocated while a stale
+TLB entry exists.  When reclaiming mapped pages, the requires one IPI per
+SWAP_CLUSTER_MAX.  This patch increases SWAP_CLUSTER_MAX to 256 so more
+pages can be flushed with a single IPI.  This number was selected because
+it reduced IPIs for TLB shootdowns by 40% on a workload that is dominated
+by mapped pages.
 
-There already is a window between when a page is unmapped and when it is
-TLB flushed.  This series ses the window so multiple pages can be flushed
-using a single IPI.  This should be safe or the kernel is hosed already.
+Note that it is expected that doubling SWAP_CLUSTER_MAX would not always
+halve the IPIs as it is workload dependent.  Reclaim efficiency was not
+100% on this workload which was picked for being IPI-intensive and was
+closer to 35%.  More importantly, reclaim does not always isolate in
+SWAP_CLUSTER_MAX pages.  The LRU lists for a zone may be small, the
+priority can be low and even when reclaiming a lot of pages, the last
+isolation may not be exactly SWAP_CLUSTER_MAX.
 
-Patch 1 simply made the rest of the series easier to write as ftrace
-	could identify all the senders of TLB flush IPIS.
+There are a few potential issues with increasing SWAP_CLUSTER_MAX.
 
-Patch 2 tracks what CPUs potentially map a PFN and then sends an IPI
-	to flush the entire TLB.
+1. LRU lock hold times increase slightly because more pages are being
+   isolated.
+2. There are slight timing changes due to more pages having to be
+   processed before they are freed. There is a slight risk that more
+   pages than are necessary get reclaimed.
+3. There is a risk that too_many_isolated checks will be easier to
+   trigger resulting in a HZ/10 stall.
+4. The rotation rate of active->inactive is slightly faster but there
+   should be fewer rotations before the lists get balanced so it
+   shouldn't matter.
+5. More pages are reclaimed in a single pass if zone_reclaim_mode is
+   active but that thing sucks hard when it's enabled no matter what
+6. More pages are isolated for compaction so page hold times there
+   are longer while they are being copied
 
-Patch 3 tracks when there potentially are writable TLB entries that
-	need to be batched differently
-
-Patch 4 increases SWAP_CLUSTER_MAX to further batch flushes
-
-The performance impact is documented in the changelogs but in the optimistic
-case on a 4-socket machine the full series reduces interrupts from 900K
-interrupts/second to 60K interrupts/second.
-
-
-This patch (of 4):
-
-It is easy to trace when an IPI is received to flush a TLB but harder to
-detect what event sent it.  This patch makes it easy to identify the
-source of IPIs being transmitted for TLB flushes on x86.
+It's unlikely any of these will be problems but worth keeping in mind if
+there are any reclaim-related bug reports in the near future.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Reviewed-by: Dave Hansen <dave.hansen@intel.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
 Acked-by: Ingo Molnar <mingo@kernel.org>
 Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/tlb.c          |    1 +
- include/linux/mm_types.h   |    1 +
- include/trace/events/tlb.h |    3 ++-
- 3 files changed, 4 insertions(+), 1 deletion(-)
+ include/linux/swap.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/mm/tlb.c~x86-mm-trace-when-an-ipi-is-about-to-be-sent arch/x86/mm/tlb.c
---- a/arch/x86/mm/tlb.c~x86-mm-trace-when-an-ipi-is-about-to-be-sent
-+++ a/arch/x86/mm/tlb.c
-@@ -140,6 +140,7 @@ void native_flush_tlb_others(const struc
- 	info.flush_end = end;
- 
- 	count_vm_tlb_event(NR_TLB_REMOTE_FLUSH);
-+	trace_tlb_flush(TLB_REMOTE_SEND_IPI, end - start);
- 	if (is_uv_system()) {
- 		unsigned int cpu;
- 
-diff -puN include/linux/mm_types.h~x86-mm-trace-when-an-ipi-is-about-to-be-sent include/linux/mm_types.h
---- a/include/linux/mm_types.h~x86-mm-trace-when-an-ipi-is-about-to-be-sent
-+++ a/include/linux/mm_types.h
-@@ -563,6 +563,7 @@ enum tlb_flush_reason {
- 	TLB_REMOTE_SHOOTDOWN,
- 	TLB_LOCAL_SHOOTDOWN,
- 	TLB_LOCAL_MM_SHOOTDOWN,
-+	TLB_REMOTE_SEND_IPI,
- 	NR_TLB_FLUSH_REASONS,
+diff -puN include/linux/swap.h~mm-increase-swap_cluster_max-to-batch-tlb-flushes include/linux/swap.h
+--- a/include/linux/swap.h~mm-increase-swap_cluster_max-to-batch-tlb-flushes
++++ a/include/linux/swap.h
+@@ -154,7 +154,7 @@ enum {
+ 	SWP_SCANNING	= (1 << 10),	/* refcount in scan_swap_map */
  };
  
-diff -puN include/trace/events/tlb.h~x86-mm-trace-when-an-ipi-is-about-to-be-sent include/trace/events/tlb.h
---- a/include/trace/events/tlb.h~x86-mm-trace-when-an-ipi-is-about-to-be-sent
-+++ a/include/trace/events/tlb.h
-@@ -11,7 +11,8 @@
- 	EM(  TLB_FLUSH_ON_TASK_SWITCH,	"flush on task switch" )	\
- 	EM(  TLB_REMOTE_SHOOTDOWN,	"remote shootdown" )		\
- 	EM(  TLB_LOCAL_SHOOTDOWN,	"local shootdown" )		\
--	EMe( TLB_LOCAL_MM_SHOOTDOWN,	"local mm shootdown" )
-+	EM(  TLB_LOCAL_MM_SHOOTDOWN,	"local mm shootdown" )		\
-+	EMe( TLB_REMOTE_SEND_IPI,	"remote ipi send" )
+-#define SWAP_CLUSTER_MAX 32UL
++#define SWAP_CLUSTER_MAX 256UL
+ #define COMPACT_CLUSTER_MAX SWAP_CLUSTER_MAX
  
  /*
-  * First define the enums in TLB_FLUSH_REASON to be exported to userspace
 _
 
 Patches currently in -mm which might be from mgorman@suse.de are
