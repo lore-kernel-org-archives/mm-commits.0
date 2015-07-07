@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- kmod-add-up-to-date-explanations-on-the-purpose-of-each-asynchronous-levels.patch added to -mm tree
-Date: Tue, 07 Jul 2015 16:09:41 -0700
-Message-ID: <559c5c35.8mNehr+PiFrPBQfU%akpm@linux-foundation.org>
+Subject: + kmod-remove-unecessary-explicit-wide-cpu-affinity-setting.patch added to -mm tree
+Date: Tue, 07 Jul 2015 16:09:43 -0700
+Message-ID: <559c5c37.S4vYB5A6NQhb8Yx5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60971 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60975 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757528AbbGGXJm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jul 2015 19:09:42 -0400
+	with ESMTP id S1757374AbbGGXJo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jul 2015 19:09:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: fweisbec@gmail.com, cl@linux.com, oleg@redhat.com, riel@redhat.com, rusty@rustcorp.com.au, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kmod: add up-to-date explanations on the purpose of each asynchronous level
+     Subject: kmod: remove unecessary explicit wide CPU affinity setting
 has been added to the -mm tree.  Its filename is
-     kmod-add-up-to-date-explanations-on-the-purpose-of-each-asynchronous-levels.patch
+     kmod-remove-unecessary-explicit-wide-cpu-affinity-setting.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kmod-add-up-to-date-explanations-on-the-purpose-of-each-asynchronous-levels.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kmod-remove-unecessary-explicit-wide-cpu-affinity-setting.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kmod-add-up-to-date-explanations-on-the-purpose-of-each-asynchronous-levels.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kmod-remove-unecessary-explicit-wide-cpu-affinity-setting.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,14 +39,27 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Frederic Weisbecker <fweisbec@gmail.com>
-Subject: kmod: add up-to-date explanations on the purpose of each asynchronous level
+Subject: kmod: remove unecessary explicit wide CPU affinity setting
 
-There seems to be quite some confusions on the comments, likely due to
-changes that came after them.
+The call_usermodehelper_exec_[a]sync() kernel threads are created by
+khelper precisely because we want them to be affine to all CPUs,
+irrespective of any call_usermodehelper() caller with reduced CPU
+affinity.  So this explicit all-CPUs wide affinity forcing is useless.
 
-Now since it's very non obvious why we have 3 levels of asynchronous code
-to implement usermodehelpers, it's important to comment in detail the
-reason of this layout.
+Not only useless it even breaks nohz full.  The housekeeping work (general
+kernel internal code that user doesn't care much about) is handled by a
+reduced set of CPUs in nohz full, precisely those that are not included by
+nohz_full= kernel parameters.  For example unbound workqueues are handled
+by housekeeping CPUs.  And we want the usermodehelper tasks to be handled
+by housekeeping CPUs because they are kernel internals that user critical
+nohz full work don't want to be disturbed by.
+
+In nohz full configurations, khelper will naturally be affine to
+housekeeping CPUs and this housekeeping affinity is then inherited by
+usermodehelper kernel threads.  But the explicit call to
+set_cpus_allowed_ptr() breaks that.
+
+Simply remove it.
 
 Signed-off-by: Frederic Weisbecker <fweisbec@gmail.com>
 Cc: Rik van Riel <riel@redhat.com>
@@ -58,79 +70,15 @@ Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kmod.c |   32 ++++++++++++++++++++++++++++----
- 1 file changed, 28 insertions(+), 4 deletions(-)
+ kernel/kmod.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN kernel/kmod.c~kmod-add-up-to-date-explanations-on-the-purpose-of-each-asynchronous-levels kernel/kmod.c
---- a/kernel/kmod.c~kmod-add-up-to-date-explanations-on-the-purpose-of-each-asynchronous-levels
+diff -puN kernel/kmod.c~kmod-remove-unecessary-explicit-wide-cpu-affinity-setting kernel/kmod.c
+--- a/kernel/kmod.c~kmod-remove-unecessary-explicit-wide-cpu-affinity-setting
 +++ a/kernel/kmod.c
-@@ -269,7 +269,11 @@ out:
- 	do_exit(0);
- }
+@@ -223,9 +223,6 @@ static int call_usermodehelper_exec_asyn
+ 	flush_signal_handlers(current, 1);
+ 	spin_unlock_irq(&current->sighand->siglock);
  
--/* Keventd can't block, but this (a child) can. */
-+/*
-+ * We couldn't wait for usermodehelper completion from khelper without
-+ * blocking other pending concurrent usermodehelper targets. This is why
-+ * the UMH_WAIT_PROC flavour runs in its own thread.
-+ */
- static int call_usermodehelper_exec_sync(void *data)
- {
- 	struct subprocess_info *sub_info = data;
-@@ -285,8 +289,8 @@ static int call_usermodehelper_exec_sync
- 		/*
- 		 * Normally it is bogus to call wait4() from in-kernel because
- 		 * wait4() wants to write the exit code to a userspace address.
--		 * But call_usermodehelper_exec_sync() always runs as keventd,
--		 * and put_user() to a kernel address works OK for kernel
-+		 * But call_usermodehelper_exec_sync() always runs as kernel
-+		 * thread and put_user() to a kernel address works OK for kernel
- 		 * threads, due to their having an mm_segment_t which spans the
- 		 * entire address space.
- 		 *
-@@ -307,7 +311,15 @@ static int call_usermodehelper_exec_sync
- 	do_exit(0);
- }
- 
--/* This is run by khelper thread  */
-+/*
-+ * This function doesn't need to be called asynchronously. But we need to create
-+ * the usermodehelper kernel threads from a task that is affine to all CPUs
-+ * (or nohz housekeeping ones) such that they inherit a global affinity. Khelper
-+ * workqueue simply provides that.
-+ * call_usermodehelper() can be called from tasks with a reduced CPU
-+ * affinity (eg: per-cpu workqueues) and we don't want usermodehelper targets to
-+ * contend any busy CPU.
-+ */
- static void call_usermodehelper_exec_work(struct work_struct *work)
- {
- 	struct subprocess_info *sub_info =
-@@ -693,6 +705,18 @@ struct ctl_table usermodehelper_table[]
- 
- void __init usermodehelper_init(void)
- {
-+	/*
-+	 * The singlethread property here stands for the need of a workqueue
-+	 * with wide CPUs affinity, in order to create usermodehelper kernel
-+	 * threads inheriting this attribute irrespective of
-+	 * call_usermodehelper() callers. Non-singlethread workqueues are
-+	 * otherwise per-cpu and wouldn't produce the desired effect.
-+	 *
-+	 * The ordering guarantee as a side-effect isn't necessary but shouldn't
-+	 * introduce performance issue. All we do is creating two kernel threads.
-+	 * This should be fast enough not to block concurrent usermodehelper
-+	 * callers.
-+	 */
- 	khelper_wq = create_singlethread_workqueue("khelper");
- 	BUG_ON(!khelper_wq);
- }
-_
-
-Patches currently in -mm which might be from fweisbec@gmail.com are
-
-origin.patch
-kmod-bunch-of-internal-functions-renames.patch
-kmod-add-up-to-date-explanations-on-the-purpose-of-each-asynchronous-levels.patch
-kmod-remove-unecessary-explicit-wide-cpu-affinity-setting.patch
-linux-next.patch
-
+-	/* We can run anywhere, unlike our parent keventd(). */
+-	set_cpus_allowed_ptr(current, cpu_all_mask);
