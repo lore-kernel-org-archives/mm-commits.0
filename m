@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + crypto-qat-use-seq_hex_dump-to-dump-buffers.patch added to -mm
- tree
-Date: Tue, 07 Jul 2015 13:59:40 -0700
-Message-ID: <559c3dbc.Un0Cslmb3MVp77/3%akpm@linux-foundation.org>
+Subject: + seq_file-provide-an-analogue-of-print_hex_dump.patch added to
+ -mm tree
+Date: Tue, 07 Jul 2015 13:59:38 -0700
+Message-ID: <559c3dba.AMfARsd9b1dBnTdE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57586 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57572 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932930AbbGGU7l (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jul 2015 16:59:41 -0400
+	with ESMTP id S932861AbbGGU7j (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jul 2015 16:59:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: andriy.shevchenko@linux.intel.com, catalin.marinas@arm.com, deller@gmx.de, ingo.tuchscherer@de.ibm.com, joe@perches.com, qca_vkondrat@qca.qualcomm.com, tadeusz.struk@intel.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/crypto/qat: use seq_hex_dump() to dump buffers
+     Subject: seq_file: provide an analogue of print_hex_dump()
 has been added to the -mm tree.  Its filename is
-     crypto-qat-use-seq_hex_dump-to-dump-buffers.patch
+     seq_file-provide-an-analogue-of-print_hex_dump.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/crypto-qat-use-seq_hex_dump-to-dump-buffers.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/seq_file-provide-an-analogue-of-print_hex_dump.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/crypto-qat-use-seq_hex_dump-to-dump-buffers.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/seq_file-provide-an-analogue-of-print_hex_dump.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,15 +40,22 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: drivers/crypto/qat: use seq_hex_dump() to dump buffers
+Subject: seq_file: provide an analogue of print_hex_dump()
 
-Instead of custom approach let's use recently introduced seq_hex_dump()
-helper.
+This introduces a new helper and switches current users to use it.  All
+patches are compiled tested. kmemleak is tested via its own test suite.
+
+This patch (of 6):
+
+The new seq_hex_dump() is a complete analogue of print_hex_dump().
+
+We have few users of this functionality already. It allows to reduce their
+codebase.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Acked-by: Tadeusz Struk <tadeusz.struk@intel.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Joe Perches <joe@perches.com>
+Cc: Tadeusz Struk <tadeusz.struk@intel.com>
 Cc: Helge Deller <deller@gmx.de>
 Cc: Ingo Tuchscherer <ingo.tuchscherer@de.ibm.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -56,43 +63,83 @@ Cc: Vladimir Kondratiev <qca_vkondrat@qca.qualcomm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/crypto/qat/qat_common/adf_transport_debug.c |   16 +---------
- 1 file changed, 2 insertions(+), 14 deletions(-)
+ fs/seq_file.c            |   42 +++++++++++++++++++++++++++++++++++++
+ include/linux/seq_file.h |    4 +++
+ 2 files changed, 46 insertions(+)
 
-diff -puN drivers/crypto/qat/qat_common/adf_transport_debug.c~crypto-qat-use-seq_hex_dump-to-dump-buffers drivers/crypto/qat/qat_common/adf_transport_debug.c
---- a/drivers/crypto/qat/qat_common/adf_transport_debug.c~crypto-qat-use-seq_hex_dump-to-dump-buffers
-+++ a/drivers/crypto/qat/qat_common/adf_transport_debug.c
-@@ -86,9 +86,7 @@ static int adf_ring_show(struct seq_file
- {
- 	struct adf_etr_ring_data *ring = sfile->private;
- 	struct adf_etr_bank_data *bank = ring->bank;
--	uint32_t *msg = v;
- 	void __iomem *csr = ring->bank->csr_addr;
--	int i, x;
+diff -puN fs/seq_file.c~seq_file-provide-an-analogue-of-print_hex_dump fs/seq_file.c
+--- a/fs/seq_file.c~seq_file-provide-an-analogue-of-print_hex_dump
++++ a/fs/seq_file.c
+@@ -12,6 +12,7 @@
+ #include <linux/slab.h>
+ #include <linux/cred.h>
+ #include <linux/mm.h>
++#include <linux/printk.h>
  
- 	if (v == SEQ_START_TOKEN) {
- 		int head, tail, empty;
-@@ -113,18 +111,8 @@ static int adf_ring_show(struct seq_file
- 		seq_puts(sfile, "----------- Ring data ------------\n");
- 		return 0;
- 	}
--	seq_printf(sfile, "%p:", msg);
--	x = 0;
--	i = 0;
--	for (; i < (ADF_MSG_SIZE_TO_BYTES(ring->msg_size) >> 2); i++) {
--		seq_printf(sfile, " %08X", *(msg + i));
--		if ((ADF_MSG_SIZE_TO_BYTES(ring->msg_size) >> 2) != i + 1 &&
--		    (++x == 8)) {
--			seq_printf(sfile, "\n%p:", msg + i + 1);
--			x = 0;
--		}
--	}
--	seq_puts(sfile, "\n");
-+	seq_hex_dump(sfile, "", DUMP_PREFIX_ADDRESS, 32, 4,
-+		     v, ADF_MSG_SIZE_TO_BYTES(ring->msg_size), false);
- 	return 0;
+ #include <asm/uaccess.h>
+ #include <asm/page.h>
+@@ -773,6 +774,47 @@ void seq_pad(struct seq_file *m, char c)
  }
+ EXPORT_SYMBOL(seq_pad);
  
++/* A complete analogue of print_hex_dump() */
++void seq_hex_dump(struct seq_file *m, const char *prefix_str, int prefix_type,
++		  int rowsize, int groupsize, const void *buf, size_t len,
++		  bool ascii)
++{
++	const u8 *ptr = buf;
++	int i, linelen, remaining = len;
++	int ret;
++
++	if (rowsize != 16 && rowsize != 32)
++		rowsize = 16;
++
++	for (i = 0; i < len && !seq_has_overflowed(m); i += rowsize) {
++		linelen = min(remaining, rowsize);
++		remaining -= rowsize;
++
++		switch (prefix_type) {
++		case DUMP_PREFIX_ADDRESS:
++			seq_printf(m, "%s%p: ", prefix_str, ptr + i);
++			break;
++		case DUMP_PREFIX_OFFSET:
++			seq_printf(m, "%s%.8x: ", prefix_str, i);
++			break;
++		default:
++			seq_printf(m, "%s", prefix_str);
++			break;
++		}
++
++		ret = hex_dump_to_buffer(ptr + i, linelen, rowsize, groupsize,
++					 m->buf + m->count, m->size - m->count,
++					 ascii);
++		if (ret >= m->size - m->count) {
++			seq_set_overflow(m);
++		} else {
++			m->count += ret;
++			seq_putc(m, '\n');
++		}
++	}
++}
++EXPORT_SYMBOL(seq_hex_dump);
++
+ struct list_head *seq_list_start(struct list_head *head, loff_t pos)
+ {
+ 	struct list_head *lh;
+diff -puN include/linux/seq_file.h~seq_file-provide-an-analogue-of-print_hex_dump include/linux/seq_file.h
+--- a/include/linux/seq_file.h~seq_file-provide-an-analogue-of-print_hex_dump
++++ a/include/linux/seq_file.h
+@@ -122,6 +122,10 @@ int seq_write(struct seq_file *seq, cons
+ __printf(2, 3) int seq_printf(struct seq_file *, const char *, ...);
+ __printf(2, 0) int seq_vprintf(struct seq_file *, const char *, va_list args);
+ 
++void seq_hex_dump(struct seq_file *m, const char *prefix_str, int prefix_type,
++		  int rowsize, int groupsize, const void *buf, size_t len,
++		  bool ascii);
++
+ int seq_path(struct seq_file *, const struct path *, const char *);
+ int seq_file_path(struct seq_file *, struct file *, const char *);
+ int seq_dentry(struct seq_file *, struct dentry *, const char *);
 _
 
 Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
