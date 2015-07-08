@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + userfaultfd-require-uffdio_api-before-other-ioctls.patch added
- to -mm tree
-Date: Wed, 08 Jul 2015 15:42:10 -0700
-Message-ID: <559da742./oqUpWMAexEU9DvQ%akpm@linux-foundation.org>
+Subject: + userfaultfd-propagate-the-full-address-in-thp-faults.patch
+ added to -mm tree
+Date: Wed, 08 Jul 2015 15:42:14 -0700
+Message-ID: <559da746.CXicowuo9OcJUi0n%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46018 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46025 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751231AbbGHWmM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Jul 2015 18:42:12 -0400
+	with ESMTP id S1751231AbbGHWmP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Jul 2015 18:42:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, dave.hansen@intel.com, torvalds@linux-foundation.org, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: require UFFDIO_API before other ioctls
+     Subject: userfaultfd: propagate the full address in THP faults
 has been added to the -mm tree.  Its filename is
-     userfaultfd-require-uffdio_api-before-other-ioctls.patch
+     userfaultfd-propagate-the-full-address-in-thp-faults.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-require-uffdio_api-before-other-ioctls.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-propagate-the-full-address-in-thp-faults.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-require-uffdio_api-before-other-ioctls.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-propagate-the-full-address-in-thp-faults.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,20 +40,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: userfaultfd: require UFFDIO_API before other ioctls
+Subject: userfaultfd: propagate the full address in THP faults
 
-UFFDIO_API was already forced before read/poll could work.  This makes the
-code more strict to force it also for all other ioctls.
+The THP faults were not propagating the original fault address.  The
+latest version of the API with uffd.arg.pagefault.address is supposed to
+propagate the full address through THP faults.
 
-All users would already have been required to call UFFDIO_API before
-invoking other ioctls but this makes it more explicit.
+This was not a kernel crashing bug and it wouldn't risk to corrupt user
+memory, but it would cause a SIGBUS failure because the wrong page was
+being copied.
 
-This will ensure we can change all ioctls (all but UFFDIO_API/struct
-uffdio_api) with a bump of uffdio_api.api.
-
-There's no actual plan or need to change the API or the ioctl, the current
-API already should cover fine even the non cooperative usage, but this is
-just for the longer term future just in case.
+For various reasons this wasn't easily reproducible in the qemu workload,
+but the strestest exposed the problem immediately.
 
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Pavel Emelyanov <xemul@parallels.com>
@@ -62,30 +60,56 @@ Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/huge_memory.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN fs/userfaultfd.c~userfaultfd-require-uffdio_api-before-other-ioctls fs/userfaultfd.c
---- a/fs/userfaultfd.c~userfaultfd-require-uffdio_api-before-other-ioctls
-+++ a/fs/userfaultfd.c
-@@ -577,7 +577,6 @@ static ssize_t userfaultfd_read(struct f
+diff -puN mm/huge_memory.c~userfaultfd-propagate-the-full-address-in-thp-faults mm/huge_memory.c
+--- a/mm/huge_memory.c~userfaultfd-propagate-the-full-address-in-thp-faults
++++ a/mm/huge_memory.c
+@@ -717,13 +717,14 @@ static inline pmd_t mk_huge_pmd(struct p
  
- 	if (ctx->state == UFFD_STATE_WAIT_API)
- 		return -EINVAL;
--	BUG_ON(ctx->state != UFFD_STATE_RUNNING);
+ static int __do_huge_pmd_anonymous_page(struct mm_struct *mm,
+ 					struct vm_area_struct *vma,
+-					unsigned long haddr, pmd_t *pmd,
++					unsigned long address, pmd_t *pmd,
+ 					struct page *page, gfp_t gfp,
+ 					unsigned int flags)
+ {
+ 	struct mem_cgroup *memcg;
+ 	pgtable_t pgtable;
+ 	spinlock_t *ptl;
++	unsigned long haddr = address & HPAGE_PMD_MASK;
  
- 	for (;;) {
- 		if (count < sizeof(msg))
-@@ -1115,6 +1114,9 @@ static long userfaultfd_ioctl(struct fil
- 	int ret = -EINVAL;
- 	struct userfaultfd_ctx *ctx = file->private_data;
+ 	VM_BUG_ON_PAGE(!PageCompound(page), page);
  
-+	if (cmd != UFFDIO_API && ctx->state == UFFD_STATE_WAIT_API)
-+		return -EINVAL;
-+
- 	switch(cmd) {
- 	case UFFDIO_API:
- 		ret = userfaultfd_api(ctx, arg);
+@@ -765,7 +766,7 @@ static int __do_huge_pmd_anonymous_page(
+ 			mem_cgroup_cancel_charge(page, memcg);
+ 			put_page(page);
+ 			pte_free(mm, pgtable);
+-			ret = handle_userfault(vma, haddr, flags,
++			ret = handle_userfault(vma, address, flags,
+ 					       VM_UFFD_MISSING);
+ 			VM_BUG_ON(ret & VM_FAULT_FALLBACK);
+ 			return ret;
+@@ -841,7 +842,7 @@ int do_huge_pmd_anonymous_page(struct mm
+ 		if (pmd_none(*pmd)) {
+ 			if (userfaultfd_missing(vma)) {
+ 				spin_unlock(ptl);
+-				ret = handle_userfault(vma, haddr, flags,
++				ret = handle_userfault(vma, address, flags,
+ 						       VM_UFFD_MISSING);
+ 				VM_BUG_ON(ret & VM_FAULT_FALLBACK);
+ 			} else {
+@@ -865,7 +866,8 @@ int do_huge_pmd_anonymous_page(struct mm
+ 		count_vm_event(THP_FAULT_FALLBACK);
+ 		return VM_FAULT_FALLBACK;
+ 	}
+-	return __do_huge_pmd_anonymous_page(mm, vma, haddr, pmd, page, gfp, flags);
++	return __do_huge_pmd_anonymous_page(mm, vma, address, pmd, page, gfp,
++					    flags);
+ }
+ 
+ int copy_huge_pmd(struct mm_struct *dst_mm, struct mm_struct *src_mm,
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
