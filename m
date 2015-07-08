@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + zsmalloc-drop-unused-variable-nr_to_migrate.patch added to -mm
- tree
-Date: Wed, 08 Jul 2015 15:37:50 -0700
-Message-ID: <559da63e.mV4/165QZPssJyN2%akpm@linux-foundation.org>
+Subject: + zsmalloc-cosmetic-compaction-code-adjustments.patch added to
+ -mm tree
+Date: Wed, 08 Jul 2015 15:37:56 -0700
+Message-ID: <559da644.O7ZEN8v13ZpgdQOW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45992 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46001 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755862AbbGHWhv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Jul 2015 18:37:51 -0400
+	with ESMTP id S1755869AbbGHWh5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Jul 2015 18:37:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: sergey.senozhatsky@gmail.com, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: drop unused variable `nr_to_migrate'
+     Subject: zsmalloc: cosmetic compaction code adjustments
 has been added to the -mm tree.  Its filename is
-     zsmalloc-drop-unused-variable-nr_to_migrate.patch
+     zsmalloc-cosmetic-compaction-code-adjustments.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zsmalloc-drop-unused-variable-nr_to_migrate.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zsmalloc-cosmetic-compaction-code-adjustments.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zsmalloc-drop-unused-variable-nr_to_migrate.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zsmalloc-cosmetic-compaction-code-adjustments.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,64 +40,70 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: zsmalloc: drop unused variable `nr_to_migrate'
+Subject: zsmalloc: cosmetic compaction code adjustments
 
-This patchset tweaks compaction and makes it possible to trigger pool
-compaction automatically when system is getting low on memory.
+Change zs_object_copy() argument order to be (DST, SRC) rather than (SRC,
+DST).  copy/move functions usually have (to, from) arguments order.
 
-zsmalloc in some cases can suffer from a notable fragmentation and
-compaction can release some considerable amount of memory.  The problem
-here is that currently we fully rely on user space to perform compaction
-when needed.  However, performing zsmalloc compaction is not always an
-obvious thing to do.  For example, suppose we have a `idle' fragmented
-(compaction was never performed) zram device and system is getting low on
-memory due to some 3rd party user processes (gcc LTO, or firefox, etc.). 
-It's quite unlikely that user space will issue zpool compaction in this
-case.  Besides, user space cannot tell for sure how badly pool is
-fragmented; however, this info is known to zsmalloc and, hence, to a
-shrinker.
+Rename alloc_target_page() to isolate_target_page().  This function
+doesn't allocate anything, it isolates target page, pretty much like
+isolate_source_page().
 
-
-This patch (of 7):
-
-__zs_compact() does not use `nr_to_migrate', drop it.
+Tweak __zs_compact() comment.
 
 Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Acked-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    4 ----
- 1 file changed, 4 deletions(-)
+ mm/zsmalloc.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN mm/zsmalloc.c~zsmalloc-drop-unused-variable-nr_to_migrate mm/zsmalloc.c
---- a/mm/zsmalloc.c~zsmalloc-drop-unused-variable-nr_to_migrate
+diff -puN mm/zsmalloc.c~zsmalloc-cosmetic-compaction-code-adjustments mm/zsmalloc.c
+--- a/mm/zsmalloc.c~zsmalloc-cosmetic-compaction-code-adjustments
 +++ a/mm/zsmalloc.c
-@@ -1703,7 +1703,6 @@ static struct page *isolate_source_page(
- static unsigned long __zs_compact(struct zs_pool *pool,
+@@ -1471,7 +1471,7 @@ void zs_free(struct zs_pool *pool, unsig
+ }
+ EXPORT_SYMBOL_GPL(zs_free);
+ 
+-static void zs_object_copy(unsigned long src, unsigned long dst,
++static void zs_object_copy(unsigned long dst, unsigned long src,
  				struct size_class *class)
  {
--	int nr_to_migrate;
- 	struct zs_compact_control cc;
- 	struct page *src_page;
- 	struct page *dst_page = NULL;
-@@ -1714,8 +1713,6 @@ static unsigned long __zs_compact(struct
+ 	struct page *s_page, *d_page;
+@@ -1612,7 +1612,7 @@ static int migrate_zspage(struct zs_pool
  
- 		BUG_ON(!is_first_page(src_page));
+ 		used_obj = handle_to_obj(handle);
+ 		free_obj = obj_malloc(d_page, class, handle);
+-		zs_object_copy(used_obj, free_obj, class);
++		zs_object_copy(free_obj, used_obj, class);
+ 		index++;
+ 		record_obj(handle, free_obj);
+ 		unpin_tag(handle);
+@@ -1628,7 +1628,7 @@ static int migrate_zspage(struct zs_pool
+ 	return ret;
+ }
  
--		/* The goal is to migrate all live objects in source page */
--		nr_to_migrate = src_page->inuse;
+-static struct page *alloc_target_page(struct size_class *class)
++static struct page *isolate_target_page(struct size_class *class)
+ {
+ 	int i;
+ 	struct page *page;
+@@ -1718,11 +1718,11 @@ static unsigned long __zs_compact(struct
  		cc.index = 0;
  		cc.s_page = src_page;
  
-@@ -1730,7 +1727,6 @@ static unsigned long __zs_compact(struct
- 
- 			putback_zspage(pool, class, dst_page);
- 			nr_total_migrated += cc.nr_migrated;
--			nr_to_migrate -= cc.nr_migrated;
- 		}
- 
- 		/* Stop if we couldn't find slot */
+-		while ((dst_page = alloc_target_page(class))) {
++		while ((dst_page = isolate_target_page(class))) {
+ 			cc.d_page = dst_page;
+ 			/*
+-			 * If there is no more space in dst_page, try to
+-			 * allocate another zspage.
++			 * If there is no more space in dst_page, resched
++			 * and see if anyone had allocated another zspage.
+ 			 */
+ 			if (!migrate_zspage(pool, class, &cc))
+ 				break;
 _
 
 Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
