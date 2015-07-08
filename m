@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + zsmalloc-use-shrinker-to-trigger-auto-compaction.patch added to -mm tree
-Date: Wed, 08 Jul 2015 15:38:02 -0700
-Message-ID: <559da64a.TN03iKS9HvmZwOed%akpm@linux-foundation.org>
+Subject: + userfaultfd-require-uffdio_api-before-other-ioctls.patch added
+ to -mm tree
+Date: Wed, 08 Jul 2015 15:42:10 -0700
+Message-ID: <559da742./oqUpWMAexEU9DvQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46010 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46018 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755920AbbGHWiD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Jul 2015 18:38:03 -0400
+	with ESMTP id S1751231AbbGHWmM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Jul 2015 18:42:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sergey.senozhatsky@gmail.com, minchan@kernel.org, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, dave.hansen@intel.com, torvalds@linux-foundation.org, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: use shrinker to trigger auto-compaction
+     Subject: userfaultfd: require UFFDIO_API before other ioctls
 has been added to the -mm tree.  Its filename is
-     zsmalloc-use-shrinker-to-trigger-auto-compaction.patch
+     userfaultfd-require-uffdio_api-before-other-ioctls.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zsmalloc-use-shrinker-to-trigger-auto-compaction.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-require-uffdio_api-before-other-ioctls.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zsmalloc-use-shrinker-to-trigger-auto-compaction.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-require-uffdio_api-before-other-ioctls.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,155 +39,110 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: zsmalloc: use shrinker to trigger auto-compaction
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: userfaultfd: require UFFDIO_API before other ioctls
 
-Perform automatic pool compaction by a shrinker when system is getting
-tight on memory.
+UFFDIO_API was already forced before read/poll could work.  This makes the
+code more strict to force it also for all other ioctls.
 
-User-space has a very little knowledge regarding zsmalloc fragmentation
-and basically has no mechanism to tell whether compaction will result in
-any memory gain.  Another issue is that user space is not always aware of
-the fact that system is getting tight on memory.  Which leads to very
-uncomfortable scenarios when user space may start issuing compaction
-'randomly' or from crontab (for example).  Fragmentation is not always
-necessarily bad, allocated and unused objects, after all, may be filled
-with the data later, w/o the need of allocating a new zspage.  On the
-other hand, we obviously don't want to waste memory when the system needs
-it.
+All users would already have been required to call UFFDIO_API before
+invoking other ioctls but this makes it more explicit.
 
-Compaction now has a relatively quick pool scan so we are able to estimate
-the number of pages that will be freed easily, which makes it possible to
-call this function from a shrinker->count_objects() callback.  We also
-abort compaction as soon as we detect that we can't free any pages any
-more, preventing wasteful objects migrations.
+This will ensure we can change all ioctls (all but UFFDIO_API/struct
+uffdio_api) with a bump of uffdio_api.api.
 
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Suggested-by: Minchan Kim <minchan@kernel.org>
+There's no actual plan or need to change the API or the ioctl, the current
+API already should cover fine even the non cooperative usage, but this is
+just for the longer term future just in case.
+
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |   78 ++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 78 insertions(+)
+ fs/userfaultfd.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/zsmalloc.c~zsmalloc-use-shrinker-to-trigger-auto-compaction mm/zsmalloc.c
---- a/mm/zsmalloc.c~zsmalloc-use-shrinker-to-trigger-auto-compaction
-+++ a/mm/zsmalloc.c
-@@ -246,6 +246,14 @@ struct zs_pool {
- 	atomic_long_t pages_allocated;
+diff -puN fs/userfaultfd.c~userfaultfd-require-uffdio_api-before-other-ioctls fs/userfaultfd.c
+--- a/fs/userfaultfd.c~userfaultfd-require-uffdio_api-before-other-ioctls
++++ a/fs/userfaultfd.c
+@@ -577,7 +577,6 @@ static ssize_t userfaultfd_read(struct f
  
- 	struct zs_pool_stats stats;
-+
-+	/* Compact classes */
-+	struct shrinker shrinker;
-+	/*
-+	 * To signify that register_shrinker() was successful
-+	 * and unregister_shrinker() will not Oops.
-+	 */
-+	bool shrinker_enabled;
- #ifdef CONFIG_ZSMALLOC_STAT
- 	struct dentry *stat_dentry;
- #endif
-@@ -1778,6 +1786,69 @@ void zs_pool_stats(struct zs_pool *pool,
- }
- EXPORT_SYMBOL_GPL(zs_pool_stats);
+ 	if (ctx->state == UFFD_STATE_WAIT_API)
+ 		return -EINVAL;
+-	BUG_ON(ctx->state != UFFD_STATE_RUNNING);
  
-+static unsigned long zs_shrinker_scan(struct shrinker *shrinker,
-+		struct shrink_control *sc)
-+{
-+	unsigned long pages_freed;
-+	struct zs_pool *pool = container_of(shrinker, struct zs_pool,
-+			shrinker);
-+
-+	pages_freed = pool->stats.pages_compacted;
-+	/*
-+	 * Compact classes and calculate compaction delta.
-+	 * Can run concurrently with a manually triggered
-+	 * (by user) compaction.
-+	 */
-+	pages_freed = zs_compact(pool) - pages_freed;
-+
-+	return pages_freed ? pages_freed : SHRINK_STOP;
-+}
-+
-+static unsigned long zs_shrinker_count(struct shrinker *shrinker,
-+		struct shrink_control *sc)
-+{
-+	int i;
-+	struct size_class *class;
-+	unsigned long pages_to_free = 0;
-+	struct zs_pool *pool = container_of(shrinker, struct zs_pool,
-+			shrinker);
-+
-+	if (!pool->shrinker_enabled)
-+		return 0;
-+
-+	for (i = zs_size_classes - 1; i >= 0; i--) {
-+		class = pool->size_class[i];
-+		if (!class)
-+			continue;
-+		if (class->index != i)
-+			continue;
-+
-+		spin_lock(&class->lock);
-+		pages_to_free += zs_can_compact(class);
-+		spin_unlock(&class->lock);
-+	}
-+
-+	return pages_to_free;
-+}
-+
-+static void zs_unregister_shrinker(struct zs_pool *pool)
-+{
-+	if (pool->shrinker_enabled) {
-+		unregister_shrinker(&pool->shrinker);
-+		pool->shrinker_enabled = false;
-+	}
-+}
-+
-+static int zs_register_shrinker(struct zs_pool *pool)
-+{
-+	pool->shrinker.scan_objects = zs_shrinker_scan;
-+	pool->shrinker.count_objects = zs_shrinker_count;
-+	pool->shrinker.batch = 0;
-+	pool->shrinker.seeks = DEFAULT_SEEKS;
-+
-+	return register_shrinker(&pool->shrinker);
-+}
-+
- /**
-  * zs_create_pool - Creates an allocation pool to work from.
-  * @flags: allocation flags used to allocate pool metadata
-@@ -1863,6 +1934,12 @@ struct zs_pool *zs_create_pool(char *nam
- 	if (zs_pool_stat_create(name, pool))
- 		goto err;
+ 	for (;;) {
+ 		if (count < sizeof(msg))
+@@ -1115,6 +1114,9 @@ static long userfaultfd_ioctl(struct fil
+ 	int ret = -EINVAL;
+ 	struct userfaultfd_ctx *ctx = file->private_data;
  
-+	/*
-+	 * Not critical, we still can use the pool
-+	 * and user can trigger compaction manually.
-+	 */
-+	if (zs_register_shrinker(pool) == 0)
-+		pool->shrinker_enabled = true;
- 	return pool;
- 
- err:
-@@ -1875,6 +1952,7 @@ void zs_destroy_pool(struct zs_pool *poo
- {
- 	int i;
- 
-+	zs_unregister_shrinker(pool);
- 	zs_pool_stat_destroy(pool);
- 
- 	for (i = 0; i < zs_size_classes; i++) {
++	if (cmd != UFFDIO_API && ctx->state == UFFD_STATE_WAIT_API)
++		return -EINVAL;
++
+ 	switch(cmd) {
+ 	case UFFDIO_API:
+ 		ret = userfaultfd_api(ctx, arg);
 _
 
-Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
-zsmalloc-drop-unused-variable-nr_to_migrate.patch
-zsmalloc-always-keep-per-class-stats.patch
-zsmalloc-introduce-zs_can_compact-function.patch
-zsmalloc-cosmetic-compaction-code-adjustments.patch
-zsmalloc-zram-introduce-zs_pool_stats-api.patch
-zsmalloc-account-the-number-of-compacted-pages.patch
-zsmalloc-use-shrinker-to-trigger-auto-compaction.patch
+userfaultfd-linux-documentation-vm-userfaultfdtxt.patch
+userfaultfd-linux-documentation-vm-userfaultfdtxt-fix.patch
+userfaultfd-waitqueue-add-nr-wake-parameter-to-__wake_up_locked_key.patch
+userfaultfd-uapi.patch
+userfaultfd-uapi-add-missing-include-typesh.patch
+userfaultfd-linux-userfaultfd_kh.patch
+userfaultfd-add-vm_userfaultfd_ctx-to-the-vm_area_struct.patch
+userfaultfd-add-vm_uffd_missing-and-vm_uffd_wp.patch
+userfaultfd-call-handle_userfault-for-userfaultfd_missing-faults.patch
+userfaultfd-teach-vma_merge-to-merge-across-vma-vm_userfaultfd_ctx.patch
+userfaultfd-prevent-khugepaged-to-merge-if-userfaultfd-is-armed.patch
+userfaultfd-add-new-syscall-to-provide-memory-externalization.patch
+userfaultfd-add-new-syscall-to-provide-memory-externalization-fix.patch
+userfaultfd-add-new-syscall-to-provide-memory-externalization-fix-fix.patch
+userfaultfd-add-new-syscall-to-provide-memory-externalization-fix-fix-fix.patch
+userfaultfd-rename-uffd_apibits-into-features.patch
+userfaultfd-rename-uffd_apibits-into-features-fixup.patch
+userfaultfd-change-the-read-api-to-return-a-uffd_msg.patch
+userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix.patch
+userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
+userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
+userfaultfd-wake-pending-userfaults.patch
+userfaultfd-optimize-read-and-poll-to-be-o1.patch
+userfaultfd-optimize-read-and-poll-to-be-o1-fix.patch
+userfaultfd-allocate-the-userfaultfd_ctx-cacheline-aligned.patch
+userfaultfd-solve-the-race-between-uffdio_copyzeropage-and-read.patch
+userfaultfd-buildsystem-activation.patch
+userfaultfd-activate-syscall.patch
+userfaultfd-activate-syscall-fix.patch
+userfaultfd-uffdio_copyuffdio_zeropage-uapi.patch
+userfaultfd-mcopy_atomicmfill_zeropage-uffdio_copyuffdio_zeropage-preparation.patch
+userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic.patch
+userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
+userfaultfd-uffdio_copy-and-uffdio_zeropage.patch
+userfaultfd-require-uffdio_api-before-other-ioctls.patch
+userfaultfd-allow-signals-to-interrupt-a-userfault.patch
+userfaultfd-propagate-the-full-address-in-thp-faults.patch
+userfaultfd-avoid-missing-wakeups-during-refile-in-userfaultfd_read.patch
+userfaultfd-selftest.patch
+fs-userfaultfdc-work-around-i386-build-error.patch
+page-flags-trivial-cleanup-for-pagetrans-helpers.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
+page-flags-define-pg_locked-behavior-on-compound-pages.patch
+page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
+page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
+page-flags-define-pg_reserved-behavior-on-compound-pages.patch
+page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
+page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
+page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
+page-flags-define-pg_uncached-behavior-on-compound-pages.patch
+page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
+page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
+mm-sanitize-page-mapping-for-tail-pages.patch
 
