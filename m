@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + oom-split-out-forced-oom-killer.patch added to -mm tree
-Date: Wed, 08 Jul 2015 15:24:03 -0700
-Message-ID: <559da303.fkyaRKTJMP2Mmj5S%akpm@linux-foundation.org>
+Subject: + zsmalloc-zram-introduce-zs_pool_stats-api.patch added to -mm
+ tree
+Date: Wed, 08 Jul 2015 15:37:58 -0700
+Message-ID: <559da646.x2/SmX3yFQtdQkRs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45453 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46004 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751189AbbGHWYE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Jul 2015 18:24:04 -0400
+	with ESMTP id S1755920AbbGHWh7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Jul 2015 18:37:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.cz, jakobunt@gmail.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: sergey.senozhatsky@gmail.com, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: oom: split out forced OOM killer
+     Subject: zsmalloc/zram: introduce zs_pool_stats api
 has been added to the -mm tree.  Its filename is
-     oom-split-out-forced-oom-killer.patch
+     zsmalloc-zram-introduce-zs_pool_stats-api.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/oom-split-out-forced-oom-killer.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zsmalloc-zram-introduce-zs_pool_stats-api.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/oom-split-out-forced-oom-killer.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zsmalloc-zram-introduce-zs_pool_stats-api.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,191 +39,250 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: oom: split out forced OOM killer
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: zsmalloc/zram: introduce zs_pool_stats api
 
-The forced OOM killing is currently wired into out_of_memory() call even
-though their objective is different which makes the code ugly and harder
-to follow.  Generic out_of_memory path has to deal with configuration
-settings and heuristics which are completely irrelevant to the forced OOM
-killer (e.g.  sysctl_oom_kill_allocating_task or OOM killer prevention for
-already dying tasks).  All of them are either relying on explicit
-force_kill check or indirectly by checking current->mm which is always
-NULL for sysrq+f.  This is not nice, hard to follow and error prone.
+`zs_compact_control' accounts the number of migrated objects but it has a
+limited lifespan -- we lose it as soon as zs_compaction() returns back to
+zram.  It worked fine, because (a) zram had it's own counter of migrated
+objects and (b) only zram could trigger compaction.  However, this does
+not work for automatic pool compaction (not issued by zram).  To account
+objects migrated during auto-compaction (issued by the shrinker) we need
+to store this number in zs_pool.
 
-Let's pull forced OOM killer code out into a separate function
-(force_out_of_memory) which is really trivial now.  As a bonus we can
-clearly state that this is a forced OOM killer in the OOM message which is
-helpful to distinguish it from the regular OOM killer.
+Define a new `struct zs_pool_stats' structure to keep zs_pool's stats
+there.  It provides only `num_migrated', as of this writing, but it surely
+can be extended.
 
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Jakob Unterwurzacher <jakobunt@gmail.com>
+A new zsmalloc zs_pool_stats() symbol exports zs_pool's stats back to
+caller.
+
+Use zs_pool_stats() in zram and remove `num_migrated' from zram_stats.
+
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Suggested-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/tty/sysrq.c |    9 ------
- include/linux/oom.h |    1 
- mm/oom_kill.c       |   57 ++++++++++++++++++++++++++++--------------
- 3 files changed, 41 insertions(+), 26 deletions(-)
+ drivers/block/zram/zram_drv.c |   15 +++++++++------
+ drivers/block/zram/zram_drv.h |    1 -
+ include/linux/zsmalloc.h      |    6 ++++++
+ mm/zsmalloc.c                 |   29 +++++++++++++++--------------
+ 4 files changed, 30 insertions(+), 21 deletions(-)
 
-diff -puN drivers/tty/sysrq.c~oom-split-out-forced-oom-killer drivers/tty/sysrq.c
---- a/drivers/tty/sysrq.c~oom-split-out-forced-oom-killer
-+++ a/drivers/tty/sysrq.c
-@@ -353,15 +353,8 @@ static struct sysrq_key_op sysrq_term_op
- 
- static void moom_callback(struct work_struct *ignored)
+diff -puN drivers/block/zram/zram_drv.c~zsmalloc-zram-introduce-zs_pool_stats-api drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zsmalloc-zram-introduce-zs_pool_stats-api
++++ a/drivers/block/zram/zram_drv.c
+@@ -388,7 +388,6 @@ static ssize_t comp_algorithm_store(stru
+ static ssize_t compact_store(struct device *dev,
+ 		struct device_attribute *attr, const char *buf, size_t len)
  {
--	const gfp_t gfp_mask = GFP_KERNEL;
--	struct oom_context oc = {
--		.zonelist = node_zonelist(first_memory_node, gfp_mask),
--		.gfp_mask = gfp_mask,
--		.force_kill = true,
--	};
--
- 	mutex_lock(&oom_lock);
--	if (!out_of_memory(&oc))
-+	if (!force_out_of_memory())
- 		pr_info("OOM request ignored because killer is disabled\n");
- 	mutex_unlock(&oom_lock);
- }
-diff -puN include/linux/oom.h~oom-split-out-forced-oom-killer include/linux/oom.h
---- a/include/linux/oom.h~oom-split-out-forced-oom-killer
-+++ a/include/linux/oom.h
-@@ -77,6 +77,7 @@ extern enum oom_scan_t oom_scan_process_
- 		struct task_struct *task, unsigned long totalpages);
+-	unsigned long nr_migrated;
+ 	struct zram *zram = dev_to_zram(dev);
+ 	struct zram_meta *meta;
  
- extern bool out_of_memory(struct oom_context *oc);
-+extern bool force_out_of_memory(void);
- 
- extern void exit_oom_victim(void);
- 
-diff -puN mm/oom_kill.c~oom-split-out-forced-oom-killer mm/oom_kill.c
---- a/mm/oom_kill.c~oom-split-out-forced-oom-killer
-+++ a/mm/oom_kill.c
-@@ -627,6 +627,38 @@ int unregister_oom_notifier(struct notif
- EXPORT_SYMBOL_GPL(unregister_oom_notifier);
- 
- /**
-+ * force_out_of_memory - forces OOM killer to kill a process
-+ *
-+ * Explicitly trigger the OOM killer. The system doesn't have to be under
-+ * OOM condition (e.g. sysrq+f).
-+ */
-+bool force_out_of_memory(void)
-+{
-+	struct task_struct *p;
-+	unsigned long totalpages;
-+	unsigned int points;
-+	const gfp_t gfp_mask = GFP_KERNEL;
-+	struct oom_context oc = {
-+		.zonelist = node_zonelist(first_memory_node, gfp_mask),
-+		.gfp_mask = gfp_mask,
-+		.force_kill = true,
-+	};
-+
-+	if (oom_killer_disabled)
-+		return false;
-+
-+	constrained_alloc(&oc, &totalpages);
-+	p = select_bad_process(&oc, &points, totalpages);
-+	if (p != (void *)-1UL)
-+		oom_kill_process(&oc, p, points, totalpages, NULL,
-+				 "Forced out of memory killer");
-+	else
-+		pr_warn("Sysrq triggered out of memory. No killable task found...\n");
-+
-+	return true;
-+}
-+
-+/**
-  * out_of_memory - kill the "best" process when we run out of memory
-  * @oc: pointer to struct oom_context
-  *
-@@ -647,12 +679,10 @@ bool out_of_memory(struct oom_context *o
- 	if (oom_killer_disabled)
- 		return false;
- 
--	if (!oc->force_kill) {
--		blocking_notifier_call_chain(&oom_notify_list, 0, &freed);
--		if (freed > 0)
--			/* Got some memory back in the last second. */
--			goto out;
--	}
-+	blocking_notifier_call_chain(&oom_notify_list, 0, &freed);
-+	if (freed > 0)
-+		/* Got some memory back in the last second. */
-+		goto out;
- 
- 	/*
- 	 * If current has a pending SIGKILL or is exiting, then automatically
-@@ -675,13 +705,8 @@ bool out_of_memory(struct oom_context *o
- 	constraint = constrained_alloc(oc, &totalpages);
- 	if (constraint != CONSTRAINT_MEMORY_POLICY)
- 		oc->nodemask = NULL;
--	if (!oc->force_kill)
--		check_panic_on_oom(oc, constraint, NULL);
-+	check_panic_on_oom(oc, constraint, NULL);
- 
--	/*
--	 * not affecting force_kill because sysrq triggered OOM killer runs from
--	 * the workqueue context so current->mm will be NULL
--	 */
- 	if (sysctl_oom_kill_allocating_task && current->mm &&
- 	    !oom_unkillable_task(current, NULL, oc->nodemask) &&
- 	    current->signal->oom_score_adj != OOM_SCORE_ADJ_MIN) {
-@@ -694,12 +719,8 @@ bool out_of_memory(struct oom_context *o
- 	p = select_bad_process(oc, &points, totalpages);
- 	/* Found nothing?!?! Either we hang forever, or we panic. */
- 	if (!p) {
--		if (!oc->force_kill) {
--			dump_header(oc, NULL, NULL);
--			panic("Out of memory and no killable processes...\n");
--		} else {
--			pr_info("Sysrq triggered out of memory. No killable task found...\n");
--		}
-+		dump_header(oc, NULL, NULL);
-+		panic("Out of memory and no killable processes...\n");
+@@ -399,8 +398,7 @@ static ssize_t compact_store(struct devi
  	}
- 	if (p != (void *)-1UL) {
- 		oom_kill_process(oc, p, points, totalpages, NULL,
+ 
+ 	meta = zram->meta;
+-	nr_migrated = zs_compact(meta->mem_pool);
+-	atomic64_add(nr_migrated, &zram->stats.num_migrated);
++	zs_compact(meta->mem_pool);
+ 	up_read(&zram->init_lock);
+ 
+ 	return len;
+@@ -428,26 +426,31 @@ static ssize_t mm_stat_show(struct devic
+ 		struct device_attribute *attr, char *buf)
+ {
+ 	struct zram *zram = dev_to_zram(dev);
++	struct zs_pool_stats pool_stats;
+ 	u64 orig_size, mem_used = 0;
+ 	long max_used;
+ 	ssize_t ret;
+ 
++	memset(&pool_stats, 0x00, sizeof(struct zs_pool_stats));
++
+ 	down_read(&zram->init_lock);
+-	if (init_done(zram))
++	if (init_done(zram)) {
+ 		mem_used = zs_get_total_pages(zram->meta->mem_pool);
++		zs_pool_stats(zram->meta->mem_pool, &pool_stats);
++	}
+ 
+ 	orig_size = atomic64_read(&zram->stats.pages_stored);
+ 	max_used = atomic_long_read(&zram->stats.max_used_pages);
+ 
+ 	ret = scnprintf(buf, PAGE_SIZE,
+-			"%8llu %8llu %8llu %8lu %8ld %8llu %8llu\n",
++			"%8llu %8llu %8llu %8lu %8ld %8llu %8lu\n",
+ 			orig_size << PAGE_SHIFT,
+ 			(u64)atomic64_read(&zram->stats.compr_data_size),
+ 			mem_used << PAGE_SHIFT,
+ 			zram->limit_pages << PAGE_SHIFT,
+ 			max_used << PAGE_SHIFT,
+ 			(u64)atomic64_read(&zram->stats.zero_pages),
+-			(u64)atomic64_read(&zram->stats.num_migrated));
++			pool_stats.num_migrated);
+ 	up_read(&zram->init_lock);
+ 
+ 	return ret;
+diff -puN drivers/block/zram/zram_drv.h~zsmalloc-zram-introduce-zs_pool_stats-api drivers/block/zram/zram_drv.h
+--- a/drivers/block/zram/zram_drv.h~zsmalloc-zram-introduce-zs_pool_stats-api
++++ a/drivers/block/zram/zram_drv.h
+@@ -78,7 +78,6 @@ struct zram_stats {
+ 	atomic64_t compr_data_size;	/* compressed size of pages stored */
+ 	atomic64_t num_reads;	/* failed + successful */
+ 	atomic64_t num_writes;	/* --do-- */
+-	atomic64_t num_migrated;	/* no. of migrated object */
+ 	atomic64_t failed_reads;	/* can happen when memory is too low */
+ 	atomic64_t failed_writes;	/* can happen when memory is too low */
+ 	atomic64_t invalid_io;	/* non-page-aligned I/O requests */
+diff -puN include/linux/zsmalloc.h~zsmalloc-zram-introduce-zs_pool_stats-api include/linux/zsmalloc.h
+--- a/include/linux/zsmalloc.h~zsmalloc-zram-introduce-zs_pool_stats-api
++++ a/include/linux/zsmalloc.h
+@@ -34,6 +34,11 @@ enum zs_mapmode {
+ 	 */
+ };
+ 
++struct zs_pool_stats {
++	/* How many objects were migrated */
++	unsigned long num_migrated;
++};
++
+ struct zs_pool;
+ 
+ struct zs_pool *zs_create_pool(char *name, gfp_t flags);
+@@ -49,4 +54,5 @@ void zs_unmap_object(struct zs_pool *poo
+ unsigned long zs_get_total_pages(struct zs_pool *pool);
+ unsigned long zs_compact(struct zs_pool *pool);
+ 
++void zs_pool_stats(struct zs_pool *pool, struct zs_pool_stats *stats);
+ #endif
+diff -puN mm/zsmalloc.c~zsmalloc-zram-introduce-zs_pool_stats-api mm/zsmalloc.c
+--- a/mm/zsmalloc.c~zsmalloc-zram-introduce-zs_pool_stats-api
++++ a/mm/zsmalloc.c
+@@ -245,6 +245,7 @@ struct zs_pool {
+ 	gfp_t flags;	/* allocation flags used when growing pool */
+ 	atomic_long_t pages_allocated;
+ 
++	struct zs_pool_stats stats;
+ #ifdef CONFIG_ZSMALLOC_STAT
+ 	struct dentry *stat_dentry;
+ #endif
+@@ -1578,7 +1579,7 @@ struct zs_compact_control {
+ 	 /* Starting object index within @s_page which used for live object
+ 	  * in the subpage. */
+ 	int index;
+-	/* how many of objects are migrated */
++	/* How many of objects were migrated */
+ 	int nr_migrated;
+ };
+ 
+@@ -1590,7 +1591,6 @@ static int migrate_zspage(struct zs_pool
+ 	struct page *s_page = cc->s_page;
+ 	struct page *d_page = cc->d_page;
+ 	unsigned long index = cc->index;
+-	int nr_migrated = 0;
+ 	int ret = 0;
+ 
+ 	while (1) {
+@@ -1617,13 +1617,12 @@ static int migrate_zspage(struct zs_pool
+ 		record_obj(handle, free_obj);
+ 		unpin_tag(handle);
+ 		obj_free(pool, class, used_obj);
+-		nr_migrated++;
++		cc->nr_migrated++;
+ 	}
+ 
+ 	/* Remember last position in this iteration */
+ 	cc->s_page = s_page;
+ 	cc->index = index;
+-	cc->nr_migrated = nr_migrated;
+ 
+ 	return ret;
+ }
+@@ -1699,14 +1698,13 @@ static unsigned long zs_can_compact(stru
+ 	return obj_wasted * get_pages_per_zspage(class->size);
+ }
+ 
+-static unsigned long __zs_compact(struct zs_pool *pool,
+-				struct size_class *class)
++static void __zs_compact(struct zs_pool *pool, struct size_class *class)
+ {
+ 	struct zs_compact_control cc;
+ 	struct page *src_page;
+ 	struct page *dst_page = NULL;
+-	unsigned long nr_total_migrated = 0;
+ 
++	cc.nr_migrated = 0;
+ 	spin_lock(&class->lock);
+ 	while ((src_page = isolate_source_page(class))) {
+ 
+@@ -1728,7 +1726,6 @@ static unsigned long __zs_compact(struct
+ 				break;
+ 
+ 			putback_zspage(pool, class, dst_page);
+-			nr_total_migrated += cc.nr_migrated;
+ 		}
+ 
+ 		/* Stop if we couldn't find slot */
+@@ -1738,7 +1735,6 @@ static unsigned long __zs_compact(struct
+ 		putback_zspage(pool, class, dst_page);
+ 		putback_zspage(pool, class, src_page);
+ 		spin_unlock(&class->lock);
+-		nr_total_migrated += cc.nr_migrated;
+ 		cond_resched();
+ 		spin_lock(&class->lock);
+ 	}
+@@ -1746,15 +1742,14 @@ static unsigned long __zs_compact(struct
+ 	if (src_page)
+ 		putback_zspage(pool, class, src_page);
+ 
+-	spin_unlock(&class->lock);
++	pool->stats.num_migrated += cc.nr_migrated;
+ 
+-	return nr_total_migrated;
++	spin_unlock(&class->lock);
+ }
+ 
+ unsigned long zs_compact(struct zs_pool *pool)
+ {
+ 	int i;
+-	unsigned long nr_migrated = 0;
+ 	struct size_class *class;
+ 
+ 	for (i = zs_size_classes - 1; i >= 0; i--) {
+@@ -1763,13 +1758,19 @@ unsigned long zs_compact(struct zs_pool
+ 			continue;
+ 		if (class->index != i)
+ 			continue;
+-		nr_migrated += __zs_compact(pool, class);
++		__zs_compact(pool, class);
+ 	}
+ 
+-	return nr_migrated;
++	return pool->stats.num_migrated;
+ }
+ EXPORT_SYMBOL_GPL(zs_compact);
+ 
++void zs_pool_stats(struct zs_pool *pool, struct zs_pool_stats *stats)
++{
++	memcpy(stats, &pool->stats, sizeof(struct zs_pool_stats));
++}
++EXPORT_SYMBOL_GPL(zs_pool_stats);
++
+ /**
+  * zs_create_pool - Creates an allocation pool to work from.
+  * @flags: allocation flags used to allocate pool metadata
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
 
-origin.patch
-mm-mlock-refactor-mlock-munlock-and-munlockall-code.patch
-mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls.patch
-mm-mlock-introduce-vm_lockonfault-and-add-mlock-flags-to-enable-it.patch
-mm-mmap-add-mmap-flag-to-request-vm_lockonfault.patch
-selftests-vm-add-tests-for-lock-on-fault.patch
-oom-do-not-panic-when-oom-killer-is-sysrq-triggered.patch
-oom-do-not-invoke-oom-notifiers-on-sysrqf.patch
-mm-oom-organize-oom-context-into-struct.patch
-oom-split-out-forced-oom-killer.patch
-page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-mm-sanitize-page-mapping-for-tail-pages.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-mm-page_isolation-check-pfn-validity-before-access.patch
-mm-support-madvisemadv_free.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-dont-split-thp-page-when-syscall-is-called.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-2.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
-mm-move-lazy-free-pages-to-inactive-list.patch
-mm-move-lazy-free-pages-to-inactive-list-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+zsmalloc-drop-unused-variable-nr_to_migrate.patch
+zsmalloc-always-keep-per-class-stats.patch
+zsmalloc-introduce-zs_can_compact-function.patch
+zsmalloc-cosmetic-compaction-code-adjustments.patch
+zsmalloc-zram-introduce-zs_pool_stats-api.patch
+zsmalloc-account-the-number-of-compacted-pages.patch
+zsmalloc-use-shrinker-to-trigger-auto-compaction.patch
 
