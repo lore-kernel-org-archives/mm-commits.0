@@ -1,30 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-rejects.patch added to -mm tree
-Date: Tue, 07 Jul 2015 17:24:09 -0700
-Message-ID: <559c6da9.1uXEYdrYAQZ/qYDD%akpm@linux-foundation.org>
+Subject: + fs-proc-add-help-for-config_proc_children.patch added to -mm
+ tree
+Date: Wed, 08 Jul 2015 15:09:21 -0700
+Message-ID: <559d9f91.v5wWm4vzEgZMHlCz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34821 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45200 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932224AbbGHAYK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 7 Jul 2015 20:24:10 -0400
+	with ESMTP id S1750814AbbGHWJW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 8 Jul 2015 18:09:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: iago@endocode.com, jdelvare@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-rejects
+     Subject: fs, proc: add help for CONFIG_PROC_CHILDREN
 has been added to the -mm tree.  Its filename is
-     linux-next-rejects.patch
+     fs-proc-add-help-for-config_proc_children.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-rejects.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-proc-add-help-for-confi=
+g_proc_children.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-rejects.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-proc-add-help-for-confi=
+g_proc_children.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -32,91 +35,53 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-rejects
+=46rom: Iago L=F3pez Galeiras <iago@endocode.com>
+Subject: fs, proc: add help for CONFIG_PROC_CHILDREN
 
+The purpose of the option was documented in
+Documentation/filesystems/proc.txt but the help text was missing.
+
+Add small help text that also points to the documentation.
+
+Signed-off-by: Iago L=F3pez Galeiras <iago@endocode.com>
+Cc: Jean Delvare <jdelvare@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/arch-v10/kernel/entry.S |   10 +++++++++-
- arch/cris/arch-v32/kernel/entry.S |   10 +++++++++-
- 2 files changed, 18 insertions(+), 2 deletions(-)
+ fs/proc/Kconfig |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN arch/cris/arch-v10/kernel/entry.S~linux-next-rejects arch/cris/arch-v10/kernel/entry.S
---- a/arch/cris/arch-v10/kernel/entry.S~linux-next-rejects
-+++ a/arch/cris/arch-v10/kernel/entry.S
-@@ -955,7 +955,15 @@ sys_call_table:
- 	.long sys_process_vm_writev
- 	.long sys_kcmp			/* 350 */
- 	.long sys_finit_module
--	.long sys_mlock2
-+	.long sys_sched_setattr
-+	.long sys_sched_getattr
-+	.long sys_renameat2
-+	.long sys_seccomp		/* 355 */
-+	.long sys_getrandom
-+	.long sys_memfd_create
-+	.long sys_bpf
-+	.long sys_execveat
-+	.long sys_mlock2		/* 360 */
- 	.long sys_munlock2
- 	.long sys_munlockall2
- 
-diff -puN arch/cris/arch-v32/kernel/entry.S~linux-next-rejects arch/cris/arch-v32/kernel/entry.S
---- a/arch/cris/arch-v32/kernel/entry.S~linux-next-rejects
-+++ a/arch/cris/arch-v32/kernel/entry.S
-@@ -886,7 +886,15 @@ sys_call_table:
- 	.long sys_process_vm_writev
- 	.long sys_kcmp			/* 350 */
- 	.long sys_finit_module
--	.long sys_mlock2
-+	.long sys_sched_setattr
-+	.long sys_sched_getattr
-+	.long sys_renameat2
-+	.long sys_seccomp		/* 355 */
-+	.long sys_getrandom
-+	.long sys_memfd_create
-+	.long sys_bpf
-+	.long sys_execveat
-+	.long sys_mlock2		/* 360 */
- 	.long sys_munlock2
- 	.long sys_munlockall2
- 
+diff -puN fs/proc/Kconfig~fs-proc-add-help-for-config_proc_children fs/=
+proc/Kconfig
+--- a/fs/proc/Kconfig~fs-proc-add-help-for-config_proc_children
++++ a/fs/proc/Kconfig
+@@ -75,3 +75,9 @@ config PROC_PAGE_MONITOR
+ config PROC_CHILDREN
+ 	bool "Include /proc/<pid>/task/<tid>/children file"
+ 	default n
++	help
++	  Provides a fast way to retrieve first level children pids of a task=
+=2E See
++	  <file:Documentation/filesystems/proc.txt> for more information.
++
++	  Say Y if you are running any user-space software which takes benefi=
+t from
++	  this interface. For example, rkt is such a piece of software.
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from iago@endocode.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-openrisc-fix-config_uid16-setting.patch
-mm.patch
-slab-infrastructure-for-bulk-object-allocation-and-freeing-v3-fix.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
-userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
-fs-userfaultfdc-work-around-i386-build-error.patch
-include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
-linux-next.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-net-netfilter-ipset-work-around-gcc-444-initializer-bug.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
-linux-next-rejects.patch
+fs-proc-add-help-for-config_proc_children.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
