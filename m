@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + kstrto-accept-0-for-signed-conversion.patch added to -mm tree
-Date: Thu, 09 Jul 2015 12:26:03 -0700
-Message-ID: <559ecacb.MrudHkyqz+fAfTTU%akpm@linux-foundation.org>
+Subject: + scanf-fix-type-range-overflow.patch added to -mm tree
+Date: Thu, 09 Jul 2015 12:26:13 -0700
+Message-ID: <559ecad5.mXpUf0kSNoSyfqhj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48726 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48752 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752197AbbGIT0E (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jul 2015 15:26:04 -0400
+	with ESMTP id S1752905AbbGIT0O (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jul 2015 15:26:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, dhowells@redhat.com, jack@suse.cz, jlbec@evilplan.org, linux@rasmusvillemoes.dk, mfasheh@suse.com, tytso@mit.edu, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kstrto*: accept "-0" for signed conversion
+     Subject: scanf: fix type range overflow
 has been added to the -mm tree.  Its filename is
-     kstrto-accept-0-for-signed-conversion.patch
+     scanf-fix-type-range-overflow.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kstrto-accept-0-for-signed-conversion.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/scanf-fix-type-range-overflow.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kstrto-accept-0-for-signed-conversion.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/scanf-fix-type-range-overflow.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,73 +39,112 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: kstrto*: accept "-0" for signed conversion
+Subject: scanf: fix type range overflow
 
-strtol(3) et al accept "-0", so should we.
+Fun fact:
+
+	uint8_t val;
+	sscanf("256", "%hhu", &val);
+
+will return 1 and make val=0 (clearly bogus).
+
+Userspace sscanf() reports 1 parsed value, returns incorrect value
+but sets errno to ERANGE only for "%u" conversion and higher.
+%hhu and %hu are left in the cold.
+
+Having no way to report errno=ERANGE in kernel, don't report
+successful parsing.
+
+Patch allows to remove checks and switch to proper types
+in several (most?) cases:
+
+	grep -e 'scanf.*%[0-9]\+[dioux]' -n -r .
+
+Such checks can be incorrect too -- checking for 3 digits with %3u
+for parsing uint8_t is not enough.
 
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
 Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/kstrtox.c      |    2 +-
- lib/test-kstrtox.c |    6 +-----
- 2 files changed, 2 insertions(+), 6 deletions(-)
+ lib/vsprintf.c |   45 ++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 34 insertions(+), 11 deletions(-)
 
-diff -puN lib/kstrtox.c~kstrto-accept-0-for-signed-conversion lib/kstrtox.c
---- a/lib/kstrtox.c~kstrto-accept-0-for-signed-conversion
-+++ a/lib/kstrtox.c
-@@ -152,7 +152,7 @@ int kstrtoll(const char *s, unsigned int
- 		rv = _kstrtoull(s + 1, base, &tmp);
- 		if (rv < 0)
- 			return rv;
--		if ((long long)(-tmp) >= 0)
-+		if ((long long)-tmp > 0)
- 			return -ERANGE;
- 		*res = -tmp;
- 	} else {
-diff -puN lib/test-kstrtox.c~kstrto-accept-0-for-signed-conversion lib/test-kstrtox.c
---- a/lib/test-kstrtox.c~kstrto-accept-0-for-signed-conversion
-+++ a/lib/test-kstrtox.c
-@@ -260,6 +260,7 @@ static void __init test_kstrtoll_ok(void
- 		{"4294967297",	10,	4294967297LL},
- 		{"9223372036854775807",	10,	9223372036854775807LL},
+diff -puN lib/vsprintf.c~scanf-fix-type-range-overflow lib/vsprintf.c
+--- a/lib/vsprintf.c~scanf-fix-type-range-overflow
++++ a/lib/vsprintf.c
+@@ -2650,44 +2650,67 @@ int vsscanf(const char *buf, const char
  
-+		{"-0",	10,	0LL},
- 		{"-1",	10,	-1LL},
- 		{"-2",	10,	-2LL},
- 		{"-9223372036854775808",	10,	LLONG_MIN},
-@@ -277,11 +278,6 @@ static void __init test_kstrtoll_fail(vo
- 		{"-9223372036854775809",	10},
- 		{"-18446744073709551614",	10},
- 		{"-18446744073709551615",	10},
--		/* negative zero isn't an integer in Linux */
--		{"-0",	0},
--		{"-0",	8},
--		{"-0",	10},
--		{"-0",	16},
- 		/* sign is first character if any */
- 		{"-+1", 0},
- 		{"-+1", 8},
-_
-
-Patches currently in -mm which might be from adobriyan@gmail.com are
-
-kstrto-accept-0-for-signed-conversion.patch
-add-parse_integer-replacement-for-simple_strto.patch
-parse_integer-add-runtime-testsuite.patch
-parse-integer-rewrite-kstrto.patch
-parse_integer-convert-scanf.patch
-scanf-fix-type-range-overflow.patch
-parse_integer-convert-lib.patch
-parse_integer-convert-mm.patch
-parse_integer-convert-fs.patch
-parse_integer-convert-fs-cachefiles.patch
-parse_integer-convert-ext2-ext3-ext4.patch
-parse_integer-convert-fs-ocfs2.patch
-
+ 		switch (qualifier) {
+ 		case 'H':	/* that's 'hh' in format */
+-			if (is_sign)
++			if (is_sign) {
++				if (val.s != (signed char)val.s)
++					goto out;
+ 				*va_arg(args, signed char *) = val.s;
+-			else
++			} else {
++				if (val.u != (unsigned char)val.u)
++					goto out;
+ 				*va_arg(args, unsigned char *) = val.u;
++			}
+ 			break;
+ 		case 'h':
+-			if (is_sign)
++			if (is_sign) {
++				if (val.s != (short)val.s)
++					goto out;
+ 				*va_arg(args, short *) = val.s;
+-			else
++			} else {
++				if (val.u != (unsigned short)val.u)
++					goto out;
+ 				*va_arg(args, unsigned short *) = val.u;
++			}
+ 			break;
+ 		case 'l':
+-			if (is_sign)
++			if (is_sign) {
++				if (val.s != (long)val.s)
++					goto out;
+ 				*va_arg(args, long *) = val.s;
+-			else
++			} else {
++				if (val.u != (unsigned long)val.u)
++					goto out;
+ 				*va_arg(args, unsigned long *) = val.u;
++			}
+ 			break;
+ 		case 'L':
+-			if (is_sign)
++			if (is_sign) {
+ 				*va_arg(args, long long *) = val.s;
+-			else
++			} else {
+ 				*va_arg(args, unsigned long long *) = val.u;
++			}
+ 			break;
+ 		case 'Z':
+ 		case 'z':
++			if (val.u != (size_t)val.u)
++				goto out;
+ 			*va_arg(args, size_t *) = val.u;
+ 			break;
+ 		default:
+-			if (is_sign)
++			if (is_sign) {
++				if (val.s != (int)val.s)
++					goto out;
+ 				*va_arg(args, int *) = val.s;
+-			else
++			} else {
++				if (val.u != (unsigned int)val.u)
++					goto out;
+ 				*va_arg(args, unsigned int *) = val.u;
++			}
+ 			break;
+ 		}
+ 		num++;
+ 		str += len;
+ 	}
