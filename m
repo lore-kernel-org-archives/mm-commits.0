@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + add-parse_integer-replacement-for-simple_strto.patch added to
- -mm tree
-Date: Thu, 09 Jul 2015 12:26:05 -0700
-Message-ID: <559ecacd.tKmQ3DRvnOF4Y/I/%akpm@linux-foundation.org>
+Subject: + parse_integer-add-runtime-testsuite.patch added to -mm tree
+Date: Thu, 09 Jul 2015 12:26:07 -0700
+Message-ID: <559ecacf.CyhvHrkVyOhfuO74%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48737 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48745 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751976AbbGIT0G (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jul 2015 15:26:06 -0400
+	with ESMTP id S1751976AbbGIT0I (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jul 2015 15:26:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: adobriyan@gmail.com, dhowells@redhat.com, jack@suse.cz, jlbec@evilplan.org, linux@rasmusvillemoes.dk, mfasheh@suse.com, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/: add parse_integer() (replacement for simple_strto*())
+     Subject: parse_integer: add runtime testsuite
 has been added to the -mm tree.  Its filename is
-     add-parse_integer-replacement-for-simple_strto.patch
+     parse_integer-add-runtime-testsuite.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/add-parse_integer-replacement-for-simple_strto.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/parse_integer-add-runtime-testsuite.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/add-parse_integer-replacement-for-simple_strto.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/parse_integer-add-runtime-testsuite.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,100 +39,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: lib/: add parse_integer() (replacement for simple_strto*())
+Subject: parse_integer: add runtime testsuite
 
-kstrto*() and kstrto*_from_user() family of functions were added to help
-with parsing one integer written as string to proc/sysfs/debugfs files. 
-But they have a limitation: string passed must end with \0 or \n\0.  There
-are enough places where kstrto*() functions can't be used because of this
-limitation.  Trivial example: major:minor "%u:%u".
-
-Currently the only way to parse everything is simple_strto*() functions.
-But they are suboptimal:
-
-* they do not detect overflow (can be fixed, but no one bothered since
-  ~0.99.11),
-
-* there are only 4 of them -- long and "long long" versions, This leads
-  to silent truncation in the most simple case:
-
-	val = strtoul(s, NULL, 0);
-
-* half of the people think that "char **endp" argument is necessary and
-  add unnecessary variable.
-
-OpenBSD people, fed up with how complex correct integer parsing is, added
-strtonum(3) to fixup for deficiencies of libc-style integer parsing:
-http://www.openbsd.org/cgi-bin/man.cgi/OpenBSD-current/man3/strtonum.3?query=strtonum&arch=i386
-
-It'd be OK to copy that but it relies on "errno" and fixed strings as
-error reporting channel which I think is not OK for kernel.  strtonum()
-also doesn't report number of characted consumed.
-
-What to do?
-
-Enter parse_integer().
-
-	int parse_integer(const char *s, unsigned int base, T *val);
-
-Rationale:
-* parse_integer() is exactly 1 (one) interface not 4 or many, one for each type.
-
-* parse_integer() reports -E errors reliably in a canonical kernel way:
-
-	rv = parse_integer(str, 10, &val);
-	if (rv < 0)
-		return rv;
-
-* parse_integer() writes result only if there were no errors,
-  at least one digit has to be consumed,
-
-* parse_integer doesn't mix error reporting channel and value channel,
-  it does mix error and number-of-character-consumed channel, though.
-
-* parse_integer() reports number of characters consumed, makes parsing
-  multiple values easy:
-
-	rv = parse_integer(str, 0, &val1);
-	if (rv < 0)
-		return rv;
-	str += rv;
-	if (*str++ != ':')
-		return -EINVAL;
-	rv = parse_integer(str, 0, &val2);
-	if (rv < 0)
-		return rv;
-	if (str[rv] != '\0')
-		return -EINVAL;
-
-There are several deficiencies in parse_integer() compared to strto*():
-
-* can't be used in initializers:
-
-	const T x = strtoul();
-
-* can't be used with bitfields,
-* can't be used in expressions:
-
-	x = strtol() * 1024;
-	x = y = strtol();
-	x += strtol();
-
-* currently there is no support for _Bool and at least one place
-  where simple_strtoul() is directly assigned to _Bool variable.
-  It is trivial to add, but not clear if it should only accept "0" and "1",
-  because, say, module param code accepts 0, 1, y, n, Y and N.
-
-In defense of parse_integer() all I can say, is that using strtol() in
-expression or initializer promotes no error checking and thus probably
-should not be encouraged in C, language with no built-in error checking
-anyway.
-
-The amount of "x = y = strtol()" expressions in kernel is very small.
-The amount of direct usage in expression is not small, but can be
-counted as an acceptable loss.
-
-Misc suggestions and ideas from Rasmus Villemoes.
+Use with CONFIG_PARSE_INTEGER=y.
 
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: David Howells <dhowells@redhat.com>
@@ -145,455 +53,602 @@ Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h        |    7 -
- include/linux/parse-integer.h |   79 ++++++++++++
- lib/Makefile                  |    1 
- lib/kstrtox.c                 |   76 +++---------
- lib/kstrtox.h                 |    1 
- lib/parse-integer.c           |  198 ++++++++++++++++++++++++++++++++
- 6 files changed, 305 insertions(+), 57 deletions(-)
+ lib/Kconfig.debug        |    3 
+ lib/Makefile             |    1 
+ lib/test-parse-integer.c |  563 +++++++++++++++++++++++++++++++++++++
+ 3 files changed, 567 insertions(+)
 
-diff -puN include/linux/kernel.h~add-parse_integer-replacement-for-simple_strto include/linux/kernel.h
---- a/include/linux/kernel.h~add-parse_integer-replacement-for-simple_strto
-+++ a/include/linux/kernel.h
-@@ -10,6 +10,7 @@
- #include <linux/bitops.h>
- #include <linux/log2.h>
- #include <linux/typecheck.h>
-+#include <linux/parse-integer.h>
- #include <linux/printk.h>
- #include <linux/dynamic_debug.h>
- #include <asm/byteorder.h>
-@@ -388,8 +389,10 @@ static inline int __must_check kstrtos32
- 	return kstrtoint_from_user(s, count, base, res);
- }
+diff -puN lib/Kconfig.debug~parse_integer-add-runtime-testsuite lib/Kconfig.debug
+--- a/lib/Kconfig.debug~parse_integer-add-runtime-testsuite
++++ a/lib/Kconfig.debug
+@@ -1695,6 +1695,9 @@ config TEST_HEXDUMP
+ config TEST_STRING_HELPERS
+ 	tristate "Test functions located in the string_helpers module at runtime"
  
--/* Obsolete, do not use.  Use kstrto<foo> instead */
--
-+/*
-+ * Obsolete, do not use.
-+ * Use parse_integer(), kstrto*(), kstrto*_from_user(), sscanf().
-+ */
- extern unsigned long simple_strtoul(const char *,char **,unsigned int);
- extern long simple_strtol(const char *,char **,unsigned int);
- extern unsigned long long simple_strtoull(const char *,char **,unsigned int);
-diff -puN /dev/null include/linux/parse-integer.h
---- /dev/null
-+++ a/include/linux/parse-integer.h
-@@ -0,0 +1,79 @@
-+#ifndef _PARSE_INTEGER_H
-+#define _PARSE_INTEGER_H
-+#include <linux/compiler.h>
-+#include <linux/types.h>
++config TEST_PARSE_INTEGER
++	tristate "Test parse_integer() function at runtime"
 +
-+/*
-+ * int parse_integer(const char *s, unsigned int base, T *val);
-+ *
-+ * Convert integer string representation to an integer.
-+ * Range of accepted values equals to that of type T.
-+ *
-+ * Conversion to unsigned integer accepts sign "+".
-+ * Conversion to signed integer accepts sign "+" and sign "-".
-+ *
-+ * Radix 0 means autodetection: leading "0x" implies radix 16,
-+ * leading "0" implies radix 8, otherwise radix is 10.
-+ * Autodetection hint works after optional sign, but not before.
-+ *
-+ * Return number of characters parsed or -E.
-+ *
-+ * "T=char" case is not supported because -f{un,}signed-char can silently
-+ * change range of accepted values.
-+ */
-+#define parse_integer(s, base, val)	\
-+({					\
-+	const char *_s = (s);		\
-+	unsigned int _base = (base);	\
-+	typeof(&(val)[0]) _val = (val);	\
-+					\
-+	__builtin_choose_expr(						\
-+	__builtin_types_compatible_p(typeof(_val), signed char *),	\
-+	_parse_integer_sc(_s, _base, (void *)_val),			\
-+	__builtin_choose_expr(						\
-+	__builtin_types_compatible_p(typeof(_val), unsigned char *),	\
-+	_parse_integer_uc(_s, _base, (void *)_val),			\
-+	__builtin_choose_expr(						\
-+	__builtin_types_compatible_p(typeof(_val), short *),		\
-+	_parse_integer_s(_s, _base, (void *)_val),			\
-+	__builtin_choose_expr(						\
-+	__builtin_types_compatible_p(typeof(_val), unsigned short *),	\
-+	_parse_integer_us(_s, _base, (void *)_val),			\
-+	__builtin_choose_expr(						\
-+	__builtin_types_compatible_p(typeof(_val), int *),		\
-+	_parse_integer_i(_s, _base, (void *)_val),			\
-+	__builtin_choose_expr(						\
-+	__builtin_types_compatible_p(typeof(_val), unsigned int *),	\
-+	_parse_integer_u(_s, _base, (void *)_val),			\
-+	__builtin_choose_expr(						\
-+	__builtin_types_compatible_p(typeof(_val), long *) && sizeof(long) == 4,\
-+	_parse_integer_i(_s, _base, (void *)_val),			\
-+	__builtin_choose_expr(						\
-+	__builtin_types_compatible_p(typeof(_val), long *) && sizeof(long) == 8,\
-+	_parse_integer_ll(_s, _base, (void *)_val),			\
-+	__builtin_choose_expr(						\
-+	__builtin_types_compatible_p(typeof(_val), unsigned long *) && sizeof(unsigned long) == 4,\
-+	_parse_integer_u(_s, _base, (void *)_val),			\
-+	__builtin_choose_expr(						\
-+	__builtin_types_compatible_p(typeof(_val), unsigned long *) && sizeof(unsigned long) == 8,\
-+	_parse_integer_ull(_s, _base, (void *)_val),			\
-+	__builtin_choose_expr(						\
-+	__builtin_types_compatible_p(typeof(_val), long long *),	\
-+	_parse_integer_ll(_s, _base, (void *)_val),			\
-+	__builtin_choose_expr(						\
-+	__builtin_types_compatible_p(typeof(_val), unsigned long long *),\
-+	_parse_integer_ull(_s, _base, (void *)_val),			\
-+	_parse_integer_link_time_error()))))))))))));	\
-+})
-+/* internal, do not use */
-+int _parse_integer_sc(const char *s, unsigned int base, signed char *val);
-+int _parse_integer_uc(const char *s, unsigned int base, unsigned char *val);
-+int _parse_integer_s(const char *s, unsigned int base, short *val);
-+int _parse_integer_us(const char *s, unsigned int base, unsigned short *val);
-+int _parse_integer_i(const char *s, unsigned int base, int *val);
-+int _parse_integer_u(const char *s, unsigned int base, unsigned int *val);
-+int _parse_integer_ll(const char *s, unsigned int base, long long *val);
-+int _parse_integer_ull(const char *s, unsigned int base, unsigned long long *val);
-+void _parse_integer_link_time_error(void);
-+const char *_parse_integer_fixup_radix(const char *s, unsigned int *base);
-+#endif
-diff -puN lib/Makefile~add-parse_integer-replacement-for-simple_strto lib/Makefile
---- a/lib/Makefile~add-parse_integer-replacement-for-simple_strto
+ config TEST_KSTRTOX
+ 	tristate "Test kstrto*() family of functions at runtime"
+ 
+diff -puN lib/Makefile~parse_integer-add-runtime-testsuite lib/Makefile
+--- a/lib/Makefile~parse_integer-add-runtime-testsuite
 +++ a/lib/Makefile
-@@ -32,6 +32,7 @@ obj-$(CONFIG_TEST_STRING_HELPERS) += tes
- obj-y += hexdump.o
- obj-$(CONFIG_TEST_HEXDUMP) += test-hexdump.o
- obj-y += kstrtox.o
-+obj-y += parse-integer.o
+@@ -36,6 +36,7 @@ obj-y += parse-integer.o
  obj-$(CONFIG_TEST_BPF) += test_bpf.o
  obj-$(CONFIG_TEST_FIRMWARE) += test_firmware.o
  obj-$(CONFIG_TEST_KASAN) += test_kasan.o
-diff -puN lib/kstrtox.c~add-parse_integer-replacement-for-simple_strto lib/kstrtox.c
---- a/lib/kstrtox.c~add-parse_integer-replacement-for-simple_strto
-+++ a/lib/kstrtox.c
-@@ -20,22 +20,6 @@
- #include <asm/uaccess.h>
- #include "kstrtox.h"
- 
--const char *_parse_integer_fixup_radix(const char *s, unsigned int *base)
--{
--	if (*base == 0) {
--		if (s[0] == '0') {
--			if (_tolower(s[1]) == 'x' && isxdigit(s[2]))
--				*base = 16;
--			else
--				*base = 8;
--		} else
--			*base = 10;
--	}
--	if (*base == 16 && s[0] == '0' && _tolower(s[1]) == 'x')
--		s += 2;
--	return s;
--}
--
- /*
-  * Convert non-negative integer string representation in explicitly given radix
-  * to an integer.
-@@ -83,26 +67,6 @@ unsigned int _parse_integer(const char *
- 	return rv;
- }
- 
--static int _kstrtoull(const char *s, unsigned int base, unsigned long long *res)
--{
--	unsigned long long _res;
--	unsigned int rv;
--
--	s = _parse_integer_fixup_radix(s, &base);
--	rv = _parse_integer(s, base, &_res);
--	if (rv & KSTRTOX_OVERFLOW)
--		return -ERANGE;
--	if (rv == 0)
--		return -EINVAL;
--	s += rv;
--	if (*s == '\n')
--		s++;
--	if (*s)
--		return -EINVAL;
--	*res = _res;
--	return 0;
--}
--
- /**
-  * kstrtoull - convert a string to an unsigned long long
-  * @s: The start of the string. The string must be null-terminated, and may also
-@@ -121,9 +85,19 @@ static int _kstrtoull(const char *s, uns
-  */
- int kstrtoull(const char *s, unsigned int base, unsigned long long *res)
- {
--	if (s[0] == '+')
-+	unsigned long long _res;
-+	int rv;
-+
-+	rv = parse_integer(s, base, &_res);
-+	if (rv < 0)
-+		return rv;
-+	s += rv;
-+	if (*s == '\n')
- 		s++;
--	return _kstrtoull(s, base, res);
-+	if (*s)
-+		return -EINVAL;
-+	*res = _res;
-+	return 0;
- }
- EXPORT_SYMBOL(kstrtoull);
- 
-@@ -145,24 +119,18 @@ EXPORT_SYMBOL(kstrtoull);
-  */
- int kstrtoll(const char *s, unsigned int base, long long *res)
- {
--	unsigned long long tmp;
-+	long long _res;
- 	int rv;
- 
--	if (s[0] == '-') {
--		rv = _kstrtoull(s + 1, base, &tmp);
--		if (rv < 0)
--			return rv;
--		if ((long long)-tmp > 0)
--			return -ERANGE;
--		*res = -tmp;
--	} else {
--		rv = kstrtoull(s, base, &tmp);
--		if (rv < 0)
--			return rv;
--		if ((long long)tmp < 0)
--			return -ERANGE;
--		*res = tmp;
--	}
-+	rv = parse_integer(s, base, &_res);
-+	if (rv < 0)
-+		return rv;
-+	s += rv;
-+	if (*s == '\n')
-+		s++;
-+	if (*s)
-+		return -EINVAL;
-+	*res = _res;
- 	return 0;
- }
- EXPORT_SYMBOL(kstrtoll);
-diff -puN lib/kstrtox.h~add-parse_integer-replacement-for-simple_strto lib/kstrtox.h
---- a/lib/kstrtox.h~add-parse_integer-replacement-for-simple_strto
-+++ a/lib/kstrtox.h
-@@ -2,7 +2,6 @@
- #define _LIB_KSTRTOX_H
- 
- #define KSTRTOX_OVERFLOW	(1U << 31)
--const char *_parse_integer_fixup_radix(const char *s, unsigned int *base);
- unsigned int _parse_integer(const char *s, unsigned int base, unsigned long long *res);
- 
- #endif
-diff -puN /dev/null lib/parse-integer.c
++obj-$(CONFIG_TEST_PARSE_INTEGER) += test-parse-integer.o
+ obj-$(CONFIG_TEST_KSTRTOX) += test-kstrtox.o
+ obj-$(CONFIG_TEST_LKM) += test_module.o
+ obj-$(CONFIG_TEST_RHASHTABLE) += test_rhashtable.o
+diff -puN /dev/null lib/test-parse-integer.c
 --- /dev/null
-+++ a/lib/parse-integer.c
-@@ -0,0 +1,198 @@
-+/*
-+ * See parse_integer().
-+ *
-+ * Individual dispatch functions in this file aren't supposed to be used
-+ * directly and thus aren't advertised and documented despited being exported.
-+ *
-+ * Do not use any function in this file for any reason.
-+ */
-+#include <linux/ctype.h>
++++ a/lib/test-parse-integer.c
+@@ -0,0 +1,563 @@
 +#include <linux/errno.h>
-+#include <linux/export.h>
-+#include <linux/kernel.h>
-+#include <linux/math64.h>
++#include <linux/init.h>
++#include <linux/module.h>
 +#include <linux/parse-integer.h>
 +#include <asm/bug.h>
 +
-+const char *_parse_integer_fixup_radix(const char *s, unsigned int *base)
-+{
-+	if (*base == 0) {
-+		if (s[0] == '0') {
-+			if (_tolower(s[1]) == 'x' && isxdigit(s[2]))
-+				*base = 16;
-+			else
-+				*base = 8;
-+		} else
-+			*base = 10;
-+	}
-+	if (*base == 16 && s[0] == '0' && _tolower(s[1]) == 'x')
-+		s += 2;
-+	BUG_ON(*base < 2 || *base > 16);
-+	return s;
++#define for_each_test(i, test)  \
++	for (i = 0; i < ARRAY_SIZE(test); i++)
++
++#define DEFINE_TEST_OK(type, test_type, test)	\
++test_type {					\
++	const char *str;			\
++	unsigned int base;			\
++	int expected_rv;			\
++	type expected_val;			\
++};						\
++static const test_type test[] __initconst =
++
++#define TEST_OK(type, fmt, test)				\
++{								\
++	unsigned int i;						\
++								\
++	for_each_test(i, test) {				\
++		const typeof(test[0]) *t = &test[i];		\
++		type val;					\
++		int rv;						\
++								\
++		rv = parse_integer(t->str, t->base, &val);	\
++		if (rv != t->expected_rv || val != t->expected_val) {				\
++			WARN(1, "str '%s', base %u, expected %d/"fmt", got %d/"fmt"\n",		\
++				t->str, t->base, t->expected_rv, t->expected_val, rv, val);	\
++		}						\
++	}							\
 +}
 +
-+static int __parse_integer(const char *s, unsigned int base, unsigned long long *val)
-+{
-+	const char *s0 = s, *sd;
-+	unsigned long long acc;
++struct test_fail {
++	const char *str;
++	unsigned int base;
++};
 +
-+	s = sd = _parse_integer_fixup_radix(s0, &base);
-+	acc = 0;
-+	while (*s) {
-+		unsigned int d;
++#define DEFINE_TEST_FAIL(type, test)	\
++static const struct test_fail test[] __initconst =
 +
-+		if ('0' <= *s && *s <= '9')
-+			d = *s - '0';
-+		else if ('a' <= _tolower(*s) && _tolower(*s) <= 'f')
-+			d = _tolower(*s) - 'a' + 10;
-+		else
-+			break;
-+		if (d >= base)
-+			break;
-+		/* Overflow can't happen early enough. */
-+		if ((acc >> 60) && acc > div_u64(ULLONG_MAX - d, base))
-+			return -ERANGE;
-+		acc = acc * base + d;
-+		s++;
-+	}
-+	/* At least one digit has to be converted. */
-+	if (s == sd)
-+		return -EINVAL;
-+	*val = acc;
-+	/* Radix 1 is not supported otherwise returned length can overflow. */
-+	return s - s0;
++#define TEST_FAIL(type, fmt, test)				\
++{								\
++	unsigned int i;						\
++								\
++	for_each_test(i, test) {				\
++		const typeof(test[0]) *t = &test[i];		\
++		type val;					\
++		int rv;						\
++								\
++		val = 113;					\
++		rv = parse_integer(t->str, t->base, &val);	\
++		if (rv >= 0 || val != 113) {			\
++			WARN(1, "str '%s', base %u, expected -E, got %d/"fmt"\n",\
++				t->str, t->base, rv, val);	\
++		}						\
++	}							\
 +}
 +
-+int _parse_integer_ull(const char *s, unsigned int base, unsigned long long *val)
++DEFINE_TEST_OK(unsigned long long, struct test_ull, test_ull_ok)
 +{
-+	char sign;
-+	int rv;
++	{"0",	10,	1,	0},
++	{"1",	10,	1,	1},
++	{"2",	10,	1,	2},
++	{"3",	10,	1,	3},
++	{"4",	10,	1,	4},
++	{"5",	10,	1,	5},
++	{"6",	10,	1,	6},
++	{"7",	10,	1,	7},
++	{"8",	10,	1,	8},
++	{"9",	10,	1,	9},
 +
-+	sign = 0;
-+	if (*s == '-')
-+		return -EINVAL;
-+	else if (*s == '+')
-+		sign = *s++;
++	{"0",	8,	1,	0},
++	{"1",	8,	1,	1},
++	{"2",	8,	1,	2},
++	{"3",	8,	1,	3},
++	{"4",	8,	1,	4},
++	{"5",	8,	1,	5},
++	{"6",	8,	1,	6},
++	{"7",	8,	1,	7},
 +
-+	rv = __parse_integer(s, base, val);
-+	if (rv < 0)
-+		return rv;
-+	return rv + !!sign;
-+}
-+EXPORT_SYMBOL(_parse_integer_ull);
++	{"0",	16,	1,	0},
++	{"1",	16,	1,	1},
++	{"2",	16,	1,	2},
++	{"3",	16,	1,	3},
++	{"4",	16,	1,	4},
++	{"5",	16,	1,	5},
++	{"6",	16,	1,	6},
++	{"7",	16,	1,	7},
++	{"8",	16,	1,	8},
++	{"9",	16,	1,	9},
++	{"a",	16,	1,	10},
++	{"b",	16,	1,	11},
++	{"c",	16,	1,	12},
++	{"d",	16,	1,	13},
++	{"e",	16,	1,	14},
++	{"f",	16,	1,	15},
++	{"A",	16,	1,	10},
++	{"B",	16,	1,	11},
++	{"C",	16,	1,	12},
++	{"D",	16,	1,	13},
++	{"E",	16,	1,	14},
++	{"F",	16,	1,	15},
 +
-+int _parse_integer_ll(const char *s, unsigned int base, long long *val)
++	{"127",				10,	3,	127},
++	{"128",				10,	3,	128},
++	{"255",				10,	3,	255},
++	{"256",				10,	3,	256},
++	{"32767",			10,	5,	32767},
++	{"32768",			10,	5,	32768},
++	{"65535",			10,	5,	65535},
++	{"65536",			10,	5,	65536},
++	{"2147483647",			10,	10,	2147483647},
++	{"2147483648",			10,	10,	2147483648ull},
++	{"4294967295",			10,	10,	4294967295ull},
++	{"4294967296",			10,	10,	4294967296},
++	{"9223372036854775807",		10,	19,	9223372036854775807},
++	{"9223372036854775808",		10,	19,	9223372036854775808ull},
++	{"18446744073709551615",	10,	20,	18446744073709551615ull},
++
++	{"177",				8,	3,	0177},
++	{"200",				8,	3,	0200},
++	{"377",				8,	3,	0377},
++	{"400",				8,	3,	0400},
++	{"77777",			8,	5,	077777},
++	{"100000",			8,	6,	0100000},
++	{"177777",			8,	6,	0177777},
++	{"200000",			8,	6,	0200000},
++	{"17777777777",			8,	11,	017777777777},
++	{"20000000000",			8,	11,	020000000000},
++	{"37777777777",			8,	11,	037777777777},
++	{"40000000000",			8,	11,	040000000000},
++	{"777777777777777777777",	8,	21,	0777777777777777777777},
++	{"1000000000000000000000",	8,	22,	01000000000000000000000},
++	{"1777777777777777777777",	8,	22,	01777777777777777777777},
++
++	{"7f",			16,	2,	0x7f},
++	{"80",			16,	2,	0x80},
++	{"ff",			16,	2,	0xff},
++	{"100",			16,	3,	0x100},
++	{"7fff",		16,	4,	0x7fff},
++	{"8000",		16,	4,	0x8000},
++	{"ffff",		16,	4,	0xffff},
++	{"10000",		16,	5,	0x10000},
++	{"7fffffff",		16,	8,	0x7fffffff},
++	{"80000000",		16,	8,	0x80000000},
++	{"ffffffff",		16,	8,	0xffffffff},
++	{"100000000",		16,	9,	0x100000000},
++	{"7fffffffffffffff",	16,	16,	0x7fffffffffffffff},
++	{"8000000000000000",	16,	16,	0x8000000000000000},
++	{"ffffffffffffffff",	16,	16,	0xffffffffffffffff},
++	/* test sign */
++	{"+0",	10,	2,	0},
++	{"+42",	10,	3,	42},
++	/* test termination */
++	{"42/",	10,	2,	42},
++	{"42:",	10,	2,	42},
++	{"42/",	8,	2,	042},
++	{"428",	8,	2,	042},
++	{"42/",	16,	2,	0x42},
++	{"42`",	16,	2,	0x42},
++	{"42g",	16,	2,	0x42},
++	{"42@",	16,	2,	0x42},
++	{"42G",	16,	2,	0x42},
++	/* base autodetection */
++	{"010",		0,	3,	8},
++	{"0x10",	0,	4,	16},
++	{"0X10",	0,	4,	16},
++};
++
++static void __init test_parse_integer_ull_ok(void)
 +{
-+	unsigned long long tmp;
-+	char sign;
-+	int rv;
-+
-+	sign = 0;
-+	if (*s == '-' || *s == '+')
-+		sign = *s++;
-+
-+	rv = __parse_integer(s, base, &tmp);
-+	if (rv < 0)
-+		return rv;
-+	if (sign == '-') {
-+		if ((long long)-tmp > 0)
-+			return -ERANGE;
-+		*val = -tmp;
-+	} else {
-+		if ((long long)tmp < 0)
-+			return -ERANGE;
-+		*val = tmp;
-+	}
-+	return rv + !!sign;
++	TEST_OK(unsigned long long, "%llu", test_ull_ok);
 +}
-+EXPORT_SYMBOL(_parse_integer_ll);
 +
-+int _parse_integer_u(const char *s, unsigned int base, unsigned int *val)
++DEFINE_TEST_FAIL(unsigned long long, test_ull_fail)
 +{
-+	unsigned long long tmp;
-+	int rv;
++	/* type overflow */
++	{"10000000000000000000000000000000000000000000000000000000000000000",	2},
++	{"18446744073709551616",	10},
++	{"2000000000000000000000",	8},
++	{"10000000000000000",		16},
 +
-+	rv = _parse_integer_ull(s, base, &tmp);
-+	if (rv < 0)
-+		return rv;
-+	if (tmp != (unsigned int)tmp)
-+		return -ERANGE;
-+	*val = tmp;
-+	return rv;
-+}
-+EXPORT_SYMBOL(_parse_integer_u);
++	{"",	0},
++	{"",	10},
++	{"",	8},
++	{"",	16},
++	{"+",	0},
++	{"+",	10},
++	{"+",	8},
++	{"+",	16},
++	{"-",	0},
++	{"-",	10},
++	{"-",	8},
++	{"-",	16},
++	{" ",	0},
++	{" ",	10},
++	{" ",	8},
++	{" ",	16},
++	{"\n",	0},
++	{"\n",	10},
++	{"\n",	8},
++	{"\n",	16},
++	{" 0",	0},
++	{" 0",	10},
++	{" 0",	8},
++	{" 0",	16},
++	{"\n0",	0},
++	{"\n0",	10},
++	{"\n0",	8},
++	{"\n0",	16},
++	/* non-digit */
++	{"/",	10},
++	{":",	10},
++	{"/",	8},
++	{"8",	8},
++	{"/",	16},
++	{":",	16},
++	{"`",	16},
++	{"g",	16},
++	{"@",	16},
++	{"G",	16},
++	{"/0",	10},
++	{":0",	10},
++	{"/0",	8},
++	{"80",	8},
++	{"/0",	16},
++	{":0",	16},
++	{"`0",	16},
++	{"g0",	16},
++	{"@0",	16},
++	{"G0",	16},
 +
-+int _parse_integer_i(const char *s, unsigned int base, int *val)
++	{"-0",	0},
++	{"-0",	10},
++	{"-0",	8},
++	{"-0",	16},
++	{"-1",	0},
++	{"-1",	10},
++	{"-1",	8},
++	{"-1",	16},
++	/* accept only one sign */
++	{"--",	0},
++	{"--",	10},
++	{"--",	8},
++	{"--",	16},
++	{"-+",	0},
++	{"-+",	10},
++	{"-+",	8},
++	{"-+",	16},
++	{"+-",	0},
++	{"+-",	10},
++	{"+-",	8},
++	{"+-",	16},
++	{"++",	0},
++	{"++",	10},
++	{"++",	8},
++	{"++",	16},
++	{"--0",	0},
++	{"--0",	10},
++	{"--0",	8},
++	{"--0",	16},
++	{"-+0",	0},
++	{"-+0",	10},
++	{"-+0",	8},
++	{"-+0",	16},
++	{"+-0",	0},
++	{"+-0",	10},
++	{"+-0",	8},
++	{"+-0",	16},
++	{"++0",	0},
++	{"++0",	10},
++	{"++0",	8},
++	{"++0",	16},
++};
++
++static void __init test_parse_integer_ull_fail(void)
 +{
-+	long long tmp;
-+	int rv;
-+
-+	rv = _parse_integer_ll(s, base, &tmp);
-+	if (rv < 0)
-+		return rv;
-+	if (tmp != (int)tmp)
-+		return -ERANGE;
-+	*val = tmp;
-+	return rv;
++	TEST_FAIL(unsigned long long, "%llu", test_ull_fail);
 +}
-+EXPORT_SYMBOL(_parse_integer_i);
 +
-+int _parse_integer_us(const char *s, unsigned int base, unsigned short *val)
++DEFINE_TEST_OK(long long, struct test_ll, test_ll_ok)
 +{
-+	unsigned long long tmp;
-+	int rv;
++	{"-9223372036854775808",10,	20,	LLONG_MIN},
++	{"-4294967296",		10,	11,	-4294967296},
++	{"-2147483648",		10,	11,	-2147483648ll},
++	{"-65536",		10,	6,	-65536},
++	{"-32768",		10,	6,	-32768},
++	{"-256",		10,	4,	-256},
++	{"-128",		10,	4,	-128},
++	{"-0",			10,	2,	0},
++	{"0",			10,	1,	0},
++	{"127",			10,	3,	127},
++	{"255",			10,	3,	255},
++	{"32767",		10,	5,	32767},
++	{"65535",		10,	5,	65535},
++	{"2147483647",		10,	10,	2147483647},
++	{"4294967295",		10,	10,	4294967295ll},
++	{"9223372036854775807",	10,	19,	9223372036854775807},
++};
 +
-+	rv = _parse_integer_ull(s, base, &tmp);
-+	if (rv < 0)
-+		return rv;
-+	if (tmp != (unsigned short)tmp)
-+		return -ERANGE;
-+	*val = tmp;
-+	return rv;
-+}
-+EXPORT_SYMBOL(_parse_integer_us);
-+
-+int _parse_integer_s(const char *s, unsigned int base, short *val)
++static void __init test_parse_integer_ll_ok(void)
 +{
-+	long long tmp;
-+	int rv;
-+
-+	rv = _parse_integer_ll(s, base, &tmp);
-+	if (rv < 0)
-+		return rv;
-+	if (tmp != (short)tmp)
-+		return -ERANGE;
-+	*val = tmp;
-+	return rv;
++	TEST_OK(long long, "%lld", test_ll_ok);
 +}
-+EXPORT_SYMBOL(_parse_integer_s);
 +
-+int _parse_integer_uc(const char *s, unsigned int base, unsigned char *val)
++DEFINE_TEST_FAIL(long long, test_ll_fail)
 +{
-+	unsigned long long tmp;
-+	int rv;
++	{"-9223372036854775809",	10},
++	{"9223372036854775808",		10},
++};
 +
-+	rv = _parse_integer_ull(s, base, &tmp);
-+	if (rv < 0)
-+		return rv;
-+	if (tmp != (unsigned char)tmp)
-+		return -ERANGE;
-+	*val = tmp;
-+	return rv;
-+}
-+EXPORT_SYMBOL(_parse_integer_uc);
-+
-+int _parse_integer_sc(const char *s, unsigned int base, signed char *val)
++static void __init test_parse_integer_ll_fail(void)
 +{
-+	long long tmp;
-+	int rv;
-+
-+	rv = _parse_integer_ll(s, base, &tmp);
-+	if (rv < 0)
-+		return rv;
-+	if (tmp != (signed char)tmp)
-+		return -ERANGE;
-+	*val = tmp;
-+	return rv;
++	TEST_FAIL(long long, "%lld", test_ll_fail);
 +}
-+EXPORT_SYMBOL(_parse_integer_sc);
++
++DEFINE_TEST_OK(unsigned int, struct test_u, test_u_ok)
++{
++	{"0",		10,	1,	0},
++	{"127",		10,	3,	127},
++	{"128",		10,	3,	128},
++	{"255",		10,	3,	255},
++	{"256",		10,	3,	256},
++	{"32767",	10,	5,	32767},
++	{"32768",	10,	5,	32768},
++	{"65535",	10,	5,	65535},
++	{"65536",	10,	5,	65536},
++	{"2147483647",	10,	10,	2147483647},
++	{"2147483648",	10,	10,	2147483648u},
++	{"4294967295",	10,	10,	4294967295u},
++};
++
++static void __init test_parse_integer_u_ok(void)
++{
++	TEST_OK(unsigned int, "%u", test_u_ok);
++}
++
++DEFINE_TEST_FAIL(unsigned int, test_u_fail)
++{
++	{"4294967296",			10},
++	{"9223372036854775807",		10},
++	{"9223372036854775808",		10},
++	{"18446744073709551615",	10},
++};
++
++static void __init test_parse_integer_u_fail(void)
++{
++	TEST_FAIL(unsigned int, "%u", test_u_fail);
++}
++
++DEFINE_TEST_OK(int, struct test_i, test_i_ok)
++{
++	{"-2147483648",	10,	11,	INT_MIN},
++	{"-65536",	10,	6,	-65536},
++	{"-32768",	10,	6,	-32768},
++	{"-256",	10,	4,	-256},
++	{"-128",	10,	4,	-128},
++	{"-0",		10,	2,	0},
++	{"0",		10,	1,	0},
++	{"127",		10,	3,	127},
++	{"255",		10,	3,	255},
++	{"32767",	10,	5,	32767},
++	{"65535",	10,	5,	65535},
++	{"2147483647",	10,	10,	2147483647},
++};
++
++static void __init test_parse_integer_i_ok(void)
++{
++	TEST_OK(int, "%d", test_i_ok);
++}
++
++DEFINE_TEST_FAIL(int, test_i_fail)
++{
++	{"-9223372036854775809",	10},
++	{"-9223372036854775808",	10},
++	{"-4294967296",			10},
++	{"-2147483649",			10},
++	{"2147483648",			10},
++	{"4294967295",			10},
++	{"9223372036854775807",		10},
++	{"9223372036854775808",		10},
++};
++
++static void __init test_parse_integer_i_fail(void)
++{
++	TEST_FAIL(int, "%d", test_i_fail);
++}
++
++DEFINE_TEST_OK(unsigned short, struct test_us, test_us_ok)
++{
++	{"0",		10,	1,	0},
++	{"127",		10,	3,	127},
++	{"128",		10,	3,	128},
++	{"255",		10,	3,	255},
++	{"256",		10,	3,	256},
++	{"32767",	10,	5,	32767},
++	{"32768",	10,	5,	32768},
++	{"65535",	10,	5,	65535},
++};
++
++static void __init test_parse_integer_us_ok(void)
++{
++	TEST_OK(unsigned short, "%hu", test_us_ok);
++}
++
++DEFINE_TEST_FAIL(unsigned short, test_us_fail)
++{
++	{"65536",			10},
++	{"2147483647",			10},
++	{"2147483648",			10},
++	{"4294967295",			10},
++	{"4294967296",			10},
++	{"9223372036854775807",		10},
++	{"9223372036854775808",		10},
++	{"18446744073709551615",	10},
++};
++
++static void __init test_parse_integer_us_fail(void)
++{
++	TEST_FAIL(unsigned short, "%hu", test_us_fail);
++}
++
++DEFINE_TEST_OK(short, struct test_s, test_s_ok)
++{
++	{"-32768",	10,	6,	-32768},
++	{"-256",	10,	4,	-256},
++	{"-128",	10,	4,	-128},
++	{"-0",		10,	2,	0},
++	{"0",		10,	1,	0},
++	{"127",		10,	3,	127},
++	{"255",		10,	3,	255},
++	{"32767",	10,	5,	32767},
++};
++
++static void __init test_parse_integer_s_ok(void)
++{
++	TEST_OK(short, "%hd", test_s_ok);
++}
++
++DEFINE_TEST_FAIL(short, test_s_fail)
++{
++	{"-9223372036854775809",	10},
++	{"-9223372036854775808",	10},
++	{"-4294967296",			10},
++	{"-2147483649",			10},
++	{"-2147483648",			10},
++	{"-65536",			10},
++	{"-32769",			10},
++	{"32768",			10},
++	{"65535",			10},
++	{"2147483647",			10},
++	{"2147483648",			10},
++	{"4294967295",			10},
++	{"9223372036854775807",		10},
++	{"9223372036854775808",		10},
++};
++
++static void __init test_parse_integer_s_fail(void)
++{
++	TEST_FAIL(short, "%hd", test_s_fail);
++}
++
++DEFINE_TEST_OK(unsigned char, struct test_uc, test_uc_ok)
++{
++	{"0",	10,	1,	0},
++	{"127",	10,	3,	127},
++	{"128",	10,	3,	128},
++	{"255",	10,	3,	255},
++};
++
++static void __init test_parse_integer_uc_ok(void)
++{
++	TEST_OK(unsigned char, "%hhu", test_uc_ok);
++}
++
++DEFINE_TEST_FAIL(unsigned char, test_uc_fail)
++{
++	{"256",				10},
++	{"32767",			10},
++	{"32768",			10},
++	{"65535",			10},
++	{"65536",			10},
++	{"2147483647",			10},
++	{"2147483648",			10},
++	{"4294967295",			10},
++	{"4294967296",			10},
++	{"9223372036854775807",		10},
++	{"9223372036854775808",		10},
++	{"18446744073709551615",	10},
++};
++
++static void __init test_parse_integer_uc_fail(void)
++{
++	TEST_FAIL(unsigned char, "%hhu", test_uc_fail);
++}
++
++DEFINE_TEST_OK(signed char, struct test_sc, test_sc_ok)
++{
++	{"-128",	10,	4,	-128},
++	{"-0",		10,	2,	0},
++	{"0",		10,	1,	0},
++	{"127",		10,	3,	127},
++};
++
++static void __init test_parse_integer_sc_ok(void)
++{
++	TEST_OK(signed char, "%hhd", test_sc_ok);
++}
++
++DEFINE_TEST_FAIL(signed char, test_sc_fail)
++{
++	{"-9223372036854775809",	10},
++	{"-9223372036854775808",	10},
++	{"-4294967296",			10},
++	{"-2147483649",			10},
++	{"-2147483648",			10},
++	{"-65536",			10},
++	{"-32769",			10},
++	{"-32768",			10},
++	{"-256",			10},
++	{"-129",			10},
++	{"128",				10},
++	{"255",				10},
++	{"32767",			10},
++	{"32768",			10},
++	{"65535",			10},
++	{"2147483647",			10},
++	{"2147483648",			10},
++	{"4294967295",			10},
++	{"9223372036854775807",		10},
++	{"9223372036854775808",		10},
++};
++
++static void __init test_parse_integer_sc_fail(void)
++{
++	TEST_FAIL(signed char, "%hhd", test_sc_fail);
++}
++
++static int __init test_parse_integer_init(void)
++{
++	test_parse_integer_ull_ok();
++	test_parse_integer_ull_fail();
++	test_parse_integer_ll_ok();
++	test_parse_integer_ll_fail();
++	test_parse_integer_u_ok();
++	test_parse_integer_u_fail();
++	test_parse_integer_i_ok();
++	test_parse_integer_i_fail();
++	test_parse_integer_us_ok();
++	test_parse_integer_us_fail();
++	test_parse_integer_s_ok();
++	test_parse_integer_s_fail();
++	test_parse_integer_uc_ok();
++	test_parse_integer_uc_fail();
++	test_parse_integer_sc_ok();
++	test_parse_integer_sc_fail();
++	return -EINVAL;
++}
++module_init(test_parse_integer_init);
++MODULE_LICENSE("Dual BSD/GPL");
 _
 
 Patches currently in -mm which might be from adobriyan@gmail.com are
