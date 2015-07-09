@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- slab-infrastructure-for-bulk-object-allocation-and-freeing.patch added to
- -mm tree
-Date: Thu, 09 Jul 2015 12:03:07 -0700
-Message-ID: <559ec56b.KNWEIKWpOlFN9A9e%akpm@linux-foundation.org>
+Subject: + slub-add-support-for-kmem_cache_debug-in-bulk-calls.patch added to -mm tree
+Date: Thu, 09 Jul 2015 12:03:15 -0700
+Message-ID: <559ec573.TO/UZfYnEk4Krb2T%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47889 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47913 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751215AbbGITDI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jul 2015 15:03:08 -0400
+	with ESMTP id S1752179AbbGITDQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jul 2015 15:03:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cl@linux.com, brouer@redhat.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: brouer@redhat.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slab: infrastructure for bulk object allocation and freeing
+     Subject: slub: add support for kmem_cache_debug in bulk calls
 has been added to the -mm tree.  Its filename is
-     slab-infrastructure-for-bulk-object-allocation-and-freeing.patch
+     slub-add-support-for-kmem_cache_debug-in-bulk-calls.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/slab-infrastructure-for-bulk-object-allocation-and-freeing.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/slub-add-support-for-kmem_cache_debug-in-bulk-calls.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/slab-infrastructure-for-bulk-object-allocation-and-freeing.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/slub-add-support-for-kmem_cache_debug-in-bulk-calls.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,185 +38,115 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Christoph Lameter <cl@linux.com>
-Subject: slab: infrastructure for bulk object allocation and freeing
+From: Jesper Dangaard Brouer <brouer@redhat.com>
+Subject: slub: add support for kmem_cache_debug in bulk calls
 
-Add the basic infrastructure for alloc/free operations on pointer arrays. 
-It includes a generic function in the common slab code that is used in
-this infrastructure patch to create the unoptimized functionality for slab
-bulk operations.
+Per request of Joonsoo Kim adding kmem debug support.
 
-Allocators can then provide optimized allocation functions for situations
-in which large numbers of objects are needed.  These optimization may
-avoid taking locks repeatedly and bypass metadata creation if all objects
-in slab pages can be used to provide the objects required.
+I've tested that when debugging is disabled, then there is almost no
+performance impact as this code basically gets removed by the compiler.
 
-Allocators can extend the skeletons provided and add their own code to the
-bulk alloc and free functions.  They can keep the generic allocation and
-freeing and just fall back to those if optimizations would not work (like
-for example when debugging is on).
+Need some guidance in enabling and testing this.
 
-Signed-off-by: Christoph Lameter <cl@linux.com>
+bulk- PREVIOUS                  - THIS-PATCH
+  1 -  43 cycles(tsc) 10.811 ns -  44 cycles(tsc) 11.236 ns  improved  -2.3%
+  2 -  27 cycles(tsc)  6.867 ns -  28 cycles(tsc)  7.019 ns  improved  -3.7%
+  3 -  21 cycles(tsc)  5.496 ns -  22 cycles(tsc)  5.526 ns  improved  -4.8%
+  4 -  24 cycles(tsc)  6.038 ns -  19 cycles(tsc)  4.786 ns  improved  20.8%
+  8 -  17 cycles(tsc)  4.280 ns -  18 cycles(tsc)  4.572 ns  improved  -5.9%
+ 16 -  17 cycles(tsc)  4.483 ns -  18 cycles(tsc)  4.658 ns  improved  -5.9%
+ 30 -  18 cycles(tsc)  4.531 ns -  18 cycles(tsc)  4.568 ns  improved   0.0%
+ 32 -  58 cycles(tsc) 14.586 ns -  65 cycles(tsc) 16.454 ns  improved -12.1%
+ 34 -  53 cycles(tsc) 13.391 ns -  63 cycles(tsc) 15.932 ns  improved -18.9%
+ 48 -  65 cycles(tsc) 16.268 ns -  50 cycles(tsc) 12.506 ns  improved  23.1%
+ 64 -  53 cycles(tsc) 13.440 ns -  63 cycles(tsc) 15.929 ns  improved -18.9%
+128 -  79 cycles(tsc) 19.899 ns -  86 cycles(tsc) 21.583 ns  improved  -8.9%
+158 -  90 cycles(tsc) 22.732 ns -  90 cycles(tsc) 22.552 ns  improved   0.0%
+250 -  95 cycles(tsc) 23.916 ns -  98 cycles(tsc) 24.589 ns  improved  -3.2%
+
 Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
+Cc: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slab.h |   10 ++++++++++
- mm/slab.c            |   13 +++++++++++++
- mm/slab.h            |    9 +++++++++
- mm/slab_common.c     |   23 +++++++++++++++++++++++
- mm/slob.c            |   13 +++++++++++++
- mm/slub.c            |   14 ++++++++++++++
- 6 files changed, 82 insertions(+)
+ mm/slub.c |   28 +++++++++++++++++++---------
+ 1 file changed, 19 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/slab.h~slab-infrastructure-for-bulk-object-allocation-and-freeing include/linux/slab.h
---- a/include/linux/slab.h~slab-infrastructure-for-bulk-object-allocation-and-freeing
-+++ a/include/linux/slab.h
-@@ -290,6 +290,16 @@ void *__kmalloc(size_t size, gfp_t flags
- void *kmem_cache_alloc(struct kmem_cache *, gfp_t flags);
- void kmem_cache_free(struct kmem_cache *, void *);
+diff -puN mm/slub.c~slub-add-support-for-kmem_cache_debug-in-bulk-calls mm/slub.c
+--- a/mm/slub.c~slub-add-support-for-kmem_cache_debug-in-bulk-calls
++++ a/mm/slub.c
+@@ -2757,10 +2757,6 @@ void kmem_cache_free_bulk(struct kmem_ca
+ 	struct page *page;
+ 	int i;
  
-+/*
-+ * Bulk allocation and freeing operations. These are accellerated in an
-+ * allocator specific way to avoid taking locks repeatedly or building
-+ * metadata structures unnecessarily.
-+ *
-+ * Note that interrupts must be enabled when calling these functions.
-+ */
-+void kmem_cache_free_bulk(struct kmem_cache *, size_t, void **);
-+bool kmem_cache_alloc_bulk(struct kmem_cache *, gfp_t, size_t, void **);
+-	/* Debugging fallback to generic bulk */
+-	if (kmem_cache_debug(s))
+-		return __kmem_cache_free_bulk(s, size, p);
+-
+ 	local_irq_disable();
+ 	c = this_cpu_ptr(s->cpu_slab);
+ 
+@@ -2768,8 +2764,13 @@ void kmem_cache_free_bulk(struct kmem_ca
+ 		void *object = p[i];
+ 
+ 		BUG_ON(!object);
++		/* kmem cache debug support */
++		s = cache_from_obj(s, object);
++		if (unlikely(!s))
++			goto exit;
++		slab_free_hook(s, object);
 +
- #ifdef CONFIG_NUMA
- void *__kmalloc_node(size_t size, gfp_t flags, int node);
- void *kmem_cache_alloc_node(struct kmem_cache *, gfp_t flags, int node);
-diff -puN mm/slab.c~slab-infrastructure-for-bulk-object-allocation-and-freeing mm/slab.c
---- a/mm/slab.c~slab-infrastructure-for-bulk-object-allocation-and-freeing
-+++ a/mm/slab.c
-@@ -3416,6 +3416,19 @@ void *kmem_cache_alloc(struct kmem_cache
+ 		page = virt_to_head_page(object);
+-		BUG_ON(s != page->slab_cache); /* Check if valid slab page */
+ 
+ 		if (c->page == page) {
+ 			/* Fastpath: local CPU free */
+@@ -2784,6 +2785,7 @@ void kmem_cache_free_bulk(struct kmem_ca
+ 			c = this_cpu_ptr(s->cpu_slab);
+ 		}
+ 	}
++exit:
+ 	c->tid = next_tid(c->tid);
+ 	local_irq_enable();
  }
- EXPORT_SYMBOL(kmem_cache_alloc);
+@@ -2796,10 +2798,6 @@ bool kmem_cache_alloc_bulk(struct kmem_c
+ 	struct kmem_cache_cpu *c;
+ 	int i;
  
-+void kmem_cache_free_bulk(struct kmem_cache *s, size_t size, void **p)
-+{
-+	__kmem_cache_free_bulk(s, size, p);
-+}
-+EXPORT_SYMBOL(kmem_cache_free_bulk);
-+
-+bool kmem_cache_alloc_bulk(struct kmem_cache *s, gfp_t flags, size_t size,
-+								void **p)
-+{
-+	return __kmem_cache_alloc_bulk(s, flags, size, p);
-+}
-+EXPORT_SYMBOL(kmem_cache_alloc_bulk);
-+
- #ifdef CONFIG_TRACING
- void *
- kmem_cache_alloc_trace(struct kmem_cache *cachep, gfp_t flags, size_t size)
-diff -puN mm/slab.h~slab-infrastructure-for-bulk-object-allocation-and-freeing mm/slab.h
---- a/mm/slab.h~slab-infrastructure-for-bulk-object-allocation-and-freeing
-+++ a/mm/slab.h
-@@ -163,6 +163,15 @@ void slabinfo_show_stats(struct seq_file
- ssize_t slabinfo_write(struct file *file, const char __user *buffer,
- 		       size_t count, loff_t *ppos);
+-	/* Debugging fallback to generic bulk */
+-	if (kmem_cache_debug(s))
+-		return __kmem_cache_alloc_bulk(s, flags, size, p);
+-
+ 	/*
+ 	 * Drain objects in the per cpu slab, while disabling local
+ 	 * IRQs, which protects against PREEMPT and interrupts
+@@ -2828,8 +2826,20 @@ bool kmem_cache_alloc_bulk(struct kmem_c
+ 			continue; /* goto for-loop */
+ 		}
  
-+/*
-+ * Generic implementation of bulk operations
-+ * These are useful for situations in which the allocator cannot
-+ * perform optimizations. In that case segments of the objecct listed
-+ * may be allocated or freed using these operations.
-+ */
-+void __kmem_cache_free_bulk(struct kmem_cache *, size_t, void **);
-+bool __kmem_cache_alloc_bulk(struct kmem_cache *, gfp_t, size_t, void **);
-+
- #ifdef CONFIG_MEMCG_KMEM
- /*
-  * Iterate over all memcg caches of the given root cache. The caller must hold
-diff -puN mm/slab_common.c~slab-infrastructure-for-bulk-object-allocation-and-freeing mm/slab_common.c
---- a/mm/slab_common.c~slab-infrastructure-for-bulk-object-allocation-and-freeing
-+++ a/mm/slab_common.c
-@@ -105,6 +105,29 @@ static inline int kmem_cache_sanity_chec
- }
- #endif
- 
-+void __kmem_cache_free_bulk(struct kmem_cache *s, size_t nr, void **p)
-+{
-+	size_t i;
-+
-+	for (i = 0; i < nr; i++)
-+		kmem_cache_free(s, p[i]);
-+}
-+
-+bool __kmem_cache_alloc_bulk(struct kmem_cache *s, gfp_t flags, size_t nr,
-+								void **p)
-+{
-+	size_t i;
-+
-+	for (i = 0; i < nr; i++) {
-+		void *x = p[i] = kmem_cache_alloc(s, flags);
-+		if (!x) {
++		/* kmem_cache debug support */
++		s = slab_pre_alloc_hook(s, flags);
++		if (unlikely(!s)) {
 +			__kmem_cache_free_bulk(s, i, p);
++			c->tid = next_tid(c->tid);
++			local_irq_enable();
 +			return false;
 +		}
-+	}
-+	return true;
-+}
 +
- #ifdef CONFIG_MEMCG_KMEM
- void slab_init_memcg_params(struct kmem_cache *s)
- {
-diff -puN mm/slob.c~slab-infrastructure-for-bulk-object-allocation-and-freeing mm/slob.c
---- a/mm/slob.c~slab-infrastructure-for-bulk-object-allocation-and-freeing
-+++ a/mm/slob.c
-@@ -611,6 +611,19 @@ void kmem_cache_free(struct kmem_cache *
- }
- EXPORT_SYMBOL(kmem_cache_free);
- 
-+void kmem_cache_free_bulk(struct kmem_cache *s, size_t size, void **p)
-+{
-+	__kmem_cache_free_bulk(s, size, p);
-+}
-+EXPORT_SYMBOL(kmem_cache_free_bulk);
+ 		c->freelist = get_freepointer(s, object);
+ 		p[i] = object;
 +
-+bool kmem_cache_alloc_bulk(struct kmem_cache *s, gfp_t flags, size_t size,
-+								void **p)
-+{
-+	return __kmem_cache_alloc_bulk(s, flags, size, p);
-+}
-+EXPORT_SYMBOL(kmem_cache_alloc_bulk);
-+
- int __kmem_cache_shutdown(struct kmem_cache *c)
- {
- 	/* No way to check for remaining objects */
-diff -puN mm/slub.c~slab-infrastructure-for-bulk-object-allocation-and-freeing mm/slub.c
---- a/mm/slub.c~slab-infrastructure-for-bulk-object-allocation-and-freeing
-+++ a/mm/slub.c
-@@ -2750,6 +2750,20 @@ void kmem_cache_free(struct kmem_cache *
- }
- EXPORT_SYMBOL(kmem_cache_free);
- 
-+void kmem_cache_free_bulk(struct kmem_cache *s, size_t size, void **p)
-+{
-+	__kmem_cache_free_bulk(s, size, p);
-+}
-+EXPORT_SYMBOL(kmem_cache_free_bulk);
-+
-+bool kmem_cache_alloc_bulk(struct kmem_cache *s, gfp_t flags, size_t size,
-+								void **p)
-+{
-+	return __kmem_cache_alloc_bulk(s, flags, size, p);
-+}
-+EXPORT_SYMBOL(kmem_cache_alloc_bulk);
-+
-+
- /*
-  * Object placement in a slab is made very easy because we always start at
-  * offset 0. If we tune the size of the object to the alignment then we can
++		/* kmem_cache debug support */
++		slab_post_alloc_hook(s, flags, object);
+ 	}
+ 	c->tid = next_tid(c->tid);
+ 	local_irq_enable();
 _
 
-Patches currently in -mm which might be from cl@linux.com are
+Patches currently in -mm which might be from brouer@redhat.com are
 
 slub-fix-spelling-succedd-to-succeed.patch
 slab-infrastructure-for-bulk-object-allocation-and-freeing.patch
@@ -226,22 +154,4 @@ slub-bulk-alloc-extract-objects-from-the-per-cpu-slab.patch
 slub-improve-bulk-alloc-strategy.patch
 slub-initial-bulk-free-implementation.patch
 slub-add-support-for-kmem_cache_debug-in-bulk-calls.patch
-page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-mm-sanitize-page-mapping-for-tail-pages.patch
-kmod-bunch-of-internal-functions-renames.patch
-kmod-add-up-to-date-explanations-on-the-purpose-of-each-asynchronous-levels.patch
-kmod-remove-unecessary-explicit-wide-cpu-affinity-setting.patch
 
