@@ -1,20 +1,20 @@
 From: akpm@linux-foundation.org
 Subject: +
  ipc-modify-message-queue-accounting-to-not-take-kernel-data-structures-into-account.patch added to -mm tree
-Date: Thu, 09 Jul 2015 14:48:10 -0700
-Message-ID: <559eec1a.AadPiK9O8S4WdiWz%akpm@linux-foundation.org>
+Date: Thu, 09 Jul 2015 14:48:49 -0700
+Message-ID: <559eec41.rhP2eXe2Lv0N95aI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52879 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52888 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754007AbbGIVsL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jul 2015 17:48:11 -0400
+	with ESMTP id S1751177AbbGIVsv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jul 2015 17:48:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: redmnic@gmail.com, arto@bendiken.net, dbueso@suse.de, dhowells@redhat.com, dledford@redhat.com, jb_duffy@btinternet.com, mtk.manpages@gmail.com, stable@vger.kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: redmnic@gmail.com, arto@bendiken.net, dbueso@suse.de, dhowells@redhat.com, dledford@redhat.com, jb_duffy@btinternet.com, manfred@colorfullife.com, mtk.manpages@gmail.com, stable@vger.kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
@@ -90,6 +90,7 @@ Cc: David Howells <dhowells@redhat.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: John Duffy <jb_duffy@btinternet.com>
 Cc: Arto Bendiken <arto@bendiken.net>
+Cc: Manfred Spraul <manfred@colorfullife.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
