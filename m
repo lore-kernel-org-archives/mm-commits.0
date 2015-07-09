@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-warn-on-bare-sha-1-commit-ids-in-commit-logs.patch
- added to -mm tree
-Date: Thu, 09 Jul 2015 12:57:10 -0700
-Message-ID: <559ed216.m18uW9GkKAQvtVB/%akpm@linux-foundation.org>
+Subject: + mm-fix-status-code-move_pages-returns-for-zero-page.patch added to -mm tree
+Date: Thu, 09 Jul 2015 14:08:26 -0700
+Message-ID: <559ee2ca.bywetGmLUAX4rVDn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49752 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51566 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753666AbbGIT5L (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jul 2015 15:57:11 -0400
+	with ESMTP id S1753840AbbGIVI1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jul 2015 17:08:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, cl@linux.com, hughd@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: warn on bare SHA-1 commit IDs in commit logs
+     Subject: mm: fix status code which move_pages() returns for zero page
 has been added to the -mm tree.  Its filename is
-     checkpatch-warn-on-bare-sha-1-commit-ids-in-commit-logs.patch
+     mm-fix-status-code-move_pages-returns-for-zero-page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-warn-on-bare-sha-1-commit-ids-in-commit-logs.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-status-code-move_pages-returns-for-zero-page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-warn-on-bare-sha-1-commit-ids-in-commit-logs.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-status-code-move_pages-returns-for-zero-page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,65 +38,93 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: warn on bare SHA-1 commit IDs in commit logs
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm: fix status code which move_pages() returns for zero page
 
-Commit IDs should have commit descriptions too.  Warn when a 12 to 40 byte
-SHA-1 is used in commit logs.
+The manpage for move_pages(2) specifies that status code for zero page is
+supposed to be -EFAULT.  Currently kernel return -ENOENT in this case.
 
-Signed-off-by: Joe Perches <joe@perches.com>
+follow_page() can do it for us, if we would ask for FOLL_DUMP.  The use of
+FOLL_DUMP also means that the upper layer page tables pages are no longer
+allocated.
+
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Hugh Dickins <hughd@google.com>
+Reviewed-by: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   15 ++++++++++++---
- 1 file changed, 12 insertions(+), 3 deletions(-)
+ mm/migrate.c |   18 ++++++------------
+ 1 file changed, 6 insertions(+), 12 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-warn-on-bare-sha-1-commit-ids-in-commit-logs scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-warn-on-bare-sha-1-commit-ids-in-commit-logs
-+++ a/scripts/checkpatch.pl
-@@ -2317,9 +2317,11 @@ sub process {
- 		}
+diff -puN mm/migrate.c~mm-fix-status-code-move_pages-returns-for-zero-page mm/migrate.c
+--- a/mm/migrate.c~mm-fix-status-code-move_pages-returns-for-zero-page
++++ a/mm/migrate.c
+@@ -1222,7 +1222,9 @@ static int do_move_page_to_node_array(st
+ 		if (!vma || pp->addr < vma->vm_start || !vma_migratable(vma))
+ 			goto set_status;
  
- # Check for git id commit length and improperly formed commit descriptions
--		if ($in_commit_log && $line =~ /\b(c)ommit\s+([0-9a-f]{5,})/i) {
--			my $init_char = $1;
--			my $orig_commit = lc($2);
-+		if ($in_commit_log &&
-+		    ($line =~ /\bcommit\s+[0-9a-f]{5,}\b/i ||
-+		     $line =~ /\b[0-9a-f]{12,40}\b/i)) {
-+			my $init_char = "c";
-+			my $orig_commit = "";
- 			my $short = 1;
- 			my $long = 0;
- 			my $case = 1;
-@@ -2330,6 +2332,13 @@ sub process {
- 			my $orig_desc = "commit description";
- 			my $description = "";
+-		page = follow_page(vma, pp->addr, FOLL_GET|FOLL_SPLIT);
++		/* FOLL_DUMP to ignore special (like zero) pages */
++		page = follow_page(vma, pp->addr,
++				FOLL_GET | FOLL_SPLIT | FOLL_DUMP);
  
-+			if ($line =~ /\b(c)ommit\s+([0-9a-f]{5,})\b/i) {
-+				$init_char = $1;
-+				$orig_commit = lc($2);
-+			} elsif ($line =~ /\b([0-9a-f]{12,40})\b/i) {
-+				$orig_commit = lc($1);
-+			}
-+
- 			$short = 0 if ($line =~ /\bcommit\s+[0-9a-f]{12,40}/i);
- 			$long = 1 if ($line =~ /\bcommit\s+[0-9a-f]{41,}/i);
- 			$space = 0 if ($line =~ /\bcommit [0-9a-f]/i);
+ 		err = PTR_ERR(page);
+ 		if (IS_ERR(page))
+@@ -1232,10 +1234,6 @@ static int do_move_page_to_node_array(st
+ 		if (!page)
+ 			goto set_status;
+ 
+-		/* Use PageReserved to check for zero page */
+-		if (PageReserved(page))
+-			goto put_and_set;
+-
+ 		pp->page = page;
+ 		err = page_to_nid(page);
+ 
+@@ -1392,18 +1390,14 @@ static void do_pages_stat_array(struct m
+ 		if (!vma || addr < vma->vm_start)
+ 			goto set_status;
+ 
+-		page = follow_page(vma, addr, 0);
++		/* FOLL_DUMP to ignore special (like zero) pages */
++		page = follow_page(vma, addr, FOLL_DUMP);
+ 
+ 		err = PTR_ERR(page);
+ 		if (IS_ERR(page))
+ 			goto set_status;
+ 
+-		err = -ENOENT;
+-		/* Use PageReserved to check for zero page */
+-		if (!page || PageReserved(page))
+-			goto set_status;
+-
+-		err = page_to_nid(page);
++		err = page ? page_to_nid(page) : -ENOENT;
+ set_status:
+ 		*status = err;
+ 
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-ocfs2-neaten-do_error-ocfs2_error-and-ocfs2_abort.patch
-mm-utilc-add-kstrimdup.patch
-checkpatch-warn-on-bare-sha-1-commit-ids-in-commit-logs.patch
-hfs-fix-b-tree-corruption-after-insertion-at-position-0.patch
-seq_file-provide-an-analogue-of-print_hex_dump.patch
-crypto-qat-use-seq_hex_dump-to-dump-buffers.patch
-parisc-use-seq_hex_dump-to-dump-buffers.patch
-zcrypt-use-seq_hex_dump-to-dump-buffers.patch
-kmemleak-use-seq_hex_dump-to-dump-buffers.patch
-wil6210-use-seq_hex_dump-to-dump-buffers.patch
-linux-next.patch
-fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void.patch
+mm-fix-status-code-move_pages-returns-for-zero-page.patch
+page-flags-trivial-cleanup-for-pagetrans-helpers.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
+page-flags-define-pg_locked-behavior-on-compound-pages.patch
+page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-lru-related-flags-on-compound-pages-fix.patch
+page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
+page-flags-define-pg_reserved-behavior-on-compound-pages.patch
+page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
+page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
+page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
+page-flags-define-pg_uncached-behavior-on-compound-pages.patch
+page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
+page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
+mm-sanitize-page-mapping-for-tail-pages.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
 
