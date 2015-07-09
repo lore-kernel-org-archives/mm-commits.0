@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-fix-race-between-dio-and-recover-orphan.patch added to
- -mm tree
-Date: Thu, 09 Jul 2015 15:39:51 -0700
-Message-ID: <559ef837.A2asiaDGX5tQr1Yz%akpm@linux-foundation.org>
+Subject: + memory-make-the-function-tlb_next_batch-bool-now.patch added to -mm tree
+Date: Thu, 09 Jul 2015 15:48:23 -0700
+Message-ID: <559efa37.YDm3o2BBgA18qua3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53396 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53416 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751629AbbGIWjw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jul 2015 18:39:52 -0400
+	with ESMTP id S1750744AbbGIWsY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jul 2015 18:48:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joseph.qi@huawei.com, jiangyiwen@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, wangww631@huawei.com, mm-commits@vger.kernel.org
+To: xerofoify@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix race between dio and recover orphan
+     Subject: mm/memory.c: make tlb_next_batch() return bool
 has been added to the -mm tree.  Its filename is
-     ocfs2-fix-race-between-dio-and-recover-orphan.patch
+     memory-make-the-function-tlb_next_batch-bool-now.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-race-between-dio-and-recover-orphan.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memory-make-the-function-tlb_next_batch-bool-now.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-race-between-dio-and-recover-orphan.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memory-make-the-function-tlb_next_batch-bool-now.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,63 +38,64 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@huawei.com>
-Subject: ocfs2: fix race between dio and recover orphan
+From: Nicholas Krause <xerofoify@gmail.com>
+Subject: mm/memory.c: make tlb_next_batch() return bool
 
-During direct io the inode will be added to orphan first and then deleted
-from orphan.  There is a race window that the orphan entry will be deleted
-twice and thus trigger the BUG when validating OCFS2_DIO_ORPHANED_FL in
-ocfs2_del_inode_from_orphan.
+This makes the tlb_next_batch() bool due to this particular function only
+ever returning either one or zero as its return value.
 
-ocfs2_direct_IO_write
-    ...
-    ocfs2_add_inode_to_orphan
-    >>>>>>>> race window, another node may rm the file and then down,
-             this node take care of orphan recovery and clear flag
-             OCFS2_DIO_ORPHANED_FL
-    ocfs2_del_inode_from_orphan
-
-Take inode mutex lock to fix this race case.
-
-Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
-Reported-by: Yiwen Jiang <jiangyiwen@huawei.com>
-Reviewed-by: Weiwei Wang <wangww631@huawei.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+Signed-off-by: Nicholas Krause <xerofoify@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/journal.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/memory.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN fs/ocfs2/journal.c~ocfs2-fix-race-between-dio-and-recover-orphan fs/ocfs2/journal.c
---- a/fs/ocfs2/journal.c~ocfs2-fix-race-between-dio-and-recover-orphan
-+++ a/fs/ocfs2/journal.c
-@@ -2170,6 +2170,7 @@ static int ocfs2_recover_orphans(struct
- 		iter = oi->ip_next_orphan;
- 		oi->ip_next_orphan = NULL;
+diff -puN mm/memory.c~memory-make-the-function-tlb_next_batch-bool-now mm/memory.c
+--- a/mm/memory.c~memory-make-the-function-tlb_next_batch-bool-now
++++ a/mm/memory.c
+@@ -181,22 +181,22 @@ static void check_sync_rss_stat(struct t
  
-+		mutex_lock(&inode->i_mutex);
- 		ret = ocfs2_rw_lock(inode, 1);
- 		if (ret < 0) {
- 			mlog_errno(ret);
-@@ -2214,6 +2215,7 @@ unlock_inode:
- unlock_rw:
- 		ocfs2_rw_unlock(inode, 1);
- next:
-+		mutex_unlock(&inode->i_mutex);
- 		iput(inode);
- 		brelse(di_bh);
- 		di_bh = NULL;
+ #ifdef HAVE_GENERIC_MMU_GATHER
+ 
+-static int tlb_next_batch(struct mmu_gather *tlb)
++static bool tlb_next_batch(struct mmu_gather *tlb)
+ {
+ 	struct mmu_gather_batch *batch;
+ 
+ 	batch = tlb->active;
+ 	if (batch->next) {
+ 		tlb->active = batch->next;
+-		return 1;
++		return true;
+ 	}
+ 
+ 	if (tlb->batch_count == MAX_GATHER_BATCH_COUNT)
+-		return 0;
++		return false;
+ 
+ 	batch = (void *)__get_free_pages(GFP_NOWAIT | __GFP_NOWARN, 0);
+ 	if (!batch)
+-		return 0;
++		return false;
+ 
+ 	tlb->batch_count++;
+ 	batch->next = NULL;
+@@ -206,7 +206,7 @@ static int tlb_next_batch(struct mmu_gat
+ 	tlb->active->next = batch;
+ 	tlb->active = batch;
+ 
+-	return 1;
++	return true;
+ }
+ 
+ /* tlb_gather_mmu
 _
 
-Patches currently in -mm which might be from joseph.qi@huawei.com are
+Patches currently in -mm which might be from xerofoify@gmail.com are
 
-ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work.patch
-ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work-v2.patch
-ocfs2-fix-race-between-dio-and-recover-orphan.patch
-ocfs2-set-filesytem-read-only-when-ocfs2_delete_entry-failed.patch
-ocfs2-set-filesytem-read-only-when-ocfs2_delete_entry-failed-v2.patch
-ocfs2-fix-race-between-crashed-dio-and-rm.patch
-ocfs2-avoid-access-invalid-address-when-read-o2dlm-debug-messages.patch
+hugetlb-make-the-function-vma_shareable-bool.patch
+mm-change-function-return-from-int-to-bool-for-the-function-is_page_busy.patch
+memory-make-the-function-tlb_next_batch-bool-now.patch
+linux-next.patch
 
