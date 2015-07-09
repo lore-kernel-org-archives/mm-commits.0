@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + parse_integer-convert-scanf.patch added to -mm tree
-Date: Thu, 09 Jul 2015 12:26:11 -0700
-Message-ID: <559ecad3.y8Ho93O6Hfea7mg7%akpm@linux-foundation.org>
+Subject: + kstrto-accept-0-for-signed-conversion.patch added to -mm tree
+Date: Thu, 09 Jul 2015 12:26:03 -0700
+Message-ID: <559ecacb.MrudHkyqz+fAfTTU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48749 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48726 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752905AbbGIT0M (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jul 2015 15:26:12 -0400
+	with ESMTP id S1752197AbbGIT0E (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jul 2015 15:26:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, dhowells@redhat.com, jack@suse.cz, jlbec@evilplan.org, linux@rasmusvillemoes.dk, mfasheh@suse.com, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: parse_integer: convert scanf()
+     Subject: kstrto*: accept "-0" for signed conversion
 has been added to the -mm tree.  Its filename is
-     parse_integer-convert-scanf.patch
+     kstrto-accept-0-for-signed-conversion.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/parse_integer-convert-scanf.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kstrto-accept-0-for-signed-conversion.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/parse_integer-convert-scanf.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kstrto-accept-0-for-signed-conversion.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,85 +39,73 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: parse_integer: convert scanf()
+Subject: kstrto*: accept "-0" for signed conversion
 
-Remove base second guessing -- done by parse_integer() just fine.
-
-Uniformly fix too liberal acceptance in %lu/%ld cases in the next patch.
+strtol(3) et al accept "-0", so should we.
 
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |   36 ++++++++++--------------------------
- 1 file changed, 10 insertions(+), 26 deletions(-)
+ lib/kstrtox.c      |    2 +-
+ lib/test-kstrtox.c |    6 +-----
+ 2 files changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN lib/vsprintf.c~parse_integer-convert-scanf lib/vsprintf.c
---- a/lib/vsprintf.c~parse_integer-convert-scanf
-+++ a/lib/vsprintf.c
-@@ -2488,8 +2488,6 @@ EXPORT_SYMBOL_GPL(bprintf);
- int vsscanf(const char *buf, const char *fmt, va_list args)
- {
- 	const char *str = buf;
--	char *next;
--	char digit;
- 	int num = 0;
- 	u8 qualifier;
- 	unsigned int base;
-@@ -2501,6 +2499,8 @@ int vsscanf(const char *buf, const char
- 	bool is_sign;
+diff -puN lib/kstrtox.c~kstrto-accept-0-for-signed-conversion lib/kstrtox.c
+--- a/lib/kstrtox.c~kstrto-accept-0-for-signed-conversion
++++ a/lib/kstrtox.c
+@@ -152,7 +152,7 @@ int kstrtoll(const char *s, unsigned int
+ 		rv = _kstrtoull(s + 1, base, &tmp);
+ 		if (rv < 0)
+ 			return rv;
+-		if ((long long)(-tmp) >= 0)
++		if ((long long)-tmp > 0)
+ 			return -ERANGE;
+ 		*res = -tmp;
+ 	} else {
+diff -puN lib/test-kstrtox.c~kstrto-accept-0-for-signed-conversion lib/test-kstrtox.c
+--- a/lib/test-kstrtox.c~kstrto-accept-0-for-signed-conversion
++++ a/lib/test-kstrtox.c
+@@ -260,6 +260,7 @@ static void __init test_kstrtoll_ok(void
+ 		{"4294967297",	10,	4294967297LL},
+ 		{"9223372036854775807",	10,	9223372036854775807LL},
  
- 	while (*fmt) {
-+		int len;
-+
- 		/* skip any white space in format */
- 		/* white space in format matchs any amount of
- 		 * white space, including none, in the input.
-@@ -2629,35 +2629,22 @@ int vsscanf(const char *buf, const char
- 		 */
- 		str = skip_spaces(str);
- 
--		digit = *str;
--		if (is_sign && digit == '-')
--			digit = *(str + 1);
--
--		if (!digit
--		    || (base == 16 && !isxdigit(digit))
--		    || (base == 10 && !isdigit(digit))
--		    || (base == 8 && (!isdigit(digit) || digit > '7'))
--		    || (base == 0 && !isdigit(digit)))
--			break;
--
- 		if (is_sign)
--			val.s = qualifier != 'L' ?
--				simple_strtol(str, &next, base) :
--				simple_strtoll(str, &next, base);
-+			len = parse_integer(str, base, &val.s);
- 		else
--			val.u = qualifier != 'L' ?
--				simple_strtoul(str, &next, base) :
--				simple_strtoull(str, &next, base);
-+			len = parse_integer(str, base, &val.u);
-+		if (len < 0)
-+			break;
- 
--		if (field_width > 0 && next - str > field_width) {
-+		if (field_width > 0) {
- 			if (base == 0)
- 				_parse_integer_fixup_radix(str, &base);
--			while (next - str > field_width) {
-+			while (len > field_width) {
- 				if (is_sign)
- 					val.s = div_s64(val.s, base);
- 				else
- 					val.u = div_u64(val.u, base);
--				--next;
-+				len--;
- 			}
- 		}
- 
-@@ -2698,10 +2685,7 @@ int vsscanf(const char *buf, const char
- 			break;
- 		}
- 		num++;
++		{"-0",	10,	0LL},
+ 		{"-1",	10,	-1LL},
+ 		{"-2",	10,	-2LL},
+ 		{"-9223372036854775808",	10,	LLONG_MIN},
+@@ -277,11 +278,6 @@ static void __init test_kstrtoll_fail(vo
+ 		{"-9223372036854775809",	10},
+ 		{"-18446744073709551614",	10},
+ 		{"-18446744073709551615",	10},
+-		/* negative zero isn't an integer in Linux */
+-		{"-0",	0},
+-		{"-0",	8},
+-		{"-0",	10},
+-		{"-0",	16},
+ 		/* sign is first character if any */
+ 		{"-+1", 0},
+ 		{"-+1", 8},
+_
+
+Patches currently in -mm which might be from adobriyan@gmail.com are
+
+kstrto-accept-0-for-signed-conversion.patch
+add-parse_integer-replacement-for-simple_strto.patch
+parse_integer-add-runtime-testsuite.patch
+parse-integer-rewrite-kstrto.patch
+parse_integer-convert-scanf.patch
+scanf-fix-type-range-overflow.patch
+parse_integer-convert-lib.patch
+parse_integer-convert-mm.patch
+parse_integer-convert-fs.patch
+parse_integer-convert-fs-cachefiles.patch
+parse_integer-convert-ext2-ext3-ext4.patch
+parse_integer-convert-fs-ocfs2.patch
+
