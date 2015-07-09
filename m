@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + parse_integer-convert-lib.patch added to -mm tree
-Date: Thu, 09 Jul 2015 12:26:15 -0700
-Message-ID: <559ecad7.QcIrzQtm3UVV4+ud%akpm@linux-foundation.org>
+Subject: + parse_integer-convert-ext2-ext3-ext4.patch added to -mm tree
+Date: Thu, 09 Jul 2015 12:26:23 -0700
+Message-ID: <559ecadf.Xs28Z3RHsYlcWyZW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48755 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48769 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752638AbbGIT0Q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jul 2015 15:26:16 -0400
+	with ESMTP id S1752905AbbGIT0Y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jul 2015 15:26:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, jack@suse.cz, linux@rasmusvillemoes.dk, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: parse_integer: convert lib/
+     Subject: parse_integer: convert ext2, ext3, ext4
 has been added to the -mm tree.  Its filename is
-     parse_integer-convert-lib.patch
+     parse_integer-convert-ext2-ext3-ext4.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/parse_integer-convert-lib.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/parse_integer-convert-ext2-ext3-ext4.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/parse_integer-convert-lib.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/parse_integer-convert-ext2-ext3-ext4.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,201 +39,125 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: parse_integer: convert lib/
+Subject: parse_integer: convert ext2, ext3, ext4
 
-Convert away lib/ from deprecated simple_strto*() interfaces.
+Convert away from deprecated simple_strto*() interfaces.
 
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: Jan Kara <jack@suse.cz>
 Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/cmdline.c |   42 +++++++++++++++++++++++-------------------
- lib/parser.c  |   33 ++++++++++++++++-----------------
- lib/swiotlb.c |    2 +-
- 3 files changed, 40 insertions(+), 37 deletions(-)
+ fs/ext2/super.c |    6 ++++--
+ fs/ext3/super.c |    7 ++++---
+ fs/ext4/super.c |   15 +++++++--------
+ 3 files changed, 15 insertions(+), 13 deletions(-)
 
-diff -puN lib/cmdline.c~parse_integer-convert-lib lib/cmdline.c
---- a/lib/cmdline.c~parse_integer-convert-lib
-+++ a/lib/cmdline.c
-@@ -27,7 +27,7 @@ static int get_range(char **str, int *pi
- 	int x, inc_counter, upper_range;
- 
- 	(*str)++;
--	upper_range = simple_strtol((*str), NULL, 0);
-+	parse_integer(*str, 0, &upper_range);
- 	inc_counter = upper_range - *pint;
- 	for (x = *pint; x < upper_range; x++)
- 		*pint++ = x;
-@@ -51,13 +51,14 @@ static int get_range(char **str, int *pi
- 
- int get_option(char **str, int *pint)
+diff -puN fs/ext2/super.c~parse_integer-convert-ext2-ext3-ext4 fs/ext2/super.c
+--- a/fs/ext2/super.c~parse_integer-convert-ext2-ext3-ext4
++++ a/fs/ext2/super.c
+@@ -383,16 +383,18 @@ static unsigned long get_sb_block(void *
  {
--	char *cur = *str;
-+	int len;
+ 	unsigned long 	sb_block;
+ 	char 		*options = (char *) *data;
++	int rv;
  
--	if (!cur || !(*cur))
-+	if (!str || !*str)
- 		return 0;
--	*pint = simple_strtol(cur, str, 0);
--	if (cur == *str)
-+	len = parse_integer(*str, 0, pint);
-+	if (len < 0)
- 		return 0;
-+	*str += len;
- 	if (**str == ',') {
- 		(*str)++;
- 		return 2;
-@@ -126,38 +127,41 @@ EXPORT_SYMBOL(get_options);
- 
- unsigned long long memparse(const char *ptr, char **retptr)
- {
--	char *endptr;	/* local pointer to end of parsed string */
-+	unsigned long long val = 0;
-+	int len;
- 
--	unsigned long long ret = simple_strtoull(ptr, &endptr, 0);
--
--	switch (*endptr) {
-+	len = parse_integer(ptr, 0, &val);
-+	if (len < 0)
-+		goto out;
-+	ptr += len;
-+	switch (*ptr) {
- 	case 'E':
- 	case 'e':
--		ret <<= 10;
-+		val <<= 10;
- 	case 'P':
- 	case 'p':
--		ret <<= 10;
-+		val <<= 10;
- 	case 'T':
- 	case 't':
--		ret <<= 10;
-+		val <<= 10;
- 	case 'G':
- 	case 'g':
--		ret <<= 10;
-+		val <<= 10;
- 	case 'M':
- 	case 'm':
--		ret <<= 10;
-+		val <<= 10;
- 	case 'K':
- 	case 'k':
--		ret <<= 10;
--		endptr++;
-+		val <<= 10;
-+		ptr++;
- 	default:
- 		break;
+ 	if (!options || strncmp(options, "sb=", 3) != 0)
+ 		return 1;	/* Default location */
+ 	options += 3;
+-	sb_block = simple_strtoul(options, &options, 0);
+-	if (*options && *options != ',') {
++	rv = parse_integer(options, 0, &sb_block);
++	if (rv < 0 || (options[rv] && options[rv] != ',')) {
+ 		printk("EXT2-fs: Invalid sb specification: %s\n",
+ 		       (char *) *data);
+ 		return 1;
  	}
--
-+out:
- 	if (retptr)
--		*retptr = endptr;
-+		*retptr = (char *)ptr;
- 
--	return ret;
-+	return val;
- }
- EXPORT_SYMBOL(memparse);
- 
-diff -puN lib/parser.c~parse_integer-convert-lib lib/parser.c
---- a/lib/parser.c~parse_integer-convert-lib
-+++ a/lib/parser.c
-@@ -44,7 +44,7 @@ static int match_one(char *s, const char
- 		p = meta + 1;
- 
- 		if (isdigit(*p))
--			len = simple_strtoul(p, (char **) &p, 10);
-+			p += parse_integer(p, 10, (unsigned int *)&len);
- 		else if (*p == '%') {
- 			if (*s++ != '%')
- 				return 0;
-@@ -57,6 +57,11 @@ static int match_one(char *s, const char
- 
- 		args[argc].from = s;
- 		switch (*p++) {
-+			union {
-+				int i;
-+				unsigned int u;
-+			} u;
-+
- 		case 's': {
- 			size_t str_len = strlen(s);
- 
-@@ -68,19 +73,20 @@ static int match_one(char *s, const char
- 			break;
- 		}
- 		case 'd':
--			simple_strtol(s, &args[argc].to, 0);
-+			len = parse_integer(s, 0, &u.i);
- 			goto num;
- 		case 'u':
--			simple_strtoul(s, &args[argc].to, 0);
-+			len = parse_integer(s, 0, &u.u);
- 			goto num;
- 		case 'o':
--			simple_strtoul(s, &args[argc].to, 8);
-+			len = parse_integer(s, 8, &u.u);
- 			goto num;
- 		case 'x':
--			simple_strtoul(s, &args[argc].to, 16);
-+			len = parse_integer(s, 16, &u.u);
- 		num:
--			if (args[argc].to == args[argc].from)
-+			if (len < 0)
- 				return 0;
-+			args[argc].to = args[argc].from + len;
- 			break;
- 		default:
- 			return 0;
-@@ -127,10 +133,8 @@ EXPORT_SYMBOL(match_token);
-  */
- static int match_number(substring_t *s, int *result, int base)
++	options += rv;
+ 	if (*options == ',')
+ 		options++;
+ 	*data = (void *) options;
+diff -puN fs/ext3/super.c~parse_integer-convert-ext2-ext3-ext4 fs/ext3/super.c
+--- a/fs/ext3/super.c~parse_integer-convert-ext2-ext3-ext4
++++ a/fs/ext3/super.c
+@@ -902,17 +902,18 @@ static ext3_fsblk_t get_sb_block(void **
  {
--	char *endp;
- 	char *buf;
+ 	ext3_fsblk_t	sb_block;
+ 	char		*options = (char *) *data;
++	int rv;
+ 
+ 	if (!options || strncmp(options, "sb=", 3) != 0)
+ 		return 1;	/* Default location */
+ 	options += 3;
+-	/*todo: use simple_strtoll with >32bit ext3 */
+-	sb_block = simple_strtoul(options, &options, 0);
+-	if (*options && *options != ',') {
++	rv = parse_integer(options, 0, &sb_block);
++	if (rv < 0 || (options[rv] && options[rv] != ',')) {
+ 		ext3_msg(sb, KERN_ERR, "error: invalid sb specification: %s",
+ 		       (char *) *data);
+ 		return 1;
+ 	}
++	options += rv;
+ 	if (*options == ',')
+ 		options++;
+ 	*data = (void *) options;
+diff -puN fs/ext4/super.c~parse_integer-convert-ext2-ext3-ext4 fs/ext4/super.c
+--- a/fs/ext4/super.c~parse_integer-convert-ext2-ext3-ext4
++++ a/fs/ext4/super.c
+@@ -1238,18 +1238,19 @@ static ext4_fsblk_t get_sb_block(void **
+ {
+ 	ext4_fsblk_t	sb_block;
+ 	char		*options = (char *) *data;
++	int rv;
+ 
+ 	if (!options || strncmp(options, "sb=", 3) != 0)
+ 		return 1;	/* Default location */
+ 
+ 	options += 3;
+-	/* TODO: use simple_strtoll with >32bit ext4 */
+-	sb_block = simple_strtoul(options, &options, 0);
+-	if (*options && *options != ',') {
++	rv = parse_integer(options, 0, &sb_block);
++	if (rv < 0 || (options[rv] && options[rv] != ',')) {
+ 		printk(KERN_ERR "EXT4-fs: Invalid sb specification: %s\n",
+ 		       (char *) *data);
+ 		return 1;
+ 	}
++	options += rv;
+ 	if (*options == ',')
+ 		options++;
+ 	*data = (void *) options;
+@@ -2519,10 +2520,10 @@ static ssize_t inode_readahead_blks_stor
+ 					  struct ext4_sb_info *sbi,
+ 					  const char *buf, size_t count)
+ {
+-	unsigned long t;
++	unsigned int t;
  	int ret;
--	long val;
- 	size_t len = s->to - s->from;
  
- 	buf = kmalloc(len + 1, GFP_KERNEL);
-@@ -139,16 +143,11 @@ static int match_number(substring_t *s,
- 	memcpy(buf, s->from, len);
- 	buf[len] = '\0';
+-	ret = kstrtoul(skip_spaces(buf), 0, &t);
++	ret = kstrtouint(skip_spaces(buf), 0, &t);
+ 	if (ret)
+ 		return ret;
  
--	ret = 0;
--	val = simple_strtol(buf, &endp, base);
--	if (endp == buf)
--		ret = -EINVAL;
--	else if (val < (long)INT_MIN || val > (long)INT_MAX)
--		ret = -ERANGE;
--	else
--		*result = (int) val;
-+	ret = parse_integer(buf, base, result);
- 	kfree(buf);
--	return ret;
-+	if (ret < 0)
-+		return ret;
-+	return 0;
+@@ -2546,13 +2547,11 @@ static ssize_t sbi_ui_store(struct ext4_
+ 			    const char *buf, size_t count)
+ {
+ 	unsigned int *ui = (unsigned int *) (((char *) sbi) + a->u.offset);
+-	unsigned long t;
+ 	int ret;
+ 
+-	ret = kstrtoul(skip_spaces(buf), 0, &t);
++	ret = kstrtouint(skip_spaces(buf), 0, ui);
+ 	if (ret)
+ 		return ret;
+-	*ui = t;
+ 	return count;
  }
  
- /**
-diff -puN lib/swiotlb.c~parse_integer-convert-lib lib/swiotlb.c
---- a/lib/swiotlb.c~parse_integer-convert-lib
-+++ a/lib/swiotlb.c
-@@ -100,7 +100,7 @@ static int __init
- setup_io_tlb_npages(char *str)
- {
- 	if (isdigit(*str)) {
--		io_tlb_nslabs = simple_strtoul(str, &str, 0);
-+		str += parse_integer(str, 0, &io_tlb_nslabs);
- 		/* avoid tail segment of size < IO_TLB_SEGSIZE */
- 		io_tlb_nslabs = ALIGN(io_tlb_nslabs, IO_TLB_SEGSIZE);
- 	}
 _
 
 Patches currently in -mm which might be from adobriyan@gmail.com are
