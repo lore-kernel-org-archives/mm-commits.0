@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + slub-add-support-for-kmem_cache_debug-in-bulk-calls.patch added to -mm tree
-Date: Thu, 09 Jul 2015 12:03:15 -0700
-Message-ID: <559ec573.TO/UZfYnEk4Krb2T%akpm@linux-foundation.org>
+Subject: +
+ genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create.patch added
+ to -mm tree
+Date: Thu, 09 Jul 2015 12:14:18 -0700
+Message-ID: <559ec80a.HLrlE2cs0uITd4/G%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47913 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48138 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752179AbbGITDQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jul 2015 15:03:16 -0400
+	with ESMTP id S1750894AbbGITOU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 9 Jul 2015 15:14:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: brouer@redhat.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: vladimir_zapolskiy@mentor.com, alexandre.belloni@free-electrons.com, arnd@arndb.de, gregkh@linuxfoundation.org, kernel@pengutronix.de, linux@arm.linux.org.uk, mchehab@osg.samsung.com, nicolas.ferre@atmel.com, p.zabel@pengutronix.de, plagnioj@jcrosoft.com, shawnguo@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slub: add support for kmem_cache_debug in bulk calls
+     Subject: genalloc: add name arg to gen_pool_get() and devm_gen_pool_create()
 has been added to the -mm tree.  Its filename is
-     slub-add-support-for-kmem_cache_debug-in-bulk-calls.patch
+     genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/slub-add-support-for-kmem_cache_debug-in-bulk-calls.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/slub-add-support-for-kmem_cache_debug-in-bulk-calls.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,120 +40,204 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jesper Dangaard Brouer <brouer@redhat.com>
-Subject: slub: add support for kmem_cache_debug in bulk calls
+From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+Subject: genalloc: add name arg to gen_pool_get() and devm_gen_pool_create()
 
-Per request of Joonsoo Kim adding kmem debug support.
+This change modifies gen_pool_get() and devm_gen_pool_create() client
+interfaces adding one more argument "name" of a gen_pool object.
 
-I've tested that when debugging is disabled, then there is almost no
-performance impact as this code basically gets removed by the compiler.
+Due to implementation gen_pool_get() is capable to retrieve only one
+gen_pool associated with a device even if multiple gen_pools are created,
+fortunately right at the moment it is sufficient for the clients, hence
+provide NULL as a valid argument on both producer devm_gen_pool_create()
+and consumer gen_pool_get() sides.
 
-Need some guidance in enabling and testing this.
+Because only one created gen_pool per device is addressable, explicitly
+add a restriction to devm_gen_pool_create() to create only one gen_pool
+per device, this implies two possible error codes returned by the
+function, account it on client side (only misc/sram).  This completes
+client side changes related to genalloc updates.
 
-bulk- PREVIOUS                  - THIS-PATCH
-  1 -  43 cycles(tsc) 10.811 ns -  44 cycles(tsc) 11.236 ns  improved  -2.3%
-  2 -  27 cycles(tsc)  6.867 ns -  28 cycles(tsc)  7.019 ns  improved  -3.7%
-  3 -  21 cycles(tsc)  5.496 ns -  22 cycles(tsc)  5.526 ns  improved  -4.8%
-  4 -  24 cycles(tsc)  6.038 ns -  19 cycles(tsc)  4.786 ns  improved  20.8%
-  8 -  17 cycles(tsc)  4.280 ns -  18 cycles(tsc)  4.572 ns  improved  -5.9%
- 16 -  17 cycles(tsc)  4.483 ns -  18 cycles(tsc)  4.658 ns  improved  -5.9%
- 30 -  18 cycles(tsc)  4.531 ns -  18 cycles(tsc)  4.568 ns  improved   0.0%
- 32 -  58 cycles(tsc) 14.586 ns -  65 cycles(tsc) 16.454 ns  improved -12.1%
- 34 -  53 cycles(tsc) 13.391 ns -  63 cycles(tsc) 15.932 ns  improved -18.9%
- 48 -  65 cycles(tsc) 16.268 ns -  50 cycles(tsc) 12.506 ns  improved  23.1%
- 64 -  53 cycles(tsc) 13.440 ns -  63 cycles(tsc) 15.929 ns  improved -18.9%
-128 -  79 cycles(tsc) 19.899 ns -  86 cycles(tsc) 21.583 ns  improved  -8.9%
-158 -  90 cycles(tsc) 22.732 ns -  90 cycles(tsc) 22.552 ns  improved   0.0%
-250 -  95 cycles(tsc) 23.916 ns -  98 cycles(tsc) 24.589 ns  improved  -3.2%
-
-Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Signed-off-by: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Nicolas Ferre <nicolas.ferre@atmel.com>
+Cc: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
+Cc: Shawn Guo <shawnguo@kernel.org>
+Cc: Sascha Hauer <kernel@pengutronix.de>
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   28 +++++++++++++++++++---------
- 1 file changed, 19 insertions(+), 9 deletions(-)
+ arch/arm/mach-at91/pm.c                   |    2 
+ arch/arm/mach-imx/pm-imx5.c               |    2 
+ arch/arm/mach-imx/pm-imx6.c               |    2 
+ drivers/media/platform/coda/coda-common.c |    2 
+ drivers/misc/sram.c                       |    8 +--
+ include/linux/genalloc.h                  |    4 -
+ lib/genalloc.c                            |   49 +++++++++++---------
+ 7 files changed, 38 insertions(+), 31 deletions(-)
 
-diff -puN mm/slub.c~slub-add-support-for-kmem_cache_debug-in-bulk-calls mm/slub.c
---- a/mm/slub.c~slub-add-support-for-kmem_cache_debug-in-bulk-calls
-+++ a/mm/slub.c
-@@ -2757,10 +2757,6 @@ void kmem_cache_free_bulk(struct kmem_ca
- 	struct page *page;
- 	int i;
- 
--	/* Debugging fallback to generic bulk */
--	if (kmem_cache_debug(s))
--		return __kmem_cache_free_bulk(s, size, p);
--
- 	local_irq_disable();
- 	c = this_cpu_ptr(s->cpu_slab);
- 
-@@ -2768,8 +2764,13 @@ void kmem_cache_free_bulk(struct kmem_ca
- 		void *object = p[i];
- 
- 		BUG_ON(!object);
-+		/* kmem cache debug support */
-+		s = cache_from_obj(s, object);
-+		if (unlikely(!s))
-+			goto exit;
-+		slab_free_hook(s, object);
-+
- 		page = virt_to_head_page(object);
--		BUG_ON(s != page->slab_cache); /* Check if valid slab page */
- 
- 		if (c->page == page) {
- 			/* Fastpath: local CPU free */
-@@ -2784,6 +2785,7 @@ void kmem_cache_free_bulk(struct kmem_ca
- 			c = this_cpu_ptr(s->cpu_slab);
- 		}
+diff -puN arch/arm/mach-at91/pm.c~genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create arch/arm/mach-at91/pm.c
+--- a/arch/arm/mach-at91/pm.c~genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create
++++ a/arch/arm/mach-at91/pm.c
+@@ -369,7 +369,7 @@ static void __init at91_pm_sram_init(voi
+ 		return;
  	}
-+exit:
- 	c->tid = next_tid(c->tid);
- 	local_irq_enable();
+ 
+-	sram_pool = gen_pool_get(&pdev->dev);
++	sram_pool = gen_pool_get(&pdev->dev, NULL);
+ 	if (!sram_pool) {
+ 		pr_warn("%s: sram pool unavailable!\n", __func__);
+ 		return;
+diff -puN arch/arm/mach-imx/pm-imx5.c~genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create arch/arm/mach-imx/pm-imx5.c
+--- a/arch/arm/mach-imx/pm-imx5.c~genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create
++++ a/arch/arm/mach-imx/pm-imx5.c
+@@ -297,7 +297,7 @@ static int __init imx_suspend_alloc_ocra
+ 		goto put_node;
+ 	}
+ 
+-	ocram_pool = gen_pool_get(&pdev->dev);
++	ocram_pool = gen_pool_get(&pdev->dev, NULL);
+ 	if (!ocram_pool) {
+ 		pr_warn("%s: ocram pool unavailable!\n", __func__);
+ 		ret = -ENODEV;
+diff -puN arch/arm/mach-imx/pm-imx6.c~genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create arch/arm/mach-imx/pm-imx6.c
+--- a/arch/arm/mach-imx/pm-imx6.c~genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create
++++ a/arch/arm/mach-imx/pm-imx6.c
+@@ -451,7 +451,7 @@ static int __init imx6q_suspend_init(con
+ 		goto put_node;
+ 	}
+ 
+-	ocram_pool = gen_pool_get(&pdev->dev);
++	ocram_pool = gen_pool_get(&pdev->dev, NULL);
+ 	if (!ocram_pool) {
+ 		pr_warn("%s: ocram pool unavailable!\n", __func__);
+ 		ret = -ENODEV;
+diff -puN drivers/media/platform/coda/coda-common.c~genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create drivers/media/platform/coda/coda-common.c
+--- a/drivers/media/platform/coda/coda-common.c~genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create
++++ a/drivers/media/platform/coda/coda-common.c
+@@ -2157,7 +2157,7 @@ static int coda_probe(struct platform_de
+ 	/* Get IRAM pool from device tree or platform data */
+ 	pool = of_gen_pool_get(np, "iram", 0);
+ 	if (!pool && pdata)
+-		pool = gen_pool_get(pdata->iram_dev);
++		pool = gen_pool_get(pdata->iram_dev, NULL);
+ 	if (!pool) {
+ 		dev_err(&pdev->dev, "iram pool not available\n");
+ 		return -ENOMEM;
+diff -puN drivers/misc/sram.c~genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create drivers/misc/sram.c
+--- a/drivers/misc/sram.c~genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create
++++ a/drivers/misc/sram.c
+@@ -186,10 +186,10 @@ static int sram_probe(struct platform_de
+ 	if (IS_ERR(sram->virt_base))
+ 		return PTR_ERR(sram->virt_base);
+ 
+-	sram->pool = devm_gen_pool_create(sram->dev,
+-					  ilog2(SRAM_GRANULARITY), -1);
+-	if (!sram->pool)
+-		return -ENOMEM;
++	sram->pool = devm_gen_pool_create(sram->dev, ilog2(SRAM_GRANULARITY),
++					  NUMA_NO_NODE, NULL);
++	if (IS_ERR(sram->pool))
++		return PTR_ERR(sram->pool);
+ 
+ 	ret = sram_reserve_regions(sram, res);
+ 	if (ret)
+diff -puN include/linux/genalloc.h~genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create include/linux/genalloc.h
+--- a/include/linux/genalloc.h~genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create
++++ a/include/linux/genalloc.h
+@@ -118,8 +118,8 @@ extern unsigned long gen_pool_best_fit(u
+ 		unsigned long start, unsigned int nr, void *data);
+ 
+ extern struct gen_pool *devm_gen_pool_create(struct device *dev,
+-		int min_alloc_order, int nid);
+-extern struct gen_pool *gen_pool_get(struct device *dev);
++		int min_alloc_order, int nid, const char *name);
++extern struct gen_pool *gen_pool_get(struct device *dev, const char *name);
+ 
+ bool addr_in_gen_pool(struct gen_pool *pool, unsigned long start,
+ 			size_t size);
+diff -puN lib/genalloc.c~genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create lib/genalloc.c
+--- a/lib/genalloc.c~genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create
++++ a/lib/genalloc.c
+@@ -571,23 +571,46 @@ static void devm_gen_pool_release(struct
  }
-@@ -2796,10 +2798,6 @@ bool kmem_cache_alloc_bulk(struct kmem_c
- 	struct kmem_cache_cpu *c;
- 	int i;
  
--	/* Debugging fallback to generic bulk */
--	if (kmem_cache_debug(s))
--		return __kmem_cache_alloc_bulk(s, flags, size, p);
--
- 	/*
- 	 * Drain objects in the per cpu slab, while disabling local
- 	 * IRQs, which protects against PREEMPT and interrupts
-@@ -2828,8 +2826,20 @@ bool kmem_cache_alloc_bulk(struct kmem_c
- 			continue; /* goto for-loop */
- 		}
+ /**
++ * gen_pool_get - Obtain the gen_pool (if any) for a device
++ * @dev: device to retrieve the gen_pool from
++ * @name: name of a gen_pool or NULL, identifies a particular gen_pool on device
++ *
++ * Returns the gen_pool for the device if one is present, or NULL.
++ */
++struct gen_pool *gen_pool_get(struct device *dev, const char *name)
++{
++	struct gen_pool **p = devres_find(dev, devm_gen_pool_release,
++					  NULL, NULL);
++
++	if (!p)
++		return NULL;
++	return *p;
++}
++EXPORT_SYMBOL_GPL(gen_pool_get);
++
++/**
+  * devm_gen_pool_create - managed gen_pool_create
+  * @dev: device that provides the gen_pool
+  * @min_alloc_order: log base 2 of number of bytes each bitmap bit represents
+- * @nid: node id of the node the pool structure should be allocated on, or -1
++ * @nid: node selector for allocated gen_pool, %NUMA_NO_NODE for all nodes
++ * @name: name of a gen_pool or NULL, identifies a particular gen_pool on device
+  *
+  * Create a new special memory pool that can be used to manage special purpose
+  * memory not managed by the regular kmalloc/kfree interface. The pool will be
+  * automatically destroyed by the device management code.
+  */
+ struct gen_pool *devm_gen_pool_create(struct device *dev, int min_alloc_order,
+-		int nid)
++				      int nid, const char *name)
+ {
+ 	struct gen_pool **ptr, *pool;
  
-+		/* kmem_cache debug support */
-+		s = slab_pre_alloc_hook(s, flags);
-+		if (unlikely(!s)) {
-+			__kmem_cache_free_bulk(s, i, p);
-+			c->tid = next_tid(c->tid);
-+			local_irq_enable();
-+			return false;
-+		}
++	/* Check that genpool to be created is uniquely addressed on device */
++	if (gen_pool_get(dev, name))
++		return ERR_PTR(-EINVAL);
 +
- 		c->freelist = get_freepointer(s, object);
- 		p[i] = object;
-+
-+		/* kmem_cache debug support */
-+		slab_post_alloc_hook(s, flags, object);
+ 	ptr = devres_alloc(devm_gen_pool_release, sizeof(*ptr), GFP_KERNEL);
+ 	if (!ptr)
+-		return NULL;
++		return ERR_PTR(-ENOMEM);
+ 
+ 	pool = gen_pool_create(min_alloc_order, nid);
+ 	if (pool) {
+@@ -595,29 +618,13 @@ struct gen_pool *devm_gen_pool_create(st
+ 		devres_add(dev, ptr);
+ 	} else {
+ 		devres_free(ptr);
++		return ERR_PTR(-ENOMEM);
  	}
- 	c->tid = next_tid(c->tid);
- 	local_irq_enable();
-_
-
-Patches currently in -mm which might be from brouer@redhat.com are
-
-slub-fix-spelling-succedd-to-succeed.patch
-slab-infrastructure-for-bulk-object-allocation-and-freeing.patch
-slub-bulk-alloc-extract-objects-from-the-per-cpu-slab.patch
-slub-improve-bulk-alloc-strategy.patch
-slub-initial-bulk-free-implementation.patch
-slub-add-support-for-kmem_cache_debug-in-bulk-calls.patch
-
+ 
+ 	return pool;
+ }
+ EXPORT_SYMBOL(devm_gen_pool_create);
+ 
+-/**
+- * gen_pool_get - Obtain the gen_pool (if any) for a device
+- * @dev: device to retrieve the gen_pool from
+- *
+- * Returns the gen_pool for the device if one is present, or NULL.
+- */
+-struct gen_pool *gen_pool_get(struct device *dev)
+-{
+-	struct gen_pool **p = devres_find(dev, devm_gen_pool_release, NULL,
+-					NULL);
+-
+-	if (!p)
+-		return NULL;
+-	return *p;
+-}
+-EXPORT_SYMBOL_GPL(gen_pool_get);
