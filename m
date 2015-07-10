@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mremap-fix-the-wrong-vma-vm_file-check-in-copy_vma.patch added
+Subject: + zsmalloc-consider-zs_almost_full-as-migrate-source.patch added
  to -mm tree
-Date: Fri, 10 Jul 2015 14:52:34 -0700
-Message-ID: <55a03ea2.EgJfkjm9VSy7yx2J%akpm@linux-foundation.org>
+Date: Fri, 10 Jul 2015 15:23:11 -0700
+Message-ID: <55a045cf.yKIneruR7vnw2pli%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60728 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33342 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752227AbbGJVwf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 10 Jul 2015 17:52:35 -0400
+	with ESMTP id S1751274AbbGJWXM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 10 Jul 2015 18:23:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, hughd@google.com, kirill.shutemov@linux.intel.com, luto@kernel.org, torvalds@linux-foundation.org, xemul@parallels.com, mm-commits@vger.kernel.org
+To: minchan.kim@lge.com, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mremap: fix the wrong !vma->vm_file check in copy_vma()
+     Subject: zsmalloc: consider ZS_ALMOST_FULL as migrate source
 has been added to the -mm tree.  Its filename is
-     mremap-fix-the-wrong-vma-vm_file-check-in-copy_vma.patch
+     zsmalloc-consider-zs_almost_full-as-migrate-source.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mremap-fix-the-wrong-vma-vm_file-check-in-copy_vma.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zsmalloc-consider-zs_almost_full-as-migrate-source.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mremap-fix-the-wrong-vma-vm_file-check-in-copy_vma.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zsmalloc-consider-zs_almost_full-as-migrate-source.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,117 +39,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: mremap: fix the wrong !vma->vm_file check in copy_vma()
+From: Minchan Kim <minchan.kim@lge.com>
+Subject: zsmalloc: consider ZS_ALMOST_FULL as migrate source
 
-Test-case:
+There is no reason to prevent select ZS_ALMOST_FULL as migration
+source if we cannot find source from ZS_ALMOST_EMPTY.
 
-	#define _GNU_SOURCE
-	#include <stdio.h>
-	#include <unistd.h>
-	#include <stdlib.h>
-	#include <string.h>
-	#include <sys/mman.h>
-	#include <assert.h>
+With this patch, zs_can_compact will return more exact result.
 
-	void *find_vdso_vaddr(void)
-	{
-		FILE *perl;
-		char buf[32] = {};
-
-		perl = popen("perl -e 'open STDIN,qq|/proc/@{[getppid]}/maps|;"
-				"/^(.*?)-.*vdso/ && print hex $1 while <>'", "r");
-		fread(buf, sizeof(buf), 1, perl);
-		fclose(perl);
-
-		return (void *)atol(buf);
-	}
-
-	#define PAGE_SIZE	4096
-
-	void *get_unmapped_area(void)
-	{
-		void *p = mmap(0, PAGE_SIZE, PROT_NONE,
-				MAP_PRIVATE|MAP_ANONYMOUS, -1,0);
-		assert(p != MAP_FAILED);
-		munmap(p, PAGE_SIZE);
-		return p;
-	}
-
-	char save[2][PAGE_SIZE];
-
-	int main(void)
-	{
-		void *vdso = find_vdso_vaddr();
-		void *page[2];
-
-		assert(vdso);
-		memcpy(save, vdso, sizeof (save));
-		// force another fault on the next check
-		assert(madvise(vdso, 2 * PAGE_SIZE, MADV_DONTNEED) == 0);
-
-		page[0] = mremap(vdso,
-				PAGE_SIZE, PAGE_SIZE, MREMAP_FIXED | MREMAP_MAYMOVE,
-				get_unmapped_area());
-		page[1] = mremap(vdso + PAGE_SIZE,
-				PAGE_SIZE, PAGE_SIZE, MREMAP_FIXED | MREMAP_MAYMOVE,
-				get_unmapped_area());
-
-		assert(page[0] != MAP_FAILED && page[1] != MAP_FAILED);
-		printf("match: %d %d\n",
-			!memcmp(save[0], page[0], PAGE_SIZE),
-			!memcmp(save[1], page[1], PAGE_SIZE));
-
-		return 0;
-	}
-
-fails without this patch. Before the previous commit it gets the wrong
-page, now it segfaults (which is imho better).
-
-This is because copy_vma() wrongly assumes that if vma->vm_file == NULL
-is irrelevant until the first fault which will use do_anonymous_page().
-This is obviously wrong for the special mapping.
-
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Pavel Emelyanov <xemul@parallels.com>
+Signed-off-by: Minchan Kim <minchan.kim@lge.com>
+Acked-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/zsmalloc.c |   17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
 
-diff -puN mm/mmap.c~mremap-fix-the-wrong-vma-vm_file-check-in-copy_vma mm/mmap.c
---- a/mm/mmap.c~mremap-fix-the-wrong-vma-vm_file-check-in-copy_vma
-+++ a/mm/mmap.c
-@@ -2918,7 +2918,7 @@ struct vm_area_struct *copy_vma(struct v
- 	 * If anonymous vma has not yet been faulted, update new pgoff
- 	 * to match new location, to increase its chance of merging.
- 	 */
--	if (unlikely(!vma->vm_file && !vma->anon_vma)) {
-+	if (unlikely(vma_is_anonymous(vma) && !vma->anon_vma)) {
- 		pgoff = addr >> PAGE_SHIFT;
- 		faulted_in_anon_vma = false;
- 	}
-_
-
-Patches currently in -mm which might be from oleg@redhat.com are
-
-origin.patch
-mm-cleaning-per-architecture-mm-hook-header-files.patch
-mremap-dont-leak-new_vma-if-f_op-mremap-fails.patch
-mm-move-mremap-from-file_operations-to-vm_operations_struct.patch
-mremap-dont-do-mm_populatenew_addr-on-failure.patch
-mremap-dont-do-uneccesary-checks-if-new_len-==-old_len.patch
-mremap-simplify-the-overlap-check-in-mremap_to.patch
-mm-introduce-vma_is_anonymousvma-helper.patch
-mmap-fix-the-usage-of-vm_pgoff-in-special_mapping-paths.patch
-mremap-fix-the-wrong-vma-vm_file-check-in-copy_vma.patch
-kmod-bunch-of-internal-functions-renames.patch
-kmod-add-up-to-date-explanations-on-the-purpose-of-each-asynchronous-levels.patch
-kmod-remove-unecessary-explicit-wide-cpu-affinity-setting.patch
-linux-next.patch
-
+diff -puN mm/zsmalloc.c~zsmalloc-consider-zs_almost_full-as-migrate-source mm/zsmalloc.c
+--- a/mm/zsmalloc.c~zsmalloc-consider-zs_almost_full-as-migrate-source
++++ a/mm/zsmalloc.c
+@@ -1691,11 +1691,17 @@ static enum fullness_group putback_zspag
+ 
+ static struct page *isolate_source_page(struct size_class *class)
+ {
+-	struct page *page;
++	int i;
++	struct page *page = NULL;
+ 
+-	page = class->fullness_list[ZS_ALMOST_EMPTY];
+-	if (page)
+-		remove_zspage(page, class, ZS_ALMOST_EMPTY);
++	for (i = ZS_ALMOST_EMPTY; i >= ZS_ALMOST_FULL; i--) {
++		page = class->fullness_list[i];
++		if (!page)
++			continue;
++
++		remove_zspage(page, class, i);
++		break;
++	}
+ 
+ 	return page;
+ }
+@@ -1711,9 +1717,6 @@ static unsigned long zs_can_compact(stru
+ {
+ 	unsigned long obj_wasted;
+ 
+-	if (!zs_stat_get(class, CLASS_ALMOST_EMPTY))
+-		return 0;
