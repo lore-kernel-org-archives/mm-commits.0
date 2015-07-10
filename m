@@ -1,41 +1,39 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] kmod-bunch-of-internal-functions-renames.patch
- removed from -mm tree
-Date: Fri, 10 Jul 2015 15:34:27 -0700
-Message-ID: <55a04873.lfceavWLV3hz4Hlv%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ kmod-add-up-to-date-explanations-on-the-purpose-of-each-asynchronous-levels.patch removed from -mm tree
+Date: Fri, 10 Jul 2015 15:34:30 -0700
+Message-ID: <55a04876.+ulBvc5YyMcVTp6H%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33407 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33413 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752023AbbGJWe2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 10 Jul 2015 18:34:28 -0400
+	with ESMTP id S1752236AbbGJWeb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 10 Jul 2015 18:34:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: fweisbec@gmail.com, cl@linux.com, oleg@redhat.com, riel@redhat.com, rusty@rustcorp.com.au, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kmod: bunch of internal functions renames
+     Subject: kmod: add up-to-date explanations on the purpose of each asynchronous level
 has been removed from the -mm tree.  Its filename was
-     kmod-bunch-of-internal-functions-renames.patch
+     kmod-add-up-to-date-explanations-on-the-purpose-of-each-asynchronous-levels.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Frederic Weisbecker <fweisbec@gmail.com>
-Subject: kmod: bunch of internal functions renames
+Subject: kmod: add up-to-date explanations on the purpose of each asynchronous level
 
-Underscores on function names aren't much verbose to explain the purpose
-of a function.  And kmod has interesting such flavours.
+There seems to be quite some confusions on the comments, likely due to
+changes that came after them.
 
-Lets rename the following functions:
-
-* __call_usermodehelper -> call_usermodehelper_exec_work
-* ____call_usermodehelper -> call_usermodehelper_exec_async
-* wait_for_helper -> call_usermodehelper_exec_sync
+Now since it's very non obvious why we have 3 levels of asynchronous code
+to implement usermodehelpers, it's important to comment in detail the
+reason of this layout.
 
 Signed-off-by: Frederic Weisbecker <fweisbec@gmail.com>
 Cc: Rik van Riel <riel@redhat.com>
@@ -46,110 +44,77 @@ Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kmod.c |   30 +++++++++++++++++-------------
- 1 file changed, 17 insertions(+), 13 deletions(-)
+ kernel/kmod.c |   32 ++++++++++++++++++++++++++++----
+ 1 file changed, 28 insertions(+), 4 deletions(-)
 
-diff -puN kernel/kmod.c~kmod-bunch-of-internal-functions-renames kernel/kmod.c
---- a/kernel/kmod.c~kmod-bunch-of-internal-functions-renames
+diff -puN kernel/kmod.c~kmod-add-up-to-date-explanations-on-the-purpose-of-each-asynchronous-levels kernel/kmod.c
+--- a/kernel/kmod.c~kmod-add-up-to-date-explanations-on-the-purpose-of-each-asynchronous-levels
 +++ a/kernel/kmod.c
-@@ -213,7 +213,7 @@ static void umh_complete(struct subproce
- /*
-  * This is the task which runs the usermode application
-  */
--static int ____call_usermodehelper(void *data)
-+static int call_usermodehelper_exec_async(void *data)
- {
- 	struct subprocess_info *sub_info = data;
- 	struct cred *new;
-@@ -258,7 +258,10 @@ static int ____call_usermodehelper(void
- 			   (const char __user *const __user *)sub_info->envp);
- out:
- 	sub_info->retval = retval;
--	/* wait_for_helper() will call umh_complete if UHM_WAIT_PROC. */
-+	/*
-+	 * call_usermodehelper_exec_sync() will call umh_complete
-+	 * if UHM_WAIT_PROC.
-+	 */
- 	if (!(sub_info->wait & UMH_WAIT_PROC))
- 		umh_complete(sub_info);
- 	if (!retval)
-@@ -267,14 +270,14 @@ out:
+@@ -269,7 +269,11 @@ out:
+ 	do_exit(0);
  }
  
- /* Keventd can't block, but this (a child) can. */
--static int wait_for_helper(void *data)
-+static int call_usermodehelper_exec_sync(void *data)
+-/* Keventd can't block, but this (a child) can. */
++/*
++ * We couldn't wait for usermodehelper completion from khelper without
++ * blocking other pending concurrent usermodehelper targets. This is why
++ * the UMH_WAIT_PROC flavour runs in its own thread.
++ */
+ static int call_usermodehelper_exec_sync(void *data)
  {
  	struct subprocess_info *sub_info = data;
- 	pid_t pid;
- 
- 	/* If SIGCLD is ignored sys_wait4 won't populate the status. */
- 	kernel_sigaction(SIGCHLD, SIG_DFL);
--	pid = kernel_thread(____call_usermodehelper, sub_info, SIGCHLD);
-+	pid = kernel_thread(call_usermodehelper_exec_async, sub_info, SIGCHLD);
- 	if (pid < 0) {
- 		sub_info->retval = pid;
- 	} else {
-@@ -282,17 +285,18 @@ static int wait_for_helper(void *data)
+@@ -285,8 +289,8 @@ static int call_usermodehelper_exec_sync
  		/*
  		 * Normally it is bogus to call wait4() from in-kernel because
  		 * wait4() wants to write the exit code to a userspace address.
--		 * But wait_for_helper() always runs as keventd, and put_user()
--		 * to a kernel address works OK for kernel threads, due to their
--		 * having an mm_segment_t which spans the entire address space.
-+		 * But call_usermodehelper_exec_sync() always runs as keventd,
-+		 * and put_user() to a kernel address works OK for kernel
-+		 * threads, due to their having an mm_segment_t which spans the
-+		 * entire address space.
+-		 * But call_usermodehelper_exec_sync() always runs as keventd,
+-		 * and put_user() to a kernel address works OK for kernel
++		 * But call_usermodehelper_exec_sync() always runs as kernel
++		 * thread and put_user() to a kernel address works OK for kernel
+ 		 * threads, due to their having an mm_segment_t which spans the
+ 		 * entire address space.
  		 *
- 		 * Thus the __user pointer cast is valid here.
- 		 */
- 		sys_wait4(pid, (int __user *)&ret, 0, NULL);
- 
- 		/*
--		 * If ret is 0, either ____call_usermodehelper failed and the
--		 * real error code is already in sub_info->retval or
-+		 * If ret is 0, either call_usermodehelper_exec_async failed and
-+		 * the real error code is already in sub_info->retval or
- 		 * sub_info->retval is 0 anyway, so don't mess with it then.
- 		 */
- 		if (ret)
-@@ -304,17 +308,17 @@ static int wait_for_helper(void *data)
+@@ -307,7 +311,15 @@ static int call_usermodehelper_exec_sync
+ 	do_exit(0);
  }
  
- /* This is run by khelper thread  */
--static void __call_usermodehelper(struct work_struct *work)
-+static void call_usermodehelper_exec_work(struct work_struct *work)
+-/* This is run by khelper thread  */
++/*
++ * This function doesn't need to be called asynchronously. But we need to create
++ * the usermodehelper kernel threads from a task that is affine to all CPUs
++ * (or nohz housekeeping ones) such that they inherit a global affinity. Khelper
++ * workqueue simply provides that.
++ * call_usermodehelper() can be called from tasks with a reduced CPU
++ * affinity (eg: per-cpu workqueues) and we don't want usermodehelper targets to
++ * contend any busy CPU.
++ */
+ static void call_usermodehelper_exec_work(struct work_struct *work)
  {
  	struct subprocess_info *sub_info =
- 		container_of(work, struct subprocess_info, work);
- 	pid_t pid;
+@@ -693,6 +705,18 @@ struct ctl_table usermodehelper_table[]
  
- 	if (sub_info->wait & UMH_WAIT_PROC)
--		pid = kernel_thread(wait_for_helper, sub_info,
-+		pid = kernel_thread(call_usermodehelper_exec_sync, sub_info,
- 				    CLONE_FS | CLONE_FILES | SIGCHLD);
- 	else
--		pid = kernel_thread(____call_usermodehelper, sub_info,
-+		pid = kernel_thread(call_usermodehelper_exec_async, sub_info,
- 				    SIGCHLD);
- 
- 	if (pid < 0) {
-@@ -509,7 +513,7 @@ struct subprocess_info *call_usermodehel
- 	if (!sub_info)
- 		goto out;
- 
--	INIT_WORK(&sub_info->work, __call_usermodehelper);
-+	INIT_WORK(&sub_info->work, call_usermodehelper_exec_work);
- 	sub_info->path = path;
- 	sub_info->argv = argv;
- 	sub_info->envp = envp;
+ void __init usermodehelper_init(void)
+ {
++	/*
++	 * The singlethread property here stands for the need of a workqueue
++	 * with wide CPUs affinity, in order to create usermodehelper kernel
++	 * threads inheriting this attribute irrespective of
++	 * call_usermodehelper() callers. Non-singlethread workqueues are
++	 * otherwise per-cpu and wouldn't produce the desired effect.
++	 *
++	 * The ordering guarantee as a side-effect isn't necessary but shouldn't
++	 * introduce performance issue. All we do is creating two kernel threads.
++	 * This should be fast enough not to block concurrent usermodehelper
++	 * callers.
++	 */
+ 	khelper_wq = create_singlethread_workqueue("khelper");
+ 	BUG_ON(!khelper_wq);
+ }
 _
 
 Patches currently in -mm which might be from fweisbec@gmail.com are
 
 origin.patch
-kmod-add-up-to-date-explanations-on-the-purpose-of-each-asynchronous-levels.patch
 kmod-remove-unecessary-explicit-wide-cpu-affinity-setting.patch
 linux-next.patch
 
