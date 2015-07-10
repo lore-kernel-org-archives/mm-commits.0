@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-slub-move-slab-initialization-into-irq-enabled-region.patch
- added to -mm tree
-Date: Fri, 10 Jul 2015 14:40:06 -0700
-Message-ID: <55a03bb6.rflQsxwcemPorldZ%akpm@linux-foundation.org>
+Subject: + mm-introduce-vma_is_anonymousvma-helper.patch added to -mm tree
+Date: Fri, 10 Jul 2015 14:52:30 -0700
+Message-ID: <55a03e9e.PBzWqDMllw51lMbx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60674 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60711 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750798AbbGJVkH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 10 Jul 2015 17:40:07 -0400
+	with ESMTP id S1751074AbbGJVwb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 10 Jul 2015 17:52:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, bigeasy@linutronix.de, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, peterz@infradead.org, rientjes@google.com, rostedt@goodmis.org, mm-commits@vger.kernel.org
+To: oleg@redhat.com, hughd@google.com, kirill.shutemov@linux.intel.com, luto@kernel.org, torvalds@linux-foundation.org, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slub: move slab initialization into irq enabled region
+     Subject: mm: introduce vma_is_anonymous(vma) helper
 has been added to the -mm tree.  Its filename is
-     mm-slub-move-slab-initialization-into-irq-enabled-region.patch
+     mm-introduce-vma_is_anonymousvma-helper.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slub-move-slab-initialization-into-irq-enabled-region.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-introduce-vma_is_anonymousvma-helper.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-move-slab-initialization-into-irq-enabled-region.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-introduce-vma_is_anonymousvma-helper.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,174 +38,68 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: mm/slub: move slab initialization into irq enabled region
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: mm: introduce vma_is_anonymous(vma) helper
 
-Initializing a new slab can introduce rather large latencies because most
-of the initialization runs always with interrupts disabled.
+special_mapping_fault() is absolutely broken.  It seems it was always
+wrong, but this didn't matter until vdso/vvar started to use more than one
+page.
 
-There is no point in doing so.  The newly allocated slab is not visible
-yet, so there is no reason to protect it against concurrent alloc/free.
+And after this change vma_is_anonymous() becomes really trivial, it simply
+checks vm_ops == NULL.  However, I do think the helper makes sense.  There
+are a lot of ->vm_ops != NULL checks, the helper makes the caller's code
+more understandable (self-documented) and this is more grep-friendly.
 
-Move the expensive parts of the initialization into allocate_slab(), so
-for all allocations with GFP_WAIT set, interrupts are enabled.
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
+This patch (of 3):
+
+Preparation.  Add the new simple helper, vma_is_anonymous(vma), and change
+handle_pte_fault() to use it.  It will have more users.
+
+The name is not accurate, say a hpet_mmap()'ed vma is not anonymous. 
+Perhaps it should be named vma_has_fault() instead.  But it matches the
+logic in mmap.c/memory.c (see next changes).  "True" just means that a
+page fault will use do_anonymous_page().
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   89 ++++++++++++++++++++++++----------------------------
- 1 file changed, 42 insertions(+), 47 deletions(-)
+ include/linux/mm.h |    5 +++++
+ mm/memory.c        |    8 ++++----
+ 2 files changed, 9 insertions(+), 4 deletions(-)
 
-diff -puN mm/slub.c~mm-slub-move-slab-initialization-into-irq-enabled-region mm/slub.c
---- a/mm/slub.c~mm-slub-move-slab-initialization-into-irq-enabled-region
-+++ a/mm/slub.c
-@@ -1306,6 +1306,17 @@ static inline void slab_free_hook(struct
- 	kasan_slab_free(s, x);
+diff -puN include/linux/mm.h~mm-introduce-vma_is_anonymousvma-helper include/linux/mm.h
+--- a/include/linux/mm.h~mm-introduce-vma_is_anonymousvma-helper
++++ a/include/linux/mm.h
+@@ -1233,6 +1233,11 @@ static inline int vma_growsdown(struct v
+ 	return vma && (vma->vm_end == addr) && (vma->vm_flags & VM_GROWSDOWN);
  }
  
-+static void setup_object(struct kmem_cache *s, struct page *page,
-+				void *object)
++static inline bool vma_is_anonymous(struct vm_area_struct *vma)
 +{
-+	setup_object_debug(s, page, object);
-+	if (unlikely(s->ctor)) {
-+		kasan_unpoison_object_data(s, object);
-+		s->ctor(object);
-+		kasan_poison_object_data(s, object);
-+	}
++	return !vma->vm_ops;
 +}
 +
- /*
-  * Slab allocation and freeing
-  */
-@@ -1336,6 +1347,8 @@ static struct page *allocate_slab(struct
- 	struct page *page;
- 	struct kmem_cache_order_objects oo = s->oo;
- 	gfp_t alloc_gfp;
-+	void *start, *p;
-+	int idx, order;
- 
- 	flags &= gfp_allowed_mask;
- 
-@@ -1359,13 +1372,13 @@ static struct page *allocate_slab(struct
- 		 * Try a lower order alloc if possible
- 		 */
- 		page = alloc_slab_page(s, alloc_gfp, node, oo);
--
--		if (page)
--			stat(s, ORDER_FALLBACK);
-+		if (unlikely(!page))
-+			goto out;
-+		stat(s, ORDER_FALLBACK);
- 	}
- 
--	if (kmemcheck_enabled && page
--		&& !(s->flags & (SLAB_NOTRACK | DEBUG_DEFAULT_FLAGS))) {
-+	if (kmemcheck_enabled &&
-+	    !(s->flags & (SLAB_NOTRACK | DEBUG_DEFAULT_FLAGS))) {
- 		int pages = 1 << oo_order(oo);
- 
- 		kmemcheck_alloc_shadow(page, oo_order(oo), alloc_gfp, node);
-@@ -1380,51 +1393,9 @@ static struct page *allocate_slab(struct
- 			kmemcheck_mark_unallocated_pages(page, pages);
- 	}
- 
--	if (flags & __GFP_WAIT)
--		local_irq_disable();
--	if (!page)
--		return NULL;
--
- 	page->objects = oo_objects(oo);
--	mod_zone_page_state(page_zone(page),
--		(s->flags & SLAB_RECLAIM_ACCOUNT) ?
--		NR_SLAB_RECLAIMABLE : NR_SLAB_UNRECLAIMABLE,
--		1 << oo_order(oo));
--
--	return page;
--}
--
--static void setup_object(struct kmem_cache *s, struct page *page,
--				void *object)
--{
--	setup_object_debug(s, page, object);
--	if (unlikely(s->ctor)) {
--		kasan_unpoison_object_data(s, object);
--		s->ctor(object);
--		kasan_poison_object_data(s, object);
--	}
--}
--
--static struct page *new_slab(struct kmem_cache *s, gfp_t flags, int node)
--{
--	struct page *page;
--	void *start;
--	void *p;
--	int order;
--	int idx;
--
--	if (unlikely(flags & GFP_SLAB_BUG_MASK)) {
--		pr_emerg("gfp: %u\n", flags & GFP_SLAB_BUG_MASK);
--		BUG();
--	}
--
--	page = allocate_slab(s,
--		flags & (GFP_RECLAIM_MASK | GFP_CONSTRAINT_MASK), node);
--	if (!page)
--		goto out;
- 
- 	order = compound_order(page);
--	inc_slabs_node(s, page_to_nid(page), page->objects);
- 	page->slab_cache = s;
- 	__SetPageSlab(page);
- 	if (page->pfmemalloc)
-@@ -1448,10 +1419,34 @@ static struct page *new_slab(struct kmem
- 	page->freelist = start;
- 	page->inuse = page->objects;
- 	page->frozen = 1;
-+
- out:
-+	if (flags & __GFP_WAIT)
-+		local_irq_disable();
-+	if (!page)
-+		return NULL;
-+
-+	mod_zone_page_state(page_zone(page),
-+		(s->flags & SLAB_RECLAIM_ACCOUNT) ?
-+		NR_SLAB_RECLAIMABLE : NR_SLAB_UNRECLAIMABLE,
-+		1 << oo_order(oo));
-+
-+	inc_slabs_node(s, page_to_nid(page), page->objects);
-+
- 	return page;
- }
- 
-+static struct page *new_slab(struct kmem_cache *s, gfp_t flags, int node)
-+{
-+	if (unlikely(flags & GFP_SLAB_BUG_MASK)) {
-+		pr_emerg("gfp: %u\n", flags & GFP_SLAB_BUG_MASK);
-+		BUG();
-+	}
-+
-+	return allocate_slab(s,
-+		flags & (GFP_RECLAIM_MASK | GFP_CONSTRAINT_MASK), node);
-+}
-+
- static void __free_slab(struct kmem_cache *s, struct page *page)
+ static inline int stack_guard_page_start(struct vm_area_struct *vma,
+ 					     unsigned long addr)
  {
- 	int order = compound_order(page);
-_
-
-Patches currently in -mm which might be from tglx@linutronix.de are
-
-origin.patch
-mm-slub-move-slab-initialization-into-irq-enabled-region.patch
-mm-memcontrol-bring-back-the-vm_bug_on-in-mem_cgroup_swapout.patch
-linux-next.patch
-
+diff -puN mm/memory.c~mm-introduce-vma_is_anonymousvma-helper mm/memory.c
+--- a/mm/memory.c~mm-introduce-vma_is_anonymousvma-helper
++++ a/mm/memory.c
+@@ -3267,12 +3267,12 @@ static int handle_pte_fault(struct mm_st
+ 	barrier();
+ 	if (!pte_present(entry)) {
+ 		if (pte_none(entry)) {
+-			if (vma->vm_ops)
++			if (vma_is_anonymous(vma))
++				return do_anonymous_page(mm, vma, address,
++							 pte, pmd, flags);
++			else
+ 				return do_fault(mm, vma, address, pte, pmd,
+ 						flags, entry);
