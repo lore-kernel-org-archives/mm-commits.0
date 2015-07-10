@@ -1,95 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: + parse_integer-add-checkpatchpl-notice.patch added to -mm tree
-Date: Fri, 10 Jul 2015 14:28:04 -0700
-Message-ID: <55a038e4.L4N2KyvvODb0octj%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ ocfs2-fix-race-between-dio-and-recover-orphan.patch removed from -mm tree
+Date: Fri, 10 Jul 2015 14:33:08 -0700
+Message-ID: <55a03a14.e4EjCI1aGtgFluCA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60549 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60562 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932724AbbGJV2F (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 10 Jul 2015 17:28:05 -0400
+	with ESMTP id S932382AbbGJVdJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 10 Jul 2015 17:33:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, joe@perches.com, mm-commits@vger.kernel.org
+To: joseph.qi@huawei.com, jiangyiwen@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, wangww631@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: parse_integer: add checkpatch.pl notice
-has been added to the -mm tree.  Its filename is
-     parse_integer-add-checkpatchpl-notice.patch
+     Subject: ocfs2: fix race between dio and recover orphan
+has been removed from the -mm tree.  Its filename was
+     ocfs2-fix-race-between-dio-and-recover-orphan.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/parse_integer-add-checkpatchpl-notice.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/parse_integer-add-checkpatchpl-notice.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: parse_integer: add checkpatch.pl notice
+From: Joseph Qi <joseph.qi@huawei.com>
+Subject: ocfs2: fix race between dio and recover orphan
 
-* remove check for strict_strto*(), they were fully removed long ago,
+During direct io the inode will be added to orphan first and then deleted
+from orphan.  There is a race window that the orphan entry will be deleted
+twice and thus trigger the BUG when validating OCFS2_DIO_ORPHANED_FL in
+ocfs2_del_inode_from_orphan.
 
-* add check for simple_strto*(), suggest replacements
+ocfs2_direct_IO_write
+    ...
+    ocfs2_add_inode_to_orphan
+    >>>>>>>> race window, another node may rm the file and then down,
+             this node take care of orphan recovery and clear flag
+             OCFS2_DIO_ORPHANED_FL
+    ocfs2_del_inode_from_orphan
 
-  sscanf() is a bit icky to suggest because it accepts arbitrary amount
-  of whitespace before any integer conversion, but assume programmer
-  knows such twist and don't use sscanf() where real strictness is
-  required (yes, sure...).
+Take inode mutex lock to fix this race case.
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Joe Perches <joe@perches.com>
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
+Reported-by: Yiwen Jiang <jiangyiwen@huawei.com>
+Reviewed-by: Weiwei Wang <wangww631@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/ocfs2/journal.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN scripts/checkpatch.pl~parse_integer-add-checkpatchpl-notice scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~parse_integer-add-checkpatchpl-notice
-+++ a/scripts/checkpatch.pl
-@@ -5498,10 +5498,10 @@ sub process {
- 			     "consider using a completion\n" . $herecurr);
- 		}
+diff -puN fs/ocfs2/journal.c~ocfs2-fix-race-between-dio-and-recover-orphan fs/ocfs2/journal.c
+--- a/fs/ocfs2/journal.c~ocfs2-fix-race-between-dio-and-recover-orphan
++++ a/fs/ocfs2/journal.c
+@@ -2170,6 +2170,7 @@ static int ocfs2_recover_orphans(struct
+ 		iter = oi->ip_next_orphan;
+ 		oi->ip_next_orphan = NULL;
  
--# recommend kstrto* over simple_strto* and strict_strto*
--		if ($line =~ /\b((simple|strict)_(strto(l|ll|ul|ull)))\s*\(/) {
-+# simple_strto*() is deprecated
-+		if ($line =~ /\b(simple_strto(l|ll|ul|ull))\s*\(/) {
- 			WARN("CONSIDER_KSTRTO",
--			     "$1 is obsolete, use k$3 instead\n" . $herecurr);
-+			     "$1 is obsolete, use parse_integer(), kstrto*(), kstrto*_from_user(), sscanf() instead\n" . $herecurr);
- 		}
- 
- # check for __initcall(), use device_initcall() explicitly or more appropriate function please
++		mutex_lock(&inode->i_mutex);
+ 		ret = ocfs2_rw_lock(inode, 1);
+ 		if (ret < 0) {
+ 			mlog_errno(ret);
+@@ -2214,6 +2215,7 @@ unlock_inode:
+ unlock_rw:
+ 		ocfs2_rw_unlock(inode, 1);
+ next:
++		mutex_unlock(&inode->i_mutex);
+ 		iput(inode);
+ 		brelse(di_bh);
+ 		di_bh = NULL;
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from joseph.qi@huawei.com are
 
-kstrto-accept-0-for-signed-conversion.patch
-add-parse_integer-replacement-for-simple_strto.patch
-parse_integer-add-runtime-testsuite.patch
-parse-integer-rewrite-kstrto.patch
-parse_integer-convert-scanf.patch
-scanf-fix-type-range-overflow.patch
-parse_integer-convert-lib.patch
-parse_integer-convert-mm.patch
-parse_integer-convert-fs.patch
-parse_integer-convert-fs-cachefiles.patch
-parse_integer-convert-ext2-ext3-ext4.patch
-parse_integer-convert-fs-ocfs2.patch
-parse_integer-add-checkpatchpl-notice.patch
+ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work.patch
+ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work-v2.patch
+ocfs2-fix-several-issues-of-append-dio.patch
+ocfs2-set-filesytem-read-only-when-ocfs2_delete_entry-failed.patch
+ocfs2-set-filesytem-read-only-when-ocfs2_delete_entry-failed-v2.patch
+ocfs2-fix-race-between-crashed-dio-and-rm.patch
+ocfs2-avoid-access-invalid-address-when-read-o2dlm-debug-messages.patch
 
