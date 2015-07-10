@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-v2.patch
- added to -mm tree
-Date: Fri, 10 Jul 2015 14:27:02 -0700
-Message-ID: <55a038a6.j6TEd6yyjJRWCiNq%akpm@linux-foundation.org>
+Subject: + parse_integer-add-checkpatchpl-notice.patch added to -mm tree
+Date: Fri, 10 Jul 2015 14:28:04 -0700
+Message-ID: <55a038e4.L4N2KyvvODb0octj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60538 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60549 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932475AbbGJV1D (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 10 Jul 2015 17:27:03 -0400
+	with ESMTP id S932724AbbGJV2F (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 10 Jul 2015 17:28:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vladimir_zapolskiy@mentor.com, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-v2
+     Subject: parse_integer: add checkpatch.pl notice
 has been added to the -mm tree.  Its filename is
-     genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-v2.patch
+     parse_integer-add-checkpatchpl-notice.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-v2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/parse_integer-add-checkpatchpl-notice.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-v2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/parse_integer-add-checkpatchpl-notice.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,37 +38,58 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
-Subject: genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-v2
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: parse_integer: add checkpatch.pl notice
 
-* Added the same change in gen_pool_get() argument list
-  to account a recently added client in arm/mach-socfpga/pm.c
+* remove check for strict_strto*(), they were fully removed long ago,
 
-Signed-off-by: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+* add check for simple_strto*(), suggest replacements
+
+  sscanf() is a bit icky to suggest because it accepts arbitrary amount
+  of whitespace before any integer conversion, but assume programmer
+  knows such twist and don't use sscanf() where real strictness is
+  required (yes, sure...).
+
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-socfpga/pm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/arm/mach-socfpga/pm.c~genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-v2 arch/arm/mach-socfpga/pm.c
---- a/arch/arm/mach-socfpga/pm.c~genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-v2
-+++ a/arch/arm/mach-socfpga/pm.c
-@@ -56,7 +56,7 @@ static int socfpga_setup_ocram_self_refr
- 		goto put_node;
- 	}
+diff -puN scripts/checkpatch.pl~parse_integer-add-checkpatchpl-notice scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~parse_integer-add-checkpatchpl-notice
++++ a/scripts/checkpatch.pl
+@@ -5498,10 +5498,10 @@ sub process {
+ 			     "consider using a completion\n" . $herecurr);
+ 		}
  
--	ocram_pool = gen_pool_get(&pdev->dev);
-+	ocram_pool = gen_pool_get(&pdev->dev, NULL);
- 	if (!ocram_pool) {
- 		pr_warn("%s: ocram pool unavailable!\n", __func__);
- 		ret = -ENODEV;
+-# recommend kstrto* over simple_strto* and strict_strto*
+-		if ($line =~ /\b((simple|strict)_(strto(l|ll|ul|ull)))\s*\(/) {
++# simple_strto*() is deprecated
++		if ($line =~ /\b(simple_strto(l|ll|ul|ull))\s*\(/) {
+ 			WARN("CONSIDER_KSTRTO",
+-			     "$1 is obsolete, use k$3 instead\n" . $herecurr);
++			     "$1 is obsolete, use parse_integer(), kstrto*(), kstrto*_from_user(), sscanf() instead\n" . $herecurr);
+ 		}
+ 
+ # check for __initcall(), use device_initcall() explicitly or more appropriate function please
 _
 
-Patches currently in -mm which might be from vladimir_zapolskiy@mentor.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create.patch
-genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-fix.patch
-genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-v2.patch
-genalloc-add-support-of-multiple-gen_pools-per-device.patch
+kstrto-accept-0-for-signed-conversion.patch
+add-parse_integer-replacement-for-simple_strto.patch
+parse_integer-add-runtime-testsuite.patch
+parse-integer-rewrite-kstrto.patch
+parse_integer-convert-scanf.patch
+scanf-fix-type-range-overflow.patch
+parse_integer-convert-lib.patch
+parse_integer-convert-mm.patch
+parse_integer-convert-fs.patch
+parse_integer-convert-fs-cachefiles.patch
+parse_integer-convert-ext2-ext3-ext4.patch
+parse_integer-convert-fs-ocfs2.patch
+parse_integer-add-checkpatchpl-notice.patch
 
