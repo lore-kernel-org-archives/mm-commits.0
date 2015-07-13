@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl-fix-int-unsigned-long-assignments-in-int_min-case.patch
- added to -mm tree
-Date: Mon, 13 Jul 2015 13:47:50 -0700
-Message-ID: <55a423f6.yBkJ7/GuxVVoZoTT%akpm@linux-foundation.org>
+Subject: + mm-add-vmf_insert_pfn_pmd.patch added to -mm tree
+Date: Mon, 13 Jul 2015 14:32:05 -0700
+Message-ID: <55a42e55.XDckuHHJO9uBFB9N%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60217 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33348 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752812AbbGMUrv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jul 2015 16:47:51 -0400
+	with ESMTP id S1752038AbbGMVcG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jul 2015 17:32:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: idryomov@gmail.com, ebiederm@xmission.com, keescook@chromium.org, mikulas@twibright.com, nneonneo@gmail.com, mm-commits@vger.kernel.org
+To: willy@linux.intel.com, dhillf@gmail.com, jack@suse.cz, kirill.shutemov@linux.intel.com, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sysctl: fix int -> unsigned long assignments in INT_MIN case
+     Subject: mm: add vmf_insert_pfn_pmd()
 has been added to the -mm tree.  Its filename is
-     sysctl-fix-int-unsigned-long-assignments-in-int_min-case.patch
+     mm-add-vmf_insert_pfn_pmd.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sysctl-fix-int-unsigned-long-assignments-in-int_min-case.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-add-vmf_insert_pfn_pmd.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sysctl-fix-int-unsigned-long-assignments-in-int_min-case.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-add-vmf_insert_pfn_pmd.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,91 +38,103 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ilya Dryomov <idryomov@gmail.com>
-Subject: sysctl: fix int -> unsigned long assignments in INT_MIN case
+From: Matthew Wilcox <willy@linux.intel.com>
+Subject: mm: add vmf_insert_pfn_pmd()
 
-The following
+Similar to vm_insert_pfn(), but for PMDs rather than PTEs.  The 'vmf_'
+prefix instead of 'vm_' prefix is intended to indicate that it returns a
+VMF_ value rather than an errno (which would only have to be converted
+into a VMF_ value anyway).
 
-    if (val < 0)
-        *lvalp = (unsigned long)-val;
-
-is incorrect because the compiler is free to assume -val to be positive
-and use a sign-extend instruction for extending the bit pattern.  This is
-a problem if val == INT_MIN:
-
-    # echo -2147483648 >/proc/sys/dev/scsi/logging_level
-    # cat /proc/sys/dev/scsi/logging_level
-    -18446744071562067968
-
-Cast to unsigned long before negation - that way we first sign-extend and
-then negate an unsigned, which is well defined.  With this:
-
-    # cat /proc/sys/dev/scsi/logging_level
-    -2147483648
-
-Signed-off-by: Ilya Dryomov <idryomov@gmail.com>
-Cc: Mikulas Patocka <mikulas@twibright.com>
-Cc: Robert Xiao <nneonneo@gmail.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Kees Cook <keescook@chromium.org>
+Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
+Cc: Hillf Danton <dhillf@gmail.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ include/linux/huge_mm.h |    2 +
+ mm/huge_memory.c        |   43 ++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 45 insertions(+)
 
-diff -puN kernel/sysctl.c~sysctl-fix-int-unsigned-long-assignments-in-int_min-case kernel/sysctl.c
---- a/kernel/sysctl.c~sysctl-fix-int-unsigned-long-assignments-in-int_min-case
-+++ a/kernel/sysctl.c
-@@ -1995,7 +1995,7 @@ static int do_proc_dointvec_conv(bool *n
- 		int val = *valp;
- 		if (val < 0) {
- 			*negp = true;
--			*lvalp = (unsigned long)-val;
-+			*lvalp = -(unsigned long)val;
- 		} else {
- 			*negp = false;
- 			*lvalp = (unsigned long)val;
-@@ -2201,7 +2201,7 @@ static int do_proc_dointvec_minmax_conv(
- 		int val = *valp;
- 		if (val < 0) {
- 			*negp = true;
--			*lvalp = (unsigned long)-val;
-+			*lvalp = -(unsigned long)val;
- 		} else {
- 			*negp = false;
- 			*lvalp = (unsigned long)val;
-@@ -2436,7 +2436,7 @@ static int do_proc_dointvec_jiffies_conv
- 		unsigned long lval;
- 		if (val < 0) {
- 			*negp = true;
--			lval = (unsigned long)-val;
-+			lval = -(unsigned long)val;
- 		} else {
- 			*negp = false;
- 			lval = (unsigned long)val;
-@@ -2459,7 +2459,7 @@ static int do_proc_dointvec_userhz_jiffi
- 		unsigned long lval;
- 		if (val < 0) {
- 			*negp = true;
--			lval = (unsigned long)-val;
-+			lval = -(unsigned long)val;
- 		} else {
- 			*negp = false;
- 			lval = (unsigned long)val;
-@@ -2484,7 +2484,7 @@ static int do_proc_dointvec_ms_jiffies_c
- 		unsigned long lval;
- 		if (val < 0) {
- 			*negp = true;
--			lval = (unsigned long)-val;
-+			lval = -(unsigned long)val;
- 		} else {
- 			*negp = false;
- 			lval = (unsigned long)val;
+diff -puN include/linux/huge_mm.h~mm-add-vmf_insert_pfn_pmd include/linux/huge_mm.h
+--- a/include/linux/huge_mm.h~mm-add-vmf_insert_pfn_pmd
++++ a/include/linux/huge_mm.h
+@@ -33,6 +33,8 @@ extern int move_huge_pmd(struct vm_area_
+ extern int change_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
+ 			unsigned long addr, pgprot_t newprot,
+ 			int prot_numa);
++int vmf_insert_pfn_pmd(struct vm_area_struct *, unsigned long addr, pmd_t *,
++			unsigned long pfn, bool write);
+ 
+ enum transparent_hugepage_flag {
+ 	TRANSPARENT_HUGEPAGE_FLAG,
+diff -puN mm/huge_memory.c~mm-add-vmf_insert_pfn_pmd mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-add-vmf_insert_pfn_pmd
++++ a/mm/huge_memory.c
+@@ -865,6 +865,49 @@ int do_huge_pmd_anonymous_page(struct mm
+ 					    flags);
+ }
+ 
++static int insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
++		pmd_t *pmd, unsigned long pfn, pgprot_t prot, bool write)
++{
++	struct mm_struct *mm = vma->vm_mm;
++	pmd_t entry;
++	spinlock_t *ptl;
++
++	ptl = pmd_lock(mm, pmd);
++	if (pmd_none(*pmd)) {
++		entry = pmd_mkhuge(pfn_pmd(pfn, prot));
++		if (write) {
++			entry = pmd_mkyoung(pmd_mkdirty(entry));
++			entry = maybe_pmd_mkwrite(entry, vma);
++		}
++		set_pmd_at(mm, addr, pmd, entry);
++		update_mmu_cache_pmd(vma, addr, pmd);
++	}
++	spin_unlock(ptl);
++	return VM_FAULT_NOPAGE;
++}
++
++int vmf_insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
++			pmd_t *pmd, unsigned long pfn, bool write)
++{
++	pgprot_t pgprot = vma->vm_page_prot;
++	/*
++	 * If we had pmd_special, we could avoid all these restrictions,
++	 * but we need to be consistent with PTEs and architectures that
++	 * can't support a 'special' bit.
++	 */
++	BUG_ON(!(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)));
++	BUG_ON((vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)) ==
++						(VM_PFNMAP|VM_MIXEDMAP));
++	BUG_ON((vma->vm_flags & VM_PFNMAP) && is_cow_mapping(vma->vm_flags));
++	BUG_ON((vma->vm_flags & VM_MIXEDMAP) && pfn_valid(pfn));
++
++	if (addr < vma->vm_start || addr >= vma->vm_end)
++		return VM_FAULT_SIGBUS;
++	if (track_pfn_insert(vma, &pgprot, pfn))
++		return VM_FAULT_SIGBUS;
++	return insert_pfn_pmd(vma, addr, pmd, pfn, pgprot, write);
++}
++
+ int copy_huge_pmd(struct mm_struct *dst_mm, struct mm_struct *src_mm,
+ 		  pmd_t *dst_pmd, pmd_t *src_pmd, unsigned long addr,
+ 		  struct vm_area_struct *vma)
 _
 
-Patches currently in -mm which might be from idryomov@gmail.com are
+Patches currently in -mm which might be from willy@linux.intel.com are
 
-sysctl-fix-int-unsigned-long-assignments-in-int_min-case.patch
-linux-next.patch
+mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested.patch
+dax-move-dax-related-functions-to-a-new-header.patch
+thp-prepare-for-dax-huge-pages.patch
+mm-add-a-pmd_fault-handler.patch
+mm-export-various-functions-for-the-benefit-of-dax.patch
+mm-add-vmf_insert_pfn_pmd.patch
+dax-add-huge-page-fault-support.patch
+ext2-huge-page-fault-support.patch
+ext4-huge-page-fault-support.patch
+xfs-huge-page-fault-support.patch
 
