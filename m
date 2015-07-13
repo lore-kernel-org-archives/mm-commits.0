@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + ext2-huge-page-fault-support.patch added to -mm tree
-Date: Mon, 13 Jul 2015 14:32:09 -0700
-Message-ID: <55a42e59.U+jysaPEhK/qD2oi%akpm@linux-foundation.org>
+Subject: + ext4-huge-page-fault-support.patch added to -mm tree
+Date: Mon, 13 Jul 2015 14:32:11 -0700
+Message-ID: <55a42e5b.sTdDVrwrNKU2v4n6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33358 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33410 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752038AbbGMVcK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jul 2015 17:32:10 -0400
+	with ESMTP id S1752038AbbGMVcN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jul 2015 17:32:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: willy@linux.intel.com, dhillf@gmail.com, jack@suse.cz, kirill.shutemov@linux.intel.com, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ext2: huge page fault support
+     Subject: ext4: huge page fault support
 has been added to the -mm tree.  Its filename is
-     ext2-huge-page-fault-support.patch
+     ext4-huge-page-fault-support.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ext2-huge-page-fault-support.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ext4-huge-page-fault-support.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ext2-huge-page-fault-support.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ext4-huge-page-fault-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,7 +39,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Matthew Wilcox <willy@linux.intel.com>
-Subject: ext2: huge page fault support
+Subject: ext4: huge page fault support
 
 Use DAX to provide support for huge pages.
 
@@ -51,42 +51,43 @@ Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/file.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ fs/ext4/file.c |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff -puN fs/ext2/file.c~ext2-huge-page-fault-support fs/ext2/file.c
---- a/fs/ext2/file.c~ext2-huge-page-fault-support
-+++ a/fs/ext2/file.c
-@@ -32,6 +32,12 @@ static int ext2_dax_fault(struct vm_area
- 	return dax_fault(vma, vmf, ext2_get_block, NULL);
+diff -puN fs/ext4/file.c~ext4-huge-page-fault-support fs/ext4/file.c
+--- a/fs/ext4/file.c~ext4-huge-page-fault-support
++++ a/fs/ext4/file.c
+@@ -211,6 +211,13 @@ static int ext4_dax_fault(struct vm_area
+ 					/* Is this the right get_block? */
  }
  
-+static int ext2_dax_pmd_fault(struct vm_area_struct *vma, unsigned long addr,
++static int ext4_dax_pmd_fault(struct vm_area_struct *vma, unsigned long addr,
 +						pmd_t *pmd, unsigned int flags)
 +{
-+	return dax_pmd_fault(vma, addr, pmd, flags, ext2_get_block, NULL);
++	return dax_pmd_fault(vma, addr, pmd, flags, ext4_get_block_write,
++				ext4_end_io_unwritten);
 +}
 +
- static int ext2_dax_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf)
+ static int ext4_dax_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf)
  {
- 	return dax_mkwrite(vma, vmf, ext2_get_block, NULL);
-@@ -39,6 +45,7 @@ static int ext2_dax_mkwrite(struct vm_ar
+ 	return dax_mkwrite(vma, vmf, ext4_get_block, ext4_end_io_unwritten);
+@@ -218,6 +225,7 @@ static int ext4_dax_mkwrite(struct vm_ar
  
- static const struct vm_operations_struct ext2_dax_vm_ops = {
- 	.fault		= ext2_dax_fault,
-+	.pmd_fault	= ext2_dax_pmd_fault,
- 	.page_mkwrite	= ext2_dax_mkwrite,
+ static const struct vm_operations_struct ext4_dax_vm_ops = {
+ 	.fault		= ext4_dax_fault,
++	.pmd_fault	= ext4_dax_pmd_fault,
+ 	.page_mkwrite	= ext4_dax_mkwrite,
  	.pfn_mkwrite	= dax_pfn_mkwrite,
  };
-@@ -50,7 +57,7 @@ static int ext2_file_mmap(struct file *f
- 
+@@ -245,7 +253,7 @@ static int ext4_file_mmap(struct file *f
  	file_accessed(file);
- 	vma->vm_ops = &ext2_dax_vm_ops;
--	vma->vm_flags |= VM_MIXEDMAP;
-+	vma->vm_flags |= VM_MIXEDMAP | VM_HUGEPAGE;
- 	return 0;
- }
- #else
+ 	if (IS_DAX(file_inode(file))) {
+ 		vma->vm_ops = &ext4_dax_vm_ops;
+-		vma->vm_flags |= VM_MIXEDMAP;
++		vma->vm_flags |= VM_MIXEDMAP | VM_HUGEPAGE;
+ 	} else {
+ 		vma->vm_ops = &ext4_file_vm_ops;
+ 	}
 _
 
 Patches currently in -mm which might be from willy@linux.intel.com are
