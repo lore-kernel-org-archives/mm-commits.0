@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + xfs-huge-page-fault-support.patch added to -mm tree
-Date: Mon, 13 Jul 2015 14:32:13 -0700
-Message-ID: <55a42e5d.WL6/7QBokh9ZvkGk%akpm@linux-foundation.org>
+Subject: + ipc-convert-invalid-scenarios-to-use-warn_on.patch added to -mm tree
+Date: Mon, 13 Jul 2015 14:33:20 -0700
+Message-ID: <55a42ea0.C5Tjpcn1ZWM3jYJF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33486 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33490 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752038AbbGMVcT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jul 2015 17:32:19 -0400
+	with ESMTP id S1752091AbbGMVdV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jul 2015 17:33:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: willy@linux.intel.com, dhillf@gmail.com, jack@suse.cz, kirill.shutemov@linux.intel.com, tytso@mit.edu, mm-commits@vger.kernel.org
+To: dave@stgolabs.net, dbueso@suse.de, manfred@colorfullife.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: xfs: huge page fault support
+     Subject: ipc: convert invalid scenarios to use WARN_ON
 has been added to the -mm tree.  Its filename is
-     xfs-huge-page-fault-support.patch
+     ipc-convert-invalid-scenarios-to-use-warn_on.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/xfs-huge-page-fault-support.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-convert-invalid-scenarios-to-use-warn_on.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/xfs-huge-page-fault-support.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-convert-invalid-scenarios-to-use-warn_on.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,95 +38,76 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Matthew Wilcox <willy@linux.intel.com>
-Subject: xfs: huge page fault support
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: ipc: convert invalid scenarios to use WARN_ON
 
-Use DAX to provide support for huge pages.
+Considering Linus' past rants about the (ab)use of BUG in the kernel, I
+took a look at how we deal with such calls in ipc.  Given that any errors
+or corruption in ipc code are most likely contained within the set of
+processes participating in the broken mechanisms, there aren't really many
+strong fatal system failure scenarios that would require a BUG call. 
+Also, if something is seriously wrong, ipc might not be the place for such
+a BUG either.
 
-Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
-Cc: Hillf Danton <dhillf@gmail.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
-Cc: Jan Kara <jack@suse.cz>
+1. For example, recently, a customer hit one of these BUG_ONs in shm
+   after failing shm_lock().  A busted ID imho does not merit a BUG_ON,
+   and WARN would have been better.
+
+2. MSG_COPY functionality of posix msgrcv(2) for checkpoint/restore. 
+   I don't see how we can hit this anyway -- at least it should be IS_ERR.
+    The 'copy' arg from do_msgrcv is always set by calling prepare_copy()
+   first and foremost.  We could also probably drop this check altogether.
+    Either way, it does not merit a BUG_ON.
+
+3. No ->fault() callback for the fs getting the corresponding page --
+   seems selfish to make the system unusable.
+
+Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/xfs_file.c  |   30 +++++++++++++++++++++++++++++-
- fs/xfs/xfs_trace.h |    1 +
- 2 files changed, 30 insertions(+), 1 deletion(-)
+ ipc/msgutil.c |    2 +-
+ ipc/shm.c     |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/xfs/xfs_file.c~xfs-huge-page-fault-support fs/xfs/xfs_file.c
---- a/fs/xfs/xfs_file.c~xfs-huge-page-fault-support
-+++ a/fs/xfs/xfs_file.c
-@@ -1530,8 +1530,36 @@ xfs_filemap_fault(
- 	return ret;
+diff -puN ipc/msgutil.c~ipc-convert-invalid-scenarios-to-use-warn_on ipc/msgutil.c
+--- a/ipc/msgutil.c~ipc-convert-invalid-scenarios-to-use-warn_on
++++ a/ipc/msgutil.c
+@@ -123,7 +123,7 @@ struct msg_msg *copy_msg(struct msg_msg
+ 	size_t len = src->m_ts;
+ 	size_t alen;
+ 
+-	BUG_ON(dst == NULL);
++	WARN_ON(dst == NULL);
+ 	if (src->m_ts > dst->m_ts)
+ 		return ERR_PTR(-EINVAL);
+ 
+diff -puN ipc/shm.c~ipc-convert-invalid-scenarios-to-use-warn_on ipc/shm.c
+--- a/ipc/shm.c~ipc-convert-invalid-scenarios-to-use-warn_on
++++ a/ipc/shm.c
+@@ -159,7 +159,7 @@ static inline struct shmid_kernel *shm_l
+ 	 * We raced in the idr lookup or with shm_destroy().  Either way, the
+ 	 * ID is busted.
+ 	 */
+-	BUG_ON(IS_ERR(ipcp));
++	WARN_ON(IS_ERR(ipcp));
+ 
+ 	return container_of(ipcp, struct shmid_kernel, shm_perm);
  }
- 
-+STATIC int
-+xfs_filemap_pmd_fault(
-+	struct vm_area_struct	*vma,
-+	unsigned long		addr,
-+	pmd_t			*pmd,
-+	unsigned int		flags)
-+{
-+	struct inode		*inode = file_inode(vma->vm_file);
-+	struct xfs_inode	*ip = XFS_I(inode);
-+	int			ret;
-+
-+	if (!IS_DAX(inode))
-+		return VM_FAULT_FALLBACK;
-+
-+	trace_xfs_filemap_pmd_fault(ip);
-+
-+	sb_start_pagefault(inode->i_sb);
-+	file_update_time(vma->vm_file);
-+	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
-+	ret = __dax_pmd_fault(vma, addr, pmd, flags, xfs_get_blocks_direct,
-+				    xfs_end_io_dax_write);
-+	xfs_iunlock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
-+	sb_end_pagefault(inode->i_sb);
-+
-+	return ret;
-+}
-+
- static const struct vm_operations_struct xfs_file_vm_ops = {
- 	.fault		= xfs_filemap_fault,
-+	.pmd_fault	= xfs_filemap_pmd_fault,
- 	.map_pages	= filemap_map_pages,
- 	.page_mkwrite	= xfs_filemap_page_mkwrite,
- };
-@@ -1544,7 +1572,7 @@ xfs_file_mmap(
- 	file_accessed(filp);
- 	vma->vm_ops = &xfs_file_vm_ops;
- 	if (IS_DAX(file_inode(filp)))
--		vma->vm_flags |= VM_MIXEDMAP;
-+		vma->vm_flags |= VM_MIXEDMAP | VM_HUGEPAGE;
- 	return 0;
- }
- 
-diff -puN fs/xfs/xfs_trace.h~xfs-huge-page-fault-support fs/xfs/xfs_trace.h
---- a/fs/xfs/xfs_trace.h~xfs-huge-page-fault-support
-+++ a/fs/xfs/xfs_trace.h
-@@ -687,6 +687,7 @@ DEFINE_INODE_EVENT(xfs_inode_clear_eofbl
- DEFINE_INODE_EVENT(xfs_inode_free_eofblocks_invalid);
- 
- DEFINE_INODE_EVENT(xfs_filemap_fault);
-+DEFINE_INODE_EVENT(xfs_filemap_pmd_fault);
- DEFINE_INODE_EVENT(xfs_filemap_page_mkwrite);
- 
- DECLARE_EVENT_CLASS(xfs_iref_class,
+@@ -393,7 +393,7 @@ static int shm_mmap(struct file *file, s
+ 		return ret;
+ 	sfd->vm_ops = vma->vm_ops;
+ #ifdef CONFIG_MMU
+-	BUG_ON(!sfd->vm_ops->fault);
++	WARN_ON(!sfd->vm_ops->fault);
+ #endif
+ 	vma->vm_ops = &shm_vm_ops;
+ 	shm_open(vma);
 _
 
-Patches currently in -mm which might be from willy@linux.intel.com are
+Patches currently in -mm which might be from dave@stgolabs.net are
 
-mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested.patch
-dax-move-dax-related-functions-to-a-new-header.patch
-thp-prepare-for-dax-huge-pages.patch
-mm-add-a-pmd_fault-handler.patch
-mm-export-various-functions-for-the-benefit-of-dax.patch
-mm-add-vmf_insert_pfn_pmd.patch
-dax-add-huge-page-fault-support.patch
-ext2-huge-page-fault-support.patch
-ext4-huge-page-fault-support.patch
-xfs-huge-page-fault-support.patch
+ipc-convert-invalid-scenarios-to-use-warn_on.patch
 
