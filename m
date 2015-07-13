@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + zram-make-compact-a-read-write-sysfs-node.patch added to -mm
- tree
-Date: Mon, 13 Jul 2015 14:50:27 -0700
-Message-ID: <55a432a3.C8e1XcqkHsMzeI3P%akpm@linux-foundation.org>
+Subject: + zsmalloc-factor-out-zs_pages_to_compact.patch added to -mm tree
+Date: Mon, 13 Jul 2015 14:50:25 -0700
+Message-ID: <55a432a1.tfggynbiU0qb2za7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33819 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33818 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751554AbbGMVu2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jul 2015 17:50:28 -0400
+	with ESMTP id S1751554AbbGMVu0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jul 2015 17:50:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: sergey.senozhatsky@gmail.com, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: make compact a read-write sysfs node
+     Subject: zsmalloc: factor out zs_pages_to_compact()
 has been added to the -mm tree.  Its filename is
-     zram-make-compact-a-read-write-sysfs-node.patch
+     zsmalloc-factor-out-zs_pages_to_compact.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zram-make-compact-a-read-write-sysfs-node.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zsmalloc-factor-out-zs_pages_to_compact.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zram-make-compact-a-read-write-sysfs-node.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zsmalloc-factor-out-zs_pages_to_compact.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,109 +39,88 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: zram: make compact a read-write sysfs node
+Subject: zsmalloc: factor out zs_pages_to_compact()
 
-Change zram's `compact' sysfs node to be a read-write attribute.  Write
-triggers zsmalloc compaction, just as before, read returns the number of
-pages that zsmalloc can potentially compact.
-
-User space now has a chance to estimate possible compaction memory
-savings and avoid unnecessary compactions.
-
-Example:
-
-  if [ `cat /sys/block/zram<id>/compact` -gt 10 ]; then
-      echo 1 > /sys/block/zram<id>/compact;
-  fi
+Factor out the code that calculates how many pages compaction can free
+into zs_pages_to_compact() function and export it as zsmalloc API symbol. 
+We still use it in zs_shrinker_count(), just like we did before, and at
+the same time we now let zram know this number (and provide it to user
+space) so user space can make better assumptions about manual compaction
+effectiveness.
 
 Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-block-zram |    7 ++++---
- Documentation/blockdev/zram.txt            |    4 +++-
- drivers/block/zram/zram_drv.c              |   16 +++++++++++++++-
- 3 files changed, 22 insertions(+), 5 deletions(-)
+ include/linux/zsmalloc.h |    1 
+ mm/zsmalloc.c            |   39 +++++++++++++++++++++----------------
+ 2 files changed, 24 insertions(+), 16 deletions(-)
 
-diff -puN Documentation/ABI/testing/sysfs-block-zram~zram-make-compact-a-read-write-sysfs-node Documentation/ABI/testing/sysfs-block-zram
---- a/Documentation/ABI/testing/sysfs-block-zram~zram-make-compact-a-read-write-sysfs-node
-+++ a/Documentation/ABI/testing/sysfs-block-zram
-@@ -146,9 +146,10 @@ What:		/sys/block/zram<id>/compact
- Date:		August 2015
- Contact:	Minchan Kim <minchan@kernel.org>
- Description:
--		The compact file is write-only and trigger compaction for
--		allocator zrm uses. The allocator moves some objects so that
--		it could free fragment space.
-+		The compact file is read/write. Write triggers underlying
-+		allocator's memory compaction, which may result in memory
-+		savings. Read returns the number of pages that compaction
-+		can potentially (but not guaranteed to) free.
+diff -puN include/linux/zsmalloc.h~zsmalloc-factor-out-zs_pages_to_compact include/linux/zsmalloc.h
+--- a/include/linux/zsmalloc.h~zsmalloc-factor-out-zs_pages_to_compact
++++ a/include/linux/zsmalloc.h
+@@ -53,6 +53,7 @@ void zs_unmap_object(struct zs_pool *poo
  
- What:		/sys/block/zram<id>/io_stat
- Date:		August 2015
-diff -puN Documentation/blockdev/zram.txt~zram-make-compact-a-read-write-sysfs-node Documentation/blockdev/zram.txt
---- a/Documentation/blockdev/zram.txt~zram-make-compact-a-read-write-sysfs-node
-+++ a/Documentation/blockdev/zram.txt
-@@ -146,7 +146,9 @@ mem_limit         RW    the maximum amou
-                         the compressed data
- pages_compacted   RO    the number of pages freed during compaction
-                         (available only via zram<id>/mm_stat node)
--compact           WO    trigger memory compaction
-+compact           RW    write triggers memory compaction, read shows how many
-+                        pages can potentially (but not necessarily will) be
-+                        compacted
+ unsigned long zs_get_total_pages(struct zs_pool *pool);
+ unsigned long zs_compact(struct zs_pool *pool);
++unsigned long zs_pages_to_compact(struct zs_pool *pool);
  
- WARNING
- =======
-diff -puN drivers/block/zram/zram_drv.c~zram-make-compact-a-read-write-sysfs-node drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-make-compact-a-read-write-sysfs-node
-+++ a/drivers/block/zram/zram_drv.c
-@@ -404,6 +404,20 @@ static ssize_t compact_store(struct devi
- 	return len;
+ void zs_pool_stats(struct zs_pool *pool, struct zs_pool_stats *stats);
+ #endif
+diff -puN mm/zsmalloc.c~zsmalloc-factor-out-zs_pages_to_compact mm/zsmalloc.c
+--- a/mm/zsmalloc.c~zsmalloc-factor-out-zs_pages_to_compact
++++ a/mm/zsmalloc.c
+@@ -1798,6 +1798,28 @@ void zs_pool_stats(struct zs_pool *pool,
  }
+ EXPORT_SYMBOL_GPL(zs_pool_stats);
  
-+static ssize_t compact_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
++unsigned long zs_pages_to_compact(struct zs_pool *pool)
 +{
-+	struct zram *zram = dev_to_zram(dev);
-+	unsigned long num_pages = 0;
++	unsigned long pages_to_free = 0;
++	int i;
++	struct size_class *class;
 +
-+	down_read(&zram->init_lock);
-+	if (init_done(zram))
-+		num_pages = zs_pages_to_compact(zram->meta->mem_pool);
-+	up_read(&zram->init_lock);
++	for (i = zs_size_classes - 1; i >= 0; i--) {
++		class = pool->size_class[i];
++		if (!class)
++			continue;
++		if (class->index != i)
++			continue;
 +
-+	return scnprintf(buf, PAGE_SIZE, "%lu\n", num_pages);
++		spin_lock(&class->lock);
++		pages_to_free += zs_can_compact(class);
++		spin_unlock(&class->lock);
++	}
++
++	return pages_to_free;
 +}
++EXPORT_SYMBOL_GPL(zs_pages_to_compact);
 +
- static ssize_t io_stat_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
+ static unsigned long zs_shrinker_scan(struct shrinker *shrinker,
+ 		struct shrink_control *sc)
  {
-@@ -1145,7 +1159,7 @@ static const struct block_device_operati
- 	.owner = THIS_MODULE
- };
+@@ -1819,28 +1841,13 @@ static unsigned long zs_shrinker_scan(st
+ static unsigned long zs_shrinker_count(struct shrinker *shrinker,
+ 		struct shrink_control *sc)
+ {
+-	int i;
+-	struct size_class *class;
+-	unsigned long pages_to_free = 0;
+ 	struct zs_pool *pool = container_of(shrinker, struct zs_pool,
+ 			shrinker);
  
--static DEVICE_ATTR_WO(compact);
-+static DEVICE_ATTR_RW(compact);
- static DEVICE_ATTR_RW(disksize);
- static DEVICE_ATTR_RO(initstate);
- static DEVICE_ATTR_WO(reset);
-_
-
-Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
-
-zsmalloc-drop-unused-variable-nr_to_migrate.patch
-zsmalloc-always-keep-per-class-stats.patch
-zsmalloc-introduce-zs_can_compact-function.patch
-zsmalloc-cosmetic-compaction-code-adjustments.patch
-zsmalloc-zram-introduce-zs_pool_stats-api.patch
-zsmalloc-account-the-number-of-compacted-pages.patch
-zsmalloc-use-shrinker-to-trigger-auto-compaction.patch
-zsmalloc-partial-page-ordering-within-a-fullness_list.patch
-zsmalloc-consider-zs_almost_full-as-migrate-source.patch
-zsmalloc-factor-out-zs_pages_to_compact.patch
-zram-make-compact-a-read-write-sysfs-node.patch
-zsmalloc-do-not-take-class-lock-in-zs_pages_to_compact.patch
-
+ 	if (!pool->shrinker_enabled)
+ 		return 0;
+ 
+-	for (i = zs_size_classes - 1; i >= 0; i--) {
+-		class = pool->size_class[i];
+-		if (!class)
+-			continue;
+-		if (class->index != i)
+-			continue;
+-
+-		spin_lock(&class->lock);
+-		pages_to_free += zs_can_compact(class);
+-		spin_unlock(&class->lock);
+-	}
