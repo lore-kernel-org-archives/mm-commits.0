@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + thp-prepare-for-dax-huge-pages.patch added to -mm tree
-Date: Mon, 13 Jul 2015 14:31:59 -0700
-Message-ID: <55a42e4f.+lPjbilVBq0p9OHi%akpm@linux-foundation.org>
+Subject: + xfs-huge-page-fault-support.patch added to -mm tree
+Date: Mon, 13 Jul 2015 14:32:13 -0700
+Message-ID: <55a42e5d.WL6/7QBokh9ZvkGk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33332 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33486 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752653AbbGMVcB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jul 2015 17:32:01 -0400
+	with ESMTP id S1752038AbbGMVcT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jul 2015 17:32:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: willy@linux.intel.com, dhillf@gmail.com, jack@suse.cz, kirill.shutemov@linux.intel.com, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp: Prepare for DAX huge pages
+     Subject: xfs: huge page fault support
 has been added to the -mm tree.  Its filename is
-     thp-prepare-for-dax-huge-pages.patch
+     xfs-huge-page-fault-support.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/thp-prepare-for-dax-huge-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/xfs-huge-page-fault-support.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/thp-prepare-for-dax-huge-pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/xfs-huge-page-fault-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,10 +39,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Matthew Wilcox <willy@linux.intel.com>
-Subject: thp: Prepare for DAX huge pages
+Subject: xfs: huge page fault support
 
-Add a vma_is_dax() helper macro to test whether the VMA is DAX, and use it
-in zap_huge_pmd() and __split_huge_page_pmd().
+Use DAX to provide support for huge pages.
 
 Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
 Cc: Hillf Danton <dhillf@gmail.com>
@@ -52,116 +51,70 @@ Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/dax.h |    4 +++
- mm/huge_memory.c    |   45 +++++++++++++++++++++++++-----------------
- 2 files changed, 31 insertions(+), 18 deletions(-)
+ fs/xfs/xfs_file.c  |   30 +++++++++++++++++++++++++++++-
+ fs/xfs/xfs_trace.h |    1 +
+ 2 files changed, 30 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/dax.h~thp-prepare-for-dax-huge-pages include/linux/dax.h
---- a/include/linux/dax.h~thp-prepare-for-dax-huge-pages
-+++ a/include/linux/dax.h
-@@ -18,4 +18,8 @@ int dax_pfn_mkwrite(struct vm_area_struc
- #define dax_mkwrite(vma, vmf, gb, iod)		dax_fault(vma, vmf, gb, iod)
- #define __dax_mkwrite(vma, vmf, gb, iod)	__dax_fault(vma, vmf, gb, iod)
- 
-+static inline bool vma_is_dax(struct vm_area_struct *vma)
-+{
-+	return vma->vm_file && IS_DAX(vma->vm_file->f_mapping->host);
-+}
- #endif
-diff -puN mm/huge_memory.c~thp-prepare-for-dax-huge-pages mm/huge_memory.c
---- a/mm/huge_memory.c~thp-prepare-for-dax-huge-pages
-+++ a/mm/huge_memory.c
-@@ -1418,7 +1418,6 @@ int zap_huge_pmd(struct mmu_gather *tlb,
- 	int ret = 0;
- 
- 	if (__pmd_trans_huge_lock(pmd, vma, &ptl) == 1) {
--		struct page *page;
- 		pgtable_t pgtable;
- 		pmd_t orig_pmd;
- 		/*
-@@ -1430,13 +1429,22 @@ int zap_huge_pmd(struct mmu_gather *tlb,
- 		orig_pmd = pmdp_huge_get_and_clear_full(tlb->mm, addr, pmd,
- 							tlb->fullmm);
- 		tlb_remove_pmd_tlb_entry(tlb, pmd, addr);
--		pgtable = pgtable_trans_huge_withdraw(tlb->mm, pmd);
-+		if (vma_is_dax(vma)) {
-+			if (is_huge_zero_pmd(orig_pmd)) {
-+				pgtable = NULL;
-+			} else {
-+				spin_unlock(ptl);
-+				return 1;
-+			}
-+		} else {
-+			pgtable = pgtable_trans_huge_withdraw(tlb->mm, pmd);
-+		}
- 		if (is_huge_zero_pmd(orig_pmd)) {
- 			atomic_long_dec(&tlb->mm->nr_ptes);
- 			spin_unlock(ptl);
- 			put_huge_zero_page();
- 		} else {
--			page = pmd_page(orig_pmd);
-+			struct page *page = pmd_page(orig_pmd);
- 			page_remove_rmap(page);
- 			VM_BUG_ON_PAGE(page_mapcount(page) < 0, page);
- 			add_mm_counter(tlb->mm, MM_ANONPAGES, -HPAGE_PMD_NR);
-@@ -1445,7 +1453,8 @@ int zap_huge_pmd(struct mmu_gather *tlb,
- 			spin_unlock(ptl);
- 			tlb_remove_page(tlb, page);
- 		}
--		pte_free(tlb->mm, pgtable);
-+		if (pgtable)
-+			pte_free(tlb->mm, pgtable);
- 		ret = 1;
- 	}
+diff -puN fs/xfs/xfs_file.c~xfs-huge-page-fault-support fs/xfs/xfs_file.c
+--- a/fs/xfs/xfs_file.c~xfs-huge-page-fault-support
++++ a/fs/xfs/xfs_file.c
+@@ -1530,8 +1530,36 @@ xfs_filemap_fault(
  	return ret;
-@@ -2916,7 +2925,7 @@ void __split_huge_page_pmd(struct vm_are
- 		pmd_t *pmd)
- {
- 	spinlock_t *ptl;
--	struct page *page;
-+	struct page *page = NULL;
- 	struct mm_struct *mm = vma->vm_mm;
- 	unsigned long haddr = address & HPAGE_PMD_MASK;
- 	unsigned long mmun_start;	/* For mmu_notifiers */
-@@ -2929,25 +2938,25 @@ void __split_huge_page_pmd(struct vm_are
- again:
- 	mmu_notifier_invalidate_range_start(mm, mmun_start, mmun_end);
- 	ptl = pmd_lock(mm, pmd);
--	if (unlikely(!pmd_trans_huge(*pmd))) {
--		spin_unlock(ptl);
--		mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
--		return;
--	}
--	if (is_huge_zero_pmd(*pmd)) {
-+	if (unlikely(!pmd_trans_huge(*pmd)))
-+		goto unlock;
-+	if (vma_is_dax(vma)) {
-+		pmdp_huge_clear_flush(vma, haddr, pmd);
-+	} else if (is_huge_zero_pmd(*pmd)) {
- 		__split_huge_zero_page_pmd(vma, haddr, pmd);
--		spin_unlock(ptl);
--		mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
--		return;
-+	} else {
-+		page = pmd_page(*pmd);
-+		VM_BUG_ON_PAGE(!page_count(page), page);
-+		get_page(page);
- 	}
--	page = pmd_page(*pmd);
--	VM_BUG_ON_PAGE(!page_count(page), page);
--	get_page(page);
-+ unlock:
- 	spin_unlock(ptl);
- 	mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
+ }
  
--	split_huge_page(page);
-+	if (!page)
-+		return;
++STATIC int
++xfs_filemap_pmd_fault(
++	struct vm_area_struct	*vma,
++	unsigned long		addr,
++	pmd_t			*pmd,
++	unsigned int		flags)
++{
++	struct inode		*inode = file_inode(vma->vm_file);
++	struct xfs_inode	*ip = XFS_I(inode);
++	int			ret;
++
++	if (!IS_DAX(inode))
++		return VM_FAULT_FALLBACK;
++
++	trace_xfs_filemap_pmd_fault(ip);
++
++	sb_start_pagefault(inode->i_sb);
++	file_update_time(vma->vm_file);
++	xfs_ilock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
++	ret = __dax_pmd_fault(vma, addr, pmd, flags, xfs_get_blocks_direct,
++				    xfs_end_io_dax_write);
++	xfs_iunlock(XFS_I(inode), XFS_MMAPLOCK_SHARED);
++	sb_end_pagefault(inode->i_sb);
++
++	return ret;
++}
++
+ static const struct vm_operations_struct xfs_file_vm_ops = {
+ 	.fault		= xfs_filemap_fault,
++	.pmd_fault	= xfs_filemap_pmd_fault,
+ 	.map_pages	= filemap_map_pages,
+ 	.page_mkwrite	= xfs_filemap_page_mkwrite,
+ };
+@@ -1544,7 +1572,7 @@ xfs_file_mmap(
+ 	file_accessed(filp);
+ 	vma->vm_ops = &xfs_file_vm_ops;
+ 	if (IS_DAX(file_inode(filp)))
+-		vma->vm_flags |= VM_MIXEDMAP;
++		vma->vm_flags |= VM_MIXEDMAP | VM_HUGEPAGE;
+ 	return 0;
+ }
  
-+	split_huge_page(page);
- 	put_page(page);
+diff -puN fs/xfs/xfs_trace.h~xfs-huge-page-fault-support fs/xfs/xfs_trace.h
+--- a/fs/xfs/xfs_trace.h~xfs-huge-page-fault-support
++++ a/fs/xfs/xfs_trace.h
+@@ -687,6 +687,7 @@ DEFINE_INODE_EVENT(xfs_inode_clear_eofbl
+ DEFINE_INODE_EVENT(xfs_inode_free_eofblocks_invalid);
  
- 	/*
+ DEFINE_INODE_EVENT(xfs_filemap_fault);
++DEFINE_INODE_EVENT(xfs_filemap_pmd_fault);
+ DEFINE_INODE_EVENT(xfs_filemap_page_mkwrite);
+ 
+ DECLARE_EVENT_CLASS(xfs_iref_class,
 _
 
 Patches currently in -mm which might be from willy@linux.intel.com are
