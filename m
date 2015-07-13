@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + hexdump-fix-for-non-aligned-buffers.patch added to -mm tree
-Date: Mon, 13 Jul 2015 16:15:58 -0700
-Message-ID: <55a446ae.Bamgzx0rOW8UGegM%akpm@linux-foundation.org>
+Subject: +
+ ocfs2-do-not-bug-if-buffer-not-uptodate-in-__ocfs2_journal_access.patch
+ added to -mm tree
+Date: Mon, 13 Jul 2015 16:29:50 -0700
+Message-ID: <55a449ee.Nbe/UbyO6lesYfVZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35470 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36235 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752292AbbGMXP7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jul 2015 19:15:59 -0400
+	with ESMTP id S1751973AbbGMX3v (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 13 Jul 2015 19:29:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hmijail@gmail.com, andriy.shevchenko@linux.intel.com, dhowells@redhat.com, geert@linux-m68k.org, joe@perches.com, vgoyal@redhat.com, mm-commits@vger.kernel.org
+To: joseph.qi@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, zhang.guanghui@h3c.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hexdump: fix for non-aligned buffers
+     Subject: ocfs2: do not BUG if buffer not uptodate in __ocfs2_journal_access
 has been added to the -mm tree.  Its filename is
-     hexdump-fix-for-non-aligned-buffers.patch
+     ocfs2-do-not-bug-if-buffer-not-uptodate-in-__ocfs2_journal_access.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hexdump-fix-for-non-aligne=
-d-buffers.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-do-not-bug-if-buffer-not-uptodate-in-__ocfs2_journal_access.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hexdump-fix-for-non-aligne=
-d-buffers.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-do-not-bug-if-buffer-not-uptodate-in-__ocfs2_journal_access.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,88 +34,69 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-=46rom: Horacio Mijail Anton Quiles <hmijail@gmail.com>
-Subject: hexdump: fix for non-aligned buffers
+From: Joseph Qi <joseph.qi@huawei.com>
+Subject: ocfs2: do not BUG if buffer not uptodate in __ocfs2_journal_access
 
-An hexdump with a buf not aligned to the groupsize causes
-non-naturally-aligned memory accesses.  This was causing a kernel panic=
- on
-the processor BlackFin BF527, when such an unaligned buffer was fed by =
-the
-function ubifs_scanned_corruption in fs/ubifs/scan.c .
+When storage network is unstable, it may trigger the BUG in
+__ocfs2_journal_access because of buffer not uptodate.  We can retry the
+write in this case or return error instead of BUG.
 
-To fix this, change accesses to the contents of the buffer so they go
-through get_unaligned().  This change should be harmless to unaligned-
-access-capable architectures, and any performance hit should be anyway
-dwarfed by the snprintf() processing time.
-
-Signed-off-by: Horacio Mijail Ant=F3n Quiles <hmijail@gmail.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
+Reported-by: Zhangguanghui <zhang.guanghui@h3c.com>
+Tested-by: Zhangguanghui <zhang.guanghui@h3c.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/hexdump.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ fs/ocfs2/journal.c |   18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
 
-diff -puN lib/hexdump.c~hexdump-fix-for-non-aligned-buffers lib/hexdump=
-=2Ec
---- a/lib/hexdump.c~hexdump-fix-for-non-aligned-buffers
-+++ a/lib/hexdump.c
-@@ -11,6 +11,7 @@
- #include <linux/ctype.h>
- #include <linux/kernel.h>
- #include <linux/export.h>
-+#include <asm/unaligned.h>
-=20
- const char hex_asc[] =3D "0123456789abcdef";
- EXPORT_SYMBOL(hex_asc);
-@@ -139,7 +140,8 @@ int hex_dump_to_buffer(const void *buf,
- 		for (j =3D 0; j < ngroups; j++) {
- 			ret =3D snprintf(linebuf + lx, linebuflen - lx,
- 				       "%s%16.16llx", j ? " " : "",
--				       (unsigned long long)*(ptr8 + j));
-+				       (unsigned long long)
-+					       get_unaligned(ptr8 + j));
- 			if (ret >=3D linebuflen - lx)
- 				goto overflow1;
- 			lx +=3D ret;
-@@ -150,7 +152,7 @@ int hex_dump_to_buffer(const void *buf,
- 		for (j =3D 0; j < ngroups; j++) {
- 			ret =3D snprintf(linebuf + lx, linebuflen - lx,
- 				       "%s%8.8x", j ? " " : "",
--				       *(ptr4 + j));
-+				       get_unaligned(ptr4 + j));
- 			if (ret >=3D linebuflen - lx)
- 				goto overflow1;
- 			lx +=3D ret;
-@@ -161,7 +163,7 @@ int hex_dump_to_buffer(const void *buf,
- 		for (j =3D 0; j < ngroups; j++) {
- 			ret =3D snprintf(linebuf + lx, linebuflen - lx,
- 				       "%s%4.4x", j ? " " : "",
--				       *(ptr2 + j));
-+				       get_unaligned(ptr2 + j));
- 			if (ret >=3D linebuflen - lx)
- 				goto overflow1;
- 			lx +=3D ret;
+diff -puN fs/ocfs2/journal.c~ocfs2-do-not-bug-if-buffer-not-uptodate-in-__ocfs2_journal_access fs/ocfs2/journal.c
+--- a/fs/ocfs2/journal.c~ocfs2-do-not-bug-if-buffer-not-uptodate-in-__ocfs2_journal_access
++++ a/fs/ocfs2/journal.c
+@@ -668,7 +668,23 @@ static int __ocfs2_journal_access(handle
+ 		mlog(ML_ERROR, "giving me a buffer that's not uptodate!\n");
+ 		mlog(ML_ERROR, "b_blocknr=%llu\n",
+ 		     (unsigned long long)bh->b_blocknr);
+-		BUG();
++
++		lock_buffer(bh);
++		/*
++		 * A previous attempt to write this buffer head failed.
++		 * Nothing we can do but to retry the write and hope for
++		 * the best.
++		 */
++		if (buffer_write_io_error(bh) && !buffer_uptodate(bh)) {
++			clear_buffer_write_io_error(bh);
++			set_buffer_uptodate(bh);
++		}
++
++		if (!buffer_uptodate(bh)) {
++			unlock_buffer(bh);
++			return -EIO;
++		}
++		unlock_buffer(bh);
+ 	}
+ 
+ 	/* Set the current transaction information on the ci so
 _
 
-Patches currently in -mm which might be from hmijail@gmail.com are
+Patches currently in -mm which might be from joseph.qi@huawei.com are
 
-hexdump-fix-for-non-aligned-buffers.patch
+ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work.patch
+ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work-v2.patch
+ocfs2-fix-race-between-dio-and-recover-orphan.patch
+ocfs2-fix-several-issues-of-append-dio.patch
+ocfs2-do-not-bug-if-buffer-not-uptodate-in-__ocfs2_journal_access.patch
+ocfs2-set-filesytem-read-only-when-ocfs2_delete_entry-failed.patch
+ocfs2-set-filesytem-read-only-when-ocfs2_delete_entry-failed-v2.patch
+ocfs2-fix-race-between-crashed-dio-and-rm.patch
+ocfs2-avoid-access-invalid-address-when-read-o2dlm-debug-messages.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
