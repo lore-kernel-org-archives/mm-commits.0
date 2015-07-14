@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- capabilities-add-a-securebit-to-disable-pr_cap_ambient_raise.patch added to -mm tree
-Date: Tue, 14 Jul 2015 13:33:28 -0700
-Message-ID: <55a57218.d86LbpEau/LqKrvK%akpm@linux-foundation.org>
+ procfs-always-expose-proc-pid-map_files-and-make-it-readable.patch added to -mm tree
+Date: Tue, 14 Jul 2015 13:56:54 -0700
+Message-ID: <55a57796.zM8ySN3MajUi1RkW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40805 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41126 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752581AbbGNUd3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Jul 2015 16:33:29 -0400
+	with ESMTP id S1752683AbbGNU4z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Jul 2015 16:56:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: luto@kernel.org, aaronmdjones@gmail.com, ahferroin7@gmail.com, cl@linux.com, corbet@lwn.net, james.l.morris@oracle.com, jarkko.sakkinen@linux.intel.com, keescook@chromium.org, morgan@kernel.org, msa@moth.iki.fi, mtk.manpages@gmail.com, serge.hallyn@canonical.com, tytso@mit.edu, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: calvinowens@fb.com, gorcunov@openvz.org, joe@perches.com, keescook@chromium.org, kirill@shutemov.name, luto@amacapital.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: capabilities: add a securebit to disable PR_CAP_AMBIENT_RAISE
+     Subject: procfs: always expose /proc/<pid>/map_files/ and make it readable
 has been added to the -mm tree.  Its filename is
-     capabilities-add-a-securebit-to-disable-pr_cap_ambient_raise.patch
+     procfs-always-expose-proc-pid-map_files-and-make-it-readable.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/capabilities-add-a-securebit-to-disable-pr_cap_ambient_raise.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/procfs-always-expose-proc-pid-map_files-and-make-it-readable.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/capabilities-add-a-securebit-to-disable-pr_cap_ambient_raise.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/procfs-always-expose-proc-pid-map_files-and-make-it-readable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,83 +39,174 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andy Lutomirski <luto@kernel.org>
-Subject: capabilities: add a securebit to disable PR_CAP_AMBIENT_RAISE
+From: Calvin Owens <calvinowens@fb.com>
+Subject: procfs: always expose /proc/<pid>/map_files/ and make it readable
 
-Per Andrew Morgan's request, add a securebit to allow admins to disable
-PR_CAP_AMBIENT_RAISE.  This securebit will prevent processes from adding
-capabilities to their ambient set.
+Currently, /proc/<pid>/map_files/ is restricted to CAP_SYS_ADMIN, and is
+only exposed if CONFIG_CHECKPOINT_RESTORE is set.
 
-For simplicity, this disables PR_CAP_AMBIENT_RAISE entirely rather than
-just disabling setting previously cleared bits.
+Each mapped file region gets a symlink in /proc/<pid>/map_files/
+corresponding to the virtual address range at which it is mapped.  The
+symlinks work like the symlinks in /proc/<pid>/fd/, so you can follow them
+to the backing file even if that backing file has been unlinked.
 
-Signed-off-by: Andy Lutomirski <luto@kernel.org>
-Acked-by: Andrew G. Morgan <morgan@kernel.org>
-Acked-by: Serge Hallyn <serge.hallyn@canonical.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Serge Hallyn <serge.hallyn@canonical.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Aaron Jones <aaronmdjones@gmail.com>
-Cc: Ted Ts'o <tytso@mit.edu>
-Cc: Andrew G. Morgan <morgan@kernel.org>
-Cc: Mimi Zohar <zohar@linux.vnet.ibm.com>
-Cc: Austin S Hemmelgarn <ahferroin7@gmail.com>
-Cc: Markku Savela <msa@moth.iki.fi>
-Cc: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: James Morris <james.l.morris@oracle.com>
+Currently, files which are mapped, unlinked, and closed are impossible to
+stat() from userspace.  Exposing /proc/<pid>/map_files/ closes this
+functionality "hole".
+
+Not being able to stat() such files makes noticing and explicitly
+accounting for the space they use on the filesystem impossible.  You can
+work around this by summing up the space used by every file in the
+filesystem and subtracting that total from what statfs() tells you, but
+that obviously isn't great, and it becomes unworkable once your filesystem
+becomes large enough.
+
+This patch moves map_files/ out from behind CONFIG_CHECKPOINT_RESTORE, and
+adjusts the permissions enforced on it as follows:
+
+* proc_map_files_lookup()
+* proc_map_files_readdir()
+* map_files_d_revalidate()
+
+	Remove the CAP_SYS_ADMIN restriction, leaving only the current
+	restriction requiring PTRACE_MODE_READ. The information made
+	available to userspace by these three functions is already
+	available in /proc/PID/maps with MODE_READ, so I don't see any
+	reason to limit them any further (see below for more detail).
+
+* proc_map_files_follow_link()
+
+	This stub has been added, and requires that the user have
+	CAP_SYS_ADMIN in order to follow the links in map_files/,
+	since there was concern on LKML both about the potential for
+	bypassing permissions on ancestor directories in the path to
+	files pointed to, and about what happens with more exotic
+	memory mappings created by some drivers (ie dma-buf).
+
+In older versions of this patch, I changed every permission check in
+the four functions above to enforce MODE_ATTACH instead of MODE_READ.
+This was an oversight on my part, and after revisiting the discussion
+it seems that nobody was concerned about anything outside of what is
+made possible by ->follow_link(). So in this version, I've left the
+checks for PTRACE_MODE_READ as-is.
+
+Signed-off-by: Calvin Owens <calvinowens@fb.com>
+Reviewed-by: Kees Cook <keescook@chromium.org>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Joe Perches <joe@perches.com>
+Cc: Kirill A. Shutemov <kirill@shutemov.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/linux/securebits.h |   11 ++++++++++-
- security/commoncap.c            |    3 ++-
- 2 files changed, 12 insertions(+), 2 deletions(-)
+ fs/proc/base.c |   42 +++++++++++++++++++++++-------------------
+ 1 file changed, 23 insertions(+), 19 deletions(-)
 
-diff -puN include/uapi/linux/securebits.h~capabilities-add-a-securebit-to-disable-pr_cap_ambient_raise include/uapi/linux/securebits.h
---- a/include/uapi/linux/securebits.h~capabilities-add-a-securebit-to-disable-pr_cap_ambient_raise
-+++ a/include/uapi/linux/securebits.h
-@@ -43,9 +43,18 @@
- #define SECBIT_KEEP_CAPS	(issecure_mask(SECURE_KEEP_CAPS))
- #define SECBIT_KEEP_CAPS_LOCKED (issecure_mask(SECURE_KEEP_CAPS_LOCKED))
+diff -puN fs/proc/base.c~procfs-always-expose-proc-pid-map_files-and-make-it-readable fs/proc/base.c
+--- a/fs/proc/base.c~procfs-always-expose-proc-pid-map_files-and-make-it-readable
++++ a/fs/proc/base.c
+@@ -1831,8 +1831,6 @@ end_instantiate:
+ 	return dir_emit(ctx, name, len, 1, DT_UNKNOWN);
+ }
  
-+/* When set, a process cannot add new capabilities to its ambient set. */
-+#define SECURE_NO_CAP_AMBIENT_RAISE		6
-+#define SECURE_NO_CAP_AMBIENT_RAISE_LOCKED	7  /* make bit-6 immutable */
+-#ifdef CONFIG_CHECKPOINT_RESTORE
+-
+ /*
+  * dname_to_vma_addr - maps a dentry name into two unsigned longs
+  * which represent vma start and end addresses.
+@@ -1859,11 +1857,6 @@ static int map_files_d_revalidate(struct
+ 	if (flags & LOOKUP_RCU)
+ 		return -ECHILD;
+ 
+-	if (!capable(CAP_SYS_ADMIN)) {
+-		status = -EPERM;
+-		goto out_notask;
+-	}
+-
+ 	inode = d_inode(dentry);
+ 	task = get_proc_task(inode);
+ 	if (!task)
+@@ -1952,6 +1945,28 @@ struct map_files_info {
+ 	unsigned char	name[4*sizeof(long)+2]; /* max: %lx-%lx\0 */
+ };
+ 
++/*
++ * Only allow CAP_SYS_ADMIN to follow the links, due to concerns about how the
++ * symlinks may be used to bypass permissions on ancestor directories in the
++ * path to the file in question.
++ */
++static void *proc_map_files_follow_link(struct dentry *dentry, struct nameidata *nd)
++{
++	if (!capable(CAP_SYS_ADMIN))
++		return ERR_PTR(-EPERM);
 +
-+#define SECBIT_NO_CAP_AMBIENT_RAISE (issecure_mask(SECURE_NO_CAP_AMBIENT_RAISE))
-+#define SECBIT_NO_CAP_AMBIENT_RAISE_LOCKED \
-+			(issecure_mask(SECURE_NO_CAP_AMBIENT_RAISE_LOCKED))
++	return proc_pid_follow_link(dentry, nd);
++}
 +
- #define SECURE_ALL_BITS		(issecure_mask(SECURE_NOROOT) | \
- 				 issecure_mask(SECURE_NO_SETUID_FIXUP) | \
--				 issecure_mask(SECURE_KEEP_CAPS))
-+				 issecure_mask(SECURE_KEEP_CAPS) | \
-+				 issecure_mask(SECURE_NO_CAP_AMBIENT_RAISE))
- #define SECURE_ALL_LOCKS	(SECURE_ALL_BITS << 1)
++/*
++ * Identical to proc_pid_link_inode_operations except for follow_link()
++ */
++static const struct inode_operations proc_map_files_link_inode_operations = {
++	.readlink	= proc_pid_readlink,
++	.follow_link	= proc_map_files_follow_link,
++	.setattr	= proc_setattr,
++};
++
+ static int
+ proc_map_files_instantiate(struct inode *dir, struct dentry *dentry,
+ 			   struct task_struct *task, const void *ptr)
+@@ -1967,7 +1982,7 @@ proc_map_files_instantiate(struct inode
+ 	ei = PROC_I(inode);
+ 	ei->op.proc_get_link = proc_map_files_get_link;
  
- #endif /* _UAPI_LINUX_SECUREBITS_H */
-diff -puN security/commoncap.c~capabilities-add-a-securebit-to-disable-pr_cap_ambient_raise security/commoncap.c
---- a/security/commoncap.c~capabilities-add-a-securebit-to-disable-pr_cap_ambient_raise
-+++ a/security/commoncap.c
-@@ -993,7 +993,8 @@ int cap_task_prctl(int option, unsigned
- 			if (arg2 == PR_CAP_AMBIENT_RAISE &&
- 			    (!cap_raised(current_cred()->cap_permitted, arg3) ||
- 			     !cap_raised(current_cred()->cap_inheritable,
--					 arg3)))
-+					 arg3) ||
-+			     issecure(SECURE_NO_CAP_AMBIENT_RAISE)))
- 				return -EPERM;
+-	inode->i_op = &proc_pid_link_inode_operations;
++	inode->i_op = &proc_map_files_link_inode_operations;
+ 	inode->i_size = 64;
+ 	inode->i_mode = S_IFLNK;
  
- 			new = prepare_creds();
+@@ -1991,10 +2006,6 @@ static struct dentry *proc_map_files_loo
+ 	int result;
+ 	struct mm_struct *mm;
+ 
+-	result = -EPERM;
+-	if (!capable(CAP_SYS_ADMIN))
+-		goto out;
+-
+ 	result = -ENOENT;
+ 	task = get_proc_task(dir);
+ 	if (!task)
+@@ -2048,10 +2059,6 @@ proc_map_files_readdir(struct file *file
+ 	struct map_files_info *p;
+ 	int ret;
+ 
+-	ret = -EPERM;
+-	if (!capable(CAP_SYS_ADMIN))
+-		goto out;
+-
+ 	ret = -ENOENT;
+ 	task = get_proc_task(file_inode(file));
+ 	if (!task)
+@@ -2240,7 +2247,6 @@ static const struct file_operations proc
+ 	.llseek		= seq_lseek,
+ 	.release	= seq_release_private,
+ };
+-#endif /* CONFIG_CHECKPOINT_RESTORE */
+ 
+ static int proc_pident_instantiate(struct inode *dir,
+ 	struct dentry *dentry, struct task_struct *task, const void *ptr)
+@@ -2739,9 +2745,7 @@ static const struct inode_operations pro
+ static const struct pid_entry tgid_base_stuff[] = {
+ 	DIR("task",       S_IRUGO|S_IXUGO, proc_task_inode_operations, proc_task_operations),
+ 	DIR("fd",         S_IRUSR|S_IXUSR, proc_fd_inode_operations, proc_fd_operations),
+-#ifdef CONFIG_CHECKPOINT_RESTORE
+ 	DIR("map_files",  S_IRUSR|S_IXUSR, proc_map_files_inode_operations, proc_map_files_operations),
+-#endif
+ 	DIR("fdinfo",     S_IRUSR|S_IXUSR, proc_fdinfo_inode_operations, proc_fdinfo_operations),
+ 	DIR("ns",	  S_IRUSR|S_IXUGO, proc_ns_dir_inode_operations, proc_ns_dir_operations),
+ #ifdef CONFIG_NET
 _
 
-Patches currently in -mm which might be from luto@kernel.org are
+Patches currently in -mm which might be from calvinowens@fb.com are
 
-capabilities-ambient-capabilities.patch
-capabilities-add-a-securebit-to-disable-pr_cap_ambient_raise.patch
-mm-introduce-vma_is_anonymousvma-helper.patch
-mmap-fix-the-usage-of-vm_pgoff-in-special_mapping-paths.patch
-mremap-fix-the-wrong-vma-vm_file-check-in-copy_vma.patch
-linux-next.patch
+procfs-always-expose-proc-pid-map_files-and-make-it-readable.patch
 
