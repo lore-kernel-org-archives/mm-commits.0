@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-make-the-function-set_recommended_min_free_kbytes-have-a-return-type-of-void.patch added to -mm tree
-Date: Tue, 14 Jul 2015 15:34:04 -0700
-Message-ID: <55a58e5c.d0h3sBlC5XXykjJM%akpm@linux-foundation.org>
+Subject: + proc-fixup-empty-argv-case-for-proc-pid-cmdline.patch added to
+ -mm tree
+Date: Tue, 14 Jul 2015 15:40:02 -0700
+Message-ID: <55a58fc2.ZgGKupFlN/cFXAtS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43415 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43625 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751694AbbGNWeF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Jul 2015 18:34:05 -0400
+	with ESMTP id S1751976AbbGNWkC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Jul 2015 18:40:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xerofoify@gmail.com, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: make set_recommended_min_free_kbytes() return void
+     Subject: /proc/$PID/cmdline: fixup empty ARGV case
 has been added to the -mm tree.  Its filename is
-     mm-make-the-function-set_recommended_min_free_kbytes-have-a-return-type-of-void.patch
+     proc-fixup-empty-argv-case-for-proc-pid-cmdline.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-make-the-function-set_recommended_min_free_kbytes-have-a-return-type-of-void.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/proc-fixup-empty-argv-case-for-proc-pid-cmdline.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-make-the-function-set_recommended_min_free_kbytes-have-a-return-type-of-void.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/proc-fixup-empty-argv-case-for-proc-pid-cmdline.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,49 +39,61 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Nicholas Krause <xerofoify@gmail.com>
-Subject: mm: make set_recommended_min_free_kbytes() return void
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: /proc/$PID/cmdline: fixup empty ARGV case
 
-This makes set_recommended_min_free_kbytes() have a return type of void as
-it cannot fail.
+/proc/*/cmdline code checks if it should look at ENVP area by checking
+last byte of ARGV area:
 
-Signed-off-by: Nicholas Krause <xerofoify@gmail.com>
-Acked-by: Michal Hocko <mhocko@suse.cz>
+	rv = access_remote_vm(mm, arg_end - 1, &c, 1, 0);
+	if (rv <= 0)
+		goto out_free_page;
+
+If ARGV is somehow made empty (by doing execve(..., NULL, ...) or
+manually setting ->arg_start and ->arg_end to equal values), the decision
+will be based on byte which doesn't even belong to ARGV/ENVP.
+
+So, quickly check if ARGV area is empty and report 0 to match previous
+behaviour.
+
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/proc/base.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN mm/huge_memory.c~mm-make-the-function-set_recommended_min_free_kbytes-have-a-return-type-of-void mm/huge_memory.c
---- a/mm/huge_memory.c~mm-make-the-function-set_recommended_min_free_kbytes-have-a-return-type-of-void
-+++ a/mm/huge_memory.c
-@@ -105,7 +105,7 @@ static struct khugepaged_scan khugepaged
- };
+diff -puN fs/proc/base.c~proc-fixup-empty-argv-case-for-proc-pid-cmdline fs/proc/base.c
+--- a/fs/proc/base.c~proc-fixup-empty-argv-case-for-proc-pid-cmdline
++++ a/fs/proc/base.c
+@@ -243,6 +243,11 @@ static ssize_t proc_pid_cmdline_read(str
+ 	len1 = arg_end - arg_start;
+ 	len2 = env_end - env_start;
  
- 
--static int set_recommended_min_free_kbytes(void)
-+static void set_recommended_min_free_kbytes(void)
- {
- 	struct zone *zone;
- 	int nr_zones = 0;
-@@ -140,7 +140,6 @@ static int set_recommended_min_free_kbyt
- 		min_free_kbytes = recommended_min;
- 	}
- 	setup_per_zone_wmarks();
--	return 0;
- }
- 
- static int start_stop_khugepaged(void)
++	/* Empty ARGV. */
++	if (len1 == 0) {
++		rv = 0;
++		goto out_free_page;
++	}
+ 	/*
+ 	 * Inherently racy -- command line shares address space
+ 	 * with code and data.
 _
 
-Patches currently in -mm which might be from xerofoify@gmail.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-hugetlb-make-the-function-vma_shareable-bool.patch
-mm-change-function-return-from-int-to-bool-for-the-function-is_page_busy.patch
-memory-make-the-function-tlb_next_batch-bool-now.patch
-mm-make-the-function-madvise_behaviour_valid-bool.patch
-mm-make-the-function-vma_has_reserves-bool.patch
-mm-make-the-function-set_recommended_min_free_kbytes-have-a-return-type-of-void.patch
-linux-next.patch
+proc-fixup-empty-argv-case-for-proc-pid-cmdline.patch
+kstrto-accept-0-for-signed-conversion.patch
+add-parse_integer-replacement-for-simple_strto.patch
+parse_integer-add-runtime-testsuite.patch
+parse-integer-rewrite-kstrto.patch
+parse_integer-convert-scanf.patch
+scanf-fix-type-range-overflow.patch
+parse_integer-convert-lib.patch
+parse_integer-convert-mm.patch
+parse_integer-convert-fs.patch
+parse_integer-convert-fs-cachefiles.patch
+parse_integer-convert-ext2-ext3-ext4.patch
+parse_integer-convert-fs-ocfs2.patch
+parse_integer-add-checkpatchpl-notice.patch
 
