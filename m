@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-zsmalloc-allow-null-pool-pointer-in-zs_destroy_pool.patch
+Subject: + mm-dmapool-allow-null-pool-pointer-in-dma_pool_destroy.patch
  added to -mm tree
-Date: Tue, 14 Jul 2015 16:03:58 -0700
-Message-ID: <55a5955e.uAZTndZpoLc4eH+x%akpm@linux-foundation.org>
+Date: Tue, 14 Jul 2015 16:03:54 -0700
+Message-ID: <55a5955a.V7dA/6UHNDYi5/SG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44462 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44451 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752292AbbGNXD7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Jul 2015 19:03:59 -0400
+	with ESMTP id S1752093AbbGNXDz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Jul 2015 19:03:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: sergey.senozhatsky@gmail.com, joe@perches.com, julia.lawall@lip6.fr, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/zsmalloc: allow NULL `pool' pointer in zs_destroy_pool()
+     Subject: mm/dmapool: allow NULL `pool' pointer in dma_pool_destroy()
 has been added to the -mm tree.  Its filename is
-     mm-zsmalloc-allow-null-pool-pointer-in-zs_destroy_pool.patch
+     mm-dmapool-allow-null-pool-pointer-in-dma_pool_destroy.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-zsmalloc-allow-null-pool-pointer-in-zs_destroy_pool.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-dmapool-allow-null-pool-pointer-in-dma_pool_destroy.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zsmalloc-allow-null-pool-pointer-in-zs_destroy_pool.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-dmapool-allow-null-pool-pointer-in-dma_pool_destroy.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,16 +40,19 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: mm/zsmalloc: allow NULL `pool' pointer in zs_destroy_pool()
+Subject: mm/dmapool: allow NULL `pool' pointer in dma_pool_destroy()
 
-zpool_destroy_pool() does not tolerate a NULL zs_pool pointer argument and
-performs a NULL-pointer dereference.  Although there are quite a few
-zs_destroy_pool() users, still update it to be coherent with the
-corresponding destroy() functions of the remainig pool-allocators (slab,
-mempool, etc.), which now allow NULL pool-pointers.
+dma_pool_destroy() does not tolerate a NULL dma_pool pointer argument and
+performs a NULL-pointer dereference.  This requires additional attention
+and effort from developers/reviewers and forces all dma_pool_destroy()
+callers to do a NULL check
 
-For consistency, tweak zpool_destroy_pool() and NULL-check the
-pointer there.
+	if (pool)
+		dma_pool_destroy(pool);
+
+Or, otherwise, be invalid dma_pool_destroy() users.
+
+Tweak dma_pool_destroy() and NULL-check the pointer there.
 
 Proposed by Andrew Morton.
 
@@ -61,22 +64,22 @@ Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    3 +++
+ mm/dmapool.c |    3 +++
  1 file changed, 3 insertions(+)
 
-diff -puN mm/zsmalloc.c~mm-zsmalloc-allow-null-pool-pointer-in-zs_destroy_pool mm/zsmalloc.c
---- a/mm/zsmalloc.c~mm-zsmalloc-allow-null-pool-pointer-in-zs_destroy_pool
-+++ a/mm/zsmalloc.c
-@@ -1869,6 +1869,9 @@ void zs_destroy_pool(struct zs_pool *poo
+diff -puN mm/dmapool.c~mm-dmapool-allow-null-pool-pointer-in-dma_pool_destroy mm/dmapool.c
+--- a/mm/dmapool.c~mm-dmapool-allow-null-pool-pointer-in-dma_pool_destroy
++++ a/mm/dmapool.c
+@@ -271,6 +271,9 @@ void dma_pool_destroy(struct dma_pool *p
  {
- 	int i;
+ 	bool empty = false;
  
 +	if (unlikely(!pool))
 +		return;
 +
- 	zs_pool_stat_destroy(pool);
- 
- 	for (i = 0; i < zs_size_classes; i++) {
+ 	mutex_lock(&pools_reg_lock);
+ 	mutex_lock(&pools_lock);
+ 	list_del(&pool->pools);
 _
 
 Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
