@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-oom-pass-an-oom-order-of-1-when-triggered-by-sysrq.patch
+Subject: + mm-oom-do-not-panic-for-oom-kills-triggered-from-sysrq.patch
  added to -mm tree
-Date: Tue, 14 Jul 2015 15:54:22 -0700
-Message-ID: <55a5931e.10j4xo5qb/WsfSUS%akpm@linux-foundation.org>
+Date: Tue, 14 Jul 2015 15:54:24 -0700
+Message-ID: <55a59320.evYr6igE4VN8WHmi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44407 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44411 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753407AbbGNWyX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Jul 2015 18:54:23 -0400
+	with ESMTP id S1752329AbbGNWyZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Jul 2015 18:54:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: rientjes@google.com, mhocko@suse.cz, sergey.senozhatsky.work@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, oom: pass an oom order of -1 when triggered by sysrq
+     Subject: mm, oom: do not panic for oom kills triggered from sysrq
 has been added to the -mm tree.  Its filename is
-     mm-oom-pass-an-oom-order-of-1-when-triggered-by-sysrq.patch
+     mm-oom-do-not-panic-for-oom-kills-triggered-from-sysrq.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom-pass-an-oom-order-of-1-when-triggered-by-sysrq.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom-do-not-panic-for-oom-kills-triggered-from-sysrq.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom-pass-an-oom-order-of-1-when-triggered-by-sysrq.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom-do-not-panic-for-oom-kills-triggered-from-sysrq.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,102 +40,65 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Rientjes <rientjes@google.com>
-Subject: mm, oom: pass an oom order of -1 when triggered by sysrq
+Subject: mm, oom: do not panic for oom kills triggered from sysrq
 
-The force_kill member of struct oom_control isn't needed if an order of -1
-is used instead.  This is the same as order == -1 in struct
-compact_control which requires full memory compaction.
+Sysrq+f is used to kill a process either for debug or when the VM is
+otherwise unresponsive.
 
-This patch introduces no functional change.
+It is not intended to trigger a panic when no process may be killed.
+
+Avoid panicking the system for sysrq+f when no processes are killed.
 
 Signed-off-by: David Rientjes <rientjes@google.com>
+Suggested-by: Michal Hocko <mhocko@suse.cz>
 Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
-Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/tty/sysrq.c |    3 +--
- include/linux/oom.h |    1 -
- mm/memcontrol.c     |    1 -
- mm/oom_kill.c       |    5 ++---
- mm/page_alloc.c     |    1 -
- 5 files changed, 3 insertions(+), 8 deletions(-)
+ Documentation/sysrq.txt |    3 ++-
+ mm/oom_kill.c           |    7 +++++--
+ 2 files changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN drivers/tty/sysrq.c~mm-oom-pass-an-oom-order-of-1-when-triggered-by-sysrq drivers/tty/sysrq.c
---- a/drivers/tty/sysrq.c~mm-oom-pass-an-oom-order-of-1-when-triggered-by-sysrq
-+++ a/drivers/tty/sysrq.c
-@@ -358,8 +358,7 @@ static void moom_callback(struct work_st
- 		.zonelist = node_zonelist(first_memory_node, gfp_mask),
- 		.nodemask = NULL,
- 		.gfp_mask = gfp_mask,
--		.order = 0,
--		.force_kill = true,
-+		.order = -1,
- 	};
+diff -puN Documentation/sysrq.txt~mm-oom-do-not-panic-for-oom-kills-triggered-from-sysrq Documentation/sysrq.txt
+--- a/Documentation/sysrq.txt~mm-oom-do-not-panic-for-oom-kills-triggered-from-sysrq
++++ a/Documentation/sysrq.txt
+@@ -75,7 +75,8 @@ On all -  write a character to /proc/sys
  
- 	mutex_lock(&oom_lock);
-diff -puN include/linux/oom.h~mm-oom-pass-an-oom-order-of-1-when-triggered-by-sysrq include/linux/oom.h
---- a/include/linux/oom.h~mm-oom-pass-an-oom-order-of-1-when-triggered-by-sysrq
-+++ a/include/linux/oom.h
-@@ -17,7 +17,6 @@ struct oom_control {
- 	nodemask_t	*nodemask;
- 	gfp_t		gfp_mask;
- 	int		order;
--	bool		force_kill;
- };
+ 'e'     - Send a SIGTERM to all processes, except for init.
  
- /*
-diff -puN mm/memcontrol.c~mm-oom-pass-an-oom-order-of-1-when-triggered-by-sysrq mm/memcontrol.c
---- a/mm/memcontrol.c~mm-oom-pass-an-oom-order-of-1-when-triggered-by-sysrq
-+++ a/mm/memcontrol.c
-@@ -1550,7 +1550,6 @@ static void mem_cgroup_out_of_memory(str
- 		.nodemask = NULL,
- 		.gfp_mask = gfp_mask,
- 		.order = order,
--		.force_kill = false,
- 	};
- 	struct mem_cgroup *iter;
- 	unsigned long chosen_points = 0;
-diff -puN mm/oom_kill.c~mm-oom-pass-an-oom-order-of-1-when-triggered-by-sysrq mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom-pass-an-oom-order-of-1-when-triggered-by-sysrq
+-'f'	- Will call oom_kill to kill a memory hog process.
++'f'	- Will call the oom killer to kill a memory hog process, but do not
++	  panic if nothing can be killed.
+ 
+ 'g'	- Used by kgdb (kernel debugger)
+ 
+diff -puN mm/oom_kill.c~mm-oom-do-not-panic-for-oom-kills-triggered-from-sysrq mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom-do-not-panic-for-oom-kills-triggered-from-sysrq
 +++ a/mm/oom_kill.c
-@@ -265,7 +265,7 @@ enum oom_scan_t oom_scan_process_thread(
- 	 * Don't allow any other task to have access to the reserves.
- 	 */
- 	if (test_tsk_thread_flag(task, TIF_MEMDIE)) {
--		if (!oc->force_kill)
-+		if (oc->order != -1)
- 			return OOM_SCAN_ABORT;
+@@ -607,6 +607,9 @@ void check_panic_on_oom(struct oom_contr
+ 		if (constraint != CONSTRAINT_NONE)
+ 			return;
  	}
- 	if (!task->mm)
-@@ -278,7 +278,7 @@ enum oom_scan_t oom_scan_process_thread(
- 	if (oom_task_origin(task))
- 		return OOM_SCAN_SELECT;
++	/* Do not panic for oom kills triggered by sysrq */
++	if (oc->order == -1)
++		return;
+ 	dump_header(oc, NULL, memcg);
+ 	panic("Out of memory: %s panic_on_oom is enabled\n",
+ 		sysctl_panic_on_oom == 2 ? "compulsory" : "system-wide");
+@@ -686,11 +689,11 @@ bool out_of_memory(struct oom_control *o
  
--	if (task_will_free_mem(task) && !oc->force_kill)
-+	if (task_will_free_mem(task) && oc->order != -1)
- 		return OOM_SCAN_ABORT;
- 
- 	return OOM_SCAN_OK;
-@@ -718,7 +718,6 @@ void pagefault_out_of_memory(void)
- 		.nodemask = NULL,
- 		.gfp_mask = 0,
- 		.order = 0,
--		.force_kill = false,
- 	};
- 
- 	if (mem_cgroup_oom_synchronize(true))
-diff -puN mm/page_alloc.c~mm-oom-pass-an-oom-order-of-1-when-triggered-by-sysrq mm/page_alloc.c
---- a/mm/page_alloc.c~mm-oom-pass-an-oom-order-of-1-when-triggered-by-sysrq
-+++ a/mm/page_alloc.c
-@@ -2696,7 +2696,6 @@ __alloc_pages_may_oom(gfp_t gfp_mask, un
- 		.nodemask = ac->nodemask,
- 		.gfp_mask = gfp_mask,
- 		.order = order,
--		.force_kill = false,
- 	};
- 	struct page *page;
- 
+ 	p = select_bad_process(oc, &points, totalpages);
+ 	/* Found nothing?!?! Either we hang forever, or we panic. */
+-	if (!p) {
++	if (!p && oc->order != -1) {
+ 		dump_header(oc, NULL, NULL);
+ 		panic("Out of memory and no killable processes...\n");
+ 	}
+-	if (p != (void *)-1UL) {
++	if (p && p != (void *)-1UL) {
+ 		oom_kill_process(oc, p, points, totalpages, NULL,
+ 				 "Out of memory");
+ 		killed = 1;
 _
 
 Patches currently in -mm which might be from rientjes@google.com are
