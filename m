@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + pagemap-check-permissions-and-capabilities-at-open-time.patch
- added to -mm tree
-Date: Tue, 14 Jul 2015 11:57:51 -0700
-Message-ID: <55a55baf.KqJW9vNaLcu0aLdH%akpm@linux-foundation.org>
+Subject: + pagemap-rework-hugetlb-and-thp-report.patch added to -mm tree
+Date: Tue, 14 Jul 2015 11:57:55 -0700
+Message-ID: <55a55bb3.ULvKI/GhZ8pJ6d0e%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37698 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37706 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752306AbbGNS5w (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Jul 2015 14:57:52 -0400
+	with ESMTP id S1752351AbbGNS54 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Jul 2015 14:57:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: khlebnikov@yandex-team.ru, mwilliamson@undo-software.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: pagemap: check permissions and capabilities at open time
+     Subject: pagemap: rework hugetlb and thp report
 has been added to the -mm tree.  Its filename is
-     pagemap-check-permissions-and-capabilities-at-open-time.patch
+     pagemap-rework-hugetlb-and-thp-report.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/pagemap-check-permissions-and-capabilities-at-open-time.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/pagemap-rework-hugetlb-and-thp-report.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/pagemap-check-permissions-and-capabilities-at-open-time.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/pagemap-rework-hugetlb-and-thp-report.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,29 +39,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Subject: pagemap: check permissions and capabilities at open time
+Subject: pagemap: rework hugetlb and thp report
 
-This patchset makes pagemap useable again in the safe way (after row
-hammer bug it was made CAP_SYS_ADMIN-only).  This patchset restores access
-for non-privileged users but hides PFNs from them.
+This patch moves pmd dissection out of reporting loop: huge pages are
+reported as bunch of normal pages with contiguous PFNs.
 
-Also it adds bit 'map-exclusive' which is set if page is mapped only here:
-it helps in estimation of working set without exposing pfns and allows to
-distinguish CoWed and non-CoWed private anonymous pages.
-
-Second patch removes page-shift bits and completes migration to the new
-pagemap format: flags soft-dirty and mmap-exclusive are available only in
-the new format.
-
-
-This patch (of 5):
-
-This patch moves permission checks from pagemap_read() into pagemap_open().
-
-Pointer to mm is saved in file->private_data. This reference pins only
-mm_struct itself. /proc/*/mem, maps, smaps already work in the same way.
-
-See http://lkml.kernel.org/r/CA+55aFyKpWrt_Ajzh1rzp_GcwZ4=6Y=kOv8hBz172CFJp6L8Tg@mail.gmail.com
+Add missing "FILE" bit in hugetlb vmas.
 
 Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
 Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
@@ -70,132 +52,174 @@ Cc: Mark Williamson <mwilliamson@undo-software.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   48 +++++++++++++++++++++++++------------------
- 1 file changed, 28 insertions(+), 20 deletions(-)
+ fs/proc/task_mmu.c |  100 ++++++++++++++++++-------------------------
+ 1 file changed, 44 insertions(+), 56 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~pagemap-check-permissions-and-capabilities-at-open-time fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~pagemap-check-permissions-and-capabilities-at-open-time
+diff -puN fs/proc/task_mmu.c~pagemap-rework-hugetlb-and-thp-report fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~pagemap-rework-hugetlb-and-thp-report
 +++ a/fs/proc/task_mmu.c
-@@ -1230,40 +1230,33 @@ static int pagemap_hugetlb_range(pte_t *
- static ssize_t pagemap_read(struct file *file, char __user *buf,
- 			    size_t count, loff_t *ppos)
- {
--	struct task_struct *task = get_proc_task(file_inode(file));
--	struct mm_struct *mm;
-+	struct mm_struct *mm = file->private_data;
- 	struct pagemapread pm;
--	int ret = -ESRCH;
- 	struct mm_walk pagemap_walk = {};
- 	unsigned long src;
- 	unsigned long svpfn;
- 	unsigned long start_vaddr;
- 	unsigned long end_vaddr;
--	int copied = 0;
-+	int ret = 0, copied = 0;
+@@ -1041,33 +1041,7 @@ static pagemap_entry_t pte_to_pagemap_en
+ 	return make_pme(frame, flags);
+ }
  
--	if (!task)
-+	if (!mm || !atomic_inc_not_zero(&mm->mm_users))
- 		goto out;
- 
- 	ret = -EINVAL;
- 	/* file position must be aligned */
- 	if ((*ppos % PM_ENTRY_BYTES) || (count % PM_ENTRY_BYTES))
--		goto out_task;
-+		goto out_mm;
- 
- 	ret = 0;
- 	if (!count)
--		goto out_task;
-+		goto out_mm;
- 
- 	pm.v2 = soft_dirty_cleared;
- 	pm.len = (PAGEMAP_WALK_SIZE >> PAGE_SHIFT);
- 	pm.buffer = kmalloc(pm.len * PM_ENTRY_BYTES, GFP_TEMPORARY);
- 	ret = -ENOMEM;
- 	if (!pm.buffer)
--		goto out_task;
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-static pagemap_entry_t thp_pmd_to_pagemap_entry(struct pagemapread *pm,
+-		pmd_t pmd, int offset, u64 flags)
+-{
+-	u64 frame = 0;
 -
--	mm = mm_access(task, PTRACE_MODE_READ);
--	ret = PTR_ERR(mm);
--	if (!mm || IS_ERR(mm))
--		goto out_free;
-+		goto out_mm;
+-	/*
+-	 * Currently pmd for thp is always present because thp can not be
+-	 * swapped-out, migrated, or HWPOISONed (split in such cases instead.)
+-	 * This if-check is just to prepare for future implementation.
+-	 */
+-	if (pmd_present(pmd)) {
+-		frame = pmd_pfn(pmd) + offset;
+-		flags |= PM_PRESENT;
+-	}
+-
+-	return make_pme(frame, flags);
+-}
+-#else
+-static pagemap_entry_t thp_pmd_to_pagemap_entry(struct pagemapread *pm,
+-		pmd_t pmd, int offset, u64 flags)
+-{
+-	return make_pme(0, 0);
+-}
+-#endif
+-
+-static int pagemap_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
++static int pagemap_pmd_range(pmd_t *pmdp, unsigned long addr, unsigned long end,
+ 			     struct mm_walk *walk)
+ {
+ 	struct vm_area_struct *vma = walk->vma;
+@@ -1076,35 +1050,48 @@ static int pagemap_pte_range(pmd_t *pmd,
+ 	pte_t *pte, *orig_pte;
+ 	int err = 0;
  
- 	pagemap_walk.pmd_entry = pagemap_pte_range;
- 	pagemap_walk.pte_hole = pagemap_pte_hole;
-@@ -1276,10 +1269,10 @@ static ssize_t pagemap_read(struct file
- 	src = *ppos;
- 	svpfn = src / PM_ENTRY_BYTES;
- 	start_vaddr = svpfn << PAGE_SHIFT;
--	end_vaddr = TASK_SIZE_OF(task);
-+	end_vaddr = mm->task_size;
+-	if (pmd_trans_huge_lock(pmd, vma, &ptl) == 1) {
+-		u64 flags = 0;
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++	if (pmd_trans_huge_lock(pmdp, vma, &ptl) == 1) {
++		u64 flags = 0, frame = 0;
++		pmd_t pmd = *pmdp;
  
- 	/* watch out for wraparound */
--	if (svpfn > TASK_SIZE_OF(task) >> PAGE_SHIFT)
-+	if (svpfn > mm->task_size >> PAGE_SHIFT)
- 		start_vaddr = end_vaddr;
+-		if ((vma->vm_flags & VM_SOFTDIRTY) || pmd_soft_dirty(*pmd))
++		if ((vma->vm_flags & VM_SOFTDIRTY) || pmd_soft_dirty(pmd))
+ 			flags |= PM_SOFT_DIRTY;
+ 
++		/*
++		 * Currently pmd for thp is always present because thp
++		 * can not be swapped-out, migrated, or HWPOISONed
++		 * (split in such cases instead.)
++		 * This if-check is just to prepare for future implementation.
++		 */
++		if (pmd_present(pmd)) {
++			flags |= PM_PRESENT;
++			frame = pmd_pfn(pmd) +
++				((addr & ~PMD_MASK) >> PAGE_SHIFT);
++		}
++
+ 		for (; addr != end; addr += PAGE_SIZE) {
+-			unsigned long offset;
+-			pagemap_entry_t pme;
++			pagemap_entry_t pme = make_pme(frame, flags);
+ 
+-			offset = (addr & ~PAGEMAP_WALK_MASK) >>
+-					PAGE_SHIFT;
+-			pme = thp_pmd_to_pagemap_entry(pm, *pmd, offset, flags);
+ 			err = add_to_pagemap(addr, &pme, pm);
+ 			if (err)
+ 				break;
++			if (flags & PM_PRESENT)
++				frame++;
+ 		}
+ 		spin_unlock(ptl);
+ 		return err;
+ 	}
+ 
+-	if (pmd_trans_unstable(pmd))
++	if (pmd_trans_unstable(pmdp))
+ 		return 0;
++#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
  
  	/*
-@@ -1306,7 +1299,7 @@ static ssize_t pagemap_read(struct file
- 		len = min(count, PM_ENTRY_BYTES * pm.pos);
- 		if (copy_to_user(buf, pm.buffer, len)) {
- 			ret = -EFAULT;
--			goto out_mm;
-+			goto out_free;
- 		}
- 		copied += len;
- 		buf += len;
-@@ -1316,24 +1309,38 @@ static ssize_t pagemap_read(struct file
- 	if (!ret || ret == PM_END_OF_BUFFER)
- 		ret = copied;
+ 	 * We can assume that @vma always points to a valid one and @end never
+ 	 * goes beyond vma->vm_end.
+ 	 */
+-	orig_pte = pte = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
++	orig_pte = pte = pte_offset_map_lock(walk->mm, pmdp, addr, &ptl);
+ 	for (; addr < end; pte++, addr += PAGE_SIZE) {
+ 		pagemap_entry_t pme;
  
--out_mm:
--	mmput(mm);
- out_free:
- 	kfree(pm.buffer);
--out_task:
--	put_task_struct(task);
-+out_mm:
-+	mmput(mm);
- out:
- 	return ret;
+@@ -1121,39 +1108,40 @@ static int pagemap_pte_range(pmd_t *pmd,
  }
  
- static int pagemap_open(struct inode *inode, struct file *file)
+ #ifdef CONFIG_HUGETLB_PAGE
+-static pagemap_entry_t huge_pte_to_pagemap_entry(struct pagemapread *pm,
+-					pte_t pte, int offset, u64 flags)
+-{
+-	u64 frame = 0;
+-
+-	if (pte_present(pte)) {
+-		frame = pte_pfn(pte) + offset;
+-		flags |= PM_PRESENT;
+-	}
+-
+-	return make_pme(frame, flags);
+-}
+-
+ /* This function walks within one hugetlb entry in the single call */
+-static int pagemap_hugetlb_range(pte_t *pte, unsigned long hmask,
++static int pagemap_hugetlb_range(pte_t *ptep, unsigned long hmask,
+ 				 unsigned long addr, unsigned long end,
+ 				 struct mm_walk *walk)
  {
-+	struct mm_struct *mm;
-+
- 	/* do not disclose physical addresses: attack vector */
- 	if (!capable(CAP_SYS_ADMIN))
- 		return -EPERM;
- 	pr_warn_once("Bits 55-60 of /proc/PID/pagemap entries are about "
- 			"to stop being page-shift some time soon. See the "
- 			"linux/Documentation/vm/pagemap.txt for details.\n");
-+
-+	mm = proc_mem_open(inode, PTRACE_MODE_READ);
-+	if (IS_ERR(mm))
-+		return PTR_ERR(mm);
-+	file->private_data = mm;
-+	return 0;
-+}
-+
-+static int pagemap_release(struct inode *inode, struct file *file)
-+{
-+	struct mm_struct *mm = file->private_data;
-+
-+	if (mm)
-+		mmdrop(mm);
- 	return 0;
- }
+ 	struct pagemapread *pm = walk->private;
+ 	struct vm_area_struct *vma = walk->vma;
++	u64 flags = 0, frame = 0;
+ 	int err = 0;
+-	u64 flags = 0;
+-	pagemap_entry_t pme;
++	pte_t pte;
  
-@@ -1341,6 +1348,7 @@ const struct file_operations proc_pagema
- 	.llseek		= mem_lseek, /* borrow this */
- 	.read		= pagemap_read,
- 	.open		= pagemap_open,
-+	.release	= pagemap_release,
- };
- #endif /* CONFIG_PROC_PAGE_MONITOR */
+ 	if (vma->vm_flags & VM_SOFTDIRTY)
+ 		flags |= PM_SOFT_DIRTY;
  
++	pte = huge_ptep_get(ptep);
++	if (pte_present(pte)) {
++		struct page *page = pte_page(pte);
++
++		if (!PageAnon(page))
++			flags |= PM_FILE;
++
++		flags |= PM_PRESENT;
++		frame = pte_pfn(pte) +
++			((addr & ~hmask) >> PAGE_SHIFT);
++	}
++
+ 	for (; addr != end; addr += PAGE_SIZE) {
+-		int offset = (addr & ~hmask) >> PAGE_SHIFT;
+-		pme = huge_pte_to_pagemap_entry(pm, *pte, offset, flags);
++		pagemap_entry_t pme = make_pme(frame, flags);
++
+ 		err = add_to_pagemap(addr, &pme, pm);
+ 		if (err)
+ 			return err;
++		if (flags & PM_PRESENT)
++			frame++;
+ 	}
+ 
+ 	cond_resched();
+@@ -1217,7 +1205,7 @@ static ssize_t pagemap_read(struct file
+ 	if (!pm.buffer)
+ 		goto out_mm;
+ 
+-	pagemap_walk.pmd_entry = pagemap_pte_range;
++	pagemap_walk.pmd_entry = pagemap_pmd_range;
+ 	pagemap_walk.pte_hole = pagemap_pte_hole;
+ #ifdef CONFIG_HUGETLB_PAGE
+ 	pagemap_walk.hugetlb_entry = pagemap_hugetlb_range;
 _
 
 Patches currently in -mm which might be from khlebnikov@yandex-team.ru are
