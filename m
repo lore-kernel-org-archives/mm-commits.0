@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-oom-do-not-panic-for-oom-kills-triggered-from-sysrq.patch
- added to -mm tree
-Date: Tue, 14 Jul 2015 15:54:24 -0700
-Message-ID: <55a59320.evYr6igE4VN8WHmi%akpm@linux-foundation.org>
+Subject: +
+ mm-slab_common-allow-null-cache-pointer-in-kmem_cache_destroy.patch added
+ to -mm tree
+Date: Tue, 14 Jul 2015 16:03:50 -0700
+Message-ID: <55a59556.ZpIGKLXEdcW7nOIx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44411 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44441 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752329AbbGNWyZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Jul 2015 18:54:25 -0400
+	with ESMTP id S1753408AbbGNXDv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Jul 2015 19:03:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, mhocko@suse.cz, sergey.senozhatsky.work@gmail.com, mm-commits@vger.kernel.org
+To: sergey.senozhatsky@gmail.com, joe@perches.com, julia.lawall@lip6.fr, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, oom: do not panic for oom kills triggered from sysrq
+     Subject: mm/slab_common: allow NULL cache pointer in kmem_cache_destroy()
 has been added to the -mm tree.  Its filename is
-     mm-oom-do-not-panic-for-oom-kills-triggered-from-sysrq.patch
+     mm-slab_common-allow-null-cache-pointer-in-kmem_cache_destroy.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom-do-not-panic-for-oom-kills-triggered-from-sysrq.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab_common-allow-null-cache-pointer-in-kmem_cache_destroy.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom-do-not-panic-for-oom-kills-triggered-from-sysrq.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab_common-allow-null-cache-pointer-in-kmem_cache_destroy.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,90 +40,63 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, oom: do not panic for oom kills triggered from sysrq
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: mm/slab_common: allow NULL cache pointer in kmem_cache_destroy()
 
-Sysrq+f is used to kill a process either for debug or when the VM is
-otherwise unresponsive.
+kmem_cache_destroy() does not tolerate a NULL kmem_cache pointer argument
+and performs a NULL-pointer dereference.  This requires additional
+attention and effort from developers/reviewers and forces all
+kmem_cache_destroy() callers (200+ as of 4.1) to do a NULL check
 
-It is not intended to trigger a panic when no process may be killed.
+	if (cache)
+		kmem_cache_destroy(cache);
 
-Avoid panicking the system for sysrq+f when no processes are killed.
+Or, otherwise, be invalid kmem_cache_destroy() users.
 
-Signed-off-by: David Rientjes <rientjes@google.com>
-Suggested-by: Michal Hocko <mhocko@suse.cz>
-Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Tweak kmem_cache_destroy() and NULL-check the pointer there.
+
+Proposed by Andrew Morton.
+
+Link: https://lkml.org/lkml/2015/6/8/583
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Julia Lawall <julia.lawall@lip6.fr>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysrq.txt |    3 ++-
- mm/oom_kill.c           |    7 +++++--
- 2 files changed, 7 insertions(+), 3 deletions(-)
+ mm/slab_common.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN Documentation/sysrq.txt~mm-oom-do-not-panic-for-oom-kills-triggered-from-sysrq Documentation/sysrq.txt
---- a/Documentation/sysrq.txt~mm-oom-do-not-panic-for-oom-kills-triggered-from-sysrq
-+++ a/Documentation/sysrq.txt
-@@ -75,7 +75,8 @@ On all -  write a character to /proc/sys
+diff -puN mm/slab_common.c~mm-slab_common-allow-null-cache-pointer-in-kmem_cache_destroy mm/slab_common.c
+--- a/mm/slab_common.c~mm-slab_common-allow-null-cache-pointer-in-kmem_cache_destroy
++++ a/mm/slab_common.c
+@@ -641,6 +641,9 @@ void kmem_cache_destroy(struct kmem_cach
+ 	bool need_rcu_barrier = false;
+ 	bool busy = false;
  
- 'e'     - Send a SIGTERM to all processes, except for init.
- 
--'f'	- Will call oom_kill to kill a memory hog process.
-+'f'	- Will call the oom killer to kill a memory hog process, but do not
-+	  panic if nothing can be killed.
- 
- 'g'	- Used by kgdb (kernel debugger)
- 
-diff -puN mm/oom_kill.c~mm-oom-do-not-panic-for-oom-kills-triggered-from-sysrq mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom-do-not-panic-for-oom-kills-triggered-from-sysrq
-+++ a/mm/oom_kill.c
-@@ -607,6 +607,9 @@ void check_panic_on_oom(struct oom_contr
- 		if (constraint != CONSTRAINT_NONE)
- 			return;
- 	}
-+	/* Do not panic for oom kills triggered by sysrq */
-+	if (oc->order == -1)
++	if (unlikely(!s))
 +		return;
- 	dump_header(oc, NULL, memcg);
- 	panic("Out of memory: %s panic_on_oom is enabled\n",
- 		sysctl_panic_on_oom == 2 ? "compulsory" : "system-wide");
-@@ -686,11 +689,11 @@ bool out_of_memory(struct oom_control *o
++
+ 	BUG_ON(!is_root_cache(s));
  
- 	p = select_bad_process(oc, &points, totalpages);
- 	/* Found nothing?!?! Either we hang forever, or we panic. */
--	if (!p) {
-+	if (!p && oc->order != -1) {
- 		dump_header(oc, NULL, NULL);
- 		panic("Out of memory and no killable processes...\n");
- 	}
--	if (p != (void *)-1UL) {
-+	if (p && p != (void *)-1UL) {
- 		oom_kill_process(oc, p, points, totalpages, NULL,
- 				 "Out of memory");
- 		killed = 1;
+ 	get_online_cpus();
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
 
-slub-fix-spelling-succedd-to-succeed.patch
-slab-infrastructure-for-bulk-object-allocation-and-freeing.patch
-slub-bulk-alloc-extract-objects-from-the-per-cpu-slab.patch
-slub-improve-bulk-alloc-strategy.patch
-slub-initial-bulk-free-implementation.patch
-slub-add-support-for-kmem_cache_debug-in-bulk-calls.patch
-mm-slub-move-slab-initialization-into-irq-enabled-region.patch
-mm-slub-fix-slab-double-free-in-case-of-duplicate-sysfs-filename.patch
-mm-memblock-warn_on-when-nid-differs-from-overlap-region.patch
-hugetlb-make-the-function-vma_shareable-bool.patch
-mremap-dont-leak-new_vma-if-f_op-mremap-fails.patch
-mm-move-mremap-from-file_operations-to-vm_operations_struct.patch
-mremap-dont-do-mm_populatenew_addr-on-failure.patch
-mremap-dont-do-uneccesary-checks-if-new_len-==-old_len.patch
-mremap-simplify-the-overlap-check-in-mremap_to.patch
-mm-improve-__gfp_noretry-comment-based-on-implementation.patch
-mm-improve-__gfp_noretry-comment-based-on-implementation-fix.patch
-mm-oom-organize-oom-context-into-struct.patch
-mm-oom-pass-an-oom-order-of-1-when-triggered-by-sysrq.patch
-mm-oom-do-not-panic-for-oom-kills-triggered-from-sysrq.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-mm-utilc-add-kstrimdup.patch
+mm-slab_common-allow-null-cache-pointer-in-kmem_cache_destroy.patch
+mm-mempool-allow-null-pool-pointer-in-mempool_destroy.patch
+mm-dmapool-allow-null-pool-pointer-in-dma_pool_destroy.patch
+mm-zpool-allow-null-zpool-pointer-in-zpool_destroy_pool.patch
+mm-zsmalloc-allow-null-pool-pointer-in-zs_destroy_pool.patch
+zsmalloc-drop-unused-variable-nr_to_migrate.patch
+zsmalloc-always-keep-per-class-stats.patch
+zsmalloc-introduce-zs_can_compact-function.patch
+zsmalloc-cosmetic-compaction-code-adjustments.patch
+zsmalloc-zram-introduce-zs_pool_stats-api.patch
+zsmalloc-account-the-number-of-compacted-pages.patch
+zsmalloc-use-shrinker-to-trigger-auto-compaction.patch
+zsmalloc-partial-page-ordering-within-a-fullness_list.patch
+zsmalloc-consider-zs_almost_full-as-migrate-source.patch
 
