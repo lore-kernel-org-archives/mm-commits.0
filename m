@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-show-proportional-swap-share-of-the-mapping-fix.patch added
- to -mm tree
-Date: Tue, 14 Jul 2015 14:07:33 -0700
-Message-ID: <55a57a15.D+G4buh/Kya/vb6c%akpm@linux-foundation.org>
+Subject: + fs-optimize-inotify-fsnotify-code-for-unwatched-files.patch
+ added to -mm tree
+Date: Tue, 14 Jul 2015 14:09:36 -0700
+Message-ID: <55a57a90.3azagjlOXDSPZsZE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41345 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41623 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753065AbbGNVHe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Jul 2015 17:07:34 -0400
+	with ESMTP id S1753161AbbGNVJh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Jul 2015 17:09:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bongkyu.kim@lge.com, corbet@lwn.net, hughd@google.com, minchan@kernel.org, sergey.senozhatsky.work@gmail.com, mm-commits@vger.kernel.org
+To: dave.hansen@linux.intel.com, ak@linux.intel.com, eparis@redhat.com, jack@suse.com, john@johnmccutchan.com, rlove@rlove.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-show-proportional-swap-share-of-the-mapping-fix
+     Subject: fs/notify: optimize inotify/fsnotify code for unwatched files
 has been added to the -mm tree.  Its filename is
-     mm-show-proportional-swap-share-of-the-mapping-fix.patch
+     fs-optimize-inotify-fsnotify-code-for-unwatched-files.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-show-proportional-swap-share-of-the-mapping-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-optimize-inotify-fsnotify-code-for-unwatched-files.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-show-proportional-swap-share-of-the-mapping-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-optimize-inotify-fsnotify-code-for-unwatched-files.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,69 +39,65 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-show-proportional-swap-share-of-the-mapping-fix
+From: Dave Hansen <dave.hansen@linux.intel.com>
+Subject: fs/notify: optimize inotify/fsnotify code for unwatched files
 
-simplify kunmap_atomic() call
+I have a _tiny_ microbenchmark that sits in a loop and writes single bytes
+to a file.  Writing one byte to a tmpfs file is around 2x slower than
+reading one byte from a file, which is a _bit_ more than I expecte.  This
+is a dumb benchmark, but I think it's hard to deny that write() is a hot
+path and we should avoid unnecessary overhead there.
 
-Cc: Bongkyu Kim <bongkyu.kim@lge.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+I did a 'perf record' of 30-second samples of read and write.  The top
+item in a diffprofile is srcu_read_lock() from fsnotify().  There are
+active inotify fd's from systemd, but nothing is actually listening to the
+file or its part of the filesystem.
+
+I *think* we can avoid taking the srcu_read_lock() for the common case
+where there are no actual marks on the file.  This means that there will
+both be nothing to notify for *and* implies that there is no need for
+clearing the ignore mask.
+
+This patch gave a 13.1% speedup in writes/second on my test, which is an
+improvement from the 10.8% that I saw with the last version.
+
+Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
+Reviewed-by: Jan Kara <jack@suse.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Eric Paris <eparis@redhat.com>
+Cc: John McCutchan <john@johnmccutchan.com>
+Cc: Robert Love <rlove@rlove.org>
+Cc: Andi Kleen <ak@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/notify/fsnotify.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN mm/swapfile.c~mm-show-proportional-swap-share-of-the-mapping-fix mm/swapfile.c
---- a/mm/swapfile.c~mm-show-proportional-swap-share-of-the-mapping-fix
-+++ a/mm/swapfile.c
-@@ -904,8 +904,8 @@ int swp_swapcount(swp_entry_t entry)
+diff -puN fs/notify/fsnotify.c~fs-optimize-inotify-fsnotify-code-for-unwatched-files fs/notify/fsnotify.c
+--- a/fs/notify/fsnotify.c~fs-optimize-inotify-fsnotify-code-for-unwatched-files
++++ a/fs/notify/fsnotify.c
+@@ -205,6 +205,16 @@ int fsnotify(struct inode *to_tell, __u3
+ 		mnt = NULL;
  
- 	do {
- 		page = list_entry(page->lru.next, struct page, lru);
--		map = kmap_atomic(page) + offset;
--		tmp_count = *map;
-+		map = kmap_atomic(page);
-+		tmp_count = map[offset];
- 		kunmap_atomic(map);
- 
- 		count += (tmp_count & ~COUNT_CONTINUED) * n;
+ 	/*
++	 * Optimization: srcu_read_lock() has a memory barrier which can
++	 * be expensive.  It protects walking the *_fsnotify_marks lists.
++	 * However, if we do not walk the lists, we do not have to do
++	 * SRCU because we have no references to any objects and do not
++	 * need SRCU to keep them "alive".
++	 */
++	if (hlist_empty(&to_tell->i_fsnotify_marks) &&
++	    (!mnt || hlist_empty(&mnt->mnt_fsnotify_marks)))
++		return 0;
++	/*
+ 	 * if this is a modify event we may need to clear the ignored masks
+ 	 * otherwise return if neither the inode nor the vfsmount care about
+ 	 * this type of event.
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dave.hansen@linux.intel.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-openrisc-fix-config_uid16-setting.patch
-kernel-kthreadc-kthread_create_on_node-clarify-documentation.patch
-scripts-spellingtxt-adding-misspelled-word-for-check-fix.patch
-mm.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
-userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
-genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-fix.patch
-mm-page-refine-the-calculation-of-highest-possible-node-id.patch
-pagemap-add-mmap-exclusive-bit-for-marking-pages-mapped-only-here-fix.patch
-mm-show-proportional-swap-share-of-the-mapping-fix.patch
-include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
-linux-next.patch
-linux-next-rejects.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-net-netfilter-ipset-work-around-gcc-444-initializer-bug.patch
+fs-optimize-inotify-fsnotify-code-for-unwatched-files.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
 
