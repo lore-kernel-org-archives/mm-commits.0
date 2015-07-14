@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + proc-fixup-empty-argv-case-for-proc-pid-cmdline.patch added to
- -mm tree
-Date: Tue, 14 Jul 2015 15:40:02 -0700
-Message-ID: <55a58fc2.ZgGKupFlN/cFXAtS%akpm@linux-foundation.org>
+Subject: + mm-zbud-constify-the-zbud_ops.patch added to -mm tree
+Date: Tue, 14 Jul 2015 15:42:11 -0700
+Message-ID: <55a59043.5F79MShqQzSIrLq8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43625 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43639 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751976AbbGNWkC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Jul 2015 18:40:02 -0400
+	with ESMTP id S1752294AbbGNWmM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Jul 2015 18:42:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, mm-commits@vger.kernel.org
+To: k.kozlowski@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: /proc/$PID/cmdline: fixup empty ARGV case
+     Subject: mm: zbud: constify the zbud_ops
 has been added to the -mm tree.  Its filename is
-     proc-fixup-empty-argv-case-for-proc-pid-cmdline.patch
+     mm-zbud-constify-the-zbud_ops.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/proc-fixup-empty-argv-case-for-proc-pid-cmdline.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-zbud-constify-the-zbud_ops.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/proc-fixup-empty-argv-case-for-proc-pid-cmdline.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zbud-constify-the-zbud_ops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,61 +38,67 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: /proc/$PID/cmdline: fixup empty ARGV case
+From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Subject: mm: zbud: constify the zbud_ops
 
-/proc/*/cmdline code checks if it should look at ENVP area by checking
-last byte of ARGV area:
+The structure zbud_ops is not modified so make the pointer to it a
+pointer to const.
 
-	rv = access_remote_vm(mm, arg_end - 1, &c, 1, 0);
-	if (rv <= 0)
-		goto out_free_page;
-
-If ARGV is somehow made empty (by doing execve(..., NULL, ...) or
-manually setting ->arg_start and ->arg_end to equal values), the decision
-will be based on byte which doesn't even belong to ARGV/ENVP.
-
-So, quickly check if ARGV area is empty and report 0 to match previous
-behaviour.
-
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ include/linux/zbud.h |    2 +-
+ mm/zbud.c            |    6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/proc/base.c~proc-fixup-empty-argv-case-for-proc-pid-cmdline fs/proc/base.c
---- a/fs/proc/base.c~proc-fixup-empty-argv-case-for-proc-pid-cmdline
-+++ a/fs/proc/base.c
-@@ -243,6 +243,11 @@ static ssize_t proc_pid_cmdline_read(str
- 	len1 = arg_end - arg_start;
- 	len2 = env_end - env_start;
+diff -puN include/linux/zbud.h~mm-zbud-constify-the-zbud_ops include/linux/zbud.h
+--- a/include/linux/zbud.h~mm-zbud-constify-the-zbud_ops
++++ a/include/linux/zbud.h
+@@ -9,7 +9,7 @@ struct zbud_ops {
+ 	int (*evict)(struct zbud_pool *pool, unsigned long handle);
+ };
  
-+	/* Empty ARGV. */
-+	if (len1 == 0) {
-+		rv = 0;
-+		goto out_free_page;
-+	}
- 	/*
- 	 * Inherently racy -- command line shares address space
- 	 * with code and data.
+-struct zbud_pool *zbud_create_pool(gfp_t gfp, struct zbud_ops *ops);
++struct zbud_pool *zbud_create_pool(gfp_t gfp, const struct zbud_ops *ops);
+ void zbud_destroy_pool(struct zbud_pool *pool);
+ int zbud_alloc(struct zbud_pool *pool, size_t size, gfp_t gfp,
+ 	unsigned long *handle);
+diff -puN mm/zbud.c~mm-zbud-constify-the-zbud_ops mm/zbud.c
+--- a/mm/zbud.c~mm-zbud-constify-the-zbud_ops
++++ a/mm/zbud.c
+@@ -96,7 +96,7 @@ struct zbud_pool {
+ 	struct list_head buddied;
+ 	struct list_head lru;
+ 	u64 pages_nr;
+-	struct zbud_ops *ops;
++	const struct zbud_ops *ops;
+ #ifdef CONFIG_ZPOOL
+ 	struct zpool *zpool;
+ 	const struct zpool_ops *zpool_ops;
+@@ -133,7 +133,7 @@ static int zbud_zpool_evict(struct zbud_
+ 		return -ENOENT;
+ }
+ 
+-static struct zbud_ops zbud_zpool_ops = {
++static const struct zbud_ops zbud_zpool_ops = {
+ 	.evict =	zbud_zpool_evict
+ };
+ 
+@@ -302,7 +302,7 @@ static int num_free_chunks(struct zbud_h
+  * Return: pointer to the new zbud pool or NULL if the metadata allocation
+  * failed.
+  */
+-struct zbud_pool *zbud_create_pool(gfp_t gfp, struct zbud_ops *ops)
++struct zbud_pool *zbud_create_pool(gfp_t gfp, const struct zbud_ops *ops)
+ {
+ 	struct zbud_pool *pool;
+ 	int i;
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from k.kozlowski@samsung.com are
 
-proc-fixup-empty-argv-case-for-proc-pid-cmdline.patch
-kstrto-accept-0-for-signed-conversion.patch
-add-parse_integer-replacement-for-simple_strto.patch
-parse_integer-add-runtime-testsuite.patch
-parse-integer-rewrite-kstrto.patch
-parse_integer-convert-scanf.patch
-scanf-fix-type-range-overflow.patch
-parse_integer-convert-lib.patch
-parse_integer-convert-mm.patch
-parse_integer-convert-fs.patch
-parse_integer-convert-fs-cachefiles.patch
-parse_integer-convert-ext2-ext3-ext4.patch
-parse_integer-convert-fs-ocfs2.patch
-parse_integer-add-checkpatchpl-notice.patch
+mm-zpool-constify-the-zpool_ops.patch
+mm-zbud-constify-the-zbud_ops.patch
+linux-next.patch
 
