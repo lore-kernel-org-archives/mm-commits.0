@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-allow-longer-declaration-macros.patch added to -mm
- tree
-Date: Tue, 14 Jul 2015 15:31:56 -0700
-Message-ID: <55a58ddc.MZB2U0y4ngi7qoMB%akpm@linux-foundation.org>
+Subject: +
+ mm-make-the-function-set_recommended_min_free_kbytes-have-a-return-type-of-void.patch added to -mm tree
+Date: Tue, 14 Jul 2015 15:34:04 -0700
+Message-ID: <55a58e5c.d0h3sBlC5XXykjJM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43409 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43415 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751360AbbGNWb4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Jul 2015 18:31:56 -0400
+	with ESMTP id S1751694AbbGNWeF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Jul 2015 18:34:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: xerofoify@gmail.com, mhocko@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: Allow longer declaration macros
+     Subject: mm: make set_recommended_min_free_kbytes() return void
 has been added to the -mm tree.  Its filename is
-     checkpatch-allow-longer-declaration-macros.patch
+     mm-make-the-function-set_recommended_min_free_kbytes-have-a-return-type-of-void.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-allow-longer-declaration-macros.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-make-the-function-set_recommended_min_free_kbytes-have-a-return-type-of-void.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-allow-longer-declaration-macros.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-make-the-function-set_recommended_min_free_kbytes-have-a-return-type-of-void.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,59 +39,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: Allow longer declaration macros
+From: Nicholas Krause <xerofoify@gmail.com>
+Subject: mm: make set_recommended_min_free_kbytes() return void
 
-Some really long declaration macros exist.
+This makes set_recommended_min_free_kbytes() have a return type of void as
+it cannot fail.
 
-For instance;
-  	DEFINE_DMA_BUF_EXPORT_INFO(exp_info);
-and
-	DECLARE_DM_KCOPYD_THROTTLE_WITH_MODULE_PARM(name, description)
-
-Increase the limit from 2 words to 6 after DECLARE/DEFINE uses.
-
-Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Nicholas Krause <xerofoify@gmail.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/huge_memory.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-allow-longer-declaration-macros scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-allow-longer-declaration-macros
-+++ a/scripts/checkpatch.pl
-@@ -584,7 +584,7 @@ our $LvalOrFunc	= qr{((?:[\&\*]\s*)?$Lva
- our $FuncArg = qr{$Typecast{0,1}($LvalOrFunc|$Constant|$String)};
+diff -puN mm/huge_memory.c~mm-make-the-function-set_recommended_min_free_kbytes-have-a-return-type-of-void mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-make-the-function-set_recommended_min_free_kbytes-have-a-return-type-of-void
++++ a/mm/huge_memory.c
+@@ -105,7 +105,7 @@ static struct khugepaged_scan khugepaged
+ };
  
- our $declaration_macros = qr{(?x:
--	(?:$Storage\s+)?(?:[A-Z_][A-Z0-9]*_){0,2}(?:DEFINE|DECLARE)(?:_[A-Z0-9]+){1,2}\s*\(|
-+	(?:$Storage\s+)?(?:[A-Z_][A-Z0-9]*_){0,2}(?:DEFINE|DECLARE)(?:_[A-Z0-9]+){1,6}\s*\(|
- 	(?:$Storage\s+)?LIST_HEAD\s*\(|
- 	(?:$Storage\s+)?${Type}\s+uninitialized_var\s*\(
- )};
+ 
+-static int set_recommended_min_free_kbytes(void)
++static void set_recommended_min_free_kbytes(void)
+ {
+ 	struct zone *zone;
+ 	int nr_zones = 0;
+@@ -140,7 +140,6 @@ static int set_recommended_min_free_kbyt
+ 		min_free_kbytes = recommended_min;
+ 	}
+ 	setup_per_zone_wmarks();
+-	return 0;
+ }
+ 
+ static int start_stop_khugepaged(void)
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from xerofoify@gmail.com are
 
-checkpatch-fix-long-line-messages-about-patch-context.patch
-hexdump-fix-for-non-aligned-buffers.patch
-lindent-handle-missing-indent-gracefully.patch
-ocfs2-neaten-do_error-ocfs2_error-and-ocfs2_abort.patch
-procfs-always-expose-proc-pid-map_files-and-make-it-readable.patch
-parse_integer-add-checkpatchpl-notice.patch
-mm-utilc-add-kstrimdup.patch
-checkpatch-warn-on-bare-sha-1-commit-ids-in-commit-logs.patch
-checkpatch-add-warning-on-bug-bug_on-use.patch
-checkpatch-improve-suspect_code_indent-test.patch
-checkpatch-allow-longer-declaration-macros.patch
-hfs-fix-b-tree-corruption-after-insertion-at-position-0.patch
-seq_file-provide-an-analogue-of-print_hex_dump.patch
-crypto-qat-use-seq_hex_dump-to-dump-buffers.patch
-parisc-use-seq_hex_dump-to-dump-buffers.patch
-zcrypt-use-seq_hex_dump-to-dump-buffers.patch
-kmemleak-use-seq_hex_dump-to-dump-buffers.patch
-wil6210-use-seq_hex_dump-to-dump-buffers.patch
+hugetlb-make-the-function-vma_shareable-bool.patch
+mm-change-function-return-from-int-to-bool-for-the-function-is_page_busy.patch
+memory-make-the-function-tlb_next_batch-bool-now.patch
+mm-make-the-function-madvise_behaviour_valid-bool.patch
+mm-make-the-function-vma_has_reserves-bool.patch
+mm-make-the-function-set_recommended_min_free_kbytes-have-a-return-type-of-void.patch
 linux-next.patch
-fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void.patch
 
