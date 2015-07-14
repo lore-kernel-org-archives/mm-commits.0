@@ -2,17 +2,17 @@ From: akpm@linux-foundation.org
 Subject: +
  checkpatch-add-some-foo_destroy-functions-to-needless_if-tests.patch added
  to -mm tree
-Date: Tue, 14 Jul 2015 16:04:47 -0700
-Message-ID: <55a5958f.Ex+na7TCMwA1+/DZ%akpm@linux-foundation.org>
+Date: Tue, 14 Jul 2015 16:05:03 -0700
+Message-ID: <55a5959f.Ze0JpNjOe9rwe/J9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44467 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44473 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751241AbbGNXEs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Jul 2015 19:04:48 -0400
+	with ESMTP id S1751241AbbGNXFE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 14 Jul 2015 19:05:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: joe@perches.com, julia.lawall@lip6.fr, rientjes@google.com, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
@@ -62,7 +62,7 @@ to:
 	<func>(foo);
 
 Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Tested-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Julia Lawall <julia.lawall@lip6.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
