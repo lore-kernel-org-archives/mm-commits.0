@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix.patch
- added to -mm tree
-Date: Wed, 15 Jul 2015 15:22:20 -0700
-Message-ID: <55a6dd1c.kvl+4qm27c0QrcAj%akpm@linux-foundation.org>
+Subject: + memcg-export-struct-mem_cgroup-fix-2.patch added to -mm tree
+Date: Wed, 15 Jul 2015 15:45:51 -0700
+Message-ID: <55a6e29f.eRAAm3ziunPX1Yd5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57862 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58521 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753824AbbGOWWV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Jul 2015 18:22:21 -0400
+	with ESMTP id S1753885AbbGOWpw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Jul 2015 18:45:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, calvinowens@fb.com, gorcunov@openvz.org, joe@perches.com, keescook@chromium.org, kirill@shutemov.name, luto@amacapital.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, mhocko@suse.cz, tj@kernel.org, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix
+     Subject: memcg-export-struct-mem_cgroup-fix-2
 has been added to the -mm tree.  Its filename is
-     procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix.patch
+     memcg-export-struct-mem_cgroup-fix-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-export-struct-mem_cgroup-fix-2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-export-struct-mem_cgroup-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,41 +39,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix
+Subject: memcg-export-struct-mem_cgroup-fix-2
 
-catch up with concurrent proc_pid_follow_link() changes
+export mem_cgroup_from_task() to modules
 
-Cc: Andy Lutomirski <luto@amacapital.net>
-Cc: Calvin Owens <calvinowens@fb.com>
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Joe Perches <joe@perches.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Kirill A. Shutemov <kirill@shutemov.name>
+ERROR: "mem_cgroup_from_task" [fs/ncpfs/ncpfs.ko] undefined!
+
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Vladimir Davydov <vdavydov@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/memcontrol.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/proc/base.c~procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix fs/proc/base.c
---- a/fs/proc/base.c~procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix
-+++ a/fs/proc/base.c
-@@ -1955,12 +1955,13 @@ struct map_files_info {
-  * symlinks may be used to bypass permissions on ancestor directories in the
-  * path to the file in question.
-  */
--static void *proc_map_files_follow_link(struct dentry *dentry, struct nameidata *nd)
-+static void *
-+proc_map_files_follow_link(struct dentry *dentry, struct nameidata *nd)
- {
- 	if (!capable(CAP_SYS_ADMIN))
- 		return ERR_PTR(-EPERM);
+diff -puN mm/memcontrol.c~memcg-export-struct-mem_cgroup-fix-2 mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-export-struct-mem_cgroup-fix-2
++++ a/mm/memcontrol.c
+@@ -789,6 +789,7 @@ struct mem_cgroup *mem_cgroup_from_task(
  
--	return proc_pid_follow_link(dentry, nd);
-+	return proc_pid_follow_link(dentry, NULL);
+ 	return mem_cgroup_from_css(task_css(p, memory_cgrp_id));
  }
++EXPORT_SYMBOL(mem_cgroup_from_task);
  
- /*
+ static struct mem_cgroup *get_mem_cgroup_from_mm(struct mm_struct *mm)
+ {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -96,6 +86,7 @@ pagemap-add-mmap-exclusive-bit-for-marking-pages-mapped-only-here-fix.patch
 mm-show-proportional-swap-share-of-the-mapping-fix.patch
 mm-improve-__gfp_noretry-comment-based-on-implementation-fix.patch
 memcg-export-struct-mem_cgroup-fix.patch
+memcg-export-struct-mem_cgroup-fix-2.patch
 include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
 mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
 x86-add-pmd_-for-thp-fix.patch
