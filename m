@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + fsnotify-fix-oops-in-fsnotify_clear_marks_by_group_flags.patch
- added to -mm tree
-Date: Wed, 15 Jul 2015 13:41:19 -0700
-Message-ID: <55a6c56f.qWwbyVhYakY5PoAP%akpm__2217.26448876343$1436992893$gmane$org@linux-foundation.org>
+Subject: + fsnotify-fix-check-in-inotify-fdinfo-printing.patch added to
+ -mm tree
+Date: Wed, 15 Jul 2015 13:41:56 -0700
+Message-ID: <55a6c594.w54shc36CBRoiWN4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55986 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55989 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753362AbbGOUlU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Jul 2015 16:41:20 -0400
+	with ESMTP id S1753362AbbGOUl4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Jul 2015 16:41:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, LinoSanfilippo@gmx.de, a.sangwan@samsung.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fsnotify: fix oops in fsnotify_clear_marks_by_group_flags()
+     Subject: fsnotify: fix check in inotify fdinfo printing
 has been added to the -mm tree.  Its filename is
-     fsnotify-fix-oops-in-fsnotify_clear_marks_by_group_flags.patch
+     fsnotify-fix-check-in-inotify-fdinfo-printing.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fsnotify-fix-oops-in-fsnotify_clear_marks_by_group_flags.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fsnotify-fix-check-in-inotify-fdinfo-printing.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fsnotify-fix-oops-in-fsnotify_clear_marks_by_group_flags.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fsnotify-fix-check-in-inotify-fdinfo-printing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,118 +40,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jan Kara <jack@suse.cz>
-Subject: fsnotify: fix oops in fsnotify_clear_marks_by_group_flags()
+Subject: fsnotify: fix check in inotify fdinfo printing
 
-fsnotify_clear_marks_by_group_flags() can race with
-fsnotify_destroy_marks() so when fsnotify_destroy_mark_locked() drops
-mark_mutex, a mark from the list iterated by
-fsnotify_clear_marks_by_group_flags() can be freed and we dereference free
-memory in the loop there.
+A check in inotify_fdinfo() checking whether mark is valid was always true
+due to a bug.  Luckily we can never get to invalidated marks since we hold
+mark_mutex and invalidated marks get removed from the group list when they
+are invalidated under that mutex.
 
-Fix the problem by keeping mark_mutex held in
-fsnotify_destroy_mark_locked().  The reason why we drop that mutex is that
-we need to call a ->freeing_mark() callback which may acquire mark_mutex
-again.  To avoid this and similar lock inversion issues, we move the call
-to ->freeing_mark() callback to the kthread destroying the mark.
+Anyway fix the check to make code more future proof.
 
 Signed-off-by: Jan Kara <jack@suse.cz>
-Reported-by: Ashish Sangwan <a.sangwan@samsung.com>
-Suggested-by: Lino Sanfilippo <LinoSanfilippo@gmx.de>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/mark.c |   34 ++++++++++++++--------------------
- 1 file changed, 14 insertions(+), 20 deletions(-)
+ fs/notify/fdinfo.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/notify/mark.c~fsnotify-fix-oops-in-fsnotify_clear_marks_by_group_flags fs/notify/mark.c
---- a/fs/notify/mark.c~fsnotify-fix-oops-in-fsnotify_clear_marks_by_group_flags
-+++ a/fs/notify/mark.c
-@@ -152,31 +152,15 @@ void fsnotify_destroy_mark_locked(struct
- 		BUG();
+diff -puN fs/notify/fdinfo.c~fsnotify-fix-check-in-inotify-fdinfo-printing fs/notify/fdinfo.c
+--- a/fs/notify/fdinfo.c~fsnotify-fix-check-in-inotify-fdinfo-printing
++++ a/fs/notify/fdinfo.c
+@@ -76,7 +76,8 @@ static void inotify_fdinfo(struct seq_fi
+ 	struct inotify_inode_mark *inode_mark;
+ 	struct inode *inode;
  
- 	list_del_init(&mark->g_list);
--
- 	spin_unlock(&mark->lock);
+-	if (!(mark->flags & (FSNOTIFY_MARK_FLAG_ALIVE | FSNOTIFY_MARK_FLAG_INODE)))
++	if (!(mark->flags & FSNOTIFY_MARK_FLAG_ALIVE) ||
++	    !(mark->flags & FSNOTIFY_MARK_FLAG_INODE))
+ 		return;
  
- 	if (inode && (mark->flags & FSNOTIFY_MARK_FLAG_OBJECT_PINNED))
- 		iput(inode);
--	/* release lock temporarily */
--	mutex_unlock(&group->mark_mutex);
- 
- 	spin_lock(&destroy_lock);
- 	list_add(&mark->g_list, &destroy_list);
- 	spin_unlock(&destroy_lock);
- 	wake_up(&destroy_waitq);
--	/*
--	 * We don't necessarily have a ref on mark from caller so the above destroy
--	 * may have actually freed it, unless this group provides a 'freeing_mark'
--	 * function which must be holding a reference.
--	 */
--
--	/*
--	 * Some groups like to know that marks are being freed.  This is a
--	 * callback to the group function to let it know that this mark
--	 * is being freed.
--	 */
--	if (group->ops->freeing_mark)
--		group->ops->freeing_mark(mark, group);
- 
- 	/*
- 	 * __fsnotify_update_child_dentry_flags(inode);
-@@ -191,8 +175,6 @@ void fsnotify_destroy_mark_locked(struct
- 	 */
- 
- 	atomic_dec(&group->num_marks);
--
--	mutex_lock_nested(&group->mark_mutex, SINGLE_DEPTH_NESTING);
- }
- 
- void fsnotify_destroy_mark(struct fsnotify_mark *mark,
-@@ -205,7 +187,10 @@ void fsnotify_destroy_mark(struct fsnoti
- 
- /*
-  * Destroy all marks in the given list. The marks must be already detached from
-- * the original inode / vfsmount.
-+ * the original inode / vfsmount. Note that we can race with
-+ * fsnotify_clear_marks_by_group_flags(). However we hold a reference to each
-+ * mark so they won't get freed from under us and nobody else touches our
-+ * free_list list_head.
-  */
- void fsnotify_destroy_marks(struct list_head *to_free)
- {
-@@ -406,7 +391,7 @@ struct fsnotify_mark *fsnotify_find_mark
- }
- 
- /*
-- * clear any marks in a group in which mark->flags & flags is true
-+ * Clear any marks in a group in which mark->flags & flags is true.
-  */
- void fsnotify_clear_marks_by_group_flags(struct fsnotify_group *group,
- 					 unsigned int flags)
-@@ -460,6 +445,7 @@ static int fsnotify_mark_destroy(void *i
- {
- 	struct fsnotify_mark *mark, *next;
- 	struct list_head private_destroy_list;
-+	struct fsnotify_group *group;
- 
- 	for (;;) {
- 		spin_lock(&destroy_lock);
-@@ -471,6 +457,14 @@ static int fsnotify_mark_destroy(void *i
- 
- 		list_for_each_entry_safe(mark, next, &private_destroy_list, g_list) {
- 			list_del_init(&mark->g_list);
-+			group = mark->group;
-+			/*
-+			 * Some groups like to know that marks are being freed.
-+			 * This is a callback to the group function to let it
-+			 * know that this mark is being freed.
-+			 */
-+			if (group && group->ops->freeing_mark)
-+				group->ops->freeing_mark(mark, group);
- 			fsnotify_put_mark(mark);
- 		}
- 
+ 	inode_mark = container_of(mark, struct inotify_inode_mark, fsn_mark);
 _
 
 Patches currently in -mm which might be from jack@suse.cz are
