@@ -1,93 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: + lib-decompress-set-the-compressor-name-to-null-on-error.patch
- added to -mm tree
-Date: Wed, 15 Jul 2015 14:19:05 -0700
-Message-ID: <55a6ce49.2i2gtxMyAfyT2Et/%akpm@linux-foundation.org>
+Subject: [withdrawn]
+ mm-zsmalloc-allow-null-pool-pointer-in-zs_destroy_pool.patch removed from
+ -mm tree
+Date: Wed, 15 Jul 2015 14:31:20 -0700
+Message-ID: <55a6d128.BeV5IqojvI6PJAJx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56514 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56822 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753332AbbGOVTF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Jul 2015 17:19:05 -0400
+	with ESMTP id S1753480AbbGOVbU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Jul 2015 17:31:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.vnet.ibm.com, hpa@zytor.com, mm-commits@vger.kernel.org
+To: sergey.senozhatsky@gmail.com, joe@perches.com, julia.lawall@lip6.fr, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/decompress: set the compressor name to NULL on error
-has been added to the -mm tree.  Its filename is
-     lib-decompress-set-the-compressor-name-to-null-on-error.patch
+     Subject: mm/zsmalloc: allow NULL `pool' pointer in zs_destroy_pool()
+has been removed from the -mm tree.  Its filename was
+     mm-zsmalloc-allow-null-pool-pointer-in-zs_destroy_pool.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-decompress-set-the-compressor-name-to-null-on-error.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-decompress-set-the-compressor-name-to-null-on-error.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: lib/decompress: set the compressor name to NULL on error
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: mm/zsmalloc: allow NULL `pool' pointer in zs_destroy_pool()
 
-Without this we end up using the previous name of the compressor in the
-loop in unpack_rootfs.  For example we get errors like "compression method
-gzip not configured" even when we have CONFIG_DECOMPRESS_GZIP enabled.
+zpool_destroy_pool() does not tolerate a NULL zs_pool pointer argument and
+performs a NULL-pointer dereference.  Although there are quite a few
+zs_destroy_pool() users, still update it to be coherent with the
+corresponding destroy() functions of the remainig pool-allocators (slab,
+mempool, etc.), which now allow NULL pool-pointers.
 
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+For consistency, tweak zpool_destroy_pool() and NULL-check the
+pointer there.
+
+Proposed by Andrew Morton.
+
+Link: https://lkml.org/lkml/2015/6/8/583
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Julia Lawall <julia.lawall@lip6.fr>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/decompress.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/zsmalloc.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN lib/decompress.c~lib-decompress-set-the-compressor-name-to-null-on-error lib/decompress.c
---- a/lib/decompress.c~lib-decompress-set-the-compressor-name-to-null-on-error
-+++ a/lib/decompress.c
-@@ -59,8 +59,11 @@ decompress_fn __init decompress_method(c
+diff -puN mm/zsmalloc.c~mm-zsmalloc-allow-null-pool-pointer-in-zs_destroy_pool mm/zsmalloc.c
+--- a/mm/zsmalloc.c~mm-zsmalloc-allow-null-pool-pointer-in-zs_destroy_pool
++++ a/mm/zsmalloc.c
+@@ -1869,6 +1869,9 @@ void zs_destroy_pool(struct zs_pool *poo
  {
- 	const struct compress_format *cf;
+ 	int i;
  
--	if (len < 2)
-+	if (len < 2) {
-+		if (name)
-+			*name = NULL;
- 		return NULL;	/* Need at least this much... */
-+	}
++	if (unlikely(!pool))
++		return;
++
+ 	zs_pool_stat_destroy(pool);
  
- 	pr_debug("Compressed data magic: %#.2x %#.2x\n", inbuf[0], inbuf[1]);
- 
+ 	for (i = 0; i < zs_size_classes; i++) {
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
 
-lib-decompress-set-the-compressor-name-to-null-on-error.patch
-page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-mm-sanitize-page-mapping-for-tail-pages.patch
+mm-slab_common-allow-null-cache-pointer-in-kmem_cache_destroy.patch
+mm-mempool-allow-null-pool-pointer-in-mempool_destroy.patch
+mm-dmapool-allow-null-pool-pointer-in-dma_pool_destroy.patch
+zsmalloc-drop-unused-variable-nr_to_migrate.patch
+zsmalloc-always-keep-per-class-stats.patch
+zsmalloc-introduce-zs_can_compact-function.patch
+zsmalloc-cosmetic-compaction-code-adjustments.patch
+zsmalloc-zram-introduce-zs_pool_stats-api.patch
+zsmalloc-account-the-number-of-compacted-pages.patch
+zsmalloc-use-shrinker-to-trigger-auto-compaction.patch
+zsmalloc-partial-page-ordering-within-a-fullness_list.patch
+zsmalloc-consider-zs_almost_full-as-migrate-source.patch
+checkpatch-add-some-foo_destroy-functions-to-needless_if-tests.patch
 
