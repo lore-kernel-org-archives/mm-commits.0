@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix.patch added to -mm tree
-Date: Wed, 15 Jul 2015 14:44:33 -0700
-Message-ID: <55a6d441.WLPNS3hp5/7KwdKb%akpm@linux-foundation.org>
+Subject: + thp-prepare-for-dax-huge-pages-fix.patch added to -mm tree
+Date: Wed, 15 Jul 2015 14:56:32 -0700
+Message-ID: <55a6d710.tA1+iBuyPfU+dXZY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57025 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57256 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752232AbbGOVoe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Jul 2015 17:44:34 -0400
+	with ESMTP id S1751857AbbGOV4d (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Jul 2015 17:56:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, joe@perches.com, rostedt@goodmis.org, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix
+     Subject: thp-prepare-for-dax-huge-pages-fix
 has been added to the -mm tree.  Its filename is
-     fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix.patch
+     thp-prepare-for-dax-huge-pages-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/thp-prepare-for-dax-huge-pages-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/thp-prepare-for-dax-huge-pages-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,30 +39,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix
+Subject: thp-prepare-for-dax-huge-pages-fix
 
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Joe Perches <joe@perches.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+fix build
+
+mm/huge_memory.c: In function 'zap_huge_pmd':
+mm/huge_memory.c:1432: error: implicit declaration of function 'vma_is_dax'
+
+Cc: Matthew Wilcox <willy@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nsfs.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/huge_memory.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/nsfs.c~fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix fs/nsfs.c
---- a/fs/nsfs.c~fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix
-+++ a/fs/nsfs.c
-@@ -142,7 +142,8 @@ static int nsfs_show_path(struct seq_fil
- 	struct inode *inode = d_inode(dentry);
- 	const struct proc_ns_operations *ns_ops = dentry->d_fsdata;
- 
--	return seq_printf(seq, "%s:[%lu]", ns_ops->name, inode->i_ino);
-+	seq_printf(seq, "%s:[%lu]", ns_ops->name, inode->i_ino);
-+	return 0;
- }
- 
- static const struct super_operations nsfs_ops = {
+diff -puN mm/huge_memory.c~thp-prepare-for-dax-huge-pages-fix mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-prepare-for-dax-huge-pages-fix
++++ a/mm/huge_memory.c
+@@ -16,6 +16,7 @@
+ #include <linux/swap.h>
+ #include <linux/shrinker.h>
+ #include <linux/mm_inline.h>
++#include <linux/dax.h>
+ #include <linux/kthread.h>
+ #include <linux/khugepaged.h>
+ #include <linux/freezer.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -77,6 +77,7 @@ userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
 userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
 userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
 genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-fix.patch
+thp-prepare-for-dax-huge-pages-fix.patch
 mm-page-refine-the-calculation-of-highest-possible-node-id.patch
 pagemap-add-mmap-exclusive-bit-for-marking-pages-mapped-only-here-fix.patch
 mm-show-proportional-swap-share-of-the-mapping-fix.patch
