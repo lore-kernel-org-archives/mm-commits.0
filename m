@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + thp-prepare-for-dax-huge-pages-fix.patch added to -mm tree
-Date: Wed, 15 Jul 2015 14:56:32 -0700
-Message-ID: <55a6d710.tA1+iBuyPfU+dXZY%akpm@linux-foundation.org>
+Subject: + dax-revert-userfaultfd-change.patch added to -mm tree
+Date: Wed, 15 Jul 2015 15:11:34 -0700
+Message-ID: <55a6da96.4vhiTy9JxmolVO9z%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57256 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57561 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751857AbbGOV4d (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Jul 2015 17:56:33 -0400
+	with ESMTP id S1752747AbbGOWLf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Jul 2015 18:11:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, willy@linux.intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aarcange@redhat.com, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp-prepare-for-dax-huge-pages-fix
+     Subject: dax: revert userfaultfd change
 has been added to the -mm tree.  Its filename is
-     thp-prepare-for-dax-huge-pages-fix.patch
+     dax-revert-userfaultfd-change.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/thp-prepare-for-dax-huge-pages-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/dax-revert-userfaultfd-change.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/thp-prepare-for-dax-huge-pages-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/dax-revert-userfaultfd-change.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,31 +39,44 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: thp-prepare-for-dax-huge-pages-fix
+Subject: dax: revert userfaultfd change
 
-fix build
+Undo the chagne whcih "userfaultfd: call handle_userfault() for
+userfaultfd_missing() faults" made to set_huge_zero_page().  DAX will need
+that return value.
 
-mm/huge_memory.c: In function 'zap_huge_pmd':
-mm/huge_memory.c:1432: error: implicit declaration of function 'vma_is_dax'
-
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Matthew Wilcox <willy@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/huge_memory.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN mm/huge_memory.c~thp-prepare-for-dax-huge-pages-fix mm/huge_memory.c
---- a/mm/huge_memory.c~thp-prepare-for-dax-huge-pages-fix
+diff -puN mm/huge_memory.c~dax-revert-userfaultfd-change mm/huge_memory.c
+--- a/mm/huge_memory.c~dax-revert-userfaultfd-change
 +++ a/mm/huge_memory.c
-@@ -16,6 +16,7 @@
- #include <linux/swap.h>
- #include <linux/shrinker.h>
- #include <linux/mm_inline.h>
-+#include <linux/dax.h>
- #include <linux/kthread.h>
- #include <linux/khugepaged.h>
- #include <linux/freezer.h>
+@@ -794,16 +794,19 @@ static inline gfp_t alloc_hugepage_gfpma
+ }
+ 
+ /* Caller must hold page table lock. */
+-static void set_huge_zero_page(pgtable_t pgtable, struct mm_struct *mm,
++static bool set_huge_zero_page(pgtable_t pgtable, struct mm_struct *mm,
+ 		struct vm_area_struct *vma, unsigned long haddr, pmd_t *pmd,
+ 		struct page *zero_page)
+ {
+ 	pmd_t entry;
++	if (!pmd_none(*pmd))
++		return false;
+ 	entry = mk_pmd(zero_page, vma->vm_page_prot);
+ 	entry = pmd_mkhuge(entry);
+ 	pgtable_trans_huge_deposit(mm, pmd, pgtable);
+ 	set_pmd_at(mm, haddr, pmd, entry);
+ 	atomic_long_inc(&mm->nr_ptes);
++	return true;
+ }
+ 
+ int do_huge_pmd_anonymous_page(struct mm_struct *mm, struct vm_area_struct *vma,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -77,6 +90,7 @@ userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
 userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
 userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
 genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-fix.patch
+dax-revert-userfaultfd-change.patch
 thp-prepare-for-dax-huge-pages-fix.patch
 mm-page-refine-the-calculation-of-highest-possible-node-id.patch
 pagemap-add-mmap-exclusive-bit-for-marking-pages-mapped-only-here-fix.patch
