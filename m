@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + dax-revert-userfaultfd-change.patch added to -mm tree
-Date: Wed, 15 Jul 2015 15:11:34 -0700
-Message-ID: <55a6da96.4vhiTy9JxmolVO9z%akpm@linux-foundation.org>
+Subject: +
+ procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix.patch
+ added to -mm tree
+Date: Wed, 15 Jul 2015 15:22:20 -0700
+Message-ID: <55a6dd1c.kvl+4qm27c0QrcAj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57561 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57862 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752747AbbGOWLf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Jul 2015 18:11:35 -0400
+	with ESMTP id S1753824AbbGOWWV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Jul 2015 18:22:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aarcange@redhat.com, willy@linux.intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, calvinowens@fb.com, gorcunov@openvz.org, joe@perches.com, keescook@chromium.org, kirill@shutemov.name, luto@amacapital.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dax: revert userfaultfd change
+     Subject: procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix
 has been added to the -mm tree.  Its filename is
-     dax-revert-userfaultfd-change.patch
+     procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/dax-revert-userfaultfd-change.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/dax-revert-userfaultfd-change.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,44 +41,41 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: dax: revert userfaultfd change
+Subject: procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix
 
-Undo the chagne whcih "userfaultfd: call handle_userfault() for
-userfaultfd_missing() faults" made to set_huge_zero_page().  DAX will need
-that return value.
+catch up with concurrent proc_pid_follow_link() changes
 
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Matthew Wilcox <willy@linux.intel.com>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Calvin Owens <calvinowens@fb.com>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Joe Perches <joe@perches.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Kirill A. Shutemov <kirill@shutemov.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ fs/proc/base.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN mm/huge_memory.c~dax-revert-userfaultfd-change mm/huge_memory.c
---- a/mm/huge_memory.c~dax-revert-userfaultfd-change
-+++ a/mm/huge_memory.c
-@@ -794,16 +794,19 @@ static inline gfp_t alloc_hugepage_gfpma
- }
- 
- /* Caller must hold page table lock. */
--static void set_huge_zero_page(pgtable_t pgtable, struct mm_struct *mm,
-+static bool set_huge_zero_page(pgtable_t pgtable, struct mm_struct *mm,
- 		struct vm_area_struct *vma, unsigned long haddr, pmd_t *pmd,
- 		struct page *zero_page)
+diff -puN fs/proc/base.c~procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix fs/proc/base.c
+--- a/fs/proc/base.c~procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix
++++ a/fs/proc/base.c
+@@ -1955,12 +1955,13 @@ struct map_files_info {
+  * symlinks may be used to bypass permissions on ancestor directories in the
+  * path to the file in question.
+  */
+-static void *proc_map_files_follow_link(struct dentry *dentry, struct nameidata *nd)
++static void *
++proc_map_files_follow_link(struct dentry *dentry, struct nameidata *nd)
  {
- 	pmd_t entry;
-+	if (!pmd_none(*pmd))
-+		return false;
- 	entry = mk_pmd(zero_page, vma->vm_page_prot);
- 	entry = pmd_mkhuge(entry);
- 	pgtable_trans_huge_deposit(mm, pmd, pgtable);
- 	set_pmd_at(mm, haddr, pmd, entry);
- 	atomic_long_inc(&mm->nr_ptes);
-+	return true;
+ 	if (!capable(CAP_SYS_ADMIN))
+ 		return ERR_PTR(-EPERM);
+ 
+-	return proc_pid_follow_link(dentry, nd);
++	return proc_pid_follow_link(dentry, NULL);
  }
  
- int do_huge_pmd_anonymous_page(struct mm_struct *mm, struct vm_area_struct *vma,
+ /*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -105,6 +104,7 @@ mm-support-madvisemadv_free-fix-2.patch
 mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
 mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
 mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
+procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix.patch
 define-kallsyms_cmp_symbol_t-as-function-type-to-simplify-the-code-fix.patch
 linux-next.patch
 linux-next-rejects.patch
