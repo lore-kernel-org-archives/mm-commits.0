@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-get-rid-of-mem_cgroup_root_css-for-config_memcg.patch
- added to -mm tree
-Date: Wed, 15 Jul 2015 13:58:27 -0700
-Message-ID: <55a6c973.9BYpNwVAUmnF3rI8%akpm@linux-foundation.org>
+Subject: + memcg-restructure-mem_cgroup_can_attach.patch added to -mm tree
+Date: Wed, 15 Jul 2015 13:58:31 -0700
+Message-ID: <55a6c977.TtsKi6e4GgpoRALE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56172 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56183 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753426AbbGOU62 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Jul 2015 16:58:28 -0400
+	with ESMTP id S1753713AbbGOU6c (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Jul 2015 16:58:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.cz, hannes@cmpxchg.org, tj@kernel.org, vdavydov@parallels.com, mm-commits@vger.kernel.org
+To: tj@kernel.org, hannes@cmpxchg.org, mhocko@suse.cz, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: get rid of mem_cgroup_root_css for !CONFIG_MEMCG
+     Subject: memcg: restructure mem_cgroup_can_attach()
 has been added to the -mm tree.  Its filename is
-     memcg-get-rid-of-mem_cgroup_root_css-for-config_memcg.patch
+     memcg-restructure-mem_cgroup_can_attach.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-get-rid-of-mem_cgroup_root_css-for-config_memcg.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-restructure-mem_cgroup_can_attach.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-get-rid-of-mem_cgroup_root_css-for-config_memcg.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-restructure-mem_cgroup_can_attach.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,84 +38,127 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: memcg: get rid of mem_cgroup_root_css for !CONFIG_MEMCG
+From: Tejun Heo <tj@kernel.org>
+Subject: memcg: restructure mem_cgroup_can_attach()
 
-The only user is cgwb_bdi_init and that one depends on
-CONFIG_CGROUP_WRITEBACK which in turn depends on CONFIG_MEMCG so it
-doesn't make much sense to definte an empty stub for !CONFIG_MEMCG. 
-Moreover ERR_PTR(-EINVAL) is ugly and would lead to runtime crashes if
-used in unguarded code paths.  Better fail during compilation.
+Restructure it to lower nesting level and help the planned threadgroup
+leader iteration changes.
 
+This is pure reorganization.
+
+Signed-off-by: Tejun Heo <tj@kernel.org>
 Signed-off-by: Michal Hocko <mhocko@suse.cz>
 Reviewed-by: Vladimir Davydov <vdavydov@parallels.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    2 --
- 1 file changed, 2 deletions(-)
+ mm/memcontrol.c |   65 ++++++++++++++++++++++++----------------------
+ 1 file changed, 34 insertions(+), 31 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcg-get-rid-of-mem_cgroup_root_css-for-config_memcg include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-get-rid-of-mem_cgroup_root_css-for-config_memcg
-+++ a/include/linux/memcontrol.h
-@@ -498,8 +498,6 @@ void mem_cgroup_split_huge_fixup(struct
- #else /* CONFIG_MEMCG */
- struct mem_cgroup;
+diff -puN mm/memcontrol.c~memcg-restructure-mem_cgroup_can_attach mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-restructure-mem_cgroup_can_attach
++++ a/mm/memcontrol.c
+@@ -4833,10 +4833,12 @@ static void mem_cgroup_clear_mc(void)
+ static int mem_cgroup_can_attach(struct cgroup_subsys_state *css,
+ 				 struct cgroup_taskset *tset)
+ {
+-	struct task_struct *p = cgroup_taskset_first(tset);
+-	int ret = 0;
+ 	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
++	struct mem_cgroup *from;
++	struct task_struct *p;
++	struct mm_struct *mm;
+ 	unsigned long move_flags;
++	int ret = 0;
  
--#define mem_cgroup_root_css ((struct cgroup_subsys_state *)ERR_PTR(-EINVAL))
+ 	/*
+ 	 * We are now commited to this value whatever it is. Changes in this
+@@ -4844,36 +4846,37 @@ static int mem_cgroup_can_attach(struct
+ 	 * So we need to save it, and keep it going.
+ 	 */
+ 	move_flags = READ_ONCE(memcg->move_charge_at_immigrate);
+-	if (move_flags) {
+-		struct mm_struct *mm;
+-		struct mem_cgroup *from = mem_cgroup_from_task(p);
 -
- static inline void mem_cgroup_events(struct mem_cgroup *memcg,
- 				     enum mem_cgroup_events_index idx,
- 				     unsigned int nr)
+-		VM_BUG_ON(from == memcg);
+-
+-		mm = get_task_mm(p);
+-		if (!mm)
+-			return 0;
+-		/* We move charges only when we move a owner of the mm */
+-		if (mm->owner == p) {
+-			VM_BUG_ON(mc.from);
+-			VM_BUG_ON(mc.to);
+-			VM_BUG_ON(mc.precharge);
+-			VM_BUG_ON(mc.moved_charge);
+-			VM_BUG_ON(mc.moved_swap);
+-
+-			spin_lock(&mc.lock);
+-			mc.from = from;
+-			mc.to = memcg;
+-			mc.flags = move_flags;
+-			spin_unlock(&mc.lock);
+-			/* We set mc.moving_task later */
+-
+-			ret = mem_cgroup_precharge_mc(mm);
+-			if (ret)
+-				mem_cgroup_clear_mc();
+-		}
+-		mmput(mm);
++	if (!move_flags)
++		return 0;
++
++	p = cgroup_taskset_first(tset);
++	from = mem_cgroup_from_task(p);
++
++	VM_BUG_ON(from == memcg);
++
++	mm = get_task_mm(p);
++	if (!mm)
++		return 0;
++	/* We move charges only when we move a owner of the mm */
++	if (mm->owner == p) {
++		VM_BUG_ON(mc.from);
++		VM_BUG_ON(mc.to);
++		VM_BUG_ON(mc.precharge);
++		VM_BUG_ON(mc.moved_charge);
++		VM_BUG_ON(mc.moved_swap);
++
++		spin_lock(&mc.lock);
++		mc.from = from;
++		mc.to = memcg;
++		mc.flags = move_flags;
++		spin_unlock(&mc.lock);
++		/* We set mc.moving_task later */
++
++		ret = mem_cgroup_precharge_mc(mm);
++		if (ret)
++			mem_cgroup_clear_mc();
+ 	}
++	mmput(mm);
+ 	return ret;
+ }
+ 
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from tj@kernel.org are
 
-maintainers-change-my-email-address-to-kernelorg.patch
-mm-vmscan-do-not-wait-for-page-writeback-for-gfp_nofs-allocations.patch
-mm-mlock-refactor-mlock-munlock-and-munlockall-code.patch
-mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls.patch
-mm-mlock-introduce-vm_lockonfault-and-add-mlock-flags-to-enable-it.patch
-mm-mmap-add-mmap-flag-to-request-vm_lockonfault.patch
-selftests-vm-add-tests-for-lock-on-fault.patch
+kernel-kthreadc-kthread_create_on_node-clarify-documentation.patch
+kernel-kthreadc-kthread_create_on_node-clarify-documentation-fix.patch
+block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
+mm-memblock-warn_on-when-nid-differs-from-overlap-region.patch
+mm-page-refine-the-calculation-of-highest-possible-node-id.patch
 fs-do-not-prefault-sys_write-user-buffer-pages.patch
-mm-make-the-function-set_recommended_min_free_kbytes-have-a-return-type-of-void.patch
-mm-oom-organize-oom-context-into-struct.patch
-mm-oom-pass-an-oom-order-of-1-when-triggered-by-sysrq.patch
-mm-oom-do-not-panic-for-oom-kills-triggered-from-sysrq.patch
-mm-oom-add-description-of-struct-oom_control.patch
 memcg-export-struct-mem_cgroup.patch
 memcg-export-struct-mem_cgroup-fix.patch
 memcg-get-rid-of-mem_cgroup_root_css-for-config_memcg.patch
 memcg-get-rid-of-extern-for-functions-in-memcontrolh.patch
 memcg-restructure-mem_cgroup_can_attach.patch
-memcg-tcp_kmem-check-for-cg_proto-in-sock_update_memcg.patch
-page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-mm-sanitize-page-mapping-for-tail-pages.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-mm-page_isolation-check-pfn-validity-before-access.patch
-mm-support-madvisemadv_free.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-dont-split-thp-page-when-syscall-is-called.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-2.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
-mm-move-lazy-free-pages-to-inactive-list.patch
-mm-move-lazy-free-pages-to-inactive-list-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+fs-mpagec-forgotten-write_sync-in-case-of-data-integrity-write.patch
 mm-swap-zswap-maybe_preload-refactoring.patch
+ipc-msgc-msgsnd-use-freezable-blocking-call.patch
+msgrcv-use-freezable-blocking-call.patch
+linux-next.patch
 
