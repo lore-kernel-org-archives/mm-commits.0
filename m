@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- define-kallsyms_cmp_symbol_t-as-function-type-to-simplify-the-code-fix.patch added to -mm tree
-Date: Wed, 15 Jul 2015 14:41:38 -0700
-Message-ID: <55a6d392.0TzdWT5zK99zm+Sj%akpm@linux-foundation.org>
+ fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix.patch added to -mm tree
+Date: Wed, 15 Jul 2015 14:44:33 -0700
+Message-ID: <55a6d441.WLPNS3hp5/7KwdKb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56902 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57025 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751270AbbGOVlj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Jul 2015 17:41:39 -0400
+	with ESMTP id S1752232AbbGOVoe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 15 Jul 2015 17:44:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mnfhuang@gmail.com, namhyung@kernel.org, rob.jones@codethink.co.uk, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, joe@perches.com, rostedt@goodmis.org, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: define-kallsyms_cmp_symbol_t-as-function-type-to-simplify-the-code-fix
+     Subject: fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix
 has been added to the -mm tree.  Its filename is
-     define-kallsyms_cmp_symbol_t-as-function-type-to-simplify-the-code-fix.patch
+     fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/define-kallsyms_cmp_symbol_t-as-function-type-to-simplify-the-code-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/define-kallsyms_cmp_symbol_t-as-function-type-to-simplify-the-code-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,43 +40,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: define-kallsyms_cmp_symbol_t-as-function-type-to-simplify-the-code-fix
+Subject: fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix
 
-fix CONFIG_MODULES=n build
-
-Cc: Minfei Huang <mnfhuang@gmail.com>
-Cc: Namhyung Kim <namhyung@kernel.org>
-Cc: Rob Jones <rob.jones@codethink.co.uk>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Joe Perches <joe@perches.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/module.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/nsfs.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/module.h~define-kallsyms_cmp_symbol_t-as-function-type-to-simplify-the-code-fix include/linux/module.h
---- a/include/linux/module.h~define-kallsyms_cmp_symbol_t-as-function-type-to-simplify-the-code-fix
-+++ a/include/linux/module.h
-@@ -189,6 +189,9 @@ const struct exception_table_entry *sear
+diff -puN fs/nsfs.c~fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix fs/nsfs.c
+--- a/fs/nsfs.c~fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix
++++ a/fs/nsfs.c
+@@ -142,7 +142,8 @@ static int nsfs_show_path(struct seq_fil
+ 	struct inode *inode = d_inode(dentry);
+ 	const struct proc_ns_operations *ns_ops = dentry->d_fsdata;
  
- struct notifier_block;
+-	return seq_printf(seq, "%s:[%lu]", ns_ops->name, inode->i_ino);
++	seq_printf(seq, "%s:[%lu]", ns_ops->name, inode->i_ino);
++	return 0;
+ }
  
-+typedef int (*kallsyms_cmp_symbol_t)(void *, const char *,
-+		struct module *, unsigned long);
-+
- #ifdef CONFIG_MODULES
- 
- extern int modules_disabled; /* for sysctl */
-@@ -479,9 +482,6 @@ int module_get_kallsym(unsigned int symn
- /* Look for this name: can be of form module:name. */
- unsigned long module_kallsyms_lookup_name(const char *name);
- 
--typedef int (*kallsyms_cmp_symbol_t)(void *, const char *,
--		struct module *, unsigned long);
--
- int module_kallsyms_on_each_symbol(kallsyms_cmp_symbol_t fn, void *data);
- 
- extern void __module_put_and_exit(struct module *mod, long code)
+ static const struct super_operations nsfs_ops = {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -109,6 +96,7 @@ linux-next-rejects.patch
 drivers-gpu-drm-i915-intel_spritec-fix-build.patch
 drivers-gpu-drm-i915-intel_tvc-fix-build.patch
 net-netfilter-ipset-work-around-gcc-444-initializer-bug.patch
+fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
 journal_add_journal_head-debug.patch
 journal_add_journal_head-debug-fix.patch
