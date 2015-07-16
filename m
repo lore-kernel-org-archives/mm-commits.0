@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-fix-3.patch
- added to -mm tree
-Date: Thu, 16 Jul 2015 16:05:20 -0700
-Message-ID: <55a838b0.94Sp/G4hR/UV1jBJ%akpm@linux-foundation.org>
+ mm-move-mremap-from-file_operations-to-vm_operations_struct-fix.patch added to -mm tree
+Date: Thu, 16 Jul 2015 16:25:11 -0700
+Message-ID: <55a83d57.XULewgAP3ThuHlLp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37233 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37975 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756042AbbGPXFV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Jul 2015 19:05:21 -0400
+	with ESMTP id S1756683AbbGPXZM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Jul 2015 19:25:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sfr@canb.auug.org.au, emunson@akamai.com, mm-commits@vger.kernel.org
+To: oleg@redhat.com, bcrl@kvack.org, fengguang.wu@intel.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: mlock: fix for add new mlock, munlock, and munlockall system calls
+     Subject:  mm-move-mremap-from-file_operations-to-vm_operations_struct-fix
 has been added to the -mm tree.  Its filename is
-     mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-fix-3.patch
+     mm-move-mremap-from-file_operations-to-vm_operations_struct-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-fix-3.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-move-mremap-from-file_operations-to-vm_operations_struct-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-fix-3.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-move-mremap-from-file_operations-to-vm_operations_struct-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,54 +39,57 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: mm: mlock: fix for add new mlock, munlock, and munlockall system calls
+From: Oleg Nesterov <oleg@redhat.com>
+Subject:  mm-move-mremap-from-file_operations-to-vm_operations_struct-fix
 
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Eric B Munson <emunson@akamai.com>
+fs/aio.c can't be compiled if CONFIG_MMU=n, filemap_page_mkwrite()
+is not defined in this case. Add yet another "must not be called"
+helper into nommu.c to make the linker happy.
+
+I still think this is pointless, afaics sys_io_setup() simply can't
+succeed if CONFIG_MMU=n. Instead we should make CONFIG_AIO depend
+on CONFIG_MMU.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Benjamin LaHaise <bcrl@kvack.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/unistd.h |    2 +-
- arch/arm/kernel/calls.S       |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ mm/nommu.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN arch/arm/include/asm/unistd.h~mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-fix-3 arch/arm/include/asm/unistd.h
---- a/arch/arm/include/asm/unistd.h~mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-fix-3
-+++ a/arch/arm/include/asm/unistd.h
-@@ -19,7 +19,7 @@
-  * This may need to be greater than __NR_last_syscall+1 in order to
-  * account for the padding in the syscall table
-  */
--#define __NR_syscalls  (388)
-+#define __NR_syscalls  (392)
+diff -puN mm/nommu.c~mm-move-mremap-from-file_operations-to-vm_operations_struct-fix mm/nommu.c
+--- a/mm/nommu.c~mm-move-mremap-from-file_operations-to-vm_operations_struct-fix
++++ a/mm/nommu.c
+@@ -1935,6 +1935,12 @@ void filemap_map_pages(struct vm_area_st
+ }
+ EXPORT_SYMBOL(filemap_map_pages);
  
- /*
-  * *NOTE*: This is a ghost syscall private to the kernel.  Only the
-diff -puN arch/arm/kernel/calls.S~mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-fix-3 arch/arm/kernel/calls.S
---- a/arch/arm/kernel/calls.S~mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-fix-3
-+++ a/arch/arm/kernel/calls.S
-@@ -399,7 +399,7 @@
- 		CALL(sys_execveat)
- 		CALL(sys_mlock2)
- 		CALL(sys_munlock2)
--/* 400 */	CALL(sys_munlockall2)
-+/* 390 */	CALL(sys_munlockall2)
- #ifndef syscalls_counted
- .equ syscalls_padding, ((NR_syscalls + 3) & ~3) - NR_syscalls
- #define syscalls_counted
++int filemap_page_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf)
++{
++	BUG();
++	return 0;
++}
++
+ static int __access_remote_vm(struct task_struct *tsk, struct mm_struct *mm,
+ 		unsigned long addr, void *buf, int len, int write)
+ {
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-smpboot-allow-to-pass-the-cpumask-on-per-cpu-thread-registration-fix.patch
-userfaultfd-uapi-add-missing-include-typesh.patch
-userfaultfd-activate-syscall-fix.patch
-mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-fix.patch
-mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-fix-2.patch
-mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-fix-3.patch
-genalloc-add-support-of-multiple-gen_pools-per-device-fix.patch
-mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested-fix.patch
+origin.patch
+mm-cleaning-per-architecture-mm-hook-header-files.patch
+mremap-dont-leak-new_vma-if-f_op-mremap-fails.patch
+mm-move-mremap-from-file_operations-to-vm_operations_struct.patch
+mm-move-mremap-from-file_operations-to-vm_operations_struct-fix.patch
+mremap-dont-do-mm_populatenew_addr-on-failure.patch
+mremap-dont-do-uneccesary-checks-if-new_len-==-old_len.patch
+mremap-simplify-the-overlap-check-in-mremap_to.patch
+mm-introduce-vma_is_anonymousvma-helper.patch
+mmap-fix-the-usage-of-vm_pgoff-in-special_mapping-paths.patch
+mremap-fix-the-wrong-vma-vm_file-check-in-copy_vma.patch
 linux-next.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
 
