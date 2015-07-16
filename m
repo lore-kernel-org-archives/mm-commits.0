@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-fix.patch added
- to -mm tree
-Date: Thu, 16 Jul 2015 14:21:31 -0700
-Message-ID: <55a8205b./JOm3h+8411LOwVB%akpm@linux-foundation.org>
+ mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested-fix.patch added to -mm tree
+Date: Thu, 16 Jul 2015 14:29:39 -0700
+Message-ID: <55a82243.EqhxVJDmgIwrO79P%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35125 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35187 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751232AbbGPVVc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Jul 2015 17:21:32 -0400
+	with ESMTP id S1756345AbbGPV3k (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Jul 2015 17:29:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: broonie@kernel.org, emunson@akamai.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, broonie@kernel.org, catalin.marinas@arm.com, kirill.shutemov@linux.intel.com, sfr@canb.auug.org.au, toshi.kani@hp.com, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix up new locking syscalls
+     Subject: mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested-fix
 has been added to the -mm tree.  Its filename is
-     mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-fix.patch
+     mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,45 +39,78 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mark Brown <broonie@kernel.org>
-Subject: mm: fix up new locking syscalls
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested-fix
 
-Extend the arm64 compat syscall table for the new syscalls to fix build
-errors introduced by "mm: mlock: add new mlock, munlock, and munlockall
-system calls":
+fix arm64 build
 
- ../arch/arm64/include/asm/unistd32.h:801:1: error: array index in initializer exceeds array bounds
- ../arch/arm64/include/asm/unistd32.h:801:1: error: (near initialization for 'compat_sys_call_table')
- ../arch/arm64/include/asm/unistd32.h:803:1: error: array index in initializer exceeds array bounds
- ../arch/arm64/include/asm/unistd32.h:803:1: error: (near initialization for 'compat_sys_call_table')
- ../arch/arm64/include/asm/unistd32.h:805:1: error: array index in initializer exceeds array bounds
- ../arch/arm64/include/asm/unistd32.h:805:1: error: (near initialization for 'compat_sys_call_table')
-
-Signed-off-by: Mark Brown <broonie@kernel.org>
-Cc: Eric B Munson <emunson@akamai.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Matthew Wilcox <willy@linux.intel.com>
+Cc: Toshi Kani <toshi.kani@hp.com>
+Cc: Mark Brown <broonie@kernel.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/unistd.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/gup.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/arm64/include/asm/unistd.h~mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-fix arch/arm64/include/asm/unistd.h
---- a/arch/arm64/include/asm/unistd.h~mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-fix
-+++ a/arch/arm64/include/asm/unistd.h
-@@ -44,7 +44,7 @@
- #define __ARM_NR_compat_cacheflush	(__ARM_NR_COMPAT_BASE+2)
- #define __ARM_NR_compat_set_tls		(__ARM_NR_COMPAT_BASE+5)
+diff -puN mm/gup.c~mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested-fix mm/gup.c
+--- a/mm/gup.c~mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested-fix
++++ a/mm/gup.c
+@@ -12,7 +12,9 @@
+ #include <linux/sched.h>
+ #include <linux/rwsem.h>
+ #include <linux/hugetlb.h>
++
+ #include <asm/pgtable.h>
++#include <asm/tlbflush.h>
  
--#define __NR_compat_syscalls		388
-+#define __NR_compat_syscalls		391
- #endif
+ #include "internal.h"
  
- #define __ARCH_WANT_SYS_CLONE
 _
 
-Patches currently in -mm which might be from broonie@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-fix.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+openrisc-fix-config_uid16-setting.patch
+kernel-kthreadc-kthread_create_on_node-clarify-documentation.patch
+scripts-spellingtxt-adding-misspelled-word-for-check-fix.patch
+mm.patch
+userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
+userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
+userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
+genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-fix.patch
+mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested-fix.patch
+dax-revert-userfaultfd-change.patch
+thp-prepare-for-dax-huge-pages-fix.patch
+pagemap-add-mmap-exclusive-bit-for-marking-pages-mapped-only-here-fix.patch
+mm-show-proportional-swap-share-of-the-mapping-fix.patch
+mm-improve-__gfp_noretry-comment-based-on-implementation-fix.patch
+memcg-export-struct-mem_cgroup-fix.patch
+memcg-export-struct-mem_cgroup-fix-2.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
+procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix.patch
+procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix-fix.patch
+define-kallsyms_cmp_symbol_t-as-function-type-to-simplify-the-code-fix.patch
 linux-next.patch
+linux-next-rejects.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+net-netfilter-ipset-work-around-gcc-444-initializer-bug.patch
+fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
