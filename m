@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + parse_integer-convert-mm-fix.patch added to -mm tree
-Date: Thu, 16 Jul 2015 14:20:24 -0700
-Message-ID: <55a82018.simRDfXnmsnQdYil%akpm@linux-foundation.org>
+Subject: +
+ mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-fix.patch added
+ to -mm tree
+Date: Thu, 16 Jul 2015 14:21:31 -0700
+Message-ID: <55a8205b./JOm3h+8411LOwVB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35120 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35125 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751340AbbGPVUY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Jul 2015 17:20:24 -0400
+	with ESMTP id S1751232AbbGPVVc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Jul 2015 17:21:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, mm-commits@vger.kernel.org
+To: broonie@kernel.org, emunson@akamai.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: parse_integer: fixup mm/memcontrol.c conversion
+     Subject: mm: fix up new locking syscalls
 has been added to the -mm tree.  Its filename is
-     parse_integer-convert-mm-fix.patch
+     mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/parse_integer-convert-mm-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/parse_integer-convert-mm-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,47 +40,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: parse_integer: fixup mm/memcontrol.c conversion
+From: Mark Brown <broonie@kernel.org>
+Subject: mm: fix up new locking syscalls
 
-Fix copypasterro: efd => cfd.
+Extend the arm64 compat syscall table for the new syscalls to fix build
+errors introduced by "mm: mlock: add new mlock, munlock, and munlockall
+system calls":
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+ ../arch/arm64/include/asm/unistd32.h:801:1: error: array index in initializer exceeds array bounds
+ ../arch/arm64/include/asm/unistd32.h:801:1: error: (near initialization for 'compat_sys_call_table')
+ ../arch/arm64/include/asm/unistd32.h:803:1: error: array index in initializer exceeds array bounds
+ ../arch/arm64/include/asm/unistd32.h:803:1: error: (near initialization for 'compat_sys_call_table')
+ ../arch/arm64/include/asm/unistd32.h:805:1: error: array index in initializer exceeds array bounds
+ ../arch/arm64/include/asm/unistd32.h:805:1: error: (near initialization for 'compat_sys_call_table')
+
+Signed-off-by: Mark Brown <broonie@kernel.org>
+Cc: Eric B Munson <emunson@akamai.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
+ arch/arm64/include/asm/unistd.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~parse_integer-convert-mm-fix mm/memcontrol.c
---- a/mm/memcontrol.c~parse_integer-convert-mm-fix
-+++ a/mm/memcontrol.c
-@@ -3910,7 +3910,7 @@ static ssize_t memcg_write_event_control
- 	buf += ret;
- 	if (*buf++ != ' ')
- 		return -EINVAL;
--	ret = parse_integer(buf, 10, &efd);
-+	ret = parse_integer(buf, 10, &cfd);
- 	if (ret < 0)
- 		return ret;
- 	buf += ret;
+diff -puN arch/arm64/include/asm/unistd.h~mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-fix arch/arm64/include/asm/unistd.h
+--- a/arch/arm64/include/asm/unistd.h~mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-fix
++++ a/arch/arm64/include/asm/unistd.h
+@@ -44,7 +44,7 @@
+ #define __ARM_NR_compat_cacheflush	(__ARM_NR_COMPAT_BASE+2)
+ #define __ARM_NR_compat_set_tls		(__ARM_NR_COMPAT_BASE+5)
+ 
+-#define __NR_compat_syscalls		388
++#define __NR_compat_syscalls		391
+ #endif
+ 
+ #define __ARCH_WANT_SYS_CLONE
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from broonie@kernel.org are
 
-proc-fixup-empty-argv-case-for-proc-pid-cmdline.patch
-kstrto-accept-0-for-signed-conversion.patch
-add-parse_integer-replacement-for-simple_strto.patch
-parse_integer-add-runtime-testsuite.patch
-parse-integer-rewrite-kstrto.patch
-parse_integer-convert-scanf.patch
-scanf-fix-type-range-overflow.patch
-parse_integer-convert-lib.patch
-parse_integer-convert-mm.patch
-parse_integer-convert-mm-fix.patch
-parse_integer-convert-fs.patch
-parse_integer-convert-fs-cachefiles.patch
-parse_integer-convert-ext2-ext3-ext4.patch
-parse_integer-convert-fs-ocfs2.patch
-parse_integer-add-checkpatchpl-notice.patch
+mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-fix.patch
+linux-next.patch
 
