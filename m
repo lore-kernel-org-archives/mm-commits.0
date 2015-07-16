@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested-fix.patch added to -mm tree
-Date: Thu, 16 Jul 2015 14:29:39 -0700
-Message-ID: <55a82243.EqhxVJDmgIwrO79P%akpm@linux-foundation.org>
+ mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-fix-2.patch
+ added to -mm tree
+Date: Thu, 16 Jul 2015 14:56:08 -0700
+Message-ID: <55a82878.awv7Z5Wn31yqCFo0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35187 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36273 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756345AbbGPV3k (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Jul 2015 17:29:40 -0400
+	with ESMTP id S1751222AbbGPV4J (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 16 Jul 2015 17:56:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, broonie@kernel.org, catalin.marinas@arm.com, kirill.shutemov@linux.intel.com, sfr@canb.auug.org.au, toshi.kani@hp.com, willy@linux.intel.com, mm-commits@vger.kernel.org
+To: heiko.carstens@de.ibm.com, emunson@akamai.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested-fix
+     Subject: mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-fix-2
 has been added to the -mm tree.  Its filename is
-     mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested-fix.patch
+     mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-fix-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-fix-2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,78 +40,39 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested-fix
+From: Heiko Carstens <heiko.carstens@de.ibm.com>
+Subject: mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-fix-2
 
-fix arm64 build
+can we just remove the s390 bits which cause the breakage?
+I will wire up the syscalls as soon as the patch set gets merged.
 
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Matthew Wilcox <willy@linux.intel.com>
-Cc: Toshi Kani <toshi.kani@hp.com>
-Cc: Mark Brown <broonie@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Eric B Munson <emunson@akamai.com>
 Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/s390/kernel/syscalls.S |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN mm/gup.c~mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested-fix mm/gup.c
---- a/mm/gup.c~mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested-fix
-+++ a/mm/gup.c
-@@ -12,7 +12,9 @@
- #include <linux/sched.h>
- #include <linux/rwsem.h>
- #include <linux/hugetlb.h>
-+
- #include <asm/pgtable.h>
-+#include <asm/tlbflush.h>
- 
- #include "internal.h"
- 
+diff -puN arch/s390/kernel/syscalls.S~mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-fix-2 arch/s390/kernel/syscalls.S
+--- a/arch/s390/kernel/syscalls.S~mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-fix-2
++++ a/arch/s390/kernel/syscalls.S
+@@ -363,6 +363,3 @@ SYSCALL(sys_bpf,compat_sys_bpf)
+ SYSCALL(sys_s390_pci_mmio_write,compat_sys_s390_pci_mmio_write)
+ SYSCALL(sys_s390_pci_mmio_read,compat_sys_s390_pci_mmio_read)
+ SYSCALL(sys_execveat,compat_sys_execveat)
+-SYSCALL(sys_mlock2,compat_sys_mlock2)			/* 355 */
+-SYSCALL(sys_munlock2,compat_sys_munlock2)
+-SYSCALL(sys_munlockall2,compat_sys_munlockall2)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-openrisc-fix-config_uid16-setting.patch
-kernel-kthreadc-kthread_create_on_node-clarify-documentation.patch
-scripts-spellingtxt-adding-misspelled-word-for-check-fix.patch
-mm.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
-userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
-genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-fix.patch
-mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested-fix.patch
-dax-revert-userfaultfd-change.patch
-thp-prepare-for-dax-huge-pages-fix.patch
-pagemap-add-mmap-exclusive-bit-for-marking-pages-mapped-only-here-fix.patch
-mm-show-proportional-swap-share-of-the-mapping-fix.patch
-mm-improve-__gfp_noretry-comment-based-on-implementation-fix.patch
-memcg-export-struct-mem_cgroup-fix.patch
-memcg-export-struct-mem_cgroup-fix-2.patch
-include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
-procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix.patch
-procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix-fix.patch
-define-kallsyms_cmp_symbol_t-as-function-type-to-simplify-the-code-fix.patch
+origin.patch
+revert-s390-mm-change-hpage_shift-type-to-int.patch
+revert-s390-mm-make-hugepages_supported-a-boot-time-decision.patch
+mm-hugetlb-allow-hugepages_supported-to-be-architecture-specific.patch
+s390-hugetlb-add-hugepages_supported-define.patch
+mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-fix-2.patch
 linux-next.patch
-linux-next-rejects.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-net-netfilter-ipset-work-around-gcc-444-initializer-bug.patch
-fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
 
