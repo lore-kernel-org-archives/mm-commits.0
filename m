@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-meminit-allow-early_pfn_to_nid-to-be-used-during-runtime.patch added to
- -mm tree
-Date: Fri, 17 Jul 2015 13:25:28 -0700
-Message-ID: <55a964b8.95mLqPKqDYGwOeTT%akpm@linux-foundation.org>
+ fs-file-table-reinit-files_statmax_files-after-deferred-memory-initialisation.patch added to -mm tree
+Date: Fri, 17 Jul 2015 13:25:32 -0700
+Message-ID: <55a964bc.UYT6UZ0VpPhXhCB0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38569 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38582 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751893AbbGQUZ3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 17 Jul 2015 16:25:29 -0400
+	with ESMTP id S1751893AbbGQUZd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 17 Jul 2015 16:25:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mgorman@suse.de, alexng@microsoft.com, dave.hansen@intel.com, fengguang.wu@intel.com, nicstange@gmail.com, peterz@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, meminit: allow early_pfn_to_nid to be used during runtime
+     Subject: fs, file table: reinit files_stat.max_files after deferred memory initialisation
 has been added to the -mm tree.  Its filename is
-     mm-meminit-allow-early_pfn_to_nid-to-be-used-during-runtime.patch
+     fs-file-table-reinit-files_statmax_files-after-deferred-memory-initialisation.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-meminit-allow-early_pfn_to_nid-to-be-used-during-runtime.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-file-table-reinit-files_statmax_files-after-deferred-memory-initialisation.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-meminit-allow-early_pfn_to_nid-to-be-used-during-runtime.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-file-table-reinit-files_statmax_files-after-deferred-memory-initialisation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,60 +40,165 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@suse.de>
-Subject: mm, meminit: allow early_pfn_to_nid to be used during runtime
+Subject: fs, file table: reinit files_stat.max_files after deferred memory initialisation
 
-early_pfn_to_nid historically was inherently not SMP safe but only used
-during boot which is inherently single threaded or during hotplug which is
-protected by a giant mutex.  With deferred memory initialisation there was
-a thread-safe version introduced and the early_pfn_to_nid would trigger a
-BUG_ON if used unsafely.  Memory hotplug hit that check.  This patch makes
-early_pfn_to_nid introduces a lock to make it safe to use during hotplug.
+Dave Hansen reported the following;
+
+	My laptop has been behaving strangely with 4.2-rc2.  Once I log
+	in to my X session, I start getting all kinds of strange errors
+	from applications and see this in my dmesg:
+
+        	VFS: file-max limit 8192 reached
+
+The problem is that the file-max is calculated before memory is fully
+initialised and miscalculates how much memory the kernel is using.  This
+patch recalculates file-max after deferred memory initialisation.  Note
+that using memory hotplug infrastructure would not have avoided this
+problem as the value is not recalculated after memory hot-add.
+
+4.1:             files_stat.max_files = 6582781
+4.2-rc2:         files_stat.max_files = 8192
+4.2-rc2 patched: files_stat.max_files = 6562467
+
+Small differences with the patch applied and 4.1 but not enough to matter.
 
 Signed-off-by: Mel Gorman <mgorman@suse.de>
-Reported-by: Alex Ng <alexng@microsoft.com>
-Tested-by: Alex Ng <alexng@microsoft.com>
-Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Reported-by: Dave Hansen <dave.hansen@intel.com>
 Cc: Nicolai Stange <nicstange@gmail.com>
 Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Alex Ng <alexng@microsoft.com>
 Cc: Fengguang Wu <fengguang.wu@intel.com>
+Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ fs/dcache.c        |   13 +++----------
+ fs/file_table.c    |   24 +++++++++++++++---------
+ include/linux/fs.h |    5 +++--
+ init/main.c        |    2 +-
+ mm/page_alloc.c    |    3 +++
+ 5 files changed, 25 insertions(+), 22 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-meminit-allow-early_pfn_to_nid-to-be-used-during-runtime mm/page_alloc.c
---- a/mm/page_alloc.c~mm-meminit-allow-early_pfn_to_nid-to-be-used-during-runtime
-+++ a/mm/page_alloc.c
-@@ -981,21 +981,21 @@ static void __init __free_pages_boot_cor
- 
- #if defined(CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID) || \
- 	defined(CONFIG_HAVE_MEMBLOCK_NODE_MAP)
--/* Only safe to use early in boot when initialisation is single-threaded */
-+
- static struct mminit_pfnnid_cache early_pfnnid_cache __meminitdata;
- 
- int __meminit early_pfn_to_nid(unsigned long pfn)
- {
-+	static DEFINE_SPINLOCK(early_pfn_lock);
- 	int nid;
- 
--	/* The system will behave unpredictably otherwise */
--	BUG_ON(system_state != SYSTEM_BOOTING);
--
-+	spin_lock(&early_pfn_lock);
- 	nid = __early_pfn_to_nid(pfn, &early_pfnnid_cache);
--	if (nid >= 0)
--		return nid;
--	/* just returns 0 */
--	return 0;
-+	if (nid < 0)
-+		nid = 0;
-+	spin_unlock(&early_pfn_lock);
-+
-+	return nid;
+diff -puN fs/dcache.c~fs-file-table-reinit-files_statmax_files-after-deferred-memory-initialisation fs/dcache.c
+--- a/fs/dcache.c~fs-file-table-reinit-files_statmax_files-after-deferred-memory-initialisation
++++ a/fs/dcache.c
+@@ -3442,22 +3442,15 @@ void __init vfs_caches_init_early(void)
+ 	inode_init_early();
  }
- #endif
+ 
+-void __init vfs_caches_init(unsigned long mempages)
++void __init vfs_caches_init(void)
+ {
+-	unsigned long reserve;
+-
+-	/* Base hash sizes on available memory, with a reserve equal to
+-           150% of current kernel size */
+-
+-	reserve = min((mempages - nr_free_pages()) * 3/2, mempages - 1);
+-	mempages -= reserve;
+-
+ 	names_cachep = kmem_cache_create("names_cache", PATH_MAX, 0,
+ 			SLAB_HWCACHE_ALIGN|SLAB_PANIC, NULL);
+ 
+ 	dcache_init();
+ 	inode_init();
+-	files_init(mempages);
++	files_init();
++	files_maxfiles_init();
+ 	mnt_init();
+ 	bdev_cache_init();
+ 	chrdev_init();
+diff -puN fs/file_table.c~fs-file-table-reinit-files_statmax_files-after-deferred-memory-initialisation fs/file_table.c
+--- a/fs/file_table.c~fs-file-table-reinit-files_statmax_files-after-deferred-memory-initialisation
++++ a/fs/file_table.c
+@@ -25,6 +25,7 @@
+ #include <linux/hardirq.h>
+ #include <linux/task_work.h>
+ #include <linux/ima.h>
++#include <linux/swap.h>
+ 
+ #include <linux/atomic.h>
+ 
+@@ -308,19 +309,24 @@ void put_filp(struct file *file)
+ 	}
+ }
+ 
+-void __init files_init(unsigned long mempages)
++void __init files_init(void)
+ { 
+-	unsigned long n;
+-
+ 	filp_cachep = kmem_cache_create("filp", sizeof(struct file), 0,
+ 			SLAB_HWCACHE_ALIGN | SLAB_PANIC, NULL);
++	percpu_counter_init(&nr_files, 0, GFP_KERNEL);
++}
+ 
+-	/*
+-	 * One file with associated inode and dcache is very roughly 1K.
+-	 * Per default don't use more than 10% of our memory for files. 
+-	 */ 
++/*
++ * One file with associated inode and dcache is very roughly 1K. Per default
++ * do not use more than 10% of our memory for files.
++ */
++void __init files_maxfiles_init(void)
++{
++	unsigned long n;
++	unsigned long memreserve = (totalram_pages - nr_free_pages()) * 3/2;
++
++	memreserve = min(memreserve, totalram_pages - 1);
++	n = ((totalram_pages - memreserve) * (PAGE_SIZE / 1024)) / 10;
+ 
+-	n = (mempages * (PAGE_SIZE / 1024)) / 10;
+ 	files_stat.max_files = max_t(unsigned long, n, NR_FILE);
+-	percpu_counter_init(&nr_files, 0, GFP_KERNEL);
+ } 
+diff -puN include/linux/fs.h~fs-file-table-reinit-files_statmax_files-after-deferred-memory-initialisation include/linux/fs.h
+--- a/include/linux/fs.h~fs-file-table-reinit-files_statmax_files-after-deferred-memory-initialisation
++++ a/include/linux/fs.h
+@@ -55,7 +55,8 @@ struct vm_fault;
+ 
+ extern void __init inode_init(void);
+ extern void __init inode_init_early(void);
+-extern void __init files_init(unsigned long);
++extern void __init files_init(void);
++extern void __init files_maxfiles_init(void);
+ 
+ extern struct files_stat_struct files_stat;
+ extern unsigned long get_max_files(void);
+@@ -2245,7 +2246,7 @@ extern int ioctl_preallocate(struct file
+ 
+ /* fs/dcache.c */
+ extern void __init vfs_caches_init_early(void);
+-extern void __init vfs_caches_init(unsigned long);
++extern void __init vfs_caches_init(void);
+ 
+ extern struct kmem_cache *names_cachep;
+ 
+diff -puN init/main.c~fs-file-table-reinit-files_statmax_files-after-deferred-memory-initialisation init/main.c
+--- a/init/main.c~fs-file-table-reinit-files_statmax_files-after-deferred-memory-initialisation
++++ a/init/main.c
+@@ -656,7 +656,7 @@ asmlinkage __visible void __init start_k
+ 	key_init();
+ 	security_init();
+ 	dbg_late_init();
+-	vfs_caches_init(totalram_pages);
++	vfs_caches_init();
+ 	signals_init();
+ 	/* rootfs populating might need page-writeback */
+ 	page_writeback_init();
+diff -puN mm/page_alloc.c~fs-file-table-reinit-files_statmax_files-after-deferred-memory-initialisation mm/page_alloc.c
+--- a/mm/page_alloc.c~fs-file-table-reinit-files_statmax_files-after-deferred-memory-initialisation
++++ a/mm/page_alloc.c
+@@ -1201,6 +1201,9 @@ void __init page_alloc_init_late(void)
+ 
+ 	/* Block until all are initialised */
+ 	wait_for_completion(&pgdat_init_all_done_comp);
++
++	/* Reinit limits that are based on free pages after the kernel is up */
++	files_maxfiles_init();
+ }
+ #endif /* CONFIG_DEFERRED_STRUCT_PAGE_INIT */
  
 _
 
