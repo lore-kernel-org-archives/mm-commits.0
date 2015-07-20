@@ -1,69 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-cma_debug-fix-debugging-alloc-free-interface.patch
- removed from -mm tree
-Date: Mon, 20 Jul 2015 11:50:37 -0700
-Message-ID: <55ad42fd.KdpZ2dDH9N2JbdY9%akpm@linux-foundation.org>
+Subject: +
+ genalloc-add-support-of-multiple-gen_pools-per-device-fix-2.patch added to
+ -mm tree
+Date: Mon, 20 Jul 2015 13:42:59 -0700
+Message-ID: <55ad5d53.Vv4VPZdtiP8Th8Mq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34553 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37789 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754072AbbGTSui (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Jul 2015 14:50:38 -0400
+	with ESMTP id S1752000AbbGTUnA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Jul 2015 16:43:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: js1304@gmail.com, iamjoonsoo.kim@lge.com, mina86@mina86.com, sasha.levin@oracle.com, stefan.strogin@gmail.com, mm-commits@vger.kernel.org
+To: dan.carpenter@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/cma_debug: fix debugging alloc/free interface
-has been removed from the -mm tree.  Its filename was
-     mm-cma_debug-fix-debugging-alloc-free-interface.patch
+     Subject: genalloc: freeing const data pointers
+has been added to the -mm tree.  Its filename is
+     genalloc-add-support-of-multiple-gen_pools-per-device-fix-2.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/genalloc-add-support-of-multiple-gen_pools-per-device-fix-2.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/genalloc-add-support-of-multiple-gen_pools-per-device-fix-2.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Joonsoo Kim <js1304@gmail.com>
-Subject: mm/cma_debug: fix debugging alloc/free interface
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: genalloc: freeing const data pointers
 
-CMA has alloc/free interface for debugging.  It is intended that
-alloc/free occurs in specific CMA region, but, currently, alloc/free
-interface is on root dir due to the bug so we can't select CMA region
-where alloc/free happens.
+"pool->name" can be kmalloc()ed or const so we need to free it with
+kfree_const().
 
-This patch fixes this problem by making alloc/free interface per
-CMA region.
+I also cleaned up the error path in devm_gen_pool_create() a bit.  With
+the current code you have to change the kfree() in multiple places which
+is bug prone (my first draft of this patch had a bug).
 
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Acked-by: Michal Nazarewicz <mina86@mina86.com>
-Cc: Sasha Levin <sasha.levin@oracle.com>
-Cc: Stefan Strogin <stefan.strogin@gmail.com>
+Fixes: e89a70fd54f2 ('genalloc: add support of multiple gen_pools per device')
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma_debug.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/genalloc.c |   30 ++++++++++++++++--------------
+ 1 file changed, 16 insertions(+), 14 deletions(-)
 
-diff -puN mm/cma_debug.c~mm-cma_debug-fix-debugging-alloc-free-interface mm/cma_debug.c
---- a/mm/cma_debug.c~mm-cma_debug-fix-debugging-alloc-free-interface
-+++ a/mm/cma_debug.c
-@@ -170,10 +170,10 @@ static void cma_debugfs_add_one(struct c
+diff -puN lib/genalloc.c~genalloc-add-support-of-multiple-gen_pools-per-device-fix-2 lib/genalloc.c
+--- a/lib/genalloc.c~genalloc-add-support-of-multiple-gen_pools-per-device-fix-2
++++ a/lib/genalloc.c
+@@ -253,7 +253,7 @@ void gen_pool_destroy(struct gen_pool *p
  
- 	tmp = debugfs_create_dir(name, cma_debugfs_root);
+ 		kfree(chunk);
+ 	}
+-	kfree(pool->name);
++	kfree_const(pool->name);
+ 	kfree(pool);
+ }
+ EXPORT_SYMBOL(gen_pool_destroy);
+@@ -632,23 +632,25 @@ struct gen_pool *devm_gen_pool_create(st
+ 	}
  
--	debugfs_create_file("alloc", S_IWUSR, cma_debugfs_root, cma,
-+	debugfs_create_file("alloc", S_IWUSR, tmp, cma,
- 				&cma_alloc_fops);
+ 	ptr = devres_alloc(devm_gen_pool_release, sizeof(*ptr), GFP_KERNEL);
+-	if (!ptr) {
+-		kfree(pool_name);
+-		return ERR_PTR(-ENOMEM);
+-	}
++	if (!ptr)
++		goto free_pool_name;
  
--	debugfs_create_file("free", S_IWUSR, cma_debugfs_root, cma,
-+	debugfs_create_file("free", S_IWUSR, tmp, cma,
- 				&cma_free_fops);
+ 	pool = gen_pool_create(min_alloc_order, nid);
+-	if (pool) {
+-		*ptr = pool;
+-		pool->name = pool_name;
+-		devres_add(dev, ptr);
+-	} else {
+-		devres_free(ptr);
+-		kfree(pool_name);
+-		return ERR_PTR(-ENOMEM);
+-	}
++	if (!pool)
++		goto free_devres;
++
++	*ptr = pool;
++	pool->name = pool_name;
++	devres_add(dev, ptr);
  
- 	debugfs_create_file("base_pfn", S_IRUGO, tmp,
+ 	return pool;
++
++free_devres:
++	devres_free(ptr);
++free_pool_name:
++	kfree_const(pool_name);
++
++	return ERR_PTR(-ENOMEM);
+ }
+ EXPORT_SYMBOL(devm_gen_pool_create);
+ 
 _
 
-Patches currently in -mm which might be from js1304@gmail.com are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
+userfaultfd-add-new-syscall-to-provide-memory-externalization-fix-fix-fix.patch
+genalloc-add-support-of-multiple-gen_pools-per-device-fix-2.patch
+linux-next.patch
 
