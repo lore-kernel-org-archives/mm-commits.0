@@ -1,103 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-change-my-email-address-to-kernelorg.patch
- removed from -mm tree
-Date: Mon, 20 Jul 2015 11:49:54 -0700
-Message-ID: <55ad42d2.nNTcDR1vvo3xSbq5%akpm@linux-foundation.org>
+Subject: [merged] openrisc-fix-config_uid16-setting.patch removed from -mm tree
+Date: Mon, 20 Jul 2015 11:49:56 -0700
+Message-ID: <55ad42d4.Kyre4HHwRvb2OvCW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34472 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34475 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752702AbbGTSty (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Jul 2015 14:49:54 -0400
+	with ESMTP id S1753249AbbGTSt5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Jul 2015 14:49:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.cz, hannes@cmpxchg.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, fengguang.wu@gmail.com, iulia.manda21@gmail.com, josh@joshtriplett.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: change mhocko's email address to kernel.org
+     Subject: openrisc: fix CONFIG_UID16 setting
 has been removed from the -mm tree.  Its filename was
-     maintainers-change-my-email-address-to-kernelorg.patch
+     openrisc-fix-config_uid16-setting.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: MAINTAINERS: change mhocko's email address to kernel.org
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: openrisc: fix CONFIG_UID16 setting
 
-I am moving from mhocko@suse.cz to mhocko@kernel.org for kernel related
-stuff.
+openrisc-allnoconfig:
 
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+kernel/uid16.c: In function 'SYSC_setgroups16':
+kernel/uid16.c:184:2: error: implicit declaration of function 'groups_alloc'
+kernel/uid16.c:184:13: warning: assignment makes pointer from integer without a cast
+
+openrisc shouldn't be setting CONFIG_UID16 when CONFIG_MULTIUSER=n.
+
+Fixes: 2813893f8b197a1 ("kernel: conditionally support non-root users, groups and capabilities")
+Reported-by: Fengguang Wu <fengguang.wu@gmail.com>
+Cc: Iulia Manda <iulia.manda21@gmail.com>
+Cc: Josh Triplett <josh@joshtriplett.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/openrisc/Kconfig |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-change-my-email-address-to-kernelorg MAINTAINERS
---- a/MAINTAINERS~maintainers-change-my-email-address-to-kernelorg
-+++ a/MAINTAINERS
-@@ -2864,7 +2864,7 @@ F:	kernel/cpuset.c
+diff -puN arch/openrisc/Kconfig~openrisc-fix-config_uid16-setting arch/openrisc/Kconfig
+--- a/arch/openrisc/Kconfig~openrisc-fix-config_uid16-setting
++++ a/arch/openrisc/Kconfig
+@@ -17,6 +17,7 @@ config OPENRISC
+ 	select GENERIC_IRQ_SHOW
+ 	select GENERIC_IOMAP
+ 	select GENERIC_CPU_DEVICES
++	select HAVE_UID16
+ 	select GENERIC_ATOMIC64
+ 	select GENERIC_CLOCKEVENTS
+ 	select GENERIC_STRNCPY_FROM_USER
+@@ -31,9 +32,6 @@ config MMU
+ config HAVE_DMA_ATTRS
+ 	def_bool y
  
- CONTROL GROUP - MEMORY RESOURCE CONTROLLER (MEMCG)
- M:	Johannes Weiner <hannes@cmpxchg.org>
--M:	Michal Hocko <mhocko@suse.cz>
-+M:	Michal Hocko <mhocko@kernel.org>
- L:	cgroups@vger.kernel.org
- L:	linux-mm@kvack.org
- S:	Maintained
+-config UID16
+-	def_bool y
+-
+ config RWSEM_GENERIC_SPINLOCK
+ 	def_bool y
+ 
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-vmscan-do-not-wait-for-page-writeback-for-gfp_nofs-allocations.patch
-mm-mlock-refactor-mlock-munlock-and-munlockall-code.patch
-mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls.patch
-mm-mlock-introduce-vm_lockonfault-and-add-mlock-flags-to-enable-it.patch
-mm-mmap-add-mmap-flag-to-request-vm_lockonfault.patch
-selftests-vm-add-tests-for-lock-on-fault.patch
-fs-do-not-prefault-sys_write-user-buffer-pages.patch
-mm-make-the-function-set_recommended_min_free_kbytes-have-a-return-type-of-void.patch
-mm-oom-organize-oom-context-into-struct.patch
-mm-oom-pass-an-oom-order-of-1-when-triggered-by-sysrq.patch
-mm-oom-do-not-panic-for-oom-kills-triggered-from-sysrq.patch
-mm-oom-add-description-of-struct-oom_control.patch
-memcg-export-struct-mem_cgroup.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+kernel-kthreadc-kthread_create_on_node-clarify-documentation.patch
+scripts-spellingtxt-adding-misspelled-word-for-check-fix.patch
+mm.patch
+userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
+userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
+userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
+genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-fix.patch
+genalloc-add-support-of-multiple-gen_pools-per-device-fix.patch
+mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested-fix.patch
+dax-revert-userfaultfd-change.patch
+thp-prepare-for-dax-huge-pages-fix.patch
+pagemap-add-mmap-exclusive-bit-for-marking-pages-mapped-only-here-fix.patch
+mm-show-proportional-swap-share-of-the-mapping-fix.patch
+mm-improve-__gfp_noretry-comment-based-on-implementation-fix.patch
 memcg-export-struct-mem_cgroup-fix.patch
 memcg-export-struct-mem_cgroup-fix-2.patch
-memcg-get-rid-of-mem_cgroup_root_css-for-config_memcg.patch
-memcg-get-rid-of-extern-for-functions-in-memcontrolh.patch
-memcg-restructure-mem_cgroup_can_attach.patch
-memcg-tcp_kmem-check-for-cg_proto-in-sock_update_memcg.patch
-page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-mm-sanitize-page-mapping-for-tail-pages.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
 mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-mm-page_isolation-check-pfn-validity-before-access.patch
-mm-support-madvisemadv_free.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
 mm-support-madvisemadv_free-fix-2.patch
-mm-dont-split-thp-page-when-syscall-is-called.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-2.patch
 mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
-mm-move-lazy-free-pages-to-inactive-list.patch
-mm-move-lazy-free-pages-to-inactive-list-fix.patch
 mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-mm-swap-zswap-maybe_preload-refactoring.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
+procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix.patch
+procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix-fix.patch
+define-kallsyms_cmp_symbol_t-as-function-type-to-simplify-the-code-fix.patch
+linux-next.patch
+linux-next-rejects.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+net-netfilter-ipset-work-around-gcc-444-initializer-bug.patch
+sound-soc-codecs-cs4349c-include-gpio-consumerh.patch
+fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+journal_add_journal_head-debug.patch
+journal_add_journal_head-debug-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
