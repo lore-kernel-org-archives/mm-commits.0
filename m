@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-slub-allow-merging-when-slab_debug_free-is-set.patch added
+Subject: + lib-show_memc-correct-reserved-memory-calculation.patch added
  to -mm tree
-Date: Mon, 20 Jul 2015 15:33:33 -0700
-Message-ID: <55ad773d.WOlyKF5lhtAikSQ9%akpm@linux-foundation.org>
+Date: Mon, 20 Jul 2015 15:49:36 -0700
+Message-ID: <55ad7b00.Ul4QzDaeJpeEqmNh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40340 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41507 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752578AbbGTWde (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Jul 2015 18:33:34 -0400
+	with ESMTP id S1757158AbbGTWth (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Jul 2015 18:49:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khlebnikov@yandex-team.ru, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: vishnu.ps@samsung.com, dpetigara@broadcom.com, iamjoonsoo.kim@lge.com, lauraa@codeaurora.org, laurent.pinchart+renesas@ideasonboard.com, m.szyprowski@samsung.com, mina86@mina86.com, sasha.levin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     From: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+     Subject: lib/show_mem.c: correct reserved memory calculation
 has been added to the -mm tree.  Its filename is
-     mm-slub-allow-merging-when-slab_debug_free-is-set.patch
+     lib-show_memc-correct-reserved-memory-calculation.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slub-allow-merging-when-slab_debug_free-is-set.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-show_memc-correct-reserved-memory-calculation.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-allow-merging-when-slab_debug_free-is-set.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-show_memc-correct-reserved-memory-calculation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,52 +39,65 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Subject: mm/slub: allow merging when SLAB_DEBUG_FREE is set
+From: Vishnu Pratap Singh <vishnu.ps@samsung.com>
+Subject: lib/show_mem.c: correct reserved memory calculation
 
-This patch fixes creation of new kmem-caches after enabling sanity_checks
-for existing mergeable kmem-caches in runtime: before that patch creation
-fails because unique name in sysfs already taken by existing kmem-cache.
+CMA reserved memory is not part of total reserved memory.
+Currently when we print the total reserve memory it considers
+cma as part of reserve memory and do minus of totalcma_pages
+from reserved, which is wrong. In cases where total reserved
+is less than cma reserved we will get negative values & while
+printing we print as unsigned and we will get a very large value.
 
-Unlike other debug options this doesn't change object layout and could be
-enabled and disabled at any time.
+Below is the show mem output on X86 ubuntu based system where
+CMA reserved is 100MB (25600 pages) & total reserved is ~40MB(10316 pages).
+And reserve memory shows a large value because of this bug.
 
-Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Acked-by: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
+Before:
+[  127.066430] 898908 pages RAM
+[  127.066432] 671682 pages HighMem/MovableOnly
+[  127.066434] 4294952012 pages reserved
+[  127.066436] 25600 pages cma reserved
+
+After:
+[   44.663129] 898908 pages RAM
+[   44.663130] 671682 pages HighMem/MovableOnly
+[   44.663130] 10316 pages reserved
+[   44.663131] 25600 pages cma reserved
+
+Signed-off-by: Vishnu Pratap Singh <vishnu.ps@samsung.com>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Cc: Sasha Levin <sasha.levin@oracle.com>
+Cc: Danesh Petigara <dpetigara@broadcom.com>
+Cc: Laura Abbott <lauraa@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab_common.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ lib/show_mem.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN mm/slab_common.c~mm-slub-allow-merging-when-slab_debug_free-is-set mm/slab_common.c
---- a/mm/slab_common.c~mm-slub-allow-merging-when-slab_debug_free-is-set
-+++ a/mm/slab_common.c
-@@ -37,8 +37,7 @@ struct kmem_cache *kmem_cache;
- 		SLAB_TRACE | SLAB_DESTROY_BY_RCU | SLAB_NOLEAKTRACE | \
- 		SLAB_FAILSLAB)
+diff -puN lib/show_mem.c~lib-show_memc-correct-reserved-memory-calculation lib/show_mem.c
+--- a/lib/show_mem.c~lib-show_memc-correct-reserved-memory-calculation
++++ a/lib/show_mem.c
+@@ -38,11 +38,9 @@ void show_mem(unsigned int filter)
  
--#define SLAB_MERGE_SAME (SLAB_DEBUG_FREE | SLAB_RECLAIM_ACCOUNT | \
--		SLAB_CACHE_DMA | SLAB_NOTRACK)
-+#define SLAB_MERGE_SAME (SLAB_RECLAIM_ACCOUNT | SLAB_CACHE_DMA | SLAB_NOTRACK)
- 
- /*
-  * Merge control. If this is set then no merging of slab caches will occur.
+ 	printk("%lu pages RAM\n", total);
+ 	printk("%lu pages HighMem/MovableOnly\n", highmem);
++	printk("%lu pages reserved\n", reserved);
+ #ifdef CONFIG_CMA
+-	printk("%lu pages reserved\n", (reserved - totalcma_pages));
+ 	printk("%lu pages cma reserved\n", totalcma_pages);
+-#else
+-	printk("%lu pages reserved\n", reserved);
+ #endif
+ #ifdef CONFIG_QUICKLIST
+ 	printk("%lu pages in pagetable cache\n",
 _
 
-Patches currently in -mm which might be from khlebnikov@yandex-team.ru are
+Patches currently in -mm which might be from vishnu.ps@samsung.com are
 
-mm-slub-allow-merging-when-slab_debug_free-is-set.patch
-mm-slub-fix-slab-double-free-in-case-of-duplicate-sysfs-filename.patch
-pagemap-check-permissions-and-capabilities-at-open-time.patch
-pagemap-switch-to-the-new-format-and-do-some-cleanup.patch
-pagemap-rework-hugetlb-and-thp-report.patch
-pagemap-hide-physical-addresses-from-non-privileged-users.patch
-pagemap-add-mmap-exclusive-bit-for-marking-pages-mapped-only-here.patch
-pagemap-add-mmap-exclusive-bit-for-marking-pages-mapped-only-here-fix.patch
-pagemap-update-documentation.patch
-linux-next.patch
+lib-show_memc-correct-reserved-memory-calculation.patch
 
