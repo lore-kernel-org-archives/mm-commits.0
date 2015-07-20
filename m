@@ -1,100 +1,112 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- revert-s390-mm-make-hugepages_supported-a-boot-time-decision.patch removed
- from -mm tree
-Date: Mon, 20 Jul 2015 11:50:01 -0700
-Message-ID: <55ad42d9.SKTvhRsqS2gkhyJ7%akpm@linux-foundation.org>
+ configfs-fix-kernel-infoleak-through-user-controlled-format-string.patch
+ removed from -mm tree
+Date: Mon, 20 Jul 2015 11:50:10 -0700
+Message-ID: <55ad42e2.PuKDzMCjn0lnl6qD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34480 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34498 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753346AbbGTSuC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Jul 2015 14:50:02 -0400
+	with ESMTP id S1753563AbbGTSuL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Jul 2015 14:50:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dingel@linux.vnet.ibm.com, borntraeger@de.ibm.com, gerald.schaefer@de.ibm.com, heiko.carstens@de.ibm.com, holzheu@linux.vnet.ibm.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: nicolas.iooss_linux@m4x.org, balbi@ti.com, gregkh@linuxfoundation.org, jlbec@evilplan.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: revert "s390/mm: make hugepages_supported a boot time decision"
+     Subject: configfs: fix kernel infoleak through user-controlled format string
 has been removed from the -mm tree.  Its filename was
-     revert-s390-mm-make-hugepages_supported-a-boot-time-decision.patch
+     configfs-fix-kernel-infoleak-through-user-controlled-format-string.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dominik Dingel <dingel@linux.vnet.ibm.com>
-Subject: revert "s390/mm: make hugepages_supported a boot time decision"
+From: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
+Subject: configfs: fix kernel infoleak through user-controlled format string
 
-Heiko noticed that the current check for hugepage support on s390 is a
-little bit to harsh as systems which do not support will crash.  The
-reason is that pageblock_order can now get negative when we set
-HPAGE_SHIFT to 0.  To avoid all this and to avoid opening another can of
-worms with enabling HUGETLB_PAGE_SIZE_VARIABLE I think it would be best to
-simply allow architectures to define their own hugepages_supported().
+Some modules call config_item_init_type_name() and
+config_group_init_type_name() with parameter "name" directly controlled by
+userspace.  These two functions call config_item_set_name() with this name
+used as a format string, which can be used to leak information such as
+content of the stack to userspace.
 
-Revert bea41197ead3e0 ("s390/mm: make hugepages_supported a boot time
-decision") in preparation.
+For example, make_netconsole_target() in netconsole module calls
+config_item_init_type_name() with the name of a newly-created directory.
+This means that the following commands give some unexpected output, with
+configfs mounted in /sys/kernel/config/ and on a system with a
+configured eth0 ethernet interface:
 
-Signed-off-by: Dominik Dingel <dingel@linux.vnet.ibm.com>
-Acked-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Michael Holzheu <holzheu@linux.vnet.ibm.com>
-Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+    # modprobe netconsole
+    # mkdir /sys/kernel/config/netconsole/target_%lx
+    # echo eth0 > /sys/kernel/config/netconsole/target_%lx/dev_name
+    # echo 1 > /sys/kernel/config/netconsole/target_%lx/enabled
+    # echo eth0 > /sys/kernel/config/netconsole/target_%lx/dev_name
+    # dmesg |tail -n1
+    [  142.697668] netconsole: target (target_ffffffffc0ae8080) is
+    enabled, disable to update parameters
+
+The directory name is correct but %lx has been interpreted in the
+internal item name, displayed here in the error message used by
+store_dev_name() in drivers/net/netconsole.c.
+
+To fix this, update every caller of config_item_set_name to use "%s"
+when operating on untrusted input.
+
+This issue was found using -Wformat-security gcc flag, once a __printf
+attribute has been added to config_item_set_name().
+
+Signed-off-by: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Acked-by: Felipe Balbi <balbi@ti.com>
+Acked-by: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/page.h |    8 ++++----
- arch/s390/kernel/setup.c     |    2 --
- arch/s390/mm/pgtable.c       |    2 --
- 3 files changed, 4 insertions(+), 8 deletions(-)
+ drivers/usb/gadget/configfs.c |    2 +-
+ fs/configfs/item.c            |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/s390/include/asm/page.h~revert-s390-mm-make-hugepages_supported-a-boot-time-decision arch/s390/include/asm/page.h
---- a/arch/s390/include/asm/page.h~revert-s390-mm-make-hugepages_supported-a-boot-time-decision
-+++ a/arch/s390/include/asm/page.h
-@@ -17,10 +17,7 @@
- #define PAGE_DEFAULT_ACC	0
- #define PAGE_DEFAULT_KEY	(PAGE_DEFAULT_ACC << 4)
+diff -puN drivers/usb/gadget/configfs.c~configfs-fix-kernel-infoleak-through-user-controlled-format-string drivers/usb/gadget/configfs.c
+--- a/drivers/usb/gadget/configfs.c~configfs-fix-kernel-infoleak-through-user-controlled-format-string
++++ a/drivers/usb/gadget/configfs.c
+@@ -571,7 +571,7 @@ static struct config_group *function_mak
+ 	if (IS_ERR(fi))
+ 		return ERR_CAST(fi);
  
--#include <asm/setup.h>
--#ifndef __ASSEMBLY__
--
--extern unsigned int HPAGE_SHIFT;
-+#define HPAGE_SHIFT	20
- #define HPAGE_SIZE	(1UL << HPAGE_SHIFT)
- #define HPAGE_MASK	(~(HPAGE_SIZE - 1))
- #define HUGETLB_PAGE_ORDER	(HPAGE_SHIFT - PAGE_SHIFT)
-@@ -30,6 +27,9 @@ extern unsigned int HPAGE_SHIFT;
- #define ARCH_HAS_PREPARE_HUGEPAGE
- #define ARCH_HAS_HUGEPAGE_CLEAR_FLUSH
- 
-+#include <asm/setup.h>
-+#ifndef __ASSEMBLY__
-+
- static inline void storage_key_init_range(unsigned long start, unsigned long end)
+-	ret = config_item_set_name(&fi->group.cg_item, name);
++	ret = config_item_set_name(&fi->group.cg_item, "%s", name);
+ 	if (ret) {
+ 		usb_put_function_instance(fi);
+ 		return ERR_PTR(ret);
+diff -puN fs/configfs/item.c~configfs-fix-kernel-infoleak-through-user-controlled-format-string fs/configfs/item.c
+--- a/fs/configfs/item.c~configfs-fix-kernel-infoleak-through-user-controlled-format-string
++++ a/fs/configfs/item.c
+@@ -115,7 +115,7 @@ void config_item_init_type_name(struct c
+ 				const char *name,
+ 				struct config_item_type *type)
  {
- #if PAGE_DEFAULT_KEY
-diff -puN arch/s390/kernel/setup.c~revert-s390-mm-make-hugepages_supported-a-boot-time-decision arch/s390/kernel/setup.c
---- a/arch/s390/kernel/setup.c~revert-s390-mm-make-hugepages_supported-a-boot-time-decision
-+++ a/arch/s390/kernel/setup.c
-@@ -885,8 +885,6 @@ void __init setup_arch(char **cmdline_p)
- 	 */
- 	setup_hwcaps();
- 
--	HPAGE_SHIFT = MACHINE_HAS_HPAGE ? 20 : 0;
--
- 	/*
- 	 * Create kernel page tables and switch to virtual addressing.
- 	 */
-diff -puN arch/s390/mm/pgtable.c~revert-s390-mm-make-hugepages_supported-a-boot-time-decision arch/s390/mm/pgtable.c
---- a/arch/s390/mm/pgtable.c~revert-s390-mm-make-hugepages_supported-a-boot-time-decision
-+++ a/arch/s390/mm/pgtable.c
-@@ -31,8 +31,6 @@
- #define ALLOC_ORDER	2
- #define FRAG_MASK	0x03
- 
--unsigned int HPAGE_SHIFT;
+-	config_item_set_name(item, name);
++	config_item_set_name(item, "%s", name);
+ 	item->ci_type = type;
+ 	config_item_init(item);
+ }
+@@ -124,7 +124,7 @@ EXPORT_SYMBOL(config_item_init_type_name
+ void config_group_init_type_name(struct config_group *group, const char *name,
+ 			 struct config_item_type *type)
+ {
+-	config_item_set_name(&group->cg_item, name);
++	config_item_set_name(&group->cg_item, "%s", name);
+ 	group->cg_item.ci_type = type;
+ 	config_group_init(group);
+ }
+_
+
+Patches currently in -mm which might be from nicolas.iooss_linux@m4x.org are
+
+linux-next.patch
+
