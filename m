@@ -1,83 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: [merged] revert-s390-mm-change-hpage_shift-type-to-int.patch
+Subject: [merged] maintainers-change-my-email-address-to-kernelorg.patch
  removed from -mm tree
-Date: Mon, 20 Jul 2015 11:49:58 -0700
-Message-ID: <55ad42d6.LhcUb3cqZpwvh7FA%akpm@linux-foundation.org>
+Date: Mon, 20 Jul 2015 11:49:54 -0700
+Message-ID: <55ad42d2.nNTcDR1vvo3xSbq5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34477 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34472 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751461AbbGTSt7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Jul 2015 14:49:59 -0400
+	with ESMTP id S1752702AbbGTSty (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Jul 2015 14:49:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dingel@linux.vnet.ibm.com, borntraeger@de.ibm.com, gerald.schaefer@de.ibm.com, heiko.carstens@de.ibm.com, holzheu@linux.vnet.ibm.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: mhocko@suse.cz, hannes@cmpxchg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: revert "s390/mm: change HPAGE_SHIFT type to int"
+     Subject: MAINTAINERS: change mhocko's email address to kernel.org
 has been removed from the -mm tree.  Its filename was
-     revert-s390-mm-change-hpage_shift-type-to-int.patch
+     maintainers-change-my-email-address-to-kernelorg.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dominik Dingel <dingel@linux.vnet.ibm.com>
-Subject: revert "s390/mm: change HPAGE_SHIFT type to int"
+From: Michal Hocko <mhocko@suse.cz>
+Subject: MAINTAINERS: change mhocko's email address to kernel.org
 
-Heiko noticed that the current check for hugepage support on s390 is a
-little bit to harsh as systems which do not support will crash.  The
-reason is that pageblock_order can now get negative when we set
-HPAGE_SHIFT to 0.  To avoid all this and to avoid opening another can of
-worms with enabling HUGETLB_PAGE_SIZE_VARIABLE I think it would be best to
-simply allow architectures to define their own hugepages_supported().
+I am moving from mhocko@suse.cz to mhocko@kernel.org for kernel related
+stuff.
 
-
-This patch (of 4): revert commit cf54e2fce51c7a ("s390/mm: change
-HPAGE_SHIFT type to int") in preparation.
-
-Signed-off-by: Dominik Dingel <dingel@linux.vnet.ibm.com>
-Acked-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Michael Holzheu <holzheu@linux.vnet.ibm.com>
-Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Signed-off-by: Michal Hocko <mhocko@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/page.h |    2 +-
- arch/s390/mm/pgtable.c       |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/s390/include/asm/page.h~revert-s390-mm-change-hpage_shift-type-to-int arch/s390/include/asm/page.h
---- a/arch/s390/include/asm/page.h~revert-s390-mm-change-hpage_shift-type-to-int
-+++ a/arch/s390/include/asm/page.h
-@@ -20,7 +20,7 @@
- #include <asm/setup.h>
- #ifndef __ASSEMBLY__
+diff -puN MAINTAINERS~maintainers-change-my-email-address-to-kernelorg MAINTAINERS
+--- a/MAINTAINERS~maintainers-change-my-email-address-to-kernelorg
++++ a/MAINTAINERS
+@@ -2864,7 +2864,7 @@ F:	kernel/cpuset.c
  
--extern int HPAGE_SHIFT;
-+extern unsigned int HPAGE_SHIFT;
- #define HPAGE_SIZE	(1UL << HPAGE_SHIFT)
- #define HPAGE_MASK	(~(HPAGE_SIZE - 1))
- #define HUGETLB_PAGE_ORDER	(HPAGE_SHIFT - PAGE_SHIFT)
-diff -puN arch/s390/mm/pgtable.c~revert-s390-mm-change-hpage_shift-type-to-int arch/s390/mm/pgtable.c
---- a/arch/s390/mm/pgtable.c~revert-s390-mm-change-hpage_shift-type-to-int
-+++ a/arch/s390/mm/pgtable.c
-@@ -31,7 +31,7 @@
- #define ALLOC_ORDER	2
- #define FRAG_MASK	0x03
- 
--int HPAGE_SHIFT;
-+unsigned int HPAGE_SHIFT;
- 
- unsigned long *crst_table_alloc(struct mm_struct *mm)
- {
+ CONTROL GROUP - MEMORY RESOURCE CONTROLLER (MEMCG)
+ M:	Johannes Weiner <hannes@cmpxchg.org>
+-M:	Michal Hocko <mhocko@suse.cz>
++M:	Michal Hocko <mhocko@kernel.org>
+ L:	cgroups@vger.kernel.org
+ L:	linux-mm@kvack.org
+ S:	Maintained
 _
 
-Patches currently in -mm which might be from dingel@linux.vnet.ibm.com are
+Patches currently in -mm which might be from mhocko@suse.cz are
 
+mm-vmscan-do-not-wait-for-page-writeback-for-gfp_nofs-allocations.patch
+mm-mlock-refactor-mlock-munlock-and-munlockall-code.patch
+mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls.patch
+mm-mlock-introduce-vm_lockonfault-and-add-mlock-flags-to-enable-it.patch
+mm-mmap-add-mmap-flag-to-request-vm_lockonfault.patch
+selftests-vm-add-tests-for-lock-on-fault.patch
+fs-do-not-prefault-sys_write-user-buffer-pages.patch
+mm-make-the-function-set_recommended_min_free_kbytes-have-a-return-type-of-void.patch
+mm-oom-organize-oom-context-into-struct.patch
+mm-oom-pass-an-oom-order-of-1-when-triggered-by-sysrq.patch
+mm-oom-do-not-panic-for-oom-kills-triggered-from-sysrq.patch
+mm-oom-add-description-of-struct-oom_control.patch
+memcg-export-struct-mem_cgroup.patch
+memcg-export-struct-mem_cgroup-fix.patch
+memcg-export-struct-mem_cgroup-fix-2.patch
+memcg-get-rid-of-mem_cgroup_root_css-for-config_memcg.patch
+memcg-get-rid-of-extern-for-functions-in-memcontrolh.patch
+memcg-restructure-mem_cgroup_can_attach.patch
+memcg-tcp_kmem-check-for-cg_proto-in-sock_update_memcg.patch
+page-flags-trivial-cleanup-for-pagetrans-helpers.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
+page-flags-define-pg_locked-behavior-on-compound-pages.patch
+page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
+page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
+page-flags-define-pg_reserved-behavior-on-compound-pages.patch
+page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
+page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
+page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
+page-flags-define-pg_uncached-behavior-on-compound-pages.patch
+page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
+page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
+mm-sanitize-page-mapping-for-tail-pages.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+mm-page_isolation-check-pfn-validity-before-access.patch
+mm-support-madvisemadv_free.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-dont-split-thp-page-when-syscall-is-called.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-2.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
+mm-move-lazy-free-pages-to-inactive-list.patch
+mm-move-lazy-free-pages-to-inactive-list-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+mm-swap-zswap-maybe_preload-refactoring.patch
 
