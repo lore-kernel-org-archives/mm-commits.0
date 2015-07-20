@@ -1,113 +1,1017 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-page_owner-fix-possible-access-violation.patch
+Subject: [merged] mm-cleaning-per-architecture-mm-hook-header-files.patch
  removed from -mm tree
-Date: Mon, 20 Jul 2015 11:50:33 -0700
-Message-ID: <55ad42f9.8WRUGtdihEcyKm/a%akpm@linux-foundation.org>
+Date: Mon, 20 Jul 2015 11:50:20 -0700
+Message-ID: <55ad42ec.BKFBIPZ0bmg5mCvV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34542 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34514 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754072AbbGTSue (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Jul 2015 14:50:34 -0400
+	with ESMTP id S1753627AbbGTSuV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Jul 2015 14:50:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: js1304@gmail.com, iamjoonsoo.kim@lge.com, mgorman@suse.de, minchan@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: ldufour@linux.vnet.ibm.com, geert@linux-m68k.org, oleg@redhat.com, vgupta@synopsys.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_owner: fix possible access violation
+     Subject: mm: clean up per architecture MM hook header files
 has been removed from the -mm tree.  Its filename was
-     mm-page_owner-fix-possible-access-violation.patch
+     mm-cleaning-per-architecture-mm-hook-header-files.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joonsoo Kim <js1304@gmail.com>
-Subject: mm/page_owner: fix possible access violation
+From: Laurent Dufour <ldufour@linux.vnet.ibm.com>
+Subject: mm: clean up per architecture MM hook header files
 
-When I tested my new patches, I found that page pointer which is used for
-setting page_owner information is changed.  This is because page pointer
-is used to set new migratetype in loop.  After this work, page pointer
-could be out of bound.  If this wrong pointer is used for page_owner,
-access violation happens.  Below is error message that I got.
+Commit 2ae416b142b6 ("mm: new mm hook framework") introduced an empty
+header file (mm-arch-hooks.h) for every architecture, even those which
+doesn't need to define mm hooks.
 
-[ 6175.025217] BUG: unable to handle kernel paging request at 0000000000b00018
-[ 6175.026400] IP: [<ffffffff81025f30>] save_stack_address+0x30/0x40
-[ 6175.027341] PGD 1af2d067 PUD 166e0067 PMD 0
-[ 6175.028129] Oops: 0002 [#1] SMP
-snip...
-[ 6175.055349] Call Trace:
-[ 6175.055780]  [<ffffffff81018c0f>] print_context_stack+0xcf/0x100
-[ 6175.056794]  [<ffffffff810f8552>] ? __module_text_address+0x12/0x70
-[ 6175.057848]  [<ffffffff810177cf>] dump_trace+0x15f/0x320
-[ 6175.058751]  [<ffffffff8106b140>] ? do_flush_tlb_all+0x50/0x50
-[ 6175.059732]  [<ffffffff810f5529>] ? smp_call_function_single+0xb9/0x120
-[ 6175.060856]  [<ffffffff81025e3f>] save_stack_trace+0x2f/0x50
-[ 6175.061812]  [<ffffffff811e3366>] __set_page_owner+0x46/0x70
-[ 6175.062774]  [<ffffffff8117bd47>] __isolate_free_page+0x1f7/0x210
-[ 6175.063804]  [<ffffffff8117bd81>] split_free_page+0x21/0xb0
-[ 6175.064757]  [<ffffffff8119aa82>] isolate_freepages_block+0x1e2/0x410
-[ 6175.065855]  [<ffffffff8119b53d>] compaction_alloc+0x22d/0x2d0
-[ 6175.066850]  [<ffffffff811d3779>] migrate_pages+0x289/0x8b0
-[ 6175.067798]  [<ffffffff8119c16a>] ? isolate_migratepages_block+0x28a/0x6e0
-[ 6175.068960]  [<ffffffff8119a000>] ? kmalloc_slab+0xa0/0xa0
-[ 6175.069892]  [<ffffffff8119b310>] ? ftrace_raw_event_mm_compaction_deplete_template+0xc0/0xc0
-[ 6175.071327]  [<ffffffff8119ce49>] compact_zone+0x409/0x880
-[ 6175.072261]  [<ffffffff8119d32d>] compact_zone_order+0x6d/0x90
-[ 6175.073250]  [<ffffffff8119d5d0>] try_to_compact_pages+0x110/0x210
-[ 6175.074297]  [<ffffffff8176e9e8>] __alloc_pages_direct_compact+0x3d/0xe6
-[ 6175.075427]  [<ffffffff8117d42d>] __alloc_pages_nodemask+0x6cd/0x9a0
-[ 6175.076517]  [<ffffffff811c2bf1>] alloc_pages_current+0x91/0x100
-[ 6175.077545]  [<ffffffff811e7216>] runtest_store+0x296/0xa50
-[ 6175.078497]  [<ffffffff813a553c>] ? simple_strtoull+0x2c/0x50
-[ 6175.079465]  [<ffffffff812130bd>] simple_attr_write+0xbd/0xe0
-[ 6175.080458]  [<ffffffff811eb038>] __vfs_write+0x28/0xf0
-[ 6175.081349]  [<ffffffff811edc39>] ? __sb_start_write+0x49/0xf0
-[ 6175.082345]  [<ffffffff8130fe25>] ? security_file_permission+0x45/0xd0
-[ 6175.083453]  [<ffffffff811eb729>] vfs_write+0xa9/0x1b0
-[ 6175.084334]  [<ffffffff811ec4f6>] SyS_write+0x46/0xb0
-[ 6175.085196]  [<ffffffff81172803>] ? context_tracking_user_enter+0x13/0x20
-[ 6175.086339]  [<ffffffff81024c55>] ? syscall_trace_leave+0xa5/0x120
-[ 6175.087389]  [<ffffffff81779472>] system_call_fastpath+0x16/0x75
+As suggested by Geert Uytterhoeven, this could be cleaned through the use
+of a generic header file included via each per architecture
+asm/include/Kbuild file.
 
-This patch fixes this error by moving up set_page_owner().
+The PowerPC architecture is not impacted here since this architecture has
+to defined the arch_remap MM hook.
 
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Minchan Kim <minchan@kernel.org>
+Signed-off-by: Laurent Dufour <ldufour@linux.vnet.ibm.com>
+Suggested-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Acked-by: Vineet Gupta <vgupta@synopsys.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ arch/alpha/include/asm/Kbuild               |    1 +
+ arch/alpha/include/asm/mm-arch-hooks.h      |   15 ---------------
+ arch/arc/include/asm/Kbuild                 |    1 +
+ arch/arc/include/asm/mm-arch-hooks.h        |   15 ---------------
+ arch/arm/include/asm/Kbuild                 |    1 +
+ arch/arm/include/asm/mm-arch-hooks.h        |   15 ---------------
+ arch/arm64/include/asm/Kbuild               |    1 +
+ arch/arm64/include/asm/mm-arch-hooks.h      |   15 ---------------
+ arch/avr32/include/asm/Kbuild               |    1 +
+ arch/avr32/include/asm/mm-arch-hooks.h      |   15 ---------------
+ arch/blackfin/include/asm/Kbuild            |    1 +
+ arch/blackfin/include/asm/mm-arch-hooks.h   |   15 ---------------
+ arch/c6x/include/asm/Kbuild                 |    1 +
+ arch/c6x/include/asm/mm-arch-hooks.h        |   15 ---------------
+ arch/cris/include/asm/Kbuild                |    1 +
+ arch/cris/include/asm/mm-arch-hooks.h       |   15 ---------------
+ arch/frv/include/asm/Kbuild                 |    1 +
+ arch/frv/include/asm/mm-arch-hooks.h        |   15 ---------------
+ arch/h8300/include/asm/Kbuild               |    1 +
+ arch/hexagon/include/asm/Kbuild             |    1 +
+ arch/hexagon/include/asm/mm-arch-hooks.h    |   15 ---------------
+ arch/ia64/include/asm/Kbuild                |    1 +
+ arch/ia64/include/asm/mm-arch-hooks.h       |   15 ---------------
+ arch/m32r/include/asm/Kbuild                |    1 +
+ arch/m32r/include/asm/mm-arch-hooks.h       |   15 ---------------
+ arch/m68k/include/asm/Kbuild                |    1 +
+ arch/m68k/include/asm/mm-arch-hooks.h       |   15 ---------------
+ arch/metag/include/asm/Kbuild               |    1 +
+ arch/metag/include/asm/mm-arch-hooks.h      |   15 ---------------
+ arch/microblaze/include/asm/Kbuild          |    1 +
+ arch/microblaze/include/asm/mm-arch-hooks.h |   15 ---------------
+ arch/mips/include/asm/Kbuild                |    1 +
+ arch/mips/include/asm/mm-arch-hooks.h       |   15 ---------------
+ arch/mn10300/include/asm/Kbuild             |    1 +
+ arch/mn10300/include/asm/mm-arch-hooks.h    |   15 ---------------
+ arch/nios2/include/asm/Kbuild               |    1 +
+ arch/nios2/include/asm/mm-arch-hooks.h      |   15 ---------------
+ arch/openrisc/include/asm/Kbuild            |    1 +
+ arch/openrisc/include/asm/mm-arch-hooks.h   |   15 ---------------
+ arch/parisc/include/asm/Kbuild              |    1 +
+ arch/parisc/include/asm/mm-arch-hooks.h     |   15 ---------------
+ arch/s390/include/asm/Kbuild                |    1 +
+ arch/s390/include/asm/mm-arch-hooks.h       |   15 ---------------
+ arch/score/include/asm/Kbuild               |    1 +
+ arch/score/include/asm/mm-arch-hooks.h      |   15 ---------------
+ arch/sh/include/asm/Kbuild                  |    1 +
+ arch/sh/include/asm/mm-arch-hooks.h         |   15 ---------------
+ arch/sparc/include/asm/Kbuild               |    1 +
+ arch/sparc/include/asm/mm-arch-hooks.h      |   15 ---------------
+ arch/tile/include/asm/Kbuild                |    1 +
+ arch/tile/include/asm/mm-arch-hooks.h       |   15 ---------------
+ arch/um/include/asm/Kbuild                  |    1 +
+ arch/um/include/asm/mm-arch-hooks.h         |   15 ---------------
+ arch/unicore32/include/asm/Kbuild           |    1 +
+ arch/unicore32/include/asm/mm-arch-hooks.h  |   15 ---------------
+ arch/x86/include/asm/Kbuild                 |    1 +
+ arch/x86/include/asm/mm-arch-hooks.h        |   15 ---------------
+ arch/xtensa/include/asm/Kbuild              |    1 +
+ arch/xtensa/include/asm/mm-arch-hooks.h     |   15 ---------------
+ include/asm-generic/mm-arch-hooks.h         |   16 ++++++++++++++++
+ 60 files changed, 46 insertions(+), 435 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_owner-fix-possible-access-violation mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_owner-fix-possible-access-violation
-+++ a/mm/page_alloc.c
-@@ -1994,6 +1994,8 @@ int __isolate_free_page(struct page *pag
- 	zone->free_area[order].nr_free--;
- 	rmv_page_order(page);
- 
-+	set_page_owner(page, order, 0);
+diff -puN arch/alpha/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files arch/alpha/include/asm/Kbuild
+--- a/arch/alpha/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files
++++ a/arch/alpha/include/asm/Kbuild
+@@ -5,6 +5,7 @@ generic-y += cputime.h
+ generic-y += exec.h
+ generic-y += irq_work.h
+ generic-y += mcs_spinlock.h
++generic-y += mm-arch-hooks.h
+ generic-y += preempt.h
+ generic-y += sections.h
+ generic-y += trace_clock.h
+diff -puN arch/alpha/include/asm/mm-arch-hooks.h~mm-cleaning-per-architecture-mm-hook-header-files /dev/null
+--- a/arch/alpha/include/asm/mm-arch-hooks.h
++++ /dev/null
+@@ -1,15 +0,0 @@
+-/*
+- * Architecture specific mm hooks
+- *
+- * Copyright (C) 2015, IBM Corporation
+- * Author: Laurent Dufour <ldufour@linux.vnet.ibm.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#ifndef _ASM_ALPHA_MM_ARCH_HOOKS_H
+-#define _ASM_ALPHA_MM_ARCH_HOOKS_H
+-
+-#endif /* _ASM_ALPHA_MM_ARCH_HOOKS_H */
+diff -puN arch/arc/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files arch/arc/include/asm/Kbuild
+--- a/arch/arc/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files
++++ a/arch/arc/include/asm/Kbuild
+@@ -22,6 +22,7 @@ generic-y += kvm_para.h
+ generic-y += local.h
+ generic-y += local64.h
+ generic-y += mcs_spinlock.h
++generic-y += mm-arch-hooks.h
+ generic-y += mman.h
+ generic-y += msgbuf.h
+ generic-y += param.h
+diff -puN arch/arc/include/asm/mm-arch-hooks.h~mm-cleaning-per-architecture-mm-hook-header-files /dev/null
+--- a/arch/arc/include/asm/mm-arch-hooks.h
++++ /dev/null
+@@ -1,15 +0,0 @@
+-/*
+- * Architecture specific mm hooks
+- *
+- * Copyright (C) 2015, IBM Corporation
+- * Author: Laurent Dufour <ldufour@linux.vnet.ibm.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#ifndef _ASM_ARC_MM_ARCH_HOOKS_H
+-#define _ASM_ARC_MM_ARCH_HOOKS_H
+-
+-#endif /* _ASM_ARC_MM_ARCH_HOOKS_H */
+diff -puN arch/arm/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files arch/arm/include/asm/Kbuild
+--- a/arch/arm/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files
++++ a/arch/arm/include/asm/Kbuild
+@@ -13,6 +13,7 @@ generic-y += kdebug.h
+ generic-y += local.h
+ generic-y += local64.h
+ generic-y += mcs_spinlock.h
++generic-y += mm-arch-hooks.h
+ generic-y += msgbuf.h
+ generic-y += param.h
+ generic-y += parport.h
+diff -puN arch/arm/include/asm/mm-arch-hooks.h~mm-cleaning-per-architecture-mm-hook-header-files /dev/null
+--- a/arch/arm/include/asm/mm-arch-hooks.h
++++ /dev/null
+@@ -1,15 +0,0 @@
+-/*
+- * Architecture specific mm hooks
+- *
+- * Copyright (C) 2015, IBM Corporation
+- * Author: Laurent Dufour <ldufour@linux.vnet.ibm.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#ifndef _ASM_ARM_MM_ARCH_HOOKS_H
+-#define _ASM_ARM_MM_ARCH_HOOKS_H
+-
+-#endif /* _ASM_ARM_MM_ARCH_HOOKS_H */
+diff -puN arch/arm64/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files arch/arm64/include/asm/Kbuild
+--- a/arch/arm64/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files
++++ a/arch/arm64/include/asm/Kbuild
+@@ -25,6 +25,7 @@ generic-y += kvm_para.h
+ generic-y += local.h
+ generic-y += local64.h
+ generic-y += mcs_spinlock.h
++generic-y += mm-arch-hooks.h
+ generic-y += mman.h
+ generic-y += msgbuf.h
+ generic-y += msi.h
+diff -puN arch/arm64/include/asm/mm-arch-hooks.h~mm-cleaning-per-architecture-mm-hook-header-files /dev/null
+--- a/arch/arm64/include/asm/mm-arch-hooks.h
++++ /dev/null
+@@ -1,15 +0,0 @@
+-/*
+- * Architecture specific mm hooks
+- *
+- * Copyright (C) 2015, IBM Corporation
+- * Author: Laurent Dufour <ldufour@linux.vnet.ibm.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#ifndef _ASM_ARM64_MM_ARCH_HOOKS_H
+-#define _ASM_ARM64_MM_ARCH_HOOKS_H
+-
+-#endif /* _ASM_ARM64_MM_ARCH_HOOKS_H */
+diff -puN arch/avr32/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files arch/avr32/include/asm/Kbuild
+--- a/arch/avr32/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files
++++ a/arch/avr32/include/asm/Kbuild
+@@ -12,6 +12,7 @@ generic-y += irq_work.h
+ generic-y += local.h
+ generic-y += local64.h
+ generic-y += mcs_spinlock.h
++generic-y += mm-arch-hooks.h
+ generic-y += param.h
+ generic-y += percpu.h
+ generic-y += preempt.h
+diff -puN arch/avr32/include/asm/mm-arch-hooks.h~mm-cleaning-per-architecture-mm-hook-header-files /dev/null
+--- a/arch/avr32/include/asm/mm-arch-hooks.h
++++ /dev/null
+@@ -1,15 +0,0 @@
+-/*
+- * Architecture specific mm hooks
+- *
+- * Copyright (C) 2015, IBM Corporation
+- * Author: Laurent Dufour <ldufour@linux.vnet.ibm.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#ifndef _ASM_AVR32_MM_ARCH_HOOKS_H
+-#define _ASM_AVR32_MM_ARCH_HOOKS_H
+-
+-#endif /* _ASM_AVR32_MM_ARCH_HOOKS_H */
+diff -puN arch/blackfin/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files arch/blackfin/include/asm/Kbuild
+--- a/arch/blackfin/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files
++++ a/arch/blackfin/include/asm/Kbuild
+@@ -21,6 +21,7 @@ generic-y += kvm_para.h
+ generic-y += local.h
+ generic-y += local64.h
+ generic-y += mcs_spinlock.h
++generic-y += mm-arch-hooks.h
+ generic-y += mman.h
+ generic-y += msgbuf.h
+ generic-y += mutex.h
+diff -puN arch/blackfin/include/asm/mm-arch-hooks.h~mm-cleaning-per-architecture-mm-hook-header-files /dev/null
+--- a/arch/blackfin/include/asm/mm-arch-hooks.h
++++ /dev/null
+@@ -1,15 +0,0 @@
+-/*
+- * Architecture specific mm hooks
+- *
+- * Copyright (C) 2015, IBM Corporation
+- * Author: Laurent Dufour <ldufour@linux.vnet.ibm.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#ifndef _ASM_BLACKFIN_MM_ARCH_HOOKS_H
+-#define _ASM_BLACKFIN_MM_ARCH_HOOKS_H
+-
+-#endif /* _ASM_BLACKFIN_MM_ARCH_HOOKS_H */
+diff -puN arch/c6x/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files arch/c6x/include/asm/Kbuild
+--- a/arch/c6x/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files
++++ a/arch/c6x/include/asm/Kbuild
+@@ -26,6 +26,7 @@ generic-y += kdebug.h
+ generic-y += kmap_types.h
+ generic-y += local.h
+ generic-y += mcs_spinlock.h
++generic-y += mm-arch-hooks.h
+ generic-y += mman.h
+ generic-y += mmu.h
+ generic-y += mmu_context.h
+diff -puN arch/c6x/include/asm/mm-arch-hooks.h~mm-cleaning-per-architecture-mm-hook-header-files /dev/null
+--- a/arch/c6x/include/asm/mm-arch-hooks.h
++++ /dev/null
+@@ -1,15 +0,0 @@
+-/*
+- * Architecture specific mm hooks
+- *
+- * Copyright (C) 2015, IBM Corporation
+- * Author: Laurent Dufour <ldufour@linux.vnet.ibm.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#ifndef _ASM_C6X_MM_ARCH_HOOKS_H
+-#define _ASM_C6X_MM_ARCH_HOOKS_H
+-
+-#endif /* _ASM_C6X_MM_ARCH_HOOKS_H */
+diff -puN arch/cris/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files arch/cris/include/asm/Kbuild
+--- a/arch/cris/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files
++++ a/arch/cris/include/asm/Kbuild
+@@ -18,6 +18,7 @@ generic-y += linkage.h
+ generic-y += local.h
+ generic-y += local64.h
+ generic-y += mcs_spinlock.h
++generic-y += mm-arch-hooks.h
+ generic-y += module.h
+ generic-y += percpu.h
+ generic-y += preempt.h
+diff -puN arch/cris/include/asm/mm-arch-hooks.h~mm-cleaning-per-architecture-mm-hook-header-files /dev/null
+--- a/arch/cris/include/asm/mm-arch-hooks.h
++++ /dev/null
+@@ -1,15 +0,0 @@
+-/*
+- * Architecture specific mm hooks
+- *
+- * Copyright (C) 2015, IBM Corporation
+- * Author: Laurent Dufour <ldufour@linux.vnet.ibm.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#ifndef _ASM_CRIS_MM_ARCH_HOOKS_H
+-#define _ASM_CRIS_MM_ARCH_HOOKS_H
+-
+-#endif /* _ASM_CRIS_MM_ARCH_HOOKS_H */
+diff -puN arch/frv/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files arch/frv/include/asm/Kbuild
+--- a/arch/frv/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files
++++ a/arch/frv/include/asm/Kbuild
+@@ -4,5 +4,6 @@ generic-y += cputime.h
+ generic-y += exec.h
+ generic-y += irq_work.h
+ generic-y += mcs_spinlock.h
++generic-y += mm-arch-hooks.h
+ generic-y += preempt.h
+ generic-y += trace_clock.h
+diff -puN arch/frv/include/asm/mm-arch-hooks.h~mm-cleaning-per-architecture-mm-hook-header-files /dev/null
+--- a/arch/frv/include/asm/mm-arch-hooks.h
++++ /dev/null
+@@ -1,15 +0,0 @@
+-/*
+- * Architecture specific mm hooks
+- *
+- * Copyright (C) 2015, IBM Corporation
+- * Author: Laurent Dufour <ldufour@linux.vnet.ibm.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#ifndef _ASM_FRV_MM_ARCH_HOOKS_H
+-#define _ASM_FRV_MM_ARCH_HOOKS_H
+-
+-#endif /* _ASM_FRV_MM_ARCH_HOOKS_H */
+diff -puN arch/h8300/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files arch/h8300/include/asm/Kbuild
+--- a/arch/h8300/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files
++++ a/arch/h8300/include/asm/Kbuild
+@@ -33,6 +33,7 @@ generic-y += linkage.h
+ generic-y += local.h
+ generic-y += local64.h
+ generic-y += mcs_spinlock.h
++generic-y += mm-arch-hooks.h
+ generic-y += mman.h
+ generic-y += mmu.h
+ generic-y += mmu_context.h
+diff -puN arch/hexagon/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files arch/hexagon/include/asm/Kbuild
+--- a/arch/hexagon/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files
++++ a/arch/hexagon/include/asm/Kbuild
+@@ -28,6 +28,7 @@ generic-y += kmap_types.h
+ generic-y += local.h
+ generic-y += local64.h
+ generic-y += mcs_spinlock.h
++generic-y += mm-arch-hooks.h
+ generic-y += mman.h
+ generic-y += msgbuf.h
+ generic-y += pci.h
+diff -puN arch/hexagon/include/asm/mm-arch-hooks.h~mm-cleaning-per-architecture-mm-hook-header-files /dev/null
+--- a/arch/hexagon/include/asm/mm-arch-hooks.h
++++ /dev/null
+@@ -1,15 +0,0 @@
+-/*
+- * Architecture specific mm hooks
+- *
+- * Copyright (C) 2015, IBM Corporation
+- * Author: Laurent Dufour <ldufour@linux.vnet.ibm.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#ifndef _ASM_HEXAGON_MM_ARCH_HOOKS_H
+-#define _ASM_HEXAGON_MM_ARCH_HOOKS_H
+-
+-#endif /* _ASM_HEXAGON_MM_ARCH_HOOKS_H */
+diff -puN arch/ia64/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files arch/ia64/include/asm/Kbuild
+--- a/arch/ia64/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files
++++ a/arch/ia64/include/asm/Kbuild
+@@ -4,6 +4,7 @@ generic-y += exec.h
+ generic-y += irq_work.h
+ generic-y += kvm_para.h
+ generic-y += mcs_spinlock.h
++generic-y += mm-arch-hooks.h
+ generic-y += preempt.h
+ generic-y += trace_clock.h
+ generic-y += vtime.h
+diff -puN arch/ia64/include/asm/mm-arch-hooks.h~mm-cleaning-per-architecture-mm-hook-header-files /dev/null
+--- a/arch/ia64/include/asm/mm-arch-hooks.h
++++ /dev/null
+@@ -1,15 +0,0 @@
+-/*
+- * Architecture specific mm hooks
+- *
+- * Copyright (C) 2015, IBM Corporation
+- * Author: Laurent Dufour <ldufour@linux.vnet.ibm.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#ifndef _ASM_IA64_MM_ARCH_HOOKS_H
+-#define _ASM_IA64_MM_ARCH_HOOKS_H
+-
+-#endif /* _ASM_IA64_MM_ARCH_HOOKS_H */
+diff -puN arch/m32r/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files arch/m32r/include/asm/Kbuild
+--- a/arch/m32r/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files
++++ a/arch/m32r/include/asm/Kbuild
+@@ -4,6 +4,7 @@ generic-y += cputime.h
+ generic-y += exec.h
+ generic-y += irq_work.h
+ generic-y += mcs_spinlock.h
++generic-y += mm-arch-hooks.h
+ generic-y += module.h
+ generic-y += preempt.h
+ generic-y += sections.h
+diff -puN arch/m32r/include/asm/mm-arch-hooks.h~mm-cleaning-per-architecture-mm-hook-header-files /dev/null
+--- a/arch/m32r/include/asm/mm-arch-hooks.h
++++ /dev/null
+@@ -1,15 +0,0 @@
+-/*
+- * Architecture specific mm hooks
+- *
+- * Copyright (C) 2015, IBM Corporation
+- * Author: Laurent Dufour <ldufour@linux.vnet.ibm.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#ifndef _ASM_M32R_MM_ARCH_HOOKS_H
+-#define _ASM_M32R_MM_ARCH_HOOKS_H
+-
+-#endif /* _ASM_M32R_MM_ARCH_HOOKS_H */
+diff -puN arch/m68k/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files arch/m68k/include/asm/Kbuild
+--- a/arch/m68k/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files
++++ a/arch/m68k/include/asm/Kbuild
+@@ -18,6 +18,7 @@ generic-y += kvm_para.h
+ generic-y += local.h
+ generic-y += local64.h
+ generic-y += mcs_spinlock.h
++generic-y += mm-arch-hooks.h
+ generic-y += mman.h
+ generic-y += mutex.h
+ generic-y += percpu.h
+diff -puN arch/m68k/include/asm/mm-arch-hooks.h~mm-cleaning-per-architecture-mm-hook-header-files /dev/null
+--- a/arch/m68k/include/asm/mm-arch-hooks.h
++++ /dev/null
+@@ -1,15 +0,0 @@
+-/*
+- * Architecture specific mm hooks
+- *
+- * Copyright (C) 2015, IBM Corporation
+- * Author: Laurent Dufour <ldufour@linux.vnet.ibm.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#ifndef _ASM_M68K_MM_ARCH_HOOKS_H
+-#define _ASM_M68K_MM_ARCH_HOOKS_H
+-
+-#endif /* _ASM_M68K_MM_ARCH_HOOKS_H */
+diff -puN arch/metag/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files arch/metag/include/asm/Kbuild
+--- a/arch/metag/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files
++++ a/arch/metag/include/asm/Kbuild
+@@ -25,6 +25,7 @@ generic-y += kvm_para.h
+ generic-y += local.h
+ generic-y += local64.h
+ generic-y += mcs_spinlock.h
++generic-y += mm-arch-hooks.h
+ generic-y += msgbuf.h
+ generic-y += mutex.h
+ generic-y += param.h
+diff -puN arch/metag/include/asm/mm-arch-hooks.h~mm-cleaning-per-architecture-mm-hook-header-files /dev/null
+--- a/arch/metag/include/asm/mm-arch-hooks.h
++++ /dev/null
+@@ -1,15 +0,0 @@
+-/*
+- * Architecture specific mm hooks
+- *
+- * Copyright (C) 2015, IBM Corporation
+- * Author: Laurent Dufour <ldufour@linux.vnet.ibm.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#ifndef _ASM_METAG_MM_ARCH_HOOKS_H
+-#define _ASM_METAG_MM_ARCH_HOOKS_H
+-
+-#endif /* _ASM_METAG_MM_ARCH_HOOKS_H */
+diff -puN arch/microblaze/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files arch/microblaze/include/asm/Kbuild
+--- a/arch/microblaze/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files
++++ a/arch/microblaze/include/asm/Kbuild
+@@ -6,6 +6,7 @@ generic-y += device.h
+ generic-y += exec.h
+ generic-y += irq_work.h
+ generic-y += mcs_spinlock.h
++generic-y += mm-arch-hooks.h
+ generic-y += preempt.h
+ generic-y += syscalls.h
+ generic-y += trace_clock.h
+diff -puN arch/microblaze/include/asm/mm-arch-hooks.h~mm-cleaning-per-architecture-mm-hook-header-files /dev/null
+--- a/arch/microblaze/include/asm/mm-arch-hooks.h
++++ /dev/null
+@@ -1,15 +0,0 @@
+-/*
+- * Architecture specific mm hooks
+- *
+- * Copyright (C) 2015, IBM Corporation
+- * Author: Laurent Dufour <ldufour@linux.vnet.ibm.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#ifndef _ASM_MICROBLAZE_MM_ARCH_HOOKS_H
+-#define _ASM_MICROBLAZE_MM_ARCH_HOOKS_H
+-
+-#endif /* _ASM_MICROBLAZE_MM_ARCH_HOOKS_H */
+diff -puN arch/mips/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files arch/mips/include/asm/Kbuild
+--- a/arch/mips/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files
++++ a/arch/mips/include/asm/Kbuild
+@@ -7,6 +7,7 @@ generic-y += emergency-restart.h
+ generic-y += irq_work.h
+ generic-y += local64.h
+ generic-y += mcs_spinlock.h
++generic-y += mm-arch-hooks.h
+ generic-y += mutex.h
+ generic-y += parport.h
+ generic-y += percpu.h
+diff -puN arch/mips/include/asm/mm-arch-hooks.h~mm-cleaning-per-architecture-mm-hook-header-files /dev/null
+--- a/arch/mips/include/asm/mm-arch-hooks.h
++++ /dev/null
+@@ -1,15 +0,0 @@
+-/*
+- * Architecture specific mm hooks
+- *
+- * Copyright (C) 2015, IBM Corporation
+- * Author: Laurent Dufour <ldufour@linux.vnet.ibm.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#ifndef _ASM_MIPS_MM_ARCH_HOOKS_H
+-#define _ASM_MIPS_MM_ARCH_HOOKS_H
+-
+-#endif /* _ASM_MIPS_MM_ARCH_HOOKS_H */
+diff -puN arch/mn10300/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files arch/mn10300/include/asm/Kbuild
+--- a/arch/mn10300/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files
++++ a/arch/mn10300/include/asm/Kbuild
+@@ -5,6 +5,7 @@ generic-y += cputime.h
+ generic-y += exec.h
+ generic-y += irq_work.h
+ generic-y += mcs_spinlock.h
++generic-y += mm-arch-hooks.h
+ generic-y += preempt.h
+ generic-y += sections.h
+ generic-y += trace_clock.h
+diff -puN arch/mn10300/include/asm/mm-arch-hooks.h~mm-cleaning-per-architecture-mm-hook-header-files /dev/null
+--- a/arch/mn10300/include/asm/mm-arch-hooks.h
++++ /dev/null
+@@ -1,15 +0,0 @@
+-/*
+- * Architecture specific mm hooks
+- *
+- * Copyright (C) 2015, IBM Corporation
+- * Author: Laurent Dufour <ldufour@linux.vnet.ibm.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#ifndef _ASM_MN10300_MM_ARCH_HOOKS_H
+-#define _ASM_MN10300_MM_ARCH_HOOKS_H
+-
+-#endif /* _ASM_MN10300_MM_ARCH_HOOKS_H */
+diff -puN arch/nios2/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files arch/nios2/include/asm/Kbuild
+--- a/arch/nios2/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files
++++ a/arch/nios2/include/asm/Kbuild
+@@ -30,6 +30,7 @@ generic-y += kmap_types.h
+ generic-y += kvm_para.h
+ generic-y += local.h
+ generic-y += mcs_spinlock.h
++generic-y += mm-arch-hooks.h
+ generic-y += mman.h
+ generic-y += module.h
+ generic-y += msgbuf.h
+diff -puN arch/nios2/include/asm/mm-arch-hooks.h~mm-cleaning-per-architecture-mm-hook-header-files /dev/null
+--- a/arch/nios2/include/asm/mm-arch-hooks.h
++++ /dev/null
+@@ -1,15 +0,0 @@
+-/*
+- * Architecture specific mm hooks
+- *
+- * Copyright (C) 2015, IBM Corporation
+- * Author: Laurent Dufour <ldufour@linux.vnet.ibm.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#ifndef _ASM_NIOS2_MM_ARCH_HOOKS_H
+-#define _ASM_NIOS2_MM_ARCH_HOOKS_H
+-
+-#endif /* _ASM_NIOS2_MM_ARCH_HOOKS_H */
+diff -puN arch/openrisc/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files arch/openrisc/include/asm/Kbuild
+--- a/arch/openrisc/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files
++++ a/arch/openrisc/include/asm/Kbuild
+@@ -36,6 +36,7 @@ generic-y += kmap_types.h
+ generic-y += kvm_para.h
+ generic-y += local.h
+ generic-y += mcs_spinlock.h
++generic-y += mm-arch-hooks.h
+ generic-y += mman.h
+ generic-y += module.h
+ generic-y += msgbuf.h
+diff -puN arch/openrisc/include/asm/mm-arch-hooks.h~mm-cleaning-per-architecture-mm-hook-header-files /dev/null
+--- a/arch/openrisc/include/asm/mm-arch-hooks.h
++++ /dev/null
+@@ -1,15 +0,0 @@
+-/*
+- * Architecture specific mm hooks
+- *
+- * Copyright (C) 2015, IBM Corporation
+- * Author: Laurent Dufour <ldufour@linux.vnet.ibm.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#ifndef _ASM_OPENRISC_MM_ARCH_HOOKS_H
+-#define _ASM_OPENRISC_MM_ARCH_HOOKS_H
+-
+-#endif /* _ASM_OPENRISC_MM_ARCH_HOOKS_H */
+diff -puN arch/parisc/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files arch/parisc/include/asm/Kbuild
+--- a/arch/parisc/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files
++++ a/arch/parisc/include/asm/Kbuild
+@@ -15,6 +15,7 @@ generic-y += kvm_para.h
+ generic-y += local.h
+ generic-y += local64.h
+ generic-y += mcs_spinlock.h
++generic-y += mm-arch-hooks.h
+ generic-y += mutex.h
+ generic-y += param.h
+ generic-y += percpu.h
+diff -puN arch/parisc/include/asm/mm-arch-hooks.h~mm-cleaning-per-architecture-mm-hook-header-files /dev/null
+--- a/arch/parisc/include/asm/mm-arch-hooks.h
++++ /dev/null
+@@ -1,15 +0,0 @@
+-/*
+- * Architecture specific mm hooks
+- *
+- * Copyright (C) 2015, IBM Corporation
+- * Author: Laurent Dufour <ldufour@linux.vnet.ibm.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#ifndef _ASM_PARISC_MM_ARCH_HOOKS_H
+-#define _ASM_PARISC_MM_ARCH_HOOKS_H
+-
+-#endif /* _ASM_PARISC_MM_ARCH_HOOKS_H */
+diff -puN arch/s390/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files arch/s390/include/asm/Kbuild
+--- a/arch/s390/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files
++++ a/arch/s390/include/asm/Kbuild
+@@ -3,5 +3,6 @@
+ generic-y += clkdev.h
+ generic-y += irq_work.h
+ generic-y += mcs_spinlock.h
++generic-y += mm-arch-hooks.h
+ generic-y += preempt.h
+ generic-y += trace_clock.h
+diff -puN arch/s390/include/asm/mm-arch-hooks.h~mm-cleaning-per-architecture-mm-hook-header-files /dev/null
+--- a/arch/s390/include/asm/mm-arch-hooks.h
++++ /dev/null
+@@ -1,15 +0,0 @@
+-/*
+- * Architecture specific mm hooks
+- *
+- * Copyright (C) 2015, IBM Corporation
+- * Author: Laurent Dufour <ldufour@linux.vnet.ibm.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#ifndef _ASM_S390_MM_ARCH_HOOKS_H
+-#define _ASM_S390_MM_ARCH_HOOKS_H
+-
+-#endif /* _ASM_S390_MM_ARCH_HOOKS_H */
+diff -puN arch/score/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files arch/score/include/asm/Kbuild
+--- a/arch/score/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files
++++ a/arch/score/include/asm/Kbuild
+@@ -7,6 +7,7 @@ generic-y += clkdev.h
+ generic-y += cputime.h
+ generic-y += irq_work.h
+ generic-y += mcs_spinlock.h
++generic-y += mm-arch-hooks.h
+ generic-y += preempt.h
+ generic-y += sections.h
+ generic-y += trace_clock.h
+diff -puN arch/score/include/asm/mm-arch-hooks.h~mm-cleaning-per-architecture-mm-hook-header-files /dev/null
+--- a/arch/score/include/asm/mm-arch-hooks.h
++++ /dev/null
+@@ -1,15 +0,0 @@
+-/*
+- * Architecture specific mm hooks
+- *
+- * Copyright (C) 2015, IBM Corporation
+- * Author: Laurent Dufour <ldufour@linux.vnet.ibm.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#ifndef _ASM_SCORE_MM_ARCH_HOOKS_H
+-#define _ASM_SCORE_MM_ARCH_HOOKS_H
+-
+-#endif /* _ASM_SCORE_MM_ARCH_HOOKS_H */
+diff -puN arch/sh/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files arch/sh/include/asm/Kbuild
+--- a/arch/sh/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files
++++ a/arch/sh/include/asm/Kbuild
+@@ -16,6 +16,7 @@ generic-y += kvm_para.h
+ generic-y += local.h
+ generic-y += local64.h
+ generic-y += mcs_spinlock.h
++generic-y += mm-arch-hooks.h
+ generic-y += mman.h
+ generic-y += msgbuf.h
+ generic-y += param.h
+diff -puN arch/sh/include/asm/mm-arch-hooks.h~mm-cleaning-per-architecture-mm-hook-header-files /dev/null
+--- a/arch/sh/include/asm/mm-arch-hooks.h
++++ /dev/null
+@@ -1,15 +0,0 @@
+-/*
+- * Architecture specific mm hooks
+- *
+- * Copyright (C) 2015, IBM Corporation
+- * Author: Laurent Dufour <ldufour@linux.vnet.ibm.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#ifndef _ASM_SH_MM_ARCH_HOOKS_H
+-#define _ASM_SH_MM_ARCH_HOOKS_H
+-
+-#endif /* _ASM_SH_MM_ARCH_HOOKS_H */
+diff -puN arch/sparc/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files arch/sparc/include/asm/Kbuild
+--- a/arch/sparc/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files
++++ a/arch/sparc/include/asm/Kbuild
+@@ -12,6 +12,7 @@ generic-y += linkage.h
+ generic-y += local.h
+ generic-y += local64.h
+ generic-y += mcs_spinlock.h
++generic-y += mm-arch-hooks.h
+ generic-y += module.h
+ generic-y += mutex.h
+ generic-y += preempt.h
+diff -puN arch/sparc/include/asm/mm-arch-hooks.h~mm-cleaning-per-architecture-mm-hook-header-files /dev/null
+--- a/arch/sparc/include/asm/mm-arch-hooks.h
++++ /dev/null
+@@ -1,15 +0,0 @@
+-/*
+- * Architecture specific mm hooks
+- *
+- * Copyright (C) 2015, IBM Corporation
+- * Author: Laurent Dufour <ldufour@linux.vnet.ibm.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#ifndef _ASM_SPARC_MM_ARCH_HOOKS_H
+-#define _ASM_SPARC_MM_ARCH_HOOKS_H
+-
+-#endif /* _ASM_SPARC_MM_ARCH_HOOKS_H */
+diff -puN arch/tile/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files arch/tile/include/asm/Kbuild
+--- a/arch/tile/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files
++++ a/arch/tile/include/asm/Kbuild
+@@ -19,6 +19,7 @@ generic-y += irq_regs.h
+ generic-y += local.h
+ generic-y += local64.h
+ generic-y += mcs_spinlock.h
++generic-y += mm-arch-hooks.h
+ generic-y += msgbuf.h
+ generic-y += mutex.h
+ generic-y += param.h
+diff -puN arch/tile/include/asm/mm-arch-hooks.h~mm-cleaning-per-architecture-mm-hook-header-files /dev/null
+--- a/arch/tile/include/asm/mm-arch-hooks.h
++++ /dev/null
+@@ -1,15 +0,0 @@
+-/*
+- * Architecture specific mm hooks
+- *
+- * Copyright (C) 2015, IBM Corporation
+- * Author: Laurent Dufour <ldufour@linux.vnet.ibm.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#ifndef _ASM_TILE_MM_ARCH_HOOKS_H
+-#define _ASM_TILE_MM_ARCH_HOOKS_H
+-
+-#endif /* _ASM_TILE_MM_ARCH_HOOKS_H */
+diff -puN arch/um/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files arch/um/include/asm/Kbuild
+--- a/arch/um/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files
++++ a/arch/um/include/asm/Kbuild
+@@ -16,6 +16,7 @@ generic-y += irq_regs.h
+ generic-y += irq_work.h
+ generic-y += kdebug.h
+ generic-y += mcs_spinlock.h
++generic-y += mm-arch-hooks.h
+ generic-y += mutex.h
+ generic-y += param.h
+ generic-y += pci.h
+diff -puN arch/um/include/asm/mm-arch-hooks.h~mm-cleaning-per-architecture-mm-hook-header-files /dev/null
+--- a/arch/um/include/asm/mm-arch-hooks.h
++++ /dev/null
+@@ -1,15 +0,0 @@
+-/*
+- * Architecture specific mm hooks
+- *
+- * Copyright (C) 2015, IBM Corporation
+- * Author: Laurent Dufour <ldufour@linux.vnet.ibm.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#ifndef _ASM_UM_MM_ARCH_HOOKS_H
+-#define _ASM_UM_MM_ARCH_HOOKS_H
+-
+-#endif /* _ASM_UM_MM_ARCH_HOOKS_H */
+diff -puN arch/unicore32/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files arch/unicore32/include/asm/Kbuild
+--- a/arch/unicore32/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files
++++ a/arch/unicore32/include/asm/Kbuild
+@@ -26,6 +26,7 @@ generic-y += kdebug.h
+ generic-y += kmap_types.h
+ generic-y += local.h
+ generic-y += mcs_spinlock.h
++generic-y += mm-arch-hooks.h
+ generic-y += mman.h
+ generic-y += module.h
+ generic-y += msgbuf.h
+diff -puN arch/unicore32/include/asm/mm-arch-hooks.h~mm-cleaning-per-architecture-mm-hook-header-files /dev/null
+--- a/arch/unicore32/include/asm/mm-arch-hooks.h
++++ /dev/null
+@@ -1,15 +0,0 @@
+-/*
+- * Architecture specific mm hooks
+- *
+- * Copyright (C) 2015, IBM Corporation
+- * Author: Laurent Dufour <ldufour@linux.vnet.ibm.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#ifndef _ASM_UNICORE32_MM_ARCH_HOOKS_H
+-#define _ASM_UNICORE32_MM_ARCH_HOOKS_H
+-
+-#endif /* _ASM_UNICORE32_MM_ARCH_HOOKS_H */
+diff -puN arch/x86/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files arch/x86/include/asm/Kbuild
+--- a/arch/x86/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files
++++ a/arch/x86/include/asm/Kbuild
+@@ -9,3 +9,4 @@ generic-y += cputime.h
+ generic-y += dma-contiguous.h
+ generic-y += early_ioremap.h
+ generic-y += mcs_spinlock.h
++generic-y += mm-arch-hooks.h
+diff -puN arch/x86/include/asm/mm-arch-hooks.h~mm-cleaning-per-architecture-mm-hook-header-files /dev/null
+--- a/arch/x86/include/asm/mm-arch-hooks.h
++++ /dev/null
+@@ -1,15 +0,0 @@
+-/*
+- * Architecture specific mm hooks
+- *
+- * Copyright (C) 2015, IBM Corporation
+- * Author: Laurent Dufour <ldufour@linux.vnet.ibm.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#ifndef _ASM_X86_MM_ARCH_HOOKS_H
+-#define _ASM_X86_MM_ARCH_HOOKS_H
+-
+-#endif /* _ASM_X86_MM_ARCH_HOOKS_H */
+diff -puN arch/xtensa/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files arch/xtensa/include/asm/Kbuild
+--- a/arch/xtensa/include/asm/Kbuild~mm-cleaning-per-architecture-mm-hook-header-files
++++ a/arch/xtensa/include/asm/Kbuild
+@@ -19,6 +19,7 @@ generic-y += linkage.h
+ generic-y += local.h
+ generic-y += local64.h
+ generic-y += mcs_spinlock.h
++generic-y += mm-arch-hooks.h
+ generic-y += percpu.h
+ generic-y += preempt.h
+ generic-y += resource.h
+diff -puN arch/xtensa/include/asm/mm-arch-hooks.h~mm-cleaning-per-architecture-mm-hook-header-files /dev/null
+--- a/arch/xtensa/include/asm/mm-arch-hooks.h
++++ /dev/null
+@@ -1,15 +0,0 @@
+-/*
+- * Architecture specific mm hooks
+- *
+- * Copyright (C) 2015, IBM Corporation
+- * Author: Laurent Dufour <ldufour@linux.vnet.ibm.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#ifndef _ASM_XTENSA_MM_ARCH_HOOKS_H
+-#define _ASM_XTENSA_MM_ARCH_HOOKS_H
+-
+-#endif /* _ASM_XTENSA_MM_ARCH_HOOKS_H */
+diff -puN /dev/null include/asm-generic/mm-arch-hooks.h
+--- /dev/null
++++ a/include/asm-generic/mm-arch-hooks.h
+@@ -0,0 +1,16 @@
++/*
++ * Architecture specific mm hooks
++ */
 +
- 	/* Set the pageblock if the isolated page is at least a pageblock */
- 	if (order >= pageblock_order - 1) {
- 		struct page *endpage = page + (1 << order) - 1;
-@@ -2005,7 +2007,7 @@ int __isolate_free_page(struct page *pag
- 		}
- 	}
- 
--	set_page_owner(page, order, 0);
++#ifndef _ASM_GENERIC_MM_ARCH_HOOKS_H
++#define _ASM_GENERIC_MM_ARCH_HOOKS_H
 +
- 	return 1UL << order;
- }
- 
++/*
++ * This file should be included through arch/../include/asm/Kbuild for
++ * the architecture which doesn't need specific mm hooks.
++ *
++ * In that case, the generic hooks defined in include/linux/mm-arch-hooks.h
++ * are used.
++ */
++
++#endif /* _ASM_GENERIC_MM_ARCH_HOOKS_H */
 _
 
-Patches currently in -mm which might be from js1304@gmail.com are
+Patches currently in -mm which might be from ldufour@linux.vnet.ibm.com are
 
+mremap-dont-leak-new_vma-if-f_op-mremap-fails.patch
+mm-move-mremap-from-file_operations-to-vm_operations_struct.patch
+mremap-dont-do-mm_populatenew_addr-on-failure.patch
+mremap-dont-do-uneccesary-checks-if-new_len-==-old_len.patch
+mremap-simplify-the-overlap-check-in-mremap_to.patch
 
