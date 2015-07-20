@@ -1,85 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [merged] proc-fixup-empty-argv-case-for-proc-pid-cmdline.patch
- removed from -mm tree
-Date: Mon, 20 Jul 2015 11:50:29 -0700
-Message-ID: <55ad42f5.Ng/UOF/NT+5d3iQ1%akpm@linux-foundation.org>
+Subject: [merged] mm-cma_debug-correct-size-input-to-bitmap-function.patch removed from -mm tree
+Date: Mon, 20 Jul 2015 11:50:39 -0700
+Message-ID: <55ad42ff.Jd3ubs7rfPMc2QIN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34535 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34559 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753627AbbGTSu3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Jul 2015 14:50:29 -0400
+	with ESMTP id S1754072AbbGTSuk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Jul 2015 14:50:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, mm-commits@vger.kernel.org
+To: js1304@gmail.com, iamjoonsoo.kim@lge.com, mina86@mina86.com, sasha.levin@oracle.com, stefan.strogin@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: /proc/$PID/cmdline: fixup empty ARGV case
+     Subject: mm/cma_debug: correct size input to bitmap function
 has been removed from the -mm tree.  Its filename was
-     proc-fixup-empty-argv-case-for-proc-pid-cmdline.patch
+     mm-cma_debug-correct-size-input-to-bitmap-function.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: /proc/$PID/cmdline: fixup empty ARGV case
+From: Joonsoo Kim <js1304@gmail.com>
+Subject: mm/cma_debug: correct size input to bitmap function
 
-/proc/*/cmdline code checks if it should look at ENVP area by checking
-last byte of ARGV area:
+In CMA, 1 bit in bitmap means 1 << order_per_bits pages so
+size of bitmap is cma->count >> order_per_bits rather than
+just cma->count. This patch fixes it.
 
-	rv = access_remote_vm(mm, arg_end - 1, &c, 1, 0);
-	if (rv <= 0)
-		goto out_free_page;
-
-If ARGV is somehow made empty (by doing execve(..., NULL, ...) or
-manually setting ->arg_start and ->arg_end to equal values), the decision
-will be based on byte which doesn't even belong to ARGV/ENVP.
-
-So, quickly check if ARGV area is empty and report 0 to match previous
-behaviour.
-
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Acked-by: Michal Nazarewicz <mina86@mina86.com>
+Cc: Sasha Levin <sasha.levin@oracle.com>
+Cc: Stefan Strogin <stefan.strogin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ mm/cma_debug.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN fs/proc/base.c~proc-fixup-empty-argv-case-for-proc-pid-cmdline fs/proc/base.c
---- a/fs/proc/base.c~proc-fixup-empty-argv-case-for-proc-pid-cmdline
-+++ a/fs/proc/base.c
-@@ -243,6 +243,11 @@ static ssize_t proc_pid_cmdline_read(str
- 	len1 = arg_end - arg_start;
- 	len2 = env_end - env_start;
+diff -puN mm/cma_debug.c~mm-cma_debug-correct-size-input-to-bitmap-function mm/cma_debug.c
+--- a/mm/cma_debug.c~mm-cma_debug-correct-size-input-to-bitmap-function
++++ a/mm/cma_debug.c
+@@ -39,7 +39,7 @@ static int cma_used_get(void *data, u64
  
-+	/* Empty ARGV. */
-+	if (len1 == 0) {
-+		rv = 0;
-+		goto out_free_page;
-+	}
- 	/*
- 	 * Inherently racy -- command line shares address space
- 	 * with code and data.
+ 	mutex_lock(&cma->lock);
+ 	/* pages counter is smaller than sizeof(int) */
+-	used = bitmap_weight(cma->bitmap, (int)cma->count);
++	used = bitmap_weight(cma->bitmap, (int)cma_bitmap_maxno(cma));
+ 	mutex_unlock(&cma->lock);
+ 	*val = (u64)used << cma->order_per_bit;
+ 
+@@ -52,13 +52,14 @@ static int cma_maxchunk_get(void *data,
+ 	struct cma *cma = data;
+ 	unsigned long maxchunk = 0;
+ 	unsigned long start, end = 0;
++	unsigned long bitmap_maxno = cma_bitmap_maxno(cma);
+ 
+ 	mutex_lock(&cma->lock);
+ 	for (;;) {
+-		start = find_next_zero_bit(cma->bitmap, cma->count, end);
++		start = find_next_zero_bit(cma->bitmap, bitmap_maxno, end);
+ 		if (start >= cma->count)
+ 			break;
+-		end = find_next_bit(cma->bitmap, cma->count, start);
++		end = find_next_bit(cma->bitmap, bitmap_maxno, start);
+ 		maxchunk = max(end - start, maxchunk);
+ 	}
+ 	mutex_unlock(&cma->lock);
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from js1304@gmail.com are
 
-kstrto-accept-0-for-signed-conversion.patch
-add-parse_integer-replacement-for-simple_strto.patch
-parse_integer-add-runtime-testsuite.patch
-parse-integer-rewrite-kstrto.patch
-parse_integer-convert-scanf.patch
-scanf-fix-type-range-overflow.patch
-parse_integer-convert-lib.patch
-parse_integer-convert-mm.patch
-parse_integer-convert-mm-fix.patch
-parse_integer-convert-fs.patch
-parse_integer-convert-fs-cachefiles.patch
-parse_integer-convert-ext2-ext3-ext4.patch
-parse_integer-convert-fs-ocfs2.patch
-parse_integer-add-checkpatchpl-notice.patch
 
