@@ -1,271 +1,456 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Mon, 20 Jul 2015 11:43:47 -0700
-Message-ID: <55ad4163.Q4nvJXU0AbKxeaFb%akpm@linux-foundation.org>
+Subject: [merged] maintainers-switch-to-susecom-many-in-one.patch removed
+ from -mm tree
+Date: Mon, 20 Jul 2015 11:49:49 -0700
+Message-ID: <55ad42cd.VWGdZBq9JWsNX64+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33832 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34467 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753563AbbGTSns (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Jul 2015 14:43:48 -0400
+	with ESMTP id S1750737AbbGTStu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Jul 2015 14:49:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: jslaby@suse.com, agraf@suse.de, dsterba@suse.com, hare@suse.com, jack@suse.com, jdelvare@suse.com, jkosina@suse.com, mmarek@suse.com, neilb@suse.com, oneukum@suse.de, sleep_walker@suse.com, tiwai@suse.com, trenn@suse.de, vojtech@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: MAINTAINERS: switch to suse.com many-in-one (fwd)
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     maintainers-switch-to-susecom-many-in-one.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Jiri Slaby <jslaby@suse.com>
+Subject: MAINTAINERS: switch to suse.com many-in-one (fwd)
 
+Since suse.{de,cz} is deprecated to use (but will still work for some
+time), switch to suse.com which is now to be used instead.
+
+Signed-off-by: Jiri Slaby <jslaby@suse.com>
+Acked-by: Alexander Graf <agraf@suse.de>
+Acked-by: David Sterba <dsterba@suse.com>
+Acked-by: Hannes Reinecke <hare@suse.com>
+Acked-by: Jan Kara <jack@suse.com>
+Acked-by: Jean Delvare <jdelvare@suse.com>
+Acked-by: Jiri Kosina <jkosina@suse.com>
+Acked-by: Michal Marek <mmarek@suse.com>
+Acked-by: NeilBrown <neilb@suse.com>
+Acked-by: Oliver Neukum <oneukum@suse.de>
+Acked-by: Takashi Iwai <tiwai@suse.com>
+Acked-by: Thomas Renninger <trenn@suse.de>
+Acked-by: Tomas Cech <sleep_walker@suse.com>
+Acked-by: Vojtech Pavlik <vojtech@suse.com>
+Signed-off-by: Jiri Kosina <jkosina@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/i915_drv.h         |    3 
- drivers/gpu/drm/i915/intel_display.c    |  113 ----------------------
- drivers/gpu/drm/i915/intel_ringbuffer.h |    9 -
- 3 files changed, 1 insertion(+), 124 deletions(-)
+ MAINTAINERS |   92 +++++++++++++++++++++++++-------------------------
+ 1 file changed, 46 insertions(+), 46 deletions(-)
 
-diff -puN drivers/gpu/drm/i915/i915_drv.h~linux-next-git-rejects drivers/gpu/drm/i915/i915_drv.h
---- a/drivers/gpu/drm/i915/i915_drv.h~linux-next-git-rejects
-+++ a/drivers/gpu/drm/i915/i915_drv.h
-@@ -867,10 +867,7 @@ struct intel_context {
- 	int user_handle;
- 	uint8_t remap_slice;
- 	struct drm_i915_private *i915;
--<<<<<<< HEAD
--=======
- 	int flags;
-->>>>>>> linux-next/akpm-base
- 	struct drm_i915_file_private *file_priv;
- 	struct i915_ctx_hang_stats hang_stats;
- 	struct i915_hw_ppgtt *ppgtt;
-diff -puN drivers/gpu/drm/i915/intel_display.c~linux-next-git-rejects drivers/gpu/drm/i915/intel_display.c
---- a/drivers/gpu/drm/i915/intel_display.c~linux-next-git-rejects
-+++ a/drivers/gpu/drm/i915/intel_display.c
-@@ -1053,7 +1053,7 @@ static void intel_wait_for_pipe_off(stru
- 		/* Wait for the Pipe State to go off */
- 		if (wait_for((I915_READ(reg) & I965_PIPECONF_ACTIVE) == 0,
- 			     100))
--			WARN(1, "pipe_off wait timed out\n");
-+			WARN(1, "pipe_qoff wait timed out\n");
- 	} else {
- 		/* Wait for the display line to settle */
- 		if (wait_for(pipe_dsl_stopped(dev, pipe), 100))
-@@ -6330,36 +6330,6 @@ void intel_crtc_update_dpms(struct drm_c
- 		enable |= intel_encoder->connectors_active;
+diff -puN MAINTAINERS~maintainers-switch-to-susecom-many-in-one MAINTAINERS
+--- a/MAINTAINERS~maintainers-switch-to-susecom-many-in-one
++++ a/MAINTAINERS
+@@ -361,11 +361,11 @@ S:	Supported
+ F:	drivers/input/touchscreen/ad7879.c
  
- 	intel_crtc_control(crtc, enable);
--<<<<<<< HEAD
--
--	crtc->state->active = enable;
--}
--
--static void intel_crtc_disable(struct drm_crtc *crtc)
--{
--	struct drm_device *dev = crtc->dev;
--	struct drm_connector *connector;
--	struct drm_i915_private *dev_priv = dev->dev_private;
--
--	intel_crtc_disable_planes(crtc);
--	dev_priv->display.crtc_disable(crtc);
--	dev_priv->display.off(crtc);
--
--	drm_plane_helper_disable(crtc->primary);
--
--	/* Update computed state. */
--	list_for_each_entry(connector, &dev->mode_config.connector_list, head) {
--		if (!connector->encoder || !connector->encoder->crtc)
--			continue;
--
--		if (connector->encoder->crtc != crtc)
--			continue;
--
--		connector->dpms = DRM_MODE_DPMS_OFF;
--		to_intel_encoder(connector->encoder)->connectors_active = false;
--	}
--=======
-->>>>>>> linux-next/akpm-base
- }
+ ADDRESS SPACE LAYOUT RANDOMIZATION (ASLR)
+-M:	Jiri Kosina <jkosina@suse.cz>
++M:	Jiri Kosina <jkosina@suse.com>
+ S:	Maintained
  
- void intel_encoder_destroy(struct drm_encoder *encoder)
-@@ -13059,21 +13029,12 @@ static int haswell_mode_set_planes_worka
- 		if (!crtc_state->active || !needs_modeset(crtc_state))
- 			continue;
+ ADM1025 HARDWARE MONITOR DRIVER
+-M:	Jean Delvare <jdelvare@suse.de>
++M:	Jean Delvare <jdelvare@suse.com>
+ L:	lm-sensors@lm-sensors.org
+ S:	Maintained
+ F:	Documentation/hwmon/adm1025
+@@ -430,7 +430,7 @@ S:	Maintained
+ F:	drivers/macintosh/therm_adt746x.c
  
--<<<<<<< HEAD
--		if (!crtc_state->enable) {
--			if (crtc->state->enable)
--				intel_crtc_disable(crtc);
--		} else if (crtc->state->enable) {
--			intel_crtc_disable_planes(crtc);
--			dev_priv->display.crtc_disable(crtc);
--=======
- 		if (first_crtc_state) {
- 			other_crtc_state = to_intel_crtc_state(crtc_state);
- 			break;
- 		} else {
- 			first_crtc_state = to_intel_crtc_state(crtc_state);
- 			first_pipe = intel_crtc->pipe;
-->>>>>>> linux-next/akpm-base
- 		}
- 	}
+ ADT7475 HARDWARE MONITOR DRIVER
+-M:	Jean Delvare <jdelvare@suse.de>
++M:	Jean Delvare <jdelvare@suse.com>
+ L:	lm-sensors@lm-sensors.org
+ S:	Maintained
+ F:	Documentation/hwmon/adt7475
+@@ -445,7 +445,7 @@ F:	drivers/input/misc/adxl34x.c
  
-@@ -13622,83 +13583,11 @@ intel_check_primary_plane(struct drm_pla
- 		can_position = true;
- 	}
+ ADVANSYS SCSI DRIVER
+ M:	Matthew Wilcox <matthew@wil.cx>
+-M:	Hannes Reinecke <hare@suse.de>
++M:	Hannes Reinecke <hare@suse.com>
+ L:	linux-scsi@vger.kernel.org
+ S:	Maintained
+ F:	Documentation/scsi/advansys.txt
+@@ -506,7 +506,7 @@ F:	drivers/scsi/aha152x*
+ F:	drivers/scsi/pcmcia/aha152x*
  
--<<<<<<< HEAD
--	ret = drm_plane_helper_check_update(plane, crtc, fb,
--					    src, dest, clip,
--					    min_scale,
--					    max_scale,
--					    can_position, true,
--					    &state->visible);
--	if (ret)
--		return ret;
--
--	if (crtc_state ? crtc_state->base.active : intel_crtc->active) {
--		struct intel_plane_state *old_state =
--			to_intel_plane_state(plane->state);
--
--		intel_crtc->atomic.wait_for_flips = true;
--
--		/*
--		 * FBC does not work on some platforms for rotated
--		 * planes, so disable it when rotation is not 0 and
--		 * update it when rotation is set back to 0.
--		 *
--		 * FIXME: This is redundant with the fbc update done in
--		 * the primary plane enable function except that that
--		 * one is done too late. We eventually need to unify
--		 * this.
--		 */
--		if (state->visible &&
--		    INTEL_INFO(dev)->gen <= 4 && !IS_G4X(dev) &&
--		    dev_priv->fbc.crtc == intel_crtc &&
--		    state->base.rotation != BIT(DRM_ROTATE_0)) {
--			intel_crtc->atomic.disable_fbc = true;
--		}
--
--		if (state->visible && !old_state->visible) {
--			/*
--			 * BDW signals flip done immediately if the plane
--			 * is disabled, even if the plane enable is already
--			 * armed to occur at the next vblank :(
--			 */
--			if (IS_BROADWELL(dev))
--				intel_crtc->atomic.wait_vblank = true;
--		}
--
--		/*
--		 * FIXME: Actually if we will still have any other plane enabled
--		 * on the pipe we could let IPS enabled still, but for
--		 * now lets consider that when we make primary invisible
--		 * by setting DSPCNTR to 0 on update_primary_plane function
--		 * IPS needs to be disable.
--		 */
--		if (!state->visible || !fb)
--			intel_crtc->atomic.disable_ips = true;
--
--		intel_crtc->atomic.fb_bits |=
--			INTEL_FRONTBUFFER_PRIMARY(intel_crtc->pipe);
--
--		intel_crtc->atomic.update_fbc = true;
--
--		if (intel_wm_need_update(plane, &state->base))
--			intel_crtc->atomic.update_wm = true;
--	}
--
--	if (INTEL_INFO(dev)->gen >= 9) {
--		ret = skl_update_scaler_users(intel_crtc, crtc_state,
--			to_intel_plane(plane), state, 0);
--		if (ret)
--			return ret;
--	}
--
--	return 0;
--=======
- 	return drm_plane_helper_check_update(plane, crtc, fb, &state->src,
- 					     &state->dst, &state->clip,
- 					     min_scale, max_scale,
- 					     can_position, true,
- 					     &state->visible);
-->>>>>>> linux-next/akpm-base
- }
+ AIC7XXX / AIC79XX SCSI DRIVER
+-M:	Hannes Reinecke <hare@suse.de>
++M:	Hannes Reinecke <hare@suse.com>
+ L:	linux-scsi@vger.kernel.org
+ S:	Maintained
+ F:	drivers/scsi/aic7xxx/
+@@ -746,7 +746,7 @@ S:	Maintained
+ F:	sound/aoa/
  
- static void
-diff -puN drivers/gpu/drm/i915/intel_ringbuffer.h~linux-next-git-rejects drivers/gpu/drm/i915/intel_ringbuffer.h
---- a/drivers/gpu/drm/i915/intel_ringbuffer.h~linux-next-git-rejects
-+++ a/drivers/gpu/drm/i915/intel_ringbuffer.h
-@@ -297,15 +297,6 @@ struct  intel_engine_cs {
- 	 * Used exclusively by hang checker to avoid grabbing lock while
- 	 * inspecting request list.
- 	 */
--<<<<<<< HEAD
--	struct drm_i915_gem_request *outstanding_lazy_request;
--	/**
--	 * Seqno of request most recently submitted to request_list.
--	 * Used exclusively by hang checker to avoid grabbing lock while
--	 * inspecting request list.
--	 */
--=======
-->>>>>>> linux-next/akpm-base
- 	u32 last_submitted_seqno;
+ APM DRIVER
+-M:	Jiri Kosina <jkosina@suse.cz>
++M:	Jiri Kosina <jkosina@suse.com>
+ S:	Odd fixes
+ F:	arch/x86/kernel/apm_32.c
+ F:	include/linux/apm_bios.h
+@@ -1324,7 +1324,7 @@ F:	arch/arm/mach-pxa/include/mach/palmtc
+ F:	arch/arm/mach-pxa/palmtc.c
  
- 	bool gpu_caches_dirty;
+ ARM/PALM TREO SUPPORT
+-M:	Tomas Cech <sleep_walker@suse.cz>
++M:	Tomas Cech <sleep_walker@suse.com>
+ L:	linux-arm-kernel@lists.infradead.org
+ W:	http://hackndev.com
+ S:	Maintained
+@@ -2405,7 +2405,7 @@ F:	drivers/gpio/gpio-bt8xx.c
+ BTRFS FILE SYSTEM
+ M:	Chris Mason <clm@fb.com>
+ M:	Josef Bacik <jbacik@fb.com>
+-M:	David Sterba <dsterba@suse.cz>
++M:	David Sterba <dsterba@suse.com>
+ L:	linux-btrfs@vger.kernel.org
+ W:	http://btrfs.wiki.kernel.org/
+ Q:	http://patchwork.kernel.org/project/linux-btrfs/list/
+@@ -2748,7 +2748,7 @@ COCCINELLE/Semantic Patches (SmPL)
+ M:	Julia Lawall <Julia.Lawall@lip6.fr>
+ M:	Gilles Muller <Gilles.Muller@lip6.fr>
+ M:	Nicolas Palix <nicolas.palix@imag.fr>
+-M:	Michal Marek <mmarek@suse.cz>
++M:	Michal Marek <mmarek@suse.com>
+ L:	cocci@systeme.lip6.fr (moderated for non-subscribers)
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mmarek/kbuild.git misc
+ W:	http://coccinelle.lip6.fr/
+@@ -2945,7 +2945,7 @@ F:	arch/x86/kernel/cpuid.c
+ F:	arch/x86/kernel/msr.c
+ 
+ CPU POWER MONITORING SUBSYSTEM
+-M:	Thomas Renninger <trenn@suse.de>
++M:	Thomas Renninger <trenn@suse.com>
+ L:	linux-pm@vger.kernel.org
+ S:	Maintained
+ F:	tools/power/cpupower/
+@@ -3175,7 +3175,7 @@ F:	Documentation/networking/dmfe.txt
+ F:	drivers/net/ethernet/dec/tulip/dmfe.c
+ 
+ DC390/AM53C974 SCSI driver
+-M:	Hannes Reinecke <hare@suse.de>
++M:	Hannes Reinecke <hare@suse.com>
+ L:	linux-scsi@vger.kernel.org
+ S:	Maintained
+ F:	drivers/scsi/am53c974.c
+@@ -3379,7 +3379,7 @@ W:	http://www.win.tue.nl/~aeb/partitions
+ S:	Maintained
+ 
+ DISKQUOTA
+-M:	Jan Kara <jack@suse.cz>
++M:	Jan Kara <jack@suse.com>
+ S:	Maintained
+ F:	Documentation/filesystems/quota.txt
+ F:	fs/quota/
+@@ -3435,7 +3435,7 @@ F:	Documentation/hwmon/dme1737
+ F:	drivers/hwmon/dme1737.c
+ 
+ DMI/SMBIOS SUPPORT
+-M:	Jean Delvare <jdelvare@suse.de>
++M:	Jean Delvare <jdelvare@suse.com>
+ S:	Maintained
+ T:	quilt http://jdelvare.nerim.net/devel/linux/jdelvare-dmi/
+ F:	Documentation/ABI/testing/sysfs-firmware-dmi-tables
+@@ -4051,7 +4051,7 @@ F:	drivers/of/of_mdio.c
+ F:	drivers/of/of_net.c
+ 
+ EXT2 FILE SYSTEM
+-M:	Jan Kara <jack@suse.cz>
++M:	Jan Kara <jack@suse.com>
+ L:	linux-ext4@vger.kernel.org
+ S:	Maintained
+ F:	Documentation/filesystems/ext2.txt
+@@ -4059,7 +4059,7 @@ F:	fs/ext2/
+ F:	include/linux/ext2*
+ 
+ EXT3 FILE SYSTEM
+-M:	Jan Kara <jack@suse.cz>
++M:	Jan Kara <jack@suse.com>
+ M:	Andrew Morton <akpm@linux-foundation.org>
+ M:	Andreas Dilger <adilger.kernel@dilger.ca>
+ L:	linux-ext4@vger.kernel.org
+@@ -4109,7 +4109,7 @@ F:	drivers/video/fbdev/exynos/exynos_mip
+ F:	include/video/exynos_mipi*
+ 
+ F71805F HARDWARE MONITORING DRIVER
+-M:	Jean Delvare <jdelvare@suse.de>
++M:	Jean Delvare <jdelvare@suse.com>
+ L:	lm-sensors@lm-sensors.org
+ S:	Maintained
+ F:	Documentation/hwmon/f71805f
+@@ -4244,7 +4244,7 @@ S:	Maintained
+ F:	drivers/block/rsxx/
+ 
+ FLOPPY DRIVER
+-M:	Jiri Kosina <jkosina@suse.cz>
++M:	Jiri Kosina <jkosina@suse.com>
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/jikos/floppy.git
+ S:	Odd fixes
+ F:	drivers/block/floppy.c
+@@ -4712,7 +4712,7 @@ S:	Maintained
+ F:	drivers/media/usb/hackrf/
+ 
+ HARDWARE MONITORING
+-M:	Jean Delvare <jdelvare@suse.de>
++M:	Jean Delvare <jdelvare@suse.com>
+ M:	Guenter Roeck <linux@roeck-us.net>
+ L:	lm-sensors@lm-sensors.org
+ W:	http://www.lm-sensors.org/
+@@ -4815,7 +4815,7 @@ F:	include/linux/pm.h
+ F:	arch/*/include/asm/suspend*.h
+ 
+ HID CORE LAYER
+-M:	Jiri Kosina <jkosina@suse.cz>
++M:	Jiri Kosina <jkosina@suse.com>
+ L:	linux-input@vger.kernel.org
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/jikos/hid.git
+ S:	Maintained
+@@ -4824,7 +4824,7 @@ F:	include/linux/hid*
+ F:	include/uapi/linux/hid*
+ 
+ HID SENSOR HUB DRIVERS
+-M:	Jiri Kosina <jkosina@suse.cz>
++M:	Jiri Kosina <jkosina@suse.com>
+ M:	Jonathan Cameron <jic23@kernel.org>
+ M:	Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+ L:	linux-input@vger.kernel.org
+@@ -4958,7 +4958,7 @@ F:	include/linux/hyperv.h
+ F:	tools/hv/
+ 
+ I2C OVER PARALLEL PORT
+-M:	Jean Delvare <jdelvare@suse.de>
++M:	Jean Delvare <jdelvare@suse.com>
+ L:	linux-i2c@vger.kernel.org
+ S:	Maintained
+ F:	Documentation/i2c/busses/i2c-parport
+@@ -4967,7 +4967,7 @@ F:	drivers/i2c/busses/i2c-parport.c
+ F:	drivers/i2c/busses/i2c-parport-light.c
+ 
+ I2C/SMBUS CONTROLLER DRIVERS FOR PC
+-M:	Jean Delvare <jdelvare@suse.de>
++M:	Jean Delvare <jdelvare@suse.com>
+ L:	linux-i2c@vger.kernel.org
+ S:	Maintained
+ F:	Documentation/i2c/busses/i2c-ali1535
+@@ -5008,7 +5008,7 @@ F:	drivers/i2c/busses/i2c-ismt.c
+ F:	Documentation/i2c/busses/i2c-ismt
+ 
+ I2C/SMBUS STUB DRIVER
+-M:	Jean Delvare <jdelvare@suse.de>
++M:	Jean Delvare <jdelvare@suse.com>
+ L:	linux-i2c@vger.kernel.org
+ S:	Maintained
+ F:	drivers/i2c/i2c-stub.c
+@@ -5035,7 +5035,7 @@ L:	linux-acpi@vger.kernel.org
+ S:	Maintained
+ 
+ I2C-TAOS-EVM DRIVER
+-M:	Jean Delvare <jdelvare@suse.de>
++M:	Jean Delvare <jdelvare@suse.com>
+ L:	linux-i2c@vger.kernel.org
+ S:	Maintained
+ F:	Documentation/i2c/busses/i2c-taos-evm
+@@ -5564,8 +5564,8 @@ F:	include/uapi/linux/ip_vs.h
+ F:	net/netfilter/ipvs/
+ 
+ IPWIRELESS DRIVER
+-M:	Jiri Kosina <jkosina@suse.cz>
+-M:	David Sterba <dsterba@suse.cz>
++M:	Jiri Kosina <jkosina@suse.com>
++M:	David Sterba <dsterba@suse.com>
+ S:	Odd Fixes
+ F:	drivers/tty/ipwireless/
+ 
+@@ -5685,7 +5685,7 @@ S:	Maintained
+ F:	drivers/isdn/hardware/eicon/
+ 
+ IT87 HARDWARE MONITORING DRIVER
+-M:	Jean Delvare <jdelvare@suse.de>
++M:	Jean Delvare <jdelvare@suse.com>
+ L:	lm-sensors@lm-sensors.org
+ S:	Maintained
+ F:	Documentation/hwmon/it87
+@@ -5752,7 +5752,7 @@ F:	include/uapi/linux/jffs2.h
+ 
+ JOURNALLING LAYER FOR BLOCK DEVICES (JBD)
+ M:	Andrew Morton <akpm@linux-foundation.org>
+-M:	Jan Kara <jack@suse.cz>
++M:	Jan Kara <jack@suse.com>
+ L:	linux-ext4@vger.kernel.org
+ S:	Maintained
+ F:	fs/jbd/
+@@ -5816,7 +5816,7 @@ S:	Maintained
+ F:	fs/autofs4/
+ 
+ KERNEL BUILD + files below scripts/ (unless maintained elsewhere)
+-M:	Michal Marek <mmarek@suse.cz>
++M:	Michal Marek <mmarek@suse.com>
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mmarek/kbuild.git for-next
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mmarek/kbuild.git rc-fixes
+ L:	linux-kbuild@vger.kernel.org
+@@ -5880,7 +5880,7 @@ F:	arch/x86/include/asm/svm.h
+ F:	arch/x86/kvm/svm.c
+ 
+ KERNEL VIRTUAL MACHINE (KVM) FOR POWERPC
+-M:	Alexander Graf <agraf@suse.de>
++M:	Alexander Graf <agraf@suse.com>
+ L:	kvm-ppc@vger.kernel.org
+ W:	http://kvm.qumranet.com
+ T:	git git://github.com/agraf/linux-2.6.git
+@@ -6037,7 +6037,7 @@ F:	drivers/leds/
+ F:	include/linux/leds.h
+ 
+ LEGACY EEPROM DRIVER
+-M:	Jean Delvare <jdelvare@suse.de>
++M:	Jean Delvare <jdelvare@suse.com>
+ S:	Maintained
+ F:	Documentation/misc-devices/eeprom
+ F:	drivers/misc/eeprom/eeprom.c
+@@ -6251,8 +6251,8 @@ F:	drivers/platform/x86/hp_accel.c
+ LIVE PATCHING
+ M:	Josh Poimboeuf <jpoimboe@redhat.com>
+ M:	Seth Jennings <sjenning@redhat.com>
+-M:	Jiri Kosina <jkosina@suse.cz>
+-M:	Vojtech Pavlik <vojtech@suse.cz>
++M:	Jiri Kosina <jkosina@suse.com>
++M:	Vojtech Pavlik <vojtech@suse.com>
+ S:	Maintained
+ F:	kernel/livepatch/
+ F:	include/linux/livepatch.h
+@@ -6278,21 +6278,21 @@ S:	Maintained
+ F:	drivers/hwmon/lm73.c
+ 
+ LM78 HARDWARE MONITOR DRIVER
+-M:	Jean Delvare <jdelvare@suse.de>
++M:	Jean Delvare <jdelvare@suse.com>
+ L:	lm-sensors@lm-sensors.org
+ S:	Maintained
+ F:	Documentation/hwmon/lm78
+ F:	drivers/hwmon/lm78.c
+ 
+ LM83 HARDWARE MONITOR DRIVER
+-M:	Jean Delvare <jdelvare@suse.de>
++M:	Jean Delvare <jdelvare@suse.com>
+ L:	lm-sensors@lm-sensors.org
+ S:	Maintained
+ F:	Documentation/hwmon/lm83
+ F:	drivers/hwmon/lm83.c
+ 
+ LM90 HARDWARE MONITOR DRIVER
+-M:	Jean Delvare <jdelvare@suse.de>
++M:	Jean Delvare <jdelvare@suse.com>
+ L:	lm-sensors@lm-sensors.org
+ S:	Maintained
+ F:	Documentation/hwmon/lm90
+@@ -7719,7 +7719,7 @@ S:	Maintained
+ F:	drivers/char/pc8736x_gpio.c
+ 
+ PC87427 HARDWARE MONITORING DRIVER
+-M:	Jean Delvare <jdelvare@suse.de>
++M:	Jean Delvare <jdelvare@suse.com>
+ L:	lm-sensors@lm-sensors.org
+ S:	Maintained
+ F:	Documentation/hwmon/pc87427
+@@ -8004,7 +8004,7 @@ S:	Maintained
+ F:	drivers/pinctrl/spear/
+ 
+ PKTCDVD DRIVER
+-M:	Jiri Kosina <jkosina@suse.cz>
++M:	Jiri Kosina <jkosina@suse.com>
+ S:	Maintained
+ F:	drivers/block/pktcdvd.c
+ F:	include/linux/pktcdvd.h
+@@ -9424,7 +9424,7 @@ F:	Documentation/hwmon/sch5627
+ F:	drivers/hwmon/sch5627.c
+ 
+ SMSC47B397 HARDWARE MONITOR DRIVER
+-M:	Jean Delvare <jdelvare@suse.de>
++M:	Jean Delvare <jdelvare@suse.com>
+ L:	lm-sensors@lm-sensors.org
+ S:	Maintained
+ F:	Documentation/hwmon/smsc47b397
+@@ -9473,7 +9473,7 @@ S:	Supported
+ F:	drivers/media/pci/solo6x10/
+ 
+ SOFTWARE RAID (Multiple Disks) SUPPORT
+-M:	Neil Brown <neilb@suse.de>
++M:	Neil Brown <neilb@suse.com>
+ L:	linux-raid@vger.kernel.org
+ S:	Supported
+ F:	drivers/md/
+@@ -9516,7 +9516,7 @@ F:	drivers/memstick/core/ms_block.*
+ 
+ SOUND
+ M:	Jaroslav Kysela <perex@perex.cz>
+-M:	Takashi Iwai <tiwai@suse.de>
++M:	Takashi Iwai <tiwai@suse.com>
+ L:	alsa-devel@alsa-project.org (moderated for non-subscribers)
+ W:	http://www.alsa-project.org/
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/tiwai/sound.git
+@@ -10399,7 +10399,7 @@ K:	^Subject:.*(?i)trivial
+ 
+ TTY LAYER
+ M:	Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+-M:	Jiri Slaby <jslaby@suse.cz>
++M:	Jiri Slaby <jslaby@suse.com>
+ S:	Supported
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/gregkh/tty.git
+ F:	Documentation/serial/
+@@ -10473,7 +10473,7 @@ F:	arch/m68k/*/*_no.*
+ F:	arch/m68k/include/asm/*_no.*
+ 
+ UDF FILESYSTEM
+-M:	Jan Kara <jack@suse.cz>
++M:	Jan Kara <jack@suse.com>
+ S:	Maintained
+ F:	Documentation/filesystems/udf.txt
+ F:	fs/udf/
+@@ -10616,7 +10616,7 @@ F:	drivers/usb/gadget/
+ F:	include/linux/usb/gadget*
+ 
+ USB HID/HIDBP DRIVERS (USB KEYBOARDS, MICE, REMOTE CONTROLS, ...)
+-M:	Jiri Kosina <jkosina@suse.cz>
++M:	Jiri Kosina <jkosina@suse.com>
+ L:	linux-usb@vger.kernel.org
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/jikos/hid.git
+ S:	Maintained
+@@ -10741,7 +10741,7 @@ S:	Maintained
+ F:	drivers/usb/host/uhci*
+ 
+ USB "USBNET" DRIVER FRAMEWORK
+-M:	Oliver Neukum <oneukum@suse.de>
++M:	Oliver Neukum <oneukum@suse.com>
+ L:	netdev@vger.kernel.org
+ W:	http://www.linux-usb.org/usbnet
+ S:	Maintained
+@@ -11068,7 +11068,7 @@ F:	Documentation/hwmon/w83793
+ F:	drivers/hwmon/w83793.c
+ 
+ W83795 HARDWARE MONITORING DRIVER
+-M:	Jean Delvare <jdelvare@suse.de>
++M:	Jean Delvare <jdelvare@suse.com>
+ L:	lm-sensors@lm-sensors.org
+ S:	Maintained
+ F:	drivers/hwmon/w83795.c
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jslaby@suse.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-kernel-kthreadc-kthread_create_on_node-clarify-documentation.patch
-scripts-spellingtxt-adding-misspelled-word-for-check-fix.patch
-mm.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
-userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
-genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-fix.patch
-genalloc-add-support-of-multiple-gen_pools-per-device-fix.patch
-mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested-fix.patch
-dax-revert-userfaultfd-change.patch
-thp-prepare-for-dax-huge-pages-fix.patch
-pagemap-add-mmap-exclusive-bit-for-marking-pages-mapped-only-here-fix.patch
-mm-show-proportional-swap-share-of-the-mapping-fix.patch
-mm-improve-__gfp_noretry-comment-based-on-implementation-fix.patch
-memcg-export-struct-mem_cgroup-fix.patch
-memcg-export-struct-mem_cgroup-fix-2.patch
-include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
-procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix.patch
-procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix-fix.patch
-define-kallsyms_cmp_symbol_t-as-function-type-to-simplify-the-code-fix.patch
-linux-next.patch
-linux-next-rejects.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-net-netfilter-ipset-work-around-gcc-444-initializer-bug.patch
-sound-soc-codecs-cs4349c-include-gpio-consumerh.patch
-fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
 
