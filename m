@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + signal-fix-information-leak-in-copy_siginfo_to_user.patch added to -mm tree
-Date: Mon, 20 Jul 2015 15:10:49 -0700
-Message-ID: <55ad71e9.Cdn6O2pbLB904Hi0%akpm@linux-foundation.org>
+Subject: + parse_integer-convert-fs-9p.patch added to -mm tree
+Date: Mon, 20 Jul 2015 15:12:53 -0700
+Message-ID: <55ad7265.goJi22jxliOBvL11%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39372 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39380 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754044AbbGTWKv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Jul 2015 18:10:51 -0400
+	with ESMTP id S1753115AbbGTWMx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Jul 2015 18:12:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: amanieu@gmail.com, mingo@kernel.org, oleg@redhat.com, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, ericvh@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: signal: fix information leak in copy_siginfo_to_user
+     Subject: parse_integer: convert fs/9p/
 has been added to the -mm tree.  Its filename is
-     signal-fix-information-leak-in-copy_siginfo_to_user.patch
+     parse_integer-convert-fs-9p.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/signal-fix-information-leak-in-copy_siginfo_to_user.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/parse_integer-convert-fs-9p.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/signal-fix-information-leak-in-copy_siginfo_to_user.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/parse_integer-convert-fs-9p.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,67 +38,61 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Amanieu d'Antras <amanieu@gmail.com>
-Subject: signal: fix information leak in copy_siginfo_to_user
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: parse_integer: convert fs/9p/
 
-This function may copy the si_addr_lsb, si_lower and si_upper fields to
-user mode when they haven't been initialized, which can leak kernel stack
-data to user mode.
+Convert deprecated simple_strtoul() usage.
 
-Just checking the value of si_code is insufficient because the same
-si_code value is shared between multiple signals.  This is solved by
-checking the value of si_signo in addition to si_code.
-
-Signed-off-by: Amanieu d'Antras <amanieu@gmail.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Eric Van Hensbergen <ericvh@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/kernel/signal32.c |    3 ++-
- kernel/signal.c              |    9 ++++++---
- 2 files changed, 8 insertions(+), 4 deletions(-)
+ fs/9p/v9fs.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN arch/arm64/kernel/signal32.c~signal-fix-information-leak-in-copy_siginfo_to_user arch/arm64/kernel/signal32.c
---- a/arch/arm64/kernel/signal32.c~signal-fix-information-leak-in-copy_siginfo_to_user
-+++ a/arch/arm64/kernel/signal32.c
-@@ -168,7 +168,8 @@ int copy_siginfo_to_user32(compat_siginf
- 		 * Other callers might not initialize the si_lsb field,
- 		 * so check explicitely for the right codes here.
- 		 */
--		if (from->si_code == BUS_MCEERR_AR || from->si_code == BUS_MCEERR_AO)
-+		if (from->si_signo == SIGBUS &&
-+		    (from->si_code == BUS_MCEERR_AR || from->si_code == BUS_MCEERR_AO))
- 			err |= __put_user(from->si_addr_lsb, &to->si_addr_lsb);
- #endif
- 		break;
-diff -puN kernel/signal.c~signal-fix-information-leak-in-copy_siginfo_to_user kernel/signal.c
---- a/kernel/signal.c~signal-fix-information-leak-in-copy_siginfo_to_user
-+++ a/kernel/signal.c
-@@ -2748,12 +2748,15 @@ int copy_siginfo_to_user(siginfo_t __use
- 		 * Other callers might not initialize the si_lsb field,
- 		 * so check explicitly for the right codes here.
- 		 */
--		if (from->si_code == BUS_MCEERR_AR || from->si_code == BUS_MCEERR_AO)
-+		if (from->si_signo == SIGBUS &&
-+		    (from->si_code == BUS_MCEERR_AR || from->si_code == BUS_MCEERR_AO))
- 			err |= __put_user(from->si_addr_lsb, &to->si_addr_lsb);
- #endif
- #ifdef SEGV_BNDERR
--		err |= __put_user(from->si_lower, &to->si_lower);
--		err |= __put_user(from->si_upper, &to->si_upper);
-+		if (from->si_signo == SIGSEGV && from->si_code == SEGV_BNDERR) {
-+			err |= __put_user(from->si_lower, &to->si_lower);
-+			err |= __put_user(from->si_upper, &to->si_upper);
-+		}
- #endif
- 		break;
- 	case __SI_CHLD:
+diff -puN fs/9p/v9fs.c~parse_integer-convert-fs-9p fs/9p/v9fs.c
+--- a/fs/9p/v9fs.c~parse_integer-convert-fs-9p
++++ a/fs/9p/v9fs.c
+@@ -116,7 +116,7 @@ static int v9fs_parse_options(struct v9f
+ 	substring_t args[MAX_OPT_ARGS];
+ 	char *p;
+ 	int option = 0;
+-	char *s, *e;
++	char *s;
+ 	int ret = 0;
+ 
+ 	/* setup defaults */
+@@ -269,8 +269,10 @@ static int v9fs_parse_options(struct v9f
+ 			} else {
+ 				uid_t uid;
+ 				v9ses->flags |= V9FS_ACCESS_SINGLE;
+-				uid = simple_strtoul(s, &e, 10);
+-				if (*e != '\0') {
++				ret = parse_integer(s, 10, &uid);
++				if (ret < 0)
++					return ret;
++				if (s[ret] != '\0') {
+ 					ret = -EINVAL;
+ 					pr_info("Unknown access argument %s\n",
+ 						s);
 _
 
-Patches currently in -mm which might be from amanieu@gmail.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-signal-fix-information-leak-in-copy_siginfo_from_user32.patch
-signal-fix-information-leak-in-copy_siginfo_to_user.patch
+kstrto-accept-0-for-signed-conversion.patch
+add-parse_integer-replacement-for-simple_strto.patch
+parse_integer-add-runtime-testsuite.patch
+parse-integer-rewrite-kstrto.patch
+parse_integer-convert-scanf.patch
+scanf-fix-type-range-overflow.patch
+parse_integer-convert-lib.patch
+parse_integer-convert-mm.patch
+parse_integer-convert-mm-fix.patch
+parse_integer-convert-fs.patch
+parse_integer-convert-fs-cachefiles.patch
+parse_integer-convert-ext2-ext3-ext4.patch
+parse_integer-convert-fs-ocfs2.patch
+parse_integer-convert-fs-9p.patch
+parse_integer-add-checkpatchpl-notice.patch
 
