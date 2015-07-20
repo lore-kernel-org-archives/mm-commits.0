@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + arm-mm-do-not-use-virt_to_idmap-for-nommu-systems.patch added
- to -mm tree
-Date: Mon, 20 Jul 2015 13:44:49 -0700
-Message-ID: <55ad5dc1.36Vxb8P4NVdifNJx%akpm@linux-foundation.org>
+Subject: + signal-fix-information-leak-in-copy_siginfo_from_user32.patch
+ added to -mm tree
+Date: Mon, 20 Jul 2015 15:10:47 -0700
+Message-ID: <55ad71e7.2xLrd8u7uvaOz7BF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37800 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39364 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756538AbbGTUou (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Jul 2015 16:44:50 -0400
+	with ESMTP id S1754044AbbGTWKt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Jul 2015 18:10:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vitalya@ti.com, mm-commits@vger.kernel.org
+To: amanieu@gmail.com, benh@kernel.crashing.org, cmetcalf@ezchip.com, mingo@kernel.org, mpe@ellerman.id.au, oleg@redhat.com, paulus@samba.org, ralf@linux-mips.org, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ARM: mm: do not use virt_to_idmap() for NOMMU systems
+     Subject: signal: fix information leak in copy_siginfo_from_user32
 has been added to the -mm tree.  Its filename is
-     arm-mm-do-not-use-virt_to_idmap-for-nommu-systems.patch
+     signal-fix-information-leak-in-copy_siginfo_from_user32.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arm-mm-do-not-use-virt_to_idmap-for-nommu-systems.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/signal-fix-information-leak-in-copy_siginfo_from_user32.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arm-mm-do-not-use-virt_to_idmap-for-nommu-systems.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/signal-fix-information-leak-in-copy_siginfo_from_user32.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,46 +39,124 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vitaly Andrianov <vitalya@ti.com>
-Subject: ARM: mm: do not use virt_to_idmap() for NOMMU systems
+From: Amanieu d'Antras <amanieu@gmail.com>
+Subject: signal: fix information leak in copy_siginfo_from_user32
 
-The "ARM: mm: Introduce virt_to_idmap() with an arch hook" defines
-arch_virt_to_idmap hook in arch/arm/mm/idmap.c. That breaks systems w/o
-MMU because that file is not built for them.
+This function can leak kernel stack data when the user siginfo_t has a
+positive si_code value.  The top 16 bits of si_code descibe which fields
+in the siginfo_t union are active, but they are treated inconsistently
+between copy_siginfo_from_user32, copy_siginfo_to_user32 and
+copy_siginfo_to_user.
 
-This patch fixes this bug.
+copy_siginfo_from_user32 is called from rt_sigqueueinfo and
+rt_tgsigqueueinfo in which the user has full control overthe top 16 bits
+of si_code.
 
-Signed-off-by: Vitaly Andrianov <vitalya@ti.com>
+This fixes the following information leaks:
+x86:   8 bytes leaked when sending a signal from a 32-bit process to
+       itself. This leak grows to 16 bytes if the process uses x32.
+       (si_code = __SI_CHLD)
+x86:   100 bytes leaked when sending a signal from a 32-bit process to
+       a 64-bit process. (si_code = -1)
+sparc: 4 bytes leaked when sending a signal from a 32-bit process to a
+       64-bit process. (si_code = any)
+
+parsic and s390 have similar bugs, but they are not vulnerable because
+rt_[tg]sigqueueinfo have checks that prevent sending a positive si_code to
+a different process.  These bugs are also fixed for consistency.
+
+Signed-off-by: Amanieu d'Antras <amanieu@gmail.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Chris Metcalf <cmetcalf@ezchip.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/memory.h |    4 ++++
- 1 file changed, 4 insertions(+)
+ arch/arm64/kernel/signal32.c     |    2 --
+ arch/mips/kernel/signal32.c      |    2 --
+ arch/powerpc/kernel/signal_32.c  |    2 --
+ arch/tile/kernel/compat_signal.c |    2 --
+ kernel/signal.c                  |    4 ++--
+ 5 files changed, 2 insertions(+), 10 deletions(-)
 
-diff -puN arch/arm/include/asm/memory.h~arm-mm-do-not-use-virt_to_idmap-for-nommu-systems arch/arm/include/asm/memory.h
---- a/arch/arm/include/asm/memory.h~arm-mm-do-not-use-virt_to_idmap-for-nommu-systems
-+++ a/arch/arm/include/asm/memory.h
-@@ -279,6 +279,7 @@ static inline void *phys_to_virt(phys_ad
+diff -puN arch/arm64/kernel/signal32.c~signal-fix-information-leak-in-copy_siginfo_from_user32 arch/arm64/kernel/signal32.c
+--- a/arch/arm64/kernel/signal32.c~signal-fix-information-leak-in-copy_siginfo_from_user32
++++ a/arch/arm64/kernel/signal32.c
+@@ -201,8 +201,6 @@ int copy_siginfo_to_user32(compat_siginf
  
- extern phys_addr_t (*arch_virt_to_idmap)(unsigned long x);
+ int copy_siginfo_from_user32(siginfo_t *to, compat_siginfo_t __user *from)
+ {
+-	memset(to, 0, sizeof *to);
+-
+ 	if (copy_from_user(to, from, __ARCH_SI_PREAMBLE_SIZE) ||
+ 	    copy_from_user(to->_sifields._pad,
+ 			   from->_sifields._pad, SI_PAD_SIZE))
+diff -puN arch/mips/kernel/signal32.c~signal-fix-information-leak-in-copy_siginfo_from_user32 arch/mips/kernel/signal32.c
+--- a/arch/mips/kernel/signal32.c~signal-fix-information-leak-in-copy_siginfo_from_user32
++++ a/arch/mips/kernel/signal32.c
+@@ -409,8 +409,6 @@ int copy_siginfo_to_user32(compat_siginf
  
-+#ifdef CONFIG_MMU
- /*
-  * These are for systems that have a hardware interconnect supported alias of
-  * physical memory for idmap purposes.  Most cases should leave these
-@@ -293,6 +294,9 @@ static inline phys_addr_t __virt_to_idma
- }
+ int copy_siginfo_from_user32(siginfo_t *to, compat_siginfo_t __user *from)
+ {
+-	memset(to, 0, sizeof *to);
+-
+ 	if (copy_from_user(to, from, 3*sizeof(int)) ||
+ 	    copy_from_user(to->_sifields._pad,
+ 			   from->_sifields._pad, SI_PAD_SIZE32))
+diff -puN arch/powerpc/kernel/signal_32.c~signal-fix-information-leak-in-copy_siginfo_from_user32 arch/powerpc/kernel/signal_32.c
+--- a/arch/powerpc/kernel/signal_32.c~signal-fix-information-leak-in-copy_siginfo_from_user32
++++ a/arch/powerpc/kernel/signal_32.c
+@@ -966,8 +966,6 @@ int copy_siginfo_to_user32(struct compat
  
- #define virt_to_idmap(x)	__virt_to_idmap((unsigned long)(x))
-+#else
-+#define virt_to_idmap(x)	__virt_to_phys((unsigned long)(x))
-+#endif
+ int copy_siginfo_from_user32(siginfo_t *to, struct compat_siginfo __user *from)
+ {
+-	memset(to, 0, sizeof *to);
+-
+ 	if (copy_from_user(to, from, 3*sizeof(int)) ||
+ 	    copy_from_user(to->_sifields._pad,
+ 			   from->_sifields._pad, SI_PAD_SIZE32))
+diff -puN arch/tile/kernel/compat_signal.c~signal-fix-information-leak-in-copy_siginfo_from_user32 arch/tile/kernel/compat_signal.c
+--- a/arch/tile/kernel/compat_signal.c~signal-fix-information-leak-in-copy_siginfo_from_user32
++++ a/arch/tile/kernel/compat_signal.c
+@@ -113,8 +113,6 @@ int copy_siginfo_from_user32(siginfo_t *
+ 	if (!access_ok(VERIFY_READ, from, sizeof(struct compat_siginfo)))
+ 		return -EFAULT;
  
- /*
-  * Virtual <-> DMA view memory address translations
+-	memset(to, 0, sizeof(*to));
+-
+ 	err = __get_user(to->si_signo, &from->si_signo);
+ 	err |= __get_user(to->si_errno, &from->si_errno);
+ 	err |= __get_user(to->si_code, &from->si_code);
+diff -puN kernel/signal.c~signal-fix-information-leak-in-copy_siginfo_from_user32 kernel/signal.c
+--- a/kernel/signal.c~signal-fix-information-leak-in-copy_siginfo_from_user32
++++ a/kernel/signal.c
+@@ -3017,7 +3017,7 @@ COMPAT_SYSCALL_DEFINE3(rt_sigqueueinfo,
+ 			int, sig,
+ 			struct compat_siginfo __user *, uinfo)
+ {
+-	siginfo_t info;
++	siginfo_t info = {};
+ 	int ret = copy_siginfo_from_user32(&info, uinfo);
+ 	if (unlikely(ret))
+ 		return ret;
+@@ -3061,7 +3061,7 @@ COMPAT_SYSCALL_DEFINE4(rt_tgsigqueueinfo
+ 			int, sig,
+ 			struct compat_siginfo __user *, uinfo)
+ {
+-	siginfo_t info;
++	siginfo_t info = {};
+ 
+ 	if (copy_siginfo_from_user32(&info, uinfo))
+ 		return -EFAULT;
 _
 
-Patches currently in -mm which might be from vitalya@ti.com are
+Patches currently in -mm which might be from amanieu@gmail.com are
 
-arm-mm-do-not-use-virt_to_idmap-for-nommu-systems.patch
+signal-fix-information-leak-in-copy_siginfo_from_user32.patch
+signal-fix-information-leak-in-copy_siginfo_to_user.patch
 
