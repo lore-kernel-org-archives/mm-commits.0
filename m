@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- genalloc-add-support-of-multiple-gen_pools-per-device-fix-2.patch added to
- -mm tree
-Date: Mon, 20 Jul 2015 13:42:59 -0700
-Message-ID: <55ad5d53.Vv4VPZdtiP8Th8Mq%akpm@linux-foundation.org>
+Subject: + arm-mm-do-not-use-virt_to_idmap-for-nommu-systems.patch added
+ to -mm tree
+Date: Mon, 20 Jul 2015 13:44:49 -0700
+Message-ID: <55ad5dc1.36Vxb8P4NVdifNJx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37789 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37800 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752000AbbGTUnA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Jul 2015 16:43:00 -0400
+	with ESMTP id S1756538AbbGTUou (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Jul 2015 16:44:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.carpenter@oracle.com, mm-commits@vger.kernel.org
+To: vitalya@ti.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: genalloc: freeing const data pointers
+     Subject: ARM: mm: do not use virt_to_idmap() for NOMMU systems
 has been added to the -mm tree.  Its filename is
-     genalloc-add-support-of-multiple-gen_pools-per-device-fix-2.patch
+     arm-mm-do-not-use-virt_to_idmap-for-nommu-systems.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/genalloc-add-support-of-multiple-gen_pools-per-device-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arm-mm-do-not-use-virt_to_idmap-for-nommu-systems.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/genalloc-add-support-of-multiple-gen_pools-per-device-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arm-mm-do-not-use-virt_to_idmap-for-nommu-systems.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,80 +39,46 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: genalloc: freeing const data pointers
+From: Vitaly Andrianov <vitalya@ti.com>
+Subject: ARM: mm: do not use virt_to_idmap() for NOMMU systems
 
-"pool->name" can be kmalloc()ed or const so we need to free it with
-kfree_const().
+The "ARM: mm: Introduce virt_to_idmap() with an arch hook" defines
+arch_virt_to_idmap hook in arch/arm/mm/idmap.c. That breaks systems w/o
+MMU because that file is not built for them.
 
-I also cleaned up the error path in devm_gen_pool_create() a bit.  With
-the current code you have to change the kfree() in multiple places which
-is bug prone (my first draft of this patch had a bug).
+This patch fixes this bug.
 
-Fixes: e89a70fd54f2 ('genalloc: add support of multiple gen_pools per device')
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Vitaly Andrianov <vitalya@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/genalloc.c |   30 ++++++++++++++++--------------
- 1 file changed, 16 insertions(+), 14 deletions(-)
+ arch/arm/include/asm/memory.h |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN lib/genalloc.c~genalloc-add-support-of-multiple-gen_pools-per-device-fix-2 lib/genalloc.c
---- a/lib/genalloc.c~genalloc-add-support-of-multiple-gen_pools-per-device-fix-2
-+++ a/lib/genalloc.c
-@@ -253,7 +253,7 @@ void gen_pool_destroy(struct gen_pool *p
+diff -puN arch/arm/include/asm/memory.h~arm-mm-do-not-use-virt_to_idmap-for-nommu-systems arch/arm/include/asm/memory.h
+--- a/arch/arm/include/asm/memory.h~arm-mm-do-not-use-virt_to_idmap-for-nommu-systems
++++ a/arch/arm/include/asm/memory.h
+@@ -279,6 +279,7 @@ static inline void *phys_to_virt(phys_ad
  
- 		kfree(chunk);
- 	}
--	kfree(pool->name);
-+	kfree_const(pool->name);
- 	kfree(pool);
+ extern phys_addr_t (*arch_virt_to_idmap)(unsigned long x);
+ 
++#ifdef CONFIG_MMU
+ /*
+  * These are for systems that have a hardware interconnect supported alias of
+  * physical memory for idmap purposes.  Most cases should leave these
+@@ -293,6 +294,9 @@ static inline phys_addr_t __virt_to_idma
  }
- EXPORT_SYMBOL(gen_pool_destroy);
-@@ -632,23 +632,25 @@ struct gen_pool *devm_gen_pool_create(st
- 	}
  
- 	ptr = devres_alloc(devm_gen_pool_release, sizeof(*ptr), GFP_KERNEL);
--	if (!ptr) {
--		kfree(pool_name);
--		return ERR_PTR(-ENOMEM);
--	}
-+	if (!ptr)
-+		goto free_pool_name;
+ #define virt_to_idmap(x)	__virt_to_idmap((unsigned long)(x))
++#else
++#define virt_to_idmap(x)	__virt_to_phys((unsigned long)(x))
++#endif
  
- 	pool = gen_pool_create(min_alloc_order, nid);
--	if (pool) {
--		*ptr = pool;
--		pool->name = pool_name;
--		devres_add(dev, ptr);
--	} else {
--		devres_free(ptr);
--		kfree(pool_name);
--		return ERR_PTR(-ENOMEM);
--	}
-+	if (!pool)
-+		goto free_devres;
-+
-+	*ptr = pool;
-+	pool->name = pool_name;
-+	devres_add(dev, ptr);
- 
- 	return pool;
-+
-+free_devres:
-+	devres_free(ptr);
-+free_pool_name:
-+	kfree_const(pool_name);
-+
-+	return ERR_PTR(-ENOMEM);
- }
- EXPORT_SYMBOL(devm_gen_pool_create);
- 
+ /*
+  * Virtual <-> DMA view memory address translations
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from vitalya@ti.com are
 
-userfaultfd-add-new-syscall-to-provide-memory-externalization-fix-fix-fix.patch
-genalloc-add-support-of-multiple-gen_pools-per-device-fix-2.patch
-linux-next.patch
+arm-mm-do-not-use-virt_to_idmap-for-nommu-systems.patch
 
