@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + parse_integer-convert-fs-exofs.patch added to -mm tree
-Date: Mon, 20 Jul 2015 15:17:35 -0700
-Message-ID: <55ad737f.Z8QJBePygHLvtzpJ%akpm@linux-foundation.org>
+Subject: + parse_integer-convert-sound.patch added to -mm tree
+Date: Mon, 20 Jul 2015 15:21:09 -0700
+Message-ID: <55ad7455.egmJBODfpfpsZpe5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39868 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39899 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752913AbbGTWRg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Jul 2015 18:17:36 -0400
+	with ESMTP id S1752633AbbGTWVK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Jul 2015 18:21:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, bhalevy@primarydata.com, ooo@electrozaur.com, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, tiwai@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: parse_integer: convert fs/exofs/
+     Subject: parse_integer: convert sound/
 has been added to the -mm tree.  Its filename is
-     parse_integer-convert-fs-exofs.patch
+     parse_integer-convert-sound.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/parse_integer-convert-fs-exofs.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/parse_integer-convert-sound.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/parse_integer-convert-fs-exofs.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/parse_integer-convert-sound.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,55 +39,122 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: parse_integer: convert fs/exofs/
+Subject: parse_integer: convert sound/
 
-Convert deprecated simple_strtoull() usage.
-
-Copying option string is unnecessary as you can parse directly
-from the original string.
+Convert sound/ directory from deprecated simple_strto*()
+to parse_integer()/kstrto*() functions.
 
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Boaz Harrosh <ooo@electrozaur.com>
-Cc: Benny Halevy <bhalevy@primarydata.com>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exofs/super.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ sound/core/oss/mixer_oss.c  |    2 +-
+ sound/core/oss/pcm_oss.c    |    4 ++--
+ sound/core/pcm.c            |    2 +-
+ sound/core/pcm_memory.c     |    3 ++-
+ sound/pci/ac97/ac97_codec.c |    8 ++++++--
+ sound/soc/soc-core.c        |    9 ++++++---
+ 6 files changed, 18 insertions(+), 10 deletions(-)
 
-diff -puN fs/exofs/super.c~parse_integer-convert-fs-exofs fs/exofs/super.c
---- a/fs/exofs/super.c~parse_integer-convert-fs-exofs
-+++ a/fs/exofs/super.c
-@@ -84,6 +84,7 @@ static int parse_options(char *options,
- 	substring_t args[MAX_OPT_ARGS];
- 	int option;
- 	bool s_pid = false;
-+	int rv;
- 
- 	EXOFS_DBGMSG("parse_options %s\n", options);
- 	/* defaults */
-@@ -92,7 +93,6 @@ static int parse_options(char *options,
- 
- 	while ((p = strsep(&options, ",")) != NULL) {
- 		int token;
--		char str[32];
- 
- 		if (!*p)
+diff -puN sound/core/oss/mixer_oss.c~parse_integer-convert-sound sound/core/oss/mixer_oss.c
+--- a/sound/core/oss/mixer_oss.c~parse_integer-convert-sound
++++ a/sound/core/oss/mixer_oss.c
+@@ -1200,7 +1200,7 @@ static void snd_mixer_oss_proc_write(str
  			continue;
-@@ -108,9 +108,11 @@ static int parse_options(char *options,
- 			opts->is_osdname = true;
- 			break;
- 		case Opt_pid:
--			if (0 == match_strlcpy(str, &args[0], sizeof(str)))
-+			rv = parse_integer(args[0].from, 0, &opts->pid);
-+			if (rv < 0)
-+				return rv;
-+			if (args[0].from[rv] != '\0')
- 				return -EINVAL;
--			opts->pid = simple_strtoull(str, NULL, 0);
- 			if (opts->pid < EXOFS_MIN_PID) {
- 				EXOFS_ERR("Partition ID must be >= %u",
- 					  EXOFS_MIN_PID);
+ 		}
+ 		snd_info_get_str(idxstr, cptr, sizeof(idxstr));
+-		idx = simple_strtoul(idxstr, NULL, 10);
++		parse_integer(idxstr, 10, (unsigned int *)&idx);
+ 		if (idx >= 0x4000) { /* too big */
+ 			pr_err("ALSA: mixer_oss: invalid index %d\n", idx);
+ 			continue;
+diff -puN sound/core/oss/pcm_oss.c~parse_integer-convert-sound sound/core/oss/pcm_oss.c
+--- a/sound/core/oss/pcm_oss.c~parse_integer-convert-sound
++++ a/sound/core/oss/pcm_oss.c
+@@ -2892,9 +2892,9 @@ static void snd_pcm_oss_proc_write(struc
+ 			}
+ 		}
+ 		ptr = snd_info_get_str(str, ptr, sizeof(str));
+-		template.periods = simple_strtoul(str, NULL, 10);
++		parse_integer(str, 10, &template.periods);
+ 		ptr = snd_info_get_str(str, ptr, sizeof(str));
+-		template.period_size = simple_strtoul(str, NULL, 10);
++		parse_integer(str, 10, &template.period_size);
+ 		for (idx1 = 31; idx1 >= 0; idx1--)
+ 			if (template.period_size & (1 << idx1))
+ 				break;
+diff -puN sound/core/pcm.c~parse_integer-convert-sound sound/core/pcm.c
+--- a/sound/core/pcm.c~parse_integer-convert-sound
++++ a/sound/core/pcm.c
+@@ -507,7 +507,7 @@ static void snd_pcm_xrun_debug_write(str
+ 	struct snd_pcm_str *pstr = entry->private_data;
+ 	char line[64];
+ 	if (!snd_info_get_line(buffer, line, sizeof(line)))
+-		pstr->xrun_debug = simple_strtoul(line, NULL, 10);
++		parse_integer(line, 10, &pstr->xrun_debug);
+ }
+ #endif
+ 
+diff -puN sound/core/pcm_memory.c~parse_integer-convert-sound sound/core/pcm_memory.c
+--- a/sound/core/pcm_memory.c~parse_integer-convert-sound
++++ a/sound/core/pcm_memory.c
+@@ -167,7 +167,8 @@ static void snd_pcm_lib_preallocate_proc
+ 	}
+ 	if (!snd_info_get_line(buffer, line, sizeof(line))) {
+ 		snd_info_get_str(str, line, sizeof(str));
+-		size = simple_strtoul(str, NULL, 10) * 1024;
++		parse_integer(str, 10, &size);
++		size *= 1024;
+ 		if ((size != 0 && size < 8192) || size > substream->dma_max) {
+ 			buffer->error = -EINVAL;
+ 			return;
+diff -puN sound/pci/ac97/ac97_codec.c~parse_integer-convert-sound sound/pci/ac97/ac97_codec.c
+--- a/sound/pci/ac97/ac97_codec.c~parse_integer-convert-sound
++++ a/sound/pci/ac97/ac97_codec.c
+@@ -2884,8 +2884,12 @@ static int apply_quirk_str(struct snd_ac
+ 			return apply_quirk(ac97, i);
+ 	}
+ 	/* for compatibility, accept the numbers, too */
+-	if (*typestr >= '0' && *typestr <= '9')
+-		return apply_quirk(ac97, (int)simple_strtoul(typestr, NULL, 10));
++	if (*typestr >= '0' && *typestr <= '9') {
++		int type;
++
++		parse_integer(typestr, 10, &type);
++		return apply_quirk(ac97, type);
++	}
+ 	return -EINVAL;
+ }
+ 
+diff -puN sound/soc/soc-core.c~parse_integer-convert-sound sound/soc/soc-core.c
+--- a/sound/soc/soc-core.c~parse_integer-convert-sound
++++ a/sound/soc/soc-core.c
+@@ -250,7 +250,7 @@ static ssize_t codec_reg_write_file(stru
+ 	char buf[32];
+ 	size_t buf_size;
+ 	char *start = buf;
+-	unsigned long reg, value;
++	unsigned int reg, value;
+ 	struct snd_soc_codec *codec = file->private_data;
+ 	int ret;
+ 
+@@ -261,10 +261,13 @@ static ssize_t codec_reg_write_file(stru
+ 
+ 	while (*start == ' ')
+ 		start++;
+-	reg = simple_strtoul(start, &start, 16);
++	ret = parse_integer(start, 16, &reg);
++	if (ret < 0)
++		return ret;
++	start += ret;
+ 	while (*start == ' ')
+ 		start++;
+-	ret = kstrtoul(start, 16, &value);
++	ret = kstrtouint(start, 16, &value);
+ 	if (ret)
+ 		return ret;
+ 
 _
 
 Patches currently in -mm which might be from adobriyan@gmail.com are
@@ -107,5 +174,6 @@ parse_integer-convert-ext2-ext3-ext4.patch
 parse_integer-convert-fs-ocfs2.patch
 parse_integer-convert-fs-9p.patch
 parse_integer-convert-fs-exofs.patch
+parse_integer-convert-sound.patch
 parse_integer-add-checkpatchpl-notice.patch
 
