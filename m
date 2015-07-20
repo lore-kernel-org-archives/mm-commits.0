@@ -1,77 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-cma_debug-correct-size-input-to-bitmap-function.patch removed from -mm tree
-Date: Mon, 20 Jul 2015 11:50:39 -0700
-Message-ID: <55ad42ff.Jd3ubs7rfPMc2QIN%akpm@linux-foundation.org>
+Subject: [merged]
+ lib-decompress-set-the-compressor-name-to-null-on-error.patch removed from
+ -mm tree
+Date: Mon, 20 Jul 2015 11:50:41 -0700
+Message-ID: <55ad4301.GrT0r68jFFh/HhdS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34559 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34563 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754072AbbGTSuk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Jul 2015 14:50:40 -0400
+	with ESMTP id S1754564AbbGTSun (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 20 Jul 2015 14:50:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: js1304@gmail.com, iamjoonsoo.kim@lge.com, mina86@mina86.com, sasha.levin@oracle.com, stefan.strogin@gmail.com, mm-commits@vger.kernel.org
+To: aneesh.kumar@linux.vnet.ibm.com, hpa@zytor.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/cma_debug: correct size input to bitmap function
+     Subject: lib/decompress: set the compressor name to NULL on error
 has been removed from the -mm tree.  Its filename was
-     mm-cma_debug-correct-size-input-to-bitmap-function.patch
+     lib-decompress-set-the-compressor-name-to-null-on-error.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joonsoo Kim <js1304@gmail.com>
-Subject: mm/cma_debug: correct size input to bitmap function
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Subject: lib/decompress: set the compressor name to NULL on error
 
-In CMA, 1 bit in bitmap means 1 << order_per_bits pages so
-size of bitmap is cma->count >> order_per_bits rather than
-just cma->count. This patch fixes it.
+Without this we end up using the previous name of the compressor in the
+loop in unpack_rootfs.  For example we get errors like "compression method
+gzip not configured" even when we have CONFIG_DECOMPRESS_GZIP enabled.
 
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Acked-by: Michal Nazarewicz <mina86@mina86.com>
-Cc: Sasha Levin <sasha.levin@oracle.com>
-Cc: Stefan Strogin <stefan.strogin@gmail.com>
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma_debug.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ lib/decompress.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN mm/cma_debug.c~mm-cma_debug-correct-size-input-to-bitmap-function mm/cma_debug.c
---- a/mm/cma_debug.c~mm-cma_debug-correct-size-input-to-bitmap-function
-+++ a/mm/cma_debug.c
-@@ -39,7 +39,7 @@ static int cma_used_get(void *data, u64
+diff -puN lib/decompress.c~lib-decompress-set-the-compressor-name-to-null-on-error lib/decompress.c
+--- a/lib/decompress.c~lib-decompress-set-the-compressor-name-to-null-on-error
++++ a/lib/decompress.c
+@@ -59,8 +59,11 @@ decompress_fn __init decompress_method(c
+ {
+ 	const struct compress_format *cf;
  
- 	mutex_lock(&cma->lock);
- 	/* pages counter is smaller than sizeof(int) */
--	used = bitmap_weight(cma->bitmap, (int)cma->count);
-+	used = bitmap_weight(cma->bitmap, (int)cma_bitmap_maxno(cma));
- 	mutex_unlock(&cma->lock);
- 	*val = (u64)used << cma->order_per_bit;
+-	if (len < 2)
++	if (len < 2) {
++		if (name)
++			*name = NULL;
+ 		return NULL;	/* Need at least this much... */
++	}
  
-@@ -52,13 +52,14 @@ static int cma_maxchunk_get(void *data,
- 	struct cma *cma = data;
- 	unsigned long maxchunk = 0;
- 	unsigned long start, end = 0;
-+	unsigned long bitmap_maxno = cma_bitmap_maxno(cma);
+ 	pr_debug("Compressed data magic: %#.2x %#.2x\n", inbuf[0], inbuf[1]);
  
- 	mutex_lock(&cma->lock);
- 	for (;;) {
--		start = find_next_zero_bit(cma->bitmap, cma->count, end);
-+		start = find_next_zero_bit(cma->bitmap, bitmap_maxno, end);
- 		if (start >= cma->count)
- 			break;
--		end = find_next_bit(cma->bitmap, cma->count, start);
-+		end = find_next_bit(cma->bitmap, bitmap_maxno, start);
- 		maxchunk = max(end - start, maxchunk);
- 	}
- 	mutex_unlock(&cma->lock);
 _
 
-Patches currently in -mm which might be from js1304@gmail.com are
+Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
+page-flags-trivial-cleanup-for-pagetrans-helpers.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
+page-flags-define-pg_locked-behavior-on-compound-pages.patch
+page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
+page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
+page-flags-define-pg_reserved-behavior-on-compound-pages.patch
+page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
+page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
+page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
+page-flags-define-pg_uncached-behavior-on-compound-pages.patch
+page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
+page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
+mm-sanitize-page-mapping-for-tail-pages.patch
 
