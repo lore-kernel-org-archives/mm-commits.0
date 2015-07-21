@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-mlock-refactor-mlock-munlock-and-munlockall-code-checkpatch-fixes.patch
- added to -mm tree
-Date: Tue, 21 Jul 2015 14:01:44 -0700
-Message-ID: <55aeb338.xq6xlF8Ctmix9Ew1%akpm@linux-foundation.org>
+Subject: + pagemap-update-documentation-fix.patch added to -mm tree
+Date: Tue, 21 Jul 2015 14:26:02 -0700
+Message-ID: <55aeb8ea.Y10kSSy9Mjafl7E/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41047 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41820 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755659AbbGUVBp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jul 2015 17:01:45 -0400
+	with ESMTP id S1754820AbbGUV0D (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jul 2015 17:26:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, emunson@akamai.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, khlebnikov@yandex-team.ru, mwilliamson@undo-software.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-mlock-refactor-mlock-munlock-and-munlockall-code-checkpatch-fixes
+     Subject: pagemap-update-documentation-fix
 has been added to the -mm tree.  Its filename is
-     mm-mlock-refactor-mlock-munlock-and-munlockall-code-checkpatch-fixes.patch
+     pagemap-update-documentation-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mlock-refactor-mlock-munlock-and-munlockall-code-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/pagemap-update-documentation-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mlock-refactor-mlock-munlock-and-munlockall-code-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/pagemap-update-documentation-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,45 +39,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-mlock-refactor-mlock-munlock-and-munlockall-code-checkpatch-fixes
+Subject: pagemap-update-documentation-fix
 
-ERROR: "foo * bar" should be "foo *bar"
-#244: FILE: mm/mlock.c:728:
-+	struct vm_area_struct * vma, * prev = NULL;
+various tweaks
 
-ERROR: space prohibited after that '*' (ctx:WxW)
-#244: FILE: mm/mlock.c:728:
-+	struct vm_area_struct * vma, * prev = NULL;
- 	                             ^
-
-total: 2 errors, 0 warnings, 115 lines checked
-
-./patches/mm-mlock-refactor-mlock-munlock-and-munlockall-code.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Eric B Munson <emunson@akamai.com>
+Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Cc: Mark Williamson <mwilliamson@undo-software.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/vm/pagemap.txt |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/mlock.c~mm-mlock-refactor-mlock-munlock-and-munlockall-code-checkpatch-fixes mm/mlock.c
---- a/mm/mlock.c~mm-mlock-refactor-mlock-munlock-and-munlockall-code-checkpatch-fixes
-+++ a/mm/mlock.c
-@@ -725,7 +725,7 @@ out:
+diff -puN Documentation/vm/pagemap.txt~pagemap-update-documentation-fix Documentation/vm/pagemap.txt
+--- a/Documentation/vm/pagemap.txt~pagemap-update-documentation-fix
++++ a/Documentation/vm/pagemap.txt
+@@ -22,9 +22,9 @@ There are three components to pagemap:
+     * Bit  62    page swapped
+     * Bit  63    page present
  
- static int do_munlockall(int flags)
- {
--	struct vm_area_struct * vma, * prev = NULL;
-+	struct vm_area_struct *vma, *prev = NULL;
+-   Since Linux 4.0 only users with the CAP_SYS_ADMIN capability can get PFNs:
+-   for unprivileged users from 4.0 till 4.2 open fails with -EPERM, starting
+-   from from 4.2 PFN field is zeroed if user has no CAP_SYS_ADMIN capability.
++   Since Linux 4.0 only users with the CAP_SYS_ADMIN capability can get PFNs.
++   In 4.0 and 4.1 opens by unprivileged fail with -EPERM.  Starting from
++   4.2 the PFN field is zeroed if the user does not have CAP_SYS_ADMIN.
+    Reason: information about PFNs helps in exploiting Rowhammer vulnerability.
  
- 	if (flags & MCL_FUTURE)
- 		current->mm->def_flags &= ~VM_LOCKED;
+    If the page is not present but in swap, then the PFN contains an
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -101,6 +89,7 @@ mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested-fix.patch
 dax-revert-userfaultfd-change.patch
 thp-prepare-for-dax-huge-pages-fix.patch
 pagemap-add-mmap-exclusive-bit-for-marking-pages-mapped-only-here-fix.patch
+pagemap-update-documentation-fix.patch
 mm-show-proportional-swap-share-of-the-mapping-fix.patch
 mm-improve-__gfp_noretry-comment-based-on-implementation-fix.patch
 memcg-export-struct-mem_cgroup-fix.patch
