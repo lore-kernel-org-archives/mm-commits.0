@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + proc-add-kpageidle-file.patch added to -mm tree
-Date: Tue, 21 Jul 2015 16:34:03 -0700
-Message-ID: <55aed6eb.Iwy4ioY8ebF3G/Fe%akpm@linux-foundation.org>
+Subject: + ocfs2-do-not-log-twice-error-messages.patch added to -mm tree
+Date: Tue, 21 Jul 2015 16:42:55 -0700
+Message-ID: <55aed8ff.9LPcIHQyI9FJ7LIB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44087 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44428 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933670AbbGUXeF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jul 2015 19:34:05 -0400
+	with ESMTP id S932779AbbGUXm4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jul 2015 19:42:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@parallels.com, andreslc@google.com, corbet@lwn.net, gorcunov@openvz.org, gthelen@google.com, hannes@cmpxchg.org, mhocko@suse.cz, minchan@kernel.org, raghavendra.kt@linux.vnet.ibm.com, rientjes@google.com, walken@google.com, xemul@parallels.com, mm-commits@vger.kernel.org
+To: christophe.jaillet@wanadoo.fr, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: add kpageidle file
+     Subject: ocfs2: do not log twice error messages
 has been added to the -mm tree.  Its filename is
-     proc-add-kpageidle-file.patch
+     ocfs2-do-not-log-twice-error-messages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/proc-add-kpageidle-file.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-do-not-log-twice-error-messages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/proc-add-kpageidle-file.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-do-not-log-twice-error-messages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,668 +38,84 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: proc: add kpageidle file
+From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Subject: ocfs2: do not log twice error messages
 
-Knowing the portion of memory that is not used by a certain application or
-memory cgroup (idle memory) can be useful for partitioning the system
-efficiently, e.g.  by setting memory cgroup limits appropriately. 
-Currently, the only means to estimate the amount of idle memory provided
-by the kernel is /proc/PID/{clear_refs,smaps}: the user can clear the
-access bit for all pages mapped to a particular process by writing 1 to
-clear_refs, wait for some time, and then count smaps:Referenced.  However,
-this method has two serious shortcomings:
+'o2hb_map_slot_data' and 'o2hb_populate_slot_data' are called from only
+one place, in 'o2hb_region_dev_write'.  Return value is checked and
+'mlog_errno' is called to log a message if it is not 0.
 
- - it does not count unmapped file pages
- - it affects the reclaimer logic
+So there is no need to call 'mlog_errno' directly within these functions. 
+This would result on logging the message twice.
 
-To overcome these drawbacks, this patch introduces two new page flags,
-Idle and Young, and a new proc file, /proc/kpageidle.  A page's Idle flag
-can only be set from userspace by setting bit in /proc/kpageidle at the
-offset corresponding to the page, and it is cleared whenever the page is
-accessed either through page tables (it is cleared in page_referenced() in
-this case) or using the read(2) system call (mark_page_accessed()).  Thus
-by setting the Idle flag for pages of a particular workload, which can be
-found e.g.  by reading /proc/PID/pagemap, waiting for some time to let the
-workload access its working set, and then reading the kpageidle file, one
-can estimate the amount of pages that are not used by the workload.
-
-The Young page flag is used to avoid interference with the memory
-reclaimer.  A page's Young flag is set whenever the Access bit of a page
-table entry pointing to the page is cleared by writing to kpageidle.  If
-page_referenced() is called on a Young page, it will add 1 to its return
-value, therefore concealing the fact that the Access bit was cleared.
-
-Note, since there is no room for extra page flags on 32 bit, this feature
-uses extended page flags when compiled on 32 bit.
-
-Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
-Reviewed-by: Andres Lagar-Cavilla <andreslc@google.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Raghavendra K T <raghavendra.kt@linux.vnet.ibm.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Michel Lespinasse <walken@google.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Pavel Emelyanov <xemul@parallels.com>
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/pagemap.txt |   12 +
- fs/proc/page.c               |  218 +++++++++++++++++++++++++++++++++
- fs/proc/task_mmu.c           |    4 
- include/linux/mm.h           |   98 ++++++++++++++
- include/linux/page-flags.h   |   11 +
- include/linux/page_ext.h     |    4 
- mm/Kconfig                   |   12 +
- mm/debug.c                   |    4 
- mm/huge_memory.c             |   11 +
- mm/migrate.c                 |    5 
- mm/page_ext.c                |    3 
- mm/rmap.c                    |    5 
- mm/swap.c                    |    2 
- 13 files changed, 385 insertions(+), 4 deletions(-)
+ fs/ocfs2/cluster/heartbeat.c |   20 +++++---------------
+ 1 file changed, 5 insertions(+), 15 deletions(-)
 
-diff -puN Documentation/vm/pagemap.txt~proc-add-kpageidle-file Documentation/vm/pagemap.txt
---- a/Documentation/vm/pagemap.txt~proc-add-kpageidle-file
-+++ a/Documentation/vm/pagemap.txt
-@@ -5,7 +5,7 @@ pagemap is a new (as of 2.6.25) set of i
- userspace programs to examine the page tables and related information by
- reading files in /proc.
+diff -puN fs/ocfs2/cluster/heartbeat.c~ocfs2-do-not-log-twice-error-messages fs/ocfs2/cluster/heartbeat.c
+--- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-do-not-log-twice-error-messages
++++ a/fs/ocfs2/cluster/heartbeat.c
+@@ -1620,17 +1620,13 @@ static int o2hb_map_slot_data(struct o2h
+ 	struct o2hb_disk_slot *slot;
  
--There are four components to pagemap:
-+There are five components to pagemap:
+ 	reg->hr_tmp_block = kmalloc(reg->hr_block_bytes, GFP_KERNEL);
+-	if (reg->hr_tmp_block == NULL) {
+-		mlog_errno(-ENOMEM);
++	if (reg->hr_tmp_block == NULL)
+ 		return -ENOMEM;
+-	}
  
-  * /proc/pid/pagemap.  This file lets a userspace process find out which
-    physical frame each virtual page is mapped to.  It contains one 64-bit
-@@ -75,6 +75,16 @@ There are four components to pagemap:
-    memory cgroup each page is charged to, indexed by PFN. Only available when
-    CONFIG_MEMCG is set.
+ 	reg->hr_slots = kcalloc(reg->hr_blocks,
+ 				sizeof(struct o2hb_disk_slot), GFP_KERNEL);
+-	if (reg->hr_slots == NULL) {
+-		mlog_errno(-ENOMEM);
++	if (reg->hr_slots == NULL)
+ 		return -ENOMEM;
+-	}
  
-+ * /proc/kpageidle.  This file implements a bitmap where each bit corresponds
-+   to a page, indexed by PFN. When the bit is set, the corresponding page is
-+   idle. A page is considered idle if it has not been accessed since it was
-+   marked idle. To mark a page idle one should set the bit corresponding to the
-+   page by writing to the file. A value written to the file is OR-ed with the
-+   current bitmap value. Only user memory pages can be marked idle, for other
-+   page types input is silently ignored. Writing to this file beyond max PFN
-+   results in the ENXIO error. Only available when CONFIG_IDLE_PAGE_TRACKING is
-+   set.
-+
- Short descriptions to the page flags:
+ 	for(i = 0; i < reg->hr_blocks; i++) {
+ 		slot = &reg->hr_slots[i];
+@@ -1646,17 +1642,13 @@ static int o2hb_map_slot_data(struct o2h
  
-  0. LOCKED
-diff -puN fs/proc/page.c~proc-add-kpageidle-file fs/proc/page.c
---- a/fs/proc/page.c~proc-add-kpageidle-file
-+++ a/fs/proc/page.c
-@@ -5,6 +5,8 @@
- #include <linux/ksm.h>
- #include <linux/mm.h>
- #include <linux/mmzone.h>
-+#include <linux/rmap.h>
-+#include <linux/mmu_notifier.h>
- #include <linux/huge_mm.h>
- #include <linux/proc_fs.h>
- #include <linux/seq_file.h>
-@@ -16,6 +18,7 @@
+ 	reg->hr_slot_data = kcalloc(reg->hr_num_pages, sizeof(struct page *),
+ 				    GFP_KERNEL);
+-	if (!reg->hr_slot_data) {
+-		mlog_errno(-ENOMEM);
++	if (!reg->hr_slot_data)
+ 		return -ENOMEM;
+-	}
  
- #define KPMSIZE sizeof(u64)
- #define KPMMASK (KPMSIZE - 1)
-+#define KPMBITS (KPMSIZE * BITS_PER_BYTE)
+ 	for(i = 0; i < reg->hr_num_pages; i++) {
+ 		page = alloc_page(GFP_KERNEL);
+-		if (!page) {
+-			mlog_errno(-ENOMEM);
++		if (!page)
+ 			return -ENOMEM;
+-		}
  
- /* /proc/kpagecount - an array exposing page counts
-  *
-@@ -275,6 +278,217 @@ static const struct file_operations proc
- };
- #endif /* CONFIG_MEMCG */
+ 		reg->hr_slot_data[i] = page;
  
-+#ifdef CONFIG_IDLE_PAGE_TRACKING
-+/*
-+ * Idle page tracking only considers user memory pages, for other types of
-+ * pages the idle flag is always unset and an attempt to set it is silently
-+ * ignored.
-+ *
-+ * We treat a page as a user memory page if it is on an LRU list, because it is
-+ * always safe to pass such a page to rmap_walk(), which is essential for idle
-+ * page tracking. With such an indicator of user pages we can skip isolated
-+ * pages, but since there are not usually many of them, it will hardly affect
-+ * the overall result.
-+ *
-+ * This function tries to get a user memory page by pfn as described above.
-+ */
-+static struct page *kpageidle_get_page(unsigned long pfn)
-+{
-+	struct page *page;
-+	struct zone *zone;
-+
-+	if (!pfn_valid(pfn))
-+		return NULL;
-+
-+	page = pfn_to_page(pfn);
-+	if (!page || !PageLRU(page) ||
-+	    !get_page_unless_zero(page))
-+		return NULL;
-+
-+	zone = page_zone(page);
-+	spin_lock_irq(&zone->lru_lock);
-+	if (unlikely(!PageLRU(page))) {
-+		put_page(page);
-+		page = NULL;
-+	}
-+	spin_unlock_irq(&zone->lru_lock);
-+	return page;
-+}
-+
-+static int kpageidle_clear_pte_refs_one(struct page *page,
-+					struct vm_area_struct *vma,
-+					unsigned long addr, void *arg)
-+{
-+	struct mm_struct *mm = vma->vm_mm;
-+	spinlock_t *ptl;
-+	pmd_t *pmd;
-+	pte_t *pte;
-+	bool referenced = false;
-+
-+	if (unlikely(PageTransHuge(page))) {
-+		pmd = page_check_address_pmd(page, mm, addr,
-+					     PAGE_CHECK_ADDRESS_PMD_FLAG, &ptl);
-+		if (pmd) {
-+			referenced = pmdp_clear_young_notify(vma, addr, pmd);
-+			spin_unlock(ptl);
-+		}
-+	} else {
-+		pte = page_check_address(page, mm, addr, &ptl, 0);
-+		if (pte) {
-+			referenced = ptep_clear_young_notify(vma, addr, pte);
-+			pte_unmap_unlock(pte, ptl);
-+		}
-+	}
-+	if (referenced) {
-+		clear_page_idle(page);
-+		/*
-+		 * We cleared the referenced bit in a mapping to this page. To
-+		 * avoid interference with page reclaim, mark it young so that
-+		 * page_referenced() will return > 0.
-+		 */
-+		set_page_young(page);
-+	}
-+	return SWAP_AGAIN;
-+}
-+
-+static void kpageidle_clear_pte_refs(struct page *page)
-+{
-+	struct rmap_walk_control rwc = {
-+		.rmap_one = kpageidle_clear_pte_refs_one,
-+		.anon_lock = page_lock_anon_vma_read,
-+	};
-+	bool need_lock;
-+
-+	if (!page_mapped(page) ||
-+	    !page_rmapping(page))
-+		return;
-+
-+	need_lock = !PageAnon(page) || PageKsm(page);
-+	if (need_lock && !trylock_page(page))
-+		return;
-+
-+	rmap_walk(page, &rwc);
-+
-+	if (need_lock)
-+		unlock_page(page);
-+}
-+
-+static ssize_t kpageidle_read(struct file *file, char __user *buf,
-+			      size_t count, loff_t *ppos)
-+{
-+	u64 __user *out = (u64 __user *)buf;
-+	struct page *page;
-+	unsigned long pfn, end_pfn;
-+	ssize_t ret = 0;
-+	u64 idle_bitmap = 0;
-+	int bit;
-+
-+	if (*ppos & KPMMASK || count & KPMMASK)
-+		return -EINVAL;
-+
-+	pfn = *ppos * BITS_PER_BYTE;
-+	if (pfn >= max_pfn)
-+		return 0;
-+
-+	end_pfn = pfn + count * BITS_PER_BYTE;
-+	if (end_pfn > max_pfn)
-+		end_pfn = ALIGN(max_pfn, KPMBITS);
-+
-+	for (; pfn < end_pfn; pfn++) {
-+		bit = pfn % KPMBITS;
-+		page = kpageidle_get_page(pfn);
-+		if (page) {
-+			if (page_is_idle(page)) {
-+				/*
-+				 * The page might have been referenced via a
-+				 * pte, in which case it is not idle. Clear
-+				 * refs and recheck.
-+				 */
-+				kpageidle_clear_pte_refs(page);
-+				if (page_is_idle(page))
-+					idle_bitmap |= 1ULL << bit;
-+			}
-+			put_page(page);
-+		}
-+		if (bit == KPMBITS - 1) {
-+			if (put_user(idle_bitmap, out)) {
-+				ret = -EFAULT;
-+				break;
-+			}
-+			idle_bitmap = 0;
-+			out++;
-+		}
-+	}
-+
-+	*ppos += (char __user *)out - buf;
-+	if (!ret)
-+		ret = (char __user *)out - buf;
-+	return ret;
-+}
-+
-+static ssize_t kpageidle_write(struct file *file, const char __user *buf,
-+			       size_t count, loff_t *ppos)
-+{
-+	const u64 __user *in = (const u64 __user *)buf;
-+	struct page *page;
-+	unsigned long pfn, end_pfn;
-+	ssize_t ret = 0;
-+	u64 idle_bitmap = 0;
-+	int bit;
-+
-+	if (*ppos & KPMMASK || count & KPMMASK)
-+		return -EINVAL;
-+
-+	pfn = *ppos * BITS_PER_BYTE;
-+	if (pfn >= max_pfn)
-+		return -ENXIO;
-+
-+	end_pfn = pfn + count * BITS_PER_BYTE;
-+	if (end_pfn > max_pfn)
-+		end_pfn = ALIGN(max_pfn, KPMBITS);
-+
-+	for (; pfn < end_pfn; pfn++) {
-+		bit = pfn % KPMBITS;
-+		if (bit == 0) {
-+			if (get_user(idle_bitmap, in)) {
-+				ret = -EFAULT;
-+				break;
-+			}
-+			in++;
-+		}
-+		if (idle_bitmap >> bit & 1) {
-+			page = kpageidle_get_page(pfn);
-+			if (page) {
-+				kpageidle_clear_pte_refs(page);
-+				set_page_idle(page);
-+				put_page(page);
-+			}
-+		}
-+	}
-+
-+	*ppos += (const char __user *)in - buf;
-+	if (!ret)
-+		ret = (const char __user *)in - buf;
-+	return ret;
-+}
-+
-+static const struct file_operations proc_kpageidle_operations = {
-+	.llseek = mem_lseek,
-+	.read = kpageidle_read,
-+	.write = kpageidle_write,
-+};
-+
-+#ifndef CONFIG_64BIT
-+static bool need_page_idle(void)
-+{
-+	return true;
-+}
-+struct page_ext_operations page_idle_ops = {
-+	.need = need_page_idle,
-+};
-+#endif
-+#endif /* CONFIG_IDLE_PAGE_TRACKING */
-+
- static int __init proc_page_init(void)
- {
- 	proc_create("kpagecount", S_IRUSR, NULL, &proc_kpagecount_operations);
-@@ -282,6 +496,10 @@ static int __init proc_page_init(void)
- #ifdef CONFIG_MEMCG
- 	proc_create("kpagecgroup", S_IRUSR, NULL, &proc_kpagecgroup_operations);
- #endif
-+#ifdef CONFIG_IDLE_PAGE_TRACKING
-+	proc_create("kpageidle", S_IRUSR | S_IWUSR, NULL,
-+		    &proc_kpageidle_operations);
-+#endif
- 	return 0;
- }
- fs_initcall(proc_page_init);
-diff -puN fs/proc/task_mmu.c~proc-add-kpageidle-file fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~proc-add-kpageidle-file
-+++ a/fs/proc/task_mmu.c
-@@ -459,7 +459,7 @@ static void smaps_account(struct mem_siz
+@@ -1688,10 +1680,8 @@ static int o2hb_populate_slot_data(struc
+ 	struct o2hb_disk_heartbeat_block *hb_block;
  
- 	mss->resident += size;
- 	/* Accumulate the size in pages that have been accessed. */
--	if (young || PageReferenced(page))
-+	if (young || page_is_young(page) || PageReferenced(page))
- 		mss->referenced += size;
- 	mapcount = page_mapcount(page);
- 	if (mapcount >= 2) {
-@@ -808,6 +808,7 @@ static int clear_refs_pte_range(pmd_t *p
+ 	ret = o2hb_read_slots(reg, reg->hr_blocks);
+-	if (ret) {
+-		mlog_errno(ret);
++	if (ret)
+ 		goto out;
+-	}
  
- 		/* Clear accessed and referenced bits. */
- 		pmdp_test_and_clear_young(vma, addr, pmd);
-+		test_and_clear_page_young(page);
- 		ClearPageReferenced(page);
- out:
- 		spin_unlock(ptl);
-@@ -835,6 +836,7 @@ out:
- 
- 		/* Clear accessed and referenced bits. */
- 		ptep_test_and_clear_young(vma, addr, pte);
-+		test_and_clear_page_young(page);
- 		ClearPageReferenced(page);
- 	}
- 	pte_unmap_unlock(pte - 1, ptl);
-diff -puN include/linux/mm.h~proc-add-kpageidle-file include/linux/mm.h
---- a/include/linux/mm.h~proc-add-kpageidle-file
-+++ a/include/linux/mm.h
-@@ -2231,5 +2231,103 @@ void __init setup_nr_node_ids(void);
- static inline void setup_nr_node_ids(void) {}
- #endif
- 
-+#ifdef CONFIG_IDLE_PAGE_TRACKING
-+#ifdef CONFIG_64BIT
-+static inline bool page_is_young(struct page *page)
-+{
-+	return PageYoung(page);
-+}
-+
-+static inline void set_page_young(struct page *page)
-+{
-+	SetPageYoung(page);
-+}
-+
-+static inline bool test_and_clear_page_young(struct page *page)
-+{
-+	return TestClearPageYoung(page);
-+}
-+
-+static inline bool page_is_idle(struct page *page)
-+{
-+	return PageIdle(page);
-+}
-+
-+static inline void set_page_idle(struct page *page)
-+{
-+	SetPageIdle(page);
-+}
-+
-+static inline void clear_page_idle(struct page *page)
-+{
-+	ClearPageIdle(page);
-+}
-+#else /* !CONFIG_64BIT */
-+/*
-+ * If there is not enough space to store Idle and Young bits in page flags, use
-+ * page ext flags instead.
-+ */
-+extern struct page_ext_operations page_idle_ops;
-+
-+static inline bool page_is_young(struct page *page)
-+{
-+	return test_bit(PAGE_EXT_YOUNG, &lookup_page_ext(page)->flags);
-+}
-+
-+static inline void set_page_young(struct page *page)
-+{
-+	set_bit(PAGE_EXT_YOUNG, &lookup_page_ext(page)->flags);
-+}
-+
-+static inline bool test_and_clear_page_young(struct page *page)
-+{
-+	return test_and_clear_bit(PAGE_EXT_YOUNG,
-+				  &lookup_page_ext(page)->flags);
-+}
-+
-+static inline bool page_is_idle(struct page *page)
-+{
-+	return test_bit(PAGE_EXT_IDLE, &lookup_page_ext(page)->flags);
-+}
-+
-+static inline void set_page_idle(struct page *page)
-+{
-+	set_bit(PAGE_EXT_IDLE, &lookup_page_ext(page)->flags);
-+}
-+
-+static inline void clear_page_idle(struct page *page)
-+{
-+	clear_bit(PAGE_EXT_IDLE, &lookup_page_ext(page)->flags);
-+}
-+#endif /* CONFIG_64BIT */
-+#else /* !CONFIG_IDLE_PAGE_TRACKING */
-+static inline bool page_is_young(struct page *page)
-+{
-+	return false;
-+}
-+
-+static inline void set_page_young(struct page *page)
-+{
-+}
-+
-+static inline bool test_and_clear_page_young(struct page *page)
-+{
-+	return false;
-+}
-+
-+static inline bool page_is_idle(struct page *page)
-+{
-+	return false;
-+}
-+
-+static inline void set_page_idle(struct page *page)
-+{
-+}
-+
-+static inline void clear_page_idle(struct page *page)
-+{
-+}
-+#endif /* CONFIG_IDLE_PAGE_TRACKING */
-+
- #endif /* __KERNEL__ */
- #endif /* _LINUX_MM_H */
-diff -puN include/linux/page-flags.h~proc-add-kpageidle-file include/linux/page-flags.h
---- a/include/linux/page-flags.h~proc-add-kpageidle-file
-+++ a/include/linux/page-flags.h
-@@ -109,6 +109,10 @@ enum pageflags {
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	PG_compound_lock,
- #endif
-+#if defined(CONFIG_IDLE_PAGE_TRACKING) && defined(CONFIG_64BIT)
-+	PG_young,
-+	PG_idle,
-+#endif
- 	__NR_PAGEFLAGS,
- 
- 	/* Filesystems */
-@@ -289,6 +293,13 @@ PAGEFLAG_FALSE(HWPoison)
- #define __PG_HWPOISON 0
- #endif
- 
-+#if defined(CONFIG_IDLE_PAGE_TRACKING) && defined(CONFIG_64BIT)
-+TESTPAGEFLAG(Young, young, PF_ANY)
-+SETPAGEFLAG(Young, young, PF_ANY)
-+TESTCLEARFLAG(Young, young, PF_ANY)
-+PAGEFLAG(Idle, idle, PF_ANY)
-+#endif
-+
- /*
-  * On an anonymous page mapped into a user virtual memory area,
-  * page->mapping points to its anon_vma, not to a struct address_space;
-diff -puN include/linux/page_ext.h~proc-add-kpageidle-file include/linux/page_ext.h
---- a/include/linux/page_ext.h~proc-add-kpageidle-file
-+++ a/include/linux/page_ext.h
-@@ -26,6 +26,10 @@ enum page_ext_flags {
- 	PAGE_EXT_DEBUG_POISON,		/* Page is poisoned */
- 	PAGE_EXT_DEBUG_GUARD,
- 	PAGE_EXT_OWNER,
-+#if defined(CONFIG_IDLE_PAGE_TRACKING) && !defined(CONFIG_64BIT)
-+	PAGE_EXT_YOUNG,
-+	PAGE_EXT_IDLE,
-+#endif
- };
- 
- /*
-diff -puN mm/Kconfig~proc-add-kpageidle-file mm/Kconfig
---- a/mm/Kconfig~proc-add-kpageidle-file
-+++ a/mm/Kconfig
-@@ -654,3 +654,15 @@ config DEFERRED_STRUCT_PAGE_INIT
- 	  when kswapd starts. This has a potential performance impact on
- 	  processes running early in the lifetime of the systemm until kswapd
- 	  finishes the initialisation.
-+
-+config IDLE_PAGE_TRACKING
-+	bool "Enable idle page tracking"
-+	select PROC_PAGE_MONITOR
-+	select PAGE_EXTENSION if !64BIT
-+	help
-+	  This feature allows to estimate the amount of user pages that have
-+	  not been touched during a given period of time. This information can
-+	  be useful to tune memory cgroup limits and/or for job placement
-+	  within a compute cluster.
-+
-+	  See Documentation/vm/pagemap.txt for more details.
-diff -puN mm/debug.c~proc-add-kpageidle-file mm/debug.c
---- a/mm/debug.c~proc-add-kpageidle-file
-+++ a/mm/debug.c
-@@ -48,6 +48,10 @@ static const struct trace_print_flags pa
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	{1UL << PG_compound_lock,	"compound_lock"	},
- #endif
-+#if defined(CONFIG_IDLE_PAGE_TRACKING) && defined(CONFIG_64BIT)
-+	{1UL << PG_young,		"young"		},
-+	{1UL << PG_idle,		"idle"		},
-+#endif
- };
- 
- static void dump_flags(unsigned long flags,
-diff -puN mm/huge_memory.c~proc-add-kpageidle-file mm/huge_memory.c
---- a/mm/huge_memory.c~proc-add-kpageidle-file
-+++ a/mm/huge_memory.c
-@@ -1772,6 +1772,11 @@ static void __split_huge_page_refcount(s
- 		/* clear PageTail before overwriting first_page */
- 		smp_wmb();
- 
-+		if (page_is_young(page))
-+			set_page_young(page_tail);
-+		if (page_is_idle(page))
-+			set_page_idle(page_tail);
-+
- 		/*
- 		 * __split_huge_page_splitting() already set the
- 		 * splitting bit in all pmd that could map this
-@@ -2277,7 +2282,8 @@ static int __collapse_huge_page_isolate(
- 		VM_BUG_ON_PAGE(PageLRU(page), page);
- 
- 		/* If there is no mapped pte young don't collapse the page */
--		if (pte_young(pteval) || PageReferenced(page) ||
-+		if (pte_young(pteval) ||
-+		    page_is_young(page) || PageReferenced(page) ||
- 		    mmu_notifier_test_young(vma->vm_mm, address))
- 			referenced = true;
- 	}
-@@ -2704,7 +2710,8 @@ static int khugepaged_scan_pmd(struct mm
- 		 */
- 		if (page_count(page) != 1 + !!PageSwapCache(page))
- 			goto out_unmap;
--		if (pte_young(pteval) || PageReferenced(page) ||
-+		if (pte_young(pteval) ||
-+		    page_is_young(page) || PageReferenced(page) ||
- 		    mmu_notifier_test_young(vma->vm_mm, address))
- 			referenced = true;
- 	}
-diff -puN mm/migrate.c~proc-add-kpageidle-file mm/migrate.c
---- a/mm/migrate.c~proc-add-kpageidle-file
-+++ a/mm/migrate.c
-@@ -524,6 +524,11 @@ void migrate_page_copy(struct page *newp
- 			__set_page_dirty_nobuffers(newpage);
-  	}
- 
-+	if (page_is_young(page))
-+		set_page_young(newpage);
-+	if (page_is_idle(page))
-+		set_page_idle(newpage);
-+
- 	/*
- 	 * Copy NUMA information to the new page, to prevent over-eager
- 	 * future migrations of this same page.
-diff -puN mm/page_ext.c~proc-add-kpageidle-file mm/page_ext.c
---- a/mm/page_ext.c~proc-add-kpageidle-file
-+++ a/mm/page_ext.c
-@@ -59,6 +59,9 @@ static struct page_ext_operations *page_
- #ifdef CONFIG_PAGE_OWNER
- 	&page_owner_ops,
- #endif
-+#if defined(CONFIG_IDLE_PAGE_TRACKING) && !defined(CONFIG_64BIT)
-+	&page_idle_ops,
-+#endif
- };
- 
- static unsigned long total_usage;
-diff -puN mm/rmap.c~proc-add-kpageidle-file mm/rmap.c
---- a/mm/rmap.c~proc-add-kpageidle-file
-+++ a/mm/rmap.c
-@@ -888,6 +888,11 @@ static int page_referenced_one(struct pa
- 		pte_unmap_unlock(pte, ptl);
- 	}
- 
-+	if (referenced)
-+		clear_page_idle(page);
-+	if (test_and_clear_page_young(page))
-+		referenced++;
-+
- 	if (referenced) {
- 		pra->referenced++;
- 		pra->vm_flags |= vma->vm_flags;
-diff -puN mm/swap.c~proc-add-kpageidle-file mm/swap.c
---- a/mm/swap.c~proc-add-kpageidle-file
-+++ a/mm/swap.c
-@@ -622,6 +622,8 @@ void mark_page_accessed(struct page *pag
- 	} else if (!PageReferenced(page)) {
- 		SetPageReferenced(page);
- 	}
-+	if (page_is_idle(page))
-+		clear_page_idle(page);
- }
- EXPORT_SYMBOL(mark_page_accessed);
- 
+ 	/* We only want to get an idea of the values initially in each
+ 	 * slot, so we do no verification - o2hb_check_slot will
 _
 
-Patches currently in -mm which might be from vdavydov@parallels.com are
+Patches currently in -mm which might be from christophe.jaillet@wanadoo.fr are
 
-memcg-export-struct-mem_cgroup.patch
-memcg-export-struct-mem_cgroup-fix.patch
-memcg-export-struct-mem_cgroup-fix-2.patch
-memcg-get-rid-of-mem_cgroup_root_css-for-config_memcg.patch
-memcg-get-rid-of-extern-for-functions-in-memcontrolh.patch
-memcg-restructure-mem_cgroup_can_attach.patch
-memcg-tcp_kmem-check-for-cg_proto-in-sock_update_memcg.patch
-memcg-add-page_cgroup_ino-helper.patch
-hwpoison-use-page_cgroup_ino-for-filtering-by-memcg.patch
-memcg-zap-try_get_mem_cgroup_from_page.patch
-proc-add-kpagecgroup-file.patch
-mmu-notifier-add-clear_young-callback.patch
-proc-add-kpageidle-file.patch
-proc-export-idle-flag-via-kpageflags.patch
-proc-add-cond_resched-to-proc-kpage-read-write-loop.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-mm-swap-zswap-maybe_preload-refactoring.patch
+ocfs2-do-not-log-twice-error-messages.patch
+linux-next.patch
 
