@@ -1,92 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-move-mremap-from-file_operations-to-vm_operations_struct-v3.patch added
- to -mm tree
-Date: Tue, 21 Jul 2015 12:56:51 -0700
-Message-ID: <55aea403.7lLnaMe8rhQeZb+1%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ fsnotify-make-fsnotify_destroy_mark_locked-safe-without-refcount.patch
+ removed from -mm tree
+Date: Tue, 21 Jul 2015 13:34:33 -0700
+Message-ID: <55aeacd9.VD0soPMatNgCtqjl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40027 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40527 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752299AbbGUT4w (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jul 2015 15:56:52 -0400
+	with ESMTP id S1752157AbbGUUee (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jul 2015 16:34:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, fengguang.wu@intel.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: jack@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-move-mremap-from-file_operations-to-vm_operations_struct-v3
-has been added to the -mm tree.  Its filename is
-     mm-move-mremap-from-file_operations-to-vm_operations_struct-v3.patch
+     Subject: fsnotify: make fsnotify_destroy_mark_locked() safe without refcount
+has been removed from the -mm tree.  Its filename was
+     fsnotify-make-fsnotify_destroy_mark_locked-safe-without-refcount.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-move-mremap-from-file_operations-to-vm_operations_struct-v3.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-move-mremap-from-file_operations-to-vm_operations_struct-v3.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: mm-move-mremap-from-file_operations-to-vm_operations_struct-v3
+From: Jan Kara <jack@suse.com>
+Subject: fsnotify: make fsnotify_destroy_mark_locked() safe without refcount
 
-fs/aio.c can't be compiled if CONFIG_MMU=n, filemap_page_mkwrite() is
-not defined in this case. Add ifdef(CONFIG_MMU) into aio_ring_vm_ops.
+fsnotify_destroy_mark_locked() is almost safe without holding a reference
+to destroyed mark (the comment before that function is obviously stale as
+fsnotify_put_mark() isn't called in that function at all).  The only thing
+that may race with mark freeing is update of group mark count so do that
+before queueing destruction of the mark.  Also update the comment to
+better describe reality.
 
-Note that this only fixes the build error, currently aio doesn't work
-if !CONFIG_MMU anyway.
+With this change fsnotify_clear_marks_by_group_flags() has no need to grab
+reference to fsnotify mark so just remove that.
 
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Reported-by: Fengguang Wu <fengguang.wu@intel.com>
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Jan Kara <jack@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/notify/mark.c |   26 +++++++++++++-------------
+ 1 file changed, 13 insertions(+), 13 deletions(-)
 
-diff -puN fs/aio.c~mm-move-mremap-from-file_operations-to-vm_operations_struct-v3 fs/aio.c
---- a/fs/aio.c~mm-move-mremap-from-file_operations-to-vm_operations_struct-v3
-+++ a/fs/aio.c
-@@ -338,9 +338,11 @@ static int aio_ring_mremap(struct vm_are
+diff -puN fs/notify/mark.c~fsnotify-make-fsnotify_destroy_mark_locked-safe-without-refcount fs/notify/mark.c
+--- a/fs/notify/mark.c~fsnotify-make-fsnotify_destroy_mark_locked-safe-without-refcount
++++ a/fs/notify/mark.c
+@@ -122,9 +122,12 @@ u32 fsnotify_recalc_mask(struct hlist_he
+ }
  
- static const struct vm_operations_struct aio_ring_vm_ops = {
- 	.mremap		= aio_ring_mremap,
-+#if IS_ENABLED(CONFIG_MMU)
- 	.fault		= filemap_fault,
- 	.map_pages	= filemap_map_pages,
- 	.page_mkwrite	= filemap_page_mkwrite,
-+#endif
- };
+ /*
+- * Any time a mark is getting freed we end up here.
+- * The caller had better be holding a reference to this mark so we don't actually
+- * do the final put under the mark->lock
++ * Any time a mark is getting freed we end up here. We remove mark from
++ * inode / vfsmount list so that it cannot be found by new events, from the
++ * group list so that functions manipulating group cannot touch it, and queue
++ * it for further processing by notification kthread. We are still holding
++ * initial mark reference which gets dropped by the notification kthread once
++ * it's done destroying the mark.
+  */
+ void fsnotify_destroy_mark_locked(struct fsnotify_mark *mark,
+ 				  struct fsnotify_group *group)
+@@ -157,11 +160,6 @@ void fsnotify_destroy_mark_locked(struct
+ 	if (inode && (mark->flags & FSNOTIFY_MARK_FLAG_OBJECT_PINNED))
+ 		iput(inode);
  
- static int aio_ring_mmap(struct file *file, struct vm_area_struct *vma)
+-	spin_lock(&destroy_lock);
+-	list_add(&mark->g_list, &destroy_list);
+-	spin_unlock(&destroy_lock);
+-	wake_up(&destroy_waitq);
+-
+ 	/*
+ 	 * __fsnotify_update_child_dentry_flags(inode);
+ 	 *
+@@ -173,8 +171,13 @@ void fsnotify_destroy_mark_locked(struct
+ 	 * children and will update all of these flags then.  So really this
+ 	 * is just a lazy update (and could be a perf win...)
+ 	 */
+-
+ 	atomic_dec(&group->num_marks);
++
++	/* Queue for further destruction by kthread */
++	spin_lock(&destroy_lock);
++	list_add(&mark->g_list, &destroy_list);
++	spin_unlock(&destroy_lock);
++	wake_up(&destroy_waitq);
+ }
+ 
+ void fsnotify_destroy_mark(struct fsnotify_mark *mark,
+@@ -400,11 +403,8 @@ void fsnotify_clear_marks_by_group_flags
+ 
+ 	mutex_lock_nested(&group->mark_mutex, SINGLE_DEPTH_NESTING);
+ 	list_for_each_entry_safe(mark, lmark, &group->marks_list, g_list) {
+-		if (mark->flags & flags) {
+-			fsnotify_get_mark(mark);
++		if (mark->flags & flags)
+ 			fsnotify_destroy_mark_locked(mark, group);
+-			fsnotify_put_mark(mark);
+-		}
+ 	}
+ 	mutex_unlock(&group->mark_mutex);
+ }
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from jack@suse.com are
 
-signal-fix-information-leak-in-copy_siginfo_from_user32.patch
-signal-fix-information-leak-in-copy_siginfo_to_user.patch
-mremap-dont-leak-new_vma-if-f_op-mremap-fails.patch
-mm-move-mremap-from-file_operations-to-vm_operations_struct.patch
-mm-move-mremap-from-file_operations-to-vm_operations_struct-v3.patch
-mremap-dont-do-mm_populatenew_addr-on-failure.patch
-mremap-dont-do-uneccesary-checks-if-new_len-==-old_len.patch
-mremap-simplify-the-overlap-check-in-mremap_to.patch
-mm-introduce-vma_is_anonymousvma-helper.patch
-mmap-fix-the-usage-of-vm_pgoff-in-special_mapping-paths.patch
-mremap-fix-the-wrong-vma-vm_file-check-in-copy_vma.patch
+fs-optimize-inotify-fsnotify-code-for-unwatched-files.patch
 linux-next.patch
 
