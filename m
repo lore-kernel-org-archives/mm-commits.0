@@ -1,82 +1,70 @@
 From: akpm@linux-foundation.org
 Subject: [obsolete]
- mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-fix-3.patch
+ mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-fix-4.patch
  removed from -mm tree
-Date: Tue, 21 Jul 2015 13:44:17 -0700
-Message-ID: <55aeaf21.DGAlPErXBPHKgd/w%akpm@linux-foundation.org>
+Date: Tue, 21 Jul 2015 13:44:26 -0700
+Message-ID: <55aeaf2a.zmJ3XNDKGp+XmVw9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40822 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40828 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754716AbbGUUoS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jul 2015 16:44:18 -0400
+	with ESMTP id S1754716AbbGUUo1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jul 2015 16:44:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sfr@canb.auug.org.au, emunson@akamai.com, mm-commits@vger.kernel.org
+To: linux@roeck-us.net, emunson@akamai.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: mlock: fix for add new mlock, munlock, and munlockall system calls
+     Subject: ia64: increase NR_syscalls to match size of syscall table
 has been removed from the -mm tree.  Its filename was
-     mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-fix-3.patch
+     mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-fix-4.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: mm: mlock: fix for add new mlock, munlock, and munlockall system calls
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: ia64: increase NR_syscalls to match size of syscall table
 
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Commit 05aa30a22eff ("mm: mlock: add new mlock, munlock, and munlockall
+system calls") added new system calls, but did not increase the size of the
+syscall table for the ia64 architecture, resulting in the following build
+error.
+
+arch/ia64/kernel/entry.S: Assembler messages:
+arch/ia64/kernel/entry.S:1775: Error: attempt to move .org backwards
+
+Fixes: 05aa30a22eff ("mm: mlock: add new mlock, munlock, and munlockall
+	system calls")
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 Cc: Eric B Munson <emunson@akamai.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/unistd.h |    2 +-
- arch/arm/kernel/calls.S       |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/ia64/include/asm/unistd.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/arm/include/asm/unistd.h~mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-fix-3 arch/arm/include/asm/unistd.h
---- a/arch/arm/include/asm/unistd.h~mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-fix-3
-+++ a/arch/arm/include/asm/unistd.h
-@@ -19,7 +19,7 @@
-  * This may need to be greater than __NR_last_syscall+1 in order to
-  * account for the padding in the syscall table
-  */
--#define __NR_syscalls  (388)
-+#define __NR_syscalls  (392)
+diff -puN arch/ia64/include/asm/unistd.h~mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-fix-4 arch/ia64/include/asm/unistd.h
+--- a/arch/ia64/include/asm/unistd.h~mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-fix-4
++++ a/arch/ia64/include/asm/unistd.h
+@@ -11,7 +11,7 @@
+ 
+ 
+ 
+-#define NR_syscalls			319 /* length of syscall table */
++#define NR_syscalls			322 /* length of syscall table */
  
  /*
-  * *NOTE*: This is a ghost syscall private to the kernel.  Only the
-diff -puN arch/arm/kernel/calls.S~mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-fix-3 arch/arm/kernel/calls.S
---- a/arch/arm/kernel/calls.S~mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-fix-3
-+++ a/arch/arm/kernel/calls.S
-@@ -399,7 +399,7 @@
- 		CALL(sys_execveat)
- 		CALL(sys_mlock2)
- 		CALL(sys_munlock2)
--/* 400 */	CALL(sys_munlockall2)
-+/* 390 */	CALL(sys_munlockall2)
- #ifndef syscalls_counted
- .equ syscalls_padding, ((NR_syscalls + 3) & ~3) - NR_syscalls
- #define syscalls_counted
+  * The following defines stop scripts/checksyscalls.sh from complaining about
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from linux@roeck-us.net are
 
-smpboot-allow-to-pass-the-cpumask-on-per-cpu-thread-registration-fix.patch
-userfaultfd-uapi-add-missing-include-typesh.patch
-userfaultfd-activate-syscall-fix.patch
 mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-v4.patch
-mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-fix.patch
-mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-fix-2.patch
-mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-fix-4.patch
 mm-mmap-add-mmap-flag-to-request-vm_lockonfault-fix.patch
-genalloc-add-support-of-multiple-gen_pools-per-device-fix.patch
-mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested-fix.patch
-mm-move-mremap-from-file_operations-to-vm_operations_struct-v3.patch
 linux-next.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
 
