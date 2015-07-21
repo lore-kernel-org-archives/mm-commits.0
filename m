@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + proc-export-idle-flag-via-kpageflags.patch added to -mm tree
-Date: Tue, 21 Jul 2015 16:34:06 -0700
-Message-ID: <55aed6ee.LPjM+DfjYOzv8qW+%akpm@linux-foundation.org>
+Subject: + proc-add-cond_resched-to-proc-kpage-read-write-loop.patch added to -mm tree
+Date: Tue, 21 Jul 2015 16:34:08 -0700
+Message-ID: <55aed6f0.dPf5+LoPXX269OF8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44095 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44112 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933904AbbGUXeH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jul 2015 19:34:07 -0400
+	with ESMTP id S933904AbbGUXeJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jul 2015 19:34:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vdavydov@parallels.com, andreslc@google.com, corbet@lwn.net, gorcunov@openvz.org, gthelen@google.com, hannes@cmpxchg.org, mhocko@suse.cz, minchan@kernel.org, raghavendra.kt@linux.vnet.ibm.com, rientjes@google.com, walken@google.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: export idle flag via kpageflags
+     Subject: proc: add cond_resched to /proc/kpage* read/write loop
 has been added to the -mm tree.  Its filename is
-     proc-export-idle-flag-via-kpageflags.patch
+     proc-add-cond_resched-to-proc-kpage-read-write-loop.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/proc-export-idle-flag-via-kpageflags.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/proc-add-cond_resched-to-proc-kpage-read-write-loop.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/proc-export-idle-flag-via-kpageflags.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/proc-add-cond_resched-to-proc-kpage-read-write-loop.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,19 +39,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: proc: export idle flag via kpageflags
+Subject: proc: add cond_resched to /proc/kpage* read/write loop
 
-As noted by Minchan, a benefit of reading idle flag from /proc/kpageflags
-is that one can easily filter dirty and/or unevictable pages while
-estimating the size of unused memory.
-
-Note that idle flag read from /proc/kpageflags may be stale in case the
-page was accessed via a PTE, because it would be too costly to iterate
-over all page mappings on each /proc/kpageflags read to provide an
-up-to-date value.  To make sure the flag is up-to-date one has to read
-/proc/kpageidle first.
+Reading/writing a /proc/kpage* file may take long on machines with a lot
+of RAM installed.
 
 Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
+Suggested-by: Andres Lagar-Cavilla <andreslc@google.com>
 Reviewed-by: Andres Lagar-Cavilla <andreslc@google.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Raghavendra K T <raghavendra.kt@linux.vnet.ibm.com>
@@ -66,58 +60,55 @@ Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/pagemap.txt           |    6 ++++++
- fs/proc/page.c                         |    3 +++
- include/uapi/linux/kernel-page-flags.h |    1 +
- 3 files changed, 10 insertions(+)
+ fs/proc/page.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN Documentation/vm/pagemap.txt~proc-export-idle-flag-via-kpageflags Documentation/vm/pagemap.txt
---- a/Documentation/vm/pagemap.txt~proc-export-idle-flag-via-kpageflags
-+++ a/Documentation/vm/pagemap.txt
-@@ -70,6 +70,7 @@ There are five components to pagemap:
-     22. THP
-     23. BALLOON
-     24. ZERO_PAGE
-+    25. IDLE
- 
-  * /proc/kpagecgroup.  This file contains a 64-bit inode number of the
-    memory cgroup each page is charged to, indexed by PFN. Only available when
-@@ -130,6 +131,11 @@ Short descriptions to the page flags:
- 24. ZERO_PAGE
-     zero page for pfn_zero or huge_zero page
- 
-+25. IDLE
-+    page has not been accessed since it was marked idle (see /proc/kpageidle)
-+    Note that this flag may be stale in case the page was accessed via a PTE.
-+    To make sure the flag is up-to-date one has to read /proc/kpageidle first.
-+
-     [IO related page flags]
-  1. ERROR     IO error occurred
-  3. UPTODATE  page has up-to-date data
-diff -puN fs/proc/page.c~proc-export-idle-flag-via-kpageflags fs/proc/page.c
---- a/fs/proc/page.c~proc-export-idle-flag-via-kpageflags
+diff -puN fs/proc/page.c~proc-add-cond_resched-to-proc-kpage-read-write-loop fs/proc/page.c
+--- a/fs/proc/page.c~proc-add-cond_resched-to-proc-kpage-read-write-loop
 +++ a/fs/proc/page.c
-@@ -150,6 +150,9 @@ u64 stable_page_flags(struct page *page)
- 	if (PageBalloon(page))
- 		u |= 1 << KPF_BALLOON;
- 
-+	if (page_is_idle(page))
-+		u |= 1 << KPF_IDLE;
+@@ -58,6 +58,8 @@ static ssize_t kpagecount_read(struct fi
+ 		pfn++;
+ 		out++;
+ 		count -= KPMSIZE;
 +
- 	u |= kpf_copy_bit(k, KPF_LOCKED,	PG_locked);
++		cond_resched();
+ 	}
  
- 	u |= kpf_copy_bit(k, KPF_SLAB,		PG_slab);
-diff -puN include/uapi/linux/kernel-page-flags.h~proc-export-idle-flag-via-kpageflags include/uapi/linux/kernel-page-flags.h
---- a/include/uapi/linux/kernel-page-flags.h~proc-export-idle-flag-via-kpageflags
-+++ a/include/uapi/linux/kernel-page-flags.h
-@@ -33,6 +33,7 @@
- #define KPF_THP			22
- #define KPF_BALLOON		23
- #define KPF_ZERO_PAGE		24
-+#define KPF_IDLE		25
+ 	*ppos += (char __user *)out - buf;
+@@ -219,6 +221,8 @@ static ssize_t kpageflags_read(struct fi
+ 		pfn++;
+ 		out++;
+ 		count -= KPMSIZE;
++
++		cond_resched();
+ 	}
  
+ 	*ppos += (char __user *)out - buf;
+@@ -267,6 +271,8 @@ static ssize_t kpagecgroup_read(struct f
+ 		pfn++;
+ 		out++;
+ 		count -= KPMSIZE;
++
++		cond_resched();
+ 	}
  
- #endif /* _UAPILINUX_KERNEL_PAGE_FLAGS_H */
+ 	*ppos += (char __user *)out - buf;
+@@ -421,6 +427,7 @@ static ssize_t kpageidle_read(struct fil
+ 			idle_bitmap = 0;
+ 			out++;
+ 		}
++		cond_resched();
+ 	}
+ 
+ 	*ppos += (char __user *)out - buf;
+@@ -467,6 +474,7 @@ static ssize_t kpageidle_write(struct fi
+ 				put_page(page);
+ 			}
+ 		}
++		cond_resched();
+ 	}
+ 
+ 	*ppos += (const char __user *)in - buf;
 _
 
 Patches currently in -mm which might be from vdavydov@parallels.com are
