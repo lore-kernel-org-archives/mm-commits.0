@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + pagemap-update-documentation-fix.patch added to -mm tree
-Date: Tue, 21 Jul 2015 14:26:02 -0700
-Message-ID: <55aeb8ea.Y10kSSy9Mjafl7E/%akpm@linux-foundation.org>
+Subject: + mm-page_isolation-remove-bogus-tests-for-isolated-pages.patch
+ added to -mm tree
+Date: Tue, 21 Jul 2015 14:55:16 -0700
+Message-ID: <55aebfc4.PeX65VZpMPYwju65%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41820 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41986 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754820AbbGUV0D (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jul 2015 17:26:03 -0400
+	with ESMTP id S933511AbbGUVzS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 21 Jul 2015 17:55:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, khlebnikov@yandex-team.ru, mwilliamson@undo-software.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, lauraa@codeaurora.org, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, n-horiguchi@ah.jp.nec.com, seungho1.park@lge.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: pagemap-update-documentation-fix
+     Subject: mm, page_isolation: remove bogus tests for isolated pages
 has been added to the -mm tree.  Its filename is
-     pagemap-update-documentation-fix.patch
+     mm-page_isolation-remove-bogus-tests-for-isolated-pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/pagemap-update-documentation-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_isolation-remove-bogus-tests-for-isolated-pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/pagemap-update-documentation-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_isolation-remove-bogus-tests-for-isolated-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,82 +39,131 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: pagemap-update-documentation-fix
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, page_isolation: remove bogus tests for isolated pages
 
-various tweaks
+The __test_page_isolated_in_pageblock() is used to verify whether all
+pages in pageblock were either successfully isolated, or are hwpoisoned. 
+Two of the possible state of pages, that are tested, are however bogus and
+misleading.
 
-Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Cc: Mark Williamson <mwilliamson@undo-software.com>
+Both tests rely on get_freepage_migratetype(page), which however has no
+guarantees about pages on freelists.  Specifically, it doesn't guarantee
+that the migratetype returned by the function actually matches the
+migratetype of the freelist that the page is on.  Such guarantee is not
+its purpose and would have negative impact on allocator performance.
+
+The first test checks whether the freepage_migratetype equals
+MIGRATE_ISOLATE, supposedly to catch races between page isolation and
+allocator activity.  These races should be fixed nowadays with 51bb1a4093
+("mm/page_alloc: add freepage on isolate pageblock to correct buddy list")
+and related patches.  As explained above, the check wouldn't be able to
+catch them reliably anyway.  For the same reason false positives can
+happen, although they are harmless, as the move_freepages() call would
+just move the page to the same freelist it's already on.  So removing the
+test is not a bug fix, just cleanup.  After this patch, we assume that all
+PageBuddy pages are on the correct freelist and that the races were really
+fixed.  A truly reliable verification in the form of e.g.  VM_BUG_ON()
+would be complicated and is arguably not needed.
+
+The second test (page_count(page) == 0 && get_freepage_migratetype(page)
+== MIGRATE_ISOLATE) is probably supposed (the code comes from a big memory
+isolation patch from 2007) to catch pages on MIGRATE_ISOLATE pcplists. 
+However, pcplists don't contain MIGRATE_ISOLATE freepages nowadays, those
+are freed directly to free lists, so the check is obsolete.  Remove it as
+well.
+
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: Laura Abbott <lauraa@codeaurora.org>
 Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Seungho Park <seungho1.park@lge.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/pagemap.txt |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/page_isolation.c |   30 ++++++------------------------
+ 1 file changed, 6 insertions(+), 24 deletions(-)
 
-diff -puN Documentation/vm/pagemap.txt~pagemap-update-documentation-fix Documentation/vm/pagemap.txt
---- a/Documentation/vm/pagemap.txt~pagemap-update-documentation-fix
-+++ a/Documentation/vm/pagemap.txt
-@@ -22,9 +22,9 @@ There are three components to pagemap:
-     * Bit  62    page swapped
-     * Bit  63    page present
- 
--   Since Linux 4.0 only users with the CAP_SYS_ADMIN capability can get PFNs:
--   for unprivileged users from 4.0 till 4.2 open fails with -EPERM, starting
--   from from 4.2 PFN field is zeroed if user has no CAP_SYS_ADMIN capability.
-+   Since Linux 4.0 only users with the CAP_SYS_ADMIN capability can get PFNs.
-+   In 4.0 and 4.1 opens by unprivileged fail with -EPERM.  Starting from
-+   4.2 the PFN field is zeroed if the user does not have CAP_SYS_ADMIN.
-    Reason: information about PFNs helps in exploiting Rowhammer vulnerability.
- 
-    If the page is not present but in swap, then the PFN contains an
+diff -puN mm/page_isolation.c~mm-page_isolation-remove-bogus-tests-for-isolated-pages mm/page_isolation.c
+--- a/mm/page_isolation.c~mm-page_isolation-remove-bogus-tests-for-isolated-pages
++++ a/mm/page_isolation.c
+@@ -223,34 +223,16 @@ __test_page_isolated_in_pageblock(unsign
+ 			continue;
+ 		}
+ 		page = pfn_to_page(pfn);
+-		if (PageBuddy(page)) {
++		if (PageBuddy(page))
+ 			/*
+-			 * If race between isolatation and allocation happens,
+-			 * some free pages could be in MIGRATE_MOVABLE list
+-			 * although pageblock's migratation type of the page
+-			 * is MIGRATE_ISOLATE. Catch it and move the page into
+-			 * MIGRATE_ISOLATE list.
++			 * If the page is on a free list, it has to be on
++			 * the correct MIGRATE_ISOLATE freelist. There is no
++			 * simple way to verify that as VM_BUG_ON(), though.
+ 			 */
+-			if (get_freepage_migratetype(page) != MIGRATE_ISOLATE) {
+-				struct page *end_page;
+-
+-				end_page = page + (1 << page_order(page)) - 1;
+-				move_freepages(page_zone(page), page, end_page,
+-						MIGRATE_ISOLATE);
+-			}
+ 			pfn += 1 << page_order(page);
+-		}
+-		else if (page_count(page) == 0 &&
+-			get_freepage_migratetype(page) == MIGRATE_ISOLATE)
+-			pfn += 1;
+-		else if (skip_hwpoisoned_pages && PageHWPoison(page)) {
+-			/*
+-			 * The HWPoisoned page may be not in buddy
+-			 * system, and page_count() is not 0.
+-			 */
++		else if (skip_hwpoisoned_pages && PageHWPoison(page))
++			/* A HWPoisoned page cannot be also PageBuddy */
+ 			pfn++;
+-			continue;
+-		}
+ 		else
+ 			break;
+ 	}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-kernel-kthreadc-kthread_create_on_node-clarify-documentation.patch
-scripts-spellingtxt-adding-misspelled-word-for-check-fix.patch
-mm.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
-userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
-mm-mlock-refactor-mlock-munlock-and-munlockall-code-checkpatch-fixes.patch
-mm-gup-add-mm_lock_present-checkpatch-fixes.patch
-mm-mlock-introduce-vm_lockonfault-and-add-mlock-flags-to-enable-it-v4-checkpatch-fixes.patch
-mm-mmap-add-mmap-flag-to-request-vm_lockonfault-v4-fix.patch
-genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-fix.patch
-genalloc-add-support-of-multiple-gen_pools-per-device-fix.patch
-mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested-fix.patch
-dax-revert-userfaultfd-change.patch
-thp-prepare-for-dax-huge-pages-fix.patch
-pagemap-add-mmap-exclusive-bit-for-marking-pages-mapped-only-here-fix.patch
-pagemap-update-documentation-fix.patch
-mm-show-proportional-swap-share-of-the-mapping-fix.patch
-mm-improve-__gfp_noretry-comment-based-on-implementation-fix.patch
-memcg-export-struct-mem_cgroup-fix.patch
-memcg-export-struct-mem_cgroup-fix-2.patch
-include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
-procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix.patch
-procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix-fix.patch
-linux-next.patch
-linux-next-rejects.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-net-netfilter-ipset-work-around-gcc-444-initializer-bug.patch
-fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
+mm-mlock-refactor-mlock-munlock-and-munlockall-code.patch
+mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls.patch
+mm-mlock-add-new-mlock-munlock-and-munlockall-system-calls-v4.patch
+mm-gup-add-mm_lock_present.patch
+mm-mlock-introduce-vm_lockonfault-and-add-mlock-flags-to-enable-it.patch
+mm-mlock-introduce-vm_lockonfault-and-add-mlock-flags-to-enable-it-v4.patch
+mm-mmap-add-mmap-flag-to-request-vm_lockonfault.patch
+mm-mmap-add-mmap-flag-to-request-vm_lockonfault-v4.patch
+selftests-vm-add-tests-for-lock-on-fault.patch
+selftests-vm-add-tests-for-lock-on-fault-v4.patch
+mm-page_isolation-remove-bogus-tests-for-isolated-pages.patch
+mm-rename-and-move-get-set_freepage_migratetype.patch
+page-flags-trivial-cleanup-for-pagetrans-helpers.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
+page-flags-define-pg_locked-behavior-on-compound-pages.patch
+page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-lru-related-flags-on-compound-pages-fix.patch
+page-flags-define-behavior-of-lru-related-flags-on-compound-pages-fix-fix.patch
+page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
+page-flags-define-pg_reserved-behavior-on-compound-pages.patch
+page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
+page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
+page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
+page-flags-define-pg_uncached-behavior-on-compound-pages.patch
+page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
+page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
+mm-sanitize-page-mapping-for-tail-pages.patch
 
