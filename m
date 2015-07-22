@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-decode_stacktrace-fix-arm-architecture-decoding.patch
- added to -mm tree
-Date: Wed, 22 Jul 2015 13:57:42 -0700
-Message-ID: <55b003c6.0rkXjmloy54EKc+J%akpm@linux-foundation.org>
+Subject: +
+ iommu-common-do-not-use-64-bit-constant-0xffffffffffffffffl-for-computing-align_mask.patch added to -mm tree
+Date: Wed, 22 Jul 2015 14:06:15 -0700
+Message-ID: <55b005c7.lLEuhlpG50KNKaUI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47901 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48624 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750910AbbGVU5n (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jul 2015 16:57:43 -0400
+	with ESMTP id S1751285AbbGVVGQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jul 2015 17:06:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: robert.jarzmik@free.fr, mmarek@suse.cz, rmk+kernel@arm.linux.org.uk, sasha.levin@oracle.com, mm-commits@vger.kernel.org
+To: sowmini.varadhan@oracle.com, benh@kernel.crashing.org, davem@davemloft.net, linux@rasmusvillemoes.dk, linux@roeck-us.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts: decode_stacktrace: fix ARM architecture decoding
+     Subject: lib/iommu-common.c: do not use 0xffffffffffffffffl for computing align_mask
 has been added to the -mm tree.  Its filename is
-     scripts-decode_stacktrace-fix-arm-architecture-decoding.patch
+     iommu-common-do-not-use-64-bit-constant-0xffffffffffffffffl-for-computing-align_mask.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-decode_stacktrace-fix-arm-architecture-decoding.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/iommu-common-do-not-use-64-bit-constant-0xffffffffffffffffl-for-computing-align_mask.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-decode_stacktrace-fix-arm-architecture-decoding.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/iommu-common-do-not-use-64-bit-constant-0xffffffffffffffffl-for-computing-align_mask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,60 +39,41 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: scripts: decode_stacktrace: fix ARM architecture decoding
+From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
+Subject: lib/iommu-common.c: do not use 0xffffffffffffffffl for computing align_mask
 
-Fix the stack decoder for the ARM architecture.
-An ARM stack is designed as :
-[   81.547704] [<c023eb04>] (bucket_find_contain) from [<c023ec88>] (check_sync+0x40/0x4f8)
-[   81.559668] [<c023ec88>] (check_sync) from [<c023f8c4>] (debug_dma_sync_sg_for_cpu+0x128/0x194)
-[   81.571583] [<c023f8c4>] (debug_dma_sync_sg_for_cpu) from [<c0327dec>] (__videobuf_s
+Using a 64 bit constant generates "warning: integer constant is too large
+for 'long' type" on 32 bit platforms.  Instead use ~0ul and BITS_PER_LONG.
 
-The current script doesn't expect the symbols to be bound by
-parenthesis, and triggers the following errors :
-awk: cmd. line:1: error: Unmatched ( or \(: / (check_sync$/
-[   81.547704] (bucket_find_contain) from (check_sync+0x40/0x4f8)
+Detected by Andrew Morton on ARMD.
 
-Fix it by chopping starting and ending parenthesis from the each symbol
-name.
-
-As a side note, this probably comes from the function
-dump_backtrace_entry(), which is implemented differently for each
-architecture.  That makes a single decoding script a bit a challenge.
-
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
-Cc: Sasha Levin <sasha.levin@oracle.com>
-Cc: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: Michal Marek <mmarek@suse.cz>
+Signed-off-by: Sowmini Varadhan <sowmini.varadhan@oracle.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/decode_stacktrace.sh |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ lib/iommu-common.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/decode_stacktrace.sh~scripts-decode_stacktrace-fix-arm-architecture-decoding scripts/decode_stacktrace.sh
---- a/scripts/decode_stacktrace.sh~scripts-decode_stacktrace-fix-arm-architecture-decoding
-+++ a/scripts/decode_stacktrace.sh
-@@ -14,11 +14,14 @@ declare -A cache
+diff -puN lib/iommu-common.c~iommu-common-do-not-use-64-bit-constant-0xffffffffffffffffl-for-computing-align_mask lib/iommu-common.c
+--- a/lib/iommu-common.c~iommu-common-do-not-use-64-bit-constant-0xffffffffffffffffl-for-computing-align_mask
++++ a/lib/iommu-common.c
+@@ -119,7 +119,7 @@ unsigned long iommu_tbl_range_alloc(stru
+ 	unsigned long align_mask = 0;
  
- parse_symbol() {
- 	# The structure of symbol at this point is:
--	#   [name]+[offset]/[total length]
-+	#   ([name]+[offset]/[total length])
- 	#
- 	# For example:
- 	#   do_basic_setup+0x9c/0xbf
+ 	if (align_order > 0)
+-		align_mask = 0xffffffffffffffffl >> (64 - align_order);
++		align_mask = ~0ul >> (BITS_PER_LONG - align_order);
  
-+	# Remove the englobing parenthesis
-+	symbol=${symbol#\(}
-+	symbol=${symbol%\)}
- 
- 	# Strip the symbol name so that we could look it up
- 	local name=${symbol%+*}
+ 	/* Sanity check */
+ 	if (unlikely(npages == 0)) {
 _
 
-Patches currently in -mm which might be from robert.jarzmik@free.fr are
+Patches currently in -mm which might be from sowmini.varadhan@oracle.com are
 
-scripts-decode_stacktrace-fix-arm-architecture-decoding.patch
+iommu-common-do-not-use-64-bit-constant-0xffffffffffffffffl-for-computing-align_mask.patch
 linux-next.patch
 
