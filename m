@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-sysfile-interfaces-for-online-file-check-fix.patch added
- to -mm tree
-Date: Wed, 22 Jul 2015 13:14:26 -0700
-Message-ID: <55aff9a2.0BYSrAHRSYy2juOy%akpm@linux-foundation.org>
+Subject: + ocfs2-add-feature-document-for-online-file-check.patch added to -mm tree
+Date: Wed, 22 Jul 2015 13:14:32 -0700
+Message-ID: <55aff9a8.CsGBkg0wDS9uS7ZI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46962 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46972 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751236AbbGVUO1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jul 2015 16:14:27 -0400
+	with ESMTP id S1752826AbbGVUOd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jul 2015 16:14:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ghe@suse.com, jlbec@evilplan.org, mfasheh@suse.com, rgoldwyn@suse.de, mm-commits@vger.kernel.org
+To: ghe@suse.com, jlbec@evilplan.org, mfasheh@suse.com, rgoldwyn@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2-sysfile-interfaces-for-online-file-check-fix
+     Subject: ocfs2: add feature document for online file check
 has been added to the -mm tree.  Its filename is
-     ocfs2-sysfile-interfaces-for-online-file-check-fix.patch
+     ocfs2-add-feature-document-for-online-file-check.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-sysfile-interfaces-for-online-file-check-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-add-feature-document-for-online-file-check.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-sysfile-interfaces-for-online-file-check-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-add-feature-document-for-online-file-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,81 +38,138 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ocfs2-sysfile-interfaces-for-online-file-check-fix
+From: Gang He <ghe@suse.com>
+Subject: ocfs2: add feature document for online file check
 
-tweak printk text
+This document describes the OCFS2 online file check feature.
 
-Cc: Gang He <ghe@suse.com>
+OCFS2 is often used in high-availaibility systems.  However, OCFS2 usually
+converts the filesystem to read-only on errors.  This may not be
+necessary, since turning the filesystem read-only would affect other
+running processes as well, decreasing availability.  Then, a mount option
+(errors=continue) was introduced, which would return the EIO to the
+calling process and terminate furhter processing so that the filesystem is
+not corrupted further.  The filesystem is not converted to read-only, and
+the problematic file's inode number is reported in the kernel log.  The
+user can try to check/fix this file via online filecheck feature.
+
+Signed-off-by: Gang He <ghe@suse.com>
 Cc: Goldwyn Rodrigues <rgoldwyn@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/filecheck.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/filesystems/ocfs2-online-filecheck.txt |   95 ++++++++++
+ 1 file changed, 95 insertions(+)
 
-diff -puN fs/ocfs2/filecheck.c~ocfs2-sysfile-interfaces-for-online-file-check-fix fs/ocfs2/filecheck.c
---- a/fs/ocfs2/filecheck.c~ocfs2-sysfile-interfaces-for-online-file-check-fix
-+++ a/fs/ocfs2/filecheck.c
-@@ -295,7 +295,7 @@ ocfs2_filecheck_adjust_max(struct ocfs2_
- 	if (len < (ent->fs_fcheck->fc_size - ent->fs_fcheck->fc_done)) {
- 		mlog(ML_ERROR,
- 		"Cannot set online file check maximum entry number "
--		"to %u due to too much pending entries(%u)\n",
-+		"to %u due to too many pending entries(%u)\n",
- 		len, ent->fs_fcheck->fc_size - ent->fs_fcheck->fc_done);
- 		ret = -EBUSY;
- 	} else {
+diff -puN /dev/null Documentation/filesystems/ocfs2-online-filecheck.txt
+--- /dev/null
++++ a/Documentation/filesystems/ocfs2-online-filecheck.txt
+@@ -0,0 +1,95 @@
++		    OCFS2 online file check
++		    -----------------------
++
++This document will describe OCFS2 online file check feature.
++
++Introduction
++============
++OCFS2 is often used in high-availaibility systems. However, OCFS2 usually
++converts the filesystem to read-only on errors. This may not be necessary, since
++turning the filesystem read-only would affect other running processes as well,
++decreasing availability. Then, a mount option (errors=continue) was introduced,
++which would return the EIO to the calling process and terminate furhter
++processing so that the filesystem is not corrupted further. The filesystem is
++not converted to read-only, and the problematic file's inode number is reported
++in the kernel log. The user can try to check/fix this file via online filecheck
++feature.
++
++Scope
++=====
++This effort is to check/fix small issues which may hinder day-to-day operations
++of a cluster filesystem by turning the filesystem read-only. The scope of
++checking/fixing is at the file level, initially for regular files and eventually
++to all files (including system files) of the filesystem.
++
++In case of directory to file links is incorrect, the directory inode is
++reported as erroneous.
++
++This feature is not suited for extravagant checks which involve dependency of
++other components of the filesystem, such as but not limited to, checking if the
++bits for file blocks in the allocation has been set. In case of such an error,
++the offline fsck should/would be recommended.
++
++Finally, such an operation/feature should not be automated lest the filesystem
++may end up with more damage than before the repair attempt. So, this has to
++be performed using user interaction and consent.
++
++User interface
++==============
++When there are errors in the OCFS2 filesystem, they are usually accompanied
++by the inode number which caused the error. This inode number would be the
++input to check/fix the file.
++
++There is a sysfs file for each OCFS2 file system mounting:
++
++  /sys/fs/ocfs2/<devname>/filecheck
++
++Here, <devname> indicates the name of OCFS2 volumn device which has been already
++mounted. The file above would accept inode numbers. This could be used to
++communicate with kernel space, tell which file(inode number) will be checked or
++fixed. Currently, three operations are supported, which includes checking
++inode, fixing inode and setting the size of result record history.
++
++1. If you want to know what error exactly happened to <inode> before fixing, do
++
++  # echo "CHECK <inode>" > /sys/fs/ocfs2/<devname>/filecheck
++  # cat /sys/fs/ocfs2/<devname>/filecheck
++
++The output is like this:
++  INO		TYPE		DONE		ERROR
++39502		0		1		GENERATION
++
++<INO> lists the inode numbers.
++<TYPE> is what kind of operation you've done, 0 for inode check,1 for inode fix.
++<DONE> indicates whether the operation has been finished.
++<ERROR> says what kind of errors was found. For the detailed error numbers,
++please refer to the file linux/fs/ocfs2/filecheck.h.
++
++2. If you determine to fix this inode, do
++
++  # echo "FIX <inode>" > /sys/fs/ocfs2/<devname>/filecheck
++  # cat /sys/fs/ocfs2/<devname>/filecheck
++
++The output is like this:
++  INO		TYPE		DONE		ERROR
++39502		1		1		SUCCESS
++
++This time, the <ERROR> column indicates whether this fix is successful or not.
++
++3. The record cache is used to store the history of check/fix result. Its
++defalut size is 10, and can be adjust between the range of 10 ~ 100. You can
++adjust the size like this:
++
++  # echo "SET <size>" > /sys/fs/ocfs2/<devname>/filecheck
++
++Fixing stuff
++============
++On receivng the inode, the filesystem would read the inode and the
++file metadata. In case of errors, the filesystem would fix the errors
++and report the problems it fixed in the kernel log. As a precautionary measure,
++the inode must first be checked for errors before performing a final fix.
++
++The inode and the result history will be maintained temporarily in a
++small linked list buffer which would contain the last (N) inodes
++fixed/checked, the detailed errors which were fixed/checked are printed in the
++kernel log.
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ghe@suse.com are
 
-origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-kernel-kthreadc-kthread_create_on_node-clarify-documentation.patch
-scripts-spellingtxt-adding-misspelled-word-for-check-fix.patch
+ocfs2-export-ocfs2_kset-for-online-file-check.patch
+ocfs2-sysfile-interfaces-for-online-file-check.patch
 ocfs2-sysfile-interfaces-for-online-file-check-fix.patch
-mm.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
-userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
-mm-mlock-refactor-mlock-munlock-and-munlockall-code-checkpatch-fixes.patch
-mm-gup-add-mm_lock_present-checkpatch-fixes.patch
-mm-mlock-introduce-vm_lockonfault-and-add-mlock-flags-to-enable-it-v4-checkpatch-fixes.patch
-mm-mmap-add-mmap-flag-to-request-vm_lockonfault-v4-fix.patch
-genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-fix.patch
-genalloc-add-support-of-multiple-gen_pools-per-device-fix.patch
-mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested-fix.patch
-dax-revert-userfaultfd-change.patch
-thp-prepare-for-dax-huge-pages-fix.patch
-pagemap-add-mmap-exclusive-bit-for-marking-pages-mapped-only-here-fix.patch
-pagemap-update-documentation-fix.patch
-mm-show-proportional-swap-share-of-the-mapping-fix.patch
-mm-improve-__gfp_noretry-comment-based-on-implementation-fix.patch
-memcg-export-struct-mem_cgroup-fix.patch
-memcg-export-struct-mem_cgroup-fix-2.patch
-include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
-procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix.patch
-procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix-fix.patch
-linux-next.patch
-linux-next-rejects.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-net-netfilter-ipset-work-around-gcc-444-initializer-bug.patch
-fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-journal_add_journal_head-debug.patch
-journal_add_journal_head-debug-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
+ocfs2-create-remove-sysfile-for-online-file-check.patch
+ocfs2-check-fix-inode-block-for-online-file-check.patch
+ocfs2-add-feature-document-for-online-file-check.patch
 
