@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + zsmalloc-use-class-pages_per_zspage.patch added to -mm tree
-Date: Wed, 22 Jul 2015 13:39:03 -0700
-Message-ID: <55afff67.9G8gSVU6pZ/hz/jV%akpm@linux-foundation.org>
+Subject: + zsmalloc-do-not-take-class-lock-in-zs_shrinker_count.patch
+ added to -mm tree
+Date: Wed, 22 Jul 2015 13:39:42 -0700
+Message-ID: <55afff8e.j2ONbnWgGykw66sn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47778 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47785 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752173AbbGVUjE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jul 2015 16:39:04 -0400
+	with ESMTP id S1753111AbbGVUjn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jul 2015 16:39:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
+To: sergey.senozhatsky@gmail.com, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: use class->pages_per_zspage
+     Subject: zsmalloc: do not take class lock in zs_shrinker_count()
 has been added to the -mm tree.  Its filename is
-     zsmalloc-use-class-pages_per_zspage.patch
+     zsmalloc-do-not-take-class-lock-in-zs_shrinker_count.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zsmalloc-use-class-pages_per_zspage.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zsmalloc-do-not-take-class-lock-in-zs_shrinker_count.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zsmalloc-use-class-pages_per_zspage.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zsmalloc-do-not-take-class-lock-in-zs_shrinker_count.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,79 +39,59 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: zsmalloc: use class->pages_per_zspage
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: zsmalloc: do not take class lock in zs_shrinker_count()
 
-There is no need to recalcurate pages_per_zspage in runtime.  Just use
-class->pages_per_zspage to avoid unnecessary runtime overhead.
+We can avoid taking class ->lock around zs_can_compact() in
+zs_shrinker_count(), because the number that we return back is outdated in
+general case, by design.  We have different sources that are able to
+change class's state right after we return from zs_can_compact() --
+ongoing I/O operations, manually triggered compaction, or two of them
+happening simultaneously.
 
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+We re-do this calculations during compaction on a per class basis anyway.
+
+zs_unregister_shrinker() will not return until we have an active shrinker,
+so classes won't unexpectedly disappear while zs_shrinker_count() iterates
+them.
+
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ mm/zsmalloc.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN mm/zsmalloc.c~zsmalloc-use-class-pages_per_zspage mm/zsmalloc.c
---- a/mm/zsmalloc.c~zsmalloc-use-class-pages_per_zspage
+diff -puN mm/zsmalloc.c~zsmalloc-do-not-take-class-lock-in-zs_shrinker_count mm/zsmalloc.c
+--- a/mm/zsmalloc.c~zsmalloc-do-not-take-class-lock-in-zs_shrinker_count
 +++ a/mm/zsmalloc.c
-@@ -1723,7 +1723,7 @@ static unsigned long zs_can_compact(stru
- 	obj_wasted /= get_maxobj_per_zspage(class->size,
- 			class->pages_per_zspage);
+@@ -1710,8 +1710,6 @@ static struct page *isolate_source_page(
+  *
+  * Based on the number of unused allocated objects calculate
+  * and return the number of pages that we can free.
+- *
+- * Should be called under class->lock.
+  */
+ static unsigned long zs_can_compact(struct size_class *class)
+ {
+@@ -1834,9 +1832,7 @@ static unsigned long zs_shrinker_count(s
+ 		if (class->index != i)
+ 			continue;
  
--	return obj_wasted * get_pages_per_zspage(class->size);
-+	return obj_wasted * class->pages_per_zspage;
- }
+-		spin_lock(&class->lock);
+ 		pages_to_free += zs_can_compact(class);
+-		spin_unlock(&class->lock);
+ 	}
  
- static void __zs_compact(struct zs_pool *pool, struct size_class *class)
-@@ -1761,8 +1761,7 @@ static void __zs_compact(struct zs_pool
- 
- 		putback_zspage(pool, class, dst_page);
- 		if (putback_zspage(pool, class, src_page) == ZS_EMPTY)
--			pool->stats.pages_compacted +=
--				get_pages_per_zspage(class->size);
-+			pool->stats.pages_compacted += class->pages_per_zspage;
- 		spin_unlock(&class->lock);
- 		cond_resched();
- 		spin_lock(&class->lock);
+ 	return pages_to_free;
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
 
-mm-show-proportional-swap-share-of-the-mapping.patch
-mm-show-proportional-swap-share-of-the-mapping-fix.patch
-mm-page_isolation-remove-bogus-tests-for-isolated-pages.patch
-mm-rename-and-move-get-set_freepage_migratetype.patch
-memcg-add-page_cgroup_ino-helper.patch
-hwpoison-use-page_cgroup_ino-for-filtering-by-memcg.patch
-memcg-zap-try_get_mem_cgroup_from_page.patch
-proc-add-kpagecgroup-file.patch
-mmu-notifier-add-clear_young-callback.patch
-proc-add-kpageidle-file.patch
-proc-export-idle-flag-via-kpageflags.patch
-proc-add-cond_resched-to-proc-kpage-read-write-loop.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-mm-page_isolation-check-pfn-validity-before-access.patch
-x86-add-pmd_-for-thp.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp.patch
-sparc-add-pmd_-for-thp-fix.patch
-powerpc-add-pmd_-for-thp.patch
-arm-add-pmd_mkclean-for-thp.patch
-arm64-add-pmd_-for-thp.patch
-mm-support-madvisemadv_free.patch
-mm-support-madvisemadv_free-fix.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-dont-split-thp-page-when-syscall-is-called.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-2.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
-mm-free-swp_entry-in-madvise_free.patch
-mm-move-lazy-free-pages-to-inactive-list.patch
-mm-move-lazy-free-pages-to-inactive-list-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
+mm-slab_common-allow-null-cache-pointer-in-kmem_cache_destroy.patch
+mm-mempool-allow-null-pool-pointer-in-mempool_destroy.patch
+mm-dmapool-allow-null-pool-pointer-in-dma_pool_destroy.patch
 zsmalloc-drop-unused-variable-nr_to_migrate.patch
 zsmalloc-always-keep-per-class-stats.patch
 zsmalloc-introduce-zs_can_compact-function.patch
@@ -119,6 +100,8 @@ zsmalloc-zram-introduce-zs_pool_stats-api.patch
 zsmalloc-account-the-number-of-compacted-pages.patch
 zsmalloc-use-shrinker-to-trigger-auto-compaction.patch
 zsmalloc-partial-page-ordering-within-a-fullness_list.patch
+zsmalloc-consider-zs_almost_full-as-migrate-source.patch
 zsmalloc-use-class-pages_per_zspage.patch
-mm-swap-zswap-maybe_preload-refactoring.patch
+zsmalloc-do-not-take-class-lock-in-zs_shrinker_count.patch
+checkpatch-add-some-foo_destroy-functions-to-needless_if-tests.patch
 
