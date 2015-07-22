@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-add-page_cgroup_ino-helper-fix.patch added to -mm tree
-Date: Wed, 22 Jul 2015 12:57:34 -0700
-Message-ID: <55aff5ae.j6gnJaos4lUP3GFt%akpm@linux-foundation.org>
+Subject: + ocfs2-export-ocfs2_kset-for-online-file-check.patch added to
+ -mm tree
+Date: Wed, 22 Jul 2015 13:14:22 -0700
+Message-ID: <55aff99e.4Vu2ITfaqukyk2+n%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46817 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46954 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751654AbbGVT5f (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jul 2015 15:57:35 -0400
+	with ESMTP id S1751940AbbGVUOX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jul 2015 16:14:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@parallels.com, andreslc@google.com, mm-commits@vger.kernel.org
+To: ghe@suse.com, jlbec@evilplan.org, mfasheh@suse.com, rgoldwyn@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg-add-page_cgroup_ino-helper-fix
+     Subject: ocfs2: export ocfs2_kset for online file check
 has been added to the -mm tree.  Its filename is
-     memcg-add-page_cgroup_ino-helper-fix.patch
+     ocfs2-export-ocfs2_kset-for-online-file-check.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-add-page_cgroup_ino-helper-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-export-ocfs2_kset-for-online-file-check.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-add-page_cgroup_ino-helper-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-export-ocfs2_kset-for-online-file-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,69 +39,71 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: memcg-add-page_cgroup_ino-helper-fix
+From: Gang He <ghe@suse.com>
+Subject: ocfs2: export ocfs2_kset for online file check
 
-Cc: Andres Lagar-Cavilla <andreslc@google.com>
+When there are errors in the ocfs2 filesystem, they are usually
+accompanied by the inode number which caused the error.  This inode number
+would be the input to fixing the file.  One of these options could be
+considered: A file in the sys filesytem which would accept inode numbers. 
+This could be used to communication back what has to be fixed or is fixed.
+
+You could write:
+
+	$# echo "CHECK <inode>" > /sys/fs/ocfs2/devname/filecheck
+or
+
+	$# echo "FIX <inode>" > /sys/fs/ocfs2/devname/filecheck
+
+
+
+This patch (of 5):
+
+Export ocfs2_kset object from ocfs2_stackglue kernel module, then online
+file check code will create the related sysfiles under ocfs2_kset object.
+
+Signed-off-by: Gang He <ghe@suse.com>
+Reviewed-by: Goldwyn Rodrigues <rgoldwyn@suse.de>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    2 +-
- mm/memcontrol.c            |    7 ++++++-
- 2 files changed, 7 insertions(+), 2 deletions(-)
+ fs/ocfs2/stackglue.c |    3 ++-
+ fs/ocfs2/stackglue.h |    2 ++
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/memcontrol.h~memcg-add-page_cgroup_ino-helper-fix include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-add-page_cgroup_ino-helper-fix
-+++ a/include/linux/memcontrol.h
-@@ -345,7 +345,7 @@ static inline bool mm_match_cgroup(struc
- }
+diff -puN fs/ocfs2/stackglue.c~ocfs2-export-ocfs2_kset-for-online-file-check fs/ocfs2/stackglue.c
+--- a/fs/ocfs2/stackglue.c~ocfs2-export-ocfs2_kset-for-online-file-check
++++ a/fs/ocfs2/stackglue.c
+@@ -629,7 +629,8 @@ static struct attribute_group ocfs2_attr
+ 	.attrs = ocfs2_attrs,
+ };
  
- struct cgroup_subsys_state *mem_cgroup_css_from_page(struct page *page);
--unsigned long page_cgroup_ino(struct page *page);
-+ino_t page_cgroup_ino(struct page *page);
+-static struct kset *ocfs2_kset;
++struct kset *ocfs2_kset;
++EXPORT_SYMBOL_GPL(ocfs2_kset);
  
- static inline bool mem_cgroup_disabled(void)
+ static void ocfs2_sysfs_exit(void)
  {
-diff -puN mm/memcontrol.c~memcg-add-page_cgroup_ino-helper-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-add-page_cgroup_ino-helper-fix
-+++ a/mm/memcontrol.c
-@@ -448,8 +448,13 @@ struct cgroup_subsys_state *mem_cgroup_c
-  * Look up the closest online ancestor of the memory cgroup @page is charged to
-  * and return its inode number or 0 if @page is not charged to any cgroup. It
-  * is safe to call this function without holding a reference to @page.
-+ *
-+ * Note, this function is inherently racy, because there is nothing to prevent
-+ * the cgroup inode from getting torn down and potentially reallocated a moment
-+ * after page_cgroup_ino() returns, so it only should be used by callers that
-+ * do not care (such as procfs interfaces).
-  */
--unsigned long page_cgroup_ino(struct page *page)
-+ino_t page_cgroup_ino(struct page *page)
- {
- 	struct mem_cgroup *memcg;
- 	unsigned long ino = 0;
+diff -puN fs/ocfs2/stackglue.h~ocfs2-export-ocfs2_kset-for-online-file-check fs/ocfs2/stackglue.h
+--- a/fs/ocfs2/stackglue.h~ocfs2-export-ocfs2_kset-for-online-file-check
++++ a/fs/ocfs2/stackglue.h
+@@ -298,4 +298,6 @@ void ocfs2_stack_glue_set_max_proto_vers
+ int ocfs2_stack_glue_register(struct ocfs2_stack_plugin *plugin);
+ void ocfs2_stack_glue_unregister(struct ocfs2_stack_plugin *plugin);
+ 
++extern struct kset *ocfs2_kset;
++
+ #endif  /* STACKGLUE_H */
 _
 
-Patches currently in -mm which might be from vdavydov@parallels.com are
+Patches currently in -mm which might be from ghe@suse.com are
 
-memcg-export-struct-mem_cgroup.patch
-memcg-export-struct-mem_cgroup-fix.patch
-memcg-export-struct-mem_cgroup-fix-2.patch
-memcg-get-rid-of-mem_cgroup_root_css-for-config_memcg.patch
-memcg-get-rid-of-extern-for-functions-in-memcontrolh.patch
-memcg-restructure-mem_cgroup_can_attach.patch
-memcg-tcp_kmem-check-for-cg_proto-in-sock_update_memcg.patch
-memcg-add-page_cgroup_ino-helper.patch
-memcg-add-page_cgroup_ino-helper-fix.patch
-hwpoison-use-page_cgroup_ino-for-filtering-by-memcg.patch
-memcg-zap-try_get_mem_cgroup_from_page.patch
-proc-add-kpagecgroup-file.patch
-mmu-notifier-add-clear_young-callback.patch
-mmu-notifier-add-clear_young-callback-fix.patch
-proc-add-kpageidle-file.patch
-proc-add-kpageidle-file-fix.patch
-proc-export-idle-flag-via-kpageflags.patch
-proc-add-cond_resched-to-proc-kpage-read-write-loop.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-mm-swap-zswap-maybe_preload-refactoring.patch
+ocfs2-export-ocfs2_kset-for-online-file-check.patch
+ocfs2-sysfile-interfaces-for-online-file-check.patch
+ocfs2-sysfile-interfaces-for-online-file-check-fix.patch
+ocfs2-create-remove-sysfile-for-online-file-check.patch
+ocfs2-check-fix-inode-block-for-online-file-check.patch
+ocfs2-add-feature-document-for-online-file-check.patch
 
