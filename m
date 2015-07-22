@@ -1,18 +1,17 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- kexec-split-kexec_file-syscall-code-to-kexec_filec.patch removed from -mm
- tree
-Date: Wed, 22 Jul 2015 16:22:26 -0700
-Message-ID: <55b025b2.0z4gy8HZvUAvSZlz%akpm@linux-foundation.org>
+Subject: + kexec-split-kexec_file-syscall-code-to-kexec_filec.patch added
+ to -mm tree
+Date: Wed, 22 Jul 2015 16:25:45 -0700
+Message-ID: <55b02679.EF6WqBZVHTi5W9nR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53749 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53783 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753360AbbGVXW1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jul 2015 19:22:27 -0400
+	with ESMTP id S1752611AbbGVXZq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jul 2015 19:25:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: dyoung@redhat.com, dhowells@redhat.com, ebiederm@xmission.com, geert@linux-m68k.org, jwboyer@fedoraproject.org, ptesarik@suse.cz, tytso@mit.edu, vgoyal@redhat.com, mm-commits@vger.kernel.org
@@ -20,62 +19,28 @@ To: dyoung@redhat.com, dhowells@redhat.com, ebiederm@xmission.com, geert@linux-m
 
 The patch titled
      Subject: kexec: split kexec_file syscall code to kexec_file.c
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      kexec-split-kexec_file-syscall-code-to-kexec_filec.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/kexec-split-kexec_file-syscall-code-to-kexec_filec.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/kexec-split-kexec_file-syscall-code-to-kexec_filec.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: dyoung@redhat.com
 Subject: kexec: split kexec_file syscall code to kexec_file.c
-
-Previously Theodore Ts'o brought up an issue about kexec_load syscall
-bypassing signature verification: https://lkml.org/lkml/2015/6/14/280
-
-Because we have two kexec load syscall, one kexec_load, another
-kexec_file_load, the latter one was introduced by Vivek Goyal, it is
-mainly for supporting UEFI secure boot.  kexec_file_load verifies kernel
-signature, but even if with CONFIG_KEXEC_VERIFY_SIG=y and
-CONFIG_KEXEC_FILE=y, kexec-tools still can use old syscall and bypass
-signature verification.
-
-KEXEC_FILE can also be used without UEFI, so kexec can always verify
-kernel signature for security purpose.
-
-The suggestion in above thread is add a new Kconfig option for kexec
-common code, here I use KEXEC_CORE, KEXEC and KEXEC_FILE select KEXEC_CORE
-so one can compile only KEXEC_FILE without old kexec_load syscall.
-
-Tested kexec_load only, kexec_file_load only, kexec and kexec_file_load
-built in cases in x86.  For kexec_file_load, tested signed and un-signed
-kernel.  Tested kexec_load in powerpc64 arch.  Build tested arm arch.
-
-For kexec_file_load, if you do not specify "-s" in kexec-tools, kexec load
-will hang, though "-s" is mandatory for kexec_file_load, kexec should
-still fail out instead of hanging there, here is a fix in kexec-tools:
-
-: --- kexec-tools.orig/kexec/crashdump-elf.c
-: +++ kexec-tools/kexec/crashdump-elf.c
-: @@ -145,11 +145,12 @@ int FUNC(struct kexec_info *info,
-:  
-:  	count_cpu = nr_cpus;
-:  	for (i = 0; count_cpu > 0; i++) {
-: -		if (get_note_info(i, &notes_addr, &notes_len) < 0) {
-: -			/* This cpu is not present. Skip it. */
-: -			continue;
-: -		}
-: +		int ret;
-: +
-: +		ret = get_note_info(i, &notes_addr, &notes_len);
-:  		count_cpu--;
-: +		if (ret < 0) /* This cpu is not present. Skip it. */
-: +			continue;
-:  
-:  		phdr = (PHDR *) bufp;
-:  		bufp += sizeof(PHDR);
-
-
-This patch (of 2):
 
 Split kexec_file syscall related code to another file kernel/kexec_file.c
 so that the #ifdef CONFIG_KEXEC_FILE in kexec.c can be dropped.
@@ -2352,4 +2317,6 @@ _
 
 Patches currently in -mm which might be from dyoung@redhat.com are
 
+kexec-split-kexec_file-syscall-code-to-kexec_filec.patch
+kexec-split-kexec_load-syscall-from-kexec-core-code.patch
 
