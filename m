@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + zsmalloc-do-not-take-class-lock-in-zs_shrinker_count.patch
+Subject: + scripts-decode_stacktrace-fix-arm-architecture-decoding.patch
  added to -mm tree
-Date: Wed, 22 Jul 2015 13:39:42 -0700
-Message-ID: <55afff8e.j2ONbnWgGykw66sn%akpm@linux-foundation.org>
+Date: Wed, 22 Jul 2015 13:57:42 -0700
+Message-ID: <55b003c6.0rkXjmloy54EKc+J%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47785 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47901 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753111AbbGVUjn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jul 2015 16:39:43 -0400
+	with ESMTP id S1750910AbbGVU5n (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 22 Jul 2015 16:57:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sergey.senozhatsky@gmail.com, minchan@kernel.org, mm-commits@vger.kernel.org
+To: robert.jarzmik@free.fr, mmarek@suse.cz, rmk+kernel@arm.linux.org.uk, sasha.levin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: do not take class lock in zs_shrinker_count()
+     Subject: scripts: decode_stacktrace: fix ARM architecture decoding
 has been added to the -mm tree.  Its filename is
-     zsmalloc-do-not-take-class-lock-in-zs_shrinker_count.patch
+     scripts-decode_stacktrace-fix-arm-architecture-decoding.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zsmalloc-do-not-take-class-lock-in-zs_shrinker_count.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/scripts-decode_stacktrace-fix-arm-architecture-decoding.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zsmalloc-do-not-take-class-lock-in-zs_shrinker_count.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-decode_stacktrace-fix-arm-architecture-decoding.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,69 +39,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: zsmalloc: do not take class lock in zs_shrinker_count()
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: scripts: decode_stacktrace: fix ARM architecture decoding
 
-We can avoid taking class ->lock around zs_can_compact() in
-zs_shrinker_count(), because the number that we return back is outdated in
-general case, by design.  We have different sources that are able to
-change class's state right after we return from zs_can_compact() --
-ongoing I/O operations, manually triggered compaction, or two of them
-happening simultaneously.
+Fix the stack decoder for the ARM architecture.
+An ARM stack is designed as :
+[   81.547704] [<c023eb04>] (bucket_find_contain) from [<c023ec88>] (check_sync+0x40/0x4f8)
+[   81.559668] [<c023ec88>] (check_sync) from [<c023f8c4>] (debug_dma_sync_sg_for_cpu+0x128/0x194)
+[   81.571583] [<c023f8c4>] (debug_dma_sync_sg_for_cpu) from [<c0327dec>] (__videobuf_s
 
-We re-do this calculations during compaction on a per class basis anyway.
+The current script doesn't expect the symbols to be bound by
+parenthesis, and triggers the following errors :
+awk: cmd. line:1: error: Unmatched ( or \(: / (check_sync$/
+[   81.547704] (bucket_find_contain) from (check_sync+0x40/0x4f8)
 
-zs_unregister_shrinker() will not return until we have an active shrinker,
-so classes won't unexpectedly disappear while zs_shrinker_count() iterates
-them.
+Fix it by chopping starting and ending parenthesis from the each symbol
+name.
 
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
+As a side note, this probably comes from the function
+dump_backtrace_entry(), which is implemented differently for each
+architecture.  That makes a single decoding script a bit a challenge.
+
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+Cc: Sasha Levin <sasha.levin@oracle.com>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    4 ----
- 1 file changed, 4 deletions(-)
+ scripts/decode_stacktrace.sh |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN mm/zsmalloc.c~zsmalloc-do-not-take-class-lock-in-zs_shrinker_count mm/zsmalloc.c
---- a/mm/zsmalloc.c~zsmalloc-do-not-take-class-lock-in-zs_shrinker_count
-+++ a/mm/zsmalloc.c
-@@ -1710,8 +1710,6 @@ static struct page *isolate_source_page(
-  *
-  * Based on the number of unused allocated objects calculate
-  * and return the number of pages that we can free.
-- *
-- * Should be called under class->lock.
-  */
- static unsigned long zs_can_compact(struct size_class *class)
- {
-@@ -1834,9 +1832,7 @@ static unsigned long zs_shrinker_count(s
- 		if (class->index != i)
- 			continue;
+diff -puN scripts/decode_stacktrace.sh~scripts-decode_stacktrace-fix-arm-architecture-decoding scripts/decode_stacktrace.sh
+--- a/scripts/decode_stacktrace.sh~scripts-decode_stacktrace-fix-arm-architecture-decoding
++++ a/scripts/decode_stacktrace.sh
+@@ -14,11 +14,14 @@ declare -A cache
  
--		spin_lock(&class->lock);
- 		pages_to_free += zs_can_compact(class);
--		spin_unlock(&class->lock);
- 	}
+ parse_symbol() {
+ 	# The structure of symbol at this point is:
+-	#   [name]+[offset]/[total length]
++	#   ([name]+[offset]/[total length])
+ 	#
+ 	# For example:
+ 	#   do_basic_setup+0x9c/0xbf
  
- 	return pages_to_free;
++	# Remove the englobing parenthesis
++	symbol=${symbol#\(}
++	symbol=${symbol%\)}
+ 
+ 	# Strip the symbol name so that we could look it up
+ 	local name=${symbol%+*}
 _
 
-Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
+Patches currently in -mm which might be from robert.jarzmik@free.fr are
 
-mm-slab_common-allow-null-cache-pointer-in-kmem_cache_destroy.patch
-mm-mempool-allow-null-pool-pointer-in-mempool_destroy.patch
-mm-dmapool-allow-null-pool-pointer-in-dma_pool_destroy.patch
-zsmalloc-drop-unused-variable-nr_to_migrate.patch
-zsmalloc-always-keep-per-class-stats.patch
-zsmalloc-introduce-zs_can_compact-function.patch
-zsmalloc-cosmetic-compaction-code-adjustments.patch
-zsmalloc-zram-introduce-zs_pool_stats-api.patch
-zsmalloc-account-the-number-of-compacted-pages.patch
-zsmalloc-use-shrinker-to-trigger-auto-compaction.patch
-zsmalloc-partial-page-ordering-within-a-fullness_list.patch
-zsmalloc-consider-zs_almost_full-as-migrate-source.patch
-zsmalloc-use-class-pages_per_zspage.patch
-zsmalloc-do-not-take-class-lock-in-zs_shrinker_count.patch
-checkpatch-add-some-foo_destroy-functions-to-needless_if-tests.patch
+scripts-decode_stacktrace-fix-arm-architecture-decoding.patch
+linux-next.patch
 
