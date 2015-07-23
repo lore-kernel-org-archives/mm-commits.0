@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-madvise-use-vma_is_anonymous-to-check-for-anon-vma.patch
- added to -mm tree
-Date: Thu, 23 Jul 2015 12:27:16 -0700
-Message-ID: <55b14014.CLmJwU3J9I8NF3zg%akpm@linux-foundation.org>
+Subject: +
+ mm-use-vma_is_anonymous-in-create_huge_pmd-and-wp_huge_pmd.patch added to
+ -mm tree
+Date: Thu, 23 Jul 2015 12:27:14 -0700
+Message-ID: <55b14012.r8AEvRVWp2Sk0QSS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37570 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37564 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752896AbbGWT1R (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Jul 2015 15:27:17 -0400
+	with ESMTP id S1752896AbbGWT1P (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Jul 2015 15:27:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, dave.hansen@linux.intel.com, hpa@zytor.com, luto@amacapital.net, minchan@kernel.org, mingo@elte.hu, oleg@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, madvise: use vma_is_anonymous() to check for anon VMA
+     Subject: mm: use vma_is_anonymous() in create_huge_pmd() and wp_huge_pmd()
 has been added to the -mm tree.  Its filename is
-     mm-madvise-use-vma_is_anonymous-to-check-for-anon-vma.patch
+     mm-use-vma_is_anonymous-in-create_huge_pmd-and-wp_huge_pmd.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-madvise-use-vma_is_anonymous-to-check-for-anon-vma.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-use-vma_is_anonymous-in-create_huge_pmd-and-wp_huge_pmd.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-madvise-use-vma_is_anonymous-to-check-for-anon-vma.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-use-vma_is_anonymous-in-create_huge_pmd-and-wp_huge_pmd.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,37 +41,46 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm, madvise: use vma_is_anonymous() to check for anon VMA
+Subject: mm: use vma_is_anonymous() in create_huge_pmd() and wp_huge_pmd()
 
-!vma->vm_file is not reliable to detect anon VMA, because not all
-drivers bother set it. Let's use vma_is_anonymous() instead.
+Let's use helper rather than direct check of vma->vm_ops to distinguish
+anonymous VMA.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
 Reviewed-by: Oleg Nesterov <oleg@redhat.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Andy Lutomirski <luto@amacapital.net>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Minchan Kim <minchan@kernel.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/madvise.c~mm-madvise-use-vma_is_anonymous-to-check-for-anon-vma mm/madvise.c
---- a/mm/madvise.c~mm-madvise-use-vma_is_anonymous-to-check-for-anon-vma
-+++ a/mm/madvise.c
-@@ -393,7 +393,7 @@ static int madvise_free_single_vma(struc
- 		return -EINVAL;
- 
- 	/* MADV_FREE works for only anon vma at the moment */
--	if (vma->vm_file)
-+	if (!vma_is_anonymous(vma))
- 		return -EINVAL;
- 
- 	start = max(vma->vm_start, start_addr);
+diff -puN mm/memory.c~mm-use-vma_is_anonymous-in-create_huge_pmd-and-wp_huge_pmd mm/memory.c
+--- a/mm/memory.c~mm-use-vma_is_anonymous-in-create_huge_pmd-and-wp_huge_pmd
++++ a/mm/memory.c
+@@ -3237,7 +3237,7 @@ out:
+ static int create_huge_pmd(struct mm_struct *mm, struct vm_area_struct *vma,
+ 			unsigned long address, pmd_t *pmd, unsigned int flags)
+ {
+-	if (!vma->vm_ops)
++	if (vma_is_anonymous(vma))
+ 		return do_huge_pmd_anonymous_page(mm, vma, address, pmd, flags);
+ 	if (vma->vm_ops->pmd_fault)
+ 		return vma->vm_ops->pmd_fault(vma, address, pmd, flags);
+@@ -3248,7 +3248,7 @@ static int wp_huge_pmd(struct mm_struct
+ 			unsigned long address, pmd_t *pmd, pmd_t orig_pmd,
+ 			unsigned int flags)
+ {
+-	if (!vma->vm_ops)
++	if (vma_is_anonymous(vma))
+ 		return do_huge_pmd_wp_page(mm, vma, address, pmd, orig_pmd);
+ 	if (vma->vm_ops->pmd_fault)
+ 		return vma->vm_ops->pmd_fault(vma, address, pmd, flags);
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
