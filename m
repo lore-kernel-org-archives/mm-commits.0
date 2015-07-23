@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-memory-failure-give-up-error-handling-for-non-tail-refcounted-thp.patch
- added to -mm tree
-Date: Thu, 23 Jul 2015 12:56:09 -0700
-Message-ID: <55b146d9.GVA3j+NUQgt4276N%akpm@linux-foundation.org>
+Subject: + mm-memory-failure-unlock_page-before-put_page.patch added to
+ -mm tree
+Date: Thu, 23 Jul 2015 12:56:05 -0700
+Message-ID: <55b146d5.b0F4FxUPsRNX5ZNi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39601 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39587 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753632AbbGWT4K (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Jul 2015 15:56:10 -0400
+	with ESMTP id S1753565AbbGWT4H (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Jul 2015 15:56:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: n-horiguchi@ah.jp.nec.com, andi@firstfloor.org, dnelson@redhat.com, hughd@google.com, kirill@shutemov.name, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory-failure: give up error handling for non-tail-refcounted thp
+     Subject: mm/memory-failure: unlock_page before put_page
 has been added to the -mm tree.  Its filename is
-     mm-memory-failure-give-up-error-handling-for-non-tail-refcounted-thp.patch
+     mm-memory-failure-unlock_page-before-put_page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory-failure-give-up-error-handling-for-non-tail-refcounted-thp.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory-failure-unlock_page-before-put_page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory-failure-give-up-error-handling-for-non-tail-refcounted-thp.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory-failure-unlock_page-before-put_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,12 +40,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm/memory-failure: give up error handling for non-tail-refcounted thp
+Subject: mm/memory-failure: unlock_page before put_page
 
-"non anonymous thp" case is still racy with freeing thp, which causes
-panic due to put_page() for refcount-0 page.  It seems that closing up
-this race might be hard (and/or not worth doing,) so let's give up the
-error handling for this case.
+In "just unpoisoned" path, we do put_page and then unlock_page, which is a
+wrong order and causes "freeing locked page" bug. So let's fix it.
 
 Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Andi Kleen <andi@firstfloor.org>
@@ -57,44 +54,24 @@ Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ mm/memory-failure.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/memory-failure.c~mm-memory-failure-give-up-error-handling-for-non-tail-refcounted-thp mm/memory-failure.c
---- a/mm/memory-failure.c~mm-memory-failure-give-up-error-handling-for-non-tail-refcounted-thp
+diff -puN mm/memory-failure.c~mm-memory-failure-unlock_page-before-put_page mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-memory-failure-unlock_page-before-put_page
 +++ a/mm/memory-failure.c
-@@ -909,6 +909,15 @@ int get_hwpoison_page(struct page *page)
- 	 * directly for tail pages.
- 	 */
- 	if (PageTransHuge(head)) {
-+		/*
-+		 * Non anonymous thp exists only in allocation/free time. We
-+		 * can't handle such a case correctly, so let's give it up.
-+		 * This should be better than triggering BUG_ON when kernel
-+		 * tries to touch a "partially handled" page.
-+		 */
-+		if (!PageAnon(head))
-+			return 0;
-+
- 		if (get_page_unless_zero(head)) {
- 			if (PageTail(page))
- 				get_page(page);
-@@ -1134,15 +1143,6 @@ int memory_failure(unsigned long pfn, in
+@@ -1209,9 +1209,9 @@ int memory_failure(unsigned long pfn, in
+ 	if (!PageHWPoison(p)) {
+ 		printk(KERN_ERR "MCE %#lx: just unpoisoned\n", pfn);
+ 		atomic_long_sub(nr_pages, &num_poisoned_pages);
++		unlock_page(hpage);
+ 		put_page(hpage);
+-		res = 0;
+-		goto out;
++		return 0;
  	}
- 
- 	if (!PageHuge(p) && PageTransHuge(hpage)) {
--		if (!PageAnon(hpage)) {
--			pr_err("MCE: %#lx: non anonymous thp\n", pfn);
--			if (TestClearPageHWPoison(p))
--				atomic_long_sub(nr_pages, &num_poisoned_pages);
--			put_page(p);
--			if (p != hpage)
--				put_page(hpage);
--			return -EBUSY;
--		}
- 		if (unlikely(split_huge_page(hpage))) {
- 			pr_err("MCE: %#lx: thp split failed\n", pfn);
- 			if (TestClearPageHWPoison(p))
+ 	if (hwpoison_filter(p)) {
+ 		if (TestClearPageHWPoison(p))
 _
 
 Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
