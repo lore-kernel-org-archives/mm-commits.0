@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + memblock-make-memblock_overlaps_region-return-bool.patch added
- to -mm tree
-Date: Thu, 23 Jul 2015 12:36:13 -0700
-Message-ID: <55b1422d.mmC2gfherzUnkz/s%akpm@linux-foundation.org>
+Subject: +
+ checkpatch-report-the-right-line-when-using-emacs-and-file.patch added to
+ -mm tree
+Date: Thu, 23 Jul 2015 12:39:25 -0700
+Message-ID: <55b142ed.qOvvzmLPFzjAJhBL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38094 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38191 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753755AbbGWTgO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Jul 2015 15:36:14 -0400
+	with ESMTP id S1753406AbbGWTj0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Jul 2015 15:39:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tangchen@cn.fujitsu.com, bhe@redhat.com, fabf@skynet.be, isimatu.yasuaki@jp.fujitsu.com, kuleshovmail@gmail.com, lcapitulino@redhat.com, qiuxishi@huawei.com, tglx@linutronix.de, tj@kernel.org, vladimir.murzin@arm.com, will.deacon@arm.com, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memblock.c: make memblock_overlaps_region() return bool.
+     Subject: checkpatch: report the right line # when using --emacs and --file
 has been added to the -mm tree.  Its filename is
-     memblock-make-memblock_overlaps_region-return-bool.patch
+     checkpatch-report-the-right-line-when-using-emacs-and-file.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memblock-make-memblock_overlaps_region-return-bool.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-report-the-right-line-when-using-emacs-and-file.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memblock-make-memblock_overlaps_region-return-bool.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-report-the-right-line-when-using-emacs-and-file.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,89 +40,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: mm/memblock.c: make memblock_overlaps_region() return bool.
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: report the right line # when using --emacs and --file
 
-memblock_overlaps_region() checks if the given memblock region intersects
-a region in memblock.  If so, it returns the index of the intersected
-region.
+commit 34d8815f9512 ("checkpatch: add --showfile to allow input via pipe
+to show filenames") broke the --emacs with --file option.
 
-But its only caller is memblock_is_region_reserved(), and it returns 0 if
-false, non-zero if true.
+Fix it.
 
-Both of these should return bool.
-
-Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Luiz Capitulino <lcapitulino@redhat.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Vladimir Murzin <vladimir.murzin@arm.com>
-Cc: Fabian Frederick <fabf@skynet.be>
-Cc: Alexander Kuleshov <kuleshovmail@gmail.com>
-Cc: Baoquan He <bhe@redhat.com>
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memblock.h |    2 +-
- mm/memblock.c            |   10 +++++-----
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ scripts/checkpatch.pl |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/memblock.h~memblock-make-memblock_overlaps_region-return-bool include/linux/memblock.h
---- a/include/linux/memblock.h~memblock-make-memblock_overlaps_region-return-bool
-+++ a/include/linux/memblock.h
-@@ -323,7 +323,7 @@ void memblock_enforce_memory_limit(phys_
- int memblock_is_memory(phys_addr_t addr);
- int memblock_is_region_memory(phys_addr_t base, phys_addr_t size);
- int memblock_is_reserved(phys_addr_t addr);
--int memblock_is_region_reserved(phys_addr_t base, phys_addr_t size);
-+bool memblock_is_region_reserved(phys_addr_t base, phys_addr_t size);
+diff -puN scripts/checkpatch.pl~checkpatch-report-the-right-line-when-using-emacs-and-file scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-report-the-right-line-when-using-emacs-and-file
++++ a/scripts/checkpatch.pl
+@@ -2166,7 +2166,11 @@ sub process {
+ 		if ($showfile) {
+ 			$prefix = "$realfile:$realline: "
+ 		} elsif ($emacs) {
+-			$prefix = "$filename:$linenr: ";
++			if ($file) {
++				$prefix = "$filename:$realline: ";
++			} else {
++				$prefix = "$filename:$linenr: ";
++			}
+ 		}
  
- extern void __memblock_dump_all(void);
- 
-diff -puN mm/memblock.c~memblock-make-memblock_overlaps_region-return-bool mm/memblock.c
---- a/mm/memblock.c~memblock-make-memblock_overlaps_region-return-bool
-+++ a/mm/memblock.c
-@@ -91,7 +91,7 @@ static unsigned long __init_memblock mem
- 	return ((base1 < (base2 + size2)) && (base2 < (base1 + size1)));
- }
- 
--static long __init_memblock memblock_overlaps_region(struct memblock_type *type,
-+static bool __init_memblock memblock_overlaps_region(struct memblock_type *type,
- 					phys_addr_t base, phys_addr_t size)
- {
- 	unsigned long i;
-@@ -103,7 +103,7 @@ static long __init_memblock memblock_ove
- 			break;
- 	}
- 
--	return (i < type->cnt) ? i : -1;
-+	return i < type->cnt;
- }
- 
- /*
-@@ -1566,12 +1566,12 @@ int __init_memblock memblock_is_region_m
-  * Check if the region [@base, @base+@size) intersects a reserved memory block.
-  *
-  * RETURNS:
-- * 0 if false, non-zero if true
-+ * True if they intersect, false if not.
-  */
--int __init_memblock memblock_is_region_reserved(phys_addr_t base, phys_addr_t size)
-+bool __init_memblock memblock_is_region_reserved(phys_addr_t base, phys_addr_t size)
- {
- 	memblock_cap_size(base, &size);
--	return memblock_overlaps_region(&memblock.reserved, base, size) >= 0;
-+	return memblock_overlaps_region(&memblock.reserved, base, size);
- }
- 
- void __init_memblock memblock_trim_memory(phys_addr_t align)
+ 		if ($found_file) {
 _
 
-Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-memblock-make-memblock_overlaps_region-return-bool.patch
-mem-hotplug-handle-node-hole-when-initializing-numa_meminfo.patch
+lindent-handle-missing-indent-gracefully.patch
+ocfs2-neaten-do_error-ocfs2_error-and-ocfs2_abort.patch
+mm-slab_common-allow-null-cache-pointer-in-kmem_cache_destroy.patch
+mm-mempool-allow-null-pool-pointer-in-mempool_destroy.patch
+mm-dmapool-allow-null-pool-pointer-in-dma_pool_destroy.patch
+procfs-always-expose-proc-pid-map_files-and-make-it-readable.patch
+procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix.patch
+procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix-fix.patch
+parse_integer-add-checkpatchpl-notice.patch
+mm-utilc-add-kstrimdup.patch
+checkpatch-warn-on-bare-sha-1-commit-ids-in-commit-logs.patch
+checkpatch-add-warning-on-bug-bug_on-use.patch
+checkpatch-improve-suspect_code_indent-test.patch
+checkpatch-allow-longer-declaration-macros.patch
+checkpatch-add-some-foo_destroy-functions-to-needless_if-tests.patch
+checkpatch-report-the-right-line-when-using-emacs-and-file.patch
+checkpatch-always-check-block-comment-styles.patch
+hfs-fix-b-tree-corruption-after-insertion-at-position-0.patch
+seq_file-provide-an-analogue-of-print_hex_dump.patch
+crypto-qat-use-seq_hex_dump-to-dump-buffers.patch
+parisc-use-seq_hex_dump-to-dump-buffers.patch
+zcrypt-use-seq_hex_dump-to-dump-buffers.patch
+kmemleak-use-seq_hex_dump-to-dump-buffers.patch
+wil6210-use-seq_hex_dump-to-dump-buffers.patch
+linux-next.patch
+fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void.patch
+fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix.patch
 
