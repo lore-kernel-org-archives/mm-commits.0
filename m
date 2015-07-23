@@ -1,73 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Thu, 23 Jul 2015 13:13:38 -0700
-Message-ID: <55b14af2.x+TplGGVZ91sWvxA%akpm@linux-foundation.org>
+Subject: [obsolete] journal_add_journal_head-debug.patch removed from -mm
+ tree
+Date: Thu, 23 Jul 2015 13:13:58 -0700
+Message-ID: <55b14b06.0ZPlbg96urmmlfZV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40261 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40262 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753507AbbGWUNj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Jul 2015 16:13:39 -0400
+	with ESMTP id S1753758AbbGWUN7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Jul 2015 16:13:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     Subject: journal_add_journal_head-debug
+has been removed from the -mm tree.  Its filename was
+     journal_add_journal_head-debug.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+Subject: journal_add_journal_head-debug
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   11 -----------
- 1 file changed, 11 deletions(-)
+ fs/jbd/journal.c |   14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
 
-diff -puN MAINTAINERS~linux-next-git-rejects MAINTAINERS
---- a/MAINTAINERS~linux-next-git-rejects
-+++ a/MAINTAINERS
-@@ -5749,17 +5749,6 @@ S:	Maintained
- F:	fs/jffs2/
- F:	include/uapi/linux/jffs2.h
+diff -puN fs/jbd/journal.c~journal_add_journal_head-debug fs/jbd/journal.c
+--- a/fs/jbd/journal.c~journal_add_journal_head-debug
++++ a/fs/jbd/journal.c
+@@ -1946,9 +1946,17 @@ repeat:
+ 	if (buffer_jbd(bh)) {
+ 		jh = bh2jh(bh);
+ 	} else {
+-		J_ASSERT_BH(bh,
+-			(atomic_read(&bh->b_count) > 0) ||
+-			(bh->b_page && bh->b_page->mapping));
++		if (!(atomic_read(&bh->b_count) > 0 ||
++				(bh->b_page && bh->b_page->mapping))) {
++			printk(KERN_EMERG "%s: bh->b_count=%d\n",
++				__FUNCTION__, atomic_read(&bh->b_count));
++			printk(KERN_EMERG "%s: bh->b_page=%p\n",
++				__FUNCTION__, bh->b_page);
++			if (bh->b_page)
++				printk(KERN_EMERG "%s: "
++						"bh->b_page->mapping=%p\n",
++					__FUNCTION__, bh->b_page->mapping);
++		}
  
--<<<<<<< HEAD
--JOURNALLING LAYER FOR BLOCK DEVICES (JBD)
--M:	Andrew Morton <akpm@linux-foundation.org>
--M:	Jan Kara <jack@suse.com>
--L:	linux-ext4@vger.kernel.org
--S:	Maintained
--F:	fs/jbd/
--F:	include/linux/jbd.h
--
--=======
-->>>>>>> fs: Remove ext3 filesystem driver
- JOURNALLING LAYER FOR BLOCK DEVICES (JBD2)
- M:	"Theodore Ts'o" <tytso@mit.edu>
- M:	Jan Kara <jack@suse.cz>
+ 		if (!new_jh) {
+ 			jbd_unlock_bh_journal_head(bh);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -116,7 +106,6 @@ drivers-gpu-drm-i915-intel_tvc-fix-build.patch
 net-netfilter-ipset-work-around-gcc-444-initializer-bug.patch
 fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
-journal_add_journal_head-debug.patch
 journal_add_journal_head-debug-fix.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
 mutex-subsystem-synchro-test-module.patch
