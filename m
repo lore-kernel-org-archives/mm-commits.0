@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- ipc-use-private-shmem-or-hugetlbfs-inodes-for-shm-segments.patch added to
- -mm tree
-Date: Thu, 23 Jul 2015 12:00:32 -0700
-Message-ID: <55b139d0.fye1g34RxPbcxTq9%akpm@linux-foundation.org>
+Subject: + mm-mark-most-vm_operations_struct-const.patch added to -mm tree
+Date: Thu, 23 Jul 2015 12:27:06 -0700
+Message-ID: <55b1400a.iwif1OeFkOSCvRSf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36042 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37530 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751670AbbGWTAd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Jul 2015 15:00:33 -0400
+	with ESMTP id S1752896AbbGWT1H (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Jul 2015 15:27:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sds@tycho.nsa.gov, dave@stgolabs.net, eparis@redhat.com, hughd@google.com, manfred@colorfullife.com, mstevens@fedoraproject.org, paul@paul-moore.com, prarit@redhat.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, dave.hansen@linux.intel.com, hpa@zytor.com, luto@amacapital.net, minchan@kernel.org, mingo@elte.hu, oleg@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc: use private shmem or hugetlbfs inodes for shm segments.
+     Subject: mm: mark most vm_operations_struct const
 has been added to the -mm tree.  Its filename is
-     ipc-use-private-shmem-or-hugetlbfs-inodes-for-shm-segments.patch
+     mm-mark-most-vm_operations_struct-const.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipc-use-private-shmem-or-hugetlbfs-inodes-for-shm-segments.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mark-most-vm_operations_struct-const.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-use-private-shmem-or-hugetlbfs-inodes-for-shm-segments.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mark-most-vm_operations_struct-const.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,158 +38,303 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Stephen Smalley <sds@tycho.nsa.gov>
-Subject: ipc: use private shmem or hugetlbfs inodes for shm segments.
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm: mark most vm_operations_struct const
 
-The shm implementation internally uses shmem or hugetlbfs inodes for shm
-segments.  As these inodes are never directly exposed to userspace and
-only accessed through the shm operations which are already hooked by
-security modules, mark the inodes with the S_PRIVATE flag so that inode
-security initialization and permission checking is skipped.
+With two exceptions (drm/qxl and drm/radeon) all vm_operations_struct
+structs should be constant.
 
-This was motivated by the following lockdep warning:
-===================================================
-[ INFO: possible circular locking dependency detected ]
-4.2.0-0.rc3.git0.1.fc24.x86_64+debug #1 Tainted: G        W
--------------------------------------------------------
-httpd/1597 is trying to acquire lock:
-(&ids->rwsem){+++++.}, at: [<ffffffff81385354>] shm_close+0x34/0x130
-(&mm->mmap_sem){++++++}, at: [<ffffffff81386bbb>] SyS_shmdt+0x4b/0x180
-      [<ffffffff81109a07>] lock_acquire+0xc7/0x270
-      [<ffffffff81217baa>] __might_fault+0x7a/0xa0
-      [<ffffffff81284a1e>] filldir+0x9e/0x130
-      [<ffffffffa019bb08>] xfs_dir2_block_getdents.isra.12+0x198/0x1c0 [xfs]
-      [<ffffffffa019c5b4>] xfs_readdir+0x1b4/0x330 [xfs]
-      [<ffffffffa019f38b>] xfs_file_readdir+0x2b/0x30 [xfs]
-      [<ffffffff812847e7>] iterate_dir+0x97/0x130
-      [<ffffffff81284d21>] SyS_getdents+0x91/0x120
-      [<ffffffff81871d2e>] entry_SYSCALL_64_fastpath+0x12/0x76
-      [<ffffffff81109a07>] lock_acquire+0xc7/0x270
-      [<ffffffff81101e97>] down_read_nested+0x57/0xa0
-      [<ffffffffa01b0e57>] xfs_ilock+0x167/0x350 [xfs]
-      [<ffffffffa01b10b8>] xfs_ilock_attr_map_shared+0x38/0x50 [xfs]
-      [<ffffffffa014799d>] xfs_attr_get+0xbd/0x190 [xfs]
-      [<ffffffffa01c17ad>] xfs_xattr_get+0x3d/0x70 [xfs]
-      [<ffffffff8129962f>] generic_getxattr+0x4f/0x70
-      [<ffffffff8139ba52>] inode_doinit_with_dentry+0x162/0x670
-      [<ffffffff8139cf69>] sb_finish_set_opts+0xd9/0x230
-      [<ffffffff8139d66c>] selinux_set_mnt_opts+0x35c/0x660
-      [<ffffffff8139ff97>] superblock_doinit+0x77/0xf0
-      [<ffffffff813a0020>] delayed_superblock_init+0x10/0x20
-      [<ffffffff81272d23>] iterate_supers+0xb3/0x110
-      [<ffffffff813a4e5f>] selinux_complete_init+0x2f/0x40
-      [<ffffffff813b47a3>] security_load_policy+0x103/0x600
-      [<ffffffff813a6901>] sel_write_load+0xc1/0x750
-      [<ffffffff8126e817>] __vfs_write+0x37/0x100
-      [<ffffffff8126f229>] vfs_write+0xa9/0x1a0
-      [<ffffffff8126ff48>] SyS_write+0x58/0xd0
-      [<ffffffff81871d2e>] entry_SYSCALL_64_fastpath+0x12/0x76
-      [<ffffffff81109a07>] lock_acquire+0xc7/0x270
-      [<ffffffff8186de8f>] mutex_lock_nested+0x7f/0x3e0
-      [<ffffffff8139b9a9>] inode_doinit_with_dentry+0xb9/0x670
-      [<ffffffff8139bf7c>] selinux_d_instantiate+0x1c/0x20
-      [<ffffffff813955f6>] security_d_instantiate+0x36/0x60
-      [<ffffffff81287c34>] d_instantiate+0x54/0x70
-      [<ffffffff8120111c>] __shmem_file_setup+0xdc/0x240
-      [<ffffffff81201290>] shmem_file_setup+0x10/0x20
-      [<ffffffff813856e0>] newseg+0x290/0x3a0
-      [<ffffffff8137e278>] ipcget+0x208/0x2d0
-      [<ffffffff81386074>] SyS_shmget+0x54/0x70
-      [<ffffffff81871d2e>] entry_SYSCALL_64_fastpath+0x12/0x76
-      [<ffffffff81108df8>] __lock_acquire+0x1a78/0x1d00
-      [<ffffffff81109a07>] lock_acquire+0xc7/0x270
-      [<ffffffff8186efba>] down_write+0x5a/0xc0
-      [<ffffffff81385354>] shm_close+0x34/0x130
-      [<ffffffff812203a5>] remove_vma+0x45/0x80
-      [<ffffffff81222a30>] do_munmap+0x2b0/0x460
-      [<ffffffff81386c25>] SyS_shmdt+0xb5/0x180
-      [<ffffffff81871d2e>] entry_SYSCALL_64_fastpath+0x12/0x76
-Chain exists of:#012  &ids->rwsem --> &xfs_dir_ilock_class --> &mm->mmap_sem
-Possible unsafe locking scenario:
-      CPU0                    CPU1
-      ----                    ----
- lock(&mm->mmap_sem);
- lock(&xfs_dir_ilock_class);
-                              lock(&mm->mmap_sem);
- lock(&ids->rwsem);
-1 lock held by httpd/1597:
-CPU: 7 PID: 1597 Comm: httpd Tainted: G W       4.2.0-0.rc3.git0.1.fc24.x86_64+Hardware name: VMware, Inc. VMware Virtual Platform/440BX Desktop Reference Pla0000000000000000 000000006cb6fe9d ffff88019ff07c58 ffffffff81868175
-0000000000000000 ffffffff82aea390 ffff88019ff07ca8 ffffffff81105903
-ffff88019ff07c78 ffff88019ff07d08 0000000000000001 ffff8800b75108f0
-Call Trace:
-[<ffffffff81868175>] dump_stack+0x4c/0x65
-[<ffffffff81105903>] print_circular_bug+0x1e3/0x250
-[<ffffffff81108df8>] __lock_acquire+0x1a78/0x1d00
-[<ffffffff81220c33>] ? unlink_file_vma+0x33/0x60
-[<ffffffff81109a07>] lock_acquire+0xc7/0x270
-[<ffffffff81385354>] ? shm_close+0x34/0x130
-[<ffffffff8186efba>] down_write+0x5a/0xc0
-[<ffffffff81385354>] ? shm_close+0x34/0x130
-[<ffffffff81385354>] shm_close+0x34/0x130
-[<ffffffff812203a5>] remove_vma+0x45/0x80
-[<ffffffff81222a30>] do_munmap+0x2b0/0x460
-[<ffffffff81386bbb>] ? SyS_shmdt+0x4b/0x180
-[<ffffffff81386c25>] SyS_shmdt+0xb5/0x180
-[<ffffffff81871d2e>] entry_SYSCALL_64_fastpath+0x12/0x76
-
-Signed-off-by: Stephen Smalley <sds@tycho.nsa.gov>
-Reported-by: Morten Stevens <mstevens@fedoraproject.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Prarit Bhargava <prarit@redhat.com>
-Cc: Eric Paris <eparis@redhat.com>
-Cc: Paul Moore <paul@paul-moore.com>
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reviewed-by: Oleg Nesterov <oleg@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |    2 ++
- ipc/shm.c            |    2 +-
- mm/shmem.c           |    4 ++--
- 3 files changed, 5 insertions(+), 3 deletions(-)
+ arch/x86/entry/vsyscall/vsyscall_64.c          |    2 +-
+ drivers/android/binder.c                       |    2 +-
+ drivers/gpu/drm/vgem/vgem_drv.c                |    2 +-
+ drivers/hsi/clients/cmt_speech.c               |    2 +-
+ drivers/infiniband/hw/qib/qib_file_ops.c       |    2 +-
+ drivers/infiniband/hw/qib/qib_mmap.c           |    2 +-
+ drivers/media/platform/omap/omap_vout.c        |    2 +-
+ drivers/misc/genwqe/card_dev.c                 |    2 +-
+ drivers/staging/android/ion/ion.c              |    2 +-
+ drivers/staging/comedi/comedi_fops.c           |    2 +-
+ drivers/video/fbdev/omap2/omapfb/omapfb-main.c |    2 +-
+ drivers/xen/gntalloc.c                         |    2 +-
+ drivers/xen/gntdev.c                           |    2 +-
+ drivers/xen/privcmd.c                          |    4 ++--
+ fs/ceph/addr.c                                 |    2 +-
+ fs/cifs/file.c                                 |    2 +-
+ security/selinux/selinuxfs.c                   |    2 +-
+ 17 files changed, 18 insertions(+), 18 deletions(-)
 
-diff -puN fs/hugetlbfs/inode.c~ipc-use-private-shmem-or-hugetlbfs-inodes-for-shm-segments fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~ipc-use-private-shmem-or-hugetlbfs-inodes-for-shm-segments
-+++ a/fs/hugetlbfs/inode.c
-@@ -1010,6 +1010,8 @@ struct file *hugetlb_file_setup(const ch
- 	inode = hugetlbfs_get_inode(sb, NULL, S_IFREG | S_IRWXUGO, 0);
- 	if (!inode)
- 		goto out_dentry;
-+	if (creat_flags == HUGETLB_SHMFS_INODE)
-+		inode->i_flags |= S_PRIVATE;
+diff -puN arch/x86/entry/vsyscall/vsyscall_64.c~mm-mark-most-vm_operations_struct-const arch/x86/entry/vsyscall/vsyscall_64.c
+--- a/arch/x86/entry/vsyscall/vsyscall_64.c~mm-mark-most-vm_operations_struct-const
++++ a/arch/x86/entry/vsyscall/vsyscall_64.c
+@@ -277,7 +277,7 @@ static const char *gate_vma_name(struct
+ {
+ 	return "[vsyscall]";
+ }
+-static struct vm_operations_struct gate_vma_ops = {
++static const struct vm_operations_struct gate_vma_ops = {
+ 	.name = gate_vma_name,
+ };
+ static struct vm_area_struct gate_vma = {
+diff -puN drivers/android/binder.c~mm-mark-most-vm_operations_struct-const drivers/android/binder.c
+--- a/drivers/android/binder.c~mm-mark-most-vm_operations_struct-const
++++ a/drivers/android/binder.c
+@@ -2834,7 +2834,7 @@ static int binder_vm_fault(struct vm_are
+ 	return VM_FAULT_SIGBUS;
+ }
  
- 	file = ERR_PTR(-ENOMEM);
- 	if (hugetlb_reserve_pages(inode, 0,
-diff -puN ipc/shm.c~ipc-use-private-shmem-or-hugetlbfs-inodes-for-shm-segments ipc/shm.c
---- a/ipc/shm.c~ipc-use-private-shmem-or-hugetlbfs-inodes-for-shm-segments
-+++ a/ipc/shm.c
-@@ -545,7 +545,7 @@ static int newseg(struct ipc_namespace *
- 		if  ((shmflg & SHM_NORESERVE) &&
- 				sysctl_overcommit_memory != OVERCOMMIT_NEVER)
- 			acctflag = VM_NORESERVE;
--		file = shmem_file_setup(name, size, acctflag);
-+		file = shmem_kernel_file_setup(name, size, acctflag);
+-static struct vm_operations_struct binder_vm_ops = {
++static const struct vm_operations_struct binder_vm_ops = {
+ 	.open = binder_vma_open,
+ 	.close = binder_vma_close,
+ 	.fault = binder_vm_fault,
+diff -puN drivers/gpu/drm/vgem/vgem_drv.c~mm-mark-most-vm_operations_struct-const drivers/gpu/drm/vgem/vgem_drv.c
+--- a/drivers/gpu/drm/vgem/vgem_drv.c~mm-mark-most-vm_operations_struct-const
++++ a/drivers/gpu/drm/vgem/vgem_drv.c
+@@ -125,7 +125,7 @@ static int vgem_gem_fault(struct vm_area
  	}
- 	error = PTR_ERR(file);
- 	if (IS_ERR(file))
-diff -puN mm/shmem.c~ipc-use-private-shmem-or-hugetlbfs-inodes-for-shm-segments mm/shmem.c
---- a/mm/shmem.c~ipc-use-private-shmem-or-hugetlbfs-inodes-for-shm-segments
-+++ a/mm/shmem.c
-@@ -3363,8 +3363,8 @@ put_path:
-  * shmem_kernel_file_setup - get an unlinked file living in tmpfs which must be
-  * 	kernel internal.  There will be NO LSM permission checks against the
-  * 	underlying inode.  So users of this interface must do LSM checks at a
-- * 	higher layer.  The one user is the big_key implementation.  LSM checks
-- * 	are provided at the key level rather than the inode level.
-+ *	higher layer.  The users are the big_key and shm implementations.  LSM
-+ *	checks are provided at the key or shm level rather than the inode.
-  * @name: name for dentry (to be seen in /proc/<pid>/maps
-  * @size: size to be set for the file
-  * @flags: VM_NORESERVE suppresses pre-accounting of the entire object size
+ }
+ 
+-static struct vm_operations_struct vgem_gem_vm_ops = {
++static const struct vm_operations_struct vgem_gem_vm_ops = {
+ 	.fault = vgem_gem_fault,
+ 	.open = drm_gem_vm_open,
+ 	.close = drm_gem_vm_close,
+diff -puN drivers/hsi/clients/cmt_speech.c~mm-mark-most-vm_operations_struct-const drivers/hsi/clients/cmt_speech.c
+--- a/drivers/hsi/clients/cmt_speech.c~mm-mark-most-vm_operations_struct-const
++++ a/drivers/hsi/clients/cmt_speech.c
+@@ -1110,7 +1110,7 @@ static int cs_char_vma_fault(struct vm_a
+ 	return 0;
+ }
+ 
+-static struct vm_operations_struct cs_char_vm_ops = {
++static const struct vm_operations_struct cs_char_vm_ops = {
+ 	.fault	= cs_char_vma_fault,
+ };
+ 
+diff -puN drivers/infiniband/hw/qib/qib_file_ops.c~mm-mark-most-vm_operations_struct-const drivers/infiniband/hw/qib/qib_file_ops.c
+--- a/drivers/infiniband/hw/qib/qib_file_ops.c~mm-mark-most-vm_operations_struct-const
++++ a/drivers/infiniband/hw/qib/qib_file_ops.c
+@@ -908,7 +908,7 @@ static int qib_file_vma_fault(struct vm_
+ 	return 0;
+ }
+ 
+-static struct vm_operations_struct qib_file_vm_ops = {
++static const struct vm_operations_struct qib_file_vm_ops = {
+ 	.fault = qib_file_vma_fault,
+ };
+ 
+diff -puN drivers/infiniband/hw/qib/qib_mmap.c~mm-mark-most-vm_operations_struct-const drivers/infiniband/hw/qib/qib_mmap.c
+--- a/drivers/infiniband/hw/qib/qib_mmap.c~mm-mark-most-vm_operations_struct-const
++++ a/drivers/infiniband/hw/qib/qib_mmap.c
+@@ -75,7 +75,7 @@ static void qib_vma_close(struct vm_area
+ 	kref_put(&ip->ref, qib_release_mmap_info);
+ }
+ 
+-static struct vm_operations_struct qib_vm_ops = {
++static const struct vm_operations_struct qib_vm_ops = {
+ 	.open =     qib_vma_open,
+ 	.close =    qib_vma_close,
+ };
+diff -puN drivers/media/platform/omap/omap_vout.c~mm-mark-most-vm_operations_struct-const drivers/media/platform/omap/omap_vout.c
+--- a/drivers/media/platform/omap/omap_vout.c~mm-mark-most-vm_operations_struct-const
++++ a/drivers/media/platform/omap/omap_vout.c
+@@ -872,7 +872,7 @@ static void omap_vout_vm_close(struct vm
+ 	vout->mmap_count--;
+ }
+ 
+-static struct vm_operations_struct omap_vout_vm_ops = {
++static const struct vm_operations_struct omap_vout_vm_ops = {
+ 	.open	= omap_vout_vm_open,
+ 	.close	= omap_vout_vm_close,
+ };
+diff -puN drivers/misc/genwqe/card_dev.c~mm-mark-most-vm_operations_struct-const drivers/misc/genwqe/card_dev.c
+--- a/drivers/misc/genwqe/card_dev.c~mm-mark-most-vm_operations_struct-const
++++ a/drivers/misc/genwqe/card_dev.c
+@@ -418,7 +418,7 @@ static void genwqe_vma_close(struct vm_a
+ 	kfree(dma_map);
+ }
+ 
+-static struct vm_operations_struct genwqe_vma_ops = {
++static const struct vm_operations_struct genwqe_vma_ops = {
+ 	.open   = genwqe_vma_open,
+ 	.close  = genwqe_vma_close,
+ };
+diff -puN drivers/staging/android/ion/ion.c~mm-mark-most-vm_operations_struct-const drivers/staging/android/ion/ion.c
+--- a/drivers/staging/android/ion/ion.c~mm-mark-most-vm_operations_struct-const
++++ a/drivers/staging/android/ion/ion.c
+@@ -997,7 +997,7 @@ static void ion_vm_close(struct vm_area_
+ 	mutex_unlock(&buffer->lock);
+ }
+ 
+-static struct vm_operations_struct ion_vma_ops = {
++static const struct vm_operations_struct ion_vma_ops = {
+ 	.open = ion_vm_open,
+ 	.close = ion_vm_close,
+ 	.fault = ion_vm_fault,
+diff -puN drivers/staging/comedi/comedi_fops.c~mm-mark-most-vm_operations_struct-const drivers/staging/comedi/comedi_fops.c
+--- a/drivers/staging/comedi/comedi_fops.c~mm-mark-most-vm_operations_struct-const
++++ a/drivers/staging/comedi/comedi_fops.c
+@@ -2159,7 +2159,7 @@ static void comedi_vm_close(struct vm_ar
+ 	comedi_buf_map_put(bm);
+ }
+ 
+-static struct vm_operations_struct comedi_vm_ops = {
++static const struct vm_operations_struct comedi_vm_ops = {
+ 	.open = comedi_vm_open,
+ 	.close = comedi_vm_close,
+ };
+diff -puN drivers/video/fbdev/omap2/omapfb/omapfb-main.c~mm-mark-most-vm_operations_struct-const drivers/video/fbdev/omap2/omapfb/omapfb-main.c
+--- a/drivers/video/fbdev/omap2/omapfb/omapfb-main.c~mm-mark-most-vm_operations_struct-const
++++ a/drivers/video/fbdev/omap2/omapfb/omapfb-main.c
+@@ -1091,7 +1091,7 @@ static void mmap_user_close(struct vm_ar
+ 	omapfb_put_mem_region(rg);
+ }
+ 
+-static struct vm_operations_struct mmap_user_ops = {
++static const struct vm_operations_struct mmap_user_ops = {
+ 	.open = mmap_user_open,
+ 	.close = mmap_user_close,
+ };
+diff -puN drivers/xen/gntalloc.c~mm-mark-most-vm_operations_struct-const drivers/xen/gntalloc.c
+--- a/drivers/xen/gntalloc.c~mm-mark-most-vm_operations_struct-const
++++ a/drivers/xen/gntalloc.c
+@@ -493,7 +493,7 @@ static void gntalloc_vma_close(struct vm
+ 	mutex_unlock(&gref_mutex);
+ }
+ 
+-static struct vm_operations_struct gntalloc_vmops = {
++static const struct vm_operations_struct gntalloc_vmops = {
+ 	.open = gntalloc_vma_open,
+ 	.close = gntalloc_vma_close,
+ };
+diff -puN drivers/xen/gntdev.c~mm-mark-most-vm_operations_struct-const drivers/xen/gntdev.c
+--- a/drivers/xen/gntdev.c~mm-mark-most-vm_operations_struct-const
++++ a/drivers/xen/gntdev.c
+@@ -433,7 +433,7 @@ static struct page *gntdev_vma_find_spec
+ 	return map->pages[(addr - map->pages_vm_start) >> PAGE_SHIFT];
+ }
+ 
+-static struct vm_operations_struct gntdev_vmops = {
++static const struct vm_operations_struct gntdev_vmops = {
+ 	.open = gntdev_vma_open,
+ 	.close = gntdev_vma_close,
+ 	.find_special_page = gntdev_vma_find_special_page,
+diff -puN drivers/xen/privcmd.c~mm-mark-most-vm_operations_struct-const drivers/xen/privcmd.c
+--- a/drivers/xen/privcmd.c~mm-mark-most-vm_operations_struct-const
++++ a/drivers/xen/privcmd.c
+@@ -414,7 +414,7 @@ static int alloc_empty_pages(struct vm_a
+ 	return 0;
+ }
+ 
+-static struct vm_operations_struct privcmd_vm_ops;
++static const struct vm_operations_struct privcmd_vm_ops;
+ 
+ static long privcmd_ioctl_mmap_batch(void __user *udata, int version)
+ {
+@@ -605,7 +605,7 @@ static int privcmd_fault(struct vm_area_
+ 	return VM_FAULT_SIGBUS;
+ }
+ 
+-static struct vm_operations_struct privcmd_vm_ops = {
++static const struct vm_operations_struct privcmd_vm_ops = {
+ 	.close = privcmd_close,
+ 	.fault = privcmd_fault
+ };
+diff -puN fs/ceph/addr.c~mm-mark-most-vm_operations_struct-const fs/ceph/addr.c
+--- a/fs/ceph/addr.c~mm-mark-most-vm_operations_struct-const
++++ a/fs/ceph/addr.c
+@@ -1593,7 +1593,7 @@ out:
+ 	return err;
+ }
+ 
+-static struct vm_operations_struct ceph_vmops = {
++static const struct vm_operations_struct ceph_vmops = {
+ 	.fault		= ceph_filemap_fault,
+ 	.page_mkwrite	= ceph_page_mkwrite,
+ };
+diff -puN fs/cifs/file.c~mm-mark-most-vm_operations_struct-const fs/cifs/file.c
+--- a/fs/cifs/file.c~mm-mark-most-vm_operations_struct-const
++++ a/fs/cifs/file.c
+@@ -3216,7 +3216,7 @@ cifs_page_mkwrite(struct vm_area_struct
+ 	return VM_FAULT_LOCKED;
+ }
+ 
+-static struct vm_operations_struct cifs_file_vm_ops = {
++static const struct vm_operations_struct cifs_file_vm_ops = {
+ 	.fault = filemap_fault,
+ 	.map_pages = filemap_map_pages,
+ 	.page_mkwrite = cifs_page_mkwrite,
+diff -puN security/selinux/selinuxfs.c~mm-mark-most-vm_operations_struct-const security/selinux/selinuxfs.c
+--- a/security/selinux/selinuxfs.c~mm-mark-most-vm_operations_struct-const
++++ a/security/selinux/selinuxfs.c
+@@ -472,7 +472,7 @@ static int sel_mmap_policy_fault(struct
+ 	return 0;
+ }
+ 
+-static struct vm_operations_struct sel_mmap_policy_ops = {
++static const struct vm_operations_struct sel_mmap_policy_ops = {
+ 	.fault = sel_mmap_policy_fault,
+ 	.page_mkwrite = sel_mmap_policy_fault,
+ };
 _
 
-Patches currently in -mm which might be from sds@tycho.nsa.gov are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-ipc-use-private-shmem-or-hugetlbfs-inodes-for-shm-segments.patch
-linux-next.patch
+mm-fix-status-code-move_pages-returns-for-zero-page.patch
+mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested.patch
+mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested-fix.patch
+mremap-dont-leak-new_vma-if-f_op-mremap-fails.patch
+mm-move-mremap-from-file_operations-to-vm_operations_struct.patch
+mremap-dont-do-mm_populatenew_addr-on-failure.patch
+mremap-dont-do-uneccesary-checks-if-new_len-==-old_len.patch
+mremap-simplify-the-overlap-check-in-mremap_to.patch
+mm-introduce-vma_is_anonymousvma-helper.patch
+mmap-fix-the-usage-of-vm_pgoff-in-special_mapping-paths.patch
+mremap-fix-the-wrong-vma-vm_file-check-in-copy_vma.patch
+thp-vma_adjust_trans_huge-adjust-file-backed-vma-too.patch
+dax-move-dax-related-functions-to-a-new-header.patch
+thp-prepare-for-dax-huge-pages.patch
+mm-add-a-pmd_fault-handler.patch
+mm-export-various-functions-for-the-benefit-of-dax.patch
+mm-add-vmf_insert_pfn_pmd.patch
+dax-add-huge-page-fault-support.patch
+ext2-huge-page-fault-support.patch
+ext4-huge-page-fault-support.patch
+xfs-huge-page-fault-support.patch
+mm-page_isolation-remove-bogus-tests-for-isolated-pages.patch
+mm-rename-and-move-get-set_freepage_migratetype.patch
+page-flags-trivial-cleanup-for-pagetrans-helpers.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
+page-flags-define-pg_locked-behavior-on-compound-pages.patch
+page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-lru-related-flags-on-compound-pages-fix.patch
+page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
+page-flags-define-pg_reserved-behavior-on-compound-pages.patch
+page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
+page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
+page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
+page-flags-define-pg_uncached-behavior-on-compound-pages.patch
+page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
+page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
+mm-sanitize-page-mapping-for-tail-pages.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
+mm-mark-most-vm_operations_struct-const.patch
+x86-mpx-do-not-set-vm_ops-on-mpx-vmas.patch
+mm-mpx-add-vm_flags_t-vm_flags-arg-to-do_mmap_pgoff.patch
+mm-make-sure-all-file-vmas-have-vm_ops-set.patch
+mm-use-vma_is_anonymous-in-create_huge_pmd-and-wp_huge_pmd.patch
+mm-madvise-use-vma_is_anonymous-to-check-for-anon-vma.patch
 
