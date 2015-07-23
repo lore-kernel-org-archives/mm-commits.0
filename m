@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-make-sure-all-file-vmas-have-vm_ops-set.patch added to -mm
- tree
-Date: Thu, 23 Jul 2015 12:27:12 -0700
-Message-ID: <55b14010.m+msER+oWmMPbhqM%akpm@linux-foundation.org>
+Subject: + mm-madvise-use-vma_is_anonymous-to-check-for-anon-vma.patch
+ added to -mm tree
+Date: Thu, 23 Jul 2015 12:27:16 -0700
+Message-ID: <55b14014.CLmJwU3J9I8NF3zg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37555 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37570 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752896AbbGWT1N (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Jul 2015 15:27:13 -0400
+	with ESMTP id S1752896AbbGWT1R (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Jul 2015 15:27:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, dave.hansen@linux.intel.com, hpa@zytor.com, luto@amacapital.net, minchan@kernel.org, mingo@elte.hu, oleg@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: make sure all file VMAs have ->vm_ops set
+     Subject: mm, madvise: use vma_is_anonymous() to check for anon VMA
 has been added to the -mm tree.  Its filename is
-     mm-make-sure-all-file-vmas-have-vm_ops-set.patch
+     mm-madvise-use-vma_is_anonymous-to-check-for-anon-vma.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-make-sure-all-file-vmas-have-vm_ops-set.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-madvise-use-vma_is_anonymous-to-check-for-anon-vma.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-make-sure-all-file-vmas-have-vm_ops-set.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-madvise-use-vma_is_anonymous-to-check-for-anon-vma.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,60 +40,37 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: make sure all file VMAs have ->vm_ops set
+Subject: mm, madvise: use vma_is_anonymous() to check for anon VMA
 
-We rely on vma->vm_ops == NULL to detect anonymous VMA: see
-vma_is_anonymous(), but some drivers doesn't set ->vm_ops.
-
-As a result we can end up with anonymous page in private file mapping. 
-That should not lead to serious misbehaviour, but nevertheless is wrong.
-
-Let's fix by setting up dummy ->vm_ops for file mmapping if f_op->mmap()
-didn't set its own.
-
-The patch also adds sanity check into __vma_link_rb(). It will help
-catch broken VMAs which inserted directly into mm_struct via
-insert_vm_struct().
+!vma->vm_file is not reliable to detect anon VMA, because not all
+drivers bother set it. Let's use vma_is_anonymous() instead.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Reviewed-by: Oleg Nesterov <oleg@redhat.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Andy Lutomirski <luto@amacapital.net>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Minchan Kim <minchan@kernel.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ mm/madvise.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/mmap.c~mm-make-sure-all-file-vmas-have-vm_ops-set mm/mmap.c
---- a/mm/mmap.c~mm-make-sure-all-file-vmas-have-vm_ops-set
-+++ a/mm/mmap.c
-@@ -612,6 +612,8 @@ static unsigned long count_vma_pages_ran
- void __vma_link_rb(struct mm_struct *mm, struct vm_area_struct *vma,
- 		struct rb_node **rb_link, struct rb_node *rb_parent)
- {
-+	WARN_ONCE(vma->vm_file && !vma->vm_ops, "missing vma->vm_ops");
-+
- 	/* Update tracking information for the gap following the new vma. */
- 	if (vma->vm_next)
- 		vma_gap_update(vma->vm_next);
-@@ -1636,6 +1638,12 @@ unsigned long mmap_region(struct file *f
- 		 */
- 		WARN_ON_ONCE(addr != vma->vm_start);
+diff -puN mm/madvise.c~mm-madvise-use-vma_is_anonymous-to-check-for-anon-vma mm/madvise.c
+--- a/mm/madvise.c~mm-madvise-use-vma_is_anonymous-to-check-for-anon-vma
++++ a/mm/madvise.c
+@@ -393,7 +393,7 @@ static int madvise_free_single_vma(struc
+ 		return -EINVAL;
  
-+		/* All file mapping must have ->vm_ops set */
-+		if (!vma->vm_ops) {
-+			static const struct vm_operations_struct dummy_ops = {};
-+			vma->vm_ops = &dummy_ops;
-+		}
-+
- 		addr = vma->vm_start;
- 		vm_flags = vma->vm_flags;
- 	} else if (vm_flags & VM_SHARED) {
+ 	/* MADV_FREE works for only anon vma at the moment */
+-	if (vma->vm_file)
++	if (!vma_is_anonymous(vma))
+ 		return -EINVAL;
+ 
+ 	start = max(vma->vm_start, start_addr);
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
