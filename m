@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + x86-mpx-do-not-set-vm_ops-on-mpx-vmas.patch added to -mm tree
-Date: Thu, 23 Jul 2015 12:27:08 -0700
-Message-ID: <55b1400c.UVgxyn/+HuiEC2zk%akpm@linux-foundation.org>
+Subject: + mm-mpx-add-vm_flags_t-vm_flags-arg-to-do_mmap_pgoff.patch added to -mm tree
+Date: Thu, 23 Jul 2015 12:27:10 -0700
+Message-ID: <55b1400e.3kb1IUVJnHozx+GZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37541 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37549 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752896AbbGWT1J (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Jul 2015 15:27:09 -0400
+	with ESMTP id S1752896AbbGWT1L (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Jul 2015 15:27:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, dave.hansen@linux.intel.com, hpa@zytor.com, luto@amacapital.net, minchan@kernel.org, mingo@elte.hu, oleg@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: oleg@redhat.com, dave.hansen@linux.intel.com, hpa@zytor.com, kirill.shutemov@linux.intel.com, luto@amacapital.net, minchan@kernel.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86, mpx: do not set ->vm_ops on mpx VMAs
+     Subject: mm, mpx: add "vm_flags_t vm_flags" arg to do_mmap_pgoff()
 has been added to the -mm tree.  Its filename is
-     x86-mpx-do-not-set-vm_ops-on-mpx-vmas.patch
+     mm-mpx-add-vm_flags_t-vm_flags-arg-to-do_mmap_pgoff.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86-mpx-do-not-set-vm_ops-on-mpx-vmas.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mpx-add-vm_flags_t-vm_flags-arg-to-do_mmap_pgoff.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86-mpx-do-not-set-vm_ops-on-mpx-vmas.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mpx-add-vm_flags_t-vm_flags-arg-to-do_mmap_pgoff.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,154 +38,205 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: x86, mpx: do not set ->vm_ops on mpx VMAs
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: mm, mpx: add "vm_flags_t vm_flags" arg to do_mmap_pgoff()
 
-MPX setups private anonymous mapping, but uses vma->vm_ops too.  This can
-confuse core VM, as it relies on vm->vm_ops to distinguish file VMAs from
-anonymous.
+Add the additional "vm_flags_t vm_flags" argument to do_mmap_pgoff(),
+rename it to do_mmap(), and re-introduce do_mmap_pgoff() as a simple
+wrapper on top of do_mmap().  Perhaps we should update the callers of
+do_mmap_pgoff() and kill it later.
 
-As a result we will get SIGBUS, because handle_pte_fault() thinks it's
-file VMA without vm_ops->fault and it doesn't know how to handle the
-situation properly.
+This way mpx_mmap() can simply call do_mmap(vm_flags => VM_MPX) and do not
+play with vm internals.
 
-Let's fix that by not setting ->vm_ops.
+After this change mmap_region() has a single user outside of mmap.c,
+arch/tile/mm/elf.c:arch_setup_additional_pages().  It would be nice to
+change arch/tile/ and unexport mmap_region().
 
-We don't really need ->vm_ops here: MPX VMA can be detected with VM_MPX
-flag.  And vma_merge() will not merge MPX VMA with non-MPX VMA, because
-->vm_flags won't match.
-
-The only thing left is name of VMA.  I'm not sure if it's part of ABI, or
-we can just drop it.  The patch keep it by providing arch_vma_name() on
-x86.
-
-Build tested only.
-
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Acked-by: Dave Hansen <dave.hansen@linux.intel.com>
 Tested-by: Dave Hansen <dave.hansen@linux.intel.com>
-Reviewed-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Andy Lutomirski <luto@amacapital.net>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Andy Lutomirski <luto@amacapital.net>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Minchan Kim <minchan@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/mmap.c |    7 +++++++
- arch/x86/mm/mpx.c  |   20 +-------------------
- 2 files changed, 8 insertions(+), 19 deletions(-)
+ arch/x86/mm/mpx.c  |   51 +++++--------------------------------------
+ include/linux/mm.h |   12 ++++++++--
+ mm/mmap.c          |   10 +++-----
+ mm/nommu.c         |   15 ++++++------
+ 4 files changed, 29 insertions(+), 59 deletions(-)
 
-diff -puN arch/x86/mm/mmap.c~x86-mpx-do-not-set-vm_ops-on-mpx-vmas arch/x86/mm/mmap.c
---- a/arch/x86/mm/mmap.c~x86-mpx-do-not-set-vm_ops-on-mpx-vmas
-+++ a/arch/x86/mm/mmap.c
-@@ -126,3 +126,10 @@ void arch_pick_mmap_layout(struct mm_str
- 		mm->get_unmapped_area = arch_get_unmapped_area_topdown;
- 	}
- }
-+
-+const char *arch_vma_name(struct vm_area_struct *vma)
-+{
-+	if (vma->vm_flags & VM_MPX)
-+		return "[mpx]";
-+	return NULL;
-+}
-diff -puN arch/x86/mm/mpx.c~x86-mpx-do-not-set-vm_ops-on-mpx-vmas arch/x86/mm/mpx.c
---- a/arch/x86/mm/mpx.c~x86-mpx-do-not-set-vm_ops-on-mpx-vmas
+diff -puN arch/x86/mm/mpx.c~mm-mpx-add-vm_flags_t-vm_flags-arg-to-do_mmap_pgoff arch/x86/mm/mpx.c
+--- a/arch/x86/mm/mpx.c~mm-mpx-add-vm_flags_t-vm_flags-arg-to-do_mmap_pgoff
 +++ a/arch/x86/mm/mpx.c
-@@ -20,20 +20,6 @@
- #define CREATE_TRACE_POINTS
- #include <asm/trace/mpx.h>
- 
--static const char *mpx_mapping_name(struct vm_area_struct *vma)
--{
--	return "[mpx]";
--}
--
--static struct vm_operations_struct mpx_vma_ops = {
--	.name = mpx_mapping_name,
--};
--
--static int is_mpx_vma(struct vm_area_struct *vma)
--{
--	return (vma->vm_ops == &mpx_vma_ops);
--}
--
- static inline unsigned long mpx_bd_size_bytes(struct mm_struct *mm)
- {
- 	if (is_64bit_mm(mm))
-@@ -53,9 +39,6 @@ static inline unsigned long mpx_bt_size_
- /*
-  * This is really a simplified "vm_mmap". it only handles MPX
-  * bounds tables (the bounds directory is user-allocated).
-- *
-- * Later on, we use the vma->vm_ops to uniquely identify these
-- * VMAs.
+@@ -42,58 +42,21 @@ static inline unsigned long mpx_bt_size_
   */
  static unsigned long mpx_mmap(unsigned long len)
  {
-@@ -101,7 +84,6 @@ static unsigned long mpx_mmap(unsigned l
- 		ret = -ENOMEM;
- 		goto out;
- 	}
--	vma->vm_ops = &mpx_vma_ops;
+-	unsigned long ret;
+-	unsigned long addr, pgoff;
+ 	struct mm_struct *mm = current->mm;
+-	vm_flags_t vm_flags;
+-	struct vm_area_struct *vma;
++	unsigned long addr, populate;
  
- 	if (vm_flags & VM_LOCKED) {
- 		up_write(&mm->mmap_sem);
-@@ -812,7 +794,7 @@ static noinline int zap_bt_entries_mappi
- 		 * so stop immediately and return an error.  This
- 		 * probably results in a SIGSEGV.
- 		 */
--		if (!is_mpx_vma(vma))
-+		if (!(vma->vm_flags & VM_MPX))
- 			return -EINVAL;
+ 	/* Only bounds table can be allocated here */
+ 	if (len != mpx_bt_size_bytes(mm))
+ 		return -EINVAL;
  
- 		len = min(vma->vm_end, end) - addr;
+ 	down_write(&mm->mmap_sem);
+-
+-	/* Too many mappings? */
+-	if (mm->map_count > sysctl_max_map_count) {
+-		ret = -ENOMEM;
+-		goto out;
+-	}
+-
+-	/* Obtain the address to map to. we verify (or select) it and ensure
+-	 * that it represents a valid section of the address space.
+-	 */
+-	addr = get_unmapped_area(NULL, 0, len, 0, MAP_ANONYMOUS | MAP_PRIVATE);
+-	if (addr & ~PAGE_MASK) {
+-		ret = addr;
+-		goto out;
+-	}
+-
+-	vm_flags = VM_READ | VM_WRITE | VM_MPX |
+-			mm->def_flags | VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC;
+-
+-	/* Set pgoff according to addr for anon_vma */
+-	pgoff = addr >> PAGE_SHIFT;
+-
+-	ret = mmap_region(NULL, addr, len, vm_flags, pgoff);
+-	if (IS_ERR_VALUE(ret))
+-		goto out;
+-
+-	vma = find_vma(mm, ret);
+-	if (!vma) {
+-		ret = -ENOMEM;
+-		goto out;
+-	}
+-
+-	if (vm_flags & VM_LOCKED) {
+-		up_write(&mm->mmap_sem);
+-		mm_populate(ret, len);
+-		return ret;
+-	}
+-
+-out:
++	addr = do_mmap(NULL, 0, len, PROT_READ | PROT_WRITE,
++			MAP_ANONYMOUS | MAP_PRIVATE, VM_MPX, 0, &populate);
+ 	up_write(&mm->mmap_sem);
+-	return ret;
++	if (populate)
++		mm_populate(addr, populate);
++
++	return addr;
+ }
+ 
+ enum reg_type {
+diff -puN include/linux/mm.h~mm-mpx-add-vm_flags_t-vm_flags-arg-to-do_mmap_pgoff include/linux/mm.h
+--- a/include/linux/mm.h~mm-mpx-add-vm_flags_t-vm_flags-arg-to-do_mmap_pgoff
++++ a/include/linux/mm.h
+@@ -1799,11 +1799,19 @@ extern unsigned long get_unmapped_area(s
+ 
+ extern unsigned long mmap_region(struct file *file, unsigned long addr,
+ 	unsigned long len, vm_flags_t vm_flags, unsigned long pgoff);
+-extern unsigned long do_mmap_pgoff(struct file *file, unsigned long addr,
++extern unsigned long do_mmap(struct file *file, unsigned long addr,
+ 	unsigned long len, unsigned long prot, unsigned long flags,
+-	unsigned long pgoff, unsigned long *populate);
++	vm_flags_t vm_flags, unsigned long pgoff, unsigned long *populate);
+ extern int do_munmap(struct mm_struct *, unsigned long, size_t);
+ 
++static inline unsigned long
++do_mmap_pgoff(struct file *file, unsigned long addr,
++	unsigned long len, unsigned long prot, unsigned long flags,
++	unsigned long pgoff, unsigned long *populate)
++{
++	return do_mmap(file, addr, len, prot, flags, 0, pgoff, populate);
++}
++
+ #ifdef CONFIG_MMU
+ extern int __mm_populate(unsigned long addr, unsigned long len,
+ 			 int ignore_errors);
+diff -puN mm/mmap.c~mm-mpx-add-vm_flags_t-vm_flags-arg-to-do_mmap_pgoff mm/mmap.c
+--- a/mm/mmap.c~mm-mpx-add-vm_flags_t-vm_flags-arg-to-do_mmap_pgoff
++++ a/mm/mmap.c
+@@ -1260,14 +1260,12 @@ static inline int mlock_future_check(str
+ /*
+  * The caller must hold down_write(&current->mm->mmap_sem).
+  */
+-
+-unsigned long do_mmap_pgoff(struct file *file, unsigned long addr,
++unsigned long do_mmap(struct file *file, unsigned long addr,
+ 			unsigned long len, unsigned long prot,
+-			unsigned long flags, unsigned long pgoff,
+-			unsigned long *populate)
++			unsigned long flags, vm_flags_t vm_flags,
++			unsigned long pgoff, unsigned long *populate)
+ {
+ 	struct mm_struct *mm = current->mm;
+-	vm_flags_t vm_flags;
+ 
+ 	*populate = 0;
+ 
+@@ -1311,7 +1309,7 @@ unsigned long do_mmap_pgoff(struct file
+ 	 * to. we assume access permissions have been handled by the open
+ 	 * of the memory object, so we don't do any here.
+ 	 */
+-	vm_flags = calc_vm_prot_bits(prot) | calc_vm_flag_bits(flags) |
++	vm_flags |= calc_vm_prot_bits(prot) | calc_vm_flag_bits(flags) |
+ 			mm->def_flags | VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC;
+ 
+ 	if (flags & (MAP_LOCKED | MAP_LOCKONFAULT))
+diff -puN mm/nommu.c~mm-mpx-add-vm_flags_t-vm_flags-arg-to-do_mmap_pgoff mm/nommu.c
+--- a/mm/nommu.c~mm-mpx-add-vm_flags_t-vm_flags-arg-to-do_mmap_pgoff
++++ a/mm/nommu.c
+@@ -1233,13 +1233,14 @@ enomem:
+ /*
+  * handle mapping creation for uClinux
+  */
+-unsigned long do_mmap_pgoff(struct file *file,
+-			    unsigned long addr,
+-			    unsigned long len,
+-			    unsigned long prot,
+-			    unsigned long flags,
+-			    unsigned long pgoff,
+-			    unsigned long *populate)
++unsigned long do_mmap(struct file *file,
++			unsigned long addr,
++			unsigned long len,
++			unsigned long prot,
++			unsigned long flags,
++			vm_flags_t vm_flags,
++			unsigned long pgoff,
++			unsigned long *populate)
+ {
+ 	struct vm_area_struct *vma;
+ 	struct vm_region *region;
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-mm-fix-status-code-move_pages-returns-for-zero-page.patch
-mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested.patch
-mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested-fix.patch
+signal-fix-information-leak-in-copy_siginfo_from_user32.patch
+signal-fix-information-leak-in-copy_siginfo_to_user.patch
+signalfd-fix-information-leak-in-signalfd_copyinfo.patch
 mremap-dont-leak-new_vma-if-f_op-mremap-fails.patch
 mm-move-mremap-from-file_operations-to-vm_operations_struct.patch
+mm-move-mremap-from-file_operations-to-vm_operations_struct-v3.patch
 mremap-dont-do-mm_populatenew_addr-on-failure.patch
 mremap-dont-do-uneccesary-checks-if-new_len-==-old_len.patch
 mremap-simplify-the-overlap-check-in-mremap_to.patch
 mm-introduce-vma_is_anonymousvma-helper.patch
 mmap-fix-the-usage-of-vm_pgoff-in-special_mapping-paths.patch
 mremap-fix-the-wrong-vma-vm_file-check-in-copy_vma.patch
-thp-vma_adjust_trans_huge-adjust-file-backed-vma-too.patch
-dax-move-dax-related-functions-to-a-new-header.patch
-thp-prepare-for-dax-huge-pages.patch
-mm-add-a-pmd_fault-handler.patch
-mm-export-various-functions-for-the-benefit-of-dax.patch
-mm-add-vmf_insert_pfn_pmd.patch
-dax-add-huge-page-fault-support.patch
-ext2-huge-page-fault-support.patch
-ext4-huge-page-fault-support.patch
-xfs-huge-page-fault-support.patch
-mm-page_isolation-remove-bogus-tests-for-isolated-pages.patch
-mm-rename-and-move-get-set_freepage_migratetype.patch
-page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages-fix.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-mm-sanitize-page-mapping-for-tail-pages.patch
-include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
+linux-next.patch
 mm-mark-most-vm_operations_struct-const.patch
 x86-mpx-do-not-set-vm_ops-on-mpx-vmas.patch
 mm-mpx-add-vm_flags_t-vm_flags-arg-to-do_mmap_pgoff.patch
