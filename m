@@ -1,16 +1,16 @@
 From: akpm@linux-foundation.org
 Subject: + checkpatch-always-check-block-comment-styles.patch added to -mm tree
-Date: Thu, 23 Jul 2015 12:39:27 -0700
-Message-ID: <55b142ef.vb7dQpCihOWquyym%akpm@linux-foundation.org>
+Date: Thu, 23 Jul 2015 12:42:33 -0700
+Message-ID: <55b143a9.a+PVH7oozHCKsH2t%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38194 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38444 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753406AbbGWTj2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Jul 2015 15:39:28 -0400
+	with ESMTP id S1753346AbbGWTme (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 23 Jul 2015 15:42:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: joe@perches.com, mm-commits@vger.kernel.org
@@ -55,9 +55,12 @@ and
 
 Remove the networking specific test and add comments.
 
-There are some infrequent false positives where code is lazily commented
-out using /* and */ rather than using #if 0/#endif blocks like: /* case
-foo: case bar: */ case baz:
+There are some infrequent false positives where code is lazily
+commented out using /* and */ rather than using #if 0/#endif blocks
+like:
+	/* case foo:
+	case bar: */
+	case baz:
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
