@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlbfs-add-hugetlbfs_fallocate-fix.patch added to -mm tree
-Date: Mon, 27 Jul 2015 12:04:52 -0700
-Message-ID: <55b680d4.4I2TQZqAU4QyeWJ4%akpm@linux-foundation.org>
+Subject: + mm-mpx-add-vm_flags_t-vm_flags-arg-to-do_mmap_pgoff-fix.patch
+ added to -mm tree
+Date: Mon, 27 Jul 2015 12:07:41 -0700
+Message-ID: <55b6817d.yrHKVAwWUO8bvz+I%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47280 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47296 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754129AbbG0TEx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Jul 2015 15:04:53 -0400
+	with ESMTP id S1753578AbbG0THm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Jul 2015 15:07:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mike.kravetz@oracle.com, fengguang.wu@intel.com, hillf.zj@alibaba-inc.com, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: kirill@shutemov.name, fengguang.wu@intel.com, oleg@redhat.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mmotm: build fix hugetlbfs fallocate if not CONFIG_NUMA
+     Subject: mm-mpx-add-vm_flags_t-vm_flags-arg-to-do_mmap_pgoff-fix
 has been added to the -mm tree.  Its filename is
-     hugetlbfs-add-hugetlbfs_fallocate-fix.patch
+     mm-mpx-add-vm_flags_t-vm_flags-arg-to-do_mmap_pgoff-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/hugetlbfs-add-hugetlbfs_fallocate-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mpx-add-vm_flags_t-vm_flags-arg-to-do_mmap_pgoff-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/hugetlbfs-add-hugetlbfs_fallocate-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mpx-add-vm_flags_t-vm_flags-arg-to-do_mmap_pgoff-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,118 +39,82 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: mmotm: build fix hugetlbfs fallocate if not CONFIG_NUMA
+From: "Kirill A. Shutemov" <kirill@shutemov.name>
+Subject: mm-mpx-add-vm_flags_t-vm_flags-arg-to-do_mmap_pgoff-fix
 
-Commit 56bb4d795 introduced a build error if CONFIG_NUMA is not
-defined.  When fallocate preallocation allocates pages, it will
-use the defined numa policy.  However, if numa is not defined
-there is no such policy and no code should reference numa policy.
-Create wrappers to isolate policy manipulation code that are a
-NOOP in the non-NUMA case.
+   mm/nommu.c: In function 'do_mmap':
+>> mm/nommu.c:1248:30: error: 'vm_flags' redeclared as different kind of symbol
+     unsigned long capabilities, vm_flags, result;
+                                 ^
+   mm/nommu.c:1241:15: note: previous definition of 'vm_flags' was here
+       vm_flags_t vm_flags,
 
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
 Reported-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Michal Hocko <mhocko@suse.cz>
+Reported-by: Oleg Nesterov <oleg@redhat.com>
 Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |   39 ++++++++++++++++++++++++++++++---------
- 1 file changed, 30 insertions(+), 9 deletions(-)
+ mm/nommu.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/hugetlbfs/inode.c~hugetlbfs-add-hugetlbfs_fallocate-fix fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~hugetlbfs-add-hugetlbfs_fallocate-fix
-+++ a/fs/hugetlbfs/inode.c
-@@ -85,6 +85,29 @@ static const match_table_t tokens = {
- 	{Opt_err,	NULL},
- };
+diff -puN mm/nommu.c~mm-mpx-add-vm_flags_t-vm_flags-arg-to-do_mmap_pgoff-fix mm/nommu.c
+--- a/mm/nommu.c~mm-mpx-add-vm_flags_t-vm_flags-arg-to-do_mmap_pgoff-fix
++++ a/mm/nommu.c
+@@ -1245,7 +1245,7 @@ unsigned long do_mmap(struct file *file,
+ 	struct vm_area_struct *vma;
+ 	struct vm_region *region;
+ 	struct rb_node *rb;
+-	unsigned long capabilities, vm_flags, result;
++       unsigned long capabilities, result;
+ 	int ret;
  
-+#ifdef CONFIG_NUMA
-+static inline void hugetlb_set_vma_policy(struct vm_area_struct *vma,
-+					struct inode *inode, pgoff_t index)
-+{
-+	vma->vm_policy = mpol_shared_policy_lookup(&HUGETLBFS_I(inode)->policy,
-+							index);
-+}
-+
-+static inline void hugetlb_drop_vma_policy(struct vm_area_struct *vma)
-+{
-+	mpol_cond_put(vma->vm_policy);
-+}
-+#else
-+static inline void hugetlb_set_vma_policy(struct vm_area_struct *vma,
-+					struct inode *inode, pgoff_t index)
-+{
-+}
-+
-+static inline void hugetlb_drop_vma_policy(struct vm_area_struct *vma)
-+{
-+}
-+#endif
-+
- static void huge_pagevec_release(struct pagevec *pvec)
- {
- 	int i;
-@@ -546,9 +569,9 @@ static long hugetlbfs_fallocate(struct f
- 		goto out;
+ 	*populate = 0;
+@@ -1263,7 +1263,7 @@ unsigned long do_mmap(struct file *file,
  
- 	/*
--	 * Initialize a pseudo vma that just contains the policy used
--	 * when allocating the huge pages.  The actual policy field
--	 * (vm_policy) is determined based on the index in the loop below.
-+	 * Initialize a pseudo vma as this is required by the huge page
-+	 * allocation routines.  If NUMA is configured, use page index
-+	 * as input to create an allocation policy.
- 	 */
- 	memset(&pseudo_vma, 0, sizeof(struct vm_area_struct));
- 	pseudo_vma.vm_flags = (VM_HUGETLB | VM_MAYSHARE | VM_SHARED);
-@@ -574,10 +597,8 @@ static long hugetlbfs_fallocate(struct f
- 			break;
- 		}
+ 	/* we've determined that we can make the mapping, now translate what we
+ 	 * now know into VMA flags */
+-	vm_flags = determine_vm_flags(file, prot, flags, capabilities);
++       vm_flags |= determine_vm_flags(file, prot, flags, capabilities);
  
--		/* Get policy based on index */
--		pseudo_vma.vm_policy =
--			mpol_shared_policy_lookup(&HUGETLBFS_I(inode)->policy,
--							index);
-+		/* Set numa allocation policy based on index */
-+		hugetlb_set_vma_policy(&pseudo_vma, inode, index);
- 
- 		/* addr is the offset within the file (zero based) */
- 		addr = index * hpage_size;
-@@ -592,13 +613,13 @@ static long hugetlbfs_fallocate(struct f
- 		if (page) {
- 			put_page(page);
- 			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
--			mpol_cond_put(pseudo_vma.vm_policy);
-+			hugetlb_drop_vma_policy(&pseudo_vma);
- 			continue;
- 		}
- 
- 		/* Allocate page and add to page cache */
- 		page = alloc_huge_page(&pseudo_vma, addr, avoid_reserve);
--		mpol_cond_put(pseudo_vma.vm_policy);
-+		hugetlb_drop_vma_policy(&pseudo_vma);
- 		if (IS_ERR(page)) {
- 			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
- 			error = PTR_ERR(page);
+ 	/* we're going to need to record the mapping */
+ 	region = kmem_cache_zalloc(vm_region_jar, GFP_KERNEL);
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from kirill@shutemov.name are
 
-hugetlb-make-the-function-vma_shareable-bool.patch
-mm-hugetlb-add-cache-of-descriptors-to-resv_map-for-region_add.patch
-mm-hugetlb-add-cache-of-descriptors-to-resv_map-for-region_add-fix.patch
-mm-hugetlb-add-region_del-to-delete-a-specific-range-of-entries.patch
-mm-hugetlb-expose-hugetlb-fault-mutex-for-use-by-fallocate.patch
-hugetlbfs-hugetlb_vmtruncate_list-needs-to-take-a-range-to-delete.patch
-hugetlbfs-truncate_hugepages-takes-a-range-of-pages.patch
-mm-hugetlb-vma_has_reserves-needs-to-handle-fallocate-hole-punch.patch
-mm-hugetlb-alloc_huge_page-handle-areas-hole-punched-by-fallocate.patch
-hugetlbfs-new-huge_add_to_page_cache-helper-routine.patch
-hugetlbfs-add-hugetlbfs_fallocate.patch
-hugetlbfs-add-hugetlbfs_fallocate-fix.patch
-mm-madvise-allow-remove-operation-for-hugetlbfs.patch
+mm-memory-failure-unlock_page-before-put_page.patch
+mm-memory-failure-fix-race-in-counting-num_poisoned_pages.patch
+mm-memory-failure-give-up-error-handling-for-non-tail-refcounted-thp.patch
+mm-memory-failure-check-__pg_hwpoison-separately-from-page_flags_check_at_.patch
+userfaultfd-linux-documentation-vm-userfaultfdtxt.patch
+userfaultfd-waitqueue-add-nr-wake-parameter-to-__wake_up_locked_key.patch
+userfaultfd-uapi.patch
+userfaultfd-linux-userfaultfd_kh.patch
+userfaultfd-add-vm_userfaultfd_ctx-to-the-vm_area_struct.patch
+userfaultfd-add-vm_uffd_missing-and-vm_uffd_wp.patch
+userfaultfd-call-handle_userfault-for-userfaultfd_missing-faults.patch
+userfaultfd-teach-vma_merge-to-merge-across-vma-vm_userfaultfd_ctx.patch
+userfaultfd-prevent-khugepaged-to-merge-if-userfaultfd-is-armed.patch
+userfaultfd-add-new-syscall-to-provide-memory-externalization.patch
+userfaultfd-rename-uffd_apibits-into-features.patch
+userfaultfd-rename-uffd_apibits-into-features-fixup.patch
+userfaultfd-change-the-read-api-to-return-a-uffd_msg.patch
+userfaultfd-wake-pending-userfaults.patch
+userfaultfd-optimize-read-and-poll-to-be-o1.patch
+userfaultfd-allocate-the-userfaultfd_ctx-cacheline-aligned.patch
+userfaultfd-solve-the-race-between-uffdio_copyzeropage-and-read.patch
+userfaultfd-buildsystem-activation.patch
+userfaultfd-activate-syscall.patch
+userfaultfd-uffdio_copyuffdio_zeropage-uapi.patch
+userfaultfd-mcopy_atomicmfill_zeropage-uffdio_copyuffdio_zeropage-preparation.patch
+userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic.patch
+userfaultfd-uffdio_copy-and-uffdio_zeropage.patch
+pagemap-hide-physical-addresses-from-non-privileged-users.patch
+page-flags-define-behavior-of-lru-related-flags-on-compound-pages-fix-fix.patch
+procfs-always-expose-proc-pid-map_files-and-make-it-readable.patch
+procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix.patch
+procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix-fix.patch
+mm-mpx-add-vm_flags_t-vm_flags-arg-to-do_mmap_pgoff-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
 
