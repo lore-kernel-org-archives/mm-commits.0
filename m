@@ -1,37 +1,35 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- mm-memory-failure-fix-race-in-counting-num_poisoned_pages.patch removed
- from -mm tree
-Date: Mon, 27 Jul 2015 12:10:26 -0700
-Message-ID: <55b68222.cOmMPJaDVDGvQuXb%akpm@linux-foundation.org>
+ mm-memory-failure-unlock_page-before-put_page.patch removed from -mm tree
+Date: Mon, 27 Jul 2015 12:10:23 -0700
+Message-ID: <55b6821f.r4mHA9NPZMSeb2O8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47391 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47383 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753518AbbG0TK1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Jul 2015 15:10:27 -0400
+	with ESMTP id S1752355AbbG0TKY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Jul 2015 15:10:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: n-horiguchi@ah.jp.nec.com, andi@firstfloor.org, dnelson@redhat.com, hughd@google.com, kirill@shutemov.name, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory-failure: fix race in counting num_poisoned_pages
+     Subject: mm/memory-failure: unlock_page before put_page
 has been removed from the -mm tree.  Its filename was
-     mm-memory-failure-fix-race-in-counting-num_poisoned_pages.patch
+     mm-memory-failure-unlock_page-before-put_page.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm/memory-failure: fix race in counting num_poisoned_pages
+Subject: mm/memory-failure: unlock_page before put_page
 
-When memory_failure() is called on a page which are just freed after page
-migration from soft offlining, the counter num_poisoned_pages is raised
-twice.  So let's fix it with using TestSetPageHWPoison.
+In "just unpoisoned" path, we do put_page and then unlock_page, which is a
+wrong order and causes "freeing locked page" bug. So let's fix it.
 
 Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Andi Kleen <andi@firstfloor.org>
@@ -45,24 +43,26 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  mm/memory-failure.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/memory-failure.c~mm-memory-failure-fix-race-in-counting-num_poisoned_pages mm/memory-failure.c
---- a/mm/memory-failure.c~mm-memory-failure-fix-race-in-counting-num_poisoned_pages
+diff -puN mm/memory-failure.c~mm-memory-failure-unlock_page-before-put_page mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-memory-failure-unlock_page-before-put_page
 +++ a/mm/memory-failure.c
-@@ -1671,8 +1671,8 @@ static int __soft_offline_page(struct pa
- 			if (ret > 0)
- 				ret = -EIO;
- 		} else {
--			SetPageHWPoison(page);
--			atomic_long_inc(&num_poisoned_pages);
-+			if (!TestSetPageHWPoison(page))
-+				atomic_long_inc(&num_poisoned_pages);
- 		}
- 	} else {
- 		pr_info("soft offline: %#lx: isolation failed: %d, page count %d, type %lx\n",
+@@ -1209,9 +1209,9 @@ int memory_failure(unsigned long pfn, in
+ 	if (!PageHWPoison(p)) {
+ 		printk(KERN_ERR "MCE %#lx: just unpoisoned\n", pfn);
+ 		atomic_long_sub(nr_pages, &num_poisoned_pages);
++		unlock_page(hpage);
+ 		put_page(hpage);
+-		res = 0;
+-		goto out;
++		return 0;
+ 	}
+ 	if (hwpoison_filter(p)) {
+ 		if (TestClearPageHWPoison(p))
 _
 
 Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
+mm-memory-failure-fix-race-in-counting-num_poisoned_pages.patch
 mm-memory-failure-give-up-error-handling-for-non-tail-refcounted-thp.patch
 mm-memory-failure-check-__pg_hwpoison-separately-from-page_flags_check_at_.patch
 hugetlb-make-the-function-vma_shareable-bool.patch
