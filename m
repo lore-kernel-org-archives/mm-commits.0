@@ -1,95 +1,164 @@
 From: akpm@linux-foundation.org
-Subject: + proc-add-kpageidle-file-fix-4.patch added to -mm tree
-Date: Mon, 27 Jul 2015 13:40:30 -0700
-Message-ID: <55b6973e.VAwOHalZP2RAV1Dd%akpm@linux-foundation.org>
+Subject: [nacked] parse_integer-convert-sound.patch removed from -mm tree
+Date: Mon, 27 Jul 2015 13:41:28 -0700
+Message-ID: <55b69778.E4QWEWaY58jgreP2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48111 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48153 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752818AbbG0Ukb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Jul 2015 16:40:31 -0400
+	with ESMTP id S1753083AbbG0Ul3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Jul 2015 16:41:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@parallels.com, fengguang.wu@intel.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, tiwai@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc-add-kpageidle-file-fix-4
-has been added to the -mm tree.  Its filename is
-     proc-add-kpageidle-file-fix-4.patch
+     Subject: parse_integer: convert sound/
+has been removed from the -mm tree.  Its filename was
+     parse_integer-convert-sound.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/proc-add-kpageidle-file-fix-4.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/proc-add-kpageidle-file-fix-4.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: proc-add-kpageidle-file-fix-4
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: parse_integer: convert sound/
 
-Not all architectures support 8-byte get_user.
+Convert sound/ directory from deprecated simple_strto*()
+to parse_integer()/kstrto*() functions.
 
-Fixes: proc-add-kpageidle-file
-Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
-Reported-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/page.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ sound/core/oss/mixer_oss.c  |    2 +-
+ sound/core/oss/pcm_oss.c    |    4 ++--
+ sound/core/pcm.c            |    2 +-
+ sound/core/pcm_memory.c     |    3 ++-
+ sound/pci/ac97/ac97_codec.c |    8 ++++++--
+ sound/soc/soc-core.c        |    9 ++++++---
+ 6 files changed, 18 insertions(+), 10 deletions(-)
 
-diff -puN fs/proc/page.c~proc-add-kpageidle-file-fix-4 fs/proc/page.c
---- a/fs/proc/page.c~proc-add-kpageidle-file-fix-4
-+++ a/fs/proc/page.c
-@@ -454,7 +454,7 @@ static ssize_t kpageidle_write(struct fi
- 	for (; pfn < end_pfn; pfn++) {
- 		bit = pfn % KPMBITS;
- 		if (bit == 0) {
--			if (get_user(idle_bitmap, in)) {
-+			if (copy_from_user(&idle_bitmap, in, sizeof(u64))) {
- 				ret = -EFAULT;
- 				break;
+diff -puN sound/core/oss/mixer_oss.c~parse_integer-convert-sound sound/core/oss/mixer_oss.c
+--- a/sound/core/oss/mixer_oss.c~parse_integer-convert-sound
++++ a/sound/core/oss/mixer_oss.c
+@@ -1200,7 +1200,7 @@ static void snd_mixer_oss_proc_write(str
+ 			continue;
+ 		}
+ 		snd_info_get_str(idxstr, cptr, sizeof(idxstr));
+-		idx = simple_strtoul(idxstr, NULL, 10);
++		parse_integer(idxstr, 10, (unsigned int *)&idx);
+ 		if (idx >= 0x4000) { /* too big */
+ 			pr_err("ALSA: mixer_oss: invalid index %d\n", idx);
+ 			continue;
+diff -puN sound/core/oss/pcm_oss.c~parse_integer-convert-sound sound/core/oss/pcm_oss.c
+--- a/sound/core/oss/pcm_oss.c~parse_integer-convert-sound
++++ a/sound/core/oss/pcm_oss.c
+@@ -2892,9 +2892,9 @@ static void snd_pcm_oss_proc_write(struc
  			}
+ 		}
+ 		ptr = snd_info_get_str(str, ptr, sizeof(str));
+-		template.periods = simple_strtoul(str, NULL, 10);
++		parse_integer(str, 10, &template.periods);
+ 		ptr = snd_info_get_str(str, ptr, sizeof(str));
+-		template.period_size = simple_strtoul(str, NULL, 10);
++		parse_integer(str, 10, &template.period_size);
+ 		for (idx1 = 31; idx1 >= 0; idx1--)
+ 			if (template.period_size & (1 << idx1))
+ 				break;
+diff -puN sound/core/pcm.c~parse_integer-convert-sound sound/core/pcm.c
+--- a/sound/core/pcm.c~parse_integer-convert-sound
++++ a/sound/core/pcm.c
+@@ -507,7 +507,7 @@ static void snd_pcm_xrun_debug_write(str
+ 	struct snd_pcm_str *pstr = entry->private_data;
+ 	char line[64];
+ 	if (!snd_info_get_line(buffer, line, sizeof(line)))
+-		pstr->xrun_debug = simple_strtoul(line, NULL, 10);
++		parse_integer(line, 10, &pstr->xrun_debug);
+ }
+ #endif
+ 
+diff -puN sound/core/pcm_memory.c~parse_integer-convert-sound sound/core/pcm_memory.c
+--- a/sound/core/pcm_memory.c~parse_integer-convert-sound
++++ a/sound/core/pcm_memory.c
+@@ -167,7 +167,8 @@ static void snd_pcm_lib_preallocate_proc
+ 	}
+ 	if (!snd_info_get_line(buffer, line, sizeof(line))) {
+ 		snd_info_get_str(str, line, sizeof(str));
+-		size = simple_strtoul(str, NULL, 10) * 1024;
++		parse_integer(str, 10, &size);
++		size *= 1024;
+ 		if ((size != 0 && size < 8192) || size > substream->dma_max) {
+ 			buffer->error = -EINVAL;
+ 			return;
+diff -puN sound/pci/ac97/ac97_codec.c~parse_integer-convert-sound sound/pci/ac97/ac97_codec.c
+--- a/sound/pci/ac97/ac97_codec.c~parse_integer-convert-sound
++++ a/sound/pci/ac97/ac97_codec.c
+@@ -2884,8 +2884,12 @@ static int apply_quirk_str(struct snd_ac
+ 			return apply_quirk(ac97, i);
+ 	}
+ 	/* for compatibility, accept the numbers, too */
+-	if (*typestr >= '0' && *typestr <= '9')
+-		return apply_quirk(ac97, (int)simple_strtoul(typestr, NULL, 10));
++	if (*typestr >= '0' && *typestr <= '9') {
++		int type;
++
++		parse_integer(typestr, 10, &type);
++		return apply_quirk(ac97, type);
++	}
+ 	return -EINVAL;
+ }
+ 
+diff -puN sound/soc/soc-core.c~parse_integer-convert-sound sound/soc/soc-core.c
+--- a/sound/soc/soc-core.c~parse_integer-convert-sound
++++ a/sound/soc/soc-core.c
+@@ -250,7 +250,7 @@ static ssize_t codec_reg_write_file(stru
+ 	char buf[32];
+ 	size_t buf_size;
+ 	char *start = buf;
+-	unsigned long reg, value;
++	unsigned int reg, value;
+ 	struct snd_soc_codec *codec = file->private_data;
+ 	int ret;
+ 
+@@ -261,10 +261,13 @@ static ssize_t codec_reg_write_file(stru
+ 
+ 	while (*start == ' ')
+ 		start++;
+-	reg = simple_strtoul(start, &start, 16);
++	ret = parse_integer(start, 16, &reg);
++	if (ret < 0)
++		return ret;
++	start += ret;
+ 	while (*start == ' ')
+ 		start++;
+-	ret = kstrtoul(start, 16, &value);
++	ret = kstrtouint(start, 16, &value);
+ 	if (ret)
+ 		return ret;
+ 
 _
 
-Patches currently in -mm which might be from vdavydov@parallels.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-memcg-export-struct-mem_cgroup.patch
-memcg-export-struct-mem_cgroup-fix.patch
-memcg-export-struct-mem_cgroup-fix-2.patch
-memcg-get-rid-of-mem_cgroup_root_css-for-config_memcg.patch
-memcg-get-rid-of-extern-for-functions-in-memcontrolh.patch
-memcg-restructure-mem_cgroup_can_attach.patch
-memcg-tcp_kmem-check-for-cg_proto-in-sock_update_memcg.patch
-memcg-add-page_cgroup_ino-helper.patch
-memcg-add-page_cgroup_ino-helper-fix.patch
-hwpoison-use-page_cgroup_ino-for-filtering-by-memcg.patch
-memcg-zap-try_get_mem_cgroup_from_page.patch
-proc-add-kpagecgroup-file.patch
-mmu-notifier-add-clear_young-callback.patch
-mmu-notifier-add-clear_young-callback-fix.patch
-proc-add-kpageidle-file.patch
-proc-add-kpageidle-file-fix.patch
-proc-add-kpageidle-file-fix-2.patch
-proc-add-kpageidle-file-fix-3.patch
-proc-add-kpageidle-file-fix-4.patch
-proc-export-idle-flag-via-kpageflags.patch
-proc-add-cond_resched-to-proc-kpage-read-write-loop.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-mm-swap-zswap-maybe_preload-refactoring.patch
+kstrto-accept-0-for-signed-conversion.patch
+add-parse_integer-replacement-for-simple_strto.patch
+parse_integer-add-runtime-testsuite.patch
+parse-integer-rewrite-kstrto.patch
+parse_integer-convert-scanf.patch
+scanf-fix-type-range-overflow.patch
+parse_integer-convert-lib.patch
+parse_integer-convert-mm.patch
+parse_integer-convert-mm-fix.patch
+parse_integer-convert-fs.patch
+parse_integer-convert-fs-cachefiles.patch
+parse_integer-convert-ext2-ext3-ext4.patch
+parse_integer-convert-fs-ocfs2.patch
+parse_integer-convert-fs-9p.patch
+parse_integer-convert-fs-exofs.patch
+parse_integer-add-checkpatchpl-notice.patch
 
