@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + proc-add-kpageidle-file-fix-3.patch added to -mm tree
-Date: Mon, 27 Jul 2015 13:33:55 -0700
-Message-ID: <55b695b3.N5O8OXDoRlgnsiJ0%akpm@linux-foundation.org>
+Subject: + proc-add-kpageidle-file-fix-4.patch added to -mm tree
+Date: Mon, 27 Jul 2015 13:40:30 -0700
+Message-ID: <55b6973e.VAwOHalZP2RAV1Dd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48062 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48111 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754597AbbG0Ud4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Jul 2015 16:33:56 -0400
+	with ESMTP id S1752818AbbG0Ukb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Jul 2015 16:40:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vdavydov@parallels.com, fengguang.wu@intel.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mmu_notifier: add missing stubs for clear_young
+     Subject: proc-add-kpageidle-file-fix-4
 has been added to the -mm tree.  Its filename is
-     proc-add-kpageidle-file-fix-3.patch
+     proc-add-kpageidle-file-fix-4.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/proc-add-kpageidle-file-fix-3.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/proc-add-kpageidle-file-fix-4.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/proc-add-kpageidle-file-fix-3.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/proc-add-kpageidle-file-fix-4.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,32 +39,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: mmu_notifier: add missing stubs for clear_young
+Subject: proc-add-kpageidle-file-fix-4
 
-This is a compilation fix for !CONFIG_MMU_NOTIFIER.
+Not all architectures support 8-byte get_user.
 
-Fixes: mmu-notifier-add-clear_young-callback
+Fixes: proc-add-kpageidle-file
 Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
 Reported-by: Wu Fengguang <fengguang.wu@intel.com>
 Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmu_notifier.h |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/proc/page.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/mmu_notifier.h~proc-add-kpageidle-file-fix-3 include/linux/mmu_notifier.h
---- a/include/linux/mmu_notifier.h~proc-add-kpageidle-file-fix-3
-+++ a/include/linux/mmu_notifier.h
-@@ -471,6 +471,8 @@ static inline void mmu_notifier_mm_destr
- 
- #define ptep_clear_flush_young_notify ptep_clear_flush_young
- #define pmdp_clear_flush_young_notify pmdp_clear_flush_young
-+#define ptep_clear_young_notify ptep_test_and_clear_young
-+#define pmdp_clear_young_notify pmdp_test_and_clear_young
- #define	ptep_clear_flush_notify ptep_clear_flush
- #define pmdp_huge_clear_flush_notify pmdp_huge_clear_flush
- #define pmdp_huge_get_and_clear_notify pmdp_huge_get_and_clear
+diff -puN fs/proc/page.c~proc-add-kpageidle-file-fix-4 fs/proc/page.c
+--- a/fs/proc/page.c~proc-add-kpageidle-file-fix-4
++++ a/fs/proc/page.c
+@@ -454,7 +454,7 @@ static ssize_t kpageidle_write(struct fi
+ 	for (; pfn < end_pfn; pfn++) {
+ 		bit = pfn % KPMBITS;
+ 		if (bit == 0) {
+-			if (get_user(idle_bitmap, in)) {
++			if (copy_from_user(&idle_bitmap, in, sizeof(u64))) {
+ 				ret = -EFAULT;
+ 				break;
+ 			}
 _
 
 Patches currently in -mm which might be from vdavydov@parallels.com are
@@ -87,6 +87,7 @@ proc-add-kpageidle-file.patch
 proc-add-kpageidle-file-fix.patch
 proc-add-kpageidle-file-fix-2.patch
 proc-add-kpageidle-file-fix-3.patch
+proc-add-kpageidle-file-fix-4.patch
 proc-export-idle-flag-via-kpageflags.patch
 proc-add-cond_resched-to-proc-kpage-read-write-loop.patch
 mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
