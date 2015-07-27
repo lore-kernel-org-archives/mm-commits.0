@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-page_isolation-make-set-unset_migratetype_isolate-file-local.patch added to -mm tree
-Date: Mon, 27 Jul 2015 12:12:48 -0700
-Message-ID: <55b682b0.VemY3Y2GoIZFJR6f%akpm@linux-foundation.org>
+Subject: + proc-add-kpageidle-file-fix-3.patch added to -mm tree
+Date: Mon, 27 Jul 2015 13:33:55 -0700
+Message-ID: <55b695b3.N5O8OXDoRlgnsiJ0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47414 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48062 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751673AbbG0TMt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Jul 2015 15:12:49 -0400
+	with ESMTP id S1754597AbbG0Ud4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Jul 2015 16:33:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: n-horiguchi@ah.jp.nec.com, iamjoonsoo.kim@lge.com, minchan@kernel.org, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: vdavydov@parallels.com, fengguang.wu@intel.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_isolation: make set/unset_migratetype_isolate() file-local
+     Subject: mmu_notifier: add missing stubs for clear_young
 has been added to the -mm tree.  Its filename is
-     mm-page_isolation-make-set-unset_migratetype_isolate-file-local.patch
+     proc-add-kpageidle-file-fix-3.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_isolation-make-set-unset_migratetype_isolate-file-local.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/proc-add-kpageidle-file-fix-3.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_isolation-make-set-unset_migratetype_isolate-file-local.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/proc-add-kpageidle-file-fix-3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,102 +38,57 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm, page_isolation: make set/unset_migratetype_isolate() file-local
+From: Vladimir Davydov <vdavydov@parallels.com>
+Subject: mmu_notifier: add missing stubs for clear_young
 
-Nowaday, set/unset_migratetype_isolate() is defined and used only in
-mm/page_isolation, so let's limit the scope within the file.
+This is a compilation fix for !CONFIG_MMU_NOTIFIER.
 
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Minchan Kim <minchan@kernel.org>
+Fixes: mmu-notifier-add-clear_young-callback
+Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
+Reported-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-isolation.h |    5 -----
- mm/page_isolation.c            |    5 +++--
- 2 files changed, 3 insertions(+), 7 deletions(-)
+ include/linux/mmu_notifier.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN include/linux/page-isolation.h~mm-page_isolation-make-set-unset_migratetype_isolate-file-local include/linux/page-isolation.h
---- a/include/linux/page-isolation.h~mm-page_isolation-make-set-unset_migratetype_isolate-file-local
-+++ a/include/linux/page-isolation.h
-@@ -65,11 +65,6 @@ undo_isolate_page_range(unsigned long st
- int test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn,
- 			bool skip_hwpoisoned_pages);
+diff -puN include/linux/mmu_notifier.h~proc-add-kpageidle-file-fix-3 include/linux/mmu_notifier.h
+--- a/include/linux/mmu_notifier.h~proc-add-kpageidle-file-fix-3
++++ a/include/linux/mmu_notifier.h
+@@ -471,6 +471,8 @@ static inline void mmu_notifier_mm_destr
  
--/*
-- * Internal functions. Changes pageblock's migrate type.
-- */
--int set_migratetype_isolate(struct page *page, bool skip_hwpoisoned_pages);
--void unset_migratetype_isolate(struct page *page, unsigned migratetype);
- struct page *alloc_migrate_target(struct page *page, unsigned long private,
- 				int **resultp);
- 
-diff -puN mm/page_isolation.c~mm-page_isolation-make-set-unset_migratetype_isolate-file-local mm/page_isolation.c
---- a/mm/page_isolation.c~mm-page_isolation-make-set-unset_migratetype_isolate-file-local
-+++ a/mm/page_isolation.c
-@@ -9,7 +9,8 @@
- #include <linux/hugetlb.h>
- #include "internal.h"
- 
--int set_migratetype_isolate(struct page *page, bool skip_hwpoisoned_pages)
-+static int set_migratetype_isolate(struct page *page,
-+				bool skip_hwpoisoned_pages)
- {
- 	struct zone *zone;
- 	unsigned long flags, pfn;
-@@ -72,7 +73,7 @@ out:
- 	return ret;
- }
- 
--void unset_migratetype_isolate(struct page *page, unsigned migratetype)
-+static void unset_migratetype_isolate(struct page *page, unsigned migratetype)
- {
- 	struct zone *zone;
- 	unsigned long flags, nr_pages;
+ #define ptep_clear_flush_young_notify ptep_clear_flush_young
+ #define pmdp_clear_flush_young_notify pmdp_clear_flush_young
++#define ptep_clear_young_notify ptep_test_and_clear_young
++#define pmdp_clear_young_notify pmdp_test_and_clear_young
+ #define	ptep_clear_flush_notify ptep_clear_flush
+ #define pmdp_huge_clear_flush_notify pmdp_huge_clear_flush
+ #define pmdp_huge_get_and_clear_notify pmdp_huge_get_and_clear
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from vdavydov@parallels.com are
 
-hugetlb-make-the-function-vma_shareable-bool.patch
-pagemap-check-permissions-and-capabilities-at-open-time.patch
-pagemap-switch-to-the-new-format-and-do-some-cleanup.patch
-pagemap-rework-hugetlb-and-thp-report.patch
-pagemap-hide-physical-addresses-from-non-privileged-users.patch
-pagemap-add-mmap-exclusive-bit-for-marking-pages-mapped-only-here.patch
-pagemap-update-documentation.patch
-pagemap-update-documentation-fix.patch
-mm-page_isolation-remove-bogus-tests-for-isolated-pages.patch
-mm-rename-and-move-get-set_freepage_migratetype.patch
-mm-hugetlb-add-cache-of-descriptors-to-resv_map-for-region_add.patch
-mm-hugetlb-add-region_del-to-delete-a-specific-range-of-entries.patch
-mm-hugetlb-expose-hugetlb-fault-mutex-for-use-by-fallocate.patch
-hugetlbfs-hugetlb_vmtruncate_list-needs-to-take-a-range-to-delete.patch
-hugetlbfs-truncate_hugepages-takes-a-range-of-pages.patch
-mm-hugetlb-vma_has_reserves-needs-to-handle-fallocate-hole-punch.patch
-mm-hugetlb-alloc_huge_page-handle-areas-hole-punched-by-fallocate.patch
-hugetlbfs-new-huge_add_to_page_cache-helper-routine.patch
-hugetlbfs-add-hugetlbfs_fallocate.patch
-hugetlbfs-add-hugetlbfs_fallocate-fix.patch
-mm-madvise-allow-remove-operation-for-hugetlbfs.patch
-mempolicy-get-rid-of-duplicated-check-for-vmavm_pfnmap-in-queue_pages_range.patch
-mm-page_isolation-make-set-unset_migratetype_isolate-file-local.patch
-page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-mm-sanitize-page-mapping-for-tail-pages.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
+memcg-export-struct-mem_cgroup.patch
+memcg-export-struct-mem_cgroup-fix.patch
+memcg-export-struct-mem_cgroup-fix-2.patch
+memcg-get-rid-of-mem_cgroup_root_css-for-config_memcg.patch
+memcg-get-rid-of-extern-for-functions-in-memcontrolh.patch
+memcg-restructure-mem_cgroup_can_attach.patch
+memcg-tcp_kmem-check-for-cg_proto-in-sock_update_memcg.patch
+memcg-add-page_cgroup_ino-helper.patch
+memcg-add-page_cgroup_ino-helper-fix.patch
+hwpoison-use-page_cgroup_ino-for-filtering-by-memcg.patch
+memcg-zap-try_get_mem_cgroup_from_page.patch
+proc-add-kpagecgroup-file.patch
+mmu-notifier-add-clear_young-callback.patch
+mmu-notifier-add-clear_young-callback-fix.patch
+proc-add-kpageidle-file.patch
+proc-add-kpageidle-file-fix.patch
+proc-add-kpageidle-file-fix-2.patch
+proc-add-kpageidle-file-fix-3.patch
+proc-export-idle-flag-via-kpageflags.patch
+proc-add-cond_resched-to-proc-kpage-read-write-loop.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+mm-swap-zswap-maybe_preload-refactoring.patch
 
