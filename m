@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + proc-add-kpageidle-file-fix-2.patch added to -mm tree
-Date: Mon, 27 Jul 2015 11:58:30 -0700
-Message-ID: <55b67f56.Vof4MuUaZNqBdmlZ%akpm@linux-foundation.org>
+Subject: + hugetlbfs-add-hugetlbfs_fallocate-fix.patch added to -mm tree
+Date: Mon, 27 Jul 2015 12:04:52 -0700
+Message-ID: <55b680d4.4I2TQZqAU4QyeWJ4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47261 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47280 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753514AbbG0S6b (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Jul 2015 14:58:31 -0400
+	with ESMTP id S1754129AbbG0TEx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Jul 2015 15:04:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@parallels.com, fengguang.wu@intel.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: mike.kravetz@oracle.com, fengguang.wu@intel.com, hillf.zj@alibaba-inc.com, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/Kconfig: fix IDLE_PAGE_TRACKING dependencies
+     Subject: mmotm: build fix hugetlbfs fallocate if not CONFIG_NUMA
 has been added to the -mm tree.  Its filename is
-     proc-add-kpageidle-file-fix-2.patch
+     hugetlbfs-add-hugetlbfs_fallocate-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/proc-add-kpageidle-file-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/hugetlbfs-add-hugetlbfs_fallocate-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/proc-add-kpageidle-file-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/hugetlbfs-add-hugetlbfs_fallocate-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,53 +38,118 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@parallels.com>
-Subject: mm/Kconfig: fix IDLE_PAGE_TRACKING dependencies
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: mmotm: build fix hugetlbfs fallocate if not CONFIG_NUMA
 
-Fixes: proc-add-kpageidle-file
-Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
+Commit 56bb4d795 introduced a build error if CONFIG_NUMA is not
+defined.  When fallocate preallocation allocates pages, it will
+use the defined numa policy.  However, if numa is not defined
+there is no such policy and no code should reference numa policy.
+Create wrappers to isolate policy manipulation code that are a
+NOOP in the non-NUMA case.
+
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
 Reported-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Michal Hocko <mhocko@suse.cz>
 Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ fs/hugetlbfs/inode.c |   39 ++++++++++++++++++++++++++++++---------
+ 1 file changed, 30 insertions(+), 9 deletions(-)
 
-diff -puN mm/Kconfig~proc-add-kpageidle-file-fix-2 mm/Kconfig
---- a/mm/Kconfig~proc-add-kpageidle-file-fix-2
-+++ a/mm/Kconfig
-@@ -657,6 +657,7 @@ config DEFERRED_STRUCT_PAGE_INIT
+diff -puN fs/hugetlbfs/inode.c~hugetlbfs-add-hugetlbfs_fallocate-fix fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~hugetlbfs-add-hugetlbfs_fallocate-fix
++++ a/fs/hugetlbfs/inode.c
+@@ -85,6 +85,29 @@ static const match_table_t tokens = {
+ 	{Opt_err,	NULL},
+ };
  
- config IDLE_PAGE_TRACKING
- 	bool "Enable idle page tracking"
-+	depends on PROC_FS && MMU
- 	select PROC_PAGE_MONITOR
- 	select PAGE_EXTENSION if !64BIT
- 	help
++#ifdef CONFIG_NUMA
++static inline void hugetlb_set_vma_policy(struct vm_area_struct *vma,
++					struct inode *inode, pgoff_t index)
++{
++	vma->vm_policy = mpol_shared_policy_lookup(&HUGETLBFS_I(inode)->policy,
++							index);
++}
++
++static inline void hugetlb_drop_vma_policy(struct vm_area_struct *vma)
++{
++	mpol_cond_put(vma->vm_policy);
++}
++#else
++static inline void hugetlb_set_vma_policy(struct vm_area_struct *vma,
++					struct inode *inode, pgoff_t index)
++{
++}
++
++static inline void hugetlb_drop_vma_policy(struct vm_area_struct *vma)
++{
++}
++#endif
++
+ static void huge_pagevec_release(struct pagevec *pvec)
+ {
+ 	int i;
+@@ -546,9 +569,9 @@ static long hugetlbfs_fallocate(struct f
+ 		goto out;
+ 
+ 	/*
+-	 * Initialize a pseudo vma that just contains the policy used
+-	 * when allocating the huge pages.  The actual policy field
+-	 * (vm_policy) is determined based on the index in the loop below.
++	 * Initialize a pseudo vma as this is required by the huge page
++	 * allocation routines.  If NUMA is configured, use page index
++	 * as input to create an allocation policy.
+ 	 */
+ 	memset(&pseudo_vma, 0, sizeof(struct vm_area_struct));
+ 	pseudo_vma.vm_flags = (VM_HUGETLB | VM_MAYSHARE | VM_SHARED);
+@@ -574,10 +597,8 @@ static long hugetlbfs_fallocate(struct f
+ 			break;
+ 		}
+ 
+-		/* Get policy based on index */
+-		pseudo_vma.vm_policy =
+-			mpol_shared_policy_lookup(&HUGETLBFS_I(inode)->policy,
+-							index);
++		/* Set numa allocation policy based on index */
++		hugetlb_set_vma_policy(&pseudo_vma, inode, index);
+ 
+ 		/* addr is the offset within the file (zero based) */
+ 		addr = index * hpage_size;
+@@ -592,13 +613,13 @@ static long hugetlbfs_fallocate(struct f
+ 		if (page) {
+ 			put_page(page);
+ 			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
+-			mpol_cond_put(pseudo_vma.vm_policy);
++			hugetlb_drop_vma_policy(&pseudo_vma);
+ 			continue;
+ 		}
+ 
+ 		/* Allocate page and add to page cache */
+ 		page = alloc_huge_page(&pseudo_vma, addr, avoid_reserve);
+-		mpol_cond_put(pseudo_vma.vm_policy);
++		hugetlb_drop_vma_policy(&pseudo_vma);
+ 		if (IS_ERR(page)) {
+ 			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
+ 			error = PTR_ERR(page);
 _
 
-Patches currently in -mm which might be from vdavydov@parallels.com are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
-memcg-export-struct-mem_cgroup.patch
-memcg-export-struct-mem_cgroup-fix.patch
-memcg-export-struct-mem_cgroup-fix-2.patch
-memcg-get-rid-of-mem_cgroup_root_css-for-config_memcg.patch
-memcg-get-rid-of-extern-for-functions-in-memcontrolh.patch
-memcg-restructure-mem_cgroup_can_attach.patch
-memcg-tcp_kmem-check-for-cg_proto-in-sock_update_memcg.patch
-memcg-add-page_cgroup_ino-helper.patch
-memcg-add-page_cgroup_ino-helper-fix.patch
-hwpoison-use-page_cgroup_ino-for-filtering-by-memcg.patch
-memcg-zap-try_get_mem_cgroup_from_page.patch
-proc-add-kpagecgroup-file.patch
-mmu-notifier-add-clear_young-callback.patch
-mmu-notifier-add-clear_young-callback-fix.patch
-proc-add-kpageidle-file.patch
-proc-add-kpageidle-file-fix.patch
-proc-add-kpageidle-file-fix-2.patch
-proc-export-idle-flag-via-kpageflags.patch
-proc-add-cond_resched-to-proc-kpage-read-write-loop.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-mm-swap-zswap-maybe_preload-refactoring.patch
+hugetlb-make-the-function-vma_shareable-bool.patch
+mm-hugetlb-add-cache-of-descriptors-to-resv_map-for-region_add.patch
+mm-hugetlb-add-cache-of-descriptors-to-resv_map-for-region_add-fix.patch
+mm-hugetlb-add-region_del-to-delete-a-specific-range-of-entries.patch
+mm-hugetlb-expose-hugetlb-fault-mutex-for-use-by-fallocate.patch
+hugetlbfs-hugetlb_vmtruncate_list-needs-to-take-a-range-to-delete.patch
+hugetlbfs-truncate_hugepages-takes-a-range-of-pages.patch
+mm-hugetlb-vma_has_reserves-needs-to-handle-fallocate-hole-punch.patch
+mm-hugetlb-alloc_huge_page-handle-areas-hole-punched-by-fallocate.patch
+hugetlbfs-new-huge_add_to_page_cache-helper-routine.patch
+hugetlbfs-add-hugetlbfs_fallocate.patch
+hugetlbfs-add-hugetlbfs_fallocate-fix.patch
+mm-madvise-allow-remove-operation-for-hugetlbfs.patch
 
