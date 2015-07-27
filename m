@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-sysfile-interfaces-for-online-file-check-fix-2.patch
+Subject: + lib-string_helpers-clarify-esc-arg-in-string_escape_mem.patch
  added to -mm tree
-Date: Mon, 27 Jul 2015 14:05:21 -0700
-Message-ID: <55b69d11.lVVAmybPbzhb3w6r%akpm@linux-foundation.org>
+Date: Mon, 27 Jul 2015 14:19:32 -0700
+Message-ID: <55b6a064.zskVDv4J3LC2gaHv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48521 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48643 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752718AbbG0VFW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Jul 2015 17:05:22 -0400
+	with ESMTP id S1753831AbbG0VTd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 27 Jul 2015 17:19:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.carpenter@oracle.com, ghe@suse.com, jlbec@evilplan.org, mfasheh@suse.com, rgoldwyn@suse.de, mm-commits@vger.kernel.org
+To: keescook@chromium.org, James.Bottomley@HansenPartnership.com, andriy.shevchenko@linux.intel.com, linux@rasmusvillemoes.dk, minipli@googlemail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: scheduling in atomic in ocfs2_filecheck_store()
+     Subject: lib/string_helpers: clarify esc arg in string_escape_mem
 has been added to the -mm tree.  Its filename is
-     ocfs2-sysfile-interfaces-for-online-file-check-fix-2.patch
+     lib-string_helpers-clarify-esc-arg-in-string_escape_mem.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-sysfile-interfaces-for-online-file-check-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-string_helpers-clarify-esc-arg-in-string_escape_mem.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-sysfile-interfaces-for-online-file-check-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-string_helpers-clarify-esc-arg-in-string_escape_mem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,102 +39,70 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: ocfs2: scheduling in atomic in ocfs2_filecheck_store()
+From: Kees Cook <keescook@chromium.org>
+Subject: lib/string_helpers: clarify esc arg in string_escape_mem
 
-We're hold "spin_lock(&ent->fs_fcheck->fc_lock)" so move the GFP_NOFS
-allocation outside the locked region.
+The esc argument is used to reduce which characters will be escaped.  For
+example, using " " with ESCAPE_SPACE will not produce any escaped spaces.
 
-Fixes: e467fe5da718 ('ocfs2: sysfile interfaces for online file check')
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Gang He <ghe@suse.com>
-Cc: Goldwyn Rodrigues <rgoldwyn@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Mark Fasheh <mfasheh@suse.com>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Mathias Krause <minipli@googlemail.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/filecheck.c |   40 +++++++++++++++++++++-------------------
- 1 file changed, 21 insertions(+), 19 deletions(-)
+ lib/string_helpers.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN fs/ocfs2/filecheck.c~ocfs2-sysfile-interfaces-for-online-file-check-fix-2 fs/ocfs2/filecheck.c
---- a/fs/ocfs2/filecheck.c~ocfs2-sysfile-interfaces-for-online-file-check-fix-2
-+++ a/fs/ocfs2/filecheck.c
-@@ -501,7 +501,7 @@ static ssize_t ocfs2_filecheck_store(str
- 				const char *buf, size_t count)
- {
- 	struct ocfs2_filecheck_args args;
--	struct ocfs2_filecheck_entry *entry = NULL;
-+	struct ocfs2_filecheck_entry *entry;
- 	struct ocfs2_filecheck_sysfs_entry *ent;
- 	ssize_t ret = 0;
- 
-@@ -527,12 +527,19 @@ static ssize_t ocfs2_filecheck_store(str
- 		return (!ret ? count : ret);
- 	}
- 
-+	entry = kmalloc(sizeof(*entry), GFP_NOFS);
-+	if (!entry) {
-+		ret = -ENOMEM;
-+		goto out;
-+	}
-+
- 	spin_lock(&ent->fs_fcheck->fc_lock);
- 	if ((ent->fs_fcheck->fc_size >= ent->fs_fcheck->fc_max) &&
--		(ent->fs_fcheck->fc_done == 0)) {
--		mlog(ML_ERROR,
--		"Online file check queue(%u) is full\n",
--		ent->fs_fcheck->fc_max);
-+			(ent->fs_fcheck->fc_done == 0)) {
-+		mlog(ML_ERROR, "Online file check queue(%u) is full\n",
-+				ent->fs_fcheck->fc_max);
-+		kfree(entry);
-+		entry = NULL;
- 		ret = -EBUSY;
- 	} else {
- 		if ((ent->fs_fcheck->fc_size >= ent->fs_fcheck->fc_max) &&
-@@ -544,26 +551,21 @@ static ssize_t ocfs2_filecheck_store(str
- 			BUG_ON(!ocfs2_filecheck_erase_entry(ent));
- 		}
- 
--		entry = kmalloc(sizeof(struct ocfs2_filecheck_entry), GFP_NOFS);
--		if (entry) {
--			entry->fe_ino = args.fa_ino;
--			entry->fe_type = args.fa_type;
--			entry->fe_done = 0;
--			entry->fe_status = OCFS2_FILECHECK_ERR_INPROGRESS;
--			list_add_tail(&entry->fe_list,
--					&ent->fs_fcheck->fc_head);
--
--			ent->fs_fcheck->fc_size++;
--			ret = count;
--		} else {
--			ret = -ENOMEM;
--		}
-+		entry->fe_ino = args.fa_ino;
-+		entry->fe_type = args.fa_type;
-+		entry->fe_done = 0;
-+		entry->fe_status = OCFS2_FILECHECK_ERR_INPROGRESS;
-+		list_add_tail(&entry->fe_list, &ent->fs_fcheck->fc_head);
-+
-+		ent->fs_fcheck->fc_size++;
-+		ret = count;
- 	}
- 	spin_unlock(&ent->fs_fcheck->fc_lock);
- 
- 	if (entry)
- 		ocfs2_filecheck_handle_entry(ent, entry);
- 
-+out:
- 	ocfs2_filecheck_sysfs_put(ent);
- 	return ret;
- }
+diff -puN lib/string_helpers.c~lib-string_helpers-clarify-esc-arg-in-string_escape_mem lib/string_helpers.c
+--- a/lib/string_helpers.c~lib-string_helpers-clarify-esc-arg-in-string_escape_mem
++++ a/lib/string_helpers.c
+@@ -410,7 +410,7 @@ static bool escape_hex(unsigned char c,
+  * @dst:	destination buffer (escaped)
+  * @osz:	destination buffer size
+  * @flags:	combination of the flags (bitwise OR):
+- *	%ESCAPE_SPACE:
++ *	%ESCAPE_SPACE: (special white space, not space itself)
+  *		'\f' - form feed
+  *		'\n' - new line
+  *		'\r' - carriage return
+@@ -432,8 +432,10 @@ static bool escape_hex(unsigned char c,
+  *		all previous together
+  *	%ESCAPE_HEX:
+  *		'\xHH' - byte with hexadecimal value HH (2 digits)
+- * @esc:	NULL-terminated string of characters any of which, if found in
+- *		the source, has to be escaped
++ * @esc:	NULL-terminated string containing characters used to limit
++ *		the selected escape class. If characters are included in @esc
++ *		that would not normally be escaped by the classes selected
++ *		in @flags, they will be copied to @dst unescaped.
+  *
+  * Description:
+  * The process of escaping byte buffer includes several parts. They are applied
+@@ -441,7 +443,7 @@ static bool escape_hex(unsigned char c,
+  *	1. The character is matched to the printable class, if asked, and in
+  *	   case of match it passes through to the output.
+  *	2. The character is not matched to the one from @esc string and thus
+- *	   must go as is to the output.
++ *	   must go as-is to the output.
+  *	3. The character is checked if it falls into the class given by @flags.
+  *	   %ESCAPE_OCTAL and %ESCAPE_HEX are going last since they cover any
+  *	   character. Note that they actually can't go together, otherwise
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
-ocfs2-sysfile-interfaces-for-online-file-check-fix-2.patch
-userfaultfd-add-new-syscall-to-provide-memory-externalization-fix-fix-fix.patch
-genalloc-add-support-of-multiple-gen_pools-per-device-fix-2.patch
+capabilities-ambient-capabilities.patch
+capabilities-add-a-securebit-to-disable-pr_cap_ambient_raise.patch
+scripts-spellingtxt-adding-misspelled-word-for-check.patch
+scripts-spellingtxt-adding-misspelled-word-for-check-fix.patch
+procfs-always-expose-proc-pid-map_files-and-make-it-readable.patch
+procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix.patch
+procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix-fix.patch
+lib-vsprintf-add-%pt-format-specifier.patch
+lib-string_helpers-clarify-esc-arg-in-string_escape_mem.patch
+sysctl-fix-int-unsigned-long-assignments-in-int_min-case.patch
 linux-next.patch
 
