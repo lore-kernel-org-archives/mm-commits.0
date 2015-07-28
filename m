@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + sound-convert-to-parse_integer.patch added to -mm tree
-Date: Tue, 28 Jul 2015 14:06:31 -0700
-Message-ID: <55b7eed7.JuSMzDbo32LSWZku%akpm@linux-foundation.org>
+Subject: + proc-convert-to-kstrto-kstrto_from_user.patch added to -mm tree
+Date: Tue, 28 Jul 2015 14:10:43 -0700
+Message-ID: <55b7efd3.quBVaJ3TxR8qfQ71%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54120 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54332 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753329AbbG1VGb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Jul 2015 17:06:31 -0400
+	with ESMTP id S1753386AbbG1VKo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Jul 2015 17:10:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, tiwai@suse.de, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sound: convert to parse_integer()
+     Subject: proc: convert to kstrto*()/kstrto*_from_user()
 has been added to the -mm tree.  Its filename is
-     sound-convert-to-parse_integer.patch
+     proc-convert-to-kstrto-kstrto_from_user.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sound-convert-to-parse_integer.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/proc-convert-to-kstrto-kstrto_from_user.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sound-convert-to-parse_integer.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/proc-convert-to-kstrto-kstrto_from_user.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,184 +39,163 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: sound: convert to parse_integer()
+Subject: proc: convert to kstrto*()/kstrto*_from_user()
 
-Convert away from deprecated simple_strto*() interfaces to parse_integer()
-and kstrto*().
+Convert from manual allocation/copy_from_user/...  to kstrto*() family
+which were designed for exactly that.
+
+One case can not be converted to kstrto*_from_user() to make code even
+more simpler because of whitespace stripping, oh well...
 
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/core/oss/mixer_oss.c  |    7 ++++---
- sound/core/oss/pcm_oss.c    |   13 +++++++++++--
- sound/core/pcm.c            |   13 +++++++++++--
- sound/core/pcm_memory.c     |   11 +++++++++--
- sound/pci/ac97/ac97_codec.c |    9 ++++++---
- sound/soc/soc-core.c        |    9 ++++++---
- 6 files changed, 47 insertions(+), 15 deletions(-)
+ fs/proc/base.c |   70 ++++++++++++++---------------------------------
+ 1 file changed, 21 insertions(+), 49 deletions(-)
 
-diff -puN sound/core/oss/mixer_oss.c~sound-convert-to-parse_integer sound/core/oss/mixer_oss.c
---- a/sound/core/oss/mixer_oss.c~sound-convert-to-parse_integer
-+++ a/sound/core/oss/mixer_oss.c
-@@ -1180,6 +1180,7 @@ static void snd_mixer_oss_proc_write(str
- 	int ch, idx;
- 	struct snd_mixer_oss_assign_table *tbl;
- 	struct slot *slot;
-+	int rv;
- 
- 	while (!snd_info_get_line(buffer, line, sizeof(line))) {
- 		cptr = snd_info_get_str(str, line, sizeof(str));
-@@ -1200,9 +1201,9 @@ static void snd_mixer_oss_proc_write(str
- 			continue;
- 		}
- 		snd_info_get_str(idxstr, cptr, sizeof(idxstr));
--		idx = simple_strtoul(idxstr, NULL, 10);
--		if (idx >= 0x4000) { /* too big */
--			pr_err("ALSA: mixer_oss: invalid index %d\n", idx);
-+		rv = parse_integer(idxstr, 10, (unsigned int *)&idx);
-+		if (rv < 0 || idxstr[rv] || idx >= 0x4000) { /* too big */
-+			pr_err("ALSA: mixer_oss: invalid index %s\n", idxstr);
- 			continue;
- 		}
- 		mutex_lock(&mixer->reg_mutex);
-diff -puN sound/core/oss/pcm_oss.c~sound-convert-to-parse_integer sound/core/oss/pcm_oss.c
---- a/sound/core/oss/pcm_oss.c~sound-convert-to-parse_integer
-+++ a/sound/core/oss/pcm_oss.c
-@@ -2875,6 +2875,7 @@ static void snd_pcm_oss_proc_write(struc
- 	const char *ptr;
- 	int idx1;
- 	struct snd_pcm_oss_setup *setup, *setup1, template;
-+	int rv;
- 
- 	while (!snd_info_get_line(buffer, line, sizeof(line))) {
- 		mutex_lock(&pstr->oss.setup_mutex);
-@@ -2892,9 +2893,17 @@ static void snd_pcm_oss_proc_write(struc
- 			}
- 		}
- 		ptr = snd_info_get_str(str, ptr, sizeof(str));
--		template.periods = simple_strtoul(str, NULL, 10);
-+		rv = parse_integer(str, 10, &template.periods);
-+		if (rv < 0 || str[rv]) {
-+			mutex_unlock(&pstr->oss.setup_mutex);
-+			continue;
-+		}
- 		ptr = snd_info_get_str(str, ptr, sizeof(str));
--		template.period_size = simple_strtoul(str, NULL, 10);
-+		rv = parse_integer(str, 10, &template.period_size);
-+		if (rv < 0 || str[rv]) {
-+			mutex_unlock(&pstr->oss.setup_mutex);
-+			continue;
-+		}
- 		for (idx1 = 31; idx1 >= 0; idx1--)
- 			if (template.period_size & (1 << idx1))
- 				break;
-diff -puN sound/core/pcm.c~sound-convert-to-parse_integer sound/core/pcm.c
---- a/sound/core/pcm.c~sound-convert-to-parse_integer
-+++ a/sound/core/pcm.c
-@@ -506,8 +506,17 @@ static void snd_pcm_xrun_debug_write(str
+diff -puN fs/proc/base.c~proc-convert-to-kstrto-kstrto_from_user fs/proc/base.c
+--- a/fs/proc/base.c~proc-convert-to-kstrto-kstrto_from_user
++++ a/fs/proc/base.c
+@@ -1230,10 +1230,9 @@ static ssize_t proc_loginuid_write(struc
+ 				   size_t count, loff_t *ppos)
  {
- 	struct snd_pcm_str *pstr = entry->private_data;
- 	char line[64];
--	if (!snd_info_get_line(buffer, line, sizeof(line)))
--		pstr->xrun_debug = simple_strtoul(line, NULL, 10);
-+	int rv;
-+
-+	if (!snd_info_get_line(buffer, line, sizeof(line))) {
-+		rv = parse_integer(line, 10, &pstr->xrun_debug);
-+		if (rv >= 0 && line[rv])
-+			rv = -EINVAL;
-+		if (rv < 0) {
-+			buffer->error = rv;
-+			return;
-+		}
-+	}
- }
- #endif
- 
-diff -puN sound/core/pcm_memory.c~sound-convert-to-parse_integer sound/core/pcm_memory.c
---- a/sound/core/pcm_memory.c~sound-convert-to-parse_integer
-+++ a/sound/core/pcm_memory.c
-@@ -160,6 +160,7 @@ static void snd_pcm_lib_preallocate_proc
- 	char line[64], str[64];
- 	size_t size;
- 	struct snd_dma_buffer new_dmab;
+ 	struct inode * inode = file_inode(file);
+-	char *page, *tmp;
+-	ssize_t length;
+ 	uid_t loginuid;
+ 	kuid_t kloginuid;
 +	int rv;
  
- 	if (substream->runtime) {
- 		buffer->error = -EBUSY;
-@@ -167,8 +168,14 @@ static void snd_pcm_lib_preallocate_proc
+ 	rcu_read_lock();
+ 	if (current != pid_task(proc_pid(inode), PIDTYPE_PID)) {
+@@ -1242,46 +1241,28 @@ static ssize_t proc_loginuid_write(struc
  	}
- 	if (!snd_info_get_line(buffer, line, sizeof(line))) {
- 		snd_info_get_str(str, line, sizeof(str));
--		size = simple_strtoul(str, NULL, 10) * 1024;
--		if ((size != 0 && size < 8192) || size > substream->dma_max) {
-+		rv = parse_integer(str, 10, &size);
-+		if (rv < 0) {
-+			buffer->error = rv;
-+			return;
-+		}
-+		size *= 1024;
-+		if (str[rv] ||
-+		    (size != 0 && size < 8192) || size > substream->dma_max) {
- 			buffer->error = -EINVAL;
- 			return;
- 		}
-diff -puN sound/pci/ac97/ac97_codec.c~sound-convert-to-parse_integer sound/pci/ac97/ac97_codec.c
---- a/sound/pci/ac97/ac97_codec.c~sound-convert-to-parse_integer
-+++ a/sound/pci/ac97/ac97_codec.c
-@@ -2877,6 +2877,8 @@ static int apply_quirk_str(struct snd_ac
- {
- 	int i;
- 	struct quirk_table *q;
-+	unsigned int type;
-+	int rv;
+ 	rcu_read_unlock();
  
- 	for (i = 0; i < ARRAY_SIZE(applicable_quirks); i++) {
- 		q = &applicable_quirks[i];
-@@ -2884,9 +2886,10 @@ static int apply_quirk_str(struct snd_ac
- 			return apply_quirk(ac97, i);
+-	if (count >= PAGE_SIZE)
+-		count = PAGE_SIZE - 1;
+-
+ 	if (*ppos != 0) {
+ 		/* No partial writes. */
+ 		return -EINVAL;
  	}
- 	/* for compatibility, accept the numbers, too */
--	if (*typestr >= '0' && *typestr <= '9')
--		return apply_quirk(ac97, (int)simple_strtoul(typestr, NULL, 10));
--	return -EINVAL;
-+	rv = parse_integer(typestr, 10, &type);
+-	page = (char*)__get_free_page(GFP_TEMPORARY);
+-	if (!page)
+-		return -ENOMEM;
+-	length = -EFAULT;
+-	if (copy_from_user(page, buf, count))
+-		goto out_free_page;
+ 
+-	page[count] = '\0';
+-	loginuid = simple_strtoul(page, &tmp, 10);
+-	if (tmp == page) {
+-		length = -EINVAL;
+-		goto out_free_page;
+-
+-	}
++	rv = kstrtou32_from_user(buf, count, 10, &loginuid);
 +	if (rv < 0)
 +		return rv;
-+	return apply_quirk(ac97, type);
+ 
+ 	/* is userspace tring to explicitly UNSET the loginuid? */
+ 	if (loginuid == AUDIT_UID_UNSET) {
+ 		kloginuid = INVALID_UID;
+ 	} else {
+ 		kloginuid = make_kuid(file->f_cred->user_ns, loginuid);
+-		if (!uid_valid(kloginuid)) {
+-			length = -EINVAL;
+-			goto out_free_page;
+-		}
++		if (!uid_valid(kloginuid))
++			return -EINVAL;
+ 	}
+ 
+-	length = audit_set_loginuid(kloginuid);
+-	if (likely(length == 0))
+-		length = count;
+-
+-out_free_page:
+-	free_page((unsigned long) page);
+-	return length;
++	rv = audit_set_loginuid(kloginuid);
++	if (rv < 0)
++		return rv;
++	return count;
  }
  
- /**
-diff -puN sound/soc/soc-core.c~sound-convert-to-parse_integer sound/soc/soc-core.c
---- a/sound/soc/soc-core.c~sound-convert-to-parse_integer
-+++ a/sound/soc/soc-core.c
-@@ -250,7 +250,7 @@ static ssize_t codec_reg_write_file(stru
- 	char buf[32];
- 	size_t buf_size;
- 	char *start = buf;
--	unsigned long reg, value;
-+	unsigned int reg, value;
- 	struct snd_soc_codec *codec = file->private_data;
+ static const struct file_operations proc_loginuid_operations = {
+@@ -1335,8 +1316,9 @@ static ssize_t proc_fault_inject_write(s
+ 			const char __user * buf, size_t count, loff_t *ppos)
+ {
+ 	struct task_struct *task;
+-	char buffer[PROC_NUMBUF], *end;
++	char buffer[PROC_NUMBUF];
+ 	int make_it_fail;
++	int rv;
+ 
+ 	if (!capable(CAP_SYS_RESOURCE))
+ 		return -EPERM;
+@@ -1345,9 +1327,9 @@ static ssize_t proc_fault_inject_write(s
+ 		count = sizeof(buffer) - 1;
+ 	if (copy_from_user(buffer, buf, count))
+ 		return -EFAULT;
+-	make_it_fail = simple_strtol(strstrip(buffer), &end, 0);
+-	if (*end)
+-		return -EINVAL;
++	rv = kstrtoint(strstrip(buffer), 0, &make_it_fail);
++	if (rv < 0)
++		return rv;
+ 	if (make_it_fail < 0 || make_it_fail > 1)
+ 		return -EINVAL;
+ 
+@@ -2488,32 +2470,20 @@ static ssize_t proc_coredump_filter_writ
+ {
+ 	struct task_struct *task;
+ 	struct mm_struct *mm;
+-	char buffer[PROC_NUMBUF], *end;
+ 	unsigned int val;
  	int ret;
+ 	int i;
+ 	unsigned long mask;
  
-@@ -261,10 +261,13 @@ static ssize_t codec_reg_write_file(stru
- 
- 	while (*start == ' ')
- 		start++;
--	reg = simple_strtoul(start, &start, 16);
-+	ret = parse_integer(start, 16, &reg);
+-	ret = -EFAULT;
+-	memset(buffer, 0, sizeof(buffer));
+-	if (count > sizeof(buffer) - 1)
+-		count = sizeof(buffer) - 1;
+-	if (copy_from_user(buffer, buf, count))
+-		goto out_no_task;
+-
+-	ret = -EINVAL;
+-	val = (unsigned int)simple_strtoul(buffer, &end, 0);
+-	if (*end == '\n')
+-		end++;
+-	if (end - buffer == 0)
+-		goto out_no_task;
++	ret = kstrtouint_from_user(buf, count, 0, &val);
 +	if (ret < 0)
 +		return ret;
-+	start += ret;
- 	while (*start == ' ')
- 		start++;
--	ret = kstrtoul(start, 16, &value);
-+	ret = kstrtouint(start, 16, &value);
- 	if (ret)
- 		return ret;
  
+ 	ret = -ESRCH;
+ 	task = get_proc_task(file_inode(file));
+ 	if (!task)
+ 		goto out_no_task;
+ 
+-	ret = end - buffer;
+ 	mm = get_task_mm(task);
+ 	if (!mm)
+ 		goto out_no_mm;
+@@ -2529,7 +2499,9 @@ static ssize_t proc_coredump_filter_writ
+  out_no_mm:
+ 	put_task_struct(task);
+  out_no_task:
+-	return ret;
++	if (ret < 0)
++		return ret;
++	return count;
+ }
+ 
+ static const struct file_operations proc_coredump_filter_operations = {
 _
 
 Patches currently in -mm which might be from adobriyan@gmail.com are
@@ -225,6 +204,7 @@ kstrto-accept-0-for-signed-conversion.patch
 add-parse_integer-replacement-for-simple_strto.patch
 parse_integer-add-runtime-testsuite.patch
 parse-integer-rewrite-kstrto.patch
+parse_integer-add-checkpatchpl-notice.patch
 parse_integer-convert-scanf.patch
 scanf-fix-type-range-overflow.patch
 parse_integer-convert-lib.patch
@@ -236,6 +216,6 @@ parse_integer-convert-ext2-ext3-ext4.patch
 parse_integer-convert-fs-ocfs2.patch
 parse_integer-convert-fs-9p.patch
 parse_integer-convert-fs-exofs.patch
-parse_integer-add-checkpatchpl-notice.patch
+proc-convert-to-kstrto-kstrto_from_user.patch
 sound-convert-to-parse_integer.patch
 
