@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- kexec-remove-the-unnecessary-conditional-judgement-to-simplify-the-code-logic.patch added to -mm tree
-Date: Tue, 28 Jul 2015 14:19:24 -0700
-Message-ID: <55b7f1dc.C2NnWa81xosDnoNr%akpm@linux-foundation.org>
+ watchdog-move-nmi-function-header-declarations-from-watchdogh-to-nmih.patch added to -mm tree
+Date: Tue, 28 Jul 2015 14:21:17 -0700
+Message-ID: <55b7f24d.NRUKKVCMYNT34MoW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54542 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54565 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752476AbbG1VTZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Jul 2015 17:19:25 -0400
+	with ESMTP id S1751187AbbG1VVS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 28 Jul 2015 17:21:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mnfhuang@gmail.com, dyoung@redhat.com, vgoyal@redhat.com, mm-commits@vger.kernel.org
+To: linux@roeck-us.net, dzickus@redhat.com, eranian@google.com, mingo@kernel.org, peterz@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec: remove unnecessary test in kimage_alloc_crash_control_pages()
+     Subject: kernel/watchdog: move NMI function header declarations from watchdog.h to nmi.h
 has been added to the -mm tree.  Its filename is
-     kexec-remove-the-unnecessary-conditional-judgement-to-simplify-the-code-logic.patch
+     watchdog-move-nmi-function-header-declarations-from-watchdogh-to-nmih.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kexec-remove-the-unnecessary-conditional-judgement-to-simplify-the-code-logic.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/watchdog-move-nmi-function-header-declarations-from-watchdogh-to-nmih.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kexec-remove-the-unnecessary-conditional-judgement-to-simplify-the-code-logic.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/watchdog-move-nmi-function-header-declarations-from-watchdogh-to-nmih.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,43 +39,67 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Minfei Huang <mnfhuang@gmail.com>
-Subject: kexec: remove unnecessary test in kimage_alloc_crash_control_pages()
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: kernel/watchdog: move NMI function header declarations from watchdog.h to nmi.h
 
-Transforming PFN(Page Frame Number) to struct page is never failure, so we
-can simplify the code logic to do the image->control_page assignment
-directly in the loop, and remove the unnecessary conditional judgement.
+The kernel's NMI watchdog has nothing to do with the watchdog subsystem. 
+Its header declarations should be in linux/nmi.h, not linux/watchdog.h.
 
-Signed-off-by: Minfei Huang <mnfhuang@gmail.com>
-Acked-by: Dave Young <dyoung@redhat.com>
-Acked-by: Vivek Goyal <vgoyal@redhat.com>
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Cc: Stephane Eranian <eranian@google.com>
+Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Don Zickus <dzickus@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec_core.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ arch/x86/kernel/cpu/perf_event_intel.c |    2 +-
+ include/linux/nmi.h                    |    8 +++++---
+ include/linux/watchdog.h               |    8 --------
+ 3 files changed, 6 insertions(+), 12 deletions(-)
 
-diff -puN kernel/kexec.c~kexec-remove-the-unnecessary-conditional-judgement-to-simplify-the-code-logic kernel/kexec.c
-diff -puN kernel/kexec_core.c~kexec-remove-the-unnecessary-conditional-judgement-to-simplify-the-code-logic kernel/kexec_core.c
---- a/kernel/kexec_core.c~kexec-remove-the-unnecessary-conditional-judgement-to-simplify-the-code-logic
-+++ a/kernel/kexec_core.c
-@@ -439,11 +439,10 @@ static struct page *kimage_alloc_crash_c
- 		/* If I don't overlap any segments I have found my hole! */
- 		if (i == image->nr_segments) {
- 			pages = pfn_to_page(hole_start >> PAGE_SHIFT);
-+			image->control_page = hole_end;
- 			break;
- 		}
- 	}
--	if (pages)
--		image->control_page = hole_end;
+diff -puN arch/x86/kernel/cpu/perf_event_intel.c~watchdog-move-nmi-function-header-declarations-from-watchdogh-to-nmih arch/x86/kernel/cpu/perf_event_intel.c
+--- a/arch/x86/kernel/cpu/perf_event_intel.c~watchdog-move-nmi-function-header-declarations-from-watchdogh-to-nmih
++++ a/arch/x86/kernel/cpu/perf_event_intel.c
+@@ -12,7 +12,7 @@
+ #include <linux/init.h>
+ #include <linux/slab.h>
+ #include <linux/export.h>
+-#include <linux/watchdog.h>
++#include <linux/nmi.h>
  
- 	return pages;
- }
-_
-
-Patches currently in -mm which might be from mnfhuang@gmail.com are
-
-kexec-remove-the-unnecessary-conditional-judgement-to-simplify-the-code-logic.patch
-linux-next.patch
-
+ #include <asm/cpufeature.h>
+ #include <asm/hardirq.h>
+diff -puN include/linux/nmi.h~watchdog-move-nmi-function-header-declarations-from-watchdogh-to-nmih include/linux/nmi.h
+--- a/include/linux/nmi.h~watchdog-move-nmi-function-header-declarations-from-watchdogh-to-nmih
++++ a/include/linux/nmi.h
+@@ -26,10 +26,12 @@ static inline void touch_nmi_watchdog(vo
+ 
+ #if defined(CONFIG_HARDLOCKUP_DETECTOR)
+ extern void hardlockup_detector_disable(void);
++void watchdog_nmi_disable_all(void);
++void watchdog_nmi_enable_all(void);
+ #else
+-static inline void hardlockup_detector_disable(void)
+-{
+-}
++static inline void hardlockup_detector_disable(void) {}
++static inline void watchdog_nmi_disable_all(void) {}
++static inline void watchdog_nmi_enable_all(void) {}
+ #endif
+ 
+ /*
+diff -puN include/linux/watchdog.h~watchdog-move-nmi-function-header-declarations-from-watchdogh-to-nmih include/linux/watchdog.h
+--- a/include/linux/watchdog.h~watchdog-move-nmi-function-header-declarations-from-watchdogh-to-nmih
++++ a/include/linux/watchdog.h
+@@ -140,12 +140,4 @@ extern int watchdog_init_timeout(struct
+ extern int watchdog_register_device(struct watchdog_device *);
+ extern void watchdog_unregister_device(struct watchdog_device *);
+ 
+-#ifdef CONFIG_HARDLOCKUP_DETECTOR
+-void watchdog_nmi_disable_all(void);
+-void watchdog_nmi_enable_all(void);
+-#else
+-static inline void watchdog_nmi_disable_all(void) {}
+-static inline void watchdog_nmi_enable_all(void) {}
+-#endif
