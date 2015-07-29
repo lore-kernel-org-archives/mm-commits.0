@@ -1,159 +1,56 @@
 From: akpm@linux-foundation.org
 Subject: [obsolete]
- mm-mlock-introduce-vm_lockonfault-and-add-mlock-flags-to-enable-it-v4-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 29 Jul 2015 11:14:50 -0700
-Message-ID: <55b9181a.vok79OUU01GcTwOa%akpm@linux-foundation.org>
+ mm-mmap-add-mmap-flag-to-request-vm_lockonfault-v4-fix.patch removed from
+ -mm tree
+Date: Wed, 29 Jul 2015 11:15:37 -0700
+Message-ID: <55b91849.r4Hv/whiYyoobE2H%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59948 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59951 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750803AbbG2SOv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Jul 2015 14:14:51 -0400
+	with ESMTP id S1750803AbbG2SPi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Jul 2015 14:15:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, emunson@akamai.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-mlock-introduce-vm_lockonfault-and-add-mlock-flags-to-enable-it-v4-checkpatch-fixes
+     Subject: mm-mmap-add-mmap-flag-to-request-vm_lockonfault-v4-fix
 has been removed from the -mm tree.  Its filename was
-     mm-mlock-introduce-vm_lockonfault-and-add-mlock-flags-to-enable-it-v4-checkpatch-fixes.patch
+     mm-mmap-add-mmap-flag-to-request-vm_lockonfault-v4-fix.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-mlock-introduce-vm_lockonfault-and-add-mlock-flags-to-enable-it-v4-checkpatch-fixes
+Subject: mm-mmap-add-mmap-flag-to-request-vm_lockonfault-v4-fix
 
-WARNING: Possible unwrapped commit description (prefer a maximum 75 chars per line)
-#5: 
-Do extensive search for VM_LOCKED and ensure that VM_LOCKONFAULT is also handled
-
-WARNING: line over 80 characters
-#161: FILE: mm/hugetlb.c:3768:
-+	unsigned long svm_flags = svma->vm_flags & ~(VM_LOCKED | VM_LOCKONFAULT);
-
-WARNING: line over 80 characters
-#173: FILE: mm/internal.h:249:
-+			unsigned long start, unsigned long end, vm_flags_t to_drop);
-
-WARNING: line over 80 characters
-#223: FILE: mm/memory.c:2169:
-+		if (page_copied && (vma->vm_flags & (VM_LOCKED | VM_LOCKONFAULT))) {
-
-WARNING: line over 80 characters
-#434: FILE: mm/msync.c:76:
-+				(vma->vm_flags & (VM_LOCKED | VM_LOCKONFAULT))) {
-
-WARNING: line over 80 characters
-#449: FILE: mm/rmap.c:747:
-+			pra->vm_flags |= (vma->vm_flags & (VM_LOCKED | VM_LOCKONFAULT));
-
-WARNING: line over 80 characters
-#461: FILE: mm/rmap.c:768:
-+			pra->vm_flags |= (vma->vm_flags & (VM_LOCKED | VM_LOCKONFAULT));
-
-total: 0 errors, 7 warnings, 371 lines checked
-
-./patches/mm-mlock-introduce-vm_lockonfault-and-add-mlock-flags-to-enable-it-v4.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
+coding-style fixes
 
 Cc: Eric B Munson <emunson@akamai.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c  |    6 ++++--
- mm/internal.h |    2 +-
- mm/memory.c   |    3 ++-
- mm/msync.c    |    2 +-
- mm/rmap.c     |    6 ++++--
- 5 files changed, 12 insertions(+), 7 deletions(-)
+ mm/mmap.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/hugetlb.c~mm-mlock-introduce-vm_lockonfault-and-add-mlock-flags-to-enable-it-v4-checkpatch-fixes mm/hugetlb.c
---- a/mm/hugetlb.c~mm-mlock-introduce-vm_lockonfault-and-add-mlock-flags-to-enable-it-v4-checkpatch-fixes
-+++ a/mm/hugetlb.c
-@@ -3762,10 +3762,12 @@ static unsigned long page_table_shareabl
- 				svma->vm_start;
- 	unsigned long sbase = saddr & PUD_MASK;
- 	unsigned long s_end = sbase + PUD_SIZE;
-+	unsigned long vm_flags;
-+	unsigned long svm_flags;
+diff -puN mm/mmap.c~mm-mmap-add-mmap-flag-to-request-vm_lockonfault-v4-fix mm/mmap.c
+--- a/mm/mmap.c~mm-mmap-add-mmap-flag-to-request-vm_lockonfault-v4-fix
++++ a/mm/mmap.c
+@@ -2698,7 +2698,8 @@ SYSCALL_DEFINE5(remap_file_pages, unsign
  
- 	/* Allow segments to share if only one is marked locked */
--	unsigned long vm_flags = vma->vm_flags & ~(VM_LOCKED | VM_LOCKONFAULT);
--	unsigned long svm_flags = svma->vm_flags & ~(VM_LOCKED | VM_LOCKONFAULT);
-+	vm_flags = vma->vm_flags & ~(VM_LOCKED | VM_LOCKONFAULT);
-+	svm_flags = svma->vm_flags & ~(VM_LOCKED | VM_LOCKONFAULT);
+ 	if (drop_lock_flag)
+ 		/* drop PG_Mlocked flag for over-mapped range */
+-		munlock_vma_pages_range(vma, start, start + size, drop_lock_flag);
++		munlock_vma_pages_range(vma, start, start + size,
++					drop_lock_flag);
  
- 	/*
- 	 * match the virtual addresses, permission and the alignment of the
-diff -puN mm/internal.h~mm-mlock-introduce-vm_lockonfault-and-add-mlock-flags-to-enable-it-v4-checkpatch-fixes mm/internal.h
---- a/mm/internal.h~mm-mlock-introduce-vm_lockonfault-and-add-mlock-flags-to-enable-it-v4-checkpatch-fixes
-+++ a/mm/internal.h
-@@ -246,7 +246,7 @@ void __vma_link_list(struct mm_struct *m
- extern long populate_vma_page_range(struct vm_area_struct *vma,
- 		unsigned long start, unsigned long end, int *nonblocking);
- extern void munlock_vma_pages_range(struct vm_area_struct *vma,
--			unsigned long start, unsigned long end, vm_flags_t to_drop);
-+		unsigned long start, unsigned long end, vm_flags_t to_drop);
- static inline void munlock_vma_pages_all(struct vm_area_struct *vma)
- {
- 	munlock_vma_pages_range(vma, vma->vm_start, vma->vm_end,
-diff -puN mm/memory.c~mm-mlock-introduce-vm_lockonfault-and-add-mlock-flags-to-enable-it-v4-checkpatch-fixes mm/memory.c
---- a/mm/memory.c~mm-mlock-introduce-vm_lockonfault-and-add-mlock-flags-to-enable-it-v4-checkpatch-fixes
-+++ a/mm/memory.c
-@@ -2166,7 +2166,8 @@ static int wp_page_copy(struct mm_struct
- 		 * Don't let another task, with possibly unlocked vma,
- 		 * keep the mlocked page.
- 		 */
--		if (page_copied && (vma->vm_flags & (VM_LOCKED | VM_LOCKONFAULT))) {
-+		if (page_copied && (vma->vm_flags &
-+				    (VM_LOCKED | VM_LOCKONFAULT))) {
- 			lock_page(old_page);	/* LRU manipulation */
- 			munlock_vma_page(old_page);
- 			unlock_page(old_page);
-diff -puN mm/msync.c~mm-mlock-introduce-vm_lockonfault-and-add-mlock-flags-to-enable-it-v4-checkpatch-fixes mm/msync.c
---- a/mm/msync.c~mm-mlock-introduce-vm_lockonfault-and-add-mlock-flags-to-enable-it-v4-checkpatch-fixes
-+++ a/mm/msync.c
-@@ -73,7 +73,7 @@ SYSCALL_DEFINE3(msync, unsigned long, st
- 		}
- 		/* Here vma->vm_start <= start < vma->vm_end. */
- 		if ((flags & MS_INVALIDATE) &&
--				(vma->vm_flags & (VM_LOCKED | VM_LOCKONFAULT))) {
-+			    (vma->vm_flags & (VM_LOCKED | VM_LOCKONFAULT))) {
- 			error = -EBUSY;
- 			goto out_unlock;
- 		}
-diff -puN mm/rmap.c~mm-mlock-introduce-vm_lockonfault-and-add-mlock-flags-to-enable-it-v4-checkpatch-fixes mm/rmap.c
---- a/mm/rmap.c~mm-mlock-introduce-vm_lockonfault-and-add-mlock-flags-to-enable-it-v4-checkpatch-fixes
-+++ a/mm/rmap.c
-@@ -744,7 +744,8 @@ static int page_referenced_one(struct pa
- 
- 		if (vma->vm_flags & (VM_LOCKED | VM_LOCKONFAULT)) {
- 			spin_unlock(ptl);
--			pra->vm_flags |= (vma->vm_flags & (VM_LOCKED | VM_LOCKONFAULT));
-+			pra->vm_flags |= (vma->vm_flags &
-+					  (VM_LOCKED | VM_LOCKONFAULT));
- 			return SWAP_FAIL; /* To break the loop */
- 		}
- 
-@@ -765,7 +766,8 @@ static int page_referenced_one(struct pa
- 
- 		if (vma->vm_flags & (VM_LOCKED | VM_LOCKONFAULT)) {
- 			pte_unmap_unlock(pte, ptl);
--			pra->vm_flags |= (vma->vm_flags & (VM_LOCKED | VM_LOCKONFAULT));
-+			pra->vm_flags |= (vma->vm_flags &
-+					  (VM_LOCKED | VM_LOCKONFAULT));
- 			return SWAP_FAIL; /* To break the loop */
- 		}
- 
+ 	file = get_file(vma->vm_file);
+ 	ret = do_mmap_pgoff(vma->vm_file, start, size,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -166,7 +63,6 @@ mm.patch
 userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
 userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
 userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
-mm-mmap-add-mmap-flag-to-request-vm_lockonfault-v4-fix.patch
 genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-fix.patch
 genalloc-add-support-of-multiple-gen_pools-per-device-fix.patch
 mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested-fix.patch
