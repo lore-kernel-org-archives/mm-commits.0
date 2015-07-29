@@ -1,128 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: +
- userfaultfd-selftest-update-userfaultfd-x86-32bit-syscall-number.patch
- added to -mm tree
-Date: Wed, 29 Jul 2015 10:25:31 -0700
-Message-ID: <55b90c8b.edVJ8A8WI6ZCghHJ%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-rejects-git-rejects.patch removed from -mm
+ tree
+Date: Wed, 29 Jul 2015 10:51:38 -0700
+Message-ID: <55b912aa.fYVfxhUAL6jaEMXs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57438 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58627 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751164AbbG2RZc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Jul 2015 13:25:32 -0400
+	with ESMTP id S1752518AbbG2Rvj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Jul 2015 13:51:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: selftest: update userfaultfd x86 32bit syscall number
-has been added to the -mm tree.  Its filename is
-     userfaultfd-selftest-update-userfaultfd-x86-32bit-syscall-number.patch
+     Subject: linux-next-rejects-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-rejects-git-rejects.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-selftest-update-userfaultfd-x86-32bit-syscall-number.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-selftest-update-userfaultfd-x86-32bit-syscall-number.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: userfaultfd: selftest: update userfaultfd x86 32bit syscall number
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-rejects-git-rejects
 
-It changed as result of linux-next merge of other syscalls.
-
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/userfaultfd.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/f2fs/file.c |    8 --------
+ 1 file changed, 8 deletions(-)
 
-diff -puN tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftest-update-userfaultfd-x86-32bit-syscall-number tools/testing/selftests/vm/userfaultfd.c
---- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftest-update-userfaultfd-x86-32bit-syscall-number
-+++ a/tools/testing/selftests/vm/userfaultfd.c
-@@ -69,7 +69,7 @@
- #ifdef __x86_64__
- #define __NR_userfaultfd 323
- #elif defined(__i386__)
--#define __NR_userfaultfd 359
-+#define __NR_userfaultfd 374
- #elif defined(__powewrpc__)
- #define __NR_userfaultfd 364
- #else
+diff -puN fs/f2fs/file.c~linux-next-rejects-git-rejects fs/f2fs/file.c
+--- a/fs/f2fs/file.c~linux-next-rejects-git-rejects
++++ a/fs/f2fs/file.c
+@@ -1358,13 +1358,9 @@ static int f2fs_ioc_commit_atomic_write(
+ 
+ 	if (f2fs_is_atomic_file(inode)) {
+ 		clear_inode_flag(F2FS_I(inode), FI_ATOMIC_FILE);
+-<<<<<<< HEAD
+-		commit_inmem_pages(inode, false);
+-=======
+ 		ret = commit_inmem_pages(inode, false);
+ 		if (ret)
+ 			return ret;
+->>>>>>> linux-next/akpm-base
+ 	}
+ 
+ 	ret = f2fs_sync_file(filp, 0, LLONG_MAX, 0);
+@@ -1424,11 +1420,7 @@ static int f2fs_ioc_abort_volatile_write
+ 
+ 	if (f2fs_is_atomic_file(inode)) {
+ 		clear_inode_flag(F2FS_I(inode), FI_ATOMIC_FILE);
+-<<<<<<< HEAD
+-		commit_inmem_pages(inode, false);
+-=======
+ 		commit_inmem_pages(inode, true);
+->>>>>>> linux-next/akpm-base
+ 	}
+ 
+ 	if (f2fs_is_volatile_file(inode))
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-userfaultfd-linux-documentation-vm-userfaultfdtxt.patch
-userfaultfd-linux-documentation-vm-userfaultfdtxt-fix.patch
-userfaultfd-waitqueue-add-nr-wake-parameter-to-__wake_up_locked_key.patch
-userfaultfd-uapi.patch
-userfaultfd-uapi-add-missing-include-typesh.patch
-userfaultfd-linux-userfaultfd_kh.patch
-userfaultfd-add-vm_userfaultfd_ctx-to-the-vm_area_struct.patch
-userfaultfd-add-vm_uffd_missing-and-vm_uffd_wp.patch
-userfaultfd-call-handle_userfault-for-userfaultfd_missing-faults.patch
-userfaultfd-teach-vma_merge-to-merge-across-vma-vm_userfaultfd_ctx.patch
-userfaultfd-prevent-khugepaged-to-merge-if-userfaultfd-is-armed.patch
-userfaultfd-add-new-syscall-to-provide-memory-externalization.patch
-userfaultfd-add-new-syscall-to-provide-memory-externalization-fix.patch
-userfaultfd-add-new-syscall-to-provide-memory-externalization-fix-fix.patch
-userfaultfd-add-new-syscall-to-provide-memory-externalization-fix-fix-fix.patch
-userfaultfd-rename-uffd_apibits-into-features.patch
-userfaultfd-rename-uffd_apibits-into-features-fixup.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+kernel-kthreadc-kthread_create_on_node-clarify-documentation.patch
+scripts-spellingtxt-adding-misspelled-word-for-check-fix.patch
+ocfs2-sysfile-interfaces-for-online-file-check-fix.patch
+mm.patch
 userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
 userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
-userfaultfd-wake-pending-userfaults.patch
-userfaultfd-optimize-read-and-poll-to-be-o1.patch
-userfaultfd-optimize-read-and-poll-to-be-o1-fix.patch
-userfaultfd-allocate-the-userfaultfd_ctx-cacheline-aligned.patch
-userfaultfd-solve-the-race-between-uffdio_copyzeropage-and-read.patch
-userfaultfd-buildsystem-activation.patch
-userfaultfd-activate-syscall.patch
-userfaultfd-activate-syscall-fix.patch
-userfaultfd-uffdio_copyuffdio_zeropage-uapi.patch
-userfaultfd-mcopy_atomicmfill_zeropage-uffdio_copyuffdio_zeropage-preparation.patch
-userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic.patch
 userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
-userfaultfd-uffdio_copy-and-uffdio_zeropage.patch
-userfaultfd-require-uffdio_api-before-other-ioctls.patch
-userfaultfd-allow-signals-to-interrupt-a-userfault.patch
-userfaultfd-propagate-the-full-address-in-thp-faults.patch
-userfaultfd-avoid-missing-wakeups-during-refile-in-userfaultfd_read.patch
-userfaultfd-selftest.patch
+mm-mlock-refactor-mlock-munlock-and-munlockall-code-checkpatch-fixes.patch
+mm-gup-add-mm_lock_present-checkpatch-fixes.patch
+mm-mlock-introduce-vm_lockonfault-and-add-mlock-flags-to-enable-it-v4-checkpatch-fixes.patch
+mm-mmap-add-mmap-flag-to-request-vm_lockonfault-v4-fix.patch
+genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-fix.patch
+genalloc-add-support-of-multiple-gen_pools-per-device-fix.patch
+mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested-fix.patch
 dax-revert-userfaultfd-change.patch
-mempolicy-get-rid-of-duplicated-check-for-vmavm_pfnmap-in-queue_pages_range.patch
-page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-mm-sanitize-page-mapping-for-tail-pages.patch
-userfaultfd-selftest-update-userfaultfd-x86-32bit-syscall-number.patch
+thp-prepare-for-dax-huge-pages-fix.patch
+pagemap-add-mmap-exclusive-bit-for-marking-pages-mapped-only-here-fix.patch
+pagemap-update-documentation-fix.patch
+mm-show-proportional-swap-share-of-the-mapping-fix.patch
+mm-improve-__gfp_noretry-comment-based-on-implementation-fix.patch
+memcg-export-struct-mem_cgroup-fix.patch
+memcg-export-struct-mem_cgroup-fix-2.patch
+mm-hugetlb-add-cache-of-descriptors-to-resv_map-for-region_add-fix.patch
+mm-srcu-ify-shrinkers-fix-fix.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
+procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix.patch
+procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix-fix.patch
+fs-coda-fix-readlink-buffer-overflow-checkpatch-fixes.patch
+kexec-split-kexec_load-syscall-from-kexec-core-code-checkpatch-fixes.patch
+linux-next.patch
+linux-next-rejects.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+net-netfilter-ipset-work-around-gcc-444-initializer-bug.patch
+fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix.patch
+mm-mpx-add-vm_flags_t-vm_flags-arg-to-do_mmap_pgoff-fix-checkpatch-fixes.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
