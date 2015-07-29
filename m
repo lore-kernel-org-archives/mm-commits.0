@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-introduce-vm_lockonfault-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 29 Jul 2015 11:23:11 -0700
-Message-ID: <55b91a0f.n3SCG6JBdfGE9vf3%akpm@linux-foundation.org>
+Subject: + mm-mlock-add-new-mlock-system-call-checkpatch-fixes.patch added to -mm tree
+Date: Wed, 29 Jul 2015 11:24:31 -0700
+Message-ID: <55b91a5f.7Hxy0HlyWWx2wx6b%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60612 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60618 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751873AbbG2SXM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Jul 2015 14:23:12 -0400
+	with ESMTP id S1750892AbbG2SYc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Jul 2015 14:24:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, emunson@akamai.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-introduce-vm_lockonfault-checkpatch-fixes
+     Subject: mm-mlock-add-new-mlock-system-call-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     mm-introduce-vm_lockonfault-checkpatch-fixes.patch
+     mm-mlock-add-new-mlock-system-call-checkpatch-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-introduce-vm_lockonfault-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mlock-add-new-mlock-system-call-checkpatch-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-introduce-vm_lockonfault-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mlock-add-new-mlock-system-call-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,27 +39,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-introduce-vm_lockonfault-checkpatch-fixes
+Subject: mm-mlock-add-new-mlock-system-call-checkpatch-fixes
 
-WARNING: line over 80 characters
-#103: FILE: include/linux/mm.h:132:
-+#define VM_LOCKONFAULT	0x00001000	/* Lock the pages covered when they are faulted in */
+WARNING: Missing a blank line after declarations
+#99: FILE: mm/mlock.c:649:
++	vm_flags_t vm_flags = VM_LOCKED;
++	if (flags)
 
-WARNING: line over 80 characters
-#195: FILE: mm/hugetlb.c:3768:
-+	unsigned long svm_flags = svma->vm_flags & ~(VM_LOCKED | VM_LOCKONFAULT);
+total: 0 errors, 1 warnings, 51 lines checked
 
-WARNING: line over 80 characters
-#231: FILE: mm/rmap.c:747:
-+			pra->vm_flags |= (vma->vm_flags & (VM_LOCKED | VM_LOCKONFAULT));
-
-WARNING: line over 80 characters
-#240: FILE: mm/rmap.c:768:
-+			pra->vm_flags |= (vma->vm_flags & (VM_LOCKED | VM_LOCKONFAULT));
-
-total: 0 errors, 4 warnings, 138 lines checked
-
-./patches/mm-introduce-vm_lockonfault.patch has style problems, please review.
+./patches/mm-mlock-add-new-mlock-system-call.patch has style problems, please review.
 
 NOTE: If any of the errors are false positives, please report
       them to the maintainer, see CHECKPATCH in MAINTAINERS.
@@ -70,47 +59,25 @@ Cc: Eric B Munson <emunson@akamai.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    4 ++--
- mm/rmap.c    |    6 ++++--
- 2 files changed, 6 insertions(+), 4 deletions(-)
+ mm/mlock.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-introduce-vm_lockonfault-checkpatch-fixes mm/hugetlb.c
---- a/mm/hugetlb.c~mm-introduce-vm_lockonfault-checkpatch-fixes
-+++ a/mm/hugetlb.c
-@@ -3764,8 +3764,8 @@ static unsigned long page_table_shareabl
- 	unsigned long s_end = sbase + PUD_SIZE;
+diff -puN mm/mlock.c~mm-mlock-add-new-mlock-system-call-checkpatch-fixes mm/mlock.c
+--- a/mm/mlock.c~mm-mlock-add-new-mlock-system-call-checkpatch-fixes
++++ a/mm/mlock.c
+@@ -645,11 +645,10 @@ SYSCALL_DEFINE2(mlock, unsigned long, st
  
- 	/* Allow segments to share if only one is marked locked */
--	unsigned long vm_flags = vma->vm_flags & ~(VM_LOCKED | VM_LOCKONFAULT);
--	unsigned long svm_flags = svma->vm_flags & ~(VM_LOCKED | VM_LOCKONFAULT);
-+	unsigned long vm_flags = vma->vm_flags & ~(VM_LOCKED|VM_LOCKONFAULT);
-+	unsigned long svm_flags = svma->vm_flags & ~(VM_LOCKED|VM_LOCKONFAULT);
+ SYSCALL_DEFINE3(mlock2, unsigned long, start, size_t, len, int, flags)
+ {
+-	vm_flags_t vm_flags = VM_LOCKED;
+ 	if (flags)
+ 		return -EINVAL;
  
- 	/*
- 	 * match the virtual addresses, permission and the alignment of the
-diff -puN mm/rmap.c~mm-introduce-vm_lockonfault-checkpatch-fixes mm/rmap.c
---- a/mm/rmap.c~mm-introduce-vm_lockonfault-checkpatch-fixes
-+++ a/mm/rmap.c
-@@ -744,7 +744,8 @@ static int page_referenced_one(struct pa
+-	return do_mlock(start, len, vm_flags);
++	return do_mlock(start, len, VM_LOCKED);
+ }
  
- 		if (vma->vm_flags & VM_LOCKED) {
- 			spin_unlock(ptl);
--			pra->vm_flags |= (vma->vm_flags & (VM_LOCKED | VM_LOCKONFAULT));
-+			pra->vm_flags |=
-+				(vma->vm_flags & (VM_LOCKED | VM_LOCKONFAULT));
- 			return SWAP_FAIL; /* To break the loop */
- 		}
- 
-@@ -765,7 +766,8 @@ static int page_referenced_one(struct pa
- 
- 		if (vma->vm_flags & VM_LOCKED) {
- 			pte_unmap_unlock(pte, ptl);
--			pra->vm_flags |= (vma->vm_flags & (VM_LOCKED | VM_LOCKONFAULT));
-+			pra->vm_flags |=
-+				(vma->vm_flags & (VM_LOCKED | VM_LOCKONFAULT));
- 			return SWAP_FAIL; /* To break the loop */
- 		}
- 
+ SYSCALL_DEFINE2(munlock, unsigned long, start, size_t, len)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -123,6 +90,7 @@ mm.patch
 userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
 userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
 userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
+mm-mlock-add-new-mlock-system-call-checkpatch-fixes.patch
 mm-introduce-vm_lockonfault-checkpatch-fixes.patch
 genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-fix.patch
 genalloc-add-support-of-multiple-gen_pools-per-device-fix.patch
