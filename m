@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-mlock-add-new-mlock-system-call-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 29 Jul 2015 11:24:31 -0700
-Message-ID: <55b91a5f.7Hxy0HlyWWx2wx6b%akpm@linux-foundation.org>
+Subject: +
+ mm-mlock-refactor-mlock-munlock-and-munlockall-code-checkpatch-fixes.patch
+ added to -mm tree
+Date: Wed, 29 Jul 2015 11:25:27 -0700
+Message-ID: <55b91a97.E8sWqX7rkhUhL+kB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60618 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60689 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750892AbbG2SYc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Jul 2015 14:24:32 -0400
+	with ESMTP id S1750871AbbG2SZ2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 29 Jul 2015 14:25:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, emunson@akamai.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-mlock-add-new-mlock-system-call-checkpatch-fixes
+     Subject: mm-mlock-refactor-mlock-munlock-and-munlockall-code-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     mm-mlock-add-new-mlock-system-call-checkpatch-fixes.patch
+     mm-mlock-refactor-mlock-munlock-and-munlockall-code-checkpatch-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mlock-add-new-mlock-system-call-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mlock-refactor-mlock-munlock-and-munlockall-code-checkpatch-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mlock-add-new-mlock-system-call-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mlock-refactor-mlock-munlock-and-munlockall-code-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,16 +41,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-mlock-add-new-mlock-system-call-checkpatch-fixes
+Subject: mm-mlock-refactor-mlock-munlock-and-munlockall-code-checkpatch-fixes
 
 WARNING: Missing a blank line after declarations
-#99: FILE: mm/mlock.c:649:
-+	vm_flags_t vm_flags = VM_LOCKED;
-+	if (flags)
+#168: FILE: mm/mlock.c:581:
++		vm_flags_t newflags = vma->vm_flags & ~VM_LOCKED;
++		newflags |= flags;
 
-total: 0 errors, 1 warnings, 51 lines checked
+total: 0 errors, 1 warnings, 90 lines checked
 
-./patches/mm-mlock-add-new-mlock-system-call.patch has style problems, please review.
+./patches/mm-mlock-refactor-mlock-munlock-and-munlockall-code.patch has style problems, please review.
 
 NOTE: If any of the errors are false positives, please report
       them to the maintainer, see CHECKPATCH in MAINTAINERS.
@@ -59,25 +61,20 @@ Cc: Eric B Munson <emunson@akamai.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/mlock.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/mlock.c~mm-mlock-add-new-mlock-system-call-checkpatch-fixes mm/mlock.c
---- a/mm/mlock.c~mm-mlock-add-new-mlock-system-call-checkpatch-fixes
+diff -puN mm/mlock.c~mm-mlock-refactor-mlock-munlock-and-munlockall-code-checkpatch-fixes mm/mlock.c
+--- a/mm/mlock.c~mm-mlock-refactor-mlock-munlock-and-munlockall-code-checkpatch-fixes
 +++ a/mm/mlock.c
-@@ -645,11 +645,10 @@ SYSCALL_DEFINE2(mlock, unsigned long, st
+@@ -578,6 +578,7 @@ static int apply_vma_lock_flags(unsigned
  
- SYSCALL_DEFINE3(mlock2, unsigned long, start, size_t, len, int, flags)
- {
--	vm_flags_t vm_flags = VM_LOCKED;
- 	if (flags)
- 		return -EINVAL;
+ 	for (nstart = start ; ; ) {
+ 		vm_flags_t newflags = vma->vm_flags & ~VM_LOCKED;
++
+ 		newflags |= flags;
  
--	return do_mlock(start, len, vm_flags);
-+	return do_mlock(start, len, VM_LOCKED);
- }
- 
- SYSCALL_DEFINE2(munlock, unsigned long, start, size_t, len)
+ 		/* Here we know that  vma->vm_start <= nstart < vma->vm_end. */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -90,6 +87,7 @@ mm.patch
 userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
 userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
 userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
+mm-mlock-refactor-mlock-munlock-and-munlockall-code-checkpatch-fixes.patch
 mm-mlock-add-new-mlock-system-call-checkpatch-fixes.patch
 mm-introduce-vm_lockonfault-checkpatch-fixes.patch
 genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-fix.patch
