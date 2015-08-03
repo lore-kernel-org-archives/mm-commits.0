@@ -1,45 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] a.patch removed from -mm tree
-Date: Wed, 29 Jul 2015 22:42:12 -0700
-Message-ID: <55b9b934.ZFYtTdg4yeqE258B%akpm@linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Mon, 03 Aug 2015 12:23:01 -0700
+Message-ID: <55bfbf95.bKAdG76p96y66MIL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54876 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39843 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751060AbbG3FmN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 30 Jul 2015 01:42:13 -0400
+	with ESMTP id S1752171AbbHCTXC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 3 Aug 2015 15:23:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: a
-has been removed from the -mm tree.  Its filename was
-     a.patch
+     Subject: linux-next-git-rejects
+has been added to the -mm tree.  Its filename is
+     linux-next-git-rejects.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: a
+Subject: linux-next-git-rejects
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ security/yama/yama_lsm.c |   14 --------------
+ 1 file changed, 14 deletions(-)
 
-diff -puN fs/open.c~a fs/open.c
---- a/fs/open.c~a
-+++ a/fs/open.c
-@@ -1152,3 +1152,5 @@ int nonseekable_open(struct inode *inode
+diff -puN security/yama/yama_lsm.c~linux-next-git-rejects security/yama/yama_lsm.c
+--- a/security/yama/yama_lsm.c~linux-next-git-rejects
++++ a/security/yama/yama_lsm.c
+@@ -393,20 +393,6 @@ static struct ctl_table yama_sysctl_tabl
+ };
+ static void __init yama_init_sysctl(void)
+ {
+-<<<<<<< HEAD
+-#ifndef CONFIG_SECURITY_YAMA_STACKED
+-	/*
+-	 * If yama is being stacked this is already taken care of.
+-	 */
+-	if (!security_module_enable("yama"))
+-		return 0;
+-	yama_add_hooks();
+-#endif
+-	pr_info("Yama: becoming mindful.\n");
+-
+-#ifdef CONFIG_SYSCTL
+-=======
+->>>>>>> linux-next/akpm-base
+ 	if (!register_sysctl_paths(yama_sysctl_path, yama_sysctl_table))
+ 		panic("Yama: sysctl registration failed.\n");
  }
- 
- EXPORT_SYMBOL(nonseekable_open);
-+
-+ppp
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -91,4 +122,5 @@ do_shared_fault-check-that-mmap_sem-is-held.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
 mutex-subsystem-synchro-test-module.patch
 slab-leaks3-default-y.patch
+linux-next-git-rejects.patch
 
