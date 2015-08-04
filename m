@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-compaction-simplify-handling-restart-position-in-free-pages-scanner.patch added to -mm tree
-Date: Tue, 04 Aug 2015 16:24:54 -0700
-Message-ID: <55c149c6.LuDOdWL5w54bfxsH%akpm@linux-foundation.org>
+ mm-compaction-encapsulate-resetting-cached-scanner-positions.patch added to -mm tree
+Date: Tue, 04 Aug 2015 16:24:56 -0700
+Message-ID: <55c149c8.QF9Nq7+rUkPSW2Xs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59375 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59385 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754265AbbHDXYz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2015 19:24:55 -0400
+	with ESMTP id S1754270AbbHDXY5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2015 19:24:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vbabka@suse.cz, cl@linux.com, iamjoonsoo.kim@lge.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, compaction: simplify handling restart position in free pages scanner
+     Subject: mm, compaction: encapsulate resetting cached scanner positions
 has been added to the -mm tree.  Its filename is
-     mm-compaction-simplify-handling-restart-position-in-free-pages-scanner.patch
+     mm-compaction-encapsulate-resetting-cached-scanner-positions.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-simplify-handling-restart-position-in-free-pages-scanner.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-encapsulate-resetting-cached-scanner-positions.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-simplify-handling-restart-position-in-free-pages-scanner.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-encapsulate-resetting-cached-scanner-positions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,32 +40,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, compaction: simplify handling restart position in free pages scanner
+Subject: mm, compaction: encapsulate resetting cached scanner positions
 
-Handling the position where compaction free scanner should restart (stored
-in cc->free_pfn) got more complex with commit e14c720efdd7 ("mm,
-compaction: remember position within pageblock in free pages scanner"). 
-Currently the position is updated in each loop iteration of
-isolate_freepages(), although it should be enough to update it only when
-breaking from the loop.  There's also an extra check outside the loop
-updates the position in case we have met the migration scanner.
-
-This can be simplified if we move the test for having isolated enough from
-the for-loop header next to the test for contention, and determining the
-restart position only in these cases.  We can reuse the isolate_start_pfn
-variable for this instead of setting cc->free_pfn directly.  Outside the
-loop, we can simply set cc->free_pfn to current value of isolate_start_pfn
-without any extra check.
-
-Also add a VM_BUG_ON to catch possible mistake in the future, in case we
-later add a new condition that terminates isolate_freepages_block()
-prematurely without also considering the condition in isolate_freepages().
+Reseting the cached compaction scanner positions is now open-coded in
+__reset_isolation_suitable() and compact_finished().  Encapsulate the
+functionality in a new function reset_cached_positions().
 
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Minchan Kim <minchan@kernel.org>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Acked-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Acked-by: Michal Nazarewicz <mina86@mina86.com>
 Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Rik van Riel <riel@redhat.com>
@@ -73,76 +58,56 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   35 ++++++++++++++++++++---------------
- 1 file changed, 20 insertions(+), 15 deletions(-)
+ mm/compaction.c |   16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-simplify-handling-restart-position-in-free-pages-scanner mm/compaction.c
---- a/mm/compaction.c~mm-compaction-simplify-handling-restart-position-in-free-pages-scanner
+diff -puN mm/compaction.c~mm-compaction-encapsulate-resetting-cached-scanner-positions mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-encapsulate-resetting-cached-scanner-positions
 +++ a/mm/compaction.c
-@@ -943,8 +943,7 @@ static void isolate_freepages(struct com
- 	 * pages on cc->migratepages. We stop searching if the migrate
- 	 * and free page scanners meet or enough free pages are isolated.
- 	 */
--	for (; block_start_pfn >= low_pfn &&
--			cc->nr_migratepages > cc->nr_freepages;
-+	for (; block_start_pfn >= low_pfn;
- 				block_end_pfn = block_start_pfn,
- 				block_start_pfn -= pageblock_nr_pages,
- 				isolate_start_pfn = block_start_pfn) {
-@@ -976,6 +975,8 @@ static void isolate_freepages(struct com
- 					block_end_pfn, freelist, false);
- 
- 		/*
-+		 * If we isolated enough freepages, or aborted due to async
-+		 * compaction being contended, terminate the loop.
- 		 * Remember where the free scanner should restart next time,
- 		 * which is where isolate_freepages_block() left off.
- 		 * But if it scanned the whole pageblock, isolate_start_pfn
-@@ -984,27 +985,31 @@ static void isolate_freepages(struct com
- 		 * In that case we will however want to restart at the start
- 		 * of the previous pageblock.
- 		 */
--		cc->free_pfn = (isolate_start_pfn < block_end_pfn) ?
--				isolate_start_pfn :
--				block_start_pfn - pageblock_nr_pages;
--
--		/*
--		 * isolate_freepages_block() might have aborted due to async
--		 * compaction being contended
--		 */
--		if (cc->contended)
-+		if ((cc->nr_freepages >= cc->nr_migratepages)
-+							|| cc->contended) {
-+			if (isolate_start_pfn >= block_end_pfn)
-+				isolate_start_pfn =
-+					block_start_pfn - pageblock_nr_pages;
- 			break;
-+		} else {
-+			/*
-+			 * isolate_freepages_block() should not terminate
-+			 * prematurely unless contended, or isolated enough
-+			 */
-+			VM_BUG_ON(isolate_start_pfn < block_end_pfn);
-+		}
- 	}
- 
- 	/* split_free_page does not map the pages */
- 	map_pages(freelist);
- 
- 	/*
--	 * If we crossed the migrate scanner, we want to keep it that way
--	 * so that compact_finished() may detect this
-+	 * Record where the free scanner will restart next time. Either we
-+	 * broke from the loop and set isolate_start_pfn based on the last
-+	 * call to isolate_freepages_block(), or we met the migration scanner
-+	 * and the loop terminated due to isolate_start_pfn < low_pfn
- 	 */
--	if (block_start_pfn < low_pfn)
--		cc->free_pfn = cc->migrate_pfn;
-+	cc->free_pfn = isolate_start_pfn;
+@@ -207,6 +207,13 @@ static inline bool isolation_suitable(st
+ 	return !get_pageblock_skip(page);
  }
  
++static void reset_cached_positions(struct zone *zone)
++{
++	zone->compact_cached_migrate_pfn[0] = zone->zone_start_pfn;
++	zone->compact_cached_migrate_pfn[1] = zone->zone_start_pfn;
++	zone->compact_cached_free_pfn = zone_end_pfn(zone);
++}
++
  /*
+  * This function is called to clear all cached information on pageblocks that
+  * should be skipped for page isolation when the migrate and free page scanner
+@@ -218,9 +225,6 @@ static void __reset_isolation_suitable(s
+ 	unsigned long end_pfn = zone_end_pfn(zone);
+ 	unsigned long pfn;
+ 
+-	zone->compact_cached_migrate_pfn[0] = start_pfn;
+-	zone->compact_cached_migrate_pfn[1] = start_pfn;
+-	zone->compact_cached_free_pfn = end_pfn;
+ 	zone->compact_blockskip_flush = false;
+ 
+ 	/* Walk the zone and mark every pageblock as suitable for isolation */
+@@ -238,6 +242,8 @@ static void __reset_isolation_suitable(s
+ 
+ 		clear_pageblock_skip(page);
+ 	}
++
++	reset_cached_positions(zone);
+ }
+ 
+ void reset_isolation_suitable(pg_data_t *pgdat)
+@@ -1160,9 +1166,7 @@ static int __compact_finished(struct zon
+ 	/* Compaction run completes if the migrate and free scanner meet */
+ 	if (compact_scanners_met(cc)) {
+ 		/* Let the next compaction start anew. */
+-		zone->compact_cached_migrate_pfn[0] = zone->zone_start_pfn;
+-		zone->compact_cached_migrate_pfn[1] = zone->zone_start_pfn;
+-		zone->compact_cached_free_pfn = zone_end_pfn(zone);
++		reset_cached_positions(zone);
+ 
+ 		/*
+ 		 * Mark that the PG_migrate_skip information should be cleared
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
