@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memory-failure-fix-race-in-counting-num_poisoned_pages.patch added to -mm tree
-Date: Tue, 04 Aug 2015 16:30:16 -0700
-Message-ID: <55c14b08.Q98UvttjM6K3Lqkk%akpm@linux-foundation.org>
+Subject: + mm-memory-failure-set-pagehwpoison-before-migrate_pages.patch
+ added to -mm tree
+Date: Tue, 04 Aug 2015 16:30:22 -0700
+Message-ID: <55c14b0e.A5K4hHJUyCCArCqB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59415 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59436 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754567AbbHDXaR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2015 19:30:17 -0400
+	with ESMTP id S1754567AbbHDXaX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2015 19:30:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: n-horiguchi@ah.jp.nec.com, andi@firstfloor.org, dnelson@redhat.com, hughd@google.com, kirill@shutemov.name, rientjes@google.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory-failure: fix race in counting num_poisoned_pages
+     Subject: mm/memory-failure: set PageHWPoison before migrate_pages()
 has been added to the -mm tree.  Its filename is
-     mm-memory-failure-fix-race-in-counting-num_poisoned_pages.patch
+     mm-memory-failure-set-pagehwpoison-before-migrate_pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory-failure-fix-race-in-counting-num_poisoned_pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory-failure-set-pagehwpoison-before-migrate_pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory-failure-fix-race-in-counting-num_poisoned_pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory-failure-set-pagehwpoison-before-migrate_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,11 +40,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm/memory-failure: fix race in counting num_poisoned_pages
+Subject: mm/memory-failure: set PageHWPoison before migrate_pages()
 
-When memory_failure() is called on a page which are just freed after page
-migration from soft offlining, the counter num_poisoned_pages is raised
-twi= ce.  So let's fix it with using TestSetPageHWPoison.
+Now page freeing code doesn't consider PageHWPoison as a bad page, so by
+setting it before completing the page containment, we can prevent the
+error page from being reused just after successful page migration.
+
+I added TTU_IGNORE_HWPOISON for try_to_unmap() to make sure that the page
+table entry is transformed into migration entry, not to hwpoison entry.
 
 Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Andi Kleen <andi@firstfloor.org>
@@ -55,23 +59,47 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memory-failure.c |    7 ++++---
+ mm/migrate.c        |    3 ++-
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN mm/memory-failure.c~mm-memory-failure-fix-race-in-counting-num_poisoned_pages mm/memory-failure.c
---- a/mm/memory-failure.c~mm-memory-failure-fix-race-in-counting-num_poisoned_pages
+diff -puN mm/memory-failure.c~mm-memory-failure-set-pagehwpoison-before-migrate_pages mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-memory-failure-set-pagehwpoison-before-migrate_pages
 +++ a/mm/memory-failure.c
-@@ -1671,8 +1671,8 @@ static int __soft_offline_page(struct pa
+@@ -1659,6 +1659,8 @@ static int __soft_offline_page(struct pa
+ 		inc_zone_page_state(page, NR_ISOLATED_ANON +
+ 					page_is_file_cache(page));
+ 		list_add(&page->lru, &pagelist);
++		if (!TestSetPageHWPoison(page))
++			atomic_long_inc(&num_poisoned_pages);
+ 		ret = migrate_pages(&pagelist, new_page, NULL, MPOL_MF_MOVE_ALL,
+ 					MIGRATE_SYNC, MR_MEMORY_FAILURE);
+ 		if (ret) {
+@@ -1673,9 +1675,8 @@ static int __soft_offline_page(struct pa
+ 				pfn, ret, page->flags);
  			if (ret > 0)
  				ret = -EIO;
- 		} else {
--			SetPageHWPoison(page);
--			atomic_long_inc(&num_poisoned_pages);
-+			if (!TestSetPageHWPoison(page))
-+				atomic_long_inc(&num_poisoned_pages);
+-		} else {
+-			if (!TestSetPageHWPoison(page))
+-				atomic_long_inc(&num_poisoned_pages);
++			if (TestClearPageHWPoison(page))
++				atomic_long_dec(&num_poisoned_pages);
  		}
  	} else {
  		pr_info("soft offline: %#lx: isolation failed: %d, page count %d, type %lx\n",
+diff -puN mm/migrate.c~mm-memory-failure-set-pagehwpoison-before-migrate_pages mm/migrate.c
+--- a/mm/migrate.c~mm-memory-failure-set-pagehwpoison-before-migrate_pages
++++ a/mm/migrate.c
+@@ -880,7 +880,8 @@ static int __unmap_and_move(struct page
+ 	/* Establish migration ptes or remove ptes */
+ 	if (page_mapped(page)) {
+ 		try_to_unmap(page,
+-			TTU_MIGRATION|TTU_IGNORE_MLOCK|TTU_IGNORE_ACCESS);
++			TTU_MIGRATION|TTU_IGNORE_MLOCK|TTU_IGNORE_ACCESS|
++			TTU_IGNORE_HWPOISON);
+ 		page_was_mapped = 1;
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
