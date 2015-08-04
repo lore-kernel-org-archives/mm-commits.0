@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-compaction-more-robust-check-for-scanners-meeting.patch
- added to -mm tree
-Date: Tue, 04 Aug 2015 16:24:52 -0700
-Message-ID: <55c149c4.zSwzO3tfh9E12ge/%akpm@linux-foundation.org>
+Subject: +
+ mm-compaction-simplify-handling-restart-position-in-free-pages-scanner.patch added to -mm tree
+Date: Tue, 04 Aug 2015 16:24:54 -0700
+Message-ID: <55c149c6.LuDOdWL5w54bfxsH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59362 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59375 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754259AbbHDXYx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2015 19:24:53 -0400
+	with ESMTP id S1754265AbbHDXYz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2015 19:24:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vbabka@suse.cz, cl@linux.com, iamjoonsoo.kim@lge.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, compaction: more robust check for scanners meeting
+     Subject: mm, compaction: simplify handling restart position in free pages scanner
 has been added to the -mm tree.  Its filename is
-     mm-compaction-more-robust-check-for-scanners-meeting.patch
+     mm-compaction-simplify-handling-restart-position-in-free-pages-scanner.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-more-robust-check-for-scanners-meeting.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-simplify-handling-restart-position-in-free-pages-scanner.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-more-robust-check-for-scanners-meeting.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-simplify-handling-restart-position-in-free-pages-scanner.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,136 +40,109 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, compaction: more robust check for scanners meeting
+Subject: mm, compaction: simplify handling restart position in free pages scanner
 
-Assorted compaction cleanups and optimizations.  The interesting patches
-are 4 and 5.  In 4, skipping of compound pages in single iteration is
-improved for migration scanner, so it works also for !PageLRU compound
-pages such as hugetlbfs, slab etc.  Patch 5 introduces this kind of
-skipping in the free scanner.  The trick is that we can read
-compound_order() without any protection, if we are careful to filter out
-values larger than MAX_ORDER.  The only danger is that we skip too much. 
-The same trick was already used for reading the freepage order in the
-migrate scanner.
+Handling the position where compaction free scanner should restart (stored
+in cc->free_pfn) got more complex with commit e14c720efdd7 ("mm,
+compaction: remember position within pageblock in free pages scanner"). 
+Currently the position is updated in each loop iteration of
+isolate_freepages(), although it should be enough to update it only when
+breaking from the loop.  There's also an extra check outside the loop
+updates the position in case we have met the migration scanner.
 
-To demonstrate improvements of Patches 4 and 5 I've run stress-highalloc
-from mmtests, set to simulate THP allocations (including __GFP_COMP) on a
-4GB system where 1GB was occupied by hugetlbfs pages.  I'll include just
-the relevant stats:
+This can be simplified if we move the test for having isolated enough from
+the for-loop header next to the test for contention, and determining the
+restart position only in these cases.  We can reuse the isolate_start_pfn
+variable for this instead of setting cc->free_pfn directly.  Outside the
+loop, we can simply set cc->free_pfn to current value of isolate_start_pfn
+without any extra check.
 
-                               Patch 3     Patch 4     Patch 5
+Also add a VM_BUG_ON to catch possible mistake in the future, in case we
+later add a new condition that terminates isolate_freepages_block()
+prematurely without also considering the condition in isolate_freepages().
 
-Compaction stalls                 7523        7529        7515
-Compaction success                 323         304         322
-Compaction failures               7200        7224        7192
-Page migrate success            247778      264395      240737
-Page migrate failure             15358       33184       21621
-Compaction pages isolated       906928      980192      909983
-Compaction migrate scanned     2005277     1692805     1498800
-Compaction free scanned       13255284    11539986     9011276
-Compaction cost                    288         305         277
-
-With 5 iterations per patch, the results are still noisy, but we can see
-that Patch 4 does reduce migrate_scanned by 15% thanks to skipping the
-hugetlbfs pages at once.  Interestingly, free_scanned is also reduced and
-I have no idea why.  Patch 5 further reduces free_scanned as expected, by
-15%.  Other stats are unaffected modulo noise.
-
-[1] https://lkml.org/lkml/2015/1/19/158
-
-
-This patch (of 5):
-
-Compaction should finish when the migration and free scanner meet, i.e. 
-they reach the same pageblock.  Currently however, the test in
-compact_finished() simply just compares the exact pfns, which may yield a
-false negative when the free scanner position is in the middle of a
-pageblock and the migration scanner reaches the begining of the same
-pageblock.
-
-This hasn't been a problem until commit e14c720efdd7 ("mm, compaction:
-remember position within pageblock in free pages scanner") allowed the
-free scanner position to be in the middle of a pageblock between
-invocations.  The hot-fix 1d5bfe1ffb5b ("mm, compaction: prevent infinite
-loop in compact_zone") prevented the issue by adding a special check in
-the migration scanner to satisfy the current detection of scanners
-meeting.
-
-However, the proper fix is to make the detection more robust.  This patch
-introduces the compact_scanners_met() function that returns true when the
-free scanner position is in the same or lower pageblock than the migration
-scanner.  The special case in isolate_migratepages() introduced by
-1d5bfe1ffb5b is removed.
-
-Suggested-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Minchan Kim <minchan@kernel.org>
 Acked-by: Mel Gorman <mgorman@suse.de>
 Acked-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Acked-by: Michal Nazarewicz <mina86@mina86.com>
+Cc: Michal Nazarewicz <mina86@mina86.com>
 Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Christoph Lameter <cl@linux.com>
-Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
 Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   22 ++++++++++++++--------
- 1 file changed, 14 insertions(+), 8 deletions(-)
+ mm/compaction.c |   35 ++++++++++++++++++++---------------
+ 1 file changed, 20 insertions(+), 15 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-more-robust-check-for-scanners-meeting mm/compaction.c
---- a/mm/compaction.c~mm-compaction-more-robust-check-for-scanners-meeting
+diff -puN mm/compaction.c~mm-compaction-simplify-handling-restart-position-in-free-pages-scanner mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-simplify-handling-restart-position-in-free-pages-scanner
 +++ a/mm/compaction.c
-@@ -898,6 +898,16 @@ static bool suitable_migration_target(st
+@@ -943,8 +943,7 @@ static void isolate_freepages(struct com
+ 	 * pages on cc->migratepages. We stop searching if the migrate
+ 	 * and free page scanners meet or enough free pages are isolated.
+ 	 */
+-	for (; block_start_pfn >= low_pfn &&
+-			cc->nr_migratepages > cc->nr_freepages;
++	for (; block_start_pfn >= low_pfn;
+ 				block_end_pfn = block_start_pfn,
+ 				block_start_pfn -= pageblock_nr_pages,
+ 				isolate_start_pfn = block_start_pfn) {
+@@ -976,6 +975,8 @@ static void isolate_freepages(struct com
+ 					block_end_pfn, freelist, false);
+ 
+ 		/*
++		 * If we isolated enough freepages, or aborted due to async
++		 * compaction being contended, terminate the loop.
+ 		 * Remember where the free scanner should restart next time,
+ 		 * which is where isolate_freepages_block() left off.
+ 		 * But if it scanned the whole pageblock, isolate_start_pfn
+@@ -984,27 +985,31 @@ static void isolate_freepages(struct com
+ 		 * In that case we will however want to restart at the start
+ 		 * of the previous pageblock.
+ 		 */
+-		cc->free_pfn = (isolate_start_pfn < block_end_pfn) ?
+-				isolate_start_pfn :
+-				block_start_pfn - pageblock_nr_pages;
+-
+-		/*
+-		 * isolate_freepages_block() might have aborted due to async
+-		 * compaction being contended
+-		 */
+-		if (cc->contended)
++		if ((cc->nr_freepages >= cc->nr_migratepages)
++							|| cc->contended) {
++			if (isolate_start_pfn >= block_end_pfn)
++				isolate_start_pfn =
++					block_start_pfn - pageblock_nr_pages;
+ 			break;
++		} else {
++			/*
++			 * isolate_freepages_block() should not terminate
++			 * prematurely unless contended, or isolated enough
++			 */
++			VM_BUG_ON(isolate_start_pfn < block_end_pfn);
++		}
+ 	}
+ 
+ 	/* split_free_page does not map the pages */
+ 	map_pages(freelist);
+ 
+ 	/*
+-	 * If we crossed the migrate scanner, we want to keep it that way
+-	 * so that compact_finished() may detect this
++	 * Record where the free scanner will restart next time. Either we
++	 * broke from the loop and set isolate_start_pfn based on the last
++	 * call to isolate_freepages_block(), or we met the migration scanner
++	 * and the loop terminated due to isolate_start_pfn < low_pfn
+ 	 */
+-	if (block_start_pfn < low_pfn)
+-		cc->free_pfn = cc->migrate_pfn;
++	cc->free_pfn = isolate_start_pfn;
  }
  
  /*
-+ * Test whether the free scanner has reached the same or lower pageblock than
-+ * the migration scanner, and compaction should thus terminate.
-+ */
-+static inline bool compact_scanners_met(struct compact_control *cc)
-+{
-+	return (cc->free_pfn >> pageblock_order)
-+		<= (cc->migrate_pfn >> pageblock_order);
-+}
-+
-+/*
-  * Based on information in the current compact_control, find blocks
-  * suitable for isolating free pages from and then isolate them.
-  */
-@@ -1127,12 +1137,8 @@ static isolate_migrate_t isolate_migrate
- 	}
- 
- 	acct_isolated(zone, cc);
--	/*
--	 * Record where migration scanner will be restarted. If we end up in
--	 * the same pageblock as the free scanner, make the scanners fully
--	 * meet so that compact_finished() terminates compaction.
--	 */
--	cc->migrate_pfn = (end_pfn <= cc->free_pfn) ? low_pfn : cc->free_pfn;
-+	/* Record where migration scanner will be restarted. */
-+	cc->migrate_pfn = low_pfn;
- 
- 	return cc->nr_migratepages ? ISOLATE_SUCCESS : ISOLATE_NONE;
- }
-@@ -1147,7 +1153,7 @@ static int __compact_finished(struct zon
- 		return COMPACT_PARTIAL;
- 
- 	/* Compaction run completes if the migrate and free scanner meet */
--	if (cc->free_pfn <= cc->migrate_pfn) {
-+	if (compact_scanners_met(cc)) {
- 		/* Let the next compaction start anew. */
- 		zone->compact_cached_migrate_pfn[0] = zone->zone_start_pfn;
- 		zone->compact_cached_migrate_pfn[1] = zone->zone_start_pfn;
-@@ -1376,7 +1382,7 @@ static int compact_zone(struct zone *zon
- 			 * migrate_pages() may return -ENOMEM when scanners meet
- 			 * and we want compact_finished() to detect it
- 			 */
--			if (err == -ENOMEM && cc->free_pfn > cc->migrate_pfn) {
-+			if (err == -ENOMEM && !compact_scanners_met(cc)) {
- 				ret = COMPACT_PARTIAL;
- 				goto out;
- 			}
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
