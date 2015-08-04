@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-add-dma_pool_zalloc-call-to-dma-api.patch added to -mm tree
-Date: Tue, 04 Aug 2015 16:03:47 -0700
-Message-ID: <55c144d3.wk8XhQYnfE7ggRVf%akpm@linux-foundation.org>
+Subject: + mm-add-support-for-__gfp_zero-flag-to-dma_pool_alloc.patch
+ added to -mm tree
+Date: Tue, 04 Aug 2015 16:03:45 -0700
+Message-ID: <55c144d1.Ykne0m2veZqQVT/C%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58855 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58844 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752407AbbHDXDs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2015 19:03:48 -0400
+	with ESMTP id S1750849AbbHDXDq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2015 19:03:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: sean.stalley@intel.com, Gilles.Muller@lip6.fr, bhelgaas@google.com, bigeasy@linutronix.de, corbet@lwn.net, mmarek@suse.cz, nicolas.palix@imag.fr, vinod.koul@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add dma_pool_zalloc() call to DMA API
+     Subject: mm: add support for __GFP_ZERO flag to dma_pool_alloc()
 has been added to the -mm tree.  Its filename is
-     mm-add-dma_pool_zalloc-call-to-dma-api.patch
+     mm-add-support-for-__gfp_zero-flag-to-dma_pool_alloc.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-add-dma_pool_zalloc-call-to-dma-api.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-add-support-for-__gfp_zero-flag-to-dma_pool_alloc.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-add-dma_pool_zalloc-call-to-dma-api.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-add-support-for-__gfp_zero-flag-to-dma_pool_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,9 +40,38 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Sean O. Stalley" <sean.stalley@intel.com>
-Subject: mm: add dma_pool_zalloc() call to DMA API
+Subject: mm: add support for __GFP_ZERO flag to dma_pool_alloc()
 
-Add a wrapper function for dma_pool_alloc() to get zeroed memory.
+Currently a call to dma_pool_alloc() with a ___GFP_ZERO flag returns a
+non-zeroed memory region.
+
+This patchset adds support for the __GFP_ZERO flag to dma_pool_alloc(),
+adds 2 wrapper functions for allocing zeroed memory from a pool, and
+provides a coccinelle script for finding & replacing instances of
+dma_pool_alloc() followed by memset(0) with a single dma_pool_zalloc()
+call.
+
+There was some concern that this always calls memset() to zero,
+instead of passing __GFP_ZERO into the page allocator.
+[https://lkml.org/lkml/2015/7/15/881]
+
+I ran a test on my system to get an idea of how often dma_pool_alloc()
+calls into pool_alloc_page().
+
+After Boot:	[   30.119863] alloc_calls:541, page_allocs:7
+After an hour:	[ 3600.951031] alloc_calls:9566, page_allocs:12
+After copying 1GB file onto a USB drive:
+		[ 4260.657148] alloc_calls:17225, page_allocs:12
+
+It doesn't look like dma_pool_alloc() calls down to the page allocator
+very often (at least on my system).
+
+
+
+This patch (of 4):
+
+Currently the __GFP_ZERO flag is ignored by dma_pool_alloc().
+Make dma_pool_alloc() zero the memory if this flag is set.
 
 Signed-off-by: Sean O. Stalley <sean.stalley@intel.com>
 Cc: Vinod Koul <vinod.koul@intel.com>
@@ -54,43 +84,37 @@ Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DMA-API.txt |    7 +++++++
- include/linux/dmapool.h   |    6 ++++++
- 2 files changed, 13 insertions(+)
+ mm/dmapool.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/DMA-API.txt~mm-add-dma_pool_zalloc-call-to-dma-api Documentation/DMA-API.txt
---- a/Documentation/DMA-API.txt~mm-add-dma_pool_zalloc-call-to-dma-api
-+++ a/Documentation/DMA-API.txt
-@@ -104,6 +104,13 @@ crossing restrictions, pass 0 for alloc;
- from this pool must not cross 4KByte boundaries.
+diff -puN mm/dmapool.c~mm-add-support-for-__gfp_zero-flag-to-dma_pool_alloc mm/dmapool.c
+--- a/mm/dmapool.c~mm-add-support-for-__gfp_zero-flag-to-dma_pool_alloc
++++ a/mm/dmapool.c
+@@ -337,7 +337,7 @@ void *dma_pool_alloc(struct dma_pool *po
+ 	/* pool_alloc_page() might sleep, so temporarily drop &pool->lock */
+ 	spin_unlock_irqrestore(&pool->lock, flags);
  
+-	page = pool_alloc_page(pool, mem_flags);
++	page = pool_alloc_page(pool, mem_flags & (~__GFP_ZERO));
+ 	if (!page)
+ 		return NULL;
  
-+	void *dma_pool_zalloc(struct dma_pool *pool, gfp_t mem_flags,
-+			      dma_addr_t *handle)
+@@ -375,9 +375,14 @@ void *dma_pool_alloc(struct dma_pool *po
+ 			break;
+ 		}
+ 	}
+-	memset(retval, POOL_POISON_ALLOCATED, pool->size);
++	if (!(mem_flags & __GFP_ZERO))
++		memset(retval, POOL_POISON_ALLOCATED, pool->size);
+ #endif
+ 	spin_unlock_irqrestore(&pool->lock, flags);
 +
-+Wraps dma_pool_alloc() and also zeroes the returned memory if the
-+allocation attempt succeeded.
++	if (mem_flags & __GFP_ZERO)
++		memset(retval, 0, pool->size);
 +
-+
- 	void *dma_pool_alloc(struct dma_pool *pool, gfp_t gfp_flags,
- 			dma_addr_t *dma_handle);
- 
-diff -puN include/linux/dmapool.h~mm-add-dma_pool_zalloc-call-to-dma-api include/linux/dmapool.h
---- a/include/linux/dmapool.h~mm-add-dma_pool_zalloc-call-to-dma-api
-+++ a/include/linux/dmapool.h
-@@ -24,6 +24,12 @@ void dma_pool_destroy(struct dma_pool *p
- void *dma_pool_alloc(struct dma_pool *pool, gfp_t mem_flags,
- 		     dma_addr_t *handle);
- 
-+static inline void *dma_pool_zalloc(struct dma_pool *pool, gfp_t mem_flags,
-+				    dma_addr_t *handle)
-+{
-+	return dma_pool_alloc(pool, mem_flags | __GFP_ZERO, handle);
-+}
-+
- void dma_pool_free(struct dma_pool *pool, void *vaddr, dma_addr_t addr);
- 
- /*
+ 	return retval;
+ }
+ EXPORT_SYMBOL(dma_pool_alloc);
 _
 
 Patches currently in -mm which might be from sean.stalley@intel.com are
