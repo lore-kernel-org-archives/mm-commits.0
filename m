@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- vmscan-fix-increasing-nr_isolated-incurred-by-putback-unevictable-pages.patch added to -mm tree
-Date: Tue, 04 Aug 2015 15:09:59 -0700
-Message-ID: <55c13837.BspioSmUPS+DATaY%akpm@linux-foundation.org>
+ watchdog-introduce-watchdog_suspend-and-watchdog_resume-fix.patch added to
+ -mm tree
+Date: Tue, 04 Aug 2015 15:59:00 -0700
+Message-ID: <55c143b4.os2GHE+jxnI4TtqY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57721 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58806 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754556AbbHDWKA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2015 18:10:00 -0400
+	with ESMTP id S1753209AbbHDW7B (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2015 18:59:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jaewon31.kim@samsung.com, mgorman@techsingularity.net, minchan@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, uobergfe@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: vmscan: fix increasing nr_isolated incurred by putback unevictable pages
+     Subject: watchdog-introduce-watchdog_suspend-and-watchdog_resume-fix
 has been added to the -mm tree.  Its filename is
-     vmscan-fix-increasing-nr_isolated-incurred-by-putback-unevictable-pages.patch
+     watchdog-introduce-watchdog_suspend-and-watchdog_resume-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/vmscan-fix-increasing-nr_isolated-incurred-by-putback-unevictable-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/watchdog-introduce-watchdog_suspend-and-watchdog_resume-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/vmscan-fix-increasing-nr_isolated-incurred-by-putback-unevictable-pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/watchdog-introduce-watchdog_suspend-and-watchdog_resume-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,41 +40,81 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jaewon Kim <jaewon31.kim@samsung.com>
-Subject: vmscan: fix increasing nr_isolated incurred by putback unevictable pages
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: watchdog-introduce-watchdog_suspend-and-watchdog_resume-fix
 
-reclaim_clean_pages_from_list() assumes that shrink_page_list() returns
-number of pages removed from the candidate list.  But shrink_page_list()
-puts back mlocked pages without passing it to caller and without counting
-as nr_reclaimed.  This increases nr_isolated.
+remove unneeded static initialization
 
-To fix this, this patch changes shrink_page_list() to pass unevictable
-pages back to caller.  Caller will take care those pages.
-
-Signed-off-by: Jaewon Kim <jaewon31.kim@samsung.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Minchan Kim <minchan@kernel.org>
+Cc: Ulrich Obergfell <uobergfe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
+ kernel/watchdog.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~vmscan-fix-increasing-nr_isolated-incurred-by-putback-unevictable-pages mm/vmscan.c
---- a/mm/vmscan.c~vmscan-fix-increasing-nr_isolated-incurred-by-putback-unevictable-pages
-+++ a/mm/vmscan.c
-@@ -1193,7 +1193,7 @@ cull_mlocked:
- 		if (PageSwapCache(page))
- 			try_to_free_swap(page);
- 		unlock_page(page);
--		putback_lru_page(page);
-+		list_add(&page->lru, &ret_pages);
- 		continue;
+diff -puN kernel/watchdog.c~watchdog-introduce-watchdog_suspend-and-watchdog_resume-fix kernel/watchdog.c
+--- a/kernel/watchdog.c~watchdog-introduce-watchdog_suspend-and-watchdog_resume-fix
++++ a/kernel/watchdog.c
+@@ -67,7 +67,7 @@ unsigned long *watchdog_cpumask_bits = c
+ #define for_each_watchdog_cpu(cpu) \
+ 	for_each_cpu_and((cpu), cpu_online_mask, &watchdog_cpumask)
  
- activate_locked:
+-static int __read_mostly watchdog_suspended = 0;
++static int __read_mostly watchdog_suspended;
+ static int __read_mostly watchdog_running;
+ static u64 __read_mostly sample_period;
+ 
 _
 
-Patches currently in -mm which might be from jaewon31.kim@samsung.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-vmscan-fix-increasing-nr_isolated-incurred-by-putback-unevictable-pages.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+kernel-kthreadc-kthread_create_on_node-clarify-documentation.patch
+scripts-spellingtxt-adding-misspelled-word-for-check-fix.patch
+ocfs2-sysfile-interfaces-for-online-file-check-fix.patch
+watchdog-introduce-watchdog_suspend-and-watchdog_resume-fix.patch
+mm.patch
+userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
+userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
+userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
+mm-mlock-refactor-mlock-munlock-and-munlockall-code-checkpatch-fixes.patch
+mm-mlock-add-new-mlock-system-call-checkpatch-fixes.patch
+mm-introduce-vm_lockonfault-checkpatch-fixes.patch
+genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-fix.patch
+genalloc-add-support-of-multiple-gen_pools-per-device-fix.patch
+mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested-fix.patch
+dax-revert-userfaultfd-change.patch
+thp-prepare-for-dax-huge-pages-fix.patch
+pagemap-add-mmap-exclusive-bit-for-marking-pages-mapped-only-here-fix.patch
+pagemap-update-documentation-fix.patch
+mm-show-proportional-swap-share-of-the-mapping-fix.patch
+mm-improve-__gfp_noretry-comment-based-on-implementation-fix.patch
+memcg-export-struct-mem_cgroup-fix.patch
+memcg-export-struct-mem_cgroup-fix-2.patch
+mm-hugetlb-add-cache-of-descriptors-to-resv_map-for-region_add-fix.patch
+mm-srcu-ify-shrinkers-fix-fix.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
+procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix.patch
+procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix-fix.patch
+fs-coda-fix-readlink-buffer-overflow-checkpatch-fixes.patch
+kexec-split-kexec_load-syscall-from-kexec-core-code-checkpatch-fixes.patch
+linux-next.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+net-netfilter-ipset-work-around-gcc-444-initializer-bug.patch
+fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix.patch
+mm-mpx-add-vm_flags_t-vm_flags-arg-to-do_mmap_pgoff-fix-checkpatch-fixes.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
