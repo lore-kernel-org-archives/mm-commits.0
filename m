@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-compaction-encapsulate-resetting-cached-scanner-positions.patch added to -mm tree
-Date: Tue, 04 Aug 2015 16:24:56 -0700
-Message-ID: <55c149c8.QF9Nq7+rUkPSW2Xs%akpm@linux-foundation.org>
+ mm-compaction-skip-compound-pages-by-order-in-free-scanner.patch added to
+ -mm tree
+Date: Tue, 04 Aug 2015 16:24:58 -0700
+Message-ID: <55c149ca.scrKifn+6asxEkYx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59385 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59395 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754270AbbHDXY5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2015 19:24:57 -0400
+	with ESMTP id S1754273AbbHDXY7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2015 19:24:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vbabka@suse.cz, cl@linux.com, iamjoonsoo.kim@lge.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, compaction: encapsulate resetting cached scanner positions
+     Subject: mm, compaction: skip compound pages by order in free scanner
 has been added to the -mm tree.  Its filename is
-     mm-compaction-encapsulate-resetting-cached-scanner-positions.patch
+     mm-compaction-skip-compound-pages-by-order-in-free-scanner.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-encapsulate-resetting-cached-scanner-positions.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-skip-compound-pages-by-order-in-free-scanner.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-encapsulate-resetting-cached-scanner-positions.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-skip-compound-pages-by-order-in-free-scanner.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,16 +41,23 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, compaction: encapsulate resetting cached scanner positions
+Subject: mm, compaction: skip compound pages by order in free scanner
 
-Reseting the cached compaction scanner positions is now open-coded in
-__reset_isolation_suitable() and compact_finished().  Encapsulate the
-functionality in a new function reset_cached_positions().
+The compaction free scanner is looking for PageBuddy() pages and skipping
+all others.  For large compound pages such as THP or hugetlbfs, we can
+save a lot of iterations if we skip them at once using their
+compound_order().  This is generally unsafe and we can read a bogus value
+of order due to a race, but if we are careful, the only danger is skipping
+too much.
+
+When tested with stress-highalloc from mmtests on 4GB system with 1GB
+hugetlbfs pages, the vmstat compact_free_scanned count decreased by at
+least 15%.
 
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Mel Gorman <mgorman@suse.de>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Acked-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Acked-by: Michal Nazarewicz <mina86@mina86.com>
 Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Christoph Lameter <cl@linux.com>
@@ -58,56 +66,51 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+ mm/compaction.c |   25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
 
-diff -puN mm/compaction.c~mm-compaction-encapsulate-resetting-cached-scanner-positions mm/compaction.c
---- a/mm/compaction.c~mm-compaction-encapsulate-resetting-cached-scanner-positions
+diff -puN mm/compaction.c~mm-compaction-skip-compound-pages-by-order-in-free-scanner mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-skip-compound-pages-by-order-in-free-scanner
 +++ a/mm/compaction.c
-@@ -207,6 +207,13 @@ static inline bool isolation_suitable(st
- 	return !get_pageblock_skip(page);
- }
+@@ -437,6 +437,24 @@ static unsigned long isolate_freepages_b
  
-+static void reset_cached_positions(struct zone *zone)
-+{
-+	zone->compact_cached_migrate_pfn[0] = zone->zone_start_pfn;
-+	zone->compact_cached_migrate_pfn[1] = zone->zone_start_pfn;
-+	zone->compact_cached_free_pfn = zone_end_pfn(zone);
-+}
+ 		if (!valid_page)
+ 			valid_page = page;
 +
- /*
-  * This function is called to clear all cached information on pageblocks that
-  * should be skipped for page isolation when the migrate and free page scanner
-@@ -218,9 +225,6 @@ static void __reset_isolation_suitable(s
- 	unsigned long end_pfn = zone_end_pfn(zone);
- 	unsigned long pfn;
++		/*
++		 * For compound pages such as THP and hugetlbfs, we can save
++		 * potentially a lot of iterations if we skip them at once.
++		 * The check is racy, but we can consider only valid values
++		 * and the only danger is skipping too much.
++		 */
++		if (PageCompound(page)) {
++			unsigned int comp_order = compound_order(page);
++
++			if (likely(comp_order < MAX_ORDER)) {
++				blockpfn += (1UL << comp_order) - 1;
++				cursor += (1UL << comp_order) - 1;
++			}
++
++			goto isolate_fail;
++		}
++
+ 		if (!PageBuddy(page))
+ 			goto isolate_fail;
  
--	zone->compact_cached_migrate_pfn[0] = start_pfn;
--	zone->compact_cached_migrate_pfn[1] = start_pfn;
--	zone->compact_cached_free_pfn = end_pfn;
- 	zone->compact_blockskip_flush = false;
+@@ -496,6 +514,13 @@ isolate_fail:
  
- 	/* Walk the zone and mark every pageblock as suitable for isolation */
-@@ -238,6 +242,8 @@ static void __reset_isolation_suitable(s
- 
- 		clear_pageblock_skip(page);
  	}
+ 
++	/*
++	 * There is a tiny chance that we have read bogus compound_order(),
++	 * so be careful to not go outside of the pageblock.
++	 */
++	if (unlikely(blockpfn > end_pfn))
++		blockpfn = end_pfn;
 +
-+	reset_cached_positions(zone);
- }
+ 	trace_mm_compaction_isolate_freepages(*start_pfn, blockpfn,
+ 					nr_scanned, total_isolated);
  
- void reset_isolation_suitable(pg_data_t *pgdat)
-@@ -1160,9 +1166,7 @@ static int __compact_finished(struct zon
- 	/* Compaction run completes if the migrate and free scanner meet */
- 	if (compact_scanners_met(cc)) {
- 		/* Let the next compaction start anew. */
--		zone->compact_cached_migrate_pfn[0] = zone->zone_start_pfn;
--		zone->compact_cached_migrate_pfn[1] = zone->zone_start_pfn;
--		zone->compact_cached_free_pfn = zone_end_pfn(zone);
-+		reset_cached_positions(zone);
- 
- 		/*
- 		 * Mark that the PG_migrate_skip information should be cleared
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
