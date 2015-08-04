@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + jiffies-force-inlining-of-mumsecs_to_jiffies.patch added to -mm tree
-Date: Tue, 04 Aug 2015 14:52:32 -0700
-Message-ID: <55c13420.v+H4SQo1aiuix+rx%akpm@linux-foundation.org>
+Subject: +
+ vmscan-fix-increasing-nr_isolated-incurred-by-putback-unevictable-pages.patch added to -mm tree
+Date: Tue, 04 Aug 2015 15:09:59 -0700
+Message-ID: <55c13837.BspioSmUPS+DATaY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57537 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57721 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752489AbbHDVwd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2015 17:52:33 -0400
+	with ESMTP id S1754556AbbHDWKA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2015 18:10:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dvlasenk@redhat.com, mingo@kernel.org, peterz@infradead.org, rientjes@google.com, tgraf@suug.ch, mm-commits@vger.kernel.org
+To: jaewon31.kim@samsung.com, mgorman@techsingularity.net, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: jiffies: force inlining of {m,u}msecs_to_jiffies()
+     Subject: vmscan: fix increasing nr_isolated incurred by putback unevictable pages
 has been added to the -mm tree.  Its filename is
-     jiffies-force-inlining-of-mumsecs_to_jiffies.patch
+     vmscan-fix-increasing-nr_isolated-incurred-by-putback-unevictable-pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/jiffies-force-inlining-of-mumsecs_to_jiffies.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/vmscan-fix-increasing-nr_isolated-incurred-by-putback-unevictable-pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/jiffies-force-inlining-of-mumsecs_to_jiffies.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/vmscan-fix-increasing-nr_isolated-incurred-by-putback-unevictable-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,73 +39,41 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Denys Vlasenko <dvlasenk@redhat.com>
-Subject: jiffies: force inlining of {m,u}msecs_to_jiffies()
+From: Jaewon Kim <jaewon31.kim@samsung.com>
+Subject: vmscan: fix increasing nr_isolated incurred by putback unevictable pages
 
-With this config:
-http://busybox.net/~vda/kernel_config_OPTIMIZE_INLINING_and_Os
-gcc-4.7.2 generates many copies of these tiny functions:
+reclaim_clean_pages_from_list() assumes that shrink_page_list() returns
+number of pages removed from the candidate list.  But shrink_page_list()
+puts back mlocked pages without passing it to caller and without counting
+as nr_reclaimed.  This increases nr_isolated.
 
-msecs_to_jiffies (45 copies):
-55                      push   %rbp
-48 89 e5                mov    %rsp,%rbp
-e8 59 ec 03 00          callq  __msecs_to_jiffies
-5d                      pop    %rbp
-c3                      retq
+To fix this, this patch changes shrink_page_list() to pass unevictable
+pages back to caller.  Caller will take care those pages.
 
-usecs_to_jiffies (10 copies):
-55                      push   %rbp
-48 89 e5                mov    %rsp,%rbp
-e8 5d 54 5e ff          callq  __usecs_to_jiffies
-5d                      pop    %rbp
-c3                      retq
-
-See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=66122
-
-This patch fixes this via s/inline/__always_inline/
-
-    text     data      bss       dec     hex filename
-86970954 17195912 36659200 140826066 864d5d2 vmlinux.before
-86966150 17195912 36659200 140821262 864c30e vmlinux
-
-Signed-off-by: Denys Vlasenko <dvlasenk@redhat.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Thomas Graf <tgraf@suug.ch>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Jaewon Kim <jaewon31.kim@samsung.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/jiffies.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/jiffies.h~jiffies-force-inlining-of-mumsecs_to_jiffies include/linux/jiffies.h
---- a/include/linux/jiffies.h~jiffies-force-inlining-of-mumsecs_to_jiffies
-+++ a/include/linux/jiffies.h
-@@ -351,7 +351,7 @@ static inline unsigned long _msecs_to_ji
-  * directly here and from __msecs_to_jiffies() in the case where
-  * constant folding is not possible.
-  */
--static inline unsigned long msecs_to_jiffies(const unsigned int m)
-+static __always_inline unsigned long msecs_to_jiffies(const unsigned int m)
- {
- 	if (__builtin_constant_p(m)) {
- 		if ((int)m < 0)
-@@ -405,7 +405,7 @@ static inline unsigned long _usecs_to_ji
-  * directly here and from __msecs_to_jiffies() in the case where
-  * constant folding is not possible.
-  */
--static inline unsigned long usecs_to_jiffies(const unsigned int u)
-+static __always_inline unsigned long usecs_to_jiffies(const unsigned int u)
- {
- 	if (__builtin_constant_p(u)) {
- 		if (u > jiffies_to_usecs(MAX_JIFFY_OFFSET))
+diff -puN mm/vmscan.c~vmscan-fix-increasing-nr_isolated-incurred-by-putback-unevictable-pages mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-fix-increasing-nr_isolated-incurred-by-putback-unevictable-pages
++++ a/mm/vmscan.c
+@@ -1193,7 +1193,7 @@ cull_mlocked:
+ 		if (PageSwapCache(page))
+ 			try_to_free_swap(page);
+ 		unlock_page(page);
+-		putback_lru_page(page);
++		list_add(&page->lru, &ret_pages);
+ 		continue;
+ 
+ activate_locked:
 _
 
-Patches currently in -mm which might be from dvlasenk@redhat.com are
+Patches currently in -mm which might be from jaewon31.kim@samsung.com are
 
-linux-bitmap-force-inlining-of-bitmap-weight-functions.patch
-x86-hweight-force-inlining-of-__arch_hweight3264.patch
-jiffies-force-inlining-of-mumsecs_to_jiffies.patch
-linux-next.patch
+vmscan-fix-increasing-nr_isolated-incurred-by-putback-unevictable-pages.patch
 
