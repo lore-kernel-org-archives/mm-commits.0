@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + x86-hweight-force-inlining-of-__arch_hweight3264.patch added to -mm tree
-Date: Tue, 04 Aug 2015 14:52:30 -0700
-Message-ID: <55c1341e.sSOZlp8njTxITsxL%akpm@linux-foundation.org>
+Subject: + jiffies-force-inlining-of-mumsecs_to_jiffies.patch added to -mm tree
+Date: Tue, 04 Aug 2015 14:52:32 -0700
+Message-ID: <55c13420.v+H4SQo1aiuix+rx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57531 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57537 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752489AbbHDVwb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2015 17:52:31 -0400
+	with ESMTP id S1752489AbbHDVwd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2015 17:52:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: dvlasenk@redhat.com, mingo@kernel.org, peterz@infradead.org, rientjes@google.com, tgraf@suug.ch, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86/hweight: force inlining of __arch_hweight{32,64}()
+     Subject: jiffies: force inlining of {m,u}msecs_to_jiffies()
 has been added to the -mm tree.  Its filename is
-     x86-hweight-force-inlining-of-__arch_hweight3264.patch
+     jiffies-force-inlining-of-mumsecs_to_jiffies.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86-hweight-force-inlining-of-__arch_hweight3264.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/jiffies-force-inlining-of-mumsecs_to_jiffies.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86-hweight-force-inlining-of-__arch_hweight3264.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/jiffies-force-inlining-of-mumsecs_to_jiffies.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,24 +39,23 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Denys Vlasenko <dvlasenk@redhat.com>
-Subject: x86/hweight: force inlining of __arch_hweight{32,64}()
+Subject: jiffies: force inlining of {m,u}msecs_to_jiffies()
 
 With this config:
 http://busybox.net/~vda/kernel_config_OPTIMIZE_INLINING_and_Os
-
 gcc-4.7.2 generates many copies of these tiny functions:
 
-__arch_hweight32 (35 copies):
+msecs_to_jiffies (45 copies):
 55                      push   %rbp
-e8 66 9b 4a 00          callq  __sw_hweight32
 48 89 e5                mov    %rsp,%rbp
+e8 59 ec 03 00          callq  __msecs_to_jiffies
 5d                      pop    %rbp
 c3                      retq
 
-__arch_hweight64 (8 copies):
+usecs_to_jiffies (10 copies):
 55                      push   %rbp
-e8 5e c2 8a 00          callq  __sw_hweight64
 48 89 e5                mov    %rsp,%rbp
+e8 5d 54 5e ff          callq  __usecs_to_jiffies
 5d                      pop    %rbp
 c3                      retq
 
@@ -64,16 +63,9 @@ See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=66122
 
 This patch fixes this via s/inline/__always_inline/
 
-To avoid touching 32-bit case where such change was not tested to be a win,
-reformat __arch_hweight64() to have completely disjoint 64-bit and 32-bit
-implementations. IOW: made #ifdef / #else / #endif blocks contain
-complete function definitions for 32 bits and 64 bits
-instead of having #ifdef / #else / #endif inside a single function body.
-Only 64-bit __arch_hweight64() is __always_inline'd.
-
     text     data      bss       dec     hex filename
-86971120 17195912 36659200 140826232 864d678 vmlinux.before
-86970954 17195912 36659200 140826066 864d5d2 vmlinux
+86970954 17195912 36659200 140826066 864d5d2 vmlinux.before
+86966150 17195912 36659200 140821262 864c30e vmlinux
 
 Signed-off-by: Denys Vlasenko <dvlasenk@redhat.com>
 Cc: Ingo Molnar <mingo@kernel.org>
@@ -83,49 +75,30 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/arch_hweight.h |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ include/linux/jiffies.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/include/asm/arch_hweight.h~x86-hweight-force-inlining-of-__arch_hweight3264 arch/x86/include/asm/arch_hweight.h
---- a/arch/x86/include/asm/arch_hweight.h~x86-hweight-force-inlining-of-__arch_hweight3264
-+++ a/arch/x86/include/asm/arch_hweight.h
-@@ -21,7 +21,7 @@
-  * ARCH_HWEIGHT_CFLAGS in <arch/x86/Kconfig> for the respective
-  * compiler switches.
+diff -puN include/linux/jiffies.h~jiffies-force-inlining-of-mumsecs_to_jiffies include/linux/jiffies.h
+--- a/include/linux/jiffies.h~jiffies-force-inlining-of-mumsecs_to_jiffies
++++ a/include/linux/jiffies.h
+@@ -351,7 +351,7 @@ static inline unsigned long _msecs_to_ji
+  * directly here and from __msecs_to_jiffies() in the case where
+  * constant folding is not possible.
   */
--static inline unsigned int __arch_hweight32(unsigned int w)
-+static __always_inline unsigned int __arch_hweight32(unsigned int w)
+-static inline unsigned long msecs_to_jiffies(const unsigned int m)
++static __always_inline unsigned long msecs_to_jiffies(const unsigned int m)
  {
- 	unsigned int res = 0;
- 
-@@ -42,20 +42,23 @@ static inline unsigned int __arch_hweigh
- 	return __arch_hweight32(w & 0xff);
- }
- 
-+#ifdef CONFIG_X86_32
- static inline unsigned long __arch_hweight64(__u64 w)
+ 	if (__builtin_constant_p(m)) {
+ 		if ((int)m < 0)
+@@ -405,7 +405,7 @@ static inline unsigned long _usecs_to_ji
+  * directly here and from __msecs_to_jiffies() in the case where
+  * constant folding is not possible.
+  */
+-static inline unsigned long usecs_to_jiffies(const unsigned int u)
++static __always_inline unsigned long usecs_to_jiffies(const unsigned int u)
  {
--	unsigned long res = 0;
--
--#ifdef CONFIG_X86_32
- 	return  __arch_hweight32((u32)w) +
- 		__arch_hweight32((u32)(w >> 32));
-+}
- #else
-+static __always_inline unsigned long __arch_hweight64(__u64 w)
-+{
-+	unsigned long res = 0;
-+
- 	asm (ALTERNATIVE("call __sw_hweight64", POPCNT64, X86_FEATURE_POPCNT)
- 		     : "="REG_OUT (res)
- 		     : REG_IN (w));
--#endif /* CONFIG_X86_32 */
- 
- 	return res;
- }
-+#endif /* CONFIG_X86_32 */
- 
- #endif
+ 	if (__builtin_constant_p(u)) {
+ 		if (u > jiffies_to_usecs(MAX_JIFFY_OFFSET))
 _
 
 Patches currently in -mm which might be from dvlasenk@redhat.com are
