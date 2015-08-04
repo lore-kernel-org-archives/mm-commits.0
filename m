@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + ext4-use-ext4_get_block_write-for-dax.patch added to -mm tree
-Date: Tue, 04 Aug 2015 14:34:25 -0700
-Message-ID: <55c12fe1.yPriQkybzLP/UA1t%akpm@linux-foundation.org>
+Subject: + thp-change-insert_pfns-return-type-to-void.patch added to -mm
+ tree
+Date: Tue, 04 Aug 2015 14:34:27 -0700
+Message-ID: <55c12fe3.56NFTvp4FvEW/cLg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56613 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56617 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752411AbbHDVe0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2015 17:34:26 -0400
+	with ESMTP id S1752607AbbHDVe2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2015 17:34:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: willy@linux.intel.com, andy.rudoff@intel.com, tytso@mit.edu, mm-commits@vger.kernel.org
+To: willy@linux.intel.com, jmoyer@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ext4: use ext4_get_block_write() for DAX
+     Subject: thp: change insert_pfn's return type to void
 has been added to the -mm tree.  Its filename is
-     ext4-use-ext4_get_block_write-for-dax.patch
+     thp-change-insert_pfns-return-type-to-void.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ext4-use-ext4_get_block_write-for-dax.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/thp-change-insert_pfns-return-type-to-void.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ext4-use-ext4_get_block_write-for-dax.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/thp-change-insert_pfns-return-type-to-void.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,54 +40,50 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Matthew Wilcox <willy@linux.intel.com>
-Subject: ext4: use ext4_get_block_write() for DAX
+Subject: thp: change insert_pfn's return type to void
 
-DAX relies on the get_block function either zeroing newly allocated blocks
-before they're findable by subsequent calls to get_block, or marking newly
-allocated blocks as unwritten.  ext4_get_block() cannot create unwritten
-extents, but ext4_get_block_write() can.
+It would make more sense to have all the return values from
+vmf_insert_pfn_pmd() encoded in one place instead of having to follow the
+convention into insert_pfn().  Suggested by Jeff Moyer.
 
 Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
-Reported-by: Andy Rudoff <andy.rudoff@intel.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: Jeff Moyer <jmoyer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/file.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ mm/huge_memory.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/ext4/file.c~ext4-use-ext4_get_block_write-for-dax fs/ext4/file.c
---- a/fs/ext4/file.c~ext4-use-ext4_get_block_write-for-dax
-+++ a/fs/ext4/file.c
-@@ -196,7 +196,7 @@ out:
- static void ext4_end_io_unwritten(struct buffer_head *bh, int uptodate)
- {
- 	struct inode *inode = bh->b_assoc_map->host;
--	/* XXX: breaks on 32-bit > 16GB. Is that even supported? */
-+	/* XXX: breaks on 32-bit > 16TB. Is that even supported? */
- 	loff_t offset = (loff_t)(uintptr_t)bh->b_private << inode->i_blkbits;
- 	int err;
- 	if (!uptodate)
-@@ -207,8 +207,7 @@ static void ext4_end_io_unwritten(struct
- 
- static int ext4_dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
- {
--	return dax_fault(vma, vmf, ext4_get_block, ext4_end_io_unwritten);
--					/* Is this the right get_block? */
-+	return dax_fault(vma, vmf, ext4_get_block_write, ext4_end_io_unwritten);
+diff -puN mm/huge_memory.c~thp-change-insert_pfns-return-type-to-void mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-change-insert_pfns-return-type-to-void
++++ a/mm/huge_memory.c
+@@ -869,7 +869,7 @@ int do_huge_pmd_anonymous_page(struct mm
+ 					    flags);
  }
  
- static int ext4_dax_pmd_fault(struct vm_area_struct *vma, unsigned long addr,
-@@ -220,7 +219,8 @@ static int ext4_dax_pmd_fault(struct vm_
- 
- static int ext4_dax_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf)
+-static int insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
++static void insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
+ 		pmd_t *pmd, unsigned long pfn, pgprot_t prot, bool write)
  {
--	return dax_mkwrite(vma, vmf, ext4_get_block, ext4_end_io_unwritten);
-+	return dax_mkwrite(vma, vmf, ext4_get_block_write,
-+				ext4_end_io_unwritten);
+ 	struct mm_struct *mm = vma->vm_mm;
+@@ -887,7 +887,6 @@ static int insert_pfn_pmd(struct vm_area
+ 		update_mmu_cache_pmd(vma, addr, pmd);
+ 	}
+ 	spin_unlock(ptl);
+-	return VM_FAULT_NOPAGE;
  }
  
- static const struct vm_operations_struct ext4_dax_vm_ops = {
+ int vmf_insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
+@@ -909,7 +908,8 @@ int vmf_insert_pfn_pmd(struct vm_area_st
+ 		return VM_FAULT_SIGBUS;
+ 	if (track_pfn_insert(vma, &pgprot, pfn))
+ 		return VM_FAULT_SIGBUS;
+-	return insert_pfn_pmd(vma, addr, pmd, pfn, pgprot, write);
++	insert_pfn_pmd(vma, addr, pmd, pfn, pgprot, write);
++	return VM_FAULT_NOPAGE;
+ }
+ 
+ int copy_huge_pmd(struct mm_struct *dst_mm, struct mm_struct *src_mm,
 _
 
 Patches currently in -mm which might be from willy@linux.intel.com are
