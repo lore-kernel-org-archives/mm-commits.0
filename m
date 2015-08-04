@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memory-failure-set-pagehwpoison-before-migrate_pages.patch
- added to -mm tree
-Date: Tue, 04 Aug 2015 16:30:22 -0700
-Message-ID: <55c14b0e.A5K4hHJUyCCArCqB%akpm@linux-foundation.org>
+Subject: +
+ mm-check-__pg_hwpoison-separately-from-page_flags_check_at_.patch added to
+ -mm tree
+Date: Tue, 04 Aug 2015 16:30:20 -0700
+Message-ID: <55c14b0c.84A0urigUFlRU4T/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59436 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59429 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754567AbbHDXaX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2015 19:30:23 -0400
+	with ESMTP id S1754567AbbHDXaV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 4 Aug 2015 19:30:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: n-horiguchi@ah.jp.nec.com, andi@firstfloor.org, dnelson@redhat.com, hughd@google.com, kirill@shutemov.name, rientjes@google.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory-failure: set PageHWPoison before migrate_pages()
+     Subject: mm: check __PG_HWPOISON separately from PAGE_FLAGS_CHECK_AT_*
 has been added to the -mm tree.  Its filename is
-     mm-memory-failure-set-pagehwpoison-before-migrate_pages.patch
+     mm-check-__pg_hwpoison-separately-from-page_flags_check_at_.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory-failure-set-pagehwpoison-before-migrate_pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-check-__pg_hwpoison-separately-from-page_flags_check_at_.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory-failure-set-pagehwpoison-before-migrate_pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-check-__pg_hwpoison-separately-from-page_flags_check_at_.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,14 +41,28 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm/memory-failure: set PageHWPoison before migrate_pages()
+Subject: mm: check __PG_HWPOISON separately from PAGE_FLAGS_CHECK_AT_*
 
-Now page freeing code doesn't consider PageHWPoison as a bad page, so by
-setting it before completing the page containment, we can prevent the
-error page from being reused just after successful page migration.
+The race condition addressed in commit add05cecef80 ("mm: soft-offline:
+don't free target page in successful page migration") was not closed
+completely, because that can happen not only for soft-offline, but also
+for hard-offline.  Consider that a slab page is about to be freed into
+buddy pool, and then an uncorrected memory error hits the page just after
+entering __free_one_page(), then VM_BUG_ON_PAGE(page->flags &
+PAGE_FLAGS_CHECK_AT_PREP) is triggered, despite the fact that it's not
+necessary because the data on the affected page is not consumed.
 
-I added TTU_IGNORE_HWPOISON for try_to_unmap() to make sure that the page
-table entry is transformed into migration entry, not to hwpoison entry.
+To solve it, this patch drops __PG_HWPOISON from page flag checks at
+allocation/free time.  I think it's justified because __PG_HWPOISON flags
+is defined to prevent the page from being reused, and setting it outside
+the page's alloc-free cycle is a designed behavior (not a bug.)
+
+For recent months, I was annoyed about BUG_ON when soft-offlined page
+remains on lru cache list for a while, which is avoided by calling
+put_page() instead of putback_lru_page() in page migration's success path.
+This means that this patch reverts a major change from commit
+add05cecef80 about the new refcounting rule of soft-offlined pages, so
+"reuse window" revives.  This will be closed by a subsequent patch.
 
 Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Andi Kleen <andi@firstfloor.org>
@@ -59,47 +74,84 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    7 ++++---
- mm/migrate.c        |    3 ++-
- 2 files changed, 6 insertions(+), 4 deletions(-)
+ include/linux/page-flags.h |   10 +++++++---
+ mm/huge_memory.c           |    7 +------
+ mm/migrate.c               |    5 ++++-
+ mm/page_alloc.c            |    4 ++++
+ 4 files changed, 16 insertions(+), 10 deletions(-)
 
-diff -puN mm/memory-failure.c~mm-memory-failure-set-pagehwpoison-before-migrate_pages mm/memory-failure.c
---- a/mm/memory-failure.c~mm-memory-failure-set-pagehwpoison-before-migrate_pages
-+++ a/mm/memory-failure.c
-@@ -1659,6 +1659,8 @@ static int __soft_offline_page(struct pa
- 		inc_zone_page_state(page, NR_ISOLATED_ANON +
- 					page_is_file_cache(page));
- 		list_add(&page->lru, &pagelist);
-+		if (!TestSetPageHWPoison(page))
-+			atomic_long_inc(&num_poisoned_pages);
- 		ret = migrate_pages(&pagelist, new_page, NULL, MPOL_MF_MOVE_ALL,
- 					MIGRATE_SYNC, MR_MEMORY_FAILURE);
- 		if (ret) {
-@@ -1673,9 +1675,8 @@ static int __soft_offline_page(struct pa
- 				pfn, ret, page->flags);
- 			if (ret > 0)
- 				ret = -EIO;
--		} else {
--			if (!TestSetPageHWPoison(page))
--				atomic_long_inc(&num_poisoned_pages);
-+			if (TestClearPageHWPoison(page))
-+				atomic_long_dec(&num_poisoned_pages);
- 		}
- 	} else {
- 		pr_info("soft offline: %#lx: isolation failed: %d, page count %d, type %lx\n",
-diff -puN mm/migrate.c~mm-memory-failure-set-pagehwpoison-before-migrate_pages mm/migrate.c
---- a/mm/migrate.c~mm-memory-failure-set-pagehwpoison-before-migrate_pages
+diff -puN include/linux/page-flags.h~mm-check-__pg_hwpoison-separately-from-page_flags_check_at_ include/linux/page-flags.h
+--- a/include/linux/page-flags.h~mm-check-__pg_hwpoison-separately-from-page_flags_check_at_
++++ a/include/linux/page-flags.h
+@@ -631,15 +631,19 @@ static inline void ClearPageSlabPfmemall
+ 	 1 << PG_private | 1 << PG_private_2 | \
+ 	 1 << PG_writeback | 1 << PG_reserved | \
+ 	 1 << PG_slab	 | 1 << PG_swapcache | 1 << PG_active | \
+-	 1 << PG_unevictable | __PG_MLOCKED | __PG_HWPOISON | \
++	 1 << PG_unevictable | __PG_MLOCKED | \
+ 	 __PG_COMPOUND_LOCK)
+ 
+ /*
+  * Flags checked when a page is prepped for return by the page allocator.
+- * Pages being prepped should not have any flags set.  It they are set,
++ * Pages being prepped should not have these flags set.  It they are set,
+  * there has been a kernel bug or struct page corruption.
++ *
++ * __PG_HWPOISON is exceptional because it needs to be kept beyond page's
++ * alloc-free cycle to prevent from reusing the page.
+  */
+-#define PAGE_FLAGS_CHECK_AT_PREP	((1 << NR_PAGEFLAGS) - 1)
++#define PAGE_FLAGS_CHECK_AT_PREP	\
++	(((1 << NR_PAGEFLAGS) - 1) & ~__PG_HWPOISON)
+ 
+ #define PAGE_FLAGS_PRIVATE				\
+ 	(1 << PG_private | 1 << PG_private_2)
+diff -puN mm/huge_memory.c~mm-check-__pg_hwpoison-separately-from-page_flags_check_at_ mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-check-__pg_hwpoison-separately-from-page_flags_check_at_
++++ a/mm/huge_memory.c
+@@ -1676,12 +1676,7 @@ static void __split_huge_page_refcount(s
+ 		/* after clearing PageTail the gup refcount can be released */
+ 		smp_mb__after_atomic();
+ 
+-		/*
+-		 * retain hwpoison flag of the poisoned tail page:
+-		 *   fix for the unsuitable process killed on Guest Machine(KVM)
+-		 *   by the memory-failure.
+-		 */
+-		page_tail->flags &= ~PAGE_FLAGS_CHECK_AT_PREP | __PG_HWPOISON;
++		page_tail->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
+ 		page_tail->flags |= (page->flags &
+ 				     ((1L << PG_referenced) |
+ 				      (1L << PG_swapbacked) |
+diff -puN mm/migrate.c~mm-check-__pg_hwpoison-separately-from-page_flags_check_at_ mm/migrate.c
+--- a/mm/migrate.c~mm-check-__pg_hwpoison-separately-from-page_flags_check_at_
 +++ a/mm/migrate.c
-@@ -880,7 +880,8 @@ static int __unmap_and_move(struct page
- 	/* Establish migration ptes or remove ptes */
- 	if (page_mapped(page)) {
- 		try_to_unmap(page,
--			TTU_MIGRATION|TTU_IGNORE_MLOCK|TTU_IGNORE_ACCESS);
-+			TTU_MIGRATION|TTU_IGNORE_MLOCK|TTU_IGNORE_ACCESS|
-+			TTU_IGNORE_HWPOISON);
- 		page_was_mapped = 1;
+@@ -950,7 +950,10 @@ out:
+ 		list_del(&page->lru);
+ 		dec_zone_page_state(page, NR_ISOLATED_ANON +
+ 				page_is_file_cache(page));
+-		if (reason != MR_MEMORY_FAILURE)
++		/* Soft-offlined page shouldn't go through lru cache list */
++		if (reason == MR_MEMORY_FAILURE)
++			put_page(page);
++		else
+ 			putback_lru_page(page);
  	}
  
+diff -puN mm/page_alloc.c~mm-check-__pg_hwpoison-separately-from-page_flags_check_at_ mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-check-__pg_hwpoison-separately-from-page_flags_check_at_
++++ a/mm/page_alloc.c
+@@ -1296,6 +1296,10 @@ static inline int check_new_page(struct
+ 		bad_reason = "non-NULL mapping";
+ 	if (unlikely(atomic_read(&page->_count) != 0))
+ 		bad_reason = "nonzero _count";
++	if (unlikely(page->flags & __PG_HWPOISON)) {
++		bad_reason = "HWPoisoned (hardware-corrupted)";
++		bad_flags = __PG_HWPOISON;
++	}
+ 	if (unlikely(page->flags & PAGE_FLAGS_CHECK_AT_PREP)) {
+ 		bad_reason = "PAGE_FLAGS_CHECK_AT_PREP flag set";
+ 		bad_flags = PAGE_FLAGS_CHECK_AT_PREP;
 _
 
 Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
