@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + proc-export-idle-flag-via-kpageflags-fix.patch added to -mm
+Subject: + proc-change-proc_subdir_lock-to-a-rwlock.patch added to -mm
  tree
-Date: Wed, 05 Aug 2015 14:19:27 -0700
-Message-ID: <55c27ddf.d9S9rPJfDXbt84Me%akpm@linux-foundation.org>
+Date: Wed, 05 Aug 2015 14:53:55 -0700
+Message-ID: <55c285f3.5XkKN4nOzw55ls5J%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38641 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39089 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750968AbbHEVT2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Aug 2015 17:19:28 -0400
+	with ESMTP id S1753710AbbHEVx4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Aug 2015 17:53:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, vdavydov@parallels.com, mm-commits@vger.kernel.org
+To: Waiman.Long@hp.com, adobriyan@gmail.com, doug.hatch@hp.com, ebiederm@xmission.com, nicolas.dichtel@6wind.com, scott.norton@hp.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc-export-idle-flag-via-kpageflags-fix
+     Subject: proc: change proc_subdir_lock to a rwlock
 has been added to the -mm tree.  Its filename is
-     proc-export-idle-flag-via-kpageflags-fix.patch
+     proc-change-proc_subdir_lock-to-a-rwlock.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/proc-export-idle-flag-via-kpageflags-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/proc-change-proc_subdir_lock-to-a-rwlock.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/proc-export-idle-flag-via-kpageflags-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/proc-change-proc_subdir_lock-to-a-rwlock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,84 +39,222 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: proc-export-idle-flag-via-kpageflags-fix
+From: Waiman Long <Waiman.Long@hp.com>
+Subject: proc: change proc_subdir_lock to a rwlock
 
-Cc: Vladimir Davydov <vdavydov@parallels.com>
+The proc_subdir_lock spinlock is used to allow only one task to make
+change to the proc directory structure as well as looking up information
+in it.  However, the information lookup part can actually be entered by
+more than one task as the pde_get() and pde_put() reference count update
+calls in the critical sections are atomic increment and decrement
+respectively and so are safe with concurrent updates.
+
+The x86 architecture has already used qrwlock which is fair and other
+architectures like ARM are in the process of switching to qrwlock.  So
+unfairness shouldn't be a concern in that conversion.
+
+This patch changed the proc_subdir_lock to a rwlock in order to enable
+concurrent lookup. The following functions were modified to take a
+write lock:
+ - proc_register()
+ - remove_proc_entry()
+ - remove_proc_subtree()
+
+The following functions were modified to take a read lock:
+ - xlate_proc_name()
+ - proc_lookup_de()
+ - proc_readdir_de()
+
+A parallel /proc filesystem search with the "find" command (1000 threads)
+was run on a 4-socket Haswell-EX box (144 threads).  Before the patch, the
+parallel search took about 39s.  After the patch, the parallel find took
+only 25s, a saving of about 14s.
+
+The micro-benchmark that I used was artificial, but it was used to
+reproduce an exit hanging problem that I saw in real application.  In
+fact, only allow one task to do a lookup seems too limiting to me.
+
+Signed-off-by: Waiman Long <Waiman.Long@hp.com>
+Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Scott J Norton <scott.norton@hp.com>
+Cc: Douglas Hatch <doug.hatch@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/pagemap.txt |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ fs/proc/generic.c |   44 ++++++++++++++++++++++----------------------
+ 1 file changed, 22 insertions(+), 22 deletions(-)
 
-diff -puN Documentation/vm/pagemap.txt~proc-export-idle-flag-via-kpageflags-fix Documentation/vm/pagemap.txt
---- a/Documentation/vm/pagemap.txt~proc-export-idle-flag-via-kpageflags-fix
-+++ a/Documentation/vm/pagemap.txt
-@@ -122,9 +122,10 @@ Short descriptions to the page flags:
-     zero page for pfn_zero or huge_zero page
+diff -puN fs/proc/generic.c~proc-change-proc_subdir_lock-to-a-rwlock fs/proc/generic.c
+--- a/fs/proc/generic.c~proc-change-proc_subdir_lock-to-a-rwlock
++++ a/fs/proc/generic.c
+@@ -26,7 +26,7 @@
  
- 25. IDLE
--    page has not been accessed since it was marked idle (see /proc/kpageidle)
--    Note that this flag may be stale in case the page was accessed via a PTE.
--    To make sure the flag is up-to-date one has to read /proc/kpageidle first.
-+    page has not been accessed since it was marked idle (see
-+    Documentation/vm/idle_page_tracking.txt). Note that this flag may be
-+    stale in case the page was accessed via a PTE. To make sure the flag
-+    is up-to-date one has to read /sys/kernel/mm/page_idle/bitmap first.
+ #include "internal.h"
  
-     [IO related page flags]
-  1. ERROR     IO error occurred
+-static DEFINE_SPINLOCK(proc_subdir_lock);
++static DEFINE_RWLOCK(proc_subdir_lock);
+ 
+ static int proc_match(unsigned int len, const char *name, struct proc_dir_entry *de)
+ {
+@@ -172,9 +172,9 @@ static int xlate_proc_name(const char *n
+ {
+ 	int rv;
+ 
+-	spin_lock(&proc_subdir_lock);
++	read_lock(&proc_subdir_lock);
+ 	rv = __xlate_proc_name(name, ret, residual);
+-	spin_unlock(&proc_subdir_lock);
++	read_unlock(&proc_subdir_lock);
+ 	return rv;
+ }
+ 
+@@ -231,11 +231,11 @@ struct dentry *proc_lookup_de(struct pro
+ {
+ 	struct inode *inode;
+ 
+-	spin_lock(&proc_subdir_lock);
++	read_lock(&proc_subdir_lock);
+ 	de = pde_subdir_find(de, dentry->d_name.name, dentry->d_name.len);
+ 	if (de) {
+ 		pde_get(de);
+-		spin_unlock(&proc_subdir_lock);
++		read_unlock(&proc_subdir_lock);
+ 		inode = proc_get_inode(dir->i_sb, de);
+ 		if (!inode)
+ 			return ERR_PTR(-ENOMEM);
+@@ -243,7 +243,7 @@ struct dentry *proc_lookup_de(struct pro
+ 		d_add(dentry, inode);
+ 		return NULL;
+ 	}
+-	spin_unlock(&proc_subdir_lock);
++	read_unlock(&proc_subdir_lock);
+ 	return ERR_PTR(-ENOENT);
+ }
+ 
+@@ -270,12 +270,12 @@ int proc_readdir_de(struct proc_dir_entr
+ 	if (!dir_emit_dots(file, ctx))
+ 		return 0;
+ 
+-	spin_lock(&proc_subdir_lock);
++	read_lock(&proc_subdir_lock);
+ 	de = pde_subdir_first(de);
+ 	i = ctx->pos - 2;
+ 	for (;;) {
+ 		if (!de) {
+-			spin_unlock(&proc_subdir_lock);
++			read_unlock(&proc_subdir_lock);
+ 			return 0;
+ 		}
+ 		if (!i)
+@@ -287,19 +287,19 @@ int proc_readdir_de(struct proc_dir_entr
+ 	do {
+ 		struct proc_dir_entry *next;
+ 		pde_get(de);
+-		spin_unlock(&proc_subdir_lock);
++		read_unlock(&proc_subdir_lock);
+ 		if (!dir_emit(ctx, de->name, de->namelen,
+ 			    de->low_ino, de->mode >> 12)) {
+ 			pde_put(de);
+ 			return 0;
+ 		}
+-		spin_lock(&proc_subdir_lock);
++		read_lock(&proc_subdir_lock);
+ 		ctx->pos++;
+ 		next = pde_subdir_next(de);
+ 		pde_put(de);
+ 		de = next;
+ 	} while (de);
+-	spin_unlock(&proc_subdir_lock);
++	read_unlock(&proc_subdir_lock);
+ 	return 1;
+ }
+ 
+@@ -338,16 +338,16 @@ static int proc_register(struct proc_dir
+ 	if (ret)
+ 		return ret;
+ 
+-	spin_lock(&proc_subdir_lock);
++	write_lock(&proc_subdir_lock);
+ 	dp->parent = dir;
+ 	if (pde_subdir_insert(dir, dp) == false) {
+ 		WARN(1, "proc_dir_entry '%s/%s' already registered\n",
+ 		     dir->name, dp->name);
+-		spin_unlock(&proc_subdir_lock);
++		write_unlock(&proc_subdir_lock);
+ 		proc_free_inum(dp->low_ino);
+ 		return -EEXIST;
+ 	}
+-	spin_unlock(&proc_subdir_lock);
++	write_unlock(&proc_subdir_lock);
+ 
+ 	return 0;
+ }
+@@ -549,9 +549,9 @@ void remove_proc_entry(const char *name,
+ 	const char *fn = name;
+ 	unsigned int len;
+ 
+-	spin_lock(&proc_subdir_lock);
++	write_lock(&proc_subdir_lock);
+ 	if (__xlate_proc_name(name, &parent, &fn) != 0) {
+-		spin_unlock(&proc_subdir_lock);
++		write_unlock(&proc_subdir_lock);
+ 		return;
+ 	}
+ 	len = strlen(fn);
+@@ -559,7 +559,7 @@ void remove_proc_entry(const char *name,
+ 	de = pde_subdir_find(parent, fn, len);
+ 	if (de)
+ 		rb_erase(&de->subdir_node, &parent->subdir);
+-	spin_unlock(&proc_subdir_lock);
++	write_unlock(&proc_subdir_lock);
+ 	if (!de) {
+ 		WARN(1, "name '%s'\n", name);
+ 		return;
+@@ -583,16 +583,16 @@ int remove_proc_subtree(const char *name
+ 	const char *fn = name;
+ 	unsigned int len;
+ 
+-	spin_lock(&proc_subdir_lock);
++	write_lock(&proc_subdir_lock);
+ 	if (__xlate_proc_name(name, &parent, &fn) != 0) {
+-		spin_unlock(&proc_subdir_lock);
++		write_unlock(&proc_subdir_lock);
+ 		return -ENOENT;
+ 	}
+ 	len = strlen(fn);
+ 
+ 	root = pde_subdir_find(parent, fn, len);
+ 	if (!root) {
+-		spin_unlock(&proc_subdir_lock);
++		write_unlock(&proc_subdir_lock);
+ 		return -ENOENT;
+ 	}
+ 	rb_erase(&root->subdir_node, &parent->subdir);
+@@ -605,7 +605,7 @@ int remove_proc_subtree(const char *name
+ 			de = next;
+ 			continue;
+ 		}
+-		spin_unlock(&proc_subdir_lock);
++		write_unlock(&proc_subdir_lock);
+ 
+ 		proc_entry_rundown(de);
+ 		next = de->parent;
+@@ -616,7 +616,7 @@ int remove_proc_subtree(const char *name
+ 			break;
+ 		pde_put(de);
+ 
+-		spin_lock(&proc_subdir_lock);
++		write_lock(&proc_subdir_lock);
+ 		de = next;
+ 	}
+ 	pde_put(root);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from Waiman.Long@hp.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-kernel-kthreadc-kthread_create_on_node-clarify-documentation.patch
-scripts-spellingtxt-adding-misspelled-word-for-check-fix.patch
-ocfs2-sysfile-interfaces-for-online-file-check-fix.patch
-watchdog-introduce-watchdog_suspend-and-watchdog_resume-fix.patch
-mm.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
-userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
-mm-mlock-refactor-mlock-munlock-and-munlockall-code-checkpatch-fixes.patch
-mm-mlock-add-new-mlock-system-call-checkpatch-fixes.patch
-mm-introduce-vm_lockonfault-checkpatch-fixes.patch
-genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-fix.patch
-genalloc-add-support-of-multiple-gen_pools-per-device-fix.patch
-mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested-fix.patch
-dax-revert-userfaultfd-change.patch
-thp-prepare-for-dax-huge-pages-fix.patch
-pagemap-add-mmap-exclusive-bit-for-marking-pages-mapped-only-here-fix.patch
-pagemap-update-documentation-fix.patch
-mm-show-proportional-swap-share-of-the-mapping-fix.patch
-mm-improve-__gfp_noretry-comment-based-on-implementation-fix.patch
-memcg-export-struct-mem_cgroup-fix.patch
-memcg-export-struct-mem_cgroup-fix-2.patch
-mm-hugetlb-add-cache-of-descriptors-to-resv_map-for-region_add-fix.patch
-mm-srcu-ify-shrinkers-fix-fix.patch
-include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
-proc-export-idle-flag-via-kpageflags-fix.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
-procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix.patch
-procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix-fix.patch
-fs-coda-fix-readlink-buffer-overflow-checkpatch-fixes.patch
-kexec-split-kexec_load-syscall-from-kexec-core-code-checkpatch-fixes.patch
+proc-change-proc_subdir_lock-to-a-rwlock.patch
 linux-next.patch
-linux-next-rejects.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-net-netfilter-ipset-work-around-gcc-444-initializer-bug.patch
-fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix.patch
-mm-mpx-add-vm_flags_t-vm_flags-arg-to-do_mmap_pgoff-fix-checkpatch-fixes.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
 
