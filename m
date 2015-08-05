@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + zswap-dynamic-pool-creation-fix.patch added to -mm tree
-Date: Wed, 05 Aug 2015 15:39:56 -0700
-Message-ID: <55c290bc.ELercZOrTZcOgRjw%akpm@linux-foundation.org>
+Subject: + watchdog-use-suspend-resume-interface-in-fixup_ht_bug-fix.patch added to -mm tree
+Date: Wed, 05 Aug 2015 15:40:25 -0700
+Message-ID: <55c290d9.Kh1B7qRrjT/mNgtS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40453 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40456 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751971AbbHEWj5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Aug 2015 18:39:57 -0400
+	with ESMTP id S1751971AbbHEWk0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Aug 2015 18:40:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ddstreet@ieee.org, sjennings@variantweb.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, uobergfe@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zswap-dynamic-pool-creation-fix
+     Subject: watchdog-use-suspend-resume-interface-in-fixup_ht_bug-fix
 has been added to the -mm tree.  Its filename is
-     zswap-dynamic-pool-creation-fix.patch
+     watchdog-use-suspend-resume-interface-in-fixup_ht_bug-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zswap-dynamic-pool-creation-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/watchdog-use-suspend-resume-interface-in-fixup_ht_bug-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zswap-dynamic-pool-creation-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/watchdog-use-suspend-resume-interface-in-fixup_ht_bug-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,52 +39,36 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: zswap-dynamic-pool-creation-fix
+Subject: watchdog-use-suspend-resume-interface-in-fixup_ht_bug-fix
 
-fix merge snafus
+fix build with CONFIG_LOCKUP_DETECTOR=m
 
-Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: Seth Jennings <sjennings@variantweb.net>
+Cc: Ulrich Obergfell <uobergfe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ include/linux/nmi.h |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN mm/zswap.c~zswap-dynamic-pool-creation-fix mm/zswap.c
---- a/mm/zswap.c~zswap-dynamic-pool-creation-fix
-+++ a/mm/zswap.c
-@@ -173,6 +173,10 @@ static int zswap_writeback_entry(struct
- static int zswap_pool_get(struct zswap_pool *pool);
- static void zswap_pool_put(struct zswap_pool *pool);
- 
-+static const struct zpool_ops zswap_zpool_ops = {
-+	.evict = zswap_writeback_entry
-+};
+diff -puN include/linux/nmi.h~watchdog-use-suspend-resume-interface-in-fixup_ht_bug-fix include/linux/nmi.h
+--- a/include/linux/nmi.h~watchdog-use-suspend-resume-interface-in-fixup_ht_bug-fix
++++ a/include/linux/nmi.h
+@@ -80,6 +80,15 @@ extern int proc_watchdog_cpumask(struct
+ 				 void __user *, size_t *, loff_t *);
+ extern int watchdog_suspend(void);
+ extern void watchdog_resume(void);
++#else
++static inline int watchdog_suspend(void)
++{
++	return 0;
++}
 +
- static bool zswap_is_full(void)
- {
- 	return totalram_pages * zswap_max_pool_percent / 100 <
-@@ -657,8 +661,6 @@ static void zswap_pool_put(struct zswap_
- 	kref_put(&pool->kref, __zswap_pool_empty);
- }
++static inline void watchdog_resume(void)
++{
++}
+ #endif
  
--}
--
- /*********************************
- * writeback code
- **********************************/
-@@ -1030,10 +1032,6 @@ static void zswap_frontswap_invalidate_a
- 	zswap_trees[type] = NULL;
- }
- 
--static const struct zpool_ops zswap_zpool_ops = {
--	.evict = zswap_writeback_entry
--};
--
- static void zswap_frontswap_init(unsigned type)
- {
- 	struct zswap_tree *tree;
+ #ifdef CONFIG_HAVE_ACPI_APEI_NMI
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
