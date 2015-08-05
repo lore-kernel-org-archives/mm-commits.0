@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + test_user_copy-check-__clear_user-clear_user.patch added to -mm tree
-Date: Wed, 05 Aug 2015 12:59:04 -0700
-Message-ID: <55c26b08.bONChDEyRC/r5RBi%akpm@linux-foundation.org>
+Subject: + test_user_copy-check-user-string-accessors.patch added to -mm
+ tree
+Date: Wed, 05 Aug 2015 12:59:10 -0700
+Message-ID: <55c26b0e.zXzp1lVasNLRzfZK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37134 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37142 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753065AbbHET7F (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Aug 2015 15:59:05 -0400
+	with ESMTP id S1753334AbbHET7L (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Aug 2015 15:59:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: james.hogan@imgtec.com, keescook@chromium.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/test_user_copy.c: check __clear_user()/clear_user()
+     Subject: lib/test_user_copy.c: check user string accessors
 has been added to the -mm tree.  Its filename is
-     test_user_copy-check-__clear_user-clear_user.patch
+     test_user_copy-check-user-string-accessors.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/test_user_copy-check-__clear_user-clear_user.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/test_user_copy-check-user-string-accessors.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/test_user_copy-check-__clear_user-clear_user.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/test_user_copy-check-user-string-accessors.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,93 +40,92 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: James Hogan <james.hogan@imgtec.com>
-Subject: lib/test_user_copy.c: check __clear_user()/clear_user()
+Subject: lib/test_user_copy.c: check user string accessors
 
-Add basic success/failure checking of __clear_user() and clear_user(),
-which zero an area of user or kernel memory and return the number of bytes
-left to clear.
+Add basic success/failure checking of the user string functions which copy
+or find the length of userland strings.
 
-This catches a couple of bugs in the MIPS Enhanced Virtual Memory (EVA)
-implementation (which have already been fixed): test_user_copy: legitimate
-kernel clear_user failed test_user_copy: legitimate kernel __clear_user
-failed
+The following cases are checked:
+- strncpy_from_user() with legitimate user to kernel addresses, illegal
+  all-kernel and reversed addresses, and legitimate all-kernel
+  addresses.
+- strnlen_user()/strlen_user() with a legitimate user address, an
+  illegal kernel address, and a legitimate kernel address.
 
-Due to neither function checking the user address limit, and both
-resorting to user access unconditionally.
+This caught a bug in the MIPS Enhanced Virtual Memory (EVA)
+implementation:
+test_user_copy: illegal strlen_user passed
+
+Due to strlen_user() accidentally always using normal kernel loads, and
+the EVA user/kernel address ranges overlapping.
 
 New tests:
-- legitimate clear_user
-- legitimate __clear_user
-- illegal kernel clear_user
-- illegal kernel __clear_user
-- legitimate kernel clear_user
-- legitimate kernel __clear_user
+- legitimate strncpy_from_user
+- legitimate strnlen_user
+- legitimate strlen_user
+- illegal all-kernel strncpy_from_user
+- illegal reversed strncpy_from_user
+- illegal strnlen_user
+- illegal strlen_user
+- legitimate all-kernel strncpy_from_user
+- legitimate kernel strnlen_user
+- legitimate kernel strlen_user
 
 Signed-off-by: James Hogan <james.hogan@imgtec.com>
 Cc: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_user_copy.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ lib/test_user_copy.c |   23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
-diff -puN lib/test_user_copy.c~test_user_copy-check-__clear_user-clear_user lib/test_user_copy.c
---- a/lib/test_user_copy.c~test_user_copy-check-__clear_user-clear_user
+diff -puN lib/test_user_copy.c~test_user_copy-check-user-string-accessors lib/test_user_copy.c
+--- a/lib/test_user_copy.c~test_user_copy-check-user-string-accessors
 +++ a/lib/test_user_copy.c
-@@ -68,6 +68,8 @@ static int __init test_user_copy_init(vo
- 		    "legitimate get_user failed");
- 	ret |= test(put_user(value, (unsigned long __user *)usermem),
+@@ -72,6 +72,12 @@ static int __init test_user_copy_init(vo
  		    "legitimate put_user failed");
-+	ret |= test(clear_user(usermem, PAGE_SIZE) != 0,
-+		    "legitimate clear_user passed");
+ 	ret |= test(clear_user(usermem, PAGE_SIZE) != 0,
+ 		    "legitimate clear_user passed");
++	ret |= test(strncpy_from_user(kmem, usermem, PAGE_SIZE) < 0,
++		    "legitimate strncpy_from_user failed");
++	ret |= test(strnlen_user(usermem, PAGE_SIZE) == 0,
++		    "legitimate strnlen_user failed");
++	ret |= test(strlen_user(usermem) == 0,
++		    "legitimate strlen_user failed");
  
  	ret |= test(!access_ok(VERIFY_READ, usermem, PAGE_SIZE * 2),
  		    "legitimate access_ok VERIFY_READ failed");
-@@ -81,6 +83,8 @@ static int __init test_user_copy_init(vo
- 		    "legitimate __get_user failed");
- 	ret |= test(__put_user(value, (unsigned long __user *)usermem),
- 		    "legitimate __put_user failed");
-+	ret |= test(__clear_user(usermem, PAGE_SIZE) != 0,
-+		    "legitimate __clear_user passed");
- 
- 	/* Invalid usage: none of these should succeed. */
- 	ret |= test(!copy_from_user(kmem, (char __user *)(kmem + PAGE_SIZE),
-@@ -99,6 +103,8 @@ static int __init test_user_copy_init(vo
- 		    "illegal get_user passed");
- 	ret |= test(!put_user(value, (unsigned long __user *)kmem),
+@@ -122,6 +128,16 @@ static int __init test_user_copy_init(vo
  		    "illegal put_user passed");
-+	ret |= test(clear_user((char __user *)kmem, PAGE_SIZE) != PAGE_SIZE,
-+		    "illegal kernel clear_user passed");
+ 	ret |= test(clear_user((char __user *)kmem, PAGE_SIZE) != PAGE_SIZE,
+ 		    "illegal kernel clear_user passed");
++	ret |= test(strncpy_from_user(kmem, (char __user *)(kmem + PAGE_SIZE),
++				      PAGE_SIZE) >= 0,
++		    "illegal all-kernel strncpy_from_user passed");
++	ret |= test(strncpy_from_user(bad_usermem, (char __user *)kmem,
++				      PAGE_SIZE) >= 0,
++		    "illegal reversed strncpy_from_user passed");
++	ret |= test(strnlen_user((char __user *)kmem, PAGE_SIZE) != 0,
++		    "illegal strnlen_user passed");
++	ret |= test(strlen_user((char __user *)kmem) != 0,
++		    "illegal strlen_user passed");
  
  	/*
  	 * If unchecked user accesses (__*) on this architecture cannot access
-@@ -128,6 +134,8 @@ static int __init test_user_copy_init(vo
- 		    "illegal __get_user passed");
- 	ret |= test(!__put_user(value, (unsigned long __user *)kmem),
- 		    "illegal __put_user passed");
-+	ret |= test(__clear_user((char __user *)kmem, PAGE_SIZE) != PAGE_SIZE,
-+		    "illegal kernel __clear_user passed");
- #endif
- 
- 	/*
-@@ -148,6 +156,8 @@ static int __init test_user_copy_init(vo
- 		    "legitimate kernel get_user failed");
- 	ret |= test(put_user(value, (unsigned long __user *)kmem),
+@@ -201,6 +217,13 @@ static int __init test_user_copy_init(vo
  		    "legitimate kernel put_user failed");
-+	ret |= test(clear_user((char __user *)kmem, PAGE_SIZE) != 0,
-+		    "legitimate kernel clear_user failed");
+ 	ret |= test(clear_user((char __user *)kmem, PAGE_SIZE) != 0,
+ 		    "legitimate kernel clear_user failed");
++	ret |= test(strncpy_from_user(kmem, (char __user *)(kmem + PAGE_SIZE),
++				      PAGE_SIZE) < 0,
++		    "legitimate all-kernel strncpy_from_user failed");
++	ret |= test(strnlen_user((char __user *)kmem, PAGE_SIZE) == 0,
++		    "legitimate kernel strnlen_user failed");
++	ret |= test(strlen_user((char __user *)kmem) == 0,
++		    "legitimate kernel strlen_user failed");
  
  	ret |= test(!access_ok(VERIFY_READ, (char __user *)kmem, PAGE_SIZE * 2),
  		    "legitimate kernel access_ok VERIFY_READ failed");
-@@ -164,6 +174,8 @@ static int __init test_user_copy_init(vo
- 		    "legitimate kernel __get_user failed");
- 	ret |= test(__put_user(value, (unsigned long __user *)kmem),
- 		    "legitimate kernel __put_user failed");
-+	ret |= test(__clear_user((char __user *)kmem, PAGE_SIZE) != 0,
-+		    "legitimate kernel __clear_user failed");
- 
- 	/* Restore previous address limit. */
- 	set_fs(fs);
 _
 
 Patches currently in -mm which might be from james.hogan@imgtec.com are
