@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + zswap-change-zpool-compressor-at-runtime.patch added to -mm
- tree
-Date: Wed, 05 Aug 2015 13:14:36 -0700
-Message-ID: <55c26eac.HpCcIWe+mvofbNSO%akpm@linux-foundation.org>
+Subject: + zpool-add-zpool_has_pool.patch added to -mm tree
+Date: Wed, 05 Aug 2015 13:16:14 -0700
+Message-ID: <55c26f0e.1NnnnRFacbwNetpW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37212 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37222 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753333AbbHEUOh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Aug 2015 16:14:37 -0400
+	with ESMTP id S1752036AbbHEUQP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Aug 2015 16:16:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ddstreet@ieee.org, sjennings@variantweb.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zswap: change zpool/compressor at runtime
+     Subject: zpool: add zpool_has_pool()
 has been added to the -mm tree.  Its filename is
-     zswap-change-zpool-compressor-at-runtime.patch
+     zpool-add-zpool_has_pool.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zswap-change-zpool-compressor-at-runtime.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zpool-add-zpool_has_pool.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zswap-change-zpool-compressor-at-runtime.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zpool-add-zpool_has_pool.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,200 +39,96 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dan Streetman <ddstreet@ieee.org>
-Subject: zswap: change zpool/compressor at runtime
+Subject: zpool: add zpool_has_pool()
 
-Update the zpool and compressor parameters to be changeable at runtime. 
-When changed, a new pool is created with the requested zpool/compressor,
-and added as the current pool at the front of the pool list.  Previous
-pools remain in the list only to remove existing compressed pages from. 
-The old pool(s) are removed once they become empty.
+This series makes creation of the zpool and compressor dynamic, so that
+they can be changed at runtime.  This makes using/configuring zswap
+easier, as before this zswap had to be configured at boot time, using boot
+params.
+
+This uses a single list to track both the zpool and compressor together,
+although Seth had mentioned an alternative which is to track the zpools
+and compressors using separate lists.  In the most common case, only a
+single zpool and single compressor, using one list is slightly simpler
+than using two lists, and for the uncommon case of multiple zpools and/or
+compressors, using one list is slightly less simple (and uses slightly
+more memory, probably) than using two lists.
+
+
+This patch (of 3):
+
+Add zpool_has_pool() function, indicating if the specified type of zpool
+is available (i.e.  zsmalloc or zbud).  This allows checking if a pool is
+available, without actually trying to allocate it, similar to
+crypto_has_alg().
+
+This is used by a following patch to zswap that enables the dynamic
+runtime creation of zswap zpools.
 
 Signed-off-by: Dan Streetman <ddstreet@ieee.org>
 Cc: Seth Jennings <sjennings@variantweb.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |  135 ++++++++++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 122 insertions(+), 13 deletions(-)
+ include/linux/zpool.h |    2 ++
+ mm/zpool.c            |   25 +++++++++++++++++++++++++
+ 2 files changed, 27 insertions(+)
 
-diff -puN mm/zswap.c~zswap-change-zpool-compressor-at-runtime mm/zswap.c
---- a/mm/zswap.c~zswap-change-zpool-compressor-at-runtime
-+++ a/mm/zswap.c
-@@ -80,23 +80,39 @@ static u64 zswap_duplicate_entry;
- static bool zswap_enabled;
- module_param_named(enabled, zswap_enabled, bool, 0644);
+diff -puN include/linux/zpool.h~zpool-add-zpool_has_pool include/linux/zpool.h
+--- a/include/linux/zpool.h~zpool-add-zpool_has_pool
++++ a/include/linux/zpool.h
+@@ -36,6 +36,8 @@ enum zpool_mapmode {
+ 	ZPOOL_MM_DEFAULT = ZPOOL_MM_RW
+ };
  
--/* Compressor to be used by zswap (fixed at boot for now) */
-+/* Crypto compressor to use */
- #define ZSWAP_COMPRESSOR_DEFAULT "lzo"
--static char *zswap_compressor = ZSWAP_COMPRESSOR_DEFAULT;
--module_param_named(compressor, zswap_compressor, charp, 0444);
--
--/* The maximum percentage of memory that the compressed pool can occupy */
--static unsigned int zswap_max_pool_percent = 20;
--module_param_named(max_pool_percent,
--			zswap_max_pool_percent, uint, 0644);
-+static char zswap_compressor[CRYPTO_MAX_ALG_NAME] = ZSWAP_COMPRESSOR_DEFAULT;
-+static struct kparam_string zswap_compressor_kparam = {
-+	.string =	zswap_compressor,
-+	.maxlen =	sizeof(zswap_compressor),
-+};
-+static int zswap_compressor_param_set(const char *,
-+				      const struct kernel_param *);
-+static struct kernel_param_ops zswap_compressor_param_ops = {
-+	.set =		zswap_compressor_param_set,
-+	.get =		param_get_string,
-+};
-+module_param_cb(compressor, &zswap_compressor_param_ops,
-+		&zswap_compressor_kparam, 0644);
- 
--/* Compressed storage to use */
-+/* Compressed storage zpool to use */
- #define ZSWAP_ZPOOL_DEFAULT "zbud"
--static char *zswap_zpool_type = ZSWAP_ZPOOL_DEFAULT;
--module_param_named(zpool, zswap_zpool_type, charp, 0444);
-+static char zswap_zpool_type[32 /* arbitrary */] = ZSWAP_ZPOOL_DEFAULT;
-+static struct kparam_string zswap_zpool_kparam = {
-+	.string =	zswap_zpool_type,
-+	.maxlen =	sizeof(zswap_zpool_type),
-+};
-+static int zswap_zpool_param_set(const char *, const struct kernel_param *);
-+static struct kernel_param_ops zswap_zpool_param_ops = {
-+	.set =	zswap_zpool_param_set,
-+	.get =	param_get_string,
-+};
-+module_param_cb(zpool, &zswap_zpool_param_ops, &zswap_zpool_kparam, 0644);
- 
--/* zpool is shared by all of zswap backend  */
--static struct zpool *zswap_pool;
-+/* The maximum percentage of memory that the compressed pool can occupy */
-+static unsigned int zswap_max_pool_percent = 20;
-+module_param_named(max_pool_percent, zswap_max_pool_percent, uint, 0644);
- 
- /*********************************
- * data structures
-@@ -161,6 +177,9 @@ static LIST_HEAD(zswap_pools);
- /* protects zswap_pools list modification */
- static DEFINE_SPINLOCK(zswap_pools_lock);
- 
-+/* used by param callback function */
-+static bool zswap_init_started;
++bool zpool_has_pool(char *type);
 +
- /*********************************
- * helpers and fwd declarations
- **********************************/
-@@ -657,6 +676,94 @@ static void zswap_pool_put(struct zswap_
- 	kref_put(&pool->kref, __zswap_pool_empty);
+ struct zpool *zpool_create_pool(char *type, char *name,
+ 			gfp_t gfp, const struct zpool_ops *ops);
+ 
+diff -puN mm/zpool.c~zpool-add-zpool_has_pool mm/zpool.c
+--- a/mm/zpool.c~zpool-add-zpool_has_pool
++++ a/mm/zpool.c
+@@ -100,6 +100,31 @@ static void zpool_put_driver(struct zpoo
  }
  
-+/*********************************
-+* param callbacks
-+**********************************/
-+
-+static int __zswap_param_set(const char *val, const struct kernel_param *kp,
-+			     char *type, char *compressor)
+ /**
++ * zpool_has_pool() - Check if the pool driver is available
++ * @type	The type of the zpool to check (e.g. zbud, zsmalloc)
++ *
++ * This checks if the @type pool driver is available.
++ *
++ * Returns: true if @type pool is available, false if not
++ */
++bool zpool_has_pool(char *type)
 +{
-+	struct zswap_pool *pool, *put_pool = NULL;
-+	char str[kp->str->maxlen], *s;
-+	int ret;
++	struct zpool_driver *driver = zpool_get_driver(type);
 +
-+	strlcpy(str, val, kp->str->maxlen);
-+	s = strim(str);
-+
-+	/* if this is load-time (pre-init) param setting,
-+	 * don't create a pool; that's done during init.
-+	 */
-+	if (!zswap_init_started)
-+		return param_set_copystring(s, kp);
-+
-+	/* no change required */
-+	if (!strncmp(kp->str->string, s, kp->str->maxlen))
-+		return 0;
-+
-+	if (!type) {
-+		type = s;
-+		if (!zpool_has_pool(type)) {
-+			pr_err("zpool %s not available\n", type);
-+			return -ENOENT;
-+		}
-+	} else if (!compressor) {
-+		compressor = s;
-+		if (!crypto_has_comp(compressor, 0, 0)) {
-+			pr_err("compressor %s not available\n", compressor);
-+			return -ENOENT;
-+		}
++	if (!driver) {
++		request_module("zpool-%s", type);
++		driver = zpool_get_driver(type);
 +	}
 +
-+	spin_lock(&zswap_pools_lock);
++	if (!driver)
++		return false;
 +
-+	pool = zswap_pool_find_get(type, compressor);
-+	if (pool) {
-+		zswap_pool_debug("using existing", pool);
-+		list_del_rcu(&pool->list);
-+	} else {
-+		spin_unlock(&zswap_pools_lock);
-+		pool = zswap_pool_create(type, compressor);
-+		spin_lock(&zswap_pools_lock);
-+	}
-+
-+	if (pool)
-+		ret = param_set_copystring(s, kp);
-+	else
-+		ret = -EINVAL;
-+
-+	if (!ret) {
-+		put_pool = zswap_pool_current();
-+		list_add_rcu(&pool->list, &zswap_pools);
-+	} else if (pool) {
-+		/* add the possibly pre-existing pool to the end of the pools
-+		 * list; if it's new (and empty) then it'll be removed and
-+		 * destroyed by the put after we drop the lock
-+		 */
-+		list_add_tail_rcu(&pool->list, &zswap_pools);
-+		put_pool = pool;
-+	}
-+
-+	spin_unlock(&zswap_pools_lock);
-+
-+	/* drop the ref from either the old current pool,
-+	 * or the new pool we failed to add
-+	 */
-+	if (put_pool)
-+		zswap_pool_put(put_pool);
-+
-+	return ret;
++	zpool_put_driver(driver);
++	return true;
 +}
++EXPORT_SYMBOL(zpool_has_pool);
 +
-+static int zswap_compressor_param_set(const char *val,
-+				      const struct kernel_param *kp)
-+{
-+	return __zswap_param_set(val, kp, zswap_zpool_type, NULL);
-+}
-+
-+static int zswap_zpool_param_set(const char *val,
-+				 const struct kernel_param *kp)
-+{
-+	return __zswap_param_set(val, kp, NULL, zswap_compressor);
- }
- 
- /*********************************
-@@ -1116,6 +1223,8 @@ static int __init init_zswap(void)
- {
- 	struct zswap_pool *pool;
- 
-+	zswap_init_started = true;
-+
- 	if (zswap_entry_cache_create()) {
- 		pr_err("entry cache creation failed\n");
- 		goto cache_fail;
++/**
+  * zpool_create_pool() - Create a new zpool
+  * @type	The type of the zpool to create (e.g. zbud, zsmalloc)
+  * @name	The name of the zpool (e.g. zram0, zswap)
 _
 
 Patches currently in -mm which might be from ddstreet@ieee.org are
 
+mm-zpool-constify-the-zpool_ops.patch
+mm-zbud-constify-the-zbud_ops.patch
 zpool-add-zpool_has_pool.patch
 zswap-dynamic-pool-creation.patch
 zswap-change-zpool-compressor-at-runtime.patch
-mm-zpool-constify-the-zpool_ops.patch
-mm-zbud-constify-the-zbud_ops.patch
 linux-next.patch
 
