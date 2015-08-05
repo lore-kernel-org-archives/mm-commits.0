@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + watchdog-use-suspend-resume-interface-in-fixup_ht_bug-fix.patch added to -mm tree
-Date: Wed, 05 Aug 2015 15:40:25 -0700
-Message-ID: <55c290d9.Kh1B7qRrjT/mNgtS%akpm@linux-foundation.org>
+Subject: + proc-add-kpageidle-file-fix-6-fix.patch added to -mm tree
+Date: Wed, 05 Aug 2015 16:14:23 -0700
+Message-ID: <55c298cf.wYg5CjhOpUN7KFtE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40456 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40870 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751971AbbHEWk0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Aug 2015 18:40:26 -0400
+	with ESMTP id S1753584AbbHEXOY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 5 Aug 2015 19:14:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, uobergfe@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, andreslc@google.com, mhocko@kernel.org, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: watchdog-use-suspend-resume-interface-in-fixup_ht_bug-fix
+     Subject: proc-add-kpageidle-file-fix-6-fix
 has been added to the -mm tree.  Its filename is
-     watchdog-use-suspend-resume-interface-in-fixup_ht_bug-fix.patch
+     proc-add-kpageidle-file-fix-6-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/watchdog-use-suspend-resume-interface-in-fixup_ht_bug-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/proc-add-kpageidle-file-fix-6-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/watchdog-use-suspend-resume-interface-in-fixup_ht_bug-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/proc-add-kpageidle-file-fix-6-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,36 +39,48 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: watchdog-use-suspend-resume-interface-in-fixup_ht_bug-fix
+Subject: proc-add-kpageidle-file-fix-6-fix
 
-fix build with CONFIG_LOCKUP_DETECTOR=m
+fix build
 
-Cc: Ulrich Obergfell <uobergfe@redhat.com>
+fs/proc/page.c: In function 'kpageidle_clear_pte_refs_one':
+fs/proc/page.c:330: error: implicit declaration of function 'pmdp_clear_young_notify'
+fs/proc/page.c:336: error: implicit declaration of function 'ptep_clear_young_notify'
+fs/proc/page.c: In function 'kpageidle_read':
+fs/proc/page.c:397: error: 'KPMBITS' undeclared (first use in this function)
+fs/proc/page.c:397: error: (Each undeclared identifier is reported only once
+fs/proc/page.c:397: error: for each function it appears in.)
+fs/proc/page.c: In function 'kpageidle_write':
+fs/proc/page.c:450: error: 'KPMBITS' undeclared (first use in this function)
+
+Cc: Andres Lagar-Cavilla <andreslc@google.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Vladimir Davydov <vdavydov@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/nmi.h |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ fs/proc/page.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN include/linux/nmi.h~watchdog-use-suspend-resume-interface-in-fixup_ht_bug-fix include/linux/nmi.h
---- a/include/linux/nmi.h~watchdog-use-suspend-resume-interface-in-fixup_ht_bug-fix
-+++ a/include/linux/nmi.h
-@@ -80,6 +80,15 @@ extern int proc_watchdog_cpumask(struct
- 				 void __user *, size_t *, loff_t *);
- extern int watchdog_suspend(void);
- extern void watchdog_resume(void);
-+#else
-+static inline int watchdog_suspend(void)
-+{
-+	return 0;
-+}
-+
-+static inline void watchdog_resume(void)
-+{
-+}
- #endif
+diff -puN fs/proc/page.c~proc-add-kpageidle-file-fix-6-fix fs/proc/page.c
+--- a/fs/proc/page.c~proc-add-kpageidle-file-fix-6-fix
++++ a/fs/proc/page.c
+@@ -10,6 +10,7 @@
+ #include <linux/seq_file.h>
+ #include <linux/hugetlb.h>
+ #include <linux/memcontrol.h>
++#include <linux/mmu_notifier.h>
+ #include <linux/page_idle.h>
+ #include <linux/kernel-page-flags.h>
+ #include <asm/uaccess.h>
+@@ -17,6 +18,7 @@
  
- #ifdef CONFIG_HAVE_ACPI_APEI_NMI
+ #define KPMSIZE sizeof(u64)
+ #define KPMMASK (KPMSIZE - 1)
++#define KPMBITS (KPMSIZE * BITS_PER_BYTE)
+ 
+ /* /proc/kpagecount - an array exposing page counts
+  *
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -100,6 +112,7 @@ memcg-export-struct-mem_cgroup-fix-2.patch
 mm-hugetlb-add-cache-of-descriptors-to-resv_map-for-region_add-fix.patch
 mm-srcu-ify-shrinkers-fix-fix.patch
 include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
+proc-add-kpageidle-file-fix-6-fix.patch
 proc-export-idle-flag-via-kpageflags-fix.patch
 mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
 x86-add-pmd_-for-thp-fix.patch
