@@ -1,48 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- test_user_copy-check-__copy_tofrom_user_inatomic.patch removed from -mm
- tree
-Date: Thu, 06 Aug 2015 12:33:12 -0700
-Message-ID: <55c3b678.KZcIle+xeUUQ7O6J%akpm@linux-foundation.org>
+Subject: [to-be-updated] test_user_copy-check-user-string-accessors.patch
+ removed from -mm tree
+Date: Thu, 06 Aug 2015 12:33:15 -0700
+Message-ID: <55c3b67b.c92IPuzCw/lN83Gt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39333 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39338 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754381AbbHFTdN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Aug 2015 15:33:13 -0400
+	with ESMTP id S1754381AbbHFTdQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 6 Aug 2015 15:33:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: james.hogan@imgtec.com, keescook@chromium.org, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/test_user_copy.c: check __copy_{to,from}_user_inatomic()
+     Subject: lib/test_user_copy.c: check user string accessors
 has been removed from the -mm tree.  Its filename was
-     test_user_copy-check-__copy_tofrom_user_inatomic.patch
+     test_user_copy-check-user-string-accessors.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: James Hogan <james.hogan@imgtec.com>
-Subject: lib/test_user_copy.c: check __copy_{to,from}_user_inatomic()
+Subject: lib/test_user_copy.c: check user string accessors
 
-Add basic success/failure checking of __copy_to_user_inatomic() and
-__copy_from_user_inatomic().  For testing purposes these are similar to
-their non-atomic non-checking friends, so the new tests match those for
-__copy_to_user() and __copy_from_user().
+Add basic success/failure checking of the user string functions which copy
+or find the length of userland strings.
+
+The following cases are checked:
+- strncpy_from_user() with legitimate user to kernel addresses, illegal
+  all-kernel and reversed addresses, and legitimate all-kernel
+  addresses.
+- strnlen_user()/strlen_user() with a legitimate user address, an
+  illegal kernel address, and a legitimate kernel address.
+
+This caught a bug in the MIPS Enhanced Virtual Memory (EVA)
+implementation:
+test_user_copy: illegal strlen_user passed
+
+Due to strlen_user() accidentally always using normal kernel loads, and
+the EVA user/kernel address ranges overlapping.
 
 New tests:
-- legitimate __copy_from_user_inatomic
-- legitimate __copy_to_user_inatomic
-- illegal all-kernel __copy_from_user_inatomic
-- illegal reversed __copy_from_user_inatomic
-- illegal all-kernel __copy_to_user_inatomic
-- illegal reversed __copy_to_user_inatomic
-- legitimate all-kernel __copy_from_user_inatomic
-- legitimate all-kernel __copy_to_user_inatomic
+- legitimate strncpy_from_user
+- legitimate strnlen_user
+- legitimate strlen_user
+- illegal all-kernel strncpy_from_user
+- illegal reversed strncpy_from_user
+- illegal strnlen_user
+- illegal strlen_user
+- legitimate all-kernel strncpy_from_user
+- legitimate kernel strnlen_user
+- legitimate kernel strlen_user
 
 Signed-off-by: James Hogan <james.hogan@imgtec.com>
 Acked-by: Kees Cook <keescook@chromium.org>
@@ -50,73 +63,60 @@ Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_user_copy.c |   24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+ lib/test_user_copy.c |   23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
-diff -puN lib/test_user_copy.c~test_user_copy-check-__copy_tofrom_user_inatomic lib/test_user_copy.c
---- a/lib/test_user_copy.c~test_user_copy-check-__copy_tofrom_user_inatomic
+diff -puN lib/test_user_copy.c~test_user_copy-check-user-string-accessors lib/test_user_copy.c
+--- a/lib/test_user_copy.c~test_user_copy-check-user-string-accessors
 +++ a/lib/test_user_copy.c
-@@ -79,8 +79,12 @@ static int __init test_user_copy_init(vo
- 		    "legitimate access_ok VERIFY_WRITE failed");
- 	ret |= test(__copy_from_user(kmem, usermem, PAGE_SIZE),
- 		    "legitimate __copy_from_user failed");
-+	ret |= test(__copy_from_user_inatomic(kmem, usermem, PAGE_SIZE),
-+		    "legitimate __copy_from_user_inatomic failed");
- 	ret |= test(__copy_to_user(usermem, kmem, PAGE_SIZE),
- 		    "legitimate __copy_to_user failed");
-+	ret |= test(__copy_to_user_inatomic(usermem, kmem, PAGE_SIZE),
-+		    "legitimate __copy_to_user_inatomic failed");
- 	ret |= test(__copy_in_user(usermem, usermem + PAGE_SIZE, PAGE_SIZE),
- 		    "legitimate __copy_in_user failed");
- 	ret |= test(__get_user(value, (unsigned long __user *)usermem),
-@@ -137,12 +141,25 @@ static int __init test_user_copy_init(vo
- 	ret |= test(!__copy_from_user(bad_usermem, (char __user *)kmem,
- 				      PAGE_SIZE),
- 		    "illegal reversed __copy_from_user passed");
-+	ret |= test(!__copy_from_user_inatomic(kmem,
-+					(char __user *)(kmem + PAGE_SIZE),
-+					PAGE_SIZE),
-+		    "illegal all-kernel __copy_from_user_inatomic passed");
-+	ret |= test(!__copy_from_user_inatomic(bad_usermem, (char __user *)kmem,
-+					       PAGE_SIZE),
-+		    "illegal reversed __copy_from_user_inatomic passed");
- 	ret |= test(!__copy_to_user((char __user *)kmem, kmem + PAGE_SIZE,
- 				    PAGE_SIZE),
- 		    "illegal all-kernel __copy_to_user passed");
- 	ret |= test(!__copy_to_user((char __user *)kmem, bad_usermem,
- 				    PAGE_SIZE),
- 		    "illegal reversed __copy_to_user passed");
-+	ret |= test(!__copy_to_user_inatomic((char __user *)kmem,
-+					     kmem + PAGE_SIZE, PAGE_SIZE),
-+		    "illegal all-kernel __copy_to_user_inatomic passed");
-+	ret |= test(!__copy_to_user_inatomic((char __user *)kmem, bad_usermem,
-+					     PAGE_SIZE),
-+		    "illegal reversed __copy_to_user_inatomic passed");
- 	ret |= test(!__copy_in_user((char __user *)kmem,
- 				    (char __user *)(kmem + PAGE_SIZE),
- 				    PAGE_SIZE),
-@@ -193,9 +210,16 @@ static int __init test_user_copy_init(vo
- 	ret |= test(__copy_from_user(kmem, (char __user *)(kmem + PAGE_SIZE),
- 				     PAGE_SIZE),
- 		    "legitimate all-kernel __copy_from_user failed");
-+	ret |= test(__copy_from_user_inatomic(kmem,
-+					      (char __user *)(kmem + PAGE_SIZE),
-+					      PAGE_SIZE),
-+		    "legitimate all-kernel __copy_from_user_inatomic failed");
- 	ret |= test(__copy_to_user((char __user *)kmem, kmem + PAGE_SIZE,
- 				   PAGE_SIZE),
- 		    "legitimate all-kernel __copy_to_user failed");
-+	ret |= test(__copy_to_user_inatomic((char __user *)kmem,
-+					    kmem + PAGE_SIZE, PAGE_SIZE),
-+		    "legitimate all-kernel __copy_to_user_inatomic failed");
- 	ret |= test(__copy_in_user((char __user *)kmem,
- 				   (char __user *)(kmem + PAGE_SIZE),
- 				   PAGE_SIZE),
+@@ -72,6 +72,12 @@ static int __init test_user_copy_init(vo
+ 		    "legitimate put_user failed");
+ 	ret |= test(clear_user(usermem, PAGE_SIZE) != 0,
+ 		    "legitimate clear_user passed");
++	ret |= test(strncpy_from_user(kmem, usermem, PAGE_SIZE) < 0,
++		    "legitimate strncpy_from_user failed");
++	ret |= test(strnlen_user(usermem, PAGE_SIZE) == 0,
++		    "legitimate strnlen_user failed");
++	ret |= test(strlen_user(usermem) == 0,
++		    "legitimate strlen_user failed");
+ 
+ 	ret |= test(!access_ok(VERIFY_READ, usermem, PAGE_SIZE * 2),
+ 		    "legitimate access_ok VERIFY_READ failed");
+@@ -122,6 +128,16 @@ static int __init test_user_copy_init(vo
+ 		    "illegal put_user passed");
+ 	ret |= test(clear_user((char __user *)kmem, PAGE_SIZE) != PAGE_SIZE,
+ 		    "illegal kernel clear_user passed");
++	ret |= test(strncpy_from_user(kmem, (char __user *)(kmem + PAGE_SIZE),
++				      PAGE_SIZE) >= 0,
++		    "illegal all-kernel strncpy_from_user passed");
++	ret |= test(strncpy_from_user(bad_usermem, (char __user *)kmem,
++				      PAGE_SIZE) >= 0,
++		    "illegal reversed strncpy_from_user passed");
++	ret |= test(strnlen_user((char __user *)kmem, PAGE_SIZE) != 0,
++		    "illegal strnlen_user passed");
++	ret |= test(strlen_user((char __user *)kmem) != 0,
++		    "illegal strlen_user passed");
+ 
+ 	/*
+ 	 * If unchecked user accesses (__*) on this architecture cannot access
+@@ -201,6 +217,13 @@ static int __init test_user_copy_init(vo
+ 		    "legitimate kernel put_user failed");
+ 	ret |= test(clear_user((char __user *)kmem, PAGE_SIZE) != 0,
+ 		    "legitimate kernel clear_user failed");
++	ret |= test(strncpy_from_user(kmem, (char __user *)(kmem + PAGE_SIZE),
++				      PAGE_SIZE) < 0,
++		    "legitimate all-kernel strncpy_from_user failed");
++	ret |= test(strnlen_user((char __user *)kmem, PAGE_SIZE) == 0,
++		    "legitimate kernel strnlen_user failed");
++	ret |= test(strlen_user((char __user *)kmem) == 0,
++		    "legitimate kernel strlen_user failed");
+ 
+ 	ret |= test(!access_ok(VERIFY_READ, (char __user *)kmem, PAGE_SIZE * 2),
+ 		    "legitimate kernel access_ok VERIFY_READ failed");
 _
 
 Patches currently in -mm which might be from james.hogan@imgtec.com are
 
-test_user_copy-check-user-string-accessors.patch
 test_user_copy-check-user-checksum-functions.patch
 linux-next.patch
 
