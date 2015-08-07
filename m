@@ -1,97 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kthread-export-kthread-functions.patch removed from -mm
- tree
-Date: Fri, 07 Aug 2015 12:03:17 -0700
-Message-ID: <55c500f5.obl1oVzrKpodaL1Z%akpm@linux-foundation.org>
+Subject: [merged] mm-slub-allow-merging-when-slab_debug_free-is-set.patch
+ removed from -mm tree
+Date: Fri, 07 Aug 2015 12:03:11 -0700
+Message-ID: <55c500ef./vK8/GWS9sBCaGDG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41532 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41516 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1946135AbbHGTDS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Aug 2015 15:03:18 -0400
+	with ESMTP id S1946135AbbHGTDL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Aug 2015 15:03:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david.kershner@unisys.com, mingo@kernel.org, nhorman@tuxdriver.com, richard.weinberger@gmail.com, tglx@linutronix.de, tj@kernel.org, mm-commits@vger.kernel.org
+To: khlebnikov@yandex-team.ru, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kthread: export kthread functions
+     Subject: mm/slub: allow merging when SLAB_DEBUG_FREE is set
 has been removed from the -mm tree.  Its filename was
-     kthread-export-kthread-functions.patch
+     mm-slub-allow-merging-when-slab_debug_free-is-set.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Kershner <david.kershner@unisys.com>
-Subject: kthread: export kthread functions
+From: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Subject: mm/slub: allow merging when SLAB_DEBUG_FREE is set
 
-The s-Par visornic driver, currently in staging, processes a queue being
-serviced by the an s-Par service partition.  We can get a message that
-something has happened with the Service Partition, when that happens, we
-must not access the channel until we get a message that the service
-partition is back again.
+This patch fixes creation of new kmem-caches after enabling sanity_checks
+for existing mergeable kmem-caches in runtime: before that patch creation
+fails because unique name in sysfs already taken by existing kmem-cache.
 
-The visornic driver has a thread for processing the channel, when we get
-the message, we need to be able to park the thread and then resume it when
-the problem clears.
+Unlike other debug options this doesn't change object layout and could be
+enabled and disabled at any time.
 
-We can do this with kthread_park and unpark but they are not exported from
-the kernel, this patch exports the needed functions.
-
-Signed-off-by: David Kershner <david.kershner@unisys.com>
-Acked-by: Ingo Molnar <mingo@kernel.org>
-Acked-by: Neil Horman <nhorman@tuxdriver.com>
-Acked-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Richard Weinberger <richard.weinberger@gmail.com>
-Cc: Tejun Heo <tj@kernel.org>
+Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Acked-by: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kthread.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/slab_common.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN kernel/kthread.c~kthread-export-kthread-functions kernel/kthread.c
---- a/kernel/kthread.c~kthread-export-kthread-functions
-+++ a/kernel/kthread.c
-@@ -97,6 +97,7 @@ bool kthread_should_park(void)
- {
- 	return test_bit(KTHREAD_SHOULD_PARK, &to_kthread(current)->flags);
- }
-+EXPORT_SYMBOL_GPL(kthread_should_park);
+diff -puN mm/slab_common.c~mm-slub-allow-merging-when-slab_debug_free-is-set mm/slab_common.c
+--- a/mm/slab_common.c~mm-slub-allow-merging-when-slab_debug_free-is-set
++++ a/mm/slab_common.c
+@@ -37,8 +37,7 @@ struct kmem_cache *kmem_cache;
+ 		SLAB_TRACE | SLAB_DESTROY_BY_RCU | SLAB_NOLEAKTRACE | \
+ 		SLAB_FAILSLAB)
  
- /**
-  * kthread_freezable_should_stop - should this freezable kthread return now?
-@@ -171,6 +172,7 @@ void kthread_parkme(void)
- {
- 	__kthread_parkme(to_kthread(current));
- }
-+EXPORT_SYMBOL_GPL(kthread_parkme);
+-#define SLAB_MERGE_SAME (SLAB_DEBUG_FREE | SLAB_RECLAIM_ACCOUNT | \
+-		SLAB_CACHE_DMA | SLAB_NOTRACK)
++#define SLAB_MERGE_SAME (SLAB_RECLAIM_ACCOUNT | SLAB_CACHE_DMA | SLAB_NOTRACK)
  
- static int kthread(void *_create)
- {
-@@ -411,6 +413,7 @@ void kthread_unpark(struct task_struct *
- 	if (kthread)
- 		__kthread_unpark(k, kthread);
- }
-+EXPORT_SYMBOL_GPL(kthread_unpark);
- 
- /**
-  * kthread_park - park a thread created by kthread_create().
-@@ -441,6 +444,7 @@ int kthread_park(struct task_struct *k)
- 	}
- 	return ret;
- }
-+EXPORT_SYMBOL_GPL(kthread_park);
- 
- /**
-  * kthread_stop - stop a thread created by kthread_create().
+ /*
+  * Merge control. If this is set then no merging of slab caches will occur.
 _
 
-Patches currently in -mm which might be from david.kershner@unisys.com are
+Patches currently in -mm which might be from khlebnikov@yandex-team.ru are
 
 origin.patch
+mm-slub-fix-slab-double-free-in-case-of-duplicate-sysfs-filename.patch
+pagemap-check-permissions-and-capabilities-at-open-time.patch
+pagemap-switch-to-the-new-format-and-do-some-cleanup.patch
+pagemap-rework-hugetlb-and-thp-report.patch
+pagemap-hide-physical-addresses-from-non-privileged-users.patch
+pagemap-add-mmap-exclusive-bit-for-marking-pages-mapped-only-here.patch
+pagemap-add-mmap-exclusive-bit-for-marking-pages-mapped-only-here-fix.patch
+pagemap-update-documentation.patch
+pagemap-update-documentation-fix.patch
 linux-next.patch
 
