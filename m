@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + zpool-add-zpool_has_pool-fix.patch added to -mm tree
-Date: Fri, 07 Aug 2015 15:15:03 -0700
-Message-ID: <55c52de7.r25wRiH6X1G2C/wb%akpm@linux-foundation.org>
+Subject: + zswap-change-zpool-compressor-at-runtime-fix.patch added to -mm tree
+Date: Fri, 07 Aug 2015 15:15:47 -0700
+Message-ID: <55c52e13.D+dIo239sWsHFcej%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46804 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46810 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1946271AbbHGWPF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Aug 2015 18:15:05 -0400
+	with ESMTP id S1946271AbbHGWPs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Aug 2015 18:15:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ddstreet@ieee.org, sergey.senozhatsky.work@gmail.com, sjennings@variantweb.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zpool: clarification comment for zpool_has_pool
+     Subject: zswap: comment clarifying maxlen
 has been added to the -mm tree.  Its filename is
-     zpool-add-zpool_has_pool-fix.patch
+     zswap-change-zpool-compressor-at-runtime-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zpool-add-zpool_has_pool-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zswap-change-zpool-compressor-at-runtime-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zpool-add-zpool_has_pool-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zswap-change-zpool-compressor-at-runtime-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,13 +39,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dan Streetman <ddstreet@ieee.org>
-Subject: zpool: clarification comment for zpool_has_pool
+Subject: zswap: comment clarifying maxlen
 
-Add clarification in the documentation comment for zpool_has_pool() to
-explain the caller should assume the requested driver is or is not
-available, depending on return value.  If true is returned, the caller
-should assume zpool_create_pool() will succeed, but still must be prepared
-to handle failure.
+Add a comment clarifying the variable-size array created on the stack will
+always be either CRYPTO_MAX_ALG_NAME (64) or 32 bytes long.
 
 Signed-off-by: Dan Streetman <ddstreet@ieee.org>
 Cc: Seth Jennings <sjennings@variantweb.net>
@@ -53,29 +50,24 @@ Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zpool.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ mm/zswap.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN mm/zpool.c~zpool-add-zpool_has_pool-fix mm/zpool.c
---- a/mm/zpool.c~zpool-add-zpool_has_pool-fix
-+++ a/mm/zpool.c
-@@ -103,7 +103,15 @@ static void zpool_put_driver(struct zpoo
-  * zpool_has_pool() - Check if the pool driver is available
-  * @type	The type of the zpool to check (e.g. zbud, zsmalloc)
-  *
-- * This checks if the @type pool driver is available.
-+ * This checks if the @type pool driver is available.  This will try to load
-+ * the requested module, if needed, but there is no guarantee the module will
-+ * still be loaded and available immediately after calling.  If this returns
-+ * true, the caller should assume the pool is available, but must be prepared
-+ * to handle the @zpool_create_pool() returning failure.  However if this
-+ * returns false, the caller should assume the requested pool type is not
-+ * available; either the requested pool type module does not exist, or could
-+ * not be loaded, and calling @zpool_create_pool() with the pool type will
-+ * fail.
-  *
-  * Returns: true if @type pool is available, false if not
-  */
+diff -puN mm/zswap.c~zswap-change-zpool-compressor-at-runtime-fix mm/zswap.c
+--- a/mm/zswap.c~zswap-change-zpool-compressor-at-runtime-fix
++++ a/mm/zswap.c
+@@ -691,6 +691,11 @@ static int __zswap_param_set(const char
+ 	char str[kp->str->maxlen], *s;
+ 	int ret;
+ 
++	/*
++	 * kp is either zswap_zpool_kparam or zswap_compressor_kparam, defined
++	 * at the top of this file, so maxlen is CRYPTO_MAX_ALG_NAME (64) or
++	 * 32 (arbitrary).
++	 */
+ 	strlcpy(str, val, kp->str->maxlen);
+ 	s = strim(str);
+ 
 _
 
 Patches currently in -mm which might be from ddstreet@ieee.org are
@@ -87,6 +79,6 @@ zpool-add-zpool_has_pool-fix.patch
 zswap-dynamic-pool-creation.patch
 zswap-dynamic-pool-creation-fix.patch
 zswap-change-zpool-compressor-at-runtime.patch
+zswap-change-zpool-compressor-at-runtime-fix.patch
 linux-next.patch
-zswap-comment-clarifying-maxlen.patch
 
