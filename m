@@ -1,146 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-meminit-allow-early_pfn_to_nid-to-be-used-during-runtime.patch removed
+Subject: [merged] mm-meminit-replace-rwsem-with-completion.patch removed
  from -mm tree
-Date: Fri, 07 Aug 2015 12:02:55 -0700
-Message-ID: <55c500df.3TpmqIdk2v+aLc4J%akpm@linux-foundation.org>
+Date: Fri, 07 Aug 2015 12:02:57 -0700
+Message-ID: <55c500e1.Vtjohf+rFzFzrAs5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41471 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41481 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1946066AbbHGTC4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Aug 2015 15:02:56 -0400
+	with ESMTP id S1946066AbbHGTC6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Aug 2015 15:02:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, alexng@microsoft.com, dave.hansen@intel.com, fengguang.wu@intel.com, nicstange@gmail.com, peterz@infradead.org, mm-commits@vger.kernel.org
+To: nicstange@gmail.com, alexng@microsoft.com, dave.hansen@intel.com, fengguang.wu@intel.com, mgorman@suse.de, peterz@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, meminit: allow early_pfn_to_nid to be used during runtime
+     Subject: mm, meminit: replace rwsem with completion
 has been removed from the -mm tree.  Its filename was
-     mm-meminit-allow-early_pfn_to_nid-to-be-used-during-runtime.patch
+     mm-meminit-replace-rwsem-with-completion.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm, meminit: allow early_pfn_to_nid to be used during runtime
+From: Nicolai Stange <nicstange@gmail.com>
+Subject: mm, meminit: replace rwsem with completion
 
-early_pfn_to_nid historically was inherently not SMP safe but only used
-during boot which is inherently single threaded or during hotplug which is
-protected by a giant mutex.  With deferred memory initialisation there was
-a thread-safe version introduced and the early_pfn_to_nid would trigger a
-BUG_ON if used unsafely.  Memory hotplug hit that check.  This patch makes
-early_pfn_to_nid introduces a lock to make it safe to use during hotplug.
+Commit 0e1cc95b4cc7 ("mm: meminit: finish initialisation of struct pages
+before basic setup") introduced a rwsem to signal completion of the
+initialization workers.
 
+Lockdep complains about possible recursive locking:
+  =============================================
+  [ INFO: possible recursive locking detected ]
+  4.1.0-12802-g1dc51b8 #3 Not tainted
+  ---------------------------------------------
+  swapper/0/1 is trying to acquire lock:
+  (pgdat_init_rwsem){++++.+},
+    at: [<ffffffff8424c7fb>] page_alloc_init_late+0xc7/0xe6
+
+  but task is already holding lock:
+  (pgdat_init_rwsem){++++.+},
+    at: [<ffffffff8424c772>] page_alloc_init_late+0x3e/0xe6
+
+Replace the rwsem by a completion together with an atomic
+"outstanding work counter".
+
+[peterz@infradead.org: Barrier removal on the grounds of being pointless]
+[mgorman@suse.de: Applied review feedback]
+Signed-off-by: Nicolai Stange <nicstange@gmail.com>
 Signed-off-by: Mel Gorman <mgorman@suse.de>
-Reported-by: Alex Ng <alexng@microsoft.com>
-Tested-by: Alex Ng <alexng@microsoft.com>
 Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: Nicolai Stange <nicstange@gmail.com>
 Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Alex Ng <alexng@microsoft.com>
 Cc: Fengguang Wu <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ mm/page_alloc.c |   22 +++++++++++++++-------
+ 1 file changed, 15 insertions(+), 7 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-meminit-allow-early_pfn_to_nid-to-be-used-during-runtime mm/page_alloc.c
---- a/mm/page_alloc.c~mm-meminit-allow-early_pfn_to_nid-to-be-used-during-runtime
+diff -puN mm/page_alloc.c~mm-meminit-replace-rwsem-with-completion mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-meminit-replace-rwsem-with-completion
 +++ a/mm/page_alloc.c
-@@ -981,21 +981,21 @@ static void __init __free_pages_boot_cor
+@@ -18,7 +18,6 @@
+ #include <linux/mm.h>
+ #include <linux/swap.h>
+ #include <linux/interrupt.h>
+-#include <linux/rwsem.h>
+ #include <linux/pagemap.h>
+ #include <linux/jiffies.h>
+ #include <linux/bootmem.h>
+@@ -1060,7 +1059,15 @@ static void __init deferred_free_range(s
+ 		__free_pages_boot_core(page, pfn, 0);
+ }
  
- #if defined(CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID) || \
- 	defined(CONFIG_HAVE_MEMBLOCK_NODE_MAP)
--/* Only safe to use early in boot when initialisation is single-threaded */
+-static __initdata DECLARE_RWSEM(pgdat_init_rwsem);
++/* Completion tracking for deferred_init_memmap() threads */
++static atomic_t pgdat_init_n_undone __initdata;
++static __initdata DECLARE_COMPLETION(pgdat_init_all_done_comp);
 +
- static struct mminit_pfnnid_cache early_pfnnid_cache __meminitdata;
++static inline void __init pgdat_init_report_one_done(void)
++{
++	if (atomic_dec_and_test(&pgdat_init_n_undone))
++		complete(&pgdat_init_all_done_comp);
++}
  
- int __meminit early_pfn_to_nid(unsigned long pfn)
+ /* Initialise remaining memory on a node */
+ static int __init deferred_init_memmap(void *data)
+@@ -1077,7 +1084,7 @@ static int __init deferred_init_memmap(v
+ 	const struct cpumask *cpumask = cpumask_of_node(pgdat->node_id);
+ 
+ 	if (first_init_pfn == ULONG_MAX) {
+-		up_read(&pgdat_init_rwsem);
++		pgdat_init_report_one_done();
+ 		return 0;
+ 	}
+ 
+@@ -1177,7 +1184,8 @@ free_range:
+ 
+ 	pr_info("node %d initialised, %lu pages in %ums\n", nid, nr_pages,
+ 					jiffies_to_msecs(jiffies - start));
+-	up_read(&pgdat_init_rwsem);
++
++	pgdat_init_report_one_done();
+ 	return 0;
+ }
+ 
+@@ -1185,14 +1193,14 @@ void __init page_alloc_init_late(void)
  {
-+	static DEFINE_SPINLOCK(early_pfn_lock);
  	int nid;
  
--	/* The system will behave unpredictably otherwise */
--	BUG_ON(system_state != SYSTEM_BOOTING);
--
-+	spin_lock(&early_pfn_lock);
- 	nid = __early_pfn_to_nid(pfn, &early_pfnnid_cache);
--	if (nid >= 0)
--		return nid;
--	/* just returns 0 */
--	return 0;
-+	if (nid < 0)
-+		nid = 0;
-+	spin_unlock(&early_pfn_lock);
-+
-+	return nid;
++	/* There will be num_node_state(N_MEMORY) threads */
++	atomic_set(&pgdat_init_n_undone, num_node_state(N_MEMORY));
+ 	for_each_node_state(nid, N_MEMORY) {
+-		down_read(&pgdat_init_rwsem);
+ 		kthread_run(deferred_init_memmap, NODE_DATA(nid), "pgdatinit%d", nid);
+ 	}
+ 
+ 	/* Block until all are initialised */
+-	down_write(&pgdat_init_rwsem);
+-	up_write(&pgdat_init_rwsem);
++	wait_for_completion(&pgdat_init_all_done_comp);
  }
- #endif
+ #endif /* CONFIG_DEFERRED_STRUCT_PAGE_INIT */
  
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from nicstange@gmail.com are
 
 origin.patch
-userfaultfd-linux-documentation-vm-userfaultfdtxt.patch
-userfaultfd-waitqueue-add-nr-wake-parameter-to-__wake_up_locked_key.patch
-userfaultfd-uapi.patch
-userfaultfd-linux-userfaultfd_kh.patch
-userfaultfd-add-vm_userfaultfd_ctx-to-the-vm_area_struct.patch
-userfaultfd-add-vm_uffd_missing-and-vm_uffd_wp.patch
-userfaultfd-call-handle_userfault-for-userfaultfd_missing-faults.patch
-userfaultfd-teach-vma_merge-to-merge-across-vma-vm_userfaultfd_ctx.patch
-userfaultfd-prevent-khugepaged-to-merge-if-userfaultfd-is-armed.patch
-userfaultfd-add-new-syscall-to-provide-memory-externalization.patch
-userfaultfd-rename-uffd_apibits-into-features.patch
-userfaultfd-rename-uffd_apibits-into-features-fixup.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg.patch
-userfaultfd-wake-pending-userfaults.patch
-userfaultfd-optimize-read-and-poll-to-be-o1.patch
-userfaultfd-allocate-the-userfaultfd_ctx-cacheline-aligned.patch
-userfaultfd-solve-the-race-between-uffdio_copyzeropage-and-read.patch
-userfaultfd-buildsystem-activation.patch
-userfaultfd-activate-syscall.patch
-userfaultfd-uffdio_copyuffdio_zeropage-uapi.patch
-userfaultfd-mcopy_atomicmfill_zeropage-uffdio_copyuffdio_zeropage-preparation.patch
-userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic.patch
-userfaultfd-uffdio_copy-and-uffdio_zeropage.patch
-x86-mm-trace-when-an-ipi-is-about-to-be-sent.patch
-mm-send-one-ipi-per-cpu-to-tlb-flush-all-entries-after-unmapping-pages.patch
-mm-send-one-ipi-per-cpu-to-tlb-flush-all-entries-after-unmapping-pages-fix.patch
-mm-defer-flush-of-writable-tlb-entries.patch
-documentation-features-vm-add-feature-description-and-arch-support-status-for-batched-tlb-flush-after-unmap.patch
-mm-srcu-ify-shrinkers.patch
-bootmem-avoid-freeing-to-bootmem-after-bootmem-is-done.patch
-mm-compaction-more-robust-check-for-scanners-meeting.patch
-mm-compaction-simplify-handling-restart-position-in-free-pages-scanner.patch
-mm-compaction-encapsulate-resetting-cached-scanner-positions.patch
-mm-compaction-skip-compound-pages-by-order-in-free-scanner.patch
-page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-mm-sanitize-page-mapping-for-tail-pages.patch
-mm-increase-swap_cluster_max-to-batch-tlb-flushes.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-mm-move-lazy-free-pages-to-inactive-list.patch
-mm-move-lazy-free-pages-to-inactive-list-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-linux-next.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
 
