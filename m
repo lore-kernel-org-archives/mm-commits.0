@@ -1,135 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-meminit-replace-rwsem-with-completion.patch removed
- from -mm tree
-Date: Fri, 07 Aug 2015 12:02:57 -0700
-Message-ID: <55c500e1.Vtjohf+rFzFzrAs5%akpm@linux-foundation.org>
+Subject: [merged] ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work.patch
+ removed from -mm tree
+Date: Fri, 07 Aug 2015 12:03:02 -0700
+Message-ID: <55c500e6.WCa/+ExUkAisGXTt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41481 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41488 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1946066AbbHGTC6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Aug 2015 15:02:58 -0400
+	with ESMTP id S1946066AbbHGTDD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Aug 2015 15:03:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nicstange@gmail.com, alexng@microsoft.com, dave.hansen@intel.com, fengguang.wu@intel.com, mgorman@suse.de, peterz@infradead.org, mm-commits@vger.kernel.org
+To: joseph.qi@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, meminit: replace rwsem with completion
+     Subject: ocfs2: fix BUG in ocfs2_downconvert_thread_do_work()
 has been removed from the -mm tree.  Its filename was
-     mm-meminit-replace-rwsem-with-completion.patch
+     ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Nicolai Stange <nicstange@gmail.com>
-Subject: mm, meminit: replace rwsem with completion
+From: Joseph Qi <joseph.qi@huawei.com>
+Subject: ocfs2: fix BUG in ocfs2_downconvert_thread_do_work()
 
-Commit 0e1cc95b4cc7 ("mm: meminit: finish initialisation of struct pages
-before basic setup") introduced a rwsem to signal completion of the
-initialization workers.
+BUG_ON(list_empty(&osb->blocked_lock_list)) in
+ocfs2_downconvert_thread_do_work can be triggered in the following case:
 
-Lockdep complains about possible recursive locking:
-  =============================================
-  [ INFO: possible recursive locking detected ]
-  4.1.0-12802-g1dc51b8 #3 Not tainted
-  ---------------------------------------------
-  swapper/0/1 is trying to acquire lock:
-  (pgdat_init_rwsem){++++.+},
-    at: [<ffffffff8424c7fb>] page_alloc_init_late+0xc7/0xe6
+ocfs2dc has firstly saved osb->blocked_lock_count to local varibale
+processed, and then processes the dentry lockres.  During the dentry put,
+it calls iput and then deletes rw, inode and open lockres from blocked
+list in ocfs2_mark_lockres_freeing.  And this causes the variable
+`processed' to not reflect the number of blocked lockres to be processed,
+which triggers the BUG.
 
-  but task is already holding lock:
-  (pgdat_init_rwsem){++++.+},
-    at: [<ffffffff8424c772>] page_alloc_init_late+0x3e/0xe6
-
-Replace the rwsem by a completion together with an atomic
-"outstanding work counter".
-
-[peterz@infradead.org: Barrier removal on the grounds of being pointless]
-[mgorman@suse.de: Applied review feedback]
-Signed-off-by: Nicolai Stange <nicstange@gmail.com>
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Alex Ng <alexng@microsoft.com>
-Cc: Fengguang Wu <fengguang.wu@intel.com>
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   22 +++++++++++++++-------
- 1 file changed, 15 insertions(+), 7 deletions(-)
+ fs/ocfs2/dlmglue.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-meminit-replace-rwsem-with-completion mm/page_alloc.c
---- a/mm/page_alloc.c~mm-meminit-replace-rwsem-with-completion
-+++ a/mm/page_alloc.c
-@@ -18,7 +18,6 @@
- #include <linux/mm.h>
- #include <linux/swap.h>
- #include <linux/interrupt.h>
--#include <linux/rwsem.h>
- #include <linux/pagemap.h>
- #include <linux/jiffies.h>
- #include <linux/bootmem.h>
-@@ -1060,7 +1059,15 @@ static void __init deferred_free_range(s
- 		__free_pages_boot_core(page, pfn, 0);
- }
+diff -puN fs/ocfs2/dlmglue.c~ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work fs/ocfs2/dlmglue.c
+--- a/fs/ocfs2/dlmglue.c~ocfs2-fix-bug-in-ocfs2_downconvert_thread_do_work
++++ a/fs/ocfs2/dlmglue.c
+@@ -4025,9 +4025,13 @@ static void ocfs2_downconvert_thread_do_
+ 	osb->dc_work_sequence = osb->dc_wake_sequence;
  
--static __initdata DECLARE_RWSEM(pgdat_init_rwsem);
-+/* Completion tracking for deferred_init_memmap() threads */
-+static atomic_t pgdat_init_n_undone __initdata;
-+static __initdata DECLARE_COMPLETION(pgdat_init_all_done_comp);
-+
-+static inline void __init pgdat_init_report_one_done(void)
-+{
-+	if (atomic_dec_and_test(&pgdat_init_n_undone))
-+		complete(&pgdat_init_all_done_comp);
-+}
- 
- /* Initialise remaining memory on a node */
- static int __init deferred_init_memmap(void *data)
-@@ -1077,7 +1084,7 @@ static int __init deferred_init_memmap(v
- 	const struct cpumask *cpumask = cpumask_of_node(pgdat->node_id);
- 
- 	if (first_init_pfn == ULONG_MAX) {
--		up_read(&pgdat_init_rwsem);
-+		pgdat_init_report_one_done();
- 		return 0;
- 	}
- 
-@@ -1177,7 +1184,8 @@ free_range:
- 
- 	pr_info("node %d initialised, %lu pages in %ums\n", nid, nr_pages,
- 					jiffies_to_msecs(jiffies - start));
--	up_read(&pgdat_init_rwsem);
-+
-+	pgdat_init_report_one_done();
- 	return 0;
- }
- 
-@@ -1185,14 +1193,14 @@ void __init page_alloc_init_late(void)
- {
- 	int nid;
- 
-+	/* There will be num_node_state(N_MEMORY) threads */
-+	atomic_set(&pgdat_init_n_undone, num_node_state(N_MEMORY));
- 	for_each_node_state(nid, N_MEMORY) {
--		down_read(&pgdat_init_rwsem);
- 		kthread_run(deferred_init_memmap, NODE_DATA(nid), "pgdatinit%d", nid);
- 	}
- 
- 	/* Block until all are initialised */
--	down_write(&pgdat_init_rwsem);
--	up_write(&pgdat_init_rwsem);
-+	wait_for_completion(&pgdat_init_all_done_comp);
- }
- #endif /* CONFIG_DEFERRED_STRUCT_PAGE_INIT */
- 
+ 	processed = osb->blocked_lock_count;
+-	while (processed) {
+-		BUG_ON(list_empty(&osb->blocked_lock_list));
+-
++	/*
++	 * blocked lock processing in this loop might call iput which can
++	 * remove items off osb->blocked_lock_list. Downconvert up to
++	 * 'processed' number of locks, but stop short if we had some
++	 * removed in ocfs2_mark_lockres_freeing when downconverting.
++	 */
++	while (processed && !list_empty(&osb->blocked_lock_list)) {
+ 		lockres = list_entry(osb->blocked_lock_list.next,
+ 				     struct ocfs2_lock_res, l_blocked_list);
+ 		list_del_init(&lockres->l_blocked_list);
 _
 
-Patches currently in -mm which might be from nicstange@gmail.com are
+Patches currently in -mm which might be from joseph.qi@huawei.com are
 
 origin.patch
+ocfs2-fix-race-between-dio-and-recover-orphan.patch
+ocfs2-fix-several-issues-of-append-dio.patch
+ocfs2-do-not-bug-if-buffer-not-uptodate-in-__ocfs2_journal_access.patch
+ocfs2-clean-up-unused-local-variables-in-ocfs2_file_write_iter.patch
+ocfs2-adjust-code-to-match-locking-unlocking-order.patch
+ocfs2-set-filesytem-read-only-when-ocfs2_delete_entry-failed.patch
+ocfs2-set-filesytem-read-only-when-ocfs2_delete_entry-failed-v2.patch
+ocfs2-fix-race-between-crashed-dio-and-rm.patch
+ocfs2-avoid-access-invalid-address-when-read-o2dlm-debug-messages.patch
 
