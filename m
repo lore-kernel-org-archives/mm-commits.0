@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-hwpoison-fix-fail-isolate-hugetlbfs-page-w-refcount-held.patch added to
- -mm tree
-Date: Fri, 07 Aug 2015 15:02:46 -0700
-Message-ID: <55c52b06.e56yBhABUh5A9a1H%akpm@linux-foundation.org>
+Subject: + zpool-add-zpool_has_pool-fix.patch added to -mm tree
+Date: Fri, 07 Aug 2015 15:15:03 -0700
+Message-ID: <55c52de7.r25wRiH6X1G2C/wb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45944 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46804 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1946270AbbHGWCr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Aug 2015 18:02:47 -0400
+	with ESMTP id S1946271AbbHGWPF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Aug 2015 18:15:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wanpeng.li@hotmail.com, n-horiguchi@ah.jp.nec.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: ddstreet@ieee.org, sergey.senozhatsky.work@gmail.com, sjennings@variantweb.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hwpoison: fix fail isolate hugetlbfs page w/ refcount held
+     Subject: zpool: clarification comment for zpool_has_pool
 has been added to the -mm tree.  Its filename is
-     mm-hwpoison-fix-fail-isolate-hugetlbfs-page-w-refcount-held.patch
+     zpool-add-zpool_has_pool-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-fix-fail-isolate-hugetlbfs-page-w-refcount-held.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zpool-add-zpool_has_pool-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-fix-fail-isolate-hugetlbfs-page-w-refcount-held.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zpool-add-zpool_has_pool-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,52 +38,55 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wanpeng Li <wanpeng.li@hotmail.com>
-Subject: mm/hwpoison: fix fail isolate hugetlbfs page w/ refcount held
+From: Dan Streetman <ddstreet@ieee.org>
+Subject: zpool: clarification comment for zpool_has_pool
 
-Hugetlbfs pages will get a refcount in get_any_page() or
-madvise_hwpoison() if soft offlining through madvise.  The refcount which
-is held by the soft offline path should be released if we fail to isolate
-hugetlbfs pages.
+Add clarification in the documentation comment for zpool_has_pool() to
+explain the caller should assume the requested driver is or is not
+available, depending on return value.  If true is returned, the caller
+should assume zpool_create_pool() will succeed, but still must be prepared
+to handle failure.
 
-Fix it by reducing the refcount for both isolation success and failure.
-
-Signed-off-by: Wanpeng Li <wanpeng.li@hotmail.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: <stable@vger.kernel.org>	[3.9+]
+Signed-off-by: Dan Streetman <ddstreet@ieee.org>
+Cc: Seth Jennings <sjennings@variantweb.net>
+Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ mm/zpool.c |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff -puN mm/memory-failure.c~mm-hwpoison-fix-fail-isolate-hugetlbfs-page-w-refcount-held mm/memory-failure.c
---- a/mm/memory-failure.c~mm-hwpoison-fix-fail-isolate-hugetlbfs-page-w-refcount-held
-+++ a/mm/memory-failure.c
-@@ -1569,13 +1569,12 @@ static int soft_offline_huge_page(struct
- 	unlock_page(hpage);
- 
- 	ret = isolate_huge_page(hpage, &pagelist);
--	if (ret) {
--		/*
--		 * get_any_page() and isolate_huge_page() takes a refcount each,
--		 * so need to drop one here.
--		 */
--		put_page(hpage);
--	} else {
-+	/*
-+	 * get_any_page() and isolate_huge_page() takes a refcount each,
-+	 * so need to drop one here.
-+	 */
-+	put_page(hpage);
-+	if (!ret) {
- 		pr_info("soft offline: %#lx hugepage failed to isolate\n", pfn);
- 		return -EBUSY;
- 	}
+diff -puN mm/zpool.c~zpool-add-zpool_has_pool-fix mm/zpool.c
+--- a/mm/zpool.c~zpool-add-zpool_has_pool-fix
++++ a/mm/zpool.c
+@@ -103,7 +103,15 @@ static void zpool_put_driver(struct zpoo
+  * zpool_has_pool() - Check if the pool driver is available
+  * @type	The type of the zpool to check (e.g. zbud, zsmalloc)
+  *
+- * This checks if the @type pool driver is available.
++ * This checks if the @type pool driver is available.  This will try to load
++ * the requested module, if needed, but there is no guarantee the module will
++ * still be loaded and available immediately after calling.  If this returns
++ * true, the caller should assume the pool is available, but must be prepared
++ * to handle the @zpool_create_pool() returning failure.  However if this
++ * returns false, the caller should assume the requested pool type is not
++ * available; either the requested pool type module does not exist, or could
++ * not be loaded, and calling @zpool_create_pool() with the pool type will
++ * fail.
+  *
+  * Returns: true if @type pool is available, false if not
+  */
 _
 
-Patches currently in -mm which might be from wanpeng.li@hotmail.com are
+Patches currently in -mm which might be from ddstreet@ieee.org are
 
-mm-hwpoison-fix-page-refcount-of-unkown-non-lru-page.patch
-mm-hwpoison-fix-fail-isolate-hugetlbfs-page-w-refcount-held.patch
+mm-zpool-constify-the-zpool_ops.patch
+mm-zbud-constify-the-zbud_ops.patch
+zpool-add-zpool_has_pool.patch
+zpool-add-zpool_has_pool-fix.patch
+zswap-dynamic-pool-creation.patch
+zswap-dynamic-pool-creation-fix.patch
+zswap-change-zpool-compressor-at-runtime.patch
+linux-next.patch
+zswap-comment-clarifying-maxlen.patch
 
