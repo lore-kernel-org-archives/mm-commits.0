@@ -1,18 +1,16 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- mm-slub-dont-wait-for-high-order-page-allocation.patch removed from -mm
- tree
-Date: Fri, 07 Aug 2015 15:22:41 -0700
-Message-ID: <55c52fb1.PuMrV3i/QfRCXeJ7%akpm@linux-foundation.org>
+Subject: + mm-slub-dont-wait-for-high-order-page-allocation-v2.patch added to -mm tree
+Date: Fri, 07 Aug 2015 15:23:20 -0700
+Message-ID: <55c52fd8.Bu4EafjRByxM7Lvd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46892 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46904 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1946280AbbHGWWn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Aug 2015 18:22:43 -0400
+	with ESMTP id S1946280AbbHGWXX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Aug 2015 18:23:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: js1304@gmail.com, cl@linux.com, edumazet@google.com, iamjoonsoo.kim@lge.com, mhocko@suse.cz, penberg@kernel.org, rientjes@google.com, shli@fb.com, vbabka@suse.cz, mm-commits@vger.kernel.org
@@ -20,10 +18,24 @@ To: js1304@gmail.com, cl@linux.com, edumazet@google.com, iamjoonsoo.kim@lge.com,
 
 The patch titled
      Subject: mm/slub: don't wait for high-order page allocation
-has been removed from the -mm tree.  Its filename was
-     mm-slub-dont-wait-for-high-order-page-allocation.patch
+has been added to the -mm tree.  Its filename is
+     mm-slub-dont-wait-for-high-order-page-allocation-v2.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slub-dont-wait-for-high-order-page-allocation-v2.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-dont-wait-for-high-order-page-allocation-v2.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <js1304@gmail.com>
@@ -74,15 +86,15 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  mm/slub.c |    2 ++
  1 file changed, 2 insertions(+)
 
-diff -puN mm/slub.c~mm-slub-dont-wait-for-high-order-page-allocation mm/slub.c
---- a/mm/slub.c~mm-slub-dont-wait-for-high-order-page-allocation
+diff -puN mm/slub.c~mm-slub-dont-wait-for-high-order-page-allocation-v2 mm/slub.c
+--- a/mm/slub.c~mm-slub-dont-wait-for-high-order-page-allocation-v2
 +++ a/mm/slub.c
 @@ -1362,6 +1362,8 @@ static struct page *allocate_slab(struct
  	 * so we fall-back to the minimum order allocation.
  	 */
  	alloc_gfp = (flags | __GFP_NOWARN | __GFP_NORETRY) & ~__GFP_NOFAIL;
 +	if ((alloc_gfp & __GFP_WAIT) && oo_order(oo) > oo_order(s->min))
-+		alloc_gfp = alloc_gfp & ~__GFP_WAIT;
++		alloc_gfp = (alloc_gfp | __GFP_NOMEMALLOC) & ~__GFP_WAIT;
  
  	page = alloc_slab_page(s, alloc_gfp, node, oo);
  	if (unlikely(!page)) {
