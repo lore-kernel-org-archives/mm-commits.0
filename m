@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + proc-add-kpageidle-file-fix-6-fix-2-fix.patch added to -mm tree
-Date: Fri, 07 Aug 2015 14:26:32 -0700
-Message-ID: <55c52288.JzqrZPTzY77YOH2A%akpm@linux-foundation.org>
+Subject: + checkpatch-fix-left-brace-warning.patch added to -mm tree
+Date: Fri, 07 Aug 2015 14:55:12 -0700
+Message-ID: <55c52940.rZrOma4NBIzlurAR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44254 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45911 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1946127AbbHGV0d (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Aug 2015 17:26:33 -0400
+	with ESMTP id S1946127AbbHGVzN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Aug 2015 17:55:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mhocko@kernel.org, sfr@canb.auug.org.au, vdavydov@parallels.com, mm-commits@vger.kernel.org
+To: ewk@edkovsky.org, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc-add-kpageidle-file-fix-6-fix-2-fix
+     Subject: checkpatch: fix left brace warning
 has been added to the -mm tree.  Its filename is
-     proc-add-kpageidle-file-fix-6-fix-2-fix.patch
+     checkpatch-fix-left-brace-warning.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/proc-add-kpageidle-file-fix-6-fix-2-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-fix-left-brace-warning.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/proc-add-kpageidle-file-fix-6-fix-2-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-fix-left-brace-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,89 +38,59 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: proc-add-kpageidle-file-fix-6-fix-2-fix
+From: Eddie Kovsky <ewk@edkovsky.org>
+Subject: checkpatch: fix left brace warning
 
-kpageidle requires an MMU
+Using checkpatch.pl with Perl 5.22.0 generates the following warning:
 
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Vladimir Davydov <vdavydov@parallels.com>
+    Unescaped left brace in regex is deprecated, passed through in regex;
+
+This patch fixes the warnings by escaping occurrences of the left brace
+inside the regular expression.
+
+Signed-off-by: Eddie Kovsky <ewk@edkovsky.org>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/Kconfig~proc-add-kpageidle-file-fix-6-fix-2-fix mm/Kconfig
---- a/mm/Kconfig~proc-add-kpageidle-file-fix-6-fix-2-fix
-+++ a/mm/Kconfig
-@@ -657,7 +657,7 @@ config DEFERRED_STRUCT_PAGE_INIT
+diff -puN scripts/checkpatch.pl~checkpatch-fix-left-brace-warning scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-fix-left-brace-warning
++++ a/scripts/checkpatch.pl
+@@ -3571,7 +3571,7 @@ sub process {
+ # function brace can't be on same line, except for #defines of do while,
+ # or if closed on same line
+ 		if (($line=~/$Type\s*$Ident\(.*\).*\s*{/) and
+-		    !($line=~/\#\s*define.*do\s{/) and !($line=~/}/)) {
++		    !($line=~/\#\s*define.*do\s\{/) and !($line=~/}/)) {
+ 			if (ERROR("OPEN_BRACE",
+ 				  "open brace '{' following function declarations go on the next line\n" . $herecurr) &&
+ 			    $fix) {
+@@ -4083,8 +4083,8 @@ sub process {
+ ## 		}
  
- config IDLE_PAGE_TRACKING
- 	bool "Enable idle page tracking"
--	depends on SYSFS
-+	depends on SYSFS && MMU
- 	select PAGE_EXTENSION if !64BIT
- 	help
- 	  This feature allows to estimate the amount of user pages that have
+ #need space before brace following if, while, etc
+-		if (($line =~ /\(.*\){/ && $line !~ /\($Type\){/) ||
+-		    $line =~ /do{/) {
++		if (($line =~ /\(.*\)\{/ && $line !~ /\($Type\){/) ||
++		    $line =~ /do\{/) {
+ 			if (ERROR("SPACING",
+ 				  "space required before the open brace '{'\n" . $herecurr) &&
+ 			    $fix) {
+@@ -4531,7 +4531,7 @@ sub process {
+ 			    $dstat !~ /^for\s*$Constant$/ &&				# for (...)
+ 			    $dstat !~ /^for\s*$Constant\s+(?:$Ident|-?$Constant)$/ &&	# for (...) bar()
+ 			    $dstat !~ /^do\s*{/ &&					# do {...
+-			    $dstat !~ /^\({/ &&						# ({...
++			    $dstat !~ /^\(\{/ &&						# ({...
+ 			    $ctx !~ /^.\s*#\s*define\s+TRACE_(?:SYSTEM|INCLUDE_FILE|INCLUDE_PATH)\b/)
+ 			{
+ 				$ctx =~ s/\n*$//;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ewk@edkovsky.org are
 
-origin.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-kernel-kthreadc-kthread_create_on_node-clarify-documentation.patch
-scripts-spellingtxt-adding-misspelled-word-for-check-fix.patch
-ocfs2-sysfile-interfaces-for-online-file-check-fix.patch
-watchdog-introduce-watchdog_suspend-and-watchdog_resume-fix.patch
-watchdog-use-suspend-resume-interface-in-fixup_ht_bug-fix.patch
-mm.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
-userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
-mm-mlock-refactor-mlock-munlock-and-munlockall-code-checkpatch-fixes.patch
-mm-mlock-add-new-mlock-system-call-checkpatch-fixes.patch
-mm-introduce-vm_lockonfault-checkpatch-fixes.patch
-genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-fix.patch
-genalloc-add-support-of-multiple-gen_pools-per-device-fix.patch
-mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested-fix.patch
-dax-revert-userfaultfd-change.patch
-thp-prepare-for-dax-huge-pages-fix.patch
-pagemap-add-mmap-exclusive-bit-for-marking-pages-mapped-only-here-fix.patch
-pagemap-update-documentation-fix.patch
-mm-show-proportional-swap-share-of-the-mapping-fix.patch
-mm-improve-__gfp_noretry-comment-based-on-implementation-fix.patch
-memcg-export-struct-mem_cgroup-fix.patch
-memcg-export-struct-mem_cgroup-fix-2.patch
-mm-hugetlb-add-cache-of-descriptors-to-resv_map-for-region_add-fix.patch
-mm-srcu-ify-shrinkers-fix-fix.patch
-include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
-proc-add-kpageidle-file-fix-6-fix.patch
-proc-add-kpageidle-file-fix-6-fix-2-fix.patch
-proc-export-idle-flag-via-kpageflags-fix.patch
-mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
-zswap-dynamic-pool-creation-fix.patch
-procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix.patch
-procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix-fix.patch
-fs-coda-fix-readlink-buffer-overflow-checkpatch-fixes.patch
-kexec-split-kexec_load-syscall-from-kexec-core-code-checkpatch-fixes.patch
-linux-next.patch
-linux-next-rejects.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-net-netfilter-ipset-work-around-gcc-444-initializer-bug.patch
-fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix.patch
-fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix-fix.patch
-mm-mpx-add-vm_flags_t-vm_flags-arg-to-do_mmap_pgoff-fix-checkpatch-fixes.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-mutex-subsystem-synchro-test-module.patch
-slab-leaks3-default-y.patch
+checkpatch-fix-left-brace-warning.patch
 
