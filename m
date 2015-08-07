@@ -1,65 +1,107 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- iommu-common-do-not-use-64-bit-constant-0xffffffffffffffffl-for-computing-align_mask.patch removed from -mm tree
-Date: Fri, 07 Aug 2015 12:03:13 -0700
-Message-ID: <55c500f1.CS2AlWLhaKZnkHiL%akpm@linux-foundation.org>
+ fsnotify-fix-oops-in-fsnotify_clear_marks_by_group_flags.patch removed from -mm tree
+Date: Fri, 07 Aug 2015 12:03:16 -0700
+Message-ID: <55c500f4.k7PH4hrhC6NdZi2T%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41521 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41527 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1946135AbbHGTDO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Aug 2015 15:03:14 -0400
+	with ESMTP id S1946135AbbHGTDR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Aug 2015 15:03:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sowmini.varadhan@oracle.com, benh@kernel.crashing.org, davem@davemloft.net, linux@rasmusvillemoes.dk, linux@roeck-us.net, mm-commits@vger.kernel.org
+To: jack@suse.com, LinoSanfilippo@gmx.de, a.sangwan@samsung.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/iommu-common.c: do not use 0xffffffffffffffffl for computing align_mask
+     Subject: fsnotify: fix oops in fsnotify_clear_marks_by_group_flags()
 has been removed from the -mm tree.  Its filename was
-     iommu-common-do-not-use-64-bit-constant-0xffffffffffffffffl-for-computing-align_mask.patch
+     fsnotify-fix-oops-in-fsnotify_clear_marks_by_group_flags.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sowmini Varadhan <sowmini.varadhan@oracle.com>
-Subject: lib/iommu-common.c: do not use 0xffffffffffffffffl for computing align_mask
+From: Jan Kara <jack@suse.com>
+Subject: fsnotify: fix oops in fsnotify_clear_marks_by_group_flags()
 
-Using a 64 bit constant generates "warning: integer constant is too large
-for 'long' type" on 32 bit platforms.  Instead use ~0ul and BITS_PER_LONG.
+fsnotify_clear_marks_by_group_flags() can race with
+fsnotify_destroy_marks() so when fsnotify_destroy_mark_locked() drops
+mark_mutex, a mark from the list iterated by
+fsnotify_clear_marks_by_group_flags() can be freed and thus the next entry
+pointer we have cached may become stale and we dereference free memory.
 
-Detected by Andrew Morton on ARMD.
+Fix the problem by first moving marks to free to a special private list
+and then always free the first entry in the special list.  This method is
+safe even when entries from the list can disappear once we drop the lock.
 
-Signed-off-by: Sowmini Varadhan <sowmini.varadhan@oracle.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Guenter Roeck <linux@roeck-us.net>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Signed-off-by: Jan Kara <jack@suse.com>
+Reported-by: Ashish Sangwan <a.sangwan@samsung.com>
+Reviewed-by: Ashish Sangwan <a.sangwan@samsung.com>
+Cc: Lino Sanfilippo <LinoSanfilippo@gmx.de>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/iommu-common.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/notify/mark.c |   30 +++++++++++++++++++++++++-----
+ 1 file changed, 25 insertions(+), 5 deletions(-)
 
-diff -puN lib/iommu-common.c~iommu-common-do-not-use-64-bit-constant-0xffffffffffffffffl-for-computing-align_mask lib/iommu-common.c
---- a/lib/iommu-common.c~iommu-common-do-not-use-64-bit-constant-0xffffffffffffffffl-for-computing-align_mask
-+++ a/lib/iommu-common.c
-@@ -119,7 +119,7 @@ unsigned long iommu_tbl_range_alloc(stru
- 	unsigned long align_mask = 0;
+diff -puN fs/notify/mark.c~fsnotify-fix-oops-in-fsnotify_clear_marks_by_group_flags fs/notify/mark.c
+--- a/fs/notify/mark.c~fsnotify-fix-oops-in-fsnotify_clear_marks_by_group_flags
++++ a/fs/notify/mark.c
+@@ -412,16 +412,36 @@ void fsnotify_clear_marks_by_group_flags
+ 					 unsigned int flags)
+ {
+ 	struct fsnotify_mark *lmark, *mark;
++	LIST_HEAD(to_free);
  
- 	if (align_order > 0)
--		align_mask = 0xffffffffffffffffl >> (64 - align_order);
-+		align_mask = ~0ul >> (BITS_PER_LONG - align_order);
++	/*
++	 * We have to be really careful here. Anytime we drop mark_mutex, e.g.
++	 * fsnotify_clear_marks_by_inode() can come and free marks. Even in our
++	 * to_free list so we have to use mark_mutex even when accessing that
++	 * list. And freeing mark requires us to drop mark_mutex. So we can
++	 * reliably free only the first mark in the list. That's why we first
++	 * move marks to free to to_free list in one go and then free marks in
++	 * to_free list one by one.
++	 */
+ 	mutex_lock_nested(&group->mark_mutex, SINGLE_DEPTH_NESTING);
+ 	list_for_each_entry_safe(mark, lmark, &group->marks_list, g_list) {
+-		if (mark->flags & flags) {
+-			fsnotify_get_mark(mark);
+-			fsnotify_destroy_mark_locked(mark, group);
+-			fsnotify_put_mark(mark);
+-		}
++		if (mark->flags & flags)
++			list_move(&mark->g_list, &to_free);
+ 	}
+ 	mutex_unlock(&group->mark_mutex);
++
++	while (1) {
++		mutex_lock_nested(&group->mark_mutex, SINGLE_DEPTH_NESTING);
++		if (list_empty(&to_free)) {
++			mutex_unlock(&group->mark_mutex);
++			break;
++		}
++		mark = list_first_entry(&to_free, struct fsnotify_mark, g_list);
++		fsnotify_get_mark(mark);
++		fsnotify_destroy_mark_locked(mark, group);
++		mutex_unlock(&group->mark_mutex);
++		fsnotify_put_mark(mark);
++	}
+ }
  
- 	/* Sanity check */
- 	if (unlikely(npages == 0)) {
+ /*
 _
 
-Patches currently in -mm which might be from sowmini.varadhan@oracle.com are
+Patches currently in -mm which might be from jack@suse.com are
 
 origin.patch
+fs-optimize-inotify-fsnotify-code-for-unwatched-files.patch
+fsnotify-document-mark-locking.patch
+fsnotify-remove-mark-free_list.patch
+fsnotify-get-rid-of-fsnotify_destroy_mark_locked.patch
 linux-next.patch
 
