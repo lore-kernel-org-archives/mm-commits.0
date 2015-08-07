@@ -1,135 +1,91 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- ipc-modify-message-queue-accounting-to-not-take-kernel-data-structures-into-account.patch removed from -mm tree
-Date: Fri, 07 Aug 2015 12:02:52 -0700
-Message-ID: <55c500dc.tb99+QrdL5ogUatH%akpm@linux-foundation.org>
+ signal-fix-information-leak-in-copy_siginfo_to_user.patch removed from -mm
+ tree
+Date: Fri, 07 Aug 2015 12:03:07 -0700
+Message-ID: <55c500eb.lAyGs0xX/r3sGF6J%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41464 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41505 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1946066AbbHGTCy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Aug 2015 15:02:54 -0400
+	with ESMTP id S1946135AbbHGTDI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Aug 2015 15:03:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: redmnic@gmail.com, arto@bendiken.net, dbueso@suse.de, dhowells@redhat.com, dledford@redhat.com, jb_duffy@btinternet.com, manfred@colorfullife.com, mtk.manpages@gmail.com, stable@vger.kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: amanieu@gmail.com, mingo@kernel.org, oleg@redhat.com, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc: modify message queue accounting to not take kernel data structures into account
+     Subject: signal: fix information leak in copy_siginfo_to_user
 has been removed from the -mm tree.  Its filename was
-     ipc-modify-message-queue-accounting-to-not-take-kernel-data-structures-into-account.patch
+     signal-fix-information-leak-in-copy_siginfo_to_user.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Marcus Gelderie <redmnic@gmail.com>
-Subject: ipc: modify message queue accounting to not take kernel data structures into account
+From: Amanieu d'Antras <amanieu@gmail.com>
+Subject: signal: fix information leak in copy_siginfo_to_user
 
-A while back, the message queue implementation in the kernel was improved
-to use btrees to speed up retrieval of messages, in
-d6629859b36("ipc/mqueue: improve performance of send/recv").  The patch
-introducing the improved kernel handling of message queues (using btrees)
-has, as a by-product, changed the meaning of the QSIZE field in the
-pseudo-file created for the queue.  Before, this field reflected the size
-of the user-data in the queue.  Since, it also takes kernel data
-structures into account.  For example, if 13 bytes of user data are in the
-queue, on my machine the file reports a size of 61 bytes.
+This function may copy the si_addr_lsb, si_lower and si_upper fields to
+user mode when they haven't been initialized, which can leak kernel stack
+data to user mode.
 
-There was some discussion on this topic before (for example
-https://lkml.org/lkml/2014/10/1/115).  Commenting on a th lkml, Michael
-Kerrisk gave the following background
-(https://lkml.org/lkml/2015/6/16/74):
+Just checking the value of si_code is insufficient because the same
+si_code value is shared between multiple signals.  This is solved by
+checking the value of si_signo in addition to si_code.
 
-    The pseudofiles in the mqueue filesystem (usually mounted at
-    /dev/mqueue) expose fields with metadata describing a message
-    queue. One of these fields, QSIZE, as originally implemented,
-    showed the total number of bytes of user data in all messages in
-    the message queue, and this feature was documented from the
-    beginning in the mq_overview(7) page. In 3.5, some other (useful)
-    work happened to break the user-space API in a couple of places,
-    including the value exposed via QSIZE, which now includes a measure
-    of kernel overhead bytes for the queue, a figure that renders QSIZE
-    useless for its original purpose, since there's no way to deduce
-    the number of overhead bytes consumed by the implementation.
-    (The other user-space breakage was subsequently fixed.)
-
-This patch removes the accounting of kernel data structures in the queue. 
-Reporting the size of these data-structures in the QSIZE field was a
-breaking change (see Michael's comment above).  Without the QSIZE field
-reporting the total size of user-data in the queue, there is no way to
-deduce this number.
-
-It should be noted that the resource limit RLIMIT_MSGQUEUE is counted
-against the worst-case size of the queue (in both the old and the new
-implementation).  Therefore, the kernel overhead accounting in QSIZE is
-not necessary to help the user understand the limitations RLIMIT imposes
-on the processes.
-
-Signed-off-by: Marcus Gelderie <redmnic@gmail.com>
-Acked-by: Doug Ledford <dledford@redhat.com>
-Acked-by: Michael Kerrisk <mtk.manpages@gmail.com>
-Acked-by: Davidlohr Bueso <dbueso@suse.de>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: John Duffy <jb_duffy@btinternet.com>
-Cc: Arto Bendiken <arto@bendiken.net>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Amanieu d'Antras <amanieu@gmail.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/mqueue.c |    5 -----
- 1 file changed, 5 deletions(-)
+ arch/arm64/kernel/signal32.c |    3 ++-
+ kernel/signal.c              |    9 ++++++---
+ 2 files changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN ipc/mqueue.c~ipc-modify-message-queue-accounting-to-not-take-kernel-data-structures-into-account ipc/mqueue.c
---- a/ipc/mqueue.c~ipc-modify-message-queue-accounting-to-not-take-kernel-data-structures-into-account
-+++ a/ipc/mqueue.c
-@@ -142,7 +142,6 @@ static int msg_insert(struct msg_msg *ms
- 		if (!leaf)
- 			return -ENOMEM;
- 		INIT_LIST_HEAD(&leaf->msg_list);
--		info->qsize += sizeof(*leaf);
- 	}
- 	leaf->priority = msg->m_type;
- 	rb_link_node(&leaf->rb_node, parent, p);
-@@ -187,7 +186,6 @@ try_again:
- 			     "lazy leaf delete!\n");
- 		rb_erase(&leaf->rb_node, &info->msg_tree);
- 		if (info->node_cache) {
--			info->qsize -= sizeof(*leaf);
- 			kfree(leaf);
- 		} else {
- 			info->node_cache = leaf;
-@@ -200,7 +198,6 @@ try_again:
- 		if (list_empty(&leaf->msg_list)) {
- 			rb_erase(&leaf->rb_node, &info->msg_tree);
- 			if (info->node_cache) {
--				info->qsize -= sizeof(*leaf);
- 				kfree(leaf);
- 			} else {
- 				info->node_cache = leaf;
-@@ -1034,7 +1031,6 @@ SYSCALL_DEFINE5(mq_timedsend, mqd_t, mqd
- 		/* Save our speculative allocation into the cache */
- 		INIT_LIST_HEAD(&new_leaf->msg_list);
- 		info->node_cache = new_leaf;
--		info->qsize += sizeof(*new_leaf);
- 		new_leaf = NULL;
- 	} else {
- 		kfree(new_leaf);
-@@ -1142,7 +1138,6 @@ SYSCALL_DEFINE5(mq_timedreceive, mqd_t,
- 		/* Save our speculative allocation into the cache */
- 		INIT_LIST_HEAD(&new_leaf->msg_list);
- 		info->node_cache = new_leaf;
--		info->qsize += sizeof(*new_leaf);
- 	} else {
- 		kfree(new_leaf);
- 	}
+diff -puN arch/arm64/kernel/signal32.c~signal-fix-information-leak-in-copy_siginfo_to_user arch/arm64/kernel/signal32.c
+--- a/arch/arm64/kernel/signal32.c~signal-fix-information-leak-in-copy_siginfo_to_user
++++ a/arch/arm64/kernel/signal32.c
+@@ -168,7 +168,8 @@ int copy_siginfo_to_user32(compat_siginf
+ 		 * Other callers might not initialize the si_lsb field,
+ 		 * so check explicitely for the right codes here.
+ 		 */
+-		if (from->si_code == BUS_MCEERR_AR || from->si_code == BUS_MCEERR_AO)
++		if (from->si_signo == SIGBUS &&
++		    (from->si_code == BUS_MCEERR_AR || from->si_code == BUS_MCEERR_AO))
+ 			err |= __put_user(from->si_addr_lsb, &to->si_addr_lsb);
+ #endif
+ 		break;
+diff -puN kernel/signal.c~signal-fix-information-leak-in-copy_siginfo_to_user kernel/signal.c
+--- a/kernel/signal.c~signal-fix-information-leak-in-copy_siginfo_to_user
++++ a/kernel/signal.c
+@@ -2748,12 +2748,15 @@ int copy_siginfo_to_user(siginfo_t __use
+ 		 * Other callers might not initialize the si_lsb field,
+ 		 * so check explicitly for the right codes here.
+ 		 */
+-		if (from->si_code == BUS_MCEERR_AR || from->si_code == BUS_MCEERR_AO)
++		if (from->si_signo == SIGBUS &&
++		    (from->si_code == BUS_MCEERR_AR || from->si_code == BUS_MCEERR_AO))
+ 			err |= __put_user(from->si_addr_lsb, &to->si_addr_lsb);
+ #endif
+ #ifdef SEGV_BNDERR
+-		err |= __put_user(from->si_lower, &to->si_lower);
+-		err |= __put_user(from->si_upper, &to->si_upper);
++		if (from->si_signo == SIGSEGV && from->si_code == SEGV_BNDERR) {
++			err |= __put_user(from->si_lower, &to->si_lower);
++			err |= __put_user(from->si_upper, &to->si_upper);
++		}
+ #endif
+ 		break;
+ 	case __SI_CHLD:
 _
 
-Patches currently in -mm which might be from redmnic@gmail.com are
+Patches currently in -mm which might be from amanieu@gmail.com are
 
 origin.patch
 
