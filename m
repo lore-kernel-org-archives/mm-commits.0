@@ -1,38 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-memory-failure-give-up-error-handling-for-non-tail-refcounted-thp.patch
+Subject: [merged] mm-memory-failure-unlock_page-before-put_page.patch
  removed from -mm tree
-Date: Fri, 07 Aug 2015 12:03:31 -0700
-Message-ID: <55c50103.MwRqV9iMgaB15hcl%akpm@linux-foundation.org>
+Date: Fri, 07 Aug 2015 12:03:27 -0700
+Message-ID: <55c500ff.FA80KQeC0RA8xcJn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41571 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41558 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1946135AbbHGTDc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Aug 2015 15:03:32 -0400
+	with ESMTP id S1946135AbbHGTD2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Aug 2015 15:03:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: n-horiguchi@ah.jp.nec.com, andi@firstfloor.org, dnelson@redhat.com, hughd@google.com, kirill@shutemov.name, rientjes@google.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory-failure: give up error handling for non-tail-refcounted thp
+     Subject: mm/memory-failure: unlock_page before put_page
 has been removed from the -mm tree.  Its filename was
-     mm-memory-failure-give-up-error-handling-for-non-tail-refcounted-thp.patch
+     mm-memory-failure-unlock_page-before-put_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm/memory-failure: give up error handling for non-tail-refcounted thp
+Subject: mm/memory-failure: unlock_page before put_page
 
-"non anonymous thp" case is still racy with freeing thp, which causes
-panic due to put_page() for refcount-0 page.  It seems that closing up
-this race might be hard (and/or not worth doing,) so let's give up the
-error handling for this case.
+Recently I addressed a few of hwpoison race problems and the patches are
+merged on v4.2-rc1.  It made progress, but unfortunately some problems
+still remain due to less coverage of my testing.  So I'm trying to fix or
+avoid them in this series.
+
+One point I'm expecting to discuss is that patch 4/5 changes the page flag
+set to be checked on free time.  In current behavior, __PG_HWPOISON is not
+supposed to be set when the page is freed.  I think that there is no
+strong reason for this behavior, and it causes a problem hard to fix only
+in error handler side (because __PG_HWPOISON could be set at arbitrary
+timing.) So I suggest to change it.
+
+With this patchset, hwpoison stress testing in official mce-test testsuite
+(which previously failed) passes.
+
+
+
+This patch (of 5):
+
+In "just unpoisoned" path, we do put_page and then unlock_page, which is a
+wrong order and causes "freeing locked page" bug.  So let's fix it.
 
 Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Andi Kleen <andi@firstfloor.org>
@@ -40,51 +56,28 @@ Cc: Dean Nelson <dnelson@redhat.com>
 Cc: Tony Luck <tony.luck@intel.com>
 Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: David Rientjes <rientjes@google.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   21 ++++++++++++---------
- 1 file changed, 12 insertions(+), 9 deletions(-)
+ mm/memory-failure.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/memory-failure.c~mm-memory-failure-give-up-error-handling-for-non-tail-refcounted-thp mm/memory-failure.c
---- a/mm/memory-failure.c~mm-memory-failure-give-up-error-handling-for-non-tail-refcounted-thp
+diff -puN mm/memory-failure.c~mm-memory-failure-unlock_page-before-put_page mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-memory-failure-unlock_page-before-put_page
 +++ a/mm/memory-failure.c
-@@ -909,6 +909,18 @@ int get_hwpoison_page(struct page *page)
- 	 * directly for tail pages.
- 	 */
- 	if (PageTransHuge(head)) {
-+		/*
-+		 * Non anonymous thp exists only in allocation/free time. We
-+		 * can't handle such a case correctly, so let's give it up.
-+		 * This should be better than triggering BUG_ON when kernel
-+		 * tries to touch the "partially handled" page.
-+		 */
-+		if (!PageAnon(head)) {
-+			pr_err("MCE: %#lx: non anonymous thp\n",
-+				page_to_pfn(page));
-+			return 0;
-+		}
-+
- 		if (get_page_unless_zero(head)) {
- 			if (PageTail(page))
- 				get_page(page);
-@@ -1134,15 +1146,6 @@ int memory_failure(unsigned long pfn, in
+@@ -1209,9 +1209,9 @@ int memory_failure(unsigned long pfn, in
+ 	if (!PageHWPoison(p)) {
+ 		printk(KERN_ERR "MCE %#lx: just unpoisoned\n", pfn);
+ 		atomic_long_sub(nr_pages, &num_poisoned_pages);
++		unlock_page(hpage);
+ 		put_page(hpage);
+-		res = 0;
+-		goto out;
++		return 0;
  	}
- 
- 	if (!PageHuge(p) && PageTransHuge(hpage)) {
--		if (!PageAnon(hpage)) {
--			pr_err("MCE: %#lx: non anonymous thp\n", pfn);
--			if (TestClearPageHWPoison(p))
--				atomic_long_sub(nr_pages, &num_poisoned_pages);
--			put_page(p);
--			if (p != hpage)
--				put_page(hpage);
--			return -EBUSY;
--		}
- 		if (unlikely(split_huge_page(hpage))) {
- 			pr_err("MCE: %#lx: thp split failed\n", pfn);
- 			if (TestClearPageHWPoison(p))
+ 	if (hwpoison_filter(p)) {
+ 		if (TestClearPageHWPoison(p))
 _
 
 Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
