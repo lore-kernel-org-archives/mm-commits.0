@@ -1,54 +1,40 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-memory-failure-unlock_page-before-put_page.patch
- removed from -mm tree
-Date: Fri, 07 Aug 2015 12:03:27 -0700
-Message-ID: <55c500ff.FA80KQeC0RA8xcJn%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-memory-failure-set-pagehwpoison-before-migrate_pages.patch removed from
+ -mm tree
+Date: Fri, 07 Aug 2015 12:03:36 -0700
+Message-ID: <55c50108.AKzt1//097maOkyc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41558 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41586 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1946135AbbHGTD2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Aug 2015 15:03:28 -0400
+	with ESMTP id S1946135AbbHGTDh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Aug 2015 15:03:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: n-horiguchi@ah.jp.nec.com, andi@firstfloor.org, dnelson@redhat.com, hughd@google.com, kirill@shutemov.name, rientjes@google.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory-failure: unlock_page before put_page
+     Subject: mm/memory-failure: set PageHWPoison before migrate_pages()
 has been removed from the -mm tree.  Its filename was
-     mm-memory-failure-unlock_page-before-put_page.patch
+     mm-memory-failure-set-pagehwpoison-before-migrate_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm/memory-failure: unlock_page before put_page
+Subject: mm/memory-failure: set PageHWPoison before migrate_pages()
 
-Recently I addressed a few of hwpoison race problems and the patches are
-merged on v4.2-rc1.  It made progress, but unfortunately some problems
-still remain due to less coverage of my testing.  So I'm trying to fix or
-avoid them in this series.
+Now page freeing code doesn't consider PageHWPoison as a bad page, so by
+setting it before completing the page containment, we can prevent the
+error page from being reused just after successful page migration.
 
-One point I'm expecting to discuss is that patch 4/5 changes the page flag
-set to be checked on free time.  In current behavior, __PG_HWPOISON is not
-supposed to be set when the page is freed.  I think that there is no
-strong reason for this behavior, and it causes a problem hard to fix only
-in error handler side (because __PG_HWPOISON could be set at arbitrary
-timing.) So I suggest to change it.
-
-With this patchset, hwpoison stress testing in official mce-test testsuite
-(which previously failed) passes.
-
-
-
-This patch (of 5):
-
-In "just unpoisoned" path, we do put_page and then unlock_page, which is a
-wrong order and causes "freeing locked page" bug.  So let's fix it.
+I added TTU_IGNORE_HWPOISON for try_to_unmap() to make sure that the page
+table entry is transformed into migration entry, not to hwpoison entry.
 
 Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Andi Kleen <andi@firstfloor.org>
@@ -56,28 +42,51 @@ Cc: Dean Nelson <dnelson@redhat.com>
 Cc: Tony Luck <tony.luck@intel.com>
 Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
 Cc: Hugh Dickins <hughd@google.com>
-Acked-by: David Rientjes <rientjes@google.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memory-failure.c |    7 ++++---
+ mm/migrate.c        |    3 ++-
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN mm/memory-failure.c~mm-memory-failure-unlock_page-before-put_page mm/memory-failure.c
---- a/mm/memory-failure.c~mm-memory-failure-unlock_page-before-put_page
+diff -puN mm/memory-failure.c~mm-memory-failure-set-pagehwpoison-before-migrate_pages mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-memory-failure-set-pagehwpoison-before-migrate_pages
 +++ a/mm/memory-failure.c
-@@ -1209,9 +1209,9 @@ int memory_failure(unsigned long pfn, in
- 	if (!PageHWPoison(p)) {
- 		printk(KERN_ERR "MCE %#lx: just unpoisoned\n", pfn);
- 		atomic_long_sub(nr_pages, &num_poisoned_pages);
-+		unlock_page(hpage);
- 		put_page(hpage);
--		res = 0;
--		goto out;
-+		return 0;
+@@ -1659,6 +1659,8 @@ static int __soft_offline_page(struct pa
+ 		inc_zone_page_state(page, NR_ISOLATED_ANON +
+ 					page_is_file_cache(page));
+ 		list_add(&page->lru, &pagelist);
++		if (!TestSetPageHWPoison(page))
++			atomic_long_inc(&num_poisoned_pages);
+ 		ret = migrate_pages(&pagelist, new_page, NULL, MPOL_MF_MOVE_ALL,
+ 					MIGRATE_SYNC, MR_MEMORY_FAILURE);
+ 		if (ret) {
+@@ -1673,9 +1675,8 @@ static int __soft_offline_page(struct pa
+ 				pfn, ret, page->flags);
+ 			if (ret > 0)
+ 				ret = -EIO;
+-		} else {
+-			if (!TestSetPageHWPoison(page))
+-				atomic_long_inc(&num_poisoned_pages);
++			if (TestClearPageHWPoison(page))
++				atomic_long_dec(&num_poisoned_pages);
+ 		}
+ 	} else {
+ 		pr_info("soft offline: %#lx: isolation failed: %d, page count %d, type %lx\n",
+diff -puN mm/migrate.c~mm-memory-failure-set-pagehwpoison-before-migrate_pages mm/migrate.c
+--- a/mm/migrate.c~mm-memory-failure-set-pagehwpoison-before-migrate_pages
++++ a/mm/migrate.c
+@@ -880,7 +880,8 @@ static int __unmap_and_move(struct page
+ 	/* Establish migration ptes or remove ptes */
+ 	if (page_mapped(page)) {
+ 		try_to_unmap(page,
+-			TTU_MIGRATION|TTU_IGNORE_MLOCK|TTU_IGNORE_ACCESS);
++			TTU_MIGRATION|TTU_IGNORE_MLOCK|TTU_IGNORE_ACCESS|
++			TTU_IGNORE_HWPOISON);
+ 		page_was_mapped = 1;
  	}
- 	if (hwpoison_filter(p)) {
- 		if (TestClearPageHWPoison(p))
+ 
 _
 
 Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
