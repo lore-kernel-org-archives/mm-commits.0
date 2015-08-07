@@ -1,77 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-slub-allow-merging-when-slab_debug_free-is-set.patch
- removed from -mm tree
-Date: Fri, 07 Aug 2015 12:03:11 -0700
-Message-ID: <55c500ef./vK8/GWS9sBCaGDG%akpm@linux-foundation.org>
+Subject: [merged] ocfs2-fix-shift-left-overflow.patch removed from -mm
+ tree
+Date: Fri, 07 Aug 2015 12:03:20 -0700
+Message-ID: <55c500f8.hKoBSJU4TMhDkKky%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41516 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41538 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1946135AbbHGTDL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Aug 2015 15:03:11 -0400
+	with ESMTP id S1946135AbbHGTDV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Aug 2015 15:03:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khlebnikov@yandex-team.ru, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: joseph.qi@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slub: allow merging when SLAB_DEBUG_FREE is set
+     Subject: ocfs2: fix shift left overflow
 has been removed from the -mm tree.  Its filename was
-     mm-slub-allow-merging-when-slab_debug_free-is-set.patch
+     ocfs2-fix-shift-left-overflow.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Subject: mm/slub: allow merging when SLAB_DEBUG_FREE is set
+From: Joseph Qi <joseph.qi@huawei.com>
+Subject: ocfs2: fix shift left overflow
 
-This patch fixes creation of new kmem-caches after enabling sanity_checks
-for existing mergeable kmem-caches in runtime: before that patch creation
-fails because unique name in sysfs already taken by existing kmem-cache.
+When using a large volume, for example 9T volume with 2T already used,
+frequent creation of small files with O_DIRECT when the IO is not
+cluster aligned may clear sectors in the wrong place.  This will cause
+filesystem corruption.
 
-Unlike other debug options this doesn't change object layout and could be
-enabled and disabled at any time.
+This is because p_cpos is a u32.  When calculating the corresponding
+sector it should be converted to u64 first, otherwise it may overflow.
 
-Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Acked-by: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: <stable@vger.kernel.org>	[4.0+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab_common.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/ocfs2/aops.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/slab_common.c~mm-slub-allow-merging-when-slab_debug_free-is-set mm/slab_common.c
---- a/mm/slab_common.c~mm-slub-allow-merging-when-slab_debug_free-is-set
-+++ a/mm/slab_common.c
-@@ -37,8 +37,7 @@ struct kmem_cache *kmem_cache;
- 		SLAB_TRACE | SLAB_DESTROY_BY_RCU | SLAB_NOLEAKTRACE | \
- 		SLAB_FAILSLAB)
+diff -puN fs/ocfs2/aops.c~ocfs2-fix-shift-left-overflow fs/ocfs2/aops.c
+--- a/fs/ocfs2/aops.c~ocfs2-fix-shift-left-overflow
++++ a/fs/ocfs2/aops.c
+@@ -685,7 +685,7 @@ static int ocfs2_direct_IO_zero_extend(s
  
--#define SLAB_MERGE_SAME (SLAB_DEBUG_FREE | SLAB_RECLAIM_ACCOUNT | \
--		SLAB_CACHE_DMA | SLAB_NOTRACK)
-+#define SLAB_MERGE_SAME (SLAB_RECLAIM_ACCOUNT | SLAB_CACHE_DMA | SLAB_NOTRACK)
+ 	if (p_cpos && !(ext_flags & OCFS2_EXT_UNWRITTEN)) {
+ 		u64 s = i_size_read(inode);
+-		sector_t sector = (p_cpos << (osb->s_clustersize_bits - 9)) +
++		sector_t sector = ((u64)p_cpos << (osb->s_clustersize_bits - 9)) +
+ 			(do_div(s, osb->s_clustersize) >> 9);
  
- /*
-  * Merge control. If this is set then no merging of slab caches will occur.
+ 		ret = blkdev_issue_zeroout(osb->sb->s_bdev, sector,
+@@ -910,7 +910,7 @@ static ssize_t ocfs2_direct_IO_write(str
+ 		BUG_ON(!p_cpos || (ext_flags & OCFS2_EXT_UNWRITTEN));
+ 
+ 		ret = blkdev_issue_zeroout(osb->sb->s_bdev,
+-				p_cpos << (osb->s_clustersize_bits - 9),
++				(u64)p_cpos << (osb->s_clustersize_bits - 9),
+ 				zero_len_head >> 9, GFP_NOFS, false);
+ 		if (ret < 0)
+ 			mlog_errno(ret);
 _
 
-Patches currently in -mm which might be from khlebnikov@yandex-team.ru are
+Patches currently in -mm which might be from joseph.qi@huawei.com are
 
 origin.patch
-mm-slub-fix-slab-double-free-in-case-of-duplicate-sysfs-filename.patch
-pagemap-check-permissions-and-capabilities-at-open-time.patch
-pagemap-switch-to-the-new-format-and-do-some-cleanup.patch
-pagemap-rework-hugetlb-and-thp-report.patch
-pagemap-hide-physical-addresses-from-non-privileged-users.patch
-pagemap-add-mmap-exclusive-bit-for-marking-pages-mapped-only-here.patch
-pagemap-add-mmap-exclusive-bit-for-marking-pages-mapped-only-here-fix.patch
-pagemap-update-documentation.patch
-pagemap-update-documentation-fix.patch
-linux-next.patch
+ocfs2-fix-race-between-dio-and-recover-orphan.patch
+ocfs2-fix-several-issues-of-append-dio.patch
+ocfs2-do-not-bug-if-buffer-not-uptodate-in-__ocfs2_journal_access.patch
+ocfs2-clean-up-unused-local-variables-in-ocfs2_file_write_iter.patch
+ocfs2-adjust-code-to-match-locking-unlocking-order.patch
+ocfs2-set-filesytem-read-only-when-ocfs2_delete_entry-failed.patch
+ocfs2-set-filesytem-read-only-when-ocfs2_delete_entry-failed-v2.patch
+ocfs2-fix-race-between-crashed-dio-and-rm.patch
+ocfs2-avoid-access-invalid-address-when-read-o2dlm-debug-messages.patch
 
