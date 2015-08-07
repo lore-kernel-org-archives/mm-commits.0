@@ -1,60 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- fs-char_devc-fix-incorrect-documentation-for-unregister_chrdev_region.patch removed from -mm tree
-Date: Fri, 07 Aug 2015 12:03:40 -0700
-Message-ID: <55c5010c.vxgdV26mvXCdrysA%akpm@linux-foundation.org>
+Subject: [merged] writeback-fix-initial-dirty-limit.patch removed from -mm tree
+Date: Fri, 07 Aug 2015 12:03:38 -0700
+Message-ID: <55c5010a.8a1NCKpINMVWfxMd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41594 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41590 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1946135AbbHGTDk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Aug 2015 15:03:40 -0400
+	with ESMTP id S1946135AbbHGTDi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Aug 2015 15:03:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ppm.floss@gmail.com, gregkh@linuxfoundation.org, mm-commits@vger.kernel.org
+To: rabin.vincent@axis.com, axboe@fb.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/char_dev.c: fix incorrect documentation for unregister_chrdev_region
+     Subject: writeback: fix initial dirty limit
 has been removed from the -mm tree.  Its filename was
-     fs-char_devc-fix-incorrect-documentation-for-unregister_chrdev_region.patch
+     writeback-fix-initial-dirty-limit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Partha Pratim Mukherjee <ppm.floss@gmail.com>
-Subject: fs/char_dev.c: fix incorrect documentation for unregister_chrdev_region
+From: Rabin Vincent <rabin.vincent@axis.com>
+Subject: writeback: fix initial dirty limit
 
-The current documentation for unregister_chrdev_region says that it return
-a range of device numbers which is incorrect.  Instead it unregister a
-range of device numbers.  Fix the documentation to make this clear.
+The initial value of global_wb_domain.dirty_limit set by
+writeback_set_ratelimit() is zeroed out by the memset in wb_domain_init().
 
-Signed-off-by: Partha Pratim Mukherjee <ppm.floss@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Rabin Vincent <rabin.vincent@axis.com>
+Acked-by: Tejun Heo <tj@kernel.org>
+Cc: Jens Axboe <axboe@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/char_dev.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page-writeback.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/char_dev.c~fs-char_devc-fix-incorrect-documentation-for-unregister_chrdev_region fs/char_dev.c
---- a/fs/char_dev.c~fs-char_devc-fix-incorrect-documentation-for-unregister_chrdev_region
-+++ a/fs/char_dev.c
-@@ -274,7 +274,7 @@ out2:
- }
- 
- /**
-- * unregister_chrdev_region() - return a range of device numbers
-+ * unregister_chrdev_region() - unregister a range of device numbers
-  * @from: the first in the range of numbers to unregister
-  * @count: the number of device numbers to unregister
-  *
-_
-
-Patches currently in -mm which might be from ppm.floss@gmail.com are
-
-linux-next.patch
-
+diff -puN mm/page-writeback.c~writeback-fix-initial-dirty-limit mm/page-writeback.c
+--- a/mm/page-writeback.c~writeback-fix-initial-dirty-limit
++++ a/mm/page-writeback.c
+@@ -2063,10 +2063,10 @@ static struct notifier_block ratelimit_n
+  */
+ void __init page_writeback_init(void)
+ {
++	BUG_ON(wb_domain_init(&global_wb_domain, GFP_KERNEL));
++
+ 	writeback_set_ratelimit();
+ 	register_cpu_notifier(&ratelimit_nb);
